@@ -1,6 +1,9 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* globals advanced_timer, DUMP, icc, icc_events, IccHelper, Notification,
+           Service */
+
 'use strict';
 
 var icc_worker = {
@@ -16,15 +19,18 @@ var icc_worker = {
     });
   },
 
+  // Helper to retrieve text from MozStkTextMessage
+  _retrieveText: function icc_worker_retrieve_text(stkMessage) {
+    return (typeof stkMessage === 'string' || stkMessage instanceof String) ?
+      stkMessage : ((stkMessage) ? stkMessage.text : null);
+  },
+
   // STK_CMD_REFRESH
   '0x1': function STK_CMD_REFRESH(message) {
     DUMP('STK_CMD_REFRESH', message.command.options);
     if (this.idleTextNotifications[message.iccId]) {
       this.idleTextNotifications[message.iccId].close();
     }
-    icc.responseSTKCommand(message, {
-      resultCode: icc._iccManager.STK_RESULT_OK
-    });
   },
 
   // STK_CMD_POLL_INTERVAL
@@ -43,9 +49,6 @@ var icc_worker = {
   '0x5': function STK_CMD_SET_UP_EVENT_LIST(message) {
     DUMP('STK_CMD_SET_UP_EVENT_LIST:', message.command.options);
     icc_events.register(message, message.command.options.eventList);
-    icc.responseSTKCommand(message, {
-      resultCode: icc._iccManager.STK_RESULT_OK
-    });
   },
 
   // STK_CMD_SET_UP_CALL
@@ -58,7 +61,7 @@ var icc_worker = {
       if (confirmed && postMessage) {
         // Transfering the second alpha id to dialer (Bug #873906)
         window.navigator.mozSettings.createLock().set({
-          'icc.callmessage': options.callMessage
+          'icc.callmessage': callMessage
         });
       }
     }
@@ -67,23 +70,22 @@ var icc_worker = {
     DUMP('STK_CMD_SET_UP_CALL:', message.command.options);
     var options = message.command.options;
 
-    if (!icc.canProcessMessage(message)) {
-      return DUMP('Message active, delaying STK...');
-    }
+    var confirmMessage = this._retrieveText(options.confirmMessage);
+    var callMessage = this._retrieveText(options.callMessage);
 
-    if (!options.confirmMessage) {
-      options.confirmMessage = _(
+    if (!confirmMessage) {
+      confirmMessage = _(
         'icc-confirmCall-defaultmessage', {
           'number': options.address
         });
     }
-    if (options.confirmMessage) {
-      icc.asyncConfirm(message, options.confirmMessage,
+    if (confirmMessage) {
+      icc.asyncConfirm(message, confirmMessage,
         function(confirmed) {
-          stkSetupCall(confirmed, options.callMessage);
+          stkSetupCall(confirmed, callMessage);
         });
     } else {
-      stkSetupCall(true, options.callMessage);
+      stkSetupCall(true, callMessage);
     }
   },
 
@@ -91,14 +93,6 @@ var icc_worker = {
   '0x11': function STK_CMD_SEND_SS(message) {
     DUMP('STK_CMD_SEND_SS:', message.command.options);
     var options = message.command.options;
-
-    if (!icc.canProcessMessage(message)) {
-      return DUMP('Message active, delaying STK...');
-    }
-
-    icc.responseSTKCommand(message, {
-      resultCode: icc._iccManager.STK_RESULT_OK
-    });
     if (!options.text) {
       var _ = navigator.mozL10n.get;
       options.text = _('icc-alertMessage-defaultmessage');
@@ -116,17 +110,9 @@ var icc_worker = {
   '0x13': function STK_CMD_SEND_SMS(message) {
     DUMP('STK_CMD_SEND_SMS:', message.command.options);
     var options = message.command.options;
-
-    if (!icc.canProcessMessage(message)) {
-      return DUMP('Message active, delaying STK...');
-    }
-
-    icc.responseSTKCommand(message, {
-      resultCode: icc._iccManager.STK_RESULT_OK
-    });
     if (options.text) {
       icc.confirm(message, options.text);
-    } else if (options.text != undefined) {
+    } else if (options.text !== undefined) {
       var _ = navigator.mozL10n.get;
       icc.alert(message, _('icc-alertMessage-defaultmessage'));
     }
@@ -136,17 +122,9 @@ var icc_worker = {
   '0x14': function STK_CMD_SEND_DTMF(message) {
     DUMP('STK_CMD_SEND_DTMF:', message.command.options);
     var options = message.command.options;
-
-    if (!icc.canProcessMessage(message)) {
-      return DUMP('Message active, delaying STK...');
-    }
-
-    icc.responseSTKCommand(message, {
-      resultCode: icc._iccManager.STK_RESULT_OK
-    });
     if (options.text) {
       icc.alert(message, options.text);
-    } else if (options.text == '') {
+    } else if (options.text === '') {
       var _ = navigator.mozL10n.get;
       icc.alert(message, _('icc-confirmMessage-defaultmessage'));
     }
@@ -159,7 +137,8 @@ var icc_worker = {
     icc.responseSTKCommand(message, {
       resultCode: icc._iccManager.STK_RESULT_OK
     });
-    icc.showURL(message, options.url, options.confirmMessage);
+    icc.showURL(message, options.url,
+      this._retrieveText(options.confirmMessage));
   },
 
   // STK_CMD_PLAY_TONE
@@ -196,22 +175,18 @@ var icc_worker = {
     DUMP('STK_CMD_PLAY_TONE:', message.command.options);
     var options = message.command.options;
 
-    if (options.text && !icc.canProcessMessage(message)) {
-      return DUMP('Message active, delaying STK...');
-    }
-
     var tonePlayer = new Audio();
     tonePlayer.src = getPhoneSound(options.tone);
     tonePlayer.loop = true;
 
     var timeout = 0;
     var duration = options.duration;
-    if (duration && duration.timeUnit != undefined &&
-        duration.timeInterval != undefined) {
+    if (duration && duration.timeUnit !== undefined &&
+        duration.timeInterval !== undefined) {
       timeout = icc.calculateDurationInMS(duration.timeUnit,
         duration.timeInterval);
-    } else if (options.timeUnit != undefined &&
-        options.timeInterval != undefined) {
+    } else if (options.timeUnit !== undefined &&
+        options.timeInterval !== undefined) {
       timeout = icc.calculateDurationInMS(options.timUnit,
         options.timeInterval);
     } else {
@@ -252,12 +227,8 @@ var icc_worker = {
     DUMP('STK_CMD_DISPLAY_TEXT:', message.command.options);
     var options = message.command.options;
 
-    if (!icc.canProcessMessage(message)) {
-      return DUMP('Message active, delaying STK...');
-    }
-
     // Check if device is idle or settings
-    var activeApp = System.currentApp;
+    var activeApp = Service.currentApp;
     var settingsOrigin = window.location.origin.replace('system', 'settings');
     if (!options.isHighPriority && activeApp && !activeApp.isHomescreen &&
         activeApp.origin !== settingsOrigin) {
@@ -272,8 +243,8 @@ var icc_worker = {
 
     var timeout = icc._displayTextTimeout;
     var duration = options.duration;
-    if (duration && duration.timeUnit != undefined &&
-        duration.timeInterval != undefined) {
+    if (duration && duration.timeUnit !== undefined &&
+        duration.timeInterval !== undefined) {
       timeout = icc.calculateDurationInMS(duration.timeUnit,
         duration.timeInterval);
     }
@@ -317,22 +288,7 @@ var icc_worker = {
     DUMP('STK_CMD_GET_INPUT:', message.command.options);
     var options = message.command.options;
 
-    if (!icc.canProcessMessage(message)) {
-      return DUMP('Message active, delaying STK...');
-    }
-
     DUMP('STK Input title: ' + options.text);
-
-    document.addEventListener('visibilitychange',
-      function stkInputNoAttended() {
-        document.removeEventListener('visibilitychange', stkInputNoAttended,
-          true);
-        icc.responseSTKCommand(message, {
-          resultCode:
-            icc._iccManager.STK_RESULT_UICC_SESSION_TERM_BY_USER
-        });
-        icc.hideView();
-      }, true);
 
     var duration = options.duration;
     var timeout = (duration &&
@@ -382,8 +338,9 @@ var icc_worker = {
       navigator.mozApps.mgmt.getAll().onsuccess = function gotApps(evt) {
         var apps = evt.target.result;
         apps.forEach(function appIterator(app) {
-          if (app.origin != application)
+          if (app.origin != application) {
             return;
+          }
           DUMP('Launching ', app.origin);
           app.launch();
         }, this);
@@ -441,26 +398,26 @@ var icc_worker = {
         break;
 
       case icc._iccManager.STK_LOCAL_INFO_IMEI:
-        var req = conn.sendMMI('*#06#');
-        req.onsuccess = function getIMEI() {
-          if (req.result && req.result.statusMessage) {
-            icc.responseSTKCommand(message, {
-              localInfo: {
-                imei: req.result.statusMessage
-              },
-              resultCode: icc._iccManager.STK_RESULT_OK
-            });
-          }
-        };
-        req.onerror = function errorIMEI() {
-          icc.responseSTKCommand(message, {
-              localInfo: {
-                imei: '0'
-              },
-            resultCode:
-              icc._iccManager.STK_RESULT_REQUIRED_VALUES_MISSING
+        // XXX: This should be made DSDS-aware, see also bug 980391
+        navigator.mozTelephony.dial('*#06#').then(function(call) {
+          return call.result.then(function getIMEI(result) {
+            if (result.success && (result.serviceCode === 'scImei') &&
+                result.statusMessage) {
+              return result.statusMessage;
+            } else {
+              return 0;
+            }
           });
-        };
+        }).then(function(imei) {
+          icc.responseSTKCommand(message, {
+            localInfo: {
+              imei: imei
+            },
+            resultCode:
+              imei ? icc._iccManager.STK_RESULT_OK
+                   : icc._iccManager.STK_RESULT_REQUIRED_VALUES_MISSING
+          });
+        });
         break;
 
       case icc._iccManager.STK_LOCAL_INFO_DATE_TIME_ZONE:
@@ -581,9 +538,6 @@ var icc_worker = {
       });
     this.idleTextNotifications[message.iccId].onclick =
       function onClickSTKNotification() {
-        if (!icc.canProcessMessage(message)) {
-          return DUMP('Message active, delaying STK...');
-        }
         icc.alert(message, options.text);
       };
     this.idleTextNotifications[message.iccId].onshow =

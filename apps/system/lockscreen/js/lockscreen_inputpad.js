@@ -169,11 +169,10 @@
 
   LockScreenInputpad.prototype.updatePassCodeUI =
   function() {
-    var overlay = this.lockScreen.overlay;
     if (this.states.passCodeEntered) {
-      overlay.classList.add('passcode-entered');
+      this.passcodePad.classList.add('passcode-entered');
     } else {
-      overlay.classList.remove('passcode-entered');
+      this.passcodePad.classList.remove('passcode-entered');
     }
     var i = 4;
     while (i--) {
@@ -209,7 +208,7 @@
           return;
         }
         this.states.passCodeEntered =
-          this.passCodeEntered.substr(0,
+          this.states.passCodeEntered.substr(0,
             this.states.passCodeEntered.length - 1);
         this.updatePassCodeUI();
 

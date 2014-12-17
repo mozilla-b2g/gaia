@@ -20,7 +20,7 @@
     <script defer src="shared/js/notification_helper.js"></script>
     <!-- We need this before we can show the boot animation -->
     <script src="shared/js/async_storage.js"></script>
-    <script src="js/settings_cache.js"></script>
+    <script src="tv_shared/js/settings_cache.js"></script>
     <script defer src="shared/js/manifest_helper.js"></script>
     <script defer src="shared/js/mime_mapper.js"></script>
     <script defer src="shared/js/settings_url.js"></script>
@@ -33,11 +33,13 @@
     <!-- XXX can be removed while gecko support navigator.mozHour12 API -->
     <script defer src="shared/js/date_time_helper.js"></script>
 
-    <script defer src="js/system.js"></script>
+    <script defer src="js/service.js"></script>
     <script defer src="js/base_ui.js"></script>
 
     <script defer src="js/orientation_manager.js"></script>
     <!--
+    <script defer src="shared/js/input_mgmt/input_app_list.js"></script>
+    <script defer src="shared/js/input_mgmt/input_app_list.js"></script>
     <script defer src="shared/js/keyboard_helper.js"></script>
     <script defer src="shared/js/template.js"></script>
     -->
@@ -53,6 +55,7 @@
 
     <link rel="stylesheet" type="text/css" href="style/definitions.css">
     <link rel="stylesheet" type="text/css" href="style/attention_indicator.css">
+    <link rel="stylesheet" type="text/css" href="tv_shared/style/navigation.css">
 
     <!-- System -->
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
@@ -110,6 +113,7 @@
     <script defer src="js/screenshot.js"></script>
     <script defer src="js/async_semaphore.js"></script>
     <script defer src="js/sound_manager.js"></script>
+    <script defer src="js/browser_key_event_manager.js"></script>
     <script defer src="js/hardware_buttons.js"></script>
     <script defer src="js/system_banner.js"></script>
     <script defer src="js/home_gesture.js"></script>
@@ -296,6 +300,15 @@
     <script defer src="shared/js/url_helper.js"></script>
     <!-- <script defer src="shared/js/icons_helper.js"></script> -->
 
+    <!-- Navigation -->
+    <script defer src="tv_shared/js/vendor/evt.js"></script>
+    <script defer src="tv_shared/js/spatial_navigator.js"></script>
+    <script defer src="tv_shared/js/key_navigation_adapter.js"></script>
+    <script defer src="tv_shared/js/selection_border.js"></script>
+    <script defer src="tv_shared/js/init_gesture.js"></script>
+
+    <!-- API Services -->
+    <script defer src="js/screenshot_service.js"></script>
   </head>
 
   <body class="theme-settings" role="application">

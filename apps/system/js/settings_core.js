@@ -50,6 +50,7 @@
         self.debug('reading ' + name + ' from settings db.');
         var get = self.getSettingsLock().get(name);
         get.addEventListener('success', (function() {
+          self.debug('...value is ' + get.result[name]);
           resolve(get.result[name]);
         }));
         get.addEventListener('error', (function() {

@@ -3,7 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import time
-
+from marionette import Wait
 from gaiatest import GaiaTestCase
 from gaiatest.mocks.mock_contact import MockContact
 
@@ -16,7 +16,7 @@ class TestContacts(GaiaTestCase):
         GaiaTestCase.setUp(self)
 
         self.contact = MockContact(tel={
-            'value': self.testvars["carrier"]["phone_number"]})
+            'value': self.testvars["local_phone_numbers"][0]})
         self.data_layer.insert_contact(self.contact)
 
     def test_sms_contact(self):
@@ -44,9 +44,8 @@ class TestContacts(GaiaTestCase):
         self.assertEqual(new_message.first_recipient_name, expected_name)
         self.assertEqual(new_message.first_recipient_number_attribute, expected_tel)
 
-        # check that the keyboard is open by default
         self.marionette.switch_to_frame()
-        self.assertTrue(new_message.keyboard.is_keyboard_displayed)
+        Wait(self.marionette).until(lambda m: new_message.keyboard.is_keyboard_displayed)
         self.apps.switch_to_displayed_app()
 
         new_message.type_message(text_message_content)

@@ -1,12 +1,7 @@
 'use strict';
 
-var Home = require(
-  '../../../verticalhome/test/marionette/lib/home2');
 var Rocketbar = require('./lib/rocketbar');
-var Search = require(
-  '../../../../apps/search/test/marionette/lib/search');
 var Server = require('../../../../shared/test/integration/server');
-var System = require('./lib/system');
 var Actions = require('marionette-client').Actions;
 var assert = require('chai').assert;
 
@@ -26,10 +21,10 @@ marionette('Software Home Button - File Open Error', function() {
   var home, rocketbar, search, server, system, actions;
 
   setup(function() {
-    home = new Home(client);
+    home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
-    search = new Search(client);
-    system = new System(client);
+    search = client.loader.getAppClass('search');
+    system = client.loader.getAppClass('system');
     actions = new Actions(client);
     system.waitForStartup();
     search.removeGeolocationPermission();
@@ -61,9 +56,13 @@ marionette('Software Home Button - File Open Error', function() {
 
     // Tap on the toaster to open the download.
     // We could also open this from settings or the utility tray if needed.
-    var toasterDetail = client.helper.waitForElement(
-      '#notification-toaster.displayed .toaster-detail');
-    toasterDetail.tap();
+    var toasterTitle;
+    client.waitFor(function() {
+      toasterTitle = client.helper.waitForElement(
+        '#notification-toaster.displayed .toaster-title');
+      return toasterTitle.text().indexOf('Download complete') !== -1;
+    });
+    toasterTitle.tap();
 
     function rect(el) {
       return el.getBoundingClientRect();

@@ -57,7 +57,7 @@
       // <a href="" target="_blank"> should never be part of the app
       // except while FTU is running: windows must be closable & parented by FTU
       if (evt.detail.name == '_blank' &&
-          !window.System.runningFTU &&
+          !window.Service.runningFTU &&
           evt.detail.features !== 'attention') {
         this.createNewWindow(evt);
         evt.stopPropagation();
@@ -141,9 +141,9 @@
     var configObject = {
       url: evt.detail.url,
       name: evt.detail.name,
-      iframe: evt.detail.frameElement
+      iframe: evt.detail.frameElement,
+      isPrivate: this.app.isPrivateBrowser()
     };
-
     window.dispatchEvent(new CustomEvent('openwindow', {
       detail: configObject
     }));
@@ -158,7 +158,8 @@
       url: evt.detail.url,
       name: this.app.name,
       iframe: evt.detail.frameElement,
-      origin: this.app.origin
+      origin: this.app.origin,
+      isPrivate: this.app.isPrivateBrowser()
     };
     if (this._sameOrigin(this.app.origin, evt.detail.url)) {
       configObject.manifestURL = this.app.manifestURL;
@@ -205,6 +206,12 @@
 
     this.app.setOrientation();
     this.app.requestForeground();
+
+    // An activity handled by ActivityWindow is always an inline activity.
+    // All window activities are handled by AppWindow. All inline
+    // activities have a rearWindow. Once this inline activity is killed,
+    // the focus should be transfered to its rear window.
+    evt.detail.rearWindow.focus();
   };
 
   ChildWindowFactory.prototype.createActivityWindow = function(evt) {

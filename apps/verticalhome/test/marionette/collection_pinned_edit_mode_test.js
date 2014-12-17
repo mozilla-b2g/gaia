@@ -5,12 +5,10 @@ var Actions = require('marionette-client').Actions;
 var Collection = require('./lib/collection');
 var EmeServer = require(
   '../../../../shared/test/integration/eme_server/parent');
-var Home2 = require('./lib/home2');
-var System = require('../../../../apps/system/test/marionette/lib/system');
 
 marionette('Vertical - Collection', function() {
 
-  var client = marionette.client(Home2.clientOptions);
+  var client = marionette.client(require(__dirname + '/client_options.js'));
   var actions, collection, home, selectors, server, system;
 
   suiteSetup(function(done) {
@@ -28,8 +26,8 @@ marionette('Vertical - Collection', function() {
     actions = new Actions(client);
     selectors = Collection.Selectors;
     collection = new Collection(client);
-    home = new Home2(client);
-    system = new System(client);
+    home = client.loader.getAppClass('verticalhome');
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
 
     home.waitForLaunch();
@@ -43,7 +41,7 @@ marionette('Vertical - Collection', function() {
     // A collection name from the cateories_list.json stub
     var collectionName = 'Around Me';
     collection.selectNew(collectionName);
-    client.apps.switchToApp(Home2.URL);
+    client.apps.switchToApp(home.URL);
 
     var collectionIcon = collection.getCollectionByName(collectionName);
 

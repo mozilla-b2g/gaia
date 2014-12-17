@@ -1,5 +1,6 @@
-/* globals CallsHandler, FontSizeManager, KeypadManager, LazyL10n,
-           LockScreenSlide, MozActivity, SettingsListener, Utils, performance */
+/* globals CallsHandler, FontSizeManager, KeypadManager,
+           LazyL10n, LockScreenSlide, MozActivity, SettingsListener, Utils,
+           performance */
 /* jshint nonew: false */
 
 'use strict';
@@ -16,8 +17,6 @@ var CallScreen = {
   views: document.getElementById('views'),
 
   calls: document.getElementById('calls'),
-  groupCalls: document.getElementById('group-call-details'),
-  groupCallsList: document.getElementById('group-call-details-list'),
 
   mainContainer: document.getElementById('main-container'),
   contactBackground: document.getElementById('contact-background'),
@@ -42,9 +41,6 @@ var CallScreen = {
 
   answerButton: document.getElementById('callbar-answer'),
   rejectButton: document.getElementById('callbar-hang-up'),
-
-  showGroupButton: document.getElementById('group-show'),
-  hideGroupButton: document.getElementById('group-hide'),
 
   incomingContainer: document.getElementById('incoming-container'),
   incomingInfo: document.getElementById('incoming-info'),
@@ -127,20 +123,14 @@ var CallScreen = {
                                         this.toggleSpeaker.bind(this));
     this.bluetoothButton.addEventListener('click',
                                           this.toggleBluetoothMenu.bind(this));
-    this.holdButton.addEventListener('click', 
-                               CallsHandler.holdOrResumeSingleCall.bind(this));
+    this.holdButton.addEventListener(
+      'click', CallsHandler.holdOrResumeCallByUser);
     this.mergeButton.addEventListener('click',
                                       CallsHandler.mergeCalls.bind(this));
     this.answerButton.addEventListener('click',
                                        CallsHandler.answer);
     this.rejectButton.addEventListener('click',
                                        CallsHandler.end);
-
-    this.showGroupButton.addEventListener('click',
-                                          this.showGroupDetails.bind(this));
-
-    this.hideGroupButton.addEventListener('click',
-                                          this.hideGroupDetails.bind(this));
 
     this.switchToDeviceButton.addEventListener(
       'click', this.switchToDefaultOut.bind(this, false));
@@ -241,66 +231,17 @@ var CallScreen = {
     });
   },
 
-  _wallpaperReady: false,
-  _toggleWaiting: false,
-  _toggleCallback: null,
-
   _wallpaperImageHandler: function cs_wallpaperImageHandler(image) {
     this.mainContainer.style.backgroundImage = 'url(' +
       (typeof image === 'string' ? image : URL.createObjectURL(image)) + ')';
-    setTimeout(this._onWallpaperReady.bind(this));
-  },
-
-  _onWallpaperReady: function cs_onWallpaperReady() {
-    this._wallpaperReady = true;
-    if (this._toggleWaiting) {
-      this.toggle(this._toggleCallback);
-      this._toggleCallback = null;
-      this._toggleWaiting = false;
-    }
-  },
-
-  _transitioning: false,
-  _transitionDone: false,
-  _contactBackgroundWaiting: false,
-
-  toggle: function cs_toggle(callback) {
-    // Waiting for the wallpaper to be set before toggling the screen in
-    if (!this._wallpaperReady) {
-      this._toggleWaiting = true;
-      this._toggleCallback = callback;
-      return;
-    }
-
-    if (callback && typeof(callback) == 'function') {
-      setTimeout(callback);
-    }
-    this._onTransitionDone();
-  },
-
-  _onTransitionDone: function cs_onTransitionDone() {
-    this._transitionDone = true;
-    if (this._contactBackgroundWaiting) {
-      this.setCallerContactImage();
-      this._contactBackgroundWaiting = false;
-    }
   },
 
   setCallerContactImage: function cs_setCallerContactImage() {
-    // Waiting for the call screen transition to end before updating
-    // the contact image
-    if (!this._transitionDone) {
-      this._contactBackgroundWaiting = true;
-      return;
-    }
-
     var activeCallForContactImage = CallsHandler.activeCallForContactImage;
     var blob = activeCallForContactImage && activeCallForContactImage.photo;
 
-    this.contactBackground.classList.remove('ready');
     var background = blob ? 'url(' + URL.createObjectURL(blob) + ')' : '';
     this.contactBackground.style.backgroundImage = background;
-    this.contactBackground.classList.add('ready');
   },
 
   insertCall: function cs_insertCall(node) {
@@ -309,13 +250,8 @@ var CallScreen = {
   },
 
   removeCall: function cs_removeCall(node) {
-    // The node can be either inside groupCallsList or calls.
     node.parentNode.removeChild(node);
     this.updateCallsDisplay();
-  },
-
-  moveToGroup: function cs_moveToGroup(node) {
-    this.groupCallsList.appendChild(node);
   },
 
   resizeHandler: function cs_resizeHandler() {
@@ -384,10 +320,8 @@ var CallScreen = {
     this.toggleBluetoothMenu(false);
   },
 
-  toggleOnHold: function cs_toggleOnHold() {
-    this.holdButton.classList.toggle('active-state',
-      navigator.mozTelephony.active ||
-      navigator.mozTelephony.conferenceGroup.state == 'holding');
+  setShowIsHeld: function cs_setShowIsHeld(enabled) {
+    this.holdButton.classList.toggle('active-state', enabled);
   },
 
   // when BT device available: switch to BT
@@ -529,20 +463,6 @@ var CallScreen = {
     this.holdAndMergeContainer.style.display = 'none';
   },
 
-  showGroupDetails: function cs_showGroupDetails(evt) {
-    if (evt) {
-      evt.stopPropagation();
-    }
-    this.groupCalls.classList.add('display');
-  },
-
-  hideGroupDetails: function cs_hideGroupDetails(evt) {
-    if (evt) {
-      evt.preventDefault();
-    }
-    this.groupCalls.classList.remove('display');
-  },
-
   createTicker: function(durationNode) {
     var durationChildNode = durationNode.querySelector('span');
 
@@ -568,13 +488,6 @@ var CallScreen = {
     durationNode.classList.remove('isTimer');
     clearInterval(durationNode.dataset.tickerId);
     delete durationNode.dataset.tickerId;
-  },
-
-  setEndConferenceCall: function cs_setEndConferenceCall() {
-    var callElems = this.groupCallsList.getElementsByTagName('SECTION');
-    for (var i = 0; i < callElems.length; i++) {
-      callElems[i].dataset.groupHangup = 'groupHangup';
-    }
   },
 
   handleEvent: function cs_handleEvent(evt) {

@@ -19,27 +19,85 @@ marionette('modify event view', function() {
       'lockscreen.enabled': false
     }
   });
+  var editEvent;
 
-  var startDate = new Date('Sep 08 2014 12:34:00'),
-      startDatePreviousHour = new Date(startDate),
-      startDatePreviousDay = new Date(startDate),
-      startDateNextHour = new Date(startDate),
-      startDateNextDay = new Date(startDate);
+  setup(function() {
+    app = new Calendar(client);
+    editEvent = app.editEvent;
+    app.launch();
+    app.openModifyEventView();
+  });
 
-  startDatePreviousHour.setHours(startDate.getHours() - 1);
-  startDatePreviousDay.setDate(startDate.getDate() - 1);
-  startDateNextHour.setHours(startDate.getHours() + 1);
-  startDateNextDay.setDate(startDate.getDate() + 1);
+  suite('reminders', function() {
+    test('default', function() {
+      assert.deepEqual(editEvent.reminders, ['5 minutes before', 'None']);
+    });
+
+    test('default allday', function() {
+      editEvent.allDay = true;
+      client.waitFor(function() {
+        return editEvent.reminders[0] !== '5 minutes before';
+      });
+      assert.deepEqual(editEvent.reminders, ['On day of event', 'None']);
+    });
+
+    test('set to none', function() {
+      editEvent.setReminderValue('None', 0);
+      client.waitFor(function() {
+        return editEvent.reminders.length === 1;
+      });
+      assert.deepEqual(editEvent.reminders, ['None']);
+    });
+
+    test('multiple reminders', function() {
+      var reminders = [
+        'At time of event',
+        '5 minutes before',
+        '15 minutes before',
+        '30 minutes before',
+        '1 hour before',
+        '2 hours before',
+        '1 day before'
+      ];
+      editEvent.reminders = reminders;
+      assert.deepEqual(
+        editEvent.reminders,
+        // maximum amount of reminders is 5, so it will override the last one
+        reminders.slice(0, 4).concat(['1 day before'])
+      );
+    });
+
+    test('duplicates', function() {
+      // it should only save a single reminder if user adds duplicates
+      editEvent.reminders = [
+        '15 minutes before',
+        '15 minutes before',
+        '15 minutes before',
+        '15 minutes before'
+      ];
+      editEvent.save();
+      app.monthDay.waitForDisplay();
+      app.monthDay.events[0].click();
+      app.readEvent.waitForDisplay();
+      app.readEvent.edit();
+      editEvent.waitForDisplay();
+      assert.deepEqual(editEvent.reminders, ['15 minutes before', 'None']);
+    });
+  });
 
   suite('auto change end date and time', function() {
-    var editEvent;
+    var startDate = new Date('Sep 08 2014 12:34:00');
+    var startDatePreviousHour = new Date(startDate);
+    var startDatePreviousDay = new Date(startDate);
+    var startDateNextHour = new Date(startDate);
+    var startDateNextDay = new Date(startDate);
+
+    startDatePreviousHour.setHours(startDate.getHours() - 1);
+    startDatePreviousDay.setDate(startDate.getDate() - 1);
+    startDateNextHour.setHours(startDate.getHours() + 1);
+    startDateNextDay.setDate(startDate.getDate() + 1);
 
     setup(function() {
-      app = new Calendar(client);
-      editEvent = app.editEvent;
-
-      app.launch();
-      app.openModifyEventView();
       editEvent.startDate = startDate;
       editEvent.startTime = startDate;
       editEvent.endDate = startDateNextDay;

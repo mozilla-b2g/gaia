@@ -39,7 +39,7 @@
 }
 
 /* ERROR MESSAGES */
-section.content .error-messages[aria-hidden="true"] {
+section.content .error-messages[hidden] {
   transform: translateY(-10rem);
   display: block !important;
   height: 0;

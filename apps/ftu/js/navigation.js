@@ -2,8 +2,7 @@
           SdManager, UIManager, WifiManager, WifiUI,
           ImportIntegration,
           OperatorVariant,
-          getLocalizedLink,
-          utils */
+          getLocalizedLink */
 /* exported Navigation */
 'use strict';
 /*
@@ -199,7 +198,7 @@ var Navigation = {
         // appears so that it doesn't delay the appearance of the page.
         // This is the last good opportunity to call it.
 
-        WifiManager.scan((networks) => {
+        WifiManager.getNetworks(networks => {
           this.ensureTZInitialized().then(() => {
             WifiUI.renderNetworks(networks);
           });
@@ -225,7 +224,7 @@ var Navigation = {
         if (!WifiManager.api) {
           // Desktop
           ImportIntegration.checkImport('enabled');
-          return;
+          break;
         }
 
         fbState = window.navigator.onLine ? 'enabled' : 'disabled';
@@ -280,7 +279,7 @@ var Navigation = {
 
     // Managing options button
     if (this.currentStep <= numSteps &&
-        steps[this.currentStep].hash !== '#wifi') {
+        (steps[this.currentStep].hash !== '#wifi')) {
       UIManager.activationScreen.classList.add('no-options');
     }
 
@@ -339,11 +338,6 @@ var Navigation = {
 
     // Retrieve future location
     var futureLocation = steps[self.currentStep];
-
-    // There is some locations which need a 'loading'
-    if (futureLocation.hash === '#wifi') {
-      utils.overlay.show('scanningNetworks', 'spinner');
-    }
 
     // If SIMcard is mandatory and no SIM, go to message window
     if (this.simMandatory &&

@@ -1,15 +1,7 @@
-/* global CallForwarding, asyncStorage, SIMSlotManager, SettingsHelper */
+/* global BaseModule, asyncStorage, SIMSlotManager, SettingsHelper */
 'use strict';
 
-(function(exports) {
-  if (!window.navigator.mozSettings) {
-    return;
-  }
-
-  if (!window.navigator.mozMobileConnections) {
-    return;
-  }
-
+(function() {
   // Must be in sync with nsIDOMMozMobileCFInfo interface.
   var _cfReason = {
     CALL_FORWARD_REASON_UNCONDITIONAL: 0,
@@ -46,7 +38,8 @@
     this._callForwardingIconInitializedStates = null;
   }
 
-  CallForwarding.prototype = {
+  BaseModule.create(CallForwarding, {
+    name: 'CallForwarding',
 
     /**
      * Add related event handlers. The sim cards may not be ready when starting.
@@ -184,12 +177,7 @@
      * Start the module.
      * @memberof CallForwarding.prototype
      */
-    start: function() {
-      if (this._started) {
-        return;
-      }
-      this._started = true;
-
+    _start: function() {
       this._slots = SIMSlotManager.getSlots();
       this._defaultCallForwardingIconStates =
         Array.prototype.map.call(this._slots, function() { return false; });
@@ -208,13 +196,5 @@
         this._initCallForwardingState(slot);
       }, this);
     }
-  };
-
-  exports.CallForwarding = CallForwarding;
-
-})(window);
-
-if (CallForwarding) {
-  window.callForwarding = new CallForwarding();
-  window.callForwarding.start();
-}
+  });
+})();

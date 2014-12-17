@@ -265,6 +265,37 @@ suite('WiFi > ', function() {
       stubMozWifiManager.restore();
     });
 
+    test('Test setPowerSavingMode should be called when screen off ' +
+         'and not charging', function() {
+      SettingsListener.mCallbacks['wifi.screen_off_timeout'](100);
+
+      ScreenManager.screenEnabled = false;
+      Wifi.wifiDisabledByWakelock = true;
+      Wifi.wifiWakeLocked = false;
+      Wifi.wifiEnabled = true;
+
+      var isPowerSavingModeEnabled;
+      var stubMozWifiManager = this.sinon.stub(navigator,
+        'mozWifiManager', {
+          setPowerSavingMode: function(enabled) {
+            isPowerSavingModeEnabled = enabled;
+          }
+        });
+
+      var stubMozAlarms = this.sinon.stub(navigator,
+        'mozAlarms', MockMozAlarms);
+
+      navigator.battery = { charging: false };
+
+      Wifi.maybeToggleWifi();
+
+      assert.equal(isPowerSavingModeEnabled, true);
+
+      navigator.battery = realBattery;
+      stubMozAlarms.restore();
+      stubMozWifiManager.restore();
+    });
+
     test('Test sleep should be called when mozAlarms doesnt exist', function() {
       SettingsListener.mCallbacks['wifi.screen_off_timeout'](100);
 
@@ -277,6 +308,14 @@ suite('WiFi > ', function() {
       var stubSleep = this.sinon.stub(Wifi, 'sleep', function() {
         isSleepCalled = true;
       });
+
+      // We will test if setPowerSavingMode gets called in other test case.
+      // Simply provide
+      var stubMozWifiManager = this.sinon.stub(navigator,
+        'mozWifiManager', {
+          setPowerSavingMode: function(enabled) {}
+        });
+
       var stubMozAlarms = this.sinon.stub(navigator,
         'mozAlarms', null);
       navigator.battery = { charging: false };
@@ -288,6 +327,7 @@ suite('WiFi > ', function() {
       navigator.battery = realBattery;
       stubMozAlarms.restore();
       stubSleep.restore();
+      stubMozWifiManager.restore();
     });
 
     test('Test starting with a timer', function() {
@@ -307,6 +347,11 @@ suite('WiFi > ', function() {
         });
       navigator.battery = { charging: false };
 
+      var stubMozWifiManager = this.sinon.stub(navigator,
+        'mozWifiManager', {
+          setPowerSavingMode: function(enabled) {}
+        });
+
       Wifi.maybeToggleWifi();
 
       assert.equal(isSetSystemMessageHandlerCalled, true);
@@ -316,6 +361,7 @@ suite('WiFi > ', function() {
       navigator.battery = realBattery;
       stubMozAlarms.restore();
       stubSetSystemMessageHandler.restore();
+      stubMozWifiManager.restore();
     });
   });
 

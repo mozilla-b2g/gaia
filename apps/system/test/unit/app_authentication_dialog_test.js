@@ -23,7 +23,7 @@ suite('system/AppAuthenticationDialog', function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
-    requireApp('system/js/system.js');
+    requireApp('system/js/service.js');
     requireApp('system/js/base_ui.js');
     requireApp('system/js/app_authentication_dialog.js', done);
   });

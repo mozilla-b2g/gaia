@@ -2,10 +2,6 @@
 
 var fs = require('fs');
 
-var Home = require(
-  '../../../verticalhome/test/marionette/lib/home2');
-var System = require('./lib/system');
-
 var SHARED_PATH = __dirname + '/../../../../shared/test/integration/';
 
 marionette('Software Home Button - Update Dialog Confirm', function() {
@@ -24,8 +20,8 @@ marionette('Software Home Button - Update Dialog Confirm', function() {
 
   var home, system;
   setup(function() {
-    home = new Home(client);
-    system = new System(client);
+    home = client.loader.getAppClass('verticalhome');
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
     home.waitForLaunch();
     client.switchToFrame();

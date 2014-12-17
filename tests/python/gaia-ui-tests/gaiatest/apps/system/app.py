@@ -43,11 +43,11 @@ class System(Base):
         self.wait_for_element_not_displayed(*self._software_home_button_locator)
 
     def open_utility_tray(self):
+        body = self.marionette.find_element(By.TAG_NAME, 'body')
         statusbar = self.marionette.find_element(*self._status_bar_locator)
-        statusbar_x = int(statusbar.size['width'])
-        statusbar_y_start = int(statusbar.size['height'] / 2)
-        statusbar_y_end = int(statusbar.size['height'] * 160)
-        Actions(self.marionette).flick(statusbar, statusbar_x, statusbar_y_start, statusbar_x, statusbar_y_end, 100).perform()
+        statusbar_x = int(statusbar.size['width']/2)
+        statusbar_y_end = int(body.size['height'])
+        Actions(self.marionette).press(statusbar).move_by_offset(statusbar_x, statusbar_y_end).release().perform()
 
         from gaiatest.apps.system.regions.utility_tray import UtilityTray
         return UtilityTray(self.marionette)

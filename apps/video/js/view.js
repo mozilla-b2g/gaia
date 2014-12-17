@@ -31,6 +31,21 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   var isPausedWhileDragging;
   var sliderRect;
 
+  //
+  // Bug 1088456: when the view activity is launched by the bluetooth transfer
+  // app (when the user taps on a downloaded file in the notification tray)
+  // this code starts running while the regular video app is still running as
+  // the foreground app. Since the video app does not get sent to the
+  // background in this case, the currently playing video (if there is one) is
+  // not paused. And so, in the case of videos that require decoder hardware,
+  // the view activity cannot play the video. For this workaround, we have set
+  // a localStorage property here. The video.js file should receive an event
+  // when we do that and will use that as a signal to unload its video. We use
+  // Date.now() as the value of the property so we get a different value and
+  // generate an event each time we run.
+  //
+  localStorage.setItem('view-activity-wants-to-use-hardware', Date.now());
+
   initUI();
 
   // If blob exists, video should be launched by open activity
@@ -237,6 +252,9 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
     // End the activity
     activity.postResult({saved: saved});
+
+    // Undo the bug 1088456 workaround hack.
+    localStorage.removeItem('view-activity-wants-to-use-hardware');
   }
 
   function save() {
@@ -276,7 +294,6 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       dom.player.currentTime = 0;
 
       // Show the controls briefly then fade out
-      setControlsVisibility(true);
       controlFadeTimeout = setTimeout(function() {
         setControlsVisibility(false);
       }, 2000);
@@ -285,6 +302,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     }
 
     dom.videoTitle.textContent = title || '';
+    setControlsVisibility(true);
 
     var loadingChecker =
       new VideoLoadingChecker(dom.player, dom.inUseOverlay,
@@ -397,6 +415,15 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     }
   }
 
+  function movePlayHead(percent) {
+    if (navigator.mozL10n.language.direction === 'ltr') {
+      dom.playHead.style.left = percent;
+    }
+    else {
+      dom.playHead.style.right = percent;
+    }
+  }
+
   function updateSlider() {
     // We update the slider when we get a 'seeked' event.
     // Don't do updates while we're seeking because the position we fastSeek()
@@ -415,8 +442,9 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       dom.player.currentTime);
     dom.elapsedTime.style.width = percent;
     // Don't move the play head if the user is dragging it.
-    if (!dragging)
-      dom.playHead.style.left = percent;
+    if (!dragging) {
+      movePlayHead(percent);
+    }
   }
 
   function handleSliderTouchEnd(event) {
@@ -453,7 +481,15 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       return;
     }
 
-    var pos = (touch.clientX - sliderRect.left) / sliderRect.width;
+    function getTouchPos() {
+      return (navigator.mozL10n.language.direction === 'ltr') ?
+         (touch.clientX - sliderRect.left) :
+         (sliderRect.right - touch.clientX);
+    }
+
+    var touchPos = getTouchPos();
+
+    var pos = touchPos / sliderRect.width;
     pos = Math.max(pos, 0);
     pos = Math.min(pos, 1);
 
@@ -462,7 +498,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     // we actually get a 'seeked' event.
     var percent = pos * 100 + '%';
     dom.playHead.classList.add('active');
-    dom.playHead.style.left = percent;
+    movePlayHead(percent);
     dom.elapsedTime.style.width = percent;
     dom.player.fastSeek(dom.player.duration * pos);
   }

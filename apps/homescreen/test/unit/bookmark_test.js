@@ -14,8 +14,7 @@ suite('bookmark.js >', function() {
       url: URL,
       name: name,
       icon: icon,
-      iconable: false,
-      useAsyncPanZoom: true
+      iconable: false
     });
   });
 
@@ -29,10 +28,6 @@ suite('bookmark.js >', function() {
 
   test('All bookmark objects define en-US as default locale >', function() {
     assert.equal(bookmark.manifest.default_locale, 'en-US');
-  });
-
-  test('This bookmark uses asyncPanZoom >', function() {
-    assert.isTrue(bookmark.useAsyncPanZoom);
   });
 
   test('This bookmark is not iconable >', function() {

@@ -1,4 +1,4 @@
-/* global MocksHelper, MockNavigatorMozIccManager, icc,
+/* global MocksHelper, MockNavigatorMozIccManager, icc, InputWindowManager,
           MockNavigatorMozMobileConnections, MockNavigatormozSetMessageHandler,
           MockL10n, MockFtuLauncher, MockNavigatorSettings, KeyboardEvent */
 'use strict';
@@ -7,7 +7,6 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_system_icc_worker.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_statusbar.js');
-requireApp('system/test/unit/mock_keyboard_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
@@ -15,13 +14,13 @@ require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_dump.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/js/lazy_loader.js');
+require('/js/input_window_manager.js');
 
 var mocksForIcc = new MocksHelper([
   'Dump',
   'FtuLauncher',
   'SystemICCWorker',
-  'StatusBar',
-  'KeyboardManager'
+  'StatusBar'
 ]).init();
 
 suite('STK (icc) >', function() {
@@ -125,6 +124,19 @@ suite('STK (icc) >', function() {
         }
       },
 
+      STK_CMD_SET_UP_CALL: {
+        iccId: '1010011010',
+        command: {
+          commandNumber: 1,
+          typeOfCommand: navigator.mozIccManager.STK_CMD_SET_UP_CALL,
+          commandQualifier: 0,
+          options: {
+            confirmMessage: 'STK_CMD_SET_UP_IDLE_MODE_TEXT Unit Test',
+            address: '990022'
+          }
+        }
+      },
+
       STK_CMD_REFRESH: {
         iccId: '1010011010',
         command: {
@@ -140,6 +152,9 @@ suite('STK (icc) >', function() {
     xhrFake.onCreate = function (xhr) {
       xhrRequests.push(xhr);
     };
+
+    window.inputWindowManager =
+      this.sinon.stub(Object.create(InputWindowManager.prototype));
 
     requireApp('system/js/icc.js', done);
   });
@@ -175,19 +190,19 @@ suite('STK (icc) >', function() {
   });
 
   test('hide views when home button pressed and visible', function() {
-    this.sinon.stub(icc, 'hideView');
+    this.sinon.stub(icc, 'hideViews');
     icc.icc_view.classList.add('visible');
     var event = new CustomEvent('home');
     icc.handleEvent(event);
-    assert.isTrue(icc.hideView.called);
+    assert.isTrue(icc.hideViews.called);
     icc.icc_view.classList.remove('visible');
   });
 
   test('does not hide when home and not visible', function() {
-    this.sinon.stub(icc, 'hideView');
+    this.sinon.stub(icc, 'hideViews');
     var event = new CustomEvent('home');
     icc.handleEvent(event);
-    assert.isFalse(icc.hideView.called);
+    assert.isFalse(icc.hideViews.called);
   });
 
   test('responseSTKCommand', function(done) {
@@ -231,8 +246,8 @@ suite('STK (icc) >', function() {
       navigator.mozIccManager.STK_TIME_UNIT_TENTH_SECOND, 2), 200);
   });
 
-  test('hideView', function() {
-    window.icc.hideView();
+  test('hideViews', function() {
+    window.icc.hideViews();
     assert.isFalse(document.getElementById('icc-view').classList.contains(
       'visible'));
     var icc_view_boxes = document.getElementById('icc-view').children;
@@ -280,12 +295,11 @@ suite('STK (icc) >', function() {
   test('UI: Display Text (contents)', function() {
     var testCmd = stkTestCommands.STK_CMD_DISPLAY_TEXT;
     window.icc.confirm(testCmd, testCmd.command.options.text, 0, function() {});
- 
     assert.equal(document.getElementById('icc-confirm-msg').textContent,
       testCmd.command.options.text);
     assert.equal(document.getElementById('icc-confirm-btn').disabled, false);
-    assert.equal(document.getElementById('icc-confirm-btn_close').textContent,
-      'Close');
+    assert.equal(document.getElementById('icc-confirm-btn_close').
+      dataset.l10nId, 'close');
   });
 
   test('UI: Input (timeout 1sec)', function(done) {
@@ -314,8 +328,8 @@ suite('STK (icc) >', function() {
     assert.deepEqual(l10nAttrs.args, { n: (testCmd.command.options.maxLength -
       testCmd.command.options.defaultText.length) });
     assert.equal(document.getElementById('icc-input-btn').disabled, false);
-    assert.equal(document.getElementById('icc-input-btn_help').textContent,
-      'Help');
+    assert.equal(document.getElementById('icc-input-btn_help').dataset.l10nId,
+      'help');
   });
 
   test('UI: Input (checkInputLengthValid)', function() {
@@ -401,7 +415,6 @@ suite('STK (icc) >', function() {
   });
 
   test('launchStkCommand: STK_CMD_DISPLAY_TEXT', function(done) {
-    icc.hideView();
     window.icc_worker.onmessagereceived = function(message) {
       assert.equal(message, stkTestCommands.STK_CMD_DISPLAY_TEXT);
       done();
@@ -410,7 +423,6 @@ suite('STK (icc) >', function() {
   });
 
   test('launchStkCommand: STK_CMD_GET_INPUT', function(done) {
-    icc.hideView();
     window.icc_worker.onmessagereceived = function(message) {
       assert.equal(message, stkTestCommands.STK_CMD_GET_INPUT);
       done();
@@ -419,7 +431,6 @@ suite('STK (icc) >', function() {
   });
 
   test('launchStkCommand: STK_CMD_SET_UP_IDLE_MODE_TEXT', function(done) {
-    icc.hideView();
     window.icc_worker.onmessagereceived = function(message) {
       assert.equal(message, stkTestCommands.STK_CMD_SET_UP_IDLE_MODE_TEXT);
       done();
@@ -428,7 +439,6 @@ suite('STK (icc) >', function() {
   });
 
   test('launchStkCommand: STK_CMD_REFRESH', function(done) {
-    icc.hideView();
     window.icc_worker.onmessagereceived = function(message) {
       assert.equal(message, stkTestCommands.STK_CMD_REFRESH);
       done();
@@ -436,36 +446,25 @@ suite('STK (icc) >', function() {
     launchStkCommand(stkTestCommands.STK_CMD_REFRESH);
   });
 
-  suite('Messages queue >', function() {
-    setup(function() {
-      icc.hideView();
-      icc._messages_queue = [];
-    });
-
-    test('Should add STK_CMD_DISPLAY_TEXT to the queue', function() {
-      assert.equal(icc._messages_queue.length, 0);
-      icc.addPendingMessage(stkTestCommands.STK_CMD_DISPLAY_TEXT);
-      assert.equal(icc._messages_queue.length, 1);
-      assert.equal(icc._messages_queue[0],
-        stkTestCommands.STK_CMD_DISPLAY_TEXT);
-    });
-
-    test('Should process the next message in the queue', function(done) {
-      window.icc_worker.onmessagereceived = function(message) {
-        assert.equal(message, stkTestCommands.STK_CMD_DISPLAY_TEXT);
+  test('settings visibilitychange - STK_CMD_GET_INPUT', function(done) {
+    var testCmd = stkTestCommands.STK_CMD_GET_INPUT;
+    window.icc.input(testCmd, testCmd.command.options.text, 40000,
+      stkTestCommands.STK_CMD_GET_INPUT.command.options,
+      function(resultObject) {
+        assert.equal(resultObject, null);
         done();
-      };
-      icc.addPendingMessage(stkTestCommands.STK_CMD_DISPLAY_TEXT);
-      icc.processPendingMessages();
-
-      assert.equal(icc._messages_queue.length, 0);
     });
-
-    test('Should hide all views, no more pending messages', function() {
-      var stub = this.sinon.stub(icc, 'hideView');
-      icc.processPendingMessages();
-
-      assert.isTrue(stub.calledOnce);
-    });
+    window.dispatchEvent(new CustomEvent('stkMenuHidden'));
   });
+
+  test('settings visibilitychange - STK_CMD_SET_UP_CALL', function(done) {
+    var testCmd = stkTestCommands.STK_CMD_SET_UP_CALL;
+    window.icc.asyncConfirm(testCmd, testCmd.command.options.confirmMessage,
+      function(resultBoolean) {
+        assert.equal(resultBoolean, false);
+        done();
+    });
+    window.dispatchEvent(new CustomEvent('stkMenuHidden'));
+  });
+
 });

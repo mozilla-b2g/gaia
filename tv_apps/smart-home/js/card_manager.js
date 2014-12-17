@@ -1,4 +1,5 @@
-/* global evt, addMixin, Promise, PipedPromise, Application, CardStore */
+/* global evt, addMixin, Promise, PipedPromise, Application, CardStore,
+          Deck, AppBookmark */
 
 (function(exports) {
   'use strict';
@@ -7,7 +8,7 @@
   };
 
   CardManager.prototype = evt({
-    HIDDEN_ROLES: ['system', 'homescreen'],
+    HIDDEN_ROLES: ['system', 'homescreen', 'addon'],
 
     _cardStore: undefined,
 
@@ -36,19 +37,28 @@
     // this method do the job of serializing
     _serializeCard: function cm_serializeCard(card) {
       var cardEntry;
-      if (card instanceof Application) {
+      if (card instanceof AppBookmark) {
+        cardEntry = {
+          manifestURL: card.nativeApp.manifestURL,
+          name: card.name,
+          thumbnail: card.thumbnail,
+          launchURL: card.launchURL,
+          type: 'AppBookmark'
+        };
+      }
+      else if (card instanceof Application) {
         cardEntry = {
           manifestURL: card.nativeApp.manifestURL,
           name: card.name,
           type: 'Application'
         };
       } else if (card instanceof Deck) {
+        // A deck doesn't need background color because it is always full-sized
+        // icon. If not, it is an issue from visual's image.
         cardEntry = {
-          // XXX: use fake deck until we have real deck,
-          // so we only store name and cachedIconURL.
-          // Real Deck should have nativeApp also.
           name: card.name,
           cachedIconURL: card.cachedIconURL,
+          manifestURL: card.nativeApp && card.nativeApp.manifestURL,
           type: 'Deck'
         };
       }
@@ -67,9 +77,18 @@
         case 'Deck':
           cardInstance = new Deck({
             name: cardEntry.name,
+            nativeApp: cardEntry.manifestURL &&
+                       this.installedApps[cardEntry.manifestURL],
             cachedIconURL: cardEntry.cachedIconURL
           });
           break;
+        case 'AppBookmark':
+          cardInstance = new AppBookmark({
+            nativeApp: this.installedApps[cardEntry.manifestURL],
+            name: cardEntry.name,
+            thumbnail: cardEntry.thumbnail,
+            launchURL: cardEntry.launchURL
+          });
       }
       return cardInstance;
     },
@@ -82,12 +101,14 @@
           that._loadFile({
             url: defaultCardListFile,
             responseType: 'json'
+
           }).then(function onFulfill(config) {
             that._cardList =
               config.card_list.map(that._deserializeCardEntry.bind(that));
             that._cardStore.saveData('cardList',
               that._cardList.map(that._serializeCard.bind(that)));
             resolve();
+
           }, function onReject(error) {
             var reason ='request ' + defaultCardListFile +
               ' got reject ' + error;
@@ -198,7 +219,7 @@
         return app.origin.slice(0, -1) + url;
       }
 
-      return app.origin + url;
+      return [app.origin + url, closestSize];
     },
 
     _onAppInstall: function cm_onAppInstall(evt) {
@@ -221,6 +242,36 @@
         delete this.installedApps[app.manifestURL];
         this.fire('uninstall', this.getAppEntries(app.manifestURL));
       }
+    },
+
+    insertCard: function cm_addCard(options) {
+      var card = this._deserializeCardEntry(options);
+
+      // TODO: If the given card belongs to an app, we assume the app spans a
+      // pseudo group with all its bookmarks following app icon itself, and the
+      // given card should be put at the end of the group.
+
+      // add card to the end of the list
+      this._cardList.push(card);
+      this._cardStore.saveData('cardList',
+              this._cardList.map(this._serializeCard.bind(this)));
+
+      this.fire('card-inserted', card, this._cardList.length - 1);
+    },
+
+    removeCard: function cm_removeCard(item) {
+      var idx;
+      if(typeof item === 'number') {
+        idx = item;
+        this._cardList.splice(item, 1);
+      } else {
+        idx = this._cardList.indexOf(item);
+        this._cardList.splice(idx, 1);
+      }
+      this._cardStore.saveData('cardList',
+              this._cardList.map(this._serializeCard.bind(this)));
+
+      this.fire('card-removed', idx);
     },
 
     init: function cm_init() {
@@ -317,17 +368,18 @@
           reject('No manifest');
         }
 
-        var url = that._bestMatchingIcon(
+        var iconData = that._bestMatchingIcon(
           that.installedApps[manifestURL], entry_manifest, preferredSize);
-        if (!url) {
+        if (!iconData) {
           reject('No url');
+          return;
         }
 
         that._loadFile({
-          url: url,
+          url: iconData[0],
           responseType: 'blob'
         }).then(function onFulfill(blob) {
-          resolve(blob);
+          resolve([blob, iconData[1]]);
         }, function onReject(error) {
           reject('Error on loading blob of ' + manifestURL);
         });
@@ -345,10 +397,21 @@
           resolve(that._cardList);
         }
       });
+    },
+
+    findCardFromCardList: function cm_findCardFromCardList(query) {
+      var found;
+      this._cardList.some(function(card) {
+        if (card.cardId === query.cardId) {
+          found = card;
+          return true;
+        }
+      })
+      return found;
     }
   });
 
-  addMixin(CardManager, new PipedPromise());
+  SharedUtils.addMixin(CardManager, new PipedPromise());
 
   exports.CardManager = CardManager;
 }(window));

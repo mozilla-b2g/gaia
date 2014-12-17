@@ -1,3 +1,4 @@
+
 html,
 body {
   font-size: 10px;
@@ -11,8 +12,14 @@ html {
   overflow: hidden;
 }
 
+/**
+ * 1. No content inside the app
+ *    should be user-selectable.
+ */
+
 body {
   background-color: #000;
+  -moz-user-select: none; /* 1 */
 }
 
 body.no-background {
@@ -36,6 +43,7 @@ ul { list-style: none; }
 
 /** Rotates
  ---------------------------------------------------------*/
+
 .deg0 .rotates { transform: rotate(0deg); }
 .deg90 .rotates { transform: rotate(-90deg); }
 .deg180 .rotates { transform: rotate(-180deg); }

@@ -1,7 +1,8 @@
 'use strict';
 /*global MockNavigatormozApps, MockNavigatorSettings, MocksHelper, MockL10n,
          MockApplications, Applications, MockNavigatormozSetMessageHandler,
-         MockGetDeviceStorages, MockVersionHelper */
+         MockGetDeviceStorages, MockVersionHelper, MockKeyboardManager,
+         MockTrustedUIManager */
 
 requireApp('system/shared/js/performance_testing_helper.js');
 requireApp('system/shared/js/async_storage.js');
@@ -35,13 +36,13 @@ requireApp('system/js/cell_broadcast_system.js');
 requireApp('system/js/cpu_manager.js');
 requireApp('system/js/devtools/developer_hud.js');
 requireApp('system/js/dialer_agent.js');
-requireApp('system/js/eu_roaming_manager.js');
 requireApp('system/js/external_storage_monitor.js');
 requireApp('system/js/ftu_launcher.js');
 requireApp('system/js/rocketbar.js');
 requireApp('system/js/home_gesture.js');
 requireApp('system/js/homescreen_launcher.js');
 requireApp('system/js/internet_sharing.js');
+requireApp('system/js/input_window_manager.js');
 requireApp('system/js/layout_manager.js');
 requireApp('system/js/lockscreen_agent.js');
 requireApp('system/js/lockscreen_window_manager.js');
@@ -60,7 +61,6 @@ requireApp('system/js/software_button_manager.js');
 requireApp('system/js/source_view.js');
 requireApp('system/js/usb_storage.js');
 requireApp('system/js/system_dialog_manager.js');
-requireApp('system/js/telephony_settings.js');
 requireApp('system/js/base_ui.js');
 requireApp('system/js/text_selection_dialog.js');
 requireApp('system/js/ttlview.js');
@@ -68,7 +68,7 @@ requireApp('system/js/visibility_manager.js');
 requireApp('system/js/wallpaper_manager.js');
 requireApp('system/js/attention_window_manager.js');
 requireApp('system/js/attention_indicator.js');
-requireApp('system/js/system.js');
+requireApp('system/js/service.js');
 
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_attention_window.js');
@@ -84,6 +84,8 @@ requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_homescreen_window_manager.js');
 requireApp('system/test/unit/mock_version_helper.js');
 requireApp('system/js/base_module.js');
+requireApp('system/test/unit/mock_keyboard_manager.js');
+requireApp('system/test/unit/mock_trusted_ui_manager.js');
 
 var mocksForBootstrap = new MocksHelper([
   'AirplaneMode',
@@ -113,6 +115,8 @@ suite('system/Bootstrap', function() {
   var realApplications;
   var realVersionHelper;
   var fakeElement;
+  var realKeyboardManager;
+  var realTrustedUIManager;
 
   mocksForBootstrap.attachTestHelpers();
 
@@ -157,6 +161,12 @@ suite('system/Bootstrap', function() {
     realVersionHelper = window.VersionHelper;
     window.VersionHelper = MockVersionHelper(false);
 
+    realKeyboardManager = window.KeyboardManager;
+    window.KeyboardManager = MockKeyboardManager;
+
+    realTrustedUIManager = window.TrustedUIManager;
+    window.TrustedUIManager = MockTrustedUIManager;
+
     requireApp('system/js/bootstrap.js', done);
   });
 
@@ -178,6 +188,9 @@ suite('system/Bootstrap', function() {
 
     navigator.getDeviceStorages = realNavigatorGetDeviceStorages;
     realNavigatorGetDeviceStorages = null;
+
+    window.KeyboardManager = realKeyboardManager;
+    window.TrustedUIManager = realTrustedUIManager;
 
     document.documentElement.dir = realDocumentElementDir;
     document.documentElement.lang = realDocumentElementLang;

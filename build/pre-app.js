@@ -1,9 +1,10 @@
-/* global exports */
-/* global require */
 'use strict';
+
+/* global require, exports */
 
 function execute(options) {
   require('./clean-stage-app').execute(options);
+
   require('./svoperapps').execute(options);
 
   // Generate $(PROFILE_FOLDER)/webapps/
@@ -22,6 +23,9 @@ function execute(options) {
   // A separate step for shared/ folder to generate its content in build time
   require('./keyboard-layouts').execute(options);
 
+  // Generate user.js
+  require('./preferences').execute(options);
+
   if (options.BUILD_APP_NAME == '*') {
     require('./settings').execute(options);
   }
@@ -29,7 +33,7 @@ function execute(options) {
   // Copy shared files to stage folders
   require('./webapp-shared').execute(options);
 
-  // Generate user.js
-  require('./preferences').execute(options);
+  // Copy common files such as webapps.json
+  require('./copy-common-files').execute(options);
 }
 exports.execute = execute;

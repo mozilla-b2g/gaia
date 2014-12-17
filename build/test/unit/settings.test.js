@@ -30,7 +30,8 @@ suite('settings.js', function() {
         GAIA_DISTRIBUTION_DIR: 'testDistributionDir',
         GAIA_DIR: 'testGaia',
         SETTINGS_PATH: 'testSettingsPath',
-        STAGE_DIR: 'testStageDir'
+        STAGE_DIR: 'testStageDir',
+        PROFILE_DIR: 'testProfileDir'
       };
       mockUtils.resolve = function(file, baseLink) {
         var fileExist = false;
@@ -185,21 +186,22 @@ suite('settings.js', function() {
     });
 
     test('writeSettings', function () {
-      var settingsFile = {result: ''};
+      var settingsFile = { result: '' };
       var settings = { 'testKey': 'testValue' };
-      mockUtils.getFile = function(dir, file) {
+      mockUtils.getFile = function() {
+        var args = Array.prototype.slice.call(arguments);
         return {
-          path: dir + '/' + file
+          path: args.join('/'),
+          append: function() {}
         };
       };
       mockUtils.writeContent = function(target, string) {
-        if (target.path === config.STAGE_DIR + '/settings_stage.json') {
+        if (target.path === config.PROFILE_DIR + '/settings.json') {
           settingsFile.result = string;
         }
       };
       app.writeSettings(settings, config);
-      assert.deepEqual(JSON.parse(settingsFile.result),
-        settings);
+      assert.deepEqual(JSON.parse(settingsFile.result), settings);
     });
 
     test('setHomescreenURL with default homescreen', function() {
@@ -235,9 +237,9 @@ suite('settings.js', function() {
         GAIA_DIR: 'testGaia',
         SETTINGS_PATH: 'testSettingsPath',
         GAIA_SCHEME: 'testScheme',
-        GAIA_PORT: 9999,
+        GAIA_PORT: '9999',
         GAIA_DEFAULT_LOCALE: 'testLocale',
-        REMOTE_DEBUGGER: true,
+        REMOTE_DEBUGGER: '1',
         GAIA_DOMAIN: 'testDomain'
       };
       mockUtils.getFileAsDataURI = function() {
@@ -247,7 +249,8 @@ suite('settings.js', function() {
         return {
           exists: function() {
             return true;
-          }
+          },
+          append: function() {}
         };
       };
       mockUtils.getJSON = function(json) {
@@ -383,8 +386,8 @@ suite('settings.js', function() {
       });
     });
 
-    test('DEVICE_DEBUG === true', function(done) {
-      config.DEVICE_DEBUG = true;
+    test('DEVICE_DEBUG === 1', function(done) {
+      config.DEVICE_DEBUG = '1';
       config.NO_LOCK_SCREEN = '1';
       config.TARGET_BUILD_VARIANT = 'user';
       var queue = app.execute(config);
@@ -420,8 +423,8 @@ suite('settings.js', function() {
     });
 
     test('SCREEN_TIMEOUT === 600', function(done) {
-      config.DEVICE_DEBUG = true;
-      config.SCREEN_TIMEOUT = 600;
+      config.DEVICE_DEBUG = '1';
+      config.SCREEN_TIMEOUT = '600';
       config.TARGET_BUILD_VARIANT = 'user';
       var queue = app.execute(config);
       queue.done(function(result) {

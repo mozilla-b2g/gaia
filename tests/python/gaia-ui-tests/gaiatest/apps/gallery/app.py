@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import expected
+from marionette import Wait
 from marionette.by import By
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -19,17 +21,23 @@ class Gallery(Base):
     _progress_bar_locator = (By.ID, 'progress')
     _thumbnail_list_view_locator = (By.ID, 'thumbnail-list-view')
     _switch_to_camera_button_locator = (By.ID, 'thumbnails-camera-button')
+    _switch_to_multiple_selection_view_locator = (By.ID, 'thumbnails-select-button')
 
     def launch(self):
         Base.launch(self)
         self.wait_for_element_not_displayed(*self._progress_bar_locator)
-        self.wait_for_element_displayed(*self._thumbnail_list_view_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._thumbnail_list_view_locator))))
 
     def wait_for_files_to_load(self, files_number):
-        self.wait_for_condition(lambda m: m.execute_script('return window.wrappedJSObject.files.length') == files_number)
+        Wait(self.marionette).until(lambda m: m.execute_script(
+            'return window.wrappedJSObject.files.length;') == files_number)
 
     def wait_for_thumbnails_to_load(self):
-        self.wait_for_element_displayed(*self._gallery_items_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._gallery_items_locator))))
 
     @property
     def gallery_items_number(self):
@@ -65,9 +73,14 @@ class Gallery(Base):
         switch_to_camera_button = self.marionette.find_element(*self._switch_to_camera_button_locator)
         switch_to_camera_button.tap()
         camera_app = gaiatest.apps.camera.app.Camera(self.marionette)
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == camera_app.name)
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == camera_app.name)
         self.apps.switch_to_displayed_app()
         return camera_app
+
+    def switch_to_multiple_selection_view(self):
+        self.marionette.find_element(*self._switch_to_multiple_selection_view_locator).tap()
+        from gaiatest.apps.gallery.regions.multiple_selection_view import MultipleSelectionView
+        return MultipleSelectionView(self.marionette)
 
     class Thumbnail(PageRegion):
 

@@ -93,6 +93,12 @@
     "bluetoothTransfercomms": {
       "description": "Communication with bluetooth apps for sending files info",
       "rules": {}
+    },
+    "screenshot": {
+      "description": "allow certified applications take screenshot",
+      "rules": {
+        "minimumAccessLevel": "certified"
+      }
     }
   },
   "datastores-owned": {

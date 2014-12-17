@@ -1,7 +1,6 @@
 /* globals MocksHelper, ContactsButtons, MockL10n, MockContactAllFields,
            MockContactsButtonsDom, LazyLoader, TelephonyHelper,
-           MultiSimActionButton, MmiManager, ActivityHandler,
-           MockActivityHandler */
+           MultiSimActionButton, ActivityHandler, MockActivityHandler */
 
 'use strict';
 
@@ -16,7 +15,6 @@ require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 require('/shared/test/unit/mocks/dialer/mock_telephony_helper.js');
-require('/dialer/test/unit/mock_mmi_manager.js');
 require('/contacts/test/unit/mock_navigation.js');
 require('/contacts/test/unit/mock_contacts.js');
 require('/contacts/test/unit/mock_contacts_buttons_dom.js.html');
@@ -28,8 +26,7 @@ var mocksHelperForContactsButtons = new MocksHelper([
   'ActivityHandler',
   'Contacts',
   'MultiSimActionButton',
-  'TelephonyHelper',
-  'MmiManager'
+  'TelephonyHelper'
 ]).init();
 
 suite('Render contact', function() {
@@ -222,11 +219,9 @@ suite('Render contact', function() {
 
     test('> Not loading MultiSimActionButton when we are on an activity',
          function() {
-      this.sinon.stub(MmiManager, 'isMMI').returns(true);
       ActivityHandler.currentlyHandling = true;
       subject.renderPhones(mockContact);
 
-      sinon.assert.notCalled(MmiManager.isMMI);
       sinon.assert.neverCalledWith(LazyLoader.load,
        ['/shared/js/multi_sim_action_button.js']);
       ActivityHandler.currentlyHandling = false;
@@ -234,25 +229,22 @@ suite('Render contact', function() {
 
     test('> Not loading MultiSimActionButton if we have a MMI code',
          function() {
-      this.sinon.stub(MmiManager, 'isMMI').returns(true);
+      this.sinon.stub(subject, '_isMMI').returns(true);
 
       subject.renderPhones(mockContact);
 
-      sinon.assert.called(MmiManager.isMMI);
       sinon.assert.neverCalledWith(LazyLoader.load,
        ['/shared/js/multi_sim_action_button.js']);
     });
 
     test('> Load call button', function() {
-      this.sinon.stub(MmiManager, 'isMMI').returns(false);
-
       subject.renderPhones(mockContact);
 
-      // We have two buttons, 2 calls per button created plus webrtc
+      // We have two buttons, one call per button created plus webrtc
       // client call
       // XXX: Should we include webrtc?
       //assert.equal(LazyLoader.load.callCount, 5);
-      assert.equal(LazyLoader.load.callCount, 4);
+      assert.equal(LazyLoader.load.callCount, 2);
       var spyCall = LazyLoader.load.getCall(1);
       assert.deepEqual(
         ['/shared/js/multi_sim_action_button.js'], spyCall.args[0]);
@@ -262,7 +254,6 @@ suite('Render contact', function() {
          function() {
       var theContact = new MockContactAllFields(true);
       subject.renderPhones(theContact);
-      this.sinon.stub(MmiManager, 'isMMI').returns(false);
 
       var phone1 = container.querySelector('#call-or-pick-0');
       var phone2 = container.querySelector('#call-or-pick-1');

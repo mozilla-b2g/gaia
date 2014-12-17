@@ -28,7 +28,7 @@ module.exports = create({
     if (this.arg('addAmPmClass')) {
       l10nLabel = l10nLabel.replace(
         /\s*%p\s*/,
-        '<span class="ampm">%p</span>'
+        '<span class="ampm" aria-hidden="true">%p</span>'
       );
     }
 

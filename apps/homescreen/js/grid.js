@@ -13,7 +13,7 @@ var GridManager = (function() {
   var SAVE_STATE_TIMEOUT = 100;
   var BASE_HEIGHT = 460; // 480 - 20 (status bar height)
 
-  var HIDDEN_ROLES = ['system', 'input', 'homescreen', 'theme'];
+  var HIDDEN_ROLES = ['system', 'input', 'homescreen', 'theme', 'addon'];
 
   // Store the pending apps to be installed until SingleVariant conf is loaded
   var pendingInstallRequests = [];
@@ -1255,7 +1255,6 @@ var GridManager = (function() {
       removable: app.removable,
       name: iconsAndNameHolder.name,
       icon: bestMatchingIcon(app, iconsAndNameHolder),
-      useAsyncPanZoom: app.useAsyncPanZoom,
       isHosted: isHosted(app),
       hasOfflineCache: hasOfflineCache(app),
       type: app.type,

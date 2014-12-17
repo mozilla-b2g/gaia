@@ -2,7 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import expected
+from marionette import Wait
 from marionette.by import By
+
 from gaiatest.apps.base import Base
 
 
@@ -17,12 +20,14 @@ class GoogleLogin(Base):
         Base.__init__(self, marionette)
 
         # wait for the pop up screen to open
-        view = self.wait_for_element_present(*self._iframe_locator)
+        view = Wait(self.marionette).until(
+            expected.element_present(*self._iframe_locator))
         self.marionette.switch_to_frame(view)
 
         # wait for the page to load
-        email = self.wait_for_element_present(*self._email_locator)
-        self.wait_for_condition(lambda m: email.get_attribute('value') != '')
+        email = Wait(self.marionette).until(
+            expected.element_present(*self._email_locator))
+        Wait(self.marionette).until(lambda m: email.get_attribute('value') != '')
 
     @property
     def email(self):
@@ -35,8 +40,12 @@ class GoogleLogin(Base):
         self.marionette.find_element(*self._sign_in_locator).tap()
 
     def wait_for_approve_access(self):
-        self.wait_for_element_displayed(*self._approve_access_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._approve_access_locator))))
 
     def tap_approve_access(self):
-        self.wait_for_condition(lambda m: self.marionette.find_element(*self._approve_access_locator).is_enabled())
-        self.marionette.find_element(*self._approve_access_locator).tap()
+        approve_access = Wait(self.marionette).until(
+            expected.element_present(*self._approve_access_locator))
+        Wait(self.marionette).until(expected.element_enabled(approve_access))
+        approve_access.tap()

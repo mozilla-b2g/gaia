@@ -20,7 +20,8 @@
 /* Wrapper with scroll */
 #firsttime-view section.content {
   -moz-box-sizing: border-box;
-  max-height: calc(100% - 5rem - 6.8rem); /* window height - header height - menu height  */
+  /* window height - header height - gaia-buttons height - content top margin  */
+  max-height: calc(100% - 5rem - 7rem - 1.5rem);
   overflow-x: auto;
 }
 

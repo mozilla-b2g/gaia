@@ -3,6 +3,7 @@
 /* global MockApplications */
 /* global MocksHelper */
 /* global MockSettingsListener */
+/* global SettingsListener */
 /* global SearchWindow */
 
 
@@ -34,7 +35,7 @@ suite('system/SearchWindow', function() {
     stubById = this.sinon.stub(document, 'getElementById')
                           .returns(fakeElement.cloneNode(true));
 
-    requireApp('system/js/system.js');
+    requireApp('system/js/service.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/app_window.js');
     requireApp('system/js/search_window.js', done);
@@ -50,6 +51,14 @@ suite('system/SearchWindow', function() {
     var searchWindow = new SearchWindow();
     assert.ok(searchWindow.constructor === SearchWindow,
       'Uses the SearchWindow constructor');
+  });
+
+  test('destroy - unobserves setting', function() {
+    var subject = new SearchWindow();
+    this.sinon.spy(SettingsListener, 'unobserve');
+    subject.destroy();
+    sinon.assert.calledWith(SettingsListener.unobserve,
+      'rocketbar.searchAppURL', subject._setBrowserConfig);
   });
 
   test('setBrowserConfig', function() {

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-/* globals CustomEvent, MozActivity, System, SettingsListener,
+/* globals CustomEvent, MozActivity, Service, SettingsListener,
    NfcHandoverManager, NfcUtils, NDEF, ScreenManager */
 
 'use strict';
@@ -31,7 +31,7 @@
    * detects NFC Handover requests and passes them to NfcHandoverManager for
    * handling.
    * @class NfcManager
-   * @requires System
+   * @requires Service
    * @requires SettingsListener
    * @requires ScreenManager
    * @requires MozActivity
@@ -50,9 +50,20 @@
      * @enum {string}
      */
     NFC_HW_STATE: {
+      DISABLING: 'nfcDisabling',
       OFF: 'nfcOff',
+      ENABLING: 'nfcEnabling',
+      // active states below
       ON: 'nfcOn',
+      /**
+       * Active state in which NFC HW is polling for NFC tags/peers
+       * @todo merge with |ON|
+       */
       ENABLE_DISCOVERY: 'nfcEnableDiscovery',
+      /**
+       * Active state with low power consumption, NFC HW is not actively
+       * polling for NFC tags/peers. Card emulation is active.
+       */
       DISABLE_DISCOVERY: 'nfcDisableDiscovery'
     },
 
@@ -64,7 +75,6 @@
      * @enum {number}
      */
     TECH_PRIORITY: {
-      P2P: 1,
       Unsupported: 20
     },
 
@@ -98,6 +108,10 @@
       this._onDebugChanged = (enabled) => { DEBUG = enabled; };
       SettingsListener.observe('nfc.debugging.enabled', false,
                                this._onDebugChanged);
+
+      // reseting nfc.status to default state, as the device could've
+      // been restarted when HW change was in progress
+      SettingsListener.getSettingsLock().set({ 'nfc.status':'disabled' });
     },
 
     /**
@@ -126,7 +140,14 @@
      * returns {boolean} isActive
      */
     isActive: function nm_isActive() {
-      return (this._hwState !== this.NFC_HW_STATE.OFF) ? true : false;
+      return this._hwState === this.NFC_HW_STATE.ON ||
+             this._hwState === this.NFC_HW_STATE.ENABLE_DISCOVERY ||
+             this._hwState === this.NFC_HW_STATE.DISABLE_DISCOVERY;
+    },
+
+    isInTransition: function nm_isInTransition() {
+      return this._hwState === this.NFC_HW_STATE.ENABLING ||
+             this._hwState === this.NFC_HW_STATE.DISABLING;
     },
 
     /**
@@ -139,7 +160,6 @@
      * @param {Object} msg gecko originated message
      * @param {Array} msg.records NDEF records
      * @param {Array} msg.techList
-     * @param {string} msg.sessionToken
      * @param {string} msg.type set to 'techDiscovered'
      */
     _handleTechDiscovered: function nm_handleTechDiscovered(msg) {
@@ -151,28 +171,17 @@
       window.dispatchEvent(new CustomEvent('nfc-tech-discovered'));
       window.navigator.vibrate([25, 50, 125]);
 
-      if (NfcHandoverManager.tryHandover(msg.records, msg.sessionToken)) {
+      if (NfcHandoverManager.tryHandover(msg.records, msg.peer)) {
         return;
       }
 
       var tech = this._getPrioritizedTech(msg.techList);
-      switch (tech) {
-        case 'P2P':
-          if (!msg.records.length) {
-            this.checkP2PRegistration();
-          } else {
-            // if there are records in the msg we've got NDEF message shared
-            // by other device via P2P, this should be handled as regular NDEF
-            this._fireNDEFDiscovered(msg, tech);
-          }
-          break;
-        default:
-          if (msg.records.length) {
-            this._fireNDEFDiscovered(msg, tech);
-          } else {
-            this._fireTagDiscovered(msg, tech);
-          }
-          break;
+      if (msg.records.length) {
+        this._fireNDEFDiscovered(msg, tech);
+      } else if (msg.peer) {
+        this.checkP2PRegistration();
+      } else {
+        this._fireTagDiscovered(msg, tech);
       }
     },
 
@@ -205,10 +214,10 @@
         case 'lockscreen-appopened': // Fall through
         case 'lockscreen-appclosed':
         case 'screenchange':
-          if (this._hwState === this.NFC_HW_STATE.OFF) {
+          if (!this.isActive()) {
             return;
           }
-          state = (ScreenManager.screenEnabled && !System.locked) ?
+          state = (ScreenManager.screenEnabled && !Service.locked) ?
                     this.NFC_HW_STATE.ENABLE_DISCOVERY :
                     this.NFC_HW_STATE.DISABLE_DISCOVERY;
           if (state === this._hwState) {
@@ -234,9 +243,16 @@
      * @param {boolean} enabled - NFC setting value
      */
     _nfcSettingsChanged: function nm_nfcSettingsChanged(enabled) {
-      var state = !enabled ? this.NFC_HW_STATE.OFF :
-        (System.locked ? this.NFC_HW_STATE.DISABLE_DISCOVERY :
-                         this.NFC_HW_STATE.ON);
+      this._debug('_nfcSettingsChanged, nfc.enabled: ' + enabled);
+
+      if (this.isActive() === enabled || this.isInTransition()) {
+        this._debug('_nfcSettingsChanged ignoring settings change');
+        return;
+      }
+
+      var state = !enabled ? this.NFC_HW_STATE.DISABLING :
+        (Service.locked ? this.NFC_HW_STATE.DISABLE_DISCOVERY :
+                          this.NFC_HW_STATE.ENABLING);
       this._changeHardwareState(state);
     },
 
@@ -254,35 +270,56 @@
         return;
       }
 
-      var req;
+      var promise;
       switch (state) {
-        case this.NFC_HW_STATE.OFF:
-          req = nfcdom.powerOff();
+        case this.NFC_HW_STATE.DISABLING:
+          promise = nfcdom.powerOff();
+          SettingsListener.getSettingsLock().set({ 'nfc.status':'disabling' });
           break;
         case this.NFC_HW_STATE.DISABLE_DISCOVERY:
-          req = nfcdom.stopPoll();
+          promise = nfcdom.stopPoll();
           break;
-        case this.NFC_HW_STATE.ON:
+        case this.NFC_HW_STATE.ENABLING:
+          promise = nfcdom.startPoll();
+          SettingsListener.getSettingsLock().set({ 'nfc.status': 'enabling' });
+          break;
         case this.NFC_HW_STATE.ENABLE_DISCOVERY:
-          req = nfcdom.startPoll();
+          promise = nfcdom.startPoll();
           break;
       }
 
-      // update statusbar status via custom event
+
+      promise.then(() => {
+        this._debug('_changeHardwareState ' + state + ' success');
+        // checking if NFC HW was in transition states and move to proper state
+        if (this.isInTransition()) {
+          this._handleNFCOnOff(this._hwState === this.NFC_HW_STATE.ENABLING);
+        }
+      }).catch(e => {
+        this._logVisibly('_changeHardwareState ' + state + ' error ' + e);
+        // rollback to previous state in case of transition states
+        if (this.isInTransition()) {
+          this._handleNFCOnOff(this._hwState !== this.NFC_HW_STATE.ENABLING);
+        }
+      });
+    },
+
+    _handleNFCOnOff: function nm_handleNFCOnOff(isOn) {
+      this._debug('_handleNFCOnOf is on:' + isOn);
+
+      this._hwState = (isOn) ? this.NFC_HW_STATE.ON : this.NFC_HW_STATE.OFF;
+      SettingsListener.getSettingsLock().set({
+        'nfc.status': (isOn) ? 'enabled' : 'disabled'
+      });
+
+      // event dispatching to handle statusbar change
+      // TODO remove in Bug 1103874
       var event = new CustomEvent('nfc-state-changed', {
         detail: {
-          active: this.isActive()
+          active: isOn
         }
       });
       window.dispatchEvent(event);
-
-      req.onsuccess = () => {
-        this._debug('_changeHardwareState ' + state + ' success');
-      };
-      req.onerror = () => {
-        this._logVisibly('_changeHardwareState ' + state + ' error ' +
-                         req.error.name);
-      };
     },
 
     /**
@@ -336,13 +373,16 @@
       if (!nfcdom) {
         return;
       }
-      var activeApp = window.System.currentApp;
+      var activeApp = window.Service.currentApp;
       var manifestURL = activeApp.getTopMostWindow().manifestURL ||
-        window.System.manifestURL;
+        window.Service.manifestURL;
 
-      var status = nfcdom.checkP2PRegistration(manifestURL);
-      status.onsuccess = () => {
-        if (status.result) {
+      var promise = nfcdom.checkP2PRegistration(manifestURL);
+      promise.then(result => {
+        if (result) {
+          if (activeApp.isTransitioning() || activeApp.isSheetTransitioning()) {
+            return;
+          }
           // Top visible application's manifest Url is registered;
           // Start Shrink / P2P UI and wait for user to accept P2P event
           window.dispatchEvent(new CustomEvent('shrinking-start'));
@@ -355,7 +395,7 @@
           window.removeEventListener('shrinking-sent', this);
           window.dispatchEvent(new CustomEvent('shrinking-stop'));
         }
-      };
+      });
     },
 
     /**
@@ -370,9 +410,9 @@
       if (!nfcdom) {
         return;
       }
-      var activeApp = window.System.currentApp;
+      var activeApp = window.Service.currentApp;
       var manifestURL = activeApp.getTopMostWindow().manifestURL ||
-        window.System.manifestURL;
+        window.Service.manifestURL;
       nfcdom.notifyUserAcceptedP2P(manifestURL);
     },
 
@@ -386,7 +426,6 @@
      * @param {Object} msg
      * @param {Array} msg.records - NDEF Message
      * @param {Array} msg.techList - tech list
-     * @param {string} msg.sessionToken - session token
      * @param {string} tech - tech from tech list with highest priority
      */
     _fireNDEFDiscovered: function nm_fireNDEFDiscovered(msg, tech) {
@@ -465,7 +504,8 @@
           options.data.type = 'mail';
           options.data.url = payload.uri;
         } else if (payload.uri.indexOf('http://') === 0 ||
-                   payload.uri.indexOf('https://') === 0) {
+                   payload.uri.indexOf('https://') === 0 ||
+                   payload.uri.indexOf('data:text/html') === 0) {
           // launch browser
           options.name = 'view';
           options.data.type = 'url';

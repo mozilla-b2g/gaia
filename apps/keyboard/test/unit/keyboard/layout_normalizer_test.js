@@ -1,28 +1,28 @@
 'use strict';
 
-/* global LayoutNormalizer, KeyEvent */
+/* global LayoutNormalizer, LayoutKeyNormalizer, KeyEvent */
 
 require('/js/keyboard/layout_normalizer.js');
 
-suite('LayoutNormalizer', function() {
-  // little helper to build an array filled with numbers from |from| to |to|.
-  // ex: range(1, 10) -> [1,2,3,...9]
-  // useful for looping a specific number of iterations
-  var range = (from, to) => {
-    if (undefined === to) {
-      to = from;
-      from = 0;
+// little helper to build an array filled with numbers from |from| to |to|.
+// ex: range(1, 10) -> [1,2,3,...9]
+// useful for looping a specific number of iterations
+var range = (from, to) => {
+  if (undefined === to) {
+    to = from;
+    from = 0;
+  }
+
+  var rangeGenerator = function *() {
+    for(var i = from; i < to; i++){
+      yield i;
     }
-
-    var rangeGenerator = function *() {
-      for(var i = from; i < to; i++){
-        yield i;
-      }
-    };
-
-    return Array.from(rangeGenerator());
   };
 
+  return Array.from(rangeGenerator());
+};
+
+suite('LayoutKeyNormalizer', function() {
   var SPECIAL_CODES_MAP = {
     'VK_BACK_SPACE': KeyEvent.DOM_VK_BACK_SPACE,
     'VK_CAPS_LOCK': KeyEvent.DOM_VK_CAPS_LOCK,
@@ -32,7 +32,7 @@ suite('LayoutNormalizer', function() {
 
   suite('isSpecialKey', function() {
     test('keyCode is in special codes', function(){
-      var normalizer = new LayoutNormalizer();
+      var normalizer = new LayoutKeyNormalizer();
 
       Object.keys(SPECIAL_CODES_MAP).forEach(keyCodeName => {
         var key = {
@@ -44,7 +44,7 @@ suite('LayoutNormalizer', function() {
     });
 
     test('keyCode is <= 0', function(){
-      var normalizer = new LayoutNormalizer();
+      var normalizer = new LayoutKeyNormalizer();
 
       // for the sake of this test, we only test 0 to -128
       range(-128, 1).forEach(keyCode => {
@@ -57,7 +57,7 @@ suite('LayoutNormalizer', function() {
     });
 
     test('keyCode is > 0 and is not in special codes', function(){
-      var normalizer = new LayoutNormalizer();
+      var normalizer = new LayoutKeyNormalizer();
 
       // for the sake of this test, we only test 1 to 255
       var keyCodeName;    // linter needs this definition
@@ -83,7 +83,7 @@ suite('LayoutNormalizer', function() {
     // is definitely wrong.
 
     test('Space key', function(){
-      var normalizer = new LayoutNormalizer();
+      var normalizer = new LayoutKeyNormalizer();
 
       var key = {
         keyCode: KeyEvent.DOM_VK_SPACE,
@@ -93,7 +93,7 @@ suite('LayoutNormalizer', function() {
     });
 
     test('Special keys', function(){
-      var normalizer = new LayoutNormalizer();
+      var normalizer = new LayoutKeyNormalizer();
 
       Object.keys(SPECIAL_CODES_MAP).forEach(keyCodeName => {
         var key = {
@@ -105,7 +105,7 @@ suite('LayoutNormalizer', function() {
     });
 
     test('Composite keys', function(){
-      var normalizer = new LayoutNormalizer();
+      var normalizer = new LayoutKeyNormalizer();
 
       var key = {
         keyCode: 'C'.charCodeAt(0),
@@ -116,12 +116,10 @@ suite('LayoutNormalizer', function() {
     });
 
     test('Use uppercase from layout', function(){
-      var normalizer = new LayoutNormalizer({
-        pages: [{
-          upperCase: {
-            'a': 'E'
-          }
-        }]
+      var normalizer = new LayoutKeyNormalizer({
+        upperCase: {
+          'a': 'E'
+        }
       });
 
       var key = {
@@ -130,29 +128,23 @@ suite('LayoutNormalizer', function() {
       };
 
       assert.equal(
-        normalizer._getUpperCaseValue(key, normalizer._layout.pages[0]),
-        'E',
+        normalizer._getUpperCaseValue(key), 'E',
         'upperCase of "a" should be "E" in this crafted test');
     });
 
     test('Use key.value.toUpperCase()', function(){
-      var normalizer = new LayoutNormalizer({
-        pages: [{}]
-      });
+      var normalizer = new LayoutKeyNormalizer({});
       var key = {
         keyCode: 'a'.charCodeAt(0),
         value: 'a'
       };
-      assert.equal(
-        normalizer._getUpperCaseValue(key, normalizer._layout.pages[0]),
-        'A'
-      );
+      assert.equal(normalizer._getUpperCaseValue(key), 'A');
     });
   });
 
   suite('normalizeKey', function() {
     test('Calling getUpperCaseValue', function(){
-      var normalizer = new LayoutNormalizer({});
+      var normalizer = new LayoutKeyNormalizer({});
 
       var key = {
         value: 'a'
@@ -161,14 +153,14 @@ suite('LayoutNormalizer', function() {
       var stubGetUpperCaseValue =
         this.sinon.stub(normalizer, '_getUpperCaseValue').returns('A');
 
-      normalizer._normalizeKey(key);
+      normalizer.normalizeKey(key);
 
       assert.isTrue(stubGetUpperCaseValue.calledWith(key));
     });
 
     test('keyCode is not present: value should derive into keyCode and ' +
          'keyCodeUpper', function(){
-      var normalizer = new LayoutNormalizer({});
+      var normalizer = new LayoutKeyNormalizer({});
 
       var key = {
         value: 'a'
@@ -176,14 +168,14 @@ suite('LayoutNormalizer', function() {
 
       this.sinon.stub(normalizer, '_getUpperCaseValue').returns('A');
 
-      normalizer._normalizeKey(key);
+      normalizer.normalizeKey(key);
 
       assert.equal(key.keyCode, 'a'.charCodeAt(0));
       assert.equal(key.keyCodeUpper, 'A'.charCodeAt(0));
     });
 
     test('keyCode is present: should derive into keyCodeUpper', function(){
-      var normalizer = new LayoutNormalizer({});
+      var normalizer = new LayoutKeyNormalizer({});
 
       var key = {
         value: 'a',
@@ -192,7 +184,7 @@ suite('LayoutNormalizer', function() {
 
       this.sinon.stub(normalizer, '_getUpperCaseValue').returns('A');
 
-      normalizer._normalizeKey(key);
+      normalizer.normalizeKey(key);
 
       assert.equal(key.keyCodeUpper, 'e'.charCodeAt(0),
                    'keyCodeUpper should be keyCode of "e" ' +
@@ -201,7 +193,7 @@ suite('LayoutNormalizer', function() {
 
     test('value should derive into lowercaseValue and uppercaseValue',
     function(){
-      var normalizer = new LayoutNormalizer({});
+      var normalizer = new LayoutKeyNormalizer({});
 
       var key = {
         value: 'a'
@@ -209,14 +201,14 @@ suite('LayoutNormalizer', function() {
 
       this.sinon.stub(normalizer, '_getUpperCaseValue').returns('A');
 
-      normalizer._normalizeKey(key);
+      normalizer.normalizeKey(key);
 
       assert.equal(key.lowercaseValue, 'a');
       assert.equal(key.uppercaseValue, 'A');
     });
 
     test('isSpecialKey', function(){
-      var normalizer = new LayoutNormalizer({});
+      var normalizer = new LayoutKeyNormalizer({});
       var stubIsSpecialKey = this.sinon.stub(normalizer, '_isSpecialKey');
 
       stubIsSpecialKey.returns(true);
@@ -227,7 +219,7 @@ suite('LayoutNormalizer', function() {
 
       this.sinon.stub(normalizer, '_getUpperCaseValue').returns('A');
 
-      normalizer._normalizeKey(key);
+      normalizer.normalizeKey(key);
 
       assert.isTrue(key.isSpecialKey);
 
@@ -237,14 +229,14 @@ suite('LayoutNormalizer', function() {
         value: 'a'
       };
 
-      normalizer._normalizeKey(key2);
+      normalizer.normalizeKey(key2);
 
       assert.isFalse(key2.isSpecialKey);
     });
 
     test('longPressKeyCode is not present: should derive from longPressValue',
     function(){
-      var normalizer = new LayoutNormalizer({});
+      var normalizer = new LayoutKeyNormalizer({});
       var key = {
         value: 'a',
         longPressValue: 'a'
@@ -252,14 +244,14 @@ suite('LayoutNormalizer', function() {
 
       this.sinon.stub(normalizer, '_getUpperCaseValue').returns('A');
 
-      normalizer._normalizeKey(key);
+      normalizer.normalizeKey(key);
 
       assert.equal(key.longPressKeyCode, 'a'.charCodeAt(0));
     });
 
     test('longPressKeyCode is present: should not derive from longPressValue',
     function(){
-      var normalizer = new LayoutNormalizer({});
+      var normalizer = new LayoutKeyNormalizer({});
 
       var key = {
         value: 'a',
@@ -269,7 +261,7 @@ suite('LayoutNormalizer', function() {
 
       this.sinon.stub(normalizer, '_getUpperCaseValue').returns('A');
 
-      normalizer._normalizeKey(key);
+      normalizer.normalizeKey(key);
 
       assert.equal(key.longPressKeyCode, 'b'.charCodeAt(0),
                    'longPressKeyCode should be keyCode of "b" ' +
@@ -277,7 +269,7 @@ suite('LayoutNormalizer', function() {
     });
 
     test('supprtsSwitching key should be normalized too', function(){
-      var normalizer = new LayoutNormalizer({});
+      var normalizer = new LayoutKeyNormalizer({});
 
       var key = {
         value: 'c',
@@ -290,13 +282,40 @@ suite('LayoutNormalizer', function() {
                 .onFirstCall().returns('C')
                 .onSecondCall().returns('A');
 
-      normalizer._normalizeKey(key);
+      normalizer.normalizeKey(key);
 
       assert.equal(key.supportsSwitching.keyCodeUpper, 'A'.charCodeAt(0));
     });
-  });
 
+    test('normalize a key which has alternative keys', function() {
+      var normalizer = new LayoutKeyNormalizer({});
+
+      this.sinon.stub(normalizer, '_getUpperCaseValue').returns('A');
+
+      var key = {
+        value: 'a'
+      };
+
+      normalizer.normalizeKey(key, {}, true);
+
+      assert.equal(key.className, 'alternate-indicator');
+    });
+  });
+});
+
+suite('LayoutNormalizer', function() {
   suite('normalizePageKeys', function() {
+    var stubNormalizeKey;
+
+    setup(function() {
+      stubNormalizeKey =
+        sinon.stub(LayoutKeyNormalizer.prototype, 'normalizeKey');
+    });
+
+    teardown(function() {
+      stubNormalizeKey.restore();
+    });
+
     test('keys', function() {
       var normalizer = new LayoutNormalizer({});
 
@@ -306,8 +325,6 @@ suite('LayoutNormalizer', function() {
           [ {value: 'c'}, {value: 'd'}, {value: 'e'} ]
         ]
       };
-
-      var stubNormalizeKey = this.sinon.stub(normalizer, '_normalizeKey');
 
       normalizer._normalizePageKeys(page);
 
@@ -328,7 +345,6 @@ suite('LayoutNormalizer', function() {
         }
       };
 
-      var stubNormalizeKey = this.sinon.stub(normalizer, '_normalizeKey');
       stubNormalizeKey.returns('C');
 
       normalizer._normalizePageKeys(page);
@@ -341,6 +357,32 @@ suite('LayoutNormalizer', function() {
         'b': 'C'
       });
     });
+
+    test('overwriting key in textLayoutOverwrite has alternative keys',
+      function() {
+        var normalizer = new LayoutNormalizer({});
+
+        var page = {
+          textLayoutOverwrite: {
+            'a': 'b'
+          },
+          alt: {
+            'b': 'cdefg'
+          }
+        };
+
+        // we'd like to have normalizeKey really do it job in this test
+        stubNormalizeKey.restore();
+
+        var overwritingkey = 'b';
+        var hasAlternativeKeys = normalizer._hasAlternativeKeys(overwritingkey,
+                                                                page);
+        assert.isTrue(hasAlternativeKeys);
+
+        normalizer._normalizePageKeys(page);
+        assert.equal(page.textLayoutOverwrite.a.className,
+                     'alternate-indicator');
+      });
   });
 
   suite('normalizePageAltKeys', function() {
@@ -560,31 +602,29 @@ suite('LayoutNormalizer', function() {
       });
     });
   });
+});
 
-  suite('Whole-module tests', function() {
-    test('getUpperCase correctly uses moved-to-page0 properties', function(){
-      var normalizer = new LayoutNormalizer({
-        keys: [
-          [{value: 'a'}]
-        ],
-        upperCase: {'a': 'C'}
-      });
-
-      normalizer.normalize();
-
-      console.log(JSON.stringify(normalizer._layout));
-
-      assert.deepEqual(normalizer._layout.pages[0].keys,
-        [
-          [{
-            value: 'a',
-            keyCode: 97,
-            keyCodeUpper: 67,
-            lowercaseValue: 'a',
-            uppercaseValue: 'C',
-            isSpecialKey: false
-          }]
-        ], 'upperCase of "a" should be "C" in this crafted test');
+suite('Layout normalization: Cross-module integrated tests', function() {
+  test('getUpperCase correctly uses moved-to-page0 properties', function(){
+    var normalizer = new LayoutNormalizer({
+      keys: [
+        [{value: 'a'}]
+      ],
+      upperCase: {'a': 'C'}
     });
+
+    normalizer.normalize();
+
+    assert.deepEqual(normalizer._layout.pages[0].keys,
+      [
+        [{
+          value: 'a',
+          keyCode: 97,
+          keyCodeUpper: 67,
+          lowercaseValue: 'a',
+          uppercaseValue: 'C',
+          isSpecialKey: false
+        }]
+      ], 'upperCase of "a" should be "C" in this crafted test');
   });
 });

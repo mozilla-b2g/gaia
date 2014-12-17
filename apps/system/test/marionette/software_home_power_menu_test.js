@@ -1,7 +1,5 @@
 'use strict';
 
-var System = require('./lib/system');
-
 marionette('Software Home Button - Power Menu', function() {
 
   var client = marionette.client({
@@ -18,7 +16,7 @@ marionette('Software Home Button - Power Menu', function() {
   var system;
 
   setup(function() {
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
   });
 

@@ -8,11 +8,6 @@ var EmailServer = require(
   '../../../../apps/email/test/marionette/lib/server_helper');
 var EmeServer = require(
   '../../../../shared/test/integration/eme_server/parent');
-var Home = require(
-  '../../../../apps/verticalhome/test/marionette/lib/home2');
-var Search = require(
-  '../../../../apps/search/test/marionette/lib/search');
-var System = require('./lib/system');
 var Rocketbar = require('./lib/rocketbar');
 
 marionette('Browser Chrome - Share Web Result', function() {
@@ -47,10 +42,10 @@ marionette('Browser Chrome - Share Web Result', function() {
   setup(function() {
     actions = new Actions(client);
     email = new Email(client);
-    home = new Home(client);
+    home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
-    search = new Search(client);
-    system = new System(client);
+    search = client.loader.getAppClass('search');
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
 
     search.removeGeolocationPermission();
@@ -59,6 +54,10 @@ marionette('Browser Chrome - Share Web Result', function() {
 
   test('share web result via e-mail', function() {
     var linkIdentifier = 'mozilla1.org/';
+
+    home.waitForLaunch();
+    home.focusRocketBar();
+    search.triggerFirstRun(rocketbar);
 
     // Use the home-screen search box to open up the system browser
     rocketbar.homescreenFocus();

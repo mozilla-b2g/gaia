@@ -1,4 +1,4 @@
-/* global homescreenLauncher, System, LazyLoader, LandingAppLauncher */
+/* global homescreenLauncher, Service, LazyLoader, LandingAppLauncher */
 
 'use strict';
 (function(exports) {
@@ -9,7 +9,7 @@
    * @class HomescreenWindowManager
    * @requires HomescreenLauncher
    * @requires LandingAppLauncher
-   * @requires System
+   * @requires Service
    */
   function HomescreenWindowManager() {}
 
@@ -36,7 +36,7 @@
     debug: function hwm_debug() {
       if (this.DEBUG) {
         console.log('[' + this.CLASS_NAME + ']' +
-          '[' + System.currentTime() + ']' +
+          '[' + Service.currentTime() + ']' +
           Array.slice(arguments).concat());
       }
     },
@@ -200,8 +200,12 @@
       } else if (homescreenLauncher.manifestURL === manifestURL) {
         // in appX trying to switch to home
         this.publish('home');
+      } else if (this.landingAppLauncher.manifestURL === manifestURL) {
+        // We set the activeHome as normal home and use home event to switch to
+        // landing app
+        this._activeHome = homescreenLauncher;
+        this.publish('home');
       }
-      // We don't support appX trying to switch to landing app
     },
 
     handleHomeEvent: function handleHomeEvent() {

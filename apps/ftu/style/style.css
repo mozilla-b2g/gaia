@@ -459,7 +459,7 @@ aside.connecting {
 #hidden-wifi-authentication .pack-checkbox,
 #configure_network_params .pack-checkbox {
   position: relative;
-  left: auto;
+  left: 0;
   padding-top: 1rem;
   padding-bottom: 1rem;
   -moz-padding-start: 3rem;
@@ -1123,6 +1123,12 @@ i.hack-first-child {
 /*
   RTL Tweeks
 */
+
+/* navigational buttons remain right=forward, left=back */
+html[dir="rtl"] gaia-buttons.nav {
+  direction: ltr;
+  unicode-bidi:embed;
+}
 
 html[dir="rtl"] #sim-info-screen .sim-image {
   float: right;

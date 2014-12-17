@@ -65,6 +65,11 @@ var Common = {
   allNetworkInterfaces: null,
 
   allNetworkInterfaceLoaded: false,
+  //XXX: Group of apps, whose traffic will be added to the system app.
+  // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1079609
+  specialApps: [
+    'app://search.gaiamobile.org/manifest.webapp'
+  ],
 
   startFTE: function(mode) {
     var iframe = document.getElementById('fte_view');
@@ -184,7 +189,14 @@ var Common = {
 
       var request = window.navigator.mozApps.mgmt.getAll();
       request.onsuccess = function(event) {
-        Common.allApps = event.target.result;
+        var appList = event.target.result;
+        // XXX : The data traffic of the filtered apps will be automatically
+        // counted as residual data. This traffic is added to the system app
+        // on the drawApps method located on "js/views/datausage.js"
+        // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1084010#c0
+        Common.allApps = appList.filter(function(app) {
+          return Common.specialApps.indexOf(app.manifestURL) === -1;
+        });
         Common.allAppsLoaded = true;
         resolve(Common.allApps);
       };
@@ -373,6 +385,13 @@ var Common = {
         }
       }
       nextReset = new Date(year, month, monthday);
+      if (monthday !== nextReset.getDate()) {
+        var LAST_DAY_OF_PREVIOUS_MONTH = 0;
+        // If monthday is not equal to nextReset day, it means that the selected
+        // reset day does not exist (e.g. 30 Feb). In this case, the reset day
+        // must be the last day of the previous month
+        nextReset.setDate(LAST_DAY_OF_PREVIOUS_MONTH);
+      }
 
     // Recalculate with week period
     } else if (trackingPeriod === 'weekly') {

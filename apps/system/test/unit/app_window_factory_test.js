@@ -136,7 +136,7 @@ suite('system/AppWindowFactory', function() {
     window.homescreenLauncher.start();
 
     window.appWindowManager = new MockAppWindowManager();
-    requireApp('system/js/system.js');
+    requireApp('system/js/service.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/app_window_factory.js', function() {
       window.appWindowFactory = new AppWindowFactory();
@@ -321,7 +321,7 @@ suite('system/AppWindowFactory', function() {
     });
 
     test('opening a first activity', function() {
-      var stubDispatchEvent = this.sinon.stub(document.body, 'dispatchEvent');
+      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
       appWindowFactory.handleEvent({
         type: 'open-app',
         detail: fakeLaunchConfig4

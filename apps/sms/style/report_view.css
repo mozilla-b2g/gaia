@@ -93,7 +93,7 @@
 .report-view > .contact-list p,
 .report-view > .contact-list span {
   font-size: 1.4rem;
-  line-height: 1rem;
+  line-height: 1.6rem;
 }
 
 .report-view > .contact-list .suggestion .name {
@@ -110,10 +110,14 @@
 }
 
 .report-view > .contact-list .number {
-  padding-top: 1.2rem;
+  padding-top: 0.9rem;
 }
 
 .report-view > .contact-list div {
+  padding-top: 0.7rem;
+}
+
+.report-view > .contact-list .name + div {
   padding-top: 1rem;
 }
 
@@ -131,7 +135,8 @@
 
   width: 1.6rem;
   height: 1.6rem;
-  margin: -0.1rem 0.7rem 0.1rem 0;
+  margin: -0.1rem 0 0.1rem;
+  -moz-margin-end: 0.7rem;
 
   background: no-repeat center center / 1.6rem transparent;
 }
@@ -170,4 +175,9 @@
 
 .report-view[data-delivery="error"] .resend-btn {
   display: block;
+}
+
+/* RTL modifications */
+.contact-list:-moz-dir(rtl) .icon {
+  float: right;
 }

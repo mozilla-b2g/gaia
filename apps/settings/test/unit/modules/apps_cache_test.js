@@ -72,15 +72,14 @@ suite('AppsCache', function() {
 
   suite('_initEvents', function() {
     setup(function() {
-      MockMozApps.mgmt.addEventListener = this.sinon.spy();
+      MockMozApps.mgmt.oninstall = this.sinon.spy();
+      MockMozApps.mgmt.onuninstall = this.sinon.spy();
       appsCache._initEvents();
     });
 
     test('we will register two necessary events', function() {
-      assert.equal(
-        MockMozApps.mgmt.addEventListener.getCall(0).args[0], 'install');
-      assert.equal(
-        MockMozApps.mgmt.addEventListener.getCall(1).args[0], 'uninstall');
+      assert.equal(MockMozApps.mgmt.oninstall.called);
+      assert.equal(MockMozApps.mgmt.onuninstall.called);
     });
   });
 

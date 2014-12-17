@@ -5,7 +5,6 @@ marionette('App Usage Metrics >', function() {
   var assert = require('assert');
   var url = require('url');
 
-  var System = require('./lib/system');
   var Server = require('../../../../shared/test/integration/server');
   var Settings = require('../../../settings/test/marionette/app/app');
   var AppInstall = require('./lib/app_install');
@@ -64,7 +63,7 @@ marionette('App Usage Metrics >', function() {
       done(err);
     });
 
-    sys = new System(client);
+    sys = client.loader.getAppClass('system');
   });
 
   suiteTeardown(function() {
@@ -163,7 +162,7 @@ marionette('App Usage Metrics >', function() {
 
     function lockScreen() {
       client.executeScript(function() {
-        window.wrappedJSObject.System.request('lock', { 'forcibly': true });
+        window.wrappedJSObject.Service.request('lock', { 'forcibly': true });
       });
       waitForEvent('lockscreen-appopened', checkMetrics);
     }
@@ -173,7 +172,7 @@ marionette('App Usage Metrics >', function() {
       assert.ok(metrics.getAppUsageTime(MEDIA_MANIFEST) > 0);
 
       client.executeScript(function() {
-        window.wrappedJSObject.System.request('unlock', { 'forcibly': true });
+        window.wrappedJSObject.Service.request('unlock', { 'forcibly': true });
       });
 
       client.apps.close(MEDIA_APP);

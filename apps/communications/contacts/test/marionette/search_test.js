@@ -33,7 +33,7 @@ marionette('Contacts > Search', function() {
       assert.ok(listView.displayed(), 'List view is shown.');
     });
 
-    test('Search text is displayed correctly', function() {
+    test.skip('Search text is displayed correctly', function() {
       var details = details || {
         givenName: 'A%%&'
       };

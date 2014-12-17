@@ -97,6 +97,25 @@ Timer.Panel = function(element) {
   element.addEventListener('panel-visibilitychange',
                            this.onvisibilitychange.bind(this));
 
+  // The start button is disable by default (picker at 00:00 by default)
+  this.nodes.create.setAttribute('disabled', 'true');
+  
+  var create = this.nodes.create;
+  var picker = this.picker;
+
+  var enableButton = function() {
+    if(timeFromPicker(picker.value) === 0) {
+      create.setAttribute('disabled', 'true');
+    } else {
+      create.removeAttribute('disabled');
+    }
+  };
+
+  // The start button is enable if the value of the timer is not 00:00
+  picker.nodes.minutes.addEventListener('transitionend', enableButton);
+  picker.nodes.hours.addEventListener('transitionend', enableButton);
+
+  
   Timer.singleton(function(err, timer) {
     this.timer = timer;
     timer.onend = this.dialog.bind(this);

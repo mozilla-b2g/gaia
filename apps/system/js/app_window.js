@@ -7,7 +7,8 @@
 /* global ScreenLayout */
 /* global SettingsListener */
 /* global StatusBar */
-/* global System */
+/* global Service */
+/* global DUMP */
 'use strict';
 
 (function(exports) {
@@ -210,6 +211,7 @@
     function aw_setVisible(visible) {
       this.debug('set visibility -> ', visible);
       this.setVisibleForScreenReader(visible);
+      this._setActive(visible);
       if (visible) {
         // If this window is not the lockscreen, and the screen is locked,
         // we need to aria-hide the window.
@@ -230,7 +232,9 @@
    */
   AppWindow.prototype.setVisibleForScreenReader =
     function aw_setVisibleForScreenReader(visible) {
-      this._setActive(visible);
+      if (!this.element) {
+        return;
+      }
       this.element.setAttribute('aria-hidden', !visible);
     };
 
@@ -240,6 +244,7 @@
    */
   AppWindow.prototype._showFrame = function aw__showFrame() {
     this.debug('before showing frame');
+    this.reviveBrowser();
 
     // If we're already showing, do nothing!
     if (!this.browser.element.classList.contains('hidden')) {
@@ -269,7 +274,7 @@
     this.debug('before hiding frame');
 
     // If we're already hidden, we have nothing to do!
-    if (this.browser.element.classList.contains('hidden')) {
+    if (!this.browser || this.browser.element.classList.contains('hidden')) {
       return;
     }
 
@@ -296,6 +301,10 @@
       return true;
     }
 
+    if (this.element.classList.contains('will-become-inactive')) {
+      return false;
+    }
+
     if (this.transitionController) {
       return (this.transitionController._transitionState == 'opened' ||
               this.transitionController._transitionState == 'opening');
@@ -304,6 +313,11 @@
       return false;
     }
   };
+
+  AppWindow.prototype.isSheetTransitioning =
+    function aw_isSheetTransitioning() {
+      return this.element.classList.contains('inside-edges');
+    };
 
   /**
    * TODO: Integrate swipe transition.
@@ -422,21 +436,26 @@
     if (this.isActive() && this.getBottomMostWindow().isActive() &&
         !this.isHomescreen) {
 
-      var fallbackTimeout;
       var onClosed = function() {
-        clearTimeout(fallbackTimeout);
         this.element.removeEventListener('_closed', onClosed);
         this.destroy();
       }.bind(this);
 
       this.element.addEventListener('_closed', onClosed);
-      fallbackTimeout = setTimeout(onClosed,
-        this.transitionController.CLOSING_TRANSITION_TIMEOUT);
 
       if (this.previousWindow) {
         this.previousWindow.getBottomMostWindow().open('in-from-left');
         this.close('out-to-right');
       } else {
+        if (this.transitionController) {
+          // In normal case,
+          // the window manager will call this.close() to response
+          // the requestClose(), and when the timeout here is reached,
+          // it will not close again because transition controller
+          // is taking care of that.
+          setTimeout(this.close.bind(this, 'immediate'),
+            this.transitionController.CLOSING_TRANSITION_TIMEOUT);
+        }
         this.requestClose();
       }
     } else {
@@ -505,26 +524,20 @@
   AppWindow.prototype.containerElement = document.getElementById('windows');
 
   AppWindow.prototype.view = function aw_view() {
-    return '<div class=" ' + this.CLASS_LIST +
-            ' " id="' + this.instanceID +
-            '" transition-state="closed">' +
-              '<div class="titlebar">' +
-              ' <div class="notifications-shadow"></div>' +
-              ' <div class="statusbar-shadow titlebar-maximized"></div>' +
-              ' <div class="statusbar-shadow titlebar-minimized"></div>' +
-              '</div>' +
-              '<div class="identification-overlay">' +
-                '<div>' +
-                  '<div class="icon"></div>' +
-                  '<span class="title"></span>' +
-                '</div>' +
-              '</div>' +
-              '<div class="fade-overlay"></div>' +
-              '<div class="touch-blocker"></div>' +
-              '<div class="browser-container">' +
-              ' <div class="screenshot-overlay"></div>' +
-              '</div>' +
-           '</div>';
+    return `<div class="${this.CLASS_LIST}" id="${this.instanceID}"
+              transition-state="closed">
+              <div class="identification-overlay">
+                <div>
+                  <div class="icon"></div>
+                  <span class="title"></span>
+                </div>
+              </div>
+              <div class="fade-overlay"></div>
+              <div class="touch-blocker"></div>
+              <div class="browser-container">
+               <div class="screenshot-overlay"></div>
+              </div>
+           </div>`;
   };
 
   /**
@@ -571,6 +584,10 @@
 
     if (this.isBrowser()) {
       this.element.classList.add('browser');
+    }
+
+    if (this.isPrivateBrowser()) {
+      this.element.classList.add('private');
     }
 
     this.browserContainer = this.element.querySelector('.browser-container');
@@ -620,6 +637,15 @@
    */
   AppWindow.prototype.isBrowser = function aw_isbrowser() {
     return !this.manifestURL;
+  };
+
+  /**
+   * Checks if an appWindow is a private window.
+   *
+   * @return {Boolean} is the current instance a private window.
+   */
+  AppWindow.prototype.isPrivateBrowser = function aw_isprivate() {
+    return !!this.browser_config.isPrivate;
   };
 
   /**
@@ -708,6 +734,7 @@
     'authDialog': window.AppAuthenticationDialog,
     'contextmenu': window.BrowserContextMenu,
     'childWindowFactory': window.ChildWindowFactory,
+    'statusbar': window.AppStatusbar
   };
 
   AppWindow.prototype.openAnimation = 'enlarge';
@@ -785,17 +812,24 @@
   };
 
   AppWindow.prototype._handle__orientationchange = function() {
-    if (this.isActive() && !this.isHomescreen) {
-      // Will be resized by the AppWindowManager
-      return;
+    if (this.isActive()) {
+      if (!this.isHomescreen) {
+        return;
+      // XXX: Preventing orientaiton of homescreen app is changed by background
+      //      app. It's a workaround for bug 1089951.
+      //      It should be remove once bug 1043102 is done.
+      } else if (Service.currentApp && Service.currentApp === this) {
+        this.lockOrientation();
+      }
     }
-
     // Resize only the overlays not the app
     var width = layoutManager.width;
-    var height = layoutManager.height;
+    var height = layoutManager.getHeightFor(this);
 
-    this.iframe.style.width = this.width + 'px';
-    this.iframe.style.height = this.height + 'px';
+    if (this.browser) {
+      this.iframe.style.width = this.width + 'px';
+      this.iframe.style.height = this.height + 'px';
+    }
 
     this.element.style.width = width + 'px';
     this.element.style.height = height + 'px';
@@ -1047,12 +1081,18 @@
       console.log('[' + this.CLASS_NAME + ']' +
         '[' + (this.name || this.origin) + ']' +
         '[' + this.instanceID + ']' +
-        '[' + System.currentTime() + '] ' +
+        '[' + Service.currentTime() + '] ' +
         Array.slice(arguments).concat());
 
       if (TRACE) {
         console.trace();
       }
+    } else if (window.DUMP) {
+      DUMP('[' + this.CLASS_NAME + ']' +
+        '[' + (this.name || this.origin) + ']' +
+        '[' + this.instanceID + ']' +
+        '[' + Service.currentTime() + '] ' +
+        Array.slice(arguments).concat());
     }
   };
 
@@ -1060,7 +1100,7 @@
   AppWindow.prototype.forceDebug = function aw_debug(msg) {
     console.log('[Dump:' + this.CLASS_NAME + ']' +
       '[' + (this.name || this.origin) + ']' +
-      '[' + System.currentTime() + ']' +
+      '[' + Service.currentTime() + ']' +
       Array.slice(arguments).concat());
   };
 
@@ -1151,7 +1191,7 @@
       }
 
       if (this.identificationOverlay) {
-        this.identificationOverlay.classList.add('visible');
+        this.element.classList.add('overlay');
       }
 
       this.screenshotOverlay.classList.add('visible');
@@ -1177,11 +1217,11 @@
       this.screenshotOverlay.style.backgroundImage = '';
 
       if (this.identificationOverlay) {
-        var overlay = this.identificationOverlay;
+        var element = this.element;
         // A white flash can occur when removing the screenshot
         // so we trigger this transition after a tick to hide it.
         setTimeout(function nextTick() {
-          overlay.classList.remove('visible');
+          element.classList.remove('overlay');
         });
       }
     };
@@ -1368,7 +1408,7 @@
        */
       this.broadcast('withoutkeyboard');
     }
-    height = layoutManager.height;
+    height = layoutManager.getHeightFor(this);
 
     // If we have sidebar in the future, change layoutManager then.
     width = layoutManager.width;
@@ -1386,12 +1426,17 @@
     this.element.style.width = this.width + 'px';
     this.element.style.height = this.height + 'px';
 
+    this.reviveBrowser();
     this.iframe.style.width = '';
     this.iframe.style.height = '';
 
     this.resized = true;
     if (this.screenshotOverlay) {
       this.screenshotOverlay.style.visibility = '';
+    }
+
+    if (this.modalDialog && this.modalDialog.isVisible()) {
+      this.modalDialog.updateMaxHeight();
     }
 
     /**
@@ -1465,6 +1510,7 @@
                       OrientationManager.globalOrientation;
     if (orientation) {
       var rv = screen.mozLockOrientation(orientation);
+
       if (rv === false) {
         console.warn('screen.mozLockOrientation() returned false for',
                      this.origin, 'orientation', orientation);
@@ -1800,10 +1846,6 @@
   };
 
   AppWindow.prototype._handle__sheetsgestureend = function aw_sgend() {
-    if (this.isActive()) {
-      this.debug('nothing to do during sheetsgestureend');
-      return;
-    }
     this.debug('hiding screenshot on sheetsgestureend');
     this._hideScreenshotOverlay();
   };
@@ -1819,19 +1861,9 @@
   };
 
   AppWindow.prototype._handle__closed = function aw_closed() {
-    //
-    // Never take screenshots of the homescreen.
-    //
-    // We don't need the screenshot of homescreen because:
-    // 1. Homescreen background is transparent,
-    //    currently gecko only sends JPG to us.
-    //    See bug 878003.
-    // 2. Homescreen screenshot isn't required by card view.
-    //    Since getScreenshot takes additional memory usage,
-    //    let's early return here.
-    // 3. We want to remove this long term, see bug 1072781.
-    //
-    if (this.getBottomMostWindow().isHomescreen) {
+    if (Service.isBusyLoading() && this.getBottomMostWindow().isHomescreen) {
+      // We will eventually get screenshot when being requested from
+      // task manager.
       return;
     }
     // Update screenshot blob here to avoid slowing down closing transitions.
@@ -2167,6 +2199,17 @@
       return;
     }
     this.setVisible(false);
+  };
+
+  /**
+   * Statusbar will bypass touch event to us via this method
+   * @param  {Object} evt       Touch event object
+   * @param  {Number} barHeight The height of the statusbar
+   */
+  AppWindow.prototype.handleStatusbarTouch = function(evt, barHeight) {
+    if (this.statusbar) {
+      this.statusbar.handleStatusbarTouch(evt, barHeight);
+    }
   };
   exports.AppWindow = AppWindow;
 }(window));

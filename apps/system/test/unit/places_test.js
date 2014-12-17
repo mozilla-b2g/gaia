@@ -55,6 +55,31 @@ suite('system/Places', function() {
     },
   };
 
+  suite('Private Browsing', function() {
+
+    function sendPrivateBrowserEvent(event, url) {
+      window.dispatchEvent(new CustomEvent(event, {
+        detail: {
+          isBrowser: function() { return true; },
+          isPrivateBrowser: function() { return true; },
+          config: {
+            url: url
+          }
+        }
+      }));
+    }
+
+    test('Does not process events for private browsers', function() {
+      var locationStub = this.sinon.stub(subject, 'onLocationChange');
+      var debounceStub = this.sinon.stub(subject, 'debouncePlaceChanges');
+
+      sendPrivateBrowserEvent('applocationchange', url1);
+      sendPrivateBrowserEvent('apploaded', url1);
+      assert.isFalse(locationStub.called);
+      assert.isFalse(debounceStub.called);
+    });
+  });
+
   suite('Test places event handling', function() {
 
     teardown(function() {
@@ -65,6 +90,7 @@ suite('system/Places', function() {
       window.dispatchEvent(new CustomEvent(event, {
         detail: {
           isBrowser: function() { return true; },
+          isPrivateBrowser: function() { return false; },
           config: {
             url: url
           }
@@ -99,6 +125,7 @@ suite('system/Places', function() {
       window.dispatchEvent(new CustomEvent('apptitlechange', {
         detail: {
           isBrowser: function() { return true; },
+          isPrivateBrowser: function() { return false; },
           title: title,
           config: {
             url: url1
@@ -123,6 +150,7 @@ suite('system/Places', function() {
       window.dispatchEvent(new CustomEvent('appiconchange', {
         detail: {
           isBrowser: function() { return true; },
+          isPrivateBrowser: function() { return false; },
           favicons: oneIcon,
           config: {
             url: url1
@@ -236,6 +264,7 @@ suite('system/Places', function() {
       window.dispatchEvent(new CustomEvent('appiconchange', {
         detail: {
           isBrowser: function() { return true; },
+          isPrivateBrowser: function() { return false; },
           favicons: oneIcon,
           config: {url: url }
         }

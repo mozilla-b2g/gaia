@@ -96,7 +96,7 @@ suite('preferences.js', function() {
     });
 
     test('setConfig with DEBUG=1', function () {
-      config.DEBUG = 1;
+      config.DEBUG = '1';
       preferences.setConfig(config);
       assert.ok(preferences.extenedPrefFiles.indexOf('debug-prefs.js') !== -1,
         'extenedPrefFiles should contain debug-prefs.js');
@@ -385,7 +385,9 @@ suite('preferences.js', function() {
         'extensions.gaia.locale_basedir': preferences.config.LOCALE_BASEDIR,
         'extensions.gaia.device_pixel_suffix':
           '@' + preferences.config.GAIA_DEV_PIXELS_PER_PX + 'x',
-        'extensions.autoDisableScopes': 0
+        'extensions.autoDisableScopes': 0,
+        'browser.tabs.remote.autostart': false,
+        'browser.tabs.remote.autostart.1': false,
       });
       assert.isUndefined(preferences.userPrefs['network.http.use-cache']);
     });
@@ -431,12 +433,12 @@ suite('preferences.js', function() {
 
       preferences.gaia = {
         webapps: [
-          {domain: 'testDomain'}
+          { domain: 'testDomain' }
         ]
       };
       preferences.config = {
         SYSTEM: 'app://system',
-        GAIA_PORT: 8000,
+        GAIA_PORT: '8000',
         GAIA_DOMAIN: 'domain',
         GAIA_ALLAPPDIRS: 'testAppDir1 testAppDir2'
       };
@@ -457,19 +459,19 @@ suite('preferences.js', function() {
         'dom.mms.version': 0x11,
         'b2g.wifi.allow_unsafe_wpa_eap': true
       });
-      preferences.config.LOCAL_DOMAINS = true;
+      preferences.config.LOCAL_DOMAINS = '1';
       preferences.preparePref();
       assert.equal(cusPref, 'local');
       delete preferences.config.LOCAL_DOMAINS;
-      preferences.config.DESKTOP = true;
+      preferences.config.DESKTOP = '1';
       preferences.preparePref();
       assert.equal(cusPref, 'desktop');
       delete preferences.config.DESKTOP;
-      preferences.config.DEBUG = true;
+      preferences.config.DEBUG = '1';
       preferences.preparePref();
       assert.equal(cusPref, 'debug');
       delete preferences.config.DEBUG;
-      preferences.config.DEVICE_DEBUG = true;
+      preferences.config.DEVICE_DEBUG = '1';
       preferences.preparePref();
       assert.equal(cusPref, 'device');
 

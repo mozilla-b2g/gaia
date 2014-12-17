@@ -13,10 +13,18 @@
  * It is not responsible of user feedbacks because they can be depend on
  * the properties of target itself.
  *
+ * The caller of ActiveTargetsManager can set the following properties to alter
+ * its behavior:
+ *   blockNewUserPress: when set to true, any new press is not handled.
+ *   blockTargetMovedOut: when set to true, presses won't be able to move out
+ *   of current target.
  */
 var ActiveTargetsManager = function(app) {
   this.app = app;
   this.activeTargets = null;
+
+  this.blockNewUserPress = false;
+  this.blockTargetMovedOut = false;
 
   this.userPressManager = null;
   this.alternativesCharMenuManager = null;
@@ -29,6 +37,7 @@ var ActiveTargetsManager = function(app) {
 
 ActiveTargetsManager.prototype.ontargetactivated = null;
 ActiveTargetsManager.prototype.ontargetlongpressed = null;
+ActiveTargetsManager.prototype.ontargetmoved = null;
 ActiveTargetsManager.prototype.ontargetmovedout = null;
 ActiveTargetsManager.prototype.ontargetmovedin = null;
 ActiveTargetsManager.prototype.ontargetcommitted = null;
@@ -97,8 +106,10 @@ ActiveTargetsManager.prototype.clearAllTargets = function() {
 
 ActiveTargetsManager.prototype._handlePressStart = function(press, id) {
   this.app.console.log('ActiveTargetsManager._handlePressStart()');
-  // Ignore new touches if menu is shown
-  if (this.alternativesCharMenuManager.isShown) {
+
+  // Ignore any new user press when blockNewUserPress property is true or
+  // alternatives menu is shown.
+  if (this.blockNewUserPress || this.alternativesCharMenuManager.isShown) {
     return;
   }
 
@@ -113,7 +124,7 @@ ActiveTargetsManager.prototype._handlePressStart = function(press, id) {
   this.activeTargets.set(id, target);
 
   if (typeof this.ontargetactivated === 'function') {
-    this.ontargetactivated(target);
+    this.ontargetactivated(target, press);
   }
 
   clearTimeout(this.longPressTimer);
@@ -157,8 +168,14 @@ ActiveTargetsManager.prototype._handlePressMove = function(press, id) {
     return;
   }
 
-  // Do nothing if the element is unchanged.
   if (target === oldTarget) {
+    if (typeof this.ontargetmoved === 'function') {
+      this.ontargetmoved(target, press);
+    }
+    return;
+  }
+
+  if (this.blockTargetMovedOut) {
     return;
   }
 
@@ -169,7 +186,7 @@ ActiveTargetsManager.prototype._handlePressMove = function(press, id) {
   }
 
   if (typeof this.ontargetmovedin === 'function') {
-    this.ontargetmovedin(target);
+    this.ontargetmovedin(target, press);
   }
 
   // Hide of alternatives menu if the touch moved out of it

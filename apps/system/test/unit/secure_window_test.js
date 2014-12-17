@@ -40,7 +40,7 @@ suite('system/SecureWindow', function() {
 
       return element;
     });
-    requireApp('system/js/system.js');
+    requireApp('system/js/service.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');
     requireApp('system/js/app_window.js');
@@ -77,7 +77,6 @@ suite('system/SecureWindow', function() {
       // Or the AppWindow would look for it.
       app.element = document.createElement('div');
       parentElement.appendChild(app.element);
-      app.transitionController = {};
       app.kill();
       assert.isTrue(stubDispatch.calledWithMatch(sinon.match(
           function(e) {
@@ -98,9 +97,6 @@ suite('system/SecureWindow', function() {
       // Or the AppWindow would look for it.
       app.element = document.createElement('div');
       parentElement.appendChild(app.element);
-      app.transitionController = {
-        requireClose: function() {}
-      };
       app.kill();
       app.close();
       assert.isTrue(stubDispatch.calledWithMatch(sinon.match(

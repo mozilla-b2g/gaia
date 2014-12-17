@@ -74,18 +74,16 @@ var ActivityHandler = {
     }
   },
 
-  _onNewActivity: function newHandler(activity) {
-    // This lock is for avoiding several calls at the same time.
-    if (this.isLocked) {
-      return;
-    }
-
-    this.isLocked = true;
-
-    var number = activity.source.data.number;
-    var body = activity.source.data.body;
-
-    Contacts.findByPhoneNumber(number, function findContact(results) {
+  /**
+  * Finds a contact from a number.
+  * Returns a promise that resolve with a contact
+  * or is rejected if not found
+  * @returns Promise that resolve to a
+  * {number: String, name: String, source: 'contacts'}
+  */
+  _findContactByNumber: function findContactByNumber(number) {
+    var deferred = Utils.Promise.defer();
+    Contacts.findByPhoneNumber(number, (results) => {
       var record, name, contact;
 
       // Bug 867948: results null is a legitimate case
@@ -97,14 +95,49 @@ var ActivityHandler = {
           name: name,
           source: 'contacts'
         };
-      }
 
-      ActivityHandler.toView({
-        body: body,
-        number: number,
-        contact: contact || null
-      });
+        deferred.resolve(contact);
+        return;
+      }
+      deferred.reject(new Error('No contact found with number: ' + number));
+      return;
+
     });
+
+    return deferred.promise;
+  },
+
+  _onNewActivity: function newHandler(activity) {
+
+    // This lock is for avoiding several calls at the same time.
+    if (this.isLocked) {
+      return;
+    }
+
+    this.isLocked = true;
+
+    var viewInfo = {
+      body: activity.source.data.body,
+      number: activity.source.data.number,
+      contact: null,
+      threadId: null
+    };
+
+    // try to get a thread from number
+    // if no thread, promise is rejected and we try to find a contact
+    return MessageManager.findThreadFromNumber(viewInfo.number).then(
+      function onResolve(threadId) {
+        viewInfo.threadId = threadId;
+      },
+      function onReject() {
+        return ActivityHandler._findContactByNumber(viewInfo.number)
+          .then( (contact) => viewInfo.contact = contact);
+      }
+    )
+    // case no contact and no thread id: gobble the error
+    .catch(() => {})
+    // finally call toView whatever contact and threadId we have.
+    .then( () => this.toView(viewInfo) );
   },
 
   _onShareActivity: function shareHandler(activity) {
@@ -222,7 +255,10 @@ var ActivityHandler = {
       },
       {
         l10nId: 'unsent-message-option-discard',
-        method: this.launchComposer.bind(this),
+        method: (activity) => {
+          ThreadUI.discardDraft();
+          this.launchComposer(activity);
+        },
         params: [activity]
       }]
     });
@@ -292,7 +328,7 @@ var ActivityHandler = {
         return;
       }
 
-      Navigation.toPanel('thread', { id: threadId });
+      Navigation.toPanel('thread', { id: threadId }).then(Compose.focus);
     };
 
     navigator.mozL10n.once(function waitLocalized() {
@@ -468,9 +504,8 @@ var ActivityHandler = {
             contact[0].name.length && contact[0].name[0]) {
             sender = contact[0].name[0];
           }
-
           if (message.type === 'sms') {
-            continueWithNotification(sender, message.body);
+            continueWithNotification(sender, message.body || '');
           } else { // mms
             getTitleFromMms(function textCallback(text) {
               continueWithNotification(sender, text);

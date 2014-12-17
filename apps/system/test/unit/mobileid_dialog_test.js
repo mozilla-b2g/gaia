@@ -2,7 +2,7 @@
 
 /* global MobileIdDialog, SystemDialog, LayoutManager, MocksHelper */
 
-require('/js/system.js');
+require('/js/service.js');
 require('/js/base_ui.js');
 require('/js/system_dialog.js');
 require('/js/mobileid_dialog.js');

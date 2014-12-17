@@ -1,7 +1,6 @@
 'use strict';
 
 var KeyboardTestApp = require('./lib/keyboard_test_app'),
-    System = require('./lib/system'),
     Keyboard = require('./lib/keyboard'),
     assert = require('assert'),
     Actions = require('marionette-client').Actions;
@@ -36,7 +35,7 @@ marionette('Dimiss the keyboard', function() {
   }
 
   setup(function() {
-    system = new System(client);
+    system = client.loader.getAppClass('keyboard', 'system');
     keyboard = new Keyboard(client);
 
     // create a keyboard test app

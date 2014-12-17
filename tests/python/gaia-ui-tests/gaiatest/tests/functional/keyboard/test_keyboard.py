@@ -20,20 +20,18 @@ class TestKeyboard(GaiaTestCase):
 
         new_contact_form = contacts_app.tap_new_contact()
         new_contact_form.type_phone(contact['tel']['value'])
-        new_contact_form.type_comment('')
-
-        # initialize the keyboard app
-        keyboard = new_contact_form.keyboard
+        new_contact_form.keyboard.dismiss()
+        new_contact_form.tap_comment()
 
         # send first 15 characters, delete last character, send a space, and send all others
-        keyboard.send(self._string[:15])
-        keyboard.tap_backspace()
-        keyboard.tap_space()
-        keyboard.send(self._string[15:])
+        new_contact_form.keyboard.send(self._string[:15])
+        new_contact_form.keyboard.tap_backspace()
+        new_contact_form.keyboard.tap_space()
+        new_contact_form.keyboard.send(self._string[15:])
 
         # select special character using extended character selector
         # Now the menu would include the original char, so the index should +1
-        keyboard.choose_extended_character('A', 9)
+        new_contact_form.keyboard.choose_extended_character('A', 9)
 
         # go back to app frame and finish this
         self.apps.switch_to_displayed_app()

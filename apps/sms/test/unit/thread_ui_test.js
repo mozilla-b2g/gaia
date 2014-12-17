@@ -944,7 +944,7 @@ suite('thread_ui.js >', function() {
         source: 'manual'
       });
     });
-
+    
     test('Recipient assimilation is called when container is clicked',
       function() {
       Navigation.isCurrentPanel.withArgs('composer').returns(true);
@@ -957,14 +957,13 @@ suite('thread_ui.js >', function() {
 
       container.click();
 
-      // recipient added and container is cleared
       sinon.assert.calledWithMatch(ThreadUI.recipients.add, {
         name: '999',
         number: '999',
         source: 'manual'
       });
     });
-
+    
     suite('Recipients.View.isFocusable', function() {
 
       setup(function() {
@@ -3448,6 +3447,18 @@ suite('thread_ui.js >', function() {
       assert.isFalse(LinkActionHandler.onClick.calledOnce);
     });
 
+    test(' "long-press" on empty area return null',
+      function() {
+      assert.doesNotThrow(() => {
+        ThreadUI.handleEvent({ 
+          type: 'contextmenu', 
+          target: document.getElementById('messages-container'), 
+          preventDefault: sinon.stub(), 
+          stopPropagation: sinon.stub() 
+        });
+      });
+    });
+
     test(' "long-press" on link-action shows the option menu from the bubble',
       function() {
       // Dispatch custom event for testing long press
@@ -3465,14 +3476,19 @@ suite('thread_ui.js >', function() {
       assert.equal(
         MockOptionMenu.calls[0].items[0].l10nId,
         'forward');
-      // Show menu with 'delete' option
+      // Show menu with 'select text' option
       assert.equal(
         MockOptionMenu.calls[0].items[1].l10nId,
-        'view-message-report'
+        'select-text'
       );
       // Show menu with 'delete' option
       assert.equal(
         MockOptionMenu.calls[0].items[2].l10nId,
+        'view-message-report'
+      );
+      // Show menu with 'delete' option
+      assert.equal(
+        MockOptionMenu.calls[0].items[3].l10nId,
         'delete'
       );
     });
@@ -3496,7 +3512,7 @@ suite('thread_ui.js >', function() {
         assert.ok(MockOptionMenu.calls.length, 1);
 
         // Confirm that the menu contained a "resend-message" option
-        assert.equal(MockOptionMenu.calls[0].items[3].l10nId, 'resend-message');
+        assert.equal(MockOptionMenu.calls[0].items[4].l10nId, 'resend-message');
     });
 
     test(' "long-press" on an error outgoing mms bubble shows a menu' +
@@ -3520,7 +3536,7 @@ suite('thread_ui.js >', function() {
         assert.ok(MockOptionMenu.calls.length, 1);
 
         // Confirm that the menu contained a "resend-message" option
-        assert.equal(MockOptionMenu.calls[0].items[3].l10nId, 'resend-message');
+        assert.equal(MockOptionMenu.calls[0].items[4].l10nId, 'resend-message');
     });
 
     test(' "long-press" on an incoming download error mms bubble should not '+
@@ -3845,8 +3861,10 @@ suite('thread_ui.js >', function() {
             var items = call.items;
 
             // Ensures that the OptionMenu was given
-            // the phone number to diplay
-            assert.equal(call.header, '999');
+            // the phone number to display
+            assert.equal(call.header.textContent, '999');
+            assert.ok(call.header.classList.contains('unknown-contact-header'));
+            assert.equal(call.header.tagName, 'BDI');
 
             // Only known Contact details should appear in the "section"
             assert.isUndefined(call.section);
@@ -3877,8 +3895,10 @@ suite('thread_ui.js >', function() {
             var items = call.items;
 
             // Ensures that the OptionMenu was given
-            // the email address to diplay
-            assert.equal(call.header, 'a@b.com');
+            // the email address to display
+            assert.equal(call.header.textContent, 'a@b.com');
+            assert.ok(call.header.classList.contains('unknown-contact-header'));
+            assert.equal(call.header.tagName, 'BDI');
 
             // Only known Contact details should appear in the "section"
             assert.isUndefined(call.section);
@@ -3921,8 +3941,10 @@ suite('thread_ui.js >', function() {
             var items = call.items;
 
             // Ensures that the OptionMenu was given
-            // the email address to diplay
-            assert.equal(call.header, 'a@b.com');
+            assert.equal(call.header.tagName, 'BDI');
+            // the email address to display
+            assert.equal(call.header.textContent, 'a@b.com');
+            assert.ok(call.header.classList.contains('unknown-contact-header'));
 
             // Only known Contact details should appear in the "section"
             assert.isUndefined(call.section);
@@ -3999,7 +4021,11 @@ suite('thread_ui.js >', function() {
             var calls = MockOptionMenu.calls;
 
             assert.equal(calls.length, 1);
-            assert.equal(calls[0].header, '777');
+            assert.equal(calls[0].header.textContent, '777');
+            assert.ok(
+              calls[0].header.classList.contains('unknown-contact-header')
+            );
+            assert.equal(calls[0].header.tagName, 'BDI');
             assert.equal(calls[0].items.length, 3);
             assert.equal(typeof calls[0].complete, 'function');
           });
@@ -4048,7 +4074,11 @@ suite('thread_ui.js >', function() {
             var calls = MockOptionMenu.calls;
 
             assert.equal(calls.length, 1);
-            assert.equal(calls[0].header, 'a@b');
+            assert.equal(calls[0].header.textContent, 'a@b');
+            assert.ok(
+              calls[0].header.classList.contains('unknown-contact-header')
+            );
+            assert.equal(calls[0].header.tagName, 'BDI');
             assert.equal(calls[0].items.length, 5);
             assert.equal(typeof calls[0].complete, 'function');
           });
@@ -4108,8 +4138,10 @@ suite('thread_ui.js >', function() {
           var items = call.items;
 
           // Ensures that the OptionMenu was given
-          // the phone number to diplay
-          assert.equal(call.header, '999');
+          // the phone number to display
+          assert.equal(call.header.textContent, '999');
+          assert.ok(call.header.classList.contains('unknown-contact-header'));
+          assert.equal(call.header.tagName, 'BDI');
 
           assert.equal(items.length, 5);
 
@@ -4262,6 +4294,55 @@ suite('thread_ui.js >', function() {
           assert.isFalse(threadMessages.classList.contains('has-carrier'));
         });
 
+      });
+    });
+
+    suite('setHeaderContent', function() {
+      test('Removes l10n attributes if content is HTML', function() {
+        headerText.textContent = 'Header';
+        headerText.setAttribute('data-l10n-id', 'header-id');
+        headerText.setAttribute('data-l10n-args', '{ args: "header-args" }');
+
+        ThreadUI.setHeaderContent('<bdi>BiDi Header</bdi>');
+
+        assert.equal(headerText.innerHTML, '<bdi>BiDi Header</bdi>');
+        assert.isFalse(headerText.hasAttribute('data-l10n-id'));
+        assert.isFalse(headerText.hasAttribute('data-l10n-args'));
+      });
+
+      test('Removes nested HTML if content is l10n attributes', function() {
+        this.sinon.spy(navigator.mozL10n, 'setAttributes');
+        headerText.innerHTML = '<bdi>BiDi Header</bdi>';
+
+        ThreadUI.setHeaderContent({
+          id: 'header-l10n-id',
+          args: { arg: 'header-l10n-arg' }
+        });
+
+        assert.equal(headerText.innerHTML, '');
+        sinon.assert.calledWithExactly(
+          navigator.mozL10n.setAttributes,
+          headerText,
+          'header-l10n-id',
+          { arg: 'header-l10n-arg' }
+        );
+
+        // If previous header content isn't HTML then content isn't manually
+        // cleared, but rather left for l10n lib to update it
+        headerText.textContent = 'Header';
+
+        ThreadUI.setHeaderContent({
+          id: 'other-header-l10n-id',
+          args: { arg: 'other-header-l10n-arg' }
+        });
+
+        assert.equal(headerText.innerHTML, 'Header');
+        sinon.assert.calledWithExactly(
+          navigator.mozL10n.setAttributes,
+          headerText,
+          'other-header-l10n-id',
+          { arg: 'other-header-l10n-arg' }
+        );
       });
     });
   });
@@ -5330,7 +5411,9 @@ suite('thread_ui.js >', function() {
   suite('Close button behaviour', function() {
     test('Call ActivityHandler.leaveActivity', function(done) {
       this.sinon.stub(ActivityHandler, 'leaveActivity');
+      this.sinon.stub(ThreadUI, 'cleanFields');
       ThreadUI.close().then(function() {
+        sinon.assert.called(ThreadUI.cleanFields);
         sinon.assert.called(ActivityHandler.leaveActivity);
       }).then(done, done);
     });
@@ -5983,12 +6066,6 @@ suite('thread_ui.js >', function() {
         assert.isTrue(Recipients.View.isFocusable);
       });
 
-      test('loads and translates SIM picker', function() {
-        var simPickerElt = document.getElementById('sim-picker');
-
-        sinon.assert.calledWith(MockLazyLoader.load, [simPickerElt]);
-      });
-
       test('loads the audio played when a message is sent', function() {
         var sentAudio = ThreadUI.sentAudio;
 
@@ -6432,6 +6509,47 @@ suite('thread_ui.js >', function() {
       ThreadUI.onMessageSendRequestCompleted();
 
       sinon.assert.notCalled(ThreadUI.sentAudio.play);
+    });
+  });
+
+  suite('Bubble selection', function() {
+    var messageDOM, messageId, node, threadMessagesClass, range;
+
+    setup(function() {
+      threadMessagesClass = ThreadUI.threadMessages.classList;
+      messageId = 1;
+      ThreadUI.appendMessage({
+        id: messageId,
+        type: 'sms',
+        body: 'This is a test',
+        delivery: 'sent',
+        timestamp: Date.now()
+      });
+      messageDOM = document.getElementById('message-' + messageId);
+      node = messageDOM.querySelector('.message-content-body');
+      this.sinon.spy(node, 'focus');
+      this.sinon.stub(node, 'addEventListener');
+    });
+
+    test('Enable bubble selection mode', function() {
+      // Status checking for bubble select mode disabled
+      assert.isTrue(threadMessagesClass.contains('editable-select-mode'));
+      ThreadUI.enableBubbleSelection(node);
+
+      range = window.getSelection().rangeCount;
+      sinon.assert.called(node.focus);
+      // Status checking for bubble select mode enabled
+      assert.isFalse(threadMessagesClass.contains('editable-select-mode'));
+      assert.isTrue(range > 0);
+    });
+
+    test('Disable bubble selection mode', function() {
+      ThreadUI.enableBubbleSelection(node);
+      node.addEventListener.yield('blur');
+
+      range = window.getSelection().rangeCount;
+      assert.isTrue(threadMessagesClass.contains('editable-select-mode'));
+      assert.isTrue(range === 0);
     });
   });
 });

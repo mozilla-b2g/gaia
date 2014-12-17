@@ -17,8 +17,7 @@ suite('day_observer', function() {
   var tomorrow;
   var yesterday;
 
-  setup(function() {
-    // load the required sub-objects..
+  setup(function(done) {
     app = testSupport.calendar.app();
     subject = dayObserver;
     delay = subject.DISPATCH_DELAY + 5;
@@ -37,9 +36,12 @@ suite('day_observer', function() {
 
     subject.timeController = timeController;
     today = new Date();
+    today.setHours(8, 0, 0, 0);
     yesterday = new Date();
+    yesterday.setHours(8, 0, 0, 0);
     yesterday.setDate(today.getDate() - 1);
     tomorrow = new Date();
+    tomorrow.setHours(8, 0, 0, 0);
     tomorrow.setDate(today.getDate() + 1);
 
     calendarStore = timeController.calendarStore;
@@ -49,6 +51,7 @@ suite('day_observer', function() {
       },
       on: function() {}
     };
+    app.db.open(done);
   });
 
   setup(function() {
@@ -105,6 +108,7 @@ suite('day_observer', function() {
     subject.removeAllListeners();
     timeController.calendarStore = calendarStore;
     timeController.findAssociated = findAssociated;
+    app.db.close();
   });
 
   suite('#on', function() {
@@ -185,12 +189,13 @@ suite('day_observer', function() {
       var multiRecord = _records.get(multi);
 
       var busies = [];
+      var alldays = [];
 
       subject.on(yesterday, function(records) {
         busies = busies.concat(records.events);
       });
       subject.on(today, function(records) {
-        busies = busies.concat(records.events);
+        alldays = alldays.concat(records.allday);
       });
       subject.on(tomorrow, function(records) {
         busies = busies.concat(records.events);
@@ -199,13 +204,12 @@ suite('day_observer', function() {
       timeController.cacheBusytime(multi);
 
       clock.tick(delay);
-      assert.deepEqual(busies, [ multiRecord, multiRecord, multiRecord ]);
+      assert.deepEqual(busies, [ multiRecord, multiRecord ]);
+      // on "today" event lasts the whole day
+      assert.deepEqual(alldays, [ multiRecord ]);
     });
 
     test('allday', function(done) {
-      // Bug 1092814 - Disable perma-failing test after DST
-      return done();
-      /*
       timeController.cacheBusytime(busyToday1);
       timeController.cacheBusytime(busyToday2);
       timeController.cacheBusytime(busyTodayAllday);
@@ -218,7 +222,6 @@ suite('day_observer', function() {
         done();
       });
       clock.tick(delay);
-      */
     });
   });
 

@@ -11,11 +11,21 @@ exports.get = function(gaiaDir) {
   var rjs = utils.getFile(gaiaDir);
   rjs.append('build');
   rjs.append('r.js');
+  var options = {};
   var ruri = Services.io.newFileURI(rjs).spec;
+
+  try {
+    options = JSON.parse(utils.getEnv('BUILD_CONFIG'));
+  } catch (e) {
+    // parsing BUILD_CONFIG error or this env variable is not available.
+    // we simply skip this exception here
+  }
 
   var global = Cu.Sandbox(Services.scriptSecurityManager.getSystemPrincipal());
   global.print = function() {
-    dump(Array.prototype.join.call(arguments, ' ') + '\n');
+    if(options.VERBOSE === '1') {
+      dump(Array.prototype.join.call(arguments, ' ') + '\n');
+    }
   };
   global.arguments = [];
   global.requirejsAsLib = true;

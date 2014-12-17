@@ -32,7 +32,7 @@ suite('system/HomescreenWindow', function() {
 
       return element;
     });
-    requireApp('system/js/system.js');
+    requireApp('system/js/service.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');
     requireApp('system/js/app_window.js');

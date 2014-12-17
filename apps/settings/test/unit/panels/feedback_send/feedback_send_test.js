@@ -206,9 +206,9 @@ suite('sendFeedback > ', function() {
       });
 
       test('_messageHandler with failure', function() {
-        this.sinon.stub(sendFeedback, '_keepAllInputs');
+        this.sinon.stub(sendFeedback, 'keepAllInputs');
         sendFeedback._messageHandler('wrong-email');
-        assert.equal(sendFeedback._keepAllInputs.called, true);
+        assert.equal(sendFeedback.keepAllInputs.called, true);
         assert.equal(sendFeedback.elements.alertDialog.hidden, false);
         assert.equal(sendFeedback.elements.sendBtn.disabled, false);
       });

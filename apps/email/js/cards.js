@@ -574,7 +574,14 @@ var cards = {
       numCards = this._cardStack.length - firstIndex;
     }
 
-    if (showMethod !== 'none') {
+    if (showMethod === 'none') {
+      // If a 'none' remove, and the remove is for a DOM node that used
+      // anim-overlay, which would have increased the _zIndex when added, adjust
+      // the zIndex appropriately.
+      if (cardDomNode && cardDomNode.classList.contains('anim-overlay')) {
+        this._zIndex -= 10;
+      }
+    } else {
       var nextCardIndex = -1;
       if (nextCardSpec) {
         nextCardIndex = this._findCard(nextCardSpec);
@@ -616,6 +623,9 @@ var cards = {
           break;
       }
     }
+
+    // Reset aria-hidden attributes to handle cards visibility.
+    this._setScreenReaderVisibility();
   },
 
   /**
@@ -761,6 +771,17 @@ var cards = {
     toaster.hide();
 
     this.activeCardIndex = cardIndex;
+
+    // Reset aria-hidden attributes to handle cards visibility.
+    this._setScreenReaderVisibility();
+  },
+
+  _setScreenReaderVisibility: function() {
+    // We use aria-hidden to handle visibility instead of CSS because there are
+    // semi-transparent cards, such as folder picker.
+    this._cardStack.forEach(function(card, index) {
+      card.setAttribute('aria-hidden', index !== this.activeCardIndex);
+    }, this);
   },
 
   _onTransitionEnd: function(event) {

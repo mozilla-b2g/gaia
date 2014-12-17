@@ -52,6 +52,7 @@ function App(options) {
   this.pinch = options.pinch || new Pinch(this.el); // Test hook
   this.require = options.require || window.requirejs; // Test hook
   this.LoadingView = options.LoadingView || LoadingView; // test hook
+  this.orientation = options.orientation || orientation; // test hook
   this.inSecureMode = (this.win.location.hash === '#secure');
   this.controllers = options.controllers;
   this.geolocation = options.geolocation;
@@ -111,7 +112,7 @@ App.prototype.runControllers = function() {
   this.controllers.camera(this);
   this.controllers.viewfinder(this);
   this.controllers.hud(this);
-  this.controllers.controls(this);  
+  this.controllers.controls(this);
   debug('controllers run');
 };
 
@@ -168,6 +169,7 @@ App.prototype.bindEvents = function() {
   this.on('ready', this.clearSpinner);
   this.on('visible', this.onVisible);
   this.on('hidden', this.onHidden);
+  this.on('reboot', this.onReboot);
   this.on('busy', this.onBusy);
 
   // Pinch
@@ -198,7 +200,8 @@ App.prototype.bindEvents = function() {
  */
 App.prototype.onVisible = function() {
   this.geolocationWatch();
-  orientation.start();
+  this.orientation.start();
+  this.orientation.lock();
   debug('visible');
 };
 
@@ -210,9 +213,21 @@ App.prototype.onVisible = function() {
  */
 App.prototype.onHidden = function() {
   this.geolocation.stopWatching();
-  orientation.stop();
+  this.orientation.stop();
   debug('hidden');
 };
+
+
+/**
+ * Reboots the application
+ *
+ * @private
+ */
+App.prototype.onReboot = function() {
+  debug('reboot');
+  window.location.reload();
+};
+
 
 /**
  * Emit a click event that other
@@ -326,7 +341,6 @@ App.prototype.onVisibilityChange = function() {
  * @private
  */
 App.prototype.onBeforeUnload = function() {
-  this.views.viewfinder.stopStream();
   this.emit('beforeunload');
   debug('beforeunload');
 };

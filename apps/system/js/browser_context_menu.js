@@ -1,6 +1,8 @@
 /* global MozActivity, IconsHelper, LazyLoader */
 /* global applications */
+/* global AppWindow */
 /* global BookmarksDatabase */
+/* global BrowserConfigHelper */
 
 (function(window) {
   'use strict';
@@ -74,12 +76,13 @@
   };
 
   BrowserContextMenu.prototype.view = function() {
-    return '<form class="contextmenu" role="dialog" tabindex="-1"' +
-              ' data-type="action" ' +
-              'id="' + this.CLASS_NAME + this.instanceID + '">' +
-              '<header class="contextmenu-header"></header>' +
-              '<menu class="contextmenu-list"></menu>' +
-            '</form>';
+    var id = this.CLASS_NAME + this.instanceID;
+    var content = `<form class="contextmenu" role="dialog" tabindex="-1"
+              data-type="action" id="${id}">
+              <header class="contextmenu-header"></header>
+              <menu class="contextmenu-list"></menu>
+            </form>`;
+    return content;
   };
 
   BrowserContextMenu.prototype.kill = function() {
@@ -197,13 +200,14 @@
     }
   };
 
-  BrowserContextMenu.prototype.openUrl = function(url) {
+  BrowserContextMenu.prototype.openUrl = function(url, isPrivate) {
     /*jshint -W031 */
     new MozActivity({
       name: 'view',
       data: {
         type: 'url',
-        url: url
+        url: url,
+        isPrivate: isPrivate
       }
     });
   };
@@ -243,7 +247,19 @@
     }));
   };
 
-  BrowserContextMenu.prototype.newWindow = function(manifest) {
+  BrowserContextMenu.prototype.newWindow = function(manifest, isPrivate) {
+    // For private windows we create an empty private app window.
+    if (isPrivate) {
+      var privateBrowserUrl = location.origin + '/private_browser.html';
+      var config = new BrowserConfigHelper({url: privateBrowserUrl});
+      config.oop = true;
+      config.isPrivate = true;
+      var newApp = new AppWindow(config);
+      newApp.requestOpen();
+      return;
+    }
+
+    // Else we open up the browser.
     var newTabApp = applications.getByManifestURL(manifest);
     newTabApp.launch();
   };
@@ -268,13 +284,18 @@
           label: _('open-in-new-window'),
           callback: this.openUrl.bind(this, uri)
         }, {
+          id: 'open-in-new-private-window',
+          label: _('open-in-new-private-window'),
+          callback: this.openUrl.bind(this, uri, true)
+        }, {
           id: 'bookmark-link',
           label: _('add-link-to-home-screen'),
           callback: this.bookmarkUrl.bind(this, uri, text)
         }, {
           id: 'save-link',
           label: _('save-link'),
-          callback: this.app.browser.element.download.bind(this, uri)
+          callback: this.app.browser.element.download.bind(
+            this.app.browser.element, uri)
         }, {
           id: 'share-link',
           label: _('share-link'),
@@ -297,7 +318,8 @@
         return [{
           id: 'save-' + type,
           label: _('save-' + type),
-          callback: this.app.browser.element.download.bind(this, uri)
+          callback: this.app.browser.element.download.bind(
+            this.app.browser.element, uri)
         }, {
           id: 'share-' + type,
           label: _('share-' + type),
@@ -318,6 +340,12 @@
         id: 'new-window',
         label: _('new-window'),
         callback: this.newWindow.bind(this, manifest)
+      });
+
+      menuData.push({
+        id: 'new-private-window',
+        label: _('new-private-window'),
+        callback: this.newWindow.bind(this, manifest, true)
       });
 
       menuData.push({

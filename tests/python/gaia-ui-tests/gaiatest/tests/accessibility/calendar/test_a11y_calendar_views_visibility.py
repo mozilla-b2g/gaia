@@ -17,7 +17,7 @@ class TestCalendarViewsVisibilityAccessibility(GaiaTestCase):
         self.views = {
             'time_views': self.marionette.find_element(*self.calendar._time_views_locator),
             'current_day': self.marionette.find_element(
-                *self.calendar._current_months_day_locator),
+                *self.calendar._current_month_day_agenda_locator),
             'month': self.marionette.find_element(
                 *self.calendar._current_monthly_calendar_locator),
             'day': self.marionette.find_element(*self.calendar._day_view_locator),
@@ -34,11 +34,7 @@ class TestCalendarViewsVisibilityAccessibility(GaiaTestCase):
         }
 
         self.event_title = 'title'
-        new_event = self.calendar.a11y_click_add_event_button()
-        # create a new event
-        new_event.a11y_fill_event_title(self.event_title)
-        new_event.a11y_click_save_event()
-        self.calendar.wait_for_events(1)
+        self.calendar.a11y_create_event(self.event_title)
 
     def test_a11y_calendar_views_visibility(self):
 

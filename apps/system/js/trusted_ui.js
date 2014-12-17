@@ -1,19 +1,21 @@
 /* -*- Mode: js2; js2-basic-offset: 2; indent-tabs-mode: nil -*- */
 /* vim: set ft=javascript sw=2 ts=2 autoindent cindent expandtab: */
 
+/* global inputWindowManager, TrustedUiValueSelector */
+
 'use strict';
 
 var TrustedUIManager = {
 
   get currentStack() {
-    if (!this._dialogStacks[this._lastDisplayedApp]) {
-      this._dialogStacks[this._lastDisplayedApp] = [];
+    if (!this._dialogStacks[this._lastDisplayedApp.origin]) {
+      this._dialogStacks[this._lastDisplayedApp.origin] = [];
     }
-    return this._dialogStacks[this._lastDisplayedApp];
+    return this._dialogStacks[this._lastDisplayedApp.origin];
   },
 
   _dialogStacks: {},
-  _lastDisplayedApp: null,
+  _lastDisplayedApp: {},
 
   overlay: document.getElementById('dialog-overlay'),
 
@@ -50,7 +52,7 @@ var TrustedUIManager = {
     return stack[stack.length - 1];
   },
 
-  init: function trui_init() {
+  start: function trui_start() {
     window.addEventListener('home', this);
     window.addEventListener('holdhome', this);
     window.addEventListener('appwillopen', this);
@@ -62,6 +64,31 @@ var TrustedUIManager = {
     window.addEventListener('keyboardchange', this);
     this.header.addEventListener('action', this);
     this.errorClose.addEventListener('click', this);
+
+    /**
+     * XXX: To handle showing value selector in dialog overlay.
+     * For now, this is used for trusted UI only, and will be deprecated by
+     * Bug 911880.
+     */
+    var context = {
+      element: document.getElementById('dialog-overlay')
+    };
+    this.valueSelector = new TrustedUiValueSelector(context);
+    this.valueSelector.start();
+  },
+
+  stop: function trui_stop() {
+    window.removeEventListener('home', this);
+    window.removeEventListener('holdhome', this);
+    window.removeEventListener('appwillopen', this);
+    window.removeEventListener('appopen', this);
+    window.removeEventListener('appwillclose', this);
+    window.removeEventListener('appcreated', this);
+    window.removeEventListener('appterminated', this);
+    window.removeEventListener('keyboardhide', this);
+    window.removeEventListener('keyboardchange', this);
+    this.header.removeEventListener('action', this);
+    this.errorClose.removeEventListener('click', this);
   },
 
   open: function trui_open(name, frame, chromeEventId, onCancelCB) {
@@ -87,8 +114,9 @@ var TrustedUIManager = {
 
     this._restoreOrientation();
 
-    if (callback)
+    if (callback) {
       callback();
+    }
 
     if (stackSize === 0) {
       // Nothing to close.  what are you doing?
@@ -145,13 +173,8 @@ var TrustedUIManager = {
     this.popupContainer.classList.remove('closing');
   },
 
-  _hideCallerApp: function trui_hideCallerApp(origin, callback) {
-    var app = appWindowManager.getApp(origin);
-    if (app == null || app.isHomescreen) {
-      return;
-    }
-
-    this.publish('trusteduishow', { origin: origin });
+  _hideCallerApp: function trui_hideCallerApp(app, callback) {
+    this.publish('trusteduishow', { origin: app.origin });
     var frame = app.frame;
     frame.classList.add('back');
     frame.classList.remove('restored');
@@ -174,14 +197,14 @@ var TrustedUIManager = {
     window.dispatchEvent(evt);
   },
 
-  _restoreCallerApp: function trui_restoreCallerApp(origin) {
-    var frame = appWindowManager.getApp(origin).frame;
+  _restoreCallerApp: function trui_restoreCallerApp(app) {
+    var frame = app.frame;
     frame.style.visibility = 'visible';
     frame.classList.remove('back');
-    if (!System.currentApp.isHomescreen) {
-      this.publish('trusteduihide', { origin: origin });
+    if (!Service.currentApp.isHomescreen) {
+      this.publish('trusteduihide', { origin: app.origin });
     }
-    if (System.currentApp.origin == origin) {
+    if (Service.currentApp.origin == app.origin) {
       frame.classList.add('restored');
       frame.addEventListener('transitionend', function removeRestored() {
         frame.removeEventListener('transitionend', removeRestored);
@@ -220,7 +243,7 @@ var TrustedUIManager = {
     var dataset = frame.dataset;
     dataset.frameType = 'popup';
     dataset.frameName = frame.name;
-    dataset.frameOrigin = this._lastDisplayedApp;
+    dataset.frameOrigin = this._lastDisplayedApp.origin;
 
     // Add mozbrowser listeners.
     this.mozBrowserEventHandler = this.handleBrowserEvent.bind(this);
@@ -304,14 +327,20 @@ var TrustedUIManager = {
 
   _hide: function trui_hide() {
     this.screen.classList.remove('trustedui');
+    this.valueSelector.deactivate();
   },
 
   _show: function trui_show() {
     this.screen.classList.add('trustedui');
+
+    var topFrame = this._getTopDialog().frame;
+    this.valueSelector.activate(topFrame);
   },
 
   _setHeight: function trui_setHeight(height) {
-    this.overlay.style.height = height + 'px';
+    if (this.isVisible()) {
+      this.overlay.style.height = height + 'px';
+    }
   },
 
   /*
@@ -405,13 +434,15 @@ var TrustedUIManager = {
       case 'appwillopen':
         var app = evt.detail;
         // Hiding trustedUI when coming from Activity
-        if (this.isVisible())
+        if (this.isVisible()) {
           this._hideTrustedApp();
+        }
 
         // Ignore homescreen
-        if (app.isHomescreen)
+        if (app.isHomescreen) {
           return;
-        this._lastDisplayedApp = app.origin;
+        }
+        this._lastDisplayedApp = app;
         if (this.currentStack.length) {
           // Reopening an app with trustedUI
           this.popupContainer.classList.remove('up');
@@ -433,7 +464,7 @@ var TrustedUIManager = {
         this._hide();
         break;
       case 'keyboardchange':
-        var keyboardHeight = KeyboardManager.getHeight();
+        var keyboardHeight = inputWindowManager.getHeight();
         this._setHeight(window.innerHeight - StatusBar.height - keyboardHeight);
         break;
       case 'keyboardhide':
@@ -462,6 +493,3 @@ var TrustedUIManager = {
     }
   }
 };
-
-TrustedUIManager.init();
-

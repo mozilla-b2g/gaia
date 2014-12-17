@@ -142,11 +142,11 @@ form[role="dialog"][data-type="confirm"] menu button:last-child {
 
 form[role="dialog"][data-type="confirm"] menu button,
 form[role="dialog"][data-type="confirm"] menu button:first-child {
-  margin: 0;
+  margin: 0 0.5rem;
 }
 
 form[role="dialog"][data-type="confirm"] menu button {
-  width: calc((100% - 1rem) / 2);
+  width: calc((100% - 2rem) / 2);
 }
 
 form[role="dialog"][data-type="confirm"] menu button.full {
@@ -170,8 +170,8 @@ form[role="dialog"][data-type="confirm"] p span {
 }
 
 form[role="dialog"][data-type="confirm"] p img {
-  float: left;
-  margin-right: 2rem;
+  left: 2rem;
+  right: auto;
 }
 
 form[role="dialog"][data-type="confirm"] p strong {
@@ -265,15 +265,9 @@ html[dir="rtl"] form[role="dialog"][data-type="confirm"]:before {
   margin-right: -0.1rem;
 }
 
-html[dir="rtl"] form[role="dialog"][data-type="confirm"] menu button:last-child {
-  margin-left: auto;
-  margin-right: 1rem;
-}
-
 html[dir="rtl"] form[role="dialog"][data-type="confirm"] p img {
-  float: right;
-  margin-left: 2rem;
-  margin-right: auto;
+  right: 2rem;
+  left: auto;
 }
 
 html[dir="rtl"] form[role="dialog"][data-type="confirm"] dl > dt {

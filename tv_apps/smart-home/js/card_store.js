@@ -87,7 +87,7 @@
     }
   });
 
-  addMixin(CardStore, new PipedPromise());
+  SharedUtils.addMixin(CardStore, new PipedPromise());
 
   exports.CardStore = CardStore;
 }(window));

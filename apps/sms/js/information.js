@@ -118,19 +118,23 @@ function createReportDiv(reports) {
     console.error('Invalid message report status: ' + deliveryStatus);
     return reportDiv;    
   }
-
-  data.titleL10n = 'report-status-' + status;
   reportDiv.dataset.deliveryStatus = status;
 
-  if (status === 'delivered') {
-    data.timestamp = '' + reports.deliveryTimestamp;
-    data.reportDateL10n = completeLocaleFormat(reports.deliveryTimestamp);
-  } else if (status === 'read') {
-    data.timestamp = '' + reports.readTimestamp;
-    data.reportDateL10n = completeLocaleFormat(reports.readTimestamp);
+  switch (status) {
+    case 'not-applicable':
+      return reportDiv;
+    case 'delivered':
+      data.timestamp = '' + reports.deliveryTimestamp;
+      data.reportDateL10n = completeLocaleFormat(reports.deliveryTimestamp);
+      break;
+    case 'read':
+      data.timestamp = '' + reports.readTimestamp;
+      data.reportDateL10n = completeLocaleFormat(reports.readTimestamp);
+      break;
   }
-
+  data.titleL10n = 'report-status-' + status;
   reportDiv.innerHTML = TMPL.report.interpolate(data);
+
   return reportDiv;
 }
 
@@ -169,27 +173,6 @@ function showSimInfo(element, iccId) {
   element.classList.remove('hide');
 }
 
-// Compute attachment size and return the corresponding l10nId(KB/MB) and
-// args (total attachment size for message)
-function sizeL10nParam(attachments) {
-  var l10nId, l10nArgs;
-  var size = attachments.reduce(function(size, attachment) {
-    return (size += attachment.content.size);
-  }, 0);
-  var sizeKB = size / 1024;
-  if (sizeKB < 1000) {
-    l10nId = 'attachmentSize';
-    l10nArgs = { n: sizeKB.toFixed(1) };
-  } else {
-    l10nId = 'attachmentSizeMB';
-    l10nArgs = { n: (sizeKB / 1024).toFixed(1) };
-  }
-  return {
-    l10nId: l10nId,
-    l10nArgs: l10nArgs
-  };
-}
-
 // Incoming message: return array of sender number string;
 // Outgoing message: return array of object(number and report div block).
 function createListWithMsgInfo(message) {
@@ -219,8 +202,9 @@ var VIEWS = {
     render: function renderGroup() {
       var participants = Threads.get(this.id).participants;
       this.renderContactList(participants);
-      navigator.mozL10n.setAttributes(ThreadUI.headerText, 'participant', {
-        n: participants.length
+      ThreadUI.setHeaderContent({
+        id: 'participant',
+        args: { n: participants.length }
       });
       ThreadUI.setHeaderAction('back');
     },
@@ -270,9 +254,10 @@ var VIEWS = {
       request.onsuccess = (function() {
         var message = request.result;
         var type = message.type;
+        var delivery = message.delivery;
 
-        var isIncoming = message.delivery === 'received' ||
-            message.delivery === 'not-downloaded';
+        var isIncoming = delivery === 'received' ||
+            delivery === 'not-downloaded';
 
         // Fill in the description/status/size
         if (type === 'sms') {
@@ -289,12 +274,15 @@ var VIEWS = {
 
           // Message total size show/hide
           if (message.attachments && message.attachments.length > 0) {
-            var params = sizeL10nParam(message.attachments);
+            var size = message.attachments.reduce(function(size, attachment) {
+              return (size += attachment.content.size);
+            }, 0);
+            var params = Utils.getSizeForL10n(size);
             setL10nAttributes(this.size, params.l10nId, params.l10nArgs);
             this.sizeBlock.classList.remove('hide');
           }
         }
-        this.container.dataset.delivery = message.delivery;
+        this.container.dataset.delivery = delivery;
 
         // If incoming message is migrated from the database where sentTimestamp
         // hadn't been supported yet then we won't have valid value for it.
@@ -313,8 +301,12 @@ var VIEWS = {
           l10nContainsDateSetup(this.sentTimestamp, message.sentTimestamp);
           setL10nAttributes(this.sentTitle, 'message-sent');
         } else {
-          l10nContainsDateSetup(this.sentTimestamp, message.timestamp);
-          setL10nAttributes(this.sentTitle, 'message-' + message.delivery);
+          if (delivery === 'sending' || delivery === 'sent') {
+            setL10nAttributes(this.sentTitle, 'message-' + delivery);
+          }
+          if (delivery === 'error' || delivery === 'sent') {
+            l10nContainsDateSetup(this.sentTimestamp, message.timestamp);
+          }
         }
 
         //show sim information for dual sim device
@@ -325,7 +317,7 @@ var VIEWS = {
         this.renderContactList(createListWithMsgInfo(message));
       }).bind(this);
 
-      setL10nAttributes(ThreadUI.headerText, 'message-report');
+      ThreadUI.setHeaderContent({ id: 'message-report' });
       ThreadUI.setHeaderAction('close');
     },
 
@@ -466,6 +458,7 @@ Information.prototype = {
           });
         } else {
           var li = document.createElement('li');
+          li.role = 'presentation';
           li.innerHTML = TMPL.number.interpolate({
             number: number
           });

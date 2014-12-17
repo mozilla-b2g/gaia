@@ -20,6 +20,17 @@ module.exports = Drag;
 events(Drag.prototype);
 
 /**
+ * Pointer event abstraction to make
+ * it work for touch and mouse.
+ *
+ * @type {Object}
+ */
+var pointer = [
+  { down: 'touchstart', up: 'touchend', move: 'touchmove' },
+  { down: 'mousedown', up: 'mouseup', move: 'mousemove' }
+]['ontouchstart' in window ? 0 : 1];
+
+/**
  * Drag creates a draggable 'handle' element,
  * constrained within a 'container' element.
  *
@@ -60,8 +71,7 @@ function Drag(options) {
 }
 
 Drag.prototype.bindEvents = function() {
-  this.container.el.addEventListener('touchstart', this.onTouchStart);
-  this.container.el.addEventListener('mousedown', this.onTouchStart);
+  this.container.el.addEventListener(pointer.down, this.onTouchStart);
 };
 
 Drag.prototype.onTouchStart = function(e) {
@@ -70,13 +80,12 @@ Drag.prototype.onTouchStart = function(e) {
   this.firstTouch = this.touch;
   this.startTime = e.timeStamp;
 
-  addEventListener('touchmove', this.onTouchMove);
-  addEventListener('mousemove', this.onTouchMove);
-  addEventListener('touchend', this.onTouchEnd);
-  addEventListener('mouseup', this.onTouchEnd);
+  addEventListener(pointer.move, this.onTouchMove);
+  addEventListener(pointer.up, this.onTouchEnd);
 };
 
 Drag.prototype.onTouchMove = function(e) {
+  e.preventDefault();
   e = ~e.type.indexOf('mouse') ? e : e.touches[0];
 
   var delta = {
@@ -91,13 +100,10 @@ Drag.prototype.onTouchMove = function(e) {
 
 Drag.prototype.onTouchEnd = function(e) {
   var tapped = (e.timeStamp - this.startTime) < this.tapTime;
-
   this.dragging = false;
 
-  removeEventListener('touchmove', this.onTouchMove);
-  removeEventListener('mousemove', this.onTouchMove);
-  removeEventListener('touchend', this.onTouchEnd);
-  removeEventListener('mouseup', this.onTouchEnd);
+  removeEventListener(pointer.move, this.onTouchMove);
+  removeEventListener(pointer.up, this.onTouchEnd);
 
   if (tapped) { this.emit('tapped', e); }
   else { this.emit('ended', e); }
@@ -111,7 +117,7 @@ Drag.prototype.move = function(delta) {
 };
 
 Drag.prototype.set = function(pos) {
-  if (!this.edges) { return; }
+  if (!this.edges) { this.pendingSet = pos; return; }
   var x = typeof pos.x === 'string' ? this.edges[pos.x] : (pos.x || 0);
   var y = typeof pos.y === 'string' ? this.edges[pos.y] : (pos.y || 0);
   this.translate({ x: x, y: y });
@@ -207,6 +213,14 @@ Drag.prototype.updateDimensions = function() {
     x: handle.left - container.left,
     y: handle.top - container.top
   };
+
+  this.clearPendingSet();
+};
+
+Drag.prototype.clearPendingSet = function() {
+  if (!this.pendingSet) { return; }
+  this.set(this.pendingSet);
+  delete this.pendingSet;
 };
 
 });})((function(n,w){'use strict';return typeof define=='function'&&define.amd?

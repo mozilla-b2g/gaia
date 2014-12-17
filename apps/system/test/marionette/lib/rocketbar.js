@@ -42,7 +42,9 @@ Rocketbar.prototype = {
     cancel: '#rocketbar-cancel',
     clear: '#rocketbar-clear',
     backdrop: '#rocketbar-backdrop',
-    results: '#rocketbar-results'
+    results: '#rocketbar-results',
+    appTitle: '.appWindow.active .chrome .title',
+    permissionOk: '#permission-yes'
   },
 
   /**
@@ -76,11 +78,17 @@ Rocketbar.prototype = {
    * the homescreen app. If we move it to the system app we can remove this.
    */
   homescreenFocus: function() {
-    var HomeLib = require(
-      '../../../../../apps/verticalhome/test/marionette/lib/home2');
-    var homeLib = new HomeLib(this.client);
+    var homeLib = this.client.loader.getAppClass('verticalhome');
     homeLib.waitForLaunch();
     homeLib.focusRocketBar();
+  },
+
+  /**
+   * Trigger rocketbar from app title.
+   */
+  appTitleFocus: function() {
+    var title = this.client.findElement(this.selectors.appTitle);
+    title.click();
   },
 
   /**
@@ -152,6 +160,10 @@ Rocketbar.prototype = {
     });
   },
 
+  goThroughPermissionPrompt: function() {
+    this.client.helper.waitForElement(this.selectors.permissionOk).click();
+  },
+
   get rocketbar() {
     return this.client.findElement(this.selectors.rocketbar);
   },
@@ -182,5 +194,9 @@ Rocketbar.prototype = {
 
   get backdrop() {
     return this.client.findElement(this.selectors.backdrop);
+  },
+
+  get permissionOk() {
+    return this.client.findElement(this.selectors.permissionOk);
   }
 };

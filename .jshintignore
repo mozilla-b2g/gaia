@@ -7,6 +7,7 @@ apps/calendar/build/**
 apps/calendar/js/ext/**
 apps/camera/js/vendor/**
 apps/camera/test/**
+apps/privacy-panel/js/vendor/**
 apps/system/camera/**
 build/r.js
 build/csslinter.js
@@ -39,9 +40,11 @@ shared/js/utilities.js
 shared/js/uuid.js
 apps/keyboard/js/imes/jspinyin/libpinyin.js
 apps/keyboard/js/imes/jszhuyin/lib/**
+apps/keyboard/js/imes/handwriting/hwr/**
 shared/js/setImmediate.js
 shared/test/unit/test-agent-server.js
 shared/elements/gaia-header/dist/gaia-header.js
+shared/elements/gaia-component/gaia-component.js
 shared/elements/gaia-icons/gaia-icons.js
 shared/pages/import/js/parameters.js
 apps/sharedtest/test/unit/setImmediate_test.js

@@ -129,13 +129,14 @@ contacts.Details = (function() {
   var doHandleDetailsBack = function() {
     var hashParams = window.location.hash.split('?');
     var params = hashParams.length > 1 ?
-                      utils.extractParams(hashParams[1]) : -1;
+                 utils.extractParams(hashParams[1]) : -1;
 
-    Contacts.navigation.back(resetPhoto);
     // post message to parent page included Contacts app.
     if (params.back_to_previous_tab === '1') {
       var message = { 'type': 'contactsiframe', 'message': 'back' };
       window.parent.postMessage(message, COMMS_APP_ORIGIN);
+    } else {
+      Contacts.navigation.back(resetPhoto);
     }
   };
 
@@ -436,10 +437,6 @@ contacts.Details = (function() {
         if (socialLabel) {
           socialLabel.setAttribute('data-l10n-id', 'facebook');
         }
-
-        // Check whether the social buttons that require to be online
-        // should be there
-        disableButtons(social, socialButtonIds);
     }
 
     // If it is a FB Contact but not linked unlink must be hidden
@@ -456,24 +453,10 @@ contacts.Details = (function() {
     var socialTemplate = document.querySelector(
                                         ':not([data-template])[data-social]');
 
-    if (socialTemplate) {
-      if (isFbContact) {
-         disableButtons(socialTemplate, socialButtonIds);
-      }
-      else {
-        disableButtons(socialTemplate, ['#link_button']);
-      }
+    if (socialTemplate && !isFbContact) {
+      doDisableButton(socialTemplate.querySelector('#link_button'));
     }
   };
-
-  function disableButtons(tree, buttonIds) {
-    buttonIds.forEach(function enable(id) {
-      var button = tree.querySelector(id);
-      if (button) {
-        doDisableButton(button);
-      }
-    });
-  }
 
   function doDisableButton(buttonElement) {
     if (navigator.onLine === true) {

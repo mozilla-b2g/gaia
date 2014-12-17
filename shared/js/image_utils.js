@@ -158,7 +158,7 @@
         }
         else if (header[0] === 0x42 && /* B */
                  header[1] === 0x4D && /* M */
-                 view.getUint16(2, true) === imageBlob.size)
+                 view.getUint32(2, true) === imageBlob.size)
         {
           // This is a BMP file
           try {
@@ -264,10 +264,13 @@
   // In all other cases, a resized image will be encoded as a PNG image.
   // Note that when an image does not need to be resized its type is not
   // changed, even if outputType is specified.
-  //
+  // 'encoderOptions' is passed 'as is' to the 'toBlob' method of canvas:
+  //    A Number between 0 and 1 indicating image quality if the requested type
+  //    is image/jpeg or image/webp. If this argument is anything else,
+  //    the default value for image quality is used.
   ImageUtils.resizeAndCropToCover = function(inputImageBlob,
                                              outputWidth, outputHeight,
-                                             outputType)
+                                             outputType, encoderOptions)
   {
     if (!outputWidth || !isFinite(outputWidth) || outputWidth <= 0 ||
         !outputHeight || !isFinite(outputHeight) || outputHeight <= 0) {
@@ -399,7 +402,7 @@
             // right away, too.
             canvas.width = 0;
             resolve(blob);
-          }, outputType);
+          }, outputType, encoderOptions);
         };
 
         function cleanupImage() {

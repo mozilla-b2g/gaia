@@ -369,6 +369,14 @@ class GaiaData(object):
         """The call log needs to be open and focused in order for this to work."""
         self.marionette.execute_script('window.wrappedJSObject.RecentsDBManager.deleteAll();')
 
+    def insert_call_entry(self, call):
+        """The call log needs to be open and focused in order for this to work."""
+        self.marionette.execute_script('window.wrappedJSObject.CallLogDBManager.add(%s);' % (json.dumps(call)))
+
+        # TODO Replace with proper wait when possible
+        import time
+        time.sleep(1)
+
     def kill_active_call(self):
         self.marionette.execute_script("var telephony = window.navigator.mozTelephony; " +
                                        "if(telephony.active) telephony.active.hangUp();")
@@ -401,7 +409,7 @@ class GaiaData(object):
         files = self.marionette.execute_async_script(
             'return GaiaDataLayer.getAllSDCardFiles();')
         if len(extension):
-            return [filename for filename in files if filename.endswith(extension)]
+            return [file for file in files if file['name'].endswith(extension)]
         return files
 
     def send_sms(self, number, message):
@@ -663,7 +671,7 @@ class GaiaDevice(object):
     @property
     def is_locked(self):
         self.marionette.switch_to_frame()
-        return self.marionette.execute_script('return window.wrappedJSObject.System.locked')
+        return self.marionette.execute_script('return window.wrappedJSObject.Service.locked')
 
     def lock(self):
         self.turn_screen_off()
@@ -786,7 +794,9 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         self.device.file_manager.remove('/data/local/indexedDB')
         self.device.file_manager.remove('/data/local/OfflineCache')
         self.device.file_manager.remove('/data/local/permissions.sqlite')
+        self.device.file_manager.remove('/data/local/storage/permanent')
         self.device.file_manager.remove('/data/local/storage/persistent')
+        self.device.file_manager.remove('/data/local/storage/default')
         self.device.file_manager.remove('/data/local/webapps')
         # remove remembered networks
         self.device.file_manager.remove('/data/misc/wifi/wpa_supplicant.conf')
@@ -955,19 +965,18 @@ class GaiaEnduranceTestCase(GaiaTestCase, EnduranceTestCaseMixin, MemoryEnduranc
         kwargs.pop('checkpoint_interval', None)
 
     def close_app(self):
-        # Close the current app (self.app) by using the home button
-        self.device.touch_home_button()
+        from gaiatest.apps.system.regions.cards_view import CardsView
+        self.cards_view = CardsView(self.marionette)
 
-        # Bring up the cards view
-        _cards_view_locator = ('id', 'cards-view')
+        # Pull up the cards view
         self.device.hold_home_button()
-        self.wait_for_element_displayed(*_cards_view_locator)
+        self.cards_view.wait_for_cards_view()
+
+        # Wait for first app ready
+        self.cards_view.wait_for_card_ready(self.app_under_test.lower())
+
+        # Close the current apps from the cards view
+        self.cards_view.close_app("search")
 
         # Sleep a bit
         time.sleep(5)
-
-        # Tap the close icon for the current app
-        locator_part_two = '#cards-view li.card[data-origin*="%s"] .close-card' % self.app_under_test.lower()
-        _close_button_locator = ('css selector', locator_part_two)
-        close_card_app_button = self.marionette.find_element(*_close_button_locator)
-        close_card_app_button.tap()

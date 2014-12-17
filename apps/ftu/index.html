@@ -46,6 +46,7 @@
   <script src="/shared/js/l10n.js"></script>
   <script src="/shared/js/l10n_date.js"></script>
   <script src="/shared/js/tz_select.js"></script>
+  <script defer src="/shared/js/input_mgmt/input_app_list.js"></script>
   <script defer src="/shared/js/keyboard_helper.js"></script>
   <script defer src="/shared/js/language_list.js"></script>
   <script defer src="/shared/js/version_helper.js"></script>
@@ -136,7 +137,7 @@
     <article role="main">
       <section id="pincode-screen" role="region">
         <label id="pin-label"></label>
-        <label id="pin-retries-left" data-l10n-id="inputCodeRetriesLeft" class="retries hidden">Unknown tries left</label>
+        <label id="pin-retries-left" class="retries hidden"></label>
         <section class="input-wrapper">
           <input id="pin-input" name="simpin" type="password" x-inputmode="digit" size="8" maxlength="8" />
           <label id="pin-error" class="hidden error">
@@ -148,7 +149,7 @@
 
       <section id="pukcode-screen" role="region">
         <label id="puk-label"></label>
-        <label id="puk-retries-left" data-l10n-id="inputCodeRetriesLeft" class="retries hidden">Unknown tries left</label>
+        <label id="puk-retries-left" class="retries hidden"></label>
         <section class="input-wrapper">
           <input id="puk-input" name="simpuk" type="password" x-inputmode="digit" size="8" maxlength="8" />
           <div id="puk-info" data-l10n-id="pukInfo" class="info">You must enter the Personal Unlocking Key (PUK) Code for the SIM card. Refer to your SIM card documentation or contact your carrier for more information.</div>
@@ -171,7 +172,7 @@
 
       <section id="xckcode-screen" role="region">
         <label id="xck-label" data-l10n-id="type_nck">Type your NCK code</label>
-        <label id="xck-retries-left" data-l10n-id="inputCodeRetriesLeft" class="hidden retries">Unknown tries left</label>
+        <label id="xck-retries-left" class="hidden retries"></label>
         <section class="input-wrapper">
           <input id="xck-input" name="simxck" type="password"  x-inputmode="digit" size="16" maxlength="16" />
           <label id="xck-error" class="hidden error">
@@ -182,7 +183,7 @@
       </section>
     </article>
 
-    <gaia-buttons>
+    <gaia-buttons class="nav">
       <button id="skip-pin-button" class="button-left" data-l10n-id="skip">
         Skip
       </button>
@@ -229,9 +230,9 @@
       </section>
     </article>
 
-    <gaia-buttons>
-      <button id="sim-info-back" class="button-left back" data-l10n-id="navbar-back">Back</button>
-      <button id="sim-info-forward" class="recommend forward" data-l10n-id="navbar-next">Next</button>
+    <gaia-buttons class="nav">
+      <button id="sim-info-back" class="button-left icon icon-previous" data-l10n-id="navbar-back">Back</button>
+      <button id="sim-info-forward" class="recommend icon icon-next" data-l10n-id="navbar-next">Next</button>
     </gaia-buttons>
   </section>
 
@@ -607,7 +608,7 @@
         </section>
       </section>
     </article>
-    <gaia-buttons id="nav-bar" class="forward-only">
+    <gaia-buttons id="nav-bar" class="nav forward-only">
       <button id="back" class="button-left icon icon-previous" data-l10n-id="navbar-back">Back</button>
       <button id="forward" class="recommend icon icon-next" data-l10n-id="navbar-next">Next</button>
       <button id="wifi-join-button" class="recommend" data-l10n-id="navbar-join">Join</button>
@@ -638,7 +639,7 @@
       </div>
 
       </section>
-      <gaia-buttons skin="dark">
+      <gaia-buttons skin="dark" class="nav">
         <button id="skip-tutorial-button" class="button-left" data-l10n-id="skip">
           Skip
         </button>
@@ -658,7 +659,7 @@
         Join us for a quick tutorial about the updates to your phone!
       </p>
     </section>
-    <gaia-buttons skin="dark">
+    <gaia-buttons skin="dark" class="nav">
       <button id="update-skip-tutorial-button" class="button-left" data-l10n-id="skip">
         Skip
       </button>
@@ -679,7 +680,7 @@
         <video id="tutorial-step-video" class="step-video-base" role="presentation" preload="auto" hidden loop></video>
       </section>
     </article>
-    <gaia-buttons id="tutorial-nav-bar" skin="dark">
+    <gaia-buttons id="tutorial-nav-bar" class="nav" skin="dark">
       <button id="back-tutorial" class="button-left icon icon-previous" data-l10n-id="navbar-back">Back</button>
       <button id="forward-tutorial" class="recommend icon icon-next" data-l10n-id="navbar-next">Next</button>
     </gaia-buttons>
@@ -716,7 +717,7 @@
   <form role='dialog' data-type='confirm' id='offline-error-dialog'>
     <section>
       <h1 data-l10n-id='offline-dialog-title'>You must be connected to the Internet to view the page.</h1>
-      <p><small data-l10n-id='offline-dialog-text'>Please go back and connect to
+      <p><small>Please go back and connect to
         the Internet. You can also view the page later from Settings or by
         entering {{url}} in any browser.</small></p>
       <gaia-buttons skin="dark">

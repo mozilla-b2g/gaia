@@ -32,7 +32,8 @@ define(function(require) {
     _refreshText: function l_refeshText(element) {
       // display the current locale in the main panel
       LanguageList.get(function displayLang(languages, currentLanguage) {
-        element.textContent = languages[currentLanguage];
+        element.textContent = LanguageList.wrapBidi(
+          currentLanguage, languages[currentLanguage]);
       });
     },
 

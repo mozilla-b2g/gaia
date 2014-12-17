@@ -1,4 +1,4 @@
-/* global MockStackManager, MockNavigatorSettings, MockSystem,
+/* global MockStackManager, MockNavigatorSettings, MockService,
           TaskManager, Card, AppWindow, HomescreenLauncher,
           HomescreenWindow, MocksHelper, MockL10n */
 
@@ -11,7 +11,8 @@ requireApp('system/test/unit/mock_stack_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_trusted_ui_manager.js');
 
-require('/shared/test/unit/mocks/mock_system.js');
+require('/shared/js/tagged.js');
+require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
@@ -21,7 +22,7 @@ var mocksForTaskManager = new MocksHelper([
   'StackManager',
   'HomescreenWindow',
   'AppWindow',
-  'System'
+  'Service'
 ]).init();
 
 function waitForEvent(target, name, timeout) {
@@ -68,7 +69,7 @@ suite('system/TaskManager >', function() {
 
   function sendHoldhome() {
     var evt = new CustomEvent('holdhome', { });
-    window.dispatchEvent(evt);
+    taskManager.respondToHierarchyEvent(evt);
   }
 
   function sendAppopen(detail) {
@@ -115,9 +116,7 @@ suite('system/TaskManager >', function() {
       'http://sms.gaiamobile.org': new AppWindow({
         launchTime: 5,
         name: 'SMS',
-        element: document.createElement('div'),
         frame: document.createElement('div'),
-        iframe: document.createElement('iframe'),
         manifest: {
           orientation: 'portrait-primary'
         },
@@ -137,9 +136,6 @@ suite('system/TaskManager >', function() {
       'http://game.gaiamobile.org': new AppWindow({
         launchTime: 4,
         name: 'GAME',
-        element: document.createElement('div'),
-        frame: document.createElement('div'),
-        iframe: document.createElement('iframe'),
         manifest: {
           orientation: 'landscape-primary'
         },
@@ -156,9 +152,6 @@ suite('system/TaskManager >', function() {
       'browser1': new AppWindow({
         launchTime: 4,
         name: 'BROWSER1',
-        element: document.createElement('div'),
-        frame: document.createElement('div'),
-        iframe: document.createElement('iframe'),
         rotatingDegree: 0,
         isBrowser: function() {
           return true;
@@ -175,9 +168,6 @@ suite('system/TaskManager >', function() {
       'http://game2.gaiamobile.org': new AppWindow({
         launchTime: 3,
         name: 'GAME2',
-        element: document.createElement('div'),
-        frame: document.createElement('div'),
-        iframe: document.createElement('iframe'),
         manifest: {
           orientation: 'landscape-secondary'
         },
@@ -193,9 +183,6 @@ suite('system/TaskManager >', function() {
       }),
       'browser2': new AppWindow({
         name: 'BROWSER2',
-        element: document.createElement('div'),
-        frame: document.createElement('div'),
-        iframe: document.createElement('iframe'),
         rotatingDegree: 0,
         isBrowser: function() {
           return true;
@@ -211,9 +198,6 @@ suite('system/TaskManager >', function() {
       }),
       'search': new AppWindow({
         name: 'search',
-        element: document.createElement('div'),
-        frame: document.createElement('div'),
-        iframe: document.createElement('iframe'),
         rotatingDegree: 0,
         isBrowser: function() {
           return true;
@@ -236,9 +220,6 @@ suite('system/TaskManager >', function() {
       instanceID: 'AppWindow-0',
       launchTime: 5,
       name: 'SMS',
-      element: document.createElement('div'),
-      frame: document.createElement('div'),
-      iframe: document.createElement('iframe'),
       manifest: {
         orientation: 'portrait-primary'
       },
@@ -257,9 +238,6 @@ suite('system/TaskManager >', function() {
       instanceID: 'AppWindow-1',
       launchTime: 5,
       name: 'GAME',
-      element: document.createElement('div'),
-      frame: document.createElement('div'),
-      iframe: document.createElement('iframe'),
       manifest: {
         orientation: 'portrait-primary'
       },
@@ -278,9 +256,6 @@ suite('system/TaskManager >', function() {
       instanceID: 'AppWindow-2',
       launchTime: 5,
       name: 'GAME2',
-      element: document.createElement('div'),
-      frame: document.createElement('div'),
-      iframe: document.createElement('iframe'),
       manifest: {
         orientation: 'portrait-primary'
       },
@@ -388,6 +363,56 @@ suite('system/TaskManager >', function() {
     this.sinon.clock.tick(500); // 100ms exit + 400ms safety
   });
 
+  suite('Hierarchy functions', function() {
+    setup(function() {
+      this.sinon.stub(taskManager, '_fetchElements');
+      this.sinon.stub(taskManager, '_registerEvents');
+      this.sinon.stub(taskManager, '_unregisterEvents');
+      taskManager.stack = [];
+      taskManager.unfilteredStack = [];
+    });
+
+    teardown(function() {
+      taskManager.stop();
+    });
+
+    test('start should register hierarchy', function() {
+      this.sinon.stub(MockService, 'request');
+      taskManager.start();
+      assert.isTrue(
+        MockService.request.calledWith('registerHierarchy', taskManager));
+    });
+
+    test('stop should unregister hierarchy', function() {
+      taskManager.start();
+      this.sinon.stub(MockService, 'request');
+      taskManager.stop();
+      assert.isTrue(
+        MockService.request.calledWith('unregisterHierarchy', taskManager));
+    });
+
+    test('setActive to true should publish -activated', function(done) {
+      window.addEventListener(taskManager.EVENT_PREFIX + '-activated',
+        function onactivated() {
+          window.removeEventListener(taskManager.EVENT_PREFIX + '-activated',
+            onactivated);
+          done();
+        });
+      taskManager.setActive(true);
+    });
+
+    test('setActive to false should publish -deactivated', function(done) {
+      taskManager.setActive(true);
+      window.addEventListener(taskManager.EVENT_PREFIX + '-deactivated',
+        function ondeactivated() {
+          window.removeEventListener(taskManager.EVENT_PREFIX + '-deactivated',
+            ondeactivated);
+          done();
+        });
+      taskManager.setActive(false);
+    });
+  });
+
   suite('sanity check > ', function() {
     test('instantiable TaskManager', function(){
       assert.isTrue(taskManager instanceof window.TaskManager,
@@ -406,6 +431,31 @@ suite('system/TaskManager >', function() {
       assert.ok(card && card instanceof window.Card,
                 'Card instantiation');
     });
+  });
+
+  suite('when a document is fullscreen', function() {
+    var realFullScreen;
+    setup(function() {
+      realFullScreen = document.mozFullScreen;
+      Object.defineProperty(document, 'mozFullScreen', {
+        configurable: true,
+        get: function() { return true; }
+      });
+    });
+
+    teardown(function() {
+      Object.defineProperty(document, 'mozFullScreen', {
+        configurable: true,
+        get: function() { return realFullScreen; }
+      });
+    });
+
+    test('should exit fullscreen when showing',
+      function() {
+        var cancelSpy = this.sinon.spy(document, 'mozCancelFullScreen');
+        taskManager.show();
+        sinon.assert.calledOnce(cancelSpy);
+      });
   });
 
   suite('settings > ', function() {
@@ -445,12 +495,12 @@ suite('system/TaskManager >', function() {
       apps.home = home;
       MockStackManager.mCurrent = 0;
 
-      MockSystem.currentApp = apps['http://sms.gaiamobile.org'];
+      MockService.currentApp = apps['http://sms.gaiamobile.org'];
     });
 
     suite('display cardsview >', function() {
       setup(function() {
-        MockSystem.currentApp  = apps['http://sms.gaiamobile.org'];
+        MockService.currentApp  = apps['http://sms.gaiamobile.org'];
         showTaskManager(this.sinon.clock);
       });
 
@@ -753,7 +803,7 @@ suite('system/TaskManager >', function() {
         apps['http://game.gaiamobile.org']
       ];
       MockStackManager.mCurrent = 0;
-      MockSystem.currentApp = 'http://sms.gaiamobile.org';
+      MockService.currentApp = 'http://sms.gaiamobile.org';
 
       showTaskManager(this.sinon.clock);
     });
@@ -996,7 +1046,7 @@ suite('system/TaskManager >', function() {
 
     suite('when opening from the homescreen', function() {
       setup(function() {
-        MockSystem.currentApp  = home;
+        MockService.currentApp  = home;
         MockStackManager.mCurrent = -1;
         showTaskManager(this.sinon.clock);
       });
@@ -1023,14 +1073,14 @@ suite('system/TaskManager >', function() {
         .then(function() { done(); }, done);
 
         var event = new CustomEvent('home');
-        window.dispatchEvent(event);
+        taskManager.respondToHierarchyEvent(event);
         fakeFinish(this.sinon.clock, home);
       });
     });
 
     suite('when opening from an app', function() {
       setup(function() {
-        MockSystem.currentApp = apps['http://sms.gaiamobile.org'];
+        MockService.currentApp = apps['http://sms.gaiamobile.org'];
         MockStackManager.mCurrent = 0;
         showTaskManager(this.sinon.clock);
       });
@@ -1049,7 +1099,7 @@ suite('system/TaskManager >', function() {
       });
 
       test('when exitToApp is passed no app', function(done) {
-        var activeApp = MockSystem.currentApp;
+        var activeApp = MockService.currentApp;
         var stub = this.sinon.stub(activeApp, 'open');
 
         waitForEvent(window, 'cardviewclosed').then(function() {
@@ -1062,7 +1112,7 @@ suite('system/TaskManager >', function() {
       });
 
       test('active app is opened on home event', function(done) {
-        var activeApp = MockSystem.currentApp;
+        var activeApp = MockService.currentApp;
         var stub = this.sinon.stub(activeApp, 'open');
 
         waitForEvent(window, 'cardviewclosed').then(function() {
@@ -1071,7 +1121,7 @@ suite('system/TaskManager >', function() {
         .then(function() { done(); }, done);
 
         var event = new CustomEvent('home');
-        window.dispatchEvent(event);
+        taskManager.respondToHierarchyEvent(event);
         fakeFinish(this.sinon.clock, activeApp);
       });
 
@@ -1099,7 +1149,7 @@ suite('system/TaskManager >', function() {
 
   suite('filtering > ', function() {
     setup(function() {
-      MockSystem.currentApp = apps.browser2;
+      MockService.currentApp = apps.browser2;
       MockStackManager.mCurrent = 0;
       MockStackManager.mStack = [
         apps['http://sms.gaiamobile.org'],
@@ -1147,7 +1197,7 @@ suite('system/TaskManager >', function() {
 
   suite('filtering > /w search role', function() {
     setup(function() {
-      MockSystem.currentApp = apps.search;
+      MockService.currentApp = apps.search;
       MockStackManager.mCurrent = 1;
       MockStackManager.mStack = [
         apps.browser1,
@@ -1165,7 +1215,7 @@ suite('system/TaskManager >', function() {
     var stub, _filterName;
     setup(function() {
       taskManager.hide();
-      MockSystem.currentApp = apps['http://sms.gaiamobile.org'];
+      MockService.currentApp = apps['http://sms.gaiamobile.org'];
       _filterName = 'browser-only';
       stub = this.sinon.stub(taskManager, 'filter', function(filterName) {
           assert.equal(filterName, _filterName);

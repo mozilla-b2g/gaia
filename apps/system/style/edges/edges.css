@@ -43,16 +43,6 @@
 }
 
 @media (orientation: landscape) {
-  #left-panel {
-    top: 3rem;
-    height: calc(100% - 4rem);
-  }
-
-  #right-panel {
-    top: 3rem;
-    height: calc(100% - 4rem);
-  }
-
   #screen:not(:-moz-full-screen-ancestor).software-button-enabled #right-panel {
     width: 7rem;
     border-radius: 2rem 0 0 2rem;

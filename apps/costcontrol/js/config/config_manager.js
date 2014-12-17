@@ -27,9 +27,11 @@ var ConfigManager = (function() {
       'end': today,
       'today': today,
       'wifi': {
+        'apps': {},
         'total': 0
       },
       'mobile': {
+        'apps': {},
         'total': 0
       }
     },

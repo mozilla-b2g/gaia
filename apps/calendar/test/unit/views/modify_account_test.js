@@ -279,11 +279,14 @@ suite('Views.ModifyAccount', function() {
       assert.isTrue(subject.hideHeaderAndForm.called);
     });
 
-    test('#hideHeaderAndForm', function() {
+    test('#hideHeaderAndForm + #dispatch', function() {
       assert.isFalse(subject.element.classList.contains(
         subject.removeDialogClass));
       subject.hideHeaderAndForm();
       assert.isTrue(subject.element.classList.contains(
+        subject.removeDialogClass));
+      subject.dispatch({ params: { preset: 'local' } });
+      assert.isFalse(subject.element.classList.contains(
         subject.removeDialogClass));
     });
 

@@ -57,6 +57,7 @@ CameraController.prototype.bindEvents = function() {
   camera.on('newvideo', app.firer('camera:newvideo'));
   camera.on('shutter', app.firer('camera:shutter'));
   camera.on('loaded', app.firer('camera:loaded'));
+  camera.on('closed', this.onCameraClosed);
   camera.on('error', app.firer('camera:error'));
   camera.on('ready', app.firer('ready'));
   camera.on('busy', app.firer('busy'));
@@ -74,7 +75,7 @@ CameraController.prototype.bindEvents = function() {
   app.on('timer:ended', this.capture);
   app.on('visible', this.camera.load);
   app.on('capture', this.capture);
-  app.on('hidden', this.onHidden);
+  app.on('hidden', this.shutdownCamera);
 
   // Settings
   settings.recorderProfiles.on('change:selected', this.updateRecorderProfile);
@@ -353,13 +354,6 @@ CameraController.prototype.setFlashMode = function() {
   this.camera.setFlashMode(flashSetting.selected('key'));
 };
 
-CameraController.prototype.onHidden = function() {
-  debug('app hidden');
-  this.camera.stopRecording();
-  this.camera.set('focus', 'none');
-  this.camera.release();
-};
-
 CameraController.prototype.setISO = function() {
   if (!this.settings.isoModes.get('disabled')) {
     this.camera.setISOMode(this.settings.isoModes.selected('key'));
@@ -428,10 +422,20 @@ CameraController.prototype.onFocusPointChanged = function(focusPoint) {
 };
 
 CameraController.prototype.shutdownCamera = function() {
-  this.camera.stopRecording();
-  this.camera.set('previewActive', false);
-  this.camera.set('focus', 'none');
-  this.camera.release();
+  this.camera.shutdown();
+};
+
+/**
+ * Camera hardware can be closed after a failure or after app request
+ * It reboots the application in the case of failure
+ *
+ * @private
+ */
+CameraController.prototype.onCameraClosed = function(reason) {
+  reason = reason || 'SystemFailure';
+  if (reason === 'SystemFailure') {
+    this.app.emit('reboot');
+  }
 };
 
 /**
@@ -446,7 +450,7 @@ CameraController.prototype.shutdownCamera = function() {
  *
  * @private
  */
-CameraController.prototype.onGalleryClosed = function() {
+CameraController.prototype.onGalleryClosed = function(reason) {
   if (this.app.hidden) { return; }
   this.app.showSpinner();
   this.camera.load(this.app.clearSpinner);

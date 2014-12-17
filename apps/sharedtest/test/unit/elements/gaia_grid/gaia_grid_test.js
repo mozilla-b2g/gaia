@@ -62,14 +62,12 @@ suite('GaiaGrid', function() {
       assert.ok(grid.layout);
     });
 
-    test('/w grouping', function() {
-      this.container.innerHTML = '<gaia-grid group></gaia-grid>';
+    test('/w dragdrop and disable-sections', function() {
+      this.container.innerHTML =
+        '<gaia-grid dragdrop disable-sections></gaia-grid>';
       var grid = this.container.firstElementChild._grid;
       grid.render();
-      assert.equal(grid.dragdrop, undefined);
-      assert.equal(grid.zoom, undefined);
-      assert.ok(grid.layout);
-      assert.ok(document.querySelector('.divider.group'));
+      assert.ok(grid.config.features.disableSections);
     });
   });
 
@@ -132,18 +130,35 @@ suite('GaiaGrid', function() {
       assert.equal(element.getItems().length, itemLength + 1);
     });
 
-    test('removeUntilDivider', function() {
+    test('appendItem adds before divider', function() {
       element.clear();
-      var placeholder = new GaiaGrid.Placeholder();
 
-      var removeStub = this.sinon.stub(placeholder, 'remove');
+      var divider = new GaiaGrid.Divider();
       element.add(fakeBookmarkItem);
-      element.add(placeholder);
-      element.render();
-      assert.equal(element.children.length, 2);
-      element.removeUntilDivider();
-      assert.ok(removeStub.calledOnce);
-      assert.equal(element.children.length, 2);
+      element.add(divider);
+
+      var itemLength = element.getItems().length;
+      element.appendItemToExpandedGroup(fakeBookmarkItem2);
+
+      var items = element.getItems();
+      assert.equal(items.length, itemLength + 1);
+      assert.equal(items[items.length - 1], divider);
+    });
+
+    test('appendItemToExpandedGroup expands collapsed divider', function() {
+      element.clear();
+
+      var divider = new GaiaGrid.Divider();
+      element.add(fakeBookmarkItem);
+      element.add(divider);
+
+      var itemLength = element.getItems().length;
+      divider.detail.collapsed = true;
+      element.appendItemToExpandedGroup(fakeBookmarkItem2);
+
+      var items = element.getItems();
+      assert.ok(items.length > itemLength);
+      assert.notEqual(divider.detail.collapsed, true);
     });
 
     test('clear will dereference item elements', function() {

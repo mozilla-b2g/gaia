@@ -10,8 +10,9 @@
     this.instanceID = 'search';
     this.publish('created');
 
+    this._setBrowserConfig = this.setBrowserConfig.bind(this);
     SettingsListener.observe('rocketbar.searchAppURL', '',
-      this.setBrowserConfig.bind(this));
+      this._setBrowserConfig);
 
     return this;
   }
@@ -49,11 +50,10 @@
     document.getElementById('rocketbar-results');
 
   SearchWindow.prototype.view = function aw_view() {
-    return '<div class=" ' + this.CLASS_LIST +
-             ' " id="' + this.instanceID +
-             '" transition-state="closed">' +
-             '<div class="browser-container"></div>' +
-           '</div>';
+    return `<div class="${this.CLASS_LIST}" id="${this.instanceID}"
+             transition-state="closed">
+             <div class="browser-container"></div>
+           </div>`;
   };
 
   // The search window orientation depends on the orientation of the
@@ -67,6 +67,16 @@
   // but we don't need it right now.
   SearchWindow.prototype.requestClose = function() {
     this.close();
+  };
+
+  /**
+   * Overrides appWindow.destroy.
+   * Unobserves from any living listeners.
+   */
+  SearchWindow.prototype.destroy = function() {
+    SettingsListener.unobserve('rocketbar.searchAppURL',
+      this._setBrowserConfig);
+    AppWindow.prototype.destroy.call(this);
   };
 
   /**

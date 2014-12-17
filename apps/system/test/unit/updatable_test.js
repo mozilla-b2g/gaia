@@ -10,7 +10,7 @@ requireApp('system/test/unit/mock_apps_mgmt.js');
 requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_navigator_battery.js');
-requireApp('system/shared/test/unit/mocks/mock_system.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_custom_dialog.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -22,7 +22,7 @@ var mocksHelperForUpdatable = new MocksHelper([
   'UtilityTray',
   'ManifestHelper',
   'asyncStorage',
-  'System'
+  'Service'
 ]).init();
 
 suite('system/Updatable', function() {
@@ -96,7 +96,7 @@ suite('system/Updatable', function() {
 
     subject._dispatchEvent = realDispatchEvent;
     lastDispatchedEvent = null;
-    MockSystem.currentApp = null;
+    MockService.currentApp = null;
   });
 
   function downloadAvailableSuite(name, setupFunc) {
@@ -365,7 +365,7 @@ suite('system/Updatable', function() {
         suite('application of the download', function() {
           test('should apply if the app is not in foreground', function() {
             mockApp.mTriggerDownloadAvailable();
-            MockSystem.currentApp = { origin: 'homescreen' };
+            MockService.currentApp = { origin: 'homescreen' };
             mockApp.mTriggerDownloadSuccess();
             assert.isNotNull(MockAppsMgmt.mLastAppApplied);
             assert.equal(MockAppsMgmt.mLastAppApplied.mId, mockApp.mId);
@@ -374,7 +374,7 @@ suite('system/Updatable', function() {
           test('should wait for appwillclose if it is', function() {
             var origin = 'http://testapp.gaiamobile.org';
             mockApp.origin = origin;
-            MockSystem.currentApp = mockApp;
+            MockService.currentApp = mockApp;
 
             mockApp.mTriggerDownloadAvailable();
             mockApp.mTriggerDownloadSuccess();
@@ -390,7 +390,7 @@ suite('system/Updatable', function() {
           });
 
           test('should kill the app before applying the update', function() {
-            MockSystem.currentApp = { origin: 'test' };
+            MockService.currentApp = { origin: 'test' };
             mockApp.mTriggerDownloadAvailable();
             mockApp.mTriggerDownloadSuccess();
             assert.equal('https://testapp.gaiamobile.org',

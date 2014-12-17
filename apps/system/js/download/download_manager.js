@@ -20,12 +20,15 @@ var DownloadManager = (function() {
     return;
   }
 
+  // XXX bug 1097435 -- This is the only safe place we can call this for now.
+  mozDownloadManager.clearAllDone();
+
   // This object stores download notification objects by id
   var notifications = {};
   var started = false;
 
-  // Set our download start handler.
-  mozDownloadManager.ondownloadstart = function onDownloadStart(ev) {
+  // Define and set our download start handler.
+  function onDownloadStart(ev) {
     if (started) {
       createDownloadNotification(ev.download);
     } else {
@@ -37,9 +40,17 @@ var DownloadManager = (function() {
         started = true;
         createDownloadNotification(ev.download);
         window.addEventListener('notification-clicked', handleEvent);
+
+        // Bug 1102810 - After this bug gets fixed, this listener won't be
+        // needed anymore. The API itself should handle startTime when killing
+        // the process.
+        window.addEventListener('will-shutdown', function onShutdown() {
+          ev.download.pause();
+        });
       });
     }
-  };
+  }
+  mozDownloadManager.addEventListener('downloadstart', onDownloadStart);
 
   function createDownloadNotification(download) {
     var id = DownloadFormatter.getUUID(download);

@@ -1,25 +1,26 @@
 'use strict';
 
-/* globals NfcConnectSystemDialog, document, MockL10n,
-            MockBluetooth  */
+/* globals NfcConnectSystemDialog, document, MockL10n, MocksHelper,
+   MockService */
 
 require('/shared/test/unit/mocks/mock_l10n.js');
-requireApp('system/test/unit/mock_bluetooth.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
+
+var mocksForNfcConnectDialog = new MocksHelper([
+  'Service',
+]).init();
 
 suite('NfcConnectSystemDialog', function() {
-
+  mocksForNfcConnectDialog.attachTestHelpers();
   var realMozL10n;
-  var realMozBluetooth;
 
   var stubGetElementById;
   var stubQuerySelector;
 
   setup(function(done) {
     realMozL10n = navigator.mozL10n;
-    realMozBluetooth = navigator.mozBluetooth;
 
     navigator.mozL10n = MockL10n;
-    navigator.mozBluetooth = MockBluetooth;
 
     // Stub necessary DOM calls.
     stubGetElementById = this.sinon.stub(document, 'getElementById',
@@ -39,7 +40,6 @@ suite('NfcConnectSystemDialog', function() {
 
   teardown(function() {
     navigator.mozL10n = realMozL10n;
-    navigator.mozBluetooth = realMozBluetooth;
     stubGetElementById.restore();
     stubQuerySelector.restore();
   });
@@ -50,16 +50,27 @@ suite('NfcConnectSystemDialog', function() {
   suite('Dialog lifecycle', function() {
     var nfcDialog;
     var spyDispatchEvent;
+    var stubResize;
 
     setup(function() {
       spyDispatchEvent = this.sinon.spy(window, 'dispatchEvent');
 
       nfcDialog = new NfcConnectSystemDialog();
+
+      stubResize = this.sinon.stub(nfcDialog, 'resize',
+      function() {
+        return true;
+      });
       nfcDialog.show(null, function() {}, function() {});
     });
 
     teardown(function() {
       spyDispatchEvent.restore();
+      stubResize.restore();
+    });
+
+    test('After show, resize dialog.', function() {
+      assert.isTrue(stubResize.called);
     });
 
     test('After confirmed, dismissed properly.', function() {
@@ -95,17 +106,23 @@ suite('NfcConnectSystemDialog', function() {
     var nfcDialog;
     var stubConfirm;
     var stubCancel;
+    var stubResize;
 
     setup(function() {
       stubConfirm = this.sinon.spy();
       stubCancel = this.sinon.spy();
 
       nfcDialog = new NfcConnectSystemDialog();
+      stubResize = this.sinon.stub(nfcDialog, 'resize',
+      function() {
+        return true;
+      });
       nfcDialog.show(null, stubConfirm, stubCancel);
     });
 
     teardown(function() {
       nfcDialog.hide();
+      stubResize.restore();
     });
 
     test('Cancel button calls only cancel callback', function() {
@@ -124,21 +141,28 @@ suite('NfcConnectSystemDialog', function() {
   suite('L10n', function() {
     var realL10n;
     var nfcDialog;
+    var stubResize;
 
     setup(function() {
       realL10n = navigator.mozL10n;
       navigator.mozL10n = MockL10n;
 
       nfcDialog = new NfcConnectSystemDialog();
+      stubResize = this.sinon.stub(nfcDialog, 'resize',
+      function() {
+        return true;
+      });
     });
 
     teardown(function() {
       navigator.mozL10n = realL10n;
       nfcDialog.hide();
+      stubResize.restore();
     });
 
     var assertTextContent = function(btEnabled, btName, el, expected) {
-      MockBluetooth.enabled = btEnabled;
+      // mock bt stat
+      MockService.mBtEnabled = btEnabled;
       nfcDialog.show(btName);
       if (typeof expected === 'string') {
         assert.equal(nfcDialog[el].getAttribute('data-l10n-id'), expected);

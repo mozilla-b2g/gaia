@@ -48,7 +48,14 @@ ul {
 
 li .inner {
   height: 12rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: stretch;
 }
+
+/* unwatched doesn't participate in the flexbox because its position is
+   absolute so that it appears on top of the image instead of beside it */
 .unwatched {
   background: url(images/unwatched.png) no-repeat center / 100%;
   position: absolute;
@@ -56,18 +63,15 @@ li .inner {
   width: 0.4rem;
   top: 0;
 }
-li .img {
+
+li .inner .img {
   /* background image will be configure in video.js, and it is croped with
    * 210 * devicePixelRatio, 120 * devicePixelRatio. So, we just need to make
    * it be fullsize in this container.
    */
   background-size: 100%;
-  height: 12rem;
   width: 21rem;
   overflow: hidden;
-  left: 0;
-  margin: 0;
-  padding: 0;
 }
 
 li .img.default {
@@ -77,18 +81,17 @@ li .img.default {
   background-color: #333333;
 }
 
-li .details {
+/* 1. Leave room for two rem when computing width of details
+      to account for one rem margin left and right */
+li .inner .details {
   line-height: 1.6rem;
-  position: absolute;
-  margin: 1.6rem 0;
+  margin: 1.6rem 1rem; /* 1 */
   font-size: 1.4rem;
   color: #fff;
-  width: calc(100% - 22rem);
-  height: 9.3rem;
-  top: 0;
-  right: 0;
+  width: calc(100% - 23rem); /* 1 */
   overflow: hidden;
 }
+
 li .details[data-visible] {
   visibility: visible;
 }
@@ -244,10 +247,29 @@ span.line-break {
   left: 0;
   bottom: 0;
   right: 0;
+}
 
+#overlay,
+#in-use-overlay {
   /* almost transparent gray */
   background-color: rgba(0, 0, 0, 0.4);
 }
+
+#confirm-dialog {
+  background-color: #2d2d2d;
+}
+
+/*
+ * In view.html (but not index.html) we put the in-use-overlay element
+ * inside videoControls. In that case there is a 5rem title bar that needs
+ * to be visible, so we alter the top position. And if we're handling
+ * a pick activity, we also need the title bar with the back button to show.
+ */
+#videoControls > #in-use-overlay,
+body.pick-activity > #in-use-overlay {
+  top: 5rem;
+}
+
 
 /*
  * The overlay content area holds the text of the overlay.
@@ -255,9 +277,7 @@ span.line-break {
  * the overlay text shows up more clearly
  */
 #overlay-content, #in-use-overlay-content {
-  background:
-  url(images/ui/pattern.png) repeat left top,
-  url(images/ui/gradient.png) no-repeat left top;
+  background-color: #2d2d2d;
   background-size: auto auto, 100% 100%;
   /* We can't use shortand with background size because is not implemented yet:
   https://bugzilla.mozilla.org/show_bug.cgi?id=570326; */
@@ -303,13 +323,6 @@ span.line-break {
 /* localization */
 body.hidden *[data-l10n-id] {
   visibility: hidden;
-}
-*[dir=rtl] li {
-  padding: 0 14.4rem 0 2rem;
-}
-*[dir=rtl] li img {
-  left: auto;
-  right: 0;
 }
 
 #close {
@@ -481,15 +494,18 @@ header .icon:after {
   font-size: 1.4rem;
 }
 
+/* elapsed-text and duration-text have padding on left and right
+   to support ltr and rtl locales */
 #elapsed-text {
-  width: 5.3rem;
-  padding-left: 1.5rem;
+  width: 3.8rem;
+  padding: 0 1.5rem;
+  text-align: center;
 }
 
 #duration-text {
-  text-align: right;
-  width: 5.3rem;
-  padding-right: 1.5rem;
+  width: 3.8rem;
+  padding: 0 1.5rem;
+  text-align: center;
 }
 
 /* time slider */
@@ -547,6 +563,7 @@ header .icon:after {
   border-top: 0.1rem solid rgba(255,255,255, 0.1);
   background-color: #000;
   overflow: hidden;
+  direction: ltr
 }
 
 #seek-backward,

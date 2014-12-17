@@ -30,8 +30,14 @@ marionette('check root panel settings', function() {
       client.contentScript.inject(__dirname +
         '/../mocks/mock_navigator_moz_bluetooth.js');
 
+      client.settings.set('devtools.qps.enabled', true);
+
       settingsApp.launch();
       rootPanel = settingsApp.rootPanel;
+    });
+
+    teardown(function() {
+      client.settings.set('devtools.qps.enabled', false);
     });
 
     test('check static item descriptions', function() {
@@ -60,17 +66,23 @@ marionette('check root panel settings', function() {
       });
     });
 
-    // Refer to http://bugzil.la/1061390.
+    // XXX Disabled in https://bugzil.la/1061390
     test.skip('language description on the root panel is translated',
       function() {
-      settingsApp.currentLanguage = 'french';
-      assert.ok(rootPanel.isLanguageDescTranslated('french'));
+      settingsApp.currentLanguage = 'accented';
+      assert.ok(
+        rootPanel.isLanguageDescTranslated('accented'),
+        'language desc was not localized into Accented English');
+
+      settingsApp.currentLanguage = 'mirrored';
+      assert.ok(
+        rootPanel.isLanguageDescTranslated('mirrored'),
+        'language desc was not localized into Mirrored English');
 
       settingsApp.currentLanguage = 'english';
-      assert.ok(rootPanel.isLanguageDescTranslated('english'));
-
-      settingsApp.currentLanguage = 'traditionalChinese';
-      assert.ok(rootPanel.isLanguageDescTranslated('traditionalChinese'));
+      assert.ok(
+        rootPanel.isLanguageDescTranslated('english'),
+        'language desc was not localized into Mirrored English');
     });
 
     suite('airplane mode', function() {

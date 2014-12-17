@@ -1,19 +1,21 @@
-/* global MocksHelper, LayoutManager, MockKeyboardManager,
+/* global MocksHelper, LayoutManager, InputWindowManager,
           MocksoftwareButtonManager, MockLockScreen,
-          MockSystem */
+          MockService, inputWindowManager */
 'use strict';
 
-require('/shared/test/unit/mocks/mock_system.js');
+require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/js/layout_manager.js');
 requireApp('system/test/unit/mock_lock_screen.js');
-requireApp('system/test/unit/mock_keyboard_manager.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
+require('/test/unit/mock_app_window.js');
+require('/test/unit/mock_attention_window.js');
+require('/js/input_window_manager.js');
 
 var mocksForLayoutManager = new MocksHelper([
-  'KeyboardManager',
   'softwareButtonManager',
   'LockScreen',
-  'System'
+  'Service',
+  'AttentionWindow'
 ]).init();
 
 suite('system/LayoutManager >', function() {
@@ -21,30 +23,113 @@ suite('system/LayoutManager >', function() {
 
   var layoutManager;
   setup(function() {
-    MockSystem.currentApp = {
+    MockService.currentApp = {
       isFullScreenLayout: function() {
         return false;
       }
     };
     window.lockScreen = MockLockScreen;
+    window.inputWindowManager =
+      this.sinon.stub(Object.create(InputWindowManager.prototype));
     layoutManager = new LayoutManager();
     layoutManager.start();
   });
 
   suite('handle events', function() {
-    test('resize', function() {
-      var stubPublish = this.sinon.stub(layoutManager, 'publish');
-      layoutManager.handleEvent({
-        type: 'resize'
+    suite('resize', function() {
+      var oldMozOrientation;
+      var stubPublish;
+
+      setup(function() {
+        oldMozOrientation = screen.mozOrientation;
+        stubPublish = this.sinon.stub(layoutManager, 'publish');
       });
-      assert.isTrue(stubPublish.calledWith('system-resize'));
-      assert.isTrue(stubPublish.calledWith('orientationchange'));
+
+      teardown(function() {
+        Object.defineProperty(screen, 'mozOrientation', {
+          get: function(){
+            return oldMozOrientation;
+          }
+        });
+      });
+
+      var setMozOrientation = function (orientation) {
+        Object.defineProperty(screen, 'mozOrientation', {
+          get: function(){
+            return orientation;
+          },
+          configurable: true
+        });
+      };
+
+      test('Do not publish system-resize if keyboard is showing and' +
+           'orientation has changed', function() {
+        layoutManager.keyboardEnabled = true;
+        layoutManager._lastOrientation = 'portrait-secondary';
+
+        setMozOrientation('landscape-secondary');
+
+        layoutManager.handleEvent({
+          type: 'resize'
+        });
+        assert.isFalse(stubPublish.calledWith('system-resize'));
+        assert.isTrue(stubPublish.calledWith('orientationchange'));
+      });
+
+      test('Publish system-resize if keyboard is showing and' +
+           'orientation has not changed', function() {
+        layoutManager.keyboardEnabled = true;
+        layoutManager._lastOrientation = 'portrait-secondary';
+
+        setMozOrientation('portrait-secondary');
+
+        layoutManager.handleEvent({
+          type: 'resize'
+        });
+        assert.isTrue(stubPublish.calledWith('system-resize'));
+        assert.isTrue(stubPublish.calledWith('orientationchange'));
+      });
+
+      test('Publish system-resize if keyboard is not showing', function() {
+        layoutManager.keyboardEnabled = false;
+        layoutManager._lastOrientation = 'portrait-secondary';
+
+        setMozOrientation('landscape-secondary');
+
+        layoutManager.handleEvent({
+          type: 'resize'
+        });
+        assert.isTrue(stubPublish.calledWith('system-resize'));
+        assert.isTrue(stubPublish.calledWith('orientationchange'));
+
+        stubPublish.reset();
+
+        // this time orientation isn't changed; we send system-resize too.
+        layoutManager.handleEvent({
+          type: 'resize'
+        });
+        assert.isTrue(stubPublish.calledWith('system-resize'));
+        assert.isTrue(stubPublish.calledWith('orientationchange'));
+      });
+
+      test('_lastOrientation is correctly remembered', function() {
+        layoutManager.keyboardEnabled = false;
+        layoutManager._lastOrientation = 'portrait-secondary';
+
+        setMozOrientation('landscape-secondary');
+
+        layoutManager.handleEvent({
+          type: 'resize'
+        });
+
+        assert.equal(layoutManager._lastOrientation, 'landscape-secondary');
+      });
     });
 
-    test('attention-inactive', function() {
+    test('attentionwindowmanager-deactivated', function() {
       var stubPublish = this.sinon.stub(layoutManager, 'publish');
       layoutManager.handleEvent({
-        type: 'attention-inactive'
+        type: 'attentionwindowmanager-deactivated'
       });
       assert.isTrue(stubPublish.calledWith('system-resize'));
     });
@@ -128,13 +213,13 @@ suite('system/LayoutManager >', function() {
         get: function() { return realIH; }
       });
 
-      MockSystem.locked = false;
+      MockService.locked = false;
     });
 
     test('should take into account keyboard and home button',
     function() {
       var _w = document.documentElement.clientWidth;
-      MockKeyboardManager.mHeight = 100;
+      inputWindowManager.getHeight.returns(100);
       MocksoftwareButtonManager.height = 50;
       layoutManager.keyboardEnabled = true;
       assert.equal(layoutManager.height, H - 100 - 50);
@@ -146,10 +231,10 @@ suite('system/LayoutManager >', function() {
     test('should take into account keyboard and home button with' +
          'full screen layout',
       function() {
-        this.sinon.stub(MockSystem.currentApp, 'isFullScreenLayout')
+        this.sinon.stub(MockService.currentApp, 'isFullScreenLayout')
           .returns(true);
         var _w = document.documentElement.clientWidth;
-        MockKeyboardManager.mHeight = 100;
+        inputWindowManager.getHeight.returns(100);
         MocksoftwareButtonManager.height = 50;
         layoutManager.keyboardEnabled = true;
         assert.equal(layoutManager.height, H - 100);
@@ -161,10 +246,10 @@ suite('system/LayoutManager >', function() {
     test('should take into account keyboard and home button with' +
          'full screen layout',
       function() {
-        this.sinon.stub(MockSystem.currentApp, 'isFullScreenLayout')
+        this.sinon.stub(MockService.currentApp, 'isFullScreenLayout')
           .returns(true);
         var _w = document.documentElement.clientWidth;
-        MockKeyboardManager.mHeight = 100;
+        inputWindowManager.getHeight.returns(100);
         MocksoftwareButtonManager.height = 50;
         layoutManager.keyboardEnabled = true;
         assert.equal(layoutManager.height, H - 100);
@@ -176,10 +261,10 @@ suite('system/LayoutManager >', function() {
     test('should take into account keyboard and home button with' +
          'full screen layout, but screen is locked',
       function() {
-        MockSystem.locked = true;
-        this.sinon.stub(MockSystem.currentApp, 'isFullScreenLayout')
+        MockService.locked = true;
+        this.sinon.stub(MockService.currentApp, 'isFullScreenLayout')
           .returns(true);
-        MockKeyboardManager.mHeight = 100;
+        inputWindowManager.getHeight.returns(100);
         MocksoftwareButtonManager.height = 50;
         layoutManager.keyboardEnabled = true;
         // Even though the software home button is enabled and reports a height
@@ -193,13 +278,13 @@ suite('system/LayoutManager >', function() {
     });
   });
 
-  suite('dimentions >', () => {
+  suite('dimensions >', () => {
     var H, W, _w;
     setup(() => {
       H = window.innerHeight;
       W = window.innerWidth;
       _w = document.documentElement.clientWidth;
-      MockKeyboardManager.mHeight = 100;
+      inputWindowManager.getHeight.returns(100);
       MocksoftwareButtonManager.height = 50;
       MocksoftwareButtonManager.width = 50;
     });
@@ -219,6 +304,30 @@ suite('system/LayoutManager >', function() {
     test('width calculation', () => {
       assert.equal(layoutManager.width, W - 50);
       assert.equal(layoutManager.clientWidth, _w);
+    });
+  });
+
+  suite('getHeightFor()', function() {
+    setup(function() {
+      MocksoftwareButtonManager.height = 50;
+      MockService.locked = false;
+    });
+
+    test('should return the height for regular windows', function() {
+      assert.equal(layoutManager.height, layoutManager.getHeightFor({}));
+    });
+
+    test('should return the height for regular windows on lockscreen',
+      function() {
+        MockService.locked = true;
+        assert.equal(layoutManager.height, layoutManager.getHeightFor({}));
+      });
+
+    test('should consider SHB on attention windows and lockscreen', function() {
+      MockService.locked = true;
+      var attentionWindow = new window.AttentionWindow();
+      assert.operator(layoutManager.getHeightFor({}), '>',
+        layoutManager.getHeightFor(attentionWindow));
     });
   });
 });

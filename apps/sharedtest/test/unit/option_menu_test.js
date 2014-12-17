@@ -1,4 +1,4 @@
-/*global OptionMenu, MockL10n */
+/*global OptionMenu, MockL10n, TransitionEvent */
 
 'use strict';
 
@@ -82,6 +82,17 @@ suite('OptionMenu', function() {
         sinon.assert.notCalled(document.body.appendChild);
       });
 
+      test('Prevent pointer events', function() {
+        menu.show();
+        assert.equal(document.body.style.pointerEvents, 'none');
+        var transitionend = new TransitionEvent('transitionend', {
+          bubbles: true,
+          propertyName: 'transform'
+        });
+        menu.form.dispatchEvent(transitionend);
+        assert.equal(document.body.style.pointerEvents, 'initial');
+      });
+
       suite('menu.hide()', function() {
         setup(function() {
           menu.hide();
@@ -151,6 +162,34 @@ suite('OptionMenu', function() {
       menu = new OptionMenu(options);
 
       assert.isNull(menu.form.querySelector('section'));
+    });
+
+    test('style doesn\'t affect confirm dialogs', function(next) {
+      var style = document.createElement('style');
+      style.textContent = '@import "../../../../shared/style/option_menu.css"';
+      var loaded = setInterval(function() {
+        try {
+          // We're waiting for an @import stylesheet to load, so wait for the
+          // inner set of cssRules.
+          style.sheet.cssRules[0].styleSheet.cssRules;
+          clearInterval(loaded);
+        } catch (e) {
+          // Waiting for stylesheet to load
+        } finally {
+          // Clear the interval again just in case we threw before calling
+          // clearInterval() the first time. This is necessary so we don't call
+          // the done() function multiple times.
+          clearInterval(loaded);
+          var form = document.createElement('form');
+          form.setAttribute('role', 'dialog');
+          form.setAttribute('data-type', 'confirm');
+          document.body.appendChild(form);
+          var compStyle = window.getComputedStyle(form);
+          assert.notEqual(compStyle.visibility, 'hidden');
+          next();
+        }
+      }, 10);
+      document.body.appendChild(style);
     });
 
   });

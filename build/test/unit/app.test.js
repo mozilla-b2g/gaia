@@ -12,13 +12,15 @@ suite('app.js', function() {
   var stageDir = '/path/to/build_stage';
   var applist = ['app1', 'app2', 'app3'];
   var options = {
-    GAIA_APPDIRS: '/path/to/app1 /path/to/app2 /path/to/app3',
+    rebuildAppDirs: ['/path/to/app1', '/path/to/app2', '/path/to/app3'],
     STAGE_DIR: stageDir
   };
 
   setup(function() {
     var stubs = {
-      'utils': mockUtils
+      'utils': mockUtils,
+      'rebuild': {},
+      './post-app': { execute: function() {} }
     };
     app = proxyquire.noCallThru().load('../../app', stubs);
 
@@ -33,8 +35,12 @@ suite('app.js', function() {
       return file;
     };
 
-    mockUtils.copyToStage = function(options) {
+    mockUtils.copyToStage = function() {
       copied = true;
+    };
+
+    mockUtils.ensureFolderExists = function() {
+      return true;
     };
   });
 

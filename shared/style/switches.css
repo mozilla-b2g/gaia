@@ -31,7 +31,10 @@ label.pack-checkbox input ~ span:after,
 label.pack-radio input ~ span:after {
   content: '';
   position: absolute;
+  /* CSS will resolve the conflict among left, right, and width "intelligently"
+     and pick left+width for LTR and right+width for RTL. */
   left: 50%;
+  right: 50%;
   top: 50%;
   margin: 0;
   margin-top: -1.1rem;
@@ -47,6 +50,12 @@ label.pack-checkbox input ~ span:after {
 
 label.pack-radio input ~ span:after {
   background: url(switches/images/radio/default.png) no-repeat center top / 2.2rem auto;
+}
+
+/* checkbox & radio: disabled state */
+label.pack-checkbox input:disabled ~ span:after,
+label.pack-radio input:disabled ~ span:after {
+  opacity: 0.4;
 }
 
 label.pack-checkbox input:checked ~ span:after,
@@ -103,10 +112,6 @@ label.pack-switch input.uninit ~ span:after {
  * Right-To-Left tweaks
  */
 
-html[dir="rtl"] label.pack-checkbox input ~ span:after,
-html[dir="rtl"] label.pack-radio input ~ span:after {
-  left: unset;
-}
 html[dir="rtl"] label.pack-switch input ~ span:after {
   left: 0;
   right: unset;

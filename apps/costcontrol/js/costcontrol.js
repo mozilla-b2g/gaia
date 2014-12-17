@@ -46,6 +46,7 @@ var CostControl = (function() {
       costcontrol = {
         iccId: iccId,
         request: request,
+        lastDataResults: {},
         isBalanceRequestSMS: isBalanceRequestSMS
       };
 
@@ -96,7 +97,7 @@ var CostControl = (function() {
       function _requestDataStatistics() {
         SimManager.requestDataSimIcc(function(dataSim) {
           requestDataStatistics(configuration, settings, callback, dataSim,
-                                result, requestObj.apps);
+                                result, requestObj);
         });
       }
 
@@ -424,38 +425,44 @@ var CostControl = (function() {
   // Ask statistics API for mobile and wifi data usage
   var DAY = 24 * 3600 * 1000; // 1 day
   function requestDataStatistics(configuration, settings, callback, dataSimIcc,
-                                 result, apps) {
+                                 result, requestParameters) {
     debug('Statistics out of date. Requesting fresh data...');
+    var apps = requestParameters && requestParameters.apps;
+    var start = requestParameters && requestParameters.startDate;
+    var end = requestParameters && requestParameters.endDate;
 
-    var maxAge = 1000 * statistics.maxStorageAge;
-    var minimumStart = new Date(Date.now() - maxAge);
-    debug('The max age for samples is ' + minimumStart);
+    if (!start) {
+      var maxAge = 1000 * statistics.maxStorageAge;
+      var minimumStart = new Date(Date.now() - maxAge);
+      debug('The max age for samples is ' + minimumStart);
 
-    // If settings.lastCompleteDataReset is not set let's use the past week.
-    // This is only for not breaking dogfooders build and this can be remove at
-    // some point in the future (and since this sentence has been said multiple
-    // times this code will probably stay here for a while).
-    var start = new Date(settings.lastCompleteDataReset ||
-                         Date.now() - 7 * DAY);
-    if (start < minimumStart) {
-      console.warn('Start date is surpassing the maximum age for the ' +
-                   'samples. Setting to ' + minimumStart);
-      start = minimumStart;
+      // If settings.lastCompleteDataReset is not set let's use the past week.
+      // This is only for not breaking dogfooders build and this can be remove
+      // at some point in the future (and since this sentence has been said
+      // multiple times this code will probably stay here for a while).
+      start = new Date(settings.lastCompleteDataReset ||
+                       Date.now() - 7 * DAY);
+      if (start < minimumStart) {
+        console.warn('Start date is surpassing the maximum age for the ' +
+                     'samples. Setting to ' + minimumStart);
+        start = minimumStart;
+      }
     }
+
     start = Toolkit.toMidnight(start);
 
-    var today = Toolkit.toMidnight(new Date());
+    if (!end) {
+      var today = Toolkit.toMidnight(new Date());
+      var tomorrow = new Date();
+      tomorrow.setTime(today.getTime() + DAY);
 
-    var tomorrow = new Date();
-    tomorrow.setTime(today.getTime() + DAY);
-
-    var end = Toolkit.toMidnight(settings.nextReset ?
-                         new Date(settings.nextReset.getTime() - DAY) :
-                         tomorrow);
-
+      end = Toolkit.toMidnight(settings.nextReset ?
+                               new Date(settings.nextReset.getTime() - DAY) :
+                               tomorrow);
+    }
     if (start > end) {
       console.error('Start date is higher than end date. This must not ' +
-                    'happen. Maybe the clock has changed');
+                    'happen. Changed end date to day after startDate');
       end = new Date(start.getTime() + DAY);
     }
 
@@ -471,7 +478,6 @@ var CostControl = (function() {
         updateDataUsage();
       }
     }
-
 
     function updateDataUsage() {
       var lastDataUsage = {
@@ -610,6 +616,8 @@ var CostControl = (function() {
 
       result.status = 'success';
       result.data = lastDataUsage;
+
+      costcontrol.lastDataResults = lastDataUsage;
 
       debug('Returning up to date statistics.');
       if (callback) {

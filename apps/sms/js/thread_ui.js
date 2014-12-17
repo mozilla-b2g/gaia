@@ -6,7 +6,7 @@
          ActivityPicker, ThreadListUI, OptionMenu, Threads, Contacts,
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
          ActivityHandler, TimeHeaders, ContactRenderer, Draft, Drafts,
-         Thread, MultiSimActionButton, LazyLoader, Navigation, Promise,
+         Thread, MultiSimActionButton, Navigation, Promise, LazyLoader,
          Dialog, SharedComponents,
          Errors,
          EventDispatcher,
@@ -90,7 +90,8 @@ var ThreadUI = {
       'message-status',
       'not-downloaded',
       'recipient',
-      'date-group'
+      'date-group',
+      'header'
     ];
 
     AttachmentMenu.init('attachment-options-menu');
@@ -286,7 +287,6 @@ var ThreadUI = {
 
       if (isAutoSaveRequired) {
         ThreadUI.saveDraft({preserve: true, autoSave: true});
-        Drafts.store();
       }
     }
   },
@@ -501,8 +501,6 @@ var ThreadUI = {
           Settings.SERVICE_ID_KEYS.smsServiceId
       );
 
-      var simPickerElt = document.getElementById('sim-picker');
-      LazyLoader.load([simPickerElt]);
       this.initSentAudio();
     }
 
@@ -965,11 +963,12 @@ var ThreadUI = {
   updateComposerHeader: function thui_updateComposerHeader() {
     var recipientCount = this.recipients.numbers.length;
     if (recipientCount > 0) {
-      navigator.mozL10n.setAttributes(this.headerText, 'recipient', {
-          n: recipientCount
+      this.setHeaderContent({
+        id: 'recipient',
+        args: { n: recipientCount }
       });
     } else {
-      navigator.mozL10n.setAttributes(this.headerText, 'newMessage');
+      this.setHeaderContent({ id: 'newMessage' });
     }
   },
 
@@ -1046,7 +1045,8 @@ var ThreadUI = {
   },
 
   close: function thui_close() {
-    return this._onNavigatingBack().then(function() {
+    return this._onNavigatingBack().then(() => {
+      this.cleanFields();
       ActivityHandler.leaveActivity();
     }).catch(function(e) {
       // If we don't have any error that means that action was rejected
@@ -1236,15 +1236,14 @@ var ThreadUI = {
     }
 
     // If there is no messageContainer we have to create it
-    messageDateGroup = this._htmlStringToDomNode(
-      this.tmpl.dateGroup.interpolate({
-        id: 'mc_' + startOfDayTimestamp,
-        timestamp: startOfDayTimestamp.toString(),
-        headerTimeUpdate: 'repeat',
-        headerTime: messageTimestamp.toString(),
-        headerDateOnly: 'true'
-      })
-    );
+    messageDateGroup = this.tmpl.dateGroup.prepare({
+      id: 'mc_' + startOfDayTimestamp,
+      timestamp: startOfDayTimestamp.toString(),
+      headerTimeUpdate: 'repeat',
+      headerTime: messageTimestamp.toString(),
+      headerDateOnly: 'true'
+    }).toDocumentFragment().firstElementChild;
+
     header = messageDateGroup.firstElementChild;
     messageContainer = messageDateGroup.lastElementChild;
 
@@ -1291,7 +1290,7 @@ var ThreadUI = {
 
   // Method for updating the header with the info retrieved from Contacts API
   updateHeaderData: function thui_updateHeaderData() {
-    var thread, number, others;
+    var thread, number;
 
     thread = Threads.active;
 
@@ -1300,7 +1299,6 @@ var ThreadUI = {
     }
 
     number = thread.participants[0];
-    others = thread.participants.length - 1;
 
     // Add data to contact activity interaction
     this.headerText.dataset.number = number;
@@ -1318,19 +1316,49 @@ var ThreadUI = {
         var contactName = details.title || number;
         this.headerText.dataset.isContact = !!details.isContact;
         this.headerText.dataset.title = contactName;
-        navigator.mozL10n.setAttributes(
-          this.headerText,
-          'thread-header-text',
-          {
-            name: contactName,
-            n: others
-          }
+
+        this.headerText.classList.toggle(
+          'thread-group-header',
+          thread.participants.length > 1
         );
+        this.setHeaderContent(this.tmpl.header.interpolate({
+          name: contactName,
+          participantCount: (thread.participants.length - 1).toString()
+        }));
 
         this.updateCarrier(thread, contacts);
         resolve();
       }.bind(this));
     }.bind(this));
+  },
+
+  /**
+   * Updates header content since it's used for different panels and should be
+   * carefully handled for every case. In Thread panel header contains HTML
+   * markup to support bidirectional content, but other panels still use it with
+   * mozL10n.setAttributes as it would contain only localizable text. We should
+   * get rid of this method once bug 961572 and bug 1011085 are landed.
+   * @param {string|{ id: string, args: Object }} content Should be either safe
+   * HTML string or object with l10nId and l10nArgs.
+   * @public
+   */
+  setHeaderContent: function thui_setHeaderContent(content) {
+    if (typeof content === 'string') {
+      this.headerText.removeAttribute('data-l10n-id');
+      this.headerText.removeAttribute('data-l10n-args');
+
+      this.headerText.innerHTML = content;
+    } else {
+      // Remove rich HTML content before we set l10n attributes as l10n lib
+      // fails in this case
+      if (this.headerText.firstElementChild) {
+        this.headerText.textContent = '';
+      }
+
+      navigator.mozL10n.setAttributes(
+        this.headerText, content.id, content.args
+      );
+    }
   },
 
   initializeRendering: function thui_initializeRendering() {
@@ -1583,7 +1611,7 @@ var ThreadUI = {
       timestamp: String(message.timestamp),
       subject: String(message.subject),
       simInformationHTML: simInformationHTML,
-      messageStatusHTML: this.getMessageStatusMarkup(messageStatus)
+      messageStatusHTML: this.getMessageStatusMarkup(messageStatus).toString()
     }, {
       safe: ['bodyHTML', 'simInformationHTML', 'messageStatusHTML']
     });
@@ -1607,7 +1635,7 @@ var ThreadUI = {
 
   getMessageStatusMarkup: function(status) {
     return ['read', 'delivered', 'sending', 'error'].indexOf(status) >= 0 ?
-      this.tmpl.messageStatus.interpolate({
+      this.tmpl.messageStatus.prepare({
         statusL10nId: 'message-delivery-status-' + status
       }) : '';
   },
@@ -1654,21 +1682,6 @@ var ThreadUI = {
 
     // With this function, "inserting before 'null'" means "appending"
     container.insertBefore(nodeToInsert, currentNode || null);
-  },
-
-  /**
-   * Parses html string to DOM node. Works with html string wrapped into single
-   * element only.
-   * NOTE: it's supposed that htmlString parameter is sanitized in advance as
-   * there aren't any sanitizing checks performed inside this method!
-   * @param {string} htmlString Valid html string.
-   * @returns {Node} DOM node create from the specified html string.
-   * @private
-   */
-  _htmlStringToDomNode: function(htmlString) {
-    var tempContainer = document.createElement('div');
-    tempContainer.innerHTML = htmlString;
-    return tempContainer.firstElementChild;
   },
 
   showChunkOfMessages: function thui_showChunkOfMessages(number) {
@@ -1973,11 +1986,11 @@ var ThreadUI = {
         evt.preventDefault();
         evt.stopPropagation();
         var messageBubble = this.getMessageBubble(evt.target);
-        var lineClassList = messageBubble.node.parentNode.classList;
 
         if (!messageBubble) {
           return;
         }
+        var lineClassList = messageBubble.node.parentNode.classList;
 
         // Show options per single message
         var messageId = messageBubble.id;
@@ -2002,6 +2015,15 @@ var ThreadUI = {
         }
 
         params.items.push(
+          {
+            l10nId: 'select-text',
+            method: (node) => {
+              this.enableBubbleSelection(
+                node.querySelector('.message-content-body')
+              );
+            },
+            params: [messageBubble.node]
+          },
           {
             l10nId: 'view-message-report',
             method: function showMessageReport(messageId) {
@@ -2057,6 +2079,10 @@ var ThreadUI = {
 
   cleanFields: function thui_cleanFields() {
     this.previousSegment = 0;
+
+    if (this.recipients) {
+      this.recipients.length = 0;
+    }
 
     Compose.clear();
   },
@@ -2306,7 +2332,7 @@ var ThreadUI = {
 
     if (newStatusMarkup) {
       messageDOM.querySelector('.message-details').appendChild(
-        this._htmlStringToDomNode(newStatusMarkup)
+        newStatusMarkup.toDocumentFragment()
       );
     }
   },
@@ -2649,7 +2675,7 @@ var ThreadUI = {
       this.prompt({
         number: tel,
         email: email,
-        header: fragment || number,
+        header: fragment,
         contactId: id,
         isContact: isContact,
         inMessage: inMessage
@@ -2669,7 +2695,7 @@ var ThreadUI = {
     var email = opt.email || '';
     var isContact = opt.isContact || false;
     var inMessage = opt.inMessage || false;
-    var header = opt.header || number || email || '';
+    var header = opt.header;
     var items = [];
     var params, props;
 
@@ -2680,10 +2706,16 @@ var ThreadUI = {
     //      in the header of the option menu
     //  - items: array of options to display in menu
     //
+    if (!header && (number || email)) {
+      header = document.createElement('bdi');
+      header.className = 'unknown-contact-header';
+      header.textContent = number || email;
+    }
+
     params = {
       classes: ['contact-prompt'],
       complete: complete,
-      header: header,
+      header: header || '',
       items: null
     };
 
@@ -2905,6 +2937,32 @@ var ThreadUI = {
       contactList.appendChild(suggestions);
       this.recipientSuggestions.scrollTop = 0;
     }
+  },
+
+  /**
+   * If the bubble selection mode is disabled, all the non-editable element
+   * should be set to user-select: none to prevent selection triggered
+   * unexpectedly. Selection functionality should be enabled only by bubble
+   * context menu.
+   * Since long press is used for context menu first, selection need to be
+   * triggered by selection API manually. Focus/blur events are used for
+   * simulating selection changed event, which is only been used in system.
+   * When the node gets blur event, bubble selection mode should be dismissed.
+   * @param {Object} node element that contains message bubble text content.
+   */
+  enableBubbleSelection: function(node) {
+    var threadMessagesClass = this.threadMessages.classList;
+    node.addEventListener('blur', function disable() {
+      node.removeEventListener('blur', disable);
+      threadMessagesClass.add('editable-select-mode');
+      // TODO: Remove this once the gecko could clear selection automatically
+      // in bug 1101376.
+      window.getSelection().removeAllRanges();
+    });
+
+    threadMessagesClass.remove('editable-select-mode');
+    node.focus();
+    window.getSelection().selectAllChildren(node);
   }
 };
 

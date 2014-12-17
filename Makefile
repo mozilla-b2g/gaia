@@ -59,6 +59,19 @@
 # Eliminate use of the built-in implicit rules to get faster.
 MAKEFLAGS=-r
 
+# Rebuild when user specifying these config. If following config are specified,
+# build system considers it will load exteranl resources and force rebuilding.
+REBUILD?=0
+ifdef GAIA_DISTRIBUTION_DIR
+	REBUILD=1
+endif
+ifdef LOCALE_BASEDIR
+	REBUILD=1
+endif
+ifdef LOCALES_FILE
+	REBUILD=1
+endif
+
 -include local.mk
 
 # Headless bot does not need the full output of wget
@@ -75,6 +88,9 @@ PRODUCTION?=0
 DESKTOP_SHIMS?=0
 GAIA_OPTIMIZE?=0
 GAIA_DEV_PIXELS_PER_PX?=1
+
+# Parallel build for multicores CPU
+P?=1
 
 # Alias
 ifdef GAIA_DPPX
@@ -170,7 +186,7 @@ export BUILDAPP
 # Ensure that NPM only logs warnings and errors
 export npm_config_loglevel=warn
 ifneq ($(BUILDAPP),desktop)
-REPORTER?=mocha-socket-reporter
+REPORTER?=mocha-tbpl-reporter
 MARIONETTE_RUNNER_HOST?=marionette-socket-host
 endif
 REPORTER?=spec
@@ -277,6 +293,7 @@ XPCSHELL_GUESS = $(firstword $(wildcard \
     $(XULRUNNER_DIRECTORY)/B2G.app/Contents/MacOS/xpcshell \
     $(XULRUNNER_DIRECTORY)/bin/XUL.framework/Versions/Current/xpcshell \
     $(XULRUNNER_DIRECTORY)/bin/xpcshell* \
+    $(XULRUNNER_DIRECTORY)/b2g/xpcshell* \
   ))
 ifneq (,$(XPCSHELL_GUESS))
 XPCSHELLSDK := $(abspath $(XPCSHELL_GUESS))
@@ -462,6 +479,7 @@ ifeq ($(strip $(NPM)),)
 endif
 
 TEST_AGENT_CONFIG="./dev_apps/test-agent/config.json"
+TEST_AGENT_COVERAGE="./build/config/test-agent-coverage.json"
 
 #Marionette testing variables
 #make sure we're python 2.7.x
@@ -483,12 +501,12 @@ define BUILD_CONFIG
   "PROFILE_FOLDER" : "$(PROFILE_FOLDER)", \
   "GAIA_SCHEME" : "$(SCHEME)", \
   "GAIA_DOMAIN" : "$(GAIA_DOMAIN)", \
-  "DEBUG" : $(DEBUG), \
-  "LOCAL_DOMAINS" : $(LOCAL_DOMAINS), \
-  "DESKTOP" : $(DESKTOP), \
-  "DEVICE_DEBUG" : $(DEVICE_DEBUG), \
-  "NO_LOCK_SCREEN" : $(NO_LOCK_SCREEN), \
-  "SCREEN_TIMEOUT" : $(SCREEN_TIMEOUT), \
+  "DEBUG" : "$(DEBUG)", \
+  "LOCAL_DOMAINS" : "$(LOCAL_DOMAINS)", \
+  "DESKTOP" : "$(DESKTOP)", \
+  "DEVICE_DEBUG" : "$(DEVICE_DEBUG)", \
+  "NO_LOCK_SCREEN" : "$(NO_LOCK_SCREEN)", \
+  "SCREEN_TIMEOUT" : "$(SCREEN_TIMEOUT)", \
   "SYSTEM" : "$(SYSTEM)", \
   "GAIA_PORT" : "$(GAIA_PORT)", \
   "GAIA_LOCALES_PATH" : "$(GAIA_LOCALES_PATH)", \
@@ -522,7 +540,10 @@ define BUILD_CONFIG
   "STAGE_DIR" : "$(STAGE_DIR)", \
   "GAIA_APP_TARGET" : "$(GAIA_APP_TARGET)", \
   "BUILD_DEBUG" : "$(BUILD_DEBUG)", \
-  "VARIANT_PATH" : "$(VARIANT_PATH)" \
+  "VARIANT_PATH" : "$(VARIANT_PATH)", \
+  "REBUILD": "$(REBUILD)", \
+  "P" : "$(P)", \
+  "VERBOSE" : "$(VERBOSE)"
 }
 endef
 
@@ -542,8 +563,12 @@ $(STAGE_DIR):
 LANG=POSIX # Avoiding sort order differences between OSes
 
 .PHONY: app
-app: b2g_sdk profile-dir $(STAGE_DIR)
+app: b2g_sdk profile-dir
 	@$(call run-js-command,app)
+
+.PHONY: pre-app
+pre-app: b2g_sdk profile-dir
+	@$(call run-js-command,pre-app)
 
 # Keep old targets just for people/scripts still using it
 .PHONY: post-manifest
@@ -652,6 +677,9 @@ endif # USE_LOCAL_XULRUNNER_SDK
 preferences: profile-dir b2g_sdk
 	@$(call run-js-command,preferences)
 
+# Generate profile/settings.json
+settings: pre-app
+
 # Generate $(PROFILE_FOLDER)/extensions
 EXT_DIR=$(PROFILE_FOLDER)/extensions
 extensions: $(STAGE_DIR)/additional-extensions/downloaded.json
@@ -706,6 +734,10 @@ endif
 	npm install && npm rebuild
 	@echo "node_modules installed."
 	touch -c $@
+ifeq ($(BUILDAPP),device)
+	export LANG=en_US.UTF-8; \
+	npm install marionette-socket-host
+endif
 
 ###############################################################################
 # Tests                                                                       #
@@ -818,21 +850,21 @@ endif
 # Temp make file method until we can switch
 # over everything in test
 ifneq ($(strip $(APP)),)
-APP_TEST_LIST=$(shell find -L apps/$(APP) dev_apps/$(APP) $(GAIA_DIR)$(SEP)tv_apps -name '*_test.js' 2> /dev/null | grep '/test/unit/')
+APP_TEST_LIST=$(shell find -L $(GAIA_DIR)$(SEP)apps$(SEP)$(APP) $(GAIA_DIR)$(SEP)dev_apps$(SEP)$(APP) $(GAIA_DIR)$(SEP)tv_apps$(SEP)$(APP) -name '*_test.js' 2> /dev/null | grep '/test/unit/')
 endif
 .PHONY: test-agent-test
 test-agent-test: node_modules
 ifneq ($(strip $(APP)),)
 	@echo 'Running tests for $(APP)';
-	./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER) $(APP_TEST_LIST)
+	./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) -t "$(TEST_AGENT_COVERAGE)" -m "://([a-zA-Z-_]+)\." --reporter $(REPORTER) $(APP_TEST_LIST)
 else
 	@echo 'Running all tests';
-	./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER)
+	./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) -t "$(TEST_AGENT_COVERAGE)" -m "://([a-zA-Z-_]+)\." --reporter $(REPORTER)
 endif
 
 .PHONY: test-agent-server
 test-agent-server: common-install node_modules
-	./node_modules/test-agent/bin/js-test-agent server --port $(TEST_AGENT_PORT) -c ./shared/test/unit/test-agent-server.js --http-path . --growl
+	./node_modules/test-agent/bin/js-test-agent server --port $(TEST_AGENT_PORT) -c ./build/config/test-agent-server.js -t "$(TEST_AGENT_COVERAGE)" -m "://([a-zA-Z-_]+)\." --http-path . --growl
 
 .PHONY: marionette
 marionette:
@@ -895,6 +927,7 @@ endif
 
 ifdef VERBOSE
 	JSHINT_ARGS := $(JSHINT_ARGS) --verbose
+	VERBOSE=1
 endif
 
 hint: node_modules/.bin/jshint
@@ -990,10 +1023,8 @@ purge:
 	$(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
 	$(ADB) shell 'if test -d $(MSYS_FIX)/persist/svoperapps; then rm -r $(MSYS_FIX)/persist/svoperapps; fi'
 
-$(PROFILE_FOLDER)/settings.json: b2g_sdk profile-dir app
-
 # push $(PROFILE_FOLDER)/settings.json and $(PROFILE_FOLDER)/contacts.json (if CONTACTS_PATH defined) to the phone
-install-default-data: $(PROFILE_FOLDER)/settings.json contacts
+install-default-data: settings contacts app
 	$(ADB) shell stop b2g
 	$(ADB) remount
 	$(ADB) push $(PROFILE_FOLDER)/settings.json $(MSYS_FIX)/system/b2g/defaults/settings.json
@@ -1006,7 +1037,7 @@ endif
 
 # clean out build products
 clean:
-	rm -rf profile profile-debug profile-test profile-gaia-test-b2g profile-gaia-test-firefox $(PROFILE_FOLDER) $(STAGE_DIR) docs
+	rm -rf profile profile-debug profile-test profile-gaia-test-b2g profile-gaia-test-firefox $(PROFILE_FOLDER) $(STAGE_DIR) docs minidumps
 
 # clean out build products and tools
 really-clean: clean

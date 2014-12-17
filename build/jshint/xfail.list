@@ -1,4 +1,3 @@
-apps/communications/dialer/js/mmi_ui.js
 apps/communications/dialer/test/marionette/lib/dialer.js
 apps/communications/dialer/test/marionette/navigation_test.js
 apps/communications/dialer/test/unit/call_log_db_test.js
@@ -178,18 +177,9 @@ apps/keyboard/js/imes/latin/worker.js
 apps/keyboard/js/render.js
 apps/keyboard/js/settings/settings.js
 apps/keyboard/test/unit/imes/jspinyin/jspinyin_test.js
-apps/keyboard/test/unit/imes/latin/latin_test.js
 apps/keyboard/test/unit/imes/latin/worker_test.js
 apps/keyboard/test/unit/setup_engine.js
-apps/keyboard/test/unit/suggest_test.js
-apps/music/js/Player.js
-apps/music/js/communications.js
 apps/music/js/metadata.js
-apps/music/js/music.js
-apps/music/js/open.js
-apps/music/js/utils.js
-apps/music/test/unit/remote_controls_test.js
-apps/settings/js/about.js
 apps/settings/js/bluetooth.js
 apps/settings/js/call.js
 apps/settings/js/call_iccs.js
@@ -235,7 +225,6 @@ apps/sharedtest/test/unit/mediadb_test.js
 apps/sharedtest/test/unit/mime_mapper_test.js
 apps/sharedtest/test/unit/setImmediate_worker.js
 apps/sharedtest/test/unit/settings_url_test.js
-apps/sharedtest/test/unit/setup.js
 apps/sharedtest/test/unit/simple_phone_matcher_test.js
 apps/sharedtest/test/unit/support/long_load.js
 apps/sharedtest/test/unit/tag_visibility_monitor_test.js
@@ -243,10 +232,7 @@ apps/sharedtest/test/unit/template_test.js
 apps/sharedtest/test/unit/url_helper_test.js
 apps/sharedtest/test/unit/wifi_helper_test.js
 apps/system/js/airplane_mode.js
-apps/system/js/app_modal_dialog.js
 apps/system/js/base_ui.js
-apps/system/js/bluetooth.js
-apps/system/js/bluetooth_transfer.js
 apps/system/js/browser_config_helper.js
 apps/system/js/browser_frame.js
 apps/system/js/browser_mixin.js
@@ -254,10 +240,8 @@ apps/system/js/crash_reporter.js
 apps/system/js/download/download_manager.js
 apps/system/js/download/download_notification.js
 apps/system/js/emergency_callback_manager.js
-apps/system/js/entry_sheet.js
 apps/system/js/icc.js
 apps/system/js/icc_events.js
-apps/system/js/icc_worker.js
 apps/system/js/identity.js
 apps/system/js/init_logo_handler.js
 apps/system/js/notifications.js
@@ -271,7 +255,6 @@ apps/system/js/storage_watcher.js
 apps/system/js/trusted_ui.js
 apps/system/js/updatable.js
 apps/system/js/update_manager.js
-apps/system/js/utility_tray.js
 apps/system/js/value_selector/spin_date_picker.js
 apps/system/js/value_selector/value_picker.js
 apps/system/js/wifi.js
@@ -347,7 +330,6 @@ apps/system/test/unit/storage_watcher_test.js
 apps/system/test/unit/updatable_test.js
 apps/system/test/unit/update_manager_test.js
 apps/system/test/unit/utility_tray_test.js
-apps/system/test/unit/voicemail_test.js
 apps/system/test/unit/wifi_test.js
 apps/system/test/unit/wrapper_factory_test.js
 apps/video/js/db.js

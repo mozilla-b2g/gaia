@@ -2,8 +2,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import expected
+from marionette import Wait
 from marionette.by import By
 from marionette.marionette import Actions
+
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
 from gaiatest.apps.homescreen.app import Homescreen
@@ -26,34 +29,40 @@ class LockScreen(Base):
     _notification_locator = (By.CSS_SELECTOR, '#notifications-lockscreen-container > div.notification')
 
     def switch_to_frame(self):
-      # XXX: Because we're not in frame yet. LockScreen team now is
-      # trying hard to do decoupling & as-iframe at the same time,
-      # but iframe now stuck at weird test failures, so the team decide
-      # to land decoupling part first, with some dummy functions that
-      # can be modified later to fit the implementation.
-      #
-      # If we finished to make it as an iframe, to this to switch
-      # to the real frame:
-      #
-      #   self.marionette.switch_to_frame(
-      #    self.marionette.find_element(*self._lockscreen_frame_locator));
-      #
-      # But now we're not ready to do that yet.
-      self.marionette.switch_to_frame();
+        # XXX: Because we're not in frame yet. LockScreen team now is
+        # trying hard to do decoupling & as-iframe at the same time,
+        # but iframe now stuck at weird test failures, so the team decide
+        # to land decoupling part first, with some dummy functions that
+        # can be modified later to fit the implementation.
+        #
+        # If we finished to make it as an iframe, to this to switch
+        # to the real frame:
+        #
+        #   self.marionette.switch_to_frame(
+        #    self.marionette.find_element(*self._lockscreen_frame_locator));
+        #
+        # But now we're not ready to do that yet.
+        self.marionette.switch_to_frame()
 
     def unlock(self):
         self._slide_to_unlock('homescreen')
         return Homescreen(self.marionette)
 
     def unlock_to_camera(self):
-        self.wait_for_element_displayed(*self._lockscreen_handle_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._lockscreen_handle_locator))))
         self._slide_to_unlock('camera')
         return Camera(self.marionette)
 
     def unlock_to_passcode_pad(self):
-        self.wait_for_element_displayed(*self._lockscreen_handle_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._lockscreen_handle_locator))))
         self._slide_to_unlock('homescreen')
-        self.wait_for_element_displayed(*self._lockscreen_passcode_code_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._lockscreen_passcode_code_locator))))
         return PasscodePad(self.marionette)
 
     def _slide_to_unlock(self, destination):
@@ -75,7 +84,9 @@ class LockScreen(Base):
         self.wait_for_element_not_displayed(*self._lockscreen_locator)
 
     def wait_for_notification(self):
-        self.wait_for_element_displayed(*self._notification_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._notification_locator))))
 
     def a11y_click_unlock_button(self):
         self.accessibility.click(self.marionette.find_element(*self._unlock_button_locator))

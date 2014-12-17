@@ -1,0 +1,10 @@
+{
+  "settings": {
+    "src": [
+      "tv_apps/smart-settings/js/**/*.js"
+    ],
+    "options": {
+      "destination": "docs/settings"
+    }
+  }
+}

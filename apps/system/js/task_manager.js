@@ -1,5 +1,5 @@
 /* global Card, SettingsListener,
-          System, homescreenLauncher, StackManager */
+          Service, homescreenLauncher, StackManager */
 
 (function(exports) {
   'use strict';
@@ -62,6 +62,9 @@
     }
   });
 
+  TaskManager.prototype.EVENT_PREFIX = 'taskmanager';
+  TaskManager.prototype.name = 'TaskManager';
+
   /**
    * initialize
    * @memberOf TaskManager.prototype
@@ -69,10 +72,12 @@
   TaskManager.prototype.start = function() {
     this._fetchElements();
     this._registerEvents();
+    Service.request('registerHierarchy', this);
   };
 
   TaskManager.prototype.stop = function() {
     this._unregisterEvents();
+    Service.request('unregisterHierarchy', this);
   };
 
   TaskManager.prototype._fetchElements = function() {
@@ -82,7 +87,6 @@
   };
 
   TaskManager.prototype._registerEvents = function() {
-    window.addEventListener('holdhome', this);
     window.addEventListener('taskmanagershow', this);
 
     this.onPreviewSettingsChange = function(settingValue) {
@@ -95,7 +99,6 @@
   };
 
   TaskManager.prototype._unregisterEvents = function() {
-    window.removeEventListener('holdhome', this);
     window.removeEventListener('taskmanagershow', this);
 
     SettingsListener.unobserve(this.SCREENSHOT_PREVIEWS_SETTING_KEY,
@@ -115,6 +118,9 @@
   TaskManager.prototype.show = function cs_showCardSwitcher(filterName) {
     if (this.isShown()) {
       return;
+    }
+    if (document.mozFullScreen) {
+      document.mozCancelFullScreen();
     }
     this.calculateDimensions();
     this.newStackPosition = null;
@@ -141,7 +147,7 @@
     this.setActive(true);
 
     var screenElement = this.screenElement;
-    var activeApp = System.currentApp;
+    var activeApp = Service.currentApp;
     if (!activeApp) {
       screenElement.classList.add('cards-view');
       return;
@@ -184,7 +190,6 @@
 
 
   TaskManager.prototype._registerShowingEvents = function() {
-    window.addEventListener('home', this);
     window.addEventListener('lockscreen-appopened', this);
     window.addEventListener('attentionopened', this);
     window.addEventListener('appopen', this);
@@ -198,7 +203,6 @@
   };
 
   TaskManager.prototype._unregisterShowingEvents = function() {
-    window.removeEventListener('home', this);
     window.removeEventListener('lockscreen-appopened', this);
     window.removeEventListener('attentionopened', this);
     window.removeEventListener('appopen', this);
@@ -240,6 +244,11 @@
       return;
     }
     this._active = active;
+    if (active) {
+      this.publish(this.EVENT_PREFIX + '-activated');
+    } else {
+      this.publish(this.EVENT_PREFIX + '-deactivated');
+    }
     this.element.classList.toggle('active', active);
     this.element.classList.toggle('empty', !this.stack.length && active);
 
@@ -488,6 +497,41 @@
     this.alignCurrentCard();
   };
 
+  TaskManager.prototype.respondToHierarchyEvent = function(evt) {
+    if (this['_handle_' + evt.type]) {
+      return this['_handle_' + evt.type](evt);
+    }
+    return true;
+  };
+
+  TaskManager.prototype._handle_home = function() {
+    if (this.isActive()) {
+      this.exitToApp();
+      return false;
+    }
+    return true;
+  };
+
+  TaskManager.prototype._handle_holdhome = function(evt) {
+    if (this.isShown()) {
+      return true;
+    }
+
+    var filter = null;
+    if (evt.type === 'taskmanagershow') {
+      filter = (evt.detail && evt.detail.filter) || null;
+    }
+
+    var app = Service.currentApp;
+    if (app && !app.isHomescreen) {
+      app.getScreenshot(function onGettingRealtimeScreenshot() {
+        this.show(filter);
+      }.bind(this), 0, 0, 400);
+    } else {
+      this.show(filter);
+    }
+  };
+
   /**
    * Handle (synthetic) tap events on the card list
    *
@@ -569,11 +613,6 @@
         this.handleWheel(evt);
         break;
 
-      case 'home':
-        evt.stopImmediatePropagation();
-        this.exitToApp();
-        break;
-
       case 'lockscreen-appopened':
       case 'attentionopened':
         this.hide();
@@ -581,24 +620,7 @@
         break;
 
       case 'taskmanagershow':
-      case 'holdhome':
-        if (System.locked || this.isShown()) {
-          return;
-        }
-
-        var filter = null;
-        if (evt.type === 'taskmanagershow') {
-          filter = (evt.detail && evt.detail.filter) || null;
-        }
-
-        app = System.currentApp;
-        if (app && !app.isHomescreen) {
-          app.getScreenshot(function onGettingRealtimeScreenshot() {
-            this.show(filter);
-          }.bind(this), 0, 0, 400);
-        } else {
-          this.show(filter);
-        }
+        this._handle_holdhome(evt);
         break;
 
       case 'taskmanagerhide':

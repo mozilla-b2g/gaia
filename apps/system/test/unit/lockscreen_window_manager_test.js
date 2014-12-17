@@ -1,15 +1,17 @@
+/* global Service */
+
 (function() {
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
-requireApp('system/shared/test/unit/mocks/mock_system.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_lockscreen_window.js');
 requireApp('system/js/lockscreen_window_manager.js');
 
 var mocksForLockScreenWindowManager = new window.MocksHelper([
-  'LockScreen', 'LockScreenWindow'
+  'LockScreen', 'LockScreenWindow', 'Service'
 ]).init();
 
 suite('system/LockScreenWindowManager', function() {
@@ -57,6 +59,61 @@ suite('system/LockScreenWindowManager', function() {
     stubById.restore();
   });
 
+  suite('Hierarchy functions', function() {
+    setup(function() {
+      subject = new window.LockScreenWindowManager();
+      subject.setup();
+      subject.elements = {};
+      subject.elements.screen =
+        document.createElement('div');
+    });
+    test('Should register hierarchy on start', function() {
+      this.sinon.stub(Service, 'request');
+      subject.start();
+      assert.isTrue(Service.request.calledWith('registerHierarchy'));
+    });
+
+    test('Should activate when openApp is called', function() {
+      subject.states.enabled = true;
+      var app = new window.MockLockScreenWindow();
+      subject.states.instance = app;
+      this.sinon.stub(app, 'isActive').returns(false);
+      this.sinon.stub(subject, 'publish');
+      subject.openApp();
+      assert.isTrue(subject.publish.calledWith(
+        subject.EVENT_PREFIX + '-activated'));
+    });
+
+    test('Should deactivate when closeApp is called', function() {
+      subject.states.enabled = true;
+      var app = new window.MockLockScreenWindow();
+      subject.states.instance = app;
+      this.sinon.stub(app, 'isActive').returns(true);
+      this.sinon.stub(subject, 'publish');
+      subject.closeApp();
+      assert.isTrue(subject.publish.calledWith(
+        subject.EVENT_PREFIX + '-deactivated'));
+    });
+
+    test('Should be active if the instance is active', function() {
+      var app = new window.MockLockScreenWindow();
+      subject.states.instance = app;
+      this.sinon.stub(app, 'isActive').returns(true);
+      assert.isTrue(subject.isActive());
+    });
+
+    test('Should be inactive if the instance is inactive', function() {
+      var app = new window.MockLockScreenWindow();
+      subject.states.instance = app;
+      this.sinon.stub(app, 'isActive').returns(false);
+      assert.isFalse(subject.isActive());
+    });
+
+    test('Should be inactive if there is no instance', function() {
+      assert.isFalse(subject.isActive());
+    });
+  });
+
   suite('Handle events', function() {
     setup(function() {
       subject = new window.LockScreenWindowManager();
@@ -71,17 +128,14 @@ suite('system/LockScreenWindowManager', function() {
 
     test('It should stop home event to propagate', function() {
       var evt = {
-            type: 'home',
-            stopImmediatePropagation: this.sinon.stub()
+            type: 'home'
           };
       // Need to be active to block the home event.
       this.sinon.stub(subject, 'isActive',
         function() {
           return true;
       });
-      subject.handleEvent(evt);
-      assert.ok(evt.stopImmediatePropagation.called,
-        'it didn\'t call the stopImmediatePropagation method');
+      subject.respondToHierarchyEvent(evt);
     });
 
     test('App created', function() {
@@ -276,6 +330,27 @@ suite('system/LockScreenWindowManager', function() {
         type: 'showlockscreenwindow'
       });
       assert.isTrue(stubSetVisible.calledWith(true));
+    });
+
+    test('When system resizing event comes, try to resize the window',
+    function() {
+      var handleEvent =
+        window.LockScreenWindowManager.prototype.handleEvent;
+      var mockSubject = {
+        states: {
+          instance: {
+            isActive: function() { return true; },
+            resize: this.sinon.stub()
+          }
+        }
+      };
+      handleEvent.call(mockSubject,
+        {
+          type: 'system-resize'
+        });
+      assert.isTrue(
+        mockSubject.states.instance.resize.called,
+        'it doesn\'t resize the window while system-resize comes');
     });
 
     test('LockScreen request to unlock without activity detail', function() {

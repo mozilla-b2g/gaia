@@ -1,4 +1,10 @@
-* { -moz-box-sizing: border-box; }
+* { -moz-box-sizing: border-box;
+  /**
+    By default do not allow any user text selection, only enable
+    for certain parts on a per-element/region area
+  */
+    -moz-user-select: none;
+}
 
 html {
   height: 100%;
@@ -173,7 +179,7 @@ body.pickView #thumbnails {
   font-size: 1.6rem;
   font-weight: 400;
   color: #8a9699;
-  padding: 0 0 0 0.5rem;
+  -moz-padding-start: 0.5rem;
   height: 4rem;
   line-height: 4rem;
   width:100%;
@@ -206,7 +212,7 @@ body.pickView #thumbnails {
 }
 
 .thumbnail {
-  margin-right: 0.1rem;
+  -moz-margin-end: 0.1rem;
   margin-bottom: 0.1rem;
   padding: 0;
   /* default to left-to-right, but overridden for rtl languages below */
@@ -239,7 +245,7 @@ body.pickView #thumbnails {
 }
 
 .thumbnail:nth-child(3n) {
-  margin-right: 0;
+  -moz-margin-end: 0;
 }
 
 .thumbnailImage{
@@ -266,10 +272,10 @@ body.pickView #thumbnails {
     padding-bottom: calc((100%  - 0.3rem) / 4);
   }
   .thumbnail:nth-child(3n) {
-    margin-right: 0.1rem;
+    -moz-margin-end: 0.1rem;
   }
   .thumbnail:nth-child(4n) {
-    margin-right: 0;
+    -moz-margin-end: 0;
   }
 }
 
@@ -326,7 +332,7 @@ body.pickView #thumbnails {
   will-change: scroll-position;
 }
 
-.frame > img {
+.frame > .image-view {
   top: 0;  /* javascript modifies this position with a transform */
   left: 0;
   position: absolute;
@@ -335,19 +341,6 @@ body.pickView #thumbnails {
   margin: 0;
   pointer-events: none;
   -moz-user-select: none;
-}
-
-/*
- * these styles apply when we're swapping out a preview image to replace
- * it with a full-resolution image, but the full image isn't ready yet.
- * This happens when the user starts to zoom in on the image. We need
- * some sort of simple visual effect to fill ~500ms of dead time so the
- * user doesn't think the app has frozen up
- */
-.frame > img.swapping {
-  opacity: 0.8;
-  outline: dashed #0ac 0.4rem;
-  outline-offset: -0.4rem;
 }
 
 .frame > video {
@@ -361,12 +354,6 @@ body.hidden *[data-l10n-id] {
 
 *[dir=rtl] .thumbnail {
   float: right;
-}
-
-html[dir="rtl"] #fullscreen-back-button-tiny {
-  left: auto;
-  right: 1.4rem;
-  background-image: url(images/back_rtl.png);
 }
 
 /* the indeterminate progress bar displayed while scanning */
@@ -494,6 +481,7 @@ footer {
   right: 0;
   font-size: 0;
   visibility: visible;
+  direction: ltr; /* buttons in toolbar are not directional and stays LTR */
 
   /**
     Bug 991367 - This is a temporary workaround for an issue where
@@ -505,6 +493,7 @@ footer {
    */
   transition: visibility 0.2s linear 0.1s, transform 0.2s linear 0.1s;
 }
+
 /* only for large screen */
 #fullscreen-toolbar-header {
   display: none;
@@ -554,8 +543,6 @@ footer {
   -moz-user-select: none;
 }
 
-
-/* copied from .frame > img */
 #crop-image {
   top: 0;  /* javascript modifies this position with a transform */
   left: 0;
@@ -744,6 +731,7 @@ a.filter-faded {
   right: 0;
   font-size: 0;
   transition: transform 0.2s linear;
+  direction: ltr; /* buttons in toolbar are not directional and stays LTR */
 }
 
 /* all buttons in the toolbar share these styles */

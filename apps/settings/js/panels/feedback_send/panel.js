@@ -61,6 +61,9 @@ define(function(require) {
       },
       onBeforeHide: function() {
         unbindEvents(elements);
+        if (document.hidden) {
+          sendFeedback.keepAllInputs();
+        }
       }
     });
   };

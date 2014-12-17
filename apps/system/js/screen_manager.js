@@ -1,6 +1,6 @@
 'use strict';
 
-/* globals SettingsListener, Bluetooth, StatusBar, System,
+/* globals SettingsListener, Bluetooth, StatusBar, Service,
            ScreenBrightnessTransition, ScreenWakeLockManager */
 
 var ScreenManager = {
@@ -63,6 +63,18 @@ var ScreenManager = {
    * brightness in outdoor daylight conditions, even when overcast.
    */
   AUTO_BRIGHTNESS_CONSTANT: 0.27,
+
+  /*
+   * We won't set a new brightness value if the difference between the old and
+   * new ambient light sensor values is lower than this constant.
+   */
+  AUTO_BRIGHTNESS_MIN_DELTA: 10,
+
+  /*
+   * This variable contains the latest ambient light sensor value that was used
+   * to set a brightness.
+   */
+  _previousLux: undefined,
 
   /*
    * This property will host a ScreenBrightnessTransition instance
@@ -185,22 +197,23 @@ var ScreenManager = {
   // light (in lux) measured by the device light sensor
   //
   autoAdjustBrightness: function scm_adjustBrightness(lux) {
-    var currentBrightness = this._targetBrightness;
-
     if (lux < 1) { // Can't take the log of 0 or negative numbers
       lux = 1;
     }
 
+    if (this._previousLux !== undefined) {
+      var brightnessDelta = Math.abs(this._previousLux - lux);
+      if (brightnessDelta <= this.AUTO_BRIGHTNESS_MIN_DELTA) {
+        return;
+      }
+    }
+    this._previousLux = lux;
+
     var computedBrightness =
-      Math.log(lux) / Math.LN10 * this.AUTO_BRIGHTNESS_CONSTANT;
+      Math.log10(lux) * this.AUTO_BRIGHTNESS_CONSTANT;
 
     var clampedBrightness = Math.max(this.AUTO_BRIGHTNESS_MINIMUM,
                                      Math.min(1.0, computedBrightness));
-
-    // If nothing changed, we're done.
-    if (clampedBrightness === currentBrightness) {
-      return;
-    }
 
     this.setScreenBrightness(clampedBrightness, false);
   },
@@ -474,12 +487,12 @@ var ScreenManager = {
   _reconfigScreenTimeout: function scm_reconfigScreenTimeout() {
     // Remove idle timer if screen wake lock is acquired or
     // if no app has been displayed yet.
-    if (this._wakeLockManager.isHeld || !System.currentApp) {
+    if (this._wakeLockManager.isHeld || !Service.currentApp) {
       this._setIdleTimeout(0);
     // The screen should be turn off with shorter timeout if
     // it was never unlocked.
     } else if (!this._unlocking) {
-      if (window.System.locked && !window.secureWindowManager.isActive()) {
+      if (window.Service.locked && !window.secureWindowManager.isActive()) {
         this._setIdleTimeout(this.LOCKING_TIMEOUT, true);
         window.addEventListener('lockscreen-appclosing', this);
         window.addEventListener('lockpanelchange', this);
@@ -541,6 +554,7 @@ var ScreenManager = {
       this.setScreenBrightness(this._userBrightness, false);
     }
     this._deviceLightEnabled = enabled;
+    this._previousLux = undefined;
 
     if (!this.screenEnabled) {
       return;

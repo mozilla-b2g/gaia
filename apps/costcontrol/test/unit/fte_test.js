@@ -1,4 +1,4 @@
-/* global MockCommon, AutoSettings, MockLazyLoader, MockConfigManager,
+/* global MockCommon, AutoSettings, MockConfigManager,
           MocksHelper, SimManager
 */
 'use strict';
@@ -35,6 +35,7 @@ suite('FTE Test Suite >', function() {
   MocksHelperForUnitTest.attachTestHelpers();
 
   var fteWizard;
+  var autoSettingsSpy;
   suiteSetup(function() {
     window.Common = new MockCommon();
 
@@ -47,14 +48,20 @@ suite('FTE Test Suite >', function() {
     sinon.stub(SimManager, 'isMultiSim').returns(false);
   });
 
-  teardown(function() {
-    window.location.hash = '';
-  });
-
   suiteTeardown(function() {
     window.navigator.mozL10n = realMozL10n;
     SimManager.requestDataSimIcc.restore();
     SimManager.isMultiSim.restore();
+  });
+
+  setup(function() {
+    autoSettingsSpy = sinon.spy(AutoSettings, 'initialize');
+  });
+
+  teardown(function() {
+    autoSettingsSpy.restore();
+    parent.postMessage.restore();    
+    window.location.hash = '';
   });
 
   function setupApplicationMode(applicationMode, fakeConfiguration) {
@@ -91,47 +98,30 @@ suite('FTE Test Suite >', function() {
     setupApplicationMode('DATA_USAGE_ONLY', fakeConfiguration);
   }
 
-  // The only way to detect when the FTE loading has finished is wrapping the
-  // load method of Lazyloader (when is called with costcontrol library) with a
-  // stub function. For this reason, replacing the original method for the
-  // assert functions of the test.
+  // When the FTE loaded, initLazyFTE() sends message to the parent window
+  // with  type: 'fte_ready'.
   function assetWhenFTEIsFinished(assertingFunction, done) {
-    var autoSettingsSpy = sinon.spy(AutoSettings, 'initialize');
-    function testTeardown() {
-      autoSettingsSpy.restore();
-      MockLazyLoader.load.restore();
-
-      done();
-    }
-
-    sinon.stub(MockLazyLoader, 'load', function(fileArray, callback) {
-      if (fileArray[0] !== 'js/costcontrol.js') {
-        (typeof callback === 'function') && callback();
-      } else {
-        if (typeof assertingFunction === 'function') {
-          assertingFunction(autoSettingsSpy, testTeardown);
-        }
-      }
+    sinon.stub(parent, 'postMessage', function(data, targetOrigin) {
+      if (data.hasOwnProperty('type') && data.type == 'fte_ready') {
+        assertingFunction(autoSettingsSpy);
+        done();
+      } 
     });
   }
 
-  function assertDataUsageOnlyInit(autoSettingsSpy, testTeardown) {
+  function assertDataUsageOnlyInit(autoSettingsSpy) {
     assert.equal(fteWizard.dataset.steps, 3);
     assert.equal(autoSettingsSpy.getCall(0).args[2], '#non-vivo-step-1');
-    testTeardown();
   }
 
-  function assertNoDataUsageOnlyInit(autoSettingsSpy, testTeardown) {
+  function assertNoDataUsageOnlyInit(autoSettingsSpy) {
     assert.equal(fteWizard.dataset.steps, 4);
     assert.ok(autoSettingsSpy.calledOnce);
     assert.equal(autoSettingsSpy.getCall(0).args[2], '#step-1');
     assert.ok(document.getElementById('to-step-2').disabled);
-
-    testTeardown();
   }
 
-  function assertNavigationForward(autoSettingsSpy, testTeardown,
-                                   stepsForward) {
+  function assertNavigationForward(autoSettingsSpy, stepsForward) {
     var currentScreen =
       document.querySelector('[role=region]:not([data-viewport])');
     stepsForward.forEach(function(step) {
@@ -145,12 +135,9 @@ suite('FTE Test Suite >', function() {
 
       assert.equal(currentScreen.id, step);
     });
-
-    (typeof testTeardown === 'function') && testTeardown();
   }
 
-  function assertNavigationBackward(autoSettingsSpy, testTeardown,
-                                   stepsBackward) {
+  function assertNavigationBackward(autoSettingsSpy, stepsBackward) {
     var currentScreen =
       document.querySelector('[role=region]:not([data-viewport])');
     stepsBackward.forEach(function(step) {
@@ -164,25 +151,22 @@ suite('FTE Test Suite >', function() {
         document.querySelector('[role=region]:not([data-viewport])');
       assert.equal(currentScreen.id, step);
     });
-
-    (typeof testTeardown === 'function') && testTeardown();
   }
 
-  function assertDataUsageOnlyNavigationForward(autoSettingsSpy, testTeardown) {
+  function assertDataUsageOnlyNavigationForward(autoSettingsSpy) {
     var dataStepsForward = ['non-vivo-step-1', 'non-vivo-step-2'];
-    assertNavigationForward(autoSettingsSpy, testTeardown, dataStepsForward);
+    assertNavigationForward(autoSettingsSpy, dataStepsForward);
   }
 
-  function assertDataUsageOnlyNavigationBackward(autoSettingsSpy,
-                                                 testTeardown) {
+  function assertDataUsageOnlyNavigationBackward(autoSettingsSpy) {
     var dataStepsForward = ['non-vivo-step-1', 'non-vivo-step-2'];
-    assertNavigationForward(autoSettingsSpy, null, dataStepsForward);
+    assertNavigationForward(autoSettingsSpy, dataStepsForward);
 
     var dataStepsBackward = ['non-vivo-step-1', 'step-1'];
-    assertNavigationBackward(autoSettingsSpy, testTeardown, dataStepsBackward);
+    assertNavigationBackward(autoSettingsSpy, dataStepsBackward);
   }
 
-  function assertPrepaidNavigationForward(autoSettingsSpy, testTeardown) {
+  function assertPrepaidNavigationForward(autoSettingsSpy) {
     var prepaidStepsForward = ['prepaid-step-2', 'prepaid-step-3'];
     var currentScreen = document.getElementById('step-1');
     var buttonNext = currentScreen.querySelector('[data-navigation=next]');
@@ -193,10 +177,10 @@ suite('FTE Test Suite >', function() {
     assert.isFalse(document.getElementById('to-step-2').disabled);
     document.getElementById('low-limit-input').value = 40;
 
-    assertNavigationForward(autoSettingsSpy, testTeardown, prepaidStepsForward);
+    assertNavigationForward(autoSettingsSpy, prepaidStepsForward);
   }
 
-  function assertPostpaidNavigationForward(autoSettingsSpy, testTeardown) {
+  function assertPostpaidNavigationForward(autoSettingsSpy) {
     var postpaidStepsForward = ['postpaid-step-2', 'postpaid-step-3'];
     var currentScreen = document.getElementById('step-1');
     var buttonNext = currentScreen.querySelector('[data-navigation=next]');
@@ -207,8 +191,7 @@ suite('FTE Test Suite >', function() {
     assert.isFalse(document.getElementById('to-step-2').disabled);
     document.getElementById('low-limit-input').value = 40;
 
-    assertNavigationForward(autoSettingsSpy, testTeardown,
-                            postpaidStepsForward);
+    assertNavigationForward(autoSettingsSpy, postpaidStepsForward);
   }
 
   function triggerEvent(element, eventName) {
@@ -270,7 +253,5 @@ suite('FTE Test Suite >', function() {
 
     initFTE();
   });
-
-
 
 });

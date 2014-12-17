@@ -56,7 +56,7 @@
      * @memberof Accessibility.prototype
      */
     expectedEvent: {
-      type: 'volume-up-button-press',
+      type: 'volumeup',
       timeStamp: 0
     },
 
@@ -117,6 +117,8 @@
       this.speechSynthesizer = speechSynthesizer;
 
       window.addEventListener('mozChromeEvent', this);
+      window.addEventListener('volumeup', this);
+      window.addEventListener('volumedown', this);
       window.addEventListener('logohidden', this);
 
       // Attach all observers.
@@ -180,7 +182,7 @@
      */
     reset: function ar_resetEvent() {
       this.expectedEvent = {
-        type: 'volume-up-button-press',
+        type: 'volumeup',
         timeStamp: 0
       };
       this.counter = 0;
@@ -198,24 +200,25 @@
     },
 
     /**
-     * Handle volume up and volume down mozChromeEvents.
-     * @param  {Object} aEvent a mozChromeEvent object.
+     * Handle volumeup and volumedown events generated from HardwareButtons.
+     * @param  {Object} aEvent a high-level key event object generated from
+     * HardwareButtons.
      * @memberof Accessibility.prototype
      */
     handleVolumeButtonPress: function ar_handleVolumeButtonPress(aEvent) {
-      var type = aEvent.detail.type;
+      var type = aEvent.type;
       var timeStamp = aEvent.timeStamp;
       var expectedEvent = this.expectedEvent;
       if (type !== expectedEvent.type || timeStamp > expectedEvent.timeStamp) {
         this.reset();
-        if (type !== 'volume-up-button-press') {
+        if (type !== 'volumeup') {
           return;
         }
       }
 
       this.expectedEvent = {
-        type: type === 'volume-up-button-press' ? 'volume-down-button-press' :
-          'volume-up-button-press',
+        type: type === 'volumeup' ? 'volumedown' :
+          'volumeup',
         timeStamp: timeStamp + this.REPEAT_INTERVAL
       };
 
@@ -317,8 +320,8 @@
     },
 
     /**
-     * Handle a mozChromeEvent event.
-     * @param  {Object} aEvent mozChromeEvent.
+     * Handle event.
+     * @param  {Object} aEvent mozChromeEvent/logohidden/volumeup/volumedown.
      * @memberof Accessibility.prototype
      */
     handleEvent: function ar_handleEvent(aEvent) {
@@ -331,11 +334,11 @@
             case 'accessibility-output':
               this.handleAccessFuOutput(JSON.parse(aEvent.detail.details));
               break;
-            case 'volume-up-button-press':
-            case 'volume-down-button-press':
-              this.handleVolumeButtonPress(aEvent);
-              break;
           }
+          break;
+        case 'volumeup':
+        case 'volumedown':
+          this.handleVolumeButtonPress(aEvent);
           break;
       }
     },

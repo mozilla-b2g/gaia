@@ -10,7 +10,11 @@
   var MockAppWindow = function AppWindow(config) {
     if (config) {
       for (var key in config) {
-        this[key] = config[key];
+        try {
+          this[key] = config[key];
+        } catch (e) {
+          
+        }
       }
       this.config = config;
     }
@@ -37,6 +41,12 @@
       }
       return this._element;
     },
+    get titleBar() {
+      if (!this._titleBar) {
+        this._titleBar = document.createElement('div');
+      }
+      return this._titleBar;
+    },
     get browser() {
       if (!this._iframe) {
         this._iframe = document.createElement('iframe');
@@ -45,6 +55,16 @@
       return {
         element: this._iframe
       };
+    },
+    get frame() {
+      return this.element;
+    },
+    get iframe() {
+      if (!this._iframe) {
+        this._iframe = document.createElement('iframe');
+        this._iframe.download = function() {};
+      }
+      return this._iframe;
     },
     render: function() {},
     open: function() {},
@@ -79,6 +99,7 @@
     reload: function() {},
     stop: function() {},
     isBrowser: function() {},
+    isPrivateBrowser: function() { return false; },
     isCertified: function() {},
     navigate: function() {},
     isFullScreen: function() {},
@@ -92,6 +113,7 @@
     getBottomMostWindow: function() { return this; },
     determineClosingRotationDegree: function() { return 0; },
     isTransitioning: function() { return false; },
+    isSheetTransitioning: function() { return false; },
     calibratedHeight: function() { return false; },
     isOOP: function() { return true; },
     isDead: function() { return false; },
@@ -118,7 +140,9 @@
     isHidden: function() { return false; },
     '_resize': function() {},
     isForeground: function() {},
-    killable: function() {}
+    killable: function() {},
+    setVisibileForScreenReader: function() {},
+    handleStatusbarTouch: function() {}
   };
   MockAppWindow.mTeardown = function() {
     MockAppWindowHelper.mInstances = [];

@@ -7,8 +7,10 @@
           PageSwitchingTargetHandler, CapsLockTargetHandler,
           SwitchKeyboardTargetHandler, ToggleCandidatePanelTargetHandler,
           DismissSuggestionsTargetHandler, BackspaceTargetHandler,
-          KeyboardConsole */
+          KeyboardConsole, HandwritingPadsManager,
+          HandwritingPadTargetHandler */
 
+require('/js/keyboard/handwriting_pads_manager.js');
 require('/js/keyboard/target_handlers.js');
 require('/js/keyboard/feedback_manager.js');
 require('/js/keyboard/visual_highlight_manager.js');
@@ -39,6 +41,7 @@ suite('target handlers', function() {
       feedbackManager: this.sinon.stub(FeedbackManager.prototype),
       visualHighlightManager: this.sinon.stub(VisualHighlightManager.prototype),
       candidatePanelManager: this.sinon.stub(CandidatePanelManager.prototype),
+      handwritingPadsManager: this.sinon.stub(HandwritingPadsManager.prototype),
       setLayoutPage: this.sinon.stub(),
       layoutManager: this.sinon.stub(LayoutManager.prototype),
       upperCaseStateManager: {
@@ -106,6 +109,10 @@ suite('target handlers', function() {
         assert.isTrue(app.visualHighlightManager.hide.calledOnce);
       });
 
+      test('move', function() {
+        handler.move();
+      });
+
       test('moveOut', function() {
         handler.moveOut();
 
@@ -167,6 +174,10 @@ suite('target handlers', function() {
             'Do nothing');
         });
 
+        test('move', function() {
+          handler.move();
+        });
+
         test('moveOut', function() {
           handler.moveOut();
 
@@ -208,6 +219,10 @@ suite('target handlers', function() {
 
         assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
         assert.isTrue(app.visualHighlightManager.hide.calledOnce);
+      });
+
+      test('move', function() {
+        handler.move();
       });
 
       test('moveOut', function() {
@@ -256,6 +271,10 @@ suite('target handlers', function() {
             'Do nothing');
         });
 
+        test('move', function() {
+          handler.move();
+        });
+
         test('moveOut', function() {
           handler.moveOut();
 
@@ -300,6 +319,10 @@ suite('target handlers', function() {
 
     test('moveIn', function() {
       handler.activate();
+    });
+
+    test('move', function() {
+      handler.move();
     });
 
     test('moveOut', function() {
@@ -350,6 +373,10 @@ suite('target handlers', function() {
         'function not overwritten');
     });
 
+    test('move', function() {
+      handler.move();
+    });
+
     test('moveOut', function() {
       assert.equal(handler.moveOut, DefaultTargetHandler.prototype.moveOut,
         'function not overwritten');
@@ -396,6 +423,10 @@ suite('target handlers', function() {
     test('moveIn', function() {
       assert.equal(handler.moveIn, DefaultTargetHandler.prototype.moveIn,
         'function not overwritten');
+    });
+
+    test('move', function() {
+      handler.move();
     });
 
     test('moveOut', function() {
@@ -473,6 +504,10 @@ suite('target handlers', function() {
         assert.isTrue(app.visualHighlightManager.hide.calledOnce);
       });
 
+      test('move', function() {
+        handler.move();
+      });
+
       test('moveOut', function() {
         handler.moveOut();
 
@@ -537,6 +572,10 @@ suite('target handlers', function() {
 
           assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
           assert.isTrue(app.visualHighlightManager.hide.calledOnce);
+        });
+
+        test('move', function() {
+          handler.move();
         });
 
         test('moveOut', function() {
@@ -606,6 +645,10 @@ suite('target handlers', function() {
             assert.isTrue(app.visualHighlightManager.hide.calledOnce);
           });
 
+          test('move', function() {
+            handler.move();
+          });
+
           test('moveOut', function() {
             handler.moveOut();
 
@@ -664,6 +707,10 @@ suite('target handlers', function() {
         handler.commit();
       });
 
+      test('move', function() {
+        handler.move();
+      });
+
       test('moveOut', function() {
         handler.moveOut();
       });
@@ -701,6 +748,11 @@ suite('target handlers', function() {
 
     test('moveIn', function() {
       assert.equal(handler.moveIn, DefaultTargetHandler.prototype.moveIn,
+        'function not overwritten');
+    });
+
+    test('move', function() {
+      assert.equal(handler.move, DefaultTargetHandler.prototype.move,
         'function not overwritten');
     });
 
@@ -762,6 +814,11 @@ suite('target handlers', function() {
 
     test('moveIn', function() {
       assert.equal(handler.moveIn, DefaultTargetHandler.prototype.moveIn,
+        'function not overwritten');
+    });
+
+    test('move', function() {
+      assert.equal(handler.move, DefaultTargetHandler.prototype.move,
         'function not overwritten');
     });
 
@@ -840,6 +897,11 @@ suite('target handlers', function() {
         'function not overwritten');
     });
 
+    test('move', function() {
+      assert.equal(handler.move, DefaultTargetHandler.prototype.move,
+        'function not overwritten');
+    });
+
     test('moveOut', function() {
       assert.equal(handler.moveOut, DefaultTargetHandler.prototype.moveOut,
         'function not overwritten');
@@ -899,6 +961,11 @@ suite('target handlers', function() {
         'function not overwritten');
     });
 
+    test('move', function() {
+      assert.equal(handler.move, DefaultTargetHandler.prototype.move,
+        'function not overwritten');
+    });
+
     test('moveOut', function() {
       assert.equal(handler.moveOut, DefaultTargetHandler.prototype.moveOut,
         'function not overwritten');
@@ -951,6 +1018,11 @@ suite('target handlers', function() {
         'function not overwritten');
     });
 
+    test('move', function() {
+      assert.equal(handler.move, DefaultTargetHandler.prototype.move,
+        'function not overwritten');
+    });
+
     test('moveOut', function() {
       assert.equal(handler.moveOut, DefaultTargetHandler.prototype.moveOut,
         'function not overwritten');
@@ -1000,6 +1072,11 @@ suite('target handlers', function() {
         'function not overwritten');
     });
 
+    test('move', function() {
+      assert.equal(handler.move, DefaultTargetHandler.prototype.move,
+        'function not overwritten');
+    });
+
     test('moveOut', function() {
       assert.equal(handler.moveOut, DefaultTargetHandler.prototype.moveOut,
         'function not overwritten');
@@ -1013,6 +1090,66 @@ suite('target handlers', function() {
 
       assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
       assert.isTrue(app.visualHighlightManager.hide.calledOnce);
+    });
+
+    test('cancel', function() {
+      assert.equal(handler.cancel, DefaultTargetHandler.prototype.cancel,
+        'function not overwritten');
+    });
+
+    test('doubleTap', function() {
+      assert.equal(handler.doubleTap, DefaultTargetHandler.prototype.doubleTap,
+        'function not overwritten');
+    });
+  });
+
+  suite('HandwritingPadTargetHandler', function() {
+    var handler;
+    var target;
+    var press;
+    setup(function() {
+      target = {isHandwritingPad: true};
+      press = {
+        target: target
+      };
+
+      handler = new HandwritingPadTargetHandler(target, app);
+    });
+
+    test('activate', function() {
+      handler.activate(press);
+      assert.isTrue(
+        app.handwritingPadsManager.handlePressStart.calledWith(press));
+      assert.isTrue(app.handwritingPadsManager.handlePressStart.calledOnce);
+    });
+
+    test('longPress', function() {
+      assert.equal(handler.longPress, DefaultTargetHandler.prototype.longPress,
+        'function not overwritten');
+    });
+
+    test('move', function() {
+      handler.move(press);
+      assert.isTrue(
+        app.handwritingPadsManager.handlePressMove.calledWith(press));
+      assert.isTrue(app.handwritingPadsManager.handlePressMove.calledOnce);
+    });
+
+    test('moveIn', function() {
+      handler.moveIn(press);
+      assert.isTrue(
+        app.handwritingPadsManager.handlePressStart.calledWith(press));
+      assert.isTrue(app.handwritingPadsManager.handlePressStart.calledOnce);
+    });
+
+    test('moveOut', function() {
+      handler.moveOut();
+    });
+
+    test('commit', function() {
+      handler.commit();
+
+      assert.isTrue(app.handwritingPadsManager.handlePressEnd.calledOnce);
     });
 
     test('cancel', function() {

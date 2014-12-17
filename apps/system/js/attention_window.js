@@ -88,22 +88,18 @@
 
   AttentionWindow.prototype.view = function attw_view() {
     this.debug('intance id: ' + this.instanceID);
-    return '<div class="' + this.CLASS_LIST +
-            '" id="' + this.instanceID + '">' +
-            '<div class="titlebar">' +
-              ' <div class="statusbar-shadow titlebar-maximized"></div>' +
-              ' <div class="statusbar-shadow titlebar-minimized"></div>' +
-            '</div>' +
-            '<div class="browser-container"></div>' +
-            '<div class="screenshot-overlay"></div>' +
-            '</div>';
+    return `<div class="${this.CLASS_LIST}" id="${this.instanceID}">
+            <div class="browser-container"></div>
+            <div class="screenshot-overlay"></div>
+            </div>`;
   };
 
   AttentionWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
     'modalDialog': window.AppModalDialog,
     'authDialog': window.AppAuthenticationDialog,
-    'attentionToaster': window.AttentionToaster
+    'attentionToaster': window.AttentionToaster,
+    'stautsbar': window.AppStatusbar
   };
 
   AttentionWindow.REGISTERED_EVENTS =

@@ -1,6 +1,6 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-/* global System */
+/* global Service */
 'use strict';
 
 (function(exports) {
@@ -17,7 +17,7 @@
    *                 for options `onHide` attribute.
    *
    * @class SystemDialogManager
-   * @requires module:System
+   * @requires module:Service
    */
   var SystemDialogManager = function SystemDialogManager() {
     this.init();
@@ -58,11 +58,85 @@
       listens: ['system-dialog-created',
                 'system-dialog-show',
                 'system-dialog-hide',
-                'system-resize',
+                'simlockshow',
+                'simlockhide',
+                'system-dialog-requestfocus',
                 'home',
-                'holdhome',
-                'mozChromeEvent']
+                'holdhome']
     }
+  };
+
+  SystemDialogManager.prototype.isActive = function() {
+    return !!this.states.activeDialog;
+  };
+
+  SystemDialogManager.prototype.setHierarchy = function(active) {
+    if (!this.states.activeDialog) {
+      return;
+    }
+    if (active) {
+      this.states.activeDialog.focus();
+    }
+    this.states.activeDialog._setVisibleForScreenReader(active);
+  };
+
+  SystemDialogManager.prototype.name = 'SystemDialogManager';
+  SystemDialogManager.prototype.EVENT_PREFIX = 'systemdialogmanager';
+
+  SystemDialogManager.prototype.publish = function(evtName) {
+    this.debug('publishing ' + evtName);
+    window.dispatchEvent(new CustomEvent(this.EVENT_PREFIX + evtName, {
+      detail: this
+    }));
+  };
+
+  SystemDialogManager.prototype['_handle_system-resize'] = function() {
+    if (this.states.activeDialog) {
+      this.states.activeDialog.resize();
+      return false;
+    }
+    return true;
+  };
+
+  SystemDialogManager.prototype._handle_mozChromeEvent =
+    function(evt) {
+      if (!this.states.activeDialog || !evt.detail ||
+          evt.detail.type !== 'inputmethod-contextchange') {
+        return true;
+      }
+      var typesToHandle = ['select-one', 'select-multiple', 'date', 'time',
+        'datetime', 'datetime-local', 'blur'];
+      if (typesToHandle.indexOf(evt.detail.inputType) < 0) {
+        return true;
+      }
+      this.states.activeDialog.broadcast('inputmethod-contextchange',
+        evt.detail);
+      return false;
+    };
+
+  SystemDialogManager.prototype._handle_home = function(evt) {
+    // Automatically hide the dialog on home button press
+    if (this.states.activeDialog) {
+      // Deactivate the dialog and pass the event type in the two cases
+      this.deactivateDialog(this.states.activeDialog, evt.type);
+    }
+    return true;
+  };
+
+  SystemDialogManager.prototype._handle_holdhome = function(evt) {
+    // Automatically hide the dialog on home button press
+    if (this.states.activeDialog) {
+      // Deactivate the dialog and pass the event type in the two cases
+      this.deactivateDialog(this.states.activeDialog, evt.type);
+    }
+    return true;
+  };
+
+  SystemDialogManager.prototype.respondToHierarchyEvent = function(evt) {
+    if (this['_handle_' + evt.type]) {
+      return this['_handle_' + evt.type](evt);
+    }
+    return true;
   };
 
   /**
@@ -72,53 +146,33 @@
    *                               it would fire this event.
    * @listens system-dialog-hide - when a system dialog got hide request,
    *                               it would fire this event.
-   * @listens system-resize - when the size of LayoutManager is changed,
-   *                          LayoutManager would send system-resize event.
    * @this {SystemDialogManager}
    * @memberof SystemDialogManager
    */
   SystemDialogManager.prototype.handleEvent = function sdm_handleEvent(evt) {
     var dialog = null;
     switch (evt.type) {
+      case 'system-dialog-requestfocus':
+      case 'simlockrequestfocus':
+        if (evt.detail !== this.states.activeDialog) {
+          return;
+        }
+        Service.request('focus', this);
+        break;
+      case 'simlockcreated':
       case 'system-dialog-created':
         dialog = evt.detail;
         this.registerDialog(dialog);
         break;
+      case 'simlockshow':
       case 'system-dialog-show':
         dialog = evt.detail;
         this.activateDialog(dialog);
         break;
+      case 'simlockhide':
       case 'system-dialog-hide':
         dialog = evt.detail;
         this.deactivateDialog(dialog);
-        break;
-      case 'system-resize':
-        if (this.states.activeDialog) {
-          this.states.activeDialog.resize();
-        }
-        break;
-      case 'home':
-      case 'holdhome':
-        // Automatically hide the dialog on home button press
-        if (this.states.activeDialog) {
-          // Deactivate the dialog and pass the event type in the two cases
-          this.deactivateDialog(this.states.activeDialog, evt.type);
-        }
-        break;
-      case 'mozChromeEvent':
-        if (!this.states.activeDialog || !evt.detail ||
-          evt.detail.type !== 'inputmethod-contextchange') {
-          return;
-        }
-        var typesToHandle = ['select-one', 'select-multiple', 'date', 'time',
-          'datetime', 'datetime-local', 'blur'];
-        if (typesToHandle.indexOf(evt.detail.inputType) < 0) {
-          return;
-        }
-        // Making sure app-window does not receive this event.
-        evt.stopImmediatePropagation();
-        this.states.activeDialog.broadcast('inputmethod-contextchange',
-          evt.detail);
         break;
     }
   };
@@ -153,6 +207,7 @@
     this.configs.listens.forEach((function _initEvent(type) {
       self.addEventListener(type, this);
     }).bind(this));
+    Service.request('registerHierarchy', this);
   };
 
   /**
@@ -197,7 +252,10 @@
       this.states.activeDialog = dialog;
 
       // Activate dialog on screen element.
-      this.elements.screen.classList.add('dialog');
+      if (!this.elements.screen.classList.contains('dialog')) {
+        this.elements.screen.classList.add('dialog');
+        this.publish('-activated');
+      }
     };
 
   /**
@@ -224,6 +282,7 @@
 
         // Clear activeDialog
         this.states.activeDialog = null;
+        this.publish('-deactivated');
       } else { // The dialog is not active.
         // Just hide itself, no need to disturb other active dialog.
         // Since the dialog is hidden already, do nothing here.
@@ -233,7 +292,7 @@
   SystemDialogManager.prototype.debug = function sd_debug() {
     if (DEBUG) {
       console.log('[SystemDialogManager]' +
-        '[' + System.currentTime() + ']' +
+        '[' + Service.currentTime() + ']' +
         '[' + Array.slice(arguments).concat() + ']');
     }
   };

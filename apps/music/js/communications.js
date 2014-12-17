@@ -1,3 +1,7 @@
+/* exported MusicComms */
+/* global App, musicdb, LazyLoader, ModeManager, MODE_PLAYER, PlayerView,
+          PLAYSTATUS_PLAYING, PLAYSTATUS_STOPPED, INTERRUPT_BEGIN, TYPE_MIX,
+          MediaRemoteControls */
 'use strict';
 
 var MusicComms = {
@@ -21,9 +25,11 @@ var MusicComms = {
         if (isResumedBySCO) {
           if (this._statusBeforeSCO === PLAYSTATUS_PLAYING ||
               this._statusBeforeSCO === INTERRUPT_BEGIN)
+          {
             PlayerView.play();
-          else
+          } else {
             PlayerView.pause();
+          }
         } else {
           // Play in shuffle order if music app is launched remotely.
           // Please note bug 855208, if music app is launched via system message
@@ -49,49 +55,57 @@ var MusicComms = {
     pause: function(event) {
       this.isSCOEnabled = event.detail.isSCOConnected;
 
-      if (!this._isPlayerActivated())
+      if (!this._isPlayerActivated()) {
         return;
+      }
 
       // Record the current play status so that we can recover the player to
       // the original status after SCO is disconnected.
-      if (this.isSCOEnabled)
+      if (this.isSCOEnabled) {
         this._statusBeforeSCO = PlayerView.playStatus;
+      }
 
       PlayerView.pause();
     },
 
     stop: function(event) {
-      if (!this._isPlayerActivated())
+      if (!this._isPlayerActivated()) {
         return;
+      }
 
       PlayerView.stop();
     },
 
     next: function(event) {
-      if (!this._isPlayerActivated())
+      if (!this._isPlayerActivated()) {
         return;
+      }
 
       PlayerView.next();
     },
 
     previous: function(event) {
-      if (!this._isPlayerActivated())
+      if (!this._isPlayerActivated()) {
         return;
+      }
 
       PlayerView.previous();
     },
 
     seekpress: function(event) {
-      if (!this._isPlayerActivated())
+      if (!this._isPlayerActivated()) {
         return;
+      }
 
-      if (!PlayerView.isTouching)
+      if (!PlayerView.isTouching) {
         PlayerView.startFastSeeking(event.detail.direction);
+      }
     },
 
     seekrelease: function(event) {
-      if (!this._isPlayerActivated())
+      if (!this._isPlayerActivated()) {
         return;
+      }
 
       PlayerView.stopFastSeeking();
     },
@@ -126,8 +140,9 @@ var MusicComms = {
     // The Media Remote Controls object will handle the remote commands.
     this.mrc = new MediaRemoteControls();
     // Add command listeners base on what commands the MusicComms has.
-    for (var command in this.commands)
+    for (var command in this.commands) {
       this.mrc.addCommandListener(command, this.commands[command].bind(this));
+    }
 
     // Update the SCO status after the mrc is ready, so that we can know the
     // current SCO connection and reflect it to the player.
@@ -145,7 +160,7 @@ var MusicComms = {
     if (typeof PlayerView === 'undefined') {
       LazyLoader.load('js/Player.js', function() {
         PlayerView.init();
-        PlayerView.setOptions(playerSettings);
+        PlayerView.setOptions(App.playerSettings);
 
         callback();
       });
@@ -160,13 +175,15 @@ var MusicComms = {
   },
 
   notifyMetadataChanged: function(metadata) {
-    if (this.enabled)
+    if (this.enabled) {
       this.mrc.notifyMetadataChanged(metadata);
+    }
   },
 
   notifyStatusChanged: function(info) {
-    if (this.enabled)
+    if (this.enabled) {
       this.mrc.notifyStatusChanged(info);
+    }
   },
 
   updateSCOStatus: function() {

@@ -1,20 +1,22 @@
 'use strict';
 
-/* global KeyboardConsole, InputMethodManager, LayoutManager,
-          SettingsPromiseManager, L10nLoader, TargetHandlersManager,
-          FeedbackManager, VisualHighlightManager, CandidatePanelManager,
-          UpperCaseStateManager, LayoutRenderingManager, IMERender,
-          StateManager */
+/* global KeyboardConsole, InputMethodManager, InputMethodDatabaseLoader,
+          LayoutManager, SettingsPromiseManager, L10nLoader,
+          TargetHandlersManager, FeedbackManager, VisualHighlightManager,
+          CandidatePanelManager, UpperCaseStateManager, LayoutRenderingManager,
+          IMERender, StateManager, HandwritingPadsManager */
 
 (function(exports) {
 
 var KeyboardApp = function() {
   this.console = null;
   this.inputMethodManager = null;
+  this.inputMethodDatabaseLoader = null;
   this.layoutManager = null;
   this.settingsPromiseManager = null;
   this.l10nLoader = null;
   this.targetHandlersManager = null;
+  this.handwritingPadsManager = null;
   this.feedbackManager = null;
   this.visualHighlightManager = null;
   this.candidatePanelManager = null;
@@ -47,6 +49,10 @@ KeyboardApp.prototype._startComponents = function() {
   this.inputMethodManager = new InputMethodManager(this);
   this.inputMethodManager.start();
 
+  // InputMethodDatabaseLoader loads the database of the IMEngine upon request.
+  this.inputMethodDatabaseLoader = new InputMethodDatabaseLoader(this);
+  this.inputMethodDatabaseLoader.start();
+
   // LayoutManager loads and holds layout layouts for us.
   // It also help us ensure there is only one current layout at the time.
   this.layoutManager = new LayoutManager(this);
@@ -59,6 +65,11 @@ KeyboardApp.prototype._startComponents = function() {
   // targetHandlersManager handles key targets when they are being interacted.
   this.targetHandlersManager = new TargetHandlersManager(this);
   this.targetHandlersManager.start();
+
+  // handwritingPadsManager handles handwritintg pad
+  // targets when they are being interacted.
+  this.handwritingPadsManager = new HandwritingPadsManager(this);
+  this.handwritingPadsManager.start();
 
   this.feedbackManager = new FeedbackManager(this);
   this.feedbackManager.start();
@@ -101,6 +112,9 @@ KeyboardApp.prototype._stopComponents = function() {
 
   this.inputMethodManager = null;
 
+  this.inputMethodDatabaseLoader.stop();
+  this.inputMethodDatabaseLoader = null;
+
   this.layoutManager = null;
 
   this.settingsPromiseManager = null;
@@ -109,6 +123,9 @@ KeyboardApp.prototype._stopComponents = function() {
 
   this.targetHandlersManager.stop();
   this.targetHandlersManager = null;
+
+  this.handwritingPadsManager.stop();
+  this.handwritingPadsManager = null;
 
   this.feedbackManager.stop();
   this.feedbackManager = null;

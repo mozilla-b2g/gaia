@@ -24,7 +24,7 @@
     // Bug 1035048: JSMarionette should be able to know displaying app.
     function getDisplayAppOrigin() {
       return client.executeScript(function() {
-        var app = window.wrappedJSObject.System.currentApp;
+        var app = window.wrappedJSObject.Service.currentApp;
         return app.getTopMostWindow().origin;
       });
     }

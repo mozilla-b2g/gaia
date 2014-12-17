@@ -4,7 +4,9 @@
          MockOptionMenu, Utils, Contacts, MockContact, Navigation,
          MockSettings,
          Dialog,
-         InterInstanceEventDispatcher
+         InterInstanceEventDispatcher,
+         MockStickyHeader,
+         StickyHeader
          */
 
 'use strict';
@@ -202,6 +204,7 @@ suite('thread_list_ui', function() {
         '<h2 id="header-2"></h2>' +
         '<ul id="list-2"><li id="thread-3"></li></ul>';
 
+      ThreadListUI.sticky = new MockStickyHeader();
       this.sinon.stub(ThreadListUI.sticky, 'refresh');
       this.sinon.stub(window.URL, 'revokeObjectURL');
     });
@@ -309,6 +312,8 @@ suite('thread_list_ui', function() {
       this.sinon.stub(ThreadListUI, 'setContact');
       this.sinon.spy(ThreadListUI, 'mark');
       this.sinon.spy(ThreadListUI, 'setEmpty');
+      // This is normally created by renderThreads
+      ThreadListUI.sticky = new MockStickyHeader();
       this.sinon.spy(ThreadListUI.sticky, 'refresh');
     });
 
@@ -1222,7 +1227,8 @@ suite('thread_list_ui', function() {
       this.sinon.spy(ThreadListUI, 'createThread');
       this.sinon.spy(ThreadListUI, 'setContact');
       this.sinon.spy(ThreadListUI, 'renderDrafts');
-      this.sinon.spy(ThreadListUI.sticky, 'refresh');
+      this.sinon.spy(MockStickyHeader.prototype, 'refresh');
+      this.sinon.spy(window, 'StickyHeader');
       firstViewDone = sinon.stub();
 
       Threads.clear();
@@ -1234,11 +1240,11 @@ suite('thread_list_ui', function() {
         options.done();
       });
 
-      ThreadListUI.renderThreads(firstViewDone ,function() {
+      ThreadListUI.renderThreads(firstViewDone, function() {
         done(function checks() {
           sinon.assert.called(firstViewDone);
           sinon.assert.called(ThreadListUI.renderDrafts);
-          sinon.assert.called(ThreadListUI.sticky.refresh);
+          sinon.assert.called(StickyHeader);
           sinon.assert.calledWith(ThreadListUI.finalizeRendering, true);
           assert.isFalse(ThreadListUI.noMessages.classList.contains('hide'));
           assert.isTrue(ThreadListUI.container.classList.contains('hide'));
@@ -1288,6 +1294,8 @@ suite('thread_list_ui', function() {
           sinon.assert.calledWith(ThreadListUI.finalizeRendering, false);
           assert.isTrue(ThreadListUI.noMessages.classList.contains('hide'));
           assert.isFalse(ThreadListUI.container.classList.contains('hide'));
+          sinon.assert.called(StickyHeader);
+          sinon.assert.called(ThreadListUI.sticky.refresh);
 
           var mmsThreads = container.querySelectorAll(
             '[data-last-message-type="mms"]'
@@ -1593,12 +1601,10 @@ suite('thread_list_ui', function() {
     });
 
     test('display correctly a group MMS thread', function(done) {
-      var threadTitleNode = groupThread.node.querySelector('.name');
-
       Object.defineProperty(window, 'innerWidth', {
         configurable: true,
-        get: () => 400 }
-      );
+        get: () => 400
+      });
       ThreadListUI.init();
 
       Contacts.findByAddress.withArgs('555').yields(MockContact.list([{
@@ -1612,6 +1618,10 @@ suite('thread_list_ui', function() {
       }]));
 
       ThreadListUI.setContact(groupThread.node).then(() => {
+        var threadTitleNode = groupThread.node.querySelector(
+          '.threadlist-item-title'
+        );
+
         assert.isFalse(
           groupThread.picture.style.backgroundImage.contains('blob:')
         );
@@ -1622,18 +1632,23 @@ suite('thread_list_ui', function() {
           groupThread.pictureContainer.classList.contains('has-picture')
         );
         assert.equal(groupThread.picture.textContent, '2');
-        assert.equal(threadTitleNode.textContent, 'James Bond, Bond James');
+        assert.equal(
+          threadTitleNode.innerHTML,
+          '<span>' +
+            '<bdi>James Bond</bdi>' +
+            '<span data-l10n-id="thread-participant-separator"></span>' +
+            '<bdi>Bond James</bdi>' +
+          '</span>'
+        );
       }).then(done, done);
     });
 
     test('display correctly a group MMS thread with lots of participants',
     function(done) {
-      var threadTitleNode = groupThread.node.querySelector('.name');
-
       Object.defineProperty(window, 'innerWidth', {
         configurable: true,
-        get: () => 200 }
-      );
+        get: () => 200
+      });
       ThreadListUI.init();
 
       Contacts.findByAddress.withArgs('555').yields(MockContact.list([{
@@ -1642,6 +1657,10 @@ suite('thread_list_ui', function() {
       }]));
 
       ThreadListUI.setContact(groupThread.node).then(() => {
+        var threadTitleNode = groupThread.node.querySelector(
+          '.threadlist-item-title'
+        );
+
         sinon.assert.calledOnce(Contacts.findByAddress);
         sinon.assert.calledWith(Contacts.findByAddress, '555');
         assert.isFalse(
@@ -1654,7 +1673,10 @@ suite('thread_list_ui', function() {
           groupThread.pictureContainer.classList.contains('has-picture')
         );
         assert.equal(groupThread.picture.textContent, '2');
-        assert.equal(threadTitleNode.textContent, 'James Bond');
+        assert.equal(
+          threadTitleNode.innerHTML,
+          '<span><bdi>James Bond</bdi></span>'
+        );
       }).then(done, done);
     });
   });

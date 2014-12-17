@@ -399,6 +399,14 @@ form button::-moz-focus-inner {
 
 .bb-editable [contenteditable="false"].invalid {
   background-color: #fedcdc;
+   /**
+   * We don't use -moz-padding-start here because padding location shouldn't
+   * depend on text direction of [contenteditable] content itself. For LTR mode
+   * "invalid" element with either LTR or RTL content should have always left
+   * padding to accommodate "invalid" icon, for RTL mode it should be on the
+   * right side, so to align it correctly we should override padding depending
+   * on text direction of parent element.
+   */
   padding-left: 3.3rem;
 }
 
@@ -536,3 +544,17 @@ html[dir="rtl"] form[role="search"] button[type="submit"]:after {
   right: 0;
   left: auto;
 }
+
+.bb-editable:-moz-dir(rtl) [contenteditable="false"].invalid {
+   /**
+   * See LTR ".bb-editable [contenteditable="false"].invalid" rule above for the
+   * explanation why we don't use -moz-padding-start/-end here.
+   */
+  padding: 0 3.3rem 0 1.5rem;
+}
+
+.bb-editable:-moz-dir(rtl) [contenteditable="false"].invalid:before {
+  left: unset;
+  right: 0.8rem;
+}
+

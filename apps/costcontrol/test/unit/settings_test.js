@@ -3,6 +3,7 @@
 */
 'use strict';
 
+require('/test/unit/mock_date.js');
 require('/test/unit/mock_moz_l10n.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/test/unit/mock_debug.js');
@@ -14,6 +15,8 @@ require('/test/unit/mock_cost_control.js');
 require('/test/unit/mock_config_manager.js');
 require('/js/utils/formatting.js');
 require('/js/views/BalanceLowLimitView.js');
+require('/js/views/ResetMenuDialog.js');
+require('/js/views/ConfirmDialog.js');
 require('/js/settings/limitdialog.js');
 require('/js/settings/autosettings.js');
 require('/js/settings/settings.js');
@@ -24,7 +27,8 @@ require('/shared/elements/gaia-header/dist/gaia-header.js');
 require('/shared/elements/gaia_subheader/script.js');
 
 var realMozL10n,
-    realAddNetworkUsageAlarm;
+    realAddNetworkUsageAlarm,
+    realDate;
 
 if (!window.navigator.mozL10n) {
   window.navigator.mozL10n = null;
@@ -53,39 +57,39 @@ suite('Settings Test Suite >', function() {
     {
       name: 'planTypeSelector',
       selector: '#plantype-settings',
-      isHiddenOnPostpaidLayout: 'false',
-      isHiddenOnPrepaidLayout: 'false',
-      isHiddenOnDataUsageOnlyLayout: 'true'
+      isHiddenOnPostpaidLayout: false,
+      isHiddenOnPrepaidLayout: false,
+      isHiddenOnDataUsageOnlyLayout: true
     }, {
       name: 'phoneActivitySettings',
       selector: '#phone-activity-settings + .settings',
-      isHiddenOnPostpaidLayout: 'false',
-      isHiddenOnPrepaidLayout: 'true',
-      isHiddenOnDataUsageOnlyLayout: 'true'
+      isHiddenOnPostpaidLayout: false,
+      isHiddenOnPrepaidLayout: true,
+      isHiddenOnDataUsageOnlyLayout: true
     }, {
       name: 'phoneActivityTitle',
       selector: '#phone-activity-settings',
-      isHiddenOnPostpaidLayout: 'false',
-      isHiddenOnPrepaidLayout: 'true',
-      isHiddenOnDataUsageOnlyLayout: 'true'
+      isHiddenOnPostpaidLayout: false,
+      isHiddenOnPrepaidLayout: true,
+      isHiddenOnDataUsageOnlyLayout: true
     }, {
       name: 'balanceTitle',
       selector: '#balance-settings',
-      isHiddenOnPostpaidLayout: 'true',
-      isHiddenOnPrepaidLayout: 'false',
-      isHiddenOnDataUsageOnlyLayout: 'true'
+      isHiddenOnPostpaidLayout: true,
+      isHiddenOnPrepaidLayout: false,
+      isHiddenOnDataUsageOnlyLayout: true
     }, {
       name: 'balanceSettings',
       selector: '#balance-settings + .settings',
-      isHiddenOnPostpaidLayout: 'true',
-      isHiddenOnPrepaidLayout: 'false',
-      isHiddenOnDataUsageOnlyLayout: 'true'
+      isHiddenOnPostpaidLayout: true,
+      isHiddenOnPrepaidLayout: false,
+      isHiddenOnDataUsageOnlyLayout: true
     }, {
       name: 'reportsTitle',
       selector: '#phone-internet-settings',
-      isHiddenOnPostpaidLayout: 'false',
-      isHiddenOnPrepaidLayout: 'true',
-      isHiddenOnDataUsageOnlyLayout: 'false'
+      isHiddenOnPostpaidLayout: false,
+      isHiddenOnPrepaidLayout: true,
+      isHiddenOnDataUsageOnlyLayout: false
     }
   ];
 
@@ -97,9 +101,13 @@ suite('Settings Test Suite >', function() {
 
     realAddNetworkUsageAlarm = window.addNetworkUsageAlarm;
     window.addNetworkUsageAlarm = function() {};
+
+    realDate = window.Date;
   });
 
   setup(function() {
+    var now = new Date(2014, 5, 24); // 2014-06-24
+    window.Date = new window.MockDateFactory(now);
     loadBodyHTML('/settings.html');
 
     // Data usage elements
@@ -108,6 +116,7 @@ suite('Settings Test Suite >', function() {
   });
 
   teardown(function() {
+    window.Date = realDate;
     window.location.hash = '';
   });
 
@@ -123,7 +132,9 @@ suite('Settings Test Suite >', function() {
         dataLimit: true,
         dataLimitValue: 40,
         dataLimitUnit: 'MB',
-        lowLimit: true
+        lowLimit: true,
+        trackingPeriod: 'monthly',
+        resetTime: 1
       },
       applicationMode: applicationMode
     });
@@ -172,9 +183,8 @@ suite('Settings Test Suite >', function() {
   function assertPostpaidLayout(done) {
     domSelectorsForLayout.forEach(function checkVisibility(element) {
       var domElement = document.querySelector(element.selector);
-      assert.equal(domElement.getAttribute('aria-hidden'),
-                   element.isHiddenOnPostpaidLayout,
-                   'The visibility of ' + element.name + 'is incorrect');
+      assert.equal(domElement.hidden, element.isHiddenOnPostpaidLayout,
+                   'The visibility of ' + element.name + ' is incorrect');
     });
     done();
   }
@@ -182,9 +192,8 @@ suite('Settings Test Suite >', function() {
   function assertPrepaidLayout(done) {
     domSelectorsForLayout.forEach(function checkVisibility(element) {
       var domElement = document.querySelector(element.selector);
-      assert.equal(domElement.getAttribute('aria-hidden'),
-                   element.isHiddenOnPrepaidLayout,
-                   'The visibility of ' + element.name + 'is incorrect');
+      assert.equal(domElement.hidden, element.isHiddenOnPrepaidLayout,
+                   'The visibility of ' + element.name + ' is incorrect');
     });
     done();
   }
@@ -192,8 +201,7 @@ suite('Settings Test Suite >', function() {
   function assertDataUsageOnlyLayout(done) {
     domSelectorsForLayout.forEach(function checkVisibility(element) {
       var domElement = document.querySelector(element.selector);
-      assert.equal(domElement.getAttribute('aria-hidden'),
-                   element.isHiddenOnDataUsageOnlyLayout,
+      assert.equal(domElement.hidden, element.isHiddenOnDataUsageOnlyLayout,
                    'The visibility of ' + element.name + 'is incorrect');
     });
     done();
@@ -249,6 +257,42 @@ suite('Settings Test Suite >', function() {
       done();
     });
 
+    Settings.initialize();
+  });
+
+  test('Default values for reset time (monthly)', function(done) {
+    setupPrepaidMode();
+
+    sinon.stub(Settings, 'updateUI', function() {
+      var today = new Date();
+
+      // Initial value for tracking period is monthly and for resetTime 1
+      // Force the initialization of the resetTime field
+      ConfigManager.mTriggerCallback('trackingPeriod');
+      assert.equal(ConfigManager.option('resetTime'), today.getDate());
+
+      Settings.updateUI.restore();
+      done();
+    });
+    Settings.initialize();
+  });
+
+  test('Default values for reset time (weekly)', function(done) {
+    setupPrepaidMode();
+
+    sinon.stub(Settings, 'updateUI', function() {
+      var today = new Date();
+
+      // Initial value for tracking period is monthly and for resetTime 1
+      // Change tracking period to weekly
+      ConfigManager.option('trackingPeriod', 'weekly');
+      ConfigManager.mTriggerCallback('trackingPeriod', 'weekly');
+
+      assert.equal(ConfigManager.option('trackingPeriod'), 'weekly');
+      assert.equal(ConfigManager.option('resetTime'), today.getDay());
+      Settings.updateUI.restore();
+      done();
+    });
     Settings.initialize();
   });
 

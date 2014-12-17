@@ -68,6 +68,7 @@ var MockThreadUI = {
   appendMessage: function() {},
   showChunkOfMessages: function() {},
   setHeaderAction: function() {},
+  setHeaderContent: function() {},
   cleanForm: function() {},
   clear: function() {},
   toggleCheckedAll: function() {},
@@ -97,6 +98,7 @@ var MockThreadUI = {
   promptContact: function() {},
   prompt: function() {},
   saveDraft: function() {},
+  discardDraft: function() {},
   onCreateContact: function() {},
   isShowMessageErrorCalledTimes: 0,
   showMessageError: function() {

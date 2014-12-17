@@ -26,6 +26,7 @@
     <link rel="import" href="elements/fxa-refresh-auth.html">
     <link rel="import" href="elements/fxa-coppa.html">
 
+    <script defer src="../js/service.js"></script>
     <script defer src="../js/ftu_launcher.js"></script>
     <script defer src="../js/browser_frame.js"></script>
     <script defer src="../js/entry_sheet.js"></script>
@@ -89,10 +90,10 @@
       <section>
         <h1 id="fxa-error-title">Error message</h1>
         <p><small id="fxa-error-msg">Error message.</small></p>
-        <menu>
-          <button class="full" data-l10n-id="fxa-ok" id="fxa-error-ok">OK</button>
-        </menu>
       </section>
+      <menu>
+        <button class="full" data-l10n-id="fxa-ok" id="fxa-error-ok">OK</button>
+      </menu>
     </form>
   </body>
 </html>

@@ -23,7 +23,7 @@ suite('webapp-optimize.js', function() {
   var mockoptimizeConfig;
   var createdDOMs = [];
   var modifiedDOMs = [];
-  var hasAttributeFlag = true;
+  var hasAttributeFlag = {};
   var domDataSet = {};
   var removeDomChildren = [];
   var isSubjectToBranding = false;
@@ -87,11 +87,7 @@ suite('webapp-optimize.js', function() {
     mockUtils.getFile = getFile;
 
     mockUtils.gaia = {
-      getInstance: function(config) {
-        return {
-          aggregatePrefix: 'gaia-test-prefix-'
-        };
-      }
+      aggregatePrefix: 'gaia-test-prefix-',
     };
 
     mockUtils.isSubjectToBranding = function(path) {
@@ -183,7 +179,7 @@ suite('webapp-optimize.js', function() {
       };
       this.ownerDocument = mockDoc;
       this.hasAttribute = function(attr) {
-        return hasAttributeFlag;
+        return !!hasAttributeFlag[attr];
       };
       this.outerHTML = query + '-outerHTML';
       this.children = [];
@@ -264,7 +260,7 @@ suite('webapp-optimize.js', function() {
     writeFileContent = null;
     removedFilePath.length = 0;
     createdDOMs.length = 0;
-    hasAttributeFlag = true;
+    hasAttributeFlag = {};
     domDataSet = {};
     removeDomChildren.length = 0;
     modifiedDOMs.length = 0;
@@ -313,9 +309,6 @@ suite('webapp-optimize.js', function() {
         'should write locale content');
       assert.equal(writeFile.leafName, 'en-test.json',
         'should write locale content to this path');
-      assert.deepEqual(removedFilePath,
-        ['build_stage/locales', 'build_stage/shared/locales'],
-        'should have cleaned locale folder in build_stage');
     });
 
     test('execute, main function of webappOptimize', function() {
@@ -441,7 +434,6 @@ suite('webapp-optimize.js', function() {
     });
 
     test('concatL10nResources', function() {
-      hasAttributeFlag = false;
       htmlOptimizer.concatL10nResources();
       assert.equal(createdDOMs[2].query,
         'document/link[rel="localization"], link[rel="manifest"]',
@@ -474,9 +466,35 @@ suite('webapp-optimize.js', function() {
     });
 
     test('writeAggregatedContent', function() {
+      // TODO should uncouple this from previous test
       htmlOptimizer.writeAggregatedContent(writeAggregatedConfig);
       assert.equal(createdDOMs[3].query, 'document/head/script[src]/' +
         'target-document/script/sibling-document/head/script[src]-nextSibling');
+    });
+
+    test('aggregateJsResources does not aggregate async scripts', function() {
+      mockDoc.head = new MockDom(mockDoc.query + '/head');
+      mockDoc.head.children = [
+        new MockDom('script1'),
+        new MockDom('script2')
+      ];
+      hasAttributeFlag.async = true;
+      htmlOptimizer.getFileByRelativePath = function(path) {
+        return {
+          content: 'content-' + path
+        };
+      };
+      htmlOptimizer.aggregateJsResources();
+      assert.equal(createdDOMs[3].outerHTML,
+        'script1-outerHTML',
+        'should not change the script');
+      assert.equal(createdDOMs[4].outerHTML,
+        'script2-outerHTML',
+        'should not change the script');
+      assert.equal(createdDOMs[5].query, 'document/head/script[src]');
+      assert.equal(createdDOMs[5].outerHTML,
+        'document/head/script[src]-outerHTML',
+        'should not change the script');
     });
 
     test('inlineJsResources', function() {

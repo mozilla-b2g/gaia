@@ -34,7 +34,9 @@
     'shared/airplane_mode_helper': 'empty:',
     'modules/wifi_utils': 'empty:',
     'modules/wifi_context': 'empty:',
-    'shared/tz_select': 'empty:'
+    'modules/dialog_panel': 'empty:',
+    'shared/tz_select': 'empty:',
+    'modules/defer': 'empty:'
   },
 
   findNestedDependencies: true,

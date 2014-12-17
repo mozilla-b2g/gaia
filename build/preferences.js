@@ -29,7 +29,7 @@ PreferencesBuilder.prototype.setConfig = function(config) {
     this.extenedPrefFiles.push('dogfood-prefs.js');
   }
 
-  if (config.DEBUG === 1) {
+  if (config.DEBUG === '1') {
     this.extenedPrefFiles.push('debug-prefs.js');
   }
 };
@@ -52,12 +52,10 @@ PreferencesBuilder.prototype.writeDefaultUserJs = function() {
     return;
   }
 
-  // create a clean folder to store data for B2G, this folder will copy to
+  // create a folder to store data for B2G, this folder will copy to
   // b2g output folder.
   let defaultsDir = utils.getFile(this.config.PROFILE_DIR, 'defaults');
-  if (defaultsDir.exists()) {
-    defaultsDir.remove(true);
-  }
+
   defaultsDir.append('pref');
   utils.ensureFolderExists(defaultsDir);
   let userJs = defaultsDir.clone();
@@ -164,16 +162,16 @@ PreferencesBuilder.prototype.preparePref = function() {
   //       here.
   // @see Bug 790056 - Enable WPA Enterprise
   this.userPrefs['b2g.wifi.allow_unsafe_wpa_eap'] = true;
-  if (this.config.LOCAL_DOMAINS) {
+  if (this.config.LOCAL_DOMAINS === '1') {
     this.setLocalDomainPref();
   }
-  if (this.config.DESKTOP) {
+  if (this.config.DESKTOP === '1') {
     this.setDesktopPref();
   }
-  if (this.config.DEBUG) {
+  if (this.config.DEBUG === '1') {
     this.setDebugPref();
   }
-  if (this.config.DEVICE_DEBUG) {
+  if (this.config.DEVICE_DEBUG === '1') {
     this.setDeviceDebugPref();
   }
 };
@@ -293,6 +291,11 @@ PreferencesBuilder.prototype.setDebugPref = function() {
                '' : '@' + this.config.GAIA_DEV_PIXELS_PER_PX + 'x';
   this.userPrefs['extensions.gaia.device_pixel_suffix'] = suffix;
   this.userPrefs['extensions.autoDisableScopes'] = 0;
+
+  // electrolysis breaks the app:// protocol as registered by httpd.js
+  // see Bug 1097912
+  this.userPrefs['browser.tabs.remote.autostart'] = false;
+  this.userPrefs['browser.tabs.remote.autostart.1'] = false;
 };
 
 PreferencesBuilder.prototype.setDeviceDebugPref = function() {

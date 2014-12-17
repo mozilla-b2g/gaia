@@ -190,9 +190,9 @@ ModifyAccount.prototype = {
     window.history.back();
   },
 
-  cancelDelete: function() {
+  cancelDelete: function(event) {
     this.element.classList.remove(this.removeDialogClass);
-    this.cancel();
+    this.cancel(event);
   },
 
   save: function(options, e) {
@@ -360,6 +360,7 @@ ModifyAccount.prototype = {
     list.remove('provider-' + this.model.providerType);
     list.remove('auth-' + this.authenticationType);
     list.remove('error');
+    list.remove(this.removeDialogClass);
 
     this.fields.user.disabled = false;
     this.saveButton.disabled = false;

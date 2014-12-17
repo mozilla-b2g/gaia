@@ -1,7 +1,7 @@
-/* global AppModalDialog, AirplaneMode */
+/* global AppModalDialog, BaseUI */
 'use strict';
 
-(function(window) {
+(function(exports) {
   var _ = navigator.mozL10n.get;
   var _id = 0;
 
@@ -16,18 +16,19 @@
    *                        where this dialog should popup.
    * @extends BaseUI
    */
-  window.AppModalDialog = function AppModalDialog(app) {
+  exports.AppModalDialog = function AppModalDialog(app) {
     this.app = app;
     this.containerElement = app.element;
     this.events = [];
     // One to one mapping.
     this.instanceID = _id++;
     this._injected = false;
+    this._visible = false;
     app.element.addEventListener('mozbrowsershowmodalprompt', this);
     return this;
   };
 
-  AppModalDialog.prototype = Object.create(window.BaseUI.prototype);
+  AppModalDialog.prototype = Object.create(BaseUI.prototype);
 
   AppModalDialog.prototype.CLASS_NAME = 'AppModalDialog';
 
@@ -46,11 +47,16 @@
     evt.preventDefault();
     evt.stopPropagation();
     this.events.push(evt);
+    this.menuHeight = 0;
     if (!this._injected) {
       this.render();
     }
     this.show();
     this._injected = true;
+  };
+
+  AppModalDialog.prototype.isVisible = function amd_isVisible() {
+    return this._visible;
   };
 
   AppModalDialog.prototype._fetchElements = function amd__fetchElements() {
@@ -77,6 +83,8 @@
       this.elements[toCamelCase(name)] =
         this.element.querySelector('.' + this.ELEMENT_PREFIX + name);
     }, this);
+
+    this.elements.menu = this.element.querySelector('menu');
   };
 
   AppModalDialog.prototype._registerEvents = function amd__registerEvents() {
@@ -94,100 +102,78 @@
     }
   };
 
-  AppModalDialog.prototype.getTitle = function amd_getTitle() {
-    if (AirplaneMode && AirplaneMode.enabled) {
-      return _('airplane-is-on');
-    } else if (!navigator.onLine) {
-      return _('network-connection-unavailable');
-    } else {
-      return _('error-title', { name: this.app.name });
-    }
-  };
-
-  AppModalDialog.prototype.getMessage = function amd_getMessage() {
-    if (AirplaneMode && AirplaneMode.enabled) {
-      return _('airplane-is-turned-on', { name: this.app.name });
-    } else if (!navigator.onLine) {
-      return _('network-error', { name: this.app.name });
-    } else {
-      return _('error-message', { name: this.app.name });
-    }
-  };
-
   AppModalDialog.prototype.view = function amd_view() {
-    return '<div class="modal-dialog"' +
-            ' id="' + this.CLASS_NAME + this.instanceID + '">' +
-            '<form class="modal-dialog-alert generic-dialog" ' +
-            'role="dialog" tabindex="-1">' +
-            '<div class="modal-dialog-message-container inner">' +
-              '<h3 class="modal-dialog-alert-title"></h3>' +
-              '<p>' +
-                '<span class="modal-dialog-alert-message"></span>' +
-              '</p>' +
-            '</div>' +
-            '<menu>' +
-              '<button class="modal-dialog-alert-ok confirm affirmative" ' +
-              'data-l10n-id="ok">OK</button>' +
-            '</menu>' +
-          '</form>' +
-          '<form class="modal-dialog-confirm generic-dialog" ' +
-          'role="dialog" tabindex="-1">' +
-            '<div class="modal-dialog-message-container inner">' +
-              '<h3 class="modal-dialog-confirm-title"></h3>' +
-              '<p>' +
-                '<span class="modal-dialog-confirm-message"></span>' +
-              '</p>' +
-            '</div>' +
-            '<menu data-items="2">' +
-              '<button class="modal-dialog-confirm-cancel cancel" ' +
-              'data-l10n-id="cancel">Cancel</button>' +
-              '<button class="modal-dialog-confirm-ok confirm affirmative" ' +
-              'data-l10n-id="ok">OK</button>' +
-            '</menu>' +
-          '</form>' +
-          '<form class="modal-dialog-prompt generic-dialog" ' +
-            'role="dialog" tabindex="-1">' +
-            '<div class="modal-dialog-message-container inner">' +
-              '<h3 class="modal-dialog-prompt-title"></h3>' +
-              '<p>' +
-                '<span class="modal-dialog-prompt-message"></span>' +
-                '<input class="modal-dialog-prompt-input" />' +
-              '</p>' +
-            '</div>' +
-            '<menu data-items="2">' +
-              '<button class="modal-dialog-prompt-cancel cancel"' +
-              ' data-l10n-id="cancel">Cancel</button>' +
-              '<button class="modal-dialog-prompt-ok confirm affirmative" ' +
-              'data-l10n-id="ok">OK</button>' +
-            '</menu>' +
-          '</form>' +
-          '<form class="modal-dialog-select-one generic-dialog" ' +
-            'role="dialog" ' +
-            'tabindex="-1">' +
-            '<div class="modal-dialog-message-container inner">' +
-              '<h3 class="modal-dialog-select-one-title"></h3>' +
-              '<ul class="modal-dialog-select-one-menu"></ul>' +
-            '</div>' +
-            '<menu>' +
-              '<button class="modal-dialog-select-one-cancel cancel" ' +
-              'data-l10n-id="cancel">Cancel</button>' +
-            '</menu>' +
-          '</form>' +
-          '<form class="modal-dialog-custom-prompt generic-dialog" ' +
-            'role="dialog" ' +
-            'tabindex="-1">' +
-            '<div class="modal-dialog-message-container inner">' +
-              '<h3 class="modal-dialog-custom-prompt-title"></h3>' +
-              '<p class="modal-dialog-custom-prompt-message"></p>' +
-              '<label class="pack-checkbox">' +
-                '<input class="modal-dialog-custom-prompt-checkbox" ' +
-                'type="checkbox"/>' +
-                '<span></span>' +
-              '</label>' +
-            '</div>' +
-            '<menu class="modal-dialog-custom-prompt-buttons"></menu>' +
-          '</form>' +
-        '</div>';
+    var id = this.CLASS_NAME + this.instanceID;
+    return `<div class="modal-dialog" id="${id}">
+            <form class="modal-dialog-alert generic-dialog"
+            role="dialog" tabindex="-1">
+            <div class="modal-dialog-message-container inner">
+              <h3 class="modal-dialog-alert-title"></h3>
+              <p>
+                <span class="modal-dialog-alert-message"></span>
+              </p>
+            </div>
+            <menu>
+              <button class="modal-dialog-alert-ok confirm affirmative"
+              data-l10n-id="ok"></button>
+            </menu>
+          </form>
+          <form class="modal-dialog-confirm generic-dialog"
+          role="dialog" tabindex="-1">
+            <div class="modal-dialog-message-container inner">
+              <h3 class="modal-dialog-confirm-title"></h3>
+              <p>
+                <span class="modal-dialog-confirm-message"></span>
+              </p>
+            </div>
+            <menu data-items="2">
+              <button class="modal-dialog-confirm-cancel cancel"
+              data-l10n-id="cancel"></button>
+              <button class="modal-dialog-confirm-ok confirm affirmative"
+              data-l10n-id="ok"></button>
+            </menu>
+          </form>
+          <form class="modal-dialog-prompt generic-dialog"
+            role="dialog" tabindex="-1">
+            <div class="modal-dialog-message-container inner">
+              <h3 class="modal-dialog-prompt-title"></h3>
+              <p>
+                <span class="modal-dialog-prompt-message"></span>
+                <input class="modal-dialog-prompt-input" />
+              </p>
+            </div>
+            <menu data-items="2">
+              <button class="modal-dialog-prompt-cancel cancel"
+               data-l10n-id="cancel"></button>
+              <button class="modal-dialog-prompt-ok confirm affirmative"
+              data-l10n-id="ok"></button>
+            </menu>
+          </form>
+          <form class="modal-dialog-select-one generic-dialog"
+            role="dialog" tabindex="-1">
+            <div class="modal-dialog-message-container inner">
+              <h3 class="modal-dialog-select-one-title"></h3>
+              <ul class="modal-dialog-select-one-menu"></ul>
+            </div>
+            <menu>
+              <button class="modal-dialog-select-one-cancel cancel"
+              data-l10n-id="cancel"></button>
+            </menu>
+          </form>
+          <form class="modal-dialog-custom-prompt generic-dialog"
+            role="dialog" tabindex="-1">
+            <div class="modal-dialog-message-container inner">
+              <h3 class="modal-dialog-custom-prompt-title"></h3>
+              <p class="modal-dialog-custom-prompt-message"></p>
+              <label class="pack-checkbox">
+                <input class="modal-dialog-custom-prompt-checkbox"
+                type="checkbox"/>
+                <span></span>
+              </label>
+            </div>
+            <menu class="modal-dialog-custom-prompt-buttons"></menu>
+          </form>
+        </div>`;
   };
 
   AppModalDialog.prototype.processNextEvent = function amd_processNextEvent() {
@@ -200,6 +186,7 @@
   };
 
   AppModalDialog.prototype.kill = function amd_kill() {
+    this._visible = false;
     this.containerElement.removeChild(this.element);
   };
 
@@ -209,6 +196,7 @@
       return;
     }
 
+    this._visible = true;
     var evt = this.events[0];
 
     var message = evt.detail.message || '';
@@ -236,6 +224,8 @@
         elements.alert.classList.add('visible');
         elements.alertOk.textContent = evt.yesText ? evt.yesText : _('ok');
         elements.alert.focus();
+
+        this.updateMaxHeight();
         break;
 
       case 'prompt':
@@ -316,6 +306,7 @@
   };
 
   AppModalDialog.prototype.hide = function amd_hide() {
+    this._visible = false;
     this.element.blur();
     this.app.browser.element.removeAttribute('aria-hidden');
     this.element.classList.remove('visible');
@@ -327,7 +318,7 @@
     }
 
     var evt = this.events[0];
-    var type = evt.detail.promptType;
+    var type = evt.detail.promptType || evt.detail.type;
     if (type === 'prompt') {
       this.elements.promptInput.blur();
     }
@@ -447,6 +438,20 @@
       this.processNextEvent();
     };
 
+  AppModalDialog.prototype.updateMaxHeight = function() {
+    // Setting maxHeight for being able to scroll long
+    // texts: formHeight - menuHeight - titleHeight - margin
+    // We should fix this in a common way for all the dialogs
+    // in the building blocks layer: Bug 1096902
+    this.menuHeight = this.menuHeight || this.elements.menu.offsetHeight;
+    var messageHeight = this.element.offsetHeight - this.menuHeight;
+    messageHeight -= this.elements.alertTitle.offsetHeight;
+    var margin = window.getComputedStyle(this.elements.alertTitle).marginBottom;
+    var messageContainer = this.elements.alert.querySelector('.inner p');
+    var calc = 'calc(' + messageHeight + 'px - ' + margin + ')';
+    messageContainer.style.maxHeight = calc;
+  };
+
   AppModalDialog.prototype._getTitle =
     function amd__getTitle(title) {
       //
@@ -467,4 +472,4 @@
 
       return title;
     };
-}(this));
+}(window));

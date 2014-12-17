@@ -62,6 +62,40 @@ WebappZip.prototype.isExcludedFromZip = function(file) {
     function fileExist(file) {
       return !file.exists();
     },
+    function isLocales(file) {
+      return self.config.GAIA_CONCAT_LOCALES === '1' &&
+        /locales[^-]/.test(file.path);
+    },
+    function isSpecificProperties(file) {
+      var options = self.config;
+      if(utils.getExtension(file.path) === 'properties' &&
+        file.path.indexOf('locales') !== -1 &&
+        options.GAIA_CONCAT_LOCALES === '0' &&
+        options.LOCALE_BASEDIR && options.LOCALES_FILE) {
+        let localesFile = utils.resolve(options.LOCALES_FILE, options.GAIA_DIR);
+        if (!localesFile.exists()) {
+          throw new Error('file not found: ' + localesFile.path);
+        }
+        let locales = Object.keys(utils.getJSON(localesFile));
+
+        return !locales.some(function(locale) {
+          return file.path.indexOf(locale + '.properties') !== -1;
+        });
+      }
+      return false;
+    },
+    function isBuild(file) {
+      var appDirPath = self.webapp.sourceDirectoryName;
+      return new RegExp(utils.joinPath(appDirPath, 'build')
+        .replace(/\\/g, '\\\\') + '|build.txt')
+        .test(file.path);
+    },
+    function isMakefile(file) {
+      return /Makefile/.test(file.path);
+    },
+    function isReadme(file) {
+      return /README/.test(file.path);
+    },
     function fileHidden(file) {
       return file.isHidden();
     },
@@ -167,20 +201,23 @@ WebappZip.prototype.execute = function(options) {
   this.closeZip();
 };
 
-function execute(config) {
-  var webappsTargetDir = utils.getFile(config.PROFILE_DIR);
+function execute(options) {
+  var targetWebapp = utils.getWebapp(options.APP_DIR,
+    options.GAIA_DOMAIN, options.GAIA_SCHEME,
+    options.GAIA_PORT, options.STAGE_DIR);
+
+  var webappsTargetDir = utils.getFile(options.PROFILE_DIR);
   // Create profile folder if doesn't exists
   utils.ensureFolderExists(webappsTargetDir);
 
   // Create webapps folder if doesn't exists
   webappsTargetDir.append('webapps');
 
-  var gaia = utils.gaia.getInstance(config);
-  gaia.webapps.forEach(function(webapp) {
-    (new WebappZip()).execute({
-      config: config, targetDir: webappsTargetDir, webapp: webapp});
+  (new WebappZip()).execute({
+    config: options,
+    targetDir: webappsTargetDir,
+    webapp: targetWebapp
   });
-
 }
 
 exports.execute = execute;

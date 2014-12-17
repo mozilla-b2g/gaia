@@ -41,6 +41,14 @@ window.fb = fb;
       });
     };
 
+    Utils.getNonCacheableUrl = function(url) {
+      if (url.indexOf('?') === -1) {
+        url += '?';
+      }
+
+      return url + '&burst_cache=' + Date.now();
+    };
+
 
     Utils.getContactData = function(cid) {
       var outReq = new Utils.Request();

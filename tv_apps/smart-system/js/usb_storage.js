@@ -1,5 +1,5 @@
 'use strict';
-/* global SettingsCache, SettingsListener, System */
+/* global SettingsCache, SettingsListener, Service */
 
 (function(exports) {
 
@@ -117,7 +117,7 @@
      * @memberof UsbStorage.prototype
      */
     stop: function() {
-      System.locked = false;
+      Service.locked = false;
       SettingsListener.unobserve(this.umsEnabled,
         this.bindUsbStorageChanged);
     },
@@ -161,7 +161,7 @@
      */
     _configUsbTransfer: function() {
       this._mode = this._modeMapping(this._enabled, this._protocol);
-      if (System.locked && this._protocol === this.automounterUmsEnable) {
+      if (Service.locked && this._protocol === this.automounterUmsEnable) {
         // covers startup
         // Setting mode due to screen locked
         this._setMode(this.automounterDisable);

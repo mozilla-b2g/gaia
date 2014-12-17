@@ -91,9 +91,17 @@
         }, timeout);
       }
 
+      //
+      // Since homescreen is the only app contains transparent background,
+      // we only store png screenshot for homescreen to save more memory.
+      //
+      var type = this.isHomescreen ?
+        'image/png' : 'image/jpeg';
+
       var req = this.iframe.getScreenshot(
         width || this.width || layoutManager.width,
-        height || this.height || layoutManager.height);
+        height || this.height || layoutManager.height,
+        type);
 
       var success = function(result) {
         if (!width) {

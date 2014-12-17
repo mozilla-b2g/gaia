@@ -61,13 +61,13 @@ class TestKeyboardPredictiveKey(GaiaTestCase):
         ## TEST 3 - type something with autocorrect and press space
         keyboard.send('ye ')
         keyboard_page.switch_to_frame()
-        self.assertEqual(keyboard_page.text_input, 'keyboard Tea yes ')
+        self.assertEqual(keyboard_page.text_input, 'keyboard Tea he ')
 
         # TEST 4 - autocorrect, dot and backspace
         keyboard.send('wot.')
         keyboard_page.switch_to_frame()
-        self.assertEqual(keyboard_page.text_input, 'keyboard Tea yes wit.')
+        self.assertEqual(keyboard_page.text_input, 'keyboard Tea he wit.')
 
         keyboard.tap_backspace()
         keyboard_page.switch_to_frame()
-        self.assertEqual(keyboard_page.text_input, 'keyboard Tea yes wot')
+        self.assertEqual(keyboard_page.text_input, 'keyboard Tea he wot')

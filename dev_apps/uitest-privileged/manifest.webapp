@@ -22,6 +22,7 @@
     "device-storage:sdcard":{ "access": "readwrite" },
     "device-storage:videos":{ "access": "readwrite" },
     "geolocation":{},
-    "mobileid": {}
+    "mobileid": {},
+    "secureelement-manage": {}
   }
 }

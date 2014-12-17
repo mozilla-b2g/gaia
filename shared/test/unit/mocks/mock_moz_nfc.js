@@ -1,18 +1,17 @@
 'use strict';
 
 /* exported MockMozNfc */
-/* global MockDOMRequest */
+/* global MockPromise */
+require('/shared/test/unit/mocks/mock_promise.js');
 
 var MockMozNfc = {
   onpeerready: null,
-  getNFCPeer: function(event) {
-    return this.MockNFCPeer;
-  },
   notifySendFileStatus: function() {
   },
   MockNFCPeer: {
+    isLost: false,
     sendNDEF: function(records) {
-      return new MockDOMRequest();
+      return new MockPromise();
     }
   }
 };

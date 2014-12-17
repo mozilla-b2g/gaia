@@ -1,12 +1,12 @@
-/* global BaseModule, MocksHelper, MockSystem, MockLazyLoader, MockPromise */
+/* global BaseModule, MocksHelper, MockService, MockLazyLoader, MockPromise */
 'use strict';
 
-require('/shared/test/unit/mocks/mock_system.js');
+require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_promise.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 var mocksForBaseModule = new MocksHelper([
-  'LazyLoader', 'System'
+  'LazyLoader', 'Service'
 ]).init();
 
 suite('system/BaseModule', function() {
@@ -72,7 +72,7 @@ suite('system/BaseModule', function() {
 
     test('addObserver will be called if SETTINGS is specified', function(done) {
       var spy = this.sinon.stub(fakeAppWindowManager, 'observe');
-      this.sinon.stub(MockSystem, 'request',
+      this.sinon.stub(MockService, 'request',
         function(service, name, consumer) {
           if (service === 'SettingsCore:addObserver') {
             assert.equal(name, 'app-suspending.enabled');
@@ -87,21 +87,22 @@ suite('system/BaseModule', function() {
     });
 
     test('get settings', function(done) {
-      var fakePromise = new MockPromise();
-      this.sinon.stub(MockSystem, 'request', function() {
-        return fakePromise;
-      });
+      this.sinon.stub(MockService, 'request').returns(
+        new Promise(function(resolve) {
+          resolve(new Promise(function(iresolve) {
+            iresolve(true);
+          }));
+        }));
 
       fakeAppWindowManager.readSetting('app-suspending.enabled')
         .then(function(value) {
           assert.equal(value, true);
           done();
         });
-      fakePromise.mFulfillToValue(settings['app-suspending.enabled']);
     });
 
     test('set settings', function(done) {
-      this.sinon.stub(MockSystem, 'request',
+      this.sinon.stub(MockService, 'request',
         function(service, object) {
           for (var key in object) {
             settings[key] = object[key];
@@ -316,14 +317,14 @@ suite('system/BaseModule', function() {
 
     test('Should register service to System when starting', function() {
       fakeAppWindowManager.stop();
-      var stubRegister = this.sinon.stub(MockSystem, 'register');
+      var stubRegister = this.sinon.stub(MockService, 'register');
       fakeAppWindowManager.start();
       assert.isTrue(stubRegister.calledWith('isBusyLoading',
         fakeAppWindowManager));
     });
 
     test('Should unregister service to System when stopping', function() {
-      var stubRegister = this.sinon.stub(MockSystem, 'unregister');
+      var stubRegister = this.sinon.stub(MockService, 'unregister');
       fakeAppWindowManager.stop();
       assert.isTrue(stubRegister.calledWith('isBusyLoading',
         fakeAppWindowManager));
@@ -338,6 +339,57 @@ suite('system/BaseModule', function() {
       var fakeAppWindowManager2 = new FakeAppWindowManager2();
       assert.isUndefined(fakeAppWindowManager2._registerServices);
       assert.isUndefined(fakeAppWindowManager2._unregisterServices);
+    });
+  });
+
+  suite('State registration', function() {
+    var fakeFtuLauncher;
+    setup(function() {
+      var FakeFtuLauncher = function() {};
+      FakeFtuLauncher.STATES = ['isUpgrading'];
+      BaseModule.create(FakeFtuLauncher, {
+        _upgrading: false,
+        name: 'FakeFtuLauncher',
+        isUpgrading: function() {
+          return this._upgrading;
+        }
+      });
+      fakeFtuLauncher = new FakeFtuLauncher();
+      fakeFtuLauncher.start();
+    });
+
+    teardown(function() {
+      fakeFtuLauncher.stop();
+    });
+
+    test('Should register service to System when starting', function() {
+      fakeFtuLauncher.stop();
+      var stubRegister = this.sinon.stub(MockService, 'registerState');
+      fakeFtuLauncher.start();
+      assert.isTrue(stubRegister.calledWith('isUpgrading',
+        fakeFtuLauncher));
+    });
+
+    test('Should unregister service to System when stopping', function() {
+      var stubRegister = this.sinon.stub(MockService, 'unregisterState');
+      fakeFtuLauncher.stop();
+      assert.isTrue(stubRegister.calledWith('isUpgrading',
+        fakeFtuLauncher));
+    });
+
+    test('Should not inject service registration functions', function() {
+      var FakeFtuLauncher2 = function() {};
+      BaseModule.create(FakeFtuLauncher2, {
+        name: 'FakeFtuLauncher2',
+        isUpgrading: function() {}
+      });
+      var fakeFtuLauncher2 = new FakeFtuLauncher2();
+      this.sinon.stub(MockService, 'registerState');
+      this.sinon.stub(MockService, 'unregisterState');
+      fakeFtuLauncher2.start();
+      assert.isFalse(MockService.registerState.called);
+      fakeFtuLauncher2.stop();
+      assert.isFalse(MockService.unregisterState.called);
     });
   });
 

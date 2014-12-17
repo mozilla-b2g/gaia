@@ -44,6 +44,15 @@
    */
   LockScreenWindow.prototype = Object.create(AppWindow.prototype);
 
+  LockScreenWindow.prototype.constructor = LockScreenWindow;
+
+  LockScreenWindow.SUB_COMPONENTS = {
+    'transitionController': window.AppTransitionController,
+    'statusbar': window.AppStatusbar
+  };
+
+  LockScreenWindow.REGISTERED_EVENTS = AppWindow.REGISTERED_EVENTS;
+
   /**
    * We still need this before we put the lockreen inside an iframe.
    *
@@ -241,7 +250,8 @@
       };
       if (OrientationManager.isOnRealDevice()) {
         this.orientationLockID =
-          window.setInterval(tryLockOrientation);
+          window.setInterval(tryLockOrientation, 4);
+        // 4ms is the minimum interval according to W3C#setTimeout standard.
       }
     };
 

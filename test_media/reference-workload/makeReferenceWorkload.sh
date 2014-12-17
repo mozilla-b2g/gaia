@@ -82,9 +82,16 @@ adb shell stop b2g
 APPS=${APPS:-${APP}}
 
 IDB_BASE=
-for dir in /data/local/storage/persistent /data/local/indexedDB; do
+for dir in /data/local/storage/permanent /data/local/storage/persistent /data/local/indexedDB; do
   if [ -n "$(adb shell "test -d $dir/chrome && echo found")" ]; then
     IDB_BASE=$dir
+
+    if [ "$IDB_BASE" == "/data/local/storage/permanent" ]; then
+      IDB_DEFAULT_BASE=/data/local/storage/default
+    else
+      IDB_DEFAULT_BASE="$IDB_BASE"
+    fi
+
     break
   fi
 done
@@ -125,7 +132,7 @@ for app in $APPS; do
         echo "Unable to determine communications application ID - skipping dialer history..."
         LINE=" Dialer History: skipped"
       else
-        adb push  $SCRIPT_DIR/dialerDb-$DIALER_COUNT.sqlite $IDB_BASE/$DIALER_DIR$IDB_PATH/2584670174dsitanleecreR.sqlite || exit 1
+        adb push  $SCRIPT_DIR/dialerDb-$DIALER_COUNT.sqlite $IDB_DEFAULT_BASE/$DIALER_DIR$IDB_PATH/2584670174dsitanleecreR.sqlite || exit 1
         LINE=" Dialer History: $(printf "%4d" $DIALER_COUNT)"
       fi
       ;;
@@ -187,7 +194,7 @@ for app in $APPS; do
           echo "Unable to determine calendar application ID - skipping calendar..."
           LINE=" Calendar: skipped"
         else
-          adb push  $SCRIPT_DIR/calendarDb-$CAL_COUNT.sqlite $IDB_BASE/$CAL_DIR$IDB_PATH/125582036br2agd-nceal.sqlite || exit 1
+          adb push  $SCRIPT_DIR/calendarDb-$CAL_COUNT.sqlite $IDB_DEFAULT_BASE/$CAL_DIR$IDB_PATH/125582036br2agd-nceal.sqlite || exit 1
           LINE=" Calendar:   $(printf "%4d" $CAL_COUNT)"
         fi
       fi

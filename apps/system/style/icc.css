@@ -39,10 +39,6 @@
 #icc-confirm menu button:first-child {
   margin: 0;
 }
-#icc-confirm menu button {
-  width: calc((100% - 2rem) / 2);
-  margin-left: 1rem;
-}
 
 #icc-input menu button,
 #icc-input .yesnodisabled  {

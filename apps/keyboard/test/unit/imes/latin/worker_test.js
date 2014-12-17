@@ -1,13 +1,28 @@
-/*global suite suiteSetup setup test sinon assert requireApp */
-requireApp('keyboard/test/unit/setup_engine.js');
-requireApp('keyboard/js/imes/latin/latin.js');
+'use strict';
+
+/*global InputMethodDatabaseLoader */
+
+require('/test/unit/setup_engine.js');
+require('/js/imes/latin/latin.js');
+
+require('/js/keyboard/input_method_database_loader.js');
 
 suite('Latin en_us worker', function() {
   var worker;
   suiteSetup(function(next) {
     worker = new Worker('../../../../js/imes/latin/worker.js');
 
-    worker.postMessage({ cmd: 'setLanguage', args: ['en_us'] });
+    var loader = new InputMethodDatabaseLoader();
+    loader.start();
+    loader.SOURCE_DIR = '/js/imes/';
+    loader.load('latin', 'dictionaries/en_us.dict').then(function(dictData) {
+      worker.postMessage({
+        cmd: 'setLanguage',
+        args: ['en_us', dictData]
+      }, [dictData]);
+    })['catch'](function(e) { // workaround gjlsint error
+      console.error(e.toString());
+    });
 
     var keymap = InputMethods.latin.generateNearbyKeyMap({
         'keyboardWidth': 320,
@@ -354,11 +369,11 @@ suite('Latin en_us worker', function() {
       });
 
       test('balds', function(next) {
-        prediction('balds', ['balds'], next);
+        prediction('balds', ['balds', 'Baldwin', 'Baldwins'], next);
       });
 
       test('Balds', function(next) {
-        prediction('Balds', ['Balds'], next);
+        prediction('Balds', ['Balds', 'Baldwin', 'Baldwins'], next);
       });
 
       test('chaot', function(next) {
@@ -370,11 +385,11 @@ suite('Latin en_us worker', function() {
       });
 
       test('as', function(next) {
-        prediction('as', ['as', 'ask', 'ash'], next);
+        prediction('as', ['as', 'ad', 'AD'], next);
       });
 
       test('As', function(next) {
-        prediction('As', ['As', 'Ask', 'Ash'], next);
+        prediction('As', ['As', 'Ad', 'AD'], next);
       });
 
       test('keyboa', function(next) {
@@ -384,7 +399,7 @@ suite('Latin en_us worker', function() {
 
     suite('Low frequency dictionary words with better suggestion', function() {
       test('wont', function(next) {
-        prediction('wont', ['won\'t', 'wont', 'winter'], next);
+        prediction('wont', ['won\'t', 'wont', 'Wong'], next);
       });
 
       test('cant', function(next) {

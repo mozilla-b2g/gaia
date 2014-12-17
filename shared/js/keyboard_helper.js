@@ -20,9 +20,7 @@ var BASE_TYPES = new Set([
  */
 var SETTINGS_KEYS = {
   ENABLED: 'keyboard.enabled-layouts',
-  DEFAULT: 'keyboard.default-layouts',
-  CURRENT_ACTIVE: 'keyboard.current-active-layouts',
-  THIRD_PARTY_APP_ENABLED: 'keyboard.3rd-party-app.enabled'
+  DEFAULT: 'keyboard.default-layouts'
 };
 
 var DEPRECATE_KEYBOARD_SETTINGS = {
@@ -61,9 +59,7 @@ var defaultKeyboardManifestURL =
 
 // Stores a local copy of whatever is in the settings database
 var currentSettings = {
-  defaultLayouts: {},
-  // type -> active layout mapping (e.g. { text: { id, manifestURL } })
-  currentActiveLayouts: {}
+  defaultLayouts: {}
 };
 
 // until we read otherwise, asssume the default keyboards are en and number
@@ -74,11 +70,6 @@ currentSettings.defaultLayouts[defaultKeyboardManifestURL] = {
 
 // and also assume that the defaults are the enabled
 currentSettings.enabledLayouts = map2dClone(currentSettings.defaultLayouts);
-
-// Switch to allow/disallow 3rd-party keyboard apps to be enabled.
-var enable3rdPartyKeyboardApps = true;
-var regExpGaiaKeyboardAppsManifestURL =
-  /^(app|http):\/\/[\w\-]+\.gaiamobile.org(:\d+)?\/manifest\.webapp$/;
 
 /**
  * helper function for reading a value in one of the currentSettings
@@ -128,9 +119,6 @@ function map2dClone(obj) {
 
 // callbacks when something changes
 var watchQueries = [];
-
-// holds the last result from getApps until something changes
-var currentApps;
 
 // holds the result of keyboard_layouts.json
 var defaultLayoutConfig;
@@ -192,22 +180,6 @@ function kh_getSettings() {
   var lock = window.navigator.mozSettings.createLock();
   lock.get(SETTINGS_KEYS.DEFAULT).onsuccess = kh_parseDefault;
   lock.get(SETTINGS_KEYS.ENABLED).onsuccess = kh_parseEnabled;
-  lock.get(SETTINGS_KEYS.CURRENT_ACTIVE).onsuccess = kh_parseCurrentActive;
-  lock.get(SETTINGS_KEYS.THIRD_PARTY_APP_ENABLED).onsuccess =
-    kh_parse3rdPartyAppEnabled;
-}
-
-/**
- * Parse the result from the settings query for enabling 3rd-party keyboards
- */
-function kh_parse3rdPartyAppEnabled() {
-  var value = this.result[SETTINGS_KEYS.THIRD_PARTY_APP_ENABLED];
-  if (typeof value === 'boolean') {
-    enable3rdPartyKeyboardApps = value;
-  } else {
-    enable3rdPartyKeyboardApps = true;
-  }
-  kh_loadedSetting(SETTINGS_KEYS.THIRD_PARTY_APP_ENABLED);
 }
 
 /**
@@ -221,16 +193,6 @@ function kh_parseDefault() {
   kh_loadedSetting(SETTINGS_KEYS.DEFAULT);
 }
 
-/**
- * Parse the result from the settings query for current active layouts
- */
-function kh_parseCurrentActive() {
-  var value = this.result[SETTINGS_KEYS.CURRENT_ACTIVE];
-  if (value) {
-    currentSettings.currentActiveLayouts = value;
-  }
-  kh_loadedSetting(SETTINGS_KEYS.CURRENT_ACTIVE);
-}
 
 /**
  * Parse the result from the settings query for enabled layouts
@@ -455,6 +417,7 @@ Object.defineProperties(KeyboardLayout.prototype, {
 /**
  * Exposed as KeyboardHelper.settings this gives us a fairly safe way to read
  * and write to the settings data structures directly.
+ * XXX: is this really used anywhere?
  */
 var kh_SettingsHelper = {};
 Object.defineProperties(kh_SettingsHelper, {
@@ -475,15 +438,6 @@ Object.defineProperties(kh_SettingsHelper, {
       currentSettings.enabledLayouts = map2dClone(value);
     },
     enumerable: true
-  },
-  'active': {
-    get: function() {
-      return map2dClone(currentSettings.currentActiveLayouts);
-    },
-    set: function(value) {
-      currentSettings.currentActiveLayouts = map2dClone(value);
-    },
-    enumerable: true
   }
 });
 
@@ -499,12 +453,19 @@ var KeyboardHelper = exports.KeyboardHelper = {
 
   fallbackLayouts: {},
 
+  // InputAppList manages the current input apps for us.
+  inputAppList: null,
+
   /**
    * Listen for changes in settings or apps and read the deafault settings
    */
   init: function kh_init() {
     watchQueries = [];
-    currentApps = undefined;
+
+    this.inputAppList = new InputAppList();
+    this.inputAppList.onupdate =
+      kh_updateWatchers.bind(undefined, { apps: true });
+    this.inputAppList.start();
 
     // load the current settings, and watch for changes to settings
     var settings = window.navigator.mozSettings;
@@ -526,9 +487,7 @@ var KeyboardHelper = exports.KeyboardHelper = {
                           kh_migrateDeprecatedSettings);
     }
 
-    window.addEventListener('applicationinstall', this);
     window.addEventListener('applicationinstallsuccess', this);
-    window.addEventListener('applicationuninstall', this);
   },
 
   /**
@@ -536,7 +495,6 @@ var KeyboardHelper = exports.KeyboardHelper = {
    * any listening watchers.
    */
   handleEvent: function(event) {
-    currentApps = undefined;
     kh_updateWatchers({ apps: true });
   },
 
@@ -625,78 +583,45 @@ var KeyboardHelper = exports.KeyboardHelper = {
     var toSet = {};
     toSet[SETTINGS_KEYS.ENABLED] = currentSettings.enabledLayouts;
     toSet[SETTINGS_KEYS.DEFAULT] = currentSettings.defaultLayouts;
-    toSet[SETTINGS_KEYS.CURRENT_ACTIVE] = currentSettings.currentActiveLayouts;
     window.navigator.mozSettings.createLock().set(toSet);
   },
 
   /**
-   * Get a list of current keyboard applications.  Will call callback
-   * immediately if the data is already cached locally.  Will not call callback
-   * if for some reason no apps are found.
+   * Get a list of current keyboard applications.
    */
   getApps: function kh_getApps(callback) {
-    if (!navigator.mozApps || !navigator.mozApps.mgmt) {
+    // every time we get a list of apps, clean up the settings
+    var cleanupSettings = function(inputApps) {
+      Object.keys(currentSettings.enabledLayouts)
+        .concat(Object.keys(currentSettings.defaultLayouts))
+        .forEach(function(manifestURL) {
+          // if the manifestURL doesn't exist in the list of apps, delete it
+          // from the settings maps
+          if (!inputApps.some(function(app) {
+            return app.manifestURL === manifestURL;
+          })) {
+            delete currentSettings.enabledLayouts[manifestURL];
+            delete currentSettings.defaultLayouts[manifestURL];
+          }
+        });
+    };
+
+    // XXX We have to preserve the original getApps() behavior here,
+    // i.e. call the sync callback when we already have the data.
+    if (this.inputAppList.ready) {
+      var inputApps = this.inputAppList.getListSync();
+      cleanupSettings(inputApps);
+      callback(inputApps);
+
       return;
     }
 
-    if (currentApps) {
-      return callback(currentApps);
-    }
-
-    navigator.mozApps.mgmt.getAll().onsuccess = function onsuccess(event) {
-      var keyboardApps = event.target.result.filter(function filterApps(app) {
-        // keyboard apps will set role as 'input'
-        // https://wiki.mozilla.org/WebAPI/KeboardIME#Proposed_Manifest_of_a_3rd-Party_IME
-        if (!app.manifest || 'input' !== app.manifest.role) {
-          return;
-        }
-
-        // Check app type
-        if (app.manifest.type !== 'certified' &&
-            app.manifest.type !== 'privileged') {
-          return;
-        }
-
-        // Check permission
-        if (app.manifest.permissions &&
-            !('input' in app.manifest.permissions)) {
-          return;
-        }
-
-        if (!enable3rdPartyKeyboardApps &&
-          !regExpGaiaKeyboardAppsManifestURL.test(app.manifestURL)) {
-          console.error('A 3rd-party keyboard app is installed but ' +
-            'the feature is not enabled in this build. ' +
-            'Manifest URL: ' + app.manifestURL);
-          return;
-        }
-
-        // all keyboard apps should define its layout(s) in "inputs" section
-        if (!app.manifest.inputs) {
-          return;
-        }
-        return true;
-      });
-
-
-      if (keyboardApps.length) {
-        // every time we get a list of apps, clean up the settings
-        Object.keys(currentSettings.enabledLayouts)
-          .concat(Object.keys(currentSettings.defaultLayouts))
-          .forEach(function(manifestURL) {
-            // if the manifestURL doesn't exist in the list of apps, delete it
-            // from the settings maps
-            if (!keyboardApps.some(function(app) {
-              return app.manifestURL === manifestURL;
-            })) {
-              delete currentSettings.enabledLayouts[manifestURL];
-              delete currentSettings.defaultLayouts[manifestURL];
-            }
-          });
-        currentApps = keyboardApps;
-        callback(keyboardApps);
-      }
-    };
+    this.inputAppList.getList().then(function(inputApps) {
+      cleanupSettings(inputApps);
+      callback(inputApps);
+    })['catch'](function(e) { // workaround gjslint error
+      console.error(e);
+    });
   },
 
   /**
@@ -878,26 +803,6 @@ var KeyboardHelper = exports.KeyboardHelper = {
 
       this.saveToSettings(); // save changes to settings
     }.bind(this));
-  },
-
-  getCurrentActiveLayout: function kh_getActive(type) {
-    return currentSettings.currentActiveLayouts[type];
-  },
-
-  saveCurrentActiveLayout: function kh_saveActive(type, id, manifestURL) {
-    var curr = currentSettings.currentActiveLayouts[type];
-    if (curr && curr.id === id && curr.manifestURL === manifestURL) {
-      return;
-    }
-
-    currentSettings.currentActiveLayouts[type] = {
-      id: id,
-      manifestURL: manifestURL
-    };
-
-    var toSet = {};
-    toSet[SETTINGS_KEYS.CURRENT_ACTIVE] = currentSettings.currentActiveLayouts;
-    window.navigator.mozSettings.createLock().set(toSet);
   }
 };
 

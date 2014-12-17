@@ -1,45 +1,57 @@
 'use strict';
-/* global SpatialNavigator, KeyEvent, SelectionBorder, XScrollable */
-/* global CardManager, URL, Home */
+/* global SpatialNavigator, KeyEvent, XScrollable */
+/* global CardManager, URL, Application, Clock */
 
 (function(exports) {
+
+  const FULLSIZED_ICON = 336;
+  const DEFAULT_ICON = 'url("/style/images/appic_developer.png")';
+  const DEFAULT_BGCOLOR = 'rgba(0, 0, 0, 0.5)';
+  const DEFAULT_BGCOLOR_ARRAY = [0, 0, 0, 0.5];
 
   function Home() {}
 
   Home.prototype = {
-    navigableIds: ['search-input'],
+    navigableIds: ['search-button', 'search-input', 'settings-group', 'filter-tab-group'],
     navigableClasses: ['filter-tab', 'command-button'],
     navigableScrollable: [],
     cardScrollable: undefined,
     folderScrollable: undefined,
+    _focus: undefined,
+    _focusScrollable: undefined,
+
+    cardFilter: undefined,
 
     cardListElem: document.getElementById('card-list'),
     cardManager: undefined,
+    settingGroup: document.getElementById('settings-group'),
+    editButton: document.getElementById('edit-button'),
+    settingsButton: document.getElementById('settings-button'),
 
     init: function() {
       var that = this;
+
+      this.initClock();
+
       this.cardManager = new CardManager();
       this.cardManager.init();
-
       this.cardManager.getCardList().then(function(cardList) {
         that._createCardList(cardList);
         that.cardScrollable = new XScrollable({
                 frameElem: 'card-list-frame',
                 listElem: 'card-list',
-                items: 'card-thumbnail'}),
-        that.folderScrollable = new XScrollable({
-                frameElem: 'folder-list-frame',
-                listElem: 'folder-list',
-                items: 'folder-card-thumbnail'}),
-        that.navigableScrollable = [that.cardScrollable, that.folderScrollable];
+                itemClassName: 'card'}),
+        that.navigableScrollable = [that.cardScrollable];
         var collection = that.getNavigateElements();
-        that.spatialNavigator = new SpatialNavigator(collection);
-        that.selectionBorder = new SelectionBorder({
-            multiple: false,
-            container: document.getElementById('main-section'),
-            forground: true });
 
-        window.addEventListener('keydown', that.handleKeyEvent.bind(that));
+        that.spatialNavigator = new SpatialNavigator(collection);
+        that.keyNavigatorAdapter = new KeyNavigationAdapter();
+        that.keyNavigatorAdapter.init();
+        that.keyNavigatorAdapter.on('move', that.onMove.bind(that));
+        that.keyNavigatorAdapter.on('enter', that.onEnter.bind(that));
+
+        that.cardManager.on('card-inserted', that.onCardInserted.bind(that));
+        that.cardManager.on('card-removed', that.onCardRemoved.bind(that));
 
         that.spatialNavigator.on('focus', that.handleFocus.bind(that));
         var handleScrollableItemFocusBound =
@@ -48,101 +60,174 @@
           scrollable.on('focus', handleScrollableItemFocusBound);
         });
         that.spatialNavigator.focus();
+
+        that.cardFilter = new CardFilter();
+        that.cardFilter.start(document.getElementById('filter-tab-group'));
+        // all's icon name is filter
+        that.cardFilter.filter = CardFilter.FILTERS.ALL;
+        that.cardFilter.on('filterchanged', that.onFilterChanged.bind(that));
       });
     },
 
-    _createCardElement: function(card) {
-      // we will create card element like this:
-      // <div class="card">
-      //   <div class="card-thumbnail"></div>
-      //   <div class="card-description">This is a card</div>
-      // </div>
-      // and return DOM element
-      var cardContainer = document.createElement('div');
-      var cardThumbnailElem = document.createElement('div');
-      var cardDescriptionElem = document.createElement('div');
-      cardContainer.classList.add('card');
-      cardThumbnailElem.classList.add('card-thumbnail');
-      cardDescriptionElem.classList.add('card-description');
+    initClock: function() {
+      var that = this;
+      navigator.mozL10n.ready(function() {
+        that.clock = new Clock();
+        that.clock.start(that.updateClock.bind(that));
+        // Listen to 'moztimechange'
+        window.addEventListener('moztimechange',
+                                that.restartClock.bind(that));
+        // Listen to 'timeformatchange'
+        window.addEventListener('timeformatchange',
+                                that.restartClock.bind(that));
 
-      // XXX: will support Folder and other type of Card in the future
-      // for now, we only create card element for Application and Deck
-      if (card instanceof Application || card instanceof Deck) {
-        var manifestURL = card.nativeApp && card.nativeApp.manifestURL;
-        if (!card.cachedIconBlob && !card.cachedIconURL) {
-          this.cardManager.getIconBlob({
-            manifestURL: manifestURL,
-            entryPoint: card.entryPoint,
-            // XXX: preferredSize should be determined by
-            // real offsetWidth of cardThumbnailElem instead of hard-coded value
-            preferredSize: 200
-          }).then(function(blob) {
-            cardThumbnailElem.style.backgroundImage =
-              'url("' + URL.createObjectURL(blob) + '")';
-            card.cachedIconBlob = blob;
-          });
-          cardContainer.dataset.manifestURL = manifestURL;
-        } else if (card.cachedIconBlob) {
-          cardThumbnailElem.style.backgroundImage =
-            'url("' + URL.createObjectURL(card.cachedIconBlob) + '")';
-        } else if (card.cachedIconURL) {
-          cardThumbnailElem.style.backgroundImage =
-            'url("' + card.cachedIconURL + '")';
+      });
+    },
+
+    onCardInserted: function(card, idx) {
+      this.cardScrollable.insertNodeBefore(this._createCardNode(card), idx + 1);
+    },
+
+    onCardRemoved: function(idx) {
+      var elm = this.cardScrollable.getNode(idx);
+      if (elm.dataset.revokableURL) {
+        URL.revokeObjectURL(elm.dataset.revokableURL);
+      }
+      this.cardScrollable.removeNode(idx);
+    },
+
+    _setCardIcon: function (cardButton, card, blob, bgColor) {
+       try {
+        var bgUrl = URL.createObjectURL(blob);
+        if (bgColor) {
+          cardButton.style.backgroundColor = bgColor;
+          cardButton.classList.add('fitted');
+          card.backgroundType = 'fitted';
+        } else {
+          cardButton.classList.add('fullsized');
+          card.backgroundType = 'fullsized';
+        }
+        cardButton.dataset.revokableURL = bgUrl
+        cardButton.style.backgroundImage = 'url("' + bgUrl + '")';
+      } catch (e) {
+        // If the blob is broken, we may get an exception while creating object
+        // URL.
+        cardButton.style.backgroundImage = DEFAULT_ICON;
+        cardButton.style.backgroundColor = DEFAULT_BGCOLOR;
+      }
+    },
+
+    _fillCardIcon: function(cardButton, card) {
+      var manifestURL = card.nativeApp && card.nativeApp.manifestURL;
+      var that = this;
+      // We have thumbnail which is created by pin
+      if (card.thumbnail) {
+        this._setCardIcon(cardButton, card, card.thumbnail,
+                          card.backgroundColor);
+        // TODO add backgroundColor??? How to do it???
+      } else if (!card.cachedIconBlob && !card.cachedIconURL) {
+        // We don't have cachedIconBlob, just get icon from app
+        this.cardManager.getIconBlob({
+          manifestURL: manifestURL,
+          entryPoint: card.entryPoint,
+          // XXX: preferredSize should be determined by
+          // real offsetWidth of cardThumbnailElem instead of hard-coded value
+          preferredSize: FULLSIZED_ICON
+        }).then(function(iconData) {
+          var blob = iconData[0];
+          var size = iconData[1];
+          if (size >= FULLSIZED_ICON) {
+            that._setCardIcon(cardButton, blob, null);
+          } else {
+            that._getIconColor(blob, function(color, err) {
+              if (err) {
+                that._setCardIcon(cardButton, card, blob, DEFAULT_BGCOLOR);
+              } else {
+                that._setCardIcon(cardButton, card, blob, 'rgba(' + color[0] +
+                  ', ' + color[1] + ', ' + color[2] + ', ' + color[3] + ')');
+              }
+            });
+          }
+          card.cachedIconBlob = blob;
+        });
+      } else if (card.cachedIconBlob) {
+        // We already have cacedIconBlob which is created by previous step.
+        this._setCardIcon(cardButton, card, card.cachedIconBlob,
+                          card.backgroundColor);
+      } else if (card.cachedIconURL) {
+        // the pre-set icon.
+        cardButton.classList.add('fullsized');
+        cardButton.style.backgroundImage =
+          'url("' + card.cachedIconURL + '")';
+      }
+    },
+
+    _getIconColor: function(blob, callback) {
+      var dy = 0;
+      function checkColor(color, err) {
+        if (err) {
+          callback(null, err);
+        } else if (color[3] < 255 && dy < 0.5) {
+          dy += 0.25;
+          SharedUtils.readColorCode(blob, 0.5, dy, checkColor);
+        } else {
+          callback(color[3] < 255 ? DEFAULT_BGCOLOR_ARRAY : color, err);
         }
       }
 
-      cardDescriptionElem.textContent = card.name;
-      cardContainer.appendChild(cardThumbnailElem);
-      cardContainer.appendChild(cardDescriptionElem);
-      return cardContainer;
+      SharedUtils.readColorCode(blob, 0.5, 0, checkColor);
+    },
+
+    onFilterChanged: function(name) {
+      console.log('filter changed to: ' + name);
+    },
+
+    _createCardNode: function(card) {
+
+      var cardButton = document.createElement('smart-button');
+      cardButton.setAttribute('type', 'app-button');
+      cardButton.setAttribute('label', card.name);
+      cardButton.dataset.cardId = card.cardId;
+      cardButton.classList.add('card');
+
+      // XXX: will support Folder and other type of Card in the future
+      // for now, we only create card element for Application and Deck
+      if (card instanceof Application) {
+        cardButton.setAttribute('app-type', 'app');
+        this._fillCardIcon(cardButton, card);
+      } else if (card instanceof Deck) {
+        cardButton.setAttribute('app-type', 'deck');
+        this._fillCardIcon(cardButton, card);
+      }
+
+      return cardButton;
     },
 
     _createCardList: function(cardList) {
-      var that = this;
       cardList.forEach(function(card) {
-        that.cardListElem.appendChild(that._createCardElement(card));
-      });
+        this.cardListElem.appendChild(this._createCardNode(card));
+      }.bind(this));
     },
 
-    handleKeyEvent: function(evt) {
-      // XXX : It's better to use KeyEvent.Key and use "ArrowUp", "ArrowDown",
-      // "ArrowLeft", "ArrowRight" for switching after Gecko synced with W3C
-      // KeyboardEvent.Key standard. Here we still use KeyCode and customized
-      // string of "up", "down", "left", "right" for the moment.
-      var key = this.convertKeyToString(evt.keyCode);
-      switch (key) {
-        case 'up':
-        case 'down':
-        case 'left':
-        case 'right':
-          var focus = this.spatialNavigator.getFocusedElement();
-          if (focus.CLASS_NAME == 'XScrollable') {
-            if (focus.spatialNavigator.move(key)) {
-              return;
-            }
-          }
-          this.spatialNavigator.move(key);
+    onMove: function(key) {
+      var focus = this.spatialNavigator.getFocusedElement();
+      if (focus.CLASS_NAME == 'XScrollable') {
+        if (focus.spatialNavigator.move(key)) {
+          return;
+        }
       }
+      this.spatialNavigator.move(key);
     },
 
-    convertKeyToString: function(keyCode) {
-      switch (keyCode) {
-        case KeyEvent.DOM_VK_UP:
-          return 'up';
-        case KeyEvent.DOM_VK_RIGHT:
-          return 'right';
-        case KeyEvent.DOM_VK_DOWN:
-          return 'down';
-        case KeyEvent.DOM_VK_LEFT:
-          return 'left';
-        case KeyEvent.DOM_VK_RETURN:
-          return 'enter';
-        case KeyEvent.DOM_VK_ESCAPE:
-          return 'esc';
-        case KeyEvent.DOM_VK_BACK_SPACE:
-          return 'esc';
-        default:// we don't consume other keys.
-          return null;
+    onEnter: function() {
+      if (this.focusElem === this.settingsButton) {
+        this.openSettings();
+      } else {
+        var cardId = this.focusElem.dataset.cardId;
+        var card = this.cardManager.findCardFromCardList({cardId: cardId});
+        if (card) {
+          card.launch();
+        }
       }
     },
 
@@ -167,16 +252,125 @@
 
     handleFocus: function(elem) {
       if (elem.CLASS_NAME == 'XScrollable') {
+        this._focusScrollable = elem;
         elem.spatialNavigator.focus(elem.spatialNavigator.getFocusedElement());
+        this.checkFocusedGroup();
       } else if (elem.nodeName) {
-        this.selectionBorder.select(elem);
+        if (this._focus) {
+          this._focus.blur();
+        }
+
+        switch(elem.nodeName.toLowerCase()) {
+          case 'menu-group':
+            this.handleFocusMenuGroup(elem);
+            break;
+          default:
+            elem.focus();
+            this._focus = elem;
+            this._focusScrollable = undefined;
+            this.checkFocusedGroup(elem);
+            break;
+        }
       } else {
-        this.selectionBorder.selectRect(elem);
+        this._focusScrollable = undefined;
       }
     },
 
+    checkFocusedGroup: function(elem) {
+      if (!this._focusedGroup) {
+        return;
+      }
+      // close the focused group when we move focus out of this group.
+      if (!elem || !this._focusedGroup.contains(elem)) {
+        this._focusedGroup.close();
+        this._focusedGroup = null;
+      }
+    },
+
+    handleFocusMenuGroup: function(menuGroup) {
+      var self = this;
+      menuGroup.once('opened', function() {
+        self.spatialNavigator.remove(menuGroup);
+        var childElement = menuGroup.firstElementChild;
+        var firstFocusable = null;
+        while(childElement) {
+          switch(childElement.nodeName.toLowerCase()) {
+            case 'style':
+            case 'script':
+              break;
+            default:
+              firstFocusable = firstFocusable || childElement;
+              self.spatialNavigator.add(childElement);
+          }
+          childElement = childElement.nextElementSibling;
+        }
+        if (firstFocusable) {
+          self.spatialNavigator.focus(firstFocusable);
+        }
+      });
+      menuGroup.once('will-close', function() {
+        self.spatialNavigator.add(menuGroup);
+        var childElement = menuGroup.firstElementChild;
+        while(childElement) {
+          switch(childElement.nodeName.toLowerCase()) {
+            case 'style':
+            case 'script':
+              break;
+            default:
+              self.spatialNavigator.remove(childElement);
+          }
+          childElement = childElement.nextElementSibling;
+        }
+      });
+      this.checkFocusedGroup(menuGroup);
+      this._focusedGroup = menuGroup;
+      menuGroup.open();
+    },
+
     handleScrollableItemFocus: function(scrollable, elem) {
-      this.selectionBorder.select(elem, scrollable.getItemRect(elem));
+      elem.focus();
+      this._focus = elem;
+    },
+
+    openSettings: function() {
+      new MozActivity({
+        name: 'configure',
+        data: {}
+      });
+    },
+
+    updateClock: function() {
+      var now = new Date();
+      var _ = navigator.mozL10n.get;
+      var use12Hour = window.navigator.mozHour12;
+
+      var f = new navigator.mozL10n.DateTimeFormat();
+
+      var timeFormat = use12Hour ? _('shortTimeFormat12') :
+                                   _('shortTimeFormat24');
+      // remove AM/PM and we use our owned style to show it.
+      var timeFormat = timeFormat.replace('%p', '').trim();
+      var formatted = f.localeFormat(now, timeFormat);
+
+      var timeElem = document.getElementById('time');
+      timeElem.innerHTML = formatted;
+      timeElem.dataset.ampm = use12Hour ? f.localeFormat(now, '%p') : '';
+    },
+
+    restartClock: function() {
+      navigator.mozL10n.ready((function() {
+        // restart clcok
+        this.clock.stop();
+        this.clock.start(this.updateClock.bind(this));
+      }).bind(this));
+    },
+
+    get focusElem() {
+      return this._focus;
+    },
+
+    get focusScrollable() {
+      return this._focusScrollable;
     }
   };
 

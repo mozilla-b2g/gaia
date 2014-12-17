@@ -1,7 +1,6 @@
 'use strict';
 
 var assert = require('assert');
-var System = require('./lib/system');
 var FakeLoopApp = require('./lib/fakeloopapp.js');
 
 marionette('AttentionWindow - Permission Prompt', function() {
@@ -23,7 +22,7 @@ marionette('AttentionWindow - Permission Prompt', function() {
   var fakeLoop;
 
   setup(function() {
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
 
     fakeLoop = new FakeLoopApp(client);

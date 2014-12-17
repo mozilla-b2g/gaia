@@ -242,13 +242,12 @@ var Contacts = (function() {
 
     window.addEventListener('listRendered', loadDeferredActions);
 
-    /* XXX: Tell the audio channel manager that we want to adjust the "content"
-     * channel when the user presses the volumeup/volumedown buttons. We should
-     * be using the "notification" channel instead but we can't due to bug
-     * 1092346. */
-    if (navigator.mozAudioChannelManager) {
-      navigator.mozAudioChannelManager.volumeControlChannel = 'content';
-    }
+    /* XXX: Don't specify a default volume control channel as we want to stick
+     * with the default one as a workaround for bug 1092346. Once that bug is
+     * fixed please add back the following line:
+     *
+     * navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
+     */
   };
 
   var initContactsList = function initContactsList() {
@@ -264,10 +263,13 @@ var Contacts = (function() {
     checkCancelableActivity();
   };
 
-  function setupCancelableHeader() {
+  function setupCancelableHeader(alternativeTitle) {
     header.setAttribute('action', 'close');
     settingsButton.hidden = true;
     addButton.hidden = true;
+    if (alternativeTitle) {
+      appTitleElement.setAttribute('data-l10n-id', alternativeTitle);
+    }
     // Trigger the title to re-run font-fit/centering logic
     appTitleElement.textContent = appTitleElement.textContent;
   }
@@ -282,8 +284,8 @@ var Contacts = (function() {
 
   var lastCustomHeaderCallback;
 
-  var setCancelableHeader = function setCancelableHeader(cb) {
-    setupCancelableHeader();
+  var setCancelableHeader = function setCancelableHeader(cb, titleId) {
+    setupCancelableHeader(titleId);
     header.removeEventListener('action', handleCancel);
     lastCustomHeaderCallback = cb;
     header.addEventListener('action', cb);
@@ -296,20 +298,16 @@ var Contacts = (function() {
   };
 
   var checkCancelableActivity = function cancelableActivity() {
-    var selecting = (contactsList && contactsList.isSelecting);
-
     if (ActivityHandler.currentlyHandling) {
-      setupCancelableHeader();
+      var alternativeTitle = null;
       var activityName = ActivityHandler.activityName;
       if (activityName === 'pick' || activityName === 'update') {
-        selecting = true;
+        alternativeTitle = 'selectContact';
       }
+      setupCancelableHeader(alternativeTitle);
     } else {
-        setupActionableHeader();
+      setupActionableHeader();
     }
-
-    var l10nId =  selecting ? 'selectContact' : 'contacts';
-    appTitleElement.setAttribute('data-l10n-id', l10nId);
   };
 
 
@@ -607,12 +605,10 @@ var Contacts = (function() {
       callback();
     } else {
       Contacts.view('Details', function viewLoaded() {
-        var simPickerNode = document.getElementById('sim-picker');
         LazyLoader.load(
           [SHARED_UTILS_PATH + '/misc.js',
            '/dialer/js/telephony_helper.js',
            '/shared/js/contacts/sms_integration.js',
-           simPickerNode,
            '/shared/js/contacts/contacts_buttons.js'],
         function() {
           detailsReady = true;

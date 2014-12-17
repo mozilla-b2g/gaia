@@ -19,10 +19,6 @@ button::-moz-focus-inner {
   outline: none;
 }
 
-[aria-hidden="true"] {
-  display: none;
-}
-
 /* Base font patterns */
 .unit {
   font-size: 1.2rem;
@@ -95,11 +91,12 @@ p.meta {
 /* Credit */
 #balance-view .info {
   padding-left: 0;
+  margin-left: 0.5rem;
 }
 
 /* Low balance credit warning */
 #balance-view.low-credit {
-  background-color: #f9a722;
+  background-color: #d27405;
 }
 
 /* States */

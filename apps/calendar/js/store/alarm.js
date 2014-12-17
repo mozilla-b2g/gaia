@@ -3,9 +3,11 @@ define(function(require, exports, module) {
 
 var Abstract = require('./abstract');
 var Calc = require('calc');
+var createDOMPromise = require('create_dom_promise');
 var debug = require('debug')('store/alarm');
 var denodeifyAll = require('promise').denodeifyAll;
 var notificationsController = require('controllers/notifications');
+var object = require('object');
 
 /**
  * The alarm store can be thought of as a big queue.
@@ -99,100 +101,44 @@ Alarm.prototype = {
     // use transport dates so we can handle timezones & floating time.
     var time = Calc.dateToTransport(now);
     var utc = time.utc;
-
     // keep adding events until we are beyond this time.
     var minimum = utc + (this._alarmAddThresholdHours * Calc.HOUR);
 
-    // queue logic
-    var pending = 0;
-    var isComplete = false;
+    var request = this.db
+      .transaction('alarms', 'readwrite')
+      .objectStore('alarms')
+      .index('trigger')
+      .openCursor();
 
-    // TODO: right now we plan to ignore the alarms
-    // of removed busytimes or events in the future
-    // we may want to store this id and use it to remove
-    // the actual alarm.
-    function handleAlarmSuccess(id) {
-      debug('successfully added alarm', id);
-      // decrement pending and check if isComplete
-      if (!(--pending) && isComplete) {
-        callback();
-      }
-    }
-
-    function handleAlarmError(e) {
-      debug('error adding alarm', e.target.error.name, e.target.error);
-      // decrement pending and check if isComplete
-      if (!(--pending) && isComplete) {
-        callback();
-      }
-    }
-
-    function addAlarm(data) {
-      var date = Calc.dateFromTransport(data.trigger);
-
-      // if trigger is in the past we need to send
-      // the data directly to the controller not to mozAlarms.
-      if (date < new Date()) {
-        return notificationsController.onAlarm(data);
-      }
-
-      pending++;
-
-      // see: https://wiki.mozilla.org/WebAPI/AlarmAPI
-      // by default we use absolute time
-      var type = 'honorTimezone';
-
-      if (data.trigger.tzid === Calc.FLOATING) {
-        type = 'ignoreTimezone';
-      }
-
-
-      debug('mozAlarm:', date, type, data);
-
-      var req = navigator.mozAlarms.add(date, type, data);
-
-      if (callback) {
-        req.onsuccess = handleAlarmSuccess;
-        req.onerror = handleAlarmError;
-      }
-    }
-
-    // 2. open cursor
-    var trans = this.db.transaction('alarms', 'readwrite');
-    var store = trans.objectStore('alarms');
-    var index = store.index('trigger');
-    var req = index.openCursor();
-
-    req.onerror = function() {
-      var msg = 'Alarm cursor failed to open';
-      callback(new Error(msg));
+    request.onerror = function() {
+      callback(new Error('Alarm cursor failed to open.'));
     };
 
-    var addedFutureAlarm = false;
-
-    req.onsuccess = function(event) {
+    var past = [];  // Alarms that should be fired immediately.
+    var future = [];  // Alarms that should fire in the future.
+    request.onsuccess = function(event) {
       var cursor = event.target.result;
-
-      // keep going until cursor is done or minimum is met
-      if (cursor && ((cursor.key < minimum) ||
-          (requiresAlarm && !addedFutureAlarm))) {
-
-        if (cursor.key > utc) {
-          addedFutureAlarm = true;
-        }
-
-        var record = cursor.value;
-        addAlarm(record);
-        delete record.trigger;
-
-        cursor.update(record);
-        cursor.continue();
-      } else {
-        isComplete = true;
-        if (!pending) {
-          callback();
-        }
+      if (!cursor ||
+          (cursor.key >= minimum && (!requiresAlarm || future.length))) {
+        // We've pulled all (or at least enough) alarms into memory.
+        // Now we can send them to the notifications controller
+        // or the alarms api.
+        return dispatchAlarms(past, future)
+        .then(callback)
+        .catch(error => debug('Error dispatching alarms:', error));
       }
+
+      var record = cursor.value;
+      var date = Calc.dateFromTransport(record.trigger);
+      var bucket = date < Date.now() ? past : future;
+      bucket.push(record);
+      // We need to save the trigger time so that we can send the
+      // appropriate time to the alarms api. However, we want to mark
+      // that we've handled this alarm so delete the trigger prop.
+      record.triggered = record.trigger;
+      delete record.trigger;
+      cursor.update(record);
+      cursor.continue();
     };
   },
 
@@ -294,9 +240,44 @@ Alarm.prototype = {
         callback(new Error(msg));
       }
     };
-
   }
-
 };
+
+function dispatchAlarms(past, future) {
+  // If the alarm was meant to be triggered in the past,
+  // we want to immediately issue a notification.
+  // However, in bug 857284 we add the stipulation that
+  // we shouldn't issue duplicates, so handle that here also.
+  var eventToAlarm = {};
+  past.forEach(alarm => {
+    var event = alarm.eventId;
+    if (!event || event in eventToAlarm) {
+      return;
+    }
+
+    eventToAlarm[event] = alarm;
+  });
+
+  object.forEach(eventToAlarm, (event, alarm) => {
+    notificationsController.onAlarm(alarm);
+  });
+
+  // If the alarm should be triggered in the future, then we can create an
+  // entry in the alarms api to wake us up to issue a notification for it
+  // at the appropriate time.
+  var alarms = navigator.mozAlarms;
+  return Promise.all(future.map(alarm => {
+    var timezone = alarm.triggered.tzid === Calc.FLOATING ?
+      'ignoreTimezone' :
+      'honorTimezone';
+    return createDOMPromise(
+      alarms.add(
+        Calc.dateFromTransport(alarm.triggered),
+        timezone,
+        alarm
+      )
+    );
+  }));
+}
 
 });

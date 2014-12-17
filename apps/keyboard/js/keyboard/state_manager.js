@@ -118,6 +118,7 @@ StateManager.prototype._updateActiveState = function(active) {
         // want to input continuously between two layouts.
         this.app.candidatePanelManager.hideFullPanel();
         this.app.candidatePanelManager.updateCandidates([]);
+        this.app.feedbackManager.activate();
       }.bind(this),
       // Switch the layout,
       this.app.layoutManager.switchCurrentLayout.bind(
@@ -147,6 +148,7 @@ StateManager.prototype._updateActiveState = function(active) {
         this.app.candidatePanelManager.hideFullPanel();
         this.app.candidatePanelManager.updateCandidates([]);
         this.app.targetHandlersManager.activeTargetsManager.clearAllTargets();
+        this.app.feedbackManager.deactivate();
       }.bind(this),
       // ... switch the IMEngine to default,
       this.app.inputMethodManager.switchCurrentIMEngine.bind(

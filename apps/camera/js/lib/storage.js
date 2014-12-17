@@ -45,8 +45,9 @@ function Storage(options) {
   this.createFilename = options.createFilename || createFilename; // test hook
   this.dcf = options.dcf || dcf;
   this.dcf.init();
-  navigator.mozSettings.addObserver('device.storage.writable.name',
-                                    this.onStorageVolumeChanged);
+  navigator.mozSettings.addObserver(
+    'device.storage.writable.name',
+    this.onStorageVolumeChanged);
   this.configure();
   debug('initialized');
 }
@@ -127,21 +128,28 @@ Storage.prototype.addPicture = function(blob, options, done) {
  * before attempting to record to this
  * filepath.
  *
+ * If the request errors it can mean that
+ * there is a file that already exists
+ * in that name. If so, we attempt to delete
+ * it and try to create the filepath again.
+ *
  * @param  {Function} done
  * @public
  */
 Storage.prototype.createVideoFilepath = function(done) {
   var videoStorage = this.video;
+  var self = this;
 
   this.createFilename(this.video, 'video', function(filepath) {
-    var dummyFilepath = getDir(filepath) + 'tmp.3gp';
+    var dummyFilepath = getDir(filepath) + '.tmp.3gp';
     var blob = new Blob([''], { type: 'video/3gpp' });
     var req = videoStorage.addNamed(blob, dummyFilepath);
 
     req.onerror = function(e) {
-      done('Error creating video file path');
-      debug('Failed to add' + filepath +
-            'from DeviceStorage:' + e.target.error);
+      debug('Failed to add' + filepath + 'to DeviceStorage', e);
+      var req = videoStorage.delete(dummyFilepath);
+      req.onerror = function() { done('Error creating video file path'); };
+      req.onsuccess = function() { self.createVideoFilepath(done); };
     };
 
     req.onsuccess = function(e) {

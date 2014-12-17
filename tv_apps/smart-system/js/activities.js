@@ -16,6 +16,36 @@
   }
 
   Activities.prototype = {
+
+    HIGH_PRIORITY_ACTIVITY: Object.freeze({
+      //
+      // Our OMA Forward Lock DRM implementation relies on a "view"
+      // activity to invoke the "fl" app when the user clicks on a
+      // link to content with a mime type of
+      // "application/vnd.oma.dd+xml" or "application/vnd.oma.drm.message".
+      //
+      // In order for this to be secure, we need to ensure that the
+      // FL app is the only one that can respond to view activity
+      // requests for those particular mime types. Here in the System app
+      // we don't know what the type associated with an activity request is
+      // but we do know the name of the activity. So if this is an activity
+      // choice for a "view" activity, and the FL app is one of the choices
+      // then we must select the FL app without allowing the user to choose
+      // any of the others.
+      //
+      // If we wanted to be more general here we could perhaps
+      // modify this code to allow any certified app to handle the
+      // activity, but it is much simpler to restrict to the FL app
+      // only.
+      'view': /^(http|https|app)\:\/\/fl\.gaiamobile\.org\//,
+      //
+      // The smart-settings app listens "configure" to show the settings menu
+      // which is a smei-transparent menu. We need to let it have the highest
+      // priority to handle the activity and prevent 3rd-party apps to
+      // intercept this activity.
+      'configure': /^(http|https|app)\:\/\/smart-settings\.gaiamobile\.org\//
+    }),
+
     /** @lends Activities */
 
     /**
@@ -55,32 +85,14 @@
       if (choices.length === 1) {
         this.choose('0');
       } else {
-        //
-        // Our OMA Forward Lock DRM implementation relies on a "view"
-        // activity to invoke the "fl" app when the user clicks on a
-        // link to content with a mime type of
-        // "application/vnd.oma.dd+xml" or "application/vnd.oma.drm.message".
-        //
-        // In order for this to be secure, we need to ensure that the
-        // FL app is the only one that can respond to view activity
-        // requests for those particular mime types. Here in the System app
-        // we don't know what the type associated with an activity request is
-        // but we do know the name of the activity. So if this is an activity
-        // choice for a "view" activity, and the FL app is one of the choices
-        // then we must select the FL app without allowing the user to choose
-        // any of the others.
-        //
-        // If we wanted to be more general here we could perhaps
-        // modify this code to allow any certified app to handle the
-        // activity, but it is much simpler to restrict to the FL app
-        // only.
-        //
-        if (detail.name === 'view') {
-          var flAppIndex = choices.findIndex(function(choice) {
-            return choice.manifest.indexOf('//fl.gaiamobile.org/') !== -1;
-          });
-          if (flAppIndex !== -1) {
-            this.choose(flAppIndex.toString(10)); // choose() requires a string
+        // apply activity filter.
+        if (this.HIGH_PRIORITY_ACTIVITY[detail.name]) {
+          var appIndex = choices.findIndex((function(choice) {
+            var matchingRegex = this.HIGH_PRIORITY_ACTIVITY[detail.name];
+            return matchingRegex.test(choice.manifest);
+          }).bind(this));
+          if (appIndex !== -1) {
+            this.choose(appIndex.toString(10)); // choose() requires a string
             return;
           }
         }

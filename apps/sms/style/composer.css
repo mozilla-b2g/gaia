@@ -134,20 +134,30 @@ form[role="search"] button[type="submit"]:after {
     background: none;
 }
 
-.subject-composer {
+.mms-label-line {
   display: flex;
+  justify-content: flex-end;
   align-items: flex-end;
-
-  width: 100%;
-  padding: 1rem 0 0.3rem;
-
   background-color: #e1f0ec;
+}
+
+.subject-composer {
+  position: relative;
+
+  flex-grow: 1;
+  min-width: 0;
+  padding: 1rem 0 0.3rem;
+}
+
+.mms-label {
+  padding: 1rem 0 0.3rem;
 }
 
 .mms-label,
 .message-counter {
   display: none;
   flex: none;
+  text-align: center;
 
   box-sizing: border-box;
   width: 6rem;
@@ -157,7 +167,6 @@ form[role="search"] button[type="submit"]:after {
   font-size: 1.4rem;
 }
 
-.content-composer-mms-label,
 .message-counter {
   padding-top: .7rem;
 }
@@ -165,13 +174,10 @@ form[role="search"] button[type="submit"]:after {
 /**
  * 1. "MMS" label is displayed near the subject field when subject input is
  *    visible and message type is MMS;
- * 2. "MMS" label is displayed in bottom section if subject input is not
- *    visible and message type is MMS;
- * 3. Remaining characters counter is displayed in bottom section if character
+ * 2. Remaining characters counter is displayed in bottom section if character
  *    count exceeds predefined threshold and message type is SMS.
  */
-[data-message-type='mms'] .subject-composer-mms-label,
-[data-message-type='mms']:not(.subject-composer-visible) .content-composer-mms-label,
+[data-message-type='mms'] .mms-label,
 [data-message-type='sms'] .message-counter:not(:empty) {
   display: block;
 }
@@ -186,10 +192,7 @@ form[role="search"] button[type="submit"]:after {
 .subject-composer-input {
   position: relative;
 
-  flex-grow: 1;
-
   box-sizing: border-box;
-  min-width: 0;
   min-height: 2.2rem;
   padding: 0;
   padding-bottom: 0.1rem;
@@ -241,6 +244,10 @@ form[role="search"] button[type="submit"]:after {
   width: 6rem;
 
   -moz-user-select: none; /* without this, tapping on the element selects its content */
+}
+
+.messages-attach-container {
+  display: flex;
 }
 
 #messages-send-button {

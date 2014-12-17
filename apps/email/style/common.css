@@ -7,6 +7,21 @@
   visibility: hidden !important;
 }
 
+* {
+  /* By default do not allow any user text selection, only enable for certain
+     parts on a per-element/region area */
+  -moz-user-select: none;
+}
+
+/* Allow inputs to be selectable, and to allow cut/copy operations */
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="text"],
+input[type="url"] {
+  -moz-user-select: text;
+}
+
 html {
   width: 100%;
   height: 100%;
@@ -30,6 +45,17 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
+}
+
+/* Set an explicit z-index of 0 so that #cardContainer gets its own stacking
+   context. Without this, the z-index usage inside it by .card nodes could lead
+   to a z-index that is quite high and may hide other elements like dialogs,
+   that could be placed outside #cardContainer at a z-index value, but not with
+   as high of value as the topmost card. Creating a stacking context for
+   #cardContainer avoids that by keeping the stacking context for the .card
+   elements as a child context of this one. */
+#cardContainer {
+  z-index: 0;
 }
 
 .card {
@@ -297,33 +323,33 @@ the list of folders.
 */
 .email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth0,
 .fld-folder-depth0 {
-  padding-left: 1.5rem;
+  -moz-padding-start: 1.5rem;
 }
 .email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth1,
 .fld-folder-depth1 {
-  padding-left: 3rem;
+  -moz-padding-start: 3rem;
 }
 .email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth2,
 .fld-folder-depth2 {
-  padding-left: 4.5rem;
+  -moz-padding-start: 4.5rem;
 }
 .email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth3,
 .fld-folder-depth3 {
-  padding-left: 6rem;
+  -moz-padding-start: 6rem;
 }
 .email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth4,
 .fld-folder-depth4 {
-  padding-left: 6.5rem;
+  -moz-padding-start: 6.5rem;
 }
 .email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth5,
 .fld-folder-depth5 {
-  padding-left: 9.5rem;
+  -moz-padding-start: 9.5rem;
 }
 .email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth6,
 .fld-folder-depth6,
 .email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depthmax,
 .fld-folder-depthmax {
-  padding-left: 11rem;
+  -moz-padding-start: 11rem;
 }
 
 .email-value-selector[role="dialog"][data-type="value-selector"] menu {

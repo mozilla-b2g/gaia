@@ -77,7 +77,9 @@
         //
         if (detail.name === 'view') {
           var flAppIndex = choices.findIndex(function(choice) {
-            return choice.manifest.indexOf('//fl.gaiamobile.org/') !== -1;
+            var matchingRegex =
+              /^(http|https|app)\:\/\/fl\.gaiamobile\.org\//;
+            return matchingRegex.test(choice.manifest);
           });
           if (flAppIndex !== -1) {
             this.choose(flAppIndex.toString(10)); // choose() requires a string

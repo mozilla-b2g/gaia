@@ -16,7 +16,7 @@ suite('system/AppModalDialog', function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
-    requireApp('system/js/system.js');
+    requireApp('system/js/service.js');
     requireApp('system/js/base_ui.js');
 
     requireApp('system/js/app_modal_dialog.js',
@@ -99,6 +99,17 @@ suite('system/AppModalDialog', function() {
 
   test('New', function() {
     assert.isDefined(md.instanceID);
+  });
+
+  test('Sets visible to false when showing', function() {
+    md.handleEvent(fakeAlertEvent);
+    assert.isTrue(md.isVisible());
+  });
+
+  test('Sets visible to false when hidding', function() {
+    md.handleEvent(fakeAlertEvent);
+    md.hide();
+    assert.isFalse(md.isVisible());
   });
 
   test('Alert', function() {

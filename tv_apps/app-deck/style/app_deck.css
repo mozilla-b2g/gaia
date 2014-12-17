@@ -1,0 +1,107 @@
+html {
+  font-size: 10px;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  background-color: white;
+}
+
+a {
+  outline: 0;
+}
+
+a:hover, a:active, a:focus {
+  outline: 0;
+}
+
+section {
+  font-size: 1.6rem;
+}
+
+#main-section {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+#jumbotron {
+  width: 100%;
+  height: auto;
+  overflow-y: hidden;
+  overflow-x: auto;
+  white-space: nowrap;
+  text-align: center;
+  vertical-align: middle;
+  background-color: #000000;
+}
+
+#app-deck-header {
+  max-width: 1200px;
+  height: 20.92vh;
+  display: inline-block;
+}
+
+#app-deck-header-title {
+  height: 6.67vh;
+  font-size: 4.81vh;
+  font-style: italic;
+  color: #ffffff;
+}
+
+#app-deck-header-description {
+  color: #ffffff;
+  font-size: 2.22vh;
+  height: 3.33vh;
+  margin-top: -4vh;
+}
+
+.app-banner {
+  display: inline-block;
+  background-color: #999;
+  width: 35.55vh;
+  height: 20.18vh;
+  margin: 2.03vh 0.64vh;
+}
+
+#app-deck-grid-view-container {
+  width: 100%;
+  height: auto;
+}
+
+#app-deck-grid-view {
+  margin: 5.55vh 6.04vw 0 6.04vw;
+}
+
+.app {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  width: 10vw;
+  height: 10vw;
+  border-radius: 50%;
+  margin: 2.4vw 1.5vh 2.4vw 1.5vh;
+  background-position: 50% 50%;
+  background-size: 100% auto;
+}
+
+.app-name {
+  display: inline-block;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 30%;
+  text-align: center;
+  background-color: rgba(64, 64, 64, 0.3);
+  color: #fff;
+  padding-top: 5%;
+}
+
+.app-name-text {
+  font-size: 1.2rem;
+}

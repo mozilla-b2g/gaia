@@ -20,6 +20,8 @@
     },
     resetLoadedMetadataCallback: function vpc_resetLoadedMetadataCallback() {
       this.callback = null;
-    }
+    },
+    ensureVideoPlays: function() {},
+    cancelEnsureVideoPlays: function() {},
   };
 

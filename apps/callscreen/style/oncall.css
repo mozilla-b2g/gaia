@@ -122,6 +122,10 @@
     visibility: hidden;
   }
 
+  body.no-handled-calls * {
+    pointer-events: none;
+  }
+
   body.showKeypad #views {
     transition: transform 0.3s ease, visibility 0.3s;
     transform: translateY(-100%);
@@ -182,18 +186,6 @@
     border: 0;
     background: black;
     z-index: 100;
-  }
-
-  /* This transition is needed to trigger a transitionend event in */
-  /* call_screen.js */
-  #call-screen:not([data-layout="incoming-locked"]) {
-    transform: translateY(-100%);
-    transition: transform 0.5s ease 1.5s;
-  }
-
-  #call-screen:not([data-layout="incoming-locked"]).displayed {
-    transform: translateY(0);
-    transition: transform 0.5s ease 0s;
   }
 
   #main-container {
@@ -485,18 +477,7 @@
     padding: 0;
   }
 
-  #calls > section.handled-call .fake-number,
-  #fake-incoming-number,
-  #group-call-details-list > section.handled-call .fake-number {
-    position: absolute;
-    visibility: hidden;
-    white-space: nowrap;
-    padding: 0;
-    font-style: italic;
-  }
-
-  #calls > section .additionalContactInfo,
-  #group-call-details-list  > section .additionalContactInfo {
+  #calls > section .additionalContactInfo {
     height: 1.5rem;
     white-space: nowrap;
     overflow: hidden;
@@ -517,7 +498,7 @@
   }
 
   body:not(.single-line) #calls > section:not(.held) .additionalContactInfo {
-    color: #033b37;
+    color: #fff;
   }
 
   body:not(.single-line) #calls > section.ended .additionalContactInfo {
@@ -601,12 +582,6 @@
   }
 
   #calls:not(.big-duration) > section.ended,
-  #calls.big-duration:not(.big-duration) > section.held .numberWrapper,
-  #calls.big-duration:not(.big-duration) > section.held .additionalContactInfo,
-  #calls.big-duration:not(.single-line) > section.held .numberWrapper,
-  #calls.big-duration:not(.single-line) > section.held .additionalContactInfo,
-  #calls.big-duration:not(.single-line) > section.held .switch-calls,
-  #calls.big-duration > section.held .switch-calls,
   #calls.big-duration > section.ended .numberWrapper,
   #calls.big-duration > section.ended .additionalContactInfo {
     background-color: rgba(207, 64, 64, 0.9);
@@ -628,8 +603,7 @@
 
   #calls > section.ended .numberWrapper .number,
   #calls > section.ended .additionalContactInfo,
-  #calls.big-duration > section.ended .additionalContactInfo,
-  #calls.big-duration:not(.single-line) > section.held .additionalContactInfo {
+  #calls.big-duration > section.ended .additionalContactInfo {
     color: rgba(255, 255, 255, 0.6);
   }
 
@@ -680,6 +654,12 @@
   #calls.big-duration .handled-call.outgoing .direction:before,
   #calls.big-duration #group-call .direction:before {
     background-image: url('images/handled_call/actionicon_callscreen_outgoingcall.png');
+    background-size: 4rem;
+  }
+  
+  #calls.big-duration .handled-call.held .direction:before,
+  #calls.big-duration #group-call.held .direction:before {
+    background-image: url('images/handled_call/actionicon_callscreen_pausedcall.png');
     background-size: 4rem;
   }
 
@@ -836,48 +816,9 @@
     padding-right: 3rem;
   }
 
-  .hangup-button,
-  #calls:not(.big-duration) #group-call > .duration.isTimer,
-  #group-call-details-list .duration {
+  #group-call .hangup-button,
+  #calls:not(.big-duration) #group-call > .duration.isTimer{
     display: none;
-  }
-
-  #group-call-details-list .number {
-    font-size: 1.7rem !important;
-    line-height: 2.4rem;
-    white-space: nowrap;
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-weight: bold;
-    padding-right: 4.5rem;
-  }
-
-  #group-call-details-list > section:not(.additionalInfo) .number {
-    line-height: 4.5rem;
-  }
-
-  #group-call-details {
-    z-index: 750;
-  }
-
-  #group-call-details .hangup-button {
-    position: absolute;
-    background: url('images/handled_call/actionicon_activecall_hangup.png') no-repeat scroll right 1.8rem center / 4rem auto transparent;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-  }
-
-  #group-call .fake-number {
-    position: absolute;
-    top: 0;
-    white-space: nowrap;
-    font-size: 3.4rem;
-    font-style: italic;
-    line-height: 10rem;
-    visibility: hidden;
   }
 
   #contact-background {
@@ -889,12 +830,7 @@
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
-    opacity: 0;
     transition: opacity 0.3s linear;
-  }
-
-  #contact-background.ready {
-    opacity: 1;
   }
 
   #bluetooth-menu {
@@ -916,15 +852,9 @@
     display: none;
   }
 
-  #call-screen[data-layout="connected-hold"] #calls.big-duration .handled-call.ongoing .number,
-  #call-screen[data-layout="connected-hold"] #calls.big-duration .handled-call.ongoing .additionalContactInfo {
+  #call-screen[data-layout="connected-hold"] #calls.big-duration .handled-call.ongoing:not(.ended) .number,
+  #call-screen[data-layout="connected-hold"] #calls.big-duration .handled-call.ongoing:not(.ended) .additionalContactInfo {
     color: rgba(51, 51, 51, 0.7);
-  }
-
-  #call-screen[data-layout="connected-hold"] #calls.big-duration .handled-call.ongoing .direction:before,
-  #call-screen[data-layout="connected-hold"] #calls.big-duration #group-call.held .direction:before {
-    background-image: url('images/handled_call/actionicon_callscreen_pausedcall.png');
-    background-size: 4rem;
   }
 
   #call-screen[data-layout="dialing"] #callbar-hang-up > .callbar-inner-button,
@@ -1067,7 +997,6 @@
   }
 
   /* Hidden everywhere else */
-  #group-call-details-list .sim,
   .sim {
     display: none;
     color: #ffffff;

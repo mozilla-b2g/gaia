@@ -103,7 +103,7 @@ var LINK_TYPES = {
       return link;
     },
     transform: function phoneTransform(phone, link) {
-      return '<a data-dial="' + phone +
+      return '<a dir="ltr" data-dial="' + phone +
         '" data-action="dial-link">' + phone + '</a>';
     }
   },

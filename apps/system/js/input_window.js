@@ -7,6 +7,9 @@
    * This window inherits the AppWindow, and modifies some properties
    * different from the later.
    *
+   * For some flow diagrams related to input management, please refer to
+   * https://wiki.mozilla.org/Gaia/System/InputManagement#Flow_Diagrams .
+   *
    * @class InputWindow
    * @param {OBject} configs The configuration of the input app
    * @augments AppWindow
@@ -48,11 +51,10 @@
   InputWindow.prototype.containerElement = document.getElementById('keyboards');
 
   InputWindow.prototype.view = function iw_view() {
-    return '<div class=" ' + this.CLASS_LIST +
-            ' " id="' + this.instanceID +
-            '" transition-state="closed">' +
-              '<div class="browser-container"></div>' +
-           '</div>';
+    return `<div class="${this.CLASS_LIST}" id="${this.instanceID}"
+            transition-state="closed">
+              <div class="browser-container"></div>
+           </div>`;
   };
 
   InputWindow.prototype.eventPrefix = 'input-app';
@@ -124,11 +126,6 @@
                                  );
   };
 
-  // wrap it so we can mock it for testing
-  InputWindow.prototype._getDpx = function iw_getDpx() {
-    return window.devicePixelRatio;
-  };
-
   InputWindow.prototype._setHeight = function iw_setHeight(height) {
     // bug 1059683: when we're on a HiDPI device with non-integer
     // devicePixelRatio the system may calculate (from available screen height
@@ -139,7 +136,7 @@
     // height if it sees that the height of the keyboard is a fraction when
     // expressed in device pixel.
 
-    var dpx = this._getDpx();
+    var dpx = window.devicePixelRatio;
     if ((height * dpx) % 1 !== 0) {
       height = Math.floor(height * dpx) / dpx;
     }
@@ -171,7 +168,7 @@
       this.browser.element.removeEventListener('mozbrowserresize', this, true);
       this.element.classList.remove('top-most');
 
-      this.height = undefined;
+      this.height = 0;
     }
   };
 

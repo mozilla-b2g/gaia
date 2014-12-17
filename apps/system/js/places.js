@@ -117,6 +117,11 @@
         return;
       }
 
+      // Do not persist information for private browsers.
+      if (app && app.isPrivateBrowser()) {
+        return;
+      }
+
       switch (evt.type) {
         case 'applocationchange':
           this.onLocationChange(app.config.url);

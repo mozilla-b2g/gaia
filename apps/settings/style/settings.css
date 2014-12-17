@@ -26,6 +26,7 @@ section[role="region"] {
   height: 100%;
   border: 0;
   overflow: hidden;
+  z-index: 1;
 }
 
 /**
@@ -58,6 +59,19 @@ section[role="region"].current {
 }
 
 /**
+ * We have to make icon-back as a `x` icon
+ * Notice, we have to differenate with section[data-dialog] to make sure
+ * we won't mess up the style together.
+ */
+.skin-organic section.dialog > header:first-child .icon.icon-back {
+  background-image: url(/shared/style/headers/images/icons/organic/close.png);
+}
+
+section.dialog > header:first-child .icon.icon-back {
+  background-image: url(/shared/style/headers/images/icons/close.png);
+}
+
+/**
  * Only use the animation when ready
  */
 body[data-ready="true"] section[role="region"] {
@@ -66,17 +80,6 @@ body[data-ready="true"] section[role="region"] {
 
 body[data-ready="true"] section[role="region"].current {
   transition: transform .4s ease;
-}
-
-/**
- * Only accepts click events after the first panel gets ready
- */
-body {
-  pointer-events: none;
-}
-
-body[data-ready="true"] {
-  pointer-events: auto;
 }
 
 /**
@@ -656,6 +659,15 @@ ul li > label.range-icons.volume input {
   padding: 0 3rem;
 }
 
+
+/******************************************************************************
+ * USB
+ */
+
+#root .usb-item .menu-item {
+  white-space: normal;
+}
+
 /******************************************************************************
  * SIM Toolkit
  */
@@ -1049,4 +1061,14 @@ html[dir="rtl"] ul li > label.range-icons.volume input {
 html[dir="rtl"] #developer-hud ul li > label > span.color-preview {
   padding-left: 0;
   padding-right: 5rem;
+}
+
+html[dir="rtl"] .apn-list .apn-item .name {
+  right: -1.5rem;
+  padding-right: 1.5rem;
+}
+
+html[dir="rtl"] .apn-list .apn-item:after {
+  left: 3.5rem;
+  right: unset;
 }

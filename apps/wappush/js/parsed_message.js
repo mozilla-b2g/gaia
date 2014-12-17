@@ -197,9 +197,17 @@
     } else if (message.contentType === 'text/vnd.wap.connectivity-xml') {
       // Client provisioning (CP) message
       obj.provisioning = Provisioning.fromMessage(message);
+
       // Security information is mandatory for the application. The application
       // must discard any message with no security information.
       if (!obj.provisioning.authInfo) {
+        return null;
+      }
+
+      var authInfo = obj.provisioning.authInfo;
+      // Let's discard any message that was not successfully authenticated by
+      // gecko.
+      if (authInfo.checked && !authInfo.pass) {
         return null;
       }
 

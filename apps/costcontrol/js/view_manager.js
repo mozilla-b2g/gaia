@@ -1,4 +1,4 @@
-/* global AccessibilityHelper */
+/* global AccessibilityHelper, LazyLoader */
 /* exported ViewManager */
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
@@ -37,6 +37,7 @@ var ViewManager = (function() {
   //   If it is a tab: it returns the current overlay view id or null
   //   If it is not a tab: it returns the previous ovrlay view or null
   ViewManager.prototype.changeViewTo = function _changeViewTo(viewHash,
+                                                              obstructed,
                                                               callback) {
     var hashParts = viewHash.split('?');
     var viewId = hashParts[0];
@@ -86,11 +87,15 @@ var ViewManager = (function() {
         previousViewId = self._currentView ? self._currentView.id : '';
         self._currentView = {
           id: viewId,
-          defaultViewport: view.dataset.viewport
+          defaultViewport: view.dataset.viewport,
+          obstructed: obstructed
         };
 
         // With a combination of CSS, we actually animate and display the view
         delete view.dataset.viewport;
+        if (obstructed) {
+          document.querySelector(obstructed).classList.add('behind');
+        }
       }
 
       if (typeof callback === 'function') {
@@ -119,72 +124,66 @@ var ViewManager = (function() {
       return;
     }
 
-    // apply the HTML markup stored in the first comment node
-    for (var idx = 0; idx < panel.childNodes.length; idx++) {
-      if (panel.childNodes[idx].nodeType == document.COMMENT_NODE) {
-        // XXX: Note we use innerHTML precisely because we need to parse the
-        // content and we want to avoid overhead introduced by DOM
-        // manipulations.
-        panel.innerHTML = panel.childNodes[idx].nodeValue;
-        break;
+    LazyLoader.load(panel, function() {
+      var resourceRemaining = 0;
+
+      function loadResource(node) {
+        node.onload = onResourceLoaded;
+        document.head.appendChild(node);
+        resourceRemaining++;
       }
-    }
 
-    var styles = panel.querySelectorAll('link');
-    var scripts = panel.querySelectorAll('script');
+      // activate all styles
+      Array.from(panel.querySelectorAll('link')).forEach((node) => {
+        if (!document.querySelector('head > link[href="' + node.href + '"]')) {
+          var styleLink = document.createElement('link');
+          styleLink.href = node.href;
+          styleLink.media = node.media;
+          styleLink.rel = node.rel;
+          styleLink.type = node.type;
 
-    var styleCount = styles.length;
-    var scriptCount = scripts.length;
-    var assetsRemaining = styleCount + scriptCount;
-
-    //activate all styles
-    for (var i = 0; i < styleCount; i++) {
-      var styleHref = styles[i].href;
-      if (!document.getElementById(styleHref)) {
-        var style = document.createElement('link');
-        style.href = style.id = styleHref;
-        style.rel = 'stylesheet';
-        style.type = 'text/css';
-        style.media = 'all';
-        style.onload = onAssetLoaded;
-        document.head.appendChild(style);
-      }
-    }
-
-    // activate all scripts
-    for (var j = 0; j < scriptCount; j++) {
-      var src = scripts[j].getAttribute('src');
-      if (!document.getElementById(src)) {
-        var script = document.createElement('script');
-        script.type = 'application/javascript';
-        script.src = script.id = src;
-        script.onload = onAssetLoaded;
-        document.head.appendChild(script);
-      }
-    }
-
-    //add listeners
-    var headers = panel.querySelectorAll('gaia-header[action="close"]');
-    [].forEach.call(headers, function(headerWithClose) {
-      headerWithClose.addEventListener('action', function() {
-        window.parent.location.hash = '#';
+          loadResource(styleLink);
+        }
+        node.remove();
       });
-    });
 
-    panel.hidden = false;
+      // activate all scripts
+      Array.from(panel.querySelectorAll('script')).forEach((node) => {
+        if (!document.querySelector('head > script[src="' + node.src + '"]')) {
+          var scriptLink = document.createElement('script');
+          scriptLink.src = node.src;
+          scriptLink.type = node.type;
 
-    checkCallback();
+          loadResource(scriptLink);
+        }
+        node.remove();
+      });
 
-    function checkCallback() {
-      if (assetsRemaining === 0 && typeof callback === 'function') {
-        callback();
-      }
-    }
+      // add listeners
+      var headers = Array.from(
+        panel.querySelectorAll('gaia-header[action="close"]')
+      );
+      headers.forEach((headerWithClose) => {
+        headerWithClose.addEventListener('action', function() {
+          window.parent.location.hash = '#';
+        });
+      });
 
-    function onAssetLoaded() {
-      assetsRemaining--;
+      panel.hidden = false;
+
       checkCallback();
-    }
+
+      function checkCallback() {
+        if (resourceRemaining === 0 && typeof callback === 'function') {
+          callback();
+        }
+      }
+
+      function onResourceLoaded() {
+        resourceRemaining--;
+        checkCallback();
+      }
+    });
   };
 
   // Close the current view returning to the previous one
@@ -198,6 +197,11 @@ var ViewManager = (function() {
     // With a combination of CSS, Restoring the last viewport we actually
     // animate and hide the current view
     view.dataset.viewport = this._currentView.defaultViewport;
+
+    if (this._currentView.obstructed) {
+      var obstructed = document.querySelector(this._currentView.obstructed);
+      obstructed.classList.remove('behind');
+    }
     this._currentView = null;
   };
 

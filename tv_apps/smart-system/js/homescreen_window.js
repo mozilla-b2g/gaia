@@ -83,7 +83,7 @@
       var app = window.applications.getByManifestURL(manifestURL);
       this.origin = app.origin;
       this.manifestURL = app.manifestURL;
-      this.url = app.origin + '/index.html#root';
+      this.url = app.origin + '/index.html';
 
       this.browser_config =
         new BrowserConfigHelper({
@@ -154,6 +154,7 @@
         if (this.element) {
           return;
         }
+        this.publish('created');
         this.render();
         this.open();
       }.bind(this));
@@ -193,7 +194,7 @@
         // Just kill front window but not switch to the first page.
         this.frontWindow.kill();
       } else {
-        this.browser.element.src = this.browser_config.url + Date.now();
+        this.browser.element.dataset.lastEnsure = Date.now();
       }
     }
 

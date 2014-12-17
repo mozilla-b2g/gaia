@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import expected
+from marionette import Wait
 from marionette.by import By
 from gaiatest.apps.base import Base
 
@@ -28,63 +30,85 @@ class SettingsForm(Base):
     def __init__(self, marionette):
         Base.__init__(self, marionette)
         view = self.marionette.find_element(*self._settings_view_locator)
-        self.wait_for_condition(lambda m: view.location['y'] == 0)
+        Wait(self.marionette).until(lambda m: view.location['y'] == 0)
 
     def tap_order_by_last_name(self):
-        self.wait_for_element_displayed(*self._order_by_last_name_locator)
-        self.marionette.find_element(*self._order_by_last_name_locator).click()
+        last_name = Wait(self.marionette).until(
+            expected.element_present(*self._order_by_last_name_locator))
+        Wait(self.marionette).until(expected.element_displayed(last_name))
+        last_name.click()
 
     @property
     def order_by_last_name(self):
         return self.marionette.find_element(*self._order_by_last_name_switch_locator).is_selected()
 
     def tap_import_contacts(self):
-        self.wait_for_element_displayed(*self._import_contacts_locator)
-        self.marionette.find_element(*self._import_contacts_locator).tap()
-        self.wait_for_condition(lambda m: m.find_element(*self._import_settings_locator).location['x'] == 0)
+        import_contacts = Wait(self.marionette).until(
+            expected.element_present(*self._import_contacts_locator))
+        Wait(self.marionette).until(expected.element_displayed(import_contacts))
+        import_contacts.tap()
+        import_settings = self.marionette.find_element(*self._import_settings_locator)
+        Wait(self.marionette).until(lambda m: import_settings.location['x'] == 0)
 
     def tap_export_contacts(self):
-        self.wait_for_element_displayed(*self._export_contacts_locator)
-        self.marionette.find_element(*self._export_contacts_locator).tap()
-        self.wait_for_condition(lambda m: m.find_element(*self._import_settings_locator).location['x'] == 0)
+        export_contacts = Wait(self.marionette).until(
+            expected.element_present(*self._export_contacts_locator))
+        Wait(self.marionette).until(expected.element_displayed(export_contacts))
+        export_contacts.tap()
+        import_settings = self.marionette.find_element(*self._import_settings_locator)
+        Wait(self.marionette).until(lambda m: import_settings.location['x'] == 0)
 
     def tap_import_from_sim(self):
-        self.wait_for_element_displayed(*self._import_from_sim_button_locator)
-        self.marionette.find_element(*self._import_from_sim_button_locator).tap()
+        import_from_sim = Wait(self.marionette).until(
+            expected.element_present(*self._import_from_sim_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(import_from_sim))
+        import_from_sim.tap()
         from gaiatest.apps.contacts.app import Contacts
-        self.wait_for_element_displayed(*Contacts._status_message_locator)
-        self.wait_for_element_not_displayed(*Contacts._status_message_locator)
+        status_message = Wait(self.marionette).until(
+            expected.element_present(*Contacts._status_message_locator))
+        Wait(self.marionette).until(expected.element_displayed(status_message))
+        Wait(self.marionette).until(expected.element_not_displayed(status_message))
 
     @property
     def gmail_imported_contacts(self):
         return self.marionette.find_element(*self._gmail_contacts_imported_locator).text
 
     def tap_import_from_gmail(self):
-        self.wait_for_element_displayed(*self._import_from_gmail_button_locator)
-        self.marionette.find_element(*self._import_from_gmail_button_locator).tap()
+        import_from_gmail = Wait(self.marionette).until(
+            expected.element_present(*self._import_from_gmail_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(import_from_gmail))
+        import_from_gmail.tap()
         from gaiatest.apps.contacts.regions.gmail import GmailLogin
         return GmailLogin(self.marionette)
 
     def tap_import_from_sdcard(self):
-        self.wait_for_element_displayed(*self._import_from_sdcard_locator)
-        self.marionette.find_element(*self._import_from_sdcard_locator).tap()
+        import_from_sdcard = Wait(self.marionette).until(
+            expected.element_present(*self._import_from_sdcard_locator))
+        Wait(self.marionette).until(expected.element_displayed(import_from_sdcard))
+        import_from_sdcard.tap()
         from gaiatest.apps.contacts.app import Contacts
-        self.wait_for_element_displayed(*Contacts._status_message_locator)
-        self.wait_for_element_not_displayed(*Contacts._status_message_locator)
+        status_message = Wait(self.marionette).until(
+            expected.element_present(*Contacts._status_message_locator))
+        Wait(self.marionette).until(expected.element_displayed(status_message))
+        Wait(self.marionette).until(expected.element_not_displayed(status_message))
 
     def tap_export_to_sd(self):
-        self.wait_for_element_displayed(*self._export_to_sd_button_locator)
-        self.marionette.find_element(*self._export_to_sd_button_locator).tap()
-        self.wait_for_condition(lambda m: m.find_element(*self._select_contacts_locator).location['y'] == 0)
+        export_to_sdcard = Wait(self.marionette).until(
+            expected.element_present(*self._export_to_sd_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(export_to_sdcard))
+        export_to_sdcard.tap()
+        select_contacts = self.marionette.find_element(*self._select_contacts_locator)
+        Wait(self.marionette).until(lambda m: select_contacts.location['y'] == 0)
 
     def tap_done(self):
-        self.marionette.find_element(*self._settings_close_button_locator).tap()
-        self.wait_for_element_not_displayed(*self._settings_close_button_locator)
+        close = self.marionette.find_element(*self._settings_close_button_locator)
+        close.tap()
+        Wait(self.marionette).until(expected.element_not_displayed(close))
         from gaiatest.apps.contacts.app import Contacts
         return Contacts(self.marionette)
 
     def tap_back_from_import_contacts(self):
+        header = self.marionette.find_element(*self._import_settings_header)
         # TODO: remove tap with coordinates after Bug 1061698 is fixed
-        self.marionette.find_element(*self._import_settings_header).tap(25, 25)
-
-        self.wait_for_element_not_displayed(*self._import_settings_header)
+        header.tap(25, 25)
+        Wait(self.marionette).until(expected.element_not_displayed(header))

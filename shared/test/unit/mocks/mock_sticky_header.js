@@ -2,6 +2,8 @@
 
 'use strict';
 
-function MockStickyHeader() {
-  this.refresh = function() {};
-}
+function MockStickyHeader() {}
+
+MockStickyHeader.prototype = {
+  refresh: function() {}
+};

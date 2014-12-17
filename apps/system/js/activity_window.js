@@ -88,6 +88,8 @@
 
   ActivityWindow.prototype = Object.create(AppWindow.prototype);
 
+  ActivityWindow.prototype.constructor = ActivityWindow;
+
   ActivityWindow.prototype.eventPrefix = 'activity';
 
   ActivityWindow.prototype.CLASS_NAME = 'ActivityWindow';
@@ -162,19 +164,15 @@
     };
 
   ActivityWindow.prototype.view = function acw_view() {
-    this.instanceID = _id;
-    return '<div class="appWindow activityWindow inline-activity' +
-            '" id="activity-window-' + _id++ + '">' +
-            '<div class="titlebar">' +
-            ' <div class="notifications-shadow"></div>' +
-            ' <div class="statusbar-shadow titlebar-maximized"></div>' +
-            ' <div class="statusbar-shadow titlebar-minimized"></div>' +
-            '</div>' +
-            '<div class="fade-overlay"></div>' +
-            '<div class="browser-container">' +
-            ' <div class="screenshot-overlay"></div>' +
-            '</div>' +
-            '</div>';
+    this.instanceID = this.CLASS_NAME + '_' + _id;
+    _id++;
+    return `<div id="${this.instanceID}"
+            class="appWindow activityWindow inline-activity">
+            <div class="fade-overlay"></div>
+            <div class="browser-container">
+             <div class="screenshot-overlay"></div>
+            </div>
+            </div>`;
   };
 
   ActivityWindow.SUB_COMPONENTS = {
@@ -183,13 +181,11 @@
     'valueSelector': window.ValueSelector,
     'authDialog': window.AppAuthenticationDialog,
     'contextmenu': window.BrowserContextMenu,
-    'childWindowFactory': window.ChildWindowFactory
+    'childWindowFactory': window.ChildWindowFactory,
+    'statusbar': window.AppStatusbar
   };
 
-  ActivityWindow.REGISTERED_EVENTS =
-    ['mozbrowserclose', 'mozbrowsererror', 'mozbrowservisibilitychange',
-      'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
-      '_localized'];
+  ActivityWindow.REGISTERED_EVENTS = AppWindow.REGISTERED_EVENTS;
 
   ActivityWindow.prototype._handle_mozbrowseractivitydone =
     function aw__handle_mozbrowseractivitydone() {
@@ -212,7 +208,7 @@
     };
     this.browser = new BrowserFrame(this.browser_config);
     this.element =
-      document.getElementById('activity-window-' + this.instanceID);
+      document.getElementById(this.instanceID);
 
     this.browserContainer = this.element.querySelector('.browser-container');
     this.browserContainer.appendChild(this.browser.element);

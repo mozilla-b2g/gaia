@@ -178,7 +178,7 @@ module.exports = {
     /* routes */
     this.state('/week/', 'Week');
     this.state('/day/', 'Day');
-    this.state('/month/', ['Month', 'MonthsDay']);
+    this.state('/month/', ['Month', 'MonthDayAgenda']);
     this.modifier('/settings/', 'Settings', { clear: false });
     this.modifier('/advanced-settings/', 'AdvancedSettings');
 

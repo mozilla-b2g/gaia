@@ -4,7 +4,7 @@
 /* global ModalDialog */
 /* global MozActivity */
 /* global SettingsListener */
-/* global System */
+/* global Service */
 
 'use strict';
 
@@ -86,7 +86,13 @@
 
     if (chrome.scrollable) {
       this.app.element.classList.add('collapsible');
-      this.app.element.classList.add('light');
+
+      if (this.app.isPrivateBrowser()) {
+        this.element.classList.add('private');
+      } else {
+        this.app.element.classList.add('light');
+      }
+
       this.scrollable.scrollgrab = true;
     }
 
@@ -136,19 +142,19 @@
   AppChrome.prototype.overflowMenuView = function an_overflowMenuView() {
     var template = `<gaia-overflow-menu>
 
-             <button id="new-window" data-l10n-id="new-window">
-               New Window
-             </button>
+     <button id="new-window" data-l10n-id="new-window">
+     </button>
 
-             <button id="add-to-home" data-l10n-id="add-to-home-screen" hidden>
-               Add to Home Screen
-             </button>
+     <button id="new-private-window" data-l10n-id="new-private-window">
+     </button>
 
-             <button id="share" data-l10n-id="share">
-                 Share
-             </button>
+     <button id="add-to-home" data-l10n-id="add-to-home-screen" hidden>
+     </button>
 
-           </gaia-overflow-menu>`;
+     <button id="share" data-l10n-id="share">
+     </button>
+
+    </gaia-overflow-menu>`;
     return template;
   };
 
@@ -264,7 +270,7 @@
         break;
 
       case this.title:
-        if (System && System.locked) {
+        if (Service && Service.locked) {
           return;
         }
         window.dispatchEvent(new CustomEvent('global-search-request'));
@@ -281,6 +287,12 @@
       case this.newWindowButton:
         evt.stopImmediatePropagation();
         this.onNewWindow();
+        break;
+
+      case this.newPrivateWinButton:
+        // Currently not in use, awaiting shared menu web components work.
+        evt.stopImmediatePropagation();
+        this.onNewPrivateWindow();
         break;
 
       case this.addToHomeButton:
@@ -532,6 +544,14 @@
   };
 
   AppChrome.prototype.useLightTheming = function ac_useLightTheming() {
+    // The rear window should dictate the status bar color when the front
+    // window is a popup.
+    if (this.app.CLASS_NAME == 'PopupWindow' &&
+        this.app.rearWindow &&
+        this.app.rearWindow.appChrome) {
+      return this.app.rearWindow.appChrome.useLightTheming();
+    }
+    // All other cases can use the front window.
     return this.app.element.classList.contains('light');
   };
 
@@ -569,6 +589,14 @@
         return;
       }
 
+      // Check if this is just a location-change to an anchor tag.
+      var anchorChange = false;
+      if (this._currentURL && evt.detail) {
+        anchorChange =
+          this._currentURL.replace(/#.*/g, '') ===
+          evt.detail.replace(/#.*/g, '');
+      }
+
       // We wait a small while because if we get a title/name it's even better
       // and we don't want the label to flash
       setTimeout(this._updateLocation.bind(this, evt.detail),
@@ -600,15 +628,17 @@
       // We havent got a name for this location
       this._gotName = false;
 
-      // Make the rocketbar unscrollable until the page resizes to the
-      // appropriate height.
-      this.containerElement.classList.remove('scrollable');
+      if (!anchorChange) {
+        // Make the rocketbar unscrollable until the page resizes to the
+        // appropriate height.
+        this.containerElement.classList.remove('scrollable');
 
-      // Expand
-      if (!this.isMaximized()) {
-        this.element.classList.add('maximized');
+        // Expand
+        if (!this.isMaximized()) {
+          this.element.classList.add('maximized');
+        }
+        this.scrollable.scrollTop = 0;
       }
-      this.scrollable.scrollTop = 0;
     };
 
   AppChrome.prototype.handleLoadStart = function ac_handleLoadStart(evt) {
@@ -688,7 +718,6 @@
             url: url,
             name: name,
             icon: icon,
-            useAsyncPanZoom: dataset.useAsyncPanZoom,
             iconable: false
           }
         });
@@ -743,12 +772,15 @@
           querySelector('gaia-overflow-menu');
         this.newWindowButton = this._overflowMenu.
           querySelector('#new-window');
+        this.newPrivateWinButton = this._overflowMenu.
+          querySelector('#new-private-window');
         this.addToHomeButton = this._overflowMenu.
           querySelector('#add-to-home');
         this.shareButton = this._overflowMenu.
           querySelector('#share');
 
         this.newWindowButton.addEventListener('click', this);
+        this.newPrivateWinButton.addEventListener('click', this);
         this.addToHomeButton.addEventListener('click', this);
         this.shareButton.addEventListener('click', this);
 

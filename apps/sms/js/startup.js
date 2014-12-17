@@ -13,7 +13,6 @@
 var Startup = {
   _lazyLoadScripts: [
     '/shared/js/settings_listener.js',
-    '/shared/js/sim_picker.js',
     '/shared/js/mime_mapper.js',
     '/shared/js/notification_helper.js',
     '/shared/js/option_menu.js',
@@ -22,6 +21,7 @@ var Startup = {
     '/shared/js/mobile_operator.js',
     '/shared/js/multi_sim_action_button.js',
     '/shared/js/image_utils.js',
+    '/shared/elements/gaia_sim_picker/script.js',
     'js/waiting_screen.js',
     'js/errors.js',
     'js/dialog.js',
@@ -74,6 +74,12 @@ var Startup = {
     });
   },
 
+  /**
+   * We wait for the DOMContentLoaded event in the event sequence. After we
+   * loaded the first panel of threads, we lazy load all non-critical JS files.
+   * As a result, if the 'load' event was not sent yet, this will delay it even
+   * more until all these non-critical JS files are loaded. This is fine.
+   */
   init: function() {
     var loaded = function() {
       window.removeEventListener('DOMContentLoaded', loaded);

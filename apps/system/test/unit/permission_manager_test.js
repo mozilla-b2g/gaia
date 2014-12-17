@@ -1,11 +1,11 @@
-/* global PermissionManager, MocksHelper, MockL10n, MockApplications, System */
+/* global PermissionManager, MocksHelper, MockL10n, MockApplications, Service */
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/js/template.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-require('/shared/test/unit/mocks/mock_system.js');
+require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 
@@ -39,7 +39,7 @@ var mocksForLazyLoader = new MocksHelper([
     'LazyLoader',
     'Applications',
     'ManifestHelper',
-    'System'
+    'Service'
   ]).init();
 
 suite('system/permission manager', function() {
@@ -164,7 +164,7 @@ suite('system/permission manager', function() {
 
   suite('fullscreenoriginchange Handler', function() {
     setup(function() {
-      System.currentApp = {
+      Service.currentApp = {
         origin: ''
       };
       permissionManager.fullscreenRequest = undefined;
@@ -587,6 +587,20 @@ suite('system/permission manager', function() {
         assert.isFalse(permissionManager.hidePermissionPrompt.called);
         assert.isTrue(
           permissionManager.moreInfoBox.classList.contains('hidden'));
+      });
+
+      test('should not handle click event when dialog is hidden',
+        function(done) {
+          this.sinon.spy(permissionManager, 'clickHandler');
+          window.addEventListener('permissiondialoghide', function onhide() {
+            window.removeEventListener('permissiondialoghide', onhide);
+            permissionManager.moreInfoLink.click();
+            assert.isFalse(permissionManager.clickHandler.called);
+            permissionManager.hideInfoLink.click();
+            assert.isFalse(permissionManager.clickHandler.called);
+            done();
+          });
+          permissionManager.hidePermissionPrompt();
       });
   });
 

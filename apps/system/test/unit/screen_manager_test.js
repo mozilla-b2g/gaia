@@ -12,7 +12,7 @@ require('/test/unit/mock_bluetooth.js');
 require('/test/unit/mock_navigator_moz_power.js');
 require('/test/unit/mock_sleep_menu.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/shared/test/unit/mocks/mock_system.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 
 function switchProperty(originObject, prop, stub, reals, useDefineProperty) {
   if (!useDefineProperty) {
@@ -39,7 +39,7 @@ function restoreProperty(originObject, prop, reals, useDefineProperty) {
 
 var mocksForScreenManager = new MocksHelper([
   'SettingsListener', 'Bluetooth', 'StatusBar',
-  'System'
+  'Service'
 ]).init();
 
 require('/js/screen_brightness_transition.js');
@@ -594,6 +594,7 @@ suite('system/ScreenManager', function() {
       stubSetBrightness = this.sinon.stub(ScreenManager, 'setScreenBrightness');
       stubAddListener = this.sinon.stub(window, 'addEventListener');
       stubRemoveListener = this.sinon.stub(window, 'removeEventListener');
+      ScreenManager._previousLux = 20;
     });
 
     test('if setDeviceLightEnabled(false) and ' +
@@ -607,12 +608,14 @@ suite('system/ScreenManager', function() {
     test('if argument is true', function() {
       ScreenManager.setDeviceLightEnabled(true);
       assert.isFalse(stubSetBrightness.called);
+      assert.isUndefined(ScreenManager._previousLux);
     });
 
     test('if argument is false', function() {
       ScreenManager.setDeviceLightEnabled(false);
       assert.isFalse(stubAddListener.called);
       assert.isTrue(stubRemoveListener.called);
+      assert.isUndefined(ScreenManager._previousLux);
     });
 
     test('if argument & screenEnabled are both true', function() {
@@ -620,6 +623,7 @@ suite('system/ScreenManager', function() {
       ScreenManager.setDeviceLightEnabled(true);
       assert.isTrue(stubAddListener.called);
       assert.isFalse(stubRemoveListener.called);
+      assert.isUndefined(ScreenManager._previousLux);
     });
   });
 
@@ -663,6 +667,7 @@ suite('system/ScreenManager', function() {
 
     setup(function() {
       ScreenManager._targetBrightness = -1;
+      ScreenManager._previousLux = undefined;
       stubSetBrightness = this.sinon.stub(ScreenManager, 'setScreenBrightness');
     });
 
@@ -692,9 +697,17 @@ suite('system/ScreenManager', function() {
     });
 
     test('auto adjust to same value as current brightness', function() {
-      ScreenManager._targetBrightness = 0.1;
+      ScreenManager._previousLux = 1;
       ScreenManager.autoAdjustBrightness(1);
       assert.isFalse(stubSetBrightness.called);
+    });
+
+    test('auto adjust is not triggered if the change is too small', function() {
+      ScreenManager._previousLux = 1;
+      ScreenManager.autoAdjustBrightness(8);
+      sinon.assert.notCalled(stubSetBrightness);
+      ScreenManager.autoAdjustBrightness(12);
+      sinon.assert.called(stubSetBrightness);
     });
   });
 

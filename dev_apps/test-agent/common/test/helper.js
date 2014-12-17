@@ -21,19 +21,21 @@
   // chai has no backtraces in ff
   // this patch will change the error
   // class used to provide real .stack.
-  function patchChai(Assertion) {
+  function patchChai(chai, util) {
+    var Assertion = chai.Assertion;
+
     function chaiAssert(expr, msg, negateMsg, expected, actual) {
-      actual = actual || this.obj;
-      var msg = (this.negate ? negateMsg : msg),
-          ok = this.negate ? !expr : expr;
+      var ok = util.test(this, arguments);
 
       if (!ok) {
+        var msg = util.getMessage(this, arguments);
         throw new Error(
           // include custom message if available
           this.msg ? this.msg + ': ' + msg : msg
         );
       }
     }
+
     Assertion.prototype.assert = chaiAssert;
   }
 
@@ -108,8 +110,9 @@
 
   // load chai
   window.requireCommon('vendor/chai/chai.js', function() {
-    chai.Assertion.includeStack = true;
-    patchChai(chai.Assertion);
+    chai.config.includeStack = true;
+    chai.use(patchChai);  
+    window.requireCommon('vendor/chai/chai-as-promised.js');
     window.assert = chai.assert;
     window.expect = chai.expect;
     window.should = chai.should();

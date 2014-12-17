@@ -1,5 +1,8 @@
 html {
   font-size: 10px;
+  /* We have Fira Sans as default font in real device. But it isn't default in
+   * browser. That's the main reason this line is here.*/
+  font-family: "Fira Sans";
 }
 
 html, body {
@@ -8,7 +11,7 @@ html, body {
   overflow: hidden;
   margin: 0;
   padding: 0;
-  background-color: white;
+  background-color: transparent;
 }
 
 #main-section {
@@ -30,58 +33,20 @@ section {
   font-size: 1.6rem;
 }
 
-#time {
-  font-size: 4rem;
-}
-
-#clock {
-  position: absolute;
-  left: 2rem;
-  top: 2rem;
-}
-
-#search {
-  position: absolute;
-  width: 100%;
-  top: calc(30% - 4rem);
-  height: 4rem;
-}
-
-#search-input {
-  border: 0;
-  background: none;
-  line-height: 3rem;
-  padding-left: 1rem;
-}
-
-#search-container {
-  border-radius: 2rem;
-  height: 3rem;
-  margin-left: calc(50% - 15rem);
-  margin-right: calc(50% - 15rem);
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-  width: 30rem;
-  background: url(images/search.png) no-repeat right 0.5rem center / 2rem,
-              RGBA(0, 0, 0, 0.4);
-
-}
-
 /* Card list */
 #card-viewer {
   position: absolute;
   width: 100%;
-  top: 30%;
-  height: 40%;
-  background: RGBA(0, 0, 0, 0.7);
+  height: 100%;
+  top: 0;
+  left: 0;
 }
 
 #card-list-frame {
   position: absolute;
-  top: calc(50% - 12rem);
-  overflow: hidden;
   width: 100%;
-  height: 24rem;
+  height: 100%;
+  overflow: hidden;
 }
 
 #card-list {
@@ -90,110 +55,54 @@ section {
         interface is what we expected */
   width: 1000%;
   height: 100%;
-  overflow: hidden;
   transition: transform 0.2s ease;
 }
-
 
 .card {
-  float: left;
-  height: 24rem;
-  width: 24rem;
-  margin: 0rem 2rem 0 2rem;
+  top: 32.41%;
+  margin: 0 1.6rem 0 1.6rem;
 }
 
-.card-thumbnail {
+.card.focused {
+  z-index: 100;
+}
+
+/**
+ * filters
+**/
+.filter-tab-container {
   position: absolute;
-  background-color: white;
-  background-position: 50% 50%;
-  background-size: 100%;
-  border-radius: 10rem;
-  width: 20rem;
-  height: 20rem;
+  left: 6rem;
+  bottom: 5.4rem;
 }
 
-.card-description {
-  position: absolute;
-  width: 18rem;
-  bottom: 0;
-  height: 4rem;
-  line-height: 4rem;
-  color: white;
-  text-align: center;
-}
-
-/* Filter tab */
-#filter-tab-container {
-  position: absolute;
-  left: 3rem;
-  bottom: 3rem;
-}
-
-#commands {
-  position: absolute;
-  right: 3rem;
-  bottom: 3rem;
-}
-
-.filter-tab, .command-button {
-  background: #bbb;
-  min-width: 7rem;
-  height: 3rem;
-  border-radius: 3rem;
-  margin-right: 0.5rem;
-  line-height: 3rem;
-  text-align: center;
-  display: inline-block;
-}
-
-/* Folder tab */
-#folder-viewer {
-  position: absolute;
+/**
+ * background section
+**/
+.background {
   width: 100%;
-  top: 70%;
-  height: 20%;
-  background: RGBA(0, 0, 0, 0.7);
-}
-
-#folder-list-frame {
-  position: absolute;
-  top: calc(50% - 6rem);
-  left: calc(50% - 6rem);
-  overflow: hidden;
-  width: calc(50% + 6rem);
-  height: 12rem;
-}
-
-#folder-list {
-  position: relative;
-  width: 1000%;
   height: 100%;
-  overflow: hidden;
-  transition: transform 0.2s ease;
+  margin: 0;
+  padding: 0;
+  background-color: rgba(0, 0, 0, 0.65);
 }
 
-
-.folder-card {
-  float: left;
-  height: 12rem;
-  width: 12rem;
-  margin: 0rem 2rem 0 2rem;
-}
-
-.folder-card-thumbnail {
+.background:before {
+  content: "";
+  height: 29rem;
   position: absolute;
-  background: white;
-  border-radius: 5rem;
-  width: 10rem;
-  height: 10rem;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0));
 }
 
-.folder-card-description {
+.background:after {
+  content: "";
+  height: 29rem;
   position: absolute;
-  width: 9rem;
+  left: 0;
+  right: 0;
   bottom: 0;
-  height: 3rem;
-  line-height: 3rem;
-  color: white;
-  text-align: center;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0));
 }

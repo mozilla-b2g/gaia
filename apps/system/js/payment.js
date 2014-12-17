@@ -131,7 +131,7 @@ var Payment = {
   _openTrustedUI: function _openTrustedUI(frame) {
     // The payment flow is shown within the trusted UI with the name of
     // the mozPay caller application as title.
-    var title = System.currentApp.name;
+    var title = Service.currentApp.name;
     title = title ? title : navigator.mozL10n.get('payment-flow');
     TrustedUIManager.open(title, frame, this.chromeEventId);
   },

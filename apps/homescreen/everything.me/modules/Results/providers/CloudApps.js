@@ -67,8 +67,7 @@ Evme.CloudAppResult = function Evme_CloudAppsResult(query) {
       'originUrl': self.getFavLink(),
       'title': self.cfg.name,
       'icon': self.cfg.icon,
-      'urlTitle': query,
-      'useAsyncPanZoom': self.cfg.isWeblink
+      'urlTitle': query
     });
   };
 };

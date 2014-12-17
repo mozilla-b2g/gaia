@@ -6,7 +6,6 @@
 define(function(require) {
   'use strict';
 
-  var SettingsService = require('modules/settings_service');
   var APIVersionDetector = require('modules/bluetooth/version_detector');
   
   var APIVersion = APIVersionDetector.getVersion();
@@ -23,10 +22,6 @@ define(function(require) {
     this._element = element;
     this._boundRefreshMenuDescription =
       this._refreshMenuDescription.bind(this, element);
-
-    // The decision of navigation panel will be removed while we are no longer
-    // to use Bluetooth API v1.
-    element.parentNode.onclick = this._navigatePanelWithVersionCheck.bind(this);
   }
 
   BluetoothItem.prototype = {
@@ -134,24 +129,6 @@ define(function(require) {
             this._boundRefreshMenuDescription);
         }
       }.bind(this));
-    },
-
-    /**
-     * Navigate new/old Bluetooth panel via version of mozBluetooth API.
-     *
-     * @access private
-     * @memberOf BluetoothItem.prototype
-     * @type {Function}
-     */
-    _navigatePanelWithVersionCheck:
-    function bt__navigatePanelWithVersionCheck() {
-      if (this._APIVersion() === 1) {
-        // navigate old bluetooth panel..
-        SettingsService.navigate('bluetooth');
-      } else if (this._APIVersion() === 2) {
-        // navigate new bluetooth panel..
-        SettingsService.navigate('bluetooth_v2');
-      }
     }
   };
 

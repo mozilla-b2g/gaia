@@ -197,7 +197,7 @@ var NfcHandoverManager = {
     window.navigator.mozSetMessageHandler('nfc-manager-send-file',
       function(msg) {
         self._debug('In New event nfc-manager-send-file' + JSON.stringify(msg));
-        self.handleFileTransfer(msg.sessionToken, msg.blob, msg.requestId);
+        self.handleFileTransfer(msg.peer, msg.blob, msg.requestId);
     });
 
     SettingsListener.observe('nfc.debugging.enabled', false,
@@ -320,12 +320,12 @@ var NfcHandoverManager = {
    * @memberof NfcHandoverManager.prototype
    */
   _showFailedNotification: function _showFailedNotification(title, name) {
-    var _ = navigator.mozL10n.get;
     var fileName = (name !== undefined) ? name : '';
     var icon = 'style/bluetooth_transfer/images/icon_bluetooth.png';
-    NotificationHelper.send(_(title),
-                            fileName,
-                            icon);
+    NotificationHelper.send(title, {
+      body: fileName,
+      icon: icon
+    });
   },
 
   /**
@@ -378,10 +378,10 @@ var NfcHandoverManager = {
   /**
    * Performs tha actual handover request
    * @param {Array} ndef NDEF message conating the handover request record
-   * @param {string} session  session token
+   * @param {MozNFCPeer} MozNFCPeer object.
    * @memberof NfcHandoverManager.prototype
    */
-  _doHandoverRequest: function _doHandoverRequest(ndef, session) {
+  _doHandoverRequest: function _doHandoverRequest(ndef, nfcPeer) {
     this._debug('doHandoverRequest');
     if (this._getBluetoothSSP(ndef) == null) {
       /*
@@ -391,8 +391,7 @@ var NfcHandoverManager = {
       return;
     }
 
-    var nfcPeer = this.nfc.getNFCPeer(session);
-    if (nfcPeer === null) {
+    if (nfcPeer.isLost) {
       this._logVisibly('NFC peer went away during doHandoverRequest');
       this._showFailedNotification('transferFinished-receivedFailed-title');
       this._restoreBluetoothStatus();
@@ -402,17 +401,16 @@ var NfcHandoverManager = {
     var cps = this.bluetooth.enabled ? NDEF.CPS_ACTIVE : NDEF.CPS_ACTIVATING;
     var mac = this.defaultAdapter.address;
     var hs = NDEFUtils.encodeHandoverSelect(mac, cps);
-    var req = nfcPeer.sendNDEF(hs);
-    var self = this;
-    req.onsuccess = function() {
-      self._debug('sendNDEF(hs) succeeded');
-      self.incomingFileTransferInProgress = true;
-    };
-    req.onerror = function() {
-      self._logVisibly('sendNDEF(hs) failed');
-      self._clearTimeout();
-      self._restoreBluetoothStatus();
-    };
+    var promise = nfcPeer.sendNDEF(hs);
+    promise.then(() => {
+      this._debug('sendNDEF(hs) succeeded');
+      this.incomingFileTransferInProgress = true;
+    }).catch(e => {
+      this._logVisibly('sendNDEF(hs) failed : ' + e);
+      this._clearTimeout();
+      this._restoreBluetoothStatus();
+    });
+
     this._clearTimeout();
     this.responseTimeoutFunction =
       setTimeout(this._cancelIncomingFileTransfer.bind(this),
@@ -422,13 +420,13 @@ var NfcHandoverManager = {
   /**
    * Initiate a file transfer by sending a Handover Request to the
    * remote device.
-   * @param {String} session NFC session ID.
+   * @param {MozNFCPeer} An instance of MozNFCPeer object.
    * @param {Blob} blob File to be sent.
    * @param {String} requestId Request ID.
    * @memberof NfcHandoverManager.prototype
    */
   _initiateFileTransfer:
-    function _initiateFileTransfer(session, blob, requestId) {
+    function _initiateFileTransfer(nfcPeer, blob, requestId) {
       this._debug('initiateFileTransfer');
       /*
        * Initiate a file transfer by sending a Handover Request to the
@@ -441,8 +439,7 @@ var NfcHandoverManager = {
       var onerror = function() {
         self._dispatchSendFileStatus(1, requestId);
       };
-      var nfcPeer = this.nfc.getNFCPeer(session);
-      if (nfcPeer === null) {
+      if (nfcPeer.isLost) {
         this._logVisibly('NFC peer went away during initiateFileTransfer');
         onerror();
         this._restoreBluetoothStatus();
@@ -450,25 +447,24 @@ var NfcHandoverManager = {
                                      blob.name);
         return;
       }
-      var job = {session: session, blob: blob, requestId: requestId,
+      var job = {nfcPeer: nfcPeer, blob: blob, requestId: requestId,
                  onsuccess: onsuccess, onerror: onerror};
       this.sendFileQueue.push(job);
       var cps = this.bluetooth.enabled ? NDEF.CPS_ACTIVE : NDEF.CPS_ACTIVATING;
       var mac = this.defaultAdapter.address;
       var hr = NDEFUtils.encodeHandoverRequest(mac, cps);
-      var req = nfcPeer.sendNDEF(hr);
-      req.onsuccess = function() {
-        self._debug('sendNDEF(hr) succeeded');
-      };
-      req.onerror = function() {
-        self._debug('sendNDEF(hr) failed');
+      var promise = nfcPeer.sendNDEF(hr);
+      promise.then(() => {
+        this._debug('sendNDEF(hr) succeeded');
+      }).catch(e => {
+        this._debug('sendNDEF(hr) failed : ' + e);
         onerror();
-        self.sendFileQueue.pop();
-        self._clearTimeout();
-        self._restoreBluetoothStatus();
-        self._showFailedNotification('transferFinished-sentFailed-title',
+        this.sendFileQueue.pop();
+        this._clearTimeout();
+        this._restoreBluetoothStatus();
+        this._showFailedNotification('transferFinished-sentFailed-title',
                                      blob.name);
-      };
+      });
       this._clearTimeout();
       this.responseTimeoutFunction =
         setTimeout(this._cancelSendFileTransfer.bind(this),
@@ -597,24 +593,25 @@ var NfcHandoverManager = {
   /**
    * Handles NDEF Handover Request message.
    * @param {Array} ndef NDEF message containing handover request record
+   * @param {MozNFCPeer} MozNFCPeer object.
    * @memberof NfcHandoverManager.prototype
    */
-  _handleHandoverRequest: function _handleHandoverRequest(ndef, session) {
+  _handleHandoverRequest: function _handleHandoverRequest(ndef, nfcPeer) {
     this._debug('_handleHandoverRequest');
     this._saveBluetoothStatus();
-    this._doAction({callback: this._doHandoverRequest, args: [ndef, session]});
+    this._doAction({callback: this._doHandoverRequest, args: [ndef, nfcPeer]});
   },
 
   /**
    * Checks if the first record of NDEF message is a handover record.
    * If yes the NDEF message is handled according to handover record type.
    * @param {Array} ndefMsg array of NDEF records
-   * @param {string} session session token
+   * @param {MozNFCPeer} MozNFCPeer object.
    * @returns {boolean} true if handover record was found and handled, false
    * if no handover record was found
    * @memberof NfcHandoverManager.prototype
    */
-  tryHandover: function(ndefMsg, session) {
+  tryHandover: function(ndefMsg, nfcPeer) {
     this._debug('tryHandover: ', ndefMsg);
     var nfcUtils = new NfcUtils();
     if (!Array.isArray(ndefMsg) || !ndefMsg.length) {
@@ -627,7 +624,7 @@ var NfcHandoverManager = {
         this._handleHandoverSelect(ndefMsg);
         return true;
       } else if (nfcUtils.equalArrays(record.type, NDEF.RTD_HANDOVER_REQUEST)) {
-        this._handleHandoverRequest(ndefMsg, session);
+        this._handleHandoverRequest(ndefMsg, nfcPeer);
         return true;
       }
     } else if ((record.tnf === NDEF.TNF_MIME_MEDIA) &&
@@ -641,15 +638,15 @@ var NfcHandoverManager = {
 
   /**
    * Trigger a file transfer with a remote device via BT.
-   * @param {String} session NFC session ID.
+   * @param {MozNFCPeer} An instance of MozNFCPeer object.
    * @param {Blob} blob File to be sent.
    * @param {String} requestId Request ID.
    * @memberof NfcHandoverManager.prototype
    */
-  handleFileTransfer: function handleFileTransfer(session, blob, requestId) {
+  handleFileTransfer: function handleFileTransfer(nfcPeer, blob, requestId) {
     this._debug('handleFileTransfer');
     this._saveBluetoothStatus();
-    this._doAction({callback: this._initiateFileTransfer, args: [session, blob,
+    this._doAction({callback: this._initiateFileTransfer, args: [nfcPeer, blob,
                                                                  requestId]});
   },
 

@@ -1,9 +1,6 @@
 'use strict';
 
 var assert = require('assert');
-var Home = require(
-  '../../../verticalhome/test/marionette/lib/home2');
-var System = require('./lib/system');
 var Actions = require('marionette-client').Actions;
 var appUrl = 'app://fullscreen_layout.gaiamobile.org';
 
@@ -31,8 +28,8 @@ marionette('Software Home Button - Fullscreen Layout', function() {
   var home, system, actions, screenSize, shbSize;
 
   setup(function() {
-    home = new Home(client);
-    system = new System(client);
+    home = client.loader.getAppClass('verticalhome');
+    system = client.loader.getAppClass('system');
     actions = new Actions(client);
     system.waitForStartup();
     home.waitForLaunch();
@@ -64,7 +61,7 @@ marionette('Software Home Button - Fullscreen Layout', function() {
 
     system.clickSoftwareHomeButton();
     client.waitFor(function() {
-      return client.findElement(System.Selector.activeHomescreenFrame)
+      return client.findElement(system.Selector.activeHomescreenFrame)
         .displayed();
     });
   });
@@ -84,7 +81,7 @@ marionette('Software Home Button - Fullscreen Layout', function() {
 
     client.switchToFrame();
 
-    reflowHelper.startTracking(System.URL);
+    reflowHelper.startTracking(system.URL);
 
     client.waitFor(function() {
       return !system.softwareHomeFullscreenLayout.displayed();

@@ -18,35 +18,33 @@
 }
 
 #datausage-tab .toggle-data li {
-  display: flex;
-  padding-right: 2rem;
   padding-left: 3rem;
   height: 3.8rem;
   border-bottom-color: #adadad;
 }
 
-#datausage-tab .toggle-data li > span {
+#datausage-tab .toggle-data li > gaia-checkbox {
+  width: 100%;
+}
+
+#datausage-tab .toggle-data li > gaia-checkbox > label {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+#datausage-tab .toggle-data li > gaia-checkbox > label> span {
   font-size: 1.9rem;
   font-weight: normal;
   line-height: 3.8rem;
 }
 
-#datausage-tab .toggle-data li > span:first-child {
+#datausage-tab .toggle-data li > gaia-checkbox > label> span:first-child {
   flex: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-#datausage-tab .toggle-data li label {
-  height: 100%;
-  pointer-events: auto;
-  border: none;
-}
-
-#datausage-tab .toggle-data li label span:after {
-  right: 0;
-  left: auto;
 }
 
 /* Color legend (square) */
@@ -78,7 +76,7 @@
 #datausage-tab .toggle-data li .overview {
   color: #333;
   font-weight: 500;
-  padding: 0 1rem;
+  padding: 0 0.8rem;
 }
 
 #datausage-tab .toggle-data li[aria-disabled=true] .overview {
@@ -97,6 +95,11 @@
   width: 32rem;
   padding: 1.9rem 0 0 0;
   clear: both;
+}
+
+#datausage-tab .app-item > a {
+  display: block;
+  overflow: auto;
 }
 
 #datausage-tab .app-image {

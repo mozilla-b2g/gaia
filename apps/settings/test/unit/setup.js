@@ -36,6 +36,9 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       'unit/mock_load_json': {
         exports: 'MockLoadJSON'
       },
+      'unit/mock_settings': {
+        exports: 'MockSettings'
+      },
       'unit/mock_settings_cache': {
         exports: 'MockSettingsCache'
       },
@@ -111,6 +114,15 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       },
       'shared_mocks/mock_sim_settings_helper': {
         exports: 'MockSimSettingsHelper'
+      },
+      'shared_mocks/mock_navigator_moz_set_message_handler': {
+        exports: 'MockNavigatormozSetMessageHandler'
+      },
+      'shared_mocks/mock_performance_testing_helper': {
+        exports: 'MockPerformanceTestingHelper'
+      },
+      'shared_mocks/mock_screen_layout': {
+        exports: 'MockScreenLayout'
       }
     },
     modules: [

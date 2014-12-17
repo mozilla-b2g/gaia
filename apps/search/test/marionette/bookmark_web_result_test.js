@@ -5,14 +5,8 @@ var Bookmark = require(
   '../../../../apps/system/test/marionette/lib/bookmark');
 var EmeServer = require(
   '../../../../shared/test/integration/eme_server/parent');
-var Home = require(
-  '../../../../apps/verticalhome/test/marionette/lib/home2');
 var launchIcon = require(
   '../../../../apps/verticalhome/test/marionette/lib/launch_icon');
-var Search = require(
-  '../../../../apps/search/test/marionette/lib/search');
-var System = require(
-  '../../../../apps/system/test/marionette/lib/system');
 var Rocketbar = require(
   '../../../../apps/system/test/marionette/lib/rocketbar');
 
@@ -43,10 +37,10 @@ marionette('Bookmark Web Result', function() {
   setup(function() {
     actions = new Actions(client);
     bookmark = new Bookmark(client);
-    home = new Home(client);
+    home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
-    search = new Search(client);
-    system = new System(client);
+    search = client.loader.getAppClass('search');
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
 
     search.removeGeolocationPermission();

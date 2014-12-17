@@ -1,4 +1,4 @@
-/* global System */
+/* global Service */
 'use strict';
 (function(exports) {
   /**
@@ -104,7 +104,7 @@
         case 'activityrequesting':
           // The request may come from the top most window
           // or the system app, but we don't care here.
-          var caller = System.currentApp.getTopMostWindow();
+          var caller = Service.currentApp.getTopMostWindow();
           if (!this.activityPool.size) {
             this.activityPool.set(caller.instanceID, true);
           } else {

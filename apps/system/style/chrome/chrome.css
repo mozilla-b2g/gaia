@@ -1,7 +1,7 @@
 .appWindow:not(.bar) > .chrome {
   pointer-events: none;
   top: 0;
-  height: calc(var(--statusbar-height) + 4.4rem);
+  height: calc(var(--statusbar-height) + var(--rocketbar-urlbar-height));
   transform: scaleY(var(--rocketbar-scale)) translateY(calc(var(--statusbar-height) * -1));
   transform-origin: top left;
   transition: transform 0.2s ease-in-out, background-color 0.5s ease;
@@ -20,6 +20,12 @@
   background-image: linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.05));
   background-color: white;
   color: #4d4d4d;
+}
+
+.appWindow.private > .chrome {
+  background-image: linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.05));
+  background-color: #9a2ebd;
+  color: #fff;
 }
 
 .appWindow:not(.bar) > .chrome.maximized {
@@ -252,6 +258,11 @@
   opacity: 1;
   float: left;
   border-radius: 0;
+}
+
+/* Remove focus outline from button */
+.controls button::-moz-focus-inner {
+  border: 0;
 }
 
 .controls .reload-button,

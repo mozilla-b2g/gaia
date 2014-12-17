@@ -6,11 +6,11 @@ requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
-require('/shared/test/unit/mocks/mock_system.js');
+require('/shared/test/unit/mocks/mock_service.js');
 
 var mocksHelperForUtilityTray = new MocksHelper([
   'LazyLoader',
-  'System',
+  'Service',
   'StatusBar',
   'SoftwareButtonManager'
 ]);
@@ -81,6 +81,9 @@ suite('system/UtilityTray', function() {
     var topPanel = document.createElement('div');
     topPanel.style.cssText = 'height: 20px; display: block;';
 
+    var ambientIndicator = document.createElement('div');
+    ambientIndicator.style.cssText = 'height: 2px; display: block;';
+
     stubById = this.sinon.stub(document, 'getElementById', function(id) {
       switch (id) {
         case 'statusbar':
@@ -99,6 +102,8 @@ suite('system/UtilityTray', function() {
           return notifications;
         case 'top-panel':
           return topPanel;
+        case 'ambient-indicator':
+          return ambientIndicator;
         default:
           return null;
       }
@@ -111,8 +116,8 @@ suite('system/UtilityTray', function() {
 
   teardown(function() {
     stubById.restore();
-    window.System.locked = false;
-    window.System.currentApp = null;
+    window.Service.locked = false;
+    window.Service.currentApp = null;
 
     window.softwareButtonManager = originalSoftwareButtonManager;
   });
@@ -194,7 +199,7 @@ suite('system/UtilityTray', function() {
             oop: true
           }
         };
-        window.System.currentApp = app;
+        window.Service.currentApp = app;
         this.sinon.spy(app.iframe, 'sendTouchEvent');
 
         fakeTouches(0, 100);
@@ -214,7 +219,7 @@ suite('system/UtilityTray', function() {
             oop: false
           }
         };
-        window.System.currentApp = app;
+        window.Service.currentApp = app;
         this.sinon.spy(app.iframe, 'sendTouchEvent');
 
         fakeTouches(0, 100);
@@ -254,6 +259,32 @@ suite('system/UtilityTray', function() {
     });
   });
 
+  // handleEvent
+  suite('handleEvent: sheets-gesture-begin', function() {
+    setup(function() {
+      fakeEvt = createEvent('sheets-gesture-begin');
+      UtilityTray.show();
+      UtilityTray.handleEvent(fakeEvt);
+    });
+
+    test('should hide the ambientIndicator', function() {
+      assert.isTrue(UtilityTray.overlay.classList.contains('hidden'));
+    });
+  });
+
+  // handleEvent
+  suite('handleEvent: sheets-gesture-end', function() {
+    setup(function() {
+      fakeEvt = createEvent('sheets-gesture-end');
+      UtilityTray.show();
+      UtilityTray.handleEvent(fakeEvt);
+    });
+
+    test('should unhide the ambientIndicator', function() {
+      assert.isFalse(UtilityTray.overlay.classList.contains('hidden'));
+    });
+  });
+
   suite('handleEvent: cardviewbeforeshow', function() {
     setup(function() {
       fakeEvt = createEvent('cardviewbeforeshow');
@@ -270,24 +301,12 @@ suite('system/UtilityTray', function() {
     setup(function() {
       fakeEvt = createEvent('home', true);
 
-      // Since nsIDOMEvent::StopImmediatePropagation does not set
-      // any property on the event, and there is no way to add a
-      // global event listeners, let's just overidde the method
-      // to set our own property.
-      fakeEvt.stopImmediatePropagation = function() {
-        this._stopped = true;
-      };
-
       UtilityTray.show();
-      window.dispatchEvent(fakeEvt);
+      UtilityTray.respondToHierarchyEvent(fakeEvt);
     });
 
     test('should be hidden', function() {
       assert.equal(UtilityTray.shown, false);
-    });
-
-    test('home should have been stopped', function() {
-      assert.equal(fakeEvt._stopped, true);
     });
   });
 
@@ -390,38 +409,38 @@ suite('system/UtilityTray', function() {
     });
 
     teardown(function() {
-      window.System.runningFTU = false;
+      window.Service.runningFTU = false;
     });
 
     test('onTouchStart is not called if LockScreen is locked', function() {
-      window.System.locked = true;
+      window.Service.locked = true;
       var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
       UtilityTray.statusbarIcons.dispatchEvent(fakeEvt);
       assert.ok(stub.notCalled);
     });
 
     test('onTouchStart is called if LockScreen is not locked', function() {
-      window.System.locked = false;
+      window.Service.locked = false;
       var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
       UtilityTray.statusbarIcons.dispatchEvent(fakeEvt);
       assert.ok(stub.calledOnce);
     });
 
     test('events on the topPanel are handled', function() {
-      window.System.locked = false;
+      window.Service.locked = false;
       var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
       UtilityTray.topPanel.dispatchEvent(fakeEvt);
       assert.ok(stub.calledOnce);
     });
 
     test('onTouchStart is called when ftu is running', function() {
-      window.System.runningFTU = true;
+      window.Service.runningFTU = true;
       var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
       UtilityTray.topPanel.dispatchEvent(fakeEvt);
       assert.ok(stub.notCalled);
     });
 
-    test('Dont preventDefault if the target is the overlay', function() {
+    test('Don\'t preventDefault if the target is the overlay', function() {
       assert.isTrue(UtilityTray.overlay.dispatchEvent(fakeEvt));
     });
 
@@ -445,6 +464,42 @@ suite('system/UtilityTray', function() {
       UtilityTray.topPanel.dispatchEvent(fakeEvt);
       assert.ok(stub.notCalled);
     });
+
+    suite('Custom events', function() {
+      setup(function() {
+        UtilityTray.active = false;
+        UtilityTray.shown = false;
+      });
+
+      test('should fire a utility-tray-overlayopening event', function(done) {
+        window.addEventListener('utility-tray-overlayopening',
+          function gotIt() {
+            window.removeEventListener('utility-tray-overlayopening', gotIt);
+            assert.isTrue(true, 'got the event');
+            done();
+          });
+        UtilityTray.overlay.dispatchEvent(fakeEvt);
+      });
+
+      test('should fire a utilitytraywillhide event', function(done) {
+        window.addEventListener('utilitytraywillhide', function gotIt() {
+          window.removeEventListener('utilitytraywillhide', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+        UtilityTray.shown = true;
+        UtilityTray.grippy.dispatchEvent(fakeEvt);
+      });
+
+      test('should fire a utilitytraywillshow event', function(done) {
+        window.addEventListener('utilitytraywillshow', function gotIt() {
+          window.removeEventListener('utilitytraywillshow', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+        UtilityTray.overlay.dispatchEvent(fakeEvt);
+      });
+    });
   });
 
   suite('handleEvent: touchend', function() {
@@ -455,7 +510,7 @@ suite('system/UtilityTray', function() {
       UtilityTray.active = true;
     });
 
-    test('Dont preventDefault if the target is the overlay', function() {
+    test('Don\'t preventDefault if the target is the overlay', function() {
       assert.isTrue(UtilityTray.overlay.dispatchEvent(fakeEvt));
     });
 

@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
+
 from gaiatest.apps.base import Base
 
 
@@ -29,6 +30,7 @@ class Settings(Base):
     _accessibility_menu_item_locator = (By.ID, 'menuItem-accessibility')
     _cell_data_menu_item_locator = (By.ID, 'menuItem-cellularAndData')
     _bluetooth_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-bluetooth')
+    _sound_menu_item_locator = (By.ID, 'menuItem-sound')
     _keyboard_menu_item_locator = (By.ID, "menuItem-keyboard")
     _language_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-languageAndRegion')
     _do_not_track_menu_item_locator = (By.ID, 'menuItem-doNotTrack')
@@ -40,6 +42,7 @@ class Settings(Base):
     _battery_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-battery')
     _sim_manager_menu_item_locator = (By.ID, 'menuItem-simManager')
     _homescreen_menu_item_locator = (By.ID, 'menuItem-homescreen')
+    _browsing_privacy_item_locator = (By.ID, 'menuItem-browsingPrivacy')
 
     def launch(self):
         Base.launch(self)
@@ -131,6 +134,11 @@ class Settings(Base):
         self._tap_menu_item(self._bluetooth_menu_item_locator)
         return Bluetooth(self.marionette)
 
+    def open_sound_settings(self):
+        from gaiatest.apps.settings.regions.sound import Sound
+        self._tap_menu_item(self._sound_menu_item_locator)
+        return Sound(self.marionette)
+
     def open_keyboard_settings(self):
         from gaiatest.apps.settings.regions.keyboard import Keyboard
         self._tap_menu_item(self._keyboard_menu_item_locator)
@@ -187,6 +195,11 @@ class Settings(Base):
         from gaiatest.apps.settings.regions.homescreen_settings import HomescreenSettings
         self._tap_menu_item(self._homescreen_menu_item_locator)
         return HomescreenSettings(self.marionette)
+
+    def open_browsing_privacy_settings(self):
+        from gaiatest.apps.settings.regions.browsing_privacy import BrowsingPrivacy
+        self._tap_menu_item(self._browsing_privacy_item_locator)
+        return BrowsingPrivacy(self.marionette)
 
     @property
     def is_airplane_mode_visible(self):

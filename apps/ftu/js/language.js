@@ -66,12 +66,10 @@ var LanguageManager = {
         label.appendChild(p);
 
         var li = document.createElement('li');
+        li.dataset.value = lang;
         li.appendChild(label);
         container.appendChild(li);
       }
     });
   }
 };
-
-LanguageManager.init();
-

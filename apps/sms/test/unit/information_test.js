@@ -295,11 +295,16 @@ suite('Information view', function() {
                      subjectContent);        
       }
 
-      sinon.assert.calledWith(
-        navigator.mozL10n.setAttributes,
-        reportView.sentTitle,
-        sentTitle
-      );
+      if (delivery === 'error') {
+        assert.isFalse(navigator.mozL10n.setAttributes.calledWith(
+          reportView.sentTitle, sentTitle));
+      } else {
+        sinon.assert.calledWith(
+          navigator.mozL10n.setAttributes,
+          reportView.sentTitle,
+          sentTitle
+        );
+      }
 
       sinon.assert.calledWith(
         navigator.mozL10n.setAttributes,
@@ -312,7 +317,7 @@ suite('Information view', function() {
         sinon.assert.calledWith(
           navigator.mozL10n.setAttributes,
           reportView.size,
-          'attachmentSize',
+          'attachmentSizeKB',
           sizeContent
         );
       }
@@ -678,6 +683,7 @@ suite('Information view', function() {
         reportView.render();
 
         reportDiv = getInfoBlock(reportView.renderContactList);
+        sinon.assert.notCalled(Template.prototype.interpolate);
         assert.equal(reportDiv.dataset.deliveryStatus, 'not-applicable');
       });
 
@@ -805,6 +811,7 @@ suite('Information view', function() {
             switch (delivery) {
               case 'not-applicable':
                 assert.equal(block.dataset.deliveryStatus, 'not-applicable');
+                sinon.assert.notCalled(Template.prototype.interpolate);
                 return;
               case 'pending':
                 data.titleL10n = 'report-status-pending';
@@ -850,8 +857,6 @@ suite('Information view', function() {
             block = getInfoBlock(reportView.renderContactList);
             switch (delivery) {
               case 'not-applicable':
-                assert.equal(block.dataset.deliveryStatus, 'pending');
-                return;
               case 'pending':
                 data.titleL10n = 'report-status-pending';
                 assert.equal(block.dataset.deliveryStatus, 'pending');
@@ -1053,6 +1058,7 @@ suite('Information view', function() {
       });
       groupView = new Information('group');
       this.sinon.spy(groupView, 'renderContactList');
+      this.sinon.spy(ThreadUI, 'setHeaderContent');
       groupView.render();
     });
 
@@ -1062,10 +1068,8 @@ suite('Information view', function() {
     test('view status before show method', function() {
       sinon.assert.calledWith(groupView.renderContactList, participants);
       sinon.assert.calledWithMatch(
-        navigator.mozL10n.setAttributes,
-        ThreadUI.headerText,
-        'participant',
-        {n: participants.length}
+        ThreadUI.setHeaderContent,
+        { id: 'participant', args: { n: participants.length } }
       );
     });
   });

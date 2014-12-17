@@ -27,9 +27,9 @@
   FxAccountsDialog.prototype.DEBUG = false;
 
   FxAccountsDialog.prototype.view = function fxad_view() {
-    return '<div id="' + this.instanceID + '" role="dialog" ' +
-           'class="generic-dialog" data-z-index-level="system-dialog" ' +
-           'hidden></div>';
+    return `<div id="${this.instanceID}" role="dialog"
+           class="generic-dialog" data-z-index-level="system-dialog"
+           hidden></div>`;
   };
 
   FxAccountsDialog.prototype.getView = function fxad_view() {

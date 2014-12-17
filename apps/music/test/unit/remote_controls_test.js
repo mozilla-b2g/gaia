@@ -1,3 +1,4 @@
+/* global MediaRemoteControls, REMOTE_CONTROLS, AVRCP, IAC */
 'use strict';
 
 require('/shared/js/media/remote_controls.js');

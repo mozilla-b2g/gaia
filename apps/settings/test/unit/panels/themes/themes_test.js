@@ -1,8 +1,7 @@
 'use strict';
-/* global MockNavigatormozApps, MockNavigatorSettings, MockManifestHelper */
+/* global MockNavigatorSettings, MockManifestHelper */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_manifest_helper.js');
 
@@ -11,7 +10,6 @@ suite('Themes > ', function() {
   var themes;
 
   var realNavigatorSettings;
-  var realMozApps;
   var selectedTheme;
 
   var mock_app1 = {
@@ -67,25 +65,49 @@ suite('Themes > ', function() {
     manifestURL: 'app://mythemeapp/manifest.webapp'
   };
 
+  var mock_app7 = {
+    manifest: {
+      name: 'My faulty Theme',
+      type: 'privileged',
+      role: 'theme'
+    },
+    manifestURL: 'app://myfaultythemeapp/manifest.webapp'
+  };
+
   var modules = [
-    'panels/themes/themes'
+    'panels/themes/themes',
+    'unit/mock_apps_cache'
   ];
 
   var maps = {
     'panels/themes/themes': {
       'shared/manifest_helper': 'MockManifestHelper',
-      'modules/settings_cache': 'MockSettingsCache'
+      'modules/settings_cache': 'MockSettingsCache',
+      'modules/apps_cache': 'unit/mock_apps_cache'
+    }
+  };
+
+  var wallpaper = {
+    'homescreen': '/path/to/wallpaper.png'
+  };
+
+  var fakeResponses = {
+    'app://mythemeapp/wallpaper.json': {
+      'status': 200,
+      'response': wallpaper
+    },
+    'app://mythemeapp/path/to/wallpaper.png': {
+      'status': 200,
+      'response': 'FAKEBLOB'
+    },
+    'app://myfaultythemeapp/path/to/wallpaper.png': {
+      'status': 402,
+      'response': 'error'
     }
   };
 
   suiteSetup(function(done) {
     selectedTheme = mock_app2.manifestURL;
-    MockNavigatormozApps.mApps = [mock_app1, mock_app2, mock_app3,
-      mock_app4, mock_app5];
-
-    realMozApps = navigator.mozApps;
-    navigator.mozApps = MockNavigatormozApps;
-
     realNavigatorSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
 
@@ -107,7 +129,9 @@ suite('Themes > ', function() {
       return MockManifestHelper;
     });
 
-    testRequire(modules, maps, function(Themes) {
+    testRequire(modules, maps, function(Themes, AppsCache) {
+      AppsCache._apps = [mock_app1, mock_app2, mock_app3, mock_app4, mock_app5,
+       mock_app6, mock_app7];
       mockManifestHelper = MockManifestHelper;
       themes = Themes();
       themes.onInit(document.body);
@@ -118,9 +142,6 @@ suite('Themes > ', function() {
 
   suiteTeardown(function() {
     document.body.innerHTML = '';
-
-    navigator.mozApps = realMozApps;
-    realMozApps = null;
 
     navigator.mozSettings = realNavigatorSettings;
     realNavigatorSettings = null;
@@ -154,24 +175,26 @@ suite('Themes > ', function() {
     });
   });
 
-  suite('Themes wallpaper >', function() {
+  suite('Themes manipulation >', function() {
     var realXHR = window.XMLHttpRequest;
-    var currentResponse;
     var lastXHRCall;
-    var wallpaper = {
-      'homescreen': '/path/to/wallpaper.png'
-    };
 
     suiteSetup(function() {
       window.XMLHttpRequest = function(){
         this.status = 0;
       };
       window.XMLHttpRequest.prototype.send = function() {
-        this.status = 200;
-        this.response = currentResponse;
+        var response = fakeResponses[this.url];
+        if (response) {
+          this.status = 400;
+        } else {
+          this.status = response.status;
+          this.response = response.response;
+        }
         this.onload();
       };
       window.XMLHttpRequest.prototype.open = function(method, url) {
+        this.url = url;
         lastXHRCall = url;
       };
 
@@ -182,27 +205,68 @@ suite('Themes > ', function() {
       window.XMLHttpRequest = realXHR;
     });
 
-    test('Getting a wallpaper path', function(done) {
-      currentResponse = wallpaper;
-      themes.getWallpaperPath().then(function(path) {
-        assert.equal(lastXHRCall, 'app://mythemeapp/wallpaper.json');
-        assert.equal(path, currentResponse.homescreen);
-      }, function() {}).then(done, done);
+    suite('set Theme > ', function() {
+      setup(function() {
+        themes._selectedTheme = mock_app5.manifestURL;
+      });
+
+      test('setting a theme', function(done) {
+        themes.setTheme(mock_app6.manifestURL).then(function() {
+          assert.equal(navigator.mozSettings.mSettings['theme.selected'],
+            mock_app6.manifestURL);
+          assert.equal(themes._selectedTheme, mock_app6.manifestURL);
+        }, function() {}).then(done, done);
+      });
     });
 
-    test('Getting wallpaper blob', function(done) {
-      currentResponse = 'FAKEBLOB';
-      themes.loadWallpaper(wallpaper.homescreen).then(function(blob) {
-        assert.equal('FAKEBLOB', blob);
-        assert.equal(lastXHRCall, 'app://mythemeapp/path/to/wallpaper.png');
-      }, function() {}).then(done, done);
+    suite('rollback Theme >', function() {
+      setup(function(done) {
+        themes.setTheme(mock_app6.manifestURL).then(function() {},
+          function() {}).then(done, done);
+      });
+      test('a faulty theme rollback to the previous theme', function(done) {
+        this.sinon.spy(themes.rollbackTheme);
+        themes.setTheme(mock_app7.manifestURL).then(function() {
+          // We called rollbackTheme and previous theme is selected
+          assert.isTrue(themes.rollbackTheme.calledOnce);
+          assert.equal(navigator.mozSettings.mSettings['theme.selected'],
+            mock_app6.manifestURL);
+          assert.equal(themes._selectedTheme, mock_app6.manifestURL);
+        }, function() {}).then(done, done);
+      });
     });
 
-    test('Setting wallpaper', function(done) {
-      themes.setWallpaper('BLOB').then(function() {
-        assert.equal(MockNavigatorSettings.mSettings['wallpaper.image'],
-          'BLOB');
-      }, function() {}).then(done, done);
+    suite('Wallpaper >', function() {
+      test('Getting a wallpaper path', function(done) {
+        themes.getWallpaperPath().then(function(path) {
+          assert.equal(lastXHRCall, 'app://mythemeapp/wallpaper.json');
+          assert.equal(path, wallpaper.homescreen);
+        }, function() {}).then(done, done);
+      });
+
+      test('Getting wallpaper blob', function(done) {
+        themes._selectedTheme = 'app://mythemeapp/manifest.webapp';
+        themes.loadWallpaper(wallpaper.homescreen).then(function(blob) {
+          assert.equal('FAKEBLOB', blob);
+          assert.equal(lastXHRCall, 'app://mythemeapp/path/to/wallpaper.png');
+        }, function() {}).then(done, done);
+      });
+
+      test('Setting wallpaper', function(done) {
+        themes.setWallpaper('BLOB').then(function(data) {
+          assert.equal(data['wallpaper.image'],
+            'BLOB');
+        }, function() {}).then(done, done);
+      });
+
+      test('Saving data', function(done) {
+        this.sinon.spy(themes, 'enableSelection');
+        themes.setWallpaper('BLOB').then(themes.saveConfig).then(function() {
+          assert.equal(MockNavigatorSettings.mSettings['wallpaper.image'],
+           'BLOB');
+          assert.isTrue(themes.enableSelection.calledOnce);
+        }, function() {}).then(done, done);
+      });
     });
   });
 });

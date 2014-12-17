@@ -115,14 +115,28 @@ suite('Cost Control Common >', function() {
     );
   });
 
-  test('loadApps correctly', function(done) {
-    assert.isFalse(Common.allAppsLoaded);
+  test('loadApps correctly filtering apps', function(done) {
+    Common.specialApps = ['url1'];
+    Common.allAppsLoaded = false;
     Common.loadApps().then(function(apps) {
-      assert.isTrue(Common.allAppsLoaded);
-      assert.equal(apps.length, 2);
-      assert.equal(apps[0].manifestURL, 'url1');
-      assert.equal(apps[1].manifestURL, 'url2');
-      done();
+      done(function() {
+        assert.isTrue(Common.allAppsLoaded);
+        assert.equal(apps.length, 1);
+        assert.equal(apps[0].manifestURL, 'url2');
+      });
+    });
+  });
+
+  test('loadApps correctly', function(done) {
+    Common.specialApps = [];
+    Common.allAppsLoaded = false;
+    Common.loadApps().then(function(apps) {
+      done(function() {
+        assert.isTrue(Common.allAppsLoaded);
+        assert.equal(apps.length, 2);
+        assert.equal(apps[0].manifestURL, 'url1');
+        assert.equal(apps[1].manifestURL, 'url2');
+      });
     });
   });
 

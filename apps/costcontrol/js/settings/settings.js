@@ -1,5 +1,6 @@
 /* global BalanceView, LazyLoader, AutoSettings, BalanceLowLimitView,
-          ViewManager, dataLimitConfigurer, Formatting, PerformanceTestingHelper
+          ResetMenuDialog, ConfirmDialog, ViewManager, dataLimitConfigurer,
+          Formatting, PerformanceTestingHelper
 */
 /* exported debug, sendBalanceThresholdNotification */
 /*
@@ -20,7 +21,6 @@ var NetworkUsageAlarm = window.parent.NetworkUsageAlarm;
 // Import global functions from parent window
 var addNetworkUsageAlarm = window.parent.addNetworkUsageAlarm;
 var resetTelephony = window.parent.resetTelephony;
-var _ = window.parent._;
 navigator.mozL10n = window.parent.navigator.mozL10n;
 
 
@@ -33,7 +33,7 @@ var Settings = (function() {
   var costcontrol, vmanager, initialized, endLoadSettingsNotified;
   var plantypeSelector, phoneActivityTitle, phoneActivitySettings;
   var balanceTitle, balanceSettings, reportsTitle;
-  var balanceView;
+  var balanceView, resetMenuDialog, confirmDialog;
 
   function configureUI() {
     CostControl.getInstance(function _onCostControl(instance) {
@@ -43,6 +43,8 @@ var Settings = (function() {
       if (DEBUGGING) {
         loadDeveloperAids();
       }
+
+      vmanager = new ViewManager();
 
       // HTML entities
       plantypeSelector = document.getElementById('plantype-settings');
@@ -62,8 +64,14 @@ var Settings = (function() {
         balanceConfig ? balanceConfig.minimum_delay : undefined
       );
 
+      var resetDialog = document.getElementById('reset-dialog');
+      var resetDataDialog = document.getElementById('reset-data-dialog');
+
+      resetMenuDialog = new ResetMenuDialog(resetDataDialog, vmanager);
+      confirmDialog = new ConfirmDialog(resetDialog, vmanager);
+      resetMenuDialog.initializeResetModes(confirmDialog);
+
       // Autosettings
-      vmanager = new ViewManager();
       AutoSettings.addType('data-limit', dataLimitConfigurer);
       AutoSettings.initialize(ConfigManager, vmanager, '#settings-view');
       configureTelephonyReset();
@@ -121,10 +129,9 @@ var Settings = (function() {
       });
 
       function _setResetTimeToDefault(value, old, key, settings) {
-        var firstWeekDay = parseInt(_('weekStartsOnMonday'), 10);
+        var today = new Date();
         var defaultResetTime = (settings.trackingPeriod === 'weekly') ?
-                                                                  firstWeekDay :
-                                                                  1;
+          today.getDay() : today.getDate();
         if (settings.resetTime !== defaultResetTime) {
           ConfigManager.setOption({ resetTime: defaultResetTime });
         } else {
@@ -171,72 +178,29 @@ var Settings = (function() {
 
   // Configure reset dialogs for telephony and data usage
   function configureTelephonyReset() {
-    var telephonyDialog = document.getElementById('reset-telephony-dialog');
-
-    // Button Reset Phone Activity Settings send to confirmation dialog
     var resetTelephonyButton = document.getElementById('reset-telephony');
-    resetTelephonyButton.addEventListener('click',
-      function _onTelephonyReset() {
-        vmanager.changeViewTo(telephonyDialog.id);
+    resetTelephonyButton.addEventListener('click', function() {
+      confirmDialog.setMessage('reset-telephony-confirmation-warning', {});
+      function resetAction() {
+        resetTelephony();
+        updateUI();
+        confirmDialog.closeConfirmDialog();
       }
-    );
-
-    // Reset telephony statistics
-    var ok = telephonyDialog.querySelector('.danger');
-    ok.addEventListener('click', function _onAcceptReset() {
-      resetTelephony();
-      updateUI();
-      vmanager.closeCurrentView();
+      confirmDialog.updateAcceptAction(resetAction);
+      confirmDialog.showConfirmDialog();
     });
-
-    var cancel = telephonyDialog.querySelector('.close-reset-dialog');
-    cancel.addEventListener('click', function _onCancelReset() {
-      vmanager.closeCurrentView();
-    });
-
   }
 
   // Configure reset dialogs for telephony and data usage
   function configureDataResets() {
-    var dataDialog = document.getElementById('reset-data-dialog');
-
     // Button reset Data Usage Settings send to reset data dialog
     var resetDataUsage = document.getElementById('reset-data-usage');
     resetDataUsage.addEventListener('click', function _onDataReset() {
-      vmanager.changeViewTo(dataDialog.id);
-    });
-
-    var resetWifiDataUsage = document.getElementById('reset-data-wifi-usage');
-    resetWifiDataUsage.addEventListener('click',
-      function _onDataReset() {
-        // Reset data wifi, take in count spent offsets to fix the charts
-        Common.resetData('wifi');
-        updateUI();
-        vmanager.closeCurrentView();
-      });
-
-    var resetMobileDataUsage = document.
-                                      getElementById('reset-data-mobile-usage');
-    resetMobileDataUsage.addEventListener('click',
-      function _onDataReset() {
-        // Reset data mobile, take in count spent offsets to fix the charts
-        Common.resetData('mobile');
-        updateUI();
-        vmanager.closeCurrentView();
-      });
-
-    var resetAllDataUsage = document.getElementById('reset-all-data-usage');
-    resetAllDataUsage.addEventListener('click',
-      function _onDataReset() {
-        // Reset all data usage, take in count spent offsets to fix the charts
-        Common.resetData('all');
-        updateUI();
-        vmanager.closeCurrentView();
-      });
-
-    var cancel = dataDialog.querySelector('.close-reset-dialog');
-    cancel.addEventListener('click', function _onCancelReset() {
-      vmanager.closeCurrentView();
+      var currentTotals = {
+        mobile: costcontrol.lastDataResults.mobile.total,
+        wifi: costcontrol.lastDataResults.wifi.total
+      };
+      resetMenuDialog.showResetMenuDialog(currentTotals);
     });
   }
 
@@ -282,12 +246,12 @@ var Settings = (function() {
         );
 
         balanceLowLimitView.disabled = (mode !== 'PREPAID');
-        plantypeSelector.setAttribute('aria-hidden', hidePlantypeSelector);
-        phoneActivityTitle.setAttribute('aria-hidden', hidePhoneActivity);
-        phoneActivitySettings.setAttribute('aria-hidden', hidePhoneActivity);
-        balanceTitle.setAttribute('aria-hidden', hideBalance);
-        balanceSettings.setAttribute('aria-hidden', hideBalance);
-        reportsTitle.setAttribute('aria-hidden', hideReportsTitle);
+        plantypeSelector.hidden = hidePlantypeSelector;
+        phoneActivityTitle.hidden = hidePhoneActivity;
+        phoneActivitySettings.hidden = hidePhoneActivity;
+        balanceTitle.hidden = hideBalance;
+        balanceSettings.hidden = hideBalance;
+        reportsTitle.hidden = hideReportsTitle;
       }
 
       // Views
@@ -383,7 +347,9 @@ var Settings = (function() {
         'js/settings/limitdialog.js',
         'js/settings/autosettings.js',
         'js/view_manager.js',
-        'js/views/BalanceView.js'
+        'js/views/BalanceView.js',
+        'js/views/ResetMenuDialog.js',
+        'js/views/ConfirmDialog.js'
       ];
       LazyLoader.load(SCRIPTS_NEEDED, function() {
         if (!Common.allNetworkInterfaceLoaded) {

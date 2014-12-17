@@ -28,7 +28,7 @@ suite('system/SystemDialog', function() {
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     stubDispatch = this.sinon.stub(window, 'dispatchEvent');
-    requireApp('system/js/system.js');
+    requireApp('system/js/service.js');
     requireApp('system/js/base_ui.js');
     requireApp('system/js/system_dialog.js', done);
     window.layoutManager = new LayoutManager();

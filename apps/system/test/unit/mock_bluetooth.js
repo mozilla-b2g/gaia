@@ -60,6 +60,10 @@ var MockBluetooth = {
 
   isProfileConnected: function mbt_isProfileConnected(profile) {
     return this.mExpectedProfile === profile;
+  },
+
+  get isEnabled() {
+    return this.enabled;
   }
 };
 

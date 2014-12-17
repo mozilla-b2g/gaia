@@ -14,6 +14,15 @@
       "description": "Smart Screen Home App"
     }
   },
+  "activities": {
+    "pin": {
+      "filters": {
+        "manifestURL": {
+          "required": true
+        }
+      }
+    }
+  },
   "default_locale": "en-US",
   "icons": {
     "128": "/style/icons/Blank.png"

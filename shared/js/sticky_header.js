@@ -4,10 +4,14 @@ function StickyHeader(scrollable, sticky) {
   'use strict';
 
   var headers = scrollable.getElementsByTagName('header');
-  var stickyPosition = sticky.offsetHeight + sticky.offsetTop;
+  var stickyPosition;
   var stickyStyle = sticky.style;
 
   this._throttledRefresh = function() {
+    var display = false;
+    if (stickyPosition === undefined) {
+      stickyPosition = sticky.offsetHeight + sticky.offsetTop;
+    }
     for (var i = 1, length = headers.length; i < length; i++) {
       if (headers[i].offsetTop - scrollable.scrollTop > stickyPosition) {
 
@@ -21,10 +25,12 @@ function StickyHeader(scrollable, sticky) {
         }
 
         stickyStyle.backgroundImage = '-moz-element(#' + header.id + ')';
+        display = true;
         break;
       }
     }
 
+    sticky.classList.toggle('has-content', display);
     this.throttle = null;
   }.bind(this);
 

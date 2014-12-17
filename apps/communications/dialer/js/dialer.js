@@ -1,8 +1,8 @@
 'use strict';
 
 /* global AccessibilityHelper, CallLog, CallLogDBManager, Contacts,
-          KeypadManager,LazyL10n, LazyLoader, MmiManager, Notification,
-          NotificationHelper, SettingsListener, SimPicker, SimSettingsHelper,
+          KeypadManager, LazyL10n, LazyLoader, MmiManager, Notification,
+          NotificationHelper, SettingsListener, SimSettingsHelper,
           SuggestionBar, TelephonyHelper, Utils, Voicemail, MozActivity */
 
 var NavbarManager = {
@@ -375,8 +375,11 @@ var CallHandler = (function callHandler() {
         SimSettingsHelper.getCardIndexFrom('outgoingCall',
         function(defaultCardIndex) {
           if (defaultCardIndex === SimSettingsHelper.ALWAYS_ASK_OPTION_VALUE) {
-            LazyLoader.load(['/shared/js/sim_picker.js'], function() {
-              SimPicker.getOrPick(defaultCardIndex, phoneNumber, function(ci) {
+            LazyLoader.load(['/shared/js/component_utils.js',
+                             '/shared/elements/gaia_sim_picker/script.js'],
+            function() {
+              var simPicker = document.getElementById('sim-picker');
+              simPicker.getOrPick(defaultCardIndex, phoneNumber, function(ci) {
                 CallHandler.call(phoneNumber, ci);
               });
               // Show the dialer so the user can select the SIM.
@@ -432,12 +435,8 @@ var CallHandler = (function callHandler() {
       return;
     }
 
-    if (MmiManager.isMMI(number, cardIndex)) {
-      if (number === '*#06#') {
-        MmiManager.showImei();
-      } else {
-        MmiManager.send(number, cardIndex);
-      }
+    if (MmiManager.isImei(number)) {
+      MmiManager.showImei();
 
       // Clearing the code from the dialer screen gives the user immediate
       // feedback.
@@ -485,16 +484,15 @@ var CallHandler = (function callHandler() {
       document.addEventListener('visibilitychange', releaseWakeLock);
     }
 
-    if (document.hidden && evt.sessionEnded) {
+    if (!document.hidden || evt.session) {
+      MmiManager.handleMMIReceived(evt.message, evt.session, evt.serviceId);
+    } else {
       /* If the dialer is not visible and the session ends with this message
        * then this is most likely an unsollicited message. To prevent
        * interrupting the user we post a notification for it instead of
        * displaying the dialer UI. */
       MmiManager.sendNotification(evt.message, evt.serviceId)
                 .then(releaseWakeLock);
-    } else {
-      MmiManager.handleMMIReceived(evt.message, evt.sessionEnded,
-                                   evt.serviceId);
     }
   }
 

@@ -80,13 +80,13 @@ Focus.prototype.configureFocusModes = function(mode) {
   // Face detection only enabled on picture mode (disabled on video)
   this.faceDetection =
     faceDetectionUserEnabled && faceDetectionSupported && mode === 'picture';
-  this.mozCamera.onAutoFocusMoving = this.onAutoFocusMoving;
-  this.mozCamera.onAutoFocusCompleted = this.onAutoFocusCompleted;
+  this.mozCamera.addEventListener('focus', this.onAutoFocusStateChange);
 };
 
 Focus.prototype.startFaceDetection = function() {
   if (!this.faceDetection) { return; }
-  this.mozCamera.onFacesDetected = this.focusOnLargestFace;
+  this.mozCamera.addEventListener('facesdetected',
+    this.handleFaceDetectionEvent);
   this.mozCamera.startFaceDetection();
 };
 
@@ -95,9 +95,15 @@ Focus.prototype.stopFaceDetection = function() {
   clearTimeout(this.faceDetectionSuspended);
   clearTimeout(this.faceDetectionSuspensionTimer);
   if (this.mozCamera.stopFaceDetection) {
+    this.mozCamera.removeEventListener('facesdetected',
+      this.handleFaceDetectionEvent);
     this.mozCamera.stopFaceDetection();
   }
   this.clearFaceDetection();
+};
+
+Focus.prototype.handleFaceDetectionEvent = function(e) {
+  this.focusOnLargestFace(e.faces);
 };
 
 Focus.prototype.clearFaceDetection = function() {
@@ -156,14 +162,12 @@ Focus.prototype.updateFocusState = function(state) {
   }
 };
 
-Focus.prototype.onAutoFocusMoving = function(moving) {
-  if (moving) {
-    this.updateFocusState('focusing');
+Focus.prototype.onAutoFocusStateChange = function(e) {
+  var state = e.newState;
+  if (state === 'unfocused') {
+    state = 'fail';
   }
-};
-
-Focus.prototype.onAutoFocusCompleted = function(state) {
-  this.updateFocusState(state ? 'focused' : 'fail');
+  this.updateFocusState(state);
 };
 
 Focus.prototype.onAutoFocusChanged = function(state) {
@@ -222,7 +226,7 @@ Focus.prototype.focus = function(done) {
   // the focus ring.
   //
   this.updateFocusState('focusing');
-  this.mozCamera.autoFocus(onSuccess, onError);
+  this.mozCamera.autoFocus().then(onSuccess, onError);
 
   // If focus fails with an error, we still need to signal the
   // caller. Interruptions are a special case, but other errors
@@ -230,7 +234,7 @@ Focus.prototype.focus = function(done) {
   // remaining unfocused.
   function onError(err) {
     self.focused = false;
-    if (err === 'AutoFocusInterrupted') {
+    if (err.name === 'NS_ERROR_IN_PROGRESS') {
       done('interrupted');
     } else {
       done('error');

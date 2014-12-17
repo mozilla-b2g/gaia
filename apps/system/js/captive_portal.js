@@ -58,7 +58,10 @@ var CaptivePortal = {
     var options = {
       body: message,
       icon: icon,
-      tag: this.notificationPrefix + networkName
+      tag: this.notificationPrefix + networkName,
+      mozbehavior: {
+        showOnlyOnce: true
+      }
     };
 
     this.notification = new Notification('', options);

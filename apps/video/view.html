@@ -47,19 +47,18 @@
             </div>
           </footer>
         </section>
+        <!-- display messages like "Cannot load video" here -->
+        <form id="in-use-overlay" role="dialog" data-type="confirm" class="hidden">
+          <section id="in-use-overlay-content">
+            <h1 id="in-use-overlay-title"></h1>
+            <p id="in-use-overlay-text"></p>
+          </section>
+        </form>
       </div>
     </section>
     <section id="banner" role="status" hidden>
       <p id="message"></p>
     </section>
-
-    <!-- display messages like "Cannot load video" here -->
-    <form id="in-use-overlay" role="dialog" data-type="confirm" class="hidden">
-      <section id="in-use-overlay-content">
-        <h1 id="in-use-overlay-title"></h1>
-        <p id="in-use-overlay-text"></p>
-      </section>
-    </form>
 
     <!-- Shared Libs -->
     <script src="shared/js/l10n.js"></script>

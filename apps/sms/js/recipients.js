@@ -1081,13 +1081,16 @@
         carrier: recipient.carrier
       });
 
+      var title = document.createElement('bdi');
+      title.textContent = recipient.name || recipient.number;
+
       // Dialog will have a closure reference to the response
       // object, therefore it's not necessary to pass it around
       // as an explicit param list item.
       var dialog = new Dialog(
         {
           title: {
-            value: recipient.name || recipient.number
+            value: title
           },
           body: {
             value: dialogBody.firstElementChild

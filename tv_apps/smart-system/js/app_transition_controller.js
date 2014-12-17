@@ -1,4 +1,4 @@
-/* global SettingsCache, System, SimPinDialog */
+/* global AppWindowManager, SettingsCache, Service, SimPinDialog */
 'use strict';
 
 (function(exports) {
@@ -148,8 +148,8 @@
         }
         this.app.broadcast('closingtimeout');
       },
-      System.slowTransition ? this.SLOW_TRANSITION_TIMEOUT :
-                              this.CLOSING_TRANSITION_TIMEOUT);
+      AppWindowManager.slowTransition ? this.SLOW_TRANSITION_TIMEOUT :
+                                        this.CLOSING_TRANSITION_TIMEOUT);
 
       if (!this.app || !this.app.element) {
         return;
@@ -177,8 +177,8 @@
       this._openingTimeout = window.setTimeout(function() {
         this.app.broadcast('openingtimeout');
       }.bind(this),
-      System.slowTransition ? this.SLOW_TRANSITION_TIMEOUT :
-                              this.OPENING_TRANSITION_TIMEOUT);
+      AppWindowManager.slowTransition ? this.SLOW_TRANSITION_TIMEOUT :
+                                        this.OPENING_TRANSITION_TIMEOUT);
       this._waitingForLoad = false;
       this.app.element.classList.add('transition-opening');
       this.app.element.classList.add(this.getAnimationName('open'));
@@ -370,7 +370,7 @@
           evt.stopPropagation();
           // We decide to drop this event if system is busy loading
           // the active app or doing some other more important task.
-          if (System.isBusyLoading()) {
+          if (Service.isBusyLoading()) {
             this._waitingForLoad = true;
             if (this.app.isHomescreen && this._transitionState == 'opening') {
               /**

@@ -11,47 +11,6 @@
   // Most used DOM elements
   var dom = {};
 
-  var HOMESCREEN_MANIFEST = 'homescreen.manifestURL';
-  var MSG_MIGRATE_CON = 'migrate';
-  var TXT_MSG = 'migrate';
-
-  function notifyHomescreenApp() {
-    _getHomescreenManifestURL(function(url) {
-      // Get default homescreen manifest URL from settings, and will only notify
-      // vertical homescreen to perform data migration
-      if (url !== 'app://verticalhome.gaiamobile.org/manifest.webapp') {
-        return;
-      }
-
-      navigator.mozApps.getSelf().onsuccess = function(evt) {
-        var app = evt.target.result;
-        if (app.connect) {
-          app.connect(MSG_MIGRATE_CON).then(function onConnAccepted(ports) {
-            // Get the token data info to attach to message
-            var message = {
-              txt: TXT_MSG
-            };
-            ports.forEach(function(port) {
-              port.postMessage(message);
-            });
-          }, function onConnRejected(reason) {
-            console.error('Cannot notify homescreen: ', reason);
-          });
-        } else {
-          console.error('mozApps does not have a connect method. ' +
-                        'Cannot launch the collection migration process');
-        }
-      };
-    });
-  }
-
-  function _getHomescreenManifestURL(callback) {
-    var req = navigator.mozSettings.createLock().get(HOMESCREEN_MANIFEST);
-    req.onsuccess = function() {
-      callback(req.result[HOMESCREEN_MANIFEST]);
-    };
-  }
-
   /**
    * Helper function to load imagaes and video
    * @param {DOMNode} mediaElement  video or image to assign new src to
@@ -166,10 +125,6 @@
           console.error('Cache DOM elements: couldnt cache: ' + name);
         }
       }, this);
-
-      // homescreen notification is out of band and neednt block
-      // the other init steps
-      notifyHomescreenApp();
 
       initTasks.next();
     },

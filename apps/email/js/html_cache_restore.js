@@ -21,7 +21,7 @@ var startupCacheEventsSent = false;
  * Set by build process. Set as a global because it
  * is also used in html_cache.js.
  */
-var HTML_COOKIE_CACHE_VERSION = '1';
+var HTML_COOKIE_CACHE_VERSION = '2';
 
 // Use a global to work around issue with
 // navigator.mozHasPendingMessage only returning
@@ -34,7 +34,7 @@ window.htmlCacheRestorePendingMessage = [];
       loadSrc = selfNode.dataset.loadsrc;
 
   /**
-   * Gets the HTML string from cache.
+   * Gets the HTML string from cache, as well as language direction.
    * This method assumes all cookie keys that have pattern
    * /htmlc(\d+)/ are part of the object value. This method could
    * throw given vagaries of cookie cookie storage and encodings.
@@ -44,7 +44,7 @@ window.htmlCacheRestorePendingMessage = [];
     var value = document.cookie;
     var pairRegExp = /htmlc(\d+)=([^;]+)/g;
     var segments = [];
-    var match, index, version;
+    var match, index, version, langDir;
 
     while ((match = pairRegExp.exec(value))) {
       segments[parseInt(match[1], 10)] = match[2] || '';
@@ -59,6 +59,13 @@ window.htmlCacheRestorePendingMessage = [];
     } else {
       version = value.substring(0, index);
       value = value.substring(index + 1);
+
+      // Version is further subdivided to include lang direction. See email's
+      // l10n.js for logic to reset the dir back to the actual language choice
+      // if the language direction changes between email invocations.
+      var versionParts = version.split(',');
+      version = versionParts[0];
+      langDir = versionParts[1];
     }
 
     if (version !== HTML_COOKIE_CACHE_VERSION) {
@@ -67,7 +74,10 @@ window.htmlCacheRestorePendingMessage = [];
       value = '';
     }
 
-    return value;
+    return {
+      langDir: langDir,
+      contents: value
+    };
   }
 
   /*
@@ -107,7 +117,13 @@ window.htmlCacheRestorePendingMessage = [];
   if (window.htmlCacheRestorePendingMessage.length) {
     startApp();
   } else {
-    var contents = retrieve();
+    var parsedResults = retrieve();
+
+    if (parsedResults.langDir) {
+      document.querySelector('html').setAttribute('dir', parsedResults.langDir);
+    }
+
+    var contents = parsedResults.contents;
     cardsNode.innerHTML = contents;
     startupCacheEventsSent = !!contents;
     window.addEventListener('load', startApp, false);

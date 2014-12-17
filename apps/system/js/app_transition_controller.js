@@ -1,4 +1,4 @@
-/* global SettingsListener, System, SimPinDialog, rocketbar */
+/* global AppWindowManager, SettingsListener, Service, rocketbar */
 'use strict';
 
 (function(exports) {
@@ -149,7 +149,7 @@
         }
         this.app.broadcast('closingtimeout');
       },
-      System.slowTransition ? this.SLOW_TRANSITION_TIMEOUT :
+      AppWindowManager.slowTransition ? this.SLOW_TRANSITION_TIMEOUT :
                               this.CLOSING_TRANSITION_TIMEOUT);
 
       if (!this.app || !this.app.element) {
@@ -178,7 +178,7 @@
       this._openingTimeout = window.setTimeout(function() {
         this.app && this.app.broadcast('openingtimeout');
       }.bind(this),
-      System.slowTransition ? this.SLOW_TRANSITION_TIMEOUT :
+      AppWindowManager.slowTransition ? this.SLOW_TRANSITION_TIMEOUT :
                               this.OPENING_TRANSITION_TIMEOUT);
       this._waitingForLoad = false;
       this.app.element.classList.add('transition-opening');
@@ -259,6 +259,7 @@
         return;
       }
 
+      this.app.reviveBrowser();
       this.resetTransition();
       this.app.element.removeAttribute('aria-hidden');
       this.app.show();
@@ -285,12 +286,13 @@
   };
 
   AppTransitionController.prototype._shouldFocusApp = function() {
-    // XXX: Remove this after SIMPIN Dialog is refactored.
-    // See https://bugzilla.mozilla.org/show_bug.cgi?id=938979
     // XXX: Rocketbar losing input focus
     // See: https://bugzilla.mozilla.org/show_bug.cgi?id=961557
+    // XXX: We should let HierarchyManager to manage the focus.
+    // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1079748
     return (this._transitionState == 'opened' &&
-            !SimPinDialog.visible && !rocketbar.active);
+            !rocketbar.active &&
+            !Service.query('SimLockManager.isActive'));
   };
 
   AppTransitionController.prototype.requireOpen = function(animation) {
@@ -375,7 +377,7 @@
           evt.stopPropagation();
           // We decide to drop this event if system is busy loading
           // the active app or doing some other more important task.
-          if (System.isBusyLoading()) {
+          if (Service.isBusyLoading()) {
             this._waitingForLoad = true;
             if (this.app.isHomescreen && this._transitionState == 'opening') {
               /**

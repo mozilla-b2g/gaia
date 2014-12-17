@@ -1,3 +1,4 @@
+/* globals Service */
 'use strict';
 
 (function(exports) {
@@ -17,7 +18,7 @@
   NfcConnectSystemDialog.prototype.DEBUG = false;
 
   NfcConnectSystemDialog.prototype.setMessage = function ncsd_setMessage(name) {
-    var enabled = window.navigator.mozBluetooth.enabled;
+    var enabled = Service.query('Bluetooth.isEnabled');
     var l10nArgs = { deviceName: name };
 
     var msgId;
@@ -69,31 +70,24 @@
       this.setMessage(localName);
       this.element.hidden = false;
       this.publish('show');
+      this.resize();
   };
 
   NfcConnectSystemDialog.prototype.view = function ncsd_view() {
-    return '<div id="' + this.instanceID + '" role="dialog" ' +
-                'class="generic-dialog" ' +
-                'data-z-index-level="nfc-connect-dialog">' +
-             '<div class="modal-dialog-message-container inner">' +
-               '<h3 data-l10n-id="confirmation">' +
-                 'Confirmation' +
-               '</h3>' +
-               '<p>' +
-                 '<span id="confirm-nfc-connect-msg">' +
-                   'Do you want to?' +
-                 '</span>' +
-               '</p>' +
-             '</div>' +
-             '<menu data-items="2">' +
-               '<button type="cancel">' +
-                 'No' +
-               '</button>' +
-               '<button type="ok">' +
-                 'Yes' +
-               '</button>' +
-             '</menu>' +
-           '</div>';
+    return `<div id="${this.instanceID}" role="dialog"
+                class="generic-dialog"
+                data-z-index-level="nfc-connect-dialog">
+             <div class="modal-dialog-message-container inner">
+               <h3 data-l10n-id="confirmation"></h3>
+               <p>
+                 <span id="confirm-nfc-connect-msg"></span>
+               </p>
+             </div>
+             <menu data-items="2">
+               <button type="cancel"></button>
+               <button type="ok"></button>
+             </menu>
+           </div>`;
   };
 
   // Get all elements when inited.

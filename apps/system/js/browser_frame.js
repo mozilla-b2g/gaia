@@ -48,6 +48,10 @@
       browser.setAttribute('remote', 'true');
     }
 
+    if (config.isPrivate) {
+      browser.setAttribute('mozprivatebrowsing', 'true');
+    }
+
     if (config.manifestURL) {
       browser.setAttribute('mozapp', config.manifestURL);
 
@@ -60,12 +64,6 @@
 
     if (config.parentApp) {
       browser.setAttribute('parentapp', config.parentApp);
-    }
-
-    if (config.useAsyncPanZoom) {
-      // XXX: Move this dataset assignment into app window object.
-      browser.dataset.useAsyncPanZoom = true;
-      browser.setAttribute('mozasyncpanzoom', 'true');
     }
 
     if (config.isInputMethod) {

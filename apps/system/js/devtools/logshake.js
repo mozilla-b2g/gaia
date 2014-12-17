@@ -1,4 +1,4 @@
-/* global MozActivity, dump */
+/* global MozActivity, dump, ModalDialog */
 (function(exports) {
   'use strict';
   /**
@@ -61,7 +61,7 @@
 
     handleCaptureLogsStart: function(event) {
       debug('handling capture-logs-start');
-      this._notify('logsStart', '');
+      this._notify('logsSaving', '');
     },
 
     /**
@@ -117,13 +117,41 @@
       });
     },
 
+    ERRNO_TO_MSG: {
+       0: 'logsGenericError',
+      30: 'logsSDCardMaybeShared' // errno: filesystem ro-mounted
+    },
+
     handleCaptureLogsError: function(event) {
       debug('handling capture logs error');
       var error = '';
       if (event) {
         error = event.detail.error;
       }
-      this._notify('logsFailed', error);
+
+      var moreInfos;
+      if (typeof error === 'object') {
+        // Small heuristic for some frequent unix error cases
+        if ('operation' in error && 'unixErrno' in error) {
+          var errno = error.unixErrno;
+          debug('errno: ' + errno);
+
+          // Gracefully fallback to a generic error messages if we don't know
+          // this errno code.
+          if (!this.ERRNO_TO_MSG[errno]) {
+            errno = 0;
+          }
+
+          error = navigator.mozL10n.get('logsOperationFailed',
+                                        { operation: error.operation });
+          moreInfos = (function() {
+            ModalDialog.alert('logsSaveError',
+                              this.ERRNO_TO_MSG[errno], { title: 'ok' });
+          }).bind(this);
+        }
+      }
+
+      this._notify('logsSaveError', error, moreInfos);
     },
 
     _notify: function(titleId, body, onclick) {

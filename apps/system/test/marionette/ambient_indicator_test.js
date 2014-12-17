@@ -4,8 +4,6 @@ var assert = require('chai').assert;
 var AmbientIndicator = require('./lib/ambient_indicator');
 var UtilityTray = require('./lib/utility_tray');
 var NotificationTest = require('./lib/notification').NotificationTest;
-var System = require('./lib/system');
-
 marionette('Ambient indicator', function() {
 
   var client = marionette.client({
@@ -17,8 +15,11 @@ marionette('Ambient indicator', function() {
 
   var ambientIndicator = new AmbientIndicator(client);
   var utilityTray = new UtilityTray(client);
-  var system = new System(client);
-  var details, notification;
+  var details, notification, system;
+
+  setup(function() {
+    system = client.loader.getAppClass('system');
+  });
 
   suite('Ambient indicator', function() {
     setup(function() {

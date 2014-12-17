@@ -2,8 +2,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import expected
+from marionette import Wait
 from marionette.by import By
 from gaiatest.apps.base import Base
+from marionette import Wait
 
 
 class ContactDetails(Base):
@@ -20,7 +23,8 @@ class ContactDetails(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_condition(lambda m: m.find_element(*self._details_header_locator).location['x'] == 0)
+        el = self.marionette.find_element(*self._details_header_locator)
+        Wait(self.marionette).until(lambda m: el.location['x'] == 0)
 
     @property
     def full_name(self):
@@ -43,9 +47,9 @@ class ContactDetails(Base):
         return self.marionette.find_element(*self._contact_image_locator).get_attribute('style')
 
     def tap_phone_number(self):
-        call_button = self.marionette.find_element(*self._call_phone_number_button_locator)
-        self.wait_for_condition(lambda m: call_button.is_enabled())
-        call_button.tap()
+        call = self.marionette.find_element(*self._call_phone_number_button_locator)
+        Wait(self.marionette).until(expected.element_enabled(call))
+        call.tap()
         from gaiatest.apps.phone.regions.call_screen import CallScreen
         return CallScreen(self.marionette)
 
@@ -55,31 +59,39 @@ class ContactDetails(Base):
         return NewMessage(self.marionette)
 
     def tap_edit(self):
-        self.wait_for_element_displayed(*self._edit_contact_button_locator)
-        self.marionette.find_element(*self._edit_contact_button_locator).tap()
-        self.wait_for_element_not_displayed(*self._edit_contact_button_locator)
+        edit = Wait(self.marionette).until(expected.element_present(
+            *self._edit_contact_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(edit))
+        edit.tap()
+        Wait(self.marionette).until(expected.element_not_displayed(edit))
         from gaiatest.apps.contacts.regions.contact_form import EditContact
         return EditContact(self.marionette)
 
     def a11y_click_edit(self):
-        self.wait_for_element_displayed(*self._edit_contact_button_locator)
-        self.accessibility.click(self.marionette.find_element(*self._edit_contact_button_locator))
+        edit = Wait(self.marionette).until(expected.element_present(
+            *self._edit_contact_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(edit))
+        self.accessibility.click(edit)
         from gaiatest.apps.contacts.regions.contact_form import EditContact
         return EditContact(self.marionette)
 
     def tap_back(self):
-        self.wait_for_element_displayed(*self._details_header_locator)
-
+        el = self.marionette.find_element(*self._details_header_locator)
+        Wait(self.marionette).until(expected.element_displayed(el))
         # TODO: remove tap with coordinates after Bug 1061698 is fixed
-        self.marionette.find_element(*self._details_header_locator).tap(25, 25)
-
-        self.wait_for_element_not_displayed(*self._details_header_locator)
+        el.tap(25, 25)
+        Wait(self.marionette).until(expected.element_not_displayed(el))
         from gaiatest.apps.contacts.app import Contacts
         return Contacts(self.marionette)
 
     def tap_add_remove_favorite(self):
         button = self.marionette.find_element(*self._add_remove_favorite_button_locator)
+        # Capture the current state of the element
+        initial_state = button.get_attribute('data-l10n-id')
+        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [button])
         button.tap()
+        # Wait for it to have toggled
+        Wait(self.marionette).until(lambda m: button.get_attribute('data-l10n-id') != initial_state)
 
     @property
     def add_remove_text(self):

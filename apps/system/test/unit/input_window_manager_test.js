@@ -1,24 +1,60 @@
 'use strict';
 
-/* global MocksHelper, InputWindowManager, MockKeyboardManager,
-   MockInputWindow */
+/* global MocksHelper, InputWindowManager, MockKeyboardManager, MockPromise,
+   InputWindow, MockSettingsListener */
 
 require('/shared/test/unit/mocks/mock_custom_event.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/mock_promise.js');
+require('/test/unit/mock_orientation_manager.js');
 require('/test/unit/mock_keyboard_manager.js');
-require('/test/unit/mock_input_window.js');
 require('/js/input_window_manager.js');
 
 var mocksForInputWindowManager = new MocksHelper([
-  'KeyboardManager', 'InputWindow', 'CustomEvent'
+  'OrientationManager', 'SettingsListener', 'KeyboardManager', 'CustomEvent'
 ]).init();
 
 suite('InputWindowManager', function() {
   mocksForInputWindowManager.attachTestHelpers();
 
   var manager;
+  var stubIWConstructor;
+  var realGetFeature;
 
-  setup(function(){
-    manager = new InputWindowManager(MockKeyboardManager);
+  suiteSetup(function(done) {
+    require('/js/browser_frame.js');
+    require('/js/app_transition_controller.js');
+    require('/js/app_window.js');
+    require('/js/browser_mixin.js');
+    require('/js/input_window.js', function() {
+      done();
+    });
+  });
+
+  setup(function() {
+    var realIWPrototype = InputWindow.prototype;
+    stubIWConstructor = this.sinon.stub(window, 'InputWindow', () =>
+      // simulate |sinon.createStubInstance|: we want a new stubbed instance
+      // each time we call the constructor, so use Object.create here.
+      this.sinon.stub(Object.create(realIWPrototype))
+    );
+
+    realGetFeature = navigator.getFeature;
+    var getFeaturePromise = new MockPromise();
+    navigator.getFeature = this.sinon.stub().returns(getFeaturePromise);
+
+    manager = new InputWindowManager();
+
+    getFeaturePromise.mFulfillToValue(768);
+  });
+
+  teardown(function() {
+    navigator.getFeature = realGetFeature;
+  });
+
+  test('Hardware memory is correctly retrieved', function() {
+    assert.equal(manager._totalMemory, 768);
+    assert.isTrue(navigator.getFeature.calledWith('hardware.memory'));
   });
 
   suite('Event handling', function() {
@@ -38,7 +74,7 @@ suite('InputWindowManager', function() {
         test(`Send keyboardchange if source InputWindow
               is currentWindow`, function() {
 
-          var inputWindow = new MockInputWindow();
+          var inputWindow = new InputWindow();
           inputWindow.height = 200;
 
           manager._currentWindow = inputWindow;
@@ -52,9 +88,8 @@ suite('InputWindowManager', function() {
         test(`Do not send keyboardchange if source InputWindow
               is not currentWindow`, function() {
 
-          manager._currentWindow = new MockInputWindow();
-          evt.detail = new MockInputWindow();
-
+          manager._currentWindow = new InputWindow();
+          evt.detail = new InputWindow();
           manager.handleEvent(evt);
 
           assert.isFalse(stubKBPublish.called);
@@ -71,7 +106,7 @@ suite('InputWindowManager', function() {
 
       setup(function() {
         stubKBReady =
-          this.sinon.stub(manager._keyboardManager, '_onKeyboardReady');
+          this.sinon.stub(MockKeyboardManager, '_onKeyboardReady');
 
         evt = {
           type: 'input-appready'
@@ -81,7 +116,7 @@ suite('InputWindowManager', function() {
       test(`Call onKeyboardReady if Source InputWindow
             is currentWindow`, function() {
 
-        var inputWindow = new MockInputWindow();
+        var inputWindow = new InputWindow();
 
         manager._currentWindow = inputWindow;
         evt.detail = inputWindow;
@@ -94,24 +129,37 @@ suite('InputWindowManager', function() {
       test(`Do not call onKeyboardReady if source InputWindow
             is not currentWindow`, function() {
 
-        manager._currentWindow = new MockInputWindow();
-        evt.detail = new MockInputWindow();
+        manager._currentWindow = new InputWindow();
+        evt.detail = new InputWindow();
 
         manager.handleEvent(evt);
 
         assert.isFalse(stubKBReady.called);
       });
 
-      test('Immediate-closes lastWindow if it is available', function() {
-        manager._lastWindow = new MockInputWindow();
-
-        var stubClose = this.sinon.stub(manager._lastWindow, 'close');
-
-        evt.detail = new MockInputWindow();
+      test('Immediate-closes lastWindow if it is available and not dead',
+      function() {
+        var lastWindow = new InputWindow();
+        manager._lastWindow = lastWindow;
+        lastWindow.isDead.returns(false);
+        evt.detail = new InputWindow();
 
         manager.handleEvent(evt);
 
-        assert.isTrue(stubClose.calledWith('immediate'));
+        assert.isTrue(lastWindow.close.calledWith('immediate'));
+        assert.strictEqual(manager._lastWindow, null);
+      });
+
+      test('Do not immediate-closes lastWindow if it is dead',
+      function() {
+        var lastWindow = new InputWindow();
+        manager._lastWindow = lastWindow;
+        lastWindow.isDead.returns(true);
+        evt.detail = new InputWindow();
+
+        manager.handleEvent(evt);
+
+        assert.isFalse(lastWindow.close.called);
         assert.strictEqual(manager._lastWindow, null);
       });
     });
@@ -125,7 +173,7 @@ suite('InputWindowManager', function() {
 
         evt = {
           type: 'input-appclosing',
-          detail: new MockInputWindow()
+          detail: new InputWindow()
         };
       });
 
@@ -138,7 +186,7 @@ suite('InputWindowManager', function() {
       });
 
       test('Do not send keyboardhide if there is currentWindow', function() {
-        manager._currentWindow = new MockInputWindow();
+        manager._currentWindow = new InputWindow();
 
         manager.handleEvent(evt);
 
@@ -155,7 +203,7 @@ suite('InputWindowManager', function() {
 
         evt = {
           type: 'input-appclosed',
-          detail: new MockInputWindow()
+          detail: new InputWindow()
         };
       });
 
@@ -168,7 +216,7 @@ suite('InputWindowManager', function() {
       });
 
       test('Do not send keyboardhidden if there is currentWindow', function() {
-        manager._currentWindow = new MockInputWindow();
+        manager._currentWindow = new InputWindow();
 
         manager.handleEvent(evt);
 
@@ -176,39 +224,181 @@ suite('InputWindowManager', function() {
       });
 
       test('Source InputWindow is deactivated', function() {
-        var stubSetAsActiveInput =
-          this.sinon.stub(evt.detail,'_setAsActiveInput');
-
         manager.handleEvent(evt);
 
-        assert.isTrue(stubSetAsActiveInput.calledWith(false));
+        assert.isTrue(evt.detail._setAsActiveInput.calledWith(false));
       });
     });
 
-    test('input-appterminated', function() {
-      var inputWindow = new MockInputWindow();
+    suite('input-appterminated', function() {
+      var stubRemoveInputApp;
+      var stubOnKeyboardKilled;
+      var victimInputWindow;
+      var evt;
 
-      var evt = {
-        type: 'input-appterminated',
-        detail: inputWindow
+      setup(function(){
+        stubRemoveInputApp = this.sinon.stub(manager, '_removeInputApp');
+
+        stubOnKeyboardKilled =
+          this.sinon.stub(MockKeyboardManager, '_onKeyboardKilled');
+
+        victimInputWindow = new InputWindow();
+
+        victimInputWindow.manifestURL =
+          'app://victim-kb.gaiamobile.org/manifest.webapp';
+
+        evt = {
+          type: 'input-appterminated',
+          detail: victimInputWindow
+        };
+      });
+
+      test('Not the currentWindow', function() {
+        manager._currentWindow = new InputWindow();
+
+        manager.handleEvent(evt);
+
+        assert.isTrue(
+          stubRemoveInputApp.calledWith(victimInputWindow.manifestURL));
+        assert.isFalse(
+          stubOnKeyboardKilled.calledWith(victimInputWindow.manifestURL));
+      });
+      test('Killed the currentWindow', function() {
+        manager._currentWindow = victimInputWindow;
+
+        manager.handleEvent(evt);
+
+        assert.isTrue(
+          stubRemoveInputApp.calledWith(victimInputWindow.manifestURL));
+        assert.isTrue(
+          stubOnKeyboardKilled.calledWith(victimInputWindow.manifestURL));
+      });
+    });
+
+    suite('External events for hideInputWindowImmediately', function() {
+      var stubHideInputWindowImmediately;
+      setup(function() {
+        stubHideInputWindowImmediately =
+          this.sinon.stub(manager, 'hideInputWindowImmediately');
+      });
+
+      var testForHideImmeidately = function(evtType) {
+        test(evtType, function() {
+          manager.handleEvent(new CustomEvent(evtType));
+
+          assert.isTrue(stubHideInputWindowImmediately.called);
+        });
       };
 
-      inputWindow.manifestURL =
-        'app://victim-kb.gaiamobile.org/manifest.webapp';
+      ['activityrequesting', 'activityopening', 'activityclosing',
+       'attentionrequestopen', 'attentionrecovering', 'attentionopening',
+       'attentionclosing', 'attentionopened', 'attentionclosed',
+       'notification-clicked', 'applicationsetupdialogshow'].forEach(evtType =>
+      {
+        testForHideImmeidately(evtType);
+      });
+    });
 
-      var stubRemoveKeyboard =
-        this.sinon.stub(manager._keyboardManager, 'removeKeyboard');
+    suite('External events for removing input focus', function() {
+      var stubHasActiveInputApp;
+      var realInputMethod;
 
-      manager.handleEvent(evt);
+      setup(function() {
+        stubHasActiveInputApp = this.sinon.stub(manager, '_hasActiveInputApp');
 
-      assert.isTrue(stubRemoveKeyboard.calledWith(inputWindow.manifestURL));
+        realInputMethod = window.navigator.mozInputMethod;
+        navigator.mozInputMethod = {
+          removeFocus: this.sinon.stub()
+        };
+      });
+
+      teardown(function() {
+        navigator.mozInputMethod = realInputMethod;
+      });
+
+      var testForRemoveFocus = function(evtType) {
+        test(evtType + ' do nothing if there is no active keyboard',
+        function() {
+          stubHasActiveInputApp.returns(false);
+
+          manager.handleEvent(new CustomEvent(evtType));
+
+          assert.isFalse(navigator.mozInputMethod.removeFocus.called);
+        });
+
+        test(evtType + ' remove focus if there is active keyboard', function() {
+          stubHasActiveInputApp.returns(true);
+
+          manager.handleEvent(new CustomEvent(evtType));
+
+          assert.isTrue(navigator.mozInputMethod.removeFocus.called);
+        });
+      };
+
+      ['lockscreen-appopened', 'sheets-gesture-begin'].forEach(evtType => {
+        testForRemoveFocus(evtType);
+      });
+    });
+
+    suite('mozmemorypressure', function() {
+      var stubHasActiveInputApp;
+      var stubRemoveInputApp;
+      var stubGetLoadedManifestURLs;
+
+      setup(function() {
+        stubHasActiveInputApp = this.sinon.stub(manager, '_hasActiveInputApp');
+        stubGetLoadedManifestURLs =
+          this.sinon.stub(manager, 'getLoadedManifestURLs');
+        stubRemoveInputApp = this.sinon.stub(manager, '_removeInputApp');
+      });
+
+      test('Do nothing if oop is enabled', function() {
+        manager.isOutOfProcessEnabled = true;
+
+        manager.handleEvent(new CustomEvent('mozmemorypressure'));
+
+        assert.isFalse(stubGetLoadedManifestURLs.called);
+        assert.isFalse(stubRemoveInputApp.called);
+      });
+
+      test('Do nothing if we have active app', function() {
+        stubHasActiveInputApp.returns(true);
+
+        manager.handleEvent(new CustomEvent('mozmemorypressure'));
+
+        assert.isFalse(stubGetLoadedManifestURLs.called);
+        assert.isFalse(stubRemoveInputApp.called);
+      });
+
+      test('Actually removeInputApp', function() {
+        manager.isOutOfProcessEnabled = false;
+        stubHasActiveInputApp.returns(false);
+
+        var manifestURLs = [
+          'app://keyboard1.gaiamobile.org/manifest.webapp',
+          'app://keyboard2.gaiamobile.org/manifest.webapp',
+          'app://keyboard3.gaiamobile.org/manifest.webapp'
+        ];
+
+        stubGetLoadedManifestURLs.returns(manifestURLs);
+
+        manager.handleEvent(new CustomEvent('mozmemorypressure'));
+
+        assert.equal(stubRemoveInputApp.callCount, manifestURLs.length,
+          '_removeInputApp should be called as many times as count of KBs');
+
+        manifestURLs.forEach(manifestURL => {
+          assert.isTrue(stubRemoveInputApp.calledWith(manifestURL),
+            '_removeInputApp was not called with ' + manifestURL);
+        });
+      });
     });
   });
 
-  test('removeKeyboard', function() {
-    var inputWindow = this.sinon.stub(new MockInputWindow());
-    var inputWindow2 = this.sinon.stub(new MockInputWindow());
-    var inputWindow3 = this.sinon.stub(new MockInputWindow());
+  test('removeInputApp', function() {
+    var inputWindow = new InputWindow();
+    var inputWindow2 = new InputWindow();
+    var inputWindow3 = new InputWindow();
 
     manager._inputWindows['app://keyboard.gaiamobile.org/manifest.webapp'] = {
       '/index.html': inputWindow,
@@ -218,7 +408,7 @@ suite('InputWindowManager', function() {
       '/index.html': inputWindow3
     };
 
-    manager.removeKeyboard('app://keyboard.gaiamobile.org/manifest.webapp');
+    manager._removeInputApp('app://keyboard.gaiamobile.org/manifest.webapp');
 
     assert.isTrue(inputWindow.destroy.called);
     assert.isTrue(inputWindow2.destroy.called);
@@ -234,27 +424,99 @@ suite('InputWindowManager', function() {
     );
   });
 
+  test('onInputLayoutsRemoved', function() {
+    var manifestURLs1 = [
+      'app://keyboard1.gaiamobile.org/manifest.webapp',
+      'app://keyboard2.gaiamobile.org/manifest.webapp',
+      'app://keyboard3.gaiamobile.org/manifest.webapp'
+    ];
+
+    var manifestURLs2 = [
+      'app://keyboard4.gaiamobile.org/manifest.webapp',
+      'app://keyboard5.gaiamobile.org/manifest.webapp',
+      'app://keyboard6.gaiamobile.org/manifest.webapp'
+    ];
+
+    manager._currentWindow = new InputWindow();
+    manager._currentWindow.manifestURL =
+      'app://keyboard5.gaiamobile.org/manifest.webapp';
+
+    var stubHideInputWindow = this.sinon.stub(manager, 'hideInputWindow');
+    var stubRemoveInputApp = this.sinon.stub(manager, '_removeInputApp');
+
+    // removed apps do not include current window
+    manager._onInputLayoutsRemoved(manifestURLs1);
+    assert.isFalse(stubHideInputWindow.called);
+
+    manifestURLs1.forEach(manifestURL => {
+      assert.isTrue(stubRemoveInputApp.calledWith(manifestURL),
+        manifestURL + ' was not passed to removeInputApp');
+    });
+
+    // removed apps include current window
+    manager._onInputLayoutsRemoved(manifestURLs2);
+    assert.isTrue(stubHideInputWindow.calledOnce);
+
+    manifestURLs1.forEach(manifestURL => {
+      assert.isTrue(stubRemoveInputApp.calledWith(manifestURL),
+        manifestURL + ' was not passed to removeInputApp');
+    });
+  });
+
   test('getHeight', function() {
-    manager._currentWindow = new MockInputWindow();
+    manager._currentWindow = new InputWindow();
     manager._currentWindow.height = 300;
 
     assert.equal(manager.getHeight(), 300);
   });
 
-  test('hasActiveKeyboard', function() {
-    manager._currentWindow = undefined;
-    assert.isFalse(manager.hasActiveKeyboard());
+  suite('Observation on 3rd-party keyboard Settings', function() {
+    setup(function() {
+      MockSettingsListener.mTeardown();
+    });
 
-    manager._currentWindow = new MockInputWindow();
-    assert.isTrue(manager.hasActiveKeyboard());
+    teardown(function() {
+      MockSettingsListener.mTeardown();
+    });
+
+    test('start observes/stop unobserves correctly', function() {
+      var stubObserve = this.sinon.stub(MockSettingsListener, 'observe');
+
+      manager.start();
+
+      assert.isTrue(
+        stubObserve.calledWith('keyboard.3rd-party-app.enabled'), true);
+
+      var callback = MockSettingsListener.mCallback;
+
+      var stubUnobserve = this.sinon.stub(MockSettingsListener, 'unobserve');
+
+      manager.stop();
+
+      assert.isTrue(
+        stubUnobserve.calledWith('keyboard.3rd-party-app.enabled'), callback);
+    });
+    test('setting is correctly set by callback', function() {
+      manager.isOutOfProcessEnabled = undefined;
+
+      manager.start();
+
+      var callback = MockSettingsListener.mCallback;
+
+      callback(true);
+
+      manager.stop();
+
+      assert.isTrue(manager.isOutOfProcessEnabled);
+    });
   });
 
-  test('hasActiveKeyboard', function() {
+  test('hasActiveInputApp', function() {
     manager._currentWindow = undefined;
-    assert.isFalse(manager.hasActiveKeyboard());
+    assert.isFalse(manager._hasActiveInputApp());
 
-    manager._currentWindow = new MockInputWindow();
-    assert.isTrue(manager.hasActiveKeyboard());
+    manager._currentWindow = new InputWindow();
+    assert.isTrue(manager._hasActiveInputApp());
   });
 
   suite('extractLayoutConfigs', function() {
@@ -329,7 +591,7 @@ suite('InputWindowManager', function() {
 
         var inputWindow = manager._makeInputWindow(configs);
 
-        assert.equal(configs, inputWindow._storedConfigs,
+        assert.equal(configs, stubIWConstructor.getCall(0).args[0],
                      'configs should be passed into inputWindow');
 
         assert.equal(
@@ -362,22 +624,6 @@ suite('InputWindowManager', function() {
       // the key point of loading an input app is we determine whether to make
       // it out-of-process correctly, so it's being thoroughly tested.
       suite('oop flag', function() {
-        var oldKBManagerOOPEnabled;
-        var oldKBManagerTotalMemory;
-
-        setup(function() {
-          oldKBManagerOOPEnabled =
-            manager._keyboardManager.isOutOfProcessEnabled;
-          oldKBManagerTotalMemory = manager._keyboardManager.totalMemory;
-        });
-
-        teardown(function() {
-          manager._keyboardManager.isOutOfProcessEnabled = 
-            oldKBManagerOOPEnabled;
-
-          manager._keyboardManager.totalMemory = oldKBManagerTotalMemory;
-        });
-
         var oopTest = function(certified, oopEnabled, memory, expectedOOP) {
           var configs = {
             manifest: {
@@ -395,8 +641,8 @@ suite('InputWindowManager', function() {
             configs.manifest.type = 'privileged';
           }
 
-          manager._keyboardManager.isOutOfProcessEnabled = oopEnabled;
-          manager._keyboardManager.totalMemory = memory;
+          manager.isOutOfProcessEnabled = oopEnabled;
+          manager._totalMemory = memory;
 
           manager._makeInputWindow(configs);
 
@@ -492,8 +738,8 @@ suite('InputWindowManager', function() {
       var inputWindow2;
 
       setup(function() {
-        inputWindow = this.sinon.stub(new MockInputWindow());
-        inputWindow2 = this.sinon.stub(new MockInputWindow());
+        inputWindow = new InputWindow();
+        inputWindow2 = new InputWindow();
       });
 
       test('Parameters are passed to helper functions correctly', function() {
@@ -610,7 +856,7 @@ suite('InputWindowManager', function() {
     });
 
     test('hideInputWindow', function() {
-      var inputWindow = this.sinon.stub(new MockInputWindow());
+      var inputWindow = new InputWindow();
       manager._currentWindow = inputWindow;
 
       manager.hideInputWindow();
@@ -623,7 +869,7 @@ suite('InputWindowManager', function() {
     test('hideInputWindowImmediately', function() {
       var stubKBPublish = this.sinon.stub(manager, '_kbPublish');
 
-      var inputWindow = this.sinon.stub(new MockInputWindow());
+      var inputWindow = new InputWindow();
       manager._currentWindow = inputWindow;
 
       manager.hideInputWindowImmediately();
@@ -651,7 +897,7 @@ suite('InputWindowManager', function() {
 
       manager._kbPublish('keyboardevent', 400);
 
-      assert.deepEqual(stubDispatchEvent.getCall(0).args[0], {
+      sinon.assert.calledWithMatch(stubDispatchEvent, {
         type: 'keyboardevent',
         bubbles: true,
         cancelable: true,

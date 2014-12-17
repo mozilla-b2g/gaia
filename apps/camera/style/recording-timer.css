@@ -1,23 +1,36 @@
 
 .recording-timer {
-  display: flex;
   position: absolute;
-  top: 1.7rem; left: 1.4rem;
+  top: 0;
+  left: 0;
   z-index: 1;
+
   width: 10rem;
   height: 5rem;
-  font-size: 2rem;
-  line-height: 1em;
-  align-items: center;
-  padding: 0 1.5rem;
+  margin: 1.7rem 1.4rem;
+  -moz-padding-start: 3.3rem;
+  -moz-padding-end: 1.7rem;
+
+  background-color: rgba(0,0,0,0.12);
   border-radius: 5.6rem;
   color: #ffffff;
+  font-size: 2rem;
+  line-height: 5rem;
+  text-align: left;
   pointer-events: none;
-  background-color: rgba(0,0,0,0.12);
   opacity: 0;
   -moz-user-select: none;
   transition: opacity 0.2s ease-in-out;
   will-change: opacity;
+}
+
+/**
+ * [dir=rtl]
+ */
+
+[dir=rtl] .recording-timer {
+  right: 0;
+  left: auto;
 }
 
 /**
@@ -54,14 +67,27 @@
  ---------------------------------------------------------*/
 
 .recording-timer:before {
+  position: absolute;
+  top: 0;
+  left: 0;
+
   content: '';
   display: block;
-  flex-shrink: 0;
-  background: #d92e2e;
-  border-radius: 50%;
   width: 1.4rem;
   height: 1.4rem;
-  margin-right: 0.6rem;
+  margin: 1.8rem 1.4rem;
+
+  background: #d92e2e;
+  border-radius: 50%;
+}
+
+/**
+ * [dir=rtl]
+ */
+
+[dir=rtl] .recording-timer:before {
+  right: 0;
+  left: auto;
 }
 
 /**

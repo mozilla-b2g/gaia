@@ -18,7 +18,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/lists.css">
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css">
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/sim_picker.css">
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css">
     <!-- App styles -->
     <link rel="stylesheet" type="text/css" href="style/common.css">
     <link rel="stylesheet" type="text/css" href="style/sms.css">
@@ -31,7 +31,6 @@
     <link rel="manifest" href="manifest.webapp">
     <link rel="localization" href="locales/sms.{locale}.properties">
     <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
-    <link rel="localization" href="/shared/locales/sim_picker/sim_picker.{locale}.properties">
     <!-- Firefox Desktop shims -->
     <script defer src="js/desktop-only/navigator_moz_icc_manager.js"></script>
     <script defer src="js/desktop-only/navigator_moz_settings.js"></script>
@@ -40,9 +39,17 @@
     <script defer src="js/desktop-only/async_storage.js"></script>
     <!-- Web Components -->
     <script defer src="/shared/elements/config.js"></script>
-    <!-- <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/gaia-icons.css" /> -->
     <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css" />
-    <script defer src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
+    <script async src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
+    <link rel="localization" href="/shared/elements/gaia_menu/locales/gaia_menu.{locale}.properties">
+    <link rel="localization" href="/shared/elements/gaia_sim_picker/locales/gaia_sim_picker.{locale}.properties">
+    <!--
+    <script defer src="shared/js/component_utils.js"></script>
+    <script defer src="shared/elements/gaia_menu/script.js"></script>
+    <script defer src="shared/elements/gaia_sim_picker/script.js"></script>
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia_menu/style.css">
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia_sim_picker/style.css">
+    -->
     <!-- Shared code -->
     <script defer src="shared/js/l10n.js"></script>
     <script defer src="shared/js/l10n_date.js"></script>
@@ -77,7 +84,6 @@
     <script defer src="shared/js/mime_mapper.js"></script>
     <script defer src="shared/js/mobile_operator.js"></script>
     <script defer src="shared/js/settings_listener.js"></script>
-    <script defer src="shared/js/sim_picker.js"></script>
     <script defer src="shared/js/multi_sim_action_button.js"></script>
     <script defer src="shared/js/option_menu.js"></script>
     <script defer src="shared/js/image_utils.js"></script>
@@ -106,8 +112,6 @@
     <script defer src="js/contact_renderer.js"></script>
     <script defer src="js/information.js"></script>
     -->
-    <!-- Elements -->
-    <link rel="import" href="/shared/elements/sim_picker.html">
   </head>
 
   <body role="application" class="skin-comms theme-communications">
@@ -147,7 +151,7 @@
         <div id="sticky"></div>
       </section>
 
-      <section id="thread-messages" class="panel" role="region" aria-hidden="true">
+      <section id="thread-messages" class="panel editable-select-mode" role="region" aria-hidden="true">
         <gaia-header id="messages-header" class="view-header regular-header" action="back">
           <h1 id="messages-header-text" aria-hidden="true"></h1>
           <button id="messages-call-number-button" data-icon="call" class="hide"></button>
@@ -255,19 +259,23 @@
           <div class="flex-composer">
             <div id="messages-container" data-type="list" class="article-list"></div>
             <form id="messages-compose-form" role="search" class="bottom" data-message-type="sms">
-              <section class="subject-composer js-subject-composer hide">
-                <div contentEditable="true" class="subject-composer-input"
-                     role="textbox"
-                     aria-multiline="false">
-                </div>
-                <div class="subject-composer-placeholder"
-                     data-l10n-id="messagesSubjectInput_placeholder">
-                </div>
-                <span class="mms-label subject-composer-mms-label"
+              <section class="mms-label-line">
+                <section class="subject-composer js-subject-composer hide">
+                  <div contentEditable="true" class="subject-composer-input"
+                       role="textbox"
+                       aria-multiline="false">
+                  </div>
+                  <div class="subject-composer-placeholder"
+                       data-l10n-id="messagesSubjectInput_placeholder">
+                  </div>
+                </section>
+                <span class="mms-label"
                       data-l10n-id="mms-label">MMS</span>
               </section>
-              <section class="content-composer js-content-composer">
-                <button id="messages-attach-button" aria-label="Add attachment" data-l10n-id="attach-button" type="button"></button>
+              <section class="content-composer">
+                <div class="messages-attach-container">
+                  <button id="messages-attach-button" aria-label="Add attachment" data-l10n-id="attach-button" type="button"></button>
+                </div>
                 <div class="composer-message-input-container">
                   <div id="messages-input" contentEditable="true" name="message"
                        x-inputmode="-moz-sms" class="js-l10n-placeholder"
@@ -275,7 +283,6 @@
                   </div>
                 </div>
                 <div class="composer-button-container">
-                  <span class="mms-label content-composer-mms-label" data-l10n-id="mms-label">MMS</span>
                   <span class="message-counter js-message-counter"></span>
                   <button id="messages-send-button" class="icon" aria-label="Send" data-l10n-id="send-button" type="submit">
                     <div class="js-sim-indication sim-indication" data-l10n-id="send-button-sim-indication"></div>
@@ -338,7 +345,7 @@
           data-number="${number}" data-source="contacts" data-name="${name}"
           data-type="${type}" data-carrier="${carrier}">
           ${photoHTML}
-          <p class="name">${nameHTML}</p>
+          <p class="name"><bdi>${nameHTML}</bdi></p>
           <p class="number">${phoneDetailsHTML}</p>
         </a>
       </li>
@@ -365,7 +372,7 @@
       <!--
       <div class="contact-header">
         ${photoHTML}
-        <p class="name">${name}</p>
+        <p class="name"><bdi>${name}</bdi></p>
         <p class="details">${phoneDetailsHTML}</p>
       </div>
       -->
@@ -388,7 +395,7 @@
     <div id="messages-number-tmpl" class="hide">
       <!--
       <a class="suggestion" data-number="${number}" data-source="manual" data-name="${number}">
-        <p class="name">${number}</p>
+        <p class="name"><bdi>${number}</bdi></p>
       </a>
       -->
     </div>
@@ -441,7 +448,7 @@
           ${subject}
         </h1>
         <div class="message-content">
-          <p>${bodyHTML}</p>
+          <p class="message-content-body" tabindex="-1">${bodyHTML}</p>
           <div class="message-details">
             ${simInformationHTML}
             <time data-time-update="true" data-time-only="true" data-time="${timestamp}"></time>
@@ -483,11 +490,11 @@
                data-l10n-id="contact-photo">
           <span data-type="img"></span>
         </aside>
-        <p class="name">${number}</p>
+        <p class="threadlist-item-title"><bdi>${number}</bdi></p>
         <p class="summary">
           <time data-time-update="true" data-time-only="true" data-time="${timestamp}"></time>
           <span class="mms-icon" data-l10n-id="mms-label">MMS</span>
-          <span class="body-text">${bodyHTML}</span>
+          <span dir="auto" class="body-text">${bodyHTML}</span>
         </p>
       </a>
       -->
@@ -498,7 +505,7 @@
       <span class="${className}" x-inputmode="verbatim"
         contenteditable="${editable}" role="${role}"
         data-number="${number}" data-source="${source}" data-name="${name}"
-        data-carrier="${carrier}" data-type="${type}">
+        data-carrier="${carrier}" data-type="${type}" dir="auto">
         ${name}
       </span>
       -->
@@ -542,23 +549,32 @@
       Please, don't change template markup alignment, it's done this way to
       remove any whitespace symbols between inline elements.
     -->
-    <div id="phone-details-tmpl">
+    <div id="phone-details-tmpl" class="hide">
       <!--
       <span class="phone-details ${hasTypeClass} ${hasCarrierClass}">
-        <span class="phone-type phone-details-item"
+        <span dir="auto" class="phone-type phone-details-item"
               data-l10n-id="${type}">${type}</span><span
               class="phone-type-separator phone-details-item"
               data-l10n-id="phone-type-separator"></span><span
-              class="phone-number phone-details-item">${number}</span><span
+              class="phone-number phone-details-item" dir="ltr">${number}</span><span
               class="phone-carrier-separator phone-details-item"
               data-l10n-id="phone-carrier-separator"></span><span
-              class="phone-carrier phone-details-item">${carrier}</span>
+              class="phone-carrier phone-details-item" dir="auto">${carrier}</span>
       </span>
       -->
     </div>
 
+    <div id="messages-header-tmpl" class="hide">
+      <!--
+      <bdi>${name}</bdi>
+      <bdi dir="ltr" class="thread-participant-count">
+      &nbsp;‎(+${participantCount})
+      </bdi>
+      -->
+    </div>
+
     <article>
-      <form is="sim-picker" id="sim-picker" role="dialog" data-type="action" tabindex="-1" hidden></form>
+      <gaia-sim-picker id="sim-picker" tabindex="-1"></gaia-sim-picker>
     </article>
   </body>
 </html>

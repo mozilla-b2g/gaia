@@ -5,17 +5,23 @@
 (function(exports) {
 
 /**
- * LayoutNormalizer normalizes a layout's key objects such that
- * Dealing business logics with them will be less painful.
+ * LayoutKeyNormalizer normalizes a page's key objects. It may be used by
+ * LayoutNormalizer, or in LayoutManager when we want to normalize some
+ * hard-coded key objects when we process a page to render.
+ *
+ * It's to be treated as a per-page singleton utility object: We instantiate a
+ * normalizer for the page and call normalizeKey() method for each key we want
+ * to normalize, using the page as the reference for normalization parameters.
+ *
  * @class
- * @param {Object} layout the layout we're going to normalize
+ * @param {Object} page the page we're going to normalize
  */
-var LayoutNormalizer = function(layout) {
-  this._layout = layout;
-  this._normalizedLayout = null;
+
+var LayoutKeyNormalizer = function(page) {
+  this._page = page;
 };
 
-LayoutNormalizer.prototype._isSpecialKey = function(key) {
+LayoutKeyNormalizer.prototype._isSpecialKey = function(key) {
   var SPECIAL_CODES = [
     KeyEvent.DOM_VK_BACK_SPACE,
     KeyEvent.DOM_VK_CAPS_LOCK,
@@ -28,21 +34,22 @@ LayoutNormalizer.prototype._isSpecialKey = function(key) {
   return hasSpecialCode || key.keyCode <= 0;
 };
 
-LayoutNormalizer.prototype._getUpperCaseValue = function(key, page) {
+LayoutKeyNormalizer.prototype._getUpperCaseValue = function(key) {
   if (KeyEvent.DOM_VK_SPACE === key.keyCode ||
       this._isSpecialKey(key) ||
       key.compositeKey) {
     return key.value;
   }
 
-  var upperCase = page.upperCase || {};
+  var upperCase = this._page.upperCase || {};
   return upperCase[key.value] || key.value.toUpperCase();
 };
 
 // normalize one key of the layout
-LayoutNormalizer.prototype._normalizeKey = function(key, page) {
+LayoutKeyNormalizer.prototype.normalizeKey =
+function(key, showAlternatesIndicator) {
   var keyChar = key.value;
-  var upperCaseKeyChar = this._getUpperCaseValue(key, page);
+  var upperCaseKeyChar = this._getUpperCaseValue(key);
 
   var code = key.keyCode || keyChar.charCodeAt(0);
   var upperCode = key.keyCode || upperCaseKeyChar.charCodeAt(0);
@@ -55,6 +62,10 @@ LayoutNormalizer.prototype._normalizeKey = function(key, page) {
 
   key.isSpecialKey = this._isSpecialKey(key);
 
+  if (showAlternatesIndicator) {
+    key.className = 'alternate-indicator';
+  }
+
   if (key.longPressValue) {
     var longPressKeyCode = key.longPressKeyCode ||
       key.longPressValue.charCodeAt(0);
@@ -62,7 +73,7 @@ LayoutNormalizer.prototype._normalizeKey = function(key, page) {
   }
 
   if (key.supportsSwitching) {
-    this._normalizeKey(key.supportsSwitching, page);
+    this.normalizeKey(key.supportsSwitching, false);
   }
 
   if (KeyboardEvent.DOM_VK_ALT === code && !('targetPage' in key)) {
@@ -72,13 +83,31 @@ LayoutNormalizer.prototype._normalizeKey = function(key, page) {
   return key;
 };
 
+/**
+ * LayoutNormalizer normalizes a layout's key objects such that
+ * Dealing business logics with them will be less painful.
+ * @class
+ * @param {Object} layout the layout we're going to normalize
+ */
+var LayoutNormalizer = function(layout) {
+  this._layout = layout;
+  this._normalizedLayout = null;
+};
+
+LayoutNormalizer.prototype._hasAlternativeKeys = function(key, page) {
+  var alt = page.alt || {};
+
+  return key in alt;
+};
+
 // normalize all keys in the page of the layout
 LayoutNormalizer.prototype._normalizePageKeys = function(page) {
   var keyRows = page.keys || [];
+  var keyNormalizer = new LayoutKeyNormalizer(page);
 
   page.keys = keyRows.map(function(keyRow) {
     return keyRow.map(function(key) {
-      return this._normalizeKey(key, page);
+      return keyNormalizer.normalizeKey(key, false);
     }, this);
   }, this);
 
@@ -89,8 +118,12 @@ LayoutNormalizer.prototype._normalizePageKeys = function(page) {
       if (false === overwrites[overwrittenKey]) {
         result[overwrittenKey] = false;
       } else {
+        // Check whether overwriting key has alternative keys.
+        var hasAlternativeKeys =
+          this._hasAlternativeKeys(overwrites[overwrittenKey], page);
         result[overwrittenKey] =
-          this._normalizeKey({value: overwrites[overwrittenKey]}, page);
+          keyNormalizer.normalizeKey({value: overwrites[overwrittenKey]},
+                                     hasAlternativeKeys);
       }
       return result;
     }.bind(this), {});
@@ -214,6 +247,7 @@ Object.defineProperty(LayoutNormalizer.prototype, 'normalizedLayout', {
   }
 });
 
+exports.LayoutKeyNormalizer = LayoutKeyNormalizer;
 exports.LayoutNormalizer = LayoutNormalizer;
 
 })(window);

@@ -224,8 +224,29 @@ li button.activity > b em {
   padding: 2.5rem 2.5rem 0 0;
 }
 
-.active[data-type="list"] li:after, [data-type="list"] li > a:after {
-  left: 0;
+html[dir="rtl"] #view-contacts-list [data-type="list"] {
+  padding-right: 4.5rem;
+}
+
+html[dir="rtl"] #search-list li {
+  text-align: right;
+  padding-right: 1rem;
+}
+
+html[dir="rtl"] #search-list.pack-checkbox {
+  right: 0;
+}
+
+html[dir="rtl"] #search-list[data-type="list"] li > .pack-checkbox {
+  right: 0;
+}
+
+html[dir="rtl"] nav[data-type="scrollbar"] li a {
+  text-indent: -1.5rem;
+}
+
+html[dir="rtl"] .icon-social {
+  margin: 0 0 0 1rem
 }
 
 [data-type="list"] gaia-header {
@@ -328,8 +349,8 @@ span.icon.icon-delete {
 span.icon.icon-addimage {
   background-image: url(/contacts/style/gphx/bitmap/default/forms/add.png);
   background-size: 3rem;
-  width: 3rem;
-  height: 2.9rem;
+  width: 7rem;
+  height: 3rem;
 }
 
 span.icon.icon-address {
@@ -469,22 +490,14 @@ li button.icon-find-and-merge:before {
 }
 
 .fillflow-media .edit-photo {
-  top: 0;
-  right: 5rem;
   z-index: 1;
-  margin: 0;
   display: none;
   pointer-events: none;
-}
-
-.fillflow-media .edit-photo em {
-  color: #858585;
-  margin-top: 7rem;
+  margin-top: 3.6rem;
 }
 
 .with-photo .edit-photo {
   display: block;
-  width: 7rem;
 }
 
 .fillflow-media #photo-button {
@@ -538,9 +551,13 @@ nav[data-type="scrollbar"] ol > li > * {
   display: block !important;
 }
 
-#groups-list.selecting .group-section li,
-#search-list.selecting li {
+html:not([dir="rtl"]) #groups-list.selecting .group-section li,
+html:not([dir="rtl"]) #search-list.selecting li {
   padding-left: 2rem;
+}
+
+html[dir="rtl"] #groups-list.selecting {
+  padding-right: 8rem;
 }
 
 form[role="dialog"].no-overlay {

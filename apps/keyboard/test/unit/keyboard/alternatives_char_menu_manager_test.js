@@ -14,7 +14,8 @@ suite('AlternativesCharMenuManager', function() {
   var getFakeElementWithGetBoundingClientRect;
 
   var dummyObjForChild1;
-  var dummyObjForChild2;
+
+  var fakeMenuView;
 
   setup(function() {
     getFakeElementWithGetBoundingClientRect = function() {
@@ -46,29 +47,33 @@ suite('AlternativesCharMenuManager', function() {
       dummy: 'dummy'
     };
 
-    dummyObjForChild2 = {
-      dummy2: 'dummy2'
-    };
-
     document.body.appendChild(container);
+
+    var viewMap = new WeakMap();
+
+    fakeMenuView = {
+      getMenuContainer: function() {
+        return container;
+      },
+      getBoundingClientRect: function() {
+        return container.getBoundingClientRect();
+      },
+      getMenuTarget: this.sinon.stub(),
+      isMenuTarget: this.sinon.stub()
+    };
 
     // Create fake IMERender
     window.IMERender = {
       showAlternativesCharMenu: function(target, alternatives) {
-        return {
-          getMenuContainer: function() {
-            return container;
-          },
-          getBoundingClientRect: function() {
-            return container.getBoundingClientRect();
-          },
-          getMenuTarget: function() {
-            return dummyObjForChild2;
-          }
-        };
+        return fakeMenuView;
       },
       hideAlternativesCharMenu: this.sinon.stub(),
-      targetObjDomMap: new WeakMap()
+      registerView: function(target, view) {
+        viewMap.set(target, view);
+      },
+      getView(target) {
+        return viewMap.get(target);
+      }
     };
     this.sinon.spy(window.IMERender, 'showAlternativesCharMenu');
 
@@ -106,7 +111,7 @@ suite('AlternativesCharMenuManager', function() {
       uppercaseValue: 'X'
     };
 
-    IMERender.targetObjDomMap.set(target, targetElem);
+    IMERender.registerView(target, {element: targetElem});
 
     // Show an alternatives chars menu
     manager = new AlternativesCharMenuManager(app);
@@ -209,32 +214,13 @@ suite('AlternativesCharMenuManager', function() {
         dummy: null
       };
 
-      var stubMapGet;
-
       setup(function() {
-        stubMapGet = this.sinon.stub(IMERender.targetObjDomMap, 'get');
+        manager.isMenuTarget(dummyTarget);
       });
 
-      test('true', function() {
-        var targetElem = {
-          parentNode: container
-        };
-
-        stubMapGet.returns(targetElem);
-
-        assert.isTrue(manager.isMenuTarget(dummyTarget));
-        assert.isTrue(stubMapGet.calledWith(dummyTarget));
-      });
-
-      test('false', function() {
-        var targetElem = {
-          parentNode: {}
-        };
-
-        stubMapGet.returns(targetElem);
-
-        assert.isFalse(manager.isMenuTarget(dummyTarget));
-        assert.isTrue(stubMapGet.calledWith(dummyTarget));
+      test('will invoke MenuView\'s isMenuTarget', function() {
+        assert.isTrue(fakeMenuView.isMenuTarget.calledOnce);
+        assert.isTrue(fakeMenuView.isMenuTarget.calledWith(dummyTarget));
       });
     });
 
@@ -330,18 +316,17 @@ suite('AlternativesCharMenuManager', function() {
           clientY: 55
         };
 
-        assert.deepEqual(manager.getMenuTarget(press), dummyObjForChild2);
+        manager.getMenuTarget(press);
+
+        assert.isTrue(fakeMenuView.getMenuTarget.calledOnce);
+        assert.isTrue(fakeMenuView.getMenuTarget.calledWith(press.clientX,
+                                                            press.clientY));
       });
     });
   });
 
   suite('after hiding the menu', function() {
-    var stubMapGet;
-
     setup(function() {
-      stubMapGet =
-        this.sinon.stub(IMERender.targetObjDomMap, 'get').returns(targetElem);
-
       app.upperCaseStateManager.isUpperCase = false;
       app.upperCaseStateManager.isUpperCaseLocked = false;
 
@@ -354,7 +339,6 @@ suite('AlternativesCharMenuManager', function() {
 
     test('isMenuTarget should be false', function() {
       assert.isFalse(manager.isMenuTarget(target));
-      assert.isTrue(stubMapGet.calledWith(target));
     });
 
     test('isInMenuArea() should return false', function() {

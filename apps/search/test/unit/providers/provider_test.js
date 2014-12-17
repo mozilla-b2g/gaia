@@ -33,6 +33,23 @@ suite('search/providers/provider', function() {
     });
   });
 
+  suite('render', function() {
+    test('escapes HTML', function() {
+      subject.init();
+      subject.render([{
+        title: '<hello>',
+        meta: '<world>',
+        dataset: {}
+      }]);
+
+      var title = subject.container.querySelector('.title');
+      assert.equal(title.innerHTML, '&lt;hello&gt;');
+
+      var meta = subject.container.querySelector('.meta');
+      assert.equal(meta.innerHTML, '&lt;world&gt;');
+    });
+  });
+
   suite('clear', function() {
     test('clears container', function() {
       subject.init();

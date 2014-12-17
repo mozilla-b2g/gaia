@@ -9,6 +9,7 @@ var NotificationScreen = {
   TRANSITION_FRACTION: 0.30,
   TAP_THRESHOLD: 10,
   SCROLL_THRESHOLD: 10,
+  CLEAR_DELAY: 80,
 
   _notification: null,
   _containerWidth: null,
@@ -90,10 +91,6 @@ var NotificationScreen = {
     window.addEventListener('visibilitychange', this);
     window.addEventListener('ftuopen', this);
     window.addEventListener('ftudone', this);
-    window.addEventListener('appforeground',
-      this.clearDesktopNotifications.bind(this));
-    window.addEventListener('appopened',
-      this.clearDesktopNotifications.bind(this));
     window.addEventListener('desktop-notification-resend', this);
 
     this._sound = 'style/notifications/ringtones/notifier_firefox.opus';
@@ -191,20 +188,6 @@ var NotificationScreen = {
           this.clearLockScreen();
         }).bind(this), 400);
         break;
-    }
-  },
-
-  // TODO: Remove this when we ditch mozNotification (bug 952453)
-  clearDesktopNotifications: function ns_handleAppopen(evt) {
-    var manifestURL = evt.detail.manifestURL,
-        selector = '[data-manifest-u-r-l="' + manifestURL + '"]';
-
-    var nodes = this.container.querySelectorAll(selector);
-
-    for (var i = nodes.length - 1; i >= 0; i--) {
-      if (nodes[i].dataset.obsoleteAPI === 'true') {
-        this.closeNotification(nodes[i]);
-      }
     }
   },
 
@@ -513,7 +496,7 @@ var NotificationScreen = {
     // Notification toaster
     if (notify) {
       this.updateToaster(detail, type, dir);
-      if (this.lockscreenPreview || !window.System.locked) {
+      if (this.lockscreenPreview || !window.Service.locked) {
         this.toaster.classList.add('displayed');
 
         if (this._toasterTimeout) {
@@ -529,7 +512,7 @@ var NotificationScreen = {
 
     // Adding it to the lockscreen if locked and the privacy setting
     // does not prevent it.
-    if (System.locked && this.lockscreenPreview) {
+    if (Service.locked && this.lockscreenPreview) {
       this.addLockScreenNotification(detail.id,
         notificationNode.cloneNode(true));
     }
@@ -657,7 +640,7 @@ var NotificationScreen = {
 
   updateNotificationIndicator: function ns_updateNotificationIndicator() {
     if (this.unreadNotifications.length) {
-      this.ambientIndicator.className = 'unread';
+      this.ambientIndicator.classList.add('unread');
       navigator.mozL10n.setAttributes(
         this.ambientIndicator,
         'statusbarNotifications-unread',
@@ -728,11 +711,31 @@ var NotificationScreen = {
 
   clearAll: function ns_clearAll() {
     var notifications = this.container.querySelectorAll('.notification');
-    for (var notification of notifications) {
-      if (notification.dataset.noClear === 'true') {
-        continue;
+    var clearable = [].slice.apply(notifications)
+                      .filter(function isClearable(notification) {
+                        return notification.dataset.noClear !== 'true';
+                      });
+    var notification;
+    this.clearAllButton.disabled = true;
+    if (!clearable.length) {
+      return;
+    }
+    // Adding a callback to the last cleared notification to defer
+    // the destroying of the notifications after the last disappear
+    var lastClearable = clearable[clearable.length - 1];
+    var removeAll = (function removeAll() {
+      lastClearable.removeEventListener('transitionend', removeAll);
+      for (var notification of clearable) {
+        this.closeNotification(notification);
       }
-      this.closeNotification(notification);
+    }).bind(this);
+    lastClearable.addEventListener('transitionend', removeAll);
+
+    for (var index = 0, max = clearable.length; index < max; index++) {
+      notification = clearable[index];
+      notification.style.transitionDelay = (this.CLEAR_DELAY * index) + 'ms';
+      notification.classList.add('disappearing-via-clear-all');
+      notification.style.transform = '';
     }
   },
 

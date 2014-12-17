@@ -73,6 +73,8 @@ var Dialog = function(params) {
   this.form.dataset.type = 'confirm';
   this.form.setAttribute('role', 'dialog');
   this.form.tabIndex = -1;
+  // Pick up option_menu.css styling
+  this.form.dataset.subtype = 'menu';
 
   // We fill the main info
 
@@ -122,6 +124,9 @@ var Dialog = function(params) {
         event.target.parentNode) {
       document.body.removeChild(event.target);
     }
+    // If we add a class, the animation will not be perform properly.
+    // see Bug 1095338 for further information
+    document.body.style.pointerEvents = 'initial';
   });
 
   menu.addEventListener('click', function(event) {
@@ -155,6 +160,9 @@ Dialog.prototype.show = function() {
     this.form.clientTop;
   }
   this.form.classList.add('visible');
+  // If we add a class, the animation will not be perform properly.
+  // see Bug 1095338 for further information
+  document.body.style.pointerEvents = 'none';
   this.form.focus();
 };
 

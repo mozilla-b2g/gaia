@@ -5,7 +5,7 @@
 
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_system_icc.js');
-requireApp('system/shared/test/unit/mocks/mock_system.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_notification.js');
@@ -14,7 +14,7 @@ requireApp('system/js/icc_worker.js');
 
 var mocksForIcc = new MocksHelper([
   'AppWindowManager',
-  'System',
+  'Service',
   'L10n',
   'Dump',
   'Notification'
@@ -193,12 +193,10 @@ suite('STK (icc_worker) >', function() {
     MockNotifications[0].onshow();
   });
 
-  test('STK_CMD_REFRESH', function(done) {
-    window.icc.onresponse = function(message, response) {
-      assert.equal(response.resultCode, navigator.mozIccManager.STK_RESULT_OK);
-      done();
-    };
+  test('STK_CMD_REFRESH', function() {
+    var spy = this.sinon.spy(icc_worker, '0x1');
     launchStkCommand(stkTestCommands.STK_CMD_REFRESH);
+    assert.isTrue(spy.calledWith(stkTestCommands.STK_CMD_REFRESH));
   });
 
   test('STK_CMD_PLAY_TONE', function(done) {
@@ -209,57 +207,4 @@ suite('STK (icc_worker) >', function() {
     launchStkCommand(stkTestCommands.STK_CMD_PLAY_TONE);
   });
 
-  test('visibilitychange => STK_RESULT_UICC_SESSION_TERM_BY_USER',
-    function(done) {
-      window.icc.onresponse = function(message, response) {
-        window.icc.onresponse = function() {};  // Avoid multiple calls
-        assert.equal(response.resultCode,
-          navigator.mozIccManager.STK_RESULT_UICC_SESSION_TERM_BY_USER);
-        done();
-      };
-      document.dispatchEvent(new CustomEvent('visibilitychange'));
-    });
-
-  suite('Messages queue >', function() {
-    var addPendingMessageSpy;
-    setup(function() {
-      this.sinon.stub(window.icc, 'isViewActive',
-        function() {
-          return true;
-      });
-
-      this.sinon.stub(window.icc, 'canProcessMessage',
-        function(message) {
-          window.icc.addPendingMessage(message);
-          return false;
-      });
-
-      addPendingMessageSpy = this.sinon.spy(window.icc,
-        'addPendingMessage');
-    });
-
-    test('Should add a pending message', function() {
-      var testCommand = stkTestCommands.STK_CMD_DISPLAY_TEXT;
-      launchStkCommand(testCommand);
-      assert.isTrue(addPendingMessageSpy.calledWith(testCommand));
-    });
-
-    test('Should not play tone', function() {
-      var testCommand = stkTestCommands.STK_CMD_PLAY_TONE;
-      launchStkCommand(testCommand);
-      assert.isTrue(addPendingMessageSpy.calledWith(testCommand));
-    });
-
-    test('Should play tone', function(done) {
-      window.icc.onresponse = function(message, response) {
-        assert.equal(response.resultCode,
-          navigator.mozIccManager.STK_RESULT_OK);
-        done();
-      };
-      var testCommand = stkTestCommands.STK_CMD_PLAY_TONE;
-      delete testCommand.command.options.text;
-      launchStkCommand(testCommand);
-      assert.isFalse(addPendingMessageSpy.calledWith(testCommand));
-    });
-  });
 });

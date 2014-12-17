@@ -1,4 +1,4 @@
-/* globals CallScreen, FontSizeManager, MockCall, MockCallsHandler, Utils,
+/* globals CallScreen, FontSizeManager, MockCallsHandler, Utils,
            MockHandledCall, MockMozActivity, MockNavigatorMozTelephony,
            MockMozL10n, MocksHelper, MockSettingsListener, performance */
 
@@ -15,9 +15,11 @@ require('/shared/test/unit/mocks/dialer/mock_keypad.js');
 require('/shared/test/unit/mocks/dialer/mock_utils.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/js/lockscreen_connection_info_manager.js');
+require('/test/unit/mock_conference_group_ui.js');
 
 var mocksHelperForCallScreen = new MocksHelper([
   'CallsHandler',
+  'ConferenceGroupUI',
   'MozActivity',
   'LazyL10n',
   'FontSizeManager',
@@ -196,7 +198,7 @@ suite('call screen', function() {
       this.sinon.stub(CallScreen, 'showClock');
       this.sinon.stub(CallScreen, 'initLockScreenSlide');
       this.sinon.stub(CallScreen, 'render');
-      this.sinon.spy(MockCallsHandler, 'holdOrResumeSingleCall');
+      this.sinon.spy(MockCallsHandler, 'holdOrResumeCallByUser');
       this.sinon.spy(MockCallsHandler, 'mergeCalls');
       mockElements.forEach(function(name) {
         CallScreen[name] = document.createElement('button');
@@ -208,7 +210,7 @@ suite('call screen', function() {
       sinon.assert.notCalled(CallScreen.showClock);
       sinon.assert.notCalled(CallScreen.initLockScreenSlide);
       sinon.assert.notCalled(CallScreen.render);
-      sinon.assert.notCalled(MockCallsHandler.holdOrResumeSingleCall);
+      sinon.assert.notCalled(MockCallsHandler.holdOrResumeCallByUser);
       sinon.assert.notCalled(MockCallsHandler.mergeCalls);
     });
 
@@ -254,7 +256,7 @@ suite('call screen', function() {
 
       test('hold button successfully added and notified', function() {
         CallScreen.holdButton.dispatchEvent(event);
-        sinon.assert.calledOnce(MockCallsHandler.holdOrResumeSingleCall);
+        sinon.assert.calledOnce(MockCallsHandler.holdOrResumeCallByUser);
       });
 
       test('merge button successfully added and notified', function() {
@@ -375,21 +377,6 @@ suite('call screen', function() {
         assert.equal(fakeNode.parentNode, null);
         assert.isTrue(singleLineStub.calledOnce);
       });
-
-      test('should remove the node in the groupList',
-      function() {
-        CallScreen.moveToGroup(fakeNode);
-        CallScreen.removeCall(fakeNode);
-        assert.equal(fakeNode.parentNode, null);
-      });
-    });
-
-    suite('moveToGroup', function() {
-      test('should insert the node in the group calls article', function() {
-        var fakeNode = document.createElement('section');
-        CallScreen.moveToGroup(fakeNode);
-        assert.equal(fakeNode.parentNode, CallScreen.groupCallsList);
-      });
     });
   });
 
@@ -428,79 +415,35 @@ suite('call screen', function() {
     });
   });
 
-  suite('toggling', function() {
-    suiteSetup(function() {
-      CallScreen._wallpaperReady = true;
-    });
-
-    teardown(function() {
-      CallScreen._transitioning = false;
-    });
-
-    suite('once the wallpaper is loaded', function() {
-      suite('when opening in incoming-locked mode', function() {
-        var spyCallback;
-
-        setup(function() {
-          CallScreen.screen.dataset.layout = 'incoming-locked';
-          spyCallback = this.sinon.spy();
-
-          CallScreen.toggle(spyCallback);
-        });
-
-        test('should call the callback', function(done) {
-          setTimeout(function() {
-            assert.isTrue(spyCallback.called);
-            done();
-          });
-        });
-      });
-    });
-  });
-
   suite('contact image setter', function() {
     var fakeBlob = new Blob([], {type: 'image/png'});
     var fakeURL = URL.createObjectURL(fakeBlob);
-
-    suiteSetup(function() {
-      CallScreen._transitionDone = false;
-    });
 
     setup(function() {
       MockCallsHandler.mActiveCallForContactImage = new MockHandledCall();
       MockCallsHandler.mActiveCallForContactImage.photo = fakeBlob;
     });
 
-    test('it should wait for the transition to be over', function(done) {
-      MockCallsHandler.mActiveCallForContactImage = new MockHandledCall();
-      MockCallsHandler.mActiveCallForContactImage.photo =
-        new Blob([], {type: 'image/png'});
-
+    test('should change background of the contact photo', function() {
+      this.sinon.stub(URL, 'createObjectURL').returns(fakeURL);
       CallScreen.setCallerContactImage();
-      assert.equal(CallScreen.contactBackground.style.backgroundImage, '');
-
-      CallScreen.toggle();
-
-      setTimeout(function() {
-        assert.ok(CallScreen.contactBackground.style.backgroundImage);
-        CallScreen.setCallerContactImage();
-        done();
-      });
+      assert.equal(CallScreen.contactBackground.style.backgroundImage,
+                   'url("' + fakeURL + '")');
     });
 
-    suite('once the transition is over', function() {
-      test('should change background of the contact photo', function() {
-        this.sinon.stub(URL, 'createObjectURL').returns(fakeURL);
-        CallScreen.setCallerContactImage();
-        assert.equal(CallScreen.contactBackground.style.backgroundImage,
-                       'url("' + fakeURL + '")');
-      });
+    test('incoming locked-mode should change background of the contact photo',
+    function() {
+      this.sinon.stub(URL, 'createObjectURL').returns(fakeURL);
+      CallScreen.screen.dataset.layout = 'incoming-locked';
+      CallScreen.setCallerContactImage();
+      assert.equal(CallScreen.contactBackground.style.backgroundImage,
+                   'url("' + fakeURL + '")');
+    });
 
-      test('should clean up background property if null', function() {
-        MockCallsHandler.mActiveCallForContactImage = null;
-        CallScreen.setCallerContactImage();
-        assert.equal(CallScreen.contactBackground.style.backgroundImage, '');
-      });
+    test('should clean up background property if null', function() {
+      MockCallsHandler.mActiveCallForContactImage = null;
+      CallScreen.setCallerContactImage();
+      assert.equal(CallScreen.contactBackground.style.backgroundImage, '');
     });
   });
 
@@ -727,38 +670,17 @@ suite('call screen', function() {
     });
   });
 
-  suite('toggleOnHold', function() {
-    test('should put active-state class when there is an active call',
+  suite('setShowIsHeld', function() {
+    test('should disable the active state of the on hold button',
     function() {
-      var mockCall = new MockCall('12334', 'connected');
-      navigator.mozTelephony.active = mockCall;
-
-      CallScreen.toggleOnHold();
-      assert.isTrue(CallScreen.holdButton.classList.contains('active-state'));
-    });
-
-    test('should remove active-state class when there isn\'t an active call',
-    function() {
-      navigator.mozTelephony.active = null;
-
-      CallScreen.toggleOnHold();
+      CallScreen.setShowIsHeld(false);
       assert.isFalse(CallScreen.holdButton.classList.contains('active-state'));
     });
 
-    test('should put active-state class with conferenceCall on holding',
+    test('should enable the active state of the on hold button',
     function() {
-      navigator.mozTelephony.conferenceGroup.state = 'holding';
-
-      CallScreen.toggleOnHold();
+      CallScreen.setShowIsHeld(true);
       assert.isTrue(CallScreen.holdButton.classList.contains('active-state'));
-    });
-
-    test('should remove active-state class with conferenceCall on connected',
-    function() {
-      navigator.mozTelephony.conferenceGroup.state = 'connected';
-
-      CallScreen.toggleOnHold();
-      assert.isFalse(CallScreen.holdButton.classList.contains('active-state'));
     });
   });
 
@@ -881,6 +803,7 @@ suite('call screen', function() {
     test('should show the banner', function() {
       assert.isTrue(bannerClass.contains('visible'));
     });
+
     test('should show the text', function() {
       assert.equal(statusMessage.querySelector('p').textContent,
                    'message');
@@ -907,22 +830,11 @@ suite('call screen', function() {
           this.sinon.clock.tick(2000);
           done();
         });
+
         test('should hide the banner', function() {
           assert.isFalse(bannerClass.contains('visible'));
         });
       });
-    });
-  });
-
-  suite('Toggling the group details screen', function() {
-    test('should show group details', function() {
-      CallScreen.showGroupDetails();
-      assert.isTrue(groupCalls.classList.contains('display'));
-    });
-
-    test('should hide group details', function() {
-      CallScreen.hideGroupDetails();
-      assert.isFalse(groupCalls.classList.contains('display'));
     });
   });
 
@@ -1011,26 +923,6 @@ suite('call screen', function() {
       CallScreen.stopTicker(durationNode);
       assert.isUndefined(durationNode.dataset.tickerId);
       assert.isFalse(durationNode.classList.contains('isTimer'));
-    });
-  });
-
-  suite('set end conference call', function() {
-    var fakeNode1 = document.createElement('section');
-    var fakeNode2 = document.createElement('section');
-    var fakeNode3 = document.createElement('section');
-
-    setup(function() {
-      CallScreen.moveToGroup(fakeNode1);
-      CallScreen.moveToGroup(fakeNode2);
-      CallScreen.moveToGroup(fakeNode3);
-    });
-
-    test('should set groupHangup to all nodes in group detail lists',
-    function() {
-      CallScreen.setEndConferenceCall();
-      assert.equal(fakeNode1.dataset.groupHangup, 'groupHangup');
-      assert.equal(fakeNode2.dataset.groupHangup, 'groupHangup');
-      assert.equal(fakeNode3.dataset.groupHangup, 'groupHangup');
     });
   });
 

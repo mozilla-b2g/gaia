@@ -3,7 +3,11 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from datetime import datetime
+
+from marionette import expected
+from marionette import Wait
 from marionette.by import By
+
 from gaiatest.apps.calendar.app import Calendar
 
 
@@ -19,7 +23,9 @@ class NewEvent(Calendar):
     _save_event_button_locator = (By.CSS_SELECTOR, 'button.save')
 
     def wait_for_panel_to_load(self):
-        self.wait_for_element_displayed(*self._event_title_input_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._event_title_input_locator))))
 
     def a11y_fill_event_title(self, title):
         self.accessibility.click(self.marionette.find_element(*self._event_title_input_locator))
@@ -49,13 +55,15 @@ class NewEvent(Calendar):
     def a11y_click_save_event(self):
         event_start_time = self.marionette.find_element(*self._event_start_time_value_locator).text
         event_start_date = self.marionette.find_element(*self._event_start_date_value_locator).text
+        el = self.marionette.find_element(*self._modify_event_view_locator)
         self.accessibility.click(self.marionette.find_element(*self._save_event_button_locator))
-        self.wait_for_element_not_displayed(*self._modify_event_view_locator)
+        Wait(self.marionette).until(expected.element_not_displayed(el))
         return datetime.strptime(event_start_time + event_start_date, '%I:%M %p%m/%d/%Y')
 
     def tap_save_event(self):
         event_start_time = self.marionette.find_element(*self._event_start_time_value_locator).text
         event_start_date = self.marionette.find_element(*self._event_start_date_value_locator).text
+        el = self.marionette.find_element(*self._modify_event_view_locator)
         self.marionette.find_element(*self._save_event_button_locator).tap()
-        self.wait_for_element_not_displayed(*self._modify_event_view_locator)
+        Wait(self.marionette).until(expected.element_not_displayed(el))
         return datetime.strptime(event_start_time + event_start_date, '%I:%M %p%m/%d/%Y')

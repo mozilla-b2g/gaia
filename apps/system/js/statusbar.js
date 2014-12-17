@@ -14,19 +14,19 @@
   limitations under the License.
 */
 
-/*global Clock, SettingsListener, TouchForwarder, FtuLauncher, MobileOperator,
-         SIMSlotManager, System, Bluetooth, UtilityTray, nfcManager,
+/*global Clock, SettingsListener, FtuLauncher, MobileOperator,
+         SIMSlotManager, Service, Bluetooth, UtilityTray, nfcManager,
          layoutManager */
 
 'use strict';
 
 var StatusBar = {
   /* all elements that are children nodes of the status bar */
-  ELEMENTS: ['emergency-cb-notification', 'time', 'connections',
-    'battery', 'wifi', 'data', 'flight-mode', 'network-activity', 'tethering',
-    'alarm', 'bluetooth', 'mute', 'headphones', 'bluetooth-headphones',
-    'bluetooth-transferring', 'recording', 'sms', 'geolocation', 'usb', 'label',
-    'system-downloads', 'call-forwardings', 'playing', 'nfc'],
+  ELEMENTS: ['emergency-cb-notification', 'time', 'connections', 'battery',
+    'wifi', 'data', 'flight-mode', 'network-activity', 'tethering', 'alarm',
+    'debugging', 'bluetooth', 'mute', 'headphones', 'bluetooth-headphones',
+    'bluetooth-transferring', 'recording', 'sms', 'geolocation', 'usb',
+    'label', 'system-downloads', 'call-forwardings', 'playing', 'nfc'],
 
   // The indices indicate icons priority (lower index = highest priority)
   // In each subarray:
@@ -40,6 +40,7 @@ var StatusBar = {
     ['wifi', 16 + 4],
     ['connections', null], // Width can change
     ['time', null], // Width can change
+    ['debugging', 16 + 4],
     ['system-downloads', 16 + 4],
     ['geolocation', 16 + 4],
     ['network-activity', 16 + 4],
@@ -110,7 +111,8 @@ var StatusBar = {
     'ril.cf.enabled': ['callForwarding'],
     'operatorResources.data.icon': ['iconData'],
     'statusbar.network-activity.disabled': ['networkActivity'],
-    'statusbar.show-am-pm': ['time']
+    'statusbar.show-am-pm': ['time'],
+    'debugger.remote-mode': ['debugging']
   },
 
   /* Track which settings are observed, so we don't add multiple listeners. */
@@ -137,6 +139,7 @@ var StatusBar = {
    * it triggers the icon "systemDownloads"
    */
   systemDownloadsCount: 0,
+  systemDownloads: {},
 
   _minimizedStatusBarWidth: window.innerWidth,
 
@@ -148,8 +151,8 @@ var StatusBar = {
   /* For other modules to acquire */
   get height() {
     if (document.mozFullScreen ||
-               (System.currentApp &&
-                System.currentApp.isFullScreen())) {
+               (Service.currentApp &&
+                Service.currentApp.isFullScreen())) {
       return 0;
     } else {
       return this._cacheHeight ||
@@ -171,6 +174,8 @@ var StatusBar = {
     window.addEventListener('apptitlestatechanged', this);
     window.addEventListener('activitytitlestatechanged', this);
     window.addEventListener('appchromecollapsed', this);
+    window.addEventListener('appchromeexpanded', this);
+    window.addEventListener('emergencycallbackstatechanged', this);
   },
 
   addSettingsListener: function sb_addSettingsListener(settingKey) {
@@ -287,9 +292,6 @@ var StatusBar = {
     window.addEventListener('lockscreen-appclosing', this);
     window.addEventListener('lockpanelchange', this);
 
-    window.addEventListener('simpinshow', this);
-    window.addEventListener('simpinclose', this);
-
     // Listen to orientation change and SHB activation/deactivation.
     window.addEventListener('system-resize', this);
 
@@ -300,6 +302,12 @@ var StatusBar = {
     window.addEventListener('homescreenopening', this);
     window.addEventListener('homescreenopened', this);
     window.addEventListener('stackchanged', this);
+
+    // Track Downloads via the Downloads API.
+    var mozDownloadManager = navigator.mozDownloadManager;
+    if (mozDownloadManager) {
+      mozDownloadManager.addEventListener('downloadstart', this);
+    }
 
     // We need to preventDefault on mouse events until
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1005815 lands
@@ -319,6 +327,10 @@ var StatusBar = {
 
   handleEvent: function sb_handleEvent(evt) {
     switch (evt.type) {
+      case 'emergencycallbackstatechanged':
+        this.updateEmergencyCbNotification(evt.detail);
+        break;
+
       case 'screenchange':
         this.setActive(evt.detail.screenEnabled);
         break;
@@ -340,7 +352,7 @@ var StatusBar = {
         this._inLockScreenMode = false;
         this.toggleTimeLabel(true);
         this._updateIconVisibility();
-        this.setAppearance(System.currentApp);
+        this.setAppearance(Service.currentApp);
         break;
 
       case 'attentionopened':
@@ -539,7 +551,7 @@ var StatusBar = {
         break;
 
       case 'stackchanged':
-        this.setAppearance(System.currentApp);
+        this.setAppearance(Service.currentApp);
         this.element.classList.remove('hidden');
         break;
 
@@ -548,6 +560,7 @@ var StatusBar = {
         break;
 
       case 'appopened':
+      case 'appchromeexpanded':
         this.setAppearance(evt.detail);
         this.element.classList.remove('hidden');
         this._updateMinimizedStatusBarWidth();
@@ -568,7 +581,51 @@ var StatusBar = {
         this.setAppearance(evt.detail, true);
         this.element.classList.remove('hidden');
         break;
+      case 'downloadstart':
+        // New download, track it so we can show or hide the active downloads
+        // indicator. If you think this logic needs to change, think really hard
+        // about it and then come and ask @nullaus
+        this.addSystemDownloadListeners(evt.download);
+        break;
     }
+  },
+
+  addSystemDownloadListeners: function(download) {
+    var handler = function handleDownloadStateChange(downloadEvent) {
+      var download = downloadEvent.download;
+      switch(download.state) {
+        case 'downloading':
+          // If this download has not already been tracked as actively
+          // downloading we'll add it to our list and increment the
+          // downloads counter.
+          if (!this.systemDownloads[download.id]) {
+            this.incSystemDownloads();
+            this.systemDownloads[download.id] = true;
+          }
+          break;
+        // Once the download is finalized, and only then, is it safe to
+        // remove our state change listener. If we remove it before then
+        // we are likely to miss paused or errored downloads being restarted
+        case 'finalized':
+          download.removeEventListener('statechange', handler);
+          break;
+        // All other state changes indicate the download is no longer
+        // active, if we were previously tracking the download as active
+        // we'll decrement the counter now and remove it from active
+        // download status.
+        case 'stopped':
+        case 'succeeded':
+          if (this.systemDownloads[download.id]) {
+            this.decSystemDownloads();
+            delete this.systemDownloads[download.id];
+          }
+          break;
+        default:
+          console.warn('Unexpected download state = ', download.state);
+      }
+    }.bind(this);
+
+    download.addEventListener('statechange', handler);
   },
 
   setAppearance: function(app, useBottomWindow) {
@@ -594,14 +651,6 @@ var StatusBar = {
     );
   },
 
-  _startX: null,
-  _startY: null,
-  _releaseTimeout: null,
-  _touchStart: null,
-  _touchForwarder: new TouchForwarder(),
-  _shouldForwardTap: false,
-  _dontStopEvent: false,
-
   _getMaximizedStatusBarWidth: function sb_getMaximizedStatusBarWidth() {
     // Let's consider the style of the status bar:
     // * padding: 0 0.3rem;
@@ -609,7 +658,7 @@ var StatusBar = {
   },
 
   _updateMinimizedStatusBarWidth: function sb_updateMinimizedStatusBarWidth() {
-    var app = System.currentApp;
+    var app = Service.currentApp;
     app = app && app.getTopMostWindow();
 
     // Get the actual width of the rocketbar, and determine the remaining
@@ -722,10 +771,6 @@ var StatusBar = {
   },
 
   panelHandler: function sb_panelHandler(evt) {
-    var app = System.currentApp.getTopMostWindow();
-    var chromeBar = app.element.querySelector('.chrome');
-    var titleBar = app.element.querySelector('.titlebar');
-
     // Do not forward events if FTU is running
     if (FtuLauncher.isFtuRunning()) {
       return;
@@ -736,142 +781,8 @@ var StatusBar = {
       return;
     }
 
-    if (this._dontStopEvent) {
-      return;
-    }
-
-    // If the app is not a fullscreen app, let utility_tray.js handle
-    // this instead.
-    if (!document.mozFullScreen && !app.isFullScreen()) {
-      return;
-    }
-
-    evt.stopImmediatePropagation();
-    evt.preventDefault();
-
-    var touch;
-    switch (evt.type) {
-      case 'touchstart':
-        clearTimeout(this._releaseTimeout);
-
-        var iframe = app.iframe;
-        this._touchForwarder.destination = iframe;
-        this._touchStart = evt;
-        this._shouldForwardTap = true;
-
-
-        touch = evt.changedTouches[0];
-        this._startX = touch.clientX;
-        this._startY = touch.clientY;
-
-        chromeBar.style.transition = 'transform';
-        titleBar.style.transition = 'transform';
-        break;
-
-      case 'touchmove':
-        touch = evt.touches[0];
-        var height = this._cacheHeight;
-        var deltaX = touch.clientX - this._startX;
-        var deltaY = touch.clientY - this._startY;
-
-        if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
-          this._shouldForwardTap = false;
-        }
-
-        var translate = Math.min(deltaY, height);
-        var heightThreshold = height;
-
-        if (app && app.isFullScreen() && app.config.chrome &&
-          app.config.chrome.navigation) {
-          translate = Math.min(deltaY, app.appChrome.height);
-          heightThreshold = app.appChrome.height;
-
-          titleBar.style.transform = 'translateY(calc(' +
-            (translate - app.appChrome.height) + 'px)';
-        } else {
-          titleBar.style.transform =
-            'translateY(calc(' + translate + 'px - 100%)';
-        }
-        chromeBar.style.transform =
-          'translateY(calc(' + translate + 'px - 100%)';
-
-        if (translate >= heightThreshold) {
-          if (this._touchStart) {
-            this._touchForwarder.forward(this._touchStart);
-            this._touchStart = null;
-          }
-          this._touchForwarder.forward(evt);
-        }
-        break;
-
-      case 'touchend':
-        clearTimeout(this._releaseTimeout);
-
-        if (this._touchStart) {
-          if (this._shouldForwardTap) {
-            this._touchForwarder.forward(this._touchStart);
-            this._touchForwarder.forward(evt);
-            this._touchStart = null;
-          }
-          this._releaseBar(titleBar);
-        } else {
-          // If we already forwarded the touchstart it means the bar
-          // if fully open, releasing after a timeout.
-          this._dontStopEvent = true;
-          this._touchForwarder.forward(evt);
-          this._releaseAfterTimeout(titleBar);
-        }
-
-        break;
-    }
-  },
-
-  _releaseBar: function sb_releaseBar(titleBar) {
-    this._dontStopEvent = false;
-    var chromeBar = titleBar.parentNode.querySelector('.chrome');
-
-    chromeBar.classList.remove('dragged');
-    chromeBar.style.transform = '';
-    chromeBar.style.transition = '';
-
-    titleBar.classList.remove('dragged');
-    titleBar.style.transform = '';
-    titleBar.style.transition = '';
-
-    this.screen.classList.remove('minimized-tray');
-
-    clearTimeout(this._releaseTimeout);
-    this._releaseTimeout = null;
-  },
-
-  _releaseAfterTimeout: function sb_releaseAfterTimeout(titleBar) {
-    this.screen.classList.add('minimized-tray');
-
-    var chromeBar = titleBar.parentNode.querySelector('.chrome');
-
-    var self = this;
-    titleBar.style.transform = '';
-    titleBar.style.transition = '';
-    titleBar.classList.add('dragged');
-
-    chromeBar.style.transform = '';
-    chromeBar.style.transition = '';
-    chromeBar.classList.add('dragged');
-
-    self._releaseTimeout = setTimeout(function() {
-      self._releaseBar(titleBar);
-      window.removeEventListener('touchstart', closeOnTap);
-    }, 5000);
-
-    function closeOnTap(evt) {
-      if (evt.target != self._touchForwarder.destination) {
-        return;
-      }
-
-      window.removeEventListener('touchstart', closeOnTap);
-      self._releaseBar(titleBar);
-    }
-    window.addEventListener('touchstart', closeOnTap);
+    var app = Service.query('getTopMostWindow');
+    app && app.handleStatusbarTouch(evt, this._cacheHeight);
   },
 
   /**
@@ -1071,15 +982,23 @@ var StatusBar = {
       }
 
       var icon = this.icons.battery;
+      var previousLevel = parseInt(icon.dataset.level, 10);
+      var previousCharging = icon.dataset.charging === 'true';
 
       icon.dataset.charging = battery.charging;
       var level = Math.floor(battery.level * 10) * 10;
-      icon.dataset.level = level;
-      navigator.mozL10n.setAttributes(
-        icon,
-        battery.charging ? 'statusbarBatteryCharging' : 'statusbarBattery',
-        { level: level }
-      );
+
+      if (previousLevel !== level || previousCharging !== battery.charging) {
+        icon.dataset.level = level;
+        navigator.mozL10n.setAttributes(
+          icon,
+          battery.charging ? 'statusbarBatteryCharging' : 'statusbarBattery',
+          {level: level}
+        );
+        this.previousCharging = battery.charging;
+
+        this.cloneStatusbar();
+      }
     },
 
     networkActivity: function sb_updateNetworkActivity() {
@@ -1497,6 +1416,14 @@ var StatusBar = {
       icon.hidden = !this.nfcActive;
 
       this._updateIconVisibility();
+    },
+
+    debugging: function sb_updateDebugging() {
+      var icon = this.icons.debugging;
+
+      icon.hidden = this.settingValues['debugger.remote-mode'] == 'disabled';
+
+      this._updateIconVisibility();
     }
   },
 
@@ -1767,7 +1694,7 @@ var StatusBar = {
 
   // To reduce the duplicated code
   isLocked: function() {
-    return System.locked;
+    return Service.locked;
   },
 
   toCamelCase: function sb_toCamelCase(str) {

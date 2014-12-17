@@ -1,6 +1,9 @@
 'use strict';
 
 var MockTrustedUIManager = {
+  start: function() {
+  },
+
   open: function(name, frame, chromeEventId) {
     this.mOpened = true;
     this.mName = name;

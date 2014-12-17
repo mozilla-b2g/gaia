@@ -1,7 +1,7 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
-/* global System, LockScreenWindow, LockScreenInputWindow */
+/* global Service, LockScreenWindow, LockScreenInputWindow */
 /* global secureWindowManager */
 
 (function(exports) {
@@ -59,16 +59,25 @@
                 'lockscreen-appterminated',
                 'lockscreen-appclose',
                 'screenchange',
+                'system-resize',
                 'ftuopen',
                 'ftudone',
                 'overlaystart',
                 'showlockscreenwindow',
-                'home',
                 'secure-appclosed',
                 'lockscreen-request-inputpad-open',
                 'lockscreen-request-inputpad-close'
                ]
     };
+  };
+
+  LockScreenWindowManager.prototype.name = 'LockScreenWindowManager';
+  LockScreenWindowManager.prototype.EVENT_PREFIX = 'lockscreenwindowmanager';
+  /**
+   * This function will be invoked by hierarchyManager.
+   */
+  LockScreenWindowManager.prototype.getActiveWindow = function() {
+    return this.isActive() ? this.states.instance : null;
   };
 
   /**
@@ -81,8 +90,36 @@
     this.startObserveSettings();
     this.initElements();
     this.initWindow();
-    System.register('unlock', this);
-    System.register('lock', this);
+    Service.register('unlock', this);
+    Service.register('lock', this);
+    Service.request('registerHierarchy', this);
+  };
+
+  LockScreenWindowManager.prototype._handle_home = function() {
+    if (this.isActive()) {
+      // XXX: I don't want to change the order of event registration
+      // at this early-refactoring stage, so do this to minimize the
+      // risk and complete the work.
+      window.dispatchEvent(
+        new CustomEvent('lockscreen-notify-homepressed'));
+      return false;
+    }
+    return true;
+  };
+
+  LockScreenWindowManager.prototype._handle_holdhome = function() {
+    if (this.isActive()) {
+      return false;
+    }
+    return true;
+  };
+
+  LockScreenWindowManager.prototype.respondToHierarchyEvent = function(evt) {
+    if (this['_handle_' + evt.type]) {
+      return this['_handle_' + evt.type](evt);
+    } else {
+      return true;
+    }
   };
 
   /**
@@ -133,6 +170,11 @@
         case 'secure-appclosed':
           this.states.instance.lockOrientation();
           break;
+        case 'system-resize':
+          if (this.states.instance && this.states.instance.isActive()) {
+            this.states.instance.resize();
+          }
+          break;
         case 'screenchange':
           // The screenchange may be invoked by proximity sensor,
           // or the power button. If it's caused by the proximity sensor,
@@ -152,18 +194,6 @@
               // quickly, so we need to keep this workaround.
               this.states.instance.lockOrientation();
             }
-          }
-          break;
-        case 'home':
-          // We assume that this component is started before AppWindowManager
-          // to make this blocking code works.
-          if (this.isActive()) {
-            // XXX: I don't want to change the order of event registration
-            // at this early-refactoring stage, so do this to minimize the
-            // risk and complete the work.
-            window.dispatchEvent(
-              new CustomEvent('lockscreen-notify-homepressed'));
-            evt.stopImmediatePropagation();
           }
           break;
         case 'lockscreen-request-inputpad-open':
@@ -276,6 +306,7 @@
       this.states.instance.close(instant ? 'immediate': undefined);
       this.elements.screen.classList.remove('locked');
       this.toggleLockedSetting(false);
+      this.publish(this.EVENT_PREFIX + '-deactivated', this);
     };
 
   /**
@@ -300,6 +331,7 @@
       }
       this.elements.screen.classList.add('locked');
       this.toggleLockedSetting(true);
+      this.publish(this.EVENT_PREFIX + '-activated', this);
     };
 
   /**
@@ -311,10 +343,8 @@
    */
   LockScreenWindowManager.prototype.publish =
     function lwm_publish(ne, detail) {
-      if ('string' === typeof ne) {
-        ne = new CustomEvent(ne, { detail: detail });
-      }
-      window.dispatchEvent(ne);
+      var event = new CustomEvent(ne, { detail: detail });
+      window.dispatchEvent(event);
     };
 
   /**
@@ -389,7 +419,7 @@
     function lwm_unlock(detail) {
       // XXX: 
       // There is a self-routing here:
-      // System.request('unlock') ->
+      // Service.request('unlock') ->
       // LockscreenWindowManager#unlock ->
       // ['lockscreen-request-unlock'] ->
       // LockscreenWindowManager#responseUnlock |

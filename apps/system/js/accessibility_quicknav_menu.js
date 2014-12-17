@@ -28,12 +28,12 @@
       this.element.setAttribute('role', 'dialog');
       this.element.addEventListener('click', this);
       this.element.innerHTML =
-        '<div id="accessibility-quicknav-container">' +
-          '<section>' +
-            '<ul role="listbox">' +
-            '</ul>' +
-          '</section>' +
-        '</div>';
+        `<div id="accessibility-quicknav-container">
+          <section>
+            <ul role="listbox">
+            </ul>
+          </section>
+        </div>`;
 
       if (this.modes.length) {
         this.updateModes(this.modes);

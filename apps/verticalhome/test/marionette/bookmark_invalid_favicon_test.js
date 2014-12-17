@@ -3,13 +3,11 @@
 
 var iconSrc = require('./lib/icon_src');
 var Bookmark = require('../../../../apps/system/test/marionette/lib/bookmark');
-var Home2 = require('./lib/home2');
 var Server = require('../../../../shared/test/integration/server');
-var System = require('../../../../apps/system/test/marionette/lib/system');
 
 marionette('Vertical - Bookmark Favicon Failure', function() {
 
-  var client = marionette.client(Home2.clientOptions);
+  var client = marionette.client(require(__dirname + '/client_options.js'));
   var bookmark, home, server, system;
 
   suiteSetup(function(done) {
@@ -25,23 +23,23 @@ marionette('Vertical - Bookmark Favicon Failure', function() {
   });
 
   setup(function() {
-    home = new Home2(client);
-    system = new System(client);
+    home = client.loader.getAppClass('verticalhome');
+    system = client.loader.getAppClass('system');
     bookmark = new Bookmark(client, server);
     system.waitForStartup();
 
-    client.apps.launch(Home2.URL);
+    client.apps.launch(home.URL);
   });
 
   test('Invalid icons get default icon assigned', function() {
-    system.goHome();
+    system.tapHome();
     client.switchToFrame(system.getHomescreenIframe());
     var url = server.url('sample.html');
 
     client.switchToFrame();
     bookmark.openAndSave(url);
 
-    system.goHome();
+    system.tapHome();
     client.switchToFrame(system.getHomescreenIframe());
 
     var icon = home.getIcon(url);

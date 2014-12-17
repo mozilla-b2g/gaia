@@ -16,6 +16,16 @@ window.GaiaGrid = (function(win) {
   var baseurl = window.GaiaGridBaseurl ||
     '/shared/elements/gaia_grid/';
 
+  /* Configuration from the grid is picked up by attributes on the element.
+   * The following attributes are valid:
+   * - dragdrop
+   *   Enables drag-and-drop of icons and groups within the grid.
+   * - zoom
+   *   Enables changing the grid column-width with a pinch gesture.
+   * - disable-sections
+   *   Only valid with dragdrop enabled, this disables creating new dividers
+   *   or groups.
+   */
   proto.createdCallback = function() {
     var shadow = this.createShadowRoot();
     this._template = template.content.cloneNode(true);
@@ -28,7 +38,8 @@ window.GaiaGrid = (function(win) {
       element: this,
       features: {
         dragdrop: this.getAttribute('dragdrop') !== null,
-        zoom: this.getAttribute('zoom') !== null
+        zoom: this.getAttribute('zoom') !== null,
+        disableSections: this.getAttribute('disable-sections') !== null
       }
     });
 
@@ -106,26 +117,46 @@ window.GaiaGrid = (function(win) {
   };
 
   /**
-   * Reoves placeholders from the list until we encounter a divider. Once we
-   * find a divider, we return that item. If we do not find a divider, we
-   * return null. This is useful for operations which append to the end of the
-   * items array as we always have a divider at the end of the list, but often
-   * want to add to the last group.
+   * Removes and returns the last divider, if there is one.
    */
-  proto.removeUntilDivider = function() {
+  proto.popDivider = function() {
     var items = this._grid.items;
-    for (var i = items.length - 1; i > 0; i--) {
-      var item = items[i];
-      if (item instanceof GaiaGrid.Placeholder) {
-        items.pop();
-        item.remove();
-        continue;
-      } else if (item instanceof GaiaGrid.Divider) {
-        return items.pop();
-      } else {
-        return null;
-      }
+    if (items.length && items[items.length - 1].detail.type === 'divider') {
+      return items.pop();
     }
+
+    return null;
+  };
+
+  /**
+   * Appends an item to the end of the group. If there is a divider at the end,
+   * the item is placed before said divider.
+   */
+  proto.appendItem = function(item) {
+    var items = this._grid.items;
+    var lastIndex = items.length - 1;
+
+    if (items[lastIndex].detail.type === 'divider') {
+      this.add(item, lastIndex);
+    } else {
+      this.add(item);
+    }
+  };
+
+  /**
+   * If the last item is a collapsed divider, expand that divider before
+   * appending the item.
+   */
+  proto.appendItemToExpandedGroup = function(item) {
+    var items = this._grid.items;
+    var lastIndex = items.length - 1;
+
+    if (items[lastIndex].detail.type === 'divider' &&
+        items[lastIndex].detail.collapsed) {
+      items[lastIndex].expand();
+    }
+
+    this.appendItem(item);
   };
 
   /**

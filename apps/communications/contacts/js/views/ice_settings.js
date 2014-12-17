@@ -297,7 +297,7 @@ contacts.ICE = (function() {
    */
   function showSelectList(target) {
     contacts.List.toggleICEGroup(false);
-    Contacts.setCancelableHeader(goBack);
+    Contacts.setCancelableHeader(goBack, 'selectContact');
     contacts.Settings.navigation.go('view-contacts-list', 'right-left');
     currentICETarget = target === 'select-ice-contact-1' ? 0 : 1;
     contacts.List.clearClickHandlers();

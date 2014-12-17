@@ -1,8 +1,5 @@
-:root {
-  --panel-transition-secs: 0.3s;
-}
-
 #lockscreen {
+  --panel-transition-secs: 0.3s;
   position: absolute;
   top: 0;
   width: 100%;

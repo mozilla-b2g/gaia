@@ -1,35 +1,29 @@
 'use strict';
-/* global SettingsHelper */
+/* global SettingsHelper, BaseModule */
 
-(function(exports) {
+(function() {
   /**
    * TelephonySettings sets voice privacy and roaming modes based on
    * the users saved settings.
    * @requires SettingsHelper
    * @class TelephonySettings
    */
-  function TelephonySettings() {
+  function TelephonySettings(core) {
     this.started = false;
-    this.connections = Array.slice(navigator.mozMobileConnections || []);
+    this.connections = Array.slice(core.mobileConnections || []);
   }
 
-  TelephonySettings.prototype = {
-
+  BaseModule.create(TelephonySettings, {
+    name: 'TelephonySettings',
     /**
      * Initialzes all settings.
      * @memberof TelephonySettings.prototype
      */
-    start: function() {
-      if (this.started || !this.connections.length) {
-        return;
-      }
-
+    _start: function() {
       this.initVoicePrivacy();
       this.initRoaming();
       this.initCallerIdPreference();
       this.initPreferredNetworkType();
-
-      this.started = true;
     },
 
     /**
@@ -255,8 +249,6 @@
         return (hwSupportedTypes && hwSupportedTypes.indexOf(type) !== -1);
       }).join('/');
     }
-  };
+  });
 
-  exports.TelephonySettings = TelephonySettings;
-
-}(window));
+}());

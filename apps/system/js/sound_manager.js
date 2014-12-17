@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /* global AsyncSemaphore, Bluetooth, CustomDialog, FtuLauncher, ScreenManager,
-          SettingsListener, System */
+          SettingsListener, Service */
 
 (function(exports) {
   'use strict';
@@ -408,7 +408,7 @@
         if (this.defaultVolumeControlChannel !== 'unknown') {
           return this.defaultVolumeControlChannel;
         } else {
-          return this.homescreenVisible || (System.locked) ||
+          return this.homescreenVisible || (Service.locked) ||
             FtuLauncher.isFtuRunning() ? 'notification' : 'content';
         }
     }

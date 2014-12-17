@@ -1,13 +1,14 @@
-/* globals FontSizeManager, HandledCall, MockCall, MockCallScreen,
-           MockCallsHandler, MockContactPhotoHelper, MockContacts,
-           MockLazyL10n, MockMozL10n, MockNavigatorMozIccManager,
-           MockNavigatorSettings, MocksHelper, MockUtils, MockVoicemail,
-           AudioCompetingHelper, MockTonePlayer */
+/* globals AudioCompetingHelper, ConferenceGroupHandler, FontSizeManager,
+           HandledCall, MockCall, MockCallScreen, MockCallsHandler,
+           MockContactPhotoHelper, MockContacts, MockLazyL10n, MockMozL10n,
+           MockNavigatorMozIccManager, MockNavigatorSettings, MocksHelper,
+           MockTonePlayer, MockUtils, MockVoicemail */
 
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/test/unit/mock_call_screen.js');
+require('/test/unit/mock_conference_group_handler.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
@@ -29,6 +30,7 @@ var mocksHelperForHandledCall = new MocksHelper([
   'AudioContext',
   'Contacts',
   'CallScreen',
+  'ConferenceGroupHandler',
   'CallsHandler',
   'KeypadManager',
   'Utils',
@@ -70,22 +72,29 @@ suite('dialer/handled_call', function() {
     phoneNumber = Math.floor(Math.random() * 10000);
 
     templates = document.createElement('div');
-    templates.innerHTML = '<section id="handled-call-template" hidden>' +
-                            '<div class="numberWrapper">' +
-                              '<div class="hangup-button"></div>' +
-                              '<div class="number font-light"></div>' +
-                            '</div>' +
-                            '<div class="fake-number font-light"></div>' +
-                            '<div class="additionalContactInfo"></div>' +
-                            '<div class="duration">' +
-                              '<span class="font-light"></span>' +
-                              '<div class="direction"></div>' +
-                              '<div class="total-duration font-light"></div>' +
-                            '</div>' +
-                            '<div class="sim">' +
-                              '<span class="via-sim"></span>' +
-                              '<span class="sim-number"></span>' +
-                            '</div>' +
+    templates.innerHTML = '<section id="handled-call-template" role="dialog"' +
+                          '  hidden>' +
+                          '  <div class="hangup-button" role="button"' +
+                          '    data-l10n-id="hangup-a11y-button"></div>' +
+                          '    <div class="numberWrapper ' +
+                          '      direction-status-bar">' +
+                          '    <div class="number font-light"></div>' +
+                          '    <span role="button" id="switch-calls-button">' +
+                          '    </span>' +
+                          '  </div>' +
+                          '  <div class="additionalContactInfo font-light">' +
+                          '  </div>' +
+                          '  <div class="duration">' +
+                          '    <span class="font-light"></span>' +
+                          '    <div class="total-duration"></div>' +
+                          '    <div class="direction"></div>' +
+                          '  </div>' +
+                          '  <div class="sim">' +
+                          '    <span class="via-sim"></span>' +
+                          '    <span class="sim-number"></span>' +
+                          '  </div>' +
+                          '  <button class="merge-button" ' +
+                          '    data-l10n-id="merge">Merge</button>' +
                           '</section>';
     document.body.appendChild(templates);
   });
@@ -834,56 +843,91 @@ suite('dialer/handled_call', function() {
   });
 
   suite('ongroupchange', function() {
-    var moveToGroupSpy;
-    var insertCallSpy;
+    var addToGroupDetailsSpy;
 
     setup(function() {
       mockCall = new MockCall(String(phoneNumber), 'connected');
       subject = new HandledCall(mockCall);
 
-      moveToGroupSpy = this.sinon.spy(MockCallScreen, 'moveToGroup');
-      insertCallSpy = this.sinon.spy(MockCallScreen, 'insertCall');
+      addToGroupDetailsSpy = this.sinon.spy(
+        ConferenceGroupHandler, 'addToGroupDetails');
+      this.sinon.spy(MockCallScreen, 'insertCall');
     });
 
     test('When entering a group, it should ask ' +
          'the CallScreen to move into the group details', function() {
       mockCall.group = this.sinon.stub();
       mockCall.ongroupchange(mockCall);
-      assert.isTrue(moveToGroupSpy.calledWith(subject.node));
+      assert.isTrue(addToGroupDetailsSpy.calledWith(subject.node));
       assert.isFalse(MockCallScreen.mShowStatusMessageCalled);
     });
 
-    test('when leaving a group but still connected, it should move back to ' +
-         'the CallScreen but not show any status message on disconnect.',
+    suite('when leaving a group but still connected', function() {
+      setup(function() {
+        mockCall.group = null;
+      });
+
+      test('it should clone the call node if the participant list overlay is ' +
+        'shown', function() {
+        this.sinon.stub(
+          ConferenceGroupHandler, 'isGroupDetailsShown').returns(true);
+        var parent = document.createElement('div');
+        this.sinon.spy(parent, 'insertBefore');
+        parent.appendChild(subject.node);
+        mockCall.ongroupchange(mockCall);
+        sinon.assert.calledOnce(parent.insertBefore);
+        document.body.appendChild(subject.node);
+      });
+
+      test('it should move the call node back to the CallScreen', function() {
+        mockCall.ongroupchange(mockCall);
+        sinon.assert.calledWith(MockCallScreen.insertCall, subject.node);
+      });
+
+      test('it should not show any status message on disconnect', function() {
+        mockCall.ongroupchange(mockCall);
+        mockCall._disconnect();
+        assert.isFalse(MockCallScreen.mShowStatusMessageCalled);
+      });
+    });
+
+    suite('when leaving a group by hanging up', function() {
+      setup(function() {
+        mockCall.group = null;
+        mockCall.state = 'disconnecting';
+        mockCall.ongroupchange(mockCall);
+      });
+
+      test('it shouldn\'t move back to the CallScreen', function() {
+        sinon.assert.notCalled(MockCallScreen.insertCall);
+        assert.isFalse(MockCallScreen.mShowStatusMessageCalled);
+      });
+
+      test('it should show a status message.', function() {
+        mockCall._disconnect();
+        assert.isTrue(MockCallScreen.mShowStatusMessageCalled);
+      });
+    });
+
+    suite('when leaving a group by hanging up the whole group calls',
     function() {
-      mockCall.group = null;
-      mockCall.ongroupchange(mockCall);
-      assert.isTrue(insertCallSpy.calledWith(subject.node));
-      mockCall._disconnect();
-      assert.isFalse(MockCallScreen.mShowStatusMessageCalled);
-    });
+      setup(function() {
+        mockCall.group = null;
+        mockCall.state = 'disconnecting';
+        subject.node.dataset.groupHangup = 'groupHangup';
+        mockCall.ongroupchange(mockCall);
+      });
 
-    test('when leaving a group by hanging up, it shouldn\'t move back to the' +
-         'CallScreen and show a status message.', function() {
-      mockCall.group = null;
-      mockCall.state = 'disconnecting';
-      mockCall.ongroupchange(mockCall);
-      assert.isFalse(insertCallSpy.calledWith(subject.node));
-      assert.isFalse(MockCallScreen.mShowStatusMessageCalled);
-      mockCall._disconnect();
-      assert.isTrue(MockCallScreen.mShowStatusMessageCalled);
-    });
+      test('it shouldn\'t move back',
+      function() {
+        sinon.assert.notCalled(MockCallScreen.insertCall);
+      });
 
-    test('when leaving a group by hanging up the whole group calls, it ' +
-         ' shouldn\'t move back and shouldn\'t show any status message.',
-    function() {
-      mockCall.group = null;
-      mockCall.state = 'disconnecting';
-      subject.node.dataset.groupHangup = 'groupHangup';
-      mockCall.ongroupchange(mockCall);
-      assert.isFalse(insertCallSpy.calledWith(subject.node));
-      mockCall._disconnect();
-      assert.isFalse(MockCallScreen.mShowStatusMessageCalled);
+      test('it shouldn\'t show any status message',
+      function() {
+        mockCall._disconnect();
+        assert.isFalse(MockCallScreen.mShowStatusMessageCalled);
+      });
     });
   });
 

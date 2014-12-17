@@ -1,9 +1,7 @@
 'use strict';
 
 var Actions = require('marionette-client').Actions;
-var System = require('../../../system/test/marionette/lib/system');
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar');
-var Search = require('../../../../apps/search/test/marionette/lib/search');
 var Bookmark = require('../../../system/test/marionette/lib/bookmark');
 var helper = require('../../../../tests/js-marionette/helper.js');
 var SETTINGS_APP = 'app://settings.gaiamobile.org';
@@ -23,15 +21,17 @@ marionette('Statusbar colors', function() {
   });
 
   var system;
-  var bookmark = new Bookmark(client);
+  var bookmark;
   var actions = new Actions(client);
-  var search = new Search(client);
+  var search;
   var rocketbar = new Rocketbar(client);
   var server;
   var utilityTray = new UtilityTray(client);
 
   setup(function() {
-    system = new System(client);
+    search = client.loader.getAppClass('search');
+    system = client.loader.getAppClass('system');
+    bookmark = new Bookmark(client);
     system.waitForStartup();
   });
 

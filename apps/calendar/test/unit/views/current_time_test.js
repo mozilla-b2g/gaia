@@ -49,6 +49,7 @@ suite('Views.CurrentTime', function() {
         'current-time',
         'className'
       );
+      assert.equal(subject.element.getAttribute('aria-hidden'), 'true');
       assert.ok(
         container.appendChild.calledWithExactly(subject.element),
         'append to DOM'
@@ -182,6 +183,7 @@ suite('Views.CurrentTime', function() {
 
     test('should update position and time', function() {
       subject._render();
+      assert.equal(subject.element.id, 'current-time-indicator');
       assert.deepEqual(
         subject.element,
         {
@@ -189,6 +191,7 @@ suite('Views.CurrentTime', function() {
           style: {
             top: '21.875%'
           },
+          id: 'current-time-indicator',
           dataset: {
             date: date,
             l10nDateFormat: 'current-time24'

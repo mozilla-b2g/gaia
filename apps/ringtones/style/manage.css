@@ -32,14 +32,14 @@ ul {
 }
 
 li {
-  padding-left: 1.5rem;
+  -moz-padding-start: 1.5rem;
   z-index: 1;
 }
 
 .desc {
   /* This keeps our ringtone names from bumping up against the actions button
      in the management UI. */
-  margin-right: 4.5rem;
+  -moz-margin-end: 4.5rem;
 }
 
 .desc:active:before {
@@ -56,15 +56,25 @@ li {
   content: '';
 }
 
+html[dir="rtl"] .desc:active:before {
+  left: initial;
+  right: -2rem;
+}
+
 li .play-icon {
   display: none;
   float: right;
   width: 2.4rem;
   height: 6rem;
   background: url("images/now_playing.png") no-repeat center center / 2.4rem;
+  -moz-margin-start: 1.5rem;
   /* We already have a 1rem right margin on the parent node, so we only need to
      add 0.5rem here. */
-  margin: 0 0.5rem 0 1.5rem;
+  -moz-margin-end: 0.5rem;
+}
+
+html[dir="rtl"] li .play-icon {
+  float: left;
 }
 
 li[data-playing="true"] .play-icon {
@@ -72,10 +82,14 @@ li[data-playing="true"] .play-icon {
 }
 
 [data-type="list"] aside.pack-end {
-  margin-right: -1.5rem;
-  padding-left: 0.1rem;
+  -moz-margin-end: -1.5rem;
+  -moz-padding-start: 0.1rem;
   background: -moz-linear-gradient(#e9e9e9, #e9e9e9) no-repeat
     left center / 0.1rem 4rem;
+}
+
+html[dir="rtl"] [data-type="list"] aside.pack-end {
+  background-position: right center;
 }
 
 .actions-button {

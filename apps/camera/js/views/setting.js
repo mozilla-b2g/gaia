@@ -61,7 +61,7 @@ module.exports = View.extend({
     }
 
     return '<div class="setting_text">' +
-      '<h4 class="setting_title">' + this.l10n.get(data.title) + '</h4>' +
+      '<h4 class="setting_title" data-l10n-id="' + data.title + '"></h4>' +
       '<h5 class="setting_value">' + value + '</h5>' +
     '</div>';
   },

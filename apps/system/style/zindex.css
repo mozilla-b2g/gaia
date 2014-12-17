@@ -121,7 +121,7 @@
  * the status bar */
 
 #screen > [data-z-index-level="utility-tray"] {
-  z-index: 16384;
+  z-index: 16385;
 }
 
 #screen > [data-z-index-level="utility-tray-notifications"] {
@@ -130,6 +130,19 @@
 
 
 /* Level 4: Attention window */
+/*
+ * Promote keyboards to stk message screen level even
+ * when device is locked
+ */
+#screen.icc > [data-z-index-level="keyboards"],
+#screen.icc.locked > [data-z-index-level="keyboards"] {
+ z-index: 8196;
+}
+
+#screen > [data-z-index-level="icc-view"] {
+  z-index: 8195;
+}
+
 #screen > [data-z-index-level="permission-screen"] {
   z-index: 8194;
 }
@@ -181,7 +194,8 @@
   z-index: 2046;
 }
 
-#screen > [data-z-index-level="system-dialog"] {
+#screen > [data-z-index-level="system-dialog"],
+#screen > [data-z-index-level="text-selection-dialog"] {
   z-index: 2045;
 }
 
@@ -223,10 +237,6 @@
 #screen > [data-z-index-level="emergency-callback-dialog"],
 #screen > [data-z-index-level="quick-setting-data-enabled-dialog"] {
   z-index: 1024;
-}
-
-#screen > [data-z-index-level="ext-selection-dialog"] {
-  z-index: 10;
 }
 
 /* Level 8 */

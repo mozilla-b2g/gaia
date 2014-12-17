@@ -248,7 +248,7 @@ var AutoSettings = (function() {
       var entry = getEntryParent(guiWidget);
       var configurer = OPTION_CONFIGURERS[type];
       if (configurer) {
-        configurer(guiWidget, settings, vmanager);
+        configurer(guiWidget, settings, vmanager, root);
       }
 
       // Simple dependency resolution:
@@ -268,9 +268,9 @@ var AutoSettings = (function() {
       var hideOn = guiWidget.dataset.hideOn;
       if (hideOn) {
         installDependency(hideOn, function _hide(passed) {
-          guiWidget.setAttribute('aria-hidden', passed + '');
+          guiWidget.hidden = passed;
           if (entry) {
-            entry.setAttribute('aria-hidden', passed + '');
+            entry.hidden = passed;
           }
         });
       }

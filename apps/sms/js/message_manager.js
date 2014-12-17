@@ -469,6 +469,72 @@ var MessageManager = {
     };
 
     return defer.promise;
+  },
+
+  _isMessageBelongTo1to1Conversation:
+  function isMessageBelongTo1to1Conversation(number, message) {
+    var isIncoming = message.delivery === 'received' ||
+                     message.delivery === 'not-downloaded';
+    // if it is a received message, it is a candidate
+    // we still need to test the sender in case the user filters with his own
+    // number, because we would get all the received messages in this case.
+    if (isIncoming) {
+      return Utils.probablyMatches(message.sender, number);
+    } else {
+      switch (message.type) {
+        case 'sms':
+          // in case of sent messages and sms, we test if the receiver match the
+          // filter, to filter out other sent messages in the case user is
+          // sending message to himself
+          return Utils.probablyMatches(message.receiver, number);
+        case 'mms':
+          return message.receivers.length === 1 &&
+                 Utils.probablyMatches(message.receivers[0], number);
+        default:
+          console.error('Got an unknown message type: ' + message.type);
+          return false;
+      }
+    }
+  },
+
+  /**
+   * findThreadFromNumber
+   *
+   * Find a SMS/MMS thread from a number.
+   * @return Promise that resolve to a threadId or rejected if not found
+   */
+  findThreadFromNumber: function mm_findThread(number) {
+
+    function checkCandidate(message) {
+      var isMessageInThread = MessageManager.
+        _isMessageBelongTo1to1Conversation(number, message);
+      if (isMessageInThread) {
+        threadId = message.threadId;
+        // we need to set the current threadId,
+        // because we start sms app in a new window
+        Threads.registerMessage(message);
+        return false; // found the message, stop iterating
+      }
+    }
+
+    var threadId = null;
+    var deferred = Utils.Promise.defer();
+
+    MessageManager.getMessages({
+      filter: { numbers: [number] },
+      each: checkCandidate,
+      done: function() {
+        if (threadId == null) {
+          deferred.reject(new Error('No thread found for number: ' + number));
+          return;
+        } else {
+          deferred.resolve(threadId);
+          return;
+        }
+      }
+    });
+
+    return deferred.promise;
   }
 };
 

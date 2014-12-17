@@ -4,9 +4,8 @@
 'use strict';
 
 var DsdsSettings = (function(window, document, undefined) {
-  var _settings = null;
-  var _iccManager = null;
-  var _mobileConnections = null;
+  var _settings = window.navigator.mozSettings;
+  var _mobileConnections = window.navigator.mozMobileConnections;
 
   /** */
   var _iccCardIndexForCallSettings = 0;
@@ -18,12 +17,10 @@ var DsdsSettings = (function(window, document, undefined) {
    * Init function.
    */
   function ds_init() {
-    _settings = window.navigator.mozSettings;
-    _iccManager = window.navigator.mozIccManager;
-    _mobileConnections = window.navigator.mozMobileConnections;
-    if (!_settings || !_mobileConnections || !_iccManager) {
+    if (!_settings || !_mobileConnections) {
       return;
     }
+    ds_handleDefaultIccCard();
     ds_handleCallSettingSimPanel();
     ds_handleCellAndDataSettingSimPanel();
   }
@@ -76,6 +73,18 @@ var DsdsSettings = (function(window, document, undefined) {
    */
   function ds_getIccCardIndexForCellAndDataSettings() {
     return _iccCardIndexForCellAndDataSettings;
+  }
+
+  /**
+   * Find out first available iccID for default iccID
+   */
+  function ds_handleDefaultIccCard() {
+    for (var i = 0, len = _mobileConnections.length; i < len; i++) {
+      if (_mobileConnections[i].iccId !== null) {
+        ds_setIccCardIndexForCellAndDataSettings(i);
+        break;
+      }
+    }
   }
 
   /**

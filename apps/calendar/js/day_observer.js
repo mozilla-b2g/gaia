@@ -103,7 +103,7 @@ function emit(dayId) {
 
     records.forEach(record => {
       var {startDate, endDate} = record.busytime;
-      var group = isAllDay(startDate, endDate) ? allday : events;
+      var group = isAllDay(date, startDate, endDate) ? allday : events;
       group.push(record);
     });
 

@@ -2,11 +2,10 @@
 
 'use strict';
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/shared/test/unit/mocks/mock_system.js');
 requireApp('system/lockscreen/js/lockscreen_state_manager.js');
 
 var mocksHelper = new window.MocksHelper([
-  'SettingsListener', 'System'
+  'SettingsListener'
 ]).init();
 
 suite('system/LockScreenStateManager', function() {
@@ -14,7 +13,6 @@ suite('system/LockScreenStateManager', function() {
   var mockState, mockLockScreen;
   mocksHelper.attachTestHelpers();
   setup(function() {
-    window.System.locked = true;
     mockState = function() {
       this.start = () => {
         return this; };
@@ -371,6 +369,17 @@ suite('system/LockScreenStateManager', function() {
       var stubOnActiveUnlock = this.sinon.stub(subject, 'onActivateUnlock');
       subject.handleEvent({
         type: 'lockscreen-notification-request-activate-unlock'
+      });
+      assert.isTrue(stubOnActiveUnlock.called,
+        'the handler didn\'t handle the event');
+    });
+
+    test('When slide to camera without passcode, it would trigger activate ' +
+         'unlock.',
+    function() {
+      var stubOnActiveUnlock = this.sinon.stub(subject, 'onActivateUnlock');
+      subject.handleEvent({
+        type: 'lockscreenslide-activate-left'
       });
       assert.isTrue(stubOnActiveUnlock.called,
         'the handler didn\'t handle the event');

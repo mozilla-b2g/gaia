@@ -1,6 +1,6 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global AlternativesCharMenuView */
+/* global AlternativesCharMenuView, LayoutPageView */
 
 'use strict';
 
@@ -20,13 +20,14 @@ var IMERender = (function() {
   var alternativesCharMenu = null;
   var _menuKey = null;
   var renderingManager = null;
+  var viewMap = null;
+  //XXX: should be removed when all UI component are represented as a view.
+  var targetObjDomMap = null;
 
   // a WeakMap to map target key object onto the DOM element it's associated
   // with; essentially the revrse mapping of |renderingManager._domObjectMap|.
   // ideally this should only be accessed by this renderer and alt_char_menu's
   // view.
-  var targetObjDomMap = null;
-
   var layoutWidth = 10;
 
   var numberOfCandidatesPerRow = 8;
@@ -36,24 +37,8 @@ var IMERender = (function() {
 
   var cachedWindowHeight = -1;
   var cachedWindowWidth = -1;
-
-  var ARIA_LABELS = {
-    '⇪': 'upperCaseKey2',
-    '⌫': 'backSpaceKey2',
-    '&nbsp': 'spaceKey2',
-    '↵': 'returnKey2',
-    '.': 'periodKey2',
-    ',': 'commaKey2',
-    ':': 'colonKey2',
-    ';': 'semicolonKey2',
-    '?': 'questionMarkKey2',
-    '!': 'exclamationPointKey2',
-    '(': 'leftBracketKey2',
-    ')': 'rightBracketKey2',
-    '"': 'doubleQuoteKey2',
-    '«': 'leftDoubleAngleQuoteKey2',
-    '»': 'rightDoubleAngleQuoteKey2'
-  };
+  var pageViews = null;
+  var currentPageView = null;
 
   window.addEventListener('resize', function kr_onresize() {
     cachedWindowHeight = window.innerHeight;
@@ -72,6 +57,8 @@ var IMERender = (function() {
     cachedWindowWidth = window.innerWidth;
 
     targetObjDomMap = new WeakMap();
+    viewMap = new WeakMap();
+    pageViews = new Map();
   };
 
   var setInputMethodName = function(name) {
@@ -98,32 +85,12 @@ var IMERender = (function() {
   //   Set isUpperCase to true when uppercase is enabled
   //   Use false on both of these properties when uppercase is disabled
   var setUpperCaseLock = function kr_setUpperCaseLock(state) {
-    // Toggle the entire container in case this layout require different
-    // rendering for upper case state, i.e. |secondLayout = true|.
-    activeIme.classList.toggle('lowercase',
-      !(state.isUpperCaseLocked || state.isUpperCase));
-
-    var capsLockKey = activeIme.querySelector(
-      'button:not([disabled])' +
-      '[data-keycode="' + KeyboardEvent.DOM_VK_CAPS_LOCK + '"]'
-    );
-
-    if (!capsLockKey)
+    if (!currentPageView) {
+      console.error('No current page view!');
       return;
-
-    if (state.isUpperCaseLocked) {
-      capsLockKey.classList.remove('kbr-key-active');
-      capsLockKey.classList.add('kbr-key-hold');
-    } else if (state.isUpperCase) {
-      capsLockKey.classList.add('kbr-key-active');
-      capsLockKey.classList.remove('kbr-key-hold');
-    } else {
-      capsLockKey.classList.remove('kbr-key-active');
-      capsLockKey.classList.remove('kbr-key-hold');
     }
 
-    capsLockKey.setAttribute('aria-pressed',
-      state.isUpperCaseLocked || state.isUpperCase);
+    currentPageView.setUpperCaseLock(state);
   };
 
   // Draw the keyboard and its components. Meat is here.
@@ -132,7 +99,7 @@ var IMERender = (function() {
 
     var supportsSwitching = 'mozInputMethod' in navigator ?
       navigator.mozInputMethod.mgmt.supportsSwitching() : false;
-    var keyboardClass = [
+    var pageId = [
       layout.layoutName,
       layout.pageIndex,
       ('' + flags.inputType).substr(0, 1),
@@ -140,30 +107,52 @@ var IMERender = (function() {
       supportsSwitching
     ].join('-');
 
+    var pageView = pageViews.get(pageId);
+    var container = null;
     // lets see if we have this keyboard somewhere already...
-    var container = document.getElementsByClassName(keyboardClass)[0];
-    if (!container) {
-      container = document.createElement('div');
-      container.classList.add('keyboard-type-container');
-      container.classList.add(keyboardClass);
-      if (layout.specificCssRule) {
-        container.classList.add(layout.layoutName);
+    if (pageView) {
+      container = pageView.element;
+    } else {
+      var options = {
+        classList: ['keyboard-type-container'],
+        totalWidth: ime.clientWidth
+      };
+
+      pageView = new LayoutPageView(layout, options, IMERender);
+      pageViews.set(pageId, pageView);
+
+      pageView.render();
+      ime.appendChild(pageView.element);
+
+      container = pageView.element;
+
+      //XXX: Builds candidate panel
+      //     should be separated as another View Class
+      if (flags.showCandidatePanel) {
+        container.insertBefore(candidatePanelToggleButtonCode(),
+                               container.firstChild);
+        container.insertBefore(candidatePanelCode(), container.firstChild);
+        showCandidates([]);
+        container.classList.add('candidate-panel');
+      } else {
+        container.classList.remove('candidate-panel');
       }
-      buildKeyboard(container, flags, layout);
-      ime.appendChild(container);
     }
 
     // Make sure the container is switched to the current uppercase state.
-    container.classList.toggle('lowercase', !flags.uppercase);
+    pageView.setUpperCaseLock({
+      isUpperCase: flags.uppercase,
+      isUpperCaseLocked: false
+    });
 
-    if (activeIme !== container) {
-      if (activeIme) {
-        activeIme.style.display = 'none';
-        delete activeIme.dataset.active;
+    // The page view has been switched
+    if (currentPageView !== pageView) {
+      if (currentPageView) {
+        currentPageView.hide();
       }
-      container.style.display = 'block';
-      container.dataset.active = true;
+      pageView.show();
 
+      currentPageView = pageView;
       activeIme = container;
 
       // Only resize UI if layout changed
@@ -178,163 +167,57 @@ var IMERender = (function() {
       if (callback) {
         // The callback might be blocking, so we want to process
         // on next tick.
-        requestAnimationFrame(callback);
+        window.requestAnimationFrame(callback);
       }
     }
   };
 
-  /**
-   * Build keyboard HTML structure
-   * Pass a container element
-   */
-  var buildKeyboard = function kr_build(container, flags, layout) {
-    flags = flags || {};
+  var drawHandwritingPad = function kr_drawHandwritingPad(press,
+                                                          start,
+                                                          strokeWidth) {
+    var handwritingPadView = viewMap.get(press.target);
+    return handwritingPadView.drawHandwritingPad(press, start, strokeWidth);
+  };
 
-    // change scale (Our target screen width is 320px)
-    // TODO get document.documentElement.style.fontSize
-    // and use it for multipling changeScale deppending on the value of pixel
-    // density used in media queries
-
-    layoutWidth = layout.width || 10;
-    var totalWidth = ime.clientWidth;
-    var placeHolderWidth = totalWidth / layoutWidth;
-
-    layout.upperCase = layout.upperCase || {};
-
-    var content = document.createDocumentFragment();
-    layout.keys.forEach((function buildKeyboardRow(row, nrow) {
-      var kbRow = document.createElement('div');
-      var rowLayoutWidth = 0;
-      kbRow.classList.add('keyboard-row');
-      kbRow.classList.add('row' + nrow);
-
-      if (nrow === layout.keys.length - 1) {
-        kbRow.classList.add('keyboard-last-row');
-      }
-
-      row.forEach((function buildKeyboardColumns(key) {
-        // Keys may be hidden if the .hidden property contains the inputType
-        if (key.hidden && key.hidden.indexOf(flags.inputType) !== -1)
-          return;
-
-        // Keys may be visible if the .visibile property contains the inputType
-        if (key.visible && key.visible.indexOf(flags.inputType) === -1)
-          return;
-
-        var attributeList = [];
-        var className = '';
-
-        if (key.isSpecialKey) {
-          className = 'special-key';
-        } else {
-          // The 'key' role tells an assistive technology that these buttons
-          // are used for composing text or numbers, and should be easier to
-          // activate than usual buttons. We keep special keys, like backspace,
-          // as buttons so that their activation is not performed by mistake.
-          attributeList.push({
-            key: 'role',
-            value: 'key'
-          });
-
-          if (layout.keyClassName) {
-            className = layout.keyClassName;
-          }
-        }
-
-        if (key.className) {
-          className += ' ' + key.className;
-        }
-
-        var ratio = key.ratio || 1;
-        rowLayoutWidth += ratio;
-
-        var keyWidth = placeHolderWidth * ratio;
-
-        if (key.disabled) {
-          attributeList.push({
-            key: 'disabled',
-            value: 'true'
-          });
-        }
-
-        if (key.ariaLabel || ARIA_LABELS[key.value]) {
-          attributeList.push({
-            key: 'data-l10n-id',
-            value: key.ariaLabel || ARIA_LABELS[key.value]
-          });
-        } else {
-          attributeList.push({
-            key: 'aria-label',
-            value: key.ariaLabel || key.value
-          });
-        }
-
-        // If this layout requires different rendering for uppercase/lowercase
-        // buttons, we will set the outputChar as an array, and buildKey()
-        // would be smart enough to put two label <span>s in the DOM.
-        var outputChar = (!layout.secondLayout) ?
-          key.uppercaseValue : [key.uppercaseValue, key.value];
-
-        var keyElement = buildKey(outputChar, className, keyWidth + 'px',
-          key, key.longPressValue, attributeList);
-
-        // a few dataset properties are retained in bug 1044525 because some css
-        // and ui/integration tests rely on them.
-        // also to not break them we spell keycode instead of keyCode in dataset
-        keyElement.dataset.keycode = key.keyCode;
-        keyElement.dataset.keycodeUpper = key.keyCodeUpper;
-        if ('targetPage' in key) {
-          keyElement.dataset.targetPage = key.targetPage;
-        }
-        if ('compositeKey' in key) {
-          keyElement.dataset.compositeKey = key.compositeKey;
-        }
-
-        kbRow.appendChild(keyElement);
-
-        setDomElemTargetObject(keyElement, key);
-      }));
-
-      kbRow.dataset.layoutWidth = rowLayoutWidth;
-
-      content.appendChild(kbRow);
-    }));
-
-    // If this layout does not require different rendering for lowercase state,
-    // we default to uppercase rendering -- this class will tell CSS file to
-    // never toggle button label <span> elements.
-    if (!layout.secondLayout) {
-      container.classList.add('uppercase-only');
-    }
-
-    container.innerHTML = '';
-
-    container.appendChild(content);
-
-    // Builds candidate panel
-    if (flags.showCandidatePanel) {
-      container.insertBefore(
-        candidatePanelToggleButtonCode(), container.firstChild);
-      container.insertBefore(candidatePanelCode(), container.firstChild);
-      showCandidates([]);
-
-      container.classList.add('candidate-panel');
-    } else {
-      container.classList.remove('candidate-panel');
-    }
+  var clearHandwritingPad = function kr_clearHandwritingPad(target) {
+    var handwritingPadView = viewMap.get(target);
+    return handwritingPadView.clearHandwritingPad();
   };
 
   // Highlight the key according to the case.
-  var highlightKey = function kr_updateKeyHighlight(key) {
-    var keyElem = targetObjDomMap.get(key);
+  var highlightKey = function kr_updateKeyHighlight(target) {
+    // XXX: Some UI components are still not represented as ViewClass, and
+    // will be stored in targetObjDomMap.
+    var keyElement = targetObjDomMap.get(target);
+    if (keyElement) {
+      keyElement.classList.add('highlighted');
+      return;
+    }
 
-    keyElem.classList.add('highlighted');
+    if (!currentPageView) {
+      console.error('No current page view!');
+      return;
+    }
+
+    currentPageView.highlightKey(target);
   };
 
   // Unhighlight a key
-  var unHighlightKey = function kr_unHighlightKey(key) {
-    var keyElem = targetObjDomMap.get(key);
-    keyElem.classList.remove('highlighted');
+  var unHighlightKey = function kr_unHighlightKey(target) {
+    // XXX: Some UI components are still not represented as ViewClass, and
+    // will be stored in targetObjDomMap.
+    var keyElement = targetObjDomMap.get(target);
+    if (keyElement) {
+      keyElement.classList.remove('highlighted');
+      return;
+    }
+
+    if (!currentPageView) {
+      console.error('No current page view!');
+      return;
+    }
+
+    currentPageView.unHighlightKey(target);
   };
 
   var toggleCandidatePanel = function(expand) {
@@ -606,21 +489,17 @@ var IMERender = (function() {
 
   // Show char alternatives.
   var showAlternativesCharMenu = function(key, altChars) {
-
-    var keyWidth = (cachedWindowWidth / layoutWidth) | 0;
-    var renderer = {
-      ARIA_LABELS: ARIA_LABELS,
-      buildKey: buildKey,
-      keyWidth: keyWidth,
-      screenInPortraitMode: screenInPortraitMode,
-      renderingManager: renderingManager
+    var options = {
+      keyWidth: (cachedWindowWidth / layoutWidth) | 0,
+      screenInPortraitMode: screenInPortraitMode
     };
 
     alternativesCharMenu = new AlternativesCharMenuView(activeIme,
                                                         altChars,
-                                                        renderer);
-    alternativesCharMenu.show(key);
-    targetObjDomMap.get(key).classList.add('kbr-menu-on');
+                                                        options,
+                                                        IMERender);
+    var keyElement = viewMap.get(key).element;
+    alternativesCharMenu.show(keyElement);
     _menuKey = key;
 
     return alternativesCharMenu;
@@ -629,7 +508,6 @@ var IMERender = (function() {
   // Hide the alternative menu
   var hideAlternativesCharMenu = function km_hideAlternativesCharMenu() {
     alternativesCharMenu.hide();
-    targetObjDomMap.get(_menuKey).classList.remove('kbr-menu-on');
   };
 
   var _keyArray = []; // To calculate proximity info for predictive text
@@ -748,6 +626,21 @@ var IMERender = (function() {
     var rows = activeIme.querySelectorAll('.keyboard-row');
 
     setKeyWidth();
+
+    // Set width and height for handwriting pad.
+    if ('handwritingPadOptions' in layout) {
+      var canvas = activeIme.querySelectorAll('.handwriting-pad')[0];
+
+      var width = Math.floor(placeHolderWidth *
+                             layout.handwritingPadOptions.ratio);
+      canvas.width = width * window.devicePixelRatio;
+      canvas.style.width = width + 'px';
+
+      var rowHeight = rows[0].clientHeight;
+      var height = Math.floor(rowHeight * layout.handwritingPadOptions.rowspan);
+      canvas.height = height * window.devicePixelRatio;
+      canvas.style.height = height + 'px';
+    }
   };
 
   //
@@ -812,67 +705,6 @@ var IMERender = (function() {
                  numberOfCandidatesPerRow) + 'px';
 
     return toggleButton;
-  };
-
-  var buildKey = function buildKey(label, className, width, key, altNote,
-                                   attributeList) {
-    var altNoteNode;
-    if (altNote) {
-      altNoteNode = document.createElement('div');
-      altNoteNode.className = 'alt-note';
-      altNoteNode.textContent = altNote;
-    }
-
-    var contentNode = document.createElement('button');
-    contentNode.className = 'keyboard-key ' + className;
-    contentNode.style.width = width;
-
-    if (attributeList) {
-      attributeList.forEach(function(attribute) {
-        contentNode.setAttribute(attribute.key, attribute.value);
-      });
-    }
-
-    var vWrapperNode = document.createElement('span');
-    vWrapperNode.className = 'visual-wrapper';
-
-    var labelNode = document.createElement('span');
-    // Using innerHTML here because some labels (so far only the &nbsp; in the
-    // space key) can be HTML entities.
-    labelNode.innerHTML = Array.isArray(label) ? label[0] : label;
-    labelNode.className = 'key-element';
-    labelNode.dataset.label = Array.isArray(label) ? label[0] : label;
-    vWrapperNode.appendChild(labelNode);
-
-    // If the |label| argument is an array, that means we need to insert another
-    // DOM element represents the lowercase label so that container styling can
-    // toggle between two.
-    if (Array.isArray(label)) {
-      // Create a lowercase label element
-      var labelNode = document.createElement('span');
-      labelNode.innerHTML = label[1];
-      labelNode.className = 'key-element lowercase';
-      labelNode.dataset.label = label[1];
-      vWrapperNode.appendChild(labelNode);
-    }
-
-    // Add uppercase and lowercase pop-up for highlighted key
-    labelNode = document.createElement('span');
-    labelNode.innerHTML = Array.isArray(label) ? label[0] : label;
-    labelNode.className = 'uppercase popup';
-    vWrapperNode.appendChild(labelNode);
-
-    labelNode = document.createElement('span');
-    labelNode.innerHTML = key.lowercaseValue;
-    labelNode.className = 'lowercase popup';
-    vWrapperNode.appendChild(labelNode);
-
-    if (altNoteNode) {
-      vWrapperNode.appendChild(altNoteNode);
-    }
-    contentNode.appendChild(vWrapperNode);
-
-    return contentNode;
   };
 
   var getWidth = function getWidth() {
@@ -945,6 +777,12 @@ var IMERender = (function() {
     targetObjDomMap.set(objRef, elem);
   };
 
+  // Register target -> View mapping
+  var registerView = function registerView(target, view) {
+    renderingManager.domObjectMap.set(view.element, target);
+    viewMap.set(target, view);
+  };
+
   // Measure the width of the element, and return the scale that
   // we can use to make it fit in the container. The return values
   // are restricted to a set that matches the standard font sizes
@@ -998,6 +836,8 @@ var IMERender = (function() {
     'init': init,
     'setInputMethodName': setInputMethodName,
     'draw': draw,
+    'drawHandwritingPad': drawHandwritingPad,
+    'clearHandwritingPad': clearHandwritingPad,
     get ime() {
       return ime;
     },
@@ -1020,6 +860,10 @@ var IMERender = (function() {
     'isFullCandidataPanelShown': isFullCandidataPanelShown,
     'getNumberOfCandidatesPerRow': getNumberOfCandidatesPerRow,
     'candidatePanelCode': candidatePanelCode,
+    'registerView': registerView,
+    'getView': function getView(target) {
+      return viewMap.get(target);
+    },
     get activeIme() {
       return activeIme;
     },
@@ -1028,9 +872,6 @@ var IMERender = (function() {
     },
     get candidatePanel() {
       return activeIme && activeIme.querySelector('.keyboard-candidate-panel');
-    },
-    get targetObjDomMap() {
-      return targetObjDomMap;
     },
     setCachedWindowSize: function(width, height) {
       cachedWindowWidth = width;

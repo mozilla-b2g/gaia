@@ -23,16 +23,20 @@ var WifiManager = {
     }
   },
 
+  getNetworks: function wn_getNetworks(callback) {
+    this.networks ? callback(this.networks) : this.scan(callback);
+  },
+
   scan: function wn_scan(callback) {
     if (this._scanning) {
       return;
     }
     this._scanning = true;
     utils.overlay.show('scanningNetworks', 'spinner');
-    var scanTimeout;
     var SCAN_TIMEOUT = 10000;
 
     var self = this;
+    self.onScan = callback;
 
     var req = this.api ? this.api.getNetworks() : null;
     if (!req) {
@@ -47,27 +51,35 @@ var WifiManager = {
       return;
     }
 
-    req.onsuccess = function onScanSuccess() {
+    var handleRequest = function handleRequest() {
       self._scanning = false;
+      clearTimeout(self.scanTimeout);
+      self.scanTimeout = null;
+      self.onScan(self.networks);
+      self.onScan = null;
+    };
+
+    req.onsuccess = function onScanSuccess() {
       self.networks = req.result;
-      clearTimeout(scanTimeout);
-      callback(self.networks);
+      handleRequest();
     };
 
     req.onerror = function onScanError() {
-      self._scanning = false;
       console.error('Error reading networks: ' + req.error.name);
-      clearTimeout(scanTimeout);
-      callback();
+      self.networks = [];
+      handleRequest();
     };
 
     // Timeout in case of scanning errors not thrown by the API
     // We can't block the user in the screen (bug 889623)
-    scanTimeout = setTimeout(function() {
-      self._scanning = false;
-      console.warn('Timeout while reading networks');
-      callback();
-    }, SCAN_TIMEOUT);
+    if (!self.scanTimeout) {
+      self.scanTimeout = setTimeout(function() {
+        self._scanning = false;
+        console.warn('Timeout while reading networks');
+        self.onScan();
+      }, SCAN_TIMEOUT);
+    }
+
   },
 
   enable: function wn_enable(lock) {
@@ -133,11 +145,10 @@ var WifiManager = {
     var self = this;
     if (WifiManager.api) {
       WifiManager.api.onstatuschange = function(event) {
-        WifiUI.updateNetworkStatus(self.ssid, event.status);
-        if (event.status === 'connected') {
-          if (self.networks && self.networks.length) {
-            WifiUI.renderNetworks(self.networks);
-          }
+        if (event.status === 'disconnected' && self.onScan) {
+          self.scan(self.onScan);
+        } else {
+          WifiUI.updateNetworkStatus(event.network.ssid, event.status);
         }
       };
     }
@@ -227,7 +238,7 @@ var WifiUI = {
     // Remove refresh option
     UIManager.activationScreen.classList.add('no-options');
     // Update title
-    UIManager.mainTitle.setAttribute('data-l10n-id', ssid);
+    UIManager.mainTitle.textContent = ssid;
 
     // Update network
     var selectedNetwork = WifiManager.getNetwork(ssid);
@@ -383,13 +394,25 @@ var WifiUI = {
   updateNetworkStatus: function wui_uns(ssid, status) {
     var element = document.getElementById(ssid);
     // Check if element exists and it's the selected network
-    if (!element || !element.dataset.wifiSelected) {
+
+    if (!element) {
       return;
     }
-
     // Update the element
-    element.querySelector('p[data-security-level]').setAttribute(
+    if (status !== 'disconnected') {
+      element.querySelector('p[data-security-level]').setAttribute(
                           'data-l10n-id', 'shortStatus-' + status);
+    } else {
+      var security = element.dataset.security;
+
+      if (security === '') {
+        security = 'Open';
+      }
+
+      element.querySelector('p[data-security-level]').setAttribute(
+                          'data-l10n-id', 'security' + security);
+      element.classList.remove('connected');
+    }
 
     // Animate icon if connecting, stop animation if
     // failed/connected/disconnected
@@ -398,6 +421,13 @@ var WifiUI = {
       icon.classList.add('connecting');
     } else {
       icon.classList.remove('connecting');
+      if (status === 'connected') {
+        var networksList = document.getElementById('networks-list');
+        icon.classList.add('connected');
+        element.classList.add('connected');
+        networksList.removeChild(element);
+        networksList.insertBefore(element, networksList.firstChild);
+      }
     }
   }
 

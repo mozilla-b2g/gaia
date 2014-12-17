@@ -64,8 +64,5 @@ Keyboards.ar = {
   },
   textLayoutOverwrite: {
     ',': '،'
-  },
-  alternateLayoutOverwrite: {
-    '?': '؟'
   }
 };

@@ -37,6 +37,11 @@ button::-moz-focus-inner {
   visibility: visible;
 }
 
+/* To show/hide the layout page view */
+.keyboard-type-container:not([data-active]) {
+  display: none;
+}
+
 /* Row styles */
 .keyboard-row {
   text-align: center;
@@ -143,7 +148,6 @@ button::-moz-focus-inner {
   text-align: center;
 }
 
-
 .keyboard-key.highlighted {
   background-color: #4a5255;
 }
@@ -159,26 +163,18 @@ button::-moz-focus-inner {
 /* Show the bubble text when the button is highlighted. */
 .keyboard-key.highlighted > .visual-wrapper > .popup {
   z-index: 1;
-  visibility: visible;
 }
-
 
 /* Special rules for lowercase and uppercase popups */
-
-/* Default is uppercase, so hide the lowercase popup */
-.keyboard-type-container:not(.lowercase) .popup.lowercase {
-  visibility: hidden;
-}
-
-/* For lowercase, hide the uppercase popup and show the lowercase one */
-.keyboard-type-container.lowercase > .popup.lowercase {
+.keyboard-key.highlighted.uppercase-popup .popup.uppercase {
   visibility: visible;
 }
 
-.keyboard-type-container.lowercase > .popup.uppercase {
-  visibility: hidden;
+.keyboard-key.highlighted.lowercase-popup .popup.lowercase {
+  visibility: visible;
 }
 
+/* Special rules for popups near the screen edge */
 .keyboard-row button:last-child.highlighted > .visual-wrapper > .popup {
   left: -2.4rem;
 }
@@ -186,7 +182,6 @@ button::-moz-focus-inner {
 .keyboard-row button:first-child.highlighted > .visual-wrapper > .popup {
   left: 0;
 }
-
 
 /* Special keys */
 .keyboard-key.special-key > .visual-wrapper > .key-element {
@@ -238,16 +233,6 @@ button::-moz-focus-inner {
   font-family: Sans-serif;
 }
 
-/* For keyboard layout menu*/
-.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper:before,
-.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper:after {
-  display: inherit;
-}
-
-.keyboard-key.special-key.highlighted.kbr-menu-on .visual-wrapper > .key-element {
-  font-size: 0;
-}
-
 /* Key states */
 
 /* Active key, used for shift key - uppercase */
@@ -268,15 +253,6 @@ button::-moz-focus-inner {
 /* The underline for caps lock */
 .keyboard-key.kbr-key-hold:not(.highlighted) > .visual-wrapper {
   box-shadow: 0 0.4rem 0 #00caf2;
-}
-
-/* Alt menu enabled */
-.keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > .key-element {
-  background: none;
-}
-
-.keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > .popup {
-  display: none;
 }
 
 .keyboard-key.pinyin-ch-ellipsis > .visual-wrapper > .key-element {
@@ -377,6 +353,9 @@ and displays the list of alternatives. */
   line-height: 6rem;
   font-weight: 500;
   color: #fff;
+
+  /* XXX: to override the .lowercase show/hide control for each key, see Bug 1091018. */
+  visibility: visible;
 }
 
 #keyboard-accent-char-menu .keyboard-key:first-child > .visual-wrapper > .key-element {
@@ -773,6 +752,13 @@ bubble above the key when you tap and hold. */
 
 .keyboard-key > .visual-wrapper > span[data-label="া"] {
   font-size: 1.7rem;
+}
+
+/* Handwriting */
+.handwriting-pad {
+  background-color: #ebeced;
+  margin: -1px;
+  float: left;
 }
 
 /* Hindi */

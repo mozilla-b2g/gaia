@@ -82,6 +82,8 @@ suite('common.js > ', function() {
         categoryId: 289  // Social
       };
 
+      subject.cdnHost = 'http://localhost';
+
       subject.getBackground(mockCollection).then(
         function(bg) {
           assert.equal(bg.checksum, 'mozilla');

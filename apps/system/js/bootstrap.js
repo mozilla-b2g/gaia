@@ -5,19 +5,19 @@
          SecureWindowManager, HomescreenLauncher, HomescreenWindowManager,
          FtuLauncher, SourceView, ScreenManager, Places, Activities,
          DeveloperHUD, DialerAgent, RemoteDebugger, HomeGesture,
-         VisibilityManager, UsbStorage, InternetSharing, TaskManager,
-         TelephonySettings, SuspendingAppPriorityManager, TTLView,
+         VisibilityManager, UsbStorage, TaskManager,
+         SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
          SoftwareButtonManager, Accessibility, NfcUtils,
-         TextSelectionDialog, InternetSharing, SleepMenu, AppUsageMetrics,
+         TextSelectionDialog, SleepMenu, AppUsageMetrics,
          LockScreenPasscodeValidator, NfcManager,
          ExternalStorageMonitor,
-         BrowserSettings, AppMigrator, SettingsMigrator, EuRoamingManager,
+         BrowserSettings, AppMigrator, SettingsMigrator,
          CpuManager, CellBroadcastSystem, EdgeSwipeDetector, QuickSettings,
-         BatteryOverlay, BaseModule, AppWindowManager */
+         BatteryOverlay, BaseModule, AppWindowManager, KeyboardManager,
+         TrustedUIManager */
 'use strict';
-
 
 /* === Shortcuts === */
 /* For hardware key handling that doesn't belong to anywhere */
@@ -41,7 +41,17 @@ window.addEventListener('load', function startup() {
    */
   function registerGlobalEntries() {
     /** @global */
+    KeyboardManager.init();
+
+    // Must load after KeyboardManager for correct handling mozChromeEvent.
+    TrustedUIManager.start();
+
+    /** @global */
     window.appWindowManager = new AppWindowManager();
+
+    /** @global */
+    window.inputWindowManager = new window.InputWindowManager();
+    window.inputWindowManager.start();
 
     /** @global */
     window.activityWindowManager = new ActivityWindowManager();
@@ -56,6 +66,7 @@ window.addEventListener('load', function startup() {
     if (window.SuspendingAppPriorityManager) {
       window.suspendingAppPriorityManager = new SuspendingAppPriorityManager();
     }
+
     /** @global */
     window.systemDialogManager = window.systemDialogManager ||
       new SystemDialogManager();
@@ -64,8 +75,6 @@ window.addEventListener('load', function startup() {
     window.lockScreenWindowManager = new window.LockScreenWindowManager();
     window.lockScreenWindowManager.start();
 
-    // Let systemDialogManager handle inputmethod-contextchange event before
-    // starting appWindowManager. See bug 1082741.
     window.appWindowManager.start();
 
     /** @global */
@@ -151,8 +160,6 @@ window.addEventListener('load', function startup() {
   window.dialerAgent.start();
   window.edgeSwipeDetector = new EdgeSwipeDetector();
   window.edgeSwipeDetector.start();
-  window.euRoamingManager = new EuRoamingManager();
-  window.euRoamingManager.start();
   window.externalStorageMonitor = new ExternalStorageMonitor();
   window.externalStorageMonitor.start();
   window.homeGesture = new HomeGesture();
@@ -163,8 +170,6 @@ window.addEventListener('load', function startup() {
     // here.
     window.homescreenLauncher = new HomescreenLauncher();
   }
-  window.internetSharing = new InternetSharing();
-  window.internetSharing.start();
   window.lockScreenPasscodeValidator = new LockScreenPasscodeValidator();
   window.lockScreenPasscodeValidator.start();
   window.layoutManager = new LayoutManager();
@@ -185,8 +190,6 @@ window.addEventListener('load', function startup() {
   window.sourceView = new SourceView();
   window.taskManager = new TaskManager();
   window.taskManager.start();
-  window.telephonySettings = new TelephonySettings();
-  window.telephonySettings.start();
   window.ttlView = new TTLView();
   window.visibilityManager = new VisibilityManager();
   window.visibilityManager.start();
@@ -218,10 +221,11 @@ window.addEventListener('load', function startup() {
         detail: { type: 'system-message-listener-ready' } });
   window.dispatchEvent(evt);
 
-  window.core = BaseModule.instantiate('Core');
-  window.core && window.core.start();
 
   window.mozPerformance.timing.mozSystemLoadEnd = Date.now();
+
+  window.core = BaseModule.instantiate('Core');
+  window.core && window.core.start();
 });
 
 window.usbStorage = new UsbStorage();

@@ -1,4 +1,4 @@
-/* globals System, AppWindowManager, homescreenLauncher, SettingsListener,
+/* globals Service, AppWindowManager, homescreenLauncher, SettingsListener,
            SettingsCache, AttentionIndicator */
 'use strict';
 
@@ -19,7 +19,7 @@
     debug: function aw_debug() {
       if (this.DEBUG) {
         console.log('[' + this.CLASS_NAME + ']' +
-          '[' + System.currentTime() + '] ' +
+          '[' + Service.currentTime() + '] ' +
           Array.slice(arguments).concat());
         if (this.TRACE) {
           console.trace();
@@ -198,7 +198,7 @@
           }
           this._topMostWindow = null;
           var nextApp = homescreenLauncher.getHomescreen();
-          if (System.locked) {
+          if (Service.locked) {
             this.closeAllAttentionWindows();
           } else if (nextApp && !nextApp.isDead()) {
             nextApp.ready(this.closeAllAttentionWindows.bind(this));

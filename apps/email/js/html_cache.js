@@ -9,7 +9,10 @@ define(function(require, exports) {
  * /htmlc(\d+)/
  */
 exports.save = function htmlCacheSave(html) {
-  html = encodeURIComponent(HTML_COOKIE_CACHE_VERSION + ':' + html);
+  var langDir = document.querySelector('html').getAttribute('dir');
+  html = encodeURIComponent(HTML_COOKIE_CACHE_VERSION +
+                            (langDir ? ',' + langDir : '') +
+                            ':' + html);
 
   // Set to 20 years from now.
   var expiry = Date.now() + (20 * 365 * 24 * 60 * 60 * 1000);
@@ -49,7 +52,7 @@ exports.save = function htmlCacheSave(html) {
   }
 
   console.log('htmlCache.save: ' + html.length + ' in ' +
-              (index) + ' segments');
+              (index) + ' segments, lang dir: ' + langDir);
 };
 
 /**

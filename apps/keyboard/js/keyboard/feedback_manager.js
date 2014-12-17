@@ -1,6 +1,7 @@
 'use strict';
 
-/* global VibrationFeedbackSettings, SoundFeedbackSettings */
+/* global VibrationFeedbackSettings, SoundFeedbackSettings,
+          SoundFeedbackPlayer */
 
 (function(exports) {
 
@@ -51,6 +52,8 @@ VibrationFeedback.prototype.triggerFeedback = function() {
 var SoundFeedback = function(app) {
   this.app = app;
 
+  this.activated = false;
+
   this.settings = null;
   this.clicker = null;
   this.specialClicker = null;
@@ -69,22 +72,32 @@ SoundFeedback.prototype.start = function() {
 
 SoundFeedback.prototype.stop = function() {
   this.settings = null;
-  this.clicker = null;
-  this.specialClicker = null;
+  this.player = null;
 };
 
-SoundFeedback.prototype.CLICK_SOUND_URL = './resources/sounds/key.wav';
-SoundFeedback.prototype.SPECIAL_SOUND_URL = './resources/sounds/special.wav';
+SoundFeedback.prototype.activate = function() {
+  this.activated = true;
+  if (this.player) {
+    this.player.activate();
+  }
+};
 
-SoundFeedback.prototype.SPECIAL_KEY_CLASSNAME = 'special-key';
+SoundFeedback.prototype.deactivate = function() {
+  this.activated = false;
+  if (this.player) {
+    this.player.deactivate();
+  }
+};
 
 SoundFeedback.prototype._handleSettingsChange = function(settings) {
   if (settings.clickEnabled && !!settings.isSoundEnabled) {
-    this.clicker = new Audio(this.CLICK_SOUND_URL);
-    this.specialClicker = new Audio(this.SPECIAL_SOUND_URL);
+    this.player = new SoundFeedbackPlayer();
+    this.player.prepare();
+    if (this.activated) {
+      this.player.activate();
+    }
   } else {
-    this.clicker = null;
-    this.specialClicker = null;
+    this.player = null;
   }
 };
 
@@ -96,23 +109,12 @@ SoundFeedback.prototype.triggerFeedback = function(target) {
     return;
   }
 
-  if (!this.clicker && !this.specialClicker) {
+  if (!this.player) {
     // Not enabled
     return;
   }
 
-  // Take the audio interface available, play it,
-  // and create another one (so it can be readily available later)
-  var clicker;
-
-  if (!target.isSpecialKey) {
-    clicker = this.clicker;
-    this.clicker = new Audio(this.CLICK_SOUND_URL);
-  } else {
-    clicker = this.specialClicker;
-    this.specialClicker = new Audio(this.SPECIAL_SOUND_URL);
-  }
-  clicker.play();
+  this.player.play(target.isSpecialKey);
 };
 
 var FeedbackManager = function(app) {
@@ -138,6 +140,14 @@ FeedbackManager.prototype.stop = function() {
 
   this.vibrationFeedback = null;
   this.soundFeedback = null;
+};
+
+FeedbackManager.prototype.activate = function() {
+  this.soundFeedback.activate();
+};
+
+FeedbackManager.prototype.deactivate = function() {
+  this.soundFeedback.deactivate();
 };
 
 FeedbackManager.prototype.triggerFeedback = function(target) {

@@ -58,10 +58,7 @@ class TestSetupAndSendActiveSyncEmail(GaiaTestCase):
         # wait for the email to be sent before we tap refresh
         self.email.wait_for_email(_subject)
 
-        # assert that the email app subject is in the email list
-        self.assertIn(_subject, [mail.subject for mail in self.email.mails])
-
-        read_email = self.email.mails[0].tap_subject()
+        read_email = self.email.tap_email_subject(_subject)
 
         self.assertEqual(_body, read_email.body)
         self.assertEqual(_subject, read_email.subject)

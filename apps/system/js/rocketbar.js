@@ -1,5 +1,5 @@
 'use strict';
-/* global System, SearchWindow, places */
+/* global Service, SearchWindow, places */
 
 (function(exports) {
 
@@ -15,7 +15,6 @@
     this.enabled = false;
     this.focused = false;
     this.active = false;
-    this.currentApp = null;
 
     // Properties
     this._port = null; // Inter-app communications port
@@ -36,6 +35,30 @@
   }
 
   Rocketbar.prototype = {
+    EVENT_PREFIX: 'rocketbar',
+    name: 'Rocketbar',
+
+    publish: function(name) {
+      window.dispatchEvent(new CustomEvent(this.EVENT_PREFIX + name, {
+        detail: this
+      }));
+    },
+
+    isActive: function() {
+      return this.active;
+    },
+
+    getActiveWindow: function() {
+      return this.isActive() ? this.searchWindow : null;
+    },
+
+    setHierarchy: function(active) {
+      if (active) {
+        this.focus();
+      }
+      this.searchWindow &&
+      this.searchWindow.setVisibleForScreenReader(active);
+    },
 
     /**
      * Starts Rocketbar.
@@ -44,6 +67,7 @@
     start: function() {
       this.addEventListeners();
       this.enabled = true;
+      Service.request('registerHierarchy', this);
     },
 
     /**
@@ -62,8 +86,6 @@
         return;
       }
 
-      window.addEventListener('system-resize', this, true);
-
       this.active = true;
       this.rocketbar.classList.add('active');
       this.form.classList.remove('hidden');
@@ -73,9 +95,13 @@
       // before moving on (and triggering the callback).
       var searchLoaded = false;
       var transitionEnded = false;
+      var self = this;
       var waitOver = function() {
-        if (searchLoaded && transitionEnded && callback) {
-          callback();
+        if (searchLoaded && transitionEnded) {
+          if (callback) {
+            callback();
+          }
+          self.publish('-activated');
         }
       };
 
@@ -100,6 +126,7 @@
         searchLoaded = true;
         waitOver();
       });
+      this.publish('-activating');
     },
 
     /**
@@ -114,10 +141,9 @@
       }
       this.active = false;
 
-      window.removeEventListener('system-resize', this, true);
-
       var backdrop = this.backdrop;
       var finishTimeout;
+      var self = this;
       var finish = (function() {
         clearTimeout(finishTimeout);
         this.form.classList.add('hidden');
@@ -129,6 +155,7 @@
         backdrop.addEventListener('transitionend', function trWait() {
           backdrop.removeEventListener('transitionend', trWait);
           window.dispatchEvent(new CustomEvent('rocketbar-overlayclosed'));
+          self.publish('-deactivated');
         });
       }).bind(this);
 
@@ -143,6 +170,7 @@
       } else {
         finish();
       }
+      this.publish('-deactivating');
     },
 
     /**
@@ -157,8 +185,6 @@
       window.addEventListener('lockscreen-appopened', this);
       window.addEventListener('appopened', this);
       window.addEventListener('launchapp', this);
-      window.addEventListener('home', this);
-      window.addEventListener('launchactivity', this, true);
       window.addEventListener('searchterminated', this);
       window.addEventListener('permissiondialoghide', this);
       window.addEventListener('global-search-request', this);
@@ -178,6 +204,23 @@
 
       // Listen for messages from search app
       window.addEventListener('iac-search-results', this);
+    },
+
+    '_handle_system-resize': function() {
+      if (this.isActive()) {
+        if (this.searchWindow.frontWindow) {
+          this.searchWindow.frontWindow.resize();
+        }
+        return false;
+      }
+      return true;
+    },
+
+    respondToHierarchyEvent: function(evt) {
+      if (this['_handle_' + evt.type]) {
+        return this['_handle_' + evt.type](evt);
+      }
+      return true;
     },
 
     /**
@@ -226,9 +269,6 @@
         case 'focus':
           this.handleFocus(e);
           break;
-        case 'home':
-          this.handleHome(e);
-          break;
         case 'blur':
           this.handleBlur(e);
           break;
@@ -245,9 +285,6 @@
             this.deactivate();
           }
           break;
-        case 'launchactivity':
-          this.handleActivity(e);
-          break;
         case 'searchterminated':
           this.handleSearchTerminated(e);
           break;
@@ -262,23 +299,27 @@
             this.focus();
           }
           break;
-        case 'system-resize':
-          if (this.searchWindow.frontWindow) {
-            this.searchWindow.frontWindow.resize();
-          }
-          break;
         case 'global-search-request':
           // XXX: fix the WindowManager coupling
           // but currently the transition sequence is crucial for performance
-          var app = System.currentApp;
+          var app = Service.currentApp;
           var afterActivate;
+
+          if (app && !app.isActive()) {
+            return;
+          }
 
           // If the app is not a browser, retain the search value and activate.
           if (app && !app.isBrowser()) {
             afterActivate = this.focus.bind(this);
           } else {
-            // Set the input to be the URL in the case of a browser.
-            this.setInput(app.config.url);
+            // Clear the input if the URL starts with a system page.
+            if (app.config.url.startsWith('app://system.gaiamobile.org')) {
+              this.setInput('');
+            } else {
+              // Set the input to be the URL in the case of a normal browser.
+              this.setInput(app.config.url);
+            }
 
             afterActivate = () => {
               this.hideResults();
@@ -399,19 +440,18 @@
      */
     handleFocus: function() {
       this.focused = true;
-      // Swallow keyboard change events so homescreen does not resize
-      // To be removed in bug 999463
-      this.body.addEventListener('keyboardchange',
-        this.handleKeyboardChange, true);
     },
 
     /**
      * Handle press of hardware home button.
      * @memberof Rocketbar.prototype
      */
-    handleHome: function() {
-      this.hideResults();
-      this.deactivate();
+    _handle_home: function() {
+      if (this.isActive()) {
+        this.hideResults();
+        this.deactivate();
+      }
+      return true;
     },
 
     /**
@@ -428,10 +468,6 @@
      */
     handleBlur: function() {
       this.focused = false;
-      // Stop swallowing keyboard change events
-      // To be removed in bug 999463
-      this.body.removeEventListener('keyboardchange',
-        this.handleKeyboardChange, true);
     },
 
     /**
@@ -447,12 +483,13 @@
      * Handles activities for the search app.
     * @memberof Rocketbar.prototype
      */
-    handleActivity: function(e) {
+    _handle_launchactivity: function(e) {
       if (e.detail.isActivity && e.detail.inline && this.searchWindow &&
           this.searchWindow.manifestURL === e.detail.parentApp) {
-        e.stopImmediatePropagation();
         this.searchWindow.broadcast('launchactivity', e.detail);
+        return false;
       }
+      return true;
     },
 
     /**
@@ -508,17 +545,11 @@
         action: 'submit',
         input: this.input.value
       });
-    },
 
-    /**
-     * Handle keyboard change.
-     *
-     * To be removed in bug 999463.
-     * @memberof Rocketbar.prototype
-     */
-    handleKeyboardChange: function(e) {
-      // Swallow event to prevent app being resized
-      e.stopImmediatePropagation();
+      // Do not persist search submissions from private windows.
+      if (Service.currentApp.isPrivateBrowser()) {
+        this.setInput('');
+      }
     },
 
     /**

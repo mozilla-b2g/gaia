@@ -1,10 +1,9 @@
 /* globals FtuLauncher, MockL10n, MockMobileOperator, MockLayoutManager,
            MockNavigatorMozMobileConnections, MockNavigatorMozTelephony,
            MockSettingsListener, MocksHelper, MockSIMSlot, MockSIMSlotManager,
-           MockSystem, MockTouchForwarder, StatusBar, System,
+           MockService, StatusBar, Service,
            MockNfcManager, MockMobileconnection, MockAppWindowManager,
-           UtilityTray */
-
+           MockNavigatorBattery, UtilityTray, MockAppWindow */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_settings_listener.js');
@@ -14,7 +13,7 @@ require(
 require('/shared/test/unit/mocks/mock_icc_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-require('/shared/test/unit/mocks/mock_system.js');
+require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_simslot.js');
 require('/shared/test/unit/mocks/mock_simslot_manager.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -22,20 +21,21 @@ require('/test/unit/mock_app_window_manager.js');
 require('/test/unit/mock_ftu_launcher.js');
 require('/test/unit/mock_nfc_manager.js');
 require('/test/unit/mock_touch_forwarder.js');
-require('/test/unit/mock_sim_pin_dialog.js');
 require('/test/unit/mock_utility_tray.js');
 require('/test/unit/mock_layout_manager.js');
+require('/test/unit/mock_navigator_battery.js');
+require('/test/unit/mock_app_window.js');
 
 var mocksForStatusBar = new MocksHelper([
-  'FtuLauncher',
   'SettingsListener',
   'MobileOperator',
   'SIMSlotManager',
-  'AppWindowManager',
-  'TouchForwarder',
-  'SimPinDialog',
   'UtilityTray',
-  'LayoutManager'
+  'LayoutManager',
+  'NavigatorBattery',
+  'AppWindow',
+  'Service',
+  'FtuLauncher'
 ]).init();
 
 suite('system/Statusbar', function() {
@@ -46,7 +46,7 @@ suite('system/Statusbar', function() {
       fakeStatusBarConnections, fakeStatusBarCallForwardings, fakeStatusBarTime,
       fakeStatusBarLabel, fakeStatusBarBattery;
   var realMozL10n, realMozMobileConnections, realMozTelephony, fakeIcons = [],
-      realNfcManager, realLayoutManager;
+      realNfcManager, realLayoutManager, realNavigatorBattery;
 
   function prepareDOM() {
     for (var i = 1; i < mobileConnectionCount; i++) {
@@ -111,7 +111,7 @@ suite('system/Statusbar', function() {
   setup(function(done) {
     this.sinon.useFakeTimers();
 
-    window.System = MockSystem;
+    window.Service = MockService;
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     realMozMobileConnections = navigator.mozMobileConnections;
@@ -120,6 +120,11 @@ suite('system/Statusbar', function() {
     navigator.mozTelephony = MockNavigatorMozTelephony;
     realLayoutManager = window.layoutManager;
     window.layoutManager = MockLayoutManager;
+    realNavigatorBattery = navigator.battery;
+    Object.defineProperty(navigator, 'battery', {
+      writable: true
+    });
+    navigator.battery = MockNavigatorBattery;
 
     realNfcManager = window.nfcManager;
     window.nfcManager = new MockNfcManager();
@@ -184,12 +189,14 @@ suite('system/Statusbar', function() {
     fakeStatusBarNode.parentNode.removeChild(fakeStatusBarNode);
     MockNavigatorMozTelephony.mTeardown();
     MockNavigatorMozMobileConnections.mTeardown();
-    System.locked = false;
-    System.currentApp = null;
+    MockNavigatorBattery.mTeardown();
+    Service.locked = false;
+    Service.currentApp = null;
     navigator.mozL10n = realMozL10n;
     navigator.mozMobileConnections = realMozMobileConnections;
     navigator.mozTelephony = realMozTelephony;
     window.layoutManager = realLayoutManager;
+    navigator.battery = realNavigatorBattery;
     window.nfcManager.isActive.restore();
     window.nfcManager = realNfcManager;
   });
@@ -206,6 +213,18 @@ suite('system/Statusbar', function() {
       assert.equal(Object.keys(fakeIcons.signals).length,
         mobileConnectionCount);
       assert.equal(Object.keys(fakeIcons.data).length, mobileConnectionCount);
+    });
+  });
+
+  suite('Emergency Call', function() {
+    test('Statechanged event should update the notification', function() {
+      this.sinon.stub(StatusBar, 'updateEmergencyCbNotification');
+      var evt = new CustomEvent('emergencycallbackstatechanged', {
+        detail: true
+      });
+      StatusBar.handleEvent(evt);
+      assert.isTrue(StatusBar.updateEmergencyCbNotification
+            .calledWith(true));
     });
   });
 
@@ -313,7 +332,7 @@ suite('system/Statusbar', function() {
         element: document.createElement('div')
       };
 
-      System.currentApp = app;
+      Service.currentApp = app;
       StatusBar.screen = document.createElement('div');
     });
     teardown(function() {
@@ -374,7 +393,7 @@ suite('system/Statusbar', function() {
           return app;
         }
       };
-      System.currentApp = app;
+      Service.currentApp = app;
       StatusBar.clock.stop();
       StatusBar.screen = document.createElement('div');
     });
@@ -382,14 +401,14 @@ suite('system/Statusbar', function() {
       StatusBar.screen = null;
     });
     test('first launch', function() {
-      System.locked = true;
+      Service.locked = true;
       StatusBar.init();
       StatusBar.finishInit();
       assert.equal(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, true);
     });
     test('lock', function() {
-      System.locked = true;
+      Service.locked = true;
       var currentApp = {};
       var setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
       var evt = new CustomEvent('lockscreen-appopened', {detail: currentApp});
@@ -416,7 +435,7 @@ suite('system/Statusbar', function() {
     });
     test('attentionsceen hide', function() {
       // Test this when lockscreen is off.
-      System.locked = false;
+      Service.locked = false;
       var evt = new CustomEvent('attentionclosed');
       StatusBar.handleEvent(evt);
       assert.notEqual(StatusBar.clock.timeoutID, null);
@@ -434,7 +453,7 @@ suite('system/Statusbar', function() {
       assert.equal(StatusBar.icons.time.hidden, false);
     });
     test('moztime change while lockscreen is unlocked', function() {
-      System.locked = false;
+      Service.locked = false;
       var evt = new CustomEvent('moztimechange');
       StatusBar.handleEvent(evt);
       this.sinon.clock.tick();
@@ -456,7 +475,7 @@ suite('system/Statusbar', function() {
           screenEnabled: true
         }
       });
-      System.locked = false;
+      Service.locked = false;
       StatusBar.handleEvent(evt);
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
@@ -467,7 +486,7 @@ suite('system/Statusbar', function() {
           screenEnabled: true
         }
       });
-      System.locked = true;
+      Service.locked = true;
       StatusBar.handleEvent(evt);
       assert.equal(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, true);
@@ -1487,21 +1506,21 @@ suite('system/Statusbar', function() {
 
   suite('fullscreen mode >', function() {
     function forgeTouchEvent(type, x, y) {
-        var touch = document.createTouch(window, null, 42, x, y,
-                                         x, y, x, y,
-                                         0, 0, 0, 0);
-        var touchList = document.createTouchList(touch);
-        var touches = (type == 'touchstart' || type == 'touchmove') ?
-                           touchList : null;
-        var changed = (type == 'touchmove') ?
-                           null : touchList;
+      var touch = document.createTouch(window, null, 42, x, y,
+                                       x, y, x, y,
+                                       0, 0, 0, 0);
+      var touchList = document.createTouchList(touch);
+      var touches = (type == 'touchstart' || type == 'touchmove') ?
+                         touchList : null;
+      var changed = (type == 'touchmove') ?
+                         null : touchList;
 
-        var e = document.createEvent('TouchEvent');
-        e.initTouchEvent(type, true, true,
-                         null, null, false, false, false, false,
-                         touches, null, changed);
+      var e = document.createEvent('TouchEvent');
+      e.initTouchEvent(type, true, true,
+                       null, null, false, false, false, false,
+                       touches, null, changed);
 
-        return e;
+      return e;
     }
 
     function forgeMouseEvent(type, x, y) {
@@ -1527,37 +1546,9 @@ suite('system/Statusbar', function() {
 
     var app;
     setup(function() {
-      app = {
-        isFullScreen: function() {
-          return true;
-        },
-        titleBar: {
-          element: document.createElement('div')
-        },
-        iframe: document.createElement('iframe'),
-        getTopMostWindow: function() {
-          return app;
-        },
-        config: {},
-        _element: null,
-        get element() {
-          if (!this._element) {
-            var element = document.createElement('div');
-            var title = document.createElement('div');
-            title.classList.add('titlebar');
-            element.appendChild(title);
-
-            var chrome = document.createElement('div');
-            chrome.className = 'chrome';
-            element.appendChild(chrome);
-            this._element = element;
-          }
-
-          return this._element;
-        }
-      };
-
-      System.currentApp = app;
+      app = new MockAppWindow();
+      MockService.mTopMostWindow = app;
+      this.sinon.stub(app, 'handleStatusbarTouch');
       this.sinon.stub(StatusBar.element, 'getBoundingClientRect').returns({
         height: 10
       });
@@ -1566,21 +1557,9 @@ suite('system/Statusbar', function() {
     });
 
     suite('Revealing the StatusBar >', function() {
-      var transitionEndSpy;
-      var element;
       setup(function() {
         StatusBar._cacheHeight = 24;
-        element = System.currentApp.element
-                                                 .querySelector('.titlebar');
-        transitionEndSpy = this.sinon.spy(element, 'addEventListener');
       });
-
-      function assertStatusBarReleased() {
-        assert.equal(StatusBar.element.style.transform, '');
-        assert.equal(StatusBar.element.style.transition, '');
-
-        assert.isFalse(element.classList.contains('dragged'));
-      }
 
       teardown(function() {
         this.sinon.clock.tick(10000);
@@ -1588,40 +1567,24 @@ suite('system/Statusbar', function() {
         StatusBar.element.style.transform = '';
       });
 
-      test('it should stop the propagation of the events at first', function() {
-        var fakeEvt = {
-          stopImmediatePropagation: function() {},
-          preventDefault: function() {},
-          type: 'fake'
-        };
-        this.sinon.spy(fakeEvt, 'stopImmediatePropagation');
-        StatusBar.panelHandler(fakeEvt);
-        sinon.assert.calledOnce(fakeEvt.stopImmediatePropagation);
-      });
-
       test('it should translate the statusbar on touchmove', function() {
         fakeDispatch('touchstart', 100, 0);
-        fakeDispatch('touchmove', 100, 5);
-        var transform = 'translateY(calc(5px - 100%))';
-        assert.equal(element.style.transform, transform);
+        var evt = fakeDispatch('touchmove', 100, 5);
+        assert.isTrue(app.handleStatusbarTouch.calledWith(evt, 24));
         fakeDispatch('touchend', 100, 5);
       });
 
-      test('it should set the dragged class on touchstart', function() {
-        fakeDispatch('touchstart', 100, 0);
-        assert.isFalse(element.classList.contains('dragged'));
-        fakeDispatch('touchmove', 100, 24);
-        fakeDispatch('touchend', 100, 25);
-        assert.isTrue(element.classList.contains('dragged'));
+      test('it should bypass touchstart event', function() {
+        var evt = fakeDispatch('touchstart', 100, 0);
+        assert.isTrue(app.handleStatusbarTouch.calledWith(evt, 24));
       });
 
       test('it should not translate the statusbar more than its height',
       function() {
         fakeDispatch('touchstart', 100, 0);
         fakeDispatch('touchmove', 100, 5);
-        fakeDispatch('touchmove', 100, 15);
-        var transform = 'translateY(calc(15px - 100%))';
-        assert.equal(element.style.transform, transform);
+        var evt = fakeDispatch('touchmove', 100, 15);
+        assert.isTrue(app.handleStatusbarTouch.calledWith(evt, 24));
         fakeDispatch('touchend', 100, 15);
       });
 
@@ -1647,9 +1610,7 @@ suite('system/Statusbar', function() {
         fakeDispatch('touchstart', 100, 0);
         fakeDispatch('touchmove', 100, 100);
 
-        var titleEl = System.currentApp.element
-                                       .querySelector('.titlebar');
-        assert.equal(titleEl.style.transform, '');
+        assert.isFalse(app.handleStatusbarTouch.called);
         FtuLauncher.mIsRunning = false;
       });
 
@@ -1658,139 +1619,8 @@ suite('system/Statusbar', function() {
         fakeDispatch('touchstart', 100, 0);
         fakeDispatch('touchmove', 100, 100);
 
-        var titleEl = System.currentApp.element
-                                       .querySelector('.titlebar');
-        assert.equal(titleEl.style.transform, '');
+        assert.isFalse(app.handleStatusbarTouch.called);
         UtilityTray.active = false;
-      });
-
-
-      suite('after the gesture', function() {
-        suite('when the StatusBar is not fully displayed', function() {
-          setup(function() {
-            fakeDispatch('touchstart', 100, 0);
-            fakeDispatch('touchmove', 100, 5);
-            fakeDispatch('touchend', 100, 5);
-          });
-
-          test('it should hide it right away', function() {
-            assertStatusBarReleased();
-          });
-        });
-
-        suite('when the StatusBar is fully displayed', function() {
-          setup(function() {
-            fakeDispatch('touchstart', 100, 0);
-            fakeDispatch('touchmove', 100, 5);
-            fakeDispatch('touchmove', 100, 24);
-            fakeDispatch('touchend', 100, 24);
-          });
-
-          test('it should not hide it right away', function() {
-            var titleEl = System.currentApp.element
-                                          .querySelector('.titlebar');
-            assert.equal(titleEl.style.transform, '');
-            assert.equal(titleEl.style.transition, '');
-            assert.ok(titleEl.classList.contains('dragged'));
-          });
-
-          test('but after 5 seconds', function() {
-            this.sinon.clock.tick(5000);
-            assertStatusBarReleased();
-          });
-
-          test('or if the user interacts with the app', function() {
-            // We're faking a touchstart event on the app iframe
-            var iframe = StatusBar._touchForwarder.destination;
-            StatusBar._touchForwarder.destination = window;
-
-            var e = forgeTouchEvent('touchstart', 100, 100);
-            window.dispatchEvent(e);
-
-            assertStatusBarReleased();
-            StatusBar._touchForwarder.destination = iframe;
-          });
-        });
-      });
-    });
-
-    test('it should prevent default on mouse events keep the focus on the app',
-    function() {
-      var mousedown = fakeDispatch('mousedown', 100, 0);
-      var mousemove = fakeDispatch('mousemove', 100, 2);
-      var mouseup = fakeDispatch('mouseup', 100, 2);
-
-      assert.isTrue(mousedown.defaultPrevented);
-      assert.isTrue(mousemove.defaultPrevented);
-      assert.isTrue(mouseup.defaultPrevented);
-    });
-
-    suite('Touch forwarding in fullscreen >', function() {
-      var forwardSpy;
-
-      setup(function() {
-        StatusBar._cacheHeight = 24;
-        forwardSpy = this.sinon.spy(MockTouchForwarder.prototype, 'forward');
-      });
-
-      test('it should prevent default on all touch events to prevent reflows',
-      function() {
-        var touchstart = fakeDispatch('touchstart', 100, 0);
-        var touchmove = fakeDispatch('touchmove', 100, 2);
-        var touchend = fakeDispatch('touchend', 100, 2);
-
-        assert.isTrue(touchstart.defaultPrevented);
-        assert.isTrue(touchmove.defaultPrevented);
-        assert.isTrue(touchend.defaultPrevented);
-      });
-
-      test('it should set the destination of the TouchForwarder on touchstart',
-      function() {
-        fakeDispatch('touchstart', 100, 0);
-        assert.equal(StatusBar._touchForwarder.destination, app.iframe);
-        fakeDispatch('touchend', 100, 0);
-      });
-
-      test('it should forward taps to the app', function() {
-        var touchstart = fakeDispatch('touchstart', 100, 0);
-        fakeDispatch('touchmove', 100, 2);
-        var touchend = fakeDispatch('touchend', 100, 2);
-
-        assert.isTrue(forwardSpy.calledTwice);
-        var call = forwardSpy.firstCall;
-        assert.equal(call.args[0], touchstart);
-        call = forwardSpy.getCall(1);
-        assert.equal(call.args[0], touchend);
-      });
-
-      suite('if it\'s not a tap and the statusbar is not fully displayed',
-      function() {
-        test('it should not forward any events', function() {
-          fakeDispatch('touchstart', 100, 0);
-          fakeDispatch('touchmove', 100, 8);
-          fakeDispatch('touchend', 100, 8);
-
-          assert.isTrue(forwardSpy.notCalled);
-        });
-      });
-
-      test('it should forward touchmove once the statusbar is shown',
-      function() {
-        var touchstart = fakeDispatch('touchstart', 100, 0);
-        fakeDispatch('touchmove', 100, 6);
-        var secondMove = fakeDispatch('touchmove', 100, 26);
-        var thirdMove = fakeDispatch('touchmove', 100, 28);
-        var touchend = fakeDispatch('touchend', 100, 2);
-
-        assert.equal(forwardSpy.callCount, 4);
-        var call = forwardSpy.firstCall;
-        assert.equal(call.args[0], touchstart);
-        call = forwardSpy.getCall(1);
-        assert.equal(call.args[0], secondMove);
-        call = forwardSpy.getCall(2);
-        assert.equal(call.args[0], thirdMove);
-        call = forwardSpy.getCall(3);
-        assert.equal(call.args[0], touchend);
       });
     });
   });
@@ -2158,14 +1988,14 @@ suite('system/Statusbar', function() {
       var evt = new CustomEvent('lockscreen-appopened', {
         detail: lockscreenApp
       });
-      MockSystem.currentApp = app;
+      MockService.currentApp = app;
       StatusBar.handleEvent(evt);
     });
 
     teardown(function() {
       var evt = new CustomEvent('lockscreen-appclosing');
       StatusBar.handleEvent(evt);
-      MockSystem.currentApp = null;
+      MockService.currentApp = null;
     });
 
     test('should set the lockscreen icons color', function() {
@@ -2277,7 +2107,7 @@ suite('system/Statusbar', function() {
           return this._topWindow;
         }
       };
-      System.currentApp = currentApp;
+      Service.currentApp = currentApp;
       var evt = new CustomEvent(event, {detail: currentApp});
       StatusBar.element.classList.add('hidden');
       StatusBar.handleEvent(evt);
@@ -2305,7 +2135,7 @@ suite('system/Statusbar', function() {
 
     setup(function() {
       app = {};
-      MockSystem.currentApp = app;
+      MockService.currentApp = app;
       setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
       pauseUpdateStub = this.sinon.stub(StatusBar, 'pauseUpdate');
       resumeUpdateStub = this.sinon.stub(StatusBar, 'resumeUpdate');
@@ -2347,6 +2177,10 @@ suite('system/Statusbar', function() {
 
     test('appopened', function() {
       testEventThatShows.bind(this)('appopened');
+    });
+
+    test('appchromeexpanded', function() {
+      testEventThatShows.bind(this)('appchromeexpanded');
     });
 
     test('apptitlestatechanged', function() {
@@ -2440,6 +2274,45 @@ suite('system/Statusbar', function() {
       StatusBar.update.time.call(StatusBar, '***');
 
       assert.notEqual(originalWidth, StatusBar.PRIORITIES[labelIndex][1]);
+    });
+  });
+
+  suite('Battery icon', function() {
+    var cloneStatusbarSpy;
+
+    setup(function() {
+      MockNavigatorBattery.level = 0.95;
+      MockNavigatorBattery.charging = false;
+      StatusBar.update.battery.call(StatusBar);
+      cloneStatusbarSpy = this.sinon.spy(StatusBar, 'cloneStatusbar');
+    });
+
+    test('should not reprioritize icons when doesn\'t change', function() {
+      StatusBar.update.battery.call(StatusBar);
+
+      assert.isFalse(cloneStatusbarSpy.called);
+    });
+
+    test('should not reprioritize icons when computed level doesn\'t change',
+      function() {
+        MockNavigatorBattery.level = 0.9;
+        StatusBar.update.battery.call(StatusBar);
+
+        assert.isFalse(cloneStatusbarSpy.called);
+      });
+
+    test('should reprioritize icons when battery changes', function() {
+      MockNavigatorBattery.level = 0.5;
+      StatusBar.update.battery.call(StatusBar);
+
+      assert.isTrue(cloneStatusbarSpy.called);
+    });
+
+    test('should reprioritize icons when charging state changes', function() {
+      MockNavigatorBattery.charging = true;
+      StatusBar.update.battery.call(StatusBar);
+
+      assert.isTrue(cloneStatusbarSpy.called);
     });
   });
 

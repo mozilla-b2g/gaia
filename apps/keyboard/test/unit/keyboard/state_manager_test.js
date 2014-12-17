@@ -3,7 +3,8 @@
 /* global LayoutManager, InputMethodManager, L10nLoader, CandidatePanelManager,
           ActiveTargetsManager, UpperCaseStateManager, SettingsPromiseManager,
           LayoutRenderingManager, KeyboardConsole, LayoutLoader,
-          InputMethodLoader, StateManager, AbortablePromiseQueue,
+          InputMethodLoader, FeedbackManager, StateManager,
+          AbortablePromiseQueue,
           MockInputMethod, MockInputContext, MockEventTarget */
 
 require('/js/keyboard/console.js');
@@ -14,6 +15,7 @@ require('/js/keyboard/settings.js');
 require('/js/keyboard/l10n_loader.js');
 require('/js/keyboard/active_targets_manager.js');
 require('/js/keyboard/candidate_panel_manager.js');
+require('/js/keyboard/feedback_manager.js');
 require('/js/keyboard/upper_case_state_manager.js');
 require('/js/keyboard/layout_rendering_manager.js');
 require('/js/keyboard/abortable_promise_queue.js');
@@ -52,6 +54,7 @@ suite('StateManager', function() {
       inputMethodManager: this.sinon.stub(InputMethodManager.prototype),
       l10nLoader: this.sinon.stub(L10nLoader.prototype),
       candidatePanelManager: this.sinon.stub(CandidatePanelManager.prototype),
+      feedbackManager: this.sinon.stub(FeedbackManager.prototype),
       targetHandlersManager: {
         activeTargetsManager: this.sinon.stub(ActiveTargetsManager.prototype)
       },
@@ -132,6 +135,7 @@ suite('StateManager', function() {
       assert.isTrue(app.candidatePanelManager.updateCandidates.calledOnce);
       assert.isFalse(app.targetHandlersManager
         .activeTargetsManager.clearAllTargets.called);
+      assert.isTrue(app.feedbackManager.activate.calledOnce);
 
       assert.isTrue(app.layoutManager.switchCurrentLayout.calledWith('foo'));
 
@@ -211,6 +215,7 @@ suite('StateManager', function() {
         assert.isTrue(app.candidatePanelManager.updateCandidates.calledTwice);
         assert.isTrue(app.targetHandlersManager
           .activeTargetsManager.clearAllTargets.calledOnce);
+        assert.isTrue(app.feedbackManager.deactivate.calledOnce);
 
         assert.isTrue(app.inputMethodManager.switchCurrentIMEngine
           .getCall(1).calledWith('default'));
@@ -343,6 +348,7 @@ suite('StateManager', function() {
         assert.isTrue(app.candidatePanelManager.updateCandidates.calledOnce);
         assert.isFalse(app.targetHandlersManager
           .activeTargetsManager.clearAllTargets.called);
+        assert.isTrue(app.feedbackManager.activate.calledOnce);
 
         assert.isTrue(app.layoutManager.switchCurrentLayout.calledWith('foo'));
 
