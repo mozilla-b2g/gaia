@@ -26,6 +26,9 @@ class Gallery(Base):
     def launch(self):
         Base.launch(self)
         self.wait_for_element_not_displayed(*self._progress_bar_locator)
+        self.wait_for_thumbnail_view_to_load()
+
+    def wait_for_thumbnail_view_to_load(self):
         Wait(self.marionette).until(expected.element_displayed(
             Wait(self.marionette).until(expected.element_present(
                 *self._thumbnail_list_view_locator))))
