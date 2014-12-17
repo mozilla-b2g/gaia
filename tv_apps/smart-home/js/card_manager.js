@@ -8,7 +8,7 @@
   };
 
   CardManager.prototype = evt({
-    HIDDEN_ROLES: ['system', 'homescreen'],
+    HIDDEN_ROLES: ['system', 'homescreen', 'addon'],
 
     _cardStore: undefined,
 

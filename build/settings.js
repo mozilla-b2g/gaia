@@ -278,6 +278,10 @@ function execute(config) {
       'https://marketplace.firefox.com,https://marketplace.allizom.org';
   }
 
+  if (config.PRODUCTION === '0') {
+    settings['developer.mode'] = true;
+  }
+
   settings['language.current'] = config.GAIA_DEFAULT_LOCALE;
 
   if (config.DEVICE_DEBUG === '1') {
