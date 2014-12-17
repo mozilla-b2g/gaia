@@ -6,7 +6,7 @@
   var appMgr = navigator.mozApps.mgmt;
   var apps = null;
 
-  window.performance.mark('homescreenStart@System');
+  window.mozPerformance.timing.mozHomescreenStart = Date.now();
 
   appMgr.getAll().onsuccess = function onsuccess(event) {
     apps = event.target.result;

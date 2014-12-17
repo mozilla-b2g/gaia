@@ -11,7 +11,6 @@
 
 'use strict';
 
-require('/shared/js/usertiming.js');
 requireApp('sms/js/utils.js');
 require('/js/dialog.js');
 requireApp('sms/js/recipients.js');

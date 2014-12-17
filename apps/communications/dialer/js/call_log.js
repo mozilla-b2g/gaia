@@ -18,7 +18,6 @@ var CallLog = {
       return;
     }
 
-    window.performance.mark('callLogStart');
     PerformanceTestingHelper.dispatch('start-call-log');
 
     this._initialized = true;
@@ -209,14 +208,12 @@ var CallLog = {
           daysToRender.push(chunk);
           self.renderSeveralDays(daysToRender);
           if (!screenRendered) {
-            window.performance.mark('firstChunkReady');
             PerformanceTestingHelper.dispatch('first-chunk-ready');
           }
           self.enableEditMode();
           self.sticky.refresh();
           self.updateHeadersContinuously();
         }
-        window.performance.measure('callLogReady', 'callLogStart');
         PerformanceTestingHelper.dispatch('call-log-ready');
         return;
       }
@@ -235,7 +232,6 @@ var CallLog = {
             !screenRendered) {
           renderNow = true;
           screenRendered = true;
-          window.performance.mark('firstChunkReady');
           PerformanceTestingHelper.dispatch('first-chunk-ready');
         } else if (batchGroupCounter >= MAX_GROUPS_TO_BATCH_RENDER) {
           renderNow = true;

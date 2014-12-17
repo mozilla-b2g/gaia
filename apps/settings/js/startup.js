@@ -55,7 +55,7 @@
      */
     _addClickListeners: function iph_addClickListeners() {
       this._anchors = Array.prototype.slice.call(
-          this._rootElement.querySelectorAll('li a[href]'));
+        this._rootElement.querySelectorAll('li a[href]'));
       this._anchors.forEach(function(anchor) {
         anchor.onclick = (event) => {
           event.preventDefault();
@@ -85,7 +85,7 @@
      */
     _addInputListeners: function iph_addInputListeners() {
       this._inputs = Array.prototype.slice.call(
-          this._rootElement.querySelectorAll('input[name]'));
+        this._rootElement.querySelectorAll('input[name]'));
       this._inputs.forEach(function(input) {
         var name = input.getAttribute('name');
         var boundOnSettingChange = this._onSettingChange.bind(this, input);
@@ -116,7 +116,7 @@
       });
       this._inputListenerInfos.forEach(function(inputListenerInfo) {
         this._settings.removeObserver(inputListenerInfo.name,
-            inputListenerInfo.handler);
+          inputListenerInfo.handler);
       }, this);
     },
 
@@ -126,7 +126,7 @@
      * @access private
      * @memberOf InitialPanelHandler.prototype
      * @param {HTMLInputElement} input
-     * @param {Event} event
+     * @param {Event} event                    
      */
     _onSettingChange: function uph_onSettingChange(input, event) {
       this._updateInput(input, event.settingValue);
@@ -137,7 +137,7 @@
      *
      * @access private
      * @memberOf InitialPanelHandler.prototype
-     * @param {Event} event
+     * @param {Event} event                    
      */
     _onInputChange: function uph_onInputChange(event) {
       var input = event.target;
@@ -191,7 +191,7 @@
      * @access private
      * @memberOf InitialPanelHandler.prototype
      * @param {HTMLInputElement} input
-     * @param {Object} value
+     * @param {Object} value                  
      */
     _updateInput: function uph_updateInput(input, value) {
       var i;
@@ -226,7 +226,7 @@
      * Add listeners for click and input changes.
      *
      * @access private
-     * @memberOf InitialPanelHandler.prototype
+     * @memberOf InitialPanelHandler.prototype              
      */
     _init: function iph_init() {
       this._addClickListeners();
@@ -237,7 +237,7 @@
      * Release the control from the handler to the panel.
      *
      * @access public
-     * @memberOf InitialPanelHandler.prototype
+     * @memberOf InitialPanelHandler.prototype              
      */
     release: function iph_release() {
       this._removeClickListeners();
@@ -246,14 +246,14 @@
   };
 
   exports.InitialPanelHandler =
-      function ctor_InitialPanelHandler(rootElement, customPanelHandler) {
-        return new InitialPanelHandler(rootElement, customPanelHandler);
-      };
+    function ctor_InitialPanelHandler(rootElement, customPanelHandler) {
+      return new InitialPanelHandler(rootElement, customPanelHandler);
+  };
 })(this);
 
 
 /**
- * RootPanelHandler updates UI elements in the root panel.
+ * RootPanelHandler updates UI elements in the root panel. 
  *
  * @module RootPanelHandler
  */
@@ -288,10 +288,10 @@
       } else {
         // hide telephony panels
         var elements = ['call-settings',
-          'data-connectivity',
-          'messaging-settings',
-          'simSecurity-settings',
-          'simCardManager-settings'];
+                        'data-connectivity',
+                        'messaging-settings',
+                        'simSecurity-settings',
+                        'simCardManager-settings'];
         elements.forEach(function(el) {
           document.getElementById(el).hidden = true;
         });
@@ -306,15 +306,15 @@
      */
     _updateDeveloperMenuItem: function rph_refreshDeveloperMenuItem() {
       var item = this._rootElement.querySelector(
-          '[data-show-name="developer.menu.enabled"]');
+        '[data-show-name="developer.menu.enabled"]');
       if (item && navigator.mozSettings) {
         return navigator.mozSettings.createLock()
-            .get('developer.menu.enabled').then(
+          .get('developer.menu.enabled').then(
             function(result) {
               item.hidden = !result['developer.menu.enabled'];
-            }, function(error) {
-              console.error(error);
-            });
+          }, function(error) {
+            console.error(error);
+          });
       } else {
         return Promise.resolve();
       }
@@ -324,7 +324,7 @@
      * Process all UI elements here.
      *
      * @access private
-     * @memberOf RootPanelHandler.prototype
+     * @memberOf RootPanelHandler.prototype              
      */
     _init: function rph_init() {
       var nfcItem = this._rootElement.querySelector('.nfc-settings');
@@ -406,7 +406,7 @@
      * @memberOf AppStarter.prototype
      */
     _createLaunchContext: function as_createLaunchContext(initialPanelId,
-                                                          initialPanelHandler, activityHandler) {
+      initialPanelHandler, activityHandler) {
 
       this._launchContext = {
         get initialPanelId() {
@@ -460,12 +460,10 @@
       navigator.mozL10n.once(function l10nDone() {
         // Since the settings app contains its chrome already existing in the
         // DOM, we can fire that it's loaded as soon as the DOM is localized
-        window.performance.mark('navigationLoaded');
         window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
 
         // Since the settings app has no functional chrome, we can fire the
         // interactive event now because there are no events to bind
-        window.performance.mark('navigationInteractive');
         window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
       });
 
@@ -480,16 +478,15 @@
         }
 
         var initialPanelHandler =
-            InitialPanelHandler(document.getElementById(initialPanelId),
-                customPanelHandler);
+          InitialPanelHandler(document.getElementById(initialPanelId),
+            customPanelHandler);
 
         // Initial panel handler registers basic events for interaction so we
         // can fire the content interactive evnet here.
-        window.performance.mark('contentInteractive');
         window.dispatchEvent(new CustomEvent('moz-content-interactive'));
 
         this._createLaunchContext(initialPanelId, initialPanelHandler,
-            window.ActivityHandler);
+          window.ActivityHandler);
       }).then(() => {
         // Add timeout as loading the modules could block scrolling.
         return new Promise((resolve) => {
