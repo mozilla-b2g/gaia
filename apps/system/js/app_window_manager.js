@@ -511,7 +511,8 @@
           activeApp && activeApp.broadcast('focus');
           break;
         case 'orientationchange':
-          this.broadcastMessage(evt.type);
+          this.broadcastMessage(evt.type,
+            Service.query('getTopMostUI') === this);
           break;
 
         // Dispatch internal events for navigation usage.

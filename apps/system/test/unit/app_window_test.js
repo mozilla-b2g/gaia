@@ -1854,12 +1854,30 @@ suite('system/AppWindow', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       this.sinon.stub(app1, 'isActive').returns(true);
 
+      layoutManager.mKeyboardHeight = 100;
       app1.handleEvent({
         type: '_orientationchange'
       });
 
-      assert.equal(app1.element.style.width, '');
-      assert.equal(app1.element.style.height, '');
+      assert.equal(app1.element.style.width, layoutManager.width + 'px');
+      assert.equal(app1.element.style.height,
+        (layoutManager.height - 100) + 'px');
+      assert.equal(app1.iframe.style.width, '');
+      assert.equal(app1.iframe.style.height, '');
+    });
+
+    test('Orientation change event on active but not top most app', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      this.sinon.stub(app1, 'isActive').returns(true);
+
+      layoutManager.mKeyboardHeight = 100;
+      app1.handleEvent({
+        type: '_orientationchange',
+        detail: true
+      });
+
+      assert.equal(app1.element.style.width, layoutManager.width + 'px');
+      assert.equal(app1.element.style.height, layoutManager.height + 'px');
       assert.equal(app1.iframe.style.width, '');
       assert.equal(app1.iframe.style.height, '');
     });

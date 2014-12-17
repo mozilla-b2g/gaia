@@ -314,10 +314,11 @@ suite('system/AppWindowManager', function() {
     });
 
     test('Orientation change', function() {
+      Service.mTopMostUI = appWindowManager;
       var stubBroadcastMessage =
         this.sinon.stub(appWindowManager, 'broadcastMessage');
       appWindowManager.handleEvent({ type: 'orientationchange' });
-      assert.isTrue(stubBroadcastMessage.calledWith('orientationchange'));
+      assert.isTrue(stubBroadcastMessage.calledWith('orientationchange', true));
     });
 
     test('Press home on home displayed', function() {
