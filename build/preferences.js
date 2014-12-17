@@ -165,9 +165,6 @@ PreferencesBuilder.prototype.preparePref = function() {
   if (this.config.LOCAL_DOMAINS === '1') {
     this.setLocalDomainPref();
   }
-  if (this.config.DESKTOP === '1') {
-    this.setDesktopPref();
-  }
   if (this.config.DEBUG === '1') {
     this.setDebugPref();
   }
@@ -178,10 +175,6 @@ PreferencesBuilder.prototype.preparePref = function() {
 
 PreferencesBuilder.prototype.setLocalDomainPref = function() {
   this.userPrefs['network.dns.localDomains'] = this.domains.join(',');
-};
-
-PreferencesBuilder.prototype.setDesktopPref = function() {
-  this.userPrefs['extensions.autoDisableScopes'] = 0;
 };
 
 PreferencesBuilder.prototype.setDebugPref = function() {

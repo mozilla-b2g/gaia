@@ -10,10 +10,6 @@ suite('Make with DEBUG=1', function() {
   teardown(helper.cleanupWorkspace);
 
     test('make with DEBUG=1', function(done) {
-    // avoid downloading extension from addon website
-    var extConfigPath  = path.join('build', 'config',
-      'additional-extensions.json');
-    var restoreFunc = helper.emptyJsonFile(extConfigPath);
 
     helper.exec('DEBUG=1 make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
@@ -71,8 +67,6 @@ suite('Make with DEBUG=1', function() {
       // only expect one zip file for marketplace.
       assert.equal(zipCount, 3, 'we should have three zip files in ' +
         'profile-debug directory');
-
-      restoreFunc();
       done();
     });
   });

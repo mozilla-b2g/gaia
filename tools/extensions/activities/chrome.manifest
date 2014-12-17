@@ -1,5 +1,0 @@
-# Activities
-component {70a83123-7467-4389-a309-3e81c74ad002} components/ActivitiesGlue.js
-contract @mozilla.org/dom/activities/ui-glue;1 {70a83123-7467-4389-a309-3e81c74ad002}
-
-interfaces components/activity_glue.xpt
