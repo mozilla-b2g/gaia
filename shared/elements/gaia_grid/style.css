@@ -243,6 +243,11 @@
   transform-origin: 50% 1.6rem;
 }
 
+.group .header .toggle.toggling {
+  opacity: 0.5;
+  transition: transform 0.25s;
+}
+
 .group.collapsed .header .toggle {
   transform: translateY(2rem) rotateZ(180deg);
 }
