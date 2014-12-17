@@ -6,6 +6,10 @@
         "l10nKey": "tutorial-vertical-scroll-v2-tiny"
       },
       {
+        "video": "/style/images/tutorial/AppGrouping.mp4",
+        "l10nKey": "tutorial-app-grouping-tiny"
+      },
+      {
         "video": "/style/images/tutorial/Notifications.mp4",
         "l10nKey": "tutorial-notifications-v2-tiny"
       },
@@ -14,7 +18,7 @@
         "l10nKey": "tutorial-sheets-tiny"
       },
       {
-        "video": "/style/images/tutorial/Rocketbar.mp4",
+        "video": "/style/images/tutorial/Universal_Search.mp4",
         "l10nKey": "tutorial-rocketbar-tiny"
       }
     ]
@@ -26,7 +30,11 @@
         "l10nKey": "tutorial-bookmarks-migration-tiny"
       },
       {
-        "video": "/style/images/tutorial/Rocketbar.mp4",
+        "video": "/style/images/tutorial/AppGrouping.mp4",
+        "l10nKey": "tutorial-app-grouping-tiny"
+      },
+      {
+        "video": "/style/images/tutorial/Universal_Search.mp4",
         "l10nKey": "tutorial-rocketbar-tiny"
       }
     ]
@@ -34,12 +42,8 @@
   "2.1..2.2": {
     "steps": [
       {
-        "video": "/style/images/tutorial/VerticalScroll.mp4",
-        "l10nKey": "tutorial-bookmarks-migration-tiny"
-      },
-      {
-        "video": "/style/images/tutorial/Rocketbar.mp4",
-        "l10nKey": "tutorial-rocketbar-tiny"
+        "video": "/style/images/tutorial/AppGrouping.mp4",
+        "l10nKey": "tutorial-app-grouping-tiny"
       }
     ]
   }
