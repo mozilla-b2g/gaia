@@ -216,7 +216,9 @@
 
       this.resetTransition();
       /* The AttentionToaster will take care of that for AttentionWindows */
-      if (!this.app.isAttentionWindow && !this.app.isCallscreenWindow) {
+      /* InputWindow & InputWindowManager will take care of visibility of IM */
+      if (!this.app.isAttentionWindow && !this.app.isCallscreenWindow &&
+          !this.app.isInputMethod) {
         this.app.setVisible(false);
       }
 
