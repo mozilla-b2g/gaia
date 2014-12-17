@@ -3,7 +3,8 @@
 /* global require, exports */
 
 var utils = require('utils');
-var keyboardConfig = require('./keyboard-config');
+var KeyboardLayoutConfigurator =
+  require('./layout_configurator').KeyboardLayoutConfigurator;
 var settingsConfig = require('./settings-config');
 
 var KeyboardAppBuilder = function() {
@@ -16,27 +17,15 @@ KeyboardAppBuilder.prototype.setOptions = function(options) {
   this.appDir = utils.getFile(options.APP_DIR);
 };
 
-KeyboardAppBuilder.prototype.throwForNoneExistLayouts = function() {
-  this.enabledLayouts.forEach(function(layoutName) {
-    var file = utils.getFile(
-      this.appDir.path, 'js', 'layouts', layoutName + '.js');
-    if (file.exists()) {
-      return;
-    }
-    throw new Error('Keyboard layout ' + layoutName + '.js specified by ' +
-      'GAIA_KEYBOARD_LAYOUTS not found.');
-  }.bind(this));
-};
-
 // Copy static files to build_stage.
 KeyboardAppBuilder.prototype.copyStaticFiles = function() {
   // Files to blindly copy to build_stage regardless of versions
   var filenames = ['resources'];
   var dirs = [];
 
-  dirs = dirs.concat('js', 'js/imes', 'js/imes/latin');
+  dirs = dirs.concat('js', 'js/imes');
   // Unfortunately we have to explicitly list many files here
-  // because the whitelist most not include optional layout
+  // because the whitelist must not include optional layout
   // specific files.
   filenames = filenames.concat('index.html',
                                'locales',
@@ -45,14 +34,11 @@ KeyboardAppBuilder.prototype.copyStaticFiles = function() {
                                'js/render.js',
                                'js/settings',
                                'js/keyboard',
-                               'js/views',
-                               'js/imes/latin/latin.js',
-                               'js/imes/latin/predictions.js',
-                               'js/imes/latin/worker.js');
+                               'js/views');
 
   dirs.forEach(function(dirName) {
     var dir = utils.getFile.apply(utils,
-      [this.appDir.path].concat(dirName.split('/')));
+      [this.distDir.path].concat(dirName.split('/')));
     utils.ensureFolderExists(dir);
   }.bind(this));
 
@@ -73,26 +59,18 @@ KeyboardAppBuilder.prototype.copyStaticFiles = function() {
 };
 
 KeyboardAppBuilder.prototype.copyLayouts = function() {
-  // XXX we probably need better separation between this
-  // and keyboard-config.js
-
-  keyboardConfig.copyLayoutsAndResources(
-    this.appDir, this.distDir, this.enabledLayouts);
+  this.layoutConfigurator.copyFiles(this.distDir);
 };
 
 KeyboardAppBuilder.prototype.generateManifest = function() {
-  // XXX we probably need better separation between this
-  // and keyboard-config.js
-
   var manifest =
     utils.getJSON(utils.getFile(this.appDir.path, 'manifest.webapp'));
 
-  manifest = keyboardConfig.addEntryPointsToManifest(
-    this.appDir, this.distDir, this.enabledLayouts, manifest);
+  this.layoutConfigurator.addInputsToManifest(manifest);
 
   // Write content to build_stage
   utils.writeContent(utils.getFile(this.distDir.path, 'manifest.webapp'),
-                     JSON.stringify(manifest));
+                     JSON.stringify(manifest, null, 2));
 };
 
 KeyboardAppBuilder.prototype.modifySettings = function() {
@@ -104,7 +82,10 @@ KeyboardAppBuilder.prototype.modifySettings = function() {
 KeyboardAppBuilder.prototype.execute = function(options) {
   this.setOptions(options);
 
-  this.throwForNoneExistLayouts();
+  this.layoutConfigurator =
+    new KeyboardLayoutConfigurator(this.appDir);
+  this.layoutConfigurator.loadLayouts(this.enabledLayouts);
+
   this.copyStaticFiles();
   this.copyLayouts();
   this.generateManifest();
