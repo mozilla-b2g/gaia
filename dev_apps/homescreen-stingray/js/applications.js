@@ -34,7 +34,7 @@
      * @type {Array}
      * @memberof Applications
      */
-    HIDDEN_ROLES: ['system', 'input', 'homescreen', 'search'],
+    HIDDEN_ROLES: ['system', 'input', 'homescreen', 'search', 'addon'],
 
     /**
      * Default icon url.
