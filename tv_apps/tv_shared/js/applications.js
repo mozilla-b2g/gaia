@@ -35,7 +35,7 @@
      * @type {Array}
      * @memberof Applications
      */
-    HIDDEN_ROLES: ['system', 'homescreen', 'input', 'deck'],
+    HIDDEN_ROLES: ['system', 'homescreen', 'input', 'deck', 'addon'],
 
     /**
      * Default icon url.
