@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import expected
+from marionette.wait import Wait
 from marionette.by import By
 
 from gaiatest.apps.base import Base
@@ -25,6 +27,9 @@ class Settings(Base):
     _app_loaded_locator = (By.CSS_SELECTOR, 'body[data-ready="true"]')
     _airplane_switch_locator = (By.XPATH, "//input[contains(@class, 'airplaneMode-input')]/..")
     _airplane_checkbox_locator = (By.CSS_SELECTOR, ".airplaneMode-input")
+    _usb_storage_switch_locator = (By.CSS_SELECTOR, ".pack-split.usb-item")
+    _usb_storage_checkbox_locator = (By.CSS_SELECTOR, ".usb-switch")
+    _usb_storage_confirm_button_locator = (By.CSS_SELECTOR, "button.ums-confirm-option")
     _gps_enabled_locator = (By.XPATH, "//input[@name='geolocation.enabled']")
     _gps_switch_locator = (By.XPATH, "//input[@name='geolocation.enabled']/..")
     _accessibility_menu_item_locator = (By.ID, 'menuItem-accessibility')
@@ -53,8 +58,7 @@ class Settings(Base):
         self.apps.switch_to_displayed_app()
 
     def wait_for_airplane_toggle_ready(self):
-        checkbox = self.marionette.find_element(*self._airplane_checkbox_locator)
-        self.wait_for_condition(lambda m: checkbox.is_enabled())
+        self._wait_for_toggle_ready(*self._airplane_checkbox_locator)
 
     def toggle_airplane_mode(self):
         checkbox = self.marionette.find_element(*self._airplane_checkbox_locator)
@@ -64,6 +68,22 @@ class Settings(Base):
 
         label.tap()
         self.wait_for_condition(lambda m: checkbox_state is not checkbox.is_selected())
+
+    def wait_for_usb_storage_toggle_ready(self):
+        self._wait_for_toggle_ready(*self._usb_storage_checkbox_locator)
+
+    def toggle_usb_storage(self):
+        # TODO: remove tap with coordinates after Bug 1061698 is fixed
+        self.marionette.find_element(*self._usb_storage_switch_locator).tap(x=260)
+
+    @property
+    def is_usb_storage_enabled(self):
+        return self.marionette.find_element(*self._usb_storage_checkbox_locator).is_selected()
+
+    def confirm_usb_storage(self):
+        element = Wait(self.marionette).until(expected.element_present(*self._usb_storage_confirm_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
 
     def enable_gps(self):
         self.marionette.find_element(*self._gps_switch_locator).tap()
@@ -236,3 +256,7 @@ class Settings(Base):
         menu_item = self._wait_for_menu_item(menu_item_locator)
         self.accessibility.click(menu_item)
         self._wait_for_parent_section_not_displayed(menu_item)
+
+    def _wait_for_toggle_ready(self, by, locator):
+        checkbox = self.marionette.find_element(by, locator)
+        Wait(self.marionette).until(lambda m: checkbox.is_enabled())
