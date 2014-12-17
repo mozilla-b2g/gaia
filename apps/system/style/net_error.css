@@ -9,6 +9,7 @@ html {
 #net-error #actions {
   display: none;
 }
+
 #net-error.no-frame #actions {
   display: block;
 }
@@ -86,6 +87,7 @@ form[role="dialog"][data-type="action"] > menu > button.icon-settings {
 #net-error.no-frame.netOffline form[role="dialog"] > section {
   text-align: center;
   margin-top: -7rem;
+  bottom: 14rem;
 }
 
 #net-error.no-frame.netOffline .title {
@@ -96,21 +98,29 @@ form[role="dialog"][data-type="action"] > menu > button.icon-settings {
 
 #failed-logo {
   display: inline-block;
-  width: 13.5rem;
-  height: 13.5rem;
+  width: 7.4rem;
+  height: 12.5rem;
   background-image: url(net_error/no_connectivity.png);
   background-size: cover;
   background-repeat: no-repeat;
 }
 
 @media (max-height: 380px) and (orientation: landscape) {
+  #net-error.no-frame.netOffline form[role="dialog"] > section {
+    text-align: left;
+  }
+
   #net-error.no-frame.netOffline .title {
     font-size: 2rem;
     line-height: 2.8rem;
+    margin-left: 6.8rem;
   }
 
   #failed-logo {
-    width: 9rem;
-    height: 9rem;
+    position: absolute;
+    top: 2rem;
+    left: 0;
+    width: 5rem;
+    height: 8.5rem;
   }
 }
