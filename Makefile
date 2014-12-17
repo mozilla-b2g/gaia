@@ -741,7 +741,7 @@ test-integration: clean $(PROFILE_FOLDER) test-integration-test
 #
 # Remember to remove this target after bug-969215 is finished !
 .PHONY: test-integration-test
-test-integration-test:
+test-integration-test: b2g
 	TEST_MANIFEST=$(TEST_MANIFEST) \
 	./bin/gaia-marionette \
 		--reporter $(REPORTER) \
