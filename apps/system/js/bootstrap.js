@@ -222,7 +222,7 @@ window.addEventListener('load', function startup() {
   window.dispatchEvent(evt);
 
 
-  window.mozPerformance.timing.mozSystemLoadEnd = Date.now();
+  window.performance.mark('loadEnd');
 
   window.core = BaseModule.instantiate('Core');
   window.core && window.core.start();

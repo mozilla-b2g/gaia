@@ -2,6 +2,7 @@ define(function(require, exports, module) {
 'use strict';
 
 // For perf-measurement related utilities
+require('usertiming');
 require('performance-testing-helper');
 
 /**
@@ -85,7 +86,9 @@ App.prototype.boot = function() {
   // PERFORMANCE EVENT (2): moz-chrome-interactive
   // Designates that the app's *core* chrome or navigation interface
   // has its events bound and is ready for user interaction.
+  window.performance.mark('navigationLoaded');
   this.dispatchEvent('moz-chrome-dom-loaded');
+  window.performance.mark('navigationInteractive');
   this.dispatchEvent('moz-chrome-interactive');
 
   this.injectViews();
@@ -253,6 +256,7 @@ App.prototype.onCriticalPathDone = function() {
   // Designates that the app is visually loaded (e.g.: all of the
   // "above-the-fold" content exists in the DOM and is marked as
   // ready to be displayed).
+  window.performance.mark('visuallyLoaded');
   this.dispatchEvent('moz-app-visually-complete');
 
   // Load non-critical modules
@@ -279,6 +283,7 @@ App.prototype.loadLazyModules = function() {
     // Designates that the app has its events bound for the minimum
     // set of functionality to allow the user to interact with the
     // "above-the-fold" content.
+    window.performance.mark('contentInteractive');
     self.dispatchEvent('moz-content-interactive');
 
     // PERFORMANCE EVENT (5): moz-app-loaded
@@ -286,6 +291,7 @@ App.prototype.loadLazyModules = function() {
     // "below-the-fold" content exists in the DOM, is marked visible,
     // has its events bound and is ready for user interaction. All
     // required startup background processing should be complete.
+    window.performance.mark('fullyLoaded');
     self.dispatchEvent('moz-app-loaded');
     self.perf.loaded = Date.now();
     self.loaded = true;

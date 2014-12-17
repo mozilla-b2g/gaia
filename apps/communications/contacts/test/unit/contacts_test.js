@@ -8,6 +8,7 @@
           MockImportStatusData, MockMozContacts
 */
 
+require('/shared/js/usertiming.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
 requireApp('communications/contacts/test/unit/mock_cookie.js');
