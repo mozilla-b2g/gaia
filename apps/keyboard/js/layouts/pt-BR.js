@@ -1,7 +1,7 @@
 Keyboards['pt-BR'] = {
   label: 'Portuguese',
   shortLabel: 'Pt',
-  menuLabel: 'Português',
+  menuLabel: 'Português (do Brasil)',
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'pt_br',

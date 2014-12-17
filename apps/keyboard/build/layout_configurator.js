@@ -4,8 +4,10 @@
 
 let utils = require('utils');
 
-var KeyboardLayoutDetail = function(id) {
+var KeyboardLayoutDetail = function(id, options) {
   this.id = id;
+
+  this.options = options || {};
 };
 
 // A KeyboardLayoutDetail instance contains the following properties.
@@ -20,6 +22,7 @@ KeyboardLayoutDetail.prototype.imEngineId = undefined;
 KeyboardLayoutDetail.prototype.imEngineDir = null;
 KeyboardLayoutDetail.prototype.preloadDictRequired = undefined;
 KeyboardLayoutDetail.prototype.dictId = undefined;
+KeyboardLayoutDetail.prototype.dictLabel = undefined;
 KeyboardLayoutDetail.prototype.dictFile = null;
 KeyboardLayoutDetail.prototype.dictFilePath = null;
 
@@ -70,9 +73,22 @@ KeyboardLayoutDetail.prototype.load = function(appDir) {
   // Handle its dictionary declarations, if any.
   switch (this.imEngineId) {
     case 'latin':
+      this.preloadDictRequired = false;
       this.dictId = win.Keyboards[id].autoCorrectLanguage;
       if (this.dictId) {
-        this.preloadDictRequired = true;
+        this.dictFilePath = 'dictionaries/' + this.dictId + '.dict';
+
+        var dictMetadata = JSON.parse(utils.getFileContent(
+          utils.getFile(appDir.path, 'js', 'imes', 'latin',
+            'dictionaries', 'dict_metadata.json')));
+
+        if (!dictMetadata[this.dictId] || !dictMetadata[this.dictId].label) {
+          throw new Error('KeyboardLayoutDetail: ' +
+            'Keyboard layout ' + id + '.js' +
+            ' specified a dictionary ' + this.dictId + ' without label ' +
+            'for latin engine.');
+        }
+        this.dictLabel = dictMetadata[this.dictId].label;
         this.dictFile = utils.getFile(appDir.path, 'js', 'imes', 'latin',
                                       'dictionaries', this.dictId + '.dict');
 
@@ -81,8 +97,6 @@ KeyboardLayoutDetail.prototype.load = function(appDir) {
             'Keyboard layout ' + id + '.js' +
             ' specified a non-exist dictionary for latin engine.');
         }
-      } else {
-        this.preloadDictRequired = false;
       }
       break;
 
@@ -121,8 +135,10 @@ var KeyboardLayoutConfigurator = function(appDir) {
   this.appDir = appDir;
 };
 
-KeyboardLayoutConfigurator.prototype.loadLayouts = function(layoutIds) {
-  var layoutIdSet = new Set(layoutIds);
+KeyboardLayoutConfigurator.prototype.loadLayouts =
+function(layoutIds, preloadDictLayoutIds) {
+  var layoutIdSet = this._expandLayoutIdSet(layoutIds);
+  var preloadDictLayoutIdSet = this._expandLayoutIdSet(preloadDictLayoutIds);
 
   if (layoutIdSet.size === 0) {
     throw new Error('KeyboardLayoutConfigurator: No layout specified?');
@@ -130,23 +146,51 @@ KeyboardLayoutConfigurator.prototype.loadLayouts = function(layoutIds) {
 
   this.layoutDetails = [];
   layoutIdSet.forEach(function(layoutId) {
-    var detail = new KeyboardLayoutDetail(layoutId);
+    var detail = new KeyboardLayoutDetail(layoutId, {
+      preloadDictionary: preloadDictLayoutIdSet.has(layoutId)
+    });
     detail.load(this.appDir);
 
     this.layoutDetails.push(detail);
   }, this);
 };
 
+KeyboardLayoutConfigurator.prototype._expandLayoutIdSet = function(layoutIds) {
+  var layoutIdSet = new Set(layoutIds);
+
+  if (layoutIdSet.has('*')) {
+    // Overwrite the set with all the layouts in the tree.
+    layoutIdSet = new Set(this._listAllLayouts());
+  } else if (layoutIdSet.has('noPreloadDictRequired')) {
+    // Get all the layouts that does not require preload dictionary.
+    this._listAllLayouts(function isPreloadDictNotRequired(detail) {
+      return !detail.preloadDictRequired;
+    }).forEach(function(layoutId) {
+      layoutIdSet.add(layoutId);
+    }, this);
+
+    layoutIdSet.delete('noPreloadDictRequired');
+  }
+
+  layoutIdSet.delete('');
+
+  return layoutIdSet;
+};
+
 KeyboardLayoutConfigurator.prototype._listAllLayouts = function(testFunc) {
   var layoutDir = utils.getFile(this.appDir.path, 'js', 'layouts');
-  return utils.ls(layoutDir, false).forEach(function(file) {
+  return utils.ls(layoutDir, false).map(function(file) {
     if (!file.leafName.endsWith('.js')) {
+      return '';
+    }
+
+    return file.leafName.substr(0, file.leafName.length - 3);
+  }).filter(function(layoutId) {
+    if (!layoutId) {
       return false;
     }
 
-    var layoutId = file.leafName.substr(0, file.leafName.length - 3);
-
-    if (testFunc) {
+    if (typeof testFunc === 'function') {
       var detail = new KeyboardLayoutDetail(layoutId);
       detail.load(this.appDir);
       if (!testFunc(detail)) {
@@ -222,7 +266,8 @@ KeyboardLayoutConfigurator.prototype._copyDicts = function(distDir) {
     // Copy the dictFile if applicable.
     switch (layoutDetail.imEngineId) {
       case 'latin':
-        if (!layoutDetail.dictFile) {
+        if (!layoutDetail.dictFile ||
+            !layoutDetail.options.preloadDictionary) {
           return;
         }
 
@@ -237,6 +282,13 @@ KeyboardLayoutConfigurator.prototype._copyDicts = function(distDir) {
 
 KeyboardLayoutConfigurator.prototype.addInputsToManifest = function(manifest) {
   this.layoutDetails.forEach(function(layoutDetail) {
+    // Layout does not get declared statically
+    // if its dictionary is not preloaded.
+    if (layoutDetail.dictFile &&
+        !layoutDetail.options.preloadDictionary) {
+      return;
+    }
+
     manifest.inputs[layoutDetail.id] = {
       launch_path: '/index.html#' + layoutDetail.id,
       name: layoutDetail.label,
