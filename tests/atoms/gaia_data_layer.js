@@ -115,13 +115,35 @@ var GaiaDataLayer = {
     var req = icc.updateContact(aType, aContact);
     req.onsuccess = function() {
       console.log('success saving contact to SIM');
-      marionetteScriptFinished(true);
+      marionetteScriptFinished(req.result);
     };
     req.onerror = function() {
       console.error('error saving contact to SIM', req.error.name);
       marionetteScriptFinished(false);
     };
   },
+
+
+  deleteSIMContact: function(aType, aId) {
+
+    // Get 1st SIM
+    var iccId = window.navigator.mozIccManager.iccIds[0];
+    var icc = window.navigator.mozIccManager.getIccById(iccId);
+
+    var aContact = new mozContact();
+    aContact.id = aId;
+
+    var req = icc.updateContact(aType, aContact);
+    req.onsuccess = function() {
+      console.log('success removing contact from SIM');
+      marionetteScriptFinished(true);
+    };
+    req.onerror = function() {
+      console.error('error removing contact from SIM', req.error.name);
+      marionetteScriptFinished(false);
+    };
+  },
+
 
   getAllContacts: function(aCallback) {
     var callback = aCallback || marionetteScriptFinished;
