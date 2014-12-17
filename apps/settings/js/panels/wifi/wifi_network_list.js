@@ -67,7 +67,6 @@ define(function(require) {
         }
       },
       scan: function() {
-        window.performance.measure('settingPanelWifiVisible', 'wifiListStart');
         PerformanceTestingHelper.dispatch('settings-panel-wifi-visible');
 
         // scan wifi networks and display them in the list
@@ -140,7 +139,6 @@ define(function(require) {
           // display the "Search Again" button
           list.dataset.state = 'ready';
 
-          window.performance.measure('settingsPanelWifiReady', 'wifiListStart');
           PerformanceTestingHelper.dispatch('settings-panel-wifi-ready');
 
           // auto-rescan if requested
@@ -155,7 +153,6 @@ define(function(require) {
           // always try again.
           self._scanning = false;
 
-          window.performance.measure('settingsPanelWifiReady', 'wifiListStart');
           PerformanceTestingHelper.dispatch('settings-panel-wifi-ready');
 
           window.setTimeout(self.scan.bind(self), self._scanRate);

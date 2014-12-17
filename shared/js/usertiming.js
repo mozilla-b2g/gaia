@@ -13,34 +13,201 @@
 //
 // Modified for the Firefox OS environment by Eli Perelman <eli@mozilla.com>
 //
-// This is a PARTIAL implementation of User Timing, specifically only the
-// methods `performance.mark` and `performance.measure`, as those are required
-// for performance testing. The rest of the API will come once this API is
-// properly implemented in Gecko and this shim of these methods can be removed.
 (function(window) {
   'use strict';
 
   var performance = window.performance;
-  var console = window.console;
 
   if (typeof performance.mark === 'function') {
     return;
   }
 
-  // Create a performance entry in the logs in a certain format so performance
-  // tests can extract and parse
-  var logEntry = function(entry) {
-    setTimeout(function() {
-      var message = 'Performance Entry: ' +
-        entry.entryType + '|' +
-        entry.name + '|' +
-        entry.startTime + '|' +
-        entry.duration + '|' +
-        (entry.time || 0);
+  var i;
 
-      console.log(message);
-    }, 0);
+  //
+  // PerformanceTimeline (PT) polyfill
+  //  http://www.w3.org/TR/performance-timeline/
+  //
+
+  // Since Performance Timeline has already been implemented, we have to
+  // override the methods in order to use them for performance testing.
+  // This currently removes functionality related to the rest of PT, but
+  // should currently only include User Timing, which is polyfilled below. We
+  // specifically don't do anything if performance.mark is defined.
+
+  // performance timeline array
+  var performanceTimeline = [];
+
+  // whether or not the timeline will require sort on getEntries()
+  var performanceTimelineRequiresSort = false;
+
+  /**
+   * Adds an object to our internal Performance Timeline array.
+   *
+   * @param {Object} obj PerformanceEntry
+   */
+  var addToPerformanceTimeline = function(obj) {
+    performanceTimeline.push(obj);
+
+    //
+    // If we insert a measure, its startTime may be out of order
+    // from the rest of the entries because the use can use any
+    // mark as the start time.  If so, note we have to sort it before
+    // returning getEntries();
+    //
+    if (obj.entryType === 'measure') {
+      performanceTimelineRequiresSort = true;
+    }
+
+    console.log('Performance Entry: %s|%s|%d|%d|%s',
+      obj.entryType, obj.name, obj.startTime, obj.duration, obj.epoch || 0);
   };
+
+  /**
+   * Ensures our PT array is in the correct sorted order (by startTime)
+   */
+  var ensurePerformanceTimelineOrder = function() {
+    if (!performanceTimelineRequiresSort) {
+      return;
+    }
+
+    //
+    // Measures, which may be in this list, may enter the list in
+    // an unsorted order. For example:
+    //
+    //  1. measure('a')
+    //  2. mark('start_mark')
+    //  3. measure('b', 'start_mark')
+    //  4. measure('c')
+    //  5. getEntries()
+    //
+    // When calling #5, we should return [a,c,b] because technically
+    // the start time of c is '0' (navigationStart), which will occur
+    // before b's start time due to the mark.
+    //
+    performanceTimeline.sort(function(a, b) {
+      return a.startTime - b.startTime;
+    });
+
+    performanceTimelineRequiresSort = false;
+  };
+
+  /**
+   * Clears the specified entry types from our timeline array.
+   *
+   * @param {string} entryType Entry type (eg 'mark' or 'measure')
+   * @param {string} [name] Entry name (optional)
+   */
+  var clearEntriesFromPerformanceTimeline = function(entryType, name) {
+    // clear all entries from the perf timeline
+    i = 0;
+    while (i < performanceTimeline.length) {
+      if (performanceTimeline[i].entryType !== entryType) {
+        // unmatched entry type
+        i++;
+        continue;
+      }
+
+      if (typeof name !== 'undefined' && performanceTimeline[i].name !== name) {
+        // unmatched name
+        i++;
+        continue;
+      }
+
+      // this entry matches our criteria, remove just it
+      performanceTimeline.splice(i, 1);
+    }
+  };
+
+  /**
+   * Gets all entries from the Performance Timeline.
+   * http://www.w3.org/TR/performance-timeline/#dom-performance-getentries
+   *
+   * NOTE: This will only ever return marks and measures.
+   *
+   * @return {PerformanceEntry[]} Array of PerformanceEntrys
+   */
+  performance.getEntries = function() {
+    ensurePerformanceTimelineOrder();
+
+    // get a copy of all of our entries
+    return performanceTimeline.slice(0);
+  };
+
+  /**
+   * Gets all entries from the Performance Timeline of the specified type.
+   * http://www.w3.org/TR/performance-timeline/#dom-performance-getentriesbytype
+   *
+   * NOTE: This will only work for marks and measures.
+   *
+   * @param {string} entryType Entry type (eg 'mark' or 'measure')
+   *
+   * @return {PerformanceEntry[]} Array of PerformanceEntrys
+   */
+  performance.getEntriesByType = function(entryType) {
+    // we only support marks/measures
+    if (typeof entryType === 'undefined' ||
+      (entryType !== 'mark' && entryType !== 'measure')) {
+      return [];
+    }
+
+    // see note in ensurePerformanceTimelineOrder() on why this is required
+    if (entryType === 'measure') {
+      ensurePerformanceTimelineOrder();
+    }
+
+    // find all entries of entryType
+    var entries = [];
+    for (i = 0; i < performanceTimeline.length; i++) {
+      if (performanceTimeline[i].entryType === entryType) {
+        entries.push(performanceTimeline[i]);
+      }
+    }
+
+    return entries;
+  };
+
+  /**
+   * Gets all entries from the Performance Timeline of the specified
+   * name, and optionally, type.
+   * http://www.w3.org/TR/performance-timeline/#dom-performance-getentriesbyname
+   *
+   * NOTE: This will only work for marks and measures.
+   *
+   * @param {string} name Entry name
+   * @param {string} [entryType] Entry type (eg 'mark' or 'measure')
+   *
+   * @return {PerformanceEntry[]} Array of PerformanceEntrys
+   */
+  performance.getEntriesByName = function(name, entryType) {
+    if (entryType && entryType !== 'mark' && entryType !== 'measure') {
+      return [];
+    }
+
+    // see note in ensurePerformanceTimelineOrder() on why this is required
+    if (typeof entryType !== 'undefined' && entryType === 'measure') {
+      ensurePerformanceTimelineOrder();
+    }
+
+    // find all entries of the name and (optionally) type
+    var entries = [];
+    for (i = 0; i < performanceTimeline.length; i++) {
+      if (typeof entryType !== 'undefined' &&
+        performanceTimeline[i].entryType !== entryType) {
+        continue;
+      }
+
+      if (performanceTimeline[i].name === name) {
+        entries.push(performanceTimeline[i]);
+      }
+    }
+
+    return entries;
+  };
+
+  //
+  // UserTiming support
+  //
 
   // only used for measure(), to quickly see the latest timestamp of a mark
   var marks = {};
@@ -51,7 +218,7 @@
    *
    * @param {string} markName Mark name
    */
-  performance.mark = function(markName) {
+  performance.mark = function (markName) {
     var now = performance.now();
     var epoch = Date.now();
 
@@ -72,13 +239,30 @@
     marks[markName].push(now);
 
     // add to perf timeline as well
-    logEntry({
+    addToPerformanceTimeline({
       entryType: 'mark',
       name: markName,
       startTime: now,
       duration: 0,
-      time: epoch // NON-STANDARD EXTENSION
+      epoch: epoch // NON-STANDARD EXTENSION
     });
+  };
+
+  /**
+   * UserTiming clear marks
+   * http://www.w3.org/TR/user-timing/#dom-performance-clearmarks
+   *
+   * @param {string} markName Mark name
+   */
+  performance.clearMarks = function (markName) {
+    if (!markName) {
+      // clear all marks
+      marks = {};
+    } else {
+      marks[markName] = [];
+    }
+
+    clearEntriesFromPerformanceTimeline('mark', markName);
   };
 
   /**
@@ -89,9 +273,8 @@
    * @param {string} [startMark] Start mark name
    * @param {string} [endMark] End mark name
    */
-  performance.measure = function(measureName, startMark, endMark) {
+  performance.measure = function (measureName, startMark, endMark) {
     var now = performance.now();
-    var epoch = Date.now();
 
     if (!measureName) {
       throw new Error('Measure must be specified');
@@ -99,19 +282,21 @@
 
     // if there isn't a startMark, we measure from navigationStart to now
     if (!startMark) {
-      logEntry({
+      // add to perf timeline as well
+      addToPerformanceTimeline({
         entryType: 'measure',
         name: measureName,
         startTime: 0,
-        duration: now,
-        time: epoch // NON-STANDARD EXTENSION
+        duration: now
       });
 
       return;
     }
 
+    //
     // If there is a startMark, check for it first in the NavigationTiming
     // interface, then check our own marks.
+    //
     var startMarkTime = 0;
     if (performance.timing && startMark in performance.timing) {
       // mark cannot have a timing of 0
@@ -131,8 +316,10 @@
       }
     }
 
+    //
     // If there is a endMark, check for it first in the NavigationTiming
     // interface, then check our own marks.
+    //
     var endMarkTime = now;
 
     if (endMark) {
@@ -160,19 +347,31 @@
     // add to our measure array
     var duration = endMarkTime - startMarkTime;
 
-    logEntry({
+    // add to perf timeline as well
+    addToPerformanceTimeline({
       entryType: 'measure',
       name: measureName,
       startTime: startMarkTime,
-      duration: duration,
-      time: epoch // NON-STANDARD EXTENSION
+      duration: duration
     });
   };
 
+  /**
+   * UserTiming clear measures
+   * http://www.w3.org/TR/user-timing/#dom-performance-clearmeasures
+   *
+   * @param {string} measureName Measure name
+   */
+  performance.clearMeasures = function (measureName) {
+    clearEntriesFromPerformanceTimeline('measure', measureName);
+  };
+
+  //
   // Export UserTiming to the appropriate location.
   //
   // When included directly via a script tag in the browser,
   // we're good as we've been updating the window.performance object.
+  //
   if (typeof define !== 'undefined' && define.amd) {
     //
     // AMD / RequireJS

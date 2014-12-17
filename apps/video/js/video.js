@@ -127,13 +127,11 @@ document.addEventListener('visibilitychange', function visibilityChange() {
 navigator.mozL10n.once(function() {
 
   // Tell performance monitors that our chrome is visible
-  window.performance.mark('navigationLoaded');
   window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
 
   init();
 
   // Tell performance monitors that our chrome is ready to interact with.
-  window.performance.mark('navigationInteractive');
   window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
 });
 
@@ -690,7 +688,6 @@ function updateLoadingSpinner() {
   if (processingQueue) {
     noMoreWorkCallback = updateLoadingSpinner;
   } else {
-    window.performance.mark('scanEnd');
     PerformanceTestingHelper.dispatch('scan-finished');
     dom.spinnerOverlay.classList.add('hidden');
     dom.playerView.classList.remove('disabled');

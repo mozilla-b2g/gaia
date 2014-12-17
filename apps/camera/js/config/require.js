@@ -25,8 +25,7 @@ requirejs.config({
     'evt': '../bower_components/evt/index',
     'drag': '../bower_components/drag/index',
     'device-orientation': '../bower_components/device-orientation/index',
-    'stop-recording-event': '../shared/js/stop_recording_event',
-    'usertiming': '../shared/js/usertiming'
+    'stop-recording-event': '../shared/js/stop_recording_event'
   },
 
   // If your package uses relative `require()` paths

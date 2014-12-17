@@ -43,7 +43,6 @@ function initDB() {
     // performance monitors that the app is finally fully loaded and stable.
     if (!firstScanEnded) {
       firstScanEnded = true;
-      window.performance.mark('fullyLoaded');
       window.dispatchEvent(new CustomEvent('moz-app-loaded'));
     }
 
@@ -113,9 +112,7 @@ function enumerateDB() {
       firstBatchDisplayed = true;
       // Tell performance monitors that "above the fold" content is displayed
       // and is ready to interact with.
-      window.performance.mark('visuallyLoaded');
       window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
-      window.performance.mark('contentInteractive');
       window.dispatchEvent(new CustomEvent('moz-content-interactive'));
     }
   }
