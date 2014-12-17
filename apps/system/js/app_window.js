@@ -809,9 +809,10 @@
     this.publish('namechanged');
   };
 
-  AppWindow.prototype._handle__orientationchange = function() {
+  AppWindow.prototype._handle__orientationchange = function(evt) {
     if (this.isActive()) {
       if (!this.isHomescreen) {
+        this._resize(evt.detail);
         return;
       // XXX: Preventing orientaiton of homescreen app is changed by background
       //      app. It's a workaround for bug 1089951.
@@ -1386,10 +1387,10 @@
       return this._defaultOrientation;
     };
 
-  AppWindow.prototype._resize = function aw__resize() {
+  AppWindow.prototype._resize = function aw__resize(ignoreKeyboard) {
     var height, width;
     this.debug('force RESIZE...');
-    if (layoutManager.keyboardEnabled) {
+    if (!ignoreKeyboard && layoutManager.keyboardEnabled) {
       /**
        * The event is dispatched on the app window only when keyboard is up.
        *
@@ -1406,10 +1407,15 @@
        */
       this.broadcast('withoutkeyboard');
     }
-    height = layoutManager.getHeightFor(this);
+    height = layoutManager.getHeightFor(this, ignoreKeyboard);
 
     // If we have sidebar in the future, change layoutManager then.
     width = layoutManager.width;
+
+    if (this.element.style.width === width + 'px' &&
+        this.element.style.height === height + 'px') {
+      return;
+    }
 
     // Adjust height for activity windows which open while rocketbar is open.
     if (this.parentApp) {
