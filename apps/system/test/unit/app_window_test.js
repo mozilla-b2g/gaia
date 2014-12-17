@@ -21,7 +21,7 @@ var mocksForAppWindow = new MocksHelper([
   'ManifestHelper', 'LayoutManager', 'ScreenLayout', 'AppChrome',
   'AppTransitionController', 'Service'
 ]).init();
- 
+
 suite('system/AppWindow', function() {
   var realPermissionSettings;
   mocksForAppWindow.attachTestHelpers();
@@ -660,6 +660,16 @@ suite('system/AppWindow', function() {
       app1.screenshotOverlay.classList.add('visible');
       app1.element.dispatchEvent(new CustomEvent('_sheetsgestureend'));
       assert.isFalse(app1.screenshotOverlay.classList.contains('visible'));
+      assert.isFalse(app1.element.classList.contains('overlay'));
+    });
+
+    test('hide overlay when a sheet gesture ends even if the app is active',
+    function() {
+      this.sinon.stub(app1, 'isActive').returns(true);
+      app1.screenshotOverlay.classList.add('visible');
+      app1.element.dispatchEvent(new CustomEvent('_sheetsgestureend'));
+      assert.isFalse(app1.screenshotOverlay.classList.contains('visible'));
+      assert.isFalse(app1.element.classList.contains('overlay'));
     });
 
     test('showScreenshotOverlay', function() {
@@ -2077,15 +2087,16 @@ suite('system/AppWindow', function() {
     });
   });
 
+  test('isSheetTransitioning', function() {
+    var testApp = new AppWindow(fakeAppConfig1);
+    testApp.element.classList.add('inside-edges');
+    assert.isTrue(testApp.isSheetTransitioning());
+  });
+
   suite('isTransitioning', function() {
     var testApp;
     setup(function() {
       testApp = new AppWindow(fakeAppConfig1);
-    });
-
-    test('app is inside-edges', function() {
-      testApp.element.classList.add('inside-edges');
-      assert.isTrue(testApp.isTransitioning());
     });
 
     test('app is opening', function() {

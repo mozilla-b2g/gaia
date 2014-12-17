@@ -21,6 +21,7 @@ class Gallery(Base):
     _progress_bar_locator = (By.ID, 'progress')
     _thumbnail_list_view_locator = (By.ID, 'thumbnail-list-view')
     _switch_to_camera_button_locator = (By.ID, 'thumbnails-camera-button')
+    _switch_to_multiple_selection_view_locator = (By.ID, 'thumbnails-select-button')
 
     def launch(self):
         Base.launch(self)
@@ -75,6 +76,11 @@ class Gallery(Base):
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == camera_app.name)
         self.apps.switch_to_displayed_app()
         return camera_app
+
+    def switch_to_multiple_selection_view(self):
+        self.marionette.find_element(*self._switch_to_multiple_selection_view_locator).tap()
+        from gaiatest.apps.gallery.regions.multiple_selection_view import MultipleSelectionView
+        return MultipleSelectionView(self.marionette)
 
     class Thumbnail(PageRegion):
 

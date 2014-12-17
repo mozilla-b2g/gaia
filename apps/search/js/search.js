@@ -155,6 +155,12 @@
           if (this.suggestionsEnabled || !provider.remote) {
 
             if (provider.remote) {
+              // Do not send full URLs to remote providers
+              if (UrlHelper.isURL(input)) {
+                return;
+              }
+
+              // Show the loading element when searching remote providers.
               this.loadingElement.classList.add('loading');
             }
 

@@ -314,15 +314,17 @@
     }
   };
 
+  AppWindow.prototype.isSheetTransitioning =
+    function aw_isSheetTransitioning() {
+      return this.element.classList.contains('inside-edges');
+    };
+
   /**
    * TODO: Integrate swipe transition.
    *
    * @return {Boolean} The instance is transitioning or not.
    */
   AppWindow.prototype.isTransitioning = function aw_isTransitioning() {
-    if (this.element.classList.contains('inside-edges')) {
-      return true;
-    }
     if (this.transitionController) {
       return (this.transitionController._transitionState == 'opening' ||
               this.transitionController._transitionState == 'closing');
@@ -1844,10 +1846,6 @@
   };
 
   AppWindow.prototype._handle__sheetsgestureend = function aw_sgend() {
-    if (this.isActive()) {
-      this.debug('nothing to do during sheetsgestureend');
-      return;
-    }
     this.debug('hiding screenshot on sheetsgestureend');
     this._hideScreenshotOverlay();
   };

@@ -9,6 +9,12 @@ require.config({
     'settings': {
       exports: 'Settings'
     },
+    'simcard_lock': {
+      exports: 'SimPinLock'
+    },
+    'simcard_dialog': {
+      exports: 'SimPinDialog'
+    },
     'shared/apn_helper': {
       exports: 'ApnHelper'
     },
@@ -188,12 +194,6 @@ require.config({
         'modules/mvvm/observable_array',
         'modules/keyboard_context',
         'shared/keyboard_helper'
-      ]
-    },
-    {
-      name: 'panels/keyboard_enabled_default/dialog',
-      exclude: [
-        'main'
       ]
     },
     {

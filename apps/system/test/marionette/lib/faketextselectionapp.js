@@ -99,6 +99,7 @@ FakeTextSelectionApp.prototype = {
         detail: {
           type: 'selectionstatechanged',
           detail: {
+            visible: true,
             commands: {
               canPaste: true,
               canCut: true,

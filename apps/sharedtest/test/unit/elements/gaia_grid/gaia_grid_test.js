@@ -24,6 +24,7 @@ suite('GaiaGrid', function() {
   mocksHelperForGrid.attachTestHelpers();
 
   setup(function() {
+    this.sinon.useFakeTimers();
     this.container = document.createElement('div');
     document.body.appendChild(this.container);
   });
@@ -92,7 +93,10 @@ suite('GaiaGrid', function() {
         type: 'bookmark',
         id: 'http://tid.es',
         url: 'http://tid.es'
-      }
+      },
+      setPosition: function() {},
+      setCoordinates: function() {},
+      render: function() {}
     };
 
     var fakeBookmarkItem3 = {
@@ -101,7 +105,10 @@ suite('GaiaGrid', function() {
         type: 'bookmark',
         id: 'http://firefoxos.com',
         url: 'http://firefoxos.com'
-      }
+      },
+      setPosition: function() {},
+      setCoordinates: function() {},
+      render: function() {}
     };
 
     setup(function() {
@@ -155,6 +162,7 @@ suite('GaiaGrid', function() {
       var itemLength = element.getItems().length;
       divider.detail.collapsed = true;
       element.appendItemToExpandedGroup(fakeBookmarkItem2);
+      this.sinon.clock.tick(20);
 
       var items = element.getItems();
       assert.ok(items.length > itemLength);

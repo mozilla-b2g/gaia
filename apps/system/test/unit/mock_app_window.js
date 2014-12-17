@@ -113,6 +113,7 @@
     getBottomMostWindow: function() { return this; },
     determineClosingRotationDegree: function() { return 0; },
     isTransitioning: function() { return false; },
+    isSheetTransitioning: function() { return false; },
     calibratedHeight: function() { return false; },
     isOOP: function() { return true; },
     isDead: function() { return false; },

@@ -176,20 +176,12 @@
       }
 
       var tech = this._getPrioritizedTech(msg.techList);
-      if (msg.isP2P) {
-        if (!msg.records.length) {
-          this.checkP2PRegistration();
-        } else {
-          // if there are records in the msg we've got NDEF message shared
-          // by other device via P2P, this should be handled as regular NDEF
-          this._fireNDEFDiscovered(msg, tech);
-        }
+      if (msg.records.length) {
+        this._fireNDEFDiscovered(msg, tech);
+      } else if (msg.peer) {
+        this.checkP2PRegistration();
       } else {
-        if (msg.records.length) {
-          this._fireNDEFDiscovered(msg, tech);
-        } else {
-          this._fireTagDiscovered(msg, tech);
-        }
+        this._fireTagDiscovered(msg, tech);
       }
     },
 
@@ -388,6 +380,9 @@
       var promise = nfcdom.checkP2PRegistration(manifestURL);
       promise.then(result => {
         if (result) {
+          if (activeApp.isTransitioning() || activeApp.isSheetTransitioning()) {
+            return;
+          }
           // Top visible application's manifest Url is registered;
           // Start Shrink / P2P UI and wait for user to accept P2P event
           window.dispatchEvent(new CustomEvent('shrinking-start'));

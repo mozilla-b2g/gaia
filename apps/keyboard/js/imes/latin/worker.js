@@ -52,46 +52,24 @@ var currentLanguage;
 var pendingPrediction;
 
 var Commands = {
-  setLanguage: function setLanguage(language) {
+  setLanguage: function setLanguage(language, data) {
     if (language === currentLanguage) {
       return;
     }
-
-    function postError(message) {
-      postMessage({
-        cmd: 'error',
-        message: 'setLanguage: ' + message
-      });
-    }
-
     currentLanguage = language;
 
-    var dicturl = 'dictionaries/' + language + '.dict';
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', dicturl, false);
-    xhr.responseType = 'arraybuffer';
-    xhr.send();
-
     try {
-      if (xhr.status === 200) {
-        try {
-          Predictions.setDictionary(xhr.response);
-          postMessage({
-            cmd: 'success',
-            fn: 'setLanguage',
-            language: language
-          });
-        }
-        catch (e) {
-          postError('setDictionary failed: ' + e);
-        }
-      }
-      else {
-        postError('Unknown language: ' + language);
-      }
-    }
-    catch (ex) {
-      postError('Unknown language: ' + language + ': ' + xhr.error);
+      Predictions.setDictionary(data);
+      postMessage({
+        cmd: 'success',
+        fn: 'setLanguage',
+        language: language
+      });
+    } catch (e) {
+      postMessage({
+        cmd: 'error',
+        message: 'setDictionary failed: ' + e
+      });
     }
   },
 

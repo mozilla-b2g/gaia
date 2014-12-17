@@ -18,6 +18,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/lists.css">
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css">
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css">
     <!-- App styles -->
     <link rel="stylesheet" type="text/css" href="style/common.css">
     <link rel="stylesheet" type="text/css" href="style/sms.css">
@@ -38,9 +39,8 @@
     <script defer src="js/desktop-only/async_storage.js"></script>
     <!-- Web Components -->
     <script defer src="/shared/elements/config.js"></script>
-    <!-- <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/gaia-icons.css" /> -->
     <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css" />
-    <script defer src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
+    <script async src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
     <link rel="localization" href="/shared/elements/gaia_menu/locales/gaia_menu.{locale}.properties">
     <link rel="localization" href="/shared/elements/gaia_sim_picker/locales/gaia_sim_picker.{locale}.properties">
     <!--
@@ -151,7 +151,7 @@
         <div id="sticky"></div>
       </section>
 
-      <section id="thread-messages" class="panel" role="region" aria-hidden="true">
+      <section id="thread-messages" class="panel editable-select-mode" role="region" aria-hidden="true">
         <gaia-header id="messages-header" class="view-header regular-header" action="back">
           <h1 id="messages-header-text" aria-hidden="true"></h1>
           <button id="messages-call-number-button" data-icon="call" class="hide"></button>
@@ -448,7 +448,7 @@
           ${subject}
         </h1>
         <div class="message-content">
-          <p>${bodyHTML}</p>
+          <p class="message-content-body" tabindex="-1">${bodyHTML}</p>
           <div class="message-details">
             ${simInformationHTML}
             <time data-time-update="true" data-time-only="true" data-time="${timestamp}"></time>

@@ -153,7 +153,9 @@ suite('search/search', function() {
     setup(function() {
       var fakeProvider = {
         name: 'Foo',
-        search: function() {},
+        search: function() {
+          return Promise.resolve();
+        },
         abort: function() {},
         clear: function() {}
       };
@@ -176,6 +178,27 @@ suite('search/search', function() {
       assert.ok(stub.notCalled);
       clock.tick(1000); // For typing timeout
       assert.ok(stub.calledOnce);
+    });
+
+    test('full URLs do not get sent', function() {
+      var remoteProvider = {
+        name: 'remoteguy',
+        remote: true,
+        search: function() {},
+        abort: function() {},
+        clear: function() {}
+      };
+      Search.provider(remoteProvider);
+      Search.suggestionsEnabled = true;
+
+      var stub = this.sinon.stub(Search.providers.remoteguy, 'search');
+      Search.change({
+        data: {
+          input: 'http://mozilla.org'
+        }
+      });
+      clock.tick(1000); // For typing timeout
+      assert.ok(stub.notCalled);
     });
 
     test('aborting will cancel search timeout', function() {

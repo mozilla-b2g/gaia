@@ -330,6 +330,15 @@ suite('Nfc Manager Functions', function() {
       stub.restore();
     };
 
+    // checkP2PRegistration helper.
+    var execCheckP2PRegistrationTest = function(msg) {
+      var stub = this.sinon.stub(nfcManager, 'checkP2PRegistration');
+      nfcManager._handleTechDiscovered(msg);
+      assert.isTrue(stub.calledOnce);
+
+      stub.restore();
+    };
+
     // _fireTagDiscovered test helper
     var execTagDiscoveredTest = function(msg, tech) {
       var stub = this.sinon.stub(nfcManager, '_fireTagDiscovered');
@@ -375,14 +384,20 @@ suite('Nfc Manager Functions', function() {
     });
 
     // empty NDEF records array, _fireTagDiscovered should be called
+    test('message with NfcPeer, but no NDEF records', function() {
+      execCheckP2PRegistrationTest.call(this, sampleMsg);
+    });
+
+    // empty NDEF records array, _fireTagDiscovered should be called
     test('message tech [NFC_A], no NDEF records', function() {
       sampleMsg.techList.push('NFC_A');
-
+      sampleMsg.peer = null;
       execTagDiscoveredTest.call(this, sampleMsg, 'NFC_A');
     });
 
     test('message tech unsupported', function() {
       sampleMsg.techList.push('FAKE_TECH');
+      sampleMsg.peer = null;
 
       execTagDiscoveredTest.call(this, sampleMsg, 'FAKE_TECH');
     });
@@ -439,6 +454,7 @@ suite('Nfc Manager Functions', function() {
         }
       },'mime record');
 
+      sampleMsg.peer = null;
       sampleMsg.records.shift();
       sampleMsg.techList.shift();
       nfcManager._handleTechDiscovered(sampleMsg);
@@ -907,6 +923,41 @@ suite('Nfc Manager Functions', function() {
       stubDispatchEvent.getCall(0).calledWith({ type: 'shrinking-start',
                                                 bubbles: false });
       assert.isTrue(spyAddEventListener.withArgs('shrinking-sent').calledOnce);
+    });
+
+    test('app registered onpeerready handler - success, ' +
+         'but sheets is in transitioning', function() {
+      // Setup Fake Promise to stub with:
+      var fakePromise = new MockPromise();
+      this.sinon.stub(MockNfc, 'checkP2PRegistration',
+                      (manifest) => fakePromise);
+      var spyAddEventListener = this.sinon.spy(window, 'addEventListener');
+
+      this.sinon.stub(fakeApp, 'isSheetTransitioning').returns(true);
+      // An unprivilaged P2P UI would send message to NFC Manager to validate
+      // P2P registration in the stubbed DOM.
+      nfcManager.checkP2PRegistration('dummyManifestUrl');
+
+      fakePromise.mFulfillToValue(true);
+
+      assert.isFalse(spyAddEventListener.withArgs('shrinking-sent').calledOnce);
+    });
+
+    test('app registered onpeerready handler - success, ' +
+         'but app is in transitioning', function() {
+      // Setup Fake Promise to stub with:
+      var fakePromise = new MockPromise();
+      this.sinon.stub(MockNfc, 'checkP2PRegistration',
+                      (manifest) => fakePromise);
+      var spyAddEventListener = this.sinon.spy(window, 'addEventListener');
+      this.sinon.stub(fakeApp, 'isTransitioning').returns(true);
+      // An unprivilaged P2P UI would send message to NFC Manager to validate
+      // P2P registration in the stubbed DOM.
+      nfcManager.checkP2PRegistration('dummyManifestUrl');
+
+      fakePromise.mFulfillToValue(true);
+
+      assert.isFalse(spyAddEventListener.withArgs('shrinking-sent').calledOnce);
     });
 
     test('app not registered for onpeerready event - error', function() {

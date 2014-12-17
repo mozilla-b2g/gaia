@@ -8,7 +8,7 @@
   };
 
   CardManager.prototype = evt({
-    HIDDEN_ROLES: ['system', 'homescreen'],
+    HIDDEN_ROLES: ['system', 'homescreen', 'addon'],
 
     _cardStore: undefined,
 
@@ -53,6 +53,8 @@
           type: 'Application'
         };
       } else if (card instanceof Deck) {
+        // A deck doesn't need background color because it is always full-sized
+        // icon. If not, it is an issue from visual's image.
         cardEntry = {
           name: card.name,
           cachedIconURL: card.cachedIconURL,
@@ -217,7 +219,7 @@
         return app.origin.slice(0, -1) + url;
       }
 
-      return app.origin + url;
+      return [app.origin + url, closestSize];
     },
 
     _onAppInstall: function cm_onAppInstall(evt) {
@@ -366,17 +368,18 @@
           reject('No manifest');
         }
 
-        var url = that._bestMatchingIcon(
+        var iconData = that._bestMatchingIcon(
           that.installedApps[manifestURL], entry_manifest, preferredSize);
-        if (!url) {
+        if (!iconData) {
           reject('No url');
+          return;
         }
 
         that._loadFile({
-          url: url,
+          url: iconData[0],
           responseType: 'blob'
         }).then(function onFulfill(blob) {
-          resolve(blob);
+          resolve([blob, iconData[1]]);
         }, function onReject(error) {
           reject('Error on loading blob of ' + manifestURL);
         });

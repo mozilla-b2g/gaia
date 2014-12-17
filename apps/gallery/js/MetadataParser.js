@@ -170,7 +170,7 @@ var metadataParser = (function() {
     getImageSize(file, gotImageSize, gotImageSizeError);
 
     function gotImageSizeError(errmsg) {
-      // The image is not a JPEG, PNG or GIF file. We may still be
+      // The image is not a JPEG, PNG, GIF or BMP file. We may still be
       // able to decode and display it but we don't know the image
       // size, so we won't even try if the file is too big.
       if (file.size > MAX_UNKNOWN_IMAGE_FILE_SIZE) {

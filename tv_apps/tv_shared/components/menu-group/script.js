@@ -6,10 +6,6 @@ window.MenuGroup = (function(win) {
   // Extend from the HTMLElement prototype
   var proto = evt(Object.create(HTMLElement.prototype));
 
-  // Allow baseurl to be overridden (used for demo page)
-  var baseurl = window.MenuGroupBaseurl ||
-    '/components/menu-group/';
-
   proto.createdCallback = function() {
     this.style.width = '0';
     this.classList.add('closed');
@@ -42,7 +38,8 @@ window.MenuGroup = (function(win) {
       case 'transitionend':
         // We only process 'background-color' because all states have this
         // change.
-        if ((evt.propertyName !== 'background-color' && evt.propertyName !== 'width') ||
+        if ((evt.propertyName !== 'background-color' &&
+             evt.propertyName !== 'width') ||
             evt.target !== this) {
           break;
         }

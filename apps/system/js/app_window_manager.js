@@ -492,7 +492,7 @@
           if (this.shrinkingUI && this.shrinkingUI.isActive()) {
             return;
           }
-          if (this._activeApp.isTransitioning()) {
+          if (Service.query('getTopMostUI') !== this) {
             return;
           }
           var bottomMost = this._activeApp.getBottomMostWindow();

@@ -109,6 +109,26 @@ suite('SimLockManager', function() {
         assert.isFalse(subject.showIfLocked.called,
           'should not show the dialog');
       });
+
+    test('Settings app is opened', function() {
+      subject.simLockSystemDialog.visible = true;
+      subject.handleEvent({
+        type: 'appopened',
+        detail: {
+          url: 'app://settings.gaiamobile.org/index.html',
+          manifestURL: 'app://settings.gaiamobile.org/manifest.webapp',
+          manifest: {
+            permissions: {
+              telephony: {access: 'readwrite'}
+            }
+          },
+          origin: 'app://settings.gaiamobile.org'
+        }
+      });
+      assert.isTrue(subject.simLockSystemDialog.close.called);
+      assert.isFalse(subject.simLockSystemDialog.visible);
+    });
+
   });
 
   suite('showIfLocked', function() {
@@ -200,6 +220,41 @@ suite('SimLockManager', function() {
           subject.showIfLocked(0, false);
           assert.equal(subject.simLockSystemDialog.show.callCount, 2);
           subject._alreadyShown = false;
+      });
+    });
+
+    suite('SIM second slot handling', function() {
+      var mockSIMCard;
+      function removeSIMCardFromFirstSlot() {
+        mockSIMCard = MockSIMSlotManager.mInstances[0].simCard;
+        delete MockSIMSlotManager.mInstances[0].simCard;
+        MockSIMSlotManager.mInstances[0].isAbsent = true;
+      }
+
+      function restoreSIMCardFirstSlot() {
+        MockSIMSlotManager.mInstances[0].simCard = mockSIMCard;
+        MockSIMSlotManager.mInstances[0].isAbsent = false;
+      }
+      setup(function() {
+        MockSIMSlotManager.ready = true;
+        addSimSlot();
+        removeSIMCardFromFirstSlot();
+        subject._alreadyShown = false;
+        this.sinon.stub(MockSIMSlotManager, 'hasOnlyOneSIMCardDetected',
+          function() {
+            return true;
+        });
+      });
+
+      teardown(function() {
+        removeSimSlot();
+        restoreSIMCardFirstSlot();
+      });
+
+      test('should show the second SIM if the first is not inserted',
+        function() {
+          subject.showIfLocked();
+          assert.equal(subject.simLockSystemDialog.show.callCount, 1);
       });
     });
   });

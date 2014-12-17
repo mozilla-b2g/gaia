@@ -23,7 +23,6 @@
 
     // Get DOM elements
     this.body = document.body;
-    this.topPanel = document.getElementById('top-panel');
     this.screen = document.getElementById('screen');
     this.rocketbar = document.getElementById('rocketbar');
     this.form = document.getElementById('rocketbar-form');
@@ -200,7 +199,6 @@
       this.input.addEventListener('input', this);
       this.cancel.addEventListener('click', this);
       this.clearBtn.addEventListener('click', this);
-      this.topPanel.addEventListener('click', this);
       this.form.addEventListener('submit', this);
       this.backdrop.addEventListener('click', this);
 
@@ -285,8 +283,6 @@
           } else if (e.target == this.backdrop) {
             this.hideResults();
             this.deactivate();
-          } else if (e.target == this.topPanel && this._inputClicked(e)) {
-            this._handleSearchRequest();
           }
           break;
         case 'searchterminated':
@@ -304,7 +300,43 @@
           }
           break;
         case 'global-search-request':
-          this._handleSearchRequest();
+          // XXX: fix the WindowManager coupling
+          // but currently the transition sequence is crucial for performance
+          var app = Service.currentApp;
+          var afterActivate;
+
+          if (app && !app.isActive()) {
+            return;
+          }
+
+          // If the app is not a browser, retain the search value and activate.
+          if (app && !app.isBrowser()) {
+            afterActivate = this.focus.bind(this);
+          } else {
+            // Clear the input if the URL starts with a system page.
+            if (app.config.url.startsWith('app://system.gaiamobile.org')) {
+              this.setInput('');
+            } else {
+              // Set the input to be the URL in the case of a normal browser.
+              this.setInput(app.config.url);
+            }
+
+            afterActivate = () => {
+              this.hideResults();
+              setTimeout(() => {
+                this.focus();
+                this.selectAll();
+              });
+            };
+          }
+
+          if (app && app.appChrome && !app.appChrome.isMaximized()) {
+            app.appChrome.maximize(() => {
+              this.activate(afterActivate);
+            });
+          } else {
+            this.activate(afterActivate);
+          }
           break;
       }
     },
@@ -408,51 +440,6 @@
      */
     handleFocus: function() {
       this.focused = true;
-    },
-
-    _inputClicked: function(ev) {
-      var inputPos = Service.currentApp.appChrome.title.getBoundingClientRect();
-      return inputPos.left < ev.screenX && ev.screenX < inputPos.right;
-    },
-
-    _handleSearchRequest: function() {
-      // XXX: fix the WindowManager coupling
-      // but currently the transition sequence is crucial for performance
-      var app = Service.currentApp;
-      var afterActivate;
-
-      if (app && !app.isActive()) {
-        return;
-      }
-
-      // If the app is not a browser, retain the search value and activate.
-      if (app && !app.isBrowser()) {
-        afterActivate = this.focus.bind(this);
-      } else {
-        // Clear the input if the URL starts with a system page.
-        if (app.config.url.startsWith('app://system.gaiamobile.org')) {
-          this.setInput('');
-        } else {
-          // Set the input to be the URL in the case of a normal browser.
-          this.setInput(app.config.url);
-        }
-
-        afterActivate = () => {
-          this.hideResults();
-          setTimeout(() => {
-            this.focus();
-            this.selectAll();
-          });
-        };
-      }
-
-      if (app && app.appChrome && !app.appChrome.isMaximized()) {
-        app.appChrome.maximize(() => {
-          this.activate(afterActivate);
-        });
-      } else {
-        this.activate(afterActivate);
-      }
     },
 
     /**

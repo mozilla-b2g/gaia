@@ -22,8 +22,6 @@ class TestFtu(GaiaTestCase):
         # Go through the FTU setup as quickly as possible to get to the Tour section
         self.ftu.run_ftu_setup_with_default_values()
 
-        self.assertEqual(self.ftu.start_tour_message, "Start your phone tour!")
-
         # Take the tour
         self.ftu.tap_take_tour()
 

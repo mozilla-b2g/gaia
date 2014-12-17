@@ -3476,14 +3476,19 @@ suite('thread_ui.js >', function() {
       assert.equal(
         MockOptionMenu.calls[0].items[0].l10nId,
         'forward');
-      // Show menu with 'delete' option
+      // Show menu with 'select text' option
       assert.equal(
         MockOptionMenu.calls[0].items[1].l10nId,
-        'view-message-report'
+        'select-text'
       );
       // Show menu with 'delete' option
       assert.equal(
         MockOptionMenu.calls[0].items[2].l10nId,
+        'view-message-report'
+      );
+      // Show menu with 'delete' option
+      assert.equal(
+        MockOptionMenu.calls[0].items[3].l10nId,
         'delete'
       );
     });
@@ -3507,7 +3512,7 @@ suite('thread_ui.js >', function() {
         assert.ok(MockOptionMenu.calls.length, 1);
 
         // Confirm that the menu contained a "resend-message" option
-        assert.equal(MockOptionMenu.calls[0].items[3].l10nId, 'resend-message');
+        assert.equal(MockOptionMenu.calls[0].items[4].l10nId, 'resend-message');
     });
 
     test(' "long-press" on an error outgoing mms bubble shows a menu' +
@@ -3531,7 +3536,7 @@ suite('thread_ui.js >', function() {
         assert.ok(MockOptionMenu.calls.length, 1);
 
         // Confirm that the menu contained a "resend-message" option
-        assert.equal(MockOptionMenu.calls[0].items[3].l10nId, 'resend-message');
+        assert.equal(MockOptionMenu.calls[0].items[4].l10nId, 'resend-message');
     });
 
     test(' "long-press" on an incoming download error mms bubble should not '+
@@ -6504,6 +6509,47 @@ suite('thread_ui.js >', function() {
       ThreadUI.onMessageSendRequestCompleted();
 
       sinon.assert.notCalled(ThreadUI.sentAudio.play);
+    });
+  });
+
+  suite('Bubble selection', function() {
+    var messageDOM, messageId, node, threadMessagesClass, range;
+
+    setup(function() {
+      threadMessagesClass = ThreadUI.threadMessages.classList;
+      messageId = 1;
+      ThreadUI.appendMessage({
+        id: messageId,
+        type: 'sms',
+        body: 'This is a test',
+        delivery: 'sent',
+        timestamp: Date.now()
+      });
+      messageDOM = document.getElementById('message-' + messageId);
+      node = messageDOM.querySelector('.message-content-body');
+      this.sinon.spy(node, 'focus');
+      this.sinon.stub(node, 'addEventListener');
+    });
+
+    test('Enable bubble selection mode', function() {
+      // Status checking for bubble select mode disabled
+      assert.isTrue(threadMessagesClass.contains('editable-select-mode'));
+      ThreadUI.enableBubbleSelection(node);
+
+      range = window.getSelection().rangeCount;
+      sinon.assert.called(node.focus);
+      // Status checking for bubble select mode enabled
+      assert.isFalse(threadMessagesClass.contains('editable-select-mode'));
+      assert.isTrue(range > 0);
+    });
+
+    test('Disable bubble selection mode', function() {
+      ThreadUI.enableBubbleSelection(node);
+      node.addEventListener.yield('blur');
+
+      range = window.getSelection().rangeCount;
+      assert.isTrue(threadMessagesClass.contains('editable-select-mode'));
+      assert.isTrue(range === 0);
     });
   });
 });
