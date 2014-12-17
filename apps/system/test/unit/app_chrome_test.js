@@ -290,6 +290,14 @@ suite('system/AppChrome', function() {
 
       assert.equal(chrome.title.textContent, 'Hello');
     });
+
+    test('error', function() {
+      var app = new AppWindow(fakeWebSite);
+      var chrome = new AppChrome(app);
+      chrome.containerElement.classList.add('scrollable');
+      chrome.handleEvent({ type: 'mozbrowsererror' });
+      assert.isFalse(chrome.containerElement.classList.contains('scrollable'));
+    });
   });
 
 

@@ -775,6 +775,13 @@
         that.element.addEventListener('_opened', function onOpened() {
           that.element.removeEventListener('_opened', onOpened);
           that.appChrome = new AppChrome(that);
+
+          // We can encounter an error before chrome loads - in this case,
+          // manually call its error handler
+          if (that.netRestrictionDialog &&
+              !that.netRestrictionDialog.classList.contains('hidden')) {
+            that.appChrome.handleEvent({type: 'mozbrowsererror'});
+          }
         });
       } else {
         this.appChrome = new AppChrome(this);
