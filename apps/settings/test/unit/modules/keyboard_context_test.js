@@ -273,24 +273,33 @@ suite('KeyboardContext', function() {
     });
 
     suite('Checks defaults', function() {
+      var missingTypes;
+      var targetLayout;
+      var targetRawLayout;
+      var defaultCallback;
+
       setup(function() {
-        layouts[0][0].enabled = false;
-        this.defaultCallback = this.sinon.spy();
-        this.missingTypes = [];
-        this.KeyboardContext.defaultKeyboardEnabled(this.defaultCallback,
-          this.missingTypes);
+        missingTypes = [];
+        targetLayout = layouts[0][0];
+        targetRawLayout = MockKeyboardHelper.layouts[0];
+        defaultCallback = this.sinon.spy();
+
+        this.KeyboardContext.defaultKeyboardEnabled(defaultCallback,
+          missingTypes);
       });
+
       test('calls checkDefaults', function() {
+        targetLayout.enabled = false;
         assert.isTrue(this.checkDefaults.called);
       });
-      suite('default enabled', function() {
-        setup(function() {
-          this.layout = {};
-          this.checkDefaults.yield([this.layout], [this.missingTypes]);
-        });
-        test('calls callback with enabled layout', function() {
-          assert.ok(this.defaultCallback.calledWith(this.layout));
-        });
+
+      test('calls callback with enabled layout', function() {
+        targetLayout.enabled = false;
+        this.checkDefaults.yield([targetRawLayout], [missingTypes]);
+
+        assert.ok(defaultCallback.calledWith(targetRawLayout));
+        // The layout should be re-enabled.
+        assert.isTrue(targetLayout.enabled);
       });
     });
   });
