@@ -273,6 +273,7 @@ var Settings = (function() {
           break;
       }
       if (endLoadSettingsNotified) {
+        window.performance.measure('loadSettings', 'loadSettingsStart');
         PerformanceTestingHelper.dispatch('end-load-settings');
         endLoadSettingsNotified = true;
       }

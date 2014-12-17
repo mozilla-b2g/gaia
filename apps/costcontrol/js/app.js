@@ -316,6 +316,7 @@ var CostControlApp = (function() {
 
   // Load settings in background
   function loadSettings() {
+    window.performance.mark('loadSettingsStart');
     PerformanceTestingHelper.dispatch('init-load-settings');
     document.getElementById('settings-view-placeholder').src = 'settings.html';
   }
