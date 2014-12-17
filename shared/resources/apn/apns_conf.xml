@@ -2405,6 +2405,32 @@
       type="default,supl,mms"
   />
 
+  <apn carrier="Lebara UK"
+      mcc="234"
+      mnc="15"
+      apn="uk.lebara.mobi"
+      user="wap"
+      password="wap"
+      mmsc="http://mms.lebara.co.uk/servlets/mms"
+      mmsproxy="212.183.137.12"
+      mmsport="8799"
+      authtype="1"
+      type="default,supl,mms"
+  />
+
+  <apn carrier="giffgaff"
+      mcc="234"
+      mnc="10"
+      apn="giffgaff.com"
+      user="giffgaff"
+      password=""
+      mmsc="http://mmsc.mediamessaging.co.uk:8002"
+      mmsproxy="82.132.254.1"
+      mmsport="8080"
+      authtype="1"
+      type="mms"
+  />
+
   <apn carrier="ASDA WAP"
       mcc="234"
       mnc="15"
