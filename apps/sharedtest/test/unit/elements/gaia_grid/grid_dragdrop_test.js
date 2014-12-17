@@ -71,6 +71,10 @@ suite('GaiaGrid > DragDrop', function() {
     grid.render();
   });
 
+  setup(function() {
+    this.sinon.useFakeTimers();
+  });
+
   test('changes position of icons', function() {
     var firstBookmark = document.querySelector('.icon');
     firstBookmark.dispatchEvent(new CustomEvent('contextmenu',
@@ -153,6 +157,7 @@ suite('GaiaGrid > DragDrop', function() {
     assert.ok(divider.element.classList.contains('group'));
 
     divider.collapse();
+    this.sinon.clock.tick(20);
     assert.equal(divider.detail.collapsed, true);
 
     var subject = grid.dragdrop;
@@ -179,6 +184,7 @@ suite('GaiaGrid > DragDrop', function() {
     var divider = grid.items[3];
     assert.equal(divider.detail.type, 'divider');
     divider.collapse();
+    this.sinon.clock.tick(20);
 
     divider = grid.items[3];
     assert.equal(divider.detail.type, 'divider');
@@ -207,10 +213,12 @@ suite('GaiaGrid > DragDrop', function() {
     var divider = grid.items[1];
     assert.equal(divider.detail.type, 'divider');
     divider.expand();
+    this.sinon.clock.tick(20);
 
     divider = grid.items[3];
     assert.equal(divider.detail.type, 'divider');
     divider.expand();
+    this.sinon.clock.tick(20);
 
     // Add a new item to test adding groups between groups
     grid.add(new GaiaGrid.Bookmark(stubPage3), 0);

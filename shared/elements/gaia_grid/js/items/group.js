@@ -20,6 +20,12 @@
   const COLLAPSED_GROUP_MARGIN_RIGHT = 53;
 
   /**
+   * Time, in ms, before removing the 'toggling' class from the expand/collapse
+   * toggle element.
+   */
+  const TOGGLE_TIMEOUT = 250;
+
+  /**
    * A replacement for the default Divider class that implements group
    * collapsing and provides convenience functions for group drag'n'drop.
    */
@@ -269,18 +275,52 @@
       GaiaGrid.GridItem.prototype.setActive.call(this, active);
     },
 
+    /*
+     * As the start of a collapse/expand animation can involve a lot of work,
+     * the response isn't always instant. To help alleviate this, we show a
+     * quick response on the toggle element first before initiating the rest
+     * of the work.
+     */
+    _rerenderOnToggle: function() {
+      if (this.toggleElement) {
+        this.toggleElement.classList.add('toggling');
+        setTimeout(() => { this.toggleElement.classList.remove('toggling'); },
+                   TOGGLE_TIMEOUT);
+      }
+
+      // Ideally, this outer setTimeout would be a requestAnimationFrame, but
+      // the above class-adding seems to end up coalesced with the code inside
+      // requestAnimationFrame, rather than it happening on the next frame.
+      // The same thing happens with any setTimeout lower than about 20ms too.
+      setTimeout(() => {
+        if (!this.detail.collapsed) {
+          // Remove collapsed styling from all icons
+          this.forEachItem(function(item) {
+            item.scale = 1;
+            if (item.element) {
+              item.element.classList.remove('collapsed');
+              item.element.classList.remove('hidden');
+            }
+          });
+        }
+
+        this.grid.render();
+
+        // If we're not dragging, save the collapsed state
+        var dragging = this.grid.dragdrop && this.grid.dragdrop.inDragAction;
+        if (!dragging) {
+          window.dispatchEvent(new CustomEvent('gaiagrid-saveitems'));
+        }
+      }, 20);
+    },
+
     collapse: function() {
       if (this.detail.collapsed) {
         return;
       }
 
       this.detail.collapsed = true;
-      this.grid.render();
-
-      var dragging = this.grid.dragdrop && this.grid.dragdrop.inDragAction;
-      if (!dragging) {
-        window.dispatchEvent(new CustomEvent('gaiagrid-saveitems'));
-      }
+      this._rerenderOnToggle();
     },
 
     expand: function() {
@@ -289,23 +329,7 @@
       }
 
       this.detail.collapsed = false;
-
-      // Remove collapsed styling from all icons
-      this.forEachItem(function(item) {
-        item.scale = 1;
-        if (item.element) {
-          item.element.classList.remove('collapsed');
-          item.element.classList.remove('hidden');
-        }
-      });
-
-      this.grid.render();
-
-      // If we're not dragging, save the collapsed state
-      var dragging = this.grid.dragdrop && this.grid.dragdrop.inDragAction;
-      if (!dragging) {
-        window.dispatchEvent(new CustomEvent('gaiagrid-saveitems'));
-      }
+      this._rerenderOnToggle();
     },
 
     launch: function(target) {
