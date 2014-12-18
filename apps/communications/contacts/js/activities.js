@@ -275,7 +275,7 @@ var ActivityHandler = {
       return;
     }
 
-    if (this.activityDataType.indexOf('text/vcard') !== -1) {
+    if (this.activityDataType.indexOf('vcard') !== -1) {
       console.log('It is a vcard requested');
       LazyLoader.load([
                        '/shared/js/contact2vcard.js',
