@@ -37,8 +37,8 @@
 }
 
 .article-list[data-type="list"] .message.outgoing .attachment-container {
-  margin-left: auto;
-  margin-right: 0;
+  margin-left: 0;
+  margin-right: auto;
 }
 
 /**
