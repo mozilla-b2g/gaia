@@ -66,6 +66,8 @@
       this.app.element.addEventListener('_openingtimeout', this);
       this.app.element.addEventListener('_closingtimeout', this);
       this.app.element.addEventListener('animationend', this);
+
+      this._setVisibleDelayTimeout = 0;
     };
 
   AppTransitionController.prototype.destroy = function() {
@@ -214,13 +216,26 @@
         return;
       }
 
-      this.resetTransition();
-      /* The AttentionToaster will take care of that for AttentionWindows */
-      if (!this.app.isAttentionWindow && !this.app.isCallscreenWindow) {
-        this.app.setVisible(false);
+      var finishHandleClosed = (function() {
+        this.resetTransition();
+        /* The AttentionToaster will take care of that for AttentionWindows */
+        if (!this.app.isAttentionWindow && !this.app.isCallscreenWindow) {
+          this.app.setVisible(false);
+        }
+
+        this.app.element.classList.remove('active');
+      }).bind(this);
+
+      // We delay the setVisible(false) of the homescreen because it's
+      // costly and and we're trying to load an app as fast as possible
+      // if the homescreen is being closed.
+      // We give the app 2.5sec to load.
+      if (this.app.isHomescreen) {
+        this._setVisibleDelayTimeout = setTimeout(finishHandleClosed, 2500);
+        return;
       }
 
-      this.app.element.classList.remove('active');
+      finishHandleClosed();
     };
 
   AppTransitionController.prototype.handle_opening =
@@ -228,6 +243,7 @@
       if (!this.app || !this.app.element) {
         return;
       }
+      clearTimeout(this._setVisibleDelayTimeout);
       if (this.app.loaded) {
         var self = this;
         this.app.element.addEventListener('_opened', function onopen() {
