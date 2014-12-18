@@ -34,8 +34,7 @@ marionette('Status Bar icons - Network Activity', function() {
     statusBar.networkActivity.waitForIconToDisappear();
   });
 
-  test
-  ('should appear briefly after a moznetworkdownload event', function() {
+  test('should appear briefly after a moznetworkdownload event', function() {
     statusBar.dispatchEvent('moznetworkdownload');
 
     // The icon appears after the event is triggered.
