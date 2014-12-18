@@ -216,13 +216,48 @@ var ActivityHandler = {
     }
   },
 
+  _getContactName: function(theContact) {
+    var out;
+
+    var givenName = Array.isArray(theContact.givenName) &&
+                                                      theContact.givenName[0];
+    var familyName = Array.isArray(theContact.familyName) &&
+                                                      theContact.familyName[0];
+
+    if (givenName || familyName) {
+      out = givenName + ' ' + familyName;
+    }
+
+    if (!out) {
+      out = Array.isArray(theContact.org) && theContact.org[0];
+    }
+
+    if (!out) {
+      if (Array.isArray(theContact.tel)) {
+        out = theContact.tel[0].value;
+      }
+    }
+
+    if (!out) {
+      if (Array.isArray(theContact.email)) {
+        out = theContact.email[0].value;
+      }
+    }
+
+    if (!out) {
+      out = navigator.mozL10n.get('noName');
+    }
+
+    return out;
+  },
+
   dataPickHandler: function ah_dataPickHandler(theContact) {
     console.log('Data pick handler', this.activityDataType);
 
     var type, dataSet, noDataStr;
     var result = {};
     var self = this;
-    
+
     // Keeping compatibility with previous implementation. If
     // we want to get the full contact, just pass the parameter
     // 'fullContact' equal true.
@@ -241,7 +276,10 @@ var ActivityHandler = {
                       ], function lvcard() {
         ContactToVcardBlob([theContact], function blobReady(vcardBlob) {
           console.log('Blob calculated and posted as result!');
-          self.postPickSuccess(vcardBlob);
+          self.postPickSuccess({
+            name: self._getContactName(theContact),
+            blob: vcardBlob
+          });
         });
       });
       return;
