@@ -536,7 +536,10 @@ var icc_worker = {
       'SIM ' + icc.getSIMNumber(message.iccId) + ' STK', {
         body: options.text,
         icon: 'style/icons/system.png',
-        tag: 'stkNotification_' + message.iccId
+        tag: 'stkNotification_' + message.iccId,
+        mozbehavior: {
+          showOnlyOnce: true
+        }
       });
     this.idleTextNotifications[message.iccId].onclick =
       function onClickSTKNotification() {
