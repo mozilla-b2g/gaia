@@ -1,103 +1,91 @@
- 'use strict';
+/* global Process */
 
-/**
- * Stream would take care about whether event should be handled
- * according to the process status. If it's stopped, then all queued
- * events would not be handled anymore.
- *
- * If we have other input sources should be handled by Stream,
- * using adapter to forward as events, rather to extend Stream
- * to accept multiple kinds of sources. Since this would add extra
- * complexities.
- */
+'use strict';
+
+/***/
 (function(exports) {
-  var Stream = function() {
-    this.inames = [];
-    this.enames = [];
-    // Need to bind it since it's not handleEvent method.
-    this.handleInterrupt = this.handleInterrupt.bind(this);
+  var Stream = function(configs) {
+    this.configs = {
+      events: configs.events || [],
+      interrupts: configs.interrupts || [],
+      handler: configs.handler || (() => {})
+    };
   };
 
-  /**
-   * It receives a Process instance from the handler component to avoid
-   * multiple process sync issues between Stream and the handler.
-   */
-  Stream.prototype.start = function(process) {
-    this.process = process;
+  Stream.prototype.status = function() {
+    return this.process.status;
+  };
+
+  Stream.prototype.start = function() {
+    this.process = new Process();
+    this.process.start();
     return this;
   };
 
-  Stream.prototype.events = function(enames) {
-    this.enames = enames;
-    return this;
-  };
-
-  /**
-   * Some events have high priority that shouldn't be queued,
-   * but interrupt the queueing.
-   */
-  Stream.prototype.interrupts = function(inames) {
-    this.inames = inames;
-    return this;
-  };
-
-  Stream.prototype.handler = function(handler) {
-    this.handler = handler;
-    return this;
-  };
-
-  /**
-   * Only when it's ready it would start to listen events and
-   * handle them. Please note if call ready before the handler
-   * can handle events properly, errors may occur. This depends
-   * on how much preparations need to be done before we can
-   * handle the events.
-   */
   Stream.prototype.ready = function() {
-    this.inames.forEach((ename) => {
-      window.addEventListener(ename, this.handleInterrupts);
-    });
-    this.enames.forEach((ename) => {
+    this.configs.events.forEach((ename) => {
       window.addEventListener(ename, this);
     });
-  };
-
-  /**
-   * Queue each incoming event and it's handler with the process.
-   * This would make sure all preparation to handle these events
-   * can be done before it's ready to handle them.
-   *
-   * And in this way, if the process get stopped, since we hook handlers
-   * on the 'start' phase, the queue-ed steps would not be executed anymore,
-   * since the phase would get interrupted.
-   */
-  Stream.prototype.handleEvent = function(evt) {
-    if ('started' === this.process.status.phase) {
-      // We assume the handler's this has been bind,
-      // so we only need to bind the event as arguments.
-      this.process.then(this.handler.bind({}, evt));
-    }
-  };
-
-  /**
-   * The only difference between events and interrupts is
-   * we would not queue interrupts. Since they're with higher
-   * properity.
-   */
-  Stream.prototype.handleInterrupt = function(evt) {
-    if ('started' === this.process.status.phase) {
-      this.handler(evt);
-    }
+    this.configs.interrupts.forEach((iname) => {
+      window.addEventListener(iname, this);
+    });
+    return this;
   };
 
   Stream.prototype.stop = function() {
-    this.inames.foEach((iname) => {
-      window.removeEventListener(iname, this.handleInterrupts);
-    });
-    this.enames.foEach((ename) => {
+    this.process.stop();
+    this.configs.events.forEach((ename) => {
       window.removeEventListener(ename, this);
     });
+    this.configs.interrupts.forEach((iname) => {
+      window.removeEventListener(iname, this);
+    });
+    return this;
   };
+
+  Stream.prototype.destroy = function() {
+    this.process.destroy();
+    return this;
+  };
+
+  Stream.prototype.next = function(step) {
+    this.process.next(step);
+    return this;
+  };
+
+  Stream.prototype.rescue = function(rescuer) {
+    this.process.rescue(rescuer);
+    return this;
+  };
+
+  /**
+   * Only when all tasks passed in get resolved,
+   * the process would go to the next.
+   */
+  Stream.prototype.wait = function(tasks) {
+    this.process.wait(tasks);
+    return this;
+  };
+
+  Stream.prototype.handleEvent = function(evt) {
+    if ('start' !== this.process.states.phase) {
+      return this;
+    }
+    if (-1 !== this.configs.interrupts.indexOf(evt.type)) {
+      // Interrupt would be handled immediately.
+      this.configs.handler(evt);
+      return this;
+    } else {
+      // Event would be handled after queuing.
+      // This is, if the event handle return a Promise or Process,
+      // that can be fulfilled later.
+      this.process.next(() => {
+        return this.configs.handler(evt);
+      });
+      return this;
+    }
+  };
+
   exports.Stream = Stream;
 })(window);
 
