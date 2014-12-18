@@ -556,6 +556,7 @@ var StatusBar = {
         break;
 
       case 'appchromecollapsed':
+        this.setAppearance(evt.detail);
         this._updateMinimizedStatusBarWidth();
         break;
 
