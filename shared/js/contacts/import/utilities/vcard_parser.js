@@ -734,7 +734,7 @@ var VCFReader = (function _VCFReader() {
 
   var reBeginCard = /begin:vcard$/i;
   var reEndCard = /end:vcard$/i;
-  var reVersion = /^VERSION:/i;
+  var reVersion = /^VERSION:([\d\.]*)/i;
 
   /**
    * Splits vcard text into arrays of lines (one for each vcard field) and
@@ -742,6 +742,7 @@ var VCFReader = (function _VCFReader() {
    */
   VCFReader.prototype.splitLines = function() {
     var currentLine = '';
+    var currentVersion = 0;
     var inLabel = false;
     var multiline = false;
 
@@ -764,7 +765,7 @@ var VCFReader = (function _VCFReader() {
     for (var l = this.contents.length; i < l; i++) {
       this.currentChar = i;
       var ch = this.contents[i];
-      if (ch === '"') {
+      if (currentVersion >= 4 && ch === '"') {
         inLabel = !inLabel;
         currentLine += ch;
         continue;
@@ -807,6 +808,7 @@ var VCFReader = (function _VCFReader() {
 
       if (reBeginCard.test(currentLine)) {
         currentLine = '';
+        currentVersion = 0;
         continue;
       }
 
@@ -827,8 +829,13 @@ var VCFReader = (function _VCFReader() {
         continue;
       }
 
-      if (currentLine && !reVersion.test(currentLine)) {
-        cardArray[cardArray.length - 1].push(currentLine);
+      if (currentLine) {
+        var matches = reVersion.exec(currentLine);
+        if (matches === null) {
+          cardArray[cardArray.length - 1].push(currentLine);
+        } else {
+          currentVersion = parseFloat(matches[1] || '0');
+        }
       }
       currentLine = '';
     }
