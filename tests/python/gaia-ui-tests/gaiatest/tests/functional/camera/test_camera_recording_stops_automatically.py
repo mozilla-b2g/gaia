@@ -6,6 +6,9 @@ from gaiatest import GaiaTestCase
 from gaiatest.apps.camera.app import Camera
 from gaiatest.apps.videoplayer.app import VideoPlayer
 
+import time
+from marionette.wait import Wait
+
 
 class TestCameraRecordingStopsAutomatically(GaiaTestCase):
 
@@ -19,7 +22,7 @@ class TestCameraRecordingStopsAutomatically(GaiaTestCase):
         """
         https://moztrap.mozilla.org/manage/case/14447
         """
-        VIDEO_RECORDING_DURATION = 5
+        VIDEO_RECORDING_DURATION = time.strptime('00:05', '%M:%S')
 
         camera = Camera(self.marionette)
         camera.launch()
@@ -28,9 +31,9 @@ class TestCameraRecordingStopsAutomatically(GaiaTestCase):
         camera.tap_switch_source()
         camera.tap_capture()
 
-        # Wait before going to homescreen
-        import time
-        time.sleep(VIDEO_RECORDING_DURATION)
+        Wait(self.marionette).until(lambda m: VIDEO_RECORDING_DURATION == camera.video_timer)
+
+        # Wait before going to homescree
         self.device.touch_home_button()
 
         videoplayer = VideoPlayer(self.marionette)
@@ -39,14 +42,9 @@ class TestCameraRecordingStopsAutomatically(GaiaTestCase):
 
         first_thumbnail_video_duration = videoplayer.thumbnails[0].total_duration_time
 
-        import datetime
-        # Convert video duration to seconds
-        thumbnail_time_in_seconds = datetime.\
-            timedelta(minutes=first_thumbnail_video_duration.tm_min,
-                      seconds=first_thumbnail_video_duration.tm_sec).total_seconds()
-
-        # Check that the recording duration is correct with a 1 seconds margin of error
-        self.assertLessEqual(abs(thumbnail_time_in_seconds - VIDEO_RECORDING_DURATION), 1)
+        # Check that the recording duration is correct with a 2 seconds margin of error
+        self.assertLessEqual(abs(self._total_seconds(first_thumbnail_video_duration) -
+                                 self._total_seconds(VIDEO_RECORDING_DURATION)), 2)
 
         fullscreen_video = videoplayer.tap_first_video_item()
 
@@ -58,10 +56,15 @@ class TestCameraRecordingStopsAutomatically(GaiaTestCase):
         fullscreen_video.show_controls()
         recording_duration = fullscreen_video.total_duration_time
 
-        # Convert video duration to seconds
-        recording_time_in_seconds = datetime.\
-            timedelta(minutes=recording_duration.tm_min,
-                      seconds=recording_duration.tm_sec).total_seconds()
+        # Check that the recording duration is correct with a 2 seconds margin of error
+        self.assertLessEqual(abs(self._total_seconds(recording_duration) -
+                                 self._total_seconds(VIDEO_RECORDING_DURATION)), 2)
 
-        # Check that the recording duration is correct with a 1 seconds margin of error
-        self.assertLessEqual(abs(recording_time_in_seconds - VIDEO_RECORDING_DURATION), 1)
+    def _total_seconds(self, time):
+        """
+        Converts time duration to seconds (no. of seconds elapsed from 00:00:00)
+        """
+        import datetime
+        return datetime.\
+            timedelta(minutes=time.tm_min,
+                      seconds=time.tm_sec).total_seconds()
