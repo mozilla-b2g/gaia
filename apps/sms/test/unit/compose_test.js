@@ -2009,4 +2009,28 @@ suite('compose_test.js', function() {
       assert.equal(onInteractStub.callCount, 6);
     });
   });
+
+  suite('attach button management',function() {
+    var attachButton;
+
+    setup(function() {
+      attachButton = document.getElementById('messages-attach-button');
+      Compose.clear();
+    });
+
+    test('enabled in the beginning',function() {
+      assert.isFalse(attachButton.disabled);
+    });
+
+    test('disabled when the attachment memory exceeds 300K',function() {
+      Compose.lock();
+      assert.isTrue(attachButton.disabled);
+      Compose.clear();
+    });
+
+    test('enabled again when the attachment memory is below 300K',function() {
+      Compose.unlock();
+      assert.isFalse(attachButton.disabled);
+    });
+  });
 });
