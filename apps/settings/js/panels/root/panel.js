@@ -7,6 +7,7 @@ define(function(require) {
   var AirplaneModeItem = require('panels/root/airplane_mode_item');
   var ThemesItem = require('panels/root/themes_item');
   var HomescreenItem = require('panels/root/homescreen_item');
+  var AddonsItem = require('panels/root/addons_item');
   var PrivacyPanelItem = require('panels/root/privacy_panel_item');
   var BTAPIVersionDetector = require('modules/bluetooth/version_detector');
 
@@ -45,6 +46,7 @@ define(function(require) {
     var airplaneModeItem;
     var themesItem;
     var homescreenItem;
+    var addonsItem;
     var privacyPanelItem;
 
     var lowPriorityRoots = null;
@@ -78,6 +80,8 @@ define(function(require) {
           ThemesItem(panel.querySelector('.themes-section'));
         homescreenItem =
           HomescreenItem(panel.querySelector('#homescreens-section'));
+        addonsItem =
+          AddonsItem(panel.querySelector('#addons-section'));
         privacyPanelItem = PrivacyPanelItem({
           element: panel.querySelector('.privacy-panel-item'),
           link: panel.querySelector('.privacy-panel-item a')
