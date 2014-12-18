@@ -1,5 +1,7 @@
-/* global contacts, LazyLoader, utils, Rest, MimeMapper */
-/* exported VCFReader */
+/* global LazyLoader, utils, Rest, MimeMapper */
+/* exported VCardReader */
+
+(function() {
 
 'use strict';
 
@@ -52,7 +54,8 @@ function b64toBlob(b64Data, contentType, sliceSize) {
     var byteCharacters = atob(b64Data);
     var byteArrays = [];
 
-    for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+    for (var offset = 0; offset < byteCharacters.length;
+         offset += sliceSize) {
       var slice = byteCharacters.slice(offset, offset + sliceSize);
       var byteNumbers = [];
       for (var i = 0, l = slice.length; i < l; i++) {
@@ -70,10 +73,12 @@ function b64toBlob(b64Data, contentType, sliceSize) {
   return blob;
 }
 
-var VCFReader = (function _VCFReader() {
   var ReBasic = /^([^:]+):(.+)$/;
   var ReTuple = /([a-zA-Z]+)=(.+)/;
   var WHITE_SPACE = ' ';
+  var reBeginCard = /begin:vcard$/i;
+  var reEndCard = /end:vcard$/i;
+  var reVersion = /^VERSION:/i;
 
   // Default tel type class
   var DEFAULT_PHONE_TYPE = 'other';
@@ -108,6 +113,86 @@ var VCFReader = (function _VCFReader() {
     var match = p.match(ReTuple);
     return match ? [match[1].toLowerCase(), match[2]] : ['type', p];
   }
+
+
+  var dependencies = [
+    '/shared/js/mime_mapper.js',
+    '/shared/js/contacts/import/utilities/misc.js',
+    '/shared/js/contacts/utilities/http_rest.js'
+  ];
+
+  window.VCardReader = function VCardReader(data) {
+    var content = data.replace(/\r\n|\r|\n/g, '\n');
+    var currentIndex = 0;
+    var contactCount = 0;
+    var finished = false;
+
+    this.next = function() {
+      if (_checkFinished()) {
+        if (!finished && this.onFinished) {
+          this.onFinished(); 
+        }
+        finished = true;
+      } else {
+        LazyLoader.load(dependencies, function() {
+          _readNext(function (contact) {
+            if (contact) {
+              contactCount++;
+              if (this.onContactParsed) {
+                this.onContactParsed(contact, contactCount-1); 
+              }
+            }
+          }.bind(this));
+        }.bind(this));
+      }
+    };
+
+
+    // look if there is more cards to read
+    function _checkFinished() {
+      return !content.substr(currentIndex).match(/end:vcard/gi);
+    }
+
+    function _readNext(cb) {
+      var fields = {};
+      var lines;
+      var line;
+      var parsedLine;
+
+      if (_checkFinished()) {
+        cb();
+      }
+
+      lines = _getCardLines();
+
+      for (var i = 0; i < lines.length; i++) {
+        line = lines[i];
+        parsedLine = _parseLine(line);
+
+        if (parsedLine) {
+          if (!fields[parsedLine.key]) {
+            fields[parsedLine.key] = [];
+          }
+          fields[parsedLine.key].push(parsedLine.data);
+        }
+      }
+
+      // If there isn't either a First Name (fn) or a Name (n) this card is not
+      // a valid one, ignore and try to parse the next one.
+      if (!fields.fn && !fields.n) {
+        if (_checkFinished()) {
+          cb();
+        } else {
+          _readNext(function(contact) {
+            cb(contact);
+          });
+        }
+      } else {
+        vcardToContact(fields, cb);
+      }
+    }
+
+  };
 
   /**
    * Parses a line and creates an object with the line type (name), its meta
@@ -175,60 +260,6 @@ var VCFReader = (function _VCFReader() {
   }
 
   /**
-   * Parse vCard entries split by lines and pass the converted object back to
-   * the main thread.
-   *
-   * @param {string[][]} cardArray Array of array of strings representing vcard.
-   * @param {function} cb Callback to call on finishe.
-   */
-  var _parseEntries = function(cardArray, cb) {
-    var parsedCards = [];
-
-    function sendIfFinished(contactObj) {
-      parsedCards.push(contactObj);
-      if (parsedCards.length === cardArray.length) {
-        cb(parsedCards);
-      }
-    }
-
-    for (var i = 0; i < cardArray.length; i++) {
-      var lines = cardArray[i];
-      // If there is no array of strings at cardArray[i] (representing a single
-      // vcard), push a null value to account for a processed card.
-      if (!lines) {
-        sendIfFinished(null);
-        continue;
-      }
-
-      var fields = {};
-      var len = lines.length;
-
-      for (var j = 0; j < len; j++) {
-        var line = lines[j];
-        var parsedLine = _parseLine(line);
-        if (!parsedLine) {
-          continue;
-        }
-
-        if (!fields[parsedLine.key]) {
-          fields[parsedLine.key] = [];
-        }
-
-        fields[parsedLine.key].push(parsedLine.data);
-      }
-
-      // If there isn't either a First Name (fn) or a Name (n) this card is not
-      // a valid one, ignore.
-      if (!fields.fn && !fields.n) {
-        sendIfFinished(null);
-        continue;
-      }
-
-      vcardToContact(fields, sendIfFinished);
-    }
-  };
-
-  /**
    * Matches Quoted-Printable characters in a string
    * @type {RegExp}
    */
@@ -243,6 +274,7 @@ var VCFReader = (function _VCFReader() {
     return decodeURIComponent(
       str.replace(qpRegexp, '%$1'));
   };
+
 
   /**
    * Decodes Quoted-Printable encoding into UTF-8
@@ -561,6 +593,9 @@ var VCFReader = (function _VCFReader() {
     }
   }
 
+  window.VCardReader.b64toBlob = b64toBlob;
+  window.VCardReader.parseDataUri = parseDataUri;
+
   /**
    * Converts a parsed vCard to a mozContact.
    *
@@ -568,7 +603,7 @@ var VCFReader = (function _VCFReader() {
    * @param {Function} cb Function to call with the resulting moxContact object
    * @return {Object, null} An object implementing mozContact interface.
    */
-  var vcardToContact = function(vcard, cb) {
+  function vcardToContact(vcard, cb) {
     if (!vcard) {
       return null;
     }
@@ -582,203 +617,23 @@ var VCFReader = (function _VCFReader() {
     _processPhoto(vcard, obj, function(contactObj) {
       cb(utils.misc.toMozContact(contactObj));
     });
-  };
 
-  /**
-   * Class used to parse vCard files (http://tools.ietf.org/html/rfc6350).
-   *
-   * @param {String} contents vCard formatted text.
-   * @constructor
-   */
-  var VCFReader = function(contents) {
-    this.contents = contents;
-    this.processed = 0;
-    this.finished = false;
-    this.currentChar = 0;
+    return utils.misc.toMozContact(obj);
+  }
 
-    this.numDupsMerged = 0;
-  };
-
-  // Number of contacts processed at a given time.
-  VCFReader.CONCURRENCY = 5;
-
-  /**
-   * Used to stop contact processing.
-   */
-  VCFReader.prototype.finish = function() {
-    this.finished = true;
-  };
-
-  /**
-   * Starting point of vcard processing.
-   * @param {function} cb Function to call after the process is finished.
-   */
-  VCFReader.prototype.process = function(cb) {
-    /**
-     * Calculate the total amount of contacts to be imported. This number could
-     * change in case there are vcards with syntax errors or that our processor
-     * can't parse.
-     */
-    var self = this;
-
-    var match = this.contents.match(/end:vcard/gi);
-    // If there are no matches, then this probably isn't a vcard and we should
-    // stop processing.
-    if (!match) {
-      if (cb) {
-        cb();
-      }
-      return;
-    }
-
-    this.importedContacts = [];
-    this.total = match.length;
-    this.onread && this.onread(this.total);
-    this.ondone = function(numImported) {
-      cb(numImported, self.numDupsMerged);
-    };
-
-    LazyLoader.load(['/shared/js/simple_phone_matcher.js',
-      '/shared/js/mime_mapper.js',
-      '/shared/js/contact_photo_helper.js',
-      '/shared/js/contacts/import/utilities/misc.js',
-      '/shared/js/contacts/contacts_matcher.js',
-      '/shared/js/contacts/contacts_merger.js',
-      '/shared/js/contacts/utilities/image_thumbnail.js',
-      '/shared/js/contacts/merger_adapter.js',
-      '/shared/js/contacts/utilities/http_rest.js'
-    ], function() {
-      // Start processing the text
-      // The data pump flows as follows:
-      //  1) splitlines() reads char-by-char to split the text into lines
-      //  2) each line is parsed to parseEntries() when we have accumulated
-      //     enough lines to represent CONCURRENCY cards.
-      //  3) call post() for each contact found by parseEntries()
-      //  4) perform matching for each contact
-      //  5) save the contact if appropriate
-      //  6) call onParsed() which either goes back to (4) for the next contact
-      //     or goes back to (1) to get the next set of lines
-      //
-      // Note: The async callbacks in the matching and mozContacts.save() code
-      // prevent this code from being purely recursive.
-      this.splitLines();
-    }.bind(this));
-  };
-
-  /**
-   * Called when every contact is effectively saved.
-   *
-   * @param {Error} err Error object in case there was one.
-   * @param {mozContact} ct Contact that has been just saved.
-   */
-  VCFReader.prototype.onParsed = function(err, ct) {
-    this.processed += 1;
-    this.importedContacts.push(ct);
-
-    this.onimported && this.onimported(ct && ct.name);
-    if (this.finished || this.processed === this.total) {
-      this.ondone(this.importedContacts);
-      return;
-    }
-
-    var processed = this.processed;
-    if (processed < this.total && processed % VCFReader.CONCURRENCY === 0) {
-      this.splitLines();
-    }
-  };
-
-  /**
-   * This will be called every time we manage to process a contact
-   * @param {object[]} contactObjects Objects with contact structure.
-   */
-  VCFReader.prototype.post = function(contactObjects) {
-    var _onParsed = this.onParsed.bind(this);
-    var cursor = 0;
-    var self = this;
-
-    function afterSave(ct, e) {
-      _onParsed(e, ct);
-
-      cursor += 1;
-      if (cursor < contactObjects.length) {
-        saveContact(contactObjects[cursor]);
-      }
-    }
-
-    function saveContact(ct) {
-      if (!ct) {
-        afterSave(null, null);
-        return;
-      }
-
-      var contact = utils.misc.toMozContact(ct);
-      var afterSaveFn = afterSave.bind(null, contact);
-      var matchCbs = {
-        onmatch: function(matches) {
-          var callbacks = {
-            success: function(mergedContact) {
-              self.numDupsMerged++;
-              afterSave(mergedContact, null);
-            },
-            error: afterSaveFn
-          };
-          contacts.adaptAndMerge(contact, matches, callbacks);
-        },
-
-        onmismatch: function() {
-          VCFReader._save(contact, afterSaveFn);
-        }
-      };
-      contacts.Matcher.match(contact, 'passive', matchCbs);
-    }
-
-    saveContact(contactObjects[cursor]);
-  };
-
-  /**
-   * Saves a single raw entry into the phone contacts
-   *
-   * @param {Object} item represents a single vCard entry.
-   * @param {Function} cb Callback.
-   */
-  VCFReader._save = function(item, cb) {
-    var req = navigator.mozContacts.save(utils.misc.toMozContact(item));
-    req.onsuccess = cb;
-    req.onerror = cb;
-  };
-
-  var reBeginCard = /begin:vcard$/i;
-  var reEndCard = /end:vcard$/i;
-  var reVersion = /^VERSION:/i;
-
-  /**
-   * Splits vcard text into arrays of lines (one for each vcard field) and
-   * sends an array of arrays of lines over to process.
-   */
-  VCFReader.prototype.splitLines = function() {
+  function _getCardLines() {
     var currentLine = '';
     var inLabel = false;
     var multiline = false;
 
-    var cardArray = [
-      []
-    ];
-
-    /**
-     * Number of cards processed. Quite faster than looking at `cardArray`
-     * length.
-     * @type {number}
-     */
-    var cardsProcessed = 0;
+    var lines = [];
 
     // We start at the last cursor position
-    var i = this.currentChar;
+    var i = currentIndex;
 
-    var callPost = this.post.bind(this);
-
-    for (var l = this.contents.length; i < l; i++) {
-      this.currentChar = i;
-      var ch = this.contents[i];
+    for (var l = content.length; i < l; i++) {
+      currentIndex = i;
+      var ch = content[i];
       if (ch === '"') {
         inLabel = !inLabel;
         currentLine += ch;
@@ -795,7 +650,7 @@ var VCFReader = (function _VCFReader() {
         }
       }
 
-      var next = this.contents[i + 1];
+      var next = content[i + 1];
       if (inLabel || (ch !== '\n' && ch !== '\r')) {
         // If we have a quoted-printable sign for multiline (/=\n/) AND
         // we are not in a data URI field, ignore the character.
@@ -815,7 +670,7 @@ var VCFReader = (function _VCFReader() {
       // If the field is a photo, the field could be multiline, to know if the
       // following line is part of the photo, we must check if the first char
       // of the following line is a space.
-      var firstCharNextLine = this.contents[i + 2];
+      var firstCharNextLine = content[i + 2];
       if ((firstCharNextLine === WHITE_SPACE) && (/[\r\t\s\n]/).test(next) &&
         (/^PHOTO/i).test(currentLine)) {
           multiline = true;
@@ -836,38 +691,18 @@ var VCFReader = (function _VCFReader() {
 
       // If the current line indicates the end of a card,
       if (reEndCard.test(currentLine)) {
-        cardsProcessed += 1;
-
-        if (cardsProcessed === VCFReader.CONCURRENCY ||
-          (cardsProcessed + this.processed) === this.total) {
-          _parseEntries(cardArray, callPost);
-          break;
-        }
-
-        currentLine = '';
-
-        cardArray.push([]);
-
-        continue;
+        break;
       }
 
       if (currentLine && !reVersion.test(currentLine)) {
-        cardArray[cardArray.length - 1].push(currentLine);
+        lines.push(currentLine);
       }
       currentLine = '';
     }
-  };
 
-  VCFReader._decodeQuoted = _decodeQuoted;
-  VCFReader.processAddr = _processAddr;
-  VCFReader.processName = _processName;
-  VCFReader.vcardToContact = vcardToContact;
+    currentIndex++;
+    return lines;
+  }
 
-  //Expose some utility methods
-  VCFReader.utils = {
-    parseDataUri: parseDataUri,
-    b64toBlob: b64toBlob
-  };
-
-  return VCFReader;
 })();
+
