@@ -11,21 +11,9 @@
  *
  * 1. Alert dialog
  *
- * DialogService.alert({
- *   id: 'MessageId',
- *   args: {}
- * }, {
- *   title: { id: 'TitleId', args: {} }
- * })
- * .then(function(result) {
- *   var type = result.type;
- * });
- *
- * NOTE:
- * If there is no args in locales, you can direclty pass l10nId without args.
- *
- * DialogService.alert('MessageId', {
- *   title: 'TitleId'
+ * DialogService
+ * .alert('this is alert message', {
+ *   title: 'This is alert dialog'
  * })
  * .then(function(result) {
  *   var type = result.type;
@@ -33,13 +21,11 @@
  *
  * 2. Confirm dialog
  *
- * DialogService.confirm({
- *   id: 'MessageId',
- *   args: {}
- * }, {
- *   title: { id: 'TitleId', args: {} },
- *   submitButtonText: { id: 'SubmitButtonId', args: {} },
- *   cancelButtonText: { id: 'CancelButtonId', args: {} }
+ * DialogService
+ * .confirm('this is confirm message', {
+ *   title: 'This is confirm dialog',
+ *   submitButtonText: 'GO',
+ *   cancelButtonText: 'BACK'
  * })
  * .then(function(result) {
  *   var type = result.type;
@@ -47,11 +33,8 @@
  *
  * 3. Prompt dialog
  * 
- * DialogService.prompt({
- *   id: 'MessageId',
- *   args: {}
- * }, {
- *   title: { id: 'TitleId', args: {} },
+ * DialogService.prompt('this is a prompt message', {
+ *   title: 'Please type email'
  *   defaultValue: 'e.g. test@mozilla.com',
  * }).then(function(result) {
  *   var type = result.type;
