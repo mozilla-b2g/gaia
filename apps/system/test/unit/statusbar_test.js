@@ -2101,7 +2101,7 @@ suite('system/Statusbar', function() {
       assert.isTrue(StatusBar.element.classList.contains('hidden'));
     }
 
-    function testEventThatShows(event) {
+    function triggerEvent(event) {
       var currentApp = {
         getTopMostWindow: function getTopMostWindow() {
           return this._topWindow;
@@ -2111,8 +2111,12 @@ suite('system/Statusbar', function() {
       var evt = new CustomEvent(event, {detail: currentApp});
       StatusBar.element.classList.add('hidden');
       StatusBar.handleEvent(evt);
+    }
+
+    function testEventThatShows(event) {
+      triggerEvent(event);
       assert.isTrue(setAppearanceStub.called);
-      assert.isTrue(setAppearanceStub.calledWith(currentApp));
+      assert.isTrue(setAppearanceStub.calledWith(Service.currentApp));
       assert.isFalse(StatusBar.element.classList.contains('hidden'));
     }
 
@@ -2177,6 +2181,13 @@ suite('system/Statusbar', function() {
 
     test('appopened', function() {
       testEventThatShows.bind(this)('appopened');
+    });
+
+    test('appchromecollapsed', function() {
+      var stub = this.sinon.spy(StatusBar, '_updateMinimizedStatusBarWidth');
+      triggerEvent.bind(this)('appchromecollapsed');
+      assert.isTrue(stub.calledOnce);
+      assert.isTrue(setAppearanceStub.calledOnce);
     });
 
     test('appchromeexpanded', function() {
