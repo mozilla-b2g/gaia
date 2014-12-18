@@ -20,7 +20,6 @@ import time
 import dzclient
 import gaiatest
 from marionette import Marionette
-import mozdevice
 
 
 class DatazillaPerfPoster(object):
@@ -34,11 +33,12 @@ class DatazillaPerfPoster(object):
         self.submit_report = True
         self.ancillary_data = {}
 
-        if gaiatest.GaiaDevice(self.marionette).is_android_build:
+        if self.marionette.runner and self.marionette.runner.device:
+            device_manager = self.marionette.runner.device.manager
             # get gaia, gecko and build revisions
             try:
-                device_manager = mozdevice.DeviceManagerADB()
-                app_zip = device_manager.pullFile('/data/local/webapps/settings.gaiamobile.org/application.zip')
+                app_zip = device_manager.pullFile(
+                    '/data/local/webapps/settings.gaiamobile.org/application.zip')
                 with zipfile.ZipFile(StringIO(app_zip)).open('resources/gaia_commit.txt') as f:
                     self.ancillary_data['gaia_revision'] = f.read().splitlines()[0]
             except zipfile.BadZipfile:
