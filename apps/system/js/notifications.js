@@ -717,6 +717,13 @@ var NotificationScreen = {
                       });
     var notification;
     this.clearAllButton.disabled = true;
+    // When focus is on a disabled element, Gecko will not dispatch any keyboard
+    // events to it (the disabled element) and its parent.
+    // The clearAll Button is focused but disabled right away after
+    // user click it. We need to blur the focus immediately, otherwise System
+    // app could not receive any keyboard events. See more detail on
+    // http://bugzil.la/1106844
+    this.clearAllButton.blur();
     if (!clearable.length) {
       return;
     }
