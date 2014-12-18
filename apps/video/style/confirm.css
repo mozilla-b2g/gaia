@@ -1,0 +1,32 @@
+/*csslint empty-rules: false*/
+/* See bug 1053721 */
+:root {
+/*
+ * Overrides for software home button
+ * 
+ * Note: The adjustment of height and width are based on the height
+ * (width in landscape) of the software home button which is set here:
+ * 
+ * apps/system/style//definitions.css:  --software-home-button-height: 4.4rem;
+ *
+ * Currently, the variable cannot be shared outside of system app so we
+ * redeclare it here.
+ */
+  --software-home-button-height: 4.4rem;
+}
+
+@media not all and (-moz-physical-home-button) {
+  @media (orientation: portrait) {
+    form[role="dialog"][data-type="confirm"] menu {
+      left: 0;
+      bottom: var(--software-home-button-height);
+    }
+  }
+  @media (orientation: landscape) {
+    form[role="dialog"][data-type="confirm"] menu {
+      right: var(--software-home-button-height);
+      bottom: 0;
+    }
+  }
+}
+

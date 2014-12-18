@@ -1,3 +1,18 @@
+/*csslint empty-rules: false*/
+/* See bug 1053721 */
+:root {
+/*
+ * Note: The adjustment of height and width are based on the height
+ * (width in landscape) of the software home button which is set here:
+ * 
+ * apps/system/style//definitions.css:  --software-home-button-height: 4.4rem;
+ *
+ * Currently, the variable cannot be shared outside of system app so we
+ * redeclare it here.
+ */
+  --software-home-button-height: 4.4rem;
+}
+
 html, body {
   margin: 0;
   padding: 0;
@@ -772,3 +787,72 @@ form[role="dialog"][data-type="confirm"] button.hidden {
   border: none;
   padding: 0;
 }
+
+/*
+ * Overrides for software home button
+ */
+@media not all and (-moz-physical-home-button) {
+  @media (orientation: portrait) {
+    #thumbnail-list-view, #thumbnail-select-view {
+      height: calc(100% - var(--software-home-button-height));
+      width: 100%;
+    }
+
+    #options-view {
+      right: 0;
+      bottom: var(--software-home-button-height);
+    }
+
+    #options-cancel-button {
+      right: 0;
+      bottom: var(--software-home-button-height);
+    }
+  }
+
+  @media (orientation: landscape) {
+    #thumbnail-list-view, #thumbnail-select-view {
+      height: 100%;
+      width: calc(100% - var(--software-home-button-height));
+    }
+
+    #options-view {
+      right: var(--software-home-button-height);
+      bottom: 0;
+    }
+
+    /*
+     * options-cancel-button needs special treatment in landscape orientation
+     * because its position is 'fixed'. In order for 'right' to be applied,
+     * set 'left: auto'. Adjust the width (shorten) by the width of the software
+     * home button plus '3' because in addition to the width having been
+     * shortened by the width of the software home button, it has been
+     * shortened by 3 by here:
+     * '[role="dialog"][data-type="action"] > menu > button' in action_menu.css
+     */
+    #options-cancel-button {
+      left: auto;
+      right: var(--software-home-button-height);
+      width: calc(100% - (var(--software-home-button-height) + 3rem));
+      bottom: 0;
+    }
+  }
+}
+
+/* 
+ * Adjust video controls when software home button is present
+*/
+@media (orientation: portrait) {
+  #videoControls.software-button-present {
+    height: calc(100% - var(--software-home-button-height));
+    width: 100%;
+  }
+}
+
+@media (orientation: landscape) {
+  #videoControls.software-button-present {
+    height: 100%;
+    width: calc(100% - var(--software-home-button-height));
+  }
+}
+
+
