@@ -488,7 +488,12 @@ appMessages.on('activity', gateEntry(function(type, data, rawActivity) {
 
 appMessages.on('notification', gateEntry(function(data) {
   data = data || {};
-  var type = data.type || '';
+
+  // Default to message_list in case no type is set, which could happen if email
+  // is awoken by a notification that was generated before email switched to use
+  // Notifcation.data in 2.2. Previous versions used fragment IDs on iconURLs.
+  // By choosing the message list, then at least some UI is shown.
+  var type = data.type || 'message_list';
   var folderType = data.folderType || 'inbox';
 
   model.latestOnce('foldersSlice', function latestFolderSlice() {
@@ -521,15 +526,15 @@ appMessages.on('notification', gateEntry(function(data) {
             messageSuid: data.messageSuid,
             onPushed: onPushed
         });
-      } else {
-        console.error('unhandled notification type: ' + type);
       }
     }
 
     var acctsSlice = model.acctsSlice,
         accountId = data.accountId;
 
-    if (model.account.id === accountId) {
+    // accountId could be undefined if this was a notification that was
+    // generated before 2.2. In that case, just default to the current account.
+    if (!accountId || model.account.id === accountId) {
       // folderType will often be 'inbox' (in the case of a new message
       // notification) or 'outbox' (in the case of a "failed send"
       // notification).
