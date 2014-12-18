@@ -1,6 +1,6 @@
 'use strict';
 /* global AppWindow, PopupWindow, ActivityWindow, SettingsListener,
-          AttentionWindow, MozActivity */
+          AttentionWindow, MozActivity, GlobalOverlayWindow */
 
 (function(exports) {
   var ENABLE_IN_APP_SHEET = false;
@@ -58,7 +58,8 @@
       // except while FTU is running: windows must be closable & parented by FTU
       if (evt.detail.name == '_blank' &&
           !window.Service.runningFTU &&
-          evt.detail.features !== 'attention') {
+          evt.detail.features !== 'attention' &&
+          evt.detail.features !== 'global-clickthrough-overlay') {
         this.createNewWindow(evt);
         evt.stopPropagation();
         return;
@@ -89,6 +90,10 @@
           if (!this.createAttentionWindow(evt)) {
             this.createPopupWindow(evt);
           }
+          break;
+        case 'global-clickthrough-overlay':
+          // Open GlobalOverlayWindow.
+          this.createGlobalOverlayWindow(evt);
           break;
         case 'mozhaidasheet':
           // This feature is for internal usage only
@@ -175,6 +180,8 @@
 
   ChildWindowFactory.prototype.createAttentionWindow = function(evt) {
     if (!this.app || !this.app.hasPermission('attention')) {
+      console.error('Cannot create attention window. ' +
+                    'Invalid of underprivileged app');
       return false;
     }
 
@@ -195,6 +202,28 @@
 
     this.app.attentionWindow = attention;
     attention.requestOpen();
+    return true;
+  };
+
+  ChildWindowFactory.prototype.createGlobalOverlayWindow = function(evt) {
+    if (!this.app || !this.app.hasPermission('global-clickthrough-overlay')) {
+      console.error('Cannot create global overlay window. ' +
+                    'Invalid of underprivileged app');
+      return false;
+    }
+
+    var overlayFrame = evt.detail.frameElement;
+    var overlay = new GlobalOverlayWindow({
+      iframe: overlayFrame,
+      url: evt.detail.url,
+      name: evt.detail.name,
+      manifestURL: this.app.manifestURL,
+      origin: this.app.origin,
+      parentWindow: this.app
+    });
+
+    this.app.overlayWindow = overlay;
+    overlay.requestOpen();
     return true;
   };
 

@@ -65,11 +65,14 @@
 .lockScreenWindow:not(.bar) > .chrome .controls,
 .lockScreenWindow:not(.bar) > .chrome gaia-progress,
 .homescreen:not(.bar) > .chrome .controls,
-.homescreen:not(.bar) > .chrome gaia-progress {
+.homescreen:not(.bar) > .chrome gaia-progress,
+.globalOverlayWindow:not(.bar) > .chrome .controls,
+.globalOverlayWindow:not(.bar) > .chrome gaia-progress {
   visibility: hidden;
 }
 
-.lockScreenWindow:not(.bar) > .chrome {
+.lockScreenWindow:not(.bar) > .chrome,
+.globalOverlayWindow:not(.bar) > .chrome {
   background-color: transparent;
 }
 
