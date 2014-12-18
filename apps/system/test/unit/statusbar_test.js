@@ -409,12 +409,10 @@ suite('system/Statusbar', function() {
     });
     test('lock', function() {
       Service.locked = true;
-      var currentApp = {};
       var setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
-      var evt = new CustomEvent('lockscreen-appopened', {detail: currentApp});
+      var evt = new CustomEvent('lockscreen-appopened');
       StatusBar.handleEvent(evt);
       assert.isTrue(setAppearanceStub.called);
-      assert.isTrue(setAppearanceStub.calledWith(currentApp));
       assert.equal(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, true);
     });
@@ -1999,13 +1997,13 @@ suite('system/Statusbar', function() {
     });
 
     test('should set the lockscreen icons color', function() {
-      assert.isTrue(StatusBar.element.classList.contains('light'));
+      assert.isFalse(StatusBar.element.classList.contains('light'));
       assert.isTrue(StatusBar.element.classList.contains('maximized'));
     });
 
     test('should do nothing when is locked', function() {
       StatusBar.setAppearance(app);
-      assert.isTrue(StatusBar.element.classList.contains('light'));
+      assert.isFalse(StatusBar.element.classList.contains('light'));
       assert.isTrue(StatusBar.element.classList.contains('maximized'));
     });
 

@@ -343,15 +343,15 @@ var StatusBar = {
         // or we have some bugs.
         this.toggleTimeLabel(false);
         this._updateIconVisibility();
-        this.setAppearance(evt.detail);
         this._inLockScreenMode = true;
+        this.setAppearance();
         break;
 
       case 'lockscreen-appclosing':
         // Display the clock in the statusbar when screen is unlocked
-        this._inLockScreenMode = false;
         this.toggleTimeLabel(true);
         this._updateIconVisibility();
+        this._inLockScreenMode = false;
         this.setAppearance(Service.currentApp);
         break;
 
@@ -384,7 +384,7 @@ var StatusBar = {
       case 'lockpanelchange':
         if (this.screen.classList.contains('locked')) {
           // Display the clock in the statusbar if on Emergency Call screen
-          var isHidden = (evt.detail.panel == 'emergency-call') ? false : true;
+          var isHidden = (evt.detail.panel !== 'emergency-call');
           this.toggleTimeLabel(!isHidden);
         }
         break;
@@ -630,9 +630,9 @@ var StatusBar = {
   },
 
   setAppearance: function(app, useBottomWindow) {
-    // Avoid any attempt to update the statusbar when
-    // the phone is locked
+    // The statusbar is always maximised when the phone is locked.
     if (this._inLockScreenMode) {
+      this.element.classList.add('maximized');
       return;
     }
 
