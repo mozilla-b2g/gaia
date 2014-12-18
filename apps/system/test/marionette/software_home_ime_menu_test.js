@@ -25,6 +25,8 @@ marionette('Software Home Button - IME Menu', function() {
 
   test('Proper layout for alerts', function() {
     client.executeScript(function() {
+      window.wrappedJSObject.KeyboardManager._showingInputGroup = 'text';
+
       window.dispatchEvent(new CustomEvent('mozChromeEvent', {
         detail: {
           type: 'inputmethod-showall'
