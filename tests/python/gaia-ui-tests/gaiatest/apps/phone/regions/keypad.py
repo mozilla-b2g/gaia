@@ -4,6 +4,8 @@
 
 import time
 
+from marionette import expected
+from marionette import Wait
 from marionette.by import By
 from marionette.marionette import Actions
 from marionette.wait import Wait
@@ -62,7 +64,10 @@ class Keypad(Phone):
         return self.a11y_click_call_button()
 
     def tap_call_button(self, switch_to_call_screen=True):
-        self.marionette.find_element(*self._call_bar_locator).tap()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._call_bar_locator))
+        Wait(self.marionette).until(expected.element_enabled(element))
+        element.tap()
         if switch_to_call_screen:
             return CallScreen(self.marionette)
 
