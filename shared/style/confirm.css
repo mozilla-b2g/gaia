@@ -153,13 +153,18 @@ form[role="dialog"][data-type="confirm"] menu button.full {
   width: 100%;
 }
 
-/* Specific component code */
+/*
+** Specific component code
+**
+** 1. Text in confirm dialog should not be selectable.
+ */
 form[role="dialog"][data-type="confirm"] p {
   word-wrap: break-word;
   margin: 1rem 0 0;
   padding: 1rem 1.5rem;
   border-top: 0.1rem solid #686868;
   line-height: 3rem;
+  -moz-user-select: none; /* 1 */
 }
 
 form[role="dialog"][data-type="confirm"] p span {
