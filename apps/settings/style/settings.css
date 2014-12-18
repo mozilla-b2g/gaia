@@ -12,6 +12,24 @@ html, body {
   overflow: hidden;
 }
 
+/**
+ * Disable selection by default except for input, text area, and elements with
+ * "contenteditable".
+ */
+* {
+  -moz-user-select: none;
+}
+
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="text"],
+input[type="url"],
+textarea,
+[contenteditable="true"] {
+  -moz-user-select: text;
+}
 
 /******************************************************************************
  * Setting panels: full-size <section role="region"> blocks
