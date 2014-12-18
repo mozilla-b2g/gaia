@@ -207,26 +207,43 @@ suite('InputWindowManager', function() {
         };
       });
 
-      test('Send keyboardhidden if there is no currentWindow', function() {
+      suite('inputWindow._pendingReady = false', function() {
+        setup(function() {
+          evt.detail._pendingReady = false;
+        });
+        test('Send keyboardhidden if there is no currentWindow', function() {
+          manager._currentWindow = undefined;
+
+          manager.handleEvent(evt);
+
+          assert.isTrue(stubKBPublish.calledWith('keyboardhidden', undefined));
+        });
+
+        test('Do not send keyboardhidden if there is currentWindow',
+        function() {
+          manager._currentWindow = new InputWindow();
+
+          manager.handleEvent(evt);
+
+          assert.isFalse(stubKBPublish.called);
+        });
+
+        test('Source InputWindow is deactivated', function() {
+          manager.handleEvent(evt);
+
+          assert.isTrue(evt.detail._setAsActiveInput.calledWith(false));
+        });
+      });
+
+      test('inputWindow._pendingReady = true -- should not do anything',
+      function() {
+        evt.detail._pendingReady = true;
         manager._currentWindow = undefined;
 
         manager.handleEvent(evt);
 
-        assert.isTrue(stubKBPublish.calledWith('keyboardhidden', undefined));
-      });
-
-      test('Do not send keyboardhidden if there is currentWindow', function() {
-        manager._currentWindow = new InputWindow();
-
-        manager.handleEvent(evt);
-
+        assert.isFalse(evt.detail._setAsActiveInput.called);
         assert.isFalse(stubKBPublish.called);
-      });
-
-      test('Source InputWindow is deactivated', function() {
-        manager.handleEvent(evt);
-
-        assert.isTrue(evt.detail._setAsActiveInput.calledWith(false));
       });
     });
 
