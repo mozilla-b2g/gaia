@@ -29,6 +29,7 @@ suite('STK (icc) >', function() {
       realNavigatormozSetMessageHandler, realNavigatormozMobileConnections;
   var stkTestCommands = {};
   var xhrFake, xhrRequests = [];
+  var resizeStub;
 
   suiteSetup(function() {
     loadBodyHTML('/index.html');
@@ -156,7 +157,10 @@ suite('STK (icc) >', function() {
     window.inputWindowManager =
       this.sinon.stub(Object.create(InputWindowManager.prototype));
 
-    requireApp('system/js/icc.js', done);
+    requireApp('system/js/icc.js', function() {
+      resizeStub = this.sinon.stub(icc, 'resize');
+      done();
+    }.bind(this));
   });
 
   teardown(function() {
@@ -465,6 +469,12 @@ suite('STK (icc) >', function() {
         done();
     });
     window.dispatchEvent(new CustomEvent('stkMenuHidden'));
+  });
+
+  test('handleSTKCommand - should call resize', function() {
+    launchStkCommand(stkTestCommands.STK_CMD_DISPLAY_TEXT);
+
+    assert.isTrue(resizeStub.calledOnce);
   });
 
 });
