@@ -3,9 +3,7 @@
 'use strict';
 
 function dataLimitConfigurer(guiWidget, settings, viewManager, widgetRoot) {
-  var MINUS_CHAR_CODE = 45,
-      COMMA_CHAR_CODE = 44,
-      DOT_CHAR_CODE = 46,
+  var REMOVE_CHAR_CODE = 8,
       // It Represents any positive real number (up to three digits length),
       // with optional decimal point, accepting up to 2 decimal places.  It is
       // not necessary adding the significant number when it is zero (eg. '.5'
@@ -53,14 +51,44 @@ function dataLimitConfigurer(guiWidget, settings, viewManager, widgetRoot) {
     );
   }
 
-  // Prevent undesired characters like '-'
+  // Checks if value is numeric and it has a valid format
+  // Not allowed entry characters '-', ',' or more than one '.'
+  function isValidValue(newValue) {
+    var containsNonValidCharacters = [',','-']
+      .some(c => newValue.indexOf(c) > -1);
+    var containsMoreThanOneDot = (newValue.match(/\./g) || []).length > 1;
+    return !Number.isNaN(newValue) &&
+           !containsNonValidCharacters && !containsMoreThanOneDot &&
+           isValidFormat(newValue);
+  }
+
+  function isNotRemovingChar(newChar) {
+    return REMOVE_CHAR_CODE !== newChar;
+  }
+
+  function preventBadInput(valid, newChar, currentInput) {
+    // This method returns the string resultant of adding the character of the
+    // keypress event
+    function simulateNewValue(newChar, currentInput) {
+      var value = currentInput.value,
+          idx = currentInput.selectionStart,
+          newCharValue = String.fromCharCode(newChar);
+      return value.substr(0, idx) + newCharValue + value.substr(idx);
+    }
+    var newValue = simulateNewValue(newChar, currentInput);
+    var isInvalid = !valid(newValue);
+    return isInvalid;
+  }
+
   dataLimitInput.addEventListener('keypress',
     function cc_onKeypress(event) {
-      if ((event.charCode === MINUS_CHAR_CODE) ||
-          (event.charCode === COMMA_CHAR_CODE) ||
-          (event.charCode === DOT_CHAR_CODE &&
-           event.target.value.indexOf('.') !== -1)) {
+      var currentInput =  event.target;
+      var newChar = event.charCode || event.keyCode;
 
+      // If the entry is not valid or the result of the input is invalid, we
+      // have to prevent the event propagation
+      if (isNotRemovingChar(newChar) &&
+          preventBadInput(isValidValue, newChar, currentInput)) {
         event.preventDefault();
         event.stopPropagation();
         return;
@@ -74,6 +102,7 @@ function dataLimitConfigurer(guiWidget, settings, viewManager, widgetRoot) {
             numberDataLimit > 0 &&
             DATA_LIMIT_NUMERIC_FORMAT.test(numberDataLimit));
   }
+
   // Disable OK button when dataLimitInput not matches any positive real number
   // (up to three digits length), with optional decimal point, accepting up
   // to 2 decimal places.
