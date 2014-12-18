@@ -722,10 +722,6 @@ html:-moz-dir(rtl) .msg-attachment-filesize {
   display: inline-block;
 }
 
-html:-moz-dir(rtl) .msg-messages-container.show-edit label.negative {
-  right: 2rem;
-}
-
 .msg-messages-container.show-edit .msg-header-unread-section {
   left: 3.9rem;
 }
