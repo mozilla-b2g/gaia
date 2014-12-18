@@ -21,6 +21,7 @@ class SettingsForm(Base):
     _import_from_windows_live_button_locator = (By.CSS_SELECTOR, 'button.icon-live')
     _import_settings_header = (By.ID, 'import-settings-header');
     _export_to_sd_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="memoryCard"]')
+    _export_to_sim_button_locator = (By.CSS_SELECTOR, '#export-options button.icon-sim')
     _import_contacts_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="importContactsButton"]')
     _export_contacts_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="exportContactsButton"]')
     _gmail_contacts_imported_locator = (By.CSS_SELECTOR, '.icon.icon-gmail > p > span')
@@ -97,6 +98,14 @@ class SettingsForm(Base):
             expected.element_present(*self._export_to_sd_button_locator))
         Wait(self.marionette).until(expected.element_displayed(export_to_sdcard))
         export_to_sdcard.tap()
+        select_contacts = self.marionette.find_element(*self._select_contacts_locator)
+        Wait(self.marionette).until(lambda m: select_contacts.location['y'] == 0)
+
+    def tap_export_to_sim(self):
+        export_to_sim = Wait(self.marionette).until(
+            expected.element_present(*self._export_to_sim_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(export_to_sim))
+        export_to_sim.tap()
         select_contacts = self.marionette.find_element(*self._select_contacts_locator)
         Wait(self.marionette).until(lambda m: select_contacts.location['y'] == 0)
 
