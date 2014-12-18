@@ -14,6 +14,7 @@ class FullscreenVideo(Base):
     _elapsed_text_locator = (By.ID, 'elapsed-text')
     _video_player_locator = (By.ID, 'player')
     _video_player_frame_locator = (By.ID, 'player-view')
+    _video_duration_text_locator = (By.ID, 'duration-text')
 
     def wait_for_player_frame_displayed(self):
         self.wait_for_element_displayed(*self._video_player_frame_locator)
@@ -26,6 +27,12 @@ class FullscreenVideo(Base):
     def elapsed_time(self):
         # Convert it to a real time so we can accurately assert
         text = self.marionette.find_element(*self._elapsed_text_locator).text
+        return time.strptime(text, '%M:%S')
+
+    @property
+    def total_duration_time(self):
+        # Convert it to a real time so we can accurately assert
+        text = self.marionette.find_element(*self._video_duration_text_locator).text
         return time.strptime(text, '%M:%S')
 
     @property
