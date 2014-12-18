@@ -1125,8 +1125,8 @@ i.hack-first-child {
 
 /* Right to left: position the check mark to the left */
 html[dir="rtl"] [data-type="list"].pack-value-selector li label:not([for]) input + span:after {
-  left: 0;
-  margin-left: auto;
+ left: unset;
+ right: 100%;
 }
 
 [data-type="list"].pack-value-selector li label:not([for]) input + span + p {
