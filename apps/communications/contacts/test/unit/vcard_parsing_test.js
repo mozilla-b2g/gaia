@@ -458,6 +458,24 @@ suite('vCard parsing settings', function() {
       });
     });
 
+    test('- should detect when double quotes are not opening a quoted field',
+        function(done) {
+      initializeVCFReader('vcard_wrong_quotes.vcf', function(reader) {
+        reader.onread = stub();
+        reader.onimported = stub();
+        reader.onerror = stub();
+
+        reader.process(function import_finish(result) {
+          done(function() {
+            assert.strictEqual(1, result.length);
+            assert.strictEqual(1, reader.onread.callCount);
+            assert.strictEqual(1, reader.onimported.callCount);
+            assert.strictEqual(0, reader.onerror.callCount);
+          });
+        });
+      });
+    });
+
     test('- should return a single entry', function(done) {
       initializeVCFReader('vcard_4_wrong.vcf', function(reader) {
         reader.onread = stub();
