@@ -49,7 +49,7 @@ var Startup = {
   ],
 
   _lazyLoadInit: function() {
-    this._initHeaders();
+    //this._initHeaders();
     LazyLoader.load(this._lazyLoadScripts, function() {
       LocalizationHelper.init();
 

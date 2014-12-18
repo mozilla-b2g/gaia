@@ -127,6 +127,7 @@ var base = window.GAIA_ICONS_BASE_URL
 if (!isLoaded()) { load(base + 'gaia-icons/gaia-icons.css'); }
 
 function load(href) {
+  console.log('>>> loading gaia icons');
   var link = document.createElement('link');
   link.rel = 'stylesheet';
   link.type = 'text/css';
@@ -730,6 +731,8 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
         return;
       }
 
+      console.log('>> running runFontFit for heading', heading.textContent);
+
       var style;
       var priv = getPriv(heading);
       if (start !== undefined) {
@@ -749,6 +752,7 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
       this._resetCentering(heading);
 
       if (hasSizeInformation) {
+        console.log('>>> hasSizeInformation');
         style = {
           fontFamily: 'sans-serif',
           contentWidth: this._getWindowWidth() - (start || 0) - (end || 0),
@@ -758,6 +762,7 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
           rtlFriendly: true
         };
       } else {
+        console.log('>>> has no size information');
         // Cache the element style properties to avoid reflows.
         style = this._getStyleProperties(heading);
       }
