@@ -1,17 +1,16 @@
 define(function(require) {
   'use strict';
-  
-  var SettingsPanel = require('modules/settings_panel');
+
+  var DialogPanel = require('modules/dialog_panel');
   var WifiHelper = require('shared/wifi_helper');
   var WifiUtils = require('modules/wifi_utils');
-  var WifiContext = require('modules/wifi_context');
 
   return function ctor_joinHiddenWifi() {
     var elements = {};
     var network;
     var isHomeKeyPressed = false;
 
-    return SettingsPanel({
+    return DialogPanel({
       onInit: function(panel) {
         elements.panel = panel;
         elements.ssid = panel.querySelector('input[name="ssid"]');
@@ -26,25 +25,13 @@ define(function(require) {
         elements.ssid.oninput = this._onSSIDchange;
         elements.securitySelect.onchange = this._onSecurityChange;
       },
-      onBeforeShow: function(panel, options) {
+      onBeforeShow: function(panel) {
         if (!isHomeKeyPressed) {
-          network = options.network;
+          network = {};
           this._onSecurityChange.call(elements.securitySelect);
           WifiUtils.initializeAuthFields(panel, network);
         }
         isHomeKeyPressed = false;
-      },
-      onBeforeHide: function() {
-        // set authOptions
-        WifiContext.authOptions = {
-          password: elements.password.value,
-          identity: elements.identity.value,
-          eap: elements.eap.value
-        };
-
-        // We have to keep these information in network object
-        network.ssid = elements.ssid.value;
-        network.hidden = true;
       },
       onHide: function() {
         isHomeKeyPressed = document.hidden;
@@ -53,6 +40,18 @@ define(function(require) {
           elements.identity = '';
           elements.showPassword.checked = false;
         }
+      },
+      onSubmit: function() {
+        // We have to keep these information in network object
+        network.ssid = elements.ssid.value;
+        network.hidden = true;
+
+        return Promise.resolve({
+          password: elements.password.value,
+          identity: elements.identity.value,
+          eap: elements.eap.value,
+          network: network
+        });
       },
       _onSecurityChange: function() {
         var key = this.selectedIndex ? this.value : '';

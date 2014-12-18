@@ -17,8 +17,6 @@ define(function(require) {
   var _currentNetwork =
     wifiManager && wifiManager.connection && wifiManager.connection.network;
 
-  var _authOptions = {};
-
   var WifiContext = {
     /**
      * These listeners would be called when wifi is enabled
@@ -432,16 +430,6 @@ define(function(require) {
       return _currentNetwork;
     },
     forgetNetwork: WifiContext.forgetNetwork,
-    associateNetwork: WifiContext.associateNetwork,
-    set authOptions(object) {
-      _authOptions = {};
-      var keys = ['password', 'identity', 'eap', 'authPhase2', 'certificate'];
-      keys.forEach(function(key) {
-        _authOptions[key] = object[key];
-      });
-    },
-    get authOptions() {
-      return _authOptions;
-    }
+    associateNetwork: WifiContext.associateNetwork
   };
 });
