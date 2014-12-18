@@ -34,16 +34,6 @@ var ConfirmDialog = (function() {
       return;
     }
 
-    titleNode.textContent = '';
-    titleNode.className = '';
-    messageNode.textContent = '';
-    messageNode.className = '';
-    action1Node.textContent = '';
-    action1Node.className = '';
-    action1Node.onclick = null;
-    action2Node.textContent = '';
-    action2Node.className = '';
-    action2Node.onclick = null;
     screen.classList.remove('fade-in');
     screen.classList.add('fade-out');
     isAnimationPlaying = true;
@@ -53,6 +43,18 @@ var ConfirmDialog = (function() {
     screen.addEventListener('animationend', function cd_fadeOut(ev) {
       isAnimationPlaying = false;
       screen.removeEventListener('animationend', cd_fadeOut);
+
+      titleNode.textContent = '';
+      titleNode.className = '';
+      messageNode.textContent = '';
+      messageNode.className = '';
+      action1Node.textContent = '';
+      action1Node.className = '';
+      action1Node.onclick = null;
+      action2Node.textContent = '';
+      action2Node.className = '';
+      action2Node.onclick = null;
+
       screen.classList.add('no-opacity');
       screen.classList.add('hide');
       isShown = false;
