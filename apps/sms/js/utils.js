@@ -459,7 +459,7 @@
         case 'audio':
         case 'text':
           if(secondPart !== 'plain') {
-            return secondPart;
+            return 'ref';
           }
         case 'application':
           return mainPart;

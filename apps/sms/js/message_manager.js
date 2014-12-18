@@ -92,6 +92,7 @@ var MessageManager = {
   },
 
   getThreads: function mm_getThreads(options) {
+    alert('get Threads');
     /*
     options {
       each: callback function invoked for each message
@@ -146,6 +147,7 @@ var MessageManager = {
   },
 
   getMessages: function mm_getMgs(options) {
+    alert('get messages');
     /*
     options {
       each: callback function invoked for each message
@@ -159,7 +161,11 @@ var MessageManager = {
     }
 
      */
-    var each = options.each;
+    alert(options.each);
+    var each = function(amsg) {
+      alert(JSON.stringify(amsg));
+      options.each(amsg);
+    };
     var invert = options.invert;
     var end = options.end;
     var endArgs = options.endArgs;
@@ -171,6 +177,7 @@ var MessageManager = {
       if (!this.done) {
         var shouldContinue = true;
         if (each) {
+          alert(this.result.smil)
           shouldContinue = each(this.result);
         }
         // if each returns false the iteration stops
@@ -325,6 +332,11 @@ var MessageManager = {
     }
 
     var message = SMIL.generate(content);
+
+    alert(JSON.stringify(message));
+
+    alert(JSON.stringify(message.attachments));
+
 
     var sendOpts = this._getSendOptionsFromServiceId(serviceId);
 

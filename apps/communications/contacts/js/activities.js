@@ -217,15 +217,22 @@ var ActivityHandler = {
   },
 
   _getContactName: function(theContact) {
-    var out;
+    var out = '';
 
     var givenName = Array.isArray(theContact.givenName) &&
                                                       theContact.givenName[0];
     var familyName = Array.isArray(theContact.familyName) &&
                                                       theContact.familyName[0];
 
-    if (givenName || familyName) {
-      out = givenName + ' ' + familyName;
+    if (givenName) {
+      out = givenName;
+    }
+
+    if (familyName) {
+      if (out) {
+        out += '_';
+      }
+      out += familyName;
     }
 
     if (!out) {
@@ -234,7 +241,7 @@ var ActivityHandler = {
 
     if (!out) {
       if (Array.isArray(theContact.tel)) {
-        out = theContact.tel[0].value;
+        out = 'c' + '_' + theContact.tel[0].value;
       }
     }
 
@@ -248,7 +255,7 @@ var ActivityHandler = {
       out = navigator.mozL10n.get('noName');
     }
 
-    return out;
+    return out + '.vcf';
   },
 
   dataPickHandler: function ah_dataPickHandler(theContact) {

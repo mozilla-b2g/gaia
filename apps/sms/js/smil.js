@@ -65,21 +65,25 @@ function SMIL_generateSlides(data, slide, slideIndex) {
   var text = '';
   var name = '';
   if (slide.blob) {
+    alert(slide.blob.type);
+
     blobType = Utils.typeFromMimeType(slide.blob.type);
     if (blobType) {
       name = slide.name.substr(slide.name.lastIndexOf('/') + 1);
       // just to be safe, remove any non-standard characters from the filename
       name = name.replace(unsafeFilenamePattern, '#');
       name = SMIL_generateUniqueLocation(data, name);
-      media = '<' + blobType + ' src="' + name + '" region="Image"/>';
+      media = '<' + blobType + ' src="' + name + '" region="Text"/>';
       data.attachments.push({
         id: '<' + name + '>',
-        location: name,
+        // location: name,
         content: slide.blob
       });
     }
   }
   if (slide.text) {
+    alert(slide.text);
+
     // Set text region.
     id = 'text_' + slideIndex + '.txt';
     text = '<text src="' + id + '" region="Text"/>';
@@ -370,6 +374,8 @@ window.SMIL = {
     data.smil = '<smil>' + HEADER + '<body>' +
                 data.parts.join('') +
                 '</body></smil>';
+
+    alert(data.smil);
 
     // the API doesn't care about 'parts', clean it up
     delete data.parts;
