@@ -311,15 +311,6 @@
       SettingsListener.getSettingsLock().set({
         'nfc.status': (isOn) ? 'enabled' : 'disabled'
       });
-
-      // event dispatching to handle statusbar change
-      // TODO remove in Bug 1103874
-      var event = new CustomEvent('nfc-state-changed', {
-        detail: {
-          active: isOn
-        }
-      });
-      window.dispatchEvent(event);
     },
 
     /**

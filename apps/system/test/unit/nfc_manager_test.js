@@ -1190,17 +1190,14 @@ suite('Nfc Manager Functions', function() {
 
   suite('_handleNFCOnOff', function() {
     var stubSettingsSet;
-    var stubDispatchEvt;
 
     setup(function() {
       stubSettingsSet =
         this.sinon.stub(window.MockSettingsListener.getSettingsLock(),'set');
-      stubDispatchEvt = this.sinon.stub(window, 'dispatchEvent');
     });
 
     teardown(function() {
       stubSettingsSet.restore();
-      stubDispatchEvt.restore();
     });
 
     test('isOn true', function() {
@@ -1209,10 +1206,6 @@ suite('Nfc Manager Functions', function() {
       assert.equal(nfcManager._hwState, nfcManager.NFC_HW_STATE.ON);
       assert.deepEqual(stubSettingsSet.firstCall.args[0],
                        {'nfc.status':'enabled'});
-      assert.equal(stubDispatchEvt.firstCall.args[0].type,
-                   'nfc-state-changed');
-      assert.deepEqual(stubDispatchEvt.firstCall.args[0].detail,
-                       { active: true });
     });
 
     test('isOn false', function() {
@@ -1221,10 +1214,6 @@ suite('Nfc Manager Functions', function() {
       assert.equal(nfcManager._hwState, nfcManager.NFC_HW_STATE.OFF);
       assert.deepEqual(stubSettingsSet.firstCall.args[0],
                        {'nfc.status':'disabled'});
-      assert.equal(stubDispatchEvt.firstCall.args[0].type,
-                   'nfc-state-changed');
-      assert.deepEqual(stubDispatchEvt.firstCall.args[0].detail,
-                       { active: false });
     });
   });
 });

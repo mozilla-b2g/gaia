@@ -10,8 +10,7 @@ marionette('Statusbar Visibility', function() {
     },
     settings: {
       'ftu.manifestURL': null,
-      'lockscreen.enabled': false,
-      'nfc.enabled': true
+      'lockscreen.enabled': false
     }
   });
 
@@ -43,10 +42,14 @@ marionette('Statusbar Visibility', function() {
     });
   });
 
-  // skipping since nfc.enabled triggers HW change and icon is updated
-  // on success. Status bar needs to observe nfc.status setting.
-  // This will be fixed and reenabled in Bug 1103874
-  test.skip('NFC icon is visible', function() {
+  test('NFC icon is visible', function() {
+    // nfcManager controls nfc.status and sets it to 'disabled' at init
+    client.executeScript(function() {
+      window.wrappedJSObject.navigator.mozSettings.createLock().set({
+        'nfc.status': 'enabled'
+      });
+    });
+
     statusBar.nfc.waitForIconToAppear();
   });
 });

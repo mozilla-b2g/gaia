@@ -1,9 +1,9 @@
 /* globals FtuLauncher, MockL10n, MockMobileOperator, MockLayoutManager,
            MockNavigatorMozMobileConnections, MockNavigatorMozTelephony,
            MockSettingsListener, MocksHelper, MockSIMSlot, MockSIMSlotManager,
-           MockService, StatusBar, Service,
-           MockNfcManager, MockMobileconnection, MockAppWindowManager,
-           MockNavigatorBattery, UtilityTray, MockAppWindow */
+           MockService, StatusBar, Service, MockMobileconnection,
+           MockAppWindowManager, MockNavigatorBattery, UtilityTray,
+           MockAppWindow */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_settings_listener.js');
@@ -19,7 +19,6 @@ require('/shared/test/unit/mocks/mock_simslot_manager.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/test/unit/mock_app_window_manager.js');
 require('/test/unit/mock_ftu_launcher.js');
-require('/test/unit/mock_nfc_manager.js');
 require('/test/unit/mock_touch_forwarder.js');
 require('/test/unit/mock_utility_tray.js');
 require('/test/unit/mock_layout_manager.js');
@@ -46,7 +45,7 @@ suite('system/Statusbar', function() {
       fakeStatusBarConnections, fakeStatusBarCallForwardings, fakeStatusBarTime,
       fakeStatusBarLabel, fakeStatusBarBattery;
   var realMozL10n, realMozMobileConnections, realMozTelephony, fakeIcons = [],
-      realNfcManager, realLayoutManager, realNavigatorBattery;
+      realLayoutManager, realNavigatorBattery;
 
   function prepareDOM() {
     for (var i = 1; i < mobileConnectionCount; i++) {
@@ -126,9 +125,6 @@ suite('system/Statusbar', function() {
     });
     navigator.battery = MockNavigatorBattery;
 
-    realNfcManager = window.nfcManager;
-    window.nfcManager = new MockNfcManager();
-    sinon.spy(window.nfcManager, 'isActive');
     window.appWindowManager = new MockAppWindowManager();
 
     prepareDOM();
@@ -197,8 +193,6 @@ suite('system/Statusbar', function() {
     navigator.mozTelephony = realMozTelephony;
     window.layoutManager = realLayoutManager;
     navigator.battery = realNavigatorBattery;
-    window.nfcManager.isActive.restore();
-    window.nfcManager = realNfcManager;
   });
 
   suite('airplane mode icon', function() {
@@ -1626,70 +1620,16 @@ suite('system/Statusbar', function() {
   });
 
   suite('NFC', function() {
-    setup(function() {
-      sinon.spy(StatusBar, 'setActiveNfc');
+    test('nfc.status enabled, icon visible', function() {
+      MockSettingsListener.mCallbacks['nfc.status']('enabled');
+      assert.isFalse(StatusBar.icons.nfc.hidden);
     });
 
-    teardown(function() {
-      StatusBar.setActiveNfc.restore();
-    });
-
-    test('checks initial state from nfcManager', function() {
-      StatusBar.init();
-      StatusBar.finishInit();
-      assert.isTrue(window.nfcManager.isActive.called);
-    });
-
-    test('NFC is off', function() {
-      var evt = new CustomEvent('nfc-state-changed', {
-        detail: {
-          active: false
-        }
+    ['disabled', 'disabling', 'enabling'].forEach(function(status) {
+      test('nfc.status ' + status + ', icon not visible', function() {
+        MockSettingsListener.mCallbacks['nfc.status'](status);
+        assert.isTrue(StatusBar.icons.nfc.hidden);
       });
-      StatusBar.handleEvent(evt);
-      assert.equal(StatusBar.icons.nfc.hidden, true);
-    });
-
-    test('NFC is on', function() {
-      var evt = new CustomEvent('nfc-state-changed', {
-        detail: {
-          active: true
-        }
-      });
-      StatusBar.handleEvent(evt);
-      assert.equal(StatusBar.icons.nfc.hidden, false);
-    });
-
-    test('should call to setActiveNfc when changing', function() {
-      var evt = new CustomEvent('nfc-state-changed', {
-        detail: {
-          active: true
-        }
-      });
-      StatusBar.handleEvent(evt);
-      assert.isTrue(StatusBar.setActiveNfc.calledWith(evt.detail.active));
-    });
-  });
-
-  suite('setActiveNfc', function() {
-    setup(function() {
-      sinon.spy(StatusBar.update, 'nfc');
-    });
-
-    teardown(function() {
-      StatusBar.update.nfc.restore();
-    });
-
-    test('should set nfcActive', function() {
-      var isActive = true;
-      StatusBar.nfcActive = false;
-      StatusBar.setActiveNfc(isActive);
-      assert.equal(StatusBar.nfcActive, isActive);
-    });
-
-    test('should update the icon', function() {
-      StatusBar.setActiveNfc(true);
-      assert.isTrue(StatusBar.update.nfc.called);
     });
   });
 

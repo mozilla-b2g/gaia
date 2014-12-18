@@ -15,8 +15,7 @@
 */
 
 /*global Clock, SettingsListener, FtuLauncher, MobileOperator,
-         SIMSlotManager, Service, Bluetooth, UtilityTray, nfcManager,
-         layoutManager */
+         SIMSlotManager, Service, Bluetooth, UtilityTray, layoutManager */
 
 'use strict';
 
@@ -112,7 +111,8 @@ var StatusBar = {
     'operatorResources.data.icon': ['iconData'],
     'statusbar.network-activity.disabled': ['networkActivity'],
     'statusbar.show-am-pm': ['time'],
-    'debugger.remote-mode': ['debugging']
+    'debugger.remote-mode': ['debugging'],
+    'nfc.status': ['nfc']
   },
 
   /* Track which settings are observed, so we don't add multiple listeners. */
@@ -123,8 +123,6 @@ var StatusBar = {
 
   recordingActive: false,
   recordingTimer: null,
-
-  nfcActive: false,
 
   umsActive: false,
 
@@ -270,8 +268,6 @@ var StatusBar = {
     window.addEventListener('mozChromeEvent', this);
     // Listen to Custom event send by 'media_recording.js'
     window.addEventListener('recordingEvent', this);
-    // Listen to Custom event send by 'nfc_manager.js'
-    window.addEventListener('nfc-state-changed', this);
 
     // 'bluetoothconnectionchange' fires when the overall bluetooth connection
     //  changes.
@@ -454,10 +450,6 @@ var StatusBar = {
             this.update.recording.call(this);
             break;
         }
-        break;
-
-      case 'nfc-state-changed':
-        this.setActiveNfc(evt.detail.active);
         break;
 
       case 'mozChromeEvent':
@@ -816,8 +808,6 @@ var StatusBar = {
     this.setActiveBattery(active);
 
     if (active) {
-      this.setActiveNfc(nfcManager.isActive());
-
       this.addConnectionsListeners();
 
       window.addEventListener('simslot-iccinfochange', this);
@@ -875,11 +865,6 @@ var StatusBar = {
 
       this.update.wifi.call(this);
     }
-  },
-
-  setActiveNfc: function sb_setActiveNfc(active) {
-    this.nfcActive = active;
-    this.update.nfc.call(this);
   },
 
   update: {
@@ -1413,7 +1398,7 @@ var StatusBar = {
 
     nfc: function sb_updateNfc() {
       var icon = this.icons.nfc;
-      icon.hidden = !this.nfcActive;
+      icon.hidden = this.settingValues['nfc.status'] !== 'enabled';
 
       this._updateIconVisibility();
     },
