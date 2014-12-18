@@ -225,6 +225,10 @@
         this.handleLoadEnd(evt);
         break;
 
+      case 'mozbrowsererror':
+        this.handleError(evt);
+        break;
+
       case 'mozbrowserlocationchange':
         this.handleLocationChanged(evt);
         break;
@@ -358,6 +362,7 @@
 
     this.app.element.addEventListener('mozbrowserloadstart', this);
     this.app.element.addEventListener('mozbrowserloadend', this);
+    this.app.element.addEventListener('mozbrowsererror', this);
     this.app.element.addEventListener('mozbrowserlocationchange', this);
     this.app.element.addEventListener('mozbrowsertitlechange', this);
     this.app.element.addEventListener('mozbrowsermetachange', this);
@@ -413,6 +418,7 @@
 
     this.app.element.removeEventListener('mozbrowserloadstart', this);
     this.app.element.removeEventListener('mozbrowserloadend', this);
+    this.app.element.removeEventListener('mozbrowsererror', this);
     this.app.element.removeEventListener('mozbrowserlocationchange', this);
     this.app.element.removeEventListener('mozbrowsertitlechange', this);
     this.app.element.removeEventListener('mozbrowsermetachange', this);
@@ -648,6 +654,12 @@
 
   AppChrome.prototype.handleLoadEnd = function ac_handleLoadEnd(evt) {
     this.containerElement.classList.remove('loading');
+  };
+
+  AppChrome.prototype.handleError = function ac_handleError(evt) {
+    // When we get an error, keep the rocketbar maximized.
+    this.element.classList.add('maximized');
+    this.containerElement.classList.remove('scrollable');
   };
 
   AppChrome.prototype.maximize = function ac_maximize(callback) {
