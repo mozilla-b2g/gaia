@@ -76,6 +76,7 @@
     <!-- System -->
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
     <link rel="stylesheet" type="text/css" href="style/system/keyboard.css">
+    <link rel="stylesheet" type="text/css" href="style/system/global-overlays.css">
     <link rel="stylesheet" type="text/css" href="style/ime_menu.css">
 
     <!-- Include shared building blocks -->
@@ -388,9 +389,11 @@
     <script defer src="js/activity_window_manager.js"></script>
     <script defer src="js/app_window_factory.js"></script>
     <script defer src="js/attention_window.js"></script>
+    <script defer src="js/global_overlay_window.js"></script>
     <script defer src="js/callscreen_window.js"></script>
     <script defer src="js/dialer_agent.js"></script>
     <script defer src="js/attention_window_manager.js"></script>
+    <script defer src="js/global_overlay_window_manager.js"></script>
     <script defer src="js/app_window_manager.js"></script>
     <script defer src="js/secure_window.js"></script>
     <script defer src="js/secure_window_factory.js"></script>
@@ -1054,6 +1057,9 @@
 
       <!-- keyboard -->
       <div id="keyboards" data-z-index-level="keyboards"></div>
+
+      <!-- Global overlays -->
+      <div id="global-overlays" data-z-index-level="global-overlays"></div>
 
       <!-- template for IME Menu. -->
       <div id="ime-menu-template" hidden>

@@ -130,7 +130,7 @@
 }
 
 
-/* Level 4: Attention window */
+/* Level 4: Attention */
 /*
  * Promote keyboards to stk message screen level even
  * when device is locked
@@ -316,7 +316,8 @@
 #screen:-moz-full-screen-ancestor > [data-z-index-level="ime-layout-dialog"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="fullscreen-software-home-button"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="gesture-panel"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="attention-indicator"] {
+#screen:-moz-full-screen-ancestor > [data-z-index-level="attention-indicator"]
+#screen:-moz-full-screen-ancestor > [data-z-index-level="global-overlays"] {
   z-index: 2147483647;
 }
 
@@ -332,5 +333,16 @@
  * and the screen reader is on
  */
 #screen > [data-z-index-level="accessibility-captions"] {
+  z-index: 2147483647;
+}
+
+/**
+ * Global overlays are on top of everything, all the time.
+ */
+#screen > [data-z-index-level="global-overlays"] {
+  z-index: 2147483647;
+}
+
+#screen > [data-z-index-level="global-overlays"] > .appWindow.overlayWindow {
   z-index: 2147483647;
 }
