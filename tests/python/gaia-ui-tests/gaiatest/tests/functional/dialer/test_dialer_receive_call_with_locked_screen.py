@@ -21,7 +21,7 @@ class TestReceiveCallScreenLocked(GaiaTestCase):
 
     def test_receive_call_with_locked_screen(self):
         """Make a phone call from Plivo to the phone."""
-        PLIVO_TIMEOUT = 30
+        PLIVO_TIMEOUT = 60
         self.call_uuid = False
 
         from gaiatest.utils.plivo.plivo_util import PlivoUtil
