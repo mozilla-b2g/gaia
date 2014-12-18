@@ -36,6 +36,11 @@
   top: -100%;
 }
 
+#screen.locked #ambient-indicator,
+#screen.attention #ambient-indicator:not(.active) {
+  display: none;
+}
+
 #ambient-indicator.unread {
   opacity: 1;
   visibility: visible;
