@@ -27,7 +27,9 @@ require(['config/require'], function() {
 
       var bluetoothMenuItem =
         document.querySelector('#root .menuItem-bluetooth');
-      bluetoothMenuItem.setAttribute('href', '#');
+      if (bluetoothMenuItem) {
+        bluetoothMenuItem.setAttribute('href', '#');
+      }
 
       var initialPanelHandler = window.LaunchContext.initialPanelHandler;
       if (initialPanelHandler) {
