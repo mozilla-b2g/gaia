@@ -65,7 +65,7 @@ function SMIL_generateSlides(data, slide, slideIndex) {
   var text = '';
   var name = '';
   if (slide.blob) {
-    alert(slide.blob.type);
+    console.log(slide.blob.type);
 
     blobType = Utils.typeFromMimeType(slide.blob.type);
     if (blobType) {
@@ -82,7 +82,7 @@ function SMIL_generateSlides(data, slide, slideIndex) {
     }
   }
   if (slide.text) {
-    alert(slide.text);
+    console.log(slide.text);
 
     // Set text region.
     id = 'text_' + slideIndex + '.txt';
@@ -375,7 +375,7 @@ window.SMIL = {
                 data.parts.join('') +
                 '</body></smil>';
 
-    alert(data.smil);
+    console.log(data.smil);
 
     // the API doesn't care about 'parts', clean it up
     delete data.parts;
