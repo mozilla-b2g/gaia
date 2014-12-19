@@ -520,6 +520,53 @@ suite('SMIL', function() {
       assert.equal(doc.querySelector('img').getAttribute('region'), 'Image');
     });
 
+    test('Message with vcard and text', function() {
+      var smilTest = [{
+        text: 'Testing a caption',
+        name: 'contact.vcf',
+        blob: testContactBlob
+      }];
+      var output = SMIL.generate(smilTest);
+      var doc = (new DOMParser())
+                .parseFromString(output.smil, 'application/xml')
+                .documentElement;
+
+      // two attachments (text and contact)
+      assert.equal(output.attachments.length, 2);
+
+      // only one <par> tag
+      assert.equal(doc.querySelectorAll('par').length, 1);
+
+      // the ref is before the text
+      assert.equal(doc.querySelectorAll('ref + text').length, 1);
+
+      assert.equal(doc.querySelector('text').getAttribute('region'), 'Text');
+      assert.isNull(doc.querySelector('ref').getAttribute('region'));
+    });
+
+    test('Message with only vcard', function() {
+      var smilTest = [{
+        name: 'contact.vcf',
+        blob: testContactBlob
+      }];
+      var output = SMIL.generate(smilTest);
+      var doc = (new DOMParser())
+                .parseFromString(output.smil, 'application/xml')
+                .documentElement;
+
+      // one attachment (contact)
+      assert.equal(output.attachments.length, 1);
+
+      // only one <par> tag
+      assert.equal(doc.querySelectorAll('par').length, 1);
+
+      // the ref appears
+      assert.equal(doc.querySelectorAll('ref').length, 1);
+
+      assert.isNull(doc.querySelector('text'));
+      assert.isNull(doc.querySelector('ref').getAttribute('region'));
+    });
+
     test('Message with path as filename', function() {
       var smilTest = [{
         text: 'Testing a caption',

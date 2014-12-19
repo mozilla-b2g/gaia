@@ -431,6 +431,7 @@ var Compose = (function() {
         // to be properly rendered after a cold start for the app
         if (fragment.blob) {
           fragment = new Attachment(fragment.blob, {
+            name: fragment.name,
             isDraft: true
           });
         }
@@ -817,7 +818,7 @@ var Compose = (function() {
       // Mimick the DOMRequest API
       var requestProxy = {};
       var activityData = {
-        type: ['image/*', 'audio/*', 'video/*']
+        type: ['image/*', 'audio/*', 'video/*', 'text/vcard']
       };
       var activity;
 

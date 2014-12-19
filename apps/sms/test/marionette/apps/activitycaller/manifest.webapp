@@ -10,7 +10,7 @@
   "activities": {
     "pick": {
       "filters": {
-        "type": ["image/*", "image/jpeg", "image/png"]
+        "type": ["image/*", "image/jpeg", "image/png", "text/vcard"]
        },
       "disposition": "inline",
       "returnValue": true,

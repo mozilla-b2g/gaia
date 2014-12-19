@@ -92,7 +92,9 @@
       "filters": {
         "type": {
           "required": true,
-          "value": ["webcontacts/contact","webcontacts/email","webcontacts/tel","webcontacts/select"]
+          "value": ["webcontacts/contact","webcontacts/email",
+                    "webcontacts/tel","webcontacts/select",
+                    "text/vcard", "text/x-vcard"]
         }
        },
       "disposition": "inline",
@@ -109,7 +111,7 @@
     },
     "open": {
       "filters": {
-        "type": ["webcontacts/contact", "text/vcard"]
+        "type": ["webcontacts/contact", "text/vcard", "text/x-vcard"]
       },
       "disposition": "inline",
       "href": "/contacts/index.html?open",
