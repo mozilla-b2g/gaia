@@ -260,7 +260,6 @@
       window.addEventListener('cardviewbeforeshow', this);
       window.addEventListener('launchapp', this);
       document.body.addEventListener('launchactivity', this, true);
-      window.addEventListener('home', this);
       window.addEventListener('appcreated', this);
       window.addEventListener('appterminated', this);
       window.addEventListener('homescreenterminated', this);
@@ -339,7 +338,6 @@
      */
     uninit: function awm_uninit() {
       window.removeEventListener('launchapp', this);
-      window.removeEventListener('home', this);
       window.removeEventListener('appcreated', this);
       window.removeEventListener('appterminated', this);
       window.removeEventListener('homescreenterminated', this);
@@ -521,19 +519,6 @@
               activeApp.blur();
             }
           }
-          break;
-
-        // If the lockscreen is active, it will stop propagation on this event
-        // and we'll never see it here. Similarly, other overlays may use this
-        // event to hide themselves and may prevent the event from getting here.
-        // Note that for this to work, the lockscreen and other overlays must
-        // be included in index.html before this one, so they can register their
-        // event handlers before we do.
-        case 'home':
-          if (!homescreenWindowManager.ready) {
-            return;
-          }
-          this.display(null, null, null, 'home');
           break;
 
         case 'launchapp':

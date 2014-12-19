@@ -57,6 +57,9 @@
       window.addEventListener('appopened', this);
       window.addEventListener('activityopened', this);
       window.addEventListener('homescreenopened', this);
+      window.addEventListener('home', this);
+      window.addEventListener('launchapp', this);
+      // The removal of the followings will be at the ready event.
       window.addEventListener('homescreen-ready', this);
       window.addEventListener('landing-app-ready', this);
     },
@@ -75,6 +78,8 @@
       window.removeEventListener('appopened', this);
       window.removeEventListener('activityopened', this);
       window.removeEventListener('homescreenopened', this);
+      window.removeEventListener('launchapp', this);
+      window.removeEventListener('home', this);
     },
 
     handleEvent: function hwm_handleEvent(evt) {
@@ -109,14 +114,32 @@
             this._activeHome = ('LandingAppWindow' === detail.CLASS_NAME) ?
                                  this.landingAppLauncher : homescreenLauncher;
           } else {
-            // If we don't have _activeHome that means ftu is opened, we need to
-            // make sure landing app is the one after ftu.
-            if (this._activeHome) {
-              this._activeHome.getHomescreen().ensure(true);
-              this._activeHome.getHomescreen().setVisible(false);
-              this._activeHome.getHomescreen().close('immediate');
-              this._activeHome = null;
-            }
+            this.closeHomeApp();
+          }
+          break;
+        case 'launchapp':
+          if (this._underlayApp &&
+              evt.detail.manifestURL === this._underlayApp.manifestURL) {
+
+            // The 'appopened' event will not be fired in this case because this
+            // app is already opened. AppWindowManager will change the active
+            // app to the opening app and trying to close homescreen app through
+            // launchapp event. AppTransitionController may find the app is
+            // already opened. So, it doesn't dispatch appopened and focus the
+            // appWindow.
+            //
+            // In this case, HomescreenWindowManager will not close and reset
+            // _activeHome. We should call closeHomeApp to reset the variable
+            // and focus back.
+            this.closeHomeApp();
+
+            this._underlayApp.focus();
+            this._underlayApp = null;
+          } else if (this._underlayApp) {
+            // If we have _underlayApp but another app is launching, we need to
+            // close the _underlayApp.
+            this._underlayApp.close();
+            this._underlayApp = null;
           }
           break;
         case 'homescreenopened':
@@ -141,6 +164,9 @@
             this._activityCount--;
           }
           break;
+        case 'home':
+          this.showHomeApp();
+          break;
         case 'landing-app-ready':
         case 'homescreen-ready':
           if (this.ready) {
@@ -161,6 +187,42 @@
           }
           break;
       }
+    },
+
+    closeHomeApp: function hwm_closeHomeApp(nextApp) {
+      if (!this._activeHome) {
+        return;
+      }
+
+      this._activeHome.getHomescreen().ensure(true);
+      this._activeHome.getHomescreen().setVisible(false);
+      this._activeHome.getHomescreen().close('immediate');
+      this._activeHome = null;
+    },
+
+    showHomeApp: function hwm_showHomeApp() {
+      var originApp = AppWindowManager.getActiveApp();
+      var homeApp = this.getHomescreen(true);
+      if (originApp.instanceID === homeApp.instanceID) {
+        // If we open an activity at home and press home, the originApp is home
+        // app and the next app is also home app. In this case, we don't need
+        // to reopen it again.
+        homeApp.focus();
+        return;
+      }
+      homeApp.ready((function() {
+        if (originApp.isHomescreen) {
+          if (this._underlayApp) {
+            this._underlayApp.close('immediate');
+            this._underlayApp = null;
+          }
+          originApp.close('immediate');
+          homeApp.open();
+        } else {
+          this._underlayApp = originApp;
+          homeApp.open();
+        }
+      }).bind(this));
     },
 
     setHomescreenVisible: function hwm_hideActiveHome(launcher, visible) {
