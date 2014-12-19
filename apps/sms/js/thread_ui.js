@@ -582,14 +582,16 @@ var ThreadUI = {
 
       // Populate draft if there is one
       // TODO merge with handleDraft ? Bug 1010216
-      var thread = Threads.get(threadId);
-      if (thread.hasDrafts) {
-        this.draft = thread.drafts.latest;
-        Compose.fromDraft(this.draft);
-        this.draft.isEdited = false;
-      } else {
-        this.draft = null;
-      }
+      Drafts.request().then(() => {
+        var thread = Threads.get(threadId);
+        if (thread.hasDrafts) {
+          this.draft = thread.drafts.latest;
+          Compose.fromDraft(this.draft);
+          this.draft.isEdited = false;
+        } else {
+          this.draft = null;
+        }
+      });
     }
 
     ThreadListUI.mark(threadId, 'read');
