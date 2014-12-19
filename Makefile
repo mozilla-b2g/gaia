@@ -782,6 +782,10 @@ test-perf:
 	REPORTER=$(REPORTER) \
 	./bin/gaia-perf-marionette
 
+.PHONY: raptor
+raptor: node_modules
+	NO_LOCK_SCREEN=1 NOFTU=1 SCREEN_TIMEOUT=0 GAIA_DISTRIBUTION_DIR=node_modules/gaia-raptor/dist PROFILE_FOLDER=profile-raptor make reset-gaia
+
 .PHONY: tests
 tests: app offline
 	echo "Checking if the mozilla build has tests enabled..."
@@ -1023,7 +1027,7 @@ endif
 
 # clean out build products
 clean:
-	rm -rf profile profile-debug profile-test profile-gaia-test-b2g profile-gaia-test-firefox $(PROFILE_FOLDER) $(STAGE_DIR) docs minidumps
+	rm -rf profile profile-debug profile-test profile-gaia-test-b2g profile-gaia-test-firefox profile-raptor $(PROFILE_FOLDER) $(STAGE_DIR) docs minidumps
 
 # clean out build products and tools
 really-clean: clean

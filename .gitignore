@@ -41,6 +41,7 @@ manifest.appcache
 /profile-test/
 /profile-gaia-test-b2g/
 /profile-gaia-test-firefox/
+/profile-raptor/
 /profile.tar.gz
 /b2g_sdk/
 /tools/test-agent/node_modules
@@ -52,6 +53,7 @@ manifest.appcache
 /build_stage/
 /coverage/
 /local.mk
+/raptor.log
 
 /tools/xpcwindow/vendor/
 
@@ -61,6 +63,7 @@ manifest.appcache
 /node_modules/
 /.modules.tar
 ENV/
+.env
 modules.tar
 mozilla-b2g-gaia-node-modules-*
 /git-gaia-node-modules/
