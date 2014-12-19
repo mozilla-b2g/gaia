@@ -8,27 +8,26 @@
 require('/shared/js/dialer/utils.js');
 require('/shared/js/usertiming.js');
 
-require('/dialer/test/unit/mock_call_log_db_manager.js');
-require('/dialer/test/unit/mock_performance_testing_helper.js');
-require('/dialer/test/unit/mock_call_group_menu.js');
-require('/shared/test/unit/mocks/mock_async_storage.js');
-require('/shared/test/unit/mocks/mock_accessibility_helper.js');
-require('/dialer/test/unit/mock_call_log_db_manager.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
-require('/dialer/test/unit/mock_performance_testing_helper.js');
-require('/dialer/test/unit/mock_call_handler.js');
-require('/dialer/test/unit/mock_keypad.js');
-require('/dialer/test/unit/mock_phone_number_action_menu.js');
-require('/shared/test/unit/mocks/mock_lazy_loader.js');
-require('/shared/test/unit/mocks/mock_sticky_header.js');
-require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
+require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
-require('/shared/test/unit/mocks/mock_notification.js');
+require('/shared/test/unit/mocks/mock_async_storage.js');
+require('/shared/test/unit/mocks/mock_accessibility_helper.js');
 require('/shared/test/unit/mocks/mock_image.js');
-require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
-require('/shared/test/unit/mocks/dialer/mock_contacts.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_mozContacts.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
+require('/shared/test/unit/mocks/mock_notification.js');
+require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
+require('/shared/test/unit/mocks/mock_sticky_header.js');
+
+require('/dialer/test/unit/mock_call_group_menu.js');
+require('/dialer/test/unit/mock_call_handler.js');
+require('/dialer/test/unit/mock_call_log_db_manager.js');
+require('/dialer/test/unit/mock_keypad.js');
+require('/dialer/test/unit/mock_performance_testing_helper.js');
+require('/dialer/test/unit/mock_phone_number_action_menu.js');
 
 var mocksHelperForCallLog = new MocksHelper([
   'asyncStorage',
@@ -107,6 +106,13 @@ suite('dialer/call_log', function() {
     });
     document.body.appendChild(noResult);
     document.body.classList.remove('recents-edit');
+
+    /* Assume that the contact cache is valid during the tests and make the
+     * promise used to validaate it return synchronously. */
+    this.sinon.stub(CallLog, '_validateContactsCache', function() {
+      this._contactCache = true;
+      return { then: function(callback) { callback(); } };
+    });
     CallLog.init();
     window.location.hash = '#call-log-view';
   });
