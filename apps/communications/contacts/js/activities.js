@@ -183,7 +183,7 @@ var ActivityHandler = {
     return !!(activity.source &&
               activity.source.data &&
               !activity.source.data.params &&
-              activity.source.data.type === 'text/vcard' &&
+              activity.source.data.type.indexOf('vcard' !== -1) &&
               activity.source.data.blob);
   },
 
