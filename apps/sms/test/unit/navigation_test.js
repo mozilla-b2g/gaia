@@ -11,6 +11,7 @@ require('/js/utils.js');
 require('/test/unit/mock_utils.js');
 require('/test/unit/mock_startup.js');
 
+require('/js/event_dispatcher.js');
 require('/js/navigation.js');
 
 var mocksHelperForNavigation = new MocksHelper([
@@ -278,13 +279,20 @@ suite('navigation >', function() {
       });
 
       test('lifecycle order', function(done) {
-        Navigation.toPanel('panel4').then(function() {
+        var onNavigatedStub = sinon.stub();
+        Navigation.on('navigated', onNavigatedStub);
+        Navigation.toPanel('panel4', { key: 'value' }).then(function() {
           sinon.assert.callOrder(
             Panel3.beforeLeave,
             Panel4.beforeEnter,
             Navigation.slide,
             Panel3.afterLeave,
-            Panel4.afterEnter
+            Panel4.afterEnter,
+            onNavigatedStub
+          );
+          sinon.assert.calledWith(
+            onNavigatedStub,
+            { panel: 'panel4', args: { key: 'value', meta: sinon.match.any }}
           );
         }).then(done, done);
       });

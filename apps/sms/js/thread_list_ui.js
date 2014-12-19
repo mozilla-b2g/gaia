@@ -497,7 +497,7 @@ var ThreadListUI = {
   renderDrafts: function thlui_renderDrafts(force) {
     // Request and render all threads with drafts
     // or thread-less drafts.
-    Drafts.request(function() {
+    return Drafts.request(force).then(() => {
       Drafts.forEach(function(draft, threadId) {
         if (threadId) {
           // Find draft-containing threads that have already been rendered
@@ -521,7 +521,7 @@ var ThreadListUI = {
       }, this);
 
       this.sticky && this.sticky.refresh();
-    }.bind(this), force);
+    });
   },
 
   prepareRendering: function thlui_prepareRendering() {
@@ -556,7 +556,10 @@ var ThreadListUI = {
 
     var firstViewDone = function firstViewDone() {
       this.initStickyHeader();
-      firstViewDoneCb && firstViewDoneCb();
+
+      if (typeof firstViewDoneCb === 'function') {
+        firstViewDoneCb();
+      }
     }.bind(this);
 
     function onRenderThread(thread) {

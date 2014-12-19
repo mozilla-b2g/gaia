@@ -1338,7 +1338,7 @@ suite('thread_list_ui', function() {
     var draft;
     var thread, threadDraft;
 
-    setup(function() {
+    setup(function(done) {
       this.sinon.spy(ThreadListUI, 'renderThreads');
       this.sinon.spy(ThreadListUI, 'appendThread');
       this.sinon.spy(ThreadListUI, 'createThread');
@@ -1380,14 +1380,14 @@ suite('thread_list_ui', function() {
 
       Drafts.add(draft);
 
-      this.sinon.stub(Drafts, 'request', function(callback) {
-        callback([draft, threadDraft]);
-      });
+      this.sinon.stub(Drafts, 'request').returns(
+        Promise.resolve([draft, threadDraft])
+      );
 
       ThreadListUI.draftLinks = new Map();
       ThreadListUI.draftRegistry = {};
 
-      ThreadListUI.renderDrafts();
+      ThreadListUI.renderDrafts().then(done, done);
     });
 
     teardown(function() {
@@ -1423,7 +1423,7 @@ suite('thread_list_ui', function() {
     function() {
       InterInstanceEventDispatcher.on.withArgs('drafts-changed').yield();
 
-      sinon.assert.calledWith(Drafts.request, sinon.match.func, true);
+      sinon.assert.calledWith(Drafts.request, true);
     });
   });
 

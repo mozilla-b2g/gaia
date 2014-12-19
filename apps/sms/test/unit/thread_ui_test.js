@@ -6315,6 +6315,11 @@ suite('thread_ui.js >', function() {
         var draft;
 
         setup(function() {
+          // Make this call synchronous for easier test
+          this.sinon.stub(Drafts, 'request').returns(
+            { then: (callback) => callback() }
+          );
+
           // ensures a clean state
           ThreadUI.draft = null;
 

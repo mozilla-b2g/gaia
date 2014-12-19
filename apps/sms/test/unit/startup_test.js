@@ -34,17 +34,20 @@ suite('Startup >', function() {
   setup(function() {
     this.sinon.stub(window, 'dispatchEvent');
     this.sinon.stub(window, 'removeEventListener');
-    this.sinon.stub(LazyLoader, 'load');
+    this.sinon.stub(LazyLoader, 'load').returns(Promise.resolve());
     this.sinon.stub(MessageManager, 'init');
     this.sinon.stub(Navigation, 'init');
     this.sinon.stub(ThreadListUI, 'init');
     this.sinon.stub(ThreadListUI, 'renderThreads');
+    this.sinon.stub(Navigation, 'on');
+    this.sinon.stub(Navigation, 'off');
   });
 
-  test('lazy loads scripts only once first page of threads is rendered',
+  test('if target panel is default one',
     function() {
     window.addEventListener.withArgs('DOMContentLoaded').yield();
 
+    // Render threads immediately
     sinon.assert.callOrder(
       MessageManager.init,
       Navigation.init,
@@ -56,21 +59,32 @@ suite('Startup >', function() {
     // First page of threads loaded
     ThreadListUI.renderThreads.callArg(0);
 
+    // Lazy load the rest of scripts only once first page of threads is loaded
     sinon.assert.called(LazyLoader.load);
   });
 
-  test('lazy loads scripts immediately if first panel is not thread list',
+  test('if first panel is not default one',
     function() {
     this.sinon.stub(Navigation, 'getPanelName').returns('composer');
     window.addEventListener.withArgs('DOMContentLoaded').yield();
 
     sinon.assert.callOrder(
-      LazyLoader.load,
       MessageManager.init,
       Navigation.init,
-      ThreadListUI.init,
-      ThreadListUI.renderThreads
+      LazyLoader.load
     );
+    sinon.assert.notCalled(ThreadListUI.init);
+    sinon.assert.notCalled(ThreadListUI.renderThreads);
+
+    // Threads should start rendering only once target panel is ready
+    Navigation.on.withArgs('navigated').yield();
+
+    // We should listen only for the first "navigated" event
+    var onNavigatedHandler =
+      Navigation.on.withArgs('navigated').getCall(0).args[1];
+    sinon.assert.calledWith(Navigation.off, 'navigated', onNavigatedHandler);
+
+    sinon.assert.callOrder(ThreadListUI.init, ThreadListUI.renderThreads);
 
     // Since we've already run lazy loading we don't need to do anything once
     // first page is loaded, so no need in corresponding callback.
