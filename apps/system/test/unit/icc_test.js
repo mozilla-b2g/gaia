@@ -477,4 +477,38 @@ suite('STK (icc) >', function() {
     assert.isTrue(resizeStub.calledOnce);
   });
 
+  suite('Replace STK messages >', function() {
+    var stubResponseSTKCommand;
+    var unableToProcess;
+
+    setup(function() {
+      icc.hideViews();
+      stubResponseSTKCommand = this.sinon.stub(icc, 'responseSTKCommand',
+        function(message, response) {
+          message.response = true;
+        });
+
+      unableToProcess = {
+        resultCode:
+          navigator.mozIccManager.STK_RESULT_TERMINAL_CRNTLY_UNABLE_TO_PROCESS
+        };
+    });
+
+    test('Should respond STK_RESULT_TERMINAL_CRNTLY_UNABLE_TO_PROCESS',
+      function() {
+        icc._currentMessage = stkTestCommands.STK_CMD_GET_INPUT;
+        icc.discardCurrentMessageIfNeeded(stkTestCommands.STK_CMD_DISPLAY_TEXT);
+        assert.isTrue(stubResponseSTKCommand.calledWith(
+        stkTestCommands.STK_CMD_GET_INPUT, unableToProcess));
+    });
+
+    test('Should not respond because the message has been already responded',
+      function() {
+        var testCommand = stkTestCommands.STK_CMD_DISPLAY_TEXT;
+        testCommand.response = true;
+        icc._currentMessage = testCommand;
+        icc.discardCurrentMessageIfNeeded(stkTestCommands.STK_CMD_GET_INPUT);
+        assert.isFalse(stubResponseSTKCommand.calledOnce);
+    });
+  });
 });
