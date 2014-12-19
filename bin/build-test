@@ -1,6 +1,7 @@
 #! /bin/bash -vex
 
 export NODE_PATH="./build/test/unit/:./build/test/integration/:$NODE_PATH"
+export MOZ_DISABLE_NONLOCAL_CONNECTIONS=1
 
 ./node_modules/.bin/mocha \
   --harmony \
@@ -8,3 +9,4 @@ export NODE_PATH="./build/test/unit/:./build/test/integration/:$NODE_PATH"
   --ui tdd \
   --timeout 300000 \
   $(./bin/chunk ${TOTAL_CHUNKS:=1} ${THIS_CHUNK:=1} $@)
+
