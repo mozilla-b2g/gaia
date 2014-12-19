@@ -49,7 +49,7 @@ var Startup = {
   ],
 
   _lazyLoadInit: function() {
-    LazyLoader.load(this._lazyLoadScripts, function() {
+    return LazyLoader.load(this._lazyLoadScripts).then(() => {
       LocalizationHelper.init();
 
       InterInstanceEventDispatcher.connect();
@@ -83,31 +83,38 @@ var Startup = {
    * more until all these non-critical JS files are loaded. This is fine.
    */
   init: function() {
-    var loaded = function() {
-      var firstViewCallback;
+    function initializeDefaultPanel(firstPageLoadedCallback) {
+      Navigation.off('navigated', initializeDefaultPanel);
 
-      window.removeEventListener('DOMContentLoaded', loaded);
-      window.performance.mark('navigationLoaded');
-      window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
-
-      // If target panel is different from the default one, let's load remaining
-      // scripts as soon as possible, otherwise we can wait until first page of
-      // threads is loaded and rendered.
-      if (Navigation.getPanelName() &&
-        Navigation.getPanelName() !== 'thread-list') {
-        this._lazyLoadInit();
-      } else {
-        firstViewCallback = this._lazyLoadInit.bind(this);
-      }
-
-      MessageManager.init();
-      Navigation.init();
       ThreadListUI.init();
-      ThreadListUI.renderThreads(firstViewCallback, function() {
+      ThreadListUI.renderThreads(firstPageLoadedCallback, function() {
         window.performance.mark('fullyLoaded');
         window.dispatchEvent(new CustomEvent('moz-app-loaded'));
         App.setReady();
       });
+    }
+
+    var loaded = function() {
+      window.removeEventListener('DOMContentLoaded', loaded);
+
+      window.performance.mark('navigationLoaded');
+      window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
+
+      MessageManager.init();
+      Navigation.init();
+
+      // If target panel is different from the default one, let's load remaining
+      // scripts as soon as possible, otherwise we can wait until first page of
+      // threads is loaded and rendered.
+      var panelName = Navigation.getPanelName();
+      if (panelName && panelName !== 'thread-list') {
+        // Initialize default panel only after target panel is ready.
+        Navigation.on('navigated', initializeDefaultPanel);
+
+        this._lazyLoadInit();
+      } else {
+        initializeDefaultPanel(this._lazyLoadInit.bind(this));
+      }
 
       // dispatch chrome-interactive when thread list related modules
       // initialized
