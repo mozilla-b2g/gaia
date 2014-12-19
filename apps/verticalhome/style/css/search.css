@@ -3,6 +3,7 @@
   background-color: rgba(0, 0, 0, 0.15);
   position: relative;
   z-index: 5;
+  -moz-user-select: none;
 }
 
 #search-form {
