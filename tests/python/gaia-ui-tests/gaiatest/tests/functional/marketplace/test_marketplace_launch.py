@@ -6,11 +6,10 @@ from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
 from marionette.by import By
 
-
 class TestMarketplaceLaunch(GaiaTestCase):
     
     _marketplace_iframe_locator = (By.CSS_SELECTOR, 'iframe[src*="marketplace"]')
-    _loading_fragment_locator = (By.ID, 'splash-overlay')
+    _loading_fragment_locator = (By.CSS_SELECTOR, 'div.loading-fragment')
     _site_header_locator = (By.ID, 'site-header')
     
     def setUp(self):
