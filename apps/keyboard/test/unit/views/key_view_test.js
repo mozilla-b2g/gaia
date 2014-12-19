@@ -149,7 +149,7 @@ suite('Views > KeyView', function() {
 
       var options = {
        keyWidth: 99,
-       keyClassName: 'another-className'
+       classList: ['another-className']
       };
 
       var keyView = new KeyView(key, options);
@@ -157,7 +157,10 @@ suite('Views > KeyView', function() {
 
       assert.isTrue(keyView.element.classList.contains('keyboard-key'));
       assert.isTrue(keyView.element.classList.contains(key.className));
-      assert.isTrue(keyView.element.classList.contains(options.keyClassName));
+
+      options.classList.forEach(function(className) {
+        assert.isTrue(keyView.element.classList.contains(className));
+      });
     });
 
     test('disabled key', function() {

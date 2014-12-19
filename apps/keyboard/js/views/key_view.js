@@ -8,10 +8,10 @@
 function KeyView(target, options, viewManager) {
   this.target = target;
   this.attributeList = options.attributeList || [];
-  this.className = '';
+  this.classList = ['keyboard-key'];
 
   if (target.isSpecialKey) {
-    this.className = 'special-key';
+    this.classList.push('special-key');
   } else {
     // The 'key' role tells an assistive technology that these buttons
     // are used for composing text or numbers, and should be easier to
@@ -22,13 +22,13 @@ function KeyView(target, options, viewManager) {
       value: 'key'
     });
 
-    if (options.keyClassName) {
-      this.className = options.keyClassName;
+    if (options.classList) {
+      this.classList = this.classList.concat(options.classList);
     }
   }
 
   if (target.className) {
-    this.className += ' ' + target.className;
+    this.classList = this.classList.concat(target.className.split(' '));
   }
 
   if (target.disabled) {
@@ -83,7 +83,10 @@ KeyView.prototype.ARIA_LABELS = {
 KeyView.prototype.render = function render() {
   // Create the DOM element for the key.
   var contentNode = document.createElement('button');
-  contentNode.className = 'keyboard-key ' + this.className;
+  if (this.classList) {
+    contentNode.classList.add.apply(contentNode.classList, this.classList);
+  }
+
   contentNode.style.width = this.keyWidth + 'px';
 
   if (this.attributeList) {
@@ -168,6 +171,17 @@ KeyView.prototype.unHighlight = function unHighlight() {
 
   this.element.classList.remove('uppercase-popup');
   this.element.classList.remove('lowercase-popup');
+};
+
+KeyView.prototype.resize = function resize(width, visualWidth) {
+  this.element.style.width = width + 'px';
+
+  // Default aligns 100%, if they differ set width on the wrapper
+  if (visualWidth && width !== visualWidth) {
+    var wrapperEl = this.element.querySelector('.visual-wrapper');
+    wrapperEl.style.width =
+      visualWidth + 'px';
+  }
 };
 
 exports.KeyView = KeyView;
