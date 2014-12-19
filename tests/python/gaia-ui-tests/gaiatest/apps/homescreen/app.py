@@ -43,8 +43,8 @@ class Homescreen(Base):
         from gaiatest.apps.homescreen.regions.search_panel import SearchPanel
         return SearchPanel(self.marionette)
 
-    def wait_for_app_icon_present(self, app_name, timeout=None):
-        Wait(self.marionette, timeout=timeout).until(lambda m: self.installed_app(app_name))
+    def wait_for_app_icon_present(self, app_name):
+        Wait(self.marionette).until(lambda m: self.installed_app(app_name))
 
     def wait_for_app_icon_not_present(self, app_name):
         Wait(self.marionette).until(lambda m: self.installed_app(app_name) is None)
@@ -151,7 +151,7 @@ class Homescreen(Base):
 
     def installed_app(self, app_name):
         for root_el in self.marionette.find_elements(*self._homescreen_all_icons_locator):
-            if root_el.text == app_name and root_el.get_attribute('data-app-state') == 'ready':
+            if root_el.text == app_name:
                 return self.InstalledApp(self.marionette, root_el)
 
     def bookmark(self, bookmark_title):
