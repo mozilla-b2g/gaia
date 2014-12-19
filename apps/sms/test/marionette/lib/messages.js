@@ -41,7 +41,7 @@
 
     ThreadList: {
       firstThread: '.threadlist-item',
-      navigateToComposerHeaderButton: '#icon-add'
+      navigateToComposerHeaderButton: '#threads-composer-link'
     },
 
     Report: {
