@@ -69,30 +69,16 @@ suite('Renderer', function() {
   suite('resizeUI', function() {
     var ime, activeIme;
 
-    function createKeyboardRow(chars, layoutWidth) {
-      var row = document.createElement('div');
-      row.classList.add('keyboard-row');
-      row.dataset.layoutWidth = layoutWidth;
-      chars.forEach(function(c) {
-        var keyElem = document.createElement('div');
-        keyElem.classList.add('keyboard-key');
-        keyElem.innerHTML = '<div class="visual-wrapper">' + c + '</div>';
-        row.appendChild(keyElem);
-        IMERender.setDomElemTargetObject(keyElem, {});
-      });
-      activeIme.appendChild(row);
-
-      return row;
-    }
-
     setup(function(next) {
       document.body.innerHTML = '';
 
       ime = document.createElement('div');
       ime.id = 'keyboard';
+      ime.style.width = '320px';
       document.body.appendChild(ime);
 
       activeIme = document.createElement('div');
+
       ime.appendChild(activeIme);
 
       Object.defineProperty(ime, 'clientWidth', makeDescriptor(300));
@@ -122,9 +108,6 @@ suite('Renderer', function() {
     });
 
     test('All keys should have same visual width if fully used', function() {
-      var row = createKeyboardRow(
-        ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'], 10);
-
       var layout = {
         width: 10,
         keys: [
@@ -132,10 +115,12 @@ suite('Renderer', function() {
         ]
       };
 
+      IMERender.draw(layout);
+
       IMERender.resizeUI(layout);
       stubRequestAnimationFrame.getCall(0).args[0]();
 
-      var all = [].map.call(row.querySelectorAll('.visual-wrapper'),
+      var all = [].map.call(document.querySelectorAll('.visual-wrapper'),
         function(el) {
           return el.clientWidth;
         });
@@ -147,8 +132,6 @@ suite('Renderer', function() {
     });
 
     test('Key with ratio 2 should be twice as big', function(next) {
-      var row = createKeyboardRow(['a', 'b'], 3);
-
       var layout = {
         width: 3,
         keys: [
@@ -156,22 +139,15 @@ suite('Renderer', function() {
         ]
       };
 
-      IMERender.resizeUI(layout, function() {
-        // TODO: Bug 885686 - Measure visual-key width
-        var all = row.querySelectorAll('.keyboard-key');
-        assert.equal(all[0].clientWidth, all[1].clientWidth * 2);
-
+      IMERender.draw(layout, null, function() {
+        var all = document.querySelectorAll('.keyboard-key');
+        assert.equal(all[0].style.flexGrow, 2);
         next();
       });
       stubRequestAnimationFrame.getCall(0).args[0]();
     });
 
     test('Side keys should fill up space', function(next) {
-      IMERender.setCachedWindowSize(200, 400);
-      Object.defineProperty(ime, 'clientWidth', makeDescriptor(200));
-
-      var row = createKeyboardRow(['a', 'b', 'c'], 3);
-
       var layout = {
         width: 4,
         keys: [
@@ -179,58 +155,14 @@ suite('Renderer', function() {
         ]
       };
 
-      IMERender.resizeUI(layout, function() {
-        var visual = row.querySelectorAll('.visual-wrapper');
+      IMERender.draw(layout, null, function() {
+        var visual = document.querySelectorAll('.visual-wrapper');
         assert.equal(visual[0].clientWidth, visual[1].clientWidth,
           'Visually same');
 
-        var keys = row.querySelectorAll('.keyboard-key');
+        var keys = document.querySelectorAll('.keyboard-key');
 
-        var totalWidth = 200;
-
-        // due to pixels not being able to be .5 this can end up being 1 diff
-        assert.equal(totalWidth,
-          keys[0].clientWidth + keys[1].clientWidth + keys[2].clientWidth,
-          'Total width');
-
-        assert.equal(keys[0].classList.contains('float-key-first'), true,
-          'Has float-key-first');
-        assert.equal(keys[2].classList.contains('float-key-last'), true,
-          'Has float-key-last');
-
-        next();
-      });
-      stubRequestAnimationFrame.getCall(0).args[0]();
-    });
-
-    test('Side keys should fill up space in landscape', function(next) {
-      IMERender.setCachedWindowSize(400, 200);
-      Object.defineProperty(ime, 'clientWidth', makeDescriptor(400));
-
-      var row = createKeyboardRow(['a', 'b', 'c'], 3);
-
-      var layout = {
-        width: 4,
-        keys: [
-          [{}, {}, {}]
-        ]
-      };
-
-      IMERender.resizeUI(layout, function() {
-        var visual = row.querySelectorAll('.visual-wrapper');
-        assert.equal(visual[0].clientWidth, visual[1].clientWidth,
-          'Visually same');
-
-        var keys = row.querySelectorAll('.keyboard-key');
-
-        assert.equal(400,
-          keys[0].clientWidth + keys[1].clientWidth + keys[2].clientWidth);
-
-        assert.equal(keys[0].classList.contains('float-key-first'), true,
-          'Has float-key-first');
-        assert.equal(keys[2].classList.contains('float-key-last'), true,
-          'Has float-key-last');
-
+        assert.equal(keys[0].style.flexGrow, 1.5);
         next();
       });
       stubRequestAnimationFrame.getCall(0).args[0]();
@@ -241,8 +173,6 @@ suite('Renderer', function() {
       Object.defineProperty(ime, 'clientWidth',
         makeDescriptor(400));
 
-      var row = createKeyboardRow(['a', 'b', 'c'], 3);
-
       var layout = {
         width: 4,
         keys: [
@@ -250,8 +180,8 @@ suite('Renderer', function() {
         ]
       };
 
-      IMERender.resizeUI(layout, function() {
-        var visual = row.querySelectorAll('.visual-wrapper');
+      IMERender.draw(layout, null, function() {
+        var visual = document.querySelectorAll('.visual-wrapper');
 
         IMERender.setCachedWindowSize(700, 1000);
         Object.defineProperty(ime, 'clientWidth', makeDescriptor(700));
@@ -268,9 +198,6 @@ suite('Renderer', function() {
     });
 
     test('GetKeyArray sanity', function(next) {
-      createKeyboardRow(
-        ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'], 10);
-
       var layout = {
         width: 10,
         keys: [
@@ -278,7 +205,7 @@ suite('Renderer', function() {
         ]
       };
 
-      IMERender.resizeUI(layout, function() {
+      IMERender.draw(layout, null, function() {
         var keyArray = IMERender.getKeyArray();
 
         var visuals = [].slice.call(
@@ -297,8 +224,6 @@ suite('Renderer', function() {
     });
 
     test('GetKeyArray sanity for filled up space', function(next) {
-      createKeyboardRow(['a', 'b', 'c'], 3);
-
       var layout = {
         width: 4,
         keys: [
@@ -306,7 +231,7 @@ suite('Renderer', function() {
         ]
       };
 
-      IMERender.resizeUI(layout, function() {
+      IMERender.draw(layout, null, function() {
         var keyArray = IMERender.getKeyArray();
 
         var visuals = [].slice.call(

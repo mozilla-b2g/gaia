@@ -220,7 +220,6 @@ var CostControlApp = (function() {
     if (SimManager.isMultiSim()) {
       window.addEventListener('dataSlotChange', _onDataSimChange);
     }
-
     CostControl.getInstance(function _onCostControlReady(instance) {
       if (ConfigManager.option('fte')) {
         startFTE();
@@ -248,7 +247,6 @@ var CostControlApp = (function() {
   });
 
   function setupApp(callback) {
-
     setupCardHandler();
 
     // Configure settings buttons
@@ -318,6 +316,7 @@ var CostControlApp = (function() {
 
   // Load settings in background
   function loadSettings() {
+    window.performance.mark('loadSettingsStart');
     PerformanceTestingHelper.dispatch('init-load-settings');
     document.getElementById('settings-view-placeholder').src = 'settings.html';
   }
@@ -344,23 +343,24 @@ var CostControlApp = (function() {
                                     function _onSettings(settings) {
         var mode = ConfigManager.getApplicationMode();
         var newHash = window.location.hash;
+        var tabs = document.getElementById('tabs');
+        var dataUsageTab = document.getElementById('datausage-tab');
+
         debug('App UI mode: ', mode);
 
         // Layout
         if (mode !== currentMode) {
           currentMode = mode;
-
           // Stand alone mode when data usage only
           if (mode === 'DATA_USAGE_ONLY') {
-            var tabs = document.getElementById('tabs');
             tabs.hidden = true;
-
-            var dataUsageTab = document.getElementById('datausage-tab');
             dataUsageTab.classList.add('standalone');
             newHash = '#datausage-tab';
 
           // Two tabs mode
           } else {
+            dataUsageTab.classList.remove('standalone');
+            tabs.hidden = false;
             document.getElementById('balance-tab-filter')
               .hidden = (mode !== 'PREPAID');
 

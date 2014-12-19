@@ -357,7 +357,7 @@ var VIEWS = {
 };
 
 var Information = function(type) {
-  Utils.extend(this, VIEWS[type]);
+  Object.assign(this, VIEWS[type]);
 
   if (this.init) {
     this.init();

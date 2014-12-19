@@ -74,26 +74,6 @@ suite('Views > LayoutPageView', function() {
       assert.equal(container.querySelectorAll('.keyboard-key.c9').length, 2);
     });
 
-    test('rowLayoutWidth should be sum of all key ratios', function() {
-      var layout = {
-        width: 9,
-        keys: [
-          [{ value: 'a', ratio: 3 }, { value: 'b', ratio: 2 }],
-          [{ value: 'a' }, { value: 'b' }],
-          [{ value: 'a', ratio: 5 }, { value: 'b' }]
-        ]
-      };
-
-      var pageView = new LayoutPageView(layout, {});
-      pageView.render();
-
-      var container = pageView.element;
-      var rows = container.querySelectorAll('.keyboard-row');
-      assert.equal(rows[0].dataset.layoutWidth, 5);
-      assert.equal(rows[1].dataset.layoutWidth, 2);
-      assert.equal(rows[2].dataset.layoutWidth, 6);
-    });
-
     test('Keycode should be set', function() {
       var layout = {
         width: 9,

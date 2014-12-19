@@ -27,7 +27,9 @@ require(['config/require'], function() {
 
       var bluetoothMenuItem =
         document.querySelector('#root .menuItem-bluetooth');
-      bluetoothMenuItem.setAttribute('href', '#');
+      if (bluetoothMenuItem) {
+        bluetoothMenuItem.setAttribute('href', '#');
+      }
 
       var initialPanelHandler = window.LaunchContext.initialPanelHandler;
       if (initialPanelHandler) {
@@ -55,6 +57,7 @@ require(['config/require'], function() {
       // XXX: Even the panel has been displayed but the content may still not
       //      stable yet. This is a estimated timing of visually complete. We
       //      should implement other mechanism waiting for all content ready.
+      window.performance.mark('visuallyLoaded');
       window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
 
       // Activate the animation.
@@ -68,6 +71,7 @@ require(['config/require'], function() {
 
         // The loading of telephony settings is dependent on being idle,
         // once complete we are safe to declare the settings app as loaded
+        window.performance.mark('fullyLoaded');
         window.dispatchEvent(new CustomEvent('moz-app-loaded'));
       });
 

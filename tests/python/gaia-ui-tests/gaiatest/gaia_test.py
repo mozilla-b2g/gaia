@@ -195,6 +195,15 @@ class GaiaData(object):
                                                       % (contact_type, json.dumps(mozcontact)), special_powers=True)
         assert result, 'Unable to insert SIM contact %s' % contact
         self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
+        return result
+
+    def delete_sim_contact(self, moz_contact_id, contact_type='adn'):
+        # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
+        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
+        result = self.marionette.execute_async_script('return GaiaDataLayer.deleteSIMContact("%s", "%s");'
+                                                      % (contact_type, moz_contact_id), special_powers=True)
+        assert result, 'Unable to insert SIM contact %s' % moz_contact_id
+        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
 
     def remove_all_contacts(self):
         # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
@@ -419,6 +428,12 @@ class GaiaData(object):
         message = json.dumps(message)
         result = self.marionette.execute_async_script('return GaiaDataLayer.sendSMS(%s, %s)' % (number, message), special_powers=True)
         assert result, 'Unable to send SMS to recipient %s with text %s' % (number, message)
+
+    def add_notification(self, title, options=None):
+        self.marionette.execute_script('new Notification("%s", %s);' % (title, json.dumps(options)))
+
+    def clear_notifications(self):
+        self.marionette.execute_script('window.wrappedJSObject.NotificationScreen.clearAll();')
 
     @property
     def current_audio_channel(self):

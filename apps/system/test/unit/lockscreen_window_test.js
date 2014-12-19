@@ -143,4 +143,32 @@ suite('system/LockScreenWindow', function() {
     assert.equal(app.height, app.layoutHeight());
     window.lockScreenWindowManager = originalLockScreenWindowManager;
   });
+
+  test('lockOrientation', function() {
+    var mockScreen = {
+      mozLockOrientation: function() {
+        return true;
+      }
+    };
+    var originalOrientationManager = window.OrientationManager;
+    window.OrientationManager = {
+      isOnRealDevice: function() {
+        return true;
+      }
+    };
+    this.sinon.stub(window, 'screen', mockScreen);
+    var method = window.LockScreenWindow.prototype.lockOrientation;
+    this.sinon.stub(window, 'clearInterval');
+    var stubSetInterval = this.sinon.stub(window, 'setInterval', function() {
+      return 1;
+    });
+    var mockThis = {
+      orientationLockID: null
+    };
+    method.call(mockThis);
+    method.call(mockThis);
+    assert.isTrue(stubSetInterval.calledOnce);
+    assert.isFalse(stubSetInterval.calledTwice);
+    window.OrientationManager = originalOrientationManager;
+  });
 });

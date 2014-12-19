@@ -48,14 +48,11 @@ const TYPE_GROUP_MAPPING = {
 const SWITCH_CHANGE_DELAY = 20;
 
 window.KeyboardManager = {
-  // this info keeps the current keyboard layout's information,
-  // including its group, its index in the group array in InputLayouts.layouts,
-  // and its "layout" as kept in InputLayouts.layouts
-  _showingLayoutInfo: {
-    group: 'text',
-    index: 0,
-    layout: null
-  },
+  // this info keeps the current keyboard's input type group; the string serves
+  // as a reference to access inputLayouts.layouts[group] for current layout's
+  // index and the layout.
+  // when we don't have a current keyboard, this is set to null
+  _showingInputGroup: null,
 
   _switchChangeTimeout: 0,
   _onDebug: false,
@@ -118,7 +115,7 @@ window.KeyboardManager = {
       // set text to show, but don't bring it to the foreground.
       if (launchOnBoot &&
           !inputWindowManager.getLoadedManifestURLs().length) {
-        this._setKeyboardToShow('text', undefined, true);
+        this._preloadKeyboard();
       }
     }).bind(this);
   },
@@ -131,29 +128,28 @@ window.KeyboardManager = {
         manifestURL => !enabledApps.has(manifestURL)
       );
 
-    inputWindowManager._onInputLayoutsRemoved(manifestURLsToRemove);
+    // explicitly assign a variable for code clarity
+    var currentLayoutRemoved =
+      inputWindowManager._onInputLayoutsRemoved(manifestURLsToRemove);
 
-    manifestURLsToRemove.forEach(manifestURL => {
-      if (this._showingLayoutInfo.layout &&
-          this._showingLayoutInfo.layout.manifestURL === manifestURL) {
-        this._resetShowingLayoutInfo();
-      }
-    });
+    if (currentLayoutRemoved) {
+      this._showingInputGroup = null;
+    }
 
     this._tryLaunchOnBoot();
   },
 
   // a showing keyboard instance was OOM-killed. we need to relaunch something.
   _onKeyboardKilled: function km_onKeyboardKilled(manifestURL) {
-    var revokeShowedGroup = this._showingLayoutInfo.group;
-    this._setKeyboardToShow(revokeShowedGroup);
+    this._setKeyboardToShow(this._showingInputGroup);
   },
 
   _onKeyboardReady: function km_onKeyboardReady() {
     this._showIMESwitcher();
   },
 
-  // Decide the keyboard layout for the specific group and show it
+  // As user focuses some input, see if we have a specified (in inputLayouts)
+  // layout to launch for that input type group; if not, consult settings first.
   _activateKeyboard: function km_activateKeyboard(group) {
     // if we already have layouts for the group, no need to check default
     if (!this.inputLayouts.layouts[group]) {
@@ -168,7 +164,7 @@ window.KeyboardManager = {
       group = 'text';
     }
 
-    if (this.inputLayouts.layouts[group].activeLayout !== undefined) {
+    if (this.inputLayouts.layouts[group]._activeLayoutIdx !== undefined) {
       this._setKeyboardToShow(group);
     } else {
       this.inputLayouts.getGroupCurrentActiveLayoutIndexAsync(group)
@@ -223,32 +219,43 @@ window.KeyboardManager = {
         }
         break;
       case 'keyboardhide':
-        this._resetShowingLayoutInfo();
+        this._showingInputGroup = null;
         break;
     }
   },
 
-  _setKeyboardToShow: function km_setKeyboardToShow(group, index, launchOnly) {
+  _preloadKeyboard: function km_preloadKeyboard() {
+    if (!this.inputLayouts.layouts.text) {
+      console.warn('trying to preload \'text\' layout while it\'s unavailable');
+      return;
+    }
+
+    this._debug('preloading a keyboard');
+
+    inputWindowManager.preloadInputWindow(this.inputLayouts.layouts.text[0]);
+  },
+
+  // the generic "show an input window" function to be called by
+  // activateKeyboard, switchToNext, and IMESwitcher callbacks.
+  // if an ayout index is specified, launch to that layout. otherwise,
+  // use the layout stored in inputLayouts.
+  _setKeyboardToShow: function km_setKeyboardToShow(group, index) {
     if (!this.inputLayouts.layouts[group]) {
       console.warn('trying to set a layout group to show that doesnt exist');
       return;
     }
 
     if (undefined === index) {
-      index = this.inputLayouts.layouts[group].activeLayout || 0;
+      index = this.inputLayouts.layouts[group]._activeLayoutIdx || 0;
     }
     this._debug('set layout to display: group=' + group + ' index=' + index);
     var layout = this.inputLayouts.layouts[group][index];
 
-    if (launchOnly) {
-      inputWindowManager.preloadInputWindow(layout);
-    } else {
-      inputWindowManager.showInputWindow(layout);
+    inputWindowManager.showInputWindow(layout);
 
-      this.inputLayouts.saveGroupsCurrentActiveLayout(layout);
-    }
+    this.inputLayouts.saveGroupsCurrentActiveLayout(layout);
 
-    this._setShowingLayoutInfo(group, index, layout);
+    this._showingInputGroup = group;
   },
 
   /**
@@ -256,27 +263,17 @@ window.KeyboardManager = {
    * activated, and only hides after the keyboard got deactivated.
    */
   _showIMESwitcher: function km_showIMESwitcher() {
-    var showed = this._showingLayoutInfo;
-    if (!this.inputLayouts.layouts[showed.group]) {
+    var showedGroup = this._showingInputGroup;
+    if (!this.inputLayouts.layouts[showedGroup]) {
       return;
     }
 
+    var showedIndex = this.inputLayouts.layouts[showedGroup]._activeLayoutIdx;
+
     // Need to make the message in spec: "FirefoxOS - English"...
-    var current = this.inputLayouts.layouts[showed.group][showed.index];
+    var current = this.inputLayouts.layouts[showedGroup][showedIndex];
 
     this.imeSwitcher.show(current.appName, current.name);
-  },
-
-  _resetShowingLayoutInfo: function km_resetShowingLayoutInfo() {
-    this._showingLayoutInfo.group = 'text';
-    this._showingLayoutInfo.index = 0;
-    this._showingLayoutInfo.layout = null;
-  },
-
-  _setShowingLayoutInfo: function km_setShowingLayoutInfo(group, index, layout){
-    this._showingLayoutInfo.group = group;
-    this._showingLayoutInfo.index = index;
-    this._showingLayoutInfo.layout = layout;
   },
 
   /* A small helper function for maintaining timeouts */
@@ -287,17 +284,17 @@ window.KeyboardManager = {
   },
 
   _switchToNext: function km_switchToNext() {
-    var showed = this._showingLayoutInfo;
+    var showedGroup = this._showingInputGroup;
 
     this._waitForSwitchTimeout(function keyboardSwitchLayout() {
-      if (!this.inputLayouts.layouts[showed.group]) {
-        showed.group = 'text';
+      if (!this.inputLayouts.layouts[showedGroup]) {
+        showedGroup = 'text';
       }
-      var length = this.inputLayouts.layouts[showed.group].length;
-      var index = (showed.index + 1) % length;
-      this.inputLayouts.layouts[showed.group].activeLayout = index;
+      var showedIndex = this.inputLayouts.layouts[showedGroup]._activeLayoutIdx;
+      var length = this.inputLayouts.layouts[showedGroup].length;
+      var index = (showedIndex + 1) % length;
 
-      this._setKeyboardToShow(showed.group, index);
+      this._setKeyboardToShow(showedGroup, index);
     }.bind(this));
   },
 
@@ -311,7 +308,6 @@ window.KeyboardManager = {
   _imeMenuCallback: function km_imeMenuCallback(showedGroup, selectedIndex) {
     if (typeof selectedIndex === 'number') {
       // success: show the new keyboard
-      this.inputLayouts.layouts[showedGroup].activeLayout = selectedIndex;
       this._setKeyboardToShow(showedGroup, selectedIndex);
 
       // Hide the tray to show the app directly after user selected a new kb.
@@ -327,8 +323,9 @@ window.KeyboardManager = {
 
   // Show the input method menu
   _showImeMenu: function km_showImeMenu() {
-    var showedGroup = this._showingLayoutInfo.group;
-    var activeLayout = this.inputLayouts.layouts[showedGroup].activeLayout;
+    var showedGroup = this._showingInputGroup;
+    var activeLayoutIdx =
+      this.inputLayouts.layouts[showedGroup]._activeLayoutIdx;
     var actionMenuTitle = navigator.mozL10n.get('choose-option');
 
     this._waitForSwitchTimeout(function listLayouts() {
@@ -338,7 +335,7 @@ window.KeyboardManager = {
             layoutName: layout.name,
             appName: layout.appName,
             value: index,
-            selected: (index === activeLayout)
+            selected: (index === activeLayoutIdx)
           };
         });
 

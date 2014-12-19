@@ -9,6 +9,7 @@ var icc = {
   _inputTimeout: 40000,
   _toneDefaultTimeout: 5000,
   _screen: null,
+  _currentMessage: null,
 
   checkPlatformCompatibility: function icc_checkPlatformCompat() {
     // The STK_RESULT_ACTION_CONTRADICTION_TIMER_STATE constant will be added
@@ -181,6 +182,7 @@ var icc = {
       cmdId = '0x' + message.command.typeOfCommand.toString(16);
     }
     if (icc_worker[cmdId]) {
+      this.resize();
       return icc_worker[cmdId](message);
     }
 
@@ -205,6 +207,7 @@ var icc = {
     DUMP('STK sendStkResponse -- # response = ', response);
     var _icc = icc.getIcc(message.iccId);
     _icc && _icc.sendStkResponse(message.command, response);
+    message.response = true;
   },
 
   /**
@@ -288,6 +291,7 @@ var icc = {
     }
     window.removeEventListener('keyboardchange', this.keyboardChangedEvent);
     window.removeEventListener('keyboardhide', this.keyboardChangedEvent);
+    this._currentMessage = null;
   },
 
   setupView: function icc_setupView(viewId) {
@@ -322,6 +326,11 @@ var icc = {
       form[0].style.height = formHeight + 'px';
       input.scrollIntoView();
     }
+  },
+
+  resize: function() {
+    var height = window.layoutManager.height - StatusBar.height;
+    this.icc_view.style.height = height + 'px';
   },
 
   alert: function icc_alert(stkMessage, message) {
@@ -546,6 +555,7 @@ var icc = {
           window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
           self.hideViews();
           callback(false);
+          self.icc_input_header.removeEventListener('action', actionHandler);
         }, timeout);
       }
     }
@@ -618,6 +628,7 @@ var icc = {
         clearInputTimeout();
         self.hideViews();
         callback(true, self.icc_input_box.value);
+        self.icc_input_header.removeEventListener('action', actionHandler);
       };
       this.icc_input_box.focus();
     } else {
@@ -628,12 +639,14 @@ var icc = {
         clearInputTimeout();
         self.hideViews();
         callback(true, true);
+        self.icc_input_header.removeEventListener('action', actionHandler);
       };
       this.icc_input_btn_no.onclick = function(event) {
         window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
         clearInputTimeout();
         self.hideViews();
         callback(true, false);
+        self.icc_input_header.removeEventListener('action', actionHandler);
       };
     }
 
@@ -643,16 +656,19 @@ var icc = {
     this.icc_input.classList.add('visible');
     this.icc_view.classList.add('visible');
 
-    // STK Default response (BACK, CLOSE and HELP)
-    this.icc_input_header.addEventListener('action', function() {
-      window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
+    var actionHandler = function() {
       clearInputTimeout();
       self.hideViews();
       self.backResponse(stkMessage);
       callback(null);
-    });
+      self.icc_input_header.removeEventListener('action', actionHandler);
+      window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
+    };
 
     window.addEventListener('stkMenuHidden', stkMenuHiddenHandler);
+
+    // STK Default response (BACK, CLOSE and HELP)
+    this.icc_input_header.addEventListener('action', actionHandler);
 
     this.icc_input_btn_close.onclick = function() {
       window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
@@ -660,6 +676,7 @@ var icc = {
       self.hideViews();
       self.terminateResponse(stkMessage);
       callback(null);
+      self.icc_input_header.removeEventListener('action', actionHandler);
     };
     this.icc_input_btn_help.onclick = function() {
       window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
@@ -669,7 +686,24 @@ var icc = {
         resultCode: self._iccManager.STK_RESULT_HELP_INFO_REQUIRED
       });
       callback(null);
+      self.icc_input_header.removeEventListener('action', actionHandler);
     };
+  },
+
+  discardCurrentMessageIfNeeded: function(new_message) {
+    var _currentMessage = this._currentMessage;
+    if (_currentMessage && _currentMessage !== new_message) {
+      this.hideViews();
+      if (!_currentMessage.response) {
+        DUMP('New message received, discarding previous message...');
+        this.responseSTKCommand(_currentMessage, {
+          resultCode:
+            icc._iccManager.STK_RESULT_TERMINAL_CRNTLY_UNABLE_TO_PROCESS
+        });
+      }
+    }
+
+    this._currentMessage = new_message;
   }
 };
 

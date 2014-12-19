@@ -71,5 +71,22 @@ suite('Views > HandwritingPadView', function() {
       assert.equal(point.posY, pressMove.clientY * window.devicePixelRatio,
                    'Error occured in drawCanvas when press move!');
     });
+
+    test(' > resize()', function() {
+      Object.defineProperty(window, 'devicePixelRatio', {
+        configurable: true,
+        get: () => 2 }
+      );
+
+      handwritingPadView.resize(200, 400);
+
+      var canvas = handwritingPadView.element;
+
+      assert.equal(canvas.width, '400');
+      assert.equal(canvas.height, '800');
+
+      assert.equal(canvas.style.width, '200px');
+      assert.equal(canvas.style.height, '400px');
+    });
   });
 });

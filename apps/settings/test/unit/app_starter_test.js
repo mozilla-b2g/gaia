@@ -12,6 +12,7 @@ Object.defineProperty(document, 'readyState', {
   value: 'loading',
   configurable: true
 });
+require('/shared/js/usertiming.js');
 require('/js/startup.js');
 
 suite('AppStarter', function() {

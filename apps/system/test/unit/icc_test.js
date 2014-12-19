@@ -29,6 +29,7 @@ suite('STK (icc) >', function() {
       realNavigatormozSetMessageHandler, realNavigatormozMobileConnections;
   var stkTestCommands = {};
   var xhrFake, xhrRequests = [];
+  var resizeStub;
 
   suiteSetup(function() {
     loadBodyHTML('/index.html');
@@ -156,7 +157,10 @@ suite('STK (icc) >', function() {
     window.inputWindowManager =
       this.sinon.stub(Object.create(InputWindowManager.prototype));
 
-    requireApp('system/js/icc.js', done);
+    requireApp('system/js/icc.js', function() {
+      resizeStub = this.sinon.stub(icc, 'resize');
+      done();
+    }.bind(this));
   });
 
   teardown(function() {
@@ -467,4 +471,44 @@ suite('STK (icc) >', function() {
     window.dispatchEvent(new CustomEvent('stkMenuHidden'));
   });
 
+  test('handleSTKCommand - should call resize', function() {
+    launchStkCommand(stkTestCommands.STK_CMD_DISPLAY_TEXT);
+
+    assert.isTrue(resizeStub.calledOnce);
+  });
+
+  suite('Replace STK messages >', function() {
+    var stubResponseSTKCommand;
+    var unableToProcess;
+
+    setup(function() {
+      icc.hideViews();
+      stubResponseSTKCommand = this.sinon.stub(icc, 'responseSTKCommand',
+        function(message, response) {
+          message.response = true;
+        });
+
+      unableToProcess = {
+        resultCode:
+          navigator.mozIccManager.STK_RESULT_TERMINAL_CRNTLY_UNABLE_TO_PROCESS
+        };
+    });
+
+    test('Should respond STK_RESULT_TERMINAL_CRNTLY_UNABLE_TO_PROCESS',
+      function() {
+        icc._currentMessage = stkTestCommands.STK_CMD_GET_INPUT;
+        icc.discardCurrentMessageIfNeeded(stkTestCommands.STK_CMD_DISPLAY_TEXT);
+        assert.isTrue(stubResponseSTKCommand.calledWith(
+        stkTestCommands.STK_CMD_GET_INPUT, unableToProcess));
+    });
+
+    test('Should not respond because the message has been already responded',
+      function() {
+        var testCommand = stkTestCommands.STK_CMD_DISPLAY_TEXT;
+        testCommand.response = true;
+        icc._currentMessage = testCommand;
+        icc.discardCurrentMessageIfNeeded(stkTestCommands.STK_CMD_GET_INPUT);
+        assert.isFalse(stubResponseSTKCommand.calledOnce);
+    });
+  });
 });

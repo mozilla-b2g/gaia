@@ -6,6 +6,7 @@
           CallGroupMenu, Utils, MockMozContacts */
 
 require('/shared/js/dialer/utils.js');
+require('/shared/js/usertiming.js');
 
 require('/dialer/test/unit/mock_call_log_db_manager.js');
 require('/dialer/test/unit/mock_performance_testing_helper.js');

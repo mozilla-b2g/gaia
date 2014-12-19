@@ -85,7 +85,6 @@ DEVICE_DEBUG?=0
 NO_LOCK_SCREEN?=0
 SCREEN_TIMEOUT?=-1
 PRODUCTION?=0
-DESKTOP_SHIMS?=0
 GAIA_OPTIMIZE?=0
 GAIA_DEV_PIXELS_PER_PX?=1
 
@@ -689,13 +688,10 @@ ifeq ($(BUILD_APP_NAME),*)
 ifeq ($(SIMULATOR),1)
 	cp -r tools/extensions/{activities@gaiamobile.org,activities,alarms@gaiamobile.org,alarms,desktop-helper,desktop-helper@gaiamobile.org} $(EXT_DIR)/
 else ifeq ($(DESKTOP),1)
-	cp -r tools/extensions/* $(EXT_DIR)/
 	cp -r $(STAGE_DIR)/additional-extensions/* $(EXT_DIR)/
-else ifeq ($(DEBUG),1)
-	cp tools/extensions/httpd@gaiamobile.org $(EXT_DIR)/
-	cp -r tools/extensions/httpd $(EXT_DIR)/
-else ifeq ($(DESKTOP_SHIMS),1)
-	cp -r tools/extensions/{desktop-helper,desktop-helper@gaiamobile.org} $(EXT_DIR)/
+endif
+ifeq ($(DEBUG),1)
+	cp -r tools/extensions/{httpd,httpd@gaiamobile.org} $(EXT_DIR)/
 endif
 	@echo "Finished: Generating extensions"
 endif
@@ -1047,10 +1043,10 @@ really-clean: clean
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
 
 build-test-unit: $(NPM_INSTALLED_PROGRAMS)
-	./bin/build-test $(shell find build/test/unit/*.test.js)
+	./bin/build-test $(shell find build$(SEP)test$(SEP)unit$(SEP)*.test.js apps$(SEP)*$(SEP)test$(SEP)build$(SEP)unit$(SEP)*_test.js)
 
 build-test-integration: $(NPM_INSTALLED_PROGRAMS)
-	./bin/build-test $(shell find build/test/integration/*.test.js)
+	./bin/build-test $(shell find build$(SEP)test$(SEP)integration$(SEP)*.test.js apps$(SEP)*$(SEP)test$(SEP)build$(SEP)integration$(SEP)*_test.js)
 
 build-test-unit-coverage: $(NPM_INSTALLED_PROGRAMS)
 	@$(call run-build-coverage,build/test/unit)

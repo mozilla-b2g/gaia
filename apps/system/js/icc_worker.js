@@ -73,6 +73,8 @@ var icc_worker = {
     var confirmMessage = this._retrieveText(options.confirmMessage);
     var callMessage = this._retrieveText(options.callMessage);
 
+    icc.discardCurrentMessageIfNeeded(message);
+
     if (!confirmMessage) {
       confirmMessage = _(
         'icc-confirmCall-defaultmessage', {
@@ -93,6 +95,9 @@ var icc_worker = {
   '0x11': function STK_CMD_SEND_SS(message) {
     DUMP('STK_CMD_SEND_SS:', message.command.options);
     var options = message.command.options;
+
+    icc.discardCurrentMessageIfNeeded(message);
+
     if (!options.text) {
       var _ = navigator.mozL10n.get;
       options.text = _('icc-alertMessage-defaultmessage');
@@ -110,6 +115,9 @@ var icc_worker = {
   '0x13': function STK_CMD_SEND_SMS(message) {
     DUMP('STK_CMD_SEND_SMS:', message.command.options);
     var options = message.command.options;
+
+    icc.discardCurrentMessageIfNeeded(message);
+
     if (options.text) {
       icc.confirm(message, options.text);
     } else if (options.text !== undefined) {
@@ -122,6 +130,9 @@ var icc_worker = {
   '0x14': function STK_CMD_SEND_DTMF(message) {
     DUMP('STK_CMD_SEND_DTMF:', message.command.options);
     var options = message.command.options;
+
+    icc.discardCurrentMessageIfNeeded(message);
+
     if (options.text) {
       icc.alert(message, options.text);
     } else if (options.text === '') {
@@ -134,6 +145,11 @@ var icc_worker = {
   '0x15': function STK_CMD_LAUNCH_BROWSER(message) {
     DUMP('STK_CMD_LAUNCH_BROWSER:', message.command.options);
     var options = message.command.options;
+
+    if (options.confirmMessage) {
+      icc.discardCurrentMessageIfNeeded(message);
+    }
+
     icc.responseSTKCommand(message, {
       resultCode: icc._iccManager.STK_RESULT_OK
     });
@@ -174,6 +190,10 @@ var icc_worker = {
 
     DUMP('STK_CMD_PLAY_TONE:', message.command.options);
     var options = message.command.options;
+
+    if (options.text) {
+      icc.discardCurrentMessageIfNeeded(message);
+    }
 
     var tonePlayer = new Audio();
     tonePlayer.src = getPhoneSound(options.tone);
@@ -226,6 +246,8 @@ var icc_worker = {
   '0x21': function STK_CMD_DISPLAY_TEXT(message) {
     DUMP('STK_CMD_DISPLAY_TEXT:', message.command.options);
     var options = message.command.options;
+
+    icc.discardCurrentMessageIfNeeded(message);
 
     // Check if device is idle or settings
     var activeApp = Service.currentApp;
@@ -287,6 +309,8 @@ var icc_worker = {
   '0x23': function STK_CMD_GET_INPUT(message) {
     DUMP('STK_CMD_GET_INPUT:', message.command.options);
     var options = message.command.options;
+
+    icc.discardCurrentMessageIfNeeded(message);
 
     DUMP('STK Input title: ' + options.text);
 
@@ -374,27 +398,29 @@ var icc_worker = {
 
   // STK_CMD_PROVIDE_LOCAL_INFO
   '0x26': function STK_CMD_PROVIDE_LOCAL_INFO(message) {
-
-    // XXX: check bug-926169
-    // this is used to keep all tests passing while introducing multi-sim APIs
-    var conn = window.navigator.mozMobileConnection ||
-      window.navigator.mozMobileConnections &&
-        window.navigator.mozMobileConnections[0];
+    var conn = icc.getConnection(message.iccId);
 
     DUMP('STK_CMD_PROVIDE_LOCAL_INFO:', message.command.options);
     switch (message.command.options.localInfoType) {
       case icc._iccManager.STK_LOCAL_INFO_LOCATION_INFO:
-        icc.responseSTKCommand(message, {
-          localInfo: {
-            locationInfo: {
-              mcc: IccHelper.iccInfo.mcc,
-              mnc: IccHelper.iccInfo.mnc,
-              gsmLocationAreaCode: conn.voice.cell.gsmLocationAreaCode,
-              gsmCellId: conn.voice.cell.gsmCellId
-            }
-          },
-          resultCode: icc._iccManager.STK_RESULT_OK
-        });
+        DUMP('cell of connection - ' + conn.voice.cell);
+        if (conn.voice.cell) {
+          icc.responseSTKCommand(message, {
+            localInfo: {
+              locationInfo: {
+                mcc: IccHelper.iccInfo.mcc,
+                mnc: IccHelper.iccInfo.mnc,
+                gsmLocationAreaCode: conn.voice.cell.gsmLocationAreaCode,
+                gsmCellId: conn.voice.cell.gsmCellId
+              }
+            },
+            resultCode: icc._iccManager.STK_RESULT_OK
+          });
+        } else {
+          icc.responseSTKCommand(message, {
+            resultCode: icc._iccManager.STK_RESULT_PRFRMD_LIMITED_SERVICE
+          });
+        }
         break;
 
       case icc._iccManager.STK_LOCAL_INFO_IMEI:
@@ -534,10 +560,14 @@ var icc_worker = {
       'SIM ' + icc.getSIMNumber(message.iccId) + ' STK', {
         body: options.text,
         icon: 'style/icons/system.png',
-        tag: 'stkNotification_' + message.iccId
+        tag: 'stkNotification_' + message.iccId,
+        mozbehavior: {
+          showOnlyOnce: true
+        }
       });
     this.idleTextNotifications[message.iccId].onclick =
       function onClickSTKNotification() {
+        icc.discardCurrentMessageIfNeeded(message);
         icc.alert(message, options.text);
       };
     this.idleTextNotifications[message.iccId].onshow =

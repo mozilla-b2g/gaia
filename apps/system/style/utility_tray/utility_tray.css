@@ -14,11 +14,23 @@
   visibility: hidden;
 }
 
+#utility-tray.visible {
+  visibility: visible;
+}
+
 #statusbar-tray {
   background-image: -moz-element(#statusbar);
   width: 100%;
   top: 0;
   height: 3rem;
+  filter: none;
+}
+
+#statusbar-tray > .sb-start-upper {
+  position: absolute;
+  left: 0;
+  line-height: var(--statusbar-height);
+  visibility: visible;
 }
 
 #ambient-indicator {
@@ -32,11 +44,11 @@
   pointer-events: none;
 }
 
-#utility-tray.hidden {
+#utility-tray.on-edge-gesture {
   top: -100%;
 }
 
-#ambient-indicator.unread {
+#screen:not(.locked) #ambient-indicator.unread {
   opacity: 1;
   visibility: visible;
 }
@@ -108,7 +120,7 @@
   width: 100%;
   height: 2rem;
   margin: 0;
-  background: hsla(0, 0%, 100%, .05) url(images/grippy.png) no-repeat center / 7.2rem;
+  background: hsla(0, 0%, 20%, 1) url(images/grippy.png) no-repeat center / 7.2rem;
 }
 
 [data-icon] {
