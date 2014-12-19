@@ -79,6 +79,13 @@
       this.app.element.classList.remove('search-app');
     }
 
+    if (this.isHomeApp()) {
+      this.app.element.classList.add('home-app');
+      this.title.setAttribute('data-l10n-id', 'search-or-enter-address');
+    } else {
+      this.app.element.classList.remove('home-app');
+    }
+
     if (chrome.bar) {
       this.app.element.classList.add('bar');
       this.bar.classList.add('visible');
@@ -483,19 +490,43 @@
   AppChrome.prototype.handleMetaChange =
     function ac__handleMetaChange(evt) {
       var detail = evt.detail;
-      if (detail.name !== 'theme-color' || !detail.type) {
+
+      var handledMetaEvents = [
+        'theme-color',
+        'urlbar-control'
+      ];
+
+      if (handledMetaEvents.indexOf(detail.name) === -1 || !detail.type) {
         return;
       }
 
-      // If the theme-color meta is removed, let's reset the color.
-      var color = '';
+      if (detail.name === 'theme-color') {
+        // If the theme-color meta is removed, let's reset the color.
+        var color = '';
 
-      // Otherwise, set it to the color that has been asked.
-      if (detail.type !== 'removed') {
-        color = detail.content;
+        // Otherwise, set it to the color that has been asked.
+        if (detail.type !== 'removed') {
+          color = detail.content;
+        }
+
+        this.setThemeColor(color);
+      } else if (detail.name === 'urlbar-control') {
+        if (detail.content === 'default' || detail.type === 'removed') {
+          var chrome = this.app.config.chrome;
+          if (chrome.scrollable) {
+            this.app.element.classList.add('collapsible');
+          }
+          if (this.scrollable.scrollTop < 1) {
+            this.element.classList.add('maximized');
+          }
+          this.handleScrollAreaChanged();
+        } else if (detail.content === 'minimized') {
+          this.element.classList.add('maximized');
+          this.containerElement.classList.remove('collapsible');
+          this.containerElement.classList.remove('scrollable');
+          this.collapse();
+        }
       }
-
-      this.setThemeColor(color);
     };
 
   AppChrome.prototype.setThemeColor = function ac_setThemColor(color) {
@@ -518,6 +549,16 @@
       var computedColor = window.getComputedStyle(self.element).backgroundColor;
       if (previousColor === computedColor) {
         return;
+      }
+
+      // If we have some opacity in the color, we assume the color is
+      // transparent and use a "light" theme. To be more accurate we could draw
+      // the background to a canvas and color pick the value from that.
+      if (computedColor.indexOf('rgba') !== -1) {
+        self.app.element.classList.remove('light');
+        self.app.publish('titlestatechanged');
+        previousColor = computedColor;
+        window.requestAnimationFrame(updateAppColor);
       }
 
       var colorCodes = /rgb\((\d+), (\d+), (\d+)\)/.exec(computedColor);
@@ -562,6 +603,11 @@
   };
 
   AppChrome.prototype.useCombinedChrome = function ac_useCombinedChrome(evt) {
+    // Homescreens use the combined chrome.
+    if (this.isHomeApp()) {
+      return true;
+    }
+
     return this.app.config.chrome && !this.app.config.chrome.bar;
   };
 
@@ -702,6 +748,11 @@
   AppChrome.prototype.isSearchApp = function() {
     return this.app.config.manifest &&
       this.app.config.manifest.role === 'search';
+  };
+
+  AppChrome.prototype.isHomeApp = function() {
+    return this.app.config.manifest &&
+      this.app.config.manifest.role === 'homescreen';
   };
 
   AppChrome.prototype.hasNavigation = function ac_hasNavigation(evt) {

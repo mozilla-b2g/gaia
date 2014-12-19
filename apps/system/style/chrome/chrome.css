@@ -63,18 +63,12 @@
 [data-manifest-name="FTU"]:not(.bar) > .chrome .controls,
 [data-manifest-name="FTU"]:not(.bar) > .chrome .progress,
 .lockScreenWindow:not(.bar) > .chrome .controls,
-.lockScreenWindow:not(.bar) > .chrome gaia-progress,
-.homescreen:not(.bar) > .chrome .controls,
-.homescreen:not(.bar) > .chrome gaia-progress {
+.lockScreenWindow:not(.bar) > .chrome gaia-progress {
   visibility: hidden;
 }
 
 .lockScreenWindow:not(.bar) > .chrome {
   background-color: transparent;
-}
-
-.homescreen:not(.bar) > .chrome {
-  background-image: none;
 }
 
 #screen.attention .lockScreenWindow:not(.bar) > .chrome {
@@ -92,11 +86,21 @@
 }
 
 /* Special cases for rocketbar on the Top Sites view */
+.home-app .menu-button,
+.home-app .controls .reload-button,
+.home-app .controls .stop-button,
 .search-app .menu-button,
 .search-app .controls .reload-button,
-.search-app .controls .stop-button
+.search-app .controls .stop-button,
 .chrome .controls .windows-button {
   display: none;
+}
+
+/* No chrome controls are shown on the home screen.
+ To avoid being rendered at a small size, this needs to be more specific
+ than the non-collapsible case. */
+#homescreen.appWindow.home-app .chrome .controls .urlbar {
+  width: calc(100% - 1rem);
 }
 
 .appWindow.search-app .chrome .controls .urlbar {
@@ -474,7 +478,7 @@ gaia-overflow-menu button#share {
   width: calc(100% - 8rem);
 }
 
-.appWindow:not(.collapsible) > .chrome .controls .urlbar .title {
+.appWindow.maximized:not(.collapsible) > .chrome .controls .urlbar .title {
   width: calc(100%);
 }
 
@@ -487,6 +491,7 @@ html[dir="rtl"] .chrome .controls .urlbar {
   float: right;
 }
 
+html[dir="rtl"] .home-app .chrome.maximized .controls .urlbar:after,
 html[dir="rtl"] .search-app .chrome.maximized .controls .urlbar:after {
   left: 0.8rem;
   right: unset;

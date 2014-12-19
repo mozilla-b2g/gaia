@@ -249,7 +249,10 @@ textarea,
   overflow: hidden;
 }
 
-#windows::before {
+/* Add some shading to the statusbar color. Do not do this for home screens
+   as the home screen is transparent and should maintain the same color for
+   the search bar background and statusbar.  */
+#windows .appWindow:not(.homescreen)::before {
   position: absolute;
   top: 0;
   width: 100%;

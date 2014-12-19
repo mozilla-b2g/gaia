@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta name="theme-color" content="transparent">
+    <meta name="urlbar-control" content="default">
     <title>FirefoxOS Homescreen</title>
 
     <link rel="stylesheet" href="style/css/app.css">
@@ -38,6 +39,7 @@
     <script defer src="js/sources/application.js"></script>
 
     <script defer src="js/app_manager.js"></script>
+    <script defer src="js/rocketbar.js"></script>
     <script defer src="js/statusbar.js"></script>
     <script defer src="shared/js/homescreens/vertical_preferences.js"></script>
     <script defer src="shared/js/bookmarks_database.js"></script>
@@ -83,14 +85,6 @@
         <a href="#" data-l10n-id="edit-done" id="exit-edit-mode"></a>
       </gaia-header>
     </section>
-
-    <div id="search" role="button" aria-labelledby="search-input" aria-haspopup="true">
-      <form id="search-form">
-        <input id="search-input" type="text" x-inputmode="verbatim" role="presentation"
-          placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="" dir="auto">
-        </input>
-      </form>
-    </div>
 
     <gaia-grid id="icons" dragdrop></gaia-grid>
 
