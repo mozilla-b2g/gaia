@@ -33,7 +33,9 @@ function MockSystemICC(iccManager) {
       callback(true);   // User accepted the message
     },
 
-    hideViews: function() {}
+    hideViews: function() {},
+
+    discardCurrentMessageIfNeeded: function(new_message) {}
   };
 }
 
