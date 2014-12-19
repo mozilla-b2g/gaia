@@ -442,12 +442,17 @@
         return null;
       }
       var mainPart = mime.slice(0, index);
+      var secondPart = mime.substr(index + 1);
+
       switch (mainPart) {
         case 'image':
           return 'img';
         case 'video':
         case 'audio':
         case 'text':
+          if(secondPart !== 'plain') {
+            return 'ref';
+          }
         case 'application':
           return mainPart;
         default:

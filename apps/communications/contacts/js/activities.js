@@ -183,7 +183,7 @@ var ActivityHandler = {
     return !!(activity.source &&
               activity.source.data &&
               !activity.source.data.params &&
-              activity.source.data.type === 'text/vcard' &&
+              activity.source.data.type.indexOf('vcard' !== -1) &&
               activity.source.data.blob);
   },
 
@@ -216,9 +216,55 @@ var ActivityHandler = {
     }
   },
 
+  _getContactName: function(theContact) {
+    var out = '';
+
+    var givenName = Array.isArray(theContact.givenName) &&
+                                                      theContact.givenName[0];
+    var familyName = Array.isArray(theContact.familyName) &&
+                                                      theContact.familyName[0];
+
+    if (givenName) {
+      out = givenName;
+    }
+
+    if (familyName) {
+      if (out) {
+        out += '_';
+      }
+      out += familyName;
+    }
+
+    if (!out) {
+      out = Array.isArray(theContact.org) && theContact.org[0];
+    }
+
+    if (!out) {
+      if (Array.isArray(theContact.tel)) {
+        out = 'c' + '_' + theContact.tel[0].value;
+      }
+    }
+
+    if (!out) {
+      if (Array.isArray(theContact.email)) {
+        out = theContact.email[0].value;
+      }
+    }
+
+    if (!out) {
+      out = navigator.mozL10n.get('noName');
+    }
+
+    return out + '.vcf';
+  },
+
   dataPickHandler: function ah_dataPickHandler(theContact) {
+    console.log('Data pick handler', this.activityDataType);
+
     var type, dataSet, noDataStr;
     var result = {};
+    var self = this;
+
     // Keeping compatibility with previous implementation. If
     // we want to get the full contact, just pass the parameter
     // 'fullContact' equal true.
@@ -226,6 +272,23 @@ var ActivityHandler = {
         this.activityData.fullContact === true) {
       result = utils.misc.toMozContact(theContact);
       this.postPickSuccess(result);
+      return;
+    }
+
+    if (this.activityDataType.indexOf('text/vcard') !== -1) {
+      console.log('It is a vcard requested');
+      LazyLoader.load([
+                       '/shared/js/contact2vcard.js',
+                       '/shared/js/setImmediate.js'
+                      ], function lvcard() {
+        ContactToVcardBlob([theContact], function blobReady(vcardBlob) {
+          console.log('Blob calculated and posted as result!');
+          self.postPickSuccess({
+            name: self._getContactName(theContact),
+            blob: vcardBlob
+          });
+        });
+      });
       return;
     }
 
@@ -292,7 +355,6 @@ var ActivityHandler = {
         break;
       default:
         // if more than one required type of data
-        var self = this;
         LazyLoader.load('/contacts/js/action_menu.js', function() {
           var prompt1 = new ActionMenu();
           var itemData;
