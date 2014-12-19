@@ -1,7 +1,7 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global setImmediate */
+/* globals setImmediate, Normalizer */
 
 /**
  * ContactToVcard provides the functionality necessary to export from
@@ -132,8 +132,8 @@
     return fields.filter(function(f) { return !!f; }).join(CRLF);
   }
 
-  function toBlob(vcard) {
-    return new Blob([vcard], {'type': 'text/vcard'});
+  function toBlob(vcard, type) {
+    return new Blob([vcard], {'type': type});
   }
 
   /**
@@ -143,7 +143,9 @@
    * @param {Array} contacts An array of mozContact objects.
    * @param {Function} callback A function invoked with the generated blob.
    */
-  function ContactToVcardBlob(contacts, callback) {
+  function ContactToVcardBlob(contacts, callback, options) {
+    var targetType = options && options.type || 'text/vcard';
+
     if (typeof callback !== 'function') {
       throw Error('callback() is undefined or not a function');
     }
@@ -154,7 +156,7 @@
       str += vcards;
     }, function success() {
       str = str ? toBlob(str) : null;
-      callback(toBlob(str));
+      callback(toBlob(str, targetType));
     });
   }
 
@@ -338,6 +340,42 @@
     processContact(contacts[0]);
   }
 
+  // Generates a name for the contact returned as a vcard
+  function getVcardFilename(theContact) {
+    var out = '';
+
+    var givenName = Array.isArray(theContact.givenName) &&
+                                                      theContact.givenName[0];
+    var familyName = Array.isArray(theContact.familyName) &&
+                                                      theContact.familyName[0];
+
+    if (givenName) {
+      out = givenName;
+    }
+
+    if (familyName) {
+      if (out) {
+        out += '_';
+      }
+      out += familyName;
+    }
+
+    out = out || (Array.isArray(theContact.org) && theContact.org[0]);
+
+    out = out || (Array.isArray(theContact.tel) && theContact.tel[0] &&
+                 ( 'c' + '_' + theContact.tel[0].value) );
+
+    out = out || (Array.isArray(theContact.email) && theContact.email[0] &&
+                  theContact.email[0].value);
+
+    out = out || navigator.mozL10n.get('noName');
+
+    out = Normalizer.toAscii(out).replace(/[\s+@#&?\+\$]/g, '');
+
+    return out + '.vcf';
+  }
+
   exports.ContactToVcard = ContactToVcard;
   exports.ContactToVcardBlob = ContactToVcardBlob;
+  exports.VcardFilename  = getVcardFilename;
 })(this);
