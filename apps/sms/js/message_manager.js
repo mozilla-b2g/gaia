@@ -147,7 +147,6 @@ var MessageManager = {
   },
 
   getMessages: function mm_getMgs(options) {
-    // alert('get messages');
     /*
     options {
       each: callback function invoked for each message

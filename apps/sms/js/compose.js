@@ -428,6 +428,7 @@ var Compose = (function() {
         // to be properly rendered after a cold start for the app
         if (fragment.blob) {
           fragment = new Attachment(fragment.blob, {
+            name: fragment.name,
             isDraft: true
           });
         }

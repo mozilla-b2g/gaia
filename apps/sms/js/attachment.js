@@ -74,7 +74,6 @@
       //   - Blob mimetype is unsupported but file extension is valid.
       //   - File extenion is missing or invalid but mimetype is supported.
 
-      // alert(this.name);
       var mimetype =
         MimeMapper.guessTypeFromFileProperties(this.name,
                                                this.blob.type.toLowerCase());
@@ -83,8 +82,6 @@
       // Override filename, so that every attachment that is saved via "open"
       // activity will be placed in the single location.
       filename = ATTACHMENT_FOLDER_PATH + getBaseName(filename);
-
-      // alert(mimetype);
 
       var activity = new MozActivity({
         name: 'open',

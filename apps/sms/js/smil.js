@@ -76,7 +76,7 @@ function SMIL_generateSlides(data, slide, slideIndex) {
       media = '<' + blobType + ' src="' + name + '" region="Text"/>';
       data.attachments.push({
         id: '<' + name + '>',
-        // location: name,
+        location: name,
         content: slide.blob
       });
     }
