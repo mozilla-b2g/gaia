@@ -8,8 +8,17 @@
     this.configs = {
       events: configs.events || [],
       interrupts: configs.interrupts || [],
-      handler: configs.handler || (() => {})
+      handler: configs.handler || (() => {}),
+      collector: configs.collector ||
+          (window.addEventListener.bind(window)),
+      decollector: configs.collector ||
+          (window.removeEventListener.bind(window)),
+      emitter: configs.emitter ||
+          (window.dispatchEvene.bind(window))
     };
+    // Some API you just can't bind it with the object,
+    // but a function.
+    this.handleEvent = this.handleEvent.bind(this);
   };
 
   Stream.prototype.status = function() {
@@ -24,10 +33,10 @@
 
   Stream.prototype.ready = function() {
     this.configs.events.forEach((ename) => {
-      window.addEventListener(ename, this);
+      this.configs.collector(ename, this.handleEvent);
     });
     this.configs.interrupts.forEach((iname) => {
-      window.addEventListener(iname, this);
+      this.configs.collector(iname, this.handleEvent);
     });
     return this;
   };
@@ -35,10 +44,10 @@
   Stream.prototype.stop = function() {
     this.process.stop();
     this.configs.events.forEach((ename) => {
-      window.removeEventListener(ename, this);
+      this.configs.decollector(ename, this.handleEvent);
     });
     this.configs.interrupts.forEach((iname) => {
-      window.removeEventListener(iname, this);
+      this.configs.decollector(iname, this.handleEvent);
     });
     return this;
   };

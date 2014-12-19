@@ -3,7 +3,7 @@
 'use strict';
 
 (function() {
-  var BasicComponent = function() {
+  var LockScreenBasicComponent = function() {
     this.configs = {
       events: [],
       interrupts: [],
@@ -19,12 +19,12 @@
   /**
    * Process' status is the component's status.
    */
-  BasicComponent.prototype.status =
+  LockScreenBasicComponent.prototype.status =
   function() {
     return this.stream.status;
   };
 
-  BasicComponent.prototype.start =
+  LockScreenBasicComponent.prototype.start =
   function(states = {}, components = {}, elements = {}) {
     // Query or get them from the previous state.
     this.setElements(elements);
@@ -39,25 +39,25 @@
     return this.stream.start().ready();
   };
 
-  BasicComponent.prototype.stop = function() {
+  LockScreenBasicComponent.prototype.stop = function() {
     return this.stream.stop();
   };
 
-  BasicComponent.prototype.destroy = function() {
+  LockScreenBasicComponent.prototype.destroy = function() {
     return this.stream.destroy();
   };
 
-  BasicComponent.prototype.live = function() {
+  LockScreenBasicComponent.prototype.live = function() {
     return this.stream.until('stop');
   };
 
-  BasicComponent.prototype.exist = function() {
+  LockScreenBasicComponent.prototype.exist = function() {
     return this.stream.until('destroy');
   };
 
-  BasicComponent.prototype.handleEvent = function() {};
+  LockScreenBasicComponent.prototype.handleEvent = function() {};
 
-  BasicComponent.prototype.setElements = function(elements) {
+  LockScreenBasicComponent.prototype.setElements = function(elements) {
     if (!this.elements.view) {
       throw new Error(`Can't find the view in elements`);
     }
@@ -78,7 +78,7 @@
    * Can command all components with one method and its arguments.
    * For example, to 'start', or 'stop' them.
    */
-  BasicComponent.prototype.waitComponents = function(method, args) {
+  LockScreenBasicComponent.prototype.waitComponents = function(method, args) {
     var waitPromises =
     Object.keys(this.components).reduce((steps, name) => {
       var instance = this.components[name];
@@ -97,13 +97,13 @@
     return Promise.all(waitPromises);
   };
 
-  BasicComponent.prototype.transferTo = function(clazz) {
+  LockScreenBasicComponent.prototype.transferTo = function(clazz) {
     this.states.next = new clazz();
     return this.states.next
       .start(this.states, this.components, this.elements)
       .next(this.destroy.bind(this));
   };
 
-  exports.BasicComponent = BasicComponent;
+  exports.LockScreenBasicComponent = LockScreenBasicComponent;
 })();
 
