@@ -123,6 +123,20 @@ suite('ActivityHandler', function() {
       assert.ok(handlers['sms-received']);
       assert.ok(handlers['notification']);
     });
+
+    test('if app is run as inline activity', function() {
+      this.sinon.stub(window.navigator, 'mozSetMessageHandler');
+      this.sinon.stub(Navigation, 'getPanelName').returns('activity-xxx');
+
+      ActivityHandler.init();
+
+      // When app is run as activity we should listen for 'sms-received' and
+      // 'notification' system messages - only for 'activity' message.
+      sinon.assert.calledOnce(window.navigator.mozSetMessageHandler);
+      sinon.assert.calledWith(
+        window.navigator.mozSetMessageHandler, 'activity'
+      );
+    });
   });
 
   suite('"share" activity', function() {
