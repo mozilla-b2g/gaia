@@ -24,7 +24,7 @@ class TestReceiveCallScreenLocked(GaiaTestCase):
         Verify that the User can receive a call whilst the device is locked
         https://moztrap.mozilla.org/manage/case/1300/
         """
-        PLIVO_TIMEOUT = 30
+        PLIVO_TIMEOUT = 60
         self.call_uuid = False
 
         from gaiatest.utils.plivo.plivo_util import PlivoUtil
