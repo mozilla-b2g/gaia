@@ -5,7 +5,11 @@
   var Process = function() {
     this.states = {
       phase: null,
-      currentPromise: null
+      currentPromise: null,
+      until: {
+        resolver: null,
+        phase: null
+      }
     };
   };
 
@@ -32,6 +36,9 @@
                        but now it's ${this.states.phase}`);
     }
     this.states.phase = current;
+    if (this.until.phase === this.states.phase) {
+      this.until.resolver();
+    }
     // Concat new step to switch to the 'stop promise'.
     this.states.currentPromise =
     this.states.currentPromise.catch((err) => {
@@ -47,6 +54,17 @@
     });
 
     return this;
+  };
+
+  /**
+   * Return a Promise that only be resolved when we get shifed to the
+   * target phase.
+   */
+  Process.prototype.until = function(phase) {
+    var promise = new Promise((res) => {
+      this.states.until.resolver = res;
+    });
+    return promise;
   };
 
   /**

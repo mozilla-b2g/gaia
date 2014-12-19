@@ -58,6 +58,10 @@
     return this;
   };
 
+  Stream.prototype.until = function(phase) {
+    return this.process.until(phase);
+  };
+
   /**
    * Only when all tasks passed in get resolved,
    * the process would go to the next.

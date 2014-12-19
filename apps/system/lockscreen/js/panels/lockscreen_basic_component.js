@@ -1,11 +1,13 @@
- /* global Stream */
+/* global exports */
+/* global Stream */
 'use strict';
 
-(function(exports) {
-  var LockScreenBasicComponent = function() {
+(function() {
+  var BasicComponent = function() {
     this.configs = {
       events: [],
-      interrupts: []
+      interrupts: [],
+      handler: this.handleEvent.bind(this)
     };
     this.states = {
       next: null
@@ -17,13 +19,13 @@
   /**
    * Process' status is the component's status.
    */
-  LockScreenBasicComponent.prototype.status =
+  BasicComponent.prototype.status =
   function() {
     return this.stream.status;
   };
 
-  LockScreenBasicComponent.prototype.start =
-  function(elements = {}, states = {}, components = {}) {
+  BasicComponent.prototype.start =
+  function(states = {}, components = {}, elements = {}) {
     // Query or get them from the previous state.
     this.setElements(elements);
     // Get from the previous state.
@@ -34,23 +36,28 @@
     this.configs.handler = this.handleEvent.bind(this);
     this.stream = new Stream(this.configs);
 
-    this.stream
-      .start()
-      .ready();
+    return this.stream.start().ready();
   };
 
-  LockScreenBasicComponent.prototype.stop = function() {
-    this.stream
-      .stop();
+  BasicComponent.prototype.stop = function() {
+    return this.stream.stop();
   };
 
-  LockScreenBasicComponent.prototype.destroy = function() {
-    this.process
-      .destroy();
+  BasicComponent.prototype.destroy = function() {
+    return this.stream.destroy();
   };
-  LockScreenBasicComponent.prototype.handleEvent = function() {};
 
-  LockScreenBasicComponent.prototype.setElements = function(elements) {
+  BasicComponent.prototype.live = function() {
+    return this.stream.until('stop');
+  };
+
+  BasicComponent.prototype.exist = function() {
+    return this.stream.until('destroy');
+  };
+
+  BasicComponent.prototype.handleEvent = function() {};
+
+  BasicComponent.prototype.setElements = function(elements) {
     if (!this.elements.view) {
       throw new Error(`Can't find the view in elements`);
     }
@@ -71,8 +78,8 @@
    * Can command all components with one method and its arguments.
    * For example, to 'start', or 'stop' them.
    */
-  LockScreenBasicComponent.prototype.waitComponents = function(method, args) {
-    var startPromises =
+  BasicComponent.prototype.waitComponents = function(method, args) {
+    var waitPromises =
     Object.keys(this.components).reduce((steps, name) => {
       var instance = this.components[name];
       // If the entry of the component actually contains multiple subcomponents.
@@ -87,16 +94,16 @@
         return steps.concat([instance[method].apply(instance, args)]);
       }
     });
-    return Promise.all(startPromises);
+    return Promise.all(waitPromises);
   };
 
-  LockScreenBasicComponent.prototype.transferTo = function(clazz) {
+  BasicComponent.prototype.transferTo = function(clazz) {
     this.states.next = new clazz();
     return this.states.next
-      .start(this.elements, this.states, this.components)
+      .start(this.states, this.components, this.elements)
       .next(this.destroy.bind(this));
   };
 
-  exports.LockScreenBasicComponent = LockScreenBasicComponent;
-})(window);
+  exports.BasicComponent = BasicComponent;
+})();
 
