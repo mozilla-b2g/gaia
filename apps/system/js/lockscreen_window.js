@@ -35,6 +35,8 @@
     this.lockScreenAgent = new LockScreenAgent(this.iframe);
     this.lockScreenAgent.start();
     AppWindow.call(this, this.configs);
+    // We assume this is synchronous so would not have the window without the
+    // LockScreen inside.
     window.dispatchEvent(new CustomEvent('lockscreen-frame-bootstrap'));
   };
 
@@ -253,6 +255,24 @@
           window.setInterval(tryLockOrientation, 4);
         // 4ms is the minimum interval according to W3C#setTimeout standard.
       }
+    };
+
+  LockScreenWindow.prototype.open =
+    function() {
+      if (!window.lockScreen) {
+        throw new Error('LockSreenWindow without lockScreen component');
+      }
+      window.lockScreen.locked = true;
+      AppWindow.prototype.open.apply(this, arguments);
+    };
+
+  LockScreenWindow.prototype.close =
+    function() {
+      if (!window.lockScreen) {
+        throw new Error('LockSreenWindow without lockScreen component');
+      }
+      window.lockScreen.locked = false;
+      AppWindow.prototype.close.apply(this, arguments);
     };
 
   exports.LockScreenWindow = LockScreenWindow;

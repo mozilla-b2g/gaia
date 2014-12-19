@@ -32,14 +32,7 @@
     * Boolean return true when initialized.
     */
     ready: false,
-
-    /*
-    * Boolean return the status of the lock screen.
-    * Must not multate directly - use unlock()/lockIfEnabled()
-    * Listen to 'lockscreen-appclosed/opening/opened' events to properly
-    * handle status changes
-    */
-    locked: true,
+    locked: false,
 
     /*
     * Boolean return whether if the lock screen is enabled or not.
@@ -664,15 +657,12 @@
   LockScreen.prototype.unlock =
   function ls_unlock(instant, detail) {
     var wasAlreadyUnlocked = !this.locked;
-    this.locked = false;
-
-    // The lockscreen will be hidden, stop refreshing the clock.
-    this.clock.stop();
-
     if (wasAlreadyUnlocked) {
       return;
     }
 
+    // The lockscreen will be hidden, stop refreshing the clock.
+    this.clock.stop();
     if (this.unlockSoundEnabled) {
       var unlockAudio = new Audio('/resources/sounds/unlock.opus');
       unlockAudio.play();
@@ -700,7 +690,6 @@
   LockScreen.prototype.lock =
   function ls_lock(instant) {
     var wasAlreadyLocked = this.locked;
-    this.locked = true;
 
     this.overlay.focus();
     this.overlay.classList.toggle('no-transition', instant);

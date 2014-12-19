@@ -143,4 +143,38 @@ suite('system/LockScreenWindow', function() {
     assert.equal(app.height, app.layoutHeight());
     window.lockScreenWindowManager = originalLockScreenWindowManager;
   });
+
+  test('Open window would set the lock flag as true', function() {
+    var originalLockScreen = window.lockScreen;
+    var originalAppWindow = window.AppWindow;
+    window.lockScreen = {
+      locked: false
+    };
+    window.AppWindow = {
+      close: function() {}
+    };
+    var method = window.LockScreenWindow.prototype.open;
+    method.apply({});
+    assert.isTrue(window.lockScreen.locked,
+      'it didn\'t touch the flag');
+    window.LockScreen = originalLockScreen;
+    window.AppWindow = originalAppWindow;
+  });
+
+  test('Close window would set the lock flag as false', function() {
+    var originalLockScreen = window.lockScreen;
+    var originalAppWindow = window.AppWindow;
+    window.lockScreen = {
+      locked: true
+    };
+    window.AppWindow = {
+      close: function() {}
+    };
+    var method = window.LockScreenWindow.prototype.close;
+    method.apply({});
+    assert.isFalse(window.lockScreen.locked,
+      'it didn\'t touch the flag');
+    window.LockScreen = originalLockScreen;
+    window.AppWindow = originalAppWindow;
+  });
 });
