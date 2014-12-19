@@ -45,7 +45,8 @@ define(function(require) {
       console.log('email: notifications not available');
       sendNotification = function() {};
     } else {
-      sendNotification = function(notificationId, title, body, iconUrl, data) {
+      sendNotification = function(notificationId, title, body,
+                                  iconUrl, data, behavior) {
         console.log('Notification sent for ' + notificationId);
 
         if (Notification.permission !== 'granted') {
@@ -58,7 +59,7 @@ define(function(require) {
 
         //TODO: consider setting dir and lang?
         //https://developer.mozilla.org/en-US/docs/Web/API/notification
-        var notification = new Notification(title, {
+        var notificationOptions = {
           body: body,
           icon: iconUrl,
           tag: notificationId,
@@ -66,7 +67,15 @@ define(function(require) {
           mozbehavior: {
             noscreen: true
           }
-        });
+        };
+
+        if (behavior) {
+          Object.keys(behavior).forEach(function(key) {
+            notificationOptions.mozbehavior[key] = behavior[key];
+          });
+        }
+
+        var notification = new Notification(title, notificationOptions);
 
         // If the app is open, but in the background, when the notification
         // comes in, then we do not get notifived via our mozSetMessageHandler
@@ -258,7 +267,7 @@ define(function(require) {
             return;
           }
 
-          var dataObject, subject, body,
+          var dataObject, subject, body, behavior,
               count = result.count,
               oldFromNames = [];
 
@@ -286,6 +295,19 @@ define(function(require) {
               count: count,
               fromNames: newFromNames
             };
+
+            // If already have a notification, then do not bother with sound or
+            // vibration for this update. Longer term, the notification standard
+            // will have a "silent" option, but using a non-existent URL as
+            // suggested in bug 1042361 in the meantime.
+            if (existingData && existingData.count) {
+              behavior = {
+                soundFile: 'does-not-exist-to-simulate-silent',
+                // Cannot use 0 since system/js/notifications.js explicitly
+                // ignores [0] values. [1] is good enough for this purpose.
+                vibrationPattern: [1]
+              };
+            }
 
             if (model.getAccountCount() === 1) {
               subject = mozL10n.get('new-emails-notify-one-account', {
@@ -332,7 +354,8 @@ define(function(require) {
             subject,
             body,
             iconUrl,
-            dataObject
+            dataObject,
+            behavior
           );
         });
 
