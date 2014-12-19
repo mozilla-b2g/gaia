@@ -1,6 +1,6 @@
 'use strict';
 
-/* global require, exports */
+/* global require, exports, quit */
 
 var utils = require('utils');
 var rebuild = require('rebuild');
@@ -71,9 +71,15 @@ function buildApps(options) {
         // A workaround for bug 1093267
         if (appDir.indexOf('communications') !== -1) {
           communications = spawnProcess('build-app', appOptions);
-          processes.push(communications);
+          processes.push({
+            name: 'communications',
+            content: communications
+          });
         } else {
-          processes.push(spawnProcess('build-app', appOptions));
+          processes.push({
+            name: appDirFile.leafName,
+            content: spawnProcess('build-app', appOptions)
+          });
         }
       } else {
         require('./build-app').execute(appOptions);
@@ -98,10 +104,24 @@ function buildApps(options) {
   utils.processEvents(function () {
     return {
       wait: processes.some(function(proc) {
-        return proc.isRunning;
+        return proc.content.isRunning;
       })
     };
   });
+
+  var failed = false;
+  processes.forEach(function(proc) {
+    var exitValue = proc.content.exitValue;
+    if (exitValue !== 0) {
+      failed = true;
+      utils.log('failed', 'building ' + proc.name +
+        ' app failed with exit code ' + exitValue);
+    }
+  });
+
+  if (failed) {
+    quit(1);
+  }
 }
 
 exports.execute = function(options) {
