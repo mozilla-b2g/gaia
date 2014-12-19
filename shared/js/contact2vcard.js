@@ -133,7 +133,7 @@
   }
 
   function toBlob(vcard) {
-    return new Blob([vcard], {'type': 'text/vcard'});
+    return new Blob([vcard], {'type': 'text/x-vcard'});
   }
 
   /**
