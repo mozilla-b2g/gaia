@@ -220,6 +220,7 @@
 
     finalize: function() {
       this.container.classList.remove('dragging');
+      this.container.classList.remove('hover-over-top');
       if (this.icon) {
         this.icon.element.removeEventListener('transitionend', this);
         this.icon = null;
