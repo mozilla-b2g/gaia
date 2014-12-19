@@ -82,9 +82,8 @@ define(function(require) {
     // the width *AND* height of the target viewport and has the
     // minimum delta pixel count compared to the target viewport.
     previewSizes.forEach(function(previewSize) {
-      // Only consider preview sizes that have a width *AND*
-      // height that are less-than or equal to the capture
-      // resolution's width and height.
+      // Ignore preview sizes that have a width *OR* height that
+      // are greater-than the capture resolution's width and height.
       if (resolution && (previewSize.width > resolution.width ||
                          previewSize.height > resolution.height))
       {
