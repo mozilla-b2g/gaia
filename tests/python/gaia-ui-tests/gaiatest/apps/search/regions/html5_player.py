@@ -111,12 +111,6 @@ class HTML5Player(PageRegion):
     def tap_full_screen(self):
         self.tap_video_control('fullscreenButton')
 
-    def is_video_playing(self):
-        # test that newer timestamp has greater value than previous one
-        tstart = self.current_timestamp
-        time.sleep(2)
-        return tstart < self.current_timestamp
-
     @property
     def current_timestamp(self):
         return float(self.root_element.get_attribute('currentTime'))
