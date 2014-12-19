@@ -596,36 +596,36 @@ var CallLogDBManager = {
    * _maxNumberOfGroups (most likely 1) plus _numberOfGroupsToDelete to make
    * some extra space.
    */
-  _keepDbPrettyAndFit: function _keepDbPrettyAndFit(callback) {
+  _keepDbPrettyAndFit: function _keepDbPrettyAndFit(txn, callback) {
     var self = this;
-    this._newTxn('readonly', this._dbGroupsStore, function(error, txn, store) {
-      if (error) {
-        return;
-      }
+    var store = txn.objectStore(this._dbGroupsStore);
+    var req = store.count();
 
-      var req = store.count();
-      req.onsuccess = function() {
-        var groupsToDelete = req.result - self._maxNumberOfGroups;
-        if (groupsToDelete > 0) {
-          groupsToDelete += self._numberOfGroupsToDelete;
-          var cursorReq = store.index('lastEntryDate').openCursor();
-          cursorReq.onsuccess = function() {
-            var cursor = cursorReq.result;
-            if (!cursor || !groupsToDelete) {
-              if (callback && callback instanceof Function) {
-                callback();
-              }
-              return;
-            }
-            groupsToDelete--;
-            self.deleteGroup(null, cursor.value.id);
-            cursor.continue();
-          };
-        } else if (callback && callback instanceof Function) {
-          callback();
-        }
-      };
-    });
+    req.onsuccess = function() {
+      var groupsToDelete = req.result - self._maxNumberOfGroups;
+
+      if (groupsToDelete > 0) {
+        groupsToDelete += self._numberOfGroupsToDelete;
+
+        var cursorReq = store.index('lastEntryDate').openCursor();
+        cursorReq.onsuccess = function() {
+          var cursor = cursorReq.result;
+
+          if (!cursor || !groupsToDelete) {
+            return;
+          }
+          groupsToDelete--;
+          self.deleteGroup(null, cursor.value.id);
+          cursor.continue();
+        };
+      }
+    };
+
+    txn.oncomplete = function() {
+      if (callback && callback instanceof Function) {
+        callback();
+      }
+    };
   },
   /**
    * Stores a new call in the database.
@@ -672,8 +672,12 @@ var CallLogDBManager = {
       groupsStore.get(groupId).onsuccess = function onsuccess() {
         var group = this.result;
         if (group) {
-          self._updateExistingGroup(group, recentCall, groupsStore, callback);
+          self._updateExistingGroup(group, recentCall, txn, callback);
         } else {
+          // When creating a new group we don't reuse the outer transaction for
+          // accessing the database as we need to do further asynchronous
+          // operations that would make it commit before we get a chance to
+          // use it again.
           self._createNewGroup(groupId, recentCall, callback);
         }
 
@@ -683,7 +687,15 @@ var CallLogDBManager = {
     });
   },
 
-  _updateExistingGroup: function(group, recentCall, groupsStore, callback) {
+  _updateExistingGroup: function(group, recentCall, txn, callback) {
+    var groupsStore = txn.objectStore(this._dbGroupsStore);
+    var groupObject;
+
+    txn.oncomplete = function() {
+      self._dispatchCallLogDbNewCall(groupObject);
+      self._asyncReturn(callback, groupObject);
+    };
+
     // Groups should have the date of the newest call.
     if (group.lastEntryDate <= recentCall.date) {
       group.lastEntryDate = recentCall.date;
@@ -698,9 +710,7 @@ var CallLogDBManager = {
     group.retryCount++;
     var self = this;
     groupsStore.put(group).onsuccess = function onsuccess() {
-      var groupObject = self._getGroupObject(group);
-      self._dispatchCallLogDbNewCall(groupObject);
-      self._asyncReturn(callback, groupObject);
+      groupObject = self._getGroupObject(group);
     };
   },
 
@@ -747,15 +757,31 @@ var CallLogDBManager = {
 
       self._newTxn('readwrite', [self._dbGroupsStore],
                    function(error, txn, store) {
-        store.add(group).onsuccess = function onsuccess() {
-          var groupObject = self._getGroupObject(group);
-          self._dispatchCallLogDbNewCall(groupObject);
+        if (error) {
+          self._asyncReturn(callback, error);
+          return;
+        }
 
-          // Once the group has successfully been added, we check that the
-          // db size is below the max size set.
-          self._keepDbPrettyAndFit(function() {
-            self._asyncReturn(callback, groupObject);
-          });
+        // We verify if the group was already added by another transaction
+        // before trying to add it again.
+        store.get(groupId).onsuccess = function onsuccess() {
+          if (this.result) {
+            return;
+          }
+
+          // For adding a call to the database we first create or update its
+          // corresponding group and then we store the actual call adding the id
+          // of the group where it belongs.
+          store.add(group).onsuccess = function onsuccess() {
+            var groupObject = self._getGroupObject(group);
+            self._dispatchCallLogDbNewCall(groupObject);
+
+            // Once the group has successfully been added, we check that the
+            // db size is below the max size set.
+            self._keepDbPrettyAndFit(txn, function() {
+              self._asyncReturn(callback, groupObject);
+            });
+          };
         };
       });
     });
@@ -803,9 +829,14 @@ var CallLogDBManager = {
         groupId = self._getGroupId(group);
       }
 
+      var deleted = 0;
+
+      txn.oncomplete = function() {
+        self._asyncReturn(callback, deleted);
+      };
+
       // We delete the given group and all its corresponding calls.
       groupsStore.delete(groupId).onsuccess = function onsuccess() {
-        var deleted = 0;
         recentsStore.index('groupId').openCursor(groupId)
                     .onsuccess = function onsuccess(event) {
           var cursor = event.target.result;
@@ -813,8 +844,6 @@ var CallLogDBManager = {
             cursor.delete();
             deleted++;
             cursor.continue();
-          } else {
-            self._asyncReturn(callback, deleted);
           }
         };
       };
@@ -882,10 +911,12 @@ var CallLogDBManager = {
       var recentsStore = stores[0];
       var groupsStore = stores[1];
 
+      txn.oncomplete = function() {
+        self._asyncReturn(callback);
+      };
+
       recentsStore.clear().onsuccess = function onsuccess() {
-        groupsStore.clear().onsuccess = function onsuccess() {
-          self._asyncReturn(callback);
-        };
+        groupsStore.clear();
       };
     });
   },
@@ -924,7 +955,7 @@ var CallLogDBManager = {
    *        Name of the store to be queried.
    * param callback
    *        Function to be called after getting the record list or when an
-   *        error is catched.
+   *        error is caught.
    * param sortedBy
    *        Field to sort by. Take into account that sorting by not indexed
    *        fields is quite slow.
@@ -941,6 +972,8 @@ var CallLogDBManager = {
    */
   _getList: function getList(storeName, callback, sortedBy, prev,
                              getCursor, limit) {
+    var results = [];
+
     if (!callback || !(callback instanceof Function)) {
       return;
     }
@@ -951,6 +984,16 @@ var CallLogDBManager = {
         callback(error);
         return;
       }
+
+      if (!getCursor) {
+        txn.oncomplete = function() {
+          callback(results);
+        };
+      }
+
+      txn.onerror = function(event) {
+        callback(event.target.error);
+      };
 
       var cursor = null;
       var direction = prev ? 'prev' : 'next';
@@ -964,12 +1007,14 @@ var CallLogDBManager = {
       } else {
         cursor = store.openCursor(null, direction);
       }
-      var result = [];
+
       cursor.onsuccess = function onsuccess(event) {
         var item = event.target.result;
 
-        if (item && getCursor) {
-          if (storeName === self._dbGroupsStore) {
+        if (getCursor) {
+          if (!item) {
+            callback({ value: null });
+          } else if (storeName === self._dbGroupsStore) {
             callback({
               value: self._getGroupObject(item.value),
               continue: function() { return item.continue(); }
@@ -978,24 +1023,17 @@ var CallLogDBManager = {
             callback(item);
           }
           return;
-        }
-
-        if (item && (typeof limit === 'undefined' || limit > 0)) {
+        } else if (item && (typeof limit === 'undefined' || limit > 0)) {
           if (storeName === self._dbGroupsStore) {
-            result.push(self._getGroupObject(item.value));
+            results.push(self._getGroupObject(item.value));
           } else {
-            result.push(item.value);
+            results.push(item.value);
           }
           if (limit) {
             limit--;
           }
           item.continue();
-        } else {
-          callback(result);
         }
-      };
-      cursor.onerror = function onerror(event) {
-        callback(event.target.error.name);
       };
     });
   },
@@ -1133,13 +1171,18 @@ var CallLogDBManager = {
       var groupId = self._getGroupId(recentCall);
       self._newTxn('readonly', self._dbGroupsStore,
       function(error, txn, groupsStore) {
-        groupsStore.get(groupId).onsuccess = function() {
-          var group = this.result;
-          if (!group) {
+        var group = null;
+
+        txn.oncomplete = function() {
+          if (group) {
+            resolve(self._getGroupObject(group));
+          } else {
             reject();
-            return;
           }
-          resolve(self._getGroupObject(group));
+        };
+
+        groupsStore.get(groupId).onsuccess = function() {
+          group = this.result;
         };
       });
     });
@@ -1219,6 +1262,8 @@ var CallLogDBManager = {
     var self = this;
     this._newTxn('readwrite', [this._dbGroupsStore],
                   function(error, txn, store) {
+      var result;
+
       if (error) {
         self._asyncReturn(callback, error);
         return;
@@ -1228,6 +1273,10 @@ var CallLogDBManager = {
         self._asyncReturn(callback, 0);
         return;
       }
+
+      txn.oncomplete = function() {
+        self._asyncReturn(callback, result);
+      };
 
       var count = 0;
       var req = store.index('number')
@@ -1259,12 +1308,12 @@ var CallLogDBManager = {
           count++;
           cursor.continue();
         } else {
-          self._asyncReturn(callback, count);
+          result = count;
           self._updateCacheRevision();
         }
       };
       req.onerror = function onerror(event) {
-        self._asyncReturn(callback, event.target.error.name);
+        result = event.target.error;
       };
     });
   },
@@ -1284,8 +1333,7 @@ var CallLogDBManager = {
    *        Function to be called after updating the group or when an error
    *        is found.
    *
-   * return (via callback) count of affected records or an error message if
-   *                       needed.
+   * return (via callback) nothing or an error message if needed.
    */
   removeGroupContactInfo: function removeGroupContactInfo(contactId,
                                                           group,
@@ -1306,6 +1354,14 @@ var CallLogDBManager = {
       }
 
       var count = 0;
+
+      txn.oncomplete = function() {
+        self._asyncReturn(callback, count);
+        self._updateCacheRevision();
+      };
+      txn.onerror = function(event) {
+        self._asyncReturn(callback, event.target.error);
+      };
 
       var req;
       if (contactId) {
@@ -1336,121 +1392,163 @@ var CallLogDBManager = {
           cursor.update(group);
           count++;
           cursor.continue();
-        } else {
-          self._asyncReturn(callback, count);
-          self._updateCacheRevision();
         }
-      };
-      req.onerror = function onerror(event) {
-        self._asyncReturn(callback, event.target.error.name);
       };
     });
   },
-  invalidateContactsCache: function invalidateContactsCache(callback) {
+
+  /**
+   * Returns a promise that when fullfilled returns an array holding all the
+   * groups in the call log.
+   *
+   * @return {Promise} A promise that is resolved to an array holding all the
+   *                  groups in the call log.
+   */
+  _gatherAllGroups: function _gatherAllGroups() {
     var self = this;
-    var waitForAsyncCall = 0;
-    var cursorDone = false;
 
-    function onContactsUpdated() {
-      if (!cursorDone || waitForAsyncCall) {
-        return;
-      }
-      self._asyncReturn(callback);
-      self._updateCacheRevision();
-    }
+    return new Promise(function(resolve, reject) {
+      var groups = []; // Used to accumulate all call log groups
 
-    this._newTxn('readonly', [this._dbGroupsStore],
-                  function(error, txn, store) {
-      if (error) {
-        self._asyncReturn(callback, error);
-        return;
-      }
-
-      var req = store.openCursor();
-      req.onsuccess = function onsuccess(event) {
-        var cursor = event.target.result;
-        if (!cursor) {
-          cursorDone = true;
-          onContactsUpdated();
+      /* Gather all the groups present in the call log and store them in an
+       * array; the promise will be resolved using the said array. */
+      self._newTxn('readonly', [self._dbGroupsStore],
+                    function(error, txn, store) {
+        if (error) {
+          reject(error);
           return;
         }
 
-        var group = cursor.value;
-        waitForAsyncCall++;
-        Contacts.findByNumber(group.number, function(contact, matchingTel) {
-          // We don't want to queue db transactions that won't update
-          // anything.
-          var needsUpdate = false;
-          if (!contact && !matchingTel) {
-            if (group.contactId) {
-              needsUpdate = true;
-              delete group.contactId;
-            }
-            if (group.contactPhoto) {
-              needsUpdate = true;
-              delete group.contactPhoto;
-            }
-            if (group.contactPrimaryInfo) {
-              needsUpdate = true;
-              delete group.contactPrimaryInfo;
-            }
-            if (group.contactMatchingTelType) {
-              needsUpdate = true;
-              delete group.contactMatchingTelType;
-            }
-            if (group.contactMatchingTelCarrier) {
-              needsUpdate = true;
-              delete group.contactMatchingTelCarrier;
-            }
-          } else {
-            group.contactId = contact.id;
-            var photo = ContactPhotoHelper.getThumbnail(contact);
-            if (photo && group.contactPhoto != photo) {
-              group.contactPhoto = photo;
-              needsUpdate = true;
-            }
-            var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel,
-                                                              contact);
-            if (Array.isArray(primaryInfo) && primaryInfo[0]) {
-              primaryInfo = primaryInfo[0];
-            }
-            if (group.contactPrimaryInfo != String(primaryInfo)) {
-              group.contactPrimaryInfo = String(primaryInfo);
-              needsUpdate = true;
-            }
-            if (Array.isArray(matchingTel.type) && matchingTel.type[0] &&
-                group.contactMatchingTelType != String(matchingTel.type[0])) {
-              group.contactMatchingTelType = String(matchingTel.type[0]);
-              needsUpdate = true;
-            }
-            if (matchingTel.carrier && group.contactMatchingTelCarrier !=
-                String(matchingTel.carrier)) {
-              group.contactMatchingTelCarrier = String(matchingTel.carrier);
-              needsUpdate = true;
-            }
+        txn.oncomplete = function() {
+          resolve(groups);
+        };
+        txn.onerror = function(event) {
+          reject(event.target.error);
+        };
+
+        var req = store.openCursor();
+        req.onsuccess = function onsuccess(event) {
+          var cursor = event.target.result;
+          if (!cursor) {
+            return;
           }
 
-          if (needsUpdate) {
-            self._newTxn('readwrite', [self._dbGroupsStore],
-                         function(error, txn, store) {
-              if (error) {
-                return;
-              }
-              store.put(group).onsuccess = function() {
-                waitForAsyncCall--;
-                onContactsUpdated();
-              };
-            });
-          } else {
-            waitForAsyncCall--;
-            onContactsUpdated();
+          groups.push(cursor.value);
+          cursor.continue();
+        };
+      });
+    });
+  },
+
+  /**
+   * Updates a group using the new contact information present in the contacts
+   * database. Returns a promise that is fullfilled with the updated group. If
+   * the group didn't need updating then the promise resolution will be null.
+   *
+   * @param {Object} group The group object to be updated.
+   *
+   * @return {Promise} A promise that is fullfilled with the updated group or
+   *         null if no update was necessary.
+   */
+  _updateGroup: function _updateGroup(group) {
+    return new Promise(function(resolve, reject) {
+      Contacts.findByNumber(group.number,
+      function update(contact, matchingTel) {
+        var needsUpdate = false;
+        if (!contact && !matchingTel) {
+          if (group.contactId) {
+            needsUpdate = true;
+            delete group.contactId;
           }
-        });
-        cursor.continue();
-      };
-      req.onerror = function onerror(event) {
-        self._asyncReturn(callback, event.target.error.name);
-      };
+          if (group.contactPhoto) {
+            needsUpdate = true;
+            delete group.contactPhoto;
+          }
+          if (group.contactPrimaryInfo) {
+            needsUpdate = true;
+            delete group.contactPrimaryInfo;
+          }
+          if (group.contactMatchingTelType) {
+            needsUpdate = true;
+            delete group.contactMatchingTelType;
+          }
+          if (group.contactMatchingTelCarrier) {
+            needsUpdate = true;
+            delete group.contactMatchingTelCarrier;
+          }
+        } else {
+          group.contactId = contact.id;
+          var photo = ContactPhotoHelper.getThumbnail(contact);
+          if (photo && group.contactPhoto != photo) {
+            group.contactPhoto = photo;
+            needsUpdate = true;
+          }
+          var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel,
+                                                            contact);
+          if (Array.isArray(primaryInfo) && primaryInfo[0]) {
+            primaryInfo = primaryInfo[0];
+          }
+          if (group.contactPrimaryInfo != String(primaryInfo)) {
+            group.contactPrimaryInfo = String(primaryInfo);
+            needsUpdate = true;
+          }
+          if (Array.isArray(matchingTel.type) && matchingTel.type[0] &&
+              group.contactMatchingTelType != String(matchingTel.type[0])) {
+            group.contactMatchingTelType = String(matchingTel.type[0]);
+            needsUpdate = true;
+          }
+          if (matchingTel.carrier && group.contactMatchingTelCarrier !=
+              String(matchingTel.carrier)) {
+            group.contactMatchingTelCarrier = String(matchingTel.carrier);
+            needsUpdate = true;
+          }
+        }
+
+        // If the group does not need updating do not return it
+        resolve(needsUpdate ? group : null);
+      });
+    });
+  },
+
+  invalidateContactsCache: function invalidateContactsCache(callback) {
+    var self = this;
+
+    this._gatherAllGroups().then(function(groups) {
+      var promises = [];
+
+      /* For each group gather the contact information and wheter or not it
+       * needs to be updated. Each query will resolve to either the updated
+       * group or null in case the group is up to date. */
+      for (var i = 0; i < groups.length; i++) {
+        promises.push(self._updateGroup(groups[i]));
+      }
+
+      return Promise.all(promises);
+    }).then(function(updatedGroups) {
+      /* Iterate over all groups and store those that have been updated. Once
+       * this is done update the cache revision and invoke the user provided
+       * callback to finish the procedure. */
+      self._newTxn('readwrite', [self._dbGroupsStore],
+                    function(error, txn, store) {
+        if (error) {
+          self._asyncReturn(callback, error);
+          return;
+        }
+
+        txn.oncomplete = function onContactsUpdated() {
+          self._updateCacheRevision();
+          self._asyncReturn(callback);
+        };
+        txn.onerror = function(event) {
+          self._asyncReturn(callback, event.target.error);
+        };
+
+        for (var i = 0; i < updatedGroups.length; i++) {
+          if (updatedGroups[i]) {
+            store.put(updatedGroups[i]);
+          }
+        }
+      });
     });
   }
 };
