@@ -2,7 +2,6 @@
 'use strict';
 
 var assert = require('assert');
-var Actions = require('marionette-client').Actions;
 
 var AppInstall =
   require('../../../../apps/system/test/marionette/lib/app_install');
@@ -28,7 +27,7 @@ marionette('Vertical - App uninstall while pending', function() {
   setup(function() {
     appInstall = new AppInstall(client);
 
-    actions = new Actions(client);
+    actions = client.loader.getActions();
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     selectors = home.Selectors;

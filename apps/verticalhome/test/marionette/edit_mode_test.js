@@ -1,7 +1,5 @@
 'use strict';
 
-var Actions = require('marionette-client').Actions;
-
 marionette('Vertical - Edit Mode', function() {
 
   var client = marionette.client(require(__dirname + '/client_options.js'));
@@ -9,7 +7,7 @@ marionette('Vertical - Edit Mode', function() {
   var selectors;
 
   setup(function() {
-    actions = new Actions(client);
+    actions = client.loader.getActions();
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     system.waitForStartup();

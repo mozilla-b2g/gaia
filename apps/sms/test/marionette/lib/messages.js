@@ -2,8 +2,6 @@
 (function(module) {
   'use strict';
 
-  var Actions = require('marionette-client').Actions;
-
   var ORIGIN_URL = 'app://sms.gaiamobile.org';
 
   var Chars = {
@@ -57,7 +55,7 @@
 
   module.exports = {
     create: function(client) {
-      var actions = new Actions(client);
+      var actions = client.loader.getActions();
 
       return {
         Composer: {

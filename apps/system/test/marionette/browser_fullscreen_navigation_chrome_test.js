@@ -1,7 +1,6 @@
 'use strict';
 
 var assert = require('assert');
-var Actions = require('marionette-client').Actions;
 var Rocketbar = require('./lib/rocketbar');
 var Server = require('../../../../shared/test/integration/server');
 
@@ -24,7 +23,7 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
   var halfScreenHeight;
 
   setup(function(done) {
-    actions = new Actions(client);
+    actions = client.loader.getActions();
     home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');

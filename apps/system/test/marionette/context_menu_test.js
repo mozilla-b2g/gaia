@@ -2,8 +2,6 @@
 
 'use strict';
 
-var Actions = require('marionette-client').Actions;
-
 var APP_NAME = 'contextmenuapp';
 var APP_HOST = APP_NAME + '.gaiamobile.org';
 var APP_URL = 'app://' + APP_HOST;
@@ -21,9 +19,10 @@ marionette('Test Context Menu Events', function() {
   opts.apps[APP_HOST] = __dirname + '/' + APP_NAME;
 
   var client = marionette.client(opts);
-  var actions = new Actions(client);
+  var actions;
 
   test('Test basic context menu functionality', function() {
+    actions = client.loader.getActions();
 
     // Launch test app
     client.apps.launch(APP_URL);
