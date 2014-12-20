@@ -6,5 +6,9 @@ var MockLazyLoader = {
     if (callback) {
       callback();
     }
+  },
+
+  getJSON: function(file) {
+    return Promise.resolve({});
   }
 };
