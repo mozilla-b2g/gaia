@@ -1,17 +1,14 @@
-/* global exports */
 /* global Stream */
 'use strict';
 
-(function() {
+(function(exports) {
   var LockScreenBasicComponent = function() {
     this.configs = {
       events: [],
       interrupts: [],
       handler: this.handleEvent.bind(this)
     };
-    this.states = {
-      next: null
-    };
+    this.states = {};
     this.elements = {};
     this.components = {};
   };
@@ -24,6 +21,12 @@
     return this.stream.status;
   };
 
+  /**
+   * For cache, start would receive information from the previous state
+   * or parent components. The caller can give it a reformed version of
+   * the 'states' inner data member it owns, rather than passing the
+   * original version.
+   */
   LockScreenBasicComponent.prototype.start =
   function(states = {}, components = {}, elements = {}) {
     // Query or get them from the previous state.
@@ -33,10 +36,12 @@
     // Only set it. Since only inherited one can know when to
     // start/stop components
     this.components = components;
-    this.configs.handler = this.handleEvent.bind(this);
     this.stream = new Stream(this.configs);
+    return this.stream.start();
+  };
 
-    return this.stream.start().ready();
+  LockScreenBasicComponent.prototype.ready = function() {
+    return this.stream.ready();
   };
 
   LockScreenBasicComponent.prototype.stop = function() {
@@ -97,13 +102,25 @@
     return Promise.all(waitPromises);
   };
 
+  /**
+   * The default transferring method.
+   * The next state should call 'this.states.previous.destroy' manually
+   * to destroy current state while the next one is ready.
+   *
+   * The order of transferring is:
+   *
+   *  [current.stop] -> [next.start] -> (call)[previous.destroy]
+   *
+   * When a component has been stopped, it would stop to handle events.
+   */
   LockScreenBasicComponent.prototype.transferTo = function(clazz) {
-    this.states.next = new clazz();
-    return this.states.next
-      .start(this.states, this.components, this.elements)
-      .next(this.destroy.bind(this));
+    var nextstate = new clazz();
+    this.states.previous = this;
+    return nextstate
+      .next(this.stop.bind(this))
+      .start(this.states, this.components, this.elements);
   };
 
   exports.LockScreenBasicComponent = LockScreenBasicComponent;
-})();
+})(window);
 

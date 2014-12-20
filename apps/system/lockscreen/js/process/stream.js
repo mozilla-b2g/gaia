@@ -1,4 +1,4 @@
-/* global Process */
+/* global Source, Process */
 
 'use strict';
 
@@ -9,12 +9,8 @@
       events: configs.events || [],
       interrupts: configs.interrupts || [],
       handler: configs.handler || (() => {}),
-      collector: configs.collector ||
-          (window.addEventListener.bind(window)),
-      decollector: configs.collector ||
-          (window.removeEventListener.bind(window)),
-      emitter: configs.emitter ||
-          (window.dispatchEvene.bind(window))
+      sources: configs.sources ||
+               [ new Source() ]
     };
     // Some API you just can't bind it with the object,
     // but a function.
@@ -32,22 +28,16 @@
   };
 
   Stream.prototype.ready = function() {
-    this.configs.events.forEach((ename) => {
-      this.configs.collector(ename, this.handleEvent);
-    });
-    this.configs.interrupts.forEach((iname) => {
-      this.configs.collector(iname, this.handleEvent);
+    this.configs.sources.forEach((source) => {
+      source.start(this.handleEvent);
     });
     return this;
   };
 
   Stream.prototype.stop = function() {
     this.process.stop();
-    this.configs.events.forEach((ename) => {
-      this.configs.decollector(ename, this.handleEvent);
-    });
-    this.configs.interrupts.forEach((iname) => {
-      this.configs.decollector(iname, this.handleEvent);
+    this.configs.sources.forEach((source) => {
+      source.stop();
     });
     return this;
   };
