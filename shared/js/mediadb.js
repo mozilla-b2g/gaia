@@ -543,6 +543,8 @@ var MediaDB = (function() {
         // the index name is also the keypath
         filestore.createIndex(indexName, indexName);
       });
+
+      var playlistStore = db.createObjectStore('playlists', { keyPath: 'name' });
     }
 
     // helper function to list all files and invoke callback with db, trans,
