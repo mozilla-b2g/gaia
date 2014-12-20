@@ -27,22 +27,8 @@
   pointer-events: auto;
 }
 
-#statusbar-maximized-wrapper {
-  opacity: 0;
-  visibility: hidden;
-}
-
-#statusbar-minimized-wrapper {
-  opacity: 0;
-  visibility: hidden;
-}
-
-#screen:not(.cards-view):not(.utility-tray) #statusbar.maximized #statusbar-maximized-wrapper,
-#screen:not(.cards-view):not(.utility-tray) #statusbar:not(.maximized) #statusbar-minimized-wrapper,
-#screen:not(.cards-view):not(.fullscreen-app):not(.fullscreen-layout-app) #statusbar.maximized #statusbar-maximized-wrapper,
-#screen:not(.cards-view):not(.fullscreen-app):not(.fullscreen-layout-app):not(.utility-tray) #statusbar:not(.maximized) #statusbar-minimized-wrapper,
-#screen.utility-tray #statusbar #statusbar-maximized-wrapper,
-#screen.locked #statusbar #statusbar-maximized-wrapper {
+#statusbar #statusbar-maximized-wrapper,
+#statusbar:not(.maximized) #statusbar-minimized-wrapper {
   opacity: 1;
   visibility: visible;
 }
@@ -55,12 +41,11 @@
   visibility: hidden;
 }
 
-#screen.locked #statusbar,
-#screen:not(.locked).utility-tray #statusbar {
-  visibility: visible;
-}
-
-#screen.cards-view #statusbar {
+#statusbar-maximized-wrapper,
+#statusbar-minimized-wrapper,
+#screen.cards-view #statusbar,
+#screen.cards-view #statusbar-maximized-wrapper,
+#screen.cards-view #statusbar-minimized-wrapper {
   opacity: 0;
   visibility: hidden;
 }
