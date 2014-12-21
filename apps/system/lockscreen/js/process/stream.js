@@ -12,9 +12,6 @@
       sources: configs.sources ||
                [ new Source() ]
     };
-    // Some API you just can't bind it with the object,
-    // but a function.
-    this.handleEvent = this.handleEvent.bind(this);
   };
 
   Stream.prototype.status = function() {
@@ -57,6 +54,14 @@
     return this;
   };
 
+  /**
+   * Return a Promise get resolved when the stream turn to
+   * the specific phase. For example:
+   *
+   *    stream.until('stop')
+   *          .then(() => { console.log('stream stopped') });
+   *    stream.start();
+   */
   Stream.prototype.until = function(phase) {
     return this.process.until(phase);
   };
@@ -70,6 +75,10 @@
     return this;
   };
 
+  /**
+   * It would receive events from Source, and than queue or not queue
+   * it, depends on whether the event is an interrupt.
+   */
   Stream.prototype.handleEvent = function(evt) {
     if ('start' !== this.process.states.phase) {
       return this;

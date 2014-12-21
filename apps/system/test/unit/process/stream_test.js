@@ -16,7 +16,9 @@ suite('Stream > ', function() {
     var stream = new Stream({
       events: ['foo'],
       interrupts: ['bar'],
-      handler: stubHandler
+      handler: stubHandler,
+      // Don't need it because we call handleEvent in test.
+      sources: []
     });
     stream
       .start()
@@ -56,7 +58,8 @@ suite('Stream > ', function() {
     var stream = new Stream({
       events: ['foo'],
       interrupts: ['bar'],
-      handler: stubHandler
+      handler: stubHandler,
+      sources: []
     });
     stream
       .start()

@@ -14,15 +14,17 @@
       decollector: configs.collector ||
           (window.removeEventListener.bind(window)),
       emitter: configs.emitter ||
-          (window.dispatchEvene.bind(window))
+          (window.dispatchEvent.bind(window))
     };
     this.states = {
-      target: null,
+      target: null, // The forwarding target.
       timer: {
         id: null,
         times: null
       }
     };
+    // Some API you just can't bind it with the object,
+    // but a function.
     this.handleEvent = this.handleEvent.bind(this);
   };
 
@@ -30,6 +32,7 @@
     this.configs.events.forEach((ename) => {
       this.configs.collector(ename, this.handleEvent);
     });
+    this.states.target = target;
     return this;
   };
 
@@ -46,10 +49,23 @@
     return this;
   };
 
+  /**
+   * For forwarding to the target.
+   */
   Source.prototype.handleEvent = function(evt) {
     if (this.states.target) {
       this.states.target(evt);
     }
+  };
+
+  /**
+   * The default collectors/decollectors/emitter are for
+   * the window.Events. This is for the builder inferfaces.
+   */
+  Source.events = function(enames) {
+    return new Source({
+      events: enames
+    });
   };
 
   /**
@@ -75,9 +91,21 @@
   /**
    * Trigger [ename] with details from [generator] every [interval] ms.
    * If [times] is omitted it would fire the event permanently.
+   *
+   * The [generator] would receive 'Date.now' as it's argument.
    */
   Source.timer = function(ename, generator, interval, times) {
+    if (times && 0 >= times) {
+      throw new Error(`Disallow times <= 0: ${times}`);
+    }
     // Timer is a special case: we don't bind any external inputs/outputs.
+    var fireEvent = (handler) => {
+      var pod = {
+        'type': ename,  // ename === etype
+        'details': generator(Date.now())
+      };
+      handler(pod);
+    };
     var source = new Source({
       events: [ename],
       collector: (etype, handler) => {
@@ -86,15 +114,10 @@
             window.clearInterval(source.states.timer.id);
           } else if (times) {
             source.states.timer.times --;
+            fireEvent(handler);
           } else {
-            window.clearInterval(source.states.timer.id);
+            fireEvent(handler);  // No clear.
           }
-          // At least fire once.
-          var pod = {
-            'type': ename,  // ename === etype
-            'details': generator()
-          };
-          handler(pod);
         }, interval);
       },
       decollector: () => {
@@ -102,6 +125,8 @@
       },
       emitter: () => {}
     });
+    source.states.timer.times = times;
+    return source;
   };
 
   exports.Source = Source;
