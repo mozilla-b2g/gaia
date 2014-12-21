@@ -4,9 +4,13 @@
 (function(exports) {
   var LockScreenBasicComponent = function() {
     this.configs = {
-      events: [],
-      interrupts: [],
-      handler: this.handleEvent.bind(this)
+      stream: {
+        events: [],
+        interrupts: [],
+        handler: this.handleEvent.bind(this),
+        sources: []  // Must contain sources before start.
+                     // Unless this state is not an event-driven state.
+      }
     };
     this.states = {};
     this.elements = {};
@@ -14,7 +18,7 @@
   };
 
   /**
-   * Process' status is the component's status.
+   * Stream' status is the component's status.
    */
   LockScreenBasicComponent.prototype.status =
   function() {
@@ -36,7 +40,7 @@
     // Only set it. Since only inherited one can know when to
     // start/stop components
     this.components = components;
-    this.stream = new Stream(this.configs);
+    this.stream = new Stream(this.configs.stream);
     return this.stream.start();
   };
 

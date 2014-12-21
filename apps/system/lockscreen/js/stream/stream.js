@@ -8,10 +8,16 @@
     this.configs = {
       events: configs.events || [],
       interrupts: configs.interrupts || [],
-      handler: configs.handler || (() => {}),
-      sources: configs.sources ||
-               [ new Source() ]
+      handler: configs.handler || (() => {})
     };
+    if (configs.sources) {
+      this.configs.sources = configs.sources;
+    } else {
+      this.configs.sources = [
+        Source.events(this.configs.events.concat(
+          this.configs.interrupts))
+      ];
+    }
   };
 
   Stream.prototype.status = function() {

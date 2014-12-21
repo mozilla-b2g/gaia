@@ -5,8 +5,8 @@
  * Since Stream is just wrapping Process, so we could test both of them
  * at the same time.
  **/
-requireApp('system/lockscreen/js/process/process.js');
-requireApp('system/lockscreen/js/process/stream.js');
+requireApp('system/lockscreen/js/stream/process.js');
+requireApp('system/lockscreen/js/stream/stream.js');
 
 suite('Stream > ', function() {
   test(`stream would only handle events after it's ready,

@@ -2,7 +2,7 @@
 
 /* global Process */
 
-requireApp('system/lockscreen/js/process/process.js');
+requireApp('system/lockscreen/js/stream/process.js');
 
 suite('Process > ', function() {
   test(`Would execute steps until it get shifted`, function(done) {

@@ -1,3 +1,4 @@
+/* global Source */
 /* global LockScreenBasicComponent, LockScreenClockWidgetStop */
 'use strict';
 
@@ -14,8 +15,10 @@
   var LockScreenClockWidgetStart = function() {
     LockScreenBasicComponent.apply(this);
     this.configs = {
-      events: ['screenchange'],
-      interval: 60000 // Tick interval: update clock every minute.
+      stream: {
+        events: ['screenchange'],
+        interval: 60000 // Tick interval: update clock every minute.
+      }
     };
     this.states = {
       properties: null,
@@ -27,6 +30,10 @@
       time: '#lockscreen-clock-time',
       date: '#lockscreen-clock-date'
     };
+    this.configs.stream.sources = [
+      Source.events(this.configs.stream.events)
+      //TODO: mozSettings since even unlocked, settings change
+    ];
   };
 
   /**

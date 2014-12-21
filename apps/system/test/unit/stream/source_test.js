@@ -5,7 +5,7 @@
  * To test if Source can really register the events and forward to
  * the target handler.
  **/
-requireApp('system/lockscreen/js/process/source.js');
+requireApp('system/lockscreen/js/stream/source.js');
 
 suite('Source > ', function() {
 
