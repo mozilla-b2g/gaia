@@ -4,7 +4,6 @@ var TextSelection = require('./text_selection');
 
 function FakeTextSelectionApp(client) {
   this.client = client;
-  this.actions = client.loader.getActions();
 
   this.client.apps.launch(FakeTextSelectionApp.ORIGIN);
   this.client.apps.switchToApp(FakeTextSelectionApp.ORIGIN);
@@ -32,55 +31,65 @@ FakeTextSelectionApp.prototype = {
   },
 
   get centerInput() {
-    return {
-      location: this._getLocation('centerInput')
-    };
+    return this._getElement('centerInput');
   },
 
   get bottomLeftInput() {
-    return {
-      location: this._getLocation('bottomLeftInput')
-    };
+    return this._getElement('bottomLeftInput');
   },
 
   get bottomRightInput() {
-    return {
-      location: this._getLocation('bottomRightInput')
-    };
+    return this._getElement('bottomRightInput');
   },
 
   get topLeftInput() {
-    return {
-      location: this._getLocation('topLeftInput')
-    };
+    return this._getElement('topLeftInput');
   },
 
   get topRightInput() {
-    return {
-      location: this._getLocation('topRightInput')
-    };
+    return this._getElement('topRightInput');
   },
 
-  _getLocation: function(target) {
-    return this.client.helper.waitForElement(
-      FakeTextSelectionApp.Selector[target]).location();
+  _getElement: function(target) {
+    var element = this.client.helper.waitForElement(
+      FakeTextSelectionApp.Selector[target]);
+    element.location = element.location();
+    return element;
   },
 
   /**
    *
    * Show text selection dialog on element.
-   *
-   * HACKING: We need to remove it once gecko is ready.
-   * XXXX: this function will mock mozChromeEvent event to simulate gecko
-   *       has successfully select content and trigger text_selection_dialog
-   *       displaying.
    *       
    * @param {String} ele query string of dom element.
    */
-  press: function(target) {
+  longPress: function(target) {
     var dom = this.client.helper.waitForElement(
       FakeTextSelectionApp.Selector[target]);
     // wait for keyboard showing up first
-    this.actions.tap(dom, 10, 10).wait(2).longPress(dom, 2).perform();
+    this.textSelection.longPress(dom);
+  },
+
+  // Copy element from fromEle and paste it to toEle.
+  copyTo: function(fromEle, toEle) {
+    this.longPress(fromEle);
+    this.textSelection.pressCopy();
+    this.longPress(toEle);
+    this.textSelection.pressPaste();
+  },
+
+  // Cut element from fromEle and paste it to toEle.
+  cutTo: function(fromEle, toEle) {
+    this.longPress(fromEle);
+    this.textSelection.pressCut();
+    this.longPress(toEle);
+    this.textSelection.pressPaste();
+  },
+
+  // Select all of ele and cut it.
+  selectAllAndCut: function(ele) {
+    this.longPress(ele);
+    this.textSelection.pressSelectAll();
+    this.textSelection.pressCut();
   }
 };

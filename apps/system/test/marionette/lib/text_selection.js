@@ -1,14 +1,20 @@
 'use strict';
 
+var Actions = require('marionette-client').Actions;
 function TextSelection(client) {
   this.client = client;
   this._activeContent = null;
+  this.actions = new Actions(this.client);
 }
 
 module.exports = TextSelection;
 
 TextSelection.Selector = Object.freeze({
-  textSelectionDialog: '.textselection-dialog'
+  textSelectionDialog: '.textselection-dialog',
+  copy: '.textselection-dialog .textselection-dialog-copy',
+  paste: '.textselection-dialog .textselection-dialog-paste',
+  cut: '.textselection-dialog .textselection-dialog-cut',
+  selectall: '.textselection-dialog .textselection-dialog-selectall'
 });
 
 TextSelection.prototype = {
@@ -58,5 +64,33 @@ TextSelection.prototype = {
       return displayApp;
     }.bind(this));
     return displayApp;
+  },
+
+  longPress: function(element) {
+    this.actions.tap(element, 10, 10).wait(2).longPress(element, 2).perform();
+  },
+
+  pressCopy: function() {
+    this.client.switchToFrame();
+    this.client.helper.waitForElement(TextSelection.Selector.copy).tap();
+    this.client.apps.switchToApp(this._getDisplayedAppInfo().origin);
+  },
+
+  pressCut: function() {
+    this.client.switchToFrame();
+    this.client.helper.waitForElement(TextSelection.Selector.cut).tap();
+    this.client.apps.switchToApp(this._getDisplayedAppInfo().origin);
+  },
+
+  pressPaste: function() {
+    this.client.switchToFrame();
+    this.client.helper.waitForElement(TextSelection.Selector.paste).tap();
+    this.client.apps.switchToApp(this._getDisplayedAppInfo().origin);
+  },
+
+  pressSelectAll: function() {
+    this.client.switchToFrame();
+    this.client.helper.waitForElement(TextSelection.Selector.selectall).tap();
+    this.client.apps.switchToApp(this._getDisplayedAppInfo().origin);
   }
 };
