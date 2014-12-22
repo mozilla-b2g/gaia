@@ -76,15 +76,15 @@ var ActivityHandler = {
   },
 
   /**
-  * Finds a contact from a number or email address.
+  * Finds a contact from a number.
   * Returns a promise that resolve with a contact
   * or is rejected if not found
   * @returns Promise that resolve to a
   * {number: String, name: String, source: 'contacts'}
   */
-  _findContactByTarget: function findContactByTarget(target) {
+  _findContactByNumber: function findContactByNumber(number) {
     var deferred = Utils.Promise.defer();
-    Contacts.findByAddress(target, (results) => {
+    Contacts.findByPhoneNumber(number, (results) => {
       var record, name, contact;
 
       // Bug 867948: results null is a legitimate case
@@ -92,7 +92,7 @@ var ActivityHandler = {
         record = results[0];
         name = record.name.length && record.name[0];
         contact = {
-          number: target,
+          number: number,
           name: name,
           source: 'contacts'
         };
@@ -100,7 +100,7 @@ var ActivityHandler = {
         deferred.resolve(contact);
         return;
       }
-      deferred.reject(new Error('No contact found with target: ' + target));
+      deferred.reject(new Error('No contact found with number: ' + number));
       return;
 
     });
@@ -119,7 +119,7 @@ var ActivityHandler = {
 
     var viewInfo = {
       body: activity.source.data.body,
-      number: activity.source.data.target || activity.source.data.number,
+      number: activity.source.data.number,
       contact: null,
       threadId: null
     };
@@ -131,7 +131,7 @@ var ActivityHandler = {
         viewInfo.threadId = threadId;
       },
       function onReject() {
-        return ActivityHandler._findContactByTarget(viewInfo.number)
+        return ActivityHandler._findContactByNumber(viewInfo.number)
           .then( (contact) => viewInfo.contact = contact);
       }
     )
