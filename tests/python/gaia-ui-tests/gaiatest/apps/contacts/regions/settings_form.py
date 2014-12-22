@@ -24,6 +24,7 @@ class SettingsForm(Base):
     _export_to_sim_button_locator = (By.CSS_SELECTOR, '#export-options button.icon-sim')
     _import_contacts_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="importContactsButton"]')
     _export_contacts_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="exportContactsButton"]')
+    _delete_contacts_locator = (By.ID, 'bulkDelete')
     _gmail_contacts_imported_locator = (By.CSS_SELECTOR, '.icon.icon-gmail > p > span')
     _gmail_import_option_locator = (By.ID, 'import-gmail-option')
     _import_settings_locator = (By.ID, 'import-settings')
@@ -63,6 +64,14 @@ class SettingsForm(Base):
         export_contacts.tap()
         import_settings = self.marionette.find_element(*self._import_settings_locator)
         Wait(self.marionette).until(lambda m: import_settings.location['x'] == 0)
+
+    def tap_delete_contacts(self):
+        delete_contacts = Wait(self.marionette).until(
+            expected.element_present(*self._delete_contacts_locator))
+        Wait(self.marionette).until(expected.element_displayed(delete_contacts))
+        delete_contacts.tap()
+        select_contacts = self.marionette.find_element(*self._select_contacts_locator)
+        Wait(self.marionette).until(lambda m: select_contacts.location['y'] == 0)
 
     def tap_import_from_sim(self):
         import_from_sim = Wait(self.marionette).until(

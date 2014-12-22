@@ -21,12 +21,11 @@ class Contacts(Base):
     _favorites_list_locator = (By.ID, 'contacts-list-favorites')
     _select_all_wrapper_locator = (By.ID, 'select-all-wrapper')
     _select_all_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="selectAll"]')
-    _export_button_locator = (By.ID, 'select-action')
+    _select_action_button_locator = (By.ID, 'select-action')
     _status_message_locator = (By.ID, 'statusMsg')
-
+    _confirm_delete_locator = (By.CSS_SELECTOR, 'button.danger[data-l10n-id="delete"]')
+    _no_contacts_message_locator = (By.CSS_SELECTOR, '*[data-l10n-id="no-contacts"]')
     _group_container_selector = "#groups-container"
-
-    #  contacts
     _contact_locator = (By.CSS_SELECTOR, 'li[data-uuid]:not([data-group="ice"])')
 
     def launch(self):
@@ -92,7 +91,20 @@ class Contacts(Base):
         self.marionette.find_element(*self._select_all_button_locator).tap()
 
     def tap_export(self):
-        self.marionette.find_element(*self._export_button_locator).tap()
+        self._tap_action_button()
+
+    def tap_delete(self):
+        self._tap_action_button()
+
+    def _tap_action_button(self):
+        # The same button is used to do bulk operations (like delete or export). The displayed string changes though.
+        # Hence, let's define more semantically explicit functions.
+        self.marionette.find_element(*self._select_action_button_locator).tap()
+
+    def tap_confirm_delete(self):
+        delete_button = Wait(self.marionette).until(expected.element_present(*self._confirm_delete_locator))
+        Wait(self.marionette).until(expected.element_displayed(delete_button))
+        delete_button.tap()
 
     @property
     def is_favorites_list_displayed(self):
@@ -104,6 +116,10 @@ class Contacts(Base):
             *self._status_message_locator))
         Wait(self.marionette).until(expected.element_displayed(status))
         return status.text
+
+    @property
+    def is_no_contacts_message_displayed(self):
+        return self.marionette.find_element(*self._no_contacts_message_locator).is_displayed()
 
     class Contact(PageRegion):
 
