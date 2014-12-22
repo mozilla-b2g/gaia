@@ -1,4 +1,5 @@
 /* global Stream */
+/* global LockScreenBasicComponentHalt */
 'use strict';
 
 (function(exports) {
@@ -143,6 +144,14 @@
     return nextState
       .next(this.stop.bind(this))
       .start(this.states, this.components, this.elements);
+  };
+
+  /**
+   * Transfer to the final state. Every state should be able to directly
+   * move to this state.
+   */
+  LockScreenBasicComponent.prototype.halt = function() {
+    this.transferTo(LockScreenBasicComponentHalt);
   };
 
   exports.LockScreenBasicComponent = LockScreenBasicComponent;

@@ -1,5 +1,5 @@
 /* global Source */
-/* global LockScreenBasicComponent, LockScreenClockWidgetHalt */
+/* global LockScreenBasicComponent, LockScreenClockWidgetSuspend */
 'use strict';
 
 /**
@@ -83,7 +83,7 @@
     switch (evt.type) {
       case 'screenchange':
         if (!evt.screenEnabled) {
-          return this.transferToHaltState();
+          return this.transferToSuspendState();
         }
         break;
       case 'timeformatchange':
@@ -96,9 +96,9 @@
     }
   };
 
-  LockScreenClockWidgetTick.prototype.transferToHaltState =
+  LockScreenClockWidgetTick.prototype.transferToSuspendState =
   function() {
-    return this.transferTo(LockScreenClockWidgetHalt);
+    return this.transferTo(LockScreenClockWidgetSuspend);
   };
   exports.LockScreeClockWidgetTick = LockScreenClockWidgetTick;
 })(window);

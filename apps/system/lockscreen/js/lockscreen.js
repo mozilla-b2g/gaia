@@ -648,8 +648,10 @@
     // Halt the children widget(s).
     // As a parent component, LockScreen *knows* it's in
     // ClockTick state, which can transfer to the halting state
-    // to stop the widget.
-    this.lockScreenClockWidget.transferToClockHalt();
+    // to stop the widget. And, children's methods should be
+    // transparent to parent component, so that parent components
+    // can control the widgets thoroughly.
+    this.lockScreenClockWidget.halt();
 
     if (this.unlockSoundEnabled) {
       var unlockAudio = new Audio('/resources/sounds/unlock.opus');
