@@ -41,12 +41,8 @@ section {
   display: none;
 }
 
-#thumbnails-list-top {
-  display: none;
-}
-
 /* All of the main views fill the screen */
-#thumbnail-list-view, #thumbnail-select-view, #fullscreen-view, #pick-view, #edit-view, #crop-view {
+#fullscreen-view, #edit-view, #crop-view, #thumbnail-views {
   position: absolute;
   top: 0;
   left: 0;
@@ -60,13 +56,36 @@ section {
   display: none;
 }
 
-body.thumbnailListView #thumbnail-list-view,
-body.thumbnailSelectView #thumbnail-select-view,
+#thumbnail-views > gaia-header {
+  position: absolute;
+  width: 100%;
+  top: 0;
+}
+
+/* Bug 1111735 - !important is needed because of the shadow CSS polyfill */
+.thumbnails-list, .thumbnails-select, .thumbnails-pick {
+  /* display will be determined by LAYOUT_MODE */
+  display: none !important;
+}
+
+body.thumbnailListView .thumbnails-list,
+body.thumbnailSelectView .thumbnails-select,
+body.pickView .thumbnails-pick {
+  display: block !important;
+}
+
+body.thumbnailListView #thumbnail-views,
+body.thumbnailSelectView #thumbnail-views,
+body.pickView #thumbnail-views,
 body.fullscreenView #fullscreen-view,
-body.pickView #pick-view,
 body.editView #edit-view,
 body.cropView #crop-view {
   display: block;
+}
+
+/* Header in default thumbnail list in tablets only, see gallery_tablet.css */
+body.thumbnailListView #thumbnails-list-top {
+  display: none !important;
 }
 
 /*

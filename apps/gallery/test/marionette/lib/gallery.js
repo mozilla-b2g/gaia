@@ -21,7 +21,7 @@ Gallery.ORIGIN = 'app://gallery.gaiamobile.org';
 Gallery.Selector = Object.freeze({
   thumbnail: '.thumbnail',
   fullscreenView: '#fullscreen-view',
-  thumbnailsView: '#thumbnail-list-view',
+  thumbnailsView: '#thumbnail-views > footer.thumbnails-list',
   thumbnailsSelectButton: '#thumbnails-select-button',
   thumbnailsDeleteButton: '#thumbnails-delete-button',
   fullscreenBackButton: '#fullscreen-back-button-tiny',
