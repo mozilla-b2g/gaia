@@ -1,5 +1,8 @@
 html {
   font-size: 10px;
+  /* We have Fira Sans as default font in real device. But it isn't default in
+   * browser. That's the main reason this line is here.*/
+  font-family: "Fira Sans";
 }
 
 html, body {
@@ -43,7 +46,7 @@ section {
 
 #app-deck-header {
   max-width: 120rem;
-  height: 20.92vh;
+  height: 22.6rem;
   display: inline-block;
 }
 
@@ -59,12 +62,12 @@ section {
   font-size: 2.4rem;
   font-style: italic;
   height: 3.6rem;
-  margin-top: -4vh;
+  margin-top: -3rem;
 }
 
 #app-deck-list-frame {
   width: 100%;
-  height: 24.26vh;
+  height: 26.2rem;
   overflow: hidden;
 }
 
@@ -77,46 +80,46 @@ section {
 .app-banner {
   display: inline-block;
   background-color: #999;
-  width: 35.55vh;
-  height: 20.18vh;
-  margin: 2.03vh 0;
+  width: 38.4rem;
+  height: 21.8rem;
+  margin: 2.2rem 1.4rem;
   left: 0;
   position: absolute;
 }
 
 #app-deck-grid-view-container {
   width: 100%;
-  height: auto;
+  height: calc(100% - 48.8rem);
+  background-color: #e0e0e0;
 }
 
 #app-deck-grid-view {
-  margin: 5.55vh 6.04vw 0 6.04vw;
+  /* top = (6 - 5.8)rem, left = right = (14.2 - 2.6)rem */
+  padding: 0.2rem 11.6rem 0 11.6rem;
+  height: 100%;
+  overflow-y: scroll;
 }
 
-.app {
-  position: relative;
-  display: inline-block;
-  overflow: hidden;
-  width: 10vw;
-  height: 10vw;
-  border-radius: 50%;
-  margin: 2.4vw 1.5vh 2.4vw 1.5vh;
-  background-position: 50% 50%;
+smart-button[type="app-button"] {
+  width: 18rem;
+  height: 18rem;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  margin: 5.8rem 2.6rem 2.9rem 2.6rem;
   background-size: 100% auto;
 }
 
-.app-name {
-  display: inline-block;
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 30%;
-  text-align: center;
-  background-color: rgba(64, 64, 64, 0.3);
-  color: #fff;
-  padding-top: 5%;
+smart-button[type="app-button"].fullsized {
+  background-size: 18rem auto;
 }
 
-.app-name-text {
-  font-size: 2.8rem;
+smart-button[type="app-button"].fitted {
+  background-size: 12rem auto;
+}
+
+/** we use :after as label */
+smart-button[type="app-button"]:after {
+  width: 18rem;
+  height: 5rem;
+  background-color: rgba(64, 64, 64, 0.3);
 }
