@@ -367,7 +367,28 @@ var CallHandler = (function callHandler() {
     // Dialing a specific number
     if (isAtd && command[3] !== '>') {
       var phoneNumber = command.substring(3);
-      CallHandler.call(phoneNumber);
+      LazyLoader.load(['/shared/js/sim_settings_helper.js'], function() {
+        SimSettingsHelper.getCardIndexFrom('outgoingCall',
+        function(defaultCardIndex) {
+          if (defaultCardIndex === SimSettingsHelper.ALWAYS_ASK_OPTION_VALUE) {
+            LazyLoader.load(['/shared/js/component_utils.js',
+                             '/shared/elements/gaia_sim_picker/script.js'],
+            function() {
+              var simPicker = document.getElementById('sim-picker');
+              simPicker.getOrPick(defaultCardIndex, phoneNumber, function(ci) {
+                CallHandler.call(phoneNumber, ci);
+              });
+              // Show the dialer so the user can select the SIM.
+              navigator.mozApps.getSelf().onsuccess = function(selfEvt) {
+                var app = selfEvt.target.result;
+                app.launch('dialer');
+              };
+            });
+          } else {
+            CallHandler.call(phoneNumber, defaultCardIndex);
+          }
+        });
+      });
       return;
     }
 
@@ -378,7 +399,19 @@ var CallHandler = (function callHandler() {
       position, 'lastEntryDate', true, 'dialing',
     function(result) {
       if (result && (typeof result === 'object') && result.number) {
-        CallHandler.call(result.number);
+        LazyLoader.load(['/shared/js/sim_settings_helper.js'], function() {
+          SimSettingsHelper.getCardIndexFrom('outgoingCall', function(ci) {
+            // If the default outgoing call SIM is set to "Always ask", or is
+            // unset, we place this call on the SIM that was used the last time
+            // we were in a phone call with this number/contact.
+            if (ci === undefined || ci === null ||
+                ci == SimSettingsHelper.ALWAYS_ASK_OPTION_VALUE) {
+              ci = result.serviceId;
+            }
+
+            CallHandler.call(result.number, ci);
+          });
+        });
       } else {
         console.log('Could not get the group at: ' + position +
                     '. Error: ' + result);
