@@ -4,7 +4,6 @@ define(function(require) {
 var Calc = require('calc');
 var EventMutations = require('event_mutations');
 var Factory = require('test/support/factory');
-var Timespan = require('timespan');
 
 suite('EventMutations', function() {
   var subject;
@@ -55,30 +54,6 @@ suite('EventMutations', function() {
     );
   });
 
-  var addTime;
-  var addEvent;
-  var removeTime;
-
-  setup(function() {
-    addTime = null;
-    addEvent = null;
-    removeTime = null;
-
-    var span = new Timespan(0, Infinity);
-    controller.observe();
-    controller.observeTime(span, function(e) {
-      switch (e.type) {
-        case 'add':
-          addTime = e.data;
-          addEvent = controller._eventsCache[addTime.eventId];
-          break;
-        case 'remove':
-          removeTime = e.data;
-          break;
-      }
-    });
-  });
-
   suite('#create', function() {
 
     var event;
@@ -107,14 +82,6 @@ suite('EventMutations', function() {
       });
 
       mutation.commit(done);
-
-      // verify that we sent to controller
-      assert.ok(addEvent, 'sent controller event');
-      assert.ok(addTime, 'sent controller time');
-
-      // check we sent the right event over.
-      assert.hasProperties(addEvent, event, 'controller event');
-      assert.equal(addTime.eventId, event._id, 'controller time');
     });
 
     test('event', function(done) {
@@ -211,21 +178,7 @@ suite('EventMutations', function() {
         icalComponent: component
       });
 
-      addTime = addEvent = removeTime = null;
       mutation.commit(done);
-    });
-
-    test('controller events', function() {
-      // verify we sent the controller stuff before
-      // fully sending to the db.
-      assert.ok(addTime, 'controller time');
-      assert.ok(addEvent, 'controller event');
-      assert.ok(removeTime, 'controller removed time');
-
-      assert.hasProperties(addTime, {
-        start: event.remote.start,
-        end: event.remote.end
-      });
     });
 
     test('event', function(done) {

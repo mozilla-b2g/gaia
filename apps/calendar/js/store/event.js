@@ -82,6 +82,10 @@ Events.prototype = {
     var pending = ids.length;
     var self = this;
 
+    if (!pending) {
+      callback(null, results);
+    }
+
     function next() {
       if (!(--pending)) {
         // fatal errors should break

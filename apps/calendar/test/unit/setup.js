@@ -244,8 +244,6 @@ window.testSupport.calendar = {
 
       eventStore.persist(this.event, trans);
       app.store('Busytime').persist(this.busytime, trans);
-
-      app.timeController.cacheBusytime(this.busytime);
     });
   },
 

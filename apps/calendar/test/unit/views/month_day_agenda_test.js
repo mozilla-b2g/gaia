@@ -22,6 +22,8 @@ suite('Views.MonthDayAgenda', function() {
     div.id = 'test';
     div.innerHTML = [
       '<div id="month-day-agenda">',
+        '<div id="event-list-date"></div>',
+        '<div id="empty-message"></div>',
         '<div class="day-events"></div>',
       '</div>'
     ].join(' ');
@@ -37,14 +39,7 @@ suite('Views.MonthDayAgenda', function() {
     var currentDate;
 
     setup(function() {
-      currentDate = {
-        textContent: '',
-        dataset: {}
-      };
-      sinon.stub(subject, '_findElement')
-        .withArgs('currentDate')
-        .returns(currentDate);
-
+      currentDate = document.getElementById('event-list-date');
       sinon.spy(dayObserver, 'on');
       sinon.spy(dayObserver, 'off');
     });
@@ -52,7 +47,6 @@ suite('Views.MonthDayAgenda', function() {
     teardown(function() {
       dayObserver.on.restore();
       dayObserver.off.restore();
-      subject._findElement.restore();
     });
 
     test('> date', function() {
@@ -65,10 +59,8 @@ suite('Views.MonthDayAgenda', function() {
         navigator.mozL10n.get(format)
       ), 'should set the currentDate textContent');
 
-      assert.deepEqual(currentDate.dataset, {
-        date: now,
-        l10nDateFormat: format
-      }, 'should set l10n dataset');
+      assert.deepEqual(new Date(currentDate.dataset.date), new Date(now));
+      assert.deepEqual(currentDate.dataset.l10nDateFormat, format);
 
       assert.ok(
         !dayObserver.off.called,
@@ -94,10 +86,11 @@ suite('Views.MonthDayAgenda', function() {
         navigator.mozL10n.get(format)
       ), 'should set the currentDate textContent');
 
-      assert.deepEqual(currentDate.dataset, {
-        date: subject.date,
-        l10nDateFormat: format
-      }, 'should set l10n dataset');
+      assert.deepEqual(
+        new Date(currentDate.dataset.date),
+        new Date(subject.date)
+      );
+      assert.deepEqual(currentDate.dataset.l10nDateFormat, format);
 
       assert.ok(
         dayObserver.off.calledWith(oldDate, subject._render),
@@ -134,7 +127,7 @@ suite('Views.MonthDayAgenda', function() {
     });
 
     test('> no record', function() {
-      subject._render({ events: [], allday: [], amount: 0 });
+      subject._render({ basic: [], allday: [], amount: 0 });
 
       assert.deepEqual(subject.events.innerHTML, '', 'should clear events');
 
@@ -147,7 +140,7 @@ suite('Views.MonthDayAgenda', function() {
     test('> with records', function() {
       subject._render({
         amount: 2,
-        events: [
+        basic: [
           {
             event: {
               calendarId: '3',

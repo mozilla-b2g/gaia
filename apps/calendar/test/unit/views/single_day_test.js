@@ -32,8 +32,6 @@ suite('Views.SingleDay', function() {
       oneDayLabelFormat: 'event-one-day-duration'
     });
 
-    dayObserver.timeController = app.timeController;
-
     this.sinon.spy(dayObserver, 'on');
     this.sinon.spy(dayObserver, 'off');
     this.sinon.spy(window, 'addEventListener');
@@ -63,6 +61,7 @@ suite('Views.SingleDay', function() {
   });
 
   test('#onactive', function() {
+    subject.setup();
     subject.onactive();
     subject.onactive();
     assert.ok(
@@ -93,6 +92,7 @@ suite('Views.SingleDay', function() {
   });
 
   test('#oninactive > after onactive', function() {
+    subject.setup();
     subject.onactive();
     subject.oninactive();
     subject.oninactive();
@@ -126,8 +126,10 @@ suite('Views.SingleDay', function() {
       alldaysHolder.innerHTML,
       '<div data-date="' + d + '" class="md__allday">' +
         '<h1 id="md__day-name-' + subject._instanceID + '" aria-level="2" ' +
-             'class="md__day-name">Wed 23</h1>' +
-        '<div class="md__allday-events"></div>' +
+          'class="md__day-name">Wed 23</h1>' +
+        '<div aria-describedby="md__day-name-4" ' +
+          'data-l10n-id="create-all-day-event" role="button" ' +
+          'class="md__allday-events"></div>' +
       '</div>'
     );
   });
@@ -157,7 +159,7 @@ suite('Views.SingleDay', function() {
 
     var data = {
       amount: 3,
-      events: [
+      basic: [
         makeRecord('Dolor Amet', '4:00', '6:00', 1),
         makeRecord('Lorem Ipsum', '5:00', '6:00')
       ],
@@ -165,8 +167,8 @@ suite('Views.SingleDay', function() {
         makeAlldayRecord('Curabitur')
       ]
     };
-    var makeFirstEventID = makeID.bind(this, subject, data.events[0]);
-    var makeSecondEventID = makeID.bind(this, subject, data.events[1]);
+    var makeFirstEventID = makeID.bind(this, subject, data.basic[0]);
+    var makeSecondEventID = makeID.bind(this, subject, data.basic[1]);
     var makeAllDayEventID = makeID.bind(this, subject, data.allday[0]);
 
     // notice that we are testing the method indirectly (the important thing to
@@ -223,13 +225,17 @@ suite('Views.SingleDay', function() {
       'days: first render'
     );
 
+    var id = subject._instanceID;
+
     assert.equal(
       alldaysHolder.innerHTML,
       '<div data-date="' + date.toString() + '" class="md__allday">' +
-        '<h1 id="md__day-name-' + subject._instanceID + '" aria-level="2" ' +
+        '<h1 id="md__day-name-' + id + '" aria-level="2" ' +
           'class="md__day-name">Wed 23</h1>' +
-        '<div aria-labelledby="all-day-icon md__day-name-' +
-          subject._instanceID + '" role="listbox" class="md__allday-events">' +
+        '<div aria-labelledby="all-day-icon md__day-name-' + id + '" ' +
+          'aria-describedby="md__day-name-' + id + '" ' +
+          'data-l10n-id="create-all-day-event" role="listbox" ' +
+          'class="md__allday-events">' +
         '<a role="option" aria-labelledby="' + makeAllDayEventID('title') +
         ' ' + makeAllDayEventID('location') + '" ' +
           'class="md__event calendar-id-local-first calendar-border-color ' +
@@ -245,14 +251,14 @@ suite('Views.SingleDay', function() {
 
     data = {
       amount: 2,
-      events: [
+      basic: [
         makeRecord('Lorem Ipsum', '5:00', '6:00'),
         makeRecord('Maecennas', '6:00', '17:00', 1)
       ],
       allday: []
     };
-    makeFirstEventID = makeID.bind(this, subject, data.events[0]);
-    makeSecondEventID = makeID.bind(this, subject, data.events[1]);
+    makeFirstEventID = makeID.bind(this, subject, data.basic[0]);
+    makeSecondEventID = makeID.bind(this, subject, data.basic[1]);
     // we always send all the events for that day and redraw whole view
     dayObserver.emitter.emit(dayId, data);
 
@@ -306,9 +312,9 @@ suite('Views.SingleDay', function() {
       '<div data-date="' + date.toString() + '" class="md__allday">' +
         '<h1 id="md__day-name-' + subject._instanceID + '" aria-level="2" ' +
           'class="md__day-name">Wed 23</h1>' +
-        '<div aria-describedby="md__day-name-' + subject._instanceID + '" ' +
-          'data-l10n-id="create-all-day-event" aria-labelledby="all-day-icon ' +
-          'md__day-name-' + subject._instanceID + '" role="button" ' +
+        '<div aria-labelledby="all-day-icon md__day-name-' + id + '" ' +
+          'aria-describedby="md__day-name-' + subject._instanceID + '" ' +
+          'data-l10n-id="create-all-day-event" role="button" ' +
           'class="md__allday-events"></div></div>',
       'alldays: second render'
     );
@@ -320,7 +326,7 @@ suite('Views.SingleDay', function() {
 
     dayObserver.emitter.emit(dayId, {
       amount: 4,
-      events: [
+      basic: [
         makeRecord('Lorem Ipsum', '5:00', '5:15'),
         makeRecord('Maecennas', '6:00', '6:25'),
         makeRecord('Dolor', '6:30', '7:00'),
