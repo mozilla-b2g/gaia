@@ -10,7 +10,6 @@ var dateFormat = require('date_format');
 var getTimeL10nLabel = require('calc').getTimeL10nLabel;
 var nextTick = require('next_tick');
 
-require('css!modify_event_view');
 require('dom!modify-event-view');
 
 function ModifyEvent(options) {
