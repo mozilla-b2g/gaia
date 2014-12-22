@@ -8,6 +8,8 @@ import plivo
 
 class PlivoUtil(object):
 
+    DEFAULT_TIMEOUT = 30
+
     def __init__(self, auth_id, auth_token, plivo_phone_number):
         self.api = plivo.RestAPI(auth_id, auth_token)
         self.from_number = plivo_phone_number
@@ -24,7 +26,7 @@ class PlivoUtil(object):
             return response[1]
         raise self.PlivoError('get_account', response)
 
-    def make_call(self, to_number, timeout=30):
+    def make_call(self, to_number, timeout=DEFAULT_TIMEOUT):
         """Place a call to a number and wait for the call_uuid to be available
             Return the call_uuid
         """
@@ -50,6 +52,16 @@ class PlivoUtil(object):
             message='Unable to find the live call for this device.'
         )
         return call['call_uuid']
+
+    def wait_for_call_connected(self, call_uuid, timeout=DEFAULT_TIMEOUT):
+        Wait(self, timeout).until(
+            lambda p: p.is_call_connected(call_uuid),
+            message="Plivo didn't report the call as connected.")
+
+    def wait_for_call_completed(self, call_uuid, timeout=DEFAULT_TIMEOUT):
+        Wait(self, timeout).until(
+            lambda p: p.is_call_completed(call_uuid),
+            message="Plivo didn't report the call as completed")
 
     def get_call_for_number(self, to_number):
         # We cannot get details directly for a number,
