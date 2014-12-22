@@ -1,4 +1,5 @@
 'use strict';
+
 var assert = require('chai').assert;
 var proxyquire = require('proxyquire');
 var mockUtils = require('./mock_utils.js');
@@ -14,7 +15,7 @@ suite('rebuild.js', function() {
     { path: '.gitignore', lastModifiedTime: 4 }
   ];
   var config = {
-    'blacklist': []
+    'rebuildBlacklist': []
   };
 
   setup(function() {
