@@ -2105,6 +2105,28 @@ suite('system/AppWindow', function() {
     });
   });
 
+  suite('shouldResize', function() {
+    var testApp;
+    setup(function() {
+      testApp = new AppWindow(fakeAppConfig1);
+    });
+
+    test('app is in queue to hide', function() {
+      testApp.element.classList.add('will-become-inactive');
+      assert.isTrue(testApp.shouldResize());
+    });
+
+    test('app is active', function() {
+      this.sinon.stub(testApp, 'isActive').returns(true);
+      assert.isTrue(testApp.shouldResize());
+    });
+
+    test('app is inactive', function() {
+      this.sinon.stub(testApp, 'isActive').returns(false);
+      assert.isFalse(testApp.shouldResize());
+    });
+  });
+
   test('isSheetTransitioning', function() {
     var testApp = new AppWindow(fakeAppConfig1);
     testApp.element.classList.add('inside-edges');
