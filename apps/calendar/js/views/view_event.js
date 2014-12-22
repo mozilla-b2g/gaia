@@ -7,7 +7,6 @@ var Local = require('provider/local');
 var alarmTemplate = require('templates/alarm');
 
 require('dom!event-view');
-require('css!event_view');
 
 function ViewEvent(options) {
   EventBase.apply(this, arguments);
@@ -83,10 +82,8 @@ ViewEvent.prototype = {
     this.setContent('location', model.location);
 
     if (this.originalCalendar) {
-      // Set calendar color.
-      this.element
-        .querySelector('section[data-type="list"]')
-        .className = 'calendar-id-' + model.calendarId;
+      this.element.querySelector('.icon-calendar-dot').style.color =
+        this.originalCalendar.color;
 
       var calendarId = this.originalCalendar.remote.id;
       var isLocalCalendar = calendarId === Local.calendarId;

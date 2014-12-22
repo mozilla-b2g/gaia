@@ -7,7 +7,6 @@ var app = require('app');
 var debug = require('debug')('views/settings');
 var forEach = require('object').forEach;
 
-require('css!settings');
 require('dom!settings');
 
 function Settings(options) {
