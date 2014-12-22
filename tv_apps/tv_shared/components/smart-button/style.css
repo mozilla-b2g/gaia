@@ -217,44 +217,6 @@ smart-button[type="app-button"]:after {
   color: #ffffff;
 }
 
-
-
-/**
- * text and icon button
- */
-
-smart-button[type="text-and-icon"] {
-  position: relative;
-  color: white;
-  font-size: 2.4rem;
-  padding-left: 9.6rem;
-  padding-right: 4.6rem;
-  border-radius: 4rem;
-  width: auto;
-  line-height: 8rem;
-  margin-right: 1.4rem;
-  overflow: hidden;
-}
-
-smart-button[type="text-and-icon"][data-icon]:before {
-  left: 3.8rem;
-}
-
-smart-button[type="text-and-icon"].focused {
-  transform: scale(1.2);
-  color: #2d2d2d;
-}
-
-smart-button[type="text-and-icon"].pressed {
-  transform: scale(1);
-  color: white;
-  background-color: #00caf2;
-}
-
-/**
- * End of text and icon button
- */
-
 /**
  * text backgorund color
 **/
@@ -292,3 +254,39 @@ smart-button[type="app-button"][app-type="folder"]:before {
 /**
  * End of App Icons
 **/
+
+/**
+ * text and icon button
+ */
+smart-button[type="text-and-icon"] {
+  position: relative;
+  color: white;
+  font-size: 2.4rem;
+  padding-left: 9.6rem;
+  padding-right: 4.6rem;
+  border-radius: 4rem;
+  width: auto;
+  line-height: 8rem;
+  margin-right: 1.4rem;
+  overflow: hidden;
+}
+
+smart-button[type="text-and-icon"][data-icon]:before {
+  left: 3.8rem;
+}
+
+smart-button[type="text-and-icon"].focused {
+  transform: scale(1.2);
+  color: #2d2d2d;
+}
+
+smart-button[type="text-and-icon"].pressed {
+  transform: scale(1);
+  color: white;
+  background-color: #00caf2;
+}
+
+/**
+ * End of text and icon button
+ */
+
