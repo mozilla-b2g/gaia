@@ -4,12 +4,14 @@
 
 from marionette.wait import Wait
 import plivo
+import requests
 
 
 class PlivoUtil(object):
 
     DEFAULT_TIMEOUT = 30
     HANDLER_BASE_URL = 'http://plivo-handler.paas.allizom.org'
+    HANDLER_CALLS_BASE_URL = '%s/api/v1/calls' % HANDLER_BASE_URL
 
     def __init__(self, auth_id, auth_token, plivo_phone_number):
         self.api = plivo.RestAPI(auth_id, auth_token)
@@ -104,6 +106,27 @@ class PlivoUtil(object):
         if response[0] not in (204, 404):
             raise self.PlivoError('hangup_call', response)
 
+    def get_digits_for(self, call_uuid):
+        def make_request():
+            return requests.get('%s/%s' % (self.HANDLER_CALLS_BASE_URL, call_uuid))
+
+        def does_url_return_404():
+            r = make_request()
+            return r.status_code == requests.codes.not_found
+
+        Wait(self, self.DEFAULT_TIMEOUT).until(lambda p: not does_url_return_404())
+        response = make_request()
+        call = response.json()
+
+        return call['digits']
+
+    def clean_digits(self, call_uuid):
+        url = '%s/%s' % (self.HANDLER_CALLS_BASE_URL, call_uuid)
+        response = requests.delete(url)
+
+        if response.status_code not in (requests.codes.no_content, requests.codes.not_found):
+            raise self.PlivoHandlerServerError(url, response.status_code)
+
     class PlivoError(Exception):
         def __init__(self, method, response):
             message = 'Plivo API method %s failed with status: %s, details: %s' \
@@ -114,3 +137,7 @@ class PlivoUtil(object):
         def __init__(self):
             Exception.__init__(self,
                                'No active call for the specified number can be found by Plivo.')
+
+    class PlivoHandlerServerError(Exception):
+        def __init__(self, url, status_code):
+            Exception.__init__(self, '%s has returned a %s status code' % (url, status_code))

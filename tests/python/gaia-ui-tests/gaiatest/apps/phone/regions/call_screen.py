@@ -24,6 +24,7 @@ class CallScreen(Phone):
     _outgoing_call_locator = (By.CSS_SELECTOR, '.handled-call.outgoing')
     _incoming_call_locator = (By.CSS_SELECTOR, '.handled-call.incoming')
     _hangup_bar_locator = (By.ID, 'callbar-hang-up')
+    _in_call_keypad_hangup_locator = (By.ID, 'keypad-hidebar-hang-up-action-wrapper')
     _answer_bar_locator = (By.ID, 'callbar-answer')
     _lockscreen_handle_locator = (By.ID, 'lockscreen-area-slide')
     _bluetooth_menu_locator = (By.ID, 'bluetooth-menu')
@@ -122,6 +123,11 @@ class CallScreen(Phone):
         self.marionette.switch_to_frame()
         self.wait_for_element_not_displayed(*self._call_screen_locator)
 
+    def in_call_keypad_hang_up(self):
+        self.marionette.find_element(*self._in_call_keypad_hangup_locator).tap()
+        self.marionette.switch_to_frame()
+        self.wait_for_element_not_displayed(*self._call_screen_locator)
+
     def a11y_hang_up(self):
         self.a11y_click_hang_up()
         self.marionette.switch_to_frame()
@@ -160,3 +166,8 @@ class CallScreen(Phone):
     def merge_calls(self):
         self.marionette.find_element(*self._merge_calls_button_locator).tap()
         self.wait_for_condition(lambda m: self.marionette.find_element(*self._conference_call_locator).is_displayed())
+
+    def tap_open_keypad(self):
+        self.marionette.find_element(*self._keypad_visibility_button_locator).tap()
+        from gaiatest.apps.phone.regions.keypad import BaseKeypad
+        return BaseKeypad(self.marionette)
