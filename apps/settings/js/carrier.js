@@ -42,9 +42,6 @@ var CarrierSettings = (function(window, document, undefined) {
   /** Flag */
   var _restartingDataConnection = false;
 
-  var dataInput = null;
-  var dataRoamingInput = null;
-
   var gOperatorNetworkList = null;
 
   /**
@@ -84,10 +81,7 @@ var CarrierSettings = (function(window, document, undefined) {
 
     cs_initOperatorSelector();
     cs_initRoamingPreferenceSelector();
-    cs_refreshDataUI();
-
-    // Init warnings the user sees before enabling data calls and roaming.
-    cs_initWarnings();
+    cs_initDataToggles();
 
     window.addEventListener('panelready', function(e) {
       // Get the mozMobileConnection instace for this ICC card.
@@ -112,9 +106,7 @@ var CarrierSettings = (function(window, document, undefined) {
           { index: DsdsSettings.getIccCardIndexForCellAndDataSettings() + 1 });
       }
 
-      if (!currentHash.startsWith('#carrier-') ||
-          (currentHash === '#carrier-dc-warning') ||
-          (currentHash === '#carrier-dr-warning')) {
+      if (!currentHash.startsWith('#carrier-')) {
         return;
       }
 
@@ -153,107 +145,57 @@ var CarrierSettings = (function(window, document, undefined) {
     simSettings.hidden = !isMultiSim;
   }
 
-  function cs_refreshDataUI() {
-    var data = document.getElementById('menuItem-enableDataCall');
-    dataInput = data.querySelector('input');
-    var roaming = document.getElementById('menuItem-enableDataRoaming');
-    dataRoamingInput = roaming.querySelector('input');
+  function cs_initDataToggles() {
+    var dataToggle = document.querySelector('#menuItem-enableDataCall input');
+    var dataRoamingToggle =
+      document.querySelector('#menuItem-enableDataRoaming input');
 
-    dataRoamingInput.addEventListener('change', function() {
-      var state = dataRoamingInput.checked;
-      cs_saveRoamingState(state);
-    }.bind(this));
+    function updateDataRoamingToggle(dataEnabled) {
+      if (dataEnabled) {
+        dataRoamingToggle.disabled = false;
+      } else {
+        dataRoamingToggle.disabled = true;
+        dataRoamingToggle.checked = false;
+        dataRoamingToggle.dispatchEvent(new Event('change'));
+      }
+    }
 
-    var dataPromise = cs_getDataCellState();
-    var roamingStatePromise = cs_getDataRoamingState();
+    function getDataEnabled() {
+      return new Promise(function(resolve, reject) {
+        var transaction = _settings.createLock();
+        var req = transaction.get(DATA_KEY);
+        req.onsuccess = function() {
+          resolve(req.result[DATA_KEY]);
+        };
+        req.onerror = function() {
+          resolve(false);
+        };
+      });
+    }
 
-    Promise.all([dataPromise, roamingStatePromise]).then(function(values) {
-      var dataCell = values[0];
-      var savedState = values[1];
-
-      cs_updateRoamingToggle(dataCell, savedState);
+    getDataEnabled().then(function(dataEnabled) {
+      updateDataRoamingToggle(dataEnabled);
     });
-
+    // We need to disable data roaming when data connection is disabled.
     _settings.addObserver(DATA_KEY, function observerCb(event) {
       if (_restartingDataConnection) {
         return;
       }
-
-      if (!event.settingValue) {
-        cs_updateRoamingToggle(event.settingValue, dataRoamingInput.checked);
-        return;
-      }
-
-      cs_getDataRoamingState().then(function(roamingState) {
-        cs_updateRoamingToggle(event.settingValue, roamingState);
-      });
+      updateDataRoamingToggle(event.settingValue);
     });
-  }
 
-  function cs_updateRoamingToggle(dataCell, roamingState) {
-    if (dataCell) {
-      dataRoamingInput.disabled = false;
-      dataRoamingInput.checked = roamingState;
-    } else {
-      dataRoamingInput.disabled = true;
-      dataRoamingInput.checked = false;
-      cs_saveRoamingState(roamingState);
-    }
-  }
-
-  function cs_getDataRoamingState() {
-    return new Promise(function(resolve, reject) {
-      var transaction = _settings.createLock();
-      var req = transaction.get(DATA_ROAMING_KEY);
-      req.onsuccess = function() {
-        var roamingState = req.result[DATA_ROAMING_KEY];
-        if (roamingState === null) {
-          roamingState = dataRoamingInput.checked;
-          cs_saveRoamingState(roamingState);
-        }
-        resolve(roamingState);
-      };
-
-      req.onerror = function() {
-        resolve(false);
-      };
-    }.bind(this));
-  }
-
-  function cs_getDataCellState() {
-    return new Promise(function(resolve, reject) {
-      var transaction = _settings.createLock();
-      var req = transaction.get(DATA_KEY);
-      req.onsuccess = function() {
-        var dataCell = req.result[DATA_KEY];
-        if (dataCell === null) {
-          dataCell = dataInput.checked;
-        }
-        resolve(dataCell);
-      };
-
-      req.onerror = function() {
-        resolve(false);
-      };
-    }.bind(this));
-  }
-
-  function cs_saveRoamingState(state) {
-    var transaction = _settings.createLock();
-    var req = transaction.get(DATA_ROAMING_KEY);
-    var cset = {};
-    cset[DATA_ROAMING_KEY] = state;
-
-    req.onsuccess = function() {
-      var roamingState = req.result[DATA_ROAMING_KEY];
-      if (roamingState === null || roamingState != state) {
-        _settings.createLock().set(cset);
-      }
-    };
-
-    req.onerror = function() {
-      _settings.createLock().set(cset);
-    };
+    // Init warnings the user sees before enabling data calls and roaming.
+    // The function also registers handlers for the changes of the toggles.
+    cs_initWarning(DATA_KEY,
+                   dataToggle,
+                   'dataConnection-warning-head',
+                   'dataConnection-warning-message',
+                   'dataConnection-expl');
+    cs_initWarning(DATA_ROAMING_KEY,
+                   dataRoamingToggle,
+                   'dataRoaming-warning-head',
+                   'dataRoaming-warning-message',
+                   'dataRoaming-expl');
   }
 
   /**
@@ -792,130 +734,139 @@ var CarrierSettings = (function(window, document, undefined) {
   }
 
   /**
-   * Init some cell and data warning dialogs such as the one related to
-   * enable data calls and the related to enable data calls in roaming.
+   * Init a warning dialog.
+   *
+   * @param {String} settingKey The key of the setting.
+   * @param {String} l10n id of the title.
+   * @param {String} l10n id of the message.
+   * @param {String} explanationItemId The id of the explanation item.
    */
-  function cs_initWarnings() {
+  function cs_initWarning(settingKey,
+                          input,
+                          titleL10nId,
+                          messageL10nId,
+                          explanationItemId) {
+    var warningDialogEnabledKey = settingKey + '.warningDialog.enabled';
+    var explanationItem = document.getElementById(explanationItemId);
+
     /**
-     * Init a warning dialog.
+     * Figure out whether the warning is enabled or not.
      *
-     * @param {String} settingKey The key of the setting.
-     * @param {String} dialogId The id of the warning dialog.
-     * @param {String} explanationItemId The id of the explanation item.
-     * @param {Function} warningDisabledCallback Callback function to be
-     *                                           called once the warning is
-     *                                           disabled.
+     * @param {Function} callback Callback function to be called once the
+     *                            work is done.
      */
-    function initWarning(settingKey,
-                         dialogId,
-                         explanationItemId,
-                         warningDisabledCallback) {
+    function getWarningEnabled(callback) {
+      var request = _settings.createLock().get(warningDialogEnabledKey);
 
-      var warningDialogEnabledKey = settingKey + '.warningDialog.enabled';
-      var explanationItem = document.getElementById(explanationItemId);
-
-      /**
-       * Figure out whether the warning is enabled or not.
-       *
-       * @param {Function} callback Callback function to be called once the
-       *                            work is done.
-       */
-      function getWarningEnabled(callback) {
-        var request = _settings.createLock().get(warningDialogEnabledKey);
-
-        request.onsuccess = function onSuccessHandler() {
-          var warningEnabled = request.result[warningDialogEnabledKey];
-          if (warningEnabled === null) {
-            warningEnabled = true;
-          }
-          if (callback) {
-            callback(warningEnabled);
-          }
-        };
-      }
-
-      /**
-       * Set the value of the setting into the settings database.
-       *
-       * @param {Boolean} state State to be stored.
-       */
-      function setState(state) {
-        var cset = {};
-        cset[settingKey] = !!state;
-        _settings.createLock().set(cset);
-      }
-
-      function setWarningDialogState(state) {
-        var cset = {};
-        cset[warningDialogEnabledKey] = !!state;
-        _settings.createLock().set(cset);
-      }
-
-      /**
-       * Helper function. Handler to be called once the user click on the
-       * accept button form the warning dialog.
-       */
-      function onSubmit() {
-        setWarningDialogState(false);
-        explanationItem.hidden = false;
-        setState(true);
-        if (warningDisabledCallback) {
-          warningDisabledCallback();
+      request.onsuccess = function onSuccessHandler() {
+        var warningEnabled = request.result[warningDialogEnabledKey];
+        if (warningEnabled === null) {
+          warningEnabled = true;
         }
-      }
+        if (callback) {
+          callback(warningEnabled);
+        }
+      };
+    }
 
-      /**
-       * Helper function. Handler to be called once the user click on the
-       * cancel button form the warning dialog.
-       */
-      function onReset() {
-        setWarningDialogState(true);
-      }
+    /**
+     * Set the value of the setting into the settings database.
+     *
+     * @param {Boolean} state State to be stored.
+     */
+    function setState(state) {
+      var cset = {};
+      cset[settingKey] = !!state;
+      _settings.createLock().set(cset);
+    }
 
-      // Register an observer to monitor setting changes.
-      _settings.addObserver(settingKey, function observerCb(event) {
+    function getState(callback) {
+      var request = _settings.createLock().get(settingKey);
+      request.onsuccess = function onSuccessHandler() {
+        if (callback) {
+          callback(request.result[settingKey]);
+        }
+      };
+    }
+
+    function setWarningDialogState(state) {
+      var cset = {};
+      cset[warningDialogEnabledKey] = !!state;
+      _settings.createLock().set(cset);
+    }
+
+    /**
+     * Helper function. Handler to be called once the user click on the
+     * accept button form the warning dialog.
+     */
+    function onSubmit() {
+      setWarningDialogState(false);
+      setState(true);
+      explanationItem.hidden = false;
+      input.checked = true;
+    }
+
+    /**
+     * Helper function. Handler to be called once the user click on the
+     * cancel button form the warning dialog.
+     */
+    function onReset() {
+      setWarningDialogState(true);
+      setState(false);
+      input.checked = false;
+    }
+
+    // Initialize the state of the input.
+    getState(function(enabled) {
+      input.checked = enabled;
+
+        // Register an observer to monitor setting changes.
+      input.addEventListener('change', function() {
+        var enabled = this.checked;
         getWarningEnabled(function getWarningEnabledCb(warningEnabled) {
-          var enabled = event.settingValue;
           if (warningEnabled) {
             if (enabled) {
-              setState(false);
-              openDialog(dialogId, onSubmit, onReset);
+              require(['modules/dialog_service'], function(DialogService) {
+                DialogService.confirm(messageL10nId, {
+                  title: titleL10nId,
+                  submitButtonText: 'turnOn',
+                  cancelButtonText: 'notNow'
+                }).then(function(result) {
+                  var type = result.type;
+                  if (type === 'submit') {
+                    onSubmit();
+                  } else {
+                    onReset();
+                  }
+                });
+              });
             }
           } else {
+            setState(enabled);
             explanationItem.hidden = false;
           }
         });
       });
+    });
 
-      // Initialize the visibility of the warning message.
-      getWarningEnabled(function getWarningEnabledCb(warningEnabled) {
-        if (warningEnabled) {
-          var request = _settings.createLock().get(settingKey);
-          request.onsuccess = function onSuccessCb() {
-            var enabled = false;
-            if (request.result[settingKey] !== undefined) {
-              enabled = request.result[settingKey];
-            }
-            if (enabled) {
-              setWarningDialogState(false);
-              explanationItem.hidden = false;
-            }
-          };
-        } else {
-          explanationItem.hidden = false;
-          if (warningDisabledCallback) {
-            warningDisabledCallback();
+    // Initialize the visibility of the warning message.
+    getWarningEnabled(function getWarningEnabledCb(warningEnabled) {
+      if (warningEnabled) {
+        var request = _settings.createLock().get(settingKey);
+        request.onsuccess = function onSuccessCb() {
+          var enabled = false;
+          if (request.result[settingKey] !== undefined) {
+            enabled = request.result[settingKey];
           }
-        }
-      });
-    }
-
-    initWarning('ril.data.enabled',
-                'carrier-dc-warning',
-                'dataConnection-expl');
-    initWarning('ril.data.roaming_enabled',
-                'carrier-dr-warning',
-                'dataRoaming-expl');
+          if (enabled) {
+            setWarningDialogState(false);
+            explanationItem.hidden = false;
+          }
+        };
+      } else {
+        explanationItem.hidden = false;
+      }
+    });
   }
 
   return {
