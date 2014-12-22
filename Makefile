@@ -1032,11 +1032,11 @@ really-clean: clean
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
 
-build-test-unit: $(NPM_INSTALLED_PROGRAMS)
-	./bin/build-test $(shell find build$(SEP)test$(SEP)unit$(SEP)*.test.js apps$(SEP)*$(SEP)test$(SEP)build$(SEP)unit$(SEP)*_test.js)
+build-test-unit: b2g_sdk $(NPM_INSTALLED_PROGRAMS)
+	@$(call run-js-command,build-test,TEST_TYPE=unit REPORTER=$(REPORTER) TRY_ENV=$(TRY_ENV))
 
-build-test-integration: $(NPM_INSTALLED_PROGRAMS)
-	./bin/build-test $(shell find build$(SEP)test$(SEP)integration$(SEP)*.test.js apps$(SEP)*$(SEP)test$(SEP)build$(SEP)integration$(SEP)*_test.js)
+build-test-integration: b2g_sdk $(NPM_INSTALLED_PROGRAMS)
+	@$(call run-js-command,build-test,TEST_TYPE=integration REPORTER=$(REPORTER) TRY_ENV=$(TRY_ENV))
 
 build-test-unit-coverage: $(NPM_INSTALLED_PROGRAMS)
 	@$(call run-build-coverage,build/test/unit)

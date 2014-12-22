@@ -32,7 +32,7 @@ function isFileWatched(file) {
     return false;
   }
 
-  config.blacklist.forEach(function(pattern) {
+  config.rebuildBlacklist.forEach(function(pattern) {
     ignores.push(pattern);
   });
 
@@ -64,12 +64,12 @@ function buildConfigChanged(previous, current) {
 
   let flags = [];
 
-  // We don't detect FLAGS in blackList because we don't have to rebuild again 
+  // We don't detect FLAGS in blacklist because we don't have to rebuild again
   // if someone specifies them.
-  let blackList = ['REBUILD', 'P', 'VERBOSE'];
+  let blacklist = ['REBUILD', 'P', 'VERBOSE'];
 
   for (let flag in current) {
-    if (blackList.indexOf(flag) === -1 && current[flag] !== previous[flag]) {
+    if (blacklist.indexOf(flag) === -1 && current[flag] !== previous[flag]) {
       flags.push(flag);
     }
   }
