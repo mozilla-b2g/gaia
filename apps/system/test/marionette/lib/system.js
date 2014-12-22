@@ -62,7 +62,8 @@ System.Selector = Object.freeze({
   utilityTray: '#utility-tray',
   visibleForm: '#screen > form.visible',
   cancelActivity: 'form.visible button[data-action="cancel"]',
-  nfcIcon: '#statusbar-nfc'
+  nfcIcon: '#statusbar-nfc',
+  activeKeyboard: '.inputWindow.active'
 });
 
 System.prototype = {
@@ -330,6 +331,10 @@ System.prototype = {
       iframe.wrappedJSObject.getScreenshot(1, 1).then(marionetteScriptFinished,
                                                       marionetteScriptFinished);
     }, [iframe]);
+  },
+
+  waitForKeyboard: function() {
+    this.client.helper.waitForElement(System.Selector.activeKeyboard);
   },
 
   goHome: function() {
