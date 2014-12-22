@@ -108,16 +108,6 @@ GAIA_DEVICE_TYPE?=phone
 TEST_AGENT_PORT?=8789
 GAIA_APP_TARGET?=engineering
 
-# Flag to ease build a simulator-compatible profile
-SIMULATOR?=0
-ifeq ($(SIMULATOR),1)
-DESKTOP=1
-NOFTU=1
-NOFTUPING=1
-DEVICE_DEBUG=1
-SCREEN_TIMEOUT=0
-endif
-
 # Enable compatibility to run in Firefox Desktop
 DESKTOP?=$(DEBUG)
 # Disable first time experience screen
@@ -133,10 +123,6 @@ ifeq ($(DEVICE_DEBUG),1)
 REMOTE_DEBUGGER=1
 NO_LOCK_SCREEN=1
 SCREEN_TIMEOUT=300
-endif
-
-ifeq ($(SIMULATOR),1)
-SCREEN_TIMEOUT=0
 endif
 
 # We also disable FTU when running in Firefox or in debug mode
@@ -584,9 +570,7 @@ webapp-zip: app
 
 # Get additional extensions
 $(STAGE_DIR)/additional-extensions/downloaded.json: build/config/additional-extensions.json $(wildcard .build/config/custom-extensions.json)
-ifeq ($(SIMULATOR),1)
-	# Prevent installing external firefox helper addon for the simulator
-else ifeq ($(DESKTOP),1)
+ifeq ($(DESKTOP),1)
 	@$(call run-js-command,additional-extensions)
 endif
 
@@ -685,9 +669,7 @@ extensions: $(STAGE_DIR)/additional-extensions/downloaded.json
 ifeq ($(BUILD_APP_NAME),*)
 	@rm -rf $(EXT_DIR)
 	@mkdir -p $(EXT_DIR)
-ifeq ($(SIMULATOR),1)
-	cp -r tools/extensions/{activities@gaiamobile.org,activities,alarms@gaiamobile.org,alarms,desktop-helper,desktop-helper@gaiamobile.org} $(EXT_DIR)/
-else ifeq ($(DESKTOP),1)
+ifeq ($(DESKTOP),1)
 	cp -r $(STAGE_DIR)/additional-extensions/* $(EXT_DIR)/
 endif
 ifeq ($(DEBUG),1)
