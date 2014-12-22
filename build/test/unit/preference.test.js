@@ -261,7 +261,7 @@ suite('preferences.js', function() {
     });
   });
 
-  suite('editLocalDomainPref, editDesktopPref, editDebugPref, ' +
+  suite('editLocalDomainPref, editDebugPref, ' +
         'editDeviceDebugPref', function() {
     var config;
     setup(function() {
@@ -276,16 +276,6 @@ suite('preferences.js', function() {
 
       assert.deepEqual(preferences.userPrefs, {
         'network.dns.localDomains': preferences.domains.join(',')
-      });
-    });
-
-    test('editDesktopPref', function () {
-      preferences.system = 'testSystem';
-      preferences.prefs = {};
-      preferences.userPrefs = {};
-      preferences.setDesktopPref();
-      assert.deepEqual(preferences.userPrefs, {
-        'extensions.autoDisableScopes': 0
       });
     });
 
@@ -373,9 +363,6 @@ suite('preferences.js', function() {
       preferences.setLocalDomainPref = function() {
         cusPref = 'local';
       };
-      preferences.setDesktopPref = function() {
-        cusPref = 'desktop';
-      };
       preferences.setDebugPref = function() {
         cusPref = 'debug';
       };
@@ -415,10 +402,6 @@ suite('preferences.js', function() {
       preferences.preparePref();
       assert.equal(cusPref, 'local');
       delete preferences.config.LOCAL_DOMAINS;
-      preferences.config.DESKTOP = '1';
-      preferences.preparePref();
-      assert.equal(cusPref, 'desktop');
-      delete preferences.config.DESKTOP;
       preferences.config.DEBUG = '1';
       preferences.preparePref();
       assert.equal(cusPref, 'debug');
