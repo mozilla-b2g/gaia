@@ -706,6 +706,17 @@ suite('ActivityHandler', function() {
       postResult: sinon.stub()
     };
 
+    var newActivity_email = {
+      source: {
+        name: 'new',
+        data: {
+          target: 'abc@exmple.com',
+          body: 'foo'
+        }
+      },
+      postResult: sinon.stub()
+    };
+
     var newActivity_empty = {
       source: {
         name: 'new',
@@ -859,13 +870,29 @@ suite('ActivityHandler', function() {
       }).then(done,done);
     });
 
+    test('new message with email', function(done) {
+      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity_email);
+      threadDeferred.reject(new Error('No thread for this test'));
+
+      sinon.assert.called(ActivityHandler._onNewActivity);
+      ActivityHandler._onNewActivity.firstCall.returnValue.then(function() {
+        assert.isTrue(ActivityHandler.isInActivity());
+        sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
+          activity: {
+            number: newActivity_email.source.data.target,
+            body: newActivity_email.source.data.body
+          }
+        });
+      }).then(done,done);
+    });
+
     test('when no existing thread, but a contact: new message with contact',
     function(done) {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
       threadDeferred.reject(new Error('No thread for this test'));
 
       Contacts.findByPhoneNumber.restore();
-      this.sinon.stub(Contacts, 'findByPhoneNumber')
+      this.sinon.stub(Contacts, 'findByAddress')
         .callsArgWith(1, [{ name: ['foo'] }]);
 
       sinon.assert.called(ActivityHandler._onNewActivity);
