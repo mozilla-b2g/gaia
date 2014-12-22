@@ -49,6 +49,10 @@ class Keypad(Phone):
                 self.marionette.find_element(By.CSS_SELECTOR, 'div.keypad-key[data-value="%s"]' % i).tap()
                 time.sleep(0.25)
 
+    def clear_phone_number(self):
+        delete_button = self.marionette.find_element(*self._keypad_delete_locator)
+        Actions(self.marionette).long_press(delete_button, 1).perform()
+
     def a11y_dial_phone_number(self, value):
         for i in value:
             self.accessibility.click(self.marionette.find_element(
