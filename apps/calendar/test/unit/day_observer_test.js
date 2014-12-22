@@ -9,6 +9,8 @@ suite('day_observer', function() {
   var busyToday1, busyToday2, busyTomorrow, busyTodayAllday;
   var event1, event2, event3, event4;
   var calendar, hiddenCalendar;
+  var calendarColor = '#00aacc';
+  var hiddenCalendarColor = '#BADA55';
   var subject;
   var today;
   var tomorrow;
@@ -47,10 +49,12 @@ suite('day_observer', function() {
   // to simulate the app start
   suiteSetup(function(done) {
     calendar = Factory('calendar', {
-      localDisplayed: true
+      localDisplayed: true,
+      color: calendarColor
     });
     hiddenCalendar = Factory('calendar', {
-      localDisplayed: false
+      localDisplayed: false,
+      color: hiddenCalendarColor
     });
 
     var calendarId = calendar._id;
@@ -184,17 +188,20 @@ suite('day_observer', function() {
         assert.deepEqual(records.basic, [
           {
             event: event1,
-            busytime: busyToday1
+            busytime: busyToday1,
+            color: calendarColor
           },
           {
             event: event2,
-            busytime: busyToday2
+            busytime: busyToday2,
+            color: calendarColor
           }
         ]);
         assert.deepEqual(records.allday, [
           {
             event: event4,
-            busytime: busyTodayAllday
+            busytime: busyTodayAllday,
+            color: calendarColor
           }
         ]);
         done();
@@ -207,11 +214,13 @@ suite('day_observer', function() {
         assert.deepEqual(records.basic, [
           {
             event: event2,
-            busytime: busyToday2
+            busytime: busyToday2,
+            color: calendarColor
           },
           {
             event: event3,
-            busytime: busyTomorrow
+            busytime: busyTomorrow,
+            color: calendarColor
           }
         ]);
         assert.deepEqual(records.allday, []);
@@ -274,11 +283,13 @@ suite('day_observer', function() {
           assert.deepEqual(records.basic, [
             {
               event: event3,
-              busytime: busyYesterday
+              busytime: busyYesterday,
+              color: calendarColor
             },
             {
               event: event4,
-              busytime: busyYesterday2
+              busytime: busyYesterday2,
+              color: calendarColor
             }
           ]);
           assert.deepEqual(records.allday, []);
@@ -292,7 +303,8 @@ suite('day_observer', function() {
           assert.deepEqual(records.basic, [
             {
               event: event3,
-              busytime: busyYesterday
+              busytime: busyYesterday,
+              color: calendarColor
             }
           ]);
           assert.deepEqual(records.allday, []);
@@ -308,11 +320,13 @@ suite('day_observer', function() {
         assert.deepEqual(records.basic, [
           {
             event: event3,
-            busytime: busyYesterday
+            busytime: busyYesterday,
+            color: calendarColor
           },
           {
             event: event4,
-            busytime: busyYesterdayHidden
+            busytime: busyYesterdayHidden,
+            color: calendarColor
           }
         ]);
         assert.deepEqual(records.allday, []);

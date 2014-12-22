@@ -1,25 +1,15 @@
 (function() {
 'use strict';
 
-function waitForLoad() {
-  return new Promise(accept => {
-    if (document.readyState === 'complete') {
-      return accept();
-    }
+window.require = window.require || window.curl;
 
-    window.addEventListener('load', function onLoad() {
-      window.removeEventListener('load', onLoad);
-      return accept();
-    });
-  });
-}
-
-console.log('Will configure rjs...');
 require.config({
   baseUrl: '/js',
   waitSeconds: 60,
   paths: {
-    shared: '/shared/js'
+    shared: '/shared/js',
+    dom: 'curl/plugin/dom',
+    css: 'curl/plugin/css'
   },
   shim: {
     'ext/caldav': { exports: 'Caldav' },
@@ -33,30 +23,22 @@ require.config({
   }
 });
 
-require([
-  'app',
-  'debug',
-  'next_tick'
-], (app, debug, nextTick) => {
-  debug = debug('main');
-
-  debug('Will wait for window load...');
-  waitForLoad().then(() => {
-    debug('Window loaded!');
-
-    // Restart the calendar when the timezone changes.
-    // We do this on a timer because this event may fire
-    // many times. Refreshing the url of the calendar frequently
-    // can result in crashes so we attempt to do this only after
-    // the user has completed their selection.
-    debug('Will listen for timezone change...');
-    window.addEventListener('moztimechange', () => {
-      debug('Noticed timezone change!');
-      nextTick(() => app.forceRestart(), app._mozTimeRefreshTimeout);
-    });
-
-    app.init();
-  });
+// first require.config call is used by r.js optimizer, so we do this second
+// call to list modules that are bundled to avoid duplicate defines
+require.config({
+  paths: {
+    'views/current_time': 'lazy_loaded',
+    'views/week': 'lazy_loaded',
+    'views/advanced_settings': 'lazy_loaded',
+    'views/create_account': 'lazy_loaded',
+    'views/day': 'lazy_loaded',
+    'views/modify_account': 'lazy_loaded',
+    'views/modify_event': 'lazy_loaded',
+    'views/settings': 'lazy_loaded',
+    'views/view_event': 'lazy_loaded'
+  }
 });
+
+require(['app'], app => app.init());
 
 }());

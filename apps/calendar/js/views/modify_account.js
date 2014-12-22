@@ -8,7 +8,6 @@ var Presets = require('presets');
 var URI = require('utils/uri');
 var View = require('view');
 
-require('css!modify_account_view');
 require('dom!modify-account-view');
 
 var DEFAULT_AUTH_TYPE = 'basic';

@@ -8,14 +8,20 @@
 <title>Calendar</title>
 
 <!-- stylesheets -->
+<!-- need to keep shared styles on the markup so it gets copied to build_stage
 <link rel="stylesheet" type="text/css" href="/shared/style/toolbars.css">
 <link rel="stylesheet" type="text/css" href="/shared/style/tabs.css">
 <link rel="stylesheet" type="text/css" href="/shared/style/icons.css">
-<link rel="stylesheet" type="text/css" href="/style/calendar.css">
-<link rel="stylesheet" type="text/css" href="/style/ui.css">
-<link rel="stylesheet" type="text/css" href="/style/multi_day.css">
-<link rel="stylesheet" type="text/css" href="/style/month.css">
-<link rel="stylesheet" type="text/css" href="/style/building_blocks.css">
+-->
+<!-- lazy-loaded styles
+<link rel="stylesheet" type="text/css" href="/shared/style/buttons.css">
+<link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
+<link rel="stylesheet" type="text/css" href="/shared/style/switches.css">
+<link rel="stylesheet" type="text/css" href="/shared/style/status.css">
+<link rel="stylesheet" type="text/css" href="/shared/style/progress_activity.css">
+<link rel="stylesheet" type="text/css" href="/shared/style/input_areas.css">
+-->
+<link rel="stylesheet" type="text/css" href="/style/base.css">
 
 <!-- localization -->
 <meta name="defaultLanguage" content="en-US">
@@ -45,7 +51,7 @@
 <!-- Icons are lazy loaded by gaia-header -->
 <!-- <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css" /> -->
 
-<script defer src="/js/ext/alameda.js" data-main="/js/main.js"></script>
+<script defer src="/js/bundle.js"></script>
 
 <link rel="import" href="/elements/errors.html">
 <link rel="import" href="/elements/lazy_styles.html">
@@ -62,7 +68,6 @@
 
 <body role="application" class="loading theme-productivity">
 
-<section is="lazy-styles" id="lazy-styles"></section>
 <section is="errors" id="errors" role="status" aria-live="assertive" aria-atomic="true"></section>
 <section is="settings" id="settings" role="region"></section>
 

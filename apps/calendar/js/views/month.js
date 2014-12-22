@@ -136,9 +136,7 @@ Month.prototype = {
       this.currentFrame.deactivate();
     }
 
-    this._getFrame(this._previousTime());
     this.currentFrame = this._getFrame(this.date);
-    this._getFrame(this._nextTime());
 
     this._trimFrames();
     this._appendFrames();

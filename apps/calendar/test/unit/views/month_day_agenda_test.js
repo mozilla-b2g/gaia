@@ -154,7 +154,8 @@ suite('Views.MonthDayAgenda', function() {
               _id: '3-lorem',
               startDate: new Date(2014, 9, 22, 1),
               endDate: new Date(2014, 9, 22, 3)
-            }
+            },
+            color: '#BADA55'
           },
           {
             event: {
@@ -169,7 +170,8 @@ suite('Views.MonthDayAgenda', function() {
               _id: '7-busy-foo',
               startDate: new Date(2014, 9, 22, 13),
               endDate: new Date(2014, 9, 22, 14)
-            }
+            },
+            color: '#00FFCC'
           }
         ],
         allday: []
@@ -180,7 +182,7 @@ suite('Views.MonthDayAgenda', function() {
       sinon.assert.calledWithMatch(template.event.render, {
         hasAlarms: true,
         busytimeId: '7-busy-foo',
-        calendarId: '7',
+        color: '#00FFCC',
         title: 'Foo',
         location: 'Bar',
         startTime: new Date(2014, 9, 22, 13),

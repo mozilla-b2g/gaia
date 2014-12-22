@@ -81,11 +81,10 @@ MonthDayAgenda.prototype = {
   },
 
   _render: function(records) {
-    this.events.innerHTML = '';
-
-    // we should always render allday events at the top, so do it first
-    records.allday.forEach(this._renderEvent, this);
-    records.basic.forEach(this._renderEvent, this);
+    // we should always render allday events at the top
+    this.events.innerHTML = records.allday.concat(records.basic)
+      .map(this._renderEvent, this)
+      .join('');
 
     this.emptyMessage.classList.toggle('active', records.amount === 0);
 
@@ -93,13 +92,13 @@ MonthDayAgenda.prototype = {
   },
 
   _renderEvent: function(record) {
-    var {event, busytime} = record;
+    var {event, busytime, color} = record;
     var {startDate, endDate} = busytime;
 
-    this.events.innerHTML += template.event.render({
+    return template.event.render({
       hasAlarms: !!(event.remote.alarms && event.remote.alarms.length),
       busytimeId: busytime._id,
-      calendarId: event.calendarId,
+      color: color,
       title: event.remote.title,
       location: event.remote.location,
       startTime: startDate,
