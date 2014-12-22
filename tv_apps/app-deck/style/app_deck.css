@@ -42,22 +42,23 @@ section {
 }
 
 #app-deck-header {
-  max-width: 1200px;
+  max-width: 120rem;
   height: 20.92vh;
   display: inline-block;
 }
 
 #app-deck-header-title {
-  height: 6.67vh;
-  font-size: 4.81vh;
+  height: 7.2rem;
+  font-size: 5.2rem;
   font-style: italic;
   color: #ffffff;
 }
 
 #app-deck-header-description {
   color: #ffffff;
-  font-size: 2.22vh;
-  height: 3.33vh;
+  font-size: 2.4rem;
+  font-style: italic;
+  height: 3.6rem;
   margin-top: -4vh;
 }
 
@@ -103,5 +104,5 @@ section {
 }
 
 .app-name-text {
-  font-size: 1.2rem;
+  font-size: 2.8rem;
 }
