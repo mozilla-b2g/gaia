@@ -1,5 +1,5 @@
 /* global Source */
-/* global LockScreenBasicComponent, LockScreenClockWidgetStop */
+/* global LockScreenBasicComponent, LockScreenClockWidgetHalt */
 'use strict';
 
 /**
@@ -12,11 +12,11 @@
  * only after l10n is ready.
  **/
 (function(exports) {
-  var LockScreenClockWidgetStart = function() {
+  var LockScreenClockWidgetTick = function() {
     LockScreenBasicComponent.apply(this);
     this.configs = {
       stream: {
-        events: ['screenchange'],
+        events: ['screenchange', 'timeformatchange'],
         interval: 60000 // Tick interval: update clock every minute.
       }
     };
@@ -32,7 +32,6 @@
     };
     this.configs.stream.sources = [
       Source.events(this.configs.stream.events)
-      //TODO: mozSettings since even unlocked, settings change
     ];
   };
 
@@ -40,7 +39,7 @@
    * When we start/initialize this start (transfer to this state),
    * we tick the clock.
    */
-  LockScreenClockWidgetStart.prototype.start =
+  LockScreenClockWidgetTick.prototype.start =
   function(states, components, elements) {
     return LockScreenBasicComponent.start
       .call(this, states, components, elements)
@@ -48,7 +47,7 @@
       .next(this.tickClock.bind(this));
   };
 
-  LockScreenClockWidgetStart.prototype.stop =
+  LockScreenClockWidgetTick.prototype.stop =
   function() {
     return LockScreenBasicComponent.stop
       .call(this)
@@ -57,14 +56,14 @@
       });
   };
 
-  LockScreenClockWidgetStart.prototype.tickClock =
+  LockScreenClockWidgetTick.prototype.tickClock =
   function() {
     this.states.idTickInterval =
       setInterval(this.updateClock.bind(this),
       this.configs.interval);
   };
 
-  LockScreenClockWidgetStart.prototype.updateClock =
+  LockScreenClockWidgetTick.prototype.updateClock =
   function() {
     var now = Date.now();
     var f = new navigator.mozL10n.DateTimeFormat();
@@ -79,17 +78,28 @@
     this.elements.date.textContent = dateText;
   };
 
-  LockScreenClockWidgetStart.prototype.handleEvent =
+  LockScreenClockWidgetTick.prototype.handleEvent =
   function(evt) {
-    if ('screenchange' === evt.type && !evt.screenEnabled) {
-      return this.transferToStopState();
+    switch (evt.type) {
+      case 'screenchange':
+        if (!evt.screenEnabled) {
+          return this.transferToHaltState();
+        }
+        break;
+      case 'timeformatchange':
+        // Since updating clock is a fixpoint, don't transfer.
+        this.states.timeFormat = window.navigator.mozHour12 ?
+          navigator.mozL10n.get('shortTimeFormat12') :
+          navigator.mozL10n.get('shortTimeFormat24');
+        this.updateClock();
+        break;
     }
   };
 
-  LockScreenClockWidgetStart.prototype.transferToStopState =
+  LockScreenClockWidgetTick.prototype.transferToHaltState =
   function() {
-    return this.transferTo(LockScreenClockWidgetStop);
+    return this.transferTo(LockScreenClockWidgetHalt);
   };
-  exports.LockScreeClockWidgetStart = LockScreenClockWidgetStart;
+  exports.LockScreeClockWidgetTick = LockScreenClockWidgetTick;
 })(window);
 

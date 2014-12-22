@@ -1,10 +1,10 @@
-/* global LockScreenBasicComponent, LockScreenClockWidgetStart */
+/* global LockScreenBasicComponent, LockScreenClockWidgetTick */
 'use strict';
 
 /**
  * The Clock widget on LockScreen.
  * Clock widget states:
- * Clock (init), ClockStart, ClockStop
+ * Clock (init), ClockTick, ClockStop
  *
  * This is only a initialization state, and would immediately
  * transfer to the starting state.
@@ -41,12 +41,12 @@
   function(states, components, elements) {
     return LockScreenBasicComponent.start
       .call(this, states, components, elements)
-      .next(this.transferToClockStart.bind(this));
+      .next(this.transferToClockTick.bind(this));
   };
 
-  LockScreenClockWidget.prototype.transferToClockStart =
+  LockScreenClockWidget.prototype.transferToClockTick =
   function() {
-    return this.transferTo(LockScreenClockWidgetStart);
+    return this.transferTo(LockScreenClockWidgetTick);
   };
   exports.LockScreeClockWidget = LockScreenClockWidget;
 })(window);

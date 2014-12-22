@@ -3,22 +3,22 @@
 
 /***/
 (function(exports) {
-  var LockScreenClockWidgetStop = function() {
+  var LockScreenClockWidgetHalt = function() {
     LockScreenBasicComponent.apply(this);
     this.configs.events = ['screenchange'];
   };
 
-  LockScreenClockWidgetStop.prototype.handleEvent = function(evt) {
+  LockScreenClockWidgetHalt.prototype.handleEvent = function(evt) {
     if ('screenchange' === evt.type && !evt.screenEnabled) {
       return this.transferToStartState();
     }
   };
 
-  LockScreenClockWidgetStop.prototype.transferToStartState =
+  LockScreenClockWidgetHalt.prototype.transferToStartState =
   function() {
     return this.transferTo(LockScreenClockWidgetStart);
   };
 
-  exports.LockScreenClockWidgetStop = LockScreenClockWidgetStop;
+  exports.LockScreenClockWidgetHalt = LockScreenClockWidgetHalt;
 })(window);
 

@@ -12,7 +12,10 @@
                      // Unless this state is not an event-driven state.
       }
     };
-    this.states = {};
+    this.states = {
+      // Necessary: otherwise parent can't track the current active state
+      next: null
+    };
     this.elements = {};
     this.components = {};
   };
@@ -23,6 +26,23 @@
   LockScreenBasicComponent.prototype.status =
   function() {
     return this.stream.status;
+  };
+
+  /**
+   * When parent need to wait children's actions, like to stop itself after all
+   * children got stopped, we would need this.
+   */
+  LockScreenBasicComponent.prototype.getActiveState =
+  function() {
+    if ('start' === this.status()) {
+      return this;
+    } else {
+      var target = this.states.next;
+      while (target && 'start' !== target.status()) {
+        target = target.states.next;
+      }
+      return target;  // Either no active so it's null, or we found it.
+    }
   };
 
   /**
@@ -118,9 +138,9 @@
    * When a component has been stopped, it would stop to handle events.
    */
   LockScreenBasicComponent.prototype.transferTo = function(clazz) {
-    var nextstate = new clazz();
-    this.states.previous = this;
-    return nextstate
+    var nextState = new clazz();
+    this.states.next = nextState;
+    return nextState
       .next(this.stop.bind(this))
       .start(this.states, this.components, this.elements);
   };
