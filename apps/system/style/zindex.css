@@ -85,7 +85,8 @@
   z-index: 65538;
 }
 
-#screen > [data-z-index-level="attention-indicator"] {
+#screen > [data-z-index-level="attention-indicator"],
+#screen > [data-z-index-level="text-selection-dialog"] {
   z-index: 32769;
 }
 
@@ -194,8 +195,7 @@
   z-index: 2046;
 }
 
-#screen > [data-z-index-level="system-dialog"],
-#screen > [data-z-index-level="text-selection-dialog"] {
+#screen > [data-z-index-level="system-dialog"] {
   z-index: 2045;
 }
 
