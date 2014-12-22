@@ -21,7 +21,6 @@ class TestReceiveCall(GaiaTestCase):
 
     def test_receive_call(self):
         """Make a phone call from Plivo to the phone."""
-        PLIVO_TIMEOUT = 30
 
         from gaiatest.utils.plivo.plivo_util import PlivoUtil
         self.plivo = PlivoUtil(
@@ -30,28 +29,17 @@ class TestReceiveCall(GaiaTestCase):
             self.testvars['plivo']['phone_number']
         )
         self.call_uuid = self.plivo.make_call(
-            to_number=self.testvars['local_phone_numbers'][0].replace('+', ''),
-            timeout=PLIVO_TIMEOUT)
+            to_number=self.testvars['local_phone_numbers'][0].replace('+', ''))
 
         call_screen = CallScreen(self.marionette)
         call_screen.wait_for_incoming_call()
+
         call_screen.answer_call()
-
-        # Wait for Plivo to report the call as connected
-        Wait(self.plivo, timeout=PLIVO_TIMEOUT).until(
-            lambda p: p.is_call_connected(self.call_uuid),
-            message='The call was not connected.')
-
-        # Wait for the state to be connected
-        call_screen.wait_for_condition(
-            lambda m: self.data_layer.active_telephony_state == 'connected',
-            timeout=30)
+        self.plivo.wait_for_call_connected(self.call_uuid)
+        Wait(self.marionette).until(lambda m: self.data_layer.active_telephony_state == 'connected')
 
         call_screen.hang_up()
-
-        Wait(self.plivo, timeout=PLIVO_TIMEOUT).until(
-            lambda p: p.is_call_completed(self.call_uuid),
-            message="Plivo didn't report the call as completed")
+        self.plivo.wait_for_call_completed(self.call_uuid)
         self.call_uuid = None
 
     def tearDown(self):
