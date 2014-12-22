@@ -1,5 +1,7 @@
+console.time('gaia-header');
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.GaiaHeader=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 ;(function(define){define(function(require,exports,module){
+  console.time('gaia-component');
 'use strict';
 
 var textContent = Object.getOwnPropertyDescriptor(Node.prototype, 'textContent');
@@ -32,7 +34,9 @@ module.exports.register = function(name, props) {
   delete props.globalCSS;
 
   var proto = Object.assign(Object.create(base), props);
+  console.time('extractLightDomCSS');
   var output = extractLightDomCSS(proto.template, name);
+  console.timeEnd('extractLightDomCSS');
   var _attrs = Object.assign(props.attrs || {}, attrs);
 
   proto.template = output.template;
@@ -42,7 +46,9 @@ module.exports.register = function(name, props) {
 
   // Register and return the constructor
   // and expose `protoytpe` (bug 1048339)
+  console.time('register');
   var El = document.registerElement(name, { prototype: proto });
+  console.timeEnd('register');
   return El;
 };
 
@@ -201,12 +207,14 @@ function injectGlobalCss(css) {
   document.head.appendChild(style);
 }
 
+console.timeEnd('gaia-component');
 });})(typeof define=='function'&&define.amd?define
 :(function(n,w){'use strict';return typeof module=='object'?function(c){
 c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
 return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-component',this));
 },{}],2:[function(require,module,exports){
 (function(define){define(function(require,exports,module){
+  console.time('gaia-icons');
 /*jshint laxbreak:true*/
 
 /**
@@ -235,6 +243,7 @@ function isLoaded() {
     document.documentElement.classList.contains('gaia-icons-loaded');
 }
 
+console.timeEnd('gaia-icons');
 });})(typeof define=='function'&&define.amd?define
 :(function(n,w){return typeof module=='object'?function(c){
 c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
@@ -242,6 +251,7 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-icons',this));
 
 },{}],3:[function(require,module,exports){
 ;(function(define){'use strict';define(function(require,exports,module){
+  console.time('gaia-header');
 /*jshint esnext:true*/
 
 /**
@@ -279,22 +289,13 @@ module.exports = Component.register('gaia-header', {
    * @private
    */
   created: function() {
+    console.time('created');
     this.attrs = {};
     this.runFontFitTimeout = null;
 
     KNOWN_ATTRIBUTES.forEach((name) => this._updateAttribute(name));
 
-    this.createShadowRoot().innerHTML = this.template;
-
-    // Get els
-    this.els = {
-      actionButton: this.shadowRoot.querySelector('.action-button'),
-      headings: this.querySelectorAll('h1,h2,h3,h4'),
-      inner: this.shadowRoot.querySelector('.inner')
-    };
-
-    this.els.actionButton.addEventListener('click', e => this.onActionButtonClick(e));
-    this.configureActionButton();
+    console.timeEnd('created');
   },
 
   /**
@@ -309,6 +310,22 @@ module.exports = Component.register('gaia-header', {
       return;
     }
 
+    console.time('shadowRoot');
+    this.createShadowRoot().innerHTML = this.template;
+    console.timeEnd('shadowRoot');
+
+    // Get els
+    this.els = {
+      actionButton: this.shadowRoot.querySelector('.action-button'),
+      headings: this.querySelectorAll('h1,h2,h3,h4'),
+      inner: this.shadowRoot.querySelector('.inner')
+    };
+
+    this.els.actionButton.addEventListener('click', e => this.onActionButtonClick(e));
+    console.time('actionbutton');
+    this.configureActionButton();
+    console.timeEnd('actionbutton');
+
     this.runFontFit();
     this.addFontFitObserver();
   },
@@ -320,7 +337,9 @@ module.exports = Component.register('gaia-header', {
    * @private
    */
   attached: function() {
+    console.time('attached');
     this.init();
+    console.timeEnd('attached');
   },
 
   /**
@@ -754,6 +773,7 @@ module.exports = Component.register('gaia-header', {
   </div>`
 });
 
+console.timeEnd('gaia-header');
 });})(typeof define=='function'&&define.amd?define
 :(function(n,w){'use strict';return typeof module=='object'?function(c){
 c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
@@ -761,6 +781,7 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
 
 },{"./lib/font-fit":4,"gaia-component":1,"gaia-icons":2}],4:[function(require,module,exports){
 ;(function(define){'use strict';define(function(require,exports,module){
+  console.time('font-fit');
 
   var privMap = new WeakMap();
 
@@ -1165,6 +1186,7 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
 
   module.exports = GaiaHeaderFontFit;
 
+  console.timeEnd('font-fit');
 });})(typeof define=='function'&&define.amd?define
 :(function(n,w){'use strict';return typeof module=='object'?function(c){
 c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
@@ -1172,3 +1194,4 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('./lib/font-fit',this));
 
 },{}]},{},[3])(3)
 });
+console.timeEnd('gaia-header');
