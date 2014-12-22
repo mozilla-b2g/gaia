@@ -73,6 +73,16 @@
     kActiveIndicatorTimeout: null,
     client: null,
 
+    get maximizedStatusbar() {
+      var statusbar = StatusBar.Selector.statusbarMaximizedWrapper;
+      return this.client.findElement(statusbar);
+    },
+
+    get minimizedStatusbar() {
+      var statusbar = StatusBar.Selector.statusbarMinimizedWrapper;
+      return this.client.findElement(statusbar);
+    },
+
     isVisible: function() {
       var el = this.client.findElement(StatusBar.Selector.statusbar);
       return el.displayed();
