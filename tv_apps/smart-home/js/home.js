@@ -309,6 +309,9 @@
         }
       });
       menuGroup.once('will-close', function() {
+        // Clear all opened event listener because we won't have it if opened is
+        // not fired and the group is trying to close it self.
+        menuGroup.off('opened');
         self.spatialNavigator.add(menuGroup);
         var childElement = menuGroup.firstElementChild;
         while(childElement) {

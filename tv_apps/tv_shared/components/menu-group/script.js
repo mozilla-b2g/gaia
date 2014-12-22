@@ -52,6 +52,12 @@ window.MenuGroup = (function(win) {
           // XXX: this is a workaround of CSS transform. We cannot have a
           //      rotation right after resizing without any settimeout???
           setTimeout((function() {
+            if (!this.classList.contains('shrinking')) {
+              // If we don't have shrinking class here, that means this group
+              // is changing to another state and we don't need to opening
+              // state.
+              return;
+            }
             this.classList.remove('shrinking');
             this.classList.remove('closed');
             this.classList.add('opening');
