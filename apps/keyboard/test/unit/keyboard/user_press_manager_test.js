@@ -80,9 +80,16 @@ suite('UserPressManager', function() {
   // UserPress would have updateCoords() defined in prototype, 
   // so cannot use 'deepEqual' with lastest chai.js.
   var assertOnpressArgs = function (args, expected, msg) {
+    // the single for-loop can only test unidirection injective relation
+    // from |args[0]| to |expected|; to make sure there aren't any properties
+    // present in |expected| but not in |args[0]|, we need to test against
+    // Object.keys().length. Note that this is different from
+    // layout_manager_test where we test bidirectionally because we need to test
+    // prototype there. (which isn't the case here.)
     for (var key in expected[0]) {
       assert.equal(args[0][key], expected[0][key], msg);
     }
+    assert.equal(Object.keys(args[0]).length, Object.keys(expected[0]).length);
     assert.equal(args[1], expected[1], msg);
   };
 
