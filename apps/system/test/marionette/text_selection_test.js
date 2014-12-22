@@ -27,9 +27,31 @@ marionette('Text selection >', function() {
     fakeTextselectionApp = new FakeTextSelectionApp(client);
   });
 
+  suite('check button functionality', function() {
+    test('copy and paste', function() {
+      fakeTextselectionApp.copyTo('centerInput', 'topLeftInput');
+      assert.equal(fakeTextselectionApp.topLeftInput.getAttribute('value'),
+        'testcenterinput');
+    });
+
+    test('cut and paste', function() {
+      fakeTextselectionApp.cutTo('centerInput', 'topRightInput');
+      assert.equal(fakeTextselectionApp.centerInput.getAttribute('value'),
+        '');
+      assert.equal(fakeTextselectionApp.topRightInput.getAttribute('value'),
+        'testcenterinput');
+    });
+
+    test('select all and cut', function() {
+      fakeTextselectionApp.selectAllAndCut('bottomLeftInput');
+      assert.equal(fakeTextselectionApp.bottomLeftInput.getAttribute('value'),
+        '');
+    });
+  });
+
   suite('check dialog location', function() {
     test('click center input', function() {
-      fakeTextselectionApp.press('centerInput');
+      fakeTextselectionApp.longPress('centerInput');
 
       assert.ok(
         fakeTextselectionApp.textSelection.location.y <
@@ -39,7 +61,7 @@ marionette('Text selection >', function() {
     });
 
     test('click top-left input', function() {
-      fakeTextselectionApp.press('topLeftInput');
+      fakeTextselectionApp.longPress('topLeftInput');
       var textSelectionLocation = fakeTextselectionApp.textSelection.location;
 
       assert.ok(
@@ -53,7 +75,7 @@ marionette('Text selection >', function() {
     });
 
     test('click top-right input', function() {
-      fakeTextselectionApp.press('topRightInput');
+      fakeTextselectionApp.longPress('topRightInput');
       var textSelectionLocation = fakeTextselectionApp.textSelection.location;
 
       assert.ok(
@@ -68,7 +90,7 @@ marionette('Text selection >', function() {
     });
 
     test('click bottom-left input', function() {
-      fakeTextselectionApp.press('bottomLeftInput');
+      fakeTextselectionApp.longPress('bottomLeftInput');
       var textSelectionLocation = fakeTextselectionApp.textSelection.location;
 
       assert.ok(
@@ -83,7 +105,7 @@ marionette('Text selection >', function() {
     });
 
     test('click bottom-right input', function() {
-      fakeTextselectionApp.press('bottomRightInput');
+      fakeTextselectionApp.longPress('bottomRightInput');
       var textSelectionLocation = fakeTextselectionApp.textSelection.location;
 
       assert.ok(
