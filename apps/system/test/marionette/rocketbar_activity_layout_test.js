@@ -1,6 +1,5 @@
 'use strict';
 
-var Actions = require('marionette-client').Actions;
 var Bookmark = require('./lib/bookmark');
 var EmeServer = require(
   '../../../../shared/test/integration/eme_server/parent');
@@ -32,7 +31,7 @@ marionette('Rocketbar - Opened Activity From Search', function() {
   });
 
   setup(function() {
-    actions = new Actions(client);
+    actions = client.loader.getActions();
     bookmark = new Bookmark(client);
     home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);

@@ -1,7 +1,6 @@
 'use strict';
 
 var $ = require('./mquery');
-var Actions = require('marionette-client').Actions;
 
 exports.getSpinnerValue = function(el) {
   el = $(el);
@@ -18,7 +17,7 @@ exports.setSpinnerValue = function(el, value) {
   var currentValue = exports.getSpinnerValue(el);
   var targetValue = parseInt(value, 10);
 
-  var actions = new Actions($.client);
+  var actions = $.client.loader.getActions();
   var magnitude = Math.abs(currentValue - targetValue) / 2;
   while (currentValue !== targetValue) {
     var dir = (currentValue < targetValue ? -1 : 1);

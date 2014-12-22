@@ -53,6 +53,9 @@ exports.on = function(date, callback) {
     exports.timeController.observeTime(Calc.spanOfDay(date), dispatch);
     // we need to trigger callbacks to re-render the views if needed,
     // cachedRecords is only built after first dispatch
+    // FIXME: we need to somehow know if first expansion already happened on
+    // app startup (otherwise we might get into a race condition where it
+    // queries the cache before it's built) for now I just increased the delay
     dispatch();
   } else if (dayId in cachedRecords) {
     // if it is not the first listener and we have some records in memory we

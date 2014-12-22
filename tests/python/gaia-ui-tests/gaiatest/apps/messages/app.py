@@ -13,10 +13,10 @@ class Messages(Base):
 
     name = 'Messages'
 
-    _create_new_message_locator = (By.ID, 'icon-add')
+    _create_new_message_locator = (By.ID, 'threads-composer-link')
     _first_message_locator = (By.ID, 'thread-1')
     _messages_frame_locator = (By.CSS_SELECTOR, 'iframe[data-url*=sms]')
-    _options_icon_locator = (By.ID, 'threads-options-icon')
+    _options_icon_locator = (By.ID, 'threads-options-button')
     _app_ready_locator = (By.CLASS_NAME, 'js-app-ready')
     _draft_message_locator = (By.CSS_SELECTOR, 'li.draft')
 

@@ -1,15 +1,13 @@
 'use strict';
 var assert = require('assert');
 
-var Actions = require('marionette-client').Actions;
-
 marionette('Vertical - Localization', function() {
 
   var client = marionette.client(require(__dirname + '/client_options.js'));
   var actions, home, system;
 
   setup(function() {
-    actions = new Actions(client);
+    actions = client.loader.getActions();
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     system.waitForStartup();

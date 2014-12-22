@@ -38,8 +38,9 @@ var ActivityHandler = {
       })
     );
 
-    // We want to register the handler only when we're on the launch path
-    if (!window.location.hash.length) {
+    // We don't want to register these system handlers when app is run as
+    // inline activity
+    if (!Navigation.getPanelName().startsWith('activity')) {
       window.navigator.mozSetMessageHandler('sms-received',
         this.onSmsReceived.bind(this));
 
@@ -166,8 +167,9 @@ var ActivityHandler = {
         }, 0);
 
         if (size > Settings.mmsSizeLimitation) {
-          alert(navigator.mozL10n.get('files-too-large', {
-            n: activityData.blobs.length
+          alert(navigator.mozL10n.get('attached-files-too-large', {
+            n: activityData.blobs.length,
+            mmsSize: (Settings.mmsSizeLimitation / 1024).toFixed(0)
           }));
           this.leaveActivity();
           return;

@@ -14,10 +14,10 @@ marionette('Ambient indicator', function() {
   });
 
   var ambientIndicator = new AmbientIndicator(client);
-  var utilityTray = new UtilityTray(client);
-  var details, notification, system;
+  var details, notification, system, utilityTray;
 
   setup(function() {
+    utilityTray = new UtilityTray(client);
     system = client.loader.getAppClass('system');
   });
 

@@ -1031,7 +1031,10 @@ suite('compose_test.js', function() {
       suite('onerror,', function() {
         test('file too large', function() {
           request.onerror(new Error('file too large'));
-          sinon.assert.calledWith(window.alert, 'files-too-large{"n":1}');
+          sinon.assert.calledWith(
+            window.alert, 
+            'attached-files-too-large{"n":1,"mmsSize":"295"}'
+          );
         });
 
         test('other errors are logged', function() {
@@ -1543,7 +1546,7 @@ suite('compose_test.js', function() {
             request.onerror(new Error('file too large'));
             sinon.assert.calledWith(
               window.alert,
-              'files-too-large{"n":1}'
+              'attached-files-too-large{"n":1,"mmsSize":"295"}'
             );
           });
 

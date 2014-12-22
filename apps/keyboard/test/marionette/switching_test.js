@@ -4,7 +4,6 @@ var KeyboardTestApp = require('./lib/keyboard_test_app');
 var ImeTestApp = require('./lib/ime_test_app');
 var Keyboard = require('./lib/keyboard');
 var assert = require('assert');
-var Actions = require('marionette-client').Actions;
 
 marionette('switch Keyboard App', function() {
   var keyboardTestApp = null;
@@ -44,8 +43,6 @@ marionette('switch Keyboard App', function() {
     }
   });
 
-  actions = new Actions(client);
-
   /*
    * To check the 3rd-party IME is shown.
    */
@@ -57,7 +54,8 @@ marionette('switch Keyboard App', function() {
   }
 
   setup(function() {
-    keyboard =  new Keyboard(client);
+    actions = client.loader.getActions();
+    keyboard = new Keyboard(client);
     system = client.loader.getAppClass('keyboard', 'system');
     imeTestApp = new ImeTestApp(client);
 

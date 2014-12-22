@@ -1,11 +1,10 @@
 'use strict';
 
-var Actions = require('marionette-client').Actions;
 var TextSelection = require('./text_selection');
 
 function FakeTextSelectionApp(client) {
   this.client = client;
-  this.actions = new Actions(this.client);
+  this.actions = client.loader.getActions();
 
   this.client.apps.launch(FakeTextSelectionApp.ORIGIN);
   this.client.apps.switchToApp(FakeTextSelectionApp.ORIGIN);

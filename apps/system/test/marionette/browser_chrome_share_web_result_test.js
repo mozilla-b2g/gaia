@@ -1,7 +1,6 @@
 'use strict';
 
 var assert = require('assert');
-var Actions = require('marionette-client').Actions;
 var Email = require(
   '../../../../apps/email/test/marionette/lib/email');
 var EmailServer = require(
@@ -40,7 +39,7 @@ marionette('Browser Chrome - Share Web Result', function() {
   });
 
   setup(function() {
-    actions = new Actions(client);
+    actions = client.loader.getActions();
     email = new Email(client);
     home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);

@@ -1,6 +1,5 @@
 'use strict';
 
-var Actions = require('marionette-client').Actions;
 var getIconId = require('./icon_id');
 
 /**
@@ -127,7 +126,7 @@ VerticalHome.prototype = {
    * grid if not specified.
    */
   enterEditMode: function(icon) {
-    var actions = new Actions(this.client);
+    var actions = this.client.loader.getActions();
     var firstIcon = icon ||
       this.client.helper.waitForElement(VerticalHome.Selectors.firstIcon);
 
@@ -341,7 +340,7 @@ VerticalHome.prototype = {
     }, [icon.getAttribute('data-identifier'), index]);
 
     // Wait for the icon to animate into place
-    var actions = new Actions(this.client);
+    var actions = this.client.loader.getActions();
     actions.wait(1).perform();
   },
 
@@ -356,7 +355,7 @@ VerticalHome.prototype = {
     }
 
     var selectors = VerticalHome.Selectors;
-    var actions = new Actions(this.client);
+    var actions = this.client.loader.getActions();
 
     if (!this.client.executeScript(placeholderExists)) {
       this.enterEditMode();

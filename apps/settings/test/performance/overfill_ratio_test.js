@@ -3,7 +3,6 @@
 var assert = require('assert');
 var PerformanceHelper = requireGaia('/tests/performance/performance_helper.js');
 var SettingsIntegration = require('./integration.js');
-var Actions = require('marionette-client').Actions;
 
 marionette(config.appPath + ' >', function() {
   var app;
@@ -15,10 +14,11 @@ marionette(config.appPath + ' >', function() {
   });
 
   var chrome = client.scope({context: 'chrome' });
-  var actions = new Actions(client);
+  var actions;
   app = new SettingsIntegration(client, config.appPath);
 
   setup(function() {
+    actions = client.loader.getActions();
     this.timeout(config.timeout);
     client.setScriptTimeout(config.scriptTimeout);
     PerformanceHelper.injectHelperAtom(client);

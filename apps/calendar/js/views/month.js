@@ -2,149 +2,193 @@ define(function(require, exports, module) {
 'use strict';
 
 var Calc = require('calc');
-var MonthChild = require('./month_child');
-var Parent = require('./time_parent');
+var GestureDetector = require('shared/gesture_detector');
+var SingleMonth = require('./single_month');
+var View = require('view');
+var dateFromId = Calc.dateFromId;
+var monthStart = Calc.monthStart;
+var performance = require('performance');
 
-function Month(options) {
-  Parent.apply(this, arguments);
-  // default to today
-  this._selectedDay = new Date();
+// minimum difference between X and Y axis to be considered an horizontal swipe
+var XSWIPE_OFFSET = window.innerWidth / 10;
+
+function Month() {
+  View.apply(this, arguments);
+  this.frames = new Map();
 }
 module.exports = Month;
 
 Month.prototype = {
-  __proto__: Parent.prototype,
+  __proto__: View.prototype,
 
-  scale: 'month',
+  SCALE: 'month',
 
   selectors: {
     element: '#month-view',
-    selectedDay: 'li.selected'
   },
 
-  childClass: MonthChild,
+  date: null,
 
-  SELECTED: 'selected',
+  /** @type {SingleMonth} */
+  currentFrame: null,
 
-  _onswipe: function() {
-    var didSwipe = Parent.prototype._onswipe.apply(this, arguments);
+  /**
+   * store current, previous and next months
+   * we load them beforehand and keep on the cache to speed up swipes
+   * @type {Array<SingleMonth>}
+   */
+  frames: null,
 
+  onactive: function() {
+    View.prototype.onactive.apply(this, arguments);
+    this.app.timeController.scale = this.SCALE;
+    if (this.currentFrame) {
+      this.currentFrame.activate();
+    }
+  },
+
+  _onswipe: function(data) {
+    // only move to a different month if it's an horizontal swipe
+    if (Math.abs(data.dy) > (Math.abs(data.dx) - XSWIPE_OFFSET)) {
+      return;
+    }
+    this._move(data.dx < 0);
+  },
+
+  _onwheel: function(event) {
+    // mouse wheel is used for a10y
+    if (event.deltaMode !== event.DOM_DELTA_PAGE || event.deltaX === 0) {
+      return;
+    }
+    this._move(event.deltaX > 0);
+  },
+
+  _move: function(isNext) {
+    var controller = this.app.timeController;
+    var date = isNext ? this._nextTime() : this._previousTime();
     // If we changed months, set the selected day to the 1st
-    if (didSwipe) {
-      this.controller.selectedDay = this.date;
-    }
+    controller.selectedDay = date;
+    controller.move(date);
   },
 
-  _onwheel: function() {
-    var didWheel = Parent.prototype._onwheel.apply(this, arguments);
-
-    // If we changed months, set the selected day to the 1st
-    if (didWheel) {
-      this.controller.selectedDay = this.date;
-    }
+  _nextTime: function() {
+    return monthStart(this.date, 1);
   },
 
-  _clearSelectedDay: function() {
-    var day = this.element.querySelector(
-      this.selectors.selectedDay
-    );
-
-    if (day) {
-      day.classList.remove(this.SELECTED);
-      day.removeAttribute('aria-selected');
-    }
-  },
-
-  _selectDay: function(date) {
-    var el, id;
-    this._clearSelectedDay();
-
-    id = Calc.getDayId(date);
-    id = this.currentFrame._dayId(id);
-
-    el = document.getElementById(id);
-
-    if (el) {
-      el.classList.add(this.SELECTED);
-      el.setAttribute('aria-selected', true);
-      // Put the screen reader cursor onto the selected day.
-      el.focus();
-      this._selectedDay = date;
-    }
+  _previousTime: function() {
+    return monthStart(this.date, -1);
   },
 
   _initEvents: function() {
     this.controller = this.app.timeController;
 
-    Parent.prototype._initEvents.apply(this, arguments);
-
-    this.controller.on('selectedDayChange', this);
+    this.element.addEventListener('swipe', this);
+    this.element.addEventListener('wheel', this);
     this.controller.on('monthChange', this);
     this.delegate(this.element, 'click', '[data-date]', this);
     this.delegate(this.element, 'dbltap', '[data-date]', this);
+
+    this.gd = new GestureDetector(this.element);
+    this.gd.startDetecting();
   },
 
   handleEvent: function(e, target) {
-    Parent.prototype.handleEvent.apply(this, arguments);
-
     switch (e.type) {
+      case 'swipe':
+        this._onswipe(e.detail);
+        break;
+      case 'wheel':
+        this._onwheel(e);
+        break;
       case 'click':
-        var date = Calc.dateFromId(target.dataset.date);
+        var date = dateFromId(target.dataset.date);
         this.controller.selectedDay = date;
         break;
       case 'dbltap':
         this.app.go('/day/');
         break;
-      case 'selectedDayChange':
-        this._selectDay(e.data[0]);
-        break;
       case 'monthChange':
-        this._clearSelectedDay();
         this.changeDate(e.data[0]);
         break;
     }
   },
 
-  _createChild: function(time) {
-    return new MonthChild({ app: this.app, date: time });
+  changeDate: function(time) {
+    this.date = monthStart(time);
+
+    if (this.currentFrame) {
+      this.currentFrame.deactivate();
+    }
+
+    this._getFrame(this._previousTime());
+    this.currentFrame = this._getFrame(this.date);
+    this._getFrame(this._nextTime());
+
+    this._trimFrames();
+    this._appendFrames();
+
+    this.currentFrame.activate();
   },
 
-  _getId: function(date) {
-    return date.valueOf();
+  _getFrame: function(date) {
+    var id = date.getTime();
+    var frame = this.frames.get(id);
+    if (!frame) {
+      frame = new SingleMonth({
+        app: this.app,
+        date: date,
+        container: this.element
+      });
+      frame.create();
+      this.frames.set(id, frame);
+    }
+    return frame;
   },
 
-  /**
-   * Moves calendar to the next month.
-   */
-  _nextTime: function(time) {
-    return new Date(
-      time.getFullYear(),
-      time.getMonth() + 1,
-      time.getDate()
-    );
+  _trimFrames: function() {
+    if (this.frames.size <= 3) {
+      return;
+    }
+
+    // full month (we always keep previous/next months)
+    var delta = 31 * 24 * 60 * 60 * 1000;
+
+    this.frames.forEach((frame, ts) => {
+      var base = Number(this.date);
+      if (Math.abs(base - ts) > delta) {
+        frame.destroy();
+        this.frames.delete(ts);
+      }
+    });
   },
 
-  /**
-   * Moves calendar to the next month.
-   */
-  _previousTime: function(time) {
-    return new Date(
-      time.getFullYear(),
-      time.getMonth() - 1,
-      time.getDate()
-    );
+  _appendFrames: function() {
+    // sort elements by timestamp (key = timestamp) so DOM makes more sense
+    Array.from(this.frames.keys())
+    .sort((a, b) => a - b)
+    .forEach(key => this.frames.get(key).append());
   },
 
-  /**
-   * Render current month
-   */
-  render: function() {
-    var time = this.controller.month;
-    this.changeDate(time);
+  oninactive: function() {
+    View.prototype.oninactive.call(this);
+    if (this.currentFrame) {
+      this.currentFrame.deactivate();
+    }
+  },
+
+  onfirstseen: function() {
+    this._initEvents();
+    this.changeDate(this.controller.month);
+    performance.monthReady();
+  },
+
+  destroy: function() {
+    this.frames.forEach((frame, key) => {
+      this.frames.delete(key);
+      frame.destroy();
+    });
   }
 
 };
-
-Month.prototype.onfirstseen = Month.prototype.render;
 
 });

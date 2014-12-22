@@ -1,6 +1,5 @@
 'use strict';
 
-var Actions = require('marionette-client').Actions;
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar');
 var Bookmark = require('../../../system/test/marionette/lib/bookmark');
 var helper = require('../../../../tests/js-marionette/helper.js');
@@ -22,15 +21,17 @@ marionette('Statusbar colors', function() {
 
   var system;
   var bookmark;
-  var actions = new Actions(client);
+  var actions;
   var search;
   var rocketbar = new Rocketbar(client);
   var server;
-  var utilityTray = new UtilityTray(client);
+  var utilityTray;
 
   setup(function() {
+    actions = client.loader.getActions();
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
+    utilityTray = new UtilityTray(client);
     bookmark = new Bookmark(client);
     system.waitForStartup();
   });
