@@ -141,6 +141,7 @@ PreferencesBuilder.prototype.preparePref = function() {
       this.config.GAIA_DOMAIN);
   }, this);
 
+  this.userPrefs['dom.webcomponents.enabled'] = true;
   this.userPrefs['network.http.max-connections-per-server'] = 15;
   this.userPrefs['dom.mozInputMethod.enabled'] = true;
   this.userPrefs['layout.css.scroll-behavior.enabled'] = true;
