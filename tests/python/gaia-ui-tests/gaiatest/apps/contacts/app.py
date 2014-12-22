@@ -109,6 +109,7 @@ class Contacts(Base):
 
         _name_locator = (By.CSS_SELECTOR, 'p > strong')
         _full_name_locator = (By.CSS_SELECTOR, 'p.contact-text')
+        _image_locator = (By.CSS_SELECTOR, 'span[data-type="img"]')
 
         @property
         def name(self):
@@ -117,6 +118,10 @@ class Contacts(Base):
         @property
         def full_name(self):
             return self.root_element.find_element(*self._full_name_locator).text
+
+        @property
+        def image_data_group(self):
+            return self.root_element.find_element(*self._image_locator).get_attribute('data-group')
 
         def tap(self, return_class='ContactDetails'):
             self.root_element.find_element(*self._name_locator).tap()
