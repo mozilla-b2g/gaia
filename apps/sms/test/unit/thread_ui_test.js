@@ -497,9 +497,6 @@ suite('thread_ui.js >', function() {
       // display the banner to check that it is correctly hidden
       banner.classList.remove('hide');
 
-      // add a lock to check that it is correctly removed
-      Compose.lock = true;
-
       Compose.on.withArgs('input').yield();
     }
 
@@ -659,14 +656,20 @@ suite('thread_ui.js >', function() {
 
     suite('type converted >', function() {
       setup(function() {
+        sinon.spy(Compose, 'lock');
         yieldType('mms');
         yieldInput();
       });
 
+      teardown(function() {
+        Compose.lock.restore();
+      });
+
       test('The composer has the correct state', function() {
+        //lock function is not yet called
         assert.isFalse(
-          Compose.lock,
-          'lock is disabled'
+          Compose.lock.called,
+          'locked is disabled'
         );
 
         assert.isFalse(
@@ -689,10 +692,15 @@ suite('thread_ui.js >', function() {
 
     suite('at size limit in mms >', function() {
       setup(function() {
+        sinon.spy(Compose, 'lock');
         Settings.mmsSizeLimitation = 1024;
         yieldType('mms');
         Compose.size = 1024;
         Compose.on.withArgs('input').yield();
+      });
+
+      teardown(function() {
+        Compose.lock.restore();
       });
 
       test('banner is displayed and stays', function() {
@@ -706,17 +714,25 @@ suite('thread_ui.js >', function() {
         );
       });
 
-      test('lock is enabled', function() {
-        assert.isTrue(Compose.lock);
+      test('lock is called', function() {
+        assert.isTrue(
+          Compose.lock.called,
+          'locked is enabled'
+        ); 
       });
     });
 
     suite('over size limit in mms >', function() {
       setup(function() {
+        sinon.spy(Compose, 'lock');
         Settings.mmsSizeLimitation = 1024;
         yieldType('mms');
         Compose.size = 1025;
         Compose.on.withArgs('input').yield();
+      });
+
+      teardown(function() {
+        Compose.lock.restore();
       });
 
       test('banner is displayed and stays', function() {
@@ -730,8 +746,33 @@ suite('thread_ui.js >', function() {
         );
       });
 
-      test('lock is enabled', function() {
-        assert.isTrue(Compose.lock);
+      test('lock is called', function() {
+        assert.isTrue(
+          Compose.lock.called,
+          'locked is enabled'
+        ); 
+      });
+    });
+
+    suite('size decrement after size limit is crossed', function() {
+      setup(function() {
+        sinon.spy(Compose, 'unlock');
+      });
+
+      teardown(function() {
+        Compose.unlock.restore();
+      });
+
+      test('banner is hidden when the size is decreased to the limit',
+        function() {
+        ThreadUI.hideMaxLengthNotice();
+        assert.isTrue(banner.classList.contains('hide'));
+
+        //checking whether unlock is called
+        assert.isTrue(
+          Compose.unlock.called,
+          'locked is disabled'
+        ); 
       });
     });
   });
