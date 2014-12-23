@@ -260,7 +260,7 @@
           var h1 = fakeDialerApp.getCallHeight();
           client.findElement('#input').click();
           client.switchToFrame();
-          client.helper.waitForElement('.inputWindow.active');
+          system.waitForKeyboard();
           var apph2 = getAppHeight(fakeDialerApp.origin);
           var h2 = fakeDialerApp.getCallHeight();
           assert.notEqual(h1, h2);
@@ -272,7 +272,7 @@
         var h1 = getAppHeight('app://' + CALLER_APP);
         client.findElement('#input').click();
         client.switchToFrame();
-        client.helper.waitForElement('.inputWindow.active');
+        system.waitForKeyboard();
         var h2 = getAppHeight('app://' + CALLER_APP);
         assert.notEqual(h1, h2);
       });
@@ -286,7 +286,7 @@
           var systemDialogHeight1 = fxASystemDialog.getHeight();
           fxASystemDialog.focus();
           client.switchToFrame();
-          client.helper.waitForElement('.inputWindow.active');
+          system.waitForKeyboard();
 
           var systemDialogHeight2 = fxASystemDialog.getHeight();
           var h2 = getAppHeight('app://' + CALLER_APP);

@@ -286,6 +286,7 @@
    * An appWindow is active means:
    * 1. Going to be opened.
    * 2. Already opened.
+   * 3. Not going to be closed.
    *
    * Note: The element has active class unless it's at closed state.
    * But a closing instance is not recognized as active.
@@ -312,6 +313,21 @@
       // Before the transition controller is inited
       return false;
     }
+  };
+
+  /**
+   * An appWindow should resize:
+   * 1. If it's active
+   * 2. If it was just queued for close.
+   *
+   * @return {Boolean} The instance should be resized.
+   */
+  AppWindow.prototype.shouldResize = function aw_shouldResize() {
+    if (this.element.classList.contains('will-become-inactive')) {
+      return true;
+    }
+
+    return this.isActive();
   };
 
   AppWindow.prototype.isSheetTransitioning =
@@ -1481,7 +1497,7 @@
     }
     this.debug('request RESIZE...active? ', this.isActive());
     var bottom = this.getBottomMostWindow();
-    if (!bottom.isActive() || this.isTransitioning()) {
+    if (!bottom.shouldResize() || this.isTransitioning()) {
       return;
     }
     if (this.frontWindow) {
