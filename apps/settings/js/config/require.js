@@ -328,6 +328,18 @@ require.config({
         'modules/bluetooth/bluetooth_v1',
         'modules/bluetooth/bluetooth'
       ]
+    },
+    {
+      name: 'panels/developer/panel',
+      exclude: [
+        'main',
+        'modules/dialog_service',
+        'modules/apps_cache'
+      ]
+    },
+    {
+      name: 'panels/developer_hud/panel',
+      exclude: ['main']
     }
   ]
 });
