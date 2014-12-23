@@ -451,7 +451,7 @@ var ThreadUI = {
   },
 
   showMaxLengthNotice: function thui_showMaxLengthNotice(opts) {
-    Compose.lock = true;
+    Compose.lock();
     navigator.mozL10n.setAttributes(
       this.maxLengthNotice.querySelector('p'), opts.l10nId, opts.l10nArgs
     );
@@ -459,7 +459,7 @@ var ThreadUI = {
   },
 
   hideMaxLengthNotice: function thui_hideMaxLengthNotice() {
-    Compose.lock = false;
+    Compose.unlock();
     this.maxLengthNotice.classList.add('hide');
   },
 
