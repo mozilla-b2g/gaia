@@ -114,17 +114,6 @@
     shared: '../shared/js'
   },
 
-  // Rewrite the waitSeconds directive so that we never time out
-  // waiting for modules to load in production. See
-  // js/require_config.js for more details.
-  onBuildWrite: function(id, url, contents) {
-    if (id === 'main') {
-      return contents.replace(/waitSeconds:\s*\d+/, 'waitSeconds: 0');
-    } else {
-      return contents;
-    }
-  },
-
   // Keeping build dir since Makefile cleans it up and
   // preps build dir with the shared directory
   keepBuildDir: true,

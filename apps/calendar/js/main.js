@@ -17,6 +17,7 @@ function waitForLoad() {
 console.log('Will configure rjs...');
 require.config({
   baseUrl: '/js',
+  waitSeconds: 60,
   paths: {
     shared: '/shared/js'
   },
