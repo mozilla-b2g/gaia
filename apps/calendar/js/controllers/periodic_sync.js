@@ -11,6 +11,7 @@ define(function(require, exports) {
 
 var Responder = require('responder');
 var debug = require('debug')('controllers/periodic_sync');
+var messageHandler = require('message_handler');
 
 /**
  * Cached alarm previously sent to alarms db.
@@ -68,7 +69,10 @@ exports.observe = function() {
     accounts.on('remove', onAccountsChange);
     // Listen to the settings collection for a change to sync frequency so that
     // we can update any alarms we've sent to the alarms api accordingly.
+    debug('Will listen for syncFrequencyChange...');
     settings.on('syncFrequencyChange', exports);
+    // Listen for sync event from alarms api.
+    messageHandler.responder.on('sync', exports);
     return scheduleSync();
   });
 };
@@ -82,6 +86,7 @@ exports.unobserve = function() {
   accounts.off('persist', onAccountsChange);
   accounts.off('remove', onAccountsChange);
   settings.off('syncFrequencyChange', exports);
+  messageHandler.responder.off('sync', exports);
 };
 
 exports.handleEvent = function(event) {
@@ -91,6 +96,7 @@ exports.handleEvent = function(event) {
       return onSync();
     case 'syncFrequencyChange':
       // Gets triggered by settings db change to sync frequency.
+      debug('Received syncFrequencyChange!');
       return onSyncFrequencyChange(event.data[0]);
   }
 };

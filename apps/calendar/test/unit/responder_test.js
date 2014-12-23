@@ -61,6 +61,27 @@ suite('responder', function() {
     });
 
   });
+
+  test('#emitWhenListener', function(done) {
+    subject.emitWhenListener('foo', 'bar');
+    subject.emitWhenListener('foo', 'baz');
+
+    // Let the event loop tick before listening for the 'foo' topic.
+    setTimeout(() => {
+      var count = 0;
+      subject.on('foo', function onFoo(word) {
+        if (count === 0) {
+          assert.equal(word, 'bar');
+          count++;
+          return;
+        }
+
+        assert.equal(word, 'baz');
+        subject.off('foo', onFoo);
+        done();
+      });
+    }, 0);
+  });
 });
 
 });
