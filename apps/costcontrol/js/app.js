@@ -338,6 +338,8 @@ var CostControlApp = (function() {
       ConfigManager.requestSettings(dataSim.iccId,
                                     function _onSettings(settings) {
         var mode = ConfigManager.getApplicationMode();
+        var tabs = document.getElementById('tabs');
+        var dataUsageTab = document.getElementById('datausage-tab');
         debug('App UI mode: ', mode);
 
         // Layout
@@ -346,15 +348,16 @@ var CostControlApp = (function() {
 
           // Stand alone mode when data usage only
           if (mode === 'DATA_USAGE_ONLY') {
-            var tabs = document.getElementById('tabs');
             tabs.setAttribute('aria-hidden', true);
 
-            var dataUsageTab = document.getElementById('datausage-tab');
             dataUsageTab.classList.add('standalone');
             window.location.hash = '#datausage-tab';
 
           // Two tabs mode
           } else {
+            dataUsageTab.classList.remove('standalone');
+            tabs.setAttribute('aria-hidden', false);
+
             document.getElementById('balance-tab-filter')
               .setAttribute('aria-hidden', (mode !== 'PREPAID'));
 
