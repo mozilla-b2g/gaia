@@ -1,3 +1,11 @@
+/*
+ * By default do not allow any user text selection, only enable
+ * for certain parts on a per-element/region area.
+*/
+* {
+  -moz-user-select: none;
+}
+
 html {
   height: 100%;
   width: 100%;
@@ -311,6 +319,14 @@ body.picker-mode #title-player {
 #views-tiles-anchor,
 #views-list-anchor {
   min-height: 100%;
+}
+
+/*
+ * Enable the text selection in the tiles and list search inputs.
+ */
+#views-tiles-search-input,
+#views-list-search-input {
+  -moz-user-select: text;
 }
 
 /*
