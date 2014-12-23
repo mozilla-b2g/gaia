@@ -66,6 +66,17 @@ function checkWebappsScheme(webapps) {
 }
 
 function checkFileInZip(zipPath, pathInZip, expectedPath) {
+  var stat = fs.statSync(expectedPath);
+  if (stat && stat.isDirectory()) {
+    var list = fs.readdirSync(expectedPath);
+    list.forEach(function(filename) {
+      checkFileInZip(
+        zipPath, pathInZip + '/' + filename, expectedPath + '/' + filename);
+    });
+
+    return;
+  }
+
   var expected = fs.readFileSync(expectedPath);
   checkFileContentInZip(zipPath, pathInZip, expected);
 }
@@ -74,7 +85,8 @@ function checkFileContentInZip(zipPath, pathInZip, expectedContent, isJSON) {
   var zip = new AdmZip(zipPath);
   var entry = zip.getEntry(pathInZip);
   var actual = isJSON ? JSON.parse(zip.readAsText(entry)) : zip.readFile(entry);
-  assert.deepEqual(actual, expectedContent);
+  assert.deepEqual(actual, expectedContent,
+    'Checking ' + pathInZip + ' in ' + zipPath);
 }
 
 function checkFileContentByPathInZip(zipPath, pathInZip,
@@ -132,7 +144,7 @@ exports.checkError = checkError;
 exports.checkSettings = checkSettings;
 exports.checkPrefs = checkPrefs;
 exports.checkWebappsScheme = checkWebappsScheme;
-exports.checkFileInZip = checkFileInZip;
+exports.checkFileInZip = exports.checkDirInZip = checkFileInZip;
 exports.checkFileContentInZip = checkFileContentInZip;
 exports.checkFileContentByPathInZip = checkFileContentByPathInZip;
 exports.emptyJsonFile = emptyJsonFile;

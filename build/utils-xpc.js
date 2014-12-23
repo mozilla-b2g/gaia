@@ -1222,11 +1222,12 @@ var scriptLoader = {
       if (withoutCache) {
         uri += '?d=' + new Date().getTime();
       }
-      Services.scriptloader.loadSubScript(uri, exportObj);
+      Services.scriptloader.loadSubScript(uri, exportObj, 'UTF-8');
       this.scripts[filePath] = true;
     } catch(e) {
       delete this.scripts[filePath];
-      throw 'cannot load script from ' + filePath;
+      throw 'Utils.scriptLoader: Cannot load script from ' + filePath +
+            ': ' + e.toString();
     }
   }
 };

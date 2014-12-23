@@ -440,6 +440,13 @@ GAIA_CONCAT_LOCALES?=1
 
 # This variable is for customizing the keyboard layouts in a build.
 GAIA_KEYBOARD_LAYOUTS?=en,pt-BR,es,de,fr,fr-CA,pl,ko,zh-Hans-Pinyin,en-Dvorak
+# We optionally offers downloading the dictionary from the CDN, instead of
+# including it in the build.
+# Latin IMEngine-backed layouts specified under this variable will have
+# their dictionaries included in the package. The user has to optionally
+# download the dictionary in keyboard settings page in order to enable the
+# layout.
+GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS?=$(GAIA_KEYBOARD_LAYOUTS)
 
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
@@ -498,6 +505,7 @@ define BUILD_CONFIG
   "GAIA_INSTALL_PARENT" : "$(GAIA_INSTALL_PARENT)", \
   "LOCALES_FILE" : "$(subst \,\\,$(LOCALES_FILE))", \
   "GAIA_KEYBOARD_LAYOUTS" : "$(GAIA_KEYBOARD_LAYOUTS)", \
+  "GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS" : "$(GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS)", \
   "LOCALE_BASEDIR" : "$(subst \,\\,$(LOCALE_BASEDIR))", \
   "BUILD_APP_NAME" : "$(BUILD_APP_NAME)", \
   "PRODUCTION" : "$(PRODUCTION)", \
