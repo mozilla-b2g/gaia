@@ -2104,6 +2104,9 @@ var ThreadUI = {
 
     // not sure why this happens - replace me if you know
     this.container.classList.remove('hide');
+
+    //retaining the focus on composer after sending the message
+    Compose.focus();
   },
 
   // FIXME/bug 983411: phoneNumber not needed.
