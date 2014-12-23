@@ -10,8 +10,8 @@ class TestCaptionsAccessibility(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
 
-        # Make accessibility settings visible
-        self.data_layer.set_setting('accessibility.screenreader-show-settings', True)
+        # Turn off accessibility and captions
+        self.data_layer.set_setting('accessibility.screenreader', False)
         self.data_layer.set_setting('accessibility.screenreader-captions', False)
 
         self.settings = Settings(self.marionette)
@@ -32,7 +32,7 @@ class TestCaptionsAccessibility(GaiaTestCase):
         self.assertTrue(self.accessibility.is_visible(self.marionette.find_element(
             *screenreader_settings._screen_reader_captions_locator)))
 
-        # Turn on color filters
+        # Turn on captions
         screenreader_settings.a11y_toggle_captions()
 
         # Captions settings should be set

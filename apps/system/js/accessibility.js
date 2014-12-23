@@ -131,12 +131,6 @@
             this.settings[settingKey] = aValue;
             switch (settingKey) {
               case 'accessibility.screenreader':
-                // Show Accessibility panel if it is not already visible
-                if (aValue) {
-                  SettingsListener.getSettingsLock().set({
-                    'accessibility.screenreader-show-settings': true
-                  });
-                }
                 this.screen.classList.toggle('screenreader', aValue);
                 break;
 
