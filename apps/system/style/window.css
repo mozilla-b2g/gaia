@@ -20,6 +20,18 @@
   background-color: transparent;
 }
 
+/* Utility tray needs to be actionable on the attention screen */
+
+.appWindow.attentionWindow,
+.appWindow.attentionWindow .chrome .controls {
+  pointer-events: none;
+}
+
+.appWindow.attentionWindow .render {
+  pointer-events: auto;
+}
+
+
 .appWindow:not(.homescreen):not(.searchWindow).light {
   background-color: #fff;
 }
