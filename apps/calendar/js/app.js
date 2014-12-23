@@ -63,6 +63,7 @@ module.exports = {
     };
 
     messageHandler.app = this;
+    messageHandler.start();
     this.timeController = new TimeController(this);
     this.syncController = new SyncController(this);
     this.serviceController = new ServiceController(this);
