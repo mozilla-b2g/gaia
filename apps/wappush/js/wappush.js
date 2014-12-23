@@ -1,7 +1,7 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global CpScreenHelper, DUMP, Notification, NotificationHelper,
+/* global CpScreenHelper, DUMP, MessageDB, Notification, NotificationHelper,
           ParsedMessage, Promise, SiSlScreenHelper, WhiteList, Utils */
 
 /* exported WapPushManager */
@@ -18,8 +18,7 @@
     close: wpm_close,
     displayWapPushMessage: wpm_displayWapPushMessage,
     onVisibilityChange: wpm_onVisibilityChange,
-    onWapPushReceived: wpm_onWapPushReceived,
-    clearNotifications: wpm_clearNotifications
+    onWapPushReceived: wpm_onWapPushReceived
   };
 
   /** Settings key for enabling/disabling WAP Push messages */
@@ -107,6 +106,8 @@
       CpScreenHelper.init();
 
       // Register event and message handlers only after initialization is done
+      MessageDB.on('messagedeleted', wpm_onMessageDeleted);
+
       document.addEventListener('visibilitychange', wpm_onVisibilityChange);
       window.navigator.mozSetMessageHandler('notification', wpm_onNotification);
       window.navigator.mozSetMessageHandler('wappush-received',
@@ -271,6 +272,15 @@
     }
 
     wpm_displayWapPushMessage(message.tag);
+  }
+
+  /**
+   * Removes the notifications for messages that have been deleted
+   *
+   * @param {Object} message The deleted message.
+   */
+  function wpm_onMessageDeleted(message) {
+    wpm_clearNotifications(+message.timestamp);
   }
 
   /**
