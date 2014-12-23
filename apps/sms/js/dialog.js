@@ -103,10 +103,14 @@ var Dialog = function(params) {
   });
 
   this.form.addEventListener('transitionend', function(event) {
-    if (!event.target.classList.contains('visible') &&
-        event.target.parentNode) {
-      document.body.removeChild(event.target);
+    var form = event.target;
+    if (!form.classList.contains('visible') && form.parentNode) {
+      form.remove();
+    } else {
+      // Focus form for accessibility
+      form.focus();
     }
+
     // If we add a class, the animation will not be perform properly.
     // see Bug 1095338 for further information
     document.body.style.pointerEvents = 'initial';
@@ -133,6 +137,9 @@ var Dialog = function(params) {
 
 // We prototype functions to show/hide the UI of action-menu
 Dialog.prototype.show = function() {
+  // Remove the focus to hide the keyboard asap
+  document.activeElement && document.activeElement.blur();
+
   if (!this.form.parentNode) {
     document.body.appendChild(this.form);
 
@@ -144,7 +151,6 @@ Dialog.prototype.show = function() {
   // If we add a class, the animation will not be perform properly.
   // see Bug 1095338 for further information
   document.body.style.pointerEvents = 'none';
-  this.form.focus();
 };
 
 Dialog.prototype.hide = function() {
