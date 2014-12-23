@@ -47,6 +47,9 @@ var Compose = (function() {
     lastScrollPosition: 0,
     resizing: false,
 
+    // Stop further input because the max size is exceeded
+    locked: false,
+
     // 'sms' or 'mms'
     type: 'sms',
 
@@ -176,12 +179,12 @@ var Compose = (function() {
 
   function composeKeyEvents(e) {
     // if locking and no-backspace pressed, cancel
-    if (compose.lock && e.which !== 8) {
+    if (state.locked && e.which !== 8) {
       e.preventDefault();
     } else {
       // trigger a recompute of size on the keypresses
       state.size = null;
-      compose.lock = false;
+      compose.unlock();
     }
   }
 
@@ -483,9 +486,21 @@ var Compose = (function() {
       return state.empty;
     },
 
-    /** Stop further input because the max size is exceded
+    /**
+     * Lock composer when size limit is reached.
      */
-    lock: false,
+    lock: function() {
+      state.locked = true;
+      dom.attachButton.disabled = true;
+    },
+
+    /**
+     * Unlock composer when size is decreased again.
+     */    
+    unlock: function() {
+      state.locked = false;
+      dom.attachButton.disabled = false;
+    },
 
     disable: function(state) {
       dom.sendButton.disabled = state;
