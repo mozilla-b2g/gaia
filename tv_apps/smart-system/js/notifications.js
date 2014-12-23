@@ -89,14 +89,16 @@ var NotificationScreen = {
     var self = this;
     var msg = {
       'detail': notification,
+      'title': notification.title,
       'text': notification.text,
-      'bottons': {
+      'icon': notification.icon,
+      'buttons': [{
         'id': 'open',
         'label': 'Open'
-      },
+      }],
       'onClosed': function notifiationOnClosed(button) {
         if (button === 'open') {
-          clickNotification(notification.id);
+          self.clickNotification(notification.id);
           // Desktop notifications are removed when they are clicked
           // (see bug 890440)
           if (notification.type === 'desktop-notification' &&

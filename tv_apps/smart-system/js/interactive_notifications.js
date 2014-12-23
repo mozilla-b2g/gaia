@@ -3,6 +3,10 @@
 (function(exports) {
   'use strict';
 
+  function $(id) {
+    return document.getElementById(id);
+  }
+
   var TYPE = {
     'NORMAL': 'notification',
     'ALERT': 'alert-notification'
@@ -54,6 +58,9 @@
     this._pendingMessages = {};
     this._pendingMessages[TYPE.NORMAL] = [];
     this._pendingMessages[TYPE.ALERT] = [];
+
+    this._banner = $('notification-container');
+    this._banner.setAttribute('aria-hidden', 'true');
   }
 
   InteractiveNotifications.TYPE = Object.freeze(TYPE);
@@ -63,6 +70,7 @@
   proto.start = function in_start() {
     this._iacConnector = new IACConnector();
     this._iacConnector.start(this);
+    this.initEvents();
   };
 
   proto.stop = function in_stop() {
@@ -77,9 +85,127 @@
     }
   };
 
+  proto.initEvents = function in_initEvents() {
+    var self = this;
+    ['notification-button-0', 'notification-button-1'].forEach(function(b) {
+      $(b).addEventListener('click', self);
+    });
+
+    // We don't need mozbrowserkeyXXX here because we change the focus back to
+    // system app while a notification is shown. And there is no need to handle
+    // back key in other cases.
+    window.addEventListener('keyup', this);
+
+    this._banner.addEventListener('transitionend', this);
+    this._banner.on('opened', this._focusNotification.bind(this));
+  };
+
+  proto.handleEvent = function in_handleEvent(e) {
+    switch(e.type) {
+      case 'click':
+        switch(e.target.id) {
+          case 'notification-button-0':
+          case 'notification-button-1':
+            this.hideNotification(this._activeType, this._activeMessage,
+                                  e.target.dataset.buttonId);
+            break;
+        }
+        break;
+      case 'transitionend':
+        this._handleTransition(e);
+        break;
+      case 'keyup':
+        this._handleKeyEvent(e);
+        break;
+    }
+  };
+
+  proto._handleKeyEvent = function in_handleKeyEvent(e) {
+    switch(e.keyCode) {
+      case KeyEvent.DOM_VK_ESCAPE:
+      case KeyEvent.DOM_VK_BACK_SPACE:
+        if (this._activeMessage) {
+          this.hideNotification(this._activeType, this._activeMessage);
+        }
+        break;
+    }
+  },
+
+  proto._handleTransition = function in_handleTransition(e) {
+    if (e.propertyName !== 'opacity') {
+      return;
+    }
+
+    if (this._banner.classList.contains('fading-out')) {
+      // keep fade-out for next opening.
+      this._banner.classList.add('hidden');
+      this._showPendings();
+    } else if (this._banner.classList.contains('closed') &&
+        !this._banner.classList.contains('hidden')) {
+      this._banner.open();
+    }
+  };
+
   proto._updateNotificationUI = function in_updateNotificationUI(type, msg) {
-    // TODO show the button and focus in notification buttons
-    console.log(msg.text);
+    var banner = this._banner;
+    var title = $('notification-title');
+    var text = $('notification-body');
+    var buttonGroup = $('notification-button-group');
+    var button;
+    var buttonImg;
+    var buttons = [$('notification-button-0'), $('notification-button-1')];
+
+    banner.dataset.type = type;
+    // XXX: We don't have default icon for notification. Change to correct one
+    //      once we have it.
+    banner.style.backgroundImage = msg.icon ? 'url("' + msg.icon + '")':
+                                   'url("/style/icons/system_84.png")';
+    title.textContent = msg.title ? msg.title : '';
+    banner.classList[msg.title ? 'add' : 'remove']('has-title');
+    text.textContent = msg.text ? msg.text : '';
+
+    if (msg.buttons && msg.buttons.length) {
+      buttonGroup.classList.remove('hidden');
+      // We only have two buttons at most.
+      for (var i = 0; i < buttons.length; i++) {
+        if (msg.buttons[i]) {
+          buttons[i].dataset.buttonId = msg.buttons[i].id;
+          buttons[i].innerHTML = '';
+          if (msg.buttons[i].icon) {
+            buttonImg = document.createElement('img');
+            buttonImg.src = msg.buttons[i].icon;
+            buttons[i].appendChild(buttonImg);
+          }
+          if (msg.buttons[i].label) {
+            buttons[i].textContent = msg.buttons[i].label;
+          }
+          buttons[i].classList.remove('hidden');
+        } else {
+          buttons[i].classList.add('hidden');
+        }
+      }
+    } else {
+      buttonGroup.classList.add('hidden');
+    }
+
+    banner.classList.remove('hidden');
+    // XXX: This is a workaround to let banner be shown and recalculate the
+    // opacity. If we don't add any number here, it still not work. The first
+    // known workable value is 10. But we should use larger value if we want to
+    // run it at non-high-end device.
+    // Without this workaround, the banner will not have a fade in transition.
+    setTimeout(function() {
+      banner.classList.remove('fading-out');
+    }, 100);
+  };
+
+  proto._focusNotification = function in_focusNotification() {
+    this._banner.removeAttribute('aria-hidden');
+    if (this._activeMessage.buttons && this._activeMessage.buttons.length > 0) {
+      document.getElementById('notification-button-0').focus();
+    } else {
+      document.activeElement.blur();
+    }
   };
 
   proto.showNotification = function in_showNotification(type, msg) {
@@ -92,16 +218,16 @@
                 this._activeType === TYPE.ALERT)) {
       // already have one, just pending it.
       this._pendingMessages[TYPE.NORMAL].push(msg);
-    } else {
+    } else  if (type === TYPE.ALERT && this._activeMessage) {
       // type === alert and _activeType is null or normal.
       // We show alert anyway and hide the normal one if one is shown.
-      if (type === TYPE.ALERT && this._activeTimeout) {
-        window.clearTimeout(this._activeTimeout);
-        this._activeTimeout = 0;
-        this.hideNotification(this._activeType, this._activeMessage);
-      }
-
-      var timeout = this.getAutoHideTimeout(type, msg.buttons);
+      window.clearTimeout(this._activeTimeout);
+      this._activeTimeout = 0;
+      this._pendingMessages[TYPE.ALERT].push(msg);
+      this.hideNotification(this._activeType, this._activeMessage);
+    } else {
+      var timeout = this.getAutoHideTimeout(type, msg.buttons &&
+                                                  msg.buttons.length > 0);
 
       this._activeType = type;
       this._activeMessage = msg;
@@ -132,16 +258,23 @@
     }
   };
 
+  proto.hasPendings = function in_hasPendings() {
+    return this._pendingMessages[TYPE.ALERT].length ||
+           this._pendingMessages[TYPE.NORMAL].length;
+  };
+
   proto.hideNotification = function in_hideNotification(type, msg, button) {
     if (this._activeType === type && this._activeMessage === msg) {
+      this._banner.setAttribute('aria-hidden', 'true');
+      this._banner.classList.add('fading-out');
+      this._banner.close();
       if (msg.onClosed) {
         msg.onClosed(button);
       }
       this._activeType = null;
       this._activeMessage = null;
-      var hasPending = this._showPendings();
 
-      if (!hasPending && window.AppWindowManager &&
+      if (!this.hasPendings() && window.AppWindowManager &&
           AppWindowManager.getActiveApp()) {
         // If there is active app, we need to focus it back.
         AppWindowManager.getActiveApp().getTopMostWindow().focus();
