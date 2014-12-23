@@ -19,14 +19,18 @@ class SettingsForm(Base):
     _import_from_sdcard_locator = (By.CSS_SELECTOR, 'button.icon-sd')
     _import_from_gmail_button_locator = (By.CSS_SELECTOR, 'button.icon-gmail')
     _import_from_windows_live_button_locator = (By.CSS_SELECTOR, 'button.icon-live')
-    _import_settings_header = (By.ID, 'import-settings-header');
+    _import_settings_header = (By.ID, 'import-settings-header')
     _export_to_sd_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="memoryCard"]')
     _export_to_sim_button_locator = (By.CSS_SELECTOR, '#export-options button.icon-sim')
     _import_contacts_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="importContactsButton"]')
     _export_contacts_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="exportContactsButton"]')
     _gmail_contacts_imported_locator = (By.CSS_SELECTOR, '.icon.icon-gmail > p > span')
+    _gmail_import_option_locator = (By.ID, 'import-gmail-option')
     _import_settings_locator = (By.ID, 'import-settings')
     _select_contacts_locator = (By.ID, 'selectable-form')
+    _import_error_message_locator = (By.CSS_SELECTOR, '#import-live-option > p.error-message')
+    _outlook_import_option_locator = (By.ID, 'import-live-option')
+    _import_from_outlook_button_locator = (By.CSS_SELECTOR, 'button.icon-live')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -121,3 +125,40 @@ class SettingsForm(Base):
         # TODO: remove tap with coordinates after Bug 1061698 is fixed
         header.tap(25, 25)
         Wait(self.marionette).until(expected.element_not_displayed(header))
+
+    @property
+    def is_gmail_import_service_in_error(self):
+        gmail_import_service = self.marionette.find_element(*self._gmail_import_option_locator)
+        return 'error' in gmail_import_service.get_attribute('class')
+
+    @property
+    def is_gmail_import_enabled(self):
+        return self.marionette.find_element(*self._import_from_gmail_button_locator).is_enabled()
+
+    @property
+    def is_error_message_displayed(self):
+        return self.is_element_displayed(*self._import_error_message_locator)
+
+    @property
+    def is_outlook_import_service_in_error(self):
+        outlook_import_service = self.marionette.find_element(*self._outlook_import_option_locator)
+        return 'error' in outlook_import_service.get_attribute('class')
+
+    @property
+    def is_outlook_import_enabled(self):
+        return self.marionette.find_element(*self._import_from_outlook_button_locator).is_enabled()
+
+
+class ConfirmationView(Base):
+
+    _confirmation_locator = (By.ID, 'confirmation-message')
+    _error_message_locator = (By.CSS_SELECTOR, '#confirmation-message p')
+
+    def __init__(self, marionette):
+        Base.__init__(self, marionette)
+        view = self.marionette.find_element(*self._confirmation_locator)
+        Wait(self.marionette).until(lambda m: view.location['y'] == 0)
+
+    @property
+    def error_message(self):
+        return self.marionette.find_element(*self._error_message_locator).text

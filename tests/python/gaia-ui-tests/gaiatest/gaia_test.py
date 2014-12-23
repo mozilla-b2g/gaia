@@ -323,7 +323,7 @@ class GaiaData(object):
         self.enable_wifi()
         self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script("return GaiaDataLayer.connectToWiFi(%s)" % json.dumps(network),
-                script_timeout = max(self.marionette.timeout, 60000))
+                                                      script_timeout=max(self.marionette.timeout, 60000))
         assert result, 'Unable to connect to WiFi network'
 
     def forget_all_networks(self):
@@ -488,6 +488,7 @@ class Accessibility(object):
             raise Exception(message)
 
         return result.get('result', None)
+
 
 class FakeUpdateChecker(object):
 
@@ -734,6 +735,7 @@ class GaiaDevice(object):
     def screen_orientation(self):
         return self.marionette.execute_script('return window.screen.mozOrientation')
 
+
 class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
     def __init__(self, *args, **kwargs):
         self.restart = kwargs.pop('restart', False)
@@ -905,6 +907,15 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
                 assert self.device.is_online
             else:
                 raise Exception('Unable to connect to local area network')
+
+    def disable_all_network_connections(self):
+        if self.device.has_wifi:
+            self.data_layer.enable_wifi()
+            self.data_layer.forget_all_networks()
+            self.data_layer.disable_wifi()
+
+        if self.device.has_mobile_connection:
+            self.data_layer.disable_cell_data()
 
     def push_resource(self, filename, remote_path=None, count=1):
         # push to the test storage space defined by device root
