@@ -147,7 +147,10 @@ var OptionMenu = function(options) {
     }
 
     if (!this.form.classList.contains('visible') && this.form.parentNode) {
-      document.body.removeChild(this.form);
+      this.form.remove();
+    } else {
+      // Focus form for accessibility
+      this.form.focus();
     }
 
     // If we add a class, the animation will not be perform properly.
@@ -183,6 +186,9 @@ var OptionMenu = function(options) {
 
 // We prototype functions to show/hide the UI of action-menu
 OptionMenu.prototype.show = function() {
+  // Remove the focus to hide the keyboard asap
+  document.activeElement && document.activeElement.blur();
+
   if (!this.form.parentNode) {
     document.body.appendChild(this.form);
 
@@ -195,8 +201,6 @@ OptionMenu.prototype.show = function() {
   // If we add a class, the animation will not be perform properly.
   // see Bug 1095338 for further information
   document.body.style.pointerEvents = 'none';
-  // Focus form to blur anything triggered keyboard
-  this.form.focus();
 };
 
 OptionMenu.prototype.hide = function() {

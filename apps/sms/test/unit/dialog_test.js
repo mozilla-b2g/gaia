@@ -76,11 +76,21 @@ suite('Dialog', function() {
   test('Focus', function() {
     var dialog = new Dialog(params);
 
-    this.sinon.spy(dialog.form, 'focus');
+    this.sinon.stub(dialog.form, 'focus');
+    this.sinon.stub(HTMLElement.prototype, 'blur');
 
     dialog.show();
 
-    assert.ok(dialog.form.focus.called);
+    sinon.assert.called(HTMLElement.prototype.blur);
+
+    var transitionend = new TransitionEvent('transitionend', {
+      bubbles: true,
+      cancelable: true,
+      propertyName: 'transform'
+    });
+    dialog.form.dispatchEvent(transitionend);
+
+    sinon.assert.called(dialog.form.focus);
   });
 
   test('Redundant shows have no effect', function() {
@@ -103,8 +113,11 @@ suite('Dialog', function() {
     dialog.hide();
     assert.notEqual(dialog.form.parentElement, null);
 
-    var transitionend =
-      new CustomEvent('transitionend', { target: dialog.form });
+    var transitionend = new TransitionEvent('transitionend', {
+      bubbles: true,
+      cancelable: true,
+      propertyName: 'transform'
+    });
     dialog.form.dispatchEvent(transitionend);
     assert.equal(dialog.form.parentElement, null);
   });

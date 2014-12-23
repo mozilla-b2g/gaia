@@ -63,7 +63,8 @@ suite('OptionMenu', function() {
 
     suite('menu.show()', function() {
       setup(function() {
-        this.sinon.spy(menu.form, 'focus');
+        this.sinon.stub(menu.form, 'focus');
+        this.sinon.stub(HTMLElement.prototype, 'blur');
         menu.show();
       });
 
@@ -72,9 +73,6 @@ suite('OptionMenu', function() {
           menu.form, document.body.lastElementChild
         );
       });
-      test('Focus form to dismiss keyboard', function() {
-        sinon.assert.called(menu.form.focus);
-      });
 
       test('Redundant shows have no effect', function() {
         sinon.spy(document.body, 'appendChild');
@@ -82,8 +80,9 @@ suite('OptionMenu', function() {
         sinon.assert.notCalled(document.body.appendChild);
       });
 
-      test('Prevent pointer events', function() {
+      test('Prevent pointer events and focus', function() {
         menu.show();
+        sinon.assert.called(HTMLElement.prototype.blur);
         assert.equal(document.body.style.pointerEvents, 'none');
         var transitionend = new TransitionEvent('transitionend', {
           bubbles: true,
@@ -91,6 +90,7 @@ suite('OptionMenu', function() {
         });
         menu.form.dispatchEvent(transitionend);
         assert.equal(document.body.style.pointerEvents, 'initial');
+        sinon.assert.called(menu.form.focus);
       });
 
       suite('menu.hide()', function() {
