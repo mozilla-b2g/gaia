@@ -69,79 +69,99 @@ suite('STK (App menu) >', function() {
       requireApp('settings/js/icc.js');
     });
 
+    this.STK_NEXT_ACTION_INDICATOR = {
+      16: 'stkItemsNaiSetUpCall',
+      17: 'stkItemsNaiSendSs',
+      18: 'stkItemsNaiSendUssd',
+      19: 'stkItemsNaiSendSms',
+      32: 'stkItemsNaiPlayTone',
+      33: 'stkItemsNaiDisplayText',
+      34: 'stkItemsNaiGetInkey',
+      35: 'stkItemsNaiGetInput',
+      36: 'stkItemsNaiSelectItem',
+      37: 'stkItemsNaiSetUpMenu',
+      40: 'stkItemsNaiSetIdleModeText',
+      48: 'stkItemsNaiPerformCardApdu',  // class "a"
+      49: 'stkItemsNaiPowerOnCard',      // class "a"
+      50: 'stkItemsNaiPowerOffCard',     // class "a"
+      51: 'stkItemsNaiGetReaderStatus',  // class "a"
+      64: 'stkItemsNaiOpenChannel',      // class "e"
+      65: 'stkItemsNaiCloseChannel',     // class "e"
+      66: 'stkItemsNaiReceiveData',      // class "e"
+      67: 'stkItemsNaiSendData',         // class "e"
+      68: 'stkItemsNaiGetChannelStatus', // class "e"
+      96: 'Reserved',                    // for TIA/EIA-136
+      129: 'stkItemsNaiEndOfTheProactiveSession'
+    };
+
+    // The last item '0' is a terminated characher.
+    this.nextActionList = [16, 17, 18, 19, 32, 33, 34, 35, 36, 37, 40,
+                           48, 49, 50, 51, 64, 65, 66, 67, 68, 129, 0];
+
     // Test commands
     this.items = [{
       'identifier': 2,
-      'text': 'Item stkItemsNaiSetUpCall',
-      'nai': 'stkItemsNaiSetUpCall'
+      'text': 'Item stkItemsNaiSetUpCall', // nai: 16
     },{
       'identifier': 3,
-      'text': 'Item stkItemsNaiSendSs',
-      'nai': 'stkItemsNaiSendSs'
+      'text': 'Item stkItemsNaiSendSs', // nai: 17
     },{
       'identifier': 4,
-      'text': 'Item stkItemsNaiSendUssd',
-      'nai': 'stkItemsNaiSendUssd'
+      'text': 'Item stkItemsNaiSendUssd', // nai: 18
     },{
       'identifier': 5,
-      'text': 'Item stkItemsNaiSendSms',
-      'nai': 'stkItemsNaiSendSms'
+      'text': 'Item stkItemsNaiSendSms', // nai: 19
     },{
       'identifier': 6,
-      'text': 'Item stkItemsNaiSendDtmf',
-      'nai': 'stkItemsNaiSendDtmf'
+      'text': 'Item stkItemsNaiPlayTone', // nai: 32
     },{
       'identifier': 7,
-      'text': 'Item stkItemsNaiLaunchBrowser',
-      'nai': 'stkItemsNaiLaunchBrowser'
+      'text': 'Item stkItemsNaiDisplayText', // nai: 33
     },{
       'identifier': 8,
-      'text': 'Item stkItemsNaiPlayTone',
-      'nai': 'stkItemsNaiPlayTone'
+      'text': 'Item stkItemsNaiGetInkey', // nai: 34
     },{
       'identifier': 9,
-      'text': 'Item stkItemsNaiDisplayText',
-      'nai': 'stkItemsNaiDisplayText'
+      'text': 'Item stkItemsNaiGetInput', // nai: 35
     },{
       'identifier': 10,
-      'text': 'Item stkItemsNaiGetInkey',
-      'nai': 'stkItemsNaiGetInkey'
+      'text': 'Item stkItemsNaiSelectItem', // nai: 36
     },{
       'identifier': 11,
-      'text': 'Item stkItemsNaiGetInput',
-      'nai': 'stkItemsNaiGetInput'
+      'text': 'Item stkItemsNaiSetUpMenu', // nai: 37
     },{
       'identifier': 12,
-      'text': 'Item stkItemsNaiSelectItem',
-      'nai': 'stkItemsNaiSelectItem'
+      'text': 'Item stkItemsNaiSetIdleModeText', // nai: 40
     },{
       'identifier': 13,
-      'text': 'Item stkItemsNaiSetUpMenu',
-      'nai': 'stkItemsNaiSetUpMenu'
+      'text': 'Item stkItemsNaiPerformCardApdu', // nai: 48
     },{
       'identifier': 14,
-      'text': 'Item stkItemsNaiProvideLocalInfo',
-      'nai': 'stkItemsNaiProvideLocalInfo'
+      'text': 'Item stkItemsNaiPowerOnCard', // nai: 49
     },{
       'identifier': 15,
-      'text': 'Item stkItemsNaiSetIdleModeText',
-      'nai': 'stkItemsNaiSetIdleModeText'
+      'text': 'Item stkItemsNaiPowerOffCard', // nai: 50
     },{
       'identifier': 16,
-      'text': 'Item stkItemsNaiOpenChannel',
-      'nai': 'stkItemsNaiOpenChannel'
+      'text': 'Item stkItemsNaiGetReaderStatus', // nai: 51
     },{
       'identifier': 17,
-      'text': 'Item stkItemsNaiReceiveData',
-      'nai': 'stkItemsNaiReceiveData'
+      'text': 'Item stkItemsNaiOpenChannel', // nai: 64
     },{
       'identifier': 18,
-      'text': 'Item stkItemsNaiSendData',
-      'nai': 'stkItemsNaiSendData'
+      'text': 'Item stkItemsNaiCloseChannel', // nai: 65
     },{
       'identifier': 19,
-      'text': 'Item stkItemsNaiGetChannelStatus',
-      'nai': 'stkItemsNaiGetChannelStatus'
+      'text': 'Item stkItemsNaiReceiveData', // nai: 66
+    },{
+      'identifier': 20,
+      'text': 'Item stkItemsNaiSendData', // nai: 67
+    },{
+      'identifier': 21,
+      'text': 'Item stkItemsNaiGetChannelStatus', // nai: 68
+    },{
+      'identifier': 22,
+      'text': 'Item stkItemsNaiEndOfTheProactiveSession', // nai: 129
     }];
     this.StkCommandEvent = new CustomEvent('stkasynccommand', {
       detail: { 'message': {
@@ -152,7 +172,8 @@ suite('STK (App menu) >', function() {
             'title': 'Dummy Test Menu',
             'defaultItem': 1,
             'items': this.items,
-            'isHelpAvailable': true
+            'isHelpAvailable': true,
+            'nextActionList': this.nextActionList
           }
         }
       }}});
@@ -200,8 +221,9 @@ suite('STK (App menu) >', function() {
     test('All items with correct NAI data', function() {
       this.items.forEach(function(item, index) {
         assert.equal(document.querySelector('#icc-stk-list li:nth-child(' +
-          (index + 1) + ') small').textContent, item.nai);
-      });
+          (index + 1) + ') small').textContent,
+          this.STK_NEXT_ACTION_INDICATOR[this.nextActionList[index]]);
+      }, this);
     });
 
     test('All items with correct data', function() {
