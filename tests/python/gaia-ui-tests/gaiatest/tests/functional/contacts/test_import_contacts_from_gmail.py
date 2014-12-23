@@ -45,5 +45,4 @@ class TestImportContactsFromGmail(GaiaTestCase):
         contacts_settings.tap_back_from_import_contacts()
         contacts_settings.tap_done()
 
-        # Check there is one gmail contact imported
-        self.assertEqual(len(contacts_app.contacts), 1)
+        self.assertGreater(len(contacts_app.contacts), 1)
