@@ -54,6 +54,8 @@ var ConfigManager = (function() {
     'isWifiChartVisible': false
   };
 
+  var CONFIG_CACHE = [];
+
   function getApplicationMode() {
     if (noConfigFound) {
       return 'DATA_USAGE_ONLY';
@@ -98,10 +100,21 @@ var ConfigManager = (function() {
 
   function loadConfiguration(currentDataIcc, callback) {
     var configFilePath = getConfigFilePath(currentDataIcc);
-    LazyLoader.load(configFilePath, callback);
+    if (CONFIG_CACHE[configFilePath]) {
+      ConfigManager.setConfig(CONFIG_CACHE[configFilePath]);
+      (typeof callback === 'function') && callback();
+    } else {
+      LazyLoader.load(configFilePath, function() {
+        // configuration variable is set by calling setConfig() inside the
+        // configuration file.
+        CONFIG_CACHE[configFilePath] = configuration;
+        (typeof callback === 'function') && callback();
+      });
+    }
   }
 
   function getConfigFilePath(currentDataIcc) {
+    noConfigFound = false;
     var mcc = currentDataIcc.iccInfo.mcc;
     var mnc = currentDataIcc.iccInfo.mnc;
     var key = mcc + '_' + mnc;
