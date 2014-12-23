@@ -1,9 +1,24 @@
 Welcome to the official Messaging application for Firefox OS
 ============================================================
-Goals
------
+The application's purpose
+-------------------------
 This application lets users to send SMS (_short messages_) and MMS (_multimedia
 messages_) using a phone running Firefox OS.
+
+How to retrieve the code
+------------------------
+You need `git` and you simply need to run the following command:
+
+```bash
+git clone https://github.com/mozilla-b2g/gaia
+```
+
+The code for Gaia will be downloaded from Github to a local subdirectory `gaia`.
+You can enter the `gaia` directory typing:
+
+```bash
+cd gaia
+```
 
 How to run the application in Firefox
 -------------------------------------
@@ -15,7 +30,7 @@ How to run the application in Firefox
   Keep in mind that we rely on very recent functionalities that are sometimes
   only available in Nightly.
 
-* Generate a debug profile and use it to run Firefox:
+* Generate a debug profile and use it to run Firefox (this will take some time):
 
 ```bash
 export FIREFOX=/path/to/nightly/firefox
@@ -23,7 +38,7 @@ PROFILE_FOLDER=profile-sms DEBUG=1 DESKTOP=0 make
 $FIREFOX -profile profile-sms --no-remote app://sms.gaiamobile.org
 ```
 
-* Press _CTRL-SHIFT-M_ to switch the Responsive Mode.
+* Press _CTRL-SHIFT-M_ (or _Cmd-Opt-M_ on MacOS X) to switch the Responsive Mode.
 
 ### Using the right fonts
 
@@ -32,13 +47,12 @@ and install them on your system. Then configure your Firefox to use them
 (_Preferences > Content > Fonts & Colors_, then change the default font, and, in
 the advanced panel, proportional, serif and sans serif preferences).
 
-[Bug 1082699](https://bugzilla.mozilla.org/show_bug.cgi?id=1082699) will do the
-configuration automatically.
+If you use Mulet (see below), this should already be done for you.
 
 ### What works fine
 
-In this mode, you can use the DevTools (_CTRL-SHIFT-K_), debug CSS and
-JavaScript, or even install Firebug if you prefer.
+In this mode, you can use the DevTools (_CTRL-SHIFT-K_, or _Cmd-Opt-K_ on MacOS
+X), debug CSS and JavaScript. But you can even install Firebug if you prefer.
 
 If you modify a file in the application direction, you can simply hit the
 _reload_ button to see the changes.
@@ -67,9 +81,37 @@ support, which makes it easier to debug CSS or JavaScript in this mode.
 You can cherry-pick the branch from [Bug 1069338](https://bugzilla.mozilla.org/show_bug.cgi?id=1069338),
 and then access _app://sms.gaiamobile.org/simulator/_.
 
+How to run in Mulet
+-------------------
+Mulet is a new option to run Gaia in an environment that is closer to the device
+but where we can use Firefox' tools. [You can find more information on
+MDN](https://developer.mozilla.org/en-US/Firefox_OS/Developing_Gaia/Different_ways_to_run_Gaia#Using_Gaia_in_Firefox_Mulet).
 
 How to contribute to the development
 ------------------------------------
+### Filing a good bug
+
+Filing a bug with the right information is already a very good first step
+towards fixing a bug.
+
+Here are the important information we need:
+
+* Which device and Firefox OS version do you use? Bonus if you can precise the Build Date,
+  the Gaia commit hash, and the Gecko commit hash.
+* Describe in a very precise and ordered way the steps you follow to make the bug happen.
+* Does the bug happen every time? Otherwise, please precise how many times you
+  got the bug in how many tries.
+* Provide a screenshot and even a video, if you can. To take a screenshot on a
+  Firefox OS device, you can use WebIDE or longpress _Power+Volume Down_ (note: older
+  versions used _Power+Home_).
+
+Once you have these informations, you can [file the bug on
+Bugzilla](https://bugzilla.mozilla.org/enter_bug.cgi?product=Firefox%20OS&component=Gaia%3A%3ASMS)
+and we should handle it in a few days (most of the time before 1 day).
+
+You can find [more information about filing bugs on
+MDN](https://developer.mozilla.org/en-US/Firefox_OS/Developing_Firefox_OS/Filing_bugs_against_Firefox_OS).
+
 ### Finding a bug to fix
 
 We maintain a list of non-urgent bugs than a contributor can take. Usually we
@@ -104,4 +146,32 @@ Especially you'll find links to the always evolving code style guidelines.
 
 You can discuss on IRC, on the _#gaia_ and _#gaia-messaging_ channels, on the IRC
 server _irc.mozilla.org_.
+
+### Running unit tests
+
+You can find [very detailed instructions on
+MDN](https://developer.mozilla.org/en-US/Firefox_OS/Platform/Automated_testing/Gaia_unit_tests).
+Please refer to those instructions if you have issues.
+
+Here are some basic instructions, assuming your Firefox Nightly is installed in
+`~/firefox-nightly/`. Please adjust the instructions to your own environment.
+
+These lines will run what we call the test server: both Firefox and the
+background server, that are needed to run the tests:
+
+```bash
+export FIREFOX=~/firefox-nightly/firefox
+bin/gaia-test
+```
+
+The background server runs a watcher that automatically runs tests when the
+files are saved. So to run a specific file, you can simply open it in an editor
+and save it, or use the command line tool `touch`.
+
+If you want to run all tests for the SMS app, you can run this in a separate
+terminal:
+
+```bash
+APP=sms make test-agent-test
+```
 
