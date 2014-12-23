@@ -21,12 +21,13 @@ class ContactImportPicker(Base):
         select_contacts = self.marionette.find_element(*self._contact_import_picker_frame_locator)
         self.marionette.switch_to_frame(select_contacts)
 
-    def tap_import_button(self):
+    def tap_import_button(self, wait_for_import = True):
         self.marionette.execute_script('window.wrappedJSObject.importer.ui.importAll();', special_powers=True)
         # TODO uncomment this when Bug 932804 is resolved
         # self.marionette.find_element(*self._import_button_locator).tap()
         self.apps.switch_to_displayed_app()
-        self.wait_for_element_not_displayed(*self._contact_import_picker_frame_locator)
+        if wait_for_import:
+            self.wait_for_element_not_displayed(*self._contact_import_picker_frame_locator)
         from gaiatest.apps.contacts.regions.settings_form import SettingsForm
         return SettingsForm(self.marionette)
 
