@@ -6,6 +6,7 @@ var StackManager = {
     window.addEventListener('appcreated', this);
     window.addEventListener('launchapp', this);
     window.addEventListener('appopening', this);
+    window.addEventListener('appopened', this);
     window.addEventListener('appterminated', this);
     window.addEventListener('home', this);
     window.addEventListener('cardviewclosed', this);
@@ -196,6 +197,7 @@ var StackManager = {
         }
         break;
       case 'appopening':
+      case 'appopened':
         var app = e.detail; // jshint ignore: line
         var root = app.getRootWindow();
 
