@@ -160,8 +160,12 @@ window.UtilityTray = {
         break;
 
       case 'launchapp':
-        // we don't want background apps to trigger this event, otherwise,
+        // We don't want background apps to trigger this event, otherwise,
         // utility tray will be closed accidentally.
+        if (detail && detail.stayBackground) {
+          return;
+        }
+
         var findMyDevice =
           window.location.origin.replace('system', 'findmydevice');
 
