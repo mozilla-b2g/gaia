@@ -248,6 +248,7 @@
       if (!this.landingAppLauncher.hasLandingApp) {
         // cal getHomescreen to ensure it.
         this.getHomescreen();
+        this.publish('home');
         return;
       }
 
@@ -299,8 +300,8 @@
      * @memberOf HomescreenWindowManager.prototype
      */
     getHomescreen: function getHomescreen(isHomeEvent) {
-      if (!exports.homescreenLauncher || !exports.homescreenLauncher.ready ||
-          !this.landingAppLauncher || !this.landingAppLauncher.ready) {
+      if ((!exports.homescreenLauncher || !exports.homescreenLauncher.ready) &&
+          (!this.landingAppLauncher || !this.landingAppLauncher.ready)) {
         return null;
       }
 
