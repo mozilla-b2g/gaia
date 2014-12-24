@@ -59,59 +59,80 @@ suite('system/bluetooth_transfer', function() {
   });
 
   suite('UI', function() {
-    suite('getPairedDevice', function() {
-      suite('have paired devices', function() {
-        var getPairedDeviceCompleteCallback = function() {};
-
-        setup(function(done) {
-          getPairedDeviceCompleteCallback = this.sinon.spy();
-          BluetoothTransfer.getPairedDevice(function() {
-            getPairedDeviceCompleteCallback();
-            done();
-          });
-        });
-
-        test('have paired devices ', function() {
-          assert.ok(getPairedDeviceCompleteCallback.called);
-        });
-      });
-    });
-
     suite('getDeviceName', function() {
+      var address = 'AA:BB:CC:00:11:22';
+      var spyGetConnectedDevices;
       setup(function() {
-        realPairList = BluetoothTransfer.pairList;
-        fakePairList = {
-          index: [{name: 'device-No1',
-                  address: '00:11:22:AA:BB:CC'},
-                  {name: 'device-No2',
-                  address: 'AA:BB:CC:00:11:22'}
-        ]};
-        BluetoothTransfer.pairList = fakePairList;
+        spyGetConnectedDevices =
+          this.sinon.spy(MockBluetooth.defaultAdapter, 'getConnectedDevices');
       });
 
       teardown(function() {
-        BluetoothTransfer.pairList = realPairList;
+        spyGetConnectedDevices.reset();
       });
 
-      suite('have device name', function() {
-        test('have device name ', function() {
-          var address = 'AA:BB:CC:00:11:22';
-          var deviceName = 'device-No2';
-          assert.equal(deviceName, BluetoothTransfer.getDeviceName(address));
-        });
-      });
-
-      suite('no device name', function() {
+      suite('cannot get adapter ', function() {
+        var stubGetAdapater;
         setup(function() {
-          BluetoothTransfer.pairList = {
-            index: []
-          };
+          stubGetAdapater =
+            this.sinon.stub(MockBluetooth, 'getAdapter').returns(null);
         });
 
-        test('no device name ', function() {
-          var address = 'AA:BB:CC:00:11:22';
-          var deviceName = 'unknown-device';
-          assert.equal(deviceName, BluetoothTransfer.getDeviceName(address));
+        test('should return unknown device name ', function(done) {
+          BluetoothTransfer.getDeviceName(address).then(function(deviceName) {
+            assert.isFalse(spyGetConnectedDevices.called);
+            assert.equal(deviceName, 'unknown-device');
+          }).then(done, done);
+        });
+      });
+
+      suite('request getConnectedDevices() onerror ', function() {
+        test('should return unknown device name ', function(done) {
+          BluetoothTransfer.getDeviceName(address).then(function(deviceName) {
+            assert.isTrue(spyGetConnectedDevices.called);
+            assert.equal(deviceName, 'unknown-device');
+          }).then(done, done);
+
+          var connectedDevicesReq =
+            spyGetConnectedDevices.getCall(0).returnValue;
+          connectedDevicesReq.fireError(null);
+        });
+      });
+
+      suite('request getConnectedDevices() onsuccess ' +
+        'without any devices ', function() {
+        var mockConnectedDevices = null;
+        test('should return unknown device name ', function(done) {
+          BluetoothTransfer.getDeviceName(address).then(function(deviceName) {
+            assert.isTrue(spyGetConnectedDevices.called);
+            assert.equal(deviceName, 'unknown-device');
+          }).then(done, done);
+
+          var connectedDevicesReq =
+            spyGetConnectedDevices.getCall(0).returnValue;
+          connectedDevicesReq.readyState = 'pending';
+          connectedDevicesReq.fireSuccess(mockConnectedDevices);
+        });
+      });
+
+      suite('request getConnectedDevices() onsuccess ' +
+        'with responding device ', function() {
+        var mockConnectedDevices =
+          [{name: 'device-No1',
+            address: '00:11:22:AA:BB:CC'},
+          {name: 'device-No2',
+          address: 'AA:BB:CC:00:11:22'}];
+
+        test('should return responding device name ', function(done) {
+          BluetoothTransfer.getDeviceName(address).then(function(deviceName) {
+            assert.isTrue(spyGetConnectedDevices.called);
+            assert.equal(deviceName, 'device-No2');
+          }).then(done, done);
+
+          var connectedDevicesReq =
+            spyGetConnectedDevices.getCall(0).returnValue;
+          connectedDevicesReq.readyState = 'pending';
+          connectedDevicesReq.fireSuccess(mockConnectedDevices);
         });
       });
     });
@@ -238,11 +259,12 @@ suite('system/bluetooth_transfer', function() {
         var stubIsHandOverInProgress =
           this.sinon.stub(MockNfcHandoverManager, 'isHandoverInProgress')
           .returns(false);
+
         var stubGetDeviceName =
-          this.sinon.stub(BluetoothTransfer, 'getDeviceName')
-          .returns('nameName');
-        var stubGetPairedDevice =
-          this.sinon.stub(BluetoothTransfer, 'getPairedDevice');
+          this.sinon.stub(BluetoothTransfer, 'getDeviceName', function() {
+          return Promise.resolve('nameName');
+        });
+
         var stubMockUtilityTrayHide =
           this.sinon.stub(MockUtilityTray, 'hide');
         var stubShowReceivePrompt =
@@ -253,29 +275,25 @@ suite('system/bluetooth_transfer', function() {
         };
         BluetoothTransfer.onReceivingFileConfirmation(evt);
         assert.isTrue(stubIsHandOverInProgress.called);
-        assert.isTrue(stubGetPairedDevice.called);
-
-        // call getPairedDeviceComplete
-        stubGetPairedDevice.getCall(0).args[0]();
-
         assert.isTrue(stubGetDeviceName.calledWith(evt.address));
-
-        assert.deepEqual(
-          MockNotificationHelper.mTitleL10n,
-          {id: 'transfer-confirmation-title', args: {deviceName: 'nameName'}}
-        );
-        assert.equal(
-          MockNotificationHelper.mOptions.bodyL10n,
-          'transfer-confirmation-description'
-        );
-        assert.equal(
-          MockNotificationHelper.mOptions.icon,
-          'style/bluetooth_transfer/images/icon_bluetooth.png'
-        );
-        NotificationHelper.mEmit('click');
-        assert.isTrue(stubMockUtilityTrayHide.called);
-        assert.isTrue(stubShowReceivePrompt.called);
-        MockNotificationHelper.mTeardown();
+        stubGetDeviceName().then(function() {
+          assert.deepEqual(
+            MockNotificationHelper.mTitleL10n,
+            {id: 'transfer-confirmation-title', args: {deviceName: 'nameName'}}
+          );
+          assert.equal(
+            MockNotificationHelper.mOptions.bodyL10n,
+            'transfer-confirmation-description'
+          );
+          assert.equal(
+            MockNotificationHelper.mOptions.icon,
+            'style/bluetooth_transfer/images/icon_bluetooth.png'
+          );
+          NotificationHelper.mEmit('click');
+          assert.isTrue(stubMockUtilityTrayHide.called);
+          assert.isTrue(stubShowReceivePrompt.called);
+          MockNotificationHelper.mTeardown();
+        });
       });
 
       test('declineReceive', function() {
