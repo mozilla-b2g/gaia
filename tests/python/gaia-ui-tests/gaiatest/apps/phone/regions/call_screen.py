@@ -146,6 +146,8 @@ class CallScreen(Phone):
 
     def reject_call(self):
         self.wait_for_element_displayed(*self._lockscreen_handle_locator)
+        import time
+        time.sleep(1)
         self._handle_incoming_call('reject')
         self.marionette.switch_to_frame()
         self.wait_for_element_not_displayed(*self._call_screen_locator)
