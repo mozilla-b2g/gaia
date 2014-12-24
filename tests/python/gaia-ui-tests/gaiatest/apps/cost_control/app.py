@@ -31,8 +31,12 @@ class CostControl(Base):
 
     @property
     def is_mobile_data_tracking_on(self):
-        mobileswitch = self.marionette.find_element(*self._mobile_data_tracking_locator)
-        return mobileswitch.is_selected()
+        # The following should work, but doesn't, see bug 1113742. We use execute_script instead, for now
+        # mobileswitch = self.marionette.find_element(*self._mobile_data_tracking_locator)
+        # return mobileswitch.is_selected()
+        return self.marionette.execute_script("""
+            return window.wrappedJSObject.document.getElementById('mobileCheck').checked;
+        """)
 
     @property
     def is_wifi_data_tracking_on(self):
