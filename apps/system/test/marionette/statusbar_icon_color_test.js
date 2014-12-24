@@ -115,6 +115,21 @@ marionette('Statusbar colors', function() {
     });
   });
 
+  test('statusbar color changes on inlinie activities', function() {
+    helper.unlockScreen(client);
+    waitVisible();
+    waitForDarkColor();
+    client.apps.launch(SETTINGS_APP);
+    waitForLightColor();
+    launchSmsActivity();
+    client.waitFor(function() {
+      var filter = system.statusbarShadowActivity.scriptWith(function(element) {
+        return window.getComputedStyle(element).filter;
+      });
+      return filter.indexOf('none') !== -1;
+    });
+  });
+
   test('statusbar icons are dark when utility tray is open', function() {
     waitVisible();
     helper.unlockScreen(client);
@@ -143,6 +158,27 @@ marionette('Statusbar colors', function() {
       });
       activity.onsuccess = function() {};
     });
+  }
+
+  function launchSmsActivity() {
+    client.switchToFrame();
+    client.executeScript(function() {
+      var activity = new window.wrappedJSObject.MozActivity({
+        name: 'share',
+        data: {
+          type: 'url',
+          url: 'url'
+        }
+      });
+      activity.onsuccess = function() {};
+    });
+    client.switchToFrame();
+    client.helper.waitFor(function() {
+      return system.visibleForm;
+    });
+    var sms = system.getActivityOptionMatching('sms');
+    actions.tap(sms).perform();
+    client.switchToFrame();
   }
 
   function waitForCardsView() {
