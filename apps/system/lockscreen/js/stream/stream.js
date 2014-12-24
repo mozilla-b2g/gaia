@@ -7,8 +7,7 @@
   var Stream = function(configs) {
     this.configs = {
       events: configs.events || [],
-      interrupts: configs.interrupts || [],
-      handler: configs.handler || (() => {})
+      interrupts: configs.interrupts || []
     };
     if (configs.sources) {
       this.configs.sources = configs.sources;
@@ -18,13 +17,19 @@
           this.configs.interrupts))
       ];
     }
+    this.states = {
+      forwardTo: null
+    };
+    // Need to delegate to Source.
+    this.handleEvent = this.handleEvent.bind(this);
   };
 
-  Stream.prototype.status = function() {
-    return this.process.status;
+  Stream.prototype.phase = function() {
+    return this.process.states.phase;
   };
 
-  Stream.prototype.start = function() {
+  Stream.prototype.start = function(forwardTo) {
+    this.states.forwardTo = forwardTo;
     this.process = new Process();
     this.process.start();
     return this;
@@ -91,14 +96,14 @@
     }
     if (-1 !== this.configs.interrupts.indexOf(evt.type)) {
       // Interrupt would be handled immediately.
-      this.configs.handler(evt);
+      this.states.forwardTo(evt);
       return this;
     } else {
       // Event would be handled after queuing.
       // This is, if the event handle return a Promise or Process,
       // that can be fulfilled later.
       this.process.next(() => {
-        return this.configs.handler(evt);
+        return this.states.forwardTo(evt);
       });
       return this;
     }

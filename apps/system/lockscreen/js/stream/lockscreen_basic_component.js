@@ -5,10 +5,10 @@
 (function(exports) {
   var LockScreenBasicComponent = function() {
     this.configs = {
+      name: 'LockScreenBasicComponent',
       stream: {
         events: [],
         interrupts: [],
-        handler: this.handleEvent.bind(this),
         sources: []  // Must contain sources before start.
                      // Unless this state is not an event-driven state.
       }
@@ -22,11 +22,52 @@
   };
 
   /**
-   * Stream' status is the component's status.
+   * Set an extended POD for the states.
    */
-  LockScreenBasicComponent.prototype.status =
+  LockScreenBasicComponent.prototype.statesAs =
+  function(newStates) {
+    for(var key in this.states) {
+      if ('undefined' !== typeof newStates[key]) {
+        this.states[key] = newStates[key];
+      }
+    }
+    return this;
+  };
+
+  /**
+   * Set an extended POD for the elements.
+   * Would do query again. And, if use this method to set elements,
+   * it disallow to set the elements without 'view'.
+   */
+  LockScreenBasicComponent.prototype.elementsAs =
+  function(newElements) {
+    if (!newElements.view) {
+      throw new Error(`Set elements without view.`);
+    }
+    for(var key in this.elements) {
+      if ('undefined' !== typeof newElements[key]) {
+        this.elements[key] = newElements[key];
+      }
+    }
+    return this;
+  };
+
+  LockScreenBasicComponent.prototype.componentsAs =
+  function(newComponents) {
+    for(var key in this.components) {
+      if ('undefined' !== typeof newComponents[key]) {
+        this.states[key] = newComponents[key];
+      }
+    }
+    return this;
+  };
+
+  /**
+   * Stream' phase is the component's phase.
+   */
+  LockScreenBasicComponent.prototype.phase =
   function() {
-    return this.stream.status;
+    return this.stream.phase();
   };
 
   /**
@@ -35,11 +76,11 @@
    */
   LockScreenBasicComponent.prototype.getActiveState =
   function() {
-    if ('start' === this.status()) {
+    if ('start' === this.phase()) {
       return this;
     } else {
       var target = this.states.next;
-      while (target && 'start' !== target.status()) {
+      while (target && 'start' !== target.phase()) {
         target = target.states.next;
       }
       return target;  // Either no active so it's null, or we found it.
@@ -53,14 +94,25 @@
    * original version.
    */
   LockScreenBasicComponent.prototype.start =
-  function(states = {}, components = {}, elements = {}) {
-    // Query or get them from the previous state.
-    this.setElements(elements);
+  function(states, components, elements) {
     // Get from the previous state.
-    this.states = states;
+    if (states) {
+      this.states = states;
+    }
     // Only set it. Since only inherited one can know when to
     // start/stop components
-    this.components = components;
+    if (components) {
+      this.components = components;
+    }
+    if (elements) {
+      this.elements = elements;
+    }
+    // Query or get them from the previous state.
+    this.queryElements(this.elements);
+    if (!this.configs.stream.handler) {
+      // Can't set it at the constructor since we have no 'this' yet.
+      this.configs.stream.handler = this.handleEvent.bind(this);
+    }
     this.stream = new Stream(this.configs.stream);
     return this.stream.start();
   };
@@ -87,14 +139,14 @@
 
   LockScreenBasicComponent.prototype.handleEvent = function() {};
 
-  LockScreenBasicComponent.prototype.setElements = function(elements) {
+  LockScreenBasicComponent.prototype.queryElements = function(elements) {
     if (!this.elements.view) {
-      throw new Error(`Can't find the view in elements`);
+      return; // means component without view.
     }
-    this.elements = elements;
     Object.keys(this.elements).forEach((key) => {
       // Replace query to DOM.
       var query = this.elements[key];
+      console.log('>> query:', key, query);
       if ('string' === typeof query) {
         this.elements[key] = this.elements.view.querySelector(query);
         if (null === this.elements[key]) {
@@ -141,9 +193,8 @@
   LockScreenBasicComponent.prototype.transferTo = function(clazz) {
     var nextState = new clazz();
     this.states.next = nextState;
-    return nextState
-      .next(this.stop.bind(this))
-      .start(this.states, this.components, this.elements);
+    return this.stop()
+      .next(() => nextState.start(this.states, this.components, this.elements));
   };
 
   /**

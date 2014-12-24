@@ -5,6 +5,7 @@
 (function(exports) {
   var LockScreenClockWidgetSuspend = function() {
     LockScreenBasicComponent.apply(this);
+    this.configs.name = 'LockScreenClockWidgetSuspend';
     this.configs.events = ['screenchange'];
   };
   LockScreenClockWidgetSuspend.prototype =

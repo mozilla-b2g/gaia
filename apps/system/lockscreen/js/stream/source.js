@@ -17,7 +17,7 @@
           (window.dispatchEvent.bind(window))
     };
     this.states = {
-      target: null, // The forwarding target.
+      forwardTo: null, // The forwarding target.
       timer: {
         id: null,
         times: null
@@ -28,16 +28,16 @@
     this.handleEvent = this.handleEvent.bind(this);
   };
 
-  Source.prototype.start = function(target) {
+  Source.prototype.start = function(forwardTo) {
     this.configs.events.forEach((ename) => {
       this.configs.collector(ename, this.handleEvent);
     });
-    this.states.target = target;
+    this.states.forwardTo = forwardTo;
     return this;
   };
 
   Source.prototype.stop = function() {
-    this.states.target = null;
+    this.states.forwardTo = null;
     this.configs.events.forEach((ename) => {
       this.configs.decollector(ename, this.handleEvent);
     });
@@ -53,8 +53,8 @@
    * For forwarding to the target.
    */
   Source.prototype.handleEvent = function(evt) {
-    if (this.states.target) {
-      this.states.target(evt);
+    if (this.states.forwardTo) {
+      this.states.forwardTo(evt);
     }
   };
 

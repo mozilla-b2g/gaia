@@ -471,7 +471,10 @@
     this.l10nready = true;
     // Adapt a state-widget in the curret architecture.
     this.lockScreenClockWidget = new LockScreenClockWidget();
-    this.lockScreenClockWidget.start();
+    this.lockScreenClockWidget.elementsAs({
+      view: document.getElementById('lockscreen-clock-widget')
+    })
+    .start().ready();
 
     // mobile connection state on lock screen.
     // It needs L10n too. But it's not a re-entrable function,

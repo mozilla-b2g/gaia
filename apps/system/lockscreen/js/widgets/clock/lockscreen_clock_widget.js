@@ -19,6 +19,7 @@
 (function(exports) {
   var LockScreenClockWidget = function() {
     LockScreenBasicComponent.apply(this);
+    this.configs.name = 'LockScreenClockWidget';
     this.states = {
       properties: null,
       idTickInterval: null,
@@ -29,9 +30,11 @@
     this.elements = {
       view: null,
       time: '#lockscreen-clock-time',
-      date: '#lockscreen-clock-date'
+      date: '#lockscreen-date'
     };
   };
+  LockScreenClockWidget.prototype =
+    Object.create(LockScreenBasicComponent.prototype);
 
   /**
    * When we initialized this widget,
@@ -39,7 +42,7 @@
    */
   LockScreenClockWidget.prototype.start =
   function(states, components, elements) {
-    return LockScreenBasicComponent.start
+    return LockScreenBasicComponent.prototype.start
       .call(this, states, components, elements)
       .next(this.transferToClockTick.bind(this));
   };
@@ -48,6 +51,6 @@
   function() {
     return this.transferTo(LockScreenClockWidgetTick);
   };
-  exports.LockScreeClockWidget = LockScreenClockWidget;
+  exports.LockScreenClockWidget = LockScreenClockWidget;
 })(window);
 
