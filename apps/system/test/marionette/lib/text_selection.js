@@ -18,6 +18,17 @@ TextSelection.Selector = Object.freeze({
 });
 
 TextSelection.prototype = {
+  get visibility() {
+    this.client.switchToFrame();
+    var isVisible = this.client.executeScript(function(query) {
+      var element = document.querySelector(query);
+      return element && element.classList.contains('visible');
+    }, [TextSelection.Selector.textSelectionDialog]);
+    this.client.apps.switchToApp(this._getDisplayedAppInfo().origin);
+    return isVisible;
+
+  },
+
   /**
    * Get dialog width from previous operation.
    */
