@@ -1,4 +1,4 @@
-/* global MozActivity */
+/* global MozActivity, Notification */
 
 'use strict';
 
@@ -49,6 +49,7 @@
 
       window.addEventListener('home+sleep', this);
       window.addEventListener('mozChromeEvent', this);
+      window.addEventListener('desktop-notification-resend', this);
     },
 
     /**
@@ -63,6 +64,7 @@
 
       window.removeEventListener('home+sleep', this);
       window.removeEventListener('mozChromeEvent', this);
+      window.removeEventListener('desktop-notification-resend', this);
     },
 
     /**
@@ -82,6 +84,20 @@
           } else if (evt.detail.type === 'take-screenshot-error') {
             this._notify('screenshotFailed', evt.detail.error);
           }
+          break;
+
+        case 'desktop-notification-resend':
+          // 'mozbehavior: showOnlyOnce' is not available in Notification API
+          // until gecko 37, so we need to listen 'desktop-notification-resend'
+          // and remove the screenshot notification on resend.
+          Notification.get().then(function(notifications) {
+            for (var i = 0; i < notifications.length; i++) {
+              var notification = notifications[i];
+              if (notification.tag === 'screenshot') {
+                notification.close();
+              }
+            }
+          });
           break;
       }
     },
@@ -216,7 +232,8 @@
       body = body || navigator.mozL10n.get(bodyid);
       var notification = new window.Notification(title, {
         body: body,
-        icon: 'style/icons/Gallery.png'
+        icon: 'style/icons/Gallery.png',
+        tag: 'screenshot'
       });
 
       notification.onclick = function() {
