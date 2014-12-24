@@ -43,33 +43,6 @@ suite('LayoutManager', function() {
     stubNormalizeKey.restore();
   });
 
-  // since bug 1035619, enter key's layout properties will always come
-  // from its prototype. lastest chai.js assert.deepEqual take prototype into
-  // consideration, but layout have some property defined in prototype,
-  // so we do the comparison by ourselves with a helper function
-  var assertExpectedLayouts = function (test, expected, msg) {
-    assert.equal(test.imEngine, expected.imEngine, msg);
-    assert.equal(test.layoutName, expected.layoutName, msg);
-    assert.equal(test.pageIndex, expected.pageIndex, msg);
-    for (var i = 0; i < test.keys.length; i++) {
-      for (var j = 0; j < test.keys[i].length; j++) {
-        // the single for-loop can only test unidirection injective relation
-        // from |test| to |expected|; to make sure there aren't any properties
-        // present in |expected| but not in |test|, we need to test
-        // bidirectaionlly.
-        // Note: we can't just compare Object.keys().length since that will
-        // neglect properties from prototype.
-        var key;
-        for (key in test.keys[i][j]) {
-          assert.equal(test.keys[i][j][key], expected.keys[i][j][key], msg);
-        }
-        for (key in expected.keys[i][j]) {
-          assert.equal(test.keys[i][j][key], expected.keys[i][j][key], msg);
-        }
-      }
-    }
-  };
-
   test('start', function() {
     window.Keyboards = {};
 
@@ -316,13 +289,11 @@ suite('LayoutManager', function() {
               { value: '.' },
               { value: 'ENTER', ratio: 2.0,
                 keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
-        assertExpectedLayouts(manager.currentPage, expectedPage);
-        assert.equal(manager.currentPage.__proto__,
-          spaceLayout.pages[0], 'proto is set correctly for layout.');
 
-        assert.equal(manager.currentPage.keys[1][2].__proto__,
-          spaceLayout.pages[0].keys[1][0],
-          'proto is set correctly for space key.');
+        Object.setPrototypeOf(expectedPage, spaceLayout.pages[0]);
+        Object.setPrototypeOf(expectedPage.keys[1][2],
+                              spaceLayout.pages[0].keys[1][0]);
+        assert.deepEqual(manager.currentPage, expectedPage);
 
         assert.isTrue(stubNormalizeKey.calledWithExactly({
           keyCode: KeyboardEvent.DOM_VK_ALT,
@@ -362,13 +333,10 @@ suite('LayoutManager', function() {
               { value: 'ENTER', ratio: 2.0,
                 keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assertExpectedLayouts(manager.currentPage, expectedPage);
-        assert.equal(manager.currentPage.__proto__,
-          spaceLayout.pages[0], 'proto is set correctly for layout.');
-
-        assert.equal(manager.currentPage.keys[1][2].__proto__,
-          spaceLayout.pages[0].keys[1][0],
-          'proto is set correctly for space key.');
+        Object.setPrototypeOf(expectedPage, spaceLayout.pages[0]);
+        Object.setPrototypeOf(expectedPage.keys[1][2],
+                              spaceLayout.pages[0].keys[1][0]);
+        assert.deepEqual(manager.currentPage, expectedPage);
 
         assert.isTrue(stubNormalizeKey.calledWithExactly({
           keyCode: KeyboardEvent.DOM_VK_ALT,
@@ -510,14 +478,10 @@ suite('LayoutManager', function() {
                       { value: 'ENTER', ratio: 2.0,
                         keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-          assertExpectedLayouts(manager.currentPage, expectedPage);
-          assert.equal(manager.currentPage.imEngine,
-                       spaceLayout.imEngine);
-          assert.equal(manager.currentPage.__proto__,
-            defaultLayout.pages[1], 'proto is set correctly for layout.');
-          assert.equal(manager.currentPage.keys[1][2].__proto__,
-            defaultLayout.pages[1].keys[1][0],
-            'proto is set correctly for space key.');
+          Object.setPrototypeOf(expectedPage, defaultLayout.pages[1]);
+          Object.setPrototypeOf(expectedPage.keys[1][2],
+                                defaultLayout.pages[1].keys[1][0]);
+          assert.deepEqual(manager.currentPage, expectedPage);
 
           assert.isTrue(stubNormalizeKey.calledWithExactly({
             keyCode: KeyboardEvent.DOM_VK_ALT,
@@ -563,12 +527,11 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assertExpectedLayouts(manager.currentPage, expectedPage);
-        assert.equal(manager.currentPage.__proto__,
-          defaultLayout.pages[1], 'proto is set correctly for layout.');
-        assert.equal(manager.currentPage.keys[1][2].__proto__,
-          defaultLayout.pages[1].keys[1][0],
-          'proto is set correctly for space key.');
+
+        Object.setPrototypeOf(expectedPage, defaultLayout.pages[1]);
+        Object.setPrototypeOf(expectedPage.keys[1][2],
+                              defaultLayout.pages[1].keys[1][0]);
+        assert.deepEqual(manager.currentPage, expectedPage);
 
         assert.isTrue(stubNormalizeKey.calledWithExactly({
           keyCode: KeyboardEvent.DOM_VK_ALT,
@@ -632,12 +595,10 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assertExpectedLayouts(manager.currentPage, expectedPage);
-        assert.equal(manager.currentPage.__proto__,
-          defaultLayout.pages[2], 'proto is set correctly for layout.');
-        assert.equal(manager.currentPage.keys[1][2].__proto__,
-          defaultLayout.pages[2].keys[1][0],
-          'proto is set correctly for space key.');
+        Object.setPrototypeOf(expectedPage, defaultLayout.pages[2]);
+        Object.setPrototypeOf(expectedPage.keys[1][2],
+                              defaultLayout.pages[2].keys[1][0]);
+        assert.deepEqual(manager.currentPage, expectedPage);
 
         assert.isTrue(stubNormalizeKey.calledWithExactly({
           keyCode: KeyboardEvent.DOM_VK_ALT,
@@ -671,12 +632,10 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assertExpectedLayouts(manager.currentPage, expectedPage);
-        assert.equal(manager.currentPage.__proto__,
-          spaceLayout.pages[0], 'proto is set correctly for layout.');
-        assert.equal(manager.currentPage.keys[1][1].__proto__,
-          spaceLayout.pages[0].keys[1][0],
-          'proto is set correctly for space key.');
+        Object.setPrototypeOf(expectedPage, spaceLayout.pages[0]);
+        Object.setPrototypeOf(expectedPage.keys[1][1],
+                              spaceLayout.pages[0].keys[1][0]);
+        assert.deepEqual(manager.currentPage, expectedPage);
 
         assert.isTrue(stubNormalizeKey.calledWithExactly({value: ','}, false),
                       'commaKey was not normalized');
@@ -711,13 +670,10 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assertExpectedLayouts(manager.currentPage, expectedPage);
-        assert.equal(manager.currentPage.__proto__,
-          spaceLayout.pages[0], 'proto is set correctly for layout.');
-
-        assert.equal(manager.currentPage.keys[1][2].__proto__,
-          spaceLayout.pages[0].keys[1][0],
-          'proto is set correctly for space key.');
+        Object.setPrototypeOf(expectedPage, spaceLayout.pages[0]);
+        Object.setPrototypeOf(expectedPage.keys[1][2],
+                              spaceLayout.pages[0].keys[1][0]);
+        assert.deepEqual(manager.currentPage, expectedPage);
 
         assert.isTrue(stubNormalizeKey.calledWithExactly({
           keyCode: KeyboardEvent.DOM_VK_ALT,
@@ -759,13 +715,10 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assertExpectedLayouts(manager.currentPage, expectedPage);
-        assert.equal(manager.currentPage.__proto__,
-          spaceLayout.pages[0], 'proto is set correctly for layout.');
-
-        assert.equal(manager.currentPage.keys[1][2].__proto__,
-          spaceLayout.pages[0].keys[1][0],
-          'proto is set correctly for space key.');
+        Object.setPrototypeOf(expectedPage, spaceLayout.pages[0]);
+        Object.setPrototypeOf(expectedPage.keys[1][2],
+                              spaceLayout.pages[0].keys[1][0]);
+        assert.deepEqual(manager.currentPage, expectedPage);
 
         assert.isTrue(stubNormalizeKey.calledWithExactly({
           keyCode: KeyboardEvent.DOM_VK_ALT,
@@ -803,13 +756,10 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assertExpectedLayouts(manager.currentPage, expectedPage);
-        assert.equal(manager.currentPage.__proto__,
-          spaceLayout.pages[0], 'proto is set correctly for layout.');
-
-        assert.equal(manager.currentPage.keys[1][2].__proto__,
-          spaceLayout.pages[0].keys[1][0],
-          'proto is set correctly for space key.');
+        Object.setPrototypeOf(expectedPage, spaceLayout.pages[0]);
+        Object.setPrototypeOf(expectedPage.keys[1][2],
+                              spaceLayout.pages[0].keys[1][0]);
+        assert.deepEqual(manager.currentPage, expectedPage);
 
         assert.isTrue(stubNormalizeKey.calledWithExactly({
           keyCode: KeyboardEvent.DOM_VK_ALT,
@@ -848,13 +798,10 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assertExpectedLayouts(manager.currentPage, expectedPage);
-        assert.equal(manager.currentPage.__proto__,
-          spaceLayout.pages[0], 'proto is set correctly for layout.');
-
-        assert.equal(manager.currentPage.keys[1][2].__proto__,
-          spaceLayout.pages[0].keys[1][0],
-          'proto is set correctly for space key.');
+        Object.setPrototypeOf(expectedPage, spaceLayout.pages[0]);
+        Object.setPrototypeOf(expectedPage.keys[1][2],
+                              spaceLayout.pages[0].keys[1][0]);
+        assert.deepEqual(manager.currentPage, expectedPage);
 
         assert.isTrue(stubNormalizeKey.calledWithExactly({
           keyCode: KeyboardEvent.DOM_VK_ALT,
@@ -899,13 +846,10 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.5,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assertExpectedLayouts(manager.currentPage, expectedPage);
-        assert.equal(manager.currentPage.__proto__,
-          spaceLayout.pages[0], 'proto is set correctly for layout.');
-
-        assert.equal(manager.currentPage.keys[1][3].__proto__,
-          spaceLayout.pages[0].keys[1][0],
-          'proto is set correctly for space key.');
+        Object.setPrototypeOf(expectedPage, spaceLayout.pages[0]);
+        Object.setPrototypeOf(expectedPage.keys[1][3],
+                              spaceLayout.pages[0].keys[1][0]);
+        assert.deepEqual(manager.currentPage, expectedPage);
 
         assert.isTrue(stubNormalizeKey.calledWithExactly({
           keyCode: KeyboardEvent.DOM_VK_ALT,
@@ -944,13 +888,10 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assertExpectedLayouts(manager.currentPage, expectedPage);
-        assert.equal(manager.currentPage.__proto__,
-          spaceLayout.pages[0], 'proto is set correctly for layout.');
-
-        assert.equal(manager.currentPage.keys[1][2].__proto__,
-          spaceLayout.pages[0].keys[1][0],
-          'proto is set correctly for space key.');
+        Object.setPrototypeOf(expectedPage, spaceLayout.pages[0]);
+        Object.setPrototypeOf(expectedPage.keys[1][2],
+                              spaceLayout.pages[0].keys[1][0]);
+        assert.deepEqual(manager.currentPage, expectedPage);
 
         assert.isTrue(stubNormalizeKey.calledWithExactly({
           keyCode: KeyboardEvent.DOM_VK_ALT,
@@ -994,13 +935,11 @@ suite('LayoutManager', function() {
                     // The [ENTER] key would be cloned and with modified ratio
                     { value: 'ENTER', ratio: 2.5,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
-        assertExpectedLayouts(manager.currentPage, expectedPage);
-        assert.equal(manager.currentPage.__proto__,
-          spaceLayout.pages[0], 'proto is set correctly for layout.');
 
-        assert.equal(manager.currentPage.keys[1][3].__proto__,
-          spaceLayout.pages[0].keys[1][0],
-          'proto is set correctly for space key.');
+        Object.setPrototypeOf(expectedPage, spaceLayout.pages[0]);
+        Object.setPrototypeOf(expectedPage.keys[1][3],
+                              spaceLayout.pages[0].keys[1][0]);
+        assert.deepEqual(manager.currentPage, expectedPage);
 
         assert.isTrue(stubNormalizeKey.calledWithExactly({
           keyCode: KeyboardEvent.DOM_VK_ALT,
@@ -1034,12 +973,10 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assertExpectedLayouts(manager.currentPage, expectedPage);
-        assert.equal(manager.currentPage.__proto__,
-          spaceLayout.pages[0], 'proto is set correctly for layout.');
-        assert.equal(manager.currentPage.keys[1][1].__proto__,
-          spaceLayout.pages[0].keys[1][0],
-          'proto is set correctly for space key.');
+        Object.setPrototypeOf(expectedPage, spaceLayout.pages[0]);
+        Object.setPrototypeOf(expectedPage.keys[1][1],
+                              spaceLayout.pages[0].keys[1][0]);
+        assert.deepEqual(manager.currentPage, expectedPage);
 
         assert.isTrue(stubNormalizeKey.calledWithExactly({value: '@'}, false),
                       'atKey was not normalized');
@@ -1076,13 +1013,10 @@ suite('LayoutManager', function() {
                     { className: 'search-icon', value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assertExpectedLayouts(manager.currentPage, expectedPage);
-        assert.equal(manager.currentPage.__proto__,
-          spaceLayout.pages[0], 'proto is set correctly for layout.');
-
-        assert.equal(manager.currentPage.keys[1][2].__proto__,
-          spaceLayout.pages[0].keys[1][0],
-          'proto is set correctly for space key.');
+        Object.setPrototypeOf(expectedPage, spaceLayout.pages[0]);
+        Object.setPrototypeOf(expectedPage.keys[1][2],
+                              spaceLayout.pages[0].keys[1][0]);
+        assert.deepEqual(manager.currentPage, expectedPage);
 
         assert.isTrue(stubNormalizeKey.calledWithExactly({
           keyCode: KeyboardEvent.DOM_VK_ALT,
@@ -1121,13 +1055,10 @@ suite('LayoutManager', function() {
                     { className: 'search-icon', value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assertExpectedLayouts(manager.currentPage, expectedPage);
-        assert.equal(manager.currentPage.__proto__,
-          spaceLayout.pages[0], 'proto is set correctly for layout.');
-
-        assert.equal(manager.currentPage.keys[1][2].__proto__,
-          spaceLayout.pages[0].keys[1][0],
-          'proto is set correctly for space key.');
+        Object.setPrototypeOf(expectedPage, spaceLayout.pages[0]);
+        Object.setPrototypeOf(expectedPage.keys[1][2],
+                              spaceLayout.pages[0].keys[1][0]);
+        assert.deepEqual(manager.currentPage, expectedPage);
 
         assert.isTrue(stubNormalizeKey.calledWithExactly({
           keyCode: KeyboardEvent.DOM_VK_ALT,
@@ -1168,12 +1099,10 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assertExpectedLayouts(manager.currentPage, expectedPage);
-        assert.equal(manager.currentPage.__proto__,
-          spaceLayout.pages[0], 'proto is set correctly for layout.');
-        assert.equal(manager.currentPage.keys[1][1].__proto__,
-          spaceLayout.pages[0].keys[1][0],
-          'proto is set correctly for space key.');
+        Object.setPrototypeOf(expectedPage, spaceLayout.pages[0]);
+        Object.setPrototypeOf(expectedPage.keys[1][1],
+                              spaceLayout.pages[0].keys[1][0]);
+        assert.deepEqual(manager.currentPage, expectedPage);
 
         assert.isTrue(stubNormalizeKey.calledWithExactly({
           keyCode: KeyboardEvent.DOM_VK_ALT,
@@ -1213,13 +1142,10 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assertExpectedLayouts(manager.currentPage, expectedPage);
-        assert.equal(manager.currentPage.__proto__,
-          spaceLayout.pages[0], 'proto is set correctly for layout.');
-
-        assert.equal(manager.currentPage.keys[1][2].__proto__,
-          spaceLayout.pages[0].keys[1][0],
-          'proto is set correctly for space key.');
+        Object.setPrototypeOf(expectedPage, spaceLayout.pages[0]);
+        Object.setPrototypeOf(expectedPage.keys[1][2],
+                              spaceLayout.pages[0].keys[1][0]);
+        assert.deepEqual(manager.currentPage, expectedPage);
 
         assert.isTrue(stubNormalizeKey.calledWithExactly({
           keyCode: KeyboardEvent.DOM_VK_ALT,
@@ -1258,13 +1184,10 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assertExpectedLayouts(manager.currentPage, expectedPage);
-        assert.equal(manager.currentPage.__proto__,
-          spaceLayout.pages[0], 'proto is set correctly for layout.');
-
-        assert.equal(manager.currentPage.keys[1][2].__proto__,
-          spaceLayout.pages[0].keys[1][0],
-          'proto is set correctly for space key.');
+        Object.setPrototypeOf(expectedPage, spaceLayout.pages[0]);
+        Object.setPrototypeOf(expectedPage.keys[1][2],
+                              spaceLayout.pages[0].keys[1][0]);
+        assert.deepEqual(manager.currentPage, expectedPage);
 
         assert.isTrue(stubNormalizeKey.calledWithExactly({
           keyCode: KeyboardEvent.DOM_VK_ALT,
@@ -1304,13 +1227,10 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assertExpectedLayouts(manager.currentPage, expectedPage);
-        assert.equal(manager.currentPage.__proto__,
-          spaceLayout.pages[0], 'proto is set correctly for layout.');
-
-        assert.equal(manager.currentPage.keys[1][2].__proto__,
-          spaceLayout.pages[0].keys[1][0],
-          'proto is set correctly for space key.');
+        Object.setPrototypeOf(expectedPage, spaceLayout.pages[0]);
+        Object.setPrototypeOf(expectedPage.keys[1][2],
+                              spaceLayout.pages[0].keys[1][0]);
+        assert.deepEqual(manager.currentPage, expectedPage);
 
         assert.isTrue(stubNormalizeKey.calledWithExactly({
           keyCode: KeyboardEvent.DOM_VK_ALT,
@@ -1352,13 +1272,10 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assertExpectedLayouts(manager.currentPage, expectedPage);
-        assert.equal(manager.currentPage.__proto__,
-          spaceLayout.pages[0], 'proto is set correctly for layout.');
-
-        assert.equal(manager.currentPage.keys[1][2].__proto__,
-          spaceLayout.pages[0].keys[1][0],
-          'proto is set correctly for space key.');
+        Object.setPrototypeOf(expectedPage, spaceLayout.pages[0]);
+        Object.setPrototypeOf(expectedPage.keys[1][2],
+                              spaceLayout.pages[0].keys[1][0]);
+        assert.deepEqual(manager.currentPage, expectedPage);
 
         assert.isTrue(stubNormalizeKey.calledWithExactly({
           keyCode: KeyboardEvent.DOM_VK_ALT,
@@ -1398,13 +1315,10 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assertExpectedLayouts(manager.currentPage, expectedPage);
-        assert.equal(manager.currentPage.__proto__,
-          spaceLayout.pages[0], 'proto is set correctly for layout.');
-
-        assert.equal(manager.currentPage.keys[1][2].__proto__,
-          spaceLayout.pages[0].keys[1][0],
-          'proto is set correctly for space key.');
+        Object.setPrototypeOf(expectedPage, spaceLayout.pages[0]);
+        Object.setPrototypeOf(expectedPage.keys[1][2],
+                              spaceLayout.pages[0].keys[1][0]);
+        assert.deepEqual(manager.currentPage, expectedPage);
 
         assert.isTrue(stubNormalizeKey.calledWithExactly({
           keyCode: KeyboardEvent.DOM_VK_ALT,
@@ -1449,13 +1363,10 @@ suite('LayoutManager', function() {
                     {  value: 'ENTER', ratio: 2.5,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assertExpectedLayouts(manager.currentPage, expectedPage);
-        assert.equal(manager.currentPage.__proto__,
-          spaceLayout.pages[0], 'proto is set correctly for layout.');
-
-        assert.equal(manager.currentPage.keys[1][3].__proto__,
-          spaceLayout.pages[0].keys[1][0],
-          'proto is set correctly for space key.');
+        Object.setPrototypeOf(expectedPage, spaceLayout.pages[0]);
+        Object.setPrototypeOf(expectedPage.keys[1][3],
+                              spaceLayout.pages[0].keys[1][0]);
+        assert.deepEqual(manager.currentPage, expectedPage);
 
         assert.isTrue(stubNormalizeKey.calledWithExactly({
           keyCode: KeyboardEvent.DOM_VK_ALT,
@@ -1498,12 +1409,10 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assertExpectedLayouts(manager.currentPage, expectedPage);
-        assert.equal(manager.currentPage.__proto__,
-          moreKeysLayout.pages[0], 'proto is set correctly for layout.');
-        assert.equal(manager.currentPage.keys[1][2].__proto__,
-          moreKeysLayout.pages[0].keys[1][0],
-          'proto is set correctly for space key.');
+        Object.setPrototypeOf(expectedPage, moreKeysLayout.pages[0]);
+        Object.setPrototypeOf(expectedPage.keys[1][2],
+                              moreKeysLayout.pages[0].keys[1][0]);
+        assert.deepEqual(manager.currentPage, expectedPage);
 
         assert.isTrue(stubNormalizeKey.calledWithExactly({
           keyCode: KeyboardEvent.DOM_VK_ALT,
@@ -1544,14 +1453,10 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assertExpectedLayouts(manager.currentPage, expectedPage);
-        assert.equal(manager.currentPage.__proto__,
-          supportsSwitchingLayout.pages[0],
-          'proto is set correctly for layout.');
-
-        assert.equal(manager.currentPage.keys[1][2].__proto__,
-          supportsSwitchingLayout.pages[0].keys[1][0],
-          'proto is set correctly for space key.');
+        Object.setPrototypeOf(expectedPage, supportsSwitchingLayout.pages[0]);
+        Object.setPrototypeOf(expectedPage.keys[1][2],
+                              supportsSwitchingLayout.pages[0].keys[1][0]);
+        assert.deepEqual(manager.currentPage, expectedPage);
 
         assert.isTrue(stubNormalizeKey.calledWithExactly({
           keyCode: KeyboardEvent.DOM_VK_ALT,
