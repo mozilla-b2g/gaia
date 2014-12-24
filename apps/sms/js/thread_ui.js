@@ -2093,6 +2093,7 @@ var ThreadUI = {
 
   onSendClick: function thui_onSendClick() {
     if (Compose.isEmpty()) {
+      Compose.focus();
       return;
     }
 
@@ -2104,6 +2105,9 @@ var ThreadUI = {
 
     // not sure why this happens - replace me if you know
     this.container.classList.remove('hide');
+
+    // retaining the focus on composer
+    Compose.focus();
   },
 
   // FIXME/bug 983411: phoneNumber not needed.
