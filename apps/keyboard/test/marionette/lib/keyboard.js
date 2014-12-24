@@ -25,6 +25,8 @@ Keyboard.Selectors = Object.freeze({
   returnKey:
     '.keyboard-type-container[data-active] ' +
     '.keyboard-key[data-l10n-id="returnKey2"]',
+  spaceBarKey: '.keyboard-type-container[data-active]' +
+    ' .keyboard-key[data-keycode="32"]',
   dismissSuggestionsKey:
     '.keyboard-type-container[data-active] ' +
     '.dismiss-suggestions-button',
@@ -110,6 +112,10 @@ Keyboard.prototype = {
 
   get returnKey() {
     return this.client.findElement(Keyboard.Selectors.returnKey);
+  },
+
+  get spaceBarKey() {
+    return this.client.findElement(Keyboard.Selectors.spaceBarKey);
   },
 
   get shiftKey() {
@@ -301,6 +307,10 @@ Keyboard.prototype = {
         .move(this.getKey(char)).wait(0.2).release().perform();
       }
     });
+  },
+
+  longPressSpaceBar: function(time) {
+    this.actions.longPress(this.spaceBarKey, time).perform();
   },
 
   switchTo: function() {

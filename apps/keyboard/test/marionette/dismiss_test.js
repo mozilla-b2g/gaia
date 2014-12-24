@@ -24,14 +24,6 @@ marionette('Dimiss the keyboard', function() {
     desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
-  function longPressSpaceBar(time) {
-    var spaceBarSelector = '.keyboard-type-container[data-active]' +
-                           ' .keyboard-key[data-keycode="32"]';
-
-    var spaceBar = client.findElement(spaceBarSelector);
-    actions.longPress(spaceBar, time).perform();
-  }
-
   setup(function() {
     systemInputMgmt = client.loader.getAppClass('system', 'input_management');
     system = client.loader.getAppClass('system');
@@ -52,7 +44,7 @@ marionette('Dimiss the keyboard', function() {
 
   test('Longpressing the space bar should dismiss the keyboard', function() {
     // The time needed for dismiss is 500ms.
-    longPressSpaceBar(0.7);
+    keyboard.longPressSpaceBar(0.7);
 
     client.waitFor(() => {
       return !systemInputMgmt.keyboardFrameDisplayed();
@@ -62,7 +54,7 @@ marionette('Dimiss the keyboard', function() {
   });
 
   test('Longpressing for only 0.5 sec should not dimiss keyboard', function() {
-    longPressSpaceBar(0.5);
+    keyboard.longPressSpaceBar(0.5);
 
     var keyboardContainer = keyboard.currentPanel;
 

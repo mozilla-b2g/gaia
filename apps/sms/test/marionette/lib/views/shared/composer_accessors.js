@@ -56,6 +56,10 @@ ComposerAccessor.prototype = {
     return new ActivityChooserView(this.client);
   },
 
+  takeAttachmentScreenshot(index) {
+    return this.client.screenshot({ element: this.attachments[index] });
+  },
+
   send: function() {
     this.client.waitFor(function() {
       return this.sendButton.enabled();
