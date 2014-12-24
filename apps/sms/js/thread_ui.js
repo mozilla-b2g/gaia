@@ -2196,6 +2196,9 @@ var ThreadUI = {
 
       MessageManager.sendMMS(mmsOpts);
     }
+
+    // Retaining the focus on composer.
+    Compose.focus();
   },
 
   onMessageSent: function thui_onMessageSent(e) {

@@ -4370,9 +4370,11 @@ suite('thread_ui.js >', function() {
       ThreadUI.onSendClick();
       // we get a string from the MultiSimActionButton
       ThreadUI.simSelectedCallback(undefined, '' + serviceId);
+      sinon.assert.called(Compose.focus);
     }
 
     setup(function() {
+      this.sinon.stub(Compose, 'focus');
       this.sinon.stub(MessageManager, 'sendSMS');
       this.sinon.stub(MessageManager, 'sendMMS');
 
