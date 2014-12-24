@@ -1,4 +1,4 @@
-/* global IACHandler */
+/* global IACHandler, SimpleKeyNavigation */
 
 (function(exports) {
   'use strict';
@@ -70,6 +70,10 @@
   proto.start = function in_start() {
     this._iacConnector = new IACConnector();
     this._iacConnector.start(this);
+    // This handles left and right. We start this module only when we really
+    // need it.
+    this._keyNavigator = new SimpleKeyNavigation();
+
     this.initEvents();
   };
 
@@ -202,7 +206,11 @@
   proto._focusNotification = function in_focusNotification() {
     this._banner.removeAttribute('aria-hidden');
     if (this._activeMessage.buttons && this._activeMessage.buttons.length > 0) {
-      document.getElementById('notification-button-0').focus();
+      // KeyNavigator will auto-focus the first item at the start. It calls
+      // focus() for us when the focus switches to another button.
+      this._keyNavigator.start([$('notification-button-0'),
+                                $('notification-button-1')],
+                               SimpleKeyNavigation.DIRECTION.HORIZONTAL);
     } else {
       document.activeElement.blur();
     }
@@ -276,6 +284,8 @@
 
       if (!this.hasPendings() && window.AppWindowManager &&
           AppWindowManager.getActiveApp()) {
+        // We need to stop KeyNavigator while we don't need it.
+        this._keyNavigator.stop();
         // If there is active app, we need to focus it back.
         AppWindowManager.getActiveApp().getTopMostWindow().focus();
       }
