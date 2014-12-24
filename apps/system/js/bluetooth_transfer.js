@@ -17,8 +17,11 @@ var BluetoothTransfer = {
   // The first-in-first-out queue maintain each scheduled sending task.
   // Each element is a object for scheduled sending tasks.
   _sendingFilesQueue: [],
-  _deviceStorage: navigator.getDeviceStorage('sdcard'),
   _debug: false,
+
+  get _deviceStorage() {
+    return navigator.getDeviceStorage('sdcard');
+  },
 
   get transferStatusList() {
     var transferStatusList =
