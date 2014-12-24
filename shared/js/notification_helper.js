@@ -41,6 +41,14 @@
           options.lang = navigator.mozL10n.language.code;
 
           var notification = new window.Notification(title, options);
+
+          if (options.closeOnClick !== false) {
+            notification.addEventListener('click', function nh_click() {
+              notification.removeEventListener('click', nh_click);
+              notification.close();
+            });
+          }
+
           resolve(notification);
         });
       });
