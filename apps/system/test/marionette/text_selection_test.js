@@ -120,4 +120,35 @@ marionette('Text selection >', function() {
       );
     });
   });
+
+  suite('non-editable', function() {
+    test('lonePress non-editable field', function() {
+      fakeTextselectionApp.longPress('normalDiv');
+      assert.ok(fakeTextselectionApp.bubbleVisiblity);
+    });
+
+    test('copy non-editable field', function() {
+      fakeTextselectionApp.copyTo('normalDiv', 'centerInput');
+      assert.equal(fakeTextselectionApp.centerInput.getAttribute('value'),
+        'NONEDITIABLEFIELD');
+    });
+
+    test('lonePress non-editable and user-select is none', function() {
+      fakeTextselectionApp.longPress('nonSelectedDiv');
+      assert.ok(!fakeTextselectionApp.bubbleVisiblity);
+    });
+
+    // Waiting for bug 1114853.
+    test.skip('lonePress non-editable field and then click non-editable with ' +
+         'user-select none field', function() {
+      fakeTextselectionApp.longPress('normalDiv');
+      assert.ok(fakeTextselectionApp.bubbleVisiblity);
+      var element = fakeTextselectionApp.nonSelectedDiv;
+      element.tap();
+      client.waitFor(function() {
+        return !fakeTextselectionApp.bubbleVisiblity;
+      });
+      assert.ok(!fakeTextselectionApp.bubbleVisiblity);
+    });
+  });
 });

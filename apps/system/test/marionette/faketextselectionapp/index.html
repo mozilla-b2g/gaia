@@ -29,12 +29,29 @@
         top: 1rem;
         right: 0;
       }
+      #noneditable {
+        position: absolute;
+        height: 2rem;
+        width: 6rem;
+        top: calc(50% - 3rem);
+        left: 0;
+      }
+      #noneditable-userselectnone {
+        -moz-user-select: none;
+        position: absolute;
+        height: 2rem;
+        width: 6rem;
+        top: calc(50% - 3rem);
+        right: 0;
+      }
     </style>
   </head>
   <body>
     <input id="bottom-left-input" value="test bottom left">
     <input id="bottom-right-input" value="testbottomright">
     <input id="center-input" value="testcenterinput">
+    <div id="noneditable">NONEDITIABLEFIELD</div>
+    <div id="noneditable-userselectnone">NONEDITIABLEFIELD-NONESELECT</div>
     <input id="top-left-input" value="testtopleftinput">
     <input id="top-right-input" value="testrightinput">
   </body>
