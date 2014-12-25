@@ -146,7 +146,9 @@
     /**
      * Object used for handling the clock UI element, wraps all related timers
      */
-    clock: new window.Clock()
+    clock: new window.Clock(),
+
+    chargingStatus: new window.LockScreenChargingStatus()
   };  // -- LockScreen.prototype --
 
   LockScreen.prototype.handleEvent =
@@ -185,11 +187,13 @@
 
           // Stop refreshing the clock when the screen is turned off.
           this.clock.stop();
+          this.chargingStatus.stop();
         } else {
           this._passCodeTimeoutCheck = this.checkPassCodeTimeout();
 
           // Resume refreshing the clock when the screen is turned on.
           this.clock.start(this.refreshClock.bind(this));
+          this.chargingStatus.start();
         }
         // No matter turn on or off from screen timeout or poweroff,
         // all secure apps would be hidden.
@@ -464,6 +468,9 @@
     if(this._checkGenerateMaskedBackgroundColor()){
       this._generateMaskedBackgroundColor();
     }
+
+    this.chargingStatus.start();
+
     // Do not refresh clock here: L10n may not ready.
   };
 
@@ -674,6 +681,7 @@
 
     // The lockscreen will be hidden, stop refreshing the clock.
     this.clock.stop();
+    this.chargingStatus.stop();
 
     if (wasAlreadyUnlocked) {
       return;
