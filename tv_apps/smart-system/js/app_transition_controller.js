@@ -285,7 +285,7 @@
   AppTransitionController.prototype._shouldFocusApp = function() {
     // XXX: Remove this after SIMPIN Dialog is refactored.
     // See https://bugzilla.mozilla.org/show_bug.cgi?id=938979
-    return (this._transitionState == 'opened');
+    return (this._transitionState == 'opened' && this.app.loaded);
   };
 
   AppTransitionController.prototype.requireOpen = function(animation) {

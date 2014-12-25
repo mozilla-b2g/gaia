@@ -905,6 +905,13 @@
         this.debug('setting background color..');
         this.browser.element.style.backgroundColor = backgroundColor;
       }
+      /**
+       * If the window is active, we should focus it when it loaded. We didn't
+       * focus it when this window was opened and defered to here.
+      **/
+      if (this.getBottomMostWindow().isActive() && this.isActive()) {
+        this.focus();
+      }
     };
 
   AppWindow.prototype._handle_mozbrowserlocationchange =
