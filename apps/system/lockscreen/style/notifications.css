@@ -221,9 +221,12 @@
   * manally adjusted according to UX; 1x Notification is 5.8rem
   * UX specifies in bug 1023500 that the container should not be scrollable
   * (so there is no mask either)
+  *
+  * Bug 1115921 specifies that in this condition, the notification should
+  * be vertically centered, thus 2.5rem which puts it in the middle
   */
   #notifications-lockscreen-container.collapsed {
-    top: calc(50% - 4.7rem);
+    top: calc(50% - 2.5rem);
     height: 5.8rem;
     overflow-y: hidden;
   }
