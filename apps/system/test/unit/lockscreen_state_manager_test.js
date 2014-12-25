@@ -363,6 +363,25 @@ suite('system/LockScreenStateManager', function() {
         'the screenchange event doesn\'t restore the unlocking state');
     });
 
+    test('When the screen is off, the slide show be restored.',
+    function(done) {
+      this.sinon.stub(subject.states.slideRestore, 'transferTo',
+        function() {
+          // This would be the next step of 'transferOut'.
+          done();
+        });
+      var states = subject.extend(subject.lockScreenDefaultStates, {
+        screenOn: false
+      });
+      subject.previousState = {
+        transferOut: this.sinon.stub().returns(Promise.resolve()),
+        type: 'slideShow'
+      };
+      subject.transfer(states);
+      assert.isTrue(subject.previousState.transferOut.called,
+        'the state wasn\'t transferred from slideShow to slideRestore');
+    });
+
     test('When actionable noitification want to unlock, ' +
          'it would trigger activate unlock',
     function() {

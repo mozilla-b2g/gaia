@@ -160,7 +160,9 @@
     this.states.slideRestore,
     'Restore the slider when secure app opened');
 
-    this.registerRule({},
+    this.registerRule({
+      screenOn: true
+    },
     ['slideRestore'],
     this.states.slideShow,
     'Show the slide after restore it');
@@ -229,6 +231,13 @@
     ['keypadShow', 'keypadHiding', 'keypadRising'],
     this.states.slideShow,
     'When the screen is off, the slide should show as cache.');
+
+    this.registerRule({
+      screenOn: false
+    },
+    ['slideShow'],
+    this.states.slideRestore,
+    'When the screen is off, the slide show be restored.');
 
     this.registerRule({
       passcodeEnabled: true,
