@@ -38,8 +38,8 @@
  *   args: {}
  * }, {
  *   title: { id: 'TitleId', args: {} },
- *   submitButtonText: { id: 'SubmitButtonId', args: {} },
- *   cancelButtonText: { id: 'CancelButtonId', args: {} }
+ *   submitButton: { id: 'SubmitButtonId', args: {}, style: 'recommend' },
+ *   cancelButton: { id: 'CancelButtonId', args: {} }
  * })
  * .then(function(result) {
  *   var type = result.type;
@@ -111,7 +111,7 @@ define(function(require) {
         type: 'alert',
         message: message,
         title: options.title,
-        submitButtonText: options.submitButtonText
+        submitButton: options.submitButton
       });
     },
 
@@ -130,8 +130,8 @@ define(function(require) {
         type: 'confirm',
         message: message,
         title: options.title,
-        submitButtonText: options.submitButtonText,
-        cancelButtonText: options.cancelButtonText
+        submitButton: options.submitButton,
+        cancelButton: options.cancelButton
       });
     },
 
@@ -151,8 +151,8 @@ define(function(require) {
         message: message,
         title: options.title,
         defaultValue: options.defaultValue,
-        submitButtonText: options.submitButtonText,
-        cancelButtonText: options.cancelButtonText
+        submitButton: options.submitButton,
+        cancelButton: options.cancelButton
       });
     },
 

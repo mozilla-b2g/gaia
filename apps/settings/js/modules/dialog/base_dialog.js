@@ -23,13 +23,13 @@ define(function(require) {
   BaseDialog.prototype.initUI = function bd_initUI() {
     var message = this._options.message;
     var title = this._options.title;
-    var submitButtonText = this._options.submitButtonText;
-    var cancelButtonText = this._options.cancelButtonText;
+    var submitButton = this._options.submitButton;
+    var cancelButton = this._options.cancelButton;
 
     this._updateMessage(message);
     this._updateTitle(title);
-    this._updateSubmitButtonText(submitButtonText);
-    this._updateCancelButtonText(cancelButtonText);
+    this._updateSubmitButton(submitButton);
+    this._updateCancelButton(cancelButton);
   };
 
   BaseDialog.prototype.bindEvents = function bd_bindEvent() {
@@ -60,19 +60,21 @@ define(function(require) {
     }
   };
 
-  BaseDialog.prototype._updateSubmitButtonText = function bd__updateText(text) {
+  BaseDialog.prototype._updateSubmitButton = function bd__update(options) {
     var buttonDOM = this.getSubmitButton();
-    if (buttonDOM && text) {
-      text = this._getWrapL10nObject(text);
-      navigator.mozL10n.setAttributes(buttonDOM, text.id, text.args);
+    if (buttonDOM && options) {
+      options = this._getWrapL10nObject(options);
+      navigator.mozL10n.setAttributes(buttonDOM, options.id, options.args);
+      buttonDOM.className = options.style || 'recommend';
     }
   };
 
-  BaseDialog.prototype._updateCancelButtonText = function bd__updateText(text) {
+  BaseDialog.prototype._updateCancelButton = function bd__updateText(options) {
     var buttonDOM = this.getCancelButton();
-    if (buttonDOM && text) {
-      text = this._getWrapL10nObject(text);
-      navigator.mozL10n.setAttributes(buttonDOM, text.id, text.args);
+    if (buttonDOM && options) {
+      options = this._getWrapL10nObject(options);
+      navigator.mozL10n.setAttributes(buttonDOM, options.id, options.args);
+      buttonDOM.className = options.style || '';
     }
   };
 
@@ -85,7 +87,7 @@ define(function(require) {
           throw new Error('You forgot to put l10nId - ' +
             JSON.stringify(input));
         } else {
-          return {id: input.id, args: input.args || null};
+          return {id: input.id, args: input.args || null, style: input.style};
         }
       } else {
         throw new Error('You are using the wrong L10nObject, ' +
@@ -109,8 +111,8 @@ define(function(require) {
     // We only have to restore system-wise panels instead of custom panels
     if (this.DIALOG_CLASS !== 'panel-dialog') {
       this._updateTitle('settings-' + this.DIALOG_CLASS + '-header');
-      this._updateSubmitButtonText('ok');
-      this._updateCancelButtonText('cancel');
+      this._updateSubmitButton('ok');
+      this._updateCancelButton('cancel');
     }
 
     // clear all added classes
