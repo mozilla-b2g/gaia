@@ -2,7 +2,6 @@
 define(function(require) {
   'use strict';
 
-  var SettingsUtils = require('modules/settings_utils');
   var DialogService = require('modules/dialog_service');
   var WifiUtils = require('modules/wifi_utils');
   var WifiHelper = require('shared/wifi_helper');
@@ -197,16 +196,17 @@ define(function(require) {
 
         if (WifiHelper.isConnected(network)) {
           // online: show status + offer to disconnect
-          SettingsUtils.openDialog('wifi-status', {
+          DialogService.show('wifi-status', {
             sl: sl,
             network: network,
             security: security,
-            onSubmit: function(network) {
-              // disconnect first, then rescan
+          }).then(function(result) {
+            var type = result.type;
+            if (type === 'submit') {
               WifiContext.forgetNetwork(network, function() {
                 self.scan();
               });
-            }.bind({}, network),
+            }
           });
         } else if (network.password && (network.password == '*')) {
           // offline, known network (hence the '*' password value):
