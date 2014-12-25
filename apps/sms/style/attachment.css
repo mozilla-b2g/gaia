@@ -36,11 +36,6 @@
   margin: 1rem 0;
 }
 
-.article-list[data-type="list"] .message.outgoing .attachment-container {
-  -moz-margin-start: auto;
-  -moz-margin-end: 0;
-}
-
 /**
  * Attachments that occur at the bounds of an MMS message do not need
  * additional spacing.
