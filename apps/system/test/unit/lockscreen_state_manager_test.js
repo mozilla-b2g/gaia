@@ -44,6 +44,7 @@ suite('system/LockScreenStateManager', function() {
     window.LockScreenStateKeypadShow = genMock('keypadShow');
     window.LockScreenStateKeypadHiding = genMock('keypadHiding');
     window.LockScreenStateKeypadRising = genMock('keypadRising');
+    window.LockScreenStateSecureAppLaunching = genMock('secureAppLaunching');
 
     window.LockScreenStateLogger = function() {
       this.start =
@@ -363,7 +364,27 @@ suite('system/LockScreenStateManager', function() {
         'the screenchange event doesn\'t restore the unlocking state');
     });
 
-    test('When the screen is off, the slide show be restored.',
+    test('When user invoke secure app, move to the mode.',
+    function(done) {
+      this.sinon.stub(subject.states.secureAppLaunching, 'transferTo',
+        function() {
+          // This would be the next step of 'transferOut'.
+          done();
+        });
+      var states = subject.extend(subject.lockScreenDefaultStates, {
+        unlockingAppActivated: true,
+        passcodeEnabled: true
+      });
+      subject.previousState = {
+        transferOut: this.sinon.stub().returns(Promise.resolve()),
+        type: 'slideShow'
+      };
+      subject.transfer(states);
+      assert.isTrue(subject.previousState.transferOut.called,
+        'the state wasn\'t transferred from slideShow to secureAppLaunching');
+    });
+
+    test('When secure app is closing, restore the slide',
     function(done) {
       this.sinon.stub(subject.states.slideRestore, 'transferTo',
         function() {
@@ -371,7 +392,27 @@ suite('system/LockScreenStateManager', function() {
           done();
         });
       var states = subject.extend(subject.lockScreenDefaultStates, {
-        screenOn: false
+        secureAppClose: true
+      });
+      subject.previousState = {
+        transferOut: this.sinon.stub().returns(Promise.resolve()),
+        type: 'secureAppLaunching'
+      };
+      subject.transfer(states);
+      assert.isTrue(subject.previousState.transferOut.called,
+        'the state wasn\'t transferred from secureAppLaunching to slidRestore');
+    });
+
+    test('When unlocking with app without passcode, restore the slide',
+    function(done) {
+      this.sinon.stub(subject.states.slideRestore, 'transferTo',
+        function() {
+          // This would be the next step of 'transferOut'.
+          done();
+        });
+      var states = subject.extend(subject.lockScreenDefaultStates, {
+        unlockingAppActivated: true,
+        passcodeEnabled: false
       });
       subject.previousState = {
         transferOut: this.sinon.stub().returns(Promise.resolve()),
@@ -388,17 +429,6 @@ suite('system/LockScreenStateManager', function() {
       var stubOnActiveUnlock = this.sinon.stub(subject, 'onActivateUnlock');
       subject.handleEvent({
         type: 'lockscreen-notification-request-activate-unlock'
-      });
-      assert.isTrue(stubOnActiveUnlock.called,
-        'the handler didn\'t handle the event');
-    });
-
-    test('When slide to camera without passcode, it would trigger activate ' +
-         'unlock.',
-    function() {
-      var stubOnActiveUnlock = this.sinon.stub(subject, 'onActivateUnlock');
-      subject.handleEvent({
-        type: 'lockscreenslide-activate-left'
       });
       assert.isTrue(stubOnActiveUnlock.called,
         'the handler didn\'t handle the event');
