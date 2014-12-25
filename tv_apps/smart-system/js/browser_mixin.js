@@ -127,9 +127,25 @@
     },
 
     focus: function bm_focus() {
-      if (this.browser && this.browser.element) {
-        this.browser.element.focus();
-      }
+      setTimeout(function() {
+        /**
+         * Bug 552255 blocks setting focus with handler of KeyboardEvent. See
+         * http://tinyurl.com/k4uu2rl for more information.
+         *
+         * To workaround it, we have to use setTimeout to run focus with another
+         * thread.
+        **/
+        if (this.browser && this.browser.element && this.isActive()) {
+          /**
+           * According to Bug 1113592 comment 9's finding, we have to blur the
+           * previous focused window to bypass the security check.
+          **/
+          if (document.activeElement) {
+            document.activeElement.blur();
+          }
+          this.browser.element.focus();
+        }
+      }.bind(this));
     },
 
     blur: function bm_blur() {
