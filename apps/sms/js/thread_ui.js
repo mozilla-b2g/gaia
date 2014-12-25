@@ -10,7 +10,8 @@
          SharedComponents,
          Errors,
          EventDispatcher,
-         SelectionHandler
+         SelectionHandler,
+         TaskRunner
 */
 /*exported ThreadUI */
 
@@ -1421,11 +1422,11 @@ var ThreadUI = {
   // Method for rendering the first chunk at the beginning
   showFirstChunk: function thui_showFirstChunk() {
     // Show chunk of messages
-    ThreadUI.showChunkOfMessages(this.CHUNK_SIZE);
+    this.showChunkOfMessages(this.CHUNK_SIZE);
     // Boot update of headers
     TimeHeaders.updateAll('header[data-time-update]');
     // Go to Bottom
-    ThreadUI.scrollViewToBottom();
+    this.scrollViewToBottom();
   },
 
   createMmsContent: function thui_createMmsContent(dataArray) {
@@ -1458,9 +1459,11 @@ var ThreadUI = {
 
   // Method for rendering the list of messages using infinite scroll
   renderMessages: function thui_renderMessages(threadId, callback) {
+    // Use taskRunner to make sure message appended in proper order
+    var taskQueue = new TaskRunner();
     var onMessagesRendered = (function messagesRendered() {
       if (this.messageIndex < this.CHUNK_SIZE) {
-        this.showFirstChunk();
+        taskQueue.push(this.showFirstChunk.bind(this));
       }
 
       if (callback) {
@@ -1470,13 +1473,19 @@ var ThreadUI = {
 
     var onRenderMessage = (function renderMessage(message) {
       if (this._stopRenderingNextStep) {
-        // stop the iteration
+        // stop the iteration and clear the taskQueue
+        taskQueue = null;
         return false;
       }
-      this.appendMessage(message,/*hidden*/ true);
+      taskQueue.push(() => {
+        if (!this._stopRenderingNextStep) {
+          return this.appendMessage(message,/*hidden*/ true);
+        }
+        return false;
+      });
       this.messageIndex++;
       if (this.messageIndex === this.CHUNK_SIZE) {
-        this.showFirstChunk();
+        taskQueue.push(this.showFirstChunk.bind(this));
       }
       return true;
     }).bind(this);
@@ -1664,13 +1673,21 @@ var ThreadUI = {
     }
 
     if (message.type === 'mms' && !isNotDownloaded && !noAttachment) { // MMS
-      SMIL.parse(message, (slideArray) => {
-        pElement.appendChild(ThreadUI.createMmsContent(slideArray));
-        this.scrollViewToBottom();
+      return this.mmsContentParser(message).then((mmsContent) => {
+        pElement.appendChild(mmsContent);
+        return messageDOM;
       });
     }
 
-    return messageDOM;
+    return Promise.resolve(messageDOM);
+  },
+
+  mmsContentParser: function thui_mmsContentParser(message) {
+    return new Promise((resolver) => {
+      SMIL.parse(message, (slideArray) => {
+        resolver(this.createMmsContent(slideArray));
+      });
+    });
   },
 
   getMessageStatusMarkup: function(status) {
@@ -1692,17 +1709,26 @@ var ThreadUI = {
     }
 
     // build messageDOM adding the links
-    messageDOM = this.buildMessageDOM(message, hidden);
+    return this.buildMessageDOM(message, hidden).then((messageDOM) => {
+      if (this._stopRenderingNextStep) {
+        return;
+      }
 
-    messageDOM.dataset.timestamp = timestamp;
+      messageDOM.dataset.timestamp = timestamp;
 
-    // Add to the right position
-    var messageContainer = this.getMessageContainer(timestamp, hidden);
-    this._insertTimestampedNodeToContainer(messageDOM, messageContainer);
+      // Add to the right position
+      var messageContainer = this.getMessageContainer(timestamp, hidden);
+      this._insertTimestampedNodeToContainer(messageDOM, messageContainer);
 
-    if (this.inEditMode) {
-      this.checkInputs();
-    }
+      if (this.inEditMode) {
+        this.checkInputs();
+      }
+
+      if (!hidden) {
+        // Go to Bottom
+        this.scrollViewToBottom();
+      }
+    });
   },
 
   /**
@@ -1725,14 +1751,14 @@ var ThreadUI = {
   },
 
   showChunkOfMessages: function thui_showChunkOfMessages(number) {
-    var elements = ThreadUI.container.getElementsByClassName('hidden');
-    for (var i = elements.length - 1; i >= 0; i--) {
-      var element = elements[i];
+    var elements = this.container.getElementsByClassName('hidden');
+
+    Array.slice(elements, -number).forEach((element) => {
       element.classList.remove('hidden');
       if (element.tagName === 'HEADER') {
         TimeHeaders.update(element);
       }
-    }
+    });
   },
 
   showOptions: function thui_showOptions() {
