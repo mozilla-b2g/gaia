@@ -136,3 +136,9 @@ form[role="dialog"][data-type="object"].visible {
     z-index: -1;
   }
 }
+
+/* RTL View */
+html[dir="rtl"] form[role="dialog"][data-type="action"] > menu > button.icon,
+html[dir="rtl"] form[role="dialog"][data-type="object"] > menu > button.icon {
+  background-position: right 0.5rem center;
+}
