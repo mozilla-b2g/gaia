@@ -170,6 +170,14 @@ WebappShared.prototype.pushResource = function(path) {
   let fileNameRegexp = new RegExp(
       '^' + file.leafName.replace(/(\.[a-z]+$)/, '((@.*x)?(\\$1))') + '$');
 
+  if (path === 'media/ringtones/' && this.gaia.distributionDir &&
+    utils.getFile(this.gaia.distributionDir, 'ringtones').exists()) {
+    // Only add ringtones in customization folder
+    this.moveToBuildDir(utils.getFile(this.gaia.distributionDir, 'ringtones'),
+      'shared/resources/media/ringtones');
+    return;
+  }
+
   utils.ls(file.parent, false).forEach(function(listFile) {
     var matches = fileNameRegexp.exec(listFile.leafName);
     if (matches) {
@@ -185,12 +193,6 @@ WebappShared.prototype.pushResource = function(path) {
         fileInResources.path.substr(this.gaia.sharedFolder.path.length);
       this.moveToBuildDir(fileInResources, pathInStage);
     }.bind(this));
-  }
-
-  if (path === 'media/ringtones/' && this.gaia.distributionDir &&
-    utils.getFile(this.gaia.distributionDir, 'ringtones').exists()) {
-    this.moveToBuildDir(utils.getFile(this.gaia.distributionDir, 'ringtones'),
-      'ringtones');
   }
 };
 
