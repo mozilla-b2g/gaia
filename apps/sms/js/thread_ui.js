@@ -1384,12 +1384,18 @@ var ThreadUI = {
 
   // Method for rendering the first chunk at the beginning
   showFirstChunk: function thui_showFirstChunk() {
-    // Show chunk of messages
-    ThreadUI.showChunkOfMessages(this.CHUNK_SIZE);
-    // Boot update of headers
-    TimeHeaders.updateAll('header[data-time-update]');
-    // Go to Bottom
-    ThreadUI.scrollViewToBottom();
+    Promise.all(this.mmsPromises).then((options) => {
+      options.forEach((opt) => {
+        opt.element.appendChild(this.createMmsContent(opt.slideArray));
+      });
+      // Show chunk of messages
+      this.showChunkOfMessages(this.CHUNK_SIZE);
+      // Boot update of headers
+      TimeHeaders.updateAll('header[data-time-update]');
+      // Go to Bottom
+      this.scrollViewToBottom();
+    });
+    this.mmsPromises = [];
   },
 
   createMmsContent: function thui_createMmsContent(dataArray) {
@@ -1425,6 +1431,14 @@ var ThreadUI = {
     var onMessagesRendered = (function messagesRendered() {
       if (this.messageIndex < this.CHUNK_SIZE) {
         this.showFirstChunk();
+      } else {
+        Promise.all(this.mmsPromises).then((options) => {
+          options.forEach((opt) => {
+            opt.element.appendChild(this.createMmsContent(opt.slideArray));
+          });
+          // Go to Bottom
+          this.scrollViewToBottom();
+        });
       }
 
       if (callback) {
@@ -1460,6 +1474,7 @@ var ThreadUI = {
       end: onMessagesRendered
     };
 
+    this.mmsPromises = [];
     MessageManager.getMessages(renderingOptions);
 
     // force the next scroll to bottom
@@ -1537,6 +1552,9 @@ var ThreadUI = {
       return info.readStatus === 'success';
     });
   },
+
+  // Use promise to control the all mms contents parsing time
+  mmsPromises: [],
 
   buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
     var messageDOM = document.createElement('li'),
@@ -1628,13 +1646,21 @@ var ThreadUI = {
     }
 
     if (message.type === 'mms' && !isNotDownloaded && !noAttachment) { // MMS
-      SMIL.parse(message, (slideArray) => {
-        pElement.appendChild(ThreadUI.createMmsContent(slideArray));
-        this.scrollViewToBottom();
-      });
+      this.mmsPromises.push(this.mmsContentPromise(pElement, message));
     }
 
     return messageDOM;
+  },
+
+  mmsContentPromise: function thui_mmsContentHandler(element, message) {
+    return new Promise(function(resolver) {
+      SMIL.parse(message, (slideArray) => {
+        resolver({
+          element: element,
+          slideArray: slideArray
+        });
+      });
+    });
   },
 
   getMessageStatusMarkup: function(status) {
