@@ -1,7 +1,9 @@
-var assert = require('chai').assert;
-var fs = require('fs');
+'use strict';
+
+/* jshint node: true, mocha: true */
+/* global suiteSetup */
+
 var path = require('path');
-var vm = require('vm');
 var helper = require('./helper');
 
 suite('MOZILLA_OFFICAL=1', function() {
@@ -24,6 +26,4 @@ suite('MOZILLA_OFFICAL=1', function() {
       done();
     });
   });
-
 });
-

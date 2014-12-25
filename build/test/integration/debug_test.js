@@ -1,3 +1,8 @@
+'use strict';
+
+/* jshint node: true, mocha: true */
+/* global suiteSetup */
+
 var assert = require('chai').assert;
 var fs = require('fs');
 var path = require('path');
@@ -21,7 +26,8 @@ suite('Make with DEBUG=1', function() {
       var installedExtsPath = path.join('build_stage', 'additional-extensions',
         'downloaded.json');
       var expectedSettings = {
-        'homescreen.manifestURL': 'app://verticalhome.gaiamobile.org/manifest.webapp',
+        'homescreen.manifestURL':
+          'app://verticalhome.gaiamobile.org/manifest.webapp',
         'rocketbar.searchAppURL': 'app://search.gaiamobile.org/index.html'
       };
       var expectedUserPrefs = {

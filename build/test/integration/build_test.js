@@ -1,3 +1,8 @@
+'use strict';
+
+/* jshint node: true, mocha: true */
+/* global suiteSetup */
+
 var assert = require('chai').assert;
 var fs = require('fs');
 var path = require('path');
@@ -9,13 +14,6 @@ suite('Integration tests', function() {
   teardown(helper.cleanupWorkspace);
 
   function verifyIncludedFilesFromHtml(appName) {
-    var used = {
-      js: [],
-      resources: [],
-      style: [],
-      style_unstable: [],
-      locales: []
-    };
     var zipPath = path.join(process.cwd(), 'profile', 'webapps',
         appName + '.gaiamobile.org', 'application.zip');
     var zip = new AdmZip(zipPath);
@@ -30,7 +28,7 @@ suite('Integration tests', function() {
       var extention =
         fileName.substr(fileName.lastIndexOf('.') + 1).toLowerCase();
       if (extention === 'html') {
-        var allShared = extractSharedFile(zip, zipEntries[f], appName);
+        extractSharedFile(zip, zipEntries[f], appName);
       }
     }
 
@@ -38,6 +36,7 @@ suite('Integration tests', function() {
       var SHARED_USAGE =
         /<(?:script|link).+=['"]\.?\.?\/?(shared\/[^\/]+\/[^''\s]+)["']/g;
       var content = zip.readAsText(file);
+      var matches;
       while((matches = SHARED_USAGE.exec(content))!== null) {
         var filePathInHtml = matches[1];
         var fileInZip = zip.readFile(zip.getEntry(filePathInHtml));
@@ -46,7 +45,8 @@ suite('Integration tests', function() {
           continue;
         }
         if (filePathInHtml.indexOf('shared/') === 0) {
-          fileInApps = fs.readFileSync(path.join(process.cwd(), filePathInHtml));
+          fileInApps = fs.readFileSync(
+            path.join(process.cwd(), filePathInHtml));
         } else {
           fileInApps = fs.readFileSync(path.join(process.cwd(),
             'apps', appName, filePathInHtml));
@@ -65,14 +65,13 @@ suite('Integration tests', function() {
       return;
     }
 
-    var images = [];
     for (var f = 0; f < zipEntries.length; f++) {
       var fileInZip = zipEntries[f];
       var fileName = fileInZip.entryName;
       if (/\.(png|gif|jpg)$/.test(fileName)) {
         if (reso !== 1 && fileName.indexOf('browser_') === -1) {
           fileName = fileName.replace(
-            /(.*)(\.(png|gif|jpg))$/, "$1@" + reso + "x$2");
+            /(.*)(\.(png|gif|jpg))$/, '$1@' + reso + 'x$2');
         }
         compareWithApps(appName, fileName, fileInZip, reso, official);
       }
@@ -88,7 +87,7 @@ suite('Integration tests', function() {
       if (filePath.indexOf('shared/') === 0) {
         filePath = path.join(process.cwd(), filePath);
       } else {
-        filePath = path.join(process.cwd(), 'apps', appName, filePath)
+        filePath = path.join(process.cwd(), 'apps', appName, filePath);
       }
 
       if (fs.existsSync(filePath)) {
@@ -143,11 +142,11 @@ suite('Integration tests', function() {
       var webapps = JSON.parse(fs.readFileSync(webappsPath));
 
       assert.isNotNull(webapps['test.mozilla.com']);
-      assert.equal(webapps['test.mozilla.com'].origin, 'app://test.mozilla.com');
+      assert.equal(
+        webapps['test.mozilla.com'].origin, 'app://test.mozilla.com');
 
       restoreFunc();
       done();
     });
   });
-
 });
