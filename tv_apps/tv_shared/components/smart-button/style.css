@@ -274,6 +274,21 @@ smart-button[type="app-button"][app-type="device"]:after {
   background-color: #4a82ea;
 }
 
+smart-button[type="app-button"][app-type="folder"] {
+  background-color: #595959;
+}
+
+smart-button[type="app-button"]:before {
+  left: 0;
+  line-height: 30rem;
+  font-size: 16rem;
+  width: 100%;
+}
+
+smart-button[type="app-button"][app-type="folder"]:before {
+  color: #CCCCCC;
+}
+
 /**
  * End of App Icons
 **/
