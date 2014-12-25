@@ -4,7 +4,8 @@
 /* Copyright © 2013, Deutsche Telekom, Inc. */
 
 /* globals BluetoothTransfer, NDEFUtils, NfcConnectSystemDialog,
-           NDEF, NfcUtils, NotificationHelper, SettingsListener */
+           NDEF, NfcUtils, NotificationHelper, SettingsListener,
+           NfcBluetooth */
 /* exported NfcHandoverManager */
 'use strict';
 
@@ -35,7 +36,7 @@ var NfcHandoverManager = {
    * @type {Object}
    * @memberof NfcHandoverManager.prototype
    */
-  bluetooth: null,
+  // bluetooth: null,
 
   /**
    * mozNfc object
@@ -49,7 +50,7 @@ var NfcHandoverManager = {
    * @type {Object}
    * @memberof NfcHandoverManager.prototype
    */
-  defaultAdapter: null,
+  // defaultAdapter: null,
 
   /**
    * Keeps a list of actions that need to be performed after
@@ -57,7 +58,7 @@ var NfcHandoverManager = {
    * @type {Array}
    * @memberof NfcHandoverManager.prototype
    */
-  actionQueue: [],
+  // actionQueue: [],
 
   /**
    * Keeps a list of send file requests made via peer.sendFile(blob).
@@ -97,20 +98,20 @@ var NfcHandoverManager = {
    * @type {boolean}
    * @memberof NfcHandoverManager.prototype
    */
-  bluetoothStatusSaved: false,
+  // bluetoothStatusSaved: false,
 
   /**
    * Remembers whether Bluetooth was enabled or automatically.
    * @type {boolean}
    * @memberof NfcHandoverManager.prototype
    */
-  bluetoothAutoEnabled: false,
+  // bluetoothAutoEnabled: false,
 
   /**
    * Used to prevent triggering Settings multiple times.
    * @memberof NfcHandoverManager.prototype
    */
-  settingsNotified: false,
+  // settingsNotified: false,
 
   /**
    * Debug method
@@ -144,55 +145,56 @@ var NfcHandoverManager = {
    */
   init: function init() {
     var self = this;
+    NfcBluetooth.init();
 
     this.settings = navigator.mozSettings;
-    this.bluetooth = navigator.mozBluetooth;
+    // this.bluetooth = navigator.mozBluetooth;
     this.nfc = navigator.mozNfc;
 
     this.incomingFileTransferInProgress = false;
-    this.bluetoothStatusSaved = false;
-    this.bluetoothAutoEnabled = false;
+    // this.bluetoothStatusSaved = false;
+    // this.bluetoothAutoEnabled = false;
 
-    if (this.bluetooth.enabled) {
-      this._debug('Bluetooth already enabled on boot');
-      var req = this.bluetooth.getDefaultAdapter();
-      req.onsuccess = function bt_getAdapterSuccess() {
-        self.defaultAdapter = req.result;
-        self._debug('MAC address: ' + self.defaultAdapter.address);
-        self._debug('MAC name: ' + self.defaultAdapter.name);
-      };
-      req.onerror = function bt_getAdapterError() {
-        self._logVisibly('init: Failed to get bluetooth adapter');
-      };
-    }
+    // if (this.bluetooth.enabled) {
+    //   this._debug('Bluetooth already enabled on boot');
+    //   var req = this.bluetooth.getDefaultAdapter();
+    //   req.onsuccess = function bt_getAdapterSuccess() {
+    //     self.defaultAdapter = req.result;
+    //     self._debug('MAC address: ' + self.defaultAdapter.address);
+    //     self._debug('MAC name: ' + self.defaultAdapter.name);
+    //   };
+    //   req.onerror = function bt_getAdapterError() {
+    //     self._logVisibly('init: Failed to get bluetooth adapter');
+    //   };
+    // }
 
-    window.addEventListener('bluetooth-adapter-added', function() {
-      self._debug('bluetooth-adapter-added');
-      var req = self.bluetooth.getDefaultAdapter();
-      req.onsuccess = function bt_getAdapterSuccess() {
-        self.settingsNotified = false;
-        self.defaultAdapter = req.result;
-        self._debug('MAC address: ' + self.defaultAdapter.address);
-        self._debug('MAC name: ' + self.defaultAdapter.name);
-        /*
-         * Call all actions that have queued up while Bluetooth
-         * was turned on.
-         */
-        for (var i = 0; i < self.actionQueue.length; i++) {
-          var action = self.actionQueue[i];
-          action.callback.apply(self, action.args);
-        }
-        self.actionQueue = [];
-      };
-      req.onerror = function bt_getAdapterError() {
-        self._logVisibly('event listner: Failed to get bluetooth adater');
-      };
-    });
+    // window.addEventListener('bluetooth-adapter-added', function() {
+    //   self._debug('bluetooth-adapter-added');
+    //   var req = self.bluetooth.getDefaultAdapter();
+    //   req.onsuccess = function bt_getAdapterSuccess() {
+    //     self.settingsNotified = false;
+    //     self.defaultAdapter = req.result;
+    //     self._debug('MAC address: ' + self.defaultAdapter.address);
+    //     self._debug('MAC name: ' + self.defaultAdapter.name);
+        
+    //      * Call all actions that have queued up while Bluetooth
+    //      * was turned on.
+         
+    //     for (var i = 0; i < self.actionQueue.length; i++) {
+    //       var action = self.actionQueue[i];
+    //       action.callback.apply(self, action.args);
+    //     }
+    //     self.actionQueue = [];
+    //   };
+    //   req.onerror = function bt_getAdapterError() {
+    //     self._logVisibly('event listner: Failed to get bluetooth adater');
+    //   };
+    // });
 
-    window.addEventListener('bluetooth-disabled', function() {
-      self._debug('bluetooth-disabled');
-      self._clearBluetoothStatus();
-    });
+    // window.addEventListener('bluetooth-disabled', function() {
+    //   self._debug('bluetooth-disabled');
+    //   self._clearBluetoothStatus();
+    // });
 
     window.navigator.mozSetMessageHandler('nfc-manager-send-file',
       function(msg) {
@@ -202,6 +204,24 @@ var NfcHandoverManager = {
 
     SettingsListener.observe('nfc.debugging.enabled', false,
                              (enabled) => { this.DEBUG = enabled; });
+
+    window.addEventListener('nfc-init-file-transfer', this);
+    window.addEventListener('nfc-file-transfer', this);
+    window.addEventListener('nfc-handover-request', this);
+  },
+
+  handleEvent: function _handleEvent(evt) {
+    switch (evt.type) {
+      case 'nfc-init-file-transfer':
+        this._initiateFileTransfer(evt.detail.args);
+        break;
+      case 'nfc-file-transfer':
+        this._doFileTransfer(evt.detail.args);
+        break;
+      case 'nfc-handover-request':
+        this._doHandoverRequest(evt.detail.args);
+        break;
+    }
   },
 
   /**
@@ -209,10 +229,11 @@ var NfcHandoverManager = {
    * @memberof NfcHandoverManager.prototype
    */
   _saveBluetoothStatus: function _saveBluetoothStatus() {
-    if (!this.bluetoothStatusSaved) {
-      this.bluetoothStatusSaved = true;
-      this.bluetoothAutoEnabled = !this.bluetooth.enabled;
-    }
+    // if (!this.bluetoothStatusSaved) {
+    //   this.bluetoothStatusSaved = true;
+    //   this.bluetoothAutoEnabled = !this.bluetooth.enabled;
+    // }
+    window.dispatchEvent(new CustomEvent('save-bluetooth-status'));
   },
 
   /**
@@ -220,24 +241,26 @@ var NfcHandoverManager = {
    * @memberof NfcHandoverManager.prototype
    */
   _restoreBluetoothStatus: function _restoreBluetoothStatus() {
-    if (!this.isHandoverInProgress() &&
-        BluetoothTransfer.isSendFileQueueEmpty) {
-      if (this.bluetoothAutoEnabled) {
-        this._debug('Disabling Bluetooth');
-        this.settings.createLock().set({'bluetooth.enabled': false});
-        this.bluetoothAutoEnabled = false;
-      }
-      this.bluetoothStatusSaved = false;
-    }
+    // if (!this.isHandoverInProgress() &&
+    //     BluetoothTransfer.isSendFileQueueEmpty) {
+    //   if (this.bluetoothAutoEnabled) {
+    //     this._debug('Disabling Bluetooth');
+    //     this.settings.createLock().set({'bluetooth.enabled': false});
+    //     this.bluetoothAutoEnabled = false;
+    //   }
+    //   this.bluetoothStatusSaved = false;
+    // }
+    window.dispatchEvent(new CustomEvent('restore-bluetooth-status'));
   },
 
   /**
    * Forget a previously saved Bluetooth status.
    * @memberof NfcHandoverManager.prototype
    */
-  _clearBluetoothStatus: function _clearBluetoothStatus() {
-    this.bluetoothStatusSaved = false;
-  },
+  // _clearBluetoothStatus: function _clearBluetoothStatus() {
+    // this.bluetoothStatusSaved = false;
+    // window.dispatchEvent(new CustomEvent('clear-bluetooth-status'));
+  // },
 
   /*
    * Performs an action once Bluetooth is enabled. If Bluetooth is disabled,
@@ -249,16 +272,18 @@ var NfcHandoverManager = {
    * @memberof NfcHandoverManager.prototype
    */
   _doAction: function _doAction(action) {
-    if (!this.bluetooth.enabled) {
-      this._debug('Bluetooth: not yet enabled');
-      this.actionQueue.push(action);
-      if (this.settingsNotified === false) {
-        this.settings.createLock().set({'bluetooth.enabled': true});
-        this.settingsNotified = true;
-      }
-    } else {
-      action.callback.apply(this, action.args);
-    }
+    // if (!this.bluetooth.enabled) {
+    //   this._debug('Bluetooth: not yet enabled');
+    //   this.actionQueue.push(action);
+    //   if (this.settingsNotified === false) {
+    //     this.settings.createLock().set({'bluetooth.enabled': true});
+    //     this.settingsNotified = true;
+    //   }
+    // } else {
+    //   action.callback.apply(this, action.args);
+    // }
+    window.dispatchEvent(new CustomEvent('bluetooth-action',
+      { detail: action}));    
   },
 
   /**
@@ -289,30 +314,30 @@ var NfcHandoverManager = {
     return NDEFUtils.parseBluetoothSSP(btsspRecord);
   },
 
-  /**
-   * Performs bluetooth pairing with other device
-   * @param {string} mac MAC address of the peer device
-   * @memberof NfcHandoverManager.prototype
-   */
-  _doPairing: function _doPairing(mac) {
-    this._debug('doPairing: ' + mac);
-    if (this.defaultAdapter == null) {
-      // No BT
-      this._debug('No defaultAdapter');
-      return;
-    }
-    var req = this.defaultAdapter.pair(mac);
-    var self = this;
-    req.onsuccess = function() {
-      self._debug('Pairing succeeded');
-      self._clearBluetoothStatus();
-      self._doConnect(mac);
-    };
-    req.onerror = function() {
-      self._logVisibly('Pairing failed');
-      self._restoreBluetoothStatus();
-    };
-  },
+  // /**
+  //  * Performs bluetooth pairing with other device
+  //  * @param {string} mac MAC address of the peer device
+  //  * @memberof NfcHandoverManager.prototype
+  //  */
+  // _doPairing: function _doPairing(mac) {
+  //   this._debug('doPairing: ' + mac);
+  //   if (this.defaultAdapter == null) {
+  //     // No BT
+  //     this._debug('No defaultAdapter');
+  //     return;
+  //   }
+  //   var req = this.defaultAdapter.pair(mac);
+  //   var self = this;
+  //   req.onsuccess = function() {
+  //     self._debug('Pairing succeeded');
+  //     self._clearBluetoothStatus();
+  //     self._doConnect(mac);
+  //   };
+  //   req.onerror = function() {
+  //     self._logVisibly('Pairing failed');
+  //     self._restoreBluetoothStatus();
+  //   };
+  // },
 
   /**
    * Show an error notification when file transfer failed.
@@ -398,8 +423,8 @@ var NfcHandoverManager = {
       return;
     }
 
-    var cps = this.bluetooth.enabled ? NDEF.CPS_ACTIVE : NDEF.CPS_ACTIVATING;
-    var mac = this.defaultAdapter.address;
+    var cps = NfcBluetooth.enabled() ? NDEF.CPS_ACTIVE : NDEF.CPS_ACTIVATING;
+    var mac = NfcBluetooth.getMacAddress();
     var hs = NDEFUtils.encodeHandoverSelect(mac, cps);
     var promise = nfcPeer.sendNDEF(hs);
     promise.then(() => {
@@ -450,8 +475,8 @@ var NfcHandoverManager = {
       var job = {nfcPeer: nfcPeer, blob: blob, requestId: requestId,
                  onsuccess: onsuccess, onerror: onerror};
       this.sendFileQueue.push(job);
-      var cps = this.bluetooth.enabled ? NDEF.CPS_ACTIVE : NDEF.CPS_ACTIVATING;
-      var mac = this.defaultAdapter.address;
+      var cps = NfcBluetooth.enabled() ? NDEF.CPS_ACTIVE : NDEF.CPS_ACTIVATING;
+      var mac = NfcBluetooth.getMacAddress();
       var hr = NDEFUtils.encodeHandoverRequest(mac, cps);
       var promise = nfcPeer.sendNDEF(hr);
       promise.then(() => {
@@ -471,43 +496,43 @@ var NfcHandoverManager = {
                    this.responseTimeoutMillis);
   },
 
-  /**
-   * Connects via bluetooth to the paired device.
-   * @param {string} mac MAC addres of the paired device
-   * @memberof NfcHandoverManager.prototype
-   */
-  _doConnect: function _doConnect(mac) {
-    this._debug('doConnect with: ' + mac);
-    /*
-     * Bug 979427:
-     * After pairing we connect to the remote device. The only thing we
-     * know here is the MAC address, but the defaultAdapter.connect()
-     * requires a BluetoothDevice argument. So we use getPairedDevices()
-     * to map the MAC to a BluetoothDevice instance.
-     */
-    var req = this.defaultAdapter.getPairedDevices();
-    var self = this;
-    req.onsuccess = function() {
-      var devices = req.result;
-      self._debug('# devices: ' + devices.length);
-      var successCb = function() { self._debug('Connect succeeded'); };
-      var errorCb = function() { self._debug('Connect failed'); };
-      for (var i = 0; i < devices.length; i++) {
-        var device = devices[i];
-        self._debug('Address: ' + device.address);
-        self._debug('Connected: ' + device.connected);
-        if (device.address.toLowerCase() == mac.toLowerCase()) {
-              self._debug('Connecting to ' + mac);
-              var r = self.defaultAdapter.connect(device);
-              r.onsuccess = successCb;
-              r.onerror = errorCb;
-        }
-      }
-    };
-    req.onerror = function() {
-      self._logVisibly('Cannot get paired devices from adapter.');
-    };
-  },
+  // /**
+  //  * Connects via bluetooth to the paired device.
+  //  * @param {string} mac MAC addres of the paired device
+  //  * @memberof NfcHandoverManager.prototype
+  //  */
+  // _doConnect: function _doConnect(mac) {
+  //   this._debug('doConnect with: ' + mac);
+  //   /*
+  //    * Bug 979427:
+  //    * After pairing we connect to the remote device. The only thing we
+  //    * know here is the MAC address, but the defaultAdapter.connect()
+  //    * requires a BluetoothDevice argument. So we use getPairedDevices()
+  //    * to map the MAC to a BluetoothDevice instance.
+  //    */
+  //   var req = this.defaultAdapter.getPairedDevices();
+  //   var self = this;
+  //   req.onsuccess = function() {
+  //     var devices = req.result;
+  //     self._debug('# devices: ' + devices.length);
+  //     var successCb = function() { self._debug('Connect succeeded'); };
+  //     var errorCb = function() { self._debug('Connect failed'); };
+  //     for (var i = 0; i < devices.length; i++) {
+  //       var device = devices[i];
+  //       self._debug('Address: ' + device.address);
+  //       self._debug('Connected: ' + device.connected);
+  //       if (device.address.toLowerCase() == mac.toLowerCase()) {
+  //             self._debug('Connecting to ' + mac);
+  //             var r = self.defaultAdapter.connect(device);
+  //             r.onsuccess = successCb;
+  //             r.onerror = errorCb;
+  //       }
+  //     }
+  //   };
+  //   req.onerror = function() {
+  //     self._logVisibly('Cannot get paired devices from adapter.');
+  //   };
+  // },
 
   /**
    * Clears timeout that handles the case an outstanding handover message
@@ -544,7 +569,7 @@ var NfcHandoverManager = {
     var self = this;
     var onconfirm = function() {
       self._debug('Connect confirmed');
-      self._doAction({callback: self._doPairing, args: [btssp.mac]});
+      self._doAction({callback: 'pairing', args: [btssp.mac]});
     };
     var onabort = function() {
       self._debug('Connect aborted');
@@ -583,7 +608,7 @@ var NfcHandoverManager = {
     }
     if (this.sendFileQueue.length !== 0) {
       // This is the response to a file transfer request (negotiated handover)
-      this._doAction({callback: this._doFileTransfer, args: [btssp.mac]});
+      this._doAction({callback: 'file-transfer', args: [btssp.mac]});
     } else {
       // This is a static handover
       this._onRequestConnect(btssp);
@@ -599,7 +624,7 @@ var NfcHandoverManager = {
   _handleHandoverRequest: function _handleHandoverRequest(ndef, nfcPeer) {
     this._debug('_handleHandoverRequest');
     this._saveBluetoothStatus();
-    this._doAction({callback: this._doHandoverRequest, args: [ndef, nfcPeer]});
+    this._doAction({callback: 'handover-request', args: [ndef, nfcPeer]});
   },
 
   /**
@@ -646,7 +671,7 @@ var NfcHandoverManager = {
   handleFileTransfer: function handleFileTransfer(nfcPeer, blob, requestId) {
     this._debug('handleFileTransfer');
     this._saveBluetoothStatus();
-    this._doAction({callback: this._initiateFileTransfer, args: [nfcPeer, blob,
+    this._doAction({callback: 'init-file-transfer', args: [nfcPeer, blob,
                                                                  requestId]});
   },
 
