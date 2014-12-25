@@ -2079,5 +2079,18 @@
 
     this.setVisible(false);
   };
+
+  /**
+   * Override focus to check if any popup on top of it and switch focus to them.
+   */
+  AppWindow.prototype.focus = function() {
+    if (this.contextmenu && this.contextmenu.hasMenuVisible()) {
+      this.contextmenu.focus();
+    } else {
+      // Call mixed in class.
+      BrowserMixin.focus.call(this);
+    }
+  };
+
   exports.AppWindow = AppWindow;
 }(window));

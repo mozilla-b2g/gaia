@@ -32,6 +32,7 @@
     this.keyNavigationAdapter.on('enter', function() {
       this.spatialNavigator.getFocusedElement().click();
     }.bind(this))
+    this.keyNavigationAdapter.on('esc', this.hide.bind(this));
 
     this.spatialNavigator.on('focus', this.handleFocus.bind(this));
     return this;
@@ -42,6 +43,7 @@
   BrowserContextMenu.prototype.handleFocus = function(elem) {
     if (elem.nodeName) {
       selectionBorder.select(elem);
+      elem.focus();
     } else {
       selectionBorder.selectRect(elem);
     }
@@ -142,6 +144,14 @@
     this.showMenu(items);
   };
 
+  BrowserContextMenu.prototype.hasMenuVisible = function() {
+    return this.element && this.element.classList.contains('visible');
+  };
+
+  BrowserContextMenu.prototype.focus = function() {
+    this.spatialNavigator.focus();
+  };
+
   BrowserContextMenu.prototype.showMenu = function(menu) {
     if (!this._injected) {
       this.render();
@@ -228,7 +238,9 @@
       evt.preventDefault();
     }
 
-    this.element.blur();
+    if (this.spatialNavigator.getFocusedElement()) {
+      this.spatialNavigator.getFocusedElement().blur();
+    }
     this.element.classList.remove('visible');
     if (this.app) {
       this.app.focus();
