@@ -4,6 +4,7 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_image.js');
 require('/shared/test/unit/mocks/mock_canvas.js');
 require('/shared/test/unit/mocks/mock_canvas_rendering_context_2d.js');
+requireApp('system/lockscreen/js/lockscreen_charging.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
@@ -121,6 +122,7 @@ suite('system/LockScreen >', function() {
     subject.passcodePad = domPasscodePad;
     domMessage = document.createElement('div');
     subject.message = domMessage;
+    subject.chargingStatus.elements.charging = document.createElement('div');
 
     var mockClock = {
       start: function() {},
@@ -233,6 +235,89 @@ suite('system/LockScreen >', function() {
     };
     method.call(mockThis, { 'type': 'ftudone' });
     assert.isTrue(mockThis.refreshClock.called);
+  });
+
+  suite('Charging status updates', function() {
+    test('When lockscreen is on, start charging status updates', function() {
+      var spy = this.sinon.spy(subject.chargingStatus, 'start');
+      subject.handleEvent({
+        type: 'screenchange',
+        detail: {screenEnabled: true}
+      });
+
+      assert.isTrue(spy.called);
+      subject.chargingStatus.start.restore();
+    });
+
+    test('When lockscreen is off, stop charging status updates', function() {
+      var spy = this.sinon.spy(subject.chargingStatus, 'stop');
+      subject.handleEvent({
+        type: 'screenchange',
+        detail: {screenEnabled: false}
+      });
+
+      assert.isTrue(spy.called);
+      subject.chargingStatus.stop.restore();
+    });
+
+    test('When unlocked, stop charging status updates', function() {
+      var spy = this.sinon.spy(subject.chargingStatus, 'stop');
+      subject.unlock();
+
+      assert.isTrue(spy.called);
+      subject.chargingStatus.stop.restore();
+    });
+
+    test('When charging starts, refresh charging status', function() {
+      // we should mock navigator.battery and set charging=true and
+      // see if the element's hidden is removed, but
+      // navigator.battery is read only. See bug 1115921
+      subject.chargingStatus.start();
+      var spy = this.sinon.spy(subject.chargingStatus, 'refresh');
+      navigator.battery.dispatchEvent(new CustomEvent('chargingchange', {
+        charging: true
+      }));
+
+      assert.isTrue(spy.called);
+      subject.chargingStatus.refresh.restore();
+      subject.chargingStatus.stop();
+    });
+
+    test('When charging stops, refresh charging status', function() {
+      subject.chargingStatus.start();
+      var spy = this.sinon.spy(subject.chargingStatus, 'refresh');
+      navigator.battery.dispatchEvent(new CustomEvent('chargingchange', {
+        charging: false
+      }));
+
+      assert.isTrue(spy.called);
+      subject.chargingStatus.refresh.restore();
+      subject.chargingStatus.stop();
+    });
+
+    test('When charging level changes, refresh charging status', function() {
+      subject.chargingStatus.start();
+      var spy = this.sinon.spy(subject.chargingStatus, 'refresh');
+      navigator.battery.dispatchEvent(new CustomEvent('levelchange', {
+        level: 0.5
+      }));
+
+      assert.isTrue(spy.called);
+      subject.chargingStatus.refresh.restore();
+      subject.chargingStatus.stop();
+    });
+
+    test('When charging time changes, refresh charging status', function() {
+      subject.chargingStatus.start();
+      var spy = this.sinon.spy(subject.chargingStatus, 'refresh');
+      navigator.battery.dispatchEvent(new CustomEvent('chargingtimechange', {
+        chargeTime: 1200
+      }));
+
+      assert.isTrue(spy.called);
+      subject.chargingStatus.refresh.restore();
+      subject.chargingStatus.stop();
+    });
   });
 
   suite('Handle event: screenchange should propogate to _screenEnabled prop',
