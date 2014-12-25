@@ -1436,8 +1436,6 @@ var ThreadUI = {
           options.forEach((opt) => {
             opt.element.appendChild(this.createMmsContent(opt.slideArray));
           });
-          // Go to Bottom
-          this.scrollViewToBottom();
         });
       }
 
@@ -1716,7 +1714,13 @@ var ThreadUI = {
 
   showChunkOfMessages: function thui_showChunkOfMessages(number) {
     var elements = ThreadUI.container.getElementsByClassName('hidden');
-    for (var i = elements.length - 1; i >= 0; i--) {
+    var length = elements.length;
+
+    if (length === 0) {
+      return;
+    }
+
+    for (var i = length - 1; i >= length - number; i--) {
       var element = elements[i];
       element.classList.remove('hidden');
       if (element.tagName === 'HEADER') {
