@@ -33,6 +33,7 @@
    "cdn.url": "https://fxos.cdn.mozilla.net",
    "clear.remote-windows.data": false,
    "cmas.enabled": [true, true],
+   "copypaste.enabled": true,
    "debug.console.enabled": false,
    "developer.menu.enabled": false,
    "debug.oop.disabled": false,

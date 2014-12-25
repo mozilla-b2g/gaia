@@ -1,10 +1,15 @@
-/* global MocksHelper, LayoutManager, TextSelectionDialog */
+/* global MocksHelper, LayoutManager, TextSelectionDialog,
+          MockSettingsListener */
 'use strict';
 
+requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 
-var mocksForTextSelectionDialog = new MocksHelper([ 'LayoutManager' ]).init();
+var mocksForTextSelectionDialog = new MocksHelper([
+  'SettingsListener',
+  'LayoutManager'
+]).init();
 
 suite('system/TextSelectionDialog', function() {
   var td, fragment;
@@ -103,6 +108,16 @@ suite('system/TextSelectionDialog', function() {
     evt.initCustomEvent('click', true, false, null);
     ele.dispatchEvent(evt);
   }
+
+  test('switch settings value of copypaste.enabled', function() {
+    var stubStart = this.sinon.stub(td, 'start');
+    var stubStop = this.sinon.stub(td, 'stop');
+    MockSettingsListener.mTriggerCallback('copypaste.enabled', false);
+    assert.isTrue(stubStop.calledOnce);
+
+    MockSettingsListener.mTriggerCallback('copypaste.enabled', true);
+    assert.isTrue(stubStart.calledOnce);
+  });
 
   test('_doCommand', function(done) {
     this.sinon.stub(td, 'close');
@@ -530,9 +545,11 @@ suite('system/TextSelectionDialog', function() {
     var stubDoCommand;
     setup(function() {
       stubDoCommand = sinon.stub(td, '_doCommand');
+      td.start();
     });
 
     teardown(function() {
+      td.stop();
       stubDoCommand = null;
     });
 
@@ -570,7 +587,6 @@ suite('system/TextSelectionDialog', function() {
         'Cut': true,
         'SelectAll': true
       });
-
       emitClickEvent(td.elements.paste);
       assert.equal(stubDoCommand.getCall(0).args[1], 'paste');
     });
@@ -582,7 +598,6 @@ suite('system/TextSelectionDialog', function() {
         'Cut': true,
         'SelectAll': true
       });
-
       emitClickEvent(td.elements.cut);
       assert.equal(stubDoCommand.getCall(0).args[1], 'cut');
     });
@@ -594,7 +609,6 @@ suite('system/TextSelectionDialog', function() {
         'Cut': true,
         'SelectAll': true
       });
-
       emitClickEvent(td.elements.copy);
       assert.equal(stubDoCommand.getCall(0).args[1], 'copy');
     });
