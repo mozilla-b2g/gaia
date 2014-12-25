@@ -11,6 +11,7 @@ from StringIO import StringIO
 
 from PIL import Image
 
+from marionette import By
 from marionette import Actions
 from marionette.gestures import pinch
 from marionette.gestures import smooth_scroll
@@ -58,8 +59,11 @@ class GaiaImageCompareTestCase(GaiaTestCase):
         # if the status bar is visible, crop it off
         current_frame = self.marionette.get_active_frame()
         self.marionette.switch_to_frame()
-        if self.is_element_displayed(*System._status_bar_locator):
-            # get the size of the status bar to crop off
+
+        _statusbar_locator = (By.ID, 'statusbar')
+        #if self.is_element_displayed(*System._status_bar_locator):
+        if self.is_element_displayed(*_statusbar_locator):
+        # get the size of the status bar to crop off
             status_bar = self.marionette.find_element(*System._status_bar_locator)
             # get the size of the status bar, and multiply it by the device pixel ratio to get the exact size on device
             self.crop_height = int(status_bar.size['height']
