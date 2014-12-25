@@ -147,7 +147,7 @@ var NfcHandoverManager = {
     var self = this;
     NfcBluetooth.init();
 
-    this.settings = navigator.mozSettings;
+    // this.settings = navigator.mozSettings;
     // this.bluetooth = navigator.mozBluetooth;
     this.nfc = navigator.mozNfc;
 

@@ -76,6 +76,7 @@ var NfcBluetooth = {
    * @memberof NfcBluetooth.prototype
    */
   init: function init() {
+    this.settings = navigator.mozSettings;
   	this.bluetooth = navigator.mozBluetooth;
   	this.bluetoothStatusSaved = false;
     this.bluetoothAutoEnabled = false;
