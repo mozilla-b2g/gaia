@@ -829,8 +829,8 @@ var CarrierSettings = (function(window, document, undefined) {
               require(['modules/dialog_service'], function(DialogService) {
                 DialogService.confirm(messageL10nId, {
                   title: titleL10nId,
-                  submitButtonText: 'turnOn',
-                  cancelButtonText: 'notNow'
+                  submitButton: 'turnOn',
+                  cancelButton: 'notNow'
                 }).then(function(result) {
                   var type = result.type;
                   if (type === 'submit') {

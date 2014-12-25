@@ -100,8 +100,8 @@ define(function(require) {
       require(['modules/dialog_service'], (DialogService) => {
         DialogService.confirm('root-warning-body', {
           title: 'root-warning-title',
-          submitButtonText: 'reset',
-          cancelButtonText: 'cancel'
+          submitButton: 'reset',
+          cancelButton: 'cancel'
         }).then((result) => {
           var type = result.type;
           if (type === 'submit') {
