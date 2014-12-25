@@ -12,7 +12,8 @@
   function Home() {}
 
   Home.prototype = {
-    navigableIds: ['search-button', 'search-input', 'settings-group', 'filter-tab-group'],
+    navigableIds:
+        ['search-button', 'search-input', 'settings-group', 'filter-tab-group'],
     navigableClasses: ['filter-tab', 'command-button'],
     navigableScrollable: [],
     cardScrollable: undefined,
@@ -35,12 +36,13 @@
 
       this.cardManager = new CardManager();
       this.cardManager.init();
+
       this.cardManager.getCardList().then(function(cardList) {
         that._createCardList(cardList);
         that.cardScrollable = new XScrollable({
                 frameElem: 'card-list-frame',
                 listElem: 'card-list',
-                itemClassName: 'card'}),
+                itemClassName: 'app-button'}),
         that.navigableScrollable = [that.cardScrollable];
         var collection = that.getNavigateElements();
 
@@ -54,11 +56,18 @@
         that.cardManager.on('card-removed', that.onCardRemoved.bind(that));
 
         that.spatialNavigator.on('focus', that.handleFocus.bind(that));
+        that.spatialNavigator.on('unfocus', that.handleUnfocus.bind(that));
         var handleScrollableItemFocusBound =
                                     that.handleScrollableItemFocus.bind(that);
+        var handleScrollableItemUnfocusBound =
+                                    that.handleScrollableItemUnfocus.bind(that);
         that.navigableScrollable.forEach(function(scrollable) {
           scrollable.on('focus', handleScrollableItemFocusBound);
         });
+        that.navigableScrollable.forEach(function(scrollable) {
+          scrollable.on('unfocus', handleScrollableItemUnfocusBound);
+        });
+
         that.spatialNavigator.focus();
 
         that.cardFilter = new CardFilter();
@@ -66,6 +75,10 @@
         // all's icon name is filter
         that.cardFilter.filter = CardFilter.FILTERS.ALL;
         that.cardFilter.on('filterchanged', that.onFilterChanged.bind(that));
+
+        that.edit = new Edit();
+        that.edit.init(
+                  that.spatialNavigator, that.cardManager, that.cardScrollable);
       });
     },
 
@@ -183,12 +196,40 @@
     },
 
     _createCardNode: function(card) {
+      // card element would be created like this:
+      // <div class="card">
+      //   <smart-button>/* Card button */</smart-button>
+      //   <section class="card-panel">
+      //     <smart-button>/* Rename button */</smart-button>
+      //     <smart-button>/* Delete button */</smart-button>
+      //   </section>
+      // </div>
+      // and return DOM element
+      var cardNode = document.createElement('div');
+      cardNode.classList.add('card');
 
       var cardButton = document.createElement('smart-button');
       cardButton.setAttribute('type', 'app-button');
+      cardButton.className = 'app-button';
       cardButton.setAttribute('label', card.name);
       cardButton.dataset.cardId = card.cardId;
-      cardButton.classList.add('card');
+
+      var cardPanel = document.createElement('section');
+      cardPanel.className = 'card-panel';
+
+      var renameButton = document.createElement('smart-button');
+      renameButton.dataset.icon = 'rename';
+      renameButton.classList.add('renameBtn');
+
+      var deleteButton = document.createElement('smart-button');
+      deleteButton.dataset.icon = 'delete';
+      deleteButton.classList.add('deleteBtn');
+
+      cardPanel.appendChild(renameButton);
+      cardPanel.appendChild(deleteButton);
+
+      cardNode.appendChild(cardButton);
+      cardNode.appendChild(cardPanel);
 
       // XXX: will support Folder and other type of Card in the future
       // for now, we only create card element for Application and Deck
@@ -200,7 +241,7 @@
         this._fillCardIcon(cardButton, card);
       }
 
-      return cardButton;
+      return cardNode;
     },
 
     _createCardList: function(cardList) {
@@ -210,20 +251,31 @@
     },
 
     onMove: function(key) {
-      var focus = this.spatialNavigator.getFocusedElement();
-      if (focus.CLASS_NAME == 'XScrollable') {
-        if (focus.spatialNavigator.move(key)) {
-          return;
-        }
+      if (this.edit.onMove(key)) {
+        return;
       }
-      this.spatialNavigator.move(key);
+
+      var focus = this.spatialNavigator.getFocusedElement();
+      if (!(focus.CLASS_NAME == 'XScrollable' && focus.move(key))) {
+        this.spatialNavigator.move(key);
+      }
     },
 
     onEnter: function() {
-      if (this.focusElem === this.settingsButton) {
+      if (this.edit.onEnter()) {
+        return;
+      }
+
+      var focusElem = this.focusElem;
+
+      if (focusElem === this.settingsButton) {
         this.openSettings();
+      } else if (focusElem === this.editButton) {
+        this.edit.toggleEditMode();
+
+      // Current focus is on a card
       } else {
-        var cardId = this.focusElem.dataset.cardId;
+        var cardId = focusElem.dataset.cardId;
         var card = this.cardManager.findCardFromCardList({cardId: cardId});
         if (card) {
           card.launch();
@@ -253,7 +305,7 @@
     handleFocus: function(elem) {
       if (elem.CLASS_NAME == 'XScrollable') {
         this._focusScrollable = elem;
-        elem.spatialNavigator.focus(elem.spatialNavigator.getFocusedElement());
+        elem.catchFocus();
         this.checkFocusedGroup();
       } else if (elem.nodeName) {
         if (this._focus) {
@@ -276,8 +328,21 @@
       }
     },
 
+    handleUnfocus: function(elem, nodeElem) {
+      if(elem.CLASS_NAME == 'XScrollable') {
+        this.handleScrollableItemUnfocus(
+                elem, elem.currentItem, elem.getNodeFromItem(elem.currentItem));
+      }
+    },
+
     checkFocusedGroup: function(elem) {
       if (!this._focusedGroup) {
+        return;
+      }
+      // Settings group should appear opened after switching from edit state
+      // back to normal state. So we'd keep it opened while in edit and arrange
+      // mode.
+      if (this._focusedGroup === this.settingGroup && this.edit.mode) {
         return;
       }
       // close the focused group when we move focus out of this group.
@@ -330,9 +395,14 @@
       menuGroup.open();
     },
 
-    handleScrollableItemFocus: function(scrollable, elem) {
-      elem.focus();
-      this._focus = elem;
+    handleScrollableItemFocus: function(scrollable, itemElem, nodeElem) {
+      itemElem.focus();
+      nodeElem.classList.add('focused');
+      this._focus = itemElem;
+    },
+
+    handleScrollableItemUnfocus: function(scrollable, itemElem, nodeElem) {
+      nodeElem.classList.remove('focused');
     },
 
     openSettings: function() {

@@ -123,10 +123,51 @@ smart-button[type="simple-text"].pressed {
 **/
 
 
+
+/**
+ * underlined text button
+ */
+smart-button[type="underlined-text"] {
+  position: relative;
+  color: white;
+  font-size: 2.4rem;
+  padding-left: 3.8rem;
+  padding-right: 3.8rem;
+  border-radius: 4rem;
+  width: auto;
+  line-height: 8rem;
+  margin-right: 1.4rem;
+  overflow: hidden;
+}
+
+smart-button[type="underlined-text"]:after {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  content: ' ';
+  border-bottom: 0.6rem #61acd7 solid;
+  box-sizing: border-box;
+}
+
+smart-button[type="underlined-text"].focused {
+  transform: scale(1.2);
+  color: #2d2d2d;
+}
+
+smart-button[type="underlined-text"].pressed {
+  transform: scale(1);
+  color: white;
+  background-color: #00caf2;
+}
+
+/**
+ * End of underlined text button
+ */
+
 /**
  * App Icons
 **/
-
 smart-button[type="app-button"] {
   width: 33.6rem;
   height: 33.6rem;
@@ -175,6 +216,44 @@ smart-button[type="app-button"]:after {
   font-style: italic;
   color: #ffffff;
 }
+
+
+
+/**
+ * text and icon button
+ */
+
+smart-button[type="text-and-icon"] {
+  position: relative;
+  color: white;
+  font-size: 2.4rem;
+  padding-left: 9.6rem;
+  padding-right: 4.6rem;
+  border-radius: 4rem;
+  width: auto;
+  line-height: 8rem;
+  margin-right: 1.4rem;
+  overflow: hidden;
+}
+
+smart-button[type="text-and-icon"][data-icon]:before {
+  left: 3.8rem;
+}
+
+smart-button[type="text-and-icon"].focused {
+  transform: scale(1.2);
+  color: #2d2d2d;
+}
+
+smart-button[type="text-and-icon"].pressed {
+  transform: scale(1);
+  color: white;
+  background-color: #00caf2;
+}
+
+/**
+ * End of text and icon button
+ */
 
 /**
  * text backgorund color
