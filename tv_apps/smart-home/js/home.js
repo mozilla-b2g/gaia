@@ -1,6 +1,6 @@
 'use strict';
-/* global SpatialNavigator, KeyEvent, XScrollable */
-/* global CardManager, URL, Application, Clock */
+/* global SpatialNavigator, XScrollable, KeyNavigationAdapter, Edit */
+/* global CardManager, URL, Application, Clock, Folder, Deck, CardFilter */
 
 (function(exports) {
 
@@ -100,23 +100,24 @@
         // Listen to 'timeformatchange'
         window.addEventListener('timeformatchange',
                                 that.restartClock.bind(that));
-
       });
     },
 
     onCardInserted: function(card, idx) {
-      this.cardScrollable.insertNodeBefore(this._createCardNode(card), idx + 1);
+      this.cardScrollable.insertNodeBefore(this._createCardNode(card), idx);
+      if(this.edit.mode === 'edit') {
+        this.cardScrollable.focus(idx);
+      }
     },
 
     onCardRemoved: function(indices) {
-      var that = this;
-      indices.forEach(function(idx) {
-        var elm = that.cardScrollable.getNode(idx);
+      indices.forEach(function(indices) {
+        var elm = this.cardScrollable.getNode(indices);
         if (elm.dataset.revokableURL) {
           URL.revokeObjectURL(elm.dataset.revokableURL);
         }
-        that.cardScrollable.removeNode(idx);
-      });
+      }, this);
+      this.cardScrollable.removeNodes(indices);
     },
 
     _setCardIcon: function (cardButton, card, blob, bgColor) {
@@ -130,7 +131,7 @@
           cardButton.classList.add('fullsized');
           card.backgroundType = 'fullsized';
         }
-        cardButton.dataset.revokableURL = bgUrl
+        cardButton.dataset.revokableURL = bgUrl;
         cardButton.style.backgroundImage = 'url("' + bgUrl + '")';
       } catch (e) {
         // If the blob is broken, we may get an exception while creating object
@@ -249,6 +250,9 @@
       } else if (card instanceof Deck) {
         cardButton.setAttribute('app-type', 'deck');
         this._fillCardIcon(cardButton, card);
+      } else if (card instanceof Folder) {
+        cardButton.setAttribute('app-type', 'folder');
+        cardButton.dataset.icon = 'folder';
       }
 
       return cardNode;

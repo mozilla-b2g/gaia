@@ -229,6 +229,35 @@
       return true;
     },
 
+    removeNodes: function(indices) {
+      // Find nearest nodes that is not removed as new focus.
+      var focusIdx = this.nodes.indexOf(this.getNodeFromItem(this.currentItem));
+      var newFocusIdx;
+      var minDistance = Number.MAX_VALUE;
+
+      var newNodes = this.nodes.filter(function(node, oldindex) {
+        if(indices.indexOf(oldindex) !== -1) {
+          var itemElem = this.getItemFromNode(node);
+          this.spatialNavigator.remove(itemElem);
+          this.listElem.removeChild(node);
+          return false;
+        }
+
+        var distance = Math.abs(focusIdx - oldindex);
+        if(distance < minDistance) {
+          minDistance = distance;
+          newFocusIdx = oldindex;
+        }
+        return true;
+      }, this);
+
+      var newFocus = this.getItemFromNode(this.nodes[newFocusIdx]);
+      this.nodes = newNodes;
+      this._setNodesPosition();
+
+      this.spatialNavigator.focus(newFocus);
+    },
+
     insertNodeBefore: function(newNode, startNode) {
       if (typeof startNode === 'number') {
         startNode = this.nodes[startNode];
@@ -240,7 +269,7 @@
       }
 
       var newIdx = startNode ?
-                       parseInt(startNode.dataset.idx, 10) : this.nodes.length;
+                      parseInt(startNode.dataset.idx, 10) : this.nodes.length;
       this.nodes.splice(newIdx, 0, newNode);
       this.listElem.appendChild(newNode);
       this._setNodesPosition();
@@ -254,6 +283,11 @@
 
     get currentItem() {
       return this.spatialNavigator.getFocusedElement();
+    },
+
+    get currentIndex() {
+      return this.nodes.indexOf(
+        this.getNodeFromItem(this.spatialNavigator.getFocusedElement()));
     },
 
     _setNodesPosition: function() {
@@ -304,6 +338,13 @@
 
     catchFocus: function() {
       this.spatialNavigator.focus(this.currentItem);
+    },
+
+    focus: function(item) {
+      if (typeof item === 'number') {
+        item = this.getItemFromNode(this.nodes[item]);
+      }
+      this.spatialNavigator.focus(item);
     },
 
     move: function(direction) {

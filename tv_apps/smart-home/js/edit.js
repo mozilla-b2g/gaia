@@ -41,6 +41,7 @@
         this.spatialNavigator.multiRemove(this.editNavElements);
         this.spatialNavigator.focus(this.editButton);
         this.cardScrollable.setScale();
+        this.cardManager.writeCardlistInCardStore({cleanEmptyFolder: true});
       } else {
         this.mainSection.dataset.mode = 'edit';
         this.spatialNavigator.multiRemove(this.regularNavElements);
@@ -81,7 +82,12 @@
     },
 
     addNewFolder: function() {
-      //TODO: Notify CardManager to add New Folder
+      // XXX: mozL10n.get is going to be obsoleted. We'd plan to let smartButton
+      // able to do l10n by itself.
+      var _ = navigator.mozL10n.get;
+      this.cardManager.insertNewFolder(_('new-folder'),
+        this.cardScrollable.currentIndex);
+      this.spatialNavigator.focus(this.cardScrollable);
     },
 
     onEnter: function() {
