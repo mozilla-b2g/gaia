@@ -170,9 +170,7 @@
         case 'lockscreen-appclosed':
           // If the software button is enabled it will be un-hidden when
           // the lockscreen is closed and trigger a system level resize.
-          if (softwareButtonManager.enabled) {
-            this.publish('system-resize');
-          }
+          this.publish('system-resize');
           break;
         default:
           if (evt.type === 'keyboardhide') {

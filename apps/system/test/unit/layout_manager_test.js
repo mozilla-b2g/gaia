@@ -177,6 +177,14 @@ suite('system/LayoutManager >', function() {
       });
       assert.isTrue(stubPublish.calledWith('system-resize'));
     });
+
+    test('lockscreen-appclosed', function() {
+      var stubPublish = this.sinon.stub(layoutManager, 'publish');
+      layoutManager.handleEvent({
+        type: 'lockscreen-appclosed'
+      });
+      assert.isTrue(stubPublish.calledWith('system-resize'));
+    });
   });
 
   suite('height calculation', function() {
