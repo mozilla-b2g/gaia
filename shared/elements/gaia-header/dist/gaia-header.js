@@ -711,6 +711,16 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
         return;
       }
 
+      var strCachedStyle = localStorage.getItem(heading.textContent);
+      if (strCachedStyle) {
+        //dump(heading.textContent + '.strCachedStyle=' + strCachedStyle);
+        var cachedStyle = JSON.parse(strCachedStyle);
+        heading.style.marginLeft = cachedStyle.marginLeft;
+        heading.style.marginRight = cachedStyle.marginRight;
+        heading.style.fontSize = cachedStyle.fontSize;
+        return;
+      }
+
       // Reset our centering styles.
       this._resetCentering(heading);
 
@@ -728,6 +738,12 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
       // Perform auto-resize and center.
       style.textWidth = this._autoResizeElement(heading, style);
       this._centerTextToScreen(heading, style);
+
+      localStorage.setItem(heading.textContent, JSON.stringify({
+        marginLeft: heading.style.marginLeft,
+        marginRight: heading.style.marginRight,
+        fontSize: heading.style.fontSize
+      }))
     },
 
     /**
