@@ -16,6 +16,7 @@ RootPanel.prototype = {
     rootPanel: '#root',
     alaPanel: '#ala-main',
     rppPanel: '#rpp-main',
+    tcPanel: '#tc-main',
     gtPanel: '#gt-main'
   },
 
@@ -31,6 +32,10 @@ RootPanel.prototype = {
     this.client.findElement('#menu-item-rpp').tap();
   },
 
+  tapOnTcMenuItem: function() {
+    this.client.findElement('#menu-item-tc').tap();
+  },
+
   tapOnGtMenuItem: function() {
     this.client.findElement('#menu-item-gt').tap();
   },
@@ -43,6 +48,11 @@ RootPanel.prototype = {
   isRppDisplayed: function() {
     this.waitForPanelToDissapear(this.selectors.rootPanel);
     return this.client.findElement(this.selectors.rppPanel).displayed();
+  },
+
+  isTcDisplayed: function() {
+    this.waitForPanelToDissapear(this.selectors.rootPanel);
+    return this.client.findElement(this.selectors.tcPanel).displayed();
   },
 
   isGtDisplayed: function() {
