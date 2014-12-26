@@ -221,18 +221,295 @@ var base = window.GAIA_ICONS_BASE_URL
 if (!isLoaded()) { load(base + 'gaia-icons/gaia-icons.css'); }
 
 function load(href) {
-  var link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.type = 'text/css';
-  link.href = href;
-  document.head.appendChild(link);
+//  var link = document.createElement('link');
+//  link.rel = 'stylesheet';
+//  link.type = 'text/css';
+//  link.href = href;
+//  document.head.appendChild(link);
+  var template = document.createElement('template');
+  template.id = 'gaia-header-template';
+  template.innerHTML = `
+  <style>
+
+  :host {
+    display: block;
+
+    --gaia-header-button-color:
+      var(--header-button-color,
+      var(--header-color,
+      var(--link-color,
+      inherit)));
+  }
+
+  /**
+   * [hidden]
+   */
+
+  :host[hidden] {
+    display: none;
+  }
+
+  /** Reset
+   ---------------------------------------------------------*/
+
+  ::-moz-focus-inner { border: 0; }
+
+  /** Inner
+   ---------------------------------------------------------*/
+
+  .inner {
+    display: flex;
+    min-height: 50px;
+    direction: ltr;
+
+    background:
+      var(--header-background,
+      var(--background,
+      #fff));
+  }
+
+  /** Action Button
+   ---------------------------------------------------------*/
+
+  /**
+   * 1. Hidden by default
+   */
+
+  .action-button {
+    display: none; /* 1 */
+    position: relative;
+    width: 50px;
+    font-size: 30px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    align-items: center;
+    background: none;
+    cursor: pointer;
+    transition: opacity 200ms 280ms;
+
+    color:
+      var(--header-action-button-color,
+      var(--header-icon-color,
+      var(--gaia-header-button-color)));
+  }
+
+  /**
+   * .action-supported
+   *
+   * 1. For icon vertical-alignment
+   */
+
+  .supported-action .action-button {
+    display: flex; /* 1 */
+  }
+
+  /**
+   * :active
+   */
+
+  .action-button:active {
+    transition: none;
+    opacity: 0.2;
+  }
+
+  /** Action Button Icon
+   ---------------------------------------------------------*/
+
+  /**
+   * 1. To enable vertical alignment.
+   */
+
+  .action-button:before {
+    display: block;
+  }
+
+  /** Action Button Text
+   ---------------------------------------------------------*/
+
+  /**
+   * To provide custom localized content for
+   * the action-button, we allow the user
+   * to provide an element with the class
+   * .l10n-action. This node is then
+   * pulled inside the real action-button.
+   *
+   * Example:
+   *
+   *   <gaia-header action="back">
+   *     <span class="l10n-action" aria-label="Back">Localized text</span>
+   *     <h1>title</h1>
+   *   </gaia-header>
+   */
+
+  ::content .l10n-action {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    font-size: 0;
+  }
+
+  /** Title
+   ---------------------------------------------------------*/
+
+  /**
+   * 1. Vertically center text. We can't use flexbox
+   *    here as it breaks text-overflow ellipsis
+   *    without an inner div.
+   */
+
+  ::content h1 {
+    flex: 1;
+    margin: 0;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    text-align: center;
+    line-height: 50px; /* 1 */
+    font-weight: 300;
+    font-style: italic;
+    font-size: 24px;
+    -moz-user-select: none;
+
+    color:
+      var(--header-title-color,
+      var(--header-color,
+      var(--title-color,
+      var(--text-color,
+      inherit))));
+  }
+
+  /**
+   * .flush-left
+   *
+   * When the fitted text is flush with the
+   * edge of the left edge of the container
+   * we pad it in a bit.
+   */
+
+  ::content h1.flush-left {
+    padding-left: 10px;
+  }
+
+  /**
+   * .flush-right
+   *
+   * When the fitted text is flush with the
+   * edge of the right edge of the container
+   * we pad it in a bit.
+   */
+
+  ::content h1.flush-right {
+    padding-right: 10px; /* 1 */
+  }
+
+  /** Buttons
+   ---------------------------------------------------------*/
+
+  ::content a,
+  ::content button {
+    box-sizing: border-box;
+    display: flex;
+    border: none;
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0 10px;
+    font-size: 14px;
+    line-height: 1;
+    min-width: 50px;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    text-align: center;
+    background: none;
+    border-radius: 0;
+    font-style: italic;
+    cursor: pointer;
+
+    transition: opacity 200ms 280ms;
+
+    color:
+      var(--gaia-header-button-color);
+  }
+
+  /**
+   * :active
+   */
+
+  ::content a:active,
+  ::content button:active {
+    transition: none;
+    opacity: 0.2;
+  }
+
+  /**
+   * [hidden]
+   */
+
+  ::content a[hidden],
+  ::content button[hidden] {
+    display: none;
+  }
+
+  /**
+   * [disabled]
+   */
+
+  ::content a[disabled],
+  ::content button[disabled] {
+    pointer-events: none;
+    color: var(--header-disabled-button-color);
+  }
+
+  /** Icon Buttons
+   ---------------------------------------------------------*/
+
+  /**
+   * Icons are a different color to text
+   */
+
+  ::content .icon,
+  ::content [data-icon] {
+    color:
+      var(--header-icon-color,
+      var(--gaia-header-button-color));
+  }
+
+  /** Icons
+   ---------------------------------------------------------*/
+
+  [class^="icon-"]:before,
+  [class*="icon-"]:before {
+    font-family: 'gaia-icons';
+    font-style: normal;
+    text-rendering: optimizeLegibility;
+    font-weight: 500;
+  }
+
+  .icon-menu:before { content: 'menu'; }
+  .icon-close:before { content: 'close'; }
+  .icon-back:before { content: 'back'; }
+
+  </style>
+
+  <div class="inner">
+    <button class="action-button">
+      <content select=".l10n-action"></content>
+    </button>
+    <content select="h1,h2,h3,h4,a,button"></content>
+  </div>`;
+  document.body.appendChild(template);
   exports.loaded = true;
 }
 
 function isLoaded() {
-  return exports.loaded ||
-    document.querySelector('link[href*=gaia-icons]') ||
-    document.documentElement.classList.contains('gaia-icons-loaded');
+//  return exports.loaded ||
+//    document.querySelector('link[href*=gaia-icons]') ||
+//    document.documentElement.classList.contains('gaia-icons-loaded');
+    return document.querySelector('#gaia-header-template');
 }
 
 });})(typeof define=='function'&&define.amd?define
@@ -277,7 +554,9 @@ module.exports = Component.register('gaia-header', {
    * @private
    */
   created: function() {
-    this.createShadowRoot().innerHTML = this.template;
+    var template = document.querySelector('#gaia-header-template');
+    var clone = document.importNode(template.content, true);
+    this.createShadowRoot().appendChild(clone);
 
     // Get els
     this.els = {
