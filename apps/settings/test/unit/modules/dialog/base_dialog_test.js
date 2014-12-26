@@ -51,8 +51,8 @@ suite('BaseDialog > ', function() {
   suite('cleanup > ', function() {
     setup(function() {
       this.sinon.stub(baseDialog, '_updateTitle');
-      this.sinon.stub(baseDialog, '_updateSubmitButtonText');
-      this.sinon.stub(baseDialog, '_updateCancelButtonText');
+      this.sinon.stub(baseDialog, '_updateSubmitButton');
+      this.sinon.stub(baseDialog, '_updateCancelButton');
       this.sinon.stub(baseDialog.panel.classList, 'remove');
     });
 
@@ -62,10 +62,10 @@ suite('BaseDialog > ', function() {
         baseDialog.cleanup();
       });
 
-      test('we would not restore its title and buttonText', function() {
+      test('we would not restore its title and button', function() {
         assert.isFalse(baseDialog._updateTitle.called);
-        assert.isFalse(baseDialog._updateSubmitButtonText.called);
-        assert.isFalse(baseDialog._updateCancelButtonText.called);
+        assert.isFalse(baseDialog._updateSubmitButton.called);
+        assert.isFalse(baseDialog._updateCancelButton.called);
 
         assert.equal(baseDialog.panel.classList.remove.getCall(0).args[0],
           baseDialog.DIALOG_CLASS);
@@ -80,10 +80,10 @@ suite('BaseDialog > ', function() {
         baseDialog.cleanup();
       });
 
-      test('we would restore its title and buttonText', function() {
+      test('we would restore its title and button', function() {
         assert.isTrue(baseDialog._updateTitle.called);
-        assert.isTrue(baseDialog._updateSubmitButtonText.called);
-        assert.isTrue(baseDialog._updateCancelButtonText.called);
+        assert.isTrue(baseDialog._updateSubmitButton.called);
+        assert.isTrue(baseDialog._updateCancelButton.called);
 
         assert.equal(baseDialog.panel.classList.remove.getCall(0).args[0],
           baseDialog.DIALOG_CLASS);
