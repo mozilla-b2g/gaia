@@ -1,13 +1,13 @@
 /**
  * ALA main panel.
- * 
+ *
  * @module AlaPanel
  * @return {Object}
  */
 define([
   'panels',
+  'app_list',
   'ala/blur_slider',
-  'ala/app_list',
   'ala/exception',
   'ala/exceptions',
   'ala/define_custom_location',
@@ -15,7 +15,7 @@ define([
   'shared/settings_helper'
 ],
 
-function(panels, BlurSlider, appList, alaException, alaExceptions, alaDCL,
+function(panels, appList, BlurSlider, alaException, alaExceptions, alaDCL,
   SettingsListener, SettingsHelper) {
   'use strict';
 
@@ -51,11 +51,9 @@ function(panels, BlurSlider, appList, alaException, alaExceptions, alaDCL,
       this._prepareDCLData();
 
       // prepare app list that uses geolocation
-      appList.get('geolocation', function(apps) {
-
-        // init alaExceptions module
-        alaExceptions.init(apps);
-      }.bind(this));
+      appList.init().then(function() {
+        alaExceptions.init(appList.getFilteredApps('geolocation'));
+      });
 
       // init alaException module
       alaException.init();

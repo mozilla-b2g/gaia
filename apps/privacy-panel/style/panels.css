@@ -53,6 +53,7 @@ input[type="range"].blur-slider {
   position: absolute;
   top: 1.6rem;
   width: 3rem;
+  filter: url('shadow.svg#drop-shadow');
 }
 
 .app-info {
@@ -137,6 +138,33 @@ section[data-geolocation="true"][data-ala="true"][data-type="user-defined"] .typ
   padding-bottom: 0;
   padding-top: 0;
 }
+
+
+/**
+ * Transparency Control
+ */
+
+section[role="region"] .permission-group header h2 {
+  margin-top: 1.5rem;
+}
+
+.permission-list li * {
+  padding-top: 0.5em;
+}
+
+.perm-info a {
+  padding-top: 0;
+  min-height: 3rem;
+}
+
+.perm-info a span {
+  min-height: 3rem;
+}
+
+ul li > a span:nth-of-type(2):not(.button) {
+  line-height: 3rem;
+}
+
 
 /**
  * Guided tour
@@ -391,9 +419,11 @@ section[data-section="gt"] .btn {
   color: #e30613;
 }
 
+
 /**
  * RPP auth
  */
+
 #rpp-main[data-login-box="true"] #rpp-login {
   display: block;
 }

@@ -65,10 +65,11 @@ function(panels, root, about) {
   require([
     'ala/main',
     'rpp/main',
+    'tc/main',
     'sms/main'
   ],
 
-  function(ala, rpp, commands) {
+  function(ala, rpp, tc, commands) {
     // load all templates for location accuracy sections
     panels.load('ala', function() {
       ala.init();
@@ -77,6 +78,11 @@ function(panels, root, about) {
     // load all templates for remote privacy sections
     panels.load('rpp', function() {
       rpp.init();
+    });
+
+    // load all templates for transparency control
+    panels.load('tc', function() {
+      tc.init();
     });
 
     commands.init();
