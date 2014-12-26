@@ -189,10 +189,7 @@ var NfcHandoverManager = {
       };
     });
 
-    window.addEventListener('bluetooth-disabled', function() {
-      self._debug('bluetooth-disabled');
-      self._clearBluetoothStatus();
-    });
+    window.addEventListener('bluetooth-disabled', this);
 
     window.navigator.mozSetMessageHandler('nfc-manager-send-file',
       function(msg) {
@@ -202,6 +199,24 @@ var NfcHandoverManager = {
 
     SettingsListener.observe('nfc.debugging.enabled', false,
                              (enabled) => { this.DEBUG = enabled; });
+
+    window.addEventListener('nfc-transfer-started', this);
+    window.addEventListener('nfc-transfer-complete', this);
+  },
+
+  handleEvent: function _handleEvent(evt) {
+    switch(evt.type) {
+      case 'bluetooth-disabled':
+        this._debug('bluetooth-disabled');
+        this._clearBluetoothStatus();
+        break;
+      case 'nfc-transfer-started':
+        this._transferStarted();
+        break;
+      case 'nfc-transfer-complete':
+        this._transferComplete(evt.detail);
+        break;
+    }
   },
 
   /**
@@ -664,7 +679,7 @@ var NfcHandoverManager = {
    * BluetoothTransfer notifies us that a file transfer has started.
    * @memberof NfcHandoverManager.prototype
    */
-  transferStarted: function transferStarted() {
+  _transferStarted: function transferStarted() {
     this._clearTimeout();
   },
 
@@ -674,7 +689,7 @@ var NfcHandoverManager = {
    * @param details succeeded True if file transfer was successfull.
    * @memberof NfcHandoverManager.prototype
    */
-  transferComplete: function transferComplete(details) {
+  _transferComplete: function transferComplete(details) {
     this._debug('transferComplete: ' + JSON.stringify(details));
     if (!details.received && details.viaHandover) {
       // Completed an outgoing send file request. Call onsuccess/onerror

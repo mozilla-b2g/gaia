@@ -4,13 +4,8 @@
    stopSendingFile(in DOMString aDeviceAddress);
    confirmReceivingFile(in DOMString aDeviceAddress, in bool aConfirmation); */
 'use strict';
-/* global Bluetooth */
-/* global CustomDialog */
-/* global NfcHandoverManager */
-/* global MimeMapper */
-/* global MozActivity */
-/* global NotificationHelper */
-/* global UtilityTray */
+/* global Bluetooth, CustomDialog, NfcHandoverManager, MimeMapper,
+          MozActivity, NotificationHelper, UtilityTray*/
 /* exported BluetoothTransfer */
 
 var BluetoothTransfer = {
@@ -33,9 +28,7 @@ var BluetoothTransfer = {
 
   init: function bt_init() {
     // Bind message handler for sending files from Bluetooth app
-    window.addEventListener('iac-bluetoothTransfercomms',
-      this.onFilesSending.bind(this)
-    );
+    window.addEventListener('iac-bluetoothTransfercomms', this);
 
     // Bind message handler for transferring file callback
     navigator.mozSetMessageHandler('bluetooth-opp-receiving-file-confirmation',
@@ -43,18 +36,28 @@ var BluetoothTransfer = {
     );
 
     // Listen to 'bluetooth-opp-transfer-start' from bluetooth.js
-    window.addEventListener('bluetooth-opp-transfer-start',
-      this.onUpdateProgress.bind(this, 'start')
-    );
+    window.addEventListener('bluetooth-opp-transfer-start', this);
 
     navigator.mozSetMessageHandler('bluetooth-opp-update-progress',
-      this.onUpdateProgress.bind(this, 'progress')
+      this._onUpdateProgress.bind(this, 'progress')
     );
 
     // Listen to 'bluetooth-opp-transfer-complete' from bluetooth.js
-    window.addEventListener('bluetooth-opp-transfer-complete',
-      this.onTransferComplete.bind(this)
-    );
+    window.addEventListener('bluetooth-opp-transfer-complete', this);
+  },
+
+  handleEvent: function bt_handleEvent(evt) {
+    switch(evt.type) {
+      case 'iac-bluetoothTransfercomms':
+        this._onFilesSending();
+        break;
+      case 'bluetooth-opp-transfer-start':
+        this._onUpdateProgress('start');
+        break;
+      case 'bluetooth-opp-transfer-complete':
+        this._onTransferComplete();
+        break;
+    }
   },
 
   getDeviceName: function bt_getDeviceName(address) {
@@ -122,7 +125,7 @@ var BluetoothTransfer = {
     });
   },
 
-  onFilesSending: function bt_onFilesSending(evt) {
+  _onFilesSending: function bt_onFilesSending(evt) {
     // Notify user that we are sending files
     var icon = 'style/bluetooth_transfer/images/transfer.png';
 
@@ -146,7 +149,7 @@ var BluetoothTransfer = {
     if (NfcHandoverManager.isHandoverInProgress()) {
       // Bypassing confirm dialog while incoming file transfer via NFC Handover
       this.debug('Incoming file via NFC Handover. Bypassing confirm dialog');
-      NfcHandoverManager.transferStarted();
+      window.dispatchEvent(new CustomEvent('nfc-transfer-started'));
       this.acceptReceive(evt);
       return;
     }
@@ -315,7 +318,7 @@ var BluetoothTransfer = {
         numSuccessful: 0,
         numUnsuccessful: 0
       };
-      this.onFilesSending({detail: sendingFilesSchedule});
+      this._onFilesSending({detail: sendingFilesSchedule});
       // XXX: Bug 915602 - [Bluetooth] Call sendFile api will crash
       // the system while device is just paired.
       // The paired device is ready to send file.
@@ -330,7 +333,7 @@ var BluetoothTransfer = {
     }
   },
 
-  onUpdateProgress: function bt_onUpdateProgress(mode, evt) {
+  _onUpdateProgress: function bt_onUpdateProgress(mode, evt) {
     switch (mode) {
       case 'start':
         var transferInfo = evt.detail.transferInfo;
@@ -452,7 +455,7 @@ var BluetoothTransfer = {
     }
   },
 
-  onTransferComplete: function bt_onTransferComplete(evt) {
+  _onTransferComplete: function bt_onTransferComplete(evt) {
     var transferInfo = evt.detail.transferInfo;
     // Remove transferring progress
     this.removeProgress(transferInfo);
@@ -510,7 +513,9 @@ var BluetoothTransfer = {
     var details = {received: transferInfo.received,
                    success: transferInfo.success,
                    viaHandover: viaHandover};
-    NfcHandoverManager.transferComplete(details);
+    window.dispatchEvent(new CustomEvent('nfc-transfer-complete', {
+      detail: details
+    }));
   },
 
   summarizeSentFilesReport: function bt_summarizeSentFilesReport(transferInfo) {
