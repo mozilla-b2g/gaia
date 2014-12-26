@@ -64,7 +64,8 @@ class Homescreen(Base):
             release().\
             wait(1).\
             perform()
-        Wait(self.marionette).until(expected.element_displayed(app))
+        # why wait twice?  commented the next line; cause failure to occur.
+        # Wait(self.marionette).until(expected.element_displayed(app))
         # Ensure that edit mode is active
         Wait(self.marionette).until(expected.element_present(
             *self._edit_mode_locator))
@@ -181,7 +182,9 @@ class Homescreen(Base):
             self.apps.switch_to_displayed_app()
 
         def tap_delete_app(self):
-            """Tap on (x) to delete app"""
+            """Tap on (x) to delete app
+            :rtype : object
+            """
             self.root_element.find_element(*self._delete_app_locator).tap()
 
             from gaiatest.apps.homescreen.regions.confirm_dialog import ConfirmDialog

@@ -3,11 +3,11 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import time
-
+import pdb
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
 from gaiatest.apps.search.app import Search
-
+from gaiatest.apps.homescreen.regions.collections import Collection
 
 class TestBrowserBookmark(GaiaTestCase):
 
@@ -17,6 +17,8 @@ class TestBrowserBookmark(GaiaTestCase):
         GaiaTestCase.setUp(self)
         self.connect_to_local_area_network()
         self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
+        # not sure why the Smart Collection geolocation is being prompted.
+        self.apps.set_permission_by_url(Collection.manifest_url, 'geolocation', 'deny')
 
         self.test_url = self.marionette.absolute_url('mozilla.html')
 
@@ -36,17 +38,21 @@ class TestBrowserBookmark(GaiaTestCase):
 
         # Switch to Home Screen to look for bookmark
         self.device.touch_home_button()
-
         homescreen = Homescreen(self.marionette)
         homescreen.wait_for_app_icon_present(self.bookmark_title)
         self._bookmark_added = homescreen.is_app_installed(self.bookmark_title)
-
         self.assertTrue(self._bookmark_added, 'The bookmark %s was not found to be installed on the home screen.' % self.bookmark_title)
 
+        # verify that the bookmark goes to the correct URL
+        homescreen.installed_app(self.bookmark_title).tap_icon()
+        self.assertTrue(self.test_url == browser.apps.displayed_app.src, "The bookmark URL is the same as the browser URL")
+        self.device.touch_home_button()
+
+        homescreen = Homescreen(self.marionette)
         # Delete the bookmark
         homescreen.activate_edit_mode()
+        homescreen.bookmark(self.bookmark_title).tap_delete_app()
         homescreen.bookmark(self.bookmark_title).tap_delete_app().tap_confirm(bookmark=True)
-
         self.wait_for_condition(lambda m: self.apps.displayed_app.name == homescreen.name)
         self.apps.switch_to_displayed_app()
         homescreen.wait_for_bookmark_icon_not_present(self.bookmark_title)
