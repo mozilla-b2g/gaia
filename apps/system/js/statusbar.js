@@ -23,10 +23,11 @@
 var StatusBar = {
   /* all elements that are children nodes of the status bar */
   ELEMENTS: ['emergency-cb-notification', 'time', 'connections', 'battery',
-    'wifi', 'data', 'flight-mode', 'network-activity', 'tethering', 'alarm',
-    'debugging', 'bluetooth', 'mute', 'headphones', 'bluetooth-headphones',
-    'bluetooth-transferring', 'recording', 'sms', 'geolocation', 'usb',
-    'label', 'system-downloads', 'call-forwardings', 'playing', 'nfc'],
+    'battery-label', 'wifi', 'data', 'flight-mode', 'network-activity',
+    'tethering', 'alarm', 'debugging', 'bluetooth', 'mute', 'headphones',
+    'bluetooth-headphones', 'bluetooth-transferring', 'recording', 'sms',
+    'geolocation', 'usb', 'label', 'system-downloads', 'call-forwardings',
+    'playing', 'nfc'],
 
   // The indices indicate icons priority (lower index = highest priority)
   // In each subarray:
@@ -55,6 +56,7 @@ var StatusBar = {
     ['call-forwardings', null], // Width can change
     ['playing', 16 + 4],
     ['headphones', 16 + 4],
+    ['battery-label', 16 + 4],
     //['sms', 16 + 4], // Not currently implemented.
     ['label', null] // Only visible in the maximized status bar.
   ],
@@ -237,6 +239,7 @@ var StatusBar = {
 
     // Refresh the time to reflect locale changes
     this.toggleTimeLabel(true);
+    this.toggleBatteryChargingLabel(false);
 
     for (var key in this.settings) {
       this.addSettingsListener(key);
@@ -342,6 +345,7 @@ var StatusBar = {
         // when the lockscreen lock itself, the value must be true,
         // or we have some bugs.
         this.toggleTimeLabel(false);
+        this.toggleBatteryChargingLabel(true);
         this._updateIconVisibility();
         this._inLockScreenMode = true;
         this.setAppearance();
@@ -350,6 +354,7 @@ var StatusBar = {
       case 'lockscreen-appclosing':
         // Display the clock in the statusbar when screen is unlocked
         this.toggleTimeLabel(true);
+        this.toggleBatteryChargingLabel(false);
         this._updateIconVisibility();
         this._inLockScreenMode = false;
         this.setAppearance(Service.currentApp);
@@ -833,6 +838,7 @@ var StatusBar = {
 
       this.refreshCallListener();
       this.toggleTimeLabel(!this.isLocked());
+      this.toggleBatteryChargingLabel(this.isLocked());
     } else {
       this.removeConnectionsListeners();
 
@@ -846,6 +852,7 @@ var StatusBar = {
       this.removeCallListener();
       // Always prevent the clock from refreshing itself when the screen is off
       this.toggleTimeLabel(false);
+      this.toggleBatteryChargingLabel(false);
     }
   },
 
@@ -991,6 +998,7 @@ var StatusBar = {
 
       if (previousLevel !== level || previousCharging !== battery.charging) {
         icon.dataset.level = level;
+
         navigator.mozL10n.setAttributes(
           icon,
           battery.charging ? 'statusbarBatteryCharging' : 'statusbarBattery',
@@ -999,6 +1007,13 @@ var StatusBar = {
         this.previousCharging = battery.charging;
 
         this.cloneStatusbar();
+      }
+
+      if (this.isLocked()) {
+        this.toggleBatteryChargingLabel(battery.charging);
+        if (previousCharging !== battery.charging) {
+          this._updateIconVisibility();
+        }
       }
     },
 
@@ -1548,6 +1563,19 @@ var StatusBar = {
       this.clock.start(this.update.time.bind(this));
     } else {
       this.clock.stop();
+    }
+    icon.hidden = !enable;
+  },
+
+  toggleBatteryChargingLabel: function sb_toggleBatteryChargingLabel(enable) {
+    if (!navigator.battery.charging) {
+      enable = false;
+    }
+
+    var icon = this.icons.batteryLabel;
+    if (enable) {
+      navigator.mozL10n.setAttributes(icon, 'statusbarBatteryLabel',
+        {level: parseInt(navigator.battery.level * 100).toString()});
     }
     icon.hidden = !enable;
   },

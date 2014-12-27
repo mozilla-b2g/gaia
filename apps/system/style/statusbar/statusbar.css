@@ -365,6 +365,16 @@ body .utility-tray .statusbar > .sb-start {
   background-position: -28rem -2rem;
 }
 
+.sb-icon-battery-label {
+  width: 2.1rem;
+  font-size: 1.0rem;
+  padding-top: 0.1rem;
+  line-height: 1.6rem;
+  color: white;
+  font-weight: 400;
+  text-align: right;
+}
+
 .sb-icon-wifi[data-level="0"][data-connecting="true"] {
   background: url('images/wifi-connecting.png') no-repeat;
   background-position: 0 0;
@@ -566,6 +576,7 @@ body .utility-tray .statusbar > .sb-start {
 
 /* Hide icons applying a class to the status bar */
 .sb-hide-time .sb-icon-time,
+.sb-hide-battery-label .sb-icon-battery-label,
 .sb-hide-battery .sb-icon-battery,
 .sb-hide-flight-mode .sb-icon-flight-mode,
 .sb-hide-wifi .sb-icon-wifi,

@@ -2325,6 +2325,167 @@ suite('system/Statusbar', function() {
     });
   });
 
+  suite('Battery label', function() {
+    var cloneStatusbarSpy;
+
+    setup(function() {
+      MockNavigatorBattery.level = 0.95;
+      var app = {
+        getTopMostWindow: function() {
+          return app;
+        }
+      };
+      Service.currentApp = app;
+      cloneStatusbarSpy = this.sinon.spy(StatusBar, 'cloneStatusbar');
+    });
+
+    suite('Battery charging', function() {
+      setup(function() {
+        MockNavigatorBattery.charging = true;
+      });
+
+      test('should show when lockscreen opened', function() {
+        Service.locked = true;
+        var evt = new CustomEvent('lockscreen-appopened');
+        StatusBar.handleEvent(evt);
+
+        assert.isFalse(StatusBar.icons.batteryLabel.hidden);
+      });
+
+      test('should show when lockscreen closed', function() {
+        Service.locked = false;
+        MockNavigatorBattery.charging = true;
+        var evt = new CustomEvent('lockscreen-appclosed');
+        StatusBar.handleEvent(evt);
+
+        assert.isTrue(StatusBar.icons.batteryLabel.hidden);
+      });
+    });
+
+    suite('Battery not charging', function() {
+      setup(function() {
+        MockNavigatorBattery.charging = false;
+      });
+
+      test('should not show when lockscreen opened', function() {
+        Service.locked = true;
+        var evt = new CustomEvent('lockscreen-appopened');
+        StatusBar.handleEvent(evt);
+
+        assert.isTrue(StatusBar.icons.batteryLabel.hidden);
+      });
+
+      test('should not show when lockscreen closed', function() {
+        Service.locked = false;
+        var evt = new CustomEvent('lockscreen-appclosed');
+        StatusBar.handleEvent(evt);
+
+        assert.isTrue(StatusBar.icons.batteryLabel.hidden);
+      });
+    });
+
+    suite('Screen is locked', function() {
+      setup(function() {
+         Service.locked = true;
+      });
+
+      test('should show when charging and called with true', function() {
+        MockNavigatorBattery.charging = true;
+        StatusBar.toggleBatteryChargingLabel(true);
+
+        assert.isFalse(StatusBar.icons.batteryLabel.hidden);
+      });
+
+      test('should hide when charging and called with false', function() {
+        MockNavigatorBattery.charging = true;
+        StatusBar.toggleBatteryChargingLabel(false);
+
+        assert.isTrue(StatusBar.icons.batteryLabel.hidden);
+      });
+
+      test('should hide when not charging and called with true', function() {
+        MockNavigatorBattery.charging = false;
+        StatusBar.toggleBatteryChargingLabel(true);
+
+        assert.isTrue(StatusBar.icons.batteryLabel.hidden);
+      });
+
+      test('should hide when not charging and called with false', function() {
+        MockNavigatorBattery.charging = false;
+        StatusBar.toggleBatteryChargingLabel(false);
+
+        assert.isTrue(StatusBar.icons.batteryLabel.hidden);
+      });
+
+      test('should show when charging starts', function() {
+        MockNavigatorBattery.charging = true;
+        var evt = new CustomEvent('chargingchange');
+        StatusBar.handleEvent(evt);
+
+        assert.isFalse(StatusBar.icons.batteryLabel.hidden);
+      });
+
+      test('should hide when charging ends', function() {
+        MockNavigatorBattery.charging = false;
+        var evt = new CustomEvent('chargingchange');
+        StatusBar.handleEvent(evt);
+
+        assert.isTrue(StatusBar.icons.batteryLabel.hidden);
+      });
+    });
+
+    suite('Screen is unlocked', function() {
+      setup(function() {
+         Service.locked = false;
+      });
+
+      test('should show when charging and called with true', function() {
+        MockNavigatorBattery.charging = true;
+        StatusBar.toggleBatteryChargingLabel(true);
+
+        assert.isFalse(StatusBar.icons.batteryLabel.hidden);
+      });
+
+      test('should hide when charging and called with false', function() {
+        MockNavigatorBattery.charging = true;
+        StatusBar.toggleBatteryChargingLabel(false);
+
+        assert.isTrue(StatusBar.icons.batteryLabel.hidden);
+      });
+
+      test('should hide when not charging and called with true', function() {
+        MockNavigatorBattery.charging = false;
+        StatusBar.toggleBatteryChargingLabel(true);
+
+        assert.isTrue(StatusBar.icons.batteryLabel.hidden);
+      });
+
+      test('should hide when not charging and called with false', function() {
+        MockNavigatorBattery.charging = false;
+        StatusBar.toggleBatteryChargingLabel(false);
+
+        assert.isTrue(StatusBar.icons.batteryLabel.hidden);
+      });
+
+      test('should hide when charging starts', function() {
+        MockNavigatorBattery.charging = true;
+        var evt = new CustomEvent('chargingchange');
+        StatusBar.handleEvent(evt);
+
+        assert.isTrue(StatusBar.icons.batteryLabel.hidden);
+      });
+
+      test('should hide when charging ends', function() {
+        MockNavigatorBattery.charging = false;
+        var evt = new CustomEvent('chargingchange');
+        StatusBar.handleEvent(evt);
+
+        assert.isTrue(StatusBar.icons.batteryLabel.hidden);
+      });
+    });
+
+  });
+
   suite('Geolocation and recording', function() {
     var updateIconSpy;
     var cloneStatusbarSpy;
