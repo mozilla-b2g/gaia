@@ -9,9 +9,7 @@ exports.execute = function(options) {
   // Updates hostnames for InterApp Communication APIs.
   require('./post-manifest').execute(options);
 
-  if (options.LOCALE_BASEDIR) {
-    require('./multilocale').execute(options);
-  }
+  require('./multilocale').execute(options);
 
   // This task will do three things.
   // 1. Copy manifest to profile: generally we got manifest from
