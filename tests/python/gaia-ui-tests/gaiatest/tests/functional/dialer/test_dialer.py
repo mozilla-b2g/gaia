@@ -26,7 +26,6 @@ class TestDialer(GaiaTestCase):
         # Wait for call screen to be dialing
         call_screen.wait_for_outgoing_call()
         self.assertEqual('telephony', self.data_layer.current_audio_channel)
-        call_screen.switch_to_call_screen_frame()
 
         # Wait for the state to get to at least 'dialing'
         active_states = ('dialing', 'alerting', 'connecting', 'connected')
