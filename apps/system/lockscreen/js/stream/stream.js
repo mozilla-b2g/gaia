@@ -1,4 +1,4 @@
-/* global Source, Process */
+/* global Process */
 
 'use strict';
 
@@ -12,16 +12,11 @@
     if (configs.sources && 0 !== configs.sources.length) {
       this.configs.sources = configs.sources;
     } else {
-      this.configs.sources = [
-        Source.events(this.configs.events.concat(
-          this.configs.interrupts))
-      ];
+      throw new Error('No valid Source');
     }
-    this.states = {
-      forwardTo: null
-    };
+    this._forwardTo = null;
     // Need to delegate to Source.
-    this.handleEvent = this.handleEvent.bind(this);
+    this.onchange = this.onchange.bind(this);
   };
 
   Stream.prototype.phase = function() {
@@ -29,7 +24,7 @@
   };
 
   Stream.prototype.start = function(forwardTo) {
-    this.states.forwardTo = forwardTo;
+    this._forwardTo = forwardTo;
     this.process = new Process();
     this.process.start();
     return this;
@@ -37,7 +32,7 @@
 
   Stream.prototype.ready = function() {
     this.configs.sources.forEach((source) => {
-      source.start(this.handleEvent);
+      source.start(this.onchange);
     });
     return this;
   };
@@ -90,20 +85,20 @@
    * It would receive events from Source, and than queue or not queue
    * it, depends on whether the event is an interrupt.
    */
-  Stream.prototype.handleEvent = function(evt) {
+  Stream.prototype.onchange = function(evt) {
     if ('start' !== this.process.states.phase) {
       return this;
     }
     if (-1 !== this.configs.interrupts.indexOf(evt.type)) {
       // Interrupt would be handled immediately.
-      this.states.forwardTo(evt);
+      this._forwardTo(evt);
       return this;
     } else {
       // Event would be handled after queuing.
       // This is, if the event handle return a Promise or Process,
       // that can be fulfilled later.
       this.process.next(() => {
-        return this.states.forwardTo(evt);
+        return this._forwardTo(evt);
       });
       return this;
     }

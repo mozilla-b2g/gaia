@@ -1,4 +1,5 @@
-/* global LockScreenClockWidget, LockScreenClockWidgetTick */
+/* global LockScreenClockWidget */
+/* global LockScreenClockWidgetTick */
 /* global LockScreenClockWidgetSuspend */
 'use strict';
 
@@ -475,11 +476,9 @@
   function ls_l10nInit() {
     this.l10nready = true;
     // Adapt a state-widget in the curret architecture.
-    this.lockScreenClockWidget = (new LockScreenClockWidget()).instance();
-    this.lockScreenClockWidget.elementsAs({
-      view: document.getElementById('lockscreen-clock-widget')
-    })
-    .start().ready();
+    this.lockScreenClockWidget = new LockScreenClockWidget(
+      document.getElementById('lockscreen-clock-widget'));
+    this.lockScreenClockWidget.start();
 
     // mobile connection state on lock screen.
     // It needs L10n too. But it's not a re-entrable function,
@@ -715,7 +714,7 @@
         this.lockScreenClockWidget.transferTo(LockScreenClockWidgetSuspend);
       }
     }
-    // When screenchanged, do visual changes, so don't transfer.
+    // When screenchanged, do visual changes, so don't transfer to suspend.
     if (this.lockScreenClockWidget && !screenchanged) {
       this.lockScreenClockWidget.transferTo(LockScreenClockWidgetTick);
     }

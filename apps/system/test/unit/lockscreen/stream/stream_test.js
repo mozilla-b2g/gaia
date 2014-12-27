@@ -17,17 +17,20 @@ suite('Stream > ', function() {
       events: ['foo'],
       interrupts: ['bar'],
       handler: stubHandler,
-      // Don't need it because we call handleEvent in test.
-      sources: []
+      // A fake source is enough for testing.
+      sources: [{
+        start: () => {},
+        stop: () => {}
+      }]
     });
     stream
-      .start()
+      .start(stubHandler)
       .ready()
-      .handleEvent(new CustomEvent('foo'))
-      .handleEvent(new CustomEvent('foo'))
+      .onchange(new CustomEvent('foo'))
+      .onchange(new CustomEvent('foo'))
       .next(() => {
         return stream.stop()
-          .handleEvent(new CustomEvent('foo'))
+          .onchange(new CustomEvent('foo'))
           .next(() => {
             assert.isFalse(stubHandler.calledOnce);
             assert.isTrue(stubHandler.calledTwice);
@@ -58,16 +61,18 @@ suite('Stream > ', function() {
     var stream = new Stream({
       events: ['foo'],
       interrupts: ['bar'],
-      handler: stubHandler,
-      sources: []
+      sources: [{
+        start: () => {},
+        stop: () => {}
+      }]
     });
     stream
-      .start()
+      .start(stubHandler)
       .ready()
-      .handleEvent(new CustomEvent('foo'))       // execute
-      .handleEvent(new CustomEvent('foo'))       // no execute
-      .handleEvent(new CustomEvent('bar'))       // execute
-      .handleEvent(new CustomEvent('bar'));      // execute
+      .onchange(new CustomEvent('foo'))       // execute
+      .onchange(new CustomEvent('foo'))       // no execute
+      .onchange(new CustomEvent('bar'))       // execute
+      .onchange(new CustomEvent('bar'));      // execute
   });
 
 });
