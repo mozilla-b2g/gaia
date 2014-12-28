@@ -478,6 +478,8 @@ var MediaDB = (function() {
         oldClientVersion = oldVersion / oldDbVersion;
       }
 
+      console.log(db.objectStoreNames.length);
+
       if (0 === db.objectStoreNames.length) {
         // No objectstore found. It is the first time use MediaDB, we need to
         // create it.
@@ -525,10 +527,18 @@ var MediaDB = (function() {
         // so move on and initialize device storage
         initDeviceStorage();
       };
+
+
+      getPlaylistSongs('1', function(result) {
+        result.songs.forEach(function (song, idx, songs) {
+          console.log(song.name);
+        });
+      });
     };
 
     // helper function to create all indexes
     function createObjectStores(db) {
+      console.log('meeep?');
       // Now build the database
       var filestore = db.createObjectStore('files', { keyPath: 'name' });
       // Always index the files by modification date
@@ -545,6 +555,24 @@ var MediaDB = (function() {
       });
 
       var playlistStore = db.createObjectStore('playlists', { keyPath: 'name' });
+
+      playlistStore.transaction.onerror = function(evt) {
+        console.warn ('error', evt);
+      };
+
+      playlistStore.transaction.oncomplete = function(evt) {
+        console.log('??????????');
+        var store = db.transaction('playlists', 'readwrite').objectStore('playlists');
+
+        var request = store.add({songs:[{name: 'hello'}, {name: 'goodbye'}], name:'1'});
+        request.onsuccess = function(evt) {
+          getPlaylistSongs('1', function(result) {
+            result.songs.forEach(function (song, idx, songs) {
+              console.log(song.name);
+            });
+          });
+        };
+      };
     }
 
     // helper function to list all files and invoke callback with db, trans,
@@ -559,6 +587,14 @@ var MediaDB = (function() {
           cursor.continue();
         }
       };
+    }
+
+    function getPlaylistSongs(playlistName, callback) {
+        var store = media.db.transaction('playlists').objectStore('playlists');
+
+        store.get(playlistName).onsuccess = function(evt) {
+          callback(evt.target.result);
+        };
     }
 
     function handleUpgrade(db, trans, oldDbVersion, oldClientVersion) {
@@ -1359,6 +1395,52 @@ var MediaDB = (function() {
       freereq.onsuccess = function() {
         callback(freereq.result);
       };
+    },
+
+    getPlaylistSongs: function getPlaylistSongs(playlistName, callback) {
+        var store = this.db.transaction('playlists').objectStore('playlists');
+
+        store.get(playlistName).onsuccess = function(evt) {
+          callback(evt.target.result);
+        };
+    },
+
+
+    addToPlaylist: function addToPlaylist(playlistName, songData, callback) {
+      var store = this.db.transaction('playlists', 'readwrite').objectStore('playlists');
+
+      this.getPlaylistSongs(playlistName, function(result) {
+        if (!result) {
+          store = this.db.transaction('playlists', 'readwrite').objectStore('playlists');
+
+          var request = store.add({
+            songs: [songData],
+            name: playlistName
+          });
+
+          request.onsuccess = function(evt) {
+            callback();
+            this.getPlaylistSongs(playlistName, function(result) {
+              result.songs.forEach(function (song, idx, songs) {
+                console.log(song.name);
+              });
+            });
+          }.bind(this);
+        } else {
+          result.songs.push(songData);
+          store = this.db.transaction('playlists', 'readwrite').objectStore('playlists');
+
+          var requestUpdate = store.put(result);
+          requestUpdate.onsuccess = function(evt) {
+            callback();
+            this.getPlaylistSongs(playlistName, function(result) {
+              result.songs.forEach(function (song, idx, songs) {
+                console.log(song.name);
+              });
+            });
+          }.bind(this);
+        }
+      }.bind(this));
     }
   };
 

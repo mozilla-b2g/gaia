@@ -38,9 +38,13 @@ var ListView = {
   init: function lv_init() {
     this.clean();
 
+    this.holding = false;
+    this.holdTimeout = 0;
+
     this.view.addEventListener('click', this);
     this.view.addEventListener('input', this);
     this.view.addEventListener('touchmove', this);
+    this.view.addEventListener('touchstart', this);
     this.view.addEventListener('touchend', this);
     this.view.addEventListener('scroll', this);
     this.searchInput.addEventListener('focus', this);
@@ -311,7 +315,19 @@ var ListView = {
       });
     });
   },
+  addToPlaylist: function lv_addToPlaylist(playlistName, index) {
+    ModeManager.push(MODE_PLAYER, function() {
+      PlayerView.setSourceType(TYPE_SINGLE);
 
+      this.cancelEnumeration();
+      PlayerView.dataSource = this.dataSource;
+      PlayerView.setDBInfo(this.info);
+
+      PlayerView.addToPlaylist(playlistName, index, function() {
+        console.log("Successfully added to playlist.");
+      });
+    }.bind(this));
+  },
   playWithIndex: function lv_playWithIndex(index) {
     ModeManager.push(MODE_PLAYER, function() {
       if (App.pendingPick) {
@@ -367,12 +383,25 @@ var ListView = {
       self.searchInput.value = '';
       SearchView.clearSearch();
     }
+
+    console.log(evt);
+
     var target = evt.target;
     if (!target) {
       return;
     }
 
     switch (evt.type) {
+      case 'touchstart':
+        console.log(this);
+        this.holdTimeout = setTimeout((function() {
+          console.log(this);
+          this.holding = true;
+          console.log('????');
+        }).bind(this), 500);
+
+        break;
+
       case 'touchend':
         // Check for tap on parent form element with event origin as clear buton
         // This is workaround for a bug in input_areas BB. See Bug 920770
@@ -388,6 +417,18 @@ var ListView = {
         if (target.id === 'views-list-search-clear') {
           lv_resetSearch(this);
           return;
+        }
+
+        console.log('meep');
+        console.log(this);
+        if (this.holding) {
+          console.log('holding');
+          var option = target.dataset.option;
+
+          if (option === 'title') {
+            var playlistName = prompt("Add to playlist?");
+            this.addToPlaylist(playlistName, target.dataset.index);
+          }
         }
 
         break;
