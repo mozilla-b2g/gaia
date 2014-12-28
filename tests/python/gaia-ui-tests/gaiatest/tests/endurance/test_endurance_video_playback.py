@@ -5,15 +5,14 @@
 # Approximate runtime per 100 iterations: xx minutes
 
 from gaiatest import GaiaEnduranceTestCase
+from gaiatest.apps.videoplayer.app import VideoPlayer
+from marionette.wait import Wait
 
 import datetime
 import time
 
 
 class TestEnduranceVideoPlayback(GaiaEnduranceTestCase):
-
-    _video_items_locator = ('css selector', 'ul#thumbnails li[data-name]')
-    _video_controls_locator = ('id', 'videoControls')
 
     def setUp(self):
         GaiaEnduranceTestCase.setUp(self)
@@ -27,31 +26,36 @@ class TestEnduranceVideoPlayback(GaiaEnduranceTestCase):
     def video_playback(self):
         # Playback existing video, some code taken from test_video_player.py
 
-        # Launch the Video app
-        self.app = self.apps.launch('Video')
-        self.wait_for_element_displayed(*self._video_items_locator)
-        all_videos = self.marionette.find_elements(*self._video_items_locator)
+        video_player = VideoPlayer(self.marionette)
+        video_player.launch()
+        video_player.wait_for_thumbnails_to_load(1, 'Video files found on device: %s' %self.data_layer.video_files)
 
-        # Assert that there are more than one video available
-        self.assertGreater(all_videos, 0)
-        self.first_video = all_videos[0]
-
-        # Click on the first video
-        self.first_video.tap()
+        # Click on the first video.
+        fullscreen_video = video_player.tap_first_video_item()
 
         # Verify video is playing (controls will flash on)
 
-        # TEMP remove as not reliable; leave as is until come up with better solution
-        # self.wait_for_element_displayed(*self._video_controls_locator)
+        # Video will play automatically
+        # We'll wait for the controls to clear so we're 'safe' to proceed
+        time.sleep(2)
+
+        # We cannot tap the toolbar so let's just enable it with javascript
+        fullscreen_video.show_controls()
+
+        # The elapsed time > 0:00 denote the video is playing
+        zero_time = time.strptime('00:00', '%M:%S')
+        self.assertGreater(fullscreen_video.elapsed_time, zero_time)
 
         # Wait for video to finish
         time.sleep(15)
 
-        # Verify video is not playing (controls should be gone)
-        self.wait_for_element_not_displayed(*self._video_controls_locator)
+        # Verify video is not playing
+        # The elapsed time == 0:00 denote the video is not playing
+        zero_time = time.strptime('00:00', '%M:%S')
+        self.assertEqual(fullscreen_video.elapsed_time, zero_time)
 
         # Close the app via home screen
-        self.close_app()
+        self.close_app(video_player.name)
 
         # Wait a couple of seconds before repeating
         time.sleep(5)

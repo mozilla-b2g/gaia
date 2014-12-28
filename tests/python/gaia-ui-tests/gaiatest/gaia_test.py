@@ -990,7 +990,7 @@ class GaiaEnduranceTestCase(GaiaTestCase, EnduranceTestCaseMixin, MemoryEnduranc
         kwargs.pop('iterations', None)
         kwargs.pop('checkpoint_interval', None)
 
-    def close_app(self):
+    def close_app(self, name):
         from gaiatest.apps.system.regions.cards_view import CardsView
         self.cards_view = CardsView(self.marionette)
 
@@ -1002,7 +1002,10 @@ class GaiaEnduranceTestCase(GaiaTestCase, EnduranceTestCaseMixin, MemoryEnduranc
         self.cards_view.wait_for_card_ready(self.app_under_test.lower())
 
         # Close the current apps from the cards view
-        self.cards_view.close_app("search")
+        if name:
+            self.cards_view.close_app(name)
+        else:
+            self.cards_view.close_app("search")
 
         # Sleep a bit
         time.sleep(5)

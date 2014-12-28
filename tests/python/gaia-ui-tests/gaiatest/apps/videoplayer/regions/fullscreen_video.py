@@ -35,3 +35,7 @@ class FullscreenVideo(Base):
     @property
     def is_video_playing(self):
         return self.marionette.find_element(*self._video_player_locator).get_attribute('paused') == 'false'
+
+    @property
+    def controls_visible(self):
+        return self.marionette.find_element(*self._video_controls_locator).is_displayed()
