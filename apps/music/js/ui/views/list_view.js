@@ -3,7 +3,8 @@
           createListElement, TabBar, ModeManager,
           MODE_PLAYER, PlayerView, TYPE_MIX, TYPE_SINGLE, IDBKeyRange,
           SubListView,
-          MODE_SUBLIST, SearchView, MODE_SEARCH_FROM_LIST */
+          MODE_SUBLIST, SearchView, MODE_SEARCH_FROM_LIST,
+          Toaster */
 'use strict';
 
 // Assuming the ListView will prepare 5 pages for batch loading.
@@ -38,9 +39,6 @@ var ListView = {
   init: function lv_init() {
     this.clean();
 
-    this.holding = false;
-    this.holdTimeout = 0;
-
     this.view.addEventListener('click', this);
     this.view.addEventListener('input', this);
     this.view.addEventListener('touchmove', this);
@@ -48,6 +46,7 @@ var ListView = {
     this.view.addEventListener('touchend', this);
     this.view.addEventListener('scroll', this);
     this.searchInput.addEventListener('focus', this);
+    this.view.addEventListener('contextmenu', this);
   },
 
   clean: function lv_clean() {
@@ -315,17 +314,37 @@ var ListView = {
       });
     });
   },
+  getSongData: function lv_getSongData(index, callback) {
+    var info = this.DBInfo;
+    var songData = this.dataSource[index];
+
+    if (songData) {
+      callback(songData);
+    } else {
+      // Cancel the ongoing enumeration so that it will not
+      // slow down the next enumeration if we start a new one.
+      ListView.cancelEnumeration();
+
+      var handle =
+        musicdb.advancedEnumerate(
+          info.key, info.range, info.direction, index, function(record) {
+            musicdb.cancelEnumeration(handle);
+            this.dataSource[index] = record;
+            callback(record);
+          }.bind(this)
+        );
+    }
+  },
   addToPlaylist: function lv_addToPlaylist(playlistName, index) {
-    ModeManager.push(MODE_PLAYER, function() {
-      PlayerView.setSourceType(TYPE_SINGLE);
+    this.getSongData(index, function(songData) {
+      musicdb.addToPlaylist(playlistName, songData, function() {
 
-      this.cancelEnumeration();
-      PlayerView.dataSource = this.dataSource;
-      PlayerView.setDBInfo(this.info);
-
-      PlayerView.addToPlaylist(playlistName, index, function() {
-        console.log("Successfully added to playlist.");
-      });
+        Toaster.showToast({
+          messageL10nId: 'playlist-added',
+          latency: 3000,
+          useTransition: false
+        });
+      }.bind(this));
     }.bind(this));
   },
   playWithIndex: function lv_playWithIndex(index) {
@@ -384,55 +403,21 @@ var ListView = {
       SearchView.clearSearch();
     }
 
-    console.log(evt);
-
     var target = evt.target;
     if (!target) {
       return;
     }
 
     switch (evt.type) {
-      case 'touchstart':
-        console.log(this);
-        this.holdTimeout = setTimeout((function() {
-          console.log(this);
-          this.holding = true;
-          console.log('????');
-        }).bind(this), 500);
+      case 'contextmenu':
+        var option = target.dataset.option;
 
-        break;
-
-      case 'touchend':
-        // Check for tap on parent form element with event origin as clear buton
-        // This is workaround for a bug in input_areas BB. See Bug 920770
-        if (target.id === 'views-list-search') {
-          var id = evt.originalTarget.id;
-          if (id && id !== 'views-list-search-input' &&
-            id !== 'views-list-search-close') {
-            lv_resetSearch(this);
-            return;
-          }
+        if (option === 'title') {
+          var playlistName = prompt("Add to playlist?");
+          this.addToPlaylist(playlistName, target.dataset.index);
         }
 
-        if (target.id === 'views-list-search-clear') {
-          lv_resetSearch(this);
-          return;
-        }
-
-        console.log('meep');
-        console.log(this);
-        if (this.holding) {
-          console.log('holding');
-          var option = target.dataset.option;
-
-          if (option === 'title') {
-            var playlistName = prompt("Add to playlist?");
-            this.addToPlaylist(playlistName, target.dataset.index);
-          }
-        }
-
-        break;
-
+      break;
       case 'click':
         if (target.id === 'views-list-search-close') {
           if (ModeManager.currentMode === MODE_SEARCH_FROM_LIST) {
