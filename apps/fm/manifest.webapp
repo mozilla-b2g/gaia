@@ -27,8 +27,8 @@
       "description": "Radio FM Gaia"
     },
     "zh-TW": {
-      "name": "收音机",
-      "description": "收音机"
+      "name": "收音機",
+      "description": "收音機"
     }
   },
   "default_locale": "en-US",
