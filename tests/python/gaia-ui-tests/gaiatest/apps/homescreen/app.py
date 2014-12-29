@@ -152,7 +152,7 @@ class Homescreen(Base):
     def installed_app(self, app_name):
         for root_el in self.marionette.find_elements(*self._homescreen_all_icons_locator):
             if root_el.text == app_name and (root_el.get_attribute('data-app-state') == 'ready' or
-                'bookmark' in root_el.get_attribute('class')):
+                'bookmark' in root_el.get_attribute('class') or 'collection' in root_el.get_attribute('class')):
                 return self.InstalledApp(self.marionette, root_el)
 
     def bookmark(self, bookmark_title):
