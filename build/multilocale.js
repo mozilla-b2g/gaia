@@ -40,6 +40,7 @@ function L10nManager(gaiaDir,
   this.gaiaDir = gaiaDir;
   this.official = subject.official;
   this.deviceType = subject.deviceType;
+  this.defaultLocale = subject.defaultLocale;
 
   /**
    * Copy l10n resources required by the .html file to build stage directory
@@ -49,17 +50,9 @@ function L10nManager(gaiaDir,
    *
    * @param {nsIFile[]} file - HTML file
    * @param {Object} webapp  - A webapp object for specific app
+   * @param {nsIDocument} doc - document object
    */
-  function getL10nResources(file, webapp) {
-    var content = utils.getFileContent(file);
-
-    // if there is no localization word in the file, don't even parse it
-    // exit early
-    if (content.indexOf('localization') === -1) {
-      return;
-    }
-
-    var doc = utils.getDocument(content);
+  function getL10nResources(file, webapp, doc) {
     var isOfficialBranding;
 
     // get all <link rel="localization">
@@ -199,12 +192,60 @@ function L10nManager(gaiaDir,
     if (self.localeBasedir) {
       // Localize webapp's manifest.webapp file.
       localizeManifest(webapp);
-
-      // Copy resource files into build_stage directory
-      htmlFiles.forEach(function(htmlFile) {
-        getL10nResources(htmlFile, webapp);
-      });
     }
+
+    htmlFiles.forEach(function(htmlFile) {
+      var content = utils.getFileContent(htmlFile);
+
+      var doc = utils.getDocument(content);
+
+      buildL10nMeta(htmlFile, doc);
+
+      // if there is no localization word in the file, don't even parse it
+      // exit early
+      if (content.indexOf('localization') === -1) {
+        return;
+      }
+
+      if (self.localeBasedir) {
+        // Copy resource files into build_stage directory
+        getL10nResources(htmlFile, webapp, doc);
+      }
+    });
+  }
+
+  function getTimestamp(date) {
+    var chunks = [
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      date.getHours(),
+      date.getMinutes()
+    ];
+
+    return chunks.map(c => c < 10 ? '0' + c : c.toString()).join('');
+  }
+
+  function buildL10nMeta(file, doc) {
+    var metas = {
+      availableLanguages: doc.querySelector('meta[name="availableLanguages"]'),
+      defaultLanguage: doc.querySelector('meta[name="defaultLanguage"]')
+    };
+
+    if (metas.defaultLanguage) {
+      metas.defaultLanguage.setAttribute('content', self.defaultLocale);
+    }
+
+    if (metas.availableLanguages) {
+      var timestamp = getTimestamp(new Date());
+      metas.availableLanguages.setAttribute('content',
+        self.locales.map(function(loc) {
+          return loc + ':' + timestamp;
+        }).join(', '));
+    }
+
+    var str = utils.serializeDocument(doc);
+    utils.writeContent(file, str);
   }
 
   /**
@@ -217,6 +258,9 @@ function L10nManager(gaiaDir,
   function localizeManifest(webapp) {
     var manifest = utils.getJSON(webapp.buildManifestFile);
 
+    if (manifest.default_locale) {
+      manifest.default_locale = self.defaultLocale;
+    }
     // If manifest.webapp does not have `locales` key, return early
     if (!manifest.locales) {
       return;
@@ -449,6 +493,7 @@ function execute(options) {
     localeBasedir,
     {
       official: options.OFFICIAL,
+      defaultLocale: options.GAIA_DEFAULT_LOCALE,
       deviceType: options.GAIA_DEVICE_TYPE,
     });
 

@@ -1,4 +1,4 @@
-/*global exports, require, dump*/
+/*global exports, require*/
 'use strict';
 /**
  * webpp-optimize will do below things.
@@ -241,8 +241,7 @@ HTMLOptimizer.prototype.embededGlobals = function() {
  */
 HTMLOptimizer.prototype.concatL10nResources = function() {
   var doc = this.win.document;
-  var links = doc.querySelectorAll('link[rel="localization"], ' +
-                                   'link[rel="manifest"]');
+  var links = doc.querySelectorAll('link[rel="localization"]');
   if (!links.length) {
     return;
   }
@@ -256,30 +255,6 @@ HTMLOptimizer.prototype.concatL10nResources = function() {
     var rel = link.getAttribute('rel');
 
     switch (rel) {
-      case 'manifest':
-        var url = link.getAttribute('href');
-        var manifest = {};
-        try {
-          manifest = JSON.parse(this.getFileByRelativePath(url).content);
-        } catch(err) {
-          dump('Unable to parse ' + url + ' manifest: ' + err.message);
-          throw err;
-        }
-
-        if (manifest.default_locale) {
-          var defaultLocaleMeta = doc.createElement('meta');
-          defaultLocaleMeta.name = 'default_locale';
-          defaultLocaleMeta.content = manifest.default_locale;
-          parentNode.insertBefore(defaultLocaleMeta, links[0]);
-        }
-
-        if (manifest.locales) {
-          var localesMeta = doc.createElement('meta');
-          localesMeta.name = 'locales';
-          localesMeta.content = Object.keys(manifest.locales).join(', ');
-          parentNode.insertBefore(localesMeta, links[0]);
-        }
-        break;
       case 'localization':
         // if any l10n link does have a no-fetch
         // attribute, we will embed the whole l10n AST
@@ -517,32 +492,9 @@ HTMLOptimizer.prototype.optimizeDeviceTypeCSS = function() {
  */
 HTMLOptimizer.prototype.serializeNewHTMLDocumentOutput = function() {
   var doc = this.win.document;
-  // the doctype string should always be '<!DOCTYPE html>' but just in case...
-  var doctypeStr = '';
-  var dt = doc.doctype;
-  if (dt && dt.name) {
-    doctypeStr = '<!DOCTYPE ' + dt.name;
-    if (dt.publicId) {
-      doctypeStr += ' PUBLIC ' + dt.publicId;
-    }
-    if (dt.systemId) {
-      doctypeStr += ' ' + dt.systemId;
-    }
-    doctypeStr += '>\n';
-  }
 
-  // outerHTML breaks the formating, so let's use innerHTML instead
-  var htmlStr = '<html';
-  var docElt = doc.documentElement;
-  var attrs = docElt.attributes;
-  for (var i = 0; i < attrs.length; i++) {
-    htmlStr += ' ' + attrs[i].nodeName.toLowerCase() +
-               '="' + attrs[i].nodeValue + '"';
-  }
-  var innerHTML = docElt.innerHTML.replace(/  \n*<\/body>\n*/, '  </body>\n');
-  htmlStr += '>\n  ' + innerHTML + '\n</html>\n';
-
-  utils.writeContent(this.htmlFile, doctypeStr + htmlStr);
+  var str = utils.serializeDocument(doc);
+  utils.writeContent(this.htmlFile, str);
 };
 
 HTMLOptimizer.prototype.getFileByRelativePath = function(relativePath) {
