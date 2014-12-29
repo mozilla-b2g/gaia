@@ -204,7 +204,8 @@ span.line-break {
   font-size: 1.6rem;
   font-weight: 400;
   color: #8a9699;
-  padding: 0 0 0 1rem;
+  padding: 0;
+  -moz-padding-start: 1rem;
   height: 4rem;
   line-height: 4rem;
 }
