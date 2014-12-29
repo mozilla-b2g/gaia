@@ -104,6 +104,7 @@ require([
       cs_initVoicePrivacyMode();
       cs_initCallWaiting();
       cs_initCallerId();
+      cs_initFdnItem();
       window.setTimeout(cs_initCallForwardingObservers, 500);
 
       // Update items in the call settings panel.
@@ -141,6 +142,14 @@ require([
       });
 
       cs_refreshCallSettingItems();
+    }
+
+    function cs_initFdnItem() {
+      var iccObj = getIccByIndex();
+      var fdnMenuItem = document.getElementById('menuItem-callFdn');
+      iccObj.getServiceState('fdn').then(function(hasFdn) {
+        fdnMenuItem.hidden = !hasFdn;
+      });
     }
 
     /**
