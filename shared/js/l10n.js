@@ -1444,7 +1444,7 @@
   var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
   var nodeObserver = null;
   var pendingElements = null;
-  var manifest = {};
+  var meta = {};
 
   var moConfig = {
     attributes: true,
@@ -1502,7 +1502,6 @@
         getPluralRule: getPluralRule,
         rePlaceables: rePlaceables,
         translateDocument: translateDocument,
-        onManifestInjected: onManifestInjected,
         onMetaInjected: onMetaInjected,
         PropertiesParser: PropertiesParser,
         walkContent: walkContent
@@ -1587,21 +1586,15 @@
 
   function initResources() {
     /* jshint boss:true */
-    var manifestFound = false;
 
     var nodes = document.head
                         .querySelectorAll('link[rel="localization"],' +
-                                          'link[rel="manifest"],' +
-                                          'meta[name="locales"],' +
-                                          'meta[name="default_locale"],' +
+                                          'meta[name="availableLanguages"],' +
+                                          'meta[name="defaultLanguage"],' +
                                           'script[type="application/l10n"]');
     for (var i = 0, node; node = nodes[i]; i++) {
       var type = node.getAttribute('rel') || node.nodeName.toLowerCase();
       switch (type) {
-        case 'manifest':
-          manifestFound = true;
-          onManifestInjected.call(this, node.getAttribute('href'), initLocale);
-          break;
         case 'localization':
           this.ctx.resLinks.push(node.getAttribute('href'));
           break;
@@ -1614,18 +1607,20 @@
       }
     }
 
-    // if after scanning the head any locales have been registered in the ctx
-    // it's safe to initLocale without waiting for manifest.webapp
-    if (this.ctx.availableLocales.length) {
-      return initLocale.call(this);
-    }
-
-    // if no locales were registered so far and no manifest.webapp link was
-    // found we still call initLocale with just the default language available
-    if (!manifestFound) {
+    if (!this.ctx.availableLocales.length) {
+      // if there was no availableLanguages meta,
+      // register the default locale only
       this.ctx.registerLocales(this.ctx.defaultLocale);
-      return initLocale.call(this);
     }
+    return initLocale.call(this);
+  }
+
+  function splitAvailableLanguagesString(str) {
+    return str.split(',').map(function(lang) {
+      lang = lang.trim().split(':');
+      // if there are no timestamps, lang[0] will be the ab-CD
+      return lang[0];
+    });
   }
 
   function onMetaInjected(node) {
@@ -1634,18 +1629,18 @@
     }
 
     switch (node.getAttribute('name')) {
-      case 'locales':
-        manifest.locales = node.getAttribute('content').split(',').map(
-          Function.prototype.call, String.prototype.trim);
+      case 'availableLanguages':
+        meta.availableLanguages = 
+          splitAvailableLanguagesString(node.getAttribute('content'));
         break;
-      case 'default_locale':
-        manifest.defaultLocale = node.getAttribute('content');
+      case 'defaultLanguage':
+        meta.defaultLanguage = node.getAttribute('content');
         break;
     }
 
-    if (Object.keys(manifest).length === 2) {
-      this.ctx.registerLocales(manifest.defaultLocale, manifest.locales);
-      manifest = {};
+    if (Object.keys(meta).length === 2) {
+      this.ctx.registerLocales(meta.defaultLanguage, meta.availableLanguages);
+      meta = {};
     }
   }
 
@@ -1653,56 +1648,6 @@
     var lang = node.getAttribute('lang');
     var locale = this.ctx.getLocale(lang);
     locale.addAST(JSON.parse(node.textContent));
-  }
-
-  function onManifestInjected(url, callback) {
-    if (this.ctx.availableLocales.length) {
-      return;
-    }
-
-    io.loadJSON(url, function parseManifest(err, json) {
-      if (this.ctx.availableLocales.length) {
-        return;
-      }
-
-      if (err) {
-        this.ctx._emitter.emit('fetcherror', err);
-        this.ctx.registerLocales(this.ctx.defaultLocale);
-        if (callback) {
-          callback.call(this);
-        }
-        return;
-      }
-
-      // default_locale and locales might have been already provided by meta
-      // elements which take precedence;  check if we already have them
-      if (!('defaultLocale' in manifest)) {
-        if (json.default_locale) {
-          manifest.defaultLocale = json.default_locale;
-        } else {
-          manifest.defaultLocale = this.ctx.defaultLocale;
-          this.ctx._emitter.emit(
-            'manifesterror',
-            new L10nError('default_locale missing from manifest'));
-        }
-      }
-      if (!('locales' in manifest)) {
-        if (json.locales) {
-          manifest.locales = Object.keys(json.locales);
-        } else {
-          this.ctx._emitter.emit(
-            'manifesterror',
-            new L10nError('locales missing from manifest'));
-        }
-      }
-
-      this.ctx.registerLocales(manifest.defaultLocale, manifest.locales);
-      manifest = {};
-
-      if (callback) {
-        callback.call(this);
-      }
-    }.bind(this));
   }
 
   function initLocale() {
