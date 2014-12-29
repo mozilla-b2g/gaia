@@ -171,6 +171,61 @@ suite('system/LockScreen >', function() {
       stubSwitchPanel.restore();
   });
 
+  test('L10n initialization: it start to update the clock', function() {
+    var stubStartUpdateClock = this.sinon.stub(subject, 'startUpdateClock');
+    var stubRefreshClock = this.sinon.stub(subject, 'refreshClock');
+    this.sinon.stub(window,
+      'LockScreenConnInfoManager');
+    var originalMozMobileConnections = window.navigator.mozMobileConnections;
+    window.navigator.mozMobileConnections = {};
+    subject.l10nInit();
+    assert.isTrue(stubRefreshClock.called,
+      'it doesn\'t refresh the clock');
+    assert.isTrue(stubStartUpdateClock.called,
+      'it doesn\'t start to update clock');
+    window.navigator.mozMobileConnections = originalMozMobileConnections;
+    delete subject._lockscreenConnInfoManager;
+  });
+
+  test('When screen on, it would start to update the clock', function() {
+    var stubStartUpdateClock = this.sinon.stub(subject, 'startUpdateClock');
+    this.sinon.stub(subject, 'checkPassCodeTimeout');
+    this.sinon.stub(subject, 'dispatchEvent');
+    this.sinon.stub(subject, 'lockIfEnabled');
+    subject.handleEvent(new CustomEvent('screenchange', {
+      detail: {
+        screenOffBy: null,
+        screenEnabled: true
+      }
+    }));
+    assert.isTrue(stubStartUpdateClock.called,
+      'it doesn\'t start to update the clock');
+  });
+
+  test('When screen off, it would stop to update the clock', function() {
+    var stubStopUpdateClock = this.sinon.stub(subject, 'stopUpdateClock');
+    subject.locked = true;
+    this.sinon.stub(subject, 'dispatchEvent');
+    this.sinon.stub(subject, 'lockIfEnabled');
+    subject.handleEvent(new CustomEvent('screenchange', {
+      detail: {
+        screenOffBy: null,
+        screenEnabled: false
+      }
+    }));
+    assert.isTrue(stubStopUpdateClock.called,
+      'it doesn\'t stop to update the clock');
+  });
+
+  test('When unlock, it would stop to update the clock', function() {
+    var stubStopUpdateClock = this.sinon.stub(subject, 'stopUpdateClock');
+    // To skip the following unlocking flow, and avoid the unnecessary mocking.
+    subject.locked = false;
+    subject.unlock();
+    assert.isTrue(stubStopUpdateClock.called,
+      'it doesn\'t stop to update the clock');
+  });
+
   test('Lock: can actually lock', function() {
     subject.overlay = domOverlay;
     subject.lock();

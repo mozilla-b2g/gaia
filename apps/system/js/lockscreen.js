@@ -129,6 +129,8 @@
     */
     triggeredTimeoutId: 0,
 
+    clockTimerID: null,
+
     /*
     * Max value for handle swiper up
     */
@@ -137,12 +139,8 @@
     _passcodePadVibrationEnabled: false,
 
     // Keep in sync with Dialer and Keyboard vibration
-    _passcodePadVibrationDuration: 50,
+    _passcodePadVibrationDuration: 50
 
-    /**
-     * Object used for handling the clock UI element, wraps all related timers
-     */
-    clock: new window.Clock()
   };  // -- LockScreen.prototype --
 
   LockScreen.prototype.handleEvent =
@@ -173,12 +171,12 @@
           }
 
           // Stop refreshing the clock when the screen is turned off.
-          this.clock.stop();
+          this.stopUpdateClock();
         } else {
           this._passCodeTimeoutCheck = this.checkPassCodeTimeout();
 
           // Resume refreshing the clock when the screen is turned on.
-          this.clock.start(this.refreshClock.bind(this));
+          this.startUpdateClock();
         }
         // No matter turn on or off from screen timeout or poweroff,
         // all secure apps would be hidden.
@@ -510,9 +508,7 @@
 
     // start the clock because screenchange won't trigger when
     // screen locks just after boot
-    // Clock always uses one Timeouts/Intervals so it's safe in
-    // other scenarios (such as turning on lockscreen after boot in settings)
-    this.clock.start(this.refreshClock.bind(this));
+    this.startUpdateClock();
   };
 
   LockScreen.prototype.initUnlockerEvents =
@@ -546,6 +542,7 @@
   LockScreen.prototype.l10nInit =
   function ls_l10nInit() {
     this.refreshClock(new Date());
+    this.startUpdateClock();
   };
 
   /*
@@ -749,7 +746,7 @@
     this.mainScreen.focus();
 
     // The lockscreen will be hidden, stop refreshing the clock.
-    this.clock.stop();
+    this.stopUpdateClock();
 
     if (wasAlreadyUnlocked) {
       return;
@@ -1203,6 +1200,32 @@
       this.kPassCodeErrorCounter = 0;
       this.unlock();
     };
+
+  LockScreen.prototype.startUpdateClock = function() {
+    this.clockTimerID = window.setInterval(() => {
+      this.refreshClock(new Date());
+    }, 60000);
+  };
+
+
+
+  LockScreen.prototype.startUpdateClock = function() {
+    // Which second in this minute we're.
+    var seconds = (new Date()).getSeconds();
+    var leftSeconds = 60 - seconds;
+    window.setTimeout(() => {
+      // If seconds is 0, it would miss one minute.
+      // And no matter which seconds we're, we need to refresh it first.
+      this.refreshClock(new Date());
+        this.clockTimerID = window.setInterval(() => {
+        this.refreshClock(new Date());
+      }, 60000);
+    }, leftSeconds * 1000);
+  };
+
+  LockScreen.prototype.stopUpdateClock = function() {
+    window.clearInterval(this.clockTimerID);
+  };
 
   /** @exports LockScreen */
   exports.LockScreen = LockScreen;
