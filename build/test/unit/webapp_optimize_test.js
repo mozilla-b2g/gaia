@@ -436,7 +436,7 @@ suite('webapp-optimize.js', function() {
     test('concatL10nResources', function() {
       htmlOptimizer.concatL10nResources();
       assert.equal(createdDOMs[2].query,
-        'document/link[rel="localization"], link[rel="manifest"]',
+        'document/link[rel="localization"]',
         'should modify document/link[rel="localization"]');
     });
 
@@ -528,10 +528,12 @@ suite('webapp-optimize.js', function() {
     });
 
     test('serializeNewHTMLDocumentOutput', function() {
-      mockDoc.documentElement.attributes = [{
-        nodeName: 'TestNodeName',
-        nodeValue: 'testnodevalue'
-      }];
+      mockUtils.serializeDocument = function(doc) {
+        return '<!DOCTYPE docName PUBLIC publicId systemId>\n' +
+          '<html testnodename="testnodevalue">\n' +
+          '  document/documentElement-innerHTML\n' +
+          '</html>\n';
+      };
       htmlOptimizer.serializeNewHTMLDocumentOutput();
       assert.equal(writeFile.path, 'test-index.html');
       assert.equal(writeFileContent,
