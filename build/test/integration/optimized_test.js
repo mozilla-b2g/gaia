@@ -1,3 +1,8 @@
+'use strict';
+
+/* jshint node: true, mocha: true */
+/* global suiteSetup */
+
 var helper = require('./helper');
 
 suite('GAIA_OPTIMIZE=1', function() {
@@ -13,5 +18,4 @@ suite('GAIA_OPTIMIZE=1', function() {
       }
     );
   });
-
 });
