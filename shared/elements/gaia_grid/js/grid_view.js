@@ -15,7 +15,6 @@
   function GridView(config) {
     this.config = config;
     this.clickIcon = this.clickIcon.bind(this);
-    this.onVisibilityChange = this.onVisibilityChange.bind(this);
 
     if (config.features.zoom) {
       this.zoom = new GridZoom(this);
@@ -58,11 +57,6 @@
     set cols(value) {
       this.layout.cols = value;
     },
-
-    /**
-     * We are in the state of launching an app.
-     */
-    _launchingApp: false,
 
     /**
      * Adds an item into the items array.
@@ -155,12 +149,10 @@
 
     start: function() {
       this.element.addEventListener('click', this.clickIcon);
-      window.addEventListener('visibilitychange', this.onVisibilityChange);
     },
 
     stop: function() {
       this.element.removeEventListener('click', this.clickIcon);
-      window.removeEventListener('visibilitychange', this.onVisibilityChange);
     },
 
     findItemFromElement: function(element) {
@@ -188,16 +180,11 @@
       return icon;
     },
 
-    onVisibilityChange: function() {
-      this._launchingApp = false;
-    },
-
     /**
      * Launches an app.
      */
     clickIcon: function(e) {
       e.preventDefault();
-
       var inEditMode = this.dragdrop && this.dragdrop.inEditMode;
 
       // Exit from edit mode when user clicks an empty space
@@ -243,24 +230,6 @@
             }
           }, returnTimeout);
         }
-      }
-
-      if ((icon.detail.type === 'app' || icon.detail.type === 'bookmark') &&
-          this._launchingApp) {
-        return;
-      }
-      if ((icon.detail.type === 'app' && icon.appState === 'ready') ||
-          icon.detail.type === 'bookmark') {
-        this._launchingApp = true;
-        if (this._launchingTimeout) {
-          window.clearTimeout(this._launchingTimeout);
-          this._launchingTimeout = null;
-        }
-        // This avoids some edge cases if we didn't get visibilitychange anyway.
-        this._launchingTimeout = window.setTimeout(function() {
-          this._launchingTimeout = null;
-          this._launchingApp = false;
-        }.bind(this), 3000);
       }
 
       icon[action](e.target);
