@@ -916,14 +916,8 @@
         return selector;
       }
 
-      var argLength = index.length - 1;
-      if (selector.length !== argLength) {
-        throw new L10nError('Macro ' + selectorName + ' expects ' +
-                            selector.length + ' argument(s), yet ' + argLength +
-                            ' given');
-      }
-
-      var argValue = resolveIdentifier(args, env, index[1]);
+      var argValue = index[1] ?
+        resolveIdentifier(args, env, index[1]) : undefined;
 
       if (selector === env.__plural) {
         // special cases for zero, one, two if they are defined on the hash
@@ -1531,6 +1525,8 @@
     navigator.mozL10n.ctx.addEventListener('fetcherror',
       console.error.bind(console));
     navigator.mozL10n.ctx.addEventListener('parseerror',
+      console.error.bind(console));
+    navigator.mozL10n.ctx.addEventListener('resolveerror',
       console.error.bind(console));
   }
 

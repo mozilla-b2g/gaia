@@ -597,6 +597,7 @@ HTMLOptimizer.prototype.mockWinObj = function() {
   this.win.console = {
     log: dump_message,
     warn: dump_message,
+    error: dump_message,
     info: dump_message
   };
 
