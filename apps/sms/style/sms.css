@@ -32,10 +32,6 @@ form[role="dialog"][data-type="confirm"] p {
   white-space: pre-line;
 }
 
-form[data-type="confirm"] .phone-details .phone-number {
-  display: inline;
-}
-
 gaia-header {
   position: relative;
   z-index: 10;
@@ -934,16 +930,18 @@ section[role="region"][class*='-information'] #messages-compose-form {
 }
 
 /* Phone details label styles */
-.phone-details > .phone-details-item {
+.phone-type,
+.phone-type-separator,
+.phone-carrier,
+.phone-carrier-separator {
   display: none;
 }
 
-.phone-details.has-phone-type > .phone-type,
-.phone-details.has-phone-type > .phone-type-separator,
-.phone-details > .phone-number,
-.phone-details.has-phone-carrier > .phone-carrier,
-.phone-details.has-phone-carrier > .phone-carrier-separator {
-  display: inline;
+.has-phone-type > .phone-type,
+.has-phone-type > .phone-type-separator,
+.has-phone-carrier > .phone-carrier,
+.has-phone-carrier > .phone-carrier-separator {
+  display: unset;
 }
 
 /* RTL View */

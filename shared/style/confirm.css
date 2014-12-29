@@ -158,11 +158,11 @@ form[role="dialog"][data-type="confirm"] p {
   -moz-user-select: none; /* 1 */
 }
 
-form[role="dialog"][data-type="confirm"] p span {
-    font-size: 1.5rem;
-    display: block;
-    line-height: 1.7rem;
-    color: rgba(255,255,255,0.6);
+form[role="dialog"][data-type="confirm"] p > span {
+  font-size: 1.5rem;
+  display: block;
+  line-height: 1.7rem;
+  color: rgba(255,255,255,0.6);
 }
 
 form[role="dialog"][data-type="confirm"] p img {
