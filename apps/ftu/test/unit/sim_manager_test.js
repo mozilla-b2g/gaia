@@ -7,6 +7,7 @@
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_mobile_operator.js');
+require('/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('ftu/test/unit/mock_ui_manager.js');
 requireApp('ftu/test/unit/mock_l10n.js');
 
@@ -17,6 +18,7 @@ require('/shared/test/unit/load_body_html_helper.js');
 
 var mocksHelperForSimManager = new MocksHelper([
   'UIManager',
+  'IccHelper',
   'MobileOperator'
 ]).init();
 
@@ -316,6 +318,8 @@ suite('sim mgmt >', function() {
         assert.isFalse(UIManager.pinRetriesLeft.classList.contains('hidden'));
         UIManager.pinInput.value = 1234;
         SimManager.unlock();
+        iccInfo0.cardState = 'ready';
+        assert.isFalse(SimManager.shouldShowUnlockScreen(SimManager.icc0));
         assert.isTrue(UIManager.pinRetriesLeft.classList.contains('hidden'));
         assert.isFalse(UIManager.pinInput.classList.contains('onerror'));
         assert.isTrue(UIManager.pinError.classList.contains('hidden'));
@@ -385,7 +389,9 @@ suite('sim mgmt >', function() {
         UIManager.newpinInput.value = 1234;
         UIManager.confirmNewpinInput.value = 1234;
         SimManager.unlock();
+        iccInfo0.cardState = 'ready';
 
+        assert.isFalse(SimManager.shouldShowUnlockScreen(SimManager.icc0));
         assert.isTrue(UIManager.pukRetriesLeft.classList.contains('hidden'));
         assert.isFalse(UIManager.pukInput.classList.contains('onerror'));
         assert.isTrue(UIManager.pukError.classList.contains('hidden'));
@@ -434,13 +440,73 @@ suite('sim mgmt >', function() {
         assert.isFalse(UIManager.xckRetriesLeft.classList.contains('hidden'));
         UIManager.xckInput.value = 12345678;
         SimManager.unlock();
+        iccInfo0.cardState = 'ready';
 
+        assert.isFalse(SimManager.shouldShowUnlockScreen(SimManager.icc0));
         assert.isTrue(UIManager.xckRetriesLeft.classList.contains('hidden'));
         assert.isFalse(UIManager.xckInput.classList.contains('onerror'));
         assert.isTrue(UIManager.xckError.classList.contains('hidden'));
         assert.isTrue(SimManager.icc0.unlocked);
         assert.isTrue(UIManager.activationScreen.classList.contains('show'));
         assert.isFalse(UIManager.unlockSimScreen.classList.contains('show'));
+      });
+      test('lock both nck and nsck', function() {
+        fireRetryCountCallback();
+        assert.isFalse(UIManager.xckRetriesLeft.classList.contains('hidden'));
+        UIManager.xckInput.value = 12345678;
+        SimManager.unlock();
+        iccInfo0.cardState = 'networkSubsetLocked';
+        assert.isTrue(SimManager.shouldShowUnlockScreen(SimManager.icc0));
+        SimManager.handleCardState();
+
+        fireRetryCountCallback();
+        assert.isFalse(UIManager.xckRetriesLeft.classList.contains('hidden'));
+        UIManager.xckInput.value = 12345678;
+        SimManager.unlock();
+        iccInfo0.cardState = 'ready';
+        assert.isFalse(SimManager.shouldShowUnlockScreen(SimManager.icc0));
+
+        var isCalledHandleFinish = false;
+        var handleFinish = function () {
+          assert.isTrue(UIManager.xckRetriesLeft.classList.contains('hidden'));
+          assert.isFalse(UIManager.xckInput.classList.contains('onerror'));
+          assert.isTrue(UIManager.xckError.classList.contains('hidden'));
+          assert.isTrue(SimManager.icc0.unlocked);
+          assert.isTrue(UIManager.activationScreen.classList.contains('show'));
+          assert.isFalse(UIManager.unlockSimScreen.classList.contains('show'));
+          isCalledHandleFinish = true;
+        };
+        SimManager.handleCardState(handleFinish);
+        assert.isTrue(isCalledHandleFinish);
+      });
+      test('lock both nck and pck', function() {
+        fireRetryCountCallback();
+        assert.isFalse(UIManager.xckRetriesLeft.classList.contains('hidden'));
+        UIManager.xckInput.value = 12345678;
+        SimManager.unlock();
+        iccInfo0.cardState = 'simPersonalizationLock';
+        assert.isTrue(SimManager.shouldShowUnlockScreen(SimManager.icc0));
+        SimManager.handleCardState();
+
+        fireRetryCountCallback();
+        assert.isFalse(UIManager.xckRetriesLeft.classList.contains('hidden'));
+        UIManager.xckInput.value = 12345678;
+        SimManager.unlock();
+        iccInfo0.cardState = 'ready';
+        assert.isFalse(SimManager.shouldShowUnlockScreen(SimManager.icc0));
+
+        var isCalledHandleFinish = false;
+        var handleFinish = function () {
+          assert.isTrue(UIManager.xckRetriesLeft.classList.contains('hidden'));
+          assert.isFalse(UIManager.xckInput.classList.contains('onerror'));
+          assert.isTrue(UIManager.xckError.classList.contains('hidden'));
+          assert.isTrue(SimManager.icc0.unlocked);
+          assert.isTrue(UIManager.activationScreen.classList.contains('show'));
+          assert.isFalse(UIManager.unlockSimScreen.classList.contains('show'));
+          isCalledHandleFinish = true;
+        };
+        SimManager.handleCardState(handleFinish);
+        assert.isTrue(isCalledHandleFinish);
       });
     });
   });

@@ -225,6 +225,21 @@ suite('simcard dialog', function() {
         stubInputFieldControl.calledWith(false, false, true, false));
     });
 
+    test('network subset locked', function() {
+      var slot = new MockSIMSlot(null, 0);
+      slot.simCard.cardState = 'pinRequired';
+      SimPinDialog._currentSlot = slot;
+      slot.simCard = {
+        cardState: 'networkSubsetLocked'
+      };
+
+      var stubInputFieldControl =
+        this.sinon.stub(SimPinDialog, 'inputFieldControl');
+      SimPinDialog.handleCardState();
+      assert.isTrue(
+        stubInputFieldControl.calledWith(false, false, true, false));
+    });
+
     test('corporate locked', function() {
       var slot = new MockSIMSlot(null, 0);
       slot.simCard.cardState = 'pinRequired';
@@ -246,6 +261,21 @@ suite('simcard dialog', function() {
       SimPinDialog._currentSlot = slot;
       slot.simCard = {
         cardState: 'serviceProviderLocked'
+      };
+
+      var stubInputFieldControl =
+        this.sinon.stub(SimPinDialog, 'inputFieldControl');
+      SimPinDialog.handleCardState();
+      assert.isTrue(
+        stubInputFieldControl.calledWith(false, false, true, false));
+    });
+
+    test('sim personalization locked', function() {
+      var slot = new MockSIMSlot(null, 0);
+      slot.simCard.cardState = 'pinRequired';
+      SimPinDialog._currentSlot = slot;
+      slot.simCard = {
+        cardState: 'simPersonalizationLock'
       };
 
       var stubInputFieldControl =
