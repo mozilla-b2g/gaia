@@ -19,21 +19,8 @@ ManifestBuilder.prototype.setConfig = function(config) {
   this.stageManifests = {};
   this.manifests = {};
   this.webapps = {};
-  this.uuidMapping = {};
   this.stageDir = this.gaia.stageDir;
   utils.ensureFolderExists(this.stageDir);
-
-  // set uuidMpaaing from $GAIA_DISTRIBUTION_DIR/uuid.json if exists.
-  try {
-    var uuidFile = utils.getFile(config.GAIA_DISTRIBUTION_DIR, UUID_FILENAME);
-    if (uuidFile.exists()) {
-      utils.log('webapp-manifests',
-        'uuid.json in GAIA_DISTRIBUTION_DIR found.');
-      this.uuidMapping = JSON.parse(utils.getFileContent(uuidFile));
-    }
-  } catch (e) {
-    // ignore exception if GAIA_DISTRIBUTION_DIR does not exist.
-  }
 };
 
 ManifestBuilder.prototype.genStageWebappJSON = function() {
@@ -47,11 +34,10 @@ ManifestBuilder.prototype.genUuidJSON = function() {
   var uuidFile = this.stageDir.clone();
   uuidFile.append(UUID_FILENAME);
   utils.writeContent(uuidFile,
-    JSON.stringify(this.uuidMapping, null, 2) + '\n');
+    JSON.stringify(utils.getUUIDMapping(this.config), null, 2) + '\n');
 };
 
 ManifestBuilder.prototype.fillExternalAppManifest = function(webapp) {
-  var type = webapp.appStatus;
   var isPackaged = false;
   if (webapp.pckManifest) {
     isPackaged = true;
@@ -62,20 +48,7 @@ ManifestBuilder.prototype.fillExternalAppManifest = function(webapp) {
     }
   }
 
-  // Generate the webapp folder name in the profile. Only if it's privileged
-  // and it has an origin in its manifest file it'll be able to specify a custom
-  // folder name. Otherwise, generate an UUID to use as folder name.
-
-  var uuid = this.uuidMapping[webapp.sourceDirectoryName] ||
-    utils.generateUUID().toString();
-
-  var webappTargetDirName = uuid;
-  if (type === 2 && isPackaged && webapp.pckManifest.origin) {
-    webappTargetDirName = utils.getNewURI(webapp.pckManifest.origin).host;
-  } else {
-    // uuid is used for webapp directory name, save it for further usage
-    this.uuidMapping[webapp.sourceDirectoryName] = uuid;
-  }
+  var webappTargetDirName = webapp.profileDirectoryFile.leafName;
 
   var origin = isPackaged ? 'app://' + webappTargetDirName :
                webapp.metaData.origin;

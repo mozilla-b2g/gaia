@@ -261,7 +261,6 @@ exports.getFile = utils.getFile;
 exports.ensureFolderExists = utils.ensureFolderExists;
 exports.getJSON = utils.getJSON;
 exports.getFileAsDataURI = utils.getFileAsDataURI;
-exports.makeWebappsObject = utils.makeWebappsObject;
 
 /**
  * Common function.
@@ -330,6 +329,7 @@ exports.setEnv = utils.setEnv;
 exports.getProcess = utils.getProcess;
 exports.isExternalApp = utils.isExternalApp;
 exports.getDocument = utils.getDocument;
+exports.getUUIDMapping = utils.getUUIDMapping;
 exports.getWebapp = utils.getWebapp;
 exports.Services = utils.Services;
 exports.concatenatedScripts = utils.concatenatedScripts;

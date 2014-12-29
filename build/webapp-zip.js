@@ -19,9 +19,7 @@ WebappZip.prototype.setOptions = function(options) {
   this.webapp = options.webapp;
   this.buildDir = this.webapp.buildDirectoryFile;
 
-  var targetDir = options.targetDir;
-  var targetAppFolder = targetDir.clone();
-  targetAppFolder.append(this.webapp.domain);
+  var targetAppFolder = this.webapp.profileDirectoryFile;
   utils.ensureFolderExists(targetAppFolder);
 
   var zipContent = targetAppFolder.clone();
@@ -201,22 +199,15 @@ WebappZip.prototype.execute = function(options) {
   this.closeZip();
 };
 
-function execute(options) {
-  var targetWebapp = utils.getWebapp(options.APP_DIR,
-    options.GAIA_DOMAIN, options.GAIA_SCHEME,
-    options.GAIA_PORT, options.STAGE_DIR);
-
-  var webappsTargetDir = utils.getFile(options.PROFILE_DIR);
-  // Create profile folder if doesn't exists
-  utils.ensureFolderExists(webappsTargetDir);
-
-  // Create webapps folder if doesn't exists
-  webappsTargetDir.append('webapps');
+function execute(options, webapp) {
+  var profileDir = utils.getFile(options.PROFILE_DIR);
+  utils.ensureFolderExists(profileDir);
+  profileDir.append('webapps');
+  utils.ensureFolderExists(profileDir);
 
   (new WebappZip()).execute({
     config: options,
-    targetDir: webappsTargetDir,
-    webapp: targetWebapp
+    webapp: webapp
   });
 }
 

@@ -97,7 +97,7 @@ function buildApps(options) {
       }
 
       utils.copyToStage(appOptions);
-      require('./post-app').execute(appOptions);
+      require('./post-app').execute(appOptions, app);
     }
   });
 
