@@ -1,7 +1,7 @@
 /* global MockCommon, MockCostControl, MockNavigatorMozMobileConnections, Event,
           CostControlApp, Common, MockConfigManager, MockSettingsListener,
           MockMozNetworkStats, MocksHelper, SimManager, MockNavigatorSettings,
-          AirplaneModeHelper, MockNavigatorMozIccManager
+          AirplaneModeHelper
 */
 /* exported PerformanceTestingHelper */
 'use strict';
@@ -253,7 +253,8 @@ suite('Application Startup Modes Test Suite >', function() {
       loadBodyHTML('/index.html');
       this.sinon.spy(window.navigator.mozIccManager, 'addEventListener');
 
-      // Force loadDataSimIccId to fail
+      // The icc request fails, because of this request doesn't work if the
+      // airplane mode is enabled.
       sinon.stub(SimManager, 'requestDataSimIcc', failingRequestDataSIMIccId);
 
       // airplanemode activated for enable the iccmanager listeners
@@ -261,8 +262,6 @@ suite('Application Startup Modes Test Suite >', function() {
 
       window.addEventListener('viewchanged', function _onalert(evt) {
         window.removeEventListener('viewchanged', _onalert);
-        sinon.assert.calledWith(window.navigator.mozIccManager.addEventListener,
-                                'iccdetected');
 
         // Restore the stub method and disabling the airplanemode
         SimManager.requestDataSimIcc.restore();
@@ -276,14 +275,38 @@ suite('Application Startup Modes Test Suite >', function() {
           applicationMode: applicationMode
         });
 
-        // Check the app start correctly
+        // The assertion function contains a listener to detect when the fte is
+        // ready, for this reason it must be placed before dispatching the
+        // airplanemode disabled event
         assertFTEStarted(applicationMode, done);
 
         // Launch the second start-up
-        MockNavigatorMozIccManager.triggerEventListeners('iccdetected', {});
+        var eventDetail = { detail: {serviceId: 'data'}};
+        var airplaneModeDisabledEvent =
+          new CustomEvent('airplaneModeDisabled', eventDetail);
+        window.dispatchEvent(airplaneModeDisabledEvent);
       });
 
       CostControlApp.init();
+  });
+
+  test('SIM is not detected, the icc request is failing',
+    function(done) {
+      loadBodyHTML('/index.html');
+
+      this.sinon.stub(SimManager, 'requestDataSimIcc',
+                      failingRequestDataSIMIccId);
+
+        // Config the app to start (FTE)
+        var applicationMode = 'DATA_USAGE_ONLY';
+        window.CostControl = new MockCostControl();
+        window.ConfigManager = new MockConfigManager({
+          applicationMode: applicationMode
+        });
+
+      AirplaneModeHelper._status = 'disabled';
+      CostControlApp.init();
+      assertNonReadyScreen('NonReadyScreen in state: null', done);
   });
 
   test(

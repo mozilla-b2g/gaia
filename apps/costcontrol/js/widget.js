@@ -467,6 +467,13 @@ var Widget = (function() {
     }
   }
 
+  window.addEventListener('airplaneModeDisabled',
+    function _onAirplanemodeDisabled(evt) {
+      if (evt.detail && evt.detail.serviceId === 'data') {
+        SimManager.requestDataSimIcc(checkSIMStatus);
+      }
+    });
+
   function initWidget() {
     var isWaitingForIcc = false;
     function waitForIccAndCheckSim() {
@@ -476,7 +483,9 @@ var Widget = (function() {
           function _oniccdetected() {
             isWaitingForIcc = false;
             iccManager.removeEventListener('iccdetected', _oniccdetected);
-            SimManager.requestDataSimIcc(checkSIMStatus);
+            if (AirplaneModeHelper.getStatus() === 'disabled') {
+              SimManager.requestDataSimIcc(checkSIMStatus);
+            }
           }
         );
         isWaitingForIcc = true;
@@ -494,7 +503,6 @@ var Widget = (function() {
     AirplaneModeHelper.addEventListener('statechange',
       function _onAirplaneModeChange(state) {
         if (state === 'enabled') {
-          waitForIccAndCheckSim();
           Widget.showSimError('airplane-mode');
         } else if (isWaitingForIcc) {
           var updateTextOnly = true;
