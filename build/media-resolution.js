@@ -1,5 +1,7 @@
-/*global require, exports*/
 'use strict';
+
+/* global require, exports */
+
 var utils = require('./utils');
 
 var MediaResolution = function() {
@@ -72,11 +74,8 @@ MediaResolution.prototype.execute = function(options) {
   files.forEach(this.fileProcess.bind(this));
 };
 
-function execute(options) {
-  var targetWebapp = utils.getWebapp(options.APP_DIR,
-    options.GAIA_DOMAIN, options.GAIA_SCHEME,
-    options.GAIA_PORT, options.STAGE_DIR);
-  (new MediaResolution()).execute({ webapp: targetWebapp, config: options });
+function execute(options, webapp) {
+  (new MediaResolution()).execute({ config: options, webapp: webapp });
 }
 
 exports.execute = execute;

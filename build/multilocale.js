@@ -476,10 +476,7 @@ function L10nManager(gaiaDir,
   this.localizeManifest = localizeManifest;
 }
 
-function execute(options) {
-  var targetWebapp = utils.getWebapp(options.APP_DIR,
-    options.GAIA_DOMAIN, options.GAIA_SCHEME,
-    options.GAIA_PORT, options.STAGE_DIR);
+function execute(options, webapp) {
   var localeBasedir = null;
 
   if (options.LOCALE_BASEDIR) {
@@ -497,14 +494,14 @@ function execute(options) {
       deviceType: options.GAIA_DEVICE_TYPE,
     });
 
-  if (utils.isExternalApp(targetWebapp)) {
+  if (utils.isExternalApp(webapp)) {
     return;
   }
-  var files = utils.ls(targetWebapp.buildDirectoryFile, true, /^tests?$/);
+  var files = utils.ls(webapp.buildDirectoryFile, true, /^tests?$/);
 
   l10nManager.localize(files.filter(function(file) {
     return /\.html$/.test(file.path);
-  }), targetWebapp);
+  }), webapp);
 }
 
 exports.execute = execute;
