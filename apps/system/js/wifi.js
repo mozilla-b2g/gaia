@@ -13,6 +13,9 @@ var Wifi = {
   // If it's set to 0, wifi will never be turn off.
   screenOffTimeout: 0,
 
+  // If user wants to allow wifi off. 
+  allowOff: false,
+
   // if Wifi is enabled but disconnected, try to scan for networks every
   // kScanInterval ms.
   kScanInterval: 20 * 1000,
@@ -27,6 +30,8 @@ var Wifi = {
       return;
 
     window.addEventListener('screenchange', this);
+
+    window.addEventListener('allowoffchange', this);
 
     var battery = window.navigator.battery;
     battery.addEventListener('chargingchange', this);
@@ -55,6 +60,10 @@ var Wifi = {
 
     var self = this;
     var wifiManager = window.navigator.mozWifiManager;
+    
+    // turn on power save mode when wifi init.
+    wifiManager.setPowerSavingMode(true);
+    
     // when wifi is really enabled, emit event to notify QuickSettings
     wifiManager.onenabled = function onWifiEnabled() {
       var evt = document.createEvent('CustomEvent');
@@ -81,7 +90,7 @@ var Wifi = {
 
     SettingsListener.observe(
       'wifi.screen_off_timeout', 600000, function(value) {
-        self.screenOffTimeout = value;
+        self.screenOffTimeout = 600000;
       });
 
     // Track the wifi.enabled mozSettings value
@@ -161,7 +170,7 @@ var Wifi = {
     // the screen is off and we are not on a power source.
     // But if wifi wake lock is held, turn wifi into power save mode instead of
     // turning wifi off.
-    if (!ScreenManager.screenEnabled && !battery.charging) {
+    if (!ScreenManager.screenEnabled && !battery.charging  ) {
       // When the screen is off and the phone is not charging,
       // go to power save mode. It will be restored when screen
       // is turned on or the phone is charging.
@@ -192,20 +201,23 @@ var Wifi = {
       // Set System Message Handler, so we will be notified when alarm goes off.
       this.setSystemMessageHandler();
 
-      // Start with a timer, only turn off wifi till timeout.
-      var date = new Date(Date.now() + this.screenOffTimeout);
-      var self = this;
-      var req = navigator.mozAlarms.add(date, 'ignoreTimezone', 'wifi-off');
-      req.onsuccess = function wifi_offAlarmSet() {
-        self._alarmId = req.result;
-        releaseCpuLock();
-      };
-      req.onerror = function wifi_offAlarmSetFailed() {
-        console.warn('Fail to set wifi sleep timer on Alarm API. ' +
-          'Turn off wifi immediately.');
-        self.sleep();
-        releaseCpuLock();
-      };
+      // When user wants to allow wifi off then start with a timer, only turn off wifi till timeout.
+      if(this.allowOff == true)
+      {
+        var date = new Date(Date.now() + this.screenOffTimeout);
+        var self = this;
+        var req = navigator.mozAlarms.add(date, 'ignoreTimezone', 'wifi-off');
+        req.onsuccess = function wifi_offAlarmSet() {
+          self._alarmId = req.result;
+          releaseCpuLock();
+        };
+        req.onerror = function wifi_offAlarmSetFailed() {
+          console.warn('Fail to set wifi sleep timer on Alarm API. ' +
+            'Turn off wifi immediately.');
+          self.sleep();
+          releaseCpuLock();
+        };
+      }
     }
     // ... and quietly turn it back on or cancel the timer otherwise
     else {
