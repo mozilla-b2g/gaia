@@ -8,56 +8,50 @@
 /*
  Generic confirm screen. Only 'cancel/default' is mandatory.
 
- Text field are localized when their `l10nId' parameter is set -- in which case,
- the optional `l10nArgs' parameter is applied. Without `l10nId', the `value'
- parameter will be used: it can be either an HTML node or plain text.
+ Text fields are localized using commonly defined parameter structure:
+ https://developer.mozilla.org/en-US/Firefox_OS/Developing_Gaia/
+ localization_code_best_practices#Writing_APIs_that_operate_on_L10nIDs + 'raw'
+ can be Node aw well.
 
  Options should follow the following structure:
 
  {
-  title: {
-    value: 'foo Title'
-  },
+  title: { raw: 'Non localizable title' },
   body: {
-    l10nId: 'showMessageCount',
-    l10nArgs: { n: count }
+    id: 'localizableStringWithArgument',
+    args: { n: count }
   },
   options: {
     // Cancel is a mandatory option. You need to define at least the text.
     cancel: {
-      text: {
-        l10nId: 'cancel'
-      }
+      text: 'localizableCancelLabel'
     },
-    // Confirm is an optional one. As in cancel, you could add as well a method
-    // with params.
     confirm: {
-      text: {
-        l10nId: 'remove'
-      },
+      text: 'localizableRemoveLabel',
       method: function(params) {
         fooFunction(params);
       },
-      params: [arg1, arg2,....]
+      params: [arg1, arg2,....],
+      className: 'optionalClassName'
     }
   }
 */
 
 // helper to localize an element given parameters
-function createLocalizedElement(tagName, param) {
+function createLocalizedElement(tagName, valueL10n) {
   var element = document.createElement(tagName);
 
   // if we passed an l10nId, use the l10n `setAttributes' method
-  if (param.l10nId) {
-    navigator.mozL10n.setAttributes(element, param.l10nId, param.l10nArgs);
-
+  if (typeof valueL10n === 'string') {
+    element.setAttribute('data-l10n-id', valueL10n);
+  } else if (valueL10n.id) {
+    navigator.mozL10n.setAttributes(element, valueL10n.id, valueL10n.args);
   // if we passed in a HTML Fragment, it is already localized
-  } else if (param.value.nodeType) {
-    element.appendChild(param.value);
-
+  } else if (valueL10n.raw.nodeType) {
+    element.appendChild(valueL10n.raw);
   // otherwise - stuff text in here...
   } else {
-    element.textContent = param.value;
+    element.textContent = valueL10n.raw;
   }
   return element;
 }
@@ -76,21 +70,9 @@ var Dialog = function(params) {
   // Pick up option_menu.css styling
   this.form.dataset.subtype = 'menu';
 
-  // We fill the main info
-
-  // take into account localization as well
-  var titleDOM = createLocalizedElement('strong', params.title);
-  var bodyDOM = createLocalizedElement('small', params.body);
-
-  // Adding this elements to the DOM
   var infoSection = document.createElement('section');
-  // We create the info container
-  var infoContainer = document.createElement('p');
-  infoContainer.appendChild(titleDOM);
-  infoContainer.appendChild(bodyDOM);
-  // We append to the section
-  infoSection.appendChild(infoContainer);
-  // At the end we have to append to the form
+  infoSection.appendChild(createLocalizedElement('h1', params.title));
+  infoSection.appendChild(createLocalizedElement('p', params.body));
   this.form.appendChild(infoSection);
 
   // Adding options. In this case we have a maximum of 2, with different styles
@@ -101,18 +83,19 @@ var Dialog = function(params) {
   var cancelButton = createLocalizedElement('button', cancelOption.text);
   handlers.set(cancelButton, cancelOption);
 
+  // If we have only button, let's mark it as recommended action.
+  if (!params.options.confirm) {
+    cancelButton.className = 'recommend';
+  }
+
+  menu.appendChild(cancelButton);
+
   if (params.options.confirm) {
     var confirmOption = params.options.confirm;
     var confirmButton = createLocalizedElement('button', confirmOption.text);
     confirmButton.className = params.options.confirm.className || 'recommend';
     handlers.set(confirmButton, confirmOption);
-
-    menu.appendChild(cancelButton);
     menu.appendChild(confirmButton);
-  } else {
-    // If there is only one item, we take the 100% of the space available
-    cancelButton.style.width = '100%';
-    menu.appendChild(cancelButton);
   }
 
   this.form.addEventListener('submit', function(event) {
@@ -131,20 +114,18 @@ var Dialog = function(params) {
 
   menu.addEventListener('click', function(event) {
     var action = handlers.get(event.target);
-
     if (!action) {
       return;
     }
 
-    var method = (action && action.method) || function() {};
-
-    // Delegate operation to target method. This allows
-    // for a custom "Cancel" to be provided by calling program
-    method.apply(null, action.params || []);
+    if (action.method) {
+      // Delegate operation to target method. This allows
+      // for a custom "Cancel" to be provided by calling program
+      action.method.apply(null, action.params || []);
+    }
 
     // Hide action menu when click is received
     this.hide();
-
   }.bind(this));
   // Appending the action menu to the form
   this.form.appendChild(menu);

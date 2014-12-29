@@ -4,7 +4,7 @@
 /*global Template, Utils, Threads, Contacts, Threads,
          WaitingScreen, MessageManager, TimeHeaders,
          Drafts, Thread, ThreadUI, OptionMenu, ActivityPicker,
-         PerformanceTestingHelper, StickyHeader, Navigation, Dialog,
+         PerformanceTestingHelper, StickyHeader, Navigation,
          InterInstanceEventDispatcher,
          SelectionHandler,
          LazyLoader
@@ -421,30 +421,10 @@ var ThreadListUI = {
       });
     }
 
-    var dialog = new Dialog({
-      title: {
-        l10nId: 'messages'
-      },
-      body: {
-        l10nId: 'deleteThreads-confirmation2'
-      },
-      options: {
-        cancel: {
-          text: {
-            l10nId: 'cancel'
-          }
-        },
-        confirm: {
-          text: {
-            l10nId: 'delete'
-          },
-          method: performDeletion.bind(this),
-          className: 'danger'
-        }
-      }
-    });
-
-    dialog.show();
+    return Utils.confirm(
+      'deleteThreads-confirmation2', null,
+      { text: 'delete', className: 'danger' }
+    ).then(performDeletion.bind(this));
   },
 
   setEmpty: function thlui_setEmpty(empty) {
