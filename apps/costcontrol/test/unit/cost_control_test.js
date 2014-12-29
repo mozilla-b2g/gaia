@@ -5,6 +5,8 @@
 
 require('/test/unit/mock_debug.js');
 require('/test/unit/mock_common.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/test/unit/mock_airplane_mode_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/test/unit/mock_config_manager.js');
 require('/test/unit/mock_moz_network_stats.js');
@@ -24,8 +26,11 @@ if (!window.navigator.mozNetworkStats) {
 }
 
 var MocksHelperForUnitTest = new MocksHelper([
+  'AirplaneModeHelper',
   'Common',
-  'ConfigManager'
+  'ConfigManager',
+  'LazyLoader'
+
 ]).init();
 
 suite('Cost Control Service Hub Suite >', function() {
