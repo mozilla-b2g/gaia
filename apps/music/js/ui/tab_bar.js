@@ -1,6 +1,6 @@
 /* exported TabBar */
 /* global AccessibilityHelper, ListView, TilesView, SearchView,
-          MODE_TILES, MODE_LIST, ModeManager */
+          MODE_TILES, MODE_LIST, ModeManager, musicdb */
 'use strict';
 
 var TabBar = {
@@ -88,6 +88,12 @@ var TabBar = {
 
             this.playlistArray.forEach(function(playlist) {
               ListView.update(this.option, playlist);
+            }.bind(this));
+
+            musicdb.getAllPlaylists(function(playlists) {
+                playlists.forEach(function(playlist) {
+                    ListView.update(this.option, playlist);
+                }.bind(this));
             }.bind(this));
 
             SearchView.searchContext = SearchView.context.ALL;

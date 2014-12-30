@@ -62,18 +62,25 @@ function createListElement(option, data, index, highlight) {
     case 'playlist':
       titleSpan = document.createElement('span');
       titleSpan.className = 'list-playlist-title';
-      if (data.metadata.l10nId) {
-        titleSpan.textContent = navigator.mozL10n.get(data.metadata.l10nId);
-        titleSpan.dataset.l10nId = data.metadata.l10nId;
-      } else {
-        titleSpan.textContent =
-          data.metadata.title || navigator.mozL10n.get('unknownTitle');
-        titleSpan.dataset.l10nId =
-          data.metadata.title ? '' : 'unknownTitle';
-      }
 
       a.dataset.keyRange = 'all';
       a.dataset.option = data.option;
+
+      if (data.metadata) {
+          if (data.metadata.l10nId) {
+            titleSpan.textContent = navigator.mozL10n.get(data.metadata.l10nId);
+            titleSpan.dataset.l10nId = data.metadata.l10nId;
+          } else {
+            titleSpan.textContent =
+              data.metadata.title || navigator.mozL10n.get('unknownTitle');
+            titleSpan.dataset.l10nId =
+              data.metadata.title ? '' : 'unknownTitle';
+          }
+      } else if (data.name) {
+          //custom playlists.
+          titleSpan.textContent = data.name;
+          a.dataset.option = data.name;
+      }
 
       li.appendChild(titleSpan);
 

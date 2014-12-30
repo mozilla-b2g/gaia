@@ -376,10 +376,22 @@ var ListView = {
     }.bind(this));
   },
 
+  activatePlaylist: function lv_activatePlaylist(data) {
+    SubListView.activatePlaylist(data, function() {
+      ModeManager.push(MODE_SUBLIST);
+    });
+  },
+
   activateSubListView: function lv_activateSubListView(target) {
     var option = target.dataset.option;
     var index = target.dataset.index;
     var data = this.dataSource[index];
+
+    if (!data.metadata) {
+      // we have a custom playlist...
+      return this.activatePlaylist(data);
+    }
+
     var keyRange = (target.dataset.keyRange != 'all') ?
       IDBKeyRange.only(target.dataset.keyRange) : null;
     var title = data.metadata.title;
