@@ -12,10 +12,6 @@
     Card.prototype.constructor.call(this);
   };
 
-  Folder.prototype = Object.create(Card.prototype);
-
-  Folder.prototype.constructor = Folder;
-
   Folder.STATES = Object.freeze({
     // when folder is in DESERIALIZING state, it means we are still in the
     // process of loading its content from datastore
@@ -26,7 +22,27 @@
     // DETACHED state means the folder itself is not saved (detached)
     // in card list
     'DETACHED': 'DETACHED'
-  }),
+  });
+
+  Folder.deserialize = function folder_deserialize(cardEntry) {
+    var cardInstance;
+    if (cardEntry && cardEntry.type === 'Folder') {
+      cardInstance = new Folder({
+        name: cardEntry.name,
+        folderId: cardEntry.folderId,
+        // The content of folder is saved in datastore under key of folderId
+        // thus we are not complete deserialize it yet, mark its state
+        // as 'DESERIALIZING'. Caller needs to put content of the folder
+        // back to its structure. Please refer to CardManager#_reloadCardList().
+        state: Folder.STATES.DESERIALIZING
+      });
+    }
+    return cardInstance;
+  };
+
+  Folder.prototype = Object.create(Card.prototype);
+
+  Folder.prototype.constructor = Folder;
 
   Folder.prototype._findInFolder = function folder_findInFolder(query) {
     var indexOfFound = -1;
@@ -76,6 +92,14 @@
   Folder.prototype.launch = function folder_launch() {
     // fire launch event to inform exterior module
     this.fire('launch', this);
+  };
+
+  Folder.prototype.serialize = function folder_serialize() {
+    return {
+      name: this.name,
+      folderId: this.folderId,
+      type: 'Folder'
+    }
   };
 
   exports.Folder = Folder;
