@@ -117,18 +117,18 @@ function() {
    */
   BlurSlider.getLabel = function(value) {
     switch(parseInt(value)) {
-      case 1:   return '500m';
-      case 2:   return '1km';
-      case 3:   return '2km';
-      case 4:   return '5km';
-      case 5:   return '10km';
-      case 6:   return '15km';
-      case 7:   return '20km';
-      case 8:   return '50km';
-      case 9:   return '75km';
-      case 10:  return '100km';
-      case 11:  return '500km';
-      case 12:  return '1000km';
+      case 1:   return '500 m';
+      case 2:   return '1 km';
+      case 3:   return '2 km';
+      case 4:   return '5 km';
+      case 5:   return '10 km';
+      case 6:   return '15 km';
+      case 7:   return '20 km';
+      case 8:   return '50 km';
+      case 9:   return '75 km';
+      case 10:  return '100 km';
+      case 11:  return '500 km';
+      case 12:  return '1000 km';
       default:  return '';
     }
   };
