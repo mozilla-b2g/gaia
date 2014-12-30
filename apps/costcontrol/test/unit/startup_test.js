@@ -1,5 +1,5 @@
 /* global MockCommon, MockCostControl, MockNavigatorMozMobileConnections, Event,
-          CostControlApp, Common, MockConfigManager, MockSettingsListener,
+          CostControlApp, Common, MockConfigManager,
           MockMozNetworkStats, MocksHelper, SimManager, MockNavigatorSettings,
           AirplaneModeHelper
 */
@@ -309,54 +309,6 @@ suite('Application Startup Modes Test Suite >', function() {
       assertNonReadyScreen('NonReadyScreen in state: null', done);
   });
 
-  test(
-    'First Time Experience Loaded when new SIM > DATA_USAGE_ONLY',
-    function(done) {
-      var applicationMode = 'DATA_USAGE_ONLY';
-      setupCardState({cardState: 'ready'});
-      window.ConfigManager = new MockConfigManager({
-        fakeSettings: { fte: true },
-        applicationMode: applicationMode
-      });
-
-      assertFTEStarted(applicationMode, done);
-
-      CostControlApp.init();
-    }
-  );
-
-  test(
-    'First Time Experience Loaded when new SIM > PREPAID',
-    function(done) {
-      var applicationMode = 'PREPAID';
-      setupCardState({cardState: 'ready'});
-      window.ConfigManager = new MockConfigManager({
-        fakeSettings: { fte: true },
-        applicationMode: applicationMode
-      });
-
-      assertFTEStarted(applicationMode, done);
-
-      CostControlApp.init();
-    }
-  );
-
-  test(
-    'First Time Experience Loaded when new SIM > POSTPAID',
-    function(done) {
-      var applicationMode = 'POSTPAID';
-      setupCardState({cardState: 'ready'});
-      window.ConfigManager = new MockConfigManager({
-        fakeSettings: { fte: true },
-        applicationMode: applicationMode
-      });
-
-      assertFTEStarted(applicationMode, done);
-
-      CostControlApp.init();
-    }
-  );
-
   function setupLayoutMode(applicationMode) {
     loadBodyHTML('/index.html');
     window.Common = new MockCommon();
@@ -404,50 +356,88 @@ suite('Application Startup Modes Test Suite >', function() {
     CostControlApp.init();
   });
 
-  test(
-    'DSDS Ensure the FTE will be closed when there are a data slot change',
-    function(done) {
-      var defaultDataSlotId = 0, newDataSlotId = 1,
-          dataSlot = 'ril.data.defaultServiceId';
-
-      MockNavigatorSettings.mSettings[dataSlot] = defaultDataSlotId;
-      var applicationMode = 'DATA_USAGE_ONLY';
-      setupCardState({cardState: 'ready'});
-      window.Common = new MockCommon({ activateFTEListener: true });
-      window.ConfigManager = new MockConfigManager({
-        fakeSettings: { fte: true },
-        applicationMode: applicationMode
-      });
-
-      MockNavigatorMozMobileConnections.mAddMobileConnection(
-        {  iccId: '0000000' } ,1);
-
-      SimManager.reset();
-
-      window.addEventListener('ftestarted', function _onftestarted(evt) {
-        window.removeEventListener('ftestarted', _onftestarted);
-        var iframe = document.getElementById('fte_view');
-
-        assert.ok(!iframe.classList.contains('non-ready'));
-
-        // The second SIM has FTE passed
+  suite('FTE Startup Test Suite >', function() {
+    test(
+      'First Time Experience Loaded when new SIM > DATA_USAGE_ONLY',
+      function(done) {
+        var applicationMode = 'DATA_USAGE_ONLY';
+        setupCardState({cardState: 'ready'});
         window.ConfigManager = new MockConfigManager({
-          fakeSettings: { fte: false },
+          fakeSettings: { fte: true },
           applicationMode: applicationMode
         });
 
-        window.addEventListener('fteClosed', function checkAssertions() {
-          window.removeEventListener('fteClosed', checkAssertions);
-            iframe = document.getElementById('fte_view');
-            assert.ok(iframe.classList.contains('non-ready'));
+        assertFTEStarted(applicationMode, done);
 
-            done();
+        CostControlApp.init();
+      }
+    );
+
+    test(
+      'First Time Experience Loaded when new SIM > PREPAID',
+      function(done) {
+        var applicationMode = 'PREPAID';
+        setupCardState({cardState: 'ready'});
+        window.ConfigManager = new MockConfigManager({
+          fakeSettings: { fte: true },
+          applicationMode: applicationMode
         });
 
-        MockSettingsListener.mTriggerCallback(dataSlot, newDataSlotId);
-      });
+        assertFTEStarted(applicationMode, done);
 
-      CostControlApp.init();
-    }
-  );
+        CostControlApp.init();
+      }
+    );
+
+    test(
+      'First Time Experience Loaded when new SIM > POSTPAID',
+      function(done) {
+        var applicationMode = 'POSTPAID';
+        setupCardState({cardState: 'ready'});
+        window.ConfigManager = new MockConfigManager({
+          fakeSettings: { fte: true },
+          applicationMode: applicationMode
+        });
+
+        assertFTEStarted(applicationMode, done);
+
+        CostControlApp.init();
+      }
+    );
+
+    var updateUITestCase = [
+      {
+        description : 'UpdateUI executes the callback after a mode change',
+        applicationMode : 'DATA_USAGE_ONLY'
+      },
+      {
+        description :
+          'UpdateUI executes the callback even if there is not a mode change',
+        applicationMode : null
+      }
+    ];
+
+    updateUITestCase.forEach(function(testCase) {
+      test(testCase.description, function(done) {
+        var applicationMode = testCase.applicationMode;
+        setupCardState({cardState: 'ready'});
+        window.ConfigManager = new MockConfigManager({
+          fakeSettings: { fte: true },
+          applicationMode: applicationMode
+        });
+        function _finalizeFTE (evt) {
+          window.removeEventListener('ftestarted', _finalizeFTE);
+          window.ConfigManager.setOption({ fte: false }, function() {
+            window.postMessage({ type: 'fte_finished' },
+                               Common.COST_CONTROL_APP);
+          });
+        }
+        window.addEventListener('ftestarted', _finalizeFTE);
+
+        this.sinon.stub(Common, 'closeFTE', done);
+
+        CostControlApp.init();
+      });
+    });
+  });
 });

@@ -380,10 +380,7 @@ var CostControlApp = (function() {
 
           // XXX: Break initialization to allow Gecko to render the animation on
           // time.
-          setTimeout(function continueLoading() {
-            if (typeof callback === 'function') {
-              window.setTimeout(callback, 0);
-            }
+          requestAnimationFrame(function continueLoading() {
             document.getElementById('main').classList.remove('non-ready');
 
             if (mode === 'PREPAID') {
@@ -403,6 +400,7 @@ var CostControlApp = (function() {
             }
           });
         }
+        callback && callback();
       });
     });
   }
@@ -411,26 +409,24 @@ var CostControlApp = (function() {
     return window.location.hash.split('#')[1] === 'datausage-tab';
   }
 
+  function onFteFinished(e) {
+    if (e.origin !== Common.COST_CONTROL_APP) {
+      return;
+    }
+    var type = e.data.type;
+    if (type === 'fte_finished') {
+      window.removeEventListener('message', onFteFinished);
+      document.getElementById('splash_section').hidden = 'true';
+
+      // Only hide the FTE view when everything in the UI is ready
+      ConfigManager.requestAll(function() {
+        startApp(Common.closeFTE);
+      });
+    }
+  }
+
   function startFTE() {
-    window.addEventListener('message', function handler_finished(e) {
-      if (e.origin !== Common.COST_CONTROL_APP) {
-        return;
-      }
-
-      var type = e.data.type;
-
-      if (type === 'fte_finished') {
-        window.removeEventListener('message', handler_finished);
-        document.getElementById('splash_section').
-          hidden = 'true';
-
-        // Only hide the FTE view when everything in the UI is ready
-        ConfigManager.requestAll(function() {
-          startApp(Common.closeFTE);
-        });
-      }
-    });
-
+    window.addEventListener('message', onFteFinished);
     var mode = ConfigManager.getApplicationMode();
     Common.startFTE(mode);
   }
@@ -494,6 +490,7 @@ var CostControlApp = (function() {
       isApplicationLocalized = false;
       window.removeEventListener('dataSlotChange', _onDataSimChange);
       window.removeEventListener('hashchange', _onHashChange);
+      window.removeEventListener('message', onFteFinished);
       window.location.hash = '';
       nonReadyScreen = null;
     },
