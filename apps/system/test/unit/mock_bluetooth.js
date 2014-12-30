@@ -54,7 +54,9 @@ var MockBluetooth = {
   },
 
   getAdapter: function mbt_getAdapter() {
-    return this.defaultAdapter;
+    return new Promise(function(resolve) {
+      resolve(this.defaultAdapter);
+    }.bind(this));
   },
 
   getDefaultAdapter: function mbt_getDefaultAdapter() {

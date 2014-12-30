@@ -72,10 +72,16 @@ suite('system/bluetooth_transfer', function() {
       });
 
       suite('cannot get adapter ', function() {
-        var stubGetAdapater;
         setup(function() {
-          stubGetAdapater =
-            this.sinon.stub(MockBluetooth, 'getAdapter').returns(null);
+          this.sinon.stub(MockBluetooth, 'getAdapter').returns(
+            new Promise(function(resolve, reject) {
+              reject();
+            })
+          );
+        });
+
+        teardown(function() {
+          MockBluetooth.getAdapter.restore();
         });
 
         test('should return unknown device name ', function(done) {
@@ -87,6 +93,18 @@ suite('system/bluetooth_transfer', function() {
       });
 
       suite('request getConnectedDevices() onerror ', function() {
+        setup(function() {
+          this.sinon.stub(MockBluetooth, 'getAdapter').returns(
+            new Promise(function(resolve) {
+              resolve(MockBluetooth.defaultAdapter);
+            })
+          );
+        });
+
+        teardown(function() {
+          MockBluetooth.getAdapter.restore();
+        });
+
         test('should return unknown device name ', function(done) {
           BluetoothTransfer.getDeviceName(address).then(function(deviceName) {
             assert.isTrue(spyGetConnectedDevices.called);
