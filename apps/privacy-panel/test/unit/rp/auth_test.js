@@ -2,7 +2,7 @@
 
 var realMozSettings, htmlHelper;
 
-suite('RPP Auth panels', function() {
+suite('RP Auth panels', function() {
   suiteSetup(function(done) {
     require([
       'html_helper',
@@ -18,13 +18,13 @@ suite('RPP Auth panels', function() {
   });
 
   setup(function(done) {
-    require(['rpp/auth'], authPanel => {
+    require(['rp/auth'], authPanel => {
       var test;
 
       this.subject = authPanel;
-      this.mainHTML = htmlHelper.get('../../templates/rpp/main.html');
-      this.changeHTML = htmlHelper.get('../../templates/rpp/change_pass.html');
-      this.featuresHTML = htmlHelper.get('../../templates/rpp/features.html');
+      this.mainHTML = htmlHelper.get('../../templates/rp/main.html');
+      this.changeHTML = htmlHelper.get('../../templates/rp/change_pass.html');
+      this.featuresHTML = htmlHelper.get('../../templates/rp/features.html');
 
       test = document.getElementById('test');
       test.appendChild(this.mainHTML);

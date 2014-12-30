@@ -1,0 +1,28 @@
+<element name="rp-change-pass" extends="section">
+  <template>
+    <header>
+      <a class="pp-link back" href="#rp-main">
+        <span class="icon gaia-icon-back">back</span>
+      </a>
+      <h1 data-l10n-id="rp-panel"></h1>
+    </header>
+    <div>
+      <ul>
+        <li>
+          <p class="description" data-l10n-id="rp-change-password-description"></p>
+        </li>
+        <li>
+          <form id="rp-change-pass-form">
+            <select class="pin-type"></select>
+            <input class="pin" x-inputmode="digit" size="8" maxlength="8" type="password" placeholder="">
+            <div class="pin-validation-message"></div>
+            <input class="pass1" type="password" data-l10n-id="new-passphrase" placeholder="New passphrase">
+            <input class="pass2" type="password" data-l10n-id="confirm-new-passphrase" placeholder="Confirm new passphrase">
+            <div class="validation-message"></div>
+            <button class="rp-change-pass-ok btn" type="submit" data-l10n-id="ok"></button>
+          </form>
+        </li>
+      </ul>
+    </div>
+  </template>
+</element>
