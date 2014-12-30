@@ -36,6 +36,7 @@
       ctx.addEventListener('fetcherror', error);
       ctx.addEventListener('manifesterror', warn);
       ctx.addEventListener('parseerror', warn);
+      ctx.addEventListener('resolveerror', warn);
       ctx.addEventListener('notfounderror', error);
     }
 
