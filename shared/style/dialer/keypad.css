@@ -213,17 +213,23 @@
   flex-grow: 1;
   align-items: center;
   flex-direction: row-reverse;
-  background-image: url("keypad/images/keypad/actionicon_activecall_pickup.png");
+  background-image: url("keypad/images/keypad/actionicon_activecall_pickup_40x80.png");
   background-color: #00ADAD;
   background-repeat: no-repeat;
-  background-position: center;
-  background-size: 4rem 4rem;
+  background-position: bottom center;
+  background-size: 4rem 8rem;
   border-radius: 2rem;
   -moz-margin-start: 1rem;
   height: 4rem;
 }
 
+#keypad-callbar-call-action:disabled {
+  background-position: top center;
+  background-color: #e7e7e7;
+}
+
 #keypad-callbar-call-action:active {
+  background-position: top center;
   background-color: #94eee9;
 }
 
