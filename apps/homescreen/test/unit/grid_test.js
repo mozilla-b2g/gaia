@@ -2,8 +2,8 @@
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_manifest_helper.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
-requireApp('homescreen/test/unit/mock_l10n.js');
 requireApp('homescreen/test/unit/mock_page.js');
 requireApp('homescreen/test/unit/mock_icon.js');
 requireApp('homescreen/test/unit/mock_dock_manager.js');
@@ -51,6 +51,7 @@ suite('grid.js >', function() {
   var wrapperNode, containerNode;
   var realMozApps;
   var realMozSettings;
+  var realL10n;
 
   mocksHelperForGrid.attachTestHelpers();
 
@@ -89,11 +90,14 @@ suite('grid.js >', function() {
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
 
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
   });
 
   suiteTeardown(function() {
     window.navigator.mozApps = realMozApps;
     navigator.mozSettings = realMozSettings;
+    navigator.mozL10n = realL10n;
   });
 
   setup(function(done) {

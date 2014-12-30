@@ -1,11 +1,11 @@
 'use strict';
-
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('homescreen/js/pagbar.js');
-requireApp('homescreen/test/unit/mock_l10n.js');
 
 suite('pagbar.js >', function() {
 
   var scroller;
+  var realL10n;
 
   suiteSetup(function() {
     var markup = '<div class="paginationScroller" role="slider" ' +
@@ -17,13 +17,17 @@ suite('pagbar.js >', function() {
     scroller.id = 'paginationBar';
     scroller.innerHTML = markup;
     document.body.appendChild(scroller);
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
 
     PaginationBar.init(scroller);
     // Current page index is 0 and the number of pages is 5
     PaginationBar.update(0, 5);
+
   });
 
   suiteTeardown(function() {
+    navigator.mozL10n = realL10n;
     document.body.removeChild(scroller);
   });
 
