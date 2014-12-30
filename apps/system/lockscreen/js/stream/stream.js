@@ -30,6 +30,9 @@
     return this;
   };
 
+  /**
+   * Kick off Source and start do things.
+   */
   Stream.prototype.ready = function() {
     this.configs.sources.forEach((source) => {
       source.start(this.onchange);

@@ -19,8 +19,8 @@
   };
 
   SettingSource.prototype.start = function(forwardTo) {
-    this.configs.events.forEach((ename) => {
-      this._collector(ename, this.onchange);
+    this.configs.settings.forEach((key) => {
+      this._collector(key, this.onchange);
     });
     this._forwardTo = forwardTo;
     return this;
@@ -28,17 +28,23 @@
 
   SettingSource.prototype.stop = function() {
     this._forwardTo = null;
-    this.configs.events.forEach((ename) => {
-      this._decollector(ename, this.onchange);
+    this.configs.settings.forEach((key) => {
+      this._decollector(key, this.onchange);
     });
     return this;
   };
 
   /**
    * For forwarding to the target.
+   * Would transform the original 'settingName' and 'settingValue' pair as
+   * 'type' and 'detail', as the event formant.
    */
-  SettingSource.prototype.onchange = function(evt) {
+  SettingSource.prototype.onchange = function(change) {
     if (this._forwardTo) {
+      var evt = {
+        'type': change.settingName,
+        'detail': change.settingValue
+      };
       this._forwardTo(evt);
     }
   };

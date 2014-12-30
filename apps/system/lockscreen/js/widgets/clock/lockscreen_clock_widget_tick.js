@@ -1,3 +1,4 @@
+/* global Stream */
 /* global DOMEventSource, TimerSource */
 /* global LockScreenBasicState, LockScreenClockWidgetSuspend */
 'use strict';
@@ -27,7 +28,18 @@
     // And that is the reason we don't need to monitor the 'timeformatchange'
     // event, since the event can't be fired while the screen is locked.
     this.configs.timeFormat = this.getTimeformat();
-    this._timerSource = null;
+    this._timerSource = new TimerSource({
+      generator: () => {
+        return { type: 'lockscreen-notification-clock-tick' };
+      },
+      interval: this.configs.tickInterval
+    });
+    this.configs.stream.sources = [
+      new DOMEventSource({
+        events: ['screenchange']
+      }),
+      this._timerSource
+    ];
   };
   LockScreenClockWidgetTick.prototype =
     Object.create(LockScreenBasicState.prototype);
@@ -37,24 +49,23 @@
    * we tick the clock.
    */
   LockScreenClockWidgetTick.prototype.start = function() {
-    // Must set timer source in configs at this function,
-    // or it would start tick in constructor.
-    this._timerSource =
-      new TimerSource({
-        generator: () => {
-          return { type: 'lockscreen-notification-clock-tick' };
-        },
-        interval: this.configs.tickInterval
-      });
-    this.configs.stream.sources = [
-      new DOMEventSource({
-        events: ['screenchange']
-      }),
-      this._timerSource
-    ];
-    // Need to update it first, before the clock tick.
-    return LockScreenBasicState.prototype.start.apply(this, arguments)
-      .next(this.updateClock.bind(this));
+    // When first start, update the clock first.
+    this.updateClock();
+    this.stream = new Stream(this.configs.stream);
+    this.stream.start(this.handleEvent.bind(this))
+      .next(() =>
+        // The Promise is necessary. Since we need to wait the rest seconds
+        // in the current minute to bootstrap the timer.
+        new Promise((resolve) => {
+          // Which second in this minute we're.
+          var seconds = (new Date()).getSeconds();
+          var leftSeconds = 60 - seconds;
+          window.setTimeout(() => {
+            resolve();
+          }, leftSeconds * 1000);
+        })
+      )
+      .next(this.stream.ready.bind(this.stream));
   };
 
   LockScreenClockWidgetTick.prototype.getTimeformat = function() {

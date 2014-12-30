@@ -60,6 +60,10 @@
     return this.component.transferTo.apply(this.component, arguments);
   };
 
+  /**
+   * If this handler return a Promise, or Process, the underlying Stream
+   * can make sure the steps are queued even with asynchronous steps.
+   */
   LockScreenBasicState.prototype.handleEvent = function() {};
 
   exports.LockScreenBasicState = LockScreenBasicState;
