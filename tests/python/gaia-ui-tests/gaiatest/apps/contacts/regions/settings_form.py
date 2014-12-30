@@ -103,7 +103,7 @@ class SettingsForm(Base):
         element.tap()
         Wait(self.marionette).until(
             lambda m: m.find_element(*self._sync_friends_locator).location['x'] == 0)
-        from gaiatest.apps.contacts.regions.facebook import FacebookLogin
+        from gaiatest.apps.system.regions.facebook import FacebookLogin
         return FacebookLogin(self.marionette)
 
     def tap_import_from_sdcard(self):
