@@ -105,7 +105,7 @@ Here are the important information we need:
   Firefox OS device, you can use WebIDE or longpress _Power+Volume Down_ (note: older
   versions used _Power+Home_).
 
-Once you have these informations, you can [file the bug on
+Once you have this information, you can [file the bug on
 Bugzilla](https://bugzilla.mozilla.org/enter_bug.cgi?product=Firefox%20OS&component=Gaia%3A%3ASMS)
 and we should handle it in a few days (most of the time before 1 day).
 
