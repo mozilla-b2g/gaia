@@ -39,7 +39,8 @@ ThumbnailItem.formatter = new navigator.mozL10n.DateTimeFormat();
 
 ThumbnailItem.prototype.localize = function() {
   var date = new Date(this.data.date);
-  var imageCreatedAt = navigator.mozL10n.get('image-created-at');
-  var label = ThumbnailItem.formatter.localeFormat(date, imageCreatedAt);
+  var description = navigator.mozL10n.get(!this.data.metadata.video ?
+    'imageDescriptionShort' : 'videoDescriptionShort');
+  var label = ThumbnailItem.formatter.localeFormat(date, description);
   this.imgNode.setAttribute('aria-label', label);
 };
