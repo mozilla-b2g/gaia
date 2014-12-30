@@ -14,19 +14,19 @@ AlaMainPanel.prototype = {
 
   selectors: {
     rootPanel:      '#root',
-    rppPanel:       '#rpp-main',
-    featuresPanel:  '#rpp-features',
-    registerForm:   '#rpp-register',
-    registerPass1:  '#rpp-register .pass1',
-    registerPass2:  '#rpp-register .pass2',
-    registerSubmit: '#rpp-register .rpp-register-ok',
-    lockInput:      '#rpp-features [name="rpp.lock.enabled"]',
-    lockLabel:      '#rpp-features [data-l10n-id="remote-lock"]',
-    ringInput:      '#rpp-features [name="rpp.ring.enabled"]',
-    ringLabel:      '#rpp-features [data-l10n-id="remote-ring"]',
-    locateInput:    '#rpp-features [name="rpp.locate.enabled"]',
-    locateLabel:    '#rpp-features [data-l10n-id="remote-locate"]',
-    alert:          '#rpp-features .overlay'
+    rpPanel:        '#rp-main',
+    featuresPanel:  '#rp-features',
+    registerForm:   '#rp-register',
+    registerPass1:  '#rp-register .pass1',
+    registerPass2:  '#rp-register .pass2',
+    registerSubmit: '#rp-register .rp-register-ok',
+    lockInput:      '#rp-features [name="rp.lock.enabled"]',
+    lockLabel:      '#rp-features [data-l10n-id="remote-lock"]',
+    ringInput:      '#rp-features [name="rp.ring.enabled"]',
+    ringLabel:      '#rp-features [data-l10n-id="remote-ring"]',
+    locateInput:    '#rp-features [name="rp.locate.enabled"]',
+    locateLabel:    '#rp-features [data-l10n-id="remote-locate"]',
+    alert:          '#rp-features .overlay'
   },
 
   init: function() {
@@ -36,13 +36,13 @@ AlaMainPanel.prototype = {
   },
 
   loadMainPanel: function() {
-    this.client.findElement('#menu-item-rpp').tap();
+    this.client.findElement('#menu-item-rp').tap();
     this.waitForPanelToDissapear(this.selectors.rootPanel);
   },
 
   registerUser: function() {
     this.typeNewPassphrase('mypassword');
-    this.waitForPanelToDissapear(this.selectors.rppPanel);
+    this.waitForPanelToDissapear(this.selectors.rpPanel);
   },
 
   typeNewPassphrase: function(passphrase) {
@@ -75,15 +75,15 @@ AlaMainPanel.prototype = {
   },
 
   isLockEnabled: function() {
-    return this.client.settings.get('rpp.lock.enabled');
+    return this.client.settings.get('rp.lock.enabled');
   },
 
   isRingEnabled: function() {
-    return this.client.settings.get('rpp.ring.enabled');
+    return this.client.settings.get('rp.ring.enabled');
   },
 
   isLocateEnabled: function() {
-    return this.client.settings.get('rpp.locate.enabled');
+    return this.client.settings.get('rp.locate.enabled');
   },
 
   tapBackBtn: function(panel) {

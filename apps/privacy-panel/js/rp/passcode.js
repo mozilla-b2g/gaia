@@ -42,7 +42,7 @@ function(panels, SettingsListener) {
     _passcodeBuffer: '',
 
     init: function() {
-      this.panel = document.getElementById('rpp-passcode');
+      this.panel = document.getElementById('rp-passcode');
       this._getAllElements();
       this.passcodeInput.addEventListener('keypress', this);
       this.createPasscodeButton.addEventListener('click', this);
@@ -275,7 +275,7 @@ function(panels, SettingsListener) {
     _backToScreenLock: function sld_backToScreenLock() {
       this._passcodeBuffer = '';
       this.passcodeInput.blur();
-      panels.show({ id: 'rpp-screenlock', back: true });
+      panels.show({ id: 'rp-screenlock', back: true });
     }
 
   };
