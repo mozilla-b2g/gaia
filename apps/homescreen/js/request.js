@@ -5,8 +5,6 @@ var ConfirmDialog = (function() {
 
   var dialog, titleElem, messageElem, cancelButton, confirmButton;
 
-  var _ = navigator.mozL10n.get;
-
   function initialize() {
     dialog = document.getElementById('confirm-dialog');
 
@@ -69,7 +67,7 @@ var ConfirmDialog = (function() {
       var title, body, app = icon.app;
 
       var cancel = {
-        title: _('cancel'),
+        title: navigator.mozL10n.get('cancel'),
         callback: function onCancel() {
           ConfirmDialog.hide();
           var evt = new CustomEvent('confirmdialog', {
@@ -109,14 +107,14 @@ var ConfirmDialog = (function() {
       };
 
       if (app.type === GridItemsFactory.TYPE.COLLECTION) {
-        title = _('remove-title-2', nameObj);
-        body = _('remove-body', nameObj);
-        confirm.title = _('remove');
+        title = navigator.mozL10n.get('remove-title-2', nameObj);
+        body = navigator.mozL10n.get('remove-body', nameObj);
+        confirm.title = navigator.mozL10n.get('remove');
       } else {
         // Make sure to get the localized name
-        title = _('delete-title', nameObj);
-        body = _('delete-body', nameObj);
-        confirm.title = _('delete');
+        title = navigator.mozL10n.get('delete-title', nameObj);
+        body = navigator.mozL10n.get('delete-body', nameObj);
+        confirm.title = navigator.mozL10n.get('delete');
       }
 
       this.show(title, body, cancel, confirm);
