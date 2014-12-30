@@ -14,8 +14,26 @@ class Marketplace(Base):
 
     _loading_fragment_locator = (By.ID, 'splash-overlay')
     _search_locator = (By.ID, 'search-q')
+    _filter_locator = (By.ID, 'compatibility_filtering')
     _marketplace_iframe_locator = (By.CSS_SELECTOR, 'iframe[src*="marketplace"]')
     name = 'Marketplace'
+
+    def filter_search_all_apps(self):
+        filter_select = Wait(self.marionette).until(
+            expected.element_present(*self._filter_locator))
+        Wait(self.marionette).until(expected.element_displayed(filter_select))
+        filter_select.tap()
+
+        self.select('All apps', tap_close=False)
+
+        # After the select is gone, go back to the Marketplace app
+        self.apps.switch_to_displayed_app()
+        iframe = Wait(self.marionette).until(
+            expected.element_present(*self._marketplace_iframe_locator))
+        Wait(self.marionette).until(expected.element_displayed(iframe))
+        self.marionette.switch_to_frame(iframe)
+
+        return SearchResults(self.marionette)
 
     def search(self, term):
         iframe = Wait(self.marionette).until(
@@ -26,6 +44,10 @@ class Marketplace(Base):
         search_box = Wait(self.marionette).until(
             expected.element_present(*self._search_locator))
         Wait(self.marionette).until(expected.element_displayed(search_box))
+
+        # This sleep is necessary, otherwise the search results are not shown on desktop b2g
+        import time
+        time.sleep(0.5)
 
         # search for the app
         search_box.send_keys(term)
@@ -39,8 +61,7 @@ class SearchResults(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        Wait(self.marionette).until(
-            expected.element_not_present(*self._search_results_loading_locator))
+        self.wait_for_element_not_present(*self._search_results_loading_locator)
 
     @property
     def search_results(self):
