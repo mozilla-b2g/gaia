@@ -5,40 +5,23 @@
 import time
 
 from marionette import expected
-from marionette import Wait
 from marionette.by import By
 from marionette.marionette import Actions
 from marionette.wait import Wait
 
 from gaiatest.apps.base import Base
-from gaiatest.apps.phone.app import Phone
 from gaiatest.apps.phone.regions.call_screen import CallScreen
 
 
-class Keypad(Phone):
+class BaseKeypad(Base):
 
-    _keyboard_container_locator = (By.ID, 'keyboard-container')
     _phone_number_view_locator = (By.ID, 'phone-number-view')
     _keypad_delete_locator = (By.ID, 'keypad-delete')
     _call_bar_locator = (By.ID, 'keypad-callbar-call-action')
-    _add_new_contact_button_locator = (By.ID, 'keypad-callbar-add-contact')
-    _search_popup_locator = (By.CSS_SELECTOR, '#suggestion-bar .js-suggestion-item')
-    _suggested_contact_name_locator = (By.CSS_SELECTOR, '#suggestion-bar .js-suggestion-item .js-name')
-    _suggested_contact_phone_number_locator = (By.CSS_SELECTOR, '#suggestion-bar .js-suggestion-item .js-tel')
-
-    def __init__(self, marionette):
-        Phone.__init__(self, marionette)
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.name)
-        self.apps.switch_to_displayed_app()
-        keypad_toolbar_button = self.marionette.find_element(*self._keypad_toolbar_button_locator)
-        self.wait_for_condition(lambda m: 'toolbar-option-selected' in keypad_toolbar_button.get_attribute('class'))
 
     @property
     def phone_number(self):
         return self.marionette.find_element(*self._phone_number_view_locator).get_attribute('value')
-
-    def tap_phone_number(self):
-        self.marionette.find_element(*self._phone_number_view_locator).tap()
 
     def dial_phone_number(self, value):
         for i in value:
@@ -49,6 +32,10 @@ class Keypad(Phone):
                 self.marionette.find_element(By.CSS_SELECTOR, 'div.keypad-key[data-value="%s"]' % i).tap()
                 time.sleep(0.25)
 
+    def call_number(self, value):
+        self.dial_phone_number(value)
+        return self.tap_call_button()
+
     def clear_phone_number(self):
         delete_button = self.marionette.find_element(*self._keypad_delete_locator)
         Actions(self.marionette).long_press(delete_button, 1).perform()
@@ -58,10 +45,6 @@ class Keypad(Phone):
             self.accessibility.click(self.marionette.find_element(
                 By.CSS_SELECTOR, 'div.keypad-key[data-value="%s"]' % i))
             time.sleep(0.25)
-
-    def call_number(self, value):
-        self.dial_phone_number(value)
-        return self.tap_call_button()
 
     def a11y_call_number(self, value):
         self.a11y_dial_phone_number(value)
@@ -79,6 +62,24 @@ class Keypad(Phone):
         self.accessibility.click(self.marionette.find_element(*self._call_bar_locator))
         if switch_to_call_screen:
             return CallScreen(self.marionette)
+
+
+from gaiatest.apps.phone.app import Phone
+
+
+class Keypad(BaseKeypad, Phone):
+
+    _add_new_contact_button_locator = (By.ID, 'keypad-callbar-add-contact')
+    _search_popup_locator = (By.CSS_SELECTOR, '#suggestion-bar .js-suggestion-item')
+    _suggested_contact_name_locator = (By.CSS_SELECTOR, '#suggestion-bar .js-suggestion-item .js-name')
+    _suggested_contact_phone_number_locator = (By.CSS_SELECTOR, '#suggestion-bar .js-suggestion-item .js-tel')
+
+    def __init__(self, marionette):
+        Phone.__init__(self, marionette)
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.name)
+        self.apps.switch_to_displayed_app()
+        keypad_toolbar_button = self.marionette.find_element(*self._keypad_toolbar_button_locator)
+        self.wait_for_condition(lambda m: 'toolbar-option-selected' in keypad_toolbar_button.get_attribute('class'))
 
     def tap_add_contact(self):
         self.marionette.find_element(*self._add_new_contact_button_locator).tap()
