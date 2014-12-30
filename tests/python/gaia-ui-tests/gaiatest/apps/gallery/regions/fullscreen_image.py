@@ -22,6 +22,7 @@ class FullscreenImage(Base):
     '''
     _fullscreen_view_locator = (By.ID, 'fullscreen-view')
     _current_image_locator = (By.CSS_SELECTOR, '#frames .current > .image-view')
+    _current_frame_locator = (By.CSS_SELECTOR, '#frames .current')
     _photos_toolbar_locator = (By.ID, 'fullscreen-toolbar')
     _delete_image_locator = (By.ID, 'fullscreen-delete-button-tiny')
     _confirm_delete_locator = (By.ID, 'confirm-ok')
@@ -54,6 +55,10 @@ class FullscreenImage(Base):
     @property
     def current_image_size_height(self):
         return self.marionette.find_element(*self._current_image_locator).size['height']
+
+    @property
+    def current_image_frame(self):
+        return self.marionette.find_element(*self._current_frame_locator)
 
     def flick_to_next_image(self):
         self._flick_to_image('next')
