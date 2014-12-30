@@ -331,7 +331,8 @@ suite('dialer/call_log', function() {
             (group.emergency ? 'emergencyNumber' : '');
         assert.equal(primaryInfoMain.getAttribute('data-l10n-id'), expected);
       } else {
-        assert.equal(primaryInfoMain.innerHTML, group.number);
+        assert.equal(
+          primaryInfoMain.querySelector('bdi').innerHTML, group.number);
       }
     }
 

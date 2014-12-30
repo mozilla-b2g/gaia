@@ -495,7 +495,9 @@ var CallLog = {
       primInfoMain.textContent = contact.primaryInfo;
     } else {
       if (number) {
-        primInfoMain.textContent = number;
+        var bdi = document.createElement('bdi');
+        bdi.textContent = number;
+        primInfoMain.appendChild(bdi);
       } else {
         primInfoMain.setAttribute('data-l10n-id', 'withheld-number');
       }
