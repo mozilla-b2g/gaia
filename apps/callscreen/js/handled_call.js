@@ -341,7 +341,7 @@ HandledCall.prototype.connected = function hc_connected() {
   CallScreen.createTicker(this.durationNode);
   CallScreen.syncSpeakerEnabled();
 
-  CallScreen.setCallerContactImage();
+  this.updateCallNumber();
 
   this._wasConnected = true;
 };
