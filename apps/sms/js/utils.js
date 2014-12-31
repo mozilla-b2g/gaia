@@ -590,28 +590,6 @@
     },
 
     /**
-     * Converts image DOM node to canvas respecting image ratio.
-     * @param imageNode Image DOM node to convert.
-     * @param width Target image width.
-     * @param height Target image height.
-     * @returns {Node} Canvas object created from image DOM node.
-     */
-    imageToCanvas: function(imageNode, width, height) {
-      var ratio = Math.max(imageNode.width / width, imageNode.height / height);
-
-      var canvas = document.createElement('canvas');
-      canvas.width = Math.round(imageNode.width / ratio);
-      canvas.height = Math.round(imageNode.height / ratio);
-
-      var context = canvas.getContext('2d', { willReadFrequently: true });
-
-      // Using canvas width and height with correct image proportions
-      context.drawImage(imageNode, 0, 0, canvas.width, canvas.height);
-
-      return canvas;
-    },
-
-    /**
      * Returns a function that will call specified "func" function only after it
      * stops being called for a specified wait time.
      * @param {function} func Function to call.
