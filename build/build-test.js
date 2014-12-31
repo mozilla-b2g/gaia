@@ -9,11 +9,12 @@
 var utils = require('utils');
 
 exports.execute = function(options) {
-  const TEST_TYPE = utils.getEnv('TEST_TYPE');
-  const REPORTER = utils.getEnv('REPORTER');
-  const TRY_ENV = utils.getEnv('TRY_ENV');
-  const TIMEOUT = '300000';
-  const BUILD_TEST_PATH = 'build/test/';
+  var TEST_TYPE = utils.getEnv('TEST_TYPE');
+  var REPORTER = utils.getEnv('REPORTER');
+  var TRY_ENV = utils.getEnv('TRY_ENV');
+  var TEST_FILES = utils.getEnv('TEST_FILES');
+  var TIMEOUT = '300000';
+  var BUILD_TEST_PATH = 'build/test/';
   var thisChunk = utils.getEnv('THIS_CHUNK') || 1;
   var totalChunks = utils.getEnv('TOTAL_CHUNKS') || 1;
 
@@ -37,8 +38,14 @@ exports.execute = function(options) {
 
   var testDir = utils.getFile(options.GAIA_DIR);
   var files = [];
-  var pattern = new RegExp('(build/test/|apps/\\S+/test/build/)' + TEST_TYPE +
-    '/\\S+_test\\.js$');
+  var pattern;
+
+  if (TEST_FILES) {
+    pattern = new RegExp(TEST_FILES.trim().replace(' ', '|'));
+  } else {
+    pattern = new RegExp('^' + options.GAIA_DIR +
+      '(/build/test/|/apps/\\S+/test/build/)' + TEST_TYPE + '/\\S+_test\\.js$');
+  }
 
   utils.ls(testDir, true).forEach(function(file) {
     if (pattern.test(file.path)) {
