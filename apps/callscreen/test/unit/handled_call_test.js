@@ -635,7 +635,7 @@ suite('dialer/handled_call', function() {
       mockCall.emergency = true;
       subject = new HandledCall(mockCall);
 
-      assert.equal(subject.numberNode.textContent, '112');
+      assert.equal(subject.additionalInfoNode.textContent, 'emergencyNumber');
     });
   });
 
@@ -975,6 +975,60 @@ suite('dialer/handled_call', function() {
         assert.equal(subject.simNumberNode.textContent, 'sim-number');
         assert.deepEqual(MockLazyL10n.keys['sim-number'], {n: 2});
       });
+    });
+  });
+
+  suite('STK Call Control changes Number', function() {
+    test('should resolve to changed contact', function() {
+      mockCall = new MockCall('111', 'dialing');
+      subject = new HandledCall(mockCall);
+      assert.equal(subject.numberNode.textContent, '');
+
+      //simulate the STK change to a different number
+      mockCall.id.number = '555';
+      mockCall._connect();
+      MockVoicemail.mResolvePromise(false);
+
+      assert.equal(subject.numberNode.textContent, 'test name');
+    });
+
+    test('should resolve to number if no contact', function() {
+      mockCall = new MockCall('555', 'dialing');
+      subject = new HandledCall(mockCall);
+      assert.equal(subject.numberNode.textContent, '');
+
+      //simulate the STK change to a different number
+      mockCall.id.number = '111';
+      mockCall._connect();
+      MockVoicemail.mResolvePromise(false);
+
+      assert.equal(subject.numberNode.textContent, '111');
+    });
+
+    test('should resolve to voicemail', function() {
+      //simulate the STK change to a different number
+      mockCall = new MockCall('111', 'dialing');
+      subject = new HandledCall(mockCall);
+      mockCall.id.number = '123';
+
+      mockCall._connect();
+      MockVoicemail.mResolvePromise(true);
+
+      assert.equal(subject.numberNode.textContent, 'voiceMail');
+    });
+
+    test('should correctly identify emergency', function() {
+      //simulate the STK change to a different number
+      mockCall = new MockCall('555', 'dialing');
+      subject = new HandledCall(mockCall);
+
+      mockCall.id.number = '112';
+      mockCall.emergency = true;
+      mockCall._connect();
+
+      assert.equal(subject.additionalInfoNode.textContent, 'emergencyNumber');
+      assert.isTrue(subject.node.classList.contains('emergency'));
+      assert.isTrue(subject.node.textContent.contains('112'));
     });
   });
 });
