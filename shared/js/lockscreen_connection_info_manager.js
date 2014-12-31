@@ -188,6 +188,7 @@
       var conn = simslot.conn;
       var index = simslot.index;
 
+      // The text line of the targeting SIM.
       var connstate = this._connStates.children[index];
       var simIDLine = connstate.children[0];
       var connstateLines =
@@ -220,7 +221,15 @@
         return connstateLines[connstateLines.length - 1];
       };
 
+      // ----
       // Airplane mode
+      // If targeting SIM is the primary SIM,
+      //  print the message
+      // Else, hide the line
+      // Then, hide simIDLine.
+      // ** undocumenting assumptions **
+      // .. this must be called multiple times so that
+      //    to show the message and hide the line can be done.
       if (this._airplaneMode) {
         // Only show one airplane mode status
         if (index === 0) {
@@ -231,7 +240,22 @@
         simIDLine.hidden = true;
         return;
       }
+      // ++++
 
+      // ----
+      // If no SIMs
+      //  If targeting SIM is the primary SIM
+      //    If still has voice that shos emergencyCallsOnly
+      //      update both lines with emergencyCallsOnly + noSIM reason
+      //    If NOT,
+      //      only shows noSIM
+      //  Then, hide the simIDLine, no matter which SIM is targeting.
+      // ** undocumenting assumptions **
+      // ?? Since the third lineText is the same with the second one,
+      //    it can be called multiple times? And in what case we would
+      //    has voice.emergencyCallsOnly and in what case we would lose it?
+      // ?? What's the difference between the two emergencyCallsOnly?
+      //
       // If there is no sim card on the device, we only show one information.
       if (SIMSlotManager.noSIMCardOnDevice()) {
         if (index === 0) {
@@ -244,6 +268,18 @@
         }
         simIDLine.hidden = true;
         return;
+      // ++++
+      // ----
+      // If has SIM(s) BUT no connected SIM card
+      //  If targeting SIM is the primary SIM
+      //    Line1 print emergencyCallsOnly
+      //  Then, hide the simIDLine.
+      // ** undocumenting assumptions **
+      // ?? what's the difference between this 'emergencyCallsOnly' vs.
+      //    'noNetwork'? Since the 'noSIMCardConnectedToNetwork' looks
+      //    like 'noNetwork'? Or the 'network' means some dialing-availiable
+      //    network, while the network of 'noNetwork' is really no network?
+      // ++++
       } else if (SIMSlotManager.noSIMCardConnectedToNetwork()) {
         if (index === 0) {
           lineText(nextLine(), 'emergencyCallsOnly');
@@ -252,6 +288,14 @@
         return;
       }
 
+      // ----
+      // "On multiple SIMs device but only one SIM instered"
+      // + the targeting SIM is the absent one
+      // = hide the line.
+      // ** undocumenting assumptions **
+      // .. the function MUST be called multiple times to make sure every
+      //    absent line can be hidden.
+      //
       // If there are multiple sim slots and only one sim card inserted, we
       // only show the state of the inserted sim card.
       if (SIMSlotManager.isMultiSIM() &&
@@ -260,7 +304,14 @@
         connstate.hidden = true;
         return;
       }
+      // ++++
 
+      //----
+      // "noNetwork"
+      // ** undocumenting assumptions **
+      // .. the same, can only be called once. Since on real device there is no
+      //    two 'noNetwork'
+      //
       // Possible value of voice.state are:
       // 'notSearching', 'searching', 'denied', 'registered',
       // where the latter three mean the phone is trying to grab the network.
@@ -269,7 +320,17 @@
         lineText(nextLine(), 'noNetwork');
         return;
       }
+      // ++++
 
+      // ----
+      // voice must exist, AND 'state' NOT in voice, or
+      //    voice.state ..= ['searching', 'denied', 'registered']
+      //    then the targeting Line would be 'searching' (no secondary line).
+      // ** undocumenting assumptions **
+      // .. looks this can only be called on one SIM, too? Since I never saw
+      //    two 'Searching...' on device.
+      // ?? is there any assumption that make sure the timing of call this
+      //    function can ensure calling only once?
       if (!voice.connected && !voice.emergencyCallsOnly) {
         // "Searching"
         // voice.state can be any of the latter three values.
@@ -278,7 +339,19 @@
         lineText(nextLine(), 'searching');
         return;
       }
+      // ++++
 
+      // ----
+      // If the target SIM has 'emergencyCallsOnly'...
+      //    And if it's the first primary (servicing) card
+      //      print Line1 as 'emergencyCallsOnly'
+      //      print Line2 as 'emergencyCallsOnly-reason'
+      //    If not, hide the connstate --> the targeting SIM's line
+      // ** undocumenting assumptions **
+      // .. the function can only be called once by one targeting SIM,
+      //    since it would hide the targeting line. If SIM1 update the lines,
+      //    and then apply this function on SIM2, the updated Line2 would be
+      //    hidden.
       if (voice.emergencyCallsOnly) {
         if (this._telephonyDefaultServiceId == index) {
           lineText(nextLine(), 'emergencyCallsOnly');
@@ -288,6 +361,7 @@
         }
         return;
       }
+      // +++++
 
       var operatorInfos = MobileOperator.userFacingInfo(conn);
       var operator = operatorInfos.operator;
@@ -295,6 +369,11 @@
         return (conn.voice.type == elem);
       });
 
+      // ----
+      // If targeting SIM is roaming
+      // ** undocumenting assumptions **
+      // .. it must be called multiple times to fill both
+      //    'roaming' and operator info
       var l10nArgs;
       if (voice.roaming) {
         l10nArgs = { operator: operator };
@@ -302,8 +381,13 @@
       } else {
         lineText(nextLine(), null, null, operator);
       }
+      // ++++
 
 
+      // ----
+      // Finally, fill the ordinary carrier, region and operator info
+      // Plus the cellbroadcast info WHEN it's 2G
+      // ?? how about 3G + cellbroadcast?
       if (this._cellbroadcastLabel && is2G) {
         lineText(nextLine(), null, null, this._cellbroadcastLabel);
       } else if (operatorInfos.carrier) {
@@ -311,6 +395,7 @@
                          region: operatorInfos.region };
         lineText(nextLine(), 'operator-info', l10nArgs);
       }
+      // ++++
   };
 
   LockScreenConnInfoManager.prototype = LockScreenConnInfoManagerPrototype;
