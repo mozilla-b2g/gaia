@@ -64,35 +64,48 @@
         this._connStates.appendChild(this._createConnStateElement());
         simslot.conn.addEventListener('voicechange',
           (function(index) {
+            // ==> called; the voicechanged SIM.
             this.updateConnState(simslot);
         }).bind(this));
       }, this);
 
       // event handlers
+      // [ ]==> called; all SIMs.
       navigator.mozL10n.ready(this.updateConnStates.bind(this));
 
       window.addEventListener('simslot-cardstatechange', (function(evt) {
+        // ==> called; the statechanged SIM.
         this.updateConnState(evt.detail);
       }).bind(this));
 
       window.addEventListener('simslot-iccinfochange', (function(evt) {
+        // ==> called; the iccinfochange SIM.
         this.updateConnState(evt.detail);
       }).bind(this));
 
       // Handle incoming CB messages that need to be displayed.
       window.addEventListener('cellbroadcastmsgchanged', (function(evt) {
         this._cellbroadcastLabel = evt.detail;
+        // [ ]==> called; all SIMs.
+        // ?? Only one SIM changed or all SIMs changed?
+        // ?? Why need to call all?
+        // ?? In updating function, would check is2G: conn.voice...,
+        //    does this mean only the primary card can be checked
+        //    and the line would print the info?
         this.updateConnStates();
       }).bind(this));
 
       this._settings.addObserver('ril.radio.disabled', (function(evt) {
         this._airplaneMode = evt.settingValue;
+        // [ ]==> called; all SIMs (disalbed --> all SIMs related)
         this.updateConnStates();
       }).bind(this));
 
       this._settings.addObserver('ril.telephony.defaultServiceId',
         (function(evt) {
           this._telephonyDefaultServiceId = evt.settingValue;
+          // [ ]==> called; all SIMs (--> need to swap the infos,
+          // or to update them).
           this.updateConnStates();
       }).bind(this));
 
@@ -106,6 +119,7 @@
         req2.onsuccess = (function() {
           this._telephonyDefaultServiceId =
             req2.result['ril.telephony.defaultServiceId'] || 0;
+          // [ ]==> called; all SIMs (initialization)
           this.updateConnStates();
         }).bind(this);
       }).bind(this);
@@ -345,7 +359,7 @@
       // If the target SIM has 'emergencyCallsOnly'...
       //    And if it's the first primary (servicing) card
       //      print Line1 as 'emergencyCallsOnly'
-      //      print Line2 as 'emergencyCallsOnly-reason'
+      //      print Line2 as 'emergencyCallsOnly-reason via the map'
       //    If not, hide the connstate --> the targeting SIM's line
       // ** undocumenting assumptions **
       // .. the function can only be called once by one targeting SIM,
@@ -372,8 +386,8 @@
       // ----
       // If targeting SIM is roaming
       // ** undocumenting assumptions **
-      // .. it must be called multiple times to fill both
-      //    'roaming' and operator info
+      // .. since there is no 'return' so it would fall to thr next section
+      //    to print full operator, carrier and region info.
       var l10nArgs;
       if (voice.roaming) {
         l10nArgs = { operator: operator };
@@ -381,7 +395,7 @@
       } else {
         lineText(nextLine(), null, null, operator);
       }
-      // ++++
+      // ||||
 
 
       // ----
