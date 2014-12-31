@@ -223,8 +223,11 @@ var ActivityHandler = {
       return;
     }
 
-    var request = navigator.mozMobileMessage.getMessage(message.id);
-    request.onsuccess = function onsuccess() {
+    MessageManager.getMessage(message.id).then((message) => {
+      if (!Threads.has(message.threadId)) {
+        Threads.registerMessage(message);
+      }
+
       if (Compose.isEmpty()) {
         ActivityHandler.toView(message);
         return;
@@ -234,11 +237,9 @@ var ActivityHandler = {
         ThreadUI.cleanFields();
         ActivityHandler.toView(message);
       });
-    };
-
-    request.onerror = function onerror() {
+    }, function onGetMessageError() {
       Utils.alert('deleted-sms');
-    };
+    });
   },
 
   // The unsent confirmation dialog provides 2 options: edit and discard

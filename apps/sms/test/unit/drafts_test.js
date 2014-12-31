@@ -494,7 +494,7 @@ suite('Drafts', function() {
         [null, [d5, d6, d7]]
       ]);
 
-      Drafts.request(function() {
+      Drafts.request().then(function() {
         assert.equal(Drafts.byThreadId(42).length, 1);
         Drafts.byThreadId(42).forEach(function(elem) {
           assert.deepEqual(elem, d1);
@@ -507,9 +507,7 @@ suite('Drafts', function() {
 
         assert.equal(Drafts.byThreadId(null).length, 3);
         assert.equal(Drafts.byThreadId(5).length, 0);
-
-        done();
-      });
+      }).then(done, done);
     });
 
     test('Load, clear, restore drafts', function(done) {
@@ -520,7 +518,7 @@ suite('Drafts', function() {
       ]);
 
       // Load
-      Drafts.request(function() {
+      Drafts.request().then(function() {
         assert.equal(Drafts.size, 3);
         assert.isTrue(asyncStorage.getItem.calledOnce);
 
@@ -530,21 +528,19 @@ suite('Drafts', function() {
         assert.equal(Drafts.size, 0);
 
         // Restore
-        Drafts.request(function() {
+        return Drafts.request().then(function() {
           assert.equal(Drafts.size, 3);
           assert.isTrue(asyncStorage.getItem.calledTwice);
-          done();
         });
-      });
+      }).then(done, done);
     });
 
     test('Load drafts, has no stored data', function(done) {
       this.sinon.stub(asyncStorage, 'getItem').yields([]);
 
-      Drafts.request(function() {
+      Drafts.request().then(function() {
         assert.equal(Drafts.size, 0);
-        done();
-      });
+      }).then(done, done);
     });
 
     test('signals to InterInstanceEventDispatcher when drafts are stored',
@@ -576,31 +572,26 @@ suite('Drafts', function() {
           yields(null);
       });
 
-      test('is properly populated', function() {
-        Drafts.request(requestCallbackStub);
+      test('is properly populated', function(done) {
+        Drafts.request().then(() => {
+          sinon.assert.calledOnce(asyncStorage.getItem);
 
-        sinon.assert.calledOnce(requestCallbackStub);
-        sinon.assert.calledOnce(asyncStorage.getItem);
-
-        Drafts.request(requestCallbackStub);
-        this.sinon.clock.tick();
-
-        sinon.assert.calledTwice(requestCallbackStub);
-        sinon.assert.calledOnce(asyncStorage.getItem);
+          return Drafts.request();
+        }).then(() => {
+          sinon.assert.calledOnce(asyncStorage.getItem);
+        }).then(done, done);
       });
 
-      test('is properly refreshed with force parameter', function() {
-        Drafts.request(requestCallbackStub);
+      test('is properly refreshed with force parameter', function(done) {
+        Drafts.request().then(() => {
+          sinon.assert.calledOnce(asyncStorage.getItem);
 
-        sinon.assert.calledOnce(requestCallbackStub);
-        sinon.assert.calledOnce(asyncStorage.getItem);
-
-        // "Force" parameter should re-request data from asyncStorage even if
-        // it's already cached
-        Drafts.request(requestCallbackStub, true);
-
-        sinon.assert.calledTwice(requestCallbackStub);
-        sinon.assert.calledTwice(asyncStorage.getItem);
+          // "Force" parameter should re-request data from asyncStorage even if
+          // it's already cached
+          return Drafts.request(true);
+        }).then(() => {
+          sinon.assert.calledTwice(asyncStorage.getItem);
+        }).then(done, done);
       });
     });
   });

@@ -1,10 +1,11 @@
 /*global asyncStorage,
-         InterInstanceEventDispatcher
+         InterInstanceEventDispatcher,
+         Utils
 */
 (function(exports) {
   'use strict';
   var draftIndex = new Map();
-  var isCached = false;
+  var deferredDraftRequest = null;
 
   /**
    * Drafts
@@ -217,7 +218,7 @@
      */
     clear: function() {
       draftIndex = new Map();
-      isCached = false;
+      deferredDraftRequest = null;
       return this;
     },
     /**
@@ -239,64 +240,36 @@
         InterInstanceEventDispatcher.emit('drafts-changed');
       });
     },
+
     /**
-     * request
-     *
-     * Request drafts from asyncStorage or in-memory cache.
-     *
-     * @param {Function} callback If a callback is provided, invoke
-     *                            with list of threadless drafts as
-     *                            arguments.
-     * @return {Undefined} void return.
+     * Requests drafts from asyncStorage or in-memory cache. Result is cached.
+     * @param {Boolean} force Indicates whether we should respect already cached
+     * result or _force_ asyncStorage request once again.
+     * @returns {Promise.<Drafts.List>} List of threadless drafts.
      */
-    request: function(callback, force) {
-      function handler() {
-        isCached = true;
-
-        if (typeof callback === 'function') {
-          // When a callback is provided, call it with
-          // a draft list of threadless drafts
-          callback(Drafts.byThreadId(null));
-        }
+    request: function(force) {
+      // Loading from storage only happens once or when specifically requested
+      // with force parameter.
+      if (deferredDraftRequest && !force) {
+        return deferredDraftRequest.promise;
       }
 
-      // Loading from storage only happens when the
-      // app first opens.
-      if (isCached && !force) {
-        setTimeout(function() {
-          handler();
+      deferredDraftRequest = Utils.Promise.defer();
+
+      asyncStorage.getItem('draft index', function (records) {
+        // Convert every plain JS draft object into Draft "class" instance.
+        // record[0] is the threadId or null key, record[1] is the array of
+        // draft objects associated with that threadId or null key.
+        records && records.forEach((record) => {
+          record[1] = record[1].map((draft) => new Draft(draft));
         });
-      } else {
-        asyncStorage.getItem('draft index', function(records) {
-          var rlength, drafts, dlength;
+        draftIndex = new Map(records || []);
 
-          // Revive as Draft objects by constructing new Draft from
-          // each plain object returned from storage.
-          if (records !== null) {
-            /*
-              record[0] is the threadId or null key
-              record[1] is the array of draft objects associated
-                         with that threadId or null key
+        // Return list of threadless drafts
+        deferredDraftRequest.resolve(Drafts.byThreadId(null));
+      });
 
-              Replace each plain object in record[1] with a
-              real draft object.
-            */
-            rlength = records.length;
-
-            for (var i = 0; i < rlength; i++) {
-              drafts = records[i][1];
-              dlength = drafts.length;
-
-              for (var j = 0; j < dlength; j++) {
-                drafts[j] = new Draft(drafts[j]);
-              }
-            }
-          }
-          draftIndex = new Map(records || []);
-
-          handler();
-        });
-      }
+      return deferredDraftRequest.promise;
     }
   };
 
