@@ -20,21 +20,22 @@ class TestGalleryMultiDelete(GaiaTestCase):
 
     def test_gallery_delete_image(self):
         """
-        https://moztrap.mozilla.org/manage/case/1533/
+        https://moztrap.mozilla.org/manage/case/1534/
         """
 
         gallery = Gallery(self.marionette)
         gallery.launch()
         gallery.wait_for_files_to_load(3)
 
+        # Select 3 images
         gallery_multi_view = gallery.switch_to_multiple_selection_view()
         gallery_multi_view.select_nth_picture(0)
         gallery_multi_view.select_nth_picture(1)
         gallery_multi_view.select_nth_picture(2)
 
-        # Tap the delete button and confirm by default
-        gallery_multi_view.tap_delete_button()
-        gallery.wait_for_thumbnail_view_to_load()
+        # Tap the delete button and press cancel button
+        gallery_multi_view.tap_delete_button(confirm=False)
 
-        # Verify empty gallery title.
-        Wait(self.marionette).until(lambda m: gallery.empty_gallery_title == 'No photos or videos')
+        # Verify files still exist and still selected
+        self.assertEqual(3, gallery_multi_view.number_of_selected_images)
+        self.assertEqual(3, gallery.gallery_items_number)
