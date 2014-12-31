@@ -1,5 +1,7 @@
+console.time('gaia-header');
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.GaiaHeader=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 ;(function(define){define(function(require,exports,module){
+  console.time('gaia-component');
 'use strict';
 
 var textContent = Object.getOwnPropertyDescriptor(Node.prototype, 'textContent');
@@ -32,7 +34,9 @@ module.exports.register = function(name, props) {
   delete props.globalCSS;
 
   var proto = Object.assign(Object.create(base), props);
+  console.time('extractLightDomCSS');
   var output = extractLightDomCSS(proto.template, name);
+  console.timeEnd('extractLightDomCSS');
   var _attrs = Object.assign(props.attrs || {}, attrs);
 
   proto.template = output.template;
@@ -42,7 +46,9 @@ module.exports.register = function(name, props) {
 
   // Register and return the constructor
   // and expose `protoytpe` (bug 1048339)
+  console.time('register');
   var El = document.registerElement(name, { prototype: proto });
+  console.timeEnd('register');
   return El;
 };
 
@@ -201,12 +207,14 @@ function injectGlobalCss(css) {
   document.head.appendChild(style);
 }
 
+console.timeEnd('gaia-component');
 });})(typeof define=='function'&&define.amd?define
 :(function(n,w){'use strict';return typeof module=='object'?function(c){
 c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
 return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-component',this));
 },{}],2:[function(require,module,exports){
 (function(define){define(function(require,exports,module){
+  console.time('gaia-icons');
 /*jshint laxbreak:true*/
 
 /**
@@ -235,6 +243,7 @@ function isLoaded() {
     document.documentElement.classList.contains('gaia-icons-loaded');
 }
 
+console.timeEnd('gaia-icons');
 });})(typeof define=='function'&&define.amd?define
 :(function(n,w){return typeof module=='object'?function(c){
 c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
@@ -242,6 +251,7 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-icons',this));
 
 },{}],3:[function(require,module,exports){
 ;(function(define){'use strict';define(function(require,exports,module){
+  console.time('gaia-header');
 /*jshint esnext:true*/
 
 /**
@@ -261,6 +271,8 @@ require('gaia-icons');
  */
 var actionTypes = { menu: 1, back: 1, close: 1 };
 
+const KNOWN_ATTRIBUTES = ['action', 'skip-init', 'start', 'end'];
+
 /**
  * Register the component.
  *
@@ -277,7 +289,30 @@ module.exports = Component.register('gaia-header', {
    * @private
    */
   created: function() {
+    console.time('created');
+    this.attrs = {};
+    this.runFontFitTimeout = null;
+
+    KNOWN_ATTRIBUTES.forEach((name) => this._updateAttribute(name));
+
+    console.timeEnd('created');
+  },
+
+  /**
+   * Initializes the component.
+   * It especially runs the font-fit algorithm once, and registers the
+   * textContent observer.
+   *
+   * @private
+   */
+  init: function() {
+    if (this.attrs.skipInit !== null) {
+      return;
+    }
+
+    console.time('shadowRoot');
     this.createShadowRoot().innerHTML = this.template;
+    console.timeEnd('shadowRoot');
 
     // Get els
     this.els = {
@@ -287,8 +322,12 @@ module.exports = Component.register('gaia-header', {
     };
 
     this.els.actionButton.addEventListener('click', e => this.onActionButtonClick(e));
+    console.time('actionbutton');
     this.configureActionButton();
+    console.timeEnd('actionbutton');
+
     this.runFontFit();
+    this.addFontFitObserver();
   },
 
   /**
@@ -298,7 +337,16 @@ module.exports = Component.register('gaia-header', {
    * @private
    */
   attached: function() {
-    this.rerunFontFit();
+    console.time('attached');
+    this.init();
+    console.timeEnd('attached');
+  },
+
+  /**
+   * Called when the element is detached from the DOM
+   */
+  detached: function() {
+    this.removeFontFitObserver();
   },
 
   /**
@@ -308,10 +356,75 @@ module.exports = Component.register('gaia-header', {
    * @private
    */
   attributeChanged: function(attr) {
+    if (KNOWN_ATTRIBUTES.indexOf(attr) === -1) {
+      return;
+    }
+
+    this._updateAttribute(attr);
+
+    if (attr === 'skip-init') {
+      setTimeout(() => this.init());
+      return;
+    }
+
     if (attr === 'action') {
       this.configureActionButton();
-      this.rerunFontFit();
     }
+
+    this.runFontFitSoon();
+  },
+
+  /**
+   * Used to camel case a word containing dashes
+   *
+   * @private
+   */
+  _camelCase: function ut_camelCase(str) {
+    return str.replace(/-(.)/g, function replacer(str, p1) {
+      return p1.toUpperCase();
+    });
+  },
+
+  /**
+   * Updates an attribute value in the internal attrs object
+   *
+   * @private
+   */
+  _updateAttribute: function(name) {
+    var newVal = this.getAttribute(name);
+    this.attrs[this._camelCase(name)] = newVal;
+  },
+
+  /**
+   * Adds the textContent observer in the font fit library.
+   *
+   * @private
+   */
+  addFontFitObserver: function() {
+    for (var i = 0; i < this.els.headings.length; i++) {
+      fontFit.observeHeadingChanges(this.els.headings[i]);
+    }
+  },
+
+  /**
+   * Removes the textContent observer in the font fit library.
+   *
+   * @private
+   */
+  removeFontFitObserver: function() {
+    fontFit.disconnectHeadingObserver();
+  },
+
+  /**
+   * This function will debounce the use of runFontFit. This is used in
+   * attributeChanged so that the component user can change different attributes
+   * and still have runFontFit run once.
+   *
+   * @private
+   */
+  runFontFitSoon: function() {
+    clearTimeout (this.runFontFitTimeout);
+    this.runFontFitTimeout = setTimeout(() => this.runFontFit());
   },
 
   /**
@@ -322,21 +435,12 @@ module.exports = Component.register('gaia-header', {
    */
   runFontFit: function() {
     for (var i = 0; i < this.els.headings.length; i++) {
-      fontFit.reformatHeading(this.els.headings[i]);
-      fontFit.observeHeadingChanges(this.els.headings[i]);
-    }
-  },
-
-  /**
-   * Rerun font-fit logic.
-   *
-   * TODO: We really need an official API for this.
-   *
-   * @private
-   */
-  rerunFontFit: function() {
-    for (var i = 0; i < this.els.headings.length; i++) {
-      fontFit.reformatHeading(this.els.headings[i]);
+      var heading = this.els.headings[i];
+      var start = parseInt(this.attrs.start);
+      var end = parseInt(this.attrs.end);
+      start = isNaN(start) ? null : start;
+      end = isNaN(end) ? null : end;
+      fontFit.reformatHeading(heading, start, end);
     }
   },
 
@@ -347,7 +451,7 @@ module.exports = Component.register('gaia-header', {
    * @public
    */
   triggerAction: function() {
-    if (this.isSupportedAction(this.getAttribute('action'))) {
+    if (this.isSupportedAction(this.attrs.action)) {
       this.els.actionButton.click();
     }
   },
@@ -361,7 +465,7 @@ module.exports = Component.register('gaia-header', {
    */
   configureActionButton: function() {
     var old = this.els.actionButton.getAttribute('icon');
-    var type = this.getAttribute('action');
+    var type = this.attrs.action;
     var supported = this.isSupportedAction(type);
     this.els.actionButton.classList.remove('icon-' + old);
     this.els.actionButton.setAttribute('icon', type);
@@ -375,7 +479,7 @@ module.exports = Component.register('gaia-header', {
    * @private
    */
   isSupportedAction: function(action) {
-    return action && actionTypes[action];
+    return !!(action && actionTypes[action]);
   },
 
   /**
@@ -389,7 +493,7 @@ module.exports = Component.register('gaia-header', {
    * @private
    */
   onActionButtonClick: function(e) {
-    var config = { detail: { type: this.getAttribute('action') } };
+    var config = { detail: { type: this.attrs.action } };
     var actionEvent = new CustomEvent('action', config);
     setTimeout(this.dispatchEvent.bind(this, actionEvent));
   },
@@ -669,6 +773,7 @@ module.exports = Component.register('gaia-header', {
   </div>`
 });
 
+console.timeEnd('gaia-header');
 });})(typeof define=='function'&&define.amd?define
 :(function(n,w){'use strict';return typeof module=='object'?function(c){
 c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
@@ -676,6 +781,23 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
 
 },{"./lib/font-fit":4,"gaia-component":1,"gaia-icons":2}],4:[function(require,module,exports){
 ;(function(define){'use strict';define(function(require,exports,module){
+  console.time('font-fit');
+
+  var privMap = new WeakMap();
+
+  function getPriv(instance) {
+    var privMembers = privMap.get(instance);
+
+    if (!privMembers) {
+      privMembers = {
+        start: null,
+        end: null
+      };
+      privMap.set(instance, privMembers);
+    }
+
+    return privMembers;
+  }
 
   /**
    * Utility functions for measuring and manipulating font sizes
@@ -700,22 +822,60 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
     },
 
     /**
+     * Stops the observer from observing the heading changes.
+     */
+    disconnectHeadingObserver: function() {
+      var observer = this._getTextChangeObserver();
+      observer.disconnect();
+    },
+
+    /**
      * Resize and reposition the header text based on string length and
-     * container position.
+     * container position
      *
      * @param {HTMLHeadingElement} heading h1 text inside header to reformat.
+     * @param {Number} start Offset in pixels between the start of the text
+     * container and the start of the inner window.
+     * @param {Number} end Offset in pixels between the end of the text
+     * container and the end of the inner window.
      */
-    reformatHeading: function(heading) {
+    reformatHeading: function(heading, start, end) {
       // Skip resize logic if header has no content, ie before localization.
       if (!heading || heading.textContent.trim() === '') {
         return;
       }
 
+      var style;
+      var priv = getPriv(heading);
+      if (start !== undefined) {
+        priv.start = start;
+      }
+
+      if (end !== undefined) {
+        priv.end = end;
+      }
+
+      start = priv.start;
+      end = priv.end;
+
+      var hasSizeInformation = start !== null || end !== null;
+
       // Reset our centering styles.
       this._resetCentering(heading);
 
-      // Cache the element style properties to avoid reflows.
-      var style = this._getStyleProperties(heading);
+      if (hasSizeInformation) {
+        style = {
+          fontFamily: 'sans-serif',
+          contentWidth: this._getWindowWidth() - (start || 0) - (end || 0),
+          paddingRight: 0,
+          paddingLeft: 0,
+          offsetLeft: start || 0,
+          rtlFriendly: true
+        };
+      } else {
+        // Cache the element style properties to avoid reflows.
+        style = this._getStyleProperties(heading);
+      }
 
       // If the document is inside a hidden iframe
       // `window.getComputedStyle()` returns null,
@@ -796,13 +956,20 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
 
     /**
      * Auto-resize all text changes.
+     * We reformat only once even if several mutations occur for one target.
      *
      * @param {Array} mutations A MutationRecord list.
      * @private
      */
     _handleTextChanges: function(mutations) {
+      var targets = new Set();
+
       for (var i = 0; i < mutations.length; i++) {
-        this.reformatHeading(mutations[i].target);
+        targets.add(mutations[i].target);
+      }
+
+      for (var target of targets) {
+        this.reformatHeading(target);
       }
     },
 
@@ -945,6 +1112,7 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
       // We need to set the lateral margins to 0 to be able to measure the
       // element width properly. All previously set values are ignored.
       heading.style.marginLeft = heading.style.marginRight = '0';
+      heading.style.MozMarginStart = heading.style.MozMarginEnd = '0';
     },
 
     /**
@@ -978,6 +1146,15 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
         return;
       }
 
+      var propLeft, propRight;
+      if (styleOptions.rtlFriendly) {
+        propLeft = 'MozMarginStart';
+        propRight = 'MozMarginEnd';
+      } else {
+        propLeft = 'marginLeft';
+        propRight = 'marginRight';
+      }
+
       // To center, we need to make sure the space to the left of the header
       // is the same as the space to the right, so take the largest of the two.
       var margin = Math.max(sideSpaceLeft, sideSpaceRight);
@@ -988,10 +1165,10 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
       // See https://bugzil.la/1026955
       if (minHeaderWidth + (margin * 2) < this._getWindowWidth() - 1) {
         if (sideSpaceLeft < sideSpaceRight) {
-          heading.style.marginLeft = (sideSpaceRight - sideSpaceLeft) + 'px';
+          heading.style[propLeft] = (sideSpaceRight - sideSpaceLeft) + 'px';
         }
         if (sideSpaceRight < sideSpaceLeft) {
-          heading.style.marginRight = (sideSpaceLeft - sideSpaceRight) + 'px';
+          heading.style[propRight] = (sideSpaceLeft - sideSpaceRight) + 'px';
         }
       }
     },
@@ -1009,6 +1186,7 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
 
   module.exports = GaiaHeaderFontFit;
 
+  console.timeEnd('font-fit');
 });})(typeof define=='function'&&define.amd?define
 :(function(n,w){'use strict';return typeof module=='object'?function(c){
 c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
@@ -1016,3 +1194,4 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('./lib/font-fit',this));
 
 },{}]},{},[3])(3)
 });
+console.timeEnd('gaia-header');
