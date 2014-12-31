@@ -20,6 +20,8 @@ class ContactDetails(Base):
     _details_header_locator = (By.ID, 'details-view-header')
     _add_remove_favorite_button_locator = (By.ID, 'toggle-favorite')
     _comments_locator = (By.ID, 'note-details-template-0')
+    _facebook_link_locator = (By.CSS_SELECTOR, '#contact-detail-inner .icon-link')
+    _unlink_button_locator = (By.CSS_SELECTOR, '.danger')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -57,6 +59,30 @@ class ContactDetails(Base):
         self.marionette.find_element(*self._send_sms_button_locator).tap()
         from gaiatest.apps.messages.regions.new_message import NewMessage
         return NewMessage(self.marionette)
+
+    def tap_link_contact(self):
+        self.wait_for_element_displayed(*self._facebook_link_locator)
+        facebook_button = self.marionette.find_element(*self._facebook_link_locator)
+        facebook_button.tap()
+        from gaiatest.apps.contacts.regions.facebook import FacebookLogin
+        return FacebookLogin(self.marionette)
+
+    def tap_link_contact(self):
+        self.wait_for_element_displayed(*self._facebook_link_locator)
+        facebook_button = self.marionette.find_element(*self._facebook_link_locator)
+        facebook_button.tap()
+        from gaiatest.apps.contacts.regions.facebook import FacebookLogin
+        return FacebookLogin(self.marionette)
+
+    def tap_unlink_contact(self):
+        self.wait_for_element_displayed(*self._facebook_link_locator)
+        facebook_button = self.marionette.find_element(*self._facebook_link_locator)
+        facebook_button.tap()
+
+        # Tap on the Unlink button in the confirmation dialog
+        self.wait_for_element_displayed(*self._unlink_button_locator)
+        self.marionette.find_element(*self._unlink_button_locator).tap()
+        self.apps.switch_to_displayed_app()
 
     def tap_edit(self):
         edit = Wait(self.marionette).until(expected.element_present(

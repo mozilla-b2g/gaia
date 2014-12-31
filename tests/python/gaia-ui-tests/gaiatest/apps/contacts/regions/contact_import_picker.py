@@ -12,6 +12,7 @@ class ContactImportPicker(Base):
 
     _contact_import_picker_frame_locator = (By.ID, 'fb-extensions')
     _import_button_locator = (By.ID, 'import-action')
+    _friend_locator = (By.CSS_SELECTOR, '#friends-list')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -30,6 +31,21 @@ class ContactImportPicker(Base):
             self.wait_for_element_not_displayed(*self._contact_import_picker_frame_locator, timeout=60)
         from gaiatest.apps.contacts.regions.settings_form import SettingsForm
         return SettingsForm(self.marionette)
+
+    def tap_first_friend(self):
+        #self.marionette.find_element(*self._friend_locator).tap(y=-24)
+
+        self.marionette.execute_script('window.wrappedJSObject.document.getElementById("friends-list").getElementsByTagName("a")[1].click()', special_powers=True)
+        self.wait_for_element_not_displayed(*self._friend_locator)
+
+
+    def tap_first_friend(self):
+        #self.marionette.find_element(*self._friend_locator).tap(y=-24)
+
+        self.marionette.execute_script('window.wrappedJSObject.document.getElementById("friends-list").getElementsByTagName("a")[1].click()', special_powers=True)
+        self.wait_for_element_not_displayed(*self._friend_locator)
+        self.apps.switch_to_displayed_app()
+
 
     def tap_select_all(self):
         # TODO replace this with proper tap when Bug 932804 is resolved
