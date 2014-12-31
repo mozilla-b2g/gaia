@@ -107,12 +107,9 @@
         if (value === null) {
           value = false;
         }
-        that._callForwardingHelper.get(function(states) {
-          states[index] = value;
-          that._callForwardingHelper.set(states, function() {
-            that._callForwardingIconInitializedStates[index] = true;
-          });
-        });
+        that._callForwardingIconInitializedStates[index] = value;
+        that._callForwardingHelper
+          .set(that._callForwardingIconInitializedStates);
       });
     },
 

@@ -221,13 +221,6 @@ suite('system/callForwarding >', function() {
       });
 
       suite('when with valid iccid', function() {
-        test('should mark the slot as initialized', function() {
-          this.callForwarding.start();
-          this.callForwarding._initCallForwardingState(this.slots[0]);
-          assert.ok(
-            this.callForwarding._callForwardingIconInitializedStates[0]);
-        });
-
         test('should set the icon state to false when no cached information',
           function(done) {
             this.callForwarding.start();
