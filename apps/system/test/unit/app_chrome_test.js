@@ -157,6 +157,8 @@ suite('system/AppChrome', function() {
       var app = new AppWindow(fakeWebSite);
       var chrome = new AppChrome(app);
       var stubBack = this.sinon.stub(app, 'back');
+      assert.equal(chrome.backButton.getAttribute('data-l10n-id'),
+        'back-button');
       chrome.handleEvent({ type: 'click', target: chrome.backButton });
       assert.isTrue(stubBack.called);
     });
@@ -165,6 +167,8 @@ suite('system/AppChrome', function() {
       var app = new AppWindow(fakeWebSite);
       var chrome = new AppChrome(app);
       var stubForward = this.sinon.stub(app, 'forward');
+      assert.equal(chrome.forwardButton.getAttribute('data-l10n-id'),
+        'forward-button');
       chrome.handleEvent({ type: 'click', target: chrome.forwardButton });
       assert.isTrue(stubForward.called);
     });
@@ -192,6 +196,8 @@ suite('system/AppChrome', function() {
     test('windows', function(done) {
       var app = new AppWindow(fakeSearchApp);
       var chrome = new AppChrome(app);
+      assert.equal(chrome.windowsButton.getAttribute('data-l10n-id'),
+        'windows-button');
       window.addEventListener('taskmanagershow', function() {
         done();
       });
