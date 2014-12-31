@@ -105,14 +105,15 @@ var Dialog = function(params) {
   this.form.addEventListener('transitionend', function(event) {
     var form = event.target;
     if (!form.classList.contains('visible') && form.parentNode) {
-      document.body.removeChild(event.target);
+      form.remove();
+    } else {
+      // Focus form for accessibility
+      form.focus();
     }
+
     // If we add a class, the animation will not be perform properly.
     // see Bug 1095338 for further information
     document.body.style.pointerEvents = 'initial';
-
-    // Focus form for accessibility
-    form.focus();
   });
 
   menu.addEventListener('click', function(event) {

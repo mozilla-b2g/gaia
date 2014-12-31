@@ -147,15 +147,15 @@ var OptionMenu = function(options) {
     }
 
     if (!this.form.classList.contains('visible') && this.form.parentNode) {
-      document.body.removeChild(this.form);
+      this.form.remove();
+    } else {
+      // Focus form for accessibility
+      this.form.focus();
     }
 
     // If we add a class, the animation will not be perform properly.
     // see Bug 1095338 for further information
     document.body.style.pointerEvents = 'initial';
-
-    // Focus form for accessibility
-    this.form.focus();
   }.bind(this));
 
   menu.addEventListener('click', function(event) {
