@@ -306,6 +306,12 @@ var PlayerView = {
     for (var i = 0; i < 5; i++) {
       var rating = this.ratings[i];
 
+      if (i === rated - 1) {
+          rating.setAttribute('aria-checked', true);
+      } else {
+          rating.setAttribute('aria-checked', false);
+      }
+
       if (i < rated) {
         rating.classList.add('star-on');
       } else {
