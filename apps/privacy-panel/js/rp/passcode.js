@@ -34,9 +34,9 @@ function(panels, SettingsListener) {
     _checkingLength: {
       'create': 8,
       'new': 8,
-      'edit': 4,
-      'confirm': 4,
-      'confirmLock': 4
+      'edit': 8,
+      'confirm': 8,
+      'confirmLock': 8
     },
 
     _passcodeBuffer: '',
@@ -159,7 +159,7 @@ function(panels, SettingsListener) {
             this.passcodeInput.focus();
             return;
           }
-          passcode = this._passcodeBuffer.substring(0, 4);
+          passcode = this._passcodeBuffer.substring(0, 8);
           settings = navigator.mozSettings;
           lock = settings.createLock();
           lock.set({
@@ -182,7 +182,7 @@ function(panels, SettingsListener) {
         switch (this._MODE) {
           case 'create':
           case 'new':
-            passcode = this._passcodeBuffer.substring(0, 4);
+            passcode = this._passcodeBuffer.substring(0, 8);
             var passcodeToConfirm = this._passcodeBuffer.substring(4, 8);
             if (passcode != passcodeToConfirm) {
               this._passcodeBuffer = '';

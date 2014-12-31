@@ -22,7 +22,7 @@ function() {
       this.mozApps.mgmt.getAll().onsuccess = function(event) {
         var apps = event.target.result;
         apps.forEach(function(app) {
-          var manifest = app.manifest || app.updateManifest;
+          var manifest = app.manifest ? app.manifest : app.updateManifest;
           if (manifest.permissions && manifest.permissions[filter]) {
             list.push(app);
           }
