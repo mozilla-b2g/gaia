@@ -1084,7 +1084,10 @@ return [
         return;
       }
 
-      var cacheNode = this.cloneNode(true);
+      // Safely clone the node so we can mutate the tree to cut out the parts
+      // we do not want/need.
+      var cacheNode =
+            htmlCache.cloneAsInertNodeAvoidingCustomElementHorrors(this);
       cacheNode.dataset.cached = 'cached';
 
       // Make sure toolbar is visible, could be hidden by drawer
