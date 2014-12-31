@@ -4368,6 +4368,7 @@ suite('thread_ui.js >', function() {
     }
 
     setup(function() {
+      this.sinon.stub(Compose, 'focus');
       this.sinon.stub(MessageManager, 'sendSMS');
       this.sinon.stub(MessageManager, 'sendMMS');
 
@@ -4413,6 +4414,8 @@ suite('thread_ui.js >', function() {
         'thread',
         { id: sentMessage.threadId }
       );
+
+      sinon.assert.called(Compose.focus);
     });
 
     test('MMS, 1 Recipient, moves to thread', function() {
@@ -4444,6 +4447,8 @@ suite('thread_ui.js >', function() {
         'thread',
         { id: sentMessage.threadId }
       );
+
+      sinon.assert.called(Compose.focus);
     });
 
     suite('SMS, >1 Recipient,', function() {
@@ -4478,6 +4483,8 @@ suite('thread_ui.js >', function() {
             message: sentMessage
           });
         });
+
+        sinon.assert.called(Compose.focus);
       }
 
       test('moves to thread list', function() {
@@ -4530,6 +4537,8 @@ suite('thread_ui.js >', function() {
         'thread',
         { id: sentMessage.threadId }
       );
+
+      sinon.assert.called(Compose.focus);
     });
 
     suite('DSDS behavior', function() {
@@ -4599,6 +4608,7 @@ suite('thread_ui.js >', function() {
         clickButton();
 
         sinon.assert.called(ThreadUI.onMessageSendRequestCompleted);
+        sinon.assert.called(Compose.focus);
       });
 
       test('is not called if SMS is failed to be sent', function() {
@@ -4613,6 +4623,7 @@ suite('thread_ui.js >', function() {
         clickButton();
 
         sinon.assert.notCalled(ThreadUI.onMessageSendRequestCompleted);
+        sinon.assert.called(Compose.focus);
       });
 
       test('called if MMS is successfully sent', function() {
@@ -4622,6 +4633,7 @@ suite('thread_ui.js >', function() {
         clickButton();
 
         sinon.assert.called(ThreadUI.onMessageSendRequestCompleted);
+        sinon.assert.called(Compose.focus);
       });
 
       test('is not called if MMS is failed to be sent', function() {
@@ -4631,6 +4643,7 @@ suite('thread_ui.js >', function() {
         clickButton();
 
         sinon.assert.notCalled(ThreadUI.onMessageSendRequestCompleted);
+        sinon.assert.called(Compose.focus);
       });
     });
 
@@ -4649,6 +4662,7 @@ suite('thread_ui.js >', function() {
       sinon.assert.calledOnce(Drafts.delete);
       sinon.assert.calledOnce(Drafts.store);
       sinon.assert.callOrder(Drafts.delete, Drafts.store);
+      sinon.assert.called(Compose.focus);
 
       assert.isNull(ThreadUI.draft);
     });
@@ -4665,6 +4679,7 @@ suite('thread_ui.js >', function() {
       clickButton();
 
       sinon.assert.calledOnce(ThreadListUI.removeThread);
+      sinon.assert.called(Compose.focus);
     });
 
     suite('sendMMS errors', function() {
@@ -4696,6 +4711,10 @@ suite('thread_ui.js >', function() {
       test('Generic error', function() {
         MessageManager.sendMMS.yieldTo('onerror', { name: 'GenericError' });
         sinon.assert.called(MockErrorDialog.prototype.show);
+      });
+
+      test('focus on composer', function() {
+        sinon.assert.called(Compose.focus);
       });
     });
   });
