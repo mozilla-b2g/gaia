@@ -225,6 +225,23 @@
       connstateLines.forEach(function(line) {
         lineText(line);
       });
+      // Read as:
+      // For all lines:
+      //  If line has data-content --> has been lineText-ed
+      //    return it
+      // (found no such line)
+      // return the last line
+      // --> it means -->
+      // Return EITHER the line has been lineText-ed
+      //        OR     the line is the last line.
+      // ?? WHY we need a line has been lineText-ed?
+      //    Maybe this means 'updating' mode?
+      // ?? And if no 'not-yet-written/initialized' line,
+      //    we need (always) write/update the last line
+      // --> so maybe it means -->
+      // ?? 1. We now need to update a line has been initialized (has content)
+      //    2. If no such line (no matter whether it's the first or second),
+      //       we write/upate the second line.
       var nextLine = function() {
         for (var i = 0; i < connstateLines.length; i++) {
           var line = connstateLines[i];
@@ -235,6 +252,8 @@
         return connstateLines[connstateLines.length - 1];
       };
 
+      // index, connstate, simIDLine
+      // this._airplaneMode
       // ----
       // Airplane mode
       // If targeting SIM is the primary SIM,
@@ -256,6 +275,7 @@
       }
       // ++++
 
+      // voice, voice.emergencyCallsOnly, index
       // ----
       // If no SIMs
       //  If targeting SIM is the primary SIM
@@ -283,6 +303,7 @@
         simIDLine.hidden = true;
         return;
       // ++++
+      // simIDLine
       // ----
       // If has SIM(s) BUT no connected SIM card
       //  If targeting SIM is the primary SIM
@@ -302,6 +323,7 @@
         return;
       }
 
+      // simslot, connstate
       // ----
       // "On multiple SIMs device but only one SIM instered"
       // + the targeting SIM is the absent one
@@ -320,6 +342,7 @@
       }
       // ++++
 
+      // voice, voice.state
       //----
       // "noNetwork"
       // ** undocumenting assumptions **
@@ -336,6 +359,7 @@
       }
       // ++++
 
+      // voice, !voice.connected, !voice.emergencyCallsOnly
       // ----
       // voice must exist, AND 'state' NOT in voice, or
       //    voice.state ..= ['searching', 'denied', 'registered']
@@ -355,6 +379,9 @@
       }
       // ++++
 
+      // voice && voice.emergencyCallsOnly, connstate
+      // iccObj, _lockedStateMsgMap
+      // this._telephonyDefaultSergiceId
       // ----
       // If the target SIM has 'emergencyCallsOnly'...
       //    And if it's the first primary (servicing) card
@@ -383,6 +410,9 @@
         return (conn.voice.type == elem);
       });
 
+
+      // voice, voice.roaming, operator, operatorInfo,
+      // this._cellbroadcastLabel
       // ----
       // If targeting SIM is roaming
       // ** undocumenting assumptions **
