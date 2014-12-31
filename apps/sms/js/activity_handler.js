@@ -138,7 +138,8 @@ var ActivityHandler = {
     // case no contact and no thread id: gobble the error
     .catch(() => {})
     // finally call toView whatever contact and threadId we have.
-    .then( () => this.toView(viewInfo) );
+    .then( () => this.toView(viewInfo) )
+    .then(Compose.focus);
   },
 
   _onShareActivity: function shareHandler(activity) {
@@ -325,6 +326,7 @@ var ActivityHandler = {
     var number = message.number ? message.number : '';
     var contact = message.contact ? message.contact : null;
 
+    var deferred = Utils.Promise.defer();
     var showAction = function act_action() {
       // If we only have a body, just trigger a new message.
       if (!threadId) {
@@ -332,7 +334,9 @@ var ActivityHandler = {
         return;
       }
 
-      Navigation.toPanel('thread', { id: threadId }).then(Compose.focus);
+      deferred.resolve(
+        Navigation.toPanel('thread', { id: threadId })
+      );
     };
 
     navigator.mozL10n.once(function waitLocalized() {
@@ -348,6 +352,8 @@ var ActivityHandler = {
           showAction();
       });
     });
+
+    return deferred.promise;
   },
 
   /* === Incoming SMS support === */
