@@ -116,7 +116,8 @@ suite('Keyboard layouts building tests', function() {
         'js/imes/jskanji/jskanji.js',
         'js/imes/jspinyin/jspinyin.js',
         'js/imes/latin/latin.js',
-        'js/imes/vietnamese/vietnamese.js'
+        'js/imes/vietnamese/vietnamese.js',
+        'js/imes/myanmar/myanmar.js'
       ];
 
       var dicts = [

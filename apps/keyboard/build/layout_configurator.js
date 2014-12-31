@@ -114,6 +114,7 @@ KeyboardLayoutDetail.prototype.load = function(appDir) {
     case 'india':
     case 'jshangul':
     case 'vietnamese':
+    case 'myanmar':
       // These IMs only come with some logic in JavaScript with no preload
       // dictionaries -- we can safely include them w/o taking too much size.
       this.preloadDictRequired = false;
