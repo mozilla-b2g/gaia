@@ -438,8 +438,10 @@ class GaiaData(object):
     @property
     def current_audio_channel(self):
         self.marionette.switch_to_frame()
-        return self.marionette.execute_script("return window.wrappedJSObject.soundManager.currentChannel;")
-
+        channel = self.marionette.execute_script("return window.wrappedJSObject.soundManager.currentChannel;")
+        apps = GaiaApps(self.marionette)
+        apps.switch_to_displayed_app()
+        return channel
 
 class Accessibility(object):
 
