@@ -1716,6 +1716,7 @@
 
   function localizeMutations(mutations) {
     var mutation;
+    var targets = new Set();
 
     for (var i = 0; i < mutations.length; i++) {
       mutation = mutations[i];
@@ -1724,23 +1725,25 @@
 
         for (var j = 0; j < mutation.addedNodes.length; j++) {
           addedNode = mutation.addedNodes[j];
-
           if (addedNode.nodeType !== Node.ELEMENT_NODE) {
             continue;
           }
-
-          if (addedNode.childElementCount) {
-            translateFragment.call(this, addedNode);
-          } else if (addedNode.hasAttribute('data-l10n-id')) {
-            translateElement.call(this, addedNode);
-          }
+          targets.add(addedNode);
         }
       }
 
       if (mutation.type === 'attributes') {
-        translateElement.call(this, mutation.target);
+        targets.add(mutation.target);
       }
     }
+
+    targets.forEach(function(target) {
+      if (target.childElementCount) {
+        translateFragment.call(this, target);
+      } else if (target.hasAttribute('data-l10n-id')) {
+        translateElement.call(this, target);
+      }
+    }, this);
   }
 
   function onMutations(mutations, self) {
