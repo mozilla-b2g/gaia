@@ -654,6 +654,9 @@
             img, adjustedSize.width, adjustedSize.height
           );
 
+          // cleanup before the call to toDataURL as it will need more memory
+          cleanup();
+
           deferred.resolve({
             width: adjustedSize.width,
             height: adjustedSize.height,
@@ -675,8 +678,10 @@
       };
 
       function cleanup() {
-        img.height = img.width = 0;
-        img = img.src = null;
+        if (img) {
+          img.height = img.width = 0;
+          img = img.src = null;
+        }
       }
 
       // TODO: it would be helpful to have Utils.Promise.finally for such clean
