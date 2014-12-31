@@ -490,6 +490,136 @@ section ul.operate-certificate {
   pointer-events: none;
 }
 
+/** Call barring password **/
+#cb-passcode section {
+  padding: 0;
+}
+#cb-passcode-title {
+  border-top: 0;
+  border-bottom: 0.1rem solid #686868;
+  padding: 1.5rem 3.5rem;
+  margin-bottom: 2rem;
+  font-size: 1.7rem;
+}
+#cb-passcode-pseudo-input {
+  width: 80%;
+}
+#cb-passcode-def {
+  display: block;
+  border: 0;
+  padding-left: 3.5rem;
+  line-height: 2rem;
+  font-size: 1.4rem;
+  font-weight: lighter;
+  color: #CBCBCB;
+}
+
+/** Call Barring Password Change
+  * copied from panels/screen_lock_passcode
+  * this should dissapear if we unify both screens
+  */
+#call-barring-passcode-change .passcode-error {
+  clear: both;
+  display: none;
+  height: 4.2rem;
+  padding-left: 3rem;
+  color: red;
+  font-size: 1.5rem;
+  line-height: 4.2rem;
+}
+
+#call-barring-passcode-change[data-passcode-status="error"] .passcode-error {
+  display: block;
+}
+
+
+.passcode-change div.passcode-overlay {
+  position: relative;
+}
+
+#call-barring-passcode-change label {
+  -moz-box-sizing: border-box;
+  display: block;
+  width: auto;
+  height: auto;
+  margin: 1.6rem 0 0.4rem;
+  padding: 0 2rem;
+  color: #000;
+  font-size: 1.8rem;
+}
+
+/**
+ * 1. Important required to override styles
+ *    inside <gaia-header> <style scoped>
+ *    Once we have ::content selector we
+ *    can drop the <style scoped> and this
+ *    !important won't be needed anymore.
+ */
+#call-barring-passcode-change [data-mode] {
+  display: none !important; /* 1 */
+}
+#call-barring-passcode-change[data-mode="edit"]    [data-mode*="edit"],
+#call-barring-passcode-change[data-mode="new"]     [data-mode*="new"] {
+  display: block !important; /* 1 */
+}
+#call-barring-passcode-change #passcode-confirm {
+  opacity: 0.3;
+  pointer-events: none;
+}
+#call-barring-passcode-change[data-passcode-status="success"] #passcode-confirm {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.passcode-input {
+  z-index: -1;
+  position: absolute;
+  top: -5rem;
+  left: 0;
+}
+
+.passcode-container {
+  position: absolute;
+  z-index: 1;
+  width: 100%;
+  top: 0;
+  left: 0;
+  background: url(images/document-bg.png);
+}
+
+.passcode {
+  width: calc(100% - 2rem);
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.passcode-digit {
+  -moz-box-sizing: border-box;
+  position: relative;
+  float: left;
+  width: calc(25% - 1rem);
+  height: 4rem;
+  margin: 0 0.5rem;
+  border: 0.1rem solid #c2c2c2;
+  text-align: center;
+  background-color: #fff;
+  border-radius: 0.3rem;
+}
+
+span.passcode-digit[data-dot]::before {
+  content: '';
+  display: block;
+  position: absolute;
+  width: 1.5rem;
+  height: 1.5rem;
+  background-color: #3e3b39;
+  border-radius: 0.75rem;
+  top: 50%;
+  left: 50%;
+  margin-left: -0.75rem;
+  margin-top: -0.75rem;
+}
+
 /******************************************************************************
  * APN settings
  */

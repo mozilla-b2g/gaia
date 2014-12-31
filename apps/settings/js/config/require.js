@@ -344,6 +344,17 @@ require.config({
     {
       name: 'panels/developer_hud/panel',
       exclude: ['main']
+    },
+    {
+      name: 'panels/call_barring/panel',
+      exclude: [
+        'main',
+        'modules/mvvm/observable'
+      ]
+    },
+    {
+      name: 'panels/call_barring_passcode_change/panel',
+      exclude: ['main']
     }
   ]
 });
