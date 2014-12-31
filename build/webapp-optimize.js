@@ -758,7 +758,12 @@ function execute(options) {
     },
     CustomEvent: function() {},
     dispatchEvent: function() {},
-    console: {}
+    console: {
+      log: utils.log,
+      warn: utils.log,
+      error: utils.log,
+      info: utils.log
+    }
   };
 
   // Load window object from build/l10n.js and shared/js/l10n.js into win;
