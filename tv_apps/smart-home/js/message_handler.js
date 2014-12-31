@@ -12,7 +12,9 @@
       var name = activity.source.name;
       switch(name) {
         case 'pin':
-          home.cardManager.insertCard(activity.source.data);
+          home.cardManager.insertCard({
+            cardEntry: activity.source.data
+          });
           break;
         case 'unpin':
           // XXX: this is extra step, we should remove this step once we were
