@@ -176,7 +176,7 @@
       var locales = this.descriptor.locales;
       var localized = locales && locales[userLang] && locales[userLang].name;
 
-      return localized || this.descriptor.name;
+      return unescapeString(localized || this.descriptor.name);
     },
 
     /**
@@ -315,6 +315,13 @@
       return app.launch();
     }
   };
+
+  function unescapeString(str) {
+    if (str.indexOf('\\') !== -1) {
+      return unescape(str);
+    }
+    return str;
+  }
 
   exports.GaiaGrid.Mozapp = Mozapp;
 
