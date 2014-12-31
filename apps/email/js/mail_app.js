@@ -161,7 +161,9 @@ function getStartCardArgs(id) {
       'setup_account_info', 'immediate',
       {
         onPushed: function(cardNode) {
-          var cachedNode = cardNode.cloneNode(true);
+          var cachedNode =
+                htmlCache.cloneAsInertNodeAvoidingCustomElementHorrors(
+                  cardNode);
           cachedNode.dataset.cached = 'cached';
           htmlCache.delayedSaveFromNode(cachedNode);
         }

@@ -4,6 +4,35 @@
 define(function(require, exports) {
 
 /**
+ * Safely clone a node so that it is inert and no document.registerElement
+ * callbacks or magic happens.  This is not particularly intuitive, so it
+ * needs a helper method and that helper method needs an appropriately
+ * scary/warning-filled name.
+ *
+ * The most non-obvious thing here is that
+ * document.implementation.createHTMLDocument() will create a document that
+ * has the same custom element registry as our own, so using importNode
+ * on such a document will not actually fix anything!  But a "template"
+ * element's contents owner document does use a new registry, so we use
+ * that.
+ *
+ * See the spec's details on this at:
+ * http://w3c.github.io/webcomponents/spec/custom/
+ *   #creating-and-passing-registries
+ */
+exports.cloneAsInertNodeAvoidingCustomElementHorrors = function(node) {
+  // Create a template node with a new registry.  In theory we could
+  // cache this node as long as we're sure no one goes and registers
+  // anything in its registry.  Not caching it may result in slightly
+  // more GC/memory turnover.
+  var templateNode = document.createElement('template');
+  // content is a DocumentFragment which does not have importNode, so we need
+  // its ownerDocument.
+  var cacheDoc = templateNode.content.ownerDocument;
+  return cacheDoc.importNode(node, true); // yes, deep
+};
+
+/**
  * Saves a JS object to document.cookie using JSON.stringify().
  * This method claims all cookie keys that have pattern
  * /htmlc(\d+)/
@@ -56,9 +85,12 @@ exports.save = function htmlCacheSave(html) {
 };
 
 /**
- * Serializes the node to storage. NOTE: it modifies the node tree,
- * so pass use cloneNode(true) on your node if you use it for other
- * things besides this call.
+ * Serializes the node to storage. NOTE: it modifies the node tree, and
+ * cloneNode(true) is *NOT SAFE* because of custom element semantics, so
+ * you must use cloneAsInertNodeAvoidingCustomElementHorrors(node) on
+ * your node and pass that to us.  (And you call it instead of us because
+ * you probably really want to perform some transforms/filtering before you
+ * pass the node to us.)
  * @param  {Node} node Node to serialize to storage.
  */
 exports.saveFromNode = function saveFromNode(node) {
