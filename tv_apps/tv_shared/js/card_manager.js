@@ -111,33 +111,42 @@
     // first level cards and cards under folder into sperated records in
     // datastore. A better way whould pull out logic related to cardList
     // into a standalone module. We will do this later.
-    writeCardlistInCardStore: function cm_writeCardlistInCardStore() {
+    writeCardlistInCardStore: function cm_writeCardlistInCardStore(options) {
       var that = this;
+      var emptyFolderIndices = [];
       return new Promise(function(resolve, reject) {
+        var saveDataPromises = [];
+        var newCardList;
         that.state = CardManager.STATES.SYNCING;
-        var cardEntries =
-          that._cardList.map(that._serializeCard.bind(that));
-        that._cardStore.saveData('cardList', cardEntries).then(function() {
-          var saveDataPromises = [];
-          // The cards inside of folder are not saved nested in cardList
-          // but we explicit save them under key of folderId.
-          // Here we save content of each folder one by one
-          that._cardList.forEach(function(card, index) {
-            if (card instanceof Folder) {
-              if (card.cardsInFolder.length > 0) {
-                saveDataPromises.push(that.writeFolderInCardStore(card));
-              } else {
-                // remove empty folder
-                that._cardList.splice(index, 1);
-              }
+        // The cards inside of folder are not saved nested in cardList
+        // but we explicit save them under key of folderId.
+        // Here we save content of each folder one by one
+        newCardList = that._cardList.filter(function(card, index) {
+          if (card instanceof Folder) {
+            if (card.cardsInFolder.length > 0) {
+              saveDataPromises.push(that.writeFolderInCardStore(card));
+            } else {
+              emptyFolderIndices.push(index);
+              return false;
             }
-          });
-          // resolve current promise only when all saveData is finished
-          Promise.all(saveDataPromises).then(function() {
-            that.state = CardManager.STATES.READY;
-            resolve();
-          });
-        }, reject);
+          }
+          return true;
+        });
+        if (options && options.cleanEmptyFolder) {
+          that._cardList = newCardList;
+        }
+        Promise.all(saveDataPromises).then(function() {
+          resolve();
+        });
+      }).then(function() {
+         var cardEntries =
+           that._cardList.map(that._serializeCard.bind(that));
+        return that._cardStore.saveData('cardList', cardEntries);
+      }).then(function() {
+        that.state = CardManager.STATES.READY;
+        if (options && options.cleanEmptyFolder) {
+          that.fire('card-removed', emptyFolderIndices);
+        }
       });
     },
 
@@ -342,48 +351,51 @@
       }
     },
 
-    insertNewFolder: function cm_insertFolder(name) {
+    insertNewFolder: function cm_insertFolder(name, index) {
       var newFolder = new Folder({
         name: name,
         state: Folder.STATES.DETACHED
       });
-      this._cardList.push(newFolder);
+      if (!(typeof index === 'number')) {
+        index = this._cardList.length;
+      }
+      this._cardList.splice(index, 0, newFolder);
       // Notice that we are not saving card list yet
       // Because newFolder is empty, it is meaningless to save it
       // But we need to hook `folder-changed` event handler in case
       // we need to save it when its content changed
       newFolder.on('folder-changed', this._onFolderChange.bind(this));
+      this.fire('card-inserted', newFolder, index);
       return newFolder;
     },
 
     insertCard: function cm_insertCard(options) {
       var that = this;
-      var card = this._deserializeCardEntry(options);
+      var card = this._deserializeCardEntry(options.cardEntry);
+      var index = (typeof options.index === 'number') ?
+        options.index : this._cardList.length;
 
       // TODO: If the given card belongs to an app, we assume the app spans a
       // pseudo group with all its bookmarks following app icon itself, and the
       // given card should be put at the end of the group.
 
-      // add card to the end of the list
-      this._cardList.push(card);
+      this._cardList.splice(index, 0, card);
       this.writeCardlistInCardStore().then(function() {
-        that.fire('card-inserted', card, that._cardList.length - 1);
+        that.fire('card-inserted', card, index);
       });
     },
 
     removeCard: function cm_removeCard(item) {
       var that = this;
-      var idx;
-      if(typeof item === 'number') {
-        idx = item;
-        this._cardList.splice(item, 1);
-      } else {
-        idx = this._cardList.indexOf(item);
-        this._cardList.splice(idx, 1);
+      var index =
+        (typeof item === 'number') ? item : this._cardList.indexOf(item);
+
+      if (index >= 0) {
+        this._cardList.splice(index, 1);
+        this.writeCardlistInCardStore().then(function() {
+          that.fire('card-removed', [index]);
+        });
       }
-      this.writeCardlistInCardStore().then(function() {
-        that.fire('card-removed', idx);
-      });
     },
 
     swapCard: function cm_switchCard(item1, item2) {

@@ -108,12 +108,15 @@
       this.cardScrollable.insertNodeBefore(this._createCardNode(card), idx + 1);
     },
 
-    onCardRemoved: function(idx) {
-      var elm = this.cardScrollable.getNode(idx);
-      if (elm.dataset.revokableURL) {
-        URL.revokeObjectURL(elm.dataset.revokableURL);
-      }
-      this.cardScrollable.removeNode(idx);
+    onCardRemoved: function(indices) {
+      var that = this;
+      indices.forEach(function(idx) {
+        var elm = that.cardScrollable.getNode(idx);
+        if (elm.dataset.revokableURL) {
+          URL.revokeObjectURL(elm.dataset.revokableURL);
+        }
+        that.cardScrollable.removeNode(idx);
+      });
     },
 
     _setCardIcon: function (cardButton, card, blob, bgColor) {

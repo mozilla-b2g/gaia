@@ -229,6 +229,69 @@ suite('smart-home/CardManager', function() {
       assert.isTrue(cardManager.writeCardlistInCardStore.calledOnce);
     });
 
+    test('should insert at correct location if index is specified', function() {
+      var targetLocation = 0;
+      var newFolder =
+        cardManager.insertNewFolder('a test folder', targetLocation);
+      assert.isFalse(cardManager.writeCardlistInCardStore.calledOnce);
+      newFolder.addCard(new Application({
+        name: 'Music',
+        cachedIconURL: 'style/icons/Blank.png'
+      }));
+
+      assert.isTrue(cardManager.writeCardlistInCardStore.calledOnce);
+      assert.equal(cardManager._cardList[targetLocation], newFolder);
+    });
+
+  });
+
+  suite('writeCardlistInCardStore', function() {
+    var cardManager;
+    var emptyFolder, secondEmptyFolder;
+
+    setup(function() {
+      cardManager = new CardManager();
+      cardManager._cardStore = MockCardStore;
+
+      emptyFolder = new Folder({
+        name: 'New Folder'
+      });
+
+      secondEmptyFolder = new Folder({
+        name: 'New Folder 2'
+      });
+
+      cardManager._cardList = [
+        new Deck({
+          name: 'Dashboard',
+          cachedIconURL: 'style/icons/Blank.png'
+        }),
+        emptyFolder,
+        secondEmptyFolder,
+        new Application({
+          name: 'Music',
+          nativeApp: {}
+        })
+      ];
+    });
+
+    teardown(function() {
+      MockCardStore.mClearData();
+      cardManager = undefined;
+    });
+
+    test('write with empty folder should eliminate it from card list',
+      function(done) {
+        var expectedLength = cardManager._cardList.length - 2;
+
+        cardManager.writeCardlistInCardStore({
+          cleanEmptyFolder: true
+        }).then(function() {
+          assert.equal(cardManager._cardList.length, expectedLength);
+          assert.isTrue(cardManager._cardList.indexOf(emptyFolder) < 0);
+          done();
+        });
+      });
   });
 
 });
