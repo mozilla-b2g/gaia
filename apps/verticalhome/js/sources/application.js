@@ -187,9 +187,15 @@
         this.removeIconFromGrid(i);
       }
 
-      toAdd.forEach(function _toAdd(newApp) {
+      var blacklist = configurator.getBlacklist();
+
+      toAdd.forEach(newApp => {
+        // Do not add blacklisted apps to the grid.
+        if (blacklist.indexOf(newApp.app.origin) !== -1) {
+          return;
+        }
         this.addIconToGrid(newApp.app);
-      }, this);
+      });
 
       app.itemStore.deferredSave(app.grid.getItems());
     },

@@ -23,6 +23,9 @@
       ["apps", "costcontrol"]
     ]
   ],
+  "blacklist": [
+    "app://privacy-panel.gaiamobile.org"
+  ],
   "preferences": {
     "grid.cols": 3
   }
