@@ -1,5 +1,6 @@
 'use strict';
-
+/* global dump, MediaUtils */
+/* exported VideoStats */
 //
 // VideoStats records video playback statistics and
 // dumps them to the native console
@@ -29,7 +30,7 @@ var VideoStats = (function() {
     startTime = video.currentTime;
     endQuality = null;
     endTime = null;
-  };
+  }
 
   // Stop recording stats
   function stop() {
@@ -48,7 +49,7 @@ var VideoStats = (function() {
 
     endQuality = video.getVideoPlaybackQuality();
     endTime = video.currentTime;
-  };
+  }
 
   // Dump stats to the native console
   function print() {
@@ -95,7 +96,7 @@ var VideoStats = (function() {
     dump('Dropped frames: ' + endQuality.droppedVideoFrames);
     dump('Average rendered FPS: ' + fps.toFixed(2));
     dump('Video statistics end');
-  };
+  }
 
   return {
     start: start,
