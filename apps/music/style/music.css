@@ -1063,6 +1063,7 @@ html[dir="rtl"] .list-single-title {
   font-size: 1.9rem;
   color: #049AB8;
   border-bottom: solid 0.1rem rgba(255, 255, 255, 0.1);
+  text-transform: uppercase;
 }
 
 html[dir="rtl"] .list-playlist-title {

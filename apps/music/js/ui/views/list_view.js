@@ -166,7 +166,7 @@ var ListView = {
 
     this.dataSource.push(result);
 
-    if (option !== 'playlist' && option !== 'my-playlists-header') {
+    if (option !== 'playlist' && option !== 'my-playlists-header' && option !== 'create-playlist') {
       var header = this.createHeader(option, result);
       if (header) {
         this.anchor.appendChild(header);
@@ -336,16 +336,36 @@ var ListView = {
     }
   },
   addToPlaylist: function lv_addToPlaylist(playlistName, index) {
-    this.getSongData(index, function(songData) {
-      musicdb.addToPlaylist(playlistName, songData, function() {
+    if (index !== null) {
+      this.getSongData(index, function(songData) {
+        musicdb.addToPlaylist(playlistName, songData, function() {
 
-        Toaster.showToast({
-          messageL10nId: 'playlist-added',
-          latency: 3000,
-          useTransition: false
+          Toaster.showToast({
+            messageL10nId: 'playlist-added',
+            latency: 3000,
+            useTransition: false
+          });
         });
+      });
+    } else {
+      musicdb.addToPlaylist(playlistName, null, function(playlist) {
+        if (playlist) {
+          Toaster.showToast({
+            messageL10nId: 'playlist-created',
+            latency: 3000,
+            useTransition: false
+          });
+          this.update('playlist', playlist);
+          App.showCorrectOverlay();
+        } else {
+          Toaster.showToast({
+            messageL10nId: 'playlist-already-exists',
+            latency: 3000,
+            useTransition: false
+          });
+        }
       }.bind(this));
-    }.bind(this));
+    }
   },
   playWithIndex: function lv_playWithIndex(index) {
     ModeManager.push(MODE_PLAYER, function() {
@@ -384,6 +404,13 @@ var ListView = {
 
   activateSubListView: function lv_activateSubListView(target) {
     var option = target.dataset.option;
+
+    if (option === 'create-playlist') {
+        var playlistName = prompt('Name for the playlist?');
+        this.addToPlaylist(playlistName, null);
+        return;
+    }
+
     var index = target.dataset.index;
     var data = this.dataSource[index];
 

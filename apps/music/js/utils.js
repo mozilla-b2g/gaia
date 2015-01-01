@@ -68,6 +68,19 @@ function createListElement(option, data, index, highlight, noborder) {
 
       break;
 
+    case 'create-playlist':
+      titleSpan = document.createElement('span');
+      titleSpan.className = 'list-playlist-title';
+      titleSpan.textContent = navigator.mozL10n.get('create-playlist');
+
+      li.appendChild(titleSpan);
+
+      var icon = document.createElement('div');
+      icon.className = 'list-playlist-icon';
+      icon.dataset.icon = 'add';
+      li.appendChild(icon);
+
+      break;
     case 'playlist':
       titleSpan = document.createElement('span');
       titleSpan.className = 'list-playlist-title';
