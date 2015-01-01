@@ -138,7 +138,13 @@ HTMLOptimizer.prototype._proceedLocales = function() {
       this.webapp.asts[lang] = [];
     }
     for (var i = 0; i < this.asts[lang].length; i++) {
-      this.webapp.asts[lang].push(this.asts[lang][i]);
+      var index = this.webapp.asts[lang].
+        findIndex(e => e.$i === this.asts[lang][i].$i);
+      if (index !== -1) {
+        this.webapp.asts[lang][index] = this.asts[lang][i];
+      } else {
+        this.webapp.asts[lang].push(this.asts[lang][i]);
+      }
     }
   }
 
