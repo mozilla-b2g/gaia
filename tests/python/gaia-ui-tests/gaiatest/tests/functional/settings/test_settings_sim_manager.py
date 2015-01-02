@@ -2,41 +2,38 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette.marionette_test import parameterized
 from gaiatest import GaiaTestCase
 from gaiatest.apps.settings.app import Settings
 
 
 class TestChangeSimManager(GaiaTestCase):
 
-    def test_change_sim_manager_default(self):
-        """https://moztrap.mozilla.org/manage/case/10590/"""
-        
-        # Check settings before change, all set to SIM 1
-        self.assertEqual(self.data_layer.get_setting('ril.telephony.defaultServiceId'), 0)
-        self.assertEqual(self.data_layer.get_setting('ril.sms.defaultServiceId'), 0)
-        self.assertEqual(self.data_layer.get_setting('ril.data.defaultServiceId'), 0)
-        
-        # Launchs settings
+    @parameterized('1', 0, 'SIM 1')
+    @parameterized('2', 1, 'SIM 2')
+    def test_change_manager_default_sim(self, default_sim_value, default_sim_option):
+        """
+        https://moztrap.mozilla.org/manage/case/10590/
+        """
+
+        # Initialize to the other SIM so the confirmation window will show when selecting data
+        other_sim = 1 if default_sim_value == 0 else 0
+        self.data_layer.set_setting('ril.telephony.defaultServiceId', other_sim)
+        self.data_layer.set_setting('ril.sms.defaultServiceId', other_sim)
+        self.data_layer.set_setting('ril.data.defaultServiceId', other_sim)
+
         settings = Settings(self.marionette)
         settings.launch()
-
-        # Open sim manager
         sim_manager_settings = settings.open_sim_manager_settings()
 
-        # Change default sim for calls, outgoing messages and data
-        # SIM index start with 0; '1' means 2nd SIM 
-        # UI shows 'SIM 2' for sim in index 1
-        sim_manager_settings.select_outgoing_calls(sim=2)
-        sim_manager_settings.select_outgoing_messages(sim=2)
-        sim_manager_settings.select_data(sim=2)
+        sim_manager_settings.select_outgoing_calls(default_sim_option)
+        sim_manager_settings.select_outgoing_messages(default_sim_option)
+        sim_manager_settings.select_data(default_sim_option)
 
-        # Verify UI settings has been changed
-        # SIM index start with 0; '1' means 2nd SIM 
-        self.assertEqual(u'1', sim_manager_settings.sim_for_outgoing_calls)
-        self.assertEqual(u'1', sim_manager_settings.sim_for_outgoing_messages)
-        self.assertEqual(u'1', sim_manager_settings.sim_for_data)
+        self.assertEqual(default_sim_option, sim_manager_settings.sim_for_outgoing_calls)
+        self.assertEqual(default_sim_option, sim_manager_settings.sim_for_outgoing_messages)
+        self.assertEqual(default_sim_option, sim_manager_settings.sim_for_data)
 
-        # Verify settings after change, all set to SIM 2
-        self.assertEqual(self.data_layer.get_setting('ril.telephony.defaultServiceId'), 1)
-        self.assertEqual(self.data_layer.get_setting('ril.sms.defaultServiceId'), 1)
-        self.assertEqual(self.data_layer.get_setting('ril.data.defaultServiceId'), 1)
+        self.assertEqual(self.data_layer.get_setting('ril.telephony.defaultServiceId'), default_sim_value)
+        self.assertEqual(self.data_layer.get_setting('ril.sms.defaultServiceId'), default_sim_value)
+        self.assertEqual(self.data_layer.get_setting('ril.data.defaultServiceId'), default_sim_value)
