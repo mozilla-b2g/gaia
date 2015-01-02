@@ -790,6 +790,12 @@ ImageEditor.prototype.generateNewPreview = function(callback) {
   this.edits.crop.w = this.source.width;
   this.edits.crop.h = this.source.height;
 
+  // Update the destination rectangle with the new dimensions, too
+  this.dest.x = Math.floor((this.previewCanvas.width - previewWidth) / 2);
+  this.dest.y = Math.floor((this.previewCanvas.height - previewHeight) / 2);
+  this.dest.width = previewWidth;
+  this.dest.height = previewHeight;
+
   // Create a preview image
   var canvas = document.createElement('canvas');
   canvas.width = previewWidth;
@@ -831,7 +837,6 @@ ImageEditor.prototype.resetPreview = function() {
 };
 
 ImageEditor.prototype.resize = function() {
-  var self = this;
   var canvas = this.previewCanvas;
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
@@ -851,25 +856,22 @@ ImageEditor.prototype.resize = function() {
   // croponly case and in the regular image editing case
   if (this.croponly) {
     this.displayCropOnlyPreview();
-    restoreCropRegion();
   }
   else {
     this.resetPreview();
-    this.edit(restoreCropRegion);
+    this.edit();
   }
 
   // Restore the crop region to what it was before the resize
-  function restoreCropRegion() {
-    if (hadCropOverlay) {
-      // showCropOverlay normally resets cropRegion to the full extent,
-      // so we need to pass in a new crop region to use
-      var newRegion = {};
-      newRegion.left = Math.floor(savedCropRegion.left * self.scale);
-      newRegion.top = Math.floor(savedCropRegion.top * self.scale);
-      newRegion.right = Math.floor(savedCropRegion.right * self.scale);
-      newRegion.bottom = Math.floor(savedCropRegion.bottom * self.scale);
-      self.showCropOverlay(newRegion);
-    }
+  if (hadCropOverlay) {
+    // showCropOverlay normally resets cropRegion to the full extent,
+    // so we need to pass in a new crop region to use
+    var newRegion = {};
+    newRegion.left = Math.floor(savedCropRegion.left * this.scale);
+    newRegion.top = Math.floor(savedCropRegion.top * this.scale);
+    newRegion.right = Math.floor(savedCropRegion.right * this.scale);
+    newRegion.bottom = Math.floor(savedCropRegion.bottom * this.scale);
+    this.showCropOverlay(newRegion);
   }
 };
 
@@ -922,14 +924,6 @@ ImageEditor.prototype.edit = function(callback) {
 
 ImageEditor.prototype.finishEdit = function(callback) {
   var canvas = this.previewCanvas;
-  var xOffset = Math.floor((canvas.width - this.preview.width) / 2);
-  var yOffset = Math.floor((canvas.height - this.preview.height) / 2);
-
-  this.dest.x = xOffset;
-  this.dest.y = yOffset;
-  this.dest.width = this.preview.width;
-  this.dest.height = this.preview.height;
-
   this.processor.draw(this.preview, this.needsUpload,
                       0, 0, this.preview.width, this.preview.height,
                       this.dest.x, this.dest.y, this.dest.width,
