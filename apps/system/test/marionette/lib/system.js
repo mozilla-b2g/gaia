@@ -43,6 +43,7 @@ System.Selector = Object.freeze({
   dialogOverlay: '#screen #dialog-overlay',
   downloadDialog: '#downloadConfirmUI',
   imeMenu: '.ime-menu',
+  inlineActivity: '.appWindow.inline-activity',
   sleepMenuContainer: '#sleep-menu-container',
   softwareButtons: '#software-buttons',
   softwareHome: '#software-home-button',
@@ -190,6 +191,10 @@ System.prototype = {
 
   get imeMenu() {
     return this.client.helper.waitForElement(System.Selector.imeMenu);
+  },
+
+  get inlineActivity() {
+    return this.client.helper.waitForElement(System.Selector.inlineActivity);
   },
 
   get sleepMenuContainer() {
