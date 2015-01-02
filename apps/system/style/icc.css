@@ -11,6 +11,7 @@
   top: var(--statusbar-height);
   background: #f4f4f4;
   color: #000;
+  -moz-box-sizing: border-box;
 }
 
 #icc-view > section {
