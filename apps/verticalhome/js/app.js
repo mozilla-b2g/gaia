@@ -259,6 +259,9 @@
     },
     getItems: function(role) {
       return {};
+    },
+    getBlacklist: function() {
+      return [];
     }
   };
   exports.app = new App();
