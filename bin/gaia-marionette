@@ -112,7 +112,7 @@ fi
 XPCSHELL_DIR=$(dirname "$XPCSHELLSDK")
 
 
-VERBOSE_OPTS=""
+VERBOSE_OPTS="--verbose"
 if [ "$VERBOSE" ]; then
   VERBOSE_OPTS="--verbose"
 fi
