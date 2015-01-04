@@ -162,12 +162,10 @@
       var message;
 
       var dataConnected;
-      // In DualSim only one of them will have data active
-      for (var i = 0; i < conns.length && !dataConnected; i++) {
-        dataConnected = conns[i].data.connected;
-      }
-
-      this.getDUNConnection().then(function(DUNConnection) {
+      this.getDataConnected().then(function(_dataConnected) {
+        dataConnected = _dataConnected;
+        return this.getDUNConnection();
+      }).then(function(DUNConnection) {
         if ('wifi' === type) {
           if (AirplaneMode.enabled && true === evt.settingValue) {
             title = _('apmActivated');
@@ -183,7 +181,7 @@
 
             ModalDialog.alert(title, message, { title: buttonText });
             settings.createLock().set({'tethering.wifi.enabled': false});
-          }  else if (!DUNConnection && !dataConnected &&
+          } else if (!DUNConnection && !dataConnected &&
             true === evt.settingValue) {
             title = _('noConnectivityHead');
             buttonText = _('ok');
@@ -207,7 +205,7 @@
 
             ModalDialog.alert(title, message, { title: buttonText });
             settings.createLock().set({'tethering.wifi.enabled': false});
-          }  else if (!DUNConnection && !dataConnected &&
+          } else if (!DUNConnection && !dataConnected &&
             true === evt.settingValue) {
             title = _('noConnectivityHead');
             buttonText = _('ok');
@@ -220,6 +218,26 @@
         asyncStorage.setItem('tethering.' + type + '.simstate.card-' + cardId,
           evt.settingValue);
       });
+    },
+
+    getDataConnected: function() {
+      var dataConnected;
+      var conns = window.navigator.mozMobileConnections;
+      // In DualSim only one of them will have data active
+      for (var i = 0; i < conns.length && !dataConnected; i++) {
+        var conn = conns[i];
+        conn.addEventListener('datachange', function is_onDataChange() {
+          conn.removeEventListener('datachange', is_onDataChange);
+          // if there is any data connection got established,
+          // we would just use that
+          for (var j = 0; j < conns.length && !dataConnected; j++) {
+            dataConnected = conns[j].data.connected;
+          }
+          return new Promise(function(resolve, reject) {
+            resolve(dataConnected);
+          });
+        });
+      }
     },
 
     getDUNConnection: function() {
