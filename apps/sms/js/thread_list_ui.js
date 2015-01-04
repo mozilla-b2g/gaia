@@ -4,7 +4,9 @@
 /*global Template, Utils, Threads, Contacts, Threads,
          WaitingScreen, MozSmsFilter, MessageManager, TimeHeaders,
          Drafts, Thread, ThreadUI, OptionMenu, ActivityPicker,
-         PerformanceTestingHelper, StickyHeader, Navigation, Dialog */
+         PerformanceTestingHelper, StickyHeader, Navigation, Dialog,
+         InterInstanceEventDispatcher
+*/
 /*exported ThreadListUI */
 (function(exports) {
 'use strict';
@@ -89,6 +91,11 @@ var ThreadListUI = {
 
     this.sticky =
       new StickyHeader(this.container, document.getElementById('sticky'));
+
+    InterInstanceEventDispatcher.on(
+      'drafts-changed',
+      this.renderDrafts.bind(this, true /* force update */)
+    );
   },
 
   beforeLeave: function thlui_beforeLeave() {
@@ -455,7 +462,7 @@ var ThreadListUI = {
     this.mainWrapper.classList.remove('edit');
   },
 
-  renderDrafts: function thlui_renderDrafts() {
+  renderDrafts: function thlui_renderDrafts(force) {
     // Request and render all threads with drafts
     // or thread-less drafts.
     Drafts.request(function() {
@@ -482,7 +489,7 @@ var ThreadListUI = {
       }, this);
 
       this.sticky.refresh();
-    }.bind(this));
+    }.bind(this), force);
   },
 
   prepareRendering: function thlui_prepareRendering() {

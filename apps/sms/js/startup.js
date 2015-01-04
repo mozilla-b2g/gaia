@@ -5,7 +5,9 @@
 
 /*global Utils, ActivityHandler, ThreadUI, ThreadListUI, MessageManager,
          Settings, LazyLoader, TimeHeaders, Information, SilentSms,
-         PerformanceTestingHelper, App, Navigation, EventDispatcher */
+         PerformanceTestingHelper, App, Navigation, EventDispatcher,
+         InterInstanceEventDispatcher
+*/
 
 navigator.mozL10n.ready(function localized() {
   // This will be called during startup, and any time the languange is changed
@@ -92,6 +94,8 @@ var Startup = {
 
   _lazyLoadInit: function() {
     LazyLoader.load(this._lazyLoadScripts, function() {
+      InterInstanceEventDispatcher.connect();
+
       // dispatch moz-content-interactive when all the modules initialized
       SilentSms.init();
       ActivityHandler.init();
@@ -136,14 +140,15 @@ var Startup = {
           'js/desktop-only/contacts.js'
         ];
         LazyLoader.load(mocks, function() {
-          MessageManager.init(initUIApp);
+          MessageManager.init();
+          initUIApp();
         });
         return;
       }
-      MessageManager.init(initUIApp);
+      MessageManager.init();
+      initUIApp();
     });
   }
 };
 
-EventDispatcher.mixin(Startup);
-Startup.init();
+EventDispatcher.mixin(Startup).init();
