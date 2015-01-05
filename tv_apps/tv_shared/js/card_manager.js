@@ -565,8 +565,13 @@
         } else if (query.manifestURL && card.nativeApp &&
             card.nativeApp.manifestURL === query.manifestURL) {
 
-          found = card;
-          return true;
+          // The launchURL only happens to AppBookmark, we only need to check if
+          // launchURL is exactly the same in this case.
+          if (!(card instanceof AppBookmark) ||
+              (query.launchURL && card.launchURL === query.launchURL)) {
+            found = card;
+            return true;
+          }
         } else if (query.cardEntry) {
           // XXX: this could be bad at performance because we serialize card
           // in every loop. We might need improvement on this query.

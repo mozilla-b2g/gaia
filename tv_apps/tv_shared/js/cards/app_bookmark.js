@@ -36,5 +36,30 @@
     };
   };
 
+  AppBookmark.prototype.launch = function app_launch(args) {
+    if (!AppBookmark._iacPort) {
+      console.error('no iacPort found, we cannot launch AppBookmark');
+      return;
+    }
+
+    AppBookmark._iacPort.postMessage({
+      'manifestURL': this.nativeApp.manifestURL,
+      'timestamp': (new Date()).getTime(),
+      'url': this.launchURL
+    });
+  };
+
+
+  window.addEventListener('load', function _retrieveIACPort() {
+    window.removeEventListener('load', _retrieveIACPort);
+
+    navigator.mozApps.getSelf().onsuccess = function(evt) {
+      var app = evt.target.result;
+      app.connect('customlaunchpath').then(function onAccepted(ports) {
+        AppBookmark._iacPort = ports[0];
+      });
+    };
+  });
+
   exports.AppBookmark = AppBookmark;
 }(window));
