@@ -101,7 +101,7 @@ class Base(object):
         # now back to app
         self.apps.switch_to_displayed_app()
 
-    def select(self, match_string):
+    def select(self, match_string, tap_close=True):
         # cheeky Select wrapper until Marionette has its own
         # due to the way B2G wraps the app's select box we match on text
         _close_button_locator = (By.CSS_SELECTOR, 'button.value-option-confirm')
@@ -110,7 +110,8 @@ class Base(object):
         li.tap()
 
         # Tap close and wait for it to hide
-        self.marionette.find_element(*_close_button_locator).tap()
+        if tap_close:
+          self.marionette.find_element(*_close_button_locator).tap()
         self.wait_for_select_closed(*_close_button_locator)
 
     def a11y_select(self, match_string):
