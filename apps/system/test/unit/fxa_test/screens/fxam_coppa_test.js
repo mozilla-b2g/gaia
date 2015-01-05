@@ -143,6 +143,8 @@ suite('Screen: COPPA', function() {
       showErrorResponse = null;
     });
 
+    /*
+    Disabled bug 1116986.
     test(' > COPPA error shown', function(done) {
       FxaModuleCoppa.onNext(function() { });
       setTimeout(function() {
@@ -151,6 +153,7 @@ suite('Screen: COPPA', function() {
         done();
       });
     });
+    */
   });
 
   suite(' > COPPA success', function() {
