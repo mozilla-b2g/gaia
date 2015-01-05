@@ -133,11 +133,14 @@ var UpdateManager = {
     if (this._errorTimeout)
       return;
 
-    var _ = navigator.mozL10n.get;
     var self = this;
     this._errorTimeout = setTimeout(function waitForMore() {
       var systemBanner = new SystemBanner();
-      systemBanner.show(_('downloadError'));
+      var msg = {
+        id: 'downloadError',
+        args: null
+      };
+      systemBanner.show(msg);
       self._errorTimeout = null;
     }, this.NOTIFICATION_BUFFERING_TIMEOUT);
   },
@@ -508,8 +511,9 @@ var UpdateManager = {
     var _ = navigator.mozL10n.get;
     var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'];
 
-    if (!bytes)
+    if (!bytes) {
       return '0.00 ' + _(units[0]);
+    }
 
     var e = Math.floor(Math.log(bytes) / Math.log(1024));
     return (bytes / Math.pow(1024, Math.floor(e))).toFixed(2) + ' ' +

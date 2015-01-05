@@ -419,8 +419,7 @@
 
     if (this.elements.optionsTitle) {
       this.elements.optionsTitle.dataset.l10nId = titleL10nId;
-      this.elements.optionsTitle.textContent = navigator.mozL10n.get(
-        titleL10nId);
+      this.elements.optionsTitle.setAttribute('data-l10n-id', titleL10nId);
     }
   };
 
@@ -616,7 +615,7 @@
         }
       }
 
-      if('format24h' === style) {
+      if ('format24h' === style) {
         this.element.classList.remove('format12h');
         this.element.classList.remove('format12hrev');
         if (!this.element.classList.contains(style)) {

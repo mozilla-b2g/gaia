@@ -234,7 +234,7 @@ var TrustedUIManager = {
 
     // Push and show.
     this.currentStack.push(dialog);
-    this.dialogTitle.textContent = dialog.name;
+    this.dialogTitle.setAttribute('data-l10n-id', dialog.name);
     this.container.appendChild(dialog.frame);
     this._makeDialogVisible(dialog);
   },
@@ -246,7 +246,7 @@ var TrustedUIManager = {
 
     // ensure the frame is visible and the dialog title is correct.
     dialog.frame.classList.add('selected');
-    this.dialogTitle.textContent = dialog.name;
+    this.dialogTitle.setAttribute('data-l10n-id', dialog.name);
   },
 
   _makeDialogHidden: function trui_makeDialogHidden(dialog) {
@@ -350,10 +350,16 @@ var TrustedUIManager = {
     }
 
     var name = dialog.name;
-    var _ = navigator.mozL10n.get;
-
-    this.errorTitle.textContent = _('error-title', {name: name});
-    this.errorMessage.textContent = _(errorProperty, {name: name});
+    navigator.mozL10n.setAttributes(
+      this.errorTitle,
+      'error-title',
+      {name: name}
+    );
+    navigator.mozL10n.setAttributes(
+      this.errorMessage,
+      errorProperty,
+      {name: name}
+    );
 
     this.container.classList.add('error');
   },

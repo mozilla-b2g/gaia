@@ -60,7 +60,7 @@ var Identity = (function() {
 
           if (e.detail.showUI) {
             // The identity flow is shown within the trusted UI.
-            TrustedUIManager.open(navigator.mozL10n.get('persona-signin'),
+            TrustedUIManager.open('persona-signin',
                                   frame,
                                   this.trustedUILayers[requestId]);
           } else {

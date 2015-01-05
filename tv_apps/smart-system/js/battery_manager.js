@@ -206,7 +206,6 @@ var PowerSaveHandler = (function PowerSaveHandler() {
   }
 
   function showPowerSavingNotification() {
-    var _ = navigator.mozL10n.get;
 
     var clickCB = function() {
       var activityRequest = new MozActivity({
@@ -218,10 +217,12 @@ var PowerSaveHandler = (function PowerSaveHandler() {
       });
     };
 
-    NotificationHelper.send(_('notification-powersaving-mode-on-title'),
-                            _('notification-powersaving-mode-on-description'),
-                            'style/icons/Power_saving_mode.png',
-                            clickCB);
+    NotificationHelper.send('notification-powersaving-mode-on-title', {
+      'bodyL10n': 'notification-powersaving-mode-on-description',
+      'icon': 'style/icons/Power_saving_mode.png'
+    }).then(function(notification) {
+      notification.addEventListener('click', clickCB);
+    });
   }
 
   function onBatteryChange() {
