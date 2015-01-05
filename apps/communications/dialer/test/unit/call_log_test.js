@@ -790,9 +790,37 @@ suite('dialer/call_log', function() {
       sinon.assert.notCalled(CallLog.renderEmptyCallLog);
     });
 
-    test('renderEmptyCallLog should be called when there is no missedgroup',
+    test('renderEmptyCallLog should be not called when there is no ' +
+         'missedgroup and it is in all call log view',
     function() {
       this.sinon.spy(CallLog, 'renderEmptyCallLog');
+      CallLog.appendGroup(missedGroup);
+      CallLog.unfilter();
+      var container = CallLog.callLogContainer;
+      var checkboxes =
+        container.querySelectorAll('.missed-call input[type="checkbox"]');
+      for (var i = 0; i < checkboxes.length; i++) {
+        var checkbox = checkboxes[i];
+        checkbox.checked = true;
+      }
+      CallLog.deleteLogGroups();
+      ConfirmDialog.executeYes();
+      sinon.assert.notCalled(CallLog.renderEmptyCallLog);
+    });
+
+    test('renderEmptyCallLog should be called when there is no missedgroup ' +
+         'and it is in missed view',
+    function() {
+      this.sinon.spy(CallLog, 'renderEmptyCallLog');
+      CallLog.appendGroup(missedGroup);
+      CallLog.filter();
+      var container = CallLog.callLogContainer;
+      var checkboxes =
+        container.querySelectorAll('.missed-call input[type="checkbox"]');
+      for (var i = 0; i < checkboxes.length; i++) {
+        var checkbox = checkboxes[i];
+        checkbox.checked = true;
+      }
       CallLog.deleteLogGroups();
       ConfirmDialog.executeYes();
       sinon.assert.calledOnce(CallLog.renderEmptyCallLog);
