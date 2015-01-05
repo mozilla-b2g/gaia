@@ -42,6 +42,9 @@
     "apps/verticalhome/test/marionette/app_hosted_use_cached_icon_test.js": "Bug 1037194 - TEST-UNEXPECTED-FAIL | Vertical Home - Hosted app cached icon fetch fallback to default icon",
     "apps/verticalhome/test/marionette/collection_pin_result_uninstall_test.js": "Bug 1098310 - TEST-UNEXPECTED-FAIL | Vertical - Collection uninstall pinned collection web result",
     "apps/verticalhome/test/marionette/collection_rename_test.js": "Bug 1090756 - TEST-UNEXPECTED-FAIL | Vertical - Collection Rename rename collection",
-    "apps/verticalhome/test/marionette/group_collapse_drag_into_test.js": "Bug 1125696 - Intermittent failing test, TEST-UNEXPECTED-FAIL | Vertical - Group check dragging icon into collapsed group"
+    "apps/verticalhome/test/marionette/group_collapse_drag_into_test.js": "Bug 1125696 - Intermittent failing test, TEST-UNEXPECTED-FAIL | Vertical - Group check dragging icon into collapsed group",
+    "apps/verticalhome/test/marionette/search_test.js": "Bug 1126025 - Reenable or remove tests disabled in new search behaviour",
+    "apps/system/test/marionette/browser_chrome_bookmark_web_result_test.js": "Bug 1126025 - Reenable or remove tests disabled in new search behaviour",
+    "apps/system/test/marionette/browser_chrome_share_web_result_test.js": "Bug 1126025 - Reenable or remove tests disabled in new search behaviour"
   }
 }
