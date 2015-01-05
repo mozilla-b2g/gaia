@@ -50,6 +50,7 @@
       window.addEventListener('open-app', this.preHandleEvent);
       window.addEventListener('openwindow', this.preHandleEvent);
       window.addEventListener('appopenwindow', this.preHandleEvent);
+      window.addEventListener('iac-customlaunchpath', this.preHandleEvent);
       window.addEventListener('applicationready', (function appReady(e) {
         window.removeEventListener('applicationready', appReady);
         this._handlePendingEvents();
@@ -71,6 +72,7 @@
       window.removeEventListener('open-app', this.preHandleEvent);
       window.removeEventListener('openwindow', this.preHandleEvent);
       window.removeEventListener('appopenwindow', this.preHandleEvent);
+      window.removeEventListener('iac-customlaunchpath', this.preHandleEvent);
     },
 
     /**
@@ -111,6 +113,7 @@
         case 'openwindow':
         case 'appopenwindow':
         case 'webapps-launch':
+        case 'iac-customlaunchpath':
           config.timestamp = detail.timestamp;
           // TODO: Look up current opened window list,
           // and then create a new instance here.
@@ -183,7 +186,8 @@
       }
       var app = AppWindowManager.getApp(config.origin, config.manifestURL);
       if (app) {
-        if (config.evtType == 'appopenwindow') {
+        if (config.evtType === 'appopenwindow' ||
+            config.evtType === 'iac-customlaunchpath') {
           app.browser.element.src = config.url;
         }
         app.reviveBrowser();

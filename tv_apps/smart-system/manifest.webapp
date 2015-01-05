@@ -105,6 +105,12 @@
       "rules": {
         "minimumAccessLevel": "certified"
       }
+    },
+    "customlaunchpath": {
+      "description": "communicate with smart-home to launch arbitrary path.",
+      "rules": {
+        "minimumAccessLevel": "certified"
+      }
     }
   },
   "datastores-owned": {
