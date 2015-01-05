@@ -67,10 +67,10 @@
     "view": {
       "filters": {
         "type": "url",
-        "url": { "required":true, "pattern":"mailto:.{1,16384}" },
-        "disposition": "window",
-        "returnValue": true
-      }
+        "url": { "required":true, "pattern":"mailto:.{1,16384}" }
+      },
+      "disposition": "window",
+      "returnValue": true
     }
   },
   "redirects": [
