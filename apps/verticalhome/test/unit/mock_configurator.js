@@ -43,7 +43,15 @@ var mcGrid = [
   ]
 ];
 
+var mcBlacklist = [
+  'app://blacklisted1',
+  'app://blacklisted2'
+];
+
 var configurator = {
+  getBlacklist: function() {
+    return mcBlacklist;
+  },
   getGrid: function() {
     return mcGrid;
   },

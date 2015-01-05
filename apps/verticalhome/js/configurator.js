@@ -201,6 +201,10 @@
       return conf.grid;
     },
 
+    getBlacklist: function() {
+      return conf.blacklist;
+    },
+
     getItems: function(role) {
       var items = {};
 

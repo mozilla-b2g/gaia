@@ -187,9 +187,18 @@
         this.removeIconFromGrid(i);
       }
 
-      toAdd.forEach(function _toAdd(newApp) {
+console.log('Getting blacklist.');
+      var blacklist = configurator.getBlacklist();
+console.log('Got blacklist.', blacklist);
+      toAdd.forEach(newApp => {
+        // Do not add blacklisted apps to the grid.
+console.log('Checking blacklist:', newApp.app.origin);
+        if (blacklist.indexOf(newApp.app.origin) !== -1) {
+          console.log('Returning, found in blacklist.');
+          return;
+        }
         this.addIconToGrid(newApp.app);
-      }, this);
+      });
 
       app.itemStore.deferredSave(app.grid.getItems());
     },

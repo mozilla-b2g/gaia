@@ -18,6 +18,7 @@ require('/shared/elements/gaia_grid/js/items/mozapp.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 
 require('/test/unit/mock_app.js');
+require('/test/unit/mock_configurator.js');
 require('/test/unit/mock_item_store.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 
@@ -64,6 +65,53 @@ suite('app.js > ', function() {
 
     subject.synchronize();
     assert.ok(removeStub.calledTwice);
+  });
+
+  test('blacklisted origin does not get added to grid', function() {
+    var blacklistedApp1 = new GaiaGrid.Mozapp({
+      manifestURL: 'blacklisted1',
+      origin: 'app://blacklisted1',
+      manifest: {}
+    });
+
+    var blacklistedApp2 = new GaiaGrid.Mozapp({
+      manifestURL: 'blacklisted2',
+      origin: 'app://blacklisted2',
+      manifest: {}
+    });
+
+    var addedApp = new GaiaGrid.Mozapp({
+      manifestURL: 'mozilla',
+      origin: 'app://mozilla.org',
+      manifest: {}
+    });
+
+    var addStub = this.sinon.stub(subject, 'addIconToGrid');
+
+    subject.store._allItems = [];
+
+    // The blacklisted app is not added.
+    subject.entries = [
+      blacklistedApp1
+    ];
+    subject.synchronize();
+    assert.ok(addStub.notCalled);
+
+    // Make sure it works with two entries.
+    subject.entries = [
+      blacklistedApp1,
+      blacklistedApp2
+    ];
+    subject.synchronize();
+    assert.ok(addStub.notCalled);
+
+    // A normal app is added.
+    subject.entries = [
+      blacklistedApp1,
+      addedApp
+    ];
+    subject.synchronize();
+    assert.ok(addStub.calledOnce);
   });
 
 });
