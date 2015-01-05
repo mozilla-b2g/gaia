@@ -119,13 +119,20 @@
 
     /**
      * Auto-resize all text changes.
+     * We reformat only once even if several mutations occur for one target.
      *
      * @param {Array} mutations A MutationRecord list.
      * @private
      */
     _handleTextChanges: function(mutations) {
+      var targets = new Set();
+
       for (var i = 0; i < mutations.length; i++) {
-        this.reformatHeading(mutations[i].target);
+        targets.add(mutations[i].target);
+      }
+
+      for (var target of targets) {
+        this.reformatHeading(target);
       }
     },
 
