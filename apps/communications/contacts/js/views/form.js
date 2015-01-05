@@ -478,6 +478,22 @@ contacts.Form = (function() {
     }
   }
 
+  /**
+   * We cannot relay on the counter, but in the next id after the
+   * last field.
+   * See bug 1113134 for related explanation.
+   */
+  function getNextTemplateId(container) {
+    var nodes = container.childNodes;
+    if (!nodes || nodes.length === 0) {
+      return 0;
+    }
+
+    var lastNode = nodes[nodes.length - 1];
+    var value = lastNode.dataset.index;
+    return value ? parseInt(value) + 1 : 0;
+  }
+
   var insertField = function insertField(type, object, targetClasses) {
     if (!type || !configs[type]) {
       console.error('Inserting field with unknown type');
@@ -520,7 +536,7 @@ contacts.Form = (function() {
         infoFromFB = true;
       }
     });
-    currField.i = counters[type];
+    currField.i = getNextTemplateId(container);
 
     var rendered = utils.templates.render(template, currField);
     // Controlling that if no tel phone is present carrier field is disabled
