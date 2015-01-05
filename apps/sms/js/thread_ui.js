@@ -11,7 +11,8 @@
          Errors,
          EventDispatcher,
          SelectionHandler,
-         TaskRunner
+         TaskRunner,
+         Notify
 */
 /*exported ThreadUI */
 
@@ -855,6 +856,9 @@ var ThreadUI = {
     // If user currently in other thread then there is nothing to do here
     if (!this.isCurrentThread(message.threadId)) {
       return;
+    } else if (!document.hidden) {
+      Notify.ringtone();
+      Notify.vibrate();
     }
 
     MessageManager.markMessagesRead([message.id]);

@@ -115,6 +115,10 @@ var Navigation = {
     return true;
   },
 
+  getCurrentPanel: function n_getCurrentPanel() {
+    return Object.assign({}, currentPanel);
+  },
+
   /**
    * Lifecycle methods are called in this order:
    * - previousPanel.beforeLeave
@@ -171,7 +175,7 @@ var Navigation = {
       return Promise.resolve();
     }
 
-    var transitionArgs = args || {};
+    var transitionArgs = Object.assign({}, args);
 
     this.transitioning = true;
 
