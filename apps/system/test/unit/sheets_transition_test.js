@@ -23,19 +23,22 @@ suite('system/SheetsTransition >', function() {
 
   var dialer = {
     origin: 'app://dialer.gaiamobile.org',
-    broadcast: function() {}
+    broadcast: function() {},
+    setActive: function() {}
   };
   var dialerFrame;
 
   var settings = {
     origin: 'app://settings.gaiamobile.org',
-    broadcast: function() {}
+    broadcast: function() {},
+    setActive: function() {}
   };
   var settingsFrame;
 
   var contacts = {
     origin: 'app://contacts.gaiamobile.org',
-    broadcast: function() {}
+    broadcast: function() {},
+    setActive: function() {}
   };
   var contactsFrame;
 
@@ -67,6 +70,13 @@ suite('system/SheetsTransition >', function() {
     setup(function() {
       this.sinon.spy(dialer, 'broadcast');
       SheetsTransition.begin('ltr');
+    });
+
+    test('it should setActive(false) to current app', function() {
+      this.sinon.spy(contacts, 'setActive');
+      MockStackManager.getCurrent.returns(contacts);
+      SheetsTransition.begin('ltr');
+      assert.isTrue(contacts.setActive.calledWith(false));
     });
 
     test('it should cleanup previous sheet transitions', function() {

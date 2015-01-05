@@ -240,6 +240,13 @@ suite('system/StackManager >', function() {
     });
   });
 
+  test('_didntMove by default is true', function() {
+    appLaunch(dialer);
+    this.sinon.stub(dialer, 'setActive');
+    StackManager.commit();
+    assert.isTrue(dialer.setActive.calledWith(true));
+  });
+
   suite('Cards View Events', function() {
     setup(function() {
       appLaunch(dialer);

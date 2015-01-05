@@ -48,6 +48,9 @@
         // User can switch keyboard in utilityTray, so we should not blur
         // active app while utilityTray is shown.
         this._activeApp.blur();
+        this._activeApp.setNFCFocus(false);
+      } else {
+        this._activeApp.setNFCFocus(false);
       }
       this._activeApp.setVisibleForScreenReader(active);
     },
@@ -58,6 +61,7 @@
       }
       this.debug('focusing ' + this._activeApp.name);
       this._activeApp.focus();
+      this._activeApp.setNFCFocus(true);
     },
 
     /**
@@ -350,6 +354,7 @@
       window.addEventListener('appopening', this);
       window.addEventListener('localized', this);
       window.addEventListener('taskmanager-activated', this);
+      window.addEventListener('hierarchytopmostwindowchanged', this);
 
       this._settingsObserveHandler = {
         // continuous transition controlling
@@ -437,6 +442,7 @@
       window.removeEventListener('shrinking-start', this);
       window.removeEventListener('shrinking-stop', this);
       window.removeEventListener('taskmanager-activated', this);
+      window.removeEventListener('hierarchytopmostwindowchanged', this);
 
       for (var name in this._settingsObserveHandler) {
         SettingsListener.unobserve(
@@ -492,6 +498,13 @@
       var activeApp = this._activeApp;
       var detail = evt.detail;
       switch (evt.type) {
+        case 'hierarchytopmostwindowchanged':
+          if (Service.query('getTopMostUI') !== this) {
+            return;
+          }
+          this._activeApp && this._activeApp.getTopMostWindow()
+                                 .setNFCFocus(true);
+          break;
         case 'shrinking-start':
           if (this.shrinkingUI && this.shrinkingUI.isActive()) {
             return;
