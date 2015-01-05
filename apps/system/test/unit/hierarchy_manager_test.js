@@ -72,6 +72,19 @@ suite('system/HierarchyManager', function() {
     subject.stop();
   });
 
+  suite('Update top most window', function() {
+    test('should update top most window when window is opened', function() {
+      this.sinon.stub(subject, 'publish');
+      this.sinon.stub(subject, 'getTopMostWindow').returns(new MockAppWindow());
+      window.dispatchEvent(new CustomEvent('windowopened'));
+      assert.isTrue(subject.publish.calledWith('topmostwindowchanged'));
+      var oldTop = subject.getTopMostWindow();
+      subject.getTopMostWindow.returns(oldTop);
+      window.dispatchEvent(new CustomEvent('windowopened'));
+      assert.isTrue(subject.publish.calledOnce);
+    });
+  });
+
   suite('Get top most window', function() {
     setup(function() {
       subject.registerHierarchy(fakeAppWindowManager);

@@ -29,6 +29,7 @@ var SheetsTransition = {
     if (this._current) {
       this._setDuration(this._current, 0);
       this._current.classList.add('inside-edges');
+      currentApp && currentApp.setActive(false);
     }
 
     if (this._new) {
