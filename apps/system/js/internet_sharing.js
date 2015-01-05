@@ -1,9 +1,6 @@
 'use strict';
 /* global asyncStorage */
 /* global IccHelper */
-/* global ModalDialog */
-/* global AirplaneMode */
-/* global Promise */
 
 (function(exports) {
 
@@ -68,7 +65,7 @@
       // listen changes after value is restored.
       ['usb', 'wifi'].forEach(function(type) {
         settings.addObserver('tethering.' + type + '.enabled',
-          this.internetSharingSettingsChangeHanlder.bind(this));
+          this.internetSharingSettingsChangeHandler.bind(this));
       }, this);
     },
 
@@ -140,105 +137,16 @@
      * asyncStorage.
      * @memberof InternetSharing.prototype
      */
-    internetSharingSettingsChangeHanlder: function(evt) {
-      var _ = navigator.mozL10n.get;
+    internetSharingSettingsChangeHandler: function(evt) {
       if (validCardState.indexOf(this._cardState) === -1) {
         return;
       }
       // link the iccid with current internet state for future restoring.
       var type = (evt.settingName.indexOf('wifi') > -1) ? 'wifi' : 'usb';
       var cardId = (IccHelper.iccInfo && IccHelper.iccInfo.iccid) || 'absent';
-      var conns = window.navigator.mozMobileConnections;
 
-      if (!conns) {
-        return;
-      }
-
-      var settingKey = 'tethering.' + type + '.enabled';
-      var cset = {};
-      cset[settingKey] = false;
-      var title;
-      var buttonText;
-      var message;
-
-      var dataConnected;
-      // In DualSim only one of them will have data active
-      for (var i = 0; i < conns.length && !dataConnected; i++) {
-        dataConnected = conns[i].data.connected;
-      }
-
-      this.getDUNConnection().then(function(DUNConnection) {
-        if ('wifi' === type) {
-          if (AirplaneMode.enabled && true === evt.settingValue) {
-            title = _('apmActivated');
-            buttonText = _('ok');
-            message = _('noHotspotWhenAPMisOnWifiHotspot');
-
-            ModalDialog.alert(title, message, { title: buttonText });
-            settings.createLock().set(cset);
-          } else if ('absent' === cardId && true === evt.settingValue) {
-            title = _('noSimCard');
-            buttonText = _('ok');
-            message = _('noSIMCardInHotspot2');
-
-            ModalDialog.alert(title, message, { title: buttonText });
-            settings.createLock().set({'tethering.wifi.enabled': false});
-          }  else if (!DUNConnection && !dataConnected &&
-            true === evt.settingValue) {
-            title = _('noConnectivityHead');
-            buttonText = _('ok');
-            message = _('noConnectivityMessageWifiHotspot');
-
-            ModalDialog.alert(title, message, { title: buttonText });
-            settings.createLock().set(cset);
-          }
-        } else {
-          if (AirplaneMode.enabled && true === evt.settingValue) {
-            title = _('apmActivated');
-            buttonText = _('ok');
-            message = _('noHotspotWhenAPMisOnUsbHotspot');
-
-            ModalDialog.alert(title, message, { title: buttonText });
-            settings.createLock().set(cset);
-          } else if ('absent' === cardId && true === evt.settingValue) {
-            title = _('noSimCard');
-            buttonText = _('ok');
-            message = _('noSIMCardInHotspot2');
-
-            ModalDialog.alert(title, message, { title: buttonText });
-            settings.createLock().set({'tethering.wifi.enabled': false});
-          }  else if (!DUNConnection && !dataConnected &&
-            true === evt.settingValue) {
-            title = _('noConnectivityHead');
-            buttonText = _('ok');
-            message = _('noConnectivityMessageUsbHotspot');
-
-            ModalDialog.alert(title, message, { title: buttonText });
-            settings.createLock().set(cset);
-          }
-        }
-        asyncStorage.setItem('tethering.' + type + '.simstate.card-' + cardId,
-          evt.settingValue);
-      });
-    },
-
-    getDUNConnection: function() {
-      var lock = settings.createLock();
-      var request = lock.get('ro.tethering.dun_required');
-      var DUNConnection;
-      return new Promise(function(resolve, reject) {
-        request.onsuccess = function() {
-          DUNConnection = request.result['ro.tethering.dun_required'];
-          if (typeof(DUNConnection) === 'undefined') {
-            DUNConnection = false;
-          }
-          resolve(DUNConnection);
-        };
-
-        request.onerror = function() {
-          resolve(false);
-        };
-      });
+      asyncStorage.setItem('tethering.' + type + '.simstate.card-' + cardId,
+                           evt.settingValue);
     },
 
     /**
