@@ -1437,11 +1437,6 @@
     // If we have sidebar in the future, change layoutManager then.
     width = layoutManager.width;
 
-    if (this.element.style.width === width + 'px' &&
-        this.element.style.height === height + 'px') {
-      return;
-    }
-
     // Adjust height for activity windows which open while rocketbar is open.
     if (this.parentApp) {
       var parent = applications.getByManifestURL(this.parentApp);
