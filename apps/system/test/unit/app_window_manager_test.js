@@ -166,6 +166,26 @@ suite('system/AppWindowManager', function() {
   });
 
   suite('Handle events', function() {
+    test('hierarchytopmostwindowchanged', function() {
+      this.sinon.stub(app1, 'setNFCFocus');
+      appWindowManager._activeApp = app1;
+      MockService.mTopMostUI = appWindowManager;
+      appWindowManager.handleEvent({
+        type: 'hierarchytopmostwindowchanged'
+      });
+      assert.isTrue(app1.setNFCFocus.calledWith(true));
+    });
+
+    test('should not setNFCFocus when top most is not us', function() {
+      this.sinon.stub(app3, 'setNFCFocus');
+      appWindowManager._activeApp = app3;
+      MockService.mTopMostUI = MockRocketbar;
+      appWindowManager.handleEvent({
+        type: 'hierarchytopmostwindowchanged'
+      });
+      assert.isFalse(app3.setNFCFocus.calledWith(true));
+    });
+
     test('localized event should be broadcasted.', function() {
       var stubBroadcastMessage =
         this.sinon.stub(appWindowManager, 'broadcastMessage');
@@ -1070,9 +1090,11 @@ suite('system/AppWindowManager', function() {
       this.sinon.stub(app1, 'focus');
       this.sinon.stub(app1, 'blur');
       this.sinon.stub(app1, 'setVisibleForScreenReader');
+      this.sinon.stub(app1, 'setNFCFocus');
       appWindowManager.setHierarchy(true);
       assert.isTrue(app1.focus.called);
       assert.isTrue(app1.setVisibleForScreenReader.calledWith(true));
+      assert.isTrue(app1.setNFCFocus.calledWith(true));
 
       MockUtilityTray.mShown = false;
       appWindowManager.setHierarchy(false);
@@ -1082,6 +1104,7 @@ suite('system/AppWindowManager', function() {
       MockUtilityTray.mShown = true;
       appWindowManager.setHierarchy(false);
       assert.isFalse(app1.blur.calledOnce);
+      assert.isTrue(app1.setNFCFocus.calledWith(false));
     });
 
     test('focus is redirected', function() {

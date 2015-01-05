@@ -199,6 +199,15 @@ suite('system/AppWindow', function() {
     assert.equal(app1.config.chrome.scrollable, true);
   });
 
+  test('setActive', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var app2 = new AppWindow(fakeAppConfig2);
+    this.sinon.stub(app2, '_setActive');
+    this.sinon.stub(app1, 'getTopMostWindow').returns(app2);
+    app1.setActive(true);
+    assert.isTrue(app2._setActive.calledWith(true));
+  });
+
   suite('Resize', function() {
     var app1;
     setup(function() {
@@ -886,7 +895,9 @@ suite('system/AppWindow', function() {
       return fakeDOMRequest;
     },
     addNextPaintListener: function() {},
-    removeNextPaintListener: function() {}
+    removeNextPaintListener: function() {},
+    setActive: function() {},
+    setNFCFocus: function() {}
   };
 
   function injectFakeMozBrowserAPI(iframe) {
@@ -964,6 +975,21 @@ suite('system/AppWindow', function() {
         onsuccess: function() {},
         onerror: function() {}
       };
+    });
+
+    test('MozBrowser API: setActive', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      injectFakeMozBrowserAPI(app1.browser.element);
+      this.sinon.stub(app1.browser.element, 'setActive');
+      this.sinon.stub(app1.browser.element, 'setNFCFocus');
+      MockService.mTopMostUI = { name: 'Rocketbar' };
+      app1._setActive(false);
+      assert.isTrue(app1.browser.element.setActive.calledWith(false));
+      assert.isTrue(app1.browser.element.setNFCFocus.calledWith(false));
+      MockService.mTopMostUI = { name: 'AppWindowManager' };
+      app1._setActive(true);
+      assert.isTrue(app1.browser.element.setActive.calledWith(true));
+      assert.isTrue(app1.browser.element.setNFCFocus.calledWith(true));
     });
 
     test('MozBrowser API: simple methods', function() {

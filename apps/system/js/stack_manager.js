@@ -103,6 +103,8 @@ var StackManager = {
     // queueing.
     if (this._didntMove) {
       window.dispatchEvent(new CustomEvent('sheets-gesture-end'));
+      var current = this.getCurrent();
+      current && current.setActive(true);
     }
     if (!this._broadcastTimeout) {
       this._broadcast();
@@ -139,7 +141,8 @@ var StackManager = {
   },
 
   get _didntMove() {
-    return !!this._appIn && this._appIn === this._appOut;
+    return (!this._appIn && !this._appOut) ||
+           (!!this._appIn && this._appIn === this._appOut);
   },
 
   set position(position) {
@@ -334,7 +337,7 @@ var StackManager = {
 
     // We're back to the same place
     if (this._didntMove) {
-      this._appIn.transitionController.clearTransitionClasses();
+      this._appIn && this._appIn.transitionController.clearTransitionClasses();
       this._cleanUp();
       return;
     }

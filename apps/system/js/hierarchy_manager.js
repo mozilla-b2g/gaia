@@ -17,11 +17,13 @@
     'holdhome',
     'system-resize',
     'launchactivity',
-    'mozChromeEvent'
+    'mozChromeEvent',
+    'windowopened',
+    'windowclosed'
   ];
   BaseModule.create(HierarchyManager, {
     name: 'HierarchyManager',
-    EVENT_PREFIX: 'hierachy',
+    EVENT_PREFIX: 'hierarchy',
     _ui_list: null,
     _topMost: null,
     DEBUG: false,
@@ -134,8 +136,21 @@
       module.setHierarchy(true);
     },
 
+    updateTopMostWindow: function() {
+      var topMostWindow = this.getTopMostWindow();
+      if (topMostWindow !== this._topMostWindow) {
+        this._topMostWindow = topMostWindow;
+        this.publish('topmostwindowchanged');
+      }
+    },
+
     handleEvent: function(evt) {
+      this.debug(evt.type);
       switch (evt.type) {
+        case 'windowopened':
+        case 'windowclosed':
+          this.updateTopMostWindow();
+          break;
         case 'mozChromeEvent':
           if (!evt.detail ||
               evt.detail.type !== 'inputmethod-contextchange') {

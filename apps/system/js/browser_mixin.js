@@ -57,6 +57,28 @@
     },
 
     /**
+     * This function will be called by window managers while top most app
+     * window is changed to notify nfc module in gecko.
+     */
+    setNFCFocus: function(enable) {
+      if (!this.browser || !this.browser.element ||
+          this._nfcActive === enable ||
+          (this.CLASS_NAME !== 'AppWindow' &&
+           this.CLASS_NAME !== 'ActivityWindow' &&
+           this.CLASS_NAME !== 'PopupWindow')) {
+          // XXX: Implement this.belongToAppWindow()
+        return;
+      }
+      this.debug(this.name + ' is setting nfc active to: ' + enable);
+      try {
+        this._nfcActive = enable;
+        this.browser.element.setNFCFocus(enable);
+      } catch (err) {
+        this.debug('set nfc active is not implemented');
+      }
+    },
+
+    /**
      * get the screenshot of mozbrowser iframe.
      * If it succeed, the blob would be stored in this._screenshotBlob.
      * @param  {Function} callback The callback function to be invoked
@@ -188,6 +210,12 @@
           'setActive' in this.browser.element) {
         this.debug('setActive on browser element:' + active);
         this.browser.element.setActive(active);
+        var topMostUI = Service.query('getTopMostUI');
+        if (active && topMostUI && topMostUI.name === 'AppWindowManager') {
+          this.setNFCFocus(active);
+        } else {
+          this.setNFCFocus(false);
+        }
       }
     },
 
