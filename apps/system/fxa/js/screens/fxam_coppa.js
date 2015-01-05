@@ -46,9 +46,7 @@ var FxaModuleCoppa = (function() {
 
     this.isFTU = !!(options && options.isftu);
 
-    navigator.mozL10n.once(() => {
-      _populateSelect(this.fxaAgeSelect);
-    });
+    _populateSelect(this.fxaAgeSelect);
 
     _enableNext(this.fxaAgeSelect.value);
 
