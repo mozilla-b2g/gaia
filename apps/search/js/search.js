@@ -39,7 +39,7 @@
      * on first use
      */
     suggestionNotice: document.getElementById('suggestions-notice-wrapper'),
-    toShowNotice: null,
+    toShowNotice: false,
     NOTICE_KEY: 'notice-shown',
 
     init: function() {
