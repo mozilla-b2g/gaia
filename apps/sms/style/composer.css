@@ -293,6 +293,11 @@ form[role="search"] button[type="submit"]:after {
               no-repeat center / 3rem;
 }
 
+#messages-attach-button[disabled] {
+  background-blend-mode: luminosity;
+  opacity: 0.3;
+}
+
 /*
   DSDS
 */

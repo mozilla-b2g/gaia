@@ -2017,4 +2017,23 @@ suite('compose_test.js', function() {
       assert.equal(onInteractStub.callCount, 6);
     });
   });
+
+  suite('lock() and unlock()',function() {
+    test('correctly manages state of attachment button', function() {
+      var attachButton = document.getElementById('messages-attach-button');
+
+      // Should be enabled at the beginning
+      assert.isFalse(attachButton.disabled);
+
+      Compose.lock();
+
+      // Lock should disable attachment button
+      assert.isTrue(attachButton.disabled);
+
+      Compose.unlock();
+
+      // Unlock should enable attachment button again
+      assert.isFalse(attachButton.disabled);
+    });
+  });
 });
