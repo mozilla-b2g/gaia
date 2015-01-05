@@ -20,7 +20,8 @@
           // The reason we need this step here is because we only accept
           // card instance as parameter when we call removeCard.
           var card = home.cardManager.findCardFromCardList({
-            manifestURL: activity.source.data.manifestURL
+            manifestURL: activity.source.data.manifestURL,
+            launchURL: activity.source.data.launchURL
           });
           home.cardManager.removeCard(card);
           break;
