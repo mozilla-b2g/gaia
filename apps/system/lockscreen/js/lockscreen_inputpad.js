@@ -222,7 +222,7 @@
         this.updatePassCodeUI();
 
         if (this.states.padVibrationEnabled) {
-          navigator.vibrate(this.states.padVibrationDuration);
+          navigator.vibrate(this.configs.padVibrationDuration);
         }
 
         if (this.states.passCodeEntered.length === 4) {
