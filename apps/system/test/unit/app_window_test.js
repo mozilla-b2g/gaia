@@ -265,16 +265,6 @@ suite('system/AppWindow', function() {
       assert.equal(app1.screenshotOverlay.style.visibility, '');
     });
 
-    test('Reset the iframe inline size', function() {
-      app1.iframe.style.width = '480px';
-      app1.iframe.style.height = '320px';
-      var stubIsActive = this.sinon.stub(app1, 'isActive');
-      stubIsActive.returns(true);
-      app1.resize();
-      assert.equal(app1.iframe.style.width, '');
-      assert.equal(app1.iframe.style.height, '');
-    });
-
     test('No navigation setting in manifest', function() {
       var spy = this.sinon.spy(window, 'AppChrome');
       new AppWindow(fakeChromeConfigWithoutNavigation); // jshint ignore:line
@@ -689,6 +679,17 @@ suite('system/AppWindow', function() {
       assert.isTrue(app1.element.classList.contains('overlay'));
       this.sinon.clock.tick(); // We wait for the next tick
       assert.isFalse(app1.element.classList.contains('overlay'));
+    });
+
+    test('should reset the iframe inline size when hiding the overlay',
+    function() {
+      app1.iframe.style.width = '480px';
+      app1.iframe.style.height = '320px';
+
+      app1._hideScreenshotOverlay();
+
+      assert.equal(app1.iframe.style.width, '');
+      assert.equal(app1.iframe.style.height, '');
     });
 
     test('hideScreenshotOverlay noop when the screenshot is not displayed',
