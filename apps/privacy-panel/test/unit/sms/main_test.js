@@ -22,7 +22,7 @@ suite('SMS Main', function() {
       navigator.mozSetMessageHandler.mSetup();
 
       // create passphrase instance
-      passphrase = new PassPhrase('rppmac', 'rppsalt');
+      passphrase = new PassPhrase('rpmac', 'rpsalt');
       passphrase.change('mypass').then(function() {
         done();
       });
@@ -33,13 +33,13 @@ suite('SMS Main', function() {
     var customRequire = requirejs.config({
       map: {
         '*': {
-          'rpp/passphrase': 'mymocks/mock_passphrase',
+          'rp/passphrase': 'mymocks/mock_passphrase',
           'sms/commands': 'mymocks/mock_commands'
         }
       }
     });
-    customRequire(['sms/main'], RppSMSHandler => {
-      this.subject = RppSMSHandler;
+    customRequire(['sms/main'], RpSMSHandler => {
+      this.subject = RpSMSHandler;
       this.subject.init();
 
       this.sandbox = sinon.sandbox.create();
@@ -73,9 +73,9 @@ suite('SMS Main', function() {
       navigator.mozSettings.createLock().set({
         'lockscreen.enabled': false,
         'lockscreen.passcode-lock.enabled': false,
-        'rpp.ring.enabled': false,
-        'rpp.lock.enabled': false,
-        'rpp.locate.enabled': false
+        'rp.ring.enabled': false,
+        'rp.lock.enabled': false,
+        'rp.locate.enabled': false
       });
     });
 
@@ -84,7 +84,7 @@ suite('SMS Main', function() {
     });
 
     test('should do nothing, bad command was send', function() {
-      this.fakeSMS('rpp ringy mypass');
+      this.fakeSMS('rp ringy mypass');
 
       sinon.assert.notCalled(this.subject._ring);
       sinon.assert.notCalled(this.subject._lock);
@@ -92,7 +92,7 @@ suite('SMS Main', function() {
     });
 
     test('should do nothing, bad sms was send', function() {
-      this.fakeSMS('esrpp ringy mypass');
+      this.fakeSMS('esrp ringy mypass');
 
       sinon.assert.notCalled(this.subject._ring);
       sinon.assert.notCalled(this.subject._lock);
@@ -100,7 +100,7 @@ suite('SMS Main', function() {
     });
 
     test('should do nothing, ring feature is turned off', function() {
-      this.fakeSMS('rpp ring mypass');
+      this.fakeSMS('rp ring mypass');
       
       sinon.assert.notCalled(this.subject._ring);
       sinon.assert.notCalled(this.subject._lock);
@@ -108,7 +108,7 @@ suite('SMS Main', function() {
     });
 
     test('should do nothing, lock feature is disabled', function() {
-      this.fakeSMS('rpp lock mypass');
+      this.fakeSMS('rp lock mypass');
 
       sinon.assert.notCalled(this.subject._ring);
       sinon.assert.notCalled(this.subject._lock);
@@ -116,7 +116,7 @@ suite('SMS Main', function() {
     });
 
     test('should do nothing, locate feature is disabled', function() {
-      this.fakeSMS('rpp locate mypass');
+      this.fakeSMS('rp locate mypass');
 
       sinon.assert.notCalled(this.subject._ring);
       sinon.assert.notCalled(this.subject._lock);
@@ -124,12 +124,12 @@ suite('SMS Main', function() {
     });
 
     test('should do nothing, bad passphrase was send', function() {
-      this.fakeSMS('rpp ring badpass');
+      this.fakeSMS('rp ring badpass');
 
       navigator.mozSettings.createLock().set({
         'lockscreen.enabled': true,
         'lockscreen.passcode-lock.enabled': true,
-        'rpp.ring.enabled': true
+        'rp.ring.enabled': true
       });
 
       sinon.assert.notCalled(this.subject._ring);
@@ -141,10 +141,10 @@ suite('SMS Main', function() {
       navigator.mozSettings.createLock().set({
         'lockscreen.enabled': true,
         'lockscreen.passcode-lock.enabled': true,
-        'rpp.ring.enabled': true
+        'rp.ring.enabled': true
       });
 
-      this.fakeSMS('rpp ring mypass');
+      this.fakeSMS('rp ring mypass');
 
       sinon.assert.called(this.subject._ring);
       sinon.assert.notCalled(this.subject._lock);
@@ -156,10 +156,10 @@ suite('SMS Main', function() {
       navigator.mozSettings.createLock().set({
         'lockscreen.enabled': true,
         'lockscreen.passcode-lock.enabled': true,
-        'rpp.lock.enabled': true
+        'rp.lock.enabled': true
       });
 
-      this.fakeSMS('rpp lock mypass');
+      this.fakeSMS('rp lock mypass');
 
       sinon.assert.notCalled(this.subject._ring);
       sinon.assert.called(this.subject._lock);
@@ -171,10 +171,10 @@ suite('SMS Main', function() {
       navigator.mozSettings.createLock().set({
         'lockscreen.enabled': true,
         'lockscreen.passcode-lock.enabled': true,
-        'rpp.locate.enabled': true
+        'rp.locate.enabled': true
       });
 
-      this.fakeSMS('rpp locate mypass');
+      this.fakeSMS('rp locate mypass');
 
       sinon.assert.notCalled(this.subject._ring);
       sinon.assert.notCalled(this.subject._lock);

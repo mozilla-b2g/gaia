@@ -19,11 +19,11 @@ GuidedTourPanels.prototype = {
     gtAlaBlur:       '#gt-ala-blur',
     gtAlaCustom:     '#gt-ala-custom',
     gtAlaExceptions: '#gt-ala-exceptions',
-    gtRppExplain:    '#gt-rpp-explain',
-    gtRppPassphrase: '#gt-rpp-passphrase',
-    gtRppLocate:     '#gt-rpp-locate',
-    gtRppRing:       '#gt-rpp-ring',
-    gtRppLock:       '#gt-rpp-lock'
+    gtRpExplain:     '#gt-rp-explain',
+    gtRpPassphrase:  '#gt-rp-passphrase',
+    gtRpLocate:      '#gt-rp-locate',
+    gtRpRing:        '#gt-rp-ring',
+    gtRpLock:        '#gt-rp-lock'
   },
 
   init: function() {

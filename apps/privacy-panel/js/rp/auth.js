@@ -6,7 +6,7 @@
  */
 define([
   'panels',
-  'rpp/passphrase',
+  'rp/passphrase',
   'shared/settings_listener'
 ],
 
@@ -23,19 +23,19 @@ function(panels, PassPhrase, SettingsListener) {
   AuthPanel.prototype = {
 
     /**
-     * Initialize RPP panel and all its sections
+     * Initialize RP panel and all its sections
      * 
      * @method init
      * @constructor
      */
     init: function() {
-      this.mainPanel = document.getElementById('rpp-main');
-      this.changePanel = document.getElementById('rpp-change-pass');
-      this.loginForm = document.getElementById('rpp-login-form');
-      this.registerForm = document.getElementById('rpp-register-form');
-      this.changeForm = document.getElementById('rpp-change-pass-form');
+      this.mainPanel = document.getElementById('rp-main');
+      this.changePanel = document.getElementById('rp-change-pass');
+      this.loginForm = document.getElementById('rp-login-form');
+      this.registerForm = document.getElementById('rp-register-form');
+      this.changeForm = document.getElementById('rp-change-pass-form');
 
-      this.passphrase = new PassPhrase('rppmac', 'rppsalt');
+      this.passphrase = new PassPhrase('rpmac', 'rpsalt');
 
       // Define first time use to eventualy show register page
       this.defineFTU();
@@ -79,7 +79,7 @@ function(panels, PassPhrase, SettingsListener) {
           this.lsPasscodeEnabled = value;
 
           // Each time user decides to disable passcode, show him that he can't
-          // use rpp features.
+          // use rp features.
           this.toggleAlertBox();
           this.fillChangeOptions();
           this.changePanel.querySelector('.pin-type')
@@ -89,7 +89,7 @@ function(panels, PassPhrase, SettingsListener) {
     },
 
     /**
-     * Defines whenever we can login to rpp setting or do we need to register
+     * Defines whenever we can login to rp setting or do we need to register
      * new passphrase.
      * 
      * @method defineFTU
@@ -193,7 +193,7 @@ function(panels, PassPhrase, SettingsListener) {
      * @return {String}       Empty string when success
      */
     comparePINs: function(pass1, pass2) {
-      var rgx = /^([0-9]{1,4})$/i;
+      var rgx = /^([0-9]{1,8})$/i;
 
       if (!pass1) {
         return 'pin-empty';
@@ -211,7 +211,7 @@ function(panels, PassPhrase, SettingsListener) {
     },
 
     /**
-     * Register new user so he can use all rpp features.
+     * Register new user so he can use all rp features.
      *
      * @method registerUser
      * @param {Object} event JavaScript event
@@ -232,7 +232,7 @@ function(panels, PassPhrase, SettingsListener) {
       }
 
       this.passphrase.change(pass1).then(function() {
-        panels.show({ id: 'rpp-features' });
+        panels.show({ id: 'rp-features' });
         this.defineFTU();
       }.bind(this));
     },
@@ -251,7 +251,7 @@ function(panels, PassPhrase, SettingsListener) {
     },
 
     /**
-     * Login user to rpp panel
+     * Login user to rp panel
      *
      * @method loginUser
      * @param {Object} event JavaScript event
@@ -269,7 +269,7 @@ function(panels, PassPhrase, SettingsListener) {
           return;
         }
 
-        panels.show({ id: 'rpp-features' });
+        panels.show({ id: 'rp-features' });
       }.bind(this));
     },
 
@@ -320,7 +320,7 @@ function(panels, PassPhrase, SettingsListener) {
         }
 
         this.passphrase.change(pass1).then(function() {
-          panels.show({ id: 'rpp-features' });
+          panels.show({ id: 'rp-features' });
         });
       }.bind(this);
 
@@ -365,7 +365,7 @@ function(panels, PassPhrase, SettingsListener) {
      * @method toggleAlertBox
      */
     toggleAlertBox: function() {
-      var modal = document.querySelector('#rpp-features .overlay');
+      var modal = document.querySelector('#rp-features .overlay');
 
       if (this.lsPasscodeEnabled) {
         modal.setAttribute('hidden', 'hidden');

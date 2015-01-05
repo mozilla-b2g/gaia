@@ -1,8 +1,8 @@
 'use strict';
 
-suite('RPP PassPhrase module', function() {
+suite('RP PassPhrase module', function() {
   setup(function(done) {
-    require(['rpp/passphrase'], PassPhrase => {
+    require(['rp/passphrase'], PassPhrase => {
       this.subject = new PassPhrase('salt', 'mac');
       done();
     });

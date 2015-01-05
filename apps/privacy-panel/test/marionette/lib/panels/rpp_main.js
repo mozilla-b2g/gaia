@@ -14,15 +14,15 @@ AlaMainPanel.prototype = {
 
   selectors: {
     rootPanel:      '#root',
-    rppPanel:       '#rpp-main',
-    featuresPanel:  '#rpp-features',
-    loginForm:      '#rpp-login',
-    loginPass:      '#rpp-login .pass1',
-    loginSubmit:    '#rpp-login .rpp-login-ok',
-    registerForm:   '#rpp-register',
-    registerPass1:  '#rpp-register .pass1',
-    registerPass2:  '#rpp-register .pass2',
-    registerSubmit: '#rpp-register .rpp-register-ok'
+    rpPanel:        '#rp-main',
+    featuresPanel:  '#rp-features',
+    loginForm:      '#rp-login',
+    loginPass:      '#rp-login .pass1',
+    loginSubmit:    '#rp-login .rp-login-ok',
+    registerForm:   '#rp-register',
+    registerPass1:  '#rp-register .pass1',
+    registerPass2:  '#rp-register .pass2',
+    registerSubmit: '#rp-register .rp-register-ok'
   },
 
   init: function() {
@@ -31,7 +31,7 @@ AlaMainPanel.prototype = {
   },
 
   loadMainPanel: function() {
-    this.client.findElement('#menu-item-rpp').tap();
+    this.client.findElement('#menu-item-rp').tap();
     this.waitForPanelToDissapear(this.selectors.rootPanel);
   },
 

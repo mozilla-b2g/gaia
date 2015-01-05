@@ -4,10 +4,10 @@
  * @module AppList
  * @return {Object}
  */
-define([],
-
-function() {
+define(function(require) {
   'use strict';
+       
+  var ManifestHelper = require('shared/manifest_helper');
 
   function AppList() {
     this.mozApps = navigator.mozApps;
@@ -22,7 +22,8 @@ function() {
       this.mozApps.mgmt.getAll().onsuccess = function(event) {
         var apps = event.target.result;
         apps.forEach(function(app) {
-          var manifest = app.manifest || app.updateManifest;
+          var manifest = new ManifestHelper(app.manifest ?
+                app.manifest : app.updateManifest);
           if (manifest.permissions && manifest.permissions[filter]) {
             list.push(app);
           }
