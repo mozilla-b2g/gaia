@@ -846,15 +846,16 @@
         this.lockOrientation();
       }
     }
-    // Resize only the overlays not the app
-    var width = layoutManager.width;
-    var height = layoutManager.getHeightFor(this);
 
+    // We don't want to resize/reflow all backgrounds app
+    // so we make sure the iframe doesn't get resized
     if (this.browser) {
       this.iframe.style.width = this.width + 'px';
       this.iframe.style.height = this.height + 'px';
     }
 
+    var width = layoutManager.width;
+    var height = layoutManager.getHeightFor(this);
     this.element.style.width = width + 'px';
     this.element.style.height = height + 'px';
 
@@ -1231,6 +1232,10 @@
    */
   AppWindow.prototype._hideScreenshotOverlay =
     function aw__hideScreenshotOverlay() {
+      // The iframe might be "freezed" to an old size
+      // making sure it's resized properly before dipslaying it
+      this.iframe.style.width = '';
+      this.iframe.style.height = '';
 
       if (!this.screenshotOverlay ||
           !this.screenshotOverlay.classList.contains('visible')) {
@@ -1452,12 +1457,11 @@
 
     this.width = width;
     this.height = height;
-    this.element.style.width = this.width + 'px';
-    this.element.style.height = this.height + 'px';
+
+    this.element.style.width = width + 'px';
+    this.element.style.height = height + 'px';
 
     this.reviveBrowser();
-    this.iframe.style.width = '';
-    this.iframe.style.height = '';
 
     this.resized = true;
     if (this.screenshotOverlay) {
@@ -1474,7 +1478,7 @@
      * @event AppWindow#appresize
      */
     this.publish('resize');
-    this.debug('W:', this.width, 'H:', this.height);
+    this.debug('W:', width, 'H:', height);
   };
 
   /**
