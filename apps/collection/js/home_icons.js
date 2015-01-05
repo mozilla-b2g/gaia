@@ -9,7 +9,7 @@
    */
 
   // Hidden manifest roles that we do not show
-  const HIDDEN_ROLES = ['system', 'input', 'homescreen', 'search', 'addon'];
+  const HIDDEN_ROLES = ['system', 'input', 'homescreen', 'addon'];
 
   var appMgr = navigator.mozApps.mgmt;
   var initPromise;
