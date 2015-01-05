@@ -6,7 +6,8 @@
   height: 2rem;
 }
 
-#screen.rocketbar-focused .gesture-panel {
+#screen.rocketbar-focused #left-panel,
+#screen.rocketbar-focused #right-panel {
   pointer-events: none;
 }
 
