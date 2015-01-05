@@ -79,12 +79,6 @@ suite('system/EdgeSwipeDetector >', function() {
     name: 'FTU'
   };
 
-  function appLaunch(config) {
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('launchapp', true, false, config);
-    window.dispatchEvent(evt);
-  }
-
   function homescreen() {
     window.dispatchEvent(new Event('homescreenopened'));
   }
@@ -99,7 +93,7 @@ suite('system/EdgeSwipeDetector >', function() {
   function launchTransitionEnd(config) {
     var evt = document.createEvent('CustomEvent');
     config || (config = dialer);
-    evt.initCustomEvent('appopen', true, false, config);
+    evt.initCustomEvent('appopened', true, false, config);
     window.dispatchEvent(evt);
   }
 
@@ -147,7 +141,7 @@ suite('system/EdgeSwipeDetector >', function() {
     });
 
     test('the edges should be enabled', function() {
-      appLaunch(dialer);
+      launchTransitionEnd(dialer);
       assert.isFalse(EdgeSwipeDetector.previous.classList.contains('disabled'));
       assert.isFalse(EdgeSwipeDetector.next.classList.contains('disabled'));
     });
@@ -162,7 +156,7 @@ suite('system/EdgeSwipeDetector >', function() {
       });
 
       test('the edges should not be enabled', function() {
-        appLaunch(dialer);
+        launchTransitionEnd(dialer);
         var previous = EdgeSwipeDetector.previous;
         assert.isTrue(previous.classList.contains('disabled'));
         assert.isTrue(EdgeSwipeDetector.next.classList.contains('disabled'));
@@ -180,7 +174,7 @@ suite('system/EdgeSwipeDetector >', function() {
     suite('in background', function() {
       setup(function() {
         dialer.stayBackground = true;
-        appLaunch(dialer);
+        launchTransitionEnd(dialer);
       });
 
       test('the edges should not be enabled', function() {
@@ -198,37 +192,13 @@ suite('system/EdgeSwipeDetector >', function() {
     });
   });
 
-  suite('When a wrapper is launched', function() {
-    var google = {
-      url: 'http://google.com/index.html',
-      origin: 'http://google.com'
-    };
-
-    function wrapperLaunch(config) {
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('launchapp', true, false, config);
-      window.dispatchEvent(evt);
-    }
-
-    setup(function() {
-      EdgeSwipeDetector.previous.classList.add('disabled');
-      EdgeSwipeDetector.next.classList.add('disabled');
-    });
-
-    test('the edges should be enabled', function() {
-      wrapperLaunch(google);
-      assert.isFalse(EdgeSwipeDetector.previous.classList.contains('disabled'));
-      assert.isFalse(EdgeSwipeDetector.next.classList.contains('disabled'));
-    });
-  });
-
   suite('When the setting is enabled', function() {
     setup(function() {
       MockSettingsListener.mCallbacks['edgesgesture.enabled'](false);
       EdgeSwipeDetector.previous.classList.add('disabled');
       EdgeSwipeDetector.next.classList.add('disabled');
 
-      appLaunch(dialer);
+      launchTransitionEnd(dialer);
     });
 
     teardown(function() {
@@ -259,7 +229,7 @@ suite('system/EdgeSwipeDetector >', function() {
       EdgeSwipeDetector.previous.classList.remove('disabled');
       EdgeSwipeDetector.next.classList.remove('disabled');
 
-      appLaunch(dialer);
+      launchTransitionEnd(dialer);
     });
 
     teardown(function() {
