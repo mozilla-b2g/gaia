@@ -1384,10 +1384,7 @@ var ThreadUI = {
 
   // Method for rendering the first chunk at the beginning
   showFirstChunk: function thui_showFirstChunk() {
-    Promise.all(this.mmsPromises).then((options) => {
-      options.forEach((opt) => {
-        opt.element.appendChild(this.createMmsContent(opt.slideArray));
-      });
+    Promise.all(this.domPromises).then(() => {
       // Show chunk of messages
       this.showChunkOfMessages(this.CHUNK_SIZE);
       // Boot update of headers
@@ -1395,7 +1392,7 @@ var ThreadUI = {
       // Go to Bottom
       this.scrollViewToBottom();
     });
-    this.mmsPromises = [];
+    this.domPromises = [];
   },
 
   createMmsContent: function thui_createMmsContent(dataArray) {
@@ -1431,12 +1428,6 @@ var ThreadUI = {
     var onMessagesRendered = (function messagesRendered() {
       if (this.messageIndex < this.CHUNK_SIZE) {
         this.showFirstChunk();
-      } else {
-        Promise.all(this.mmsPromises).then((options) => {
-          options.forEach((opt) => {
-            opt.element.appendChild(this.createMmsContent(opt.slideArray));
-          });
-        });
       }
 
       if (callback) {
@@ -1449,7 +1440,7 @@ var ThreadUI = {
         // stop the iteration
         return false;
       }
-      this.appendMessage(message,/*hidden*/ true);
+      this.domPromises.push(this.appendMessage(message,/*hidden*/ true));
       this.messageIndex++;
       if (this.messageIndex === this.CHUNK_SIZE) {
         this.showFirstChunk();
@@ -1472,7 +1463,7 @@ var ThreadUI = {
       end: onMessagesRendered
     };
 
-    this.mmsPromises = [];
+    this.domPromises = [];
     MessageManager.getMessages(renderingOptions);
 
     // force the next scroll to bottom
@@ -1552,7 +1543,7 @@ var ThreadUI = {
   },
 
   // Use promise to control the all mms contents parsing time
-  mmsPromises: [],
+  domPromises: [],
 
   buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
     var messageDOM = document.createElement('li'),
@@ -1643,14 +1634,20 @@ var ThreadUI = {
       pElement.setAttribute('data-l10n-id', 'no-attachment-text');
     }
 
+    var parsedPromise = Promise.resolve();
     if (message.type === 'mms' && !isNotDownloaded && !noAttachment) { // MMS
-      this.mmsPromises.push(this.mmsContentPromise(pElement, message));
+      parsedPromise = this.mmsContentParser(pElement, message);
     }
 
-    return messageDOM;
+    return parsedPromise.then((opt) => {
+      if (opt) {
+        opt.element.appendChild(this.createMmsContent(opt.slideArray));
+      }
+      return messageDOM;
+    });
   },
 
-  mmsContentPromise: function thui_mmsContentHandler(element, message) {
+  mmsContentParser: function thui_mmsContentParser(element, message) {
     return new Promise(function(resolver) {
       SMIL.parse(message, (slideArray) => {
         resolver({
@@ -1680,17 +1677,17 @@ var ThreadUI = {
     }
 
     // build messageDOM adding the links
-    messageDOM = this.buildMessageDOM(message, hidden);
+    return this.buildMessageDOM(message, hidden).then((messageDOM) => {
+      messageDOM.dataset.timestamp = timestamp;
 
-    messageDOM.dataset.timestamp = timestamp;
+      // Add to the right position
+      var messageContainer = this.getMessageContainer(timestamp, hidden);
+      this._insertTimestampedNodeToContainer(messageDOM, messageContainer);
 
-    // Add to the right position
-    var messageContainer = this.getMessageContainer(timestamp, hidden);
-    this._insertTimestampedNodeToContainer(messageDOM, messageContainer);
-
-    if (this.inEditMode) {
-      this.checkInputs();
-    }
+      if (this.inEditMode) {
+        this.checkInputs();
+      }
+    });
   },
 
   /**
@@ -1713,20 +1710,14 @@ var ThreadUI = {
   },
 
   showChunkOfMessages: function thui_showChunkOfMessages(number) {
-    var elements = ThreadUI.container.getElementsByClassName('hidden');
-    var length = elements.length;
+    var elements = this.container.getElementsByClassName('hidden');
 
-    if (length === 0) {
-      return;
-    }
-
-    for (var i = length - 1; i >= length - number; i--) {
-      var element = elements[i];
+    Array.slice(elements, -number).forEach((element) => {
       element.classList.remove('hidden');
       if (element.tagName === 'HEADER') {
         TimeHeaders.update(element);
       }
-    }
+    });
   },
 
   showOptions: function thui_showOptions() {
