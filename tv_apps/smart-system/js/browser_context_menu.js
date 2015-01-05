@@ -6,7 +6,6 @@
 (function(window) {
   'use strict';
 
-  var _ = navigator.mozL10n.get;
   var _id = 0;
   /**
    * The ContextMenu of the AppWindow.
@@ -30,7 +29,7 @@
     }.bind(this));
     this.keyNavigationAdapter.on('enter', function() {
       this.scrollable.currentItem.click();
-    }.bind(this))
+    }.bind(this));
     this.keyNavigationAdapter.on('esc', this.hide.bind(this));
 
     return this;
@@ -177,7 +176,7 @@
       var icon = document.createElement('div');
       action.dataset.id = item.id;
       action.dataset.value = item.value;
-      action.textContent = item.label;
+      action.setAttribute('data-l10n-id', item.label);
       action.className = self.ELEMENT_PREFIX + 'button';
 
       if (item.icon) {
@@ -195,7 +194,7 @@
       this.elements.list.appendChild(container);
     }, this);
 
-    this.elements.cancel.textContent = _('cancel');
+    this.elements.cancel.setAttribute('data-l10n-id', 'cancel');
     this.elements.list.appendChild(this.elements.cancel);
 
     this.scrollable = new XScrollable({
@@ -318,19 +317,19 @@
       case 'A':
         return [{
           id: 'open-in-new-window',
-          label: _('open-in-new-window'),
+          label: 'open-in-new-window',
           callback: this.openUrl.bind(this, uri)
         }, {
           id: 'bookmark-link',
-          label: _('add-link-to-home-screen'),
+          label: 'add-link-to-home-screen',
           callback: this.bookmarkUrl.bind(this, uri, text)
         }, {
           id: 'save-link',
-          label: _('save-link'),
+          label: 'save-link',
           callback: this.app.browser.element.download.bind(this, uri)
         }, {
           id: 'share-link',
-          label: _('share-link'),
+          label: 'share-link',
           callback: this.shareUrl.bind(this, uri)
         }];
 
@@ -349,11 +348,11 @@
 
         return [{
           id: 'save-' + type,
-          label: _('save-' + type),
+          label: 'save-' + type,
           callback: this.app.browser.element.download.bind(this, uri)
         }, {
           id: 'share-' + type,
-          label: _('share-' + type),
+          label: 'share-' + type,
           callback: this.shareUrl.bind(this, uri)
         }];
 
@@ -374,14 +373,14 @@
         if (!result) {
           menuData.push({
             id: 'add-to-homescreen',
-            label: _('add-to-home-screen'),
+            label: 'add-to-home-screen',
             callback: this.bookmarkUrl.bind(this, config.url, name)
           });
         }
 
         menuData.push({
           id: 'share',
-          label: _('share'),
+          label: 'share',
           callback: this.shareUrl.bind(this, config.url)
         });
 

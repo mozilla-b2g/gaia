@@ -10,7 +10,6 @@
 
 (function(exports) {
   var _id = 0;
-  var _ = navigator.mozL10n.get;
 
   var newTabManifestURL = null;
   SettingsCache.observe('rocketbar.newTabAppURL', '',
@@ -74,7 +73,7 @@
 
     if (this.isSearchApp()) {
       this.app.element.classList.add('search-app');
-      this.title.textContent = _('search-or-enter-address');
+      this.title.setAttribute('data-l10n-id', 'search-or-enter-address');
     } else {
       this.app.element.classList.remove('search-app');
     }
@@ -662,7 +661,7 @@
     }
 
     var data = {
-      title: _('add-to-home-screen'),
+      title: 'add-to-home-screen',
       options: []
     };
 
