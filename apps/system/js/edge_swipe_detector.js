@@ -37,8 +37,7 @@
      */
     start: function esd_init() {
       window.addEventListener('homescreenopened', this);
-      window.addEventListener('appopen', this);
-      window.addEventListener('launchapp', this);
+      window.addEventListener('appopened', this);
       window.addEventListener('cardviewclosed', this);
       window.addEventListener('mozChromeEvent', this);
 
@@ -114,17 +113,14 @@
           e.preventDefault();
           this._touchEnd(e);
           break;
-        case 'appopen':
+        case 'appopened':
           var app = e.detail;
-          this.lifecycleEnabled = (app.origin !== FtuLauncher.getFtuOrigin());
+          if (!app.stayBackground) {
+            this.lifecycleEnabled = (app.origin !== FtuLauncher.getFtuOrigin());
+          }
           break;
         case 'homescreenopened':
           this.lifecycleEnabled = false;
-          break;
-        case 'launchapp':
-          if (!e.detail.stayBackground) {
-            this.lifecycleEnabled = true;
-          }
           break;
         case 'cardviewclosed':
           if (e.detail && e.detail.newStackPosition) {

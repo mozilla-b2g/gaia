@@ -2118,6 +2118,26 @@ suite('system/Statusbar', function() {
       assert.isFalse(StatusBar.element.classList.contains('hidden'));
     }
 
+    function testEventThatNotShowsIfSwipeDetected(event) {
+      var currentApp = {
+        getTopMostWindow: function getTopMostWindow() {
+          return this._topWindow;
+        }
+      };
+      Service.currentApp = currentApp;
+      var evt = new CustomEvent(event, {detail: currentApp});
+      StatusBar.element.classList.add('hidden');
+      StatusBar.handleEvent(evt);
+      assert.isTrue(setAppearanceStub.called);
+      assert.isTrue(setAppearanceStub.calledWith(currentApp));
+      assert.isTrue(StatusBar.element.classList.contains('hidden'));
+    }
+
+    function dispatchEdgeSwipeEvent(event) {
+      var evt = new CustomEvent(event);
+      StatusBar.handleEvent(evt);
+    }
+
     function testEventThatPause(event) {
       var evt = new CustomEvent(event);
       StatusBar.handleEvent(evt);
@@ -2135,12 +2155,20 @@ suite('system/Statusbar', function() {
       assert.isFalse(StatusBar.isPaused());
     }
 
+    function testEventThatResumeIfNeeded(event) {
+      var evt = new CustomEvent(event);
+      StatusBar.handleEvent(evt);
+      assert.isTrue(resumeUpdateStub.called);
+      assert.isFalse(StatusBar.element.classList.contains('hidden'));
+    }
+
     setup(function() {
       app = {};
       MockService.currentApp = app;
       setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
       pauseUpdateStub = this.sinon.stub(StatusBar, 'pauseUpdate');
       resumeUpdateStub = this.sinon.stub(StatusBar, 'resumeUpdate');
+      StatusBar._pausedForGesture = false;
     });
 
     test('stackchanged', function() {
@@ -2232,6 +2260,34 @@ suite('system/Statusbar', function() {
 
     test('cardviewclosed', function() {
       testEventThatResume.bind(this)('cardviewclosed');
+    });
+
+    suite('handle events with swipe detected', function() {
+      setup(function() {
+        StatusBar.element.classList.add('hidden');
+        dispatchEdgeSwipeEvent('sheets-gesture-begin');
+        dispatchEdgeSwipeEvent('sheets-gesture-begin');
+        this.sinon.stub(StatusBar, 'isPaused', function() {
+          return true;
+        });
+      });
+
+      teardown(function() {
+        StatusBar.element.classList.remove('hidden');
+      });
+
+      test('apptitlestatechanged', function() {
+        testEventThatNotShowsIfSwipeDetected.bind(this)('apptitlestatechanged');
+      });
+
+      test('activitytitlestatechanged', function() {
+        testEventThatNotShowsIfSwipeDetected.
+          bind(this)('activitytitlestatechanged');
+      });
+
+      test('homescreenopened', function() {
+        testEventThatResumeIfNeeded.bind(this)('homescreenopened');
+      });
     });
   });
 
