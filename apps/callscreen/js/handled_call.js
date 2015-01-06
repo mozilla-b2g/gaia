@@ -313,7 +313,7 @@ HandledCall.prototype.connected = function hc_connected() {
   CallScreen.enableKeypad();
   CallScreen.syncSpeakerEnabled();
 
-  CallScreen.setCallerContactImage();
+  this.updateCallNumber();
 };
 
 HandledCall.prototype.disconnected = function hc_disconnected() {
