@@ -138,19 +138,27 @@ var Bluetooth = {
       }
     );
 
-    window.addEventListener('request-enable-bluetooth', function() {
-      SettingsListener.getSettingsLock().set({
-        'bluetooth.enabled': true
-      });
-    });
-
-    window.addEventListener('request-disable-bluetooth', function() {
-      SettingsListener.getSettingsLock().set({
-        'bluetooth.enabled': false
-      });
-    });
+    window.addEventListener('request-enable-bluetooth', this);
+    window.addEventListener('request-disable-bluetooth', this);
 
     Service.registerState('isEnabled', this);
+  },
+
+  handleEvent: function bt_handleEvent(evt) {
+    switch (evt.type) {
+      // enable bluetooth hardware and update settings value
+      case 'request-enable-bluetooth':
+        SettingsListener.getSettingsLock().set({
+          'bluetooth.enabled': true
+        });
+        break;
+      // disable bluetooth hardware and update settings value
+      case 'request-disable-bluetooth':
+        SettingsListener.getSettingsLock().set({
+          'bluetooth.enabled': false
+        });
+        break;
+    }
   },
 
   // Get adapter for BluetoothTransfer when everytime bluetooth is enabled
