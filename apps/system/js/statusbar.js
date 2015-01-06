@@ -301,6 +301,7 @@ var StatusBar = {
     window.addEventListener('appopened', this);
     window.addEventListener('activityopened', this);
     window.addEventListener('activityterminated', this);
+    window.addEventListener('activitydestroyed', this);
     window.addEventListener('homescreenopening', this);
     window.addEventListener('homescreenopened', this);
     window.addEventListener('stackchanged', this);
@@ -600,6 +601,9 @@ var StatusBar = {
         // the bottom window as it will *become* the shown window.
         this.setAppearance(evt.detail, true);
         this.element.classList.remove('hidden');
+        break;
+      case 'activitydestroyed':
+        this._updateMinimizedStatusBarWidth();
         break;
       case 'downloadstart':
         // New download, track it so we can show or hide the active downloads
