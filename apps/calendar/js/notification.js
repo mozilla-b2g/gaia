@@ -4,6 +4,7 @@ define(function(require, exports, module) {
 
 var NotificationHelper = require('shared/notification_helper');
 var debug = require('debug')('notification');
+var performance = require('performance');
 
 var cachedSelf;
 
@@ -60,12 +61,25 @@ function getSelf() {
  * Start the calendar app and open the url.
  */
 function launch(url) {
-  return getSelf().then(app => {
-    if (app) {
-      app.launch();
-    }
+  if (performance.isComplete('moz-app-loaded')) {
+    return foreground(url);
+  }
 
+  // If we're not fully loaded, wait for that to happen to foreground
+  // ourselves and navigate to the target url so the user
+  // experiences less flickering.
+  window.addEventListener('moz-app-loaded', function onMozAppLoaded() {
+    window.removeEventListener('moz-app-loaded', onMozAppLoaded);
+    return foreground(url);
+  });
+}
+exports.launch = launch;
+
+// Bring ourselves to the foreground at some url.
+function foreground(url) {
+  return getSelf().then(app => {
     exports.app.go(url);
+    return app && app.launch();
   });
 }
 
