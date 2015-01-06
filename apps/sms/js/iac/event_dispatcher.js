@@ -1,4 +1,6 @@
-/* global EventDispatcher */
+/* global EventDispatcher,
+          Map
+*/
 
 /* exported InterInstanceEventDispatcher */
 (function(exports) {
@@ -8,10 +10,18 @@
 
   const ALLOWED_EVENTS = ['drafts-changed'];
 
-  function postMessage(name, parameters) {
+  const queries = new Map();
+
+  const queryDispatcher = EventDispatcher.mixin({});
+
+  function ensureConnectedWorker() {
     if (!worker) {
       throw new Error('Worker is not connected!');
     }
+  }
+
+  function postMessage(name, parameters) {
+    ensureConnectedWorker();
 
     if (!name) {
       throw new Error('Name should be defined!');
@@ -21,6 +31,29 @@
       { name: name, parameters: parameters } :
       { name: name }
     );
+  }
+
+  function postQueryMessage(queryId, name, parameters) {
+    ensureConnectedWorker();
+
+    if (!queryId) {
+      throw new Error('Query Id should be defined!');
+    }
+
+    worker.port.postMessage(parameters !== undefined ?
+      { queryId: queryId, name: name, parameters: parameters } :
+      { queryId: queryId, name: name }
+    );
+  }
+
+  function postQuery(name, parameters) {
+    return new Promise((resolve) => {
+      var queryId = Date.now() + ':' + Math.random();
+
+      queries.set(queryId, resolve);
+
+      postQueryMessage(queryId, name, parameters);
+    });
   }
 
   const Dispatcher = EventDispatcher.mixin({
@@ -52,6 +85,18 @@
       worker.port.removeEventListener('message', onMessage);
 
       worker = null;
+    },
+
+    query: function(name, parameters) {
+      return postQuery(name, parameters);
+    },
+
+    onQuery: function(name, handler) {
+      queryDispatcher.on(name, handler);
+    },
+
+    offQuery: function(name, handler) {
+      queryDispatcher.off(name, handler);
     }
   }, ALLOWED_EVENTS);
 
@@ -72,6 +117,30 @@
       // Message is sent by SharedWorker to be sure that current port is alive
       if (message.data.name === 'ping') {
         return postMessage('pong');
+      }
+
+      if (message.data.name === 'debug') {
+        console.log('SharedWorker: ' + message.data.parameters);
+        return;
+      }
+
+      if (message.data.queryId) {
+        var queryResolver = queries.get(message.data.queryId);
+
+        // Message with the query result
+        if (queryResolver) {
+          queries.delete(message.data.queryId);
+          queryResolver(message.data.parameters);
+        } else {
+          queryDispatcher.emit(message.data.name, Object.freeze({
+            parameters: message.data.parameters,
+            postResult: (result) => postQueryMessage(
+              message.data.queryId, message.data.name, result
+            )
+          }));
+        }
+
+        return;
       }
 
       originalEmitter(message.data.name, message.data.parameters);
