@@ -1370,12 +1370,21 @@
   // Getting ready
 
   function negotiate(available, requested, defaultLocale) {
-    if (available.indexOf(requested[0]) === -1 ||
-        requested[0] === defaultLocale) {
-      return [defaultLocale];
-    } else {
-      return [requested[0], defaultLocale];
+    var supportedLocale;
+    // Find the first locale in the requested list that is supported.
+    for (var i = 0; i < requested.length; i++) {
+      var locale = requested[i];
+      if (available.indexOf(locale) !== -1) {
+        supportedLocale = locale;
+        break;
+      }
     }
+    if (!supportedLocale ||
+        supportedLocale === defaultLocale) {
+      return [defaultLocale];
+    }
+
+    return [supportedLocale, defaultLocale];
   }
 
   function freeze(supported) {
