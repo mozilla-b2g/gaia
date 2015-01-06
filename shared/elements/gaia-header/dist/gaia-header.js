@@ -576,6 +576,7 @@ module.exports = Component.register('gaia-header', {
 
   ::content a,
   ::content button {
+    -moz-user-select: none;
     box-sizing: border-box;
     display: flex;
     border: none;
