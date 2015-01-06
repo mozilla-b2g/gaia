@@ -151,4 +151,22 @@ marionette('Text selection >', function() {
       assert.ok(!fakeTextselectionApp.bubbleVisiblity);
     });
   });
+
+  // bug 1110963
+  test('Cut/Copy/Paste menu should dismiss when tapping the keyboard',
+    function() {
+      fakeTextselectionApp.longPress('centerInput');
+      assert.ok(fakeTextselectionApp.bubbleVisiblity);
+
+      // Click keyboard
+      client.switchToFrame();
+      var keyboard =
+        client.findElement('#keyboards .inputWindow.top-most iframe');
+      client.switchToFrame(keyboard);
+      client.helper.waitForElement('.keyboard-type-container[data-active] ' +
+        'button.keyboard-key').tap();
+      client.waitFor(function() {
+        return !fakeTextselectionApp.bubbleVisiblity;
+      });
+    });
 });
