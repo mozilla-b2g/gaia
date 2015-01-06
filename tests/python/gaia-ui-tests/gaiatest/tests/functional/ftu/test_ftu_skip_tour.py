@@ -2,10 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
 from marionette import Wait
-from marionette.errors import JavascriptException
-from marionette.errors import StaleElementException
+from marionette.by import By
+from marionette.errors import (JavascriptException,
+                               StaleElementException)
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.ftu.app import Ftu

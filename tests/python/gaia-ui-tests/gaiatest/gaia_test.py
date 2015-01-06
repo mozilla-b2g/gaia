@@ -8,13 +8,15 @@ import shutil
 import tempfile
 import time
 
-from marionette import MarionetteTestCase, EnduranceTestCaseMixin, \
-    B2GTestCaseMixin, MemoryEnduranceTestCaseMixin
-from marionette.by import By
+from marionette import (MarionetteTestCase,
+                        EnduranceTestCaseMixin,
+                        B2GTestCaseMixin,
+                        MemoryEnduranceTestCaseMixin)
 from marionette import expected
-from marionette.errors import NoSuchElementException
-from marionette.errors import StaleElementException
-from marionette.errors import InvalidResponseException
+from marionette.by import By
+from marionette.errors import (NoSuchElementException,
+                               StaleElementException,
+                               InvalidResponseException)
 from marionette.wait import Wait
 
 from file_manager import GaiaDeviceFileManager, GaiaLocalFileManager

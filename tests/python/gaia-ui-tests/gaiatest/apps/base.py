@@ -5,8 +5,8 @@
 import time
 
 from marionette.by import By
-from marionette.errors import NoSuchElementException
-from marionette.errors import StaleElementException
+from marionette.errors import (NoSuchElementException,
+                               StaleElementException)
 from marionette.wait import Wait
 
 from gaiatest import GaiaApps

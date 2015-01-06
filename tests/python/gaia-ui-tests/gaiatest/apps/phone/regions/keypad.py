@@ -7,7 +7,6 @@ import time
 from marionette import expected
 from marionette.by import By
 from marionette.marionette import Actions
-from marionette.wait import Wait
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.phone.regions.call_screen import CallScreen

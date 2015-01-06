@@ -4,8 +4,8 @@
 
 from gaiatest.apps.base import Base
 
-from marionette import expected
-from marionette import Wait
+from marionette import (expected,
+                        Wait)
 from marionette.by import By
 
 

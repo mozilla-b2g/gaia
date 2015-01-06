@@ -2,11 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette import expected
+from marionette import (expected,
+                        Wait)
 from marionette.by import By
 from marionette.errors import JavascriptException
-from marionette import expected
-from marionette import Wait
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion

@@ -6,7 +6,6 @@ import datetime
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.calendar.app import Calendar
-from marionette.by import By
 
 
 class TestCalendarMonthViewSelectDayAccessibility(GaiaTestCase):

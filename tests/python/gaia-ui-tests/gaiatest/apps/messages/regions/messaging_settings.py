@@ -2,15 +2,15 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette import expected
-from marionette import Wait
+from marionette import (expected,
+                        Wait)
 from marionette.by import By
 
 from gaiatest.apps.base import Base
 
 
 class MessagingSettings(Base):
-    
+
     _messaging_settings_locator = (By.CSS_SELECTOR, "h1[data-l10n-id='messagingSettings-header']")
 
     def __init__(self, marionette):
