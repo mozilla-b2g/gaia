@@ -22,6 +22,7 @@ class Bluetooth(Base):
     _visible_to_all_checkbox_locator = (By.CSS_SELECTOR, '#device-visible input')
     _visible_to_all_label_locator = (By.CSS_SELECTOR, '#device-visible span')
 
+    _device_name_locator = (By.ID, 'bluetooth-device-name')
     _rename_my_device_button_locator = (By.ID, 'rename-device')
     _update_device_name_form_locator = (By.ID, 'update-device-name')
     _update_device_name_input_locator = (By.ID, 'update-device-name-input')
@@ -34,6 +35,10 @@ class Bluetooth(Base):
     @property
     def is_visible_enabled(self):
         return self.marionette.find_element(*self._visible_to_all_checkbox_locator).is_selected()
+
+    @property
+    def device_name(self):
+        return self.marionette.find_element(*self._device_name_locator).text
 
     def enable_bluetooth(self):
         self.marionette.find_element(*self._bluetooth_label_locator).tap()
