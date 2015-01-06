@@ -9,6 +9,11 @@ define(function(require, exports, module) {
 function Responder(events) {
   this._$events = Object.create(null);
 
+  // Buffer for emitWhenListener that hangs onto events dispatched for topics
+  // no one is currently listening for. Inspired by email's function
+  // of the same name.
+  this.buffer = {};
+
   if (typeof(events) !== 'undefined') {
     this.addEventListener(events);
   }
@@ -68,13 +73,11 @@ Responder.prototype = {
     var event = Responder.parse(json);
     var args = Array.prototype.slice.call(arguments).slice(1);
     this.emit.apply(this, event.concat(args));
-
     return event;
   },
 
   /**
    * Adds an event listener to this object.
-   *
    *
    * @param {String} type event name.
    * @param {Function} callback event callback.
@@ -97,8 +100,7 @@ Responder.prototype = {
     }
 
     this._$events[type].push(callback);
-
-    return this;
+    return this.flushTopicBuffer(type);
   },
 
   /**
@@ -118,6 +120,19 @@ Responder.prototype = {
     }
 
     this.addEventListener(type, onceCb);
+    return this.flushTopicBuffer(type);
+  },
+
+  flushTopicBuffer: function flushTopicBuffer(topic) {
+    if (!(topic in this.buffer)) {
+      // Nothing to flush.
+      return this;
+    }
+
+    this.buffer[topic].forEach(args => {
+      args.unshift(topic);
+      this.emit.apply(this, args);
+    });
 
     return this;
   },
@@ -149,6 +164,25 @@ Responder.prototype = {
       });
     }
 
+    return this;
+  },
+
+  emitWhenListener: function emitWhenListener() {
+    var args = Array.prototype.slice.call(arguments);
+    var event = args.shift();
+
+    if (event in this._$events && this._$events[event].length) {
+      // Someone is already listening for this event, so this is just
+      // a regular old emit.
+      return this.emit.apply(this, arguments);
+    }
+
+    if (!(event in this.buffer)) {
+      this.buffer[event] = [];
+    }
+
+    // Now just push the call info onto the topic buffer.
+    this.buffer[event].push(args);
     return this;
   },
 
