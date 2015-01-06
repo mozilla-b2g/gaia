@@ -1,4 +1,5 @@
 ;(function(define){'use strict';define(function(require,exports,module){
+  /*jshint esnext:true*/
 
   /**
    * Utility functions for measuring and manipulating font sizes
