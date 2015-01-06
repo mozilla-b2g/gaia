@@ -61,6 +61,10 @@ class PlivoUtil(object):
 
         for call in calls:
             response = self.api.get_live_call({'call_uuid': call})
+            # Sometimes a call_uuid is present in get_live_calls() but Plivo is not fast enough to
+            # immediately create the corresponding endpoint (see bug 1113154)
+            if response[0] == 404:
+                raise self.PlivoActiveCallNotFound
             if response[0] != 200:
                 raise self.PlivoError('get_live_call', response)
             if str(response[1]['to']) == str(to_number):
