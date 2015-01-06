@@ -164,6 +164,10 @@
         commands.canSelectAll = false;
       }
 
+      if (!isTempShortcut && (isCollapsed || !this._isSelectionVisible)) {
+        this.close();
+        return;
+      }
       // If current element lost focus, we should hide the bubble.
       if (states.indexOf('blur') !== -1) {
         this.hide();
@@ -200,12 +204,6 @@
       if (states.indexOf('selectall') !== -1 ||
           states.indexOf('mouseup') !== -1 ||
           states.indexOf('updateposition') !== -1) {
-        if (!isTempShortcut && isCollapsed ||
-            !this._isSelectionVisible) {
-          this.close();
-          return;
-        }
-
         this.show(detail);
         if (isTempShortcut) {
           this._triggerShortcutTimeout();
