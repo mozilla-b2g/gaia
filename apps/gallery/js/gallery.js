@@ -635,7 +635,7 @@ function fileCreated(fileinfo) {
 function scrollToShowThumbnail(n) {
   if (!files[n])
     return;
-  var selector = 'li[data-filename="' + files[n].name + '"]';
+  var selector = 'img[data-filename="' + files[n].name + '"]';
   var thumbnail = thumbnails.querySelector(selector);
   if (thumbnail) {
     var screenTop = thumbnails.scrollTop;
