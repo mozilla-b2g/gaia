@@ -33,19 +33,16 @@ function manifestInterAppHostnames(manifest, config) {
   return manifest;
 }
 
-function execute(options) {
+function execute(options, webapp) {
   const WEBAPP_FILENAME = 'manifest.webapp';
   const UPDATE_WEBAPP_FILENAME = 'update.webapp';
-  var targetWebapp = utils.getWebapp(options.APP_DIR,
-    options.GAIA_DOMAIN, options.GAIA_SCHEME,
-    options.GAIA_PORT, options.STAGE_DIR);
 
-  if (utils.isExternalApp(targetWebapp)) {
+  if (utils.isExternalApp(webapp)) {
     return;
   }
 
-  var webappManifest = targetWebapp.buildDirectoryFile.clone();
-  var updateManifest = targetWebapp.buildDirectoryFile.clone();
+  var webappManifest = webapp.buildDirectoryFile.clone();
+  var updateManifest = webapp.buildDirectoryFile.clone();
   webappManifest.append(WEBAPP_FILENAME);
   updateManifest.append(UPDATE_WEBAPP_FILENAME);
   var stageManifest =

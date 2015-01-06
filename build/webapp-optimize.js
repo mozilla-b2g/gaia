@@ -699,10 +699,7 @@ WebappOptimize.prototype.execute = function(config) {
   files.forEach(this.processFile, this);
 };
 
-function execute(options) {
-  var webapp = utils.getWebapp(options.APP_DIR,
-    options.GAIA_DOMAIN, options.GAIA_SCHEME,
-    options.GAIA_PORT, options.STAGE_DIR);
+function execute(options, webapp) {
   var locales;
   if (options.GAIA_CONCAT_LOCALES === '1') {
     locales = getLocales(options);

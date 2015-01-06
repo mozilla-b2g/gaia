@@ -46,23 +46,12 @@ function moveExternalApp(webapp, source, destination) {
   }
 }
 
-function execute(options) {
+function execute(options, webapp) {
   const WEBAPP_FILENAME = 'manifest.webapp';
   const UPDATE_WEBAPP_FILENAME = 'update.webapp';
-  var webappsBaseDir = utils.getFile(options.PROFILE_DIR);
-  var stageDir = utils.getFile(options.STAGE_DIR);
-  var targetWebapp = utils.getWebapp(options.APP_DIR,
-    options.GAIA_DOMAIN, options.GAIA_SCHEME,
-    options.GAIA_PORT, options.STAGE_DIR);
 
-  var webappsJSONFile = stageDir.clone();
-  webappsJSONFile.append('webapps_stage.json');
-  var webappsStageJSON = utils.getJSON(webappsJSONFile);
-
-  webappsBaseDir.append('webapps');
-
-  var webappManifest = targetWebapp.buildDirectoryFile.clone();
-  var updateManifest = targetWebapp.buildDirectoryFile.clone();
+  var webappManifest = webapp.buildDirectoryFile.clone();
+  var updateManifest = webapp.buildDirectoryFile.clone();
 
   webappManifest.append(WEBAPP_FILENAME);
   updateManifest.append(UPDATE_WEBAPP_FILENAME);
@@ -74,23 +63,16 @@ function execute(options) {
     return;
   }
 
-  // Compute webapp folder name in profile
-  var webappTargetDir = webappsBaseDir.clone();
+  utils.ensureFolderExists(webapp.profileDirectoryFile);
 
-  var appConfig = webappsStageJSON[targetWebapp.sourceDirectoryName];
-  var webappTargetDirName = appConfig.webappTargetDirName;
-  webappTargetDir.append(webappTargetDirName);
-  utils.ensureFolderExists(webappTargetDir);
-
-  if (utils.isExternalApp(targetWebapp)) {
-    let appSource = stageDir.clone();
-    appSource.append(targetWebapp.sourceDirectoryName);
-    moveExternalApp(targetWebapp, appSource, webappTargetDir);
+  if (utils.isExternalApp(webapp)) {
+    var appSource = webapp.buildDirectoryFile.clone();
+    moveExternalApp(webapp, appSource, webapp.profileDirectoryFile);
     return;
   }
 
   // We'll remove it once bug 968666 is merged.
-  var targetManifest = webappTargetDir.clone();
+  var targetManifest = webapp.profileDirectoryFile.clone();
   stageManifest.copyTo(targetManifest, WEBAPP_FILENAME);
 }
 
