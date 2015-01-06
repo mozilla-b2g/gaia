@@ -320,7 +320,7 @@
   opacity: 1;
 }
 
-.dragging .group:not(.active) .separator > span {
+.dragging .group:not(.active):not(.invalid-drop) .separator > span {
   background-color: #0095dd;
   transform: scaleY(0.325);
   opacity: 0.4;
