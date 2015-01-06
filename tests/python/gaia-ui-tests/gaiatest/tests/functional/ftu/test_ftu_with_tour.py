@@ -28,7 +28,7 @@ class TestFtu(GaiaTestCase):
         # Walk through the tour
         self.assertEqual(self.ftu.step1_header_text, "Swipe up and down to browse your apps and bookmarks. Tap and hold an icon to delete, move, or edit it.")
         self.ftu.tap_tour_next()
-        self.assertEqual(self.ftu.step2_header_text, "Swipe down to access recent notifications, credit information and settings.")
+        self.assertEqual(self.ftu.step2_header_text, "Swipe down to access recent notifications, usage information and settings.")
         self.ftu.tap_tour_next()
         self.assertEqual(self.ftu.step3_header_text, "Drag from the left edge of your screen to return to recently used apps.")
         self.ftu.tap_tour_next()
