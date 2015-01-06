@@ -178,7 +178,6 @@ body {
 .scrollregion-below-header {
   overflow-x: hidden;
   height: calc(100% - 5rem);
-  will-change: scroll-position;
 }
 
 .scrollregion-below-header.scrollregion-horizontal-too {
