@@ -252,7 +252,6 @@
   {"cc":"BN", "offset":"+08:00,+08:00", "city":"Brunei"},
   {"cc":"MN", "offset":"+08:00,+08:00", "city":"Choibalsan"},
   {"cc":"CN", "offset":"+08:00,+08:00", "city":"Chongqing"},
-  {"cc":"CN", "offset":"+08:00,+08:00", "city":"Chungking", "id":"Asia/Chongqing"},
   {"cc":"LK", "offset":"+05:30,+05:30", "city":"Colombo"},
   {"cc":"SY", "offset":"+02:00,+03:00", "city":"Damascus"},
   {"cc":"BD", "offset":"+06:00,+06:00", "city":"Dhaka"},
