@@ -2230,6 +2230,12 @@ suite('system/Statusbar', function() {
       assert.isTrue(stub.calledOnce);
     });
 
+    test('activitydestroyed', function() {
+      var stub = this.sinon.spy(StatusBar, '_updateMinimizedStatusBarWidth');
+      triggerEvent('activitydestroyed');
+      assert.isTrue(stub.calledOnce);
+    });
+
     test('utilitytraywillshow', function() {
       testEventThatPause.bind(this)('utilitytraywillshow');
     });
