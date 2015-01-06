@@ -3,6 +3,7 @@ define(function(require, exports, module) {
 
 var Responder = require('responder');
 var debug = require('debug')('message_handler');
+var notification = require('notification');
 
 // Will be injected...
 exports.app = null;
@@ -28,24 +29,16 @@ exports.start = function() {
     }
   });
 
+  // Handle notifications when the calendar app process is closed.
+  debug('Will listen for notification messages...');
   navigator.mozSetMessageHandler('notification', message => {
     debug('Received notification message!');
-    // Handle notifications when the calendar app process is closed.
     if (!message.clicked) {
       return debug('Notification was not clicked?');
     }
 
-    navigator.mozApps.getSelf().onsuccess = (event) => {
-      var app = event.target.result;
-      var url = message.imageURL.split('?')[1];
-
-      window.addEventListener('moz-app-loaded', () => {
-        debug('App is loaded. Notification will now redirect to:', url);
-        exports.app.go(url);
-      });
-
-      app.launch();
-    };
+    var url = message.imageURL.split('?')[1];
+    notification.launch(url);
   });
 };
 
