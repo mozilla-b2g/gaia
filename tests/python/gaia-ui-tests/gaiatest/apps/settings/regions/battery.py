@@ -3,9 +3,10 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import time
+
+from marionette import (expected,
+                        Wait)
 from marionette.by import By
-from marionette.wait import Wait
-from marionette import expected
 from gaiatest.apps.base import Base
 
 

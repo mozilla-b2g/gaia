@@ -4,10 +4,11 @@
 
 from marionette import expected
 from marionette.by import By
-from marionette.errors import NoSuchElementException
-from marionette.errors import StaleElementException
+from marionette.errors import (NoSuchElementException,
+                               StaleElementException)
 from marionette.marionette import Actions
 from marionette.wait import Wait
+
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
 from gaiatest.apps.calendar.regions.event_details import EventDetails

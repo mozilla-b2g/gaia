@@ -6,7 +6,6 @@ from datetime import datetime
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.calendar.app import Calendar
-from marionette.by import By
 from marionette.wait import Wait
 
 

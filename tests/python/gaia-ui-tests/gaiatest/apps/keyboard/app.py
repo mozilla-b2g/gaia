@@ -3,8 +3,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette import expected
-from marionette import Wait
+from marionette import (expected,
+                        Wait)
 from marionette.by import By
 from marionette.marionette import Actions
 
@@ -346,10 +346,10 @@ keyboard.removeFocus();""")
         Wait(self.marionette).until(expected.element_displayed(key))
         key.tap()
         self.apps.switch_to_displayed_app()
-    
+
     def tap_suggestion(self, word):
         self.switch_to_keyboard()
-        
+
         # find the requested suggestion
         selector = (By.CSS_SELECTOR, '.suggestions-container span[data-data=\"%s\"]' % word)
         key = Wait(self.marionette).until(expected.element_present(*selector))

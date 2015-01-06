@@ -5,18 +5,23 @@
 import json
 import os
 
-from marionette import BaseMarionetteOptions, HTMLReportingOptionsMixin, \
-    HTMLReportingTestRunnerMixin, EnduranceOptionsMixin, \
-    HTMLReportingTestResultMixin
-from marionette import MarionetteTestResult
-from marionette import MarionetteTextTestRunner
-from marionette import BaseMarionetteTestRunner
+from marionette import (BaseMarionetteOptions,
+                        HTMLReportingOptionsMixin,
+                        HTMLReportingTestRunnerMixin,
+                        EnduranceOptionsMixin,
+                        HTMLReportingTestResultMixin,
+                        MarionetteTextTestRunner,
+                        MarionetteTestResult,
+                        BaseMarionetteTestRunner)
 from marionette.runtests import cli
 import mozlog
 
 from gaiatest import __name__
-from gaiatest import GaiaTestCase, GaiaOptionsMixin, GaiaTestRunnerMixin, \
-    TreeherderOptionsMixin, TreeherderTestRunnerMixin
+from gaiatest import (GaiaTestCase,
+                      GaiaOptionsMixin,
+                      GaiaTestRunnerMixin,
+                      TreeherderOptionsMixin,
+                      TreeherderTestRunnerMixin)
 from version import __version__
 
 

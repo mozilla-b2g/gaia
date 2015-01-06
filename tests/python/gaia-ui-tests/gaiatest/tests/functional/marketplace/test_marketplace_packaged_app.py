@@ -2,8 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette import expected
-from marionette import Wait
+from marionette import (expected,
+                        Wait)
 from marionette.by import By
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
