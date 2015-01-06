@@ -1,7 +1,7 @@
 /* global appWindowManager, AppWindow, HomescreenWindowManager, MockShrinkingUI,
           HomescreenWindow, MocksHelper, MockSettingsListener, Service,
           MockRocketbar, rocketbar, homescreenWindowManager,
-          MockTaskManager, MockFtuLauncher, MockService */
+          MockTaskManager, MockFtuLauncher, MockService, MockUtilityTray */
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
@@ -20,6 +20,7 @@ requireApp('system/test/unit/mock_homescreen_window_manager.js');
 requireApp('system/test/unit/mock_nfc_handler.js');
 requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/test/unit/mock_task_manager.js');
+requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/shared/test/unit/mocks/mock_shrinking_ui.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
@@ -28,7 +29,7 @@ var mocksForAppWindowManager = new MocksHelper([
   'Applications', 'SettingsListener', 'HomescreenWindowManager',
   'ManifestHelper', 'KeyboardManager', 'StatusBar', 'SoftwareButtonManager',
   'HomescreenWindow', 'AppWindow', 'LayoutManager', 'Service', 'NfcHandler',
-  'TaskManager', 'FtuLauncher'
+  'TaskManager', 'FtuLauncher', 'UtilityTray'
 ]).init();
 
 suite('system/AppWindowManager', function() {
@@ -1047,13 +1048,20 @@ suite('system/AppWindowManager', function() {
     test('setHierarchy', function() {
       appWindowManager._activeApp = app1;
       this.sinon.stub(app1, 'focus');
+      this.sinon.stub(app1, 'blur');
       this.sinon.stub(app1, 'setVisibleForScreenReader');
       appWindowManager.setHierarchy(true);
       assert.isTrue(app1.focus.called);
       assert.isTrue(app1.setVisibleForScreenReader.calledWith(true));
 
+      MockUtilityTray.mShown = false;
       appWindowManager.setHierarchy(false);
+      assert.isTrue(app1.blur.calledOnce);
       assert.isTrue(app1.setVisibleForScreenReader.calledWith(false));
+
+      MockUtilityTray.mShown = true;
+      appWindowManager.setHierarchy(false);
+      assert.isFalse(app1.blur.calledOnce);
     });
 
     test('focus is redirected', function() {
