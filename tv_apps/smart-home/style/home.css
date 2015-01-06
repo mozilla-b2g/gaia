@@ -67,15 +67,30 @@ section {
 
 .card-panel {
   position: absolute;
-  top: -12rem;
+  top: -23.14rem;
   width: 100%;
-  height: 8rem;
+  height: 14.926rem;
   display: none;
+  text-align: center;
 }
 
 .card-panel smart-button {
   position: relative;
-  margin-left: calc(50% - 12rem);
+  margin-left: 1.86em;
+  width: 14.926rem;
+  height: 14.926rem;
+}
+
+.card-panel smart-button:first-child {
+  margin-left: 0;
+}
+
+.card-panel smart-button[data-icon]::before {
+  width: 10.074rem;
+  left: 2.43rem;
+  font-size: 10.07rem;
+  line-height: 15.47rem;
+
 }
 
 .card.focused {

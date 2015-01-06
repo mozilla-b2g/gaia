@@ -230,11 +230,11 @@
 
       var renameButton = document.createElement('smart-button');
       renameButton.dataset.icon = 'rename';
-      renameButton.classList.add('renameBtn');
+      renameButton.classList.add('rename-btn');
 
       var deleteButton = document.createElement('smart-button');
       deleteButton.dataset.icon = 'delete';
-      deleteButton.classList.add('deleteBtn');
+      deleteButton.classList.add('delete-btn');
 
       cardPanel.appendChild(renameButton);
       cardPanel.appendChild(deleteButton);
@@ -421,12 +421,19 @@
     },
 
     handleScrollableItemFocus: function(scrollable, itemElem, nodeElem) {
+      this._focus = itemElem;
+
+      if (this.edit.mode === 'edit') {
+        return;
+      }
       itemElem.focus();
       nodeElem.classList.add('focused');
-      this._focus = itemElem;
     },
 
     handleScrollableItemUnfocus: function(scrollable, itemElem, nodeElem) {
+      if (this.edit.mode === 'edit') {
+        return;
+      }
       nodeElem.classList.remove('focused');
     },
 
