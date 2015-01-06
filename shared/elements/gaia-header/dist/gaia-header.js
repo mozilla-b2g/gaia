@@ -676,6 +676,7 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
 
 },{"./lib/font-fit":4,"gaia-component":1,"gaia-icons":2}],4:[function(require,module,exports){
 ;(function(define){'use strict';define(function(require,exports,module){
+  /*jshint esnext:true*/
 
   /**
    * Utility functions for measuring and manipulating font sizes
