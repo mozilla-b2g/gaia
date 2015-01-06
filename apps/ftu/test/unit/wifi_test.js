@@ -4,22 +4,27 @@ requireApp('ftu/test/unit/mock_l10n.js');
 requireApp('ftu/test/unit/mock_utils.js');
 requireApp('ftu/test/unit/mock_wifi_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp('ftu/test/unit/mock_ui_manager.js');
+requireApp('ftu/test/unit/mock_moz_wifi_network.js');
 
 requireApp('ftu/js/wifi.js');
 
 var _;
 var mocksHelperForWifi = new MocksHelper([
   'utils',
-  'WifiHelper'
+  'WifiHelper',
+  'UIManager',
+  'MozWifiNetwork'
 ]).init();
 
 suite('wifi > ', function() {
-  var realL10n;
+  var realL10n, realMozWifiNetwork;
 
   var fakeNetworks = [
       {
         ssid: 'Mozilla Guest',
         bssid: 'xx:xx:xx:xx:xx:xx',
+        security: [],
         capabilities: [],
         relSignalStrength: 98,
         connected: false
@@ -27,21 +32,24 @@ suite('wifi > ', function() {
       {
         ssid: 'Livebox 6752',
         bssid: 'xx:xx:xx:xx:xx:xx',
-        capabilities: ['WEP'],
+        security: ['WEP'],
+        capabilities: [],
         relSignalStrength: 89,
         connected: false
       },
       {
         ssid: 'Mozilla-G',
         bssid: 'xx:xx:xx:xx:xx:xx',
-        capabilities: ['WPA-EAP'],
+        security: ['WPA-EAP'],
+        capabilities: [],
         relSignalStrength: 67,
         connected: false
       },
       {
         ssid: 'Freebox 8953',
         bssid: 'xx:xx:xx:xx:xx:xx',
-        capabilities: ['WPA2-PSK'],
+        security: ['WPA2-PSK'],
+        capabilities: [],
         relSignalStrength: 32,
         connected: false
       }
@@ -122,7 +130,7 @@ suite('wifi > ', function() {
     ' </menu>' +
     '</section>';
 
-    container = document.createElement('div');
+    var container = document.createElement('div');
     container.insertAdjacentHTML('beforeend', markup);
     document.body.appendChild(container);
   }
@@ -132,6 +140,8 @@ suite('wifi > ', function() {
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+    realMozWifiNetwork = window.mozWifiNetwork;
+    window.mozWifiNetwork = MockMozWifiNetwork;
   });
 
   setup(function() {
@@ -141,6 +151,8 @@ suite('wifi > ', function() {
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
     realL10n = null;
+    window.mozWifiNetwork = realMozWifiNetwork;
+    realMozWifiNetwork = null;
   });
 
   suite('scan networks', function() {
@@ -208,4 +220,52 @@ suite('wifi > ', function() {
     });
   });
 
+  suite('Join networks', function() {
+    var connectStub;
+    setup(function() {
+      connectStub = this.sinon.stub(WifiUI, 'connect',
+        function(ssid, password, user) {
+          return;
+      });
+      createDOM();
+    });
+
+    test('Should join to a wifi network', function() {
+      var password =
+        document.getElementById('wifi_password');
+      var ssid = document.getElementById('wifi_ssid');
+      var user = document.getElementById('wifi_user');
+
+      ssid.value = 'testSSID';
+      password.value = 'testPassword';
+
+      WifiUI.joinNetwork();
+      assert.isTrue(connectStub.called, 'WifiUI.connect should be called');
+    });
+
+    test('Should creates a hidden network', function() {
+      UIManager.hiddenWifiPassword =
+        document.getElementById('hidden-wifi-password');
+      UIManager.hiddenWifiIdentity =
+        document.getElementById('hidden-wifi-identity');
+      UIManager.hiddenWifiSsid = document.getElementById('wifi_ssid');
+      UIManager.hiddenWifiSecurity =
+        document.getElementById('hidden-wifi-security');
+
+      UIManager.hiddenWifiSsid.value = 'testSSID';
+      UIManager.hiddenWifiPassword.value = 'testPassword';
+      UIManager.hiddenWifiSecurity.options[2].selected = true;
+
+      var oldNetworks = WifiManager.networks.length;
+
+      WifiUI.joinHiddenNetwork();
+
+      var currentNetworks = WifiManager.networks.length;
+
+      assert.isTrue(currentNetworks > oldNetworks);
+
+      var hiddenNetwork = document.querySelector('#testSSID');
+      assert.isNotNull(hiddenNetwork, 'hidden network should be rendered');
+    });
+  });
 });
