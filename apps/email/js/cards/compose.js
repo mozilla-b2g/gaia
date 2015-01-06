@@ -514,11 +514,12 @@ return [
      */
     onAddressInput: function(evt) {
       var node = evt.target;
+      var nodeValue = node.value;
 
       var makeBubble = false;
       // When do we want to tie off this e-mail address, put it into a bubble
       // and clear the input box so the user can type another address?
-      switch (node.value.slice(-1)) {
+      switch (nodeValue.slice(-1)) {
         // If they hit space and we believe they've already typed an email
         // address!  (Space is okay in a display name or to delimit a display
         // name from the e-mail address)
@@ -526,7 +527,7 @@ return [
         // We use the presence of an '@' character as indicating that the e-mail
         // address
         case ' ':
-          makeBubble = node.value.indexOf('@') !== -1;
+          makeBubble = nodeValue.indexOf('@') !== -1;
           break;
         // We started out supporting comma, but now it's not on our keyboard at
         // all in type=email mode!  We aren't terribly concerned about it not
@@ -537,12 +538,15 @@ return [
         // being usable in display names.
         case ';':
           makeBubble = true;
+          // Remove the ending character since it is used as a separator
+          // for the purposes of composing.
+          nodeValue = nodeValue.slice(0, nodeValue.length - 1);
           break;
       }
       if (makeBubble) {
         // TODO: Need to match the email with contact name.
         node.style.width = '0.5rem';
-        var mailbox = model.api.parseMailbox(node.value);
+        var mailbox = model.api.parseMailbox(nodeValue);
         this.insertBubble(node, mailbox.name, mailbox.address);
         node.value = '';
       }
