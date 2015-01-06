@@ -263,6 +263,15 @@ suite('system/LockScreen >', function() {
     'it did\'t fire the correspond event to validate the passcode');
   });
 
+  test('When FTU done, update the clock', function() {
+    var method = subject.handleEvent;
+    var mockThis = {
+      refreshClock: this.sinon.stub()
+    };
+    method.call(mockThis, { 'type': 'ftudone' });
+    assert.isTrue(mockThis.refreshClock.called);
+  });
+
   suite('Handle event: screenchange should propogate to _screenEnabled prop',
     function() {
       var stubDispatch;
