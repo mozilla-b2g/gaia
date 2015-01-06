@@ -110,11 +110,14 @@
 
       // Work around e.pageX/e.pageY being null (to make it easier to work with
       // injected events, or old versions of Marionette)
-      var pageX = (typeof e.pageX === 'undefined') ? this.icon.x : e.pageX;
-      var pageY = (typeof e.pageY === 'undefined') ? this.icon.y : e.pageY;
-
-      this.xAdjust = pageX - this.icon.x;
-      this.yAdjust = pageY - this.icon.y;
+      this.initialPageX = (typeof e.pageX === 'undefined') ?
+        this.icon.x : e.pageX;
+      this.initialPageY = (typeof e.pageY === 'undefined') ?
+        this.icon.y : e.pageY;
+      this.currentTouch = {
+          pageX: this.initialPageX,
+          pageY: this.initialPageY
+      };
 
       var items = this.gridView.items;
       var lastElement = items[items.length - 1];
@@ -155,7 +158,7 @@
       }
 
       // Redraw the icon at the new position and scale
-      this.positionIcon(pageX, pageY);
+      this.positionIcon();
     },
 
     finish: function(e) {
@@ -309,7 +312,7 @@
         this.scrollable.scrollTop += amount;
         exports.requestAnimationFrame(this.scrollIfNeeded.bind(this));
         touch.pageY += amount;
-        this.positionIcon(touch.pageX, touch.pageY);
+        this.positionIcon();
       }
 
       var scrollStep;
@@ -365,15 +368,13 @@
     },
 
     /**
-     * Positions an icon on the grid.
-     * @param {Integer} pageX The X coordinate of the touch.
-     * @param {Integer} pageY The Y coordinate of the touch.
+     * Positions an icon on the grid using the current touch coordinates.
      */
     positionIcon: function(pageX, pageY) {
       var iconIsDivider = this.icon.detail.type === 'divider';
 
-      pageX = pageX - this.xAdjust;
-      pageY = pageY - this.yAdjust;
+      var pageX = this.currentTouch.pageX - (this.initialPageX - this.icon.x);
+      var pageY = this.currentTouch.pageY - (this.initialPageY - this.icon.y);
 
       var oldX = this.icon.x;
       var oldY = this.icon.y;
@@ -597,7 +598,15 @@
       this.dirty = true;
       this.gridView.items.splice.apply(this.gridView.items, toInsert);
 
+      var oldX = this.icon.x;
+      var oldY = this.icon.y;
       this.gridView.render();
+
+      // In this case, we don't want to compensate for the icon moving, so
+      // we need to correct our initial values to stop the icon from jumping
+      // after rearranging.
+      this.initialPageX -= oldX - this.icon.x;
+      this.initialPageY -= oldY - this.icon.y;
     },
 
     enterEditMode: function() {
@@ -665,13 +674,12 @@
               return;
             }
 
-            this.target = e.target;
-
-            if (!this.target) {
+            if (!e.target) {
               return;
             }
 
-            this.icon = this.gridView.findItemFromElement(this.target);
+            this.icon = this.gridView.findItemFromElement(e.target);
+            this.target = this.icon.element;
 
             if (!this.icon || !this.icon.isDraggable() ||
                 this.icon.detail.type === 'placeholder') {
@@ -690,12 +698,12 @@
           case 'touchmove':
             var touch = e.touches[0];
 
-            this.positionIcon(touch.pageX, touch.pageY);
-
             this.currentTouch = {
               pageX: touch.pageX,
               pageY: touch.pageY
             };
+
+            this.positionIcon();
 
             if (!this.isScrolling) {
               this.scrollIfNeeded();
