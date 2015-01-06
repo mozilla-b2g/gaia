@@ -23,7 +23,6 @@ class UtilityTray(Base):
         # container so we wait for the gripper to reach its expanded state
         utility_tray = self.marionette.find_element(*self._notifications_locator)
         grippy = self.marionette.find_element(*self._grippy_locator)
-
         Wait(self.marionette).until(lambda m: grippy.location['y'] == utility_tray.size['height'])
 
     @property
@@ -41,9 +40,9 @@ class UtilityTray(Base):
         self.marionette.find_element(*self._quicksettings_app_locator).tap()
 
     def a11y_wheel_utility_tray_grippy(self):
-        self.accessibility.wheel(self.marionette.find_element(
-            *self._grippy_locator), 'up')
-        self.wait_for_element_not_displayed(*System(self.marionette)._utility_tray_locator)
+        self.accessibility.wheel(self.marionette.find_element(*self._grippy_locator), 'up')
+        Wait(self.marionette).until(
+            expected.element_not_displayed(*System(self.marionette)._utility_tray_locator))
 
     def a11y_click_quick_settings_full_app(self):
         self.accessibility.click(self.marionette.find_element(

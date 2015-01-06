@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import expected
+from marionette import Wait
 from marionette.by import By
 from marionette.marionette import Actions
 from gaiatest.apps.base import Base
@@ -23,25 +25,30 @@ class System(Base):
     _software_home_button_locator = (By.ID, 'software-home-button')
 
     def wait_for_status_bar_displayed(self):
-        self.wait_for_element_displayed(*self._status_bar_locator)
+        Wait(self.marionette).until(expected.element_displayed(*self._status_bar_locator))
 
     def wait_for_notification_toaster_displayed(self, timeout=10, message=None):
-        self.wait_for_element_displayed(*self._notification_toaster_locator)
+        Wait(self.marionette, timeout).until(
+            expected.element_displayed(*self._notification_toaster_locator), message)
 
     def wait_for_notification_toaster_not_displayed(self, timeout=10):
-        self.wait_for_element_not_displayed(*self._notification_toaster_locator)
+        Wait(self.marionette, timeout).until(
+            expected.element_not_displayed(*self._notification_toaster_locator))
 
     def wait_for_system_banner_displayed(self):
-        self.wait_for_element_displayed(*self._system_banner_locator)
+        Wait(self.marionette).until(expected.element_displayed(*self._system_banner_locator))
 
     def wait_for_system_banner_not_displayed(self):
-        self.wait_for_element_not_displayed(*self._system_banner_locator)
+        Wait(self.marionette).until(
+            expected.element_not_displayed(*self._system_banner_locator))
 
     def wait_for_software_home_button_displayed(self, timeout=10, message=None):
-        self.wait_for_element_displayed(*self._software_home_button_locator)
+        Wait(self.marionette, timeout=timeout).until(
+            expected.element_displayed(*self._software_home_button_locator), message)
 
     def wait_for_software_home_button_not_displayed(self, timeout=10):
-        self.wait_for_element_not_displayed(*self._software_home_button_locator)
+        Wait(self.marionette, timeout=timeout).until(
+            expected.element_not_displayed(*self._software_home_button_locator))
 
     def open_utility_tray(self):
         body = self.marionette.find_element(By.TAG_NAME, 'body')
@@ -61,11 +68,11 @@ class System(Base):
         return update_manager_toaster.location['y'] > (0 - update_manager_toaster.size['height'])
 
     def wait_for_app_update_to_clear(self):
-        update_manager_toaster = self.marionette.find_element(*self._update_manager_toaster_locator)
-        self.wait_for_condition(lambda m: update_manager_toaster.location['y'] == (0 - update_manager_toaster.size['height']))
+        element = self.marionette.find_element(*self._update_manager_toaster_locator)
+        Wait(self.marionette).until(lambda m: element.location['y'] == (0 - element.size['height']))
 
     def wait_for_geolocation_icon_displayed(self):
-        self.wait_for_element_displayed(*self._geoloc_statusbar_locator, timeout=40000)
+        Wait(self.marionette, timeout=40000).until(expected.element_displayed(*self._geoloc_statusbar_locator))
 
     def wait_for_airplane_mode_icon_displayed(self):
-        self.wait_for_element_displayed(*self._airplane_mode_statusbar_locator)
+        Wait(self.marionette).until(expected.element_displayed(*self._airplane_mode_statusbar_locator))
