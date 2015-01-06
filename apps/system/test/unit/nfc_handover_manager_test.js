@@ -47,9 +47,14 @@ suite('Nfc Handover Manager Functions', function() {
     realMozSetMessageHandler = navigator.mozSetMessageHandler;
     realL10n = navigator.mozL10n;
 
+    Object.defineProperty(navigator, 'mozBluetooth', {
+      configurable: true,
+      get: function() {
+        return MockBluetooth;
+      }
+    });
     navigator.mozNfc = MockMozNfc;
     navigator.mozSettings = MockNavigatorSettings;
-    navigator.mozBluetooth = MockBluetooth;
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
     navigator.mozL10n = MockL10n;
 
@@ -67,7 +72,12 @@ suite('Nfc Handover Manager Functions', function() {
     MockNavigatormozSetMessageHandler.mTeardown();
     navigator.mozNfc = realMozNfc;
     navigator.mozSettings = realMozSettings;
-    navigator.mozBluetooth = realMozBluetooth;
+    Object.defineProperty(navigator, 'mozBluetooth', {
+      configurable: true,
+      get: function() {
+        return realMozBluetooth;
+      }
+    });
     navigator.mozSetMessageHandler = realMozSetMessageHandler;
     navigator.mozL10n = realL10n;
   });
