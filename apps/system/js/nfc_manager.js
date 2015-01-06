@@ -68,17 +68,6 @@
     },
 
     /**
-     * Priority of NFC tech handling. Smaller number means higher priority.
-     * This list will expand with supported technologies.
-     * @memberof NfcManager.prototype
-     * @readonly
-     * @enum {number}
-     */
-    TECH_PRIORITY: {
-      Unsupported: 20
-    },
-
-    /**
      * Current NFC Hardware state
      * @memberof NfcManager.prototype
      * @type {String}
@@ -145,6 +134,11 @@
              this._hwState === this.NFC_HW_STATE.DISABLE_DISCOVERY;
     },
 
+    /**
+     * Returns true if NFC HW state change is in progress.
+     * @memberof NfcManager.prototype
+     * returns {boolean} isActive
+     */
     isInTransition: function nm_isInTransition() {
       return this._hwState === this.NFC_HW_STATE.ENABLING ||
              this._hwState === this.NFC_HW_STATE.DISABLING;
@@ -159,14 +153,12 @@
      * @memberof NfcManager.prototype
      * @param {Object} msg gecko originated message
      * @param {Array} msg.records NDEF records
-     * @param {Array} msg.techList
      * @param {string} msg.type set to 'techDiscovered'
      */
     _handleTechDiscovered: function nm_handleTechDiscovered(msg) {
       this._debug('Technology Discovered: ' + JSON.stringify(msg));
       msg = msg || {};
       msg.records = Array.isArray(msg.records) ? msg.records : [];
-      msg.techList = Array.isArray(msg.techList) ? msg.techList : [];
 
       window.dispatchEvent(new CustomEvent('nfc-tech-discovered'));
       window.navigator.vibrate([25, 50, 125]);
@@ -175,13 +167,12 @@
         return;
       }
 
-      var tech = this._getPrioritizedTech(msg.techList);
       if (msg.records.length) {
-        this._fireNDEFDiscovered(msg, tech);
+        this._fireNDEFDiscovered(msg.records);
       } else if (msg.peer) {
         this.checkP2PRegistration();
       } else {
-        this._fireTagDiscovered(msg, tech);
+        this._fireTagDiscovered();
       }
     },
 
@@ -323,27 +314,6 @@
     },
 
     /**
-     * Sorts NFC techList basing on {@link NfcManager#TECH_PRIORITY} and
-     * returns the tech with highest priority or 'Unknown' if array is empty
-     * @memberof NfcManager.prototype
-     * @param {Array} techList - array of NFC tech
-     * returns {string} tech - tech with highest priority or 'Unknown'
-     */
-    _getPrioritizedTech: function nm_getPrioritizedTech(techList) {
-      if (techList.length === 0) {
-        return 'Unknown';
-      }
-
-      techList.sort((techA, techB) => {
-        var prioA = this.TECH_PRIORITY[techA] || this.TECH_PRIORITY.Unsupported;
-        var prioB = this.TECH_PRIORITY[techB] || this.TECH_PRIORITY.Unsupported;
-        return prioA - prioB;
-      });
-
-      return techList[0];
-    },
-
-    /**
      * Step 1 of P2P sharing. Called as a result of discovering P2P peer.
      * Triggers P2P sharing process handled with ShrinkingUI which listens for
      * check-p2p-registration-for-active-app event.
@@ -423,23 +393,18 @@
      * methods. In general the name of activity will be 'nfc-ndef-discovered',
      * in some case other names may be used (e.g. 'dial' in case of tel uri)
      * @memberof NfcManager.prototype
-     * @param {Object} msg
-     * @param {Array} msg.records - NDEF Message
-     * @param {Array} msg.techList - tech list
-     * @param {string} tech - tech from tech list with highest priority
+     * @param {Array} records - NDEF Message
      */
-    _fireNDEFDiscovered: function nm_fireNDEFDiscovered(msg, tech) {
-      this._debug('_fireNDEFDiscovered: ' + JSON.stringify(msg));
-      var smartPoster = this._getSmartPoster(msg.records);
-      var record = smartPoster || msg.records[0] || { tnf: NDEF.TNF_EMPTY };
+    _fireNDEFDiscovered: function nm_fireNDEFDiscovered(records) {
+      this._debug('_fireNDEFDiscovered: ' + JSON.stringify(records));
+      var smartPoster = this._getSmartPoster(records);
+      var record = smartPoster || records[0] || { tnf: NDEF.TNF_EMPTY };
 
       var data = NDEF.payload.decode(record.tnf, record.type, record.payload);
       var options = this._createNDEFActivityOptions(data);
-      options.data.tech = tech;
-      options.data.techList = msg.techList;
 
       if (data !== null) {
-        options.data.records = msg.records;
+        options.data.records = records;
       }
 
       this._debug('_fireNDEFDiscovered activity options: ', options);
@@ -540,21 +505,11 @@
     /**
      * Fires nfc-tag-discovered activity. Should be used when NFC tag with no
      * NDEF content is detected.
-     * @param {Object} msg
-     * @param {string} type - tech with highest priority; for filtering
-     * @todo consider removing type param
      */
-    _fireTagDiscovered: function nm_fireTagDiscovered(msg, type) {
-      this._debug('_fireTagDiscovered, type: ' + type + ', msg: ', msg);
+    _fireTagDiscovered: function nm_fireTagDiscovered() {
+      this._debug('_fireTagDiscovered');
 
-      var activity = new MozActivity({
-        name: 'nfc-tag-discovered',
-        data: {
-          type: type,
-          techList: msg.techList
-        }
-      });
-
+      var activity = new MozActivity({ name: 'nfc-tag-discovered' });
       activity.onerror = () => {
         this._logVisibly('Firing nfc-tag-discovered activity failed');
       };
