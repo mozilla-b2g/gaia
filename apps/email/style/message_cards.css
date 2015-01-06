@@ -51,6 +51,15 @@ section[role="region"] > header:first-child h1.msg-list-header-folder-label {
   font-style: italic;
 }
 
+/* The search header sets a z-index on its children so that the topbar goes
+   under it when not in use. Not needed for non-search since shared header
+   styles handle it. Specific selectors because some set explicit z-index and
+   setting z-index on just the msg-search-header is not enough. */
+cards-message-list-search .msg-search-header form,
+cards-message-list-search .msg-search-header .bb-tablist {
+  z-index: 10;
+}
+
 cards-message-list-search .msg-search-tease-bar {
   display: none;
 }
