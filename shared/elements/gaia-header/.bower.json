@@ -1,6 +1,6 @@
 {
   "name": "gaia-header",
-  "version": "0.5.5",
+  "version": "0.5.7",
   "homepage": "https://github.com/gaia-components/gaia-header",
   "authors": [
     "Wilson Page <wilsonpage@me.com>"
@@ -26,13 +26,13 @@
     "gaia-fonts": "gaia-components/gaia-fonts",
     "base": "gaia-components/base"
   },
-  "_release": "0.5.5",
+  "_release": "0.5.7",
   "_resolution": {
     "type": "version",
-    "tag": "v0.5.5",
-    "commit": "7e3281e6047012b31ee868d5a12a47715dbc2551"
+    "tag": "v0.5.7",
+    "commit": "ef85cb1ab5877c79a843dc95614e679b0605e5b2"
   },
   "_source": "git://github.com/gaia-components/gaia-header.git",
-  "_target": "~0.5.5",
+  "_target": "~0.5.0",
   "_originalSource": "gaia-components/gaia-header"
 }
