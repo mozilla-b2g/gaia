@@ -25,21 +25,29 @@
       this.pinToHomeElem.addEventListener('click', this.pinOrUnpin.bind(this));
     },
 
+    _composeLaunchURL: function cm_composeLaunchURL(app) {
+      return app.manifestURL.replace('manifest.webapp', '') + app.entryPoint;
+    },
+
+    _sendUnpinMessage: function cm_sendUnpinActivity(app) {
+      // XXX: We should use IAC instead of activity.
+      new MozActivity({
+        name: 'unpin',
+        data: {
+          name: app.name,
+          manifestURL: app.manifestURL,
+          launchURL: this._composeLaunchURL(app)
+        }
+      });
+    },
+
     pinOrUnpin: function cm_pinOrUnpin() {
+      var that = this;
+
       if (this._app) {
         var app = this._app;
-        var launchURL = this._app.manifestURL.replace('manifest.webapp', '') +
-          this._app.entryPoint;
-
         if (app.pinned) {
-          new MozActivity({
-            name: 'unpin',
-            data: {
-              name: app.name,
-              manifestURL: app.manifestURL,
-              launchURL: launchURL
-            }
-          });
+          this._sendUnpinMessage(app);
         } else {
           // XXX: preferredSize should be determined by
           // real offsetWidth of cardThumbnailElem in smart-home instead of
@@ -52,7 +60,7 @@
                   name: app.name,
                   type: 'Application',
                   manifestURL: app.manifestURL,
-                  launchURL: launchURL,
+                  launchURL: that._composeLaunchURL(app),
                   // We use app's original icon instead of screenshot here because
                   // we are in app deck. For the case of getting screenshot,
                   // please refer to bug 1100238.

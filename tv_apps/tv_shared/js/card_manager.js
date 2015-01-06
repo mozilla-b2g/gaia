@@ -442,16 +442,15 @@
             resolve();
           });
         };
-
-        appMgmt.oninstall = that._onAppInstall.bind(that);
-        appMgmt.onuninstall = that._onAppUninstall.bind(that);
+        appMgmt.addEventListener('install', that);
+        appMgmt.addEventListener('uninstall', that);
       });
     },
 
     uninit: function cm_uninit() {
       var appMgmt = navigator.mozApps.mgmt;
-      appMgmt.oninstall = null;
-      appMgmt.onuninstall = null;
+      appMgmt.removeEventListener('install', this);
+      appMgmt.removeEventListener('uninstall', this);
 
       this.state = CardManager.STATES.SYNCING;
       this._cardList = [];
@@ -612,6 +611,17 @@
           })
         }
       });
+    },
+
+    handleEvent: function cr_handleEvent(evt) {
+      switch(evt.type) {
+        case 'install':
+          this._onAppInstall(evt);
+          break;
+        case 'uninstall':
+          this._onAppUninstall(evt);
+          break;
+      }
     }
   });
 
