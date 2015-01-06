@@ -540,6 +540,27 @@ suite('system/TextSelectionDialog', function() {
     });
   });
 
+  suite('cases to close bubble', function() {
+    setup(function() {
+      this.sinon.stub(td, 'close');
+    });
+
+    test('pressing home', function() {
+      td.handleEvent({ type: 'home' });
+      assert.isTrue(td.close.called);
+    });
+
+    test('active app is changed', function() {
+      td.handleEvent({ type: 'activeappchanged' });
+      assert.isTrue(td.close.called);
+    });
+
+    test('hierachychanged', function() {
+      td.handleEvent({ type: 'hierachychanged' });
+      assert.isTrue(td.close.called);
+    });
+  });
+
   test('tap on touch caret', function() {
     td.textualmenuDetail = 'test';
     var stubTriggerShortcutTimeout = this.sinon.stub(td,
