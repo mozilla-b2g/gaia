@@ -28,7 +28,9 @@ var BluetoothTransfer = {
 
   init: function bt_init() {
     // Bind message handler for sending files from Bluetooth app
-    window.addEventListener('iac-bluetoothTransfercomms', this);
+    window.addEventListener('iac-bluetoothTransfercomms',
+      this._onFilesSending.bind(this)
+    );
 
     // Bind message handler for transferring file callback
     navigator.mozSetMessageHandler('bluetooth-opp-receiving-file-confirmation',
@@ -36,28 +38,18 @@ var BluetoothTransfer = {
     );
 
     // Listen to 'bluetooth-opp-transfer-start' from bluetooth.js
-    window.addEventListener('bluetooth-opp-transfer-start', this);
+    window.addEventListener('bluetooth-opp-transfer-start',
+      this._onUpdateProgress.bind(this, 'start')
+    );
 
     navigator.mozSetMessageHandler('bluetooth-opp-update-progress',
       this._onUpdateProgress.bind(this, 'progress')
     );
 
     // Listen to 'bluetooth-opp-transfer-complete' from bluetooth.js
-    window.addEventListener('bluetooth-opp-transfer-complete', this);
-  },
-
-  handleEvent: function bt_handleEvent(evt) {
-    switch(evt.type) {
-      case 'iac-bluetoothTransfercomms':
-        this._onFilesSending();
-        break;
-      case 'bluetooth-opp-transfer-start':
-        this._onUpdateProgress('start');
-        break;
-      case 'bluetooth-opp-transfer-complete':
-        this._onTransferComplete();
-        break;
-    }
+    window.addEventListener('bluetooth-opp-transfer-complete',
+      this._onTransferComplete.bind(this)
+    );
   },
 
   getDeviceName: function bt_getDeviceName(address) {
