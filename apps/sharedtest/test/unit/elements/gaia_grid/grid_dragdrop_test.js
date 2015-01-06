@@ -238,4 +238,28 @@ suite('GaiaGrid > DragDrop', function() {
     assert.equal(countDividers(), dividers + 1);
     assert.equal(grid.items[4].name, 'third');
   });
+
+  test('check no visual indicator for redundant moves', function() {
+    // Each of these dividers represents a group with one item, so dragging any
+    // group or item should mark the previous group and the group itself as
+    // invalid drop targets
+    var divider1 = grid.items[3];
+    var divider2 = grid.items[7];
+    var divider3 = grid.items[9];
+
+    var subject = grid.dragdrop;
+    subject.icon = divider2;
+    subject.begin({});
+
+    assert.isTrue(divider1.element.classList.contains('invalid-drop'));
+    assert.isTrue(divider2.element.classList.contains('invalid-drop'));
+    assert.isFalse(divider3.element.classList.contains('invalid-drop'));
+
+    // Tidy up
+    subject.finish();
+    subject.finalize();
+
+    assert.isFalse(divider1.element.classList.contains('invalid-drop'));
+    assert.isFalse(divider2.element.classList.contains('invalid-drop'));
+  });
 });
