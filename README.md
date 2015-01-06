@@ -240,6 +240,28 @@ To run integration test locally, using following command:
 $ make build-test-integration
 ```
 
+#### Invoking specific test files
+
+Both the build unit or integration test can invoke specific test files by TEST_FILES
+
+```
+make build-test-unit TEST_FILES=<test file path>
+```
+
+```
+make build-test-integration TEST_FILES=<test file path>
+```
+
+For example, we could run the `keyboard_test.js` build integration test in keyboard app with the below command.
+```
+make build-test-integration TEST_FILES=apps/keyboard/test/build/integration/keyboard_test.js
+```
+
+If you would like to run more than one test, we could do the below command.
+```
+make build-test-integration TEST_FILES="apps/keyboard/test/build/integration/keyboard_test.js apps/keyboard/test/build/integration/keyboard_layout_test.js"
+```
+
 ## Generate jsdoc
 
 To generate API reference locally, you have to install grunt with following command:
