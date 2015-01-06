@@ -22,6 +22,10 @@
   filter: none;
 }
 
+#screen.screenreader #statusbar {
+  top: 0;
+}
+
 .statusbar > div,
 .statusbar > img {
   pointer-events: auto;
