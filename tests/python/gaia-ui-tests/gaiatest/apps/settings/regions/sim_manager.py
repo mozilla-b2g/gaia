@@ -15,38 +15,54 @@ class SimManager(Base):
     _back_button_locator = (By.CSS_SELECTOR, '.current header > a') 
     _confirm_suspended_locator = (By.CSS_SELECTOR, '.modal-dialog-confirm-ok')
 
-    def select_outgoing_calls(self, sim_option):
+    def select_outgoing_calls(self, sim):
         self.marionette.find_element(*self._outgoing_call_locator).tap()
-        self.select(sim_option)
+        self.select('SIM '+str(sim))
 
-    def select_outgoing_messages(self, sim_option):
+    def select_outgoing_messages(self, sim):
         self.marionette.find_element(*self._outgoing_messages_locator).tap()
-        self.select(sim_option)
+        self.select('SIM '+str(sim))
 
-    def select_data(self, sim_option):
+    def select_data(self, sim):
         self.marionette.find_element(*self._outgoing_data_locator).tap()
-        self.select(sim_option)
+        self.select_and_confirm('SIM '+str(sim))
 
-        # A confirmation modal about stopping the data connection gets displayed in the System app
+    def select_and_confirm(self, match_string):
+        # cheeky Select wrapper until Marionette has its own
+        # due to the way B2G wraps the app's select box we match on text
+
+        _list_item_locator = (By.XPATH, "//section[contains(@class,'value-selector-container')]/descendant::li[descendant::span[.='%s']]" % match_string)
+        _close_button_locator = (By.CSS_SELECTOR, 'button.value-option-confirm')
+
+        # have to go back to top level to get the B2G select box wrapper
         self.marionette.switch_to_frame()
+        # TODO we should find something suitable to wait for, but this goes too
+        # fast against desktop builds causing intermittent failures
+        time.sleep(0.2)
+
+        li = self.wait_for_element_present(*_list_item_locator)
+        li.tap()
+        # no close button for this selection, select on an item brings to 
+        # confirmation directly
+
+        time.sleep(0.2)
+
+        # Confirmation page shown upon selection is made
         self.wait_for_element_displayed(*self._confirm_suspended_locator)
-        self.marionette.find_element(*self._confirm_suspended_locator).tap()
+        # TODO bug 979220 tap() not working on modal-dialog-confirm-ok
+        self.marionette.find_element(*self._confirm_suspended_locator).click()
+
+        # now back to app
         self.apps.switch_to_displayed_app()
 
     @property
-    def sim_for_outgoing_calls(self):
-        return self._get_displayed_sim(*self._outgoing_call_locator)
+    def sim_for_outgoing_calls (self):
+        return self.marionette.find_element(*self._outgoing_call_locator).get_attribute('value') 
 
     @property
-    def sim_for_outgoing_messages(self):
-        return self._get_displayed_sim(*self._outgoing_messages_locator)
+    def sim_for_outgoing_messages (self):
+        return self.marionette.find_element(*self._outgoing_messages_locator).get_attribute('value') 
 
     @property
-    def sim_for_data(self):
-        return self._get_displayed_sim(*self._outgoing_data_locator)
-
-    def _get_displayed_sim(self, by, locator):
-        select = self.marionette.find_element(by, locator)
-        select_value = select.get_attribute('value')
-        option = select.find_element(By.CSS_SELECTOR, 'option[value="%s"]' % select_value)
-        return option.text
+    def sim_for_data (self):
+        return self.marionette.find_element(*self._outgoing_data_locator).get_attribute('value') 
