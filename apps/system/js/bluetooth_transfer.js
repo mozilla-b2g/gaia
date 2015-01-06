@@ -465,12 +465,6 @@ var BluetoothTransfer = {
       onclick: null
     };
 
-    if (transferInfo.fileName) {
-      nData.body = transferInfo.fileName;
-    } else {
-      nData.bodyL10n = 'unknown-file';
-    }
-
     if (transferInfo.success === true) {
       if (transferInfo.received) {
         // Received file can be opened only
@@ -487,10 +481,17 @@ var BluetoothTransfer = {
       }
     }
 
-    var promise = NotificationHelper.send(nData.titleL10n, {
-      'bodyL10n': nData.bodyL10n,
-      'icon': icon
-    });
+    var l10nArgs = {
+      icon: nData.icon
+    };
+
+    if (transferInfo.fileName) {
+      l10nArgs.body = transferInfo.fileName;
+    } else {
+      l10nArgs.bodyL10n = 'unknown-file';
+    }
+
+    var promise = NotificationHelper.send(nData.titleL10n, l10nArgs);
 
     if (nData.onclick) {
       promise.then(function(notification) {
