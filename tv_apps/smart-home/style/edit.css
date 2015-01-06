@@ -1,0 +1,14 @@
+#main-section[data-mode="edit"] #nav-regular,
+#main-section[data-mode="arrange"] #nav-regular,
+#main-section:not([data-mode="edit"]) #nav-edit-title,
+#main-section:not([data-mode="edit"]) #nav-edit {
+  transform: translateY(-16rem);
+}
+
+#main-section[data-mode="edit"] .card.focused > .card-panel {
+  display: block;
+}
+
+#main-section[data-mode="edit"] .card.focused > smart-button[app-type='deck'] ~ .card-panel {
+  display: none;
+}
