@@ -290,6 +290,8 @@ suite('system/TextSelectionDialog', function() {
 
     test('when the focus element is blurred', function() {
       testDetail.states = ['blur'];
+      testDetail.visible = true;
+      testDetail.isCollapsed = false;
       td._onSelectionStateChanged(fakeTextSelectInAppEvent);
       assert.isTrue(stubHide.calledOnce);
     });
@@ -297,6 +299,8 @@ suite('system/TextSelectionDialog', function() {
     test('should hide bubble if user call selection.collapseToEnd() by script',
       function() {
         testDetail.states = ['collapsetoend'];
+        testDetail.visible = true;
+        testDetail.isCollapsed = false;
         td._onSelectionStateChanged(fakeTextSelectInAppEvent);
         assert.isTrue(stubHide.calledOnce);
       });
@@ -305,6 +309,8 @@ suite('system/TextSelectionDialog', function() {
       // In editable div, we may receive this event while bubble is displaying
       // and tapping on other context.
       function() {
+        testDetail.visible = true;
+        testDetail.isCollapsed = false;
         testDetail.rect.top = testDetail.rect.bottom;
         testDetail.rect.left = testDetail.rect.right;
         td._onSelectionStateChanged(fakeTextSelectInAppEvent);
@@ -313,6 +319,8 @@ suite('system/TextSelectionDialog', function() {
 
     test('with no states', function() {
       testDetail.states = [];
+      testDetail.visible = true;
+      testDetail.isCollapsed = false;
       td._onSelectionStateChanged(fakeTextSelectInAppEvent);
       assert.isFalse(stubClose.calledOnce);
       assert.isFalse(stubHide.calledOnce);
@@ -323,6 +331,8 @@ suite('system/TextSelectionDialog', function() {
     test('should do nothing if rect has no size with no mouseup reason',
       function() {
         testDetail.states = ['mousedown'];
+        testDetail.visible = true;
+        testDetail.isCollapsed = false;
         testDetail.rect.top = testDetail.rect.bottom;
         testDetail.rect.left = testDetail.rect.right;
         td._onSelectionStateChanged(fakeTextSelectInAppEvent);
@@ -334,6 +344,8 @@ suite('system/TextSelectionDialog', function() {
 
     test('should do nothing if no commands', function() {
       testDetail.commands = {};
+      testDetail.visible = true;
+      testDetail.isCollapsed = false;
       td._onSelectionStateChanged(fakeTextSelectInAppEvent);
       assert.isFalse(stubClose.calledOnce);
       assert.isFalse(stubHide.calledOnce);
@@ -342,6 +354,8 @@ suite('system/TextSelectionDialog', function() {
     });
 
     test('should render when first show', function() {
+      testDetail.visible = true;
+      testDetail.isCollapsed = false;
       td._onSelectionStateChanged(fakeTextSelectInAppEvent);
       assert.isTrue(stubRender.calledOnce);
       assert.isTrue(td._injected);
