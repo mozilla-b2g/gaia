@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockMozActivity */
 
 var mockMozActivityInstance = null;
 
@@ -9,4 +10,3 @@ var MockMozActivity = function MozActivity(configuration) {
   mockMozActivityInstance = this;
   return this;
 };
-

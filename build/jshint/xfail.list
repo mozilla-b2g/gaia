@@ -292,7 +292,6 @@ apps/system/test/unit/identity_test.js
 apps/system/test/unit/keyboard_helper_test.js
 apps/system/test/unit/lockscreen_test.js
 apps/system/test/unit/mobile_operator_test.js
-apps/system/test/unit/mock_activity.js
 apps/system/test/unit/mock_applications.js
 apps/system/test/unit/mock_apps_mgmt.js
 apps/system/test/unit/mock_asyncStorage.js
