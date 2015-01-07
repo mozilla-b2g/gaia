@@ -694,13 +694,20 @@ var CarrierSettings = (function(window, document, undefined) {
      * @param {String} settingKey The key of the setting.
      * @param {String} dialogId The id of the warning dialog.
      * @param {String} explanationItemId The id of the explanation item.
+     * @param {Object} the target input element which need to bind event.
      * @param {Function} warningDisabledCallback Callback function to be
      *                                           called once the warning is
      *                                           disabled.
      */
+
+    var dataToggle = document.querySelector('#menuItem-enableDataCall input');
+    var dataRoamingToggle =
+      document.querySelector('#menuItem-enableDataRoaming input');
+
     function initWarning(settingKey,
                          dialogId,
                          explanationItemId,
+                         input,
                          warningDisabledCallback) {
 
       var warningDialogEnabledKey = settingKey + '.warningDialog.enabled';
@@ -757,9 +764,11 @@ var CarrierSettings = (function(window, document, undefined) {
       }
 
       // Register an observer to monitor setting changes.
-      _settings.addObserver(settingKey, function observerCb(event) {
-        getWarningEnabled(function getWarningEnabledCb(warningEnabled) {
-          var enabled = event.settingValue;
+
+      input.addEventListener('change', function handleChange() {
+        var self = this;
+        getWarningEnabled(function(warningEnabled) {
+          var enabled = self.checked;
           if (warningEnabled) {
             if (enabled) {
               setState(false);
@@ -810,10 +819,12 @@ var CarrierSettings = (function(window, document, undefined) {
     initWarning('ril.data.enabled',
                 'carrier-dc-warning',
                 'dataConnection-expl',
+                dataToggle,
                 warningDataEnabledCb);
     initWarning('ril.data.roaming_enabled',
                 'carrier-dr-warning',
-                'dataRoaming-expl');
+                'dataRoaming-expl',
+                dataRoamingToggle);
   }
 
   return {
