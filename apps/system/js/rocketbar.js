@@ -1,5 +1,5 @@
 'use strict';
-/* global Service, SearchWindow, places */
+/* global Service, SearchWindow, places, Promise */
 
 (function(exports) {
 
@@ -38,6 +38,11 @@
     EVENT_PREFIX: 'rocketbar',
     name: 'Rocketbar',
 
+    /**
+     * True during the rocketbar closing animation.
+     */
+    isClosing: false,
+
     publish: function(name) {
       window.dispatchEvent(new CustomEvent(this.EVENT_PREFIX + name, {
         detail: this
@@ -75,58 +80,59 @@
      *
      * Input is displayed, title is hidden and search app is loaded, input
      * not always focused.
-     * @param {Function} callback Function to call after search app is ensured.
+     * @return {Promise}
      * @memberof Rocketbar.prototype
      */
-    activate: function(callback) {
-      if (this.active) {
-        if (callback) {
-          callback();
-        }
-        return;
+    activate: function() {
+      if (this.isClosing) {
+        return Promise.reject();
       }
 
-      this.active = true;
-      this.rocketbar.classList.add('active');
-      this.form.classList.remove('hidden');
-      this.screen.classList.add('rocketbar-focused');
+      return new Promise(resolve => {
+        if (this.active) {
+          resolve();
+          return;
+        }
 
-      // We wait for the transition do be over and the search app to be loaded
-      // before moving on (and triggering the callback).
-      var searchLoaded = false;
-      var transitionEnded = false;
-      var self = this;
-      var waitOver = function() {
-        if (searchLoaded && transitionEnded) {
-          if (callback) {
-            callback();
+        this.active = true;
+        this.rocketbar.classList.add('active');
+        this.form.classList.remove('hidden');
+        this.screen.classList.add('rocketbar-focused');
+
+        // We wait for the transition do be over and the search app to be loaded
+        // before moving on (and resolving the promise).
+        var searchLoaded = false;
+        var transitionEnded = false;
+        var waitOver = () => {
+          if (searchLoaded && transitionEnded) {
+            resolve();
+            this.publish('-activated');
           }
-          self.publish('-activated');
-        }
-      };
+        };
 
-      var backdrop = this.backdrop;
-      var safetyTimeout = null;
-      var finishTransition = function() {
-        backdrop.removeEventListener('transitionend', finishTransition);
-        clearTimeout(safetyTimeout);
+        var backdrop = this.backdrop;
+        var safetyTimeout = null;
+        var finishTransition = () => {
+          backdrop.removeEventListener('transitionend', finishTransition);
+          clearTimeout(safetyTimeout);
 
-        window.dispatchEvent(new CustomEvent('rocketbar-overlayopened'));
-        transitionEnded = true;
-        waitOver();
-      };
-      backdrop.classList.remove('hidden');
-      backdrop.addEventListener('transitionend', finishTransition);
-      safetyTimeout = setTimeout(finishTransition, 300);
+          window.dispatchEvent(new CustomEvent('rocketbar-overlayopened'));
+          transitionEnded = true;
+          waitOver();
+        };
+        backdrop.classList.remove('hidden');
+        backdrop.addEventListener('transitionend', finishTransition);
+        safetyTimeout = setTimeout(finishTransition, 300);
 
-      this.loadSearchApp().then(() => {
-        if (this.input.value.length) {
-          this.handleInput();
-        }
-        searchLoaded = true;
-        waitOver();
+        this.loadSearchApp().then(() => {
+          if (this.input.value.length) {
+            this.handleInput();
+          }
+          searchLoaded = true;
+          waitOver();
+        });
+        this.publish('-activating');
       });
-      this.publish('-activating');
     },
 
     /**
@@ -140,12 +146,14 @@
         return;
       }
       this.active = false;
+      this.isClosing = true;
 
       var backdrop = this.backdrop;
       var finishTimeout;
       var self = this;
       var finish = (function() {
         clearTimeout(finishTimeout);
+
         this.form.classList.add('hidden');
         this.rocketbar.classList.remove('active');
         this.screen.classList.remove('rocketbar-focused');
@@ -156,6 +164,7 @@
           backdrop.removeEventListener('transitionend', trWait);
           window.dispatchEvent(new CustomEvent('rocketbar-overlayclosed'));
           self.publish('-deactivated');
+          self.isClosing = false;
         });
       }).bind(this);
 
@@ -332,10 +341,10 @@
 
           if (app && app.appChrome && !app.appChrome.isMaximized()) {
             app.appChrome.maximize(() => {
-              this.activate(afterActivate);
+              this.activate().then(afterActivate);
             });
           } else {
-            this.activate(afterActivate);
+            this.activate().then(afterActivate);
           }
           break;
       }
@@ -631,7 +640,7 @@
 
       switch (e.detail.action) {
         case 'render':
-          this.activate(setTimeout.bind(null, this.focus.bind(this)));
+          this.activate().then(this.focus.bind(this));
           break;
         case 'focus':
           this.focus();
