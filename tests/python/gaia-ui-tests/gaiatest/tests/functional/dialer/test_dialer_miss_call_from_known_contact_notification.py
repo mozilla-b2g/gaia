@@ -47,7 +47,7 @@ class TestReceiveCallFromKnownContactNotification(GaiaTestCase):
             timeout=PLIVO_TIMEOUT)
 
         call_screen = CallScreen(self.marionette)
-        call_screen.wait_for_incoming_call_with_locked_screen()
+        call_screen.wait_for_incoming_call()
         self.plivo.hangup_call(self.call_uuid)
 
         Wait(self.plivo, timeout=PLIVO_TIMEOUT).until(

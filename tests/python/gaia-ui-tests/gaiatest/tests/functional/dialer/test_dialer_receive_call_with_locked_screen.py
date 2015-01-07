@@ -41,7 +41,7 @@ class TestReceiveCallScreenLocked(GaiaTestCase):
 
         # Wait for the incoming call screen to show up
         call_screen = CallScreen(self.marionette)
-        call_screen.wait_for_incoming_call_with_locked_screen()
+        call_screen.wait_for_incoming_call()
 
         # Reject the call
         call_screen.reject_call()
