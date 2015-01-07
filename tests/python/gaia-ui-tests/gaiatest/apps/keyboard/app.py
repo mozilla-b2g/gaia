@@ -100,17 +100,14 @@ class Keyboard(Base):
     # Try to switch to the correct layout. There are 3 keyboard layers:
     # Basic (layoutPage = 0), Alternate (layoutPage = 1) and Symbol (layoutPage = 2)
     def _switch_to_correct_layout(self, val):
-        layout_page = self._layout_page
-        current_input_type = self._current_input_type
-        current_input_mode = self._current_input_mode
-        if val.isspace():
-            # Space is available on every keyboard panel
+        if val.isspace() or val in [',', '.']:
+            # certain keys are available on every keyboard panel
             pass
         # Alphabetic keys available on the basic page
         elif val.isalpha():
             is_upper_case = self._is_upper_case
             # If the key to press isalpha and the keyboard layout is not, go back to Basic
-            if not layout_page == 0:
+            if not self._layout_page == 0:
                 self._tap_page_switching_key(0)
                 Wait(self.marionette).until(lambda m: self._layout_page == 0)
             # If the key to press isupper and the keyboard is not (or vice versa) then press shift
@@ -121,28 +118,21 @@ class Keyboard(Base):
         else:
             # If it's not space or alpha then it must be in Alternate or Symbol.
             # It can't be in Basic so let's go into Alternate and then try to find it
-            if layout_page == 0 and not current_input_type == 'number' and not current_input_mode == 'numeric':
+            if self._layout_page == 0 and not self._current_input_type == 'number' and not self._current_input_mode == 'numeric':
                 self._tap_page_switching_key(1)
                 page_0_key_locator = (self._page_switching_key_locator[0], self._page_switching_key_locator[1] % (0))
-                Wait(self.marionette).until(expected.element_displayed(
-                    Wait(self.marionette).until(expected.element_present(
-                        *page_0_key_locator))))
+                Wait(self.marionette).until(expected.element_displayed(*page_0_key_locator))
             # If it is not present here then it must be in the other non-Basic page
             # (since we must be in either Alternate or Symbol at this stage)
             if not self.is_element_present(*self._key_locator(val)):
-                layout_page = self._layout_page
-                if layout_page == 1:
+                if self._layout_page == 1:
                     self._tap_page_switching_key(2)
                     page_1_key_locator = (self._page_switching_key_locator[0], self._page_switching_key_locator[1] % (1))
-                    Wait(self.marionette).until(expected.element_displayed(
-                        Wait(self.marionette).until(expected.element_present(
-                            *page_1_key_locator))))
+                    Wait(self.marionette).until(expected.element_displayed(*page_1_key_locator))
                 else:
                     self._tap_page_switching_key(1)
                     page_2_key_locator = (self._page_switching_key_locator[0], self._page_switching_key_locator[1] % (2))
-                    Wait(self.marionette).until(expected.element_displayed(
-                        Wait(self.marionette).until(expected.element_present(
-                            *page_2_key_locator))))
+                    Wait(self.marionette).until(expected.element_displayed(*page_2_key_locator))
 
     @property
     def _is_upper_case(self):
@@ -190,18 +180,15 @@ class Keyboard(Base):
 
     # this is to tap on desired key on keyboard
     def _tap(self, val):
-        is_upper_case = self._is_upper_case
-        is_upper_case_locked = self._is_upper_case_locked
-
         key = Wait(self.marionette).until(expected.element_present(*self._key_locator(val)))
         Wait(self.marionette).until(expected.element_displayed(key))
-        Actions(self.marionette).press(key).wait(0.1).release().perform()
+        Actions(self.marionette).press(key).release().perform()
 
         # These two tap cases are most important because they cause the keyboard to change state which affects next step
         if val.isspace():
             # Space switches back to Default layout
             Wait(self.marionette).until(lambda m: self._layout_page == 0)
-        if val.isupper() and is_upper_case and not is_upper_case_locked:
+        if val.isupper() and not self._is_upper_case_locked:
             # Tapping key with shift enabled causes the keyboard to switch back to lower
             Wait(self.marionette).until(lambda m: not self._is_upper_case)
 
@@ -209,7 +196,7 @@ class Keyboard(Base):
         locator = (self._page_switching_key_locator[0], self._page_switching_key_locator[1] % val)
         key = Wait(self.marionette).until(expected.element_present(*locator))
         Wait(self.marionette).until(expected.element_displayed(key))
-        Actions(self.marionette).press(key).wait(0.1).release().perform()
+        Actions(self.marionette).press(key).release().perform()
 
     # This is for selecting special characters after long pressing
     # "selection" is the nth special element you want to select (n>=1)
