@@ -156,14 +156,16 @@
   z-index: 8192;
 }
 
-/* Level 5: Activity menu, context menu, value selector */
-#screen > [data-z-index-level="action-menu"] {
-  z-index: 4096;
-}
-
 /* The edges zones get promoted when an action menu is displayed */
 #screen.action-menu > [data-z-index-level="gesture-panel"] {
   z-index: 4097;
+}
+
+/* Level 5: Activity menu, context menu, value selector */
+/* The action menu goes over the gesture-panel so that gestures are not
+   triggered when the action menu is visible. */
+#screen > [data-z-index-level="action-menu"] {
+  z-index: 4098;
 }
 
 #screen > [data-z-index-level="gesture-panel"] {
