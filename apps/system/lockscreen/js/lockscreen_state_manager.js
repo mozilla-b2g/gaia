@@ -91,7 +91,8 @@
         'lockscreen-inputappopened',
         'lockscreen-inputappclosed',
         'secure-appopened',
-        'secure-appclosing'
+        'secure-appclosing',
+        'secure-appterminated'
       ],
       observers: {
         'lockscreen.passcode-lock.enabled':
@@ -446,6 +447,10 @@
         this.onSecureAppOpened();
         break;
       case 'secure-appclosing':
+      case 'secure-appterminated':
+        // closing: softKill
+        // terminated: kill
+        // @see: SecureAppManager
         this.onSecureAppClosing();
         break;
     }
