@@ -1,7 +1,7 @@
 'use strict';
 
 /* exported MockBluetoothTransfer */
-/* globals MockDOMRequest, NfcHandoverManager */
+/* globals MockDOMRequest */
 
 (function(exports) {
 
@@ -14,7 +14,9 @@
                      viaHandover: true};
 
       req.onsuccess = function() {
-        NfcHandoverManager.transferComplete(details);
+        window.dispatchEvent(new CustomEvent('nfc-transfer-complete', {
+          detail: details
+        }));
       };
 
       return req;

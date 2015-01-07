@@ -189,9 +189,9 @@ var NfcHandoverManager = {
       };
     });
 
-    window.addEventListener('bluetooth-disabled', function() {
-      self._debug('bluetooth-disabled');
-      self._clearBluetoothStatus();
+    window.addEventListener('bluetooth-disabled', () => {
+      this._debug('bluetooth-disabled');
+      this._clearBluetoothStatus();
     });
 
     window.navigator.mozSetMessageHandler('nfc-manager-send-file',
@@ -202,6 +202,13 @@ var NfcHandoverManager = {
 
     SettingsListener.observe('nfc.debugging.enabled', false,
                              (enabled) => { this.DEBUG = enabled; });
+
+    window.addEventListener('nfc-transfer-started',
+      this._transferStarted.bind(this)
+    );
+    window.addEventListener('nfc-transfer-complete',
+      this._transferComplete.bind(this)
+    );
   },
 
   /**
@@ -664,17 +671,19 @@ var NfcHandoverManager = {
    * BluetoothTransfer notifies us that a file transfer has started.
    * @memberof NfcHandoverManager.prototype
    */
-  transferStarted: function transferStarted() {
+  _transferStarted: function transferStarted() {
     this._clearTimeout();
   },
 
   /**
    * Tells NfcHandoverManager that a BT file transfer
    * has been completed.
-   * @param details succeeded True if file transfer was successfull.
+   * @param evt event object
    * @memberof NfcHandoverManager.prototype
    */
-  transferComplete: function transferComplete(details) {
+  _transferComplete: function transferComplete(evt) {
+    // succeeded True if file transfer was successfull.
+    var details = evt.detail;
     this._debug('transferComplete: ' + JSON.stringify(details));
     if (!details.received && details.viaHandover) {
       // Completed an outgoing send file request. Call onsuccess/onerror
