@@ -111,7 +111,11 @@ suite('KeyboardSettingsApp', function() {
   });
 
   suite('start', function() {
+    var skipStopOnTeardown;
+
     setup(function() {
+      skipStopOnTeardown = false;
+
       app.start();
 
       assert.isTrue(window.SettingsPromiseManager.calledOnce);
@@ -134,7 +138,9 @@ suite('KeyboardSettingsApp', function() {
     });
 
     teardown(function() {
-      app.stop();
+      if (!skipStopOnTeardown) {
+        app.stop();
+      }
 
       assert.isTrue(stubGeneralSettingsGroupView.stop.calledOnce);
       assert.isTrue(stubHandwritingSettingsGroupView.stop.calledOnce);
@@ -164,15 +170,16 @@ suite('KeyboardSettingsApp', function() {
 
     test('visibilitychange to hidden', function() {
       isHidden = true;
+      skipStopOnTeardown = true;
 
-      var stubStop = this.sinon.stub(app, 'onclose');
+      this.sinon.spy(app, 'stop');
 
       app.handleEvent({
         type: 'visibilitychange'
       });
 
-      assert.isTrue(stubStop.calledOnce);
       assert.isTrue(window.close.calledOnce);
+      assert.isTrue(app.stop.calledOnce);
     });
 
     test('visibilitychange to visible w/ stay awake lock', function() {

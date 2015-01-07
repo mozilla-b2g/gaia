@@ -21,7 +21,8 @@ var KeyboardSettingsApp = function KeyboardSettingsApp() {
 };
 
 KeyboardSettingsApp.prototype.start = function() {
-  this.closeLockManager = new CloseLockManager(this);
+  this.closeLockManager = new CloseLockManager();
+  this.closeLockManager.onclose = this.close.bind(this);
   this.closeLockManager.start();
 
   // SettingsPromiseManager wraps Settings DB methods into promises.
@@ -88,8 +89,9 @@ KeyboardSettingsApp.prototype.stop = function() {
   document.removeEventListener('visibilitychange', this);
 };
 
-KeyboardSettingsApp.prototype.onclose = function() {
+KeyboardSettingsApp.prototype.close = function() {
   this.stop();
+  window.close();
 };
 
 KeyboardSettingsApp.prototype.handleEvent = function(evt) {
