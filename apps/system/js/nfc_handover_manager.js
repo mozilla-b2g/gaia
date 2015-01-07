@@ -202,6 +202,10 @@ var NfcHandoverManager = {
 
     SettingsListener.observe('nfc.debugging.enabled', false,
                              (enabled) => { this.DEBUG = enabled; });
+
+    window.addEventListener('nfc-transfer-started',
+      this._transferStarted.bind(this)
+    );
   },
 
   /**
@@ -664,7 +668,7 @@ var NfcHandoverManager = {
    * BluetoothTransfer notifies us that a file transfer has started.
    * @memberof NfcHandoverManager.prototype
    */
-  transferStarted: function transferStarted() {
+  _transferStarted: function bt__transferStarted() {
     this._clearTimeout();
   },
 
