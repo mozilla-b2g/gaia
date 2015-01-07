@@ -282,6 +282,7 @@ li.select-item {
   /* Explicit -left used since RTL cases always want right alignment, regardless
      of direction of user input string. See rtl style overrides below */
   padding-left: 1.5rem;
+  padding-right: 2.2rem;
   line-height: 5.5rem;
   font-size: 1.8rem;
   outline: 0 none;
@@ -289,6 +290,7 @@ li.select-item {
 }
 
 html:-moz-dir(rtl) .list-text {
+  padding-left: 2.2rem;
   padding-right: 1.5rem;
   text-align: right;
 }
