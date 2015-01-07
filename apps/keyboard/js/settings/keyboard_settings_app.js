@@ -1,8 +1,8 @@
 'use strict';
 
-/* global SettingsPromiseManager, CloseLockManager,
+/* global SettingsPromiseManager, CloseLockManager, UserDictionaryListPanel,
           GeneralSettingsGroupView, HandwritingSettingsGroupView,
-          MozActivity */
+          MozActivity, PanelController, UserDictionaryEditPanel */
 
 (function(exports) {
 
@@ -11,11 +11,18 @@ var KeyboardSettingsApp = function KeyboardSettingsApp() {
   this.generalSettingsGroupView = null;
   this.handwritingSettingsGroupView = null;
 
+  // the existence of panelController is indicative of the suport for userdict.
+  // let's keep the reference of panels here for now.
+  this.panelController = null;
+  this.userDictionaryListPanel = null;
+  this.userDictionaryEditPanel = null;
+
   this._closeLock = null;
 };
 
 KeyboardSettingsApp.prototype.start = function() {
   this.closeLockManager = new CloseLockManager();
+  this.closeLockManager.onclose = this.close.bind(this);
   this.closeLockManager.start();
 
   // SettingsPromiseManager wraps Settings DB methods into promises.
@@ -31,7 +38,19 @@ KeyboardSettingsApp.prototype.start = function() {
     this.handwritingSettingsGroupView.start();
   }
 
-  var header = this.header = document.getElementById('header');
+  // We support user dictionary!
+  if (typeof PanelController === 'function') {
+    this.panelController = new PanelController(document.getElementById('root'));
+    this.panelController.start();
+
+    this.userDictionaryEditPanel = new UserDictionaryEditPanel();
+
+    this.userDictionaryListPanel = new UserDictionaryListPanel(this);
+
+    document.getElementById('menu-userdict').addEventListener('click', this);
+  }
+
+  var header = this.header = document.getElementById('root-header');
   header.addEventListener('action', this);
 
   document.addEventListener('visibilitychange', this);
@@ -51,10 +70,28 @@ KeyboardSettingsApp.prototype.stop = function() {
     this.handwritingSettingsGroupView = null;
   }
 
+  if (this.panelController) {
+    this.panelController.stop();
+    this.panelController = null;
+
+    this.userDictionaryListPanel.uninit();
+    this.userDictionaryListPanel = null;
+
+    this.userDictionaryEditPanel.uninit();
+    this.userDictionaryEditPanel = null;
+
+    document.getElementById('menu-userdict').removeEventListener('click', this);
+  }
+
   this.header.removeEventListener('action', this);
   this.header = null;
 
   document.removeEventListener('visibilitychange', this);
+};
+
+KeyboardSettingsApp.prototype.close = function() {
+  this.stop();
+  window.close();
 };
 
 KeyboardSettingsApp.prototype.handleEvent = function(evt) {
@@ -80,6 +117,10 @@ KeyboardSettingsApp.prototype.handleEvent = function(evt) {
       }
 
       break;
+
+    case 'click':
+      this.panelController.navigateToPanel(this.userDictionaryListPanel);
+      evt.preventDefault();
   }
 };
 

@@ -31,6 +31,8 @@ var CloseLockManager = function CloseLockManager() {
   this.waitForUnlock = false;
 };
 
+CloseLockManager.prototype.onclose = null;
+
 CloseLockManager.prototype.start = function() {
   this._closeLocks = new Set();
   this._awakeLocks = new Set();
@@ -96,7 +98,12 @@ CloseLockManager.prototype._maybeCloseNow = function() {
   // If there is no stayAwake lock present and there is a requestClose lock,
   // we should close now.
   if (this._awakeLocks.size === 0 && this._closeLocks.size !== 0) {
-    window.close();
+    if (typeof this.onclose === 'function') {
+      this.onclose();
+    } else {
+      console.error('CloseLockManager: ' +
+        'close should be triggered now but no callback attached.');
+    }
   }
 };
 
