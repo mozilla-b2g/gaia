@@ -514,24 +514,6 @@
           this.dragdrop = new GridDragDrop(this);
         });
       }
-    },
-
-    /**
-     * Asynchronously create an entry in the log for a supplied item. Used
-     * for determining application coordinates in separate contexts.
-     */
-    logGridItem: function(item, itemMiddleOffset) {
-      setTimeout(function () {
-        var rect = item.element.getBoundingClientRect();
-        var middleX = rect.x + itemMiddleOffset;
-        var middleY = rect.y + item.pixelHeight / 2;
-
-        console.log('App Grid Item: %s|%s|%d|%d',
-          item.detail.manifestURL.replace('manifest.webapp', ''),
-          item.detail.entryPoint || '',
-          middleX,
-          middleY);
-      }, 0);
     }
   };
 
