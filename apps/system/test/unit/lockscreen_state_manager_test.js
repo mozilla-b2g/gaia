@@ -403,6 +403,26 @@ suite('system/LockScreenStateManager', function() {
         'the state wasn\'t transferred from secureAppLaunching to slidRestore');
     });
 
+    test('When secure app terminated, it would map to the state change',
+    function() {
+        var stubOnSecureAppClosing =
+          this.sinon.stub(subject, 'onSecureAppClosing');
+        subject.handleEvent(new CustomEvent(
+          'secure-appterminated'
+        ));
+        assert.isTrue(stubOnSecureAppClosing.called);
+      });
+
+    test('When secure app closing, it would map to the state change',
+    function() {
+        var stubOnSecureAppClosing =
+          this.sinon.stub(subject, 'onSecureAppClosing');
+        subject.handleEvent(new CustomEvent(
+          'secure-appclosing'
+        ));
+        assert.isTrue(stubOnSecureAppClosing.called);
+      });
+
     test('When unlocking with app without passcode, restore the slide',
     function(done) {
       this.sinon.stub(subject.states.slideRestore, 'transferTo',
