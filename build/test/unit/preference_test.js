@@ -324,8 +324,10 @@ suite('preferences.js', function() {
         'dom.report_all_js_exceptions': true,
         'dom.w3c_touch_events.enabled': 1,
         'dom.promise.enabled': true,
+        'dom.wakelock.enabled': true,
         'image.mozsamplesize.enabled': true,
         'webgl.verbose': true,
+        'dom.max_script_run_time': 0,
         'toolkit.identity.debug': true,
         'extensions.gaia.dir': preferences.config.GAIA_DIR,
         'extensions.gaia.domain': preferences.config.GAIA_DOMAIN,
@@ -340,6 +342,8 @@ suite('preferences.js', function() {
         'extensions.gaia.device_pixel_suffix':
           '@' + preferences.config.GAIA_DEV_PIXELS_PER_PX + 'x',
         'extensions.autoDisableScopes': 0,
+        'browser.tabs.remote.autostart': false,
+        'browser.tabs.remote.autostart.1': false,
       });
       assert.isUndefined(preferences.userPrefs['network.http.use-cache']);
     });
