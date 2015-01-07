@@ -22,13 +22,14 @@
 #search-input {
   margin: 0;
   padding: 0;
-  margin-left: 1.5rem;
+  -moz-margin-start: 1.5rem;
   background: none;
   font-size: 1.8rem;
   border: none;
   width: calc(100% - 3rem);
   height: 100%;
   text-overflow: ellipsis;
+  text-align: left;
 }
 
 #search-input::-moz-placeholder {
@@ -49,4 +50,14 @@
   background-repeat: no-repeat;
   background-size: 2rem;
   background-position: center right;
+}
+
+html[dir="rtl"] #search-form::after {
+  left: unset;
+  right: 0;
+  background-position: center left;
+}
+
+html[dir="rtl"] #search-input {
+  text-align: right;
 }
