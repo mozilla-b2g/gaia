@@ -196,8 +196,13 @@ PreferencesBuilder.prototype.setDebugPref = function() {
   this.userPrefs['dom.report_all_js_exceptions'] = true;
   this.userPrefs['dom.w3c_touch_events.enabled'] = 1;
   this.userPrefs['dom.promise.enabled'] = true;
+  this.userPrefs['dom.wakelock.enabled'] = true;
   this.userPrefs['image.mozsamplesize.enabled'] = true;
   this.userPrefs['webgl.verbose'] = true;
+
+  // Turn off unresponsive script dialogs so test-agent can keep running...
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=872141
+  this.userPrefs['dom.max_script_run_time'] = 0;
 
   // Identity debug messages
   this.userPrefs['toolkit.identity.debug'] = true;
@@ -222,6 +227,11 @@ PreferencesBuilder.prototype.setDebugPref = function() {
                '' : '@' + this.config.GAIA_DEV_PIXELS_PER_PX + 'x';
   this.userPrefs['extensions.gaia.device_pixel_suffix'] = suffix;
   this.userPrefs['extensions.autoDisableScopes'] = 0;
+
+  // electrolysis breaks the app:// protocol as registered by httpd.js
+  // see Bug 1097912
+  this.userPrefs['browser.tabs.remote.autostart'] = false;
+  this.userPrefs['browser.tabs.remote.autostart.1'] = false;
 };
 
 PreferencesBuilder.prototype.setDeviceDebugPref = function() {
