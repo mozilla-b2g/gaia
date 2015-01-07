@@ -5,6 +5,9 @@
 # for more options.
 export MOZ_DISABLE_NONLOCAL_CONNECTIONS=1
 
+export NODE_DEBUG=b2g-desktop
+export MOZ_DISABLE_NONLOCAL_CONNECTIONS=1
+
 # Find the source of this file
 SOURCE="${BASH_SOURCE[0]}"
 # Make it an absolute path
