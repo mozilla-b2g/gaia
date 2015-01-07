@@ -11,11 +11,6 @@
   transition: opacity 0.25s linear;
 }
 
-/* RTL fixes being tracked in bug 1008013 */
-*[dir=rtl] #rocketbar {
-  direction: ltr;
-}
-
 #rocketbar.active {
   opacity: 1;
   pointer-events: auto;
@@ -46,7 +41,8 @@
   width: 100%;
   height: 2rem;
   color: #e7e7e7;
-  padding: 0 0 0 0.5rem;
+  padding: 0;
+  -moz-padding-start: 0.5rem;
   text-overflow: ellipsis;
 }
 
@@ -98,7 +94,7 @@
   font-size: 1.4rem;
   font-style: italic;
   line-height: 1.8rem;
-  padding: 0 .7rem 0 1.4rem;
+  padding: 0 0.7rem 0 1.4rem;
 }
 
 #rocketbar-cancel::before {
@@ -161,4 +157,10 @@
     height: calc(100% - 7rem);
     width: calc(100% - var(--software-home-button-height));
   }
+}
+
+/* RTL View */
+html[dir="rtl"] #rocketbar-cancel::before {
+  left: unset;
+  right: 0;
 }

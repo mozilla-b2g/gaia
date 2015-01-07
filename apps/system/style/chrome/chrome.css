@@ -293,7 +293,7 @@
   right: 0.2rem;
   display: block;
   height: 2.4rem;
-  border-left: 1px solid rgba(0,0,0,0.05);
+  border-left: .1rem solid rgba(0,0,0,0.05);
 }
 
 /* Vertically align butons outside of urlbar. */
@@ -490,9 +490,83 @@ html[dir="rtl"] .chrome .controls .urlbar {
 html[dir="rtl"] .search-app .chrome.maximized .controls .urlbar:after {
   left: 0.8rem;
   right: unset;
-  background-position: center left;
 }
 
 html[dir="rtl"] .controls .urlbar {
   transform-origin: top right;
+  
+}
+
+html[dir="rtl"] .appWindow.fullscreen-app .chrome:not(.maximized) .controls .urlbar {
+  transform-origin: bottom right;
+}
+
+html[dir="rtl"] .controls button {
+  float: right;
+}
+
+html[dir="rtl"] .controls .reload-button,
+html[dir="rtl"] .controls .stop-button {
+  left: 0;
+  right: unset;
+}
+
+html[dir="rtl"] .controls .reload-button::before,
+html[dir="rtl"] .controls .stop-button::before {
+  left: 0.2rem;
+  right: unset;
+  border-left: none;
+  border-right: .1rem solid rgba(0,0,0,0.05);
+}
+
+html[dir="rtl"] .controls .back-button {
+  background-image: url("images/dark/forward.png");
+}
+
+html[dir="rtl"] .controls .back-button:active {
+  background-image: url("images/dark/forward_active.png");
+}
+
+html[dir="rtl"] .controls .forward-button {
+  background-image: url("images/dark/back.png");
+}
+
+html[dir="rtl"] .controls .forward-button:active {
+  background-image: url("images/dark/back_active.png");
+}
+
+html[dir="rtl"] .light .controls .back-button {
+  background-image: url("images/light/forward.png");
+}
+
+html[dir="rtl"] .light .controls .back-button:active {
+  background-image: url("images/light/forward_active.png");
+}
+
+html[dir="rtl"] .light .controls .forward-button {
+  background-image: url("images/light/back.png");
+}
+
+html[dir="rtl"] .light .controls .forward-button:active {
+  background-image: url("images/light/back_active.png");
+}
+
+html[dir="rtl"] .chrome.maximized .title[data-ssl="broken"],
+html[dir="rtl"] .chrome.maximized .title[data-ssl="secure"] {
+  background-position: calc(100% - 0.1rem) center
+}
+
+/*
+ * This is for translating the minimized titlebar 12rem to the right,
+ * which is what we need. And it's the direct opposite of -12rem in the
+ * original selector which moves it 12rem to the left.
+ */
+
+html[dir="rtl"] .collapsible .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
+  transform: scaleX(var(--rocketbar-scale)) translateX(12rem);
+}
+
+html[dir="rtl"] .collapsible .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
+html[dir="rtl"] .collapsible .chrome:not(.maximized) .forward-button:not([disabled]) + .urlbar {
+  transform: scaleX(var(--rocketbar-scale)) translateX(5.5rem);
 }

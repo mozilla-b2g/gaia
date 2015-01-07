@@ -390,9 +390,18 @@ window.UtilityTray = {
       shouldOpen ? this.show() : this.hide();
     }
 
-    // Trigger search from the left half of the screen
-    var corner = touch && (touch.target === this.topPanel) &&
+    /*
+     * Trigger search from the left half of the screen if we're LTR
+     * And trigger from the right half if we're RTL.
+     */
+    var corner;
+    if (document.documentElement.dir  == 'rtl') {
+      corner = touch && (touch.target === this.topPanel) &&
+                 (touch.pageX > (window.innerWidth / 2));
+    } else {
+      corner = touch && (touch.target === this.topPanel) &&
                  (touch.pageX < (window.innerWidth / 2));
+    }
     if (this.isTap && corner) {
       if (this.shown) {
         this.hide();
