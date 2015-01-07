@@ -1,6 +1,6 @@
 'use strict';
 
-var rscheme = /^(?:[a-z\u00a1-\uffff0-9-+]+)(?::|:\/\/)/i;
+var rscheme = /^(?:[a-z\u00a1-\uffff0-9-+]+)(?::(?:\/\/)?)/i;
 
 var UrlHelper = {
 
@@ -13,8 +13,16 @@ var UrlHelper = {
     return this.a.href;
   },
 
+  _getScheme: function(input) {
+    // This function returns one of followings
+    // - scheme + ':' (ex. http:)
+    // - scheme + '://' (ex. http://)
+    // - null
+    return (rscheme.exec(input) || [])[0];
+  },
+
   hasScheme: function(input) {
-    return !!(rscheme.exec(input) || [])[0];
+    return !!this._getScheme(input);
   },
 
   isURL: function urlHelper_isURL(input) {
@@ -33,10 +41,9 @@ var UrlHelper = {
     var case2Reg = /[\?\.\s\:]/;
     // for cases, data:uri and view-source:uri
     var case3Reg = /^(data|view-source)\:/;
-    // for cases, only scheme but no domain provided
-    var case4Reg = /^[a-z\u00a1-\uffff0-9-+]+\:\/*$/;
+
     var str = input.trim();
-    if (case1Reg.test(str) || !case2Reg.test(str) || case4Reg.test(str)) {
+    if (case1Reg.test(str) || !case2Reg.test(str) || this._getScheme(str) === str) {
       return true;
     }
     if (case3Reg.test(str)) {

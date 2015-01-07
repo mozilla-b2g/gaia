@@ -14,6 +14,7 @@ suite('URL Helper', function() {
       '?mozilla',
       '?site:mozilla.org docshell',
       'http:',
+      'http://',
       'data:',
       'view-source:',
       'app:',
