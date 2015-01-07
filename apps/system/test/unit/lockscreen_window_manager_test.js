@@ -147,6 +147,26 @@ suite('system/LockScreenWindowManager', function() {
         'screenchange was caused by proximity sensor');
     });
 
+    test('Before create window, would unlock the ' +
+         'orientation to avoid rendering issue', function() {
+      var stubMozLockOrientation = this.sinon.stub(window.screen,
+        'mozLockOrientation');
+      var mockThis = {
+        states: {
+          enabled: true,
+          active: false
+        },  // No instance so it would create one.
+        createWindow: this.sinon.stub(),
+        elements: {
+          screen: document.createElement('div')
+        },
+        toggleLockedSetting: this.sinon.stub()
+      };
+      var method = window.lockScreenWindowManager.openApp;
+      method.apply(mockThis);
+      assert.isTrue(stubMozLockOrientation.called);
+    });
+
     test('Open the app when screen is turned on', function() {
       window.lockScreenWindowManager.registerApp(appFake);
       var stubOpen = this.sinon.stub(appFake, 'open');

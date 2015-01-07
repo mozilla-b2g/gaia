@@ -284,6 +284,9 @@
         return;
       }
       if (!this.states.instance) {
+        // If we don't do this, window would be created with incorrect H/W,
+        // and then user can't unlock it anymore.
+        window.screen.mozLockOrientation('portrait-primary');
         this.createWindow();
       } else {
         this.states.instance.open();
