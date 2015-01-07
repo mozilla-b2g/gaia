@@ -8,6 +8,13 @@ html, body {
   font-size: 10px;
 }
 
+/**
+ * 1. No content inside the app
+ *    should be user-selectable.
+ */
+* {
+  -moz-user-select: none; /* 1 */
+}
 
 a {
   outline: 0 none;
