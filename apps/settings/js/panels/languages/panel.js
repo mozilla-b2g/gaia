@@ -22,7 +22,10 @@ define(function(require) {
         window.removeEventListener('localized', localizedEventListener);
       },
       onInit: function(panel) {
-        languages.onInit(panel);
+        var elements = {
+          moreLanguages: panel.querySelector('#more-languages'),
+        };
+        languages.onInit(panel, elements);
       }
     });
   };

@@ -1,3 +1,5 @@
+/* global MozActivity */
+
 define(function(require) {
   'use strict';
 
@@ -37,8 +39,21 @@ define(function(require) {
           f.localeFormat(d, _('shortTimeFormat'));
       }
     },
-    onInit: function(panel) {
+    showMoreLanguages: function() {
+      return new MozActivity({
+        name: 'marketplace-category',
+        data: {
+          // XXX replace with the slug of the langpacks category
+          slug: 'games'
+        }
+      });
+    },
+    onInit: function(panel, elements) {
       this.panel = panel;
+      this.elements = elements;
+
+      this.elements.moreLanguages.onclick = this.showMoreLanguages;
+
       this.langSel =
         this.panel.querySelector('select[name="language.current"]');
       this.langSel.addEventListener('blur', this.buildList.bind(this));
