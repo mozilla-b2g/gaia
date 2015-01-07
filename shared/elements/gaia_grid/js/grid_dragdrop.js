@@ -121,6 +121,39 @@
       this.maxScroll = lastElement.y + lastElement.pixelHeight +
                        (this.icon.pixelHeight * ACTIVE_SCALE);
 
+      // If this is a group, or the sole icon in a group, make sure the
+      // surrounding groups are marked as invalid-drop so you can't initiate a
+      // move that would have no result.
+      var itemIndex = this.icon.detail.index;
+      if (this.icon.detail.type === 'divider') {
+        this.icon.element.classList.add('invalid-drop');
+        if (itemIndex > 0) {
+          for (var i = itemIndex - 1; i >= 0; i--) {
+            var item = items[i];
+            if (item.detail.type === 'divider') {
+              item.element.classList.add('invalid-drop');
+              break;
+            }
+          }
+        }
+      } else {
+        var itemBefore = itemIndex ? items[itemIndex - 1] : null;
+        var itemAfter = items[itemIndex + 1];
+
+        if ((itemAfter.detail.type === 'placeholder' ||
+             itemAfter.detail.type === 'divider') &&
+            (!itemBefore || itemBefore.detail.type === 'divider')) {
+          if (itemBefore) {
+            itemBefore.element.classList.add('invalid-drop');
+          }
+          var group, groupIndex = itemIndex;
+          do {
+            group = items[++groupIndex];
+          } while (group.detail.type !== 'divider');
+          group.element.classList.add('invalid-drop');
+        }
+      }
+
       // Redraw the icon at the new position and scale
       this.positionIcon(pageX, pageY);
     },
@@ -232,6 +265,11 @@
       if (this.hoverGroup) {
         this.hoverGroup.element.classList.remove('drop-target');
         this.hoverGroup = null;
+      }
+      for (var i = 0, iLen = this.gridView.items.length;
+           i < iLen; i++) {
+        var item = this.gridView.items[i];
+        item.element.classList.remove('invalid-drop');
       }
     },
 
@@ -448,6 +486,19 @@
         if (this.hoverGroup) {
           this.hoverGroup.element.classList.remove('drop-target');
           this.hoverGroup = null;
+        }
+
+        // Cancel rearrangement if it would have no effect.
+        if (this.gridView.items[foundIndex].element.classList.
+            contains('invalid-drop')) {
+          if (insertDividerAtTop) {
+            this.container.classList.remove('hover-over-top');
+          }
+          if (this.hoverItem) {
+            this.hoverItem.element.classList.remove('hovered');
+            this.hoverItem = null;
+          }
+          return;
         }
 
         this.doRearrange =
