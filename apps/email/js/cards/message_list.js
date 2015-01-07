@@ -1467,13 +1467,8 @@ return [
         snippetNode.classList.toggle('icon-short', message.hasAttachments);
       }
 
-      // unread (we use very specific classes directly on the nodes rather than
-      // child selectors for hypothetical speed)
-      var unreadNode =
-        msgNode.querySelector('.msg-header-unread-section');
-      unreadNode.classList.toggle('msg-header-unread-section-unread',
-                                  !message.isRead);
-      dateNode.classList.toggle('msg-header-date-unread', !message.isRead);
+      // Set unread state.
+      msgNode.classList.toggle('unread', !message.isRead);
 
       // star
       var starNode = msgNode.querySelector('.msg-header-star');
