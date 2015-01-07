@@ -587,6 +587,7 @@ var PlayerView = {
   pause: function pv_pause() {
     this.checkSCOStatus();
     this._clearInterpageMessage();
+    this.showInfo();
     this.audio.pause();
   },
 
