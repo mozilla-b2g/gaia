@@ -486,10 +486,6 @@
           }
         }
 
-        if (item.detail.type === 'app') {
-          this.logGridItem(item, this.layout.gridItemWidth / 2);
-        }
-
         // Increment the x-step by the sizing of the item.
         // If we go over the current boundary, reset it, and step the y-axis.
         x += item.gridWidth;
