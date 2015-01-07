@@ -885,6 +885,9 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         # disable sound completely
         self.data_layer.set_volume(0)
 
+        # disable search suggestions
+        self.data_layer.set_setting('search.suggestions.enabled', False)
+
         # disable auto-correction of keyboard
         self.data_layer.set_setting('keyboard.autocorrect', False)
 
