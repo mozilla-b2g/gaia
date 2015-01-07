@@ -3,6 +3,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
+from marionette import expected
+from marionette import Wait
 from gaiatest.apps.base import Base
 
 
@@ -21,6 +23,12 @@ class Phone(Base):
     _cancel_action_menu_locator = (By.ID, 'cancel-action-menu')
     _contacts_toolbar_locator = (By.ID, 'iframe-contacts-container')
     _contacts_frame_locator = (By.ID, 'iframe-contacts')
+
+    def launch(self):
+        Base.launch(self)
+
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._keypad_toolbar_button_locator))
 
     @property
     def keypad(self):
