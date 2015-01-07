@@ -47,7 +47,8 @@ Contacts.Selectors = {
   detailsHeader: '#details-view-header',
   detailsSocialLabel: '#contact-detail-inner #details-list #social-label',
   detailsCoverImage: '#cover-img',
-  detailsLinkButton: '#link_button',
+  detailsLinkButton: '#contact-detail-inner #link_button',
+  detailsShareButton: '#contact-detail-inner #share_button',
   fbMsgButton: '#contact-detail-inner #msg_button',
   fbWallButton: '#contact-detail-inner #wall_button',
   fbProfileButton: '#contact-detail-inner #profile_button',
@@ -116,7 +117,9 @@ Contacts.Selectors = {
 
   activityChooser: 'form[data-type="action"]',
   buttonActivityChooser: 'form[data-type="action"] button',
-  actionMenu: '#action-menu'
+  actionMenu: '#action-menu',
+
+  systemMenu: 'form[data-z-index-level="action-menu"]'
 };
 
 Contacts.prototype = {
@@ -263,6 +266,13 @@ Contacts.prototype = {
     this.enterContactDetails(details);
 
     this.client.helper.waitForElement(selectors.list);
+  },
+
+  get systemMenu() {
+    var selectors = Contacts.Selectors;
+    // Switch to the system app first.
+    this.client.switchToFrame();
+    return this.client.helper.waitForElement(selectors.systemMenu);
   },
 
   /**
