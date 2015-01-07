@@ -9,6 +9,9 @@ require.config({
     'settings': {
       exports: 'Settings'
     },
+    'dsds_settings': {
+      exports: 'DsdsSettings'
+    },
     'simcard_lock': {
       exports: 'SimPinLock'
     },

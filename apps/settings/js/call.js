@@ -2,8 +2,9 @@
 
 require([
   'modules/settings_cache',
-  'modules/dialog_service'
-], function(exports, SettingsCache, DialogService) {
+  'modules/dialog_service',
+  'dsds_settings'
+], function(exports, SettingsCache, DialogService, DsdsSettings) {
   /**
    * Singleton object that handles some call settings.
    */
