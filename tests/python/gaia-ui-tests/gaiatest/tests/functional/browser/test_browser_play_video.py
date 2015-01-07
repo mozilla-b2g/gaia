@@ -17,7 +17,6 @@ class TestVideo(GaiaTestCase):
         GaiaTestCase.setUp(self)
         self.connect_to_local_area_network()
         self.video_URL = self.marionette.absolute_url('VID_0001.ogg')
-        self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
 
     def test_play_video(self):
         """Confirm video playback

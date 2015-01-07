@@ -36,8 +36,6 @@ marionette('App Authentication Dialog',
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForStartup();
-
-    search.removeGeolocationPermission();
   });
 
   test('cancel button works', function() {

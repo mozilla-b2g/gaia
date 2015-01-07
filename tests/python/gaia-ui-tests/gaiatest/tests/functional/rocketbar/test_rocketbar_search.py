@@ -11,7 +11,6 @@ class TestRocketBarSearch(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
-        self.apps.set_permission_by_url('app://search.gaiamobile.org/manifest.webapp', 'geolocation', 'deny')
         self.data_layer.set_setting('search.suggestions.enabled', True)
         self.connect_to_local_area_network()
 

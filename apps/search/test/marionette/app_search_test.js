@@ -12,7 +12,6 @@ marionette('Search - App search', function() {
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
     system.waitForStartup();
-    search.removeGeolocationPermission();
   });
 
   test('Search apps from Rocketbar', function() {

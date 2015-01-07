@@ -29,7 +29,6 @@
   "default_locale": "en-US",
   "permissions": {
     "themeable":{},
-    "geolocation": {},
     "mobileconnection":{},
     "webapps-manage":{},
     "open-remote-window":{},

@@ -13,7 +13,6 @@ marionette('Search - Home Button Press', function() {
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
     system.waitForStartup();
-    search.removeGeolocationPermission();
   });
 
   test('Home button returns to home screen', function() {

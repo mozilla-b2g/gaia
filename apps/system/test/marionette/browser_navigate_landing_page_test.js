@@ -36,8 +36,6 @@ marionette('Browser - Navigating from the landing page',
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForStartup();
-
-    search.removeGeolocationPermission();
   });
 
   test('navigates the landing page in place', function() {

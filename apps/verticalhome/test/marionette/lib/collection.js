@@ -86,19 +86,6 @@ Collection.prototype = {
   },
 
   /**
-   * Disables the Geolocation prompt.
-   */
-  disableGeolocation: function() {
-    var client = this.client.scope({ context: 'chrome' });
-    client.executeScript(function(origin) {
-      var mozPerms = navigator.mozPermissionSettings;
-      mozPerms.set(
-        'geolocation', 'deny', origin + '/manifest.webapp', origin, false
-      );
-    }, [Collection.URL]);
-  },
-
-  /**
    * Enters the create collection screen from the homescreen.
    * @param {Integer} position The desired position to create the collection.
    */

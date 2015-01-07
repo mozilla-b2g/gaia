@@ -39,7 +39,6 @@ marionette('Rocketbar - Opened Activity From Search', function() {
     system = client.loader.getAppClass('system');
     system.waitForStartup();
 
-    search.removeGeolocationPermission();
     EmeServer.setServerURL(client, server);
   });
 

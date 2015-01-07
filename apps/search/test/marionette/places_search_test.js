@@ -26,7 +26,6 @@ marionette('Places tests', function() {
     rocketbar = new Rocketbar(client);
     system = client.loader.getAppClass('system');
     system.waitForStartup();
-    search.removeGeolocationPermission();
   });
 
   test('Test url searching', function() {

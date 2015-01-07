@@ -13,7 +13,6 @@ class TestCostControlReset(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
-        self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
 
     def test_cost_control_reset_wifi(self):
 
