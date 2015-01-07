@@ -228,6 +228,20 @@ suite('ActivityHandler', function() {
       }).then(done, done);
     });
 
+    test('Should append vcard attachment', function(done) {
+      shareActivity.source.data.blobs = [
+        new Blob(['test'], { type: 'text/x-vcard' }),
+      ];
+
+      this.sinon.spy(Compose, 'append');
+
+      MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
+
+      panelPromise.then(function() {
+        sinon.assert.called(Compose.append);
+      }).then(done, done);
+    });
+
     test('share message should set the current activity', function(done) {
       MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
       panelPromise.then(function() {

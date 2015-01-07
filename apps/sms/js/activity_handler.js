@@ -16,7 +16,8 @@ const ActivityDataType = {
   IMAGE: 'image/*',
   AUDIO: 'audio/*',
   VIDEO: 'video/*',
-  URL: 'url'
+  URL: 'url',
+  VCARD: 'text/vcard'
 };
 
 var ActivityHandler = {
@@ -181,6 +182,14 @@ var ActivityHandler = {
         break;
       case ActivityDataType.URL:
         dataToShare = activityData.url;
+        break;
+      // As for the moment we only allow to share one vcard we treat this case
+      // in an specific block
+      case ActivityDataType.VCARD:
+        dataToShare = new Attachment(activityData.blobs[0], {
+          name: activityData.filenames[0],
+          isDraft: true
+        });
         break;
       default:
         this.leaveActivity(
