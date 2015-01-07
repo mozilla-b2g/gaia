@@ -87,7 +87,6 @@ marionette('Statusbar colors', function() {
   test('statusbar icons keep color after activity', function() {
     waitVisible();
     helper.unlockScreen(client);
-    search.removeGeolocationPermission();
     rocketbar.homescreenFocus();
     var url = server.url('sample.html');
     rocketbar.enterText(url + '\uE006');

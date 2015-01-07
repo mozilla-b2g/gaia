@@ -38,8 +38,6 @@ marionette('Browser Chrome - Title content', function() {
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForStartup();
-
-    search.removeGeolocationPermission();
   });
 
   test('app w/o chrome should use placeholder', function() {

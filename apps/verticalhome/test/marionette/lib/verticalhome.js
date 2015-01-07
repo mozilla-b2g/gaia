@@ -9,18 +9,6 @@ var getIconId = require('./icon_id');
 function VerticalHome(client) {
   this.client = client;
   this.system = client.loader.getAppClass('system');
-
-  // For all home tests we disable geolocation for smart collections because
-  // there is a nasty bug where we show a prompt on desktop but not a device.
-  // This will go away once bug 1022768 lands.
-  var chromeClient = this.client.scope({ context: 'chrome' });
-  chromeClient.executeScript(function() {
-    var origin = 'app://collection.gaiamobile.org';
-    var mozPerms = navigator.mozPermissionSettings;
-    mozPerms.set(
-      'geolocation', 'deny', origin + '/manifest.webapp', origin, false
-    );
-  });
 }
 
 /**

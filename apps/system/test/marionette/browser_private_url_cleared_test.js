@@ -35,8 +35,6 @@ marionette('Private Browser - URL Persistence', function() {
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForStartup();
-
-    search.removeGeolocationPermission();
   });
 
   test('Url is cleared after submitting and pressing home in private window',

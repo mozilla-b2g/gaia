@@ -14,7 +14,6 @@ class TestBrowserNavigation(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
         self.connect_to_local_area_network()
-        self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
 
         self.test_url = self.marionette.absolute_url('mozilla.html')
 

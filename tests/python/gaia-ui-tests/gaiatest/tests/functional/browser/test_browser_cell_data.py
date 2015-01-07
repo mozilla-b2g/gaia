@@ -14,7 +14,6 @@ class TestBrowserCellData(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
-        self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
 
         self.data_layer.connect_to_cell_data()
 

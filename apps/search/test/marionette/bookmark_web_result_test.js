@@ -42,8 +42,6 @@ marionette('Bookmark Web Result', function() {
     system = client.loader.getAppClass('system');
     system.waitForStartup();
 
-    search.removeGeolocationPermission();
-
     var chrome = client.scope({ context: 'chrome' });
     chrome.executeAsyncScript(function(url) {
       var req = navigator.mozSettings.createLock().set({

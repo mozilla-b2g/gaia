@@ -30,7 +30,6 @@ marionette('Vertical - Collection', function() {
     client.apps.launch(home.URL);
 
     home.waitForLaunch();
-    collection.disableGeolocation();
     EmeServer.setServerURL(client, server);
   });
 

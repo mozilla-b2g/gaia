@@ -31,7 +31,6 @@ marionette('Vertical - Uninstall Collection', function() {
     system.waitForStartup();
 
     home.waitForLaunch();
-    collection.disableGeolocation();
     EmeServer.setServerURL(client, server);
 
     var name = 'Around Me';
