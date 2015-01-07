@@ -1667,18 +1667,17 @@
    * @param  {String} url URL.
    */
   AppWindow.prototype.modifyURLatBackground = function aw_changeURL(url) {
-    // If the app is in foreground, it's too risky to change it's
-    // URL. We'll ignore this request.
-    if (!this.isActive()) {
-      var iframe = this.browser.element;
-      // If the app is opened and it is loaded to the correct page,
-      // then th=ere is nothing to do.
-      if (iframe.src !== url) {
-        // Rewrite the URL of the app frame to the requested URL.
-        // XXX: We could ended opening URls not for the app frame
-        // in the app frame. But we don't care.
-        iframe.src = url;
-      }
+    // XXX: If the app is in foreground, it's too risky to change it's
+    // URL. We still change it because the home app is an overlay on top of any
+    // app.
+    var iframe = this.browser.element;
+    // If the app is opened and it is loaded to the correct page,
+    // then there is nothing to do.
+    if (iframe.src !== url) {
+      // Rewrite the URL of the app frame to the requested URL.
+      // XXX: We could ended opening URLs not for the app frame
+      // in the app frame. But we don't care.
+      iframe.src = url;
     }
   };
 

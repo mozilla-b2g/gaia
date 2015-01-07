@@ -110,10 +110,16 @@
       config.evtType = evt.type;
 
       switch (evt.type) {
-        case 'openwindow':
-        case 'appopenwindow':
         case 'webapps-launch':
         case 'iac-customlaunchpath':
+          // The changeURL was determined in gecko because we should open an app
+          // based on gecko's decision in the past. But now, we have
+          // iac-customlaunchpath. We have to change URL all the time when user
+          // uses app.launch or iac-customlaunchpath.
+          config.changeURL = true;
+          // Please no `break;` here. It's on purpose.
+        case 'openwindow':
+        case 'appopenwindow':
           config.timestamp = detail.timestamp;
           // TODO: Look up current opened window list,
           // and then create a new instance here.
