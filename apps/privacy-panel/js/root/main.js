@@ -42,16 +42,29 @@ function(panels, SettingsListener, SettingsHelper) {
       panels.registerEvents([this.panel]);
 
       // Reset launch flag when app is not active.
-      window.addEventListener('blur', function() {
-        SettingsHelper('privacypanel.launched.by.settings').set(false);
+      window.addEventListener('blur', () => {
+        // If users click on `home` button to go back to desktop,
+        // we have to cleanupSettingsMark(). While on the other hand,
+        // if we click back button to jump back to Settings app,
+        // we should cleanupSettingsMark() before jumping back.
+        if (!this._jumpBackToSettingsApp) {
+          this.cleanupSettingsMark();
+        }
+        this._jumpBackToSettingsApp = false;
       });
 
-      this.backBtn.addEventListener('click', function(event) {
+      this.backBtn.addEventListener('click', (event) => {
+        this._jumpBackToSettingsApp = true;
+
         event.preventDefault();
-        this.getSettingsApp().then(function(app) {
-          app.launch();
+        // We have to make sure settings key is cleaned up before jumping
+        // back to settings app
+        this.getSettingsApp().then((app) => {
+          this.cleanupSettingsMark().then(() => {
+            app.launch();
+          });
         });
-      }.bind(this));
+      });
     },
 
     observers: function() {
@@ -87,6 +100,15 @@ function(panels, SettingsListener, SettingsHelper) {
         }
       }.bind(this));
 
+      return promise;
+    },
+
+    cleanupSettingsMark: function() {
+      var promise = new Promise(function(resolve) {
+        SettingsHelper('privacypanel.launched.by.settings').set(false, () => {
+          resolve(); 
+        });
+      });
       return promise;
     }
 
