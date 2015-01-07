@@ -10,15 +10,13 @@ from gaiatest.apps.base import Base
 class System(Base):
 
     # status bar
-    _status_bar_locator = (By.CSS_SELECTOR, '.appWindow.active .titlebar')
-    _status_bar_root_locator = (By.ID, 'statusbar')
+    _status_bar_locator = (By.ID, 'statusbar')
     _geoloc_statusbar_locator = (By.CSS_SELECTOR, '#statusbar-minimized-wrapper #statusbar-geolocation')
     _airplane_mode_statusbar_locator = (By.CSS_SELECTOR, '#statusbar-minimized-wrapper #statusbar-flight-mode')
     _utility_tray_locator = (By.ID, 'utility-tray')
 
     _system_banner_locator = (By.CSS_SELECTOR, '.banner.generic-dialog')
     _notification_toaster_locator = (By.ID, 'notification-toaster')
-    _ambient_indicator_locator = (By.ID, 'ambient-indicator')
     _update_manager_toaster_locator = (By.ID, 'update-manager-toaster')
 
     _software_home_button_locator = (By.ID, 'software-home-button')
@@ -27,7 +25,7 @@ class System(Base):
     def status_bar(self):
         self.marionette.switch_to_frame()
         from gaiatest.apps.system.regions.status_bar import StatusBar
-        element = self.marionette.find_element(*self._status_bar_root_locator)
+        element = self.marionette.find_element(*self._status_bar_locator)
         return StatusBar(self.marionette, element)
 
     def wait_for_status_bar_displayed(self):
@@ -53,7 +51,7 @@ class System(Base):
 
     def open_utility_tray(self):
         body = self.marionette.find_element(By.TAG_NAME, 'body')
-        statusbar = self.marionette.find_element(*self._ambient_indicator_locator)
+        statusbar = self.marionette.find_element(*self._status_bar_locator)
         statusbar_x = int(statusbar.size['width']/2)
         statusbar_y_end = int(body.size['height'])
         Actions(self.marionette).press(statusbar).move_by_offset(statusbar_x, statusbar_y_end).release().perform()

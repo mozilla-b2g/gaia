@@ -1,6 +1,7 @@
 'use strict';
 
-var StatusBar = require('./lib/statusbar');
+var Actions = require('marionette-client').Actions;
+var SETTINGS_APP = 'app://settings.gaiamobile.org';
 
 marionette('Statusbar Visibility', function() {
   var client = marionette.client({
@@ -9,16 +10,14 @@ marionette('Statusbar Visibility', function() {
     },
     settings: {
       'ftu.manifestURL': null,
-      'lockscreen.enabled': false,
-      'nfc.enabled': true
+      'lockscreen.enabled': false
     }
   });
 
-  var statusBar = new StatusBar(client);
-  var actions, halfScreenHeight, system, grippyHeight;
+  var actions = new Actions(client);
+  var halfScreenHeight, system, grippyHeight;
 
   setup(function() {
-    actions = client.loader.getActions();
     system = client.loader.getAppClass('system');
     system.waitForStartup();
     halfScreenHeight = client.executeScript(function() {
@@ -44,7 +43,8 @@ marionette('Statusbar Visibility', function() {
     });
   });
 
-  test('Shadow visibility is hidden when passing the grippyHeight', function() {
+  test('Filter is none when passing the grippyHeight', function() {
+    client.apps.launch(SETTINGS_APP);
     actions
       .press(system.topPanel)
       .moveByOffset(0, grippyHeight + 1)
@@ -52,14 +52,15 @@ marionette('Statusbar Visibility', function() {
     client.waitFor(function() {
       // The element is rendered with moz-element so we can't use
       // marionette's .displayed()
-      var visibility = system.statusbarShadow.scriptWith(function(element) {
-        return window.getComputedStyle(element).visibility;
+      var filter = system.statusbar.scriptWith(function(element) {
+        return window.getComputedStyle(element).filter;
       });
-      return (visibility == 'hidden');
+      return (filter == 'none');
     });
   });
 
-  test('Shadow visibility is visible before the grippyHeight', function() {
+  test('Filter is applied before passing the grippyHeight', function() {
+    client.apps.launch(SETTINGS_APP);
     actions
       .press(system.topPanel)
       .moveByOffset(0, grippyHeight - 1)
@@ -67,58 +68,10 @@ marionette('Statusbar Visibility', function() {
     client.waitFor(function() {
       // The element is rendered with moz-element so we can't use
       // marionette's .displayed()
-      var visibility = system.statusbarShadow.scriptWith(function(element) {
-        return window.getComputedStyle(element).visibility;
+      var filter = system.statusbar.scriptWith(function(element) {
+        return window.getComputedStyle(element).filter;
       });
-      return (visibility == 'visible');
+      return (filter != 'none');
     });
-  });
-
-
-  test('Shadow is visible and maximized on inline activities', function() {
-    var BROWSER = 'app://search.gaiamobile.org';
-    var frame = system.waitForLaunch(BROWSER);
-    client.switchToFrame(frame);
-    newShareActivity();
-    var sms = system.getActivityOptionMatching('sms');
-    actions.tap(sms).perform();
-
-    client.waitFor(function() {
-      return system.inlineActivity.displayed();
-    });
-
-    client.waitFor(function() {
-      // The element is rendered with moz-element so we can't use
-      // marionette's .displayed()
-      var maximized = system.inlineActivity.findElement('.titlebar-maximized');
-      var style = maximized.scriptWith(function(element) {
-        return window.getComputedStyle(element);
-      });
-      return (style.visibility == 'visible' && style.opacity == '1');
-    });
-  });
-
-  function newShareActivity() {
-    client.executeScript(function() {
-      var a = new window.wrappedJSObject.MozActivity({
-        name: 'share',
-        data: {
-          type: 'url',
-          url: 'myurl'
-        }
-      });
-      a.onerror = function() {
-        console.log('Activity error');
-      };
-    });
-
-    client.switchToFrame();
-  }
-
-  // skipping since nfc.enabled triggers HW change and icon is updated
-  // on success. Status bar needs to observe nfc.status setting.
-  // This will be fixed and reenabled in Bug 1103874
-  test.skip('NFC icon is visible', function() {
-    statusBar.nfc.waitForIconToAppear();
   });
 });

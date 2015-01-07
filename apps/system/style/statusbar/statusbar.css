@@ -15,12 +15,9 @@
   position: fixed;
   width: 100%;
   height: var(--statusbar-height);
-  top: calc(0rem - var(--statusbar-height));
+  top: 0;
   left: 0;
   pointer-events: none;
-  opacity: 1;
-  visibility: visible;
-  filter: none;
 }
 
 .statusbar > div,
@@ -28,8 +25,27 @@
   pointer-events: auto;
 }
 
-#statusbar #statusbar-maximized-wrapper,
-#statusbar:not(.maximized) #statusbar-minimized-wrapper {
+#statusbar.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+#statusbar-maximized-wrapper {
+  opacity: 0;
+  visibility: hidden;
+}
+
+#statusbar-minimized-wrapper {
+  opacity: 0;
+  visibility: hidden;
+}
+
+#screen:not(.cards-view) #statusbar.maximized #statusbar-maximized-wrapper {
+  opacity: 1;
+  visibility: visible;
+}
+
+#screen:not(.cards-view) #statusbar:not(.maximized) #statusbar-minimized-wrapper {
   opacity: 1;
   visibility: visible;
 }
@@ -42,11 +58,23 @@
   visibility: hidden;
 }
 
-#statusbar-maximized-wrapper,
-#statusbar-minimized-wrapper,
-#screen.cards-view #statusbar,
-#screen.cards-view #statusbar-maximized-wrapper,
-#screen.cards-view #statusbar-minimized-wrapper {
+#screen.locked #statusbar,
+#screen:not(.locked).utility-tray #statusbar {
+  visibility: visible;
+  filter: none;
+}
+
+#screen:not(.locked).utility-tray #statusbar-maximized-wrapper {
+  opacity: 1;
+  visibility: visible;
+}
+
+#screen:not(.locked).utility-tray #statusbar-minimized-wrapper {
+  opacity: 0;
+  visibility: hidden;
+}
+
+#screen.cards-view #statusbar {
   opacity: 0;
   visibility: hidden;
 }
@@ -60,11 +88,19 @@
 
 #screen.utility-tray #statusbar,
 #screen.attention #statusbar {
+  top: 0;
   background-color: black;
 }
 
 #screen.utility-tray #statusbar {
   background-color: transparent;
+  top: -3rem;
+}
+
+/* When the utility tray is displayed, the title bar is hidden, so we only show
+ the maximised status bar. */
+#screen.utility-tray #statusbar-minimized {
+  display: none;
 }
 
 body #statusbar {
@@ -121,7 +157,16 @@ body #statusbar {
   opacity: 0;
 }
 
-.utility-tray #statusbar > #statusbar-title {
+.statusbar > .sb-start-upper {
+  visibility: hidden;
+  position: absolute;
+  left: 0;
+  top: calc(var(--statusbar-height) * -1);
+}
+
+body .utility-tray .statusbar > .sb-start-upper,
+.utility-tray #statusbar > #statusbar-title,
+#statusbar-title.hidden {
   visibility: visible;
   transform: translateY(var(--statusbar-height));
 }

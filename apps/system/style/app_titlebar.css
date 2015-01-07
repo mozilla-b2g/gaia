@@ -1,4 +1,4 @@
-.appWindow > .titlebar {
+.appWindow .titlebar {
   position: absolute;
   top: 0;
   width: 100%;
@@ -7,23 +7,24 @@
   z-index: 6;
 }
 
-.appWindow .titlebar > .statusbar-shadow {
+#screen:not(.cards-view) .appWindow.active:not(.inside-edges):not(.transition-closing):not(.transition-opening) .titlebar .statusbar-shadow,
+#screen.utility-tray .titlebar .statusbar-shadow {
+  visibility: hidden;
+}
+
+.appWindow .titlebar .statusbar-shadow {
   height: 100%;
   background-size: 100% 100%;
   background-repeat: no-repeat;
   background-position: bottom right;
 }
 
-#screen:not(.locked) .appWindow.light > .titlebar .statusbar-shadow {
+#screen:not(.rocketbar-focused):not(.utility-tray):not(.locked) #statusbar.light,
+.appWindow.light .titlebar .statusbar-shadow {
   filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'invert\'><feColorMatrix in=\'SourceGraphic\' color-interpolation-filters=\'sRGB\' type=\'matrix\' values=\'1 -1 0.3019 0 0 0 0.3019 0 0 0 0 0 0.3019 0 0 0 0 0 1 0\'/></filter></svg>#invert");
 }
 
-#screen.utility-tray .statusbar-shadow {
-  opacity: 0;
-  visibility: hidden;
-}
-
-.appWindow:not(.lockScreenWindow) > .titlebar .notifications-shadow {
+.appWindow:not(.lockScreenWindow) .titlebar .notifications-shadow {
   background-image: -moz-element(#ambient-indicator);
   width: 100%;
   position: absolute;
@@ -31,12 +32,12 @@
   height: .2rem;
 }
 
-.appWindow > .titlebar .titlebar-maximized {
+.appWindow .titlebar .titlebar-maximized {
   background-image: -moz-element(#statusbar-maximized);
   width: 100%;
 }
 
-.appWindow > .titlebar .titlebar-minimized {
+.appWindow .titlebar .titlebar-minimized {
   background-image: -moz-element(#statusbar-minimized);
   background-size: cover;
   width: calc(100% - 100% * var(--rocketbar-scale) + 8rem * var(--rocketbar-scale) - 0.5rem);
@@ -45,12 +46,10 @@
 }
 
 /* Transitions between the maximized / minimized status bars */
-.appWindow.inline-activity .chrome + .titlebar .titlebar-minimized,
 .chrome + .titlebar .titlebar-maximized {
   opacity: 0;
 }
 
-.appWindow.inline-activity .chrome + .titlebar .titlebar-maximized,
 .chrome.maximized + .titlebar .titlebar-maximized {
   opacity: 1;
 }
@@ -78,6 +77,11 @@
   opacity: 1;
 }
 
+/* Special cases */
+#screen.utility-tray .appWindow .titlebar {
+  visibility: hidden;
+}
+
 #screen.attention #statusbar-minimized {
   display: none;
 }
@@ -92,11 +96,11 @@
 }
 
 /* RTL View */
-html[dir="rtl"] .appWindow > .titlebar .statusbar-shadow {
+html[dir="rtl"] .appWindow .titlebar .statusbar-shadow {
   background-position: bottom left;
 }
 
-html[dir="rtl"] .appWindow > .titlebar .titlebar-minimized {
+html[dir="rtl"] .appWindow .titlebar .titlebar-minimized {
   left: 0;
   right: unset;
 }

@@ -13,13 +13,6 @@ marionette('First Time Use >', function() {
     ftu = new Ftu(client);
   });
 
-  test('statusbar maximized icons should be visible', function() {
-    client.switchToFrame();
-    client.waitFor(function() {
-      return system.statusbarMaximizedWrapper.displayed();
-    });
-  });
-
   test('statusbar icons should be dark', function() {
     client.waitFor(function() {
       return system.statusbar.displayed();
