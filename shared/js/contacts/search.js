@@ -22,6 +22,7 @@ contacts.Search = (function() {
       // On the steady state holds the list result of the current search
       searchableNodes = null,
       currentTextToSearch = '',
+      currentSearchTerms = [],
       prevTextToSearch = '',
       // Pointer to the nodes which are currently on the result list
       currentSet = {},
@@ -150,15 +151,40 @@ contacts.Search = (function() {
   };
 
   var highlightNode = function(node) {
-    // This regexp match against everything except HTML tags
-    // 'currentTextToSearch' should be relatively safe from
-    // regex symbols getting passed through since it was previously normalized
-    var hRegEx = new RegExp('(' + currentTextToSearch + ')', 'gi');
     var textNode = node.querySelector('.contact-text');
-    textNode.firstChild.innerHTML = textNode.textContent.replace(
-      hRegEx,
-      '<span class="' + highlightClass + '">$1</span>'
-    );
+    var displayedText = textNode.textContent;
+    var normalizedDisplayedText = Normalizer.toAscii(displayedText);
+
+    currentSearchTerms.forEach(function(term) {
+      var hRegEx = new RegExp(term, 'gi');
+      var newTerms = [], newTerm;
+      // RegExp.exec() saves the index of the last match and the next time it's
+      // called starts from there so we iterate over every match in the string.
+      var result = hRegEx.exec(normalizedDisplayedText);
+      while (result) {
+        newTerm = displayedText.substr(result.index, term.length);
+        newTerm = Normalizer.escapeRegExp(newTerm).toLowerCase();
+        newTerms.push(newTerm);
+        result = hRegEx.exec(normalizedDisplayedText);
+      }
+
+      newTerms = newTerms.filter(function removeDuplicates(elem, pos) {
+        return newTerms.indexOf(elem) === pos;
+      });
+
+      newTerms.forEach(function replaceWithHighlight(term) {
+        var regexp = new RegExp('(?:<[^>]+>)|(' + term + ')', 'ig');
+        var setHighlighted = function(str, capturedGroup) {
+          if (capturedGroup) {
+            return '<span class="' + highlightClass + '">' + capturedGroup +
+                                                                    '</span>';
+          }
+          return str;
+        };
+
+        textNode.innerHTML = textNode.innerHTML.replace(regexp, setHighlighted);
+      });
+    });
   };
 
   var updateSearchList = function updateSearchList(cb) {
@@ -217,6 +243,7 @@ contacts.Search = (function() {
   function resetState() {
     prevTextToSearch = '';
     currentTextToSearch = '';
+    currentSearchTerms = [];
     searchableNodes = null;
     canReuseSearchables = false;
     currentSet = {};
@@ -370,6 +397,8 @@ contacts.Search = (function() {
 
     // Search the next chunk of contacts
     var end = from + CHUNK_SIZE;
+    currentSearchTerms = pattern.source.split(/\s+/);
+
     for (var c = from; c < end && c < contacts.length; c++) {
       var contact = contacts[c].node || contacts[c];
       var contactText = contacts[c].text || getSearchText(contacts[c]);
