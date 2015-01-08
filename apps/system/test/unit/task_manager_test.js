@@ -1,6 +1,6 @@
 /* global MockStackManager, MockNavigatorSettings, MockService,
           TaskManager, Card, AppWindow, HomescreenLauncher,
-          HomescreenWindow, MocksHelper, MockL10n */
+          HomescreenWindow, MocksHelper, MockL10n, MockOrientationManager */
 
 'use strict';
 
@@ -9,6 +9,7 @@ requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_stack_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
+requireApp('system/test/unit/mock_orientation_manager.js');
 
 require('/shared/js/event_safety.js');
 require('/shared/js/tagged.js');
@@ -21,7 +22,8 @@ var mocksForTaskManager = new MocksHelper([
   'StackManager',
   'HomescreenWindow',
   'AppWindow',
-  'Service'
+  'Service',
+  'OrientationManager'
 ]).init();
 
 function waitForEvent(target, name, timeout) {
@@ -1260,7 +1262,26 @@ suite('system/TaskManager >', function() {
       MockStackManager.mStack.forEach(function(app) {
         sinon.assert.calledOnce(app.enterTaskManager);
       }, this);
+    })  ;
+
+  });
+
+  suite('orientation', function() {
+    var app;
+    setup(function() {
+      app = MockService.currentApp = apps['http://sms.gaiamobile.org'];
+      MockStackManager.mCurrent = 0;
+    });
+
+    test('lock orientation when showing', function() {
+      var orientation = MockOrientationManager.defaultOrientation || (
+        MockOrientationManager.defaultOrientation = 'portrait-primary'
+      );
+      this.sinon.stub(screen, 'mozLockOrientation');
+      showTaskManager(this.sinon.clock);
+      assert.isTrue(screen.mozLockOrientation.calledWith(orientation));
     });
 
   });
+
 });
