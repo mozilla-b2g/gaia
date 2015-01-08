@@ -13,6 +13,10 @@
   color: #000;
 }
 
+#icc-view span[data-icon] {
+  margin: 1rem 0;
+}
+
 #icc-view > section {
   display: none;
   position: absolute;
