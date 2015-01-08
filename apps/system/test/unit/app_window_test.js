@@ -1452,7 +1452,7 @@ suite('system/AppWindow', function() {
           type: 'fatal'
         }
       });
-
+      assert.isTrue(app1.isCrashed);
       assert.isTrue(stubKill.called);
       assert.isTrue(stubPublish.calledWith('crashed'));
     });
@@ -1475,7 +1475,7 @@ suite('system/AppWindow', function() {
             type: 'fatal'
           }
         });
-
+        assert.isTrue(app1.isCrashed);
         assert.isTrue(stubDestroyBrowser.called);
         assert.isTrue(stubKill.called);
         AppWindow.SUSPENDING_ENABLED = false;
@@ -1497,6 +1497,7 @@ suite('system/AppWindow', function() {
         });
 
         assert.isTrue(stubKill.called);
+        assert.isTrue(app1.isCrashed);
         AppWindow.SUSPENDING_ENABLED = false;
       });
 
@@ -1948,6 +1949,21 @@ suite('system/AppWindow', function() {
       assert.isTrue(revive.called);
     });
 
+    test('Swipe in event while app is being crashed', function(){
+      var app1 = new AppWindow(fakeAppConfig1);
+      var transitionController = new MockAppTransitionController();
+      app1.transitionController = transitionController;
+      var stubClearTransitionClasses =
+        this.sinon.stub(transitionController, 'clearTransitionClasses');
+      app1.isCrashed = true;
+
+      app1.handleEvent({
+        type: '_swipein'
+      });
+
+      assert.isTrue(stubClearTransitionClasses.called);
+    });
+
     test('Swipe out event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
@@ -2027,6 +2043,7 @@ suite('system/AppWindow', function() {
     app1.browser = null;
     app1.reviveBrowser();
     assert.isNotNull(app1.browser);
+    assert.isFalse(app1.isCrashed);
     assert.isFalse(app1.suspended);
     assert.isTrue(stub_setVisble.calledWith(false));
     assert.isTrue(stubPublish.calledWith('resumed'));
