@@ -296,7 +296,8 @@ suite('Nfc Manager Functions', function() {
       var stubVibrate = this.sinon.stub(window.navigator, 'vibrate');
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
       var stubTryHandover = this.sinon.stub(NfcHandoverManager, 'tryHandover');
-      var stubFireTag = this.sinon.stub(nfcManager, '_fireTagDiscovered');
+      var stubFireNDEF = this.sinon.stub(nfcManager, '_fireNDEFDiscovered');
+      var stubCheckP2P = this.sinon.stub(nfcManager, 'checkP2PRegistration');
 
       nfcManager._handleTechDiscovered(msg);
 
@@ -309,13 +310,16 @@ suite('Nfc Manager Functions', function() {
                    'when msg ' + msg);
       assert.isTrue(stubTryHandover.withArgs([], undefined)
                                    .calledOnce, 'handover, when msg: ' + msg);
-      assert.isTrue(stubFireTag.calledOnce,
-                    '_fireTagDiscovered, when msg: ' + msg);
+      assert.isFalse(stubFireNDEF.called,
+                     '_fireNDEFDiscovered should not be called');
+      assert.isFalse(stubCheckP2P.called,
+                     'checkP2PRegistration should not be called');
 
       stubVibrate.restore();
       stubDispatchEvent.restore();
       stubTryHandover.restore();
-      stubFireTag.restore();
+      stubFireNDEF.restore();
+      stubCheckP2P.restore();
     };
 
     // _fireNDEFDiscovered test helper
@@ -331,16 +335,6 @@ suite('Nfc Manager Functions', function() {
     // checkP2PRegistration helper.
     var execCheckP2PRegistrationTest = function(msg) {
       var stub = this.sinon.stub(nfcManager, 'checkP2PRegistration');
-      nfcManager._handleTechDiscovered(msg);
-      assert.isTrue(stub.calledOnce);
-
-      stub.restore();
-    };
-
-    // _fireTagDiscovered test helper
-    var execTagDiscoveredTest = function(msg) {
-      var stub = this.sinon.stub(nfcManager, '_fireTagDiscovered');
-
       nfcManager._handleTechDiscovered(msg);
       assert.isTrue(stub.calledOnce);
 
@@ -378,10 +372,9 @@ suite('Nfc Manager Functions', function() {
       execCheckP2PRegistrationTest.call(this, sampleMsg);
     });
 
-    // empty NDEF records array, _fireTagDiscovered should be called
-    test('massag with no NDEF records', function() {
-      sampleMsg.peer = null;
-      execTagDiscoveredTest.call(this, sampleMsg);
+    test('massage with no NDEF records, no action', function() {
+      delete sampleMsg.peer;
+      execInvalidMessageTest.call(this, sampleMsg);
     });
 
     test('activities triggering end 2 end', function() {
@@ -428,12 +421,6 @@ suite('Nfc Manager Functions', function() {
           records: sampleMsg.records
         }
       },'mime record');
-
-      sampleMsg.peer = null;
-      sampleMsg.records.shift();
-      nfcManager._handleTechDiscovered(sampleMsg);
-      assert.deepEqual(MozActivity.lastCall.args[0],
-        { name: 'nfc-tag-discovered' }, 'no records');
     });
   });
 
@@ -599,15 +586,6 @@ suite('Nfc Manager Functions', function() {
         { name: 'nfc-ndef-discovered', data: {} });
     });
   }),
-
-  suite('_fireTagDiscovered', function() {
-    test('fires activity with proper options', function() {
-      this.sinon.stub(window, 'MozActivity');
-      nfcManager._fireTagDiscovered();
-      assert.deepEqual(MozActivity.getCall(0).args[0],
-        { name: 'nfc-tag-discovered' });
-    });
-  });
 
   suite('_getSmartPoster', function() {
     var smartPosterRecord;
