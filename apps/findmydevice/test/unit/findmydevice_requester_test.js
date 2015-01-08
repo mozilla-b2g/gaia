@@ -3,22 +3,17 @@
 'use strict';
 
 require('/shared/test/unit/mocks/mock_dump.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
 
 var mocksForFindMyDevice = new MocksHelper([
   'Dump'
 ]).init();
 
 suite('FindMyDevice >', function() {
-  var realL10n;
   var fakeXHR;
 
   mocksForFindMyDevice.attachTestHelpers();
 
   suiteSetup(function(done) {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = window.MockL10n;
-
     window.Config = {
       api_url: 'https://find.firefox.com',
       api_version: 'v0'
@@ -33,7 +28,6 @@ suite('FindMyDevice >', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
     delete window.Config;
   });
 
