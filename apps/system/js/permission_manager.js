@@ -1,5 +1,5 @@
 /* global LazyLoader, AppWindowManager, applications, ManifestHelper*/
-/* global Template, System*/
+/* global Template*/
 'use strict';
 (function(exports) {
   /**
@@ -75,7 +75,6 @@
       window.addEventListener('attentionopening', this);
       window.addEventListener('attentionopened', this);
       window.addEventListener('lockscreen-appopened', this);
-      window.addEventListener('screenchange', this);
 
       /* On home/holdhome pressed, discard permission request.
        * XXX: We should make permission dialog be embededd in appWindow
@@ -141,7 +140,6 @@
       window.removeEventListener('attentionopening', this);
       window.removeEventListener('attentionopened', this);
       window.removeEventListener('lockscreen-appopened', this);
-      window.removeEventListener('screenchange', this);
       window.removeEventListener('home', this.discardPermissionRequest);
       window.removeEventListener('holdhome', this.discardPermissionRequest);
     },
@@ -267,11 +265,6 @@
           break;
         case 'lockscreen-appopened':
           if (this.currentRequestId == 'fullscreen') {
-            this.discardPermissionRequest();
-          }
-          break;
-        case 'screenchange':
-          if (System.locked && !detail.screenEnabled) {
             this.discardPermissionRequest();
           }
           break;

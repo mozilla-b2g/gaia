@@ -563,31 +563,6 @@ suite('system/permission manager', function() {
     });
   });
 
-  suite('when screenoff it should hide the prompt', function() {
-    var evt;
-    setup(function() {
-      this.sinon.stub(permissionManager, 'discardPermissionRequest');
-      window.System = {
-        locked: true
-      };
-      evt = {
-        type: 'screenchange',
-        detail: {
-          screenEnabled: false
-        }
-      };
-    });
-
-    test('screenoff', function() {
-      permissionManager.handleEvent(evt);
-      assert.isTrue(permissionManager.discardPermissionRequest.called);
-    });
-
-    teardown(function() {
-      delete window.System;
-    });
-  });
-
   suite('Toggle more/hide info in permission dialog',
     function() {
       setup(function() {
