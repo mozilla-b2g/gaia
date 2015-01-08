@@ -146,7 +146,7 @@ Music.prototype = {
   },
 
   waitForFirstTile: function() {
-    this.client.helper.waitForElement(this.firstTile);
+    this.client.helper.waitForElement(Music.Selector.firstTile);
   },
 
   waitForMessageOverlayShown: function(shouldBeShown) {
