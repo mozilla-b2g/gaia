@@ -154,3 +154,7 @@ nav header {
 #main-section:not([data-mode="edit"]) #nav-edit {
   transform: translateY(-16rem);
 }
+
+smart-button.hidden {
+  display: none;
+}

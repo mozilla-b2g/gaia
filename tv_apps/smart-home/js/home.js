@@ -1,6 +1,7 @@
 'use strict';
 /* global SpatialNavigator, XScrollable, KeyNavigationAdapter, Edit */
 /* global CardManager, URL, Application, Clock, Folder, Deck, CardFilter */
+/* global SearchBar */
 
 (function(exports) {
 
@@ -35,6 +36,7 @@
     settingGroup: document.getElementById('settings-group'),
     editButton: document.getElementById('edit-button'),
     settingsButton: document.getElementById('settings-button'),
+    searchButton: document.getElementById('search-button'),
 
     init: function() {
       var that = this;
@@ -43,6 +45,11 @@
 
       this.cardManager = new CardManager();
       this.cardManager.init();
+
+      this.searchBar = new SearchBar();
+      this.searchBar.init(document.getElementById('search-bar'));
+      this.searchBar.on('shown', this.onSearchBarShown.bind(this));
+      this.searchBar.on('hidden', this.onSearchBarHidden.bind(this));
 
       this.cardManager.getCardList().then(function(cardList) {
         that._createCardList(cardList);
@@ -297,15 +304,30 @@
         this.openSettings();
       } else if (focusElem === this.editButton) {
         this.edit.toggleEditMode();
-
-      // Current focus is on a card
+      } else if (focusElem === this.searchButton) {
+        this.searchBar.show();
+        // hide the searchButton because searchBar has an element whose
+        // appearance is the same as it.
+        this.searchButton.classList.add('hidden');
       } else {
+        // Current focus is on a card
         var cardId = focusElem.dataset.cardId;
         var card = this.cardManager.findCardFromCardList({cardId: cardId});
         if (card) {
           card.launch();
         }
       }
+    },
+
+    onSearchBarShown: function() {
+      new MozActivity({
+        name: 'search'
+      });
+      this.searchBar.hide();
+    },
+
+    onSearchBarHidden: function() {
+      this.searchButton.classList.remove('hidden');
     },
 
     getNavigateElements: function() {
