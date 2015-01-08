@@ -1512,6 +1512,9 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
             function($mailparser, Streams) {
       var conn = this._conn;
       var self = this;
+
+      var anyError = null, pendingFetches = 0, bodies = [];
+      partInfos.forEach(function(partInfo) {
       var mparser = new $mailparser.MailParser({ streamAttachments: true });
 
       // I actually implemented a usable shim for the checksum purposes, but we
@@ -1563,8 +1566,6 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
         process.immediate = false;
       }
 
-      var anyError = null, pendingFetches = 0, bodies = [];
-      partInfos.forEach(function(partInfo) {
         var opts = {
           request: {
             struct: false,
