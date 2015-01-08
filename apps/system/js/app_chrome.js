@@ -660,9 +660,11 @@
   };
 
   AppChrome.prototype.handleError = function ac_handleError(evt) {
-    // When we get an error, keep the rocketbar maximized.
-    this.element.classList.add('maximized');
-    this.containerElement.classList.remove('scrollable');
+    if (this.useCombinedChrome()) {
+      // When we get an error, keep the rocketbar maximized.
+      this.element.classList.add('maximized');
+      this.containerElement.classList.remove('scrollable');
+    }
   };
 
   AppChrome.prototype.maximize = function ac_maximize(callback) {
