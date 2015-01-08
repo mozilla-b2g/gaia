@@ -272,6 +272,15 @@ suite('system/LockScreen >', function() {
     assert.isTrue(mockThis.refreshClock.called);
   });
 
+  test('When timechanged, update the clock', function() {
+    var method = subject.handleEvent;
+    var mockThis = {
+      refreshClock: this.sinon.stub()
+    };
+    method.call(mockThis, { 'type': 'moztimechange' });
+    assert.isTrue(mockThis.refreshClock.called);
+  });
+
   suite('Handle event: screenchange should propogate to _screenEnabled prop',
     function() {
       var stubDispatch;

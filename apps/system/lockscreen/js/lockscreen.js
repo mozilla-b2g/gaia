@@ -152,6 +152,7 @@
     switch (evt.type) {
       // In FTU user may change date & time.
       case 'ftudone':
+      case 'moztimechange':
         this.refreshClock(new Date());
         break;
       case 'lockscreen-notification-request-activate-unlock':
@@ -385,6 +386,7 @@
     /* blocking holdhome and prevent Cards View from show up */
     window.addEventListener('holdhome', this, true);
     window.addEventListener('ftudone', this);
+    window.addEventListener('moztimechange', this);
     window.addEventListener('timeformatchange', this);
 
     /* media playback widget */
