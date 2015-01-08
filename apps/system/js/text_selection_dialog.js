@@ -67,7 +67,6 @@
       return;
     }
     this._enabled = true;
-    window.addEventListener('hierachychanged', this);
     window.addEventListener('activeappchanged', this);
     window.addEventListener('home', this);
     window.addEventListener('mozChromeEvent', this);
@@ -80,7 +79,6 @@
       return;
     }
     this._enabled = false;
-    window.removeEventListener('hierachychanged', this);
     window.removeEventListener('activeappchanged', this);
     window.removeEventListener('home', this);
     window.removeEventListener('mozChromeEvent', this);
@@ -99,7 +97,6 @@
     switch (evt.type) {
       case 'home':
       case 'activeappchanged':
-      case 'hierachychanged':
         this.close();
         break;
       case 'value-selector-shown':
