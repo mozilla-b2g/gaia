@@ -306,12 +306,12 @@ section.month .icon-calendar-dot:before {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: #A2A2A2;
   white-space: nowrap;
   width: 100%;
 }
 
 #month-day-agenda .location {
-  color: #A2A2A2;
   font-size: 1.4rem;
   height: 2.5rem;
   line-height: 2.5rem;
