@@ -497,6 +497,33 @@ suite('ActivityHandler', function() {
         var spied = Notify.vibrate;
         assert.ok(spied.called);
       });
+
+      test('an alert is displayed', function() {
+        sinon.assert.calledWith(
+          Utils.alert,
+          { raw: 'body' },
+          { raw: 'sender' }
+        );
+      });
+    });
+
+    suite('receive class-0 message without content', function() {
+      setup(function() {
+        message = MockMessages.sms({
+          body: null,
+          messageClass: 'class-0'
+        });
+        MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+      });
+
+      test('an alert is displayed with empty content', function() {
+        sinon.assert.calledWith(
+          Utils.alert,
+          { raw: '' },
+          { raw: 'sender' }
+        );
+      });
     });
   });
 
