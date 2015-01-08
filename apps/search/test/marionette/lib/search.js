@@ -27,7 +27,8 @@ Search.Selectors = {
   firstPlaceContainer: '#places',
   firstRunConfirm: '#suggestions-notice-confirm',
   topSites: '.top-site',
-  historyResults: '#history .result'
+  historyResults: '#history .result',
+  suggestions: '#suggestions li'
 };
 
 Search.prototype = {
