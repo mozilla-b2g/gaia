@@ -537,8 +537,6 @@ suite('system/AppChrome', function() {
         assert.isTrue(stubRequestAnimationFrame.called);
         assert.isFalse(app.element.classList.contains('light'));
         assert.isFalse(chrome.useLightTheming());
-        assert.isTrue(
-          appPublishStub.withArgs('titlestatechanged').calledOnce);
         sinon.assert.callCount(appPublishStub.withArgs('titlestatechanged'),
           initiallyLight ? 1 : 0);
         done();

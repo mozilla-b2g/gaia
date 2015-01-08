@@ -519,7 +519,7 @@
     var endBackgroundFade = function() {
       finishedFade = true;
       self.element.removeEventListener('transitionend', endBackgroundFade);
-    }
+    };
     this.element.addEventListener('transitionend', endBackgroundFade);
 
     window.requestAnimationFrame(function updateAppColor() {
