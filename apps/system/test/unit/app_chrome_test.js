@@ -586,7 +586,7 @@ suite('system/AppChrome', function() {
       chrome.setThemeColor('white');
       chrome.element.dispatchEvent(new CustomEvent('transitionend'));
       window.setTimeout(function() {
-        assert.isTrue(stubRequestAnimationFrame.calledOnce);
+        sinon.assert.calledOnce(stubRequestAnimationFrame);
         done();
       });
     });
