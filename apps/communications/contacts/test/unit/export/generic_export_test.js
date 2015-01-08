@@ -14,6 +14,7 @@ requireApp('communications/contacts/test/unit/mock_export_strategy.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
+require('/shared/js/fb/fb_reader_utils.js');
 
 requireApp('communications/contacts/js/export/contacts_exporter.js');
 
