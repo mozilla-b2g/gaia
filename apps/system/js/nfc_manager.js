@@ -172,7 +172,7 @@
       } else if (msg.peer) {
         this.checkP2PRegistration();
       } else {
-        this._fireTagDiscovered();
+        this._logVisibly('Got tag without NDEF records, ignoring.');
       }
     },
 
@@ -500,19 +500,6 @@
       }
 
       return options;
-    },
-
-    /**
-     * Fires nfc-tag-discovered activity. Should be used when NFC tag with no
-     * NDEF content is detected.
-     */
-    _fireTagDiscovered: function nm_fireTagDiscovered() {
-      this._debug('_fireTagDiscovered');
-
-      var activity = new MozActivity({ name: 'nfc-tag-discovered' });
-      activity.onerror = () => {
-        this._logVisibly('Firing nfc-tag-discovered activity failed');
-      };
     },
 
     /**
