@@ -145,11 +145,11 @@ var SimPinDialog = {
         this.skip();
         break;
     }
-    if (this.lockType !== 'pin' || !SIMSlotManager.isMultiSIM()) {
+    if (SIMSlotManager.isMultiSIM()) {
       this._l10n(this.dialogTitle, this.lockType + 'Title');
     } else {
       this._l10n(this.dialogTitle,
-                 'multiSIMpinTitle',
+                 'multiSIM' + this.lockType + 'Title',
                  { n: this._currentSlot.index + 1 });
     }
   },
