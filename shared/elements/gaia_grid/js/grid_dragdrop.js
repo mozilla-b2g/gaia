@@ -678,7 +678,7 @@
               return;
             }
 
-            this.icon = this.gridView.findItemFromElement(e.target);
+            this.icon = this.gridView.findItemFromElement(e.target, true);
 
             if (!this.icon || !this.icon.isDraggable() ||
                 this.icon.detail.type === 'placeholder') {

@@ -98,7 +98,7 @@
   line-height: 1.94rem;
 }
 
-.icon.collapsed {
+.edit-mode .icon.collapsed {
   pointer-events: none;
 }
 
