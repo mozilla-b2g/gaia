@@ -36,6 +36,7 @@ Services.obs.addObserver(function(document) {
         id: threadId,
         messages: []
       }, window)));
+      recipientToThreadId.set(recipient, threadId);
     }
 
     return threads.get(threadId);

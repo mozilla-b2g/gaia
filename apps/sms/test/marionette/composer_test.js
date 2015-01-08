@@ -171,6 +171,15 @@ marionette('Messages Composer', function() {
       client.helper.waitForElementToDisappear(composer.mmsLabel);
       client.helper.waitForElement(composer.charCounter);
       assert.equal(composer.charCounter.text(), '15/1');
+
+      // Case #14: add an email recipient, the message is converted to MMS.
+      messagesApp.addRecipient('a@b.com');
+      assertIsDisplayed(composer.mmsLabel);
+
+      // Case #15: remove the email recipient, the message is converted to SMS.
+      messagesApp.Composer.recipients[0].tap();
+      messagesApp.clearRecipient();
+      assertIsNotDisplayed(composer.mmsLabel);
     });
   });
 });
