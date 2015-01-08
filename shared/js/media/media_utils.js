@@ -44,8 +44,9 @@ var MediaUtils = {
       return r;
     }
 
+    duration = Math.round(duration);
     var minutes = Math.floor(duration / 60);
-    var seconds = Math.floor(duration % 60);
+    var seconds = duration % 60;
     if (minutes < 60) {
       return padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
     }
