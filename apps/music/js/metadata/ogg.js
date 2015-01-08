@@ -1,3 +1,4 @@
+/* global LazyLoader, VorbisPictureComment */
 /* exported OggMetadata */
 'use strict';
 
@@ -21,7 +22,8 @@ var OggMetadata = (function() {
     tracknumber: 'tracknum',
     tracktotal: 'trackcount',
     discnumber: 'discnum',
-    disctotal: 'disccount'
+    disctotal: 'disccount',
+    metadata_block_picture: 'picture'
   };
 
   /**
@@ -97,7 +99,13 @@ var OggMetadata = (function() {
         }
 
         readAllComments(fullpage, metadata);
-        resolve(metadata);
+
+        LazyLoader.load('js/metadata/vorbis_picture.js', function() {
+          VorbisPictureComment.parsePictureComment(metadata).
+            then(function(metadata) {
+              resolve(metadata);
+            });
+        });
       });
     });
   }
@@ -145,7 +153,11 @@ var OggMetadata = (function() {
       try {
         var comment = readComment(page);
         if (comment) {
-          if (seen_fields.hasOwnProperty(comment.field)) {
+          if (comment.field === 'picture' &&
+              !seen_fields.hasOwnProperty(comment.field)) {
+            metadata[comment.field] = comment.value;
+            seen_fields[comment.field] = true;
+          } else if (seen_fields.hasOwnProperty(comment.field)) {
             // If we already have a value, append this new one.
             metadata[comment.field] += ' / ' + comment.value;
           } else {
@@ -195,8 +207,6 @@ var OggMetadata = (function() {
       return {field: propname, value: value};
     }
 
-    // XXX: Support album art.
-    // http://flac.sourceforge.net/format.html#metadata_block_picture
   }
 
   return {
