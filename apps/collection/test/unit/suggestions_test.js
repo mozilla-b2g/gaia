@@ -34,19 +34,6 @@ suite('suggestions > ', function() {
     navigator.mozL10n = realL10n;
   });
 
-  test('shows \'custom\' option', function(done) {
-    var suggest = subject.load([]);
-    suggest.then();
-    subject.resolve();
-
-    setTimeout(function() {
-      assert.equal(items[0].value, 'custom',
-        'First item is expected to be \'custom\'');
-
-      done();
-    });
-  });
-
   test('populates options from collections database', function(done) {
     var stubCategories = [
       {categoryId: 'cat1', query: 'Mocked Collections', locale: 'en_US'},
@@ -89,20 +76,31 @@ suite('suggestions > ', function() {
 
     // Ensure we've populated a collection from our mock CollectionsDatabase
     setTimeout(function() {
-      assert.equal(items[1].textContent, 'fromL10nFile',
+      assert.equal(items[0].textContent, 'fromL10nFile',
         'categoryId-1 should have been overwritten by l10n');
-      assert.equal(items[2].textContent, 'fromL10nFile',
+      assert.equal(items[1].textContent, 'fromL10nFile',
         'categoryId-2 should have been overwritten by l10n');
-      assert.equal(items[3].textContent, 'query3',
+      assert.equal(items[2].textContent, 'query3',
         'categoryId-3 should appear in the list as it is in the right locale '+
         'and stayed with the original query');
-      assert.equal(items[4].textContent, 'query4',
+      assert.equal(items[3].textContent, 'query4',
         'categoryId-4 should appear in the list as it is in the right locale '+
         'and stayed with the original query');
-      assert.isUndefined(items[5],
+      assert.isUndefined(items[4],
         'categoryId-5 should not appear in list as it is in the wrong locale '+
         'and has no l10n translation');
 
+      done();
+    });
+  });
+
+  test('alerts user if all collections added', function(done) {
+    var alert = this.sinon.stub(window, 'alert');
+    var suggest = subject.load([]);
+    suggest.then();
+    subject.resolve();
+    setTimeout(function() {
+      assert.ok(alert.calledOnce);
       done();
     });
   });
