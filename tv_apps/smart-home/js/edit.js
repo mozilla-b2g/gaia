@@ -1,7 +1,7 @@
 'use strict';
 
 (function(exports) {
-  const EDIT_MODE_SCALE = 0.536;
+  const EDIT_MODE_SCALE = 0.57;
 
 
   function Edit() {}
@@ -68,6 +68,7 @@
       if (this.mainSection.dataset.mode === 'edit') {
         this.mainSection.dataset.mode = 'arrange';
         this._concealPanel(this.currentScrollable, this.currentNode);
+        this._setHintArrow();
       } else if (this.mainSection.dataset.mode == 'arrange') {
         this.mainSection.dataset.mode = 'edit';
 
@@ -75,6 +76,7 @@
            this.cardScrollable.getNodeFromItem(this.cardScrollable.currentItem);
         this.currentScrollable = this.cardScrollable;
         this._revealPanel(this.currentScrollable, this.currentNode);
+        this._clearHintArrow();
       }
     },
 
@@ -96,9 +98,22 @@
                                     {cardId: focus.currentItem.dataset.cardId}),
             this.cardManager.findCardFromCardList(
                                     {cardId: targetItem.dataset.cardId}));
+          this._setHintArrow();
         }
       }
       return true;
+    },
+
+    _setHintArrow: function() {
+      var index = parseInt(this.currentNode.dataset.idx);
+      this.currentNode.classList.toggle('left_arrow', index > 0);
+      this.currentNode.classList.toggle('right_arrow',
+                                    index < this.currentScrollable.length - 1);
+    },
+
+    _clearHintArrow: function() {
+      this.currentNode.classList.remove('left_arrow');
+      this.currentNode.classList.remove('right_arrow');
     },
 
     addNewFolder: function() {
