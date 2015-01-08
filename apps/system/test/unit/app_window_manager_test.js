@@ -1047,14 +1047,12 @@ suite('system/AppWindowManager', function() {
     test('setHierarchy', function() {
       appWindowManager._activeApp = app1;
       this.sinon.stub(app1, 'focus');
-      this.sinon.stub(app1, 'blur');
       this.sinon.stub(app1, 'setVisibleForScreenReader');
       appWindowManager.setHierarchy(true);
       assert.isTrue(app1.focus.called);
       assert.isTrue(app1.setVisibleForScreenReader.calledWith(true));
 
       appWindowManager.setHierarchy(false);
-      assert.isTrue(app1.blur.called);
       assert.isTrue(app1.setVisibleForScreenReader.calledWith(false));
     });
 
