@@ -299,10 +299,17 @@ suite('system/AppChrome', function() {
 
     test('error', function() {
       var app = new AppWindow(fakeWebSite);
+      app.config.chrome.bar = false;
       var chrome = new AppChrome(app);
       chrome.containerElement.classList.add('scrollable');
       chrome.handleEvent({ type: 'mozbrowsererror' });
       assert.isFalse(chrome.containerElement.classList.contains('scrollable'));
+      assert.isTrue(chrome.element.classList.contains('maximized'));
+
+      chrome.element.classList.remove('maximized');
+      app.config.chrome.bar = true;
+      chrome.handleEvent({ type: 'mozbrowsererror' });
+      assert.isFalse(chrome.element.classList.contains('maximized'));
     });
   });
 
