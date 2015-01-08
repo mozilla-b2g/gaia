@@ -556,6 +556,18 @@ nav[data-type="scrollbar"] ol > li > * {
   display: block !important;
 }
 
+/* FB contacts will be disabled when adding .disable-fb-items to contact list */
+.disable-fb-items li[data-fb-uid] {
+  color: #333333;
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+/* This makes the checkbox appear unchecked when using .disable-fb-items */
+.disable-fb-items li[data-fb-uid] label span:after {
+  background-position: center top;
+}
+
 html:not([dir="rtl"]) #groups-list.selecting .group-section li,
 html:not([dir="rtl"]) #search-list.selecting li {
   padding-left: 2rem;
