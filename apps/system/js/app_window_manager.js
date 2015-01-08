@@ -44,6 +44,8 @@
       }
       if (active) {
         this.focus();
+      } else {
+        this._activeApp.blur();
       }
       this._activeApp.setVisibleForScreenReader(active);
     },
