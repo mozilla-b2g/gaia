@@ -68,12 +68,18 @@ var LazyLoader = (function() {
      * Retrieves content of JSON file.
      *
      * @param {String} file Path to JSON file
+     * @param {Boolean} mozSystem If xhr should use mozSystem permissions
      * @return {Promise} A promise that resolves to the JSON content
      * or null in case of invalid path. Rejects if an error occurs.
      */
-    getJSON: function(file) {
+    getJSON: function(file, mozSystem) {
       return new Promise(function(resolve, reject) {
-        var xhr = new XMLHttpRequest();
+        var xhr;
+        if (mozSystem) {
+          xhr = new XMLHttpRequest({mozSystem: true});
+        } else {
+          xhr = new XMLHttpRequest();
+        }
         xhr.open('GET', file, true);
         xhr.responseType = 'json';
 
