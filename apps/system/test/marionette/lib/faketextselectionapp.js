@@ -14,13 +14,21 @@ function FakeTextSelectionApp(client) {
 module.exports = FakeTextSelectionApp;
 
 FakeTextSelectionApp.Selector = Object.freeze({
-  bottomLeftInput: '#bottom-left-input',
-  bottomRightInput: '#bottom-right-input',
-  centerInput: '#center-input',
-  topLeftInput: '#top-left-input',
-  topRightInput: '#top-right-input',
-  normalDiv: '#noneditable',
-  nonSelectedDiv: '#noneditable-userselectnone'
+  // dialogposition.html
+  DialogPositionBottomLeftInput: '#bottom-left-input',
+  DialogPositionBottomRightInput: '#bottom-right-input',
+  DialogPositionCenterInput: '#center-input',
+  DialogPositionTopLeftInput: '#top-left-input',
+  DialogPositionTopRightInput: '#top-right-input',
+  // functionality.html
+  FunctionalitySourceInput: '#functionality-source',
+  FunctionalityTargetInput: '#functionality-target',
+  // noneditable.html
+  NonEditableCenterInput: '#ne-center-input',
+  NonEditableNormalDiv: '#noneditable',
+  NonEditableNonSelectedDiv: '#noneditable-userselectnone',
+  // bug.html
+  BugCenterInput: '#bug-center-input'
 });
 
 FakeTextSelectionApp.ORIGIN = 'app://faketextselectionapp.gaiamobile.org';
@@ -36,32 +44,48 @@ FakeTextSelectionApp.prototype = {
     });
   },
 
-  get nonSelectedDiv() {
-    return this._getElement('nonSelectedDiv');
+  get DialogPositionCenterInput() {
+    return this._getElement('DialogPositionCenterInput');
   },
 
-  get normalDiv() {
-    return this._getElement('normalDiv');
+  get DialogPositionBottomLeftInput() {
+    return this._getElement('DialogPositionBottomLeftInput');
   },
 
-  get centerInput() {
-    return this._getElement('centerInput');
+  get DialogPositionBottomRightInput() {
+    return this._getElement('DialogPositionBottomRightInput');
   },
 
-  get bottomLeftInput() {
-    return this._getElement('bottomLeftInput');
+  get DialogPositionTopLeftInput() {
+    return this._getElement('DialogPositionTopLeftInput');
   },
 
-  get bottomRightInput() {
-    return this._getElement('bottomRightInput');
+  get DialogPositionTopRightInput() {
+    return this._getElement('DialogPositionTopRightInput');
   },
 
-  get topLeftInput() {
-    return this._getElement('topLeftInput');
+  get FunctionalitySourceInput() {
+    return this._getElement('FunctionalitySourceInput');
   },
 
-  get topRightInput() {
-    return this._getElement('topRightInput');
+  get FunctionalityTargetInput() {
+    return this._getElement('FunctionalityTargetInput');
+  },
+
+  get NonEditableCenterInput() {
+    return this._getElement('NonEditableCenterInput');
+  },
+
+  get NonEditableNormalDiv() {
+    return this._getElement('NonEditableNormalDiv');
+  },
+
+  get NonEditableNonSelectedDiv() {
+    return this._getElement('NonEditableNonSelectedDiv');
+  },
+
+  get BugCenterInput() {
+    return this._getElement('BugCenterInput');
   },
 
   _getElement: function(target) {
@@ -105,5 +129,11 @@ FakeTextSelectionApp.prototype = {
     this.longPress(ele);
     this.textSelection.pressSelectAll();
     this.textSelection.pressCut();
+  },
+
+  setTestFrame: function(frameName) {
+    this.client.executeScript(function(frameName) {
+      window.wrappedJSObject.location.href = '/' + frameName + '.html';
+    }, [frameName]);
   }
 };
