@@ -37,12 +37,13 @@ function parseMetadata(filename) {
         var coverBlob = metadata.picture.blob || songBlob.slice(
           metadata.picture.start, metadata.picture.end, metadata.picture.type
         );
+
         reader.readAsArrayBuffer(coverBlob);
         reader.onload = function(event) {
           metadata.picture = {
             flavor: metadata.picture.flavor,
             type: coverBlob.type,
-            data: new Uint8Array(event.target.result)
+            data: new Uint8Array(reader.result)
           };
           resolve(metadata);
         };
