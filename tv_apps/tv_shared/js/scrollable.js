@@ -305,6 +305,10 @@
         this.getNodeFromItem(this.spatialNavigator.getFocusedElement()));
     },
 
+    get length() {
+      return this.nodes.length;
+    },
+
     _setNodesPosition: function() {
       for(var idx in this.nodes) {
         this._setNodePosition(idx);
