@@ -51,6 +51,7 @@
 
     <!-- Ordering of the following files will impact which queries we send first -->
     <script defer src="js/providers/marketplace.js"></script>
+    <script defer src="js/providers/suggestions.js"></script>
     <script defer src="js/providers/bookmarks.js"></script>
     <script defer src="js/providers/places.js"></script>
     <script defer src="js/providers/local_apps.js"></script>
@@ -71,12 +72,6 @@
         <span data-l10n-id="offline-message"></span>
       </div>
 
-      <div id="suggestions-wrapper">
-        <section id="suggestions"
-                 class="suggestions" data-l10n-id="suggestions"
-                 aria-label="Suggestions"></section>
-      </div>
-
       <div id="suggestions-notice-wrapper" hidden>
         <p data-l10n-id="suggestions-settings-notice"></p>
         <button id="suggestions-notice-confirm" data-l10n-id="ok"></button>
@@ -89,9 +84,17 @@
         <gaia-grid cols="4" text-rows="3" id="icons"></gaia-grid>
       </section>
       <div id="loading"><progress></progress></div>
+
       <h2 id="places-header" class="hidden"><span data-l10n-id="history"></span></h2>
       <section id="places" class="local" data-l10n-id="places"
                aria-label="Places"></section>
+
+      <div id="suggestions-wrapper">
+        <h2><span id="suggestion-provider"></span></h2>
+        <section id="suggestions"
+                 class="suggestions" data-l10n-id="suggestions"
+                 aria-label="Suggestions"></section>
+      </div>
     </div>
 
     <menu id="contextmenu" hidden>
