@@ -1,12 +1,14 @@
-/* global parseMetadata, MockLazyLoader, MockGetDeviceStorage */
+/* global parseMetadata, MockLazyLoader, MockGetDeviceStorage, loadPicture */
 'use strict';
 
 require('/test/unit/metadata/utils.js');
 require('/js/metadata/ogg.js');
+require('/js/metadata/vorbis_picture.js');
 
 suite('ogg tags', function() {
   var RealLazyLoader, RealGetDeviceStorage;
 
+  var expectedPicture;
   setup(function(done) {
     this.timeout(1000);
     RealLazyLoader = window.LazyLoader;
@@ -18,6 +20,13 @@ suite('ogg tags', function() {
     require('/js/metadata_scripts.js', function() {
       done();
     });
+
+    loadPicture('/test-data/album-art.jpg', 'image/jpeg', 'unsynced').then(
+      function(data) {
+        expectedPicture = data;
+        done();
+      }
+    );
   });
 
   teardown(function() {
@@ -36,7 +45,9 @@ suite('ogg tags', function() {
         assert.strictEqual(metadata.trackcount, 10);
         assert.strictEqual(metadata.discnum, 1);
         assert.strictEqual(metadata.disccount, 1);
+        assert.deepEqual(metadata.picture, expectedPicture);
       });
     });
   });
 });
+
