@@ -9,7 +9,9 @@
       until: {
         resolver: null,
         phase: null
-      }
+      },
+      // @see: #next
+      stepResult: []
     };
   };
 
@@ -73,6 +75,13 @@
    * the chain would concat it as the Promise rule.
    * If it's plain value then this process would ignore it, as
    * what a Promise does.
+   *
+   * About the resolving values:
+   *
+   * .next( fnResolveA, fnResolveB )  --> #save [a, b] in this process
+   * .next( fnResolveC )              --> #receive [a, b] as first argument
+   * .next( fnResolveD )              --> #receive c as first argument
+   * .next( fnResolveE, fnResolveF)   --> #each of them receive d as argument
    */
   Process.prototype.next = function(...steps) {
     if (!this.states.currentPromise) {
@@ -108,21 +117,35 @@
         // Since we need to give the 'currentPromise' a function as what the
         // steps passed here.
         var chains = steps.map((step) => {
-          var chain = step();
+          var chain;
+          if (this.stepResults.length > 1) {
+            chain = step(this.stepResults);
+          } else {
+            chain = step(this.stepResults[0]);
+          }
+
           // Ordinary function returns 'undefine' or other things.
           if (!chain) {
-            // It's actually a plain value.
+            // It's a plain value.
+            // Store it as one of results.
+            this.stepResult.push(chain);
             return Promise.resolve(chain);
           }
 
           if (chain instanceof Process) {
             // Premise: it's a started process.
-            return chain.states.currentPromise;
+            return chain.states.currentPromise.then((resolvedValue) => {
+              this.stepResult.push(resolvedValue);
+            });
           } else if (chain.then) {
             // Ordinary promise can be concated immediately.
-            return chain;
+            return chain.then((resolvedValue) => {
+              this.stepResult.push(resolvedValue);
+            });
           } else {
-            // It's actually a plain value.
+            // It's a plain value.
+            // Store it as one of results.
+            this.stepResult.push(chain);
             return Promise.resolve(chain);
           }
         });

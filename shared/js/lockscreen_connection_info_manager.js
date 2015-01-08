@@ -96,6 +96,8 @@
       }).bind(this));
 
       this._settings.addObserver('ril.radio.disabled', (function(evt) {
+        // Note: observers would fire once when the value is not the same with
+        // the default settings.
         this._airplaneMode = evt.settingValue;
         // [ ]==> called; all SIMs (disalbed --> all SIMs related)
         this.updateConnStates();
@@ -242,6 +244,9 @@
       // ?? 1. We now need to update a line has been initialized (has content)
       //    2. If no such line (no matter whether it's the first or second),
       //       we write/upate the second line.
+      // --> so that -->
+      //    1. We always update the first/second line has content
+      //    2. Then write/update the last line
       var nextLine = function() {
         for (var i = 0; i < connstateLines.length; i++) {
           var line = connstateLines[i];

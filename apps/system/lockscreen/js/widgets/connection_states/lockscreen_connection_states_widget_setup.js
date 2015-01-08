@@ -1,6 +1,7 @@
 /* global DOMEventSource */
-/* global SettingSource */
 /* global LockScreenBasicState */
+/* global LockScreenConnectionStateWidgetAirplaneMode */
+/* global LockScreenConnectionStateWidgetRadioEnabled */
 'use strict';
 
 /**
@@ -14,35 +15,30 @@
     this.configs.name = 'LockScreenConnectionStatesWidgetSetup';
     // Just to prevent stream without stream would throw error.
     this.configs.stream.sources = [
-      new DOMEventSource({
-        events: [
-          'voicechange',
-          'simslot-cardstatechange',
-          'simslot-iccinfochange',
-          'cellbroadcastmsgchanged'
-        ]}),
-      new SettingSource({
-        settings: [
-          'ril.radio.disabled',
-          'ril.telephony.defaultServiceId'
-        ]})
-      ];
+      new DOMEventSource({events: []}),
+    ];
   };
   LockScreenConnectionStatesWidgetSetup.prototype =
     Object.create(LockScreenBasicState.prototype);
 
   LockScreenConnectionStatesWidgetSetup.prototype.start = function() {
     return LockScreenBasicState.prototype.start.call(this)
-      .next(this.queryElements.bind(this));
+      .next(this.component.fetchRadioStatus.bind(this))
+      .next(this.queryElements.bind(this))
+      .next(this.dispatchToNext.bind(this));
   };
 
-  LockScreenConnectionStatesWidgetSetup.prototype.handleEvent = function(evt) {
-    switch (evt.type) {
-      case 'simslot-cardstatechange':
-      case 'simslot-iccinfochange':
-      case 'cellbroadcastmsgchanged':
-      case 'ril.radio.disabled':
-      case 'ril.telephony.defaultServiceId':
+  /**
+   * According to the current resources to transfer to the next state.
+   * Only handle the first branch of decision tree: whether it's in airplane
+   * mode or not. Other detecting & transferring stuff should be handled
+   * by other states.
+   */
+  LockScreenConnectionStatesWidgetSetup.prototype.dispatchToNext = function() {
+    if (this.component.resources.airplaneMode) {
+      return this.transferTo(LockScreenConnectionStateWidgetAirplaneMode);
+    } else {
+      return this.transferTo(LockScreenConnectionStateWidgetRadioEnabled);
     }
   };
 
@@ -51,7 +47,7 @@
     for (var key in elements) {
       if ('string' === typeof elements[key]) {
         var query = elements[key];
-        var result = document.querySelector(query);
+        var result = document.getElementById(query);
         if (!result) {
           throw new Error(`Can't query element ${key} with query: ${query}`);
         }
