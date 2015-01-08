@@ -370,7 +370,7 @@
     /**
      * Positions an icon on the grid using the current touch coordinates.
      */
-    positionIcon: function(pageX, pageY) {
+    positionIcon: function() {
       var iconIsDivider = this.icon.detail.type === 'divider';
 
       var pageX = this.currentTouch.pageX - (this.initialPageX - this.icon.x);
