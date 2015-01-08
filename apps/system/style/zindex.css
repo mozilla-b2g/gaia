@@ -85,8 +85,7 @@
   z-index: 65538;
 }
 
-#screen > [data-z-index-level="attention-indicator"],
-#screen > [data-z-index-level="text-selection-dialog"] {
+#screen > [data-z-index-level="attention-indicator"] {
   z-index: 32769;
 }
 
@@ -129,6 +128,9 @@
   z-index: 16384;
 }
 
+#screen > [data-z-index-level="text-selection-dialog"] {
+  z-index: 16383;
+}
 
 /* Level 4: Attention window */
 /*
