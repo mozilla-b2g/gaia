@@ -13,7 +13,9 @@ var GridManager = (function() {
   var SAVE_STATE_TIMEOUT = 100;
   var BASE_HEIGHT = 460; // 480 - 20 (status bar height)
 
-  var HIDDEN_ROLES = ['system', 'input', 'homescreen', 'theme', 'addon'];
+  var HIDDEN_ROLES = [
+    'system', 'input', 'homescreen', 'theme', 'addon', 'langpack'
+  ];
 
   // Store the pending apps to be installed until SingleVariant conf is loaded
   var pendingInstallRequests = [];

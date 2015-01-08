@@ -13,7 +13,7 @@
   });
 
   CardManager.prototype = evt({
-    HIDDEN_ROLES: ['system', 'homescreen', 'addon'],
+    HIDDEN_ROLES: ['system', 'homescreen', 'addon', 'langpack'],
 
     // Only two modes available: readonly and readwrite (default)
     // 'readwrite' mode is for Smart-Home app only
