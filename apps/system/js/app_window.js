@@ -792,11 +792,14 @@
           that.element.removeEventListener('_opened', onOpened);
           that.appChrome = new AppChrome(that);
 
-          // We can encounter an error before chrome loads - in this case,
-          // manually call its error handler
-          if (that.netRestrictionDialog &&
-              !that.netRestrictionDialog.classList.contains('hidden')) {
+          // Some signals that chrome needs to respond to can occur before
+          // chrome has loaded - in those cases, manually call the handlers.
+          if (that.inError) {
             that.appChrome.handleEvent({type: 'mozbrowsererror'});
+          }
+          if (that.loading) {
+            that.appChrome.handleEvent({type: 'mozbrowserloadstart'});
+            that.appChrome.handleEvent({type: '_loading'});
           }
         });
       } else {
@@ -904,6 +907,7 @@
   AppWindow.prototype._handle_mozbrowsererror =
     function aw__handle_mozbrowsererror(evt) {
       if (evt.detail.type !== 'fatal') {
+        this.inError = true;
         return;
       }
       // Send event instead of call crash reporter directly.
@@ -923,6 +927,7 @@
   AppWindow.prototype._handle_mozbrowserloadstart =
     function aw__handle_mozbrowserloadstart(evt) {
       this.loading = true;
+      this.inError = false;
       this._changeState('loading', true);
       this.publish('loading');
     };

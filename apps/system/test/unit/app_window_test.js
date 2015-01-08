@@ -1,6 +1,7 @@
 /* global AppWindow, ScreenLayout, MockOrientationManager, MockService,
       LayoutManager, MocksHelper, MockContextMenu, layoutManager, Service,
-      MockAppTransitionController, MockPermissionSettings, DocumentFragment */
+      MockAppTransitionController, MockPermissionSettings, DocumentFragment,
+      AppChrome */
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -1626,6 +1627,22 @@ suite('system/AppWindow', function() {
 
       assert.isTrue(app1.loaded);
       assert.isFalse(app1.loading);
+    });
+
+    test('Load event before _opened', function() {
+      var spy = this.sinon.spy(window, 'AppChrome');
+      var app1 = new AppWindow(fakeChromeConfigWithNavigationBar);
+      app1.handleEvent({
+        type: 'mozbrowserloadstart'
+      });
+      assert.isFalse(spy.calledWithNew());
+
+      var chromeEventSpy = this.sinon.stub(AppChrome.prototype, 'handleEvent');
+
+      app1.element.dispatchEvent(new CustomEvent('_opened'));
+
+      sinon.assert.calledWith(chromeEventSpy, {type: 'mozbrowserloadstart'});
+      sinon.assert.calledWith(chromeEventSpy, {type: '_loading'});
     });
 
     test('Locationchange event', function() {
