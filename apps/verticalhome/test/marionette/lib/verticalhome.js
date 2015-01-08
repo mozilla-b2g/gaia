@@ -39,6 +39,7 @@ VerticalHome.Selectors = {
   firstIcon: '#icons div.icon:not(.placeholder)',
   groupHeader: '#icons .group .header',
   groupTitle: '#icons .group .header .title',
+  groupBackground: '#icons .group .background',
   dividers: '#icons section.divider',
   collections: '#icons .icon.collection',
   contextmenu: '#contextmenu-dialog',
