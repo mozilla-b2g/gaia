@@ -15,6 +15,7 @@
     <link rel="stylesheet" type="text/css" href="style/home.css">
     <link rel="stylesheet" type="text/css" href="tv_shared/style/navigation.css">
     <link rel="stylesheet" type="text/css" href="style/info-bar.css">
+    <link rel="stylesheet" type="text/css" href="style/search-bar.css">
 
     <!-- For test purpose on phone only -->
     <script defer src="shared/js/gesture_detector.js"></script>
@@ -47,6 +48,7 @@
     <script defer src="js/card_filter.js"></script>
     <script defer src="js/message_handler.js"></script>
     <script defer src="js/edit.js"></script>
+    <script defer src="js/search_bar.js"></script>
 
     <script defer src="js/home.js"></script>
 
@@ -129,6 +131,12 @@
             <span data-l10n-id="app">app</span>
           </smart-button>
         </menu-group>
+      </section>
+      <section id="search-bar" class="search-bar hidden">
+        <smart-button data-icon="mic" class="search-mic-button fade-out"></smart-button>
+        <div data-icon="search" class="search-input">
+          <span data-l10n-id="search-default-text">search</span>
+        </div>
       </section>
     </article>
   </body>
