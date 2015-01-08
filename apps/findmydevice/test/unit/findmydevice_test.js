@@ -15,7 +15,6 @@ require('/shared/test/unit/mocks/mock_settings_helper.js');
 require('/shared/test/unit/mocks/mock_geolocation.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/js/findmydevice_iac_api.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_moz_alarms.js');
 
 var mocksForFindMyDevice = new MocksHelper([
@@ -23,7 +22,6 @@ var mocksForFindMyDevice = new MocksHelper([
 ]).init();
 
 suite('FindMyDevice >', function() {
-  var realL10n;
   var realMozId;
   var realMozSettings;
   var realMozSetMessageHandler;
@@ -33,14 +31,6 @@ suite('FindMyDevice >', function() {
   mocksForFindMyDevice.attachTestHelpers();
 
   suiteSetup(function(done) {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = window.MockL10n;
-    sinon.stub(navigator.mozL10n, 'once', function(callback) {
-      // we don't need to actually initialize FMD
-      // for these unit tests, and it saves us from
-      // mocking many objects
-    });
-
     realMozId = navigator.mozId;
     // attempting to stub only the request method of mozId,
     // as in |sinon.stub(navigator.mozId, 'request', ...)|,
@@ -72,9 +62,6 @@ suite('FindMyDevice >', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n.once.restore();
-    navigator.mozL10n = realL10n;
-
     navigator.mozId = realMozId;
 
     navigator.mozSettings = realMozSettings;

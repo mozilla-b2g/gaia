@@ -651,4 +651,4 @@ var FindMyDevice = {
   }
 };
 
-navigator.mozL10n.once(FindMyDevice.init.bind(FindMyDevice));
+FindMyDevice.init();
