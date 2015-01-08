@@ -27,7 +27,8 @@
       charCounter: '.message-counter',
       moreHeaderButton: '#messages-options-button',
       mmsLabel: '.mms-label',
-      attachment: '#messages-input .attachment-container'
+      attachment: '#messages-input .attachment-container',
+      messageConvertNotice: '#messages-convert-notice'
     },
 
     Thread: {
@@ -43,6 +44,8 @@
 
     ThreadList: {
       firstThread: '.threadlist-item',
+      smsThread: '.threadlist-item[data-last-message-type="sms"]',
+      mmsThread: '.threadlist-item[data-last-message-type="mms"]',
       navigateToComposerHeaderButton: '#threads-composer-link'
     },
 
@@ -61,7 +64,7 @@
 
       return {
         Selectors: SELECTORS,
-        
+
         Composer: {
           get recipientsInput() {
             return client.helper.waitForElement(
@@ -111,6 +114,10 @@
             return client.findElement(SELECTORS.Composer.attachment);
           },
 
+          get conversionBanner() {
+            return client.findElement(SELECTORS.Composer.messageConvertNotice);
+          },
+
           showOptions: function() {
             client.helper.waitForElement(
               SELECTORS.Composer.moreHeaderButton
@@ -138,6 +145,18 @@
           get firstThread() {
             return client.helper.waitForElement(
               SELECTORS.ThreadList.firstThread
+            );
+          },
+
+          get smsThread() {
+            return client.helper.waitForElement(
+              SELECTORS.ThreadList.smsThread
+            );
+          },
+
+          get mmsThread() {
+            return client.helper.waitForElement(
+              SELECTORS.ThreadList.mmsThread
             );
           },
 
@@ -226,6 +245,10 @@
           client.helper.waitForElement(
             '#messages-recipients-list .recipient[data-number="' + number + '"]'
           );
+        },
+
+        clearRecipient: function() {
+          this.Composer.recipientsInput.clear();
         },
 
         send: function() {
