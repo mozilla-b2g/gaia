@@ -20,7 +20,6 @@ var mocksForFindMyDevice = new MocksHelper([
 ]).init();
 
 suite('FindMyDevice >', function() {
-  var realL10n;
   var realMozPower;
   var realMozApps;
   var fakeClock;
@@ -29,13 +28,6 @@ suite('FindMyDevice >', function() {
 
   var subject;
   setup(function(done) {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = {
-      once: function(callback) {
-        callback();
-      }
-    };
-
     realMozPower = navigator.mozPower;
     navigator.mozPower = {
       factoryReset:function(reason) {}
@@ -391,8 +383,6 @@ suite('FindMyDevice >', function() {
   });
 
   teardown(function() {
-    navigator.mozL10n = realL10n;
-
     // clean up sinon.js stubs
     navigator.mozPower.factoryReset.restore();
 
