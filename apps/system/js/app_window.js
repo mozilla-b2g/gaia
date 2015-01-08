@@ -374,6 +374,7 @@
     if (this.browser) {
       return;
     }
+    this.isCrashed = false;
     this.debug(' ...revived!');
     this.browser = new BrowserFrame(this.browser_config);
     this.browserContainer.appendChild(this.browser.element);
@@ -917,6 +918,7 @@
         this.inError = true;
         return;
       }
+      this.isCrashed = true;
       // Send event instead of call crash reporter directly.
       this.publish('crashed');
 
@@ -1866,6 +1868,12 @@
   };
 
   AppWindow.prototype._handle__swipein = function aw_swipein() {
+    if (this.isCrashed) {
+      if (this.transitionController) {
+        this.transitionController.clearTransitionClasses();
+      }
+      return;
+    }
     // Revive the browser element if it's got killed in background.
     this.reviveBrowser();
     // Request "open" to our internal transition controller.
