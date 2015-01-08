@@ -67,11 +67,16 @@ function SMIL_generateSlides(data, slide, slideIndex) {
   if (slide.blob) {
     blobType = Utils.typeFromMimeType(slide.blob.type);
     if (blobType) {
+      var region = 'region="Image"';
+      // For attachment type vcard the region is not set
+      if (blobType === 'ref' && slide.blob.type.startsWith('text')) {
+        region = '';
+      }
       name = slide.name.substr(slide.name.lastIndexOf('/') + 1);
       // just to be safe, remove any non-standard characters from the filename
       name = name.replace(unsafeFilenamePattern, '#');
       name = SMIL_generateUniqueLocation(data, name);
-      media = '<' + blobType + ' src="' + name + '" region="Image"/>';
+      media = '<' + blobType + ' src="' + name + '" ' + region + '/>';
       data.attachments.push({
         id: '<' + name + '>',
         location: name,

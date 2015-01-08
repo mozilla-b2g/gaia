@@ -75,7 +75,10 @@
       //   - File extenion is missing or invalid but mimetype is supported.
 
       var mimetype =
-        MimeMapper.guessTypeFromFileProperties(this.name, this.blob.type);
+        MimeMapper.guessTypeFromFileProperties(
+          this.name,
+          this.blob.type.toLowerCase()
+        );
       var filename = MimeMapper.ensureFilenameMatchesType(this.name, mimetype);
 
       // Override filename, so that every attachment that is saved via "open"
