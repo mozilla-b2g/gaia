@@ -738,7 +738,10 @@ var PlayerView = {
 
   seekAudio: function pv_seekAudio(seekTime) {
     if (seekTime !== undefined) {
-      this.audio.currentTime = seekTime;
+      // Because of bug 1119186, setting the currentTime to a value as same as
+      // the audio.duration seems corrupts the audio element, so here we floor
+      // the seek time to prevent it.
+      this.audio.currentTime = Math.floor(seekTime);
     }
 
     var startTime = this.audio.startTime;
