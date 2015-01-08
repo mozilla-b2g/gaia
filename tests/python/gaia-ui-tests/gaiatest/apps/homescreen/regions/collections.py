@@ -15,7 +15,7 @@ from gaiatest.apps.homescreen.regions.bookmark_menu import BookmarkMenu
 class Collection(Base):
 
     name = 'Smart Collections'
-
+    manifest_url = "app://collection.gaiamobile.org/manifest.webapp"
     _apps_locator = (By.CSS_SELECTOR, 'gaia-grid .icon:not(.placeholder)')
     _close_button_locator = (By.ID, 'close')
 
