@@ -109,7 +109,7 @@
     var className = this.CLASS_NAME + this.instanceID;
 
     return `<div class="chrome" id="${className}">
-              <gaia-progress></gaia-progress>
+              <div class="gaia-progress"></div>
               <div class="controls">
                 <button type="button" class="back-button"
                         data-l10n-id="back-button" disabled></button>
@@ -133,7 +133,7 @@
     var className = this.CLASS_NAME + this.instanceID;
 
     return `<div class="chrome" id="${className}">
-            <gaia-progress></gaia-progress>
+            <div class="gaia-progress"></div>
             <section role="region" class="bar">
               <gaia-header action="close">
                 <h1 class="title"></h1>
@@ -173,7 +173,7 @@
   AppChrome.prototype._fetchElements = function ac__fetchElements() {
     this.element = this.containerElement.querySelector('.chrome');
 
-    this.progress = this.element.querySelector('gaia-progress');
+    this.progress = this.element.querySelector('.gaia-progress');
     this.reloadButton = this.element.querySelector('.reload-button');
     this.forwardButton = this.element.querySelector('.forward-button');
     this.stopButton = this.element.querySelector('.stop-button');
@@ -212,12 +212,14 @@
 
       case '_loading':
         this.show(this.progress);
-        this.progress.start();
+        document.getElementById('system-gaia-progress').start();
+        //this.progress.start();
         break;
 
       case '_loaded':
         this.hide(this.progress);
-        this.progress.stop();
+        document.getElementById('system-gaia-progress').stop();
+        //this.progress.stop();
         break;
 
       case 'mozbrowserloadstart':

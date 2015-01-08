@@ -5,7 +5,7 @@
   height: 5rem;
 }
 
-.chrome gaia-progress {
+.chrome .gaia-progress {
   position: absolute;
   top: 0;
   left: 0;
@@ -16,19 +16,20 @@
   pointer-events: none;
   visibility: hidden;
   z-index: 1000;
+  background: -moz-element(#system-gaia-progress);
 }
 
-.fullscreen-app:not(.minimized-tray) gaia-progress,
-.fullscreen-app .chrome:not(.dragged) gaia-progress.visible {
+.fullscreen-app:not(.minimized-tray) .gaia-progress,
+.fullscreen-app .chrome:not(.dragged) .gaia-progress.visible {
   visibility: hidden;
 }
 
-.fullscreen-app .chrome.dragged gaia-progress {
+.fullscreen-app .chrome.dragged .gaia-progress {
   top: calc(var(--statusbar-height) + var(--rocketbar-urlbar-height));
 }
 
-.chrome gaia-progress.visible,
-.fullscreen-app .chrome.dragged gaia-progress.visible {
+.chrome .gaia-progress.visible,
+.fullscreen-app .chrome.dragged .gaia-progress.visible {
   visibility: visible;
 }
 

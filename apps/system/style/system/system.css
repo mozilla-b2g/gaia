@@ -362,6 +362,12 @@ textarea,
   visibility: hidden;
 }
 
+#system-gaia-progress {
+  position: absolute;
+  bottom: -100%;
+  left: 0;
+}
+
 @media (min-width: 768px) {
   #dialog-overlay {
     background-color: rgba(0,0,0,0.6);
