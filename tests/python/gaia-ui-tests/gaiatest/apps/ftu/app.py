@@ -4,10 +4,16 @@
 
 import re
 
-from marionette import (expected,
-                        Wait)
-from marionette.by import By
-from marionette.errors import FrameSendFailureError
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+    from marionette.errors import FrameSendFailureError
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
+    from marionette_driver.errors import FrameSendFailureError
 
 from gaiatest.apps.base import Base
 

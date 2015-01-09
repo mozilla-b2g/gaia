@@ -4,10 +4,16 @@
 
 import time
 
-from marionette.by import By
-from marionette.errors import (NoSuchElementException,
+try:
+    from marionette.wait import Wait
+    from marionette.by import By
+    from marionette.errors import (NoSuchElementException,
                                StaleElementException)
-from marionette.wait import Wait
+except:
+    from marionette_driver.wait import Wait
+    from marionette_driver.by import By
+    from marionette_driver.errors import (NoSuchElementException,
+                               StaleElementException)
 
 from gaiatest import GaiaApps
 from gaiatest import Accessibility

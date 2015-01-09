@@ -4,10 +4,16 @@
 
 import time
 
-from marionette import (expected,
-                        Wait)
-from marionette.by import By
-from marionette.marionette import Actions
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+    from marionette.marionette import Actions
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
+    from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
 

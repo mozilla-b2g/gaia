@@ -3,7 +3,10 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette import SkipTest
-from marionette.wait import Wait
+try:
+    from marionette.wait import Wait
+except:
+    from marionette_driver.wait import Wait
 from marionette.marionette_test import parameterized
 
 from gaiatest import GaiaTestCase
