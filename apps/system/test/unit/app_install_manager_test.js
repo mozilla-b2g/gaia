@@ -1226,6 +1226,27 @@ suite('system/AppInstallManager >', function() {
       });
     });
 
+    suite('langpack >', function() {
+      setup(function() {
+        mockAppName = 'Fake langpack';
+        mockApp = new MockApp({
+          manifest: {
+            name: mockAppName,
+            role: 'langpack'
+          },
+          updateManifest: null,
+          installState: 'installed'
+        });
+        MockSystemBanner.mTeardown();
+        dispatchInstallEvent();
+      });
+
+      test('should display the special text for langpacks', function() {
+        assert.equal(MockSystemBanner.mMessage,
+        'langpack-install-success{"appName":"' + mockAppName + '"}');
+      });
+    });
+
     suite('cancelling a download >', function() {
       setup(function() {
         mockApp = new MockApp({ installState: 'pending' });
