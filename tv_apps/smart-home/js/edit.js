@@ -28,6 +28,11 @@
 
       this.cardManager.on('card-swapped', this.onCardSwapped.bind(this));
 
+      this.cardScrollable.on('focus', this.handleCardFocus.bind(this));
+
+      this.spatialNavigator.on('focus', this.handleFocus.bind(this));
+      this.spatialNavigator.on('unfocus', this.handleUnfocus.bind(this));
+
     },
     /**
      * State of home app looks like this:
@@ -42,19 +47,34 @@
         this.spatialNavigator.focus(this.editButton);
         this.cardScrollable.setScale();
         this.cardManager.writeCardlistInCardStore({cleanEmptyFolder: true});
+        this._concealPanel(this.currentScrollable, this.currentNode);
       } else {
         this.mainSection.dataset.mode = 'edit';
         this.spatialNavigator.multiRemove(this.regularNavElements);
         this.spatialNavigator.multiAdd(this.editNavElements);
+
+        // Keep track of scrollable and node for showing/hiding panel
+        this.currentScrollable = this.cardScrollable;
+        this.currentNode =
+          this.cardScrollable.getNodeFromItem(this.cardScrollable.currentItem);
+        this._revealPanel(this.currentScrollable, this.currentNode);
+
         this.spatialNavigator.focus(this.cardScrollable);
         this.cardScrollable.setScale(EDIT_MODE_SCALE);
       }
     },
+
     toggleArrangeMode: function() {
       if (this.mainSection.dataset.mode === 'edit') {
         this.mainSection.dataset.mode = 'arrange';
+        this._concealPanel(this.currentScrollable, this.currentNode);
       } else if (this.mainSection.dataset.mode == 'arrange') {
         this.mainSection.dataset.mode = 'edit';
+
+        this.currentNode =
+           this.cardScrollable.getNodeFromItem(this.cardScrollable.currentItem);
+        this.currentScrollable = this.cardScrollable;
+        this._revealPanel(this.currentScrollable, this.currentNode);
       }
     },
 
@@ -101,11 +121,100 @@
       } else if (focus === this.addNewFolderButton) {
         this.addNewFolder();
 
-      // Current focus is on a card
       } else if (focus.CLASS_NAME === 'XScrollable') {
-        this.toggleArrangeMode();
+        var currentItem = focus.currentItem;
+
+        if (currentItem.classList.contains('rename-btn')) {
+          this.renameCard(focus, focus.getNodeFromItem(currentItem));
+        } else if (currentItem.classList.contains('delete-btn')) {
+          this.deleteCard(focus, focus.getNodeFromItem(currentItem));
+        } else {
+          // Current focus is on a card
+          this.toggleArrangeMode();
+        }
       }
       return true;
+    },
+
+    renameCard: function(scrollable, nodeElem) {
+      //TODO: implement renaming
+    },
+
+    deleteCard: function(scrollable, nodeElem) {
+      this._concealPanel(scrollable, nodeElem);
+      this.cardManager.removeCard(parseInt(nodeElem.dataset.idx, 10));
+    },
+
+    _getPanel: function(nodeElem) {
+      var cardPanel = nodeElem.getElementsByClassName('card-panel')[0];
+      return {
+        panel: cardPanel,
+        renameBtn: cardPanel.getElementsByClassName('rename-btn')[0],
+        deleteBtn: cardPanel.getElementsByClassName('delete-btn')[0]
+      };
+    },
+
+    _revealPanel: function(scrollable, nodeElem) {
+      var panel = this._getPanel(nodeElem);
+      if(scrollable.getItemFromNode(nodeElem).getAttribute('app-type') ===
+                                                                  'deck') {
+        // Decks can't be renamed or deleted.
+        return;
+      }
+      scrollable.spatialNavigator.add(panel.renameBtn);
+      scrollable.spatialNavigator.add(panel.deleteBtn);
+    },
+
+    _concealPanel: function(scrollable, nodeElem) {
+      var panel = this._getPanel(nodeElem);
+      scrollable.spatialNavigator.remove(panel.renameBtn);
+      scrollable.spatialNavigator.remove(panel.deleteBtn);
+      if (!scrollable.spatialNavigator.getFocusedElement()) {
+        scrollable.spatialNavigator.focus(scrollable.getItemFromNode(nodeElem));
+      }
+    },
+
+    handleFocus: function(elem) {
+      if (this.mode === 'edit' && elem.CLASS_NAME === 'XScrollable') {
+        this.handleCardFocus(
+                elem, elem.currentItem, elem.getNodeFromItem(elem.currentItem));
+      }
+    },
+
+    handleUnfocus: function(elem) {
+      if (this.mode === 'edit' && elem.CLASS_NAME === 'XScrollable') {
+        this.handleCardUnfocus(
+                elem, elem.currentItem, elem.getNodeFromItem(elem.currentItem));
+      }
+    },
+
+    handleCardFocus: function(scrollable, itemElem, nodeElem) {
+      if (this.mode !== 'edit' ||
+          // When focus goes outside the scrollable and the last selected item
+          // is a panel button, we still focus back to the card corresponding to
+          // that button to keep track of the last focused card. But in this
+          // case we don't need any further action on UI view.
+          this.spatialNavigator.getFocusedElement() !== scrollable) {
+        return;
+      }
+      // If users are moving from card to panel button, they're under the same
+      // node element. We need to "unfocus" the node only when user really move
+      // to another card. So here we call handleCardUnfocus manually.
+      if (this.currentNode != nodeElem) {
+        this.handleCardUnfocus(this.currentScrollable,
+                          this.currentScrollable.currentItem, this.currentNode);
+
+        this.currentNode = nodeElem;
+        this.currentScrollable = scrollable;
+      }
+      this._revealPanel(scrollable, nodeElem);
+      itemElem.focus();
+      nodeElem.classList.add('focused');
+    },
+
+    handleCardUnfocus: function(scrollable, itemElem, nodeElem) {
+      this._concealPanel(scrollable, nodeElem);
+      nodeElem.classList.remove('focused');
     },
 
     get mode() {
