@@ -515,12 +515,15 @@
     }
 
     var self = this;
+    var safetyTimeout = null;
     var finishedFade = false;
     var endBackgroundFade = function() {
       finishedFade = true;
       self.element.removeEventListener('transitionend', endBackgroundFade);
+      clearTimeout(safetyTimeout);
     };
     this.element.addEventListener('transitionend', endBackgroundFade);
+    safetyTimeout = setTimeout(endBackgroundFade, 1000);
 
     window.requestAnimationFrame(function updateAppColor() {
       if (finishedFade) {
