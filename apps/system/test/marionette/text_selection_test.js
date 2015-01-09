@@ -138,8 +138,7 @@ marionette('Text selection >', function() {
       assert.ok(!fakeTextselectionApp.bubbleVisiblity);
     });
 
-    // Waiting for bug 1114853.
-    test.skip('lonePress non-editable field and then click non-editable with ' +
+    test('lonePress non-editable field and then click non-editable with ' +
          'user-select none field', function() {
       fakeTextselectionApp.longPress('normalDiv');
       assert.ok(fakeTextselectionApp.bubbleVisiblity);
