@@ -32,13 +32,14 @@ class Wifi(Base):
 
     def enable_wifi(self):
         self.marionette.find_element(*self._wifi_enabled_label_locator).tap()
-        self.wait_for_condition(lambda m: self.is_wifi_enabled)
+        checkbox = self.marionette.find_element(*self._wifi_enabled_checkbox_locator)
+        Wait(self.marionette).until(expected.element_selected(checkbox))
 
     def connect_to_network(self, network_info):
 
         # Wait for the networks to be found
         this_network_locator = ('xpath', "//li/a/span[text()='%s']" % network_info['ssid'])
-        this_network = self.wait_for_element_present(*this_network_locator)
+        this_network = Wait(self.marionette).until(expected.element_present(*this_network_locator))
         this_network.tap()
 
         if network_info.get('keyManagement'):
@@ -48,7 +49,7 @@ class Wifi(Base):
 
             screen_width = int(self.marionette.execute_script('return window.innerWidth'))
             ok_button = self.marionette.find_element(*self._password_ok_button_locator)
-            self.wait_for_condition(lambda m: (ok_button.location['x'] + ok_button.size['width']) == screen_width)
+            Wait(self.marionette).until(lambda m: (ok_button.location['x'] + ok_button.size['width']) == screen_width)
             password_input = self.marionette.find_element(*self._password_input_locator)
             Wait(self.marionette).until(expected.element_displayed(password_input))
             password_input.send_keys(password)

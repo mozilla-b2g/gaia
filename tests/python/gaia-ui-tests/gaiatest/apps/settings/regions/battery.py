@@ -25,13 +25,14 @@ class Battery(Base):
     def toggle_power_save_mode(self):
         checkbox = self.marionette.find_element(*self._power_save_checkbox_locator)
         label = self.marionette.find_element(*self._power_save_label_locator)
-        checkbox_state = checkbox.is_selected()
+        state = checkbox.is_selected()
         label.tap()
-        self.wait_for_condition(lambda m: checkbox_state is not checkbox.is_selected())
+        Wait(self.marionette).until(lambda m: state is not checkbox.is_selected())
 
     def tap_turn_on_auto(self):
-        power_save_turn_on_auto = Wait(self.marionette).until(expected.element_present(*self._power_save_turn_on_auto_locator))
-        power_save_turn_on_auto.tap()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._power_save_turn_on_auto_locator))
+        element.tap()
 
     def select(self, match_string):
         # This needs to be duplicated from base.py because when we return from the frame
@@ -41,11 +42,12 @@ class Battery(Base):
         # have to go back to top level to get the B2G select box wrapper
         self.marionette.switch_to_frame()
 
-        self.wait_for_condition(
-            lambda m: len(self.marionette.find_elements(By.CSS_SELECTOR, '.value-selector-container li')) > 0)
+        Wait(self.marionette).until(
+            expected.elements_present(
+                By.CSS_SELECTOR, '.value-selector-container li'))
 
         options = self.marionette.find_elements(By.CSS_SELECTOR, '.value-selector-container li')
-        close_button = self.marionette.find_element(By.CSS_SELECTOR, 'button.value-option-confirm')
+        close = self.marionette.find_element(By.CSS_SELECTOR, 'button.value-option-confirm')
 
         # loop options until we find the match
         for li in options:
@@ -55,8 +57,8 @@ class Battery(Base):
         else:
             raise Exception("Element '%s' could not be found in select wrapper" % match_string)
 
-        close_button.tap()
-        self.wait_for_element_not_displayed(By.CSS_SELECTOR, 'button.value-option-confirm')
+        close.tap()
+        Wait(self.marionette).until(expected.element_not_displayed(close))
 
         # TODO we should find something suitable to wait for, but this goes too
         # fast against desktop builds causing intermittent failures
