@@ -28,6 +28,7 @@ VerticalHome.Selectors = {
   groupHeader: '#icons .group .header',
   groupTitle: '#icons .group .header .title',
   groupBackground: '#icons .group .background',
+  groupToggle: '#icons .group .toggle',
   dividers: '#icons section.divider',
   collections: '#icons .icon.collection',
   contextmenu: '#contextmenu-dialog',
