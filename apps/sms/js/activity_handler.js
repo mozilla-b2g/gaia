@@ -374,7 +374,7 @@ var ActivityHandler = {
           app.launch();
           Notify.ringtone();
           Notify.vibrate();
-          Utils.alert({ value: message.body }, { value: number });
+          Utils.alert({ value: message.body || '' }, { value: number });
           releaseWakeLock();
         });
       };

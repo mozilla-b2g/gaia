@@ -50,7 +50,7 @@ function createLocalizedElement(tagName, param) {
     navigator.mozL10n.localize(element, param.l10nId, param.l10nArgs);
 
   // if we passed in a HTML Fragment, it is already localized
-  } else if (param.value.nodeType) {
+  } else if (param.value && param.value.nodeType) {
     element.appendChild(param.value);
 
   // otherwise - stuff text in here...
