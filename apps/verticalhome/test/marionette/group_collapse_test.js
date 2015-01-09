@@ -39,7 +39,7 @@ marionette('Vertical - Group', function() {
     client.helper.waitForElement(home.Selectors.editHeaderDone).click();
 
     // Collapse group
-    var collapse = client.findElements('.group .toggle').pop();
+    var collapse = client.findElements(home.Selectors.groupToggle).pop();
     collapse.scriptWith(scrollIntoView);
     actions.wait(1).tap(collapse).wait(1).perform();
 
