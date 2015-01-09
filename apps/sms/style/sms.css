@@ -270,10 +270,6 @@ form[role="dialog"][data-type="edit"] > menu {
   background: #fff;
 }
 
-.panel:first-child {
-  left: 0;
-}
-
 .panel {
   position: absolute;
   left: 100%;
@@ -281,6 +277,10 @@ form[role="dialog"][data-type="edit"] > menu {
   height: 100%;
 
   transition: transform 0.4s ease;
+}
+
+.default-panel {
+  left: 0;
 }
 
 #main-wrapper[data-position='left'] .panel {
@@ -321,13 +321,13 @@ form[role="dialog"][data-type="edit"] > menu {
   white-space: nowrap;
 }
 
-#messages-new-message-notice > div:first-child {
+#messages-new-message-notice > .text-container {
   flex: auto;
 
   overflow: hidden;
 }
 
-#messages-new-message-notice > div:nth-child(2) {
+#messages-new-message-notice > .button-container {
   flex: none;
 
   padding: 0.2rem;
@@ -368,10 +368,6 @@ section[role="region"].new > gaia-header h1 {
 
   width: 5rem;
   height: 4rem;
-}
-
-section[role="region"].new > header:first-child form {
- display: block;
 }
 
 #messages-contact-pick-button .icon-user {
@@ -783,8 +779,8 @@ Do not remove.
   max-height: calc(100% - 10.5rem);
 }
 
-#messages-recipient-suggestions li:first-child {
-  margin-top: 0;
+#messages-recipient-suggestions li {
+  pointer-events: auto;
 }
 
 .article-list[data-type="list"] ul.contact-list {
@@ -801,13 +797,6 @@ Do not remove.
 .contact-list .suggestion > .name {
   line-height: 2.4rem;
   margin-top: -0.2rem;
-}
-
-body[role="application"] form[role="dialog"][data-type="action"] > section:first-child{
-  height: auto;
-  border-bottom: 0.1rem solid #616262;
-  padding-bottom: 1rem;
-  -moz-padding-start: 2.5rem;
 }
 
 form[role="dialog"][data-type="action"].contact-prompt > header {
@@ -864,14 +853,6 @@ form[role="dialog"][data-type="action"].contact-prompt > header {
   -moz-margin-end: -1.5rem; /* compensate the header's 3rem padding */
 }
 
-section[role="region"].new .article-list[data-type="list"] li:first-child {
-  margin-top: 4.6rem;
-}
-
-section[role="region"].new .article-list[data-type="list"]  li {
-  pointer-events: auto;
-}
-
 .suggestion * {
   pointer-events: none;
 }
@@ -885,7 +866,7 @@ section[role="region"].new .article-list[data-type="list"]  li {
   top: 5rem;
 }
 
-body[role="application"] form[role="dialog"][data-type="action"] > header:first-child{
+form[role="dialog"][data-type="action"] > header {
  text-align: start;
 }
 

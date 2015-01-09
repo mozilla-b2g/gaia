@@ -6,8 +6,13 @@
   <title>Edit mode</title>
   <meta name="description" content="Starts an edition mode for adding or removing items">
 
-  <link rel="stylesheet" href="../headers.css">
   <link rel="stylesheet" href="../edit_mode.css">
+
+  <!-- Web Components -->
+  <link rel="stylesheet" type="text/css" href="../../elements/gaia-icons/gaia-icons.css">
+  <link rel="stylesheet" type="text/css" href="../../elements/gaia-theme/gaia-theme.css">
+  <script defer src="../../elements/config.js"></script>
+  <script defer src="../../elements/gaia-header/dist/gaia-header.js"></script>
 
   <!--
     - This <style> element is only used for the example code;
@@ -29,14 +34,17 @@
 <body role="application">
 
   <form role="dialog" data-type="edit">
-    <section role="region">
-      <header>
-        <button><span class="icon icon-close">close</span></button>
-        <menu type="toolbar">
-          <button>done</button>
-        </menu>
+    <section role="region" class="theme-settings">
+      <!--
+        - Please ref https://bugzilla.mozilla.org/show_bug.cgi?id=760436#c1
+        - if you want to run the example temporary but unable to load the icon
+        - correctly. Here is the correct way to apply gaia icon:
+        - https://developer.mozilla.org/en-US/Apps/Design/Firefox_OS_icon_font
+        -->
+      <gaia-header id="header" action="close">
         <h1>Edit</h1>
-      </header>
+        <button>Done</button>
+      </gaia-header>
     </section>
     <menu>
       <button disabled>Deselect all</button>
