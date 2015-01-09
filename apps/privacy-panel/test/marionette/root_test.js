@@ -26,9 +26,9 @@ marionette('root panel', function() {
     assert.ok(subject.isAlaDisplayed());
   });
 
-  test('ability to load rpp panel', function() {
-    subject.tapOnRppMenuItem();
-    assert.ok(subject.isRppDisplayed());
+  test('ability to load rp panel', function() {
+    subject.tapOnRpMenuItem();
+    assert.ok(subject.isRpDisplayed());
   });
 
   test('ability to load tc panel', function() {

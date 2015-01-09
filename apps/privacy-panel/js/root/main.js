@@ -1,9 +1,9 @@
 /**
- * Root panel.
- * 
- * @module RootPanel
- * @return {Object}
- */
+* Root panel.
+*
+* @module RootPanel
+* @return {Object}
+*/
 define([
   'panels',
   'shared/settings_listener',
@@ -18,11 +18,11 @@ function(panels, SettingsListener, SettingsHelper) {
   RootPanel.prototype = {
 
     /**
-     * Initialize Root panel
-     * 
-     * @method init
-     * @constructor
-     */
+    * Initialize Root panel
+    *
+    * @method init
+    * @constructor
+    */
     init: function() {
       document.querySelector('body').dataset.ready = true;
 
@@ -31,32 +31,45 @@ function(panels, SettingsListener, SettingsHelper) {
 
       this.settingsApp = null;
       this.settingsManifestURL = document.location.protocol +
-        '//settings.gaiamobile.org' + (location.port ? (':' +
-        location.port) : '') + '/manifest.webapp';
+      '//settings.gaiamobile.org' + (location.port ? (':' +
+                       location.port) : '') + '/manifest.webapp';
 
       this.observers();
       this.events();
     },
 
     events: function() {
-      panels.registerEvents([this.panel]);
+     panels.registerEvents([this.panel]);
 
-      // Reset launch flag when app is not active.
-      window.addEventListener('blur', function() {
-        SettingsHelper('privacypanel.launched.by.settings').set(false);
+     // Reset launch flag when app is not active.
+     window.addEventListener('blur', () => {
+      // If users click on `home` button to go back to desktop,
+      // we have to cleanupSettingsMark(). While on the other hand,
+      // if we click back button to jump back to Settings app,
+      // we should cleanupSettingsMark() before jumping back.
+      if (!this._jumpBackToSettingsApp) {
+        this.cleanupSettingsMark();
+      }
+      this._jumpBackToSettingsApp = false;
+     });
+
+     this.backBtn.addEventListener('click', (event) => {
+       this._jumpBackToSettingsApp = true;
+
+       event.preventDefault();
+       // We have to make sure settings key is cleaned up before jumping
+       // back to settings app
+       this.getSettingsApp().then((app) => {
+         this.cleanupSettingsMark().then(() => {
+           app.launch();
+         });
+       });
       });
-
-      this.backBtn.addEventListener('click', function(event) {
-        event.preventDefault();
-        this.getSettingsApp().then(function(app) {
-          app.launch();
-        });
-      }.bind(this));
     },
 
     observers: function() {
-      // Observe 'privacy-panel.launched-by-settings' setting to be able to
-      // detect launching point.
+    // Observe 'privacy-panel.launched-by-settings' setting to be able to
+    // detect launching point.
       SettingsListener.observe('privacypanel.launched.by.settings', false,
         function(value) {
           this.panel.dataset.settings = value;
@@ -82,16 +95,21 @@ function(panels, SettingsListener, SettingsHelper) {
           resolve(this.settingApp);
         } else {
           this.searchApp(this.settingsManifestURL, function(app) {
-            resolve(app);
+                 resolve(app);
           });
         }
       }.bind(this));
+      return promise;
+    },
 
+    cleanupSettingsMark: function() {
+      var promise = new Promise(function(resolve) {
+        SettingsHelper('privacypanel.launched.by.settings').set(false, () => {
+          resolve();
+        });
+      });
       return promise;
     }
-
   };
-
   return new RootPanel();
-
 });

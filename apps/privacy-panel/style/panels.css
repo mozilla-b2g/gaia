@@ -352,10 +352,10 @@ section[data-section="gt"] .btn {
 
 
 /**
- * Remote Privacy Protection
+ * Remote Protection
  */
 
-.rpp-box {
+.rp-box {
   display: none;
 }
 
@@ -374,9 +374,9 @@ section[data-section="gt"] .btn {
 
 .overlay {
   position: fixed;
-  height: 100%;
+  height: 95%;
   width: 100%;
-  top: 0;
+  top: 5rem;
   left: 0;
   background: rgba(0, 0, 0, 0.65);
   z-index: 1;
@@ -421,14 +421,13 @@ section[data-section="gt"] .btn {
 
 
 /**
- * RPP auth
+ * RP auth
  */
-
-#rpp-main[data-login-box="true"] #rpp-login {
+#rp-main[data-login-box="true"] #rp-login {
   display: block;
 }
 
-#rpp-main[data-login-box="false"] #rpp-register {
+#rp-main[data-login-box="false"] #rp-register {
   display: block;
 }
 
@@ -437,31 +436,31 @@ section[data-section="gt"] .btn {
  * Screenlock and passcode panels
  */
 
-#rpp-screenlock li.lockscreen-enabled {
+#rp-screenlock li.lockscreen-enabled {
   display: none;
 }
 
-#rpp-screenlock[data-lockscreen-enabled="true"] li.lockscreen-enabled {
+#rp-screenlock[data-lockscreen-enabled="true"] li.lockscreen-enabled {
   display: block;
 }
 
-#rpp-screenlock li.passcode-enabled {
+#rp-screenlock li.passcode-enabled {
   display: none;
 }
 
-#rpp-screenlock[data-lockscreen-enabled="true"][data-passcode-enabled="true"] li.passcode-enabled {
+#rp-screenlock[data-lockscreen-enabled="true"][data-passcode-enabled="true"] li.passcode-enabled {
   display: block;
 }
 
-#rpp-screenlock li.passcode-enabled {
+#rp-screenlock li.passcode-enabled {
   display: none;
 }
 
-#rpp-screenlock[data-lockscreen-enabled="true"][data-passcode-enabled="true"] li.passcode-enabled {
+#rp-screenlock[data-lockscreen-enabled="true"][data-passcode-enabled="true"] li.passcode-enabled {
   display: block;
 }
 
-#rpp-passcode .passcode-error {
+#rp-passcode .passcode-error {
   clear: both;
   display: none;
   height: 4.2rem;
@@ -471,18 +470,18 @@ section[data-section="gt"] .btn {
   line-height: 4.2rem;
 }
 
-#rpp-passcode[data-passcode-status="error"][data-mode="confirm"] div.passcode-error[data-type="incorrect"],
-#rpp-passcode[data-passcode-status="error"][data-mode="confirmLock"] div.passcode-error[data-type="incorrect"],
-#rpp-passcode[data-passcode-status="error"][data-mode="edit"] div.passcode-error[data-type="incorrect"] {
+#rp-passcode[data-passcode-status="error"][data-mode="confirm"] div.passcode-error[data-type="incorrect"],
+#rp-passcode[data-passcode-status="error"][data-mode="confirmLock"] div.passcode-error[data-type="incorrect"],
+#rp-passcode[data-passcode-status="error"][data-mode="edit"] div.passcode-error[data-type="incorrect"] {
   display: block;
 }
 
-#rpp-passcode[data-passcode-status="error"][data-mode="new"] div.passcode-error[data-type="mismatch"],
-#rpp-passcode[data-passcode-status="error"][data-mode="create"] div.passcode-error[data-type="mismatch"] {
+#rp-passcode[data-passcode-status="error"][data-mode="new"] div.passcode-error[data-type="mismatch"],
+#rp-passcode[data-passcode-status="error"][data-mode="create"] div.passcode-error[data-type="mismatch"] {
   display: block;
 }
 
-#rpp-passcode[data-passcode-status="error"] menu[data-mode="new"] {
+#rp-passcode[data-passcode-status="error"] menu[data-mode="new"] {
   display: none;
 }
 
@@ -490,7 +489,7 @@ section[data-section="gt"] .btn {
   position: relative;
 }
 
-#rpp-passcode label {
+#rp-passcode label {
   -moz-box-sizing: border-box;
   display: block;
   width: auto;
@@ -501,23 +500,23 @@ section[data-section="gt"] .btn {
   font-size: 1.8rem;
 }
 
-#rpp-passcode [data-mode] {
+#rp-passcode [data-mode] {
   display: none;
 }
 
-#rpp-passcode menu[type="toolbar"] {
+#rp-passcode menu[type="toolbar"] {
   width: 8rem;
 }
 
-#rpp-passcode menu[type="toolbar"] button {
+#rp-passcode menu[type="toolbar"] button {
   width: 100%;
 }
 
-#rpp-passcode[data-mode="create"]  [data-mode*="create"],
-#rpp-passcode[data-mode="confirm"] [data-mode*="confirm"],
-#rpp-passcode[data-mode="confirmLock"] [data-mode*="confirmLock"],
-#rpp-passcode[data-mode="edit"]    [data-mode*="edit"],
-#rpp-passcode[data-mode="new"]     [data-mode*="new"] {
+#rp-passcode[data-mode="create"]  [data-mode*="create"],
+#rp-passcode[data-mode="confirm"] [data-mode*="confirm"],
+#rp-passcode[data-mode="confirmLock"] [data-mode*="confirmLock"],
+#rp-passcode[data-mode="edit"]    [data-mode*="edit"],
+#rp-passcode[data-mode="new"]     [data-mode*="new"] {
   display: block;
 }
 
@@ -525,7 +524,7 @@ section[data-section="gt"] .btn {
   display: none;
 }
 
-#rpp-passcode[data-status="success"] #passcode-confirm {
+#rp-passcode[data-status="success"] #passcode-confirm {
   display: inherit;
 }
 
