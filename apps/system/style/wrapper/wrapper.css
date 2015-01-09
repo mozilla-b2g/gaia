@@ -18,17 +18,17 @@
   z-index: 1000;
 }
 
-.fullscreen-app:not(.minimized-tray) gaia-progress,
-.fullscreen-app .chrome:not(.dragged) gaia-progress.visible {
+.appWindow.fullscreen-app:not(.minimized-tray) gaia-progress,
+.appWindow.fullscreen-app .chrome:not(.dragged) gaia-progress.visible {
   visibility: hidden;
 }
 
-.fullscreen-app .chrome.dragged gaia-progress {
+.appWindow.fullscreen-app .chrome.dragged gaia-progress {
   top: calc(var(--statusbar-height) + var(--rocketbar-urlbar-height));
 }
 
 .chrome gaia-progress.visible,
-.fullscreen-app .chrome.dragged gaia-progress.visible {
+.appWindow.fullscreen-app .chrome.dragged gaia-progress.visible {
   visibility: visible;
 }
 

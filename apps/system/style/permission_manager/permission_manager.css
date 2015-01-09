@@ -20,9 +20,7 @@
   }
 }
 
-#screen:-moz-full-screen-ancestor > #permission-screen,
-#screen.fullscreen-app #permission-screen,
-#screen.lockscreen-camera #permission-screen {
+#screen:-moz-full-screen-ancestor > #permission-screen {
   top: 0;
   height: 100%;
 }
@@ -35,10 +33,6 @@
 #permission-dialog > div.inner {
   max-height: calc(100% - 5.6rem);
   overflow-y: scroll;
-}
-
-#screen:not(.fullscreen-app):not(.fullscreen-layout-app) #permission-dialog > div.inner {
-  margin-top: var(--statusbar-height);
 }
 
 #permission-title {

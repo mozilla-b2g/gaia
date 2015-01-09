@@ -50,8 +50,8 @@
   visibility: visible;
 }
 
-#screen:not(.locked):not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray).fullscreen-app #statusbar,
-#screen:not(.locked):not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray).fullscreen-layout-app #statusbar,
+#screen:not(.locked):not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray) #statusbar.fullscreen,
+#screen:not(.locked):not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray) #statusbar.fullscreen-layout,
 #screen.locked.secure-app:not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray).fullscreen-app #statusbar,
 #screen.locked.secure-app:not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray).fullscreen-layout-app #statusbar {
   opacity: 0;
