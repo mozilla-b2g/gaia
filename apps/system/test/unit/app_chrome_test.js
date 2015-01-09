@@ -487,10 +487,34 @@ suite('system/AppChrome', function() {
       appPublishStub = this.sinon.stub(app, 'publish');
     });
 
+    teardown(function(done) {
+      // setThemeColor triggers a rAF loop that doesn't finish until
+      // it gets a transition end event. Some tests dispatch this event
+      // but others don't so here we dispatch again.
+      //
+      // If we fail to do this the rAF loop triggered by a previous test
+      // might still be running when we start the next test which will
+      // mean we *sometimes* get surprising values for
+      // stubRequestAnimationFrame.callCount.
+      //
+      // Note that here we only make sure the rAF loop on |chrome| has
+      // finished. Individual tests are responsible for firing a
+      // transitionend event at the element of any additional AppChrome
+      // objects they create.
+      chrome.element.dispatchEvent(new CustomEvent('transitionend'));
+
+      // To ensure the transitionend event has been processed, wait for a
+      // *real* requestAnimationFrame tick.
+      window.requestAnimationFrame.restore();
+      // Make sure we pass null to |done| otherwise it will complain that
+      // its argument is not an Error object.
+      window.requestAnimationFrame(done.bind(null, null));
+    });
+
     test('metachange already set', function() {
       app.themeColor = 'orange';
 
-      var chrome = new AppChrome(app);
+      chrome = new AppChrome(app);
       assert.equal(chrome.element.style.backgroundColor, 'orange');
     });
 
@@ -569,7 +593,9 @@ suite('system/AppChrome', function() {
         chrome.element.dispatchEvent(new CustomEvent('transitionend'));
         assert.isTrue(stubRequestAnimationFrame.called);
         assert.isTrue(popupChrome.useLightTheming());
-        sinon.assert.callCount(appPublishStub.withArgs('titlestatechanged'), 1);
+        sinon.assert.calledOnce(appPublishStub.withArgs('titlestatechanged'));
+        // End popup rAF look so it doesn't interfere with other tests
+        popupChrome.element.dispatchEvent(new CustomEvent('transitionend'));
         done();
       }, 0);
     });
@@ -586,7 +612,7 @@ suite('system/AppChrome', function() {
       window.setTimeout(function() {
         sinon.assert.calledOnce(stubRequestAnimationFrame);
         done();
-      });
+      }, 0);
     });
 
     test('homescreen scrollable background is unset', function() {
