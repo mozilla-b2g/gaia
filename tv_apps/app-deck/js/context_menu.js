@@ -9,6 +9,8 @@
   ContextMenu.prototype = {
     pinToHomeElem: document.getElementById('pin-to-home'),
     mainSection: document.getElementById('main-section'),
+    removeElem: document.getElementById('remove-card'),
+    contextMenuElem: document.getElementById('context-menu'),
 
     _appDeck: undefined,
     _app: undefined,
@@ -23,6 +25,34 @@
         this.onFocusOnNonpinable.bind(this));
 
       this.pinToHomeElem.addEventListener('click', this.pinOrUnpin.bind(this));
+      this.removeElem.addEventListener('click', this.uninstall.bind(this));
+    },
+
+    _selfApp: undefined,
+
+    _connectAndSend: function cm_sendMessage(message) {
+      this._selfApp.connect('appdeck-channel').then(function (ports) {
+        ports.forEach(function(port) {
+          port.postMessage(message);
+        });
+      });
+    },
+
+    sendMessage: function cm_sendMessage(type, data) {
+      var that = this;
+      var message = {
+        type: type,
+        data: data
+      };
+
+      if (this._selfApp) {
+        this._connectAndSend(message);
+      } else {
+        navigator.mozApps.getSelf().onsuccess = function(evt) {
+          that._selfApp = evt.target.result;
+          that._connectAndSend(message);
+        }
+      }
     },
 
     _composeLaunchURL: function cm_composeLaunchURL(app) {
@@ -30,14 +60,10 @@
     },
 
     _sendUnpinMessage: function cm_sendUnpinActivity(app) {
-      // XXX: We should use IAC instead of activity.
-      new MozActivity({
-        name: 'unpin',
-        data: {
-          name: app.name,
-          manifestURL: app.manifestURL,
-          launchURL: this._composeLaunchURL(app)
-        }
+      this.sendMessage('unpin', {
+        name: app.name,
+        manifestURL: app.manifestURL,
+        launchURL: this._composeLaunchURL(app)
       });
     },
 
@@ -72,6 +98,20 @@
       }
     },
 
+    uninstall: function cm_uninstall() {
+      if (this._app && this._app.removable) {
+        var app = this._app;
+        // unpin app before uninstall it
+        if (app.pinned) {
+          this._sendUnpinMessage(app);
+        }
+        var appInstance = Applications.installedApps[app.manifestURL];
+        if (appInstance) {
+          navigator.mozApps.mgmt.uninstall(appInstance);
+        }
+      }
+    },
+
     onFocusOnPinable: function cm_onFocusOnPinable(detail) {
       this._app = detail;
       // XXX: According to http://goo.gl/Spol9H, we should avoid using
@@ -82,6 +122,12 @@
         (detail && detail.pinned) ? 'unpin-from-home' : 'pin-to-home';
       this.pinToHomeElem.label = navigator.mozL10n.get(l10nId);
       this.pinToHomeElem.setAttribute('data-l10n-id', l10nId);
+      if (detail.removable === false) {
+        this.contextMenuElem.removeChild(this.removeElem);
+      } else {
+        this.contextMenuElem.insertBefore(this.removeElem,
+          this.pinToHomeElem.nextElementSibling);
+      }
     },
 
     onFocusOnNonpinable: function cm_onFocusOnNonpinable() {

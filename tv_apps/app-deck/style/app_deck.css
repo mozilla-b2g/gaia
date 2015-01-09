@@ -110,17 +110,9 @@ smart-button[type="app-button"] {
   background-size: 100% auto;
 }
 
-smart-button[type="app-button"].fullsized {
-  background-size: 18rem auto;
-}
-
-smart-button[type="app-button"].fitted {
-  background-size: 12rem auto;
-}
-
 /** we use :after as label */
 smart-button[type="app-button"]:after {
   width: 18rem;
   height: 5rem;
-  background-color: rgba(64, 64, 64, 0.3);
+  font-size: 1.6rem;
 }

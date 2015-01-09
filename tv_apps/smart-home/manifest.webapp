@@ -30,6 +30,12 @@
       }
     }
   },
+  "connections": {
+    "appdeck-channel": {
+      "description": "communications for app-deck to add/remove application cards",
+      "rules": {}
+    }
+  },
   "default_locale": "en-US",
   "icons": {
     "128": "/style/icons/Blank.png"
