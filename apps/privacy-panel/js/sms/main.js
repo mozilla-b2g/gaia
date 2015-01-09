@@ -1,12 +1,12 @@
 /**
  * Command module to handle lock, ring, locate features.
  * 
- * @module RPPExecuteCommands
+ * @module RPExecuteCommands
  * @return {Object}
  */
 define([
   'sms/commands',
-  'rpp/passphrase',
+  'rp/passphrase',
   'shared/settings_listener',
   'shared/settings_helper'
 ],
@@ -14,14 +14,14 @@ define([
 function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
   'use strict';
 
-  const RING_ENABLED = 'rpp.ring.enabled';
-  const LOCK_ENABLED = 'rpp.lock.enabled';
-  const LOCATE_ENABLED = 'rpp.locate.enabled';
+  const RING_ENABLED = 'rp.ring.enabled';
+  const LOCK_ENABLED = 'rp.lock.enabled';
+  const LOCATE_ENABLED = 'rp.locate.enabled';
   const PASSCODE_ENABLED = 'lockscreen.passcode-lock.enabled';
   const LOCKSCREEN_ENABLED = 'lockscreen.enabled';
   const LOCKSCREEN_LOCKED = 'lockscreen.locked';
 
-  var RPPExecuteCommands = {
+  var RPExecuteCommands = {
 
     _ringEnabled: false,
     _lockEnabled: false,
@@ -31,7 +31,7 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
 
     init: function() {
       Commands.init();
-      this.passphrase = new PassPhrase('rppmac', 'rppsalt');
+      this.passphrase = new PassPhrase('rpmac', 'rpsalt');
 
       this.observers();
       this.events();
@@ -71,13 +71,13 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
     },
 
     /**
-     * Search for RPP commands and execute them.
+     * Search for RP commands and execute them.
      *
-     * @param {Object} event Object recieved from SMS listener event 'recieved'
+     * @param {Object} event Object received from SMS listener event 'received'
      */
     _onSMSReceived: function(event) {
       var match, cmd, passkey, body = event.body,
-          rgx = /^rpp\s(lock|ring|locate)\s([a-z0-9]{1,100})$/i,
+          rgx = /^rp\s(lock|ring|locate)\s([a-z0-9]{1,100})$/i,
           sender = event.sender;
 
       // If there is no passcode, do nothing.
@@ -221,6 +221,6 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
 
   };
 
-  return RPPExecuteCommands;
+  return RPExecuteCommands;
 
 });

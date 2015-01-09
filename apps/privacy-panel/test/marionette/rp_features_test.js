@@ -1,23 +1,23 @@
 'use strict';
 
 var assert = require('assert');
-var RppMainPanel = require('./lib/panels/rpp_features');
+var RpMainPanel = require('./lib/panels/rp_features');
 
-marionette('remote privacy protection main panel', function() {
+marionette('remote protection main panel', function() {
   var client = marionette.client({
     settings: {
       'privacy-panel-gt-complete': true,
       'lockscreen.enabled': true,
       'lockscreen.passcode-lock.enabled': true,
-      'rpp.locate.enabled': false,
-      'rpp.ring.enabled': false,
-      'rpp.lock.enabled': false
+      'rp.locate.enabled': false,
+      'rp.ring.enabled': false,
+      'rp.lock.enabled': false
     }
   });
   var subject;
 
   setup(function() {
-    subject = new RppMainPanel(client);
+    subject = new RpMainPanel(client);
     subject.init();
   });
 
