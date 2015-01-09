@@ -530,27 +530,29 @@ suite('system/AppChrome', function() {
     });
 
     test('dark color have light icons', function(done) {
+      var initiallyLight = app.element.classList.contains('light');
       chrome.setThemeColor('black');
       window.setTimeout(function() {
         chrome.element.dispatchEvent(new CustomEvent('transitionend'));
         assert.isTrue(stubRequestAnimationFrame.called);
         assert.isFalse(app.element.classList.contains('light'));
         assert.isFalse(chrome.useLightTheming());
-        assert.isTrue(appPublishStub.called);
-        assert.isTrue(appPublishStub.calledWith('titlestatechanged'));
+        sinon.assert.callCount(appPublishStub.withArgs('titlestatechanged'),
+          initiallyLight ? 1 : 0);
         done();
       }, 0);
     });
 
     test('light color have dark icons', function(done) {
+      var initiallyLight = app.element.classList.contains('light');
       chrome.setThemeColor('white');
       window.setTimeout(function() {
         chrome.element.dispatchEvent(new CustomEvent('transitionend'));
         assert.isTrue(stubRequestAnimationFrame.called);
         assert.isTrue(app.element.classList.contains('light'));
         assert.isTrue(chrome.useLightTheming());
-        assert.isTrue(appPublishStub.called);
-        assert.isTrue(appPublishStub.calledWith('titlestatechanged'));
+        sinon.assert.callCount(appPublishStub.withArgs('titlestatechanged'),
+          initiallyLight ? 0 : 1);
         done();
       }, 0);
     });
@@ -567,8 +569,7 @@ suite('system/AppChrome', function() {
         chrome.element.dispatchEvent(new CustomEvent('transitionend'));
         assert.isTrue(stubRequestAnimationFrame.called);
         assert.isTrue(popupChrome.useLightTheming());
-        assert.isTrue(appPublishStub.called);
-        assert.isTrue(appPublishStub.calledWith('titlestatechanged'));
+        sinon.assert.callCount(appPublishStub.withArgs('titlestatechanged'), 1);
         done();
       }, 0);
     });
@@ -583,7 +584,7 @@ suite('system/AppChrome', function() {
       chrome.setThemeColor('white');
       chrome.element.dispatchEvent(new CustomEvent('transitionend'));
       window.setTimeout(function() {
-        assert.equal(stubRequestAnimationFrame.callCount, 1);
+        sinon.assert.calledOnce(stubRequestAnimationFrame);
         done();
       });
     });
