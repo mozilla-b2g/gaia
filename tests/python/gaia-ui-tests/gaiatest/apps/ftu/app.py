@@ -106,6 +106,14 @@ class Ftu(Base):
         self.accessibility.click(self.marionette.find_element(self._language_input_locator[0],
                                  self._language_input_locator[1] % language))
 
+    @property
+    def is_take_tour_button_visible(self):
+        return self.is_element_displayed(*self._take_tour_button_locator)
+
+    @property
+    def is_lets_go_button_visible(self):
+        return self.is_element_displayed(*self._lets_go_button_locator)
+
     def tap_next(self):
         self.marionette.find_element(*self._next_button_locator).tap()
 

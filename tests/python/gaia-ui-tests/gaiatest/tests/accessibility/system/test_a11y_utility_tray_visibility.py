@@ -13,7 +13,7 @@ class TestUtilityTrayVisibilityAccessibility(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
         self.system = System(self.marionette)
-        self.status_bar = StatusBar(self.marionette)
+        self.status_bar = self.system.status_bar
         self.utility_tray = UtilityTray(self.marionette)
 
     def test_a11y_utility_tray_visibility(self):
