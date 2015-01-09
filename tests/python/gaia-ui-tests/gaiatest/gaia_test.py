@@ -12,12 +12,20 @@ from marionette import (MarionetteTestCase,
                         EnduranceTestCaseMixin,
                         B2GTestCaseMixin,
                         MemoryEnduranceTestCaseMixin)
-from marionette import expected
-from marionette.by import By
-from marionette.errors import (NoSuchElementException,
-                               StaleElementException,
-                               InvalidResponseException)
-from marionette.wait import Wait
+try:
+    from marionette import expected
+    from marionette.by import By
+    from marionette.errors import (NoSuchElementException,
+                                   StaleElementException,
+                                   InvalidResponseException)
+    from marionette.wait import Wait
+except:
+    from marionette_driver import expected
+    from marionette_driver.by import By
+    from marionette_driver.errors import (NoSuchElementException,
+                                   StaleElementException,
+                                   InvalidResponseException)
+    from marionette_driver.wait import Wait
 
 from file_manager import GaiaDeviceFileManager, GaiaLocalFileManager
 

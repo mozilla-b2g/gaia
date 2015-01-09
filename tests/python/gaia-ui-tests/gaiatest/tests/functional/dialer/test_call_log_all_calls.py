@@ -7,7 +7,10 @@ from gaiatest.apps.phone.app import Phone
 from gaiatest.apps.phone.regions.call_screen import CallScreen
 
 from marionette import SkipTest
-from marionette.wait import Wait
+try:
+    from marionette.wait import Wait
+except:
+    from marionette_driver.wait import Wait
 
 
 class TestCallLogAllCalls(GaiaTestCase):

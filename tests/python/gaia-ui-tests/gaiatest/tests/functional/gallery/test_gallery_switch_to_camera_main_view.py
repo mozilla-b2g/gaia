@@ -4,7 +4,10 @@
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.gallery.app import Gallery
-from marionette import Wait
+try:
+    from marionette import Wait
+except:
+    from marionette_driver import Wait
 
 
 class TestGallery(GaiaTestCase):

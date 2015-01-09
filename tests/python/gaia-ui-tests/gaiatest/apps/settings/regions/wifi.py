@@ -3,9 +3,15 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-from marionette import Wait
-from marionette.by import By
-from marionette.errors import StaleElementException
+try:
+    from marionette import Wait
+    from marionette.by import By
+    from marionette.errors import StaleElementException
+except:
+    from marionette_driver import Wait
+    from marionette_driver.by import By
+    from marionette_driver.errors import StaleElementException
+
 from gaiatest.apps.base import Base
 
 

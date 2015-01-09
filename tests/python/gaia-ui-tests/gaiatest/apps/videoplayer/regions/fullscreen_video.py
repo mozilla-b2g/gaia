@@ -3,7 +3,11 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import time
-from marionette.by import By
+try:
+    from marionette.by import By
+except:
+    from marionette_driver.by import By
+
 from gaiatest.apps.base import Base
 
 

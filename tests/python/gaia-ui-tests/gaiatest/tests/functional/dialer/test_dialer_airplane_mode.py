@@ -4,7 +4,10 @@
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.phone.app import Phone
-from marionette.errors import JavascriptException
+try:
+    from marionette.errors import JavascriptException
+except:
+    from marionette_driver.errors import JavascriptException
 
 
 class TestDialerAirplaneMode(GaiaTestCase):

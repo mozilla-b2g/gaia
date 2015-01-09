@@ -19,7 +19,10 @@ import time
 
 import dzclient
 import gaiatest
-from marionette import Marionette
+try:
+    from marionette import Marionette
+except:
+    from marionette_driver import Marionette
 import mozdevice
 
 
@@ -142,7 +145,7 @@ class dzOptionParser(OptionParser):
                         action='store',
                         dest='datazilla_device_name',
                         metavar='str',
-                        help='datazilla device name')       
+                        help='datazilla device name')
         self.add_option('--dz-key',
                         action='store',
                         dest='datazilla_key',
@@ -208,10 +211,10 @@ def cli():
     if options.results_file:
         if not os.path.exists(options.results_file):
             raise Exception('%s file does not exist' %options.results_file)
-        
+
     if options.process_dir:
         if not os.path.exists(options.process_dir):
-            raise Exception("Process all path '%s' does not exist" %options.process_dir) 
+            raise Exception("Process all path '%s' does not exist" %options.process_dir)
 
     # Parse config options
     datazilla_config = parser.datazilla_config(options)
@@ -252,7 +255,7 @@ def cli():
         print "Found the following checkpoint summary files to process:\n"
         for x in summary_file_list:
             print "%s" % x
-        print "\n" + "-" * 50         
+        print "\n" + "-" * 50
     else:
         # Just one file
         summary_file_list = [options.results_file]
@@ -284,21 +287,21 @@ def cli():
                         checkpoint_summary[k] = v
             except:
                 raise Exception("Value missing from '%s', cannot proceed." % options.results_file)
-    
+
         # Make sure we have app_under_test
         if (checkpoint_summary['app_under_test'] == "none"):
             raise Exception("Checkpoint summary file is missing value for 'app_under_test'. Cannot proceed.")
-        
+
         # Results dictionary required format example
         # {'test_name': [180892, 180892, 181980, 181852, 180828, 182012, 183652, 182972, 183052, 183052]}
         results[checkpoint_summary['test_name']] = checkpoint_summary['b2g_rss']
-    
+
         # Display the Datazilla configuration
         print 'Datazilla configuration:'
         print "\napplication (datazilla 'suite'): %s" % checkpoint_summary['app_under_test']
         for key, value in poster.required.items():
             print key + ":", value
-    
+
         # Submit or print the results
         if poster.submit_report:
             #poster.post_to_datazilla(results, checkpoint_summary['test_name'])
