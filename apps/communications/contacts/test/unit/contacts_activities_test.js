@@ -10,6 +10,7 @@ require('/shared/js/contacts/import/utilities/misc.js');
 require('/shared/js/contact2vcard.js');
 require('/shared/js/text_normalizer.js');
 require('/shared/js/setImmediate.js');
+require('/shared/js/fb/fb_reader_utils.js');
 
 requireApp('communications/contacts/js/activities.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
@@ -230,6 +231,27 @@ suite('Test Activities', function() {
       };
 
       ActivityHandler.dataPickHandler(contact);
+    });
+
+    test('text/vcard, Facebook Contact', function() {
+      var vcardActivity = {
+        source: {
+          name: 'pick',
+          data: {
+          }
+        }
+      };
+      vcardActivity.source.data.type = 'text/vcard';
+      ActivityHandler._currentActivity = vcardActivity;
+
+      var fbContact = Object.create(contact);
+      fbContact.category = ['facebook'];
+
+      ActivityHandler.dataPickHandler(fbContact);
+
+      assert.isTrue(ConfirmDialog.showing);
+      assert.isNull(ConfirmDialog.title);
+      assert.equal(ConfirmDialog.text, window._('facebook-export-forbidden'));
     });
 
     test('webcontacts/tel, 0 results', function() {
