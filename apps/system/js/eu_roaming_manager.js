@@ -272,8 +272,7 @@
           showOnlyOnce: true
         }
       };
-      var notification =
-        new Notification(_('euRoamingNotificationTitle'), options);
+      NotificationHelper.send(_('euRoamingNotificationTitle'), options);
 
       notification.onclick = function() {
         this._triggerSettingsActivity(serviceId);

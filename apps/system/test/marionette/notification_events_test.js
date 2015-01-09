@@ -30,9 +30,10 @@ marionette('Notification events', function() {
     client.apps.launch(EMAIL_APP);
     client.apps.switchToApp(EMAIL_APP);
     var error = client.executeAsyncScript(function(title) {
-      var notification = new Notification(title);
-      notification.addEventListener('show', function() {
-        marionetteScriptFinished(false);
+      NotificationHelper.send(title).then(function(notification) {
+        notification.addEventListener('show', function() {
+          marionetteScriptFinished(false);
+        });
       });
     }, [notificationTitle]);
     assert.equal(error, false, 'Error sending notification: ' + error);
@@ -92,9 +93,10 @@ marionette('Notification events', function() {
     client.apps.launch(EMAIL_APP);
     client.apps.switchToApp(EMAIL_APP);
     var error = client.executeAsyncScript(function(title) {
-      var notification = new Notification(title);
-      notification.addEventListener('show', function() {
-        marionetteScriptFinished(false);
+      NotificationHelper.send(title).then(function(notification) {
+        notification.addEventListener('show', function() {
+          marionetteScriptFinished(false);
+        });
       });
     }, [notificationTitle]);
     assert.equal(error, false, 'Error sending notification: ' + error);
@@ -144,9 +146,10 @@ marionette('Notification events', function() {
     client.apps.switchToApp(EMAIL_APP);
     // Note: this will timeout on failure
     client.executeAsyncScript(function() {
-      var notification = new Notification('Title');
-      notification.addEventListener('close', function() {
-        marionetteScriptFinished();
+      NotificationHelper.send('Title').then(function(notification) {
+        notification.addEventListener('close', function() {
+          marionetteScriptFinished();
+        });
       });
       notification.close();
     });
@@ -159,9 +162,10 @@ marionette('Notification events', function() {
     client.apps.launch(EMAIL_APP);
     client.apps.switchToApp(EMAIL_APP);
     var error = client.executeAsyncScript(function(title) {
-      var notification = new Notification(title);
-      notification.addEventListener('show', function() {
-        marionetteScriptFinished(false);
+      NotificationHelper.send(title).then(function(notification) {
+        notification.addEventListener('show', function() {
+          marionetteScriptFinished(false);
+        });
       });
     }, [notificationTitle]);
     assert.equal(error, false, 'Error sending notification: ' + error);
@@ -263,9 +267,10 @@ marionette('Notification events', function() {
     client.apps.launch(EMAIL_APP);
     client.apps.switchToApp(EMAIL_APP);
     var error = client.executeAsyncScript(function(title) {
-      var notification = new Notification(title);
-      notification.addEventListener('show', function() {
-        marionetteScriptFinished(false);
+      NotificationHelper.send(title).then(function(notification) {
+        notification.addEventListener('show', function() {
+          marionetteScriptFinished(false);
+        });
       });
     }, [notificationTitle]);
     assert.equal(error, false, 'Error sending notification: ' + error);
@@ -344,7 +349,7 @@ marionette('Notification events', function() {
     client.switchToFrame();
     var result = client.executeAsyncScript(function(details) {
       var notification;
-      notification = new Notification('testtitle', details);
+      NotificationHelper.send('testtitle', details);
       window.addEventListener('mozChromeNotificationEvent', function(evt) {
         var rv = JSON.stringify(evt.detail.data) ==
                  JSON.stringify(details.data);
@@ -363,8 +368,7 @@ marionette('Notification events', function() {
     client.apps.switchToApp(EMAIL_APP);
 
     client.executeScript(function(details) {
-      var notification;
-      notification = new Notification('testtitle', details);
+      NotificationHelper.send('testtitle', details);
     }, [details]);
 
     client.switchToFrame();

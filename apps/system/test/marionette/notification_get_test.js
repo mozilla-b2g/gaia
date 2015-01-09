@@ -43,7 +43,7 @@ marionette('Notification.get():', function() {
       try {
         var title = 'test title';
         /* jshint unused:false */
-        var notification = new Notification(title);
+        var notification = NotificationHelper.send(title);
         var promise = Notification.get();
         promise.then(function(notifications) {
           if (!notifications || !notifications.length) {
@@ -76,7 +76,7 @@ marionette('Notification.get():', function() {
           tag: 'my tag:' + Date.now()
         };
 	/* jshint unused:false */
-        var notification = new Notification(title, options);
+        var notification = NotificationHelper.send(title, options);
         var promise = Notification.get({tag: options.tag});
         promise.then(function(notifications) {
           if (!notifications) {
@@ -112,9 +112,12 @@ marionette('Notification.get():', function() {
     client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
     var error = client.executeAsyncScript(function(title, tag) {
-      var notification = new Notification(title, {tag: tag});
-      notification.addEventListener('show', function() {
-        marionetteScriptFinished(false);
+      NotificationHelper.send(title, {
+        tagL10n: tag
+      }).then(function(notification) {
+        notification.addEventListener('show', function() {
+          marionetteScriptFinished(false);
+        });
       });
     }, [emailTitle, sharedTag]);
     assert.equal(error, false, 'email notification error: ' + error);
@@ -122,9 +125,12 @@ marionette('Notification.get():', function() {
     // switch to system app and send system notification
     client.switchToFrame();
     error = client.executeAsyncScript(function(title, tag) {
-      var notification = new Notification(title, {tag: tag});
-      notification.addEventListener('show', function() {
-        marionetteScriptFinished(false);
+      NotificationHelper.send(title, {
+        tagL10n: tag
+      }).then(function(notification) {
+        notification.addEventListener('show', function() {
+          marionetteScriptFinished(false);
+        });
       });
     }, [systemTitle, sharedTag]);
     assert.equal(error, false, 'system notification error: ' + error);
@@ -181,9 +187,12 @@ marionette('Notification.get():', function() {
     client.apps.switchToApp(CALENDAR_APP);
 
     var error = client.executeAsyncScript(function(title, tag) {
-      var notification = new Notification(title, {tag: tag});
-      notification.addEventListener('show', function() {
-        marionetteScriptFinished(false);
+      NotificationHelper.send(title, {
+        tagL10n: tag
+      }).then(function(notification) {
+        notification.addEventListener('show', function() {
+          marionetteScriptFinished(false);
+        });
       });
     }, [title, tag]);
     assert.equal(error, false, 'sending notification error: ' + error);
@@ -217,7 +226,7 @@ marionette('Notification.get():', function() {
   test('bug 931307, empty title should not cause crash', function(done) {
     var error = client.executeAsyncScript(function() {
       /* jshint unused:false */
-      var notification = new Notification('');
+      var notification = NotificationHelper.send('');
       var promise = Notification.get();
       promise.then(function() {
         marionetteScriptFinished(false);

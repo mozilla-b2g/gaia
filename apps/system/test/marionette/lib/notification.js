@@ -61,7 +61,7 @@ NotificationTest.prototype = {
         details.lang = notifyLang;
       }
 
-      new Notification(notifyTitle, details);
+      NotificationHelper.send(notifyTitle, details);
     }, [this.tag, this.title, this.body, this.dir, this.lang]);
   }
 };

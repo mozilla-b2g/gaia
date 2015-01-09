@@ -27,9 +27,10 @@ marionette('mozChromeNotifications:', function() {
           showOnlyOnce: true
         }
       };
-      var notification = new Notification(title, options);
-      notification.addEventListener('show', function() {
-        marionetteScriptFinished(false);
+      NotificationHelper.send(title, options).then(function(notification) {
+        notification.addEventListener('show', function() {
+          marionetteScriptFinished(false);
+        });
       });
     }, [notificationTitle]);
     assert.equal(error, false, 'Error on sending notification: ' + error);

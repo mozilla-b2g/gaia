@@ -449,8 +449,9 @@ var ActivityHandler = {
             tag: 'threadId:' + threadId
           };
 
-          var notification = new Notification(title, options);
-          notification.addEventListener('click', goToMessage);
+          NotificationHelper.send(title, options).then(function() {
+            notification.addEventListener('click', goToMessage);
+          });
           releaseWakeLock();
 
           // Close notification if we are already in thread view and view become

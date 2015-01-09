@@ -17,13 +17,14 @@ marionette('notification behavior tests', function() {
       'lockscreen.enabled': false
     }
   });
-  var notificationList = new NotificationList(client);
+  var notificationList = NotificationHelper.send(client);
 
   test('soundFile URL should be resolved properly', function(done) {
     client.switchToFrame();
     var result = client.executeAsyncScript(function() {
-      var notification;
-      notification = new Notification('testtitle', {mozbehavior: {}});
+      NotificationHelper.send('testtitle', {
+        mozbehaviorL10n: {}
+      });
       window.addEventListener('mozChromeNotificationEvent', function(evt) {
         var rv = evt.detail.mozbehavior.soundFile === '';
         marionetteScriptFinished(rv);
@@ -33,9 +34,9 @@ marionette('notification behavior tests', function() {
     assert.equal(result, true, 'mozbehavior.soundFile should be empty string');
 
     result = client.executeAsyncScript(function(app_url, sound_path) {
-      var notification;
-      notification = new Notification('testtitle',
-        {mozbehavior: {soundFile: sound_path}});
+      NotificationHelper.send('testtitle', {
+        mozbehaviorL10N: {soundFile: sound_path}
+      });
       window.addEventListener('mozChromeNotificationEvent', function(evt) {
         var sound_url = app_url + sound_path;
         var rv = evt.detail.mozbehavior.soundFile === sound_url;
@@ -68,9 +69,9 @@ marionette('notification behavior tests', function() {
     // create 2 notifications: one that cannot be cleared using the ClearAll
     // button and a regular notification
     result = client.executeAsyncScript(function() {
-      var notification;
-      notification = new Notification('title', {
-        mozbehavior: {noclear:true}});
+      NotificationHelper.send('title', {
+        mozbehaviorL10n: {noclear:true}
+      });
       window.addEventListener('mozChromeNotificationEvent', function(evt) {
         marionetteScriptFinished(evt.detail.mozbehavior.noclear);
       });
@@ -79,9 +80,11 @@ marionette('notification behavior tests', function() {
     assert.equal(result, true, 'mozbehavior.noclear should be true');
 
     client.executeAsyncScript(function() {
-      var notification;
-      notification = new Notification('title2');
-      notification.onshow = function() { marionetteScriptFinished(true); };
+      NotificationHelper.send('title2').then(function(notification) {
+        notification.addEventListener('show', function() {
+          marionetteScriptFinished(true);
+        });
+      });
     });
 
     notificationList.refresh();
@@ -95,10 +98,14 @@ marionette('notification behavior tests', function() {
       var clearAll = document.getElementById('notification-clear');
       var event = document.createEvent('CustomEvent');
       event.initCustomEvent('click', true, true, {});
-      var notification;
-      notification = new Notification('title 3');
-      notification.onclose = function(){ marionetteScriptFinished(true); };
-      notification.onshow = function(){ clearAll.dispatchEvent(event); };
+      NotificationHelper.send('title 3').then(function(notification) {
+        notification.addEventListener('close' function() {
+          marionetteScriptFinished(true);
+        });
+        notification.addEventListener('show' function() {
+          clearAll.dispatchEvent(event);
+        });
+      });
     });
 
     notificationList.refresh();
@@ -118,9 +125,9 @@ marionette('notification behavior tests', function() {
 
     // create a notification that shouldn't turn the screen on
     var result = client.executeAsyncScript(function() {
-      var notification;
-      notification = new Notification('title', {
-        mozbehavior: {noscreen:true}});
+      NotificationHelper.send('title', {
+        mozbehaviorL10n: {noscreen:true}
+      });
       window.addEventListener('mozChromeNotificationEvent', function(evt) {
         marionetteScriptFinished(evt.detail.mozbehavior.noscreen);
       });
@@ -142,8 +149,9 @@ marionette('notification behavior tests', function() {
 
     function sendNotification(pattern) {
       var notification;
-      notification = new Notification('title', {
-        mozbehavior: {vibrationPattern: pattern}});
+      NotificationHelper.send('title', {
+        mozbehaviorL10n: {vibrationPattern: pattern}
+      });
       window.addEventListener('mozChromeNotificationEvent', function(evt) {
         var rv = JSON.stringify(evt.detail.mozbehavior.vibrationPattern) ===
           JSON.stringify(pattern);

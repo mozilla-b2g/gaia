@@ -430,12 +430,12 @@
         tag: notificationId
       };
 
-      var notification = new Notification(title, options);
-
-      // set onclick handler for the notification
-      notification.onclick =
-        this.notificationHandler.bind(this, notification, openSettings);
-    },
+      NotificationHelper.send(title, options).then(function(notification) {
+        // set onclick handler for the notification
+        notification.addEventListener('click' function() {
+          this.notificationHandler.bind(this, notification, openSettings);
+        });
+      });
 
     /**
      * Handle notification while it be triggered 'onclick' event.

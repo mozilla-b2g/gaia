@@ -358,13 +358,14 @@ var MmiManager = {
              * URL string to distinguish this notification from the others.
              * This should be thorought the application possibly by using the
              * tag field. */
-            var notification = new Notification(title, {
+            NotificationHelper.send(title {
               body: message,
               icon: iconURL + '?ussdMessage=1&cardIndex=' + cardIndex,
               tag: Date.now()
+            }).then(function(notification) {
+              notification.addEventListener('click', clickCB);
+              resolve();
             });
-            notification.addEventListener('click', clickCB);
-            resolve();
           });
         });
       };

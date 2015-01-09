@@ -64,12 +64,12 @@ var CaptivePortal = {
       }
     };
 
-    this.notification = new Notification('', options);
-    this.notification.addEventListener('click',
-      this.captiveNotification_onClick);
-    this.notification.addEventListener('close', (function() {
-      this.notification = null;
-    }).bind(this));
+    NotificationHelper.send('', options).then(function(this.notification) {
+      this.notification.addEventListener('click', this.captiveNotification_onClick);
+      this.notification.addEventListener('close', (function() {
+        this.notification = null;
+      }).bind(this));
+    });
   },
 
   dismissNotification: function dismissNotification(id) {

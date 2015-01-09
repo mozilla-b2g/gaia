@@ -45,9 +45,10 @@ marionette('mozChromeNotifications:', function() {
     client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
     var error = client.executeAsyncScript(function(title) {
-      var notification = new Notification('Title');
-      notification.addEventListener('close', function() {
-        marionetteScriptFinished(false);
+      NotificationHelper.send('Title').then(function(notification) {
+        notification.addEventListener('close', function() {
+          marionetteScriptFinished(false);
+        });
       });
       notification.close();
     });
@@ -77,9 +78,10 @@ marionette('mozChromeNotifications:', function() {
     client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
     var error = client.executeAsyncScript(function(title) {
-      var notification = new Notification(title);
-      notification.addEventListener('show', function() {
-        marionetteScriptFinished(false);
+      NotificationHelper.send(title).then(function(notification) {
+        notification.addEventListener('show', function() {
+          marionetteScriptFinished(false);
+        });
       });
     }, [notificationTitle]);
     assert.equal(error, false, 'Error on sending notification: ' + error);
@@ -109,12 +111,14 @@ marionette('mozChromeNotifications:', function() {
     client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
     var error = client.executeAsyncScript(function(title) {
-      var notification1 = new Notification(title + '--1');
-      notification1.addEventListener('show', function() {
-        var notification2 = new Notification(title + '--2');
-        notification2.addEventListener('show', function() {
-          marionetteScriptFinished(false);
-	});
+      NotificationHelper.send(title + '--1').then(function(notification1) {
+        notification1.addEventListener('show', function() {
+          NotificationHelper.send(title + '--2').then(function(notification2) {
+            notification2.addEventListener('show', function() {
+              marionetteScriptFinished(false);
+            });
+          });
+        });
       });
     }, [notificationTitle]);
     assert.equal(error, false, 'Error on sending notification: ' + error);
@@ -144,14 +148,16 @@ marionette('mozChromeNotifications:', function() {
     client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
     var error = client.executeAsyncScript(function(title) {
-      var notification1 = new Notification(title + '--1');
-      notification1.addEventListener('show', function() {
-        notification1.close();
-        var notification2 = new Notification(title + '--2');
-        notification2.addEventListener('show', function() {
-          marionetteScriptFinished(false);
-	});
-      });
+      NotificationHelper.send(title + '--1').then(function(notification1) {
+        notification1.addEventListener('show', function() {
+          notification1.close();
+          NotificationHelper.send(title + '--2').then(function(notification2) {
+            notification2.addEventListener('show', function() {
+              marionetteScriptFinished(false);
+            });
+          });
+        });
+      });      
     }, [notificationTitle]);
     assert.equal(error, false, 'Error on sending notification: ' + error);
 
@@ -180,9 +186,10 @@ marionette('mozChromeNotifications:', function() {
     client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
     var error = client.executeAsyncScript(function(title) {
-      var notification = new Notification(title);
-      notification.addEventListener('show', function() {
-        marionetteScriptFinished(false);
+      NotificationHelper.send(title).then(function(notification) {
+        notification.addEventListener('show', function() {
+          marionetteScriptFinished(false);
+        });
       });
     }, [notificationTitle]);
     assert.equal(error, false, 'Error sending notification: ' + error);

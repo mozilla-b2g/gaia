@@ -556,12 +556,12 @@ var icc_worker = {
   '0x28': function STK_CMD_SET_UP_IDLE_MODE_TEXT(message) {
     DUMP('STK_CMD_SET_UP_IDLE_MODE_TEXT:', message.command.options);
     var options = message.command.options;
-    this.idleTextNotifications[message.iccId] = new Notification(
+    this.idleTextNotifications[message.iccId] = NotificationHelper.send(
       'SIM ' + icc.getSIMNumber(message.iccId) + ' STK', {
-        body: options.text,
-        icon: 'style/icons/system.png',
-        tag: 'stkNotification_' + message.iccId,
-        mozbehavior: {
+        bodyL10n: options.text,
+        iconL10n: 'style/icons/system.png',
+        tagL10n: 'stkNotification_' + message.iccId,
+        mozbehaviorL10n: {
           showOnlyOnce: true
         }
       });

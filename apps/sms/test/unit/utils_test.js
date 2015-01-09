@@ -996,7 +996,7 @@ suite('Utils', function() {
     });
 
     test('notification matched', function(done) {
-      var notification = new Notification('test', {});
+      NotificationHelper.send('test', {});
       Notification.get.returns(Promise.resolve([notification]));
       Utils.closeNotificationsForThread('matched').then(function() {
         sinon.assert.called(closeStub);
@@ -1026,7 +1026,7 @@ suite('Utils', function() {
 
     test('closing notification error', function(done) {
       closeStub.throws('GenericError');
-      var notification = new Notification('test', {});
+      NotificationHelper.send('test', {});
       Notification.get.returns(Promise.resolve([notification]));
       Utils.closeNotificationsForThread('closeError').then(function() {
         sinon.assert.called(closeStub);

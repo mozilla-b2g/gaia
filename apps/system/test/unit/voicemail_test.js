@@ -104,15 +104,15 @@ suite('voicemail notification', function() {
     var voicemailSpy, systemSpy;
 
     setup(function() {
-      voicemailNotification = new Notification('Voicemail', {
-        body: 'Voicemail notification',
-        tag: 'voicemailNotification:12347890'
+      voicemailNotification = NotificationHelper.send('Voicemail', {
+        bodyL10n: 'Voicemail notification',
+        tagL10n: 'voicemailNotification:12347890'
       });
       voicemailSpy = this.sinon.spy(voicemailNotification, 'close');
 
-      systemNotification = new Notification('Battery', {
-        body: 'Battery notification',
-        tag: 'powerLevelCritical'
+      systemNotification = NotificationHelper.send('Battery', {
+        bodyL10n: 'Battery notification',
+        tagL10n: 'powerLevelCritical'
       });
       systemSpy = this.sinon.spy(systemNotification, 'close');
 
