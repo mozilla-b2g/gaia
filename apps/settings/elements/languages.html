@@ -2,19 +2,19 @@
   <template>
 
     <gaia-header action="back" data-href="#root">
-      <h1 data-l10n-id="language-header"> Language </h1>
+      <h1 data-l10n-id="language-header"></h1>
     </gaia-header>
 
     <div>
       <ul>
         <li>
-          <p data-l10n-id="language">Language</p>
+          <p data-l10n-id="language"></p>
           <span class="button icon icon-dialog">
             <select name="language.current"></select>
           </span>
         </li>
         <li hidden>
-          <p data-l10n-id="region">Region</p>
+          <p data-l10n-id="region"></p>
           <span class="button icon icon-dialog">
             <select name="region.current">
               <option value="BR">Brasil</option>
@@ -29,15 +29,20 @@
             </select>
           </span>
         </li>
+        <li>
+          <a class="menu-item menuItem-more-languages" href="#">
+            <span data-l10n-id="more-languages"></span>
+          </a>
+        </li>
       </ul>
 
       <header>
-        <h2 data-l10n-id="sample-format">Sample Format</h2>
+        <h2 data-l10n-id="sample-format"></h2>
       </header>
       <ul>
         <li class="description">
-          <p id="region-date">Friday, September 28 2012</p>
-          <p id="region-time">06:54 PM</p>
+          <p id="region-date"></p>
+          <p id="region-time"></p>
         </li>
       </ul>
     </div>

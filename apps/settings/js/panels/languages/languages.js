@@ -2,6 +2,7 @@ define(function(require) {
   'use strict';
 
   // AMD modules
+  var SettingsCache = require('modules/settings_cache');
   var KeyboardHelper = require('shared/keyboard_helper');
   var LanguageList = require('shared/language_list');
   // import this to update time format while laungage changed
@@ -21,8 +22,8 @@ define(function(require) {
           option.selected = isCurrent;
           options.appendChild(option);
         }
-        this.langSel.innerHTML = '';
-        this.langSel.appendChild(options);
+        this.elements.langSel.innerHTML = '';
+        this.elements.langSel.appendChild(options);
       }.bind(this));
     },
     updateDateTime: function() {
@@ -37,11 +38,25 @@ define(function(require) {
           f.localeFormat(d, _('shortTimeFormat'));
       }
     },
-    onInit: function(panel) {
+    showMoreLanguages: function() {
+      SettingsCache.getSettings(function(result) {
+        var version = result['deviceinfo.os'];
+        /* jshint -W031 */
+        new window.MozActivity({
+          name: 'marketplace-langpacks',
+          data: {
+            // Marketplace expects major.minor
+            version: version.split('.').slice(0, 2).join('.')
+          }
+        });
+      });
+    },
+    onInit: function(panel, elements) {
       this.panel = panel;
-      this.langSel =
-        this.panel.querySelector('select[name="language.current"]');
-      this.langSel.addEventListener('blur', this.buildList.bind(this));
+      this.elements = elements;
+
+      this.elements.moreLanguages.onclick = this.showMoreLanguages;
+      this.elements.langSel.onblur = this.buildList.bind(this);
     },
     onLocalized: function() {
       // update keyboard layout

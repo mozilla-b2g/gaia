@@ -23,7 +23,11 @@ define(function(require) {
           'additionallanguageschange', onAdditionalLanguagesChange);
       },
       onInit: function(panel) {
-        languages.onInit(panel);
+        var elements = {
+          moreLanguages: panel.querySelector('.menuItem-more-languages'),
+          langSel: panel.querySelector('select[name="language.current"]')
+        };
+        languages.onInit(panel, elements);
       }
     });
   };
