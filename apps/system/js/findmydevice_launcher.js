@@ -66,17 +66,19 @@ function FMDInit() {
         var _ = navigator.mozL10n.get;
         var icon = 'style/find_my_device/images/findMyDevice.png';
         var title = _('unable-to-connect');
+        var body = _('tap-to-check-settings');
 
-        NotificationHelper.send(title, {
-          bodyL10n: {id: 'tap-to-check-settings'},
-          icon:icon,
-          tag: FMD_ENABLE_FAILURE_NOTIFICATION_TAG
-        }).then(function(notification) {
-          notification.addEventListener('click' function(evt) {
-            FMDOpenSettings();
-            notification.close();
+        var notification = new Notification(title,
+          {
+            body:body,
+            icon:icon,
+            tag: FMD_ENABLE_FAILURE_NOTIFICATION_TAG
           });
-        });
+
+        notification.onclick = function(evt) {
+          FMDOpenSettings();
+          notification.close();
+        };
       }
     });
 

@@ -46,7 +46,7 @@
       if (_details.lang) {
         details.lang = _details.lang;
       }
-      var notification = NotificationHelper.send(_details.title, details);
+      var notification = new Notification(_details.title, details);
       // XXX: Because to return DOM notification would block process.
       return JSON.parse(JSON.stringify(notification));
     }, [details]);

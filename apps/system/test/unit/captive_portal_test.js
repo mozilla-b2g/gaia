@@ -103,9 +103,9 @@ suite('captive portal > ', function() {
     expectedBody =
       'captive-wifi-available{"networkName":"' + expectedSSID + '"}';
 
-    previousCaptiveNotification = NotificationHelper.send('', {
-      bodyL10n: 'previousCaptiveNotification',
-      tagL10n: expectedTag
+    previousCaptiveNotification = new Notification('', {
+      body: 'previousCaptiveNotification',
+      tag: expectedTag
     });
 
     notificationGetStub = function notificationGet() {

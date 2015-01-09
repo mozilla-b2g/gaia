@@ -99,12 +99,7 @@ var Voicemail = {
       }
     };
 
-    NotificationHelper.send(title, notifOptions).then(function(notification) {
-      notification.addEventListener('click', voicemailNumber ? callVoicemail : showNoVoicemail);
-      notification.addEventListener('close', (function vm_closeNotification(evt) {
-        this.notifications[serviceId] = null;
-      }).bind(this));
-    });
+    var notification = new Notification(title, notifOptions);
 
     var callVoicemail = function vmNotificationCall_onClick(event) {
       var telephony = window.navigator.mozTelephony;
@@ -144,6 +139,13 @@ var Voicemail = {
         voicemailDialog.confirm, voicemailDialog.cancel
       );
     }).bind(this);
+
+    notification.addEventListener('click',
+      voicemailNumber ? callVoicemail : showNoVoicemail);
+
+    notification.addEventListener('close', (function vm_closeNotification(evt) {
+      this.notifications[serviceId] = null;
+    }).bind(this));
 
     this.notifications[serviceId] = notification;
   },

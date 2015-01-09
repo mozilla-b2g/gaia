@@ -199,13 +199,12 @@
       tag: message.timestamp
     };
 
-    NotificationHelper.send(title, options, {
-      notification.addEventListener('click', {
-        function wpm_onNotificationClick(event) {
-          wpm_displayWapPushMessage(event.target.tag);
-        }
-      });
-    });
+    var notification = new Notification(title, options);
+    notification.addEventListener('click',
+      function wpm_onNotificationClick(event) {
+        wpm_displayWapPushMessage(event.target.tag);
+      }
+    );
   }
 
   /**

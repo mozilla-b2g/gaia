@@ -75,20 +75,20 @@ define(function(require) {
           });
         }
 
-        NotificationHelper.send(title, notificationOptions).then(function(notification) {
-          // If the app is open, but in the background, when the notification
-          // comes in, then we do not get notifived via our mozSetMessageHandler
-          // that is set elsewhere. Instead need to listen to click event
-          // and synthesize an "event" ourselves.
-          notification.addEventListener('click' function() {
-            evt.emit('notification', {
-              clicked: true,
-              imageURL: iconUrl,
-              data: data,
-              tag: notificationId
-            });
+        var notification = new Notification(title, notificationOptions);
+
+        // If the app is open, but in the background, when the notification
+        // comes in, then we do not get notifived via our mozSetMessageHandler
+        // that is set elsewhere. Instead need to listen to click event
+        // and synthesize an "event" ourselves.
+        notification.onclick = function() {
+          evt.emit('notification', {
+            clicked: true,
+            imageURL: iconUrl,
+            data: data,
+            tag: notificationId
           });
-        });
+        };
       };
     }
 

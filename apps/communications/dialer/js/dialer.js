@@ -257,12 +257,9 @@ var CallHandler = (function callHandler() {
               app.launch('dialer');
               window.location.hash = '#call-log-view';
             };
-            NotificationHelper.send(title, {
-              body: body, 
-              icon: iconURL
-            }).then(function(notification) {
-              notification.addEventListener('click', clickCB);
-            });
+            var notification =
+              new Notification(title, {body: body, icon: iconURL});
+            notification.addEventListener('click', clickCB);
           };
         });
       });

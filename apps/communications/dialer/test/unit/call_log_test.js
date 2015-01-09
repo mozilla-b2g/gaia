@@ -641,8 +641,8 @@ suite('dialer/call_log', function() {
         return {
           then: function(onSuccess, onError, onProgress) {
             onSuccess([
-              NotificationHelper.send('0', options),
-              NotificationHelper.send('1', options)
+              new Notification('0', options),
+              new Notification('1', options)
             ]);
           }
         };
