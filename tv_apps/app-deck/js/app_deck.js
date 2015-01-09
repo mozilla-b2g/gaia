@@ -4,6 +4,9 @@
 (function(exports) {
   'use strict';
 
+  const ICON_SIZE = 180 * (window.devicePixelRatio || 1);
+  const DEFAULT_ICON_PATH = 'style/icons/appic_developer.png';
+
   var AppDeck = function() {
   };
 
@@ -61,7 +64,24 @@
         that._spatialNavigator.focus();
         that._contextMenu = new ContextMenu();
         that._contextMenu.init(that);
+        Applications.on('install', that.onAppInstalled.bind(that));
+        Applications.on('update', that.onAppUpdated.bind(that));
+        Applications.on('uninstall', that.onAppUninstalled.bind(that));
       });
+    },
+
+    _fillAppButtonIcon: function ad_fillAppButtonIcon(app, elem) {
+      Applications.getIconBlob(app.manifestURL, app.entryPoint, ICON_SIZE,
+        function(blob) {
+          var iconURL = blob ? URL.createObjectURL(blob) : DEFAULT_ICON_PATH;
+          if (elem.dataset.revokableURL) {
+            // make sure to revoke iconURL once it is no longer needed.
+            // For example, icon is changed or app is uninstalled
+            URL.revokeObjectURL(elm.dataset.revokableURL);
+          }
+          elem.dataset.revokableURL = iconURL;
+          elem.style.backgroundImage = 'url("' + iconURL + '")';
+        });
     },
 
     _createAppGridElement: function ad_createAppGridElement(app) {
@@ -74,24 +94,7 @@
       appButton.classList.add('app-button');
       appButton.classList.add('navigable');
       appButton.setAttribute('label', app.name);
-
-      var ICON_SIZE_VIEWPORT_WIDTH_RATIO = 10;
-      // XXX: width of container is 10vw, so the best fit icon will be
-      // viewport size * (10/100) if viewport is not scalable. However this
-      // value is subject to change once UX spec has definition on it.
-      var bestFitIconSize =
-        Math.max(window.innerWidth, window.innerHeight) /
-        ICON_SIZE_VIEWPORT_WIDTH_RATIO;
-      Applications.getIconBlob(
-        app.manifestURL, app.entryPoint, bestFitIconSize, function(blob) {
-          var iconURL = blob ? URL.createObjectURL(blob) :
-            'style/icons/appic_developer.png';
-          // XXX: make sure to revoke iconURL once it is no longer needed.
-          // For example, icon is changed or app is uninstalled
-          appButton.dataset.revokableURL = iconURL;
-          appButton.style.backgroundImage = 'url("' + iconURL + '")';
-        });
-
+      this._fillAppButtonIcon(app, appButton);
       return appButton;
     },
 
@@ -181,6 +184,47 @@
         }
       }
       this._spatialNavigator.move(key);
+    },
+
+    onAppInstalled: function ad_onAppInstalled(apps) {
+      var that = this;
+      var appGridElements = apps.map(this._createAppGridElement.bind(this));
+      appGridElements.forEach(function(appGridElem) {
+        that._appDeckGridViewElem.appendChild(appGridElem);
+        that._spatialNavigator.add(appGridElem);
+      });
+    },
+
+    onAppUpdated: function ad_onAppUpdated(apps) {
+      var that = this;
+      var appGridElements = apps.map(this._findAppGridElement.bind(this));
+      appGridElements.forEach(function(elem, index) {
+        var app = apps[index];
+        elem.dataset.name = app.name;
+        that._fillAppButtonIcon(app, elem);
+      });
+    },
+
+    onAppUninstalled: function ad_onAppUninstalled(apps) {
+      // TODO: uninstall an app will be fixed in bug 1115633
+    },
+
+    _findAllAppGridElements: function ad_findallAppGridElements() {
+      return SharedUtils.nodeListToArray(
+        document.getElementsByTagName('app-button'));
+    },
+
+    _findAppGridElement: function ad_findAppGridElement(app) {
+      var elements = this._findAllAppGridElements();
+      var found;
+      elements.some(function(element) {
+        if (element.dataset.manifestURL === app.manifestURL) {
+          found = element;
+          return true;
+        }
+        return false;
+      });
+      return found;
     }
   });
 

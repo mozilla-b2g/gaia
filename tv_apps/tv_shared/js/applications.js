@@ -175,6 +175,29 @@
       }
     },
 
+    onAppInstall: function onAppInstall(evt) {
+      var app = evt.application;
+      var manifest = app.manifest || app.updateManifest;
+
+      if (!app.launch || !manifest || !manifest.icons ||
+          this._isHiddenApp(manifest.role)) {
+        return;
+      }
+
+      var message =
+        this.installedApps[app.manifestURL] ? 'update' : 'install';
+      this.installedApps[app.manifestURL] = app;
+      this.fire(message, this.getAppEntries(app.manifestURL));
+    },
+
+    onAppUninstall: function onAppUninstall(evt) {
+      var app = evt.application;
+      if (this.installedApps[app.manifestURL]) {
+        delete this.installedApps[app.manifestURL];
+        this.fire('uninstall', this.getAppEntries(app.manifestURL));
+      }
+    },
+
     /**
      * Initialize Applications.
      *
@@ -210,28 +233,8 @@
         }
       };
 
-      appMgmt.oninstall = function(evt) {
-        var app = evt.application;
-        var manifest = app.manifest || app.updateManifest;
-
-        if (!app.launch || !manifest || !manifest.icons ||
-            self._isHiddenApp(manifest.role)) {
-          return;
-        }
-
-        var message =
-          self.installedApps[app.manifestURL] ? 'update' : 'install';
-        self.installedApps[app.manifestURL] = app;
-        self.fire(message, self.getAppEntries(app.manifestURL));
-      };
-
-      appMgmt.onuninstall = function(evt) {
-        var app = evt.application;
-        if (self.installedApps[app.manifestURL]) {
-          delete self.installedApps[app.manifestURL];
-          self.fire('uninstall', self.getAppEntries(app.manifestURL));
-        }
-      };
+      appMgmt.addEventListener('install', this);
+      appMgmt.addEventListener('uninstall', this);
     },
 
     /**
@@ -440,6 +443,17 @@
         }
       }
       return matched;
+    },
+
+    handleEvent: function handleEvent(evt) {
+      switch(evt.type) {
+        case 'install':
+          this.onAppInstall(evt);
+          break;
+        case 'uninstall':
+          this.onAppUninstall(evt);
+          break;
+      }
     }
   });
 
