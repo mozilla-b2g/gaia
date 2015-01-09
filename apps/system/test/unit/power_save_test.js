@@ -1,5 +1,6 @@
 'use strict';
 /* global BatteryOverlay,
+          NotificationHelper,
           MockBluetooth,
           MockNavigatorBattery,
           MockNavigatorSettings,
@@ -157,6 +158,16 @@ suite('power save >', function() {
         subject._powerSaveEnabled = false;
         subject.onBatteryChange();
         sinon.assert.notCalled(setSpy);
+      });
+    });
+
+    suite('showPowerSavingNotification behavior', function() {
+      test('notification sent with showOnlyOnce behavior', function() {
+        var notificationSpy = this.sinon.spy(NotificationHelper, 'send');
+        subject.showPowerSavingNotification();
+        sinon.assert.calledOnce(notificationSpy);
+        assert.isObject(notificationSpy.args[0][1].mozbehavior);
+        assert.isTrue(notificationSpy.args[0][1].mozbehavior.showOnlyOnce);
       });
     });
 
