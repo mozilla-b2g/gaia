@@ -39,6 +39,7 @@ requireApp('system/js/devtools/developer_hud.js');
 requireApp('system/js/dialer_agent.js');
 requireApp('system/js/external_storage_monitor.js');
 requireApp('system/js/ftu_launcher.js');
+requireApp('system/js/global_overlay_window_manager.js');
 requireApp('system/js/rocketbar.js');
 requireApp('system/js/home_gesture.js');
 requireApp('system/js/homescreen_launcher.js');

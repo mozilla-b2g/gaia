@@ -7,7 +7,7 @@
   pointer-events: none;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow):not(.lockScreenInputWindow) {
+.appWindow:not(.homescreen):not(.searchWindow):not(.lockScreenInputWindow):not(.globalOverlayWindow) {
   background-color: black;
 }
 
@@ -31,8 +31,7 @@
   pointer-events: auto;
 }
 
-
-.appWindow:not(.homescreen):not(.searchWindow).light {
+.appWindow:not(.homescreen):not(.searchWindow):not(.globalOverlayWindow).light {
   background-color: #fff;
 }
 
@@ -48,15 +47,15 @@
   background-size: auto 0.3rem;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow).render > div.browser-container {
+.appWindow:not(.homescreen):not(.searchWindow):not(.globalOverlayWindow).render > div.browser-container {
   background-color: #fff;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow).light.render > div.browser-container {
+.appWindow:not(.homescreen):not(.searchWindow):not(.globalOverlayWindow).light.render > div.browser-container {
   background-color: #f2f2f2;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow).render > div.browser-container > iframe {
+.appWindow:not(.homescreen):not(.searchWindow):not(.globalOverlayWindow).render > div.browser-container > iframe {
   background-color: #fff;
 }
 

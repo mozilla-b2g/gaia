@@ -156,6 +156,8 @@ window.addEventListener('load', function startup() {
   /** @global */
   window.attentionWindowManager = new window.AttentionWindowManager();
   window.attentionWindowManager.start();
+  window.globalOverlayWindowManager = new window.GlobalOverlayWindowManager();
+  window.globalOverlayWindowManager.start();
   window.dialerAgent = new DialerAgent();
   window.dialerAgent.start();
   window.edgeSwipeDetector = new EdgeSwipeDetector();
