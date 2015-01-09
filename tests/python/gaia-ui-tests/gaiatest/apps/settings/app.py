@@ -58,10 +58,12 @@ class Settings(Base):
 
     def launch(self):
         Base.launch(self)
-        self.wait_for_element_present(*self._app_loaded_locator)
+        Wait(self.marionette).until(
+            expected.element_present(*self._app_loaded_locator))
 
     def switch_to_settings_app(self):
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.name)
+        Wait(self.marionette).until(
+            lambda m: self.apps.displayed_app.name == self.name)
         self.apps.switch_to_displayed_app()
 
     def wait_for_airplane_toggle_ready(self):
@@ -70,11 +72,9 @@ class Settings(Base):
     def toggle_airplane_mode(self):
         checkbox = self.marionette.find_element(*self._airplane_checkbox_locator)
         label = self.marionette.find_element(*self._airplane_switch_locator)
-
-        checkbox_state = checkbox.is_selected()
-
+        state = checkbox.is_selected()
         label.tap()
-        self.wait_for_condition(lambda m: checkbox_state is not checkbox.is_selected())
+        Wait(self.marionette).until(lambda m: state is not checkbox.is_selected())
 
     def wait_for_usb_storage_toggle_ready(self):
         self._wait_for_toggle_ready(*self._usb_storage_checkbox_locator)
@@ -90,22 +90,26 @@ class Settings(Base):
         return self.marionette.find_element(*self._usb_storage_checkbox_locator).is_selected()
 
     def confirm_usb_storage(self):
-        element = Wait(self.marionette).until(expected.element_present(*self._usb_storage_confirm_button_locator))
+        element = Wait(self.marionette).until(
+            expected.element_present(
+                *self._usb_storage_confirm_button_locator))
         Wait(self.marionette).until(expected.element_displayed(element))
         element.tap()
 
     def enable_gps(self):
         self.marionette.find_element(*self._gps_switch_locator).tap()
-        self.wait_for_condition(lambda m: self.is_gps_enabled)
+        checkbox = self.marionette.find_element(*self._gps_enabled_locator)
+        Wait(self.marionette).until(expected.element_selected(checkbox))
 
     def disable_gps(self):
         self.marionette.find_element(*self._gps_switch_locator).tap()
-        self.wait_for_condition(lambda m: not self.is_gps_enabled)
+        checkbox = self.marionette.find_element(*self._gps_enabled_locator)
+        Wait(self.marionette).until(expected.element_not_selected(checkbox))
 
     @property
     def is_gps_enabled(self):
-        checkbox = self.marionette.find_element(*self._gps_enabled_locator)
-        return checkbox.is_selected()
+        return self.marionette.find_element(
+            *self._gps_enabled_locator).is_selected()
 
     @property
     def header_text(self):
@@ -159,7 +163,6 @@ class Settings(Base):
 
     def open_bluetooth_settings(self):
         from gaiatest.apps.settings.regions.bluetooth import Bluetooth
-        bluetooth_menu_item = self.marionette.find_element(*self._bluetooth_menu_item_locator)
         self._tap_menu_item(self._bluetooth_menu_item_locator)
         return Bluetooth(self.marionette)
 
@@ -256,15 +259,16 @@ class Settings(Base):
         menu_item = self.marionette.find_element(*menu_item_locator)
 
         # Some menu items require some async setup to be completed
-        self.wait_for_condition(lambda m: not menu_item.find_element(
-            By.XPATH, 'ancestor::li').get_attribute('aria-disabled'))
+        element = menu_item.find_element(By.XPATH, 'ancestor::li')
+        Wait(self.marionette).until(
+            lambda m: not element.get_attribute('aria-disabled'))
 
         return menu_item
 
     def _wait_for_parent_section_not_displayed(self, menu_item):
-        parent_section = menu_item.find_element(By.XPATH, 'ancestor::section')
-        self.wait_for_condition(
-            lambda m: parent_section.location['x'] + parent_section.size['width'] == 0)
+        section = menu_item.find_element(By.XPATH, 'ancestor::section')
+        Wait(self.marionette).until(
+            lambda m: section.location['x'] + section.size['width'] == 0)
 
     def _tap_menu_item(self, menu_item_locator):
         menu_item = self._wait_for_menu_item(menu_item_locator)
@@ -278,4 +282,4 @@ class Settings(Base):
 
     def _wait_for_toggle_ready(self, by, locator):
         checkbox = self.marionette.find_element(by, locator)
-        Wait(self.marionette).until(lambda m: checkbox.is_enabled())
+        Wait(self.marionette).until(expected.element_enabled(checkbox))
