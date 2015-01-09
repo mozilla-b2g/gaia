@@ -48,7 +48,9 @@
   /**
   `app.manifest.role`s which should not be displayed on the grid.
   */
-  Mozapp.HIDDEN_ROLES = ['system', 'input', 'homescreen', 'search', 'addon'];
+  Mozapp.HIDDEN_ROLES = [
+    'system', 'input', 'homescreen', 'search', 'addon', 'langpack'
+  ];
 
   Mozapp.prototype = {
 
