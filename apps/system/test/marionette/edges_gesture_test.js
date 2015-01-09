@@ -110,15 +110,19 @@ marionette('Edges gesture >', function() {
     assert(calendar.displayed(), 'calendar is still visible');
   });
 
-  // Bug 1116128 - Intermittent | Edges gesture > Swiping vertically
-  test.skip('Swiping vertically', function() {
+  test('Swiping vertically', function() {
     // Going to the settings app first
     edgeSwipeToApp(sys.leftPanel, 0, halfWidth, calendar, settings);
     assert(settings.displayed(), 'settings is visible');
 
-    // Mostly vertical swipe
-    actions.flick(sys.leftPanel, 5, halfHeight, 45, 40, 100).perform();
+    // Mostly vertical swipe sarting on the edge zone
+    actions.flick(sys.leftPanel, 5, halfHeight + 40, 45, 40, 50).perform();
     assert(settings.displayed(), 'settings is still visible');
+
+    // The actual amount scrolled depends on the scrolling physics,
+    // BrowserElementPanning or APZ... but we only care about the
+    // view actually scrolling.
+    var fuzz = 0.7;
 
     // Checking that the settings app scrolled
     client.apps.switchToApp(SETTINGS_APP);
@@ -127,7 +131,7 @@ marionette('Edges gesture >', function() {
         return document.querySelector('#root > div').scrollTop;
       });
 
-      return scrollY >= 200; // halfHeight - 40
+      return scrollY >= halfHeight * fuzz;
     });
     assert(true, 'the settings app scrolled');
   });
