@@ -4,8 +4,7 @@
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.system.regions.cards_view import CardsView
-from gaiatest.apps.system.regions.status_bar import StatusBar
-from marionette.by import By
+from gaiatest.apps.system.app import System
 
 
 class TestCardsViewStatusbarVisibilityAccessibility(GaiaTestCase):
@@ -21,7 +20,7 @@ class TestCardsViewStatusbarVisibilityAccessibility(GaiaTestCase):
     def test_a11y_cards_view_status_bar_visibility(self):
 
         cards_view = CardsView(self.marionette)
-        status_bar = StatusBar(self.marionette)
+        status_bar = System(self.marionette).status_bar
 
         # Pull up the cards view
         self.device.hold_home_button()

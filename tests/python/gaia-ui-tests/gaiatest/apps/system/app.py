@@ -11,6 +11,7 @@ class System(Base):
 
     # status bar
     _status_bar_locator = (By.CSS_SELECTOR, '.appWindow.active .titlebar')
+    _status_bar_root_locator = (By.ID, 'statusbar')
     _geoloc_statusbar_locator = (By.CSS_SELECTOR, '#statusbar-minimized-wrapper #statusbar-geolocation')
     _airplane_mode_statusbar_locator = (By.CSS_SELECTOR, '#statusbar-minimized-wrapper #statusbar-flight-mode')
     _utility_tray_locator = (By.ID, 'utility-tray')
@@ -21,6 +22,13 @@ class System(Base):
     _update_manager_toaster_locator = (By.ID, 'update-manager-toaster')
 
     _software_home_button_locator = (By.ID, 'software-home-button')
+
+    @property
+    def status_bar(self):
+        self.marionette.switch_to_frame()
+        from gaiatest.apps.system.regions.status_bar import StatusBar
+        element = self.marionette.find_element(*self._status_bar_root_locator)
+        return StatusBar(self.marionette, element)
 
     def wait_for_status_bar_displayed(self):
         self.wait_for_element_displayed(*self._status_bar_locator)

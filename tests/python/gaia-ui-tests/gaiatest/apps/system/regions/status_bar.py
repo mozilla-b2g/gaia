@@ -3,13 +3,18 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
-from gaiatest.apps.base import Base
+from gaiatest.apps.base import PageRegion
 
 
-class StatusBar(Base):
+class StatusBar(PageRegion):
+
     _status_bar_time_locator = (By.ID, 'statusbar-time')
     _status_bar_maximized_wrapper = (By.ID, 'statusbar-maximized-wrapper')
     _status_bar_minimized_wrapper = (By.ID, 'statusbar-minimized-wrapper')
+
+    @property
+    def is_displayed(self):
+        return self.root_element.is_displayed()
 
     @property
     def is_status_bar_maximized_wrapper_a11y_hidden(self):
