@@ -34,7 +34,7 @@ var Browser = {
   DEVICE_RATIO: window.devicePixelRatio,
   UPPER_SCROLL_THRESHOLD: 50, // hide address bar
   LOWER_SCROLL_THRESHOLD: 5, // show address bar
-  MAX_TOP_SITES: 4, // max number of top sites to display
+  MAX_TOP_SITES: 6, // max number of top sites to display
   MAX_THUMBNAIL_WIDTH: 140,
   MAX_THUMBNAIL_HEIGHT: 100,
   FIRST_TAB: 'tab_0',
