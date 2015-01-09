@@ -142,15 +142,24 @@ function(panels, SettingsListener, SettingsHelper) {
       // set new list of cities for selected region
       this.selectedRegionCities = this.regionsAndCities[this.config.region];
 
+      // sort regions by their localized name
+      var keys = Object.keys(this.regionsAndCities);
+
+      keys.sort(function(a, b) {
+        return ((navigator.mozL10n.get(a)).
+                localeCompare(navigator.mozL10n.get(b)));
+      });
+
+      // prepare region list entries
       var options = document.createDocumentFragment();
-      Object.keys(this.regionsAndCities).forEach(function(regionName) {
+      keys.forEach(function(regionName) {
         var option = document.createElement('option');
         option.value = regionName;
         option.setAttribute('data-l10n-id', regionName);
         options.appendChild(option);
       }.bind(this));
 
-      // prepare new regions list
+      // prepare regions list
       this.regions.innerHTML = '';
       this.regions.appendChild(options);
     },
@@ -204,11 +213,14 @@ function(panels, SettingsListener, SettingsHelper) {
       this.selectedRegionCities = this.regionsAndCities[this.config.region];
 
       var options = document.createDocumentFragment();
+      var city, option;
 
       Object.keys(this.selectedRegionCities).forEach(function(cityName) {
-        var option = document.createElement('option');
+        city = this.selectedRegionCities[cityName];
+
+        option = document.createElement('option');
         option.value = cityName;
-        option.setAttribute('data-l10n-id', cityName);
+        option.textContent = city.city;
         options.appendChild(option);
       }.bind(this));
 

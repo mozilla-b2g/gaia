@@ -1,9 +1,9 @@
 'use strict';
 
 var assert = require('assert');
-var RppMainPanel = require('./lib/panels/rpp_main');
+var RpMainPanel = require('./lib/panels/rp_main');
 
-marionette('remote privacy protection main panel', function() {
+marionette('remote protection main panel', function() {
   var client = marionette.client({
     settings: {
       'privacy-panel-gt-complete': true
@@ -12,7 +12,7 @@ marionette('remote privacy protection main panel', function() {
   var subject;
 
   setup(function() {
-    subject = new RppMainPanel(client);
+    subject = new RpMainPanel(client);
     subject.init();
   });
 
@@ -23,14 +23,14 @@ marionette('remote privacy protection main panel', function() {
 
   test('ability to register with given passphrase', function() {
     subject.typeNewPassphrase('mypassword');
-    subject.waitForPanelToDissapear(subject.selectors.rppPanel);
+    subject.waitForPanelToDissapear(subject.selectors.rpPanel);
 
     assert.ok(subject.isFeaturesPanelDisplayed());
   });
 
   test('after register we can login using our passphrase', function() {
     subject.typeNewPassphrase('mypassword');
-    subject.waitForPanelToDissapear(subject.selectors.rppPanel);
+    subject.waitForPanelToDissapear(subject.selectors.rpPanel);
     subject.tapBackBtn(subject.selectors.featuresPanel);
     subject.loadMainPanel();
 
@@ -38,7 +38,7 @@ marionette('remote privacy protection main panel', function() {
     assert.ok(!subject.isRegisterFormDisplayed());
 
     subject.typePassphrase('mypassword');
-    subject.waitForPanelToDissapear(subject.selectors.rppPanel);
+    subject.waitForPanelToDissapear(subject.selectors.rpPanel);
 
     assert.ok(subject.isFeaturesPanelDisplayed());
   });

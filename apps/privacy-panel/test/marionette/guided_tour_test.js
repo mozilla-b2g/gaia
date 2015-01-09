@@ -21,11 +21,11 @@ marionette('guided tour panels', function() {
     subject.getThruPanel(subject.selectors.gtAlaBlur);
     subject.getThruPanel(subject.selectors.gtAlaCustom);
     subject.getThruPanel(subject.selectors.gtAlaExceptions);
-    subject.getThruPanel(subject.selectors.gtRppExplain);
-    subject.getThruPanel(subject.selectors.gtRppPassphrase);
-    subject.getThruPanel(subject.selectors.gtRppLocate);
-    subject.getThruPanel(subject.selectors.gtRppRing);
-    subject.getThruPanel(subject.selectors.gtRppLock);
+    subject.getThruPanel(subject.selectors.gtRpExplain);
+    subject.getThruPanel(subject.selectors.gtRpPassphrase);
+    subject.getThruPanel(subject.selectors.gtRpLocate);
+    subject.getThruPanel(subject.selectors.gtRpRing);
+    subject.getThruPanel(subject.selectors.gtRpLock);
   });
 
   test('ability to close guided tour after 4ths screen', function() {
@@ -43,15 +43,15 @@ marionette('guided tour panels', function() {
     subject.getThruPanel(subject.selectors.gtAlaBlur);
     subject.getThruPanel(subject.selectors.gtAlaCustom);
     subject.getThruPanel(subject.selectors.gtAlaExceptions);
-    subject.getThruPanel(subject.selectors.gtRppExplain);
-    subject.getThruPanel(subject.selectors.gtRppPassphrase);
-    subject.getThruPanel(subject.selectors.gtRppLocate);
-    subject.getThruPanel(subject.selectors.gtRppRing);
-    subject.getBack(subject.selectors.gtRppLock);
-    subject.getBack(subject.selectors.gtRppRing);
-    subject.getBack(subject.selectors.gtRppLocate);
-    subject.getBack(subject.selectors.gtRppPassphrase);
-    subject.getBack(subject.selectors.gtRppExplain);
+    subject.getThruPanel(subject.selectors.gtRpExplain);
+    subject.getThruPanel(subject.selectors.gtRpPassphrase);
+    subject.getThruPanel(subject.selectors.gtRpLocate);
+    subject.getThruPanel(subject.selectors.gtRpRing);
+    subject.getBack(subject.selectors.gtRpLock);
+    subject.getBack(subject.selectors.gtRpRing);
+    subject.getBack(subject.selectors.gtRpLocate);
+    subject.getBack(subject.selectors.gtRpPassphrase);
+    subject.getBack(subject.selectors.gtRpExplain);
     subject.getBack(subject.selectors.gtAlaExceptions);
     subject.getBack(subject.selectors.gtAlaCustom);
     subject.getBack(subject.selectors.gtAlaBlur);

@@ -22,7 +22,7 @@ function(panels, SettingsListener) {
     },
 
     init: function() {
-      this.panel = document.getElementById('rpp-screenlock');
+      this.panel = document.getElementById('rp-screenlock');
 
       this._getAllElements();
       this.passcodeEnable.addEventListener('click', this);
@@ -63,7 +63,7 @@ function(panels, SettingsListener) {
     },
 
     _showDialog: function sl_showDialog(mode) {
-      panels.show({ id: 'rpp-passcode', options: mode });
+      panels.show({ id: 'rp-passcode', options: mode });
     },
 
     handleEvent: function sl_handleEvent(evt) {

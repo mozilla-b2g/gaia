@@ -148,7 +148,7 @@ section[role="region"] > div > ul {
  */
 
 section[role="region"] > header:first-child h1 {
-  margin-right: 5rem;
+  margin-right: 1rem;
   margin-left: 5rem;
   font-size: 2rem;
 }

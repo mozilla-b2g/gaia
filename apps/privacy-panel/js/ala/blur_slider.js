@@ -4,9 +4,13 @@
  * @module BlurSlider
  * @return {Object}
  */
-define([],
+define([
+  'panels',
+  'shared/settings_listener',
+  'shared/settings_helper'
+],
 
-function() {
+function(SettingsListener, SettingsHelper) {
   'use strict';
 
   function BlurSlider() {}
@@ -83,7 +87,10 @@ function() {
      * @param {String} value
      */
     _setLabel: function(value) {
-      this.label.textContent = BlurSlider.getLabel(value);
+      var lab = BlurSlider.getLabel(value);
+      var l10nId = lab.unit === 'km' ? 'blur-unit-km' : 'blur-unit-m';
+      navigator.mozL10n.setAttributes(this.label, 
+				l10nId, { value: lab.value });
     },
 
     /**
@@ -117,19 +124,19 @@ function() {
    */
   BlurSlider.getLabel = function(value) {
     switch(parseInt(value)) {
-      case 1:   return '500m';
-      case 2:   return '1km';
-      case 3:   return '2km';
-      case 4:   return '5km';
-      case 5:   return '10km';
-      case 6:   return '15km';
-      case 7:   return '20km';
-      case 8:   return '50km';
-      case 9:   return '75km';
-      case 10:  return '100km';
-      case 11:  return '500km';
-      case 12:  return '1000km';
-      default:  return '';
+       case 1:   return {'value': 500, 'unit': 'm'};
+       case 2:   return {'value': 1, 'unit': 'km'};
+       case 3:   return {'value': 2, 'unit': 'km'};
+       case 4:   return {'value': 5, 'unit': 'km'};
+       case 5:   return {'value': 10, 'unit': 'km'};
+       case 6:   return {'value': 15, 'unit': 'km'};
+       case 7:   return {'value': 20, 'unit': 'km'};
+       case 8:   return {'value': 50, 'unit': 'km'};
+       case 9:   return {'value': 75, 'unit': 'km'};
+       case 10:  return {'value': 100, 'unit': 'km'};
+       case 11:  return {'value': 500, 'unit': 'km'};
+       case 12:  return {'value': 1000, 'unit': 'km'};
+       default:  return '';
     }
   };
 
