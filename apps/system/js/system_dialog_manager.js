@@ -39,7 +39,8 @@
      */
     elements: {
       windows: null,
-      screen: null
+      screen: null,
+      containerElement: document.getElementById('dialog-overlay')
     },
 
     /**
@@ -62,7 +63,9 @@
                 'simlockhide',
                 'system-dialog-requestfocus',
                 'home',
-                'holdhome']
+                'holdhome',
+                'homescreeneopened',
+                'appopened']
     }
   };
 
@@ -152,6 +155,13 @@
   SystemDialogManager.prototype.handleEvent = function sdm_handleEvent(evt) {
     var dialog = null;
     switch (evt.type) {
+      // We only care about appWindow's fullscreen state because
+      // we are on top of the appWindow.
+      case 'appopened':
+      case 'homescreenopened':
+        this.elements.containerElement.classList.toggle('fullscreen',
+          evt.detail.isFullScreen());
+        break;
       case 'system-dialog-requestfocus':
       case 'simlockrequestfocus':
         if (evt.detail !== this.states.activeDialog) {
@@ -189,7 +199,8 @@
    * @memberof SystemDialogManager
    */
   SystemDialogManager.prototype.initElements = function sdm_initElements() {
-    var selectors = { windows: 'windows', screen: 'screen'};
+    var selectors = { windows: 'windows', screen: 'screen',
+      containerElement: 'dialog-overlay'};
     for (var name in selectors) {
       var id = selectors[name];
       this.elements[name] = document.getElementById(id);

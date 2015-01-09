@@ -343,6 +343,53 @@ suite('system/Statusbar', function() {
     });
   });
 
+  suite('Statusbar should reflect fullscreen state', function() {
+    teardown(function() {
+      StatusBar.element.classList.remove('fullscreen');
+      StatusBar.element.classList.remove('fullscreen-layout');
+    });
+
+    test('Launch a non-fullscreen app', function() {
+      var app = new MockAppWindow();
+      this.sinon.stub(app, 'isFullScreen').returns(false);
+      StatusBar.handleEvent(new CustomEvent('appopened', { detail:app }));
+      assert.isFalse(StatusBar.element.classList.contains('fullscreen'));
+    });
+
+    test('Launch a fullscreen app', function() {
+      var app = new MockAppWindow();
+      this.sinon.stub(app, 'isFullScreen').returns(true);
+      StatusBar.handleEvent(new CustomEvent('appopened', { detail:app }));
+      assert.isTrue(StatusBar.element.classList.contains('fullscreen'));
+    });
+
+    test('Launch a fullscreen-layout app', function() {
+      var app = new MockAppWindow();
+      this.sinon.stub(app, 'isFullScreenLayout').returns(true);
+      StatusBar.handleEvent(new CustomEvent('appopened', { detail:app }));
+      assert.isTrue(StatusBar.element.classList.contains('fullscreen-layout'));
+    });
+
+    test('Launch a non-fullscreen-layout app', function() {
+      var app = new MockAppWindow();
+      this.sinon.stub(app, 'isFullScreenLayout').returns(false);
+      StatusBar.handleEvent(new CustomEvent('appopened', { detail:app }));
+      assert.isFalse(StatusBar.element.classList.contains('fullscreen-layout'));
+    });
+
+    test('Back to home should remove fullscreen state', function() {
+      var app = new MockAppWindow();
+      this.sinon.stub(app, 'isFullScreen').returns(true);
+      this.sinon.stub(app, 'isFullScreenLayout').returns(true);
+      StatusBar.handleEvent(new CustomEvent('appopened', { detail:app }));
+      var home = new MockAppWindow();
+      StatusBar.handleEvent(new CustomEvent('homescreenopened',
+        { detail: home }));
+      assert.isFalse(StatusBar.element.classList.contains('fullscreen'));
+      assert.isFalse(StatusBar.element.classList.contains('fullscreen-layout'));
+    });
+  });
+
   suite('system-downloads', function() {
     test('incrementing should display the icon', function() {
       StatusBar.incSystemDownloads();
@@ -2100,10 +2147,13 @@ suite('system/Statusbar', function() {
     }
 
     function triggerEvent(event) {
+      // XXX: Use MockAppWindow instead
       var currentApp = {
         getTopMostWindow: function getTopMostWindow() {
           return this._topWindow;
-        }
+        },
+        isFullScreen: function() {},
+        isFullScreenLayout: function() {}
       };
       Service.currentApp = currentApp;
       var evt = new CustomEvent(event, {detail: currentApp});

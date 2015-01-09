@@ -573,6 +573,12 @@ var StatusBar = {
 
       case 'appopened':
       case 'appchromeexpanded':
+        if (evt.type === 'appopened') {
+          this.element.classList.toggle('fullscreen',
+            evt.detail.isFullScreen());
+          this.element.classList.toggle('fullscreen-layout',
+            evt.detail.isFullScreenLayout());
+        }
         this.setAppearance(evt.detail);
         this.element.classList.remove('hidden');
         this._updateMinimizedStatusBarWidth();
@@ -599,6 +605,8 @@ var StatusBar = {
           this._pausedForGesture = false;
         }
         this.element.classList.remove('hidden');
+        this.element.classList.remove('fullscreen');
+        this.element.classList.remove('fullscreen-layout');
         break;
       case 'activityterminated':
         // In this particular case, we want to restore the original color of

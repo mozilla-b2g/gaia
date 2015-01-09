@@ -259,10 +259,6 @@ textarea,
   content: '';
 }
 
-#screen.fullscreen-app #windows::before {
-  background: black;
-}
-
 #secure-windows {
   position: absolute;
   left: 0;
@@ -284,14 +280,8 @@ textarea,
   pointer-events: none;
 }
 
-#screen.active-statusbar #dialog-overlay,
-#screen.active-statusbar.fullscreen-app #dialog-overlay {
-  top: 4rem;
-  bottom: 0;
-}
-
 #screen:-moz-full-screen-ancestor #dialog-overlay,
-#screen.fullscreen-app #dialog-overlay {
+#dialog-overlay.fullscreen {
   top: 0;
   bottom: 0;
 }

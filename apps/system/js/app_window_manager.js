@@ -843,8 +843,6 @@
         this.debug('no active app alive: ' + instanceID);
         return;
       }
-      var fullscreen = this._activeApp.isFullScreen();
-      this.screen.classList.toggle('fullscreen-app', fullscreen);
 
       var fullScreenLayout = this._activeApp.isFullScreenLayout();
       this.screen.classList.toggle('fullscreen-layout-app', fullScreenLayout);
