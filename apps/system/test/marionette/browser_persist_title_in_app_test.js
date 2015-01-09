@@ -22,8 +22,6 @@ marionette('Browser Chrome - Title content', function() {
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForStartup();
-
-    search.removeGeolocationPermission();
   });
 
   test('Launching rocketbar from an app persists the search term', function() {

@@ -36,8 +36,6 @@ marionette('Browser Chrome - Open New Window', function() {
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForStartup();
-
-    search.removeGeolocationPermission();
   });
 
   test('open new window', function() {

@@ -35,8 +35,6 @@ marionette('Private Browser - Basic Sanity Test', function() {
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForStartup();
-
-    search.removeGeolocationPermission();
   });
 
   var STORAGE_KEY = 'foo';

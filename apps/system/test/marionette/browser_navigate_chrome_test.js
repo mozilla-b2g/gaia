@@ -36,8 +36,6 @@ marionette('Browser - Chrome on browser navigation',
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForStartup();
-
-    search.removeGeolocationPermission();
   });
 
   test('should show the progressbar', function() {

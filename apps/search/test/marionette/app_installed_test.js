@@ -19,7 +19,6 @@ marionette('Search - Installed Apps Test', function() {
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
     system.waitForStartup();
-    search.removeGeolocationPermission();
 
     var app = __dirname + '/fixtures/installed_app';
     createAppServer(app, client, function(err, _server) {

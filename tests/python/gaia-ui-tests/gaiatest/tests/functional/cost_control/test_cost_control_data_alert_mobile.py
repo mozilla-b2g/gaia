@@ -18,7 +18,6 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
         GaiaTestCase.setUp(self)
         self.data_layer.disable_wifi()
         self.data_layer.connect_to_cell_data()
-        self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
 
     def test_cost_control_data_alert_mobile(self):
         """https://moztrap.mozilla.org/manage/case/8938/"""

@@ -30,8 +30,6 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
     system = client.loader.getAppClass('system');
     system.waitForStartup();
 
-    search.removeGeolocationPermission();
-
     halfScreenHeight = client.executeScript(function() {
       return window.innerHeight;
     }) / 2;

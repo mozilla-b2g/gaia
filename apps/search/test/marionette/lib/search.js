@@ -89,21 +89,6 @@ Search.prototype = {
   },
 
   /**
-   * Workaround for bug 1022768, where app permissions are not auto ALLOWed
-   * for tests on desktop. If that bug is fixed, this function should be
-   * removed.
-   */
-  removeGeolocationPermission: function() {
-    var client = this.client.scope({ context: 'chrome' });
-    client.executeScript(function(origin) {
-      var mozPerms = navigator.mozPermissionSettings;
-      mozPerms.set(
-        'geolocation', 'deny', origin + '/manifest.webapp', origin, false
-      );
-    }, [Search.URL]);
-  },
-
-  /**
    * On first run a warning is shown to users on Search app configuration
    * trigger this notice and confirm it.
    */

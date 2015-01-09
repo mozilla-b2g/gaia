@@ -12,17 +12,13 @@ from gaiatest.apps.homescreen.regions.confirm_install import ConfirmInstall
 
 
 class TestSearchMarketplaceAndInstallApp(GaiaTestCase):
-    
+
     app_search = 'test-webapi-permissions :packaged'
     app_title = 'Privileged App Test'
-    
+
     def setUp(self):
         GaiaTestCase.setUp(self)
         self.connect_to_local_area_network()
-
-        # Turn off geolocation prompt for smart collections, because this
-        # pops up on automation machines for some reason
-        self.apps.set_permission('Smart Collections', 'geolocation', 'deny')
 
     def test_search_and_install_app(self):
 

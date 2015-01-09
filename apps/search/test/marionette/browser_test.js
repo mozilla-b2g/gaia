@@ -23,7 +23,6 @@ marionette('Browser test', function() {
     rocketbar = new Rocketbar(client);
     system = client.loader.getAppClass('system');
     system.waitForStartup();
-    search.removeGeolocationPermission();
   });
 
 

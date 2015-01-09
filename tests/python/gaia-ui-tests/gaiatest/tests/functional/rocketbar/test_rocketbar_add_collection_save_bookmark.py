@@ -10,7 +10,6 @@ class TestRocketBarAddCollectionSaveBookmark(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
-        self.apps.set_permission('Smart Collections', 'geolocation', 'deny')
         self.connect_to_local_area_network()
 
     def test_rocketbar_add_collection(self):
