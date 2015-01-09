@@ -13,6 +13,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css">
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/gaia-theme.css">
+    <script src="shared/elements/gaia-header/dist/gaia-header.js"></script>
 
     <!-- Styles for Privacy Panel -->
     <link rel="stylesheet" type="text/css" href="style/lists.css">
@@ -23,7 +24,9 @@
     <!-- Localization -->
     <meta name="defaultLanguage" content="en-US">
     <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
-    <link rel="localization" href="locales/countries.{locale}.properties">
+
+    <link rel="localization" href="shared/locales/branding/branding.{locale}.properties">
+    <link rel="localization" href="locales/regions.{locale}.properties">
     <link rel="localization" href="locales/privacypanel.{locale}.properties">
     <link rel="localization" href="locales/permissions.{locale}.properties">
     <link rel="localization" href="shared/locales/permissions/permissions.{locale}.properties">
@@ -34,12 +37,12 @@
     <link rel="import" href="/templates/ala/exception.html">
     <link rel="import" href="/templates/ala/custom.html">
 
-    <!-- Templates: Remote Privacy Protection -->
-    <link rel="import" href="/templates/rpp/main.html">
-    <link rel="import" href="/templates/rpp/change_pass.html">
-    <link rel="import" href="/templates/rpp/features.html">
-    <link rel="import" href="/templates/rpp/screenlock.html">
-    <link rel="import" href="/templates/rpp/passcode.html">
+    <!-- Templates: Remote Protection -->
+    <link rel="import" href="/templates/rp/main.html">
+    <link rel="import" href="/templates/rp/change_pass.html">
+    <link rel="import" href="/templates/rp/features.html">
+    <link rel="import" href="/templates/rp/screenlock.html">
+    <link rel="import" href="/templates/rp/passcode.html">
 
     <!-- Templates: Transparency Control -->
     <link rel="import" href="/templates/tc/main.html">
@@ -54,11 +57,11 @@
     <link rel="import" href="/templates/gt/ala_blur.html">
     <link rel="import" href="/templates/gt/ala_custom.html">
     <link rel="import" href="/templates/gt/ala_exceptions.html">
-    <link rel="import" href="/templates/gt/rpp_explain.html">
-    <link rel="import" href="/templates/gt/rpp_passphrase.html">
-    <link rel="import" href="/templates/gt/rpp_locate.html">
-    <link rel="import" href="/templates/gt/rpp_ring.html">
-    <link rel="import" href="/templates/gt/rpp_lock.html">
+    <link rel="import" href="/templates/gt/rp_explain.html">
+    <link rel="import" href="/templates/gt/rp_passphrase.html">
+    <link rel="import" href="/templates/gt/rp_locate.html">
+    <link rel="import" href="/templates/gt/rp_ring.html">
+    <link rel="import" href="/templates/gt/rp_lock.html">
 
     <!-- Templates: About -->
     <link rel="import" href="/templates/about/main.html">
@@ -81,17 +84,17 @@
         <menu type="toolbar">
           <a class="pp-link" href="#about"><span class="icon gaia-icon-about">about</span></a>
         </menu>
-        <h1 data-l10n-id="privacy-panel">Privacy Panel</h1>
+        <h1 data-l10n-id="privacy-panel"></h1>
       </header>
       <ul>
         <li>
           <a id="menu-item-ala" class="menu-item pp-link" data-icon="location" href="#ala-main">
-            <span data-l10n-id="location-accuracy">Location Accuracy</span>
+            <span data-l10n-id="location-accuracy"></span>
           </a>
         </li>
         <li>
-          <a id="menu-item-rpp" class="menu-item pp-link" data-icon="lock" href="#rpp-main">
-            <span data-l10n-id="remote-privacy-protection">Remote Privacy Protection</span>
+          <a id="menu-item-rp" class="menu-item pp-link" data-icon="messages" href="#rp-main">
+            <span data-l10n-id="privacy-protection"></span>
           </a>
         </li>
         <li>
@@ -101,7 +104,7 @@
         </li>
         <li>
           <a id="menu-item-gt" class="menu-item pp-link" data-icon="flag" href="#gt-main">
-            <span data-l10n-id="guided-tour">Guided Tour</span>
+            <span data-l10n-id="guided-tour"></span>
           </a>
         </li>
       </ul>
@@ -113,12 +116,12 @@
     <section is="ala-exception" role="region" id="ala-exception" data-section="ala"></section>
     <section is="ala-custom" role="region" id="ala-custom" data-section="ala"></section>
 
-    <!-- Sections: Remote Privacy Protection -->
-    <section is="rpp-main" role="region" id="rpp-main" data-section="rpp"></section>
-    <section is="rpp-change-pass" role="region" id="rpp-change-pass" data-section="rpp"></section>
-    <section is="rpp-features" role="region" id="rpp-features" data-section="rpp"></section>
-    <section is="rpp-screenlock" role="region" id="rpp-screenlock" data-section="rpp"></section>
-    <section is="rpp-passcode" role="region" id="rpp-passcode" data-section="rpp"></section>
+    <!-- Sections: Remote Protection -->
+    <section is="rp-main" role="region" id="rp-main" data-section="rp"></section>
+    <section is="rp-change-pass" role="region" id="rp-change-pass" data-section="rp"></section>
+    <section is="rp-features" role="region" id="rp-features" data-section="rp"></section>
+    <section is="rp-screenlock" role="region" id="rp-screenlock" data-section="rp"></section>
+    <section is="rp-passcode" role="region" id="rp-passcode" data-section="rp"></section>
 
     <!-- Sections: Transparency Control -->
     <section role="region" data-section="tc" is="tc-main"         id="tc-main"></section>
@@ -133,11 +136,11 @@
     <section is="gt-ala-blur" role="region" id="gt-ala-blur" data-section="gt"></section>
     <section is="gt-ala-custom" role="region" id="gt-ala-custom" data-section="gt"></section>
     <section is="gt-ala-exceptions" role="region" id="gt-ala-exceptions" data-section="gt"></section>
-    <section is="gt-rpp-explain" role="region" id="gt-rpp-explain" data-section="gt"></section>
-    <section is="gt-rpp-passphrase" role="region" id="gt-rpp-passphrase" data-section="gt"></section>
-    <section is="gt-rpp-locate" role="region" id="gt-rpp-locate" data-section="gt"></section>
-    <section is="gt-rpp-ring" role="region" id="gt-rpp-ring" data-section="gt"></section>
-    <section is="gt-rpp-lock" role="region" id="gt-rpp-lock" data-section="gt"></section>
+    <section is="gt-rp-explain" role="region" id="gt-rp-explain" data-section="gt"></section>
+    <section is="gt-rp-passphrase" role="region" id="gt-rp-passphrase" data-section="gt"></section>
+    <section is="gt-rp-locate" role="region" id="gt-rp-locate" data-section="gt"></section>
+    <section is="gt-rp-ring" role="region" id="gt-rp-ring" data-section="gt"></section>
+    <section is="gt-rp-lock" role="region" id="gt-rp-lock" data-section="gt"></section>
 
     <!-- Sections: About -->
     <section is="about" role="region" id="about" data-section="about"></section>

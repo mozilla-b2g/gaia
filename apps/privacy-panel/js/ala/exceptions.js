@@ -67,21 +67,22 @@ function(panels, BlurSlider, SettingsListener, SettingsHelper) {
           return;
         }
 
-        var type;
+        var type, typeArg;
         var appSettings = this.exceptionsList[item.origin];
         if (appSettings) {
           switch (appSettings.type) {
             case 'user-defined':
-              type = 'User defined';
+              type = 'type-user-defined';
               break;
             case 'blur':
-              type = BlurSlider.getLabel(appSettings.slider) +' blur';
+              type = 'type-blur';
+              typeArg = { blurRadius: BlurSlider.getLabel(appSettings.slider) };
               break;
             case 'precise':
-              type = 'Precise';
+              type = 'type-precise';
               break;
             case 'no-location':
-              type = 'No location';
+              type = 'type-no-location';
               break;
             default:
               type = appSettings.type;
@@ -122,9 +123,13 @@ function(panels, BlurSlider, SettingsListener, SettingsHelper) {
       link.appendChild(name);
 
       if (itemData.type) {
-        var type = document.createElement('small');
-        type.textContent = itemData.type;
-        link.appendChild(type);
+        navigator.mozL10n.setAttributes('type', itemData.type);
+        if (itemData.typeArg) {
+          navigator.mozL10n.setAttributes('type', itemData.type,
+                                        itemData.typeArg);
+        }
+
+        link.appendChild(itemData.type);
       }
 
       link.addEventListener('click',
