@@ -22,14 +22,14 @@ class BrowsingPrivacy(Base):
     def __init__(self, marionette):
         Base.__init__(self, marionette)
 
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(
-                expected.element_present(*self._clear_browsing_history_locator))))
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._clear_browsing_history_locator))
 
     def tap_clear_browsing_history(self):
         self.marionette.find_element(*self._clear_browsing_history_locator).tap()
 
     def tap_clear(self):
-        clear_button = Wait(self.marionette).until(expected.element_present(*self._clear_button_locator))
-        Wait(self.marionette).until(expected.element_displayed(clear_button))
-        clear_button.tap()
+        clear = Wait(self.marionette).until(
+            expected.element_present(*self._clear_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(clear))
+        clear.tap()

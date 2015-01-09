@@ -3,8 +3,12 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 try:
+    from marionette import Wait
+    from marionette import expected
     from marionette.by import By
 except:
+    from marionette_driver import Wait
+    from marionette_driver import expected
     from marionette_driver.by import By
 
 from gaiatest.apps.base import Base
@@ -19,10 +23,11 @@ class ScreenLock(Base):
 
     def enable_passcode_lock(self):
         # This wait would be in __init__ but lockscreen could be disabled meaning init would timeout
-        self.wait_for_element_displayed(*self._passcode_enable_locator)
-        self.marionette.find_element(*self._passcode_enable_locator).tap()
-        self.wait_for_condition(lambda m:
-            m.find_element(*self._screen_lock_passcode_section_locator).location['x'] == 0)
+        element = Wait(self.marionette).until(expected.element_present(*self._passcode_enable_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
+        section = self.marionette.find_element(*self._screen_lock_passcode_section_locator)
+        Wait(self.marionette).until(lambda m: section.location['x'] == 0)
 
     def create_passcode(self, passcode):
 
@@ -31,6 +36,8 @@ class ScreenLock(Base):
             self.keyboard.send("".join(passcode))
 
         # Back to create passcode
-        self.wait_for_element_displayed(*self._screen_lock_passcode_section_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            *self._screen_lock_passcode_section_locator))
         self.marionette.find_element(*self._passcode_create_locator).tap()
-        self.wait_for_element_displayed(*self._screen_lock_section_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            *self._screen_lock_section_locator))

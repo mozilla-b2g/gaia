@@ -5,8 +5,12 @@
 import time
 
 try:
+    from marionette import Wait
+    from marionette import expected
     from marionette.by import By
 except:
+    from marionette_driver import Wait
+    from marionette_driver import expected
     from marionette_driver.by import By
 
 from gaiatest.apps.base import Base
@@ -20,16 +24,15 @@ class Language(Base):
     _language_locator = (By.ID, 'languages')
 
     def wait_for_languages_to_load(self):
-        self.wait_for_condition(lambda m: len(m.find_elements(*self._language_options_locator)) > 0)
+        Wait(self.marionette).until(expected.elements_present(*self._language_options_locator))
 
     def go_back(self):
-        self.wait_for_element_displayed(*self._header_locator)
-        header = self.marionette.find_element(*self._header_locator)
+        element = Wait(self.marionette).until(expected.element_present(*self._header_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
         # TODO: replace this hard coded value with tap on the back button, after Bug 1061698 is fixed
-        header.tap(x=10)
-        self.wait_for_condition(lambda m:
-                                m.execute_script(
-                                    "return window.wrappedJSObject.Settings && window.wrappedJSObject.Settings._currentPanel === '#root'"))
+        element.tap(x=10)
+        Wait(self.marionette).until(lambda m: m.execute_script(
+            "return window.wrappedJSObject.Settings && window.wrappedJSObject.Settings._currentPanel === '#root'"))
 
     def select_language(self, language):
         self.marionette.find_element(*self._select_language_locator).tap()
@@ -48,10 +51,9 @@ class Language(Base):
         # have to go back to top level to get the B2G select box wrapper
         self.marionette.switch_to_frame()
 
-        self.wait_for_condition(lambda m: len(self.marionette.find_elements(By.CSS_SELECTOR, '.value-selector-container li')) > 0)
-
-        options = self.marionette.find_elements(By.CSS_SELECTOR, '.value-selector-container li')
-        close_button = self.marionette.find_element(By.CSS_SELECTOR, 'button.value-option-confirm')
+        options = Wait(self.marionette).until(expected.elements_present(
+            By.CSS_SELECTOR, '.value-selector-container li'))
+        close = self.marionette.find_element(By.CSS_SELECTOR, 'button.value-option-confirm')
 
         # loop options until we find the match
         for li in options:
@@ -61,8 +63,8 @@ class Language(Base):
         else:
             raise Exception("Element '%s' could not be found in select wrapper" % match_string)
 
-        close_button.tap()
-        self.wait_for_element_not_displayed(By.CSS_SELECTOR, 'button.value-option-confirm')
+        close.tap()
+        Wait(self.marionette).until(expected.element_not_displayed(close))
 
         # TODO we should find something suitable to wait for, but this goes too
         # fast against desktop builds causing intermittent failures
