@@ -515,14 +515,19 @@
     }
 
     var self = this;
-    var previousColor;
+    var finishedFade = false;
+    var endBackgroundFade = function() {
+      finishedFade = true;
+      self.element.removeEventListener('transitionend', endBackgroundFade);
+    };
+    this.element.addEventListener('transitionend', endBackgroundFade);
 
     window.requestAnimationFrame(function updateAppColor() {
-      var computedColor = window.getComputedStyle(self.element).backgroundColor;
-      if (previousColor === computedColor) {
+      if (finishedFade) {
         return;
       }
 
+      var computedColor = window.getComputedStyle(self.element).backgroundColor;
       var colorCodes = /rgb\((\d+), (\d+), (\d+)\)/.exec(computedColor);
       if (!colorCodes || colorCodes.length === 0) {
         return;
@@ -536,7 +541,6 @@
 
       self.app.element.classList.toggle('light', brightness > 200);
       self.app.publish('titlestatechanged');
-      previousColor = computedColor;
       window.requestAnimationFrame(updateAppColor);
     });
   };
