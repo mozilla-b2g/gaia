@@ -138,13 +138,15 @@
     */
     triggeredTimeoutId: 0,
 
-    clockTimerID: null,
-
     /*
     * Max value for handle swiper up
     */
     HANDLE_MAX: 70,
 
+    /**
+     * Object used for handling the clock UI element, wraps all related timers
+     */
+    clock: new window.Clock()
   };  // -- LockScreen.prototype --
 
   LockScreen.prototype.handleEvent =
@@ -181,12 +183,12 @@
           }
 
           // Stop refreshing the clock when the screen is turned off.
-          this.stopUpdateClock();
+          this.clock.stop();
         } else {
           this._passCodeTimeoutCheck = this.checkPassCodeTimeout();
 
           // Resume refreshing the clock when the screen is turned on.
-          this.startUpdateClock();
+          this.clock.start(this.refreshClock.bind(this));
         }
         // No matter turn on or off from screen timeout or poweroff,
         // all secure apps would be hidden.
@@ -499,7 +501,6 @@
       navigator.mozL10n.get('shortTimeFormat12') :
       navigator.mozL10n.get('shortTimeFormat24');
     this.refreshClock(new Date());
-    this.startUpdateClock();
 
     // mobile connection state on lock screen.
     // It needs L10n too. But it's not a re-entrable function,
@@ -670,7 +671,7 @@
     this.locked = false;
 
     // The lockscreen will be hidden, stop refreshing the clock.
-    this.stopUpdateClock();
+    this.clock.stop();
 
     if (wasAlreadyUnlocked) {
       return;
@@ -1101,24 +1102,6 @@
       this.kPassCodeErrorCounter = 0;
       // delegate the unlocking function call to panel state.
     };
-
-  LockScreen.prototype.startUpdateClock = function() {
-    // Which second in this minute we're.
-    var seconds = (new Date()).getSeconds();
-    var leftSeconds = 60 - seconds;
-    window.setTimeout(() => {
-      // If seconds is 0, it would miss one minute.
-      // And no matter which seconds we're, we need to refresh it first.
-      this.refreshClock(new Date());
-      this.clockTimerID = window.setInterval(() => {
-        this.refreshClock(new Date());
-      }, 60000);
-    }, leftSeconds * 1000);
-  };
-
-  LockScreen.prototype.stopUpdateClock = function() {
-    window.clearInterval(this.clockTimerID);
-  };
 
   /** @exports LockScreen */
   exports.LockScreen = LockScreen;
