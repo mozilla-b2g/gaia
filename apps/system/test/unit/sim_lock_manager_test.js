@@ -257,6 +257,34 @@ suite('SimLockManager', function() {
           assert.equal(subject.simLockSystemDialog.show.callCount, 1);
       });
     });
+
+    suite('only second slot is locked', function() {
+      function removeSIMLockForFirstSlot() {
+        MockSIMSlotManager.mInstances[0].simCard.cardState = 'ready';
+      }
+
+      function restoreSIMLockForFirstSlot() {
+        MockSIMSlotManager.mInstances[0].simCard.cardState = 'pinRequired';
+      }
+
+      setup(function() {
+        MockSIMSlotManager.ready = true;
+        addSimSlot();
+        removeSIMLockForFirstSlot();
+        subject._alreadyShown = false;
+      });
+
+      teardown(function() {
+        removeSimSlot();
+        restoreSIMLockForFirstSlot();
+      });
+
+      test('should show the second SIM if the first is not locked',
+        function() {
+          subject.showIfLocked();
+          assert.equal(subject.simLockSystemDialog.show.callCount, 1);
+      });
+    });
   });
 
   suite('lockscreen request to unlock', function() {
