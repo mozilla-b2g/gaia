@@ -83,6 +83,20 @@ var SubListView = {
     this.albumName.dataset.l10nId = l10nId;
   },
 
+  activatePlaylist: function(data, callback) {
+    this.clean();
+
+    this.dataSource = data.songs;
+
+    data.songs.forEach(function(songData) {
+        this.update(songData);
+    }.bind(this));
+
+    if (callback) {
+      callback();
+    }
+  },
+
   activate: function(option, data, index, keyRange, direction, callback) {
     var targetOption = (option === 'date') ? option : 'metadata.' + option;
     this.clean();

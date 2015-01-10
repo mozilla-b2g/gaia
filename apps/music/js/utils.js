@@ -30,7 +30,7 @@ function formatTime(secs) {
 
 // In Music, visually we have three styles of list
 // Here we use one function to create different style lists
-function createListElement(option, data, index, highlight) {
+function createListElement(option, data, index, highlight, noborder) {
   var li = document.createElement('li');
   li.className = 'list-item';
 
@@ -59,21 +59,41 @@ function createListElement(option, data, index, highlight) {
   }
 
   switch (option) {
+    case 'my-playlists-header':
+      titleSpan = document.createElement('span');
+      titleSpan.className = 'my-playlists-header';
+      titleSpan.textContent = navigator.mozL10n.get('my-playlists-header');
+
+      li.appendChild(titleSpan);
+
+      break;
+
     case 'playlist':
       titleSpan = document.createElement('span');
       titleSpan.className = 'list-playlist-title';
-      if (data.metadata.l10nId) {
-        titleSpan.textContent = navigator.mozL10n.get(data.metadata.l10nId);
-        titleSpan.dataset.l10nId = data.metadata.l10nId;
-      } else {
-        titleSpan.textContent =
-          data.metadata.title || navigator.mozL10n.get('unknownTitle');
-        titleSpan.dataset.l10nId =
-          data.metadata.title ? '' : 'unknownTitle';
+
+      if (noborder) {
+        titleSpan.className += ' noborder';
       }
 
       a.dataset.keyRange = 'all';
       a.dataset.option = data.option;
+
+      if (data.metadata) {
+          if (data.metadata.l10nId) {
+            titleSpan.textContent = navigator.mozL10n.get(data.metadata.l10nId);
+            titleSpan.dataset.l10nId = data.metadata.l10nId;
+          } else {
+            titleSpan.textContent =
+              data.metadata.title || navigator.mozL10n.get('unknownTitle');
+            titleSpan.dataset.l10nId =
+              data.metadata.title ? '' : 'unknownTitle';
+          }
+      } else if (data.name) {
+          //custom playlists.
+          titleSpan.textContent = data.name;
+          a.dataset.option = data.name;
+      }
 
       li.appendChild(titleSpan);
 
