@@ -543,6 +543,12 @@ var MediaDB = (function() {
         // the index name is also the keypath
         filestore.createIndex(indexName, indexName);
       });
+
+      var playlistStore = db.createObjectStore('playlists', { keyPath: 'name' });
+
+      playlistStore.transaction.onerror = function(evt) {
+        console.warn ('error', evt);
+      };
     }
 
     // helper function to list all files and invoke callback with db, trans,
@@ -1357,6 +1363,65 @@ var MediaDB = (function() {
       freereq.onsuccess = function() {
         callback(freereq.result);
       };
+    },
+
+    getPlaylistSongs: function getPlaylistSongs(playlistName, callback) {
+        var store = this.db.transaction('playlists').objectStore('playlists');
+
+        store.get(playlistName).onsuccess = function(evt) {
+          callback(evt.target.result);
+        };
+    },
+
+    getAllPlaylists: function getAllPlaylists(callback) {
+        var store = this.db.transaction('playlists').objectStore('playlists');
+
+        var request = store.openCursor();
+        var playlists = [];
+
+        request.onsuccess = function(evt) {
+            var cursor = evt.target.result;
+            if (cursor) {
+                playlists.push(cursor.value);
+                cursor.continue();
+            } else {
+                callback(playlists);
+            }
+        };
+    },
+
+    addToPlaylist: function addToPlaylist(playlistName, songData, callback) {
+      var store = this.db.transaction('playlists', 'readwrite').objectStore('playlists');
+
+      this.getPlaylistSongs(playlistName, function(result) {
+        if (!result) {
+          var playlist = {
+            songs: ( songData ? [songData] : [] ),
+            name: playlistName
+          };
+
+          store = this.db.transaction('playlists', 'readwrite').objectStore('playlists');
+          var request = store.add(playlist);
+
+          request.onsuccess = function(evt) {
+            callback(playlist);
+          }.bind(this);
+        } else {
+          if (!songData) {
+            //XXX: Error: playlist already exists
+            callback(null);
+            return;
+          }
+
+          result.songs.push(songData);
+          store = this.db.transaction('playlists', 'readwrite').objectStore('playlists');
+
+          var requestUpdate = store.put(result);
+          requestUpdate.onsuccess = function(evt) {
+            callback(result);
+          }.bind(this);
+        }
+      }.bind(this));
     }
   };
 

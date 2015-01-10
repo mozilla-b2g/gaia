@@ -465,6 +465,12 @@ var PlayerView = {
     MusicComms.notifyStatusChanged(info);
   },
 
+  addToPlaylist: function pv_addToPlayList(playlistName, index, callback) {
+      this.getSongData(index, function(songData) {
+          musicdb.addToPlaylist(playlistName, songData, callback);
+      });
+  },
+
   // The song data might return from the existed dataSource
   // or we will retrieve it directly from the MediaDB.
   getSongData: function pv_getSongData(index, callback) {
@@ -488,7 +494,6 @@ var PlayerView = {
         );
     }
   },
-
   /*
    * Get a blob for the specified song, decrypting it if necessary,
    * and pass it to the specified callback

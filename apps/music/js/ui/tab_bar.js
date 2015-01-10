@@ -1,6 +1,6 @@
 /* exported TabBar */
 /* global AccessibilityHelper, ListView, TilesView, SearchView,
-          MODE_TILES, MODE_LIST, ModeManager */
+          MODE_TILES, MODE_LIST, ModeManager, musicdb */
 'use strict';
 
 var TabBar = {
@@ -83,11 +83,24 @@ var TabBar = {
 
             break;
           case 'tabs-playlists':
+
             ModeManager.start(MODE_LIST);
             ListView.activate();
 
-            this.playlistArray.forEach(function(playlist) {
-              ListView.update(this.option, playlist);
+            this.playlistArray.forEach(function(playlist, idx, playlists) {
+              //Don't give bottom border to last element. We use -2 here,
+              //because the array's last element is null
+              var noborder = (idx === playlists.length - 2);
+              ListView.update(this.option, playlist, noborder);
+            }.bind(this));
+
+            ListView.update('my-playlists-header');
+            ListView.update('create-playlist');
+
+            musicdb.getAllPlaylists(function(playlists) {
+                playlists.forEach(function(playlist) {
+                    ListView.update(this.option, playlist);
+                }.bind(this));
             }.bind(this));
 
             SearchView.searchContext = SearchView.context.ALL;
