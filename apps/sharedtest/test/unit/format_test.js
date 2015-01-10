@@ -1,6 +1,9 @@
+/* global Format */
+
 require('/shared/js/format.js');
 
 suite('format', function() {
+  'use strict';
 
   // Result, input, len, padWith
   var testCases = [

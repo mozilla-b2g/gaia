@@ -1,5 +1,7 @@
 'use strict';
 
+/* global WifiHelper */
+
 require('/shared/js/wifi_helper.js');
 
 suite('WifiHelper', function() {

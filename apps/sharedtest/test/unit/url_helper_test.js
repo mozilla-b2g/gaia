@@ -1,6 +1,9 @@
+/* global UrlHelper */
+
 require('/shared/js/url_helper.js');
 
 suite('URL Helper', function() {
+  'use strict';
   test('isNotURL => true', function() {
     [
       'data',
