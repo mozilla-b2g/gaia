@@ -4,7 +4,7 @@ require('/shared/js/lazy_loader.js');
 requireApp('homescreen/test/unit/mock_app.js');
 requireApp('homescreen/test/unit/mock_request.html.js');
 requireApp('homescreen/test/unit/mock_lazy_loader.js');
-requireApp('homescreen/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('homescreen/test/unit/mock_grid_manager.js');
 requireApp('homescreen/test/unit/mock_pagination_bar.js');
 require('/shared/test/unit/mocks/mock_manifest_helper.js');
@@ -26,7 +26,7 @@ mocksHelperForHome.init();
 
 suite('homescreen.js >', function() {
 
-  var dialog, icon;
+  var dialog, icon, realL10n;
 
   mocksHelperForHome.attachTestHelpers();
 
@@ -35,6 +35,8 @@ suite('homescreen.js >', function() {
     dialog.id = 'confirm-dialog';
     dialog.innerHTML = MockRequestHtml;
     document.body.appendChild(dialog);
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
     ConfirmDialog.init();
     icon = new MockIcon(null, {
       id: 'test',
@@ -44,6 +46,7 @@ suite('homescreen.js >', function() {
 
   suiteTeardown(function() {
     document.body.removeChild(dialog);
+    navigator.mozL10n = realL10n;
   });
 
   test(' Homescreen is in edit mode ', function() {

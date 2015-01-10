@@ -58,8 +58,6 @@ var GridManager = (function() {
 
   var saveStateTimeout = null;
 
-  var _ = navigator.mozL10n.get;
-
   // Limits for changing pages during dragging
   var limits = {
     left: 0,
@@ -1115,7 +1113,7 @@ var GridManager = (function() {
         if (app.type === GridItemsFactory.TYPE.COLLECTION) {
           appsByOrigin[app.origin] = app;
           if (haveLocale) {
-            descriptor.localizedName = _(app.manifest.name);
+            descriptor.localizedName = navigator.mozL10n.get(app.manifest.name);
           }
         } else {
           bookmarksById[app.id] = app;
@@ -1265,7 +1263,7 @@ var GridManager = (function() {
 
     if (haveLocale) {
       if (app.type === GridItemsFactory.TYPE.COLLECTION) {
-        descriptor.localizedName = _(manifest.name);
+        descriptor.localizedName = navigator.mozL10n.get(manifest.name);
       } else if (app.type !== GridItemsFactory.TYPE.BOOKMARK) {
         descriptor.localizedName = iconsAndNameHolder.name;
       }
