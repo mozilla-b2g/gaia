@@ -1,8 +1,9 @@
 /* exported KeypadManager */
 
 /* globals AddContactMenu, CallHandler, CallLogDBManager, CallsHandler,
-           CallScreen, CustomDialog, DtmfTone, FontSizeManager, LazyLoader,
-           LazyL10n, MultiSimActionButton, SettingsListener, TonePlayer */
+           CallScreen, ConfirmDialog, CustomDialog, DtmfTone, FontSizeManager,
+           LazyLoader, LazyL10n, MultiSimActionButton, Promise,
+           SimSettingsHelper, SettingsListener, TonePlayer */
 
 'use strict';
 
@@ -436,6 +437,17 @@ var KeypadManager = {
       TonePlayer.stop();
     }
 
+    // Handle speed dial numbers
+    if (this._isSpeedDialNumber(this._phoneNumber)) {
+      var self = this;
+      var index = this._phoneNumber.slice(0, -1); // Remove the trailing '#'
+
+      this._getSpeedDialNumber(+index).then(
+      function(number) {
+        self.updatePhoneNumber(number, 'begin', false);
+      });
+    }
+
     // If it was a long press our work is already done
     if (this._longPress) {
       this._longPress = false;
@@ -502,6 +514,135 @@ var KeypadManager = {
         this._touchEnd(key);
         break;
     }
+  },
+
+  /**
+   * Returns true if the number is a speed dial code as described in
+   * 3GPP TS 22.030 6.6.4. Speed dial codes are in the N(N)(N)# format.
+   */
+  _isSpeedDialNumber: function(number) {
+    return !!number.match(/^[0-9][0-9]{0,2}\#$/);
+  },
+
+  /**
+   * Returns the telephony number corresponding to the specified index. Speed
+   * dial numbers are retrieved from the SIM contacts list and not from the
+   * regular contacts.
+   *
+   * @param {Integer} index The index of the speed dial number.
+   * @returns {Promise} A promise that resolves to the corresponding number.
+   */
+  _getSpeedDialNumber: function(index) {
+    var self = this;
+    var cardIndex;
+
+    index--; // Speed dial indexes are 1-based
+
+    return new Promise(function(resolve, reject) {
+      LazyLoader.load(['/shared/js/sim_settings_helper.js'], function() {
+        SimSettingsHelper.getCardIndexFrom('outgoingCall',
+        function(defaultCardIndex) {
+          if (defaultCardIndex == SimSettingsHelper.ALWAYS_ASK_OPTION_VALUE) {
+            LazyLoader.load(['/shared/js/component_utils.js',
+                             '/shared/elements/gaia_sim_picker/script.js'],
+            function() {
+              var simPicker = document.getElementById('sim-picker');
+              simPicker.getOrPick(defaultCardIndex, null,
+              function(pickedCardIndex) {
+                cardIndex = pickedCardIndex;
+                resolve();
+              });
+            });
+          } else {
+            cardIndex = defaultCardIndex;
+            resolve();
+          }
+        });
+      });
+    }).then(function() {
+      return self._getSimContactsList(cardIndex).then(
+      function(simContactsList) {
+        return simContactsList[index].number;
+      });
+    });
+  },
+
+  /**
+   * Creates an array of contacts populated using the ADN contacts retrieved
+   * from a SIM card. Every contact will contain only the ID and first
+   * telephone number and the array will be sorted by ID. This array is then
+   * suitable to be used to pick speed dial numbers.
+   *
+   * @param {Array} contacts An array of mozContact elements.
+   * @returns {Array} An array of telephone numbers / ID couples sorted by ID.
+   */
+  _createSimContactList: function(contacts) {
+    var numbers = new Array(contacts.length);
+
+    for (var i = 0; i < contacts.length; i++) {
+      numbers[i] = {
+        id: contacts[i].id,
+        number: contacts[i].tel[0].value,
+      };
+    }
+
+    numbers.sort(function(a, b) {
+      if (a.id.length == b.id.length) {
+        return (a.id > b.id) ? 1 : 0;
+      } else {
+        return (a.id.length > b.id.length) ? 1 : 0;
+      }
+    });
+
+    return numbers;
+  },
+
+  /**
+   * Gets the SIM contacts list for the specified SIM card.
+   *
+   * @param {Integer} cardIndex The SIM card index.
+   * @returns {Promise} A promise that is resolved with the contacts list.
+   */
+  _getSimContactsList: function(cardIndex) {
+    var self = this;
+    var canceled = false;
+
+    return new Promise(function(resolve, reject) {
+      LazyLoader.load(['/shared/style/confirm.css',
+                       '/shared/js/confirm.js',
+                       document.getElementById('confirmation-message')],
+        function() {
+          var iccId = navigator.mozIccManager.iccIds[cardIndex];
+          var icc = navigator.mozIccManager.getIccById(iccId);
+          var req = icc.readContacts('adn');
+
+          req.onsuccess = function(event) {
+            var adnContacts = event.target.result;
+            var contacts = self._createSimContactList(adnContacts);
+
+            if (!canceled) {
+              ConfirmDialog.hide();
+            }
+
+            resolve(contacts);
+          };
+          req.onerror = function(error) {
+            console.error('Could not retrieve the ADN contacts from SIM card ' +
+                          cardIndex + ', got error ' + error.name);
+            reject();
+          };
+
+          ConfirmDialog.show('loadingContacts', null, {
+            title: 'cancel',
+            callback: function() {
+              canceled = true;
+              ConfirmDialog.hide();
+              reject();
+            }
+          });
+        }
+      );
+    });
   },
 
   sanitizePhoneNumber: function(number) {
