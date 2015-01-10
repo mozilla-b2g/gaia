@@ -1,12 +1,14 @@
-/* global parseMetadata, MockLazyLoader, MockGetDeviceStorage */
+/* global parseMetadata, MockLazyLoader, MockGetDeviceStorage, loadPicture */
 'use strict';
 
 require('/test/unit/metadata/utils.js');
 require('/js/metadata/flac.js');
+require('/js/metadata/vorbis_picture.js');
 
 suite('flac tags', function() {
   var RealLazyLoader, RealGetDeviceStorage;
 
+  var expectedPicture;
   setup(function(done) {
     this.timeout(1000);
     RealLazyLoader = window.LazyLoader;
@@ -18,6 +20,13 @@ suite('flac tags', function() {
     require('/js/metadata_scripts.js', function() {
       done();
     });
+
+    loadPicture('/test-data/album-art.jpg', 'image/jpeg', 'embedded').then(
+      function(data) {
+        expectedPicture = data;
+        done();
+      }
+    );
   });
 
   teardown(function() {
@@ -36,6 +45,7 @@ suite('flac tags', function() {
         assert.strictEqual(metadata.trackcount, 8);
         assert.strictEqual(metadata.discnum, 1);
         assert.strictEqual(metadata.disccount, 1);
+        assert.deepEqual(metadata.picture, expectedPicture);
       });
     });
   });

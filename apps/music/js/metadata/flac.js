@@ -1,3 +1,4 @@
+/* global LazyLoader, VorbisPictureComment */
 /* exported FLACMetadata */
 'use strict';
 
@@ -36,36 +37,54 @@ var FLACMetadata = (function() {
     // First four bytes are "fLaC" or we wouldn't be here.
     blobview.seek(4);
 
-    metadata.tag_format = 'flac';
-    return findVorbisCommentBlock(blobview).then(function(block) {
-      if (!block) {
-        return metadata;
+    return new Promise(function(resolve, reject) {
+      metadata.tag_format = 'flac';
+      var has_vorbis_comment = false;
+      var has_picture = false;
+
+      function processBlock(block) {
+        if (!block) {
+          resolve(metadata);
+          return false;
+        }
+
+        if (block.block_type === 4) {
+          readAllComments(block.view, metadata);
+          has_vorbis_comment = true;
+        } else if (block.block_type === 6) {
+          LazyLoader.load('js/metadata/vorbis_picture.js', function() {
+            metadata.picture = VorbisPictureComment.readPicFrame(block.view);
+            metadata.picture.start += block.view.viewOffset;
+            metadata.picture.end += block.view.viewOffset;
+          });
+          has_picture = true;
+
+        }
+
+        return (!has_vorbis_comment || !has_picture);
       }
-      return readAllComments(block.view, metadata);
+
+      findMetadataBlocks(blobview, processBlock);
     });
   }
 
   /**
-   * Step over metadata blocks until we find the Vorbis comment block.
+   * Step over metadata blocks until we find the proper metadata block.
    *
    * @param {BlobView} blobview The BlobView for the file.
-   * @return {Promise} A promise resolving to an object describing the metadata
-   *   block. See readMetadataBlockHeader for more details.
+   * @param {function} callback The callback to process the block with.
    */
-  function findVorbisCommentBlock(blobview) {
-    return readMetadataBlockHeader(blobview).then(function(block) {
-      // XXX: Support album art.
-      // See: http://flac.sourceforge.net/format.html#metadata_block_picture
-
-      // Did we find a Vorbis comment block yet?
-      if (block.block_type === 4) {
-        return block;
-      } else if (block.last) {
-        return null;
+  function findMetadataBlocks(blobview, callback) {
+    readMetadataBlockHeader(blobview).then(function(block) {
+      if (!callback(block) || block.last) {
+        callback(null);
       } else {
-        block.view.advance(block.length);
-        return findVorbisCommentBlock(block.view);
+        block.view.advance(block.length - block.view.index);
+        findMetadataBlocks(block.view, callback);
       }
+    }).catch(function(err) {
+      console.error('Error finding FLAC metadata:', err);
+      callback(null);
     });
   }
 
@@ -74,7 +93,7 @@ var FLACMetadata = (function() {
    * enough extra data to read the next block's header.
    *
    * @param {BlobView} blobview The BlobView for the file.
-   * @param {Promise} A promise resolving to an object with the following
+   * @return {Promise} A Promise resolving to an object with the following
    *   fields:
    *     {Boolean} last True if this is the last metadata block.
    *     {Number} block_type The block's type, as an integer.

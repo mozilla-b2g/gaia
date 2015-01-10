@@ -125,6 +125,7 @@ var VorbisPictureComment = (function() {
   }
 
   return {
+    readPicFrame: readPicFrame,
     parsePictureComment: parsePictureComment
   };
 
