@@ -1,4 +1,7 @@
 'use strict';
+
+/* global MimeMapper */
+
 require('/shared/js/mime_mapper.js');
 
 suite('Shared library mime_mapper api tests', function() {
@@ -105,4 +108,3 @@ suite('Shared library mime_mapper api tests', function() {
     });
   });
 });
-
