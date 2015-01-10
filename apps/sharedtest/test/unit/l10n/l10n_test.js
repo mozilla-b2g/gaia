@@ -1,4 +1,5 @@
 suite('L10n', function() {
+  'use strict';
   var _;
   var _translateFragment;
 
@@ -250,4 +251,3 @@ suite('L10n', function() {
     });
   });
 });
-
