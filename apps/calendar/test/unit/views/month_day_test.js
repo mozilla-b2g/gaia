@@ -82,6 +82,7 @@ suite('Views.MonthDay', function() {
       assert.lengthOf(busy.childNodes, 2);
       subject._updateBusyCount({ amount: 5 });
       assert.lengthOf(busy.childNodes, 3);
+      assert.equal(busy.getAttribute('data-l10n-id'), 'busy');
     });
 
     test('remove', function() {
@@ -93,6 +94,7 @@ suite('Views.MonthDay', function() {
       assert.lengthOf(busy.childNodes, 2);
       subject._updateBusyCount({ amount: 0 });
       assert.lengthOf(busy.childNodes, 0);
+      assert.equal(busy.getAttribute('data-l10n-id'), 'busy');
     });
   });
 
