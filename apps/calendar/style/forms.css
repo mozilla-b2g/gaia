@@ -49,3 +49,9 @@ form li {
   /* input should not be selectable otherwise it might affect the layout */
   -moz-user-select: none;
 }
+
+/* RTL View */
+html[dir="rtl"] .datetime {  
+  left: unset;
+  right: 1.5rem;
+}
