@@ -80,22 +80,17 @@ suite('Views.MonthDay', function() {
     test('add', function() {
       subject._updateBusyCount({ amount: 2 });
       assert.lengthOf(busy.childNodes, 2);
-      assert.equal(busy.getAttribute('aria-label'), '2 events');
       subject._updateBusyCount({ amount: 5 });
       assert.lengthOf(busy.childNodes, 3);
-      assert.equal(busy.getAttribute('aria-label'), '3 events');
     });
 
     test('remove', function() {
       subject._updateBusyCount({ amount: 5 });
       assert.lengthOf(busy.childNodes, 3);
-      assert.equal(busy.getAttribute('aria-label'), '3 events');
       subject._updateBusyCount({ amount: 3 });
       assert.lengthOf(busy.childNodes, 3);
-      assert.equal(busy.getAttribute('aria-label'), '3 events');
       subject._updateBusyCount({ amount: 2 });
       assert.lengthOf(busy.childNodes, 2);
-      assert.equal(busy.getAttribute('aria-label'), '2 events');
       subject._updateBusyCount({ amount: 0 });
       assert.lengthOf(busy.childNodes, 0);
     });
