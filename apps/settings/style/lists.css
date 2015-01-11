@@ -99,7 +99,8 @@ ul > li > progress + span {
   display: inline-block;
   vertical-align: middle;
   margin: 0;
-  padding: 0 0 0 1rem;
+  padding: 0;
+  -moz-padding-start: 1rem;
   color: #505b5b;
   font-size: 1.4rem;
   line-height: 6rem;
@@ -161,7 +162,9 @@ ul li > label.pack-checkbox > .color-preview:before {
   height: 2rem;
   width: 2rem;
   content: "";
-  margin: -1.1rem 0 0 -3rem;
+  margin: 0;
+  margin-top: -1.1rem;
+  -moz-margin-start: -3rem;
   top: 50%;
   position: absolute;
 }
@@ -210,7 +213,9 @@ ul li > label.pack-checkbox > .memory-item:before {
   background-color: lightslategrey;
   height: 2rem;
   width: 2rem;
-  margin: -1.1rem 0 0 -3rem;
+  margin: 0;
+  margin-top: -1.1rem;
+  -moz-margin-start: -3rem;
 }
 
 
@@ -236,10 +241,10 @@ ul li > label:not([for]),
 ul li > label.pack-checkbox,
 ul li > label.pack-radio,
 ul li > label.pack-switch {
-  margin-left: -1.5rem;
-  margin-right: -1.5rem;
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
+  -moz-margin-start: -1.5rem;
+  -moz-margin-end: -1.5rem;
+  -moz-padding-start: 1.5rem;
+  -moz-padding-end: 1.5rem;
   width: 100%;
   height: calc(100% - 1rem);
   min-height: 5rem;
@@ -263,19 +268,19 @@ ul li > label.pack-switch > input ~ span:after {
 }
 
 ul li > label.pack-checkbox > span {
-  padding-right: 6.1rem;
+  -moz-padding-end: 6.1rem;
 }
 
 ul li > label.pack-radio ~ p {
-  padding-right: 3rem;
+  -moz-padding-end: 3rem;
 }
 
 ul li > label.pack-switch > span {
-   padding-right: 9rem;
+  -moz-padding-end: 9rem;
 }
 
 ul li > label.pack-radio > span {
-  padding-right: 5.9rem;
+  -moz-padding-end: 5.9rem;
 }
 
 ul li > label.pack-checkbox:active,
@@ -422,7 +427,7 @@ dl > * {
 }
 
 dl dt {
-  padding-left: 3rem;
+  -moz-padding-start: 3rem;
   font-weight: 500;
   border-bottom: 0.1rem solid black;
 }
@@ -433,41 +438,24 @@ dl dd {
   border-bottom: 0.1rem solid #e6e6e3; /* same as "ul li" */
 }
 
-
 /******************************************************************************
- * Right-to-Left layout
+ * Right-To-Left layout
  */
-
-html[dir="rtl"] ul > li > progress + span {
-  padding-left: 0;
-  padding-right: 1rem;
-}
 
 html[dir="rtl"] ul li > a span:nth-of-type(2):not(.button) {
   left: 1.5rem;
-  right: auto;
+  right: unset;
 }
 
 html[dir="rtl"] ul li > label.pack-checkbox > small,
 html[dir="rtl"] ul li > label.pack-radio > small {
   left: 6.1rem;
-  right: 4rem;
-}
-
-html[dir="rtl"] ul li > label.pack-checkbox > small:not(.menu-item-desc),
-html[dir="rtl"] ul li > label.pack-radio > small:not(.menu-item-desc) {
-   left: 9rem;
-   right: 2rem;
+  right: unset;
 }
 
 html[dir="rtl"] ul li > label.pack-switch > small {
-   left: 9rem;
-   right: 4rem;
-}
-
-html[dir="rtl"] ul li > label.pack-switch > small:not(.menu-item-desc) {
-   left: 9rem;
-   right: 2rem;
+  left: 9rem;
+  right: unset;
 }
 
 html[dir="rtl"] ul li > label.pack-checkbox > span:after,
@@ -477,68 +465,12 @@ html[dir="rtl"] ul li > label.pack-switch > input ~ span:after {
   right: auto;
 }
 
-html[dir="rtl"] ul li > label.pack-checkbox > span {
-  padding-left: 6.1rem;
-
-}
-html[dir="rtl"] ul li > label.pack-checkbox > span:not(.menu-item) {
-  padding-left: 6.1rem;
-  padding-right: 3rem;
-}
-
-html[dir="rtl"] ul li > label.pack-radio ~ p {
-  padding-left: 3rem;
-}
-
-html[dir="rtl"] ul li > label.pack-switch > span {
-  padding-left: 9rem;
-}
-
-html[dir="rtl"] ul li > label.pack-switch > span:not(.menu-item) {
-  padding-left: 9rem;
-  padding-right: 3rem;
-}
-
-html[dir="rtl"] ul li > label.pack-radio > span {
-  padding-left: 5.9rem;
-}
-
-html[dir="rtl"] ul li > label.pack-radio > span:not(.menu-item) {
-  padding-left: 5.9rem;
-  padding-right: 3rem;
-}
-
-html[dir="rtl"] ul li > label input[type="range"] {
-  left: 7rem;
-  right: 5rem;
+html[dir="rtl"] ul li.pack-split:after {
+  left: 7.5rem;
+  right: unset;
 }
 
 html[dir="rtl"] ul li.sound-setting > label input[type="range"] {
-  left: auto;
+  left: unset;
   right: 1.5rem;
-}
-
-html[dir="rtl"] dl dt {
-  padding-left: 0;
-  padding-right: 3rem;
-}
-
-html[dir="rtl"] ul li.bluetooth-device > a{
-  padding-left: 1rem;
-  padding-right: 1rem;
-}
-
-html[dir="rtl"] ul li > label.pack-checkbox > .color-preview:before {
-  margin-left: 0;
-  margin-right: -3rem;
-}
-
-html[dir="rtl"] ul li > label.pack-checkbox > .memory-item:before {
-  margin-left: 0;
-  margin-right: -3rem;
-}
-
-html[dir="rtl"] ul li.pack-split:after {
-  right: unset;
-  left: 7.5rem;
 }

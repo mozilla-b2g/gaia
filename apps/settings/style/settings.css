@@ -254,12 +254,15 @@ body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
   font-style: normal;
   position: relative;
   margin-top: -2rem;
-  padding: 0.5rem 4rem 1.3rem 1.5rem;
+  padding-top: 0.5rem;
+  padding-bottom: 1.3rem;
+  -moz-padding-start: 1.5rem;
+  -moz-padding-end: 4rem;
   white-space: normal;
 }
 
 .hint > label:not([for]) ~ .explanation {
-  padding-right: 8rem;
+  -moz-padding-end: 8rem;
 }
 
 .hint .explanation[hidden] {
@@ -298,7 +301,7 @@ ul[data-state="ready"] li[data-state="ready"] {
 }
 
 ul[data-state="ready"] li > a {
-  padding-right: 6.2rem; /* 3rem (initial padding) + 3.2rem (wifi icon width) */
+  -moz-padding-end: 6.2rem; /* 3rem (initial padding) + 3.2rem (wifi icon width) */
 }
 
 /**
@@ -330,30 +333,30 @@ section[data-security*="EAP"] li.identity {
 section li.password {
   display: inherit; /*asf*/
   height: 12rem;
-  padding-right: 0;
+  -moz-padding-end: 0;
 }
 
 section li.password > label {
   height: 3rem;
   min-height: 0;
   margin-top: 0.5rem;
-  margin-left: 0;
+  -moz-margin-start: 0;
 }
 
 section li.password > label > span:after {
   left: 0;
   right: auto;
-  margin-left: 0;
+  -moz-margin-start: 0;
 }
 
 
 section li.password > label > span {
-  padding-left: 3rem;
+  -moz-padding-start: 3rem;
   height: 3rem;
   color: #848484;
   font-size: 1.7rem;
   line-height: 3rem;
-  margin-right: 1.5rem;
+  -moz-margin-end: 1.5rem;
 }
 
 section li.password > label:active {
@@ -440,7 +443,7 @@ section ul.operate-certificate {
 }
 
 #mediaStorage .stackedbar-color-label + a {
-  padding-left: 4rem;
+  -moz-padding-start: 4rem;
 }
 /******************************************************************************
  * Call settings
@@ -504,7 +507,7 @@ section ul.operate-certificate {
   left: -1.5rem;
   top: 0;
   width: calc(100% - 3.5rem);
-  padding-left: 1.5rem;
+  -moz-padding-start: 1.5rem;
 }
 
 .apn-list .apn-item .name:active {
@@ -583,7 +586,7 @@ section ul.operate-certificate {
 
 .wallpaper .wallpaper-button > span:before {
   font-size: 40px;
-  margin-right: -2px;
+  -moz-margin-end: -2px;
 }
 
 .wallpaper .wallpaper-preview {
@@ -608,7 +611,7 @@ section ul.operate-certificate {
  */
 
 .manage-tones-button {
-  padding-left: 3rem;
+  -moz-padding-start: 3rem;
 }
 
 /******************************************************************************
@@ -630,10 +633,11 @@ ul li > label.range-icons:before {
 
 ul li > label.range-icons span {
   position: absolute;
-  top: 0; left: 0;
+  top: 0;
+  left: 0;
   height: 100%;
-  padding: 0px;
-  margin: 0px 1.5rem;
+  padding: 0;
+  margin: 0 1.5rem;
   pointer-events: none;
   color: #657073;
   line-height: 6rem;
@@ -900,7 +904,7 @@ ul li > label.range-icons.volume input {
 
 #fxa-unverified-text {
   padding-top: 0.8rem;
-  margin-left: 6rem;
+  -moz-margin-start: 6rem;
 }
 
 /******************************************************************************
@@ -916,16 +920,19 @@ ul li > label.range-icons.volume input {
   min-height: 6rem;
   height: auto;
   line-height: 2.3rem;
-  padding: 1.9rem 4rem 1.5rem 3rem;
+  padding-top: 1.9rem;
+  padding-bottom: 1.5rem;
+  -moz-padding-start: 3rem;
+  -moz-padding-end: 4rem;
 }
 
 #developer ul li > label.pack-switch > span,
 #developer-hud ul li > label.pack-switch > span {
-  padding-right: 9rem;
+  -moz-padding-end: 9rem;
 }
 
 #developer-hud ul li > label > span.color-preview {
-  padding-left: 5rem;
+  -moz-padding-start: 5rem;
 }
 
 #developer-hud ul li.hud-separator {
@@ -964,7 +971,7 @@ html[dir="rtl"] section[role="region"] {
   transform: translateX(-100%);
 }
 
-html[dir="rtl"] section[role="region"].previous  {
+html[dir="rtl"] section[role="region"].previous {
   transform: translateX(+100%);
 }
 
@@ -972,86 +979,44 @@ html[dir="rtl"] section[role="region"].current {
   transform: translateX(0);
 }
 
-/* 'show password' checkboxes */
-html[dir="rtl"] label[for^="pwd"] {
-  padding-left: inherit;
-  padding-right: 3rem;
-}
-
-/* Following RTL Tweaks */
-
-html[dir="rtl"] .hint .explanation {
-  padding-left: 4rem;
-  padding-right: 1.5rem;
-  white-space: normal;
-}
-
-html[dir="rtl"] .hint > label:not([for]) ~ .explanation {
-  padding-left: 8rem;
-  padding-right: 1.5rem;
-}
-
-html[dir="rtl"] ul[data-state="ready"] li > a {
-  padding-left: 6.2rem; /* 3rem (initial padding) + 3.2rem (wifi icon width) */
-  padding-right: 3rem;
-}
-
-html[dir="rtl"] section li.password {
-  padding-left: 0;
-}
-
-html[dir="rtl"] section li.password > label {
-  left: 1.5rem;
+html[dir="rtl"] .passcode-input {
+  left: unset;
   right: 0;
 }
 
 html[dir="rtl"] section li.password > label > span:after {
   left: auto;
-  right: 1.5rem;
-  margin-left: auto;
-  margin-right: 0;
-}
-
-html[dir="rtl"] section li.password > label > span {
-  margin-left: 0;
-  margin-right: 0;
-  padding-right: 3rem;
+  right: 0;
 }
 
 html[dir="rtl"] #mediaStorage .stackedbar-color-label {
-  left: auto;
+  left: unset;
   right: 1.5rem;
 }
 
-html[dir="rtl"] #mediaStorage .stackedbar-color-label + a {
-  padding-left: 0;
-  padding-right: 4rem;
+html[dir="rtl"] .apn-list .apn-item .name {
+  left: unset;
+  right: -1.5rem;
 }
 
-html[dir="rtl"] #call .cw-alert .cw-alert-checkbox-label {
+html[dir="rtl"] .apn-list .apn-item:after {
+  left: 3.5rem;
+  right: unset;
+}
+
+html[dir="rtl"] ul li > label.range-icons span:last-child {
   left: 0;
   right: auto;
 }
 
-html[dir="rtl"] #wallpaper-button {
-  left: auto;
-  right: 0;
-}
-
-html[dir="rtl"] ul li > label.range-icons.brightness:before {
-  background-position: 100% 50%, 0 50%;
-  left: auto;
-  right: 1rem;
-}
-
-html[dir="rtl"] .brightness-manual div {
-  left: auto;
+html[dir="rtl"] li.brightness-manual div {
+  left: unset;
   right: 5rem;
 }
 
-html[dir="rtl"] #time-manual input {
-  left: auto;
-  right: 0;
+html[dir="rtl"] #dateTime .timezone.disabled select {
+  left: unset;
+  right: 1rem;
 }
 
 html[dir="rtl"] #sendFeedback .pack-checkbox span {
@@ -1067,26 +1032,12 @@ html[dir="rtl"] #feedback-sad {
   float: left;
 }
 
-html[dir="rtl"] ul li > label.range-icons.volume span {
-  left: auto;
-  right: 0;
-}
-
 html[dir="rtl"] ul li > label.range-icons.volume input {
+  margin-left: unset;
   margin-right: 5.8rem;
 }
 
-html[dir="rtl"] #developer-hud ul li > label > span.color-preview {
-  padding-left: 0;
-  padding-right: 5rem;
-}
-
-html[dir="rtl"] .apn-list .apn-item .name {
-  right: -1.5rem;
-  padding-right: 1.5rem;
-}
-
-html[dir="rtl"] .apn-list .apn-item:after {
-  left: 3.5rem;
-  right: unset;
+html[dir="rtl"] ul li > label.range-icons span {
+  left: unset;
+  right: 0;
 }
