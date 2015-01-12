@@ -307,7 +307,7 @@
 
       return promise;
 
-    }
+    };
 
   };
 
@@ -910,7 +910,7 @@
   })(hexChars);
 
   function toHex(n){
-      var result = ''
+      var result = '';
       var start = true;
       for (var i=32; i>0;){
           i-=4;
@@ -969,7 +969,7 @@
           z = (new Array(c + 1)).join("0"), r = n + f;
           return (s || "") + (l ? r = z + r : r += z).substr(0, i += l ? z.length : 0) + (i < r.length ? "." + r.substr(i) : "");
       });
-  };
+  }
 
   // STRING FUNCTIONS
 

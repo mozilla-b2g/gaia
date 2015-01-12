@@ -30,7 +30,7 @@
     }.bind(this));
     this.keyNavigationAdapter.on('enter', function() {
       this.scrollable.currentItem.click();
-    }.bind(this))
+    }.bind(this));
     this.keyNavigationAdapter.on('esc', this.hide.bind(this));
 
     return this;
@@ -105,7 +105,7 @@
               '<header class="contextmenu-header"></header>' +
               '<div class="contextmenu-list-frame">' +
                 '<menu class="contextmenu-list"></menu>' +
-              '</div>'
+              '</div>' +
             '</form>';
   };
 

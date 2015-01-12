@@ -230,7 +230,7 @@
 
   proto.updateSettings = function st_updateSettings(data) {
     mozSettings.createLock().set(data);
-  }
+  };
 
   exports.Settings = Settings;
 }(window));
