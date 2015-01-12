@@ -874,7 +874,7 @@ var Contacts = (function() {
   };
 
   var initContacts = function initContacts(evt) {
-    window.setTimeout(Contacts.onLocalized);
+    window.setTimeout(Contacts && Contacts.onLocalized);
     if (window.navigator.mozSetMessageHandler && window.self == window.top) {
       LazyLoader.load([SHARED_UTILS_PATH + '/misc.js',
         SHARED_UTILS_PATH + '/vcard_reader.js',
@@ -886,7 +886,6 @@ var Contacts = (function() {
     }
 
     document.addEventListener('visibilitychange', function visibility(e) {
-      Contacts.checkCancelableActivity();
       if (document.hidden === false &&
                                 navigation.currentView() === 'view-settings') {
         Contacts.view('Settings', function viewLoaded() {
