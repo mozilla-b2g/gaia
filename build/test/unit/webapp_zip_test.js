@@ -86,6 +86,7 @@ suite('webapp-zip.js', function() {
       mockOptions = {
         webapp: {
           buildDirectoryFile: mockUtils.getFile('testBuildDirectoryFile'),
+          profileDirectoryFile: mockUtils.getFile('testTargetDir/testDomain'),
           domain: 'testDomain'
         },
         targetDir: mockUtils.getFile('testTargetDir')
