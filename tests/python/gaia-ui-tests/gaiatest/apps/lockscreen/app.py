@@ -28,6 +28,8 @@ class LockScreen(Base):
 
     _notification_locator = (By.CSS_SELECTOR, '#notifications-lockscreen-container > div.notification')
 
+    _time_locator = (By.ID, 'lockscreen-clock-time')
+
     def switch_to_frame(self):
         # XXX: Because we're not in frame yet. LockScreen team now is
         # trying hard to do decoupling & as-iframe at the same time,
@@ -43,6 +45,10 @@ class LockScreen(Base):
         #
         # But now we're not ready to do that yet.
         self.marionette.switch_to_frame()
+
+    @property
+    def time(self):
+        return self.marionette.find_element(*self._time_locator).text
 
     def unlock(self):
         self._slide_to_unlock('homescreen')
