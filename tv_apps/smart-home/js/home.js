@@ -1,6 +1,7 @@
 'use strict';
-/* global SpatialNavigator, KeyEvent, XScrollable */
-/* global CardManager, URL, Application, Clock */
+/* global SpatialNavigator, XScrollable, KeyNavigationAdapter, Edit */
+/* global CardManager, URL, Application, Clock, Folder, Deck, CardFilter */
+/* global SearchBar */
 
 (function(exports) {
 
@@ -12,7 +13,15 @@
   function Home() {}
 
   Home.prototype = {
-    navigableIds: ['search-button', 'search-input', 'settings-group', 'filter-tab-group'],
+    navigableIds:
+        ['search-button', 'search-input', 'settings-group', 'filter-tab-group'],
+
+    topElementIds: ['search-button', 'search-input', 'settings-group',
+        'edit-button', 'settings-button'],
+    bottomElementIds: ['filter-tab-group', 'filter-all-button',
+        'filter-tv-button', 'filter-dashboard-button', 'filter-device-button',
+        'filter-app-button'],
+
     navigableClasses: ['filter-tab', 'command-button'],
     navigableScrollable: [],
     cardScrollable: undefined,
@@ -27,6 +36,7 @@
     settingGroup: document.getElementById('settings-group'),
     editButton: document.getElementById('edit-button'),
     settingsButton: document.getElementById('settings-button'),
+    searchButton: document.getElementById('search-button'),
 
     init: function() {
       var that = this;
@@ -35,12 +45,18 @@
 
       this.cardManager = new CardManager();
       this.cardManager.init();
+
+      this.searchBar = new SearchBar();
+      this.searchBar.init(document.getElementById('search-bar'));
+      this.searchBar.on('shown', this.onSearchBarShown.bind(this));
+      this.searchBar.on('hidden', this.onSearchBarHidden.bind(this));
+
       this.cardManager.getCardList().then(function(cardList) {
         that._createCardList(cardList);
         that.cardScrollable = new XScrollable({
                 frameElem: 'card-list-frame',
                 listElem: 'card-list',
-                itemClassName: 'card'}),
+                itemClassName: 'app-button'}),
         that.navigableScrollable = [that.cardScrollable];
         var collection = that.getNavigateElements();
 
@@ -54,11 +70,18 @@
         that.cardManager.on('card-removed', that.onCardRemoved.bind(that));
 
         that.spatialNavigator.on('focus', that.handleFocus.bind(that));
+        that.spatialNavigator.on('unfocus', that.handleUnfocus.bind(that));
         var handleScrollableItemFocusBound =
                                     that.handleScrollableItemFocus.bind(that);
+        var handleScrollableItemUnfocusBound =
+                                    that.handleScrollableItemUnfocus.bind(that);
         that.navigableScrollable.forEach(function(scrollable) {
           scrollable.on('focus', handleScrollableItemFocusBound);
         });
+        that.navigableScrollable.forEach(function(scrollable) {
+          scrollable.on('unfocus', handleScrollableItemUnfocusBound);
+        });
+
         that.spatialNavigator.focus();
 
         that.cardFilter = new CardFilter();
@@ -66,6 +89,10 @@
         // all's icon name is filter
         that.cardFilter.filter = CardFilter.FILTERS.ALL;
         that.cardFilter.on('filterchanged', that.onFilterChanged.bind(that));
+
+        that.edit = new Edit();
+        that.edit.init(
+                  that.spatialNavigator, that.cardManager, that.cardScrollable);
       });
     },
 
@@ -80,20 +107,24 @@
         // Listen to 'timeformatchange'
         window.addEventListener('timeformatchange',
                                 that.restartClock.bind(that));
-
       });
     },
 
     onCardInserted: function(card, idx) {
-      this.cardScrollable.insertNodeBefore(this._createCardNode(card), idx + 1);
+      this.cardScrollable.insertNodeBefore(this._createCardNode(card), idx);
+      if(this.edit.mode === 'edit') {
+        this.cardScrollable.focus(idx);
+      }
     },
 
-    onCardRemoved: function(idx) {
-      var elm = this.cardScrollable.getNode(idx);
-      if (elm.dataset.revokableURL) {
-        URL.revokeObjectURL(elm.dataset.revokableURL);
-      }
-      this.cardScrollable.removeNode(idx);
+    onCardRemoved: function(indices) {
+      indices.forEach(function(indices) {
+        var elm = this.cardScrollable.getNode(indices);
+        if (elm.dataset.revokableURL) {
+          URL.revokeObjectURL(elm.dataset.revokableURL);
+        }
+      }, this);
+      this.cardScrollable.removeNodes(indices);
     },
 
     _setCardIcon: function (cardButton, card, blob, bgColor) {
@@ -107,7 +138,7 @@
           cardButton.classList.add('fullsized');
           card.backgroundType = 'fullsized';
         }
-        cardButton.dataset.revokableURL = bgUrl
+        cardButton.dataset.revokableURL = bgUrl;
         cardButton.style.backgroundImage = 'url("' + bgUrl + '")';
       } catch (e) {
         // If the blob is broken, we may get an exception while creating object
@@ -183,12 +214,40 @@
     },
 
     _createCardNode: function(card) {
+      // card element would be created like this:
+      // <div class="card">
+      //   <smart-button>/* Card button */</smart-button>
+      //   <section class="card-panel">
+      //     <smart-button>/* Rename button */</smart-button>
+      //     <smart-button>/* Delete button */</smart-button>
+      //   </section>
+      // </div>
+      // and return DOM element
+      var cardNode = document.createElement('div');
+      cardNode.classList.add('card');
 
       var cardButton = document.createElement('smart-button');
       cardButton.setAttribute('type', 'app-button');
+      cardButton.className = 'app-button';
       cardButton.setAttribute('label', card.name);
       cardButton.dataset.cardId = card.cardId;
-      cardButton.classList.add('card');
+
+      var cardPanel = document.createElement('section');
+      cardPanel.className = 'card-panel';
+
+      var renameButton = document.createElement('smart-button');
+      renameButton.dataset.icon = 'rename';
+      renameButton.classList.add('rename-btn');
+
+      var deleteButton = document.createElement('smart-button');
+      deleteButton.dataset.icon = 'delete';
+      deleteButton.classList.add('delete-btn');
+
+      cardPanel.appendChild(renameButton);
+      cardPanel.appendChild(deleteButton);
+
+      cardNode.appendChild(cardButton);
+      cardNode.appendChild(cardPanel);
 
       // XXX: will support Folder and other type of Card in the future
       // for now, we only create card element for Application and Deck
@@ -198,9 +257,12 @@
       } else if (card instanceof Deck) {
         cardButton.setAttribute('app-type', 'deck');
         this._fillCardIcon(cardButton, card);
+      } else if (card instanceof Folder) {
+        cardButton.setAttribute('app-type', 'folder');
+        cardButton.dataset.icon = 'folder';
       }
 
-      return cardButton;
+      return cardNode;
     },
 
     _createCardList: function(cardList) {
@@ -210,25 +272,62 @@
     },
 
     onMove: function(key) {
-      var focus = this.spatialNavigator.getFocusedElement();
-      if (focus.CLASS_NAME == 'XScrollable') {
-        if (focus.spatialNavigator.move(key)) {
-          return;
-        }
+      if (this.edit.onMove(key)) {
+        return;
       }
-      this.spatialNavigator.move(key);
+
+      var focus = this.spatialNavigator.getFocusedElement();
+      // XXX: We customized some navigating target here for those targets that
+      // don't move as we expected.
+      // We are planning to replace spatialNavigator with other solution, since
+      // most navigating case in smart-home is relatively simpler and
+      // spatialNavigator seems a little bit overkilled.
+      if((key === 'down' && this.topElementIds.indexOf(focus.id) !== -1) ||
+         (key === 'up' && this.bottomElementIds.indexOf(focus.id) !== -1)) {
+        this.spatialNavigator.focus(this.cardScrollable);
+        return;
+      }
+
+      if (!(focus.CLASS_NAME == 'XScrollable' && focus.move(key))) {
+        this.spatialNavigator.move(key);
+      }
     },
 
     onEnter: function() {
-      if (this.focusElem === this.settingsButton) {
+      if (this.edit.onEnter()) {
+        return;
+      }
+
+      var focusElem = this.focusElem;
+
+      if (focusElem === this.settingsButton) {
         this.openSettings();
+      } else if (focusElem === this.editButton) {
+        this.edit.toggleEditMode();
+      } else if (focusElem === this.searchButton) {
+        this.searchBar.show();
+        // hide the searchButton because searchBar has an element whose
+        // appearance is the same as it.
+        this.searchButton.classList.add('hidden');
       } else {
-        var cardId = this.focusElem.dataset.cardId;
+        // Current focus is on a card
+        var cardId = focusElem.dataset.cardId;
         var card = this.cardManager.findCardFromCardList({cardId: cardId});
         if (card) {
           card.launch();
         }
       }
+    },
+
+    onSearchBarShown: function() {
+      new MozActivity({
+        name: 'search'
+      });
+      this.searchBar.hide();
+    },
+
+    onSearchBarHidden: function() {
+      this.searchButton.classList.remove('hidden');
     },
 
     getNavigateElements: function() {
@@ -253,7 +352,7 @@
     handleFocus: function(elem) {
       if (elem.CLASS_NAME == 'XScrollable') {
         this._focusScrollable = elem;
-        elem.spatialNavigator.focus(elem.spatialNavigator.getFocusedElement());
+        elem.catchFocus();
         this.checkFocusedGroup();
       } else if (elem.nodeName) {
         if (this._focus) {
@@ -276,8 +375,21 @@
       }
     },
 
+    handleUnfocus: function(elem, nodeElem) {
+      if(elem.CLASS_NAME == 'XScrollable') {
+        this.handleScrollableItemUnfocus(
+                elem, elem.currentItem, elem.getNodeFromItem(elem.currentItem));
+      }
+    },
+
     checkFocusedGroup: function(elem) {
       if (!this._focusedGroup) {
+        return;
+      }
+      // Settings group should appear opened after switching from edit state
+      // back to normal state. So we'd keep it opened while in edit and arrange
+      // mode.
+      if (this._focusedGroup === this.settingGroup && this.edit.mode) {
         return;
       }
       // close the focused group when we move focus out of this group.
@@ -330,9 +442,21 @@
       menuGroup.open();
     },
 
-    handleScrollableItemFocus: function(scrollable, elem) {
-      elem.focus();
-      this._focus = elem;
+    handleScrollableItemFocus: function(scrollable, itemElem, nodeElem) {
+      this._focus = itemElem;
+
+      if (this.edit.mode === 'edit') {
+        return;
+      }
+      itemElem.focus();
+      nodeElem.classList.add('focused');
+    },
+
+    handleScrollableItemUnfocus: function(scrollable, itemElem, nodeElem) {
+      if (this.edit.mode === 'edit') {
+        return;
+      }
+      nodeElem.classList.remove('focused');
     },
 
     openSettings: function() {

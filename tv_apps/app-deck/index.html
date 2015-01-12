@@ -5,8 +5,12 @@
     <meta charset="utf-8">
     <title>Apps</title>
 
+    <!-- stylesheets of building blocks -->
+    <link rel="stylesheet" type="text/css" href="tv_shared/components/smart-button/style.css">
+
     <link rel="stylesheet" type="text/css" href="style/app_deck.css">
     <link rel="stylesheet" type="text/css" href="tv_shared/style/navigation.css">
+    <link rel="stylesheet" type="text/css" href="tv_shared/style/icons.css">
 
     <!-- For test purpose on phone only -->
     <script defer src="shared/js/gesture_detector.js"></script>
@@ -17,18 +21,29 @@
     <script src="shared/js/manifest_helper.js"></script>
     <script defer src="tv_shared/js/vendor/evt.js"></script>
     <script defer src="tv_shared/js/scrollable.js"></script>
-    <script defer src="tv_shared/js/selection_border.js"></script>
     <script defer src="tv_shared/js/spatial_navigator.js"></script>
     <script defer src="tv_shared/js/key_navigation_adapter.js"></script>
     <script defer src="tv_shared/js/shared_utils.js"></script>
     <script defer src="tv_shared/js/applications.js"></script>
+    <script defer src="tv_shared/js/piped_promise.js"></script>
+    <script defer src="tv_shared/js/card_store.js"></script>
+    <script defer src="tv_shared/js/cards/card.js"></script>
+    <script defer src="tv_shared/js/cards/application.js"></script>
+    <script defer src="tv_shared/js/cards/deck.js"></script>
+    <script defer src="tv_shared/js/cards/app_bookmark.js"></script>
+    <script defer src="tv_shared/js/cards/folder.js"></script>
+    <script defer src="tv_shared/js/card_manager.js"></script>
+
+    <!-- building blocks -->
+    <script defer src="tv_shared/components/smart-button/script.js"></script>
 
     <!-- Specific code -->
     <script defer src="js/context_menu.js"></script>
     <script defer src="js/app_deck.js"></script>
 
     <!-- L10n properties -->
-    <link rel="manifest" href="manifest.webapp"/>
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="locales/app-deck.{locale}.properties"/>
     <link rel="localization" href="shared/locales/date/date.{locale}.properties"/>
   </head>
@@ -55,8 +70,8 @@
         <div id="app-deck-grid-view"></div>
       </section>
       <menu type="context" id="context-menu">
-        <menuitem label="Pin to Home" data-l10n-id="pin-to-home" id="pin-to-home"></menuitem>
-        <menuitem label="Remove" data-l10n-id="remove-card" id="remove-card"></menuitem>
+        <menuitem label="Pin to Home" icon="tv_shared/style/icons/ic_pin.png" data-l10n-id="pin-to-home" id="pin-to-home"></menuitem>
+        <menuitem label="Remove" icon="tv_shared/style/icons/ic_delete.png" data-l10n-id="remove-card" id="remove-card"></menuitem>
         <menuitem label="Sort by Name" data-l10n-id="sort-by-name" id="sort-by-name"></menuitem>
         <menuitem label="Sort by Category" data-l10n-id="sort-by-category" id="sort-by-category"></menuitem>
         <menuitem label="Sort by Time Added" data-l10n-id="sort-by-time-added" id="sort-by-time-added"></menuitem>

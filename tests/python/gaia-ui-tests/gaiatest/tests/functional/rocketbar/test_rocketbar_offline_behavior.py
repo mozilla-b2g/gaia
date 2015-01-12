@@ -10,7 +10,7 @@ class TestRocketBarOffline(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
-        self.apps.set_permission_by_url('app://search.gaiamobile.org/manifest.webapp', 'geolocation', 'deny')
+        self.data_layer.set_setting('search.suggestions.enabled', True)
 
     def test_rocketbar_offline_behavior(self):
         """

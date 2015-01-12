@@ -506,6 +506,7 @@ define BUILD_CONFIG
   "LOCALES_FILE" : "$(subst \,\\,$(LOCALES_FILE))", \
   "GAIA_KEYBOARD_LAYOUTS" : "$(GAIA_KEYBOARD_LAYOUTS)", \
   "GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS" : "$(GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS)", \
+  "GAIA_KEYBOARD_ENABLE_USER_DICT" : "$(GAIA_KEYBOARD_ENABLE_USER_DICT)", \
   "LOCALE_BASEDIR" : "$(subst \,\\,$(LOCALE_BASEDIR))", \
   "BUILD_APP_NAME" : "$(BUILD_APP_NAME)", \
   "PRODUCTION" : "$(PRODUCTION)", \
@@ -1036,11 +1037,11 @@ really-clean: clean
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
 
-build-test-unit: $(NPM_INSTALLED_PROGRAMS)
-	./bin/build-test $(shell find build$(SEP)test$(SEP)unit$(SEP)*.test.js apps$(SEP)*$(SEP)test$(SEP)build$(SEP)unit$(SEP)*_test.js)
+build-test-unit: b2g_sdk $(NPM_INSTALLED_PROGRAMS)
+	@$(call run-js-command,build-test,TEST_TYPE=unit REPORTER=$(REPORTER) TRY_ENV=$(TRY_ENV) TEST_FILES="$(TEST_FILES)")
 
-build-test-integration: $(NPM_INSTALLED_PROGRAMS)
-	./bin/build-test $(shell find build$(SEP)test$(SEP)integration$(SEP)*.test.js apps$(SEP)*$(SEP)test$(SEP)build$(SEP)integration$(SEP)*_test.js)
+build-test-integration: b2g_sdk $(NPM_INSTALLED_PROGRAMS)
+	@$(call run-js-command,build-test,TEST_TYPE=integration REPORTER=$(REPORTER) TRY_ENV=$(TRY_ENV) TEST_FILES="$(TEST_FILES)")
 
 build-test-unit-coverage: $(NPM_INSTALLED_PROGRAMS)
 	@$(call run-build-coverage,build/test/unit)

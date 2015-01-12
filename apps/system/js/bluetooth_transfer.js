@@ -4,21 +4,19 @@
    stopSendingFile(in DOMString aDeviceAddress);
    confirmReceivingFile(in DOMString aDeviceAddress, in bool aConfirmation); */
 'use strict';
-/* global Bluetooth */
-/* global CustomDialog */
-/* global NfcHandoverManager */
-/* global MimeMapper */
-/* global MozActivity */
-/* global NotificationHelper */
-/* global UtilityTray */
+/* global Bluetooth, CustomDialog, NfcHandoverManager, MimeMapper,
+          MozActivity, NotificationHelper, UtilityTray, NfcHandoverManager*/
 /* exported BluetoothTransfer */
 
 var BluetoothTransfer = {
   // The first-in-first-out queue maintain each scheduled sending task.
   // Each element is a object for scheduled sending tasks.
   _sendingFilesQueue: [],
-  _deviceStorage: navigator.getDeviceStorage('sdcard'),
   _debug: false,
+
+  get _deviceStorage() {
+    return navigator.getDeviceStorage('sdcard');
+  },
 
   get transferStatusList() {
     var transferStatusList =
@@ -31,7 +29,7 @@ var BluetoothTransfer = {
   init: function bt_init() {
     // Bind message handler for sending files from Bluetooth app
     window.addEventListener('iac-bluetoothTransfercomms',
-      this.onFilesSending.bind(this)
+      this._onFilesSending.bind(this)
     );
 
     // Bind message handler for transferring file callback
@@ -41,16 +39,16 @@ var BluetoothTransfer = {
 
     // Listen to 'bluetooth-opp-transfer-start' from bluetooth.js
     window.addEventListener('bluetooth-opp-transfer-start',
-      this.onUpdateProgress.bind(this, 'start')
+      this._onUpdateProgress.bind(this, 'start')
     );
 
     navigator.mozSetMessageHandler('bluetooth-opp-update-progress',
-      this.onUpdateProgress.bind(this, 'progress')
+      this._onUpdateProgress.bind(this, 'progress')
     );
 
     // Listen to 'bluetooth-opp-transfer-complete' from bluetooth.js
     window.addEventListener('bluetooth-opp-transfer-complete',
-      this.onTransferComplete.bind(this)
+      this._onTransferComplete.bind(this)
     );
   },
 
@@ -119,7 +117,7 @@ var BluetoothTransfer = {
     });
   },
 
-  onFilesSending: function bt_onFilesSending(evt) {
+  _onFilesSending: function bt__onFilesSending(evt) {
     // Notify user that we are sending files
     var icon = 'style/bluetooth_transfer/images/transfer.png';
 
@@ -143,7 +141,7 @@ var BluetoothTransfer = {
     if (NfcHandoverManager.isHandoverInProgress()) {
       // Bypassing confirm dialog while incoming file transfer via NFC Handover
       this.debug('Incoming file via NFC Handover. Bypassing confirm dialog');
-      NfcHandoverManager.transferStarted();
+      window.dispatchEvent(new CustomEvent('nfc-transfer-started'));
       this.acceptReceive(evt);
       return;
     }
@@ -312,7 +310,7 @@ var BluetoothTransfer = {
         numSuccessful: 0,
         numUnsuccessful: 0
       };
-      this.onFilesSending({detail: sendingFilesSchedule});
+      this._onFilesSending({detail: sendingFilesSchedule});
       // XXX: Bug 915602 - [Bluetooth] Call sendFile api will crash
       // the system while device is just paired.
       // The paired device is ready to send file.
@@ -327,7 +325,7 @@ var BluetoothTransfer = {
     }
   },
 
-  onUpdateProgress: function bt_onUpdateProgress(mode, evt) {
+  _onUpdateProgress: function bt__onUpdateProgress(mode, evt) {
     switch (mode) {
       case 'start':
         var transferInfo = evt.detail.transferInfo;
@@ -449,7 +447,7 @@ var BluetoothTransfer = {
     }
   },
 
-  onTransferComplete: function bt_onTransferComplete(evt) {
+  _onTransferComplete: function bt__onTransferComplete(evt) {
     var transferInfo = evt.detail.transferInfo;
     // Remove transferring progress
     this.removeProgress(transferInfo);
@@ -461,12 +459,6 @@ var BluetoothTransfer = {
       icon: icon,
       onclick: null
     };
-
-    if (transferInfo.fileName) {
-      nData.body = transferInfo.fileName;
-    } else {
-      nData.bodyL10n = 'unknown-file';
-    }
 
     if (transferInfo.success === true) {
       if (transferInfo.received) {
@@ -484,10 +476,17 @@ var BluetoothTransfer = {
       }
     }
 
-    var promise = NotificationHelper.send(nData.titleL10n, {
-      'bodyL10n': nData.bodyL10n,
-      'icon': icon
-    });
+    var l10nArgs = {
+      icon: nData.icon
+    };
+
+    if (transferInfo.fileName) {
+      l10nArgs.body = transferInfo.fileName;
+    } else {
+      l10nArgs.bodyL10n = 'unknown-file';
+    }
+
+    var promise = NotificationHelper.send(nData.titleL10n, l10nArgs);
 
     if (nData.onclick) {
       promise.then(function(notification) {

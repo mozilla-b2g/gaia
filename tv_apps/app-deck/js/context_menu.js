@@ -11,50 +11,88 @@
     mainSection: document.getElementById('main-section'),
 
     _appDeck: undefined,
-    _appToPin: undefined,
+    _app: undefined,
 
     init: function cm_init(appDeck) {
+      this.mainSection.addEventListener('contextmenu',
+        this.onContextMenu.bind(this));
+
       this._appDeck = appDeck;
       this._appDeck.on('focus-on-pinable', this.onFocusOnPinable.bind(this));
-      this._appDeck.on('focus-on-nonpinable', this.onFocusOnNonpinable.bind(this));
-      this.pinToHomeElem.addEventListener('click', this.pinToHome.bind(this));
+      this._appDeck.on('focus-on-nonpinable',
+        this.onFocusOnNonpinable.bind(this));
+
+      this.pinToHomeElem.addEventListener('click', this.pinOrUnpin.bind(this));
     },
 
-    uninit: function cm_uninit() {
-      this.mainSection.removeEventListener('contextmenu', this);
+    _composeLaunchURL: function cm_composeLaunchURL(app) {
+      return app.manifestURL.replace('manifest.webapp', '') + app.entryPoint;
     },
 
-    pinToHome: function cm_pinToHome() {
-      if (this._appToPin) {
-        var app = this._appToPin;
-        // XXX: preferredSize should be determined by
-        // real offsetWidth of cardThumbnailElem in smart-home instead of
-        // hard-coded value
-        Applications.getIconBlob(app.manifestURL, app.entryPoint, 200,
-          function(blob) {
-            new MozActivity({
-              name: 'pin',
-              data: {
-                name: app.name,
-                type: 'Application',
-                manifestURL: app.manifestURL,
-                launchURL: app.manifestURL + app.entryPoint,
-                // We use app's original icon instead of screenshot here because
-                // we are in app deck. For the case of getting screenshot,
-                // please refer to bug 1100238.
-                thumbnail: blob
-              }
+    _sendUnpinMessage: function cm_sendUnpinActivity(app) {
+      // XXX: We should use IAC instead of activity.
+      new MozActivity({
+        name: 'unpin',
+        data: {
+          name: app.name,
+          manifestURL: app.manifestURL,
+          launchURL: this._composeLaunchURL(app)
+        }
+      });
+    },
+
+    pinOrUnpin: function cm_pinOrUnpin() {
+      var that = this;
+
+      if (this._app) {
+        var app = this._app;
+        if (app.pinned) {
+          this._sendUnpinMessage(app);
+        } else {
+          // XXX: preferredSize should be determined by
+          // real offsetWidth of cardThumbnailElem in smart-home instead of
+          // hard-coded value
+          Applications.getIconBlob(app.manifestURL, app.entryPoint, 354,
+            function(blob) {
+              new MozActivity({
+                name: 'pin',
+                data: {
+                  name: app.name,
+                  type: 'Application',
+                  manifestURL: app.manifestURL,
+                  launchURL: that._composeLaunchURL(app),
+                  // We use app's original icon instead of screenshot here because
+                  // we are in app deck. For the case of getting screenshot,
+                  // please refer to bug 1100238.
+                  thumbnail: blob
+                }
+              });
             });
-          });
+        }
       }
     },
 
     onFocusOnPinable: function cm_onFocusOnPinable(detail) {
-      this._appToPin = detail;
+      this._app = detail;
+      // XXX: According to http://goo.gl/Spol9H, we should avoid using
+      // mozL10n.get() as much as possible. But since system app use 'label'
+      // to render menuitem, we are still using mozL10n.get here until we have
+      // better way to resolve this
+      var l10nId =
+        (detail && detail.pinned) ? 'unpin-from-home' : 'pin-to-home';
+      this.pinToHomeElem.label = navigator.mozL10n.get(l10nId);
+      this.pinToHomeElem.setAttribute('data-l10n-id', l10nId);
     },
 
     onFocusOnNonpinable: function cm_onFocusOnNonpinable() {
-      this._appToPin = undefined;
+      this._app = undefined;
+    },
+
+    onContextMenu: function cm_onContextMenu(evt) {
+      // stop showing context menu if we are not focus on pinable element
+      if (!this._app) {
+        evt.preventDefault();
+      }
     }
   };
 

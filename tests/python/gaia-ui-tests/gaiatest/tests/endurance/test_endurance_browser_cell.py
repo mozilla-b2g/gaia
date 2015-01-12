@@ -16,7 +16,6 @@ class TestEnduranceBrowserCell(GaiaEnduranceTestCase):
 
     def setUp(self):
         GaiaEnduranceTestCase.setUp(self)
-        self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
 
         # Want cell network only
         self.data_layer.disable_wifi()

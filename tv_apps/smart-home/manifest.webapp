@@ -21,6 +21,13 @@
           "required": true
         }
       }
+    },
+    "unpin": {
+      "filters": {
+        "manifestURL": {
+          "required": true
+        }
+      }
     }
   },
   "default_locale": "en-US",

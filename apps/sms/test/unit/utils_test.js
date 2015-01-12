@@ -1,7 +1,8 @@
 /*global MockL10n, Utils, MockContact, FixturePhones, MockContactPhotoHelper,
          MockContacts, MockMozPhoneNumberService, MocksHelper, Notification,
          MockNotification, Threads, Promise, MockSettings,
-         AssetsHelper
+         AssetsHelper,
+         Dialog
 */
 
 'use strict';
@@ -15,12 +16,14 @@ requireApp('sms/js/utils.js');
 requireApp('sms/shared/test/unit/mocks/mock_notification.js');
 requireApp('sms/test/unit/mock_threads.js');
 require('/test/unit/mock_settings.js');
+require('/test/unit/mock_dialog.js');
 
 var MocksHelperForUtilsUnitTest = new MocksHelper([
   'ContactPhotoHelper',
   'Notification',
   'Threads',
-  'Settings'
+  'Settings',
+  'Dialog'
 ]).init();
 
 
@@ -929,7 +932,8 @@ suite('Utils', function() {
       'not-a-mime': null,
       'text': null,
       'application/video': 'application',
-      'multipart/form-data': null
+      'multipart/form-data': null,
+      'text/vcard': 'ref'
     };
 
     Object.keys(tests).forEach(function(testIndex) {
@@ -1034,58 +1038,6 @@ suite('Utils', function() {
     });
   });
 
-  suite('Utils.imageToCanvas', function() {
-    setup(function() {
-      this.sinon.stub(CanvasRenderingContext2D.prototype, 'drawImage');
-    });
-
-    test('correct ratio is used', function() {
-      var imgNode = document.createElement('img'),
-          targetWidth = 100,
-          targetHeight = 200,
-          heightRatio = 2,
-          widthRatio = 3;
-
-      imgNode.width = targetWidth * widthRatio;
-      imgNode.height = targetHeight * heightRatio;
-
-      var canvas = Utils.imageToCanvas(imgNode, targetWidth, targetHeight);
-
-      assert.equal(canvas.width, Math.round(imgNode.width / widthRatio));
-      assert.equal(canvas.height, Math.round(imgNode.height / widthRatio));
-
-      heightRatio = 3;
-      widthRatio = 2;
-
-      imgNode.width = targetWidth * widthRatio;
-      imgNode.height = targetHeight * heightRatio;
-
-      canvas = Utils.imageToCanvas(imgNode, targetWidth, targetHeight);
-
-      assert.equal(canvas.width, Math.round(imgNode.width / heightRatio));
-      assert.equal(canvas.height, Math.round(imgNode.height / heightRatio));
-    });
-
-    test('canvas is drawn with right dimensions', function() {
-      var imgNode = document.createElement('img'),
-          targetWidth = 100,
-          targetHeight = 200,
-          ratio = 2;
-
-      imgNode.width = targetWidth * ratio;
-      imgNode.height = targetHeight * ratio;
-
-      var canvas = Utils.imageToCanvas(imgNode, targetWidth, targetHeight);
-
-      assert.equal(canvas.width, Math.round(imgNode.width / ratio));
-      assert.equal(canvas.height, Math.round(imgNode.height / ratio));
-      sinon.assert.calledWith(
-        CanvasRenderingContext2D.prototype.drawImage,
-        imgNode, 0, 0, canvas.width, canvas.height
-      );
-    });
-  });
-
   suite('Utils.debounce', function() {
     setup(function() {
       this.sinon.useFakeTimers();
@@ -1114,6 +1066,162 @@ suite('Utils', function() {
 
       this.sinon.clock.tick(waitTime);
       sinon.assert.calledOnce(funcToExecute);
+    });
+  });
+
+  suite('Modal dialogs >', function() {
+    var dialogMock;
+    setup(function() {
+      dialogMock = sinon.createStubInstance(Dialog);
+      this.sinon.stub(window, 'Dialog', function() {
+        return dialogMock;
+      });
+    });
+
+    suite('Utils.alert >', function() {
+      test('Correctly passes arguments', function() {
+        Utils.alert({ raw: 'message' }, { raw: 'title' });
+
+        sinon.assert.calledWith(Dialog, {
+          title: { raw: 'title' },
+          body: { raw: 'message' },
+          options: {
+            cancel: {
+              text: 'modal-dialog-ok-button',
+              method: sinon.match.func
+            }
+          }
+        });
+        sinon.assert.called(dialogMock.show);
+      });
+
+      test('uses default title if not defined', function() {
+        Utils.alert({ raw: 'message' });
+
+        sinon.assert.calledWith(Dialog, {
+          title: 'modal-dialog-default-title',
+          body: { raw: 'message' },
+          options: {
+            cancel: {
+              text: 'modal-dialog-ok-button',
+              method: sinon.match.func
+            }
+          }
+        });
+        sinon.assert.called(dialogMock.show);
+      });
+
+      test('resolves only once OK button is pressed', function(done) {
+        var alertPromise = Utils.alert({ raw: 'message' });
+        var callStub = sinon.stub();
+
+        alertPromise.then(callStub);
+
+        Promise.resolve().then(function() {
+          // callback should not be called until user closes alert
+          sinon.assert.notCalled(callStub);
+
+          Dialog.firstCall.args[0].options.cancel.method();
+
+          return alertPromise;
+        }).then(function() {
+          sinon.assert.calledOnce(callStub);
+        }, function() {
+          throw new Error('Reject callback should not be called');
+        }).then(done, done);
+      });
+    });
+
+    suite('Utils.confirm >', function() {
+      test('Correctly passes arguments', function() {
+        Utils.confirm({ raw: 'message' }, { raw: 'title' });
+
+        sinon.assert.calledWith(Dialog, {
+          title: { raw: 'title' },
+          body: { raw: 'message' },
+          options: {
+            cancel: {
+              text: 'modal-dialog-cancel-button',
+              method: sinon.match.func
+            },
+
+            confirm: {
+              text: 'modal-dialog-ok-button',
+              method: sinon.match.func,
+              className: 'recommend'
+            }
+          }
+        });
+        sinon.assert.called(dialogMock.show);
+      });
+
+      test('uses default title if not defined', function() {
+        Utils.confirm({ raw: 'message' });
+
+        sinon.assert.calledWith(Dialog, {
+          title: 'modal-dialog-default-title',
+          body: { raw: 'message' },
+          options: {
+            cancel: {
+              text: 'modal-dialog-cancel-button',
+              method: sinon.match.func
+            },
+
+            confirm: {
+              text: 'modal-dialog-ok-button',
+              method: sinon.match.func,
+              className: 'recommend'
+            }
+          }
+        });
+        sinon.assert.called(dialogMock.show);
+      });
+
+      test('resolves only once OK button is pressed', function(done) {
+        var confirmPromise = Utils.confirm({ raw: 'message' });
+        var resolveStub = sinon.stub();
+        var rejectStub = sinon.stub();
+
+        confirmPromise.then(resolveStub, rejectStub);
+
+        Promise.resolve().then(function() {
+          // callback should not be called until user closes alert
+          sinon.assert.notCalled(resolveStub);
+          sinon.assert.notCalled(rejectStub);
+
+          Dialog.firstCall.args[0].options.confirm.method();
+
+          return confirmPromise;
+        }).then(function() {
+          sinon.assert.calledOnce(resolveStub);
+          sinon.assert.notCalled(rejectStub);
+        }, function() {
+          throw new Error('Reject callback should not be called');
+        }).then(done, done);
+      });
+
+      test('rejects only once Cancel button is pressed', function(done) {
+        var confirmPromise = Utils.confirm({ raw: 'message' });
+        var resolveStub = sinon.stub();
+        var rejectStub = sinon.stub();
+
+        confirmPromise.then(resolveStub, rejectStub);
+
+        Promise.resolve().then(function() {
+          // callback should not be called until user closes alert
+          sinon.assert.notCalled(resolveStub);
+          sinon.assert.notCalled(rejectStub);
+
+          Dialog.firstCall.args[0].options.cancel.method();
+
+          return confirmPromise;
+        }).then(function() {
+          throw new Error('Resolve callback should not be called');
+        }, function() {
+          sinon.assert.notCalled(resolveStub);
+          sinon.assert.calledOnce(rejectStub);
+        }).then(done, done);
+      });
     });
   });
 

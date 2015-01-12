@@ -4,8 +4,8 @@
 /*global MockNavigatormozSetMessageHandler, MockNavigatormozApps,
          MockNavigatorWakeLock, MockOptionMenu,
          MockMessages, MockL10n, MockSilentSms,
-         MockNavigatormozMobileMessage,
-         Settings
+         Settings,
+         Utils
 */
 
 'use strict';
@@ -36,7 +36,6 @@ require('/test/unit/mock_silent_sms.js');
 
 requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/mock_utils.js');
-requireApp('sms/test/unit/mock_navigatormoz_sms.js');
 
 requireApp('sms/js/activity_handler.js');
 
@@ -98,7 +97,7 @@ suite('ActivityHandler', function() {
   });
 
   setup(function() {
-    this.sinon.stub(window, 'alert');
+    this.sinon.stub(Utils, 'alert').returns(Promise.resolve());
     isDocumentHidden = false;
 
     MockNavigatormozSetMessageHandler.mSetup();
@@ -206,10 +205,10 @@ suite('ActivityHandler', function() {
 
       panelPromise.then(function() {
         sinon.assert.notCalled(Compose.append);
-        sinon.assert.calledWith(
-          window.alert, 
-          'attached-files-too-large{"n":5,"mmsSize":"0"}'
-        );
+        sinon.assert.calledWith(Utils.alert, {
+          id: 'attached-files-too-large',
+          args: { n: 5, mmsSize: '0' }
+        });
       }).then(done, done);
     });
 
@@ -225,7 +224,7 @@ suite('ActivityHandler', function() {
 
       panelPromise.then(function() {
         sinon.assert.called(Compose.append);
-        sinon.assert.notCalled(window.alert);
+        sinon.assert.notCalled(Utils.alert);
       }).then(done, done);
     });
 
@@ -498,6 +497,33 @@ suite('ActivityHandler', function() {
         var spied = Notify.vibrate;
         assert.ok(spied.called);
       });
+
+      test('an alert is displayed', function() {
+        sinon.assert.calledWith(
+          Utils.alert,
+          { raw: 'body' },
+          { raw: 'sender' }
+        );
+      });
+    });
+
+    suite('receive class-0 message without content', function() {
+      setup(function() {
+        message = MockMessages.sms({
+          body: null,
+          messageClass: 'class-0'
+        });
+        MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+      });
+
+      test('an alert is displayed with empty content', function() {
+        sinon.assert.calledWith(
+          Utils.alert,
+          { raw: '' },
+          { raw: 'sender' }
+        );
+      });
     });
   });
 
@@ -683,7 +709,7 @@ suite('ActivityHandler', function() {
       });
 
       test('an alert is displayed', function() {
-        sinon.assert.calledWith(window.alert, title + '\n' + body);
+        sinon.assert.calledWith(Utils.alert, { raw: body }, { raw: title });
       });
 
       test('handleMessageNotification is not called', function() {
@@ -907,55 +933,72 @@ suite('ActivityHandler', function() {
 
   });
 
-  suite('When compose is not empty', function() {
-
-    var message;
-    var text;
-    var realMozMobileMessage;
+  suite('handle message notification', function() {
+    var message, getMessagePromise;
 
     setup(function() {
-      text = 'test';
-      Compose.append(text);
       message = MockMessages.sms();
-      realMozMobileMessage = navigator.mozMobileMessage;
-      navigator.mozMobileMessage = MockNavigatormozMobileMessage;
-      this.sinon.stub(window, 'confirm');
+      getMessagePromise = Promise.resolve(message);
+
+      this.sinon.stub(Utils, 'confirm');
+      this.sinon.stub(Threads, 'has');
+      this.sinon.stub(Threads, 'registerMessage');
+      this.sinon.stub(MessageManager, 'getMessage').returns(getMessagePromise);
     });
 
-    teardown(function() {
-      navigator.mozMobileMessage = realMozMobileMessage;
-    });
-
-    suite('confirm false', function() {
-
+    suite('When compose is not empty', function() {
       setup(function() {
         this.sinon.stub(Compose, 'clear');
         this.sinon.stub(ThreadUI, 'cleanFields');
-        window.confirm.returns(false);
+
+        Compose.append('test');
       });
 
-      test('the text shouldn\'t be cleaned', function() {
+      test('if user does not want to discard draft', function(done) {
+        var confirmPromise = Promise.reject();
+        Utils.confirm.returns(confirmPromise);
+
         ActivityHandler.handleMessageNotification(message);
-        MockNavigatormozMobileMessage.mTriggerSuccessMessageRequest();
-        assert.isFalse(Compose.clear.called);
-        assert.isFalse(ThreadUI.cleanFields.called);
-        assert.isTrue(window.confirm.called);
+
+        getMessagePromise.then(() => confirmPromise).catch(() => {
+          sinon.assert.notCalled(Compose.clear);
+          sinon.assert.notCalled(ThreadUI.cleanFields);
+          sinon.assert.called(Utils.confirm);
+        }).then(done, done);
+      });
+
+      test('if user wants to discard draft', function(done) {
+        var confirmPromise = Promise.resolve();
+        Utils.confirm.returns(confirmPromise);
+
+        ActivityHandler.handleMessageNotification(message);
+
+        getMessagePromise.then(() => confirmPromise).then(() => {
+          sinon.assert.called(ThreadUI.cleanFields);
+          sinon.assert.called(Utils.confirm);
+        }).then(done, done);
       });
     });
 
-    suite('confirm true', function() {
+    test('registers message in Threads if no related thread', function(done) {
+      Threads.has.withArgs(message.threadId).returns(false);
 
-      setup(function() {
-        window.confirm.returns(true);
-        this.sinon.stub(ThreadUI, 'cleanFields');
-      });
+      ActivityHandler.handleMessageNotification(message);
 
-      test('the text should be cleaned', function() {
-        ActivityHandler.handleMessageNotification(message);
-        MockNavigatormozMobileMessage.mTriggerSuccessMessageRequest();
-        assert.isTrue(ThreadUI.cleanFields.called);
-        assert.isTrue(window.confirm.called);
-      });
+      getMessagePromise.then(() => {
+        sinon.assert.calledWith(Threads.registerMessage, message);
+      }).then(done, done);
+    });
+
+    test('does not register message if thread for this message exists',
+      function(done) {
+      Threads.has.withArgs(message.threadId).returns(true);
+
+      ActivityHandler.handleMessageNotification(message);
+
+      getMessagePromise.then(() => {
+        sinon.assert.notCalled(Threads.registerMessage);
+      }).then(done, done);
     });
   });
 

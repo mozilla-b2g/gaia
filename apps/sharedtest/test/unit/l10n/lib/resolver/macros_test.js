@@ -114,6 +114,56 @@ describe('A simple plural macro', function(){
 
   beforeEach(function() {
     env = createEntries(source);
+    env.__plural = function() {
+      return 'other';
+    };
+  });
+
+  before(function() {
+    source = [
+      'foo={[ plural(n) ]}',
+      'foo[zero]=Zero',
+      'foo[one]=One',
+      'foo[two]=Two',
+      'foo[few]=Few',
+      'foo[many]=Many',
+      'foo[other]=Other'
+    ].join('\n');
+  });
+
+  it('returns zero for 0', function() {
+    var value = Resolver.format({n: 0}, env.foo);
+    assert.strictEqual(value, 'Zero');
+  });
+
+  it('returns one for 1', function() {
+    var value = Resolver.format({n: 1}, env.foo);
+    assert.strictEqual(value, 'One');
+  });
+
+  it('returns two for 2', function() {
+    var value = Resolver.format({n: 2}, env.foo);
+    assert.strictEqual(value, 'Two');
+  });
+
+  it('returns other for 3', function() {
+    var value = Resolver.format({n: 3}, env.foo);
+    assert.strictEqual(value, 'Other');
+  });
+
+  it('throws for no arg', function() {
+    assert.throws(function() {
+      Resolver.format(null, env.foo);
+    }, 'Unknown reference: n');
+  });
+
+});
+
+describe('A more complex plural macro', function(){
+  var source, env;
+
+  beforeEach(function() {
+    env = createEntries(source);
     env.__plural = function(n) {
       // a made-up plural rule:
       // [0, 1) -> other
@@ -164,6 +214,12 @@ describe('A simple plural macro', function(){
     it('returns other for 0.5', function() {
       var value = Resolver.format({n: 0.5}, env.foo);
       assert.strictEqual(value, 'Other');
+    });
+
+    it('throws for no arg', function() {
+      assert.throws(function() {
+        Resolver.format(null, env.foo);
+      }, 'Unknown reference: n');
     });
 
   });

@@ -47,7 +47,6 @@ marionette('Browser Chrome - Share Web Result', function() {
     system = client.loader.getAppClass('system');
     system.waitForStartup();
 
-    search.removeGeolocationPermission();
     EmeServer.setServerURL(client, server);
   });
 

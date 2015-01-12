@@ -8,11 +8,11 @@ require('/tv_shared/js/shared_utils.js');
 require('/test/unit/mock_piped_promise.js');
 require('/test/unit/mock_card_store.js');
 require('/test/unit/mock_xml_http_request.js');
-require('/js/card.js');
-require('/js/deck.js');
-require('/js/folder.js');
-require('/js/application.js');
-require('/js/app_bookmark.js');
+require('/tv_shared/js/cards/card.js');
+require('/tv_shared/js/cards/deck.js');
+require('/tv_shared/js/cards/folder.js');
+require('/tv_shared/js/cards/application.js');
+require('/tv_shared/js/cards/app_bookmark.js');
 
 suite('smart-home/CardManager', function() {
   var realPipedPromise;
@@ -24,7 +24,7 @@ suite('smart-home/CardManager', function() {
     // promise. So we use a MockPipedPromise (which is just a genuine native
     // Promise) instead.
     window.PipedPromise = MockPipedPromise;
-    require('/js/card_manager.js', function() {
+    require('/tv_shared/js/card_manager.js', function() {
       done();
     });
   });
@@ -229,6 +229,69 @@ suite('smart-home/CardManager', function() {
       assert.isTrue(cardManager.writeCardlistInCardStore.calledOnce);
     });
 
+    test('should insert at correct location if index is specified', function() {
+      var targetLocation = 0;
+      var newFolder =
+        cardManager.insertNewFolder('a test folder', targetLocation);
+      assert.isFalse(cardManager.writeCardlistInCardStore.calledOnce);
+      newFolder.addCard(new Application({
+        name: 'Music',
+        cachedIconURL: 'style/icons/Blank.png'
+      }));
+
+      assert.isTrue(cardManager.writeCardlistInCardStore.calledOnce);
+      assert.equal(cardManager._cardList[targetLocation], newFolder);
+    });
+
+  });
+
+  suite('writeCardlistInCardStore', function() {
+    var cardManager;
+    var emptyFolder, secondEmptyFolder;
+
+    setup(function() {
+      cardManager = new CardManager();
+      cardManager._cardStore = MockCardStore;
+
+      emptyFolder = new Folder({
+        name: 'New Folder'
+      });
+
+      secondEmptyFolder = new Folder({
+        name: 'New Folder 2'
+      });
+
+      cardManager._cardList = [
+        new Deck({
+          name: 'Dashboard',
+          cachedIconURL: 'style/icons/Blank.png'
+        }),
+        emptyFolder,
+        secondEmptyFolder,
+        new Application({
+          name: 'Music',
+          nativeApp: {}
+        })
+      ];
+    });
+
+    teardown(function() {
+      MockCardStore.mClearData();
+      cardManager = undefined;
+    });
+
+    test('write with empty folder should eliminate it from card list',
+      function(done) {
+        var expectedLength = cardManager._cardList.length - 2;
+
+        cardManager.writeCardlistInCardStore({
+          cleanEmptyFolder: true
+        }).then(function() {
+          assert.equal(cardManager._cardList.length, expectedLength);
+          assert.isTrue(cardManager._cardList.indexOf(emptyFolder) < 0);
+          done();
+        });
+      });
   });
 
 });

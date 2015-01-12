@@ -15,18 +15,33 @@
   /* jshint browser:true */
 
   var io = {
-    load: function load(url, callback, sync) {
+
+    _load: function(type, url, callback, sync) {
       var xhr = new XMLHttpRequest();
+      var needParse;
 
       if (xhr.overrideMimeType) {
-        xhr.overrideMimeType('text/plain');
+        xhr.overrideMimeType(type);
       }
 
       xhr.open('GET', url, !sync);
 
-      xhr.addEventListener('load', function io_load(e) {
+      if (type === 'application/json') {
+        //  Gecko 11.0+ forbids the use of the responseType attribute when
+        //  performing sync requests (NS_ERROR_DOM_INVALID_ACCESS_ERR).
+        //  We'll need to JSON.parse manually.
+        if (sync) {
+          needParse = true;
+        } else {
+          xhr.responseType = 'json';
+        }
+      }
+
+      xhr.addEventListener('load', function io_onload(e) {
         if (e.target.status === 200 || e.target.status === 0) {
-          callback(null, e.target.responseText);
+          // Sinon.JS's FakeXHR doesn't have the response property
+          var res = e.target.response || e.target.responseText;
+          callback(null, needParse ? JSON.parse(res) : res);
         } else {
           callback(new L10nError('Not found: ' + url));
         }
@@ -42,33 +57,14 @@
       }
     },
 
-    loadJSON: function loadJSON(url, callback) {
-      var xhr = new XMLHttpRequest();
+    load: function(url, callback, sync) {
+      return io._load('text/plain', url, callback, sync);
+    },
 
-      if (xhr.overrideMimeType) {
-        xhr.overrideMimeType('application/json');
-      }
-
-      xhr.open('GET', url);
-
-      xhr.responseType = 'json';
-      xhr.addEventListener('load', function io_loadjson(e) {
-        if (e.target.status === 200 || e.target.status === 0) {
-          callback(null, e.target.response);
-        } else {
-          callback(new L10nError('Not found: ' + url));
-        }
-      });
-      xhr.addEventListener('error', callback);
-      xhr.addEventListener('timeout', callback);
-
-      // the app: protocol throws on 404, see https://bugzil.la/827243
-      try {
-        xhr.send(null);
-      } catch (e) {
-        callback(new L10nError('Not found: ' + url));
-      }
+    loadJSON: function(url, callback, sync) {
+      return io._load('application/json', url, callback, sync);
     }
+
   };
 
   function EventEmitter() {}
@@ -916,14 +912,8 @@
         return selector;
       }
 
-      var argLength = index.length - 1;
-      if (selector.length !== argLength) {
-        throw new L10nError('Macro ' + selectorName + ' expects ' +
-                            selector.length + ' argument(s), yet ' + argLength +
-                            ' given');
-      }
-
-      var argValue = resolveIdentifier(args, env, index[1]);
+      var argValue = index[1] ?
+        resolveIdentifier(args, env, index[1]) : undefined;
 
       if (selector === env.__plural) {
         // special cases for zero, one, two if they are defined on the hash
@@ -1450,7 +1440,7 @@
   var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
   var nodeObserver = null;
   var pendingElements = null;
-  var manifest = {};
+  var meta = {};
 
   var moConfig = {
     attributes: true,
@@ -1508,7 +1498,6 @@
         getPluralRule: getPluralRule,
         rePlaceables: rePlaceables,
         translateDocument: translateDocument,
-        onManifestInjected: onManifestInjected,
         onMetaInjected: onMetaInjected,
         PropertiesParser: PropertiesParser,
         walkContent: walkContent
@@ -1531,6 +1520,8 @@
     navigator.mozL10n.ctx.addEventListener('fetcherror',
       console.error.bind(console));
     navigator.mozL10n.ctx.addEventListener('parseerror',
+      console.error.bind(console));
+    navigator.mozL10n.ctx.addEventListener('resolveerror',
       console.error.bind(console));
   }
 
@@ -1591,21 +1582,15 @@
 
   function initResources() {
     /* jshint boss:true */
-    var manifestFound = false;
 
     var nodes = document.head
                         .querySelectorAll('link[rel="localization"],' +
-                                          'link[rel="manifest"],' +
-                                          'meta[name="locales"],' +
-                                          'meta[name="default_locale"],' +
+                                          'meta[name="availableLanguages"],' +
+                                          'meta[name="defaultLanguage"],' +
                                           'script[type="application/l10n"]');
     for (var i = 0, node; node = nodes[i]; i++) {
       var type = node.getAttribute('rel') || node.nodeName.toLowerCase();
       switch (type) {
-        case 'manifest':
-          manifestFound = true;
-          onManifestInjected.call(this, node.getAttribute('href'), initLocale);
-          break;
         case 'localization':
           this.ctx.resLinks.push(node.getAttribute('href'));
           break;
@@ -1618,18 +1603,20 @@
       }
     }
 
-    // if after scanning the head any locales have been registered in the ctx
-    // it's safe to initLocale without waiting for manifest.webapp
-    if (this.ctx.availableLocales.length) {
-      return initLocale.call(this);
-    }
-
-    // if no locales were registered so far and no manifest.webapp link was
-    // found we still call initLocale with just the default language available
-    if (!manifestFound) {
+    if (!this.ctx.availableLocales.length) {
+      // if there was no availableLanguages meta,
+      // register the default locale only
       this.ctx.registerLocales(this.ctx.defaultLocale);
-      return initLocale.call(this);
     }
+    return initLocale.call(this);
+  }
+
+  function splitAvailableLanguagesString(str) {
+    return str.split(',').map(function(lang) {
+      lang = lang.trim().split(':');
+      // if there are no timestamps, lang[0] will be the ab-CD
+      return lang[0];
+    });
   }
 
   function onMetaInjected(node) {
@@ -1638,18 +1625,18 @@
     }
 
     switch (node.getAttribute('name')) {
-      case 'locales':
-        manifest.locales = node.getAttribute('content').split(',').map(
-          Function.prototype.call, String.prototype.trim);
+      case 'availableLanguages':
+        meta.availableLanguages =
+          splitAvailableLanguagesString(node.getAttribute('content'));
         break;
-      case 'default_locale':
-        manifest.defaultLocale = node.getAttribute('content');
+      case 'defaultLanguage':
+        meta.defaultLanguage = node.getAttribute('content');
         break;
     }
 
-    if (Object.keys(manifest).length === 2) {
-      this.ctx.registerLocales(manifest.defaultLocale, manifest.locales);
-      manifest = {};
+    if (Object.keys(meta).length === 2) {
+      this.ctx.registerLocales(meta.defaultLanguage, meta.availableLanguages);
+      meta = {};
     }
   }
 
@@ -1657,56 +1644,6 @@
     var lang = node.getAttribute('lang');
     var locale = this.ctx.getLocale(lang);
     locale.addAST(JSON.parse(node.textContent));
-  }
-
-  function onManifestInjected(url, callback) {
-    if (this.ctx.availableLocales.length) {
-      return;
-    }
-
-    io.loadJSON(url, function parseManifest(err, json) {
-      if (this.ctx.availableLocales.length) {
-        return;
-      }
-
-      if (err) {
-        this.ctx._emitter.emit('fetcherror', err);
-        this.ctx.registerLocales(this.ctx.defaultLocale);
-        if (callback) {
-          callback.call(this);
-        }
-        return;
-      }
-
-      // default_locale and locales might have been already provided by meta
-      // elements which take precedence;  check if we already have them
-      if (!('defaultLocale' in manifest)) {
-        if (json.default_locale) {
-          manifest.defaultLocale = json.default_locale;
-        } else {
-          manifest.defaultLocale = this.ctx.defaultLocale;
-          this.ctx._emitter.emit(
-            'manifesterror',
-            new L10nError('default_locale missing from manifest'));
-        }
-      }
-      if (!('locales' in manifest)) {
-        if (json.locales) {
-          manifest.locales = Object.keys(json.locales);
-        } else {
-          this.ctx._emitter.emit(
-            'manifesterror',
-            new L10nError('locales missing from manifest'));
-        }
-      }
-
-      this.ctx.registerLocales(manifest.defaultLocale, manifest.locales);
-      manifest = {};
-
-      if (callback) {
-        callback.call(this);
-      }
-    }.bind(this));
   }
 
   function initLocale() {
@@ -1720,6 +1657,7 @@
 
   function localizeMutations(mutations) {
     var mutation;
+    var targets = new Set();
 
     for (var i = 0; i < mutations.length; i++) {
       mutation = mutations[i];
@@ -1728,23 +1666,25 @@
 
         for (var j = 0; j < mutation.addedNodes.length; j++) {
           addedNode = mutation.addedNodes[j];
-
           if (addedNode.nodeType !== Node.ELEMENT_NODE) {
             continue;
           }
-
-          if (addedNode.childElementCount) {
-            translateFragment.call(this, addedNode);
-          } else if (addedNode.hasAttribute('data-l10n-id')) {
-            translateElement.call(this, addedNode);
-          }
+          targets.add(addedNode);
         }
       }
 
       if (mutation.type === 'attributes') {
-        translateElement.call(this, mutation.target);
+        targets.add(mutation.target);
       }
     }
+
+    targets.forEach(function(target) {
+      if (target.childElementCount) {
+        translateFragment.call(this, target);
+      } else if (target.hasAttribute('data-l10n-id')) {
+        translateElement.call(this, target);
+      }
+    }, this);
   }
 
   function onMutations(mutations, self) {

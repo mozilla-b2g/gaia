@@ -1,7 +1,8 @@
 /*global loadBodyHTML, Recipients, MocksHelper, CustomEvent, KeyEvent,
-         MockDialog, Template, MockL10n, Navigation, SharedComponents,
+         Template, MockL10n, Navigation, SharedComponents,
          MockSettings,
-         KeyboardEvent
+         KeyboardEvent,
+         Utils
 */
 'use strict';
 
@@ -11,14 +12,12 @@ requireApp('sms/js/recipients.js');
 require('/js/shared_components.js');
 requireApp('sms/js/utils.js');
 
-requireApp('sms/test/unit/mock_dialog.js');
 requireApp('sms/test/unit/mock_utils.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/test/unit/mock_navigation.js');
 require('/test/unit/mock_settings.js');
 
 var mocksHelperForRecipients = new MocksHelper([
-  'Dialog',
   'GestureDetector',
   'Utils',
   'Navigation',
@@ -630,6 +629,7 @@ suite('Recipients', function() {
 
         setup(function() {
           Recipients.View.isFocusable = true;
+          this.sinon.stub(Utils, 'confirm').returns(Promise.resolve());
         });
 
         test('while manually entering a recipient ', function() {
@@ -945,6 +945,8 @@ suite('Recipients', function() {
             carrier: 'T-Mobile',
             source: 'contacts'
           };
+
+          this.sinon.stub(Utils, 'confirm').returns(Promise.resolve());
         });
 
         test('Recipients.View.prompts.remove ', function() {
@@ -954,54 +956,46 @@ suite('Recipients', function() {
         test('correctly rendered dialog', function() {
           Recipients.View.prompts.remove(recipient);
 
-          var phoneDetailsNode = document.createElement('div');
-          phoneDetailsNode.innerHTML = SharedComponents.phoneDetails({
+          var phoneDetails = SharedComponents.phoneDetails({
             number: recipient.number,
             type: recipient.type,
             carrier: recipient.carrier
-          });
+          }).toDocumentFragment();
 
-          var dialogParameters = MockDialog.calls[MockDialog.calls.length - 1];
-
-          assert.equal(
-            dialogParameters.title.value.outerHTML,
-            '<bdi>' + recipient.name + '</bdi>'
+          sinon.assert.calledWith(Utils.confirm,
+            {
+              raw: sinon.match((body) => {
+                return body.firstElementChild.outerHTML ===
+                  phoneDetails.firstElementChild.outerHTML;
+              })
+            },
+            {
+              raw: sinon.match((title) => {
+                return title.outerHTML === '<bdi>' + recipient.name + '</bdi>';
+              })
+            },
+            { text: 'remove', className: 'danger' }
           );
-          assert.equal(
-            dialogParameters.body.value.outerHTML,
-            phoneDetailsNode.innerHTML
-          );
-
-          assert.equal(dialogParameters.options.cancel.text.l10nId, 'cancel');
-          assert.isDefined(dialogParameters.options.cancel.method);
-
-          assert.equal(dialogParameters.options.confirm.text.l10nId, 'remove');
-          assert.isDefined(dialogParameters.options.confirm.method);
-          assert.equal(dialogParameters.options.confirm.className, 'danger');
         });
 
         test('cancel ', function(done) {
+          Utils.confirm.returns(Promise.reject());
 
-          Recipients.View.prompts.remove(recipient, function(response) {
-            assert.ok(MockDialog.triggers.cancel.called);
-            assert.isFalse(MockDialog.triggers.confirm.called);
-            assert.isFalse(response.isConfirmed);
-            done();
+          Recipients.View.prompts.remove(recipient, function(isConfirmed) {
+            done(() => {
+              sinon.assert.called(Utils.confirm);
+              assert.isFalse(isConfirmed);
+            });
           });
-
-          MockDialog.triggers.cancel();
         });
 
         test('remove ', function(done) {
-
-          Recipients.View.prompts.remove(recipient, function(response) {
-            assert.ok(MockDialog.triggers.confirm.called);
-            assert.isFalse(MockDialog.triggers.cancel.called);
-            assert.ok(response.isConfirmed);
-            done();
+          Recipients.View.prompts.remove(recipient, function(isConfirmed) {
+            done(() => {
+              sinon.assert.called(Utils.confirm);
+              assert.isTrue(isConfirmed);
+            });
           });
-
-          MockDialog.triggers.confirm();
         });
       });
     });

@@ -75,7 +75,10 @@
       //   - File extenion is missing or invalid but mimetype is supported.
 
       var mimetype =
-        MimeMapper.guessTypeFromFileProperties(this.name, this.blob.type);
+        MimeMapper.guessTypeFromFileProperties(
+          this.name,
+          this.blob.type.toLowerCase()
+        );
       var filename = MimeMapper.ensureFilenameMatchesType(this.name, mimetype);
 
       // Override filename, so that every attachment that is saved via "open"
@@ -92,10 +95,9 @@
         }
       });
       activity.onerror = function() {
-        var _ = navigator.mozL10n.get;
         console.error('error with open activity', this.error.name);
         if (this.error.name === 'NO_PROVIDER') {
-          alert(_('attachmentOpenError'));
+          Utils.alert('attachmentOpenError');
         }
       };
     }

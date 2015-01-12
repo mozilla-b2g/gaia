@@ -329,7 +329,8 @@ var NotificationScreen = {
     }));
 
     // Desktop notifications are removed when they are clicked (see bug 890440)
-    if (notificationNode.dataset.type === 'desktop-notification' &&
+    if (notificationNode &&
+        notificationNode.dataset.type === 'desktop-notification' &&
         notificationNode.dataset.obsoleteAPI === 'true') {
       this.closeNotification(notificationNode);
     }

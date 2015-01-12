@@ -32,8 +32,6 @@ class TestReceiveCallFromKnownContactNotification(GaiaTestCase):
         """
         https://moztrap.mozilla.org/manage/case/9294/
         """
-        PLIVO_TIMEOUT = 30
-
         self.device.lock()
 
         from gaiatest.utils.plivo.plivo_util import PlivoUtil
@@ -43,16 +41,13 @@ class TestReceiveCallFromKnownContactNotification(GaiaTestCase):
             self.testvars['plivo']['phone_number']
         )
         self.call_uuid = self.plivo.make_call(
-            to_number=self.testvars['local_phone_numbers'][0].replace('+', ''),
-            timeout=PLIVO_TIMEOUT)
+            to_number=self.testvars['local_phone_numbers'][0].replace('+', ''))
 
         call_screen = CallScreen(self.marionette)
-        call_screen.wait_for_incoming_call_with_locked_screen()
-        self.plivo.hangup_call(self.call_uuid)
+        call_screen.wait_for_incoming_call()
 
-        Wait(self.plivo, timeout=PLIVO_TIMEOUT).until(
-            lambda p: p.is_call_completed(self.call_uuid),
-            message="Plivo didn't report the call as completed")
+        self.plivo.hangup_call(self.call_uuid)
+        self.plivo.wait_for_call_completed(self.call_uuid)
         self.call_uuid = None
 
         lock_screen = LockScreen(self.marionette)

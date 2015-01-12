@@ -58,6 +58,7 @@
      * @type {Array}
      */
     PRIORITIES: [
+      'OverlayWindowManager',
       'InitLogoHandler',
       'AttentionWindowManager',
       'SecureWindowManager',

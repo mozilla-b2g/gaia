@@ -370,10 +370,19 @@
     },
 
     /**
+     * Add a bunch of elements to traversable set.
+     * @param  {Array.<SpatialNavigatorElement>} elements
+     */
+    multiAdd: function snMultiAdd(elements) {
+      elements.forEach(function(elem) {
+        this.add(elem);
+      }, this);
+    },
+
+    /**
      * Remove an element from traversable set.
      *
      * @param {SpatialNavigatorElement} elem
-
      * @return {Boolean} true if succeed. false if elem does not exist.
      *
      * @fires SpatialNavigator#unfocus
@@ -391,6 +400,16 @@
 
       this._collection.splice(index, 1);
       return true;
+    },
+
+    /**
+     * Remove a bunch of elements to traversable set.
+     * @param  {Array.<SpatialNavigatorElement>} elements
+     */
+    multiRemove: function snMultiRemove(elements) {
+      elements.forEach(function(elem) {
+        this.remove(elem);
+      }, this);
     },
 
     /**

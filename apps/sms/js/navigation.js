@@ -1,6 +1,7 @@
 /* global Promise,
       Utils,
-      Startup
+      Startup,
+      EventDispatcher
 */
 
 /* exported Navigation */
@@ -33,7 +34,7 @@ function nextQueuedPanel() {
   }
 }
 
-var Navigation = window.Navigation = {
+var Navigation = {
   isReady: false,
   panelObjects: window,
 
@@ -272,7 +273,9 @@ var Navigation = window.Navigation = {
       }.bind(this)
     );
 
-    promise.then(nextQueuedPanel, nextQueuedPanel);
+    promise.
+      then(() => this.emit('navigated', { panel: panel, args: args })).
+      then(nextQueuedPanel, nextQueuedPanel);
 
     return promise;
   },
@@ -321,7 +324,8 @@ var Navigation = window.Navigation = {
       });
     });
   }
-
 };
+
+window.Navigation = EventDispatcher.mixin(Navigation, ['navigated']);
 
 })(window);

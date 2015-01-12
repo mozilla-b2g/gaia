@@ -167,11 +167,13 @@ var ActivityHandler = {
         }, 0);
 
         if (size > Settings.mmsSizeLimitation) {
-          alert(navigator.mozL10n.get('attached-files-too-large', {
-            n: activityData.blobs.length,
-            mmsSize: (Settings.mmsSizeLimitation / 1024).toFixed(0)
-          }));
-          this.leaveActivity();
+          Utils.alert({
+            id: 'attached-files-too-large',
+            args: {
+              n: activityData.blobs.length,
+              mmsSize: (Settings.mmsSizeLimitation / 1024).toFixed(0)
+            }
+          }).then(() => this.leaveActivity());
           return;
         }
 
@@ -221,22 +223,23 @@ var ActivityHandler = {
       return;
     }
 
-    var request = navigator.mozMobileMessage.getMessage(message.id);
-    request.onsuccess = function onsuccess() {
-      if (!Compose.isEmpty()) {
-        if (window.confirm(navigator.mozL10n.get('discard-new-message'))) {
-          ThreadUI.cleanFields();
-        } else {
-          return;
-        }
+    MessageManager.getMessage(message.id).then((message) => {
+      if (!Threads.has(message.threadId)) {
+        Threads.registerMessage(message);
       }
 
-      ActivityHandler.toView(message);
-    };
+      if (Compose.isEmpty()) {
+        ActivityHandler.toView(message);
+        return;
+      }
 
-    request.onerror = function onerror() {
-      alert(navigator.mozL10n.get('deleted-sms'));
-    };
+      Utils.confirm('discard-new-message').then(() => {
+        ThreadUI.cleanFields();
+        ActivityHandler.toView(message);
+      });
+    }, function onGetMessageError() {
+      Utils.alert('deleted-sms');
+    });
   },
 
   // The unsent confirmation dialog provides 2 options: edit and discard
@@ -388,17 +391,13 @@ var ActivityHandler = {
       // See: https://bugzilla.mozilla.org/show_bug.cgi?id=782211
       navigator.mozApps.getSelf().onsuccess = function(event) {
         var app = event.target.result;
-        var iconURL = NotificationHelper.getIconURI(app);
-
-        // XXX: Add params to Icon URL.
-        iconURL += '?type=class0';
 
         // We have to remove the SMS due to it does not have to be shown.
         MessageManager.deleteMessages(message.id, function() {
           app.launch();
           Notify.ringtone();
           Notify.vibrate();
-          alert(number + '\n' + message.body);
+          Utils.alert({ raw: message.body || '' }, { raw: number });
           releaseWakeLock();
         });
       };
@@ -567,7 +566,7 @@ var ActivityHandler = {
 
       // the type param is only set for class0 messages
       if (params.type === 'class0') {
-        alert(message.title + '\n' + message.body);
+        Utils.alert({ raw: message.body }, { raw: message.title });
         return;
       }
 

@@ -1,11 +1,15 @@
 'use strict';
 
 /* global GeneralSettingsGroupView, HandwritingSettingsGroupView,
-          KeyboardSettingsApp */
+          KeyboardSettingsApp, UserDictionaryListPanel, PanelController,
+          UserDictionaryEditPanel */
 
 require('/js/settings/close_locks.js');
 require('/js/settings/general_settings.js');
 require('/js/settings/handwriting_settings.js');
+require('/js/settings/panel_controller.js');
+require('/js/settings/user_dictionary_edit_panel.js');
+require('/js/settings/user_dictionary_list_panel.js');
 
 require('/js/settings/keyboard_settings_app.js');
 
@@ -15,8 +19,14 @@ suite('KeyboardSettingsApp', function() {
   var realMozActivity;
 
   var headerStub;
+  var menuUDStub;
+  var rootPanelStub;
+  var stubGetElemById;
   var stubGeneralSettingsGroupView;
   var stubHandwritingSettingsGroupView;
+  var stubPanelController;
+  var stubUserDictionaryListPanel;
+  var stubUserDictionaryEditPanel;
 
   var isHidden;
 
@@ -47,6 +57,14 @@ suite('KeyboardSettingsApp', function() {
     this.sinon.spy(headerStub, 'addEventListener');
     this.sinon.spy(headerStub, 'removeEventListener');
 
+    menuUDStub = document.createElement('a');
+    this.sinon.spy(menuUDStub, 'addEventListener');
+    this.sinon.spy(menuUDStub, 'removeEventListener');
+
+    rootPanelStub = document.createElement('section');
+    this.sinon.spy(rootPanelStub, 'addEventListener');
+    this.sinon.spy(rootPanelStub, 'removeEventListener');
+
     window.SettingsPromiseManager = this.sinon.stub();
 
     stubGeneralSettingsGroupView =
@@ -59,7 +77,31 @@ suite('KeyboardSettingsApp', function() {
     this.sinon.stub(window, 'HandwritingSettingsGroupView')
       .returns(stubHandwritingSettingsGroupView);
 
-    this.sinon.stub(document, 'getElementById').returns(headerStub);
+    stubPanelController =
+      this.sinon.stub(Object.create(PanelController.prototype));
+    this.sinon.stub(window, 'PanelController')
+      .returns(stubPanelController);
+
+    stubUserDictionaryListPanel =
+      this.sinon.stub(Object.create(UserDictionaryListPanel.prototype));
+    this.sinon.stub(window, 'UserDictionaryListPanel')
+      .returns(stubUserDictionaryListPanel);
+
+    stubUserDictionaryEditPanel =
+      this.sinon.stub(Object.create(UserDictionaryEditPanel.prototype));
+    this.sinon.stub(window, 'UserDictionaryEditPanel')
+      .returns(stubUserDictionaryEditPanel);
+
+    stubGetElemById = this.sinon.stub(document, 'getElementById', function(id){
+      switch (id) {
+        case 'menu-userdict':
+          return menuUDStub;
+        case 'root-header':
+          return headerStub;
+        case 'root':
+          return rootPanelStub;
+      }
+    });
 
     app = new KeyboardSettingsApp();
   });
@@ -69,14 +111,26 @@ suite('KeyboardSettingsApp', function() {
   });
 
   suite('start', function() {
+    var skipStopOnTeardown;
+
     setup(function() {
+      skipStopOnTeardown = false;
+
       app.start();
 
       assert.isTrue(window.SettingsPromiseManager.calledOnce);
       assert.isTrue(stubGeneralSettingsGroupView.start.calledOnce);
       assert.isTrue(stubHandwritingSettingsGroupView.start.calledOnce);
+      assert.isTrue(stubPanelController.start.calledOnce);
 
-      assert.isTrue(document.getElementById.calledWith('header'));
+      assert.isTrue(document.getElementById.calledWith('root'));
+      assert.isTrue(document.getElementById.calledWith('root-header'));
+      assert.isTrue(document.getElementById.calledWith('menu-userdict'));
+
+      assert.equal(PanelController.getCall(0).args[0], rootPanelStub);
+      assert.equal(UserDictionaryListPanel.getCall(0).args[0], app);
+
+      assert.isTrue(menuUDStub.addEventListener.calledWith('click', app));
       assert.isTrue(headerStub.addEventListener.calledWith('action', app));
 
       assert.isTrue(
@@ -84,11 +138,17 @@ suite('KeyboardSettingsApp', function() {
     });
 
     teardown(function() {
-      app.stop();
+      if (!skipStopOnTeardown) {
+        app.stop();
+      }
 
       assert.isTrue(stubGeneralSettingsGroupView.stop.calledOnce);
       assert.isTrue(stubHandwritingSettingsGroupView.stop.calledOnce);
+      assert.isTrue(stubPanelController.stop.calledOnce);
+      assert.isTrue(stubUserDictionaryListPanel.uninit.calledOnce);
+      assert.isTrue(stubUserDictionaryEditPanel.uninit.calledOnce);
 
+      assert.isTrue(menuUDStub.removeEventListener.calledWith('click', app));
       assert.isTrue(headerStub.removeEventListener.calledWith('action', app));
 
       assert.isTrue(
@@ -110,11 +170,16 @@ suite('KeyboardSettingsApp', function() {
 
     test('visibilitychange to hidden', function() {
       isHidden = true;
+      skipStopOnTeardown = true;
+
+      this.sinon.spy(app, 'stop');
+
       app.handleEvent({
         type: 'visibilitychange'
       });
 
       assert.isTrue(window.close.calledOnce);
+      assert.isTrue(app.stop.calledOnce);
     });
 
     test('visibilitychange to visible w/ stay awake lock', function() {
@@ -135,5 +200,32 @@ suite('KeyboardSettingsApp', function() {
       lock.unlock();
       assert.isFalse(window.close.calledOnce);
     });
+
+    test('click', function() {
+      var evt = {
+        type: 'click',
+        preventDefault: this.sinon.spy()
+      };
+
+      app.handleEvent(evt);
+
+      assert.isTrue(app.panelController.navigateToPanel.calledWith(
+        app.userDictionaryListPanel));
+
+      assert.isTrue(evt.preventDefault.called);
+    });
+  });
+
+  test('Should not bind click event if without UserDictionary', function() {
+    var oldPanelController = window.PanelController;
+    window.PanelController = undefined;
+
+    app.start();
+
+    assert.isFalse(stubGetElemById.calledWith('menu-userdict'));
+
+    app.stop();
+
+    window.PanelController = oldPanelController;
   });
 });

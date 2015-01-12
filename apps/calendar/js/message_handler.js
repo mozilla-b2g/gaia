@@ -3,48 +3,43 @@ define(function(require, exports, module) {
 
 var Responder = require('responder');
 var debug = require('debug')('message_handler');
+var notification = require('notification');
 
 // Will be injected...
 exports.app = null;
 var responder = exports.responder = new Responder();
 
-if (!('mozSetMessageHandler' in navigator)) {
-  debug('mozSetMessageHandler is missing!');
-  return;
-}
-
-debug('Will listen for alarm messages...');
-navigator.mozSetMessageHandler('alarm', message => {
-  debug('Received alarm message!');
-  var data = message.data;
-  switch (data.type) {
-    case 'sync':
-      responder.emit('sync');
-      break;
-    default:
-      responder.emit('alarm', data);
-      break;
+exports.start = function() {
+  if (!('mozSetMessageHandler' in navigator)) {
+    debug('mozSetMessageHandler is missing!');
+    return;
   }
-});
 
-navigator.mozSetMessageHandler('notification', message => {
-  debug('Received notification message!');
+  debug('Will listen for alarm messages...');
+  navigator.mozSetMessageHandler('alarm', message => {
+    debug('Received alarm message!');
+    var data = message.data;
+    switch (data.type) {
+      case 'sync':
+        responder.emitWhenListener('sync');
+        break;
+      default:
+        responder.emitWhenListener('alarm', data);
+        break;
+    }
+  });
+
   // Handle notifications when the calendar app process is closed.
-  if (!message.clicked) {
-    return debug('Notification was not clicked?');
-  }
+  debug('Will listen for notification messages...');
+  navigator.mozSetMessageHandler('notification', message => {
+    debug('Received notification message!');
+    if (!message.clicked) {
+      return debug('Notification was not clicked?');
+    }
 
-  navigator.mozApps.getSelf().onsuccess = (event) => {
-    var app = event.target.result;
     var url = message.imageURL.split('?')[1];
-
-    window.addEventListener('moz-app-loaded', () => {
-      debug('App is loaded. Notification will now redirect to:', url);
-      exports.app.go(url);
-    });
-
-    app.launch();
-  };
-});
+    notification.launch(url);
+  });
+};
 
 });

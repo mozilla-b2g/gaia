@@ -163,7 +163,7 @@
       window.removeEventListener('visibilitychange', this.onVisibilityChange);
     },
 
-    findItemFromElement: function(element) {
+    findItemFromElement: function(element, excludeCollapsedIcons) {
       while (element && element.parentNode !== this.element) {
         element = element.parentNode;
       }
@@ -171,17 +171,34 @@
         return null;
       }
 
+      var i, iLen = this.items.length;
       var identifier = element.dataset.identifier;
       var icon = this.icons[identifier];
 
       // If the element didn't have an identifier, try to search for it
       // manually.
       if (!icon) {
-        for (var i = 0, iLen = this.items.length; i < iLen; i++) {
+        for (i = 0; i < iLen; i++) {
           if (this.items[i].element === element) {
             icon = this.items[i];
             break;
           }
+        }
+      }
+
+      if (icon && excludeCollapsedIcons) {
+        // If this is a collapsed item, return its group instead
+        if (icon.detail.type !== 'divider' &&
+            icon.detail.type !== 'placeholder' &&
+            icon.element.classList.contains('collapsed')) {
+          for (i = icon.detail.index + 1; i < iLen; i++) {
+            if (this.items[i].detail.type === 'divider') {
+              return this.items[i];
+            }
+          }
+
+          console.warn('Collapsed icon found with no group');
+          icon = null;
         }
       }
 
@@ -486,10 +503,6 @@
           }
         }
 
-        if (item.detail.type === 'app') {
-          this.logGridItem(item, this.layout.gridItemWidth / 2);
-        }
-
         // Increment the x-step by the sizing of the item.
         // If we go over the current boundary, reset it, and step the y-axis.
         x += item.gridWidth;
@@ -518,24 +531,6 @@
           this.dragdrop = new GridDragDrop(this);
         });
       }
-    },
-
-    /**
-     * Asynchronously create an entry in the log for a supplied item. Used
-     * for determining application coordinates in separate contexts.
-     */
-    logGridItem: function(item, itemMiddleOffset) {
-      setTimeout(function () {
-        var rect = item.element.getBoundingClientRect();
-        var middleX = rect.x + itemMiddleOffset;
-        var middleY = rect.y + item.pixelHeight / 2;
-
-        console.log('App Grid Item: %s|%s|%d|%d',
-          item.detail.manifestURL.replace('manifest.webapp', ''),
-          item.detail.entryPoint || '',
-          middleX,
-          middleY);
-      }, 0);
     }
   };
 

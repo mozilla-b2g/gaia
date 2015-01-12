@@ -229,7 +229,8 @@
     <link rel="stylesheet" type="text/css" href="style/themes/default/menus.css">
     <link rel="stylesheet" type="text/css" href="style/themes/default/buttons.css">
     <link rel="stylesheet" type="text/css" href="style/themes/default/banner.css">
-    <link rel="manifest" href="manifest.webapp">
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="/shared/locales/branding/branding.{locale}.properties">
     <link rel="localization" href="locales/system.{locale}.properties">
     <link rel="localization" href="locales/accessibility.{locale}.properties">
@@ -260,6 +261,8 @@
     <link rel="stylesheet" type="text/css" href="style/window.css">
     <link rel="stylesheet" type="text/css" href="style/app_titlebar.css">
     <script defer src="js/base_ui.js"></script>
+    <script defer src="tv_shared/js/vendor/evt.js"></script>
+    <script defer src="tv_shared/js/scrollable.js"></script>
     <script defer src="js/browser_context_menu.js"></script>
     <script defer src="js/child_window_factory.js"></script>
     <script defer src="js/app_modal_dialog.js"></script>
@@ -310,10 +313,8 @@
     <!-- <script defer src="shared/js/icons_helper.js"></script> -->
 
     <!-- Navigation -->
-    <script defer src="tv_shared/js/vendor/evt.js"></script>
     <script defer src="tv_shared/js/spatial_navigator.js"></script>
     <script defer src="tv_shared/js/key_navigation_adapter.js"></script>
-    <script defer src="tv_shared/js/selection_border.js"></script>
     <script defer src="tv_shared/js/init_gesture.js"></script>
 
     <!-- API Services -->

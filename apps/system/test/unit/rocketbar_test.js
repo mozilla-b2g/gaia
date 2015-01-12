@@ -156,6 +156,8 @@ suite('system/Rocketbar', function() {
     assert.ok(windowAddEventListenerStub.calledWith('apploading'));
     assert.ok(windowAddEventListenerStub.calledWith('apptitlechange'));
     assert.ok(windowAddEventListenerStub.calledWith('appopened'));
+    var trayOpenedEvent = 'utility-tray-overlayopening';
+    assert.ok(windowAddEventListenerStub.calledWith(trayOpenedEvent));
     assert.ok(inputAddEventListenerStub.calledWith('blur'));
     assert.ok(inputAddEventListenerStub.calledWith('input'));
     assert.ok(formAddEventListenerStub.calledWith('submit'));
@@ -204,6 +206,19 @@ suite('system/Rocketbar', function() {
     assert.ok(subject.active);
     assert.ok(loadSearchAppStub.calledOnce);
     loadSearchAppStub.restore();
+  });
+
+  test('activate() - when isClosing is true', function(done) {
+    subject.isClosing = true;
+    // We should reject the promise when trying to activate during a close.
+    subject.activate().then(function(){}, done);
+  });
+
+  test('activate() - when isClosing is false', function(done) {
+    subject.isClosing = false;
+    // Set the rocketbar to active so we have an immediate promise resolution.
+    subject.active = true;
+    subject.activate().then(done);
   });
 
   test('blur() - results hidden', function() {
@@ -270,6 +285,15 @@ suite('system/Rocketbar', function() {
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');
     var deactivateStub = this.sinon.stub(subject, 'deactivate');
     var event = {type: 'appopened'};
+    subject.handleEvent(event);
+    assert.ok(hideResultsStub.calledOnce);
+    assert.ok(deactivateStub.calledOnce);
+  });
+
+  test('handleEvent() - utility-tray-overlayopening', function() {
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var event = {type: 'utility-tray-overlayopening'};
     subject.handleEvent(event);
     assert.ok(hideResultsStub.calledOnce);
     assert.ok(deactivateStub.calledOnce);
@@ -445,7 +469,8 @@ suite('system/Rocketbar', function() {
     MockService.currentApp = activeApp;
     this.sinon.stub(activeApp, 'isBrowser').returns(true);
     var setInputStub = this.sinon.stub(subject, 'setInput');
-    var activateStub = this.sinon.stub(subject, 'activate');
+    var activateStub = this.sinon.stub(subject, 'activate')
+      .returns(Promise.resolve());
     var event = {type: 'global-search-request'};
     subject.handleEvent(event);
     assert.ok(setInputStub.calledWith('app.url'));
@@ -468,7 +493,7 @@ suite('system/Rocketbar', function() {
     assert.ok(activateStub.notCalled);
   });
 
-  test('handleEvent() - global-search-request: non app', function() {
+  test('handleEvent() - global-search-request: non app', function(done) {
     var fakeTimer = this.sinon.useFakeTimers();
     var activeApp = {
       config: {url: 'app.url'},
@@ -483,8 +508,9 @@ suite('system/Rocketbar', function() {
     };
     MockService.currentApp = activeApp;
     var maximize = this.sinon.spy(activeApp.appChrome, 'maximize');
-    this.sinon.stub(subject, 'activate', function(cb) {
-      cb();
+    var resolved = Promise.resolve();
+    this.sinon.stub(subject, 'activate', function() {
+      return resolved;
     });
     this.sinon.spy(subject, 'hideResults');
     this.sinon.spy(subject, 'focus');
@@ -494,20 +520,23 @@ suite('system/Rocketbar', function() {
     var event = {type: 'global-search-request'};
     subject.handleEvent(event);
     maximize.getCall(0).args[0]();
-    this.sinon.clock.tick();
 
-    sinon.assert.callOrder(
-      subject.setInput,
-      activeApp.appChrome.maximize,
-      subject.activate,
-      subject.hideResults,
-      subject.focus,
-      subject.selectAll);
-    fakeTimer.restore();
+    resolved.then(function() {
+      this.sinon.clock.tick();
+      sinon.assert.callOrder(
+        subject.setInput,
+        activeApp.appChrome.maximize,
+        subject.activate,
+        subject.hideResults,
+        subject.focus,
+        subject.selectAll);
+      fakeTimer.restore();
+      done();
+    }.bind(this));
   });
 
   test('handleEvent() - global-search-request: ' +
-    'appChrome.maximize is called for apps', function() {
+    'appChrome.maximize is called for apps', function(done) {
     var activeApp = {
       config: {url: 'app.url'},
       isBrowser: function() {
@@ -522,8 +551,9 @@ suite('system/Rocketbar', function() {
     MockService.currentApp = activeApp;
 
     var maximize = this.sinon.spy(activeApp.appChrome, 'maximize');
-    this.sinon.stub(subject, 'activate', function(cb) {
-      cb();
+    var resolved = Promise.resolve();
+    this.sinon.stub(subject, 'activate', function() {
+      return resolved;
     });
     this.sinon.spy(subject, 'focus');
 
@@ -532,10 +562,13 @@ suite('system/Rocketbar', function() {
 
     maximize.getCall(0).args[0]();
 
-    sinon.assert.callOrder(
-      activeApp.appChrome.maximize,
-      subject.activate,
-      subject.focus);
+    resolved.then(function() {
+      sinon.assert.callOrder(
+        activeApp.appChrome.maximize,
+        subject.activate,
+        subject.focus);
+      done();
+    });
   });
 
   test('handleEvent() - global-search-request: private browsing', function() {
@@ -787,28 +820,32 @@ suite('system/Rocketbar', function() {
     assert.equal(subject.input.value, 'value to not clear');
   });
 
-  test('focus on render after a tick', function() {
+  test('focus on render after a tick', function(done) {
     var focusStub = this.sinon.stub(subject, 'focus');
 
-    subject.activate();
+    // Set the rocketbar to active to trigger an immediate promise resolution.
     subject.active = true;
+
+    var activation = subject.activate();
     subject.handleSearchMessage({detail: {action: 'render'}});
 
     sinon.assert.notCalled(focusStub);
-    this.sinon.clock.tick(1);
-    sinon.assert.calledOnce(focusStub);
+    activation.then(function() {
+      sinon.assert.calledOnce(focusStub);
+      done();
+    });
   });
 
   suite('activate with a transition', function() {
     test('done after transition and search app load', function(done) {
       this.sinon.stub(subject, 'loadSearchApp').returns(Promise.resolve());
-      subject.activate(done);
+      subject.activate().then(done);
       subject.backdrop.dispatchEvent(new CustomEvent('transitionend'));
     });
 
     test('done after safety timeout and search app load', function(done) {
       this.sinon.stub(subject, 'loadSearchApp').returns(Promise.resolve());
-      subject.activate(done);
+      subject.activate().then(done);
       this.sinon.clock.tick(500);
     });
   });

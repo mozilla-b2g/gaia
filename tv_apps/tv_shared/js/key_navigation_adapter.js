@@ -6,15 +6,15 @@
 
   KeyNavigationAdapter.prototype = evt({
     init: function kna_init() {
-      window.addEventListener('keydown', this);
+      window.addEventListener('keyup', this);
     },
     uninit: function kna_uninit() {
-      window.removeEventListener('keydown', this);
+      window.removeEventListener('keyup', this);
     },
 
     handleEvent: function kna_handleEvent(evt) {
       switch (evt.type) {
-        case 'keydown':
+        case 'keyup':
         this.handleKeyEvent(this.convertKeyToString(evt.keyCode));
         break;
       }
@@ -34,6 +34,9 @@
           break;
         case 'enter':
           this.fire('enter');
+          break;
+        case 'esc':
+          this.fire('esc');
           break;
       }
     },

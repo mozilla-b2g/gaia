@@ -33,7 +33,7 @@
     this.detail = detail || {};
     this.detail.type = 'divider';
     this.detail.index = 0;
-    this.detail.collapsed = !!this.detail.collapsed;
+    this.pendingCollapse = this.detail.collapsed = !!this.detail.collapsed;
   }
 
   Group.prototype = {
@@ -48,6 +48,15 @@
     get headerHeight() {
       return this.detail.collapsed ? 20 : 30;
     },
+
+    /**
+     * The collapsed state. Used to defer the actual state change of
+     * collapse/expand so that anything re-rendering the grid between setting
+     * the state and the re-render caused by the state change doesn't cause
+     * the group to be positioned incorrectly.
+     */
+    pendingCollapse: false,
+    pendingCollapseTimeout: null,
 
     /**
      * Height in pixels of the background of the group.
@@ -260,6 +269,8 @@
     },
 
     setActive: function(active) {
+      GaiaGrid.GridItem.prototype.setActive.call(this, active);
+
       // Make sure we're collapsed
       this.collapse();
 
@@ -269,10 +280,6 @@
         function(item) { item.element.classList.add('active'); } :
         function(item) { item.element.classList.remove('active'); };
       this.forEachItem(callback);
-
-      // This needs to be called last, or the grid will skip rendering this
-      // group and the collapse won't cause the icons below to shift position
-      GaiaGrid.GridItem.prototype.setActive.call(this, active);
     },
 
     /*
@@ -282,17 +289,25 @@
      * of the work.
      */
     _rerenderOnToggle: function() {
+      if (this.pendingCollapseTimeout) {
+        clearTimeout(this.pendingCollapseTimeout);
+        this.pendingCollapseTimeout = null;
+      }
+
       if (this.toggleElement) {
         this.toggleElement.classList.add('toggling');
         setTimeout(() => { this.toggleElement.classList.remove('toggling'); },
                    TOGGLE_TIMEOUT);
       }
 
-      // Ideally, this outer setTimeout would be a requestAnimationFrame, but
-      // the above class-adding seems to end up coalesced with the code inside
+      // Ideally, this setTimeout would be a requestAnimationFrame, but the
+      // above class-adding seems to end up coalesced with the code inside
       // requestAnimationFrame, rather than it happening on the next frame.
       // The same thing happens with any setTimeout lower than about 20ms too.
-      setTimeout(() => {
+      this.pendingCollapseTimeout = setTimeout(() => {
+        this.detail.collapsed = this.pendingCollapse;
+        this.pendingCollapseTimeout = null;
+
         if (!this.detail.collapsed) {
           // Remove collapsed styling from all icons
           this.forEachItem(function(item) {
@@ -306,9 +321,13 @@
 
         this.grid.render();
 
-        // If we're not dragging, save the collapsed state
         var dragging = this.grid.dragdrop && this.grid.dragdrop.inDragAction;
-        if (!dragging) {
+        if (dragging) {
+          // If we're dragging, make sure to reposition the icon in the correct
+          // place, as the render call won't redraw us
+          this.grid.dragdrop.positionIcon();
+        } else {
+          // If we're not dragging, save the collapsed state
           window.dispatchEvent(new CustomEvent('gaiagrid-saveitems'));
         }
       }, 20);
@@ -319,7 +338,7 @@
         return;
       }
 
-      this.detail.collapsed = true;
+      this.pendingCollapse = true;
       this._rerenderOnToggle();
     },
 
@@ -328,7 +347,7 @@
         return;
       }
 
-      this.detail.collapsed = false;
+      this.pendingCollapse = false;
       this._rerenderOnToggle();
     },
 

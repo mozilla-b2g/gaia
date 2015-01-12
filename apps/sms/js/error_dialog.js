@@ -25,17 +25,13 @@
 
     var dialogOptions = {
       cancel: {
-        text: {
-          l10nId: prefix + 'BtnOk'
-        }
+        text: prefix + 'BtnOk'
       }
     };
 
     if (options && options.confirmHandler && errorDescription.executeHandler) {
       dialogOptions.confirm = {
-        text: {
-          l10nId: prefix + 'Confirm'
-        },
+        text: prefix + 'Confirm',
         method: options.confirmHandler
       };
     }
@@ -78,12 +74,10 @@
     }
 
     Dialog.call(this, {
-      title: {
-        l10nId: prefix + 'Title'
-      },
+      title: prefix + 'Title',
       body: {
-        l10nId: prefix + 'Body',
-        l10nArgs: messageBodyParams
+        id: prefix + 'Body',
+        args: messageBodyParams
       },
       options: dialogOptions
     });

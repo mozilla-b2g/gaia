@@ -111,8 +111,10 @@
     return `<div class="chrome" id="${className}">
               <gaia-progress></gaia-progress>
               <div class="controls">
-                <button type="button" class="back-button" disabled></button>
-                <button type="button" class="forward-button" disabled></button>
+                <button type="button" class="back-button"
+                        data-l10n-id="back-button" disabled></button>
+                <button type="button" class="forward-button"
+                        data-l10n-id="forward-button" disabled></button>
                 <div class="urlbar">
                   <div class="title" data-ssl=""></div>
                   <button type="button" class="reload-button"
@@ -121,7 +123,8 @@
                           data-l10n-id="stop-button"></button>
                 </div>
                 <button type="button" class="menu-button" alt="Menu"></button>
-                <button type="button" class="windows-button"></button>
+                <button type="button" class="windows-button"
+                        data-l10n-id="windows-button"></button>
               </div>
             </div>`;
   };
@@ -657,9 +660,11 @@
   };
 
   AppChrome.prototype.handleError = function ac_handleError(evt) {
-    // When we get an error, keep the rocketbar maximized.
-    this.element.classList.add('maximized');
-    this.containerElement.classList.remove('scrollable');
+    if (this.useCombinedChrome()) {
+      // When we get an error, keep the rocketbar maximized.
+      this.element.classList.add('maximized');
+      this.containerElement.classList.remove('scrollable');
+    }
   };
 
   AppChrome.prototype.maximize = function ac_maximize(callback) {

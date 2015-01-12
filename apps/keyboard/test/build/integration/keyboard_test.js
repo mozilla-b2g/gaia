@@ -1,14 +1,16 @@
 'use strict';
 
-/* global require, suite, process, test, suiteSetup, teardown */
+/* jshint node: true, mocha: true */
+/* global suiteSetup */
 
 var assert = require('chai').assert;
 var path = require('path');
 var fs = require('fs');
 var helper = require('helper');
 var AdmZip = require('adm-zip');
+var jsdom = require('jsdom-nogyp').jsdom;
 
-suite('Keyboard tests', function() {
+suite('Keyboard layouts building tests', function() {
   suiteSetup(helper.cleanupWorkspace);
   teardown(helper.cleanupWorkspace);
 
@@ -294,6 +296,151 @@ suite('Keyboard tests', function() {
         zipPath, 'js/settings/dictionaries.json', dictJSON, true);
 
       done();
+    });
+  });
+});
+
+suite('Keyboard settings building tests', function() {
+  suiteSetup(helper.cleanupWorkspace);
+  teardown(helper.cleanupWorkspace);
+
+  // parse settings.html and return domDoc.
+  var getSettingsDomDoc = function() {
+    var zipPath = path.join(process.cwd(), 'profile',
+      'webapps', 'keyboard.gaiamobile.org', 'application.zip');
+
+    // Verify settings.html content in manifest
+    var zip = new AdmZip(zipPath);
+    var entry = zip.getEntry('settings.html');
+    return jsdom(zip.readAsText(entry));
+  };
+
+  // return an array of <scripts> tag in <head>
+  var getScriptsFromDomDoc = function(domDoc) {
+    // We don't have Array.from in our node version, so use an old way to
+    // convert HTMLCollections to array
+    return Array.prototype.slice.call(
+             domDoc.head.getElementsByTagName('script'));
+  };
+
+  suite('For handwriting', function() {
+    // return an array of <sections> in the root panel
+    var getSectionsFromRootPanel = function(domDoc) {
+      return Array.prototype.slice.call(
+               domDoc.querySelectorAll('#root-container > section'));
+    };
+
+    // default: there shouldn't be handwriting elements in resulting file
+    test('APP=keyboard make', function(done) {
+      var cmd = 'APP=keyboard make';
+      helper.exec(cmd, function(error, stdout, stderr) {
+        helper.checkError(error, stdout, stderr);
+
+        var settingsDOMDoc = getSettingsDomDoc();
+
+        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).every(function(elem){
+          return elem.src !== 'js/settings/handwriting_settings.js';
+        }), 'No script should include handwriting_settings.js');
+
+        assert.isTrue(
+        getSectionsFromRootPanel(settingsDOMDoc).every(function(elem){
+          return elem.id !== 'handwriting-settings';
+        }), 'No section in root panel should include handwriting settings');
+
+        done();
+      });
+    });
+
+    test('GAIA_KEYBOARD_LAYOUTS=zh-Hans-Handwriting APP=keyboard make',
+    function(done) {
+      var cmd = 'GAIA_KEYBOARD_LAYOUTS=zh-Hans-Handwriting APP=keyboard make';
+      helper.exec(cmd, function(error, stdout, stderr) {
+        helper.checkError(error, stdout, stderr);
+
+        var settingsDOMDoc = getSettingsDomDoc();
+
+        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
+          return elem.src === 'js/settings/handwriting_settings.js';
+        }), 'Some script should include handwriting_settings.js');
+
+        assert.isTrue(
+        getSectionsFromRootPanel(settingsDOMDoc).some(function(elem){
+          return elem.id === 'handwriting-settings';
+        }), 'Some section in root panel should include handwriting settings');
+
+        done();
+      });
+    });
+  });
+
+  suite('User dictionary', function() {
+    // return an array of <li> in the root panel's first section's ui
+    var getLIsFromRootPanel = function(domDoc) {
+      return Array.prototype.slice.call(
+               domDoc.querySelectorAll('#general-settings > ul > li'));
+    };
+
+    // default: there shouldn't be user dictionary elements in resulting file
+    test('APP=keyboard make', function(done) {
+      var cmd = 'APP=keyboard make';
+      helper.exec(cmd, function(error, stdout, stderr) {
+        helper.checkError(error, stdout, stderr);
+
+        var settingsDOMDoc = getSettingsDomDoc();
+
+        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).every(function(elem){
+          return elem.src !== 'js/settings/user_dictionary_edit_panel.js';
+        }), 'No script should include user_dictionary_edit_panel.js');
+
+        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).every(function(elem){
+          return elem.src !== 'js/settings/user_dictionary_list_panel.js';
+        }), 'No script should include user_dictionary_list_panel.js');
+
+        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).every(function(elem){
+          return elem.src !== 'js/settings/user_dictionary.js';
+        }), 'No script should include user_dictionary.js');
+
+        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).every(function(elem){
+          return elem.src !== 'js/settings/panel_controller.js';
+        }), 'No script should include panel_controller.js');
+
+        assert.isTrue(getLIsFromRootPanel(settingsDOMDoc).every(function(elem){
+          return elem.querySelector('a#menu-userdict') === null;
+        }), 'No <li> in root panel should include user dict settings');
+
+        done();
+      });
+    });
+
+    test('GAIA_KEYBOARD_ENABLE_USER_DICT=1 APP=keyboard make', function(done) {
+      var cmd = 'GAIA_KEYBOARD_ENABLE_USER_DICT=1 APP=keyboard make';
+      helper.exec(cmd, function(error, stdout, stderr) {
+        helper.checkError(error, stdout, stderr);
+
+        var settingsDOMDoc = getSettingsDomDoc();
+
+        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
+          return elem.src === 'js/settings/user_dictionary_edit_panel.js';
+        }), 'Some script should include user_dictionary_edit_panel.js');
+
+        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
+          return elem.src === 'js/settings/user_dictionary_list_panel.js';
+        }), 'Some script should include user_dictionary_list_panel.js');
+
+        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
+          return elem.src === 'js/settings/user_dictionary.js';
+        }), 'Some script should include user_dictionary.js');
+
+        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
+          return elem.src === 'js/settings/panel_controller.js';
+        }), 'Some script should include panel_controller.js');
+
+        assert.isTrue(getLIsFromRootPanel(settingsDOMDoc).some(function(elem){
+          return elem.querySelector('a#menu-userdict') !== null;
+        }), 'Some <li> in root panel should include user dict settings');
+
+        done();
+      });
     });
   });
 });

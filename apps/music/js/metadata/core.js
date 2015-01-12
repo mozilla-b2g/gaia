@@ -221,9 +221,11 @@ var AudioMetadata = (function() {
         tryFetchExternalCover(0);
       });
     } else if (metadata.picture.blob) {
-      // We have album art in a separate blob that we need to save somewhere;
-      // generally, this is because we had an unsynced ID3 frame with the art
-      // and needed to de-unsync it.
+      // We have album art in a separate blob that we need to save somewhere.
+      // Two reasons :
+      // - we had an unsynced ID3 frame with the art and needed to de-unsync
+      //   it.
+      // - we had album art from a VorbisComment.
       //
       // First, try to make a unique filename for the image based on the artist,
       // album, and file size. The file size is essentially a poor man's

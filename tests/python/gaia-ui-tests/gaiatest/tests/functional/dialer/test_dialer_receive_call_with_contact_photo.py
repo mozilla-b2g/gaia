@@ -30,8 +30,6 @@ class TestReceiveCallWithContactPhoto(GaiaTestCase):
         """
         https://moztrap.mozilla.org/manage/case/1544/
         """
-        PLIVO_TIMEOUT = 30
-
         from gaiatest.utils.plivo.plivo_util import PlivoUtil
         self.plivo = PlivoUtil(
             self.testvars['plivo']['auth_id'],
@@ -39,8 +37,7 @@ class TestReceiveCallWithContactPhoto(GaiaTestCase):
             self.testvars['plivo']['phone_number']
         )
         self.call_uuid = self.plivo.make_call(
-            to_number=self.testvars['local_phone_numbers'][0].replace('+', ''),
-            timeout=PLIVO_TIMEOUT)
+            to_number=self.testvars['local_phone_numbers'][0].replace('+', ''))
 
         call_screen = CallScreen(self.marionette)
         call_screen.wait_for_incoming_call()

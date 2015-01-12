@@ -17,31 +17,30 @@ function L10nManager(gaiaDir,
                      localesFilePath,
                      localeBasedir,
                      subject) {
-  function checkArg(arg) {
-    return Boolean(arg);
-  }
-
-  if (arguments.length !== 4 &&
-    !Array.prototype.every.call(arguments, checkArg)) {
+  if (arguments.length !== 4) {
     throw new TypeError('Illegal constructor');
   }
 
   var self = this;
   var localesFile = utils.resolve(localesFilePath, gaiaDir);
-  var baseDir = utils.resolve(localeBasedir, gaiaDir);
+  var baseDir = null;
+  if (localeBasedir) {
+    baseDir = utils.resolve(localeBasedir, gaiaDir);
+  }
 
   [utils.getFile(gaiaDir), localesFile, baseDir]
   .forEach(function(file) {
-    if (!file.exists()) {
+    if (file && !file.exists()) {
       throw new Error('file not found: ' + file.path);
     }
   });
 
   this.locales = Object.keys(utils.getJSON(localesFile));
-  this.localeBasedir = baseDir.path;
+  this.localeBasedir = baseDir ? baseDir.path : null;
   this.gaiaDir = gaiaDir;
   this.official = subject.official;
   this.deviceType = subject.deviceType;
+  this.defaultLocale = subject.defaultLocale;
 
   /**
    * Copy l10n resources required by the .html file to build stage directory
@@ -51,17 +50,9 @@ function L10nManager(gaiaDir,
    *
    * @param {nsIFile[]} file - HTML file
    * @param {Object} webapp  - A webapp object for specific app
+   * @param {nsIDocument} doc - document object
    */
-  function getL10nResources(file, webapp) {
-    var content = utils.getFileContent(file);
-
-    // if there is no localization word in the file, don't even parse it
-    // exit early
-    if (content.indexOf('localization') === -1) {
-      return;
-    }
-
-    var doc = utils.getDocument(content);
+  function getL10nResources(file, webapp, doc) {
     var isOfficialBranding;
 
     // get all <link rel="localization">
@@ -108,7 +99,9 @@ function L10nManager(gaiaDir,
                                    realURL.replace('{locale}', loc));
         }
         if (!resFile.exists()) {
-          utils.log(MODNAME, 'Resource file not found: ' + resFile.path);
+          if (self.localeBasedir !== null) {
+            utils.log(MODNAME, 'Resource file not found: ' + resFile.path);
+          }
           continue;
         }
         utils.ensureFolderExists(destFile.parent);
@@ -150,6 +143,9 @@ function L10nManager(gaiaDir,
     // this flag defines if for the given locale we will take resources
     // from the source directory or from LOCALE_BASEDIR directory
     var useSourceDir = false;
+    if (self.localeBasedir === null) {
+      useSourceDir = true;
+    }
 
     // for GAIA_SOURCE_LOCALE use source directory
     if (loc === GAIA_SOURCE_LOCALE) {
@@ -193,13 +189,63 @@ function L10nManager(gaiaDir,
    * @param {Object} webapp          - A webapp object for specific app
    */
   function localize(htmlFiles, webapp) {
-    // Localize webapp's manifest.webapp file.
-    localizeManifest(webapp);
+    if (self.localeBasedir) {
+      // Localize webapp's manifest.webapp file.
+      localizeManifest(webapp);
+    }
 
-    // Copy resource files into build_stage directory
     htmlFiles.forEach(function(htmlFile) {
-      getL10nResources(htmlFile, webapp);
+      var content = utils.getFileContent(htmlFile);
+
+      var doc = utils.getDocument(content);
+
+      buildL10nMeta(htmlFile, doc);
+
+      // if there is no localization word in the file, don't even parse it
+      // exit early
+      if (content.indexOf('localization') === -1) {
+        return;
+      }
+
+      if (self.localeBasedir) {
+        // Copy resource files into build_stage directory
+        getL10nResources(htmlFile, webapp, doc);
+      }
     });
+  }
+
+  function getTimestamp(date) {
+    var chunks = [
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      date.getHours(),
+      date.getMinutes()
+    ];
+
+    return chunks.map(c => c < 10 ? '0' + c : c.toString()).join('');
+  }
+
+  function buildL10nMeta(file, doc) {
+    var metas = {
+      availableLanguages: doc.querySelector('meta[name="availableLanguages"]'),
+      defaultLanguage: doc.querySelector('meta[name="defaultLanguage"]')
+    };
+
+    if (metas.defaultLanguage) {
+      metas.defaultLanguage.setAttribute('content', self.defaultLocale);
+    }
+
+    if (metas.availableLanguages) {
+      var timestamp = getTimestamp(new Date());
+      metas.availableLanguages.setAttribute('content',
+        self.locales.map(function(loc) {
+          return loc + ':' + timestamp;
+        }).join(', '));
+    }
+
+    var str = utils.serializeDocument(doc);
+    utils.writeContent(file, str);
   }
 
   /**
@@ -212,6 +258,9 @@ function L10nManager(gaiaDir,
   function localizeManifest(webapp) {
     var manifest = utils.getJSON(webapp.buildManifestFile);
 
+    if (manifest.default_locale) {
+      manifest.default_locale = self.defaultLocale;
+    }
     // If manifest.webapp does not have `locales` key, return early
     if (!manifest.locales) {
       return;
@@ -427,35 +476,32 @@ function L10nManager(gaiaDir,
   this.localizeManifest = localizeManifest;
 }
 
-function execute(options) {
-  if (!options.LOCALE_BASEDIR) {
-    utils.log('multilocale', 'multilocale command requires LOCALES_BASEDIR ' +
-      'to be set');
-    return;
-  }
-  var targetWebapp = utils.getWebapp(options.APP_DIR,
-    options.GAIA_DOMAIN, options.GAIA_SCHEME,
-    options.GAIA_PORT, options.STAGE_DIR);
+function execute(options, webapp) {
+  var localeBasedir = null;
 
-  // Bug 952901: remove getLocaleBasedir() if bug 952900 fixed.
-  var localeBasedir = utils.getLocaleBasedir(options.LOCALE_BASEDIR);
+  if (options.LOCALE_BASEDIR) {
+    // Bug 952901: remove getLocaleBasedir() if bug 952900 fixed.
+    localeBasedir = utils.getLocaleBasedir(options.LOCALE_BASEDIR);
+  }
+
   var l10nManager = new L10nManager(
     options.GAIA_DIR,
     options.LOCALES_FILE,
     localeBasedir,
     {
       official: options.OFFICIAL,
+      defaultLocale: options.GAIA_DEFAULT_LOCALE,
       deviceType: options.GAIA_DEVICE_TYPE,
     });
 
-  if (utils.isExternalApp(targetWebapp)) {
+  if (utils.isExternalApp(webapp)) {
     return;
   }
-  var files = utils.ls(targetWebapp.buildDirectoryFile, true, /^tests?$/);
+  var files = utils.ls(webapp.buildDirectoryFile, true, /^tests?$/);
 
   l10nManager.localize(files.filter(function(file) {
     return /\.html$/.test(file.path);
-  }), targetWebapp);
+  }), webapp);
 }
 
 exports.execute = execute;

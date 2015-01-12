@@ -212,6 +212,36 @@ function getAppNameRegex(buildAppName) {
   return buildAppName === '*' ? /.+/ : new RegExp(buildAppName);
 }
 
+
+function serializeDocument(doc) {
+  // the doctype string should always be '<!DOCTYPE html>' but just in case...
+  var doctypeStr = '';
+  var dt = doc.doctype;
+  if (dt && dt.name) {
+    doctypeStr = '<!DOCTYPE ' + dt.name;
+    if (dt.publicId) {
+      doctypeStr += ' PUBLIC ' + dt.publicId;
+    }
+    if (dt.systemId) {
+      doctypeStr += ' ' + dt.systemId;
+    }
+    doctypeStr += '>\n';
+  }
+
+  // outerHTML breaks the formating, so let's use innerHTML instead
+  var htmlStr = '<html';
+  var docElt = doc.documentElement;
+  var attrs = docElt.attributes;
+  for (var i = 0; i < attrs.length; i++) {
+    htmlStr += ' ' + attrs[i].nodeName.toLowerCase() +
+               '="' + attrs[i].nodeValue + '"';
+  }
+  var innerHTML = docElt.innerHTML.replace(/  \n*<\/body>\n*/, '  </body>\n');
+  htmlStr += '>\n  ' + innerHTML + '\n</html>\n';
+
+  return doctypeStr + htmlStr;
+}
+
 /**
  * NodeJS library Q for promise.
  * @exports Q
@@ -231,7 +261,6 @@ exports.getFile = utils.getFile;
 exports.ensureFolderExists = utils.ensureFolderExists;
 exports.getJSON = utils.getJSON;
 exports.getFileAsDataURI = utils.getFileAsDataURI;
-exports.makeWebappsObject = utils.makeWebappsObject;
 
 /**
  * Common function.
@@ -300,6 +329,7 @@ exports.setEnv = utils.setEnv;
 exports.getProcess = utils.getProcess;
 exports.isExternalApp = utils.isExternalApp;
 exports.getDocument = utils.getDocument;
+exports.getUUIDMapping = utils.getUUIDMapping;
 exports.getWebapp = utils.getWebapp;
 exports.Services = utils.Services;
 exports.concatenatedScripts = utils.concatenatedScripts;
@@ -311,7 +341,7 @@ exports.existsInAppDirs = utils.existsInAppDirs;
 exports.getCompression = utils.getCompression;
 exports.removeFiles = utils.removeFiles;
 exports.getAppNameRegex = getAppNameRegex;
-
+exports.serializeDocument = serializeDocument;
 /**
  * Common function.
  * @exports cloneJSON

@@ -24,10 +24,12 @@ class SettingsForm(Base):
     _export_to_sim_button_locator = (By.CSS_SELECTOR, '#export-options button.icon-sim')
     _import_contacts_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="importContactsButton"]')
     _export_contacts_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="exportContactsButton"]')
+    _delete_contacts_locator = (By.ID, 'bulkDelete')
     _gmail_contacts_imported_locator = (By.CSS_SELECTOR, '.icon.icon-gmail > p > span')
     _gmail_import_option_locator = (By.ID, 'import-gmail-option')
     _import_settings_locator = (By.ID, 'import-settings')
     _select_contacts_locator = (By.ID, 'selectable-form')
+    _sync_friends_locator = (By.ID, 'settingsFb')
     _import_error_message_locator = (By.CSS_SELECTOR, '#import-live-option > p.error-message')
     _outlook_import_option_locator = (By.ID, 'import-live-option')
     _import_from_outlook_button_locator = (By.CSS_SELECTOR, 'button.icon-live')
@@ -63,6 +65,14 @@ class SettingsForm(Base):
         import_settings = self.marionette.find_element(*self._import_settings_locator)
         Wait(self.marionette).until(lambda m: import_settings.location['x'] == 0)
 
+    def tap_delete_contacts(self):
+        delete_contacts = Wait(self.marionette).until(
+            expected.element_present(*self._delete_contacts_locator))
+        Wait(self.marionette).until(expected.element_displayed(delete_contacts))
+        delete_contacts.tap()
+        select_contacts = self.marionette.find_element(*self._select_contacts_locator)
+        Wait(self.marionette).until(lambda m: select_contacts.location['y'] == 0)
+
     def tap_import_from_sim(self):
         import_from_sim = Wait(self.marionette).until(
             expected.element_present(*self._import_from_sim_button_locator))
@@ -85,6 +95,16 @@ class SettingsForm(Base):
         import_from_gmail.tap()
         from gaiatest.apps.contacts.regions.gmail import GmailLogin
         return GmailLogin(self.marionette)
+
+    def tap_sync_friends(self):
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._sync_friends_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
+        Wait(self.marionette).until(
+            lambda m: m.find_element(*self._sync_friends_locator).location['x'] == 0)
+        from gaiatest.apps.system.regions.facebook import FacebookLogin
+        return FacebookLogin(self.marionette)
 
     def tap_import_from_sdcard(self):
         import_from_sdcard = Wait(self.marionette).until(

@@ -8,6 +8,7 @@ apps/collection
 apps/communications
 apps/costcontrol
 apps/default_theme
+apps/download
 apps/email
 apps/emergency-call
 apps/findmydevice

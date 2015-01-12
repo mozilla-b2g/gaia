@@ -361,11 +361,11 @@ var PlayerView = {
       callback(metadata);
     }
     function pv_metadataError(e) {
+      console.warn('parseAudioMetadata: error parsing metadata - ', e);
       /* jshint validthis:true */
       if (this.onerror) {
         this.onerror(e);
       }
-      console.warn('parseAudioMetadata: error parsing metadata - ', e);
     }
   },
 

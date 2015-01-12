@@ -477,7 +477,7 @@ require([
           if (!cs_isPhoneNumberValid(textInput.value)) {
             DialogService.alert('callForwardingInvalidNumberError', {
               title: 'callForwardingConfirmTitle',
-              submitButtonText: 'continue'
+              submitButton: 'continue'
             });
 
             cs_enableTabOnCallerIdItem(false);
@@ -507,7 +507,7 @@ require([
           req.onerror = function() {
             DialogService.alert('callForwardingSetError', {
               title: 'callForwardingConfirmTitle',
-              submitButtonText: 'continue'
+              submitButton: 'continue'
             });
             cs_updateCallForwardingSubpanels();
           };
@@ -566,7 +566,7 @@ require([
                 cs_getSetCallForwardingOptionResult(rules, action);
               DialogService.alert(messageL10nId, {
                 title: 'callForwardingConfirmTitle',
-                submitButtonText: 'continue'
+                submitButton: 'continue'
               });
             }
             cs_displayRule(cfOptions['unconditional'], 'cfu-desc');

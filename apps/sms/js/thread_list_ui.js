@@ -4,7 +4,7 @@
 /*global Template, Utils, Threads, Contacts, Threads,
          WaitingScreen, MessageManager, TimeHeaders,
          Drafts, Thread, ThreadUI, OptionMenu, ActivityPicker,
-         PerformanceTestingHelper, StickyHeader, Navigation, Dialog,
+         PerformanceTestingHelper, StickyHeader, Navigation,
          InterInstanceEventDispatcher,
          SelectionHandler,
          LazyLoader
@@ -421,30 +421,10 @@ var ThreadListUI = {
       });
     }
 
-    var dialog = new Dialog({
-      title: {
-        l10nId: 'messages'
-      },
-      body: {
-        l10nId: 'deleteThreads-confirmation2'
-      },
-      options: {
-        cancel: {
-          text: {
-            l10nId: 'cancel'
-          }
-        },
-        confirm: {
-          text: {
-            l10nId: 'delete'
-          },
-          method: performDeletion.bind(this),
-          className: 'danger'
-        }
-      }
-    });
-
-    dialog.show();
+    return Utils.confirm(
+      'deleteThreads-confirmation2', null,
+      { text: 'delete', className: 'danger' }
+    ).then(performDeletion.bind(this));
   },
 
   setEmpty: function thlui_setEmpty(empty) {
@@ -517,7 +497,7 @@ var ThreadListUI = {
   renderDrafts: function thlui_renderDrafts(force) {
     // Request and render all threads with drafts
     // or thread-less drafts.
-    Drafts.request(function() {
+    return Drafts.request(force).then(() => {
       Drafts.forEach(function(draft, threadId) {
         if (threadId) {
           // Find draft-containing threads that have already been rendered
@@ -541,7 +521,7 @@ var ThreadListUI = {
       }, this);
 
       this.sticky && this.sticky.refresh();
-    }.bind(this), force);
+    });
   },
 
   prepareRendering: function thlui_prepareRendering() {
@@ -576,7 +556,10 @@ var ThreadListUI = {
 
     var firstViewDone = function firstViewDone() {
       this.initStickyHeader();
-      firstViewDoneCb && firstViewDoneCb();
+
+      if (typeof firstViewDoneCb === 'function') {
+        firstViewDoneCb();
+      }
     }.bind(this);
 
     function onRenderThread(thread) {

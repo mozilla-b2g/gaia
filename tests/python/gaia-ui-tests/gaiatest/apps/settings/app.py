@@ -27,7 +27,7 @@ class Settings(Base):
     _app_loaded_locator = (By.CSS_SELECTOR, 'body[data-ready="true"]')
     _airplane_switch_locator = (By.XPATH, "//input[contains(@class, 'airplaneMode-input')]/..")
     _airplane_checkbox_locator = (By.CSS_SELECTOR, ".airplaneMode-input")
-    _usb_storage_switch_locator = (By.CSS_SELECTOR, ".pack-split.usb-item")
+    _usb_storage_switch_locator = (By.CSS_SELECTOR, ".pack-split.usb-item .pack-switch")
     _usb_storage_checkbox_locator = (By.CSS_SELECTOR, ".usb-switch")
     _usb_storage_confirm_button_locator = (By.CSS_SELECTOR, "button.ums-confirm-option")
     _gps_enabled_locator = (By.XPATH, "//input[@name='geolocation.enabled']")
@@ -48,6 +48,7 @@ class Settings(Base):
     _sim_manager_menu_item_locator = (By.ID, 'menuItem-simManager')
     _homescreen_menu_item_locator = (By.ID, 'menuItem-homescreen')
     _browsing_privacy_item_locator = (By.ID, 'menuItem-browsingPrivacy')
+    _findmydevice_locator = (By.ID, 'menuItem-findmydevice')
 
     def launch(self):
         Base.launch(self)
@@ -73,8 +74,10 @@ class Settings(Base):
         self._wait_for_toggle_ready(*self._usb_storage_checkbox_locator)
 
     def toggle_usb_storage(self):
-        # TODO: remove tap with coordinates after Bug 1061698 is fixed
-        self.marionette.find_element(*self._usb_storage_switch_locator).tap(x=260)
+        # The left hand side of the usb storage switch is overlayed by menuItem-enableStorage
+        # So we do the tapping on the right hand side
+        element = self.marionette.find_element(*self._usb_storage_switch_locator)
+        element.tap(x=(element.size['width']-5))
 
     @property
     def is_usb_storage_enabled(self):
@@ -195,6 +198,11 @@ class Settings(Base):
         from gaiatest.apps.settings.regions.wifi import Wifi
         self._tap_menu_item(self._wifi_menu_item_locator)
         return Wifi(self.marionette)
+
+    def open_findmydevice(self):
+        from gaiatest.apps.settings.regions.findmydevice import FindMyDevice
+        self._tap_menu_item(self._findmydevice_locator)
+        return FindMyDevice(self.marionette)
 
     def open_device_info_settings(self):
         from gaiatest.apps.settings.regions.device_info import DeviceInfo

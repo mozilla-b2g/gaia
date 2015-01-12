@@ -19,6 +19,10 @@ class TestGalleryMultiDelete(GaiaTestCase):
         self.push_resource('image_formats/03.gif')
 
     def test_gallery_delete_image(self):
+        """
+        https://moztrap.mozilla.org/manage/case/1533/
+        """
+
         gallery = Gallery(self.marionette)
         gallery.launch()
         gallery.wait_for_files_to_load(3)

@@ -17,6 +17,7 @@ function Search(client) {
 Search.URL = 'app://search.gaiamobile.org';
 
 Search.Selectors = {
+  allGridResults: 'gaia-grid .icon',
   iframe: 'iframe[mozapptype="search"]',
   firstAppContainer: 'gaia-grid',
   firstApp: 'gaia-grid .icon',
@@ -81,18 +82,10 @@ Search.prototype = {
   },
 
   /**
-   * Workaround for bug 1022768, where app permissions are not auto ALLOWed
-   * for tests on desktop. If that bug is fixed, this function should be
-   * removed.
+   * Counts all grid search results.
    */
-  removeGeolocationPermission: function() {
-    var client = this.client.scope({ context: 'chrome' });
-    client.executeScript(function(origin) {
-      var mozPerms = navigator.mozPermissionSettings;
-      mozPerms.set(
-        'geolocation', 'deny', origin + '/manifest.webapp', origin, false
-      );
-    }, [Search.URL]);
+  countGridResults: function() {
+    return this.client.findElements(Search.Selectors.allGridResults).length;
   },
 
   /**

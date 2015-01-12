@@ -27,9 +27,11 @@ marionette('Software Home Button - Permission Prompt', function() {
   });
 
   test('Proper layout for the prompt', function() {
-
-    rocketbar.homescreenFocus();
-    rocketbar.enterText('a');
+    // Execute some JS to open the permission prompt.
+    client.executeScript(function() {
+      navigator.geolocation.getCurrentPosition(
+        function(){});
+    });
 
     function rect(el) {
       return el.getBoundingClientRect();

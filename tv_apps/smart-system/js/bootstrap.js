@@ -8,8 +8,8 @@
          SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory,
          applications, LayoutManager, PermissionManager, Accessibility,
-         TextSelectionDialog, SleepMenu, InteractiveNotifications
-         ExternalStorageMonitor, SelectionBorder */
+         TextSelectionDialog, SleepMenu, InteractiveNotifications,
+         ExternalStorageMonitor */
 'use strict';
 
 
@@ -133,11 +133,6 @@ window.addEventListener('load', function startup() {
   window.visibilityManager.start();
   window.wallpaperManager = new window.WallpaperManager();
   window.wallpaperManager.start();
-
-  window.selectionBorder = new SelectionBorder({
-        multiple: false,
-        container: document.getElementById('screen'),
-        forground: true });
 
   // unit tests call start() manually
   if (navigator.mozL10n) {

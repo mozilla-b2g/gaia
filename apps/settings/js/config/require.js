@@ -59,7 +59,8 @@ require.config({
       exports: 'SimSettingsHelper'
     },
     'shared/tz_select': {
-      exports: 'tzSelect'
+      exports: 'tzSelect',
+      deps: ['shared/icc_helper']
     },
     'shared/wifi_helper': {
       exports: 'WifiHelper'

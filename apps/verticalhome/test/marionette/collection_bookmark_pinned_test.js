@@ -37,7 +37,6 @@ marionette('Vertical - Collection Pin Bookmark', function() {
     system.waitForStartup();
 
     home.waitForLaunch();
-    collection.disableGeolocation();
     EmeServer.setServerURL(client, server);
 
     // Create a collection

@@ -1,6 +1,7 @@
 /* global MozActivity, IconsHelper, LazyLoader */
 /* global applications */
 /* global BookmarksDatabase */
+/* global XScrollable */
 
 (function(window) {
   'use strict';
@@ -23,27 +24,30 @@
     this._injected = false;
     this.app.element.addEventListener('mozbrowsercontextmenu', this);
 
-    this.spatialNavigator = new SpatialNavigator();
-
     this.keyNavigationAdapter = new KeyNavigationAdapter();
     this.keyNavigationAdapter.on('move', function(key) {
-      this.spatialNavigator.move(key);
+      this.scrollable.move(key);
     }.bind(this));
     this.keyNavigationAdapter.on('enter', function() {
-      this.spatialNavigator.getFocusedElement().click();
+      this.scrollable.currentItem.click();
     }.bind(this))
+    this.keyNavigationAdapter.on('esc', this.hide.bind(this));
 
-    this.spatialNavigator.on('focus', this.handleFocus.bind(this));
     return this;
   };
 
   BrowserContextMenu.prototype = Object.create(window.BaseUI.prototype);
 
-  BrowserContextMenu.prototype.handleFocus = function(elem) {
+  BrowserContextMenu.prototype.handleFocus = function(scrollable, elem) {
     if (elem.nodeName) {
-      selectionBorder.select(elem);
-    } else {
-      selectionBorder.selectRect(elem);
+      elem.classList.add('hover');
+      elem.focus();
+    }
+  };
+
+  BrowserContextMenu.prototype.handleUnfocus = function(scrollable, elem) {
+    if (elem.nodeName) {
+      elem.classList.remove('hover');
     }
   };
 
@@ -76,7 +80,7 @@
       });
     };
 
-    this.elementClasses = ['header', 'list'];
+    this.elementClasses = ['header', 'list', 'list-frame'];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     this.elementClasses.forEach(function createElementRef(name) {
@@ -99,7 +103,9 @@
               ' data-type="action" ' +
               'id="' + this.CLASS_NAME + this.instanceID + '">' +
               '<header class="contextmenu-header"></header>' +
-              '<menu class="contextmenu-list"></menu>' +
+              '<div class="contextmenu-list-frame">' +
+                '<menu class="contextmenu-list"></menu>' +
+              '</div>'
             '</form>';
   };
 
@@ -142,6 +148,15 @@
     this.showMenu(items);
   };
 
+  BrowserContextMenu.prototype.hasMenuVisible = function() {
+    return this.element && this.element.classList.contains('visible');
+  };
+
+  BrowserContextMenu.prototype.focus = function() {
+    document.activeElement.blur();
+    this.scrollable.catchFocus();
+  };
+
   BrowserContextMenu.prototype.showMenu = function(menu) {
     if (!this._injected) {
       this.render();
@@ -149,27 +164,25 @@
     this._injected = true;
     this.buildMenu(menu);
     this.element.classList.add('visible');
-    // XXX: Set a reasonable delay to ensure selectionBorder appears after
-    // animation for displaying context menu is ended.
-    // We will introduce new spec that doesn't need selection_border anymore.
-    // After that we won't have to do hard-coded timeout.
-    setTimeout(function firstfocus(evt) {
-      this.spatialNavigator.focus();
-    }.bind(this), 600);
+    document.activeElement.blur();
+    this.scrollable.catchFocus();
   },
 
   BrowserContextMenu.prototype.buildMenu = function(items) {
     var self = this;
     this.elements.list.innerHTML = '';
     items.forEach(function traveseItems(item) {
+      var container = document.createElement('div');
       var action = document.createElement('button');
+      var icon = document.createElement('div');
       action.dataset.id = item.id;
       action.dataset.value = item.value;
       action.textContent = item.label;
+      action.className = self.ELEMENT_PREFIX + 'button';
 
       if (item.icon) {
-        action.classList.add(item.iconClass || 'icon');
-        action.style.backgroundImage = 'url(' + item.icon + ')';
+        icon.classList.add(item.iconClass || 'icon');
+        icon.style.backgroundImage = 'url(' + item.icon + ')';
       }
 
       action.addEventListener('click', function(evt) {
@@ -177,26 +190,35 @@
         item.callback();
       });
 
-      this.elements.list.appendChild(action);
+      action.appendChild(icon);
+      container.appendChild(action);
+      this.elements.list.appendChild(container);
     }, this);
 
     this.elements.cancel.textContent = _('cancel');
     this.elements.list.appendChild(this.elements.cancel);
-    this.spatialNavigator.setCollection(Array.prototype.slice.call(
-                        this.elements.list.getElementsByTagName('button')));
+
+    this.scrollable = new XScrollable({
+      frameElem: this.elements.listFrame,
+      listElem: this.elements.list,
+      itemClassName: self.ELEMENT_PREFIX + 'button',
+      margin: 8.2
+    });
+    this.scrollable.on('focus', this.handleFocus.bind(this));
+    this.scrollable.on('unfocus', this.handleUnfocus.bind(this));
   };
 
   BrowserContextMenu.prototype._listItems = function(detail) {
-
     var items = [];
 
     // contextmenu.items are specified by the web content via html5
     // context menu api
     if (detail.contextmenu && detail.contextmenu.items.length) {
+      var that = this;
       detail.contextmenu.items.forEach(function(choice, index) {
         items.push({
           label: choice.label,
-          icon: choice.icon,
+          icon: that.app.origin + '/' + choice.icon,
           callback: function() {
             detail.contextMenuItemSelected(choice.id);
           }
@@ -222,13 +244,13 @@
 
     this.keyNavigationAdapter.uninit();
 
-    selectionBorder.deselectAll();
-
     if (evt) {
       evt.preventDefault();
     }
 
-    this.element.blur();
+    if (this.scrollable.currentItem) {
+      this.scrollable.currentItem.blur();
+    }
     this.element.classList.remove('visible');
     if (this.app) {
       this.app.focus();

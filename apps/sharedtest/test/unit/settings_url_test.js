@@ -1,7 +1,9 @@
+/* global SettingsURL */
+
 require('/shared/js/settings_url.js');
 
 suite('SettingsURL', function() {
-
+  'use strict';
   var subject;
 
   suiteSetup(function() {

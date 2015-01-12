@@ -144,7 +144,6 @@
       test('Invoke rocketbar', function() {
         assert.equal(getTopMost(), 'AppWindowManager');
         rocketbar.homescreenFocus();
-        rocketbar.goThroughPermissionPrompt();
         assert.equal(getTopMost(), 'Rocketbar');
         assert.equal(getActiveAppWindowAriaHidden(), 'true');
         rocketbar.cancel.click();

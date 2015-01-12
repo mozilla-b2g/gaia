@@ -36,7 +36,9 @@
     },
 
     Message: {
-      content: '.message-content > p:first-child'
+      content: '.message-content > p:first-child',
+      vcardAttachment: '[data-attachment-type="ref"]',
+      fileName: '.file-name'
     },
 
     ThreadList: {
@@ -58,6 +60,8 @@
       var actions = client.loader.getActions();
 
       return {
+        Selectors: SELECTORS,
+        
         Composer: {
           get recipientsInput() {
             return client.helper.waitForElement(

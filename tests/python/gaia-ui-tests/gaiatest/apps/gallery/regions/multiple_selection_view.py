@@ -31,6 +31,16 @@ class MultipleSelectionView(Base):
         self.thumbnails[n].tap()
 
     @property
+    def number_of_selected_images(self):
+        select_picture_header = Wait(self.marionette).until(
+            expected.element_present(*self._select_picture_header_locator))
+
+        if 'selected' in select_picture_header.text:
+            return int(select_picture_header.text[:1])
+        else:
+            return 0
+
+    @property
     def thumbnails(self):
         return self.marionette.find_elements(*self._thumbnail_list_view_locator)
 

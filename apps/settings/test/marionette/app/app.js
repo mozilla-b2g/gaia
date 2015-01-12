@@ -5,6 +5,7 @@ var AppPermissionPanel = require('./regions/app_permission');
 var Base = require('./base');
 var BatteryPanel = require('./regions/battery');
 var BluetoothPanel = require('./regions/bluetooth');
+var DateTimePanel = require('./regions/date_time');
 var DisplayPanel = require('./regions/display');
 var DoNotTrackPanel = require('./regions/do_not_track');
 var FeedbackPanel = require('./regions/feedback');
@@ -47,6 +48,7 @@ Settings.Selectors = {
   'hotspotSettingsTrigger': '#hotspot-settings-section button',
   'supportMenuItem': '#menuItem-help',
   'batteryMenuItem': '.menuItem-battery',
+  'dateTimeMenuItem': '#menuItem-dateAndTime',
   'notificationsMenuItem': '#menuItem-notifications',
   'improvePanel': '#menuItem-improveBrowserOS',
   'improveSection': '#improveBrowserOS',
@@ -113,6 +115,13 @@ Settings.prototype = {
     this._batteryPanel = this._batteryPanel ||
       new BatteryPanel(this.client);
     return this._batteryPanel;
+  },
+
+  get dateTimePanel() {
+    this.openPanel('dateTimeMenuItem');
+    this._dateTimePanel = this._dateTimePanel ||
+      new DateTimePanel(this.client);
+    return this._dateTimePanel;
   },
 
   get notificationsPanel() {

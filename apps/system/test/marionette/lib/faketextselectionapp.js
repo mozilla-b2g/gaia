@@ -18,16 +18,30 @@ FakeTextSelectionApp.Selector = Object.freeze({
   bottomRightInput: '#bottom-right-input',
   centerInput: '#center-input',
   topLeftInput: '#top-left-input',
-  topRightInput: '#top-right-input'
+  topRightInput: '#top-right-input',
+  normalDiv: '#noneditable',
+  nonSelectedDiv: '#noneditable-userselectnone'
 });
 
 FakeTextSelectionApp.ORIGIN = 'app://faketextselectionapp.gaiamobile.org';
 
 FakeTextSelectionApp.prototype = {
+  get bubbleVisiblity() {
+    return this.textSelection.visibility;
+  },
+
   get width() {
     return this.client.executeScript(function() {
       return window.wrappedJSObject.innerWidth;
     });
+  },
+
+  get nonSelectedDiv() {
+    return this._getElement('nonSelectedDiv');
+  },
+
+  get normalDiv() {
+    return this._getElement('normalDiv');
   },
 
   get centerInput() {

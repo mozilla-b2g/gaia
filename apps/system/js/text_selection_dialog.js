@@ -1,4 +1,4 @@
-/* global layoutManager */
+/* global layoutManager, SettingsListener */
 'use strict';
 (function(exports) {
   var DEBUG = false;
@@ -10,6 +10,7 @@
     this.containerElement =
       document.getElementById('text-selection-dialog-root');
     this.event = null;
+    this._enabled = false;
     this._hideTimeout = null;
     this._injected = false;
     this._hasCutOrCopied = false;
@@ -18,12 +19,14 @@
     this._transitionState = 'closed';
     this._scrolling = false;
     this._isSelectionVisible = true;
-
-    window.addEventListener('activeappchanged', this);
-    window.addEventListener('home', this);
-    window.addEventListener('mozChromeEvent', this);
-    window.addEventListener('value-selector-shown', this);
-    window.addEventListener('value-selector-hidden', this);
+    SettingsListener.observe('copypaste.enabled', true,
+      function onObserve(value) {
+        if (value) {
+          this.start();
+        } else {
+          this.stop();
+        }
+      }.bind(this));
   };
 
   TextSelectionDialog.prototype = Object.create(window.BaseUI.prototype);
@@ -59,7 +62,33 @@
 
   TextSelectionDialog.prototype.ELEMENT_PREFIX = 'textselection-dialog-';
 
-  TextSelectionDialog.prototype.debug = function aw_debug(msg) {
+  TextSelectionDialog.prototype.start = function tsd_start() {
+    if (this._enabled) {
+      return;
+    }
+    this._enabled = true;
+    window.addEventListener('hierachychanged', this);
+    window.addEventListener('activeappchanged', this);
+    window.addEventListener('home', this);
+    window.addEventListener('mozChromeEvent', this);
+    window.addEventListener('value-selector-shown', this);
+    window.addEventListener('value-selector-hidden', this);
+  };
+
+  TextSelectionDialog.prototype.stop = function tsd_stop() {
+    if (!this._enabled) {
+      return;
+    }
+    this._enabled = false;
+    window.removeEventListener('hierachychanged', this);
+    window.removeEventListener('activeappchanged', this);
+    window.removeEventListener('home', this);
+    window.removeEventListener('mozChromeEvent', this);
+    window.removeEventListener('value-selector-shown', this);
+    window.removeEventListener('value-selector-hidden', this);
+  };
+
+  TextSelectionDialog.prototype.debug = function tsd_debug(msg) {
     if (DEBUG || this._DEBUG) {
       console.log('[Dump: ' + this.ID_NAME + ']' +
         JSON.stringify(msg));
@@ -70,6 +99,7 @@
     switch (evt.type) {
       case 'home':
       case 'activeappchanged':
+      case 'hierachychanged':
         this.close();
         break;
       case 'value-selector-shown':
@@ -137,6 +167,10 @@
         commands.canSelectAll = false;
       }
 
+      if (!isTempShortcut && (isCollapsed || !this._isSelectionVisible)) {
+        this.close();
+        return;
+      }
       // If current element lost focus, we should hide the bubble.
       if (states.indexOf('blur') !== -1) {
         this.hide();
@@ -173,12 +207,6 @@
       if (states.indexOf('selectall') !== -1 ||
           states.indexOf('mouseup') !== -1 ||
           states.indexOf('updateposition') !== -1) {
-        if (!isTempShortcut && isCollapsed ||
-            !this._isSelectionVisible) {
-          this.close();
-          return;
-        }
-
         this.show(detail);
         if (isTempShortcut) {
           this._triggerShortcutTimeout();
