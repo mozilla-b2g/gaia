@@ -30,5 +30,6 @@ var MockMozL10n = window.navigator.mozL10n = {
   translate: function() {},
   once: function(cb) {
     this.realL10nCB = cb;
+    cb();
   },
 };
