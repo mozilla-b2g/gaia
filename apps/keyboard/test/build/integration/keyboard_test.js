@@ -324,10 +324,10 @@ suite('Keyboard settings building tests', function() {
   };
 
   suite('For handwriting', function() {
-    // return an array of <sections> in the root panel
-    var getSectionsFromRootPanel = function(domDoc) {
+    // return an array of <sections> in the general panel
+    var getSectionsFromGeneralPanel = function(domDoc) {
       return Array.prototype.slice.call(
-               domDoc.querySelectorAll('#root-container > section'));
+               domDoc.querySelectorAll('#general-container > section'));
     };
 
     // default: there shouldn't be handwriting elements in resulting file
@@ -339,13 +339,13 @@ suite('Keyboard settings building tests', function() {
         var settingsDOMDoc = getSettingsDomDoc();
 
         assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).every(function(elem){
-          return elem.src !== 'js/settings/handwriting_settings.js';
-        }), 'No script should include handwriting_settings.js');
+          return elem.src !== 'js/settings/handwriting_settings_view.js';
+        }), 'No script should include handwriting_settings_view.js');
 
         assert.isTrue(
-        getSectionsFromRootPanel(settingsDOMDoc).every(function(elem){
+        getSectionsFromGeneralPanel(settingsDOMDoc).every(function(elem){
           return elem.id !== 'handwriting-settings';
-        }), 'No section in root panel should include handwriting settings');
+        }), 'No section in general panel should include handwriting settings');
 
         done();
       });
@@ -360,13 +360,14 @@ suite('Keyboard settings building tests', function() {
         var settingsDOMDoc = getSettingsDomDoc();
 
         assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
-          return elem.src === 'js/settings/handwriting_settings.js';
-        }), 'Some script should include handwriting_settings.js');
+          return elem.src === 'js/settings/handwriting_settings_view.js';
+        }), 'Some script should include handwriting_settings_view.js');
 
         assert.isTrue(
-        getSectionsFromRootPanel(settingsDOMDoc).some(function(elem){
+        getSectionsFromGeneralPanel(settingsDOMDoc).some(function(elem){
           return elem.id === 'handwriting-settings';
-        }), 'Some section in root panel should include handwriting settings');
+        }),
+          'Some section in general panel should include handwriting settings');
 
         done();
       });
@@ -375,7 +376,7 @@ suite('Keyboard settings building tests', function() {
 
   suite('User dictionary', function() {
     // return an array of <li> in the root panel's first section's ui
-    var getLIsFromRootPanel = function(domDoc) {
+    var getLIsFromGeneralPanel = function(domDoc) {
       return Array.prototype.slice.call(
                domDoc.querySelectorAll('#general-settings > ul > li'));
     };
@@ -400,13 +401,10 @@ suite('Keyboard settings building tests', function() {
           return elem.src !== 'js/settings/user_dictionary.js';
         }), 'No script should include user_dictionary.js');
 
-        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).every(function(elem){
-          return elem.src !== 'js/settings/panel_controller.js';
-        }), 'No script should include panel_controller.js');
-
-        assert.isTrue(getLIsFromRootPanel(settingsDOMDoc).every(function(elem){
+        assert.isTrue(
+        getLIsFromGeneralPanel(settingsDOMDoc).every(function(elem){
           return elem.querySelector('a#menu-userdict') === null;
-        }), 'No <li> in root panel should include user dict settings');
+        }), 'No <li> in general panel should include user dict settings');
 
         done();
       });
@@ -431,13 +429,10 @@ suite('Keyboard settings building tests', function() {
           return elem.src === 'js/settings/user_dictionary.js';
         }), 'Some script should include user_dictionary.js');
 
-        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
-          return elem.src === 'js/settings/panel_controller.js';
-        }), 'Some script should include panel_controller.js');
-
-        assert.isTrue(getLIsFromRootPanel(settingsDOMDoc).some(function(elem){
+        assert.isTrue(
+        getLIsFromGeneralPanel(settingsDOMDoc).some(function(elem){
           return elem.querySelector('a#menu-userdict') !== null;
-        }), 'Some <li> in root panel should include user dict settings');
+        }), 'Some <li> in general panel should include user dict settings');
 
         done();
       });

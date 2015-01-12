@@ -1,6 +1,6 @@
 'use strict';
 
-/* global UserDictionary */
+/* global BaseView, UserDictionary */
 
 /*
  * The panel for the list of user dictionary words. When there is no word,
@@ -17,48 +17,51 @@
 (function(exports) {
 
 var UserDictionaryListPanel = function(app) {
+  BaseView.apply(this);
+
   this.app = app;
 
   this._model = new UserDictionary(this);
-  this._initialized= false;
+  this._populated = false;
 
-  this._container = null;
   this._listContainer = null;
 
   // a WeakMap from word list's each <a> element to an actual word.
   this._domWordMap = null;
 };
 
+UserDictionaryListPanel.prototype = Object.create(BaseView.prototype);
+
 UserDictionaryListPanel.prototype.CONTAINER_ID = 'panel-ud-wordlist';
                     
-UserDictionaryListPanel.prototype.init = function() {
-  this._initialized = true;
+UserDictionaryListPanel.prototype.start = function() {
+  BaseView.prototype.start.call(this);
 
-  this._container = document.getElementById(this.CONTAINER_ID);
-  this._listContainer = this._container.querySelector('#ud-wordlist-list');
+  this._listContainer = this.container.querySelector('#ud-wordlist-list');
 
   this._model.start();
 
   this._domWordMap = new WeakMap();
 };
 
-UserDictionaryListPanel.prototype.uninit = function() {
-  this._initialized = false;
-  this._container = null;
+UserDictionaryListPanel.prototype.stop = function() {
+  BaseView.prototype.stop.call(this);
+
+  this._populated = false;
   this._listContainer = null;
   this._model.stop();
   this._domWordMap = null;
 };
 
 UserDictionaryListPanel.prototype.beforeShow = function(options) {
-  if (!this._initialized) {
-    this.init();
+  if (!this._populated) {
+    this._populated = true;
 
     return this._model.getList().then(words => {
       if (!words || words.size === 0) {
-        this._container.classList.add('empty');
+        this.container.classList.add('empty');
       } else {
-        this._container.classList.remove('empty');
+        this.container.classList.remove('empty');
         words.forEach(word => this._appendList(word.trim()));
       }
     }).catch(e => console.error(e));
@@ -66,26 +69,22 @@ UserDictionaryListPanel.prototype.beforeShow = function(options) {
 };
 
 UserDictionaryListPanel.prototype.show = function() {
-  this._container.querySelector('#ud-addword-btn')
+  this.container.querySelector('#ud-addword-btn')
     .addEventListener('click', this);
 
   this._listContainer.addEventListener('click', this);
 
-  this._container.querySelector('gaia-header').addEventListener('action', this);
+  this.container.querySelector('gaia-header').addEventListener('action', this);
 };
 
 UserDictionaryListPanel.prototype.beforeHide = function() {
-  this._container.querySelector('#ud-addword-btn')
+  this.container.querySelector('#ud-addword-btn')
     .removeEventListener('click', this);
 
   this._listContainer.removeEventListener('click', this);
 
-  this._container.querySelector('gaia-header')
+  this.container.querySelector('gaia-header')
     .removeEventListener('action', this);
-};
-
-UserDictionaryListPanel.prototype.hide = function(evt) {
-
 };
 
 UserDictionaryListPanel.prototype.handleEvent = function(evt) {
@@ -120,7 +119,8 @@ UserDictionaryListPanel.prototype._appendList = function(word) {
 };
 
 UserDictionaryListPanel.prototype._showAddDialog = function() {
-  this.app.dialogController.openDialog(this.app.userDictionaryEditDialog)
+  this.app.dialogController.openDialog(
+    this.app.dialogController.userDictionaryEditDialog)
   .then(
     result => {
       if ('commit' === result.action) {
@@ -133,8 +133,9 @@ UserDictionaryListPanel.prototype._showAddDialog = function() {
 UserDictionaryListPanel.prototype._showEditDialog = function(wordElem) {
   var word = this._domWordMap.get(wordElem);
 
-  this.app.dialogController.openDialog(this.app.userDictionaryEditDialog, {
-    word: word
+  this.app.dialogController.openDialog(
+    this.app.dialogController.userDictionaryEditDialog, {
+      word: word
   })
   .then(
     result => {
@@ -157,7 +158,7 @@ UserDictionaryListPanel.prototype._addWord = function(word) {
     var awakeLock = this.app.closeLockManager.requestLock('stayAwake');
     this._model.addWord(word).then(() => {
       awakeLock.unlock();
-      this._container.classList.remove('empty');
+      this.container.classList.remove('empty');
       this._appendList(word);
     }).catch(e => {
       awakeLock.unlock();
@@ -180,7 +181,7 @@ UserDictionaryListPanel.prototype._removeWord = function(word, wordElem) {
     this._listContainer.removeChild(wordElem.parentNode);
 
     if (0 === this._listContainer.childNodes.length) {
-      this._container.classList.add('empty');
+      this.container.classList.add('empty');
     }
   }).catch(e => {
     awakeLock.unlock();

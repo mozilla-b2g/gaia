@@ -1,9 +1,10 @@
 'use strict';
 
-/* global UserDictionaryEditDialog, MockEventTarget, KeyEvent */
+/* global UserDictionaryEditDialog, MockEventTarget, KeyEvent, BaseView */
 
 require('/shared/test/unit/mocks/mock_event_target.js');
 
+require('/js/settings/base_view.js');
 require('/js/settings/user_dictionary_edit_dialog.js');
 
 suite('UserDictionary Edit Dialog', function() {
@@ -53,7 +54,7 @@ suite('UserDictionary Edit Dialog', function() {
     stubContainer.querySelector
       .withArgs('#ud-editword-dialog-delete-btn').returns(stubDialogDeleteBtn);
 
-    dialog.init();
+    dialog.start();
 
     assert.isTrue(stubGetElemById.calledWith('panel-ud-editword'));
 
@@ -61,20 +62,15 @@ suite('UserDictionary Edit Dialog', function() {
   });
 
   teardown(function() {
-    dialog.uninit();
+    dialog.stop();
+  });
+
+  test('inheritance from BaseView', function() {
+    assert.instanceOf(dialog, BaseView);
   });
 
   suite('Transition hooks', function() {
     suite('beforeShow', function() {
-      test('call init if necessary', function() {
-        dialog._initialized = false;
-        this.sinon.stub(dialog, 'init');
-
-        dialog.beforeShow();
-
-        assert.isTrue(dialog.init.called);
-      });
-
       test('edit mode', function() {
         dialog.beforeShow({
           word: 'star'
