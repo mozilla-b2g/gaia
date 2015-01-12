@@ -365,7 +365,12 @@ var Information = function(type) {
 
   var prefix = 'information-' + this.name;
   this.container = document.getElementById(prefix);
-  this.parent = document.getElementById('thread-messages');
+  if(this.name == 'participants'){
+    this.parent = document.getElementById('group-view-information');
+  }
+  else if(this.name == 'report'){
+    this.parent = document.getElementById('report-view-information');
+  }
   this.elements.forEach(function(name) {
     this[Utils.camelCase(name)] = this.container.querySelector('.' + name);
   }, this);

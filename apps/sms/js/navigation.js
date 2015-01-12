@@ -59,12 +59,12 @@ var Navigation = {
     'group-view': {
       behaviour: 'GroupView',
       wrapperPosition: 'left',
-      container: 'thread-messages'
+      container: 'group-view-information'
     },
     'report-view': {
       behaviour: 'ReportView',
       wrapperPosition: 'left',
-      container: 'thread-messages'
+      container: 'report-view-information'
     }
   },
 
