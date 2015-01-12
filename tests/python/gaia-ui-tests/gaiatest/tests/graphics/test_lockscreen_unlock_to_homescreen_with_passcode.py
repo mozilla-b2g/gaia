@@ -27,8 +27,10 @@ class TestLockScreen(GaiaImageCompareTestCase):
 
     def test_lockscreen_unlock_to_homescreen_with_passcode(self):
         #1st try
-
-        Wait(self.marionette, timeout=30).until(lambda m: self.device.has_mobile_connection)
+        import pdb
+        pdb.set_trace()
+        #Wait(self.marionette, timeout=30).until(lambda m: self.device.has_mobile_connection)
+        self.connect_to_local_area_network()
 
         lock_screen = LockScreen(self.marionette)
         lock_screen.switch_to_frame()
