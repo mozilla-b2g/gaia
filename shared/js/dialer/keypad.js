@@ -3,7 +3,7 @@
 /* globals AddContactMenu, CallHandler, CallLogDBManager, CallsHandler,
            CallScreen, ConfirmDialog, CustomDialog, DtmfTone, FontSizeManager,
            LazyLoader, LazyL10n, MultiSimActionButton, Promise,
-           SettingsListener, TonePlayer */
+           SimSettingsHelper, SettingsListener, TonePlayer */
 
 'use strict';
 
@@ -441,9 +441,9 @@ var KeypadManager = {
     // Handle speed dial numbers
     if (this._isSpeedDialNumber(this._phoneNumber)) {
       var self = this;
-      var index = this._phoneNumber.slice(0, -1);
+      var index = this._phoneNumber.slice(0, -1); // Remove the trailing '#'
 
-      this._getSpeedDialNumber(this._defaultServiceId, +index).then(
+      this._getSpeedDialNumber(+index).then(
       function(number) {
         self.updatePhoneNumber(number, 'begin', false);
       });
@@ -522,7 +522,7 @@ var KeypadManager = {
    * 3GPP TS 22.030 6.6.4. Speed dial codes are in the N(N)(N)# format.
    */
   _isSpeedDialNumber: function(number) {
-    return !!number.match(/^(0|[1-9][0-9]{0,2})\#$/);
+    return !!number.match(/^[0-9][0-9]{0,2}\#$/);
   },
 
   /**
@@ -530,16 +530,38 @@ var KeypadManager = {
    * dial numbers are retrieved from the SIM contacts list and not from the
    * regular contacts.
    *
-   * @param {Integer} cardIndex The SIM card index.
    * @param {Integer} index The index of the speed dial number.
    * @returns {Promise} A promise that resolves to the corresponding number.
    */
-  _getSpeedDialNumber: function(cardIndex, index) {
+  _getSpeedDialNumber: function(index) {
     var self = this;
+    var cardIndex;
 
-    index--; // Speed dial indexes seem to be 1-based
+    index--; // Speed dial indexes are 1-based
 
-    return this._populateSimContactsLists(cardIndex).then(function() {
+    return new Promise(function(resolve, reject) {
+      LazyLoader.load(['/shared/js/sim_settings_helper.js'], function() {
+        SimSettingsHelper.getCardIndexFrom('outgoingCall',
+        function(defaultCardIndex) {
+          if (defaultCardIndex == SimSettingsHelper.ALWAYS_ASK_OPTION_VALUE) {
+            LazyLoader.load(['/shared/js/component_utils.js',
+                             '/shared/elements/gaia_sim_picker/script.js'],
+            function() {
+              var simPicker = document.getElementById('sim-picker');
+              simPicker.getOrPick(defaultCardIndex, null, function(ci) {
+                cardIndex = ci;
+                resolve();
+              });
+            });
+          } else {
+            cardIndex = defaultCardIndex;
+            resolve();
+          }
+        });
+      });
+    }).then(function() {
+      return self._populateSimContactsList(cardIndex);
+    }).then(function() {
       if (index < self._simContactsList[cardIndex].length) {
         return self._simContactsList[cardIndex][index].number;
       } else {
@@ -549,12 +571,42 @@ var KeypadManager = {
   },
 
   /**
+   * Creates an array of contacts populated using the ADN contacts retrieved
+   * from a SIM card. Every contact will contain only the ID and first
+   * telephone number and the array will be sorted by ID. This array is then
+   * suitable to be used to pick speed dial numbers.
+   *
+   * @param {Array} contacts An array of mozContact elements.
+   * @returns {Array} An array of telephone numbers / ID couples sorted by ID.
+   */
+  _createSimContactList: function(contacts) {
+    var numbers = new Array(contacts.length);
+
+    for (var i = 0; i < contacts.length; i++) {
+      numbers[i] = {
+        id: contacts[i].id,
+        number: contacts[i].tel[0].value,
+      };
+    }
+
+    numbers.sort(function(a, b) {
+      if (a.id.length == b.id.length) {
+        return (a.id > b.id) ? 1 : 0;
+      } else {
+        return (a.id.length > b.id.length) ? 1 : 0;
+      }
+    });
+
+    return numbers;
+  },
+
+  /**
    * Populates the SIM contacts list for the specified SIM card.
    *
    * @param {Integer} cardIndex The SIM card index.
    * @returns {Promise} A promise that is resolved once the list is populated.
    */
-  _populateSimContactsLists: function(cardIndex) {
+  _populateSimContactsList: function(cardIndex) {
     if ((this._simContactsList.length > cardIndex) &&
         this._simContactsList[cardIndex]) {
       return Promise.resolve();
@@ -574,24 +626,9 @@ var KeypadManager = {
 
           req.onsuccess = function(event) {
             var adnContacts = event.target.result;
-            var numbers = new Array(adnContacts.length);
+            var contacts = self._createSimContactList(adnContacts);
 
-            for (var i = 0; i < adnContacts.length; i++) {
-              numbers[i] = {
-                id: adnContacts[i].id,
-                number: adnContacts[i].tel[0].value,
-              };
-            }
-
-            numbers.sort(function(a, b) {
-              if (a.id.length == b.id.length) {
-                return (a.id > b.id) ? 1 : 0;
-              } else {
-                return (a.id.length > b.id.length) ? 1 : 0;
-              }
-            });
-
-            self._simContactsList[cardIndex] = numbers;
+            self._simContactsList[cardIndex] = contacts;
 
             if (!canceled) {
               ConfirmDialog.hide();
@@ -599,7 +636,9 @@ var KeypadManager = {
 
             resolve();
           };
-          req.onerror = function() {
+          req.onerror = function(error) {
+            console.error('Could not retrieve the ADN contacts from SIM card ' +
+                          cardIndex + ', got error ' + error.name);
             reject();
           };
 
@@ -801,11 +840,6 @@ var KeypadManager = {
 
       SettingsListener.observe('keyboard.vibration', false, function(value) {
         self._vibrationEnabled = !!value;
-      });
-
-      SettingsListener.observe('ril.telephony.defaultServiceId', 0,
-      function(value) {
-        self._defaultServiceId = value;
       });
     });
   }
