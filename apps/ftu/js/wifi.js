@@ -162,16 +162,18 @@ var WifiUI = {
     var user = UIManager.hiddenWifiIdentity.value;
     var ssid = UIManager.hiddenWifiSsid.value;
     var security = UIManager.hiddenWifiSecurity.value;
+    var network;
     if (ssid.length) {
       if (!Array.isArray(WifiManager.networks)) {
         WifiManager.networks = [];
       }
-
-      WifiManager.networks.push({
-          ssid: ssid,
-          capabilities: [security],
-          relSignalStrength: 0
+      network = new window.MozWifiNetwork({
+        ssid: ssid,
+        capabilities: [],
+        security: [security],
+        relSignalStrength: 0
       });
+      WifiManager.networks.push(network);
       this.renderNetworks(WifiManager.networks);
       WifiUI.connect(ssid, password, user);
     }
@@ -278,6 +280,8 @@ var WifiUI = {
     // Update title
     UIManager.mainTitle.textContent = _('authentication');
     UIManager.navBar.classList.add('secondary-menu');
+    // Reset join button state
+    UIManager.wifiJoinButton.disabled = true;
     window.location.hash = '#hidden-wifi-authentication';
   },
 
