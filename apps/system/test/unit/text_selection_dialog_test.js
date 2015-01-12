@@ -229,13 +229,52 @@ suite('system/TextSelectionDialog', function() {
 
   test('_triggerShortcutTimeout', function() {
     this.sinon.stub(td, '_resetShortcutTimeout');
-    this.sinon.stub(td, 'close');
+    this.sinon.stub(td, 'hide');
     var clock = this.sinon.useFakeTimers();
 
     td._triggerShortcutTimeout();
     clock.tick(td.SHORTCUT_TIMEOUT);
-    assert.isTrue(td.close.called);
+    assert.isTrue(td.hide.called);
     assert.isTrue(td._resetShortcutTimeout.called);
+  });
+
+  suite('_onCollapseMode', function() {
+    var testDetail;
+    setup(function() {
+      testDetail = {
+        visible: true,
+        isCollapsed: true,
+        states: ['mousup'],
+        commands: {
+          canSelectAll: true
+        }
+      };
+
+      fakeTextSelectInAppEvent.detail = {
+        type: 'selectionstatechanged',
+        detail: testDetail
+      };
+    });
+
+    test('is collapsed and has not cut nor copied before', function() {
+      this.sinon.stub(td, 'hide');
+      td._hasCutOrCopied = false;
+      td._onCollapsedMode(fakeTextSelectInAppEvent);
+      assert.isTrue(td.hide.calledOnce);
+    });
+
+    test('is collapsed and has cut or copied before', function() {
+      this.sinon.stub(td, 'hide');
+      this.sinon.stub(td, 'show');
+      this.sinon.stub(td, '_triggerShortcutTimeout');
+      td._hasCutOrCopied = true;
+      td.textualmenuDetail = testDetail;
+      td._onCollapsedMode(fakeTextSelectInAppEvent);
+      assert.isFalse(td.hide.calledOnce);
+      assert.isFalse(testDetail.commands.canSelectAll);
+      assert.isTrue(td._triggerShortcutTimeout.calledOnce);
+      assert.isTrue(td.show.calledWith(testDetail));
+    });
   });
 
   suite('_onSelectionStateChanged', function() {
@@ -264,6 +303,7 @@ suite('system/TextSelectionDialog', function() {
       };
 
       fakeTextSelectInAppEvent.detail = {
+        type: 'selectionstatechanged',
         detail: testDetail
       };
     });
@@ -274,9 +314,8 @@ suite('system/TextSelectionDialog', function() {
 
     test('tap on other place, and the caret is collapsed',
       function() {
-        td._onSelectionStateChanged(fakeTextSelectInAppEvent);
+        td.handleEvent(fakeTextSelectInAppEvent);
         assert.isFalse(stubShow.calledOnce);
-        assert.isFalse(testDetail.commands.canSelectAll);
         assert.isTrue(stubEvent.calledOnce);
         assert.deepEqual(td.textualmenuDetail, testDetail);
       });
@@ -284,7 +323,7 @@ suite('system/TextSelectionDialog', function() {
     test('copy some text and tap on other place, and the caret is collapsed',
       function() {
         td._hasCutOrCopied = true;
-        td._onSelectionStateChanged(fakeTextSelectInAppEvent);
+        td.handleEvent(fakeTextSelectInAppEvent);
         assert.isTrue(stubShow.calledWith(testDetail));
         assert.isFalse(testDetail.commands.canSelectAll);
         assert.isTrue(stubEvent.calledOnce);
@@ -294,7 +333,7 @@ suite('system/TextSelectionDialog', function() {
     test('receive event without mouseup nor selectAll, and the caret is ' +
       'collapsed', function() {
         testDetail.states = [];
-        td._onSelectionStateChanged(fakeTextSelectInAppEvent); 
+        td.handleEvent(fakeTextSelectInAppEvent);
         assert.isFalse(stubShow.calledOnce);
         assert.isTrue(testDetail.commands.canSelectAll);
         assert.isTrue(stubEvent.calledOnce);
@@ -303,8 +342,6 @@ suite('system/TextSelectionDialog', function() {
 
     test('when the focus element is blurred', function() {
       testDetail.states = ['blur'];
-      testDetail.visible = true;
-      testDetail.isCollapsed = false;
       td._onSelectionStateChanged(fakeTextSelectInAppEvent);
       assert.isTrue(stubHide.calledOnce);
     });
@@ -312,8 +349,6 @@ suite('system/TextSelectionDialog', function() {
     test('should hide bubble if user call selection.collapseToEnd() by script',
       function() {
         testDetail.states = ['collapsetoend'];
-        testDetail.visible = true;
-        testDetail.isCollapsed = false;
         td._onSelectionStateChanged(fakeTextSelectInAppEvent);
         assert.isTrue(stubHide.calledOnce);
       });
@@ -322,8 +357,6 @@ suite('system/TextSelectionDialog', function() {
       // In editable div, we may receive this event while bubble is displaying
       // and tapping on other context.
       function() {
-        testDetail.visible = true;
-        testDetail.isCollapsed = false;
         testDetail.rect.top = testDetail.rect.bottom;
         testDetail.rect.left = testDetail.rect.right;
         td._onSelectionStateChanged(fakeTextSelectInAppEvent);
@@ -332,8 +365,6 @@ suite('system/TextSelectionDialog', function() {
 
     test('with no states', function() {
       testDetail.states = [];
-      testDetail.visible = true;
-      testDetail.isCollapsed = false;
       td._onSelectionStateChanged(fakeTextSelectInAppEvent);
       assert.isFalse(stubClose.calledOnce);
       assert.isFalse(stubHide.calledOnce);
@@ -344,8 +375,6 @@ suite('system/TextSelectionDialog', function() {
     test('should do nothing if rect has no size with no mouseup reason',
       function() {
         testDetail.states = ['mousedown'];
-        testDetail.visible = true;
-        testDetail.isCollapsed = false;
         testDetail.rect.top = testDetail.rect.bottom;
         testDetail.rect.left = testDetail.rect.right;
         td._onSelectionStateChanged(fakeTextSelectInAppEvent);
@@ -357,8 +386,6 @@ suite('system/TextSelectionDialog', function() {
 
     test('should do nothing if no commands', function() {
       testDetail.commands = {};
-      testDetail.visible = true;
-      testDetail.isCollapsed = false;
       td._onSelectionStateChanged(fakeTextSelectInAppEvent);
       assert.isFalse(stubClose.calledOnce);
       assert.isFalse(stubHide.calledOnce);
@@ -367,8 +394,6 @@ suite('system/TextSelectionDialog', function() {
     });
 
     test('should render when first show', function() {
-      testDetail.visible = true;
-      testDetail.isCollapsed = false;
       td._onSelectionStateChanged(fakeTextSelectInAppEvent);
       assert.isTrue(stubRender.calledOnce);
       assert.isTrue(td._injected);
@@ -381,35 +406,30 @@ suite('system/TextSelectionDialog', function() {
     });
 
     test('should call close when timeout of shortcut has reached and ' +
-          'single-tap on the context', function() {
-        testDetail.isCollapsed = true;
-        td._hasCutOrCopied = false;
-        td._onSelectionStateChanged(fakeTextSelectInAppEvent);
-        assert.isTrue(stubClose.calledOnce);
-      });
+         'single-tap on the context', function() {
+      testDetail.isCollapsed = true;
+      td._hasCutOrCopied = false;
+      td.handleEvent(fakeTextSelectInAppEvent);
+      assert.isTrue(stubHide.calledOnce);
+    });
 
     test('should call close when selection is not visible', function() {
-        testDetail.isCollapsed = false;
-        td._hasCutOrCopied = false;
-        testDetail.visible = false;
-        td._onSelectionStateChanged(fakeTextSelectInAppEvent);
-        assert.isTrue(stubClose.calledOnce);
-      });
+      td._isSelectionVisible = false;
+      td._onSelectionStateChanged(fakeTextSelectInAppEvent);
+      assert.isTrue(stubClose.calledOnce);
+    });
 
     test('should show bubble if states has updateposition', function() {
-        testDetail.isCollapsed = false;
-        td._hasCutOrCopied = false;
-        testDetail.visible = true;
-        testDetail.states = ['updateposition'];
-        td._onSelectionStateChanged(fakeTextSelectInAppEvent);
-        assert.isTrue(stubShow.calledWith(testDetail));
-      });
+      td._hasCutOrCopied = false;
+      testDetail.states = ['updateposition'];
+      td._onSelectionStateChanged(fakeTextSelectInAppEvent);
+      assert.isTrue(stubShow.calledWith(testDetail));
+    });
 
     test('should show bubble when states has selectall', function() {
       // When user click selectAll button, gecko will send a selectchange event
       // with no mouseup reason.
       testDetail.states = ['selectall'];
-      testDetail.isCollapsed = false;
       td._onSelectionStateChanged(fakeTextSelectInAppEvent);
       assert.isTrue(stubShow.calledWith(testDetail));
     });
@@ -420,9 +440,9 @@ suite('system/TextSelectionDialog', function() {
       var fakeTimer = this.sinon.useFakeTimers();
       td._hasCutOrCopied = true;
       testDetail.isCollapsed = true;
-      td._onSelectionStateChanged(fakeTextSelectInAppEvent);
+      td.handleEvent(fakeTextSelectInAppEvent);
       fakeTimer.tick(td.SHORTCUT_TIMEOUT);
-      assert.isTrue(stubClose.calledOnce);
+      assert.isTrue(stubHide.calledOnce);
     });
   });
 

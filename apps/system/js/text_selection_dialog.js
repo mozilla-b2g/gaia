@@ -121,7 +121,25 @@
       case 'mozChromeEvent':
         switch (evt.detail.type) {
           case 'selectionstatechanged':
-            this._onSelectionStateChanged(evt);
+            if (this._ignoreSelectionChange || !evt.detail.detail) {
+              return;
+            }
+            var detail = evt.detail.detail;
+            this._isSelectionVisible = detail.visible;
+            this.debug('on receive selection change event');
+            this.debug(JSON.stringify(detail));
+            evt.preventDefault();
+            evt.stopPropagation();
+
+            if (detail.states.indexOf('mouseup') !== -1) {
+              this.textualmenuDetail = detail;
+            }
+
+            if (detail.isCollapsed) {
+              this._onCollapsedMode(evt);
+            } else {
+              this._onSelectionStateChanged(evt);
+            }
             break;
           case 'scrollviewchange':
             this.debug('scrollviewchange');
@@ -147,37 +165,28 @@
     }
   };
 
+  TextSelectionDialog.prototype._onCollapsedMode =
+    function tsd__onCollapsedMode(evt) {
+      if (!this._hasCutOrCopied) {
+        this.hide();
+        return;
+      }
+
+      this.textualmenuDetail.commands.canSelectAll = false;
+      this.show(this.textualmenuDetail);
+      this._triggerShortcutTimeout();
+    };
+
   TextSelectionDialog.prototype._onSelectionStateChanged =
     function tsd__onSelectionStateChanged(evt) {
-      if (this._ignoreSelectionChange) {
-        return;
-      }
-      evt.preventDefault();
-      evt.stopPropagation();
-
       var detail = evt.detail.detail;
-      if (!detail) {
-        return;
-      }
-      this.debug('on receive selection change event');
-      this.debug(JSON.stringify(detail));
       var rect = detail.rect;
       var states = detail.states;
       var commands = detail.commands;
-      var isCollapsed = detail.isCollapsed;
-      var isTempShortcut = this._hasCutOrCopied && isCollapsed;
       var rectHeight = rect.top - rect.bottom;
       var rectWidth = rect.right - rect.left;
 
-      this._isSelectionVisible = detail.visible;
-      // In collapsed mode, only paste option will be displaed if we have copied
-      // or cut before.
-      if (isCollapsed && states.indexOf('mouseup') !== -1) {
-        this.textualmenuDetail = detail;
-        commands.canSelectAll = false;
-      }
-
-      if (!isTempShortcut && (isCollapsed || !this._isSelectionVisible)) {
+      if (!this._isSelectionVisible) {
         this.close();
         return;
       }
@@ -195,14 +204,14 @@
       }
 
       if (states.indexOf('mouseup') !== -1 && rectHeight === 0 &&
-          rectWidth === 0 && !isTempShortcut) {
+          rectWidth === 0) {
         this.hide();
         return;
       }
 
       // We should not do anything if below cases happen.
       if (states.length === 0 || (
-          rectHeight === 0 && rectWidth === 0 && !isTempShortcut) ||
+          rectHeight === 0 && rectWidth === 0) ||
           !(commands.canPaste || commands.canCut || commands.canSelectAll ||
             commands.canCopy)
         ) {
@@ -218,9 +227,6 @@
           states.indexOf('mouseup') !== -1 ||
           states.indexOf('updateposition') !== -1) {
         this.show(detail);
-        if (isTempShortcut) {
-          this._triggerShortcutTimeout();
-        }
         return;
       }
       this.hide();
@@ -236,7 +242,7 @@
     function tsd__triggerShortcutTimeout() {
       this._resetShortcutTimeout();
       this._shortcutTimeout = window.setTimeout(function() {
-        this.close();
+        this.hide();
       }.bind(this), this.SHORTCUT_TIMEOUT);
     };
 
