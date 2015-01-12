@@ -14,11 +14,13 @@
   background-position: bottom right;
 }
 
-#screen:not(.locked) .appWindow.light > .titlebar .statusbar-shadow {
+#screen:not(.locked) .appWindow.light > .titlebar .statusbar-shadow,
+#screen:not(.locked).screenreader #statusbar.light {
   filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'invert\'><feColorMatrix in=\'SourceGraphic\' color-interpolation-filters=\'sRGB\' type=\'matrix\' values=\'1 -1 0.3019 0 0 0 0.3019 0 0 0 0 0 0.3019 0 0 0 0 0 1 0\'/></filter></svg>#invert");
 }
 
-#screen.utility-tray .statusbar-shadow {
+#screen.utility-tray .statusbar-shadow,
+#screen.screenreader .statusbar-shadow {
   opacity: 0;
   visibility: hidden;
 }
