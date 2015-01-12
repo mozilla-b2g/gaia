@@ -45,4 +45,3 @@ class TestSetMusicRating(GaiaTestCase):
         #change the rating to 1
         player_view.tap_star(1)
         self.assertEquals(player_view.star_rating, 1)
-        
