@@ -93,6 +93,18 @@
         that.edit = new Edit();
         that.edit.init(
                   that.spatialNavigator, that.cardManager, that.cardScrollable);
+
+        // In some case, we can do action at keydown which is translated as
+        // onEnter in home.js. But in button click case, we need to listen
+        // keyup. So, instead keydown/keyup, we just use click event to handle
+        // it. The click event is translated at smart-button when use press
+        // enter on smart-button.
+        that.searchButton.addEventListener('click', function() {
+          that.searchBar.show();
+          // hide the searchButton because searchBar has an element whose
+          // appearance is the same as it.
+          that.searchButton.classList.add('hidden');
+        }.bind(that));
       });
     },
 
@@ -304,11 +316,6 @@
         this.openSettings();
       } else if (focusElem === this.editButton) {
         this.edit.toggleEditMode();
-      } else if (focusElem === this.searchButton) {
-        this.searchBar.show();
-        // hide the searchButton because searchBar has an element whose
-        // appearance is the same as it.
-        this.searchButton.classList.add('hidden');
       } else {
         // Current focus is on a card
         var cardId = focusElem.dataset.cardId;

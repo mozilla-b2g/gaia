@@ -6,15 +6,15 @@
 
   KeyNavigationAdapter.prototype = evt({
     init: function kna_init() {
-      window.addEventListener('keyup', this);
+      window.addEventListener('keydown', this);
     },
     uninit: function kna_uninit() {
-      window.removeEventListener('keyup', this);
+      window.removeEventListener('keydown', this);
     },
 
     handleEvent: function kna_handleEvent(evt) {
       switch (evt.type) {
-        case 'keyup':
+        case 'keydown':
         this.handleKeyEvent(this.convertKeyToString(evt.keyCode));
         break;
       }
