@@ -61,7 +61,7 @@
     "share": {
       "href": "/index.html#activity-share",
       "filters": {
-        "type": ["image/*", "audio/*", "video/*", "url"],
+        "type": ["image/*", "audio/*", "video/*", "url", "text/vcard"],
         "number": {
           "max": 5
         }

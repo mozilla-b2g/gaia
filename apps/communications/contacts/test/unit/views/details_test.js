@@ -311,6 +311,8 @@ suite('Render contact', function() {
       assert.include(container.innerHTML, 'social-template');
       assert.isFalse(container.querySelector('#link_button').
                     classList.contains('hide'));
+      assert.isFalse(container.querySelector('#share_button').
+                    classList.contains('hide'));
       assert.isTrue(container.
                        querySelector('#profile_button').
                        classList.contains('hide')
@@ -336,6 +338,11 @@ suite('Render contact', function() {
 
       assert.isFalse(container.
                        querySelector('#wall_button').
+                       classList.contains('hide')
+      );
+
+      assert.isTrue(container.
+                       querySelector('#share_button').
                        classList.contains('hide')
       );
 
