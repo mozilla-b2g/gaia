@@ -27,6 +27,13 @@
   height: 100%;
 }
 
+/* In order to hide the checkbox line while it's locked */
+/* Can't hide the section since we want to keep the bottom border */
+#screen.locked #permission-remember-section > .pack-checkbox,
+#screen.locked #permission-remember-label {
+  display: none;
+}
+
 #permission-screen.visible {
   pointer-events: auto;
   display: inline-block;
