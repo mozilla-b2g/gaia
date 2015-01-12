@@ -145,7 +145,7 @@ li button,
 li .bb-button,
 li .button {
   position: relative;
-  text-align: left;
+  text-align: start;
   border: 0.1rem solid #c7c7c7;
   background: rgba(0,0,0,0.05);
   margin: 0 0 1rem;
@@ -238,7 +238,7 @@ li .button[data-icon="forward"]:before {
 li button.icon-dialog,
 li .bb-button.icon-dialog,
 li .button.icon-dialog {
-  padding-right: 3rem;
+  -moz-padding-end: 3rem;
 }
 
 li button.icon-dialog:before,
@@ -317,7 +317,8 @@ select {
   font-size: 1.6rem;
   color: #333;
   margin: 0 0 1rem;
-  padding: 0 0 0 1.1rem;
+  padding: 0;
+  -moz-padding-start: 1.1rem;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
@@ -353,7 +354,8 @@ select:-moz-focusring {
   width: calc(100% + 3rem);
   height: 100%;
   margin: 0;
-  padding: 0 5rem 0 0;
+  padding: 0;
+  -moz-padding-end: 5rem;
   text-indent: 0;
   font-weight: 400;
   font-size: 1.7rem;
@@ -393,68 +395,75 @@ select:-moz-focusring {
  * Right-To-Left layout
  */
 
-html[dir="rtl"] li button,
-html[dir="rtl"] li .bb-button,
-html[dir="rtl"] li .button {
-  text-align: right;
-}
-
 html[dir="rtl"] button[data-icon]:before,
 html[dir="rtl"] .bb-button[data-icon]:before,
 html[dir="rtl"] .button[data-icon]:before {
-  right: unset;
   left: 1.5rem;
+  right: unset;
   transform: scale(-1, 1);
-}
-
-html[dir="rtl"] li button[data-icon]:before,
-html[dir="rtl"] li .bb-button[data-icon]:before,
-html[dir="rtl"] li .button[data-icon]:before {
-  left: 1rem;
-}
-
-html[dir="rtl"] li button.icon:before,
-html[dir="rtl"] li .bb-button.icon:before,
-html[dir="rtl"] li .button.icon:before {
-  right: auto;
-  left: 0.5rem;
-}
-
-html[dir="rtl"] li button.icon-dialog,
-html[dir="rtl"] li .bb-button.icon-dialog,
-html[dir="rtl"] li .button.icon-dialog {
-  padding-left: 3rem;
 }
 
 html[dir="rtl"] li button.icon-view:before,
 html[dir="rtl"] li .bb-button.icon-view:before,
 html[dir="rtl"] li .button.icon-view:before {
   left: 0;
-  right: auto;
+  right: unset;
   transform: rotate(180deg);
 }
+
+html[dir="rtl"] li button[data-icon]:before,
+html[dir="rtl"] li .bb-button[data-icon]:before,
+html[dir="rtl"] li .button[data-icon]:before {
+  left: 1rem;
+  right: unset;
+}
+
+
+html[dir="rtl"] li button.icon:before,
+html[dir="rtl"] li .bb-button.icon:before,
+html[dir="rtl"] li .button.icon:before {
+  left: 0.5rem;
+  right: unset;
+}
+
 
 html[dir="rtl"] li button.icon-dialog:before,
 html[dir="rtl"] li .bb-button.icon-dialog:before,
 html[dir="rtl"] li .button.icon-dialog:before {
   left: 0.8rem;
-  right: auto;
+  right: unset;
   transform: rotate(135deg);
+  border-left: unset;
+  border-right: 0.7rem solid #00aac5;
 }
 
-html[dir="rtl"] select {
-  padding: 0 1.2rem 0 0; /* .3rem right space because of italic */
-  text-align: right;
+html[dir="rtl"] li button.icon-dialog:disabled:before,
+html[dir="rtl"] li .bb-button[aria-disabled="true"].icon-dialog:before,
+html[dir="rtl"] li .button[aria-disabled="true"].icon-dialog:before {
+  border-left: unset;
+  border-right: 0.7rem solid #a9a9a9;
 }
+
+html[dir="rtl"] .skin-dark li button.icon-dialog:active:before,
+html[dir="rtl"] .skin-dark li .bb-button.icon-dialog:active:before,
+html[dir="rtl"] .skin-dark li .button.icon-dialog:active:before {
+  border-left: unset;
+  border-right: 0.7rem solid #b2f2ff;
+}
+
 
 /* Hides dropdown arrow until bug #649849 is fixed */
 html[dir="rtl"] .bb-button.icon-dialog select,
 html[dir="rtl"] .button.icon-dialog select,
 html[dir="rtl"] .bb-button[data-icon] select,
 html[dir="rtl"] .button[data-icon] select {
-  left: auto;
+  left: unset;
   right: 0.3rem; /* .3rem space because of italic */
   text-indent: 1rem;
-  padding: 0 0 0 4rem;
 }
 
+html[dir="rtl"] li button.icon,
+html[dir="rtl"] li .bb-button.icon,
+html[dir="rtl"] li .button.icon {
+    padding-right: 1rem;
+}

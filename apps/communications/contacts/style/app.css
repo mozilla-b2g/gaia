@@ -118,7 +118,7 @@ td {
 }
 
 caption, th {
-  text-align: left;
+  text-align: start;
 }
 
 caption {
@@ -217,37 +217,14 @@ li button.activity > b em {
 }
 
 [data-type="list"] li p {
-  margin-left: 1.5rem;
+  -moz-margin-start: 1.5rem;
 }
 
 /* BB Lists extending */
 #view-contacts-list [data-type="list"] {
-  padding: 2.5rem 2.5rem 0 0;
-}
-
-html[dir="rtl"] #view-contacts-list [data-type="list"] {
-  padding-right: 4.5rem;
-}
-
-html[dir="rtl"] #search-list li {
-  text-align: right;
-  padding-right: 1rem;
-}
-
-html[dir="rtl"] #search-list.pack-checkbox {
-  right: 0;
-}
-
-html[dir="rtl"] #search-list[data-type="list"] li > .pack-checkbox {
-  right: 0;
-}
-
-html[dir="rtl"] nav[data-type="scrollbar"] li a {
-  text-indent: -1.5rem;
-}
-
-html[dir="rtl"] .icon-social {
-  margin: 0 0 0 1rem
+  padding: 0;
+  padding-top: 2.5rem;
+  padding-right: 2.5rem;
 }
 
 [data-type="list"] gaia-header {
@@ -268,8 +245,9 @@ html[dir="rtl"] .icon-social {
   pointer-events: none;
 }
 
-[data-type="list"] li aside.pack-end {
-  margin: 0 2rem 0 0;
+html[dir="ltr"] [data-type="list"] li aside.pack-end {
+  margin: 0;
+  margin-right: 2rem;
 }
 
 /* Selection tag extended from shared/style/buttons.css */
@@ -310,7 +288,7 @@ html[dir="rtl"] .icon-social {
   -moz-box-sizing: border-box;
   background: #fff;
   color: #333;
-  text-align: left;
+  text-align: start;
   will-change: scroll-position;
 }
 
@@ -409,7 +387,7 @@ li button.icon-find-and-merge:before {
 
 /* FILL FLOW: general components for helping in defining basic flows in forms; */
 .fill-flow {
-  padding-right: 0;
+  -moz-padding-end: 0;
 }
 
 /* ROW: horizontal separation for elements; */
@@ -418,7 +396,7 @@ li button.icon-find-and-merge:before {
 }
 
 .fillflow-left {
-  margin-right: 0.7rem;
+  -moz-margin-end: 0.7rem;
 }
 
 .fillflow-twocols {
@@ -452,7 +430,9 @@ li button.icon-find-and-merge:before {
 
 /* MEDIA: specific ratio used in forms; */
 .fillflow-media {
-  margin: 0 1rem 0.5rem 0;
+  margin: 0;
+  -moz-margin-end: 1rem;
+  margin-bottom: 0.5rem;
   width: 7rem;
   height: 7rem;
   position: relative;
@@ -568,13 +548,9 @@ nav[data-type="scrollbar"] ol > li > * {
   background-position: center top;
 }
 
-html:not([dir="rtl"]) #groups-list.selecting .group-section li,
-html:not([dir="rtl"]) #search-list.selecting li {
-  padding-left: 2rem;
-}
-
-html[dir="rtl"] #groups-list.selecting {
-  padding-right: 8rem;
+#groups-list.selecting .group-section li,
+#search-list.selecting li {
+  -moz-padding-start: 2rem;  
 }
 
 form[role="dialog"].no-overlay {
@@ -595,23 +571,13 @@ form[role="dialog"].no-overlay button {
   display:none !important;
 }
 
-html[dir="rtl"] .fillflow-row-action {
-  right: auto;
-  left: 0;
-}
-
-html[dir="rtl"] .view-body-inner,
-html[dir="rtl"] ::-moz-placeholder {
-  text-align: right;
-}
-
 #import-settings button {
   margin: 1.5rem;
   width: calc(100% - 3rem);
 }
 
 #contact-list-ice {
-  padding-left: 1rem
+  -moz-padding-start: 1rem
 }
 
 #contact-list-ice li {
@@ -632,7 +598,7 @@ html[dir="rtl"] ::-moz-placeholder {
 #ice-list {
   min-height: 100%;
   background: #FFF;
-  text-align: left;
+  text-align: start;
 }
 
 .ice-contact {
@@ -649,4 +615,50 @@ html[dir="rtl"] ::-moz-placeholder {
 
 #search-list li.contact-item {
   -moz-user-select: none;
+  text-align: start;
 }
+
+/* RTL View */
+
+html[dir="rtl"] [data-type="list"].active li:after {
+  left: 0;
+  right: unset;
+}
+
+html[dir="rtl"] li button.icon-fav:before {
+  left: 0.5rem;
+  right: unset;
+}
+
+html[dir="rtl"] li button.icon-add:before {
+  left: unset;
+  right: 0.2rem
+}
+
+html[dir="rtl"] .fillflow-twocols button {
+  float: right;
+}
+
+html[dir="rtl"] .fillflow-twocols button:last-child {
+  float: left;
+}
+
+html[dir="rtl"] .fillflow-media p {
+  left: unset;
+  right: -1.5rem;
+}
+
+html[dir="rtl"] .contact-checkbox {
+  left: unset;
+  right: 0 !important;
+}
+
+html[dir="rtl"] .view-body-inner {
+  left: unset;
+}
+
+html[dir="rtl"] #view-contacts-list [data-type="list"] {
+  padding-left: 4.5rem; /* extending +2rem for RTL consistency */
+  padding-right: unset;
+}
+

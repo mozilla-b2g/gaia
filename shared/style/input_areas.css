@@ -525,14 +525,10 @@ html[dir="rtl"] input[type="datetime-local"][disabled] {
   background-image: url(input_areas/images/dialog_disabled_rtl.svg);
 }
 
-html[dir="rtl"] form p input:focus {
-  padding: 0 1.5rem 0 3rem;
-}
-
 html[dir="rtl"] form p input + button[type="reset"],
 html[dir="rtl"] form p textarea + button[type="reset"] {
   right: auto;
-  left: -0.3rem;
+  left: 0.3rem;
 }
 
 html[dir="rtl"] form[role="search"] p {
@@ -569,3 +565,12 @@ html[dir="rtl"] form[role="search"] button[type="submit"]:after {
   right: 0.8rem;
 }
 
+html[dir="rtl"] form p input:focus {
+  padding-right: 1.5rem;
+  padding-left: 3rem;
+}
+
+html[dir="rtl"] form p input:-moz-dir(ltr),
+html[dir="rtl"] form p input:-moz-dir(ltr):focus {
+  text-align: left;
+}
