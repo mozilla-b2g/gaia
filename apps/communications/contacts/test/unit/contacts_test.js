@@ -452,14 +452,6 @@ suite('Contacts', function() {
       });
     });
 
-    test('> on visibility change: visible', function() {
-      MockMozL10n.realL10nCB();
-      fireVisibilityChange();
-
-      sinon.assert.called(Contacts.checkCancelableActivity);
-      sinon.assert.notCalled(ActivityHandler.postCancel);
-    });
-
     test('> in settings view, should refresh for new timestamp', function() {
       sinon.stub(navigation, 'currentView', function() {
         return 'view-settings';
