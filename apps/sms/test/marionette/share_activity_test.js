@@ -82,12 +82,12 @@ marionette('Messages as share target', function() {
         client.helper.waitForElement(messagesApp.Report.main);
 
         assert.ok(
-          messagesApp.Composer.header.getAttribute('action') === 'close',
+          messagesApp.Report.header.getAttribute('action') === 'close',
           'Close activity button should be visible'
         );
 
         // Close report panel
-        messagesApp.performHeaderAction();
+        messagesApp.performReportHeaderAction();
         client.helper.waitForElement(messagesApp.Thread.message);
 
         assert.ok(
@@ -119,12 +119,12 @@ marionette('Messages as share target', function() {
         client.helper.waitForElement(messagesApp.Participants.main);
 
         assert.ok(
-          messagesApp.Composer.header.getAttribute('action') === 'back',
+          messagesApp.Participants.header.getAttribute('action') === 'back',
           'Back activity button should be visible'
         );
 
         // Go back to Thread panel
-        messagesApp.performHeaderAction();
+        messagesApp.performGroupHeaderAction();
         client.helper.waitForElement(messagesApp.Thread.message);
 
         assert.ok(
