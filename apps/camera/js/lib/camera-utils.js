@@ -36,11 +36,19 @@ define(function(require) {
 
   /**
    * Finds the "optimal" preview size in the provided list of
-   * preview sizes that is greater-than or equal to both the
-   * the width *AND* height of the target viewport and has the
-   * minimum delta pixel count compared to the target viewport.
+   * preview sizes that has the minimum delta pixel count compared
+   * to the target viewport. If the capture resolution is also
+   * provided, it will only match preview sizes which are less-than
+   * or equal to it and prefer preview sizes which have the same
+   * aspect ratio.
+   *
    * If no preview size meets this criteria, the largest preview
+   * or equal to it and prefer preview sizes which have the same
    * size will be returned.
+   *
+   * NOTE: Video recording must have a preview size which matches
+   * the aspect ratio of the record size because of platform
+   * limitations.
    *
    * NOTE: Preview streams are to be cropped from the center of
    * the camera sensor. Therefore, since we size/position the
@@ -52,16 +60,21 @@ define(function(require) {
    *
    * @param  {Array} previewSizes
    * @param  {Object=} viewportSize
+   * @param  {Object=} resolution
    * @return {Object}
    */
-  CameraUtils.getOptimalPreviewSize = function(previewSizes, viewportSize) {
+  CameraUtils.getOptimalPreviewSize = function(previewSizes, viewportSize, resolution) {
     var targetWidth = viewportSize ?
       Math.max(viewportSize.width, viewportSize.height) :
       Math.ceil(window.innerHeight * window.devicePixelRatio);
     var targetHeight = viewportSize ?
       Math.min(viewportSize.width, viewportSize.height) :
       Math.ceil(window.innerWidth * window.devicePixelRatio);
+    var targetArea = targetWidth * targetHeight;
     
+    var minDeltaAspect = Number.MAX_VALUE;
+    var optimalSizeAspect;
+
     var minDelta = Number.MAX_VALUE;
     var optimalSize;
 
@@ -69,41 +82,50 @@ define(function(require) {
     // the width *AND* height of the target viewport and has the
     // minimum delta pixel count compared to the target viewport.
     previewSizes.forEach(function(previewSize) {
-      // Only consider preview sizes that have a width *AND*
-      // height that are greater-than or equal to the target
-      // viewport's width and height.
-      if (previewSize.width < targetWidth ||
-          previewSize.height < targetHeight) {
+      // Ignore preview sizes that have a width *OR* height that
+      // are greater-than the capture resolution's width and height.
+      if (resolution && (previewSize.width > resolution.width ||
+                         previewSize.height > resolution.height))
+      {
         return;
       }
-
-      // Use Math.sqrt() to err on the side of a slightly larger
-      // preview size in the event of a tie.
-      var delta = Math.abs(
-        Math.sqrt(previewSize.width * previewSize.height) -
-        Math.sqrt(targetWidth * targetHeight)
-      );
 
       // If this preview size is closer to matching the pixel
       // count of the target viewport, select it as the "optimal"
       // preview size and set a new minimum pixel count delta to
       // target.
-      if (delta < minDelta) {
+      var delta = Math.abs(targetArea - 
+        previewSize.width * previewSize.height
+      );
+
+      // If a resolution constraint is given, prefer preview sizes
+      // that have the same aspect ratio as the resolution.
+      if (resolution && previewSize.width * resolution.height ===
+                        resolution.width * previewSize.height)
+      {
+        if (delta < minDeltaAspect) {
+          minDeltaAspect = delta;
+          optimalSizeAspect = previewSize;
+        }
+      } else if (delta < minDelta) {
         minDelta = delta;
         optimalSize = previewSize;
       }
     });
 
     // If an "optimal" preview size has been found, return it.
+    if (optimalSizeAspect) {
+      return optimalSizeAspect;
+    }
     if (optimalSize) {
       return optimalSize;
     }
 
     // If an "optimal" preview size still has not been selected,
-    // then there is no preview size that is greater-than or equal
-    // to the width and height of the target viewport. In this case,
+    // then there is no preview size that is less-than or equal to
+    // the width and height of the capture resolution. In this case,
     // simply select the preview size with the highest pixel count.
-    debug('No preview size is as large as the target viewport');
+    debug('No preview size is as small as the capture resolution');
     return previewSizes.sort(function(a, b) {
       return (b.width * b.height) - (a.width * a.height);
     })[0];
