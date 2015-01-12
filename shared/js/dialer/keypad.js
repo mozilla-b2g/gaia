@@ -25,7 +25,6 @@ var KeypadManager = {
   _keypadSoundIsEnabled: false,
   _shortTone: false,
   _vibrationEnabled: false,
-  _simContactsList: [],
 
   // Keep in sync with Lockscreen and keyboard vibration
   kVibrationDuration: 50, // ms
@@ -548,8 +547,9 @@ var KeypadManager = {
                              '/shared/elements/gaia_sim_picker/script.js'],
             function() {
               var simPicker = document.getElementById('sim-picker');
-              simPicker.getOrPick(defaultCardIndex, null, function(ci) {
-                cardIndex = ci;
+              simPicker.getOrPick(defaultCardIndex, null,
+              function(pickedCardIndex) {
+                cardIndex = pickedCardIndex;
                 resolve();
               });
             });
@@ -560,13 +560,10 @@ var KeypadManager = {
         });
       });
     }).then(function() {
-      return self._populateSimContactsList(cardIndex);
-    }).then(function() {
-      if (index < self._simContactsList[cardIndex].length) {
-        return self._simContactsList[cardIndex][index].number;
-      } else {
-        return Promise.reject();
-      }
+      return self._getSimContactsList(cardIndex).then(
+      function(simContactsList) {
+        return simContactsList[index].number;
+      });
     });
   },
 
@@ -601,17 +598,12 @@ var KeypadManager = {
   },
 
   /**
-   * Populates the SIM contacts list for the specified SIM card.
+   * Gets the SIM contacts list for the specified SIM card.
    *
    * @param {Integer} cardIndex The SIM card index.
-   * @returns {Promise} A promise that is resolved once the list is populated.
+   * @returns {Promise} A promise that is resolved with the contacts list.
    */
-  _populateSimContactsList: function(cardIndex) {
-    if ((this._simContactsList.length > cardIndex) &&
-        this._simContactsList[cardIndex]) {
-      return Promise.resolve();
-    }
-
+  _getSimContactsList: function(cardIndex) {
     var self = this;
     var canceled = false;
 
@@ -628,13 +620,11 @@ var KeypadManager = {
             var adnContacts = event.target.result;
             var contacts = self._createSimContactList(adnContacts);
 
-            self._simContactsList[cardIndex] = contacts;
-
             if (!canceled) {
               ConfirmDialog.hide();
             }
 
-            resolve();
+            resolve(contacts);
           };
           req.onerror = function(error) {
             console.error('Could not retrieve the ADN contacts from SIM card ' +
