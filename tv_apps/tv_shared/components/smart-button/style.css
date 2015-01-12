@@ -21,6 +21,10 @@ smart-button {
   border: none;
   /* the radius is still make button as round even if we don't have border */
   border-radius: 50%;
+  /* 50% is not a real circle because of rounding, we have to use a value larger
+     than 50% */
+  -moz-outline-radius: 60%;
+  outline: transparent 0 solid;
   background-color: rgba(0, 0, 0, 0.5);
   background-repeat: no-repeat;
   background-size: 5.4rem auto;
@@ -169,22 +173,31 @@ smart-button[type="underlined-text"].pressed {
  * App Icons
 **/
 smart-button[type="app-button"] {
-  width: 33.6rem;
-  height: 33.6rem;
+  /* To use 33.4rem instead of to use 33.6rem is to work around the anti-alias
+     pixel. So, the circle is filled by the background almost totally. */
+  width: 33.4rem;
+  height: 33.4rem;
   position: relative;
   overflow: hidden;
-  box-sizing: border-box;
   background-color: transparent;
 }
 
 smart-button[type="app-button"].focused {
   transform: scale(1.4);
-  border: 0.8rem solid #ffffff;
+  /* To use outline will not change the size of button and make the whole button
+     thrilling. */
+  outline: 0.8rem solid #ffffff;
+  box-shadow: inset 0 0 3rem -0.5rem rgba(0,0,0,0.2);
 }
 
 smart-button[type="app-button"].pressed {
-  transform: scale(1.2);
-  border: 1.0rem solid #ffffff;
+  /* While scaling, we may have a gap between outline and icon which may be
+     anti-alias pixel. So, we use scale(1.22) to prevent such kind of case */
+  transform: scale(1.22);
+  /* To use outline will not change the size of button and make the whole button
+     thrilling. */
+  outline: 1.0rem solid #ffffff;
+  box-shadow: inset 0 0 3rem -0.5rem rgba(0,0,0,0.2);
 }
 
 smart-button[type="app-button"].fullsized {
