@@ -849,12 +849,14 @@ var CallLog = {
           logGroupsToDelete.push(toDelete);
         }
 
-        var totalMissedCalls = self._countMissedCalls();
-        // If there are no missed calls to display,
-        // show appropriate empty call log,
-        // otherwise hide the empty call log message and enable edit mode
-        if (totalMissedCalls === 0) {
-          self.renderEmptyCallLog(true);
+        if (self.callLogContainer.classList.contains('filter')) {
+          var totalMissedCalls = self._countMissedCalls();
+          // If there are no missed calls to display,
+          // show appropriate empty call log,
+          // otherwise hide the empty call log message and enable edit mode
+          if (totalMissedCalls === 0) {
+            self.renderEmptyCallLog(true);
+          }
         }
         CallLogDBManager.deleteGroupList(logGroupsToDelete, function() {
           document.body.classList.remove('recents-edit');
