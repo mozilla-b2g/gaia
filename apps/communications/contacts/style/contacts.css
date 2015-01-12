@@ -252,7 +252,7 @@ div.with-overflow > p.input-container > input {
 }
 
 .two_fields > :first-child {
-  margin-right: 1rem;
+  -moz-margin-end: 1rem;
   width: 12rem;
 }
 
@@ -326,7 +326,9 @@ form p textarea + button[type="reset"].hide {
   overflow: hidden;
   width: 1.5rem;
   height: 1.5rem;
-  margin: -0.2rem 1rem 0 0;
+  margin: 0;
+  margin-top: -0.2rem;
+  -moz-margin-end: 1rem;
 }
 
 .icon-social.icon-fb,
@@ -355,7 +357,7 @@ form p textarea + button[type="reset"].hide {
 }
 
 .facebook fieldset {
-  margin-left: 4rem;
+  -moz-margin-start: 4rem;
 }
 
 .facebook fieldset, .facebook legend, .facebook input {
@@ -450,7 +452,7 @@ gaia-header [data-icon] {
 }
 
 #view-settings [data-type="list"] .fb-item p {
-  padding-left: 4.2rem;
+  -moz-padding-start: 4.2rem;
   font-size: 1.4rem;
 }
 
@@ -743,7 +745,7 @@ gaia-header [data-icon] {
 }
 
 .group-section {
-  padding-left: 1.5rem;
+  -moz-padding-start: 1.5rem;
 }
 
 .datetime {
@@ -830,16 +832,6 @@ form[role="dialog"][data-type="edit"].contacts-select:not(.insearchmode) gaia-he
   image-rendering: auto;
 }
 
-html[dir="rtl"] #no-contacts .icon {
-  padding-right: 3.5rem;
-  padding-left: 0;
-}
-
-html[dir="rtl"] #no-contacts .create.icon,
-html[dir="rtl"] #no-contacts .import.icon {
-  background-position: 100% 50%;
-}
-
 nav[data-type="scrollbar"] li .pack-icon-ice {
   width: 1.2rem;
   height: 1.2rem;
@@ -847,16 +839,6 @@ nav[data-type="scrollbar"] li .pack-icon-ice {
   vertical-align: middle;
   background: transparent no-repeat center center / 1.2rem;
   background-image: url("/contacts/style/images/ice_small.png");
-}
-
-html[dir="rtl"] #no-contacts .icon {
-  padding-right: 3.5rem;
-  padding-left: 0;
-}
-
-html[dir="rtl"] #no-contacts .create.icon,
-html[dir="rtl"] #no-contacts .import.icon {
-  background-position: 100% 50%;
 }
 
 fieldset legend {
@@ -884,7 +866,10 @@ form[role="combobox"] span[data-field="type"] {
 
 .img-delete-button {
   padding: 0;
-  margin: 0.2rem 1rem 0 0.2rem;
+  margin: 0;
+  margin-top: 0.2rem;
+  -moz-margin-start: 0.2rem;
+  -moz-margin-end: 1rem;
   width: 2.8rem;
   color: #fff;
   background: url('images/icon_remove.png') no-repeat scroll 0 0 / 3rem auto transparent;
@@ -1002,4 +987,48 @@ form[role="combobox"] span[data-field="type"] {
 li button[data-field-type]:active {
   background: transparent;
   color: #5F5F5F;
+}
+
+/* RTL View */
+
+html[dir="rtl"] .field-template {
+  border-radius: 0 15px 0 0;
+}
+
+html[dir="rtl"] #no-contacts .icon {
+  padding-right: 3.5rem;
+  padding-left: 0;
+}
+
+html[dir="rtl"] #no-contacts .create.icon,
+html[dir="rtl"] #no-contacts .import.icon {
+  background-position: 100% 50%;
+}
+
+html[dir="rtl"] #contact-form div.with-overflow button[type="reset"] {
+  left: calc(-0.5rem + -0.3rem);
+  right: unset;
+}
+
+html[dir="rtl"] #view-settings [data-type="list"] .fb-item aside {
+  left: 0;
+  right: unset;
+}
+
+html[dir="rtl"] #view-settings [data-type="list"] .fb-item {
+  background-position: 100% calc(50% + 0.5rem);
+}
+
+html[dir="rtl"] #view-settings [data-type="list"] .fb-item aside label {
+  left: 0;
+  right: unset;
+}
+
+html[dir="rtl"] #view-settings [data-type="list"] li button.icon:before {
+  left: auto;
+  right: 0.5rem;
+}
+
+html[dir="rtl"] .img-delete-button {
+  background-position: 100% 0;
 }
