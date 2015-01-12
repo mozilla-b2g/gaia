@@ -42,7 +42,9 @@ LayoutPageView.prototype.render = function render() {
     var candidatePanel = this.createCandidatePanel(this.layout.imEngine);
     candidatePanel.render();
 
+    container.classList.add('candidate-panel');
     container.appendChild(candidatePanel.element);
+
     this.candidatePanel = candidatePanel;
   }
 

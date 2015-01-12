@@ -1,7 +1,7 @@
 'use strict';
-/* global IMERender */
+/* global ViewManager */
 
-requireApp('keyboard/js/render.js');
+require('/js/keyboard/view_manager.js');
 require('/js/views/key_view.js');
 require('/js/views/base_view.js');
 require('/js/views/layout_page_view.js');
@@ -9,7 +9,7 @@ require('/js/views/candidate_panel_view.js');
 require('/js/views/latin_candidate_panel_view.js');
 require('/js/views/view_utils.js');
 
-suite('Renderer', function() {
+suite('View Manager', function() {
   suiteSetup(function() {
     window.perfTimer = {
       printTime: function() {},
@@ -21,10 +21,14 @@ suite('Renderer', function() {
     window.perfTimer = null;
   });
 
+  var app = null;
+  var viewManager = null;
   var fakeRenderingManager;
   var stubRequestAnimationFrame;
 
-  setup(function() {
+  var container, activeIme;
+
+  setup(function(next) {
     fakeRenderingManager = {
       getTargetObject: function(elem) {
         return this.domObjectMap.get(elem);
@@ -45,6 +49,26 @@ suite('Renderer', function() {
 
     stubRequestAnimationFrame =
       this.sinon.stub(window, 'requestAnimationFrame');
+
+    document.body.innerHTML = '';
+
+    container = document.createElement('div');
+    container.id = 'keyboard';
+    document.body.appendChild(container);
+
+    activeIme = document.createElement('div');
+
+    container.appendChild(activeIme);
+
+    Object.defineProperty(container, 'clientWidth', makeDescriptor(300));
+
+    app = {
+      layoutRenderingManager: fakeRenderingManager
+    };
+
+    viewManager = new ViewManager(app);
+    viewManager.start();
+    loadKeyboardStyle(next);
   });
 
   function makeDescriptor(val) {
@@ -70,45 +94,26 @@ suite('Renderer', function() {
     document.body.appendChild(style);
   }
 
-  suite('resizeUI', function() {
-    var ime, activeIme;
-
-    setup(function(next) {
-      document.body.innerHTML = '';
-
-      ime = document.createElement('div');
-      ime.id = 'keyboard';
-      ime.style.width = '320px';
-      document.body.appendChild(ime);
-
-      activeIme = document.createElement('div');
-
-      ime.appendChild(activeIme);
-
-      Object.defineProperty(ime, 'clientWidth', makeDescriptor(300));
-
-      IMERender.init(fakeRenderingManager);
-      IMERender.activeIme = activeIme;
-
-      loadKeyboardStyle(next);
-    });
-
+  suite(' > resize()', function() {
     test('Add portrait class to IME in portrait mode', function() {
-      IMERender.setCachedWindowSize(200, 400);
+      viewManager.cachedWindowWidth = 200;
+      viewManager.cachedWindowHeight = 400;
 
-      IMERender.resizeUI(null);
+      viewManager.resize();
 
-      assert.equal(ime.classList.contains('portrait'), true);
-      assert.equal(ime.classList.contains('landscape'), false);
+      assert.equal(viewManager.container.classList.contains('portrait'), true);
+      assert.equal(viewManager.container.classList.contains('landscape'),
+                   false);
     });
 
     test('Add landscape class to IME in landscape mode', function() {
-      IMERender.setCachedWindowSize(400, 200);
+      viewManager.cachedWindowWidth = 400;
+      viewManager.cachedWindowHeight = 200;
 
-      IMERender.resizeUI(null);
+      viewManager.resize();
 
-      assert.equal(ime.classList.contains('landscape'), true);
-      assert.equal(ime.classList.contains('portrait'), false);
+      assert.equal(viewManager.container.classList.contains('landscape'), true);
+      assert.equal(viewManager.container.classList.contains('portrait'), false);
     });
 
     test('All keys should have same visual width if fully used', function() {
@@ -119,9 +124,9 @@ suite('Renderer', function() {
         ]
       };
 
-      IMERender.draw(layout);
+      viewManager.render(layout);
 
-      IMERender.resizeUI(layout);
+      viewManager.resize();
       stubRequestAnimationFrame.getCall(0).args[0]();
 
       var all = [].map.call(document.querySelectorAll('.visual-wrapper'),
@@ -143,7 +148,7 @@ suite('Renderer', function() {
         ]
       };
 
-      IMERender.draw(layout, null, function() {
+      viewManager.render(layout, null, function() {
         var all = document.querySelectorAll('.keyboard-key');
         assert.equal(all[0].style.flexGrow, 2);
         next();
@@ -159,7 +164,7 @@ suite('Renderer', function() {
         ]
       };
 
-      IMERender.draw(layout, null, function() {
+      viewManager.render(layout, null, function() {
         var visual = document.querySelectorAll('.visual-wrapper');
         assert.equal(visual[0].clientWidth, visual[1].clientWidth,
           'Visually same');
@@ -173,8 +178,9 @@ suite('Renderer', function() {
     });
 
     test('Sidekeys should adjust space when rotating', function(next) {
-      IMERender.setCachedWindowSize(400, 200);
-      Object.defineProperty(ime, 'clientWidth',
+      viewManager.cachedWindowWidth = 400;
+      viewManager.cachedWindowHeight = 200;
+      Object.defineProperty(container, 'clientWidth',
         makeDescriptor(400));
 
       var layout = {
@@ -184,13 +190,14 @@ suite('Renderer', function() {
         ]
       };
 
-      IMERender.draw(layout, null, function() {
+      viewManager.render(layout, null, function() {
         var visual = document.querySelectorAll('.visual-wrapper');
 
-        IMERender.setCachedWindowSize(700, 1000);
-        Object.defineProperty(ime, 'clientWidth', makeDescriptor(700));
+        viewManager.cachedWindowWidth = 700;
+        viewManager.cachedWindowHeight = 1000;
+        Object.defineProperty(container, 'clientWidth', makeDescriptor(700));
 
-        IMERender.resizeUI(layout, function() {
+        viewManager.resize(function() {
             assert.equal(visual[0].clientWidth, visual[1].clientWidth,
               'Visually same');
 
@@ -209,8 +216,8 @@ suite('Renderer', function() {
         ]
       };
 
-      IMERender.draw(layout, null, function() {
-        var keyArray = IMERender.getKeyArray();
+      viewManager.render(layout, null, function() {
+        var keyArray = viewManager.getKeyArray();
 
         var visuals = [].slice.call(
           document.querySelectorAll('.visual-wrapper'));
@@ -235,8 +242,8 @@ suite('Renderer', function() {
         ]
       };
 
-      IMERender.draw(layout, null, function() {
-        var keyArray = IMERender.getKeyArray();
+      viewManager.render(layout, null, function() {
+        var keyArray = viewManager.getKeyArray();
 
         var visuals = [].slice.call(
           document.querySelectorAll('.visual-wrapper'));
@@ -254,32 +261,16 @@ suite('Renderer', function() {
     });
   });
 
-  suite('Draw', function() {
-    var ime, activeIme;
-
-    setup(function(next) {
-      document.body.innerHTML = '';
-
-      ime = document.createElement('div');
-      ime.id = 'keyboard';
-      document.body.appendChild(ime);
-
-      activeIme = document.createElement('div');
-      ime.appendChild(activeIme);
-      IMERender.activeIme = activeIme;
-
-      IMERender.init(fakeRenderingManager);
-
-      loadKeyboardStyle(next);
-    });
+  suite('> render()', function() {
 
     test('candidate-panel class shouldnt be set if flag isnt set', function() {
       var layout = {
         width: 1,
         keys: []
       };
-      IMERender.draw(layout);
-      assert.equal(ime.classList.contains('candidate-panel'), false);
+      viewManager.render(layout);
+      assert.equal(viewManager.container.classList.contains('candidate-panel'),
+                   false);
     });
 
     suite('Dimensions', function() {
@@ -313,16 +304,16 @@ suite('Renderer', function() {
           { showCandidatePanel: true } :
           {};
 
-        IMERender.draw(layout, flags, function() {
+        viewManager.render(layout, flags, function() {
 
-          var imeHeight = IMERender.activeIme.scrollHeight;
+          var imeHeight = viewManager.currentPageView.element.scrollHeight;
           // it seems the margin would collapse for zero row count,
           // need to plus 2
           if (!latin && suggest && rowCount === 0) {
             imeHeight += 2;
           }
 
-          assert.equal(imeHeight, IMERender.getHeight());
+          assert.equal(imeHeight, viewManager.getHeight());
 
           next();
         });
@@ -369,8 +360,14 @@ suite('Renderer', function() {
       dummy: 'dummy'
     };
 
-    setup(function() {
-      IMERender.init(fakeRenderingManager);
+    setup(function(){
+      var layout = {
+        width: 2,
+        keys: [
+          [{}, {}]
+        ]
+      };
+      viewManager.render(layout);
     });
 
     test('Highlight a key with uppercase', function() {
@@ -379,14 +376,14 @@ suite('Renderer', function() {
         element: {}
       };
 
-      IMERender.registerView(dummyKey, keyView);
+      viewManager.registerView(dummyKey, keyView);
 
-      IMERender.setUpperCaseLock({
+      viewManager.setUpperCaseLock({
         isUpperCase: true,
         isUpperCaseLocked: false
       });
 
-      IMERender.highlightKey(dummyKey);
+      viewManager.highlightKey(dummyKey);
 
       assert.isTrue(keyView.highlight.called);
       assert.isTrue(keyView.highlight.calledWith({upperCase: true}));
@@ -398,14 +395,14 @@ suite('Renderer', function() {
         element: {}
       };
 
-      IMERender.registerView(dummyKey, keyView);
+      viewManager.registerView(dummyKey, keyView);
 
-      IMERender.setUpperCaseLock({
+      viewManager.setUpperCaseLock({
         isUpperCase: false,
         isUpperCaseLocked: false
       });
 
-      IMERender.highlightKey(dummyKey);
+      viewManager.highlightKey(dummyKey);
 
       assert.isTrue(keyView.highlight.called);
       assert.isTrue(keyView.highlight.calledWith({upperCase: false}));
