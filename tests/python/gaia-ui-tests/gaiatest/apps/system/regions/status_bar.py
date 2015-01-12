@@ -29,3 +29,7 @@ class StatusBar(PageRegion):
     def a11y_wheel_status_bar_time(self):
         self.accessibility.wheel(self.marionette.find_element(
             *self._status_bar_time_locator), 'down')
+
+    @property
+    def time(self):
+        return self.marionette.find_element(*self._status_bar_time_locator).text
