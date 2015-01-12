@@ -202,11 +202,9 @@ var VIEWS = {
     render: function renderGroup() {
       var participants = Threads.get(this.id).participants;
       this.renderContactList(participants);
-      ThreadUI.setHeaderContent({
-        id: 'participant',
-        args: { n: participants.length }
-      });
-      ThreadUI.setHeaderAction('back');
+      navigator.mozL10n.setAttributes(
+        this.headerText, 'participant', { n:participants.length }
+      );
     },
 
     setEventListener: function setEventListener() {
@@ -222,7 +220,7 @@ var VIEWS = {
       });
     },
 
-    elements: ['contact-list']
+    elements: ['contact-list', 'header', 'header-text']
   },
   report: {
     name: 'report',
@@ -316,9 +314,6 @@ var VIEWS = {
         // report information.
         this.renderContactList(createListWithMsgInfo(message));
       }).bind(this);
-
-      ThreadUI.setHeaderContent('message-report');
-      ThreadUI.setHeaderAction('close');
     },
 
     // Set this flag to true only when resend is triggered.
@@ -351,7 +346,7 @@ var VIEWS = {
 
     elements: ['contact-list', 'size', 'size-block', 'type', 'sent-title',
       'sent-timestamp', 'received-timestamp', 'subject', 'sim-info',
-      'contact-title', 'resend-btn'
+      'contact-title', 'resend-btn', 'header', 'container'
     ]
   }
 };
@@ -363,12 +358,15 @@ var Information = function(type) {
     this.init();
   }
 
-  var prefix = 'information-' + this.name;
-  this.container = document.getElementById(prefix);
-  this.parent = document.getElementById('thread-messages');
+  this.panel = document.getElementById('information-' + this.name);
+
   this.elements.forEach(function(name) {
-    this[Utils.camelCase(name)] = this.container.querySelector('.' + name);
+    this[Utils.camelCase(name)] = this.panel.querySelector('.' + name);
   }, this);
+
+  this.header.addEventListener(
+    'action', this.backOrClose.bind(this)
+  );
 
   this.setEventListener && this.setEventListener();
   this.reset();
@@ -388,29 +386,27 @@ Information.prototype = {
   },
 
   show: function() {
-    // Hide the Messages edit icon, view container and composer form
-    this.parent.classList.add(this.name + '-information');
-
+    this.panel.classList.remove('hide');
     this.render();
-    // Append and Show the participants list
-    this.container.classList.remove('hide');
   },
 
   refresh: function() {
-    if (this.parent.classList.contains(this.name + '-information')) {
+    if (!this.panel.classList.contains('hide')) {
       this.render();
     }
   },
 
   reset: function() {
-    // Hide the information view
-    this.container.classList.add('hide');
+    this.panel.classList.add('hide');
+
     // Remove all LIs
     if (this.contactList) {
       this.contactList.textContent = '';
     }
-    // Restore message list view UI elements
-    this.parent.classList.remove(this.name + '-information');
+  },
+
+  backOrClose: function() {
+    Navigation.toPanel('thread', { id: Threads.currentId });
   },
 
   // Incrementing ID for each rendering request to avoid possible race when next

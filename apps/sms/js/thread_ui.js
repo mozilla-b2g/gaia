@@ -1102,14 +1102,6 @@ var ThreadUI = {
   },
 
   back: function thui_back() {
-    if (Navigation.isCurrentPanel('group-view') ||
-        Navigation.isCurrentPanel('report-view')) {
-      Navigation.toPanel('thread', { id: Threads.currentId });
-      this.updateHeaderData();
-
-      return Promise.resolve();
-    }
-
     return this._onNavigatingBack().then(function() {
       Navigation.toPanel('thread-list');
     }.bind(this)).catch(function(e) {
