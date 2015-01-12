@@ -110,7 +110,8 @@ marionette('Edges gesture >', function() {
     assert(calendar.displayed(), 'calendar is still visible');
   });
 
-  test('Swiping vertically', function() {
+  // Bug 1116128 - Intermittent | Edges gesture > Swiping vertically
+  test.skip('Swiping vertically', function() {
     // Going to the settings app first
     edgeSwipeToApp(sys.leftPanel, 0, halfWidth, calendar, settings);
     assert(settings.displayed(), 'settings is visible');
