@@ -14,7 +14,7 @@ function KeyboardApp(client) {
 module.exports = KeyboardApp;
 
 KeyboardApp.Selectors = {
-  'settingsHeader': '#root-header'
+  'settingsHeader': '#general-header'
 };
 
 KeyboardApp.SETTINGS_LAUNCH_PATH = 'app://keyboard.gaiamobile.org/' +

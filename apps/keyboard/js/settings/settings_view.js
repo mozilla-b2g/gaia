@@ -1,8 +1,12 @@
 'use strict';
 
+/* global BaseView */
+
 (function(exports) {
 
 var SettingsView = function(app, container, settingsConstructor) {
+  BaseView.apply(this);
+
   this.app = app;
   this.container = container;
   this.SettingsConstructor = settingsConstructor;
@@ -12,6 +16,8 @@ var SettingsView = function(app, container, settingsConstructor) {
 
   this.taskQueue = null;
 };
+
+SettingsView.prototype = Object.create(BaseView.prototype);
 
 SettingsView.prototype.start = function() {
   this.settings = new this.SettingsConstructor();

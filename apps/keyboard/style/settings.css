@@ -49,7 +49,7 @@ section[role="dialog"].displayed {
 }
 
 /**
- * Headers should not scroll with the rest of the page, except for #root.
+ * Headers should not scroll with the rest of the page, except for #general.
  */
 section[role="region"] > header, section[role="dialog"] > header {
   position: absolute;

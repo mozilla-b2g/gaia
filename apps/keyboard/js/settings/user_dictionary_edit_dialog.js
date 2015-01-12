@@ -1,6 +1,6 @@
 'use strict';
 
-/* global KeyEvent */
+/* global BaseView, KeyEvent */
 
 /*
  * We may be in two modes: "edit mode" or "add mode".
@@ -19,78 +19,73 @@
 (function(exports) {
 
 var UserDictionaryEditDialog = function() {
-  this._initialized = false;
+  BaseView.apply(this);
 
-  this._container = null;
   this._inputField = null;
 
   this._oldWord = undefined;
 };
 
+UserDictionaryEditDialog.prototype = Object.create(BaseView.prototype);
+
 UserDictionaryEditDialog.prototype.CONTAINER_ID = 'panel-ud-editword';
 
 UserDictionaryEditDialog.prototype.onsubmit = undefined;
 
-UserDictionaryEditDialog.prototype.init = function(){
-  this._initialized = true;
+UserDictionaryEditDialog.prototype.start = function(){
+  BaseView.prototype.start.call(this);
 
-  this._container = document.getElementById(this.CONTAINER_ID);
-  this._inputField = this._container.querySelector('#ud-editword-input');
+  this._inputField = this.container.querySelector('#ud-editword-input');
 };
 
-UserDictionaryEditDialog.prototype.uninit = function(){
-  this._initialized = false;
+UserDictionaryEditDialog.prototype.stop = function(){
+  BaseView.prototype.stop.call(this);
 
-  this._container = null;
   this._inputField = null;
 };
 
 UserDictionaryEditDialog.prototype.beforeShow = function(options) {
-  if (!this._initialized) {
-    this.init();
-  }
-
   // if options have "word", we're in edit mode.
   if (options && 'word' in options) {
-    this._container.classList.remove('add-mode');
+    this.container.classList.remove('add-mode');
     this._inputField.value = options.word;
     this._oldWord = options.word;
   } else {
-    this._container.classList.add('add-mode');
+    this.container.classList.add('add-mode');
   }
 };
 
 UserDictionaryEditDialog.prototype.show = function() {
-  this._container.querySelector('#ud-editword-header')
+  this.container.querySelector('#ud-editword-header')
     .addEventListener('action', this);
 
-  this._container.querySelector('#ud-saveword-btn')
+  this.container.querySelector('#ud-saveword-btn')
     .addEventListener('click', this);
-  this._container.querySelector('#ud-editword-input')
+  this.container.querySelector('#ud-editword-input')
     .addEventListener('keydown', this);
-  this._container.querySelector('#ud-editword-delete-btn')
+  this.container.querySelector('#ud-editword-delete-btn')
     .addEventListener('click', this);
-  this._container.querySelector('#ud-editword-dialog-cancel-btn')
+  this.container.querySelector('#ud-editword-dialog-cancel-btn')
     .addEventListener('click', this);
-  this._container.querySelector('#ud-editword-dialog-delete-btn')
+  this.container.querySelector('#ud-editword-dialog-delete-btn')
     .addEventListener('click', this);
 
   this._inputField.focus();
 };
 
 UserDictionaryEditDialog.prototype.beforeHide = function() {
-  this._container.querySelector('#ud-editword-header')
+  this.container.querySelector('#ud-editword-header')
     .removeEventListener('action', this);
 
-  this._container.querySelector('#ud-saveword-btn')
+  this.container.querySelector('#ud-saveword-btn')
     .removeEventListener('click', this);
-  this._container.querySelector('#ud-editword-input')
+  this.container.querySelector('#ud-editword-input')
     .removeEventListener('keydown', this);
-  this._container.querySelector('#ud-editword-delete-btn')
+  this.container.querySelector('#ud-editword-delete-btn')
     .removeEventListener('click', this);
-  this._container.querySelector('#ud-editword-dialog-cancel-btn')
+  this.container.querySelector('#ud-editword-dialog-cancel-btn')
     .removeEventListener('click', this);
-  this._container.querySelector('#ud-editword-dialog-delete-btn')
+  this.container.querySelector('#ud-editword-dialog-delete-btn')
     .removeEventListener('click', this);
 };
 
@@ -113,9 +108,9 @@ UserDictionaryEditDialog.prototype.handleEvent = function(evt) {
 
         case 'ud-editword-delete-btn':
           navigator.mozL10n.setAttributes(
-            this._container.querySelector('#ud-editword-delete-prompt'),
+            this.container.querySelector('#ud-editword-delete-prompt'),
             'userDictionaryDeletePrompt', {word: this._oldWord});
-          this._container.querySelector('#ud-editword-delete-dialog')
+          this.container.querySelector('#ud-editword-delete-dialog')
             .removeAttribute('hidden');
           break;
 
@@ -124,7 +119,7 @@ UserDictionaryEditDialog.prototype.handleEvent = function(evt) {
 
         /* falls through */
         case 'ud-editword-dialog-cancel-btn':
-          this._container.querySelector('#ud-editword-delete-dialog')
+          this.container.querySelector('#ud-editword-delete-dialog')
             .setAttribute('hidden', true);
           break;
       }

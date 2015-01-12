@@ -32,20 +32,23 @@
   <script defer src="js/keyboard/settings.js"></script>
   <script defer src="js/shared/promise_storage.js"></script>
   <script defer src="js/settings/close_locks.js"></script>
+  <script defer src="js/settings/base_view.js"></script>
   <script defer src="js/settings/settings_view.js"></script>
-  <script defer src="js/settings/general_settings.js"></script>
+  <script defer src="js/settings/general_settings_view.js"></script>
+  <script defer src="js/settings/general_panel.js"></script>
+  <script defer src="js/settings/panel_controller.js"></script>
   <script defer src="js/settings/keyboard_settings_app.js"></script>
   <script defer src="js/settings/bootstrap.js"></script>
 </head>
 <body class="skin-organic theme-settings">
-  <section role="region" id="root" class="current">
-    <gaia-header id="root-header" action="back">
+  <section role="region" id="general" class="current">
+    <gaia-header id="general-header" action="back">
       <h1 data-l10n-id="settingsPageTitle"></h1>
     </gaia-header>
     <!-- Don't change the div.id attribute below, if you want to modify it,
          you should modify build/settings-config.js to keep consistence.
          Handwriting settings will be added at the end of it. -->
-    <div id="root-container">
+    <div id="general-container">
       <section data-type="list" id="general-settings">
         <ul>
           <li>

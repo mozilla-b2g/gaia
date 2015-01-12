@@ -43,32 +43,32 @@ function addSettings(appDirPath, distDirPath, enabledFeatures) {
   // the specified point in the hierarchy"
   // Is it a bug?
 
-  var firstScriptElInHead = domDoc.head.querySelector('script');
+  var baseViewScriptElemInHead =
+    domDoc.head.querySelector('script[src="js/settings/base_view.js"]');
 
   var insertScript = function (src) {
     var script = domDoc.createElement('script');
     script.defer = 'defer';
     script.src = src;
-    domDoc.head.insertBefore(script, firstScriptElInHead);
+    domDoc.head.insertBefore(script, baseViewScriptElemInHead.nextSibling);
   };
 
   if (enabledFeatures.handwriting) {
-    insertScript('js/settings/handwriting_settings.js');
+    insertScript('js/settings/handwriting_settings_view.js');
 
     var hwSettings = utils.getFile(appDirPath, 'handwriting-settings.html');
     var hwContent = utils.getFileContent(hwSettings);
-    domDoc.getElementById('root-container').innerHTML += hwContent;
+    domDoc.getElementById('general-container').innerHTML += hwContent;
   }
 
   if (enabledFeatures.userDict) {
     insertScript('js/settings/user_dictionary_edit_dialog.js');
     insertScript('js/settings/user_dictionary_list_panel.js');
     insertScript('js/settings/user_dictionary.js');
-    insertScript('js/settings/panel_controller.js');
 
     var udSettings = utils.getFile(appDirPath, 'user-dictionary-settings.html');
     var udContent = utils.getFileContent(udSettings);
-    domDoc.querySelector('#root-container #general-settings ul').innerHTML +=
+    domDoc.querySelector('#general-container #general-settings ul').innerHTML +=
       udContent;
   }
 
