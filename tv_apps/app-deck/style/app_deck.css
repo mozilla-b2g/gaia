@@ -97,7 +97,8 @@ section {
   /* top = (6 - 5.8)rem, left = right = (14.2 - 2.6)rem */
   padding: 0.2rem 11.6rem 0 11.6rem;
   height: 100%;
-  overflow-y: scroll;
+  overflow: hidden;
+  scroll-behavior: smooth;
 }
 
 smart-button[type="app-button"] {
