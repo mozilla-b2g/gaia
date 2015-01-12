@@ -229,11 +229,13 @@
   background-image: url('images/move_gripper.png');
   opacity: 0;
   transform: translate(0, -100%);
+  pointer-events: none;
 }
 
 .edit-mode .group:not(.collapsed) .header .gripper {
   opacity: 1;
   transform: translate(0, 0);
+  pointer-events: auto;
 }
 
 .group .header .toggle {
@@ -241,6 +243,7 @@
   right: 0;
   background-image: url('images/collapse_arrow.png');
   transform-origin: 50% 1.6rem;
+  pointer-events: auto;
 }
 
 .group .header .toggle.toggling {
@@ -314,6 +317,16 @@
 .edit-mode .group .separator,
 .edit-mode .group .separator > span {
   opacity: 0;
+}
+
+.group.collapsed .header,
+.group.collapsed .background,
+.group.collapsed .shadow {
+  pointer-events: none;
+}
+
+.edit-mode .group.collapsed .background {
+  pointer-events: auto;
 }
 
 .dragging .group:not(.active) .separator {
