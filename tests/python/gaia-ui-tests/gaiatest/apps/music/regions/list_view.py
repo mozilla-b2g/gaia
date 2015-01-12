@@ -13,7 +13,16 @@ from gaiatest.apps.music.regions.player_view import PlayerView
 
 class ListView(Base):
 
+    _view_locator = (By.ID, 'views')
     _list_item_locator = (By.CSS_SELECTOR, '.list-item')
+
+    def __init__(self, marionette):
+        Base.__init__(self, marionette)
+
+        Wait(self.marionette).until(
+            lambda m: self.marionette.find_element(*self._view_locator).get_attribute('class') == 'scrolling')
+        Wait(self.marionette).until(
+            lambda m: self.marionette.find_element(*self._view_locator).get_attribute('class') != 'scrolling')
 
     @property
     def media(self):
