@@ -228,12 +228,9 @@ function handleShare(data, callback) {
         // Show a notification indicating success, and then close it immediately
         // so it doesn't stink up the notifications tray! XXX: This UX isn't
         // great; we should turn this into a transient notification when we can.
-        new Notification(
-          songtitle,
-          {body: navigator.mozL10n.get(
-            details.setAsDefault ? 'set-default-tone' : 'created-tone'
-          )}
-        ).close();
+        NotificationHelper.send(songtitle, {
+          bodyL10n: details.setAsDefault ? 'set-default-tone' : 'created-tone'
+        }).close();
         callback('save', details);
       }, function(error) {
         console.log('Error saving ringtone', error);
