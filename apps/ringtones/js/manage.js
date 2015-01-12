@@ -8,12 +8,12 @@ navigator.mozSetMessageHandler('activity', function(activity) {
 
   // Conclude the activity if the user taps "back".
   document.getElementById('header').addEventListener('action', function() {
-    tonePlayer.stop();
+    tonePlayer.stop(true);
     activity.postResult({});
   });
 
   function addNewTone(customRingtonesList) {
-    tonePlayer.stop();
+    tonePlayer.stop(true);
 
     var pickActivity = new MozActivity({
       name: 'pick',
@@ -33,7 +33,7 @@ navigator.mozSetMessageHandler('activity', function(activity) {
       window.addEventListener('message', function receive(event) {
         window.removeEventListener('message', receive);
         if (event.origin !== window.location.origin) {
-          console.error('Couldn\'t recieve message: origins don\'t match',
+          console.error('Couldn\'t receive message: origins don\'t match',
                         event.origin, window.location.origin);
           return;
         }
@@ -56,6 +56,11 @@ navigator.mozSetMessageHandler('activity', function(activity) {
   var actionsMenu = new ActionsMenu(
     document.getElementById('ringtone-actions')
   );
+  actionsMenu.onactionstart = function(command) {
+    if (command === 'share') {
+      tonePlayer.stop(true);
+    }
+  };
 
   function ManagerToneList(...args) {
     ToneList.apply(this, args);
@@ -74,9 +79,9 @@ navigator.mozSetMessageHandler('activity', function(activity) {
     var self = this;
     var actionsButton = item.querySelector('.actions-button');
     actionsButton.addEventListener('click', function() {
-      tonePlayer.stop();
+      tonePlayer.stop(false);
       window.systemTones.isInUse(tone).then(function(inUseAs) {
-        actionsMenu.open(tone, inUseAs, function(command) {
+        actionsMenu.onactionend = function(command) {
           if (command === 'delete') {
             self.remove(tone);
 
@@ -88,7 +93,8 @@ navigator.mozSetMessageHandler('activity', function(activity) {
               });
             });
           }
-        });
+        };
+        actionsMenu.open(tone, inUseAs);
       });
     });
 

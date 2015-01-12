@@ -38,8 +38,7 @@ function TonePlayer() {
 
   window.addEventListener('visibilitychange', function() {
     if (document.hidden) {
-      this.stop();
-      this._setExclusiveMode(false);
+      this.stop(true);
     }
   }.bind(this));
 }
@@ -93,11 +92,18 @@ TonePlayer.prototype = {
   /**
    * Stop playing the current tone (if any). If we start playing it again,
    * setTone will reset the current time to 0. Note: even though we're stopping,
-   * we don't want to clear the player's src URL, since we might need that to
-   * restart playback of the same song.
+   * we don't want to clear the player's src URL, since we'd end up forgetting
+   * if we had validated the tone (we need that information when handling a pick
+   * activity).
+   *
+   * @param {Boolean} close true if we should also deactivate "exclusive mode"
+   *   (read: close the audio channel associated with the tones).
    */
-  stop: function() {
+  stop: function(close) {
     this._player.pause();
+    if (close) {
+      this._setExclusiveMode(false);
+    }
     this._firePlayingCallback(false);
   },
 
