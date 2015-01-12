@@ -1,9 +1,9 @@
 /* exported KeypadManager */
 
 /* globals AddContactMenu, CallHandler, CallLogDBManager, CallsHandler,
-           CallScreen, CustomDialog, DtmfTone, FontSizeManager, LazyLoader,
-           LazyL10n, MultiSimActionButton, Promise, SettingsListener,
-           TonePlayer */
+           CallScreen, ConfirmDialog, CustomDialog, DtmfTone, FontSizeManager,
+           LazyLoader, LazyL10n, MultiSimActionButton, Promise,
+           SettingsListener, TonePlayer */
 
 'use strict';
 
@@ -561,38 +561,58 @@ var KeypadManager = {
     }
 
     var self = this;
+    var canceled = false;
 
     return new Promise(function(resolve, reject) {
-      var iccId = navigator.mozIccManager.iccIds[cardIndex];
-      var icc = navigator.mozIccManager.getIccById(iccId);
-      var req = icc.readContacts('adn');
+      LazyLoader.load(['/shared/style/confirm.css',
+                       '/shared/js/confirm.js',
+                       document.getElementById('confirmation-message')],
+        function() {
+          var iccId = navigator.mozIccManager.iccIds[cardIndex];
+          var icc = navigator.mozIccManager.getIccById(iccId);
+          var req = icc.readContacts('adn');
 
-      req.onsuccess = function(event) {
-        var adnContacts = event.target.result;
-        var numbers = new Array(adnContacts.length);
+          req.onsuccess = function(event) {
+            var adnContacts = event.target.result;
+            var numbers = new Array(adnContacts.length);
 
-        for (var i = 0; i < adnContacts.length; i++) {
-          numbers[i] = {
-            id: adnContacts[i].id,
-            number: adnContacts[i].tel[0].value,
+            for (var i = 0; i < adnContacts.length; i++) {
+              numbers[i] = {
+                id: adnContacts[i].id,
+                number: adnContacts[i].tel[0].value,
+              };
+            }
+
+            numbers.sort(function(a, b) {
+              if (a.id.length == b.id.length) {
+                return (a.id > b.id) ? 1 : 0;
+              } else {
+                return (a.id.length > b.id.length) ? 1 : 0;
+              }
+            });
+
+            self._simContactsList[cardIndex] = numbers;
+
+            if (!canceled) {
+              ConfirmDialog.hide();
+            }
+
+            resolve();
           };
+          req.onerror = function() {
+            reject();
+          };
+
+          ConfirmDialog.show('loadingContacts', null, {
+            title: 'cancel',
+            callback: function() {
+              canceled = true;
+              ConfirmDialog.hide();
+              reject();
+            }
+          });
         }
-
-        numbers.sort(function(a, b) {
-          if (a.id.length == b.id.length) {
-            return (a.id > b.id) ? 1 : 0;
-          } else {
-            return (a.id.length > b.id.length) ? 1 : 0;
-          }
-        });
-
-        self._simContactsList[cardIndex] = numbers;
-
-        resolve();
-      };
-      req.onerror = function() {
-        reject();
-      };
+      );
     });
   },
 
