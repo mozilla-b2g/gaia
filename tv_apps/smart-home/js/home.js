@@ -61,6 +61,7 @@
         var collection = that.getNavigateElements();
 
         that.spatialNavigator = new SpatialNavigator(collection);
+        that.spatialNavigator.crossOnly = true;
         that.keyNavigatorAdapter = new KeyNavigationAdapter();
         that.keyNavigatorAdapter.init();
         that.keyNavigatorAdapter.on('move', that.onMove.bind(that));
@@ -277,16 +278,6 @@
       }
 
       var focus = this.spatialNavigator.getFocusedElement();
-      // XXX: We customized some navigating target here for those targets that
-      // don't move as we expected.
-      // We are planning to replace spatialNavigator with other solution, since
-      // most navigating case in smart-home is relatively simpler and
-      // spatialNavigator seems a little bit overkilled.
-      if((key === 'down' && this.topElementIds.indexOf(focus.id) !== -1) ||
-         (key === 'up' && this.bottomElementIds.indexOf(focus.id) !== -1)) {
-        this.spatialNavigator.focus(this.cardScrollable);
-        return;
-      }
 
       if (!(focus.CLASS_NAME == 'XScrollable' && focus.move(key))) {
         this.spatialNavigator.move(key);
