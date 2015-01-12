@@ -104,7 +104,7 @@
               '<header class="contextmenu-header"></header>' +
               '<div class="contextmenu-list-frame">' +
                 '<menu class="contextmenu-list"></menu>' +
-              '</div>'
+              '</div>' +
             '</form>';
   };
 

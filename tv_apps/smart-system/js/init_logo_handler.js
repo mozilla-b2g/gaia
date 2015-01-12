@@ -29,7 +29,7 @@ var CustomLogoPath = (function() {
     _poweron.image = DEFAULT_RESOURCES.poweron.image;
     _poweroff.video = DEFAULT_RESOURCES.poweroff.video;
     _poweroff.image = DEFAULT_RESOURCES.poweroff.image;
-  };
+  }
 
   function init(aNext) {
     try {
@@ -52,7 +52,7 @@ var CustomLogoPath = (function() {
                     ex);
       aNext && aNext();
     }
-  };
+  }
 
   return {
     get poweron() {

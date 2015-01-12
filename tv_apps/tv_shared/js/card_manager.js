@@ -580,7 +580,7 @@
             return true;
           }
         }
-      })
+      });
       return found;
     },
 
@@ -592,7 +592,7 @@
           found = card;
           return true;
         }
-      })
+      });
       return found;
     },
 
@@ -608,7 +608,7 @@
           // be READY eventually)
           that._reloadCardList().then(function() {
             resolve(!!that.findCardFromCardList(options));
-          })
+          });
         }
       });
     },

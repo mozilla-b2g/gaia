@@ -99,7 +99,7 @@
       name: this.name,
       folderId: this.folderId,
       type: 'Folder'
-    }
+    };
   };
 
   exports.Folder = Folder;

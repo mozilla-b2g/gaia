@@ -19,7 +19,7 @@ suite('tv_shared/Folder', function() {
 
   var assertFolderIsNotEmpty = function() {
     assert.isTrue(folder.cardsInFolder.length > 0);
-  }
+  };
 
   setup(function() {
     folder = new Folder({

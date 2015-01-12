@@ -78,7 +78,7 @@
     this.config = config;
 
     this.element = browser;
-  };
+  }
 
   function setMozAppType(iframe, config) {
     // XXX: Those urls needs to be built dynamically.

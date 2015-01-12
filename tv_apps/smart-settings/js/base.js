@@ -15,7 +15,7 @@
   Base.prototype.nodeListToArray = function b_nodeListToArray(obj) {
     return [].map.call(obj, function(element) {
       return element;
-    })
+    });
   };
 
   Base.prototype.simulateKeyEvent = function b_simulateKeyEvent(keyCode,

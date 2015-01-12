@@ -7,7 +7,7 @@
     Application.prototype.constructor.call(this, options);
     this.thumbnail = options.thumbnail;
     this.launchURL = options.launchURL;
-  };
+  }
 
   AppBookmark.deserialize = function ab_deserialize(cardEntry, installedApps) {
     var cardInstance;

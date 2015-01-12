@@ -26,7 +26,7 @@
 
   proto.stop = function skn_stop() {
     window.removeEventListener('keyup', this);
-  }
+  };
 
   proto.updateList = function skn_updateList(list) {
     this._List = list;
