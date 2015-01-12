@@ -73,6 +73,7 @@ class Ftu(Base):
     _step_header_locator = (By.ID, 'tutorial-step-title')
     _tour_next_button_locator = (By.ID, 'forward-tutorial')
     _tour_back_button_locator = (By.ID, 'back-tutorial')
+    _start_tour_message_locator =  (By.CSS_SELECTOR, 'h1[data-l10n-id="startYourPhone"]')
 
     # Section Tutorial Finish
     _section_tutorial_finish_locator = (By.ID, 'tutorial-finish-tiny')
@@ -385,6 +386,13 @@ class Ftu(Base):
             expected.element_present(*self._take_tour_button_locator))
         Wait(self.marionette).until(expected.element_enabled(take_tour))
         take_tour.tap()
+
+    @property
+    def start_tour_message(self):
+        start_tour_message = Wait(self.marionette).until(
+            expected.element_present(*self._start_tour_message_locator))
+        Wait(self.marionette).until(expected.element_displayed(start_tour_message))
+        return self.marionette.find_element(*self._start_tour_message_locator).text
 
     @property
     def step1_header_text(self):
