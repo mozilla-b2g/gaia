@@ -870,7 +870,7 @@ contacts.List = (function() {
       return;
     }
 
-    forceICEGroupToBeHidden = !(!!show); 
+    forceICEGroupToBeHidden = !(!!show);
     forceICEGroupToBeHidden ? hideICEGroup() : showICEGroup();
   }
 
@@ -1176,7 +1176,7 @@ contacts.List = (function() {
   };
 
   var showNoContactsAlert = function showNoContactsAlert() {
-    var msg = 'noContactsActivity';
+    var msg = 'noContactsActivity2';
     var noObject = {
       title: 'ok',
       isDanger: false,
@@ -1220,7 +1220,7 @@ contacts.List = (function() {
       successCb();
       return;
     }
-    
+
     var options = {
       filterBy: ['id'],
       filterOp: 'equals',

@@ -40,9 +40,9 @@ marionette('Contacts > Activities', function() {
 
     setup(function() {
       var selectorsArray = [
-        selectors.formGivenName, 
-        selectors.formFamilyName, 
-        selectors.formOrg, 
+        selectors.formGivenName,
+        selectors.formFamilyName,
+        selectors.formOrg,
         selectors.formTel,
         selectors.formEmailFirst
       ];
@@ -151,7 +151,7 @@ marionette('Contacts > Activities', function() {
       var confirmMsg = client.findElement(selectors.confirmBody);
       var expectedResult = subject.l10n(
         '/locales-obj/en-US.json',
-        'noContactsActivity');
+        'noContactsActivity2');
       assert.equal(confirmMsg.text(), expectedResult);
     });
 
