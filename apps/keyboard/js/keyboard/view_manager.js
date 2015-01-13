@@ -117,7 +117,7 @@ ViewManager.prototype.render = function (layout, flags, callback) {
   // Make sure the container is switched to the current uppercase state.
   pageView.setUpperCaseLock({
     isUpperCase: flags.uppercase,
-  isUpperCaseLocked: false
+    isUpperCaseLocked: false
   });
 
   // The page view has been switched

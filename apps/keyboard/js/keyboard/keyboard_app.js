@@ -147,6 +147,9 @@ KeyboardApp.prototype._stopComponents = function() {
 
   this.stateManager.stop();
   this.stateManager = null;
+
+  this.viewManager.stop();
+  this.viewManager = null;
 };
 
 KeyboardApp.prototype.getContainer = function() {

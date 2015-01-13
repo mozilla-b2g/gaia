@@ -34,11 +34,11 @@ AlternativesCharMenuManager.prototype.show = function(target) {
   }
 
   var viewManager = this.app.viewManager;
+  // XXX: Should not acess view in manager.
   // Get the targetRect before menu is shown.
   var targetRect =
     viewManager.getView(target).element.getBoundingClientRect();
 
-  // XXX: Remove reference to IMERender in the global in the future.
   this._currentMenuView = viewManager.showAlternativesCharMenu(target,
                                                                alternatives);
   this.isShown = true;
