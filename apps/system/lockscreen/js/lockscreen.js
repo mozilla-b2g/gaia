@@ -1,6 +1,4 @@
 /* global LockScreenClockWidget */
-/* global LockScreenClockWidgetTick */
-/* global LockScreenClockWidgetSuspend */
 'use strict';
 
 /**
@@ -147,9 +145,8 @@
   LockScreen.prototype.handleEvent =
   function ls_handleEvent(evt) {
     switch (evt.type) {
-      // In FTU user may change date & time.
-      case 'ftudone':
-        this.refreshClock(new Date());
+      case 'lockscreen-appopened':
+        this.lock();
         break;
       case 'lockscreen-notification-request-activate-unlock':
         this._activateUnlock();
@@ -178,11 +175,20 @@
           }
         } else {
           this._passCodeTimeoutCheck = this.checkPassCodeTimeout();
+          if (!this.lockScreenClockWidget) {
+            // This is because when the event comes, although it's going to
+            // hide the document, but *at this moment* it's still unhidden.
+            // So we need to hide it as soon as possible, to prevent the widget
+            // transfer to the wrong state.
+            this.createClockWidget();
+          }
         }
         // No matter turn on or off from screen timeout or poweroff,
         // all secure apps would be hidden.
         this.dispatchEvent('secure-killapps');
-        this.lockIfEnabled(true, true);
+        if (this.enabled) {
+          this.overlayLocked(true);
+        }
         break;
 
       case 'click':
@@ -343,6 +349,10 @@
     this.lockIfEnabled(true);
     this.initUnlockerEvents();
 
+    // This component won't know when the it get locked unless
+    // it listens to this event.
+    window.addEventListener('lockscreen-appopened', this);
+
     /* Status changes */
     window.addEventListener(
       'lockscreen-notification-request-activate-unlock', this);
@@ -475,10 +485,7 @@
   LockScreen.prototype.l10nInit =
   function ls_l10nInit() {
     this.l10nready = true;
-    // Adapt a state-widget in the curret architecture.
-    this.lockScreenClockWidget = new LockScreenClockWidget(
-      document.getElementById('lockscreen-clock-widget'));
-    this.lockScreenClockWidget.start();
+    this.createClockWidget();
 
     // mobile connection state on lock screen.
     // It needs L10n too. But it's not a re-entrable function,
@@ -630,14 +637,14 @@
   };
 
   LockScreen.prototype.lockIfEnabled =
-  function ls_lockIfEnabled(instant, screenchanged) {
+  function ls_lockIfEnabled(instant) {
     if (window.FtuLauncher && window.FtuLauncher.isFtuRunning()) {
       this.unlock(instant);
       return;
     }
 
     if (this.enabled) {
-      this.lock(instant, screenchanged);
+      this.lock(instant);
     } else {
       this.unlock(instant);
     }
@@ -652,13 +659,8 @@
       return;
     }
 
-    // Halt the children widget(s).
-    // As a parent component, LockScreen *knows* it's in
-    // ClockTick state, which can transfer to the halting state
-    // to stop the widget. And, children's methods should be
-    // transparent to parent component, so that parent components
-    // can control the widgets thoroughly.
-    this.lockScreenClockWidget.halt();
+    this.lockScreenClockWidget.stop().destroy();
+    delete this.lockScreenClockWidget;
 
     if (this.unlockSoundEnabled) {
       var unlockAudio = new Audio('/resources/sounds/unlock.opus');
@@ -684,22 +686,24 @@
     this._unlockingMessage = {};
   };
 
-  LockScreen.prototype.lock =
-  function ls_lock(instant, screenchanged) {
-    var wasAlreadyLocked = this.locked;
-    this.locked = true;
-
+  LockScreen.prototype.overlayLocked = function(instant) {
     this.overlay.focus();
     this.overlay.classList.toggle('no-transition', instant);
-
     this.overlay.classList.remove('unlocked');
     this.overlay.hidden = false;
 
+  };
+
+  LockScreen.prototype.lock =
+  function ls_lock(instant) {
+    var wasAlreadyLocked = this.locked;
+    this.locked = true;
+
     if (!wasAlreadyLocked) {
+      this.createClockWidget();
       if (document.mozFullScreen) {
         document.mozCancelFullScreen();
       }
-
       // Any changes made to this,
       // also need to be reflected in apps/system/js/storage.js
       this.dispatchEvent('secure-modeon');
@@ -707,16 +711,6 @@
       if(this._checkGenerateMaskedBackgroundColor()){
         this._generateMaskedBackgroundColor();
       }
-      // From unlocked to locked, so do transfer.
-      // And in this case it's black out actually.
-      // So we need to go to the suspend state.
-      if (this.lockScreenClockWidget) {
-        this.lockScreenClockWidget.transferTo(LockScreenClockWidgetSuspend);
-      }
-    }
-    // When screenchanged, do visual changes, so don't transfer to suspend.
-    if (this.lockScreenClockWidget && !screenchanged) {
-      this.lockScreenClockWidget.transferTo(LockScreenClockWidgetTick);
     }
   };
 
@@ -1080,6 +1074,13 @@
       this.kPassCodeErrorCounter = 0;
       // delegate the unlocking function call to panel state.
     };
+
+  LockScreen.prototype.createClockWidget = function() {
+    // Adapt a state-widget in the curret architecture.
+    this.lockScreenClockWidget = new LockScreenClockWidget(
+      document.getElementById('lockscreen-clock-widget'));
+    this.lockScreenClockWidget.start();
+  };
 
   /** @exports LockScreen */
   exports.LockScreen = LockScreen;

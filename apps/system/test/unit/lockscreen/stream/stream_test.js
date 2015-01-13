@@ -16,7 +16,6 @@ suite('Stream > ', function() {
     var stream = new Stream({
       events: ['foo'],
       interrupts: ['bar'],
-      handler: stubHandler,
       // A fake source is enough for testing.
       sources: [{
         start: () => {},

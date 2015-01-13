@@ -5,6 +5,7 @@
  * To test if DOMEventSource can really register the events and forward to
  * the target handler.
  **/
+requireApp('system/lockscreen/js/source/source_event.js');
 requireApp('system/lockscreen/js/source/dom_event_source.js');
 
 suite('DOMEventSource > ', function() {

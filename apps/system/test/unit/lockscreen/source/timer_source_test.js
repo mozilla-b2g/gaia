@@ -5,6 +5,7 @@
  * To test if TimerSource can really register the events and forward to
  * the target handler.
  **/
+requireApp('system/lockscreen/js/source/source_event.js');
 requireApp('system/lockscreen/js/source/timer_source.js');
 
 suite('TimerSource > ', function() {
@@ -13,14 +14,8 @@ suite('TimerSource > ', function() {
   function() {
     var clock = sinon.useFakeTimers();
     var stubForwardTo = sinon.stub();
-    var mockGenerator = (timestamp) => {
-      return {
-        type: 'foo',
-        detail: 'bar'
-      };
-    };
     var source = new TimerSource({
-      generator: mockGenerator,
+      type: 'foo',
       interval: 100,
       times: 2
     });
@@ -37,14 +32,8 @@ suite('TimerSource > ', function() {
   function() {
     var clock = sinon.useFakeTimers();
     var stubForwardTo = sinon.stub();
-    var mockGenerator = (timestamp) => {
-      return {
-        type: 'foo',
-        detail: 'bar'
-      };
-    };
     var source = new TimerSource({
-      generator: mockGenerator,
+      type: 'foo',
       interval: 100
     });
     source.start(stubForwardTo);
@@ -60,14 +49,8 @@ suite('TimerSource > ', function() {
   function() {
     var clock = sinon.useFakeTimers();
     var stubForwardTo = sinon.stub();
-    var mockGenerator = (timestamp) => {
-      return {
-        type: 'foo',
-        detail: 'bar'
-      };
-    };
     var source = new TimerSource({
-      generator: mockGenerator,
+      type: 'foo',
       interval: 100,
       times: 1
     });
@@ -84,14 +67,8 @@ suite('TimerSource > ', function() {
   function() {
     var clock = sinon.useFakeTimers();
     var stubForwardTo = sinon.stub();
-    var mockGenerator = (timestamp) => {
-      return {
-        type: 'foo',
-        detail: 'bar'
-      };
-    };
     var source = new TimerSource({
-      generator: mockGenerator,
+      type: 'foo',
       interval: 100
     });
     source.start(stubForwardTo);

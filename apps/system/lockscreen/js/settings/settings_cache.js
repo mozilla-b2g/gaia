@@ -21,14 +21,13 @@
     });
     var lock = navigator.mozSettings.createLock();
     var req = lock.get(entry);
-    req.onsuccess(() => {
+    req.then(() => {
       this.cache[entry] = req.result;
       // Once it getted, monitor it to update cache.
       navigator.mozSettings
         .addObserver(entry, this.handleSettings);
       resolve(req.result);
-    });
-    req.onerror(() => {
+    }).catch(() => {
       reject(req.error);
     });
     return promise;
@@ -43,11 +42,10 @@
     var reqcontent = {};
     reqcontent[entry] = value;
     var req = lock.set(reqcontent);
-    req.onsuccess(() => {
+    req.then(() => {
       this.cache[entry] = value;
       resolve();
-    });
-    req.onerror(() => {
+    }).catch(() => {
       reject();
     });
     return promise;

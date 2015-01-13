@@ -1,4 +1,5 @@
- 'use strict';
+/* global SourceEvent */
+'use strict';
 
 /**
  * Event source for Stream. One Stream can collect events from multiple
@@ -8,10 +9,8 @@
 (function(exports) {
   var TimerSource = function(configs) {
     this.configs = {
-      // Turn the moment to a event {type, detail} object.
-      // The source would fire it at every triggering moment.
-      generator: configs.generator ||
-        (() => { throw new Error('Need a event generator'); })(),
+      // The name of SourceEvent we would fire.
+      type: configs.type,
       // In ms. Just like setTimeout/setInterval.
       // Default is equal to setTimeout with 0 ms.
       interval: configs.interval || 0,
@@ -31,14 +30,14 @@
     this._counter = this.configs.times;
     this._id = window.setInterval(() => {
       if ('undefined' === typeof this.configs.times) {
-        this.onchange(this.configs.generator());
+        this.onchange();
       } else if ('undefined' !== typeof this.configs.times &&
                  0 === this._counter) {
         window.clearInterval(this._id);
       } else if ('undefined' !== typeof this.configs.times &&
                  null !== this._counter &&
                  0 !== this._counter) {
-        this.onchange(this.configs.generator());
+        this.onchange();
         this._counter --;
       }
     }, this.configs.interval);
@@ -58,9 +57,9 @@
    * When the time is up, fire an event by generator.
    * So that the onchange method would forward it to the target.
    */
-  TimerSource.prototype.onchange = function(evt) {
+  TimerSource.prototype.onchange = function() {
     if (this._forwardTo) {
-      this._forwardTo(evt);
+      this._forwardTo(new SourceEvent(this.configs.type));
     }
   };
 

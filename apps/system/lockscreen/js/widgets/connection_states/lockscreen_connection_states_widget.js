@@ -1,3 +1,4 @@
+/* global Process */
 /* global SIMSlotManager */
 /* global LockScreenBasicComponent, LockScreenConnectionStatesWidgetSetup */
 'use strict';
@@ -5,23 +6,38 @@
 /**
  * There are two classes of States:
  *
- * Network: AirplainMode, RadioEnabled, NoSIMs, NoNetwork, Searching, Connected
- * SIM    : (Setup)
+ * Network: AirplainMode, RadioOn, EmergencyCallsOnly
+ * [SIM]  : (Setup: would update info when the updating event comes)
  *
- * Network states would take the whole board to update the message, while
- * SIM states would only care it's own line. This is to prevent to manage SIM
- * and network changes at one group of states, which may be too complicated
- * and need too much states.
+ * Network states means it occurs all lines on the connection states element.
+ * So when we transfer to such state, it would stop the SIM widgets.
  *
- * As other components, to split the complicated if...else to multiple states
- * with transferring rules is the most important thing. So no matter how tiny
- * or transient these states may be, if to create a new state could eliminate
- * the depth of conditional statements, it's always worth.
+ * For SIMs the constructor would be instantiated as components, and each one
+ * would update its message when the event comes. There is no need to create
+ * more states than the setup state for SIMs, since all of these updating would
+ * be 'fixed point' style updating, which involves no state transferring.
  **/
 (function(exports) {
   var LockScreenConnectionStatesWidget = function() {
     LockScreenBasicComponent.apply(this);
-    this.properties.emergencyCallMessageMap = {
+    this._subcomponents = {
+      sims: {}
+    };
+
+    // null, {simone: SIM one}, {simtwo: SIM two}, {simone, simetwo}
+    this.resources.sims = null;
+    // @see fetchVoiceStatus
+    this.resources.airplaneMode = false;
+    this.resources.elements = {
+      simone: 'lockscreen-conn-states-simone',
+      simtwo: 'lockscreen-conn-states-simtwo',
+      simoneline: 'lockscreen-conn-states-simoneline',
+      simtwoline: 'lockscreen-conn-states-simtwoline',
+      simeoneid:  'lockscreen-conn-states-simeoneid',
+      simetwoid:  'lockscreen-conn-states-simetwoid'
+    };
+  };
+  LockScreenConnectionStatesWidget.EMERGENCY_CALL_MESSAGE_MAP = {
       'unknown': 'emergencyCallsOnly-unknownSIMState',
       'pinRequired': 'emergencyCallsOnly-pinRequired',
       'pukRequired': 'emergencyCallsOnly-pukRequired',
@@ -34,21 +50,6 @@
       'ruimCorporateLocked' : 'emergencyCallsOnly-ruimCorporateLocked',
       'ruimServiceProviderLocked':'emergencyCallsOnly-ruimServiceProviderLocked'
     };
-    // null, {simone: SIM one}, {simtwo: SIM two}, {simone, simetwo}
-    this.resources.sims = null;
-    // @see fetchVoiceStatus
-    this.resources.voiceStatus = null;
-    this.resources.airplaneMode = false;
-    this.resources.telephonyDefaultServiceId = null;
-    this.resources.elements = {
-      primarySIMID: 'lockscreen-conn-states-primary-simid',
-      primaryFirstline: 'lockscreen-conn-states-primary-firstline',
-      primarySecondline: 'lockscreen-conn-states-primary-secondline',
-      secondarySIMID: 'lockscreen-conn-states-secondary-simid',
-      secondaryFirstline: 'lockscreen-conn-states-secondary-firstline',
-      secondarySecondline: 'lockscreen-conn-states-secondary-secondline'
-    };
-  };
   LockScreenConnectionStatesWidget.prototype =
     Object.create(LockScreenBasicComponent.prototype);
 
@@ -67,29 +68,19 @@
    */
   LockScreenConnectionStatesWidget.prototype.fetchRadioStatus =
   function() {
-    return new Promise((resolve, reject) => {
-      var lock = navigator.mozSettings.createLock();
-      var request = lock.get('ril.radio.disabled');
-      request.onsuccess = () => {
-        this.resources.airplaneMode = !!request.result;
-        resolve(!!request.result);
-      };
-      request.onerror = reject;
-    });
-  };
-
-  /* TODO: methods like this should be cached via SettingsCache. */
-  LockScreenConnectionStatesWidget.prototype.fetchTelephonlyServiceId =
-  function() {
-    return new Promise((resolve, reject) => {
-      var lock = navigator.mozSettings.createLock();
-      var request = lock.get('ril.telephony.defaultServiceId');
-      request.onsuccess = () => {
-        this.resources.telephonyDefaultServiceId = request.result;
-        resolve(request.result);
-      };
-      request.onerror = reject;
-    });
+    var process = new Process();
+    return process.start()
+      .next(() => {
+        return new Promise((resolve, reject) => {
+          var lock = navigator.mozSettings.createLock();
+          var request = lock.get('ril.radio.disabled');
+          request.onsuccess = () => {
+            this.resources.airplaneMode = !!request.result;
+            resolve(!!request.result);
+          };
+          request.onerror = reject;
+        });
+      });
   };
 
   /**
@@ -132,61 +123,75 @@
   };
 
   /**
-   * This function assume one of the existing SIMs is for the voice network.
-   * So if there is no SIMs in resources it would throw error.
+   * Detect if it's in emergency calls only mode. This is a special mode
+   * since it's the only one case that involves two cards but shows only
+   * one label (and its label). Other cases involve the cards would show
+   * their status individually.
    *
-   * This doesn't care about SIM states like roaming or operator & carrier,
-   * but the whole voice network.
+   * And since for this mode the reason depends on different details,
+   * so the return result would be:
    *
-   * Return:
    * {
-   *    sim: the SIM provice voice service,
-   *    states: notSearching | searching | denied | registered,
-   *    noNetwork: true | false --> whether network is not ready,
-   *                                reduced from the states
-   *    searching: true | false --> whether the network is searching,
-   *                                it doesn't depends on 'state',
-   *                                which has different meaning from the UX
-   *    emergencyCallOnly: true | false
+   *    modeon: true | false,
+   *    reason: the reason of why it's emergency calls only.
+   *            @see LockScreenConnectionStatesWidget.EMERGENCY_CALL_MESSAGE_MAP
    * }
+   *
+   * This result would be set as 'this.resources.emergencyCallsOnly'
    */
-  LockScreenConnectionStatesWidget.prototype.fetchVoiceStatus =
+  LockScreenConnectionStatesWidget.prototype.fetchEmergencyCallsOnlyStatus =
   function() {
-    if (null === this.resources.sims) {
-      throw new Error('No available SIMs');
-    }
-    return this.fetchTelephonlyServiceId().then((id) => {
-      var voiceSIM = (0 === id) ?
-        this.resources.sims.simone :
-        this.resources.sims.simtwo ;
-      var voice = voiceSIM.conn.voice;
-      var result = {
-        'sim': voiceSIM,
-        'noNetwork': false,
-        'searching': false,
-        'emergencyCallsOnly': false
+    var sims = this.fetchSIMs();
+    var process = new Process();
+    return process.start().next(() => {
+      this.resources.emergencyCallsOnly = {
+        'modeon': false,
+        'reason': null
       };
-      result.states = voice.states;
-
-      // According to Bug 777057 Comment 18 and 19.
-      if (voice.emergencyCallsOnly) {
-        result.emergencyCallsOnly = true;
-        return result;
+      var results = this.resources.emergencyCallsOnly;
+      if (SIMSlotManager.noSIMCardOnDevice()) {
+        results.modeon = true;
+        results.reason = 'emergencyCallsOnly-noSIM';
+        return results;
       }
 
-      if (voice.state && 'notSearching' !== voice.state) {
-        result.noNetwork = true;
-        return result;
+      // If both SIMs are emergency calls only and
+      // not connected.
+      if (SIMSlotManager.noSIMCardConnectedToNetwork()) {
+        results.modeon = true;
+        results.reason = '';
+        return results;
       }
+      var simonevoice = (sims.simone) ? sims.simone.voice : null;
+      var simtwovoice = (sims.simtwo) ? sims.simtwo.voice : null;
 
-      if (!voice.connected) {
-        result.searching = true;
-        return result;
+      if (simonevoice && simonevoice.emergencyCallsOnly &&
+          simtwovoice && simtwovoice.emergencyCallsOnly) {
+        results.modeon = true;
+        var message = LockScreenConnectionStatesWidget
+          .EMERGENCY_CALL_MESSAGE_MAP[sims.simone.simCard.cardState];
+        results.reason = (message);
+        return results;
       }
-    }).then((result) => {
-      this.resource.voiceStatus = result;
-      return result;
     });
+  };
+
+  /**
+   * Alias it to make it more clear.
+   */
+  LockScreenConnectionStatesWidget.prototype.writeLabel =
+  function(node, l10nId, l10nArgs, text) {
+    if (l10nId) {
+      navigator.mozL10n.setAttributes(node, l10nId, l10nArgs);
+    } else if (text) {
+      node.textContent = text;
+    }
+  };
+
+  LockScreenConnectionStatesWidgetSetup.prototype.eraseLabel =
+  function(node) {
+    node.removeAttribute('data-l10n-id');
+    node.textContent = '';
   };
 
   exports.LockScreenConnectionStatesWidget = LockScreenConnectionStatesWidget;

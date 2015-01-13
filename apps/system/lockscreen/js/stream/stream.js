@@ -2,7 +2,18 @@
 
 'use strict';
 
-/***/
+/**
+ * Combine the abilities of the event handling and asynchronous operations
+ * sequentializing together. So that every Stream could:
+ *
+ * 1. For the ordinary events, append steps to the main Process to queue
+ *    the event handlers.
+ * 2. For other urgent events (interrupts), immediately execute the event
+ *    handler without queuing it.
+ * 3. Only receive events when it's 'ready'. Before that, no source events
+ *    would be forwarded and handled.
+ * 4. Once phase becomes 'stop', no events would be received again.
+ **/
 (function(exports) {
   var Stream = function(configs) {
     this.configs = {
@@ -12,7 +23,7 @@
     if (configs.sources && 0 !== configs.sources.length) {
       this.configs.sources = configs.sources;
     } else {
-      throw new Error('No valid Source');
+      this.configs.sources = [];
     }
     this._forwardTo = null;
     // Need to delegate to Source.

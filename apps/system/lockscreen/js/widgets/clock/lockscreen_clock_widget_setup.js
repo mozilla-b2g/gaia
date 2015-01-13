@@ -1,6 +1,6 @@
 /* global DOMEventSource */
 /* global LockScreenBasicState */
-/* global LockScreenClockWidgetTick*/
+/* global LockScreenClockWidgetTick */
 'use strict';
 
 /**
@@ -19,6 +19,7 @@
     this.configs.name = 'LockScreenClockWidgetSetup';
     // Just to prevent stream without stream would throw error.
     this.configs.stream.sources = [ new DOMEventSource({}) ];
+    this.component._timeFormat = this.component.getTimeformat();
   };
   LockScreenClockWidgetSetup.prototype =
     Object.create(LockScreenBasicState.prototype);
@@ -26,7 +27,12 @@
   LockScreenClockWidgetSetup.prototype.start = function() {
     return LockScreenBasicState.prototype.start.call(this)
       .next(this.queryElements.bind(this))
-      .next(this.transferTo.bind(this, LockScreenClockWidgetTick));
+      .next(this.component.updateClock.bind(this.component))
+      .next(this.transferToTick.bind(this));
+  };
+
+  LockScreenClockWidgetSetup.prototype.transferToTick = function() {
+    return this.transferTo(LockScreenClockWidgetTick);
   };
 
   LockScreenClockWidgetSetup.prototype.queryElements = function() {

@@ -1,4 +1,4 @@
-/* global LockScreenStateHalt */
+/* global LockScreenStateLogger */
 'use strict';
 
 /**
@@ -32,8 +32,12 @@
         view: view
       }
     };
-    // Properties is for internal "states" updated by the component's States.
-    this.properties = {};
+    this.configs = {
+      logger: {
+        debug: false    // turn on it when we're debugging this component
+      }
+    };
+    this.logger = new LockScreenStateLogger();
   };
 
   /**
@@ -57,9 +61,7 @@
     var nextState = new clazz(this);
     var currentState = this._activeState;
     this._activeState = nextState;
-// TODO: debug only
-console.log('>> transfer from ' +
-    currentState.configs.name + ' to ' + nextState.configs.name);
+    this.logger.transfer(currentState.configs.name, nextState.configs.name);
     return currentState.stop()
       .next(() => nextState.start());
   };
@@ -76,6 +78,7 @@ console.log('>> transfer from ' +
    * receive the component instance.
    */
   LockScreenBasicComponent.prototype.start = function(resources) {
+    this.logger.start(this.configs.logger);
     if (resources) {
       for (var key in this.resources) {
         if ('undefined' !== resources[key]) {
@@ -103,7 +106,8 @@ console.log('>> transfer from ' +
   };
 
   LockScreenBasicComponent.prototype.destroy = function() {
-    return this._activeState.destroy();
+    return this._activeState.destroy()
+      .next(() => { this.logger.stop(); });
   };
 
   LockScreenBasicComponent.prototype.live = function() {
@@ -151,18 +155,6 @@ console.log('>> transfer from ' +
       }
     });
     return Promise.all(waitPromises);
-  };
-
-  /**
-   * Transfer to the final state. Every component should be able to directly
-   * move to this state. Since for parent component it must ensure its children
-   * all refer no resources and don't response to any input.
-   *
-   * Concrete component should derive this function if different halting state
-   * is required.
-   */
-  LockScreenBasicComponent.prototype.halt = function() {
-    this.transferTo(LockScreenStateHalt);
   };
 
   exports.LockScreenBasicComponent = LockScreenBasicComponent;

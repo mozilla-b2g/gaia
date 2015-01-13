@@ -1,4 +1,5 @@
- 'use strict';
+/* global SourceEvent */
+'use strict';
 
 /**
  * DOM event source for Stream. One Stream can collect events from multiple
@@ -38,9 +39,11 @@
   /**
    * For forwarding to the target.
    */
-  DOMEventSource.prototype.onchange = function(evt) {
+  DOMEventSource.prototype.onchange = function(domevt) {
     if (this._forwardTo) {
-      this._forwardTo(evt);
+      var sourceEvent = new SourceEvent(
+        domevt.type, domevt.detail, domevt);
+      this._forwardTo(sourceEvent);
     }
   };
 

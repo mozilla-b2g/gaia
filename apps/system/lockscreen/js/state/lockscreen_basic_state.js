@@ -32,7 +32,7 @@
   LockScreenBasicState.prototype.start =
   function() {
     this.stream = new Stream(this.configs.stream);
-    return this.stream.start(this.handleEvent.bind(this))
+    return this.stream.start(this.handleSourceEvent.bind(this))
       .next(this.stream.ready.bind(this.stream));
   };
 
@@ -64,7 +64,7 @@
    * If this handler return a Promise, or Process, the underlying Stream
    * can make sure the steps are queued even with asynchronous steps.
    */
-  LockScreenBasicState.prototype.handleEvent = function() {};
+  LockScreenBasicState.prototype.handleSourceEvent = function() {};
 
   exports.LockScreenBasicState = LockScreenBasicState;
 })(window);

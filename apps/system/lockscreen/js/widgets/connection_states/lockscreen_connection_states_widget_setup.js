@@ -1,7 +1,8 @@
 /* global DOMEventSource */
 /* global LockScreenBasicState */
-/* global LockScreenConnectionStateWidgetAirplaneMode */
-/* global LockScreenConnectionStateWidgetRadioEnabled */
+/* global LockScreenConnectionStatesWidgetAirplaneMode */
+/* global LockScreenConnectionStatesWidgetRadioOn */
+/* global LockScreenConnectionStatesSIMWidget*/
 'use strict';
 
 /**
@@ -24,8 +25,23 @@
   LockScreenConnectionStatesWidgetSetup.prototype.start = function() {
     return LockScreenBasicState.prototype.start.call(this)
       .next(this.component.fetchRadioStatus.bind(this))
+      .next(this.setupSIMs.bind(this))
       .next(this.queryElements.bind(this))
       .next(this.dispatchToNext.bind(this));
+  };
+
+  /**
+   * Only set them up; don't start them.
+   */
+  LockScreenConnectionStatesWidgetSetup.prototype.setupSIMs = function() {
+    var sims = this.component.fetchSIMs();
+    if (!sims) {
+      return;   // No SIMs.
+    }
+    this.component._subcomponents.simone =
+      new LockScreenConnectionStatesSIMWidget(this.elements.simone);
+    this.component._subcomponents.simtwo =
+      new LockScreenConnectionStatesSIMWidget(this.elements.simtwo);
   };
 
   /**
@@ -36,9 +52,9 @@
    */
   LockScreenConnectionStatesWidgetSetup.prototype.dispatchToNext = function() {
     if (this.component.resources.airplaneMode) {
-      return this.transferTo(LockScreenConnectionStateWidgetAirplaneMode);
+      return this.transferTo(LockScreenConnectionStatesWidgetAirplaneMode);
     } else {
-      return this.transferTo(LockScreenConnectionStateWidgetRadioEnabled);
+      return this.transferTo(LockScreenConnectionStatesWidgetRadioOn);
     }
   };
 

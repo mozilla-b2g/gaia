@@ -437,6 +437,7 @@
       // Finally, fill the ordinary carrier, region and operator info
       // Plus the cellbroadcast info WHEN it's 2G
       // ?? how about 3G + cellbroadcast?
+      // --> hidden because of Bug 874273
       if (this._cellbroadcastLabel && is2G) {
         lineText(nextLine(), null, null, this._cellbroadcastLabel);
       } else if (operatorInfos.carrier) {

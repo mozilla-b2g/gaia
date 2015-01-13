@@ -1,4 +1,5 @@
- 'use strict';
+/* global SourceEvent */
+'use strict';
 
 /**
  * Event source for Stream. One Stream can collect events from multiple
@@ -41,11 +42,8 @@
    */
   SettingSource.prototype.onchange = function(change) {
     if (this._forwardTo) {
-      var evt = {
-        'type': change.settingName,
-        'detail': change.settingValue
-      };
-      this._forwardTo(evt);
+      this._forwardTo(
+        new SourceEvent(change.settingName, change.settingValue));
     }
   };
 
