@@ -364,7 +364,6 @@
         this.searchWindow.open();
       }
       this.results.classList.remove('hidden');
-      this.backdrop.classList.add('results-shown');
     },
 
     /**
@@ -378,7 +377,6 @@
       }
 
       this.results.classList.add('hidden');
-      this.backdrop.classList.remove('results-shown');
 
       // Send a message to the search app to clear results
       if (this._port) {
