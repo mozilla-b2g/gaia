@@ -532,13 +532,6 @@ section ul.operate-certificate {
  * Internet sharing (Wi-Fi HotSpot)
  */
 
-#hotspot ul li > a span {
-  max-width: 50%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 #hotspot ul #hotspot-settings-section > a span {
   max-width: 100%;
 }
