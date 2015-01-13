@@ -122,13 +122,7 @@
   top: 0;
   height: 100%;
   width: 100%;
-  background-color: #000;
-  transition: opacity 0.3s linear;
-  opacity: 0.8;
-}
-
-#rocketbar-backdrop.results-shown {
-  opacity: 0.9;
+  background-color: #4d4d4d;
 }
 
 /* Rocketbar results is normally 7rem tall and should be adjusted by the
