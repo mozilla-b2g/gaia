@@ -1,6 +1,6 @@
-/* globals CallHandler, CallLogDBManager, FontSizeManager, gTonesFrequencies,
-           KeypadManager, MockCall, MockCallsHandler, MockIccManager,
-           MockNavigatorMozTelephony, MockNavigatorSettings,
+/* globals CallHandler, CallLogDBManager, ConfirmDialog, FontSizeManager,
+           gTonesFrequencies, KeypadManager, MockCall, MockCallsHandler,
+           MockIccManager, MockNavigatorMozTelephony, MockNavigatorSettings,
            MockSettingsListener, MocksHelper, MockTonePlayer, telephonyAddCall,
            MockMultiSimActionButtonSingleton, MockMozL10n,  CustomDialog,
            MockMozActivity, CustomElementsHelper
@@ -16,10 +16,11 @@ require('/dialer/test/unit/mock_call_log_db_manager.js');
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 require('/shared/test/unit/mocks/mock_iccmanager.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_multi_sim_action_button.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
-require('/shared/test/unit/mocks/mock_multi_sim_action_button.js');
+require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
 require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
 require('/shared/test/unit/mocks/dialer/mock_call.js');
 require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
@@ -41,8 +42,10 @@ var mocksHelperForKeypad = new MocksHelper([
   'CallsHandler',
   'CallHandler',
   'CallLogDBManager',
+  'ConfirmDialog',
   'HandledCall',
   'SettingsListener',
+  'SimSettingsHelper',
   'GaiaSimPicker',
   'TonePlayer',
   'CustomDialog',
@@ -676,6 +679,87 @@ suite('dialer/keypad', function() {
         MockNavigatorSettings.mReplyToRequests();
 
         sinon.assert.notCalled(CallHandler.call);
+      });
+    });
+
+    suite('Speed dial', function() {
+      var speedDialNum = '1#';
+
+      setup(function() {
+        subject._phoneNumber = '';
+      });
+
+      test(speedDialNum + ' is a speed dial number', function() {
+        assert.isTrue(subject._isSpeedDialNumber(speedDialNum));
+      });
+
+      test('123 is not a speed dial number', function() {
+        assert.isFalse(subject._isSpeedDialNumber('123'));
+      });
+
+      test('*#31# is not a speed dial number', function() {
+        assert.isFalse(subject._isSpeedDialNumber('123'));
+      });
+
+      test('Starts speed dial upon typing ' + speedDialNum, function() {
+        var node;
+        var fakeEventStart;
+        var fakeEventEnd;
+
+        node = document.createElement('div');
+        fakeEventStart = {
+          target: node,
+          stopPropagation: function() {},
+          type: 'touchstart'
+        };
+        fakeEventEnd = {
+          target: node,
+          stopPropagation: function() {},
+          type: 'touchend'
+        };
+
+        this.sinon.stub(KeypadManager, '_getSpeedDialNumber', function() {
+          return Promise.resolve('123');
+        });
+
+        for (var i = 0, end = speedDialNum.length; i < end; i++) {
+          fakeEventStart.target.dataset.value = speedDialNum.charAt(i);
+          subject.keyHandler(fakeEventStart);
+          fakeEventEnd.target.dataset.value = speedDialNum.charAt(i);
+          subject.keyHandler(fakeEventEnd);
+        }
+
+        sinon.assert.calledWith(KeypadManager._getSpeedDialNumber, 1);
+      });
+
+      suite('Getting a speed dial number', function() {
+        var speedDialIndex = '1';
+        var number = '123';
+
+        suiteSetup(function() {
+          navigator.mozIccManager.adnContacts = [
+            {
+              id: '123456',
+              tel: [ { value: number } ]
+            }
+          ];
+        });
+
+        test('The overlay is displayed and then hidden', function(done) {
+          this.sinon.spy(ConfirmDialog, 'show');
+          this.sinon.spy(ConfirmDialog, 'hide');
+
+          subject._getSpeedDialNumber(speedDialIndex).then(function() {
+            sinon.assert.calledOnce(ConfirmDialog.show);
+            sinon.assert.calledOnce(ConfirmDialog.hide);
+          }).then(done, done);
+        });
+
+        test('The proper number is returned', function(done) {
+          subject._getSpeedDialNumber(speedDialIndex).then(function(number) {
+            assert.equal(number, number);
+          }).then(done, done);
+        });
       });
     });
   });

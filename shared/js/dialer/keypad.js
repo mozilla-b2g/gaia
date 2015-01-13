@@ -562,7 +562,11 @@ var KeypadManager = {
     }).then(function() {
       return self._getSimContactsList(cardIndex).then(
       function(simContactsList) {
-        return simContactsList[index].number;
+        if (index < simContactsList.length) {
+          return simContactsList[index].number;
+        } else {
+          return Promise.reject();
+        }
       });
     });
   },

@@ -38,14 +38,14 @@ MockReadContactsRequest.prototype = {
     if (!this._willFail) {
       this.result = this._result;
       (typeof successCb === 'function') &&
-      successCb();
+      successCb({ target: this });
     }
   },
   set onerror(errorCb) {
     if (this._willFail) {
       this.error = { name: 'error' };
       (typeof errorCb === 'function') &&
-      errorCb();
+      errorCb(this.error);
     }
   }
 };
