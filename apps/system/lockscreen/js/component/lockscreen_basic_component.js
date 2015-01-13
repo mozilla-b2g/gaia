@@ -57,9 +57,6 @@
     var nextState = new clazz(this);
     var currentState = this._activeState;
     this._activeState = nextState;
-// TODO: debug only
-console.log('>> transfer from ' +
-    currentState.configs.name + ' to ' + nextState.configs.name);
     return currentState.stop()
       .next(() => nextState.start());
   };

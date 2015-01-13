@@ -1,7 +1,7 @@
 /* global DOMEventSource */
 /* global LockScreenBasicState */
 /* global LockScreenConnectionStateWidgetAirplaneMode */
-/* global LockScreenConnectionStateWidgetRadioEnabled */
+/* global LockScreenConnectionStateWidgetRadioOn */
 'use strict';
 
 /**
@@ -38,7 +38,7 @@
     if (this.component.resources.airplaneMode) {
       return this.transferTo(LockScreenConnectionStateWidgetAirplaneMode);
     } else {
-      return this.transferTo(LockScreenConnectionStateWidgetRadioEnabled);
+      return this.transferTo(LockScreenConnectionStateWidgetRadioOn);
     }
   };
 
