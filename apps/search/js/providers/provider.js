@@ -1,3 +1,4 @@
+/* globals IconsHelper */
 'use strict';
 
 /**
@@ -50,6 +51,25 @@ Provider.prototype = {
   },
 
   /**
+   * Update an icon once it has been loaded.
+   *
+   * @param {Object} config A configuration object.
+   * @param {Object} iconWrapper An iconWrapper DOM object.
+   */
+  updateIcon: function(config, iconWrapper) {
+    var iconDom = iconWrapper.querySelector('img');
+    IconsHelper.getIcon(config.dataset.url, null, config).then((icon) => {
+      if (icon && iconDom) {
+        iconDom.onload = function () {
+          iconWrapper.classList.remove('empty');
+          iconDom.style.display = 'block';
+        };
+        iconDom.src = icon;
+      }
+    });
+  },
+
+  /**
    * Renders a set of results.
    * Each result may contain the following attributes:
    * - title: The title of the app.
@@ -86,7 +106,6 @@ Provider.prototype = {
 
       result.classList.add('result');
       iconWrapper.classList.add('icon');
-      iconWrapper.classList.add('empty');
       description.classList.add('description');
       title.classList.add('title');
       meta.classList.add('meta');
@@ -107,6 +126,11 @@ Provider.prototype = {
       }
 
       icon.setAttribute('role', 'presentation');
+      if (config.icon) {
+        icon.src = window.URL.createObjectURL(config.icon);
+      } else {
+        iconWrapper.classList.add('empty');
+      }
 
       result.setAttribute('role', 'link');
       // Either use an explicit label or, if not present, title.
@@ -118,6 +142,10 @@ Provider.prototype = {
       result.appendChild(iconWrapper);
       result.appendChild(description);
       frag.appendChild(result);
+      
+      if (!config.icon) {
+        this.updateIcon(config, iconWrapper); 
+      }
     }, this);
     return frag;
   },
@@ -125,5 +153,9 @@ Provider.prototype = {
   render: function(results) {
     var dom = this.buildResultsDom(results);
     this.container.appendChild(dom);
+    if (this.header) {
+      results.length ? this.header.classList.remove('hidden') :
+        this.header.classList.add('hidden');
+    }
   }
 };
