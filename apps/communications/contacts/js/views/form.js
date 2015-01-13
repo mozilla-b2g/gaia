@@ -1410,8 +1410,10 @@ contacts.Form = (function() {
                  function(resized) {
                    Contacts.updatePhoto(resized, thumb);
                    currentPhoto = resized;
-                   // We temporarily mark that there is a local photo chosen
-                   deviceContact.photo = [currentPhoto];
+                   if (fb.isFbContact(currentContact)) {
+                     // We temporarily mark that there is a local photo chosen
+                     deviceContact.photo = [currentPhoto];
+                   }
                  });
     };
 
