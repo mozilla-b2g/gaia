@@ -47,6 +47,7 @@ var CostControl = (function() {
         iccId: iccId,
         request: request,
         lastDataResults: {},
+        lastDataResultsPerApp: {},
         isBalanceRequestSMS: isBalanceRequestSMS
       };
 
@@ -617,8 +618,13 @@ var CostControl = (function() {
       result.status = 'success';
       result.data = lastDataUsage;
 
-      costcontrol.lastDataResults = lastDataUsage;
-
+      // Once bug 1083680 is solved, both caches should contain the same values
+      // so we could use only `costcontrol.lastDataResults`.
+      if (perApp) {
+        costcontrol.lastDataResultsPerApp = lastDataUsage;
+      } else {
+        costcontrol.lastDataResults = lastDataUsage;
+      }
       debug('Returning up to date statistics.');
       if (callback) {
         callback(result);

@@ -498,4 +498,40 @@ suite('Cost Control Service Hub Suite >', function() {
       });
     }
   );
+
+  test('Querying data usage globally caches the result', function(done) {
+    this.sinon.stub(SimManager, 'requestDataSimIcc').yields({iccId: '12345'});
+
+    CostControl.getInstance(function(service) {
+      var lastDataUsagePerApp = {};
+      service.lastDataUsagePerApp = lastDataUsagePerApp;
+      service.request({type: 'datausage'}, function(result) {
+        done(function() {
+          assert.deepEqual(service.lastDataResults, result.data);
+          assert.deepEqual(service.lastDataResultsPerApp, lastDataUsagePerApp);
+        });
+      });
+    });
+  });
+
+  test(
+    'Data cache per App is refreshed after a request per App',
+    function(done) {
+      this.sinon.stub(SimManager, 'requestDataSimIcc').yields({iccId: '12345'});
+
+      CostControl.getInstance(function(service) {
+        // Request per app
+        var manifests = [MockMozNetworkStats.APP_MANIFEST_1,
+                         MockMozNetworkStats.APP_MANIFEST_2];
+        var lastDataUsage = {};
+        service.lastDataUsage = lastDataUsage;
+        service.request({type: 'datausage', apps: manifests}, function(result) {
+          done(function() {
+            assert.deepEqual(service.lastDataResultsPerApp, result.data);
+            assert.deepEqual(service.lastDataResults, lastDataUsage);
+          });
+        });
+      });
+    }
+  );
 });
