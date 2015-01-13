@@ -78,7 +78,11 @@ TextSelection.prototype = {
   },
 
   longPress: function(element) {
-    this.actions.tap(element, 10, 10).wait(2).longPress(element, 2).perform();
+    // Add moveByOffset to prevent contextmenu event be fired.
+    var eltSize = element.size();
+    this.actions.tap(element, eltSize.width / 2, eltSize.height / 2).wait(2).
+      press(element, eltSize.width / 2, eltSize.height / 2).
+      moveByOffset(0, 0).wait(2).release().perform();
   },
 
   pressCopy: function() {
