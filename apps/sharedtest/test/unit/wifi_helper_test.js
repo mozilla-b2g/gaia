@@ -32,6 +32,14 @@ suite('WifiHelper', function() {
             security: [],
             relSignalStrength: 50,
             connected: false
+          },
+          {
+            ssid: 'Mozilla-Guest',
+            bssid: 'xx:xx:xx:xx:xx:xx',
+            capabilities: [],
+            security: [],
+            relSignalStrength: 90,
+            connected: false
           }
         ],
         error: {
@@ -154,6 +162,26 @@ suite('WifiHelper', function() {
       triggerCallback('getNetworks', 'onsuccess');
       triggerCallback('getKnownNetworks', 'onsuccess');
     });
+
+    test('> _networksArrayToObject should pick the wifi AP with the strongest' +
+      ' signal from wifi APs with same SSID', function() {
+        var originalNetworks = fakeDOMRequests.getNetworks.result;
+        var noOfMozillaGuestAps = 0;
+        originalNetworks.forEach(function(network) {
+          if (network.ssid === 'Mozilla-Guest') {
+            noOfMozillaGuestAps++;
+          }
+        });
+        assert.isTrue(noOfMozillaGuestAps > 1);
+
+        var networks = WifiHelper._networksArrayToObject(originalNetworks);
+
+        Object.keys(networks).forEach(function(key) {
+          if (networks[key].ssid === 'Mozilla-Guest') {
+            assert.isTrue(networks[key].relSignalStrength === 90);
+          }
+        });
+      });
   });
 
 });
