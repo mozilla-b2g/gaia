@@ -1,10 +1,11 @@
 'use strict';
 
 marionette('Text selection >', function() {
+  var Actions = require('marionette-client').Actions;
   var FakeTextSelectionApp = require('./lib/faketextselectionapp');
   var assert = require('assert');
-
   var apps = {};
+  var action;
 
   apps[FakeTextSelectionApp.ORIGIN] =
     __dirname + '/faketextselectionapp';
@@ -26,12 +27,42 @@ marionette('Text selection >', function() {
 
     setup(function() {
       fakeTextselectionApp = new FakeTextSelectionApp(client);
+      action = new Actions(client);
     });
 
-    suite('check button functionality', function() {
+    suite('check functionality', function() {
       setup(function() {
         fakeTextselectionApp.setTestFrame('functionality');
       });
+
+      test('short cut test', function(done) {
+        fakeTextselectionApp.longPress('FunctionalitySourceInput');
+        // store caret position
+        var caretPositionOfSourceInput =
+          fakeTextselectionApp.FunctionalitySourceInput
+          .selectionHelper.selectionLocationHelper();
+        fakeTextselectionApp.copy('FunctionalitySourceInput');
+
+        fakeTextselectionApp.FunctionalitySourceInput.tap();
+        assert.ok(fakeTextselectionApp.bubbleVisiblity,
+          'bubble should show since we have copied sth before');
+        fakeTextselectionApp.paste('FunctionalitySourceInput');
+
+        client.helper.wait(500);
+        action.tap(
+          fakeTextselectionApp.FunctionalitySourceInput,
+          caretPositionOfSourceInput.caretA.x,
+          caretPositionOfSourceInput.caretA.y).wait(1)
+        .press(fakeTextselectionApp.FunctionalitySourceInput,
+          caretPositionOfSourceInput.caretA.x,
+          caretPositionOfSourceInput.caretA.y + 15)
+        .wait(0.5).release().perform(function(){
+          assert.ok(fakeTextselectionApp.bubbleVisiblity,
+            'bubble should show after tapping on the caret');
+          done();
+        });
+      });
+
       test('copy and paste', function() {
         fakeTextselectionApp.copyTo('FunctionalitySourceInput',
           'FunctionalityTargetInput');
@@ -55,6 +86,21 @@ marionette('Text selection >', function() {
         fakeTextselectionApp.selectAllAndCut('FunctionalitySourceInput');
         assert.equal(fakeTextselectionApp.FunctionalitySourceInput
           .getAttribute('value'), '');
+      });
+
+      test.skip('cut part of content and paste', function() {
+        fakeTextselectionApp.longPress('FunctionalitySourceInput');
+        fakeTextselectionApp.FunctionalitySourceInput
+          .selectionHelper.moveCaretByWords({
+            'caretB': {offset: -2}
+          });
+        fakeTextselectionApp.textSelection.pressCut();
+        fakeTextselectionApp.paste('FunctionalityTargetInput');
+
+        assert.equal(fakeTextselectionApp.FunctionalityTargetInput
+          .getAttribute('value'), 'testval');
+        assert.equal(fakeTextselectionApp.FunctionalitySourceInput
+          .getAttribute('value'), 'ue');
       });
     });
 
@@ -267,7 +313,6 @@ marionette('Text selection >', function() {
         clientWithLockscreen.waitFor(function() {
           return !fakeTextselectionAppWithLockscreen.bubbleVisiblity;
         });
-
       });
   });
 });

@@ -1,6 +1,7 @@
 'use strict';
 
 var TextSelection = require('./text_selection');
+var SelectionHelper = require('./selection_helper');
 
 function FakeTextSelectionApp(client) {
   this.client = client;
@@ -102,6 +103,7 @@ FakeTextSelectionApp.prototype = {
     var element = this.client.helper.waitForElement(
       FakeTextSelectionApp.Selector[target]);
     element.location = element.location();
+    element.selectionHelper = new SelectionHelper(this.client, element);
     return element;
   },
 
