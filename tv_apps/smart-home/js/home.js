@@ -51,6 +51,9 @@
       this.searchBar.on('shown', this.onSearchBarShown.bind(this));
       this.searchBar.on('hidden', this.onSearchBarHidden.bind(this));
 
+      this.messageHandler = new MessageHandler();
+      this.messageHandler.init(this);
+
       this.cardManager.getCardList().then(function(cardList) {
         that._createCardList(cardList);
         that.cardScrollable = new XScrollable({
@@ -125,9 +128,7 @@
 
     onCardInserted: function(card, idx) {
       this.cardScrollable.insertNodeBefore(this._createCardNode(card), idx);
-      if(this.edit.mode === 'edit') {
-        this.cardScrollable.focus(idx);
-      }
+      this.cardScrollable.focus(idx);
     },
 
     onCardRemoved: function(indices) {
