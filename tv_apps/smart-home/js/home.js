@@ -321,7 +321,8 @@
 
     onSearchBarShown: function() {
       new MozActivity({
-        name: 'search'
+        name: 'search',
+        data: { keyword: '' }
       });
       this.searchBar.hide();
     },
