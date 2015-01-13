@@ -121,7 +121,10 @@ class Ftu(Base):
         return self.is_element_displayed(*self._lets_go_button_locator)
 
     def tap_next(self):
-        self.marionette.find_element(*self._next_button_locator).tap()
+        next_button = Wait(self.marionette).until(
+            expected.element_present(*self._next_button_locator))
+        Wait(self.marionette).until(expected.element_enabled(next_button))
+        next_button.tap()
 
     def a11y_click_next(self):
         self.accessibility.click(self.marionette.find_element(*self._next_button_locator))
