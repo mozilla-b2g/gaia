@@ -941,7 +941,7 @@ var CallLogDBManager = {
    */
   _getList: function getList(storeName, callback, sortedBy, prev,
                              getCursor, limit) {
-    if (!callback || !callback instanceof Function) {
+    if (!callback || !(callback instanceof Function)) {
       return;
     }
 
@@ -1074,7 +1074,7 @@ var CallLogDBManager = {
    */
   getGroupAtPosition: function rdbm_getGroupAtPosition(position, sortedBy, prev,
                                                        type, callback) {
-    if (!callback || !callback instanceof Function) {
+    if (!callback || !(callback instanceof Function)) {
       return;
     }
 
@@ -1155,7 +1155,7 @@ var CallLogDBManager = {
    * return (via callback) the last call or an error message if needed.
    */
   getLastCall: function getLastCall(callback) {
-    if (!callback || !callback instanceof Function) {
+    if (!callback || !(callback instanceof Function)) {
       return;
     }
 
