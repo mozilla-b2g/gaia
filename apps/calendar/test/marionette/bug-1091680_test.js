@@ -3,9 +3,10 @@
 
 var exec = require('child_process').exec;
 
-function main() {
+function main(callback) {
   var env = JSON.parse(JSON.stringify(process.env));
   env.TEST_FILES = 'apps/gallery/test/marionette/edit_image_test.js';
+  env.cwd = '../../../../';
   var command = exec.bind(null, 'xvfb-run make test-integration', { env: env });
   statisticalTest(command, {
     z: 1.9599,  // 95% confidence
@@ -13,14 +14,14 @@ function main() {
     isPass: function(error, stdout, stderr) {
       return !!error || stdout.indexOf('Polling socket recv() timeout!') === -1;
     }
-  });
+  }, callback);
 }
 
-function statisticalTest(command, options) {
-  runTest(command, options, 0, 0, 0);
+function statisticalTest(command, options, callback) {
+  runTest(command, options, callback, 0, 0, 0);
 }
 
-function runTest(command, options, trial, pass, fail) {
+function runTest(command, options, callback, trial, pass, fail) {
   trial += 1;
   process.stdout.write('Will run trial ' + trial);
   var ellipses = setInterval(function() { process.stdout.write('.'); }, 1000);
@@ -52,11 +53,13 @@ function runTest(command, options, trial, pass, fail) {
     // Check whether we need to continue testing.
     if (error <= options.error) {
       console.log('Done');
-      return;
+      return callback && callback();
     }
 
-    runTest(command, options, trial, pass, fail);
+    runTest(command, options, callback, trial, pass, fail);
   });
 }
 
-main();
+marionette('bug 1091680', function() {
+  test('statistical test', main);
+});
