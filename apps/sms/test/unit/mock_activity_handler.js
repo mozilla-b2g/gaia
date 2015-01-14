@@ -5,11 +5,11 @@ var MockActivityHandler = {
   init: function() {},
   isInActivity: function() {},
   leaveActivity: function() {},
-  handleMessageNotification: function() {},
+  handleMessageNotification: () => Promise.resolve(),
   displayUnsentConfirmation: function() {},
   launchComposer: function() {},
   triggerNewMessage: function() {},
-  toView: function() {},
+  toView: () => Promise.resolve(),
   onSmsReceived: function() {},
   onNotification: function() {}
 };

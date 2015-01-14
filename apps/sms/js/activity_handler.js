@@ -125,22 +125,31 @@ var ActivityHandler = {
       threadId: null
     };
 
-    // try to get a thread from number
-    // if no thread, promise is rejected and we try to find a contact
-    return MessageManager.findThreadFromNumber(viewInfo.number).then(
-      function onResolve(threadId) {
-        viewInfo.threadId = threadId;
-      },
-      function onReject() {
-        return ActivityHandler._findContactByNumber(viewInfo.number)
-          .then( (contact) => viewInfo.contact = contact);
-      }
-    )
-    // case no contact and no thread id: gobble the error
-    .catch(() => {})
-    // finally call toView whatever contact and threadId we have.
-    .then( () => this.toView(viewInfo) )
-    .then(Compose.focus);
+    var viewInfoPromise;
+    if (viewInfo.number) {
+      // try to get a thread from number
+      // if no thread, promise is rejected and we try to find a contact
+      viewInfoPromise = MessageManager.findThreadFromNumber(viewInfo.number).
+        then(function onResolve(threadId) {
+          viewInfo.threadId = threadId;
+        }, function onReject() {
+          return ActivityHandler._findContactByNumber(viewInfo.number)
+            .then((contact) => viewInfo.contact = contact);
+        }
+      )
+      // case no contact and no thread id: gobble the error
+      .catch(() => {});
+    }
+
+    return (viewInfoPromise || Promise.resolve()).
+      then(() => this.toView(viewInfo)).
+      then(() => {
+        // Focus on Compose only in case we navigated to Thread panel, as for
+        // Compose all focus-related stuff is handled by ThreadUI itself
+        if (viewInfo.threadId) {
+          Compose.focus();
+        }
+      });
   },
 
   _onShareActivity: function shareHandler(activity) {
@@ -230,25 +239,24 @@ var ActivityHandler = {
     //Validate if message still exists before opening message thread
     //See issue https://bugzilla.mozilla.org/show_bug.cgi?id=837029
     if (!message) {
-      return;
+      return Promise.reject(new Error('Message is not defined!'));
     }
 
-    MessageManager.getMessage(message.id).then((message) => {
+    return MessageManager.getMessage(message.id).then((message) => {
       if (!Threads.has(message.threadId)) {
         Threads.registerMessage(message);
       }
 
       if (Compose.isEmpty()) {
-        ActivityHandler.toView(message);
-        return;
+        return ActivityHandler.toView(message);
       }
 
-      Utils.confirm('discard-new-message').then(() => {
+      return Utils.confirm('discard-new-message').then(() => {
         ThreadUI.cleanFields();
-        ActivityHandler.toView(message);
+        return ActivityHandler.toView(message);
       });
     }, function onGetMessageError() {
-      Utils.alert('deleted-sms');
+      return Utils.alert('deleted-sms');
     });
   },
 
@@ -282,7 +290,7 @@ var ActivityHandler = {
 
   // Launch the UI properly
   launchComposer: function ah_launchComposer(activity) {
-    Navigation.toPanel('composer', { activity: activity });
+    return Navigation.toPanel('composer', { activity: activity });
   },
 
   // Check if we want to go directly to the composer or if we
@@ -295,71 +303,53 @@ var ActivityHandler = {
       };
 
     if (Compose.isEmpty()) {
-      this.launchComposer(activity);
-    } else {
-      // ask user how should we do
-      ActivityHandler.displayUnsentConfirmation(activity);
+      return this.launchComposer(activity);
     }
-  },
-  // Deliver the user to the correct view
-  // based on the params provided in the
-  // "message" object.
-  //
-  toView: function ah_toView(message) {
-    /**
-     *  "message" is either a message object that belongs
-     *  to a thread, or a message object from the system.
-     *
-     *
-     *  message {
-     *    number: A string phone number to pre-populate
-     *            the recipients list with.
-     *
-     *    body: An optional body to preset the compose
-     *           input with.
-     *
-     *    contact: An optional "contact" object
-     *
-     *    threadId: An option threadId corresponding
-     *              to a new or existing thread.
-     *
-     *  }
-     */
 
+    // ask user how should we do
+    ActivityHandler.displayUnsentConfirmation(activity);
+  },
+
+  /**
+   * Delivers the user to the correct view based on the params provided in the
+   * "message" parameter.
+   * @param {{number: string, body: string, contact: MozContact,
+   * threadId: number}} message It's either a message object that belongs to a
+   * thread, or a message object from the system. "number" is a string phone
+   * number to pre-populate the recipients list with, "body" is an optional body
+   * to preset the compose input with, "contact" is an optional MozContact
+   * instance, "threadId" is an optional threadId corresponding to a new or
+   * existing thread.
+   * @returns {Promise}
+   */
+  toView: function ah_toView(message) {
     if (!message) {
-      return;
+      return Promise.reject(new Error('Message is not defined!'));
     }
 
     this.isLocked = false;
-    var threadId = message.threadId ? message.threadId : null;
-    var body = message.body || '';
-    var number = message.number ? message.number : '';
-    var contact = message.contact ? message.contact : null;
-
     var deferred = Utils.Promise.defer();
-    var showAction = function act_action() {
-      // If we only have a body, just trigger a new message.
-      if (!threadId) {
-        ActivityHandler.triggerNewMessage(body, number, contact);
-        return;
-      }
 
-      deferred.resolve(
-        Navigation.toPanel('thread', { id: threadId })
+    var navigateToView = function act_navigateToView() {
+      // If we only have a body, just trigger a new message.
+      deferred.resolve(!message.threadId ?
+        ActivityHandler.triggerNewMessage(
+          message.body, message.number, message.contact
+        ) :
+        Navigation.toPanel('thread', { id: message.threadId })
       );
     };
 
     navigator.mozL10n.once(function waitLocalized() {
       if (!document.hidden) {
         // Case of calling from Notification
-        showAction();
+        navigateToView();
         return;
       }
 
-      document.addEventListener('visibilitychange',
-        function waitVisibility() {
-          document.removeEventListener('visibilitychange', waitVisibility);
-          showAction();
+      document.addEventListener('visibilitychange', function waitVisibility() {
+        document.removeEventListener('visibilitychange', waitVisibility);
+        navigateToView();
       });
     });
 
