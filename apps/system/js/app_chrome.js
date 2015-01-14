@@ -542,8 +542,8 @@
 
       var wasLight = self.app.element.classList.contains('light');
       var isLight  = brightness > 200;
-      self.app.element.classList.toggle('light', isLight);
       if (wasLight != isLight) {
+        self.app.element.classList.toggle('light', isLight);
         self.app.publish('titlestatechanged');
       }
       window.requestAnimationFrame(updateAppColor);
