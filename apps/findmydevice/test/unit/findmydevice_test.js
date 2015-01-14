@@ -37,7 +37,8 @@ suite('FindMyDevice >', function() {
     // causes an exception to be raised, so we replace the
     // entire mozId object.
     navigator.mozId = {
-      request: sinon.stub()
+      request: sinon.stub(),
+      watch: sinon.stub()
     };
 
     realMozSettings = navigator.mozSettings;
@@ -51,10 +52,18 @@ suite('FindMyDevice >', function() {
     realMozAlarms = navigator.mozAlarms;
     navigator.mozAlarms = MockMozAlarms;
 
+    window.Config = {
+      api_url: 'https://find.firefox.com',
+      api_version: 'v0'
+    };
+
     // We require findmydevice.js here and not above because
     // we want to make sure all of our dependencies have already
     // been loaded.
     require('/js/findmydevice.js', function() {
+      // We stub navigator.mozId.watch above, so FindMyDevice.init()
+      // is effectively a no-op. We don't need to fully initialize FMD for
+      // these tests, so just register for the events we care about below.
       FindMyDevice._observeSettings();
       FindMyDevice._initMessageHandlers();
       done();
@@ -62,6 +71,8 @@ suite('FindMyDevice >', function() {
   });
 
   suiteTeardown(function() {
+    delete window.Config;
+
     navigator.mozId = realMozId;
 
     navigator.mozSettings = realMozSettings;
