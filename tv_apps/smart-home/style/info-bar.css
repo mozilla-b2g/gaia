@@ -21,7 +21,7 @@
   left: 0;
   width: 10rem;
   height: 10rem;
-  background-image: url(images/img_weather-cloudy.png);
+  background-image: url(images/img_weather_mostly_cloudy.png);
   background-size: 10rem auto;
   background-repeat: no-repeat;
 }
