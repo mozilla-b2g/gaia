@@ -655,8 +655,10 @@ var Compose = (function() {
        */
       var recipients = Threads.active ?
         Threads.active.participants :
-        ThreadUI.recipients.numbers;
-      var hasEmailRecipient = recipients.some(Utils.isEmailAddress);
+        ThreadUI.recipients && ThreadUI.recipients.numbers;
+      var hasEmailRecipient = recipients ?
+        recipients.some(Utils.isEmailAddress) :
+        false;
 
       /* Note: in the future, we'll maybe want to force 'mms' from the UI */
       var newType =
@@ -686,7 +688,7 @@ var Compose = (function() {
       /* Bug 1040144: replace ThreadUI direct invocation by a instanciation-time
        * property */
       var recipients = ThreadUI.recipients;
-      var recipientsValue = recipients.inputValue;
+      var recipientsValue = recipients && recipients.inputValue;
       var hasRecipients = false;
 
       // Set hasRecipients to true based on the following conditions:
