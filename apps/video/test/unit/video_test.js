@@ -83,7 +83,7 @@ suite('Video App Unit Tests', function() {
       assert.equal(document.getElementById('info-name').textContent,
         'Small webm');
       assert.equal(document.getElementById('info-length').textContent,
-        '00:05');
+        '00:06');
       assert.equal(document.getElementById('info-type').textContent,
         'webm');
       assert.equal(document.getElementById('info-date').textContent,
