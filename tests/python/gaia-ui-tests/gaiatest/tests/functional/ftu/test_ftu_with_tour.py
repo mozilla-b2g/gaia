@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import time
 from gaiatest import GaiaTestCase
 from gaiatest.apps.ftu.app import Ftu
 from gaiatest.apps.homescreen.app import Homescreen
@@ -22,11 +21,6 @@ class TestFtu(GaiaTestCase):
 
         # Go through the FTU setup as quickly as possible to get to the Tour section
         self.ftu.run_ftu_setup_with_default_values()
-
-        self.assertEqual(self.ftu.start_tour_message, "Start your phone tour!")
-
-        # An attempt to fix the intermittent failure on mac. Remove it when finding a suitable wait
-        time.sleep(1)
 
         # Take the tour
         self.ftu.tap_take_tour()
