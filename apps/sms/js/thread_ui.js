@@ -614,6 +614,10 @@ var ThreadUI = {
       this.enableConvertNoticeBanners();
     }
 
+    if (args.focusComposer) {
+      Compose.focus();
+    }
+
     return Utils.closeNotificationsForThread(threadId);
   },
 
@@ -1239,7 +1243,7 @@ var ThreadUI = {
       if (Compose.size > Settings.mmsSizeLimitation) {
         this.showMaxLengthNotice({
           l10nId: 'multimedia-message-exceeded-max-length',
-          l10nArgs: { 
+          l10nArgs: {
             mmsSize: (Settings.mmsSizeLimitation / 1024).toFixed(0)
           }
         });
