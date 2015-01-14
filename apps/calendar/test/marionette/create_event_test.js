@@ -230,6 +230,43 @@ marionette('creating events', function() {
           app.checkOverflow(readEvent.descriptionContainer, 'description');
           app.checkOverflow(readEvent.locationContainer, 'location');
         });
+
+        suite('editing event', function() {
+          setup(function() {
+            app.readEvent.edit();
+            app.editEvent.waitForDisplay();
+          });
+
+          test('should delete on confirm', function() {
+            var editEvent = app.editEvent;
+            assert.isFalse(editEvent.deleteConfirmationDisplayed());
+            editEvent.clickDeleteButton();
+            client.waitFor(function() {
+              return editEvent.deleteConfirmationDisplayed();
+            });
+
+            editEvent.deleteConfirm();
+            app.month.waitForDisplay();
+
+            var events = app.monthDay.events;
+            assert.lengthOf(events, 0);
+          });
+
+          test('should not delete on cancel', function() {
+            var editEvent = app.editEvent;
+            editEvent.clickDeleteButton();
+            client.waitFor(function() {
+              return editEvent.deleteConfirmationDisplayed();
+            });
+
+            editEvent.deleteCancel();
+            client.waitFor(function() {
+              return !editEvent.deleteConfirmationDisplayed();
+            });
+
+            editEvent.waitForDisplay();
+          });
+        });
       });
     });
   });

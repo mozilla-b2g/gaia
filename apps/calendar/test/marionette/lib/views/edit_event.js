@@ -139,8 +139,32 @@ EditEvent.prototype = {
   },
 
   delete: function() {
+    this.clickDeleteButton();
+    this.client.waitFor(this.deleteConfirmationDisplayed.bind(this));
+    this.deleteConfirm();
+  },
+
+  clickDeleteButton: function() {
     this
       .findElement('.delete-record')
+      .click();
+  },
+
+  deleteConfirmationDisplayed: function() {
+    return this
+      .findElement('#remove-event-dialog')
+      .displayed();
+  },
+
+  deleteConfirm: function() {
+    this
+      .findElement('.delete-confirm')
+      .click();
+  },
+
+  deleteCancel: function() {
+    this
+      .findElement('.delete-cancel')
       .click();
   },
 

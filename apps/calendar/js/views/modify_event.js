@@ -15,6 +15,8 @@ require('dom!modify-event-view');
 
 function ModifyEvent(options) {
   this.deleteRecord = this.deleteRecord.bind(this);
+  this.hideHeaderAndForm = this.hideHeaderAndForm.bind(this);
+  this.cancelDelete = this.cancelDelete.bind(this);
   this._toggleAllDay = this._toggleAllDay.bind(this);
   EventBase.apply(this, arguments);
 }
@@ -41,7 +43,9 @@ ModifyEvent.prototype = {
     status: '#modify-event-view section[role="status"]',
     errors: '#modify-event-view .errors',
     primaryButton: '#modify-event-view .save',
-    deleteButton: '#modify-event-view .delete-record',
+    deleteButton: '#modify-event-view .delete-confirm',
+    deleteRecordButton: '#modify-event-view .delete-record',
+    cancelDeleteButton: '#modify-event-view .delete-cancel',
     header: '#modify-event-header'
   },
 
@@ -49,17 +53,20 @@ ModifyEvent.prototype = {
 
   _duration: 0, // The duration between start and end dates.
 
+  removeDialogClass: 'remove-dialog',
+
   _initEvents: function() {
     EventBase.prototype._initEvents.apply(this, arguments);
 
     var calendars = this.app.store('Calendar');
-
     calendars.on('add', this._addCalendarId.bind(this));
     calendars.on('preRemove', this._removeCalendarId.bind(this));
     calendars.on('remove', this._removeCalendarId.bind(this));
     calendars.on('update', this._updateCalendarId.bind(this));
 
     this.deleteButton.addEventListener('click', this.deleteRecord);
+    this.deleteRecordButton.addEventListener('click', this.hideHeaderAndForm);
+    this.cancelDeleteButton.addEventListener('click', this.cancelDelete);
     this.form.addEventListener('click', this.focusHandler);
     this.form.addEventListener('submit', this.primary);
 
@@ -296,6 +303,14 @@ ModifyEvent.prototype = {
     return this._findElement('deleteButton');
   },
 
+  get deleteRecordButton() {
+    return this._findElement('deleteRecordButton');
+  },
+
+  get cancelDeleteButton() {
+    return this._findElement('cancelDeleteButton');
+  },
+
   get fieldRoot() {
     return this.form;
   },
@@ -433,6 +448,23 @@ ModifyEvent.prototype = {
         }
       });
     }
+  },
+
+  hideHeaderAndForm: function() {
+    this.element.classList.add(this.removeDialogClass);
+  },
+
+  cancel: function(event) {
+    if (event) {
+      event.preventDefault();
+    }
+
+    window.history.back();
+  },
+
+  cancelDelete: function(event) {
+    this.element.classList.remove(this.removeDialogClass);
+    this.cancel(event);
   },
 
   /**

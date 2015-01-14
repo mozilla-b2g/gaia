@@ -9,7 +9,7 @@
       </button>
     </gaia-header>
 
-    <form>
+    <form class="modify-event-form">
       <ol>
         <li class="title">
           <input type="text" name="title" data-l10n-id="event-title" x-inputmode="latin-prose" placeholder="Title" dir="auto" />
@@ -79,14 +79,25 @@
 
       </ol>
       <div class="delete">
-        <a role="button" data-l10n-id="event-delete" class="danger delete-record bb-button">
+        <a data-l10n-id="event-delete" role="button" href="#remove-event-dialog" class="danger delete-record bb-button">
           Delete Event
         </a>
       </div>
+    </form>
 
-      <section role="status">
-        <p class="errors"></p>
+    <section role="status">
+      <p class="errors"></p>
+    </section>
+
+    <form role="dialog" data-type="confirm" id="remove-event-dialog">
+      <section>
+        <h1 data-l10n-id="remove-event-dialog">Remove Event</h1>
+        <p data-l10n-id="remove-event-dialog-details">Are you sure you want to delete this event?</p>
       </section>
+      <menu>
+        <button class="delete-cancel" data-l10n-id="cancel">Cancel</button>
+        <button class="danger delete-confirm" data-l10n-id="confirm">Confirm</button>
+      </menu>
     </form>
   </template>
 </element>

@@ -47,7 +47,7 @@ ModifyAccount.prototype = {
     fields: '*[name]',
     saveButton: '#modify-account-view .save',
     deleteButton: '#modify-account-view .delete-confirm',
-    deleteRecordButton: '.delete-record',
+    deleteRecordButton: '#modify-account-view .delete-record',
     cancelDeleteButton: '#modify-account-view .delete-cancel',
     header: '#modify-account-header',
     status: '#modify-account-view section[role="status"]',

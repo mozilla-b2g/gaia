@@ -6,12 +6,12 @@
   display: none;
 }
 
-#modify-event-view form {
+#modify-event-view .modify-event-form {
   overflow-Y: auto;
   height: -moz-calc(100% - 5rem);
 }
 
-#modify-event-view form ol {
+#modify-event-view .modify-event-form ol {
   margin: 1rem 1.5rem 0 1.5rem;
   overflow: hidden;
 }
@@ -24,7 +24,7 @@
   font-size: 1.6rem;
 }
 
-#modify-event-view form ol li {
+#modify-event-view .modify-event-form ol li {
   margin: 0 0 0.5rem;
 }
 
@@ -107,6 +107,23 @@
 #modify-event-view .delete {
   width: calc(100% - 3rem);
   margin: 0 auto;
+}
+
+#modify-event-view.remove-dialog #modify-account-header,
+#modify-event-view.remove-dialog .modify-event-form {
+  visibility: hidden;
+}
+
+#modify-event-view #remove-event-dialog {
+  display: none;
+}
+
+#modify-event-view :target#remove-event-dialog {
+  display: block;
+}
+
+#modify-event-view #remove-event-dialog p {
+  font-size: 2.2rem;
 }
 
 #modify-event-view.readonly menu,
