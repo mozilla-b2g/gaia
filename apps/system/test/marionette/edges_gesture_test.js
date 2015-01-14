@@ -115,7 +115,7 @@ marionette('Edges gesture >', function() {
     edgeSwipeToApp(sys.leftPanel, 0, halfWidth, calendar, settings);
     assert(settings.displayed(), 'settings is visible');
 
-    // Mostly vertical swipe sarting on the edge zone
+    // Mostly vertical swipe starting on the edge zone
     actions.flick(sys.leftPanel, 5, halfHeight + 40, 45, 40, 50).perform();
     assert(settings.displayed(), 'settings is still visible');
 
