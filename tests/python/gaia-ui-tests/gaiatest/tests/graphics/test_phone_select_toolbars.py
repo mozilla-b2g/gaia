@@ -58,6 +58,3 @@ class TestPhoneSelectToolbars(GaiaImageCompareTestCase):
         self.assertTrue(self.accessibility.is_hidden(self.marionette.find_element(
             *self.phone._call_log_toolbar_locator)))
         self.take_screenshot()
-
-    def tearDown(self):
-        GaiaImageCompareTestCase.tearDown(self)

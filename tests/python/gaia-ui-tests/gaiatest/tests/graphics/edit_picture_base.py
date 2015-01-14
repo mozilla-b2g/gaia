@@ -27,6 +27,9 @@ class GalleryEditPhotoBase(GaiaImageCompareTestCase):
     _edit_save_locator = (By.ID, 'edit-save-button')
     _exposure_slider_bar = (By.ID, 'sliderthumb')
 
+    def setUp(self):
+        GaiaImageCompareTestCase.setUp(self)
+
     def gallery_edit_photo(self, photo_file, location=None):
 
         # add photo to storage

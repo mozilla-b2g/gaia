@@ -44,9 +44,3 @@ class TestAccessibilityPhoneKeypad(GaiaImageCompareTestCase):
         # Add contact button is enabled for the screen reader.
         self.assertFalse(self.accessibility.is_disabled(self.marionette.find_element(
             *self.phone.keypad._add_new_contact_button_locator)))
-
-    def tearDown(self):
-
-        # In case the assertion fails this will still kill the call
-        # An open call creates problems for future tests
-        GaiaImageCompareTestCase.tearDown(self)
