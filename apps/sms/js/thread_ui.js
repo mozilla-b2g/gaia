@@ -2210,6 +2210,9 @@ var ThreadUI = {
         if (ActivityHandler.isInActivity()) {
           setTimeout(this.close.bind(this), this.LEAVE_ACTIVITY_DELAY);
         }
+
+        // Early return to prevent compose focused for multi-recipients sms case
+        return;
       }
 
     } else {
