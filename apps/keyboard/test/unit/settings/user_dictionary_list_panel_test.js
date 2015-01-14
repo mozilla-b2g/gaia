@@ -1,7 +1,7 @@
 'use strict';
 
 /* global UserDictionaryListPanel, MockEventTarget, CloseLockManager, CloseLock,
-          PanelController, UserDictionary, MockPromise */
+          PanelController, DialogController, UserDictionary, MockPromise */
 
 require('/shared/test/unit/mocks/mock_event_target.js');
 require('/shared/test/unit/mocks/mock_promise.js');
@@ -32,7 +32,8 @@ suite('UserDictionary List Panel', function() {
     app = {
       closeLockManager: this.sinon.stub(new CloseLockManager()),
       panelController: this.sinon.stub(new PanelController()),
-      userDictionaryEditPanel: 'dummyEditPanel'
+      dialogController: this.sinon.stub(new DialogController()),
+      userDictionaryEditDialog: 'dummyEditDialog'
     };
 
     panel = new UserDictionaryListPanel(app);
@@ -197,7 +198,7 @@ suite('UserDictionary List Panel', function() {
     setup(function() {
       pDialog = new MockPromise();
 
-      app.panelController.openDialog.returns(pDialog);
+      app.dialogController.openDialog.returns(pDialog);
     });
 
     test('canceled dialog', function() {
@@ -206,7 +207,8 @@ suite('UserDictionary List Panel', function() {
       panel._showAddDialog();
 
       assert.isTrue(
-        app.panelController.openDialog.calledWith(app.userDictionaryEditPanel));
+        app.dialogController.openDialog.calledWith(app.userDictionaryEditDialog)
+      );
 
       pDialog.mFulfillToValue({action: 'cancel'});
       assert.isFalse(stubAddWord.called);
@@ -276,15 +278,15 @@ suite('UserDictionary List Panel', function() {
       };
       panel._domWordMap.set(stubWordElem, 'star');
 
-      app.panelController.openDialog.returns(pDialog);
+      app.dialogController.openDialog.returns(pDialog);
     });
 
     test('word is correctly propogated to dialog', function() {
       panel._showEditDialog(stubWordElem);
 
       assert.isTrue(
-        app.panelController.openDialog.calledWith(app.userDictionaryEditPanel),
-        'star'
+        app.dialogController.openDialog.calledWith(app.userDictionaryEditDialog,
+        {word: 'star'})
       );
     });
 
