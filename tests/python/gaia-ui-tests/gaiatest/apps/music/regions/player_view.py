@@ -21,9 +21,7 @@ class PlayerView(Base):
     _stars_on_locator = (By.CSS_SELECTOR, '.rating-star.star-on')
 
     def tap_play(self):
-        play_button = self.marionette.find_element(*self._player_controls_play_locator)
-        # TODO: Change this to a simple tap when bug 862156 is fixed
-        Actions(self.marionette).tap(play_button).perform()
+        self.marionette.find_element(*self._player_controls_play_locator).tap()
 
     def tap_cover_in_player_view(self):
         self.marionette.find_element(*self._cover_image_locator).tap()
@@ -32,7 +30,7 @@ class PlayerView(Base):
             Wait(self.marionette).until(expected.element_present(*self._rating_view_locator))))
 
     def _get_star_locator(self, rating):
-        return (By.CSS_SELECTOR, '.rating-star[data-rating="%s"]' % rating)
+        return By.CSS_SELECTOR, '.rating-star[data-rating="%s"]' % rating
 
     def tap_star(self, rate):
         """
@@ -48,6 +46,8 @@ class PlayerView(Base):
 
     @property
     def player_elapsed_time(self):
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(*self._player_seek_elapsed_locator))))
         return time.strptime(self.marionette.find_element(*self._player_seek_elapsed_locator).text, '%M:%S')
 
     def is_player_playing(self):
