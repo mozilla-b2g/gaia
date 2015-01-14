@@ -562,7 +562,7 @@ var KeypadManager = {
     }).then(function() {
       return self._getSimContactsList(cardIndex).then(
       function(simContactsList) {
-        if (index < simContactsList.length) {
+        if ((index >= 0) && (index < simContactsList.length)) {
           return simContactsList[index].number;
         } else {
           return Promise.reject();

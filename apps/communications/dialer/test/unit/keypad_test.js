@@ -3,7 +3,7 @@
            MockIccManager, MockNavigatorMozTelephony, MockNavigatorSettings,
            MockSettingsListener, MocksHelper, MockTonePlayer, telephonyAddCall,
            MockMultiSimActionButtonSingleton, MockMozL10n,  CustomDialog,
-           MockMozActivity, CustomElementsHelper
+           MockMozActivity, SimSettingsHelper, CustomElementsHelper
 */
 
 'use strict';
@@ -11,9 +11,9 @@
 require('/shared/js/dialer/dtmf_tone.js');
 require('/shared/js/dialer/keypad.js');
 
+require('/contacts/test/unit/mock_confirm_dialog.js');
 require('/dialer/test/unit/mock_call_handler.js');
 require('/dialer/test/unit/mock_call_log_db_manager.js');
-require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 require('/shared/test/unit/mocks/mock_iccmanager.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_multi_sim_action_button.js');
@@ -698,7 +698,7 @@ suite('dialer/keypad', function() {
       });
 
       test('*#31# is not a speed dial number', function() {
-        assert.isFalse(subject._isSpeedDialNumber('123'));
+        assert.isFalse(subject._isSpeedDialNumber('*#31#'));
       });
 
       test('Starts speed dial upon typing ' + speedDialNum, function() {
@@ -734,30 +734,84 @@ suite('dialer/keypad', function() {
 
       suite('Getting a speed dial number', function() {
         var speedDialIndex = '1';
-        var number = '123';
+        var numbers = [ '123', '456' ];
 
         suiteSetup(function() {
           navigator.mozIccManager.adnContacts = [
             {
-              id: '123456',
-              tel: [ { value: number } ]
+              id: numbers[1],
+              tel: [ { value: numbers[1] } ]
+            },
+            {
+              id: numbers[0],
+              tel: [ { value: numbers[0] } ]
             }
           ];
         });
 
-        test('The overlay is displayed and then hidden', function(done) {
+        setup(function() {
           this.sinon.spy(ConfirmDialog, 'show');
           this.sinon.spy(ConfirmDialog, 'hide');
+        });
 
-          subject._getSpeedDialNumber(speedDialIndex).then(function() {
+        test('The overlay is displayed and then hidden', function(done) {
+          subject._getSimContactsList(0).then(function() {
             sinon.assert.calledOnce(ConfirmDialog.show);
             sinon.assert.calledOnce(ConfirmDialog.hide);
           }).then(done, done);
         });
 
+        test('Cancelling the overlay works', function(done) {
+          navigator.mozIccManager.async = true;
+
+          var p = subject._getSimContactsList(0);
+          ConfirmDialog.executeNo();
+
+          p.then(function() {
+            assert.ok(false, 'Should not succeed');
+          }, function() {
+            sinon.assert.calledOnce(ConfirmDialog.show);
+            sinon.assert.calledOnce(ConfirmDialog.hide);
+          }).then(done, done);
+
+          navigator.mozIccManager.async = false;
+        });
+
+        test('The contacts are returned sorted by ID', function(done) {
+          subject._getSimContactsList(0).then(function(contacts) {
+            assert.equal(contacts[0].id, numbers[0]);
+            assert.equal(contacts[1].id, numbers[1]);
+          }).then(done, done);
+        });
+
         test('The proper number is returned', function(done) {
           subject._getSpeedDialNumber(speedDialIndex).then(function(number) {
-            assert.equal(number, number);
+            assert.equal(number, numbers[0]);
+          }).then(done, done);
+        });
+
+        test('0# is ignored', function(done) {
+          subject._getSpeedDialNumber('0').then(function(number) {
+            assert.ok(false, 'the promise should be rejected');
+          }).then(done, done);
+        });
+
+        test('The SIM picker is used when there is no default SIM',
+        function(done) {
+          var simPicker = document.getElementById('sim-picker');
+          navigator.mozIccManager.iccIds[0] = 0;
+          navigator.mozIccManager.iccIds[1] = 1;
+
+          this.sinon.stub(SimSettingsHelper, 'getCardIndexFrom');
+          this.sinon.spy(simPicker, 'getOrPick');
+
+          var p = subject._getSpeedDialNumber(speedDialIndex);
+          SimSettingsHelper.getCardIndexFrom
+                           .yield(SimSettingsHelper.ALWAYS_ASK_OPTION_VALUE);
+          simPicker.getOrPick.yield(0);
+          p.then(function(number) {
+            sinon.assert.calledOnce(simPicker.getOrPick);
+            assert.equal(number, numbers[0]);
           }).then(done, done);
         });
       });
