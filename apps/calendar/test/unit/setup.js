@@ -15,7 +15,6 @@ function configureLoader() {
     shim: {
       'ext/caldav': { exports: 'Caldav' },
       'ext/ical': { exports: 'ICAL' },
-      'shared/accessibility_helper': { exports: 'AccessibilityHelper' },
       'shared/gesture_detector': { exports: 'GestureDetector' },
       'shared/notification_helper': { exports: 'NotificationHelper' },
       'sharedtest/mocks/mock_l10n': { exports: 'MockL10n' }
