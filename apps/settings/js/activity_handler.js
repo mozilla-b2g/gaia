@@ -37,6 +37,8 @@
      */
     _currentActivity: null,
 
+    _previousPanelID: null,
+
     /**
      * An object that defines functions for handling different type of
      * activities. The handling function must return the target panel id for
@@ -50,6 +52,7 @@
       'configure': function ah_configureHandler(activitySource) {
         var targetPanelId = activitySource.data.section || 'root';
         var targetPanel = document.getElementById(targetPanelId);
+        var doneBtn = document.getElementById('activityDoneButton');
 
         // Validate if the section exists
         if (!targetPanel || targetPanel.tagName !== 'SECTION') {
@@ -69,6 +72,10 @@
         } else {
           // Mark the desired panel as a dialog
           targetPanel.dataset.dialog = true;
+        }
+
+        if (this._previousPanelID && this._previousPanelID !== targetPanelId) {
+          doneBtn.setAttribute('href', this._previousPanelID);
         }
 
         return targetPanelId;
@@ -108,9 +115,19 @@
           // Send a result to finish this activity
           if (this._currentActivity) {
             this._currentActivity.postResult(null);
+            this._restoreDOM();
           }
         }
       }.bind(this));
+    },
+
+    _restoreDOM: function ah_restoreDOM() {
+      // Restore the filter if needed
+      if (this._previousPanelID) {
+        var doneBtn = document.getElementById('activityDoneButton');
+        document.body.dataset.filterBy = 'all';
+        doneBtn.setAttribute('href', '#home');
+      }
     },
 
     /**
@@ -138,10 +155,14 @@
         this._readyPromise = new Promise(function(resolve) {
           navigator.mozSetMessageHandler('activity', function(activity) {
             that._currentActivity = activity;
+            that._previousPanelID = Settings.currentPanel;
             that._handleActivity(that._currentActivity.source);
             that._registerListener();
-            resolve();
+            if (that._previousPanelID) {
+              Settings.SettingsService.navigate(that.targetPanelId);
+            }
           });
+          resolve();
         });
       }
       return this._readyPromise;
@@ -161,6 +182,7 @@
       return this.ready().then(function() {
         if (this._currentActivity) {
           this._currentActivity.postResult(result);
+          this._restoreDOM();
         }
       }.bind(this));
     }
