@@ -107,6 +107,7 @@ suite('Screen: COPPA', function() {
       showErrorOverlaySpy = this.sinon.spy(FxaModuleErrorOverlay, 'show');
       showErrorResponse = this.sinon.spy(FxaModuleCoppa, 'showErrorResponse');
       fxaAgeSelect.value = new Date().getFullYear();
+
     });
 
     teardown(function() {
@@ -115,6 +116,8 @@ suite('Screen: COPPA', function() {
       showErrorResponse = null;
     });
 
+    /*
+     Disabled bug 1116986.
     test(' > COPPA error shown', function(done) {
       FxaModuleCoppa.onNext(function() { });
       setTimeout(function() {
@@ -123,6 +126,7 @@ suite('Screen: COPPA', function() {
         done();
       });
     });
+    */
   });
 
   suite(' > COPPA success', function() {

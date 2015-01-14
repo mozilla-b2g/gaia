@@ -16,22 +16,6 @@ var FxaModuleCoppa = (function() {
 
   var MINIMUM_AGE = 13;
 
-  function _populateSelect(select) {
-    var currentYear = new Date().getFullYear();
-    var start = currentYear - MINIMUM_AGE;
-    for (var year = start; year <= currentYear; year++) {
-      var option = document.createElement('option');
-      option.value= year;
-      if (year == start) {
-        option.setAttribute('data-l10n-id', 'fxa-age-earlier');
-        option.setAttribute('data-l10n-args', '{ "year": "' + year + '" }');
-      } else {
-        option.textContent = year;
-      }
-      select.appendChild(option);
-    }
-  }
-
   function _enableNext(age) {
     if (age === '0') {
       FxaModuleUI.disableNextButton();
@@ -46,10 +30,6 @@ var FxaModuleCoppa = (function() {
 
     this.isFTU = !!(options && options.isftu);
 
-    navigator.mozL10n.once(() => {
-      _populateSelect(this.fxaAgeSelect);
-    });
-
     _enableNext(this.fxaAgeSelect.value);
 
     // If COPPA is part of the sign up flow, then we need to add a step to the
@@ -62,9 +42,9 @@ var FxaModuleCoppa = (function() {
       return;
     }
 
-    this.fxaAgeSelect.addEventListener('change', () => {
+    this.fxaAgeSelect.addEventListener('change', (function onSelectChange(e) {
       _enableNext(this.fxaAgeSelect.value);
-    });
+    }).bind(this));
 
     this.initialized = true;
   };
