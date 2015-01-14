@@ -25,7 +25,6 @@ require.config({
     'ext/caldav': { exports: 'Caldav' },
     'ext/ical': { exports: 'ICAL' },
     'ext/page': { exports: 'page' },
-    'shared/accessibility_helper': { exports: 'AccessibilityHelper' },
     'shared/gesture_detector': { exports: 'GestureDetector' },
     'shared/input_parser': { exports: 'InputParser' },
     'shared/lazy_loader': { exports: 'LazyLoader' },
