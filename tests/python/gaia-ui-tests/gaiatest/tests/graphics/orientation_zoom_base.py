@@ -17,8 +17,12 @@ class OrientationZoomBase(GaiaImageCompareTestCase):
     image_count = 4
     _current_image_locator = (By.CSS_SELECTOR, '#frames > div.frame[style ~= "translateX(0px);"]')
 
+    def setUp(self):
+        GaiaImageCompareTestCase.setUp(self)
+        self.connect_to_local_area_network()
+
     def orientation_zoom_check(self):
-        self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
+
         self.push_resource(self.images, count=self.image_count)
 
         self.take_screenshot()
@@ -77,8 +81,7 @@ class OrientationZoomBase(GaiaImageCompareTestCase):
         search.launch()
         browser = search.go_to_url('http://mozilla.org/firefoxos')
         browser.switch_to_content()
-        time.sleep(15)
-
+        time.sleep(20)
         self.take_screenshot()
         self.marionette.switch_to_frame()
 

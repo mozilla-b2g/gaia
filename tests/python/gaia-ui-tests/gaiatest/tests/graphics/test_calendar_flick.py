@@ -24,8 +24,6 @@ class TestCalendar(GaiaImageCompareTestCase):
     def test_calendar_flick(self):
         """https://bugzilla.mozilla.org/show_bug.cgi?id=937085"""
 
-        MONTH_YEAR_PATTERN = '%b %Y'
-
         calendar = Calendar(self.marionette)
         calendar.launch()
 
@@ -60,8 +58,3 @@ class TestCalendar(GaiaImageCompareTestCase):
         self.scroll(calendar._day_view_locator, 'right', 100)
         self.scroll(calendar._day_view_locator, 'right', 100)
         self.take_screenshot()
-
-
-    def tearDown(self):
-
-        GaiaImageCompareTestCase.tearDown(self)

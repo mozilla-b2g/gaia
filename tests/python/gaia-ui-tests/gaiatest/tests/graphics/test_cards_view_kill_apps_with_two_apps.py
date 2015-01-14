@@ -46,7 +46,3 @@ class TestCardsViewTwoApps(GaiaImageCompareTestCase):
 
         self.assertFalse(self.cards_view.is_app_present(self._test_apps[0]),
                          "Killed app not expected to appear in cards view")
-
-    def tearDown(self):
-
-        GaiaImageCompareTestCase.tearDown(self)

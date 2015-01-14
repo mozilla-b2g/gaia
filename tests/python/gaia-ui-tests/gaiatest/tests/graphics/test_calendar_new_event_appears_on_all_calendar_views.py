@@ -62,7 +62,3 @@ class TestCalendar(GaiaImageCompareTestCase):
         self.assertIn(event_title, calendar.displayed_events_in_day_view(event_start_date_time))
         self.assertIn(event_location, calendar.displayed_events_in_day_view(event_start_date_time))
         self.take_screenshot()
-
-    def tearDown(self):
-
-        GaiaImageCompareTestCase.tearDown(self)

@@ -15,10 +15,9 @@ class TestBrowserNavigation(GaiaImageCompareTestCase):
 
     def setUp(self):
         GaiaImageCompareTestCase.setUp(self)
-        self.data_layer.connect_to_wifi()
-        self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
+        self.connect_to_local_area_network()
 
-        self.test_url = 'http://mozqa.com/data/firefox/layout/mozilla.html'
+        self.test_url = self.marionette.absolute_url('mozilla.html')
 
     def test_browser_navigation(self):
         search = Search(self.marionette)
@@ -60,7 +59,3 @@ class TestBrowserNavigation(GaiaImageCompareTestCase):
         history_section = self.marionette.find_element(*self._community_history_section_locator)
         self.assertTrue(history_section.is_displayed(),
                         'The history section was not visible at mozilla_community.html.')
-
-    def tearDown(self):
-
-        GaiaImageCompareTestCase.tearDown(self)

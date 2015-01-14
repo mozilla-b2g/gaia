@@ -24,6 +24,7 @@ class TestLockScreen(GaiaImageCompareTestCase):
 
     def test_lockscreen_notification(self):
 
+        # the lockscreen should display the carrier name
         Wait(self.marionette, timeout=30).until(lambda m: self.device.has_mobile_connection)
 
         lock_screen = LockScreen(self.marionette)
@@ -36,8 +37,5 @@ class TestLockScreen(GaiaImageCompareTestCase):
                                        % (self._notification_title + "_3", self._notification_body + "_3"))
         Wait(self.marionette).until(lambda m: len(lock_screen.notifications) == 3)
         import time
-        time.sleep(3) # wait until the notification banner is closed
+        time.sleep(3)  # wait until the notification banner is closed
         self.take_screenshot()
-
-    def tearDown(self):
-        GaiaImageCompareTestCase.tearDown(self)

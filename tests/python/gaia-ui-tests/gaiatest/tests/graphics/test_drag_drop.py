@@ -39,9 +39,3 @@ class testDragDrop(GaiaImageCompareTestCase):
         # Exit edit mode
         self.device.touch_home_button()
         self.assertFalse(self.homescreen.is_edit_mode_active, "Edit mode should not be active")
-
-    def tearDown(self):
-
-        # In case the assertion fails this will still kill the call
-        # An open call creates problems for future tests
-        GaiaImageCompareTestCase.tearDown(self)

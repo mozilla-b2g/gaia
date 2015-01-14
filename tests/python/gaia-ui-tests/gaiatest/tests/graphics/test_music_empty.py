@@ -12,9 +12,6 @@ class TestMusicEmpty(GaiaImageCompareTestCase):
     expected_title = 'Add songs to get started'
     expected_text = 'Load songs on to the memory card.'
 
-    def setUp(self):
-        GaiaImageCompareTestCase.setUp(self)
-
     def test_music_empty(self):
         """https://moztrap.mozilla.org/manage/case/3668/"""
 
@@ -28,6 +25,3 @@ class TestMusicEmpty(GaiaImageCompareTestCase):
         # Verify title & text when no music present
         self.assertEqual(music_app.empty_music_title, self.expected_title)
         self.assertEqual(music_app.empty_music_text, self.expected_text)
-
-    def tearDown(self):
-        GaiaImageCompareTestCase.tearDown(self)

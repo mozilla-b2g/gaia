@@ -22,6 +22,3 @@ class TestLockScreenAccessibility(GaiaImageCompareTestCase):
 
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == homescreen.name)
         self.take_screenshot()
-
-    def tearDown(self):
-        GaiaImageCompareTestCase.tearDown(self)
