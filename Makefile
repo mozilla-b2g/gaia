@@ -698,7 +698,7 @@ NODE_MODULES_REV=$(shell cat gaia_node_modules.revision)
 # modules.tar and git-gaia-node-modules are the possible values for
 # $(NODE_MODULES_SRC). See the node_modules target.
 modules.tar: gaia_node_modules.revision
-	-$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/$(NODE_MODULES_REV) &&\
+	-$(DOWNLOAD_CMD) https://github.com/nullaus/gaia-node-modules/tarball/$(NODE_MODULES_REV) &&\
 	mv $(NODE_MODULES_REV) "$(NODE_MODULES_SRC)"
 
 git-gaia-node-modules: gaia_node_modules.revision
@@ -767,7 +767,8 @@ test-integration-test:
 		--host $(MARIONETTE_RUNNER_HOST) \
 		--manifest $(TEST_MANIFEST) \
 		--reporter $(REPORTER) \
-		--buildapp $(BUILDAPP)
+		--buildapp $(BUILDAPP) \
+		--verbose
 
 .PHONY: caldav-server-install
 caldav-server-install:
