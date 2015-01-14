@@ -321,5 +321,67 @@ suite('ParsedProvisioningDoc >', function() {
         parsedProvisioningDoc = ParsedProvisioningDoc.from(provisioningDoc);
         assert.lengthOf(parsedProvisioningDoc.getApns(), 1);
     });
+    test('Document with same appid different provider id',
+      function() {
+        var parsedProvisioningDoc;
+        var provisioningDoc =
+          '<wap-provisioningdoc>' +
+            '<characteristic type="BOOTSTRAP">' +
+              '<parm name="NAME" value="cmccwap"/>' +
+              '<parm name="PROXY-ID" value="cmccwap_Proxy"/>' +
+            '</characteristic>' +
+            '<characteristic type="NAPDEF">' +
+              '<parm name="NAME" value="cmccwap"/>' +
+              '<parm name="NAPID" value="cmccwap_NAPID"/>' +
+              '<parm name="BEARER" value="GSM-GPRS"/>' +
+              '<parm name="NAP-ADDRESS" value="cmwap_01049"/>' +
+              '<parm name="NAP-ADDRTYPE" value="APN"/>' +
+            '</characteristic>' +
+            '<characteristic type="PXLOGICAL">' +
+              '<parm name="NAME" value="cmccwap_1"/>' +
+              '<parm name="PROXY-ID" value="cmccwap_Proxy_1"/>' +
+              '<parm name="STARTPAGE" value="http://wap.google.com"/>' +
+              '<characteristic type="PXPHYSICAL">' +
+                '<parm name="PHYSICAL-PROXY-ID" value="cmccwap_PhProxy"/>' +
+                '<parm name="PXADDR" value="10.0.0.172"/>' +
+                '<parm name="PXADDRTYPE" value="IPV4"/>' +
+                '<parm name="TO-NAPID" value="cmccwap_NAPID"/>' +
+                '<characteristic type="PORT">' +
+                  '<parm name="PORTNBR" value="9201"/>' +
+                  '<parm name="SERVICE" value="CO-WSP"/>' +
+                '</characteristic>' +
+              '</characteristic>' +
+            '</characteristic>' +
+            '<characteristic type="PXLOGICAL">' +
+              '<parm name="NAME" value="cmccwap_2"/>' +
+              '<parm name="PROXY-ID" value="cmccwap_Proxy_2"/>' +
+              '<parm name="STARTPAGE" value="http://wap.163.com"/>' +
+              '<characteristic type="PXPHYSICAL">' +
+                '<parm name="PHYSICAL-PROXY-ID" value="cmccwap_PhProxy"/>' +
+                '<parm name="PXADDR" value="10.0.0.172"/>' +
+                '<parm name="PXADDRTYPE" value="IPV4"/>' +
+                '<parm name="TO-NAPID" value="cmccwap_NAPID"/>' +
+                '<characteristic type="PORT">' +
+                  '<parm name="PORTNBR" value="9203"/>' +
+                  '<parm name="SERVICE" value="CO-SEC-WSP"/>' +
+                '</characteristic>' +
+              '</characteristic>' +
+            '</characteristic>' +
+            '<characteristic type="APPLICATION">' +
+              '<parm name="APPID" value="w2"/>' +
+              '<parm name="PROVIDER-ID" value="460001"/>' +
+              '<parm name="NAME" value="cmccwap"/>' +
+              '<parm name="TO-PROXY" value="cmccwap_Proxy_1"/>' +
+            '</characteristic>' +
+            '<characteristic type="APPLICATION">' +
+              '<parm name="APPID" value="w2"/>' +
+              '<parm name="PROVIDER-ID" value="460002"/>' +
+              '<parm name="NAME" value="cmccwap"/>' +
+              '<parm name="TO-PROXY" value="cmccwap_Proxy_2"/>' +
+            '</characteristic>' +
+          '</wap-provisioningdoc>' +;
+        parsedProvisioningDoc = ParsedProvisioningDoc.from(provisioningDoc);
+        assert.lengthOf(parsedProvisioningDoc.getApns(), 2);
+    });
   });
 });
