@@ -1,6 +1,6 @@
 /* global MocksHelper, MockL10n, MockNavigatorSettings, MockSettingsHelper,
    MockMozActivity, MockNotifications, MockNavigatormozSetMessageHandler,
-   IAC_API_WAKEUP_REASON_LOGIN, IAC_API_WAKEUP_REASON_LOGOUT,
+   SettingsHelper, IAC_API_WAKEUP_REASON_LOGIN, IAC_API_WAKEUP_REASON_LOGOUT,
    IAC_API_WAKEUP_REASON_STALE_REGISTRATION,
    IAC_API_WAKEUP_REASON_ENABLED_CHANGED,
    IAC_API_WAKEUP_REASON_LOCKSCREEN_CLOSED, FMDInit
@@ -45,6 +45,11 @@ suite('FindMyDevice Launcher >', function() {
     MockNavigatormozSetMessageHandler.mSetup();
 
     navigator.mozL10n = MockL10n;
+
+    SettingsHelper.mSetup();
+    SettingsHelper('findmydevice.enabled').set(true);
+    MockNavigatorSettings.mSettings['findmydevice.enabled'] = true;
+    sinon.stub(window, 'wakeUpFindMyDevice');
   });
 
   suiteTeardown(function() {
@@ -58,7 +63,17 @@ suite('FindMyDevice Launcher >', function() {
   setup(function() {
     MockNavigatorSettings.mSetup();
     FMDInit();
-    this.sinon.stub(window, 'wakeUpFindMyDevice');
+    // enable FMD
+    MockNavigatorSettings.mTriggerObservers('findmydevice.enabled',
+      {settingValue: true});
+    // enabling FMD will call the wakeUpFindMyDevice spy, so reset it
+    window.wakeUpFindMyDevice.reset();
+  });
+
+  teardown(function() {
+    // disable FMD to clear out listeners at end of each test
+    MockNavigatorSettings.mTriggerObservers('findmydevice.enabled',
+      {settingValue: false});
   });
 
   teardown(function() {
@@ -148,13 +163,15 @@ suite('FindMyDevice Launcher >', function() {
   });
 
   test('clear lockscreen message when the lockscreen unlocks', function() {
-    window.dispatchEvent(new CustomEvent('lockscreen-request-unlock'));
+    SettingsHelper('lockscreen.lock-message')
+      .set('initial lockscreen message');
+    window.dispatchEvent(new CustomEvent('lockscreen-appclosed'));
     assert.equal(
       MockSettingsHelper.instances['lockscreen.lock-message'].value, '');
   });
 
   test('fmd is awoken with LOCKSCREEN_CLOSED on lockscreen unlock', function() {
-    window.dispatchEvent(new CustomEvent('lockscreen-request-unlock'));
+    window.dispatchEvent(new CustomEvent('lockscreen-appclosed'));
     sinon.assert.calledWith(window.wakeUpFindMyDevice,
       IAC_API_WAKEUP_REASON_LOCKSCREEN_CLOSED);
   });
@@ -191,5 +208,45 @@ suite('FindMyDevice Launcher >', function() {
       {detail: {eventName: 'onlogout'}}));
     sinon.assert.calledWith(window.wakeUpFindMyDevice,
       IAC_API_WAKEUP_REASON_LOGOUT);
+  });
+
+  // bug 1062558 - FMD should not wake up if it's disabled
+  suite('When FMD is disabled > ', function() {
+    setup(function() {
+      // disabling FMD should detach all settings observers except
+      // the observer of the 'findmydevice.enabled' setting
+      MockNavigatorSettings.mTriggerObservers('findmydevice.enabled',
+        {settingValue: false});
+      // disabling FMD will trigger a call to this spy, so clear it
+      window.wakeUpFindMyDevice.reset();
+    });
+
+    test('do not wake FMD app if the geolocation.enabled setting changes',
+    function() {
+      MockNavigatorSettings.mTriggerObservers('geolocation.enabled',
+        {settingValue: true});
+      MockNavigatorSettings.mTriggerObservers('geolocation.enabled',
+        {settingValue: false});
+      sinon.assert.notCalled(window.wakeUpFindMyDevice);
+    });
+
+    test('do not wake FMD app if the Firefox Accounts login status changes',
+    function() {
+      window.dispatchEvent(
+        new CustomEvent('mozFxAccountsUnsolChromeEvent',
+        {detail: {eventName: 'onlogin'}}));
+      window.dispatchEvent(
+        new CustomEvent('mozFxAccountsUnsolChromeEvent',
+        {detail: {eventName: 'onverified'}}));
+      window.dispatchEvent(
+        new CustomEvent('mozFxAccountsUnsolChromeEvent',
+        {detail: {eventName: 'onlogout'}}));
+      sinon.assert.notCalled(window.wakeUpFindMyDevice);
+    });
+
+    test('do not wake FMD app when the lockscreen is unlocked', function() {
+      window.dispatchEvent(new CustomEvent('lockscreen-appclosed'));
+      sinon.assert.notCalled(window.wakeUpFindMyDevice);
+    });
   });
 });
