@@ -21,8 +21,6 @@ const ActivityDataType = {
 };
 
 var ActivityHandler = {
-  isLocked: false,
-
   // Will hold current activity object
   _activity: null,
 
@@ -110,14 +108,6 @@ var ActivityHandler = {
   },
 
   _onNewActivity: function newHandler(activity) {
-
-    // This lock is for avoiding several calls at the same time.
-    if (this.isLocked) {
-      return;
-    }
-
-    this.isLocked = true;
-
     var viewInfo = {
       body: activity.source.data.body,
       number: activity.source.data.target || activity.source.data.number,
@@ -329,7 +319,6 @@ var ActivityHandler = {
       return;
     }
 
-    this.isLocked = false;
     var threadId = message.threadId ? message.threadId : null;
     var body = message.body || '';
     var number = message.number ? message.number : '';
