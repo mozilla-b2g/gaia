@@ -2,7 +2,8 @@
 
 /* global SettingsPromiseManager, CloseLockManager, UserDictionaryListPanel,
           GeneralSettingsGroupView, HandwritingSettingsGroupView,
-          MozActivity, PanelController, UserDictionaryEditPanel */
+          DialogController, MozActivity, PanelController,
+          UserDictionaryEditDialog */
 
 (function(exports) {
 
@@ -14,8 +15,9 @@ var KeyboardSettingsApp = function KeyboardSettingsApp() {
   // the existence of panelController is indicative of the suport for userdict.
   // let's keep the reference of panels here for now.
   this.panelController = null;
+  this.dialogController = null;
   this.userDictionaryListPanel = null;
-  this.userDictionaryEditPanel = null;
+  this.userDictionaryEditDialog = null;
 
   this._closeLock = null;
 };
@@ -43,7 +45,10 @@ KeyboardSettingsApp.prototype.start = function() {
     this.panelController = new PanelController(document.getElementById('root'));
     this.panelController.start();
 
-    this.userDictionaryEditPanel = new UserDictionaryEditPanel();
+    this.dialogController = new DialogController();
+    this.dialogController.start();
+
+    this.userDictionaryEditDialog = new UserDictionaryEditDialog();
 
     this.userDictionaryListPanel = new UserDictionaryListPanel(this);
 
@@ -74,11 +79,14 @@ KeyboardSettingsApp.prototype.stop = function() {
     this.panelController.stop();
     this.panelController = null;
 
+    this.dialogController.stop();
+    this.dialogController = null;
+
     this.userDictionaryListPanel.uninit();
     this.userDictionaryListPanel = null;
 
-    this.userDictionaryEditPanel.uninit();
-    this.userDictionaryEditPanel = null;
+    this.userDictionaryEditDialog.uninit();
+    this.userDictionaryEditDialog = null;
 
     document.getElementById('menu-userdict').removeEventListener('click', this);
   }

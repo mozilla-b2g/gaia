@@ -120,7 +120,7 @@ UserDictionaryListPanel.prototype._appendList = function(word) {
 };
 
 UserDictionaryListPanel.prototype._showAddDialog = function() {
-  this.app.panelController.openDialog(this.app.userDictionaryEditPanel)
+  this.app.dialogController.openDialog(this.app.userDictionaryEditDialog)
   .then(
     result => {
       if ('commit' === result.action) {
@@ -133,7 +133,7 @@ UserDictionaryListPanel.prototype._showAddDialog = function() {
 UserDictionaryListPanel.prototype._showEditDialog = function(wordElem) {
   var word = this._domWordMap.get(wordElem);
 
-  this.app.panelController.openDialog(this.app.userDictionaryEditPanel, {
+  this.app.dialogController.openDialog(this.app.userDictionaryEditDialog, {
     word: word
   })
   .then(

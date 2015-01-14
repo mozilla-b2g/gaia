@@ -1,13 +1,13 @@
 'use strict';
 
-/* global UserDictionaryEditPanel, MockEventTarget, KeyEvent */
+/* global UserDictionaryEditDialog, MockEventTarget, KeyEvent */
 
 require('/shared/test/unit/mocks/mock_event_target.js');
 
-require('/js/settings/user_dictionary_edit_panel.js');
+require('/js/settings/user_dictionary_edit_dialog.js');
 
-suite('UserDictionary Edit Panel', function() {
-  var panel;
+suite('UserDictionary Edit Dialog', function() {
+  var dialog;
   var stubContainer;
   var stubGetElemById;
 
@@ -19,7 +19,7 @@ suite('UserDictionary Edit Panel', function() {
   var stubDialogDeleteBtn;
 
   setup(function() {
-    panel = new UserDictionaryEditPanel();
+    dialog = new UserDictionaryEditDialog();
 
     stubContainer = {
       querySelector:
@@ -53,84 +53,86 @@ suite('UserDictionary Edit Panel', function() {
     stubContainer.querySelector
       .withArgs('#ud-editword-dialog-delete-btn').returns(stubDialogDeleteBtn);
 
-    panel.init();
+    dialog.init();
 
     assert.isTrue(stubGetElemById.calledWith('panel-ud-editword'));
 
-    assert.equal(panel._inputField, stubInput);
+    assert.equal(dialog._inputField, stubInput);
   });
 
   teardown(function() {
-    panel.uninit();
+    dialog.uninit();
   });
 
   suite('Transition hooks', function() {
     suite('beforeShow', function() {
       test('call init if necessary', function() {
-        panel._initialized = false;
-        this.sinon.stub(panel, 'init');
+        dialog._initialized = false;
+        this.sinon.stub(dialog, 'init');
 
-        panel.beforeShow();
+        dialog.beforeShow();
 
-        assert.isTrue(panel.init.called);
+        assert.isTrue(dialog.init.called);
       });
 
       test('edit mode', function() {
-        panel.beforeShow({
+        dialog.beforeShow({
           word: 'star'
         });
 
         assert.isTrue(stubContainer.classList.remove.calledWith('add-mode'));
-        assert.equal(panel._inputField.value, 'star');
-        assert.equal(panel._oldWord, 'star');
+        assert.equal(dialog._inputField.value, 'star');
+        assert.equal(dialog._oldWord, 'star');
     });
 
       test('add mode', function() {
-        panel.beforeShow();
+        dialog.beforeShow();
 
         assert.isTrue(stubContainer.classList.add.calledWith('add-mode'));
-        assert.strictEqual(panel._oldWord, undefined);
+        assert.strictEqual(dialog._oldWord, undefined);
       });
     });
 
     test('show', function() {
       stubInput.focus = this.sinon.spy();
 
-      panel.show();
+      dialog.show();
 
-      assert.isTrue(stubHeader.addEventListener.calledWith('action', panel));
+      assert.isTrue(stubHeader.addEventListener.calledWith('action', dialog));
       assert.isTrue(
-        stubSaveWordBtn.addEventListener.calledWith('click', panel));
-      assert.isTrue(stubInput.addEventListener.calledWith('keydown', panel));
-      assert.isTrue(stubDeleteBtn.addEventListener.calledWith('click', panel));
+        stubSaveWordBtn.addEventListener.calledWith('click', dialog));
+      assert.isTrue(stubInput.addEventListener.calledWith('keydown', dialog));
+      assert.isTrue(stubDeleteBtn.addEventListener.calledWith('click', dialog));
       assert.isTrue(
-        stubDialogCancelBtn.addEventListener.calledWith('click', panel));
+        stubDialogCancelBtn.addEventListener.calledWith('click', dialog));
       assert.isTrue(
-        stubDialogDeleteBtn.addEventListener.calledWith('click', panel));
+        stubDialogDeleteBtn.addEventListener.calledWith('click', dialog));
 
       assert.isTrue(stubInput.focus.called);
     });
 
     test('beforeHide', function() {
-      panel.beforeHide();
+      dialog.beforeHide();
 
-      assert.isTrue(stubHeader.removeEventListener.calledWith('action', panel));
       assert.isTrue(
-        stubSaveWordBtn.removeEventListener.calledWith('click', panel));
-      assert.isTrue(stubInput.removeEventListener.calledWith('keydown', panel));
+        stubHeader.removeEventListener.calledWith('action', dialog));
       assert.isTrue(
-        stubDeleteBtn.removeEventListener.calledWith('click', panel));
+        stubSaveWordBtn.removeEventListener.calledWith('click', dialog));
       assert.isTrue(
-        stubDialogCancelBtn.removeEventListener.calledWith('click', panel));
+        stubInput.removeEventListener.calledWith('keydown', dialog));
       assert.isTrue(
-        stubDialogDeleteBtn.removeEventListener.calledWith('click', panel));
+        stubDeleteBtn.removeEventListener.calledWith('click', dialog));
+      assert.isTrue(
+        stubDialogCancelBtn.removeEventListener.calledWith('click', dialog));
+      assert.isTrue(
+        stubDialogDeleteBtn.removeEventListener.calledWith('click', dialog));
     });
 
     test('hide', function() {
-      panel.hide();
+      dialog.hide();
 
-      assert.strictEqual(panel._inputField.value, '');
-      assert.strictEqual(panel._oldWord, undefined);
+      assert.strictEqual(dialog._inputField.value, '');
+      assert.strictEqual(dialog._oldWord, undefined);
     });
   });
 
@@ -141,7 +143,7 @@ suite('UserDictionary Edit Panel', function() {
     var stubDeleteDialog;
 
     setup(function() {
-      panel.onsubmit = this.sinon.spy();
+      dialog.onsubmit = this.sinon.spy();
 
       stubDeleteDialog = {
         setAttribute: this.sinon.spy(),
@@ -153,31 +155,31 @@ suite('UserDictionary Edit Panel', function() {
     });
 
     test('action -> cancel', function() {
-      panel.handleEvent({type: 'action'});
+      dialog.handleEvent({type: 'action'});
 
-      assert.isTrue(panel.onsubmit.calledWith({action: 'cancel'}));
+      assert.isTrue(dialog.onsubmit.calledWith({action: 'cancel'}));
     });
 
     test('enter key -> submit', function() {
       stubInput.value = 'star';
       stubInput.blur = this.sinon.spy();
-      panel.handleEvent({type: 'keydown', keyCode: KeyEvent.DOM_VK_RETURN});
+      dialog.handleEvent({type: 'keydown', keyCode: KeyEvent.DOM_VK_RETURN});
 
       assert.isTrue(stubInput.blur.called);
       assert.isTrue(
-        panel.onsubmit.calledWith({action: 'commit', word: 'star'}));
+        dialog.onsubmit.calledWith({action: 'commit', word: 'star'}));
     });
 
     test('save button -> submit', function() {
       stubInput.value = 'star';
-      panel.handleEvent({type: 'click', target: {id: 'ud-saveword-btn'}});
+      dialog.handleEvent({type: 'click', target: {id: 'ud-saveword-btn'}});
 
       assert.isTrue(
-        panel.onsubmit.calledWith({action: 'commit', word: 'star'}));
+        dialog.onsubmit.calledWith({action: 'commit', word: 'star'}));
     });
 
     test('delete button -> show dialog', function() {
-      panel._oldWord = 'oldstar';
+      dialog._oldWord = 'oldstar';
 
       var oldMozL10n = navigator.mozL10n;
       navigator.mozL10n = {
@@ -187,7 +189,7 @@ suite('UserDictionary Edit Panel', function() {
       stubContainer.querySelector
         .withArgs('#ud-editword-delete-prompt').returns('dummy-delete');
 
-      panel.handleEvent({
+      dialog.handleEvent({
         type: 'click',
         target: {id: 'ud-editword-delete-btn'}
       });
@@ -204,25 +206,25 @@ suite('UserDictionary Edit Panel', function() {
     });
 
     test('dialog delete button -> delete & hide dialog', function() {
-      panel.handleEvent({
+      dialog.handleEvent({
         type: 'click',
         target: {id: 'ud-editword-dialog-delete-btn'}
       });
 
       assert.isTrue(
-        panel.onsubmit.calledWith({action: 'remove'}));
+        dialog.onsubmit.calledWith({action: 'remove'}));
 
       assert.isTrue(stubDeleteDialog.setAttribute.calledWith('hidden', true));
     });
 
     test('dialog cancel button -> hide dialog', function() {
-      panel.handleEvent({
+      dialog.handleEvent({
         type: 'click',
         target: {id: 'ud-editword-dialog-cancel-btn'}
       });
 
       assert.isFalse(
-        panel.onsubmit.calledWith({action: 'remove'}));
+        dialog.onsubmit.calledWith({action: 'remove'}));
 
       assert.isTrue(stubDeleteDialog.setAttribute.calledWith('hidden', true));
     });
