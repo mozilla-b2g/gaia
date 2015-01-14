@@ -283,28 +283,30 @@ Utils.extend(AlarmEdit.prototype, {
   },
 
   save: function aev_save(callback) {
+    var alarm = this.alarm;
+
     if (this.element.dataset.id && this.element.dataset.id !== '') {
-      this.alarm.id = parseInt(this.element.dataset.id, 10);
+      alarm.id = parseInt(this.element.dataset.id, 10);
     } else {
-      delete this.alarm.id;
+      delete alarm.id;
     }
 
-    this.alarm.label = this.inputs.name.value;
+    alarm.label = this.inputs.name.value;
 
     var time = this.getTimeSelect();
-    this.alarm.hour = time.hour;
-    this.alarm.minute = time.minute;
-    this.alarm.repeat = this.buttons.repeat.value;
-    this.alarm.sound = this.getSoundSelect();
-    this.alarm.vibrate = this.checkboxes.vibrate.checked;
-    this.alarm.snooze = parseInt(this.getSnoozeSelect(), 10);
+    alarm.hour = time.hour;
+    alarm.minute = time.minute;
+    alarm.repeat = this.buttons.repeat.value;
+    alarm.sound = this.getSoundSelect();
+    alarm.vibrate = this.checkboxes.vibrate.checked;
+    alarm.snooze = parseInt(this.getSnoozeSelect(), 10);
     AudioManager.setAlarmVolume(this.getAlarmVolumeValue());
 
-    this.alarm.schedule('normal').then(() => {
+    alarm.schedule('normal').then(() => {
       window.dispatchEvent(new CustomEvent('alarm-changed', {
-        detail: { alarm: this.alarm, showBanner: true }
+        detail: { alarm: alarm, showBanner: true }
       }));
-      callback && callback(null, this.alarm);
+      callback && callback(null, alarm);
     });
   },
 
