@@ -1,6 +1,8 @@
+/* global Process */
 /* global SettingSource */
 /* global LockScreenBasicState */
 /* global LockScreenConnectionStatesWidgetAirplaneMode */
+/* global LockScreenConnectionStatesWidgetEmergencyCallsOnly */
 'use strict';
 
 /***/
@@ -27,7 +29,16 @@
     // so if the radio get off, it would automatically be handled and
     // transfer to AirplaneMode.
     return LockScreenBasicState.prototype.start.call(this)
-      .next(this.dispatchToNext.bind(this));
+      .next(this.components.fetchEmergencyCallsOnlyStatus.bind(this))
+      .next((statuz) => {
+        if (statuz.modeon) {
+          this.transferTo(LockScreenConnectionStatesWidgetEmergencyCallsOnly);
+        }
+        // Otherwise, stay at this state and start the SIM components.
+        // Start the components allow them to display and update the
+        // individual SIM status while it's changed.
+      })
+      .next(this.startSIMs.bind(this));
   };
 
   LockScreenConnectionStatesWidgetRadioOn.prototype.handleEvent =
@@ -37,16 +48,18 @@
     }
   };
 
-  LockScreenConnectionStatesWidgetRadioOn.prototype.dispatchToNext =
+  LockScreenConnectionStatesWidgetRadioOn.prototype.startSIMs =
   function() {
-    return this.component.fetchSIMs().then((sims) => {
-      if (null === sims) {
-        this.transferTo(LockScreenConnectionStatesWidgetNoSIMs);
-      } else {
-        this.resources.sims = sims;
-      }
-    })
-    .then(this.components.fetchEmergencyCallsOnlyStatus.bind(this))
+    // To wait all SIMs get started.
+    // Process.wait ~= Promise.all, except it waits steps in Process.
+    return Process.wait(Object.keys(this.component._subcomponents.sims)
+      .map((simName) => {
+        // Need give it the SIM slot object from SIMSlotManager.
+        // Process could 'wait' other Processes at one step.
+        return this.component._subcomponent.sims[simName]
+          .start(this.resources.sims[simName])
+          .process;
+      }));
   };
 
   exports.LockScreenConnectionStateWidgetRadioOn =

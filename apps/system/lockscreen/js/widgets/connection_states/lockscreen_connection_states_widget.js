@@ -5,18 +5,11 @@
 /**
  * There are two classes of States:
  *
- * Network: AirplainMode, RadioOn, NoSIMs, NoNetwork, Searching, Connected
+ * Network: AirplainMode, RadioOn, EmergencyCallsOnly
  * [SIM]  : (Setup: would update info when the updating event comes)
  *
- * Network states would take the whole board to update the message, while
- * SIM states would only care it's own line. This is to prevent to manage SIM
- * and network changes at one group of states, which may be too complicated
- * and need too much states.
- *
- * As other components, to split the complicated if...else to multiple states
- * with transferring rules is the most important thing. So no matter how tiny
- * or transient these states may be, if to create a new state could eliminate
- * the depth of conditional statements, it's always worth.
+ * Network states means it occurs all lines on the connection states element.
+ * So when we transfer to such state, it would stop the SIM widgets.
  *
  * For SIMs the constructor would be instantiated as components, and each one
  * would update its message when the event comes. There is no need to create
@@ -26,7 +19,24 @@
 (function(exports) {
   var LockScreenConnectionStatesWidget = function() {
     LockScreenBasicComponent.apply(this);
-    this.properties.emergencyCallMessageMap = {
+    this._subcomponents = {
+      sims: {}
+    };
+
+    // null, {simone: SIM one}, {simtwo: SIM two}, {simone, simetwo}
+    this.resources.sims = null;
+    // @see fetchVoiceStatus
+    this.resources.airplaneMode = false;
+    this.resources.elements = {
+      simone: 'lockscreen-conn-states-simone',
+      simtwo: 'lockscreen-conn-states-simtwo',
+      simoneline: 'lockscreen-conn-states-simoneline',
+      simtwoline: 'lockscreen-conn-states-simtwoline',
+      simeoneid:  'lockscreen-conn-states-simeoneid',
+      simetwoid:  'lockscreen-conn-states-simetwoid'
+    };
+  };
+  LockScreenConnectionStatesWidget.EMERGENCY_CALL_MESSAGE_MAP = {
       'unknown': 'emergencyCallsOnly-unknownSIMState',
       'pinRequired': 'emergencyCallsOnly-pinRequired',
       'pukRequired': 'emergencyCallsOnly-pukRequired',
@@ -39,19 +49,6 @@
       'ruimCorporateLocked' : 'emergencyCallsOnly-ruimCorporateLocked',
       'ruimServiceProviderLocked':'emergencyCallsOnly-ruimServiceProviderLocked'
     };
-    // null, {simone: SIM one}, {simtwo: SIM two}, {simone, simetwo}
-    this.resources.sims = null;
-    // @see fetchVoiceStatus
-    this.resources.voiceStatus = null;
-    this.resources.airplaneMode = false;
-    this.resources.telephonyDefaultServiceId = null;
-    this.resources.elements = {
-      simoneline: 'lockscreen-conn-states-simoneline',
-      simtwoline: 'lockscreen-conn-states-simtwoline',
-      simeoneid:  'lockscreen-conn-states-simeoneid',
-      simetwoid:  'lockscreen-conn-states-simetwoid'
-    };
-  };
   LockScreenConnectionStatesWidget.prototype =
     Object.create(LockScreenBasicComponent.prototype);
 
@@ -76,20 +73,6 @@
       request.onsuccess = () => {
         this.resources.airplaneMode = !!request.result;
         resolve(!!request.result);
-      };
-      request.onerror = reject;
-    });
-  };
-
-  /* TODO: methods like this should be cached via SettingsCache. */
-  LockScreenConnectionStatesWidget.prototype.fetchTelephonlyServiceId =
-  function() {
-    return new Promise((resolve, reject) => {
-      var lock = navigator.mozSettings.createLock();
-      var request = lock.get('ril.telephony.defaultServiceId');
-      request.onsuccess = () => {
-        this.resources.telephonyDefaultServiceId = request.result;
-        resolve(request.result);
       };
       request.onerror = reject;
     });
@@ -146,42 +129,44 @@
    * {
    *    modeon: true | false,
    *    reason: the reason of why it's emergency calls only.
-   *            @see this.properties.emergencyCallsOnlyMessages
+   *            @see LockScreenConnectionStatesWidget.EMERGENCY_CALL_MESSAGE_MAP
    * }
    *
    * This result would be set as 'this.resources.emergencyCallsOnly'
    */
   LockScreenConnectionStatesWidget.prototype.fetchEmergencyCallsOnlyStatus =
   function() {
-    this.resources.emergencyCallsOnly = {
-      'modeon': false,
-      'reason': null
-    };
-    var results = this.resources.emergencyCallsOnly;
-    if (SIMSlotManager.noSIMCardOnDevice()) {
-      results.modeon = true;
-      results.reason = 'emergencyCallsOnly-noSIM';
-      return results;
-    }
+    return this.fetchSIMs().then(() => {
+      this.resources.emergencyCallsOnly = {
+        'modeon': false,
+        'reason': null
+      };
+      var results = this.resources.emergencyCallsOnly;
+      if (SIMSlotManager.noSIMCardOnDevice()) {
+        results.modeon = true;
+        results.reason = 'emergencyCallsOnly-noSIM';
+        return results;
+      }
 
-    // If both SIMs are emergency calls only and
-    // not connected.
-    if (SIMSlotManager.noSIMCardConnectedToNetwork()) {
-      results.modeon = true;
-      results.reason = '';
-      return results;
-    }
+      // If both SIMs are emergency calls only and
+      // not connected.
+      if (SIMSlotManager.noSIMCardConnectedToNetwork()) {
+        results.modeon = true;
+        results.reason = '';
+        return results;
+      }
 
-    var sims = this.resources.sims;
-    var simonevoice = (sims.simone) ? sims.simone.voice : null;
-    var simtwovoice = (sims.simtwo) ? sims.simtwo.voice : null;
+      var sims = this.resources.sims;
+      var simonevoice = (sims.simone) ? sims.simone.voice : null;
+      var simtwovoice = (sims.simtwo) ? sims.simtwo.voice : null;
 
-    if (simonevoice && simonevoice.emergencyCallsOnly &&
-        simtwovoice && simtwovoice.emergencyCallsOnly) {
-      results.modeon = true;
-      results.reason = sims.simone.simCard.cardState;
-      return results;
-    }
+      if (simonevoice && simonevoice.emergencyCallsOnly &&
+          simtwovoice && simtwovoice.emergencyCallsOnly) {
+        results.modeon = true;
+        results.reason = sims.simone.simCard.cardState;
+        return results;
+      }
+    });
   };
 
   exports.LockScreenConnectionStatesWidget = LockScreenConnectionStatesWidget;

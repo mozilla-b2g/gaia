@@ -223,6 +223,12 @@
     return result;
   };
 
+  /* Static version for mimicking Promise.all */
+  Process.wait = function(steps) {
+    var process = new Process();
+    return process.wait(steps);
+  };
+
   Process.InterruptError = function(message) {
     this.name = 'InterruptError';
     this.message = message || '';
