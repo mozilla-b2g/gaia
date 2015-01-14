@@ -6575,6 +6575,20 @@ suite('thread_ui.js >', function() {
         sinon.assert.calledWith(Utils.closeNotificationsForThread, threadId);
       });
 
+      test('focuses Composer only if requested', function() {
+        this.sinon.spy(Compose, 'focus');
+
+        ThreadUI.afterEnter(transitionArgs);
+
+        sinon.assert.notCalled(Compose.focus);
+
+        ThreadUI.afterEnter(
+          Object.assign({ focusComposer: true }, transitionArgs)
+        );
+
+        sinon.assert.calledOnce(Compose.focus);
+      });
+
       suite('entering from composer', function() {
         setup(function() {
           Compose.on.reset();
