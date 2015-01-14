@@ -406,6 +406,7 @@ div#fav-list-container div.fav-list-frequency::after {
   display: block;
 }
 
+
 @keyframes spinner-animation {
   from {
     transform: rotate(1deg);
@@ -504,3 +505,19 @@ a#frequency-op-seekup:active {
 }
 /******* end *******/
 
+/*** style for RTL languages ******/
+html[dir="rtl"] #power-switch[data-enabling="true"] span,
+html[dir="rtl"] #power-switch[data-seeking="true"] span {
+  animation-name: spinner-animation-rtl;
+}
+
+@keyframes spinner-animation-rtl {
+  from {
+    transform: scaleX(-1) rotate(1deg);
+  }
+  to {
+    transform: scaleX(-1) rotate(360deg);
+  }
+}
+
+/******* end *******/
