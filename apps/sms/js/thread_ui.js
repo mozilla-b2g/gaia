@@ -223,8 +223,6 @@ var ThreadUI = {
       return tmpls;
     }, {});
 
-    this.initRecipients();
-
     Compose.init('messages-compose-form');
 
     // In case of input, we have to resize the input following UX Specs.
@@ -647,7 +645,9 @@ var ThreadUI = {
     if (!Navigation.isCurrentPanel('composer')) {
       this.threadMessages.classList.remove('new');
 
-      this.recipients.length = 0;
+      if (this.recipients) {
+        this.recipients.length = 0;
+      }
 
       this.toggleRecipientSuggestions();
     }

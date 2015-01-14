@@ -286,6 +286,7 @@ suite('thread_ui.js >', function() {
       Navigation.isCurrentPanel.withArgs('composer').returns(true);
 
       Compose.clear();
+      ThreadUI.initRecipients();
       ThreadUI.recipients.length = 0;
       ThreadUI.recipients.inputValue = '';
     });
@@ -913,6 +914,7 @@ suite('thread_ui.js >', function() {
   suite('Recipient Assimiliation', function() {
     setup(function() {
       this.sinon.spy(ThreadUI, 'validateContact');
+      ThreadUI.initRecipients();
       this.sinon.spy(ThreadUI.recipients, 'add');
       this.sinon.spy(ThreadUI.recipients, 'remove');
       this.sinon.spy(ThreadUI.recipients, 'update');
@@ -4389,6 +4391,7 @@ suite('thread_ui.js >', function() {
       Navigation.isCurrentPanel.withArgs('composer').returns(true);
 
       this.sinon.spy(Navigation, 'toPanel');
+      ThreadUI.initRecipients();
     });
 
     test('SMS, 1 Recipient, moves to thread', function() {
@@ -4713,6 +4716,7 @@ suite('thread_ui.js >', function() {
   suite('Contact Picker Behavior(contactPickButton)', function() {
     setup(function() {
       this.sinon.spy(ThreadUI, 'assimilateRecipients');
+      ThreadUI.initRecipients();
     });
     teardown(function() {
       Recipients.View.isFocusable = true;
@@ -4788,6 +4792,7 @@ suite('thread_ui.js >', function() {
 
       onRecipientsChange = sinon.stub();
       ThreadUI.on('recipientschange', onRecipientsChange);
+      ThreadUI.initRecipients();
     });
 
     function testPickButtonEnabled() {
@@ -4906,6 +4911,7 @@ suite('thread_ui.js >', function() {
       updateSpy = this.sinon.spy(ThreadListUI, 'updateThread');
       bannerSpy = this.sinon.spy(ThreadListUI, 'onDraftSaved');
 
+      ThreadUI.initRecipients();
       ThreadUI.recipients.add({
         number: '999'
       });
@@ -5064,7 +5070,7 @@ suite('thread_ui.js >', function() {
     });
 
     setup(function() {
-      this.sinon.spy(ThreadUI, 'saveDraft');
+      this.sinon.stub(ThreadUI, 'saveDraft');
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
     });
 
@@ -5079,6 +5085,7 @@ suite('thread_ui.js >', function() {
 
       test('new: has message', function() {
         Navigation.isCurrentPanel.withArgs('composer').returns(true);
+        ThreadUI.initRecipients();
 
         isDocumentHidden = true;
 
@@ -5093,6 +5100,7 @@ suite('thread_ui.js >', function() {
 
       test('new: has message, has recipients', function() {
         Navigation.isCurrentPanel.withArgs('composer').returns(true);
+        ThreadUI.initRecipients();
 
         ThreadUI.recipients.length = 1;
         isDocumentHidden = true;
@@ -5125,6 +5133,7 @@ suite('thread_ui.js >', function() {
       test('new: has message, no recipients', function() {
         Navigation.isCurrentPanel.withArgs('composer').returns(true);
         this.sinon.stub(Compose, 'isEmpty').returns(false);
+        ThreadUI.initRecipients();
 
         ThreadUI.recipients.length = 0;
         isDocumentHidden = true;
@@ -5141,6 +5150,7 @@ suite('thread_ui.js >', function() {
       test('new: no message, has recipients', function() {
         Navigation.isCurrentPanel.withArgs('composer').returns(true);
         this.sinon.stub(Compose, 'isEmpty').returns(true);
+        ThreadUI.initRecipients();
 
         ThreadUI.recipients.length = 1;
         isDocumentHidden = true;
@@ -5158,6 +5168,7 @@ suite('thread_ui.js >', function() {
     suite('Draft not saved: content or recipients do not exist', function() {
       setup(function() {
         this.sinon.stub(Compose, 'isEmpty').returns(true);
+        ThreadUI.initRecipients();
         ThreadUI.recipients.length = 0;
       });
 
@@ -5217,6 +5228,7 @@ suite('thread_ui.js >', function() {
         this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
         Navigation.isCurrentPanel.withArgs('composer').returns(true);
 
+        ThreadUI.initRecipients();
         ThreadUI.recipients.add({
           number: '999'
         });
@@ -5322,6 +5334,7 @@ suite('thread_ui.js >', function() {
         suite('If draft edited', function() {
 
           setup(function() {
+            ThreadUI.initRecipients();
             ThreadUI.recipients.add({
               number: '999'
             });
@@ -5431,6 +5444,8 @@ suite('thread_ui.js >', function() {
     test('Call ActivityHandler.leaveActivity', function(done) {
       this.sinon.stub(ActivityHandler, 'leaveActivity');
       this.sinon.stub(ThreadUI, 'cleanFields');
+      ThreadUI.initRecipients();
+
       ThreadUI.close().then(function() {
         sinon.assert.called(ThreadUI.cleanFields);
         sinon.assert.called(ActivityHandler.leaveActivity);
@@ -5736,6 +5751,7 @@ suite('thread_ui.js >', function() {
         threadId: 1234,
         recipients: []
       });
+      ThreadUI.initRecipients();
       this.sinon.spy(Compose, 'fromDraft');
       this.sinon.stub(Compose, 'focus');
       this.sinon.stub(Drafts, 'delete').returns(Drafts);
@@ -5780,6 +5796,7 @@ suite('thread_ui.js >', function() {
 
   suite('handleActivity() >', function() {
     setup(function() {
+      ThreadUI.initRecipients();
       this.sinon.stub(Compose, 'fromDraft');
       this.sinon.stub(Compose, 'fromMessage');
       this.sinon.stub(Compose, 'focus');
@@ -5856,6 +5873,7 @@ suite('thread_ui.js >', function() {
   suite('handleForward() >', function() {
     var message;
     setup(function() {
+      ThreadUI.initRecipients();
       this.sinon.spy(Compose, 'fromMessage');
       this.sinon.stub(ThreadUI.recipients, 'focus');
       this.sinon.stub(MessageManager, 'getMessage', function(id) {
@@ -5984,13 +6002,14 @@ suite('thread_ui.js >', function() {
 
   suite('afterLeave()', function() {
     setup(function() {
-       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
     });
 
     test('properly clean the composer when moving back to thread list',
     function() {
       Navigation.isCurrentPanel.withArgs('thread-list').returns(true);
       Compose.append('some stuff');
+      ThreadUI.initRecipients();
       ThreadUI.recipients.add({
         number: '999'
       });
@@ -6008,7 +6027,7 @@ suite('thread_ui.js >', function() {
       // automatically navigated to the thread panel and composer fields are
       // cleaned in the sendMessage, so afterLeave isn't supposed to clean it.
       Navigation.isCurrentPanel.withArgs('thread').returns(true);
-
+      ThreadUI.initRecipients();
       ThreadUI.recipients.add({
         number: '999'
       });
@@ -6138,6 +6157,7 @@ suite('thread_ui.js >', function() {
 
       suite('composer-specific tests', function() {
         setup(function() {
+          ThreadUI.initRecipients();
           this.sinon.spy(ThreadUI, 'cleanFields');
           this.sinon.spy(ThreadUI.recipients, 'focus');
 
@@ -6175,6 +6195,7 @@ suite('thread_ui.js >', function() {
 
     suite('afterEnter()', function() {
       setup(function() {
+        ThreadUI.initRecipients();
         Navigation.isCurrentPanel.withArgs('composer').returns(true);
         this.sinon.stub(ThreadUI.recipients, 'focus');
 
@@ -6524,9 +6545,9 @@ suite('thread_ui.js >', function() {
       setup(function() {
         this.sinon.stub(Recipients.prototype, 'on');
 
-        ThreadUI.recipients = null;
-
         ThreadUI.init();
+
+        ThreadUI.initRecipients();
       });
 
       test('multiline-recipients mode is turned off by default', function() {

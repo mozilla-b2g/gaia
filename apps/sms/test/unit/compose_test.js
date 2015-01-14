@@ -144,6 +144,26 @@ suite('compose_test.js', function() {
     this.sinon.clock.tick(UPDATE_DELAY);
   });
 
+  suite('Compose init without recipients', function() {
+    var mockRecipients;
+
+    setup(function() {
+      this.sinon.stub(ThreadUI, 'on');
+      loadBodyHTML('/index.html');
+      mockRecipients = ThreadUI.recipients;
+      Settings.supportEmailRecipient = true;
+      ThreadUI.recipients = null;
+    });
+
+    teardown(function() {
+      ThreadUI.recipients = mockRecipients;
+    });
+
+    test('Should be initializable without recipients', function() {
+      assert.ok(Compose.init('messages-compose-form'));
+    });
+  });
+
   suite('Message Composition', function() {
     var message, sendButton, attachButton, form;
 
