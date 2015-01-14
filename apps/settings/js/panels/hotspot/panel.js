@@ -108,7 +108,8 @@ define(function(require) {
 
       _setHotspotSettingsEnabled: function(enabled) {
         // disable the setting button when internet sharing is enabled
-        elements.hotspotSettingBtn.disabled = enabled;
+        elements.hotspotSettingBtn.parentNode.setAttribute('aria-disabled',
+          enabled);
         elements.hotspotElement.checked = enabled;
       },
 
