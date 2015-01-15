@@ -196,6 +196,9 @@
     "te": [
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
+    "th": [
+        {"layoutId": "th", "app": ["apps", "keyboard"]}
+    ],
     "tr": [
         {"layoutId": "tr-Q", "app": ["apps", "keyboard"]},
         {"layoutId": "tr-F", "app": ["apps", "keyboard"]}
