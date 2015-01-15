@@ -98,7 +98,7 @@ var SimplePhoneMatcher = {
     };
   },
 
-  _formattingChars: ['\s', '-', '.', '(', ')'],
+  _formattingChars: ['\\s', '-', '.', '(', ')'],
 
   _mccWith00Prefix: ['208', '214', '234', '235', '724'],
   _mccWith011Prefix: ['310', '311', '312', '313', '314', '315', '316'],
@@ -423,26 +423,26 @@ var SimplePhoneMatcher = {
     var trunk0Join = prefixesWithTrunk0.join('|');
     var trunk0Regexp = new RegExp('^\\+(' + trunk0Join + ')');
     this._internationalPrefixes(number).some(function match(variant) {
-      var match = variant.match(trunk0Regexp);
+      var matches = variant.match(trunk0Regexp);
 
-      if (match) {
+      if (matches) {
         variants.push(variant.replace(trunk0Regexp, '0'));
         variants.push(variant.replace(trunk0Regexp, ''));
       }
 
-      return match;
+      return matches;
     });
 
     var noTrunkJoin = prefixesWithNoTrunk.join('|');
     var noTrunkRegexp = new RegExp('^\\+(' + noTrunkJoin + ')');
     this._internationalPrefixes(number).some(function match(variant) {
-      var match = variant.match(noTrunkRegexp);
+      var matches = variant.match(noTrunkRegexp);
 
-      if (match) {
+      if (matches) {
         variants.push(variant.replace(noTrunkRegexp, ''));
       }
 
-      return match;
+      return matches;
     });
 
     // If the number has a trunk prefix already we need a variant without it
@@ -461,14 +461,14 @@ var SimplePhoneMatcher = {
       var re = new RegExp('^\\+' + country);
 
       this._internationalPrefixes(number).some(function match(variant) {
-        var match = variant.match(re);
+        var matches = variant.match(re);
 
-        if (match) {
+        if (matches) {
           var afterArea = 1 + country.length + this._areaCodeSwipe[country];
           variants.push(variant.substring(afterArea));
         }
 
-        return match;
+        return matches;
       }, this);
     }, this);
 
@@ -494,4 +494,3 @@ var SimplePhoneMatcher = {
     return variants;
   }
 };
-

@@ -78,8 +78,9 @@ var BlobView = (function() {
     getMore: function(offset, length, callback) {
       // If we made this BlobView from an array buffer, there's no blob backing
       // it, and so it's impossible to get more data.
-      if (!this.blob)
+      if (!this.blob) {
         fail('no blob backing this BlobView');
+      }
 
       if (offset >= this.sliceOffset &&
           offset + length <= this.sliceOffset + this.sliceLength) {
@@ -283,7 +284,7 @@ var BlobView = (function() {
 
       // See http://en.wikipedia.org/wiki/UTF-8
       while (pos < end) {
-        var b1 = this.view.getUint8(pos);
+        b1 = this.view.getUint8(pos);
         if (b1 < 128) {
           s += String.fromCharCode(b1);
           pos += 1;
@@ -379,16 +380,19 @@ var BlobView = (function() {
         var BOM = this.getUint16(offset);
         len -= 2;
         offset += 2;
-        if (BOM === 0xFEFF)
+        if (BOM === 0xFEFF) {
           le = false;
-        else
+        }
+        else {
           le = true;
+        }
       }
 
       // We need to support unaligned reads, so we can't use a Uint16Array here.
       var s = '';
-      for (var i = 0; i < len; i += 2)
+      for (var i = 0; i < len; i += 2) {
         s += String.fromCharCode(this.getUint16(offset + i, le));
+      }
       return s;
     },
 

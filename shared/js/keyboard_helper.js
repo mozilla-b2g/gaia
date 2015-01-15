@@ -1,4 +1,5 @@
 'use strict';
+/* global ManifestHelper */
 
 /**
  * Helper object to find all installed keyboard apps and layouts.
@@ -215,8 +216,9 @@ function kh_parseEnabled() {
         oldSettings.forEach(function(layout) {
           if (layout.enabled) {
             var manifestURL = layout.manifestURL;
-            if (!manifestURL)
+            if (!manifestURL) {
               manifestURL = layout.appOrigin + '/manifest.webapp';
+            }
             map2dSet.call(currentSettings.enabledLayouts, manifestURL,
               layout.layoutId);
           }
@@ -244,10 +246,11 @@ function kh_parseEnabled() {
  * layouts.
  */
 function kh_migrateDeprecatedSettings(deprecatedSettings) {
-  var settingEntry = DEPRECATE_KEYBOARD_SETTINGS['en'];
+  var settingEntry = DEPRECATE_KEYBOARD_SETTINGS.en;
+  var key;
 
   // No need to do migration if the deprecated settings are not available
-  if (deprecatedSettings[settingEntry] == undefined) {
+  if (deprecatedSettings[settingEntry] === undefined) {
     return;
   }
 
@@ -257,17 +260,22 @@ function kh_migrateDeprecatedSettings(deprecatedSettings) {
   };
 
   var hasEnabledLayout = false;
-  for (var key in DEPRECATE_KEYBOARD_SETTINGS) {
+
+  function enabledLayout() {
+    return (function enableLayout(layoutId) {
+      map2dSet.call(currentSettings.enabledLayouts,
+        defaultKeyboardManifestURL, layoutId);
+    });
+  }
+
+  for (key in DEPRECATE_KEYBOARD_SETTINGS) {
     settingEntry = DEPRECATE_KEYBOARD_SETTINGS[key];
     // this layout was set as enabled in the old settings
     if (deprecatedSettings[settingEntry]) {
       hasEnabledLayout = true;
 
       if (key in MULTI_LAYOUT_MAP) {
-        MULTI_LAYOUT_MAP[key].forEach(function enableLayout(layoutId) {
-          map2dSet.call(currentSettings.enabledLayouts,
-                        defaultKeyboardManifestURL, layoutId);
-        });
+        MULTI_LAYOUT_MAP[key].forEach(enabledLayout());
       } else {
         map2dSet.call(currentSettings.enabledLayouts,
                       defaultKeyboardManifestURL, key);
@@ -283,7 +291,7 @@ function kh_migrateDeprecatedSettings(deprecatedSettings) {
 
   // Clean up all the deprecated settings
   var deprecatedSettingsQuery = {};
-  for (var key in DEPRECATE_KEYBOARD_SETTINGS) {
+  for (key in DEPRECATE_KEYBOARD_SETTINGS) {
     // the deprecated setting entry, e.g. keyboard.layout.english
     settingEntry = DEPRECATE_KEYBOARD_SETTINGS[key];
 
@@ -299,8 +307,9 @@ function kh_migrateDeprecatedSettings(deprecatedSettings) {
  * JSON loader
  */
 function kh_loadJSON(href, callback) {
-  if (!callback)
+  if (!callback) {
     return;
+  }
   var xhr = new XMLHttpRequest();
   xhr.onerror = function() {
     console.error('Failed to fetch file: ' + href, xhr.statusText);
@@ -335,8 +344,9 @@ function kh_getMultiSettings(settings, callback) {
     // If settings is broken, just return the default values
     console.warn('Exception in mozSettings.createLock():', e,
                  '\nUsing default values');
-    for (var p in settings)
+    for (var p in settings) {
       results[p] = settings[p];
+    }
     callback(results);
   }
   var settingNames = Object.keys(settings);
@@ -348,8 +358,9 @@ function kh_getMultiSettings(settings, callback) {
   }
 
   function requestSetting(name) {
+    var request;
     try {
-      var request = lock.get(name);
+      request = lock.get(name);
     }
     catch (e) {
       console.warn('Exception querying setting', name, ':', e,
