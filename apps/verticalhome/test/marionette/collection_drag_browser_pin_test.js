@@ -1,12 +1,13 @@
 'use strict';
 
 var Collection = require('./lib/collection');
+var Home2 = require('./lib/home2');
 var EmeServer = require(
   '../../../../shared/test/integration/eme_server/parent');
 
 marionette('Vertical - Collection Browser', function() {
 
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client(Home2.clientOptions);
   var actions, collection, home, selectors, server, system;
 
   suiteSetup(function(done) {
