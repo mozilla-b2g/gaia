@@ -38,9 +38,9 @@ var OggMetadata = (function() {
    * @param {Metadata} metadata The (partially filled-in) metadata object.
    * @return {Promise} A Promise returning the parsed metadata object.
    */
-  function parse(blobview, metadata) {
+  function parse(blobview) {
     readIdentificationHeader(blobview);
-    return readCommentHeader(blobview, metadata);
+    return readCommentHeader(blobview);
   }
 
   /**
@@ -64,10 +64,10 @@ var OggMetadata = (function() {
    * Read the comment header of an Ogg container.
    *
    * @param {BlobView} page The audio file being parsed.
-   * @param {Metadata} metadata The (partially filled-in) metadata object.
    * @return {Promise} A Promise that resolves with the completed metadata.
    */
-  function readCommentHeader(page, metadata) {
+  function readCommentHeader(page) {
+    var metadata = {};
     var header = readPageHeader(page);
 
     var sum = function(a, b) { return a + b; };
@@ -144,33 +144,22 @@ var OggMetadata = (function() {
     page.advance(vendor_string_length); // skip libvorbis vendor string
 
     var num_comments = page.readUnsignedInt(true);
-    // |metadata| already has some of its values filled in (namely the title
-    // field). To make sure we overwrite the pre-filled metadata, but also
-    // append any repeated fields from the file, we keep track of the fields
-    // we've seen in the file separately.
-    var seen_fields = {};
     for (var i = 0; i < num_comments; i++) {
       try {
         var comment = readComment(page);
         if (comment) {
-          if (comment.field === 'picture' &&
-              !seen_fields.hasOwnProperty(comment.field)) {
+          if (!(comment.field in metadata)) {
             metadata[comment.field] = comment.value;
-            seen_fields[comment.field] = true;
-          } else if (seen_fields.hasOwnProperty(comment.field)) {
-            // If we already have a value, append this new one.
+          } else if (comment.field !== 'picture') {
+            // We already have a value, so append this new one.
             metadata[comment.field] += ' / ' + comment.value;
-          } else {
-            // Otherwise, just save the single value.
-            metadata[comment.field] = comment.value;
-            seen_fields[comment.field] = true;
           }
         }
       } catch (e) {
         if (e instanceof EndOfPageError) {
           return;
         }
-        console.warn('Error parsing ogg metadata frame', e);
+        console.warn('Error parsing vorbis comment', e);
       }
     }
   }

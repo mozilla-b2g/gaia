@@ -1,8 +1,9 @@
-/* global fetchBuffer, ForwardLock, parseMetadataBlob, MockLazyLoader,
-   MockGetDeviceStorage */
+/* global ForwardLockMetadata, fetchBuffer, ForwardLock, makeBlobView,
+   MockGetDeviceStorage, MockLazyLoader, pass, fail */
 'use strict';
 
 require('/test/unit/metadata/utils.js');
+require('/shared/test/unit/mocks/mock_navigator_getdevicestorage.js');
 require('/shared/js/omadrm/fl.js');
 require('/js/metadata/forward_lock.js');
 require('/js/metadata/id3v1.js');
@@ -18,7 +19,6 @@ suite('forwardlock files', function() {
   }
 
   setup(function(done) {
-    this.timeout(1000);
     RealLazyLoader = window.LazyLoader;
     window.LazyLoader = MockLazyLoader;
 
@@ -28,7 +28,7 @@ suite('forwardlock files', function() {
     RealForwardLockGetKey = ForwardLock.getKey;
     ForwardLock.getKey = mockGetKey.bind(this, secret);
 
-    require('/js/metadata_scripts.js', function() {
+    require('/js/metadata/core.js', function() {
       done();
     });
   });
@@ -41,12 +41,15 @@ suite('forwardlock files', function() {
 
   test('mp3 with id3v2 tag', function(done) {
     var vendorMetadata = {vendor: 'Songs for Cool Kids, Inc'};
-    fetchBuffer('/test-data/id3v2.4-simple-latin1.mp3').then(function(buffer) {
-      return ForwardLock.lockBuffer(
-        secret, buffer, 'audio/mpeg', vendorMetadata
-      );
-    }).then(parseMetadataBlob).then(function(metadata) {
-      done(function() {
+    fetchBuffer('/test-data/id3v2.4-simple-latin1.mp3')
+      .then(function(buffer) {
+        return ForwardLock.lockBuffer(
+          secret, buffer, 'audio/mpeg', vendorMetadata
+        );
+      })
+      .then(makeBlobView)
+      .then(ForwardLockMetadata.parse)
+      .then(function(metadata) {
         assert.strictEqual(metadata.locked, true);
         assert.strictEqual(metadata.vendor, vendorMetadata.vendor);
         assert.strictEqual(metadata.tag_format, 'id3v2.4.0');
@@ -57,44 +60,50 @@ suite('forwardlock files', function() {
         assert.strictEqual(metadata.trackcount, 9);
         assert.strictEqual(metadata.discnum, 1);
         assert.strictEqual(metadata.disccount, 1);
-      });
-    });
+      })
+      .then(pass(done), fail(done));
   });
 
   test('mp3 with no metadata', function(done) {
     var vendorMetadata = {vendor: 'Songs for Cool Kids, Inc',
                           name: 'The Song That Never Ends'};
-    fetchBuffer('/test-data/no-tag.mp3').then(function(buffer) {
-      return ForwardLock.lockBuffer(
-        secret, buffer, 'audio/mpeg', vendorMetadata
-      );
-    }).then(parseMetadataBlob).then(function(metadata) {
-      done(function() {
-        assert.strictEqual(metadata.locked, true);
-        assert.strictEqual(metadata.vendor, vendorMetadata.vendor);
-        assert.strictEqual(metadata.artist, '');
-        assert.strictEqual(metadata.album, '');
-        assert.strictEqual(metadata.title, vendorMetadata.name);
-      });
-    }).catch(done);
+    fetchBuffer('/test-data/no-tag.mp3')
+      .then(function(buffer) {
+        return ForwardLock.lockBuffer(
+          secret, buffer, 'audio/mpeg', vendorMetadata
+        );
+      })
+      .then(makeBlobView)
+      .then(ForwardLockMetadata.parse)
+      .then(function(metadata) {
+        done(function() {
+          assert.strictEqual(metadata.locked, true);
+          assert.strictEqual(metadata.vendor, vendorMetadata.vendor);
+          assert.strictEqual(metadata.artist, '');
+          assert.strictEqual(metadata.album, '');
+          assert.strictEqual(metadata.title, vendorMetadata.name);
+        });
+      }).catch(done);
   });
 
   test('decrypting forwardlock with no secret key', function(done) {
-    fetchBuffer('/test-data/id3v2.4-simple-latin1.mp3').then(function(buffer) {
-      return ForwardLock.lockBuffer(
-        secret, buffer, 'audio/mpeg', {vendor: 'vendor'}
-      );
-    }).then(function(blob) {
-      ForwardLock.getKey = mockGetKey.bind(this, null);
-      return blob;
-    }).catch(function(err) {
-      // Make sure we haven't hit an error yet...
-      done(new Error('failed to encrypt our test file'));
-    }).then(parseMetadataBlob).then(function(metadata) {
-      done(new Error('parsing should have failed, but succeeded somehow?'));
-    }).catch(function() {
-      done(null);
-    });
+    fetchBuffer('/test-data/id3v2.4-simple-latin1.mp3')
+      .then(function(buffer) {
+        return ForwardLock.lockBuffer(
+          secret, buffer, 'audio/mpeg', {vendor: 'vendor'}
+        );
+      })
+      .then(function(blob) {
+        ForwardLock.getKey = mockGetKey.bind(this, null);
+        return blob;
+      })
+      .catch(function(err) {
+        // Make sure we haven't hit an error yet...
+        done(new Error('failed to encrypt our test file'));
+      })
+      .then(makeBlobView)
+      .then(ForwardLockMetadata.parse)
+      .then(fail(done, 'parsing should have failed, but passed'), pass(done));
   });
 
 });

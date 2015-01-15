@@ -1,5 +1,5 @@
 /* exported PlayerView */
-/* global TitleBar, MusicComms, musicdb, ModeManager, App, AlbumArt,
+/* global TitleBar, MusicComms, musicdb, ModeManager, App, AlbumArtCache,
           AudioMetadata, ListView, ForwardLock, formatTime, MozActivity,
           asyncStorage, SETTINGS_OPTION_KEY, MODE_PLAYER */
 'use strict';
@@ -248,7 +248,7 @@ var PlayerView = {
     this.offscreenImage.src = '';
     this.coverImage.classList.remove('fadeIn');
 
-    AlbumArt.getCoverURL(fileinfo).then(function(url) {
+    AlbumArtCache.getCoverURL(fileinfo).then(function(url) {
       this.offscreenImage.addEventListener('load', pv_showImage.bind(this));
       this.offscreenImage.src = url;
     }.bind(this));
@@ -429,7 +429,7 @@ var PlayerView = {
     // picture. If .picture is null, something went wrong and listeners should
     // probably use a blank picture (or their own placeholder).
     if (this.audio.currentTime === 0) {
-      AlbumArt.getCoverBlob(fileinfo).then(function(blob) {
+      AlbumArtCache.getCoverBlob(fileinfo).then(function(blob) {
         notifyMetadata.picture = blob;
         MusicComms.notifyMetadataChanged(notifyMetadata);
       });
@@ -808,7 +808,7 @@ var PlayerView = {
     }
 
     musicdb.getFile(songData.name, function(file) {
-      AlbumArt.getCoverBlob(songData).then(function(pictureBlob) {
+      AlbumArtCache.getCoverBlob(songData).then(function(pictureBlob) {
         var filename = songData.name,
         name = filename.substring(filename.lastIndexOf('/') + 1);
 
