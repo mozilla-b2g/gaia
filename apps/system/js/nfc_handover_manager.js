@@ -206,6 +206,10 @@ var NfcHandoverManager = {
     window.addEventListener('nfc-transfer-started',
       this._transferStarted.bind(this)
     );
+
+    window.addEventListener('nfc-transfer-complete',
+      this._transferComplete.bind(this)
+    );
   },
 
   /**
@@ -376,7 +380,12 @@ var NfcHandoverManager = {
     }
     this._debug('Send blob to ' + mac);
     var blob = this.sendFileQueue[0].blob;
-    BluetoothTransfer.sendFileViaHandover(mac, blob);
+    window.dispatchEvent(new CustomEvent('bluetooth-handover-file',
+      {detail: {
+        mac: mac,
+        blob: blob
+      }}
+    ));
   },
 
   /**
@@ -675,10 +684,12 @@ var NfcHandoverManager = {
   /**
    * Tells NfcHandoverManager that a BT file transfer
    * has been completed.
-   * @param details succeeded True if file transfer was successfull.
+   * @param evt event object.
    * @memberof NfcHandoverManager.prototype
    */
-  transferComplete: function transferComplete(details) {
+  _transferComplete: function bt__transferComplete(evt) {
+    // succeeded True if file transfer was successfull.
+    var details = evt.detail;
     this._debug('transferComplete: ' + JSON.stringify(details));
     if (!details.received && details.viaHandover) {
       // Completed an outgoing send file request. Call onsuccess/onerror
