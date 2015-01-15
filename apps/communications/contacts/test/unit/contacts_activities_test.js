@@ -105,6 +105,23 @@ suite('Test Activities', function() {
       assert.equal(ActivityHandler._currentActivity, activity);
     });
 
+
+    test('Open text/vcard with allowSave', function() {
+      var activity = {
+        source: {
+          name: 'open',
+          data: {
+            type: ['text/vcard'],
+            allowSave: true
+          }
+        }
+      };
+      ActivityHandler.handle(activity);
+      assert.include(document.location.hash, 'view-contact-details');
+      assert.equal(ActivityHandler._currentActivity, activity);
+    });
+
+
     test('Update contact', function() {
       var activity = {
         source: {

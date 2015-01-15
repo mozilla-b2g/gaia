@@ -94,26 +94,41 @@ var Contacts = (function() {
       case 'view-contact-details':
         initContactsList();
         initDetails(function onInitDetails() {
-          if (params == -1 || !('id' in params)) {
+          // At this point, a parameter is required.
+          if (params == -1) {
             console.error('Param missing');
             return;
           }
-          var id = params.id;
-          cList.getContactById(id, function onSuccess(savedContact) {
-            currentContact = savedContact;
 
-            // Enable NFC listening is available
-            if ('mozNfc' in navigator) {
-              contacts.NFC.startListening(currentContact);
-            }
+          // If the parameter is an id, the corresponding contact is loaded
+          // from the device.
+          if ('id' in params) {
+            var id = params.id;
+            cList.getContactById(id, function onSuccess(savedContact) {
+              currentContact = savedContact;
 
-            contactsDetails.render(currentContact);
+              // Enable NFC listening is available
+              if ('mozNfc' in navigator) {
+                contacts.NFC.startListening(currentContact);
+              }
 
-            navigation.go(sectionId, 'right-left');
+              contactsDetails.render(currentContact);
+
+              navigation.go(sectionId, 'right-left');
+              showApp();
+            }, function onError() {
+              console.error('Error retrieving contact');
+            });
+          // If mozContactParam is true, we know there is a mozContact
+          // attached to the activity, so we render it using contacts details'
+          // read only mode. This is used when we receive an activity to open
+          // a given contact with allowSave set to false.
+          } else if (params.mozContactParam) {
+            var contact = ActivityHandler.mozContactParam;
+            contactsDetails.render(contact, null, true);
+            navigation.go(sectionId, 'activity-popup');
             showApp();
-          }, function onError() {
-            console.error('Error retrieving contact');
-          });
+          }
         });
         break;
       case 'view-contact-form':
