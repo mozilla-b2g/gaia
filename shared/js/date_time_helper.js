@@ -6,7 +6,7 @@
  *
  * "settings":{ "access": "readonly" }
  */
-(function(){
+(function() {
   'use strict';
   // not polyfill if API already exists
   if (window.navigator.mozHour12 || window.navigator.hour12) {return;}
@@ -14,12 +14,28 @@
   // mock mozHour12 onto window.navigator
   window.navigator.mozHour12 = null;
 
+  var _kLocaleTime = 'locale.hour12';
   // set hour12 and emit the locale change event if value changed
   var _setMozHour12 = function(result) {
     if (window.navigator.mozHour12 !== result) {
-      window.navigator.mozHour12 = result;
+      window.navigator.mozHour12 = keyMigration(result);
       // emit the locale change event
       window.dispatchEvent(new CustomEvent('timeformatchange'));
+    }
+  };
+
+  // Set key value when the key is not exist in system.
+  var keyMigration = function(result) {
+    // locale.hour12
+    if (result === undefined) {
+      var localeTimeFormat = navigator.mozL10n.get('shortTimeFormat');
+      var is12hFormat = (localeTimeFormat.indexOf('%I') >= 0);
+      var cset = {};
+      cset[_kLocaleTime] = is12hFormat;
+      window.navigator.mozSettings.createLock().set(cset);
+      return is12hFormat;
+    } else {
+      return result;
     }
   };
 
@@ -28,7 +44,6 @@
     _setMozHour12(event.settingValue);
   };
 
-  var _kLocaleTime = 'locale.hour12';
   // update mozHour12 to real value
   var req = window.navigator.mozSettings.createLock().get(_kLocaleTime);
   req.onsuccess = function() {
