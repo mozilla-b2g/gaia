@@ -42,8 +42,12 @@
           this.render();
         }
         break;
+      // After our forwarding hack this must happen on the SIM.
       case 'voicechange':
         this.render();
+        break;
+      case 'cellbroadcastmsgchanged':
+        this.renderCellbroadcastMessage(evt.detail);
         break;
     }
   };
@@ -81,6 +85,8 @@
 
     // Reset the line.
     this.eraseLabel(elements.line);
+
+    // Whether the ID should display.
     if (SIMSlotManager.isMultiSIM()) {
       elements.id.hidden = false;
       this.writeLabel(elements.id, 'lockscreen-sim-id',
@@ -121,20 +127,34 @@
       this.writeLabel(elements.line, 'searching');
       return;
     } else {
-      var operator = MobileOperator.userFacingInfo(sim.conn).operator;
-      if (sim.conn.voice.roaming) {
-        this.writeLabel(elements.line, 'roaming', { 'operator': operator });
+      // If it's connected (state === 'registered'), show the operator and
+      // other information.
+      // Write it as a method to avoid nasty nested if...else
+      this.renderNetworkConnected(elements, sim);
+    }
+  };
+
+  LockScreenConnectionStatesSIMWidgetSetup.prototype.
+  renderCellbroadcastMessage = function(message) {
+    this.writeLabel(this.component.resources.elements.line,
+        null, null, message);
+  };
+
+  LockScreenConnectionStatesSIMWidgetSetup.prototype.renderNetworkConnected =
+  function(elements, sim) {
+    var operator = MobileOperator.userFacingInfo(sim.conn).operator;
+    if (sim.conn.voice.roaming) {
+      this.writeLabel(elements.line, 'roaming', { 'operator': operator });
+    } else {
+      if (operator.carrier) {
+        // With carrier, use L10N tag to display the information.
+        this.writeLabel(elements.line, 'operator-info', {
+          'carrier': operator.carrier,
+          'region' : operator.region
+        });
       } else {
-        if (operator.carrier) {
-          // With carrier, use L10N tag to display the information.
-          this.writeLabel(elements.line, 'operator-info', {
-            'carrier': operator.carrier,
-            'region' : operator.region
-          });
-        } else {
-          // No carrier, just post the name of the operator.
-          this.writeLabel(elements.line, null, null, operator);
-        }
+        // No carrier. Just post the name of the operator.
+        this.writeLabel(elements.line, null, null, operator);
       }
     }
   };
