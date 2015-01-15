@@ -296,7 +296,8 @@ textarea,
   bottom: 0;
 }
 
-#screen:not(.crash-dialog) #crash-dialog {
+#screen:not(.crash-dialog) #crash-dialog,
+#screen:not(.trustedui) #trustedui-container {
   visibility: hidden;
 }
 

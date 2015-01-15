@@ -1,5 +1,5 @@
 'use strict';
-/* global applications, SettingsListener, HomescreenWindow, TrustedUIManager */
+/* global applications, SettingsListener, HomescreenWindow */
 (function(exports) {
   /**
    * HomescreenLauncher is responsible for launching the homescreen window
@@ -15,7 +15,6 @@
    * home.open(); // Do the open animation.
    *
    * @class HomescreenLauncher
-   * @requires module:TrustedUIManager
    * @requires module:Applications
    * @requires module:SettingsListener
    * @requires HomescreenWindow
@@ -130,8 +129,6 @@
         window.addEventListener('applicationready',
           this._onAppReady.bind(this));
       }
-      window.addEventListener('trusteduishow', this);
-      window.addEventListener('trusteduihide', this);
       window.addEventListener('appopening', this);
       window.addEventListener('appopened', this);
       window.addEventListener('keyboardchange', this);
@@ -157,8 +154,6 @@
       }
       this._currentManifestURL = '';
       window.removeEventListener('appopening', this);
-      window.removeEventListener('trusteduihide', this);
-      window.removeEventListener('trusteduishow', this);
       window.removeEventListener('applicationready', this._onAppReady);
       window.removeEventListener('shrinking-start', this);
       window.removeEventListener('shrinking-stop', this);
@@ -175,13 +170,6 @@
      */
     handleEvent: function hl_handleEvent(evt) {
       switch (evt.type) {
-        case 'trusteduishow':
-          this.getHomescreen(true).toggle(true);
-          this.getHomescreen(true).fadeIn();
-          break;
-        case 'trusteduihide':
-          this.getHomescreen().toggle(false);
-          break;
         case 'appopening':
           // Fade out homescreen if the opening app is landscape.
           if (evt.detail.rotatingDegree === 90 ||
@@ -190,10 +178,7 @@
           }
           break;
         case 'appopened':
-          // XXX: Remove the dependency in trustedUI rework.
-          if (!TrustedUIManager.hasTrustedUI(evt.detail.origin)) {
-            this.getHomescreen().fadeOut();
-          }
+          this.getHomescreen().fadeOut();
           break;
         case 'keyboardchange':
           // Fade out the homescreen, so that it won't be seen when showing/

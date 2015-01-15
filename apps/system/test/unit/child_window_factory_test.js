@@ -7,13 +7,14 @@ require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_popup_window.js');
 requireApp('system/test/unit/mock_activity_window.js');
+requireApp('system/test/unit/mock_trusted_window.js');
 requireApp('system/test/unit/mock_attention_window.js');
 requireApp('system/test/unit/mock_global_overlay_window.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_activity.js');
 
 var mocksForChildWindowFactory = new MocksHelper([
-  'MozActivity', 'AppWindow', 'ActivityWindow', 'PopupWindow',
+  'MozActivity', 'AppWindow', 'ActivityWindow', 'PopupWindow', 'TrustedWindow',
   'SettingsListener', 'AttentionWindow', 'Service', 'GlobalOverlayWindow'
 ]).init();
 
@@ -86,6 +87,14 @@ suite('system/ChildWindowFactory', function() {
     origin: 'http://fake.activity',
     manifestURL: 'http://fake.activity/manifest.webapp',
     manifest: {}
+  };
+
+  var fakeTrustedDetail = {
+    name: 'trustedname',
+    frame: document.createElement('iframe'),
+    requestId: 'testrequestid',
+    chromeId: 'testchromeid'
+
   };
 
   var fakeOpenAppDetail = {
@@ -303,6 +312,18 @@ suite('system/ChildWindowFactory', function() {
     }));
     assert.isTrue(spy.calledWithNew());
     assert.deepEqual(spy.getCall(0).args[0], fakeActivityDetail);
+    assert.deepEqual(spy.getCall(0).args[1], app1);
+  });
+
+  test('Create TrustedWindow', function() {
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    var spy = this.sinon.spy(window, 'TrustedWindow');
+    new ChildWindowFactory(app1);
+    app1.element.dispatchEvent(new CustomEvent('_launchtrusted', {
+      detail: fakeTrustedDetail
+    }));
+    assert.isTrue(spy.calledWithNew());
+    assert.deepEqual(spy.getCall(0).args[0], fakeTrustedDetail);
     assert.deepEqual(spy.getCall(0).args[1], app1);
   });
 
