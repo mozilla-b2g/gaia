@@ -4,10 +4,12 @@
 
 import time
 
+from marionette import Wait
 from gaiatest import GaiaTestCase
 from gaiatest.apps.messages.app import Messages
 from gaiatest.mocks.mock_contact import MockContact
 from gaiatest.apps.contacts.app import Contacts
+from gaiatest.apps.homescreen.app import Homescreen
 
 
 class TestSmsCreateContact(GaiaTestCase):
@@ -46,6 +48,9 @@ class TestSmsCreateContact(GaiaTestCase):
         new_contact.tap_done(return_contacts=False)
 
         self.wait_for_condition(lambda m: self.message_thread.header_text == self.contact['name'])
+
+        self.device.touch_home_button()
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == Homescreen.name)
 
         contacts = Contacts(self.marionette)
         contacts.launch()
