@@ -231,6 +231,27 @@ LayoutRenderingManager.prototype.getTargetObject = function (elem) {
   return target || {};
 };
 
+LayoutRenderingManager.prototype.showAlternativesCharMenu =
+function (target, alternatives) {
+  this.app.viewManager.showAlternativesCharMenu(target, alternatives);
+};
+
+LayoutRenderingManager.prototype.hideAlternativesCharMenu = function () {
+  this.app.viewManager.hideAlternativesCharMenu();
+};
+
+LayoutRenderingManager.prototype.getMenuTarget = function (press) {
+  return this.app.viewManager.getMenuTarget(press);
+};
+
+LayoutRenderingManager.prototype.isMenuTarget = function (target) {
+  this.app.viewManager.isMenuTarget(target);
+};
+
+LayoutRenderingManager.prototype.isInMenuArea = function (press) {
+  return this.app.viewManager.isInMenuArea(press);
+};
+
 exports.LayoutRenderingManager = LayoutRenderingManager;
 
 })(window);

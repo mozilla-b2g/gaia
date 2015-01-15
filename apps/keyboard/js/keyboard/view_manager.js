@@ -230,6 +230,33 @@ ViewManager.prototype.hideAlternativesCharMenu = function() {
   this.alternativesCharMenu.hide();
 };
 
+ViewManager.prototype.isInMenuArea = function(press) {
+  if (!this.alternativesCharMenu) {
+    console.error('ViewManager: No alternative char menu to check!');
+    return;
+  }
+
+  return this.alternativesCharMenu.isInMenuArea(press);
+};
+
+ViewManager.prototype.isMenuTarget = function(target) {
+  if (!this.alternativesCharMenu) {
+    console.error('ViewManager: No alternative char menu to check!');
+    return;
+  }
+
+  return this.alternativesCharMenu.isMenuTarget(target);
+};
+
+ViewManager.prototype.getMenuTarget = function(press) {
+  if (!this.alternativesCharMenu) {
+    console.error('ViewManager: No alternative char menu to check!');
+    return;
+  }
+
+  return this.alternativesCharMenu.getMenuTarget(press.clientX, press.clientY);
+};
+
 ViewManager.prototype.resize = function(callback) {
   // This function consists of two main tasks
   // 1. resize the current page view, now it would be needed to resize the

@@ -123,6 +123,8 @@ AlternativesCharMenuView.prototype.show = function(keyElem) {
   // Put menu in keyboard container
   this.rootElement.appendChild(menu);
   this.menu = menu;
+
+  this.origKeyElem = keyElem;
 };
 
 AlternativesCharMenuView.prototype.hide = function() {
@@ -201,6 +203,36 @@ AlternativesCharMenuView.prototype.getMenuTarget = function(x, y) {
 
 AlternativesCharMenuView.prototype.isMenuTarget = function(target) {
   return (this.altKeyTargets.indexOf(target) !== -1);
+};
+
+AlternativesCharMenuView.prototype.isInMenuArea = function(press) {
+  // XXX: We probably introduced a sync reflow here.
+  var menuRect = this.getBoundingClientRect();
+  var targetRect = this.origKeyElem.getBoundingClientRect();
+
+  // The menu area the area right under the menu where we should redirect
+  // the active target from what's under the finger to a key on the menu.
+
+  // This ensures there is no gap between the menu and the area.
+  var menuAreaTop = menuRect.top;
+  // Ensure the target key is entire covered by picking the leftmost value
+  var menuAreaLeft = Math.min(targetRect.left, menuRect.left);
+
+  // Extend a little bit for usability
+  menuAreaLeft -= targetRect.width;
+
+  // Simply the bottom of the target key.
+  var menuAreaBottom = targetRect.bottom;
+
+  // Ensure the target key is entire covered by picking the rightmost value
+  var menuAreaRight = Math.max(targetRect.right, menuRect.right);
+  // Extend a little bit for usability
+  menuAreaRight += targetRect.width;
+
+  return (press.clientY >= menuAreaTop &&
+          press.clientY <= menuAreaBottom &&
+          press.clientX >= menuAreaLeft &&
+          press.clientX <= menuAreaRight);
 };
 
 })(window);
