@@ -186,8 +186,10 @@ var SimLock = {
           SimPinDialog.show(slot, this.onClose.bind(this), skipped);
           return true;
         case 'networkLocked':
+        case 'networkSubsetLocked':
         case 'corporateLocked':
         case 'serviceProviderLocked':
+        case 'simPersonalizationLock':
         case 'network1Locked':
         case 'network2Locked':
         case 'hrpdNetworkLocked':

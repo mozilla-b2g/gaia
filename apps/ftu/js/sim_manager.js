@@ -3,6 +3,7 @@
           Navigation,
           SimContactsImporter,
           UIManager,
+          IccHelper,
           utils */
 
 'use strict';
@@ -21,7 +22,8 @@ var SimManager = (function() {
     alreadyImported: false,
     mozIcc: null,
     isLocked: function() {
-      return !this.unlocked && lockStates.indexOf(this.mozIcc.cardState) !== -1;
+      this.unlocked = lockStates.indexOf(this.mozIcc.cardState) === -1;
+      return !this.unlocked;
     }
   };
 
@@ -47,9 +49,10 @@ var SimManager = (function() {
 
   // mozIcc.cardState values for a locked SIM
   var lockStates = ['pinRequired', 'pukRequired', 'networkLocked',
-                   'corporateLocked', 'serviceProviderLocked', 'network1Locked',
-                   'network2Locked', 'hrpdNetworkLocked', 'ruimCorporateLocked',
-                   'ruimServiceProviderLocked'];
+                   'networkSubsetLocked', 'corporateLocked',
+                   'serviceProviderLocked', 'simPersonalizationLock',
+                   'network1Locked', 'network2Locked', 'hrpdNetworkLocked',
+                   'ruimCorporateLocked', 'ruimServiceProviderLocked'];
 
   return {
   icc0: null,
@@ -89,6 +92,11 @@ var SimManager = (function() {
 
     this.alreadyImported = false;
     this.simInfoScreenShown = false;
+
+    var self = this;
+    IccHelper.addEventListener('cardstatechange', function() {
+      self.handleCardState();
+    });
   },
 
   handleUnlockError: function sm_handleUnlockError(data) {
@@ -177,8 +185,10 @@ var SimManager = (function() {
   *   'pinRequired',
   *   'pukRequired',
   *   'networkLocked',
+  *   'networkSubsetLocked',
   *   'corporateLocked',
   *   'serviceProviderLocked',
+  *   'simPersonalizationLock',
   *   'network1Locked',
   *   'network2Locked',
   *   'hrpdNetworkLocked',
@@ -268,8 +278,10 @@ var SimManager = (function() {
         this.showPukScreen(icc);
         break;
       case 'networkLocked':
+      case 'networkSubsetLocked':
       case 'corporateLocked':
       case 'serviceProviderLocked':
+      case 'simPersonalizationLock':
       case 'network1Locked':
       case 'network2Locked':
       case 'hrpdNetworkLocked':
@@ -419,11 +431,17 @@ var SimManager = (function() {
       case 'networkLocked':
         lockType = 'nck';
         break;
+      case 'networkSubsetLocked':
+        lockType = 'nsck';
+        break;
       case 'corporateLocked':
         lockType = 'cck';
         break;
       case 'serviceProviderLocked':
         lockType = 'spck';
+        break;
+      case 'simPersonalizationLock':
+        lockType = 'pck';
         break;
       case 'network1Locked':
         lockType = 'nck1';
@@ -460,6 +478,12 @@ var SimManager = (function() {
         UIManager.xckLabel.textContent = _('nckcodeLabel',
                                            {n: simNumber});
         break;
+      case 'networkSubsetLocked':
+        UIManager.unlockSimHeader.textContent = _('nsckcodeTitle',
+                                                  {n: simNumber});
+        UIManager.xckLabel.textContent = _('nsckcodeLabel',
+                                           {n: simNumber});
+        break;
       case 'corporateLocked':
         UIManager.unlockSimHeader.textContent = _('cckcodeTitle',
                                                   {n: simNumber});
@@ -470,6 +494,12 @@ var SimManager = (function() {
         UIManager.unlockSimHeader.textContent = _('spckcodeTitle',
                                                   {n: simNumber});
         UIManager.xckLabel.textContent = _('spckcodeLabel',
+                                           {n: simNumber});
+        break;
+      case 'simPersonalizationLock':
+        UIManager.unlockSimHeader.textContent = _('pckcodeTitle',
+                                                  {n: simNumber});
+        UIManager.xckLabel.textContent = _('pckcodeLabel',
                                            {n: simNumber});
         break;
       case 'network1Locked':
@@ -576,8 +606,10 @@ var SimManager = (function() {
         this.unlockPuk(icc);
         break;
       case 'networkLocked':
+      case 'networkSubsetLocked':
       case 'corporateLocked':
       case 'serviceProviderLocked':
+      case 'simPersonalizationLock':
       case 'network1Locked':
       case 'network2Locked':
       case 'hrpdNetworkLocked':
@@ -664,11 +696,17 @@ var SimManager = (function() {
       case 'networkLocked':
         lockType = 'nck';
         break;
+      case 'networkSubsetLocked':
+        lockType = 'nsck';
+        break;
       case 'corporateLocked':
         lockType = 'cck';
         break;
       case 'serviceProviderLocked':
         lockType = 'spck';
+        break;
+      case 'simPersonalizationLock':
+        lockType = 'pck';
         break;
       case 'network1Locked':
         lockType = 'nck1';
@@ -705,10 +743,8 @@ var SimManager = (function() {
   attemptUnlock: function sm_attemptUnlock(icc, options) {
     var req = icc.mozIcc.unlockCardLock(options);
     req.onsuccess = (function sm_unlockSuccess() {
-      icc.unlocked = true;
       this.resetForm();
       this.hideScreen();
-      this.handleCardState();
       this.publish('iccUnlockSuccess');
     }).bind(this);
     req.onerror = (function sm_unlockError() {

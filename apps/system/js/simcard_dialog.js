@@ -20,8 +20,10 @@ var SimPinDialog = {
     'pinRequired': 'pin',
     'pukRequired': 'puk',
     'networkLocked': 'nck',
+    'networkSubsetLocked': 'nsck',
     'corporateLocked': 'cck',
     'serviceProviderLocked': 'spck',
+    'simPersonalizationLock': 'pck',
     'network1Locked': 'nck1',
     'network2Locked': 'nck2',
     'hrpdNetworkLocked': 'hnck',
@@ -124,8 +126,10 @@ var SimPinDialog = {
         this.pukInput.focus();
         break;
       case 'nck':
+      case 'nsck':
       case 'cck':
       case 'spck':
+      case 'pck':
       case 'nck1':
       case 'nck2':
       case 'hnck':
