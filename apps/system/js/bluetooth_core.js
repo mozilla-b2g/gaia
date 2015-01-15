@@ -1,5 +1,5 @@
 /* exported BluetoothCore */
-/* global BaseModule, Bluetooth, BluetoothTransfer, NfcHandoverManager */
+/* global BaseModule */
 'use strict';
 
 (function() {
@@ -20,9 +20,11 @@
       // init Bluetooth module
       if (typeof(window.navigator.mozBluetooth.onattributechanged) ===
         'undefined') { // APIv1
-          Bluetooth.init();
-          BluetoothTransfer.init();
-          NfcHandoverManager.init();
+          window.Bluetooth = window.Bluetooth1;
+          window.BluetoothTransfer = window.BluetoothTransfer1;
+          window.Bluetooth.init();
+          window.BluetoothTransfer.init();
+          window.NfcHandoverManager.init();
       }
     }
   });

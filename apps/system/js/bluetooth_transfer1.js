@@ -3,10 +3,11 @@
 /* API Summary:
    stopSendingFile(in DOMString aDeviceAddress);
    confirmReceivingFile(in DOMString aDeviceAddress, in bool aConfirmation); */
+(function(exports) {
 'use strict';
 /* global Bluetooth, CustomDialog, NfcHandoverManager, MimeMapper,
           MozActivity, NotificationHelper, UtilityTray, NfcHandoverManager*/
-/* exported BluetoothTransfer */
+/* exported BluetoothTransfer1 */
 
 var BluetoothTransfer = {
   // The first-in-first-out queue maintain each scheduled sending task.
@@ -637,3 +638,6 @@ var BluetoothTransfer = {
   }
 
 };
+
+  exports.BluetoothTransfer1 = BluetoothTransfer;
+})(window);

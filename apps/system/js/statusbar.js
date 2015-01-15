@@ -1304,7 +1304,8 @@ var StatusBar = {
       var icon = this.icons.bluetooth;
 
       icon.hidden = !this.settingValues['bluetooth.enabled'];
-      icon.dataset.active = Bluetooth.connected;
+      // make sure window.Bluetooth is assigned
+      icon.dataset.active = Bluetooth ? Bluetooth.connected : false;
       this.updateIconLabel(icon, 'bluetooth', icon.dataset.active);
 
       this._updateIconVisibility();

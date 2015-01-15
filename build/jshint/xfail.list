@@ -256,7 +256,6 @@ apps/system/test/marionette/net_error_test.js
 apps/system/test/marionette/notification_launch_app_test.js
 apps/system/test/marionette/notification_test.js
 apps/system/test/unit/app_install_manager_test.js
-apps/system/test/unit/bluetooth_transfer_test.js
 apps/system/test/unit/download_manager_test.js
 apps/system/test/unit/download_notification_test.js
 apps/system/test/unit/entery_sheet_test.js

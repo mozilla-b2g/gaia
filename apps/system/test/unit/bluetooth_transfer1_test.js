@@ -1,3 +1,7 @@
+/* global MocksHelper, MockNavigatormozSetMessageHandler,
+   MockNavigatorGetDeviceStorage, MockL10n, MockBluetooth, BluetoothTransfer,
+   MockNotificationHelper, MockNfcHandoverManager, MockUtilityTray,
+   NotificationHelper, MockCustomDialog, MimeMapper, mockMozActivityInstance*/
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
@@ -12,8 +16,6 @@ require('/shared/js/mime_mapper.js');
 require('/test/unit/mock_utility_tray.js');
 require('/test/unit/mock_nfc_handover_manager.js');
 require('/test/unit/mock_activity.js');
-
-var realCustomDialog = require('/shared/js/custom_dialog.js');
 
 var mocksForBluetoothTransfer = new MocksHelper([
   'Bluetooth',
@@ -30,10 +32,8 @@ suite('system/bluetooth_transfer', function() {
   var realSetMessageHandler;
   var realNavigatorGetDeviceStorage;
   var realL10n;
-  var realPairList;
   var real_sendingFilesQueue;
 
-  var fakePairList;
   var fake_sendingFilesQueue;
 
   suiteSetup(function(done) {
@@ -48,7 +48,7 @@ suite('system/bluetooth_transfer', function() {
 
     MockNavigatormozSetMessageHandler.mSetup();
 
-    requireApp('system/js/bluetooth_transfer.js', done);
+    requireApp('system/js/bluetooth_transfer1.js', done);
   });
 
   suiteTeardown(function() {
@@ -59,6 +59,10 @@ suite('system/bluetooth_transfer', function() {
   });
 
   suite('UI', function() {
+    setup(function() {
+      window.BluetoothTransfer = window.BluetoothTransfer1;
+    });
+
     suite('getDeviceName', function() {
       var address = 'AA:BB:CC:00:11:22';
       var spyGetConnectedDevices;
@@ -72,10 +76,8 @@ suite('system/bluetooth_transfer', function() {
       });
 
       suite('cannot get adapter ', function() {
-        var stubGetAdapater;
         setup(function() {
-          stubGetAdapater =
-            this.sinon.stub(MockBluetooth, 'getAdapter').returns(null);
+          this.sinon.stub(MockBluetooth, 'getAdapter').returns(null);
         });
 
         test('should return unknown device name ', function(done) {
@@ -309,8 +311,7 @@ suite('system/bluetooth_transfer', function() {
 
         spyConfirmReceivingFile.reset();
 
-        var stubGetAdapater =
-          this.sinon.stub(MockBluetooth, 'getAdapter').returns(null);
+        this.sinon.stub(MockBluetooth, 'getAdapter').returns(null);
 
         BluetoothTransfer.declineReceive('AA:BB:CC:00:22:33');
         assert.isFalse(spyConfirmReceivingFile.called);
@@ -348,8 +349,7 @@ suite('system/bluetooth_transfer', function() {
         assert.isTrue(stubShowStorageUnavailablePrompt.calledWith('somemsg2'));
 
         spyConfirmReceivingFile.reset();
-        var stubGetAdapater =
-          this.sinon.stub(MockBluetooth, 'getAdapter').returns(null);
+        this.sinon.stub(MockBluetooth, 'getAdapter').returns(null);
         stubCheckStorageSpace.getCall(0).args[1](false, 'somemsg3');
         assert.isFalse(spyConfirmReceivingFile.called);
 
@@ -481,10 +481,8 @@ suite('system/bluetooth_transfer', function() {
         var spyGet = this.sinon.spy(mockDeviceStorage, 'get');
         BluetoothTransfer.openReceivedFile(evt);
 
-        var stubMimeIsSupportedType =
-          this.sinon.stub(MimeMapper, 'isSupportedType').returns(false);
-        var stubMimeGuessTypeFromExtension =
-          this.sinon.stub(MimeMapper, 'guessTypeFromExtension')
+        this.sinon.stub(MimeMapper, 'isSupportedType').returns(false);
+        this.sinon.stub(MimeMapper, 'guessTypeFromExtension')
           .returns('text/plain');
 
         var req = spyGet.getCall(0).returnValue;
@@ -544,7 +542,6 @@ suite('system/bluetooth_transfer', function() {
 
         BluetoothTransfer.openReceivedFile(evt);
 
-        var stubMimeIsSupportedType =
         this.sinon.stub(MimeMapper, 'isSupportedType').returns(true);
 
         var req = spyGet.getCall(0).returnValue;
@@ -623,8 +620,7 @@ suite('system/bluetooth_transfer', function() {
           .calledWith('AA:BB:CC:00:11:55', 'blahblahblah\0xa0\0xa0blahblahblah')
         );
 
-        var stubGetAdapater =
-          this.sinon.stub(MockBluetooth, 'getAdapter').returns(null);
+        this.sinon.stub(MockBluetooth, 'getAdapter').returns(null);
         BluetoothTransfer.sendFileViaHandover(
           'AA:BB:CC:00:11:66',
           'blahblahblah\0xa0\0xa0blahblahblahblah'
@@ -740,8 +736,7 @@ suite('system/bluetooth_transfer', function() {
         assert.isFalse(MockCustomDialog.mShown);
         assert.isTrue(spyStopSendingFile.calledWith('CC:DD:00:AA:22:44'));
 
-        var stubGetAdapater =
-          this.sinon.stub(MockBluetooth, 'getAdapter').returns(null);
+        this.sinon.stub(MockBluetooth, 'getAdapter').returns(null);
 
         spyStopSendingFile.reset();
 
