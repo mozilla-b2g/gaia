@@ -3,9 +3,15 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-from marionette import expected
-from marionette.by import By
-from marionette import Wait
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
+
 from gaiatest.apps.base import Base
 
 

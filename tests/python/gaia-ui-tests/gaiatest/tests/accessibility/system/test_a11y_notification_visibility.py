@@ -4,7 +4,6 @@
 
 import time
 
-from marionette.by import By
 from gaiatest import GaiaTestCase
 from gaiatest.apps.system.app import System
 

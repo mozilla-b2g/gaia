@@ -3,7 +3,12 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import time
-from marionette.by import By
+
+try:
+    from marionette.by import By
+except:
+    from marionette_driver.by import By
+
 from gaiatest.apps.base import Base
 
 
@@ -12,7 +17,7 @@ class SimManager(Base):
     _outgoing_call_locator = (By.CSS_SELECTOR, ".sim-manager-outgoing-call-select")
     _outgoing_messages_locator = (By.CSS_SELECTOR, ".sim-manager-outgoing-messages-select")
     _outgoing_data_locator = (By.CSS_SELECTOR, ".sim-manager-outgoing-data-select")
-    _back_button_locator = (By.CSS_SELECTOR, '.current header > a') 
+    _back_button_locator = (By.CSS_SELECTOR, '.current header > a')
     _confirm_suspended_locator = (By.CSS_SELECTOR, '.modal-dialog-confirm-ok')
 
     def select_outgoing_calls(self, sim_option):
