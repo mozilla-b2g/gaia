@@ -9,10 +9,6 @@ from gaiatest.apps.gallery.app import Gallery
 
 class TestGalleryEditPhoto(GaiaTestCase):
 
-    _edit_effect_button_locator = (By.ID, 'edit-effect-button')
-    _effect_options_locator = (By.CSS_SELECTOR, '#edit-effect-options a')
-    _edit_save_locator = (By.ID, 'edit-save-button')
-
     def setUp(self):
         GaiaTestCase.setUp(self)
 
