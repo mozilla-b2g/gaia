@@ -1,5 +1,6 @@
 /* global DOMEventSource */
 /* global LockScreenBasicState */
+/* global SIMSlotManager, MobileOperator */
 'use strict';
 
 /**
@@ -54,13 +55,13 @@
   LockScreenConnectionStatesSIMWidgetSetup.prototype.setupForwardVoicechange =
   function() {
     this.component.resources.simslot.conn.addEventListener('voicechange',
-      this.stream.sources[0].onchange);   // Already bound on the source.
+      this.stream.sources[0].onchange);   // Already bound with the source.
   };
 
   LockScreenConnectionStatesSIMWidgetSetup.prototype.stopForwardVoicechange=
   function() {
     this.component.resources.simslot.conn.removeEventListener('voicechange',
-      this.stream.sources[0].onchange);   // Already bound on the source.
+      this.stream.sources[0].onchange);   // Already bound with the source.
   };
 
   LockScreenConnectionStatesSIMWidgetSetup.prototype.stop =
@@ -74,7 +75,101 @@
    */
   LockScreenConnectionStatesSIMWidgetSetup.prototype.render =
   function() {
-    
+    var sim = this.component.resources.simslot;
+    var elements = this.component.resources.elements;
+    elements.view.hidden = false;
+
+    // Reset the line.
+    this.eraseLabel(elements.line);
+    if (SIMSlotManager.isMultiSIM()) {
+      elements.id.hidden = false;
+      this.writeLabel(elements.id, 'lockscreen-sim-id',
+        { 'n': (sim.index + 1) });
+    } else {
+      elements.id.hidden = true;
+    }
+
+    // If it's multi-SIM device &
+    //    there is only absent SIM =
+    //    hide the line
+    if (SIMSlotManager.isMultiSIM() &&
+        1 === navigator.mozIccManager.iccIds.length &&
+        sim.isAbsent()) {
+      elements.view.hidden = true;
+      return;
+    }
+
+    if ('notSearching' === sim.conn.voice.state) {
+      this.writeLabel(elements.line, 'noNetwork');
+      return;
+    } else if ('registered' !== sim.conn.voice.state){
+      // From Bug 777057 Comment 3:
+      // "
+      //  For the voice network, when state == "registered", connected will
+      //  be true.This won't necessarily be true for the data network.
+      //  Only when state == "registered" and the data call is active,
+      //  connected will true.
+      // "
+      // Although the doc is very unclear:
+      // connected: "A boolean that indicates whether the connection is ready."
+      //            https://mdn.io/MozMobileConnectionInfo.connected
+      // And there is even no information for states!
+      //            https://mdn.io/MozMobileConnectionInfo.state
+      // Anyway, from https://bugzil.la/777057 it shows only 'notSearching'
+      // means it's no network, and other three states are for grabbing the
+      // network.
+      this.writeLabel(elements.line, 'searching');
+      return;
+    } else {
+      var operator = MobileOperator.userFacingInfo(sim.conn).operator;
+      if (sim.conn.voice.roaming) {
+        this.writeLabel(elements.line, 'roaming', { 'operator': operator });
+      } else {
+        if (operator.carrier) {
+          // With carrier, use L10N tag to display the information.
+          this.writeLabel(elements.line, 'operator-info', {
+            'carrier': operator.carrier,
+            'region' : operator.region
+          });
+        } else {
+          // No carrier, just post the name of the operator.
+          this.writeLabel(elements.line, null, null, operator);
+        }
+      }
+    }
+  };
+
+  /**
+   * Alias it to make it more clear.
+   */
+  LockScreenConnectionStatesSIMWidgetSetup.prototype.writeLabel =
+  function(node, l10nId, l10nArgs, text) {
+    if (l10nId) {
+      navigator.mozL10n.setAttributes(node, l10nId, l10nArgs);
+    } else if (text) {
+      node.textContent = text;
+    }
+  };
+
+  LockScreenConnectionStatesSIMWidgetSetup.prototype.eraseLabel =
+  function(node) {
+    node.removeAttribute('data-l10n-id');
+    node.textContent = '';
+  };
+
+  LockScreenConnectionStatesSIMWidgetSetup.prototype.queryElements =
+  function() {
+    var elements = this.component.resources.elements;
+    for (var key in elements) {
+      if ('string' === typeof elements[key]) {
+        var query = elements[key];
+        var result = elements.view.querySelector(query);
+        if (!result) {
+          throw new Error(`Can't query element ${key} with query: ${query}`);
+        }
+        elements[key] = result;
+      }
+    }
   };
 
   exports.LockScreenConnectionStatesSIMWidgetSetup =
