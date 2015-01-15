@@ -11,6 +11,7 @@
     name: 'TrustedWindowManager',
     DEBUG: false,
     CLASS_NAME: 'TrustedWindowManager',
+    EVENT_PREFIX: 'trustedwindowmanager',
 
     debug: function tw_debug() {
       if (this.DEBUG) {
