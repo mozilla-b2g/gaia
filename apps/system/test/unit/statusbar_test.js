@@ -2549,4 +2549,42 @@ suite('system/Statusbar', function() {
       assert.equal(StatusBar.statusbarIconsMin.className, className);
     });
   });
+
+  suite('handle UpdateManager events', function() {
+    var app;
+    setup(function() {
+      app = {
+        isFullScreen: function() {
+          return false;
+        },
+        getTopMostWindow: function() {
+          return app;
+        },
+
+        element: document.createElement('div')
+      };
+
+      Service.currentApp = app;
+      StatusBar.element.classList.add('light');
+    });
+
+    teardown(function() {
+      Service.currentApp = null;
+    });
+
+    test('should remove light class', function() {
+      assert.isTrue(StatusBar.element.classList.contains('light'));
+      var evt = new CustomEvent('updatepromptshown');
+      StatusBar.handleEvent(evt);
+      assert.isFalse(StatusBar.element.classList.contains('light'));
+    });
+
+    test('should restore the current theme', function() {
+      var evt = new CustomEvent('updateprompthidden');
+      var setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
+      StatusBar.handleEvent(evt);
+      assert.isTrue(setAppearanceStub.called);
+      assert.isTrue(setAppearanceStub.calledWith(app));
+    });
+  });
 });
