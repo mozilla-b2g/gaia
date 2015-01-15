@@ -28,7 +28,9 @@ FakeTextSelectionApp.Selector = Object.freeze({
   NonEditableNormalDiv: '#noneditable',
   NonEditableNonSelectedDiv: '#noneditable-userselectnone',
   // bug.html
-  BugCenterInput: '#bug-center-input'
+  BugCenterInput: '#bug-center-input',
+  BugButtomInput: '#bug-buttom-input',
+  BugNormalDiv: '#bug-normal-div',
 });
 
 FakeTextSelectionApp.ORIGIN = 'app://faketextselectionapp.gaiamobile.org';
@@ -88,6 +90,14 @@ FakeTextSelectionApp.prototype = {
     return this._getElement('BugCenterInput');
   },
 
+  get BugButtomInput() {
+    return this._getElement('BugButtomInput');
+  },
+
+  get BugNormalDiv() {
+    return this._getElement('BugNormalDiv');
+  },
+
   _getElement: function(target) {
     var element = this.client.helper.waitForElement(
       FakeTextSelectionApp.Selector[target]);
@@ -108,20 +118,31 @@ FakeTextSelectionApp.prototype = {
     this.textSelection.longPress(dom);
   },
 
-  // Copy element from fromEle and paste it to toEle.
-  copyTo: function(fromEle, toEle) {
+  copy: function(fromEle) {
     this.longPress(fromEle);
     this.textSelection.pressCopy();
+  },
+
+  paste: function(toEle) {
     this.longPress(toEle);
     this.textSelection.pressPaste();
   },
 
-  // Cut element from fromEle and paste it to toEle.
-  cutTo: function(fromEle, toEle) {
+  cut: function(fromEle) {
     this.longPress(fromEle);
     this.textSelection.pressCut();
-    this.longPress(toEle);
-    this.textSelection.pressPaste();
+  },
+
+  // Copy element from fromEle and paste it to toEle.
+  copyTo: function(fromEle, toEle) {
+    this.copy(fromEle);
+    this.paste(toEle);
+  },
+
+  // Cut element from fromEle and paste it to toEle.
+  cutTo: function(fromEle, toEle) {
+    this.cut(fromEle);
+    this.paste(toEle);
   },
 
   // Select all of ele and cut it.
@@ -135,5 +156,9 @@ FakeTextSelectionApp.prototype = {
     this.client.executeScript(function(frameName) {
       window.wrappedJSObject.location.href = '/' + frameName + '.html';
     }, [frameName]);
+  },
+
+  switchToTestApp: function() {
+    this.textSelection.switchToCurrentApp();
   }
 };
