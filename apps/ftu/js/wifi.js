@@ -171,7 +171,8 @@ var WifiUI = {
         ssid: ssid,
         capabilities: [],
         security: [security],
-        relSignalStrength: 0
+        relSignalStrength: 0,
+        hidden: true
       });
       WifiManager.networks.push(network);
       this.renderNetworks(WifiManager.networks);
