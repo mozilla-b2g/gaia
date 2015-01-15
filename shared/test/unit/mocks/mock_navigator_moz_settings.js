@@ -64,6 +64,11 @@
     var req = {
       addEventListener: function(name, cb) {
         req['on' + name] = cb;
+      },
+      then: function(cb, eb) {
+        // error-handler `eb`is never used, since the mock never fails.
+        return Promise.resolve(0).then(cb); // set resolve to 0.
+
       }
     };
 
@@ -114,6 +119,10 @@
       result: resultObj,
       addEventListener: function(name, cb) {
         settingsRequest['on' + name] = cb;
+      },
+      then: function(cb, eb) {
+        // error-handler `eb`is never used, since the mock never fails.
+        return Promise.resolve(resultObj).then(cb);
       }
     };
     if (!_mSyncRepliesOnly) {
