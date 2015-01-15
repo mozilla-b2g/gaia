@@ -9,6 +9,7 @@ import plivo
 class PlivoUtil(object):
 
     DEFAULT_TIMEOUT = 30
+    HANDLER_BASE_URL = 'http://plivo-handler.paas.allizom.org'
 
     def __init__(self, auth_id, auth_token, plivo_phone_number):
         self.api = plivo.RestAPI(auth_id, auth_token)
@@ -26,7 +27,8 @@ class PlivoUtil(object):
             return response[1]
         raise self.PlivoError('get_account', response)
 
-    def make_call(self, to_number, timeout=DEFAULT_TIMEOUT):
+    def make_call(self, to_number, timeout=DEFAULT_TIMEOUT,
+                  answer_file_name='wait_for_30_seconds_with_no_sound'):
         """Place a call to a number and wait for the call_uuid to be available
             Return the call_uuid
         """
@@ -40,8 +42,8 @@ class PlivoUtil(object):
             lambda p: p.make_call({
                 'from': self.from_number,
                 'to': to_number,
-                'answer_url': "http://example.com/answer_url",
-                'hangup_url': "http://example.com/hangup_url",
+                'answer_url': "%s/%s.xml" % (self.HANDLER_BASE_URL, answer_file_name),
+                'answer_method': "GET",
                 'caller_name': 'test_call_from_Plivo',
             })[0] == 201,
             message='The call was not able to be made.'
