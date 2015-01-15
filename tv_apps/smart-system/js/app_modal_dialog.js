@@ -234,7 +234,12 @@
         elements.alertTitle.innerHTML = title;
         elements.alertMessage.innerHTML = message;
         elements.alert.classList.add('visible');
-        elements.alertOk.textContent = evt.yesText ? evt.yesText : _('ok');
+        if (evt.yesText) {
+          elements.alertOk.removeAttribute('data-l10n-id');
+          elements.alertOk.textContent = evt.yesText;
+        } else {
+          elements.alertOk.setAttribute('data-l10n-id', 'ok');
+        }
         elements.alert.focus();
         break;
 
@@ -243,9 +248,21 @@
         elements.promptInput.value = evt.detail.initialValue;
         elements.promptTitle.innerHTML = title;
         elements.promptMessage.innerHTML = message;
-        elements.promptOk.textContent = evt.yesText ? evt.yesText : _('ok');
-        elements.promptCancel.textContent = evt.noText ?
-          evt.noText : _('cancel');
+
+        if (evt.yesText) {
+          elements.promptOk.removeAttribute('data-l10n-id');
+          elements.promptOk.textContent = evt.yesText;
+        } else {
+          elements.promptOk.setAttribute('data-l10n-id', 'ok');
+        }
+
+        if (evt.noText) {
+          elements.promptCancel.removeAttribute('data-l10n-id');
+          elements.promptCancel.textContent = evt.noText;
+        } else {
+          elements.promptCancel.setAttribute('data-l10n-id', 'cancel');
+        }
+
         elements.prompt.focus();
         break;
 
@@ -253,9 +270,21 @@
         elements.confirm.classList.add('visible');
         elements.confirmTitle.innerHTML = title;
         elements.confirmMessage.innerHTML = message;
-        elements.confirmOk.textContent = evt.yesText ? evt.yesText : _('ok');
-        elements.confirmCancel.textContent = evt.noText ?
-          evt.noText : _('cancel');
+
+        if (evt.yesText) {
+          elements.confirmOk.removeAttribute('data-l10n-id');
+          elements.promptOk.textContent = evt.yesText;
+        } else {
+          elements.confirmOk.setAttribute('data-l10n-id', 'ok');
+        }
+
+        if (evt.noText) {
+          elements.confirmCancel.removeAttribute('data-l10n-id');
+          elements.confirmCancel.textContent = evt.noText;
+        } else {
+          elements.confirmCancel.setAttribute('data-l10n-id', 'cancel');
+        }
+
         elements.confirm.focus();
         break;
 
@@ -279,7 +308,7 @@
           domElement = document.createElement('button');
           domElement.dataset.buttonIndex = i;
           if (button.messageType === 'builtin') {
-            domElement.textContent = navigator.mozL10n.get(button.message);
+            domElement.setAttribute('data-l10n-id', button.message);
           } else if (button.messageType === 'custom') {
             // For custom button, we assume that the text is already translated
             domElement.textContent = button.message;

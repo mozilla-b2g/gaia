@@ -130,7 +130,7 @@ var AppInstallManager = {
     var apps = e.detail.applications;
 
     Object.keys(apps)
-      .filter(function(key) { return apps[key].installState === 'pending'; })
+      .filter(function(key) { return apps[key].installState === 'pending'; })
       .map(function(key) { return apps[key]; })
       .forEach(this.prepareForDownload, this);
   },
@@ -154,7 +154,6 @@ var AppInstallManager = {
   },
 
   handleAppInstallPrompt: function ai_handleInstallPrompt(detail) {
-    var _ = navigator.mozL10n.get;
     var app = detail.app;
     // updateManifest is used by packaged apps until they are installed
     var manifest = app.manifest ? app.manifest : app.updateManifest;
@@ -170,20 +169,25 @@ var AppInstallManager = {
     if (manifest.size) {
       this.size.textContent = this.humanizeSize(manifest.size);
     } else {
-      this.size.textContent = _('size-unknown');
+      this.size.setAttribute('data-l10n-id', 'size-unknown');
     }
 
     // Wrap manifest to get localized properties
     manifest = new ManifestHelper(manifest);
-    var msg = _('install-app', {'name': manifest.name});
-    this.msg.textContent = msg;
+    navigator.mozL10n.setAttributes(this.msg,
+      'install-app', {'name': manifest.name}
+    );
 
     if (manifest.developer) {
-      this.authorName.textContent = manifest.developer.name ||
-        _('author-unknown');
+      if (manifest.developer.name) {
+        this.authorName.removeAttribute('data-l10n-id');
+        this.authorName.textContent = manifest.developer.name;
+      } else {
+        this.authorName.setAttribute('data-l10n-id', 'author-unknown');
+      }
       this.authorUrl.textContent = manifest.developer.url || '';
     } else {
-      this.authorName.textContent = _('author-unknown');
+      this.authorName.setAttribute('data-l10n-id', 'author-unknown');
       this.authorUrl.textContent = '';
     }
 
@@ -306,8 +310,10 @@ var AppInstallManager = {
     var manifest = app.manifest || app.updateManifest;
     var appManifest = new ManifestHelper(manifest);
     var name = appManifest.name;
-    var _ = navigator.mozL10n.get;
-    var msg = _('app-install-success', { appName: name });
+    var msg = {
+      id: 'app-install-success',
+      args: { appName: name }
+    };
     this.systemBanner.show(msg);
   },
 
@@ -420,7 +426,6 @@ var AppInstallManager = {
 
   handleDownloadError: function ai_handleDownloadError(evt) {
     var app = evt.application;
-    var _ = navigator.mozL10n.get;
     var manifest = app.manifest || app.updateManifest;
     var name = new ManifestHelper(manifest).name;
 
@@ -439,7 +444,10 @@ var AppInstallManager = {
         console.info('downloadError event, error code is', errorName);
 
         var key = this.mapDownloadErrorsToMessage[errorName] || 'generic-error';
-        var msg = _('app-install-' + key, { appName: name });
+        var msg = {
+          id: 'app-install-' + key,
+          args: { appName: name }
+        };
         this.systemBanner.show(msg);
     }
 
