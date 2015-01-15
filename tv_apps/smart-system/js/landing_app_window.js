@@ -43,12 +43,6 @@
       if (this.frontWindow) {
         // Just kill front window but not switch to the first page.
         this.frontWindow.kill();
-      } else {
-        // we add time as hash to tell app it is ensured and app can use it to
-        // scroll to top, like vertical home.
-        this.browser.element.src = this.browser_config.url.indexOf('#') > -1 ?
-                                   this.browser_config.url + Date.now() :
-                                   this.browser_config.url + '#' + Date.now();
       }
     }
 
