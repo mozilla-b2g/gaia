@@ -12,7 +12,7 @@ suite('forwardlock files', function() {
   var RealLazyLoader, RealGetDeviceStorage, RealForwardLockGetKey;
 
   var secret = 0xDEADBEEF;
-  function mockGetKey(callback) {
+  function mockGetKey(secret, callback) {
     callback(secret);
   }
 
@@ -25,7 +25,7 @@ suite('forwardlock files', function() {
     navigator.getDeviceStorage = MockGetDeviceStorage;
 
     RealForwardLockGetKey = ForwardLock.getKey;
-    ForwardLock.getKey = mockGetKey;
+    ForwardLock.getKey = mockGetKey.bind(this, secret);
 
     require('/js/metadata_scripts.js', function() {
       done();
@@ -57,6 +57,24 @@ suite('forwardlock files', function() {
         assert.strictEqual(metadata.discnum, 1);
         assert.strictEqual(metadata.disccount, 1);
       });
+    });
+  });
+
+  test('decrypting forwardlock with no secret key', function(done) {
+    fetchBuffer('/test-data/id3v2.4-simple-latin1.mp3').then(function(buffer) {
+      return ForwardLock.lockBuffer(
+        secret, buffer, 'audio/mpeg', {vendor: 'vendor'}
+      );
+    }).then(function(blob) {
+      ForwardLock.getKey = mockGetKey.bind(this, null);
+      return blob;
+    }).catch(function(err) {
+      // Make sure we haven't hit an error yet...
+      done(new Error('failed to encrypt our test file'));
+    }).then(parseMetadataBlob).then(function(metadata) {
+      done(new Error('parsing should have failed, but succeeded somehow?'));
+    }).catch(function() {
+      done(null);
     });
   });
 
