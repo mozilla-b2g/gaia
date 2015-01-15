@@ -161,6 +161,24 @@ suite('smart-home/CardManager', function() {
       cardManager._cardList = [
         new Deck({
           name: 'Dashboard',
+          nativeApp: {
+            name: 'Dashboard',
+            removable: false,
+            manifest: {},
+            manifestURL: 'app://dashboard.gaiamobile.org/manifest.webapp'
+          },
+          launchURL: 'app://dashboard.gaiamobile.org/index.html',
+          cachedIconURL: 'style/icons/Blank.png'
+        }),
+        new Deck({
+          name: 'TV',
+          nativeApp: {
+            name: 'TV',
+            removable: false,
+            manifest: {},
+            manifestURL: 'app://tv-deck.gaiamobile.org/manifest.webapp'
+          },
+          launchURL: 'app://tv-deck.gaiamobile.org/index.html',
           cachedIconURL: 'style/icons/Blank.png'
         })
       ];
@@ -176,6 +194,16 @@ suite('smart-home/CardManager', function() {
         cardId: dashboardCardId
       });
       assert.equal(card.name, 'Dashboard');
+    });
+
+    test('should return undefined by querying non-existing launchURL',
+      function() {
+        var card = cardManager.findCardFromCardList({
+          manifestURL: 'app://tv-deck.gaiamobile.org/manifest.webapp',
+          launchURL: 'app://tv-deck.gaiamobile.org/#42'
+        });
+
+      assert.isUndefined(card);
     });
 
     test('should return undefined if not found', function() {
@@ -196,6 +224,13 @@ suite('smart-home/CardManager', function() {
       cardManager._cardList = [
         new Deck({
           name: 'Dashboard',
+          nativeApp: {
+            name: 'Dashboard',
+            removable: false,
+            manifest: {},
+            manifestURL: 'app://dashboard.gaiamobile.org/manifest.webapp'
+          },
+          launchURL: 'app://dashboard.gaiamobile.org/index.html',
           cachedIconURL: 'style/icons/Blank.png'
         })
       ];
@@ -236,7 +271,12 @@ suite('smart-home/CardManager', function() {
       assert.isFalse(cardManager.writeCardlistInCardStore.calledOnce);
       newFolder.addCard(new Application({
         name: 'Music',
-        cachedIconURL: 'style/icons/Blank.png'
+        nativeApp: {
+          name: 'Music',
+          removable: false,
+          manifest: {},
+          manifestURL: 'app://music.gaiamobile.org/manifest.webapp'
+        }
       }));
 
       assert.isTrue(cardManager.writeCardlistInCardStore.calledOnce);
@@ -264,13 +304,25 @@ suite('smart-home/CardManager', function() {
       cardManager._cardList = [
         new Deck({
           name: 'Dashboard',
+          nativeApp: {
+            name: 'Dashboard',
+            removable: false,
+            manifest: {},
+            manifestURL: 'app://dashboard.gaiamobile.org/manifest.webapp'
+          },
+          launchURL: 'app://dashboard.gaiamobile.org/index.html',
           cachedIconURL: 'style/icons/Blank.png'
         }),
         emptyFolder,
         secondEmptyFolder,
         new Application({
           name: 'Music',
-          nativeApp: {}
+          nativeApp: {
+            name: 'Music',
+            removable: false,
+            manifest: {},
+            manifestURL: 'app://music.gaiamobile.org/manifest.webapp'
+          }
         })
       ];
     });

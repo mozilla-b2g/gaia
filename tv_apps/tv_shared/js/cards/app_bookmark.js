@@ -55,9 +55,11 @@
 
     navigator.mozApps.getSelf().onsuccess = function(evt) {
       var app = evt.target.result;
-      app.connect('customlaunchpath').then(function onAccepted(ports) {
-        AppBookmark._iacPort = ports[0];
-      });
+      if (app) {
+        app.connect('customlaunchpath').then(function onAccepted(ports) {
+          AppBookmark._iacPort = ports[0];
+        });
+      }
     };
   });
 
