@@ -176,6 +176,7 @@ var NotificationScreen = {
         break;
       case 'ftudone':
         this.toaster.addEventListener('tap', this);
+        this.updateNotificationIndicator();
         break;
       case 'desktop-notification-resend':
         this.resendExpecting = evt.detail.number;
@@ -658,6 +659,11 @@ var NotificationScreen = {
 
   updateNotificationIndicator: function ns_updateNotificationIndicator() {
     if (this.unreadNotifications.length) {
+      // If the ftu is running we should not show the ambient indicator
+      // because the statusbar is not accessible
+      if (Service.query('isFtuRunning')) {
+        return;
+      }
       this.ambientIndicator.classList.add('unread');
       navigator.mozL10n.setAttributes(
         this.ambientIndicator,

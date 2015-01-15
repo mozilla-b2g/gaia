@@ -8,7 +8,8 @@
   MockNavigatorMozTelephony,
   MockCall,
   MockVersionHelper,
-  UtilityTray
+  UtilityTray,
+  Service
  */
 
 'use strict';
@@ -272,6 +273,21 @@ suite('system/NotificationScreen >', function() {
       assert.isNull(NotificationScreen.ambientIndicator.getAttribute(
         'aria-label'));
       UtilityTray.shown = false;
+    });
+
+    test('should not show ambient indicator if FTU is running', function() {
+      var query = this.sinon.stub(Service, 'query');
+      query.withArgs('isFtuRunning').returns(true);
+      incrementNotications(1);
+      assert.isFalse(NotificationScreen.ambientIndicator.classList.
+        contains('unread'));
+    });
+
+    test('should update notification indicator when the FTU is done',
+      function() {
+        this.sinon.stub(NotificationScreen, 'updateNotificationIndicator');
+        window.dispatchEvent(new CustomEvent('ftudone'));
+        assert.isTrue(NotificationScreen.updateNotificationIndicator.called);
     });
 
     test('should not clear the ambient after decrement unread', function() {
