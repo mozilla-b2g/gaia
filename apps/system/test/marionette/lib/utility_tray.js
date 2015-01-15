@@ -4,6 +4,15 @@
   var UtilityTray = function(client) {
     this.client = client;
     this.actions = client.loader.getActions();
+    var width = client.executeScript(function() {
+      return window.innerWidth;
+    });
+    this.halfWidth = width / 2;
+
+    var height = client.executeScript(function() {
+      return window.innerHeight;
+    });
+    this.halfHeight = height / 2;
   };
 
   UtilityTray.prototype = {
@@ -60,6 +69,29 @@
         });
         win.UtilityTray.hide();
       });
+    },
+
+    swipeDown: function swipeDown(element) {
+      this.client.waitFor(function() {
+        return element.displayed;
+      });
+
+      // Works better than actions.flick().
+      this.actions
+        .press(element)
+        .moveByOffset(0, this.halfHeight)
+        .release()
+        .perform();
+    },
+
+    swipeUp: function swipeUp(element) {
+      var halfWidth = this.halfWidth;
+      this.client.waitFor(function() {
+        return element.displayed;
+      });
+      this.actions
+        .flick(element, halfWidth, 10, halfWidth, -this.halfHeight, 100)
+        .perform();
     }
 
   };

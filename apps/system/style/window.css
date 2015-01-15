@@ -27,7 +27,10 @@
   pointer-events: none;
 }
 
-.appWindow.attentionWindow .render {
+/* Attention Screen needs to be clickable */
+
+.appWindow.attentionWindow .render,
+.appWindow.attentionWindow.toaster-mode {
   pointer-events: auto;
 }
 
