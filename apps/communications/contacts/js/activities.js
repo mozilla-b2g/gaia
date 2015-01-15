@@ -125,8 +125,13 @@ var ActivityHandler = {
 
   renderOneContact: function(contact, activity) {
     this.mozContactParam = contact;
-    activity.source.data.params = {'mozContactParam': true};
-    this.launch_activity(activity, 'view-contact-form');
+    var data = activity.source.data;
+    data.params = {'mozContactParam': true};
+    if (data.allowSave === true) {
+      this.launch_activity(activity, 'view-contact-form');
+    } else {
+      this.launch_activity(activity, 'view-contact-details');
+    }
   },
 
   // This variable has no use once we support vCards with multiple contacts.
@@ -184,7 +189,7 @@ var ActivityHandler = {
               activity.source.data &&
               !activity.source.data.params &&
               activity.source.data.type &&
-              activity.source.data.type.indexOf('vcard' !== -1) &&
+              activity.source.data.type.indexOf('vcard') !== -1 &&
               activity.source.data.blob);
   },
 
