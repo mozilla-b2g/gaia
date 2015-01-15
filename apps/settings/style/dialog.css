@@ -12,7 +12,8 @@
 /**
  * Base style for settings dialog, need to override original transform
  */
-section[role="region"].dialog {
+section[role="region"].dialog,
+html[dir="rtl"] section[role="region"].dialog {
 
   /**
    * IMPORTANT:
