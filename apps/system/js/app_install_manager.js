@@ -313,9 +313,10 @@ var AppInstallManager = {
     var manifest = app.manifest || app.updateManifest;
     var appManifest = new ManifestHelper(manifest);
     var name = appManifest.name;
-    var _ = navigator.mozL10n.get;
-    var msg = _('app-install-success', { appName: name });
-    this.systemBanner.show(msg);
+    var l10nId = appManifest.role === 'langpack' ?
+      'langpack-install-success' : 'app-install-success';
+    this.systemBanner.show(
+      navigator.mozL10n.get(l10nId, { appName: name }));
   },
 
   checkSetupQueue: function ai_checkSetupQueue() {
