@@ -1,8 +1,5 @@
+/*global exports, require*/
 'use strict';
-
-/* global exports, require */
-/* jshint loopfunc: true */
-
 /**
  * webpp-optimize will do below things.
  * 1. Inline embeded html from <link rel="import" href="test.html" name="name">
@@ -36,8 +33,8 @@ var HTMLOptimizer = function(options) {
   // When file has done optimized, we call done.
   this.done = options.callback;
   /**
-   * Witconfig.GAIA_CONCAT_LOCALES for each HTML file, we retrieve multi-locale
-   * ASTs: a full set of all l10n strings that are loaded by the HTML
+   * Witconfig.GAIA_CONCAT_LOCALES for each HTML file, we retrieve multi-locale 
+   * ASTs: a full set of all l10n strings that are loaded by the HTML 
    * document, including all strings that are used dynamically from JS;
    * it gets merged into webapp.asts.
    */
@@ -141,12 +138,8 @@ HTMLOptimizer.prototype._proceedLocales = function() {
       this.webapp.asts[lang] = [];
     }
     for (var i = 0; i < this.asts[lang].length; i++) {
-      var index = -1;
-      this.webapp.asts[lang].forEach(function(e) {
-        if (e.$i === this.asts[lang][i].$i) {
-          index = i;
-        }
-      }, this);
+      var index = this.webapp.asts[lang].
+        findIndex(e => e.$i === this.asts[lang][i].$i);
       if (index !== -1) {
         this.webapp.asts[lang][index] = this.asts[lang][i];
       } else {
