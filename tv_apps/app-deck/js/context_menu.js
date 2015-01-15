@@ -1,6 +1,7 @@
 'use strict';
 
 /* global MozActivity, Applications */
+/* jshint nonew: false */
 
 (function(exports) {
   var ContextMenu = function() {
@@ -51,7 +52,7 @@
         navigator.mozApps.getSelf().onsuccess = function(evt) {
           that._selfApp = evt.target.result;
           that._connectAndSend(message);
-        }
+        };
       }
     },
 
@@ -63,13 +64,15 @@
       this.sendMessage('unpin', {
         name: app.name,
         manifestURL: app.manifestURL,
-        launchURL: this._composeLaunchURL(app)
+        // XXX: we don't specify launchURL here because there are only
+        // 'Application' in app-deck, and `Application` don't have launchURL
+        // in its own property. We should add back launchURL here once we
+        // merge`Application` and `AppBookmark` into one class.
+        // See also https://bugzil.la/1112986
       });
     },
 
     pinOrUnpin: function cm_pinOrUnpin() {
-      var that = this;
-
       if (this._app) {
         var app = this._app;
         if (app.pinned) {
@@ -85,14 +88,20 @@
                 data: {
                   name: app.name,
                   type: 'Application',
+                  // XXX: we don't specify launchURL here because there are only
+                  // 'Application' in app-deck, and `Application` don't have
+                  // launchURL in its own property. We should add back
+                  // launchURL here once we merge `Application` and
+                  // `AppBookmark` into one class.
+                  // See also https://bugzil.la/1112986
                   manifestURL: app.manifestURL,
-                  launchURL: that._composeLaunchURL(app),
-                  // We use app's original icon instead of screenshot here because
-                  // we are in app deck. For the case of getting screenshot,
-                  // please refer to bug 1100238.
+                  // We use app's original icon instead of screenshot here
+                  // because we are in app deck. For the case of getting
+                  // screenshot, please refer to bug 1100238.
                   thumbnail: blob
                 }
               });
+
             });
         }
       }
