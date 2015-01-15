@@ -143,7 +143,7 @@ var ActivityHandler = {
 
   getvCardReader: function ah_getvCardReader(blob, callback) {
     var fileReader = new FileReader();
-    fileReader.readAsBinaryString(blob);
+    fileReader.readAsText(blob);
     fileReader.onloadend = function() {
       var reader = new VCardReader(fileReader.result);
       if(typeof callback === 'function') {
