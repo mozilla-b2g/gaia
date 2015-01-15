@@ -32,7 +32,7 @@ marionette('Text selection >', function() {
       setup(function() {
         fakeTextselectionApp.setTestFrame('functionality');
       });
-      test.skip('copy and paste', function() {
+      test('copy and paste', function() {
         fakeTextselectionApp.copyTo('FunctionalitySourceInput',
           'FunctionalityTargetInput');
         assert.equal(
@@ -172,9 +172,13 @@ marionette('Text selection >', function() {
     });
 
     suite('bugs', function() {
+      var KeyboardSystem =
+        require('../../../keyboard/test/marionette/lib/system.js');
+      var keyboardSystem;
       setup(function() {
         fakeTextselectionApp.setTestFrame('bug');
       });
+
       test('bug1110963 : Cut/Copy/Paste menu should dismiss ' +
            'when tapping the keyboard',
         function() {
@@ -191,6 +195,28 @@ marionette('Text selection >', function() {
           client.waitFor(function() {
             return !fakeTextselectionApp.bubbleVisiblity;
           });
+        });
+
+      test('bug1119126 : Shortcut bubble should hide when system is resized',
+        function() {
+          keyboardSystem = new KeyboardSystem(client);
+          fakeTextselectionApp.copy('BugCenterInput');
+          client.waitFor(function() {
+            return keyboardSystem.keyboardFrameDisplayed();
+          });
+          fakeTextselectionApp.switchToTestApp();
+          fakeTextselectionApp.BugNormalDiv.tap();
+          client.waitFor(function() {
+            return keyboardSystem.keyboardFrameHidden();
+          });
+          fakeTextselectionApp.switchToTestApp();
+          fakeTextselectionApp.BugButtomInput.tap();
+          client.waitFor(function() {
+            return keyboardSystem.keyboardFrameDisplayed();
+          });
+          fakeTextselectionApp.switchToTestApp();
+          assert.ok(!fakeTextselectionApp.bubbleVisiblity);
+
         });
     });
   });

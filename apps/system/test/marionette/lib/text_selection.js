@@ -53,6 +53,10 @@ TextSelection.prototype = {
     return location;
   },
 
+  switchToCurrentApp: function() {
+    this.client.apps.switchToApp(this._getDisplayedAppInfo().origin);
+  },
+
   /**
    * Get appWindow's id and origin of displayed app.
    * XXXXX: Since gecko is not ready yet, we need to simulate gecko dispatching
