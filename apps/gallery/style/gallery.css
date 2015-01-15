@@ -257,6 +257,11 @@ body.pickView #thumbnails {
   outline-offset: -0.2rem;
 }
 
+/* RTL modifications */
+html[dir=rtl] #thumbnails-number-selected {
+  direction: rtl;
+}
+
 /*
  * give the very last thumbnail a large bottom margin so that it doesn't
  * hide behind the overlaid toolbar in thumbnail list and select view.
