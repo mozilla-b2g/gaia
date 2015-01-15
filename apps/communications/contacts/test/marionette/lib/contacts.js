@@ -46,6 +46,7 @@ Contacts.Selectors = {
   detailsContactName: '#contact-name-title',
   detailsHeader: '#details-view-header',
   detailsSocialLabel: '#contact-detail-inner #details-list #social-label',
+  detailsSocialTemplate: '#contact-detail-inner #details-list .social-actions',
   detailsCoverImage: '#cover-img',
   detailsLinkButton: '#contact-detail-inner #link_button',
   detailsShareButton: '#contact-detail-inner #share_button',

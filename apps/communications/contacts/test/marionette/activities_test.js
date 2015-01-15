@@ -29,17 +29,8 @@ marionette('Contacts > Activities', function() {
   });
 
   suite('open text/vcard activity', function() {
-    var testObject = {};
-
     function assertFormData() {
-      for (var key in testObject) {
-        var value = client.findElement(key).getAttribute('value');
-        assert.equal(value, testObject[key]);
-      }
-    }
-
-    setup(function() {
-      var selectorsArray = [
+      var formSelectors = [
         selectors.formGivenName,
         selectors.formFamilyName,
         selectors.formOrg,
@@ -55,14 +46,98 @@ marionette('Contacts > Activities', function() {
         'forrestgump@example.com'
       ];
 
+      var testObject = {};
+
       for (var i = 0, len = dataArray.length; i < len; i++) {
-        testObject[selectorsArray[i]] = dataArray[i];
+        testObject[formSelectors[i]] = dataArray[i];
       }
+
+      for (var key in testObject) {
+        var value = client.findElement(key).getAttribute('value');
+        assert.equal(value, testObject[key]);
+      }
+    }
+
+    function assertDetailsData() {
+      var detailsSelectors = [
+        selectors.detailsContactName,
+        selectors.detailsOrg,
+        selectors.detailsTelButtonFirst + ' b',
+        selectors.detailsEmail
+      ];
+
+      var dataArray = [
+        'Forrest Gump',
+        'Bubba Gump Shrimp Co.',
+        '+1-111-555-1212',
+        'forrestgump@example.com'
+      ];
+
+      var testObject = {};
+
+      for (var i = 0, len = dataArray.length; i < len; i++) {
+        testObject[detailsSelectors[i]] = dataArray[i];
+      }
+
+      for (var key in testObject) {
+        var value = client.findElement(key).text();
+        assert.equal(value, testObject[key]);
+      }
+    }
+
+    function assertHidden(selector) {
+      var classes = client.findElement(selector).getAttribute('class');
+      assert.ok(classes.indexOf('hide') !== -1);
+    }
+
+    setup(function() {
+      smsSubject.launch(); // We open some app to start a Marionette session.
     });
 
-    test('open text/vcard activity opens form filled', function() {
-      smsSubject.launch(); // We open some app to start a Marionette session.
+    test('open text/vcard activity (!allowSave) opens vCard in details view',
+        function() {
+      client.executeScript(function(vCardFile) {
+        new MozActivity({
+          name: 'open',
+          data: {
+            type: 'text/vcard',
+            filename: 'vcard_4.vcf',
+            blob: new Blob([vCardFile], {type: 'text/vcard'}),
+            allowSave: false
+          }
+        });
+      }, [fs.readFileSync(__dirname + '/data/vcard_4.vcf', 'utf8')]);
 
+      client.switchToFrame();
+      client.apps.switchToApp(Contacts.URL, 'contacts');
+      client.helper.waitForElement(selectors.details);
+
+      assertDetailsData();
+      assertHidden(selectors.detailsSocialTemplate);
+    });
+
+    test('open text/vcard activity (allowSave) opens form filled', function() {
+      client.executeScript(function(vCardFile) {
+        new MozActivity({
+          name: 'open',
+          data: {
+            type: 'text/vcard',
+            filename: 'vcard_4.vcf',
+            blob: new Blob([vCardFile], {type: 'text/vcard'}),
+            allowSave: true
+          }
+        });
+      }, [fs.readFileSync(__dirname + '/data/vcard_4.vcf', 'utf8')]);
+
+      client.switchToFrame();
+      client.apps.switchToApp(Contacts.URL, 'contacts');
+      client.helper.waitForElement(selectors.form);
+
+      assertFormData();
+      assert.ok(client.findElement(selectors.formSave).enabled);
+    });
+
+    test('open text/vcard activity defaults to details view', function() {
       client.executeScript(function(vCardFile) {
         new MozActivity({
           name: 'open',
@@ -76,9 +151,9 @@ marionette('Contacts > Activities', function() {
 
       client.switchToFrame();
       client.apps.switchToApp(Contacts.URL, 'contacts');
-      client.helper.waitForElement(selectors.form);
+      client.helper.waitForElement(selectors.details);
 
-      assertFormData();
+      assertDetailsData();
     });
   });
 

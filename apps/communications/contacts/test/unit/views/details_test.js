@@ -68,7 +68,6 @@ var _ = function(key) { return key; },
     favoriteMessage,
     detailsInner,
     TAG_OPTIONS,
-    dom,
     Contacts,
     realContacts,
     realFb,
@@ -165,7 +164,7 @@ suite('Render contact', function() {
     editContactButton = dom.querySelector('#edit-contact-button');
     cover = dom.querySelector('#cover-img');
     detailsInner = dom.querySelector('#contact-detail-inner');
-    favoriteMessage = dom.querySelector('#toggle-favorite').children[0];
+    favoriteMessage = dom.querySelector('#toggle-favorite');
     header = dom.querySelector('#details-view-header');
 
     fbButtons = [
@@ -614,6 +613,20 @@ suite('Render contact', function() {
 
       window.fb.setIsFbContact(false);
       window.fb.setIsFbLinked(false);
+    });
+  });
+
+  suite('Render in read only mode', function() {
+    setup(function() {
+      subject.render(null, TAG_OPTIONS, true);
+    });
+
+    test('> editing button is disabled if we are in read only', function() {
+      assert.isTrue(editContactButton.classList.contains('hide'));
+    });
+
+    test('> link and share buttons are disabled in reado only', function() {
+      assert.isTrue(socialTemplate.classList.contains('hide'));
     });
   });
 
