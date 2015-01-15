@@ -12,7 +12,8 @@
 
   Core.SUB_MODULES = [
     'HierarchyManager',
-    'AirplaneMode'
+    'AirplaneMode',
+    'AppInstallManager'
   ];
 
   Core.SERVICES = [
