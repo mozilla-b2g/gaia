@@ -1,6 +1,6 @@
 /**
  * Handles panels.
- * 
+ *
  * @module PanelController
  * @return {Object}
  */
@@ -18,7 +18,7 @@ function(lazyLoader, SettingsListener, SettingsHelper) {
   PanelController.prototype = {
 
     /**
-     * Load needed templates
+     * Load needed templates.
      *
      * @method load
      * @param  {Array}    sections
@@ -160,7 +160,7 @@ function(lazyLoader, SettingsListener, SettingsHelper) {
    * Show section
    *
    * @private
-   * @mrthod showSection
+   * @method showSection
    * @param element
    * @param {Boolean} back
    */

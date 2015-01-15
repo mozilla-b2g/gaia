@@ -3,7 +3,7 @@
 var assert = require('assert');
 var AlaMainPanel = require('./lib/panels/ala_main');
 
-marionette('check ala main panel', function() {
+marionette('adjustable location accuracy panel', function() {
   var client = marionette.client({
     settings: {
       'privacy-panel-gt-complete': true,
@@ -54,9 +54,9 @@ marionette('check ala main panel', function() {
     assert.ok(!typeBlur.displayed());
     assert.ok(!typeCustom.displayed());
 
-    
+
     /**@todo: test select values change */
-    
+
 
     // turn geolocation off
     geolocationSwitcher.click();
@@ -65,7 +65,7 @@ marionette('check ala main panel', function() {
     });
     assert.ok(!geolocationTypeBox.displayed());
 
-    
+
     // turn geolocation on
     geolocationSwitcher.click();
     client.waitFor(function() {
