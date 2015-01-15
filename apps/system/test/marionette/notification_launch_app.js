@@ -2,7 +2,7 @@ var assert = require('assert'),
     NotificationTest = require('./lib/notification').NotificationTest,
     NotificationList = require('./lib/notification').NotificationList;
 
-var TARGET_APP = 'app://calendar.gaiamobile.org';
+var TARGET_APP = 'app://email.gaiamobile.org';
 var TARGET_APP_MANIFEST = TARGET_APP + '/manifest.webapp';
 
 marionette('launch an app via notification click', function() {
@@ -20,8 +20,11 @@ marionette('launch an app via notification click', function() {
     client.apps.switchToApp(TARGET_APP);
 
     // create the notification for given app
-    notification =
-      new NotificationTest(client, '123', 'test', 'test');
+    notification = new NotificationTest(client, {
+      tag: '123',
+      title: 'test',
+      body: 'test'
+    });
 
     // close the app
     client.switchToFrame();
@@ -31,25 +34,27 @@ marionette('launch an app via notification click', function() {
     client.switchToFrame();
   });
 
-  // Skipping this test until all B2G Desktop instances run OOP or else
-  // we can tell when an app is closed without relying on process status
-  test.skip('clicking notification launches app', function() {
-    // because of the trace conditions we need to pull down the tray and tap
-    // that notification.
-
+  test('clicking notification launches app', function() {
     // show utility tray
     client.executeScript(function() {
       window.wrappedJSObject.UtilityTray.show();
     });
 
+    // make sure we have our notification to click
     notificationList.refresh();
-    assert.ok(notificationList.contains('test', 'test', TARGET_APP_MANIFEST),
-              'target app should contain the notification we just added');
+    var notifications = notificationList.getForApp(TARGET_APP_MANIFEST);
+    assert.equal(notifications.length, 1);
 
     // tap the container element should launch the app
-    // TODO: this needs to be reworked to allow for notification tapping
-    // notification.containerElement.tap();
-    var appFrame = client.apps.switchToApp(TARGET_APP);
+    notificationList.tap(notifications[0]);
+
+    // email will clear the notification from the tray, so wait
+    // until the notification has indeed been cleared
+    client.waitFor(function() {
+      notificationList.refresh();
+      var notifications = notificationList.getForApp(TARGET_APP_MANIFEST);
+      return notifications.length === 0;
+    });
   });
 
 });
