@@ -90,32 +90,23 @@ var Payment = {
       // Chrome asks Gaia to show the payment flow according to the
       // payment request selected by the user.
       case 'open-payment-flow-dialog':
-        if (!e.detail.uri)
-          return;
-
-        // TODO: For now, known payment providers (BlueVia and Mozilla Market)
-        //       only accepts the JWT by GET, so we just add it to the URI.
-        e.detail.uri += e.detail.jwt;
-
         this.trustedUILayers[requestId] = this.chromeEventId;
 
+        // We create the payment iframe but we don't set its src. Instead
+        // we simply return the iframe instance to the platform once it is
+        // inserted in the trusted UI container. At that point the platform
+        // sets the corresponding payment information in the iframe.
         var frame = document.createElement('iframe');
         frame.setAttribute('mozbrowser', 'true');
         frame.classList.add('screen');
-        frame.src = e.detail.uri;
-        frame.addEventListener('mozbrowserloadstart', (function loadStart(evt) {
-          // After creating the new frame containing the payment provider buy
-          // flow, we send it back to chrome so the payment callbacks can be
-          // injected.
+        this._openTrustedUI(frame).then((function() {
+          // The iframe is already inserted in the trusted UI container at this
+          // point.
           this._dispatchEvent({
             id: this.chromeEventId,
-            frame: evt.target
+            frame: frame
           });
-          frame.removeEventListener('mozbrowserloadstart', loadStart);
         }).bind(this));
-
-        // The payment flow is shown within the trusted UI
-        this._openTrustedUI(frame);
         break;
 
       case 'close-payment-flow-dialog':
@@ -133,7 +124,7 @@ var Payment = {
     // the mozPay caller application as title.
     var title = Service.currentApp.name;
     title = title ? title : navigator.mozL10n.get('payment-flow');
-    TrustedUIManager.open(title, frame, this.chromeEventId);
+    return TrustedUIManager.open(title, frame, this.chromeEventId);
   },
 
   _dispatchEvent: function _dispatchEvent(obj) {
