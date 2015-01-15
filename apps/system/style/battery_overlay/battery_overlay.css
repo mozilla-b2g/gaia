@@ -62,3 +62,8 @@
     transform: translateX(0);
   }
 }
+
+/* RTL View */
+html[dir="rtl"] .icon-battery {
+  float: right;
+}
