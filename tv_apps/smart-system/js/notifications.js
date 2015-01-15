@@ -139,7 +139,7 @@ var NotificationScreen = {
       'title': detail.title,
       'timestamp': detail.timestamp ? new Date(detail.timestamp) : new Date(),
       'text': detail.text
-    }
+    };
 
     // Tell gecko that we already show the notification.
     var event = document.createEvent('CustomEvent');
