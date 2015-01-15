@@ -145,6 +145,9 @@
    */
   function ContactToVcardBlob(contacts, callback, options) {
     var targetType = options && options.type || 'text/vcard';
+    if(targetType.indexOf('charset') === -1) {
+      targetType += '; charset=utf-8';
+    }
 
     if (typeof callback !== 'function') {
       throw Error('callback() is undefined or not a function');
