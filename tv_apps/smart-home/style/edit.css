@@ -42,3 +42,8 @@
   background: url(images/animated_arrows_left.png) no-repeat left center / 13rem,
               url(images/animated_arrows_right.png) no-repeat right center / 13rem;
 }
+
+#add-new-folder-button {
+  /* This is not displayed until folder features are implemented. */
+  display: none;
+}
