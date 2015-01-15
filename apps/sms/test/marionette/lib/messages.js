@@ -242,13 +242,15 @@
         addRecipient: function(number) {
           this.Composer.recipientsInput.sendKeys(number + Chars.ENTER);
 
-          client.helper.waitForElement(
+          return client.helper.waitForElement(
             '#messages-recipients-list .recipient[data-number="' + number + '"]'
           );
         },
 
         clearRecipient: function() {
-          this.Composer.recipientsInput.clear();
+          this.Composer.recipientsInput.scriptWith(function(el) {
+            el.innerHTML = '';
+          });
         },
 
         send: function() {

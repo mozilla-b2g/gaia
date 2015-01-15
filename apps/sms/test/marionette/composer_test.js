@@ -30,7 +30,9 @@ marionette('Messages Composer', function() {
   }
 
   function assertIsNotDisplayed(element) {
-    assert.isFalse(element.displayed(), 'Element should not be displayed');
+    client.waitFor(function() {
+      return element.displayed() === false;
+    });
   }
 
   setup(function() {
