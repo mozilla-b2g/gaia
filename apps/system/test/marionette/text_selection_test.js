@@ -29,45 +29,55 @@ marionette('Text selection >', function() {
     });
 
     suite('check button functionality', function() {
-
-      test('copy and paste', function() {
-        fakeTextselectionApp.copyTo('centerInput', 'topLeftInput');
-        assert.equal(fakeTextselectionApp.topLeftInput.getAttribute('value'),
-          'testcenterinput');
+      setup(function() {
+        fakeTextselectionApp.setTestFrame('functionality');
+      });
+      test.skip('copy and paste', function() {
+        fakeTextselectionApp.copyTo('FunctionalitySourceInput',
+          'FunctionalityTargetInput');
+        assert.equal(
+          fakeTextselectionApp.FunctionalityTargetInput.getAttribute('value'),
+          'testvalue');
       });
 
       test('cut and paste', function() {
-        fakeTextselectionApp.cutTo('centerInput', 'topRightInput');
-        assert.equal(fakeTextselectionApp.centerInput.getAttribute('value'),
+        fakeTextselectionApp.cutTo('FunctionalitySourceInput',
+          'FunctionalityTargetInput');
+        assert.equal(
+          fakeTextselectionApp.FunctionalitySourceInput.getAttribute('value'),
           '');
-        assert.equal(fakeTextselectionApp.topRightInput.getAttribute('value'),
-          'testcenterinput');
+        assert.equal(
+          fakeTextselectionApp.FunctionalityTargetInput.getAttribute('value'),
+          'testvalue');
       });
 
       test('select all and cut', function() {
-        fakeTextselectionApp.selectAllAndCut('bottomLeftInput');
-        assert.equal(fakeTextselectionApp.bottomLeftInput.getAttribute('value'),
-          '');
+        fakeTextselectionApp.selectAllAndCut('FunctionalitySourceInput');
+        assert.equal(fakeTextselectionApp.FunctionalitySourceInput
+          .getAttribute('value'), '');
       });
     });
 
     suite('check dialog location', function() {
+      setup(function() {
+        fakeTextselectionApp.setTestFrame('dialogposition');
+      });
       test('click center input', function() {
-        fakeTextselectionApp.longPress('centerInput');
+        fakeTextselectionApp.longPress('DialogPositionCenterInput');
 
         assert.ok(
           fakeTextselectionApp.textSelection.location.y <
-          fakeTextselectionApp.centerInput.location.y,
+          fakeTextselectionApp.DialogPositionCenterInput.location.y,
           'dialog should be placed higher than the input field'
         );
       });
 
       test('click top-left input', function() {
-        fakeTextselectionApp.longPress('topLeftInput');
+        fakeTextselectionApp.longPress('DialogPositionTopLeftInput');
         var textSelectionLocation = fakeTextselectionApp.textSelection.location;
 
         assert.ok(
-          fakeTextselectionApp.topLeftInput.location.y <
+          fakeTextselectionApp.DialogPositionTopLeftInput.location.y <
           textSelectionLocation.y,
           'dialog should be placed lower than the input field'
         );
@@ -78,28 +88,29 @@ marionette('Text selection >', function() {
       });
 
       test('click top-right input', function() {
-        fakeTextselectionApp.longPress('topRightInput');
+        fakeTextselectionApp.longPress('DialogPositionTopRightInput');
         var textSelectionLocation = fakeTextselectionApp.textSelection.location;
 
         assert.ok(
-          fakeTextselectionApp.topRightInput.location.y <
+          fakeTextselectionApp.DialogPositionTopRightInput.location.y <
           textSelectionLocation.y,
           'dialog should be placed lower than the input field'
         );
         assert.equal(
-          textSelectionLocation.x,
-          fakeTextselectionApp.width - fakeTextselectionApp.textSelection.width,
+          Math.ceil(textSelectionLocation.x +
+            fakeTextselectionApp.textSelection.width),
+          fakeTextselectionApp.width,
           'dialog should be placed near right boundary'
         );
       });
 
       test('click bottom-left input', function() {
-        fakeTextselectionApp.longPress('bottomLeftInput');
+        fakeTextselectionApp.longPress('DialogPositionBottomLeftInput');
         var textSelectionLocation = fakeTextselectionApp.textSelection.location;
 
         assert.ok(
           textSelectionLocation.y <
-          fakeTextselectionApp.bottomLeftInput.location.y,
+          fakeTextselectionApp.DialogPositionBottomLeftInput.location.y,
           'dialog should be placed higher than the input field'
         );
         assert.equal(
@@ -109,45 +120,49 @@ marionette('Text selection >', function() {
       });
 
       test('click bottom-right input', function() {
-        fakeTextselectionApp.longPress('bottomRightInput');
+        fakeTextselectionApp.longPress('DialogPositionBottomRightInput');
         var textSelectionLocation = fakeTextselectionApp.textSelection.location;
 
         assert.ok(
           textSelectionLocation.y <
-          fakeTextselectionApp.bottomRightInput.location.y,
+          fakeTextselectionApp.DialogPositionBottomRightInput.location.y,
           'dialog should be placed higher than the input field'
         );
         assert.equal(
-          textSelectionLocation.x,
-          fakeTextselectionApp.width - fakeTextselectionApp.textSelection.width,
+          Math.ceil(textSelectionLocation.x +
+            fakeTextselectionApp.textSelection.width),
+          fakeTextselectionApp.width,
           'dialog should be placed near right boundary'
         );
       });
     });
 
     suite('non-editable', function() {
+      setup(function() {
+        fakeTextselectionApp.setTestFrame('noneditable');
+      });
+
       test('lonePress non-editable field', function() {
-        fakeTextselectionApp.longPress('normalDiv');
+        fakeTextselectionApp.longPress('NonEditableNormalDiv');
         assert.ok(fakeTextselectionApp.bubbleVisiblity);
       });
 
       test('copy non-editable field', function() {
-        fakeTextselectionApp.copyTo('normalDiv', 'centerInput');
-        assert.equal(fakeTextselectionApp.centerInput.getAttribute('value'),
-          'NONEDITIABLEFIELD');
+        fakeTextselectionApp.copyTo('NonEditableNormalDiv',
+          'NonEditableCenterInput');
+        assert.equal(fakeTextselectionApp.NonEditableCenterInput
+          .getAttribute('value'), 'NONEDITIABLEFIELD');
       });
-
       test('lonePress non-editable and user-select is none', function() {
-        fakeTextselectionApp.longPress('nonSelectedDiv');
+        fakeTextselectionApp.longPress('NonEditableNonSelectedDiv');
         assert.ok(!fakeTextselectionApp.bubbleVisiblity);
       });
 
-      // Waiting for bug 1114853.
-      test.skip('lonePress non-editable field and then click non-editable' +
-                'with user-select none field', function() {
-        fakeTextselectionApp.longPress('normalDiv');
+      test('lonePress non-editable field and then click non-editable with ' +
+           'user-select none field', function() {
+        fakeTextselectionApp.longPress('NonEditableNormalDiv');
         assert.ok(fakeTextselectionApp.bubbleVisiblity);
-        var element = fakeTextselectionApp.nonSelectedDiv;
+        var element = fakeTextselectionApp.NonEditableNonSelectedDiv;
         element.tap();
         client.waitFor(function() {
           return !fakeTextselectionApp.bubbleVisiblity;
@@ -155,23 +170,29 @@ marionette('Text selection >', function() {
         assert.ok(!fakeTextselectionApp.bubbleVisiblity);
       });
     });
-    // bug 1110963
-    test('Cut/Copy/Paste menu should dismiss when tapping the keyboard',
-      function() {
-        fakeTextselectionApp.longPress('centerInput');
-        assert.ok(fakeTextselectionApp.bubbleVisiblity);
 
-        // Click keyboard
-        client.switchToFrame();
-        var keyboard =
-          client.findElement('#keyboards .inputWindow.top-most iframe');
-        client.switchToFrame(keyboard);
-        client.helper.waitForElement('.keyboard-type-container[data-active] ' +
-          'button.keyboard-key').tap();
-        client.waitFor(function() {
-          return !fakeTextselectionApp.bubbleVisiblity;
-        });
+    suite('bugs', function() {
+      setup(function() {
+        fakeTextselectionApp.setTestFrame('bug');
       });
+      test('bug1110963 : Cut/Copy/Paste menu should dismiss ' +
+           'when tapping the keyboard',
+        function() {
+          fakeTextselectionApp.longPress('BugCenterInput');
+          assert.ok(fakeTextselectionApp.bubbleVisiblity);
+
+          // Click keyboard
+          client.switchToFrame();
+          var keyboard =
+            client.findElement('#keyboards .inputWindow.top-most iframe');
+          client.switchToFrame(keyboard);
+          client.helper.waitForElement('.keyboard-type-container[data-active]' +
+            ' button.keyboard-key').tap();
+          client.waitFor(function() {
+            return !fakeTextselectionApp.bubbleVisiblity;
+          });
+        });
+    });
   });
 
   suite('with lockscreen enabled', function() {
@@ -192,34 +213,35 @@ marionette('Text selection >', function() {
     setup(function() {
       fakeTextselectionAppWithLockscreen =
         new FakeTextSelectionApp(clientWithLockscreen);
+      fakeTextselectionAppWithLockscreen.setTestFrame('bug');
     });
 
-    // bug 1115508
-    test('the utility bubble should hide when lockscreen', function() {
-      clientWithLockscreen.switchToFrame();
-      // quick unlock screen
-      clientWithLockscreen.executeScript(function() {
-        window.wrappedJSObject.Service.request('unlock', {
-          forcibly: true
+    test('bug 1115508: the utility bubble should hide when lockscreen',
+      function() {
+        clientWithLockscreen.switchToFrame();
+        // quick unlock screen
+        clientWithLockscreen.executeScript(function() {
+          window.wrappedJSObject.Service.request('unlock', {
+            forcibly: true
+          });
         });
-      });
-      clientWithLockscreen.apps.switchToApp(FakeTextSelectionApp.ORIGIN);
-      fakeTextselectionAppWithLockscreen.longPress('centerInput');
+        clientWithLockscreen.apps.switchToApp(FakeTextSelectionApp.ORIGIN);
+        fakeTextselectionAppWithLockscreen.longPress('BugCenterInput');
 
-      // turn off screen
-      clientWithLockscreen.switchToFrame();
-      clientWithLockscreen.executeScript(function() {
-        window.wrappedJSObject.ScreenManager.turnScreenOff(true, 'powerkey');
-      });
-      clientWithLockscreen.helper.wait(500);
-      // turn on screen
-      clientWithLockscreen.executeScript(function() {
-        window.wrappedJSObject.ScreenManager.turnScreenOn();
-      });
-      clientWithLockscreen.waitFor(function() {
-        return !fakeTextselectionAppWithLockscreen.bubbleVisiblity;
-      });
+        // turn off screen
+        clientWithLockscreen.switchToFrame();
+        clientWithLockscreen.executeScript(function() {
+          window.wrappedJSObject.ScreenManager.turnScreenOff(true, 'powerkey');
+        });
+        clientWithLockscreen.helper.wait(500);
+        // turn on screen
+        clientWithLockscreen.executeScript(function() {
+          window.wrappedJSObject.ScreenManager.turnScreenOn();
+        });
+        clientWithLockscreen.waitFor(function() {
+          return !fakeTextselectionAppWithLockscreen.bubbleVisiblity;
+        });
 
-    });
+      });
   });
 });
