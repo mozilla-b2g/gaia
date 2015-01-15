@@ -1592,7 +1592,6 @@ var Browser = {
     containerWidth: null,
 
     touchstart: function tabSwipe_touchstart(e) {
-      e.preventDefault();
 
       this.isCloseButton = e.target.nodeName === 'BUTTON';
       this.tab = this.isCloseButton ? e.target.parentNode : e.target;
