@@ -89,10 +89,6 @@
   // callback. If the input blob is not in the right format, call
   // errorCallback with an string message.
   function unlockBlob(secret, blob, callback, errorCallback) {
-    if (!secret) {
-      return error('no secret supplied');
-    }
-
     var reader = new FileReader();
     reader.readAsArrayBuffer(blob);
     reader.onload = function() {
