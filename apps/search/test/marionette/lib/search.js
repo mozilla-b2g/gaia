@@ -17,7 +17,6 @@ function Search(client) {
 Search.URL = 'app://search.gaiamobile.org';
 
 Search.Selectors = {
-  allGridResults: 'gaia-grid .icon',
   iframe: 'iframe[mozapptype="search"]',
   firstAppContainer: 'gaia-grid',
   firstApp: 'gaia-grid .icon',
@@ -71,13 +70,6 @@ Search.prototype = {
     var result = this.client.helper.waitForElement(selector);
     assert.equal(expected, result.text());
     return result;
-  },
-
-  /**
-   * Counts all grid search results.
-   */
-  countGridResults: function() {
-    return this.client.findElements(Search.Selectors.allGridResults).length;
   },
 
   /**

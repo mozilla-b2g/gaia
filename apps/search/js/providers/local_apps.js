@@ -14,12 +14,10 @@
 
     mozApps.oninstall = function oninstall(e) {
       self.apps[e.application.manifestURL] = e.application;
-      self.createAppListing();
     };
 
     mozApps.onuninstall = function oninstall(e) {
       delete self.apps[e.application.manifestURL];
-      self.createAppListing();
     };
 
     mozApps.getAll().onsuccess = function r_getApps(e) {
@@ -61,7 +59,7 @@
 
       manifestURLs.forEach(function eachManifest(manifestURL) {
         var app = this.apps[manifestURL];
-        var manifest = app.manifest || app.updateManifest;
+        var manifest = app.manifest;
 
         var HIDDEN_ROLES = ['system', 'input', 'homescreen', 'search'];
         if (HIDDEN_ROLES.indexOf(manifest.role) !== -1) {
