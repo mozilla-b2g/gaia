@@ -422,8 +422,15 @@ var ThreadListUI = {
     }
 
     return Utils.confirm(
-      'deleteThreads-confirmation2', null,
-      { text: 'delete', className: 'danger' }
+      {
+        id: 'deleteThreads-confirmation-message',
+        args: { n: this.selectionHandler.selectedCount }
+      },
+      null,
+      {
+        text: 'delete',
+        className: 'danger'
+      }
     ).then(performDeletion.bind(this));
   },
 

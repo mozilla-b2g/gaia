@@ -1872,8 +1872,15 @@ var ThreadUI = {
     }
 
     return Utils.confirm(
-      'deleteMessages-confirmation', null,
-      { text: 'delete', className: 'danger' }
+      {
+        id: 'deleteMessages-confirmation-message',
+        args: { n: this.selectionHandler.selectedCount }
+      },
+      null,
+      {
+        text: 'delete',
+        className: 'danger'
+      }
     ).then(performDeletion.bind(this));
   },
 

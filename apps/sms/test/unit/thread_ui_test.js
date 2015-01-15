@@ -2393,8 +2393,16 @@ suite('thread_ui.js >', function() {
     test('confirm shows the proper message', function(done) {
       doMarkedMessagesDeletion(1).then(() => {
         sinon.assert.calledWith(
-          Utils.confirm, 'deleteMessages-confirmation', null,
-          { text: 'delete', className: 'danger' }
+          Utils.confirm,
+          {
+            id: 'deleteMessages-confirmation-message',
+            args: { n: 1 }
+          },
+          null,
+          {
+            text: 'delete',
+            className: 'danger'
+          }
         );
       }).then(done, done);
     });
