@@ -139,10 +139,21 @@
           this._spatialNavigator.focus(elem);
         }
         elem.focus();
+        // Locate focused button to vertical middle of grid view. This way
+        // buttons one row above would always slightly be on bottom of the
+        // topmost scroll list (accroding to our layout). Thus we can prevent
+        // jumping from second row to the scroll list when pressing up key.
+        this._scrollTo(elem);
         this._focusElem = elem;
       }
 
       this.fireFocusEvent(elem);
+    },
+
+    _scrollTo: function ad_scrollTo(elem) {
+      var scrollY = (elem.offsetTop - this._appDeckGridViewElem.offsetTop) -
+              (this._appDeckGridViewElem.offsetHeight - elem.offsetHeight) / 2;
+      this._appDeckGridViewElem.scrollTo(0, scrollY);
     },
 
     onUnfocus: function ad_onUnfocus(elem) {
