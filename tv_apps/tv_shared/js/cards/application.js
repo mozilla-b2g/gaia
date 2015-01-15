@@ -8,6 +8,7 @@
     this.name = options.name;
     this.cachedIconBlob = undefined;
     this.cachedIconURL = options.cachedIconURL;
+    this.group = options.group;
     Card.prototype.constructor.call(this);
   };
 
@@ -16,7 +17,8 @@
     if (cardEntry && installedApps && cardEntry.type === 'Application') {
       cardInstance = new Application({
         nativeApp: installedApps[cardEntry.manifestURL],
-        name: cardEntry.name
+        name: cardEntry.name,
+        group: cardEntry.group
       });
     }
     return cardInstance;
@@ -46,7 +48,8 @@
     return {
       manifestURL: this.nativeApp.manifestURL,
       name: this.name,
-      type: 'Application'
+      type: 'Application',
+      group: this.group
     };
   };
 

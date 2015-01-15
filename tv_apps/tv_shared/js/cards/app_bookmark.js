@@ -16,7 +16,8 @@
         nativeApp: installedApps[cardEntry.manifestURL],
         name: cardEntry.name,
         thumbnail: cardEntry.thumbnail,
-        launchURL: cardEntry.launchURL
+        launchURL: cardEntry.launchURL,
+        group: cardEntry.group
       });
     }
     return cardInstance;
@@ -32,7 +33,8 @@
       name: this.name,
       thumbnail: this.thumbnail,
       launchURL: this.launchURL,
-      type: 'AppBookmark'
+      type: 'AppBookmark',
+      group: this.group
     };
   };
 

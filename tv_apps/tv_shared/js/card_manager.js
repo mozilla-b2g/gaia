@@ -371,17 +371,40 @@
 
     insertCard: function cm_insertCard(options) {
       var that = this;
-      var card = this._deserializeCardEntry(options.cardEntry);
-      var index = (typeof options.index === 'number') ?
-        options.index : this._cardList.length;
+      var newCard = this._deserializeCardEntry(options.cardEntry);
+      var position;
+      if (options.index === 'number') {
+        position = options.index;
+      } else if (!newCard.group) {
+        position = this._cardList.length;
+      } else {
+        // If the given card belongs to a deck (has type), we assume the deck
+        // spans a group with all its bookmarks following deck icon itself, and
+        // the given card should be put at the end of the group.
+        position = -1;
+        for(var idx = 0; idx < this._cardList.length; idx++) {
+          var card = this._cardList[idx];
+          if(position === -1 && !(card instanceof Deck)) {
+            // Only Decks are admitted as the start of the group.
+            continue;
+          } else if (position !== -1 && card.group !== newCard.group) {
+            // We've exceeded the end of the group.
+            break;
+          } else if (card.group === newCard.group) {
+            // We're still inside the group.
+            position = idx;
+          }
+        }
+        position += 1;
+        // No corresponding deck found; insert at bottom.
+        if (position === 0) {
+          position = this._cardList.length;
+        }
+      }
 
-      // TODO: If the given card belongs to an app, we assume the app spans a
-      // pseudo group with all its bookmarks following app icon itself, and the
-      // given card should be put at the end of the group.
-
-      this._cardList.splice(index, 0, card);
+      this._cardList.splice(position, 0, newCard);
       this.writeCardlistInCardStore().then(function() {
-        that.fire('card-inserted', card, index);
+        that.fire('card-inserted', newCard, position);
       });
     },
 
