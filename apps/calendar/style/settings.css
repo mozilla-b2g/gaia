@@ -115,7 +115,7 @@ not actually shown since the top header should be transparent.
 
 #settings .calendars .error label {
   background: transparent url('icons/accountwarning.png') no-repeat 2.3rem center / 2rem auto;
-  padding-left: 4.5rem;
+  -moz-padding-start: 4.5rem;
 }
 
 #settings .calendars label {
@@ -137,7 +137,7 @@ not actually shown since the top header should be transparent.
 #settings .calendars .icon-calendar-dot:before {
   font-size: 5rem;
   line-height: 5rem;
-  margin-left: -1rem;
+  -moz-margin-start: -1rem;
 }
 
 #settings > menu {
@@ -237,4 +237,29 @@ not actually shown since the top header should be transparent.
   right: 1.3rem;
   background: none;
   margin: 0;
+}
+
+/* RTL View */
+html[dir="rtl"] #settings .calendars label > span {
+  float: right;
+  text-align: start;
+}
+
+html[dir="rtl"] #settings [role="toolbar"] .toolbar-item {
+  border-left: unset;
+  border-right: 0.1rem solid #e5e5e5;
+}
+
+html[dir="rtl"] #settings [role="toolbar"] .toolbar-item:first-child {
+  border-left: unset;
+  border-right: 0;
+}
+
+html[dir="rtl"] #settings .calendars input[type="checkbox"] + span:after {
+  left: 1.3rem;
+  right: auto;
+}
+
+html[dir="rtl"] #settings .calendars .icon-calendar-dot:before {
+  right: 0;
 }
