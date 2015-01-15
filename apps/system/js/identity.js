@@ -29,7 +29,7 @@ var Identity = (function() {
             return;
           }
           // When opening the dialog, we record the chrome event id, which
-          // we will need to send back to the TrustedUIManager when asking
+          // we will need to send back to the TrustedWindowManager when asking
           // to close.
           this.trustedUILayers[requestId] = chromeEventId;
 
