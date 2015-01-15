@@ -347,6 +347,13 @@ shared/js/fb/fb_request.js
 shared/js/fxa_iac_client.js
 shared/js/keyboard_helper.js
 shared/js/lockscreen_slide.js
+shared/js/media/get_video_rotation.js
+shared/js/media/jpeg_metadata_parser.js
+shared/js/media/media_frame.js
+shared/js/media/media_utils.js
+shared/js/media/remote_controls.js
+shared/js/media/video_player.js
+shared/js/media/video_stats.js
 shared/js/mediadb.js
 shared/js/operator_variant_helper.js
 shared/js/simple_phone_matcher.js
