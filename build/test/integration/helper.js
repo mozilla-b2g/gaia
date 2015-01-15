@@ -65,15 +65,6 @@ function checkWebappsScheme(webapps) {
   });
 }
 
-function checkFilePathInZip(zipPath, expectedPath) {
-  var zip = new AdmZip(zipPath);
-  var entries = zip.getEntries();
-  var result = entries.some(function(entry) {
-    return entry.entryName.indexOf(expectedPath) !== -1;
-  });
-  assert.ok(result, 'Checking ' + expectedPath + ' in ' + zipPath);
-}
-
 function checkFileInZip(zipPath, pathInZip, expectedPath) {
   var stat = fs.statSync(expectedPath);
   if (stat && stat.isDirectory()) {
@@ -153,7 +144,6 @@ exports.checkError = checkError;
 exports.checkSettings = checkSettings;
 exports.checkPrefs = checkPrefs;
 exports.checkWebappsScheme = checkWebappsScheme;
-exports.checkFilePathInZip = checkFilePathInZip;
 exports.checkFileInZip = exports.checkDirInZip = checkFileInZip;
 exports.checkFileContentInZip = checkFileContentInZip;
 exports.checkFileContentByPathInZip = checkFileContentByPathInZip;
