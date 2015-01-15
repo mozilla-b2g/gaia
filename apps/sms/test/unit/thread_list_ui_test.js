@@ -664,8 +664,16 @@ suite('thread_list_ui', function() {
       test('called confirm with proper message', function(done) {
         selectThreadsAndDelete(threadDraftIds).then(() => {
           sinon.assert.calledWith(
-            Utils.confirm, 'deleteThreads-confirmation2', null,
-            { text: 'delete', className: 'danger' }
+            Utils.confirm,
+            {
+              id: 'deleteThreads-confirmation-message',
+              args: { n: threadDraftIds.length }
+            },
+            null,
+            {
+              text: 'delete',
+              className: 'danger'
+            }
           );
         }).then(done, done);
       });
