@@ -10,7 +10,8 @@
     mainSection: document.getElementById('main-section'),
     doneButton: document.getElementById('done-button'),
     searchButton: document.getElementById('search-button'),
-    addNewFolderButton: document.getElementById('add-new-folder-button'),
+    // TODO: We'll hide new folder button until folder features are implemented.
+    // addNewFolderButton: document.getElementById('add-new-folder-button'),
     editButton: document.getElementById('edit-button'),
     settingsButton: document.getElementById('settings-button'),
 
@@ -24,7 +25,7 @@
 
       this.regularNavElements =
               [this.searchButton, this.settingsButton, this.editButton];
-      this.editNavElements = [this.doneButton, this.addNewFolderButton];
+      this.editNavElements = [this.doneButton];
 
       this.cardManager.on('card-swapped', this.onCardSwapped.bind(this));
 
@@ -133,8 +134,9 @@
       var focus = this.spatialNavigator.getFocusedElement();
       if (focus === this.doneButton) {
         this.toggleEditMode();
-      } else if (focus === this.addNewFolderButton) {
-        this.addNewFolder();
+      // TODO: We disable new folders until folder features are implemented.
+      // } else if (focus === this.addNewFolderButton) {
+      //  this.addNewFolder();
 
       } else if (focus.CLASS_NAME === 'XScrollable') {
         var currentItem = focus.currentItem;
