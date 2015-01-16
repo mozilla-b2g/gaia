@@ -468,12 +468,14 @@
         this.installedApps[manifestURL].updateManifest;
       var entryPoints = manifest.entry_points;
       var entries = [];
+      var removable = this.installedApps[manifestURL].removable;
 
       if (!entryPoints || manifest.type !== 'certified') {
         entries.push({
           manifestURL: manifestURL,
           entryPoint: '',
           name: manifest.name,
+          removable: removable,
           type: 'Application'
         });
       } else {
@@ -483,6 +485,7 @@
               manifestURL: manifestURL,
               entryPoint: entryPoint,
               name: entryPoints[entryPoint].name,
+              removable: removable,
               type: 'Application'
             });
           }
