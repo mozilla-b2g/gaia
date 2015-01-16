@@ -4,6 +4,8 @@ var Rocketbar = require('./lib/rocketbar');
 var Server = require('../../../../shared/test/integration/server');
 var assert = require('chai').assert;
 
+var NotificationList = require('./lib/notification').NotificationList;
+
 marionette('Software Home Button - File Open Error', function() {
 
   var client = marionette.client({
@@ -17,13 +19,16 @@ marionette('Software Home Button - File Open Error', function() {
       'software-button.enabled': true
     }
   });
-  var home, rocketbar, search, server, system, actions;
+  var home, rocketbar, search, server, system, actions, utilityTray,
+    notificationList;
 
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
+    notificationList = new NotificationList(client);
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
+    utilityTray = client.loader.getAppClass('system', 'utility_tray');
     actions = client.loader.getActions();
     system.waitForStartup();
   });
@@ -52,15 +57,9 @@ marionette('Software Home Button - File Open Error', function() {
     client.switchToFrame();
     system.appContextMenuSaveLink.click();
 
-    // Tap on the toaster to open the download.
-    // We could also open this from settings or the utility tray if needed.
-    var toasterTitle;
-    client.waitFor(function() {
-      toasterTitle = client.helper.waitForElement(
-        '#notification-toaster.displayed .toaster-title');
-      return toasterTitle.text().indexOf('Download complete') !== -1;
-    });
-    toasterTitle.tap();
+    utilityTray.open();
+
+    notificationList.tap(notificationList.notifications[0]);
 
     function rect(el) {
       return el.getBoundingClientRect();
