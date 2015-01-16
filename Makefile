@@ -703,7 +703,7 @@ modules.tar: gaia_node_modules.revision
 
 git-gaia-node-modules: gaia_node_modules.revision
 	if [ ! -d "$(NODE_MODULES_SRC)" ] ; then \
-		git clone "$(NODE_MODULES_GIT_URL)" "$(NODE_MODULES_SRC)" ; \
+		git clone https://github.com/nullaus/gaia-node-modules "$(NODE_MODULES_SRC)" ; \
 	fi
 	(cd "$(NODE_MODULES_SRC)" && git fetch && git reset --hard "$(NODE_MODULES_REV)" )
 
@@ -767,8 +767,7 @@ test-integration-test:
 		--host $(MARIONETTE_RUNNER_HOST) \
 		--manifest $(TEST_MANIFEST) \
 		--reporter $(REPORTER) \
-		--buildapp $(BUILDAPP) \
-		--verbose
+		--buildapp $(BUILDAPP)
 
 .PHONY: caldav-server-install
 caldav-server-install:
