@@ -253,6 +253,8 @@ var StatusBar = {
     window.addEventListener('utilitytraywillhide', this);
     window.addEventListener('utility-tray-overlayopened', this);
     window.addEventListener('utility-tray-overlayclosed', this);
+    window.addEventListener('utility-tray-abortopen', this);
+    window.addEventListener('utility-tray-abortclose', this);
     window.addEventListener('cardviewshown', this);
     window.addEventListener('cardviewclosed', this);
 
@@ -386,6 +388,8 @@ var StatusBar = {
 
       case 'utility-tray-overlayopened':
       case 'utility-tray-overlayclosed':
+      case 'utility-tray-abortopen':
+      case 'utility-tray-abortclose':
       case 'cardviewclosed':
         this.resumeUpdate();
         break;

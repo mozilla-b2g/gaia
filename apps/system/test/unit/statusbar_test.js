@@ -2312,6 +2312,14 @@ suite('system/Statusbar', function() {
       testEventThatResume.bind(this)('utility-tray-overlayclosed');
     });
 
+    test('utility-tray-abortopen', function() {
+      testEventThatResume.bind(this)('utility-tray-abortopen');
+    });
+
+    test('utility-tray-abortclose', function() {
+      testEventThatResume.bind(this)('utility-tray-abortclose');
+    });
+
     test('cardviewclosed', function() {
       testEventThatResume.bind(this)('cardviewclosed');
     });

@@ -199,7 +199,7 @@ window.UtilityTray = {
         break;
 
       case 'screenchange':
-        if (this.shown && !evt.detail.screenEnabled) {
+        if (this.shown && !this.active && !evt.detail.screenEnabled) {
           this.hide(true);
         }
         break;
@@ -427,7 +427,6 @@ window.UtilityTray = {
     }
 
     this.validateCachedSizes();
-    var alreadyHidden = !this.shown;
     var style = this.overlay.style;
 
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
@@ -444,20 +443,22 @@ window.UtilityTray = {
     var offset = this.grippyHeight - this.ambientHeight;
     var notifTransform = 'calc(100% + ' + offset + 'px)';
     this.notifications.style.transform = 'translateY(' + notifTransform + ')';
-    this.shown = false;
-    window.dispatchEvent(new CustomEvent('utility-tray-overlayclosed'));
 
-    if (!alreadyHidden) {
+    if (this.shown) {
+      this.shown = false;
+      window.dispatchEvent(new CustomEvent('utility-tray-overlayclosed'));
+
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('utilitytrayhide', true, true, null);
       window.dispatchEvent(evt);
       this.publish('-deactivated');
+    } else {
+      window.dispatchEvent(new CustomEvent('utility-tray-abortopen'));
     }
   },
 
   show: function ut_show(instant) {
     this.validateCachedSizes();
-    var alreadyShown = this.shown;
     var style = this.overlay.style;
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
     var translate = this.ambientHeight + 'px';
@@ -466,15 +467,18 @@ window.UtilityTray = {
       instant ? '' : 'transform 0.2s linear';
     this.notifications.style.transform = '';
 
-    this.shown = true;
     this.screen.classList.add('utility-tray');
-    window.dispatchEvent(new CustomEvent('utility-tray-overlayopened'));
 
-    if (!alreadyShown) {
+    if (!this.shown) {
+      this.shown = true;
+      window.dispatchEvent(new CustomEvent('utility-tray-overlayopened'));
+
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('utilitytrayshow', true, true, null);
       window.dispatchEvent(evt);
       this.publish('-activated');
+    } else {
+      window.dispatchEvent(new CustomEvent('utility-tray-abortclose'));
     }
   },
 
