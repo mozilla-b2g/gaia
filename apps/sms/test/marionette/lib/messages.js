@@ -237,6 +237,8 @@
               break;
             }
           }
+
+          client.helper.waitForElementToDisappear(menuElement);
         },
 
         addRecipient: function(number) {
