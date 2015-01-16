@@ -133,10 +133,13 @@ return [
         this.header.setRead(true);
       } else {
         this.readBtn.classList.remove('unread');
+        mozL10n.setAttributes(this.readBtn, 'message-mark-read-button');
       }
 
       this.starBtn.classList.toggle('msg-star-btn-on',
                                      this.hackMutationHeader.isStarred);
+      this.starBtn.setAttribute('aria-pressed',
+        this.hackMutationHeader.isStarred);
 
       this.emit('header');
     },
@@ -383,11 +386,12 @@ return [
     },
 
     onToggleStar: function() {
-      var button = this.querySelector('.msg-star-btn');
-      button.classList.toggle('msg-star-btn-on',
-                              !this.hackMutationHeader.isStarred);
+      this.starBtn.classList.toggle('msg-star-btn-on',
+                                    !this.hackMutationHeader.isStarred);
 
       this.hackMutationHeader.isStarred = !this.hackMutationHeader.isStarred;
+      this.starBtn.setAttribute('aria-pressed',
+        this.hackMutationHeader.isStarred);
       this.header.setStarred(this.hackMutationHeader.isStarred);
     },
 
@@ -408,6 +412,8 @@ return [
 
       // Want the button state to reflect the current read state.
       this.readBtn.classList.toggle('unread', !isRead);
+      mozL10n.setAttributes(this.readBtn,
+        isRead ? 'message-mark-read-button' : 'message-mark-unread-button');
     },
 
     onMarkRead: function() {
@@ -834,7 +840,8 @@ return [
 
       // Nuke existing body, show progress while waiting
       // for message to load.
-      this.rootBodyNode.innerHTML = '<progress></progress>';
+      this.rootBodyNode.innerHTML =
+        '<progress data-l10n-id="message-body-container-progress"></progress>';
 
       // Make sure load bar is not shown between loads too.
       this.loadBar.classList.add('collapsed');
@@ -1017,6 +1024,7 @@ return [
               state = 'downloadable';
             } else {
               state = 'nodownload';
+              attachmentDownloadable = false;
             }
             attTemplate.setAttribute('state', state);
             filenameTemplate.textContent = attachment.filename;
@@ -1035,6 +1043,8 @@ return [
                 'click', this.onDownloadAttachmentClick.bind(
                   this, attachmentNode, attachment));
             }
+            attachmentNode.setAttribute('aria-disabled',
+              !attachmentDownloadable);
             attachmentNode.querySelector('.msg-attachment-view')
               .addEventListener('click',
                                 this.onViewAttachmentClick.bind(

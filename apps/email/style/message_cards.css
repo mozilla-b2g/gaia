@@ -360,6 +360,8 @@ html:-moz-dir(rtl) .msg-header-attachments-yes {
 .msg-envelope-date {
   font-size: 1.4rem;
   color: #657073;
+  display: inline-block;
+  width: 100%;
 }
 
 .msg-envelope-key {
