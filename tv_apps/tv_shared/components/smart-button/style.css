@@ -303,3 +303,77 @@ smart-button[type="text-and-icon"].pressed {
  * End of text and icon button
  */
 
+/**
+ * banner button
+**/
+smart-button[type="banner-button"] {
+  position: relative;
+
+  color: #ffffff;
+  font-size: 2rem;
+  font-style: italic;
+
+  width: 36rem;
+  height: 20rem;
+  overflow: hidden;
+
+  border-radius: 0;
+  border: 0 solid #ffffff;
+
+  background-color: #5f5f5f;
+  background-repeat: no-repeat;
+  background-size: 120%;
+
+  box-sizing: border-box;
+
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.25, 0, 0.5, 1.0);
+  transition-duration: 0.1s;
+}
+
+smart-button[type="banner-button"][label]:before {
+  content: attr(label);
+
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  height: 5rem;
+
+  line-height: 5rem;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+smart-button[type="banner-button"]:after {
+  content: " ";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: 0;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.25, 0, 0, 1.0);
+  transition-duration: 0.06s;
+  background-color: rgba(255, 255, 255, 0);
+}
+
+smart-button[type="banner-button"].focused {
+  transform: none;
+  border-width: 1.2rem;
+  background-size: 100%;
+  transition-duration: 0.24s;
+}
+
+smart-button[type="banner-button"].pressed {
+  transform: scale(0.945, 0.9);
+}
+
+smart-button[type="banner-button"].pressed:after {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+/**
+ * banner button
+**/
