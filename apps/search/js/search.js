@@ -94,12 +94,6 @@
       this.initNotice();
       this.initConnectivityCheck();
 
-      // Fire off a dummy geolocation request so the prompt can be responded
-      // to before the user starts typing
-      if ('geolocation' in navigator) {
-        navigator.geolocation.getCurrentPosition(function(){});
-      }
-
       this.contextmenu = new Contextmenu();
       window.addEventListener('resize', this.resize);
     },
