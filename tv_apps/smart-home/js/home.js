@@ -1,7 +1,7 @@
 'use strict';
 /* global SpatialNavigator, XScrollable, KeyNavigationAdapter, Edit */
 /* global CardManager, URL, Application, Clock, Folder, Deck, CardFilter */
-/* global SearchBar */
+/* global SearchBar, SharedUtils, MozActivity, Home */
 
 (function(exports) {
 
@@ -14,7 +14,7 @@
 
   Home.prototype = {
     navigableIds:
-        ['search-button', 'search-input', 'settings-group', 'filter-tab-group'],
+        ['search-button', 'search-input', 'settings-group'],
 
     topElementIds: ['search-button', 'search-input', 'settings-group',
         'edit-button', 'settings-button'],
@@ -22,7 +22,7 @@
         'filter-tv-button', 'filter-dashboard-button', 'filter-device-button',
         'filter-app-button'],
 
-    navigableClasses: ['filter-tab', 'command-button'],
+    navigableClasses: ['command-button'],
     navigableScrollable: [],
     cardScrollable: undefined,
     folderScrollable: undefined,
@@ -318,6 +318,7 @@
     },
 
     onSearchBarShown: function() {
+      /*jshint nonew: false */
       new MozActivity({
         name: 'search',
         data: { keyword: '' }
@@ -459,6 +460,7 @@
     },
 
     openSettings: function() {
+      /*jshint nonew: false */
       new MozActivity({
         name: 'configure',
         data: {}
@@ -475,7 +477,7 @@
       var timeFormat = use12Hour ? _('shortTimeFormat12') :
                                    _('shortTimeFormat24');
       // remove AM/PM and we use our owned style to show it.
-      var timeFormat = timeFormat.replace('%p', '').trim();
+      timeFormat = timeFormat.replace('%p', '').trim();
       var formatted = f.localeFormat(now, timeFormat);
 
       var timeElem = document.getElementById('time');
