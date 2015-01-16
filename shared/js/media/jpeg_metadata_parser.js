@@ -126,15 +126,6 @@ function parseJPEGMetadata(file, metadataCallback, metadataError) {
 
       // map exif orientation flags for easy transforms
       switch (exif.ORIENTATION) {
-        case 1:
-        /* falls through */
-        default:
-          // This is the default orientation. If it is properly encoded
-          // we will get 1 here. But sometimes it is undefined and some
-          // files have a 0 here as well.
-          metadata.rotation = 0;
-          metadata.mirrored = false;
-          break;
         case 2:
           metadata.rotation = 0;
           metadata.mirrored = true;
@@ -161,6 +152,13 @@ function parseJPEGMetadata(file, metadataCallback, metadataError) {
           break;
         case 8:
           metadata.rotation = 270;
+          metadata.mirrored = false;
+          break;
+        default:
+          // This is the default orientation. If it is properly encoded
+          // we will get 1 here. But sometimes it is undefined and some
+          // files have a 0 here as well.
+          metadata.rotation = 0;
           metadata.mirrored = false;
           break;
       }
