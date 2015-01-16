@@ -498,7 +498,7 @@ var Compose = (function() {
 
     /**
      * Unlock composer when size is decreased again.
-     */    
+     */
     unlock: function() {
       state.locked = false;
       dom.attachButton.disabled = false;
@@ -717,12 +717,20 @@ var Compose = (function() {
     _onAttachmentRequestError: function c_onAttachmentRequestError(err) {
       var errId = err instanceof DOMError ? err.name : err.message;
       if (errId === 'file too large') {
-        Utils.alert({
-          id: 'attached-files-too-large',
-          args: {
-            n: 1,
-            mmsSize: (Settings.mmsSizeLimitation / 1024).toFixed(0)
-          }
+        navigator.mozL10n.ready(function() {
+          var params = Utils.getSizeForL10n(Settings.mmsSizeLimitation);
+          var sizeUnitL10n = navigator.mozL10n.get(params.l10nId,
+            {
+              n: params.l10nArgs.n
+            });
+
+          Utils.alert({
+            id: 'attached-files-too-large-size',
+            args: {
+              n: 1,
+              mmsSize: sizeUnitL10n
+            }
+          });
         });
 
       //'pick cancelled' is the error thrown when the pick activity app is

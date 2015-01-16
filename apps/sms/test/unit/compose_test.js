@@ -1047,8 +1047,8 @@ suite('compose_test.js', function() {
 
           sinon.assert.calledWith(
             Utils.alert, {
-              id: 'attached-files-too-large',
-              args: { n: 1, mmsSize: '295' }
+              id: 'attached-files-too-large-size',
+              args: { n: 1, mmsSize: '295.0 KB' }
             }
           );
         });
@@ -1562,8 +1562,8 @@ suite('compose_test.js', function() {
             request.onerror(new Error('file too large'));
             sinon.assert.calledWith(
               Utils.alert, {
-                id: 'attached-files-too-large',
-                args: { n: 1, mmsSize: '295' }
+                id: 'attached-files-too-large-size',
+                args: { n: 1, mmsSize: '295.0 KB' }
               }
             );
           });

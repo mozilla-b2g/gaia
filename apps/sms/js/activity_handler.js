@@ -167,14 +167,22 @@ var ActivityHandler = {
         }, 0);
 
         if (size > Settings.mmsSizeLimitation) {
-          Utils.alert({
-            id: 'attached-files-too-large',
-            args: {
-              n: activityData.blobs.length,
-              mmsSize: (Settings.mmsSizeLimitation / 1024).toFixed(0)
-            }
-          }).then(() => this.leaveActivity());
-          return;
+          navigator.mozL10n.ready(function() {
+            var params = Utils.getSizeForL10n(Settings.mmsSizeLimitation);
+            var sizeUnitL10n = navigator.mozL10n.get(params.l10nId,
+              {
+                n: params.l10nArgs.n
+              });
+
+            Utils.alert({
+              id: 'attached-files-too-large-size',
+              args: {
+                n: activityData.blobs.length,
+                mmsSize: sizeUnitL10n
+              }
+            }).then(() => this.leaveActivity());
+            return;
+          });
         }
 
         dataToShare = attachments;
