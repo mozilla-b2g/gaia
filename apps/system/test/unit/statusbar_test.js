@@ -2429,6 +2429,14 @@ suite('system/Statusbar', function() {
       testEventThatResume.bind(this)('utility-tray-overlayclosed');
     });
 
+    test('utility-tray-abortopen', function() {
+      testEventThatResume.bind(this)('utility-tray-abortopen');
+    });
+
+    test('utility-tray-abortclose', function() {
+      testEventThatResume.bind(this)('utility-tray-abortclose');
+    });
+
     suite('handle events with swipe detected', function() {
       setup(function() {
         StatusBar.element.classList.add('hidden');

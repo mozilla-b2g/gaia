@@ -250,6 +250,8 @@ var StatusBar = {
     window.addEventListener('utilitytraywillhide', this);
     window.addEventListener('utility-tray-overlayopened', this);
     window.addEventListener('utility-tray-overlayclosed', this);
+    window.addEventListener('utility-tray-abortopen', this);
+    window.addEventListener('utility-tray-abortclose', this);
 
     // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
@@ -375,6 +377,8 @@ var StatusBar = {
 
       case 'utility-tray-overlayopened':
       case 'utility-tray-overlayclosed':
+      case 'utility-tray-abortopen':
+      case 'utility-tray-abortclose':
         this.resumeUpdate();
         break;
 
