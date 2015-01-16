@@ -118,6 +118,7 @@
           // uses app.launch or iac-customlaunchpath.
           config.changeURL = true;
           // Please no `break;` here. It's on purpose.
+          /* falls through */
         case 'openwindow':
         case 'appopenwindow':
           config.timestamp = detail.timestamp;
@@ -183,13 +184,6 @@
         return;
       }
 
-      // The rocketbar currently handles the management of normal search app
-      // launches. Requests for the 'newtab' page will continue to filter
-      // through and publish the launchapp event.
-      if (config.manifest && config.manifest.role === 'search' &&
-          config.url.indexOf('newtab.html') === -1) {
-        return;
-      }
       var app = AppWindowManager.getApp(config.origin, config.manifestURL);
       if (app) {
         if (config.evtType === 'appopenwindow' ||

@@ -74,9 +74,7 @@
         // If we already have a browser and we receive an open request,
         // display it in the current browser frame.
         var activeApp = AppWindowManager.getActiveApp();
-        var isSearchApp = (activeApp.manifest &&
-          activeApp.manifest.role === 'search');
-        if (activeApp && (activeApp.isBrowser() || isSearchApp)) {
+        if (activeApp && activeApp.isBrowser()) {
           activeApp.navigate(url);
           return;
         }

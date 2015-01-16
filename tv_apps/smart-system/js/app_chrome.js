@@ -71,13 +71,6 @@
       return;
     }
 
-    if (this.isSearchApp()) {
-      this.app.element.classList.add('search-app');
-      this.title.setAttribute('data-l10n-id', 'search-or-enter-address');
-    } else {
-      this.app.element.classList.remove('search-app');
-    }
-
     if (chrome.bar) {
       this.app.element.classList.add('bar');
       this.bar.classList.add('visible');
@@ -386,9 +379,6 @@
     };
 
   AppChrome.prototype.setFreshTitle = function ac_setFreshTitle(title) {
-    if (this.isSearchApp()) {
-      return;
-    }
     this.title.textContent = title;
     clearTimeout(this._titleTimeout);
     this._recentTitle = true;
@@ -611,11 +601,6 @@
   AppChrome.prototype.isSearch = function ac_isSearch() {
     var dataset = this.app.config;
     return dataset.searchURL && this._currentURL === dataset.searchURL;
-  };
-
-  AppChrome.prototype.isSearchApp = function() {
-    return this.app.config.manifest &&
-      this.app.config.manifest.role === 'search';
   };
 
   AppChrome.prototype.addBookmark = function ac_addBookmark() {
