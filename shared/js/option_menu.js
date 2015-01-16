@@ -121,6 +121,7 @@ var OptionMenu = function(options) {
   // For each option, we append the item and listener
   items.forEach(function renderOption(item) {
     var button = document.createElement('button');
+    button.type = 'button';
     if (item.l10nId) {
       navigator.mozL10n.setAttributes(button, item.l10nId, item.l10nArgs);
     } else if (item.name && item.name.length) {
