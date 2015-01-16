@@ -421,6 +421,21 @@
       }
     },
 
+    updateCard: function cm_updateCard(item, index) {
+      var that = this;
+      if (typeof index === 'undefined') {
+        index = this._cardList.findIndex(function(elem) {
+          return elem.cardId === item.cardId;
+        });
+      }
+      if (index >= 0) {
+        this._cardList[index] = item;
+        this.writeCardlistInCardStore().then(function() {
+          that.fire('card-updated', that._cardList[index], index);
+        });
+      }
+    },
+
     swapCard: function cm_switchCard(item1, item2) {
       var idx1, idx2;
       idx1 = (typeof item1 === 'number') ?

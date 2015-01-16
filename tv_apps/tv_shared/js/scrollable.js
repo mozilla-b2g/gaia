@@ -213,7 +213,7 @@
     },
 
     getNode: function(index) {
-      return this.listElem.children[index];
+      return this.nodes[index];
     },
 
     removeNode: function(node) {
