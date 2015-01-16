@@ -6,7 +6,6 @@ require('/js/views/handwriting_pad_view.js');
 require('/js/views/layout_page_view.js');
 
 suite('Views > LayoutPageView', function() {
-
   var dummyLayout = {
     width: 2,
     keys: [
@@ -14,8 +13,12 @@ suite('Views > LayoutPageView', function() {
     ]
   };
 
+  var viewManager = {
+    registerView: sinon.stub()
+  };
+
   test(' > show() ', function() {
-    var pageView = new LayoutPageView(dummyLayout, {});
+    var pageView = new LayoutPageView(dummyLayout, {}, viewManager);
     pageView.render();
 
     pageView.show();
@@ -25,7 +28,7 @@ suite('Views > LayoutPageView', function() {
   });
 
   test(' > hide() ', function() {
-    var pageView = new LayoutPageView(dummyLayout, {});
+    var pageView = new LayoutPageView(dummyLayout, {}, viewManager);
     pageView.render();
 
     pageView.hide();
@@ -45,7 +48,7 @@ suite('Views > LayoutPageView', function() {
         ]
       };
 
-      var pageView = new LayoutPageView(layout, {});
+      var pageView = new LayoutPageView(layout, {}, viewManager);
       pageView.render();
 
       var container = pageView.element;
@@ -66,7 +69,7 @@ suite('Views > LayoutPageView', function() {
         keyClassName: 'c9'
       };
 
-      var pageView = new LayoutPageView(layout, {});
+      var pageView = new LayoutPageView(layout, {}, viewManager);
       pageView.render();
 
       var container = pageView.element;
@@ -82,7 +85,7 @@ suite('Views > LayoutPageView', function() {
         ]
       };
 
-      var pageView = new LayoutPageView(layout, {});
+      var pageView = new LayoutPageView(layout, {}, viewManager);
       pageView.render();
 
       var container = pageView.element;
@@ -102,7 +105,7 @@ suite('Views > LayoutPageView', function() {
         ]
       };
 
-      var pageView = new LayoutPageView(layout, {});
+      var pageView = new LayoutPageView(layout, {}, viewManager);
       pageView.render();
       pageView.setUpperCaseLock({
         isUpperCase: true,
@@ -128,7 +131,7 @@ suite('Views > LayoutPageView', function() {
         ]
       };
 
-      var pageView = new LayoutPageView(layout, {});
+      var pageView = new LayoutPageView(layout, {}, viewManager);
       pageView.render();
       pageView.setUpperCaseLock({
         isUpperCase: false,
@@ -154,7 +157,7 @@ suite('Views > LayoutPageView', function() {
         ]
       };
 
-      var pageView = new LayoutPageView(layout, {});
+      var pageView = new LayoutPageView(layout, {}, viewManager);
       pageView.render();
       pageView.setUpperCaseLock({
         isUpperCase: false,
@@ -191,7 +194,7 @@ suite('Views > LayoutPageView', function() {
         ]
       };
 
-      var pageView = new LayoutPageView(layout, {});
+      var pageView = new LayoutPageView(layout, {}, viewManager);
       pageView.render();
 
       var container = pageView.element;
@@ -208,7 +211,7 @@ suite('Views > LayoutPageView', function() {
           specificCssRule: true
         };
 
-        var pageView = new LayoutPageView(layout, {});
+        var pageView = new LayoutPageView(layout, {}, viewManager);
         pageView.render();
 
         var container = pageView.element;
@@ -223,7 +226,7 @@ suite('Views > LayoutPageView', function() {
           specificCssRule: false
         };
 
-        var pageView = new LayoutPageView(layout, {});
+        var pageView = new LayoutPageView(layout, {}, viewManager);
         pageView.render();
 
         var container = pageView.element;
@@ -244,7 +247,7 @@ suite('Views > LayoutPageView', function() {
           ]
         ]
       };
-      pageView = new LayoutPageView(layout, {});
+      pageView = new LayoutPageView(layout, {}, viewManager);
       pageView.render();
     });
 
