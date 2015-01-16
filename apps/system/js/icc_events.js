@@ -60,22 +60,14 @@ var icc_events = {
         iccEventSet = self.eventSet[iccId];
       if (call.state == 'incoming' && iccEventSet &&
         iccEventSet[iccMan.STK_EVENT_TYPE_MT_CALL]) {
-        self.downloadEvent(iccEventSet[iccMan.STK_EVENT_TYPE_MT_CALL], {
-          eventType: icc._iccManager.STK_EVENT_TYPE_MT_CALL,
-          number: call.id ? call.id.number : call.number,
-          isIssuedByRemote: outgoing,
-          error: null
-        });
+        // Remove the event envelope of STK_EVENT_TYPE_MT_CALL
+        // which will be handled by MODEM
       }
       call.addEventListener('error', function callError(err) {
         if (iccEventSet &&
           iccEventSet[iccMan.STK_EVENT_TYPE_CALL_DISCONNECTED]) {
-          self.downloadEvent(
-            iccEventSet[iccMan.STK_EVENT_TYPE_CALL_DISCONNECTED], {
-            eventType: icc._iccManager.STK_EVENT_TYPE_CALL_DISCONNECTED,
-            number: call.id ? call.id.number : call.number,
-            error: err
-          });
+          // Remove the event envelope of STK_EVENT_TYPE_CALL_DISCONNECTED
+          // which will be handled by MODEM
         }
       });
       call.addEventListener('statechange', function callStateChange() {
@@ -84,25 +76,16 @@ var icc_events = {
           case 'connected':
             if (iccEventSet &&
               iccEventSet[iccMan.STK_EVENT_TYPE_CALL_CONNECTED]) {
-              self.downloadEvent(
-                iccEventSet[iccMan.STK_EVENT_TYPE_CALL_CONNECTED], {
-                eventType: icc._iccManager.STK_EVENT_TYPE_CALL_CONNECTED,
-                number: call.id ? call.id.number : call.number,
-                isIssuedByRemote: outgoing
-              });
+              // Remove the event envelope of STK_EVENT_TYPE_CALL_CONNECTED
+              // which will be handled by MODEM
             }
             break;
           case 'disconnected':
             call.removeEventListener('statechange', callStateChange);
             if (iccEventSet &&
               iccEventSet[iccMan.STK_EVENT_TYPE_CALL_DISCONNECTED]) {
-              self.downloadEvent(
-                iccEventSet[iccMan.STK_EVENT_TYPE_CALL_DISCONNECTED], {
-                eventType: icc._iccManager.STK_EVENT_TYPE_CALL_DISCONNECTED,
-                number: call.id ? call.id.number : call.number,
-                isIssuedByRemote: outgoing,
-                error: null
-              });
+              // Remove the event envelope of STK_EVENT_TYPE_CALL_DISCONNECTED
+              // which will be handled by MODEM
             }
             break;
         }
@@ -213,8 +196,8 @@ var icc_events = {
         break;
       case icc._iccManager.STK_EVENT_TYPE_LOCATION_STATUS:
         DUMP('icc_events_register - Location changes event');
-        conn.addEventListener('voicechange',
-          this.register_icc_event_voicechange);
+        // Remove the event envelope of STK_EVENT_TYPE_LOCATION_STATUS
+        // which will be handled by MODEM
         break;
       case icc._iccManager.STK_EVENT_TYPE_USER_ACTIVITY:
         DUMP('icc_events_register - User activity event');
