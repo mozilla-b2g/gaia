@@ -9,7 +9,8 @@
         ThreadUI,
         Threads,
         EventDispatcher,
-        DOMError
+        DOMError,
+        Utils
 */
 /*exported Compose */
 
@@ -717,11 +718,13 @@ var Compose = (function() {
     _onAttachmentRequestError: function c_onAttachmentRequestError(err) {
       var errId = err instanceof DOMError ? err.name : err.message;
       if (errId === 'file too large') {
+        var params = Utils.getSizeForL10n(Settings.mmsSizeLimitation);
+
         Utils.alert({
-          id: 'attached-files-too-large',
+          id: 'attached-files-too-large-' + params.l10nId,
           args: {
             n: 1,
-            mmsSize: (Settings.mmsSizeLimitation / 1024).toFixed(0)
+            mmsSize: params.l10nArgs.n
           }
         });
 

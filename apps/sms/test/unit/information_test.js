@@ -183,7 +183,7 @@ suite('Information view', function() {
           ];
 
           this.sinon.spy(Template.prototype, 'interpolate');
-          this.sinon.stub(Contacts, 'findByAddress');        
+          this.sinon.stub(Contacts, 'findByAddress');
 
           reportView.renderContactList(oldParticipant);
           oldRenderingId = reportView.renderingId;
@@ -292,7 +292,7 @@ suite('Information view', function() {
       assert.equal(reportView.subject.classList.contains('hide'), subjectHide);
       if (!subjectHide && subjectContent) {
         assert.equal(reportView.subject.querySelector('.detail').textContent,
-                     subjectContent);        
+                     subjectContent);
       }
 
       if (delivery === 'error') {
@@ -317,7 +317,7 @@ suite('Information view', function() {
         sinon.assert.calledWith(
           navigator.mozL10n.setAttributes,
           reportView.size,
-          'attachmentSizeKB',
+          'sizeKB',
           sizeContent
         );
       }

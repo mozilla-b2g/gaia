@@ -3,7 +3,7 @@
 
 /*global Utils, MessageManager, Compose, OptionMenu, NotificationHelper,
          Attachment, Notify, SilentSms, Threads, SMIL, Contacts,
-         ThreadUI, Notification, Settings, Navigation */
+         ThreadUI, Notification, Settings, Navigation, Utils */
 /*exported ActivityHandler */
 
 'use strict';
@@ -167,11 +167,13 @@ var ActivityHandler = {
         }, 0);
 
         if (size > Settings.mmsSizeLimitation) {
+          var params = Utils.getSizeForL10n(Settings.mmsSizeLimitation);
+
           Utils.alert({
-            id: 'attached-files-too-large',
+            id: 'attached-files-too-large-' + params.l10nId,
             args: {
               n: activityData.blobs.length,
-              mmsSize: (Settings.mmsSizeLimitation / 1024).toFixed(0)
+              mmsSize: params.l10nArgs.n
             }
           }).then(() => this.leaveActivity());
           return;
