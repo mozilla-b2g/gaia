@@ -170,6 +170,9 @@
 
       if (!this.simLockSystemDialog) {
         this.warn('dialog not ready.');
+        this._simLockSystemDialog_loaded = function() {
+          this.showIfLocked();
+        };
         return false;
       }
 

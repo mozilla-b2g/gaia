@@ -208,6 +208,16 @@
       self.addEventListener(type, this);
     }).bind(this));
     Service.request('registerHierarchy', this);
+    Service.register('showSystemDialog', this);
+  };
+
+  /**
+   * If a system dialog is created and shown before the system dialog
+   * manager is started, the show request will be performed here via service.
+   * @param  {Object} dialog System dialog object
+   */
+  SystemDialogManager.prototype.showSystemDialog = function(dialog) {
+    this.activateDialog(dialog);
   };
 
   /**
