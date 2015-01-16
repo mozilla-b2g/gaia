@@ -147,6 +147,12 @@ suite('link_helper_test.js', function() {
       test('URL with phone number in the middle', function() {
         testURLOK('http://somesite.com/q,12288296666/');
       });
+      test('Full width char prefix', function() {
+        testURLMatch('：mozilla.org', 'mozilla.org', true);
+      });
+      test('non ascii prefix', function() {
+        testURLMatch('àmozilla.org', 'mozilla.org', true);
+      });
     });
 
     suite('Failures', function() {
