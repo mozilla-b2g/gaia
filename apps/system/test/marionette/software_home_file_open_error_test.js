@@ -59,6 +59,8 @@ marionette('Software Home Button - File Open Error', function() {
 
     utilityTray.open();
 
+    notificationList.refresh();
+console.log('Screenshot: ' + 'data:image/png;base64,' + client.screenshot());
     notificationList.tap(notificationList.notifications[0]);
 
     function rect(el) {
