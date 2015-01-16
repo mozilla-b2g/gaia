@@ -62,8 +62,22 @@
     }
 
     var req = {
+      listeners: {},
       addEventListener: function(name, cb) {
-        req['on' + name] = cb;
+        if (req.listeners[name]) {
+          req.listeners[name].push(cb);
+        } else {
+          req.listeners[name] = [cb];
+        }
+      },
+      then: function(cb, eb) {
+        // error-handler `eb` is never used, since the mock never fails.
+        var promise = new Promise(function (resolve, reject) {
+          req.addEventListener('success', function () {
+            resolve(0);
+          });
+        });
+        return promise.then(cb);
       }
     };
 
@@ -71,6 +85,11 @@
       timeouts.push(setTimeout(function() {
         if (req.onsuccess) {
           req.onsuccess();
+        }
+        if ('success' in req.listeners) {
+          req.listeners.success.forEach(function (func) {
+            func();
+          });
         }
       }));
     } else {
@@ -98,6 +117,11 @@
             target: request
           });
         }
+        if ('success' in request.listeners) {
+          request.listeners.success.forEach(function (func) {
+            func();
+          });
+        }
       });
     } catch(e) {
     }
@@ -111,15 +135,34 @@
       resultObj[key] = settings[key];
     }
     var settingsRequest = {
+      listeners: {},
       result: resultObj,
       addEventListener: function(name, cb) {
-        settingsRequest['on' + name] = cb;
+        if (settingsRequest.listeners[name]) {
+          settingsRequest.listeners[name].push(cb);
+        } else {
+          settingsRequest.listeners[name] = [cb];
+        }
+      },
+      then: function(cb, eb) {
+        // error-handler `eb` is never used, since the mock never fails.
+        var promise = new Promise(function (resolve, reject) {
+          settingsRequest.addEventListener('success', function () {
+            resolve(resultObj);
+          });
+        });
+        return promise.then(cb);
       }
     };
     if (!_mSyncRepliesOnly) {
       timeouts.push(setTimeout(function() {
         if (settingsRequest.onsuccess) {
           settingsRequest.onsuccess();
+        }
+        if ('success' in settingsRequest.listeners) {
+          settingsRequest.listeners.success.forEach(function (func) {
+            func();
+          });
         }
       }));
     } else {
