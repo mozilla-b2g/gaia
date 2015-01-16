@@ -11,6 +11,7 @@
     "geolocation-noprompt":{},
     "audio-channel-ringer": {},
     "mobileconnection":{},
+    "permissions": {},
     "settings":{ "access": "readwrite" },
     "webapps-manage":{},
     "sms":{},

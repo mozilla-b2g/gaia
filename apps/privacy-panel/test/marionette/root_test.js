@@ -18,7 +18,7 @@ marionette('root panel', function() {
 
   test('root page elements', function() {
     var menuItems = client.findElements('#root li');
-    assert.ok(menuItems.length === 3);
+    assert.ok(menuItems.length === 4);
   });
 
   test('ability to load ala panel', function() {
@@ -29,6 +29,11 @@ marionette('root panel', function() {
   test('ability to load rpp panel', function() {
     subject.tapOnRppMenuItem();
     assert.ok(subject.isRppDisplayed());
+  });
+
+  test('ability to load tc panel', function() {
+    subject.tapOnTcMenuItem();
+    assert.ok(subject.isTcDisplayed());
   });
 
   test('ability to load guided tour panel', function() {
