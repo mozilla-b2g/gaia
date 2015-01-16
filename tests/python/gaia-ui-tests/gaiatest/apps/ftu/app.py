@@ -173,6 +173,7 @@ class Ftu(Base):
         wifi_network = Wait(self.marionette).until(
             expected.element_present(*wifi_network_locator))
         self.marionette.execute_script("arguments[0].scrollIntoView(false);", [wifi_network])
+        Wait(self.marionette).until(expected.element_displayed(wifi_network))
         return wifi_network
 
     def connect_to_wifi(self, network_ssid, password, key_management=None):
