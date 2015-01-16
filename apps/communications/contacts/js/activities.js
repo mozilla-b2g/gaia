@@ -1,5 +1,5 @@
 /* globals ConfirmDialog, Contacts, LazyLoader, utils, ActionMenu,
-   VCardReader, ContactToVcardBlob, VcardFilename */
+   VCardReader, ContactToVcardBlob, VcardFilename, fb */
 /* exported ActivityHandler */
 
 'use strict';
@@ -222,6 +222,13 @@ var ActivityHandler = {
     var result = {};
     var self = this;
 
+    var dismiss = {
+      title: 'ok',
+      callback: function() {
+        ConfirmDialog.hide();
+      }
+    };
+
     // Keeping compatibility with previous implementation. If
     // we want to get the full contact, just pass the parameter
     // 'fullContact' equal true.
@@ -233,6 +240,10 @@ var ActivityHandler = {
     }
 
     if (this.activityDataType.indexOf('text/vcard') !== -1) {
+      if (fb.isFbContact(theContact)) {
+        Contacts.confirmDialog(null, 'facebook-export-forbidden', dismiss);
+        return;
+      }
       LazyLoader.load([
                        '/shared/js/text_normalizer.js',
                        '/shared/js/contact2vcard.js',
@@ -293,12 +304,6 @@ var ActivityHandler = {
     switch (numOfData) {
       case 0:
         // If no required type of data
-        var dismiss = {
-          title: 'ok',
-          callback: function() {
-            ConfirmDialog.hide();
-          }
-        };
         Contacts.confirmDialog(null, noDataStr, dismiss);
         break;
       case 1:
