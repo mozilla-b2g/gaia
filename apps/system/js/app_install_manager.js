@@ -693,6 +693,7 @@
       dialog.classList.add('visible');
       dialog.dataset.manifest = manifestURL;
       UtilityTray.hide();
+      // => Service.request('hide');
     },
 
     handleInstallCancel: function ai_handleInstallCancel() {
