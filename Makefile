@@ -698,12 +698,12 @@ NODE_MODULES_REV=$(shell cat gaia_node_modules.revision)
 # modules.tar and git-gaia-node-modules are the possible values for
 # $(NODE_MODULES_SRC). See the node_modules target.
 modules.tar: gaia_node_modules.revision
-	-$(DOWNLOAD_CMD) https://github.com/nullaus/gaia-node-modules/tarball/$(NODE_MODULES_REV) &&\
+	-$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/$(NODE_MODULES_REV) &&\
 	mv $(NODE_MODULES_REV) "$(NODE_MODULES_SRC)"
 
 git-gaia-node-modules: gaia_node_modules.revision
 	if [ ! -d "$(NODE_MODULES_SRC)" ] ; then \
-		git clone https://github.com/nullaus/gaia-node-modules "$(NODE_MODULES_SRC)" ; \
+		git clone "$(NODE_MODULES_GIT_URL)" "$(NODE_MODULES_SRC)" ; \
 	fi
 	(cd "$(NODE_MODULES_SRC)" && git fetch && git reset --hard "$(NODE_MODULES_REV)" )
 
