@@ -4,13 +4,15 @@
 
 (function(exports) {
 
-  // XXX: Notice that the module has dependency on `home` instance. We should
-  // remove this dependency once we refactor this singleton module into
-  // instantiable module
-  var MessageHandler = {
+  var MessageHandler = function() {};
+
+  MessageHandler.prototype = {
     _connectionManager: undefined,
 
-    init: function cm_init() {
+    _home: undefined,
+
+    init: function cm_init(home) {
+      this._home = home;
       navigator.mozSetMessageHandler(
                                     'activity', this.handleActivity.bind(this));
       this._connectionManager = new ConnectionManager();
@@ -19,12 +21,13 @@
     },
 
     pin: function mh_pin(cardEntry) {
-      home.cardManager.insertCard({
+      this._home.cardManager.insertCard({
         cardEntry: cardEntry
       });
     },
 
     unpin: function mh_unpin(data) {
+      var home = this._home;
       // XXX: this is extra step, we should remove this step once we were
       // done fixing and refactoring cardManager.removeCard.
       // The reason we need this step here is because cardManager.removeCard
@@ -43,6 +46,5 @@
     }
   };
 
-  MessageHandler.init();
   exports.MessageHandler = MessageHandler;
 })(window);
