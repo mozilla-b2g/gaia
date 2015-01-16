@@ -209,6 +209,14 @@ not actually shown since the top header should be transparent.
   to   { transform: rotate(360deg); }
 }
 
+.sync-progress {
+  visibility: hidden;
+}
+
+.sync-progress.syncing {
+  visibility: visible;
+}
+
 #settings [role="toolbar"].noaccount .sync {
   display: none;
 }
