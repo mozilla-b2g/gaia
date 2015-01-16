@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import expected
+from marionette.wait import Wait
 from marionette.by import By
 from marionette.marionette import Actions
 from gaiatest.apps.phone.app import Phone
@@ -10,6 +12,10 @@ from gaiatest.apps.phone.app import Phone
 class CallScreen(Phone):
 
     _call_screen_locator = (By.CSS_SELECTOR, "iframe[name='call_screen']")
+    # The name of this ID is due to historical reason, back in the time when
+    # the CallScreen was not an attention screen. We need to update it once
+    # bug 1118787 lands.
+    _main_window_locator = (By.ID, 'call-screen')
     _call_options_locator = (By.ID, 'call-options')
     _calling_contact_locator = (By.CSS_SELECTOR, 'div.number')
     _calling_contact_information_locator = (By.CSS_SELECTOR, 'div.additionalContactInfo')
@@ -79,17 +85,14 @@ class CallScreen(Phone):
         self.wait_for_condition(lambda m: self.outgoing_calling_contact != u'')
 
     def wait_for_incoming_call(self):
-        incoming_call = self.marionette.find_element(*self._incoming_call_locator)
-        self.wait_for_condition(lambda m: incoming_call.location['y'] == 0)
-        self.wait_for_condition(lambda m: self.incoming_calling_contact != u'')
+        main_window = self.marionette.find_element(*self._main_window_locator)
+        Wait(self.marionette).until(expected.element_displayed(main_window))
+        Wait(self.marionette).until(lambda m: main_window.location['y'] == 0)
+        Wait(self.marionette).until(lambda m: self.incoming_calling_contact != u'')
 
     def wait_for_incoming_call_while_on_call(self):
         self.wait_for_condition(lambda m: self.is_element_displayed(*self._incoming_info_while_on_call_locator))
         self.wait_for_condition(lambda m: self.incoming_calling_contact_while_on_call != u'')
-
-    def wait_for_incoming_call_with_locked_screen(self):
-        self.wait_for_condition(lambda m: self.is_element_displayed(*self._incoming_call_locator))
-        self.wait_for_condition(lambda m: self.incoming_calling_contact != u'')
 
     def answer_call(self):
         self.marionette.find_element(*self._answer_bar_locator).tap()

@@ -41,8 +41,9 @@ DownloadNotification.prototype = {
    */
   _update: function dn_update() {
     if (this.download.state === 'finalized') {
-      // In theory we should never see this, but, we know that if we were
-      // to see this we want to do nothing.
+      // If the user delete the file, we will see this state and what we have to
+      // do, is to remove the notification
+      this._close();
       return;
     }
     var noNotify = this._wontNotify();

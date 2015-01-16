@@ -164,9 +164,15 @@ suite('system/StackManager >', function() {
     window.dispatchEvent(new Event('home'));
   }
 
-  function openAppFromCardView(app) {
+  function appOpening(app) {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('appopening', true, false, app);
+    window.dispatchEvent(evt);
+  }
+
+  function appOpened(app) {
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('appopened', true, false, app);
     window.dispatchEvent(evt);
   }
 
@@ -461,6 +467,14 @@ suite('system/StackManager >', function() {
       assert.deepEqual(StackManager.getCurrent().config, dialer.config);
     });
 
+    test('it should set the position when opened', function() {
+      var fakePosition = 10;
+      assert.equal(StackManager.position, 0);
+      this.sinon.stub(StackManager, '_indexOfInstanceID').returns(fakePosition);
+      appOpened(dialer);
+      assert.equal(StackManager.position, fakePosition);
+    });
+
     suite('then another app is launched', function() {
       setup(function() {
         appLaunch(contact);
@@ -707,7 +721,7 @@ suite('system/StackManager >', function() {
     appLaunch(dialer);
     appLaunch(contact);
     appLaunch(settings);
-    openAppFromCardView(dialer);
+    appOpening(dialer);
     assert.deepEqual(StackManager.getCurrent().config, dialer.config);
   });
 

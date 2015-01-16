@@ -892,14 +892,13 @@ var Contacts = (function() {
   };
 
   var initContacts = function initContacts(evt) {
-    window.setTimeout(Contacts.onLocalized);
+    window.setTimeout(Contacts && Contacts.onLocalized);
     if (window.navigator.mozSetMessageHandler && window.self == window.top) {
       var actHandler = ActivityHandler.handle.bind(ActivityHandler);
       window.navigator.mozSetMessageHandler('activity', actHandler);
     }
 
     document.addEventListener('visibilitychange', function visibility(e) {
-      Contacts.checkCancelableActivity();
       if (document.hidden === false &&
                                 navigation.currentView() === 'view-settings') {
         Contacts.view('Settings', function viewLoaded() {
