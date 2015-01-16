@@ -57,9 +57,17 @@ marionette('Software Home Button - File Open Error', function() {
     client.switchToFrame();
     system.appContextMenuSaveLink.click();
 
-    utilityTray.open();
+    client.waitFor(function() {
+      utilityTray.open();
+      notificationList.refresh();
+      var text = notificationList.notifications[0].title;
+      var found = text.indexOf('Download complete') !== -1;
+      if (!found) {
+        utilityTray.close();
+      }
+      return found;
+    });
 
-    notificationList.refresh();
 console.log('Screenshot: ' + 'data:image/png;base64,' + client.screenshot());
     notificationList.tap(notificationList.notifications[0]);
 
