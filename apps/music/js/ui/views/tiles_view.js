@@ -114,15 +114,6 @@ var TilesView = {
       artistName.classList.add('sub-tile-title');
     }
 
-    // Since 6 tiles are in one group
-    // the even group will be floated to left
-    // the odd group will be floated to right
-    if (Math.floor(this.index / 6) % 2 === 0) {
-      tile.classList.add('float-left');
-    } else {
-      tile.classList.add('float-right');
-    }
-
     var NUM_INITIALLY_VISIBLE_TILES = 8;
     var INITIALLY_HIDDEN_TILE_WAIT_TIME_MS = 1000;
 
