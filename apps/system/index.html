@@ -258,6 +258,7 @@
 
     <!-- App Install -->
     <link rel="stylesheet" type="text/css" href="style/app_install_manager/app_install_manager.css">
+    <script defer src="js/app_install_dialog.js"></script>
 
     <!-- Cost Control -->
     <link rel="stylesheet" type="text/css" href="style/cost_control/cost_control.css">
@@ -881,27 +882,6 @@
 
       <div id="app-uninstall-dialog" data-z-index-level="app-uninstall-dialog">
       </div>
-
-      <form id="app-install-dialog" class="app-install-dialog generic-dialog"
-            data-type="confirm" role="dialog"
-            data-z-index-level="app-install-dialog">
-        <section>
-          <h1 id="app-install-message"></h1>
-          <dl>
-            <dt data-l10n-id="size">Size</dt>
-              <dd id="app-install-size"></dd>
-            <dt data-l10n-id="author">Author</dt>
-              <dd>
-                <span id="app-install-author-name"></span><br />
-                <span id="app-install-author-url"></span>
-              </dd>
-          </dl>
-        </section>
-        <menu data-items="2">
-          <button id="app-install-cancel-button" data-l10n-id="cancel">Cancel</button>
-          <button id="app-install-install-button" class="recommend" data-l10n-id="install">Install</button>
-        </menu>
-      </form>
 
       <form id="app-install-cancel-dialog" class="app-install-dialog generic-dialog"
             data-type="confirm" role="dialog"

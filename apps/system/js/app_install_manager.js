@@ -1,5 +1,6 @@
 /* jshint moz:true */
 /* global BaseModule */
+/* global AppInstallDialog */
 /* global ConfirmDialogHelper */
 /* global FtuLauncher */
 /* global KeyboardHelper */
@@ -40,20 +41,14 @@
 
     _start: function() {
       this.systemBanner = new SystemBanner();
-      this.dialog = document.getElementById('app-install-dialog');
-      this.msg = document.getElementById('app-install-message');
-      this.size = document.getElementById('app-install-size');
-      this.authorName = document.getElementById('app-install-author-name');
-      this.authorUrl =
-        document.getElementById('app-install-author-url');
-      this.installButton =
-        document.getElementById('app-install-install-button');
-      this.cancelButton = document.getElementById('app-install-cancel-button');
+
+      this.dialog = new AppInstallDialog();
       this.imeLayoutDialog = document.getElementById('ime-layout-dialog');
       this.imeListTemplate = document.getElementById('ime-list-template');
       this.imeList = document.getElementById('ime-list');
       this.imeCancelButton = document.getElementById('ime-cancel-button');
       this.imeConfirmButton = document.getElementById('ime-confirm-button');
+
       this.setupCancelButton =
         document.getElementById('setup-cancel-button');
       this.setupConfirmButton =
@@ -94,8 +89,10 @@
       window.addEventListener('applicationuninstall',
         this.handleApplicationUninstall.bind(this));
 
-      this.installButton.onclick = this.handleInstall.bind(this);
-      this.cancelButton.onclick = this.showInstallCancelDialog.bind(this);
+      this.dialog.elements.installButton.onclick =
+        this.handleInstall.bind(this);
+      this.dialog.elements.cancelButton.onclick =
+        this.showInstallCancelDialog.bind(this);
       this.confirmCancelButton.onclick = this.handleInstallCancel.bind(this);
       this.resumeButton.onclick = this.hideInstallCancelDialog.bind(this);
       this.notifContainer.onclick = this.showDownloadCancelDialog.bind(this);
@@ -128,7 +125,7 @@
     },
 
     handleHomeButtonPressed: function ai_handleHomeButtonPressed(e) {
-      this.dialog.classList.remove('visible');
+      this.dialog.element.classList.remove('visible');
       this.handleInstallCancel();
 
       // hide IME setup dialog if presented
@@ -182,28 +179,30 @@
         return;
       }
 
-      this.dialog.classList.add('visible');
+      this.dialog.element.classList.add('visible');
 
       var id = detail.id;
 
       if (manifest.size) {
-        this.size.textContent = this.humanizeSize(manifest.size);
+        this.dialog.elements.size.textContent =
+          this.humanizeSize(manifest.size);
       } else {
-        this.size.textContent = _('size-unknown');
+        this.dialog.elements.size.textContent = _('size-unknown');
       }
 
       // Wrap manifest to get localized properties
       manifest = new ManifestHelper(manifest);
       var msg = _('install-app', {'name': manifest.name});
-      this.msg.textContent = msg;
+      this.dialog.elements.msg.textContent = msg;
 
       if (manifest.developer) {
-        this.authorName.textContent = manifest.developer.name ||
+        this.dialog.elements.authorName.textContent = manifest.developer.name ||
           _('author-unknown');
-        this.authorUrl.textContent = manifest.developer.url || '';
+        this.dialog.elements.authorUrl.textContent =
+          manifest.developer.url || '';
       } else {
-        this.authorName.textContent = _('author-unknown');
-        this.authorUrl.textContent = '';
+        this.dialog.elements.authorName.textContent = _('author-unknown');
+        this.dialog.elements.authorUrl.textContent = '';
       }
 
       this.installCallback = (function ai_installCallback() {
@@ -224,7 +223,7 @@
         this.installCallback();
       }
       this.installCallback = null;
-      this.dialog.classList.remove('visible');
+      this.dialog.element.classList.remove('visible');
     },
 
     handleAppUninstallPrompt: function ai_handleUninstallPrompt(detail) {
@@ -661,14 +660,14 @@
         evt.preventDefault();
       }
       this.installCancelDialog.classList.add('visible');
-      this.dialog.classList.remove('visible');
+      this.dialog.element.classList.remove('visible');
     },
 
     hideInstallCancelDialog: function ai_hideInstallCancelDialog(evt) {
       if (evt) {
         evt.preventDefault();
       }
-      this.dialog.classList.add('visible');
+      this.dialog.element.classList.add('visible');
       this.installCancelDialog.classList.remove('visible');
     },
 
