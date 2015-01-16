@@ -1,4 +1,4 @@
-/* global utils, ConfirmDialog, Contacts*/
+/* global utils, ConfirmDialog, Contacts, fb*/
 'use strict';
 
 //
@@ -40,7 +40,7 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
     request.onsuccess = function onSuccess() {
       contacts = [];
       request.result.forEach(function onContact(ct) {
-        if (theContacts.indexOf(ct.id) !== -1) {
+        if (theContacts.indexOf(ct.id) !== -1 && !fb.isFbContact(ct)) {
           contacts.push(ct);
         }
       });
