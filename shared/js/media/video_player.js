@@ -127,8 +127,8 @@ function VideoPlayer(container) {
 
   function hidePoster() {
     poster.style.display = 'none';
+    poster.removeAttribute('src');
     if (capturedFrame) {
-      poster.removeAttribute('src');
       URL.revokeObjectURL(capturedFrame);
       capturedFrame = null;
     }
