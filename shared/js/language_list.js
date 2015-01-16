@@ -11,19 +11,25 @@
 var LOCALES_FILE = '/shared/resources/languages.json';
 
 function readFile(file, callback) {
-  var xhr = new XMLHttpRequest();
-  xhr.onreadystatechange = function loadFile() {
-    if (xhr.readyState === 4) {
-      if (xhr.status === 0 || xhr.status === 200) {
-        callback(xhr.response);
-      } else {
-        console.error('Failed to fetch file: ' + file, xhr.statusText);
+  return new Promise(function(resolve, reject) {
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function loadFile() {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 0 || xhr.status === 200) {
+          resolve(xhr.response);
+        } else {
+          reject(xhr.statusText);
+        }
       }
-    }
-  };
-  xhr.open('GET', file, true); // async
-  xhr.responseType = 'json';
-  xhr.send();
+    };
+    xhr.open('GET', file, true); // async
+    xhr.responseType = 'json';
+    xhr.send();
+  });
+}
+
+function onError(name) {
+  console.error('Error checking setting ' + name);
 }
 
 function readSetting(name, callback) {
@@ -32,13 +38,9 @@ function readSetting(name, callback) {
     return callback(null);
   }
 
-  var req = settings.createLock().get(name);
-  req.onsuccess = function _onsuccess() {
-    callback(req.result[name]);
-  };
-  req.onerror = function _onerror() {
-    console.error('Error checking setting ' + name);
-  };
+  return settings.createLock().get(name).then(function(res) {
+    return res[name];
+  }, onError.bind(null, name));
 }
 
 exports.LanguageList = {
@@ -49,12 +51,10 @@ exports.LanguageList = {
   _readFile: readFile,
   _readSetting: readSetting,
 
-  _extend: function(currentLang, qpsEnabled, languagesFromFile) {
+  _extendPseudo: function(languages, currentLang, qpsEnabled) {
     if (!navigator.mozL10n) {
-      return languagesFromFile;
+      return languages;
     }
-
-    var languages = Object.create(languagesFromFile);
 
     for (var lang in navigator.mozL10n.qps) {
       var isCurrent = (lang === currentLang);
@@ -66,25 +66,39 @@ exports.LanguageList = {
     return languages;
   },
 
-  _build: function(callback) {
-    var settings = {};
+  _extendAdditional: function(languages, ver, additional) {
+    /* jshint boss:true */
 
-    function onSettingRead(name, value) {
-      /* jshint -W040 */
-      settings[name] = value;
-      if (Object.keys(settings).length === 2) {
-        var langs = this._extend(
-          settings['language.current'],
-          settings['devtools.qps.enabled'],
-          this._languages);
-        callback(langs, settings['language.current']);
+    for (var lang in additional) {
+      for (var i = 0, locale; locale = additional[lang][i]; i++) {
+        if (locale.target === ver) {
+          languages[lang] = locale.name;
+          break;
+        }
       }
     }
 
-    this._readSetting('language.current',
-                      onSettingRead.bind(this, 'language.current'));
-    this._readSetting('devtools.qps.enabled',
-                      onSettingRead.bind(this, 'devtools.qps.enabled'));
+    return languages;
+  },
+
+  _parseVersion: function(ver) {
+    return ver.split('.').slice(0, 2).join('.');
+  },
+
+  _build: function() {
+    return Promise.all([
+      this._languages || (this._languages = this._readFile(LOCALES_FILE)),
+      this._readSetting('deviceinfo.os'),
+      this._readSetting('language.current'),
+      this._readSetting('devtools.qps.enabled'),
+      navigator.mozApps.getAdditionalLanguages()
+    ]).then(function([langsFromFile, ver, current, qpsEnabled, addl]) {
+      var langs = Object.create(langsFromFile);
+      this._extendPseudo(langs, current, qpsEnabled);
+      this._extendAdditional(langs, this._parseVersion(ver), addl);
+      return [langs, current];
+    }.bind(this));
+
   },
 
   get: function(callback) {
@@ -92,17 +106,7 @@ exports.LanguageList = {
       return;
     }
 
-    if (this._languages) {
-      this._build(callback);
-    } else {
-      var self = this;
-      this._readFile(LOCALES_FILE, function getLanguages(data) {
-        if (data) {
-          self._languages = data;
-          self._build(callback);
-        }
-      });
-    }
+    this._build().then(Function.prototype.apply.bind(callback, null));
   },
 
   wrapBidi: function(langCode, langName) {
