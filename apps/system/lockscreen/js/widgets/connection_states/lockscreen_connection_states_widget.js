@@ -1,3 +1,4 @@
+/* global Process */
 /* global SIMSlotManager */
 /* global LockScreenBasicComponent, LockScreenConnectionStatesWidgetSetup */
 'use strict';
@@ -67,15 +68,19 @@
    */
   LockScreenConnectionStatesWidget.prototype.fetchRadioStatus =
   function() {
-    return new Promise((resolve, reject) => {
-      var lock = navigator.mozSettings.createLock();
-      var request = lock.get('ril.radio.disabled');
-      request.onsuccess = () => {
-        this.resources.airplaneMode = !!request.result;
-        resolve(!!request.result);
-      };
-      request.onerror = reject;
-    });
+    var process = new Process();
+    return process.start()
+      .next(() => {
+        return new Promise((resolve, reject) => {
+          var lock = navigator.mozSettings.createLock();
+          var request = lock.get('ril.radio.disabled');
+          request.onsuccess = () => {
+            this.resources.airplaneMode = !!request.result;
+            resolve(!!request.result);
+          };
+          request.onerror = reject;
+        });
+      });
   };
 
   /**
@@ -136,7 +141,9 @@
    */
   LockScreenConnectionStatesWidget.prototype.fetchEmergencyCallsOnlyStatus =
   function() {
-    return this.fetchSIMs().then(() => {
+    var sims = this.fetchSIMs();
+    var process = new Process();
+    return process.start().next(() => {
       this.resources.emergencyCallsOnly = {
         'modeon': false,
         'reason': null
@@ -155,18 +162,36 @@
         results.reason = '';
         return results;
       }
-
-      var sims = this.resources.sims;
       var simonevoice = (sims.simone) ? sims.simone.voice : null;
       var simtwovoice = (sims.simtwo) ? sims.simtwo.voice : null;
 
       if (simonevoice && simonevoice.emergencyCallsOnly &&
           simtwovoice && simtwovoice.emergencyCallsOnly) {
         results.modeon = true;
-        results.reason = sims.simone.simCard.cardState;
+        var message = LockScreenConnectionStatesWidget
+          .EMERGENCY_CALL_MESSAGE_MAP[sims.simone.simCard.cardState];
+        results.reason = (message);
         return results;
       }
     });
+  };
+
+  /**
+   * Alias it to make it more clear.
+   */
+  LockScreenConnectionStatesWidget.prototype.writeLabel =
+  function(node, l10nId, l10nArgs, text) {
+    if (l10nId) {
+      navigator.mozL10n.setAttributes(node, l10nId, l10nArgs);
+    } else if (text) {
+      node.textContent = text;
+    }
+  };
+
+  LockScreenConnectionStatesWidgetSetup.prototype.eraseLabel =
+  function(node) {
+    node.removeAttribute('data-l10n-id');
+    node.textContent = '';
   };
 
   exports.LockScreenConnectionStatesWidget = LockScreenConnectionStatesWidget;

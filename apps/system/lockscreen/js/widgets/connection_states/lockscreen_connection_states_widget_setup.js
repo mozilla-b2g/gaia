@@ -34,15 +34,14 @@
    * Only set them up; don't start them.
    */
   LockScreenConnectionStatesWidgetSetup.prototype.setupSIMs = function() {
-    this.component.fetchSIMs().then((sims) => {
-      if (!sims) {
-        return;   // No SIMs.
-      }
-      this.component._subcomponents.simone =
-        new LockScreenConnectionStatesSIMWidget(this.elements.simone);
-      this.component._subcomponents.simtwo =
-        new LockScreenConnectionStatesSIMWidget(this.elements.simtwo);
-    });
+    var sims = this.component.fetchSIMs();
+    if (!sims) {
+      return;   // No SIMs.
+    }
+    this.component._subcomponents.simone =
+      new LockScreenConnectionStatesSIMWidget(this.elements.simone);
+    this.component._subcomponents.simtwo =
+      new LockScreenConnectionStatesSIMWidget(this.elements.simtwo);
   };
 
   /**
