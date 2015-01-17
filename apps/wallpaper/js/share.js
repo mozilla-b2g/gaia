@@ -26,9 +26,38 @@ window.onload = function() {
   var scale;
   var previewImage = document.getElementById('previewImage');
 
-  // How big (in device pixels) is the screen?
-  var screenWidth = Math.ceil(screen.width * window.devicePixelRatio);
-  var screenHeight = Math.ceil(screen.height * window.devicePixelRatio);
+  // For the computations below, we need to know the full size of the screen
+  // in device pixels and the size of the window in CSS pixels. (The window
+  // and screen sizes can be different if there is a software home button.)
+  // We also need to ensure that the dimensions match the default orientation
+  // of the screen, even if the user is holding the device in a different
+  // orientation, and we want this to work for both phones (portrait) and
+  // tablets (landscape). This app is supposed to be locked to the default
+  // device orientation, but when it is launched as an activity from a
+  // different orientation sometimes it starts up in the wrong screen and
+  // window size. So we need to be careful to work around that window
+  // management bug, too.
+  var screenWidth, screenHeight;
+  var windowWidth, windowHeight;
+  if (screen.mozOrientation && screen.mozOrientation.startsWith('landscape')) {
+    // Since our manifest locks us to default orientation, mozOrientation
+    // should return that default orientation. If landscape then width is
+    // the larger dimension
+    screenWidth = Math.max(screen.width, screen.height);
+    windowWidth = Math.max(window.innerWidth, window.innerHeight);
+    screenHeight = Math.min(screen.width, screen.height);
+    windowHeight = Math.min(window.innerWidth, window.innerHeight);
+  } else {
+    // Otherwise, portrait is the default and width is the smaller dimension
+    screenWidth = Math.min(screen.width, screen.height);
+    windowWidth = Math.min(window.innerWidth, window.innerHeight);
+    screenHeight = Math.max(screen.width, screen.height);
+    windowHeight = Math.max(window.innerWidth, window.innerHeight);
+  }
+
+  // For the screen size we care about device pixels, not CSS pixels
+  screenWidth = Math.ceil(screenWidth * window.devicePixelRatio);
+  screenHeight = Math.ceil(screenHeight * window.devicePixelRatio);
 
   function startShare(request) {
     cancelButton.addEventListener('click', cancelShare);
@@ -70,8 +99,8 @@ window.onload = function() {
 
         // Compute a scale that will make the image at least as big as
         // the screen in both dimensions.
-        var scalex = window.innerWidth / previewImage.width;
-        var scaley = window.innerHeight / previewImage.height;
+        var scalex = windowWidth / previewImage.width;
+        var scaley = windowHeight / previewImage.height;
         scale = Math.max(scalex, scaley);
 
         // Apply that scale to the image. Note that scaling width will
@@ -82,8 +111,8 @@ window.onload = function() {
         // out how to center the image on the screen and compute how much
         // the user will be able to pan the image left and right or up
         // and down.
-        limitX = window.innerWidth - previewImage.width;
-        limitY = window.innerHeight - previewImage.height;
+        limitX = windowWidth - previewImage.width;
+        limitY = windowHeight - previewImage.height;
 
         posX = Math.round(limitX / 2);
         posY = Math.round(limitY / 2);
@@ -117,6 +146,12 @@ window.onload = function() {
   }
 
   function scaleImage() {
+      // Disable set wallpaper button to prevent hammering
+      // and causing multiple calls to scaleImage.
+      setButton.disabled = true;
+
+      // Create a canvas to have an image that is exactly
+      // the size of the screen in device pixels.
       var canvas = document.createElement('canvas');
       // To have an image which matches the device pixel, we need to multiply
       // window.devicePixelRatio.
@@ -124,8 +159,8 @@ window.onload = function() {
       canvas.height = screenHeight;
       var ctx = canvas.getContext('2d');
 
-      var w = Math.round(window.innerWidth / scale);
-      var h = Math.round(window.innerHeight / scale);
+      var w = Math.round(windowWidth / scale);
+      var h = Math.round(windowHeight / scale);
       var x = Math.round(-1 * posX / scale);
       var y = Math.round(-1 * posY / scale);
 
