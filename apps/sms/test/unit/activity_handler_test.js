@@ -734,6 +734,11 @@ suite('ActivityHandler', function() {
   });
 
   suite('"new" activity', function() {
+    function onceNewActivityCompleted() {
+      sinon.assert.called(ActivityHandler._onNewActivity);
+      return ActivityHandler._onNewActivity.firstCall.returnValue;
+    }
+
     // Mockup activity
     var newActivity = {
       source: {
@@ -768,6 +773,7 @@ suite('ActivityHandler', function() {
       this.sinon.spy(Navigation, 'toPanel');
       this.sinon.spy(Threads, 'registerMessage');
       this.sinon.spy(ActivityHandler, '_onNewActivity');
+      this.sinon.spy(Compose, 'focus');
       // we have to call init again, otherwise the map of handlers would
       // still contain the non-mocked _onNewActivity
       ActivityHandler.init();
@@ -791,8 +797,7 @@ suite('ActivityHandler', function() {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
       threadDeferred.reject(new Error('No thread for this test'));
 
-      sinon.assert.called(ActivityHandler._onNewActivity);
-      ActivityHandler._onNewActivity.firstCall.returnValue.then(function() {
+      onceNewActivityCompleted().then(function() {
         sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
           activity: {
             number: '123',
@@ -848,9 +853,7 @@ suite('ActivityHandler', function() {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
       threadDeferred.reject(new Error('No thread for this test'));
 
-      // should be called after discarding
-      sinon.assert.called(ActivityHandler._onNewActivity);
-      ActivityHandler._onNewActivity.firstCall.returnValue.then(function() {
+      onceNewActivityCompleted().then(function() {
         sinon.assert.called(ThreadUI.discardDraft);
         sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
           activity: {
@@ -883,8 +886,7 @@ suite('ActivityHandler', function() {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
       threadDeferred.reject(new Error('No thread for this test'));
 
-      sinon.assert.called(ActivityHandler._onNewActivity);
-      ActivityHandler._onNewActivity.firstCall.returnValue.then(function() {
+      onceNewActivityCompleted().then(function() {
         sinon.assert.notCalled(Navigation.toPanel);
       }).then(done,done);
     });
@@ -893,9 +895,31 @@ suite('ActivityHandler', function() {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
       threadDeferred.reject(new Error('No thread for this test'));
 
-      sinon.assert.called(ActivityHandler._onNewActivity);
-      ActivityHandler._onNewActivity.firstCall.returnValue.then(function() {
+      onceNewActivityCompleted().then(function() {
         assert.isTrue(ActivityHandler.isInActivity());
+      }).then(done,done);
+    });
+
+    test('new message with body only', function(done) {
+      var activity = {
+        source: {
+          name: 'new',
+          data: { body: 'foo' }
+        },
+        postResult: () => {}
+      };
+      MockNavigatormozSetMessageHandler.mTrigger('activity', activity);
+
+      onceNewActivityCompleted().then(() => {
+        sinon.assert.notCalled(MessageManager.findThreadFromNumber);
+        sinon.assert.notCalled(Contacts.findByPhoneNumber);
+
+        sinon.assert.calledWithMatch(
+          Navigation.toPanel, 'composer', { activity: { body: 'foo' } }
+        );
+
+        // Composer panel should care about focus-related stuff by itself
+        sinon.assert.notCalled(Compose.focus);
       }).then(done,done);
     });
 
@@ -908,9 +932,7 @@ suite('ActivityHandler', function() {
       this.sinon.stub(Contacts, 'findByPhoneNumber')
         .callsArgWith(1, [{ name: ['foo'] }]);
 
-      sinon.assert.called(ActivityHandler._onNewActivity);
-      ActivityHandler._onNewActivity.firstCall.returnValue
-                     .then(function(viewInfo) {
+      onceNewActivityCompleted().then(function() {
         sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
           activity: {
             contact: {number: '123', name: 'foo', source: 'contacts'},
@@ -926,8 +948,8 @@ suite('ActivityHandler', function() {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
       // this time we found a thread
       threadDeferred.resolve(42);
-      sinon.assert.called(ActivityHandler._onNewActivity);
-      ActivityHandler._onNewActivity.firstCall.returnValue.then(function() {
+
+      onceNewActivityCompleted().then(function() {
         assert.isTrue(Contacts.findByPhoneNumber.notCalled);
         sinon.assert.calledWithMatch(Navigation.toPanel, 'thread', {id: 42 });
       }).then(done,done);
@@ -935,16 +957,15 @@ suite('ActivityHandler', function() {
 
     test('when there is an existing thread, Composer should be focused',
     function(done) {
-      // succeed only if Compose.focus is called
-      this.sinon.stub(Compose, 'focus', function() {
-        done();
-      });
-
-      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
       // we found a thread
       threadDeferred.resolve(42);
-    });
 
+      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+
+      onceNewActivityCompleted().then(() => {
+        sinon.assert.called(Compose.focus);
+      }).then(done, done);
+    });
   });
 
   suite('handle message notification', function() {
@@ -958,6 +979,7 @@ suite('ActivityHandler', function() {
       this.sinon.stub(Threads, 'has');
       this.sinon.stub(Threads, 'registerMessage');
       this.sinon.stub(MessageManager, 'getMessage').returns(getMessagePromise);
+      this.sinon.stub(Compose, 'focus');
     });
 
     suite('When compose is not empty', function() {
@@ -1012,6 +1034,15 @@ suite('ActivityHandler', function() {
 
       getMessagePromise.then(() => {
         sinon.assert.notCalled(Threads.registerMessage);
+      }).then(done, done);
+    });
+
+    test('Message input is not focused', function(done) {
+      this.sinon.spy(HTMLElement.prototype, 'focus');
+
+      ActivityHandler.handleMessageNotification(message).then(() => {
+        sinon.assert.notCalled(Compose.focus);
+        sinon.assert.notCalled(HTMLElement.prototype.focus);
       }).then(done, done);
     });
   });
