@@ -395,6 +395,7 @@ Information.prototype = {
   show: function() {
     // Hide the Messages edit icon, view container and composer form
     this.parent.classList.add(this.name + '-information');
+    this.parent.setAttribute('aria-hidden', false);
 
     this.render();
     // Append and Show the participants list
@@ -416,6 +417,7 @@ Information.prototype = {
     }
     // Restore message list view UI elements
     this.parent.classList.remove(this.name + '-information');
+    this.parent.setAttribute('aria-hidden', true);
   },
 
   // Incrementing ID for each rendering request to avoid possible race when next
