@@ -25,6 +25,21 @@ marionette('month view', function() {
     app.launch();
   });
 
+  test('Swipe tests', function() {
+
+    app.openMonthView();
+
+    var prevDate = new Date(app.headerContent.getAttribute('data-date'));
+    app.swipeLeft();
+    var nextDate = new Date(app.headerContent.getAttribute('data-date'));
+
+    assert.ok(prevDate < nextDate, 'Swipe left should increase month');
+
+    app.swipeRight();
+    var newOldDate = new Date(app.headerContent.getAttribute('data-date'));
+    assert.ok(newOldDate < nextDate, 'Swipe right should decrease month');
+  });
+
   test('#month-day-agenda scroll', function() {
     // Create a lot of events so we can scroll so fun!
     for (var i = 0; i < 5; i++) {

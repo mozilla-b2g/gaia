@@ -72,11 +72,13 @@ Month.prototype = {
   },
 
   _nextTime: function() {
-    return monthStart(this.date, 1);
+    var isRTL = document.documentElement.dir === 'rtl';
+    return monthStart(this.date, isRTL ? -1 : 1);
   },
 
   _previousTime: function() {
-    return monthStart(this.date, -1);
+    var isRTL = document.documentElement.dir === 'rtl';
+    return monthStart(this.date, isRTL ? 1 : -1);
   },
 
   _initEvents: function() {
