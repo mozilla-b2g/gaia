@@ -287,7 +287,7 @@ form[role="dialog"][data-type="edit"] > menu {
   transform: translateX(-100%);
 }
 
-#threads-container, #thread-messages, #group-view-information, #report-view-information {
+#threads-container, #thread-messages, #information-group-view, #information-report-view {
   z-index: 10;
   background: white;
 }

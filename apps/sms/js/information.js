@@ -202,11 +202,9 @@ var VIEWS = {
     render: function renderGroup() {
       var participants = Threads.get(this.id).participants;
       this.renderContactList(participants);
-      ThreadUI.setHeaderContent({
-        id: 'participant',
-        args: { n: participants.length }
-      });
-      ThreadUI.setHeaderAction('back');
+      navigator.mozL10n.setAttributes(
+        this.groupHeaderText, 'participant', { n:participants.length }
+      );
     },
 
     setEventListener: function setEventListener() {
@@ -317,8 +315,9 @@ var VIEWS = {
         this.renderContactList(createListWithMsgInfo(message));
       }).bind(this);
 
-      ThreadUI.setHeaderContent({ id: 'message-report' });
-      ThreadUI.setHeaderAction('close');
+      navigator.mozL10n.setAttributes(
+        this.reportHeaderText, 'message-report'
+      );
     },
 
     // Set this flag to true only when resend is triggered.
@@ -358,6 +357,22 @@ var VIEWS = {
 
 var Information = function(type) {
   Object.assign(this, VIEWS[type]);
+  this.groupHeader = document.getElementById('information-group-header');
+  this.groupHeaderText = document.getElementById(
+    'information-group-header-text'
+  );
+  this.reportHeader = document.getElementById('information-report-header');
+  this.reportHeaderText = document.getElementById(
+    'information-report-header-text'
+  );
+
+  this.groupHeader.addEventListener(
+    'action', this.backOrClose.bind(this)
+  );
+
+  this.reportHeader.addEventListener(
+    'action', this.backOrClose.bind(this)
+  );
 
   if (this.init) {
     this.init();
@@ -366,10 +381,10 @@ var Information = function(type) {
   var prefix = 'information-' + this.name;
   this.container = document.getElementById(prefix);
   if(this.name == 'participants'){
-    this.parent = document.getElementById('group-view-information');
+    this.parent = document.getElementById('information-group-view');
   }
   else if(this.name == 'report'){
-    this.parent = document.getElementById('report-view-information');
+    this.parent = document.getElementById('information-report-view');
   }
   this.elements.forEach(function(name) {
     this[Utils.camelCase(name)] = this.container.querySelector('.' + name);
@@ -395,7 +410,7 @@ Information.prototype = {
   show: function() {
     // Hide the Messages edit icon, view container and composer form
     this.parent.classList.add(this.name + '-information');
-    this.parent.setAttribute('aria-hidden', false);
+    this.parent.classList.remove('hide');
 
     this.render();
     // Append and Show the participants list
@@ -417,7 +432,11 @@ Information.prototype = {
     }
     // Restore message list view UI elements
     this.parent.classList.remove(this.name + '-information');
-    this.parent.setAttribute('aria-hidden', true);
+    this.parent.classList.add('hide');
+  },
+
+  backOrClose: function() {
+    Navigation.toPanel('thread', { id: Threads.currentId });
   },
 
   // Incrementing ID for each rendering request to avoid possible race when next
