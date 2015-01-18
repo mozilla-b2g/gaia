@@ -41,9 +41,11 @@ class Activities(Base):
         return wallpaper
 
     def tap_gallery(self):
-        self.marionette.find_element(*self._gallery_button_locator).tap()
         actions_menu = Wait(self.marionette).until(
             expected.element_present(*self._actions_menu_locator))
+        Wait(self.marionette).until(
+            expected.element_displayed(actions_menu))
+        self.marionette.find_element(*self._gallery_button_locator).tap()
         Wait(self.marionette).until(
             expected.element_not_displayed(actions_menu))
         from gaiatest.apps.gallery.app import Gallery
@@ -53,9 +55,11 @@ class Activities(Base):
         return gallery
 
     def tap_camera(self):
-        self.marionette.find_element(*self._camera_button_locator).tap()
         actions_menu = Wait(self.marionette).until(
             expected.element_present(*self._actions_menu_locator))
+        Wait(self.marionette).until(
+            expected.element_displayed(actions_menu))
+        self.marionette.find_element(*self._camera_button_locator).tap()
         Wait(self.marionette).until(
             expected.element_not_displayed(actions_menu))
         from gaiatest.apps.camera.app import Camera
@@ -68,6 +72,8 @@ class Activities(Base):
     def tap_cancel(self):
         actions_menu = Wait(self.marionette).until(
             expected.element_present(*self._actions_menu_locator))
+        Wait(self.marionette).until(
+            expected.element_displayed(actions_menu))
         self.marionette.find_element(*self._cancel_button_locator).tap()
         Wait(self.marionette).until(
             expected.element_not_displayed(actions_menu))
@@ -89,6 +95,8 @@ class Activities(Base):
     def share_to_messages(self):
         actions_menu = Wait(self.marionette).until(
             expected.element_present(*self._actions_menu_locator))
+        Wait(self.marionette).until(
+            expected.element_displayed(actions_menu))
         self.marionette.find_element(*self._messages_button_locator).tap()
         Wait(self.marionette).until(
             expected.element_not_displayed(actions_menu))
