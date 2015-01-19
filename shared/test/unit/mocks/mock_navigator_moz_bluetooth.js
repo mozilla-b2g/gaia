@@ -16,8 +16,7 @@
     setPinCode: function mba_setPinCode() {},
     setPasskey: function mba_setPasskey() {},
 
-    onscostatuschanged: null,
-    ona2dpstatuschanged: null
+    onscostatuschanged: null
   };
 
   var mEventListeners = [];
@@ -58,8 +57,7 @@
     triggerEventListeners: mmb_triggerEventListeners,
     getDefaultAdapter: mmb_getDefaultAdapter,
     triggerOnGetAdapterSuccess: mmb_triggerOnGetAdapterSuccess,
-    ondisabled: function mmb_ondisabled() {},
-    enabled: true
+    ondisabled: function mmb_ondisabled() {}
   };
 
   window.MockBTAdapter = MockBTAdapter;

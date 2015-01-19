@@ -6,13 +6,6 @@ var MockService = {
     this.mUpgrading = false;
     this.mBtEnabled = false;
     this.mTopMostUI = null;
-    this.mRadioEnabled = false;
-    this.mActiveCall = false;
-    this.mCDMA = false;
-    this.mConnectionType = '';
-    this.mInCall = false;
-    this.mTopMostWindow = null;
-    this.mHeadsetConnected = false;
   },
   lowerCapital: function() {
     return 'a';
@@ -22,9 +15,7 @@ var MockService = {
   unregister: function() {},
   registerState: function() {},
   unregisterState: function() {},
-  request: function() {
-    return new Promise(function() {});
-  },
+  request: function() {},
   query: function(state) {
     switch (state) {
       case 'isFtuRunning':
@@ -39,18 +30,6 @@ var MockService = {
         return this.mBtEnabled;
       case 'getTopMostUI':
         return this.mTopMostUI;
-      case 'Radio.enabled':
-        return this.mRadioEnabled;
-      case 'hasActiveCall':
-        return this.mActiveCall;
-      case 'isCDMA':
-        return this.mCDMA;
-      case 'getDataConnectionType':
-        return this.mConnectionType;
-      case 'inCall':
-        return this.mInCall;
-      case 'isHeadsetConnected':
-        return this.mHeadsetConnected;
     }
     return undefined;
   },

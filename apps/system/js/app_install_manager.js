@@ -7,7 +7,7 @@
 /* global ManifestHelper */
 /* global ModalDialog */
 /* global NotificationScreen */
-/* global Service */
+/* global StatusBar */
 /* global SystemBanner */
 /* global Template */
 /* global UtilityTray */
@@ -456,7 +456,7 @@ var AppInstallManager = {
 
   onDownloadStart: function ai_onDownloadStart(app) {
     if (! this.hasNotification(app)) {
-      Service.request('incDownloads');
+      StatusBar.incSystemDownloads();
       this.addNotification(app);
       this.requestWifiLock(app);
     }
@@ -464,7 +464,7 @@ var AppInstallManager = {
 
   onDownloadStop: function ai_onDownloadStop(app) {
     if (this.hasNotification(app)) {
-      Service.request('decDownloads');
+      StatusBar.decSystemDownloads();
       this.removeNotification(app);
       this.releaseWifiLock(app);
     }

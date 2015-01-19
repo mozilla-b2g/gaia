@@ -36,7 +36,7 @@ marionette('Statusbar Visibility', function() {
     client.waitFor(function() {
       // The element is rendered with moz-element so we can't use
       // marionette's .displayed()
-      var visibility = system.statusbarOperator.scriptWith(function(element) {
+      var visibility = system.statusbarLabel.scriptWith(function(element) {
         return window.getComputedStyle(element).visibility;
       });
       return (visibility == 'visible');

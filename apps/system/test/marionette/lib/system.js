@@ -55,7 +55,7 @@ System.Selector = Object.freeze({
   statusbarShadowActivity: '.activityWindow.active .statusbar-shadow',
   statusbarMaximizedWrapper: '#statusbar-maximized-wrapper',
   statusbarMinimizedWrapper: '#statusbar-minimized-wrapper',
-  statusbarOperator: '.statusbar-operator',
+  statusbarLabel: '#statusbar-label',
   systemBanner: '.banner.generic-dialog',
   topPanel: '#top-panel',
   trustedWindow: '.appWindow.active.trustedwindow',
@@ -65,7 +65,7 @@ System.Selector = Object.freeze({
   utilityTray: '#utility-tray',
   visibleForm: '#screen > form.visible',
   cancelActivity: 'form.visible button[data-action="cancel"]',
-  nfcIcon: '.statusbar-nfc',
+  nfcIcon: '#statusbar-nfc',
   activeKeyboard: '.inputWindow.active'
 });
 
@@ -233,8 +233,8 @@ System.prototype = {
     return this.client.findElement(System.Selector.statusbarMinimizedWrapper);
   },
 
-  get statusbarOperator() {
-    return this.client.findElement(System.Selector.statusbarOperator);
+  get statusbarLabel() {
+    return this.client.findElement(System.Selector.statusbarLabel);
   },
 
   get systemBanner() {
@@ -387,18 +387,13 @@ System.prototype = {
     });
   },
 
-  request: function(service) {
-    this.client.executeScript(function(service) {
-      window.wrappedJSObject.Service.request(service);
-    }, [service]);
-  },
-
-
   stopClock: function() {
     var client = this.client;
-    var clock = this.client.findElement('#statusbar-time');
+    var clock = client.executeScript(function() {
+      return window.wrappedJSObject.StatusBar.icons.time;
+    });
     client.executeScript(function() {
-      window.wrappedJSObject.Service.request('TimeIcon:stop');
+      window.wrappedJSObject.StatusBar.toggleTimeLabel(false);
     });
     client.waitFor(function() {
       return !clock.displayed();

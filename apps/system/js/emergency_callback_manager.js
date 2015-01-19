@@ -1,4 +1,3 @@
-/* global LazyLoader, EmergencyCallbackIcon, BaseModule */
 'use strict';
 
 (function() {
@@ -32,11 +31,6 @@
     warningDialog: null,
     okButton: null,
     cancelButton: null,
-    /**
-     * Indicates the emergency callback state
-     * @type {Boolean}
-     */
-    active: false,
 
     _start: function ecm_init() {
       // Dom elements
@@ -55,13 +49,6 @@
       this.cancelButton =
         document.getElementById('emergency-callback-stay-button');
       this.warningTimer = this.warningDialog.querySelector('p');
-
-      LazyLoader.load(['js/emergency_callback_icon.js']).then(function() {
-        this.icon = new EmergencyCallbackIcon(this);
-        this.icon.start();
-      }.bind(this))['catch'](function(err) { // XXX: workaround gjslint
-        console.error(err);
-      });
 
       // Event handler
       this._conn.addEventListener('emergencycbmodechange',
@@ -155,8 +142,6 @@
 
     onEmergencyCbModeChange: function(evt) {
       var active = evt.active;
-      this.active = active;
-      this.icon && this.icon.update();
       if (active) {
         if (this.timeoutController) {
           window.clearInterval(this.timeoutController);

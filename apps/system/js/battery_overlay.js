@@ -1,20 +1,12 @@
 'use strict';
 /* global PowerSave */
 /* global ScreenManager */
-/* global BatteryIcon */
-/* global LazyLoader */
 
 (function(exports) {
 
   function BatteryOverlay() {
     this.powerSave = new PowerSave();
     this.powerSave.start();
-    LazyLoader.load(['js/battery_icon.js']).then(function() {
-      this.icon = new BatteryIcon(this);
-      this.icon.start();
-    }.bind(this)).catch(function(err) {
-      console.error(err);
-    });
   }
 
   BatteryOverlay.prototype = {
@@ -83,11 +75,9 @@
           this.displayIfNecessary();
 
           this.powerSave.onBatteryChange();
-          this.icon && this.icon.update();
           break;
         case 'chargingchange':
           this.powerSave.onBatteryChange();
-          this.icon && this.icon.update();
 
           // We turn the screen on if needed in order to let
           // the user knows the device is charging

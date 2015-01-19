@@ -1,10 +1,8 @@
 'use strict';
 
 /* globals MockPromise, MockNfc, MockBluetooth, MocksHelper, NDEF,
-           MockService, NfcUtils, NfcManager, MozActivity, NfcHandoverManager,
-           MockLazyLoader, NfcIcon */
+           MockService, NfcUtils, NfcManager, MozActivity, NfcHandoverManager */
 
-require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/js/nfc_utils.js');
 require('/shared/test/unit/mocks/mock_event_target.js');
@@ -17,10 +15,6 @@ requireApp('system/test/unit/mock_nfc_handover_manager.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_bluetooth.js');
 require('/shared/test/unit/mocks/mock_service.js');
-requireApp('system/js/base_ui.js');
-requireApp('system/js/base_icon.js');
-requireApp('system/js/nfc_icon.js');
-requireApp('system/js/nfc_manager.js');
 
 var mocksForNfcManager = new MocksHelper([
   'AppWindow',
@@ -28,8 +22,7 @@ var mocksForNfcManager = new MocksHelper([
   'ScreenManager',
   'SettingsListener',
   'NfcHandoverManager',
-  'Service',
-  'LazyLoader'
+  'Service'
 ]).init();
 
 var MockMessageHandlers = {};
@@ -52,13 +45,10 @@ suite('Nfc Manager Functions', function() {
     origin: 'app://www.fake',
     instanceID: 'instanceID'
   };
-  setup(function() {
-    MockLazyLoader.mLaodRightAway = true;
-    this.sinon.spy(MockLazyLoader, 'load');
+  setup(function(done) {
     fakeApp = new window.AppWindow(fakeAppConfig);
     realMozSetMessageHandler = window.navigator.mozSetMessageHandler;
     window.navigator.mozSetMessageHandler = MockMozSetMessageHandler;
-
     realMozBluetooth = window.navigator.mozBluetooth;
     Object.defineProperty(navigator, 'mozBluetooth', {
       configurable: true,
@@ -68,8 +58,11 @@ suite('Nfc Manager Functions', function() {
     });
     nfcUtils = new NfcUtils();
     MockService.currentApp = fakeApp;
-    nfcManager = new NfcManager();
-    nfcManager.start();
+    requireApp('system/js/nfc_manager.js', function() {
+      nfcManager = new NfcManager();
+      nfcManager.start();
+      done();
+    });
   });
 
   teardown(function() {
@@ -81,17 +74,6 @@ suite('Nfc Manager Functions', function() {
         return realMozBluetooth;
       }
     });
-  });
-
-  test('Should lazy load icon', function() {
-    assert.isTrue(MockLazyLoader.load.calledWith(['js/nfc_icon.js']));
-  });
-
-  test('Should update icon once hardware state changed', function() {
-    nfcManager.icon = new NfcIcon(nfcManager);
-    this.sinon.stub(nfcManager.icon, 'update');
-    nfcManager._handleNFCOnOff();
-    assert.isTrue(nfcManager.icon.update.called);
   });
 
   suite('start', function() {

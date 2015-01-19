@@ -1,5 +1,3 @@
-/* global Service */
-
 'use strict';
 
 /*
@@ -644,7 +642,7 @@ var UpdateManager = {
 
     if (this.downloadsQueue.length === 1) {
       this._downloading = true;
-      Service.request('incDownloads');
+      StatusBar.incSystemDownloads();
       this._wifiLock = navigator.requestWakeLock('wifi');
 
       this.displayNotificationIfHidden();
@@ -661,7 +659,7 @@ var UpdateManager = {
 
     if (this.downloadsQueue.length === 0) {
       this._downloading = false;
-      Service.request('decDownloads');
+      StatusBar.decSystemDownloads();
       this._downloadedBytes = 0;
       this.checkStatuses();
 

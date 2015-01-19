@@ -1,10 +1,9 @@
-/* global LazyLoader */
+
 'use strict';
 
 /*
  * The DownloadManager listens for new downloads when they start. This
  * component will create notifications in the utility tray and will store them
- * Also it will create an icon in statusbar
  *
  * WARNING: This library will load these resources:
  *
@@ -27,12 +26,11 @@ var DownloadManager = (function() {
   // This object stores download notification objects by id
   var notifications = {};
   var started = false;
-  var icon = null;
 
   // Define and set our download start handler.
   function onDownloadStart(ev) {
     if (started) {
-      createDownloadNotificationAndIcon(ev.download);
+      createDownloadNotification(ev.download);
     } else {
       LazyLoader.load(['shared/js/download/download_formatter.js',
                        'shared/js/download/download_ui.js',
@@ -40,7 +38,7 @@ var DownloadManager = (function() {
                        'shared/js/download/download_helper.js',
                        'js/download/download_notification.js'], function() {
         started = true;
-        createDownloadNotificationAndIcon(ev.download);
+        createDownloadNotification(ev.download);
         window.addEventListener('notification-clicked', handleEvent);
 
         // Bug 1102810 - After this bug gets fixed, this listener won't be
@@ -49,58 +47,15 @@ var DownloadManager = (function() {
         window.addEventListener('will-shutdown', function onShutdown() {
           ev.download.pause();
         });
-      })['catch'](function(err) { // XXX: workaround gjslint
-        console.error(err);
       });
     }
   }
   mozDownloadManager.addEventListener('downloadstart', onDownloadStart);
 
-  function createDownloadNotificationAndIcon(download) {
+  function createDownloadNotification(download) {
     var id = DownloadFormatter.getUUID(download);
     notifications[id] = new DownloadNotification(download);
-    loadDownloadIconIfNecessary().then(function() {
-      icon.handle(download);
-    });
   }
-
-  var downloadManager = {
-    name: 'DownloadManager',
-    incDownloads: function() {
-      loadDownloadIconIfNecessary().then(function() {
-        icon.incDownloads();
-      })['catch'](function(err) { // XXX: workaround gjslint
-        console.error(err);
-      });
-    },
-    decDownloads: function() {
-      loadDownloadIconIfNecessary().then(function() {
-        icon.decDownloads();
-      })['catch'](function(err) { // XXX: workaround gjslint
-        console.error(err);
-      });
-    }
-  };
-
-  function loadDownloadIconIfNecessary() {
-    return new Promise(function(resolve, reject) {
-      if (!icon) {
-        LazyLoader.load(['js/download_icon.js']).then(function() {
-          icon = new DownloadIcon(this);
-          icon.start();
-          resolve();
-        }.bind(this))['catch'](function(err) { // XXX: workaround gjslint
-          console.error(err);
-          reject();
-        });
-      } else {
-        resolve();
-      }
-    });
-  };
-
-  Service.register('incDownloads', downloadManager);
-  Service.register('decDownloads', downloadManager);
 
   function handleEvent(evt) {
     var detail = evt.detail;

@@ -1,28 +1,29 @@
-/* exported MockScreenManager */
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+/*exported MockScreenManager*/
 
 'use strict';
 
-(function(exports) {
-  var MockScreenManager = {
-    mSetup: function() {
-      this.mScreenEnabled = true;
-    },
+var MockScreenManager = (function() {
+  var screenEnabled = true;
 
-    turnScreenOn: function() {
-      this.mScreenEnabled = true;
-    },
+  function turnScreenOn() {
+    screenEnabled = true;
+  }
 
-    turnScreenOff: function() {
-      this.mScreenEnabled = false;
-    },
+  function turnScreenOff() {
+    screenEnabled = false;
+  }
 
+  return {
+    turnScreenOn: turnScreenOn,
+    turnScreenOff: turnScreenOff,
     get screenEnabled() {
-      return this.mScreenEnabled;
+      return screenEnabled;
     },
-
     set screenEnabled(value) {
-      this.mScreenEnabled = value;
+      screenEnabled = value;
     }
   };
-  exports.MockScreenManager = MockScreenManager;
-})(window);
+})();
