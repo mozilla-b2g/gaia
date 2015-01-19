@@ -8,6 +8,7 @@
  * @version 0.3.3
  * @author Wilson Page <wilson.page@me.com>
  */
+/* jshint ignore:start */
 
 ;(function() {
 

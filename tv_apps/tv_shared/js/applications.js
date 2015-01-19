@@ -254,6 +254,8 @@
       this._readyCallbacks = [];
     },
 
+    /* jshint -W004 */
+    // XXX: Uses this to prevent 'helper' is already defined jshint error
     /**
      * Get all "entry_point"s from the specified app.
      *
@@ -297,6 +299,7 @@
 
       return entries;
     },
+    /* jshint +W004 */
 
     /**
      * Get all "entry_point"s from all installed apps.
