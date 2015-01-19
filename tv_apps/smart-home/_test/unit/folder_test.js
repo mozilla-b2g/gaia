@@ -1,6 +1,6 @@
 'use strict';
 
-/* Folder */
+/* global Deck, Folder */
 
 require('/tv_shared/js/vendor/evt.js');
 require('/shared/js/uuid.js');
@@ -15,10 +15,6 @@ suite('tv_shared/Folder', function() {
 
   var assertFolderIsEmpty = function() {
     assert.isTrue(folder.cardsInFolder.length === 0);
-  };
-
-  var assertFolderIsNotEmpty = function() {
-    assert.isTrue(folder.cardsInFolder.length > 0);
   };
 
   setup(function() {

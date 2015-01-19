@@ -1,6 +1,6 @@
 'use strict';
-
-/* global CardManager */
+/* global Application, CardManager, Deck, Folder,
+          MockCardStore, MockPipedPromise, MockXMLHttpRequest */
 
 require('/tv_shared/js/vendor/evt.js');
 require('/shared/js/uuid.js');

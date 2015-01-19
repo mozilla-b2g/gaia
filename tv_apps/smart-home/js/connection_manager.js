@@ -1,4 +1,5 @@
 'use strict';
+/* global evt */
 
 (function(exports) {
   var ConnectionManager = function() {};
@@ -18,7 +19,7 @@
       var that = this;
       this._channels.forEach(function(channel) {
         window.removeEventListener(channel, that);
-      })
+      });
     },
 
     // all messages should contain `type` and `data`, like this:
