@@ -170,6 +170,11 @@
      * @type {boolean}
      */
     handleEvent: function hl_handleEvent(evt) {
+      if (!this.getHomescreen()) {
+        // LandingAppLauncher is extended from this class. If we don't have a
+        // landing app, we may get null with getHomescreen() function call.
+        return;
+      }
       switch (evt.type) {
         case 'trusteduishow':
           this.getHomescreen(true).toggle(true);
