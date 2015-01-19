@@ -933,7 +933,8 @@ suite('Utils', function() {
       'text': null,
       'application/video': 'application',
       'multipart/form-data': null,
-      'text/vcard': 'ref'
+      'text/vcard': 'vcard',
+      'text/calendar': 'ref'
     };
 
     Object.keys(tests).forEach(function(testIndex) {
