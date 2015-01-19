@@ -36,8 +36,8 @@ define(function(require) {
       onHide: function() {
         isHomeKeyPressed = document.hidden;
         if (!isHomeKeyPressed) {
-          elements.password = '';
-          elements.identity = '';
+          elements.password.value = '';
+          elements.identity.value = '';
           elements.showPassword.checked = false;
         }
       },
