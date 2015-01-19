@@ -5,6 +5,7 @@
 
 var Bluetooth = {
   name: 'Bluetooth',
+
   get Profiles() {
     return {
       HFP: 'hfp',   // Hands-Free Profile
@@ -75,7 +76,7 @@ var Bluetooth = {
    */
   connected: false,
 
-  init: function bt_init() {
+  start: function() {
     if (!window.navigator.mozBluetooth || this._started) {
       return;
     }

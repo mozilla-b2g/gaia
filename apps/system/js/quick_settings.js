@@ -1,5 +1,5 @@
 /* jshint loopfunc: true */
-/* global SettingsHelper, SettingsListener, applications,
+/* global Service, SettingsListener, applications,
           UtilityTray, MozActivity */
 
 'use strict';
@@ -66,19 +66,18 @@
       this.monitorDataChange();
 
       (function initNetworkSprite() {
-        var networkTypeSetting =
-          SettingsHelper('operatorResources.data.icon', {});
-
-        networkTypeSetting.get(function gotNS(networkTypeValues) {
-          if (!networkTypeValues) {
-            return;
-          }
-          var sprite = networkTypeValues.data_sprite;
-          if (sprite) {
-            document.getElementById('quick-settings-data')
-              .style.backgroundImage = 'url("' + sprite + '")';
-          }
-        });
+        Service.request('SettingsCore:get',
+          'operatorResources.data.icon').then(
+          function gotNS(networkTypeValues) {
+            if (!networkTypeValues) {
+              return;
+            }
+            var sprite = networkTypeValues.data_sprite;
+            if (sprite) {
+              document.getElementById('quick-settings-data')
+                .style.backgroundImage = 'url("' + sprite + '")';
+            }
+          });
       })();
 
       this.overlay.addEventListener('click', this);

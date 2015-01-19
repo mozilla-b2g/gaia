@@ -98,8 +98,6 @@ var NotificationScreen = {
 
     this._sound = 'style/notifications/ringtones/notifier_firefox.opus';
 
-    this.ringtoneURL = new SettingsURL();
-
     // set up the media playback widget, but only if |MediaPlaybackWidget| is
     // defined (we don't define it in tests)
     if (typeof MediaPlaybackWidget !== 'undefined') {
@@ -111,20 +109,19 @@ var NotificationScreen = {
 
     var self = this;
     SettingsListener.observe('notification.ringtone', '', function(value) {
-      self._sound = self.ringtoneURL.set(value);
+      LazyLoader.load(['shared/js/settings_url.js']).then(function() {
+        self.ringtoneURL = new SettingsURL();
+        self._sound = self.ringtoneURL.set(value);
+      });
     });
 
     // We have new default ringtones in 2.0, so check if the version is upgraded
     // then execute the necessary migration.
-    VersionHelper.getVersionInfo().then(function(versionInfo) {
-      if (versionInfo.isUpgrade()) {
-        LazyLoader.load('js/tone_upgrader.js', function() {
-          toneUpgrader.perform('alerttone');
-        });
-      }
-    }, function(err) {
-      console.error('VersionHelper failed to lookup version settings.');
-    });
+    if (Service.query('isUpgrade')) {
+      LazyLoader.load('js/tone_upgrader.js', function() {
+        toneUpgrader.perform('alerttone');
+      });
+    }
   },
 
   handleEvent: function ns_handleEvent(evt) {
@@ -544,7 +541,7 @@ var NotificationScreen = {
     // Notification toaster
     if (notify) {
       this.updateToaster(detail, type, dir);
-      if (this.lockscreenPreview || !window.Service.locked) {
+      if (this.lockscreenPreview || !window.Service.query('locked')) {
         this.toaster.classList.add('displayed');
 
         if (this._toasterTimeout) {
@@ -560,7 +557,7 @@ var NotificationScreen = {
 
     // Adding it to the lockscreen if locked and the privacy setting
     // does not prevent it.
-    if (Service.locked && this.lockscreenPreview) {
+    if (Service.query('locked') && this.lockscreenPreview) {
       this.addLockScreenNotification(detail.id,
         notificationNode.cloneNode(true));
     }

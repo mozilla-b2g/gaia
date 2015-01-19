@@ -1,4 +1,4 @@
-/* global AppWindowManager, SettingsListener, Service */
+/* global Service */
 'use strict';
 
 (function(exports) {
@@ -12,13 +12,6 @@
     'opening': [null, 'closing', 'opened', 'opened', 'opened', 'closed'],
     'closing': ['opened', null, 'closed', 'closed', 'opened', 'closed']
   };
-
-  var appTransitionSetting = 'app-transition.enabled';
-  var transitionEnabled =
-    SettingsListener.getSettingsLock().get(appTransitionSetting);
-  SettingsListener.observe(appTransitionSetting, true, function(value) {
-    transitionEnabled = value;
-  });
 
   /**
    * AppTransitionController controlls the opening and closing animation
@@ -93,6 +86,7 @@
   AppTransitionController.prototype.OPENING_TRANSITION_TIMEOUT = 350;
   AppTransitionController.prototype.CLOSING_TRANSITION_TIMEOUT = 350;
   AppTransitionController.prototype.SLOW_TRANSITION_TIMEOUT = 3500;
+  AppTransitionController.prototype._firstTransition = true;
   AppTransitionController.prototype.changeTransitionState =
     function atc_changeTransitionState(evt) {
       var currentState = this._transitionState;
@@ -149,7 +143,7 @@
         }
         this.app.broadcast('closingtimeout');
       },
-      AppWindowManager.slowTransition ? this.SLOW_TRANSITION_TIMEOUT :
+      Service.query('slowTransition') ? this.SLOW_TRANSITION_TIMEOUT :
                               this.CLOSING_TRANSITION_TIMEOUT);
 
       if (!this.app || !this.app.element) {
@@ -164,11 +158,7 @@
     };
 
   AppTransitionController.prototype.getAnimationName = function(type) {
-    if (transitionEnabled) {
-      return this.currentAnimation || this[type + 'Animation'] || type;
-    } else {
-      return 'immediate';
-    }
+    return this.currentAnimation || this[type + 'Animation'] || type;
   };
 
 
@@ -178,7 +168,7 @@
       this._openingTimeout = window.setTimeout(function() {
         this.app && this.app.broadcast('openingtimeout');
       }.bind(this),
-      AppWindowManager.slowTransition ? this.SLOW_TRANSITION_TIMEOUT :
+      Service.query('slowTransition') ? this.SLOW_TRANSITION_TIMEOUT :
                               this.OPENING_TRANSITION_TIMEOUT);
       this._waitingForLoad = false;
       this.app.element.classList.add('transition-opening');

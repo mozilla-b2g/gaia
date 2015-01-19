@@ -111,7 +111,7 @@
       }
       var self = this;
       // We should wait for lockscreen-appclosed event sent before checking
-      // the value of Service.locked in showIfLocked method.
+      // the value of Service.query('locked') in showIfLocked method.
       window.addEventListener('lockscreen-appclosed',
         function lockscreenOnClosed() {
           window.removeEventListener('lockscreen-appclosed',
@@ -190,7 +190,7 @@
         return false;
       }
 
-      if (Service.locked) {
+      if (Service.query('locked')) {
         this.warn('Lockscreen is on so hidden.');
         return false;
       }

@@ -448,7 +448,7 @@ suite('system/UtilityTray', function() {
     });
 
     teardown(function() {
-      window.Service.runningFTU = false;
+      window.Service.mIsFtuRunning = false;
     });
 
     test('onTouchStart is not called if LockScreen is locked', function() {
@@ -473,7 +473,7 @@ suite('system/UtilityTray', function() {
     });
 
     test('onTouchStart is called when ftu is running', function() {
-      window.Service.runningFTU = true;
+      window.Service.mIsFtuRunning = true;
       var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
       UtilityTray.topPanel.dispatchEvent(fakeEvt);
       assert.ok(stub.notCalled);

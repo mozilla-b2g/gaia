@@ -1,4 +1,4 @@
-/* global UrlHelper, AppWindow, BrowserConfigHelper */
+/* global UrlHelper, AppWindow, BrowserConfigHelper, LazyLoader */
 
 (function(exports) {
 
@@ -34,7 +34,12 @@
       var data = activity.source.data;
       switch (data.type) {
         case 'url':
-          handleOpenUrl(UrlHelper.getUrlFromInput(data.url), data.isPrivate);
+          LazyLoader.load(['shared/js/url_helper.js']).then(function() {
+            handleOpenUrl(
+              UrlHelper.getUrlFromInput(data.url), data.isPrivate);
+          }).catch(function(err) {
+            console.error(err);
+          });
           break;
       }
     },

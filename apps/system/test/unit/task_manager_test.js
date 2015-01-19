@@ -504,12 +504,12 @@ suite('system/TaskManager >', function() {
       apps.home = home;
       MockStackManager.mCurrent = 0;
 
-      MockService.currentApp = apps['http://sms.gaiamobile.org'];
+      MockService.mTopMostWindow = apps['http://sms.gaiamobile.org'];
     });
 
     suite('display cardsview >', function() {
       setup(function() {
-        MockService.currentApp  = apps['http://sms.gaiamobile.org'];
+        MockService.mTopMostWindow  = apps['http://sms.gaiamobile.org'];
         showTaskManager(this.sinon.clock);
       });
 
@@ -840,7 +840,7 @@ suite('system/TaskManager >', function() {
         apps['http://game.gaiamobile.org']
       ];
       MockStackManager.mCurrent = 0;
-      MockService.currentApp  = apps['http://sms.gaiamobile.org'];
+      MockService.mActiveApp = apps['http://sms.gaiamobile.org'];
 
       showTaskManager(this.sinon.clock);
     });
@@ -1105,7 +1105,7 @@ suite('system/TaskManager >', function() {
 
     suite('when opening from the homescreen', function() {
       setup(function() {
-        MockService.currentApp  = home;
+        MockService.mActiveApp  = home;
         MockStackManager.mCurrent = -1;
         showTaskManager(this.sinon.clock);
       });
@@ -1139,7 +1139,7 @@ suite('system/TaskManager >', function() {
 
     suite('when opening from an app', function() {
       setup(function() {
-        MockService.currentApp = apps['http://sms.gaiamobile.org'];
+        MockService.mActiveApp = apps['http://sms.gaiamobile.org'];
         MockStackManager.mCurrent = 0;
         showTaskManager(this.sinon.clock);
       });
@@ -1158,7 +1158,7 @@ suite('system/TaskManager >', function() {
       });
 
       test('when exitToApp is passed no app', function(done) {
-        var activeApp = MockService.currentApp;
+        var activeApp = MockService.mActiveApp;
         var stub = this.sinon.stub(activeApp, 'open');
 
         waitForEvent(window, 'cardviewclosed').then(function() {
@@ -1207,7 +1207,7 @@ suite('system/TaskManager >', function() {
 
   suite('filtering > ', function() {
     setup(function() {
-      MockService.currentApp = apps.browser2;
+      MockService.mActiveApp = apps.browser2;
       MockStackManager.mCurrent = 0;
       MockStackManager.mStack = [
         apps['http://sms.gaiamobile.org'],
@@ -1255,7 +1255,7 @@ suite('system/TaskManager >', function() {
 
   suite('filtering > /w search role', function() {
     setup(function() {
-      MockService.currentApp = apps.search;
+      MockService.mActiveApp = apps.search;
       MockStackManager.mCurrent = 1;
       MockStackManager.mStack = [
         apps.browser1,
@@ -1273,7 +1273,7 @@ suite('system/TaskManager >', function() {
     var stub, _filterName;
     setup(function() {
       taskManager.hide();
-      MockService.currentApp = apps['http://sms.gaiamobile.org'];
+      MockService.mActiveApp = apps['http://sms.gaiamobile.org'];
       _filterName = 'browser-only';
       stub = this.sinon.stub(taskManager, 'filter', function(filterName) {
           assert.equal(filterName, _filterName);

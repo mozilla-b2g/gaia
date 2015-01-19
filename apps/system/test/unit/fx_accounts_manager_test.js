@@ -1,6 +1,8 @@
+/* global FxAccountsManager, FxAccountsClient, MockIACPort,
+          FxAccountsUI, MocksHelper */
 'use strict';
 
-requireApp('system/js/fxa_manager.js');
+requireApp('system/js/fx_accounts_manager.js');
 requireApp('system/test/unit/mock_fxa_client.js');
 requireApp('system/test/unit/mock_fxa_ui.js');
 requireApp('system/test/unit/mock_iac_handler.js');
@@ -43,8 +45,8 @@ suite('system/FxAccountManager >', function() {
     test('Test event listeners', function() {
       assert.ok(MockEventListener['iac-fxa-mgmt']);
       assert.ok(MockEventListener['iac-fxa-mgmt'] instanceof Function);
-      assert.ok(MockEventListener['mozFxAccountsUnsolChromeEvent']);
-      assert.ok(MockEventListener['mozFxAccountsUnsolChromeEvent'] instanceof
+      assert.ok(MockEventListener.mozFxAccountsUnsolChromeEvent);
+      assert.ok(MockEventListener.mozFxAccountsUnsolChromeEvent instanceof
                 Object);
     });
   });

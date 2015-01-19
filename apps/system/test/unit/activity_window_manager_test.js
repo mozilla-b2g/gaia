@@ -100,7 +100,7 @@ suite('system/ActivityWindowManager', function() {
     teardown(function() {
       subject.stop();
       subject = null;
-      MockService.currentApp = null;
+      MockService.mTopMostWindow = null;
     });
 
     test('maintain activity: created', function() {
@@ -204,8 +204,7 @@ suite('system/ActivityWindowManager', function() {
         [app1.instanceID, true]
       ]);
 
-      MockService.currentApp = app2;
-      this.sinon.stub(app2, 'getTopMostWindow').returns(app2);
+      MockService.mTopMostWindow = app2;
 
       subject.handleEvent({
         type: 'activityrequesting'
@@ -223,8 +222,7 @@ suite('system/ActivityWindowManager', function() {
         [app1.instanceID, true]
       ]);
 
-      MockService.currentApp = app2;
-      this.sinon.stub(app2, 'getTopMostWindow').returns(app2);
+      MockService.mTopMostWindow = app2;
 
       subject.handleEvent({
         type: 'activityrequesting'

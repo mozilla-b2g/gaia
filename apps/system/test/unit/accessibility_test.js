@@ -4,12 +4,14 @@
 
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_speech_synthesis.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/js/accessibility.js');
 requireApp('system/js/accessibility_quicknav_menu.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
 var mocksForA11y = new MocksHelper([
-  'SettingsListener'
+  'SettingsListener',
+  'LazyLoader'
 ]).init();
 
 suite('system/Accessibility', function() {

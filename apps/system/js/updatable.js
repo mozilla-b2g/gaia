@@ -75,8 +75,8 @@ AppUpdatable.prototype.availableCallBack = function() {
 
 AppUpdatable.prototype.successCallBack = function() {
   var app = this.app;
-  if (Service.currentApp &&
-      Service.currentApp.origin !== app.origin) {
+  if (Service.query('AppWindowManager.getActiveApp') &&
+      Service.query('AppWindowManager.getActiveApp') !== app.origin) {
     this.applyUpdate();
   } else {
     var self = this;
@@ -259,17 +259,13 @@ SystemUpdatable.prototype.showApplyPromptBatteryNok = function(minBattery) {
     callback: this.declineInstallBattery.bind(this)
   };
 
-  var screen = document.getElementById('screen');
-
   UtilityTray.hide();
-  CustomDialog.show(
+  Service.request('showCustomDialog',
     'systemUpdateReady',
     { id: 'systemUpdateLowBatteryThreshold', args: { threshold: minBattery } },
     ok,
-    null,
-    screen
-  )
-  .setAttribute('data-z-index-level', 'system-dialog');
+    null
+  );
 };
 
 SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
@@ -287,17 +283,13 @@ SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
     recommend: true
   };
 
-  var screen = document.getElementById('screen');
-
   UtilityTray.hide();
-  CustomDialog.show(
+  Service.request('showCustomDialog',
     'systemUpdateReady',
     'wantToInstallNow',
     cancel,
-    confirm,
-    screen
-  )
-  .setAttribute('data-z-index-level', 'system-dialog');
+    confirm
+  );
 };
 
 /**
@@ -309,7 +301,7 @@ SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
  * @param {String} reason
  */
 SystemUpdatable.prototype.declineInstall = function(reason) {
-  CustomDialog.hide();
+  Service.request('hideCustomDialog');
   this._dispatchEvent('update-prompt-apply-result', reason);
 
   UpdateManager.removeFromDownloadsQueue(this);
@@ -325,7 +317,7 @@ SystemUpdatable.prototype.declineInstallWait = function() {
 
 
 SystemUpdatable.prototype.acceptInstall = function() {
-  CustomDialog.hide();
+  Service.request('hideCustomDialog');
 
   // Display a splash-screen so the user knows an update is being applied
   var splash = document.createElement('form');

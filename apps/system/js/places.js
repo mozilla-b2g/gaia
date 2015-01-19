@@ -1,8 +1,8 @@
 'use strict';
-/* globals Promise, appWindowManager, asyncStorage */
+/* globals Promise, asyncStorage, Service, BaseModule */
 /* exported Places */
 
-(function(exports) {
+(function() {
 
   const DEBOUNCE_TIME = 2000;
 
@@ -16,8 +16,12 @@
    * @class Places
    */
   function Places() {}
+  Places.SUB_MODULES = [
+    'BrowserSettings'
+  ];
 
-  Places.prototype = {
+  BaseModule.create(Places, {
+    name: 'Places',
 
     /**
      * The places store name.
@@ -147,7 +151,7 @@
      * @memberof Places.prototype
      */
     screenshotRequested: function(url) {
-      var app = appWindowManager.getAppByURL(url);
+      var app = Service.query('getAppByURL', url);
       if (!app || app.loading) {
         this.screenshotQueue[url] = setTimeout(() => {
           this.takeScreenshot(url);
@@ -163,7 +167,7 @@
         delete this.screenshotQueue[url];
       }
 
-      var app = appWindowManager.getAppByURL(url);
+      var app = Service.query('getAppByURL', url);
       if (!app) {
         console.error('Couldnt find app for:', url);
         return false;
@@ -407,8 +411,5 @@
         cb(place);
       });
     }
-  };
-
-  exports.Places = Places;
-
-}(window));
+  });
+}());

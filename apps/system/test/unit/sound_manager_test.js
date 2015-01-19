@@ -2,9 +2,10 @@
 
 /* global MocksHelper, MockL10n, SoundManager, MockSettingsListener, MockLock,
           MockScreenManager, MockNavigatorSettings, MockasyncStorage,
-          MockCustomDialog, MockLazyLoader */
+          MockCustomDialog, MockLazyLoader, MockService */
 
-requireApp('system/test/unit/mock_lazy_loader.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
+requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
@@ -12,7 +13,6 @@ require('/shared/test/unit/mocks/mock_custom_dialog.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
 requireApp('system/test/unit/mock_bluetooth.js');
-requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_navigator_moz_telephony.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/js/service.js');
@@ -29,10 +29,10 @@ var mocksForSoundManager = new MocksHelper([
   'asyncStorage',
   'Bluetooth',
   'CustomDialog',
-  'FtuLauncher',
   'ScreenManager',
   'SettingsListener',
-  'LazyLoader'
+  'LazyLoader',
+  'Service'
 ]).init();
 
 suite('system/sound manager', function() {
@@ -62,6 +62,15 @@ suite('system/sound manager', function() {
 
   teardown(function() {
     soundManager.stop();
+  });
+
+  test('Default channel', function() {
+    MockService.locked = false;
+    soundManager.homescreenVisible = false;
+    MockService.mIsFtuRunning = true;
+    assert.equal(soundManager.getChannel(), 'notification');
+    MockService.mIsFtuRunning = false;
+    assert.equal(soundManager.getChannel(), 'content');
   });
 
   test('Should lazy load icons', function() {

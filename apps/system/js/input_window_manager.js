@@ -87,6 +87,8 @@
     this._onDebug = false;
   };
 
+  InputWindowManager.prototype.name = 'InputWindowManager';
+
   InputWindowManager.prototype._debug = function iwm__debug(msg) {
     if (this._onDebug) {
       console.log('[InputWindowManager] ' + msg);
@@ -125,6 +127,10 @@
     window.addEventListener('cardviewbeforeshow', this);
     window.addEventListener('lockscreen-appopened', this);
     window.addEventListener('mozmemorypressure', this);
+    Service.registerState('getHeight', this);
+    Service.registerState('isOutOfProcessEnabled', this);
+    Service.register('hideInputWindow', this);
+    Service.register('hideInputWindowImmediately', this);
   };
 
   InputWindowManager.prototype.stop = function iwm_stop() {

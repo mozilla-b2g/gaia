@@ -1,5 +1,5 @@
 'use strict';
-/* global applications, BrowserConfigHelper, AppWindow */
+/* global applications, BrowserConfigHelper, AppWindow, Service */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -181,8 +181,7 @@
           config.url.indexOf('newtab.html') === -1) {
         return;
       }
-      var app = window.appWindowManager.getApp(config.origin,
-        config.manifestURL);
+      var app = Service.query('getApp', config.origin, config.manifestURL);
       if (app) {
         if (config.evtType == 'appopenwindow') {
           app.browser.element.src = config.url;

@@ -73,7 +73,7 @@
 
         // If we already have a browser and we receive an open request,
         // display it in the current browser frame.
-        var activeApp = Service.currentApp;
+        var activeApp = Service.query('getTopMostWindow');
         var isSearchApp = (activeApp.manifest &&
           activeApp.manifest.role === 'search');
         if (activeApp && (activeApp.isBrowser() || isSearchApp)) {

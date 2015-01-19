@@ -4,11 +4,9 @@
 
 requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_app_window.js');
-requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 require('/shared/test/unit/mocks/mock_service.js');
-requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksForAppTransitionController = new MocksHelper([
   'AppWindow', 'AppWindowManager', 'LayoutManager', 'SettingsListener',

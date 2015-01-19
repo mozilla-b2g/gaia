@@ -4,6 +4,7 @@
 /* global Notification */
 /* global MozActivity */
 /* global Service */
+/* global LazyLoader */
 /* global IAC_API_WAKEUP_REASON_ENABLED_CHANGED */
 /* global IAC_API_WAKEUP_REASON_LOGIN */
 /* global IAC_API_WAKEUP_REASON_LOGOUT */
@@ -140,7 +141,9 @@ function FMDInit() {
   });
 }
 
-window.addEventListener('load', function fmdlauncher_load() {
-  window.removeEventListener('load', fmdlauncher_load);
-  FMDInit();
-});
+window.FindmydeviceLauncher = function() {};
+window.FindmydeviceLauncher.prototype.start = function() {
+  LazyLoader.load(['shared/js/findmydevice_iac_api.js']).then(function() {
+    FMDInit();
+  });
+};
