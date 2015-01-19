@@ -274,17 +274,6 @@
     },
 
     /**
-     * XXX: FtuLauncher should register 'isFtuRunning' service.
-     */
-    get runningFTU() {
-      if ('undefined' === typeof window.FtuLauncher) {
-        return false;
-      } else {
-        return window.FtuLauncher.isFtuRunning();
-      }
-    },
-
-    /**
      * XXX: LockscreenWindowManager should register 'locked' service.
      */
     get locked() {

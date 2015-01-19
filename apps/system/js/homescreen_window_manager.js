@@ -1,4 +1,4 @@
-/* global homescreenLauncher, Service */
+/* global HomescreenLauncher, Service */
 
 'use strict';
 (function(exports) {
@@ -26,7 +26,7 @@
      * @type {boolean}
      */
     get ready() {
-      return homescreenLauncher.ready;
+      return this.homescreenLauncher && this.homescreenLauncher.ready;
     },
 
     debug: function hwm_debug() {
@@ -47,6 +47,8 @@
       window.addEventListener('ftuskip', this);
       window.addEventListener('open-app', this);
       window.addEventListener('webapps-launch', this);
+      this.homescreenLauncher = new HomescreenLauncher();
+      this.homescreenLauncher.start();
     },
 
     /**
@@ -77,7 +79,8 @@
         case 'open-app':
         case 'webapps-launch':
           var detail = evt.detail;
-          if (detail.manifestURL === homescreenLauncher.manifestURL) {
+          if (this.homescreenLauncher &&
+              detail.manifestURL === this.homescreenLauncher.manifestURL) {
             this.getHomescreen();
             evt.stopImmediatePropagation();
           }
@@ -92,10 +95,10 @@
      * @memberOf HomescreenWindowManager.prototype
      */
     getHomescreen: function getHomescreen(isHomeEvent) {
-      if (!exports.homescreenLauncher || !exports.homescreenLauncher.ready) {
+      if (!this.homescreenLauncher || !this.homescreenLauncher.ready) {
         return null;
       }
-      var home  = homescreenLauncher.getHomescreen(true);
+      var home  = this.homescreenLauncher.getHomescreen(true);
       if (isHomeEvent) {
         home.ensure(true);
       }

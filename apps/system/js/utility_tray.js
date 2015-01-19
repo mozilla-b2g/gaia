@@ -201,7 +201,7 @@ window.UtilityTray = {
         break;
 
       case 'touchstart':
-        if (window.Service.locked || window.Service.runningFTU) {
+        if (window.Service.locked || window.Service.query('isFtuRunning')) {
           return;
         }
 

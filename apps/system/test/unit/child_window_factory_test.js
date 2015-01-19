@@ -379,12 +379,12 @@ suite('system/ChildWindowFactory', function() {
     assert.isTrue(stubRequestForeground.called);
   });
 
-  suite('runningFTU', function() {
+  suite('FTU is running', function() {
     setup(function() {
-      window.Service.runningFTU = true;
+      window.Service.mIsFtuRunning = true;
     });
     teardown(function() {
-      window.Service.runningFTU = false;
+      window.Service.mIsFtuRunning = false;
     });
 
     test('> _blank', function() {

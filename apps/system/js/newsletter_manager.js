@@ -1,4 +1,4 @@
-/* global LazyLoader, FtuLauncher, Basket, Promise */
+/* global LazyLoader, Service, Basket, Promise */
 
 'use strict';
 
@@ -87,7 +87,7 @@ var idleObserver = {
   time: 10,
   onidle: function() {
     // if FTU is running we don't want to do anything
-    if (FtuLauncher.isFtuRunning()) {
+    if (Service.query('isFtuRunning')) {
       return;
     }
 

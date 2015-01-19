@@ -3,9 +3,9 @@
 
 /* global BrowserFrame,
    EntrySheet,
-   FtuLauncher,
    Notification,
-   MozActivity
+   MozActivity,
+   Service
 */
 
 'use strict';
@@ -31,7 +31,7 @@ var CaptivePortal = {
         currentNetwork.ssid : '';
     var message = _('captive-wifi-available', { networkName: networkName });
 
-    if (FtuLauncher.isFtuRunning()) {
+    if (Service.query('isFtuRunning')) {
       settings.createLock().set({'wifi.connect_via_settings': false});
 
       this.entrySheet = new EntrySheet(document.getElementById('screen'),

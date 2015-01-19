@@ -18,7 +18,7 @@ requireApp('system/test/unit/mock_stack_manager.js');
 requireApp('system/test/unit/mock_touch_forwarder.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
-requireApp('system/test/unit/mock_ftu_launcher.js');
+requireApp('system/test/unit/mock_service.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
@@ -31,7 +31,6 @@ var mocksForEdgeSwipeDetector = new MocksHelper([
   'Service',
   'TouchForwarder',
   'HomescreenLauncher',
-  'FtuLauncher',
   'LayoutManager'
 ]).init();
 

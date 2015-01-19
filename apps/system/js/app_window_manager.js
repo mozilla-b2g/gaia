@@ -1,6 +1,6 @@
 /* global SettingsListener, homescreenWindowManager, inputWindowManager,
           layoutManager, Service, NfcHandler, rocketbar, ShrinkingUI,
-          FtuLauncher, UtilityTray */
+          UtilityTray, BaseModule */
 'use strict';
 
 (function(exports) {
@@ -398,6 +398,10 @@
         );
       }
       Service.request('registerHierarchy', this);
+      BaseModule.lazyLoad(['FtuLauncher']).then(function() {
+        this.ftuLauncher = BaseModule.instantiate('FtuLauncher');
+        this.ftuLauncher.start();
+      }.bind(this));
     },
 
     /**
@@ -463,23 +467,20 @@
     },
 
     _handle_home: function(evt) {
-      // XXX: FtuLauncher should become submodule of AppWindowManager.
-      if (FtuLauncher.respondToHierarchyEvent(evt)) {
-        if (!homescreenWindowManager.ready ||
-            (window.taskManager && window.taskManager.isActive())) {
-          return true;
-        }
-        this.display(null, null, null, 'home');
+      if (this.ftuLauncher && !this.ftuLauncher.respondToHierarchyEvent(evt)) {
         return false;
+      } else if (!homescreenWindowManager.ready ||
+            (window.taskManager && window.taskManager.isActive())) {
+        return true;
       } else {
+        this.display(null, null, null, 'home');
         return false;
       }
     },
 
     _handle_holdhome: function(evt) {
-      // XXX: FtuLauncher should become submodule of AppWindowManager.
-      var ret = FtuLauncher.respondToHierarchyEvent(evt);
-      return ret;
+      return this.ftuLauncher &&
+             this.ftuLauncher.respondToHierarchyEvent(evt);
     },
 
     respondToHierarchyEvent: function(evt) {

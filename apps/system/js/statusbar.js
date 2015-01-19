@@ -14,7 +14,7 @@
   limitations under the License.
 */
 
-/*global FtuLauncher, Service, UtilityTray, layoutManager */
+/*global Service, UtilityTray, layoutManager */
 
 'use strict';
 
@@ -507,7 +507,7 @@ var StatusBar = {
 
   panelHandler: function sb_panelHandler(evt) {
     // Do not forward events if FTU is running
-    if (FtuLauncher.isFtuRunning()) {
+    if (Service.query('isFtuRunning')) {
       return;
     }
 

@@ -2,8 +2,8 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global ActivityWindowManager, SecureWindowFactory,
-         SecureWindowManager, HomescreenLauncher, HomescreenWindowManager,
-         FtuLauncher, SourceView, ScreenManager, Places, Activities,
+         SecureWindowManager, HomescreenWindowManager,
+         SourceView, ScreenManager, Places, Activities,
          DeveloperHUD, DialerAgent, RemoteDebugger, HomeGesture,
          VisibilityManager, UsbStorage, TaskManager,
          SuspendingAppPriorityManager, TTLView,
@@ -82,29 +82,12 @@ window.addEventListener('load', function startup() {
     window.textSelectionDialog = new TextSelectionDialog();
   }
 
-  function safelyLaunchFTU() {
-    window.addEventListener('homescreen-ready', function onHomescreenReady() {
-      window.removeEventListener('homescreen-ready', onHomescreenReady);
-      FtuLauncher.retrieve();
-    });
-    /** @global */
-    if (!window.homescreenLauncher) {
-      // We may have application.ready = true while reloading at firefox nightly
-      // browser. In this case, the window.homescreenLauncher haven't been
-      // created. We should create it and start it in this case.
-      window.homescreenLauncher = new HomescreenLauncher();
-    }
-    window.homescreenLauncher.start();
-  }
-
   if (applications.ready) {
     registerGlobalEntries();
-    safelyLaunchFTU();
   } else {
     window.addEventListener('applicationready', function appListReady(event) {
       window.removeEventListener('applicationready', appListReady);
       registerGlobalEntries();
-      safelyLaunchFTU();
     });
   }
 
@@ -167,12 +150,6 @@ window.addEventListener('load', function startup() {
   window.externalStorageMonitor.start();
   window.homeGesture = new HomeGesture();
   window.homeGesture.start();
-  if (!window.homescreenLauncher) {
-    // If application.ready is true, we already create homescreenLauncher in
-    // safelyLaunchFTU(). We should use it. If it is false, we should create it
-    // here.
-    window.homescreenLauncher = new HomescreenLauncher();
-  }
   window.lockScreenPasscodeValidator = new LockScreenPasscodeValidator();
   window.lockScreenPasscodeValidator.start();
   window.layoutManager = new LayoutManager();

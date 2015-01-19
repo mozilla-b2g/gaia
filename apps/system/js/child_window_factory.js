@@ -1,5 +1,5 @@
 'use strict';
-/* global AppWindow, PopupWindow, ActivityWindow, SettingsListener,
+/* global AppWindow, PopupWindow, ActivityWindow, SettingsListener, Service,
           AttentionWindow, MozActivity, GlobalOverlayWindow, TrustedWindow */
 
 (function(exports) {
@@ -59,7 +59,7 @@
       // <a href="" target="_blank"> should never be part of the app
       // except while FTU is running: windows must be closable & parented by FTU
       if (evt.detail.name == '_blank' &&
-          !window.Service.runningFTU &&
+          !Service.query('isFtuRunning') &&
           evt.detail.features !== 'attention' &&
           evt.detail.features !== 'global-clickthrough-overlay') {
         this.createNewWindow(evt);

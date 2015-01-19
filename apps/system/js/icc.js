@@ -1,6 +1,4 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-/* global LazyLoader, DUMP, inputWindowManager */
+/* global LazyLoader, DUMP, inputWindowManager, Service */
 'use strict';
 
 var icc = {
@@ -164,7 +162,7 @@ var icc = {
 
     DUMP('STK Proactive Command for SIM ' + message.iccId + ': ',
       message.command);
-    if (FtuLauncher.isFtuRunning()) {
+    if (Service.query('isFtuRunning')) {
       // Delay the stk command until FTU is done
       var self = this;
       window.addEventListener('ftudone', function ftudone() {

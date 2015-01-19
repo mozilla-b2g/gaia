@@ -1,5 +1,4 @@
 'use strict';
-/* global FtuLauncher */
 /* global layoutManager */
 /* global SettingsListener */
 /* global Service */
@@ -118,7 +117,8 @@
         case 'appopened':
           var app = e.detail;
           if (!app.stayBackground) {
-            this.lifecycleEnabled = (app.origin !== FtuLauncher.getFtuOrigin());
+            this.lifecycleEnabled =
+              (app.origin !== Service.query('getFtuOrigin'));
           }
           break;
         case 'homescreenopened':

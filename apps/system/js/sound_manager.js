@@ -1,4 +1,4 @@
-/* global AsyncSemaphore, Bluetooth, CustomDialog, FtuLauncher, ScreenManager,
+/* global AsyncSemaphore, Bluetooth, CustomDialog, Service, ScreenManager,
           SettingsListener, Service, HeadphoneIcon, PlayingIcon, MuteIcon,
           LazyLoader */
 
@@ -10,7 +10,7 @@
    * @class SoundManager
    * @requires AsyncSemaphore
    * @requires Bluetooth
-   * @requires FtuLauncher
+   * @requires Service
    * @requires ScreenManager
    */
   function SoundManager() {
@@ -467,7 +467,7 @@
           return this.defaultVolumeControlChannel;
         } else {
           return this.homescreenVisible || (Service.locked) ||
-            FtuLauncher.isFtuRunning() ? 'notification' : 'content';
+            Service.query('isFtuRunning') ? 'notification' : 'content';
         }
     }
   };

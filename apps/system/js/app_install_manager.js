@@ -1,6 +1,5 @@
 /* jshint moz:true */
 /* global ConfirmDialogHelper */
-/* global FtuLauncher */
 /* global KeyboardHelper */
 /* global inputWindowManager */
 /* global LazyLoader */
@@ -307,7 +306,7 @@ var AppInstallManager = {
   },
 
   showInstallSuccess: function ai_showInstallSuccess(app) {
-    if (FtuLauncher.isFtuRunning()) {
+    if (Service.query('isFtuRunning')) {
       return;
     }
     var manifest = app.manifest || app.updateManifest;

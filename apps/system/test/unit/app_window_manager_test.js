@@ -23,13 +23,15 @@ requireApp('system/test/unit/mock_task_manager.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/shared/test/unit/mocks/mock_shrinking_ui.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/js/base_module.js');
+requireApp('shared/js/lazy_loader.js');
 
 var mocksForAppWindowManager = new MocksHelper([
   'OrientationManager', 'ActivityWindow', 'ShrinkingUI',
   'Applications', 'SettingsListener', 'HomescreenWindowManager',
   'ManifestHelper', 'KeyboardManager', 'StatusBar', 'SoftwareButtonManager',
   'HomescreenWindow', 'AppWindow', 'LayoutManager', 'Service', 'NfcHandler',
-  'TaskManager', 'FtuLauncher', 'UtilityTray'
+  'TaskManager', 'UtilityTray'
 ]).init();
 
 suite('system/AppWindowManager', function() {
@@ -361,6 +363,7 @@ suite('system/AppWindowManager', function() {
       injectRunningApps(home, app1);
       var stubDisplay = this.sinon.stub(appWindowManager, 'display');
       appWindowManager._activeApp = app1;
+      appWindowManager.ftuLauncher = MockFtuLauncher;
       this.sinon.stub(MockFtuLauncher, 'respondToHierarchyEvent')
           .returns(false);
       appWindowManager.respondToHierarchyEvent({ type: 'home' });
@@ -1063,6 +1066,7 @@ suite('system/AppWindowManager', function() {
     test('getActiveWindow', function() {
       appWindowManager._activeApp = app1;
       assert.equal(appWindowManager.getActiveWindow(), app1);
+      appWindowManager.ftuLauncher = MockFtuLauncher;
     });
 
     test('setHierarchy', function() {
