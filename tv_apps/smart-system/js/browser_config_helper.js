@@ -1,3 +1,4 @@
+/* global applications, ManifestHelper */
 'use strict';
 
 (function(window) {
@@ -113,4 +114,4 @@
       this.manifest = null;
     }
   };
-})(this);
+})(window);

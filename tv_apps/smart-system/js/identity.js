@@ -3,6 +3,7 @@
 
 // When bug 794999 is resolved, switch to use the abstract Trusted UI Component
 
+/* global TrustedUIManager */
 'use strict';
 
 const kIdentityScreen = '/sign_in#NATIVE';
@@ -25,8 +26,9 @@ var Identity = (function() {
       switch (e.detail.type) {
         // Chrome asks Gaia to show the identity dialog.
         case 'id-dialog-open':
-          if (!chromeEventId)
+          if (!chromeEventId) {
             return;
+          }
 
           // When opening the dialog, we record the chrome event id, which
           // we will need to send back to the TrustedUIManager when asking

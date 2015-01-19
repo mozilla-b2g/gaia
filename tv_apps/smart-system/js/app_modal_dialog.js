@@ -496,4 +496,4 @@
 
       return title;
     };
-}(this));
+}(window));

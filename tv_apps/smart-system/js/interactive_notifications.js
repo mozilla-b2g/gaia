@@ -1,4 +1,4 @@
-/* global IACHandler, SimpleKeyNavigation */
+/* global IACHandler, SimpleKeyNavigation, KeyEvent, AppWindowManager */
 
 (function(exports) {
   'use strict';
@@ -155,7 +155,6 @@
     var title = $('notification-title');
     var text = $('notification-body');
     var buttonGroup = $('notification-button-group');
-    var button;
     var buttonImg;
     var buttons = [$('notification-button-0'), $('notification-button-1')];
 

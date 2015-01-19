@@ -3,6 +3,8 @@
 /* API Summary:
    stopSendingFile(in DOMString aDeviceAddress);
    confirmReceivingFile(in DOMString aDeviceAddress, in bool aConfirmation); */
+/* global Bluetooth, NotificationHelper, CustomDialog, MimeMapper,
+          MozActivity */
 'use strict';
 
 var BluetoothTransfer = {
@@ -45,15 +47,16 @@ var BluetoothTransfer = {
     var _ = navigator.mozL10n.get;
     var length = this.pairList.index.length;
     for (var i = 0; i < length; i++) {
-      if (this.pairList.index[i].address == address)
+      if (this.pairList.index[i].address == address) {
         return this.pairList.index[i].name;
+      }
     }
     return _('unknown-device');
   },
 
   getPairedDevice: function bt_getPairedDevice(callback) {
     var adapter = Bluetooth.getAdapter();
-    if (adapter == null) {
+    if (!adapter) {
       var msg = 'Cannot get Bluetooth adapter.';
       this.debug(msg);
       return;
@@ -63,7 +66,7 @@ var BluetoothTransfer = {
     req.onsuccess = function bt_getPairedSuccess() {
       self.pairList.index = req.result;
       var length = self.pairList.index.length;
-      if (length == 0) {
+      if (length === 0) {
         var msg =
           'There is no paired device! Please pair your bluetooth device first.';
         self.debug(msg);
@@ -80,8 +83,9 @@ var BluetoothTransfer = {
   },
 
   debug: function bt_debug(msg) {
-    if (!this._debug)
+    if (!this._debug) {
       return;
+    }
 
     console.log('[System Bluetooth Transfer]: ' + msg);
   },
@@ -125,7 +129,6 @@ var BluetoothTransfer = {
     var _ = navigator.mozL10n.get;
 
     var address = evt.address;
-    var fileSize = evt.fileLength;
     var self = this;
     var icon = 'style/bluetooth_transfer/images/icon_bluetooth.png';
 
@@ -228,10 +231,10 @@ var BluetoothTransfer = {
   },
 
   checkStorageSpace: function bt_checkStorageSpace(fileSize, callback) {
-    if (!callback)
+    if (!callback) {
       return;
+    }
 
-    var _ = navigator.mozL10n.get;
     var storage = this._deviceStorage;
 
     var availreq = storage.available();
@@ -255,10 +258,11 @@ var BluetoothTransfer = {
       // if there is enough free space on it
       var freereq = storage.freeSpace();
       freereq.onsuccess = function() {
-        if (freereq.result >= fileSize)
+        if (freereq.result >= fileSize) {
           callback(true, '');
-        else
+        } else {
           callback(false, 'sdcard-no-space2');
+        }
       };
       freereq.onerror = function() {
         callback(false, 'cannotGetStorageState');
@@ -305,7 +309,8 @@ var BluetoothTransfer = {
         break;
 
       case 'progress':
-      this.debug('transfer progress: ' + progress);
+        this.debug('transfer progress: ' + evt.processedLength + ' / ' +
+                   evt.fileLength);
         break;
     }
   },
@@ -317,8 +322,6 @@ var BluetoothTransfer = {
   },
 
   showCancelTransferPrompt: function bt_showCancelTransferPrompt(address) {
-    var _ = navigator.mozL10n.get;
-
     var cancel = {
       title: 'continueFileTransfer',
       callback: this.continueTransfer.bind(this)
@@ -363,7 +366,7 @@ var BluetoothTransfer = {
       (transferInfo.fileName) ? transferInfo.fileName : _('unknown-file');
     var icon = 'style/bluetooth_transfer/images/icon_bluetooth.png';
     // Show notification
-    if (transferInfo.success == true) {
+    if (transferInfo.success === true) {
       if (transferInfo.received) {
         // Received file can be opened only
         NotificationHelper.send(_('transferFinished-receivedSuccessful-title'),
@@ -400,8 +403,9 @@ var BluetoothTransfer = {
     var _ = navigator.mozL10n.get;
 
     // Ignore received files
-    if (transferInfo.received)
+    if (transferInfo.received) {
       return;
+    }
 
     // Consumer: System app consume each sending file request from Bluetooth app
     var msg = 'remove the finished sending task from queue, queue length = ';
@@ -492,6 +496,7 @@ var BluetoothTransfer = {
           return;
         case 'ActivityCanceled':
         case 'USER_ABORT':
+        /* falls through */
         default:
           return;
         }

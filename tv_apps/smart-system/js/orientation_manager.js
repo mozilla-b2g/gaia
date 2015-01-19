@@ -1,4 +1,4 @@
-/* global Service */
+/* global Service, SettingsCache, OrientationManager */
 'use strict';
 
 (function(window) {
@@ -96,8 +96,9 @@
      * @memberOf module:OrientationManager
      */
     isOnRealDevice: function sl_isOnRealDevice() {
-      if (typeof(this._isOnRealDevice) !== 'undefined')
+      if (typeof(this._isOnRealDevice) !== 'undefined') {
         return this._isOnRealDevice;
+      }
 
       // XXX: A hack to know we're using real device or not
       // is to detect screen size.
@@ -161,4 +162,4 @@
   };
 
   OrientationManager.init();
-}(this));
+}(window));
