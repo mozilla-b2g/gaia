@@ -11,6 +11,7 @@ marionette('notification count tests', function() {
   var system;
   setup(function() {
     system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
   });
 
   test('notifications count should be updated', function(done) {

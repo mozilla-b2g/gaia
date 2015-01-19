@@ -2,9 +2,11 @@
           MockNavigatorGetDeviceStorage, MockSystemBanner */
 'use strict';
 
-requireApp('system/js/storage_watcher.js');
+requireApp('system/js/device_storage_watcher.js');
 
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_system_banner.js');
 requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/shared/test/unit/mocks/mock_event_target.js');
@@ -13,7 +15,9 @@ requireApp('system/test/unit/mock_navigator_get_device_storage.js');
 
 var mocksForStorageWatcher = new MocksHelper([
   'SystemBanner',
-  'NotificationScreen'
+  'NotificationScreen',
+  'LazyLoader',
+  'Service'
 ]).init();
 
 suite('system/DeviceStorageWatcher >', function() {
@@ -57,7 +61,7 @@ suite('system/DeviceStorageWatcher >', function() {
 
   suite('init', function() {
     setup(function(done) {
-      DeviceStorageWatcher.init();
+      DeviceStorageWatcher.start();
       done();
     });
 
@@ -97,7 +101,7 @@ suite('system/DeviceStorageWatcher >', function() {
       var freeSpaceSpy = this.sinon.spy(mockDeviceStorage, 'freeSpace');
       getSpy = this.sinon.spy(navigator.mozL10n, 'get');
 
-      DeviceStorageWatcher.init();
+      DeviceStorageWatcher.start();
       event = {
         type: 'change',
         reason: 'low-disk-space'
@@ -148,7 +152,7 @@ suite('system/DeviceStorageWatcher >', function() {
       var freeSpaceSpy = this.sinon.spy(mockDeviceStorage, 'freeSpace');
       getSpy = this.sinon.spy(navigator.mozL10n, 'get');
 
-      DeviceStorageWatcher.init();
+      DeviceStorageWatcher.start();
       event = {
         type: 'change',
         reason: 'low-disk-space'
@@ -190,7 +194,7 @@ suite('system/DeviceStorageWatcher >', function() {
       var mockDeviceStorage = MockNavigatorGetDeviceStorage();
       var freeSpaceSpy = this.sinon.spy(mockDeviceStorage, 'freeSpace');
 
-      DeviceStorageWatcher.init();
+      DeviceStorageWatcher.start();
       event = {
         type: 'change',
         reason: 'low-disk-space'
@@ -225,7 +229,7 @@ suite('system/DeviceStorageWatcher >', function() {
     var event;
 
     setup(function() {
-      DeviceStorageWatcher.init();
+      DeviceStorageWatcher.start();
       event = {
         type: 'change',
         reason: 'available-disk-space'

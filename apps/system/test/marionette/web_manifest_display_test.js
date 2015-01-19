@@ -21,7 +21,7 @@ marionette('Web Manifest Display Modes >', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('minimal-ui', function() {

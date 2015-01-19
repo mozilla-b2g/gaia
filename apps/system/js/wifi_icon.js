@@ -31,6 +31,9 @@
         break;
 
       case 'connected':
+        if (!this.manager.wifiManager.connectionInformation) {
+          return;
+        }
         var level = Math.min(Math.floor(
           this.manager.wifiManager
               .connectionInformation.relSignalStrength / 20), 4);

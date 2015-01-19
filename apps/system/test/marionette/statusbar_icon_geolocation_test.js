@@ -19,9 +19,8 @@ marionette('Status Bar icons - Geolocation', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
     statusBar = new StatusBar(client);
-    system.waitForStartup();
-    statusBar.init();
     statusBar.dispatchMozChromeEvent('geolocation-status', {active: true});
   });
 

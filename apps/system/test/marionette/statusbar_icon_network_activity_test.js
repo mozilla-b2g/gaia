@@ -10,9 +10,8 @@ marionette('Status Bar icons - Network Activity', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
     statusBar = new StatusBar(client);
-    system.waitForStartup();
-    statusBar.init();
     networkActivity = statusBar['network-activity'];
     networkActivity.hide();
   });

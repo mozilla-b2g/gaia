@@ -1,13 +1,12 @@
 /* global MocksHelper, MockNavigatorMozIccManager, icc, InputWindowManager,
           MockNavigatorMozMobileConnections, MockNavigatormozSetMessageHandler,
-          MockL10n, MockFtuLauncher, MockNavigatorSettings, KeyboardEvent,
-          StatusBar */
+          MockL10n, MockService, MockNavigatorSettings, KeyboardEvent */
 'use strict';
 
+
+require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_system_icc_worker.js');
-requireApp('system/test/unit/mock_ftu_launcher.js');
-requireApp('system/test/unit/mock_statusbar.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
@@ -20,10 +19,9 @@ require('/shared/test/unit/mocks/mock_stk_helper.js');
 
 var mocksForIcc = new MocksHelper([
   'Dump',
-  'FtuLauncher',
   'SystemICCWorker',
-  'StatusBar',
-  'STKHelper'
+  'STKHelper',
+  'Service'
 ]).init();
 
 suite('STK (icc) >', function() {
@@ -74,7 +72,7 @@ suite('STK (icc) >', function() {
   });
 
   setup(function(done) {
-    MockFtuLauncher.mIsRunning = false;
+    MockService.mockQueryWith('isFtuRunning', false);
 
     window.navigator.mozIccManager.addIcc('1010011010');
 
@@ -511,9 +509,10 @@ suite('STK (icc) >', function() {
     });
 
     test('it sets the top depending on the Statusbar', function() {
-      StatusBar.height = 13;
+      MockService.mockQueryWith('Statusbar.height', 13);
+      this.sinon.stub(window.icc, 'isVisible').returns(true);
       window.icc.resize();
-      assert.equal(icc.icc_view.style.top, StatusBar.height + 'px');
+      assert.equal(icc.icc_view.style.top, '13px');
     });
   });
 

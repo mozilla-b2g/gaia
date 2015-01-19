@@ -67,7 +67,6 @@ suite('Radio > ', function() {
   });
 
   test('Should ask step ready', function(done) {
-    MockFtuLauncher.mReadyRightAway = true;
     MockLazyLoader.mLoadRightAway = true;
     Service.register('stepReady', MockFtuLauncher);
     Service.request('stepReady', 'test').then(function() {

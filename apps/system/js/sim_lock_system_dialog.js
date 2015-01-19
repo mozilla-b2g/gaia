@@ -219,7 +219,7 @@
       }
     }).bind(this);
     request.onerror = function() {
-      console.error('Could not fetch CardLockRetryCount', request.error.name);
+      console.log('Could not fetch CardLockRetryCount', request.error.name);
     };
 
     switch (lockType) {

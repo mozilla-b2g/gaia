@@ -19,7 +19,7 @@ marionette('Software Home Button - Stealing input focus', function() {
     home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
     home.waitForLaunch();
     client.switchToFrame();
   });
