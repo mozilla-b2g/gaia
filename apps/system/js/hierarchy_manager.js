@@ -21,7 +21,7 @@
   ];
   BaseModule.create(HierarchyManager, {
     name: 'HierarchyManager',
-    EVENT_PREFIX: 'hierachy',
+    EVENT_PREFIX: 'hierarchy',
     _ui_list: null,
     _topMost: null,
     DEBUG: false,

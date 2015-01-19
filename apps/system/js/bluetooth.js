@@ -1,4 +1,5 @@
-/* global SettingsListener, Service */
+/* global SettingsListener, Service, BluetoothIcon, BluetoothTransferIcon,
+          BluetoothHeadphoneIcon, LazyLoader */
 /* exported Bluetooth */
 'use strict';
 
@@ -26,6 +27,12 @@ var Bluetooth = {
           connected: connected
         });
       window.dispatchEvent(evt);
+      if (profile === 'opp' && this.transferIcon) {
+        this.transferIcon.update();
+      }
+      if (profile === 'a2dp' && this.headphoneIcon) {
+        this.headphoneIcon.update();
+      }
     }
   },
 
@@ -68,9 +75,10 @@ var Bluetooth = {
   connected: false,
 
   init: function bt_init() {
-    if (!window.navigator.mozSettings || !window.navigator.mozBluetooth) {
+    if (!window.navigator.mozBluetooth || this._started) {
       return;
     }
+    this._started = true;
 
     var bluetooth = window.navigator.mozBluetooth;
     var self = this;
@@ -86,7 +94,7 @@ var Bluetooth = {
         }
         return;
       }
-    });
+    }.bind(this));
 
     // when bluetooth adapter is ready, a.k.a enabled,
     // emit event to notify QuickSettings and try to get
@@ -101,13 +109,23 @@ var Bluetooth = {
     // if bluetooth is enabled in booting time, try to get adapter now
     this.initDefaultAdapter();
 
+    // when bluetooth is really enabled
+    bluetooth.addEventListener('enabled', function bt_onDisabled() {
+      self.icon && self.icon.update();
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('bluetooth-enabled',
+        /* canBubble */ true, /* cancelable */ false, null);
+      window.dispatchEvent(evt);
+    });
+
     // when bluetooth is really disabled, emit event to notify QuickSettings
-    bluetooth.ondisabled = function bt_onDisabled() {
+    bluetooth.addEventListener('disabled', function bt_onDisabled() {
+      self.icon && self.icon.update();
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('bluetooth-disabled',
         /* canBubble */ true, /* cancelable */ false, null);
       window.dispatchEvent(evt);
-    };
+    });
 
     /* In file transfering case:
      * since System Message can't be listened in two js files within a app,
@@ -142,6 +160,18 @@ var Bluetooth = {
     window.addEventListener('request-disable-bluetooth', this);
 
     Service.registerState('isEnabled', this);
+    LazyLoader.load(['js/bluetooth_icon.js',
+                     'js/bluetooth_transfer_icon.js',
+                     'js/bluetooth_headphone_icon.js']).then(function() {
+      this.icon = new BluetoothIcon(this);
+      this.icon.start();
+      this.transferIcon = new BluetoothTransferIcon(this);
+      this.transferIcon.start();
+      this.headphoneIcon = new BluetoothHeadphoneIcon(this);
+      this.headphoneIcon.start();
+    }.bind(this)).catch(function(err) {
+      console.error(err);
+    });
   },
 
   handleEvent: function bt_handleEvent(evt) {
@@ -221,6 +251,7 @@ var Bluetooth = {
         /* canBubble */ true, /* cancelable */ false,
         {deviceConnected: this.connected});
       window.dispatchEvent(evt);
+      this.icon && this.icon.update();
     }
   },
 

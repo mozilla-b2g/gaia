@@ -6,6 +6,12 @@ requireApp('system/test/unit/mock_download_notification.js');
 requireApp('system/test/unit/mock_download_formatter.js');
 requireApp('system/test/unit/mock_notification_screen.js');
 
+
+requireApp('system/js/service.js');
+requireApp('system/js/base_ui.js');
+requireApp('system/js/base_icon.js');
+requireApp('system/js/download_icon.js');
+
 requireApp('system/js/download/download_manager.js');
 
 var mocksForDownloadManager = new MocksHelper([
@@ -25,6 +31,7 @@ suite('system/DownloadManager >', function() {
   mocksForDownloadManager.attachTestHelpers();
 
   setup(function() {
+    this.sinon.spy(window, 'DownloadIcon');
     navigator.mozDownloadManager.ondownloadstart({
       download: mockDownload
     });
