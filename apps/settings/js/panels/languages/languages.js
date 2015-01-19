@@ -55,7 +55,12 @@ define(function(require) {
       this.panel = panel;
       this.elements = elements;
 
-      this.elements.moreLanguages.onclick = this.showMoreLanguages;
+      // Installing additional languages is only available on phones for now;
+      // see https://bugzil.la/1124098.  On other device types the link to the
+      // Marketpace is hidden.  Don't set the handler if it's display: none.
+      if (this.elements.moreLanguages.offsetParent) {
+        this.elements.moreLanguages.onclick = this.showMoreLanguages;
+      }
       this.elements.langSel.onblur = this.buildList.bind(this);
     },
     onLocalized: function() {
