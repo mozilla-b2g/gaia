@@ -1,15 +1,14 @@
 /* globals MocksHelper, VisibilityManager,
-           MockAttentionWindowManager, MockAppWindow */
+           MockAppWindow, MockService */
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 require('/shared/test/unit/mocks/mock_service.js');
-requireApp('system/test/unit/mock_attention_window_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 
 var mocksForVisibilityManager = new MocksHelper([
-  'AttentionWindowManager', 'Service', 'AppWindow'
+  'Service', 'AppWindow'
 ]).init();
 
 suite('system/VisibilityManager', function() {
@@ -17,7 +16,6 @@ suite('system/VisibilityManager', function() {
   var visibilityManager;
   mocksForVisibilityManager.attachTestHelpers();
   setup(function(done) {
-    window.attentionWindowManager = MockAttentionWindowManager;
     this.sinon.useFakeTimers();
 
     stubById = this.sinon.stub(document, 'getElementById');
@@ -30,7 +28,6 @@ suite('system/VisibilityManager', function() {
   });
 
   teardown(function() {
-    window.attentionWindowManager = null;
     stubById.restore();
   });
 
@@ -56,8 +53,8 @@ suite('system/VisibilityManager', function() {
     });
 
     test('lockscreen-request-unlock on attention window inactive', function() {
-      this.sinon.stub(MockAttentionWindowManager,
-        'hasActiveWindow').returns(false);
+      MockService.mockQueryWith('AttentionWindowManager.hasActiveWindow',
+        false);
       var stubPublish = this.sinon.stub(visibilityManager, 'publish');
 
       visibilityManager.handleEvent({
@@ -71,8 +68,8 @@ suite('system/VisibilityManager', function() {
 
 
     test('lockscreen-request-unlock on attention window active', function() {
-      this.sinon.stub(MockAttentionWindowManager,
-        'hasActiveWindow').returns(true);
+      MockService.mockQueryWith('AttentionWindowManager.hasActiveWindow',
+        true);
       var stubPublish = this.sinon.stub(visibilityManager, 'publish');
 
       visibilityManager.handleEvent({
@@ -89,7 +86,7 @@ suite('system/VisibilityManager', function() {
     });
 
     test('attention window is opened', function() {
-      window.Service.locked = false;
+      MockService.mockQueryWith('locked', false);
       var stubPublish = this.sinon.stub(visibilityManager, 'publish');
       visibilityManager.handleEvent({
         type: 'attentionopened'
@@ -100,7 +97,7 @@ suite('system/VisibilityManager', function() {
     });
 
     test('show lockscreen when screen is on.', function() {
-      window.Service.locked = true;
+      MockService.mockQueryWith('locked', true);
       var stubPublish = this.sinon.stub(visibilityManager, 'publish');
       visibilityManager.handleEvent({
         type: 'attentionwindowmanager-deactivated'
@@ -142,9 +139,9 @@ suite('system/VisibilityManager', function() {
     });
 
     test('move app to foreground', function () {
-      window.Service.locked = false;
-      this.sinon.stub(MockAttentionWindowManager, 'hasActiveWindow')
-          .returns(false);
+      MockService.mockQueryWith('locked', false);
+      MockService.mockQueryWith('AttentionWindowManager.hasActiveWindow',
+        false);
       var app = new MockAppWindow();
       var setVisibleStub = this.sinon.stub(app, 'setVisible');
       var event = new CustomEvent('apprequestforeground', {
@@ -185,9 +182,9 @@ suite('system/VisibilityManager', function() {
     });
 
     test('dont foreground app when attentionscreen visible', function () {
-      window.Service.locked = false;
-      this.sinon.stub(MockAttentionWindowManager, 'hasActiveWindow')
-          .returns(true);
+      MockService.mockQueryWith('locked', false);
+      MockService.mockQueryWith('AttentionWindowManager.hasActiveWindow',
+        true);
       var app = new MockAppWindow();
       this.sinon.stub(app, 'setVisible');
 
@@ -199,9 +196,9 @@ suite('system/VisibilityManager', function() {
     });
 
     test('dont foreground app when locked', function () {
-      window.Service.locked = true;
-      this.sinon.stub(MockAttentionWindowManager, 'hasActiveWindow')
-          .returns(false);
+      MockService.mockQueryWith('locked', true);
+      MockService.mockQueryWith('AttentionWindowManager.hasActiveWindow',
+        false);
       var app = new MockAppWindow();
       this.sinon.stub(app, 'setVisible');
 

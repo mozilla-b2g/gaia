@@ -3,85 +3,30 @@
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
-    <!-- Icons -->
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css">
-
-    <!-- Init Logo -->
     <link rel="stylesheet" type="text/css" href="style/system/initlogo.css">
 
     <!-- Shared code -->
     <script src="shared/js/l10n.js"></script>
     <script src="shared/js/l10n_date.js"></script>
-    <script src="shared/js/idletimer.js"></script>
     <script src="shared/js/dump.js"></script>
-    <script defer src="shared/js/async_semaphore.js"></script>
-    <script defer src="shared/js/nfc_utils.js"></script>
-    <script defer src="shared/js/event_safety.js"></script>
-    <script defer src="shared/js/gesture_detector.js"></script>
-    <script defer src="shared/js/settings_listener.js"></script>
-    <script defer src="shared/js/custom_dialog.js"></script>
-    <script defer src="shared/js/notification_helper.js"></script>
-    <script defer src="shared/js/async_storage.js"></script>
-    <script defer src="shared/js/mobile_operator.js"></script>
-    <script defer src="shared/js/manifest_helper.js"></script>
-    <!-- We need this before we can show the boot animation -->
-    <script src="shared/js/settings_helper.js"></script>
-    <script defer src="shared/js/default_activity_helper.js"></script>
-    <script defer src="shared/js/icc_helper.js"></script>
-    <script defer src="shared/js/stk_helper.js"></script>
-    <script defer src="shared/js/mime_mapper.js"></script>
-    <script defer src="shared/js/settings_url.js"></script>
-    <script defer src="shared/js/advanced_timer.js"></script>
-    <script defer src="shared/js/lazy_loader.js"></script>
-    <script defer src="shared/js/screen_layout.js"></script>
-    <script defer src="shared/js/iac_handler.js"></script>
-    <script defer src="shared/js/apn_helper.js"></script>
-    <script defer src="shared/js/tagged.js"></script>
-    <script defer src="shared/js/utilities.js"></script>
-    <script defer src="js/touch_forwarder.js"></script>
-    <script defer src="shared/js/version_helper.js"></script>
-    <script defer src="shared/js/font_size_utils.js"></script>
-    <script defer src="js/migrators/settings_migrator.js"></script>
-    <!-- XXX can be removed while gecko support navigator.mozHour12 API -->
-    <script defer src="shared/js/date_time_helper.js"></script>
 
-    <script defer src="js/service.js"></script>
-    <script defer src="js/base_ui.js"></script>
-    <script defer src="js/places.js"></script>
+    <link rel="resource" type="image/png" href="shared/resources/branding/browser_84.png"/>
+    <link rel="resource" type="image/png" href="shared/resources/branding/browser_126.png"/>
+    <!-- applications.js must not be deferred
+         in order to catch webapps-registry-ready mozChromeEvent -->
+    <script src="js/applications.js"></script>
+    <!-- Not deferring the following to show startup logo/animation as soon as possible. -->
 
-    <script defer src="js/orientation_manager.js"></script>
-    <!--
-    <script defer src="shared/js/input_mgmt/input_app_list.js"></script>
-    <script defer src="shared/js/keyboard_helper.js"></script>
-    -->
-
-    <!-- Battery Overlay -->
     <link rel="stylesheet" type="text/css" href="style/battery_overlay/battery_overlay.css">
-    <script defer src="js/power_save.js"></script>
-    <script defer src="js/battery_overlay.js"></script>
-
-    <!-- SIMSlot -->
-    <script defer src="shared/js/simslot.js"></script>
-    <script defer src="shared/js/simslot_manager.js"></script>
-
-    <!-- Wrapper -->
     <link rel="stylesheet" type="text/css" href="style/wrapper/wrapper.css">
     <link rel="stylesheet" type="text/css" href="style/chrome/chrome.css">
     <link rel="stylesheet" href="shared/elements/gaia_overflow_menu/style/external.css">
-    <!--
-    <script defer src="shared/js/bookmarks_database.js"></script>
-    <script defer src="shared/elements/gaia_overflow_menu/script.js"></script>
-    -->
-
     <link rel="stylesheet" type="text/css" href="style/definitions.css">
-
-    <!-- System -->
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
     <link rel="stylesheet" type="text/css" href="style/system/keyboard.css">
     <link rel="stylesheet" type="text/css" href="style/system/global-overlays.css">
     <link rel="stylesheet" type="text/css" href="style/ime_menu.css">
-
-    <!-- Include shared building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
@@ -89,12 +34,9 @@
     <link rel="stylesheet" type="text/css" href="shared/style/date_selector.css">
     <link rel="stylesheet" type="text/css" href="shared/style/time_selector.css">
     <link rel="stylesheet" type="text/css" href="shared/style/object_menu.css">
-
-    <!-- Include shared web components -->
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia_progress/style/external.css">
     <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css">
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css">
-
     <link rel="stylesheet" type="text/css" href="style/fake-notification.css"/>
 
     <script defer src="shared/elements/config.js"></script>
@@ -117,198 +59,38 @@
 
     <link rel="resource" type="image/png" href="shared/resources/branding/browser_84.png"/>
     <link rel="resource" type="image/png" href="shared/resources/branding/browser_126.png"/>
-    <!-- applications.js must not be deferred
-         in order to catch webapps-registry-ready mozChromeEvent -->
-    <script src="js/applications.js"></script>
-    <!-- Not deferring the following to show startup logo/animation as soon as possible. -->
-    <script src="js/logo_loader.js"></script>
-    <script src="js/init_logo_handler.js"></script>
 
-    <script defer src="js/base_module.js"></script>
-    <script defer src="js/core.js"></script>
-
-    <!-- wake lock managers, used by ScreenManager/Wifi/CpuManager -->
-    <script defer src="js/wake_lock_manager.js"></script>
-
-    <script defer src="js/cpu_manager.js"></script>
-    <script defer src="js/screen_auto_brightness.js"></script>
-    <script defer src="js/screen_brightness_transition.js"></script>
-    <script defer src="js/screen_manager.js"></script>
-    <script defer src="js/activity_handler.js"></script>
-    <script defer src="js/browser.js"></script>
-    <script defer src="js/import.js"></script>
-    <script defer src="js/usb_storage.js"></script>
-    <script defer src="js/external_storage_monitor.js"></script>
-    <script defer src="js/browser_settings.js"></script>
-    <script defer src="js/bootstrap.js"></script>
-    <script defer src="js/screenshot.js"></script>
-    <script defer src="js/sound_manager.js"></script>
-    <script defer src="js/source_view.js"></script>
-    <script defer src="js/browser_key_event_manager.js"></script>
-    <script defer src="js/hardware_buttons.js"></script>
-    <script defer src="js/system_banner.js"></script>
-    <script defer src="js/home_gesture.js"></script>
-    <script defer src="js/wallpaper_manager.js"></script>
-    <script defer src="js/app_migrator.js"></script>
-    <!--  WallpaperManager lazily loads this script if needed
-        <script defer src="shared/js/image_utils.js"></script>
-    -->
-
-    <!-- TTL View -->
     <link rel="stylesheet" type="text/css" href="style/ttlview/ttlview.css">
-    <script defer src="js/ttlview.js"></script>
-
-    <!-- Accessibility -->
     <link rel="stylesheet" type="text/css" href="style/accessibility/accessibility.css">
-    <script defer src="js/accessibility.js"></script>
-    <script defer src="js/accessibility_quicknav_menu.js"></script>
-
-    <!-- Sleep Menu -->
     <link rel="stylesheet" type="text/css" href="style/sleep_menu/sleep_menu.css">
-    <script defer src="js/sleep_menu.js"></script>
-
-    <!-- Keyboard -->
-    <script defer src="js/ime_switcher.js"></script>
-    <script defer src="js/input_window_manager.js"></script>
-    <script defer src="js/input_layouts.js"></script>
-    <script defer src="js/keyboard_manager.js"></script>
-
-    <!-- Utility Tray -->
     <link rel="stylesheet" type="text/css" href="style/utility_tray/utility_tray.css">
-    <script defer src="js/utility_tray.js"></script>
-
-    <!-- Action Menu -->
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css">
     <link rel="stylesheet" type="text/css" href="style/action_menu/action_menu_extended.css">
 
-    <!-- Date and Time Selector Extension -->
     <link rel="stylesheet" type="text/css" href="style/date_selector/date_selector_extended.css">
     <link rel="stylesheet" type="text/css" href="style/time_selector/time_selector_extended.css">
-
-    <!-- Ime Menu -->
-    <script defer src="js/ime_menu.js"></script>
-
-    <!-- Statusbar -->
     <link rel="stylesheet" type="text/css" href="style/statusbar/statusbar.css">
-    <script defer src="js/base_icon.js"></script>
-    <script defer src="js/statusbar.js"></script>
-
-    <!-- Software button -->
     <link rel="stylesheet" type="text/css" href="style/software_button_manager/software_button_manager.css">
-    <script defer src="js/software_button_manager.js"></script>
 
-    <!-- FTU launcher -->
-    <script defer src="js/ftu_launcher.js"></script>
-
-    <!-- FTU ping -->
-    <script defer src="/shared/js/uuid.js"></script>
-    <script defer src="/shared/js/telemetry.js"></script>
-    <script defer src="js/ftu_ping.js"></script>
-
-    <!-- App usage metrics -->
-    <script defer src="js/app_usage_metrics.js"></script>
-
-    <!-- Basket newsletter -->
-    <script defer src="/shared/js/basket_client.js"></script>
-    <script defer src="js/newsletter_manager.js"></script>
-
-    <!-- ICC/STK -->
-    <!-- This depends on ftu_launcher.js, please load it in order ;) -->
     <link rel="stylesheet" type="text/css" href="style/icc.css">
-    <script defer src="js/icc_events.js"></script>
-    <script defer src="js/icc_worker.js"></script>
-    <script defer src="js/icc.js"></script>
-
-    <!-- LockScreen -->
-    <!-- Remove the clock.js if lockscreen has its own clock -->
-    <script defer src="js/clock.js"></script>
-    <script defer src="js/lockscreen_agent.js"></script>
-    <script defer src="/shared/js/lockscreen_slide.js"></script>
-    <script defer src="/shared/js/lockscreen_connection_info_manager.js"></script>
-
-    <script defer src="js/lockscreen_passcode_validator.js"></script>
-    <script defer src="js/lockscreen_notification_builder.js"></script>
-
-    <!-- Airplane Mode -->
     <link rel="stylesheet" type="text/css" href="style/textselection_dialog/textselection_dialog.css">
-
-    <!-- Modal Dialog -->
     <link rel="stylesheet" type="text/css" href="style/modal_dialog/prompt.css">
     <link rel="stylesheet" type="text/css" href="style/modal_dialog/modal_dialog.css">
-    <script defer src="js/modal_dialog.js"></script>
-
-    <!-- Authentication Dialog -->
     <link rel="stylesheet" type="text/css" href="style/authentication_dialog.css">
-
-    <!-- Carrier info notifier, shared by CDMA and Cell Broadcast -->
-    <script defer src="js/carrier_info_notifier.js"></script>
-
-    <!-- Cell Broadcast System -->
-    <script defer src="js/cell_broadcast_system.js"></script>
-
-    <!-- Value selector -->
     <link rel="stylesheet" type="text/css" href="style/value_selector/value_selector.css">
-    <script defer src="js/value_selector/value_picker.js"></script>
-    <script defer src="js/value_selector/spin_date_picker.js"></script>
-    <script defer src="js/value_selector/value_selector.js"></script>
-    <script defer src="shared/js/input_parser.js"></script>
-    <script defer src="js/value_selector/trusted_ui_value_selector.js"></script>
 
-    <!-- Permission Manager -->
+    <link rel="stylesheet" type="text/css" href="style/trusted_ui/trusted_ui.css">
     <link rel="stylesheet" type="text/css" href="style/permission_manager/permission_manager.css">
-    <script defer src="js/permission_manager.js"></script>
-
-    <!-- App Install -->
     <link rel="stylesheet" type="text/css" href="style/app_install_manager/app_install_manager.css">
-    <script defer src="js/app_install_manager.js"></script>
-
-    <!-- Cost Control -->
     <link rel="stylesheet" type="text/css" href="style/cost_control/cost_control.css">
-
-    <!-- Quick Settings -->
     <link rel="stylesheet" type="text/css" href="style/quick_settings/quick_settings.css">
-    <script defer src="js/quick_settings.js"></script>
-
-    <!-- Media Playback -->
-    <script defer src="js/media_playback.js"></script>
     <link rel="stylesheet" type="text/css" href="style/media_playback/media_playback.css">
-
-    <!-- Notifications -->
     <link rel="stylesheet" type="text/css" href="style/notifications/notifications.css">
-    <script defer src="js/notifications.js"></script>
-
-    <!-- Downloads -->
     <link rel="stylesheet" type="text/css" href="style/notifications/downloads.css">
-    <script defer src="js/download/download_manager.js"></script>
-    <!--
-      <script src="shared/js/download/download_helper.js"></script>
-      <script src="shared/js/download/download_ui.js"></script>
-      <script src="shared/js/download/download_formatter.js"></script>
-      <script src="shared/js/download/download_store.js"></script>
-    -->
-
-    <!-- Nfc -->
-    <script defer src="js/ndef_utils.js"></script>
-
-    <!-- Cards View -->
     <link rel="stylesheet" type="text/css" href="style/cards_view/cards_view.css">
-    <script defer src="js/cards_helper.js"></script>
-    <script defer src="js/card.js"></script>
-    <script defer src="js/task_manager.js"></script>
 
-    <!-- Bluetooth -->
     <link rel="stylesheet" type="text/css" href="style/bluetooth_transfer/bluetooth_transfer.css">
-
-    <!-- Wifi -->
-    <script defer src="js/wifi.js"></script>
-
-    <!-- Update Manager -->
-    <script defer src="js/updatable.js"></script>
-    <script defer src="js/update_manager.js"></script>
     <link rel="stylesheet" type="text/css" href="style/update_manager/update_manager.css">
-
-    <!-- Media Recording -->
-    <script defer src="js/media_recording.js"></script>
     <link rel="stylesheet" type="text/css" href="style/media_recording/media_recording.css">
 
     <!-- Theme and localization -->
@@ -331,143 +113,78 @@
     <link rel="localization" href="/shared/elements/gaia_menu/locales/gaia_menu.{locale}.properties">
     <link rel="localization" href="/shared/locales/shrinking_ui/shrinking_ui.{locale}.properties">
 
-    <!-- Payment -->
-    <script defer src="js/payment.js"></script>
-
-    <!-- Identity -->
-    <script defer src="js/identity.js"></script>
-
-    <!-- Operator Variant Mechanism -->
-    <script defer src="shared/js/operator_variant_helper.js"></script>
-
-    <!-- Voicemail -->
-    <script defer src="js/voicemail.js"></script>
-
-    <!-- Crash Reporter -->
     <link rel="stylesheet" type="text/css" href="style/crash_reporter/crash_reporter.css">
-    <script defer src="js/crash_reporter.js"></script>
-
-    <!-- Browser class -->
     <link rel="stylesheet" type="text/css" href="style/browser_frame/browser_frame.css">
-    <script defer src="js/browser_config_helper.js"></script>
-    <script defer src="js/browser_frame.js"></script>
-
-    <!-- Captive Portal Login -->
-    <script defer src="js/captive_portal.js"></script>
-
-    <!-- CDMA Emergency Callback Mode Manager-->
     <link rel="stylesheet" type="text/css" href="style/emergency_callback_manager/emergency_callback_manager.css">
-
-    <!-- Shrinking UI -->
     <link rel="stylesheet" type="text/css" href="shared/style/shrinking_ui.css">
-    <script defer src="shared/js/shrinking_ui.js"></script>
-
-    <!-- Windows -->
-    <!-- Any module that wants to intercept the Home button and prevent the -->
-    <!-- homescreen from being displayed must come before this script. -->
     <link rel="stylesheet" type="text/css" href="style/window_layout.css">
     <link rel="stylesheet" type="text/css" href="style/window.css">
     <link rel="stylesheet" type="text/css" href="style/app_titlebar.css">
-    <script defer src="js/base_ui.js"></script>
-    <script defer src="js/context_menu_view.js"></script>
-    <script defer src="js/audio_channel_controller.js"></script>
-    <script defer src="js/browser_context_menu.js"></script>
-    <script defer src="js/child_window_factory.js"></script>
-    <script defer src="js/app_modal_dialog.js"></script>
-    <script defer src="js/app_chrome.js"></script>
-    <script defer src="js/attention_toaster.js"></script>
-    <script defer src="js/app_statusbar.js"></script>
-    <script defer src="js/app_transition_controller.js"></script>
-    <script defer src="js/app_authentication_dialog.js"></script>
-    <script defer src="js/text_selection_dialog.js"></script>
-    <script defer src="js/app_window.js"></script>
-    <script defer src="js/popup_window.js"></script>
-    <script defer src="js/browser_mixin.js"></script>
-    <script defer src="js/wrapper_factory.js"></script>
-    <script defer src="js/homescreen_window.js"></script>
-    <script defer src="js/homescreen_launcher.js"></script>
-    <script defer src="js/homescreen_window_manager.js"></script>
-    <script defer src="js/activity_window.js"></script>
-    <script defer src="js/activity_window_manager.js"></script>
-    <script defer src="js/app_window_factory.js"></script>
-    <script defer src="js/attention_window.js"></script>
-    <script defer src="js/global_overlay_window.js"></script>
-    <script defer src="js/trusted_window.js"></script>
-    <script defer src="js/callscreen_window.js"></script>
-    <script defer src="js/dialer_agent.js"></script>
-    <script defer src="js/attention_window_manager.js"></script>
-    <script defer src="js/trusted_window_manager.js"></script>
-    <script defer src="js/global_overlay_window_manager.js"></script>
-    <script defer src="js/app_window_manager.js"></script>
-    <script defer src="js/secure_window.js"></script>
-    <script defer src="js/secure_window_factory.js"></script>
-    <script defer src="js/secure_window_manager.js"></script>
-    <script defer src="js/system_dialog.js"></script>
-    <script defer src="js/system_dialog_manager.js"></script>
-    <script defer src="js/devtools/devtools_auth_dialog.js"></script>
-    <script defer src="js/fxa_dialog.js"></script>
-    <script defer src="js/lockscreen_window.js"></script>
-    <script defer src="js/lockscreen_input_window.js"></script>
-    <script defer src="js/lockscreen_window_manager.js"></script>
-    <script defer src="js/visibility_manager.js"></script>
-    <script defer src="js/layout_manager.js"></script>
-    <script defer src="js/suspending_app_priority_manager.js"></script>
-    <script defer src="js/input_window.js"></script>
 
-    <!-- Edge Gestures -->
-    <script defer src="js/stack_manager.js"></script>
-    <script defer src="js/sheets_transition.js"></script>
-    <script defer src="js/edge_swipe_detector.js"></script>
     <link rel="stylesheet" type="text/css" href="style/edges/edges.css">
-
-    <!-- Entry Sheet -->
     <link rel="stylesheet" type="text/css" href="style/entry_sheet/entry_sheet.css">
-    <script defer src="js/entry_sheet.js"></script>
-
-    <!-- Developer Tools -->
-    <script defer src="js/devtools/remote_debugger.js"></script>
-    <script defer src="js/devtools/logshake.js"></script>
-    <script defer src="js/devtools/developer_hud.js"></script>
     <link rel="stylesheet" type="text/css" href="style/devtools/developer_hud.css">
-    <script defer src="js/devtools/devtools_auth.js"></script>
     <link rel="stylesheet" type="text/css" href="style/devtools/devtools_auth.css">
-
-    <!-- z-indexes of all the overlays in the system -->
     <link rel="stylesheet" type="text/css" href="style/zindex.css">
-
-    <!-- Device storage watcher -->
-    <script defer src="js/storage_watcher.js"></script>
     <link rel="stylesheet" type="text/css" href="style/storage_watcher/storage_watcher.css">
-
-    <!-- Rocketbar -->
-    <script defer src="js/rocketbar.js"></script>
-    <script defer src="js/search_window.js"></script>
-    <script defer src="shared/js/url_helper.js"></script>
     <link rel="stylesheet" type="text/css" href="style/rocketbar/rocketbar.css">
-    <!-- <script defer src="shared/js/icons_helper.js"></script> -->
-
-    <!-- PIN Unlocking -->
     <link rel="stylesheet" type="text/css" href="style/simcard.css">
-
-    <!-- Bluetooth Connect via NFC -->
     <link rel="stylesheet" type="text/css" href="style/nfcconnect.css">
-
-    <!-- Firefox Accounts -->
     <link rel="stylesheet" type="text/css" href="style/firefox_account/firefox_account_container.css">
-    <script defer src="js/fxa_ui.js"></script>
-    <script defer src="js/fxa_manager.js"></script>
-
-    <!-- Find My Device -->
-    <script defer src="shared/js/findmydevice_iac_api.js"></script>
-    <script defer src="js/findmydevice_launcher.js"></script>
-
-    <!-- Mobile ID -->
     <link rel="stylesheet" type="text/css" href="style/mobileid/mobileid.css">
-    <script defer src="js/mobileid_manager.js"></script>
-    <script defer src="js/mobileid_dialog.js"></script>
 
-    <!-- About Service Workers -->
-    <script defer src="js/about_service_workers_proxy.js"></script>
+    <script defer src="js/clock.js"></script>
+    <!--Shared
+    <!-- Lazy loaded shared --
+     <script defer src="shared/js/settings_listener.js"></script>
+     <script defer src="shared/js/async_storage.js"></script>
+     <script defer src="shared/js/manifest_helper.js"></script>
+     <script defer src="shared/js/findmydevice_iac_api.js"></script>
+     <script defer src="shared/js/settings_helper.js"></script>
+     <script defer src="shared/js/default_activity_helper.js"></script>
+     <script defer src="shared/js/async_semaphore.js"></script>
+     <script defer src="shared/js/custom_dialog.js"></script>
+     <script defer src="shared/js/screen_layout.js"></script>
+     <script defer src="shared/js/mobile_operator.js"></script>
+     <script defer src="shared/js/utilities.js"></script>
+     <script defer src="shared/js/tagged.js"></script>
+     <script defer src="shared/js/settings_url.js"></script>
+     <script defer src="shared/js/version_helper.js"></script>
+     <script defer src="shared/js/telemetry.js"></script>
+     <script defer src="shared/js/idletimer.js"></script>
+     <script defer src="shared/js/event_safety.js"></script>
+     <script defer src="shared/js/notification_helper.js"></script>
+     <script defer src="shared/js/nfc_utils.js"></script>
+     <script defer src="shared/js/shrinking_ui.js"></script>
+     <script defer src="shared/js/operator_variant_helper.js"></script>
+     <script defer src="/shared/js/icc_helper.js">
+     <script defer src="/shared/js/simslot.js">
+     <script defer src="/shared/js/simslot_manager.js">
+     <script defer src="/shared/js/stk_helper.js">
+     <script defer src="/shared/js/mime_mapper.js">
+     <script defer src="/shared/js/advanced_timer.js">
+     <script defer src="/shared/js/iac_handler.js">
+     <script defer src="/shared/js/apn_helper.js">
+     <script defer src="/shared/js/tagged.js">
+     <script defer src="/shared/js/input_mgmt/input_app_list.js">
+     <script defer src="/shared/js/keyboard_helper.js">
+     <script defer src="/shared/js/bookmarks_database.js">
+     <script defer src="/shared/elements/gaia_overflow_menu/script.js">
+     <script defer src="/shared/js/homescreens/confirm_dialog_helper.js">
+     <script defer src="/shared/js/image_utils.js">
+     <script defer src="/shared/js/uuid.js">
+     <script defer src="/shared/js/basket_client.js">
+     <script defer src="/shared/js/download/download_helper.js">
+     <script defer src="/shared/js/download/download_ui.js">
+     <script defer src="/shared/js/download/download_formatter.js">
+     <script defer src="/shared/js/download/download_store.js">
+     <script defer src="/shared/js/icons_helper.js">
+     <script defer src="shared/js/url_helper.js"></script>
+     <script defer src="shared/js/date_time_helper.js"></script>
+     <script defer src="shared/js/input_parser.js"></script>
+     <script defer src="shared/js/lockscreen_slide.js"></script>
+     <script defer src="shared/js/lockscreen_connection_info_manager.js"></script>
+    -->
   </head>
 
   <body class="theme-settings" role="application">
@@ -1063,5 +780,12 @@
       <div id="bottom-panel" class="gesture-panel" data-z-index-level="gesture-panel"></div>
 
     </div> <!-- end of #screen -->
+    <script defer src="shared/js/lazy_loader.js"></script>
+    <script defer src="js/logo_loader.js"></script>
+    <script defer src="js/service.js"></script>
+    <script defer src="js/base_module.js"></script>
+    <script defer src="js/cover_screen.js"></script>
+    <script defer src="js/app.js"></script>
+    <script defer src="js/bootstrap.js"></script>
   </body>
 </html>

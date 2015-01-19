@@ -2,7 +2,7 @@
           MocksHelper, MockIACPort */
 'use strict';
 
-requireApp('system/js/fxa_manager.js');
+requireApp('system/js/fx_accounts_manager.js');
 requireApp('system/test/unit/mock_fxa_client.js');
 requireApp('system/test/unit/mock_fxa_ui.js');
 requireApp('system/test/unit/mock_iac_handler.js');
@@ -29,7 +29,7 @@ suite('system/FxAccountManager >', function() {
   setup(function() {
     stubAddEventListener = this.sinon.stub(window, 'addEventListener',
                                            MockAddEventListener);
-    FxAccountsManager.init();
+    FxAccountsManager.start();
   });
 
   teardown(function() {

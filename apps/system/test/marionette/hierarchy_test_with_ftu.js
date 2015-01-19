@@ -16,33 +16,31 @@
     var getWindowName = function() {
       client.switchToFrame();
       return client.executeScript(function() {
-        return window.wrappedJSObject.core
-                     .hierarchyManager.getTopMostWindow().name;
+        return window.wrappedJSObject.Service.query('getTopMostWindow').name;
       });
     };
 
     var getActiveAppWindowState = function() {
       client.switchToFrame();
       return client.executeScript(function() {
-        return window.wrappedJSObject
-                     .appWindowManager.getActiveWindow().isActive();
+        return window.wrappedJSObject.Service
+                     .query('AppWindowManager.getActiveWindow').isActive();
       });
     };
 
     var getActiveAppWindowAriaHidden = function() {
       client.switchToFrame();
       return client.executeScript(function() {
-        return window.wrappedJSObject
-                     .appWindowManager.getActiveWindow().getTopMostWindow()
-                     .element.getAttribute('aria-hidden');
+        return window.wrappedJSObject.Service
+          .query('AppWindowManager.getActiveWindow').getTopMostWindow()
+          .element.getAttribute('aria-hidden');
       });
     };
 
     var getTopMost = function() {
       client.switchToFrame();
       return client.executeScript(function() {
-        window.wrappedJSObject.core.hierarchyManager.dumpHierarchy();
-        return window.wrappedJSObject.core.hierarchyManager.getTopMostUI().name;
+        return window.wrappedJSObject.Service.query('getTopMostUI').name;
       });
     };
 
@@ -50,7 +48,7 @@
     var fxASystemDialog = new FxASystemDialog(client);
 
     setup(function() {
-      system.waitForStartup();
+      system.waitForFullyLoaded();
     });
 
     suite('Test aria-hidden and top most UI', function() {

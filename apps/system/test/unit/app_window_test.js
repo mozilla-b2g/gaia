@@ -1,16 +1,14 @@
-/* global AppWindow, ScreenLayout, MockOrientationManager, MockService,
-      LayoutManager, MocksHelper, MockContextMenu, layoutManager, Service,
-      MockAppTransitionController, MockAudioChannelController,
-      MockPermissionSettings, DocumentFragment, AppChrome, BaseModule */
+/* global AppWindow, ScreenLayout, MockService,
+      MocksHelper, BaseModule, MockContextMenu,
+      MockAppTransitionController, MockPermissionSettings, DocumentFragment,
+      MockAudioChannelController, AppChrome */
 'use strict';
 
-requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_context_menu.js');
 requireApp('system/test/unit/mock_applications.js');
-requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_chrome.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 requireApp('system/test/unit/mock_app_transition_controller.js');
@@ -19,8 +17,8 @@ requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_permission_settings.js');
 
 var mocksForAppWindow = new MocksHelper([
-  'OrientationManager', 'Applications', 'SettingsListener',
-  'ManifestHelper', 'LayoutManager', 'ScreenLayout', 'AppChrome',
+  'Applications', 'SettingsListener',
+  'ManifestHelper', 'ScreenLayout', 'AppChrome',
   'AppTransitionController', 'Service'
 ]).init();
 
@@ -45,8 +43,6 @@ suite('system/AppWindow', function() {
     this.sinon.useFakeTimers();
 
     window.Service = MockService;
-    window.layoutManager = new LayoutManager();
-    window.layoutManager.start();
 
     realPermissionSettings = navigator.mozPermissionSettings;
     navigator.mozPermissionSettings = MockPermissionSettings;
@@ -63,7 +59,6 @@ suite('system/AppWindow', function() {
     function() {
       return document.createElement('div');
     });
-    requireApp('system/js/service.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');
     requireApp('system/js/base_module.js');
@@ -80,7 +75,6 @@ suite('system/AppWindow', function() {
 
   teardown(function() {
     navigator.mozPermissionSettings = realPermissionSettings;
-    delete window.layoutManager;
     delete window.Service;
   });
 
@@ -258,12 +252,13 @@ suite('system/AppWindow', function() {
     });
 
     test('Resize if we are fullscreen', function(done) {
+      MockService.mockQueryWith('getHeightFor', 480);
       var stubIsFullScreen = this.sinon.stub(app1, 'isFullScreen');
       stubIsFullScreen.returns(true);
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       stubIsActive.returns(true);
       var p = app1.resize();
-      assert.equal(app1.height, layoutManager.height);
+      assert.equal(app1.height, MockService.mockQueryWith('getHeightFor'));
 
       assert.isTrue(app1.browser.element.addNextPaintListener.calledOnce);
       app1.browser.element.addNextPaintListener.firstCall.args[0]();
@@ -271,12 +266,13 @@ suite('system/AppWindow', function() {
     });
 
     test('Resize if we are not fullscreen', function(done) {
+      MockService.mockQueryWith('getHeightFor', 430);
       var stubIsFullScreen = this.sinon.stub(app1, 'isFullScreen');
       stubIsFullScreen.returns(false);
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       stubIsActive.returns(true);
       var p = app1.resize();
-      assert.equal(app1.height, layoutManager.height);
+      assert.equal(app1.height, MockService.mockQueryWith('getHeightFor'));
 
       assert.isTrue(app1.browser.element.addNextPaintListener.calledOnce);
       app1.browser.element.addNextPaintListener.firstCall.args[0]();
@@ -284,7 +280,7 @@ suite('system/AppWindow', function() {
     });
 
     test('Send message to appChrome: w/o keyboard', function(done) {
-      layoutManager.keyboardEnabled = false;
+      MockService.mockQueryWith('keyboardEnabled', false);
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       var stubbroadcast = this.sinon.stub(app1, 'broadcast');
       stubIsActive.returns(true);
@@ -297,7 +293,7 @@ suite('system/AppWindow', function() {
     });
 
     test('Send message to appChrome: w/ keyboard', function(done) {
-      layoutManager.keyboardEnabled = true;
+      MockService.mockQueryWith('keyboardEnabled', true);
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       var stubbroadcast = this.sinon.stub(app1, 'broadcast');
       stubIsActive.returns(true);
@@ -485,16 +481,12 @@ suite('system/AppWindow', function() {
     var stubScreenMozLockOrientation, stubScreenMozUnlockOrientation;
     suite('lockOrientation()', function() {
       setup(function() {
-        MockOrientationManager.defaultOrientation = 'portrait-primary';
-        MockOrientationManager.globalOrientation = null;
+        MockService.mockQueryWith('defaultOrientation', 'portrait-primary');
+        MockService.mockQueryWith('globalOrientation', null);
         stubScreenMozLockOrientation =
           this.sinon.stub(screen, 'mozLockOrientation');
         stubScreenMozUnlockOrientation =
           this.sinon.stub(screen, 'mozUnlockOrientation');
-      });
-      teardown(function() {
-        stubScreenMozLockOrientation.restore();
-        stubScreenMozUnlockOrientation.restore();
       });
       test('No orientation entry in manifest should unlock screen orientation.',
         function() {
@@ -553,7 +545,8 @@ suite('system/AppWindow', function() {
     });
 
     test('rotatingDegree on / default is portrait-primary', function() {
-      MockOrientationManager.defaultOrientation = 'portrait-primary';
+      MockService.mockQueryWith('defaultOrientation', 'portrait-primary');
+      MockService.mockQueryWith('isDefaultPortrait', true);
       var app1 = new AppWindow(fakeAppConfig1);
       assert.isTrue(typeof(app1.rotatingDegree) !== 'undefined');
       var app2 = new AppWindow(fakeAppConfigWithDefaultOrientation);
@@ -573,7 +566,8 @@ suite('system/AppWindow', function() {
     });
 
     test('rotatingDegree on / default is landscape-primary', function() {
-      MockOrientationManager.defaultOrientation = 'landscape-primary';
+      MockService.mockQueryWith('defaultOrientation', 'landscape-primary');
+      MockService.mockQueryWith('isDefaultPortrait', false);
       var app1 = new AppWindow(fakeAppConfig1);
       assert.isTrue(typeof(app1.rotatingDegree) !== 'undefined');
       var app3 = new AppWindow(fakeAppConfigWithPortraitOrientation);
@@ -591,45 +585,47 @@ suite('system/AppWindow', function() {
     });
 
     test('closing Rotation Degree / default is portrait-primary', function() {
-      MockOrientationManager.defaultOrientation = 'portrait-primary';
-      var stubCurrentOrientation =
-        this.sinon.stub(MockOrientationManager, 'fetchCurrentOrientation');
-      stubCurrentOrientation.returns('portrait-primary');
+      MockService.mockQueryWith('defaultOrientation', 'portrait-primary');
+      MockService.mockQueryWith('fetchCurrentOrientation', 'portrait-primary');
+      MockService.mockQueryWith('isDefaultPortrait', true);
       var app1 = new AppWindow(fakeAppConfig1);
       var angle1 = app1.determineClosingRotationDegree();
       assert.equal(angle1, 0);
 
-      stubCurrentOrientation.returns('portrait-secondary');
+      MockService.mockQueryWith('fetchCurrentOrientation',
+        'portrait-secondary');
       var angle2 = app1.determineClosingRotationDegree();
       assert.equal(angle2, 180);
 
-      stubCurrentOrientation.returns('landscape-primary');
+      MockService.mockQueryWith('fetchCurrentOrientation', 'landscape-primary');
       var angle3 = app1.determineClosingRotationDegree();
       assert.equal(angle3, 270);
 
-      stubCurrentOrientation.returns('landscape-secondary');
+      MockService.mockQueryWith('fetchCurrentOrientation',
+        'landscape-secondary');
       var angle4 = app1.determineClosingRotationDegree();
       assert.equal(angle4, 90);
     });
 
     test('closing Rotation Degree / default is landscape-primary', function() {
-      MockOrientationManager.defaultOrientation = 'landscape-primary';
-      var stubCurrentOrientation =
-        this.sinon.stub(MockOrientationManager, 'fetchCurrentOrientation');
-      stubCurrentOrientation.returns('portrait-primary');
+      MockService.mockQueryWith('defaultOrientation', 'landscape-primary');
+      MockService.mockQueryWith('fetchCurrentOrientation', 'portrait-primary');
+      MockService.mockQueryWith('isDefaultPortrait', false);
       var app1 = new AppWindow(fakeAppConfig1);
       var angle1 = app1.determineClosingRotationDegree();
       assert.equal(angle1, 90);
 
-      stubCurrentOrientation.returns('portrait-secondary');
+      MockService.mockQueryWith('fetchCurrentOrientation',
+        'portrait-secondary');
       var angle2 = app1.determineClosingRotationDegree();
       assert.equal(angle2, 270);
 
-      stubCurrentOrientation.returns('landscape-primary');
+      MockService.mockQueryWith('fetchCurrentOrientation', 'landscape-primary');
       var angle3 = app1.determineClosingRotationDegree();
       assert.equal(angle3, 0);
 
-      stubCurrentOrientation.returns('landscape-secondary');
+      MockService.mockQueryWith('fetchCurrentOrientation',
+        'landscape-secondary');
       var angle4 = app1.determineClosingRotationDegree();
       assert.equal(angle4, 180);
     });
@@ -1153,10 +1149,10 @@ suite('system/AppWindow', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
       this.sinon.stub(app1.browser.element, 'setActive');
-      MockService.mTopMostUI = { name: 'Rocketbar' };
+      MockService.mockQueryWith('getTopMostUI', { name: 'Rocketbar' });
       app1._setActive(false);
       assert.isTrue(app1.browser.element.setActive.calledWith(false));
-      MockService.mTopMostUI = { name: 'AppWindowManager' };
+      MockService.mockQueryWith('getTopMostUI', { name: 'AppWindowManager' });
       app1._setActive(true);
       assert.isTrue(app1.browser.element.setActive.calledWith(true));
     });
@@ -1271,6 +1267,8 @@ suite('system/AppWindow', function() {
     });
 
     test('MozBrowser API: getScreenshot', function() {
+      MockService.mockQueryWith('LayoutManager.width', 320);
+      MockService.mockQueryWith('LayoutManager.height', 480);
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
       var stubScreenshot = this.sinon.stub(app1.browser.element,
@@ -1341,6 +1339,8 @@ suite('system/AppWindow', function() {
     });
 
     test('MozBrowser API: getScreenshot for homescreen', function() {
+      MockService.mockQueryWith('LayoutManager.width', 320);
+      MockService.mockQueryWith('LayoutManager.height', 480);
       var home = new AppWindow(fakeAppConfig1);
       home.isHomescreen = true;
 
@@ -1804,7 +1804,7 @@ suite('system/AppWindow', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var stubKill = this.sinon.stub(app1, 'kill');
       var stubPublish = this.sinon.stub(app1, 'publish');
-      AppWindow.SUSPENDING_ENABLED = false;
+      MockService.mockQueryWith('suspendingAppWindow', false);
       app1.handleEvent({
         type: 'mozbrowsererror',
         detail: {
@@ -1827,6 +1827,7 @@ suite('system/AppWindow', function() {
         var stubIsActive = this.sinon.stub(app1, 'isActive');
 
         stubIsActive.returns(false);
+        MockService.mockQueryWith('suspendingAppWindow', true);
         AppWindow.SUSPENDING_ENABLED = true;
         app1.handleEvent({
           type: 'mozbrowsererror',
@@ -1876,7 +1877,7 @@ suite('system/AppWindow', function() {
       app1.isHomescreen = true;
       var app2 = new AppWindow(fakeAppConfig2);
 
-      this.sinon.stub(Service, 'isBusyLoading').returns(true);
+      MockService.mockQueryWith('isBusyLoading', true);
       injectFakeMozBrowserAPI(app1.browser.element);
       injectFakeMozBrowserAPI(app2.browser.element);
       var stubScreenshot = this.sinon.stub(app1.browser.element,
@@ -2211,8 +2212,9 @@ suite('system/AppWindow', function() {
       this.sinon.stub(app1, 'isActive').returns(false);
       app1.width = 320;
       app1.height = 460;
-      layoutManager.width = 480;
-      layoutManager.height = 300;
+      MockService.mockQueryWith('keyboardEnabled', false);
+      MockService.mockQueryWith('LayoutManager.width', 480);
+      MockService.mockQueryWith('getHeightFor', 300);
 
       app1.handleEvent({
         type: '_orientationchange'
@@ -2229,8 +2231,8 @@ suite('system/AppWindow', function() {
       this.sinon.stub(app1, 'isActive').returns(false);
       app1.width = 320;
       app1.height = 460;
-      layoutManager.width = 320;
-      layoutManager.height = 460;
+      MockService.mockQueryWith('LayoutManager.width', 320);
+      MockService.mockQueryWith('getHeightFor', 460);
 
       app1.screenshotOverlay.style.visibility = 'hidden';
 
@@ -2242,6 +2244,8 @@ suite('system/AppWindow', function() {
     });
 
     test('Orientation change event on active app', function() {
+      MockService.mockQueryWith('LayoutManager.width', 320);
+      MockService.mockQueryWith('getHeightFor', 480);
       var app1 = new AppWindow(fakeAppConfig1);
       var app2 = new AppWindow(fakeAppConfig2);
       // Inject mozBrowser API to app iframe
@@ -2252,35 +2256,41 @@ suite('system/AppWindow', function() {
       this.sinon.stub(app1, 'isActive').returns(true);
       this.sinon.stub(app2, 'broadcast');
 
-      layoutManager.mKeyboardHeight = 100;
+      MockService.mockQueryWith('getHeightFor', 380);
       app1.handleEvent({
         type: '_orientationchange'
       });
 
       assert.isTrue(app2.broadcast.calledWith('orientationchange'));
-      assert.equal(app1.element.style.width, layoutManager.width + 'px');
-      assert.equal(app1.element.style.height,
-        (layoutManager.height - 100) + 'px');
+      assert.equal(app1.element.style.width,
+        MockService.mQueries['LayoutManager.width'] + 'px');
+      assert.equal(app1.element.style.height, '380px');
     });
 
     test('Orientation change event on active but not top most app', function() {
+      MockService.mockQueryWith('LayoutManager.width', 480);
+      MockService.mockQueryWith('getHeightFor', 320);
       var app1 = new AppWindow(fakeAppConfig1);
       // Inject mozBrowser API to app iframe
       injectFakeMozBrowserAPI(app1.browser.element);
 
       this.sinon.stub(app1, 'isActive').returns(true);
 
-      layoutManager.mKeyboardHeight = 100;
+      MockService.mockQueryWith('keyboardHeight', 100);
       app1.handleEvent({
         type: '_orientationchange',
         detail: true
       });
 
-      assert.equal(app1.element.style.width, layoutManager.width + 'px');
-      assert.equal(app1.element.style.height, layoutManager.height + 'px');
+      assert.equal(app1.element.style.width,
+        MockService.mQueries['LayoutManager.width'] + 'px');
+      assert.equal(app1.element.style.height,
+        MockService.mQueries.getHeightFor + 'px');
     });
 
     test('Orientation change event on active homescreen app', function() {
+      MockService.mockQueryWith('LayoutManager.width', 480);
+      MockService.mockQueryWith('getHeightFor', 320);
       var app1 = new AppWindow(fakeAppConfig1);
       var stubLockOrientation = this.sinon.stub(app1, 'lockOrientation');
       this.sinon.stub(app1, 'isActive').returns(true);
@@ -2288,9 +2298,9 @@ suite('system/AppWindow', function() {
       app1.width = 320;
       app1.height = 460;
 
-      layoutManager.width = 460;
-      layoutManager.height = 320;
-      MockService.currentApp = app1;
+      MockService.mockQueryWith('LayoutManager.width', 460);
+      MockService.mockQueryWith('LayoutManager.height', 320);
+      MockService.mockQueryWith('getTopMostWindow', app1);
 
       app1.handleEvent({
         type: '_orientationchange'
@@ -2301,17 +2311,19 @@ suite('system/AppWindow', function() {
         'prevent it is modified by other background app');
       assert.equal(app1.element.style.width, '460px');
       assert.equal(app1.element.style.height, '320px');
-      MockService.currentApp = null;
+      MockService.mockQueryWith('getTopMostWindow', null);
     });
 
     test('Orientation change event on fullscreen app', function() {
+      MockService.mockQueryWith('LayoutManager.width', 480);
+      MockService.mockQueryWith('getHeightFor', 320);
       var app1 = new AppWindow(fakeAppConfig1);
       this.sinon.stub(app1, 'isActive').returns(false);
       this.sinon.stub(app1, 'isFullScreen').returns(true);
       app1.width = 320;
       app1.height = 480;
-      layoutManager.width = 480;
-      layoutManager.height = 320;
+      MockService.mockQueryWith('LayoutManager.width', 480);
+      MockService.mockQueryWith('LayoutManager.height', 320);
 
       app1.handleEvent({
         type: '_orientationchange'

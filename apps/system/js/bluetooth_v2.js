@@ -201,6 +201,17 @@ Bluetooth.prototype = {
     });
   },
 
+  stop: function() {
+    Service.unregister('adapter', this);
+    Service.unregister('pair', this);
+    Service.unregister('getPairedDevices', this);
+    Service.unregisterState('isEnabled', this);
+    Service.unregisterState('getAdapter', this);
+    Service.unregisterState('isOPPProfileConnected', this);
+    Service.unregisterState('isA2DPProfileConnected', this);
+    Service.unregisterState('isSCOProfileConnected', this);
+  },
+
   /**
    * Generally bluetooth adapter is already available when start
    * this module and no related event will be received.
@@ -231,7 +242,7 @@ Bluetooth.prototype = {
    *   1. connecting with a headset
    *   2. transfering a file to/from another device
    * So we need to listen to corresponding events to know we are (aren't)
-   * connected, then summarize to an event and dispatch to StatusBar
+   * connected, then summarize to an event and dispatch to Statusbar
    *
    * @private
    */

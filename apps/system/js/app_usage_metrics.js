@@ -41,7 +41,8 @@
  */
 
 /* global asyncStorage, SettingsListener, performance, SIMSlotManager,
-          MobileOperator, uuid, TelemetryRequest, applications */
+          MobileOperator, uuid, TelemetryRequest, applications,
+          LazyLoader */
 (function(exports) {
   'use strict';
 
@@ -178,24 +179,26 @@
   // opted in to telemetry.
   //
   AUM.prototype.start = function start() {
-    this.reset();  // initialize our state variables
+    LazyLoader.load('shared/js/telemetry.js').then(() => {
+      this.reset();  // initialize our state variables
 
-    // Query and listen for changes on the telemetry setting. Start data
-    // collection if or when it becomes set, and stop data collection if
-    // it is not set. Note that we do very little initialization here.
-    // That happens in the startCollecting() method which is only called if
-    // telemetry is actually enabled
-    this.metricsEnabledListener = function metricsEnabledListener(enabled) {
-      if (enabled) {
-        this.startCollecting();
-      }
-      else {
-        this.stopCollecting();
-      }
-    }.bind(this);
+      // Query and listen for changes on the telemetry setting. Start data
+      // collection if or when it becomes set, and stop data collection if
+      // it is not set. Note that we do very little initialization here.
+      // That happens in the startCollecting() method which is only called if
+      // telemetry is actually enabled
+      this.metricsEnabledListener = function metricsEnabledListener(enabled) {
+        if (enabled) {
+          this.startCollecting();
+        }
+        else {
+          this.stopCollecting();
+        }
+      }.bind(this);
 
-    SettingsListener.observe(AUM.TELEMETRY_ENABLED_KEY,
-                             false, this.metricsEnabledListener);
+      SettingsListener.observe(AUM.TELEMETRY_ENABLED_KEY,
+                               false, this.metricsEnabledListener);
+    });
   };
 
   // This method shuts everything down and is only exposed for unit testing.
@@ -725,7 +728,6 @@
     }
 
     function send(data, urlInfo) {
-
       var request = new TelemetryRequest({
         reason: AUM.TELEMETRY_REASON,
         deviceID: self.deviceID,
@@ -737,7 +739,8 @@
       }, data);
 
       // We don't actually have to do anything if the data is transmitted
-      // successfully. We are already set up to collect the next batch of data.
+      // successfully.
+      // We are already set up to collect the next batch of data.
       function onload() {
         debug('Transmitted app usage data to', request.url);
       }

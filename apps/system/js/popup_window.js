@@ -54,12 +54,12 @@
      'mozbrowsericonchange'];
 
   PopupWindow.SUB_COMPONENTS = {
-    'transitionController': window.AppTransitionController,
-    'modalDialog': window.AppModalDialog,
-    'valueSelector': window.ValueSelector,
-    'authDialog': window.AppAuthenticationDialog,
-    'childWindowFactory': window.ChildWindowFactory,
-    'statusbar': window.AppStatusbar
+    'transitionController': 'AppTransitionController',
+    'modalDialog': 'AppModalDialog',
+    'valueSelector': 'ValueSelector',
+    'authDialog': 'AppAuthenticationDialog',
+    'childWindowFactory': 'ChildWindowFactory',
+    'statusbar': 'AppStatusbar'
   };
 
   PopupWindow.SUB_MODULES = {

@@ -29,7 +29,7 @@ marionette('Edges gesture >', function() {
     actions = client.loader.getActions();
 
     sys = client.loader.getAppClass('system');
-    sys.waitForStartup();
+    sys.waitForFullyLoaded();
 
     settings = sys.waitForLaunch(SETTINGS_APP);
     calendar = sys.waitForLaunch(CALENDAR_APP);

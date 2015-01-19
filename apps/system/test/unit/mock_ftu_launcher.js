@@ -2,13 +2,12 @@
   'use strict';
 
   exports.MockFtuLauncher = {
+    name: 'FtuLauncher',
     mIsRunning: false,
     mIsUpgrading: false,
-    mReadyRightAway: false,
     mTeardown: function() {
       this.mIsRunning = false;
       this.mIsUpgrading = false;
-      this.mReadyRightAway = false;
     },
 
     isFtuRunning: function() {
@@ -29,11 +28,6 @@
     respondToHierarchyEvent: function() {},
 
     stepReady: function() {
-      return new Promise(function(resolve) {
-        if (this.mReadyRightAway) {
-          resolve();
-        }
-      }.bind(this));
     }
   };
 }(window));

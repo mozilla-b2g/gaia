@@ -19,9 +19,7 @@
    * @class SystemDialogManager
    * @requires module:Service
    */
-  var SystemDialogManager = function SystemDialogManager() {
-    this.init();
-  };
+  var SystemDialogManager = function SystemDialogManager() {};
 
   SystemDialogManager.prototype = {
 
@@ -199,12 +197,6 @@
     }
   };
 
-  SystemDialogManager.prototype.init = function sdm_init() {
-    this.initElements();
-    this.start();
-    this.debug('init:');
-  };
-
   /**
    * @private
    * @this {SystemDialogManager}
@@ -227,6 +219,7 @@
    * @memberof SystemDialogManager
    */
   SystemDialogManager.prototype.start = function sdm_start() {
+    this.initElements();
     this.configs.listens.forEach((function _initEvent(type) {
       self.addEventListener(type, this);
     }).bind(this));

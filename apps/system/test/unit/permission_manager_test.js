@@ -1,5 +1,5 @@
 /* global PermissionManager, Applications, MocksHelper, MockL10n,
-          MockApplications, Service */
+          MockApplications, MockAppWindow, MockService */
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
@@ -8,6 +8,7 @@ require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_applications.js');
+requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 
 // to emulate permission events
@@ -73,6 +74,7 @@ suite('system/permission manager', function() {
   });
 
   setup(function() {
+    MockService.mockQueryWith('getTopMostWindow', new MockAppWindow());
     permissionManager.start();
   });
 
@@ -214,9 +216,9 @@ suite('system/permission manager', function() {
     }
 
     setup(function() {
-      Service.currentApp = {
+      MockService.mockQueryWith('getTopMostWindow', {
         origin: ''
-      };
+      });
 
       this.sinon.spy(permissionManager, 'cleanDialog');
       this.sinon.spy(permissionManager, 'handleFullscreenOriginChange');
@@ -794,9 +796,7 @@ suite('system/permission manager', function() {
     var evt;
     setup(function() {
       this.sinon.stub(permissionManager, 'discardPermissionRequest');
-      window.Service = {
-        locked: true
-      };
+      MockService.mockQueryWith('locked', true);
       evt = {
         type: 'screenchange',
         detail: {

@@ -17,7 +17,13 @@ marionette('launch', function() {
   };
 
   var client = marionette.client({ profile: profile });
+  var system;
   marionette.plugin('mozApps', require('../lib/apps'));
+
+  setup(function() {
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
+  });
 
   suite('switch to running app', function() {
     var domain = 'verticalhome.gaiamobile.org';
