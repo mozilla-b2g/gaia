@@ -1,5 +1,6 @@
 'use strict';
-/* global Base, SettingsGroup, Applications */
+/* global Applications, Base, KeyEvent, Settings,
+          SettingsGroup, SetupGroupList, SettingsList */
 
 (function(exports) {
 

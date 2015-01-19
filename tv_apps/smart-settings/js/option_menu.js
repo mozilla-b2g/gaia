@@ -1,5 +1,5 @@
 'use strict';
-/* global Base */
+/* global Base, KeyEvent, SelectionBorder, SpatialNavigator */
 (function(exports) {
 
   function OptionMenu() {
