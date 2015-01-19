@@ -1,4 +1,4 @@
-/* global Applications, GestureDetector, KeyEvent */
+/* global GestureDetector, KeyEvent */
 'use strict';
 
 (function(exports) {

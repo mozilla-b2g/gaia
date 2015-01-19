@@ -1,3 +1,4 @@
+/* global evt, KeyEvent */
 (function(exports) {
   'use strict';
   /**

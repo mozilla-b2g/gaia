@@ -198,33 +198,33 @@
         // half the width or height of the targetRect.
         if (targetRect.center) {
           if (rect.left < targetRect.center.x) {
-            if (groupId == 2) {
+            if (groupId === 2) {
               groups[1].push(rect);
-            } else if (groupId == 8) {
+            } else if (groupId === 8) {
               groups[7].push(rect);
             }
           }
 
           if (rect.right > targetRect.center.x) {
-            if (groupId == 0) {
+            if (groupId === 0) {
               groups[1].push(rect);
-            } else if (groupId == 6) {
+            } else if (groupId === 6) {
               groups[7].push(rect);
             }
           }
 
           if (rect.top < targetRect.center.y) {
-            if (groupId == 6) {
+            if (groupId === 6) {
               groups[3].push(rect);
-            } else if (groupId == 8) {
+            } else if (groupId === 8) {
               groups[5].push(rect);
             }
           }
 
           if (rect.bottom > targetRect.center.y) {
-            if (groupId == 0) {
+            if (groupId === 0) {
               groups[3].push(rect);
-            } else if (groupId == 2) {
+            } else if (groupId === 2) {
               groups[5].push(rect);
             }
           }
@@ -414,7 +414,7 @@
     multiAdd: function snMultiAdd(elements) {
       for (var i = 0; i < elements.length; i++) {
         this.add(elements[i]);
-      };
+      }
     },
 
     /**
@@ -447,7 +447,7 @@
     multiRemove: function snMultiRemove(elements) {
       for (var i = 0; i < elements.length; i++) {
         this.remove(elements[i]);
-      };
+      }
     },
 
     /**
