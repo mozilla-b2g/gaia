@@ -5944,12 +5944,14 @@ suite('thread_ui.js >', function() {
   });
 
   suite('beforeLeave() ', function() {
+    var transitionArgs = { meta: {} };
+
     test('to thread-list, exits edit mode', function() {
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
       Navigation.isCurrentPanel.withArgs('thread-list').returns(true);
 
       ThreadUI.startEdit();
-      ThreadUI.beforeLeave();
+      ThreadUI.beforeLeave(transitionArgs);
 
       assert.isFalse(mainWrapper.classList.contains('edit'));
     });
@@ -5960,7 +5962,7 @@ suite('thread_ui.js >', function() {
       Navigation.isCurrentPanel.withArgs('thread').returns(true);
 
       ThreadUI.startEdit();
-      ThreadUI.beforeLeave();
+      ThreadUI.beforeLeave(transitionArgs);
 
       assert.isFalse(mainWrapper.classList.contains('edit'));
     });
@@ -5995,7 +5997,7 @@ suite('thread_ui.js >', function() {
         }
       });
 
-      ThreadUI.beforeLeave();
+      ThreadUI.beforeLeave(transitionArgs);
 
       sinon.assert.calledTwice(window.URL.revokeObjectURL);
       sinon.assert.calledWith(window.URL.revokeObjectURL, 'blob:fake0');

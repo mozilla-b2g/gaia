@@ -618,6 +618,8 @@ var ThreadUI = {
   beforeLeave: function thui_beforeLeave(args) {
     this.disableConvertNoticeBanners();
 
+    var nextPanel = args.meta.next && args.meta.next.panel;
+
     // This should be in afterLeave, but the edit mode interface does not seem
     // to slide correctly. Bug 1009541
     this.cancelEdit();
@@ -633,7 +635,9 @@ var ThreadUI = {
     }
 
     // TODO move most of back() here: Bug 1010223
-    this.cleanFields();
+    if (nextPanel !== 'group-view' && nextPanel !== 'report-view') {
+      this.cleanFields();
+    }
   },
 
   afterLeave: function thui_afterLeave(args) {
@@ -1239,7 +1243,7 @@ var ThreadUI = {
       if (Compose.size > Settings.mmsSizeLimitation) {
         this.showMaxLengthNotice({
           l10nId: 'multimedia-message-exceeded-max-length',
-          l10nArgs: { 
+          l10nArgs: {
             mmsSize: (Settings.mmsSizeLimitation / 1024).toFixed(0)
           }
         });
