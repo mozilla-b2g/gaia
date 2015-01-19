@@ -1,12 +1,11 @@
 'use strict';
-/* global WrapperFactory, MockAppWindow, MockAppWindowManager,
-          MocksHelper */
+/* global WrapperFactory, MockAppWindow, MocksHelper */
 
 requireApp('system/test/unit/mock_app_window.js');
-requireApp('system/test/unit/mock_app_window_manager.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 
 var mocksForWrapperFactory = new MocksHelper([
-  'AppWindow', 'AppWindowManager'
+  'AppWindow', 'Service'
 ]).init();
 
 suite('system/WrapperFactory', function() {
@@ -18,7 +17,6 @@ suite('system/WrapperFactory', function() {
   suite('isLaunchingWindow', function() {
     var app;
     setup(function() {
-      window.appWindowManager = new MockAppWindowManager();
       app = new MockAppWindow();
       this.sinon.stub(window, 'AppWindow').returns(app);
       WrapperFactory.init();

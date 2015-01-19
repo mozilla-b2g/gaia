@@ -40,6 +40,7 @@ var Wifi = {
 
     this.wifiManager = window.navigator.mozWifiManager;
 
+    LazyLoader.load(['js/captive_portal.js']);
     Service.request('stepReady', '#wifi').then(function() {
       return LazyLoader.load(['js/wifi_icon.js']);
     }.bind(this)).then(function() {

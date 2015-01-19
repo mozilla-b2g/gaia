@@ -26,7 +26,7 @@ marionette('Task Manager w/Short Name', function() {
     system = client.loader.getAppClass('system');
     taskManager = new TaskManager(client);
 
-    system.waitForStartup();
+    system.waitForFullyLoaded();
 
     shortApp = new FakeApp(client, 'app://' + shortAppOrigin);
     shortApp.launch();

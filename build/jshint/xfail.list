@@ -95,8 +95,7 @@ apps/settings/test/unit/sim_settings_helper_test.js
 apps/settings/test/unit/toaster_test.js
 apps/system/js/browser_mixin.js
 apps/system/js/icc.js
-apps/system/js/init_logo_handler.js
-apps/system/js/notifications.js
+apps/system/js/notification_screen.js
 apps/system/js/orientation_manager.js
 apps/system/js/payment.js
 apps/system/js/sheets_transition.js

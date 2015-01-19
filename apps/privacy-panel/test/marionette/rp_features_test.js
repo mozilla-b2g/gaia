@@ -15,9 +15,11 @@ marionette('remote protection main panel', function() {
       'ftu.manifestURL': 'app://ftu.gaiamobile.org/manifest.webapp'
     }
   });
-  var subject;
+  var subject, system;
 
   setup(function() {
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
     subject = new RpMainPanel(client);
     subject.init();
   });

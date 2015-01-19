@@ -7,10 +7,11 @@
     this.core = core;
     this.mobileConnections = mobileConnections;
   };
-  //MobileConnectionCore.IMPORTS = [
-  //  'shared/js/simslot.js',
-  //  'shared/js/simslot_manager.js'
-  //];
+  MobileConnectionCore.IMPORTS = [
+    'shared/js/icc_helper.js',
+    'shared/js/simslot.js',
+    'shared/js/simslot_manager.js'
+  ];
   MobileConnectionCore.SUB_MODULES = [
     'Radio',
     'CallForwarding',
@@ -20,7 +21,8 @@
     'TelephonySettings',
     'OperatorVariantManager',
     'CostControl',
-    'InternetSharing'
+    'InternetSharing',
+    'IccCore' // Because it's bind to mobileConnection
   ];
 
   BaseModule.create(MobileConnectionCore, {

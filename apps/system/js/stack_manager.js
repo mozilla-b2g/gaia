@@ -1,7 +1,9 @@
 'use strict';
-/* global SheetsTransition, Service, appWindowManager */
+/* global SheetsTransition, Service */
 
 var StackManager = {
+  name: 'StackManager',
+
   init: function sm_init() {
     window.addEventListener('appcreated', this);
     window.addEventListener('launchapp', this);
@@ -10,6 +12,7 @@ var StackManager = {
     window.addEventListener('appterminated', this);
     window.addEventListener('home', this);
     window.addEventListener('cardviewclosed', this);
+    Service.registerState('snapshot', this);
   },
 
   getCurrent: function sm_getCurrent() {
@@ -23,7 +26,7 @@ var StackManager = {
     // Until then we can get into edge cases where the app currently
     // displayed is not part of the stack and we don't want to break.
     if (!app) {
-      app = Service.currentApp;
+      app = Service.query('AppWindowManager.getActiveWindow');
     }
 
     return app;
@@ -320,7 +323,7 @@ var StackManager = {
     }
 
     if (this._broadcastTimeout === null) {
-      appWindowManager.sendStopRecordingRequest();
+      Service.request('stopRecording');
     }
 
     clearTimeout(this._broadcastTimeout);

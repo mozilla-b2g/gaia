@@ -34,7 +34,7 @@ marionette('Browser Chrome - Title content', function() {
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('app w/o chrome should use placeholder', function() {

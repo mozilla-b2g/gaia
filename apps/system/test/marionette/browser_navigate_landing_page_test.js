@@ -31,7 +31,7 @@ marionette('Browser - Navigating from the landing page',
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('navigates the landing page in place', function() {
