@@ -1,5 +1,6 @@
 'use strict';
-/* global evt, SettingsList, Applications */
+/* global Applications, ManifestHelper, OptionMenu,
+          SettingsCache, SettingsList */
 (function(exports) {
 
   function SetupGroupList() {
@@ -62,7 +63,7 @@
     };
     switch(dom.id) {
       case 'menu-item-landing-page':
-        eventData['type'] = 'option-menu';
+        eventData.type = 'option-menu';
         break;
     }
 
