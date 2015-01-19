@@ -749,6 +749,27 @@ suite('calls handler', function() {
         sinon.assert.calledOnce(firstCall.resume);
       });
 
+      test('should not resume or show as on hold the pending call if it is ' +
+      'disconnected (conference call hanging)',
+      function() {
+        this.sinon.spy(MockCallScreen, 'render');
+
+        CallsHandler.holdOrResumeCallByUser();
+        MockNavigatorMozTelephony.active = null;
+
+        CallsHandler.mergeCalls();
+
+        // Hang up the conference call.
+        // The callschanged is notified with a call whose state is
+        //  'disconnected'.
+        firstCall.state = 'disconnected';
+        MockNavigatorMozTelephony.calls = [firstCall];
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+        sinon.assert.notCalled(firstCall.resume);
+        sinon.assert.notCalled(MockCallScreen.render, 'connected-hold');
+      });
+
       test('should not close the callscreen app', function() {
         this.sinon.spy(window, 'close');
 
