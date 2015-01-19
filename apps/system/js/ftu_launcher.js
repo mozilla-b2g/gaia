@@ -5,8 +5,6 @@
    which is the first app the users would use, to configure their phone. */
 
 var FtuLauncher = {
-  name: 'FtuLauncher',
-
   /* The application object of ftu got from Application module */
   _ftu: null,
 
@@ -47,8 +45,6 @@ var FtuLauncher = {
   },
 
   init: function fl_init() {
-    this._stepsList = [];
-    this._storedStepRequest = [];
     // for iac connection
     window.addEventListener('iac-ftucomms', this);
 
@@ -65,23 +61,6 @@ var FtuLauncher = {
 
     Service.registerState('isFtuUpgrading', this);
     Service.registerState('isFtuRunning', this);
-    Service.register('stepReady', this);
-  },
-
-  updateStep: function(step) {
-    if (this._stepsList.indexOf(step) < 0) {
-      this._stepsList.push(step);
-    }
-
-    var remainingRequest = [];
-    this._storedStepRequest.forEach(function(request, index) {
-      if (this._skipped || this._stepsList.indexOf(request.step) >= 0) {
-        request.resolve();
-      } else {
-        remainingRequest.push(request);
-      }
-    }, this);
-    this._storedStepRequest = remainingRequest;
   },
 
   _handle_home: function() {
@@ -116,19 +95,6 @@ var FtuLauncher = {
     return true;
   },
 
-  stepReady: function(step) {
-    return new Promise(function(resolve) {
-      if (this._stepsList.indexOf(step) >= 0 || this._skipped) {
-        resolve();
-      } else {
-        this._storedStepRequest.push({
-          resolve: resolve,
-          step: step
-        });
-      }
-    }.bind(this));
-  },
-
   handleEvent: function fl_init(evt) {
     switch (evt.type) {
       case 'appopened':
@@ -145,8 +111,6 @@ var FtuLauncher = {
         var message = evt.detail;
         if (message === 'done') {
           this.setBypassHome(true);
-        } else if (evt.detail.type === 'step') {
-          this.updateStep(evt.detail.hash);
         }
         break;
 
@@ -165,7 +129,6 @@ var FtuLauncher = {
     // update the previous_os setting (asyn)
     // so we dont try and handle upgrade again
     VersionHelper.updatePrevious();
-    this.updateStep('done');
     // Done with FTU, letting everyone know
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('ftudone',
@@ -208,8 +171,6 @@ var FtuLauncher = {
   skip: function fl_skip() {
     this._isRunningFirstTime = false;
     this._isUpgrading = false;
-    this._skipped = true;
-    this.updateStep('done');
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('ftuskip',
       /* canBubble */ true, /* cancelable */ false, {});

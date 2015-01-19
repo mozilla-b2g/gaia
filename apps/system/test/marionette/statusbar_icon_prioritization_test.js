@@ -31,24 +31,22 @@ marionette('Status Bar icons - Prioritization', function() {
     var hasHiddenIcon = false;
 
     // Let's show all the icons.
-    statusBar.showAllRunningIcons();
+    StatusBar.Icons.forEach(function(iconName) {
+      statusBar[iconName].show();
+    });
 
     // Force the reprioritization all the icons.
-    system.request('NetworkActivityIcon:hide');
-    system.request('NetworkActivityIcon:show');
+    statusBar.networkActivity.hide();
+    statusBar.dispatchEvent('moznetworkupload');
 
     StatusBar.Icons.forEach(function(iconName) {
-      if (iconName === 'operator') {
+      if (iconName === 'label') {
         // Label is a special case, so ignoring for now.
         return;
       }
 
-      var iconElement = statusBar.minimised[iconName].icon;
-      // The icon is not running.
-      if (iconElement.getAttribute('class').indexOf('active') < 0) {
-        return;
-      }
-      var hidden = (iconElement.cssProperty('display') === 'none');
+      var icon = statusBar[iconName].icon;
+      var hidden = (icon.cssProperty('display') === 'none');
 
       if (hasHiddenIcon) {
         assert.equal(hidden, true, 'The `' + iconName +

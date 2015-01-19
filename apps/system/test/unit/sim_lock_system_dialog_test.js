@@ -8,7 +8,6 @@ requireApp('system/test/unit/mock_applications.js');
 requireApp('system//shared/test/unit/mocks/mock_simslot.js');
 requireApp('system//shared/test/unit/mocks/mock_simslot_manager.js');
 
-requireApp('system/js/service.js');
 requireApp('system/js/base_ui.js');
 requireApp('system/js/system_dialog.js');
 requireApp('system/js/sim_lock_system_dialog.js');
