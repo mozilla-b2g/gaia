@@ -1,5 +1,5 @@
 'use strict';
-/* global VersionHelper, LazyLoader, BrowserMigrator */
+/* global Service, LazyLoader, BrowserMigrator */
 
 /**
   The app migrator is in charge of migrating app data between releases
@@ -20,16 +20,14 @@
       }
 
       var self = this;
-      VersionHelper.getVersionInfo().then(function(versionInfo) {
-        if (versionInfo.isUpgrade()) {
-          LazyLoader.load('js/migrators/browser_migrator.js',
-                          (function loaded() {
-                            var bm = new BrowserMigrator();
-                            bm.runMigration();
-                          }));
-          self.migrating = true;
-        }
-      });
+      if (Service.query('justUpgraded')) {
+        LazyLoader.load('js/migrators/browser_migrator.js',
+                        (function loaded() {
+                          var bm = new BrowserMigrator();
+                          bm.start();
+                        }));
+        self.migrating = true;
+      }
     }
   };
   exports.AppMigrator = AppMigrator;

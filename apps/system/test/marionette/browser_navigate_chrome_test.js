@@ -31,7 +31,7 @@ marionette('Browser - Chrome on browser navigation',
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('should show the progressbar', function() {

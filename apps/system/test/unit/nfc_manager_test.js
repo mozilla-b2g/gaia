@@ -83,7 +83,7 @@ suite('Nfc Manager Functions', function() {
     window.navigator.mozNfc = MockNfc;
 
     nfcUtils = new NfcUtils();
-    MockService.currentApp = fakeApp;
+    MockService.mockQueryWith('getTopMostWindow', fakeApp);
     nfcManager = BaseModule.instantiate('NfcManager');
     nfcManager.service = MockService;
     nfcManager.start();
@@ -227,11 +227,11 @@ suite('Nfc Manager Functions', function() {
       assert.isTrue(stubDoTransition.withArgs('disable-polling').calledOnce);
 
       MockScreenManager.screenEnabled = true;
-      MockService.locked = true;
+      MockService.mockQueryWith('locked', true);
       window.dispatchEvent(new CustomEvent('screenchange'));
       assert.isTrue(stubDoTransition.withArgs('disable-polling').calledTwice);
 
-      MockService.locked = false;
+      MockService.mockQueryWith('locked', false);
       window.dispatchEvent(new CustomEvent('screenchange'));
       assert.isTrue(stubDoTransition.withArgs('enable-polling').calledOnce);
     });
@@ -1042,17 +1042,19 @@ suite('Nfc Manager Functions', function() {
       var stubCheckP2P = this.sinon.stub(MockNfc, 'checkP2PRegistration',
                                          () => fakePromise);
 
-      MockService.currentApp = new window.AppWindow(fakePrivateLandingPage);
+      MockService.mockQueryWith('getTopMostWindow',
+        new window.AppWindow(fakePrivateLandingPage));
 
-      this.sinon.stub(MockService.currentApp, 'isPrivateBrowser')
-        .returns(true);
+      this.sinon.stub(MockService.mockQueryWith('getTopMostWindow'),
+        'isPrivateBrowser').returns(true);
 
       // Should not shrink on the landing page.
       nfcManager._checkP2PRegistration();
       assert.isTrue(stubCheckP2P.notCalled);
 
       // Able to share pages after navigating.
-      MockService.currentApp.config.url = 'http://mozilla.org';
+      MockService.mockQueryWith('getTopMostWindow').config.url =
+        'http://mozilla.org';
       nfcManager._checkP2PRegistration();
       assert.isTrue(stubCheckP2P.calledOnce);
     });

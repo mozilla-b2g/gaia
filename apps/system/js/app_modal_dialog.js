@@ -1,4 +1,4 @@
-/* global AppModalDialog, BaseUI */
+/* global BaseUI */
 'use strict';
 
 (function(exports) {
@@ -16,7 +16,7 @@
    *                        where this dialog should popup.
    * @extends BaseUI
    */
-  exports.AppModalDialog = function AppModalDialog(app) {
+  var AppModalDialog = function AppModalDialog(app) {
     this.app = app;
     this.containerElement = app.element;
     this.events = [];
@@ -472,4 +472,5 @@
 
       return title;
     };
+  exports.AppModalDialog = AppModalDialog;
 }(window));

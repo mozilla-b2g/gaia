@@ -35,6 +35,35 @@ suite('system/BaseModule', function() {
     stubLoad.yield();
   });
 
+  suite('Launching promise', function() {
+    test('start should resolve right away', function(done) {
+      var LaunchingPromiseTester = function() {};
+      BaseModule.create(LaunchingPromiseTester, {
+        name: 'LaunchingPromiseTester'
+      });
+      var lpt = BaseModule.instantiate('LaunchingPromiseTester');
+      lpt.start().then(function() {
+        done();
+      });
+    });
+
+    test('custom start', function(done) {
+      var LaunchingPromiseTester = function() {};
+      BaseModule.create(LaunchingPromiseTester, {
+        name: 'LaunchingPromiseTester',
+        _start: function() {
+          return new Promise(function(resolve) {
+            resolve();
+          });
+        }
+      });
+      var lpt = BaseModule.instantiate('LaunchingPromiseTester');
+      lpt.start().then(function() {
+        done();
+      });
+    });
+  });
+
   suite('BaseModule.instantiate', function() {
     test('Get a new instance if the module is available', function() {
       var InstantiationTester = function() {};
@@ -232,66 +261,118 @@ suite('system/BaseModule', function() {
   suite('Submodule management', function() {
     var fakeAppWindowManager, fakePromise;
     setup(function() {
-      fakePromise = new MockPromise();
-      this.sinon.stub(BaseModule, 'lazyLoad', function() {
-        return fakePromise;
+      BaseModule.__clearDefined();
+    });
+    suite('Already defined submodules', function() {
+      setup(function() {
+        fakePromise = new MockPromise();
+        this.sinon.stub(BaseModule, 'lazyLoad', function() {
+          return fakePromise;
+        });
+        window.FakeAppWindowManager = function() {};
+        window.FakeAppWindowManager.SUB_MODULES = ['FakeTaskManager'];
+        BaseModule.create(window.FakeAppWindowManager, {
+          name: 'FakeAppWindowManager'
+        });
+        window.FakeTaskManager = function() {};
+        BaseModule.create(window.FakeTaskManager, {
+          name: 'FakeTaskManager'
+        });
+        fakeAppWindowManager = new window.FakeAppWindowManager();
+        fakeAppWindowManager.start();
       });
-      window.FakeAppWindowManager = function() {};
-      window.FakeAppWindowManager.SUB_MODULES = ['FakeTaskManager'];
-      BaseModule.create(window.FakeAppWindowManager, {
-        name: 'FakeAppWindowManager'
+
+      test('submodule should be not loaded', function() {
+        fakeAppWindowManager._fakeTaskManager_loaded = this.sinon.spy();
+        assert.isDefined(fakeAppWindowManager.fakeTaskManager);
+        assert.isFalse(fakeAppWindowManager._fakeTaskManager_loaded.called);
       });
-      window.FakeTaskManager = function() {};
-      BaseModule.create(window.FakeTaskManager, {
-        name: 'FakeTaskManager'
+    });
+    suite('Not defined submodules', function() {
+      setup(function() {
+        fakePromise = new MockPromise();
+        this.sinon.stub(BaseModule, 'lazyLoad', function() {
+          return fakePromise;
+        });
+        window.FakeAppWindowManager = function() {};
+        window.FakeAppWindowManager.SUB_MODULES = ['FakeTaskManager'];
+        BaseModule.create(window.FakeAppWindowManager, {
+          name: 'FakeAppWindowManager'
+        });
+        window.FakeTaskManager = null;
+        fakeAppWindowManager = new window.FakeAppWindowManager();
+        fakeAppWindowManager.start();
       });
-      fakeAppWindowManager = new window.FakeAppWindowManager();
-      fakeAppWindowManager.start();
-    });
 
-    teardown(function() {
-      fakeAppWindowManager.stop();
-      window.FakeTaskManager = null;
-      window.FakeAppWindowManager = null;
-    });
-
-    test('submodule should be loaded', function() {
-      var spy = fakeAppWindowManager._fakeTaskManager_loaded = this.sinon.spy();
-      fakePromise.mFulfillToValue();
-      assert.isDefined(fakeAppWindowManager.fakeTaskManager);
-      assert.isTrue(spy.called);
-    });
-
-    test('submodule loaded handler should be called if it exists', function() {
-      var spy = fakeAppWindowManager._fakeTaskManager_loaded = this.sinon.spy();
-      fakePromise.mFulfillToValue();
-      assert.isDefined(fakeAppWindowManager.fakeTaskManager);
-      assert.isTrue(spy.called);
-    });
-
-    test('submodule should be started once parent is started', function() {
-      var spyStart = this.sinon.stub(window.FakeTaskManager.prototype, 'start');
-      fakePromise.mFulfillToValue();
-      assert.isTrue(spyStart.called);
-    });
-
-    test('submodule should be stopped once parent is stopped', function() {
-      fakePromise.mFulfillToValue();
-      var spyStop =
-        this.sinon.stub(fakeAppWindowManager.fakeTaskManager, 'stop');
-
-      fakeAppWindowManager.stop();
-      assert.isTrue(spyStop.called);
-    });
-
-    test('submodule should not be started if the parent is already stopped',
-      function() {
-        var spyStart =
-          this.sinon.stub(window.FakeTaskManager.prototype, 'start');
+      teardown(function() {
         fakeAppWindowManager.stop();
-        fakePromise.mFulfillToValue();
-        assert.isFalse(spyStart.called);
+        window.FakeTaskManager = null;
+        window.FakeAppWindowManager = null;
       });
+
+      test('submodule should be loaded', function() {
+        var spy = fakeAppWindowManager._fakeTaskManager_loaded =
+          this.sinon.spy();
+        window.FakeTaskManager = function() {};
+        BaseModule.create(window.FakeTaskManager, {
+          name: 'FakeTaskManager'
+        });
+        fakePromise.mFulfillToValue();
+        assert.isDefined(fakeAppWindowManager.fakeTaskManager);
+        assert.isTrue(spy.called);
+      });
+
+      test('submodule loaded handler should be called if it exists',
+        function() {
+          var spy = fakeAppWindowManager._fakeTaskManager_loaded =
+            this.sinon.spy();
+          window.FakeTaskManager = function() {};
+          BaseModule.create(window.FakeTaskManager, {
+            name: 'FakeTaskManager'
+          });
+          fakePromise.mFulfillToValue();
+          assert.isDefined(fakeAppWindowManager.fakeTaskManager);
+          assert.isTrue(spy.called);
+        });
+
+      test('submodule should be started once parent is started', function() {
+        window.FakeTaskManager = function() {};
+        BaseModule.create(window.FakeTaskManager, {
+          name: 'FakeTaskManager'
+        });
+        var spyStart = this.sinon.stub(window.FakeTaskManager.prototype,
+          'start');
+        fakePromise.mFulfillToValue();
+        assert.isTrue(spyStart.called);
+      });
+
+      test('submodule should be stopped once parent is stopped', function() {
+        window.FakeTaskManager = function() {};
+        BaseModule.create(window.FakeTaskManager, {
+          name: 'FakeTaskManager'
+        });
+        fakePromise.mFulfillToValue();
+        var spyStop =
+          this.sinon.stub(fakeAppWindowManager.fakeTaskManager, 'stop');
+
+        fakeAppWindowManager.stop();
+        assert.isTrue(spyStop.called);
+      });
+
+      test('submodule should not be started if the parent is already stopped',
+        function() {
+          window.FakeTaskManager = function() {};
+          BaseModule.create(window.FakeTaskManager, {
+            name: 'FakeTaskManager'
+          });
+          var spyStart =
+            this.sinon.stub(window.FakeTaskManager.prototype, 'start');
+          fakeAppWindowManager.stop();
+
+          fakePromise.mFulfillToValue();
+          assert.isFalse(spyStart.called);
+        });
+    });
   });
 
   suite('Service registration', function() {
