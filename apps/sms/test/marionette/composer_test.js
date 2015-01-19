@@ -40,6 +40,58 @@ marionette('Messages Composer', function() {
     client.contentScript.inject(
       __dirname + '/mocks/mock_navigator_moz_mobile_message.js'
     );
+    client.contentScript.inject(
+      __dirname + '/mocks/mock_navigator_moz_icc_manager.js'
+    );
+  });
+
+  suite('Preserve message input while navigating', function() {
+    var composer, threadList, thread;
+    var message = 'test message';
+
+    function waitForThreadList() {
+      client.helper.waitForElement(threadList.mmsThread);
+    }
+
+    function createMMSThread() {
+      threadList.navigateToComposer();
+      messagesApp.addRecipient('a@b.c');
+      messagesApp.addRecipient('s@p.c');
+      composer.messageInput.sendKeys('MMS thread.');
+      messagesApp.send();
+    }
+
+    setup(function() {
+      thread = messagesApp.Thread;
+      composer = messagesApp.Composer;
+      threadList = messagesApp.ThreadList;
+
+      messagesApp.launch();
+      createMMSThread();
+      messagesApp.performHeaderAction();
+      waitForThreadList();
+      threadList.mmsThread.tap();
+
+      composer.messageInput.tap();
+      composer.messageInput.sendKeys(message);
+    });
+
+    test('Message input is preserved when navigating to and from group-view',
+    function() {
+      thread.headerTitle.tap();
+      client.helper.waitForElement(messagesApp.Participants.main);
+      messagesApp.performHeaderAction();
+      assert.equal(composer.messageInput.text(), message);
+    });
+
+    test('Message input is preserved when navigating to and from ' +
+    'message-report', function() {
+      messagesApp.contextMenu(thread.message);
+      messagesApp.selectAppMenuOption('View message report');
+      client.helper.waitForElement(messagesApp.Report.main);
+      messagesApp.performHeaderAction();
+      assert.equal(composer.messageInput.text(), message);
+    });
   });
 
   suite('Messages Composer Test Suite', function() {
