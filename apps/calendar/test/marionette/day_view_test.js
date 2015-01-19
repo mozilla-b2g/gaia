@@ -45,9 +45,7 @@ marionette('day view', function() {
         duration: 3
       });
       day.waitForDisplay();
-      day.waitForHourScrollEnd();
-      // Scroll to top to make sure we could click the event element.
-      day.scrollToTop();
+      day.waitForHourScrollEnd(0);
     });
 
     test('click after first hour', function() {
