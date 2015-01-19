@@ -1,7 +1,8 @@
 'use strict';
-/* global SpatialNavigator, XScrollable, KeyNavigationAdapter, Edit */
-/* global CardManager, URL, Application, Clock, Folder, Deck, CardFilter */
-/* global SearchBar, SharedUtils, MozActivity, Home */
+/* global Application, CardFilter, CardManager, Clock, Deck, Edit, Folder, Home,
+          KeyNavigationAdapter, MessageHandler, MozActivity, SearchBar,
+          SharedUtils, SpatialNavigator, URL, XScrollable */
+/* jshint nonew: false */
 
 (function(exports) {
 
