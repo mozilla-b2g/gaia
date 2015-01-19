@@ -9,7 +9,7 @@ marionette('Private Browser Trigger', function() {
   setup(function() {
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('launches private window', function() {

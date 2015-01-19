@@ -2,7 +2,7 @@
    MockNavigatorGetDeviceStorage,  MockL10n, MockBTAdapter, MockDOMRequest,
    BluetoothTransfer, MockNotificationHelper, MockUtilityTray,
    NotificationHelper, MockCustomDialog, MimeMapper, mockMozActivityInstance,
-   Service*/
+   Service, MockService */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
@@ -12,19 +12,20 @@ require('/test/unit/mock_navigator_get_device_storage.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_bluetooth_v2.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_notification_helper.js');
-require('/shared/test/unit/mocks/mock_custom_dialog.js');
 require('/shared/js/mime_mapper.js');
 require('/test/unit/mock_utility_tray.js');
 require('/test/unit/mock_nfc_handover_manager.js');
 require('/test/unit/mock_activity.js');
 require('/shared/test/unit/mocks/mock_service.js');
+require('/shared/test/unit/mocks/mock_custom_dialog.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 var mocksForBluetoothTransfer = new MocksHelper([
   'NotificationHelper',
-  'CustomDialog',
   'MozActivity',
   'UtilityTray',
-  'Service'
+  'Service',
+  'LazyLoader'
 ]).init();
 
 suite('system/bluetooth_transfer', function() {
@@ -61,6 +62,14 @@ suite('system/bluetooth_transfer', function() {
 
   suite('Initialize', function() {
     setup(function() {
+      this.sinon.stub(MockService, 'request', function(action) {
+        if (action === 'showModalDialog') {
+          MockCustomDialog.show(arguments[1], arguments[2],
+            arguments[3], arguments[4]);
+        } else if (action === 'hideCustomDialog') {
+          MockCustomDialog.hide();
+        }
+      });
       this.sinon.spy(window, 'addEventListener');
       this.sinon.spy(window.navigator, 'mozSetMessageHandler');
       BluetoothTransfer.start();
@@ -323,7 +332,6 @@ suite('system/bluetooth_transfer', function() {
 
         BluetoothTransfer.declineReceive('AA:BB:CC:00:22:33');
 
-        assert.isFalse(MockCustomDialog.mShown);
         assert.isTrue(
           MockBTAdapter.confirmReceivingFile
             .calledWith('AA:BB:CC:00:22:33', false)
@@ -336,8 +344,6 @@ suite('system/bluetooth_transfer', function() {
 
         BluetoothTransfer.declineReceive('AA:BB:CC:00:22:33');
         assert.isFalse(MockBTAdapter.confirmReceivingFile.called);
-
-        MockCustomDialog.mTeardown();
       });
 
       test('acceptReceive', function() {
@@ -351,9 +357,6 @@ suite('system/bluetooth_transfer', function() {
         this.sinon.spy(MockBTAdapter, 'confirmReceivingFile');
 
         BluetoothTransfer.acceptReceive(evt);
-
-        assert.isFalse(MockCustomDialog.mShown);
-
         assert.isTrue(BluetoothTransfer.checkStorageSpace
           .calledWith(evt.fileLength));
         BluetoothTransfer.checkStorageSpace.getCall(0).args[1](true, 'somemsg');
@@ -378,33 +381,19 @@ suite('system/bluetooth_transfer', function() {
         BluetoothTransfer.checkStorageSpace.getCall(0)
           .args[1](false, 'somemsg3');
         assert.isFalse(MockBTAdapter.confirmReceivingFile.called);
-
-        MockCustomDialog.mTeardown();
       });
 
       test('showStorageUnavaliablePrompt', function() {
-        MockCustomDialog.mTeardown();
-
+        this.sinon.stub(MockService, 'request');
         BluetoothTransfer.showStorageUnavaliablePrompt('message');
 
-        assert.equal(
-          MockCustomDialog.mShowedTitle,
-          'cannotReceiveFile'
-        );
-        assert.equal(
-          MockCustomDialog.mShowedMsg,
+        assert.isTrue(MockService.request.calledWith(
+          'showCustomDialog',
+          'cannotReceiveFile',
           'message'
-        );
-        assert.isTrue(MockCustomDialog.mShown);
-
-        assert.equal(
-          MockCustomDialog.mShowedCancel.title,
-          'confirm'
-        );
-        MockCustomDialog.mShowedCancel.callback();
-        assert.isFalse(MockCustomDialog.mShown);
-
-        MockCustomDialog.mTeardown();
+        ));
+        MockService.request.getCall(0).args[3].callback();
+        assert.isTrue(MockService.request.calledWith('hideCustomDialog'));
       });
 
       test('checkStorageSpace', function() {
@@ -592,33 +581,21 @@ suite('system/bluetooth_transfer', function() {
       });
 
       test('showUnknownMediaPrompt', function() {
-        MockCustomDialog.mTeardown();
-
+        this.sinon.stub(MockService, 'request');
         BluetoothTransfer.showUnknownMediaPrompt('theFile.ext');
 
-        assert.deepEqual(
-          MockCustomDialog.mShowedTitle,
-          'cannotOpenFile'
-        );
-        assert.deepEqual(
-          MockCustomDialog.mShowedMsg,
+        assert.isTrue(MockService.request.calledWith(
+          'showCustomDialog',
+          'cannotOpenFile',
           {
             id: 'unknownMediaTypeToOpenFile',
             args: {
               fileName: 'theFile.ext'
             }
           }
-        );
-        assert.isTrue(MockCustomDialog.mShown);
-
-        assert.deepEqual(
-          MockCustomDialog.mShowedCancel.title,
-          'confirm'
-        );
-        MockCustomDialog.mShowedCancel.callback();
-        assert.isFalse(MockCustomDialog.mShown);
-
-        MockCustomDialog.mTeardown();
+        ));
+        MockService.request.getCall(0).args[3].callback();
+        assert.isTrue(MockService.request.calledWith('hideCustomDialog'));
       });
     });
 
@@ -722,8 +699,7 @@ suite('system/bluetooth_transfer', function() {
       });
 
       test('showCancelTransferPrompt', function() {
-        MockCustomDialog.mTeardown();
-
+        this.sinon.stub(MockService, 'request');
         var stubContinueTransfer =
           this.sinon.stub(BluetoothTransfer, 'continueTransfer');
         var stubCancelTransfer =
@@ -731,31 +707,22 @@ suite('system/bluetooth_transfer', function() {
 
         BluetoothTransfer.showCancelTransferPrompt('DD:FE:00:11:22:33');
 
-        assert.isTrue(MockCustomDialog.mShown);
+        assert.isTrue(MockService.request.calledWith('showCustomDialog',
+          'cancelFileTransfer', 'cancelFileTransfer'));
         assert.equal(
-          MockCustomDialog.mShowedTitle,
-          'cancelFileTransfer'
-        );
-        assert.equal(
-          MockCustomDialog.mShowedMsg,
-          'cancelFileTransfer'
-        );
-        assert.equal(
-          MockCustomDialog.mShowedCancel.title,
+          MockService.request.getCall(0).args[3].title,
           'continueFileTransfer'
         );
         assert.equal(
-          MockCustomDialog.mShowedConfirm.title,
+          MockService.request.getCall(0).args[4].title,
           'cancel'
         );
 
-        MockCustomDialog.mShowedCancel.callback();
+        MockService.request.getCall(0).args[3].callback();
         assert.isTrue(stubContinueTransfer.called);
 
-        MockCustomDialog.mShowedConfirm.callback();
+        MockService.request.getCall(0).args[4].callback();
         assert.isTrue(stubCancelTransfer.calledWith('DD:FE:00:11:22:33'));
-
-        MockCustomDialog.mTeardown();
       });
 
       test('cancelTransfer', function() {
@@ -763,10 +730,7 @@ suite('system/bluetooth_transfer', function() {
         var spyStopSendingFile =
           this.sinon.spy(MockBTAdapter, 'stopSendingFile');
         MockCustomDialog.mTeardown();
-
         BluetoothTransfer.cancelTransfer('CC:DD:00:AA:22:44');
-
-        assert.isFalse(MockCustomDialog.mShown);
         assert.isTrue(spyStopSendingFile.calledWith('CC:DD:00:AA:22:44'));
 
         Service.query.restore();
@@ -776,8 +740,6 @@ suite('system/bluetooth_transfer', function() {
 
         BluetoothTransfer.cancelTransfer('CC:DD:00:AA:22:44');
         assert.isFalse(spyStopSendingFile.called);
-
-        MockCustomDialog.mTeardown();
       });
     });
 

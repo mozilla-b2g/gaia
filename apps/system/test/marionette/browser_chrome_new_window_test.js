@@ -27,7 +27,7 @@ marionette('Browser Chrome - Open New Window', function() {
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('open new window', function() {

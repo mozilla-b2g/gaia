@@ -2,31 +2,32 @@
 
 /* global DialerAgent, MockAppWindow, MocksHelper, MockNavigatorMozTelephony,
           MockSettingsListener, MockSettingsURL, MockAudio, MockApplications,
-          MockVersionHelper */
+          MockService */
 
 require('/js/dialer_agent.js');
 require('/test/unit/mock_app_window.js');
 require('/test/unit/mock_applications.js');
 require('/test/unit/mock_attention_window.js');
 require('/test/unit/mock_callscreen_window.js');
-require('/test/unit/mock_version_helper.js');
+require('/test/unit/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_settings_url.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
+require('/shared/test/unit/mocks/mock_service.js');
 
 var mocksForDialerAgent = new MocksHelper([
   'CallscreenWindow',
   'Audio',
   'SettingsListener',
   'SettingsURL',
-  'VersionHelper'
+  'LazyLoader',
+  'Service'
 ]).init();
 
 suite('system/DialerAgent', function() {
   mocksForDialerAgent.attachTestHelpers();
-  var realTelephony, realVibrate, realSystem, realApplications,
-      realVersionHelper;
+  var realTelephony, realVibrate, realApplications;
 
   var subject;
   var setVisibleSpy;
@@ -41,16 +42,11 @@ suite('system/DialerAgent', function() {
     realTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
     realVibrate = navigator.vibrate;
-    realSystem = window.Service;
-    window.Service = {locked: false};
-    realVersionHelper = window.VersionHelper;
-    window.VersionHelper = MockVersionHelper(false);
   });
 
   suiteTeardown(function() {
     navigator.mozTelephony = realTelephony;
     navigator.vibrate = realVibrate;
-    window.Service = realSystem;
     window.applications = realApplications;
     MockNavigatorMozTelephony.mSuiteTeardown();
   });
@@ -76,6 +72,17 @@ suite('system/DialerAgent', function() {
     this.addEventListener = function() {};
     this.removeEventListener = function() {};
   }
+
+  test('Should load tone player if just upgraded', function() {
+    window.toneUpgrader = {
+      perform: this.sinon.spy()
+    };
+    subject.stop();
+    MockService.mockQueryWith('justUpgraded', true);
+    subject.start();
+    assert.isTrue(window.toneUpgrader.perform.calledWith('ringtone'));
+    delete window.toneUpgrader;
+  });
 
   suite('Audio element setup', function() {
     var mockAudio;

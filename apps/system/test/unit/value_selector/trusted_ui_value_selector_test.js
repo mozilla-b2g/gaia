@@ -1,12 +1,18 @@
 'use strict';
-/* global TrustedUiValueSelector */
+/* global TrustedUiValueSelector, MocksHelper */
 
 requireApp('system/js/service.js');
 requireApp('system/js/base_ui.js');
 requireApp('system/js/value_selector/value_selector.js');
 requireApp('system/js/value_selector/trusted_ui_value_selector.js');
+requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
+
+var mocksHelperForTrustedUiValueSelector = new MocksHelper([
+  'LazyLoader'
+]).init();
 
 suite('Value Selector for trusted UI', function() {
+  mocksHelperForTrustedUiValueSelector.attachTestHelpers();
   var context = {
     element: document.createElement('div')
   };

@@ -2,7 +2,7 @@
 
 'use strict';
 
-requireApp('system/test/unit/mock_orientation_manager.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_applications.js');
@@ -12,8 +12,8 @@ requireApp('system/test/unit/mock_context_menu.js');
 requireApp('system/shared/test/unit/mocks/mock_screen_layout.js');
 
 var mocksForPopupWindow = new MocksHelper([
-  'OrientationManager', 'Applications', 'SettingsListener',
-  'ManifestHelper', 'AppChrome'
+  'Applications', 'SettingsListener',
+  'ManifestHelper', 'AppChrome', 'Service'
 ]).init();
 
 suite('system/PopupWindow', function() {
@@ -50,7 +50,6 @@ suite('system/PopupWindow', function() {
 
       return element;
     });
-    requireApp('system/js/service.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');
     requireApp('system/js/base_module.js');

@@ -26,7 +26,7 @@ marionette('Private Browser - Basic Sanity Test', function() {
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   var STORAGE_KEY = 'foo';
