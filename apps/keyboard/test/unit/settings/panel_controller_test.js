@@ -1,6 +1,6 @@
 'use strict';
 
-/* global PanelController, MockPromise */
+/* global PanelController, DialogController, MockPromise */
 
 require('/js/settings/panel_controller.js');
 require('/shared/test/unit/mocks/mock_promise.js');
@@ -103,14 +103,48 @@ suite('PanelController', function() {
 
     assert.strictEqual(controller._currentPanel, null);
   });
+});
 
-  suite('openDialog', function() {
+suite('DialogController', function() {
+  var controller;
+  var dialog;
+  var options;
+  var stubCreateTransitionPromise;
+
+  setup(function() {
+    dialog = {
+      beforeShow: this.sinon.stub().returns('promiseBeforeShow'),
+      show: this.sinon.stub().returns('promiseShow'),
+      beforeHide: this.sinon.stub().returns('promiseBeforeHide'),
+      hide: this.sinon.stub().returns('promiseHide'),
+      onsubmit: undefined,
+      _container: document.createElement('div')
+    };
+
+    options = {};
+
+    this.sinon.stub(window, 'Promise', MockPromise);
+    this.sinon.spy(window.Promise, 'resolve');
+
+    controller = new DialogController();
+    controller.start();
+
+    stubCreateTransitionPromise =
+      this.sinon.stub(controller, '_createTransitionPromise')
+      .returns('promiseTransition');
+  });
+
+  teardown(function() {
+    controller.stop();
+  });
+
+  suite('openDialog with a dialog', function() {
     var resultPromise; // openDialog's returned Promise
     var resResolve; // openDialog's internal resolve/reject func from Promise
     var resReject;
 
     setup(function() {
-      resultPromise = controller.openDialog(panel, options);
+      resultPromise = controller.openDialog(dialog, options);
 
       var pResult = window.Promise.firstCall.returnValue;
       resResolve = this.sinon.spy();
@@ -122,7 +156,9 @@ suite('PanelController', function() {
     test('normal flow', function() {
       // Promise.resolve <----> 1st .then()
 
-      assert.isTrue(panel.beforeShow.calledWith(options));
+      assert.equal(options.dialogController, controller);
+
+      assert.isTrue(dialog.beforeShow.calledWith(options));
 
       assert.isTrue(window.Promise.resolve.calledWith('promiseBeforeShow'));
 
@@ -131,16 +167,16 @@ suite('PanelController', function() {
       var val1 = p1.mFulfillToValue(undefined);
       assert.equal(val1, 'promiseTransition');
 
-      assert.isTrue(stubCreateTransitionPromise.calledWith(panel._container));
+      assert.isTrue(stubCreateTransitionPromise.calledWith(dialog._container));
 
-      assert.isTrue(panel._container.classList.contains('displayed'));
+      assert.isTrue(dialog._container.classList.contains('displayed'));
 
 
       // 2nd .then() onwards
       var p2 = p1.mGetNextPromise();
       var val2 = p2.mFulfillToValue(undefined);
 
-      assert.isTrue(panel.show.calledOnce);
+      assert.isTrue(dialog.show.calledOnce);
       assert.equal(val2, 'promiseShow');
 
       // inside onsubmit
@@ -148,7 +184,7 @@ suite('PanelController', function() {
       stubCreateTransitionPromise.reset();
 
       var results = {};
-      panel.onsubmit(results);
+      dialog.onsubmit(results);
 
       assert.isTrue(resResolve.calledWith(results));
 
@@ -162,15 +198,15 @@ suite('PanelController', function() {
       var valS1 = pS1.mFulfillToValue(undefined);
       assert.equal(valS1, 'promiseTransition');
 
-      assert.isTrue(stubCreateTransitionPromise.calledWith(panel._container));
+      assert.isTrue(stubCreateTransitionPromise.calledWith(dialog._container));
 
-      assert.isFalse(panel._container.classList.contains('displayed'));
+      assert.isFalse(dialog._container.classList.contains('displayed'));
 
 
       // 2nd .then() onwards, inside onsubmit
       var pS2 = pS1.mGetNextPromise();
       var valS2 = pS2.mFulfillToValue(undefined);
-      assert.strictEqual(panel.onsubmit, undefined);
+      assert.strictEqual(dialog.onsubmit, undefined);
 
       assert.equal(valS2, 'promiseHide');
     });
@@ -190,4 +226,14 @@ suite('PanelController', function() {
       assert.isTrue(resReject.calledWith('error2'));
     });
   });
+
+  test('openDialog argument not having onsubmit', function() {
+    this.sinon.spy(window.Promise, 'reject');
+
+    controller.openDialog({});
+
+    assert.isTrue(window.Promise.reject.calledWith(
+      'Dialog does not have a onsubmit callback'));
+  });
 });
+

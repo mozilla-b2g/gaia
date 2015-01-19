@@ -1,0 +1,26 @@
+<element name="tc-applications" extends="section">
+  <template>
+    <header>
+      <a class="pp-link back" href="#tc-main">
+        <span class="icon gaia-icon-back">back</span>
+      </a>
+      <h1 data-l10n-id="tc-applications">Applications</h1>
+    </header>
+
+    <div>
+      <ul>
+        <li>
+          <span class="button icon icon-dialog">
+            <select id="tc-sortKey">
+              <option value="name"   data-l10n-id="tc-sort-alphabetical" selected>alphabetical</option>
+              <option value="trust"  data-l10n-id="tc-sort-trustLevel">Trust Level</option>
+              <option value="vendor" data-l10n-id="tc-sort-vendor">Vendor</option>
+            </select>
+          </span>
+        </li>
+      </ul>
+
+      <div id="tc-appList"></div>
+    </div>
+  </template>
+</element>

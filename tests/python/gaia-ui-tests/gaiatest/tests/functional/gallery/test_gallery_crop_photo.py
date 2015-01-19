@@ -1,8 +1,10 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
-from marionette.by import By
+try:
+    from marionette.by import By
+except:
+    from marionette_driver.by import By
 from gaiatest import GaiaTestCase
 from gaiatest.apps.gallery.app import Gallery
 

@@ -4373,7 +4373,6 @@ suite('thread_ui.js >', function() {
       ThreadUI.onSendClick();
       // we get a string from the MultiSimActionButton
       ThreadUI.simSelectedCallback(undefined, '' + serviceId);
-      sinon.assert.called(Compose.focus);
     }
 
     setup(function() {
@@ -4403,6 +4402,7 @@ suite('thread_ui.js >', function() {
 
       clickButton();
 
+      sinon.assert.called(Compose.focus);
       sinon.assert.calledWithMatch(MessageManager.sendSMS, {
         recipients: [recipient],
         content: body,
@@ -4436,6 +4436,7 @@ suite('thread_ui.js >', function() {
 
       clickButton();
 
+      sinon.assert.called(Compose.focus);
       sinon.assert.calledWithMatch(MessageManager.sendMMS, {
         recipients: [recipient],
         serviceId: 0
@@ -4471,6 +4472,7 @@ suite('thread_ui.js >', function() {
 
         clickButton();
 
+        sinon.assert.notCalled(Compose.focus);
         sinon.assert.calledWithMatch(
           MessageManager.sendSMS, {
           recipients: recipients,
@@ -4521,6 +4523,7 @@ suite('thread_ui.js >', function() {
 
       clickButton();
 
+      sinon.assert.called(Compose.focus);
       sinon.assert.notCalled(Navigation.toPanel);
       sinon.assert.calledWithMatch(MessageManager.sendMMS, {
         recipients: recipients,

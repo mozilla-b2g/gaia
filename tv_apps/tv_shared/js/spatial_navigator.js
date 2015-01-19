@@ -41,9 +41,7 @@
    * @property {SpatialNavigatorElement} elem    The element which lost focus.
    */
   function SpatialNavigator(collection) {
-    this._collection = null;
     this._focus = null;
-
     this.setCollection(collection);
   }
 
@@ -194,6 +192,43 @@
 
         groupId = y * 3 + x;
         groups[groupId].push(rect);
+
+        // Although a rect is on the oblique directions, we categorize it in
+        // the cross areas as well if it overlays the cross directions more than
+        // half the width or height of the targetRect.
+        if (targetRect.center) {
+          if (rect.left < targetRect.center.x) {
+            if (groupId == 2) {
+              groups[1].push(rect);
+            } else if (groupId == 8) {
+              groups[7].push(rect);
+            }
+          }
+
+          if (rect.right > targetRect.center.x) {
+            if (groupId == 0) {
+              groups[1].push(rect);
+            } else if (groupId == 6) {
+              groups[7].push(rect);
+            }
+          }
+
+          if (rect.top < targetRect.center.y) {
+            if (groupId == 6) {
+              groups[3].push(rect);
+            } else if (groupId == 8) {
+              groups[5].push(rect);
+            }
+          }
+
+          if (rect.bottom > targetRect.center.y) {
+            if (groupId == 0) {
+              groups[3].push(rect);
+            } else if (groupId == 2) {
+              groups[5].push(rect);
+            }
+          }
+        }
       });
 
       return groups;
@@ -349,7 +384,10 @@
      */
     setCollection: function snSetCollection(collection) {
       this.unfocus();
-      this._collection = collection ? [].concat(collection) : [];
+      this._collection = [];
+      if (collection) {
+        this.multiAdd(collection);
+      }
     },
 
     /**
@@ -374,9 +412,9 @@
      * @param  {Array.<SpatialNavigatorElement>} elements
      */
     multiAdd: function snMultiAdd(elements) {
-      elements.forEach(function(elem) {
-        this.add(elem);
-      }, this);
+      for (var i = 0; i < elements.length; i++) {
+        this.add(elements[i]);
+      };
     },
 
     /**
@@ -407,9 +445,9 @@
      * @param  {Array.<SpatialNavigatorElement>} elements
      */
     multiRemove: function snMultiRemove(elements) {
-      elements.forEach(function(elem) {
-        this.remove(elem);
-      }, this);
+      for (var i = 0; i < elements.length; i++) {
+        this.remove(elements[i]);
+      };
     },
 
     /**

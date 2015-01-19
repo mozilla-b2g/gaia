@@ -538,6 +538,44 @@ suite('Settings Test Suite >', function() {
         Settings.initialize();
       });
 
+      test('No corrections with invalid entries', function(done) {
+        setupPrepaidMode();
+        this.sinon.stub(Settings, 'updateUI', function() {
+          initDataLimitDialog();
+
+          dataLimitInput.value = '0';
+          dataLimitInput.dispatchEvent(evtInput);
+          assert.equal(dataLimitInput.value, '0');
+          assertDataLimitInputInvalid();
+
+          dataLimitInput.value = '0.';
+          dataLimitInput.dispatchEvent(evtInput);
+          assert.equal(dataLimitInput.value, '0.');
+          assertDataLimitInputInvalid();
+
+          dataLimitInput.value = '0.0';
+          dataLimitInput.dispatchEvent(evtInput);
+          assert.equal(dataLimitInput.value, '0.0');
+          assertDataLimitInputInvalid();
+
+          dataLimitInput.value = '.';
+          dataLimitInput.dispatchEvent(evtInput);
+          assert.equal(dataLimitInput.value, '.');
+          assertDataLimitInputInvalid();
+
+          dataLimitInput.value = '.0';
+          dataLimitInput.dispatchEvent(evtInput);
+          assert.equal(dataLimitInput.value, '.0');
+          assertDataLimitInputInvalid();
+
+          triggerEvent(dataLimitHeader, 'action');
+
+          done();
+        });
+
+        Settings.initialize();
+      });
+
       test('Removing left zeros ', function(done) {
         setupPrepaidMode();
         sinon.stub(Settings, 'updateUI', function() {

@@ -51,6 +51,9 @@
       this.searchBar.on('shown', this.onSearchBarShown.bind(this));
       this.searchBar.on('hidden', this.onSearchBarHidden.bind(this));
 
+      this.messageHandler = new MessageHandler();
+      this.messageHandler.init(this);
+
       this.cardManager.getCardList().then(function(cardList) {
         that._createCardList(cardList);
         that.cardScrollable = new XScrollable({
@@ -61,6 +64,7 @@
         var collection = that.getNavigateElements();
 
         that.spatialNavigator = new SpatialNavigator(collection);
+        that.spatialNavigator.crossOnly = true;
         that.keyNavigatorAdapter = new KeyNavigationAdapter();
         that.keyNavigatorAdapter.init();
         that.keyNavigatorAdapter.on('move', that.onMove.bind(that));
@@ -93,6 +97,18 @@
         that.edit = new Edit();
         that.edit.init(
                   that.spatialNavigator, that.cardManager, that.cardScrollable);
+
+        // In some case, we can do action at keydown which is translated as
+        // onEnter in home.js. But in button click case, we need to listen
+        // keyup. So, instead keydown/keyup, we just use click event to handle
+        // it. The click event is translated at smart-button when use press
+        // enter on smart-button.
+        that.searchButton.addEventListener('click', function() {
+          that.searchBar.show();
+          // hide the searchButton because searchBar has an element whose
+          // appearance is the same as it.
+          that.searchButton.classList.add('hidden');
+        }.bind(that));
       });
     },
 
@@ -112,9 +128,7 @@
 
     onCardInserted: function(card, idx) {
       this.cardScrollable.insertNodeBefore(this._createCardNode(card), idx);
-      if(this.edit.mode === 'edit') {
-        this.cardScrollable.focus(idx);
-      }
+      this.cardScrollable.focus(idx);
     },
 
     onCardRemoved: function(indices) {
@@ -277,16 +291,6 @@
       }
 
       var focus = this.spatialNavigator.getFocusedElement();
-      // XXX: We customized some navigating target here for those targets that
-      // don't move as we expected.
-      // We are planning to replace spatialNavigator with other solution, since
-      // most navigating case in smart-home is relatively simpler and
-      // spatialNavigator seems a little bit overkilled.
-      if((key === 'down' && this.topElementIds.indexOf(focus.id) !== -1) ||
-         (key === 'up' && this.bottomElementIds.indexOf(focus.id) !== -1)) {
-        this.spatialNavigator.focus(this.cardScrollable);
-        return;
-      }
 
       if (!(focus.CLASS_NAME == 'XScrollable' && focus.move(key))) {
         this.spatialNavigator.move(key);
@@ -304,11 +308,6 @@
         this.openSettings();
       } else if (focusElem === this.editButton) {
         this.edit.toggleEditMode();
-      } else if (focusElem === this.searchButton) {
-        this.searchBar.show();
-        // hide the searchButton because searchBar has an element whose
-        // appearance is the same as it.
-        this.searchButton.classList.add('hidden');
       } else {
         // Current focus is on a card
         var cardId = focusElem.dataset.cardId;
@@ -321,7 +320,8 @@
 
     onSearchBarShown: function() {
       new MozActivity({
-        name: 'search'
+        name: 'search',
+        data: { keyword: '' }
       });
       this.searchBar.hide();
     },

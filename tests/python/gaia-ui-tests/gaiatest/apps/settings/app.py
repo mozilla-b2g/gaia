@@ -2,9 +2,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette import expected
-from marionette.wait import Wait
-from marionette.by import By
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
 
 from gaiatest.apps.base import Base
 
@@ -46,6 +51,7 @@ class Settings(Base):
     _device_info_menu_item_locator = (By.ID, 'menuItem-deviceInfo')
     _battery_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-battery')
     _sim_manager_menu_item_locator = (By.ID, 'menuItem-simManager')
+    _date_and_time_menu_item_locator = (By.ID, 'menuItem-dateAndTime')
     _homescreen_menu_item_locator = (By.ID, 'menuItem-homescreen')
     _browsing_privacy_item_locator = (By.ID, 'menuItem-browsingPrivacy')
     _findmydevice_locator = (By.ID, 'menuItem-findmydevice')
@@ -198,6 +204,11 @@ class Settings(Base):
         from gaiatest.apps.settings.regions.wifi import Wifi
         self._tap_menu_item(self._wifi_menu_item_locator)
         return Wifi(self.marionette)
+
+    def open_date_and_time_settings(self):
+        from gaiatest.apps.settings.regions.date_and_time import DateAndTime
+        self._tap_menu_item(self._date_and_time_menu_item_locator)
+        return DateAndTime(self.marionette)
 
     def open_findmydevice(self):
         from gaiatest.apps.settings.regions.findmydevice import FindMyDevice

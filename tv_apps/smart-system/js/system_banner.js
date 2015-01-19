@@ -5,7 +5,7 @@
  /**
    * SystemBanner displays a type of notification to the user in certain cases.
    * It is a type of temporary notification that does not live in the
-   * notifications tray. Examples of the SystemBanner implementation include 
+   * notifications tray. Examples of the SystemBanner implementation include
    * application installation, crash reporter, and low storage notices.
    * @class SystemBanner
    */
@@ -64,12 +64,16 @@
      */
     show: function(message, buttonParams) {
       var banner = this.banner;
-      banner.firstElementChild.textContent = message;
-
+      navigator.mozL10n.setAttributes(
+        banner.firstElementChild,
+        message.id,
+        message.args
+      );
       var button = banner.querySelector('button');
+
       if (buttonParams) {
         banner.dataset.button = true;
-        button.textContent = buttonParams.label;
+        button.setAttribute('data-l10n-id', buttonParams.labelL10nId);
         this._clickCallback = function() {
           this._clicked = true;
           buttonParams.callback();

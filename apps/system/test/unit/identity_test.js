@@ -2,52 +2,29 @@
 
 requireApp('system/js/identity.js');
 requireApp('system/test/unit/mock_chrome_event.js');
-requireApp('system/test/unit/mock_trusted_ui_manager.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-
-// ensure its defined as a global so mocha will not complain about us
-// leaking new global variables during the test
-if (!window.TrustedUIManager) {
-  window.TrustedUIManager = true;
-}
 
 suite('identity', function() {
   var subject;
   var realL10n;
-  var realTrustedUIManager;
-  var realDispatchEvent;
-
-  var lastDispatchedEvent = null;
-
   suiteSetup(function() {
     subject = Identity;
-    realTrustedUIManager = window.TrustedUIManager;
-    window.TrustedUIManager = MockTrustedUIManager;
 
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-
-    realDispatchEvent = subject._dispatchEvent;
-    subject._dispatchEvent = function(obj) {
-      lastDispatchedEvent = obj;
-    };
   });
 
   suiteTeardown(function() {
-    window.TrustedUIManager = realTrustedUIManager;
-    subject._dispatchEvent = realDispatchEvent;
-
     navigator.mozL10n = realL10n;
   });
 
-  setup(function() {});
-
-  teardown(function() {
-    MockTrustedUIManager.mTeardown();
-  });
-
   suite('open popup', function() {
+    var stubDispatchEvent;
+    var fakeIframe;
     setup(function() {
+      fakeIframe = document.createElement('iframe');
+      this.sinon.stub(document, 'createElement').returns(fakeIframe);
+      stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
       var event = new MockChromeEvent({
         type: 'id-dialog-open',
         id: 'test-open-event-id',
@@ -57,50 +34,69 @@ suite('identity', function() {
     });
 
     test('popup parameters', function() {
-      assert.equal(MockTrustedUIManager.mOpened, true);
-      assert.equal(MockTrustedUIManager.mName, 'persona-signin');
-      assert.equal(MockTrustedUIManager.mChromeEventId, 'test-open-event-id');
+      var result = stubDispatchEvent.getCall(0).args[0];
+      assert.equal(result.type, 'launchtrusted');
+      assert.equal(result.detail.name, 'persona-signin');
+      assert.equal(result.detail.chromeId, 'test-open-event-id');
     });
 
     test('frame event listener', function() {
-      var frame = MockTrustedUIManager.mFrame;
-      var event = document.createEvent('CustomEvent');
-      event.initCustomEvent('mozbrowserloadstart', true, true, {target: frame});
-      frame.dispatchEvent(event);
+      var stubIdentityDispatchEvent =
+        this.sinon.stub(subject, '_dispatchEvent');
 
-      assert.equal(frame, lastDispatchedEvent.frame);
-      assert.equal('test-open-event-id', lastDispatchedEvent.id);
+      fakeIframe.dispatchEvent(new CustomEvent('mozbrowserloadstart'));
+
+      assert.equal(stubIdentityDispatchEvent.getCall(0).args[0].id,
+        'test-open-event-id');
+      assert.deepEqual(stubIdentityDispatchEvent.getCall(0).args[0].frame,
+        fakeIframe);
     });
   });
 
   suite('close popup', function() {
+    var stubDispatchEvent, stubIdentityDispatchEvent;
     setup(function() {
+      stubDispatchEvent =
+        this.sinon.stub(window, 'dispatchEvent');
       var event = new MockChromeEvent({
         type: 'id-dialog-done',
         id: 'test-close-event-id',
         showUI: true
       });
+      stubIdentityDispatchEvent =
+        this.sinon.stub(subject, '_dispatchEvent');
       subject.handleEvent(event);
     });
 
     test('close', function() {
-      assert.equal(false, MockTrustedUIManager.mOpened);
-      assert.equal('test-close-event-id', lastDispatchedEvent.id);
+      var resultEvent = stubDispatchEvent.getCall(0).args[0];
+      assert.equal(resultEvent.type, 'killtrusted');
+      assert.equal(resultEvent.detail.chromeId, 'test-close-event-id');
+      assert.isTrue(stubIdentityDispatchEvent.calledWith({
+        id: 'test-close-event-id'
+      }));
     });
   });
 
   suite('close iframe', function() {
+    var container;
     setup(function() {
-      var event = new MockChromeEvent({
-        type: 'id-dialog-close-iframe',
-          id: 'test-close-iframe-id'
-      });
-      subject.handleEvent(event);
+      container = document.createElement('div');
+      container.id = 'screen';
+      document.body.appendChild(container);
     });
 
     test('close iframe', function() {
-      assert.equal(false, MockTrustedUIManager.mOpened);
-      assert.equal('test-close-event-id', lastDispatchedEvent.id);
+      subject.handleEvent(new MockChromeEvent({
+        type: 'id-dialog-open',
+        id: 'test-open-event-id'
+      }));
+      assert.isTrue(!!container.querySelector('iframe'));
+      subject.handleEvent(new MockChromeEvent({
+        type: 'id-dialog-close-iframe',
+          id: 'test-close-iframe-id'
+      }));
+      assert.isFalse(!!container.querySelector('iframe'));
     });
   });
 });

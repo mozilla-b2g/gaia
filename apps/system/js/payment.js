@@ -23,7 +23,7 @@ var Payment = {
     if (!this.chromeEventId)
       return;
 
-    var requestId = e.detail.requestId;
+    this.requestId = e.detail.requestId;
 
     switch (e.detail.type) {
       // Chrome asks Gaia to show the payment request confirmation dialog.
@@ -97,7 +97,7 @@ var Payment = {
         //       only accepts the JWT by GET, so we just add it to the URI.
         e.detail.uri += e.detail.jwt;
 
-        this.trustedUILayers[requestId] = this.chromeEventId;
+        this.trustedUILayers[this.requestId] = this.chromeEventId;
 
         var frame = document.createElement('iframe');
         frame.setAttribute('mozbrowser', 'true');
@@ -119,11 +119,12 @@ var Payment = {
         break;
 
       case 'close-payment-flow-dialog':
-        TrustedUIManager.close(this.trustedUILayers[requestId],
-                               (function dialogClosed() {
-          this._dispatchEvent({ id: this.chromeEventId });
-          delete this.trustedUILayers[requestId];
-        }).bind(this));
+        window.dispatchEvent(new CustomEvent('killtrusted', {
+          detail: {
+            requestId: this.requestId,
+            chromeId: this.chromeEventId
+          }
+        }));
         break;
     }
   },
@@ -133,7 +134,15 @@ var Payment = {
     // the mozPay caller application as title.
     var title = Service.currentApp.name;
     title = title ? title : navigator.mozL10n.get('payment-flow');
-    TrustedUIManager.open(title, frame, this.chromeEventId);
+
+    window.dispatchEvent(new CustomEvent('launchtrusted', {
+      detail: {
+        name: title,
+        frame: frame,
+        requestId: this.requestId,
+        chromeId: this.chromeEventId
+      }
+    }));
   },
 
   _dispatchEvent: function _dispatchEvent(obj) {

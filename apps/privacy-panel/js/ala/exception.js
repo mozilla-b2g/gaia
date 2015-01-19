@@ -1,19 +1,18 @@
 /**
  * ALA exception panel.
- * 
+ *
  * @module ALAException
  * @return {Object}
  */
 define([
   'panels',
   'ala/blur_slider',
-  'ala/app_list',
   'ala/exceptions',
   'shared/settings_listener',
   'shared/settings_helper'
 ],
 
-function(panels, BlurSlider, appList, alaExceptions, SettingsListener,
+function(panels, BlurSlider, alaExceptions, SettingsListener,
   SettingsHelper) {
   'use strict';
 
@@ -28,7 +27,7 @@ function(panels, BlurSlider, appList, alaExceptions, SettingsListener,
 
     /**
      * Initialize ALA exception panel.
-     * 
+     *
      * @method init
      * @constructor
      */

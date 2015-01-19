@@ -35,7 +35,7 @@ suite('interactive notifications', function() {
     'getTopMostWindow': function() {
       return this;
     }
-  }
+  };
 
   var fakeAppWinMgr = {
     'getActiveApp': function() {

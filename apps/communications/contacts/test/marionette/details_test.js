@@ -6,13 +6,15 @@ var assert = require('assert');
 
 marionette('Contacts > Details', function() {
   var client = marionette.client(Contacts.config);
-  var subject;
+  var subject, actions;
   var selectors;
   var contactsData = new ContactsData(client);
   var testContact;
 
   setup(function() {
     subject = new Contacts(client);
+    actions = client.loader.getActions();
+    subject.actions = actions;
     subject.launch();
 
     selectors = Contacts.Selectors;
@@ -57,7 +59,7 @@ marionette('Contacts > Details', function() {
     client.findElement(selectors.detailsLinkButton);
   });
 
-  test('Facebook contact correctly displayed as social contact & with picture',
+  test('Facebook contact correctly displayed as social contact',
       function() {
     contactsData.createFbContact();
     client.helper.waitForElement(selectors.listContactFirstText).click();
@@ -112,7 +114,23 @@ marionette('Contacts > Details', function() {
     client.waitFor(function() {
       return nameNode.getAttribute('class').indexOf('favorite') != -1;
     });
-    
+
     assertContactData(testContact);
+  });
+
+  test('Share Contact', function() {
+    contactsData.createMozContact(testContact);
+
+    client.helper.waitForElement(selectors.listContactFirstText).click();
+    subject.waitSlideLeft('details');
+
+    // Click on share button
+    client.helper.waitForElement(selectors.detailsShareButton).click();
+
+    var sysMenu = subject.systemMenu;
+
+    // In the sysMenu they should appear at least the Messages and email apps
+    var menuOptions = sysMenu.findElements('button');
+    assert.ok(menuOptions.length >= 2);
   });
 });

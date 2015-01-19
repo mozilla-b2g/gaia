@@ -8,14 +8,19 @@ require('/js/keyboard/candidate_panel_manager.js');
 suite('CandidatePanelManager', function() {
   var app;
   var manager;
+  var suggestionsContainer;
 
   setup(function() {
     window.IMERender = {
       showMoreCandidates: this.sinon.stub(),
-      candidatePanel: new MockEventTarget(),
+      candidatePanel: {},
       getNumberOfCandidatesPerRow: this.sinon.stub(),
       toggleCandidatePanel: this.sinon.stub()
     };
+
+    suggestionsContainer = new MockEventTarget();
+    this.sinon.spy(suggestionsContainer, 'addEventListener');
+    this.sinon.spy(suggestionsContainer, 'removeEventListener');
 
     window.IMERender.getNumberOfCandidatesPerRow.returns(8);
     window.IMERender.candidatePanel.dataset = {};
@@ -23,8 +28,9 @@ suite('CandidatePanelManager', function() {
     window.IMERender.candidatePanel.clientHeight = 100;
     window.IMERender.candidatePanel.scrollTop = 398;
 
-    this.sinon.spy(window.IMERender.candidatePanel, 'addEventListener');
-    this.sinon.spy(window.IMERender.candidatePanel, 'removeEventListener');
+    window.IMERender.candidatePanel.querySelector = this.sinon.stub();
+    window.IMERender.candidatePanel.querySelector.returns(
+      suggestionsContainer);
 
     this.sinon.stub(window, 'setTimeout');
     this.sinon.stub(window, 'clearTimeout');
@@ -121,8 +127,7 @@ suite('CandidatePanelManager', function() {
           assert.isTrue(
             window.IMERender.toggleCandidatePanel.calledWith(true));
 
-          assert.isTrue(
-            window.IMERender.candidatePanel.addEventListener.calledOnce);
+          assert.isTrue(suggestionsContainer.addEventListener.calledOnce);
         });
 
         suite('showNextCandidatePage', function() {
@@ -133,7 +138,7 @@ suite('CandidatePanelManager', function() {
             var scrollEvent = {
               type: 'scroll'
             };
-            window.IMERender.candidatePanel.dispatchEvent(scrollEvent);
+            suggestionsContainer.dispatchEvent(scrollEvent);
 
             assert.isTrue(window.clearTimeout.calledOnce);
             assert.isTrue(window.setTimeout.calledOnce);
@@ -159,15 +164,13 @@ suite('CandidatePanelManager', function() {
 
             assert.isFalse(manager.isFullPanelShown);
             assert.isTrue(window.clearTimeout.calledTwice);
-            assert.isTrue(
-              window.IMERender.candidatePanel.removeEventListener.calledOnce);
+            assert.isTrue(suggestionsContainer.removeEventListener.calledOnce);
 
             manager.showFullPanel();
 
             assert.isTrue(window.IMERender.showMoreCandidates.calledTwice,
               'No showMoreCandidates call here.');
-            assert.isTrue(
-              window.IMERender.candidatePanel.addEventListener.calledTwice);
+            assert.isTrue(suggestionsContainer.addEventListener.calledTwice);
           });
         });
 
@@ -175,8 +178,7 @@ suite('CandidatePanelManager', function() {
           manager.hideFullPanel();
 
           assert.isFalse(manager.isFullPanelShown);
-          assert.isTrue(
-            window.IMERender.candidatePanel.removeEventListener.calledOnce);
+          assert.isTrue(suggestionsContainer.removeEventListener.calledOnce);
         });
       });
     });
@@ -199,8 +201,7 @@ suite('CandidatePanelManager', function() {
           assert.isTrue(
             window.IMERender.toggleCandidatePanel.calledWith(true));
 
-          assert.isTrue(
-            window.IMERender.candidatePanel.addEventListener.calledOnce);
+          assert.isTrue(suggestionsContainer.addEventListener.calledOnce);
         });
 
         suite('showNextCandidatePage', function() {
@@ -211,7 +212,7 @@ suite('CandidatePanelManager', function() {
             var scrollEvent = {
               type: 'scroll'
             };
-            window.IMERender.candidatePanel.dispatchEvent(scrollEvent);
+            suggestionsContainer.dispatchEvent(scrollEvent);
 
             assert.isTrue(window.clearTimeout.calledOnce);
             assert.isTrue(window.setTimeout.calledOnce);
@@ -232,15 +233,13 @@ suite('CandidatePanelManager', function() {
 
             assert.isFalse(manager.isFullPanelShown);
             assert.isTrue(window.clearTimeout.calledTwice);
-            assert.isTrue(
-              window.IMERender.candidatePanel.removeEventListener.calledOnce);
+            assert.isTrue(suggestionsContainer.removeEventListener.calledOnce);
 
             manager.showFullPanel();
 
             assert.isTrue(window.IMERender.showMoreCandidates.calledTwice,
               'No showMoreCandidates call here.');
-            assert.isTrue(
-              window.IMERender.candidatePanel.addEventListener.calledTwice);
+            assert.isTrue(suggestionsContainer.addEventListener.calledTwice);
           });
         });
 
@@ -249,8 +248,7 @@ suite('CandidatePanelManager', function() {
 
           assert.isFalse(manager.isFullPanelShown);
           assert.isTrue(window.clearTimeout.calledOnce);
-          assert.isTrue(
-            window.IMERender.candidatePanel.removeEventListener.calledOnce);
+          assert.isTrue(suggestionsContainer.removeEventListener.calledOnce);
         });
       });
     });

@@ -20,7 +20,9 @@ CandidatePanelScrollingMonitor.prototype.start = function() {
 CandidatePanelScrollingMonitor.prototype.stop = function() {
   clearTimeout(this.scrollTimer);
   if (IMERender.candidatePanel) {
-    IMERender.candidatePanel.removeEventListener('scroll', this);
+    var suggestionsContainer =
+      IMERender.candidatePanel.querySelector('.suggestions-container');
+    suggestionsContainer.removeEventListener('scroll', this);
   }
 };
 
@@ -45,13 +47,17 @@ CandidatePanelScrollingMonitor.prototype.startMonitoring = function() {
   // If the candidates list was not truncated,
   // we don't really need to monitor the scroll event.
   if ('truncated' in IMERender.candidatePanel.dataset) {
-    IMERender.candidatePanel.addEventListener('scroll', this);
+    var suggestionsContainer =
+      IMERender.candidatePanel.querySelector('.suggestions-container');
+    suggestionsContainer.addEventListener('scroll', this);
   }
 };
 
 CandidatePanelScrollingMonitor.prototype.stopMonitoring = function() {
   clearTimeout(this.scrollTimer);
-  IMERender.candidatePanel.removeEventListener('scroll', this);
+  var suggestionsContainer =
+    IMERender.candidatePanel.querySelector('.suggestions-container');
+  suggestionsContainer.removeEventListener('scroll', this);
 };
 
 var CandidatePanelManager = function(app) {

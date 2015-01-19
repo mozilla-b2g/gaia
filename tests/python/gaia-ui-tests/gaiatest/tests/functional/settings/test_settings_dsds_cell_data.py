@@ -2,7 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
+try:
+    from marionette.by import By
+except:
+    from marionette_driver.by import By
 from gaiatest import GaiaTestCase
 from gaiatest.apps.settings.app import Settings
 
@@ -14,7 +17,7 @@ class TestDSDSCellData(GaiaTestCase):
         https://moztrap.mozilla.org/manage/case/1373/
         We only test with 1 SIM in the device
         """
-              
+
         settings = Settings(self.marionette)
         settings.launch()
 

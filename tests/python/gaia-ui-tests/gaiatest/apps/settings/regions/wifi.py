@@ -2,9 +2,18 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
-from marionette import Wait
-from marionette.errors import StaleElementException
+
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+    from marionette.errors import StaleElementException
+except:
+    from marionette_driver import Wait
+    from marionette_driver import expected
+    from marionette_driver.by import By
+    from marionette_driver.errors import StaleElementException
+
 from gaiatest.apps.base import Base
 
 
@@ -41,6 +50,7 @@ class Wifi(Base):
             ok_button = self.marionette.find_element(*self._password_ok_button_locator)
             self.wait_for_condition(lambda m: (ok_button.location['x'] + ok_button.size['width']) == screen_width)
             password_input = self.marionette.find_element(*self._password_input_locator)
+            Wait(self.marionette).until(expected.element_displayed(password_input))
             password_input.send_keys(password)
             ok_button.tap()
 

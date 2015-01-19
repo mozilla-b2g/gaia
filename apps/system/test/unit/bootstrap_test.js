@@ -68,6 +68,7 @@ requireApp('system/js/text_selection_dialog.js');
 requireApp('system/js/ttlview.js');
 requireApp('system/js/visibility_manager.js');
 requireApp('system/js/wallpaper_manager.js');
+requireApp('system/js/trusted_window_manager.js');
 requireApp('system/js/attention_window_manager.js');
 requireApp('system/js/attention_indicator.js');
 requireApp('system/js/service.js');
