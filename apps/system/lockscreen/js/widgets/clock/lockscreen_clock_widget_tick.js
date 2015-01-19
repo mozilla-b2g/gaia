@@ -52,7 +52,7 @@
     // When first start, update the clock first.
     this.updateClock();
     this.stream = new Stream(this.configs.stream);
-    this.stream.start(this.handleEvent.bind(this))
+    return this.stream.start(this.handleEvent.bind(this))
       .next(() =>
         // The Promise is necessary. Since we need to wait the rest seconds
         // in the current minute to bootstrap the timer.
@@ -92,8 +92,6 @@
 
     var timeHTML = f.localeFormat(now, timeFormat);
     var dateText = f.localeFormat(now, dateFormat);
-// TODO: debug only
-console.log('>> updateClock');
 
     this.component.resources.elements.time.innerHTML = timeHTML;
     this.component.resources.elements.date.textContent = dateText;
