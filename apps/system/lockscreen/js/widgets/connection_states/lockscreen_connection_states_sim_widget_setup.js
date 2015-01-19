@@ -31,6 +31,25 @@
       .next(this.render.bind(this));
   };
 
+  LockScreenConnectionStatesSIMWidgetSetup.prototype.stop =
+  function() {
+    return LockScreenBasicState.prototype.stop.call(this)
+      .next(this.restoreView.bind(this));
+  };
+
+  LockScreenConnectionStatesSIMWidgetSetup.prototype.restoreView =
+  function() {
+    this.component.elements.view.hidden = false;
+    this.component.elements.line.hidden = false;
+    this.component.elements.id.hidden = false;
+
+    this.component.elements.line.textContent =
+    this.component.elements.id.textContent = '';
+
+    this.component.eraseLabel(this.component.elements.line);
+    this.component.eraseLabel(this.component.elements.id);
+  };
+
   LockScreenConnectionStatesSIMWidgetSetup.prototype.handleEvent =
   function(evt) {
     switch (evt.type) {
@@ -84,12 +103,12 @@
     elements.view.hidden = false;
 
     // Reset the line.
-    this.eraseLabel(elements.line);
+    this.component.eraseLabel(elements.line);
 
     // Whether the ID should display.
     if (SIMSlotManager.isMultiSIM()) {
       elements.id.hidden = false;
-      this.writeLabel(elements.id, 'lockscreen-sim-id',
+      this.component.writeLabel(elements.id, 'lockscreen-sim-id',
         { 'n': (sim.index + 1) });
     } else {
       elements.id.hidden = true;
@@ -106,7 +125,7 @@
     }
 
     if ('notSearching' === sim.conn.voice.state) {
-      this.writeLabel(elements.line, 'noNetwork');
+      this.component.writeLabel(elements.line, 'noNetwork');
       return;
     } else if ('registered' !== sim.conn.voice.state){
       // From Bug 777057 Comment 3:
@@ -124,7 +143,7 @@
       // Anyway, from https://bugzil.la/777057 it shows only 'notSearching'
       // means it's no network, and other three states are for grabbing the
       // network.
-      this.writeLabel(elements.line, 'searching');
+      this.component.writeLabel(elements.line, 'searching');
       return;
     } else {
       // If it's connected (state === 'registered'), show the operator and
@@ -136,7 +155,7 @@
 
   LockScreenConnectionStatesSIMWidgetSetup.prototype.
   renderCellbroadcastMessage = function(message) {
-    this.writeLabel(this.component.resources.elements.line,
+    this.component.writeLabel(this.component.resources.elements.line,
         null, null, message);
   };
 
@@ -144,17 +163,18 @@
   function(elements, sim) {
     var operator = MobileOperator.userFacingInfo(sim.conn).operator;
     if (sim.conn.voice.roaming) {
-      this.writeLabel(elements.line, 'roaming', { 'operator': operator });
+      this.component.writeLabel(
+        elements.line, 'roaming', { 'operator': operator });
     } else {
       if (operator.carrier) {
         // With carrier, use L10N tag to display the information.
-        this.writeLabel(elements.line, 'operator-info', {
+        this.component.writeLabel(elements.line, 'operator-info', {
           'carrier': operator.carrier,
           'region' : operator.region
         });
       } else {
         // No carrier. Just post the name of the operator.
-        this.writeLabel(elements.line, null, null, operator);
+        this.component.writeLabel(elements.line, null, null, operator);
       }
     }
   };

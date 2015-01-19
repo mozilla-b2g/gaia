@@ -1,4 +1,5 @@
 /* global LockScreenBasicComponent */
+/* global LockScreenConnectionStatesWidgetSetup */
 /* global LockScreenConnectionStatesSIMWidgetSetup */
 'use strict';
 
@@ -35,6 +36,16 @@
       request.onerror = reject;
     });
   };
+
+  /**
+   * Refer parent component's stateless (not static) method violate
+   * no principle that child shouldn't know anything about parent.
+   */
+  LockScreenConnectionStatesSIMWidgetSetup.prototype.writeLabel =
+    LockScreenConnectionStatesWidgetSetup.prototype.writeLabel;
+
+  LockScreenConnectionStatesSIMWidgetSetup.prototype.eraseLabel =
+    LockScreenConnectionStatesWidgetSetup.prototype.eraseLabel;
 
   exports.LockScreenConnectionStatesSIMWidget =
     LockScreenConnectionStatesSIMWidget;
