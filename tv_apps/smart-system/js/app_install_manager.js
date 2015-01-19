@@ -495,10 +495,7 @@ var AppInstallManager = {
   },
 
   handleProgress: function ai_handleProgress(evt) {
-    var app = evt.application,
-        appInfo = this.appInfos[app.manifestURL];
-
-    this.onDownloadStart(app);
+    this.onDownloadStart(evt.application);
   },
 
   requestWifiLock: function ai_requestWifiLock(app) {

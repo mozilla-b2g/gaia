@@ -1,4 +1,4 @@
-/* global SettingsCache */
+/* global SettingsCache, LogoLoader */
 
 'use strict';
 
@@ -100,7 +100,6 @@ var InitLogoHandler = {
       this.carrierLogo.parentNode.removeChild(self.carrierLogo);
       this._setReady();
     } else {
-      var self = this;
       document.addEventListener('DOMContentLoaded', function() {
         if (self.carrierLogo) {
           self.carrierLogo.parentNode.removeChild(self.carrierLogo);
@@ -155,8 +154,9 @@ var InitLogoHandler = {
       return;
     }
 
-    if (this.animated)
+    if (this.animated) {
       return;
+    }
 
     this.animated = true;
 

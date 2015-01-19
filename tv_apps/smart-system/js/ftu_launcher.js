@@ -1,5 +1,5 @@
 'use strict';
-/* globals applications, dump, FtuPing */
+/* globals applications, dump, FtuPing, SettingsCache */
 /* This module deals with FTU stuff.
    FTU is known as First Time Usage,
    which is the first app the users would use, to configure their phone. */
