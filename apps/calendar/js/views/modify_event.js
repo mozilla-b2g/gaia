@@ -379,19 +379,25 @@ ModifyEvent.prototype = {
         // of the dom elements so selectedDay must come after.
         self.app.timeController.selectedDay = moveDate;
 
+        // we pass the date so we are able to scroll to the event on the
+        // day/week views
+        var state = {
+          eventStartHour: moveDate.getHours()
+        };
+
         if (method === 'updateEvent') {
           // If we edit a view our history stack looks like:
           //   /week -> /event/view -> /event/save -> /event/view
           // We need to return all the way to the top of the stack
           // We can remove this once we have a history stack
           self.app.view('ViewEvent', function(view) {
-            self.app.go(view.returnTop());
+            self.app.go(view.returnTop(), state);
           });
 
           return;
         }
 
-        self.app.go(self.returnTo());
+        self.app.go(self.returnTo(), state);
       });
     }
   },
