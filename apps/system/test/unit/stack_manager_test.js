@@ -1,19 +1,14 @@
-/* global StackManager, AppWindow, MockAppWindowManager, Event, MocksHelper,
-          MockService, HomescreenLauncher, MockSheetsTransition */
+/* global StackManager, AppWindow, Event, MocksHelper,
+          MockService, MockSheetsTransition */
 'use strict';
 
 requireApp('system/js/stack_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
-requireApp('system/test/unit/mock_app_window_manager.js');
-requireApp('system/test/unit/mock_homescreen_launcher.js');
-requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_sheets_transition.js');
 
 var mocksForStackManager = new MocksHelper([
-  'AppWindow', 'AppWindowManager',
-  'HomescreenLauncher', 'LayoutManager',
-  'SheetsTransition', 'Service'
+  'AppWindow', 'SheetsTransition', 'Service'
 ]).init();
 
 suite('system/StackManager >', function() {
@@ -25,8 +20,6 @@ suite('system/StackManager >', function() {
   setup(function() {
     this.sinon.useFakeTimers();
 
-    window.homescreenLauncher = new HomescreenLauncher();
-    window.homescreenLauncher.start();
     dialer = new AppWindow({
       url: 'app://communications.gaiamobile.org/dialer/index.html',
       origin: 'app://communications.gaiamobile.org/',
@@ -119,14 +112,11 @@ suite('system/StackManager >', function() {
     settings_sheet_1.groupID = settings.groupID;
     settings_sheet_2.groupID = settings.groupID;
     settings_sheet_3.groupID = settings.groupID;
-    window.appWindowManager = new MockAppWindowManager();
   });
 
   teardown(function() {
     this.sinon.clock.tick(800); // Making sure everything got broadcasted
-    window.homescreenLauncher = undefined;
     StackManager.__clearAll();
-    MockService.currentApp = null;
   });
 
   function appLaunch(app, warm) {
@@ -209,7 +199,8 @@ suite('system/StackManager >', function() {
       setup(function() {
         appLaunch(settings);
         appLaunch(operatorVariant);
-        MockService.currentApp = operatorVariant;
+        MockService.mockQueryWith('AppWindowManager.getActiveWindow',
+          operatorVariant);
 
         this.sinon.stub(settings, 'getActiveWindow').returns(null);
       });
@@ -383,7 +374,6 @@ suite('system/StackManager >', function() {
     suite('> blasting through history', function() {
       var dialerBroadcast, contactBroadcast, settingsBroadcast;
       var dialerQueueShow, contactCancelQueuedShow, settingsQueueHide;
-      var sendStopRecordingRequest;
 
       setup(function() {
         dialerBroadcast = this.sinon.stub(dialer, 'broadcast');
@@ -394,8 +384,7 @@ suite('system/StackManager >', function() {
         contactCancelQueuedShow = this.sinon.stub(contact, 'cancelQueuedShow');
         settingsQueueHide = this.sinon.stub(settings, 'queueHide');
 
-        sendStopRecordingRequest = this.sinon.stub(window.appWindowManager,
-                                                   'sendStopRecordingRequest');
+        this.sinon.stub(MockService, 'request');
 
         StackManager.goPrev();
         assert.isFalse(StackManager._didntMove);
@@ -427,8 +416,8 @@ suite('system/StackManager >', function() {
         sinon.assert.calledWith(settingsBroadcast, 'swipeout');
       });
 
-      test('it should call sendStopRecordingRequest', function() {
-        sinon.assert.calledOnce(sendStopRecordingRequest);
+      test('it should request stopRecording', function() {
+        assert.isTrue(MockService.request.calledWith('stopRecording'));
       });
 
       suite('if we\'re back to the same place', function() {

@@ -1,5 +1,5 @@
 'use strict';
-/*global applications, Service, appWindowManager, AppWindow */
+/*global applications, Service, AppWindow */
 
 (function(window) {
   /**
@@ -8,8 +8,10 @@
    * @module WrapperFactory
    */
   var WrapperFactory = {
+    name: 'WrapperFactory',
     init: function wf_init() {
       window.addEventListener('mozbrowseropenwindow', this, true);
+      Service.registerState('isLaunchingWindow', this);
     },
     uninit: function() {
       window.removeEventListener('mozbrowseropenwindow', this, true);
@@ -94,16 +96,14 @@
 
         // If we already have a browser and we receive an open request,
         // display it in the current browser frame.
-        var activeApp = Service.currentApp;
-        var isSearchApp = (activeApp.manifest &&
-          activeApp.manifest.role === 'search');
-        if (activeApp && (activeApp.isBrowser() || isSearchApp)) {
+        var activeApp = Service.query('AppWindowManager.getActiveWindow');
+        if (activeApp && (activeApp.isBrowser() || activeApp.isSearch())) {
           activeApp.navigate(url);
           return;
         }
 
         origin = url;
-        app = appWindowManager.getApp(origin);
+        app = Service.query('AppWindowManager.getApp', origin);
         // Just bring on top if a wrapper window is
         // already running with this url.
         if (app && app.windowName == '_blank') {
@@ -111,7 +111,7 @@
         }
       } else {
         origin = 'window:' + name + ',source:' + callerOrigin;
-        app = appWindowManager.getApp(origin);
+        app = Service.query('AppWindowManager.getApp', origin);
         if (app && app.windowName === name) {
           if (app.iframe.src === url) {
             // If the url is already loaded, just display the app
@@ -139,7 +139,7 @@
     },
 
     launchWrapper: function wf_launchWrapper(config) {
-      var app = appWindowManager.getApp(config.origin);
+      var app = Service.query('AppWindowManager.getApp', config.origin);
       if (!app) {
         config.chrome = {
           scrollable: true

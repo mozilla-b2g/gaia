@@ -25,7 +25,7 @@ marionette('Vertical - Collection', function() {
     collection = new Collection(client);
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
 
     client.apps.launch(home.URL);
 

@@ -247,7 +247,7 @@ var icc_worker = {
     icc.discardCurrentMessageIfNeeded(message);
 
     // Check if device is idle or settings
-    var activeApp = Service.currentApp;
+    var activeApp = Service.query('getTopMostWindow');
     var settingsOrigin = window.location.origin.replace('system', 'settings');
     if (!options.isHighPriority && activeApp && !activeApp.isHomescreen &&
         activeApp.origin !== settingsOrigin) {
@@ -355,7 +355,7 @@ var icc_worker = {
       'icc.data': JSON.stringify(message)
     });
     reqIccData.onsuccess = function icc_getIccData() {
-      if (window.appWindowManager.getApp(application)) {
+      if (Service.query('getApp', application)) {
         return DUMP('Settings is running. Ignoring');
       }
       navigator.mozApps.mgmt.getAll().onsuccess = function gotApps(evt) {

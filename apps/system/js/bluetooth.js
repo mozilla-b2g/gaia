@@ -53,7 +53,7 @@ var Bluetooth = {
   /* to resolve adapter request for Bluetooth:adapter */
   _getAdapterPromiseResolve: null,
 
-  init: function bt_init() {
+  start: function() {
     if (!window.navigator.mozBluetooth || this._started) {
       return;
     }

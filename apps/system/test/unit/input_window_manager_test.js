@@ -40,6 +40,10 @@ suite('InputWindowManager', function() {
       }
     });
 
+    MockService.mockQueryWith('getTopMostWindow', {
+      blur: this.sinon.stub()
+    });
+
     var realIWPrototype = InputWindow.prototype;
     stubIWConstructor = this.sinon.stub(window, 'InputWindow', () =>
       // simulate |sinon.createStubInstance|: we want a new stubbed instance
@@ -327,10 +331,6 @@ suite('InputWindowManager', function() {
         navigator.mozInputMethod = {
           removeFocus: this.sinon.stub()
         };
-
-        MockService.currentApp = {
-          blur: this.sinon.stub()
-        };
       });
 
       teardown(function() {
@@ -345,7 +345,8 @@ suite('InputWindowManager', function() {
           manager.handleEvent(new CustomEvent(evtType));
 
           assert.isFalse(navigator.mozInputMethod.removeFocus.called);
-          assert.isFalse(MockService.currentApp.blur.called);
+          assert.isFalse(
+            MockService.mockQueryWith('getTopMostWindow').blur.called);
         });
 
         test(evtType + ' remove focus if there is active keyboard', function() {
@@ -354,7 +355,8 @@ suite('InputWindowManager', function() {
           manager.handleEvent(new CustomEvent(evtType));
 
           assert.isTrue(navigator.mozInputMethod.removeFocus.called);
-          assert.isTrue(MockService.currentApp.blur.called);
+          assert.isTrue(
+            MockService.mockQueryWith('getTopMostWindow').blur.called);
         });
       };
 

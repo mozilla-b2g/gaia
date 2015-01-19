@@ -2,7 +2,7 @@
 
 /* global MobileIdManager, MockApplications, MocksHelper */
 
-requireApp('system/js/mobileid_manager.js');
+requireApp('system/js/mobile_id_manager.js');
 requireApp('system/test/unit/mock_applications.js');
 
 var mocksForMobileIdManager = new MocksHelper([

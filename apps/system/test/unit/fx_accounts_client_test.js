@@ -1,7 +1,7 @@
 /* global FxAccountsClient */
 'use strict';
 
-requireApp('system/js/fxa_client.js');
+requireApp('system/js/fx_accounts_client.js');
 
 var MockEventListener = {};
 var MockDispatchedEvents = [];

@@ -35,7 +35,7 @@ marionette('Browser - Launch the same origin after navigating away',
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('opens a new sheet when navigating', function() {

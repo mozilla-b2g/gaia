@@ -2,9 +2,10 @@
 
 /* globals SettingsListener, Service,
            ScreenBrightnessTransition, ScreenWakeLockManager,
-           ScreenAutoBrightness                               */
+           ScreenAutoBrightness, LazyLoader */
 
 var ScreenManager = {
+  name: 'ScreenManager',
 
   /*
    * return the current screen status
@@ -111,12 +112,19 @@ var ScreenManager = {
 
     this.screen = document.getElementById('screen');
 
-    this._screenBrightnessTransition = new ScreenBrightnessTransition();
+    LazyLoader.load([
+      'js/screen_auto_brightness.js',
+      'js/screen_brightness_transition.js',
+      'shared/js/idletimer.js']).then(function() {
+      this._screenBrightnessTransition = new ScreenBrightnessTransition();
 
-    this._screenAutoBrightness = new ScreenAutoBrightness();
-    this._screenAutoBrightness.onbrightnesschange = function(brightness) {
+      this._screenAutoBrightness = new ScreenAutoBrightness();
+      this._screenAutoBrightness.onbrightnesschange = function(brightness) {
         this.setScreenBrightness(brightness, false);
-    }.bind(this);
+      }.bind(this);
+    }.bind(this))['catch'](function(err) {
+      console.error(err);
+    });
 
     var self = this;
     var power = navigator.mozPower;
@@ -170,6 +178,9 @@ var ScreenManager = {
     if (telephony) {
       telephony.addEventListener('callschanged', this);
     }
+    Service.registerState('screenEnabled', this);
+    Service.register('turnScreenOn', this);
+    Service.register('turnScreenOff', this);
   },
 
   handleEvent: function scm_handleEvent(evt) {
@@ -188,6 +199,7 @@ var ScreenManager = {
             this._inTransition) {
           return;
         }
+        this._screenAutoBrightness &&
         this._screenAutoBrightness.autoAdjust(evt.value);
         break;
 
@@ -446,16 +458,17 @@ var ScreenManager = {
   },
 
   _reconfigScreenTimeout: function scm_reconfigScreenTimeout() {
-    // Remove idle timer if screen wake lock is acquired,
-    // if no app has been displayed yet,
-    // or if Lockscreen is not displayed.
+    // Remove idle timer if screen wake lock is acquired or
+    // if no app has been displayed yet.
     if (this._wakeLockManager.isHeld ||
-        (!Service.currentApp && !Service.locked)) {
+        (!Service.query('AppWindowManager.getActiveWindow') &&
+         !Service.query('locked'))) {
       this._setIdleTimeout(0);
     // The screen should be turn off with shorter timeout if
     // it was never unlocked.
     } else if (!this._unlocking) {
-      if (window.Service.locked && !window.secureWindowManager.isActive()) {
+      if (Service.query('getTopMostWindow') &&
+          Service.query('getTopMostWindow').CLASS_NAME === 'LockScreenWindow') {
         this._setIdleTimeout(this.LOCKING_TIMEOUT, true);
         window.addEventListener('lockscreen-appclosing', this);
         window.addEventListener('lockpanelchange', this);
@@ -495,7 +508,8 @@ var ScreenManager = {
     }
 
     // Stop the current transition
-    if (this._screenBrightnessTransition.isRunning) {
+    if (this._screenBrightnessTransition &&
+        this._screenBrightnessTransition.isRunning) {
       this._screenBrightnessTransition.abort();
     }
 
@@ -508,6 +522,7 @@ var ScreenManager = {
       return;
     }
 
+    this._screenBrightnessTransition &&
     this._screenBrightnessTransition.transitionTo(this._targetBrightness);
   },
 
@@ -518,6 +533,7 @@ var ScreenManager = {
     }
     this._deviceLightEnabled = enabled;
 
+    this._screenAutoBrightness &&
     this._screenAutoBrightness.reset();
 
     if (!this.screenEnabled) {

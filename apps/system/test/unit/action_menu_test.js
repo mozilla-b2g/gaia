@@ -7,6 +7,10 @@ requireApp('system/js/system_dialog.js');
 requireApp('system/js/action_menu.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
+var mocksForActionMenu = new MocksHelper([
+  'Service'
+]).init();
+
 suite('ActionMenu', function() {
   var rafStub, realL10n, stubById, actionMenu, systemHideStub,
     controller, renderStub, publishStub, systemShowStub;

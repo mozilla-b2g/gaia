@@ -27,7 +27,7 @@ marionette('Software Home Button - Attention window', function() {
     system = client.loader.getAppClass('system');
     fakedialer = new FakeDialerApp(client);
     lockScreen = (new LockScreen()).start(client);
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   function checkHeight() {

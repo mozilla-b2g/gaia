@@ -10,11 +10,12 @@ require('/js/activity_handler.js');
 require('/js/browser.js');
 
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
+require('/test/unit/mock_lazy_loader.js');
 require('/test/unit/mock_app_window.js');
 require('/test/unit/mock_applications.js');
 
 var mocksForBrowser = new MocksHelper([
-  'AppWindow', 'Applications'
+  'AppWindow', 'Applications', 'LazyLoader'
 ]).init();
 
 suite('system/Browser', function() {
