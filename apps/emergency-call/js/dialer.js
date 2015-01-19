@@ -15,7 +15,7 @@ var CallHandler = {
       LazyLoader.load(['/shared/js/sim_settings_helper.js'], function() {
         SimSettingsHelper.getCardIndexFrom('outgoingCall',
         function(defaultCardIndex) {
-          if (defaultCardIndex == SimSettingsHelper.ALWAYS_ASK_OPTION_VALUE) {
+          if (defaultCardIndex === SimSettingsHelper.ALWAYS_ASK_OPTION_VALUE) {
             LazyLoader.load(['/shared/js/component_utils.js',
                              '/shared/elements/gaia_sim_picker/script.js'],
             function() {

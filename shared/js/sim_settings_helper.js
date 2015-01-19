@@ -10,8 +10,8 @@
    */
   var SimSettingsHelper = {
     EMPTY_OPTION_TEXT: '--',
-    EMPTY_OPTION_VALUE: '-2',
-    ALWAYS_ASK_OPTION_VALUE: '-1',
+    EMPTY_OPTION_VALUE: -2,
+    ALWAYS_ASK_OPTION_VALUE: -1,
     _callbacks: {
       outgoingCall: [],
       outgoingMessages: [],
