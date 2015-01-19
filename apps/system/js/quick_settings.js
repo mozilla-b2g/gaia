@@ -1,5 +1,5 @@
 /* jshint loopfunc: true */
-/* global SettingsHelper, SettingsListener, applications,
+/* global Service, SettingsListener, applications,
           UtilityTray, MozActivity */
 
 'use strict';
@@ -72,21 +72,8 @@
       this.getAllElements();
       this.monitorDataChange();
 
-      (function initNetworkSprite() {
-        var networkTypeSetting =
-          SettingsHelper('operatorResources.data.icon', {});
-
-        networkTypeSetting.get(function gotNS(networkTypeValues) {
-          if (!networkTypeValues) {
-            return;
-          }
-          var sprite = networkTypeValues.data_sprite;
-          if (sprite) {
-            document.getElementById('quick-settings-data')
-              .style.backgroundImage = 'url("' + sprite + '")';
-          }
-        });
-      })();
+      window.addEventListener('dataiconchanged', this);
+      this._handle_dataiconchanged();
 
       this.overlay.addEventListener('click', this);
       window.addEventListener('utilitytrayshow', this);
@@ -95,6 +82,18 @@
       this.monitorWifiChange();
       this.monitorGeoChange();
       this.monitorAirplaneModeChange();
+    },
+
+    _handle_dataiconchanged: function() {
+      var networkTypeValues = Service.query('dataIcon');
+      if (!networkTypeValues) {
+        return;
+      }
+      var sprite = networkTypeValues.data_sprite;
+      if (sprite) {
+        document.getElementById('quick-settings-data')
+                .style.backgroundImage = 'url("' + sprite + '")';
+      }
     },
 
     /**
@@ -275,6 +274,9 @@
       evt.preventDefault();
       var enabled = false;
       switch (evt.type) {
+        case 'dataiconchanged':
+          this._handle_dataiconchanged();
+          break;
         case 'click':
           switch (evt.target) {
             case this.wifi:

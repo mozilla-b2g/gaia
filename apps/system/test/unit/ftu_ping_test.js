@@ -2,7 +2,8 @@
 
 /* global MockNavigatorSettings, MockasyncStorage, MockXMLHttpRequest,
           MockNavigatorMozMobileConnections, MockNavigatorMozIccManager,
-          MockMobileOperator, MockSIMSlotManager, MockSIMSlot, MockAppsMgmt */
+          MockMobileOperator, MockSIMSlotManager, MockSIMSlot, MockAppsMgmt,
+          MocksHelper */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/apps/system/test/unit/mock_asyncStorage.js');
@@ -11,6 +12,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_mobile_operator.js');
 requireApp('system/test/unit/mock_apps_mgmt.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 
 require('/shared/js/telemetry.js');
 require('/shared/js/uuid.js');
@@ -41,7 +43,13 @@ if (!window.SIMSlotManager) {
   window.SIMSlotManager = null;
 }
 
+
+var mocksForFtuPing = new MocksHelper([
+  'LazyLoader',
+]).init();
+
 suite('FtuPing', function() {
+  mocksForFtuPing.attachTestHelpers();
   var realMozSettings, realAsyncStorage, realXHR;
   var realMobileConnections, realIccManager;
   var realMobileOperator, realSIMSlotManager;

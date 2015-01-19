@@ -1,13 +1,15 @@
 'use strict';
 
 /* global AppUsageMetrics, MockasyncStorage, MockNavigatorSettings,
-          MockSIMSlotManager, MockAppsMgmt, MockApp, MockApplications */
+          MockSIMSlotManager, MockAppsMgmt, MockApp, MockApplications,
+          MockLazyLoader  */
 
 
 require('/shared/js/settings_listener.js');
 require('/shared/js/telemetry.js');
 require('/shared/js/uuid.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/js/app_usage_metrics.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
@@ -48,6 +50,7 @@ suite('AppUsageMetrics:', function() {
     navigator.mozSettings = MockNavigatorSettings;
     window.asyncStorage = MockasyncStorage;
     window.SIMSlotManager = MockSIMSlotManager;
+    window.LazyLoader = MockLazyLoader;
 
     navigator.mozApps = { mgmt: MockAppsMgmt };
     navigator.addIdleObserver = function(o) {

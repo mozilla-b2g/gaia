@@ -61,7 +61,7 @@ suite('system/UtilityTray', function() {
     originalSoftwareButtonManager = window.softwareButtonManager;
     window.softwareButtonManager = window.MocksoftwareButtonManager;
 
-    Service.currentApp = {
+    Service.mTopMostWindow = {
       isTransitioning: function() {},
       getTopMostWindow: function() { return this },
       appChrome: {
@@ -136,7 +136,7 @@ suite('system/UtilityTray', function() {
   teardown(function() {
     stubById.restore();
     window.Service.locked = false;
-    window.Service.currentApp = null;
+    window.Service.mTopMostWindow = null;
 
     window.softwareButtonManager = originalSoftwareButtonManager;
   });
@@ -182,7 +182,7 @@ suite('system/UtilityTray', function() {
       var appChrome, titleStub, app;
 
       setup(function() {
-        app = Service.currentApp;
+        app = Service.mTopMostWindow;
         appChrome = app.appChrome;
         titleStub = this.sinon.stub(appChrome, 'titleClicked');
       });
@@ -270,7 +270,7 @@ suite('system/UtilityTray', function() {
             oop: true
           }
         };
-        window.Service.currentApp = app;
+        window.Service.mTopMostWindow = app;
         this.sinon.spy(app.iframe, 'sendTouchEvent');
 
         fakeTouches(0, 100);
@@ -290,7 +290,7 @@ suite('system/UtilityTray', function() {
             oop: false
           }
         };
-        window.Service.currentApp = app;
+        window.Service.mTopMostWindow = app;
         this.sinon.spy(app.iframe, 'sendTouchEvent');
 
         fakeTouches(0, 100);
@@ -541,7 +541,7 @@ suite('system/UtilityTray', function() {
     });
 
     teardown(function() {
-      window.Service.runningFTU = false;
+      window.Service.mIsFtuRunning = false;
     });
 
     test('onTouchStart is not called if LockScreen is locked', function() {
@@ -566,7 +566,7 @@ suite('system/UtilityTray', function() {
     });
 
     test('onTouchStart is called when ftu is running', function() {
-      window.Service.runningFTU = true;
+      window.Service.mIsFtuRunning = true;
       var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
       UtilityTray.topPanel.dispatchEvent(fakeEvt);
       assert.ok(stub.notCalled);

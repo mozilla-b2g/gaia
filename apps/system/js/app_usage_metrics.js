@@ -41,7 +41,8 @@
  */
 
 /* global asyncStorage, SettingsListener, performance, SIMSlotManager,
-          MobileOperator, uuid, TelemetryRequest, applications */
+          MobileOperator, uuid, TelemetryRequest, applications,
+          LazyLoader */
 (function(exports) {
   'use strict';
 
@@ -724,44 +725,46 @@
     }
 
     function send(data, urlInfo) {
+      var info = data.deviceinfo;
+      LazyLoader.load(['shared/js/telemetry.js']).then(function() {
+        var request = new TelemetryRequest({
+          reason: AUM.TELEMETRY_REASON,
+          deviceID: self.deviceID,
+          ver: AUM.TELEMETRY_VERSION,
+          url: AUM.REPORT_URL,
+          appUpdateChannel: urlInfo['app.update.channel'],
+          appVersion: urlInfo['deviceinfo.platform_version'],
+          appBuildID: urlInfo['deviceinfo.platform_build_id']
+        }, data);
 
-      var request = new TelemetryRequest({
-        reason: AUM.TELEMETRY_REASON,
-        deviceID: self.deviceID,
-        ver: AUM.TELEMETRY_VERSION,
-        url: AUM.REPORT_URL,
-        appUpdateChannel: urlInfo['app.update.channel'],
-        appVersion: urlInfo['deviceinfo.platform_version'],
-        appBuildID: urlInfo['deviceinfo.platform_build_id']
-      }, data);
+        // We don't actually have to do anything if the data is transmitted
+        // successfully. We are already set up to collect the next batch of data.
+        function onload() {
+          debug('Transmitted app usage data to', request.url);
+        }
 
-      // We don't actually have to do anything if the data is transmitted
-      // successfully. We are already set up to collect the next batch of data.
-      function onload() {
-        debug('Transmitted app usage data to', request.url);
-      }
+        function retry(e) {
+          // If the attempt to transmit a batch of data fails, we'll merge
+          // the new batch of data (which may be empty) in with the old one
+          // and resave everything so we can try again later. We also record
+          // the time of this failure so we don't try sending again too soon.
+          debug('App usage metrics transmission failure:', e.type);
 
-      function retry(e) {
-        // If the attempt to transmit a batch of data fails, we'll merge
-        // the new batch of data (which may be empty) in with the old one
-        // and resave everything so we can try again later. We also record
-        // the time of this failure so we don't try sending again too soon.
-        debug('App usage metrics transmission failure:', e.type);
+          // We use absolute time here because we will be comparing to
+          // the absolute batch start time.
+          self.lastFailedTransmission = Date.now();
+          oldMetrics.merge(self.metrics);
+          self.metrics = oldMetrics;
+          self.metrics.save(true);
+        }
 
-        // We use absolute time here because we will be comparing to
-        // the absolute batch start time.
-        self.lastFailedTransmission = Date.now();
-        oldMetrics.merge(self.metrics);
-        self.metrics = oldMetrics;
-        self.metrics.save(true);
-      }
-
-      request.send({
-        timeout: AUM.REPORT_TIMEOUT,
-        onload: onload,
-        onerror: retry,
-        onabort: retry,
-        ontimeout: retry
+        request.send({
+          timeout: AUM.REPORT_TIMEOUT,
+          onload: onload,
+          onerror: retry,
+          onabort: retry,
+          ontimeout: retry
+        });
       });
     }
   };

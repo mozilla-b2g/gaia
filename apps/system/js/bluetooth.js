@@ -49,7 +49,7 @@ var Bluetooth = {
   /* this property store a reference of the default adapter */
   defaultAdapter: null,
 
-  init: function bt_init() {
+  start: function() {
     if (!window.navigator.mozBluetooth || this._started) {
       return;
     }

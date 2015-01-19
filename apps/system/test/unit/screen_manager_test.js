@@ -5,6 +5,7 @@
 
 'use strict';
 
+require('/test/unit/mock_lazy_loader.js');
 require('/test/unit/mock_app_window_manager.js');
 require('/test/unit/mock_lock_screen.js');
 require('/test/unit/mock_statusbar.js');
@@ -37,7 +38,7 @@ function restoreProperty(originObject, prop, reals, useDefineProperty) {
 }
 
 var mocksForScreenManager = new MocksHelper([
-  'SettingsListener', 'Service'
+  'SettingsListener', 'Service', 'LazyLoader'
 ]).init();
 
 require('/js/screen_auto_brightness.js');

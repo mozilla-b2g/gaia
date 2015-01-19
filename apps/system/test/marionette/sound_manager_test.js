@@ -18,8 +18,11 @@ marionette('Sound manager tests', function() {
   });
 
   var soundToast;
+  var system;
 
   setup(function() {
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
     soundToast = new SoundToast(client);
   });
 

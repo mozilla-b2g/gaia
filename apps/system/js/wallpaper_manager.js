@@ -1,7 +1,7 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global ImageUtils, LazyLoader, OrientationManager */
+/* global ImageUtils, LazyLoader, Service */
 
 'use strict';
 
@@ -48,6 +48,7 @@
   }
 
   WallpaperManager.prototype = {
+    name: 'WallpaperManager',
     /**
      * Bootstrap the module. Read the current wallpaper from the
      * settings db and pass it to _setWallpaper(). Also listen for
@@ -93,6 +94,7 @@
         this._setWallpaper(e.settingValue);
       }.bind(this);
       navigator.mozSettings.addObserver(WALLPAPER_KEY, this.observer);
+      Service.registerState('getWallpaper', this);
     },
 
     /**
@@ -113,6 +115,10 @@
     getBlobURL: function() {
       if (!this._started) { return; }
       return this._blobURL;
+    },
+
+    getWallpaper: function() {
+      return this.getBlobURL();
     },
 
     //
@@ -228,7 +234,7 @@
 
       // How big (in device pixels) is the screen in its default orientation?
       var screenWidth, screenHeight;
-      if (OrientationManager && !OrientationManager.isDefaultPortrait()) {
+      if (!Service.query('isDefaultPortrait')) {
         // The screen.width and screen.height values depend on how the
         // user is holding the device. If this is a tablet or other
         // device with a screen that defaults to landscape mode, then
@@ -349,6 +355,10 @@
       // Create a new blob:// url for this blob
       this._blobURL = URL.createObjectURL(blob);
 
+      document.getElementById('screen').style.backgroundImage =
+        'linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)),' +
+        'url(' + this._blobURL + ')';
+
       // And tell the system about it.
       var evt = new CustomEvent('wallpaperchange', {
         bubbles: true,
@@ -366,7 +376,7 @@
       console.log.apply(console, args);
     }
   }
-  WallpaperManager.DEBUG = false; // Set to true to enable debug output
+  WallpaperManager.DEBUG = true; // Set to true to enable debug output
 
   /** @exports WallpaperManager */
   exports.WallpaperManager = WallpaperManager;

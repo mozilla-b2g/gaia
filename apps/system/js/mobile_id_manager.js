@@ -1,9 +1,6 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 'use strict';
 
-/* global MobileIdDialog, applications */
+/* global MobileIdDialog, applications, LazyLoader */
 
 // Event names.
 const CONTENT_EVENT = 'mozMobileIdContentEvent';
@@ -151,7 +148,13 @@ var MobileIdManager = {
       }.bind(this)
     };
 
-    this.dialog = new MobileIdDialog(dialogOptions);
+    if (!MobileIdDialog) {
+      LazyLoader.load(['js/mobileid_dialog.js']).then(function() {
+        this.dialog = new MobileIdDialog(dialogOptions);
+      }.bind(this));
+    } else {
+      this.dialog = new MobileIdDialog(dialogOptions);
+    }
   }
 };
 
