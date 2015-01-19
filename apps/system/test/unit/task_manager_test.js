@@ -10,6 +10,7 @@ requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_stack_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 
+require('/shared/js/event_safety.js');
 require('/shared/js/tagged.js');
 require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');

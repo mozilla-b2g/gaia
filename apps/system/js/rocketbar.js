@@ -1,4 +1,5 @@
 'use strict';
+/* global eventSafety */
 /* global Service, SearchWindow, places, Promise */
 
 (function(exports) {
@@ -111,18 +112,13 @@
         };
 
         var backdrop = this.backdrop;
-        var safetyTimeout = null;
         var finishTransition = () => {
-          backdrop.removeEventListener('transitionend', finishTransition);
-          clearTimeout(safetyTimeout);
-
           window.dispatchEvent(new CustomEvent('rocketbar-overlayopened'));
           transitionEnded = true;
           waitOver();
         };
         backdrop.classList.remove('hidden');
-        backdrop.addEventListener('transitionend', finishTransition);
-        safetyTimeout = setTimeout(finishTransition, 300);
+        eventSafety(backdrop, 'transitionend', finishTransition, 300);
 
         this.loadSearchApp().then(() => {
           if (this.input.value.length) {
@@ -149,32 +145,23 @@
       this.isClosing = true;
 
       var backdrop = this.backdrop;
-      var finishTimeout;
       var self = this;
-      var finish = (function() {
-        clearTimeout(finishTimeout);
-
+      var finish = () => {
         this.form.classList.add('hidden');
         this.rocketbar.classList.remove('active');
         this.screen.classList.remove('rocketbar-focused');
 
         backdrop.classList.add('hidden');
 
-        backdrop.addEventListener('transitionend', function trWait() {
-          backdrop.removeEventListener('transitionend', trWait);
+        eventSafety(backdrop, 'transitionend', () => {
           window.dispatchEvent(new CustomEvent('rocketbar-overlayclosed'));
           self.publish('-deactivated');
           self.isClosing = false;
-        });
-      }).bind(this);
+        }, 300);
+      };
 
       if (this.focused) {
-        window.addEventListener('keyboardhidden', function onhiddenkeyboard() {
-          window.removeEventListener('keyboardhidden', onhiddenkeyboard);
-          finish();
-        });
-        // Fallback plan in case we don't get a keyboardhidden event.
-        finishTimeout = setTimeout(finish, 1000);
+        eventSafety(window, 'keyboardhidden', finish, 1000);
         this.blur();
       } else {
         finish();
