@@ -400,12 +400,6 @@ suite('conference group handler', function() {
       sinon.assert.calledOnce(MockConferenceGroupUI.isGroupDetailsShown);
     });
 
-    test('removeFromGroupDetails()', function() {
-      this.sinon.spy(MockConferenceGroupUI ,'removeCall');
-      ConferenceGroupHandler.removeFromGroupDetails(fakeGroupLine);
-      sinon.assert.calledWith(MockConferenceGroupUI.removeCall, fakeGroupLine);
-    });
-
     test('signalConferenceEnded()', function() {
       this.sinon.spy(MockConferenceGroupUI ,'markCallsAsEnded');
       ConferenceGroupHandler.signalConferenceEnded();

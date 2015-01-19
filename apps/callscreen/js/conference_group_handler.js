@@ -135,17 +135,12 @@ var ConferenceGroupHandler = (function() {
     ConferenceGroupUI.addCall(node);
   }
 
-  function removeFromGroupDetails(node) {
-    ConferenceGroupUI.removeCall(node);
-  }
-
   function isGroupDetailsShown() {
     return ConferenceGroupUI.isGroupDetailsShown();
   }
 
   return {
     addToGroupDetails: addToGroupDetails,
-    removeFromGroupDetails: removeFromGroupDetails,
     signalConferenceEnded: signalConferenceEnded,
     isGroupDetailsShown: isGroupDetailsShown,
     get currentDuration() {
