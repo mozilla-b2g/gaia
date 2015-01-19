@@ -2,10 +2,11 @@
 
 'use strict';
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/lockscreen/js/lockscreen_state_manager.js');
 
 var mocksHelper = new window.MocksHelper([
-  'SettingsListener'
+  'SettingsListener', 'Service'
 ]).init();
 
 suite('system/LockScreenStateManager', function() {

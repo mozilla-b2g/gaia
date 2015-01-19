@@ -16,10 +16,8 @@
    * @requires module:StackManager
    * @requires module:System
    */
-  var SuspendingAppPriorityManager = function() {
-    this.init();
-  };
-  SuspendingAppPriorityManager.prototype.init = function() {
+  var SuspendingAppPriorityManager = function() {};
+  SuspendingAppPriorityManager.prototype.start = function() {
     window.addEventListener('appsuspended', this);
     window.addEventListener('appresumed', this);
   };

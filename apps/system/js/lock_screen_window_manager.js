@@ -1,8 +1,6 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
 /* global Service, LockScreenWindow, LockScreenInputWindow */
-/* global secureWindowManager */
+/* global LockScreenPasscodeValidator, BaseModule, LazyLoader */
 
 (function(exports) {
   /**
@@ -80,6 +78,10 @@
     return this.isActive() ? this.states.instance : null;
   };
 
+  LockScreenWindowManager.prototype.locked = function() {
+    return this.isActive();
+  };
+
   /**
    * To initialize the class instance (register events, observe settings, etc.)
    */
@@ -89,10 +91,14 @@
     this.startEventListeners();
     this.startObserveSettings();
     this.initElements();
-    this.initWindow();
     Service.register('unlock', this);
     Service.register('lock', this);
     Service.request('registerHierarchy', this);
+    Service.registerState('locked', this);
+    BaseModule.lazyLoad(['LockScreenPasscodeValidator']).then(function() {
+      var lockScreenPasscodeValidator = new LockScreenPasscodeValidator();
+      lockScreenPasscodeValidator.start();
+    });
   };
 
   LockScreenWindowManager.prototype._handle_home = function() {
@@ -187,9 +193,10 @@
               !this.states.FTUOccurs &&
               this.states.ready) {
             // The app would be inactive while screen off.
-            this.openApp();
+            this.states.enabled && this.openApp();
             if (evt.detail.screenEnabled && this.states.instance &&
-                this.isActive() && !secureWindowManager.isActive()) {
+                this.isActive() &&
+                !Service.query('SecureWindowManager.isActive')) {
               // In theory listen to 'visibilitychange' event can solve this
               // issue, since it would be fired at the correct moment that
               // we can lock the orientation successfully, but this event
@@ -231,21 +238,7 @@
    */
   LockScreenWindowManager.prototype.startObserveSettings =
     function lwm_startObserveSettings() {
-      var enabledListener = (val) => {
-        this.states.ready = true;
-        if ('false' === val ||
-            false   === val) {
-          this.states.enabled = false;
-        } else if('true' === val ||
-                  true   === val) {
-          this.states.enabled = true;
-          // For performance reason, we need to create window at the moment
-          // the settings get enabled.
-          if (!this.states.instance) {
-            this.createWindow();
-          }
-        }
-      };
+      var enabledListener = this.handleEnable.bind(this);
 
       // FIXME(ggp) this is currently used by Find My Device to force locking.
       // Should be replaced by a proper IAC API in bug 992277.
@@ -323,9 +316,6 @@
    */
   LockScreenWindowManager.prototype.openApp =
     function lwm_openApp() {
-      if (!this.states.enabled) {
-        return;
-      }
       if (!this.states.instance) {
         var app = this.createWindow();
         app.open();
@@ -388,7 +378,11 @@
       var app = new LockScreenWindow();
       // XXX: Before we can use real InputWindow and InputWindowManager,
       // we need this to
-      app.inputWindow = new LockScreenInputWindow();
+      LazyLoader.load(['js/lockscreen_input_window.js']).then(() => {
+        app.inputWindow = new LockScreenInputWindow();
+      }).catch((err) => {
+        console.error(err);
+      });
       this.states.windowCreating = false;
       return app;
     };
@@ -401,21 +395,13 @@
    * @this {LockScreenWindowManager}
    * @memberof LockScreenWindowManager
    */
-  LockScreenWindowManager.prototype.initWindow =
-    function lwm_initWindow() {
-      var req = window.SettingsListener.getSettingsLock()
-        .get('lockscreen.enabled');
-      req.onsuccess = () => {
-        this.states.ready = true;
-        if (true === req.result['lockscreen.enabled'] ||
-           'true' === req.result['lockscreen.enabled']) {
-          this.states.enabled = true;
-        } else if (false === req.result['lockscreen.enabled'] ||
-                   'false' === req.result['lockscreen.enabled']) {
-          this.states.enabled = false;
-        }
-        this.openApp();
-      };
+  LockScreenWindowManager.prototype.handleEnable =
+    function(enabled) {
+      this.states.ready = true;
+      if (typeof(enabled) === String) {
+        enabled = (enabled === 'true');
+      }
+      this.states.enabled = enabled;
     };
 
   LockScreenWindowManager.prototype.unlock =

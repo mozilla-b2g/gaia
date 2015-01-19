@@ -17,7 +17,7 @@ marionette('Software Home Button - Modal Dialog', function() {
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     actions = client.loader.getActions();
-    system.waitForStartup();
+    system.waitForFullyLoaded();
     home.waitForLaunch();
   });
 

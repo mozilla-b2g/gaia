@@ -15,8 +15,11 @@ marionette('notification actions', function() {
   var utilityTray, actions;
   var notificationList = new NotificationList(client);
   var notification;
+  var system;
 
   setup(function() {
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
     // launch the app
     client.apps.launch(TARGET_APP);
     client.apps.switchToApp(TARGET_APP);

@@ -10,7 +10,7 @@ marionette('net_error.html:', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('in an iframe', function() {

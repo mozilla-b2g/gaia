@@ -12,7 +12,7 @@ marionette('Vertical - Edit Mode', function() {
     actions = client.loader.getActions();
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
     selectors = home.Selectors;
 
     client.apps.launch(home.URL);

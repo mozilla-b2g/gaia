@@ -1,7 +1,7 @@
 'use strict';
 
 marionette('LockScreen notification tests', function() {
-  var LockScreenNotificationActions, actions;
+  var LockScreenNotificationActions, actions, system;
   var LockScreenNotificationChecks, checks;
   var client = marionette.client({
     profile: {
@@ -12,6 +12,8 @@ marionette('LockScreen notification tests', function() {
   });
 
   setup(function() {
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
     LockScreenNotificationActions =
       require('./lib/lockscreen_notification_actions');
     LockScreenNotificationChecks =

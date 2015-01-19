@@ -9,11 +9,11 @@ marionette('Browser Chrome - Title content', function() {
   var home, rocketbar, search, system;
 
   setup(function() {
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
     home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
-    system = client.loader.getAppClass('system');
-    system.waitForStartup();
   });
 
   test('Launching rocketbar from an app persists the search term', function() {

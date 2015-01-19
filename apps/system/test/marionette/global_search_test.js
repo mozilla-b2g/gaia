@@ -23,7 +23,7 @@ marionette('Global search >', function() {
     actions = client.loader.getActions();
 
     sys = client.loader.getAppClass('system');
-    sys.waitForStartup();
+    sys.waitForFullyLoaded();
 
     rocketbar = new Rocketbar(client);
 

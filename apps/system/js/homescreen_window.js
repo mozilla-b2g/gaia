@@ -107,12 +107,12 @@
   HomescreenWindow.REGISTERED_EVENTS = AppWindow.REGISTERED_EVENTS;
 
   HomescreenWindow.SUB_COMPONENTS = {
-    'transitionController': window.AppTransitionController,
-    'modalDialog': window.AppModalDialog,
-    'valueSelector': window.ValueSelector,
-    'authDialog': window.AppAuthenticationDialog,
-    'childWindowFactory': window.ChildWindowFactory,
-    'statusbar': window.AppStatusbar
+    'transitionController': 'AppTransitionController',
+    'modalDialog': 'AppModalDialog',
+    'valueSelector': 'ValueSelector',
+    'authDialog': 'AppAuthenticationDialog',
+    'childWindowFactory': 'ChildWindowFactory',
+    'statusbar': 'AppStatusbar'
   };
 
   HomescreenWindow.prototype.openAnimation = 'zoom-out';
@@ -183,7 +183,7 @@
   // Ensure the homescreen is loaded and return its frame.  Restarts
   // the homescreen app if it was killed in the background.
   HomescreenWindow.prototype.ensure = function hw_ensure(reset) {
-    this.debug('ensuring homescreen...', this.frontWindow);
+    this.debug('ensuring homescreen...', this.frontWindow, reset);
     if (!this.element) {
       this.render();
     } else if (reset) {

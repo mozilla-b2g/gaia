@@ -28,8 +28,7 @@
 
     function getDisplayAppOrigin() {
       return client.executeScript(function() {
-        var app = window.wrappedJSObject.Service.currentApp;
-        return app.getTopMostWindow().origin;
+        return window.wrappedJSObject.Service.query('getTopMostWindow').origin;
       });
     }
 
@@ -48,7 +47,7 @@
     setup(function() {
       appInstall = new AppInstall(client);
       system = client.loader.getAppClass('system');
-      system.waitForStartup();
+      system.waitForFullyLoaded();
     });
 
     test('Default Activity chosen >', function() {

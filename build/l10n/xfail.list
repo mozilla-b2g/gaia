@@ -153,7 +153,7 @@ apps/system/js/permission_manager.js
 apps/system/js/quick_settings.js
 apps/system/js/screenshot.js
 apps/system/js/sleep_menu.js
-apps/system/js/storage_watcher.js
+apps/system/js/device_storage_watcher.js
 apps/system/js/time_icon.js
 apps/system/js/update_manager.js
 apps/system/js/value_selector/spin_date_picker.js
@@ -166,7 +166,7 @@ apps/system/test/unit/external_storage_monitor_test.js
 apps/system/test/unit/fxa_test/screens/fxam_signup_success_test.js
 apps/system/test/unit/permission_manager_test.js
 apps/system/test/unit/settings_migrator_test.js
-apps/system/test/unit/storage_watcher_test.js
+apps/system/test/unit/device_storage_watcher_test.js
 apps/system/test/unit/updatable_test.js
 apps/verticalhome/test/marionette/lib/verticalhome.js
 apps/video/js/thumbnail_date_group.js
