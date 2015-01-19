@@ -1,11 +1,12 @@
 'use strict';
 /* global MocksHelper, Service, HomescreenWindow, HomescreenLauncher,
-          HomescreenWindowManager */
+          MockService, BaseModule */
 
 require('/shared/test/unit/mocks/mock_service.js');
 
 requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
+requireApp('system/js/base_module.js');
 requireApp('system/js/homescreen_window_manager.js');
 
 var mocksForHomescreenWindowManager = new MocksHelper([
@@ -17,36 +18,30 @@ suite('system/HomescreenWindowManager', function() {
   var fakeHomeManifestURL = 'app://fakehome.gaiamobile.org/manifest.webapp';
   mocksForHomescreenWindowManager.attachTestHelpers();
 
-  setup(function() {
-    fakeHome = new HomescreenWindow('fakeHome');
-    fakeLauncher = new HomescreenLauncher();
-    window.homescreenLauncher = fakeLauncher;
-    window.homescreenLauncher.mFeedFixtures({
-      mHomescreenWindow: fakeHome,
-      manifestURL: fakeHomeManifestURL,
-      ready: true
-    });
-    window.homescreenLauncher.start();
-  });
-
-  teardown(function() {
-    // MocksHelper doesn't call mTeardown() on instantiable object for us.
-    fakeLauncher.mTeardown();
-    delete window.homescreenLauncher;
-  });
-
   suite('getHomescreen', function() {
     var homescreenWinMgr;
     var stubEnsureHome;
     setup(function() {
-      homescreenWinMgr = new HomescreenWindowManager();
+      homescreenWinMgr = BaseModule.instantiate('HomescreenWindowManager');
+      homescreenWinMgr.service = MockService;
       homescreenWinMgr.start();
+      fakeHome = new HomescreenWindow('fakeHome');
+      fakeLauncher = new HomescreenLauncher();
+      homescreenWinMgr.homescreenLauncher = fakeLauncher;
+      homescreenWinMgr.homescreenLauncher.mFeedFixtures({
+        mHomescreenWindow: fakeHome,
+        manifestURL: fakeHomeManifestURL,
+        ready: true
+      });
+      homescreenWinMgr.homescreenLauncher.start();
       stubEnsureHome = this.sinon.stub(fakeHome, 'ensure');
     });
 
     teardown(function() {
       homescreenWinMgr.stop();
       stubEnsureHome.restore();
+      // MocksHelper doesn't call mTeardown() on instantiable object for us.
+      homescreenWinMgr.homescreenLauncher.mTeardown();
     });
 
     test('with isHomeEvent = false', function() {
@@ -76,12 +71,24 @@ suite('system/HomescreenWindowManager', function() {
     var homescreenWinMgr;
 
     setup(function() {
-      homescreenWinMgr = new HomescreenWindowManager();
+      homescreenWinMgr = BaseModule.instantiate('HomescreenWindowManager');
+      homescreenWinMgr.service = MockService;
       homescreenWinMgr.start();
+      fakeHome = new HomescreenWindow('fakeHome');
+      fakeLauncher = new HomescreenLauncher();
+      homescreenWinMgr.homescreenLauncher = fakeLauncher;
+      homescreenWinMgr.homescreenLauncher.mFeedFixtures({
+        mHomescreenWindow: fakeHome,
+        manifestURL: fakeHomeManifestURL,
+        ready: true
+      });
+      homescreenWinMgr.homescreenLauncher.start();
     });
 
     teardown(function() {
       homescreenWinMgr.stop();
+      // MocksHelper doesn't call mTeardown() on instantiable object for us.
+      homescreenWinMgr.homescreenLauncher.mTeardown();
     });
 
     test('appswitching event', function() {

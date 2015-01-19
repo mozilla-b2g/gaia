@@ -4,22 +4,22 @@
    AppWindow,
    HomescreenLauncher,
    appWindowFactory,
-   MockAppWindowManager
+   MockService
  */
 
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_applications.js');
-requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 
 var mocksForAppWindowFactory = new MocksHelper([
-  'AppWindow', 'AppWindowManager', 'HomescreenLauncher',
-  'HomescreenWindow', 'Applications', 'ManifestHelper'
+  'AppWindow', 'HomescreenLauncher',
+  'HomescreenWindow', 'Applications', 'ManifestHelper', 'Service'
 ]).init();
 
 suite('system/AppWindowFactory', function() {
@@ -135,8 +135,6 @@ suite('system/AppWindowFactory', function() {
     window.homescreenLauncher = new HomescreenLauncher();
     window.homescreenLauncher.start();
 
-    window.appWindowManager = new MockAppWindowManager();
-    requireApp('system/js/service.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/app_window_factory.js', function() {
       window.appWindowFactory = new AppWindowFactory();
@@ -365,10 +363,9 @@ suite('system/AppWindowFactory', function() {
     });
 
     test('launch an already-running app', function() {
-      var spy = this.sinon.stub(window.appWindowManager, 'getApp');
       var app = new AppWindow();
       var stubReviveBrowser = this.sinon.stub(app, 'reviveBrowser');
-      spy.returns(app);
+      MockService.mGetApp = app;
       appWindowFactory.handleEvent({
         type: 'open-app',
         detail: fakeLaunchConfig5

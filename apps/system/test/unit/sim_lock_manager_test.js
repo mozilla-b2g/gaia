@@ -80,14 +80,14 @@ suite('SimLockManager', function() {
 
     test('no simpin dialog would show up on first run', function() {
       MockService.mUpgrading = false;
-      MockService.runningFTU = true;
+      MockService.mIsFtuRunning = true;
       window.dispatchEvent(new window.CustomEvent('ftuopen'));
       assert.isTrue(subject.simLockSystemDialog.close.called);
     });
 
     test('simpin dialog would show up on upgrade', function() {
       MockService.mUpgrading = true;
-      MockService.runningFTU = true;
+      MockService.mIsFtuRunning = true;
       window.dispatchEvent(new CustomEvent('ftuopen'));
       assert.isTrue(subject.simLockSystemDialog.show.called);
     });
@@ -323,8 +323,8 @@ suite('SimLockManager', function() {
 
     test('should not show on Ftu', function() {
       MockService.mUpgrading = false;
-      MockService.runningFTU = true;
       this.sinon.stub(subject, 'isBothSlotsLocked').returns(true);
+      MockService.mIsFtuRunning = true;
       subject.showIfLocked();
       assert.isFalse(subject.simLockSystemDialog.show.called);
     });

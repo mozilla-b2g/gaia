@@ -1,10 +1,7 @@
 'use strict';
-/* global FtuLauncher */
-/* global layoutManager */
 /* global SettingsListener */
 /* global Service */
 /* global SheetsTransition */
-/* global softwareButtonManager */
 /* global StackManager */
 /* global TouchForwarder */
 
@@ -118,7 +115,8 @@
         case 'appopened':
           var app = e.detail;
           if (!app.stayBackground) {
-            this.lifecycleEnabled = (app.origin !== FtuLauncher.getFtuOrigin());
+            this.lifecycleEnabled =
+              (app.origin !== Service.query('getFtuOrigin'));
           }
           break;
         case 'homescreenopened':
@@ -147,7 +145,8 @@
           this.lifecycleEnabled = false;
           break;
         case 'updateprompthidden':
-          if (Service.currentApp && !Service.currentApp.isHomescreen) {
+          if (Service.query('getTopMostWindow') &&
+              !Service.query('getTopMostWindow').isHomescreen) {
             this.lifecycleEnabled = true;
           }
           break;
@@ -370,14 +369,16 @@
       // but we still want to redispatch touch events to the "overlayed"
       // software home button
       var softwareButtonOverlayed =
-        Service.currentApp &&
-        Service.currentApp.isFullScreenLayout();
+        Service.query('getTopMostWindow') &&
+        Service.query('getTopMostWindow').isFullScreenLayout();
       if (softwareButtonOverlayed) {
-        return x > (layoutManager.width - softwareButtonManager.width) ||
-            y > (layoutManager.height - softwareButtonManager.height);
+        return x > (Service.query('LayoutManager.width') -
+                Service.query('SoftwareButtonManager.width')) ||
+            y > (Service.query('LayoutManager.height') -
+                 Service.query('SoftwareButtonManager.height'));
       }
-      return (x > layoutManager.width ||
-              y > layoutManager.height);
+      return (x > Service.query('LayoutManager.width') ||
+              y > Service.query('LayoutManager.height'));
     },
 
     /**

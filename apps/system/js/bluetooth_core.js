@@ -7,6 +7,10 @@
     this.bluetooth = bluetooth;
   };
 
+  BluetoothCore.IMPORTS = [
+    'shared/js/mime_mapper.js'
+  ];
+
   /**
    * BluetoothCore handle bluetooth related function and bootstrap
    * modules for v1/v2 API.
@@ -16,12 +20,15 @@
   BaseModule.create(BluetoothCore, {
     name: 'BluetoothCore',
 
-    start: function() {
+    _start: function() {
       // init Bluetooth module
       if (typeof(window.navigator.mozBluetooth.onattributechanged) ===
         'undefined') { // APIv1
-          Bluetooth.init();
-          BluetoothTransfer.init();
+        BaseModule.lazyLoad(
+          ['Bluetooth', 'BluetoothTransfer']).then(function() {
+            Bluetooth.start();
+            BluetoothTransfer.start();
+          });
       }
     }
   });

@@ -1,14 +1,16 @@
-/* global FtuLauncher, VersionHelper,
+/* global VersionHelper, BaseModule,
           MockasyncStorage, MockNavigatorSettings */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/js/version_helper.js');
 require('/apps/system/test/unit/mock_asyncStorage.js');
+requireApp('system/js/service.js');
+requireApp('system/js/base_module.js');
 requireApp('system/js/ftu_launcher.js');
 
 suite('launch ftu >', function() {
-  var realAsyncStorage, realMozSettings, realFtuPing;
+  var realAsyncStorage, realMozSettings, realFtuPing, subject;
 
   suiteSetup(function() {
     realFtuPing = window.FtuPing;
@@ -20,6 +22,15 @@ suite('launch ftu >', function() {
       this.ensurePingCalled = false;
       this.ensurePing = function() { this.ensurePingCalled = true; };
     };
+  });
+
+  setup(function() {
+    subject = BaseModule.instantiate('FtuLauncher');
+    subject.start();
+  });
+
+  teardown(function() {
+    subject.stop();
   });
 
   suiteTeardown(function() {
@@ -37,68 +48,68 @@ suite('launch ftu >', function() {
       navigator.mozSettings
         .mSettings['deviceinfo.previous_os'] = '1.4.1.whatever';
       function onOutcome(name) {
-        assert.equal(name, 'launch', 'FtuLauncher.launch was called');
-        assert.isTrue(FtuLauncher.isFtuUpgrading());
+        assert.equal(name, 'launch', 'subject.launch was called');
+        assert.isTrue(subject.isFtuUpgrading());
         done();
       }
-      this.sinon.stub(FtuLauncher, 'launch', function() {
+      this.sinon.stub(subject, 'launch', function() {
         onOutcome('launch');
       });
-      this.sinon.stub(FtuLauncher, 'skip', function() {
+      this.sinon.stub(subject, 'skip', function() {
         onOutcome('skip');
       });
-      FtuLauncher.retrieve();
+      subject.retrieve();
     });
     test('launch when enabled (no upgrade)', function(done) {
       MockasyncStorage.mItems['ftu.enabled'] = true;
       navigator.mozSettings
         .mSettings['deviceinfo.previous_os'] = '2.0.1.whatever';
       function onOutcome(name) {
-        assert.equal(name, 'launch', 'FtuLauncher.launch was called');
-        assert.isFalse(FtuLauncher.isFtuUpgrading());
+        assert.equal(name, 'launch', 'subject.launch was called');
+        assert.isFalse(subject.isFtuUpgrading());
         done();
       }
-      this.sinon.stub(FtuLauncher, 'launch', function() {
+      this.sinon.stub(subject, 'launch', function() {
         onOutcome('launch');
       });
-      this.sinon.stub(FtuLauncher, 'skip', function() {
+      this.sinon.stub(subject, 'skip', function() {
         onOutcome('skip');
       });
-      FtuLauncher.retrieve();
+      subject.retrieve();
     });
     test('dont launch when not enabled (no upgrade)', function(done) {
       MockasyncStorage.mItems['ftu.enabled'] = false;
       navigator.mozSettings
         .mSettings['deviceinfo.previous_os'] = '2.0.1.whatever';
       function onOutcome(name) {
-        assert.equal(name, 'skip', 'FtuLauncher.skip was called');
-        assert.isFalse(FtuLauncher.isFtuUpgrading());
+        assert.equal(name, 'skip', 'subject.skip was called');
+        assert.isFalse(subject.isFtuUpgrading());
         done();
       }
-      this.sinon.stub(FtuLauncher, 'launch', function() {
+      this.sinon.stub(subject, 'launch', function() {
         onOutcome('launch');
       });
-      this.sinon.stub(FtuLauncher, 'skip', function() {
+      this.sinon.stub(subject, 'skip', function() {
         onOutcome('skip');
       });
-      FtuLauncher.retrieve();
+      subject.retrieve();
     });
     test('launch when not enabled (upgrade)', function(done) {
       MockasyncStorage.mItems['ftu.enabled'] = false;
       navigator.mozSettings
         .mSettings['deviceinfo.previous_os'] = '1.4.1.whatever';
       function onOutcome(name) {
-        assert.equal(name, 'launch', 'FtuLauncher.launch was called');
-        assert.isTrue(FtuLauncher.isFtuUpgrading());
+        assert.equal(name, 'launch', 'subject.launch was called');
+        assert.isTrue(subject.isFtuUpgrading());
         done();
       }
-      this.sinon.stub(FtuLauncher, 'launch', function() {
+      this.sinon.stub(subject, 'launch', function() {
         onOutcome('launch');
       });
-      this.sinon.stub(FtuLauncher, 'skip', function() {
+      this.sinon.stub(subject, 'skip', function() {
         onOutcome('skip');
       });
-      FtuLauncher.retrieve();
+      subject.retrieve();
     });
     test('ftu ping is called', function() {
       var fakePromise = {
@@ -107,8 +118,8 @@ suite('launch ftu >', function() {
 
       this.sinon.stub(VersionHelper, 'getVersionInfo').returns(fakePromise);
 
-      FtuLauncher.retrieve();
-      assert.ok(FtuLauncher.getFtuPing().ensurePingCalled);
+      subject.retrieve();
+      assert.ok(subject.getFtuPing().ensurePingCalled);
     });
   });
 
@@ -122,24 +133,24 @@ suite('launch ftu >', function() {
 
     test(' upgrade tutorial launched', function(done) {
       function onOutcome(name) {
-        assert.isTrue(FtuLauncher.isFtuUpgrading());
-        assert.equal(name, 'launch', 'FtuLauncher.launch was called');
-        assert.isTrue(FtuLauncher.isFtuUpgrading());
+        assert.isTrue(subject.isFtuUpgrading());
+        assert.equal(name, 'launch', 'subject.launch was called');
+        assert.isTrue(subject.isFtuUpgrading());
         done();
       }
-      this.sinon.stub(FtuLauncher, 'launch', function() {
+      this.sinon.stub(subject, 'launch', function() {
         onOutcome('launch');
       });
-      this.sinon.stub(FtuLauncher, 'skip', function() {
+      this.sinon.stub(subject, 'skip', function() {
         onOutcome('skip');
       });
-      FtuLauncher.retrieve();
+      subject.retrieve();
     });
   });
 
   suite('stepReady', function() {
     setup(function() {
-      FtuLauncher._stepsList = [];
+      subject._stepsList = [];
     });
     test('Navigator to #languages', function(done) {
       var evt = new CustomEvent('iac-ftucomms', {
@@ -148,8 +159,8 @@ suite('launch ftu >', function() {
           hash: '#languages'
         }
       });
-      FtuLauncher.handleEvent(evt);
-      FtuLauncher.stepReady('#languages').then(function() {
+      subject.handleEvent(evt);
+      subject.stepReady('#languages').then(function() {
         done();
       });
     });
@@ -161,15 +172,15 @@ suite('launch ftu >', function() {
           hash: '#languages'
         }
       });
-      FtuLauncher.handleEvent(evt);
+      subject.handleEvent(evt);
       var evt2 = new CustomEvent('iac-ftucomms', {
         detail: {
           type: 'step',
           hash: '#wifi'
         }
       });
-      FtuLauncher.handleEvent(evt2);
-      FtuLauncher.stepReady('#wifi').then(function() {
+      subject.handleEvent(evt2);
+      subject.stepReady('#wifi').then(function() {
         done();
       });
     });

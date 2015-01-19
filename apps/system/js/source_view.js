@@ -101,7 +101,7 @@
       document.body.appendChild(viewsource);
     }
 
-    var url = Service.currentApp.origin;
+    var url = Service.query('getTopMostWindow').origin;
     if (!url) {
       // Assume the home screen is the visible app.
       url = window.location.toString();

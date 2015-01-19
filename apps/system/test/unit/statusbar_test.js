@@ -1,4 +1,4 @@
-/* globals FtuLauncher, MockL10n, MockLayoutManager,
+/* globals MockL10n, MockLayoutManager,
            MocksHelper, MockService, StatusBar, Service,
            MockAppWindowManager, MockBaseIcon,
            UtilityTray, MockAppWindow, layoutManager */
@@ -14,7 +14,6 @@ require('/shared/test/unit/mocks/mock_simslot.js');
 require('/shared/test/unit/mocks/mock_simslot_manager.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/test/unit/mock_app_window_manager.js');
-require('/test/unit/mock_ftu_launcher.js');
 require('/test/unit/mock_touch_forwarder.js');
 require('/test/unit/mock_utility_tray.js');
 require('/test/unit/mock_layout_manager.js');
@@ -25,8 +24,7 @@ var mocksForStatusBar = new MocksHelper([
   'UtilityTray',
   'LayoutManager',
   'AppWindow',
-  'Service',
-  'FtuLauncher'
+  'Service'
 ]).init();
 
 suite('system/Statusbar', function() {
@@ -117,7 +115,7 @@ suite('system/Statusbar', function() {
     });
 
     test('finish init only after ftu', function() {
-      FtuLauncher.mIsUpgrading = false;
+      MockService.mUpgrading = false;
       var evt = new CustomEvent('ftuopen');
       StatusBar.handleEvent(evt);
       assert.isTrue(StatusBar.finishInit.notCalled);
@@ -127,7 +125,7 @@ suite('system/Statusbar', function() {
     });
 
     test('handles apptitlestatechanged on ftu', function() {
-      FtuLauncher.mIsUpgrading = false;
+      MockService.mUpgrading = false;
       var evt = new CustomEvent('apptitlestatechanged');
       StatusBar.handleEvent(evt);
       assert.isTrue(StatusBar.setAppearance.called);
@@ -361,12 +359,12 @@ suite('system/Statusbar', function() {
       });
 
       test('it should not reveal when ftu is running', function() {
-        FtuLauncher.mIsRunning = true;
+        MockService.mIsFtuRunning = true;
         fakeDispatch('touchstart', 100, 0);
         fakeDispatch('touchmove', 100, 100);
 
         assert.isFalse(app.handleStatusbarTouch.called);
-        FtuLauncher.mIsRunning = false;
+        MockService.mIsFtuRunning = false;
       });
 
       test('it should not forward events when the tray is opened', function() {

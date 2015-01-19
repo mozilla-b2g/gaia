@@ -1,4 +1,5 @@
-/* globals Service, homescreenLauncher, SettingsListener */
+/* globals Service, homescreenLauncher, SettingsListener, BaseModule,
+           DialerAgent */
 'use strict';
 
 (function(exports) {
@@ -58,7 +59,7 @@
       }
       this._topMostWindow = null;
       var nextApp = homescreenLauncher.getHomescreen();
-      if (Service.locked) {
+      if (Service.query('locked')) {
         this.closeAllAttentionWindows();
       } else if (nextApp && !nextApp.isDead()) {
         nextApp.ready(this.closeAllAttentionWindows.bind(this));
@@ -114,6 +115,14 @@
       window.addEventListener('secure-appopened', this);
       window.addEventListener('rocketbar-overlayopened', this);
       Service.request('registerHierarchy', this);
+      if (navigator.mozTelephony) {
+        BaseModule.lazyLoad(['DialerAgent']).then(function() {
+          // DialerAgent will create callscreen window
+          // so it is 'CallscreenWindowLauncher' exactly.
+          var dialerAgent = new DialerAgent();
+          dialerAgent.start();
+        });
+      }
     },
 
     stop: function attwm_stop() {
@@ -171,7 +180,7 @@
           var candidate = null;
           if (this._openedInstances.size === 0) {
             this._topMostWindow = null;
-            candidate = Service.currentApp;
+            candidate = Service.query('AppWindowManager.getActiveApp');
           } else {
             this._openedInstances.forEach(function(instance) {
               candidate = instance;

@@ -10,11 +10,11 @@ requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-requireApp('system/test/unit/mock_ftu_launcher.js');
 require('/js/input_window_manager.js');
 require('/js/service.js');
 
 require('/shared/js/template.js');
+require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_manifest_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_wake_lock.js');
@@ -31,7 +31,7 @@ var mocksForAppInstallManager = new MocksHelper([
   'ModalDialog',
   'ManifestHelper',
   'LazyLoader',
-  'FtuLauncher',
+  'Service',
   'KeyboardHelper'
 ]).init();
 
@@ -604,7 +604,7 @@ suite('system/AppInstallManager >', function() {
       ];
 
       suiteTeardown(function() {
-        MockFtuLauncher.mIsRunning = false;
+        MockService.mIsFtuRunning = false;
       });
 
       setup(function() {
@@ -625,10 +625,10 @@ suite('system/AppInstallManager >', function() {
 
       testCases.forEach(function(testCase) {
         test(testCase.name, function() {
-          MockFtuLauncher.mIsRunning = testCase.value;
+          MockService.mIsFtuRunning = testCase.value;
           dispatchInstallEvent();
           assert.equal(MockSystemBanner.mMessage,
-                       FtuLauncher.isFtuRunning() ?
+                       MockService.query('isFtuRunning') ?
                         null :
                         'app-install-success{"appName":"' + mockAppName + '"}');
         });

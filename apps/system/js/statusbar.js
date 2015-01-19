@@ -14,7 +14,7 @@
   limitations under the License.
 */
 
-/*global FtuLauncher, Service, UtilityTray, layoutManager */
+/*global Service, UtilityTray, LazyLoader */
 
 'use strict';
 
@@ -214,7 +214,9 @@ var StatusBar = {
 
     this.statusbarIcons.addEventListener('wheel', this);
 
-    UtilityTray.init();
+    LazyLoader.load(['js/utility_tray.js']).then(function() {
+      UtilityTray.init();
+    });
   },
 
   handleEvent: function sb_handleEvent(evt) {
@@ -386,6 +388,10 @@ var StatusBar = {
       return;
     }
 
+    if (!app) {
+      return;
+    }
+
     // Fetch top-most (or bottom-most) window to figure out color theming.
     var themeWindow =
       useBottomWindow ? app.getBottomMostWindow() : app.getTopMostWindow();
@@ -407,8 +413,8 @@ var StatusBar = {
   _getMaximizedStatusBarWidth: function sb_getMaximizedStatusBarWidth() {
     // Let's consider the style of the status bar:
     // * padding: 0 0.3rem;
-    return Math.round((window.layoutManager ?
-      layoutManager.width : window.innerWidth) - (3 * 2));
+    return Math.round((Service.query('LayoutManager.width') ||
+      window.innerWidth) - (3 * 2));
   },
 
   _updateMinimizedStatusBarWidth: function sb_updateMinimizedStatusBarWidth() {
@@ -430,7 +436,7 @@ var StatusBar = {
 
     if (element) {
       this._minimizedStatusBarWidth = Math.round(
-          (window.layoutManager ? layoutManager.width : window.innerWidth) -
+          ((Service.query('LayoutManager.width') || window.innerWidth)) -
           element.getBoundingClientRect().width -
           // Remove padding and margin
           5 - 3);
@@ -543,12 +549,12 @@ var StatusBar = {
 
   panelHandler: function sb_panelHandler(evt) {
     // Do not forward events if FTU is running
-    if (FtuLauncher.isFtuRunning()) {
+    if (Service.query('isFtuRunning')) {
       return;
     }
 
     // Do not forward events is utility-tray is active
-    if (UtilityTray.active) {
+    if (window.UtilityTray && window.UtilityTray.active) {
       return;
     }
 
@@ -587,7 +593,7 @@ var StatusBar = {
 
   // To reduce the duplicated code
   isLocked: function() {
-    return Service.locked;
+    return Service.query('locked');
   },
 
   toCamelCase: function sb_toCamelCase(str) {

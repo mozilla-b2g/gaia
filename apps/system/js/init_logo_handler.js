@@ -33,19 +33,24 @@ var CustomLogoPath = (function() {
 
   function init(aNext) {
     try {
-      var powerSetting = SettingsHelper(SETTING_POWER, {});
-      powerSetting.get(function gotPS(powerValues) {
-        _poweron.video = powerValues[ATT_PWRON_VIDEO] ||
-          DEFAULT_RESOURCES.poweron.video;
-        _poweron.image = powerValues[ATT_PWRON_IMG] ||
-          DEFAULT_RESOURCES.poweron.image;
-        _poweroff.video = powerValues[ATT_PWROFF_VIDEO] ||
-          DEFAULT_RESOURCES.poweroff.video;
-        _poweroff.image = powerValues[ATT_PWROFF_IMG] ||
-          DEFAULT_RESOURCES.poweroff.image;
+      Service.request('SettingsCore:get', SETTING_POWER).then(
+        function gotPS(powerValues) {
+          if (!powerValues) {
+            setDefaultValues();
+            aNext && aNext();
+            return;
+          }
+          _poweron.video = powerValues[ATT_PWRON_VIDEO] ||
+            DEFAULT_RESOURCES.poweron.video;
+          _poweron.image = powerValues[ATT_PWRON_IMG] ||
+            DEFAULT_RESOURCES.poweron.image;
+          _poweroff.video = powerValues[ATT_PWROFF_VIDEO] ||
+            DEFAULT_RESOURCES.poweroff.video;
+          _poweroff.image = powerValues[ATT_PWROFF_IMG] ||
+            DEFAULT_RESOURCES.poweroff.image;
 
-        aNext && aNext();
-      });
+          aNext && aNext();
+        });
     } catch (ex) {
       setDefaultValues();
       console.error('Error loading powers settings. Loading default values.' +

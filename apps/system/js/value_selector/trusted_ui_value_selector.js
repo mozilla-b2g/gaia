@@ -4,7 +4,7 @@
  * Bug 911880.
  */
 
-/* global ValueSelector */
+/* global BaseUI */
 
 'use strict';
 
@@ -19,7 +19,7 @@ function TrustedUiValueSelector(context) {
 
 exports.TrustedUiValueSelector = TrustedUiValueSelector;
 
-TrustedUiValueSelector.prototype = Object.create(window.BaseUI.prototype);
+TrustedUiValueSelector.prototype = Object.create(BaseUI.prototype);
 
 TrustedUiValueSelector.prototype.start = function() {
   window.addEventListener('mozChromeEvent', this);
@@ -36,7 +36,7 @@ TrustedUiValueSelector.prototype.stop = function() {
 };
 
 TrustedUiValueSelector.prototype.render = function() {
-  this.valueSelector = new ValueSelector(this);
+  this.valueSelector = new window.ValueSelector(this);
 };
 
 TrustedUiValueSelector.prototype.handleEvent = function(evt) {

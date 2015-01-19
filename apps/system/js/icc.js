@@ -1,6 +1,4 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-/* global LazyLoader, DUMP, inputWindowManager */
+/* global LazyLoader, DUMP, inputWindowManager, Service */
 'use strict';
 
 var icc = {
@@ -164,7 +162,7 @@ var icc = {
 
     DUMP('STK Proactive Command for SIM ' + message.iccId + ': ',
       message.command);
-    if (FtuLauncher.isFtuRunning()) {
+    if (Service.query('isFtuRunning')) {
       // Delay the stk command until FTU is done
       var self = this;
       window.addEventListener('ftudone', function ftudone() {
@@ -182,7 +180,6 @@ var icc = {
       cmdId = '0x' + message.command.typeOfCommand.toString(16);
     }
     if (icc_worker[cmdId]) {
-      this.resize();
       return icc_worker[cmdId](message);
     }
 
@@ -192,7 +189,7 @@ var icc = {
   handleEvent: function icc_handleEvent(evt) {
     switch (evt.type) {
       case 'home':
-        if (this.icc_view.classList.contains('visible')) {
+        if (this.isVisible()) {
           this.hideViews();
         }
         break;
@@ -308,11 +305,11 @@ var icc = {
   keyboardChangedEvent: function(viewId, hidden) {
     var keyboardHeight = 0;
     if (!hidden) {
-      keyboardHeight = inputWindowManager.getHeight();
+      keyboardHeight = Service.query('InputWindowManager.getHeight') || 0;
     }
     var form = viewId.getElementsByTagName('form');
-    var height = (window.innerHeight - keyboardHeight - StatusBar.height);
-    height -= softwareButtonManager.height;
+    var height = (window.innerHeight - keyboardHeight);
+    height -= (Service.query('SoftwareButtonManager.height') || 0);
     viewId.style.height = height + 'px';
     if (form && viewId.clientHeight > 0) {
       var input = viewId.getElementsByTagName('input')[0];
@@ -322,14 +319,17 @@ var icc = {
       var formHeight = viewId.clientHeight;
       formHeight -= (header.clientHeight + headerSubtitle.clientHeight);
       formHeight -= menu.clientHeight;
-      formHeight -= softwareButtonManager.height;
+      formHeight -= (Service.query('SoftwareButtonManager.height') || 0);
       form[0].style.height = formHeight + 'px';
       input.scrollIntoView();
     }
   },
 
   resize: function() {
-    var height = window.layoutManager.height - StatusBar.height;
+    if (!this.isVisible()) {
+      return;
+    }
+    var height = Service.query('LayoutManager.height');
     this.icc_view.style.height = height + 'px';
   },
 
@@ -368,6 +368,11 @@ var icc = {
     this._screen.classList.add('icc');
     this.icc_alert.classList.add('visible');
     this.icc_view.classList.add('visible');
+    this.resize();
+  },
+
+  isVisible: function() {
+    return this.icc_view.classList.contains('visible');
   },
 
   /**
@@ -442,6 +447,7 @@ var icc = {
     this._screen.classList.add('icc');
     this.icc_confirm.classList.add('visible');
     this.icc_view.classList.add('visible');
+    this.resize();
   },
 
   asyncConfirm: function(stkMessage, message, icons, callback) {
@@ -504,6 +510,7 @@ var icc = {
     this._screen.classList.add('icc');
     this.icc_asyncconfirm.classList.add('visible');
     this.icc_view.classList.add('visible');
+    this.resize();
   },
 
   /**
@@ -702,6 +709,7 @@ var icc = {
     this._screen.classList.add('icc');
     this.icc_input.classList.add('visible');
     this.icc_view.classList.add('visible');
+    this.resize();
 
     var actionHandler = function() {
       clearInputTimeout();
