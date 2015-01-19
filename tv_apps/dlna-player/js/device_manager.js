@@ -1,4 +1,5 @@
 'use strict';
+/* global avtManager */
 
 (function(exports) {
   function DeviceManager() {
@@ -57,9 +58,6 @@
     },
 
     removeDeviceIfEmpty: function dm_removeIfEmpty(deviceId) {
-      for (var prop in deviceId) {
-        return;
-      }
       this.removeDevice(deviceId);
     },
 
