@@ -111,7 +111,15 @@ suite('system/UpdateManager', function() {
   });
 
   setup(function() {
-    this.sinon.stub(Service, 'request');
+    this.sinon.stub(Service, 'request', function(action) {
+      if (action === 'showCustomDialog') {
+        MockCustomDialog.show(arguments[1],
+          arguments[2], arguments[3], arguments[4]);
+      } else {
+        MockCustomDialog.hide(arguments[1],
+          arguments[2], arguments[3], arguments[4]);
+      }
+    });
     // they are automatically restored at teardown by the test agent
     this.sinon.useFakeTimers();
 

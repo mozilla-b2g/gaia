@@ -6,14 +6,14 @@
  * this file would only contain those different parts of SecureWindow.
  */
 
-requireApp('system/test/unit/mock_orientation_manager.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 
 var mocksForSecureWindowManager = new window.MocksHelper([
-  'OrientationManager', 'Applications', 'SettingsListener',
+  'Service', 'Applications', 'SettingsListener',
   'ManifestHelper', 'ScreenLayout'
 ]).init();
 
@@ -40,7 +40,6 @@ suite('system/SecureWindow', function() {
 
       return element;
     });
-    requireApp('system/js/service.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');
     requireApp('system/js/app_window.js');

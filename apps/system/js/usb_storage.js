@@ -247,7 +247,7 @@
 
       var mode = this.automounterDisable;
 
-      if (this._enabled && !Service.locked) {
+      if (this._enabled && !Service.query('locked')) {
         // This is the only time that UMS or MTP should be enabled.
         if (this._protocol == this.protocolMTP) {
           mode = this.automounterMtpEnable;

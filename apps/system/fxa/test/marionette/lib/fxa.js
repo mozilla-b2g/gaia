@@ -182,12 +182,15 @@ FxA.prototype = {
         // and cause things to fail.
         this.client.helper.waitForElementToDisappear('#loading-overlay');
       }
+      this.client.log('waiting panel ' + panelId);
       // waitForElement is used to make sure animations and page changes have
       // finished, and that the panel is displayed.
       this.client.helper.waitForElement(panelId);
 
       if (buttonId) {
+        this.client.log('waiting button ' + buttonId);
         var button = this.client.helper.waitForElement(buttonId);
+        this.client.log('clicking....');
         button.click();
       }
     },

@@ -214,7 +214,7 @@ suite('system/permission manager', function() {
     }
 
     setup(function() {
-      Service.currentApp = {
+      Service.mTopMostWindow = {
         origin: ''
       };
 
@@ -802,9 +802,7 @@ suite('system/permission manager', function() {
     var evt;
     setup(function() {
       this.sinon.stub(permissionManager, 'discardPermissionRequest');
-      window.Service = {
-        locked: true
-      };
+      MockService.locked = true;
       evt = {
         type: 'screenchange',
         detail: {

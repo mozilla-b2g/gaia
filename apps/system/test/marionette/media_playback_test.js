@@ -6,6 +6,7 @@ marionette('media playback tests', function() {
   var FakeMusic = require('./lib/media_playback_fake_music.js');
   var fakeMusicInfo = new FakeMusic();
   var apps = {};
+  var system;
   apps[fakeMusicInfo.origin] = fakeMusicInfo.path;
   var client = marionette.client({
     prefs: {
@@ -16,6 +17,8 @@ marionette('media playback tests', function() {
   });
 
   setup(function() {
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
     MediaPlaybackActions = require('./lib/media_playback_actions');
     MediaPlaybackChecks = require('./lib/media_playback_checks');
     actions = (new MediaPlaybackActions()).start(client);

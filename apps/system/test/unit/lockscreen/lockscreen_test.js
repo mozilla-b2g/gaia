@@ -1,4 +1,5 @@
-/* global MockCanvas, MockCanvasRenderingContext2D, MockImage */
+/* global MockCanvas, MockCanvasRenderingContext2D, MockImage,
+          MockService */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -6,39 +7,26 @@ require('/shared/test/unit/mocks/mock_image.js');
 require('/shared/test/unit/mocks/mock_canvas.js');
 require('/shared/test/unit/mocks/mock_canvas_rendering_context_2d.js');
 requireApp('system/lockscreen/js/lockscreen_charging.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
-requireApp('system/test/unit/mock_ftu_launcher.js');
-requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_lockscreen_slide.js');
-requireApp('system/test/unit/mock_orientation_manager.js',
-  function() {
-    window.realOrientationManager = window.OrientationManager;
-    window.OrientationManager = window.MockOrientationManager;
-    requireApp('system/lockscreen/js/lockscreen.js');
-  });
+requireApp('system/test/unit/mock_lazy_loader.js');
 
 var mocksForLockScreen = new window.MocksHelper([
-  'OrientationManager', 'AppWindowManager', 'AppWindow', 'LockScreenSlide',
-  'SettingsListener', 'Image', 'Canvas'
+  'AppWindow', 'LockScreenSlide', 'LazyLoader',
+  'SettingsListener', 'Image', 'Canvas', 'Service'
 ]).init();
 
-requireApp('system/test/unit/mock_orientation_manager.js',
-  function() {
-    window.realOrientationManager = window.OrientationManager;
-    window.OrientationManager = window.MockOrientationManager;
-    requireApp('system/lockscreen/js/lockscreen.js');
-  });
+requireApp('system/lockscreen/js/lockscreen.js');
 
 suite('system/LockScreen >', function() {
   var subject;
   var realL10n;
   var realMozTelephony;
   var realClock;
-  var realOrientationManager;
-  var realFtuLauncher;
   var realSettingsListener;
   var realMozSettings;
   var domPasscodePad;
@@ -92,12 +80,6 @@ suite('system/LockScreen >', function() {
 
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = window.MockNavigatorMozTelephony;
-
-    realOrientationManager = window.OrientationManager;
-    window.OrientationManager = window.MockOrientationManager;
-
-    realFtuLauncher = window.FtuLauncher;
-    window.FtuLauncher = window.MockFtuLauncher;
 
     realSettingsListener = window.SettingsListener;
     window.SettingsListener = window.MockSettingsListener;
@@ -195,6 +177,7 @@ suite('system/LockScreen >', function() {
     };
     var originalMozMobileConnections = window.navigator.mozMobileConnections;
     window.navigator.mozMobileConnections = {};
+    window.SIMSlotManager = {};
     assert.isTrue(!!(window.navigator.mozMobileConnections),
                   'the first condition is not satisfied: ' +
                    !!(window.navigator.mozMobileConnections));
@@ -483,6 +466,14 @@ suite('system/LockScreen >', function() {
     assert.isTrue(stubOverlayLocked.called);
   });
 
+
+  test('Should update background when inited', function() {
+    this.sinon.stub(subject, 'updateBackground');
+    MockService.mWallpaper = 'blob:app://wallpaper.gaiamobile.org/b10b-1d';
+    subject.init();
+    assert.isTrue(subject.updateBackground.calledWith(MockService.mWallpaper));
+  });
+
   // XXX: Test 'Screen off: by proximity sensor'.
 
   suite('Background functionality', function() {
@@ -716,8 +707,6 @@ suite('system/LockScreen >', function() {
     navigator.mozL10n = realL10n;
     navigator.mozTelephony = realMozTelephony;
     window.Clock = realClock;
-    window.OrientationManager = window.realOrientationManager;
-    window.FtuLauncher = realFtuLauncher;
     window.SettingsListener = realSettingsListener;
     navigator.mozSettings = realMozSettings;
 

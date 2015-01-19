@@ -5,10 +5,11 @@ marionette('LockScreen ambient notification', function() {
   var client = marionette.client();
 
   setup(function() {
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
     LockScreenNotificationActions =
       require('./lib/lockscreen_notification_actions');
     lsActions = (new LockScreenNotificationActions()).start(client);
-    system = client.loader.getAppClass('system');
   });
 
   test('ambient notification is not visible', function() {
@@ -34,7 +35,8 @@ marionette('LockScreen ambient notification', function() {
       return !findToaster().displayed();
     });
     client.waitFor(function() {
-      return !client.findElement('.notifications-shadow').displayed();
+      return !client.findElement(
+        '.lockScreenWindow .notifications-shadow').displayed();
     });
   });
 });
