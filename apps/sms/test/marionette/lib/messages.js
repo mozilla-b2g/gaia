@@ -59,7 +59,7 @@
 
     Message: {
       content: '.message-content > p:first-child',
-      vcardAttachment: '[data-attachment-type="ref"]',
+      vcardAttachment: '[data-attachment-type="vcard"]',
       fileName: '.file-name'
     },
 

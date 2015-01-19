@@ -32,6 +32,22 @@
   height: 12.7rem; /* font-size = 1.7rem + 1rem margin */
 }
 
+/* Internal height of the iframe that contains the attachment draft */
+.attachment-container.nopreview[data-attachment-type="vcard"] {
+  /* 40x40 px placeholder + filename below */
+  height: 6.7rem; /* font-size = 1.7rem + 1rem margin */
+}
+
+/* The internal height of the attachment itself */
+.attachment[data-attachment-type="vcard"] {
+  height: 100%;
+}
+
+/* Allow to display the filename properly */
+#messages-input > [data-attachment-type="vcard"] {
+  width: 20rem;
+}
+
 .article-list[data-type="list"] .message .attachment-container {
   margin: 1rem 0;
 }
@@ -89,7 +105,7 @@
   font-size: 1.5rem;
 }
 
-.attachment-draft .size-indicator {
+.attachment-draft > :not([data-attachment-type="vcard"]) .size-indicator {
   display: block;
 }
 
@@ -97,7 +113,7 @@
   position: absolute;
   bottom: 0.5rem;
   right: 0;
-  left: 0;
+  left: 1px;  /* Avoid issues related to being too much on the left */
 
   height: 2rem;
   display: none;
@@ -144,10 +160,10 @@
   top: 0
 }
 
-.attachment-draft:hover .thumbnail-placeholder,
-.attachment-draft:active .thumbnail-placeholder,
-.attachment-container:hover .thumbnail-placeholder,
-.attachment-container:active .thumbnail-placeholder {
+.attachment-draft:hover .thumbnail-placeholder:not(.vcard-placeholder),
+.attachment-draft:active .thumbnail-placeholder:not(.vcard-placeholder),
+.attachment-container:not([data-attachment-type="vcard"]):hover .thumbnail-placeholder,
+.attachment-container:not([data-attachment-type="vcard"]):active .thumbnail-placeholder {
   background-color: #33cccc;
   background-blend-mode: luminosity;
 }
@@ -164,6 +180,14 @@
   background-position: left -30rem;
 }
 
+.vcard-placeholder {
+  background: url('images/attachment-vcard.png') no-repeat left top / 4rem;
+}
+
+.incoming.received .vcard-placeholder {
+  background: url('images/attachment-vcard-incoming.png') no-repeat left top / 4rem;
+}
+
 .attachment.corrupted .thumbnail-placeholder:after {
   display: block;
 
@@ -176,4 +200,3 @@
   content: '';
   background: url('icons/corrupted.png') no-repeat center center / 10rem;
 }
-
