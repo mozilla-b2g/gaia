@@ -69,7 +69,9 @@
         that.keyNavigatorAdapter = new KeyNavigationAdapter();
         that.keyNavigatorAdapter.init();
         that.keyNavigatorAdapter.on('move', that.onMove.bind(that));
-        that.keyNavigatorAdapter.on('enter', that.onEnter.bind(that));
+        // All behaviors which no need to have multple events while holding the
+        // key should use keyup.
+        that.keyNavigatorAdapter.on('enter-keyup', that.onEnter.bind(that));
 
         that.cardManager.on('card-inserted', that.onCardInserted.bind(that));
         that.cardManager.on('card-removed', that.onCardRemoved.bind(that));

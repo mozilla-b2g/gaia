@@ -25,10 +25,14 @@
     this.keyNavigationAdapter.on('move', function(key) {
       this.scrollable.move(key);
     }.bind(this));
-    this.keyNavigationAdapter.on('enter', function() {
+    // All behaviors which no need to have multple events while holding the
+        // key should use keyup.
+    this.keyNavigationAdapter.on('enter-keyup', function() {
       this.scrollable.currentItem.click();
     }.bind(this));
-    this.keyNavigationAdapter.on('esc', this.hide.bind(this));
+    // All behaviors which no need to have multple events while holding the
+        // key should use keyup
+    this.keyNavigationAdapter.on('esc-keyup', this.hide.bind(this));
 
     return this;
   };
