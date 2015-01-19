@@ -1,4 +1,5 @@
 /* global BookmarksDatabase */
+/* global eventSafety */
 /* global IconsHelper */
 /* global LazyLoader */
 /* global ModalDialog */
@@ -676,18 +677,13 @@
       return;
     }
 
-    var safetyTimeout = null;
     var finish = function(evt) {
       if (evt && evt.target !== element) {
         return;
       }
-
-      element.removeEventListener('transitionend', finish);
-      clearTimeout(safetyTimeout);
       callback();
     };
-    element.addEventListener('transitionend', finish);
-    safetyTimeout = setTimeout(finish, 250);
+    eventSafety(element, 'transitionend', finish, 250);
   };
 
   AppChrome.prototype.collapse = function ac_collapse() {

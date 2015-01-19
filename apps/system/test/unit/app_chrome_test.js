@@ -4,6 +4,7 @@
 'use strict';
 
 require('/shared/js/component_utils.js');
+require('/shared/js/event_safety.js');
 require('/shared/elements/gaia_progress/script.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
