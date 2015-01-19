@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
+from marionette.wait import Wait
 from gaiatest import GaiaTestCase
 from gaiatest.apps.search.app import Search
 from gaiatest.apps.cost_control.app import CostControl
@@ -40,12 +41,12 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
 
         # open browser to get some data downloaded
         search = Search(self.marionette)
-        search.launch()
+        search.launch(launch_timeout=30000)
         browser = search.go_to_url('http://www.mozilla.org/')
         browser.wait_for_page_to_load(180)
 
         browser.switch_to_content()
-        self.wait_for_condition(lambda m: "Home of the Mozilla Project" in m.title)
+        Wait(self.marionette, timeout=60).until(lambda m: "Home of the Mozilla Project" in m.title)
         browser.switch_to_chrome()
 
         # get the notification bar
@@ -60,8 +61,6 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
         # make sure the color changed
         # The timeout is increased, because for some reason, it takes some time
         # before the limit view is shown (the browser has to finish loading?)
-        usage_view = self.marionette.find_element(
-                *self._data_usage_view_locator)
-        self.wait_for_condition(
-            lambda m: 'reached-limit' in usage_view.get_attribute('class'),
-            message='Data usage bar did not breach limit', timeout=40)
+        usage_view = self.marionette.find_element(*self._data_usage_view_locator)
+        Wait(self.marionette, timeout=40).until(lambda m: 'reached-limit' in usage_view.get_attribute('class'),
+             message='Data usage bar did not breach limit')
