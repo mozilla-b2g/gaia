@@ -433,6 +433,7 @@ appMessages.on('activity', gateEntry(function(type, data, rawActivity) {
     function(confirmed) {
       if (!confirmed) {
         rawActivity.postError('cancelled');
+        return;
       }
 
       waitingForCreateAccountPrompt = false;
