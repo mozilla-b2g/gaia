@@ -39,7 +39,7 @@ marionette('Software Home Button - Permission Prompt', function() {
 
     var winHeight = client.findElement('body').size().height;
     client.waitFor(function() {
-      var dialog = client.helper.waitForElement('#permission-dialog');
+      var dialog = client.helper.waitForElement('.app-permission-dialog');
       var dialogRect = dialog.scriptWith(rect);
       var shbRect = system.softwareButtons.scriptWith(rect);
 

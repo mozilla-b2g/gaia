@@ -253,7 +253,6 @@
 
     <!-- Permission Manager -->
     <link rel="stylesheet" type="text/css" href="style/permission_manager/permission_manager.css">
-    <script defer src="js/permission_manager.js"></script>
 
     <!-- App Install -->
     <link rel="stylesheet" type="text/css" href="style/app_install_manager/app_install_manager.css">
@@ -372,6 +371,7 @@
     <script defer src="js/browser_context_menu.js"></script>
     <script defer src="js/child_window_factory.js"></script>
     <script defer src="js/app_modal_dialog.js"></script>
+    <script defer src="js/app_permission_dialog.js"></script>
     <script defer src="js/app_chrome.js"></script>
     <script defer src="js/attention_toaster.js"></script>
     <script defer src="js/app_statusbar.js"></script>
@@ -838,44 +838,6 @@
           <span>${text}</span>
         </label>
       </li>
-      -->
-      </div>
-
-      <div id="permission-screen" data-z-index-level="permission-screen">
-        <div id="permission-dialog" role="dialog" class="generic-dialog">
-          <div class="inner">
-            <h1 id="permission-title"></h1>
-            <h2 id="permission-message"></h2>
-            <div id="permission-more-info" class="hidden">
-              <a id="permission-more-info-link" data-l10n-id="more-info" href="#"></a>
-              <a id="permission-hide-info-link" data-l10n-id="hide-info" href="#" class="hidden"></a>
-              <div id="permission-more-info-box" class="hidden"> </div>
-            </div>
-            <div id="permission-remember-section">
-              <label class="pack-checkbox">
-                <input type="checkbox" id="permission-remember-checkbox" />
-                <span></span>
-              </label>
-              <a data-l10n-id="remember-my-choice" id="permission-remember-label"></a>
-            </div>
-            <div id="permission-device-selector"></div>
-            <ul id="permission-devices">
-            </ul>
-            <menu id="permission-buttons" data-items="2">
-              <button id="permission-no"></button>
-              <button id="permission-yes" class="affirmative"></button>
-            </menu>
-          </div>
-        </div>
-      </div>
-
-      <div id="device-list-item-tmpl" class="hide">
-      <!--
-        <label class="device-list deviceEnable">
-          <input class="input-enable" id="${id}" type="checkbox" ${checked}>
-          <span></span>
-        </label>
-        <span class="device-item">${label}</span>
       -->
       </div>
 

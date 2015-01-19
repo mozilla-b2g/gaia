@@ -112,7 +112,8 @@
     'valueSelector': window.ValueSelector,
     'authDialog': window.AppAuthenticationDialog,
     'childWindowFactory': window.ChildWindowFactory,
-    'statusbar': window.AppStatusbar
+    'statusbar': window.AppStatusbar,
+    'permissionDialog': window.AppPermissionDialog
   };
 
   HomescreenWindow.prototype.openAnimation = 'zoom-out';

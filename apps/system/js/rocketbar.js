@@ -195,7 +195,6 @@
       window.addEventListener('appopened', this);
       window.addEventListener('launchapp', this);
       window.addEventListener('searchterminated', this);
-      window.addEventListener('permissiondialoghide', this);
       window.addEventListener('global-search-request', this);
       window.addEventListener('attentionopening', this);
       window.addEventListener('attentionopened', this);
@@ -304,11 +303,6 @@
           break;
         case 'iac-search-results':
           this.handleSearchMessage(e);
-          break;
-        case 'permissiondialoghide':
-          if (this.active) {
-            this.focus();
-          }
           break;
         case 'global-search-request':
           // XXX: fix the WindowManager coupling

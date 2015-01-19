@@ -299,6 +299,10 @@
   z-index: 0;
 }
 
+#screen > [data-z-index-level="keyboards"].demoted {
+  z-index: 0;
+}
+
 /* We promote the following overlays on top of the fullscreen web content. */
 #screen:-moz-full-screen-ancestor > [data-z-index-level="sleep-menu"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="action-menu"],
@@ -311,6 +315,7 @@
 #screen:-moz-full-screen-ancestor > [data-z-index-level="dialog-overlay"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="app"] > .appWindow.attentionWindow,
 #screen:-moz-full-screen-ancestor > [data-z-index-level="app"] > .appWindow.active > .modal-dialog,
+#screen:-moz-full-screen-ancestor > [data-z-index-level="app"] > .appWindow.active > .permission-dialog,
 #screen:-moz-full-screen-ancestor > [data-z-index-level="keyboards"],
 
 #screen:-moz-full-screen-ancestor > [data-z-index-level="notification-toaster"],

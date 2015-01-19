@@ -8,7 +8,7 @@
          VisibilityManager, UsbStorage, TaskManager,
          SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
-         applications, Rocketbar, LayoutManager, PermissionManager,
+         applications, Rocketbar, LayoutManager,
          SoftwareButtonManager, Accessibility, NfcUtils,
          TextSelectionDialog, SleepMenu, AppUsageMetrics,
          LockScreenPasscodeValidator, NfcManager,
@@ -180,8 +180,6 @@ window.addEventListener('load', function startup() {
   window.nfcUtils = new NfcUtils();
   window.nfcManager = new NfcManager();
   window.nfcManager.start();
-  window.permissionManager = new PermissionManager();
-  window.permissionManager.start();
   window.places = new Places();
   window.places.start();
   window.remoteDebugger = new RemoteDebugger();

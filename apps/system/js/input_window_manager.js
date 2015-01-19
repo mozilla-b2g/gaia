@@ -86,6 +86,8 @@
     this._onDebug = false;
   };
 
+  InputWindowManager.prototype.element = document.getElementById('keyboards');
+
   InputWindowManager.prototype._debug = function iwm__debug(msg) {
     if (this._onDebug) {
       console.log('[InputWindowManager] ' + msg);
@@ -123,6 +125,8 @@
     window.addEventListener('sheets-gesture-begin', this);
     window.addEventListener('lockscreen-appopened', this);
     window.addEventListener('mozmemorypressure', this);
+    window.addEventListener('app-permission-dialogshown', this);
+    window.addEventListener('app-permission-dialoghidden', this);
   };
 
   InputWindowManager.prototype.stop = function iwm_stop() {
@@ -151,6 +155,8 @@
     window.removeEventListener('sheets-gesture-begin', this);
     window.removeEventListener('lockscreen-appopened', this);
     window.removeEventListener('mozmemorypressure', this);
+    window.removeEventListener('app-permission-dialogshown', this);
+    window.removeEventListener('app-permission-dialoghidden', this);
   };
 
   InputWindowManager.prototype.handleEvent = function iwm_handleEvent(evt) {
@@ -161,6 +167,12 @@
     }
     this._debug('handleEvent: ' + evt.type);
     switch (evt.type) {
+      case 'app-permission-dialoghidden':
+        this.element.classList.remove('demoted');
+        break;
+      case 'app-permission-dialogshown':
+        this.element.classList.add('demoted');
+        break;
       case 'input-appopened':
       case 'input-appheightchanged':
         // for opened/ready/heightchanged events, make sure the originating
@@ -186,6 +198,7 @@
         // for closing/closed events, make sure we don't have any displayed
         // InputWindow, to send out this system-wide event.
         if (!this._currentWindow) {
+          this.element.classList.remove('demoted');
           this._kbPublish('keyboardhide', undefined);
         }
         break;
@@ -204,6 +217,7 @@
 
         inputWindow._setAsActiveInput(false);
         if (!this._currentWindow) {
+          this.element.classList.remove('demoted');
           this._kbPublish('keyboardhidden', undefined);
         }
         break;
