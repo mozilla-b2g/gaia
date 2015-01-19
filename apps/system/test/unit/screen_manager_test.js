@@ -5,6 +5,7 @@
 
 'use strict';
 
+require('/test/unit/mock_lazy_loader.js');
 require('/test/unit/mock_app_window_manager.js');
 require('/test/unit/mock_lock_screen.js');
 require('/test/unit/mock_statusbar.js');
@@ -37,7 +38,7 @@ function restoreProperty(originObject, prop, reals, useDefineProperty) {
 }
 
 var mocksForScreenManager = new MocksHelper([
-  'SettingsListener', 'Service'
+  'SettingsListener', 'Service', 'LazyLoader'
 ]).init();
 
 require('/js/screen_auto_brightness.js');
@@ -252,7 +253,7 @@ suite('system/ScreenManager', function() {
       test('if Bluetooth SCO disconnected', function() {
         this.sinon.stub(MockService, 'query').returns(false);
         stubTelephony.speakerEnabled = false;
-        MockService.mHeadsetConnected = false;
+        MockService.mockQueryWith('isHeadsetConnected', false);
 
         ScreenManager.handleEvent({'type': 'userproximity'});
         assert.isTrue(stubTurnOn.called);
@@ -260,14 +261,15 @@ suite('system/ScreenManager', function() {
       });
 
       test('if evt.near is yes', function() {
-        this.sinon.stub(MockService, 'query').returns(false);
+        MockService.mockQueryWith('Bluetooth.isSCOProfileConnected', false);
+        MockService.mockQueryWith('isHeadsetConnected', false);
         ScreenManager.handleEvent({'type': 'userproximity', 'near': 'yes'});
         assert.isFalse(stubTurnOn.called);
         assert.isTrue(stubTurnOff.calledWith(true, 'proximity'));
       });
 
       test('if earphone is connected', function() {
-        MockService.mHeadsetConnected = true;
+        MockService.mockQueryWith('isHeadsetConnected', true);
         ScreenManager._screenOffBy = 'proximity';
         ScreenManager.handleEvent({'type': 'userproximity'});
         assert.isTrue(stubTurnOn.called);

@@ -1,8 +1,9 @@
-/* global FxAccountsDialog, FtuLauncher */
+/* global FxAccountsDialog, Service, LazyLoader */
 
 'use strict';
 
 var FxAccountsUI = {
+  name: 'FxAccountsUI',
   dialog: null,
   panel: null,
   iframe: null,
@@ -14,11 +15,15 @@ var FxAccountsUI = {
       onHide: this.reset.bind(this)
     };
     if (!this.dialog) {
-      this.dialog = new FxAccountsDialog(dialogOptions);
+      LazyLoader.load('js/fxa_dialog.js').then(() => {
+        this.dialog = new FxAccountsDialog(dialogOptions);
+        this.panel = this.dialog.getView();
+      });
     }
-    this.panel = this.dialog.getView();
     this.iframe = document.createElement('iframe');
     this.iframe.id = 'fxa-iframe';
+    Service.register('login', this);
+    Service.register('close', this);
   },
 
   // Sign in/up flow.
@@ -76,7 +81,7 @@ var FxAccountsUI = {
   // Method for loading the iframe with the flow required.
   loadFlow: function fxa_ui_loadFlow(flow, params) {
     var url = '../fxa/fxa_module.html#' + flow;
-    if (FtuLauncher.isFtuRunning()) {
+    if (Service.query('isFtuRunning')) {
       params = params || [];
       params.push('isftu=true');
     }

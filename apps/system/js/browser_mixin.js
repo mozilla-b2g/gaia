@@ -94,6 +94,7 @@
         }
         return;
       }
+      this.debug('getting screenshot..');
       var self = this;
       var invoked = false;
       var timer;
@@ -126,10 +127,12 @@
       var type = this.isHomescreen ?
         'image/png' : 'image/jpeg';
 
-      var req = this.iframe.getScreenshot(
-        width || this.width || layoutManager.width,
-        height || this.height || layoutManager.height,
-        type);
+      var _width = width || this.width ||
+                   Service.query('LayoutManager.width');
+      var _height = height || this.height ||
+                    Service.query('LayoutManager.height');
+      this.debug('w=' + _width + ';h=' + _height);
+      var req = this.iframe.getScreenshot(_width, _height, type);
 
       var success = function(result) {
         if (!width) {

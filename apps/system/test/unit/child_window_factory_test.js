@@ -1,5 +1,5 @@
 'use strict';
-/* global MocksHelper, MockAppWindow, ChildWindowFactory,
+/* global MocksHelper, MockAppWindow, ChildWindowFactory, MockService,
           MockActivityWindow, MockPopupWindow, MockSettingsListener */
 /* jshint nonew: false */
 
@@ -383,12 +383,9 @@ suite('system/ChildWindowFactory', function() {
     sinon.assert.calledWith(app1._setVisibleForScreenReader, true);
   });
 
-  suite('runningFTU', function() {
+  suite('FTU is running', function() {
     setup(function() {
-      window.Service.runningFTU = true;
-    });
-    teardown(function() {
-      window.Service.runningFTU = false;
+      MockService.mockQueryWith('isFtuRunning', true);
     });
 
     test('> _blank', function() {

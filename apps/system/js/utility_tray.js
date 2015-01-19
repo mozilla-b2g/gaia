@@ -103,6 +103,9 @@ window.UtilityTray = {
 
     Service.register('makeAmbientIndicatorActive', this);
     Service.register('makeAmbientIndicatorInactive', this);
+    Service.register('hide', this);
+    Service.register('updateNotificationCount', this);
+    Service.registerState('shown', this);
   },
 
   /*
@@ -237,7 +240,7 @@ window.UtilityTray = {
         break;
 
       case 'touchstart':
-        if (window.Service.locked || window.Service.runningFTU) {
+        if (Service.query('locked') || Service.query('isFtuRunning')) {
           return;
         }
 
@@ -312,8 +315,9 @@ window.UtilityTray = {
           break;
         }
         var eventType = JSON.parse(evt.detail.details).eventType;
-        if (eventType === 'edge-swipe-down' && !window.Service.locked &&
-          !window.Service.runningFTU) {
+        if (eventType === 'edge-swipe-down' && 
+          !Service.query('locked') &&
+          !Service.query('isFtuRunning')) {
           this[this.showing ? 'hide' : 'show'](true);
         }
         break;
@@ -360,7 +364,7 @@ window.UtilityTray = {
       // If the active app was tracking touches it won't get any more events
       // because of the pointer-events:none we're adding.
       // Sending a touchcancel accordingly.
-      var app = Service.currentApp;
+      var app = Service.query('getTopMostWindow');
       if (app && app.config && app.config.oop) {
         app.iframe.sendTouchEvent('touchcancel', [touch.identifier],
                                   [touch.pageX], [touch.pageY],
@@ -428,7 +432,7 @@ window.UtilityTray = {
 
   onTouchEnd: function ut_onTouchEnd(touch, timestamp) {
     // Prevent utility tray shows while the screen got black out.
-    if (window.Service.locked) {
+    if (Service.query('locked')) {
       this.hide(true);
     } else {
       var timeDelta = timestamp - this.lastMoveTime;
@@ -465,8 +469,7 @@ window.UtilityTray = {
       if (this.showing) {
         this.hide();
       }
-
-      var app = Service.currentApp && Service.currentApp.getTopMostWindow();
+      var app = Service.query('getTopMostWindow');
       var combinedView = app.appChrome && app.appChrome.useCombinedChrome();
       var isTransitioning = app.isTransitioning();
 

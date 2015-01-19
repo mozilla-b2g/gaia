@@ -17,7 +17,7 @@ marionette('Fullscreen status bar visibility >', function() {
   });
 
   setup(function() {
-    system.waitForStartup();
+    system.waitForFullyLoaded();
     system.waitForLaunch(FULLSCREEN_APP);
   });
 

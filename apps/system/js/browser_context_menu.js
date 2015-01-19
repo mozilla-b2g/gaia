@@ -14,7 +14,9 @@
    */
   var BrowserContextMenu = window.BrowserContextMenu = function(app) {
     this.app = app;
-    this._view = new ContextMenuView(app);
+    LazyLoader.load(['js/context_menu_view.js']).then(() => {
+      this._view = new ContextMenuView(app);
+    });
     this.app.element.addEventListener('mozbrowsercontextmenu', this);
     return this;
   };

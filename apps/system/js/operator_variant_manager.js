@@ -15,7 +15,8 @@
     this.operatorVariantHandlers = [];
   };
   OperatorVariantManager.IMPORTS = [
-    'js/operator_variant_handler.js'
+    'js/operator_variant_handler.js',
+    'shared/js/operator_variant_helper.js'
   ];
   OperatorVariantManager.EVENTS = [
     'simslot-updated',

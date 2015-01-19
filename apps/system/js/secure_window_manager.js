@@ -19,6 +19,7 @@
     this.initElements();
     this.initEvents();
     Service.request('registerHierarchy', this);
+    Service.registerState('isActive', this);
   };
   SecureWindowManager.prototype = {
     name: 'SecureWindowManager',
