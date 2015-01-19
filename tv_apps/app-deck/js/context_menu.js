@@ -123,13 +123,8 @@
 
     onFocusOnPinable: function cm_onFocusOnPinable(detail) {
       this._app = detail;
-      // XXX: According to http://goo.gl/Spol9H, we should avoid using
-      // mozL10n.get() as much as possible. But since system app use 'label'
-      // to render menuitem, we are still using mozL10n.get here until we have
-      // better way to resolve this
       var l10nId =
         (detail && detail.pinned) ? 'unpin-from-home' : 'pin-to-home';
-      this.pinToHomeElem.label = navigator.mozL10n.get(l10nId);
       this.pinToHomeElem.setAttribute('data-l10n-id', l10nId);
       if (detail.removable === false) {
         this.contextMenuElem.removeChild(this.removeElem);
