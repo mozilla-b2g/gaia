@@ -380,27 +380,63 @@ smart-button[type="banner-button"].pressed:after {
  * circle text button
  */
 smart-button[type="circle-text"] {
-  width: 17rem;
-  height: 17rem;
+  width: 21rem;
+  height: 21rem;
   color: white;
   background-color: #5f6368;
-  line-height: 17rem;
+  line-height: 21rem;
   padding: 2.5rem 2rem 1.5rem 2rem;
   text-align: center;
   font-size: 3.2rem;
-  transition-property: transform;
+  font-weight: bolder;
+  overflow: hidden;
+  transition-property: transform, color, background-color;
 }
 
 smart-button[type="circle-text"].focused {
   transform: scale(1.2);
   color: #2d2d2d;
   background-color: white;
+  transition-property: transform, color, background-color;
 }
 
 smart-button[type="circle-text"].pressed {
   transform: scale(1);
   color: white;
   background-color: #00caf2;
+  transition-property: transform, color, background-color;
+}
+
+smart-button[type="circle-text"].primary {
+  background-color: #00caf2;
+  transition-property: transform, color, background-color;
+}
+
+smart-button[type="circle-text"].primary.focused {
+  color: #ffffff;
+  background-color: #00caf2;
+  transition-property: transform, color, background-color;
+}
+
+smart-button[type="circle-text"].primary.pressed {
+  background-color: #0097b5;
+  transition-property: transform, color, background-color;
+}
+
+smart-button[type="circle-text"].danger {
+  background-color: #e63d2f;
+  transition-property: transform, color, background-color;
+}
+
+smart-button[type="circle-text"].danger.focused {
+  color: #ffffff;
+  background-color: #e63d2f;
+  transition-property: transform, color, background-color;
+}
+
+smart-button[type="circle-text"].danger.pressed {
+  background-color: #ac2e23;
+  transition-property: transform, color, background-color;
 }
 
 /**
