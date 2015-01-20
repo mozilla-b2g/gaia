@@ -447,6 +447,10 @@
       this.newStackPosition = position;
     }
 
+    // Letting the app grab the orientation lock back
+    // (it's released when we enter the cardview)
+    app.lockOrientation();
+
     setTimeout((function() {
       var safetyTimeout = null;
       var finish = (function() {

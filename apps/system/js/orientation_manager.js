@@ -18,6 +18,10 @@
    *
    * ![Change orientation flow](http://i.imgur.com/KCUgFH6.png)
    *
+   * There're some cases where we want to unlock the orientation regardless
+   * of the currently displayed app.
+   * * Card View is shown
+   *
    * @module OrientationManager
    */
   window.OrientationManager = {
@@ -38,6 +42,8 @@
       window.addEventListener('trusteduiclose', this);
       window.addEventListener('shrinking-stop', this);
       window.addEventListener('searchclosing', this);
+
+      window.addEventListener('cardviewshown', this);
     },
 
     handleEvent: function om_handleEvent(evt) {
@@ -59,6 +65,9 @@
           break;
         case 'shrinking-stop':
           this.publish('reset-orientation');
+          break;
+        case 'cardviewshown':
+          screen.mozUnlockOrientation();
           break;
       }
     },
