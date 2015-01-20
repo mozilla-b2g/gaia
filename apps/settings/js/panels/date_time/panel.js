@@ -52,6 +52,8 @@ define(function(require) {
           var value = (this._elements.timeFormat.value === HOUR_12);
           DateTime.setCurrentHour12(value);
         }.bind(this);
+
+        this._renderTimeZone();
       },
       onBeforeShow: function() {
         DateTime.observe('date', this._boundSetDate);
@@ -69,7 +71,6 @@ define(function(require) {
         this._elements.timeFormat.addEventListener('change',
           this._boundTimeFormatChange);
 
-        this._renderTimeZone();
         this._boundSetDate();
         this._boundSetTime();
         if (DateTime.userSelectedTimezone && !DateTime.clockAutoEnabled) {
