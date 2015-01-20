@@ -125,7 +125,10 @@ class AddNewNumber(Base):
         Wait(self.marionette).until(lambda m: form.location['y'] == 0)
 
     def tap_create_new_contact(self):
-        self.marionette.find_element(*self._create_new_contact_locator).tap()
+
+        create_new_contact = self.marionette.find_element(*self._create_new_contact_locator)
+        Wait(self.marionette).until(expected.element_displayed(create_new_contact))
+        create_new_contact.tap()
 
         from gaiatest.apps.contacts.regions.contact_form import NewContact
         new_contact = NewContact(self.marionette)
