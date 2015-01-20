@@ -857,13 +857,6 @@
       }
     }
 
-    // We don't want to resize/reflow all backgrounds app
-    // so we make sure the iframe doesn't get resized
-    if (this.browser) {
-      this.iframe.style.width = this.width + 'px';
-      this.iframe.style.height = this.height + 'px';
-    }
-
     var width = layoutManager.width;
     var height = layoutManager.getHeightFor(this);
     this.element.style.width = width + 'px';
@@ -1244,11 +1237,6 @@
    */
   AppWindow.prototype._hideScreenshotOverlay =
     function aw__hideScreenshotOverlay() {
-      // The iframe might be "freezed" to an old size
-      // making sure it's resized properly before dipslaying it
-      this.iframe.style.width = '';
-      this.iframe.style.height = '';
-
       if (!this.screenshotOverlay ||
           !this.screenshotOverlay.classList.contains('visible')) {
         return;
