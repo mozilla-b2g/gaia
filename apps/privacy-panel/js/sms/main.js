@@ -190,17 +190,16 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
       var locateReply = function(status, result) {
         if (!status) {
           console.warn('Error while trying to locate a phone: ' + result);
-          return;
         }
-
-        this._sendSMS(number, {
-          id: 'sms-locate',
-          args: {
-            latitude: result.coords.latitude,
-            longitude: result.coords.longitude
-          }
-        });
-
+	else {
+          this._sendSMS(number, {
+            id: 'sms-locate',
+            args: {
+              latitude: result.coords.latitude,
+              longitude: result.coords.longitude
+            }
+          });
+        }
         // Lock phone
         setTimeout(function() {
           this._doLock(number);
