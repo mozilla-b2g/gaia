@@ -1,5 +1,5 @@
 /* global SettingsListener, homescreenWindowManager, inputWindowManager,
-          layoutManager, Service, NfcHandler, rocketbar, ShrinkingUI,
+          layoutManager, Service, rocketbar, ShrinkingUI,
           FtuLauncher, UtilityTray */
 'use strict';
 
@@ -377,21 +377,6 @@
               this.broadcastMessage('kill_suspended');
             }
           }.bind(this)
-        },
-
-        'nfc.enabled': {
-          defaultValue: false,
-          callback: (value) => {
-            if (!this._nfcHandler) {
-              this._nfcHandler = new NfcHandler(this);
-            }
-
-            if (value) {
-              this._nfcHandler.start();
-            } else {
-              this._nfcHandler.stop();
-            }
-          }
         }
       };
 

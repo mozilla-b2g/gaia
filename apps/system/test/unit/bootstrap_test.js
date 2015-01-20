@@ -56,7 +56,6 @@ requireApp('system/js/secure_window_factory.js');
 requireApp('system/js/secure_window_manager.js');
 requireApp('system/js/sleep_menu.js');
 requireApp('system/js/orientation_manager.js');
-requireApp('system/js/nfc_manager.js');
 requireApp('system/js/quick_settings.js');
 requireApp('system/js/software_button_manager.js');
 requireApp('system/js/source_view.js');

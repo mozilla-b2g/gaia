@@ -1,21 +1,18 @@
-/* globals NfcUtils */
+/* globals NfcUtils, BaseModule, Service */
 'use strict';
-(function(exports) {
-  var NfcHandler = function (appWindowManager) {
-    this.appWindowManager = appWindowManager;
+(function() {
+  var NfcHandler = function (core) {
+    this.nfc = core.nfc;
   };
 
-  NfcHandler.prototype = {
-    start: function nh_start() {
-      if (window.navigator.mozNfc) {
-        window.navigator.mozNfc.onpeerready = this.handleEvent.bind(this);
-      }
-    },
+  /**
+   * @class NfcCore
+   */
+  BaseModule.create(NfcHandler, {
+    name: 'NfcHandler',
 
-    stop: function ng_stop() {
-      if (window.navigator.mozNfc) {
-        window.navigator.mozNfc.onpeerready = null;
-      }
+    _start: function nh_start() {
+      this.nfc.addEventListener('peerready', this);
     },
 
     handleEvent: function nh_handleEvent(evt) {
@@ -23,7 +20,7 @@
       if (evt.type !== 'peerready') {
         return;
       }
-      var currentApp = this.appWindowManager.getActiveApp();
+      var currentApp = Service.query('getTopMostWindow');
       if (currentApp && currentApp.isBrowser() && currentApp.config.url) {
         var ndefUri = nfcUtils.parseURIString(currentApp.config.url);
         this.sendNDEFMessageToNFCPeer(ndefUri, evt);
@@ -47,8 +44,5 @@
 
         nfcPeer.sendNDEF(message);
       }
-  };
-
-  exports.NfcHandler = NfcHandler;
-
-}(window));
+  });
+}());

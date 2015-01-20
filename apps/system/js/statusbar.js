@@ -15,7 +15,7 @@
 */
 
 /*global Clock, SettingsListener, FtuLauncher, MobileOperator,
-         SIMSlotManager, Service, Bluetooth, UtilityTray, nfcManager,
+         SIMSlotManager, Service, Bluetooth, UtilityTray,
          layoutManager */
 
 'use strict';
@@ -853,7 +853,7 @@ var StatusBar = {
     this.setActiveBattery(active);
 
     if (active) {
-      this.setActiveNfc(nfcManager.isActive());
+      this.setActiveNfc(Service.query('NfcManager.isActive'));
 
       this.addConnectionsListeners();
 

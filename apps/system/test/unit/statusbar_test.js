@@ -2,7 +2,7 @@
            MockNavigatorMozMobileConnections, MockNavigatorMozTelephony,
            MockSettingsListener, MocksHelper, MockSIMSlot, MockSIMSlotManager,
            MockService, StatusBar, Service,
-           MockNfcManager, MockMobileconnection, MockAppWindowManager,
+           MockMobileconnection, MockAppWindowManager,
            MockNavigatorBattery, UtilityTray, MockAppWindow */
 'use strict';
 
@@ -19,7 +19,6 @@ require('/shared/test/unit/mocks/mock_simslot_manager.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/test/unit/mock_app_window_manager.js');
 require('/test/unit/mock_ftu_launcher.js');
-require('/test/unit/mock_nfc_manager.js');
 require('/test/unit/mock_touch_forwarder.js');
 require('/test/unit/mock_utility_tray.js');
 require('/test/unit/mock_layout_manager.js');
@@ -46,7 +45,7 @@ suite('system/Statusbar', function() {
       fakeStatusBarConnections, fakeStatusBarCallForwardings, fakeStatusBarTime,
       fakeStatusBarLabel, fakeStatusBarBattery;
   var realMozL10n, realMozMobileConnections, realMozTelephony, fakeIcons = [],
-      realNfcManager, realLayoutManager, realNavigatorBattery;
+      realLayoutManager, realNavigatorBattery;
 
   function prepareDOM() {
     for (var i = 1; i < mobileConnectionCount; i++) {
@@ -126,9 +125,6 @@ suite('system/Statusbar', function() {
     });
     navigator.battery = MockNavigatorBattery;
 
-    realNfcManager = window.nfcManager;
-    window.nfcManager = new MockNfcManager();
-    sinon.spy(window.nfcManager, 'isActive');
     window.appWindowManager = new MockAppWindowManager();
 
     prepareDOM();
@@ -197,8 +193,6 @@ suite('system/Statusbar', function() {
     navigator.mozTelephony = realMozTelephony;
     window.layoutManager = realLayoutManager;
     navigator.battery = realNavigatorBattery;
-    window.nfcManager.isActive.restore();
-    window.nfcManager = realNfcManager;
   });
 
   suite('airplane mode icon', function() {
@@ -1682,9 +1676,11 @@ suite('system/Statusbar', function() {
     });
 
     test('checks initial state from nfcManager', function() {
+      var stubServiceQuery = this.sinon.stub(MockService, 'query');
+
       StatusBar.init();
       StatusBar.finishInit();
-      assert.isTrue(window.nfcManager.isActive.called);
+      assert.isTrue(stubServiceQuery.calledWith('NfcManager.isActive'));
     });
 
     test('NFC is off', function() {

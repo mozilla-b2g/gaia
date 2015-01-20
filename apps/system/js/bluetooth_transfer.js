@@ -4,11 +4,12 @@
    stopSendingFile(in DOMString aDeviceAddress);
    confirmReceivingFile(in DOMString aDeviceAddress, in bool aConfirmation); */
 'use strict';
-/* global Bluetooth, CustomDialog, NfcHandoverManager, MimeMapper,
-          MozActivity, NotificationHelper, UtilityTray, NfcHandoverManager*/
+/* global Bluetooth, CustomDialog, MimeMapper, Service,
+          MozActivity, NotificationHelper, UtilityTray */
 /* exported BluetoothTransfer */
 
 var BluetoothTransfer = {
+  name: 'BluetoothTransfer',
   // The first-in-first-out queue maintain each scheduled sending task.
   // Each element is a object for scheduled sending tasks.
   _sendingFilesQueue: [],
@@ -48,8 +49,13 @@ var BluetoothTransfer = {
 
     // Listen to 'bluetooth-opp-transfer-complete' from bluetooth.js
     window.addEventListener('bluetooth-opp-transfer-complete',
-      this._onTransferComplete.bind(this)
-    );
+      this._onTransferComplete.bind(this));
+
+    window.addEventListener('bluetooth-sendfile-via-handover',
+      this.sendFileViaHandover.bind(this));
+
+    Service.registerState('isSendFileQueueEmpty', this);
+    Service.registerState('isSendFileQueueEmpty', this);
   },
 
   getDeviceName: function bt_getDeviceName(address) {
@@ -138,7 +144,7 @@ var BluetoothTransfer = {
   },
 
   onReceivingFileConfirmation: function bt_onReceivingFileConfirmation(evt) {
-    if (NfcHandoverManager.isHandoverInProgress()) {
+    if (Service.query('NfcHandoverManager.isHandoverInProgress')) {
       // Bypassing confirm dialog while incoming file transfer via NFC Handover
       this.debug('Incoming file via NFC Handover. Bypassing confirm dialog');
       window.dispatchEvent(new CustomEvent('nfc-transfer-started'));
@@ -297,11 +303,13 @@ var BluetoothTransfer = {
     };
   },
 
-  get isSendFileQueueEmpty() {
+  isSendFileQueueEmpty: function() {
     return this._sendingFilesQueue.length === 0;
   },
 
-  sendFileViaHandover: function bt_sendFileViaHandover(mac, blob) {
+  sendFileViaHandover: function bt_sendFileViaHandover(evt) {
+    var mac = evt.detail.mac;
+    var blob = evt.detail.blob;
     var adapter = Bluetooth.getAdapter();
     if (adapter != null) {
       var sendingFilesSchedule = {
@@ -506,7 +514,9 @@ var BluetoothTransfer = {
     var details = {received: transferInfo.received,
                    success: transferInfo.success,
                    viaHandover: viaHandover};
-    NfcHandoverManager.transferComplete(details);
+
+    window.dispatchEvent(new CustomEvent('nfc-transfer-completed', {
+      detail: details}));
   },
 
   summarizeSentFilesReport: function bt_summarizeSentFilesReport(transferInfo) {

@@ -1,5 +1,5 @@
 /* exported BluetoothCore */
-/* global BaseModule, Bluetooth, BluetoothTransfer, NfcHandoverManager */
+/* global BaseModule, Bluetooth, BluetoothTransfer */
 'use strict';
 
 (function() {
@@ -22,7 +22,6 @@
         'undefined') { // APIv1
           Bluetooth.init();
           BluetoothTransfer.init();
-          NfcHandoverManager.init();
       }
     }
   });
