@@ -1270,8 +1270,8 @@ var StatusBar = {
           if (icon.dataset.connecting) {
             delete icon.dataset.connecting;
           }
-          var level = Math.floor(
-            wifiManager.connectionInformation.relSignalStrength / 25);
+          var level = Math.min(Math.floor(
+            wifiManager.connectionInformation.relSignalStrength / 20), 4);
           icon.dataset.level = level;
           icon.setAttribute('aria-label', navigator.mozL10n.get(
             'statusbarWiFiConnected', {level: level}));
