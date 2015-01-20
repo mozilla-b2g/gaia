@@ -87,9 +87,11 @@
     removedObservers[name] = removedObservers[name] || [];
     removedObservers[name].push(cb);
 
-    var index = observers[name].indexOf(cb);
-    if (index > -1) {
-      observers[name].splice(index, 1);
+    if (observers && observers[name]) {
+      var index = observers[name].indexOf(cb);
+      if (index > -1) {
+        observers[name].splice(index, 1);
+      }
     }
   }
 
