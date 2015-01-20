@@ -142,7 +142,9 @@
     isForeground: function() {},
     killable: function() {},
     setVisibileForScreenReader: function() {},
-    handleStatusbarTouch: function() {}
+    handleStatusbarTouch: function() {},
+    setNFCFocus: function() {},
+    setActive: function() {}
   };
   MockAppWindow.mTeardown = function() {
     MockAppWindowHelper.mInstances = [];
