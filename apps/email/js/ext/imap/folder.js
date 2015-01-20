@@ -432,6 +432,16 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
         if (progressCallback)
           progressCallback(0.25);
 
+        // Ignore not-yet-synced local messages (messages without a
+        // srvid), such as messages from a partially-completed local
+        // move. Because they have no server ID, we can't compare them
+        // to anything currently on the server anyway.
+        for (var iMsg = 0; iMsg < headers.length; iMsg++) {
+          if (headers[iMsg].srvid === null) {
+            headers.splice(iMsg--, 1);
+          }
+        }
+
         // -- infer deletion, flag to distinguish known messages
         // rather than splicing lists and causing shifts, we null out values.
         for (var iMsg = 0; iMsg < headers.length; iMsg++) {
