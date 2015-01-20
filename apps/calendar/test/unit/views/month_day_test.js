@@ -80,21 +80,38 @@ suite('Views.MonthDay', function() {
     test('add', function() {
       subject._updateBusyCount({ amount: 2 });
       assert.lengthOf(busy.childNodes, 2);
+      var l10nAttrs = navigator.mozL10n.getAttributes(busy);
+      assert.equal(l10nAttrs.id, 'busy');
+      assert.deepEqual(l10nAttrs.args, { n: 2 });
+
       subject._updateBusyCount({ amount: 5 });
       assert.lengthOf(busy.childNodes, 3);
-      assert.equal(busy.getAttribute('data-l10n-id'), 'busy');
+      var l10nAttrs = navigator.mozL10n.getAttributes(busy);
+      assert.equal(l10nAttrs.id, 'busy');
+      assert.deepEqual(l10nAttrs.args, { n: 3 });
     });
 
     test('remove', function() {
       subject._updateBusyCount({ amount: 5 });
       assert.lengthOf(busy.childNodes, 3);
+      var l10nAttrs = navigator.mozL10n.getAttributes(busy);
+      assert.equal(l10nAttrs.id, 'busy');
+      assert.deepEqual(l10nAttrs.args, { n: 3 });
+
       subject._updateBusyCount({ amount: 3 });
       assert.lengthOf(busy.childNodes, 3);
+      var l10nAttrs = navigator.mozL10n.getAttributes(busy);
+      assert.equal(l10nAttrs.id, 'busy');
+      assert.deepEqual(l10nAttrs.args, { n: 3 });
+
       subject._updateBusyCount({ amount: 2 });
       assert.lengthOf(busy.childNodes, 2);
+      var l10nAttrs = navigator.mozL10n.getAttributes(busy);
+      assert.equal(l10nAttrs.id, 'busy');
+      assert.deepEqual(l10nAttrs.args, { n: 2 });
+
       subject._updateBusyCount({ amount: 0 });
       assert.lengthOf(busy.childNodes, 0);
-      assert.equal(busy.getAttribute('data-l10n-id'), 'busy');
     });
   });
 

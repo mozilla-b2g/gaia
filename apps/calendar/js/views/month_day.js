@@ -71,7 +71,8 @@ MonthDay.prototype = {
     var holder = this.element.querySelector('.busy-indicator');
 
     if (count > 0) {
-      holder.setAttribute('data-l10n-id', 'busy', { n: count });
+      holder.setAttribute('data-l10n-id', 'busy');
+      holder.setAttribute('data-l10n-args', JSON.stringify({ n: count }));
     } else {
       holder.removeAttribute('aria-label');
     }
