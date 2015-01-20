@@ -1,7 +1,7 @@
 /* global layoutManager, SettingsListener */
 'use strict';
 (function(exports) {
-  var DEBUG = false;
+  var DEBUG = true;
   /**
    * Text Selection Dialog of the AppWindow
    */
@@ -133,9 +133,7 @@
             } else if (evt.detail.detail.state === 'stopped' &&
                        this._scrolling === true) {
               this._scrolling = false;
-              if (this._isSelectionVisible) {
-                this.updateDialogPosition();
-              }
+              this._ignoreSelectionChange = false;
             }
             break;
           case 'touchcarettap':
@@ -177,13 +175,18 @@
         commands.canSelectAll = false;
       }
 
-      if (!isTempShortcut && (isCollapsed || !this._isSelectionVisible)) {
-        this.close();
-        return;
-      }
       // If current element lost focus, we should hide the bubble.
       if (states.indexOf('blur') !== -1) {
         this.hide();
+        // prevent bug 1105547
+        if (this._scrolling) {
+          this._ignoreSelectionChange = true;
+        }
+        return;
+      }
+
+      if (!isTempShortcut && (isCollapsed || !this._isSelectionVisible)) {
+        this.close();
         return;
       }
 
