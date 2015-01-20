@@ -1,37 +1,37 @@
 'use strict';
 
-/*
- * A helper module for the keyboard framework in system app.
+/**
+ * A helper module for the input management framework in system app.
  */
 
 var Marionette = require('marionette-client');
 
-function System(client) {
+function InputManagement(client) {
   this.client = client.scope({ searchTimeout: 20000 });
   this.actions = new Marionette.Actions(client);
 }
 
-module.exports = System;
+module.exports = InputManagement;
 
 // Selectors for the DOM in system app.
-System.Selector = Object.freeze({
+InputManagement.Selector = Object.freeze({
   inputWindows: '#keyboards .inputWindow',
   imeMenu: 'form.ime-menu',
   imeNotification: '#keyboard-show-ime-list'
 });
 
-System.prototype = {
+InputManagement.prototype = {
   // getters for DOM elements in keyboard app
   get inputWindows() {
-    return this.client.findElements(System.Selector.inputWindows);
+    return this.client.findElements(InputManagement.Selector.inputWindows);
   },
 
   get imeMenu() {
-    return this.client.findElement(System.Selector.imeMenu);
+    return this.client.findElement(InputManagement.Selector.imeMenu);
   },
 
   get imeNotification() {
-    return this.client.findElement(System.Selector.imeNotification);
+    return this.client.findElement(InputManagement.Selector.imeNotification);
   },
 
   /**
@@ -97,18 +97,18 @@ System.prototype = {
   },
 
   dragDownUtilityTray: function dragDownUtilityTray() {
-    client.switchToFrame();
+    this.client.switchToFrame();
 
-    var topPanel = client.findElement('#top-panel');
+    var topPanel = this.client.findElement('#top-panel');
     var chain = this.actions.press(topPanel, 100, 0).moveByOffset(100, 300);
     chain.release().perform();
 
-    var utilityTray = client.findElement('#utility-tray');
-    var ambientIndicator = client.findElement('#ambient-indicator');
+    var utilityTray = this.client.findElement('#utility-tray');
+    var ambientIndicator = this.client.findElement('#ambient-indicator');
     var trayHeight = utilityTray.size().height - ambientIndicator.size().height;
 
     // wait for utility tray to show completely
-    client.waitFor(function() {
+    this.client.waitFor(function() {
       var currentTransform = utilityTray.cssProperty('transform');
       var expectedTransform = 'matrix(1, 0, 0, 1, 0, ' + trayHeight + ')';
       return (currentTransform === expectedTransform);

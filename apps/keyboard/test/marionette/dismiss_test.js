@@ -8,7 +8,7 @@ marionette('Dimiss the keyboard', function() {
   var apps = {};
   var keyboardTestApp = null;
   var keyboard = null;
-  var system = null;
+  var systemInputMgmt = null;
   var actions;
 
   apps[KeyboardTestApp.ORIGIN] = __dirname + '/keyboardtestapp';
@@ -34,7 +34,7 @@ marionette('Dimiss the keyboard', function() {
 
   setup(function() {
     actions = client.loader.getActions();
-    system = client.loader.getAppClass('keyboard', 'system');
+    systemInputMgmt = client.loader.getAppClass('system', 'input_management');
     keyboard = new Keyboard(client);
 
     // create a keyboard test app
@@ -43,8 +43,8 @@ marionette('Dimiss the keyboard', function() {
     keyboardTestApp.textInput.click();
 
     // Wait for the keyboard pop up and switch to it
-    system.waitForKeyboardFrameDisplayed();
-    system.switchToActiveKeyboardFrame();
+    systemInputMgmt.waitForKeyboardFrameDisplayed();
+    systemInputMgmt.switchToActiveKeyboardFrame();
   });
 
   test('Longpressing the space bar should dimiss the keyboard', function() {
@@ -52,7 +52,7 @@ marionette('Dimiss the keyboard', function() {
     longPressSpaceBar(1.0);
 
     client.waitFor(function() {
-      return !system.keyboardFrameDisplayed();
+      return !systemInputMgmt.keyboardFrameDisplayed();
     });
 
     assert.ok(true);
