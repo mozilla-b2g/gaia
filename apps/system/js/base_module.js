@@ -103,7 +103,7 @@
    * var m = new MyModule();
    * m.start();
    * // other module
-   * console.log(Service.query('MyModule:isActive'));
+   * console.log(Service.query('MyModule.isActive'));
    * // if the method name is unique.
    * console.log(Service.query('isActive'));
    * @type {Array}

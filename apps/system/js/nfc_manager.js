@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 
-/* globals CustomEvent, MozActivity, Service, SettingsListener,
-   NfcHandoverManager, NfcUtils, NDEF, ScreenManager */
+/* globals CustomEvent, MozActivity, Service,
+           NfcUtils, NDEF, ScreenManager, BaseModule */
 
 'use strict';
 
@@ -32,16 +32,29 @@
    * handling.
    * @class NfcManager
    * @requires Service
-   * @requires SettingsListener
    * @requires ScreenManager
    * @requires MozActivity
    * @requires NDEF
    * @requires NfcUtils
-   * @requires NfcHandoverManager
    */
-  var NfcManager = function() {};
+  var NfcManager = function() {
+  };
+  NfcManager.SETTINGS = [
+    'nfc.enabled',
+    'nfc.debugging.enabled',
+    'nfc.status'
+  ];
 
-  NfcManager.prototype = {
+  NfcManager.SUB_MODULES = [
+    'NfcHandoverManager'
+  ];
+
+  NfcManager.STATES = [
+    'isActive'
+  ];
+
+  BaseModule.create(NfcManager, {
+    name: 'NfcManager',
 
     /**
      * Possible NFC hardware states
@@ -78,7 +91,7 @@
      * Initializes NfcManager, sets up listeners and handlers
      * @memberof NfcManager.prototype
      */
-    start: function nm_start() {
+    _start: function nm_start() {
       this._debug('Starting NFC Manager');
       this._hwState = this.NFC_HW_STATE.OFF;
 
@@ -91,23 +104,18 @@
       window.addEventListener('lockscreen-appopened', this);
       window.addEventListener('lockscreen-appclosed', this);
 
-      this._onSettingsChanged = (enabled) => this._nfcSettingsChanged(enabled);
-      SettingsListener.observe('nfc.enabled', false, this._onSettingsChanged);
-
       this._onDebugChanged = (enabled) => { DEBUG = enabled; };
-      SettingsListener.observe('nfc.debugging.enabled', false,
-                               this._onDebugChanged);
 
       // reseting nfc.status to default state, as the device could've
       // been restarted when HW change was in progress
-      SettingsListener.getSettingsLock().set({ 'nfc.status':'disabled' });
+      this.writeSetting({ 'nfc.status':'disabled' });
     },
 
     /**
      * Removes all listeners and handlers
      * @memberof NfcManager.prototype
      */
-    stop: function nm_stop() {
+    _stop: function nm_stop() {
       this._debug('Stopping NFC Manager');
 
       window.navigator.mozSetMessageHandler('nfc-manager-tech-discovered',
@@ -118,9 +126,15 @@
       window.removeEventListener('activeappchanged', this);
       window.removeEventListener('lockscreen-appopened', this);
       window.removeEventListener('lockscreen-appclosed', this);
+    },
 
-      SettingsListener.unobserve('nfc.enabled', this._onSettingsChanged);
-      SettingsListener.unobserve('nfc.debugging.enabled', this._onDebugChanged);
+    '_observe_nfc.enabled': function(enabled) {
+      this._nfcSettingsChanged(enabled);
+      DEBUG = enabled;
+    },
+
+    '_observe_nfc.debugging.enabled': function(enabled) {
+      this._onDebugChanged(enabled);
     },
 
     /**
@@ -163,7 +177,7 @@
       window.dispatchEvent(new CustomEvent('nfc-tech-discovered'));
       window.navigator.vibrate([25, 50, 125]);
 
-      if (NfcHandoverManager.tryHandover(msg.records, msg.peer)) {
+      if (this.nfcHandoverManager.tryHandover(msg.records, msg.peer)) {
         return;
       }
 
@@ -265,14 +279,14 @@
       switch (state) {
         case this.NFC_HW_STATE.DISABLING:
           promise = nfcdom.powerOff();
-          SettingsListener.getSettingsLock().set({ 'nfc.status':'disabling' });
+          this.writeSetting({ 'nfc.status':'disabling' });
           break;
         case this.NFC_HW_STATE.DISABLE_DISCOVERY:
           promise = nfcdom.stopPoll();
           break;
         case this.NFC_HW_STATE.ENABLING:
           promise = nfcdom.startPoll();
-          SettingsListener.getSettingsLock().set({ 'nfc.status': 'enabling' });
+          this.writeSetting({ 'nfc.status':'enabling' });
           break;
         case this.NFC_HW_STATE.ENABLE_DISCOVERY:
           promise = nfcdom.startPoll();
@@ -299,9 +313,7 @@
       this._debug('_handleNFCOnOf is on:' + isOn);
 
       this._hwState = (isOn) ? this.NFC_HW_STATE.ON : this.NFC_HW_STATE.OFF;
-      SettingsListener.getSettingsLock().set({
-        'nfc.status': (isOn) ? 'enabled' : 'disabled'
-      });
+      this.writeSetting({'nfc.status': (isOn) ? 'enabled' : 'disabled'});
 
       // event dispatching to handle statusbar change
       // TODO remove in Bug 1103874
@@ -527,7 +539,5 @@
       }
       console.log(output);
     }
-  };
-
-  exports.NfcManager = NfcManager;
-}(window));
+  });
+}());

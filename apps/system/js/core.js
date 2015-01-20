@@ -26,7 +26,8 @@
     REGISTRY: {
       'mozSettings': 'SettingsCore',
       'mozBluetooth': 'BluetoothCore',
-      'mozMobileConnections': 'MobileConnectionCore'
+      'mozMobileConnections': 'MobileConnectionCore',
+      'mozNfc': 'NfcCore'
     },
 
     getAPI: function(api) {

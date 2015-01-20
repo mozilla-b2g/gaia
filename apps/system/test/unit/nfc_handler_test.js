@@ -1,44 +1,33 @@
 'use strict';
 
-/* globals NfcUtils, MockAppWindowManager, MockNfc, MocksHelper */
+/* globals NfcUtils, MockNfc, MocksHelper, MockService, BaseModule */
 require('/shared/js/utilities.js');
 require('/shared/js/nfc_utils.js');
 require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_moz_ndefrecord.js');
 requireApp('system/test/unit/mock_nfc.js');
-requireApp('system/test/unit/mock_app_window_manager.js');
+requireApp('system/js/base_module.js');
+requireApp('system/js/nfc_handler.js');
 
 var mocksForNfcManager = new MocksHelper([
-  'AppWindowManager',
   'Service',
   'MozNDEFRecord'
 ]).init();
 
 suite('System Browser Nfc Handler tests', function() {
   var nfcHandler;
-  var realMozNfc;
   var nfcUtils;
 
   mocksForNfcManager.attachTestHelpers();
 
-  setup(function(done) {
+  setup(function() {
     nfcUtils = new NfcUtils();
-    realMozNfc = window.navigator.mozNfc;
-    window.navigator.mozNfc = MockNfc;
-    window.appWindowManager = new MockAppWindowManager();
-    requireApp('system/js/nfc_handler.js', function() {
-      nfcHandler = new window.NfcHandler(window.appWindowManager);
-      nfcHandler.start();
-      done();
-    });
-  });
-
-  teardown(function() {
-    window.navigator.mozNfc = realMozNfc;
+    nfcHandler = BaseModule.instantiate('NfcHandler', {nfc: MockNfc});
+    nfcHandler.start();
   });
 
   test('on peer ready', function() {
-    window.appWindowManager.mActiveApp = {
+    MockService.mTopMostWindow = {
       config: { url: 'www.test.com' },
       isBrowser: function() {
         return true;
