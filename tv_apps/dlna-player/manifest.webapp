@@ -15,5 +15,5 @@
   "icons": {
     "128": "/style/icons/Blank.png"
   },
-  "orientation": "portrait"
+  "orientation": "default"
 }
