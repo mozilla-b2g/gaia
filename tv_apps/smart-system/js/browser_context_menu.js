@@ -88,15 +88,6 @@
       this.elements[toCamelCase(name)] =
         this.element.querySelector('.' + this.ELEMENT_PREFIX + name);
     }, this);
-    var cancel = document.createElement('button');
-    cancel.id = 'ctx-cancel-button';
-    cancel.dataset.action = 'cancel';
-    cancel.dataset.l10nId = 'cancel';
-    this.elements.cancel = cancel;
-  };
-
-  BrowserContextMenu.prototype._registerEvents = function() {
-    this.elements.cancel.addEventListener('click', this.hide.bind(this));
   };
 
   BrowserContextMenu.prototype.view = function() {
@@ -200,9 +191,6 @@
       container.appendChild(action);
       this.elements.list.appendChild(container);
     }, this);
-
-    this.elements.cancel.setAttribute('data-l10n-id', 'cancel');
-    this.elements.list.appendChild(this.elements.cancel);
 
     this.scrollable = new XScrollable({
       frameElem: this.elements.listFrame,
