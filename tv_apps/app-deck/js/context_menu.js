@@ -88,6 +88,7 @@
                 data: {
                   name: app.name,
                   type: 'Application',
+                  group: 'app',
                   // XXX: we don't specify launchURL here because there are only
                   // 'Application' in app-deck, and `Application` don't have
                   // launchURL in its own property. We should add back
