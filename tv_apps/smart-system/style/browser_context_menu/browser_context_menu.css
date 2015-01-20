@@ -1,0 +1,8 @@
+form[role="dialog"][data-type="action"].contextmenu {
+  transition: none;
+}
+
+.contextmenu-list-frame.disappear {
+  transition: opacity 0.3s;
+  opacity: 0;
+}
