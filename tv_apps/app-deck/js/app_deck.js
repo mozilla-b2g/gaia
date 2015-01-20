@@ -63,7 +63,9 @@
         that._spatialNavigator = new SpatialNavigator(that._navigableElements);
 
         that._keyNavigationAdapter.on('move', that.onMove.bind(that));
-        that._keyNavigationAdapter.on('enter', that.onEnter.bind(that));
+        // All behaviors which no need to have multple events while holding the
+        // key should use keyup.
+        that._keyNavigationAdapter.on('enter-keyup', that.onEnter.bind(that));
         that._spatialNavigator.on('focus', that.onFocus.bind(that));
         that._spatialNavigator.on('unfocus', that.onUnfocus.bind(that));
         that._appDeckListScrollable.on('focus',
