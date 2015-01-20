@@ -1,5 +1,5 @@
 /* global MozActivity, IconsHelper, LazyLoader, applications */
-/* global BookmarksDatabase, XScrollable, KeyNavigationAdapter */
+/* global BookmarksDatabase, XScrollable, KeyNavigationAdapter, SharedUtils */
 
 (function(window) {
   'use strict';
@@ -169,11 +169,8 @@
       var icon = document.createElement('div');
       action.dataset.id = item.id;
       action.dataset.value = item.value;
-      if (item.labelL10nId) {
-        action.setAttribute('data-l10n-id', item.labelL10nId);
-      } else {
-        action.textContent = item.label;
-      }
+      var l10nPayload = item.labelL10nId ? item.labelL10nId : {raw: item.label};
+      SharedUtils.localizeElement(action, l10nPayload);
 
       action.className = self.ELEMENT_PREFIX + 'button';
 

@@ -50,7 +50,6 @@
       });
     },
 
-
     /**
      * Read color code from the specified image blob. Please note that the blob
      * should be downloaded from System XHR or within the same domain.
@@ -101,6 +100,36 @@
       };
       // Let's load the image
       offscreenImg.src = offscreenUrl;
+    },
+
+    /**
+     * Localize html element from payload, support l10n-id, l10n-args, or
+     * plain string format. See http://mzl.la/1yoNtZ1 for l10n refernce.
+     * @param  {HtmlElement} element target html element to be localized
+     * @param  {Object} payload l10n payload
+     * @memberof SharedUtils
+     */
+    localizeElement: function su_localizeElement(element, payload) {
+      // payload could be:
+      // 1. string -> l10nId
+      // 2. object -> {id: l10nId, args: l10nArgs}
+      // 3. object -> {raw: string}
+      // It could be HTML fragment but currently we don't have it yet.
+      if (typeof payload === 'string') {
+        element.setAttribute('data-l10n-id', payload);
+        return;
+      }
+
+      if (typeof payload === 'object') {
+        if (payload.id) {
+          navigator.mozL10n.setAttribute(element, payload.id, payload.args);
+          return;
+        } else if (payload.raw) {
+          element.removeAttribute('data-l10n-id');
+          element.textContent = payload.raw;
+          return;
+        }
+      }
     }
   };
 
