@@ -72,6 +72,7 @@
   };
 
   BrowserContextMenu.prototype._fetchElements = function bcm__fetchElements() {
+    this.smartDialogElement = document.getElementById('contextmenu-dialog');
     this.element = document.getElementById(this.CLASS_NAME + this.instanceID);
     this.elements = {};
 
@@ -91,14 +92,16 @@
   };
 
   BrowserContextMenu.prototype.view = function() {
-    return '<form class="contextmenu" role="dialog" tabindex="-1"' +
-              ' data-type="action" ' +
-              'id="' + this.CLASS_NAME + this.instanceID + '">' +
-              '<header class="contextmenu-header"></header>' +
-              '<div class="contextmenu-list-frame">' +
-                '<menu class="contextmenu-list"></menu>' +
-              '</div>' +
-            '</form>';
+    return '<smart-dialog id="contextmenu-dialog">' +
+              '<form class="contextmenu" role="dialog" tabindex="-1"' +
+                ' data-type="action" ' +
+                'id="' + this.CLASS_NAME + this.instanceID + '">' +
+                '<header class="contextmenu-header"></header>' +
+                '<div class="contextmenu-list-frame">' +
+                  '<menu class="contextmenu-list"></menu>' +
+                '</div>' +
+              '</form>' +
+            '</smart-dialog>';
   };
 
   BrowserContextMenu.prototype.kill = function() {
@@ -157,7 +160,14 @@
     this.buildMenu(menu);
     this.element.classList.add('visible');
     document.activeElement.blur();
-    this.scrollable.catchFocus();
+    this.smartDialogElement.open(1000, {
+      p1: 0.25,
+      p2: 0,
+      p3: 0,
+      p4: 1
+    }, function() {
+      this.scrollable.catchFocus();
+    }.bind(this));
   },
 
   BrowserContextMenu.prototype.buildMenu = function(items) {
@@ -242,10 +252,17 @@
     if (this.scrollable.currentItem) {
       this.scrollable.currentItem.blur();
     }
-    this.element.classList.remove('visible');
-    if (this.app) {
-      this.app.focus();
-    }
+    this.smartDialogElement.close(700, {
+      p1: 0.5,
+      p2: 0,
+      p3: 0,
+      p4: 1
+    }, function() {
+      this.element.classList.remove('visible');
+      if (this.app) {
+        this.app.focus();
+      }
+    }.bind(this));
   };
 
   BrowserContextMenu.prototype.openUrl = function(url) {
