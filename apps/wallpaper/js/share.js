@@ -27,10 +27,8 @@ window.onload = function() {
   var previewImage = document.getElementById('previewImage');
 
   // How big (in device pixels) is the screen?
-  var screenWidth = Math.ceil(Math.min(screen.width, screen.height) *
-                              window.devicePixelRatio);
-  var screenHeight = Math.ceil(Math.max(screen.width, screen.height) *
-                               window.devicePixelRatio);
+  var screenWidth = Math.ceil(screen.width * window.devicePixelRatio);
+  var screenHeight = Math.ceil(screen.height * window.devicePixelRatio);
 
   function startShare(request) {
     cancelButton.addEventListener('click', cancelShare);
@@ -119,13 +117,9 @@ window.onload = function() {
   }
 
   function scaleImage() {
-      // Disable set wallpaper button to prevent hammering
-      // and causing multiple calls to scaleImage.
-      setButton.disabled = true;
-
-      // Create a canvas to have an image that is exactly
-      // the size of the screen in device pixels.
       var canvas = document.createElement('canvas');
+      // To have an image which matches the device pixel, we need to multiply
+      // window.devicePixelRatio.
       canvas.width = screenWidth;
       canvas.height = screenHeight;
       var ctx = canvas.getContext('2d');
