@@ -192,6 +192,40 @@ define(function(require) {
     },
 
     /**
+     * Newly received cp apns are store under the field
+     * "ril.data.pending.cp.apns". This function checks if there are any pending
+     * cp apns. If yes, add the apns to the apn list and remove them from the
+     * field.
+     *
+     * @access private
+     * @memberOf ApnSettingsManager.prototype
+     * @param {Number} serviceId
+     */
+    _checkPendingCpApns: function asc_checkPendingCpApns(serviceId) {
+      var mcc, mnc;
+
+      return Promise.all([
+        ApnUtils.getOperatorCode(serviceId, 'mcc'),
+        ApnUtils.getOperatorCode(serviceId, 'mnc')
+      ]).then((values) => {
+        mcc = values[0];
+        mnc = values[1];
+        return ApnUtils.getPendingCpApns(mcc, mnc, serviceId);
+      }).then((pendingCpApns) => {
+        // Add pending cp apns to the apn list.
+        if (pendingCpApns && pendingCpApns.length) {
+          return Promise.all(pendingCpApns.map((pendingCpApn) => {
+            return this._apnList(serviceId)
+              .add(pendingCpApn, ApnItem.APN_CATEGORY.PRESET);
+          }));
+        }
+      }).then(() => {
+        // Clear pending cp apns.
+        return ApnUtils.clearPendingCpApns(mcc, mnc, serviceId);
+      });
+    },
+
+    /**
      * Get the apn item list of a sim slot.
      *
      * @access private
@@ -218,10 +252,14 @@ define(function(require) {
      */
     _apnItems: function asc_apnItems(serviceId, apnType) {
       return this._ready(serviceId).then(() => {
+        return this._checkPendingCpApns(serviceId);
+      }).then(() => {
         return this._apnList(serviceId).items();
       }).then((apnItems) => {
         return apnItems &&
           apnItems.filter(ApnUtils.apnTypeFilter.bind(null, apnType)) || [];
+      }).catch((error) => {
+        console.error(error);
       });
     },
 

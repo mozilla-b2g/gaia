@@ -7,6 +7,7 @@ define(function(require) {
   var APN_TYPES = ['default', 'mms', 'supl', 'dun', 'ims'];
 
   var CP_APN_KEY = 'ril.data.cp.apns';
+  var PENDING_CP_APN_KEY = 'ril.data.pending.cp.apns';
   var DEFAULT_APN_KEY = 'ril.data.default.apns';
 
   // Used for detecting if a new icc card has been inserted.
@@ -37,6 +38,7 @@ define(function(require) {
   return {
     get APN_TYPES() { return APN_TYPES; },
     get CP_APN_KEY() { return CP_APN_KEY; },
+    get PENDING_CP_APN_KEY() { return PENDING_CP_APN_KEY; },
     get DEFAULT_APN_KEY() { return DEFAULT_APN_KEY; },
     get CACHED_ICCIDS_KEY() { return CACHED_ICCIDS_KEY; },
     get APN_LIST_KEY() { return APN_LIST_KEY; },

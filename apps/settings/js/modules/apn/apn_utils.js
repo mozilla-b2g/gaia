@@ -11,6 +11,7 @@ define(function(require) {
   var LazyLoader = require('shared/lazy_loader');
 
   var CP_APN_KEY = ApnConst.CP_APN_KEY;
+  var PENDING_CP_APN_KEY = ApnConst.PENDING_CP_APN_KEY;
   var DEFAULT_APN_KEY = ApnConst.DEFAULT_APN_KEY;
   var MCC_SETTINGS_KEY = ApnConst.MCC_SETTINGS_KEY;
   var MNC_SETTINGS_KEY = ApnConst.MNC_SETTINGS_KEY;
@@ -91,6 +92,39 @@ define(function(require) {
       SettingsCache.getSettings(function(results) {
         var apns = results[CP_APN_KEY] || {};
         resolve(ApnHelper.getCompatible(apns, mcc, mnc, networkType));
+      });
+    });
+  }
+
+  function _getPendingCpApns(mcc, mnc, serviceId) {
+    return new Promise(function(resolve, reject) {
+      SettingsCache.getSettings(function(results) {
+        var pendingCpApns = results[PENDING_CP_APN_KEY];
+        resolve(pendingCpApns && pendingCpApns[serviceId] &&
+          pendingCpApns[serviceId][mcc][mnc]);
+      });
+    });
+  }
+
+  function _clearPendingCpApns(mcc, mnc, serviceId) {
+    return new Promise(function(resolve, reject) {
+      var settings = navigator.mozSettings;
+      if (!settings) {
+        resolve();
+      }
+      SettingsCache.getSettings(function(results) {
+        var pendingCpApns = results[PENDING_CP_APN_KEY];
+        if (pendingCpApns && pendingCpApns[serviceId] &&
+          pendingCpApns[serviceId][mcc][mnc]) {
+          pendingCpApns[serviceId][mcc][mnc] = null;
+          var obj = {};
+          obj[PENDING_CP_APN_KEY] = pendingCpApns;
+          var request = settings.createLock().set(obj);
+          request.onsuccess = resolve;
+          request.onerror = reject;
+        } else {
+          resolve();
+        }
       });
     });
   }
@@ -190,6 +224,8 @@ define(function(require) {
     apnTypeFilter: _apnTypeFilter,
     getDefaultApns: _getDefaultApns,
     getCpApns: _getCpApns,
+    getPendingCpApns: _getPendingCpApns,
+    clearPendingCpApns: _clearPendingCpApns,
     getEuApns: _getEuApns,
     generateId: _generateId,
     separateApnsByType: _separateApnsByType,
