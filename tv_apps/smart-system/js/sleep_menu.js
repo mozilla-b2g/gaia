@@ -4,7 +4,6 @@
 /* global Event */
 /* global LogoLoader */
 /* global OrientationManager */
-/* global SettingsListener */
 /* global SettingsCache */
 
 (function(exports) {

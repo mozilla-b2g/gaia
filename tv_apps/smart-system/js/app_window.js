@@ -6,6 +6,7 @@
 /* global ScreenLayout */
 /* global SettingsCache */
 /* global Service */
+/* global BrowserMixin */
 'use strict';
 
 (function(exports) {

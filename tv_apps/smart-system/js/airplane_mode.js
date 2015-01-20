@@ -1,7 +1,8 @@
-/* global SettingsCache, SettingsListener, AirplaneMode */
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* global SettingsCache, SettingsListener, SettingsCache, AirplaneMode */
+/* jshint loopfunc:true */
 'use strict';
 
 (function(exports) {
@@ -183,7 +184,6 @@
         if (serviceName in checkedActions) {
           var action = value ? 'disabled' : 'enabled';
           var eventName = this._checkedActionsMap[serviceName][action];
-
           // then we will start watch events coming from its manager
           window.addEventListener(eventName,
             (function(eventName, serviceName) {

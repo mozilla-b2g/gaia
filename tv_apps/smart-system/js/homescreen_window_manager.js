@@ -1,4 +1,5 @@
-/* global homescreenLauncher, Service, LazyLoader, LandingAppLauncher */
+/* global homescreenLauncher, Service, FtuLauncher, LandingAppLauncher,
+          AppWindowManager */
 
 'use strict';
 (function(exports) {
@@ -83,6 +84,7 @@
     },
 
     handleEvent: function hwm_handleEvent(evt) {
+      var detail;
       switch(evt.type) {
         case 'appswitching':
           this.getHomescreen().showFadeOverlay();
@@ -96,7 +98,7 @@
           break;
         case 'open-app':
         case 'webapps-launch':
-          var detail = evt.detail;
+          detail = evt.detail;
           if (detail.manifestURL === homescreenLauncher.manifestURL ||
               detail.manifestURL === this.landingAppLauncher.manifestURL) {
             this.launchHomescreen(evt, detail.manifestURL);
@@ -106,7 +108,7 @@
           }
           break;
         case 'appopened':
-          var detail = evt.detail;
+          detail = evt.detail;
           if (detail.manifestURL === FtuLauncher.getFtuManifestURL()) {
             // we don't need to set activeHome as anything if it is ftu.
             break;
@@ -143,7 +145,7 @@
           }
           break;
         case 'homescreenopened':
-          var detail = evt.detail;
+          detail = evt.detail;
           // Landing app is also a homescreen. We need to which one is opened
           // and show/hide the correct homescreen
           if (detail.CLASS_NAME === 'LandingAppWindow') {

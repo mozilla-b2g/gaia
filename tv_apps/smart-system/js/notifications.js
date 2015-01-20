@@ -1,6 +1,7 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* global interactiveNotifications, InteractiveNotifications, SettingsCache */
 'use strict';
 
 
@@ -127,8 +128,7 @@ var NotificationScreen = {
         'vibrationPattern': behavior.vibrationPattern
       },
       'noNotify': detail.noNotify,
-      'priority': this.PRIORITY_APPLICATIONS.indexOf(detail.manifestURL)
-                  !== -1,
+      'priority': this.PRIORITY_APPLICATIONS.indexOf(detail.manifestURL) !== -1,
       'obsoleteAPI': typeof detail.id === 'string' &&
                      detail.id.indexOf('app-notif-') === 0,
       'type': detail.type || 'desktop-notification',

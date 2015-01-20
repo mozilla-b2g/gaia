@@ -1,3 +1,5 @@
+/* global AppUpdatable, SystemUpdatable, SettingsCache, CustomDialog,
+          SystemBanner */
 'use strict';
 
 /*
@@ -50,6 +52,7 @@ var UpdateManager = {
     this._mgmt.getAll().onsuccess = (function gotAll(evt) {
       var apps = evt.target.result;
       apps.forEach(function appIterator(app) {
+        /* jshint nonew: false */
         new AppUpdatable(app);
       });
     }).bind(this);
@@ -130,8 +133,9 @@ var UpdateManager = {
   },
 
   requestErrorBanner: function um_requestErrorBanner() {
-    if (this._errorTimeout)
+    if (this._errorTimeout) {
       return;
+    }
 
     var self = this;
     this._errorTimeout = setTimeout(function waitForMore() {
@@ -160,19 +164,21 @@ var UpdateManager = {
       n: this.updatesQueue.length
     });
 
-    var updateList = '';
-
     // System update should always be on top
     this.updatesQueue.sort(function sortUpdates(updatable, otherUpdatable) {
-      if (!updatable.app)
+      if (!updatable.app) {
         return -1;
-      if (!otherUpdatable.app)
+      }
+      if (!otherUpdatable.app) {
         return 1;
+      }
 
-      if (updatable.name < otherUpdatable.name)
+      if (updatable.name < otherUpdatable.name) {
         return -1;
-      if (updatable.name > otherUpdatable.name)
+      }
+      if (updatable.name > otherUpdatable.name) {
         return 1;
+      }
       return 0;
     });
 
@@ -280,8 +286,9 @@ var UpdateManager = {
 
   removeFromAll: function um_removeFromAll(updatableApp) {
     var removeIndex = this.updatableApps.indexOf(updatableApp);
-    if (removeIndex === -1)
+    if (removeIndex === -1) {
       return;
+    }
 
     var removedApp = this.updatableApps[removeIndex];
     this.removeFromUpdatesQueue(removedApp);
@@ -336,8 +343,9 @@ var UpdateManager = {
 
   removeFromUpdatesQueue: function um_removeFromUpdatesQueue(updatable) {
     var removeIndex = this.updatesQueue.indexOf(updatable);
-    if (removeIndex === -1)
+    if (removeIndex === -1) {
       return;
+    }
 
     this.updatesQueue.splice(removeIndex, 1);
     this.lastUpdatesAvailable = this.updatesQueue.length;
@@ -370,8 +378,9 @@ var UpdateManager = {
 
   removeFromDownloadsQueue: function um_removeFromDownloadsQueue(updatable) {
     var removeIndex = this.downloadsQueue.indexOf(updatable);
-    if (removeIndex === -1)
+    if (removeIndex === -1) {
       return;
+    }
 
     this.downloadsQueue.splice(removeIndex, 1);
 
@@ -406,7 +415,8 @@ var UpdateManager = {
 
   oninstall: function um_oninstall(evt) {
     var app = evt.application;
-    var updatableApp = new AppUpdatable(app);
+    /* jshint nonew: false */
+    new AppUpdatable(app);
   },
 
   onuninstall: function um_onuninstall(evt) {
@@ -422,8 +432,9 @@ var UpdateManager = {
   },
 
   handleEvent: function um_handleEvent(evt) {
-    if (!evt.type)
+    if (!evt.type) {
       return;
+    }
 
     switch (evt.type) {
       case 'applicationinstall':
@@ -443,8 +454,9 @@ var UpdateManager = {
         break;
     }
 
-    if (evt.type !== 'mozChromeEvent')
+    if (evt.type !== 'mozChromeEvent') {
       return;
+    }
 
     var detail = evt.detail;
 
