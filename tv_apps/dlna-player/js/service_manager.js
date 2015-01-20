@@ -59,7 +59,7 @@
           var serverItem = this.savedServices[service.id].serverItem;
           this.removeSiblingList(serverItem);
           serverItem.parentElement.removeChild(serverItem);
-          delete this.savedServices[serviceId];
+          delete this.savedServices[service.id];
         }
       }
     },

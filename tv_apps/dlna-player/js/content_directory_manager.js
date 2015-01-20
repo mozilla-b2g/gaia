@@ -1,10 +1,11 @@
-/* globals plug, deviceManager */
+/* globals Plug, deviceManager */
+
 (function(exports) {
+  'use strict';
   //
   // TODO: Refactor to use ServiceManager as prototype.
   //
   var DEBUG = false;
-  'use strict';
 
   var savedServices = {};
 
@@ -16,9 +17,10 @@
   var unknownPlayer;
   var discoverButton;
   var currentPlayer;
-  var playerToggler;
   var folderList;
   var debugPanel;
+  var directoryPage;
+  var toPlayerPage;
 
   function debugLog(msg, level) {
     if (!DEBUG && level == 'debug') {
@@ -87,8 +89,6 @@
   function playFile(evt) {
     evt.preventDefault();
     var fileType = evt.target.dataset.type;
-    var fileProtocol = evt.target.dataset.protocol;
-    var fileFormat = evt.target.dataset.mime.split('/')[1].toLowerCase();
     var avtId = avtSelector.options[avtSelector.selectedIndex].value;
     if (avtId != 'local') {
       deviceManager.play(
@@ -224,23 +224,6 @@
     }
   }
 
-  function refresh(evt) {
-    var serverItem = evt.target;
-    var serviceId = serverItem.dataset.serviceId;
-    serverItem.removeEventListener('click', refresh);
-    serverItem.classList.remove('needRefresh');
-
-    var service = savedServices[serviceId];
-    removeSiblingList(service.serverItem);
-    browseFolder(serviceId, null, service.serverItem);
-  }
-
-  function addRefreshLink(serviceId) {
-    var serverItem = savedServices[serviceId].serverItem;
-    serverItem.classList.add('needRefresh');
-    serverItem.addEventListener('click', refresh);
-  }
-
   function onServices(services) {
     services.addEventListener('servicefound', function servicefound(e) {
       for (var i = 0; i < services.length; i++) {
@@ -306,7 +289,7 @@
       debugLog('Searching for UPnP services in the current network...');
       navigator.getNetworkServices(
         'upnp:urn:schemas-upnp-org:service:ContentDirectory:1')
-      .then(onServices, function(e) {
+      .then(onServices, function(error) {
           debugLog('An error occurred obtaining UPnP Services [CODE: ' +
                     error.code + ']');
       });
@@ -318,9 +301,6 @@
 
 
   function init() {
-    var audioToggler = document.getElementById('audioToggler');
-    var videoToggler = document.getElementById('videoToggler');
-    var imageToggler = document.getElementById('imageToggler');
     folderList = document.getElementById('folderList');
     debugEl = document.getElementById('debug');
     audioPlayer = document.getElementById('audioPlayer');
