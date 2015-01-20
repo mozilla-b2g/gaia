@@ -1,4 +1,4 @@
-/* global Card, SettingsListener,
+/* global Card, eventSafety, SettingsListener,
           Service, homescreenLauncher, StackManager */
 
 (function(exports) {
@@ -447,26 +447,19 @@
       this.newStackPosition = position;
     }
 
-    setTimeout((function() {
-      var safetyTimeout = null;
-      var finish = (function() {
-        clearTimeout(safetyTimeout);
+    setTimeout(() => {
+      var finish = () => {
         this.hide();
-      }).bind(this);
+      };
 
       if (app.isHomescreen) {
         app.open();
         finish();
       } else {
         app.open('from-cardview');
-        app.element.addEventListener('_opened', function opWait() {
-          app.element.removeEventListener('_opened', opWait);
-          finish();
-        });
+        eventSafety(app.element, '_opened', finish, 400);
       }
-
-      safetyTimeout = setTimeout(finish, 400);
-    }).bind(this), 100);
+    }, 100);
   };
 
   /**
