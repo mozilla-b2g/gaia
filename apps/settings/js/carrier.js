@@ -253,6 +253,10 @@ var CarrierSettings = (function(window, document, undefined) {
    * Show the carrier name in the ICC card.
    */
   function cs_showCarrierName() {
+    if (DsdsSettings.getNumberOfIccSlots() > 1) {
+      // We don't do anything here when the device support dsds.
+      return;
+    }
     var desc = document.getElementById('dataNetwork-desc');
     var iccCard = _iccManager.getIccById(_mobileConnection.iccId);
     var network = _mobileConnection.voice.network;

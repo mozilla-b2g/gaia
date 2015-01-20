@@ -11,6 +11,7 @@ require(['config/require'], function() {
     var SettingsService = require('modules/settings_service');
     var ScreenLayout = require('shared/screen_layout');
     var Settings = require('settings');
+    var DsdsSettings = require('dsds_settings');
 
     function isInitialPanel(panel) {
       if (Settings.isTabletAndLandscape()) {
@@ -35,20 +36,36 @@ require(['config/require'], function() {
       if (initialPanelHandler) {
         initialPanelHandler.release();
         var pendingTargetPanel = initialPanelHandler.pendingTargetPanel;
-        // XXX: special logic for navigating to bluetooth panels
-        if (pendingTargetPanel === 'bluetooth') {
-          require(['modules/bluetooth/version_detector'], (versionDetector) => {
-            var version = versionDetector.getVersion();
-            if (version === 1) {
-              // navigate old bluetooth panel..
-              SettingsService.navigate('bluetooth');
-            } else if (version === 2) {
-              // navigate new bluetooth panel..
-              SettingsService.navigate('bluetooth_v2');
+        // XXX: In bluetooth and call item,
+        // we need special logic for navigating to specific panels.
+       
+        switch (pendingTargetPanel) {
+          case 'bluetooth':
+            require(['modules/bluetooth/version_detector'],
+              (versionDetector) => {
+              var version = versionDetector.getVersion();
+              if (version === 1) {
+                // navigate old bluetooth panel..
+                SettingsService.navigate('bluetooth');
+              } else if (version === 2) {
+                // navigate new bluetooth panel..
+                SettingsService.navigate('bluetooth_v2');
+              }
+            });
+            break;
+          case 'call':
+            if (DsdsSettings.getNumberOfIccSlots() > 1) {
+              // If the device support dsds,
+              // then navigate to 'call-iccs' panel
+              pendingTargetPanel = 'call-iccs';
             }
-          });
-        } else if (pendingTargetPanel) {
-          SettingsService.navigate(pendingTargetPanel);
+            SettingsService.navigate(pendingTargetPanel);
+            break;
+          default:
+            if (pendingTargetPanel) {
+              SettingsService.navigate(pendingTargetPanel);
+            }
+            break;
         }
       }
 
