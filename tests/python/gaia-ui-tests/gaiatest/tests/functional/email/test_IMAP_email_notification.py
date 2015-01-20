@@ -63,6 +63,9 @@ class TestEmailNotification(GaiaTestCase):
         self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.email.name)
         self.apps.switch_to_displayed_app()
 
+        # Wait for senders email to be shown
+        email.wait_for_senders_email_displayed()
+
         # check if the sender's email address is fine
         self.assertEqual(email.senders_email,
                          mock_email.senders_email,
