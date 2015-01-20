@@ -53,7 +53,7 @@
     // the trimmed, typed text starts with a non-number
     // (ignoring the presense of a '+'), the input value
     // is questionable and may be invalid.
-    number = this.number[0] === '+' ? this.number.slice(1) : this.number;
+    number = (this.number[0] === '+') || (this.number[0] === '(') ? this.number.slice(1) : this.number;
 
     if (this.isEmail) {
       this.className += ' email';
