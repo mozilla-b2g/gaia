@@ -699,12 +699,12 @@ NODE_MODULES_REV=$(shell cat gaia_node_modules.revision)
 # $(NODE_MODULES_SRC). See the node_modules target.
 modules.tar: gaia_node_modules.revision
 	@echo Downloading latest node_modules package. This may take several minutes...
-	-$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/$(NODE_MODULES_REV) &&\
+	-$(DOWNLOAD_CMD) https://github.com/KevinGrandon/gaia-node-modules/tarball/$(NODE_MODULES_REV) &&\
 	mv $(NODE_MODULES_REV) "$(NODE_MODULES_SRC)"
 
 git-gaia-node-modules: gaia_node_modules.revision
 	if [ ! -d "$(NODE_MODULES_SRC)" ] ; then \
-		git clone "$(NODE_MODULES_GIT_URL)" "$(NODE_MODULES_SRC)" ; \
+		git clone https://github.com/KevinGrandon/gaia-node-modules.git "$(NODE_MODULES_SRC)" ; \
 	fi
 	(cd "$(NODE_MODULES_SRC)" && git fetch && git reset --hard "$(NODE_MODULES_REV)" )
 
@@ -714,7 +714,7 @@ node_modules: gaia_node_modules.revision
 	# run another target without specifying the variable
 	$(MAKE) $(NODE_MODULES_SRC)
 ifeq "$(NODE_MODULES_SRC)" "modules.tar"
-	$(TAR_WILDCARDS) --strip-components 1 -x -m -f $(NODE_MODULES_SRC) "mozilla-b2g-gaia-node-modules-*/node_modules"
+	$(TAR_WILDCARDS) --strip-components 1 -x -m -f $(NODE_MODULES_SRC) "KevinGrandon-gaia-node-modules-*/node_modules"
 else
 	rm -fr node_modules
 	cp -R $(NODE_MODULES_SRC)/node_modules node_modules
