@@ -71,10 +71,10 @@ suite('Keyboard layouts building tests', function() {
       var dictJSON = JSON.parse(fs.readFileSync(
             appDirPath +
             '/test/build/integration/resources/' +
-            'default-make-dictionaries.json'));
+            'default-make-layouts.json'));
 
       helper.checkFileContentInZip(
-        zipPath, 'js/settings/dictionaries.json', dictJSON, true);
+        zipPath, 'js/settings/layouts.json', dictJSON, true);
 
       done();
     });
@@ -174,10 +174,10 @@ suite('Keyboard layouts building tests', function() {
       var dictJSON = JSON.parse(fs.readFileSync(
             appDirPath +
             '/test/build/integration/resources/' +
-            'all-layout-make-dictionaries.json'));
+            'all-layout-make-layouts.json'));
 
       helper.checkFileContentInZip(
-        zipPath, 'js/settings/dictionaries.json', dictJSON, true);
+        zipPath, 'js/settings/layouts.json', dictJSON, true);
 
       done();
     });
@@ -218,10 +218,10 @@ suite('Keyboard layouts building tests', function() {
       var dictJSON = JSON.parse(fs.readFileSync(
             appDirPath +
             '/test/build/integration/resources/' +
-            'no-preload-dict-required-make-dictionaries.json'));
+            'no-preload-dict-required-make-layouts.json'));
 
       helper.checkFileContentInZip(
-        zipPath, 'js/settings/dictionaries.json', dictJSON, true);
+        zipPath, 'js/settings/layouts.json', dictJSON, true);
 
       done();
     });
@@ -277,8 +277,10 @@ suite('Keyboard layouts building tests', function() {
       var inputKeysInManifest = Object.keys(manifest.inputs);
 
       // Only layouts with dictionaries should be declaried.
+      // Noted that en-Dvorak use the same dictionary as en so it should also
+      // be declaried.
       assert.deepEqual(inputKeysInManifest.sort(),
-        ['en', 'ko', 'number', 'zh-Hans-Pinyin']);
+        ['en', 'en-Dvorak', 'ko', 'number', 'zh-Hans-Pinyin']);
 
       // Verify dictionaries are not built (except en_us.dict)
       dicts.forEach(function(dict) {
@@ -290,10 +292,10 @@ suite('Keyboard layouts building tests', function() {
       var dictJSON = JSON.parse(fs.readFileSync(
             appDirPath +
             '/test/build/integration/resources/' +
-            'default-make-en-dict-dictionaries.json'));
+            'default-make-en-dict-layouts.json'));
 
       helper.checkFileContentInZip(
-        zipPath, 'js/settings/dictionaries.json', dictJSON, true);
+        zipPath, 'js/settings/layouts.json', dictJSON, true);
 
       done();
     });
