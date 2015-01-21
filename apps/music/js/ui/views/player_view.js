@@ -702,6 +702,7 @@ var PlayerView = {
     this.isTouching = this.isFastSeeking = true;
     var offset = direction * 2;
 
+    this.prevPlayStatus = this.playStatus;
     this.playStatus = direction ? PLAYSTATUS_FWD_SEEK : PLAYSTATUS_REV_SEEK;
     this.updateRemotePlayStatus();
 
@@ -716,8 +717,9 @@ var PlayerView = {
       window.clearInterval(this.intervalID);
     }
 
-    // After we cancel the fast seeking, an 'playing' will be fired,
-    // so that we don't have to update the remote play status here.
+    this.playStatus = this.prevPlayStatus;
+    this.prevPlayStatus = null;
+    this.updateRemotePlayStatus();
   },
 
   updateSeekBar: function pv_updateSeekBar() {
@@ -920,10 +922,10 @@ var PlayerView = {
             this.showInfo();
             break;
           case 'player-controls-play':
-            if (this.playStatus === PLAYSTATUS_PLAYING) {
-              this.pause();
-            } else {
+            if (this.playControl.classList.contains('is-pause')) {
               this.play();
+            } else {
+              this.pause();
             }
             break;
           case 'player-album-repeat':
