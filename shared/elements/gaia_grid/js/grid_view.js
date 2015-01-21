@@ -217,12 +217,6 @@
 
       var inEditMode = this.dragdrop && this.dragdrop.inEditMode;
 
-      // Exit from edit mode when user clicks an empty space
-      if (inEditMode && e.target.classList.contains('placeholder')) {
-        window.dispatchEvent(new CustomEvent('hashchange'));
-        return;
-      }
-
       var action = 'launch';
       if (e.target.classList.contains('remove')) {
         action = 'remove';
