@@ -1897,13 +1897,18 @@ suite('system/AppWindow', function() {
 
     test('Orientation change event on active app', function() {
       var app1 = new AppWindow(fakeAppConfig1);
+      var app2 = new AppWindow(fakeAppConfig2);
+
+      app1.frontWindow = app2;
       this.sinon.stub(app1, 'isActive').returns(true);
+      this.sinon.stub(app2, 'broadcast');
 
       layoutManager.mKeyboardHeight = 100;
       app1.handleEvent({
         type: '_orientationchange'
       });
 
+      assert.isTrue(app2.broadcast.calledWith('orientationchange'));
       assert.equal(app1.element.style.width, layoutManager.width + 'px');
       assert.equal(app1.element.style.height,
         (layoutManager.height - 100) + 'px');
