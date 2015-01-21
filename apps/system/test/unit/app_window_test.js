@@ -691,17 +691,6 @@ suite('system/AppWindow', function() {
       assert.isFalse(app1.element.classList.contains('overlay'));
     });
 
-    test('should reset the iframe inline size when hiding the overlay',
-    function() {
-      app1.iframe.style.width = '480px';
-      app1.iframe.style.height = '320px';
-
-      app1._hideScreenshotOverlay();
-
-      assert.equal(app1.iframe.style.width, '');
-      assert.equal(app1.iframe.style.height, '');
-    });
-
     test('hideScreenshotOverlay noop when the screenshot is not displayed',
     function() {
       app1._screenshotOverlayState = 'none';
@@ -1872,8 +1861,6 @@ suite('system/AppWindow', function() {
 
       assert.equal(app1.element.style.width, '480px');
       assert.equal(app1.element.style.height, '300px');
-      assert.equal(app1.iframe.style.width, '320px');
-      assert.equal(app1.iframe.style.height, '460px');
 
       assert.equal(app1.screenshotOverlay.style.visibility, 'hidden');
     });
@@ -1912,8 +1899,6 @@ suite('system/AppWindow', function() {
       assert.equal(app1.element.style.width, layoutManager.width + 'px');
       assert.equal(app1.element.style.height,
         (layoutManager.height - 100) + 'px');
-      assert.equal(app1.iframe.style.width, '');
-      assert.equal(app1.iframe.style.height, '');
     });
 
     test('Orientation change event on active but not top most app', function() {
@@ -1928,8 +1913,6 @@ suite('system/AppWindow', function() {
 
       assert.equal(app1.element.style.width, layoutManager.width + 'px');
       assert.equal(app1.element.style.height, layoutManager.height + 'px');
-      assert.equal(app1.iframe.style.width, '');
-      assert.equal(app1.iframe.style.height, '');
     });
 
     test('Orientation change event on active homescreen app', function() {
@@ -1953,8 +1936,6 @@ suite('system/AppWindow', function() {
         'prevent it is modified by other background app');
       assert.equal(app1.element.style.width, '460px');
       assert.equal(app1.element.style.height, '320px');
-      assert.equal(app1.iframe.style.width, '320px');
-      assert.equal(app1.iframe.style.height, '460px');
       MockService.currentApp = null;
     });
 
@@ -1973,8 +1954,6 @@ suite('system/AppWindow', function() {
 
       assert.equal(app1.element.style.width, '480px');
       assert.equal(app1.element.style.height, '320px');
-      assert.equal(app1.iframe.style.width, '320px');
-      assert.equal(app1.iframe.style.height, '480px');
 
       assert.equal(app1.screenshotOverlay.style.visibility, 'hidden');
     });
