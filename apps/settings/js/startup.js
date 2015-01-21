@@ -374,11 +374,9 @@
     _getInitialPanelId: function as_getInitialPanelId() {
       return new Promise(function(resolve) {
         if (navigator.mozHasPendingMessage('activity')) {
-          // Load activity handler only when we need to handle it.
-          LazyLoader.load(['js/activity_handler.js'], function ah_loaded() {
-            window.ActivityHandler.ready().then(function ah_ready() {
-              resolve(window.ActivityHandler.targetPanelId);
-            });
+          // Load activity handler only when we need to handle it. <- Wrong
+          window.ActivityHandler.ready().then(function ah_ready() {
+            resolve(window.ActivityHandler.targetPanelId);
           });
         } else {
           resolve('root');
@@ -455,6 +453,10 @@
         return Promise.resolve();
       } else {
         this._started = true;
+        // Load the activity handle
+        LazyLoader.load(['js/activity_handler.js'], function ah_loaded() {
+          window.ActivityHandler.ready();
+        });
       }
 
       navigator.mozL10n.once(function l10nDone() {
