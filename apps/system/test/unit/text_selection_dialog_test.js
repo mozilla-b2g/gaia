@@ -190,8 +190,11 @@ suite('system/TextSelectionDialog', function() {
     td.render();
     var stubHide = this.sinon.stub(td, 'hide');
     this.sinon.stub(td.element, 'blur');
+    this.sinon.stub(td, '_resetShortcutTimeout');
     td.close();
     assert.isTrue(stubHide.calledOnce);
+    assert.isTrue(td._resetShortcutTimeout.called);
+    assert.isTrue(td.element.blur.called);
   });
 
   test('updateDialogPosition', function() {
@@ -216,13 +219,23 @@ suite('system/TextSelectionDialog', function() {
     assert.isFalse(td._hasCutOrCopied);
   });
 
+  test('_resetShortcutTimeout', function() {
+    td._shortcutTimeout = 'timeout';
+    this.sinon.stub(window, 'clearTimeout');
+    td._resetShortcutTimeout();
+    assert.isTrue(window.clearTimeout.calledWith('timeout'));
+    assert.isTrue(td._shortcutTimeout === null);
+  });
+
   test('_triggerShortcutTimeout', function() {
-    var stubClose = this.sinon.stub(td, 'close');
+    this.sinon.stub(td, '_resetShortcutTimeout');
+    this.sinon.stub(td, 'close');
     var clock = this.sinon.useFakeTimers();
 
     td._triggerShortcutTimeout();
     clock.tick(td.SHORTCUT_TIMEOUT);
-    assert.isTrue(stubClose.calledOnce);
+    assert.isTrue(td.close.called);
+    assert.isTrue(td._resetShortcutTimeout.called);
   });
 
   suite('_onSelectionStateChanged', function() {
@@ -540,7 +553,7 @@ suite('system/TextSelectionDialog', function() {
     });
   });
 
-  suite('cases to close bubble', function() {
+  suite('cases to close/hide bubble', function() {
     setup(function() {
       this.sinon.stub(td, 'close');
     });
@@ -558,6 +571,15 @@ suite('system/TextSelectionDialog', function() {
     test('hierachychanged', function() {
       td.handleEvent({ type: 'hierachychanged' });
       assert.isTrue(td.close.called);
+    });
+
+    test('system-resize', function() {
+      this.sinon.stub(td, '_resetShortcutTimeout');
+      this.sinon.stub(td, 'hide');
+      td._shortcutTimeout = true;
+      td.handleEvent({ type: 'system-resize' });
+      assert.isTrue(td._resetShortcutTimeout.called);
+      assert.isTrue(td.hide.called);
     });
   });
 

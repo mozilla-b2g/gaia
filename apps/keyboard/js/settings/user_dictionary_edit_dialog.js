@@ -3,8 +3,6 @@
 /* global KeyEvent */
 
 /*
- * This panel should be used as a Dialog.
- *
  * We may be in two modes: "edit mode" or "add mode".
  *
  * Its onsubmit results may be:
@@ -20,7 +18,7 @@
 
 (function(exports) {
 
-var UserDictionaryEditPanel = function() {
+var UserDictionaryEditDialog = function() {
   this._initialized = false;
 
   this._container = null;
@@ -29,25 +27,25 @@ var UserDictionaryEditPanel = function() {
   this._oldWord = undefined;
 };
 
-UserDictionaryEditPanel.prototype.CONTAINER_ID = 'panel-ud-editword';
+UserDictionaryEditDialog.prototype.CONTAINER_ID = 'panel-ud-editword';
 
-UserDictionaryEditPanel.prototype.onsubmit = undefined;
+UserDictionaryEditDialog.prototype.onsubmit = undefined;
 
-UserDictionaryEditPanel.prototype.init = function(){
+UserDictionaryEditDialog.prototype.init = function(){
   this._initialized = true;
 
   this._container = document.getElementById(this.CONTAINER_ID);
   this._inputField = this._container.querySelector('#ud-editword-input');
 };
 
-UserDictionaryEditPanel.prototype.uninit = function(){
+UserDictionaryEditDialog.prototype.uninit = function(){
   this._initialized = false;
 
   this._container = null;
   this._inputField = null;
 };
 
-UserDictionaryEditPanel.prototype.beforeShow = function(options) {
+UserDictionaryEditDialog.prototype.beforeShow = function(options) {
   if (!this._initialized) {
     this.init();
   }
@@ -62,7 +60,7 @@ UserDictionaryEditPanel.prototype.beforeShow = function(options) {
   }
 };
 
-UserDictionaryEditPanel.prototype.show = function() {
+UserDictionaryEditDialog.prototype.show = function() {
   this._container.querySelector('#ud-editword-header')
     .addEventListener('action', this);
 
@@ -80,7 +78,7 @@ UserDictionaryEditPanel.prototype.show = function() {
   this._inputField.focus();
 };
 
-UserDictionaryEditPanel.prototype.beforeHide = function() {
+UserDictionaryEditDialog.prototype.beforeHide = function() {
   this._container.querySelector('#ud-editword-header')
     .removeEventListener('action', this);
 
@@ -96,12 +94,12 @@ UserDictionaryEditPanel.prototype.beforeHide = function() {
     .removeEventListener('click', this);
 };
 
-UserDictionaryEditPanel.prototype.hide = function() {
+UserDictionaryEditDialog.prototype.hide = function() {
   this._inputField.value = '';
   this._oldWord = undefined;
 };
 
-UserDictionaryEditPanel.prototype.handleEvent = function(evt) {
+UserDictionaryEditDialog.prototype.handleEvent = function(evt) {
   switch (evt.type) {
     case 'action':
       this._cancel();
@@ -142,18 +140,18 @@ UserDictionaryEditPanel.prototype.handleEvent = function(evt) {
 };
 
 
-UserDictionaryEditPanel.prototype._removeWord = function() {
+UserDictionaryEditDialog.prototype._removeWord = function() {
   this.onsubmit({action: 'remove'});
 };
 
-UserDictionaryEditPanel.prototype._commitWord = function() {
+UserDictionaryEditDialog.prototype._commitWord = function() {
   this.onsubmit({action: 'commit', word: this._inputField.value.trim()});
 };
 
-UserDictionaryEditPanel.prototype._cancel = function() {
+UserDictionaryEditDialog.prototype._cancel = function() {
   this.onsubmit({action: 'cancel'});
 };
 
-exports.UserDictionaryEditPanel = UserDictionaryEditPanel;
+exports.UserDictionaryEditDialog = UserDictionaryEditDialog;
 
 })(window);

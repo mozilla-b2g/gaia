@@ -79,7 +79,7 @@
             // For example, icon is changed or app is uninstalled
             URL.revokeObjectURL(elm.dataset.revokableURL);
           }
-          elem.dataset.revokableURL = iconURL;
+          elem.dataset.revokableURL = blob ? iconURL : undefined;
           elem.style.backgroundImage = 'url("' + iconURL + '")';
         });
     },
@@ -89,6 +89,7 @@
       appButton.dataset.manifestURL = app.manifestURL;
       appButton.dataset.entryPoint = app.entryPoint;
       appButton.dataset.name = app.name;
+      appButton.dataset.removable = app.removable;
       appButton.setAttribute('type', 'app-button');
       appButton.setAttribute('app-type', 'app');
       appButton.classList.add('app-button');
@@ -115,7 +116,8 @@
             pinned: pinned,
             manifestURL: elem.dataset.manifestURL,
             entryPoint: elem.dataset.entryPoint,
-            name: elem.dataset.name
+            name: elem.dataset.name,
+            removable: elem.dataset.removable === 'true'
           });
         });
       } else {
@@ -139,10 +141,21 @@
           this._spatialNavigator.focus(elem);
         }
         elem.focus();
+        // Locate focused button to vertical middle of grid view. This way
+        // buttons one row above would always slightly be on bottom of the
+        // topmost scroll list (accroding to our layout). Thus we can prevent
+        // jumping from second row to the scroll list when pressing up key.
+        this._scrollTo(elem);
         this._focusElem = elem;
       }
 
       this.fireFocusEvent(elem);
+    },
+
+    _scrollTo: function ad_scrollTo(elem) {
+      var scrollY = (elem.offsetTop - this._appDeckGridViewElem.offsetTop) -
+              (this._appDeckGridViewElem.offsetHeight - elem.offsetHeight) / 2;
+      this._appDeckGridViewElem.scrollTo(0, scrollY);
     },
 
     onUnfocus: function ad_onUnfocus(elem) {
@@ -189,9 +202,9 @@
     onAppInstalled: function ad_onAppInstalled(apps) {
       var that = this;
       var appGridElements = apps.map(this._createAppGridElement.bind(this));
-      appGridElements.forEach(function(appGridElem) {
-        that._appDeckGridViewElem.appendChild(appGridElem);
-        that._spatialNavigator.add(appGridElem);
+      appGridElements.forEach(function(elem) {
+        that._appDeckGridViewElem.appendChild(elem);
+        that._spatialNavigator.add(elem);
       });
     },
 
@@ -206,12 +219,25 @@
     },
 
     onAppUninstalled: function ad_onAppUninstalled(apps) {
-      // TODO: uninstall an app will be fixed in bug 1115633
+      var that = this;
+      var appGridElements = apps.map(this._findAppGridElement.bind(this));
+      appGridElements.forEach(function(elem) {
+        if (elem.dataset.revokableURL) {
+          URL.revokeObjectURL(elem.dataset.revokableURL);
+        }
+        // Move focus to next or previous element of `elem`, because
+        // we are going to remove `elem` from DOM tree
+        var nextFocus = elem.nextElementSibling || elem.previousElementSibling;
+        that._spatialNavigator.focus(nextFocus);
+
+        that._spatialNavigator.remove(elem);
+        that._appDeckGridViewElem.removeChild(elem);
+      });
     },
 
     _findAllAppGridElements: function ad_findallAppGridElements() {
       return SharedUtils.nodeListToArray(
-        document.getElementsByTagName('app-button'));
+        document.getElementsByClassName('app-button'));
     },
 
     _findAppGridElement: function ad_findAppGridElement(app) {

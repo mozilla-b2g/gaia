@@ -295,7 +295,7 @@ var Wifi = {
     // Keep this value in disk so if the phone reboots we'll
     // be able to turn the wifi back on.
     request = lock.set({ 'wifi.disabled_by_wakelock': true });
-    request.onsuccess = function() { wakeLockForSettings.unlock() };
+    request.onsuccess = function() { wakeLockForSettings.unlock(); };
     request.onerror = request.onsuccess;
   },
 

@@ -306,6 +306,10 @@ var StatusBar = {
     window.addEventListener('homescreenopened', this);
     window.addEventListener('stackchanged', this);
 
+    // Listen to updates dialog
+    window.addEventListener('updatepromptshown', this);
+    window.addEventListener('updateprompthidden', this);
+
     // Track Downloads via the Downloads API.
     var mozDownloadManager = navigator.mozDownloadManager;
     if (mozDownloadManager) {
@@ -611,6 +615,12 @@ var StatusBar = {
         // about it and then come and ask @nullaus
         this.addSystemDownloadListeners(evt.download);
         break;
+       case 'updatepromptshown':
+          this.element.classList.remove('light');
+          break;
+        case 'updateprompthidden':
+          this.setAppearance(Service.currentApp);
+          break;
     }
   },
 

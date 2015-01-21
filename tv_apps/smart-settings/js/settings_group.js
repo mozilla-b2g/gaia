@@ -5,7 +5,7 @@
   function nodeListToArray(obj) {
     return [].map.call(obj, function(element) {
       return element;
-    })
+    });
   }
 
   function SettingsGroup() {

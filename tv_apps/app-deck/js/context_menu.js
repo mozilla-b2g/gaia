@@ -1,6 +1,7 @@
 'use strict';
 
 /* global MozActivity, Applications */
+/* jshint nonew: false */
 
 (function(exports) {
   var ContextMenu = function() {
@@ -9,6 +10,8 @@
   ContextMenu.prototype = {
     pinToHomeElem: document.getElementById('pin-to-home'),
     mainSection: document.getElementById('main-section'),
+    removeElem: document.getElementById('remove-card'),
+    contextMenuElem: document.getElementById('context-menu'),
 
     _appDeck: undefined,
     _app: undefined,
@@ -23,6 +26,34 @@
         this.onFocusOnNonpinable.bind(this));
 
       this.pinToHomeElem.addEventListener('click', this.pinOrUnpin.bind(this));
+      this.removeElem.addEventListener('click', this.uninstall.bind(this));
+    },
+
+    _selfApp: undefined,
+
+    _connectAndSend: function cm_sendMessage(message) {
+      this._selfApp.connect('appdeck-channel').then(function (ports) {
+        ports.forEach(function(port) {
+          port.postMessage(message);
+        });
+      });
+    },
+
+    sendMessage: function cm_sendMessage(type, data) {
+      var that = this;
+      var message = {
+        type: type,
+        data: data
+      };
+
+      if (this._selfApp) {
+        this._connectAndSend(message);
+      } else {
+        navigator.mozApps.getSelf().onsuccess = function(evt) {
+          that._selfApp = evt.target.result;
+          that._connectAndSend(message);
+        };
+      }
     },
 
     _composeLaunchURL: function cm_composeLaunchURL(app) {
@@ -30,20 +61,18 @@
     },
 
     _sendUnpinMessage: function cm_sendUnpinActivity(app) {
-      // XXX: We should use IAC instead of activity.
-      new MozActivity({
-        name: 'unpin',
-        data: {
-          name: app.name,
-          manifestURL: app.manifestURL,
-          launchURL: this._composeLaunchURL(app)
-        }
+      this.sendMessage('unpin', {
+        name: app.name,
+        manifestURL: app.manifestURL,
+        // XXX: we don't specify launchURL here because there are only
+        // 'Application' in app-deck, and `Application` don't have launchURL
+        // in its own property. We should add back launchURL here once we
+        // merge`Application` and `AppBookmark` into one class.
+        // See also https://bugzil.la/1112986
       });
     },
 
     pinOrUnpin: function cm_pinOrUnpin() {
-      var that = this;
-
       if (this._app) {
         var app = this._app;
         if (app.pinned) {
@@ -59,15 +88,35 @@
                 data: {
                   name: app.name,
                   type: 'Application',
+                  // XXX: we don't specify launchURL here because there are only
+                  // 'Application' in app-deck, and `Application` don't have
+                  // launchURL in its own property. We should add back
+                  // launchURL here once we merge `Application` and
+                  // `AppBookmark` into one class.
+                  // See also https://bugzil.la/1112986
                   manifestURL: app.manifestURL,
-                  launchURL: that._composeLaunchURL(app),
-                  // We use app's original icon instead of screenshot here because
-                  // we are in app deck. For the case of getting screenshot,
-                  // please refer to bug 1100238.
+                  // We use app's original icon instead of screenshot here
+                  // because we are in app deck. For the case of getting
+                  // screenshot, please refer to bug 1100238.
                   thumbnail: blob
                 }
               });
+
             });
+        }
+      }
+    },
+
+    uninstall: function cm_uninstall() {
+      if (this._app && this._app.removable) {
+        var app = this._app;
+        // unpin app before uninstall it
+        if (app.pinned) {
+          this._sendUnpinMessage(app);
+        }
+        var appInstance = Applications.installedApps[app.manifestURL];
+        if (appInstance) {
+          navigator.mozApps.mgmt.uninstall(appInstance);
         }
       }
     },
@@ -82,6 +131,12 @@
         (detail && detail.pinned) ? 'unpin-from-home' : 'pin-to-home';
       this.pinToHomeElem.label = navigator.mozL10n.get(l10nId);
       this.pinToHomeElem.setAttribute('data-l10n-id', l10nId);
+      if (detail.removable === false) {
+        this.contextMenuElem.removeChild(this.removeElem);
+      } else {
+        this.contextMenuElem.insertBefore(this.removeElem,
+          this.pinToHomeElem.nextElementSibling);
+      }
     },
 
     onFocusOnNonpinable: function cm_onFocusOnNonpinable() {

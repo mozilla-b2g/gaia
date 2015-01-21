@@ -1,10 +1,6 @@
 'use strict';
 
 var assert = require('assert');
-var Email = require(
-  '../../../../apps/email/test/marionette/lib/email');
-var EmailServer = require(
-  '../../../../apps/email/test/marionette/lib/server_helper');
 var EmeServer = require(
   '../../../../shared/test/integration/eme_server/parent');
 var Rocketbar = require('./lib/rocketbar');
@@ -18,14 +14,13 @@ marionette('Browser Chrome - Share Web Result', function() {
     settings: {
       'ftu.manifestURL': null,
       'lockscreen.enabled': false
+    },
+    apps: {
+      'shareactivityapp.gaiamobile.org': __dirname + '/shareactivityapp'
     }
   });
 
-  var emailServer = EmailServer.use({
-    credentials: { username: 'testy1', password: 'testy1' }
-  });
-
-  var actions, email, home, rocketbar, search, server, system;
+  var actions, home, rocketbar, search, server, system;
 
   suiteSetup(function(done) {
     EmeServer(client, function(err, _server) {
@@ -40,7 +35,6 @@ marionette('Browser Chrome - Share Web Result', function() {
 
   setup(function() {
     actions = client.loader.getActions();
-    email = new Email(client);
     home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
@@ -80,16 +74,19 @@ marionette('Browser Chrome - Share Web Result', function() {
     var list = menu.findElements('button');
     for (var i = 0; i < list.length; i++) {
       var link = list[i];
-      if (link.text() === 'E-Mail') {
+      if (link.text() === 'Share Activity') {
         link.click();
         break;
       }
     }
 
-    // Setup e-mail and confirm that the body contains the shared link
-    email.confirmWantAccount();
-    email.manualSetupImapEmail(emailServer, 'waitForCompose');
-    var body = email.getComposeBody();
-    assert.ok(body.indexOf(linkIdentifier) !== -1);
+    var appOrigin = 'app://shareactivityapp.gaiamobile.org';
+    client.switchToFrame(system.getAppIframe(appOrigin));
+
+    // Verify that the share details appear within the share activity app.
+    client.waitFor(function() {
+      var text = client.helper.waitForElement('#activity-url').text();
+      return text.indexOf(linkIdentifier) !== -1;
+    });
   });
 });

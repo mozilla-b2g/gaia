@@ -1,7 +1,7 @@
 'use strict';
 
-/* globals MockPromise, MockNfc, MocksHelper, NDEF, MockService,
-           NfcUtils, NfcManager, MozActivity, NfcHandoverManager */
+/* globals MockPromise, MockNfc, MockBluetooth, MocksHelper, NDEF,
+           MockService, NfcUtils, NfcManager, MozActivity, NfcHandoverManager */
 
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/js/nfc_utils.js');
@@ -50,7 +50,12 @@ suite('Nfc Manager Functions', function() {
     realMozSetMessageHandler = window.navigator.mozSetMessageHandler;
     window.navigator.mozSetMessageHandler = MockMozSetMessageHandler;
     realMozBluetooth = window.navigator.mozBluetooth;
-    window.navigator.mozBluetooth = window.MockBluetooth;
+    Object.defineProperty(navigator, 'mozBluetooth', {
+      configurable: true,
+      get: function() {
+        return MockBluetooth;
+      }
+    });
     nfcUtils = new NfcUtils();
     MockService.currentApp = fakeApp;
     requireApp('system/js/nfc_manager.js', function() {
@@ -63,7 +68,12 @@ suite('Nfc Manager Functions', function() {
   teardown(function() {
     nfcManager.stop();
     window.navigator.mozSetMessageHandler = realMozSetMessageHandler;
-    window.mozBluetooth = realMozBluetooth;
+    Object.defineProperty(navigator, 'mozBluetooth', {
+      configurable: true,
+      get: function() {
+        return realMozBluetooth;
+      }
+    });
   });
 
   suite('start', function() {

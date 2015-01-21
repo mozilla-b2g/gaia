@@ -58,6 +58,8 @@ System.Selector = Object.freeze({
   statusbarLabel: '#statusbar-label',
   systemBanner: '.banner.generic-dialog',
   topPanel: '#top-panel',
+  trustedWindow: '.appWindow.active.trustedwindow',
+  trustedWindowChrome: '.appWindow.active.trustedwindow .chrome',
   leftPanel: '#left-panel',
   rightPanel: '#right-panel',
   utilityTray: '#utility-tray',
@@ -237,6 +239,16 @@ System.prototype = {
 
   get systemBanner() {
     return this.client.helper.waitForElement(System.Selector.systemBanner);
+  },
+
+  get trustedWindow() {
+    return this.client.helper.waitForElement(
+      System.Selector.trustedWindow);
+  },
+
+  get trustedWindowChrome() {
+    return this.client.helper.waitForElement(
+      System.Selector.trustedWindowChrome);
   },
 
   get utilityTray() {

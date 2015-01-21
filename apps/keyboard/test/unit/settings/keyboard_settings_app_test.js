@@ -2,13 +2,13 @@
 
 /* global GeneralSettingsGroupView, HandwritingSettingsGroupView,
           KeyboardSettingsApp, UserDictionaryListPanel, PanelController,
-          UserDictionaryEditPanel */
+          UserDictionaryEditDialog */
 
 require('/js/settings/close_locks.js');
 require('/js/settings/general_settings.js');
 require('/js/settings/handwriting_settings.js');
 require('/js/settings/panel_controller.js');
-require('/js/settings/user_dictionary_edit_panel.js');
+require('/js/settings/user_dictionary_edit_dialog.js');
 require('/js/settings/user_dictionary_list_panel.js');
 
 require('/js/settings/keyboard_settings_app.js');
@@ -26,7 +26,7 @@ suite('KeyboardSettingsApp', function() {
   var stubHandwritingSettingsGroupView;
   var stubPanelController;
   var stubUserDictionaryListPanel;
-  var stubUserDictionaryEditPanel;
+  var stubUserDictionaryEditDialog;
 
   var isHidden;
 
@@ -87,10 +87,10 @@ suite('KeyboardSettingsApp', function() {
     this.sinon.stub(window, 'UserDictionaryListPanel')
       .returns(stubUserDictionaryListPanel);
 
-    stubUserDictionaryEditPanel =
-      this.sinon.stub(Object.create(UserDictionaryEditPanel.prototype));
-    this.sinon.stub(window, 'UserDictionaryEditPanel')
-      .returns(stubUserDictionaryEditPanel);
+    stubUserDictionaryEditDialog =
+      this.sinon.stub(Object.create(UserDictionaryEditDialog.prototype));
+    this.sinon.stub(window, 'UserDictionaryEditDialog')
+      .returns(stubUserDictionaryEditDialog);
 
     stubGetElemById = this.sinon.stub(document, 'getElementById', function(id){
       switch (id) {
@@ -146,7 +146,7 @@ suite('KeyboardSettingsApp', function() {
       assert.isTrue(stubHandwritingSettingsGroupView.stop.calledOnce);
       assert.isTrue(stubPanelController.stop.calledOnce);
       assert.isTrue(stubUserDictionaryListPanel.uninit.calledOnce);
-      assert.isTrue(stubUserDictionaryEditPanel.uninit.calledOnce);
+      assert.isTrue(stubUserDictionaryEditDialog.uninit.calledOnce);
 
       assert.isTrue(menuUDStub.removeEventListener.calledWith('click', app));
       assert.isTrue(headerStub.removeEventListener.calledWith('action', app));

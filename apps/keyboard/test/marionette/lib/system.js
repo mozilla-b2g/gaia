@@ -38,14 +38,14 @@ System.prototype = {
    * Wait for keyboard frame trasition end.
    */
   waitForKeyboardFrameDisplayed: function() {
-    client.waitFor(function() {
+    this.client.waitFor(function() {
       return this.keyboardFrameDisplayed();
     }.bind(this));
   },
 
   keyboardFrameDisplayed: function() {
     // Switch to System app.
-    client.switchToFrame();
+    this.client.switchToFrame();
 
     // Wait for the keyboard pop up and switch to it.
     // This is satisfied as long as one inputWindow pops up.
@@ -61,7 +61,7 @@ System.prototype = {
 
   keyboardFrameHidden: function() {
     // Switch to System app.
-    client.switchToFrame();
+    this.client.switchToFrame();
 
     // This is satisfied only when all inputWindows are regarded as
     // having slided to the bottom.

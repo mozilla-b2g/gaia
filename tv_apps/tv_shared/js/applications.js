@@ -195,8 +195,8 @@
     onAppUninstall: function onAppUninstall(evt) {
       var app = evt.application;
       if (this.installedApps[app.manifestURL]) {
-        delete this.installedApps[app.manifestURL];
         this.fire('uninstall', this.getAppEntries(app.manifestURL));
+        delete this.installedApps[app.manifestURL];
       }
     },
 
@@ -271,13 +271,15 @@
         this.installedApps[manifestURL].updateManifest;
       var entryPoints = manifest.entry_points;
       var entries = [];
+      var removable = this.installedApps[manifestURL].removable;
 
       if (!entryPoints || manifest.type !== 'certified') {
         var helper = new ManifestHelper(manifest);
         entries.push({
           manifestURL: manifestURL,
           entryPoint: '',
-          name: helper.name
+          name: helper.name,
+          removable: removable
         });
       } else {
         for (var entryPoint in entryPoints) {
@@ -286,7 +288,8 @@
             entries.push({
               manifestURL: manifestURL,
               entryPoint: entryPoint,
-              name: helper.name
+              name: helper.name,
+              removable: removable
             });
           }
         }

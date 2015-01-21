@@ -2,7 +2,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
+try:
+    from marionette.by import By
+except:
+    from marionette_driver.by import By
+
 from gaiatest.apps.base import Base
 
 
@@ -19,7 +23,3 @@ class CellDataPrompt(Base):
         container = self.marionette.find_element(*self._cell_data_prompt_container_locator)
         self.marionette.find_element(*self._cell_data_prompt_turn_on_button_locator).tap()
         self.wait_for_condition(lambda m: container.location['x'] == container.size['width'])
-
-    @property
-    def is_displayed(self):
-        return self.marionette.find_element(*self._cell_data_prompt_container_locator).is_displayed()

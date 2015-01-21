@@ -1,5 +1,5 @@
-/* global evt, addMixin, Promise, PipedPromise, Application, CardStore,
-        Deck, AppBookmark, Folder, uuid */
+/* global evt, SharedUtils, Promise, PipedPromise, Application, CardStore,
+        Deck, AppBookmark, Folder */
 
 (function(exports) {
   'use strict';
@@ -356,7 +356,7 @@
         name: name,
         state: Folder.STATES.DETACHED
       });
-      if (!(typeof index === 'number')) {
+      if (typeof index !== 'number') {
         index = this._cardList.length;
       }
       this._cardList.splice(index, 0, newFolder);
@@ -468,12 +468,14 @@
         this.installedApps[manifestURL].updateManifest;
       var entryPoints = manifest.entry_points;
       var entries = [];
+      var removable = this.installedApps[manifestURL].removable;
 
       if (!entryPoints || manifest.type !== 'certified') {
         entries.push({
           manifestURL: manifestURL,
           entryPoint: '',
           name: manifest.name,
+          removable: removable,
           type: 'Application'
         });
       } else {
@@ -483,6 +485,7 @@
               manifestURL: manifestURL,
               entryPoint: entryPoint,
               name: entryPoints[entryPoint].name,
+              removable: removable,
               type: 'Application'
             });
           }
@@ -553,7 +556,7 @@
     // TODO: need to be protected by state and _reloadCardList
     // There are three types of query:
     // 1. query by cardId
-    // 2. query by manifestURL
+    // 2. query by manifestURL and optionally launchURL
     // 3. query by cardEntry (i.e. serialized card)
     findCardFromCardList: function cm_findCardFromCardList(query) {
       var found;
@@ -564,10 +567,14 @@
         } else if (query.manifestURL && card.nativeApp &&
             card.nativeApp.manifestURL === query.manifestURL) {
 
-          // The launchURL only happens to AppBookmark, we only need to check if
-          // launchURL is exactly the same in this case.
-          if (!(card instanceof AppBookmark) ||
-              (query.launchURL && card.launchURL === query.launchURL)) {
+          // if we specify launchURL in query, then we must compare
+          // launchURL first
+          if (query.launchURL) {
+            if (card.launchURL === query.launchURL) {
+              found = card;
+              return true;
+            }
+          } else if (!(card instanceof AppBookmark)) {
             found = card;
             return true;
           }
@@ -580,7 +587,7 @@
             return true;
           }
         }
-      })
+      });
       return found;
     },
 
@@ -592,7 +599,7 @@
           found = card;
           return true;
         }
-      })
+      });
       return found;
     },
 
@@ -608,7 +615,7 @@
           // be READY eventually)
           that._reloadCardList().then(function() {
             resolve(!!that.findCardFromCardList(options));
-          })
+          });
         }
       });
     },

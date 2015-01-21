@@ -2,13 +2,19 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
 from gaiatest.apps.phone.app import Phone
 from gaiatest.apps.base import PageRegion
 
-from marionette import Wait
-from marionette import expected
-from marionette.errors import StaleElementException
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+    from marionette.errors import StaleElementException
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
+    from marionette_driver.errors import StaleElementException
 
 
 class CallLog(Phone):

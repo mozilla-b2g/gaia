@@ -8,7 +8,10 @@ from gaiatest import GaiaTestCase
 from gaiatest.apps.camera.app import Camera
 from gaiatest.apps.camera.app import ImagePreview
 
-from marionette.wait import Wait
+try:
+    from marionette.wait import Wait
+except:
+    from marionette_driver.wait import Wait
 
 
 class TestPreviewDelete(GaiaTestCase):

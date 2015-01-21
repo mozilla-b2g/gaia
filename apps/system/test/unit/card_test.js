@@ -3,11 +3,9 @@
 
 require('/shared/js/tagged.js');
 requireApp('system/test/unit/mock_app_window.js');
-requireApp('system/test/unit/mock_trusted_ui_manager.js');
 
 var mocksForCard = new MocksHelper([
-  'AppWindow',
-  'TrustedUIManager'
+  'AppWindow'
 ]).init();
 
 suite('system/Card', function() {

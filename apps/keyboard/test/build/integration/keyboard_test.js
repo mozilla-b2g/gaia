@@ -389,8 +389,8 @@ suite('Keyboard settings building tests', function() {
         var settingsDOMDoc = getSettingsDomDoc();
 
         assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).every(function(elem){
-          return elem.src !== 'js/settings/user_dictionary_edit_panel.js';
-        }), 'No script should include user_dictionary_edit_panel.js');
+          return elem.src !== 'js/settings/user_dictionary_edit_dialog.js';
+        }), 'No script should include user_dictionary_edit_dialog.js');
 
         assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).every(function(elem){
           return elem.src !== 'js/settings/user_dictionary_list_panel.js';
@@ -420,8 +420,8 @@ suite('Keyboard settings building tests', function() {
         var settingsDOMDoc = getSettingsDomDoc();
 
         assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
-          return elem.src === 'js/settings/user_dictionary_edit_panel.js';
-        }), 'Some script should include user_dictionary_edit_panel.js');
+          return elem.src === 'js/settings/user_dictionary_edit_dialog.js';
+        }), 'Some script should include user_dictionary_edit_dialog.js');
 
         assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
           return elem.src === 'js/settings/user_dictionary_list_panel.js';

@@ -17,6 +17,7 @@ function VerticalHome(client) {
 VerticalHome.URL = 'app://verticalhome.gaiamobile.org';
 
 VerticalHome.Selectors = {
+  grid: '#icons',
   editHeaderText: '#edit-header h1',
   editHeaderDone: '#exit-edit-mode',
   editGroup: '#edit-group',
