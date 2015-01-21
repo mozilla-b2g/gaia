@@ -6,7 +6,7 @@
 
 (function(exports) {
 
-  const FULLSIZED_ICON = 336 * (window.devicePixelRatio || 1);
+  const FULLSIZED_ICON = 336;
   const DEFAULT_ICON = 'url("/style/images/appic_developer.png")';
   const DEFAULT_BGCOLOR = 'rgba(0, 0, 0, 0.5)';
   const DEFAULT_BGCOLOR_ARRAY = [0, 0, 0, 0.5];
@@ -185,7 +185,7 @@
           var blob = iconData[0];
           var size = iconData[1];
           if (size >= FULLSIZED_ICON) {
-            that._setCardIcon(cardButton, card, blob, null);
+            that._setCardIcon(cardButton, blob, null);
           } else {
             that._getIconColor(blob, function(color, err) {
               if (err) {
