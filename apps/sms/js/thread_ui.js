@@ -1420,12 +1420,15 @@ var ThreadUI = {
 
   // Method for rendering the first chunk at the beginning
   showFirstChunk: function thui_showFirstChunk() {
-    // Show chunk of messages
-    ThreadUI.showChunkOfMessages(this.CHUNK_SIZE);
-    // Boot update of headers
-    TimeHeaders.updateAll('header[data-time-update]');
-    // Go to Bottom
-    ThreadUI.scrollViewToBottom();
+    Promise.all(this.domPromises).then(() => {
+      // Show chunk of messages
+      this.showChunkOfMessages(this.CHUNK_SIZE);
+      // Boot update of headers
+      TimeHeaders.updateAll('header[data-time-update]');
+      // Go to Bottom
+      this.scrollViewToBottom();
+    });
+    this.domPromises = [];
   },
 
   createMmsContent: function thui_createMmsContent(dataArray) {
@@ -1473,7 +1476,7 @@ var ThreadUI = {
         // stop the iteration
         return false;
       }
-      this.appendMessage(message,/*hidden*/ true);
+      this.domPromises.push(this.appendMessage(message,/*hidden*/ true));
       this.messageIndex++;
       if (this.messageIndex === this.CHUNK_SIZE) {
         this.showFirstChunk();
@@ -1496,6 +1499,7 @@ var ThreadUI = {
       end: onMessagesRendered
     };
 
+    this.domPromises = [];
     MessageManager.getMessages(renderingOptions);
 
     // force the next scroll to bottom
@@ -1573,6 +1577,9 @@ var ThreadUI = {
       return info.readStatus === 'success';
     });
   },
+
+  // Use promise to control the all mms contents parsing time
+  domPromises: [],
 
   buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
     var messageDOM = document.createElement('li'),
@@ -1663,14 +1670,28 @@ var ThreadUI = {
       pElement.setAttribute('data-l10n-id', 'no-attachment-text');
     }
 
+    var parsedPromise = Promise.resolve();
     if (message.type === 'mms' && !isNotDownloaded && !noAttachment) { // MMS
-      SMIL.parse(message, (slideArray) => {
-        pElement.appendChild(ThreadUI.createMmsContent(slideArray));
-        this.scrollViewToBottom();
-      });
+      parsedPromise = this.mmsContentParser(pElement, message);
     }
 
-    return messageDOM;
+    return parsedPromise.then((opt) => {
+      if (opt) {
+        opt.element.appendChild(this.createMmsContent(opt.slideArray));
+      }
+      return messageDOM;
+    });
+  },
+
+  mmsContentParser: function thui_mmsContentParser(element, message) {
+    return new Promise(function(resolver) {
+      SMIL.parse(message, (slideArray) => {
+        resolver({
+          element: element,
+          slideArray: slideArray
+        });
+      });
+    });
   },
 
   getMessageStatusMarkup: function(status) {
@@ -1692,17 +1713,17 @@ var ThreadUI = {
     }
 
     // build messageDOM adding the links
-    messageDOM = this.buildMessageDOM(message, hidden);
+    return this.buildMessageDOM(message, hidden).then((messageDOM) => {
+      messageDOM.dataset.timestamp = timestamp;
 
-    messageDOM.dataset.timestamp = timestamp;
+      // Add to the right position
+      var messageContainer = this.getMessageContainer(timestamp, hidden);
+      this._insertTimestampedNodeToContainer(messageDOM, messageContainer);
 
-    // Add to the right position
-    var messageContainer = this.getMessageContainer(timestamp, hidden);
-    this._insertTimestampedNodeToContainer(messageDOM, messageContainer);
-
-    if (this.inEditMode) {
-      this.checkInputs();
-    }
+      if (this.inEditMode) {
+        this.checkInputs();
+      }
+    });
   },
 
   /**
@@ -1725,14 +1746,14 @@ var ThreadUI = {
   },
 
   showChunkOfMessages: function thui_showChunkOfMessages(number) {
-    var elements = ThreadUI.container.getElementsByClassName('hidden');
-    for (var i = elements.length - 1; i >= 0; i--) {
-      var element = elements[i];
+    var elements = this.container.getElementsByClassName('hidden');
+
+    Array.slice(elements, -number).forEach((element) => {
       element.classList.remove('hidden');
       if (element.tagName === 'HEADER') {
         TimeHeaders.update(element);
       }
-    }
+    });
   },
 
   showOptions: function thui_showOptions() {
