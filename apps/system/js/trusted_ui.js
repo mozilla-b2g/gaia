@@ -96,15 +96,15 @@ var TrustedUIManager = {
     this._hideAllFrames();
     if (this.currentStack.length) {
       this._makeDialogHidden(this._getTopDialog());
-      this._pushNewDialog(name, frame, chromeEventId, onCancelCB);
+      return this._pushNewDialog(name, frame, chromeEventId, onCancelCB);
     } else {
       // first time, spin back to home screen first
       this.popupContainer.classList.add('up');
       this.popupContainer.classList.remove('closing');
-      this._hideCallerApp(this._lastDisplayedApp, function openTrustedUI() {
+      return this._hideCallerApp(this._lastDisplayedApp).then((function() {
         this.popupContainer.classList.remove('up');
-        this._pushNewDialog(name, frame, chromeEventId, onCancelCB);
-      }.bind(this));
+        return this._pushNewDialog(name, frame, chromeEventId, onCancelCB);
+      }).bind(this));
     }
   },
 
@@ -173,18 +173,18 @@ var TrustedUIManager = {
     this.popupContainer.classList.remove('closing');
   },
 
-  _hideCallerApp: function trui_hideCallerApp(app, callback) {
-    this.publish('trusteduishow', { origin: app.origin });
-    var frame = app.frame;
-    frame.classList.add('back');
-    frame.classList.remove('restored');
-    if (callback) {
+  _hideCallerApp: function trui_hideCallerApp(app) {
+    return new Promise((function(resolve) {
+      this.publish('trusteduishow', { origin: app.origin });
+      var frame = app.frame;
+      frame.classList.add('back');
+      frame.classList.remove('restored');
       frame.addEventListener('transitionend', function execCallback() {
         frame.style.visibility = 'hidden';
         frame.removeEventListener('transitionend', execCallback);
-        callback();
+        resolve();
       });
-    }
+    }).bind(this));
   },
 
   publish: function trui_publish(evtName, detail) {
@@ -239,36 +239,44 @@ var TrustedUIManager = {
 
   _pushNewDialog: function trui_PushNewDialog(name, frame, chromeEventId,
                                               onCancelCB) {
-    // Add some data attributes to the frame.
-    var dataset = frame.dataset;
-    dataset.frameType = 'popup';
-    dataset.frameName = frame.name;
-    dataset.frameOrigin = this._lastDisplayedApp.origin;
+    return new Promise((function(resolve) {
+      // Add some data attributes to the frame.
+      var dataset = frame.dataset;
+      dataset.frameType = 'popup';
+      dataset.frameName = frame.name;
+      dataset.frameOrigin = this._lastDisplayedApp.origin;
 
-    // Add mozbrowser listeners.
-    this.mozBrowserEventHandler = this.handleBrowserEvent.bind(this);
-    frame.addEventListener('mozbrowsererror',
-                           this.mozBrowserEventHandler);
-    frame.addEventListener('mozbrowserclose',
-                           this.mozBrowserEventHandler);
-    frame.addEventListener('mozbrowserloadstart',
-                           this.mozBrowserEventHandler);
-    frame.addEventListener('mozbrowserloadend',
-                           this.mozBrowserEventHandler);
+      // Add mozbrowser listeners.
+      this.mozBrowserEventHandler = this.handleBrowserEvent.bind(this);
+      frame.addEventListener('mozbrowsererror',
+                             this.mozBrowserEventHandler);
+      frame.addEventListener('mozbrowserclose',
+                             this.mozBrowserEventHandler);
+      frame.addEventListener('mozbrowserloadstart',
+                             this.mozBrowserEventHandler);
+      frame.addEventListener('mozbrowserloadend',
+                             this.mozBrowserEventHandler);
 
-    // make a shiny new dialog object.
-    var dialog = {
-      name: name,
-      frame: frame,
-      chromeEventId: chromeEventId,
-      onCancelCB: onCancelCB
-    };
+      // make a shiny new dialog object.
+      var dialog = {
+        name: name,
+        frame: frame,
+        chromeEventId: chromeEventId,
+        onCancelCB: onCancelCB
+      };
 
-    // Push and show.
-    this.currentStack.push(dialog);
-    this.dialogTitle.textContent = dialog.name;
-    this.container.appendChild(dialog.frame);
-    this._makeDialogVisible(dialog);
+      // Push and show.
+      this.currentStack.push(dialog);
+      this.dialogTitle.textContent = dialog.name;
+      // As soon as the frame is inserted in the container, we can resolve.
+      // At this point the iframe has a contentWindow which is needed by the
+      // payment implementation to set the corresponding payment information
+      // in the frame.
+      this.container.appendChild(dialog.frame);
+      resolve();
+
+      this._makeDialogVisible(dialog);
+    }).bind(this));
   },
 
   _makeDialogVisible: function trui_makeDialogVisible(dialog) {
