@@ -29,6 +29,13 @@ var KeypadManager = {
   // Keep in sync with Lockscreen and keyboard vibration
   kVibrationDuration: 50, // ms
 
+  // Due to the ellipsis capabilities of the number view, the cursor position
+  // in the input element, does not match the point where new digits should be
+  // added to the current number or where the deletion operation should take
+  // place. This property holds the position of the edition point for the
+  // current number (_phoneNumber property).
+  _insertPosition: null,
+
   onValueChanged: null,
 
   get phoneNumberView() {
@@ -122,6 +129,8 @@ var KeypadManager = {
     this._onCall = !!oncall;
 
     this.phoneNumberView.value = '';
+    this.phoneNumberView
+      .addEventListener('click', this._updateInsertPosition.bind(this));
     this._phoneNumber = '';
 
     var keyHandler = this.keyHandler.bind(this);
@@ -210,6 +219,7 @@ var KeypadManager = {
       range.collapse(false);
       range.select();
     }
+    this._insertPosition = null;
   },
 
   render: function hk_render(layoutType) {
@@ -346,8 +356,10 @@ var KeypadManager = {
     // Manage long press
     if (((key == '0' || key == '*') && !this._onCall) || key == 'delete') {
       this._holdTimer = setTimeout(function(self) {
+        self.restoreCaretPosition();
+
         if (key == 'delete') {
-          self._phoneNumber = '';
+          self._clearPhoneNumber();
         } else {
           var index = self._phoneNumber.length - 1;
 
@@ -384,7 +396,7 @@ var KeypadManager = {
     }
 
     if (key == 'delete') {
-      this._phoneNumber = this._phoneNumber.slice(0, -1);
+      this._deleteAtInsertPosition();
     } else if (this.phoneNumberViewContainer.classList.
       contains('keypad-visible')) {
 
@@ -452,11 +464,18 @@ var KeypadManager = {
     if (this._longPress) {
       this._longPress = false;
       this._holdTimer = null;
+      this.restoreCaretPosition();
       return;
     }
 
     if (this._holdTimer) {
       clearTimeout(this._holdTimer);
+    }
+
+    if (key === 'delete') {
+      this.restoreCaretPosition();
+    } else {
+      this.moveCaretToEnd(this.phoneNumberView);
     }
   },
 
@@ -471,6 +490,11 @@ var KeypadManager = {
     }
 
     var key = event.target.dataset.value;
+
+    // Prevent the delete keys to get the focus.
+    if (key === 'delete') {
+      event.preventDefault();
+    }
 
     // We could receive this event from an element that
     // doesn't have the dataset value. Got the last key
@@ -687,8 +711,8 @@ var KeypadManager = {
         this.callBarAddContact.setAttribute('disabled', 'disabled');
       }
       this.deleteButton.style.visibility = visibility;
+      this.phoneNumberView.blur(); // update avoiding caret flickering
       this.phoneNumberView.value = phoneNumber;
-      this.moveCaretToEnd(this.phoneNumberView);
 
       FontSizeManager.adaptToSpace(
         FontSizeManager.DIAL_PAD, this.phoneNumberView, forceMaxFontSize,
@@ -836,5 +860,93 @@ var KeypadManager = {
         self._vibrationEnabled = !!value;
       });
     });
+  },
+
+  _updateInsertPosition: function kh_updateInsertPosition() {
+    this._insertPosition = this._realStartPosition();
+  },
+
+  _deleteAtInsertPosition: function kh_deleteAtInsertPosition() {
+    if (this._insertPosition === null) {
+      this._phoneNumber = this._phoneNumber.slice(0, -1);
+    } else {
+      var start = this._realStartPosition();
+      var end = this._realEndPosition();
+      if (start > 0 && start === end) {
+        start = end - 1;
+      }
+      this._phoneNumber = this._phoneNumber.substring(0, start) +
+                          this._phoneNumber.substring(end);
+      this._insertPosition = this._phoneNumber ? start : null;
+    }
+  },
+
+  _clearPhoneNumber: function kh_clearPhoneNumber() {
+    if (this._insertPosition === null) {
+      this._phoneNumber = '';
+    } else {
+      var start = this._realStartPosition();
+      this._phoneNumber = this._phoneNumber.substring(start);
+      this._insertPosition = this._phoneNumber ? 0 : null;
+    }
+  },
+
+  /**
+   * Sets the caret position inside the phone number input of the dialer
+   * according to the insert position (which is the real place where the caret
+   * should be inside the complete number) taking into account the number of
+   * ellipsed characters.
+   */
+  restoreCaretPosition: function kh_restoreCaretPosition() {
+    if (this._insertPosition !== null) {
+      var caretPosition = this._caretPosition(this._insertPosition);
+      this.phoneNumberView.selectionStart = caretPosition;
+      this.phoneNumberView.selectionEnd = caretPosition;
+      this.phoneNumberView.focus();
+    }
+  },
+
+  /**
+   * Gets the real start index for a selection in the phone view considering
+   * the ellipsed characters.
+   */
+  _realStartPosition: function kh_realStartPosition() {
+    var start = this.phoneNumberView.selectionStart;
+    return this._realPosition(this.phoneNumberView, start);
+  },
+
+  /**
+   * Gets the real end index for a selection in the phone view considering
+   * the ellipsed characters.
+   */
+  _realEndPosition: function kh_realEndPosition() {
+    var end = this.phoneNumberView.selectionEnd;
+    return this._realPosition(this.phoneNumberView, end);
+  },
+
+  /**
+   * Gets the position where the cursor should be placed inside the phone
+   * view (considering the ellipsed scenaries) from the real edition point.
+   */
+  _caretPosition: function kh_caretPosition(realPosition) {
+    return realPosition - this._ellipsisOffset(this.phoneNumberView);
+  },
+
+  /**
+   * Utility to calculate the real cursor position given an input with
+   * ellipsed characters and a position inside the current value.
+   */
+  _realPosition: function kh_realPosition(input, position) {
+    return position + this._ellipsisOffset(this.phoneNumberView);
+  },
+
+  /**
+   * Calculates the amount of characters that are not visible in the current
+   * view. This includes all the ellipsed characters and the ellipsis
+   * character itself.
+   */
+  _ellipsisOffset: function kh_ellipsisOffset(input) {
+    var ellipsedCharacters = +input.dataset.ellipsedCharacters;
+    return ellipsedCharacters ? (ellipsedCharacters - 1) : 0;
   }
 };
