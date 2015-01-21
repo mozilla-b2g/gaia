@@ -187,6 +187,32 @@
      */
     switchApp: function awm_switchApp(appCurrent, appNext, switching,
                                       openAnimation, closeAnimation) {
+
+      // XXX: Bug 1124112 - Seamlessly launch search app from home
+      if (appNext.manifest && appNext.manifest.role === 'search') {
+        var startSwitchApp = function() {
+          if (appNext.isDead()) {
+            this._updateActiveApp(appCurrent.instanceID);
+          } else {
+            this._updateActiveApp(appNext.instanceID);
+            appNext.open('immediate');
+            // HomescreenWindowManager will take care of "appCurrent.close()" so
+            // it's unnecessary to be handled here.
+          }
+        }.bind(this);
+
+        if (appNext.loaded) {
+          setTimeout(startSwitchApp);
+        } else {
+          appNext.element.addEventListener('_loaded', function onLoaded() {
+            appNext.element.removeEventListener('_loaded', onLoaded);
+            setTimeout(startSwitchApp);
+          });
+        }
+
+        return;
+      }
+
       this.debug('before ready check' + appCurrent + appNext);
       appNext.ready(function() {
         if (appNext.isDead()) {
