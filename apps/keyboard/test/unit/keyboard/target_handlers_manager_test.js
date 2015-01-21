@@ -274,7 +274,7 @@ suite('TargetHandlersManager', function() {
 
     test('CandidateSelectionTargetHandler', function() {
       var target = {
-        selection: 'foo'
+        suggestion: 'foo'
       };
 
       activeTargetsManagerStub.ontargetactivated(target);

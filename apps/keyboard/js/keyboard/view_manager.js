@@ -1,6 +1,6 @@
 'use strict';
 
-/* global AlternativesCharMenuView, LayoutPageView */
+/* global AlternativesCharMenuView, LayoutPageView, SwipeablePageView */
 
 /** @fileoverview ViewManager is in charge of rendering HTML elements
  * under the request of LayoutRenderingManager.
@@ -103,7 +103,7 @@ ViewManager.prototype.render = function (layout, flags, callback) {
       showCandidatePanel: flags.showCandidatePanel
     };
 
-    pageView = new LayoutPageView(layout, options, this);
+    pageView = this._createPageView(layout, options);
     this.pageViews.set(pageId, pageView);
 
     pageView.render();
@@ -279,24 +279,7 @@ ViewManager.prototype.getHeight = function() {
     return 0;
   }
 
-  var scale = this.screenInPortraitMode() ?  this.cachedWindowWidth / 32 :
-                                             this.cachedWindowWidth / 64;
-
-  var currentPage = this.currentPageView.element;
-  var height = (currentPage.querySelectorAll('.keyboard-row').length *
-      (5.1 * scale));
-
-  if (currentPage.classList.contains('candidate-panel')) {
-    if (currentPage.querySelector('.keyboard-candidate-panel')
-        .classList.contains('latin')) {
-          height += (3.1 * scale);
-        }
-    else {
-      height += (3.2 * scale);
-    }
-  }
-
-  return height | 0;
+  return this.currentPageView.getHeight() | 0;
 };
 
 ViewManager.prototype.showCandidates = function(candidates) {
@@ -353,6 +336,18 @@ ViewManager.prototype.screenInPortraitMode = function() {
 
 ViewManager.prototype.getView = function (target) {
   return this.viewMap.get(target);
+};
+
+ViewManager.prototype._createPageView = function (layout, options) {
+  var pageView;
+
+  if (layout.panelKeys) {
+    pageView = new SwipeablePageView(layout, options, this);
+  } else {
+    pageView = new LayoutPageView(layout, options, this);
+  }
+
+  return pageView;
 };
 
 exports.ViewManager = ViewManager;
