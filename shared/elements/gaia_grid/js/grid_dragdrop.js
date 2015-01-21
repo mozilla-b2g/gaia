@@ -447,13 +447,12 @@
 
       // If we're hovering over the top of the group, add a style class to show
       // a visual hint that this is a valid drop position.
+      // Otherwise, if the item isn't a collection or a group, trigger the
+      // hovered state on the found item.
       if (insertDividerAtTop || (iconIsDivider && pageY < 0)) {
         this.container.classList.add('hover-over-top');
-      }
-
-      // Collections and groups should not trigger a hover over collections
-      if (foundItem.detail.type !== 'collection' ||
-          (this.icon.detail.type !== 'collection' && !iconIsDivider)) {
+      } else if (foundItem.detail.type !== 'collection' ||
+                 (this.icon.detail.type !== 'collection' && !iconIsDivider)) {
         this.hoverItem = foundItem;
         this.hoverItem.element.classList.add('hovered');
       }
