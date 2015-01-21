@@ -165,6 +165,44 @@
       }
     },
 
+    createWave: function(cardButton, card) {
+
+      // deck's icon using gaia font
+      var deckIcon = document.createElement('span');
+      deckIcon.className = 'icon';
+      deckIcon.dataset.icon = card.deckClass;
+
+      // front wave of a deck
+      var waveFront = document.createElement('div');
+      waveFront.className = 'deck-wave';
+      waveFront.classList.add('wave-front');
+      waveFront.classList.add(card.deckClass + '-wave-front');
+      waveFront.classList.add('wave-paused');
+
+      // back wave of a deck
+      var waveBack = document.createElement('div');
+      waveBack.className = 'deck-wave';
+      waveBack.classList.add('wave-back');
+      waveBack.classList.add(card.deckClass + '-wave-back');
+      waveBack.classList.add('wave-paused');
+
+      // run the animation after the deck finishing focus transition
+      cardButton.addEventListener('focus', function(evt) {
+          waveBack.classList.remove('wave-paused');
+          waveFront.classList.remove('wave-paused');
+      });
+
+      cardButton.addEventListener('blur', function(evt) {
+          waveBack.classList.add('wave-paused');
+          waveFront.classList.add('wave-paused');
+      });
+
+      cardButton.appendChild(waveBack);
+      cardButton.appendChild(deckIcon);
+      cardButton.appendChild(waveFront);
+      cardButton.classList.add('deck-' + card.deckClass);
+    },
+
     _fillCardIcon: function(cardButton, card) {
       var manifestURL = card.nativeApp && card.nativeApp.manifestURL;
       var that = this;
@@ -273,7 +311,7 @@
         this._fillCardIcon(cardButton, card);
       } else if (card instanceof Deck) {
         cardButton.setAttribute('app-type', 'deck');
-        this._fillCardIcon(cardButton, card);
+        this.createWave(cardButton, card);
       } else if (card instanceof Folder) {
         cardButton.setAttribute('app-type', 'folder');
         cardButton.dataset.icon = 'folder';
