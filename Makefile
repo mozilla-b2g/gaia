@@ -706,6 +706,7 @@ NODE_MODULES_REV=$(shell cat gaia_node_modules.revision)
 # modules.tar and git-gaia-node-modules are the possible values for
 # $(NODE_MODULES_SRC). See the node_modules target.
 modules.tar: gaia_node_modules.revision
+	@echo Downloading latest node_modules package. This may take several minutes...
 	-$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/$(NODE_MODULES_REV) &&\
 	mv $(NODE_MODULES_REV) "$(NODE_MODULES_SRC)"
 
