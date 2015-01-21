@@ -45,7 +45,7 @@ define(function(require) {
       if (navigator.mozPower) {
         this._elements.resetButton.disabled = false;
         this._elements.resetButton.addEventListener('click',
-          this._rootDevice.bind(this));
+          this._resetDevice.bind(this));
       } else {
         // disable button if mozPower is undefined or can't be used
         this._elements.resetButton.disabled = true;
@@ -96,10 +96,10 @@ define(function(require) {
      * @access private
      * @memberOf Developer.prototype
      */
-    _rootDevice: function d__rootDevice() {
+    _resetDevice: function d__resetDevice() {
       require(['modules/dialog_service'], (DialogService) => {
-        DialogService.confirm('root-warning-body', {
-          title: 'root-warning-title',
+        DialogService.confirm('reset-devtools-warning-body', {
+          title: 'reset-devtools-warning-title',
           submitButton: 'reset',
           cancelButton: 'cancel'
         }).then((result) => {
@@ -112,7 +112,7 @@ define(function(require) {
     },
 
     /**
-     * Reset and Root the device.
+     * Reset and enable full DevTools access.
      *
      * @access private
      * @memberOf Developer.prototype
