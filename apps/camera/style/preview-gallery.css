@@ -29,7 +29,6 @@
   bottom: 0;
   width: 100%;
   overflow: hidden;
-  -moz-user-select: none;
 }
 
 .media-frame {
@@ -46,7 +45,6 @@
   left: 0;
   position: absolute;
   pointer-events: none;
-  -moz-user-select: none;
 }
 
 .media-frame > video {
