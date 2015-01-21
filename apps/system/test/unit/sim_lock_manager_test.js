@@ -136,13 +136,13 @@ suite('SimLockManager', function() {
       MockSIMSlotManager.ready = true;
       subject.simLockSystemDialog.show.reset();
       subject.simLockSystemDialog.visible = false;
-      this.sinon.stub(subject, 'isBothSlotsLocked').returns(true);
     });
 
     teardown(function() {
     });
 
     test('should paint the first simslot on first render', function() {
+      this.sinon.stub(subject, 'isBothSlotsLocked').returns(true);
       assert.isFalse(subject._alreadyShown);
       subject.showIfLocked();
       assert.isTrue(subject.simLockSystemDialog.show.called);
@@ -153,6 +153,7 @@ suite('SimLockManager', function() {
 
     test('should do nothing if !applications.ready', function() {
       window.applications.ready = false;
+      this.sinon.stub(subject, 'isBothSlotsLocked').returns(true);
       subject.showIfLocked();
       assert.isFalse(subject.simLockSystemDialog.show.called);
       window.applications.ready = true;
@@ -160,6 +161,7 @@ suite('SimLockManager', function() {
 
     test('should not show if locked', function() {
       Service.locked = true;
+      this.sinon.stub(subject, 'isBothSlotsLocked').returns(true);
       subject.showIfLocked();
       assert.isFalse(subject.simLockSystemDialog.show.called);
       Service.locked = false;
@@ -168,6 +170,7 @@ suite('SimLockManager', function() {
     test('should not show on Ftu', function() {
       MockService.mUpgrading = false;
       MockService.runningFTU = true;
+      this.sinon.stub(subject, 'isBothSlotsLocked').returns(true);
       subject.showIfLocked();
       assert.isFalse(subject.simLockSystemDialog.show.called);
     });
@@ -176,6 +179,7 @@ suite('SimLockManager', function() {
       setup(function() {
         MockSIMSlotManager.ready = true;
         addSimSlot();
+        this.sinon.stub(subject, 'isBothSlotsLocked').returns(true);
       });
 
       teardown(function() {
