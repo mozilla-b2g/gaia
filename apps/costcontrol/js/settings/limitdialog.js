@@ -18,6 +18,11 @@ function dataLimitConfigurer(guiWidget, settings, viewManager, widgetRoot) {
     return Formatting.formatData([value, _(unit)]);
   };
 
+  window.addEventListener('localized', function _onLocalize() {
+    var tagSpan = guiWidget.querySelector('.tag');
+    tagSpan.textContent = format(dataLimitInput.value);
+  });
+
   // Configure dialog
   var okButton = dialog.querySelector('button.recommend');
   if (okButton) {
