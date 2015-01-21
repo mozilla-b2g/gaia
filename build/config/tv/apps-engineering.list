@@ -4,6 +4,7 @@ tv_apps/smart-home
 tv_apps/browser
 tv_apps/app-deck
 tv_apps/dlna-player
+tv_apps/notification-receiver
 apps/bluetooth
 apps/calendar
 apps/camera
