@@ -511,6 +511,11 @@
         }
       }
 
+      // All the children of this element are absolutely positioned and then
+      // transformed, so manually set a height for the convenience of
+      // embedders.
+      this.element.style.height = this.layout.offsetY + 'px';
+
       this.element.setAttribute('cols', this.layout.cols);
       pendingCachedIcons === 0 && onCachedIconRendered();
       this.loadDragDrop();
