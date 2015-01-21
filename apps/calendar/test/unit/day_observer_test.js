@@ -253,14 +253,24 @@ suite('day_observer', function() {
         // it should call it once without the new events to make sure our views
         // are "eventually" in sync
         if (count === 1) {
-          assert.equal(records.amount, 0);
+          assert.equal(records.amount, 0, 'first');
           assert.deepEqual(records.basic, []);
           assert.deepEqual(records.allday, []);
           return;
         }
 
         if (count === 2) {
-          assert.equal(records.amount, 2);
+          if (records.amount === 1) {
+            // busytimeStore.persist is async and might take longer than
+            // a single dispatch to display all the busytimes, so we make sure
+            // we only bump the count if it really updated the value to match
+            // the expected result. that is enough to prove that UI will
+            // "eventually" reflect the correct amount of items. (Bug 1115083)
+            count -= 1;
+            return;
+          }
+
+          assert.equal(records.amount, 2, 'after persist');
           assert.deepEqual(records.basic, [
             {
               event: event3,
@@ -278,7 +288,7 @@ suite('day_observer', function() {
         }
 
         if (count === 3) {
-          assert.equal(records.amount, 1);
+          assert.equal(records.amount, 1, 'after remove');
           assert.deepEqual(records.basic, [
             {
               event: event3,
@@ -294,7 +304,7 @@ suite('day_observer', function() {
           return;
         }
 
-        assert.equal(records.amount, 2);
+        assert.equal(records.amount, 2, 'after calendar visible');
         assert.deepEqual(records.basic, [
           {
             event: event3,
