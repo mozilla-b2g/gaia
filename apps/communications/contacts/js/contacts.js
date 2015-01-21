@@ -32,6 +32,12 @@ var Contacts = (function() {
   var SHARED_CONTACTS = 'sharedContacts';
   var SHARED_CONTACTS_PATH = SHARED_PATH + '/' + 'contacts';
 
+  const SELECT_MODE_CLASS = {
+    'pick' : {
+      'text/vcard' : ['disable-fb-items']
+    }
+  };
+
   var navigation = new navigationStack('view-contacts-list');
 
   var goToForm = function edit() {
@@ -297,6 +303,17 @@ var Contacts = (function() {
     header.addEventListener('action', handleCancel);
   };
 
+  var setSelectModeClass = function(element, activityName, activityType) {
+    var classesByType = SELECT_MODE_CLASS[activityName] || {};
+    activityType = Array.isArray(activityType) ? activityType : [activityType];
+    activityType.forEach(function(type) {
+      var classesToAdd = classesByType[type];
+      if (classesToAdd) {
+        element.classList.add.apply(element.classList, classesToAdd);
+      }
+    });
+  };
+
   var checkCancelableActivity = function cancelableActivity() {
     if (ActivityHandler.currentlyHandling) {
       var alternativeTitle = null;
@@ -304,6 +321,9 @@ var Contacts = (function() {
       if (activityName === 'pick' || activityName === 'update') {
         alternativeTitle = 'selectContact';
       }
+      var groupsList = document.getElementById('groups-list');
+      setSelectModeClass(groupsList, activityName,
+                                              ActivityHandler.activityDataType);
       setupCancelableHeader(alternativeTitle);
     } else {
       setupActionableHeader();
@@ -696,6 +716,10 @@ var Contacts = (function() {
   var enterSearchMode = function enterSearchMode(evt) {
     Contacts.view('Search', function viewLoaded() {
       contacts.List.initSearch(function onInit() {
+        var searchList = document.getElementById('search-list'),
+            activityName = ActivityHandler.activityName,
+            activityType = ActivityHandler.activityDataType;
+        setSelectModeClass(searchList, activityName, activityType);
         contacts.Search.enterSearchMode(evt);
       });
     }, SHARED_CONTACTS);
