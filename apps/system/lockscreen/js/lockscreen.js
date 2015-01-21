@@ -147,10 +147,6 @@
   LockScreen.prototype.handleEvent =
   function ls_handleEvent(evt) {
     switch (evt.type) {
-      // In FTU user may change date & time.
-      case 'ftudone':
-        this.refreshClock(new Date());
-        break;
       case 'lockscreen-notification-request-activate-unlock':
         this._activateUnlock();
         break;

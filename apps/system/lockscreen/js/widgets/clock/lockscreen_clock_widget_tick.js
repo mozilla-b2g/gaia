@@ -17,12 +17,13 @@
     LockScreenBasicState.apply(this, arguments);
     this.configs.name = 'LockScreenClockWidgetTick';
     this.configs.stream.events = [
+      'ftudone',
+      'moztimechange',
       'screenchange',
       'lockscreen-notification-clock-tick'
     ];
-// TODO: debug only. change to 60000.
-    this.configs.tickInterval = 1000;
-    // So that everytime user unlock to set the new format,
+    this.configs.tickInterval = 60000;
+    // So that every time user unlock to set the new format,
     // this state can response to use the new one, since
     // transfer back to this state means to new an instance again.
     // And that is the reason we don't need to monitor the 'timeformatchange'
@@ -53,19 +54,21 @@
     this.updateClock();
     this.stream = new Stream(this.configs.stream);
     return this.stream.start(this.handleEvent.bind(this))
-      .next(() =>
-        // The Promise is necessary. Since we need to wait the rest seconds
-        // in the current minute to bootstrap the timer.
-        new Promise((resolve) => {
-          // Which second in this minute we're.
-          var seconds = (new Date()).getSeconds();
-          var leftSeconds = 60 - seconds;
-          window.setTimeout(() => {
-            resolve();
-          }, leftSeconds * 1000);
-        })
-      )
+      .next(this.waitLastSeconds.bind(this))
       .next(this.stream.ready.bind(this.stream));
+  };
+
+  // This is necessary. Since we need to wait the last seconds
+  // in the current minute to bootstrap the timer.
+  LockScreenClockWidgetTick.prototype.waitLastSeconds = function() {
+    return new Promise((resolve) => {
+      // Which second in this minute we're.
+      var seconds = (new Date()).getSeconds();
+      var leftSeconds = 60 - seconds;
+      window.setTimeout(() => {
+        resolve();
+      }, leftSeconds * 1000);
+    });
   };
 
   LockScreenClockWidgetTick.prototype.getTimeformat = function() {
@@ -100,13 +103,15 @@
   LockScreenClockWidgetTick.prototype.handleEvent =
   function(evt) {
     switch (evt.type) {
+      case 'ftudone':
+      case 'moztimechange':
+      case 'lockscreen-notification-clock-tick':
+        this.updateClock();
+        break;
       case 'screenchange':
         if (!evt.detail.screenEnabled) {
           return this.transferToSuspendState();
         }
-        break;
-      case 'lockscreen-notification-clock-tick':
-        this.updateClock();
         break;
     }
   };

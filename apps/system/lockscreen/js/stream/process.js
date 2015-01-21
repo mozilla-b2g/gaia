@@ -11,7 +11,7 @@
         phase: null
       },
       // @see: #next
-      stepResult: []
+      stepResults: []
     };
   };
 
@@ -118,34 +118,36 @@
         // steps passed here.
         var chains = steps.map((step) => {
           var chain;
-          if (this.stepResults.length > 1) {
-            chain = step(this.stepResults);
+          // If it has multiple results, means it's a task group
+          // generated results.
+          if (this.states.stepResults.length > 1) {
+            chain = step(this.states.stepResults);
           } else {
-            chain = step(this.stepResults[0]);
+            chain = step(this.states.stepResults[0]);
           }
 
           // Ordinary function returns 'undefine' or other things.
           if (!chain) {
             // It's a plain value.
             // Store it as one of results.
-            this.stepResult.push(chain);
+            this.states.stepResults.push(chain);
             return Promise.resolve(chain);
           }
 
           if (chain instanceof Process) {
             // Premise: it's a started process.
             return chain.states.currentPromise.then((resolvedValue) => {
-              this.stepResult.push(resolvedValue);
+              this.states.stepResults.push(resolvedValue);
             });
           } else if (chain.then) {
             // Ordinary promise can be concated immediately.
             return chain.then((resolvedValue) => {
-              this.stepResult.push(resolvedValue);
+              this.states.stepResults.push(resolvedValue);
             });
           } else {
             // It's a plain value.
             // Store it as one of results.
-            this.stepResult.push(chain);
+            this.states.stepResults.push(chain);
             return Promise.resolve(chain);
           }
         });
