@@ -115,6 +115,11 @@
           } else if (detail.isHomescreen) {
             this._activeHome = ('LandingAppWindow' === detail.CLASS_NAME) ?
                                  this.landingAppLauncher : homescreenLauncher;
+          } else if (detail.manifest && detail.manifest.role === 'search') {
+            // XXX: Bug 1124112 - Seamlessly launch search app from home
+            // We have to ensure that the search app is fully rendered before
+            // closing the home app so defer it by "setTimeout".
+            setTimeout(this.closeHomeApp.bind(this));
           } else {
             this.closeHomeApp();
           }

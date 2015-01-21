@@ -322,12 +322,18 @@
     },
 
     onSearchBarShown: function() {
-      /*jshint nonew: false */
-      new MozActivity({
+      var hideSearchBar = function() {
+        document.removeEventListener('visibilitychange', hideSearchBar);
+        this.searchBar.hide();
+      }.bind(this);
+      document.addEventListener('visibilitychange', hideSearchBar);
+
+      var activity = new MozActivity({
         name: 'search',
         data: { keyword: '' }
       });
-      this.searchBar.hide();
+
+      activity.onerror = hideSearchBar;
     },
 
     onSearchBarHidden: function() {
