@@ -237,6 +237,7 @@
    "vibration.enabled": true,
    "wifi.enabled": true,
    "wifi.screen_off_timeout": 600000,
+   "wifi.sleepMode": false,
    "wifi.suspended": false,
    "wifi.disabled_by_wakelock": false,
    "wifi.notification": false,
