@@ -72,6 +72,7 @@
   TaskManager.prototype.start = function() {
     this._fetchElements();
     this._registerEvents();
+    this._appClosedHandler = this._appClosed.bind(this);
     Service.request('registerHierarchy', this);
   };
 
@@ -103,6 +104,11 @@
 
     SettingsListener.unobserve(this.SCREENSHOT_PREVIEWS_SETTING_KEY,
                                this.onPreviewSettingsChange);
+  };
+
+  TaskManager.prototype._appClosed = function cs_appClosed(evt) {
+    window.removeEventListener('appclosed', this._appClosedHandler);
+    this.screenElement.classList.add('cards-view');
   };
 
   /**
@@ -159,10 +165,7 @@
       activeApp.close();
       screenElement.classList.add('cards-view');
     } else {
-      window.addEventListener('appclosed', function finish() {
-        window.removeEventListener('appclosed', finish);
-        screenElement.classList.add('cards-view');
-      });
+      window.addEventListener('appclosed', this._appClosedHandler);
     }
   };
 
@@ -173,7 +176,11 @@
    *
    */
   TaskManager.prototype.hide = function cs_hideCardSwitcher() {
-    if (!this._active) {
+    if (!this.isActive()) {
+      // To avoid wrong behaviour when the app is closed
+      // by a second home button event
+      window.removeEventListener('appclosed', this._appClosedHandler);
+      this.screenElement.classList.remove('cards-view');
       return;
     }
     this._unregisterShowingEvents();
