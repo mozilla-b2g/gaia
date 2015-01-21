@@ -47,6 +47,7 @@
     /* jshint boss:true */
     var containsFetchableLocale = false;
 
+    var meta = {};
     var nodes = document.head
                         .querySelectorAll('link[rel="localization"],' +
                                           'meta[name="availableLanguages"],' +
@@ -62,7 +63,7 @@
           this.ctx.resLinks.push(node.getAttribute('href'));
           break;
         case 'meta':
-          L10n.onMetaInjected.call(this, node);
+          L10n.onMetaInjected.call(this, node, meta);
           break;
       }
     }
@@ -70,6 +71,9 @@
     if (!containsFetchableLocale) {
       document.documentElement.dataset.noCompleteBug = true;
     }
+
+    this.ctx.registerLocales(meta.defaultLanguage,
+                             Object.keys(meta.availableLanguages));
   }
 
 
