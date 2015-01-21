@@ -93,6 +93,7 @@
   AppTransitionController.prototype.OPENING_TRANSITION_TIMEOUT = 350;
   AppTransitionController.prototype.CLOSING_TRANSITION_TIMEOUT = 350;
   AppTransitionController.prototype.SLOW_TRANSITION_TIMEOUT = 3500;
+  AppTransitionController.prototype._firstTransition = true;
   AppTransitionController.prototype.changeTransitionState =
     function atc_changeTransitionState(evt) {
       var currentState = this._transitionState;
@@ -319,6 +320,11 @@
 
   AppTransitionController.prototype.resetTransition =
     function atc_resetTransition() {
+      if (this._firstTransition) {
+        this._firstTransition = false;
+        return;
+      }
+
       if (this._openingTimeout) {
         window.clearTimeout(this._openingTimeout);
         this._openingTimeout = null;
