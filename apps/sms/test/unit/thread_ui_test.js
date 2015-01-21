@@ -12,7 +12,8 @@
          Errors,
          MockCompose,
          AssetsHelper,
-         SMIL
+         SMIL,
+         TaskRunner
 */
 
 'use strict';
@@ -26,6 +27,7 @@ require('/js/thread_ui.js');
 require('/js/shared_components.js');
 require('/js/utils.js');
 require('/js/errors.js');
+require('/js/task_runner.js');
 
 require('/test/unit/mock_time_headers.js');
 require('/test/unit/mock_link_action_handler.js');
@@ -1530,7 +1532,7 @@ suite('thread_ui.js >', function() {
       );
     }
 
-    setup(function() {
+    setup(function(done) {
       fakeMessage = MockMessages.sms({
         id: 24601,
         delivery: 'sending'
@@ -1540,11 +1542,15 @@ suite('thread_ui.js >', function() {
         withArgs('thread', { id: fakeMessage.threadId }).
         returns(true);
 
+      this.sinon.spy(ThreadUI, 'appendMessage');
+
       MessageManager.on.withArgs('message-sending').yield({
         message: fakeMessage
       });
 
-      container = document.getElementById('message-' + fakeMessage.id);
+      ThreadUI.appendMessage.returnValues[0].then(() => {
+        container = document.getElementById('message-' + fakeMessage.id);
+      }).then(done, done);
     });
 
     teardown(function() {
@@ -1940,21 +1946,23 @@ suite('thread_ui.js >', function() {
   suite('appendMessage >', function() {
     var someDateInThePast;
 
-    setup(function() {
+    setup(function(done) {
       someDateInThePast = new Date(2010, 10, 10, 16, 0);
 
+      ThreadUI.initializeRendering();
       ThreadUI.appendMessage({
         id: 1,
         threadId: 1,
         timestamp: +someDateInThePast
-      });
+      }).then(done,done);
     });
 
     teardown(function() {
       ThreadUI.container = '';
+      ThreadUI.stopRendering();
     });
 
-    test('removes original message when rendered a second time', function() {
+    test('removes original message when rendered second time', function(done) {
       var originalMessage = ThreadUI.container.querySelector(
         '[data-message-id="1"]'
       );
@@ -1963,75 +1971,92 @@ suite('thread_ui.js >', function() {
         id: 1,
         threadId: 1,
         timestamp: +someDateInThePast
-      });
+      }).then(() => {
+        var message = ThreadUI.container.querySelector('[data-message-id="1"]');
 
-      var message = ThreadUI.container.querySelector('[data-message-id="1"]');
-
-      assert.isNotNull(originalMessage);
-      assert.isNotNull(message);
-      assert.notEqual(message, originalMessage);
+        assert.isNotNull(originalMessage);
+        assert.isNotNull(message);
+        assert.notEqual(message, originalMessage);
+      }).then(done,done);
     });
 
-    test('inserts message at the beginning', function() {
+    test('inserts message at the beginning', function(done) {
       someDateInThePast.setHours(someDateInThePast.getHours() - 1);
 
       ThreadUI.appendMessage({
         id: 2,
         threadId: 1,
         timestamp: +someDateInThePast
-      });
+      }).then(() => {
+        var messageItemNodes = ThreadUI.container.querySelectorAll('.message');
 
-      var messageItemNodes = ThreadUI.container.querySelectorAll('.message');
-
-      assert.equal(messageItemNodes.length, 2);
-      assert.equal(+messageItemNodes[0].dataset.messageId, 2);
-      assert.equal(+messageItemNodes[1].dataset.messageId, 1);
+        assert.equal(messageItemNodes.length, 2);
+        assert.equal(+messageItemNodes[0].dataset.messageId, 2);
+        assert.equal(+messageItemNodes[1].dataset.messageId, 1);
+      }).then(done,done);
     });
 
-    test('inserts message at the right spot in the middle', function() {
+    test('inserts message at the right spot in the middle', function(done) {
       someDateInThePast.setHours(someDateInThePast.getHours() + 2);
       ThreadUI.appendMessage({
         id: 3,
         threadId: 1,
         timestamp: +someDateInThePast
-      });
+      }).then(() => {
+        someDateInThePast.setHours(someDateInThePast.getHours() - 1);
+        return ThreadUI.appendMessage({
+          id: 2,
+          threadId: 1,
+          timestamp: +someDateInThePast
+        }).then(() => {
+          var messageItemNodes =
+            ThreadUI.container.querySelectorAll('.message');
 
-      someDateInThePast.setHours(someDateInThePast.getHours() - 1);
-      ThreadUI.appendMessage({
-        id: 2,
-        threadId: 1,
-        timestamp: +someDateInThePast
-      });
-
-      var messageItemNodes = ThreadUI.container.querySelectorAll('.message');
-
-      assert.equal(messageItemNodes.length, 3);
-      assert.equal(+messageItemNodes[0].dataset.messageId, 1);
-      assert.equal(+messageItemNodes[1].dataset.messageId, 2);
-      assert.equal(+messageItemNodes[2].dataset.messageId, 3);
+          assert.equal(messageItemNodes.length, 3);
+          assert.equal(+messageItemNodes[0].dataset.messageId, 1);
+          assert.equal(+messageItemNodes[1].dataset.messageId, 2);
+          assert.equal(+messageItemNodes[2].dataset.messageId, 3);
+        });
+      }).then(done,done);
     });
 
-    test('inserts message at the end', function() {
+    test('inserts message at the end', function(done) {
       someDateInThePast.setHours(someDateInThePast.getHours() + 1);
 
       ThreadUI.appendMessage({
         id: 2,
         threadId: 1,
         timestamp: +someDateInThePast
-      });
+      }).then(() => {
+        var messageItemNodes = ThreadUI.container.querySelectorAll('.message');
 
-      var messageItemNodes = ThreadUI.container.querySelectorAll('.message');
+        assert.equal(messageItemNodes.length, 2);
+        assert.equal(+messageItemNodes[0].dataset.messageId, 1);
+        assert.equal(+messageItemNodes[1].dataset.messageId, 2);
+      }).then(done,done);
+    });
 
-      assert.equal(messageItemNodes.length, 2);
-      assert.equal(+messageItemNodes[0].dataset.messageId, 1);
-      assert.equal(+messageItemNodes[1].dataset.messageId, 2);
+    test('Should not insert message after stopRendering', function(done) {
+      ThreadUI.stopRendering();
+      someDateInThePast.setHours(someDateInThePast.getHours() + 1);
+
+      ThreadUI.appendMessage({
+        id: 2,
+        threadId: 1,
+        timestamp: +someDateInThePast
+      }).then(() => {
+        var messageItemNodes = ThreadUI.container.querySelectorAll('.message');
+
+        assert.equal(messageItemNodes.length, 1);
+        assert.equal(+messageItemNodes[0].dataset.messageId, 1);
+      }).then(done,done);
     });
   });
 
   suite('buildMessageDOM >', function() {
     setup(function() {
       this.sinon.spy(Template, 'escape');
-      this.sinon.stub(MockSMIL, 'parse');
+      this.sinon.stub(MockSMIL, 'parse').yields([]);
       this.sinon.spy(ThreadUI.tmpl.message, 'interpolate');
     });
 
@@ -2051,14 +2076,15 @@ suite('thread_ui.js >', function() {
       assert.ok(Template.escape.calledWith(payload));
     });
 
-    test('escapes all text for MMS', function() {
+    test('escapes all text for MMS', function(done) {
       var payload = 'hello <a href="world">world</a>';
       MockSMIL.parse.yields([{ text: payload }]);
-      ThreadUI.buildMessageDOM(buildMMS(payload));
-      assert.ok(Template.escape.calledWith(payload));
+      ThreadUI.buildMessageDOM(buildMMS(payload)).then(() => {
+        assert.ok(Template.escape.calledWith(payload));
+      }).then(done, done);
     });
 
-    test('calls template with subject for MMS', function() {
+    test('calls template with subject for MMS', function(done) {
       var now = Date.now();
       ThreadUI.buildMessageDOM({
         id: '1',
@@ -2067,65 +2093,92 @@ suite('thread_ui.js >', function() {
         type: 'mms',
         deliveryInfo: [],
         attachments: []
-      });
-      sinon.assert.calledWithMatch(ThreadUI.tmpl.message.interpolate, {
-        id: '1',
-        bodyHTML: '',
-        timestamp: '' + now,
-        subject: 'subject'
-      });
+      }).then(() => {
+        sinon.assert.calledWithMatch(ThreadUI.tmpl.message.interpolate, {
+          id: '1',
+          bodyHTML: '',
+          timestamp: '' + now,
+          subject: 'subject'
+        });
+      }).then(done, done);
     });
 
-    test('correctly sets the iccId in the dataset', function() {
-      var node;
-
-      node = ThreadUI.buildMessageDOM(MockMessages.sms({ iccId: 'A' }));
-      assert.equal(node.dataset.iccId, 'A');
-      assert.isNull(
-        node.querySelector('.message-sim-information'),
-        'The SIM information is not displayed'
-      );
-
-      node = ThreadUI.buildMessageDOM(MockMessages.mms({ iccId: 'A' }));
-      assert.equal(node.dataset.iccId, 'A');
-      assert.isNull(
-        node.querySelector('.message-sim-information'),
-        'The SIM information is not displayed'
-      );
+    test('correctly sets the iccId in the dataset(sms)', function(done) {
+      ThreadUI.buildMessageDOM(MockMessages.sms({ iccId: 'A' })).then((node) =>
+      {
+        assert.equal(node.dataset.iccId, 'A');
+        assert.isNull(
+          node.querySelector('.message-sim-information'),
+          'The SIM information is not displayed'
+        );
+      }).then(done, done);
     });
 
-    test('correctly shows the SIM information when present', function() {
+    test('correctly sets the iccId in the dataset(mms)', function(done) {
+      ThreadUI.buildMessageDOM(MockMessages.mms({ iccId: 'A' })).then((node) =>
+      {
+        assert.equal(node.dataset.iccId, 'A');
+        assert.isNull(
+          node.querySelector('.message-sim-information'),
+          'The SIM information is not displayed'
+        );
+      }).then(done, done);
+    });
+
+    test('correctly shows single SIM information when present', function(done) {
       var tests = ['A', 'B'];
+      var promises;
+      this.sinon.stub(Settings, 'getServiceIdByIccId');
+      this.sinon.stub(Settings, 'hasSeveralSim').returns(false);
+
+      // testing with serviceId both equal to 0 and not 0, to check we handle
+      // correctly falsy correct values
+      promises = tests.map(
+        (iccId) => ThreadUI.buildMessageDOM(MockMessages.mms({ iccId: iccId }))
+      );
+
+      Promise.all(promises).then((nodes) => {
+        nodes.forEach((node) => {
+          assert.isNull(
+            node.querySelector('.message-sim-information'),
+            'The SIM information is not displayed'
+          );
+        });
+      }).then(done, done);
+    });
+
+    test('correctly shows multi SIM information when present', function(done) {
+      var tests = ['A', 'B'];
+      var promises = [];
+
       this.sinon.stub(Settings, 'getServiceIdByIccId');
 
       tests.forEach((iccId, serviceId) => {
         Settings.getServiceIdByIccId.withArgs(iccId).returns(serviceId);
       });
 
-      this.sinon.stub(Settings, 'hasSeveralSim').returns(false);
+      this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
 
-      // testing with serviceId both equal to 0 and not 0, to check we handle
-      // correctly falsy correct values
       tests.forEach((iccId, serviceId) => {
-        var node = ThreadUI.buildMessageDOM(MockMessages.mms({ iccId: iccId }));
-        assert.isNull(
-          node.querySelector('.message-sim-information'),
-          'The SIM information is not displayed'
+        promises.push(
+          ThreadUI.buildMessageDOM(MockMessages.mms({ iccId: iccId }))
         );
       });
 
-      Settings.hasSeveralSim.returns(true);
+      Promise.all(promises).then((nodes) => {
+        nodes.forEach((node, serviceId) => {
+          var simInformationNode = node.querySelector(
+            '.message-sim-information'
+          );
+          var simInformation = JSON.parse(simInformationNode.dataset.l10nArgs);
 
-      tests.forEach((iccId, serviceId) => {
-        var node = ThreadUI.buildMessageDOM(MockMessages.mms({ iccId: iccId }));
-        var simInformationNode = node.querySelector('.message-sim-information');
-        assert.ok(simInformationNode, 'The SIM information is displayed');
-        var simInformation = JSON.parse(simInformationNode.dataset.l10nArgs);
-        assert.equal(simInformation.id, serviceId + 1);
-      });
+          assert.ok(simInformationNode, 'The SIM information is displayed');
+          assert.equal(simInformation.id, serviceId + 1);
+        });
+      }).then(done, done);
     });
 
-    test('add message status only when needed', function() {
+    test('add message status only when needed', function(done) {
       var receivedMessage = MockMessages.sms({ delivery: 'received'}),
           sentMessage = MockMessages.sms({
             delivery: 'sent',
@@ -2136,30 +2189,31 @@ suite('thread_ui.js >', function() {
           failedMessage = MockMessages.sms({ delivery: 'error' }),
           sendingMessage = MockMessages.sms({ delivery: 'sending' });
 
-      var node = ThreadUI.buildMessageDOM(receivedMessage);
-      assert.isNull(node.querySelector('.message-status'));
-
-      node = ThreadUI.buildMessageDOM(sentMessage);
-      assert.isNull(node.querySelector('.message-status'));
-
-      node = ThreadUI.buildMessageDOM(deliveredMessage);
-      assert.isNotNull(node.querySelector('.message-status'));
-      assert.isTrue(node.classList.contains('delivered'));
-
-      node = ThreadUI.buildMessageDOM(readMessage);
-      assert.isNotNull(node.querySelector('.message-status'));
-      assert.isTrue(node.classList.contains('read'));
-
-      node = ThreadUI.buildMessageDOM(failedMessage);
-      assert.isNotNull(node.querySelector('.message-status'));
-      assert.isTrue(node.classList.contains('error'));
-
-      node = ThreadUI.buildMessageDOM(sendingMessage);
-      assert.isNotNull(node.querySelector('.message-status'));
-      assert.isTrue(node.classList.contains('sending'));
+      ThreadUI.buildMessageDOM(receivedMessage).then((node) => {
+        assert.isNull(node.querySelector('.message-status'));
+        return ThreadUI.buildMessageDOM(sentMessage);
+      }).then((node) => {
+        assert.isNull(node.querySelector('.message-status'));
+        return ThreadUI.buildMessageDOM(deliveredMessage);
+      }).then((node) => {
+        assert.isNotNull(node.querySelector('.message-status'));
+        assert.isTrue(node.classList.contains('delivered'));
+        return ThreadUI.buildMessageDOM(readMessage);
+      }).then((node) => {
+        assert.isNotNull(node.querySelector('.message-status'));
+        assert.isTrue(node.classList.contains('read'));
+        return ThreadUI.buildMessageDOM(failedMessage);
+      }).then((node) => {
+        assert.isNotNull(node.querySelector('.message-status'));
+        assert.isTrue(node.classList.contains('error'));
+        return ThreadUI.buildMessageDOM(sendingMessage);
+      }).then((node) => {
+        assert.isNotNull(node.querySelector('.message-status'));
+        assert.isTrue(node.classList.contains('sending'));  
+      }).then(done, done);
     });
 
-    test('sets delivery class when delivery status is success', function() {
+    test('sets delivery class when delivery status is success', function(done) {
       var message = MockMessages.mms({
         delivery: 'sent',
         deliveryInfo: [{
@@ -2168,11 +2222,12 @@ suite('thread_ui.js >', function() {
         }]
       });
 
-      var node = ThreadUI.buildMessageDOM(message);
-      assert.isTrue(node.classList.contains('delivered'));
+      ThreadUI.buildMessageDOM(message).then((node) => {
+        assert.isTrue(node.classList.contains('delivered'));
+      }).then(done, done);
     });
 
-    test('sets read class when read status is success', function() {
+    test('sets read class when read status is success', function(done) {
       var message = MockMessages.mms({
         delivery: 'sent',
         deliveryInfo: [{
@@ -2181,11 +2236,12 @@ suite('thread_ui.js >', function() {
         }]
       });
 
-      var node = ThreadUI.buildMessageDOM(message);
-      assert.isTrue(node.classList.contains('read'));
+      ThreadUI.buildMessageDOM(message).then((node) => {
+        assert.isTrue(node.classList.contains('read'));
+      }).then(done, done);
     });
 
-    test('sets read class only when both statuses are success', function() {
+    test('sets read class only when both statuses are success', function(done) {
       var message = MockMessages.mms({
         delivery: 'sent',
         deliveryInfo: [{
@@ -2195,16 +2251,17 @@ suite('thread_ui.js >', function() {
         }]
       });
 
-      var node = ThreadUI.buildMessageDOM(message);
-      assert.isFalse(node.classList.contains('delivered'));
-      assert.isTrue(node.classList.contains('read'));
+      ThreadUI.buildMessageDOM(message).then((node) => {
+        assert.isFalse(node.classList.contains('delivered'));
+        assert.isTrue(node.classList.contains('read'));
+      }).then(done, done);
     });
   });
 
   suite('renderMessages()', function() {
     setup(function() {
       this.sinon.stub(MessageManager, 'getMessages');
-
+      this.sinon.spy(TaskRunner.prototype, 'push');
       ThreadUI.initializeRendering();
     });
 
@@ -2213,43 +2270,62 @@ suite('thread_ui.js >', function() {
         ThreadUI.renderMessages(1);
       });
 
-      test('infinite rendering test', function() {
-        var chunkSize = ThreadUI.CHUNK_SIZE;
+      suite('infinite rendering test', function(done) {
+        var chunkSize;
         var message;
 
-        for (var i = 1; i < chunkSize; i++) {
-          MessageManager.getMessages.yieldTo(
-            'each', MockMessages.sms({ id: i })
-          );
-          message = document.getElementById('message-' + i);
-          assert.ok(
-            message.classList.contains('hidden'),
-            'message-' + i + ' should be hidden'
-          );
-        }
+        setup(function() {
+          chunkSize = ThreadUI.CHUNK_SIZE;
+        });
 
-        MessageManager.getMessages.yieldTo(
-          'each', MockMessages.sms({ id: i })
-        );
+        test('Messages are hidden before first chunk ready', function(done) {
+          for (var i = 1; i < chunkSize; i++) {
+            MessageManager.getMessages.yieldTo(
+              'each', MockMessages.sms({ id: i })
+            );
+          }
 
-        assert.isNull(
-          container.querySelector('.hidden'),
-          'all previously hidden messages should now be displayed'
-        );
+          TaskRunner.prototype.push.lastCall.returnValue.then(() => {
+            for (var i = 1; i < chunkSize; i++) {
+              message = document.getElementById('message-' + i);
+              assert.ok(
+                message.classList.contains('hidden'),
+                'message-' + i + ' should be hidden'
+              );
+            }
+          }).then(done, done);
+        });
 
-        MessageManager.getMessages.yieldTo(
-          'each', MockMessages.sms({ id: ++i })
-        );
+        test('First chunk ready', function(done) {
+          for (var i = 1; i <= chunkSize; i++) {
+            MessageManager.getMessages.yieldTo(
+              'each', MockMessages.sms({ id: i })
+            );
+          }
 
-        message = document.getElementById('message-' + i);
-        assert.ok(
-          message.classList.contains('hidden'),
-          'message-' + i + ' should be hidden'
-        );
+          TaskRunner.prototype.push.lastCall.returnValue.then(() => {
+            var id = chunkSize +1;
+            assert.isNull(
+              container.querySelector('li.hidden'),
+              'all previously hidden messages should now be displayed'
+            );
+
+            MessageManager.getMessages.yieldTo(
+              'each', MockMessages.sms({ id: id })
+            );
+            return TaskRunner.prototype.push.lastCall.returnValue.then(() => {
+              message = document.getElementById('message-' + id);
+              assert.ok(
+                message.classList.contains('hidden'),
+                'message-' + id + ' should be hidden'
+              );
+            });
+          }).then(done, done);
+        });
       });
 
       suite('scrolling behavior for first chunk', function() {
-        setup(function() {
+        setup(function(done) {
           this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
           Navigation.isCurrentPanel.withArgs('thread').returns(true);
 
@@ -2260,29 +2336,39 @@ suite('thread_ui.js >', function() {
               'each', MockMessages.sms({ id: i })
             );
           }
+          TaskRunner.prototype.push.lastCall.returnValue.then(done);
         });
 
-        test('should scroll to the end', function() {
+        test('no scrollIntoView before first chunk displayed', function() {
+          sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
+        });
+
+        test('should scroll to the end', function(done) {
           MessageManager.getMessages.yieldTo(
             'each', MockMessages.sms({ id: ThreadUI.CHUNK_SIZE })
           );
 
-          sinon.assert.called(HTMLElement.prototype.scrollIntoView);
+          TaskRunner.prototype.push.lastCall.returnValue.then(() => {
+            sinon.assert.calledOnce(HTMLElement.prototype.scrollIntoView);
+          }).then(done, done);
         });
 
-        test('should not scroll to the end if in the wrong panel', function() {
+        test('should not scroll to the end if in the wrong panel',
+          function(done) {
           Navigation.isCurrentPanel.withArgs('thread').returns(false);
 
           MessageManager.getMessages.yieldTo(
             'each', MockMessages.sms({ id: ThreadUI.CHUNK_SIZE })
           );
 
-          sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
+          TaskRunner.prototype.push.lastCall.returnValue.then(() => {
+            sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
+          }).then(done, done);
         });
       });
     });
 
-    suite('calling stopRendering then renderMessages', function() {
+    suite('calling stopRendering before renderMessages', function() {
       setup(function() {
         ThreadUI.stopRendering();
         ThreadUI.renderMessages(1);
@@ -2290,6 +2376,25 @@ suite('thread_ui.js >', function() {
 
       test('getMessages should not be called', function() {
         sinon.assert.notCalled(MessageManager.getMessages);
+      });
+    });
+
+    suite('calling stopRendering during renderMessages', function() {
+      setup(function() {
+        this.sinon.stub(ThreadUI, 'appendMessage');
+        ThreadUI.renderMessages(1);
+      });
+
+      test('getMessages should not be called', function(done) {
+        MessageManager.getMessages.yieldTo(
+          'each', MockMessages.sms({ id: 1 })
+        );
+        sinon.assert.called(TaskRunner.prototype.push);
+        ThreadUI.stopRendering();
+
+        TaskRunner.prototype.push.lastCall.returnValue.then(() => {
+          sinon.assert.notCalled(ThreadUI.appendMessage);
+        }).then(done, done);
       });
     });
   });
@@ -2379,17 +2484,21 @@ suite('thread_ui.js >', function() {
       return ThreadUI.delete();
     };
 
-    setup(function() {
+    setup(function(done) {
+      ThreadUI.initializeRendering();
       container =
         ThreadUI.getMessageContainer(testMessages[0].timestamp, false);
-      for (var i = 0; i < testMessages.length; i++) {
-        ThreadUI.appendMessage(testMessages[i]);
-      }
-      this.sinon.stub(Utils, 'confirm').returns(Promise.resolve());
+      var promises = testMessages.map(
+        (testMessage) => ThreadUI.appendMessage(testMessage)
+      );
+      Promise.all(promises).then(() => {
+        this.sinon.stub(Utils, 'confirm').returns(Promise.resolve());
+      }).then(done, done);
     });
 
     teardown(function() {
       container.innerHTML = '';
+      ThreadUI.stopRendering();
     });
 
     test('confirm shows the proper message', function(done) {
@@ -2552,18 +2661,27 @@ suite('thread_ui.js >', function() {
       this.sinon.stub(MessageManager, 'retrieveMMS', function() {
         return {};
       });
+      ThreadUI.initializeRendering();
     });
+
+    teardown(function() {
+      ThreadUI.stopRendering();
+    });
+
     suite('pending message', function() {
       var message;
       var element;
       var notDownloadedMessage;
       var button;
-      setup(function() {
+      setup(function(done) {
         message = getTestMessage(0);
-        ThreadUI.appendMessage(message);
-        element = document.getElementById('message-' + message.id);
-        notDownloadedMessage = element.querySelector('.not-downloaded-message');
-        button = element.querySelector('button');
+        ThreadUI.appendMessage(message).then(() => {
+          element = document.getElementById('message-' + message.id);
+          notDownloadedMessage = element.querySelector(
+            '.not-downloaded-message'
+          );
+          button = element.querySelector('button');
+        }).then(done, done);
       });
       test('element has correct data-message-id', function() {
         assert.equal(element.dataset.messageId, message.id);
@@ -2613,12 +2731,15 @@ suite('thread_ui.js >', function() {
       var element;
       var notDownloadedMessage;
       var button;
-      setup(function() {
+      setup(function(done) {
         message = getTestMessage(1);
-        ThreadUI.appendMessage(message);
-        element = document.getElementById('message-' + message.id);
-        notDownloadedMessage = element.querySelector('.not-downloaded-message');
-        button = element.querySelector('button');
+        ThreadUI.appendMessage(message).then(() => {
+          element = document.getElementById('message-' + message.id);
+          notDownloadedMessage = element.querySelector(
+            '.not-downloaded-message'
+          );
+          button = element.querySelector('button');
+        }).then(done, done);
       });
       test('element has correct data-message-id', function() {
         assert.equal(element.dataset.messageId, message.id);
@@ -2807,13 +2928,15 @@ suite('thread_ui.js >', function() {
       var element;
       var notDownloadedMessage;
       var button;
-      setup(function() {
+      setup(function(done) {
         message = getTestMessage(2);
-        ThreadUI.appendMessage(message);
-        element = document.getElementById('message-' + message.id);
-        notDownloadedMessage =
-          element.querySelector('.not-downloaded-message');
-        button = element.querySelector('button');
+        ThreadUI.appendMessage(message).then(() => {
+          element = document.getElementById('message-' + message.id);
+          notDownloadedMessage = element.querySelector(
+            '.not-downloaded-message'
+          );
+          button = element.querySelector('button');
+        }).then(done, done);
       });
       test('element has correct data-message-id', function() {
         assert.equal(element.dataset.messageId, message.id);
@@ -2911,13 +3034,15 @@ suite('thread_ui.js >', function() {
       var element;
       var notDownloadedMessage;
       var button;
-      setup(function() {
+      setup(function(done) {
         message = getTestMessage(3);
-        ThreadUI.appendMessage(message);
-        element = document.getElementById('message-' + message.id);
-        notDownloadedMessage =
-          element.querySelector('.not-downloaded-message');
-        button = element.querySelector('button');
+        ThreadUI.appendMessage(message).then(() => {
+          element = document.getElementById('message-' + message.id);
+          notDownloadedMessage = element.querySelector(
+            '.not-downloaded-message'
+          );
+          button = element.querySelector('button');
+        }).then(done, done);
       });
       test('element has correct data-message-id', function() {
         assert.equal(element.dataset.messageId, message.id);
@@ -3015,17 +3140,23 @@ suite('thread_ui.js >', function() {
       this.sinon.stub(MessageManager, 'retrieveMMS', function() {
         return {};
       });
+      ThreadUI.initializeRendering();
+    });
+
+    teardown(function() {
+      ThreadUI.stopRendering();
     });
 
     suite('no attachment message', function() {
       var message;
       var element;
       var noAttachmentMessage;
-      setup(function() {
+      setup(function(done) {
         message = getTestMessage(0);
-        ThreadUI.appendMessage(message);
-        element = document.getElementById('message-' + message.id);
-        noAttachmentMessage = element.querySelector('p');
+        ThreadUI.appendMessage(message).then(() => {
+          element = document.getElementById('message-' + message.id);
+          noAttachmentMessage = element.querySelector('p');
+        }).then(done, done);
       });
       test('element has correct data-message-id', function() {
         assert.equal(element.dataset.messageId, message.id);
@@ -3048,11 +3179,12 @@ suite('thread_ui.js >', function() {
       var message;
       var element;
       var noAttachmentMessage;
-      setup(function() {
+      setup(function(done) {
         message = getTestMessage(1);
-        ThreadUI.appendMessage(message);
-        element = document.getElementById('message-' + message.id);
-        noAttachmentMessage = element.querySelector('p');
+        ThreadUI.appendMessage(message).then(() => {
+          element = document.getElementById('message-' + message.id);
+          noAttachmentMessage = element.querySelector('p');
+        }).then(done, done);
       });
       test('element has correct data-message-id', function() {
         assert.equal(element.dataset.messageId, message.id);
@@ -3075,11 +3207,12 @@ suite('thread_ui.js >', function() {
       var message;
       var element;
       var noAttachmentMessage;
-      setup(function() {
+      setup(function(done) {
         message = getTestMessage(2);
-        ThreadUI.appendMessage(message);
-        element = document.getElementById('message-' + message.id);
-        noAttachmentMessage = element.querySelector('p');
+        ThreadUI.appendMessage(message).then(() => {
+          element = document.getElementById('message-' + message.id);
+          noAttachmentMessage = element.querySelector('p');
+        }).then(done, done);
       });
       test('element has correct data-message-id', function() {
         assert.equal(element.dataset.messageId, message.id);
@@ -3113,7 +3246,9 @@ suite('thread_ui.js >', function() {
   });
 
   suite('resendMessage', function() {
-    setup(function() {
+    setup(function(done) {
+      var promises = [];
+
       this.receivers = ['1234'];
       this.targetMsg = {
         id: 23,
@@ -3131,26 +3266,34 @@ suite('thread_ui.js >', function() {
         delivery: 'error',
         timestamp: Date.now()
       };
-      ThreadUI.appendMessage(this.targetMsg);
-      ThreadUI.appendMessage(this.otherMsg);
-
-      assert.lengthOf(
-        ThreadUI.container.querySelectorAll('[data-message-id="23"]'),
-        1
-      );
-      assert.lengthOf(
-        ThreadUI.container.querySelectorAll('[data-message-id="45"]'),
-        1
+      ThreadUI.initializeRendering();
+      promises.push(
+        ThreadUI.appendMessage(this.targetMsg),
+        ThreadUI.appendMessage(this.otherMsg)
       );
 
-      this.getMessageReq = {};
-      this.sinon.stub(MessageManager, 'getMessage')
-        .returns(this.getMessageReq);
-      this.sinon.stub(MessageManager, 'deleteMessages').callsArgWith(1, true);
-      this.sinon.stub(MessageManager, 'resendMessage');
-      this.sinon.spy(ThreadUI, 'onMessageSendRequestCompleted');
+      Promise.all(promises).then(() => {
+        assert.lengthOf(
+          ThreadUI.container.querySelectorAll('[data-message-id="23"]'),
+          1
+        );
+        assert.lengthOf(
+          ThreadUI.container.querySelectorAll('[data-message-id="45"]'),
+          1
+        );
+
+        this.getMessageReq = {};
+        this.sinon.stub(MessageManager, 'getMessage')
+          .returns(this.getMessageReq);
+        this.sinon.stub(MessageManager, 'deleteMessages').callsArgWith(1, true);
+        this.sinon.stub(MessageManager, 'resendMessage');
+        this.sinon.spy(ThreadUI, 'onMessageSendRequestCompleted');
+      }).then(done, done);
     });
 
+    teardown(function() {
+      ThreadUI.stopRendering();
+    });
     // TODO: Implement this functionality in a specialized method and update
     // this test accordingly.
     // Bug 872725 - [MMS] Message deletion logic is duplicated
@@ -3211,7 +3354,7 @@ suite('thread_ui.js >', function() {
   // the thread with just one message.
   suite('Message error resent in thread with 1 message', function() {
     var message, request;
-    setup(function() {
+    setup(function(done) {
       message = {
         id: 23,
         type: 'sms',
@@ -3219,13 +3362,19 @@ suite('thread_ui.js >', function() {
         delivery: 'error',
         timestamp: Date.now()
       };
-      ThreadUI.appendMessage(message);
-
       this.sinon.stub(Utils, 'confirm');
       request = {};
       this.sinon.stub(MessageManager, 'getMessage').returns(request);
       this.sinon.stub(MessageManager, 'resendMessage');
-      this.errorMsg = ThreadUI.container.querySelector('.error');
+
+      ThreadUI.initializeRendering();
+      ThreadUI.appendMessage(message).then(() => {
+        this.errorMsg = ThreadUI.container.querySelector('.error');
+      }).then(done, done);
+    });
+
+    teardown(function() {
+      ThreadUI.stopRendering();
     });
 
     test('clicking on an error message bubble in a thread with 1 message ' +
@@ -3259,7 +3408,7 @@ suite('thread_ui.js >', function() {
 
   suite('Actions on the links >', function() {
     var messageId = 23, link, phone = '123123123';
-    setup(function() {
+    setup(function(done) {
       this.sinon.spy(LinkActionHandler, 'onClick');
 
       this.sinon.stub(LinkHelper, 'searchAndLinkClickableData', function() {
@@ -3267,21 +3416,24 @@ suite('thread_ui.js >', function() {
         '" data-action="dial-link">' + phone + '</a>';
       });
 
+      ThreadUI.initializeRendering();
       ThreadUI.appendMessage({
         id: messageId,
         type: 'sms',
         body: 'This is a test with 123123123',
         delivery: 'error',
         timestamp: Date.now()
-      });
-      // Retrieve DOM element for executing the event
-      var messageDOM = document.getElementById('message-' + messageId);
-      link = messageDOM.querySelector('a');
+      }).then(() => {
+        // Retrieve DOM element for executing the event
+        var messageDOM = document.getElementById('message-' + messageId);
+        link = messageDOM.querySelector('a');
+      }).then(done, done);
     });
 
     teardown(function() {
       ThreadUI.container.innerHTML = '';
       link = null;
+      ThreadUI.stopRendering();
     });
 
     test(' "click"', function() {
@@ -3411,7 +3563,7 @@ suite('thread_ui.js >', function() {
   suite('Long press on the bubble >', function() {
     var messageId = 23;
     var link, messageDOM, contextMenuEvent;
-    setup(function() {
+    setup(function(done) {
       contextMenuEvent = new CustomEvent('contextmenu', {
         'bubbles': true,
         'cancelable': true
@@ -3426,22 +3578,25 @@ suite('thread_ui.js >', function() {
         return '<a data-dial="123123123" data-action="dial-link">123123123</a>';
       });
 
+      ThreadUI.initializeRendering();
       ThreadUI.appendMessage({
         id: messageId,
         type: 'sms',
         body: 'This is a test with 123123123',
         delivery: 'sent',
         timestamp: Date.now()
-      });
-      // Retrieve DOM element for executing the event
-      messageDOM = document.getElementById('message-' + messageId);
-      link = messageDOM.querySelector('a');
+      }).then(() => {
+        // Retrieve DOM element for executing the event
+        messageDOM = document.getElementById('message-' + messageId);
+        link = messageDOM.querySelector('a');
+      }).then(done, done);
     });
 
     teardown(function() {
       ThreadUI.container.innerHTML = '';
       link = null;
       MockOptionMenu.mTeardown();
+      ThreadUI.stopRendering();
     });
 
     test(' "click" on bubble (not in link-action) has no effect', function() {
@@ -3505,7 +3660,7 @@ suite('thread_ui.js >', function() {
     });
 
     test(' "long-press" on an error bubble shows a menu with resend option',
-      function() {
+      function(done) {
         // Create a message with a delivery error
         ThreadUI.appendMessage({
           id: 9,
@@ -3513,22 +3668,25 @@ suite('thread_ui.js >', function() {
           body: 'This is a test with 123123123',
           delivery: 'error',
           timestamp: Date.now()
-        });
+        }).then(() => {
+          // Retrieve the message node
+          link = document.getElementById('message-9').querySelector('a');
 
-        // Retrieve the message node
-        link = document.getElementById('message-9').querySelector('a');
+          // Dispatch custom event for testing long press
+          link.dispatchEvent(contextMenuEvent);
+          assert.ok(MockOptionMenu.calls.length, 1);
 
-        // Dispatch custom event for testing long press
-        link.dispatchEvent(contextMenuEvent);
-        assert.ok(MockOptionMenu.calls.length, 1);
-
-        // Confirm that the menu contained a "resend-message" option
-        assert.equal(MockOptionMenu.calls[0].items[4].l10nId, 'resend-message');
+          // Confirm that the menu contained a "resend-message" option
+          assert.equal(
+            MockOptionMenu.calls[0].items[4].l10nId,
+            'resend-message'
+          );
+        }).then(done, done);
     });
 
     test(' "long-press" on an error outgoing mms bubble shows a menu' +
       'with resend option',
-      function() {
+      function(done) {
         // Create a message with a sending error
         ThreadUI.appendMessage({
           id: 10,
@@ -3537,22 +3695,25 @@ suite('thread_ui.js >', function() {
           deliveryInfo: [{receiver: null, deliveryStatus: 'error'}],
           attachments: [],
           subject: 'error sending'
-        });
+        }).then(() => {
+          // Retrieve the message node
+          link = document.querySelector('#message-10 section');
 
-        // Retrieve the message node
-        link = document.querySelector('#message-10 section');
+          // Dispatch custom event for testing long press
+          link.dispatchEvent(contextMenuEvent);
+          assert.ok(MockOptionMenu.calls.length, 1);
 
-        // Dispatch custom event for testing long press
-        link.dispatchEvent(contextMenuEvent);
-        assert.ok(MockOptionMenu.calls.length, 1);
-
-        // Confirm that the menu contained a "resend-message" option
-        assert.equal(MockOptionMenu.calls[0].items[4].l10nId, 'resend-message');
+          // Confirm that the menu contained a "resend-message" option
+          assert.equal(
+            MockOptionMenu.calls[0].items[4].l10nId,
+            'resend-message'
+          );
+        }).then(done, done);
     });
 
     test(' "long-press" on an incoming download error mms bubble should not '+
       'show a menu with resend option',
-      function() {
+      function(done) {
         // Create a message with a download error
         ThreadUI.appendMessage({
           id: 11,
@@ -3564,24 +3725,24 @@ suite('thread_ui.js >', function() {
           attachments: [],
           subject: 'error download',
           expiryDate: Date.now()
-        });
+        }).then(() => {
+          // Retrieve the message node
+          link = document.querySelector('#message-11 section');
 
-        // Retrieve the message node
-        link = document.querySelector('#message-11 section');
+          // Dispatch custom event for testing long press
+          link.dispatchEvent(contextMenuEvent);
+          assert.ok(MockOptionMenu.calls.length, 1);
 
-        // Dispatch custom event for testing long press
-        link.dispatchEvent(contextMenuEvent);
-        assert.ok(MockOptionMenu.calls.length, 1);
-
-        // Confirm that the menu doesn't contained a "resend-message" option
-        assert.isTrue(MockOptionMenu.calls[0].items.every(function(item){
-          return item.l10nId !== 'resend-message';
-        }));
+          // Confirm that the menu doesn't contained a "resend-message" option
+          assert.isTrue(MockOptionMenu.calls[0].items.every(function(item) {
+            return item.l10nId !== 'resend-message';
+          }));
+        }).then(done, done);
     });
 
     test(' "long-press" on an not downloaded message ' +
       'bubble shows a menu without forward option',
-      function() {
+      function(done) {
         // Create a message with an undownloaded attachment:
         ThreadUI.appendMessage({
           id: 12,
@@ -3591,48 +3752,57 @@ suite('thread_ui.js >', function() {
           subject:'',
           attachments: null,
           timestamp: Date.now()
-        });
+        }).then(() => {
+          // Retrieve the message node
+          var messageNode = document.querySelector('#message-12 section');
 
-        // Retrieve the message node
-        var messageNode = document.querySelector('#message-12 section');
+          // Dispatch custom event for testing long press
+          messageNode.dispatchEvent(contextMenuEvent);
+          assert.ok(MockOptionMenu.calls.length, 1);
+          assert.ok(MockOptionMenu.calls[0].items.length, 4);
 
-        // Dispatch custom event for testing long press
-        messageNode.dispatchEvent(contextMenuEvent);
-        assert.ok(MockOptionMenu.calls.length, 1);
-        assert.ok(MockOptionMenu.calls[0].items.length, 4);
-
-        // Confirm that the menu contained a "resend-message" option
-        for (var i = MockOptionMenu.calls[0].length - 1; i >= 0; i--) {
-          assert.notEqual(
-            MockOptionMenu.calls[0].items[i].l10nId,
-            'forward'
-          );
-        }
+          // Confirm that the menu contained a "resend-message" option
+          for (var i = MockOptionMenu.calls[0].length - 1; i >= 0; i--) {
+            assert.notEqual(
+              MockOptionMenu.calls[0].items[i].l10nId,
+              'forward'
+            );
+          }
+        }).then(done, done);
     });
   });
 
   suite('Message resending UI', function() {
-    setup(function() {
-      ThreadUI.appendMessage({
+    setup(function(done) {
+      var promises = [];
+
+      promises.push(ThreadUI.appendMessage({
         id: 23,
         type: 'sms',
         body: 'This is a test',
         delivery: 'error',
         timestamp: Date.now()
-      });
-      ThreadUI.appendMessage({
+      }), ThreadUI.appendMessage({
         id: 45,
         type: 'sms',
         body: 'This is another test',
         delivery: 'sent',
         timestamp: Date.now()
-      });
-      this.sinon.stub(Utils, 'confirm').returns(Promise.resolve());
-      this.sinon.stub(ThreadUI, 'resendMessage');
-      this.elems = {
-        errorMsg: ThreadUI.container.querySelector('.error'),
-        sentMsg: ThreadUI.container.querySelector('.sent')
-      };
+      }));
+
+      ThreadUI.initializeRendering();
+      Promise.all(promises).then(() => {
+        this.sinon.stub(Utils, 'confirm').returns(Promise.resolve());
+        this.sinon.stub(ThreadUI, 'resendMessage');
+        this.elems = {
+          errorMsg: ThreadUI.container.querySelector('.error'),
+          sentMsg: ThreadUI.container.querySelector('.sent')
+        };
+      }).then(done, done);
+    });
+
+    teardown(function() {
+      ThreadUI.stopRendering();
     });
 
     test('clicking on "message-status" aside in an error message' +
@@ -3762,6 +3932,7 @@ suite('thread_ui.js >', function() {
         name: 'imageTest.jpg',
         blob: testImageBlob
       }];
+      var message;
 
       setup(function() {
         this.sinon.spy(Attachment.prototype, 'render');
@@ -3769,39 +3940,46 @@ suite('thread_ui.js >', function() {
         Navigation.isCurrentPanel.withArgs('thread').returns(true);
 
         this.sinon.stub(HTMLElement.prototype, 'scrollIntoView');
-        this.sinon.stub(SMIL, 'parse');
+        this.sinon.stub(SMIL, 'parse').yields(inputArray);
 
         // fake content so that there is something to scroll
         container.innerHTML = ThreadUI.tmpl.message.interpolate({
           id: '1',
           bodyHTML: 'test #1'
         });
-
-        var message = MockMessages.mms();
-        ThreadUI.buildMessageDOM(message);
+        message = MockMessages.mms();
+        ThreadUI.initializeRendering();
       });
 
       teardown(function() {
         container.innerHTML = '';
+        ThreadUI.stopRendering();
       });
 
-      test('should scroll when the view is scrolled to the bottom', function() {
+      test('should scroll when the view is scrolled to the bottom',
+        function(done) {
+
         ThreadUI.isScrolledManually = false;
-        SMIL.parse.yield(inputArray);
-        sinon.assert.called(HTMLElement.prototype.scrollIntoView);
+        ThreadUI.appendMessage(message).then(() => {
+          sinon.assert.called(HTMLElement.prototype.scrollIntoView);
+        }).then(done, done);
       });
 
-      test('should not scroll when the user scrolled up the view', function() {
+      test('should not scroll when the user scrolled up the view',
+        function(done) {
+
         ThreadUI.isScrolledManually = true;
-        SMIL.parse.yield(inputArray);
-        sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
+        ThreadUI.appendMessage(message).then(() => {
+          sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
+        }).then(done, done);
       });
 
-      test('should not scroll if not in the right panel', function() {
+      test('should not scroll if not in the right panel', function(done) {
         Navigation.isCurrentPanel.withArgs('thread').returns(false);
         ThreadUI.isScrolledManually = false;
-        SMIL.parse.yield(inputArray);
-        sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
+        ThreadUI.appendMessage(message).then(() => {
+          sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
+        }).then(done, done);
       });
     });
   });
@@ -5460,15 +5638,17 @@ suite('thread_ui.js >', function() {
     var notice;
 
     function addMessages() {
+      var promises = [];
       for (var i = 0; i < 15; i++) {
         var message = MockMessages.sms({
           id: i
         });
-        ThreadUI.appendMessage(message);
+        promises.push(ThreadUI.appendMessage(message));
       }
+      return Promise.all(promises);
     }
 
-    setup(function() {
+    setup(function(done) {
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
       Navigation.isCurrentPanel.withArgs('thread').returns(true);
 
@@ -5479,15 +5659,20 @@ suite('thread_ui.js >', function() {
         id: 20
       });
 
-      addMessages();
+      addMessages().then(() => {
+        //Put the scroll on top
+        container.scrollTop = 0;
+        dispatchScrollEvent(container);
 
-      //Put the scroll on top
-      container.scrollTop = 0;
-      dispatchScrollEvent(container);
+        MessageManager.on.withArgs('message-received').yield({
+          message: testMessage
+        });
+      }).then(done, done);
+      ThreadUI.initializeRendering();
+    });
 
-      MessageManager.on.withArgs('message-received').yield({
-        message: testMessage
-      });
+    teardown(function() {
+      ThreadUI.stopRendering();
     });
 
     suite('should be shown', function() {
@@ -5967,7 +6152,7 @@ suite('thread_ui.js >', function() {
       assert.isFalse(mainWrapper.classList.contains('edit'));
     });
 
-    test('revokes all attachment thumbnail URLs', function() {
+    test('revokes all attachment thumbnail URLs', function(done) {
       this.sinon.stub(window.URL, 'revokeObjectURL');
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
       Navigation.isCurrentPanel.withArgs('thread').returns(true);
@@ -5983,25 +6168,29 @@ suite('thread_ui.js >', function() {
         content: testVideoBlob
       }];
 
-      attachments.forEach((attachment, index) => {
+      ThreadUI.initializeRendering();
+      var promises = attachments.map((attachment, index) =>
         ThreadUI.appendMessage(MockMessages.mms({
           id: index + 1,
           attachments: [attachment]
-        }));
+        })).then(() => {
+          if (attachment.content.type.indexOf('image') >= 0) {
+            var attachmentContainer = ThreadUI.container.querySelector(
+              '[data-message-id="' + (index + 1) + '"] .attachment-container'
+            );
+            attachmentContainer.dataset.thumbnail = 'blob:fake' + index;
+          }
+        })
+      );
 
-        if (attachment.content.type.indexOf('image') >= 0) {
-          var attachmentContainer = ThreadUI.container.querySelector(
-            '[data-message-id="' + (index + 1) + '"] .attachment-container'
-          );
-          attachmentContainer.dataset.thumbnail = 'blob:fake' + index;
-        }
-      });
+      Promise.all(promises).then(() => {
+        ThreadUI.stopRendering();
+        ThreadUI.beforeLeave(transitionArgs);
 
-      ThreadUI.beforeLeave(transitionArgs);
-
-      sinon.assert.calledTwice(window.URL.revokeObjectURL);
-      sinon.assert.calledWith(window.URL.revokeObjectURL, 'blob:fake0');
-      sinon.assert.calledWith(window.URL.revokeObjectURL, 'blob:fake1');
+        sinon.assert.calledTwice(window.URL.revokeObjectURL);
+        sinon.assert.calledWith(window.URL.revokeObjectURL, 'blob:fake0');
+        sinon.assert.calledWith(window.URL.revokeObjectURL, 'blob:fake1');
+      }).then(done, done);
     });
   });
 
@@ -6624,7 +6813,7 @@ suite('thread_ui.js >', function() {
   suite('Bubble selection', function() {
     var messageDOM, messageId, node, threadMessagesClass, range;
 
-    setup(function() {
+    setup(function(done) {
       threadMessagesClass = ThreadUI.threadMessages.classList;
       messageId = 1;
       ThreadUI.appendMessage({
@@ -6633,11 +6822,12 @@ suite('thread_ui.js >', function() {
         body: 'This is a test',
         delivery: 'sent',
         timestamp: Date.now()
-      });
-      messageDOM = document.getElementById('message-' + messageId);
-      node = messageDOM.querySelector('.message-content-body');
-      this.sinon.spy(node, 'focus');
-      this.sinon.stub(node, 'addEventListener');
+      }).then(() => {
+        messageDOM = document.getElementById('message-' + messageId);
+        node = messageDOM.querySelector('.message-content-body');
+        this.sinon.spy(node, 'focus');
+        this.sinon.stub(node, 'addEventListener');
+      }).then(done, done);
     });
 
     test('Enable bubble selection mode', function() {
