@@ -1,7 +1,5 @@
 'use strict';
 
-/* global IMERender */
-
 (function(exports) {
 
 /**
@@ -11,22 +9,13 @@
  */
 var AlternativesCharMenuManager = function(app) {
   this.app = app;
-
   this.isShown = false;
-
-  this._originalTarget = null;
-  this._menuAreaTop =
-    this._menuAreaLeft =
-    this._menuAreaRight =
-    this._menuAreaBottom = 0;
 };
 
 AlternativesCharMenuManager.prototype.start = function() {
-  this._currentMenuView = null;
 };
 
 AlternativesCharMenuManager.prototype.stop = function() {
-  this._currentMenuView = null;
 };
 
 AlternativesCharMenuManager.prototype.show = function(target) {
@@ -35,38 +24,9 @@ AlternativesCharMenuManager.prototype.show = function(target) {
     return;
   }
 
-  // Get the targetRect before menu is shown.
-  var targetRect =
-    IMERender.getView(target).element.getBoundingClientRect();
-
-  // XXX: Remove reference to IMERender in the global in the future.
-  this._currentMenuView = IMERender.showAlternativesCharMenu(target,
-                                                             alternatives);
+  var renderingManager = this.app.layoutRenderingManager;
+  renderingManager.showAlternativesCharMenu(target, alternatives);
   this.isShown = true;
-
-  this._originalTarget = target;
-
-  // XXX: We probably introduced a sync reflow here.
-  var menuRect = this._currentMenuView.getBoundingClientRect();
-
-  // The menu area the area right under the menu where we should redirect
-  // the active target from what's under the finger to a key on the menu.
-
-  // This ensures there is no gap between the menu and the area.
-  this._menuAreaTop = menuRect.top;
-  // Ensure the target key is entire covered by picking the leftmost value
-  this._menuAreaLeft = Math.min(targetRect.left, menuRect.left);
-
-  // Extend a little bit for usability
-  this._menuAreaLeft -= targetRect.width;
-
-  // Simply the bottom of the target key.
-  this._menuAreaBottom = targetRect.bottom;
-  // Ensure the target key is entire covered by picking the rightmost value
-  this._menuAreaRight = Math.max(targetRect.right, menuRect.right);
-
-  // Extend a little bit for usability
-  this._menuAreaRight += targetRect.width;
 };
 
 AlternativesCharMenuManager.prototype._getAlternativesForTarget =
@@ -100,24 +60,16 @@ AlternativesCharMenuManager.prototype.hide = function() {
     return;
   }
 
-  // XXX: Remove reference to IMERender in the global in the future.
-  IMERender.hideAlternativesCharMenu();
+  this.app.layoutRenderingManager.hideAlternativesCharMenu();
   this.isShown = false;
-
-  this._originalTarget = null;
-  this._menuAreaTop =
-    this._menuAreaLeft =
-    this._menuAreaRight =
-    this._menuAreaBottom = 0;
-  this._currentMenuView = null;
 };
 
 AlternativesCharMenuManager.prototype.isMenuTarget = function(target) {
-  if (!this._currentMenuView) {
+  if (!this.isShown) {
     return false;
   }
 
-  return this._currentMenuView.isMenuTarget(target);
+  return this.app.layoutRenderingManager.isMenuTarget(target);
 };
 
 AlternativesCharMenuManager.prototype.getMenuTarget = function(press) {
@@ -126,7 +78,7 @@ AlternativesCharMenuManager.prototype.getMenuTarget = function(press) {
       'getMenuTarget called but menu is not shown');
   }
 
-  return this._currentMenuView.getMenuTarget(press.clientX, press.clientY);
+  return this.app.layoutRenderingManager.getMenuTarget(press);
 };
 
 AlternativesCharMenuManager.prototype.isInMenuArea = function(press) {
@@ -134,10 +86,7 @@ AlternativesCharMenuManager.prototype.isInMenuArea = function(press) {
     return false;
   }
 
-  return (press.clientY >= this._menuAreaTop &&
-          press.clientY <= this._menuAreaBottom &&
-          press.clientX >= this._menuAreaLeft &&
-          press.clientX <= this._menuAreaRight);
+  return this.app.layoutRenderingManager.isInMenuArea(press);
 };
 
 exports.AlternativesCharMenuManager = AlternativesCharMenuManager;

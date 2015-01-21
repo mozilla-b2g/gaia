@@ -34,7 +34,6 @@ KeyboardAppBuilder.prototype.copyStaticFiles = function() {
                                'locales',
                                'settings.html',
                                'style',
-                               'js/render.js',
                                'js/settings',
                                'js/shared',
                                'js/keyboard',

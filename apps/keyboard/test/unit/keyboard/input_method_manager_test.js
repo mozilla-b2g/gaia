@@ -215,9 +215,11 @@ suite('InputMethodGlue', function() {
     var glue = new InputMethodGlue();
     var app = {
       console: this.sinon.stub(KeyboardConsole.prototype),
-      getNumberOfCandidatesPerRow: this.sinon.stub()
+      viewManager: {
+        getNumberOfCandidatesPerRow: this.sinon.stub()
+      }
     };
-    app.getNumberOfCandidatesPerRow.returns(123);
+    app.viewManager.getNumberOfCandidatesPerRow.returns(123);
     glue.init(app, 'foo');
     var row = glue.getNumberOfCandidatesPerRow();
 
