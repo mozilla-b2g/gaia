@@ -121,7 +121,7 @@ suite('LayoutRenderingManager', function() {
         }));
     });
 
-    test('w/ autoCorrectLanguage, w/o displaysCandidates()', function() {
+    test('w/ autoCorrectLanguage', function() {
       app.layoutManager.currentPage.autoCorrectLanguage = 'zz-ZZ';
 
       p = manager.updateLayoutRendering();
@@ -135,23 +135,7 @@ suite('LayoutRenderingManager', function() {
         }));
     });
 
-    test('w/ autoCorrectLanguage, w/ displaysCandidates()', function() {
-      app.layoutManager.currentPage.autoCorrectLanguage = 'zz-ZZ';
-      app.inputMethodManager.currentIMEngine.displaysCandidates =
-        this.sinon.stub().returns(false);
-
-      p = manager.updateLayoutRendering();
-
-      assert.isTrue(IMERender.draw.calledWith(
-        app.layoutManager.currentPage,
-        {
-          uppercase: true,
-          inputType: 'foo',
-          showCandidatePanel: false
-        }));
-    });
-
-    test('w/ needsCandidatePanel, w/o displaysCandidates()', function() {
+    test('w/ needsCandidatePanel', function() {
       app.layoutManager.currentPage.needsCandidatePanel = true;
 
       p = manager.updateLayoutRendering();
@@ -162,22 +146,6 @@ suite('LayoutRenderingManager', function() {
           uppercase: true,
           inputType: 'foo',
           showCandidatePanel: true
-        }));
-    });
-
-    test('w/ needsCandidatePanel, w/ displaysCandidates()', function() {
-      app.layoutManager.currentPage.needsCandidatePanel = true;
-      app.inputMethodManager.currentIMEngine.displaysCandidates =
-        this.sinon.stub().returns(false);
-
-      p = manager.updateLayoutRendering();
-
-      assert.isTrue(IMERender.draw.calledWith(
-        app.layoutManager.currentPage,
-        {
-          uppercase: true,
-          inputType: 'foo',
-          showCandidatePanel: false
         }));
     });
   });

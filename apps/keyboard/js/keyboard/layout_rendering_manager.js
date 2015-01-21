@@ -113,7 +113,6 @@ LayoutRenderingManager.prototype.updateLayoutRendering = function() {
 
   var currentPage = this._currentRenderingPage =
     this.app.layoutManager.currentPage;
-  var currentIMEngine = this.app.inputMethodManager.currentIMEngine;
 
   this.app.console.log('needsCandidatePanel',
     currentPage.autoCorrectLanguage, currentPage.needsCandidatePanel,
@@ -123,9 +122,7 @@ LayoutRenderingManager.prototype.updateLayoutRendering = function() {
 
   // Determine if the candidate panel for word suggestion is needed
   var needsCandidatePanel = !!(
-    (currentPage.autoCorrectLanguage || currentPage.needsCandidatePanel) &&
-    ((typeof currentIMEngine.displaysCandidates !== 'function') ||
-      currentIMEngine.displaysCandidates()));
+    currentPage.autoCorrectLanguage || currentPage.needsCandidatePanel);
 
   var p = new Promise(function(resolve) {
     IMERender.draw(currentPage, {
