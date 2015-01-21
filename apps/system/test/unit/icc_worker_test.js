@@ -10,6 +10,7 @@ requireApp('system/test/unit/mock_app_window_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/test/unit/mocks/mock_dump.js');
+require('/shared/test/unit/mocks/mock_stk_helper.js');
 requireApp('system/js/icc_worker.js');
 
 var mocksForIcc = new MocksHelper([
@@ -17,7 +18,8 @@ var mocksForIcc = new MocksHelper([
   'Service',
   'L10n',
   'Dump',
-  'Notification'
+  'Notification',
+  'STKHelper'
 ]).init();
 
 suite('STK (icc_worker) >', function() {
@@ -147,7 +149,7 @@ suite('STK (icc_worker) >', function() {
   });
 
   test('STK_CMD_DISPLAY_TEXT (Timeout)', function(done) {
-    window.icc.confirm = function(stkMsg, message, timeout, callback) {
+    window.icc.confirm = function(stkMsg, message, icons, timeout, callback) {
       callback(false);
     };
     window.icc.onresponse = function(message, response) {
@@ -160,8 +162,9 @@ suite('STK (icc_worker) >', function() {
 
   test('STK_CMD_GET_INPUT (User response)', function(done) {
     var stkResponse = 'stk introduced text';
-    window.icc.input = function(stkMsg, message, timeout, options, callback) {
-      callback(true, stkResponse);
+    window.icc.input = function(stkMsg, message, icons, timeout,
+      options, callback) {
+        callback(true, stkResponse);
     };
     window.icc.onresponse = function(message, response) {
       assert.equal(response.resultCode, navigator.mozIccManager.STK_RESULT_OK);
@@ -172,8 +175,9 @@ suite('STK (icc_worker) >', function() {
   });
 
   test('STK_CMD_GET_INPUT (Timeout)', function(done) {
-    window.icc.input = function(stkMsg, message, timeout, options, callback) {
-      callback(false);
+    window.icc.input = function(stkMsg, message, icons, timeout,
+      options, callback) {
+        callback(false);
     };
     window.icc.onresponse = function(message, response) {
       assert.equal(response.resultCode,

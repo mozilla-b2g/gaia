@@ -15,12 +15,14 @@ require('/shared/test/unit/mocks/mock_dump.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/js/lazy_loader.js');
 require('/js/input_window_manager.js');
+require('/shared/test/unit/mocks/mock_stk_helper.js');
 
 var mocksForIcc = new MocksHelper([
   'Dump',
   'FtuLauncher',
   'SystemICCWorker',
-  'StatusBar'
+  'StatusBar',
+  'STKHelper'
 ]).init();
 
 suite('STK (icc) >', function() {
@@ -145,6 +147,23 @@ suite('STK (icc) >', function() {
           typeOfCommand: navigator.mozIccManager.STK_CMD_REFRESH,
           commandQualifier: 0,
           options: {}
+        }
+      },
+
+      STK_CMD_SEND_DTMF: {
+        iccId: '1010011010',
+        command: {
+          commandNumber: 1,
+          typeOfCommand: navigator.mozIccManager.STK_CMD_SEND_DTMF,
+          commandQualifier: 0,
+          options: {
+            text: 'stk display test text',
+            userClear: true,
+            duration: {
+              timeUnit: navigator.mozIccManager.STK_TIME_UNIT_TENTH_SECOND,
+              timeInterval: 5
+            }
+          }
         }
       }
     };
@@ -288,7 +307,7 @@ suite('STK (icc) >', function() {
   test('UI: Display Text (timeout 1sec)', function(done) {
     var fakeClock = this.sinon.useFakeTimers(),
         testCmd = stkTestCommands.STK_CMD_DISPLAY_TEXT;
-    window.icc.confirm(testCmd, testCmd.command.options.text, 1000,
+    window.icc.confirm(testCmd, testCmd.command.options.text, null, 1000,
       function(res, value) {
         fakeClock.restore();
         done();
@@ -298,7 +317,8 @@ suite('STK (icc) >', function() {
 
   test('UI: Display Text (contents)', function() {
     var testCmd = stkTestCommands.STK_CMD_DISPLAY_TEXT;
-    window.icc.confirm(testCmd, testCmd.command.options.text, 0, function() {});
+    window.icc.confirm(testCmd, testCmd.command.options.text, null, 0,
+      function() {});
     assert.equal(document.getElementById('icc-confirm-msg').textContent,
       testCmd.command.options.text);
     assert.equal(document.getElementById('icc-confirm-btn').disabled, false);
@@ -309,7 +329,7 @@ suite('STK (icc) >', function() {
   test('UI: Input (timeout 1sec)', function(done) {
     var fakeClock = this.sinon.useFakeTimers(),
         testCmd = stkTestCommands.STK_CMD_GET_INPUT;
-    window.icc.input(testCmd, testCmd.command.options.text, 1000,
+    window.icc.input(testCmd, testCmd.command.options.text, null, 1000,
       stkTestCommands.STK_CMD_GET_INPUT.command.options, function(res, value) {
         fakeClock.restore();
         done();
@@ -319,7 +339,7 @@ suite('STK (icc) >', function() {
 
   test('UI: Input (contents)', function() {
     var testCmd = stkTestCommands.STK_CMD_GET_INPUT;
-    window.icc.input(testCmd, testCmd.command.options.text, 0,
+    window.icc.input(testCmd, testCmd.command.options.text, null, 0,
       stkTestCommands.STK_CMD_GET_INPUT.command.options, function() {});
 
     assert.equal(document.getElementById('icc-input-msg').textContent,
@@ -339,7 +359,7 @@ suite('STK (icc) >', function() {
   test('UI: Input (checkInputLengthValid)', function() {
     var fakeClock = this.sinon.useFakeTimers();
     var testCmd = stkTestCommands.STK_CMD_GET_INPUT;
-    window.icc.input(testCmd, testCmd.command.options.text, 0,
+    window.icc.input(testCmd, testCmd.command.options.text, null, 0,
       stkTestCommands.STK_CMD_GET_INPUT.command.options, function() {});
 
     var button = document.getElementById('icc-input-btn');
@@ -452,7 +472,7 @@ suite('STK (icc) >', function() {
 
   test('settings visibilitychange - STK_CMD_GET_INPUT', function(done) {
     var testCmd = stkTestCommands.STK_CMD_GET_INPUT;
-    window.icc.input(testCmd, testCmd.command.options.text, 40000,
+    window.icc.input(testCmd, testCmd.command.options.text, null, 40000,
       stkTestCommands.STK_CMD_GET_INPUT.command.options,
       function(resultObject) {
         assert.equal(resultObject, null);
@@ -464,7 +484,7 @@ suite('STK (icc) >', function() {
   test('settings visibilitychange - STK_CMD_SET_UP_CALL', function(done) {
     var testCmd = stkTestCommands.STK_CMD_SET_UP_CALL;
     window.icc.asyncConfirm(testCmd, testCmd.command.options.confirmMessage,
-      function(resultBoolean) {
+      null, function(resultBoolean) {
         assert.equal(resultBoolean, false);
         done();
     });
@@ -509,6 +529,95 @@ suite('STK (icc) >', function() {
         icc._currentMessage = testCommand;
         icc.discardCurrentMessageIfNeeded(stkTestCommands.STK_CMD_GET_INPUT);
         assert.isFalse(stubResponseSTKCommand.calledOnce);
+    });
+  });
+
+  suite('STK messages with icons >', function() {
+    var icons = [{
+      'pixels':[0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,
+                0x000000FF,0x000000FF,0x000000FF,0x000000FF,
+                0xFFFFFFFF,0x000000FF,0xFFFFFFFF,0x000000FF,
+                0xFFFFFFFF,0x000000FF,0x000000FF,0xFFFFFFFF],
+      'codingScheme': 'basic',
+      'width': 4,
+      'height': 4
+    }];
+
+    setup(function() {
+      icc.hideViews();
+      stkTestCommands.STK_CMD_SET_UP_CALL.icons = icons;
+      stkTestCommands.STK_CMD_GET_INPUT.icons = icons;
+      stkTestCommands.STK_CMD_DISPLAY_TEXT.icons = icons;
+      stkTestCommands.STK_CMD_SEND_DTMF.icons = icons;
+    });
+
+    teardown(function() {
+      delete stkTestCommands.STK_CMD_SET_UP_CALL.icons;
+      delete stkTestCommands.STK_CMD_GET_INPUT.icons;
+      delete stkTestCommands.STK_CMD_DISPLAY_TEXT.icons;
+      delete stkTestCommands.STK_CMD_SEND_DTMF.icons;
+    });
+
+    test('UI: icons should be displayed - asyncconfirm', function() {
+      var testCmd = stkTestCommands.STK_CMD_SET_UP_CALL;
+      window.icc.asyncConfirm(testCmd, testCmd.command.options.confirmMessage,
+        testCmd.icons, null);
+      var img = document.getElementById('icc-asyncconfirm-icons');
+      assert.equal(img.children.length, 1);
+    });
+
+    test('UI: icons should not be displayed - asyncconfirm', function() {
+      var testCmd = stkTestCommands.STK_CMD_SET_UP_CALL;
+      window.icc.asyncConfirm(testCmd, testCmd.command.options.confirmMessage,
+        null, null);
+      var img = document.getElementById('icc-asyncconfirm-icons');
+      assert.equal(img.children.length, 0);
+    });
+
+    test('UI: icons should be displayed - confirm', function() {
+      var testCmd = stkTestCommands.STK_CMD_DISPLAY_TEXT;
+      window.icc.confirm(testCmd, testCmd.command.options.text, testCmd.icons,
+        null);
+      var img = document.getElementById('icc-confirm-icons');
+      assert.equal(img.children.length, 1);
+    });
+
+    test('UI: icons should not be displayed - confirm', function() {
+      var testCmd = stkTestCommands.STK_CMD_DISPLAY_TEXT;
+      window.icc.confirm(testCmd, testCmd.command.options.text, null,
+        null);
+      var img = document.getElementById('icc-confirm-icons');
+      assert.equal(img.children.length, 0);
+    });
+
+    test('UI: icons should be displayed - alert', function() {
+      var testCmd = stkTestCommands.STK_CMD_SEND_DTMF;
+      window.icc.alert(testCmd, testCmd.command.options.text, testCmd.icons);
+      var img = document.getElementById('icc-alert-icons');
+      assert.equal(img.children.length, 1);
+    });
+
+    test('UI: icons should not be displayed - alert', function() {
+      var testCmd = stkTestCommands.STK_CMD_SEND_DTMF;
+      window.icc.alert(testCmd, testCmd.command.options.text, null);
+      var img = document.getElementById('icc-alert-icons');
+      assert.equal(img.children.length, 0);
+    });
+
+    test('UI: icons should be displayed - input', function() {
+      var testCmd = stkTestCommands.STK_CMD_GET_INPUT;
+      window.icc.input(testCmd, testCmd.command.options.text, testCmd.icons,
+        0, testCmd.command.options, function() {});
+      var img = document.getElementById('icc-input-icons');
+      assert.equal(img.children.length, 1);
+    });
+
+    test('UI: icons should not be displayed - input', function() {
+      var testCmd = stkTestCommands.STK_CMD_GET_INPUT;
+      window.icc.input(testCmd, testCmd.command.options.text, null,
+        0, testCmd.command.options, function() {});
+      var img = document.getElementById('icc-input-icons');
+      assert.equal(img.children.length, 0);
     });
   });
 });
