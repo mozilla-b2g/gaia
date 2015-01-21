@@ -102,16 +102,6 @@ suite('system/callForwarding >', function() {
       sinon.assert.calledWith(this.callForwarding._initCallForwardingState,
         this.slots[0]);
     });
-
-    test('should set the icons state to false by default', function(done) {
-      this.callForwarding.start();
-      setTimeout(function() {
-        var instance = MockSettingsHelper.instances['ril.cf.enabled'];
-        assert.isFalse(instance.value[0]);
-        assert.isFalse(instance.defaultValue[0]);
-        done();
-      });
-    });
   });
 
   suite('_addEventHandlers()', function() {
@@ -161,42 +151,66 @@ suite('system/callForwarding >', function() {
     });
 
     suite('_initCallForwardingState()', function() {
-      test('should early return if the slot has been initialized', function() {
+      setup(function() {
         this.callForwarding.start();
-        sinon.spy(window.asyncStorage, 'getItem');
+        this.sinon.spy(window.asyncStorage, 'getItem');
+
+        // _callForwardingIconInitializedStates will be true after calling
+        // callForwarding.start(), set to false so we can test different cases.
+        this.callForwarding._callForwardingIconInitializedStates[0] = false;
+
+        // MockSettingsHelper.instances['ril.cf.enabled'].value[0] is false
+        // by default, set to true and see if it changes to correct value.
+        MockSettingsHelper.instances['ril.cf.enabled'].value[0] = true;
+      });
+
+      teardown(function() {
+        // Move back 'ril.cf.enabled' default settings value
+        MockSettingsHelper.instances['ril.cf.enabled'].value[0] = false;
+      });
+
+      test('should early return if the slot has been initialized', function() {
         this.callForwarding._callForwardingIconInitializedStates[0] = true;
         this.callForwarding._initCallForwardingState(this.slots[0]);
         sinon.assert.notCalled(window.asyncStorage.getItem);
-        window.asyncStorage.getItem.restore();
       });
 
-      test('should early returrn if the sim card is not available', function() {
-        this.callForwarding.start();
-        sinon.spy(window.asyncStorage, 'getItem');
-        this.slots[0].simCard = null;
-        this.callForwarding._initCallForwardingState(this.slots[0]);
-        sinon.assert.notCalled(window.asyncStorage.getItem);
-        window.asyncStorage.getItem.restore();
+      test('should early return and set call forwarding to false ' +
+        'if the sim card is not available', function(done) {
+          this.slots[0].simCard = null;
+          this.callForwarding._initCallForwardingState(this.slots[0]);
+          sinon.assert.notCalled(window.asyncStorage.getItem);
+          setTimeout(function() {
+            assert.isFalse(
+              MockSettingsHelper.instances['ril.cf.enabled'].value[0]);
+            done();
+          });
       });
 
-      test('should early returrn if the card state is not ready', function() {
-        this.callForwarding.start();
-        sinon.spy(window.asyncStorage, 'getItem');
-        this.slots[0].simCard.cardState = 'unknown';
-        this.callForwarding._initCallForwardingState(this.slots[0]);
-        sinon.assert.notCalled(window.asyncStorage.getItem);
-        window.asyncStorage.getItem.restore();
+      test('should early return and set call forwarding to false ' +
+        'if the card state is not ready', function(done) {
+          this.slots[0].simCard.cardState = 'unknown';
+          this.callForwarding._initCallForwardingState(this.slots[0]);
+          sinon.assert.notCalled(window.asyncStorage.getItem);
+          setTimeout(function() {
+            assert.isFalse(
+              MockSettingsHelper.instances['ril.cf.enabled'].value[0]);
+            done();
+          });
       });
 
-      test('should early returrn if the iccid is not available', function() {
-        this.callForwarding.start();
-        sinon.spy(window.asyncStorage, 'getItem');
-        this.slots[0].simCard.iccInfo = {
-          iccid: null
-        };
-        this.callForwarding._initCallForwardingState(this.slots[0]);
-        sinon.assert.notCalled(window.asyncStorage.getItem);
-        window.asyncStorage.getItem.restore();
+      test('should early return and set call forwarding to false ' +
+        'if the iccid is not available', function(done) {
+          this.slots[0].simCard.iccInfo = {
+            iccid: null
+          };
+          this.callForwarding._initCallForwardingState(this.slots[0]);
+          sinon.assert.notCalled(window.asyncStorage.getItem);
+          setTimeout(function() {
+            assert.isFalse(
+              MockSettingsHelper.instances['ril.cf.enabled'].value[0]);
+            done();
+          });
       });
 
       suite('when with valid iccid', function() {
