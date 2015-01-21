@@ -1,6 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* global LockScreenClockWidget */
 'use strict';
 
 /**
@@ -141,12 +139,7 @@
     /*
     * Max value for handle swiper up
     */
-    HANDLE_MAX: 70,
-
-    /**
-     * Object used for handling the clock UI element, wraps all related timers
-     */
-    clock: new window.Clock()
+    HANDLE_MAX: 70
   };  // -- LockScreen.prototype --
 
   LockScreen.prototype.handleEvent =
@@ -181,14 +174,8 @@
           if (this.camera && this.camera.firstElementChild) {
             this.camera.removeChild(this.camera.firstElementChild);
           }
-
-          // Stop refreshing the clock when the screen is turned off.
-          this.clock.stop();
         } else {
           this._passCodeTimeoutCheck = this.checkPassCodeTimeout();
-
-          // Resume refreshing the clock when the screen is turned on.
-          this.clock.start(this.refreshClock.bind(this));
         }
         // No matter turn on or off from screen timeout or poweroff,
         // all secure apps would be hidden.
@@ -323,15 +310,6 @@
           break;
         }
         break;
-      case 'timeformatchange':
-        if (!this.l10nready) {
-          return;
-        }
-        this.timeFormat = window.navigator.mozHour12 ?
-          navigator.mozL10n.get('shortTimeFormat12') :
-          navigator.mozL10n.get('shortTimeFormat24');
-        this.refreshClock(new Date());
-        break;
     }
   };  // -- LockScreen#handleEvent --
 
@@ -462,7 +440,6 @@
     if(this._checkGenerateMaskedBackgroundColor()){
       this._generateMaskedBackgroundColor();
     }
-    // Do not refresh clock here: L10n may not ready.
   };
 
   LockScreen.prototype.initUnlockerEvents =
@@ -496,11 +473,12 @@
   LockScreen.prototype.l10nInit =
   function ls_l10nInit() {
     this.l10nready = true;
-    // The default one is 12 hour.
-    this.timeFormat = window.navigator.mozHour12 ?
-      navigator.mozL10n.get('shortTimeFormat12') :
-      navigator.mozL10n.get('shortTimeFormat24');
-    this.refreshClock(new Date());
+    // Adapt a state-widget in the curret architecture.
+    this.lockScreenClockWidget = new LockScreenClockWidget();
+    this.lockScreenClockWidget.elementsAs({
+      view: document.getElementById('lockscreen-clock-widget')
+    })
+    .start().ready();
 
     // mobile connection state on lock screen.
     // It needs L10n too. But it's not a re-entrable function,
@@ -670,12 +648,17 @@
     var wasAlreadyUnlocked = !this.locked;
     this.locked = false;
 
-    // The lockscreen will be hidden, stop refreshing the clock.
-    this.clock.stop();
-
     if (wasAlreadyUnlocked) {
       return;
     }
+
+    // Halt the children widget(s).
+    // As a parent component, LockScreen *knows* it's in
+    // ClockTick state, which can transfer to the halting state
+    // to stop the widget. And, children's methods should be
+    // transparent to parent component, so that parent components
+    // can control the widgets thoroughly.
+    this.lockScreenClockWidget.halt();
 
     if (this.unlockSoundEnabled) {
       var unlockAudio = new Audio('/resources/sounds/unlock.opus');
@@ -816,21 +799,6 @@
           this._switchingPanel = false;
         }).bind(this));
     }).bind(this));
-  };
-
-  LockScreen.prototype.refreshClock =
-  function ls_refreshClock(now) {
-    if (!this.locked) {
-      return;
-    }
-
-    var f = new navigator.mozL10n.DateTimeFormat();
-    var _ = navigator.mozL10n.get;
-
-    var timeFormat = this.timeFormat.replace('%p', '<span>%p</span>');
-    var dateFormat = _('longDateFormat');
-    this.clockTime.innerHTML = f.localeFormat(now, timeFormat);
-    this.date.textContent = f.localeFormat(now, dateFormat);
   };
 
   /**
