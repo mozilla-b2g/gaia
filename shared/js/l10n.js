@@ -1126,7 +1126,7 @@
       if (type === 'properties') {
         type = 'text';
       }
-      navigator.mozApps.getLocalizationResource(id, ver, type).
+      navigator.mozApps.getLocalizationResource(id, ver, path, type).
         then(callback.bind(null, null), errback);
     },
     app: function(id, ver, path, type, callback, errback, sync) {
@@ -1480,7 +1480,8 @@
   };
 
   var Gecko2GaiaVersions = {
-    '37.0': '2.2'
+    '37.0': '2.2',
+    '38.0': '3.0'
   };
 
   function getGaiaVersion() {
