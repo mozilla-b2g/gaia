@@ -20,7 +20,9 @@ requireApp('system/js/sim_lock_manager.js');
 
 var mocksHelperForSimLockManager = new MocksHelper([
   'Service',
-  'SIMSlotManager'
+  'SIMSlotManager',
+  'SIMSlot',
+  'Mobileconnection'
 ]).init();
 
 suite('SimLockManager', function() {
