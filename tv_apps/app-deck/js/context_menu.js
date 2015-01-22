@@ -1,6 +1,6 @@
 'use strict';
 
-/* global MozActivity, Applications, SharedUtils */
+/* global MozActivity, Applications */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -124,9 +124,9 @@
 
     onFocusOnPinable: function cm_onFocusOnPinable(detail) {
       this._app = detail;
-      var l10nPayload =
+      var l10nId =
         (detail && detail.pinned) ? 'unpin-from-home' : 'pin-to-home';
-      SharedUtils.localizeElement(this.pinToHomeElem, l10nPayload);
+      this.pinToHomeElem.setAttribute('data-l10n-id', l10nId);
       if (detail.removable === false) {
         this.contextMenuElem.removeChild(this.removeElem);
       } else {
