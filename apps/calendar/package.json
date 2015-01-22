@@ -12,5 +12,13 @@
       "page": "github:tj/page.js/1.3.2#index.js",
       "uuid": "github:broofa/node-uuid/v1.4.1"
     }
+  },
+  "webide": {
+    "prepackage": {
+      "command": "make",
+      "env": ["APP=calendar"],
+      "cwd": "../.."
+    },
+    "packageDir": "../../build_stage/calendar/"
   }
 }

@@ -94,6 +94,9 @@ WebappZip.prototype.isExcludedFromZip = function(file) {
     function isReadme(file) {
       return /README/.test(file.path);
     },
+    function isPackageJSON(file) {
+      return /package\.json/.test(file.path);
+    },
     function fileHidden(file) {
       return file.isHidden();
     },

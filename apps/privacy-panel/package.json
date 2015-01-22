@@ -1,0 +1,10 @@
+{
+  "webide": {
+    "prepackage": {
+      "command": "make",
+      "env": ["APP=privacy-panel"],
+      "cwd": "../.."
+    },
+    "packageDir": "../../build_stage/privacy-panel/"
+  }
+}

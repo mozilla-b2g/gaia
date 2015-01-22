@@ -1,0 +1,10 @@
+{
+  "webide": {
+    "prepackage": {
+      "command": "make",
+      "env": ["APP=bluetooth"],
+      "cwd": "../.."
+    },
+    "packageDir": "../../build_stage/bluetooth/"
+  }
+}

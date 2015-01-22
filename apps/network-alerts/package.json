@@ -1,0 +1,10 @@
+{
+  "webide": {
+    "prepackage": {
+      "command": "make",
+      "env": ["APP=network-alerts"],
+      "cwd": "../.."
+    },
+    "packageDir": "../../build_stage/network-alerts/"
+  }
+}

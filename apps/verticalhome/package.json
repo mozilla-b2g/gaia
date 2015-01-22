@@ -1,0 +1,10 @@
+{
+  "webide": {
+    "prepackage": {
+      "command": "make",
+      "env": ["APP=verticalhome"],
+      "cwd": "../.."
+    },
+    "packageDir": "../../build_stage/verticalhome/"
+  }
+}
