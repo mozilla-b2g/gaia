@@ -205,10 +205,8 @@
     },
 
     '_handle_system-resize': function() {
-      if (this.isActive()) {
-        if (this.searchWindow.frontWindow) {
-          this.searchWindow.frontWindow.resize();
-        }
+      if (this.isActive() && this.searchWindow.frontWindow) {
+        this.searchWindow.frontWindow.resize();
         return false;
       }
       return true;
