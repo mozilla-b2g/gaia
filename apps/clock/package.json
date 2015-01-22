@@ -1,0 +1,10 @@
+{
+  "webide": {
+    "prepackage": {
+      "command": "make",
+      "env": ["APP=clock"],
+      "cwd": "../.."
+    },
+    "packageDir": "../../build_stage/clock/"
+  }
+}

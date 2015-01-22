@@ -1,0 +1,10 @@
+{
+  "webide": {
+    "prepackage": {
+      "command": "make",
+      "env": ["APP=wallpaper"],
+      "cwd": "../.."
+    },
+    "packageDir": "../../build_stage/wallpaper/"
+  }
+}
