@@ -788,16 +788,6 @@ suite('ActivityHandler', function() {
       ActivityHandler.leaveActivity();
     });
 
-    test('Activity lock should be released properly', function(done) {
-      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
-      threadDeferred.reject(new Error('No thread for this test'));
-
-      sinon.assert.called(ActivityHandler._onNewActivity);
-      ActivityHandler._onNewActivity.firstCall.returnValue.then(function() {
-        assert.isFalse(ActivityHandler.isLocked);
-      }).then(done,done);
-    });
-
     test('Should move to the composer', function(done) {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
       threadDeferred.reject(new Error('No thread for this test'));
