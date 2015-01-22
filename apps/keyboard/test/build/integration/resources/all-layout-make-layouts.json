@@ -1,5 +1,20 @@
 [
   {
+    "id": "af",
+    "name": "Afrikaans",
+    "imEngineId": "latin",
+    "types": [
+      "email",
+      "password",
+      "text",
+      "url"
+    ],
+    "dictFileSize": 964021,
+    "preloaded": true,
+    "dictFilename": "af.dict",
+    "dictFilePath": "dictionaries/af.dict"
+  },
+  {
     "id": "ar",
     "name": "العربية",
     "types": [
