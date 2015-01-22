@@ -1,5 +1,5 @@
 /* global $, setView, LAYOUT_MODE, photodb, LazyLoader, Spinner, ImageEditor */
-/* global cropResizeRotate */
+/* global GestureDetector, cropResizeRotate */
 /* global CONFIG_MAX_PICK_PIXEL_SIZE, CONFIG_MAX_IMAGE_PIXEL_SIZE */
 /* exported Pick */
 
@@ -98,6 +98,8 @@ var Pick = (function() {
 
     // When the scripts we need are loaded, load the picked file we need
     function gotScripts() {
+      GestureDetector.DOUBLE_TAP_TIME = 250;
+
       photodb.getFile(pickedFileInfo.name, gotFile);
     }
 

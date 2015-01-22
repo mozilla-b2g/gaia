@@ -17,8 +17,8 @@ var metadataParser = (function() {
     // Make sure this works regardless of current device orientation
     var portraitWidth = Math.min(window.innerWidth, window.innerHeight);
     var landscapeWidth = Math.max(window.innerWidth, window.innerHeight);
-    var thumbnailsPerRowPortrait = isPhone ? 3 : 4;
-    var thumbnailsPerRowLandscape = isPhone ? 4 : 6;
+    var thumbnailsPerRowPortrait = 3;
+    var thumbnailsPerRowLandscape = 4;
     return Math.round(window.devicePixelRatio *
              Math.max(portraitWidth / thumbnailsPerRowPortrait,
                       landscapeWidth / thumbnailsPerRowLandscape));
