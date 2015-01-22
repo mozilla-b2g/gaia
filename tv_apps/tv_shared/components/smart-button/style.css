@@ -377,3 +377,34 @@ smart-button[type="banner-button"].pressed:after {
 /**
  * banner button
 **/
+
+/**
+ * circle text button
+ */
+smart-button[type="circle-text"] {
+  width: 17rem;
+  height: 17rem;
+  color: white;
+  background-color: #5f6368;
+  line-height: 17rem;
+  padding: 2.5rem 2rem 1.5rem 2rem;
+  text-align: center;
+  font-size: 3.2rem;
+  transition-property: transform;
+}
+
+smart-button[type="circle-text"].focused {
+  transform: scale(1.2);
+  color: #2d2d2d;
+  background-color: white;
+}
+
+smart-button[type="circle-text"].pressed {
+  transform: scale(1);
+  color: white;
+  background-color: #00caf2;
+}
+
+/**
+ * End of circle text button
+ */
