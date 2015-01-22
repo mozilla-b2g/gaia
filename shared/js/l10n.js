@@ -1121,6 +1121,26 @@
                                           this.ctx.defaultLocale : id);
   }
 
+  var bindingsIO = {
+    extra: function(id, ver, path, type, callback, errback, sync) {
+      if (type === 'properties') {
+        type = 'text';
+      }
+      navigator.mozApps.getLocalizationResource(id, ver, path, type).
+        then(callback.bind(null, null), errback);
+    },
+    app: function(id, ver, path, type, callback, errback, sync) {
+      switch (type) {
+        case 'properties':
+          io.load(path, callback, sync);
+          break;
+        case 'json':
+          io.loadJSON(path, callback, sync);
+          break;
+      }
+    },
+  };
+
   Locale.prototype.build = function L_build(callback) {
     var sync = !callback;
     var ctx = this.ctx;
@@ -1161,19 +1181,25 @@
     }
 
     var idToFetch = this.isPseudo ? ctx.defaultLocale : this.id;
+    var source = navigator.mozL10n._config.localeSources[this.id] || 'app';
+    var gaiaVersion = navigator.mozL10n._config.gaiaVersion;
+
     for (var i = 0; i < ctx.resLinks.length; i++) {
       var resLink = decodeURI(ctx.resLinks[i]);
       var path = resLink.replace('{locale}', idToFetch);
       var type = path.substr(path.lastIndexOf('.') + 1);
 
+      var cb;
       switch (type) {
         case 'json':
-          io.loadJSON(path, onJSONLoaded, sync);
+          cb = onJSONLoaded;
           break;
         case 'properties':
-          io.load(path, onPropLoaded, sync);
+          cb = onPropLoaded;
           break;
       }
+      bindingsIO[source](this.id,
+        gaiaVersion, path, type, cb, onL10nLoaded, sync);
     }
   };
 
@@ -1368,8 +1394,12 @@
   }
 
   Context.prototype.registerLocales = function(defLocale, available) {
+
+    if (defLocale) {
+      this.defaultLocale = defLocale;
+    }
     /* jshint boss:true */
-    this.availableLocales = [this.defaultLocale = defLocale];
+    this.availableLocales = [this.defaultLocale];
 
     if (available) {
       for (var i = 0, loc; loc = available[i]; i++) {
@@ -1440,7 +1470,6 @@
   var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
   var nodeObserver = null;
   var pendingElements = null;
-  var meta = {};
 
   var moConfig = {
     attributes: true,
@@ -1449,6 +1478,25 @@
     subtree: true,
     attributeFilter: ['data-l10n-id', 'data-l10n-args']
   };
+
+  var Gecko2GaiaVersions = {
+    '37.0': '2.2'
+  };
+
+  function getGaiaVersion() {
+    if (!navigator.userAgent) {
+      return undefined;
+    }
+
+    var match = /rv\:([0-9\.]+)/.exec(navigator.userAgent);
+    if (!match) {
+      return undefined;
+    }
+    if (match[1] in Gecko2GaiaVersions) {
+      return Gecko2GaiaVersions[match[1]];
+    }
+    return undefined;
+  }
 
   // Public API
 
@@ -1489,6 +1537,10 @@
       }
     },
     qps: PSEUDO_STRATEGIES,
+    _config: {
+      gaiaVersion: getGaiaVersion(),
+      localeSources: Object.create(null),
+    },
     _getInternalAPI: function() {
       return {
         Error: L10nError,
@@ -1500,7 +1552,8 @@
         translateDocument: translateDocument,
         onMetaInjected: onMetaInjected,
         PropertiesParser: PropertiesParser,
-        walkContent: walkContent
+        walkContent: walkContent,
+        buildLocaleList: buildLocaleList
       };
     }
   };
@@ -1515,8 +1568,6 @@
   });
 
   if (DEBUG) {
-    navigator.mozL10n.ctx.addEventListener('manifesterror',
-      console.error.bind(console));
     navigator.mozL10n.ctx.addEventListener('fetcherror',
       console.error.bind(console));
     navigator.mozL10n.ctx.addEventListener('parseerror',
@@ -1583,6 +1634,7 @@
   function initResources() {
     /* jshint boss:true */
 
+    var meta = {};
     var nodes = document.head
                         .querySelectorAll('link[rel="localization"],' +
                                           'meta[name="availableLanguages"],' +
@@ -1595,7 +1647,7 @@
           this.ctx.resLinks.push(node.getAttribute('href'));
           break;
         case 'meta':
-          onMetaInjected.call(this, node);
+          onMetaInjected.call(this, node, meta);
           break;
         case 'script':
           onScriptInjected.call(this, node);
@@ -1603,27 +1655,76 @@
       }
     }
 
-    if (!this.ctx.availableLocales.length) {
-      // if there was no availableLanguages meta,
-      // register the default locale only
-      this.ctx.registerLocales(this.ctx.defaultLocale);
+    if (navigator.mozApps && navigator.mozApps.getAdditionalLanguages) {
+      navigator.mozApps.getAdditionalLanguages().then(
+        finishBootstrap.bind(this, meta));
+    } else {
+      finishBootstrap.call(this, meta);
     }
-    return initLocale.call(this);
+  }
+
+  function finishBootstrap(meta, extraLangs) {
+    var locales = buildLocaleList.call(this, meta, extraLangs);
+
+    navigator.mozL10n._config.localeSources = locales[1];
+
+    this.ctx.registerLocales(locales[0], Object.keys(locales[1]));
+
+    initLocale.call(this);
+  }
+
+  function getMatchingLangpack(lpVersions) {
+    for (var i in lpVersions) {
+      if (lpVersions[i].target === navigator.mozL10n._config.gaiaVersion) {
+        return lpVersions[i];
+      }
+    }
+    return null;
+  }
+
+  function buildLocaleList(meta, extraLangs) {
+    var loc, lp;
+    var localeSources = Object.create(null);
+    var defaultLocale = meta.defaultLocale || this.ctx.defaultLocale;
+
+    if (meta.availableLanguages) {
+      for (loc in meta.availableLanguages) {
+        localeSources[loc] = 'app';
+      }
+    }
+
+    if (extraLangs) {
+      for (loc in extraLangs) {
+        lp = getMatchingLangpack(extraLangs[loc]);
+
+        if (!lp) {
+          continue;
+        }
+        if (!(loc in localeSources) ||
+            !meta.availableLanguages[loc] ||
+            parseInt(lp.version) > meta.availableLanguages[loc]) {
+          localeSources[loc] = 'extra';
+        }
+      }
+    }
+
+    if (!(defaultLocale in localeSources)) {
+      localeSources[defaultLocale] = 'app';
+    }
+    return [defaultLocale, localeSources];
   }
 
   function splitAvailableLanguagesString(str) {
-    return str.split(',').map(function(lang) {
+    var langs = {};
+
+    str.split(',').forEach(function(lang) {
       lang = lang.trim().split(':');
-      // if there are no timestamps, lang[0] will be the ab-CD
-      return lang[0];
+      langs[lang[0]] = lang[1];
     });
+    return langs;
   }
 
-  function onMetaInjected(node) {
-    if (this.ctx.availableLocales.length) {
-      return;
-    }
-
+  function onMetaInjected(node, meta) {
     switch (node.getAttribute('name')) {
       case 'availableLanguages':
         meta.availableLanguages =
@@ -1632,11 +1733,6 @@
       case 'defaultLanguage':
         meta.defaultLanguage = node.getAttribute('content');
         break;
-    }
-
-    if (Object.keys(meta).length === 2) {
-      this.ctx.registerLocales(meta.defaultLanguage, meta.availableLanguages);
-      meta = {};
     }
   }
 
