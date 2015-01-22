@@ -1,7 +1,6 @@
 define(function(require, exports, module) {
 'use strict';
 
-var AccessibilityHelper = require('shared/accessibility_helper');
 var Calc = require('calc');
 var DateL10n = require('date_l10n');
 var Db = require('db');
@@ -229,9 +228,18 @@ module.exports = {
 
     // Handle aria-selected attribute for tabs.
     tablist.addEventListener('click', (event) => {
-      if (event.target !== today) {
-        AccessibilityHelper.setAriaSelected(event.target, tabs);
+      if (event.target === today) {
+        return;
       }
+
+      Array.prototype.forEach.call(tabs, tab => {
+        if (tab !== event.target) {
+          tab.setAttribute('aria-selected', false);
+          return;
+        }
+
+        nextTick(() => tab.setAttribute('aria-selected', true));
+      });
     });
 
     this.setCurrentTimeFormat();
