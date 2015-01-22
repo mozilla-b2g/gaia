@@ -1,4 +1,4 @@
-/* global HomescreenLauncher, Service */
+/* global BaseModule */
 
 'use strict';
 (function(exports) {
@@ -7,14 +7,26 @@
    * HomescreenLauncher instances.
    *
    * @class HomescreenWindowManager
-   * @requires HomescreenLauncher
-   * @requires Service
+   * @requires BaseModule
    */
   function HomescreenWindowManager() {}
+  HomescreenWindowManager.EVENTS = [
+    'appswitching',
+    'ftuskip',
+    'open-app',
+    'webapps-launch'
+  ];
+  HomescreenWindowManager.SUB_MODULES = [
+    'HomescreenLauncher'
+  ];
+  HomescreenWindowManager.STATES = [
+    'ready',
+    'getHomescreen'
+  ];
 
-  HomescreenWindowManager.prototype = {
+  BaseModule.create(HomescreenWindowManager, {
     DEBUG: false,
-    CLASS_NAME: 'HomescreenWindowManager',
+    name: 'HomescreenWindowManager',
 
     /**
      * Homescreen Window Manager depends on the ready state of homescreen
@@ -25,66 +37,34 @@
      * @memberOf HomescreenWindowManager.prototype
      * @type {boolean}
      */
-    get ready() {
+    ready: function() {
       return this.homescreenLauncher && this.homescreenLauncher.ready;
     },
 
-    debug: function hwm_debug() {
-      if (this.DEBUG) {
-        console.log('[' + this.CLASS_NAME + ']' +
-          '[' + Service.currentTime() + ']' +
-          Array.slice(arguments).concat());
+    _handle_appswitching: function() {
+      this.getHomescreen().fadeOut();
+    },
+
+    _handle_ftuskip: function() {
+      // XXX: There's a race between lockscreenWindow and homescreenWindow.
+      // If lockscreenWindow is instantiated before homescreenWindow,
+      // we should not display the homescreen here.
+      if (this.service.query('locked')) {
+        this.getHomescreen().setVisible(false);
       }
     },
-
-    /**
-     * HomescreenWindowManager starts to listen the event it cares.
-     *
-     * @memberOf HomescreenWindowManager.prototype
-     */
-    start: function hwm_start() {
-      window.addEventListener('appswitching', this);
-      window.addEventListener('ftuskip', this);
-      window.addEventListener('open-app', this);
-      window.addEventListener('webapps-launch', this);
-      this.homescreenLauncher = new HomescreenLauncher();
-      this.homescreenLauncher.start();
+    '_handle_open-app': function(evt) {
+      this._handle_launch_homescreen(evt);
     },
-
-    /**
-     * HomescreenWindowManager stop to listen the event it cares.
-     *
-     * @memberOf HomescreenWindowManager.prototype
-     */
-    stop: function hwm_stop() {
-      window.removeEventListener('appswitching', this);
-      window.removeEventListener('ftuskip', this);
-      window.removeEventListener('open-app', this);
-      window.removeEventListener('webapps-launch', this);
+    '_handle_webapps-launch': function(evt) {
+      this._handle_launch_homescreen(evt);
     },
-
-    handleEvent: function hwm_handleEvent(evt) {
-      switch(evt.type) {
-        case 'appswitching':
-          this.getHomescreen().fadeOut();
-          break;
-        case 'ftuskip':
-          // XXX: There's a race between lockscreenWindow and homescreenWindow.
-          // If lockscreenWindow is instantiated before homescreenWindow,
-          // we should not display the homescreen here.
-          if (Service.locked) {
-            this.getHomescreen().setVisible(false);
-          }
-          break;
-        case 'open-app':
-        case 'webapps-launch':
-          var detail = evt.detail;
-          if (this.homescreenLauncher &&
-              detail.manifestURL === this.homescreenLauncher.manifestURL) {
-            this.getHomescreen();
-            evt.stopImmediatePropagation();
-          }
-          break;
+    _handle_launch_homescreen: function(evt) {
+      var detail = evt.detail;
+      if (this.homescreenLauncher &&
+          detail.manifestURL === this.homescreenLauncher.manifestURL) {
+        this.getHomescreen();
+        evt.stopImmediatePropagation();
       }
     },
 
@@ -104,7 +84,5 @@
       }
       return home;
     }
-  };
-
-  exports.HomescreenWindowManager = HomescreenWindowManager;
-}(window));
+  });
+}());

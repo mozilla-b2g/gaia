@@ -1,4 +1,4 @@
-/* global applications, ManifestHelper, RecordingIcon, LazyLoader */
+/* global applications, ManifestHelper, RecordingIcon, LazyLoader, Service */
 (function(exports) {
   'use strict';
 
@@ -39,6 +39,7 @@
       }.bind(this)).catch(function(err) {
         console.error(err);
       });
+      Service.registerState('isRecording', this);
     },
 
     /**
@@ -54,6 +55,7 @@
       this.container = null;
 
       window.removeEventListener('mozChromeEvent', this);
+      Service.unregisterState('isRecording', this);
     },
 
     /**

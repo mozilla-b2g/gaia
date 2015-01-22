@@ -845,7 +845,8 @@
       // XXX: Preventing orientaiton of homescreen app is changed by background
       //      app. It's a workaround for bug 1089951.
       //      It should be remove once bug 1043102 is done.
-      } else if (Service.currentApp && Service.currentApp === this) {
+      } else if (Service.query('getTopMostWindow') &&
+                 Service.query('getTopMostWindow') === this) {
         this.lockOrientation();
       }
     }

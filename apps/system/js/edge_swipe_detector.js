@@ -147,7 +147,8 @@
           this.lifecycleEnabled = false;
           break;
         case 'updateprompthidden':
-          if (Service.currentApp && !Service.currentApp.isHomescreen) {
+          if (Service.query('getTopMostWindow') &&
+              !Service.query('getTopMostWindow').isHomescreen) {
             this.lifecycleEnabled = true;
           }
           break;
@@ -370,8 +371,8 @@
       // but we still want to redispatch touch events to the "overlayed"
       // software home button
       var softwareButtonOverlayed =
-        Service.currentApp &&
-        Service.currentApp.isFullScreenLayout();
+        Service.query('getTopMostWindow') &&
+        Service.query('getTopMostWindow').isFullScreenLayout();
       if (softwareButtonOverlayed) {
         return x > (layoutManager.width - softwareButtonManager.width) ||
             y > (layoutManager.height - softwareButtonManager.height);

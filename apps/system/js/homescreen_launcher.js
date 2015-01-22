@@ -1,5 +1,5 @@
 'use strict';
-/* global applications, SettingsListener, HomescreenWindow */
+/* global Service, applications, SettingsListener, HomescreenWindow */
 (function(exports) {
   /**
    * HomescreenLauncher is responsible for launching the homescreen window
@@ -33,6 +33,8 @@
    */
 
   HomescreenLauncher.prototype = {
+    name: 'HomescreenLauncher',
+
     _currentManifestURL: '',
 
     _instance: undefined,
@@ -136,6 +138,7 @@
       window.addEventListener('shrinking-stop', this);
       window.addEventListener('software-button-enabled', this);
       window.addEventListener('software-button-disabled', this);
+      Service.registerState('getHomescreen', this);
     },
 
     /**
@@ -159,6 +162,7 @@
       window.removeEventListener('shrinking-stop', this);
       window.removeEventListener('software-button-enabled', this);
       window.removeEventListener('software-button-disabled', this);
+      Service.unregisterState('getHomescreen', this);
       this._started = false;
     },
 

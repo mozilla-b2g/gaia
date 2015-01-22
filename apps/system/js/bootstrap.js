@@ -1,21 +1,18 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global ActivityWindowManager, SecureWindowFactory,
-         SecureWindowManager, HomescreenWindowManager,
-         SourceView, ScreenManager, Places, Activities,
+/*global SourceView, ScreenManager, Activities,
          DeveloperHUD, DialerAgent, RemoteDebugger, HomeGesture,
-         VisibilityManager, UsbStorage, TaskManager,
-         SuspendingAppPriorityManager, TTLView,
-         MediaRecording, AppWindowFactory, SystemDialogManager,
-         applications, Rocketbar, LayoutManager, PermissionManager,
+         VisibilityManager, UsbStorage, TTLView,
+         MediaRecording,
+         applications, LayoutManager, PermissionManager,
          SoftwareButtonManager, Accessibility, NfcUtils,
          TextSelectionDialog, SleepMenu, AppUsageMetrics,
          LockScreenPasscodeValidator, NfcManager,
-         ExternalStorageMonitor, TrustedWindowManager,
+         ExternalStorageMonitor, InputWindowManager,
          BrowserSettings, AppMigrator, SettingsMigrator,
-         CpuManager, CellBroadcastSystem, EdgeSwipeDetector, QuickSettings,
-         BatteryOverlay, BaseModule, AppWindowManager, KeyboardManager */
+         CpuManager, CellBroadcastSystem, QuickSettings,
+         BatteryOverlay, BaseModule, KeyboardManager */
 'use strict';
 
 /* === Shortcuts === */
@@ -39,45 +36,10 @@ window.addEventListener('load', function startup() {
    * Register global instances and constructors here.
    */
   function registerGlobalEntries() {
+    window.inputWindowManager = new InputWindowManager();
+    window.inputWindowManager.start();
     /** @global */
     KeyboardManager.init();
-
-    /** @global */
-    window.appWindowManager = new AppWindowManager();
-
-    /** @global */
-    window.inputWindowManager = new window.InputWindowManager();
-    window.inputWindowManager.start();
-
-    /** @global */
-    window.activityWindowManager = new ActivityWindowManager();
-    window.activityWindowManager.start();
-
-    /** @global */
-    window.secureWindowManager = window.secureWindowManager ||
-      new SecureWindowManager();
-    /** @global */
-    window.secureWindowFactory = new SecureWindowFactory();
-    /** @global */
-    if (window.SuspendingAppPriorityManager) {
-      window.suspendingAppPriorityManager = new SuspendingAppPriorityManager();
-    }
-
-    /** @global */
-    window.systemDialogManager = window.systemDialogManager ||
-      new SystemDialogManager();
-
-    /** @global */
-    window.trustedWindowManager = window.trustedWindowManager ||
-      new TrustedWindowManager();
-    window.trustedWindowManager.start();
-
-    /** @global */
-    window.lockScreenWindowManager = new window.LockScreenWindowManager();
-    window.lockScreenWindowManager.start();
-
-    window.appWindowManager.start();
-
     /** @global */
     window.textSelectionDialog = new TextSelectionDialog();
   }
@@ -114,11 +76,6 @@ window.addEventListener('load', function startup() {
 
   ScreenManager.turnScreenOn();
 
-  // To make sure homescreen window manager can intercept webapps-launch event,
-  // we need to move the code here.
-  window.homescreenWindowManager = new HomescreenWindowManager();
-  window.homescreenWindowManager.start();
-
   // Please sort it alphabetically
   window.activities = new Activities();
   window.accessibility = new Accessibility();
@@ -127,8 +84,6 @@ window.addEventListener('load', function startup() {
   window.appMigrator.start();
   window.appUsageMetrics = new AppUsageMetrics();
   window.appUsageMetrics.start();
-  window.appWindowFactory = new AppWindowFactory();
-  window.appWindowFactory.start();
   window.batteryOverlay = new BatteryOverlay();
   window.batteryOverlay.start();
   window.cellBroadcastSystem = new CellBroadcastSystem();
@@ -138,14 +93,8 @@ window.addEventListener('load', function startup() {
   window.developerHUD = new DeveloperHUD();
   window.developerHUD.start();
   /** @global */
-  window.attentionWindowManager = new window.AttentionWindowManager();
-  window.attentionWindowManager.start();
-  window.globalOverlayWindowManager = new window.GlobalOverlayWindowManager();
-  window.globalOverlayWindowManager.start();
   window.dialerAgent = new DialerAgent();
   window.dialerAgent.start();
-  window.edgeSwipeDetector = new EdgeSwipeDetector();
-  window.edgeSwipeDetector.start();
   window.externalStorageMonitor = new ExternalStorageMonitor();
   window.externalStorageMonitor.start();
   window.homeGesture = new HomeGesture();
@@ -159,17 +108,12 @@ window.addEventListener('load', function startup() {
   window.nfcManager.start();
   window.permissionManager = new PermissionManager();
   window.permissionManager.start();
-  window.places = new Places();
-  window.places.start();
   window.remoteDebugger = new RemoteDebugger();
-  window.rocketbar = new Rocketbar();
   window.sleepMenu = new SleepMenu();
   window.sleepMenu.start();
   window.softwareButtonManager = new SoftwareButtonManager();
   window.softwareButtonManager.start();
   window.sourceView = new SourceView();
-  window.taskManager = new TaskManager();
-  window.taskManager.start();
   window.ttlView = new TTLView();
   window.visibilityManager = new VisibilityManager();
   window.visibilityManager.start();

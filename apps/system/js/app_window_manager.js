@@ -1,5 +1,5 @@
-/* global SettingsListener, homescreenWindowManager, inputWindowManager,
-          layoutManager, Service, NfcHandler, rocketbar, ShrinkingUI,
+/* global inputWindowManager,
+          layoutManager, Service, NfcHandler, ShrinkingUI,
           UtilityTray, BaseModule */
 'use strict';
 
@@ -16,7 +16,67 @@
    * @module AppWindowManager
    */
   var AppWindowManager = function() {};
-  AppWindowManager.prototype = {
+  AppWindowManager.SERVICES = [
+    'getApp',
+    'getAppByURL',
+    'stopRecording'
+  ];
+  AppWindowManager.STATES = [
+    'slowTransition'
+  ];
+  AppWindowManager.EVENTS = [
+    'cardviewbeforeshow',
+    'cardviewclosed',
+    'launchapp',
+    'appcreated',
+    'appterminated',
+    'ftuskip',
+    'appopened',
+    'apprequestopen',
+    'apprequestclose',
+    'shrinking-start',
+    'shrinking-stop',
+    'homescreenopened',
+    'reset-orientation',
+    'homescreencreated',
+    'homescreen-changed',
+      // Watch chrome event that order to close an app
+    'killapp',
+      // Watch for event to bring a currently-open app to the foreground.
+    'displayapp',
+      // Deal with application uninstall event
+      // if the application is being uninstalled,
+      // we ensure it stop running here.
+    'applicationuninstall',
+    'hidewindow',
+    'showwindow',
+    'hidewindowforscreenreader',
+    'showwindowforscreenreader',
+    'attentionopened',
+    'homegesture-enabled',
+    'homegesture-disabled',
+    'orientationchange',
+    'sheets-gesture-begin',
+    'sheets-gesture-end',
+      // XXX: PermissionDialog is shared so we need AppWindowManager
+      // to focus the active app after it's closed.
+    'permissiondialoghide',
+    'appopening',
+    'localized',
+    'launchtrusted',
+    'taskmanager-activated'
+  ];
+  AppWindowManager.SUB_MODULES = [
+    'StackManager',
+    'SheetsTransition',
+    'EdgeSwipeDetector',
+    'TaskManager',
+    'FtuLauncher',
+    'AppWindowFactory',
+    'Rocketbar',
+    'Places'
+  ];
+  BaseModule.create(AppWindowManager, {
     DEBUG: false,
     name: 'AppWindowManager',
     EVENT_PREFIX: 'appwindowmanager',
@@ -34,7 +94,8 @@
     screen: document.getElementById('screen'),
 
     isActive: function() {
-      return (!!this._activeApp && !window.taskManager.isActive());
+      return (!!this._activeApp &&
+             (!this.taskManager || !this.taskManager.isActive()));
     },
 
     setHierarchy: function(active) {
@@ -88,9 +149,7 @@
      * @return {AppWindow} The app is active.
      */
     getActiveApp: function awm_getActiveApp() {
-      return this._activeApp ||
-             (window.homescreenWindowManager ?
-              window.homescreenWindowManager.getHomescreen() : null);
+      return this._activeApp || Service.query('getHomescreen');
     },
 
     /**
@@ -165,7 +224,7 @@
                                   eventType) {
       this._dumpAllWindows();
       var appCurrent = this._activeApp, appNext = newApp ||
-        homescreenWindowManager.getHomescreen('home' === eventType);
+        Service.query('getHomescreen', 'home' === eventType);
 
       if (!appNext) {
         this.debug('no next app.');
@@ -199,10 +258,10 @@
 
       var that = this;
       if (appCurrent && layoutManager.keyboardEnabled) {
-        this.sendStopRecordingRequest();
+        this.stopRecording();
 
         // Ask keyboard to hide before we switch the app.
-        window.addEventListener('keyboardhidden', function onhiddenkeyboard() {
+      window.addEventListener('keyboardhidden', function onhiddenkeyboard() {
           window.removeEventListener('keyboardhidden', onhiddenkeyboard);
           that.switchApp(appCurrent, appNext, switching);
         });
@@ -214,14 +273,14 @@
           // Hide keyboard immediately.
           inputWindowManager.hideInputWindowImmediately();
         }
-      } else if (rocketbar.active) {
+      } else if (this.rocketbar && this.rocketbar.active) {
         // Wait for the rocketbar to close
         window.addEventListener('rocketbar-overlayclosed', function onClose() {
           window.removeEventListener('rocketbar-overlayclosed', onClose);
           that.switchApp(appCurrent, appNext, switching);
         });
       } else {
-        this.sendStopRecordingRequest(function() {
+        this.stopRecording(function() {
           this.switchApp(appCurrent, appNext, switching,
                          openAnimation, closeAnimation);
         }.bind(this));
@@ -250,14 +309,14 @@
           } else {
             // Homescreen might be dead due to OOM, we should ensure its opening
             // before updateActiveApp.
-            appNext = homescreenWindowManager.getHomescreen();
+            appNext = Service.query('getHomescreen');
             appNext.ensure(true);
           }
         }
         appNext.reviveBrowser();
         this.debug('ready to open/close' + switching);
         if (switching) {
-          this.publish('appswitching');
+          this.publish('appswitching', this, true);
         }
         this._updateActiveApp(appNext.instanceID);
 
@@ -304,104 +363,15 @@
      *
      * @memberOf module:AppWindowManager
      */
-    start: function awm_start() {
+    _start: function awm_start() {
       this.activated = false;
       if (this.slowTransition) {
         this.element.classList.add('slow-transition');
       } else {
         this.element.classList.remove('slow-transition');
       }
-      window.addEventListener('cardviewbeforeshow', this);
-      window.addEventListener('cardviewclosed', this);
-      window.addEventListener('launchapp', this);
-      window.addEventListener('appcreated', this);
-      window.addEventListener('appterminated', this);
-      window.addEventListener('ftuskip', this);
-      window.addEventListener('appopened', this);
-      window.addEventListener('apprequestopen', this);
-      window.addEventListener('apprequestclose', this);
-      window.addEventListener('shrinking-start', this);
-      window.addEventListener('shrinking-stop', this);
-      window.addEventListener('homescreenopened', this);
-      window.addEventListener('reset-orientation', this);
-      window.addEventListener('homescreencreated', this);
-      window.addEventListener('homescreen-changed', this);
-      // Watch chrome event that order to close an app
-      window.addEventListener('killapp', this);
-      // Watch for event to bring a currently-open app to the foreground.
-      window.addEventListener('displayapp', this);
-      // Deal with application uninstall event
-      // if the application is being uninstalled,
-      // we ensure it stop running here.
-      window.addEventListener('applicationuninstall', this);
-      window.addEventListener('hidewindow', this);
-      window.addEventListener('showwindow', this);
-      window.addEventListener('hidewindowforscreenreader', this);
-      window.addEventListener('showwindowforscreenreader', this);
-      window.addEventListener('attentionopened', this);
-      window.addEventListener('homegesture-enabled', this);
-      window.addEventListener('homegesture-disabled', this);
-      window.addEventListener('orientationchange', this);
-      window.addEventListener('sheets-gesture-begin', this);
-      window.addEventListener('sheets-gesture-end', this);
-      // XXX: PermissionDialog is shared so we need AppWindowManager
-      // to focus the active app after it's closed.
-      window.addEventListener('permissiondialoghide', this);
-      window.addEventListener('appopening', this);
-      window.addEventListener('localized', this);
-      window.addEventListener('launchtrusted', this);
-      window.addEventListener('taskmanager-activated', this);
 
-      this._settingsObserveHandler = {
-        // continuous transition controlling
-        'continuous-transition.enabled': {
-          defaultValue: null,
-          callback: function(value) {
-            if (!value) {
-              return;
-            }
-            this.continuousTransition = !!value;
-          }.bind(this)
-        },
-
-        'app-suspending.enabled': {
-          defaultValue: false,
-          callback: function(value) {
-            // Kill all instances if they are suspended.
-            if (!value) {
-              this.broadcastMessage('kill_suspended');
-            }
-          }.bind(this)
-        },
-
-        'nfc.enabled': {
-          defaultValue: false,
-          callback: (value) => {
-            if (!this._nfcHandler) {
-              this._nfcHandler = new NfcHandler(this);
-            }
-
-            if (value) {
-              this._nfcHandler.start();
-            } else {
-              this._nfcHandler.stop();
-            }
-          }
-        }
-      };
-
-      for (var name in this._settingsObserveHandler) {
-        SettingsListener.observe(
-          name,
-          this._settingsObserveHandler[name].defaultValue,
-          this._settingsObserveHandler[name].callback
-        );
-      }
       Service.request('registerHierarchy', this);
-      BaseModule.lazyLoad(['FtuLauncher']).then(function() {
-        this.ftuLauncher = BaseModule.instantiate('FtuLauncher');
-        this.ftuLauncher.start();
-      }.bind(this));
     },
 
     /**
@@ -409,49 +379,7 @@
      * tests to avoid breaking other tests.
      * @memberOf module:AppWindowManager
      */
-    stop: function awm_stop() {
-      window.removeEventListener('cardviewbeforeshow', this);
-      window.removeEventListener('cardviewclosed', this);
-      window.removeEventListener('launchapp', this);
-      window.removeEventListener('appcreated', this);
-      window.removeEventListener('appterminated', this);
-      window.removeEventListener('ftuskip', this);
-      window.removeEventListener('appopened', this);
-      window.removeEventListener('apprequestopen', this);
-      window.removeEventListener('apprequestclose', this);
-      window.removeEventListener('homescreenopened', this);
-      window.removeEventListener('reset-orientation', this);
-      window.removeEventListener('homescreencreated', this);
-      window.removeEventListener('homescreen-changed', this);
-      window.removeEventListener('killapp', this);
-      window.removeEventListener('displayapp', this);
-      window.removeEventListener('applicationuninstall', this);
-      window.removeEventListener('hidewindow', this);
-      window.removeEventListener('showwindow', this);
-      window.removeEventListener('hidewindowforscreenreader', this);
-      window.removeEventListener('showwindowforscreenreader', this);
-      window.removeEventListener('attentionopened', this);
-      window.removeEventListener('homegesture-enabled', this);
-      window.removeEventListener('homegesture-disabled', this);
-      window.removeEventListener('orientationchange', this);
-      window.removeEventListener('sheets-gesture-begin', this);
-      window.removeEventListener('sheets-gesture-end', this);
-      window.removeEventListener('permissiondialoghide', this);
-      window.removeEventListener('appopening', this);
-      window.removeEventListener('localized', this);
-      window.removeEventListener('shrinking-start', this);
-      window.removeEventListener('shrinking-stop', this);
-      window.removeEventListener('taskmanager-activated', this);
-      window.removeEventListener('launchtrusted', this);
-
-      for (var name in this._settingsObserveHandler) {
-        SettingsListener.unobserve(
-          name,
-          this._settingsObserveHandler[name].callback
-        );
-      }
-
-      this._settingsObserveHandler = null;
+    _stop: function awm_stop() {
       Service.request('unregisterHierarchy', this);
     },
 
@@ -469,8 +397,8 @@
     _handle_home: function(evt) {
       if (this.ftuLauncher && !this.ftuLauncher.respondToHierarchyEvent(evt)) {
         return false;
-      } else if (!homescreenWindowManager.ready ||
-            (window.taskManager && window.taskManager.isActive())) {
+      } else if (!Service.query('HomescreenWindowManager.ready') ||
+            (this.taskManager && this.taskManager.isActive())) {
         return true;
       } else {
         this.display(null, null, null, 'home');
@@ -675,7 +603,7 @@
 
         case 'taskmanager-activated':
           this.activated = false;
-          this.publish(this.EVENT_PREFIX + '-deactivated');
+          this.publish('-deactivated');
           break;
       }
     },
@@ -821,14 +749,6 @@
       }
     },
 
-    publish: function awm_publish(event, detail) {
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent(event, true, false, detail || this);
-
-      this.debug('publish: ' + event);
-      window.dispatchEvent(evt);
-    },
-
     _updateActiveApp: function awm__changeActiveApp(instanceID) {
       var appHasChanged = (this._activeApp !== this._apps[instanceID]);
       this.debug(appHasChanged, this.activated, this._activeApp);
@@ -858,13 +778,13 @@
         if (this.shrinkingUI && this.shrinkingUI.isActive()) {
           this.shrinkingUI.stop();
         }
-        this.publish('activeappchanged');
+        this.publish('activeappchanged', this, true);
       }
 
       this.debug('=== Active app now is: ',
         (this._activeApp.name || this._activeApp.origin), '===');
       if (activated) {
-        this.publish(this.EVENT_PREFIX + '-activated');
+        this.publish('-activated');
       }
     },
 
@@ -911,7 +831,7 @@
       // be a method of AWM.
       var launchHomescreen = () => {
         // jshint ignore:line
-        var home = homescreenWindowManager.getHomescreen();
+        var home = Service.query('getHomescreen');
         if (home) {
           if (home.isActive()) {
             home.setVisible(true);
@@ -1012,10 +932,10 @@
      * private.broadcast.attention_screen_opening setting hack in
      * attention_screen.js
      */
-    sendStopRecordingRequest: function sendStopRecordingRequest(callback) {
+    stopRecording: function(callback) {
       // If we are not currently recording anything, just call
       // the callback synchronously
-      if (!window.mediaRecording.isRecording) {
+      if (!Service.query('isRecording')) {
         if (callback) { callback(); }
         return;
       }
@@ -1039,8 +959,32 @@
         // And meanwhile, call the callback
         if (callback) { callback(); }
       };
-    }
-  };
+    },
 
-  exports.AppWindowManager = AppWindowManager;
-}(window));
+    '_observe_continuous-transition.enabled': function(value) {
+      if (!value) {
+        return;
+      }
+      this.continuousTransition = !!value;
+    },
+
+    '_observe_app-suspending.enabled': function(value) {
+      // Kill all instances if they are suspended.
+      if (!value) {
+        this.broadcastMessage('kill_suspended');
+      }
+    },
+
+    '_observe_nfc.enabled': function(value) {
+      if (!this._nfcHandler) {
+        this._nfcHandler = new NfcHandler(this);
+      }
+
+      if (value) {
+        this._nfcHandler.start();
+      } else {
+        this._nfcHandler.stop();
+      }
+    }
+  });
+}());

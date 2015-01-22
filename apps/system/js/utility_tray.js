@@ -318,7 +318,7 @@ window.UtilityTray = {
       // If the active app was tracking touches it won't get any more events
       // because of the pointer-events:none we're adding.
       // Sending a touchcancel accordingly.
-      var app = Service.currentApp;
+      var app = Service.query('getTopMostWindow');
       if (app && app.config && app.config.oop) {
         app.iframe.sendTouchEvent('touchcancel', [touch.identifier],
                                   [touch.pageX], [touch.pageY],

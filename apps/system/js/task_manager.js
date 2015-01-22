@@ -147,7 +147,7 @@
     this.setActive(true);
 
     var screenElement = this.screenElement;
-    var activeApp = Service.currentApp;
+    var activeApp = Service.query('getTopMostWindow');
     if (!activeApp) {
       screenElement.classList.add('cards-view');
       return;
@@ -522,7 +522,7 @@
       filter = (evt.detail && evt.detail.filter) || null;
     }
 
-    var app = Service.currentApp;
+    var app = Service.query('AppWindowManager.getActiveApp');
     if (app && !app.isHomescreen) {
       app.getScreenshot(function onGettingRealtimeScreenshot() {
         this.show(filter);

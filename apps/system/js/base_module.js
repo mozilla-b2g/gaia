@@ -111,6 +111,7 @@
   BaseModule.STATES = [];
 
   var SubmoduleMixin = {
+    START_SUB_MODULES_ON_START: true,
     /**
      * Helper function to load and start the submodules defined in
      * |this.constructor.SUB_MODULES|.
@@ -591,7 +592,8 @@
       // Note: submodule has the higher priority on event handling.
       // because they are started before the parent module.
       // We may want to change it for some special case.
-      this._startSubModules && this._startSubModules();
+      this._startSubModules && this.START_SUB_MODULES_ON_START &&
+                                this._startSubModules();
       this._start();
       this._subscribeEvents && this._subscribeEvents();
       this._observeSettings && this._observeSettings();

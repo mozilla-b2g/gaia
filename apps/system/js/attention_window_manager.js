@@ -167,7 +167,7 @@
           var candidate = null;
           if (this._openedInstances.size === 0) {
             this._topMostWindow = null;
-            candidate = Service.currentApp;
+            candidate = Service.query('AppWindowManager.getActiveApp');
           } else {
             this._openedInstances.forEach(function(instance) {
               candidate = instance;

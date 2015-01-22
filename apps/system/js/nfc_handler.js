@@ -1,4 +1,4 @@
-/* globals NfcUtils */
+/* globals NfcUtils, Service */
 'use strict';
 (function(exports) {
   var NfcHandler = function (appWindowManager) {
@@ -23,7 +23,7 @@
       if (evt.type !== 'peerready') {
         return;
       }
-      var currentApp = this.appWindowManager.getActiveApp();
+      var currentApp = Service.query('getTopMostWindow');
       if (currentApp && currentApp.isBrowser() && currentApp.config.url) {
         var ndefUri = nfcUtils.parseURIString(currentApp.config.url);
         this.sendNDEFMessageToNFCPeer(ndefUri, evt);

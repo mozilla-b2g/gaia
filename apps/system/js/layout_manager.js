@@ -47,7 +47,7 @@
      * @memberOf LayoutManager
      */
     get height() {
-      var activeApp = Service.currentApp;
+      var activeApp = Service.query('getTopMostWindow');
       var isFullScreenLayout = activeApp && activeApp.isFullScreenLayout();
       var softwareButtonHeight = Service.locked || isFullScreenLayout ?
         0 : softwareButtonManager.height;
@@ -72,8 +72,8 @@
      */
     get width() {
       return window.innerWidth -
-        ((Service.currentApp &&
-          Service.currentApp.isFullScreenLayout()) ?
+        ((Service.query('getTopMostWindow') &&
+          Service.query('getTopMostWindow').isFullScreenLayout()) ?
           0 : softwareButtonManager.width);
     },
 
