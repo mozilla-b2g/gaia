@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8">
+    <title>NFC test</title>
+    <script defer src="../../js/ndef_helper.js"></script>
+    <script defer src="../../js/nfc_tech.js"></script>
+    <link rel="stylesheet" type="text/css" href="../style/API.css">
+  </head>
+  <body>
+    <div id="content">
+      <div>
+        <h2>Test Description</h2>
+        <h5>
+          Tap an NFC tag, then this app will send some raw APDU command to that tag.
+        </h5>
+      </div>
+      <div>
+        <h2>NFC Tag Info</h2>
+      </div>
+      <h4 id="success-message" class="success"></h4>
+      <h4 id="error-message" class="error"></h4>
+
+     <div id="tag-container">
+       <ul>
+         <li><b>Supported Technology List: </b><span data-type="tech-list"/> </li>
+       </ul>
+     </div>
+
+     <div id="isoDep-container">
+       <ul>
+         <li><b>Hardware Vendor ID: </b><span data-type="hw-vendor-id"/> </li>
+         <li><b>Hardware Type: </b><span data-type="hw-type"/> </li>
+         <li><b>Hardware Version: </b><span data-type="hw-version"/> </li>
+         <li><b>Hardware Storage Size: </b><span data-type="hw-storage"/> </li>
+         <li><b>Hardware Protocol: </b><span data-type="hw-protocol"/> </li>
+         <li><b>Software Vendor ID: </b><span data-type="sw-vendor-id"/> </li>
+         <li><b>Software Type: </b><span data-type="sw-type"/> </li>
+         <li><b>Software Version: </b><span data-type="sw-version"/> </li>
+         <li><b>Software Storage Size: </b><span data-type="sw-storage"/> </li>
+         <li><b>Software Protocol: </b><span data-type="sw-protocol"/> </li>
+         <li><b>UID: </b><span data-type="uid"/> </li>
+         <li><b>Batch Number: </b><span data-type="batch-num"/> </li>
+         <li><b>Production Date: </b><span data-type="production-date"/> </li>
+         <li><b>Key Settings: </b><span data-type="key-settings"/> </li>
+         <li><b>Max number of keys: </b><span data-type="max-keys"/> </li>
+         <li><b>Key Version: </b><span data-type="key-version"/> </li>
+       </ul>
+     </div>
+    </div>
+  </body>
+</html>
