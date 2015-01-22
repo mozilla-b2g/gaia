@@ -194,7 +194,20 @@ InputAppList.prototype.handleEvent = function(evt) {
 
   switch (evt.type) {
     case 'install':
-      updated = this._addInputApp(evt.application);
+      var app = evt.application;
+      if (app.downloading) {
+        // App is currently being downloaded;
+        // wait for download to complete as manifest is not available now.
+        app.addEventListener('downloadsuccess', this);
+        return;
+      }
+
+      updated = this._addInputApp(app);
+
+      break;
+
+    case 'downloadsuccess':
+      updated = this._addInputApp(evt.target);
 
       break;
 
