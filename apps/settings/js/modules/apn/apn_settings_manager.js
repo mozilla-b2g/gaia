@@ -203,6 +203,7 @@ define(function(require) {
      */
     _checkPendingCpApns: function asc_checkPendingCpApns(serviceId) {
       var mcc, mnc;
+      var apnList = this._apnList(serviceId);
 
       return Promise.all([
         ApnUtils.getOperatorCode(serviceId, 'mcc'),
@@ -212,13 +213,25 @@ define(function(require) {
         mnc = values[1];
         return ApnUtils.getPendingCpApns(mcc, mnc, serviceId);
       }).then((pendingCpApns) => {
-        // Add pending cp apns to the apn list.
-        if (pendingCpApns && pendingCpApns.length) {
-          return Promise.all(pendingCpApns.map((pendingCpApn) => {
-            return this._apnList(serviceId)
-              .add(pendingCpApn, ApnItem.APN_CATEGORY.PRESET);
-          }));
+        if (!pendingCpApns || pendingCpApns.length === 0) {
+          return;
         }
+        // Add pending cp apns to the apn list.
+        return apnList.items().then((existingApnItems) => {
+          if (!existingApnItems) {
+            return pendingCpApns;
+          }
+          // Filter out the duplicate apns.
+          return pendingCpApns.filter((pendingApn) => {
+            return !existingApnItems.some((existingApnItem) => {
+              return ApnUtils.isMatchedApn(existingApnItem.apn, pendingApn);
+            });
+          });
+        }).then((apnsToBeAdded) => {
+          return Promise.all(apnsToBeAdded.map((apn) => {
+            return apnList.add(apn, ApnItem.APN_CATEGORY.PRESET);
+          }));
+        });
       }).then(() => {
         // Clear pending cp apns.
         return ApnUtils.clearPendingCpApns(mcc, mnc, serviceId);
