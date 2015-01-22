@@ -4,6 +4,9 @@
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_simslot_manager.js');
+requireApp('shared/test/unit/mocks/mock_simslot.js');
+require(
+  '/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 requireApp('system/test/unit/mock_simcard_dialog.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_service.js');
@@ -172,10 +175,6 @@ suite('SimLockManager', function() {
       setup(function() {
         MockSIMSlotManager.ready = true;
         addSimSlot();
-        this.sinon.stub(MockSIMSlotManager.mInstances[0],
-          'isLocked').returns(true);
-        this.sinon.stub(MockSIMSlotManager.mInstances[1],
-          'isLocked').returns(true);
       });
 
       teardown(function() {
@@ -183,26 +182,42 @@ suite('SimLockManager', function() {
       });
 
       test('both slots locked', function() {
+        var slot1 = new MockSIMSlot(MockMobileconnection(), 0);
+        slot1 = MockSIMSlotManager.mInstances[0];
+        var slot2 = new MockSIMSlot(MockMobileconnection(), 1);
+        slot2 = MockSIMSlotManager.mInstances[1];
+        this.sinon.stub(slot1, 'isLocked').returns(true);
+        this.sinon.stub(slot2, 'isLocked').returns(true);
         assert.isTrue(subject.isBothSlotsLocked());
       });
 
       test('sim1 is not locked', function() {
-        this.sinon.stub(MockSIMSlotManager.mInstances[0],
-          'isLocked').returns(false);
+        var slot1 = new MockSIMSlot(MockMobileconnection(), 0);
+        slot1 = MockSIMSlotManager.mInstances[0];
+        var slot2 = new MockSIMSlot(MockMobileconnection(), 1);
+        slot2 = MockSIMSlotManager.mInstances[1];
+        this.sinon.stub(slot1, 'isLocked').returns(false);
+        this.sinon.stub(slot2, 'isLocked').returns(true);
         assert.isFalse(subject.isBothSlotsLocked());
       });
 
       test('sim2 is not locked', function() {
-        this.sinon.stub(MockSIMSlotManager.mInstances[1],
-          'isLocked').returns(false);
+        var slot1 = new MockSIMSlot(MockMobileconnection(), 0);
+        slot1 = MockSIMSlotManager.mInstances[0];
+        var slot2 = new MockSIMSlot(MockMobileconnection(), 1);
+        slot2 = MockSIMSlotManager.mInstances[1];
+        this.sinon.stub(slot1, 'isLocked').returns(true);
+        this.sinon.stub(slot2, 'isLocked').returns(false);
         assert.isFalse(subject.isBothSlotsLocked());
       });
 
       test('both slots not locked', function() {
-        this.sinon.stub(MockSIMSlotManager.mInstances[0],
-          'isLocked').returns(false);
-        this.sinon.stub(MockSIMSlotManager.mInstances[1],
-          'isLocked').returns(false);
+        var slot1 = new MockSIMSlot(MockMobileconnection(), 0);
+        slot1 = MockSIMSlotManager.mInstances[0];
+        var slot2 = new MockSIMSlot(MockMobileconnection(), 1);
+        slot2 = MockSIMSlotManager.mInstances[1];
+        this.sinon.stub(slot1, 'isLocked').returns(false);
+        this.sinon.stub(slot2, 'isLocked').returns(false);
         assert.isFalse(subject.isBothSlotsLocked());
       });
     });
