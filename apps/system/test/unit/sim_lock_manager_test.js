@@ -20,9 +20,7 @@ requireApp('system/js/sim_lock_manager.js');
 
 var mocksHelperForSimLockManager = new MocksHelper([
   'Service',
-  'SIMSlotManager',
-  'SIMSlot',
-  'Mobileconnection'
+  'SIMSlotManager'
 ]).init();
 
 suite('SimLockManager', function() {
@@ -174,9 +172,14 @@ suite('SimLockManager', function() {
     });
 
     suite('Multisim handling', function() {
+      var slot1 = new MockSIMSlot(MockMobileconnection(), 0);
+      var slot2 = new MockSIMSlot(MockMobileconnection(), 1);
+
       setup(function() {
         MockSIMSlotManager.ready = true;
         addSimSlot();
+        slot1 = MockSIMSlotManager.mInstances[0];
+        slot2 = MockSIMSlotManager.mInstances[1];
       });
 
       teardown(function() {
@@ -184,40 +187,24 @@ suite('SimLockManager', function() {
       });
 
       test('both slots locked', function() {
-        var slot1 = new MockSIMSlot(MockMobileconnection(), 0);
-        slot1 = MockSIMSlotManager.mInstances[0];
-        var slot2 = new MockSIMSlot(MockMobileconnection(), 1);
-        slot2 = MockSIMSlotManager.mInstances[1];
         this.sinon.stub(slot1, 'isLocked').returns(true);
         this.sinon.stub(slot2, 'isLocked').returns(true);
         assert.isTrue(subject.isBothSlotsLocked());
       });
 
       test('sim1 is not locked', function() {
-        var slot1 = new MockSIMSlot(MockMobileconnection(), 0);
-        slot1 = MockSIMSlotManager.mInstances[0];
-        var slot2 = new MockSIMSlot(MockMobileconnection(), 1);
-        slot2 = MockSIMSlotManager.mInstances[1];
         this.sinon.stub(slot1, 'isLocked').returns(false);
         this.sinon.stub(slot2, 'isLocked').returns(true);
         assert.isFalse(subject.isBothSlotsLocked());
       });
 
       test('sim2 is not locked', function() {
-        var slot1 = new MockSIMSlot(MockMobileconnection(), 0);
-        slot1 = MockSIMSlotManager.mInstances[0];
-        var slot2 = new MockSIMSlot(MockMobileconnection(), 1);
-        slot2 = MockSIMSlotManager.mInstances[1];
         this.sinon.stub(slot1, 'isLocked').returns(true);
         this.sinon.stub(slot2, 'isLocked').returns(false);
         assert.isFalse(subject.isBothSlotsLocked());
       });
 
       test('both slots not locked', function() {
-        var slot1 = new MockSIMSlot(MockMobileconnection(), 0);
-        slot1 = MockSIMSlotManager.mInstances[0];
-        var slot2 = new MockSIMSlot(MockMobileconnection(), 1);
-        slot2 = MockSIMSlotManager.mInstances[1];
         this.sinon.stub(slot1, 'isLocked').returns(false);
         this.sinon.stub(slot2, 'isLocked').returns(false);
         assert.isFalse(subject.isBothSlotsLocked());
