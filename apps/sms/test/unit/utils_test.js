@@ -736,17 +736,17 @@ suite('Utils', function() {
 
     test('attachment size in B', function() {
       sizeL10n = Utils.getSizeForL10n(size[0]);
-      assert.equal(sizeL10n.l10nId, 'attachmentSizeB');
+      assert.equal(sizeL10n.l10nId, 'sizeB');
       assert.equal(sizeL10n.l10nArgs.n, '150');
     });
     test('attachment size in KB', function() {
       sizeL10n = Utils.getSizeForL10n(size[1]);
-      assert.equal(sizeL10n.l10nId, 'attachmentSizeKB');
+      assert.equal(sizeL10n.l10nId, 'sizeKB');
       assert.equal(sizeL10n.l10nArgs.n, '2.0');
     });
     test('attachment size in MB', function() {
       sizeL10n = Utils.getSizeForL10n(size[2]);
-      assert.equal(sizeL10n.l10nId, 'attachmentSizeMB');
+      assert.equal(sizeL10n.l10nId, 'sizeMB');
       assert.equal(sizeL10n.l10nArgs.n, '3.8');
     });
   });

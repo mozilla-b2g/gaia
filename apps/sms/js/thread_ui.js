@@ -1238,10 +1238,12 @@ var ThreadUI = {
 
     if (Settings.mmsSizeLimitation) {
       if (Compose.size > Settings.mmsSizeLimitation) {
+        var params = Utils.getSizeForL10n(Settings.mmsSizeLimitation);
+
         this.showMaxLengthNotice({
-          l10nId: 'multimedia-message-exceeded-max-length',
-          l10nArgs: { 
-            mmsSize: (Settings.mmsSizeLimitation / 1024).toFixed(0)
+          l10nId: 'message-exceeded-max-length-' + params.l10nId,
+          l10nArgs: {
+            mmsSize: params.l10nArgs.n
           }
         });
         return false;

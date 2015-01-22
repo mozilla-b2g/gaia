@@ -298,17 +298,17 @@
       var sizeMB = sizeKB / 1024;
       if (size < 1000) {
         return {
-          l10nId: 'attachmentSizeB',
+          l10nId: 'sizeB',
           l10nArgs: { n: size }
         };
       } else if (sizeKB < 1000) {
         return {
-          l10nId: 'attachmentSizeKB',
+          l10nId: 'sizeKB',
           l10nArgs: { n: sizeKB.toFixed(1) }
         };
       }
       return {
-        l10nId: 'attachmentSizeMB',
+        l10nId: 'sizeMB',
         l10nArgs: { n: sizeMB.toFixed(1) }
       };
     },

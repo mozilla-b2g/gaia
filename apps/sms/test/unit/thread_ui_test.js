@@ -723,8 +723,8 @@ suite('thread_ui.js >', function() {
         var node = banner.querySelector('p');
         var l10nAttrs = navigator.mozL10n.getAttributes(node);
 
-        assert.equal(l10nAttrs.id, 'multimedia-message-exceeded-max-length');
-        assert.deepEqual(l10nAttrs.args, {mmsSize: '1'});
+        assert.equal(l10nAttrs.id, 'message-exceeded-max-length-sizeKB');
+        assert.deepEqual(l10nAttrs.args, {mmsSize: '1.0'});
         sinon.assert.called(Compose.lock);
       });
     });
