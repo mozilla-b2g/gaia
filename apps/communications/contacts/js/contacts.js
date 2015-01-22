@@ -936,7 +936,10 @@ var Contacts = (function() {
     views: {
       Settings: loadFacebook,
       Details: loadFacebook,
-      Form: loadFacebook
+      Form: loadFacebook,
+      Search: function(callback) {
+        LazyLoader.load(SHARED_PATH + '/utilities.js', callback);
+      }
     },
     utilities: {},
     sharedUtilities: {}
