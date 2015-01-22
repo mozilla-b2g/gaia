@@ -94,7 +94,7 @@ define(function(require) {
 
       // it means users is seleting '--' options
       // when _simcards are all disabled
-      if (cardIndex == SimSettingsHelper.EMPTY_OPTION_VALUE) {
+      if (cardIndex === SimSettingsHelper.EMPTY_OPTION_VALUE) {
         return;
       }
 
