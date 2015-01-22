@@ -282,6 +282,42 @@ suite('InputAppList', function() {
       });
     });
 
+    test('install app -- mark as downloading', function(done) {
+      var newApp = Object.create(INPUT_APP);
+      var manifest = newApp.manifest;
+
+      newApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
+      newApp.downloading = true;
+      newApp.manifest = undefined;
+
+      // XXX: newApp should be a MockEventTarget instance,
+      // but we are too lazy to make a real MockDOMApplication here.
+      newApp.addEventListener = this.sinon.stub();
+
+      list.onupdate = function(inputApps) {
+        assert.deepEqual(inputApps, [ INPUT_APP, newApp ]);
+        assert.deepEqual(list.getListSync(), [ INPUT_APP, newApp ]);
+
+        done();
+      };
+
+      navigator.mozApps.mgmt.dispatchEvent({
+        type: 'install',
+        application: newApp
+      });
+
+      assert.isTrue(
+        newApp.addEventListener.calledWith('downloadsuccess', list));
+
+      newApp.downloading = false;
+      newApp.manifest = manifest;
+
+      list.handleEvent({
+        type: 'downloadsuccess',
+        target: newApp
+      });
+    });
+
     test('install non-input app', function() {
       var newApp = Object.create(INPUT_APP);
       newApp.manifest = Object.create(INPUT_APP.manifest);
