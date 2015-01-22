@@ -38,6 +38,8 @@
         this.analyzeHtml.bind(this));
       files.filter(this.filterFiles.bind(this, 'css')).forEach(
         this.analyzeCss.bind(this));
+      files.filter(this.filterFiles.bind(this, 'json')).forEach(
+        this.copyJson.bind(this));
     },
 
     copyFileToStage: function(file, target) {
@@ -142,6 +144,11 @@
       var content = utils.getFileContent(file).replace(COMMENTED, '');
       this.copyMatchedFilesToStage(CSS_IMPORT, content);
       this.copyMatchedFilesToStage(CSS_FONT, content);
+    },
+
+    copyJson: function(file) {
+      var content = utils.getFileContent(file);
+      this.copyMatchedFilesToStage(SHARED_USAGE, content);
     },
 
     filterFiles: function(type, file) {
