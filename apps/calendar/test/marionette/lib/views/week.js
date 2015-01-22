@@ -30,6 +30,10 @@ Week.prototype = {
     });
   },
 
+  get daysHolder() {
+    return this.findElement('.md__days');
+  },
+
   get days() {
     return this.findElements('.md__day');
   },
@@ -59,8 +63,12 @@ Week.prototype = {
     return this.findElement('.md__all-day');
   },
 
-  get allDay() {
-    return this.findElements('.md__allday')[1];
+  get activeAllDays() {
+    return this.findElements('.md__allday[aria-hidden="false"]');
+  },
+
+  get allDaysHolder() {
+    return this.findElement('.md__alldays');
   },
 
   get scrollTop() {
@@ -85,6 +93,9 @@ Week.prototype = {
   _waitForScrollEnd: function(expected) {
     this.client.waitFor(function() {
       return this.scrollTop === expected;
+    }.bind(this));
+    this.client.waitFor(function() {
+      return this.main.cssProperty('overflowY') !== 'hidden';
     }.bind(this));
   },
 
