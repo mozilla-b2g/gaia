@@ -29,13 +29,36 @@ var FMDOpenSettings = function() {
   };
 };
 
+// Only attach listeners if FMD is enabled (bug 1062558)
+var fmdEnabledSetting = SettingsHelper('findmydevice.enabled');
+fmdEnabledSetting.get(onFMDEnabledChange);
+
+// we always need to listen for this settings change
 navigator.mozSettings.addObserver('findmydevice.enabled', function(event) {
+  onFMDEnabledChange(event);
   // make sure Find My Device is registered if it's enabled,
   // and that it notifies the server if disabled
   wakeUpFindMyDevice(IAC_API_WAKEUP_REASON_ENABLED_CHANGED);
 });
 
-navigator.mozSettings.addObserver('findmydevice.retry-count', function(event) {
+function onFMDEnabledChange(event) {
+  if (event.settingValue) {
+    navigator.mozSettings.addObserver('findmydevice.retry-count',
+      onRetryCountChanged);
+    navigator.mozSettings.addObserver('geolocation.enabled', onGeoEnabled);
+    window.addEventListener('lockscreen-appclosed', onLockscreenClosed);
+    window.addEventListener('mozFxAccountsUnsolChromeEvent', onFxAChromeEvent);
+  } else {
+    navigator.mozSettings.removeObserver('findmydevice.retry-count',
+      onRetryCountChanged);
+    navigator.mozSettings.removeObserver('geolocation.enabled', onGeoEnabled);
+    window.removeEventListener('lockscreen-appclosed', onLockscreenClosed);
+    window.removeEventListener('mozFxAccountsUnsolChromeEvent',
+      onFxAChromeEvent);
+  }
+}
+
+function onRetryCountChanged(event) {
   // Make sure a notification is displayed if the retry count is exceeded
   if (event.settingValue >= FMD_MAX_REGISTRATION_RETRIES) {
     SettingsHelper('findmydevice.enabled').set(false);
@@ -57,16 +80,16 @@ navigator.mozSettings.addObserver('findmydevice.retry-count', function(event) {
       notification.close();
     };
   }
-});
+}
 
-navigator.mozSettings.addObserver('geolocation.enabled', function(event) {
+function onGeoEnabled(event) {
   // invalidate registration so we can report to the server
   // whether tracking is enabled or not, which depends on
   // geolocation
   wakeUpFindMyDevice(IAC_API_WAKEUP_REASON_STALE_REGISTRATION);
-});
+}
 
-window.addEventListener('lockscreen-request-unlock', function(event) {
+function onLockscreenClosed(event) {
   if (event.detail && event.detail.activity &&
       'record' === event.detail.activity.name) {
     // Let's make sure we won't start FMD when user triggers Camera from
@@ -80,9 +103,9 @@ window.addEventListener('lockscreen-request-unlock', function(event) {
 
   // stop the ringer if it's currently being rung
   wakeUpFindMyDevice(IAC_API_WAKEUP_REASON_LOCKSCREEN_CLOSED);
-});
+}
 
-window.addEventListener('mozFxAccountsUnsolChromeEvent', function(event) {
+function onFxAChromeEvent(event) {
   if (!event || !event.detail) {
     return;
   }
@@ -97,7 +120,7 @@ window.addEventListener('mozFxAccountsUnsolChromeEvent', function(event) {
     loggedInHelper.set(false);
     wakeUpFindMyDevice(IAC_API_WAKEUP_REASON_LOGOUT);
   }
-});
+}
 
 // ensure resent notifications are closed properly
 var FMDCloseNotifications = function() {
