@@ -1,5 +1,5 @@
 /* global MockCommon, MockCostControl, MockNavigatorMozMobileConnections, Event,
-          CostControlApp, Common, MockConfigManager,
+          CostControlApp, Common, MockConfigManager, asyncStorage,
           MockMozNetworkStats, MocksHelper, SimManager, MockNavigatorSettings,
           AirplaneModeHelper
 */
@@ -8,6 +8,7 @@
 
 require('/shared/js/usertiming.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/test/unit/mock_debug.js');
 require('/test/unit/mock_common.js');
 require('/test/unit/mock_moz_l10n.js');
@@ -72,6 +73,7 @@ if (!window.navigator.mozSettings) {
 
 var MocksHelperForUnitTest = new MocksHelper([
   'LazyLoader',
+  'asyncStorage',
   'AirplaneModeHelper',
   'ConfigManager',
   'CostControl',
@@ -354,6 +356,84 @@ suite('Application Startup Modes Test Suite >', function() {
     });
 
     CostControlApp.init();
+  });
+
+  suite('supportCustomizeMode setting', function() {
+    var MockMozAlarms = {
+      add: function() {},
+      remove: function() {}
+    };
+    var realMozAlarms;
+
+    suiteSetup(function() {
+      realMozAlarms = window.navigator.mozAlarms;
+      window.navigator.mozAlarms = MockMozAlarms;
+    });
+
+    suiteTeardown(function() {
+      window.navigator.mozAlarms = realMozAlarms;
+    });
+
+    test('Start up with custom mode when functionality is disabled produces ' +
+         'a change to the never mode',
+      function(done) {
+        var expectedMode = 'never';
+        var applicationMode = 'DATA_USAGE_ONLY';
+        setupCardState({cardState: 'ready'});
+        window.ConfigManager = new MockConfigManager(
+          {
+            fakeSettings: {
+              fte: true,
+              trackingPeriod: 'custom'
+            },
+            applicationMode: applicationMode
+          }
+        );
+
+        window.addEventListener('ftestarted', function _onftestarted(evt) {
+          window.removeEventListener('ftestarted', _onftestarted);
+          assert.equal(window.ConfigManager.option('trackingPeriod'),
+                       expectedMode);
+          done();
+        });
+
+        CostControlApp.init();
+      }
+    );
+
+    test('Start up with custom mode when functionality is disabled remove ' +
+         'nextReset alarm',
+      function(done) {
+        var expectedMode = 'never';
+        var nextResetAlarmId = '111';
+        var applicationMode = 'DATA_USAGE_ONLY';
+        this.sinon.stub(asyncStorage, 'getItem').yields(nextResetAlarmId);
+        this.sinon.stub(asyncStorage, 'setItem').yields();
+        this.sinon.stub(navigator.mozAlarms, 'remove', function() {});
+        setupCardState({cardState: 'ready'});
+        window.ConfigManager = new MockConfigManager(
+          {
+            fakeSettings: {
+              fte: true,
+              trackingPeriod: 'custom',
+              nextReset: new Date()
+            },
+            applicationMode: applicationMode
+          }
+        );
+
+        window.addEventListener('ftestarted', function _onftestarted(evt) {
+          window.removeEventListener('ftestarted', _onftestarted);
+          assert.equal(window.ConfigManager.option('trackingPeriod'),
+                       expectedMode);
+          sinon.assert.calledWith(navigator.mozAlarms.remove, nextResetAlarmId);
+          assert.isNull(window.ConfigManager.option('nextReset'));
+          done();
+        });
+
+        CostControlApp.init();
+      }
+    );
   });
 
   suite('FTE Startup Test Suite >', function() {

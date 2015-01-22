@@ -364,7 +364,10 @@ var ConfigManager = (function() {
     // XXX: Once loaded via requestConfiguration() / requestAll() it is ensured
     // it wont change so you can use this to access OEM confguration in a
     // synchronous fashion.
-    get configuration() { return configuration; }
+    get configuration() { return configuration; },
+    // XXX: Bug 1126178-[CostControl] Remove ConfigManager.supportCustomizeMode
+    // when the functionality is ready
+    supportCustomizeMode: false
   };
 
 }());
