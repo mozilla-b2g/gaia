@@ -62,7 +62,7 @@ section {
   margin: 0 1.6rem 0 1.6rem;
   left: 0;
   position: absolute;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, filter 0.3s ease;
 }
 
 .card-panel {
