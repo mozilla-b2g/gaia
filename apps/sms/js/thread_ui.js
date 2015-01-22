@@ -1238,10 +1238,16 @@ var ThreadUI = {
 
     if (Settings.mmsSizeLimitation) {
       if (Compose.size > Settings.mmsSizeLimitation) {
+        var params = Utils.getSizeForL10n(Settings.mmsSizeLimitation);
+        var sizeUnitL10n = navigator.mozL10n.get(params.l10nId,
+          {
+            n: params.l10nArgs.n
+          });
+
         this.showMaxLengthNotice({
-          l10nId: 'multimedia-message-exceeded-max-length',
-          l10nArgs: { 
-            mmsSize: (Settings.mmsSizeLimitation / 1024).toFixed(0)
+          l10nId: 'message-exceeded-max-length-size',
+          l10nArgs: {
+            mmsSize: sizeUnitL10n
           }
         });
         return false;
