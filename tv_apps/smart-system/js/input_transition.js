@@ -218,6 +218,9 @@ InputAppsTransitionManager.prototype._setOccupyingHeight = function (height) {
     height = Math.floor(height * dpx) / dpx;
   }
 
+  // XXX: On TV we got 1 additional px. We need to find out the root cause.
+  --height;
+
   this.occupyingHeight = height;
 };
 
