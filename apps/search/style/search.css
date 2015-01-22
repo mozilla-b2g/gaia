@@ -43,38 +43,37 @@ body, a {
   display: flex;
 }
 
-section.suggestions {
-  margin: 0 0.7rem;
-  font-size: 1.4rem;
-  font-style: italic;
-  overflow: hidden;
-  height: 3.5rem;
+#suggestions-wrapper {
+  /* TODO: remove margin-top, fix for incorrectly sized grid */
+  /* https://bugzilla.mozilla.org/show_bug.cgi?id=1123427 */
+  margin-top: 2rem;
 }
 
-section.suggestions ul {
+#suggestions {
+  font-size: 1.6rem;
+  overflow-x: hidden;
+  margin-right: 1.6rem;
+}
+
+#suggestions ul {
   list-style: none;
-  color: #00AACC;
   white-space: nowrap;
-  overflow-x: scroll;
   padding-left: 0;
-  height: 5rem;
 }
 
-section.suggestions ul li {
-  display: inline-block;
-  margin-left: 1rem;
-  padding: 0.3rem 0.7rem 0.9rem 0;
+#suggestions li {
+  height: 6rem;
+  line-height: 6rem;
   margin: 0;
+  border-bottom: 0.1rem solid rgba(255, 255, 255, 0.05);
+  background-image: url(/style/icons/search.png);
+  background-repeat: no-repeat;
+  background-position: 0.8rem center;
+  text-indent: 4.5rem;
 }
 
-section.suggestions ul li+li:before {
-  content: "\2022";
-  padding-right: 0.7rem;
-  color: #666;
-}
-
-section.suggestions ul li:first-child {
-  padding-left: 0.7rem;
+#suggestions li:active {
+  background-color: rgba(0, 202, 242, 0.2);
 }
 
 section .result * {
@@ -131,14 +130,6 @@ gaia-grid {
   display: none;
 }
 
-#suggestions-wrapper {
-  display: flex;
-}
-
-#suggestions {
-  flex: 1;
-}
-
 #suggestions-notice-wrapper {
   background: rgba(45, 45, 45, 0.94);
   z-index: 100;
@@ -193,4 +184,34 @@ gaia-grid {
 
 #loading.loading {
   display: block;
+}
+
+h2 {
+  text-align: center;
+}
+
+h2 span {
+  position: relative;
+  color: #00aac5;
+  font-size: 1.4rem;
+  font-weight: normal;
+  font-style: italic;
+}
+
+h2 span:before, h2 span:after {
+  border-top: 0.3rem solid #5f5f5f;
+  content: ' ';
+  position: absolute;
+  top: 0.9rem;
+  right: 9em;
+  bottom: 0;
+  width: 80%;
+}
+
+h2 span:after {
+  position: absolute;
+  top: 0.9rem;
+  left: 9em;
+  right:0;
+  bottom: 0;
 }
