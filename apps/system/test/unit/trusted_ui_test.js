@@ -115,21 +115,25 @@ suite('system/TrustedUIManager', function() {
       var stubHideAllFrames = this.sinon.stub(TrustedUIManager,
         '_hideAllFrames');
       var stubHideCallerApp = this.sinon.stub(TrustedUIManager,
-        '_hideCallerApp');
+        '_hideCallerApp', function() {
+          return Promise.resolve();
+      });
       var stubPushNewDialog = this.sinon.stub(TrustedUIManager,
         '_pushNewDialog');
-      TrustedUIManager.open('appName', 'testFrame', 'testChromeEventId',
-        'testOnCancelCB');
-
-      assert.isTrue(stubScreenLock.calledWith('portrait'));
-      assert.isTrue(stubHideAllFrames.calledOnce);
-      assert.isTrue(TrustedUIManager.popupContainer.classList.contains('up'));
-      assert.isFalse(TrustedUIManager.popupContainer.classList
-        .contains('closing'));
-      stubHideCallerApp.getCall(0).args[1]();
-      assert.isFalse(TrustedUIManager.popupContainer.classList.contains('up'));
-      assert.isTrue(stubPushNewDialog.calledWith('appName', 'testFrame',
-        'testChromeEventId', 'testOnCancelCB'));
+      TrustedUIManager.open('appName', 'testFrame',
+                            'testChromeEventId',
+                            'testOnCancelCB').then(() => {
+        assert.isTrue(stubScreenLock.calledWith('portrait'));
+        assert.isTrue(stubHideAllFrames.calledOnce);
+        assert.isTrue(TrustedUIManager.popupContainer.classList.contains('up'));
+        assert.isFalse(TrustedUIManager.popupContainer.classList
+          .contains('closing'));
+        stubHideCallerApp.getCall(0).args[1]();
+        assert.isFalse(
+          TrustedUIManager.popupContainer.classList.contains('up'));
+        assert.isTrue(stubPushNewDialog.calledWith('appName', 'testFrame',
+          'testChromeEventId', 'testOnCancelCB'));
+      });
     });
   });
 
@@ -217,7 +221,7 @@ suite('system/TrustedUIManager', function() {
     assert.deepEqual(fakeFrame.parentNode, TrustedUIManager.container);
     assert.isTrue(stubMakeDialogVisible.calledWith(fakeDialog));
   });
-  
+
   suite('handleEvent', function() {
     test('home', function() {
       var stubHideTrustedApp = this.sinon.stub(TrustedUIManager,
