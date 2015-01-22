@@ -155,16 +155,18 @@ suite('SimLockManager', function() {
 
       test('sim1 is absent', function() {
         MockSIMSlotManager.mInstances[0].isAbsent = true;
-        this.sinon.stub(MockSIMSlotManager, 'hasOnlyOneSIMCardDetected').returns(true);
+        this.sinon.stub(MockSIMSlotManager,
+          'hasOnlyOneSIMCardDetected').returns(true);
         assert.isFalse(subject.isBothSlotsLocked());
       });
 
       test('sim2 is absent', function() {
         MockSIMSlotManager.mInstances[1].isAbsent = true;
-        this.sinon.stub(MockSIMSlotManager, 'hasOnlyOneSIMCardDetected').returns(true);
+        this.sinon.stub(MockSIMSlotManager,
+          'hasOnlyOneSIMCardDetected').returns(true);
         assert.isFalse(subject.isBothSlotsLocked());
       });
-    }
+    });
 
     suite('Multisim handling', function() {
       setup(function() {
@@ -197,8 +199,8 @@ suite('SimLockManager', function() {
         MockSIMSlotManager.mInstances[1].isLocked = false;
         assert.isFalse(subject.isBothSlotsLocked());
       });
-    }
-  }
+    });
+  });
 
   suite('showIfLocked', function() {
     setup(function() {
