@@ -234,7 +234,7 @@ define(function(require) {
         });
       }).then(() => {
         // Clear pending cp apns.
-        return ApnUtils.clearPendingCpApns(mcc, mnc, serviceId);
+        return ApnUtils.clearPendingCpApns(serviceId);
       });
     },
 

@@ -106,7 +106,7 @@ define(function(require) {
     });
   }
 
-  function _clearPendingCpApns(mcc, mnc, serviceId) {
+  function _clearPendingCpApns(serviceId) {
     return new Promise(function(resolve, reject) {
       var settings = navigator.mozSettings;
       if (!settings) {
@@ -114,9 +114,8 @@ define(function(require) {
       }
       SettingsCache.getSettings(function(results) {
         var pendingCpApns = results[PENDING_CP_APN_KEY];
-        if (pendingCpApns && pendingCpApns[serviceId] &&
-          pendingCpApns[serviceId][mcc][mnc]) {
-          pendingCpApns[serviceId][mcc][mnc] = null;
+        if (pendingCpApns && pendingCpApns[serviceId]) {
+          pendingCpApns[serviceId] = null;
           var obj = {};
           obj[PENDING_CP_APN_KEY] = pendingCpApns;
           var request = settings.createLock().set(obj);
