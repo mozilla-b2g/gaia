@@ -55,7 +55,7 @@ WebappShared.prototype.moveToBuildDir = function(file, targetPath) {
   // Case 2/ Directory
   else if (file.isDirectory()) {
     utils.copyDirTo(file, utils.dirname(fullTargetPath),
-        utils.basename(fullTargetPath), true);
+        utils.basename(fullTargetPath));
   }
 };
 

@@ -13,6 +13,7 @@ Cu.import('resource://gre/modules/Promise.jsm');
 Cu.import('resource://gre/modules/reflect.jsm');
 
 var utils = require('./utils.js');
+var config = require('./config/build-config.json');
 var subprocess = require('sdk/system/child_process/subprocess');
 
 const UUID_FILENAME = 'uuid.json';
@@ -654,11 +655,14 @@ function copyFileTo(path, toParent, name, override) {
  * @param  {string}  path       the directory to copy,
  * @param  {string}  toParent   where to put the new directory,
  * @param  {string}  name       the name of the copied directory,
- * @param  {boolean} override   set to true to overwride it if it is existed.
+ * @param  {array}   blacklist  array of file name to avoid copying
 
  * Note: this function is a wrapper function for node.js
  */
-function copyDirTo(path, toParent, name, override) {
+function copyDirTo(path, toParent, name, blacklist) {
+  if (blacklist && blacklist.indexOf(name) !== -1) {
+    return;
+  }
   var dir = ((typeof path === 'string') ? getFile(path) : path);
   var parentFile = getFile(toParent);
   ensureFolderExists(parentFile);
@@ -666,17 +670,21 @@ function copyDirTo(path, toParent, name, override) {
   var newFolderName = joinPath(toParent, name);
   var files = ls(dir, false);
   files.forEach(function(file) {
+    if (blacklist && blacklist.indexOf(file.leafName) !== -1) {
+      return;
+    }
     if (file.isFile()) {
       copyFileTo(file.path, newFolderName, file.leafName, true);
     } else if (file.isDirectory()) {
-      copyDirTo(file.path, newFolderName, file.leafName, true);
+      copyDirTo(file.path, newFolderName, file.leafName, blacklist);
     }
   });
 }
 
 function copyToStage(options) {
   var appDir = getFile(options.APP_DIR);
-  copyDirTo(appDir, options.STAGE_DIR, appDir.leafName);
+  var blacklist = config.packageBlacklist;
+  copyDirTo(appDir, options.STAGE_DIR, appDir.leafName, blacklist);
 }
 
 /**
