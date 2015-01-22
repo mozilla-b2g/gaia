@@ -172,8 +172,10 @@ suite('SimLockManager', function() {
       setup(function() {
         MockSIMSlotManager.ready = true;
         addSimSlot();
-        MockSIMSlotManager.mInstances[0].isLocked() = true;
-        MockSIMSlotManager.mInstances[1].isLocked() = true;
+        this.sinon.stub(MockSIMSlotManager.mInstances[0],
+          'isLocked').returns(true);
+        this.sinon.stub(MockSIMSlotManager.mInstances[1],
+          'isLocked').returns(true);
       });
 
       teardown(function() {
@@ -185,18 +187,22 @@ suite('SimLockManager', function() {
       });
 
       test('sim1 is not locked', function() {
-        MockSIMSlotManager.mInstances[0].isLocked() = false;
+        this.sinon.stub(MockSIMSlotManager.mInstances[0],
+          'isLocked').returns(false);
         assert.isFalse(subject.isBothSlotsLocked());
       });
 
       test('sim2 is not locked', function() {
-        MockSIMSlotManager.mInstances[1].isLocked() = false;
+        this.sinon.stub(MockSIMSlotManager.mInstances[1],
+          'isLocked').returns(false);
         assert.isFalse(subject.isBothSlotsLocked());
       });
 
       test('both slots not locked', function() {
-        MockSIMSlotManager.mInstances[0].isLocked() = false;
-        MockSIMSlotManager.mInstances[1].isLocked() = false;
+        this.sinon.stub(MockSIMSlotManager.mInstances[0],
+          'isLocked').returns(false);
+        this.sinon.stub(MockSIMSlotManager.mInstances[1],
+          'isLocked').returns(false);
         assert.isFalse(subject.isBothSlotsLocked());
       });
     });
