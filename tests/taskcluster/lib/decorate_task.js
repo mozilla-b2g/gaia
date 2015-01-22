@@ -94,7 +94,7 @@ function decorateTask(task, options) {
   if (process.env.TREEHERDER_PROJECT && process.env.TREEHERDER_REVISION) {
     output.task.routes = output.task.routes || [];
     output.task.routes.push(
-      'treeherder.' +
+      'tc-treeherder.' +
       process.env.TREEHERDER_PROJECT + '.' +
       process.env.TREEHERDER_REVISION
     );
