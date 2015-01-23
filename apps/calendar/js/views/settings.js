@@ -3,7 +3,7 @@ define(function(require, exports, module) {
 
 var CalendarTemplate = require('templates/calendar');
 var View = require('view');
-var app = require('app');
+var calendarObserver = require('calendar_observer');
 var debug = require('debug')('views/settings');
 var forEach = require('object').forEach;
 
@@ -12,8 +12,8 @@ require('dom!settings');
 function Settings(options) {
   View.apply(this, arguments);
 
-  this.calendarList = {};
   this._hideSettings = this._hideSettings.bind(this);
+  this.render = this.render.bind(this);
   this._onDrawerTransitionEnd = this._onDrawerTransitionEnd.bind(this);
   this._updateTimeouts = Object.create(null);
 
@@ -23,8 +23,6 @@ module.exports = Settings;
 
 Settings.prototype = {
   __proto__: View.prototype,
-
-  calendarList: null,
 
   waitBeforePersist: 600,
 
@@ -127,9 +125,9 @@ Settings.prototype = {
   },
 
   _observeUI: function() {
-    this.advancedSettingsButton.addEventListener('click', function(e) {
-      e.stopPropagation();
-      app.router.show('/advanced-settings/');
+    this.advancedSettingsButton.addEventListener('click', event => {
+      event.stopPropagation();
+      this.app.router.show('/advanced-settings/');
     });
 
     this.syncButton.addEventListener('click', this._onSyncClick.bind(this));
@@ -216,21 +214,6 @@ Settings.prototype = {
     this.app.syncController.all();
   },
 
-  _add: function(id, model) {
-    this.calendarList[id] = model;
-    this.render();
-  },
-
-  _update: function(id, model) {
-    this.calendarList[id] = model;
-    this.render();
-  },
-
-  _remove: function(id) {
-    delete this.calendarList[id];
-    this.render();
-  },
-
   // Ajust size of drawer scroll area to fit size of calendars, within
   // a min/max that is controlled by CSS. This has to be a manual
   // calculation because UX wants the list of calendars to form-fit
@@ -258,14 +241,14 @@ Settings.prototype = {
     this._animateDrawer();
   },
 
-  render: function() {
+  render: function(calendarList) {
     debug('Will render settings view.');
     this.calendars.innerHTML = '';
 
     debug('Inject calendars into settings list.');
-    forEach(this.calendarList, function(id, object) {
+    forEach(calendarList, function(id, object) {
       debug('Will add object to settings view', id, object);
-      var html = CalendarTemplate.item.render(object);
+      var html = CalendarTemplate.item.render(object.calendar);
       this.calendars.insertAdjacentHTML('beforeend', html);
 
       if (object.error) {
@@ -356,10 +339,9 @@ Settings.prototype = {
       var store = this.app.store('Calendar');
       fetch = store.all().then((calendars) => {
         debug('Settings view found calendars:', calendars);
-        this.calendarList = calendars;
 
-        // observe new calendar events
-        this._observeCalendarStore();
+        // observe calendar events
+        calendarObserver.on('change', this.render);
 
         // observe accounts to hide sync button
         this._observeAccountStore();
