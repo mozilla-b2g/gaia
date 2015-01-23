@@ -114,7 +114,9 @@ function editPhoto(n) {
     currentEditTool = null;
 
     // Set auto enhance icon to default off state
-    $('edit-enhance-button').classList.remove('on');
+    var editEnhanceButton = $('edit-enhance-button');
+    editEnhanceButton.setAttribute('aria-pressed', false);
+    editEnhanceButton.classList.remove('on');
     // Set edit screen header title
     $('edit-title').setAttribute('data-l10n-id', 'edit');
     // Disable save and edit tool apply button until an edit is applied
@@ -477,6 +479,7 @@ function setAutoEnhanceState(isEnhanced) {
   var statusLabel = $('edit-enhance-status');
   var enhanceButton = $('edit-enhance-button');
   var banner = $('edit-enhance-banner');
+  enhanceButton.setAttribute('aria-pressed', isEnhanced);
   if (isEnhanced) {
     showStatus('enhance-on');
     enhanceButton.classList.add('on');
