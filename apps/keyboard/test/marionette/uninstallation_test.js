@@ -10,16 +10,20 @@ var KeyboardTestApp = require('./lib/keyboard_test_app');
 var ImeTestApp = require('./lib/ime_test_app');
 var Keyboard = require('./lib/keyboard');
 var assert = require('assert');
+var AppInstall =
+  require('../../../../apps/system/test/marionette/lib/app_install');
+var SystemApp =
+  require('../../../../apps/settings/test/marionette/app/system_app');
 
 marionette('Show Keyboard App after uninstallation', function() {
   var keyboardTestApp = null;
   var keyboard = null;
-  var systemInputMgmt = null;
+  var system = null;
   var imeTestApp = null;
   var appInstall = null;
+  var systemApp = null;
   var client = null;
   var apps = {};
-  var confirmDialog = null;
 
   // Pre-install keyboard testing app
   apps[KeyboardTestApp.ORIGIN] = __dirname + '/keyboardtestapp';
@@ -50,13 +54,16 @@ marionette('Show Keyboard App after uninstallation', function() {
     }
   });
 
+  appInstall = new AppInstall(client);
+  systemApp = new SystemApp(client);
+
   /*
    * To check the 3rd-party IME is shown.
    */
   function check3rdPartyIme() {
     // switch back to system
     client.switchToFrame();
-    systemInputMgmt.switchToActiveKeyboardFrame();
+    system.switchToActiveKeyboardFrame();
     client.waitFor(function() {
       return imeTestApp.sendKeyButton.displayed();
     });
@@ -64,9 +71,7 @@ marionette('Show Keyboard App after uninstallation', function() {
 
   setup(function() {
     keyboard =  new Keyboard(client);
-    systemInputMgmt = client.loader.getAppClass('system', 'input_management');
-    appInstall = client.loader.getAppClass('system', 'app_install');
-    confirmDialog = client.loader.getAppClass('system', 'confirm_dialog');
+    system = client.loader.getAppClass('keyboard', 'system');
     imeTestApp = new ImeTestApp(client);
 
     // create a keyboard test app
@@ -75,8 +80,8 @@ marionette('Show Keyboard App after uninstallation', function() {
     keyboardTestApp.textInput.click();
 
     // Wait for the keyboard pop up and switch to it
-    systemInputMgmt.waitForKeyboardFrameDisplayed();
-    systemInputMgmt.switchToActiveKeyboardFrame();
+    system.waitForKeyboardFrameDisplayed();
+    system.switchToActiveKeyboardFrame();
 
     // Click to switch to next IME
     keyboard.imeSwitchingKey.click();
@@ -85,7 +90,7 @@ marionette('Show Keyboard App after uninstallation', function() {
     // Uninstall the current active IME
     appInstall.uninstall(ImeTestApp.MANIFEST_URL);
     client.switchToFrame();
-    confirmDialog.confirm('remove');
+    systemApp.confirmDialog('remove');
 
     // Click the input field again to check the built-in keyboard
     client.apps.switchToApp(KeyboardTestApp.ORIGIN);
@@ -94,8 +99,8 @@ marionette('Show Keyboard App after uninstallation', function() {
     keyboardTestApp.textInput.click();
 
     // Wait for the keyboard pop up and switch to it
-    systemInputMgmt.waitForKeyboardFrameDisplayed();
-    systemInputMgmt.switchToActiveKeyboardFrame();
+    system.waitForKeyboardFrameDisplayed();
+    system.switchToActiveKeyboardFrame();
   });
 
   test('Fallback to built-in keyboard when the active IME has been ' +
