@@ -1,3 +1,4 @@
+/* globals MockPresentationSession */
 (function(exports) {
   'use strict';
 
@@ -9,6 +10,9 @@
     },
 
     startSession: function(url, sessionId) {
+      var session = MockPresentationSession._mCreateSession();
+      session._state = 'connected';
+      return Promise.resolve(session);
     },
 
     joinSession: function(url, sessionId) {
