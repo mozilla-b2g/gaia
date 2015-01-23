@@ -29,7 +29,6 @@
   padding: 0;
   margin: 0;
   overflow: hidden;
-  -moz-user-select: none;
 }
 
 .confirm-media-frame > img {
@@ -40,7 +39,6 @@
   padding: 0;
   margin: 0;
   pointer-events: none;
-  -moz-user-select: none;
 }
 
 .confirm-media-frame > video {

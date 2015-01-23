@@ -83,7 +83,6 @@
   overflow: hidden;
   opacity: 1;
   transition: opacity 0.5s;
-  -moz-user-select: none;
 }
 
 .videoPlayerFooter.hidden {
