@@ -198,7 +198,7 @@ Settings.prototype = {
     this.calendars.innerHTML = '';
 
     debug('Inject calendars into settings list.');
-    forEach(calendarList, function(id, object) {
+    forEach(calendarList, (id, object) => {
       debug('Will add object to settings view', id, object);
       var html = CalendarTemplate.item.render(object.calendar);
       this.calendars.insertAdjacentHTML('beforeend', html);
@@ -211,7 +211,7 @@ Settings.prototype = {
       }
 
       this._setCalendarContainerSize();
-    }, this);
+    });
 
     this.onrender && this.onrender();
 

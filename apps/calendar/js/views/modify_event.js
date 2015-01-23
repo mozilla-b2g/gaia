@@ -6,14 +6,16 @@ var EventBase = require('./event_base');
 var InputParser = require('shared/input_parser');
 var Local = require('provider/local');
 var QueryString = require('querystring');
+var calendarObserver = require('calendar_observer');
 var dateFormat = require('date_format');
+var forEach = require('object').forEach;
 var getTimeL10nLabel = require('calc').getTimeL10nLabel;
-var nextTick = require('next_tick');
 
 require('dom!modify-event-view');
 
 function ModifyEvent(options) {
   this.deleteRecord = this.deleteRecord.bind(this);
+  this._renderCalendarSelect = this._renderCalendarSelect.bind(this);
   this._toggleAllDay = this._toggleAllDay.bind(this);
   EventBase.apply(this, arguments);
 }
@@ -51,12 +53,7 @@ ModifyEvent.prototype = {
   _initEvents: function() {
     EventBase.prototype._initEvents.apply(this, arguments);
 
-    var calendars = this.app.store('Calendar');
-
-    calendars.on('add', this._addCalendarId.bind(this));
-    calendars.on('preRemove', this._removeCalendarId.bind(this));
-    calendars.on('remove', this._removeCalendarId.bind(this));
-    calendars.on('update', this._updateCalendarId.bind(this));
+    calendarObserver.on('change', this._renderCalendarSelect);
 
     this.deleteButton.addEventListener('click', this.deleteRecord);
     this.form.addEventListener('click', this.focusHandler);
@@ -129,105 +126,20 @@ ModifyEvent.prototype = {
       return !!this.provider;
   },
 
-  /**
-   * Build the initial list of calendar ids.
-   */
-  onfirstseen: function() {
-    // we need to notify users (specially automation tests) somehow that the
-    // options are still being loaded from DB, this is very important to
-    // avoid race conditions (eg.  trying to set calendar before list is
-    // built) notice that we also add the class to the markup because on some
-    // really rare occasions "onfirstseen" is called after the EventBase
-    // removed the "loading" class from the root element (seen it happen less
-    // than 1% of the time)
-    this.getEl('calendarId').classList.add(self.LOADING);
-
-    var calendarStore = this.app.store('Calendar');
-    calendarStore.all(function(err, calendars) {
-      if (err) {
-        return console.error('Could not build list of calendars');
-      }
-
-      var pending = 0;
-      var self = this;
-
-      function next() {
-        if (!--pending) {
-          self.getEl('calendarId').classList.remove(self.LOADING);
-
-          if (self.onafteronfirstseen) {
-            self.onafteronfirstseen();
-          }
-        }
-      }
-
-      for (var id in calendars) {
-        pending++;
-        this._addCalendarId(id, calendars[id], next);
-      }
-
-    }.bind(this));
-  },
-
-  /**
-   * Updates a calendar id option.
-   *
-   * @param {String} id calendar id.
-   * @param {Calendar.Model.Calendar} calendar model.
-   */
-  _updateCalendarId: function(id, calendar) {
+  _renderCalendarSelect: function(calendarList) {
     var element = this.getEl('calendarId');
-    var option = element.querySelector('[value="' + id + '"]');
-    var store = this.app.store('Calendar');
-
-    store.providerFor(calendar, function(err, provider) {
-      var caps = provider.calendarCapabilities(
-        calendar
-      );
-
-      if (!caps.canCreateEvent) {
-        this._removeCalendarId(id);
+    element.innerHTML = '';
+    forEach(calendarList, (id, object) => {
+      var calendar = object.calendar;
+      var capabilities = object.capabilities;
+      if (!calendar.localDisplayed || !capabilities.canCreateEvent) {
         return;
       }
 
-      if (option) {
-        option.text = calendar.remote.name;
-      }
-
-
-      if (this.oncalendarupdate) {
-        this.oncalendarupdate(calendar);
-      }
-    }.bind(this));
-  },
-
-  /**
-   * Add a single calendar id.
-   *
-   * @param {String} id calendar id.
-   * @param {Calendar.Model.Calendar} calendar calendar to add.
-   */
-  _addCalendarId: function(id, calendar, callback) {
-    var store = this.app.store('Calendar');
-    store.providerFor(calendar, function(err, provider) {
-      var caps = provider.calendarCapabilities(
-        calendar
-      );
-
-      if (!caps.canCreateEvent) {
-        if (callback) {
-          nextTick(callback);
-        }
-        return;
-      }
-
-      var option;
-      var element = this.getEl('calendarId');
-
-      option = document.createElement('option');
-
+      var l10n = navigator.mozL10n;
+      var option = document.createElement('option');
       if (id === Local.calendarId) {
-        option.text = navigator.mozL10n.get('calendar-local');
+        option.text = l10n.get('calendar-local');
         option.setAttribute('data-l10n-id', 'calendar-local');
       } else {
         option.text = calendar.remote.name;
@@ -235,33 +147,7 @@ ModifyEvent.prototype = {
 
       option.value = id;
       element.add(option);
-
-      if (callback) {
-        nextTick(callback);
-      }
-
-      if (this.onaddcalendar) {
-        this.onaddcalendar(calendar);
-      }
-    }.bind(this));
-  },
-
-  /**
-   * Remove a single calendar id.
-   *
-   * @param {String} id to remove.
-   */
-  _removeCalendarId: function(id) {
-    var element = this.getEl('calendarId');
-
-    var option = element.querySelector('[value="' + id + '"]');
-    if (option) {
-      element.removeChild(option);
-    }
-
-    if (this.onremovecalendar) {
-      this.onremovecalendar(id);
-    }
+    });
   },
 
   /**
