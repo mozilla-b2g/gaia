@@ -507,7 +507,14 @@ MailSlice.prototype = {
 };
 
 
-var FOLDER_DB_VERSION = exports.FOLDER_DB_VERSION = 2;
+/**
+ * Folder version history:
+ *
+ * v3: Unread count tracking fixed, so we need to re-run it.
+ *
+ * v2: Initial unread count tracking.  Regrettably with bad maths.
+ */
+var FOLDER_DB_VERSION = exports.FOLDER_DB_VERSION = 3;
 
 /**
  * Per-folder message caching/storage; issues per-folder `MailSlice`s and keeps
