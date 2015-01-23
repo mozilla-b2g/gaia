@@ -4,11 +4,13 @@ var MockFxAccountsClient = {
   _errorMsg: null,
   _successMsg: null,
   _call: null,
+  _email: null,
 
   _reset: function() {
     this._call = null;
     this._errorMsg = null;
     this._successMsg = null;
+    this._email = null;
   },
 
   _triggerCallback: function(successCb, errorCb) {
@@ -24,7 +26,8 @@ var MockFxAccountsClient = {
     this._triggerCallback(successCb, errorCb);
   },
 
-  resendVerificationEmail: function(successCb, errorCb) {
+  resendVerificationEmail: function(email, successCb, errorCb) {
+    this._email = email;
     this._call = 'resendVerificationEmail';
     this._triggerCallback(successCb, errorCb);
   },
