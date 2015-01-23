@@ -251,7 +251,6 @@ App.prototype.onClick = function() {
 App.prototype.onCriticalPathDone = function() {
   if (this.criticalPathDone) { return; }
   debug('critical path done');
-
   // PERFORMANCE EVENT (3): moz-app-visually-complete
   // Designates that the app is visually loaded (e.g.: all of the
   // "above-the-fold" content exists in the DOM and is marked as
@@ -274,6 +273,7 @@ App.prototype.loadLazyModules = function() {
 
   this.loadL10n(done());
   this.loadLazyControllers(done());
+  this.once('storage:checked', done());
 
   // All done
   done(function() {
