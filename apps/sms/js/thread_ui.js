@@ -1105,6 +1105,26 @@ var ThreadUI = {
     });
   },
 
+  /**
+   * Navigates user to Composer panel with custom parameters.
+   * @param {*} parameters Optional navigation parameters.
+   * @returns {Promise} Promise that is resolved once navigation is completed.
+   */
+  navigateToComposer: function(parameters) {
+    if (Compose.isEmpty()) {
+      return Navigation.toPanel('composer', parameters);
+    }
+
+    return Utils.confirm(
+      'unsent-message-text',
+      'unsent-message-title',
+      { text: 'unsent-message-option-discard', className: 'danger' }
+    ).then(() => {
+      this.discardDraft();
+      return Navigation.toPanel('composer', parameters);
+    });
+  },
+
   _onNavigatingBack: function() {
     this.stopRendering();
 
@@ -2054,14 +2074,11 @@ var ThreadUI = {
         if (!lineClassList.contains('not-downloaded')) {
           params.items.push({
             l10nId: 'forward',
-            method: function forwardMessage(messageId) {
-              Navigation.toPanel('composer', {
-                forward: {
-                  messageId: messageId
-                }
+            method: () => {
+              this.navigateToComposer({
+                forward: { messageId: messageId }
               });
-            },
-            params: [messageId]
+            }
           });
         }
 
@@ -2790,10 +2807,14 @@ var ThreadUI = {
       if (Settings.supportEmailRecipient) {
         items.push({
           l10nId: 'sendMMSToEmail',
-          method: function oMMS(param) {
-            ActivityPicker.sendMessage(param);
+          method: () => {
+            this.navigateToComposer({
+              activity: { number: email }
+            });
           },
-          params: [email]
+          // As we change panel here, we don't want to call 'complete' that
+          // changes the panel as well
+          incomplete: true
         });
       }
     } else {
@@ -2809,12 +2830,13 @@ var ThreadUI = {
 
         items.push({
           l10nId: 'sendMessage',
-          method: function oMessage(param) {
-            ActivityPicker.sendMessage(param);
+          method: () => {
+            this.navigateToComposer({
+              activity: { number: number }
+            });
           },
-          params: [number],
-          // As activity picker changes the panel we don't want
-          // to call 'complete' that changes the panel as well
+          // As we change panel here, we don't want to call 'complete' that
+          // changes the panel as well
           incomplete: true
         });
       }

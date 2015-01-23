@@ -1,4 +1,4 @@
-/*global MocksHelper, MockL10n, ActivityPicker, MozActivity, ActivityHandler */
+/*global MocksHelper, MockL10n, ActivityPicker, MozActivity */
 
 'use strict';
 
@@ -285,17 +285,6 @@ suite('ActivityPicker', function() {
           type: 'webcontacts/contact',
           params: {foo: ['bar']}
         }
-      });
-    });
-  });
-
-  suite('sendMessage', function() {
-    test('sendMessage(phone) ', function() {
-      this.sinon.stub(ActivityHandler, 'toView');
-      ActivityPicker.sendMessage('999');
-
-      sinon.assert.calledWith(ActivityHandler.toView, {
-        number: '999'
       });
     });
   });

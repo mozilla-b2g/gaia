@@ -6,8 +6,7 @@ var MockActivityPicker = {};
 
 [
  'email', 'dial', 'url',
- 'createNewContact', 'addToExistingContact',
- 'sendMessage'
+ 'createNewContact', 'addToExistingContact'
 ].forEach(function(fn) {
   MockActivityPicker[fn] = function() {
     MockActivityPicker[fn].called = true;

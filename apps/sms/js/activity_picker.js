@@ -1,4 +1,4 @@
-/*global ActivityHandler, MozActivity */
+/*global MozActivity */
 
 (function(exports) {
 'use strict';
@@ -75,13 +75,6 @@ var ActivityPicker = {
         params: contactProps
       }
     }), onsuccess, onerror);
-  },
-  sendMessage: function ap_sendMessage(number) {
-    // Using ActivityHandler here to navigate to Composer view in the same way
-    // as it's done for real activity.
-    ActivityHandler.toView({
-      number: number
-    });
   },
   openSettings: function ap_openSettings(onsuccess, onerror) {
     handleActivity(new MozActivity({
