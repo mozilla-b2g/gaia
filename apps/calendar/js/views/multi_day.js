@@ -87,9 +87,16 @@ MultiDay.prototype = {
     var previousBaseDate = this.baseDate;
     this.baseDate = this._calcBaseDate(controller.position);
     this._render();
-    // Do not scroll when come back from any other screen.
-    if (!(previousBaseDate &&
-          Calc.isSameDate(previousBaseDate, this.baseDate))) {
+
+    if (window.history.state && 'eventStartHour' in window.history.state) {
+      // scroll to last edited event
+      this._scrollToHour({
+        hour: Math.max(window.history.state.eventStartHour - 1, 0)
+      });
+    } else if (!(previousBaseDate &&
+                 Calc.isSameDate(previousBaseDate, this.baseDate))) {
+      // Do not scroll when come back from other time views without changing the
+      // base date
       this._resetScroll();
       this._scrollToHour();
     }
@@ -318,21 +325,29 @@ MultiDay.prototype = {
   },
 
   _scrollToHour: function(options) {
-    var now = new Date();
-    var hour;
-
-    if (this._visibleRange.contains(now)) {
-      hour = Math.max(now.getHours() - 1, 0);
-    } else if (!options || !options.onlyToday) {
-      hour = 8;
-    }
-
+    var hour = this._getScrollDestinationHour(options);
     if (hour != null) {
       this._animatedScroll(hour * this._hourHeight);
     }
   },
 
+  _getScrollDestinationHour: function(options) {
+    var hour = options && options.hour;
+    if (hour != null) {
+      return hour;
+    }
+
+    var now = new Date();
+    if (this._visibleRange.contains(now)) {
+      return Math.max(now.getHours() - 1, 0);
+    }
+
+    return (options && options.onlyToday) ? null : 8;
+  },
+
   _animatedScroll: function(scrollTop) {
+    scrollTop = Math.max(scrollTop, 0);
+
     var container = this.main;
     var maxScroll = container.scrollHeight - container.clientHeight;
 

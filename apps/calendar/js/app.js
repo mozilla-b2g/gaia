@@ -159,9 +159,10 @@ module.exports = {
    * Navigates app to a new location.
    *
    * @param {String} url new view url.
+   * @param {Object} state data stored as the history state.
    */
-  go: function(url) {
-    this.router.show(url);
+  go: function(url, state) {
+    this.router.show(url, state);
   },
 
   /**

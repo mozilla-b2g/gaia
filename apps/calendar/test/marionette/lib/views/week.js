@@ -69,10 +69,15 @@ Week.prototype = {
     });
   },
 
-  waitForHourScrollEnd: function() {
+  waitForHourScrollEnd: function(hour) {
     // if displaying current day it scrolls to current time, if not it scrolls
-    // to 8AM
-    var hour = this.todayDates.length ? new Date().getHours() - 1 : 8;
+    // to 8AM; it should also scroll to the created event, that's why we allow
+    // overriding the `hour`.
+    if (hour == null) {
+      hour = this.todayDates.length ?
+        Math.max(new Date().getHours() - 1, 0) :
+        8;
+    }
     var expected = this.getDestinationScrollTop(hour);
     this._waitForScrollEnd(expected);
   },
@@ -84,6 +89,7 @@ Week.prototype = {
   },
 
   getDestinationScrollTop: function(hour) {
+    hour = Math.max(hour, 0);
     var bottomScrollTop = this.main.scriptWith(function(el) {
       return el.scrollHeight - el.clientHeight;
     });
