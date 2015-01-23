@@ -36,6 +36,10 @@ task:
         type: directory
         path: '{{gaia}}/artifacts/'
         expires: '{{nextYear}}'
+      'public/crashes':
+        type: directory
+        path: '{{gaia}}/crash/'
+        expires: '{{nextYear}}'
 
   extra:
     treeherder:
