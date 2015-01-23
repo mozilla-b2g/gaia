@@ -40,7 +40,7 @@
   "icons": {
     "128": "/style/icons/Blank.png"
   },
-  "orientation": "default",
+  "orientation": "landscape",
   "permissions": {
     "webapps-manage": {},
     "open-remote-window":{},
