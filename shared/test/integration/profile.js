@@ -3,6 +3,7 @@
  */
 module.exports = {
   settings: {
+    'search.suggestions.enabled': false,
     'cdn.url': 'http://localhost',
     'everythingme.api.url': null,
     'search.marketplace.url': null
