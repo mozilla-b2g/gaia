@@ -499,6 +499,7 @@
 
   TaskManager.prototype._handle_home = function() {
     if (this.isActive()) {
+      this._shouldGoBackHome = true;
       this.exitToApp();
       return false;
     }
