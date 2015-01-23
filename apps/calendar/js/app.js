@@ -12,6 +12,7 @@ var ServiceController = require('controllers/service');
 var SyncController = require('controllers/sync');
 var TimeController = require('controllers/time');
 var Views = {};
+var calendarObserver = require('calendar_observer');
 var dayObserver = require('day_observer');
 var debug = require('debug')('app');
 var messageHandler = require('message_handler');
@@ -79,6 +80,7 @@ module.exports = {
     notificationsController.app = this;
     periodicSyncController.app = this;
 
+    calendarObserver.calendarStore = this.store('Calendar');
     dayObserver.busytimeStore = this.store('Busytime');
     dayObserver.calendarStore = this.store('Calendar');
     dayObserver.eventStore = this.store('Event');
@@ -349,7 +351,10 @@ module.exports = {
       // calendars data, otherwise we might display events from calendars that
       // are not visible. this also makes sure we load the calendars as soon as
       // possible
-      this.store('Calendar').all(() => dayObserver.init());
+      this.store('Calendar').all(() => {
+        dayObserver.init();
+        calendarObserver.init();
+      });
 
       // we init the UI after the db.load to increase perceived performance
       // (will feel like busytimes are displayed faster)

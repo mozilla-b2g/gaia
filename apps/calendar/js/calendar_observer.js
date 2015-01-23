@@ -2,6 +2,8 @@ define(function(require, exports, module) {
 'use strict';
 
 var EventEmitter2 = require('ext/eventemitter2');
+var debug = require('debug')('calendar_observer');
+var forEach = require('object').forEach;
 var nextTick = require('next_tick');
 
 var observer = module.exports = new EventEmitter2();
@@ -19,11 +21,14 @@ observer.init = function() {
   this.calendarStore.on('update', this._cacheCalendar);
   this._purgeCalendar = this._purgeCalendar.bind(this);
   this.calendarStore.on('remove', this._purgeCalendar);
+  this.calendarStore.all().then(calendars => {
+    forEach(calendars, this._cacheCalendar);
+  });
 };
 
 observer._cacheCalendar = function(id, calendar) {
-  return this.calendarStore.providerFor(calendar)
-  .then(provider => {
+  debug('Will cache new calendar', calendar);
+  return this.calendarStore.providerFor(calendar).then(provider => {
     var capabilities = provider.calendarCapabilities(calendar);
     this.calendarList[id] = {
       calendar: calendar,
@@ -35,6 +40,7 @@ observer._cacheCalendar = function(id, calendar) {
 };
 
 observer._purgeCalendar = function(id) {
+  debug('Will purge calendar', id);
   delete this.calendarList[id];
   this.emit('change', this.calendarList);
 };
@@ -45,7 +51,13 @@ observer.on('newListener',  (event, listener) => {
     return;
   }
 
-  nextTick(() => listener(observer.calendarList));
+  debug('New change listener!');
+  nextTick(() => {
+    var calendars = observer.calendarList;
+    if (calendars && Object.keys(calendars).length) {
+      listener(calendars);
+    }
+  });
 });
 
 });

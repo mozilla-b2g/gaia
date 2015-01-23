@@ -17,8 +17,8 @@ function Settings(options) {
   this._updateTimeouts = Object.create(null);
   this._onSyncClick = this._onSyncClick.bind(this);
   this._onAdvancedSettings = this._onAdvancedSettings.bind(this);
-  this._syncStartStatus = this._syncStartStatus.bind(this);
-  this._syncCompleteStatus = this._syncCompleteStatus.bind(this);
+  this._onSyncStartStatus = this._onSyncStart.bind(this);
+  this._onSyncComplete = this._onSyncComplete.bind(this);
   this._updateSyncButton = this._updateSyncButton.bind(this);
   this._onCalendarDisplayToggle = this._onCalendarDisplayToggle.bind(this);
   this.render = this.render.bind(this);
@@ -121,6 +121,9 @@ Settings.prototype = {
   },
 
   _observeUI: function() {
+    calendarObserver.on('change', this.render);
+    this._observeAccountStore();
+
     this.advancedSettingsButton.addEventListener(
       'click', this._onAdvancedSettings);
     this.syncButton.addEventListener('click', this._onSyncClick);
@@ -191,6 +194,7 @@ Settings.prototype = {
 
   render: function(calendarList) {
     debug('Will render settings view.');
+    debug('There are ', Object.keys(calendarList).length, ' calendars.');
     this.calendars.innerHTML = '';
 
     debug('Inject calendars into settings list.');
@@ -286,58 +290,34 @@ Settings.prototype = {
 
   onactive: function() {
     debug('Will do settings animation.');
+    View.prototype.onactive.apply(this, arguments);
 
-    // If we haven't yet cached idb calendars, do that now.
-    var fetch;
-    if (this.calendarList && Object.keys(this.calendarList).length) {
-      fetch = Promise.resolve();
-    } else {
-      var store = this.app.store('Calendar');
-      fetch = store.all().then((calendars) => {
-        debug('Settings view found calendars:', calendars);
-
-        // observe calendar events
-        calendarObserver.on('change', this.render);
-
-        // observe accounts to hide sync button
-        this._observeAccountStore();
-      });
+    // onactive can be called more times than oninactive, since
+    // settings can overlay over and not trigger an inactive state,
+    // so only bind these listeners and do the drawer animation once.
+    var body = document.body;
+    if (body.classList.contains('settings-drawer-visible')) {
+      return;
     }
 
-    return fetch.then(() => {
-      // View#onactive will call Views.Settings#render the first time.
-      View.prototype.onactive.apply(this, arguments);
+    debug('Settings drawer is not visible... will activate.');
+    this._activated = true;
+    this._animateDrawer();
 
-      // onactive can be called more times than oninactive, since
-      // settings can overlay over and not trigger an inactive state,
-      // so only bind these listeners and do the drawer animation once.
-      var body = document.body;
-      if (body.classList.contains('settings-drawer-visible')) {
-        return;
-      }
+    // Set header title to same as time view header
+    this.headerTitle.textContent =
+      document.getElementById('current-month-year').textContent;
 
-      debug('Settings drawer is not visible... will activate.');
-      this._activated = true;
-      this._animateDrawer();
-
-      // Set header title to same as time view header
-      this.headerTitle.textContent =
-        document.getElementById('current-month-year').textContent;
-
-      // Both the transparent back and clicking on the semi-opaque
-      // shield should close the settings since visually those sections
-      // do not look like part of the drawer UI, and UX wants to give
-      // the user a few options to close the drawer since there is no
-      // explicit close button.
-      this.header.addEventListener('action', this._hideSettings);
-      this.shield.addEventListener('click', this._hideSettings);
-      this.timeViews.setAttribute('aria-hidden', true);
-      this.drawer.addEventListener('transitionend',
-                                   this._onDrawerTransitionEnd);
-    })
-    .catch((err) => {
-      return console.error('Error fetching calendars in View.Settings', err);
-    });
+    // Both the transparent back and clicking on the semi-opaque
+    // shield should close the settings since visually those sections
+    // do not look like part of the drawer UI, and UX wants to give
+    // the user a few options to close the drawer since there is no
+    // explicit close button.
+    this.header.addEventListener('action', this._hideSettings);
+    this.shield.addEventListener('click', this._hideSettings);
+    this.timeViews.setAttribute('aria-hidden', true);
+    this.drawer.addEventListener('transitionend',
+                                 this._onDrawerTransitionEnd);
   },
 
   oninactive: function() {
@@ -370,7 +350,5 @@ Settings.prototype = {
     document.body.classList.remove('settings-drawer-visible');
   }
 };
-
-Settings.prototype.onfirstseen = Settings.prototype.render;
 
 });
