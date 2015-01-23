@@ -949,6 +949,39 @@ return [
       }.bind(this));
     },
 
+    onTo: function(event) {
+      if (this.lineBCC.classList.contains('closed'))
+        return;
+
+      this.querySelector('.cmp-cc-label').textContent = 'cc/bcc';
+      this.querySelector('.cmp-bcc-add').style.visibility = 'hidden';
+      this.querySelector('.cmp-bcc-label').style.zIndex = -1;
+      this.querySelector('.cmp-cc-add').style.visibility = 'hidden';
+
+      this.lineBCC.style.zIndex = -1;
+      this.lineBCC.style.transform = 'translatey(-' + this.lineBCC.getBoundingClientRect().height + 'px)';
+
+      setTimeout(function() {
+        this.lineBCC.style.height = '0px';
+        this.lineBCC.classList.add('closed');
+      }.bind(this), 200);
+    },     
+
+    onCC: function(event) {
+      if (!this.lineBCC.classList.contains('closed'))
+        return;
+
+      this.lineBCC.style.transform = 'translatey(+' + 0 + 'px)';
+      this.lineBCC.style.zIndex = 0;
+      this.lineBCC.style.height = this.lineTo.getBoundingClientRect().height + 'px';
+
+      this.querySelector('.cmp-cc-label').textContent = 'cc';
+      this.querySelector('.cmp-bcc-add').style.visibility = 'visible';
+      this.querySelector('.cmp-cc-add').style.visibility = 'visible';
+      
+      this.lineBCC.classList.remove('closed');
+    },
+
     onContactAdd: function(event) {
       event.stopPropagation();
       var contactBtn = event.target;

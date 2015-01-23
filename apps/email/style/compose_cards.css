@@ -19,6 +19,13 @@
   min-width: 0;
 }
 
+.cmp-combo {
+  transition-property: transform;
+  transition-duration: 0.6s;
+  transition-timing-function: ease;
+  transition-delay: 0s;
+}
+
 .cmp-bubble-container {
   width: calc(100% - 1rem);
   float: left;
