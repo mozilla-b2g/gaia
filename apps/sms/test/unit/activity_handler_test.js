@@ -734,6 +734,11 @@ suite('ActivityHandler', function() {
   });
 
   suite('"new" activity', function() {
+    function onceNewActivityCompleted() {
+      sinon.assert.called(ActivityHandler._onNewActivity);
+      return ActivityHandler._onNewActivity.lastCall.returnValue;
+    }
+
     // Mockup activity
     var newActivity = {
       source: {
@@ -802,8 +807,7 @@ suite('ActivityHandler', function() {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
       threadDeferred.reject(new Error('No thread for this test'));
 
-      sinon.assert.called(ActivityHandler._onNewActivity);
-      ActivityHandler._onNewActivity.firstCall.returnValue.then(function() {
+      onceNewActivityCompleted().then(function() {
         sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
           activity: {
             number: '123',
@@ -859,9 +863,7 @@ suite('ActivityHandler', function() {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
       threadDeferred.reject(new Error('No thread for this test'));
 
-      // should be called after discarding
-      sinon.assert.called(ActivityHandler._onNewActivity);
-      ActivityHandler._onNewActivity.firstCall.returnValue.then(function() {
+      onceNewActivityCompleted().then(function() {
         sinon.assert.called(ThreadUI.discardDraft);
         sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
           activity: {
@@ -894,8 +896,7 @@ suite('ActivityHandler', function() {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
       threadDeferred.reject(new Error('No thread for this test'));
 
-      sinon.assert.called(ActivityHandler._onNewActivity);
-      ActivityHandler._onNewActivity.firstCall.returnValue.then(function() {
+      onceNewActivityCompleted().then(function() {
         sinon.assert.notCalled(Navigation.toPanel);
       }).then(done,done);
     });
@@ -904,9 +905,28 @@ suite('ActivityHandler', function() {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
       threadDeferred.reject(new Error('No thread for this test'));
 
-      sinon.assert.called(ActivityHandler._onNewActivity);
-      ActivityHandler._onNewActivity.firstCall.returnValue.then(function() {
+      onceNewActivityCompleted().then(function() {
         assert.isTrue(ActivityHandler.isInActivity());
+      }).then(done,done);
+    });
+
+    test('new message with body only', function(done) {
+      var activity = {
+        source: {
+          name: 'new',
+          data: { body: 'foo' }
+        },
+        postResult: () => {}
+      };
+      MockNavigatormozSetMessageHandler.mTrigger('activity', activity);
+
+      onceNewActivityCompleted().then(() => {
+        sinon.assert.notCalled(MessageManager.findThreadFromNumber);
+        sinon.assert.notCalled(Contacts.findByPhoneNumber);
+
+        sinon.assert.calledWithMatch(
+          Navigation.toPanel, 'composer', { activity: { body: 'foo' } }
+        );
       }).then(done,done);
     });
 
@@ -914,8 +934,7 @@ suite('ActivityHandler', function() {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity_email);
       threadDeferred.reject(new Error('No thread for this test'));
 
-      sinon.assert.called(ActivityHandler._onNewActivity);
-      ActivityHandler._onNewActivity.firstCall.returnValue.then(function() {
+      onceNewActivityCompleted().then(function() {
         assert.isTrue(ActivityHandler.isInActivity());
         sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
           activity: {
@@ -935,9 +954,7 @@ suite('ActivityHandler', function() {
       this.sinon.stub(Contacts, 'findByAddress')
         .callsArgWith(1, [{ name: ['foo'] }]);
 
-      sinon.assert.called(ActivityHandler._onNewActivity);
-      ActivityHandler._onNewActivity.firstCall.returnValue
-                     .then(function(viewInfo) {
+      onceNewActivityCompleted().then(function() {
         sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
           activity: {
             contact: {number: '123', name: 'foo', source: 'contacts'},
@@ -953,25 +970,14 @@ suite('ActivityHandler', function() {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
       // this time we found a thread
       threadDeferred.resolve(42);
-      sinon.assert.called(ActivityHandler._onNewActivity);
-      ActivityHandler._onNewActivity.firstCall.returnValue.then(function() {
-        assert.isTrue(Contacts.findByPhoneNumber.notCalled);
-        sinon.assert.calledWithMatch(Navigation.toPanel, 'thread', {id: 42 });
+
+      onceNewActivityCompleted().then(function() {
+        sinon.assert.notCalled(Contacts.findByPhoneNumber);
+        sinon.assert.calledWithMatch(
+          Navigation.toPanel, 'thread', { id: 42, focusComposer: true }
+        );
       }).then(done,done);
     });
-
-    test('when there is an existing thread, Composer should be focused',
-    function(done) {
-      // succeed only if Compose.focus is called
-      this.sinon.stub(Compose, 'focus', function() {
-        done();
-      });
-
-      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
-      // we found a thread
-      threadDeferred.resolve(42);
-    });
-
   });
 
   suite('handle message notification', function() {

@@ -612,6 +612,10 @@ var ThreadUI = {
       this.enableConvertNoticeBanners();
     }
 
+    if (args.focusComposer) {
+      Compose.focus();
+    }
+
     return Utils.closeNotificationsForThread(threadId);
   },
 
