@@ -1476,7 +1476,8 @@
     characterData: false,
     childList: true,
     subtree: true,
-    attributeFilter: ['data-l10n-id', 'data-l10n-args']
+    attributeFilter: ['data-l10n-id', 'data-l10n-args'],
+    mutationObservers: true
   };
 
   var Gecko2GaiaVersions = {
@@ -1525,6 +1526,9 @@
     },
     get readyState() {
       return navigator.mozL10n.ctx.isReady ? 'complete' : 'loading';
+    },
+    set mutationObservers(mutationObservers) {
+      moConfig.mutationObservers = !!mutationObservers;
     },
     language: {
       set code(lang) {
@@ -1609,14 +1613,18 @@
     // XXX always pretranslate if data-no-complete-bug is set;  this is
     // a workaround for a netError page not firing some onreadystatechange
     // events;  see https://bugzil.la/444165
-    var pretranslate = document.documentElement.dataset.noCompleteBug ?
+    var pretranslate = document.documentElement &&
+                       document.documentElement.dataset &&
+                       document.documentElement.dataset.noCompleteBug ?
       true : !isPretranslated;
     waitFor('interactive', init.bind(navigator.mozL10n, pretranslate));
   }
 
   function initObserver() {
-    nodeObserver = new MutationObserver(onMutations.bind(navigator.mozL10n));
-    nodeObserver.observe(document, moConfig);
+    if (moConfig.mutationObservers !== false) {
+      nodeObserver = new MutationObserver(onMutations.bind(navigator.mozL10n));
+      nodeObserver.observe(document, moConfig);
+    }
   }
 
   function init(pretranslate) {
