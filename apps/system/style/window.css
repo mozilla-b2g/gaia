@@ -321,14 +321,11 @@
   background: rgba(255, 255, 255, 0.8);
 
   visibility: hidden;
-  opacity: 0;
-  transition: opacity 0.2s ease-in, visibility 0.2s;
 }
 
 .appWindow.suspended > .identification-overlay,
 .appWindow:not(.active):not(.in-task-manager).overlay > .identification-overlay {
   visibility: visible;
-  opacity: 1;
 }
 
 /* we don't want to show the overlay at all during the opening
@@ -337,7 +334,6 @@
 .appWindow.enlarge.overlay > .identification-overlay,
 .appWindow.from-cardview.overlay > .identification-overlay {
   opacity: 0 !important;
-  transition: none !important;
 }
 
 .identification-overlay > div {
