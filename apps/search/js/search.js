@@ -7,7 +7,7 @@
   /* global SearchDedupe */
   /* global SettingsListener */
   /* global UrlHelper */
-
+  /* global SearchProvider */
   // timeout before notifying providers
   var SEARCH_DELAY = 500;
   var MAX_GRID_SIZE = 4;
@@ -20,16 +20,7 @@
 
     gridCount: 0,
 
-    /**
-     * Template to construct search query URL. Set from search.urlTemplate
-     * setting. {searchTerms} is replaced with user provided search terms.
-     *
-     * 'everything.me' is a special case which uses the e.me UI instead.
-     */
-    urlTemplate: 'https://www.google.com/search?q={searchTerms}',
-
     searchResults: document.getElementById('search-results'),
-
     offlineMessage: document.getElementById('offline-message'),
     settingsConnectivity: document.getElementById('settings-connectivity'),
     suggestionsWrapper: document.getElementById('suggestions-wrapper'),
@@ -83,13 +74,6 @@
           self.providers[i].init(self);
         }
       }
-
-      // Listen for changes in default search engine
-      SettingsListener.observe('search.urlTemplate', false, function(value) {
-        if (value) {
-          this.urlTemplate = value;
-        }
-      }.bind(this));
 
       var enabledKey = 'search.suggestions.enabled';
       SettingsListener.observe(enabledKey, true, function(enabled) {
@@ -266,15 +250,9 @@
 
       // Not a valid URL, could be a search term
       if (UrlHelper.isNotURL(input)) {
-        // Special case for everything.me
-        if (this.urlTemplate == 'everything.me') {
-          this.expandSearch(input);
-        // Other search providers show results in the browser
-        } else {
-          var url = this.urlTemplate.replace('{searchTerms}',
-                                             encodeURIComponent(input));
-          this.navigate(url);
-        }
+        var url = SearchProvider('searchUrl')
+          .replace('{searchTerms}', encodeURIComponent(input));
+        this.navigate(url);
         return;
       }
 
