@@ -656,7 +656,7 @@ var GaiaDataLayer = {
 
   bluetoothSetDeviceName: function(device_name, aCallback) {
     var callback = aCallback || marionetteScriptFinished;
-    console.log('Setting device\'s bluetooth name to \'%s\'' % device_name);
+    console.log('Setting device\'s bluetooth name to \'%s\'', device_name);
 
     var req = window.navigator.mozBluetooth.getDefaultAdapter();
     req.onsuccess = function() {
