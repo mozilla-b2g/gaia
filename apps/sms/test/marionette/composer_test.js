@@ -33,6 +33,12 @@ marionette('Messages Composer', function() {
     assert.isFalse(element.displayed(), 'Element should not be displayed');
   }
 
+  function assertIsFocused(element, message) {
+    assert.isTrue(element.scriptWith(function(el) {
+      return document.activeElement === el;
+    }), message);
+  }
+
   setup(function() {
     messagesApp = Messages.create(client);
     activityCallerApp = MessagesActivityCaller.create(client);
@@ -232,6 +238,26 @@ marionette('Messages Composer', function() {
       messagesApp.Composer.recipients[0].tap();
       messagesApp.clearRecipient();
       assertIsNotDisplayed(composer.mmsLabel);
+    });
+
+    test('Subject focus management', function() {
+      var composer = messagesApp.Composer;
+
+      // Case #1: Add subject input, once added it should be focused
+      messagesApp.showSubject();
+      assertIsFocused(composer.subjectInput, 'Subject input should be focused');
+
+      // Case #2: Hide subject field, focus should be moved to message field
+      messagesApp.hideSubject();
+      assertIsFocused(composer.messageInput, 'Message input should be focused');
+
+      // Case #3: Focus should be moved to message input when subject is removed
+      // by user with backspace key as well
+      messagesApp.showSubject();
+      assertIsFocused(composer.subjectInput, 'Subject input should be focused');
+
+      composer.subjectInput.sendKeys(Messages.Chars.BACKSPACE);
+      assertIsFocused(composer.messageInput, 'Message input should be focused');
     });
   });
 });
