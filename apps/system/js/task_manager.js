@@ -65,6 +65,9 @@
   TaskManager.prototype.EVENT_PREFIX = 'taskmanager';
   TaskManager.prototype.name = 'TaskManager';
 
+  TaskManager.prototype.setHierarchy = function() {
+    return true;
+  };
   /**
    * initialize
    * @memberOf TaskManager.prototype

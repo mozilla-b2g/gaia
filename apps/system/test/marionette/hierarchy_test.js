@@ -135,7 +135,8 @@
         client.apps.launch('app://' + CALLER_APP);
         utilityTray.open();
         assert.equal(getTopMost(), 'UtilityTray');
-        assert.equal(getActiveAppWindowAriaHidden(), 'true');
+        // Don't blur current app when utilityTray is pulled down.
+        assert.equal(getActiveAppWindowAriaHidden(), 'false');
         utilityTray.close();
         assert.equal(getTopMost(), 'AppWindowManager');
         assert.equal(getActiveAppWindowAriaHidden(), 'false');

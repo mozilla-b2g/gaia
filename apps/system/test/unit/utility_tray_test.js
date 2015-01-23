@@ -245,6 +245,9 @@ suite('system/UtilityTray', function() {
     });
   });
 
+  test('setHierarchy', function() {
+    assert.isFalse(UtilityTray.setHierarchy());
+  });
 
   // handleEvent
   suite('handleEvent: attentionopened', function() {
@@ -309,7 +312,6 @@ suite('system/UtilityTray', function() {
       assert.equal(UtilityTray.shown, false);
     });
   });
-
 
   suite('handleEvent: screenchange', function() {
     setup(function() {

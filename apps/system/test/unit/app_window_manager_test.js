@@ -1,7 +1,7 @@
 /* global appWindowManager, AppWindow, HomescreenWindowManager, MockShrinkingUI,
           HomescreenWindow, MocksHelper, MockSettingsListener, Service,
           MockRocketbar, rocketbar, homescreenWindowManager,
-          MockTaskManager, MockFtuLauncher, MockService, MockUtilityTray */
+          MockTaskManager, MockFtuLauncher, MockService */
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
@@ -20,7 +20,6 @@ requireApp('system/test/unit/mock_homescreen_window_manager.js');
 requireApp('system/test/unit/mock_nfc_handler.js');
 requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/test/unit/mock_task_manager.js');
-requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/shared/test/unit/mocks/mock_shrinking_ui.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
@@ -29,7 +28,7 @@ var mocksForAppWindowManager = new MocksHelper([
   'Applications', 'SettingsListener', 'HomescreenWindowManager',
   'ManifestHelper', 'KeyboardManager', 'StatusBar', 'SoftwareButtonManager',
   'HomescreenWindow', 'AppWindow', 'LayoutManager', 'Service', 'NfcHandler',
-  'TaskManager', 'FtuLauncher', 'UtilityTray'
+  'TaskManager', 'FtuLauncher'
 ]).init();
 
 suite('system/AppWindowManager', function() {
@@ -279,9 +278,6 @@ suite('system/AppWindowManager', function() {
          'appWindowManager',
       function() {
         var stubFocus = this.sinon.stub(app1, 'broadcast');
-        MockService.mTopMostUI = {
-          name: 'UtilityTray'
-        };
         appWindowManager._activeApp = app1;
         appWindowManager.handleEvent({
           type: 'shrinking-start'
@@ -1075,15 +1071,9 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(app1.setVisibleForScreenReader.calledWith(true));
       assert.isTrue(app1.setNFCFocus.calledWith(true));
 
-      MockUtilityTray.mShown = false;
       appWindowManager.setHierarchy(false);
       assert.isTrue(app1.blur.calledOnce);
       assert.isTrue(app1.setVisibleForScreenReader.calledWith(false));
-
-      MockUtilityTray.mShown = true;
-      appWindowManager.setHierarchy(false);
-      assert.isFalse(app1.blur.calledOnce);
-      assert.isTrue(app1.setNFCFocus.calledWith(false));
     });
 
     test('focus is redirected', function() {

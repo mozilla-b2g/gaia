@@ -63,7 +63,7 @@ suite('system/SystemDialogManager', function() {
       this.sinon.stub(dialogFake, '_setVisibleForScreenReader');
       this.sinon.stub(dialogFake, 'focus');
       window.systemDialogManager.activateDialog(dialogFake);
-      window.systemDialogManager.setHierarchy(true);
+      assert.isTrue(window.systemDialogManager.setHierarchy(true));
       assert.isTrue(dialogFake._setVisibleForScreenReader.calledWith(true));
       assert.isTrue(dialogFake.focus.called);
 
@@ -104,6 +104,7 @@ suite('system/SystemDialogManager', function() {
         detail: dialogFake});
       assert.isNull(window.systemDialogManager.states.activeDialog,
         'the dialog should not be activated');
+      assert.isFalse(window.systemDialogManager.setHierarchy(true));
       var createdDialog =
       window.systemDialogManager.states.runningDialogs[dialogFake.instanceID];
       window.assert.isObject(createdDialog,
