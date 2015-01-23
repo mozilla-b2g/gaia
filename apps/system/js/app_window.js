@@ -1,7 +1,6 @@
 /* global AppChrome */
 /* global applications */
 /* global BrowserFrame */
-/* global layoutManager */
 /* global ManifestHelper */
 /* global OrientationManager */
 /* global ScreenLayout */
@@ -858,8 +857,8 @@
       this.iframe.style.height = this.height + 'px';
     }
 
-    var width = layoutManager.width;
-    var height = layoutManager.getHeightFor(this);
+    var width = Service.query('LayoutManager.width') || window.innerWidth;
+    var height = Service.query('getHeightFor', this) || window.innerHeight;
     this.element.style.width = width + 'px';
     this.element.style.height = height + 'px';
 
@@ -1426,7 +1425,7 @@
   AppWindow.prototype._resize = function aw__resize(ignoreKeyboard) {
     var height, width;
     this.debug('force RESIZE...');
-    if (!ignoreKeyboard && layoutManager.keyboardEnabled) {
+    if (!ignoreKeyboard && Service.query('keyboardEnabled')) {
       /**
        * The event is dispatched on the app window only when keyboard is up.
        *
@@ -1443,10 +1442,11 @@
        */
       this.broadcast('withoutkeyboard');
     }
-    height = layoutManager.getHeightFor(this, ignoreKeyboard);
+    height = Service.query('getHeightFor', this, ignoreKeyboard) ||
+      window.innerHeight;
 
     // If we have sidebar in the future, change layoutManager then.
-    width = layoutManager.width;
+    width = Service.query('LayoutManager.width') || window.innerWidth;
 
     if (this.element.style.width === width + 'px' &&
         this.element.style.height === height + 'px') {

@@ -117,7 +117,7 @@
     }
     var timestamp = new Date().getTime();
     var src = this.config.url + '#' +
-              (Service.locked ? 'locked' : '');
+              (Service.query('locked') ? 'locked' : '');
     src = src + '&timestamp=' + timestamp;
     this.browser.element.src = src;
     this._terminated = false;

@@ -126,7 +126,7 @@
           this._resetDeviceLockedTimer();
 
           if (this._normalAudioChannelActive &&
-              evt.detail.channel !== 'normal' && window.Service.locked) {
+              evt.detail.channel !== 'normal' && Service.query('locked')) {
             this._deviceLockedTimer = setTimeout(function setVisibility() {
               if (window.Service.query('locked')) {
                 this.publish('hidewindow',

@@ -9,10 +9,11 @@ requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/js/homescreen_launcher.js');
 
 var mocksForHomescreenLauncher = new MocksHelper([
-  'Applications', 'HomescreenWindow',
+  'Applications', 'HomescreenWindow', 'Service',
   'FtuLauncher', 'SettingsListener', 'LayoutManager'
 ]).init();
 

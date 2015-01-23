@@ -119,7 +119,6 @@
      * @memberof UsbStorage.prototype
      */
     stop: function() {
-      Service.locked = false;
       window.removeEventListener('lockscreen-appopened', this);
       window.removeEventListener('lockscreen-appclosed', this);
       SettingsListener.unobserve(this.umsEnabled,
@@ -167,7 +166,8 @@
      */
     _configUsbTransfer: function() {
       this._mode = this._modeMapping(this._enabled, this._protocol);
-      if (Service.locked && this._protocol === this.automounterUmsEnable) {
+      if (Service.query('locked') &&
+          this._protocol === this.automounterUmsEnable) {
         // covers startup
         // Setting mode due to screen locked
         this._setMode(this.automounterDisable);

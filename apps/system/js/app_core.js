@@ -1,4 +1,4 @@
-/* global BaseModule, applications */
+/* global BaseModule, applications, InputWindowManager, KeyboardManager */
 'use strict';
 
 (function() {
@@ -10,6 +10,8 @@
   AppCore.IMPORTS = [
   ];
   AppCore.SUB_MODULES = [
+    'VisibilityManager',
+    'Activities',
     'AppWindowManager',
     'AttentionWindowManager',
     'HomescreenWindowManager',
@@ -18,7 +20,8 @@
     'SuspendingAppPriorityManager',
     'SecureWindowFactory',
     'SecureWindowManager',
-    'ActivityWindowManager'
+    'ActivityWindowManager',
+    'PermissionManager'
   ];
   AppCore.EVENTS = [
     'applicationready'
@@ -28,11 +31,22 @@
     name: 'AppCore',
     START_SUB_MODULES_ON_START: false,
     _handle_applicationready: function() {
+      if (window.inputWindowManager) {
+        return;
+      }
       this._startSubModules();
     },
     _start: function() {
       if (applications.ready) {
         this._startSubModules();
+
+        if (window.inputWindowManager) {
+          return;
+        }
+        window.inputWindowManager = new InputWindowManager();
+        window.inputWindowManager.start();
+        /** @global */
+        KeyboardManager.init();
       }
     }
   });

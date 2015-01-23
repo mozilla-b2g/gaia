@@ -13,6 +13,18 @@ var MockService = {
     this.mInCall = false;
     this.mTopMostWindow = null;
     this.mHeadsetConnected = false;
+    this.mInputWindowManager_getHeight = 0;
+    this.mSoftwareButtonManager_width = 0;
+    this.mSoftwareButtonManager_height = 0;
+    this.mLayoutManager_height = window.innerHeight;
+    this.mLayoutManager_getHeight = window.innerHeight;
+    this.mLayoutManager_width = window.innerWidth;
+    this.mHomescreen = null;
+    this.mHomescreenReady = false;
+    this.mSlowTransition = false;
+    this.mKeyboardEnabled = false;
+    this.mKeyboardHeight = 0;
+    this.mGetApp = null;
   },
   lowerCapital: function() {
     return 'a';
@@ -27,6 +39,34 @@ var MockService = {
   },
   query: function(state) {
     switch (state) {
+      case 'getApp':
+        return this.mGetApp;
+      case 'keyboardHeight':
+        return this.mKeyboardHeight;
+      case 'keyboardEnabled':
+        return this.mKeyboardEnabled;
+      case 'slowTransition':
+        return this.mSlowTransition;
+      case 'HomescreenWindowManager.ready':
+        return this.mHomescreenReady;
+      case 'getHomescreen':
+        return this.mHomescreen;
+      case 'locked':
+        return this.locked;
+      case 'LayoutManager.width':
+        return this.mLayoutManager_width;
+      case 'LayoutManager.height':
+        return this.mLayoutManager_height;
+      case 'getHeightFor':
+      case 'LayoutManager.getHeightFor':
+        return this.mLayoutManager_height -
+          (arguments[2] ? 0 : this.mKeyboardHeight);
+      case 'SoftwareButtonMnager.height':
+        return this.mSoftwareButtonManager_height;
+      case 'SoftwareButtonMnager.width':
+        return this.mSoftwareButtonManager_width;
+      case 'InputWindowManager.height':
+        return this.mInputWindowManager_getHeight;
       case 'getFtuOrigin':
         return 'app://ftu.gaiamobile.org';
       case 'isFtuRunning':

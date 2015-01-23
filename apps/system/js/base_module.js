@@ -134,6 +134,7 @@
             this._initialSubModule(moduleName, module);
           }
         }, this);
+        this.__sub_module_loaded && this.__sub_module_loaded();
       }.bind(this));
     },
 

@@ -39,6 +39,7 @@
   }
 
   SoftwareButtonManager.prototype = {
+    name: 'SoftwareButtonManager',
 
     /**
      * True if the device has a hardware home button.
@@ -164,6 +165,9 @@
       window.addEventListener('system-resize',
                               this._updateButtonRect.bind(this));
       window.addEventListener('edge-touch-redispatch', this);
+      Service.registerState('width', this);
+      Service.registerState('height', this);
+      Service.registerState('enabled', this);
     },
 
    /**

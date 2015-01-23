@@ -181,6 +181,9 @@
 
     registerState: function(state, provider) {
       this._states.set(provider.name, provider);
+      if (!provider.name) {
+        console.warn(provider);
+      }
       this._statesByState.set(state, provider);
     },
 
@@ -270,18 +273,6 @@
         console.log('[System]' +
           '[' + window.Service.currentTime() + ']' +
           Array.slice(arguments).concat());
-      }
-    },
-
-    /**
-     * XXX: LockscreenWindowManager should register 'locked' service.
-     */
-    get locked() {
-      // Someone ask this state too early.
-      if ('undefined' === typeof window.lockScreenWindowManager) {
-        return false;
-      } else {
-        return window.lockScreenWindowManager.isActive();
       }
     },
 

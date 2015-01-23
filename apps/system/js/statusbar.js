@@ -14,7 +14,7 @@
   limitations under the License.
 */
 
-/*global Service, UtilityTray, layoutManager */
+/*global Service, UtilityTray */
 
 'use strict';
 
@@ -383,8 +383,8 @@ var StatusBar = {
   _getMaximizedStatusBarWidth: function sb_getMaximizedStatusBarWidth() {
     // Let's consider the style of the status bar:
     // * padding: 0 0.3rem;
-    return Math.round((window.layoutManager ?
-      layoutManager.width : window.innerWidth) - (3 * 2));
+    return Math.round((Service.query('LayoutManager.width') ||
+      window.innerWidth) - (3 * 2));
   },
 
   _updateMinimizedStatusBarWidth: function sb_updateMinimizedStatusBarWidth() {
@@ -398,7 +398,7 @@ var StatusBar = {
 
     if (element) {
       this._minimizedStatusBarWidth = Math.round(
-          (window.layoutManager ? layoutManager.width : window.innerWidth) -
+          ((Service.query('LayoutManager.width') || window.innerWidth)) -
           element.getBoundingClientRect().width -
           // Remove padding and margin
           5 - 3);
@@ -555,7 +555,7 @@ var StatusBar = {
 
   // To reduce the duplicated code
   isLocked: function() {
-    return Service.locked;
+    return Service.query('locked');
   },
 
   toCamelCase: function sb_toCamelCase(str) {

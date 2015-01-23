@@ -211,7 +211,7 @@
           if (!this.isActive()) {
             return;
           }
-          state = (ScreenManager.screenEnabled && !Service.locked) ?
+          state = (ScreenManager.screenEnabled && !Service.query('locked')) ?
                     this.NFC_HW_STATE.ENABLE_DISCOVERY :
                     this.NFC_HW_STATE.DISABLE_DISCOVERY;
           if (state === this._hwState) {
@@ -245,7 +245,7 @@
       }
 
       var state = !enabled ? this.NFC_HW_STATE.DISABLING :
-        (Service.locked ? this.NFC_HW_STATE.DISABLE_DISCOVERY :
+        (Service.query('locked') ? this.NFC_HW_STATE.DISABLE_DISCOVERY :
                           this.NFC_HW_STATE.ENABLING);
       this._changeHardwareState(state);
     },

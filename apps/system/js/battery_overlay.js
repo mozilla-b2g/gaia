@@ -1,14 +1,11 @@
 'use strict';
-/* global PowerSave */
+/* global BaseModule */
 /* global ScreenManager */
 /* global BatteryIcon */
 /* global LazyLoader */
 
-(function(exports) {
-
+(function() {
   function BatteryOverlay() {
-    this.powerSave = new PowerSave();
-    this.powerSave.start();
     LazyLoader.load(['js/battery_icon.js']).then(function() {
       this.icon = new BatteryIcon(this);
       this.icon.start();
@@ -16,8 +13,12 @@
       console.error(err);
     });
   }
+  BatteryOverlay.SUB_MODULES = [
+    'PowerSave'
+  ];
 
-  BatteryOverlay.prototype = {
+  BaseModule.create(BatteryOverlay, {
+    name: 'BatteryOverlay',
     TOASTER_TIMEOUT: 5000,
     TRANSITION_SPEED: 1.8,
     TRANSITION_FRACTION: 0.30,
@@ -45,7 +46,7 @@
       }
     },
 
-    start: function bm_init() {
+    _start: function bm_init() {
       this.getAllElements();
       var battery = this._battery;
       if (battery) {
@@ -82,11 +83,11 @@
           this.checkBatteryDrainage();
           this.displayIfNecessary();
 
-          this.powerSave.onBatteryChange();
+          this.powerSave && this.powerSave.onBatteryChange();
           this.icon && this.icon.update();
           break;
         case 'chargingchange':
-          this.powerSave.onBatteryChange();
+          this.powerSave && this.powerSave.onBatteryChange();
           this.icon && this.icon.update();
 
           // We turn the screen on if needed in order to let
@@ -142,8 +143,6 @@
         this._toasterTimeout = null;
       }
     }
-  };
+  });
 
-  exports.BatteryOverlay = BatteryOverlay;
-
-}(window));
+}());

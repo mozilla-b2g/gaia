@@ -1,9 +1,7 @@
 'use strict';
-/* global layoutManager */
 /* global SettingsListener */
 /* global Service */
 /* global SheetsTransition */
-/* global softwareButtonManager */
 /* global StackManager */
 /* global TouchForwarder */
 
@@ -374,11 +372,13 @@
         Service.query('getTopMostWindow') &&
         Service.query('getTopMostWindow').isFullScreenLayout();
       if (softwareButtonOverlayed) {
-        return x > (layoutManager.width - softwareButtonManager.width) ||
-            y > (layoutManager.height - softwareButtonManager.height);
+        return x > (Service.query('LayoutManager.width') -
+                Service.query('SoftwareButtonManager.width')) ||
+            y > (Service.query('LayoutManager.height') -
+                 Service.query('SoftwareButtonManager.height'));
       }
-      return (x > layoutManager.width ||
-              y > layoutManager.height);
+      return (x > Service.query('LayoutManager.width') ||
+              y > Service.query('LayoutManager.height'));
     },
 
     /**

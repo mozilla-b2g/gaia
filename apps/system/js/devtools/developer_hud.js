@@ -5,14 +5,14 @@
 
   /**
    * The Developer HUD displays app metrics as an overlay on top of MozApps.
-   * @class DeveloperHUD
+   * @class DeveloperHud
    */
-  function DeveloperHUD() {
+  function DeveloperHud() {
     SettingsListener.observe('devtools.overlay.system',
                              false, this.toggleSystemHUD.bind(this));
   }
 
-  DeveloperHUD.prototype = {
+  DeveloperHud.prototype = {
 
     start: function() {
       window.addEventListener('developer-hud-update', this);
@@ -191,6 +191,6 @@
     }
   };
 
-  exports.DeveloperHUD = DeveloperHUD;
+  exports.DeveloperHud = DeveloperHud;
 
 }(window));

@@ -201,7 +201,7 @@ window.UtilityTray = {
         break;
 
       case 'touchstart':
-        if (window.Service.locked || window.Service.query('isFtuRunning')) {
+        if (Service.query('locked') || Service.query('isFtuRunning')) {
           return;
         }
 
@@ -381,7 +381,7 @@ window.UtilityTray = {
 
   onTouchEnd: function ut_onTouchEnd(touch) {
     // Prevent utility tray shows while the screen got black out.
-    if (window.Service.locked) {
+    if (window.Service.query('locked')) {
       this.hide(true);
     } else {
       var significant = (Math.abs(this.lastDelta) > (this.screenHeight / 5));

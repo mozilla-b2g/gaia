@@ -12,6 +12,8 @@
   }
 
   MediaRecording.prototype = {
+    name: 'MediaRecording',
+
     /**
      * To tell if the current state is using any recording device, like mic or
      * camera. Used to control the present of statusbar status.

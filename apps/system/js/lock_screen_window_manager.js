@@ -1,8 +1,6 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
 /* global Service, LockScreenWindow, LockScreenInputWindow */
-/* global secureWindowManager */
+/* global secureWindowManager, LockScreenPasscodeValidator, BaseModule */
 
 (function(exports) {
   /**
@@ -80,6 +78,10 @@
     return this.isActive() ? this.states.instance : null;
   };
 
+  LockScreenWindowManager.prototype.locked = function() {
+    return this.isActive();
+  };
+
   /**
    * To initialize the class instance (register events, observe settings, etc.)
    */
@@ -93,6 +95,11 @@
     Service.register('unlock', this);
     Service.register('lock', this);
     Service.request('registerHierarchy', this);
+    Service.registerState('locked', this);
+    BaseModule.lazyLoad(['LockScreenPasscodeValidator']).then(function() {
+      var lockScreenPasscodeValidator = new LockScreenPasscodeValidator();
+      lockScreenPasscodeValidator.start();
+    });
   };
 
   LockScreenWindowManager.prototype._handle_home = function() {

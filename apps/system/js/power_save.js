@@ -4,7 +4,9 @@
 
 (function(exports) {
 
-  function PowerSave() {}
+  function PowerSave(batteryOverlay) {
+    this.batteryOverlay = batteryOverlay;
+  }
 
   PowerSave.prototype = {
     _powerSaveResume: {},

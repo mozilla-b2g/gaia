@@ -1,5 +1,5 @@
 /* globals LockScreenAgent */
-/* global softwareButtonManager */
+/* global Service */
 /* global OrientationManager */
 'use strict';
 
@@ -100,8 +100,8 @@
     var height, width;
 
     // We want the lockscreen to go below the StatusBar
-    height = self.layoutManager.height;
-    width = self.layoutManager.width;
+    height = Service.query('LayoutManager.height') || window.innerHeight;
+    width = Service.query('LayoutManager.width') || window.innerWidth;
 
     this.width = width;
     this.height = height;
@@ -214,7 +214,7 @@
         return window.innerHeight;
       }
       var softwareButtonHeight = this.isActive()  ?
-        0 : softwareButtonManager.height;
+        0 : (Service.query('SoftwareButtonManager.height') || 0);
       var inputWindowHeight = 0;
       if (this.states.instance && this.states.instance.inputWindow.isActive()) {
         inputWindowHeight = this.configs.inputWindow.height;

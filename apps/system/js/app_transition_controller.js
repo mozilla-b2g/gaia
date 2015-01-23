@@ -263,9 +263,7 @@
       }
 
       this.app.reviveBrowser();
-      if (this.app.loaded) {
-        this.resetTransition();
-      }
+      this.resetTransition();
       this.app.element.removeAttribute('aria-hidden');
       this.app.show();
       this.app.element.classList.add('active');
@@ -322,11 +320,6 @@
 
   AppTransitionController.prototype.resetTransition =
     function atc_resetTransition() {
-      if (this._firstTransition) {
-        this._firstTransition = false;
-        return;
-      }
-
       if (this._openingTimeout) {
         window.clearTimeout(this._openingTimeout);
         this._openingTimeout = null;

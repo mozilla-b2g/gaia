@@ -106,7 +106,7 @@
     },
 
     _enter_closing: function() {
-      if (!this.app || !this.app.element || (Service && Service.locked)) {
+      if (!this.app || !this.app.element || Service.query('locked')) {
         return;
       }
 
@@ -138,7 +138,7 @@
 
       this.app && this.app.setVisible(true);
       this._toasterTimer = window.setTimeout(function() {
-        if (Service && Service.locked) {
+        if (Service && Service.query('locked')) {
           return;
         }
 

@@ -1,5 +1,6 @@
 'use strict';
-/* globals applications, VersionHelper, dump, FtuPing, BaseModule */
+/* globals applications, VersionHelper, dump, FtuPing, BaseModule,
+           LazyLoader, SettingsMigrator */
 /* This module deals with FTU stuff.
    FTU is known as First Time Usage,
    which is the first app the users would use, to configure their phone. */
@@ -156,6 +157,7 @@
       VersionHelper.updatePrevious();
       this.updateStep('done');
       this.publish('done');
+      this.finish();
     },
 
     launch: function fl_launch() {
@@ -190,6 +192,16 @@
       this._skipped = true;
       this.updateStep('done');
       this.publish('skip');
+      this.finish();
+    },
+
+    finish: function() {
+      this.writeSetting({'gaia.system.checkForUpdates': true});
+      // XXX: remove after bug 1109451 is fixed
+      LazyLoader.load(['js/migrators/settings_migrator.js']).then(function() {
+        var settingsMigrator = new SettingsMigrator();
+        settingsMigrator.start();
+      });
     },
 
     // Check if the FTU was executed or not, if not, get a

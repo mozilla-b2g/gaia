@@ -1,7 +1,7 @@
 /* -*- Mode: js2; js2-basic-offset: 2; indent-tabs-mode: nil -*- */
 /* vim: set ft=javascript sw=2 ts=2 autoindent cindent expandtab: */
 
-/* global inputWindowManager, TrustedUiValueSelector */
+/* global TrustedUiValueSelector */
 
 'use strict';
 
@@ -464,7 +464,7 @@ var TrustedUIManager = {
         this._hide();
         break;
       case 'keyboardchange':
-        var keyboardHeight = inputWindowManager.getHeight();
+        var keyboardHeight = Service.query('InputWindowManager.getHeight');
         this._setHeight(window.innerHeight - StatusBar.height - keyboardHeight);
         break;
       case 'keyboardhide':

@@ -1,11 +1,12 @@
 'use strict';
 /* global MocksHelper, Service, HomescreenWindow, HomescreenLauncher,
-          HomescreenWindowManager */
+          MockService, BaseModule */
 
 require('/shared/test/unit/mocks/mock_service.js');
 
 requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
+requireApp('system/js/base_module.js');
 requireApp('system/js/homescreen_window_manager.js');
 
 var mocksForHomescreenWindowManager = new MocksHelper([
@@ -21,7 +22,8 @@ suite('system/HomescreenWindowManager', function() {
     var homescreenWinMgr;
     var stubEnsureHome;
     setup(function() {
-      homescreenWinMgr = new HomescreenWindowManager();
+      homescreenWinMgr = BaseModule.instantiate('HomescreenWindowManager');
+      homescreenWinMgr.service = MockService;
       homescreenWinMgr.start();
       fakeHome = new HomescreenWindow('fakeHome');
       fakeLauncher = new HomescreenLauncher();
@@ -69,7 +71,8 @@ suite('system/HomescreenWindowManager', function() {
     var homescreenWinMgr;
 
     setup(function() {
-      homescreenWinMgr = new HomescreenWindowManager();
+      homescreenWinMgr = BaseModule.instantiate('HomescreenWindowManager');
+      homescreenWinMgr.service = MockService;
       homescreenWinMgr.start();
       fakeHome = new HomescreenWindow('fakeHome');
       fakeLauncher = new HomescreenLauncher();

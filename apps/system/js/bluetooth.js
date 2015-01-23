@@ -4,6 +4,8 @@
 'use strict';
 
 var Bluetooth = {
+  name: 'Bluetooth',
+
   get Profiles() {
     return {
       HFP: 'hfp',   // Hands-Free Profile

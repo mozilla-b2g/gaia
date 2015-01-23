@@ -1,5 +1,5 @@
 'use strict';
-/* global SettingsListener */
+/* global SettingsListener, LazyLoader */
 /* global AccessibilityQuicknavMenu */
 
 (function(exports) {
@@ -317,9 +317,14 @@
     handleAccessFuControl: function ar_handleAccessFuControls(aDetails) {
       if (aDetails.eventType === 'quicknav-menu') {
         if (!this.quicknav) {
-          this.quicknav = new AccessibilityQuicknavMenu();
+          LazyLoader.load(['js/accessibility_quick_nav_menu.js'])
+            .then(function() {
+              this.quicknav = new AccessibilityQuicknavMenu();
+              this.quicknav.show();
+            }.bind(this));
+        } else {
+          this.quicknav.show();
         }
-        this.quicknav.show();
       }
     },
 

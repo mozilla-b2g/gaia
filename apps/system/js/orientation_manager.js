@@ -48,7 +48,7 @@
         case 'lockscreen-appclosing':
         case 'searchclosing':
           // We don't need to reset orientation if lockscreen is locked.
-          if (Service.locked) {
+          if (Service.query('locked')) {
             return;
           }
         /**

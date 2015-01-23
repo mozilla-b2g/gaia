@@ -1,4 +1,4 @@
-/* global BaseModule */
+/* global BaseModule, ScreenManager */
 'use strict';
 
 (function(exports) {
@@ -11,6 +11,7 @@
   };
 
   Core.SUB_MODULES = [
+    'Accessibility',
     'HierarchyManager',
     'AirplaneMode',
     'AlarmMonitor',
@@ -20,7 +21,25 @@
     'GeolocationCore',
     'TetheringMonitor',
     'UsbCore',
-    'SystemDialogManager'
+    'SystemDialogManager',
+    'AppMigrator',
+    'TextSelectionDialog',
+    'WallpaperManager',
+    'ExternalStorageMonitor',
+    'LayoutManager',
+    'SoftwareButtonManager',
+    'RemoteDebugger',
+    'SleepMenu',
+    'AppUsageMetrics',
+    'CellBroadcastSystem',
+    'CpuManager',
+    'HomeGesture',
+    'SourceView',
+    'TtlView',
+    'MediaRecording',
+    'QuickSettings',
+    'Shortcuts',
+    'UsbStorage'
   ];
 
   Core.SERVICES = [
@@ -35,7 +54,9 @@
       'mozSettings': 'SettingsCore',
       'mozBluetooth': 'BluetoothCore',
       'mozMobileConnections': 'MobileConnectionCore',
-      'mozApps': 'AppCore'
+      'mozApps': 'AppCore',
+      'battery': 'BatteryOverlay',
+      'mozNfc': 'NfcManager'
     },
 
     getAPI: function(api) {
@@ -47,7 +68,7 @@
       return false;
     },
 
-    _start: function() {
+    __sub_module_loaded: function() {
       for (var api in this.REGISTRY) {
         this.debug('Detecting API: ' + api +
           ' and corresponding module: ' + this.REGISTRY[api]);
@@ -58,6 +79,24 @@
           this.debug('API: ' + api + ' not found, skpping the handler.');
         }
       }
+    },
+
+    _start: function() {
+      ScreenManager.turnScreenOn();
+      // We need to be sure to get the focus in order to wake up the screen
+      // if the phone goes to sleep before any user interaction.
+      // Apparently it works because no other window
+      // has the focus at this point.
+      window.focus();
+      // With all important event handlers in place, we can now notify
+      // Gecko that we're ready for certain system services to send us
+      // messages (e.g. the radio).
+      // Note that shell.js starts listen for the mozContentEvent event at
+      // mozbrowserloadstart, which sometimes does not happen till
+      // window.onload.
+      this.publish('mozContentEvent', {
+        type: 'system-message-listener-ready'
+      }, true);
     },
 
     startAPIHandler: function(api, handler) {
