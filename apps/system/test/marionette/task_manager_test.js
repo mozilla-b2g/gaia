@@ -115,14 +115,16 @@ marionette('Task Manager', function() {
       });
     });
 
-    test('pressing home should launch the centered app', function() {
+    test('pressing home should still take you back to the homescreen',
+    function() {
       actions.flick(taskManager.element, 30, halfHeight,
                     halfWidth, halfHeight).perform();
 
       taskManager.hide();
 
-      client.waitFor(function() {
-        return !firstApp.iframe.displayed() && secondApp.iframe.displayed();
+      client.waitFor(function(){
+        return client.findElement(system.Selector.activeHomescreenFrame)
+          .displayed();
       });
     });
   });
