@@ -1,10 +1,10 @@
 /* global MocksHelper, Service, MockSimLockSystemDialog */
-/* global MockSIMSlotManager, BaseModule, MockService, MockApplications */
+/* global MockSIMSlotManager, MockSIMSlot, BaseModule, MockService, MockApplications */
 
 'use strict';
 
-requireApp('/shared/test/unit/mocks/mock_simslot_manager.js');
-requireApp('/shared/test/unit/mocks/mock_simslot.js');
+requireApp('system/shared/test/unit/mocks/mock_simslot_manager.js');
+requireApp('system/shared/test/unit/mocks/mock_simslot.js');
 requireApp('system/test/unit/mock_simcard_dialog.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_service.js');
