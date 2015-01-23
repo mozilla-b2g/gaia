@@ -1222,6 +1222,20 @@ MailUniverse.prototype = {
       switch (op.localStatus) {
         case 'doing':
           op.localStatus = 'done';
+          // We have introduced the ability for a local op to decide that it
+          // no longer wants a server operation to happen.  It accomplishes this
+          // by marking the serverStatus as skip, which we then process and
+          // convert to 'n/a'.  This is intended to be done by the local job
+          // right before returning so the value doesn't get surfaced elsewhere.
+          // Some might ask why this isn't some type of explicit return value.
+          // To those people I say, "Good point, shut up."  I might then go on
+          // to say that the v3 refactor will likely deal with this and that's
+          // real soon.
+          if (op.serverStatus === 'skip') {
+            removeFromServerQueue = true;
+            op.serverStatus = 'n/a';
+            accountSaveSuggested = true; // this op change needs a save!
+          }
           if (op.serverStatus === 'n/a') {
             op.lifecycle = 'done';
             completeOp = true;
@@ -1229,6 +1243,11 @@ MailUniverse.prototype = {
           break;
         case 'undoing':
           op.localStatus = 'undone';
+          if (op.serverStatus === 'skip') {
+            removeFromServerQueue = true;
+            op.serverStatus = 'n/a';
+            accountSaveSuggested = true; // this op change needs a save!
+          }
           if (op.serverStatus === 'n/a') {
             op.lifecycle = 'undone';
             completeOp = true;
