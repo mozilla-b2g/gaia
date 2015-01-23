@@ -230,6 +230,14 @@ var exposureSlider = (function() {
   thumb.addEventListener('touchend', function(e) {
     thumb.classList.remove('active');
   });
+  slider.addEventListener('keypress', function(e) {
+    // screen reader sends key arrow up/down events for adjusting the slider.
+    if (e.keyCode == KeyEvent.DOM_VK_DOWN) {
+      setExposure(currentExposure - 0.25);
+    } else if (e.keyCode == KeyEvent.DOM_VK_UP) {
+      setExposure(currentExposure + 0.25);
+    }
+  });
 
   function resize() {
     forceSetExposure(currentExposure);
@@ -280,6 +288,9 @@ var exposureSlider = (function() {
     }
     // Remember the new exposure value
     currentExposure = exposure;
+
+    // Set value for ARIA widget
+    slider.setAttribute('aria-valuenow', exposure);
 
     // Dispatch an event to actually change the image
     slider.dispatchEvent(new Event('change', {bubbles: true}));
