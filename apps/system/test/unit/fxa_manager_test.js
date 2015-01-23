@@ -376,7 +376,8 @@ suite('system/FxAccountManager >', function() {
       FxAccountsClient._successMsg = 'success';
       FxAccountsManager.onPortMessage({
         'detail': {
-          'name': 'resendVerificationEmail'
+          'name': 'resendVerificationEmail',
+          'email': 'dummy@domain.org'
         }
       });
     });
@@ -387,6 +388,7 @@ suite('system/FxAccountManager >', function() {
 
     test('FxAccountsClient.resendVerificationEmail called', function() {
       assert.equal(FxAccountsClient._call, 'resendVerificationEmail');
+      assert.equal(FxAccountsClient._email, 'dummy@domain.org');
     });
 
     test('Got fxa-mgmt port', function() {
@@ -408,7 +410,8 @@ suite('system/FxAccountManager >', function() {
       FxAccountsClient._errorMsg = 'error';
       FxAccountsManager.onPortMessage({
         'detail': {
-          'name': 'resendVerificationEmail'
+          'name': 'resendVerificationEmail',
+          'email': 'dummy@domain.org'
         }
       });
     });
@@ -419,6 +422,7 @@ suite('system/FxAccountManager >', function() {
 
     test('FxAccountsClient.resendVerificationEmail called', function() {
       assert.equal(FxAccountsClient._call, 'resendVerificationEmail');
+      assert.equal(FxAccountsClient._email, 'dummy@domain.org');
     });
 
     test('Got fxa-mgmt port', function() {
