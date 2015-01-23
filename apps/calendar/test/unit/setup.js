@@ -72,8 +72,6 @@ function loadApp() {
     requirejs([
       'app',
       'db',
-      'ext/chai',
-      'ext/chai-as-promised',
       'provider/provider_factory',
       'router',
       'test/support/fake_page',
@@ -103,17 +101,14 @@ window.testAgentRuntime.testLoader = function(path) {
     return loadApp();
   })
   .then(() => {
-    console.log('Will override default chai...');
-    var chai = requirejs('ext/chai');
-    var chaiAsPromised = requirejs('ext/chai-as-promised');
-    chai.use(chaiAsPromised);
+    console.log('Will extend chai with hasProperties...');
 
     /* chai extensions */
 
     // XXX: this is a lame way to do this
     // in reality we need to fix the above upstream
     // and leverage new chai 1x methods
-    chai.assert.hasProperties = function (given, props, msg) {
+    window.assert.hasProperties = function (given, props, msg) {
       msg = (typeof(msg) === 'undefined') ? '' : msg + ': ';
 
       if (props instanceof Array) {
@@ -133,10 +128,6 @@ window.testAgentRuntime.testLoader = function(path) {
         }
       }
     };
-
-    window.assert = chai.assert;
-    window.expect = chai.expect;
-    window.should = chai.Should();
   })
   .then(() => {
     return new Promise((accept) => {
