@@ -399,7 +399,7 @@ var MessageManager = {
     };
   },
 
-  markThreadRead: function mm_markThreadRead(threadId, isRead) {
+  markThreadRead: function mm_markThreadRead(threadId, isRead = true) {
     var filter = {};
     filter.threadId = +threadId;
     filter.read = !isRead;
