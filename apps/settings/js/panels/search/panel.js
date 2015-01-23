@@ -11,7 +11,7 @@ define(function(require) {
   var search;
 
   function onInit(panel) {
-    var searchEngineSelect = panel.querySelector('[name="search.urlTemplate"]');
+    var searchEngineSelect = panel.querySelector('[name="search.provider"]');
     search = Search();
     search.init(searchEngineSelect);
   }
