@@ -21,6 +21,7 @@ task:
     env:
       NODE_DEBUG: '*'
       PART: '{{chunk}}'
+      REPORTER: 'mocha-tbpl-reporter'
       NBPARTS: '{{totalChunks}}'
       TEST_MANIFEST: './shared/test/integration/tbpl-manifest.json'
 
