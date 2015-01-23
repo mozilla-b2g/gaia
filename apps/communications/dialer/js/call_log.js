@@ -1,7 +1,7 @@
 /* globals PerformanceTestingHelper, Contacts, CallLogDBManager, LazyLoader,
            Utils, StickyHeader, KeypadManager, SimSettingsHelper,
            CallHandler, AccessibilityHelper,
-           ConfirmDialog, Notification, fb, CallGroupMenu */
+           ConfirmDialog, Notification, fb, CallGroupMenu, Set */
 
 'use strict';
 
@@ -11,6 +11,7 @@ var CallLog = {
   _empty: true,
   _dbupgrading: false,
   _contactCache: true,
+  _updateSet:null,
 
   init: function cl_init() {
     if (this._initialized) {
@@ -866,12 +867,15 @@ var CallLog = {
     Contacts.findByNumber(phoneNumber,
                           function(contact, matchingTel) {
       if (!contact || !matchingTel) {
-        self._removeContact(log, contactId, updateDb);
+        // Only need one call to remove the contact ID from the call logs.
+        // Use the set to track this.
+        self._removeContact(log, contactId, !self._updateSet.has(contactId));
+        self._updateSet.add(contactId);
         return;
       }
-
       // Update contact info.
-      if (self._contactCache && updateDb) {
+      if (self._contactCache && !self._updateSet.has(matchingTel.value)) {
+        self._updateSet.add(matchingTel.value);
         CallLogDBManager.updateGroupContactInfo(contact, matchingTel,
                                                 function(result) {
           if (typeof result === 'number' && result > 0) {
@@ -929,25 +933,39 @@ var CallLog = {
 
     // Get the list of logs to be updated.
     var logs = [];
+    var log, logInfo;
+    var i, l;
     switch (reason) {
       case 'remove':
         logs = container.querySelectorAll('li[data-contact-id="' + contactId +
                                           '"]');
+        for (i = 0, l = logs.length; i < l; i++) {
+          this._removeContact(logs[i], contactId, i === 0);
+        }
         break;
-      /*
-      case 'create':
       case 'update':
-      */
-      default:
-        logs = container.querySelectorAll('.log-item');
+        this._updateSet = new Set();
+        logs = container.querySelectorAll('li[data-contact-id="' + contactId +
+          '"]');
+        for (i = 0, l = logs.length; i < l; i++) {
+          log = logs[i];
+          logInfo = log.dataset;
+          this._updateContact(log, logInfo.phoneNumber, contactId);
+        }
         break;
-    }
-
-    for (var i = 0, l = logs.length; i < l; i++) {
-      var log = logs[i];
-      var logInfo = log.dataset;
-
-      this._updateContact(log, logInfo.phoneNumber, contactId, i === 0);
+      default:
+        // This catches the 'create', 'update', and 'null' cases.  Use
+        // the set to avoid updating the DB multiple times for call logs
+        // with the same calling/called numbers.  We only want to update the
+        // DB once, but update the DOM in all cases.
+        this._updateSet = new Set();
+        logs = container.querySelectorAll('.log-item');
+        for (i = 0, l = logs.length; i < l; i++) {
+          log = logs[i];
+          logInfo = log.dataset;
+          this._updateContact(log, logInfo.phoneNumber, contactId);
+        }
+        break;
     }
   },
 
@@ -1066,7 +1084,6 @@ navigator.mozContacts.oncontactchange = function oncontactchange(event) {
     CallLog.updateListWithContactInfo('remove', event.contactID);
     return;
   }
-
   var request = navigator.mozContacts.find(options);
   request.onsuccess = function contactRetrieved(e) {
     if (!e.target.result || e.target.result.length === 0) {

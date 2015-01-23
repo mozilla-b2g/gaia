@@ -1,9 +1,9 @@
 'use strict';
 
-/* global CallHandler, CallLog, CallLogDBManager, Contacts, KeypadManager,
+/* global CallHandler, CallLog, CallLogDBManager, KeypadManager,
           MockMozL10n, MockNavigatorMozIccManager,
           MocksHelper, MockSimSettingsHelper, Notification,
-          CallGroupMenu, Utils, MockMozContacts */
+          CallGroupMenu, Utils, MockMozContacts, Mockfb, fb */
 
 require('/shared/js/dialer/utils.js');
 require('/shared/js/usertiming.js');
@@ -29,6 +29,9 @@ require('/shared/test/unit/mocks/mock_image.js');
 require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/mock_mozContacts.js');
+require('/shared/js/fb/fb_request.js');
+require('/contacts/test/unit/mock_fb.js');
+
 
 var mocksHelperForCallLog = new MocksHelper([
   'asyncStorage',
@@ -50,6 +53,7 @@ suite('dialer/call_log', function() {
   var realL10n;
   var realMozIccManager;
   var realMozContacts;
+  var realFb;
 
   mocksHelperForCallLog.attachTestHelpers();
 
@@ -60,6 +64,8 @@ suite('dialer/call_log', function() {
     navigator.mozIccManager = MockNavigatorMozIccManager;
     realMozContacts = navigator.mozContacts;
     navigator.mozContacts = MockMozContacts;
+    realFb = fb;
+    window.fb = Mockfb;
 
     require('/dialer/js/call_log.js', done);
   });
@@ -127,7 +133,7 @@ suite('dialer/call_log', function() {
     status: 'connected',
     retryCount: 2,
     contact: {
-      id: '456',
+      id: '0',
       primaryInfo: 'AA BB',
       matchingTel: {
         value: '111222333',
@@ -227,6 +233,7 @@ suite('dialer/call_log', function() {
   };
 
   var dummyContactWithName = {
+    id: '0',
     name: 'XX',
     org: 'Mozilla',
     matchingTel: {
@@ -869,7 +876,82 @@ suite('dialer/call_log', function() {
   });
 
   suite('oncontactchange', function() {
+    suiteSetup(function() {
+      MockMozContacts.save(dummyContactWithName);
+    });
     suite('contact removed', function() {
+      var allLogs;
+
+      setup(function() {
+        // Insert  two groups with same contact
+        var grp = JSON.parse(JSON.stringify(incomingGroup));
+        grp.id = 1;
+        grp.date = 1;
+        CallLogDBManager.add(grp);
+
+        grp = JSON.parse(JSON.stringify(incomingGroup));
+        grp.id = 2;
+        grp.date = 2;
+        CallLogDBManager.add(grp);
+
+        CallLog.render();
+
+        allLogs = document.body.getElementsByClassName('log-item');
+      });
+
+      suite('no matching contact id found', function() {
+        setup(function() {
+          var contactEvent = {
+            reason: 'remove',
+            contactID: '789'
+          };
+          this.sinon.spy(CallLogDBManager, 'removeGroupContactInfo');
+          navigator.mozContacts.oncontactchange(contactEvent);
+          allLogs = document.body.getElementsByClassName('log-item');
+        });
+
+        test('should not change the contact id or remove from DB', function() {
+          for (var log of allLogs) {
+            assert.equal(log.dataset.contactId, incomingGroup.contact.id);
+          }
+          sinon.assert.notCalled(CallLogDBManager.removeGroupContactInfo);
+        });
+      });
+
+      suite('matching contact id found', function() {
+        setup(function() {
+          var contactEvent = {
+            reason: 'remove',
+            contactID: '0'
+          };
+          this.sinon.spy(CallLogDBManager, 'removeGroupContactInfo');
+          navigator.mozContacts.oncontactchange(contactEvent);
+          allLogs = document.body.getElementsByClassName('log-item');
+        });
+
+        test('should not have a contact ID after deletion', function() {
+          for (var log of allLogs) {
+            assert.isUndefined(log.dataset.contactId);
+          }
+        });
+
+        test('should now display number instead of name for matching contacts',
+        function() {
+          for (var log of allLogs) {
+            var primaryInfo = log.querySelector('.primary-info');
+            var primaryInfoMain =
+              primaryInfo.querySelector('.primary-info-main');
+            assert.equal(primaryInfoMain.textContent, incomingGroup.number);
+          }
+        });
+
+        test('should only call removeGroupContactInfo once', function() {
+          sinon.assert.calledOnce(CallLogDBManager.removeGroupContactInfo);
+        });
+      });
+    });
+
+    suite('contact update', function() {
       var allLogs;
 
       setup(function() {
@@ -886,69 +968,130 @@ suite('dialer/call_log', function() {
 
         CallLog.render();
 
-        this.sinon.stub(Contacts, 'findByNumber');
+        allLogs = document.body.getElementsByClassName('log-item');
+      });
 
-        var contactEvent = {
-          reason: 'remove',
-          contactID: incomingGroup.contact.id
-        };
-        navigator.mozContacts.oncontactchange(contactEvent);
+      suite('no matching contact id found', function() {
+        setup(function() {
+          var contactEvent = {
+            reason: 'update',
+            contactID: '789'
+          };
+          this.sinon.spy(CallLogDBManager, 'updateGroupContactInfo');
+          navigator.mozContacts.oncontactchange(contactEvent);
+          allLogs = document.body.getElementsByClassName('log-item');
+        });
+
+        test('contact id unchanged', function() {
+          for (var log of allLogs) {
+            assert.equal(log.dataset.contactId, incomingGroup.contact.id);
+          }
+        });
+
+        test('should not update the name', function() {
+          for (var log of allLogs) {
+            var primaryInfo = log.querySelector('.primary-info');
+            var primaryInfoMain =
+              primaryInfo.querySelector('.primary-info-main');
+            assert.equal(primaryInfoMain.textContent, 'AA BB');
+          }
+        });
+
+        test('should not update the DB', function() {
+          sinon.assert.notCalled(CallLogDBManager.updateGroupContactInfo);
+        });
+      });
+
+      suite('matching contact id found', function() {
+        setup(function() {
+          var contactEvent = {
+            reason: 'update',
+            contactID: '0'
+          };
+          this.sinon.spy(CallLogDBManager, 'updateGroupContactInfo');
+          navigator.mozContacts.oncontactchange(contactEvent);
+          allLogs = document.body.getElementsByClassName('log-item');
+        });
+
+        test('should display updated name', function() {
+          for (var log of allLogs) {
+            var primaryInfo = log.querySelector('.primary-info');
+            var primaryInfoMain =
+              primaryInfo.querySelector('.primary-info-main');
+            assert.equal(primaryInfoMain.textContent, 'test name');
+          }
+        });
+
+        test('should update with the new group name DB once', function() {
+          sinon.assert.calledOnce(CallLogDBManager.updateGroupContactInfo);
+        });
+      });
+    });
+
+    suite('contact added', function() {
+      var allLogs;
+      setup(function() {
+        // Insert group with no contact
+        var grp = JSON.parse(JSON.stringify(noContactGroup));
+        grp.id = 1;
+        grp.date = 1;
+        CallLogDBManager.add(grp);
+
+        CallLog.render();
 
         allLogs = document.body.getElementsByClassName('log-item');
       });
 
-      suite('no new matching contact', function() {
+      suite('no matching contact found', function() {
         setup(function() {
-          Contacts.findByNumber.yield();
+          var contactEvent = {
+            reason: 'create',
+            contactID: '789'
+          };
+          navigator.mozContacts.oncontactchange(contactEvent);
+          allLogs = document.body.getElementsByClassName('log-item');
         });
 
-        test('all groups have no contact-id', function() {
+        test('contact id undefined', function() {
           for (var log of allLogs) {
             assert.isUndefined(log.dataset.contactId);
           }
         });
 
-        test('all groups display the number', function() {
+        test('contact name should be a number', function() {
           for (var log of allLogs) {
             var primaryInfo = log.querySelector('.primary-info');
             var primaryInfoMain =
               primaryInfo.querySelector('.primary-info-main');
-            assert.equal(primaryInfoMain.textContent, incomingGroup.number);
+            assert.equal(primaryInfoMain.textContent, noContactGroup.number);
           }
         });
       });
 
-      suite('find new matching contacts', function() {
-        var newContact;
-        var matchingTel;
-
+      suite('matching contact found', function() {
         setup(function() {
-          matchingTel = {
-            value: '111222333',
-            type: 'Mobile',
-            carrier: 'Telefonica'
+          var contactEvent = {
+            reason: 'create',
+            contactID: '0'
           };
-          newContact = {
-            id: '2131245135413',
-            name: 'other contact',
-            matchingTel: matchingTel
-          };
-          Contacts.findByNumber.yield(newContact, matchingTel);
+
+          this.sinon.spy(CallLogDBManager, 'updateGroupContactInfo');
+
+          navigator.mozContacts.oncontactchange(contactEvent);
+          allLogs = document.body.getElementsByClassName('log-item');
         });
 
-        test('all groups have the new contact-id', function() {
-          for (var log of allLogs) {
-            assert.equal(log.dataset.contactId, newContact.id);
-          }
-        });
-
-        test('all groups have the new contact name', function() {
+        test('should set group name to new Contact', function() {
           for (var log of allLogs) {
             var primaryInfo = log.querySelector('.primary-info');
             var primaryInfoMain =
               primaryInfo.querySelector('.primary-info-main');
-            assert.equal(primaryInfoMain.textContent, newContact.name);
+            assert.equal(primaryInfoMain.textContent, 'test name');
           }
+        });
+
+        test('should update with the new group name DB once', function() {
+          sinon.assert.calledOnce(CallLogDBManager.updateGroupContactInfo);
         });
       });
     });

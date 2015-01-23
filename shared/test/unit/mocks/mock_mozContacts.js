@@ -18,7 +18,7 @@ MockMozContactsObj.prototype = {
           if (options.data.filterBy &&
             options.data.filterBy.indexOf('id') !== -1) {
             for (var i = 0; i < that.contacts.length; i++) {
-              if (options.data.filterValue === that.contacts[i].id) {
+              if (options.data.filterValue == that.contacts[i].id) {
                 self.result = [that.contacts[i]];
               }
             }
