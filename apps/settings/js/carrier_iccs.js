@@ -35,14 +35,14 @@ var IccHandlerForCarrierSettings = (function(window, document, undefined) {
     'hsdpa': '3.5G HSDPA',
     'hsupa': '3.5G HSDPA',
     'hspa' : '3.5G HSDPA',
-    'evdo0': '3G CDMA',
-    'evdoa': '3G CDMA',
-    'evdob': '3G CDMA',
-    '1xrtt': '2G CDMA',
+    'evdo0': 'EVDO',
+    'evdoa': 'EVDO',
+    'evdob': 'EVDO',
+    '1xrtt': '1xRTT',
     'umts' : '3G UMTS',
     'edge' : '2G EDGE',
-    'is95a': '2G CDMA',
-    'is95b': '2G CDMA',
+    'is95a': '1xRTT',
+    'is95b': '1xRTT',
     'gprs' : '2G GPRS'
   };
 
