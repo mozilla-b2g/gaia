@@ -6,6 +6,7 @@ tv_apps/app-deck
 tv_apps/dlna-player
 tv_apps/fling-player
 tv_apps/notification-receiver
+tv_apps/notification-sender
 apps/bluetooth
 apps/calendar
 apps/camera
