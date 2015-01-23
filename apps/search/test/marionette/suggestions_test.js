@@ -24,14 +24,20 @@ marionette('Search - Suggestions Test', function() {
     rocketbar = new Rocketbar(client);
     system.waitForStartup();
 
-    providers = [{
-      title: 'first',
-      urlTemplate: server.url('sample.html'),
-      suggestionsUrlTemplate: server.url('suggestions_one.json')
-    }];
+    providers = {
+      version: 1,
+      providers: {
+        'first': {
+          title: 'first',
+          searchUrl: server.url('sample.html'),
+          suggestUrl: server.url('suggestions_one.json')
+        }
+      }
+    };
 
-    client.settings.set('search.providers', providers);
-    client.settings.set('search.urlTemplate', providers[0].urlTemplate);
+    client.settings.set('search.suggestions.enabled', true);
+    client.settings.set('search.cache', providers);
+    client.settings.set('search.provider', 'first');
   });
 
   test('Test suggestions', function() {
@@ -51,7 +57,7 @@ marionette('Search - Suggestions Test', function() {
     first.click();
 
     client.switchToFrame();
-    rocketbar.switchToBrowserFrame(providers[0].urlTemplate);
+    rocketbar.switchToBrowserFrame(providers.providers.first.searchUrl);
   });
 
 });

@@ -37,6 +37,9 @@ require.config({
     'shared/lazy_loader': {
       exports: 'LazyLoader'
     },
+    'shared/search_provider': {
+      exports: 'SearchProvider'
+    },
     'shared/manifest_helper': {
       exports: 'ManifestHelper'
     },
