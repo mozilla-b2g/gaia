@@ -50,6 +50,14 @@ class Camera(Base):
         self.wait_for_capture_ready()
         self.wait_for_element_not_displayed(*self._loading_screen_locator)
 
+    def wait_for_loading_spinner_hidden(self):
+        loading_spinner = self.marionette.find_element(*self._loading_screen_locator)
+        Wait(self.marionette).until(expected.element_not_displayed(loading_spinner))
+
+    def wait_for_loading_spinner_displayed(self):
+        loading_spinner = self.marionette.find_element(*self._loading_screen_locator)
+        Wait(self.marionette).until(expected.element_displayed(loading_spinner))
+
     @property
     def camera_mode(self):
         return self.marionette.find_element(*self._controls_locator).get_attribute('data-mode')
@@ -85,7 +93,9 @@ class Camera(Base):
         self.wait_for_thumbnail_visible()
 
     def tap_capture(self):
-        self.marionette.find_element(*self._capture_button_locator).tap()
+        capture_button = self.marionette.find_element(*self._capture_button_locator)
+        Wait(self.marionette).until(expected.element_enabled(capture_button))
+        capture_button.tap()
 
     def tap_select_button(self):
         select = self.marionette.find_element(*self._select_button_locator)
