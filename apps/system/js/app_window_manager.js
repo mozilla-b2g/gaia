@@ -1,6 +1,6 @@
 /* global SettingsListener, homescreenWindowManager, inputWindowManager,
           layoutManager, Service, rocketbar, ShrinkingUI,
-          FtuLauncher, UtilityTray */
+          FtuLauncher */
 'use strict';
 
 (function(exports) {
@@ -40,19 +40,16 @@
     setHierarchy: function(active) {
       if (!this._activeApp) {
         this.debug('No active app.');
-        return;
+        return false;
       }
       if (active) {
         this.focus();
-      } else if (!UtilityTray.shown) {
-        // User can switch keyboard in utilityTray, so we should not blur
-        // active app while utilityTray is shown.
-        this._activeApp.blur();
-        this._activeApp.setNFCFocus(false);
       } else {
+        this._activeApp.blur();
         this._activeApp.setNFCFocus(false);
       }
       this._activeApp.setVisibleForScreenReader(active);
+      return true;
     },
 
     focus: function() {

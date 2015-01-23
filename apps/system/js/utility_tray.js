@@ -105,6 +105,10 @@ window.UtilityTray = {
   grippyHeight: 0,
   ambientHeight: 0,
 
+  setHierarchy: function() {
+    return false;
+  },
+
   _handle_home: function() {
     if (this.isActive()) {
       this.hide();

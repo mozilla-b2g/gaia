@@ -75,12 +75,13 @@
 
   SystemDialogManager.prototype.setHierarchy = function(active) {
     if (!this.states.activeDialog) {
-      return;
+      return false;
     }
     if (active) {
       this.states.activeDialog.focus();
     }
     this.states.activeDialog._setVisibleForScreenReader(active);
+    return true;
   };
 
   SystemDialogManager.prototype.name = 'SystemDialogManager';
