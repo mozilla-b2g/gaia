@@ -14,6 +14,7 @@ require(['config/require'], function() {
     require('shared/icc_helper');
     // used by all header building blocks
     require('shared/font_size_utils');
+    require('dsds_settings');
 
     var SettingsService = require('modules/settings_service');
     var PageTransitions = require('modules/page_transitions');

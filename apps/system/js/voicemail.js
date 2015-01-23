@@ -125,7 +125,7 @@ var Voicemail = {
         text: _('voicemailNoNumberText'),
         confirm: {
           title: _('voicemailNoNumberSettings'),
-          callback: this.showVoicemailSettings
+          callback: this.showVoicemailSettings.bind(this, serviceId)
         },
         cancel: {
           title: _('voicemailNoNumberCancel'),
@@ -185,12 +185,13 @@ var Voicemail = {
     return promise;
   },
 
-  showVoicemailSettings: function vm_showVoicemailSettings() {
+  showVoicemailSettings: function vm_showVoicemailSettings(serviceId) {
     var activity = new window.MozActivity({
       name: 'configure',
       data: {
         target: 'device',
-        section: 'call'
+        section: 'call',
+        serviceId: serviceId
       }
     });
 
