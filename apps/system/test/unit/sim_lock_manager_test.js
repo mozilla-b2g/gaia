@@ -3,10 +3,8 @@
 
 'use strict';
 
-requireApp('system/shared/test/unit/mocks/mock_simslot_manager.js');
-requireApp('system/shared/test/unit/mocks/mock_simslot.js');
-require(
-  'system/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
+requireApp('shared/test/unit/mocks/mock_simslot_manager.js');
+requireApp('shared/test/unit/mocks/mock_simslot.js');
 requireApp('system/test/unit/mock_simcard_dialog.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_service.js');
@@ -172,8 +170,8 @@ suite('SimLockManager', function() {
     });
 
     suite('Multisim handling', function() {
-      var slot1 = new MockSIMSlot(MockMobileconnection(), 0);
-      var slot2 = new MockSIMSlot(MockMobileconnection(), 1);
+      var slot1 = new MockSIMSlot(null, 0);
+      var slot2 = new MockSIMSlot(null, 1);
 
       setup(function() {
         MockSIMSlotManager.ready = true;
