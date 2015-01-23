@@ -77,13 +77,13 @@
       <!-- It gets styled differently depending on what it is over -->
       <ul id="thumbnails"></ul> <!-- Thumbnails inserted here -->
 
-      <footer class="thumbnails-list">
-        <a id="thumbnails-camera-button" class="button" data-icon="camera"></a>
-        <a id="thumbnails-select-button" class="button" data-icon="select"></a>
+      <footer class="thumbnails-list" role="toolbar">
+        <a id="thumbnails-camera-button" class="button" data-icon="camera" data-l10n-id="camera-button" role="button"></a>
+        <a id="thumbnails-select-button" class="button" data-icon="select" data-l10n-id="select-multiple-button" role="button"></a>
       </footer>
-      <footer class="thumbnails-select">
-        <a id="thumbnails-delete-button" class="button" data-icon="delete"></a>
-        <a id="thumbnails-share-button" class="button" data-icon="share"></a>
+      <footer class="thumbnails-select" role="toolbar">
+        <a id="thumbnails-delete-button" class="button" data-icon="delete" data-l10n-id="delete-button" role="button"></a>
+        <a id="thumbnails-share-button" class="button" data-icon="share" data-l10n-id="share-button" role="button"></a>
       </footer>
     </section>
 
@@ -116,12 +116,12 @@
       <section role="status" id="edit-copy-save-banner" class="banner" hidden>
         <p id="edit-copy-save-status"></p>
       </section>
-      <footer id="fullscreen-toolbar" class="tiny-only">
-        <a id="fullscreen-camera-button-tiny" class="button" data-icon="camera"></a>
-        <a id="fullscreen-edit-button-tiny" class="button" data-icon="edit-image"></a>
-        <a id="fullscreen-share-button-tiny" class="button" data-icon="share"></a>
-        <a id="fullscreen-info-button-tiny" class="button" data-icon="info"></a>
-        <a id="fullscreen-delete-button-tiny" class="button" data-icon="delete"></a>
+      <footer id="fullscreen-toolbar" class="tiny-only" role="toolbar">
+        <a id="fullscreen-camera-button-tiny" class="button" data-icon="camera" data-l10n-id="camera-button" role="button"></a>
+        <a id="fullscreen-edit-button-tiny" class="button" data-icon="edit-image" data-l10n-id="edit-button" role="button"></a>
+        <a id="fullscreen-share-button-tiny" class="button" data-icon="share" data-l10n-id="share-button" role="button"></a>
+        <a id="fullscreen-info-button-tiny" class="button" data-icon="info" data-l10n-id="info-button" role="button"></a>
+        <a id="fullscreen-delete-button-tiny" class="button" data-icon="delete" data-l10n-id="delete-button" role="button"></a>
       </footer>
     </section>
     <form id="info-view" role="dialog" data-type="confirm" class="hidden">
