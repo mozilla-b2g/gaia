@@ -1,5 +1,6 @@
 /* global MocksHelper, Service, MockSimLockSystemDialog */
-/* global MockSIMSlotManager, MockSIMSlot, BaseModule, MockService, MockApplications */
+/* global MockSIMSlotManager, MockSIMSlot, BaseModule,
+          MockService, MockApplications */
 
 'use strict';
 
