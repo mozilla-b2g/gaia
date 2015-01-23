@@ -1,5 +1,5 @@
-// HTML_COOKIE_CACHE_VERSION is set in html_cache_restore as a global.
-/*global HTML_COOKIE_CACHE_VERSION */
+// These vars are set in html_cache_restore as a globals.
+/*global HTML_COOKIE_CACHE_VERSION, HTML_COOKIE_CACHE_MAX_SEGMENTS */
 'use strict';
 define(function(require, exports) {
 
@@ -62,8 +62,14 @@ exports.save = function htmlCacheSave(html) {
       endPoint = length;
     }
 
-    document.cookie = 'htmlc' + index + '=' + html.substring(i, endPoint) +
-                      '; expires=' + expiry;
+    // Do not write cookie values past the max. Preferring this approach to
+    // doing two loops, one to generate segments strings, then another to
+    // set document.cookie for each segment. For the usual good case, the
+    // cache fits within the max segments.
+    if (index < HTML_COOKIE_CACHE_MAX_SEGMENTS) {
+      document.cookie = 'htmlc' + index + '=' + html.substring(i, endPoint) +
+                        '; expires=' + expiry;
+    }
   }
 
   // If previous cookie was bigger, clear out the other values,
@@ -71,12 +77,11 @@ exports.save = function htmlCacheSave(html) {
   // reassembling. If the cache saved is too big, just clear it as
   // there will likely be cache corruption/partial, bad HTML saved
   // otherwise.
-  var maxSegment = 40;
-  if (index > 39) {
+  if (index > HTML_COOKIE_CACHE_MAX_SEGMENTS - 1) {
     index = 0;
     console.log('htmlCache.save TOO BIG. Removing all of it.');
   }
-  for (i = index; i < maxSegment; i++) {
+  for (i = index; i < HTML_COOKIE_CACHE_MAX_SEGMENTS; i++) {
     document.cookie = 'htmlc' + i + '=; expires=' + expiry;
   }
 
