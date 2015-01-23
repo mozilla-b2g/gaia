@@ -301,6 +301,7 @@ body.thumbnailListView .thumbnail:last-child {
   background: rgba(95, 95, 95, 0.3);
   color: inherit;
   transition: opacity 0.2s linear;
+  z-index: 10;
 }
 
 /**
