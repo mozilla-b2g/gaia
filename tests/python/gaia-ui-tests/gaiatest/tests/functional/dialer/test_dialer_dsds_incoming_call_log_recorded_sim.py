@@ -27,7 +27,6 @@ class TestDsdsIncomingCallLogRecordedSim(GaiaTestCase):
         Miss a call on one SIM.
         Check which SIM was involved in the call on the call log.
         """
-        PLIVO_TIMEOUT = 30
 
         from gaiatest.utils.plivo.plivo_util import PlivoUtil
         self.plivo = PlivoUtil(
@@ -36,16 +35,12 @@ class TestDsdsIncomingCallLogRecordedSim(GaiaTestCase):
             self.testvars['plivo']['phone_number']
         )
         self.call_uuid = self.plivo.make_call(
-            to_number=self.testvars['local_phone_numbers'][sim_value].replace('+', ''),
-            timeout=PLIVO_TIMEOUT)
+            to_number=self.testvars['local_phone_numbers'][sim_value].replace('+', ''))
 
         call_screen = CallScreen(self.marionette)
         call_screen.wait_for_incoming_call()
         self.plivo.hangup_call(self.call_uuid)
-
-        Wait(self.plivo, timeout=PLIVO_TIMEOUT).until(
-            lambda p: p.is_call_completed(self.call_uuid),
-            message="Plivo didn't report the call as completed")
+        self.plivo.wait_for_call_completed(self.call_uuid)
         self.call_uuid = None
 
         self.phone = Phone(self.marionette)
