@@ -144,9 +144,14 @@ function editPhoto(n) {
   setView(LAYOUT_MODE.edit);
 
   // Set the default option buttons to correspond to those edits
-  editOptionButtons.forEach(function(b) { b.classList.remove('selected'); });
-  $('edit-crop-aspect-free').classList.add('selected');
-  $('edit-effect-none').classList.add('selected');
+  editOptionButtons.forEach(function(b) { selectEditOption(b, false); });
+  selectEditOption($('edit-crop-aspect-free'), true);
+  selectEditOption($('edit-effect-none'), true);
+}
+
+function selectEditOption(radio, selected) {
+  radio.classList.toggle('selected', selected);
+  radio.setAttribute('aria-checked', selected);
 }
 
 // Crop and Effect buttons call this
@@ -156,8 +161,8 @@ function editOptionsHandler() {
   // buttons have radio behavior
   var parent = this.parentNode;
   var buttons = parent.querySelectorAll('a.radio.button');
-  Array.forEach(buttons, function(b) { b.classList.remove('selected'); });
-  this.classList.add('selected');
+  Array.forEach(buttons, function(b) { selectEditOption(b, false); });
+  selectEditOption(this, true);
 
   // Set selected effect or cropMode elementId in editSettings object
   // to initialize UI on re-enter of an editMode
@@ -372,8 +377,8 @@ function cancelEditTool() {
     case 'crop':
       // On cancel in Crop Edit Tool, restore crop state in editSettings object
       // and revert selected option node.
-      $(editSettings.crop.cropModeId).classList.remove('selected');
-      $(savedEditSettings.crop.cropModeId).classList.add('selected');
+      selectEditOption($(editSettings.crop.cropModeId), false);
+      selectEditOption($(savedEditSettings.crop.cropModeId), true);
 
       editSettings.crop = savedEditSettings.crop;
 
@@ -397,8 +402,8 @@ function cancelEditTool() {
     case 'effect':
       // On cancel in Effect Edit Tool, restore effect state
       // in editSettings object and revert selected option node.
-      $(editSettings.effect.effectId).classList.remove('selected');
-      $(savedEditSettings.effect.effectId).classList.add('selected');
+      selectEditOption($(editSettings.effect.effectId), false);
+      selectEditOption($(savedEditSettings.effect.effectId), true);
       editSettings.effect = savedEditSettings.effect;
       break;
   }
@@ -513,8 +518,8 @@ function hideEditToolView() {
 function undoCropHandler() {
   // Switch to free-form cropping
   Array.forEach($('edit-crop-options').querySelectorAll('a.radio.button'),
-                function(b) { b.classList.remove('selected'); });
-  $('edit-crop-aspect-free').classList.add('selected');
+                function(b) { selectEditOption(b, false); });
+  selectEditOption($('edit-crop-aspect-free'), true);
   imageEditor.setCropAspectRatio(); // freeform
   // And revert to full-size image
   imageEditor.undoCrop();
