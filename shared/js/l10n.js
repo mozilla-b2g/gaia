@@ -1656,21 +1656,25 @@
     }
 
     if (navigator.mozApps && navigator.mozApps.getAdditionalLanguages) {
-      navigator.mozApps.getAdditionalLanguages().then(
-        finishBootstrap.bind(this, meta));
+      // if the environment supports langpacks, register extra languages…
+      navigator.mozApps.getAdditionalLanguages().then(function(extraLangs) {
+        registerLocales.call(this, meta, extraLangs);
+        initLocale.call(this);
+      }.bind(this));
+      // …and listen to langpacks being added and removed
+      document.addEventListener('additionallanguageschange', function(evt) {
+        registerLocales.call(this, meta, evt.detail);
+      }.bind(this));
     } else {
-      finishBootstrap.call(this, meta);
+      registerLocales.call(this, meta);
+      initLocale.call(this);
     }
   }
 
-  function finishBootstrap(meta, extraLangs) {
+  function registerLocales(meta, extraLangs) {
     var locales = buildLocaleList.call(this, meta, extraLangs);
-
     navigator.mozL10n._config.localeSources = locales[1];
-
     this.ctx.registerLocales(locales[0], Object.keys(locales[1]));
-
-    initLocale.call(this);
   }
 
   function getMatchingLangpack(lpVersions) {
