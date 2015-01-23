@@ -226,23 +226,29 @@ function L10nManager(gaiaDir,
     return chunks.map(c => c < 10 ? '0' + c : c.toString()).join('');
   }
 
+  function createMeta(doc, name) {
+    var meta = doc.createElement('meta');
+    meta.setAttribute('name', name);
+    return doc.head.appendChild(meta);
+  }
+
   function buildL10nMeta(file, doc) {
     var metas = {
-      availableLanguages: doc.querySelector('meta[name="availableLanguages"]'),
-      defaultLanguage: doc.querySelector('meta[name="defaultLanguage"]')
+      availableLanguages:
+        doc.querySelector('meta[name="availableLanguages"]') ||
+          createMeta(doc, 'availableLanguages'),
+      defaultLanguage:
+        doc.querySelector('meta[name="defaultLanguage"]') ||
+          createMeta(doc, 'defaultLanguage')
     };
 
-    if (metas.defaultLanguage) {
-      metas.defaultLanguage.setAttribute('content', self.defaultLocale);
-    }
+    metas.defaultLanguage.setAttribute('content', self.defaultLocale);
 
-    if (metas.availableLanguages) {
-      var timestamp = getTimestamp(new Date());
-      metas.availableLanguages.setAttribute('content',
-        self.locales.map(function(loc) {
-          return loc + ':' + timestamp;
-        }).join(', '));
-    }
+    var timestamp = getTimestamp(new Date());
+    metas.availableLanguages.setAttribute('content',
+      self.locales.map(function(loc) {
+        return loc + ':' + timestamp;
+      }).join(', '));
 
     var str = utils.serializeDocument(doc);
     utils.writeContent(file, str);
