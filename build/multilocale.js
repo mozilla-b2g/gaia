@@ -197,15 +197,15 @@ function L10nManager(gaiaDir,
     htmlFiles.forEach(function(htmlFile) {
       var content = utils.getFileContent(htmlFile);
 
-      var doc = utils.getDocument(content);
-
-      buildL10nMeta(htmlFile, doc);
-
       // if there is no localization word in the file, don't even parse it
       // exit early
       if (content.indexOf('localization') === -1) {
         return;
       }
+
+      var doc = utils.getDocument(content);
+
+      buildL10nMeta(htmlFile, doc);
 
       if (self.localeBasedir) {
         // Copy resource files into build_stage directory
@@ -226,23 +226,47 @@ function L10nManager(gaiaDir,
     return chunks.map(c => c < 10 ? '0' + c : c.toString()).join('');
   }
 
+  function createMeta(doc, name) {
+    var meta = doc.createElement('meta');
+    meta.setAttribute('name', name);
+    return doc.head.appendChild(meta);
+  }
+
   function buildL10nMeta(file, doc) {
     var metas = {
       availableLanguages: doc.querySelector('meta[name="availableLanguages"]'),
       defaultLanguage: doc.querySelector('meta[name="defaultLanguage"]')
     };
 
-    if (metas.defaultLanguage) {
-      metas.defaultLanguage.setAttribute('content', self.defaultLocale);
+    if ((!metas.availableLanguages || !metas.defaultLanguage) &&
+        doc.querySelector('link[rel="manifest"]')) {
+      // So, the app is using obsolete l10n meta model with a link to the
+      // manifest.
+      // Let's warn the user.
+      utils.log(MODNAME,
+        'WARNING: \n  In HTML file: ' + file.path + ', ' +
+        'obsolete link to w3c manifest is used for l10n meta. '+
+        'Please, replace with:\n' +
+        ' <meta name="availableLanguages" content="en-US">\n' +
+        ' <meta name="defaultLanguage" content="en-US">\n' +
+        ' Read more at: http://bugzil.la/1115807');
     }
 
-    if (metas.availableLanguages) {
-      var timestamp = getTimestamp(new Date());
-      metas.availableLanguages.setAttribute('content',
-        self.locales.map(function(loc) {
-          return loc + ':' + timestamp;
-        }).join(', '));
+    // ... and save him... for now.
+    if (!metas.availableLanguages) {
+      metas.availableLanguages = createMeta(doc, 'availableLanguages');
     }
+    if (!metas.defaultLanguage) {
+      metas.defaultLanguage = createMeta(doc, 'defaultLanguage');
+    }
+
+    metas.defaultLanguage.setAttribute('content', self.defaultLocale);
+
+    var timestamp = getTimestamp(new Date());
+    metas.availableLanguages.setAttribute('content',
+      self.locales.map(function(loc) {
+        return loc + ':' + timestamp;
+      }).join(', '));
 
     var str = utils.serializeDocument(doc);
     utils.writeContent(file, str);
