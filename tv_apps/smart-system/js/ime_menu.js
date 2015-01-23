@@ -35,8 +35,8 @@
       var _ = navigator.mozL10n ? navigator.mozL10n.get : function(){};
 
       dummy.innerHTML = Template('ime-menu-template').interpolate({
-        title: _(this.titleL10nId),
-        cancelLabel: _('cancel'),
+        title: this.titleL10nId,
+        cancelLabel: 'cancel',
         settingsLabel: _('ime-settings')
       });
       this.container = dummy.firstElementChild;
