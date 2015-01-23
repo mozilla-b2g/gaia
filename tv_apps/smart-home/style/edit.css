@@ -27,7 +27,7 @@
 }
 
 #main-section[data-mode="arrange"] .card:not(.focused) {
-  filter: brightness(0.7);
+  filter: url(filter.svg#brightness50percent);
 }
 
 #main-section[data-mode="arrange"] .card.focused.left_arrow:after {
