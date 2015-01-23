@@ -212,6 +212,12 @@ return [
         return;
       }
 
+      // Ignore doing extra work if current message is the same as the one
+      // already tied to this message reader.
+      if (this.header && this.header.id === currentMessage.header.id) {
+        return;
+      }
+
       // Set our current message.
       this.messageSuid = null;
       this._setHeader(currentMessage.header);
