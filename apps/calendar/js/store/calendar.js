@@ -148,14 +148,14 @@ Store.prototype = {
   _removeCalendarColorFromCache: function(id) {
     // we need to remove the color from index as soon as possible to avoid
     // race conditions (remove is async)
-    var color = this._getCachedColorByCalendarId(id);
+    var color = this.getColorByCalendarId(id);
     var index = this._usedColors.indexOf(color);
     if (index !== -1) {
       this._usedColors.splice(index, 1);
     }
   },
 
-  _getCachedColorByCalendarId: function(id) {
+  getColorByCalendarId: function(id) {
     return this._cached[id] && this._cached[id].color;
   },
 
@@ -168,7 +168,7 @@ Store.prototype = {
 
     // restore previous color only if it is part of the palette, otherwise we
     // get the next available color (or least used)
-    var prevColor = this._getCachedColorByCalendarId(calendar._id);
+    var prevColor = this.getColorByCalendarId(calendar._id);
     if (prevColor && Store.REMOTE_COLORS.indexOf(prevColor) !== -1) {
       calendar.color = prevColor;
     } else {

@@ -52,9 +52,18 @@ module.exports = {
     this._routeViewFn = Object.create(null);
     this._pendingManager = new PendingManager();
 
+    var loadedSubViews = false;
+
     this._pendingManager.oncomplete = function onpending() {
       document.body.classList.remove(pendingClass);
       performance.pendingReady();
+      // start loading sub-views as soon as possible
+      if (!loadedSubViews) {
+        loadedSubViews = true;
+        // we need to grab the global `require` because the async require is
+        // not part of the AMD spec and is not be implemented by all loaders
+        window.require(['lazy_loaded', 'css!lazy_loaded']);
+      }
     };
 
     this._pendingManager.onpending = function oncomplete() {
@@ -210,7 +219,27 @@ module.exports = {
 
   },
 
-  _init: function() {
+  _initControllers: function() {
+    // controllers can only be initialized after db.load
+
+    // start the workers
+    this.serviceController.start(false);
+
+    notificationsController.observe();
+    periodicSyncController.observe();
+
+    var recurringEventsController = new RecurringEventsController(this);
+    this.observePendingObject(recurringEventsController);
+    recurringEventsController.observe();
+    this.recurringEventsController = recurringEventsController;
+
+    // turn on the auto queue this means that when
+    // alarms are added to the database we manage them
+    // transparently. Defaults to off for tests.
+    this.store('Alarm').autoQueue = true;
+  },
+
+  _initUI: function() {
     // quick hack for today button
     var tablist = document.querySelector('#view-selector');
     var today = tablist.querySelector('.today a');
@@ -246,18 +275,9 @@ module.exports = {
     // re-localize dates on screen
     this.observeDateLocalization();
 
-    notificationsController.observe();
-    periodicSyncController.observe();
-
-    // turn on the auto queue this means that when
-    // alarms are added to the database we manage them
-    // transparently. Defaults to off for tests.
-    this.store('Alarm').autoQueue = true;
-
     this.timeController.move(new Date());
 
     this.view('TimeHeader', (header) => header.render());
-    this.view('CalendarColors', (colors) => colors.render());
 
     document.body.classList.remove('loading');
 
@@ -267,12 +287,17 @@ module.exports = {
 
     this._routes();
 
-    var recurringEventsController = new RecurringEventsController(this);
-    this.observePendingObject(recurringEventsController);
-    recurringEventsController.observe();
-    this.recurringEventsController = recurringEventsController;
-
     nextTick(() => this.view('Errors'));
+
+    // Restart the calendar when the timezone changes.
+    // We do this on a timer because this event may fire
+    // many times. Refreshing the url of the calendar frequently
+    // can result in crashes so we attempt to do this only after
+    // the user has completed their selection.
+    window.addEventListener('moztimechange', () => {
+      debug('Noticed timezone change!');
+      nextTick(() => this.forceRestart(), this._mozTimeRefreshTimeout);
+    });
   },
 
   _setPresentDate: function() {
@@ -312,31 +337,22 @@ module.exports = {
    */
   init: function() {
     debug('Will initialize calendar app...');
-    var self = this;
-    var pending = 2;
-
-    function next() {
-      pending--;
-      if (!pending) {
-        self._init();
-      }
-    }
 
     if (!this.db) {
       this.configure(new Db('b2g-calendar', this), new Router(page));
     }
 
-    // start the workers
-    this.serviceController.start(false);
-
-    navigator.mozL10n.once(next);
     this.db.load(() => {
-      next();
+      this._initControllers();
       // it should only start listening for month change after we have the
       // calendars data, otherwise we might display events from calendars that
       // are not visible. this also makes sure we load the calendars as soon as
       // possible
       this.store('Calendar').all(() => dayObserver.init());
+
+      // we init the UI after the db.load to increase perceived performance
+      // (will feel like busytimes are displayed faster)
+      navigator.mozL10n.once(() => this._initUI());
     });
   },
 
@@ -382,7 +398,9 @@ module.exports = {
 
     var snake = snakeCase(name);
     debug('Will try to load view', name);
-    require([ 'views/' + snake ], (aView) => {
+    // we need to grab the global `require` because the async require is not
+    // part of the AMD spec and is not be implemented by all loaders
+    window.require([ 'views/' + snake ], (aView) => {
       debug('Loaded view', name);
       Views[name] = aView;
       return this.view(name, cb);
