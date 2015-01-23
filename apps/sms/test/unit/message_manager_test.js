@@ -416,7 +416,7 @@ suite('message_manager.js >', function() {
       this.sinon.spy(MockNavigatormozMobileMessage, 'getMessages');
       this.sinon.spy(MockNavigatormozMobileMessage, 'markMessageRead');
 
-      MessageManager.markThreadRead(1,/*isRead*/ true);
+      MessageManager.markThreadRead(1);
     });
 
     test('call mark read on the correct messages', function() {
