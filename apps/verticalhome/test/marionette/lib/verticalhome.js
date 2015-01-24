@@ -223,6 +223,18 @@ VerticalHome.prototype = {
   },
 
   /**
+  Fetch the nth icon on the homescreen.
+
+  @param {number} the icon number we want
+  @return {Marionette.Element}
+   */
+  getNthIcon: function(number) {
+    return this.client.helper.waitForElement(
+      '.icon:nth-of-type(' + number + ')'
+    );
+  },
+
+  /**
   Get the the current meta=theme-color of the homescreen
 
   @return {String}
