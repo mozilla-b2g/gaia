@@ -50,6 +50,7 @@ form[role="dialog"][data-type="confirm"] h1 {
   color: #fff;
   margin: 0;
   padding: 1rem 1.5rem 0;
+  word-wrap: break-word;
 }
 
 /* Menu & buttons setup */
