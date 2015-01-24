@@ -148,6 +148,7 @@
         var element = item.element.querySelector('.title');
         element.textContent = item.name;
       });
+      this.renderGrid();
     },
 
     /**

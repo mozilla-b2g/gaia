@@ -152,6 +152,7 @@
      * just validates the style class of the group.
      */
     _renderChildren: function(nApps) {
+      var isRTL = (document.documentElement.dir === 'rtl');
       if (!this.detail.collapsed) {
         this.element.classList.remove('collapsed');
         return;
@@ -168,7 +169,9 @@
         (this.grid.layout.gridWidth -
          COLLAPSED_GROUP_MARGIN_LEFT - COLLAPSED_GROUP_MARGIN_RIGHT) /
         COLLAPSED_GROUP_SIZE);
-      var x = COLLAPSED_GROUP_MARGIN_LEFT;
+      var x = isRTL ?
+              (this.grid.layout.gridWidth - COLLAPSED_GROUP_MARGIN_RIGHT) :
+              COLLAPSED_GROUP_MARGIN_LEFT;
       y += this.headerHeight;
 
       var maxGridItemWidth =
@@ -183,10 +186,10 @@
 
           var itemVisible = (i - (index - nApps)) < COLLAPSED_GROUP_SIZE;
           if (!itemVisible) {
-            item.setCoordinates(x - width, y);
+            item.setCoordinates(isRTL ? x + width : x - width, y);
           } else {
             item.setCoordinates(x, y);
-            x += width;
+            x += isRTL ? -width: width;
           }
 
           item.render();
