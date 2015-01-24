@@ -1,7 +1,8 @@
 'use strict';
 
 /* globals SettingsListener, Bluetooth, StatusBar, Service,
-           ScreenBrightnessTransition, ScreenWakeLockManager */
+           ScreenBrightnessTransition, ScreenWakeLockManager,
+           ScreenAutoBrightness                               */
 
 var ScreenManager = {
 
@@ -42,47 +43,19 @@ var ScreenManager = {
   _savedBrightness: 1,
 
   /*
-   * The auto-brightness algorithm will never set the screen brightness
-   * to a value smaller than this. 0.1 seems like a good screen brightness
-   * in a completely dark room on a Unagi.
-   */
-  AUTO_BRIGHTNESS_MINIMUM: 0.1,
-
-  /*
-   * This constant is used in the auto brightness algorithm. We take
-   * the base 10 logarithm of the incoming lux value from the light
-   * sensor and multiplied it by this constant. That value is used to
-   * compute a weighted average with the current brightness and
-   * finally that average brightess is and then clamped to the range
-   * [AUTO_BRIGHTNESS_MINIMUM, 1.0].
-   *
-   * Making this value larger will increase the brightness for a given
-   * ambient light level. At a value of about .25, the screen will be
-   * at full brightness in sunlight or in a well-lighted work area.
-   * At a value of about .3, the screen will typically be at maximum
-   * brightness in outdoor daylight conditions, even when overcast.
-   */
-  AUTO_BRIGHTNESS_CONSTANT: 0.27,
-
-  /*
-   * We won't set a new brightness value if the difference between the old and
-   * new ambient light sensor values is lower than this constant.
-   */
-  AUTO_BRIGHTNESS_MIN_DELTA: 10,
-
-  /*
-   * This variable contains the latest ambient light sensor value that was used
-   * to set a brightness.
-   */
-  _previousLux: undefined,
-
-  /*
    * This property will host a ScreenBrightnessTransition instance
    * and control the brightness transition for us.
    * Eventually we want to move all brightness controls
    * (including auto-brightness toggle and calculation) out of this module.
    */
   _screenBrightnessTransition: null,
+
+  /*
+   * ScreenAutoBrightness instance
+   * manages the devicelight events and adjusts the screen brightness
+   * automatically
+   */
+  _screenAutoBrightness: null,
 
   /**
    * Timeout to black the screen when locking.
@@ -138,6 +111,11 @@ var ScreenManager = {
 
     this._screenBrightnessTransition = new ScreenBrightnessTransition();
 
+    this._screenAutoBrightness = new ScreenAutoBrightness();
+    this._screenAutoBrightness.onbrightnesschange = function(brightness) {
+        this.setScreenBrightness(brightness, false);
+    }.bind(this);
+
     var self = this;
     var power = navigator.mozPower;
 
@@ -192,32 +170,6 @@ var ScreenManager = {
     }
   },
 
-  //
-  // Automatically adjust the screen brightness based on the ambient
-  // light (in lux) measured by the device light sensor
-  //
-  autoAdjustBrightness: function scm_adjustBrightness(lux) {
-    if (lux < 1) { // Can't take the log of 0 or negative numbers
-      lux = 1;
-    }
-
-    if (this._previousLux !== undefined) {
-      var brightnessDelta = Math.abs(this._previousLux - lux);
-      if (brightnessDelta <= this.AUTO_BRIGHTNESS_MIN_DELTA) {
-        return;
-      }
-    }
-    this._previousLux = lux;
-
-    var computedBrightness =
-      Math.log10(lux) * this.AUTO_BRIGHTNESS_CONSTANT;
-
-    var clampedBrightness = Math.max(this.AUTO_BRIGHTNESS_MINIMUM,
-                                     Math.min(1.0, computedBrightness));
-
-    this.setScreenBrightness(clampedBrightness, false);
-  },
-
   handleEvent: function scm_handleEvent(evt) {
     var telephony = window.navigator.mozTelephony;
     var call;
@@ -234,7 +186,7 @@ var ScreenManager = {
             this._inTransition) {
           return;
         }
-        this.autoAdjustBrightness(evt.value);
+        this._screenAutoBrightness.autoAdjust(evt.value);
         break;
 
       case 'sleep':
@@ -554,7 +506,8 @@ var ScreenManager = {
       this.setScreenBrightness(this._userBrightness, false);
     }
     this._deviceLightEnabled = enabled;
-    this._previousLux = undefined;
+
+    this._screenAutoBrightness.reset();
 
     if (!this.screenEnabled) {
       return;
