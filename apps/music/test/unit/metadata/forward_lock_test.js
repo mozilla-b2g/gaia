@@ -5,6 +5,7 @@
 require('/test/unit/metadata/utils.js');
 require('/shared/js/omadrm/fl.js');
 require('/js/metadata/forward_lock.js');
+require('/js/metadata/id3v1.js');
 require('/js/metadata/id3v2.js');
 
 suite('forwardlock files', function() {
@@ -38,7 +39,7 @@ suite('forwardlock files', function() {
     ForwardLock.getKey = RealForwardLockGetKey;
   });
 
-  test('forwardlocked id3v2', function(done) {
+  test('mp3 with id3v2 tag', function(done) {
     var vendorMetadata = {vendor: 'Songs for Cool Kids, Inc'};
     fetchBuffer('/test-data/id3v2.4-simple-latin1.mp3').then(function(buffer) {
       return ForwardLock.lockBuffer(
@@ -58,6 +59,24 @@ suite('forwardlock files', function() {
         assert.strictEqual(metadata.disccount, 1);
       });
     });
+  });
+
+  test('mp3 with no metadata', function(done) {
+    var vendorMetadata = {vendor: 'Songs for Cool Kids, Inc',
+                          name: 'The Song That Never Ends'};
+    fetchBuffer('/test-data/no-tag.mp3').then(function(buffer) {
+      return ForwardLock.lockBuffer(
+        secret, buffer, 'audio/mpeg', vendorMetadata
+      );
+    }).then(parseMetadataBlob).then(function(metadata) {
+      done(function() {
+        assert.strictEqual(metadata.locked, true);
+        assert.strictEqual(metadata.vendor, vendorMetadata.vendor);
+        assert.strictEqual(metadata.artist, '');
+        assert.strictEqual(metadata.album, '');
+        assert.strictEqual(metadata.title, vendorMetadata.name);
+      });
+    }).catch(done);
   });
 
   test('decrypting forwardlock with no secret key', function(done) {
