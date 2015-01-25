@@ -40,6 +40,11 @@
     "apps/system/test/marionette/software_home_file_open_error_test.js": "Bug 1119079 - Intermittent software_home_file_open_error_test.js | Software Home Button - File Open Error Proper layout for file error dialog",
     "apps/verticalhome/test/marionette/app_hosted_use_cached_icon_test.js": "Bug 1037194 - TEST-UNEXPECTED-FAIL | Vertical Home - Hosted app cached icon fetch fallback to default icon",
     "apps/verticalhome/test/marionette/collection_pin_result_uninstall_test.js": "Bug 1098310 - TEST-UNEXPECTED-FAIL | Vertical - Collection uninstall pinned collection web result",
-    "apps/verticalhome/test/marionette/collection_rename_test.js": "Bug 1090756 - TEST-UNEXPECTED-FAIL | Vertical - Collection Rename rename collection"
+    "apps/verticalhome/test/marionette/collection_rename_test.js": "Bug 1090756 - TEST-UNEXPECTED-FAIL | Vertical - Collection Rename rename collection",
+    "apps/system/test/marionette/rocketbar_activity_layout_test.js": "Bug 1117770 - Remove e.me",
+    "apps/verticalhome/test/marionette/search_test.js": "Bug 1117770 - Remove e.me",
+    "apps/search/test/marionette/bookmark_web_result_test.js": "Bug 1117770 - Remove e.me",
+    "apps/system/test/marionette/browser_chrome_bookmark_web_result_test.js": "Bug 1117770 - Remove e.me",
+    "apps/system/test/marionette/browser_chrome_share_web_result_test.js": "Bug 1117770 - Remove e.me"
   }
 }
