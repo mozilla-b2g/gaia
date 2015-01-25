@@ -1,6 +1,7 @@
 /* jshint moz:true */
 /* global BaseModule */
 /* global AppInstallDialog */
+/* global AppInstallCancelDialog */
 /* global ConfirmDialogHelper */
 /* global FtuLauncher */
 /* global KeyboardHelper */
@@ -43,6 +44,8 @@
       this.systemBanner = new SystemBanner();
 
       this.dialog = new AppInstallDialog();
+      this.installCancelDialog = new AppInstallCancelDialog();
+
       this.imeLayoutDialog = document.getElementById('ime-layout-dialog');
       this.imeListTemplate = document.getElementById('ime-list-template');
       this.imeList = document.getElementById('ime-list');
@@ -54,19 +57,14 @@
       this.setupConfirmButton =
         document.getElementById('setup-confirm-button');
 
-      this.installCancelDialog =
-        document.getElementById('app-install-cancel-dialog');
       this.downloadCancelDialog =
         document.getElementById('app-download-cancel-dialog');
       this.setupInstalledAppDialog =
         document.getElementById('setup-installed-app-dialog');
-      this.confirmCancelButton =
-        document.getElementById('app-install-confirm-cancel-button');
+
       this.setupAppName = document.getElementById('setup-app-name');
       this.setupAppDescription =
-        document.getElementById('setup-app-description');
-
-      this.resumeButton = document.getElementById('app-install-resume-button');
+        document.getElementById('setup-app-description');      
 
       this.notifContainer =
               document.getElementById('install-manager-notification-container');
@@ -93,8 +91,11 @@
         this.handleInstall.bind(this);
       this.dialog.elements.cancelButton.onclick =
         this.showInstallCancelDialog.bind(this);
-      this.confirmCancelButton.onclick = this.handleInstallCancel.bind(this);
-      this.resumeButton.onclick = this.hideInstallCancelDialog.bind(this);
+      this.installCancelDialog.elements.confirmCancelButton.onclick =
+        this.handleInstallCancel.bind(this);
+      this.installCancelDialog.elements.resumeButton.onclick =
+        this.hideInstallCancelDialog.bind(this);
+
       this.notifContainer.onclick = this.showDownloadCancelDialog.bind(this);
 
       this.downloadCancelDialog.querySelector('.confirm').onclick =
@@ -659,7 +660,7 @@
       if (evt) {
         evt.preventDefault();
       }
-      this.installCancelDialog.classList.add('visible');
+      this.installCancelDialog.show();
       this.dialog.hide();
     },
 
@@ -668,7 +669,7 @@
         evt.preventDefault();
       }
       this.dialog.show();
-      this.installCancelDialog.classList.remove('visible');
+      this.installCancelDialog.hide();
     },
 
     showDownloadCancelDialog: function ai_showDownloadCancelDialog(e) {
@@ -701,7 +702,7 @@
         this.installCancelCallback();
       }
       this.installCancelCallback = null;
-      this.installCancelDialog.classList.remove('visible');
+      this.installCancelDialog.hide();
     },
 
     handleConfirmDownloadCancel: function ai_handleConfirmDownloadCancel(e) {

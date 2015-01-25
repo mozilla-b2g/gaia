@@ -55,7 +55,7 @@
     return `<form id="${this.instanceID}"
             class="generic-dialog"
             data-type="confirm" role="dialog"
-            data-z-index-level="app-install-dialog">
+            data-z-index-level="app-install-dialog" hidden>
               <section>
                 <h1 id="app-install-message"></h1>
                 <dl>

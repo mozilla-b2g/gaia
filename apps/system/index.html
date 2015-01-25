@@ -412,6 +412,7 @@
     <!-- App Install -->
     <link rel="stylesheet" type="text/css" href="style/app_install_manager/app_install_manager.css">
     <script defer src="js/app_install_dialog.js"></script>
+    <script defer src="js/app_install_cancel_dialog.js"></script>
 
     <!-- Edge Gestures -->
     <script defer src="js/stack_manager.js"></script>
@@ -882,23 +883,6 @@
 
       <div id="app-uninstall-dialog" data-z-index-level="app-uninstall-dialog">
       </div>
-
-      <form id="app-install-cancel-dialog" class="app-install-dialog generic-dialog"
-            data-type="confirm" role="dialog"
-            data-z-index-level="app-install-dialog">
-        <section>
-          <h1 data-l10n-id="cancel-install">Cancel Install</h1>
-          <p>
-            <small data-l10n-id="cancelling-will-not-refund">Cancelling will not refund a purchase. Refunds for paid content are provided by the original seller.</small>
-            <small data-l10n-id="apps-can-be-installed-later">Apps can be installed later from the original installation source.</small>
-          </p>
-          <p data-l10n-id="are-you-sure-you-want-to-cancel">Are you sure you want to cancel this install?</p>
-        </section>
-        <menu data-items="2">
-          <button id="app-install-confirm-cancel-button" type="reset" data-l10n-id="cancel-install-button">Cancel Install</button>
-          <button id="app-install-resume-button" type="submit" data-l10n-id="resume">Resume</button>
-        </menu>
-      </form>
 
       <form id="app-download-cancel-dialog" class="app-install-dialog generic-dialog"
         data-type="confirm" role="dialog"
