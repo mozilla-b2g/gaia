@@ -1857,4 +1857,167 @@ suite('thread_list_ui', function() {
       assert.ok(thread1.querySelector('input').checked);
     });
   });
+
+  suite('contextmenu handling > Long press on the thread', function() {
+    var draft,
+        threads = [{
+          id: 1,
+          date: new Date(2013, 1, 2),
+          unread: true
+        }, {
+          id: 2,
+          date: new Date(2013, 1, 0),
+          unread: false
+        }];
+
+    setup(function(done) {
+      MockOptionMenu.mSetup();
+      this.sinon.stub(MessageManager, 'markThreadRead');
+      this.sinon.stub(ThreadListUI, 'performDeletion');
+
+      threads.forEach((threadInfo) => {
+        var thread = Thread.create(MockMessages.sms({
+          threadId: threadInfo.id,
+          timestamp: +threadInfo.date
+        }), { unread: threadInfo.unread });
+        Threads.set(thread.id, thread);
+        ThreadListUI.appendThread(thread);
+      });
+
+      draft = new Draft({
+        id: 101,
+        threadId: null,
+        recipients: [],
+        content: ['An explicit id'],
+        timestamp: Date.now(),
+        type: 'sms'
+      });
+
+      Drafts.add(draft);
+
+      this.sinon.stub(Drafts, 'request').returns(
+        Promise.resolve([draft])
+      );
+
+      ThreadListUI.renderDrafts().then(done, done);
+    });
+
+    teardown(function() {
+      ThreadListUI.inEditMode = false;
+      MockOptionMenu.mTeardown();
+      Drafts.clear();
+    });
+
+    //mark as read action on thread
+    test(' "long-press" on thread having unread message', function() {
+      var firstThreadNode = document.getElementById('thread-1');
+      var contextMenuEvent = new CustomEvent('contextmenu', {
+        'bubbles': true,
+        'cancelable': true
+      });
+
+      firstThreadNode.querySelector('a').dispatchEvent(contextMenuEvent);
+      var item = MockOptionMenu.calls[0].items[1];
+      item.method.apply(null, item.params);
+
+      assert.equal(MockOptionMenu.calls.length, 1);
+      assert.equal(
+        MockOptionMenu.calls[0].items[0].l10nId,
+        'delete-thread');
+      assert.equal(
+        MockOptionMenu.calls[0].items[1].l10nId,
+        'mark-as-read'
+      );
+      assert.equal(
+        MockOptionMenu.calls[0].items[2].l10nId,
+        'cancel'
+      );
+      sinon.assert.calledWith(MessageManager.markThreadRead, 1, true);
+    });
+
+    //mark as unread action on thread
+    test(' "long-press" on thread having read message', function() {
+      var secondThreadNode = document.getElementById('thread-2');
+      var contextMenuEvent = new CustomEvent('contextmenu', {
+        'bubbles': true,
+        'cancelable': true
+      });
+
+      secondThreadNode.querySelector('a').dispatchEvent(contextMenuEvent);
+      var item = MockOptionMenu.calls[0].items[1];
+      item.method.apply(null, item.params);
+
+      assert.ok(MockOptionMenu.calls.length, 1);
+      assert.equal(
+        MockOptionMenu.calls[0].items[0].l10nId,
+        'delete-thread');
+      assert.equal(
+        MockOptionMenu.calls[0].items[1].l10nId,
+        'mark-as-unread'
+      );
+      assert.equal(
+        MockOptionMenu.calls[0].items[2].l10nId,
+        'cancel'
+      );
+      sinon.assert.calledWith(MessageManager.markThreadRead, 2, false);
+    });
+
+    //delete action on thread
+    test(' "long-press" on thread having read message', function() {
+      var secondThreadNode = document.getElementById('thread-2');
+      var contextMenuEvent = new CustomEvent('contextmenu', {
+        'bubbles': true,
+        'cancelable': true
+      });
+
+      secondThreadNode.querySelector('a').dispatchEvent(contextMenuEvent);
+      var item = MockOptionMenu.calls[0].items[0];
+      item.method.apply(null, item.params);
+
+      assert.ok(MockOptionMenu.calls.length, 1);
+      assert.equal(
+        MockOptionMenu.calls[0].items[0].l10nId,
+        'delete-thread');
+      assert.equal(
+        MockOptionMenu.calls[0].items[1].l10nId,
+        'mark-as-unread'
+      );
+      assert.equal(
+        MockOptionMenu.calls[0].items[2].l10nId,
+        'cancel'
+      );
+      sinon.assert.calledWith(ThreadListUI.performDeletion, ['2']);
+    });
+
+    //delete action on draft-thread & mark-as-read/unread not available
+    test(' "long-press" on Draft-thread shows a menu',function() {
+      var firstThreadDraftNode = document.querySelector('#thread-101 a');
+      var contextMenuEvent = new CustomEvent('contextmenu', {
+        'bubbles': true,
+        'cancelable': true
+      });
+
+      firstThreadDraftNode.dispatchEvent(contextMenuEvent);
+      var item = MockOptionMenu.calls[0].items[0];
+      item.method.apply(null, item.params);
+
+      assert.ok(MockOptionMenu.calls.length, 1);
+      assert.equal(
+        MockOptionMenu.calls[0].items[0].l10nId,
+        'delete-thread');
+      assert.notEqual(
+        MockOptionMenu.calls[0].items[1].l10nId,
+        'mark-as-read'
+      );
+      assert.notEqual(
+        MockOptionMenu.calls[0].items[1].l10nId,
+        'mark-as-unread'
+      );
+      assert.equal(
+        MockOptionMenu.calls[0].items[1].l10nId,
+        'cancel'
+      );
+      sinon.assert.calledWith(ThreadListUI.performDeletion, ['101']);
+    });
+  });
 });
