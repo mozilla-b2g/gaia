@@ -125,7 +125,7 @@
     },
 
     handleHomeButtonPressed: function ai_handleHomeButtonPressed(e) {
-      this.dialog.element.classList.remove('visible');
+      this.dialog.hide();
       this.handleInstallCancel();
 
       // hide IME setup dialog if presented
@@ -179,7 +179,7 @@
         return;
       }
 
-      this.dialog.element.classList.add('visible');
+      this.dialog.show();
 
       var id = detail.id;
 
@@ -193,7 +193,7 @@
       // Wrap manifest to get localized properties
       manifest = new ManifestHelper(manifest);
       var msg = _('install-app', {'name': manifest.name});
-      this.dialog.elements.msg.textContent = msg;
+      this.dialog.elements.message.textContent = msg;
 
       if (manifest.developer) {
         this.dialog.elements.authorName.textContent = manifest.developer.name ||
@@ -223,7 +223,7 @@
         this.installCallback();
       }
       this.installCallback = null;
-      this.dialog.element.classList.remove('visible');
+      this.dialog.hide();
     },
 
     handleAppUninstallPrompt: function ai_handleUninstallPrompt(detail) {
@@ -660,14 +660,14 @@
         evt.preventDefault();
       }
       this.installCancelDialog.classList.add('visible');
-      this.dialog.element.classList.remove('visible');
+      this.dialog.hide();
     },
 
     hideInstallCancelDialog: function ai_hideInstallCancelDialog(evt) {
       if (evt) {
         evt.preventDefault();
       }
-      this.dialog.element.classList.add('visible');
+      this.dialog.show();
       this.installCancelDialog.classList.remove('visible');
     },
 

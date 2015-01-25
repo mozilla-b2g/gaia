@@ -1,7 +1,8 @@
 'use strict';
 
 (function(exports) {
-  var AppInstallDialog = function AppInstallDialog() {
+  var AppInstallDialog = function AppInstallDialog(options) {
+    this.options = options || {};
     this.render();
     this.publish('created');
   };
@@ -52,7 +53,7 @@
 
   AppInstallDialog.prototype.view = function appid_view() {
     return `<form id="${this.instanceID}"
-            class="app-install-dialog generic-dialog"
+            class="generic-dialog"
             data-type="confirm" role="dialog"
             data-z-index-level="app-install-dialog">
               <section>

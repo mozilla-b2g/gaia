@@ -3,7 +3,6 @@
  * the general style in confirm.css isn't sufficient */
 #setup-installed-app-dialog,
 #ime-layout-dialog,
-#app-install-dialog,
 #app-install-cancel-dialog,
 #app-download-cancel-dialog {
   display: none;
@@ -15,7 +14,6 @@
    software home button */
 #screen.software-button-enabled #setup-installed-app-dialog,
 #screen.software-button-enabled #ime-layout-dialog,
-#screen.software-button-enabled #app-install-dialog,
 #screen.software-button-enabled #app-install-cancel-dialog,
 #screen.software-button-enabled #app-download-cancel-dialog {
   bottom: var(--software-home-button-height);
@@ -24,7 +22,6 @@
 @media (orientation: landscape) {
   #screen.software-button-enabled #setup-installed-app-dialog,
   #screen.software-button-enabled #ime-layout-dialog,
-  #screen.software-button-enabled #app-install-dialog,
   #screen.software-button-enabled #app-install-cancel-dialog,
   #screen.software-button-enabled #app-download-cancel-dialog {
     bottom: 0;
@@ -34,7 +31,6 @@
 
 #setup-installed-app-dialog.visible,
 #ime-layout-dialog.visible,
-#app-install-dialog.visible,
 #app-install-cancel-dialog.visible,
 #app-download-cancel-dialog.visible {
   display: inline-block;
@@ -47,7 +43,6 @@
 
 #setup-installed-app-dialog section,
 #ime-layout-dialog section,
-#app-install-dialog section,
 #app-install-cancel-dialog section,
 #app-download-cancel-dialog section {
   height: auto;
@@ -55,18 +50,10 @@
 
 #setup-installed-app-dialog h1,
 #ime-layout-dialog h1,
-#app-install-dialog h1,
 #app-install-cancel-dialog h1,
 #app-download-cancel-dialog h1 {
   border-bottom: none;
   background: none;
-}
-
-#app-install-dialog dl > dt {
-  width: 8rem;
-  margin-right: 1rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 #app-install-cancel-dialog small:first-child {
