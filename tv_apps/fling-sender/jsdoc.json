@@ -1,0 +1,10 @@
+{
+  "smart-home": {
+    "src": [
+      "tv_apps/fling-sender/js/**/*.js"
+    ],
+    "options": {
+      "destination": "docs/fling-sender"
+    }
+  }
+}
