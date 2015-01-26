@@ -22,6 +22,12 @@ var startupCacheEventsSent = false;
  */
 var HTML_COOKIE_CACHE_VERSION = '1';
 
+/**
+ * Max size of cookie cache segments. Set as a global because it is also used by
+ * html_cache.js.
+ */
+var HTML_COOKIE_CACHE_MAX_SEGMENTS = 40;
+
 // Use a global to work around issue with
 // navigator.mozHasPendingMessage only returning
 // true to the first call made to it.
@@ -47,6 +53,17 @@ window.htmlCacheRestorePendingMessage = [];
 
     while ((match = pairRegExp.exec(value))) {
       segments[parseInt(match[1], 10)] = match[2] || '';
+    }
+
+    if (segments.length > HTML_COOKIE_CACHE_MAX_SEGMENTS) {
+      // Somehow, garbage got in the a higher segment level than the one used by
+      // html_cache, which makes sure the spaced up to the max is well gardened.
+      // So it is safe to just use the max segment size vs just dumping the
+      // whole cache.
+      console.warn('Trimming cache segments of ' + segments.length +
+                   ' to well kept limit of ' + HTML_COOKIE_CACHE_MAX_SEGMENTS);
+      segments.splice(HTML_COOKIE_CACHE_MAX_SEGMENTS,
+                      segments.length - HTML_COOKIE_CACHE_MAX_SEGMENTS);
     }
 
     value = decodeURIComponent(segments.join(''));
