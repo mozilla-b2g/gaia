@@ -533,47 +533,50 @@ console.log('sf: creating SearchSlice:', phrase);
   this.endTS = null;
   this.endUID = null;
 
-  if (!(phrase instanceof RegExp)) {
-    phrase = new RegExp(phrase.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
-                                       '\\$&'),
-                        'i');
-  }
-
   var filters = [];
-  if (whatToSearch.author)
-    filters.push(new AuthorFilter(phrase));
-  if (whatToSearch.recipients)
-    filters.push(new RecipientFilter(phrase, 1, true, true, true));
-  if (whatToSearch.subject)
-    filters.push(new SubjectFilter(
-                   phrase, 1, CONTEXT_CHARS_BEFORE, CONTEXT_CHARS_AFTER));
-  if (whatToSearch.body) {
-    filters.push(new BodyFilter(
-                   phrase, whatToSearch.body === 'yes-quotes',
-                   1, CONTEXT_CHARS_BEFORE, CONTEXT_CHARS_AFTER));
-    // A latch for use to make sure that _gotMessages' checkHandle calls are
-    // sequential even when _gotMessages is invoked with no headers and
-    // !moreMessagesComing.
-    //
-    // (getBody calls are inherently ordered, but if we have no headers, then
-    // the function call that decides whether we fetch more messages needs some
-    // way to wait for the body loads to occur.  Previously we used
-    // storage.runAfterDeferredCalls, but that's now removed because it was a
-    // footgun and its semantics were slightly broken to boot.)
-    //
-    // TODO: In the future, refactor this logic into a more reusable
-    // iterator/stream mechanism so that this class doesn't have to deal with
-    // it.
-    //
-    // The usage pattern is this:
-    // - Whenever we have any bodies to fetch, we create a latch and assign it
-    //   here.
-    // - Whenever we don't have any bodies to fetch, we use a .then() on the
-    //   current value of the latch, if there is one.
-    // - We clear this in _gotMessages' checkHandle in the case we are calling
-    //   reqGrow.  This avoids the latch hanging around with potential GC
-    //   implications and provides a nice invariant.
-    this._pendingBodyLoadLatch = null;
+
+  if (phrase) {
+    if (!(phrase instanceof RegExp)) {
+      phrase = new RegExp(phrase.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
+                                         '\\$&'),
+                          'i');
+    }
+
+    if (whatToSearch.author)
+      filters.push(new AuthorFilter(phrase));
+    if (whatToSearch.recipients)
+      filters.push(new RecipientFilter(phrase, 1, true, true, true));
+    if (whatToSearch.subject)
+      filters.push(new SubjectFilter(
+                     phrase, 1, CONTEXT_CHARS_BEFORE, CONTEXT_CHARS_AFTER));
+    if (whatToSearch.body) {
+      filters.push(new BodyFilter(
+                     phrase, whatToSearch.body === 'yes-quotes',
+                     1, CONTEXT_CHARS_BEFORE, CONTEXT_CHARS_AFTER));
+      // A latch for use to make sure that _gotMessages' checkHandle calls are
+      // sequential even when _gotMessages is invoked with no headers and
+      // !moreMessagesComing.
+      //
+      // (getBody calls are inherently ordered, but if we have no headers, then
+      // the function call that decides whether we fetch more messages needs
+      // some way to wait for the body loads to occur.  Previously we used
+      // storage.runAfterDeferredCalls, but that's now removed because it was a
+      // footgun and its semantics were slightly broken to boot.)
+      //
+      // TODO: In the future, refactor this logic into a more reusable
+      // iterator/stream mechanism so that this class doesn't have to deal with
+      // it.
+      //
+      // The usage pattern is this:
+      // - Whenever we have any bodies to fetch, we create a latch and assign it
+      //   here.
+      // - Whenever we don't have any bodies to fetch, we use a .then() on the
+      //   current value of the latch, if there is one.
+      // - We clear this in _gotMessages' checkHandle in the case we are calling
+      //   reqGrow.  This avoids the latch hanging around with potential GC
+      //   implications and provides a nice invariant.
+      this._pendingBodyLoadLatch = null;
+    }
   }
 
   this.filterer = new MessageFilterer(filters);
