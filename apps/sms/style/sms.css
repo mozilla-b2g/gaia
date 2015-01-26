@@ -37,6 +37,49 @@ gaia-header {
   z-index: 10;
 }
 
+/*
+  toast
+*/
+section[role="toast"] {
+  background: #4d4d4d;
+  overflow: hidden;
+  position: absolute;
+  z-index: 100;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 6rem;
+  text-align: left;
+  opacity: .95;
+  margin: 0rem 1.5rem 5rem 1.5rem;
+}
+
+section[role="toast"] p {
+  font-size: 1.8rem;
+  font-weight: normal;
+  line-height: 2.2rem;
+  margin-left: 1.5rem;
+  margin-top: 2rem; 
+  padding: 0;
+  color: #ffffff;
+  text-align: left;
+  font-style: italic;
+  font-family: sans-serif;
+}
+
+section[role="toast"] p strong {
+  font-weight: 500;
+}
+
+/*
+ * Right to Left View
+ */
+
+html[dir="rtl"] section[role="toast"],
+html[dir="rtl"] section[role="toast"] p {
+  text-align: right;
+}
+
 /* Override Building Block [Input areas] styles */
 form.bottom[role="search"] {
   z-index: 3;

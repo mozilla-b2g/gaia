@@ -25,10 +25,12 @@ var ThreadListUI = {
   draftLinks: null,
   draftRegistry: null,
   DRAFT_SAVED_DURATION: 5000,
+  DELETE_READ_UNREAD_DURATION: 5000,
 
   // Used to track timeouts
   timeouts: {
-    onDraftSaved: null
+    onDraftSaved: null,
+    onDeletionReadUnread: null
   },
 
   // Used to track the current number of rendered
@@ -46,7 +48,7 @@ var ThreadListUI = {
     // TODO: https://bugzilla.mozilla.org/show_bug.cgi?id=854413
     [
       'container', 'no-messages', 'read-unread-button',
-      'check-uncheck-all-button','composer-link',
+      'check-uncheck-all-button','composer-link', 'delete-read-unread-banner',
       'delete-button', 'edit-header','options-button',
       'edit-mode', 'edit-form', 'draft-saved-banner'
     ].forEach(function(id) {
@@ -253,7 +255,7 @@ var ThreadListUI = {
   },
 
   handleEvent: function thlui_handleEvent(event) {
-    var draftId, parent, parentThreadId, l10nKey, threadIdToDelete = [];
+    var draftId, parent, parentThreadId, l10nKey, l10nKey1, threadIdToDelete = [];
 
     switch (event.type) {
       case 'click':
@@ -311,6 +313,12 @@ var ThreadListUI = {
               l10nId: 'delete-thread',
               method: function deleteThread(threadIdToDelete) {
                 ThreadListUI.performDeletion(threadIdToDelete);
+                ThreadListUI.onDeletionReadUnread({
+                  l10nId: 'deleted',
+                  l10nArgs: {
+                    n: 1
+                  }
+                });
               },
               params: [threadIdToDelete]
             }
@@ -320,6 +328,7 @@ var ThreadListUI = {
             var isRead = thread && (thread.unreadCount > 0);
 
             isRead ? l10nKey = 'mark-as-read' : l10nKey = 'mark-as-unread';
+            isRead ? l10nKey1 = 'marked-as-read' : l10nKey1 = 'marked-as-unread';
 
             params.items.push(
               {
@@ -335,6 +344,12 @@ var ThreadListUI = {
                       selectThread.classList.add('unread');
                     }
                     MessageManager.markThreadRead(+parentThreadId, isRead);
+                    ThreadListUI.onDeletionReadUnread({
+                      l10nId: l10nKey1,
+                      l10nArgs: {
+                        n: 1
+                      }
+                    });
                   }
                 },
                 params: [+parentThreadId]
@@ -409,6 +424,7 @@ var ThreadListUI = {
   },
 
   markReadUnread: function thlui_markReadUnread() {
+    var l10nKey1;
     var selected = this.selectionHandler;
     var isRead = (this.readUnreadButton.dataset.action === 'mark-as-read');
 
@@ -433,8 +449,17 @@ var ThreadListUI = {
         MessageManager.markThreadRead(thread.id, isRead);
       }
     });
-
+    
     this.cancelEdit();
+
+    isRead ? l10nKey1 = 'marked-as-read' : l10nKey1 = 'marked-as-unread';
+    ThreadListUI.onDeletionReadUnread({
+      l10nId: l10nKey1,
+      l10nArgs: {
+        n: this.selectionHandler.selectedCount
+      }
+    });
+  
   },
 
   removeThread: function thlui_removeThread(threadId) {
@@ -477,19 +502,21 @@ var ThreadListUI = {
   // please make sure url will also be revoked if new delete api remove threads
   // without calling removeThread in the future.
   delete: function thlui_delete() {
-    var selected = this.selectionHandler.selectedList;
+    var selection = this.selectionHandler;
 
-    return Utils.confirm(
-      {
-        id: 'deleteThreads-confirmation-message',
-        args: { n: this.selectionHandler.selectedCount }
-      },
-      null,
-      {
-        text: 'delete',
-        className: 'danger'
-      }
-    ).then(ThreadListUI.performDeletion.bind(this, selected));
+    var promise = new Promise(function(resolve) {
+      ThreadListUI.performDeletion(selection.selectedList);
+      resolve();
+    });
+
+    promise.then(function() {
+      ThreadListUI.onDeletionReadUnread({
+        l10nId: 'deleted',
+        l10nArgs: {
+          n: selection.selectedCount
+        }
+      });
+    });
   },
 
   performDeletion: function thlui_performDeletion(selected) {
@@ -1072,8 +1099,23 @@ var ThreadListUI = {
     this.timeouts.onDraftSaved = setTimeout(function hideDraftSavedBanner() {
       this.draftSavedBanner.classList.add('hide');
     }.bind(this), this.DRAFT_SAVED_DURATION);
-  }
-};
+  },
+
+  onDeletionReadUnread: function thlui_onDeletionReadUnread(opts) {
+    navigator.mozL10n.setAttributes(
+      this.deleteReadUnreadBanner.querySelector('p'), opts.l10nId, opts.l10nArgs
+    );
+    this.deleteReadUnreadBanner.classList.remove('hide');
+
+    clearTimeout(this.timeouts.deleteReadUnreadBanner);
+    this.timeouts.deleteReadUnreadBanner = null;
+
+    this.timeouts.deleteReadUnreadBanner = setTimeout(
+      function hideDeletionReadUnreadBanner() {
+        this.deleteReadUnreadBanner.classList.add('hide');
+      }.bind(this), this.DELETE_READ_UNREAD_DURATION);
+    }
+  };
 
 Object.defineProperty(ThreadListUI, 'allInputs', {
   get: function() {

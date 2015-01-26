@@ -2100,14 +2100,11 @@ var ThreadUI = {
           {
             l10nId: 'delete',
             method: function deleteMessage(messageId) {
-              Utils.confirm(
-                'deleteMessage-confirmation', null,
-                { text: 'delete', className: 'danger' }
-              ).then(() => {
+              {
                 MessageManager.deleteMessages(
                   messageId, () => ThreadUI.deleteUIMessages(messageId)
                 );
-              });
+              };
             },
             params: [messageId]
           }
