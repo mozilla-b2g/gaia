@@ -242,9 +242,9 @@ suite('system/StackManager >', function() {
 
   test('_didntMove by default is true', function() {
     appLaunch(dialer);
-    this.sinon.stub(dialer, 'setActive');
+    this.sinon.stub(dialer, 'setNFCFocus');
     StackManager.commit();
-    assert.isTrue(dialer.setActive.calledWith(true));
+    assert.isTrue(dialer.setNFCFocus.calledWith(true));
   });
 
   suite('Cards View Events', function() {

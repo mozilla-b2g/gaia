@@ -970,15 +970,12 @@ suite('system/AppWindow', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
       this.sinon.stub(app1.browser.element, 'setActive');
-      this.sinon.stub(app1.browser.element, 'setNFCFocus');
       MockService.mTopMostUI = { name: 'Rocketbar' };
       app1._setActive(false);
       assert.isTrue(app1.browser.element.setActive.calledWith(false));
-      assert.isTrue(app1.browser.element.setNFCFocus.calledWith(false));
       MockService.mTopMostUI = { name: 'AppWindowManager' };
       app1._setActive(true);
       assert.isTrue(app1.browser.element.setActive.calledWith(true));
-      assert.isTrue(app1.browser.element.setNFCFocus.calledWith(true));
     });
 
     test('MozBrowser API: simple methods', function() {

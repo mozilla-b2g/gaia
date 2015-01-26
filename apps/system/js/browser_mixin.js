@@ -211,11 +211,6 @@
         this.debug('setActive on browser element:' + active);
         this.browser.element.setActive(active);
         var topMostUI = Service.query('getTopMostUI');
-        if (active && topMostUI && topMostUI.name === 'AppWindowManager') {
-          this.setNFCFocus(active);
-        } else {
-          this.setNFCFocus(false);
-        }
       }
     },
 
