@@ -17,7 +17,7 @@ function Settings(options) {
   this._updateTimeouts = Object.create(null);
   this._onSyncClick = this._onSyncClick.bind(this);
   this._onAdvancedSettings = this._onAdvancedSettings.bind(this);
-  this._onSyncStartStatus = this._onSyncStart.bind(this);
+  this._onSyncStart = this._onSyncStart.bind(this);
   this._onSyncComplete = this._onSyncComplete.bind(this);
   this._updateSyncButton = this._updateSyncButton.bind(this);
   this._onCalendarDisplayToggle = this._onCalendarDisplayToggle.bind(this);
