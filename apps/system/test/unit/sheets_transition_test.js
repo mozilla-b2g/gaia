@@ -24,21 +24,21 @@ suite('system/SheetsTransition >', function() {
   var dialer = {
     origin: 'app://dialer.gaiamobile.org',
     broadcast: function() {},
-    setActive: function() {}
+    setNFCFocus: function() {}
   };
   var dialerFrame;
 
   var settings = {
     origin: 'app://settings.gaiamobile.org',
     broadcast: function() {},
-    setActive: function() {}
+    setNFCFocus: function() {}
   };
   var settingsFrame;
 
   var contacts = {
     origin: 'app://contacts.gaiamobile.org',
     broadcast: function() {},
-    setActive: function() {}
+    setNFCFocus: function() {}
   };
   var contactsFrame;
 
@@ -72,11 +72,11 @@ suite('system/SheetsTransition >', function() {
       SheetsTransition.begin('ltr');
     });
 
-    test('it should setActive(false) to current app', function() {
-      this.sinon.spy(contacts, 'setActive');
+    test('it should setNFCFocus(false) to current app', function() {
+      this.sinon.spy(contacts, 'setNFCFocus');
       MockStackManager.getCurrent.returns(contacts);
       SheetsTransition.begin('ltr');
-      assert.isTrue(contacts.setActive.calledWith(false));
+      assert.isTrue(contacts.setNFCFocus.calledWith(false));
     });
 
     test('it should cleanup previous sheet transitions', function() {

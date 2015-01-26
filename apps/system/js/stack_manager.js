@@ -104,7 +104,7 @@ var StackManager = {
     if (this._didntMove) {
       window.dispatchEvent(new CustomEvent('sheets-gesture-end'));
       var current = this.getCurrent();
-      current && current.setActive(true);
+      current && current.setNFCFocus(true);
     }
     if (!this._broadcastTimeout) {
       this._broadcast();
