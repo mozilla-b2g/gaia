@@ -1,15 +1,14 @@
 /* global MocksHelper, MockAppWindow, MockService, AppTransitionController,
-          MockSimPinDialog, MockRocketbar, rocketbar */
+          MockHomescreenWindow */
 'use strict';
 
+requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/test/unit/mock_sim_pin_dialog.js');
-requireApp('system/test/unit/mock_rocketbar.js');
 
 var mocksForAppTransitionController = new MocksHelper([
   'AppWindow', 'AppWindowManager', 'LayoutManager', 'SettingsListener',
@@ -20,17 +19,12 @@ suite('system/AppTransitionController', function() {
   var stubById;
   mocksForAppTransitionController.attachTestHelpers();
   setup(function(done) {
-    window.SimPinDialog = new MockSimPinDialog();
-    window.rocketbar = new MockRocketbar();
-    window.rocketbar = new MockRocketbar();
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     requireApp('system/js/app_transition_controller.js', done);
   });
 
   teardown(function() {
-    window.SimPinDialog = null;
-    window.rocketbar = null;
     stubById.restore();
   });
 
@@ -218,8 +212,10 @@ suite('system/AppTransitionController', function() {
 
     app1.loaded = false;
     acn1._transitionState = 'opening';
-    MockSimPinDialog.visible = false;
-    rocketbar.active = false;
+    MockService.mTopMostUI = {
+      name: 'AppWindowManager'
+    };
+    MockService.mTopMostWindow = app1;
 
     MockService.isBusyLoading.returns(true);
     acn1.handleEvent({
@@ -243,8 +239,10 @@ suite('system/AppTransitionController', function() {
     var acn1 = new AppTransitionController(app1);
     var stubFocus = this.sinon.stub(app1, 'focus');
     app1.loaded = true;
-    MockSimPinDialog.visible = false;
-    rocketbar.active = false;
+    MockService.mTopMostUI = {
+      name: 'AppWindowManager'
+    };
+    MockService.mTopMostWindow = app1;
     acn1._transitionState = 'opened';
 
     acn1.handle_opened();
@@ -252,13 +250,29 @@ suite('system/AppTransitionController', function() {
     assert.isTrue(stubFocus.called);
   });
 
-  test('Do not focus if rocketbar is active', function() {
+  test('Should focus homescreen\'s activity', function() {
+    var app1 = new MockHomescreenWindow('fake');
+    var acn1 = new AppTransitionController(app1);
+    var stubFocus = this.sinon.stub(app1, 'focus');
+    app1.loaded = true;
+    MockService.mTopMostUI = {
+      name: 'AppWindowManager'
+    };
+    MockService.mTopMostWindow = app1;
+    acn1._transitionState = 'opened';
+
+    acn1.handle_opened();
+    assert.isTrue(stubFocus.called);
+  });
+
+  test('Do not focus if we are not top most window', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var acn1 = new AppTransitionController(app1);
     var stubFocus = this.sinon.stub(app1, 'focus');
     app1.loaded = true;
-    MockSimPinDialog.visible = false;
-    rocketbar.active = true;
+    MockService.mTopMostUI = {
+      name: 'SystemDialogManager'
+    };
     acn1._transitionState = 'opened';
 
     acn1.handle_opened();
