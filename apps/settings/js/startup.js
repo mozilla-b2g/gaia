@@ -422,7 +422,7 @@
 
       var that = this;
       Object.defineProperty(exports, 'LaunchContext', {
-        configurable: false,
+        configurable: true,
         get: function() {
           return that._launchContext;
         }
