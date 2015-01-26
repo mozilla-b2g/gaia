@@ -14,6 +14,7 @@ var getTimeL10nLabel = require('calc').getTimeL10nLabel;
 require('dom!modify-event-view');
 
 function ModifyEvent(options) {
+  this._loadingCalendarList = true;
   this.deleteRecord = this.deleteRecord.bind(this);
   this._renderCalendarSelect = this._renderCalendarSelect.bind(this);
   this._toggleAllDay = this._toggleAllDay.bind(this);
@@ -126,6 +127,12 @@ ModifyEvent.prototype = {
       return !!this.provider;
   },
 
+  onfirstseen: function() {
+    if (this._loadingCalendarList) {
+      this.getEl('calendarId').classList.add(this.LOADING);
+    }
+  },
+
   _renderCalendarSelect: function(calendarList) {
     var element = this.getEl('calendarId');
     element.innerHTML = '';
@@ -147,6 +154,11 @@ ModifyEvent.prototype = {
 
       option.value = id;
       element.add(option);
+
+      if (this._loadingCalendarList) {
+        this._loadingCalendarList = false;
+        this.getEl('calendarId').classList.remove(this.LOADING);
+      }
     });
   },
 
