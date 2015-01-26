@@ -327,6 +327,8 @@
 
 .appWindow.suspended > .identification-overlay,
 .appWindow:not(.active):not(.in-task-manager).overlay > .identification-overlay {
+  transition: none;
+
   visibility: visible;
   opacity: 1;
 }
