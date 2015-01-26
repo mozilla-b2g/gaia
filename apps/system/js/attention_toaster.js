@@ -20,8 +20,6 @@
     this.app = app;
   };
   AttentionToaster.prototype = {
-    DEBUG: false,
-
     _currentToasterState: 'uninit',
 
     TOASTER_TIMEOUT: 5000,
@@ -32,6 +30,8 @@
       this.app.element.addEventListener('_closed', this);
       this.app.element.addEventListener('_requestopen', this);
       this.app.element.addEventListener('transitionend', this);
+      this.app.element.addEventListener('_secure-appclosed', this);
+      this.app.element.addEventListener('_secure-appopened', this);
       this.app.element.addEventListener('_lockscreen-appclosed', this);
       this.app.element.addEventListener('_lockscreen-appopened', this);
     },
@@ -40,6 +40,8 @@
       this.app.element.removeEventListener('_closed', this);
       this.app.element.removeEventListener('_requestopen', this);
       this.app.element.removeEventListener('transitionend', this);
+      this.app.element.removeEventListener('_secure-appclosed', this);
+      this.app.element.removeEventListener('_secure-appopened', this);
       this.app.element.removeEventListener('_lockscreen-appclosed', this);
       this.app.element.removeEventListener('_lockscreen-appopened', this);
     },
@@ -51,11 +53,13 @@
 
     handleEvent: function(evt) {
       if (!this.shouldProcess()) {
+        this.app.debug('should not process');
         return;
       }
 
       switch (evt.type) {
         case '_lockscreen-appclosed':
+        case '_secure-appopened':
           this.processStateChange('close', evt.type);
           break;
 
@@ -76,6 +80,7 @@
           break;
 
         case '_lockscreen-appopened':
+        case '_secure-appclosed':
           this.processStateChange('open', evt.type);
           break;
       }
@@ -83,6 +88,7 @@
 
     processStateChange: function(event, reason) {
       if (!this.shouldProcess()) {
+        this.app.debug('should not process ' + event);
         return;
       }
 
@@ -90,11 +96,13 @@
       var nextState =
         toasterStateTable[this._currentToasterState][eventIndex];
 
+      this.app.debug(this._currentToasterState + ' -> ' + nextState);
+
       if (!nextState) {
         return;
       }
 
-      this.app.debug(
+      this.app.debug('[toaster] ' +
         this._currentToasterState + '->' + nextState +
         ':' + event + ',' + reason);
       this._currentToasterState = nextState;
@@ -106,7 +114,9 @@
     },
 
     _enter_closing: function() {
-      if (!this.app || !this.app.element || (Service && Service.locked)) {
+      if (!this.app || !this.app.element ||
+          (Service && Service.locked &&
+           !Service.query('getTopMostWindow').isFullScreen())) {
         return;
       }
 
@@ -138,7 +148,8 @@
 
       this.app && this.app.setVisible(true);
       this._toasterTimer = window.setTimeout(function() {
-        if (Service && Service.locked) {
+        if (Service && Service.locked &&
+            !Service.query('getTopMostWindow').isFullScreen()) {
           return;
         }
 
