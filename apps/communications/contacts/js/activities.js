@@ -11,6 +11,8 @@ var ActivityHandler = {
 
   mozContactParam: null,
 
+  _actionMenu: null,
+
   get currentlyHandling() {
     return !!this._currentActivity;
   },
@@ -315,7 +317,13 @@ var ActivityHandler = {
       default:
         // if more than one required type of data
         LazyLoader.load('/contacts/js/action_menu.js', function() {
-          var prompt1 = new ActionMenu();
+          if (!self._actionMenu) {
+            self._actionMenu = new ActionMenu();
+          } else {
+            // To be sure that the action menu is empty
+            self._actionMenu.hide();
+          }
+
           var itemData;
           var capture = function(itemData) {
             return function() {
@@ -325,14 +333,14 @@ var ActivityHandler = {
               } else {
                 result[type] = itemData;
               }
-              prompt1.hide();
+              self._actionMenu.hide();
               self.postPickSuccess(result);
             };
           };
           for (var i = 0, l = dataSet.length; i < l; i++) {
             itemData = dataSet[i].value;
             var carrier = dataSet[i].carrier || '';
-            prompt1.addToList(
+            self._actionMenu.addToList(
               {
                 id: 'pick_destination',
                 args: {destination: itemData, carrier: carrier}
@@ -340,7 +348,7 @@ var ActivityHandler = {
               capture(itemData)
             );
           }
-          prompt1.show();
+          self._actionMenu.show();
         });
     } // switch
   },
