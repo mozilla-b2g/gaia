@@ -125,12 +125,15 @@
 <div class="msg-activity-infobar hidden">
 </div>
 <!-- Toolbar for non-multi-edit state -->
-<ul data-prop="normalToolbar" class="bb-tablist msg-list-action-toolbar">
+<ul data-prop="normalToolbar" class="bb-tablist msg-list-action-toolbar"
+    role="toolbar">
   <li role="presentation" class="msg-nonsearch-only">
     <button data-prop="refreshBtn" data-event="click:onRefresh"
-            class="icon msg-refresh-btn" data-state="synchronized"></button>
+            class="icon msg-refresh-btn" data-state="synchronized"
+            data-l10n-id="messages-refresh-button">
+    </button>
   </li>
-  <li role="presentation" class="msg-nonsearch-only msg-last-sync">
+  <li role="status" class="msg-nonsearch-only msg-last-sync">
     <span data-prop="lastSyncedLabel"
           class="msg-last-synced-label"
           data-l10n-id="folder-last-synced-label"></span>
@@ -139,7 +142,7 @@
   </li>
   <li role="presentation">
     <button data-prop="editBtn" data-event="click:setEditModeStart"
-            class="icon msg-edit-btn"></button>
+            class="icon msg-edit-btn" data-l10n-id="edit-button"></button>
   </li>
 </ul>
 
