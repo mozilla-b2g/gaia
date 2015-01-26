@@ -34,6 +34,21 @@
                                 payload: enc.encode(uri)});
     },
 
+    parseURI: function nh_parseURI(ndef) {
+      if (!ndef || ndef.tnf != 'well-known' || ndef.type[0] != 0x55) {
+        return null;
+      }
+
+      var payload = ndef.payload;
+      var prefix = URI[payload[0]];
+      if (!prefix) {
+        return null;
+      }
+
+      var dec = new TextDecoder('utf-8');
+      return prefix + dec.decode(payload.subarray(1));
+    },
+
     /**
      * Utils to dump Uint8Array.
      */
