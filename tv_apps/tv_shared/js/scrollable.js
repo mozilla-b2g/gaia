@@ -57,7 +57,7 @@
 
     this.itemClassName = param.itemClassName;
     var items = Array.prototype.slice.call(
-                    document.getElementsByClassName(param.itemClassName));
+                    this.listElem.getElementsByClassName(param.itemClassName));
 
     this.scale = 1;
     this._setNodesPosition();
