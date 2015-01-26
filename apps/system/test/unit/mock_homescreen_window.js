@@ -2,6 +2,8 @@ var MockHomescreenWindow = function(value) {
   this.isHomescreen = true;
   this.manifestURL = value;
   this.origin = 'home';
+  this.CLASS_NAME = 'HomescreenWindow';
+  this.HIERARCHY_MANAGER = 'AppWindowManager';
 
   this.open = function() {};
   this.close = function() {};
@@ -37,6 +39,9 @@ var MockHomescreenWindow = function(value) {
   this.browser = {
     element: document.createElement('iframe')
   };
+  this.show = function() {};
+  this.requestForeground = function() {};
+  this.getBottomMostWindow = function() { return this; };
   this.determineClosingRotationDegree = function() { return 0; };
   this.isTransitioning = function() { return false; };
   this.calibratedHeight = function() { return false; };

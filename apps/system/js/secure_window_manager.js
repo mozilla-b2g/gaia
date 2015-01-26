@@ -60,6 +60,8 @@
     }
   };
 
+  SecureWindowManager.prototype.HIERARCHY_MANAGER = 'SecureWindowManager';
+
   SecureWindowManager.prototype.setHierarchy = function(active) {
     if (!this.states.activeApp) {
       return;

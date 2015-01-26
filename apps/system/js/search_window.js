@@ -41,6 +41,8 @@
 
   SearchWindow.prototype.CLASS_LIST = 'appWindow searchWindow';
 
+  SearchWindow.prototype.HIERARCHY_MANAGER = 'Rocketbar';
+
   SearchWindow.prototype.openAnimation = 'immediate';
 
   SearchWindow.prototype.closeAnimation = 'immediate';

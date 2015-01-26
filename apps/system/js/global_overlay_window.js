@@ -48,6 +48,9 @@
 
   GlobalOverlayWindow.prototype.CLASS_LIST = 'appWindow globalOverlayWindow';
 
+  GlobalOverlayWindow.prototype.HIERARCHY_MANAGER =
+    'GlobalOverlayWindowManager';
+
   /**
    * Turn on this flag to dump debugging messages for all global overlay
    * windows.

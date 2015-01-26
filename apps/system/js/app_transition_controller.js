@@ -1,4 +1,4 @@
-/* global AppWindowManager, SettingsListener, Service, rocketbar */
+/* global AppWindowManager, SettingsListener, Service */
 'use strict';
 
 (function(exports) {
@@ -292,9 +292,11 @@
     // See: https://bugzilla.mozilla.org/show_bug.cgi?id=961557
     // XXX: We should let HierarchyManager to manage the focus.
     // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1079748
+    var bottomWindow = this.app.getBottomMostWindow();
     return (this._transitionState == 'opened' &&
-            !rocketbar.active &&
-            !Service.query('SimLockManager.isActive'));
+            Service.query('getTopMostWindow') === this.app &&
+            Service.query('getTopMostUI').name ===
+            bottomWindow.HIERARCHY_MANAGER);
   };
 
   AppTransitionController.prototype.requireOpen = function(animation) {

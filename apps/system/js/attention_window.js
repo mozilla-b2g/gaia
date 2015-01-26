@@ -76,6 +76,8 @@
 
   AttentionWindow.prototype.CLASS_LIST = 'appWindow attentionWindow';
 
+  AttentionWindow.prototype.HIERARCHY_MANAGER = 'AttentionWindowManager';
+
   /**
    * Turn on this flag to dump debugging messages for all attention windows.
    * @type {Boolean}
