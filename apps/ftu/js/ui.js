@@ -248,6 +248,8 @@ var UIManager = {
       window.addEventListener(event,
         this.showActivationScreenToScreenReader.bind(this));
     }, this);
+
+    this.checkInitialFxAStatus();
   },
 
   scrollToElement: function ui_scrollToElement(container, element) {
@@ -409,39 +411,66 @@ var UIManager = {
     settings.createLock().set(cset);
   },
 
+  setForwardButtonLabel: function ui_setForwardButtonLabel(label) {
+    var nextButton = document.getElementById('forward');
+    nextButton.setAttribute('data-l10n-id', label);
+  },
+
+  checkInitialFxAStatus: function ui_checkInitialFxAStatus() {
+    // It is possible that we enter the FTU after the user aborted a FTU
+    // session where she logged into her FxA. In that case, we show the
+    // information of her account if possible. If there is any reason why we
+    // can't get the account information, we try to log her out.
+    // It is quite unlikely that logging out fails, but in that case, we simply
+    // hide the FxA panel to avoid potential errors such as the one reported on
+    // bug 1113551. In any case, the user should be able to manage her account
+    // from the Settings app afterwards.
+    this.skipFxA = true;
+    FxAccountsIACHelper.getAccounts((account) => {
+      this.skipFxA = false;
+      this.onFxALogin(account);
+    }, () => {
+      FxAccountsIACHelper.logout(() => {
+        this.skipFxA = false;
+      });
+    });
+  },
+
   createFirefoxAccount: function ui_createFirefoxAccount() {
-    FxAccountsIACHelper.openFlow(UIManager.fxaShowResponse,
-      UIManager.fxaShowError);
+    FxAccountsIACHelper.openFlow(UIManager.onFxAFlowDone,
+                                 UIManager.onFxAError);
   },
 
-  fxaShowResponse: function ui_fxaShowResponse() {
-    FxAccountsIACHelper.getAccounts(UIManager.fxaGetAccounts,
-      UIManager.fxaShowError);
+  onFxAFlowDone: function ui_onFxAFlowDone() {
+    FxAccountsIACHelper.getAccounts((account) => {
+      if (!account) {
+        return;
+      }
+      UIManager.onFxALogin(account);
+      UIManager.setForwardButtonLabel('navbar-next');
+    }, UIManager.onFxAError);
   },
 
-  fxaGetAccounts: function ui_fxaGetAccounts(acct) {
-    if (!acct) {
+  onFxALogin: function ui_onFxALogin(account) {
+    if (!account) {
       return;
     }
     // Update the email
-    UIManager.newsletterInput.value = acct.email;
+    UIManager.newsletterInput.value = account.email;
     // Update the string
     UIManager.fxaIntro.innerHTML = '';
     navigator.mozL10n.setAttributes(
       UIManager.fxaIntro,
-      acct.verified ? 'fxa-signed-in' : 'fxa-email-sent',
+      account.verified ? 'fxa-signed-in' : 'fxa-email-sent',
       {
-        email: acct.email
+        email: account.email
       }
     );
     // Disable the button
     UIManager.fxaCreateAccount.disabled = true;
-    // Change the Skip button label
-    var nextButton = document.getElementById('forward');
-    nextButton.setAttribute('data-l10n-id', 'navbar-next');
   },
 
-  fxaShowError: function ui_fxaShowError(response) {
+  onFxAError: function ui_onFxAError(response) {
     console.error('Create FxA Error: ' + JSON.stringify(response));
     // Clean fields
     UIManager.newsletterInput.value = '';
@@ -452,9 +481,8 @@ var UIManager = {
     );
     // Enable the button
     UIManager.fxaCreateAccount.disabled = false;
-    // Change the Skip button label
-    var nextButton = document.getElementById('forward');
-    nextButton.setAttribute('data-l10n-id', 'skip');
+    // Change the forward button label
+    UIManager.setForwardButtonLabel('skip');
   },
 
   displayOfflineDialog: function ui_displayOfflineDialog(href, title) {
