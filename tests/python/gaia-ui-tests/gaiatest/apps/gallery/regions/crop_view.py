@@ -14,19 +14,23 @@ except:
     from marionette_driver.errors import FrameSendFailureError
 
 from gaiatest.apps.base import Base
+import time
 
 
 class CropView(Base):
     _src = 'app://gallery.gaiamobile.org/index.html#pick'
 
-    _crop_view_locator = (By.ID, 'crop-view')
     _crop_done_button_locator = (By.ID, 'crop-done-button')
+    _edit_preview_canvas_locator = (By.ID, 'edit-preview-canvas')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
         Wait(self.marionette).until(expected.element_displayed(
             Wait(self.marionette).until(expected.element_present(
-                *self._crop_view_locator))))
+                *self._edit_preview_canvas_locator))))
+        # I have tried waiting for all the elements in the UI, but the crash
+        # still occurs so the only solution I found was the hardcoded sleep - Bug 1111981
+        time.sleep(3)
         done = self.marionette.find_element(*self._crop_done_button_locator)
         Wait(self.marionette).until(expected.element_enabled(done))
 
