@@ -267,4 +267,43 @@ marionette('Contacts > Activities', function() {
       assert.equal(confirmText, expectedResult);
     });
   });
+
+  suite('webcontacts/email activity', function() {
+    test('Creates only one instance of action menu', function() {
+      subject.launch();
+
+      subject.addContactMultipleEmails({
+        givenName: 'From Contacts App',
+        emailFirst: 'first@personal.com',
+        emailSecond: 'second@personal.com'
+      });
+
+      client.apps.close(Contacts.URL, 'contacts');
+
+      smsSubject.launch();
+
+      client.executeScript(function() {
+        new MozActivity({
+          name: 'pick',
+          data: {
+            type: 'webcontacts/email'
+          }
+        });
+      });
+
+      client.switchToFrame();
+      client.apps.switchToApp(Contacts.URL, 'contacts');
+      client.helper.waitForElement(selectors.bodyReady);
+
+      var contact = client.helper.waitForElement(selectors.listContactFirst);
+
+      // Simulate two clicks
+      contact.click();
+      contact.click();
+
+      var emailList = client.helper.waitForElement(selectors.actionMenuList);
+      var emailChildren = emailList.findElements('button');
+      assert.equal(emailChildren.length, 3);
+    });
+  });
 });
