@@ -46,24 +46,13 @@
       this.dialog = new AppInstallDialog();
       this.installCancelDialog = new AppInstallCancelDialog();
       this.downloadCancelDialog = new AppDownloadCancelDialog();
+      this.setupInstalledAppDialog = new SetupInstalledAppDialog();
 
       this.imeLayoutDialog = document.getElementById('ime-layout-dialog');
       this.imeListTemplate = document.getElementById('ime-list-template');
       this.imeList = document.getElementById('ime-list');
       this.imeCancelButton = document.getElementById('ime-cancel-button');
-      this.imeConfirmButton = document.getElementById('ime-confirm-button');
-
-      this.setupCancelButton =
-        document.getElementById('setup-cancel-button');
-      this.setupConfirmButton =
-        document.getElementById('setup-confirm-button');
-
-      this.setupInstalledAppDialog =
-        document.getElementById('setup-installed-app-dialog');
-
-      this.setupAppName = document.getElementById('setup-app-name');
-      this.setupAppDescription =
-        document.getElementById('setup-app-description');      
+      this.imeConfirmButton = document.getElementById('ime-confirm-button');     
 
       this.notifContainer =
               document.getElementById('install-manager-notification-container');
@@ -102,9 +91,11 @@
       this.downloadCancelDialog.elements.continueButton.onclick =
         this.handleCancelDownloadCancel.bind(this);
 
-      this.setupCancelButton.onclick = this.handleSetupCancelAction.bind(this);
-      this.setupConfirmButton.onclick =
-                               this.handleSetupConfirmAction.bind(this);
+      this.setupInstalledAppDialog.elements.cancelButton.onclick =
+        this.handleSetupCancelAction.bind(this);
+      this.setupInstalledAppDialog.elements.confirmButton.onclick =
+        this.handleSetupConfirmAction.bind(this);
+
       this.imeCancelButton.onclick = this.hideIMEList.bind(this);
       this.imeConfirmButton.onclick = this.handleImeConfirmAction.bind(this);
 
@@ -129,7 +120,7 @@
       this.handleInstallCancel();
 
       // hide IME setup dialog if presented
-      if (this.setupInstalledAppDialog.classList.contains('visible') ) {
+      if (!this.setupInstalledAppDialog.element.hidden) {
         this.handleSetupCancelAction();
       }
 
@@ -349,9 +340,10 @@
     },
 
     hideSetupDialog: function ai_hideSetupDialog() {
-      this.setupAppName.textContent = '';
-      this.setupAppDescription.textContent = '';
-      this.setupInstalledAppDialog.classList.remove('visible');
+      var setupInstalledAppDialog = this.setupInstalledAppDialog.elements;
+      setupInstalledAppDialog.appName.textContent = '';
+      setupInstalledAppDialog.appDescription.textContent = '';
+      this.setupInstalledAppDialog.hide();
     },
 
     showSetupDialog: function ai_showSetupDialog() {
@@ -360,11 +352,14 @@
       var appManifest = new ManifestHelper(manifest);
       var appName = appManifest.name;
       var appDescription = appManifest.description;
-      this.setupAppDescription.textContent = appDescription;
-      navigator.mozL10n.setAttributes(this.setupAppName,
-                                      'app-install-success',
-                                      { appName: appName });
-      this.setupInstalledAppDialog.classList.add('visible');
+      var setupInstalledAppDialog = this.setupInstalledAppDialog.elements;
+      setupInstalledAppDialog.appDescription.textContent = appDescription;
+      navigator.mozL10n.setAttributes(
+        setupInstalledAppDialog.appName,
+        'app-install-success',
+        { appName: appName }
+      );
+      this.setupInstalledAppDialog.show();
       window.dispatchEvent(new CustomEvent('applicationsetupdialogshow'));
     },
 

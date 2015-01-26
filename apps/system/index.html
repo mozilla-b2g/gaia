@@ -414,6 +414,7 @@
     <script defer src="js/app_install_dialog.js"></script>
     <script defer src="js/app_install_cancel_dialog.js"></script>
     <script defer src="js/app_download_cancel_dialog.js"></script>
+    <script defer src="js/setup_installed_app_dialog.js"></script>
 
     <!-- Edge Gestures -->
     <script defer src="js/stack_manager.js"></script>
@@ -930,19 +931,6 @@
         <menu>
           <button id="updates-viaDataConnection-notnow-button" type="reset" data-l10n-id="notNow">Not Now</button>
           <button id="updates-viaDataConnection-download-button" class="recommend" type="submit" data-l10n-id="download">Download</button>
-        </menu>
-      </form>
-
-      <form id="setup-installed-app-dialog" class="setup-installed-app-dialog"
-            data-type="confirm" role="dialog"
-            data-z-index-level="setup-installed-app-dialog">
-        <section>
-          <h1 id="setup-app-name"></h1>
-          <p id="setup-app-description"></p>
-        </section>
-        <menu data-items="2">
-          <button id="setup-cancel-button" type="button" data-l10n-id="later">Later</button>
-          <button id="setup-confirm-button" class="recommend" type="button" data-l10n-id="setup">Setup</button>
         </menu>
       </form>
 
