@@ -55,6 +55,9 @@ require.config({
     'shared/settings_listener': {
       exports: 'SettingsListener'
     },
+    'shared/settings_helper': {
+      exports: 'SettingsHelper'
+    },
     'shared/toaster': {
       exports: 'Toaster'
     },
