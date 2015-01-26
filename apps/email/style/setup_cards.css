@@ -455,3 +455,28 @@ cards-settings-debug button {
   margin: 1.5rem auto;
   width: calc(100% - 3rem);
 }
+
+/* Shared style overrides for the "are you sure" unencrypted connection
+   confirmation. Since the button text is longer than the typical yes/no, give
+   each button full width, with them stacked on top of each other. Also remove
+   extraneous p border. */
+form.tng-plain-socket-confirm[role="dialog"][data-type="confirm"] {
+   padding-bottom: 13rem;
+}
+
+form.tng-plain-socket-confirm[role="dialog"][data-type="confirm"] menu {
+  display: block;
+  white-space: unset;
+}
+
+form.tng-plain-socket-confirm[role="dialog"][data-type="confirm"] menu button {
+  margin: 0.5rem 0;
+}
+
+form.tng-plain-socket-confirm[role="dialog"][data-type="confirm"] p {
+  border-top: 0;
+}
+
+form.tng-plain-socket-confirm[role="dialog"][data-type="confirm"] p:first-of-type {
+  border-top: 0.1rem solid #686868;
+}
