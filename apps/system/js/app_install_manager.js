@@ -45,6 +45,7 @@
 
       this.dialog = new AppInstallDialog();
       this.installCancelDialog = new AppInstallCancelDialog();
+      this.downloadCancelDialog = new AppDownloadCancelDialog();
 
       this.imeLayoutDialog = document.getElementById('ime-layout-dialog');
       this.imeListTemplate = document.getElementById('ime-list-template');
@@ -57,8 +58,6 @@
       this.setupConfirmButton =
         document.getElementById('setup-confirm-button');
 
-      this.downloadCancelDialog =
-        document.getElementById('app-download-cancel-dialog');
       this.setupInstalledAppDialog =
         document.getElementById('setup-installed-app-dialog');
 
@@ -98,9 +97,9 @@
 
       this.notifContainer.onclick = this.showDownloadCancelDialog.bind(this);
 
-      this.downloadCancelDialog.querySelector('.confirm').onclick =
+      this.downloadCancelDialog.elements.stopButton.onclick =
         this.handleConfirmDownloadCancel.bind(this);
-      this.downloadCancelDialog.querySelector('.cancel').onclick =
+      this.downloadCancelDialog.elements.continueButton.onclick =
         this.handleCancelDownloadCancel.bind(this);
 
       this.setupCancelButton.onclick = this.handleSetupCancelAction.bind(this);
@@ -685,14 +684,14 @@
           manifest = app.manifest || app.updateManifest,
           dialog = this.downloadCancelDialog;
 
-      var title = dialog.querySelector('h1');
+      var title = dialog.element.querySelector('h1');
 
       navigator.mozL10n.setAttributes(title, 'stopDownloading', {
         app: new ManifestHelper(manifest).name
       });
 
-      dialog.classList.add('visible');
-      dialog.dataset.manifest = manifestURL;
+      dialog.show();
+      dialog.element.dataset.manifest = manifestURL;
       UtilityTray.hide();
       // => Service.request('hide');
     },
@@ -707,8 +706,7 @@
 
     handleConfirmDownloadCancel: function ai_handleConfirmDownloadCancel(e) {
       e && e.preventDefault();
-      var dialog = this.downloadCancelDialog,
-          manifestURL = dialog.dataset.manifest;
+      var manifestURL = this.downloadCancelDialog.element.dataset.manifest;
       if (manifestURL) {
         var app = applications.getByManifestURL(manifestURL);
         app && app.cancelDownload();
@@ -724,8 +722,8 @@
 
     hideDownloadCancelDialog: function() {
       var dialog = this.downloadCancelDialog;
-      dialog.classList.remove('visible');
-      delete dialog.dataset.manifest;
+      dialog.hide();
+      delete dialog.element.dataset.manifest;
     }
   });
 }());

@@ -413,6 +413,7 @@
     <link rel="stylesheet" type="text/css" href="style/app_install_manager/app_install_manager.css">
     <script defer src="js/app_install_dialog.js"></script>
     <script defer src="js/app_install_cancel_dialog.js"></script>
+    <script defer src="js/app_download_cancel_dialog.js"></script>
 
     <!-- Edge Gestures -->
     <script defer src="js/stack_manager.js"></script>
@@ -883,20 +884,6 @@
 
       <div id="app-uninstall-dialog" data-z-index-level="app-uninstall-dialog">
       </div>
-
-      <form id="app-download-cancel-dialog" class="app-install-dialog generic-dialog"
-        data-type="confirm" role="dialog"
-        data-z-index-level="app-install-dialog">
-        <section>
-          <h1></h1>
-          <p data-l10n-id="app-download-can-be-restarted">The download can
-          be restarted later.</p>
-        </section>
-        <menu data-items="2">
-          <button id="app-download-stop-button" class="danger confirm" data-l10n-id="app-download-stop-button">Stop Download</button>
-          <button id="app-download-continue-button" class="cancel" type="reset" data-l10n-id="continue">Continue</button>
-        </menu>
-      </form>
 
       <form id="updates-download-dialog" data-type="confirm" role="dialog"
             data-z-index-level="updates-download-dialog" data-nowifi="false"
