@@ -7,7 +7,6 @@ define(function(require) {
   'use strict';
 
   var APIVersionDetector = require('modules/bluetooth/version_detector');
-  var SettingsService = require('modules/settings_service');
 
   var APIVersion = APIVersionDetector.getVersion();
 
@@ -70,7 +69,7 @@ define(function(require) {
             bluetoothModulePath = 'modules/bluetooth/bluetooth_v1';
           } else if (this._APIVersion() === 2) {
             Debug('loading.. modules/bluetooth/bluetooth_context');
-            bluetoothModulePath = 'modules/bluetooth/bluetooth_context';
+            bluetoothModulePath = 'modules/bluetooth/bluetooth';
           }
 
           require([bluetoothModulePath], resolve);
@@ -140,25 +139,6 @@ define(function(require) {
             this._boundRefreshMenuDescription);
         }
       }.bind(this));
-    },
-
-    /**
-     * Navigate new/old Bluetooth panel via version of mozBluetooth API.
-     *
-     * @access private
-     * @memberOf BluetoothItem.prototype
-     * @type {Function}
-     */
-    _navigatePanelWithVersionCheck:
-    function bt__navigatePanelWithVersionCheck() {
-      if (this._APIVersion() === 1) {
-        // navigate old bluetooth panel..
-        SettingsService.navigate('bluetooth');
-      } else if (this._APIVersion() === 2) {
-        // navigate new bluetooth panel..
-        Debug('navigate bluetooth_v2 panel');
-        SettingsService.navigate('bluetooth_v2');
-      }
     }
   };
 
