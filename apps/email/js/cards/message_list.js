@@ -692,11 +692,6 @@ return [
       this.curPhrase = phrase;
       this.curFilter = filter;
 
-      if (phrase.length < 1) {
-        this.showEmptyLayout();
-        return false;
-      }
-
       // We are creating a new slice, so any pending snippet requests are moot.
       this._snippetRequestPending = false;
       // Don't bother the new slice with requests until we hears it completion
