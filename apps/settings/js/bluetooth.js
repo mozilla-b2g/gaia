@@ -670,15 +670,17 @@ navigator.mozL10n.once(function bluetoothSettings() {
     }
 
     function setDeviceDisconnect(device, callback) {
+      pairList.index[device.address].item.style.pointerEvents = 'none';
+          
       if (!bluetooth.enabled || !defaultAdapter ||
           device.address !== connectedAddress) {
         if (callback)
           callback();
         return;
       }
-
       var req = defaultAdapter.disconnect(device);
       req.onsuccess = req.onerror = function() {
+        pairList.index[device.address].item.style.pointerEvents = 'auto';
         if (callback)
           callback();
       };
@@ -696,6 +698,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
       var doConnect = function() {
         var connectSuccess = function bt_connectSuccess() {
           if (connectingAddress) {
+            pairList.index[connectingAddress].item.style.pointerEvents = 'auto';
             connectingAddress = null;
           }
         };
@@ -704,6 +707,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
           // Connection state might be changed before DOM request response.
           if (connectingAddress) {
             // Clear the text of connecting status.
+            pairList.index[connectingAddress].item.style.pointerEvents = 'auto';
             var small =
               pairList.index[connectingAddress].item.querySelector('small');
             small.textContent = '';
@@ -723,7 +727,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
         if (!pairList.index[connectingAddress]) {
           return;
         }
-
+        pairList.index[connectingAddress].item.style.pointerEvents = 'none';
         var small =
           pairList.index[connectingAddress].item.querySelector('small');
         l10n.localize(small, 'device-status-connecting');
