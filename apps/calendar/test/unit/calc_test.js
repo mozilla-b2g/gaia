@@ -70,6 +70,8 @@ suite('calendar/calc', function() {
   });
 
   test('#dayOfWeekFromSunday', function() {
+    subject.startDay = 0;
+
     var expected = [
       ['sun', 0, 0],
       ['mon', 1, 1],
@@ -91,6 +93,8 @@ suite('calendar/calc', function() {
   });
 
   test('#dayOfWeekFromMonday', function() {
+    subject.startDay = 1;
+
     var expected = [
       ['mon', 1, 0],
       ['tue', 2, 1],
@@ -112,14 +116,16 @@ suite('calendar/calc', function() {
   });
 
   test('#dayOfWeekFromSaturday', function() {
+    subject.startDay = 6;
+
     var expected = [
-      ['sat', 5, 0],
-      ['sun', 6, 1],
-      ['mon', 0, 2],
-      ['tue', 1, 3],
-      ['wed', 2, 4],
-      ['thu', 3, 5],
-      ['fri', 4, 6]
+      ['sat', 6, 0],
+      ['sun', 0, 1],
+      ['mon', 1, 2],
+      ['tue', 2, 3],
+      ['wed', 3, 4],
+      ['thu', 4, 5],
+      ['fri', 5, 6]
     ];
 
     expected.forEach(function(line) {
@@ -134,7 +140,7 @@ suite('calendar/calc', function() {
 
   suite('#dayOfWeek', function() {
     var realStartDay;
-    var date = new Date(2012, 0, 1);
+    var date = new Date(2012, 0, 1); // 2012-01-01 is a Sunday
 
     suiteSetup(function() {
       realStartDay = subject.startDay;
@@ -145,7 +151,7 @@ suite('calendar/calc', function() {
     });
 
     test('weekStartDay = 0', function() {
-      subject.startsDay = 0;
+      subject.startDay = 0; // week starts on Sunday => Sunday is day 0
       assert.equal(
         subject.dayOfWeek(date),
         0
@@ -153,7 +159,7 @@ suite('calendar/calc', function() {
     });
 
     test('weekStartDay = 1', function() {
-      subject.startDay = 1;
+      subject.startDay = 1; // week starts on Monday => Sunday is day 6
       assert.equal(
         subject.dayOfWeek(date),
         6
@@ -161,24 +167,24 @@ suite('calendar/calc', function() {
     });
 
     test('weekStartDay = 6', function() {
-      subject.startDay = 6;
+      subject.startDay = 6; // week starts on Saturday => Sunday is day 1
       assert.equal(
         subject.dayOfWeek(date),
-        5
+        1
       );
     });
   });
 
   suite('handle localization events', function() {
     var reaL10n;
-    var dayStartOfTheWeek = 0;
+    var firstDayOfTheWeek = 0;
 
     suiteSetup(function() {
       reaL10n = navigator.mozL10n;
       navigator.mozL10n = {
         get: function(name) {
-          if (name === 'dayStartOfTheWeek') {
-            return dayStartOfTheWeek;
+          if (name === 'firstDayOfTheWeek') {
+            return firstDayOfTheWeek;
           }
           return reaL10n.get.apply(this, arguments);
         }
@@ -189,22 +195,22 @@ suite('calendar/calc', function() {
       navigator.mozL10n = reaL10n;
     });
 
-    test('weekStartDay = 1', function() {
-      dayStartOfTheWeek = 1;
-      window.dispatchEvent(new Event('localized'));
-      assert.ok(subject.startsOnMonday, 'week starts on monday');
+    test('firstDayOfTheWeek = 1', function() {
+      firstDayOfTheWeek = 1;
+      window.dispatchEvent(new window.Event('localized'));
+      assert.equal(subject.startDay, 1, 'week starts on Monday');
     });
 
-    test('weekStartDay = 0', function() {
-      dayStartOfTheWeek = 0;
-      window.dispatchEvent(new Event('localized'));
-      assert.ok(!subject.startsOnMonday, 'week starts on sunday');
+    test('firstDayOfTheWeek = 6', function() {
+      firstDayOfTheWeek = 6;
+      window.dispatchEvent(new window.Event('localized'));
+      assert.equal(subject.startDay, 6, 'week starts on Saturday');
     });
 
-    test('weekStartDay = 6', function() {
-      dayStartOfTheWeek = 6;
-      window.dispatchEvent(new Event('localized'));
-      assert.ok(!subject.startsOnMonday, 'week starts on saturday');
+    test('firstDayOfTheWeek = 0', function() {
+      firstDayOfTheWeek = 0;
+      window.dispatchEvent(new window.Event('localized'));
+      assert.equal(subject.startDay, 0, 'week starts on Sunday');
     });
   });
 

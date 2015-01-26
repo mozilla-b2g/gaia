@@ -561,7 +561,7 @@ exports.isAllDay = function(baseDate, startDate, endDate) {
 };
 
 window.addEventListener('localized', function changeStartDay() {
-  exports.startDay = parseInt(navigator.mozL10n.get('dayStartOfTheWeek'), 10);
+  exports.startDay = parseInt(navigator.mozL10n.get('firstDayOfTheWeek'), 10);
 });
 
 });
