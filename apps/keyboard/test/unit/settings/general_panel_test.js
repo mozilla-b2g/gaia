@@ -1,13 +1,14 @@
 'use strict';
 
 /* global BaseView, GeneralSettingsGroupView, HandwritingSettingsGroupView,
-          GeneralPanel, PanelController, MockEventTarget */
+          LayoutItemListView, GeneralPanel, PanelController, MockEventTarget */
 
 require('/shared/test/unit/mocks/mock_event_target.js');
 
 require('/js/settings/base_view.js');
 require('/js/settings/general_settings_view.js');
 require('/js/settings/handwriting_settings_view.js');
+require('/js/settings/layout_item_list_view.js');
 require('/js/settings/general_panel.js');
 require('/js/settings/panel_controller.js');
 
@@ -18,10 +19,16 @@ suite('General Panel', function() {
   var stubHeader;
   var stubMenuUDItem;
   var stubGetElemById;
+  var stubLayoutItemListView;
   var stubGeneralSettingsGroupView;
   var stubHandwritingSettingsGroupView;
 
   setup(function() {
+    stubLayoutItemListView =
+      this.sinon.stub(Object.create(LayoutItemListView.prototype));
+    this.sinon.stub(window, 'LayoutItemListView')
+      .returns(stubLayoutItemListView);
+
     stubGeneralSettingsGroupView =
       this.sinon.stub(Object.create(GeneralSettingsGroupView.prototype));
     this.sinon.stub(window, 'GeneralSettingsGroupView')
@@ -58,9 +65,11 @@ suite('General Panel', function() {
     assert.equal(panel.container, stubContainer);
     assert.equal(panel._menuUDItem, stubMenuUDItem);
 
+    assert.isTrue(window.LayoutItemListView.calledWith(app));
     assert.isTrue(window.GeneralSettingsGroupView.calledWith(app));
     assert.isTrue(window.HandwritingSettingsGroupView.calledWith(app));
 
+    assert.isTrue(stubLayoutItemListView.start.called);
     assert.isTrue(stubGeneralSettingsGroupView.start.called);
     assert.isTrue(stubHandwritingSettingsGroupView.start.called);
   });

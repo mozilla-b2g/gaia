@@ -1,6 +1,7 @@
 'use strict';
 
-/* global BaseView, GeneralSettingsGroupView, HandwritingSettingsGroupView */
+/* global BaseView, LayoutItemListView,
+          GeneralSettingsGroupView, HandwritingSettingsGroupView */
 
 (function(exports) {
 
@@ -34,6 +35,9 @@ GeneralPanel.prototype.start = function() {
     this.childViews.handwriting = new BaseView();
     this.childViews.handwriting.start();
   }
+
+  this.childViews.layoutItemList = new LayoutItemListView(this.app);
+  this.childViews.layoutItemList.start();
 };
 
 GeneralPanel.prototype.stop = function() {
@@ -46,6 +50,9 @@ GeneralPanel.prototype.stop = function() {
 
   this.childViews.handwriting.stop();
   delete this.childViews.handwriting;
+
+  this.childViews.layoutItemList.stop();
+  delete this.childViews.layoutItemList;
 };
 
 GeneralPanel.prototype.show = function() {
