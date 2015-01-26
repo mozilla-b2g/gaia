@@ -156,6 +156,8 @@ suite('UI Manager > ', function() {
   suite('Firefox Accounts section', function() {
     var localizeSpy;
     var nextButton;
+    var createAccountButton;
+
     suiteSetup(function() {
       Navigation.currentStep = 7;
       Navigation.manageStep();
@@ -169,6 +171,7 @@ suite('UI Manager > ', function() {
     setup(function() {
       localizeSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
       nextButton = document.getElementById('forward');
+      createAccountButton = document.getElementById('fxa-create-account');
     });
 
     teardown(function() {
@@ -177,12 +180,16 @@ suite('UI Manager > ', function() {
 
     suite('Verified Firefox Account login', function() {
       setup(function() {
-        var verifiedAcct = {
+        MockFxAccountsIACHelper.account = {
           email: 'foo@bar.com',
           verified: true
         };
         nextButton.setAttribute('data-l10n-id', 'skip');
-        UIManager.fxaGetAccounts(verifiedAcct);
+        UIManager.onFxAFlowDone();
+      });
+
+      teardown(function() {
+        MockFxAccountsIACHelper.reset();
       });
 
       test('Should show correct success message', function() {
@@ -194,16 +201,24 @@ suite('UI Manager > ', function() {
         var dataL10n = nextButton.getAttribute('data-l10n-id');
         assert.equal(dataL10n, 'navbar-next');
       });
+
+      test('Should disable create account button', function() {
+        assert.isTrue(createAccountButton.disabled);
+      });
     });
 
     suite('Unverified Firefox Account login', function() {
       setup(function() {
-        var unverifiedAcct = {
+        MockFxAccountsIACHelper.account= {
           email: 'foo@bar.com',
           verified: false
         };
         nextButton.setAttribute('data-l10n-id', 'skip');
-        UIManager.fxaGetAccounts(unverifiedAcct);
+        UIManager.onFxAFlowDone();
+      });
+
+      teardown(function() {
+        MockFxAccountsIACHelper.reset();
       });
 
       test('Should show correct success message', function() {
@@ -215,7 +230,140 @@ suite('UI Manager > ', function() {
         var dataL10n = nextButton.getAttribute('data-l10n-id');
         assert.equal(dataL10n, 'navbar-next');
       });
+
+      test('Should disable create account button', function() {
+        assert.isTrue(createAccountButton.disabled);
+      });
     });
+
+    suite('Account login - getAccounts no account', function() {
+      setup(function() {
+        createAccountButton.disabled = false;
+        nextButton.setAttribute('data-l10n-id', 'skip');
+        UIManager.onFxAFlowDone();
+      });
+
+      test('Should not show any success message', function() {
+        assert.isFalse(localizeSpy.calledOnce);
+      });
+
+      test('Button label should still be skip', function() {
+        var dataL10n = nextButton.getAttribute('data-l10n-id');
+        assert.equal(dataL10n, 'skip');
+      });
+
+      test('Should not disable create account button', function() {
+        assert.isFalse(createAccountButton.disabled);
+      });
+    });
+
+    suite('Account login - getAccounts error', function() {
+      setup(function() {
+        MockFxAccountsIACHelper.getAccountsError = 'WHATEVER';
+        createAccountButton.disabled = false;
+        nextButton.setAttribute('data-l10n-id', 'skip');
+        UIManager.onFxAFlowDone();
+      });
+
+      teardown(function() {
+        MockFxAccountsIACHelper.reset();
+      });
+
+      test('Button label should still be skip', function() {
+        var dataL10n = nextButton.getAttribute('data-l10n-id');
+        assert.equal(dataL10n, 'skip');
+      });
+
+      test('Should not disable create account button', function() {
+        assert.isFalse(createAccountButton.disabled);
+      });
+    });
+
+    suite('FTU initiates with a existing FxA login - happy path', function() {
+      setup(function() {
+        MockFxAccountsIACHelper.account = {
+          email: 'foo@bar.com',
+          verified: true
+        };
+        UIManager.skipFxA = false;
+        UIManager.checkInitialFxAStatus();
+      });
+
+      teardown(function() {
+        MockFxAccountsIACHelper.reset();
+      });
+
+      test('Should not skip FxA', function() {
+        assert.isFalse(UIManager.skipFxA);
+      });
+    });
+
+    suite('FTU initiates with a existing FxA login - getAccounts does not ' +
+          'give any results (or maybe it does but not in time)', function() {
+      setup(function() {
+        MockFxAccountsIACHelper.getAccountsNoCallback = true;
+        UIManager.skipFxA = false;
+        UIManager.checkInitialFxAStatus();
+      });
+
+      teardown(function() {
+        MockFxAccountsIACHelper.reset();
+      });
+
+      test('Should skip FxA', function() {
+        assert.isTrue(UIManager.skipFxA);
+      });
+    });
+
+    suite('FTU initiates with a existing FxA login - getAccounts error - ' +
+          'logout ok', function() {
+      var logoutSpy;
+
+      setup(function() {
+        MockFxAccountsIACHelper.getAccountsError = 'WHATEVER';
+        UIManager.skipFxA = false;
+        logoutSpy = this.sinon.spy(MockFxAccountsIACHelper, 'logout');
+        UIManager.checkInitialFxAStatus();
+      });
+
+      teardown(function() {
+        MockFxAccountsIACHelper.reset();
+      });
+
+      test('Should logout', function() {
+        assert.isTrue(logoutSpy.calledOnce);
+      });
+
+      test('And not skip FxA', function() {
+        assert.isFalse(UIManager.skipFxA);
+      });
+    });
+
+    suite('FTU initiates with a existing FxA login - getAccounts error - ' +
+          'logout no result or error', function() {
+      var logoutSpy;
+
+      setup(function() {
+        MockFxAccountsIACHelper.getAccountsError = 'WHATEVER';
+        MockFxAccountsIACHelper.logoutNoCallback = true;
+        UIManager.skipFxA = false;
+        logoutSpy = this.sinon.spy(MockFxAccountsIACHelper, 'logout');
+        UIManager.checkInitialFxAStatus();
+      });
+
+      teardown(function() {
+        MockFxAccountsIACHelper.reset();
+      });
+
+      test('Should try to logout', function() {
+        assert.isTrue(logoutSpy.calledOnce);
+      });
+
+      test('But still skip FxA', function() {
+        assert.isTrue(UIManager.skipFxA);
+      });
+    });
+
   });
 
   suite('Browser Privacy section', function() {
