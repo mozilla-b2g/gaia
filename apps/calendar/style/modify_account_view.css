@@ -43,7 +43,7 @@
 
 #modify-account-view.in-progress .during-progress > div > progress {
   line-height: normal;
-  margin-right: 0.5rem;
+  -moz-margin-end: 0.5rem;
 }
 
 #modify-account-view.in-progress button,
@@ -91,7 +91,7 @@
   margin: 0;
   height: 3rem;
   background: transparent url('icons/accountwarning.png') no-repeat left top;
-  padding-left: 3.5rem;
+  -moz-padding-start: 3.5rem;
   line-height: 3rem;
 }
 

@@ -8,7 +8,7 @@ var daysBetween = Calc.daysBetween;
 var daysInWeek = Calc.daysInWeek;
 var getDayId = Calc.getDayId;
 var spanOfMonth = Calc.spanOfMonth;
-var startsOnMonday = Calc.startsOnMonday;
+var startDay = Calc.startDay;
 
 var SELECTED = 'selected';
 
@@ -32,6 +32,7 @@ SingleMonth.prototype = {
   element: null,
 
   create: function() {
+    startDay = Calc.startDay;
     var element = document.createElement('section');
     element.className = 'month';
     element.setAttribute('role', 'grid');
@@ -45,13 +46,15 @@ SingleMonth.prototype = {
 
   _renderDayHeaders: function() {
     var days = [];
-    var i = startsOnMonday ? 0 : -1;
-    while (++i < 7) {
+    var i;
+    for (i = startDay; i < 7; i++) {
       days.push(this._dayHeader(i));
     }
 
-    if (startsOnMonday) {
-      days.push(this._dayHeader(0));
+    if (startDay > 0) {
+      for (i = 0; i < startDay; i++) {
+        days.push(this._dayHeader(i));
+      }
     }
 
     var html = `<header id="month-days" role="presentation">

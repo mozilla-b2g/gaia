@@ -55,6 +55,7 @@ textarea {
   text-align: left;
 }
 
+html[dir="rtl"],
 .rtl {
   text-align: right;
 }

@@ -188,8 +188,9 @@ Pan.prototype = {
 
   _set: function(x) {
     x = clamp(x, this._minX, 0);
+    var _x = (document.documentElement.dir === 'rtl') ? -x : x;
     this.targets.forEach(el => {
-      el.style.transform = 'translateX(' + x +'px)';
+      el.style.transform = 'translateX(' + _x +'px)';
     });
     this._curX = x;
   },
