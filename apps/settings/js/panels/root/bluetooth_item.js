@@ -60,7 +60,7 @@ define(function(require) {
           if (this._APIVersion() === 1) {
             bluetoothModulePath = 'modules/bluetooth/bluetooth_v1';
           } else if (this._APIVersion() === 2) {
-            bluetoothModulePath = 'modules/bluetooth/bluetooth';
+            bluetoothModulePath = 'modules/bluetooth/bluetooth_context';
           }
 
           require([bluetoothModulePath], resolve);

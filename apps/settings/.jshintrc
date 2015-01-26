@@ -5,6 +5,7 @@
     "require",
     "Settings",
     "TextEncoder",
-    "Promise"
+    "Promise",
+    "console"
   ]
 }

@@ -71,7 +71,7 @@ define(function(require) {
             if (detector.getVersion() === 1) {
               bluetoothModulePath = 'modules/bluetooth/bluetooth_v1';
             } else if (detector.getVersion() === 2) {
-              bluetoothModulePath = 'modules/bluetooth/bluetooth';
+              bluetoothModulePath = 'modules/bluetooth/bluetooth_context';
             }
             if (bluetoothModulePath) {
               require([bluetoothModulePath], resolve);
