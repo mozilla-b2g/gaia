@@ -88,7 +88,7 @@
  */
 
 .deg90 .pane > .inner {
-  padding-right: 7rem;
+  -moz-padding-end: 7rem;
 }
 
 /**
@@ -96,7 +96,7 @@
  */
 
 .deg270 .pane > .inner {
-  padding-left: 7rem;
+  -moz-padding-start: 7rem;
 }
 
 /** Pane 1
@@ -145,7 +145,7 @@
 .settings_header {
   position: relative;
   height: 9rem;
-  margin-right: 5rem; /* 1 */
+  -moz-margin-end: 5rem; /* 1 */
   line-height: 9rem;
 }
 
@@ -177,7 +177,6 @@
 
 .settings_items {
   flex: 1;
-  overflow: scroll;
 }
 
 /** Close
@@ -189,7 +188,8 @@
 
 .settings_close {
   position: absolute;
-  top: 0; right: 0;
+  top: 0;
+  right: 0;
   margin: 0;
   border-width: 2rem 1.5rem;
   background-color: #008eab;

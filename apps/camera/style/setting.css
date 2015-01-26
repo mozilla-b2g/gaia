@@ -39,7 +39,7 @@
   display: block;
   width: 4rem;
   font-size: 3rem;
-  padding-left: 1rem;
+  -moz-padding-start: 1rem;
 }
 
 /** Setting Text
