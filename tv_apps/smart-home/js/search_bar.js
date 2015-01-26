@@ -27,7 +27,6 @@
     this.searchUI.addEventListener('transitionend', this);
 
     this.voiceButton = this.searchUI.querySelector('.search-mic-button');
-    this.voiceButton.classList.add('fade-out');
     this.voiceButton.addEventListener('transitionend', this);
 
     this.state = this.searchUI.classList.contains('hidden') ?
@@ -46,7 +45,7 @@
 
   proto.hide = function sb_hide() {
     this.searchUI.classList.add('hidden');
-    this.voiceButton.classList.add('fade-out');
+    this.searchUI.classList.remove('opened');
     this.state = SearchBar.STATES.HIDDEN;
   };
 
@@ -57,7 +56,7 @@
     if (evt.target === this.searchUI &&
         evt.propertyName === 'background-color' &&
         this.state === SearchBar.STATES.SHOWING) {
-      this.voiceButton.classList.remove('fade-out');
+      this.searchUI.classList.add('opened');
     } else if (evt.target === this.voiceButton &&
                evt.propertyName === 'opacity' &&
                this.state === SearchBar.STATES.SHOWING) {

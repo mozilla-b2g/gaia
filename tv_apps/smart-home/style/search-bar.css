@@ -37,14 +37,14 @@ smart-button.search-mic-button {
 }
 
 .search-input span {
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.25, 0, 0, 1.0);
-  transition-duration: 0.92s;
+  opacity: 0;
 }
 
-.search-bar.hidden .search-input span {
-  opacity: 0;
-  transition-property: none;
+.search-bar.opened .search-input span {
+  opacity: 1;
+  transition-property: opacity;
+  transition-timing-function: cubic-bezier(0.25, 0, 0, 1.0);
+  transition-duration: 0.92s;
 }
 
 /* icon parts */
@@ -110,13 +110,14 @@ smart-button.search-mic-button {
   transition-property: none;
 }
 
-.search-mic-button {
+.search-bar.opened .search-mic-button {
   transition-property: opacity;
   transition-timing-function: cubic-bezier(0.25, 0, 0, 1.0);
   transition-duration: 0.66s;
+  opacity: 1;
 }
 
-.search-mic-button.fade-out {
+.search-bar .search-mic-button {
   transition-property: none;
   opacity: 0;
 }
