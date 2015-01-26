@@ -8,7 +8,7 @@ const MINUTE = (SECOND * 60);
 const HOUR = MINUTE * 60;
 
 exports._hourDate = new Date();
-exports.startsOnMonday = false;
+exports.startDay = 0;
 exports.FLOATING = 'floating';
 exports.ALLDAY = 'allday';
 exports.SECOND = SECOND;
@@ -36,22 +36,15 @@ exports.daysInWeek = function() {
 };
 
 /**
- * Calculates day of week when starting day is Monday.
+ * Calculates day of week from startDay value
+ * passed by the locale currently being used
  */
-exports.dayOfWeekFromMonday = function(numeric) {
-  var day = numeric - 1;
+exports.dayOfWeekFromStartDay = function(numeric) {
+  var day = numeric - exports.startDay;
   if (day < 0) {
-    return 6;
+    return 7 + day;
   }
-
   return day;
-};
-
-/**
- * Calculates day of week when starting day is Sunday.
- */
-exports.dayOfWeekFromSunday = function(numeric) {
-  return numeric;
 };
 
 /**
@@ -344,11 +337,7 @@ exports.dayOfWeek = function(date) {
   if (typeof(date) !== 'number') {
     number = date.getDay();
   }
-
-  if (exports.startsOnMonday) {
-    return exports.dayOfWeekFromMonday(number);
-  }
-  return exports.dayOfWeekFromSunday(number);
+  return exports.dayOfWeekFromStartDay(number);
 };
 
 /**
@@ -572,12 +561,7 @@ exports.isAllDay = function(baseDate, startDate, endDate) {
 };
 
 window.addEventListener('localized', function changeStartDay() {
-  var startDay = navigator.mozL10n.get('weekStartsOnMonday');
-  if (startDay && parseInt(startDay, 10)) {
-    exports.startsOnMonday = true;
-  } else {
-    exports.startsOnMonday = false;
-  }
+  exports.startDay = parseInt(navigator.mozL10n.get('firstDayOfTheWeek'), 10);
 });
 
 });
