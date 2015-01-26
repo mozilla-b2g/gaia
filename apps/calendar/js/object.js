@@ -12,6 +12,23 @@ exports.filter = function(obj, fn, thisArg) {
   return results;
 };
 
+exports.find = function(obj, fn, thisArg) {
+  var result = null;
+  exports.forEach(obj, function(key, value) {
+    if (result != null) {
+      // We've already found a match. Nothing to do here.
+      return;
+    }
+
+    var pass = fn.call(thisArg, key, value);
+    if (pass) {
+      result = { key: key, value: value };
+    }
+  });
+
+  return result;
+};
+
 exports.forEach = function(obj, fn, thisArg) {
   exports.map(obj, fn, thisArg);
 };

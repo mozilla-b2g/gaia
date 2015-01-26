@@ -2,7 +2,11 @@ define(function(require, exports, module) {
 'use strict';
 
 var AlarmTemplate = require('templates/alarm');
+var Local = require('provider/local');
 var View = require('view');
+var calendarObserver = require('calendar_observer');
+var debug = require('debug')('views/advanced_settings');
+var forEach = require('object').forEach;
 var providerFactory = require('provider/provider_factory');
 var template = require('templates/account');
 
@@ -12,6 +16,14 @@ var ACCOUNT_PREFIX = 'account-';
 
 function AdvancedSettings(options) {
   View.apply(this, arguments);
+
+  this._loadingCalendarList = true;
+  this._addAccount = this._addAccount.bind(this);
+  this._updateAccount = this._updateAccount.bind(this);
+  this._removeAccount = this._removeAccount.bind(this);
+  this._renderCalendarSelect = this._renderCalendarSelect.bind(this);
+  this.onCreateAccount = this.onCreateAccount.bind(this);
+
   this._initEvents();
 }
 module.exports = AdvancedSettings;
@@ -25,7 +37,7 @@ AdvancedSettings.prototype = {
     createAccountButton: '#advanced-settings-view .create-account',
     accountListHeader: '#advanced-settings-view .account-list-header',
     syncFrequency: '#setting-sync-frequency',
-
+    defaultCalendar: '#setting-default-calendar',
     standardAlarmLabel: '#default-event-alarm',
     alldayAlarmLabel: '#default-allday-alarm'
   },
@@ -44,6 +56,10 @@ AdvancedSettings.prototype = {
 
   get syncFrequency() {
     return this._findElement('syncFrequency');
+  },
+
+  get defaultCalendar() {
+    return this._findElement('defaultCalendar');
   },
 
   get standardAlarmLabel() {
@@ -80,22 +96,24 @@ AdvancedSettings.prototype = {
   _initEvents: function() {
     var account = this.app.store('Account');
     var setting = this.app.store('Setting');
-
-    account.on('add', this._addAccount.bind(this));
-    account.on('update', this._updateAccount.bind(this));
-    account.on('preRemove', this._removeAccount.bind(this));
-
-    this.createAccountButton.addEventListener('click',
-                                             this.onCreateAccount.bind(this));
+    account.on('add', this._addAccount);
+    account.on('update', this._updateAccount);
+    account.on('preRemove', this._removeAccount);
     setting.on('syncFrequencyChange', this);
+    setting.on('defaultCalendarChange', this);
+    calendarObserver.on('change', this._renderCalendarSelect);
+    this.createAccountButton.addEventListener('click', this.onCreateAccount);
     this.syncFrequency.addEventListener('change', this);
-
+    this.defaultCalendar.addEventListener('change', this);
     this.standardAlarmLabel.addEventListener('change', this);
     this.alldayAlarmLabel.addEventListener('change', this);
   },
 
   handleSettingDbChange: function(type, value) {
     switch (type) {
+      case 'defaultCalendarChange':
+        // TODO(gareth)
+        break;
       case 'syncFrequencyChange':
         this.syncFrequency.value = String(value);
         break;
@@ -103,6 +121,7 @@ AdvancedSettings.prototype = {
   },
 
   handleSettingUiChange: function(type, value) {
+    debug('Will change db setting for', type, 'to', value);
     var store = this.app.store('Setting');
     // basic conversions
     if (value === 'null') {
@@ -116,9 +135,10 @@ AdvancedSettings.prototype = {
         if (value !== null) {
           value = parseInt(value);
         }
-        store.set(type, value);
         break;
     }
+
+    return store.set(type, value);
   },
 
   handleEvent: function(event) {
@@ -127,6 +147,7 @@ AdvancedSettings.prototype = {
         var target = event.target;
         this.handleSettingUiChange(target.name, target.value);
         break;
+      case 'defaultCalendarChange':
       case 'syncFrequencyChange':
         this.handleSettingDbChange(event.type, event.data[0]);
         break;
@@ -181,6 +202,50 @@ AdvancedSettings.prototype = {
       var parentNode = el.parentNode;
       parentNode.removeChild(el);
     }
+  },
+
+  onfirstseen: function() {
+    if (this._loadingCalendarList) {
+      this.defaultCalendar.classList.add(this.LOADING);
+    }
+  },
+
+  _renderCalendarSelect: function(calendarList) {
+    // TODO(gareth): This method is mostly shared with
+    //     views/modify_event. Should consolidate somehow.
+    var setting = this.app.store('Setting');
+    setting.getValue('defaultCalendar', defaultCalendar => {
+      var element = this.defaultCalendar;
+      element.innerHTML = '';
+      forEach(calendarList, (id, object) => {
+        var calendar = object.calendar;
+        var capabilities = object.capabilities;
+        if (!calendar.localDisplayed || !capabilities.canCreateEvent) {
+          return;
+        }
+
+        var l10n = navigator.mozL10n;
+        var option = document.createElement('option');
+        if (id === Local.calendarId) {
+          option.text = l10n.get('calendar-local');
+          option.setAttribute('data-l10n-id', 'calendar-local');
+        } else {
+          option.text = calendar.remote.name;
+        }
+
+        option.value = id;
+        if (defaultCalendar != null) {
+          option.selected = (defaultCalendar === id);
+        }
+
+        element.add(option);
+
+        if (this._loadingCalendarList) {
+          this._loadingCalendarList = false;
+          this.defaultCalendar.classList.add(this.LOADING);
+        }
+      });
+    });
   },
 
   render: function() {

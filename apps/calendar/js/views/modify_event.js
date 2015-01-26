@@ -8,6 +8,7 @@ var Local = require('provider/local');
 var QueryString = require('querystring');
 var calendarObserver = require('calendar_observer');
 var dateFormat = require('date_format');
+var debug = require('debug')('views/modify_event');
 var forEach = require('object').forEach;
 var getTimeL10nLabel = require('calc').getTimeL10nLabel;
 
@@ -55,6 +56,14 @@ ModifyEvent.prototype = {
     EventBase.prototype._initEvents.apply(this, arguments);
 
     calendarObserver.on('change', this._renderCalendarSelect);
+
+    // TODO(gareth): Clean this up when with a settingsObserver...
+    debug('Will listen to settings for change to defaultCalendar.');
+    var settings = this.app.store('Setting');
+    settings.on('defaultCalendarChange', () => {
+      debug('Noticed change to default calendar!');
+      this._renderCalendarSelect(calendarObserver.calendarList);
+    });
 
     this.deleteButton.addEventListener('click', this.deleteRecord);
     this.form.addEventListener('click', this.focusHandler);
@@ -134,31 +143,39 @@ ModifyEvent.prototype = {
   },
 
   _renderCalendarSelect: function(calendarList) {
-    var element = this.getEl('calendarId');
-    element.innerHTML = '';
-    forEach(calendarList, (id, object) => {
-      var calendar = object.calendar;
-      var capabilities = object.capabilities;
-      if (!calendar.localDisplayed || !capabilities.canCreateEvent) {
-        return;
-      }
+    var setting = this.app.store('Setting');
+    setting.getValue('defaultCalendar').then(defaultCalendar => {
+      debug('Will render calendar select with default value', defaultCalendar);
+      var element = this.getEl('calendarId');
+      element.innerHTML = '';
+      forEach(calendarList, (id, object) => {
+        var calendar = object.calendar;
+        var capabilities = object.capabilities;
+        if (!calendar.localDisplayed || !capabilities.canCreateEvent) {
+          return;
+        }
 
-      var l10n = navigator.mozL10n;
-      var option = document.createElement('option');
-      if (id === Local.calendarId) {
-        option.text = l10n.get('calendar-local');
-        option.setAttribute('data-l10n-id', 'calendar-local');
-      } else {
-        option.text = calendar.remote.name;
-      }
+        var l10n = navigator.mozL10n;
+        var option = document.createElement('option');
+        if (id === Local.calendarId) {
+          option.text = l10n.get('calendar-local');
+          option.setAttribute('data-l10n-id', 'calendar-local');
+        } else {
+          option.text = calendar.remote.name;
+        }
 
-      option.value = id;
-      element.add(option);
+        option.value = id;
+        if (defaultCalendar != null) {
+          option.selected = (defaultCalendar === id);
+        }
 
-      if (this._loadingCalendarList) {
-        this._loadingCalendarList = false;
-        this.getEl('calendarId').classList.remove(this.LOADING);
-      }
+        element.add(option);
+
+        if (this._loadingCalendarList) {
+          this._loadingCalendarList = false;
+          this.getEl('calendarId').classList.remove(this.LOADING);
+        }
+      });
     });
   },
 

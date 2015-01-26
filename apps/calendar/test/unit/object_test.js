@@ -58,6 +58,24 @@ suite('Object', function() {
     var result = subject.values(input);
     assert.deepEqual(result, ['b', 'q', 'y']);
   });
+
+  test('#find exists', function() {
+    var input = { a: 'b', p: 'q', x: 'y' };
+    var result = subject.find(input, (key, value) => {
+      return value === 'q';
+    });
+
+    assert.deepEqual(result, { key: 'p', value: 'q' });
+  });
+
+  test('#find does not exist', function() {
+    var input = { a: 'b', p: 'q', x: 'y' };
+    var result = subject.find(input, (key, value) => {
+      return false;
+    });
+
+    assert.isNull(result);
+  });
 });
 
 });
