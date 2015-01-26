@@ -218,9 +218,7 @@ marionette('Text selection >', function() {
     });
 
     suite('bugs', function() {
-      var KeyboardSystem =
-        require('../../../keyboard/test/marionette/lib/system.js');
-      var keyboardSystem;
+      var systemInputMgmt;
       setup(function() {
         fakeTextselectionApp.setTestFrame('bug');
       });
@@ -245,24 +243,24 @@ marionette('Text selection >', function() {
 
       test('bug1119126 : Shortcut bubble should hide when system is resized',
         function() {
-          keyboardSystem = new KeyboardSystem(client);
+          systemInputMgmt = client.loader.getAppClass('system',
+                                                      'input_management');
           fakeTextselectionApp.copy('BugCenterInput');
-          client.waitFor(function() {
-            return keyboardSystem.keyboardFrameDisplayed();
-          });
+
+          systemInputMgmt.waitForKeyboardFrameDisplayed();
+
           fakeTextselectionApp.switchToTestApp();
           fakeTextselectionApp.BugNormalDiv.tap();
           client.waitFor(function() {
-            return keyboardSystem.keyboardFrameHidden();
+            return systemInputMgmt.keyboardFrameHidden();
           });
           fakeTextselectionApp.switchToTestApp();
           fakeTextselectionApp.BugButtomInput.tap();
-          client.waitFor(function() {
-            return keyboardSystem.keyboardFrameDisplayed();
-          });
+
+          systemInputMgmt.waitForKeyboardFrameDisplayed();
+
           fakeTextselectionApp.switchToTestApp();
           assert.ok(!fakeTextselectionApp.bubbleVisiblity);
-
         });
     });
   });
