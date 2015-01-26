@@ -1,7 +1,5 @@
 'use strict';
 
-var assert = require('assert');
-
 marionette('Vertical - Group', function() {
 
   var client = marionette.client(require(__dirname + '/client_options.js'));
@@ -25,17 +23,20 @@ marionette('Vertical - Group', function() {
     // Store a reference to the first icon
     var firstIcon = client.helper.waitForElement(home.Selectors.firstIcon);
     var secondIcon = client.findElements(home.Selectors.firstIcon)[1];
-    var collapse = client.findElement('.group .toggle');
+    var group = client.findElement(home.Selectors.group);
+    var collapse = client.findElement(home.Selectors.groupToggle);
 
     // Enter edit mode
     home.enterEditMode();
     var header = client.helper.waitForElement(home.Selectors.editHeaderText);
 
     // Drag icon to its own group
-    actions.press(firstIcon).wait(1).move(header).release().wait(1).perform();
+    actions.press(firstIcon).wait(1).move(header).release().perform();
+    home.waitForDragFinish();
 
     // Collapse the original group
-    actions.tap(collapse).wait(1).perform();
+    actions.tap(collapse).perform();
+    home.waitForCollapseState(group, true);
 
     // Count the number of collapsed icons
     var collapsedIconsSelector = '#icons div.icon.collapsed';
@@ -44,12 +45,13 @@ marionette('Vertical - Group', function() {
 
     // Drag icon into collapsed group
     firstIcon.scriptWith(scrollIntoView);
-    actions.press(firstIcon).wait(1).move(secondIcon).release().
-      wait(1).perform();
+    actions.press(firstIcon).wait(1).move(secondIcon).release().perform();
 
     // Make sure there's one more collapsed icon
-    var collapsedIconsAfter =
-      client.findElements(collapsedIconsSelector).length;
-    assert.equal(collapsedIconsAfter, collapsedIconsBefore + 1);
+    client.waitFor(function() {
+      var collapsedIconsAfter =
+        client.findElements(collapsedIconsSelector).length;
+      return collapsedIconsAfter === collapsedIconsBefore + 1;
+    });
   });
 });
