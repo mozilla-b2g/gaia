@@ -91,6 +91,21 @@
   AppWindow.prototype._DEBUG = false;
 
   /**
+   * This is telling us who is the hierarchy manager to manage this window.
+   * * HierarchyManager ->
+   *  * AttentionWindowManager -> AttentionWindow, CallscreenWindow
+   *                              (-> its popup/activity)
+   *  * SecureWindowManager -> SecureWindow (-> its popup/activity)
+   *  * LockScreenWindowManager -> LockScreenWindow (-> its popup/activity)
+   *  * GlobalOverlayWindowManager -> GlobalOverlayWindow
+   *                                  (-> its popup/activity)
+   *  * Rocketbar -> SearchWindow (-> its popup/activity)
+   *  * AppWindowManager -> AppWindow, HomescreenWindow (-> its popup/activity)
+   * @type {String}
+   */
+  AppWindow.prototype.HIERARCHY_MANAGER = 'AppWindowManager';
+
+  /**
    * Generate instanceID of this instance.
    */
   AppWindow.prototype.generateID = function() {
