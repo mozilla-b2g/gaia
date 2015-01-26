@@ -81,6 +81,13 @@ var CostControlApp = (function() {
           if (AirplaneModeHelper.getStatus() === 'enabled') {
             console.warn('The airplaneMode is enabled.');
             fakeState = 'airplaneMode';
+            window.addEventListener('airplaneModeDisabled',
+              function _onAirplanemodeDisabled(evt) {
+                if (evt.detail && evt.detail.serviceId === 'data') {
+                  waitForSIMReady(startApp);
+                }
+              }
+            );
           }
           showNonReadyScreen(fakeState);
         });
@@ -239,13 +246,6 @@ var CostControlApp = (function() {
       loadSettings();
     }
   });
-
-  window.addEventListener('airplaneModeDisabled',
-    function _onAirplanemodeDisabled(evt) {
-      if (evt.detail && evt.detail.serviceId === 'data') {
-        waitForSIMReady(startApp);
-      }
-    });
 
   function setupApp(callback) {
     setupCardHandler();
