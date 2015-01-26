@@ -216,10 +216,10 @@ body.search-from-list-mode #views-list {
   overflow-y: hidden;
 }
 
-body.search-from-tiles-mode #tabs,
-body.search-from-list-mode #tabs,
-body.picker-mode #tabs {
-  display: none;
+body.tiles-mode #tabs,
+body.list-mode #tabs,
+body.sublist-mode #tabs {
+  display: inherit;
 }
 
 body.sublist-mode #views {
@@ -916,6 +916,7 @@ html[dir="rtl"] .rating-star {
   bottom: 0;
   width: 100%;
   z-index: 20;
+  display: none;
 }
 
 #tabs li:last-child {
