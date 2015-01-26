@@ -61,6 +61,12 @@ marionette('toggle calendar', function() {
           return app.day.events.length === 0;
         });
       });
+
+      test('modify event view', function() {
+        app.openModifyEventView();
+        var calendars = app.editEvent.calendars;
+        assert.lengthOf(calendars, 0);
+      });
     });
 
     suite('enable calendar', function() {
@@ -84,6 +90,13 @@ marionette('toggle calendar', function() {
         client.waitFor(function() {
           return app.day.events.length;
         });
+      });
+
+      test('modify event view', function() {
+        app.openModifyEventView();
+        var calendars = app.editEvent.calendars;
+        assert.lengthOf(calendars, 1);
+        assert.strictEqual(calendars[0].text(), 'Offline calendar');
       });
     });
   });
