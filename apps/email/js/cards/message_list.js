@@ -761,6 +761,21 @@ return [
       headerCursor.messagesSlice.requestGrowth(1, true);
     },
 
+    /**
+     * Set the refresh button state based on the new message status.
+     */
+    setRefreshState: function(syncing) {
+      if (syncing) {
+          this.refreshBtn.dataset.state = 'synchronizing';
+          this.refreshBtn.setAttribute('role', 'progressbar');
+          mozL10n.setAttributes(this.refreshBtn, 'messages-refresh-progress');
+      } else {
+        this.refreshBtn.dataset.state = 'synchronized';
+        this.refreshBtn.removeAttribute('role');
+        mozL10n.setAttributes(this.refreshBtn, 'messages-refresh-button');
+      }
+    },
+
     // The funny name because it is auto-bound as a listener for
     // messagesSlice events in headerCursor using a naming convention.
     messages_status: function(newStatus) {
@@ -782,8 +797,7 @@ return [
           this.syncingNode.classList.remove('collapsed');
           this.syncMoreNode.classList.add('collapsed');
           this.hideEmptyLayout();
-
-          this.refreshBtn.dataset.state = 'synchronizing';
+          this.setRefreshState(true);
       } else if (newStatus === 'syncfailed' ||
                  newStatus === 'synced') {
         if (newStatus === 'syncfailed') {
@@ -795,7 +809,7 @@ return [
             text: mozL10n.get('toaster-retryable-syncfailed')
           });
         }
-        this.refreshBtn.dataset.state = 'synchronized';
+        this.setRefreshState(false);
         this.syncingNode.classList.add('collapsed');
         this._manuallyTriggeredSync = false;
       }
@@ -1752,12 +1766,10 @@ return [
         }
 
         this.editBtn.disabled = true;
-        this.refreshBtn.dataset.state = 'synchronizing';
       } else {
         // After sync, the edit button should remain disabled only if
         // the list is empty.
         this.editBtn.disabled = this.isEmpty();
-        this.refreshBtn.dataset.state = 'synchronized';
 
         // Similarly, we must stop the refresh icons for each message
         // from rotating further. For instance, if we are offline, we
@@ -1767,6 +1779,7 @@ return [
           items[i].classList.remove('msg-header-syncing-section-syncing');
         }
       }
+      this.setRefreshState(syncing);
     },
 
     onRefresh: function() {
