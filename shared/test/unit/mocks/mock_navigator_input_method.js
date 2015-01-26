@@ -53,6 +53,14 @@
     this.dispatchEvent(evt);
   };
 
+  MockInputMethod.prototype.addInput = function(inputId, inputManifest) {
+    // Return a promise here.
+  };
+
+  MockInputMethod.prototype.removeInput = function(inputId) {
+    // Return a promise here.
+  };
+
   /**
    * This class allow you to create a mock inputContext instance.
    * It does *not* manage it's own states and properties. Doing so inevitablely
