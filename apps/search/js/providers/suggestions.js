@@ -5,11 +5,24 @@
   /* globals LazyLoader */
   /* globals SearchProvider */
 
+  var suggestionsProvider = document.getElementById('suggestions-provider');
+  var suggestionsSelect = document.getElementById('suggestions-select');
+
   SearchProvider.providerUpdated(function() {
-    var elem = document.getElementById('suggestion-provider');
-    navigator.mozL10n.setAttributes(elem, 'search-header', {
+
+    navigator.mozL10n.setAttributes(suggestionsProvider, 'search-header', {
       provider: SearchProvider('title').toUpperCase()
     });
+
+    var selected = SearchProvider.selected();
+    var providers = SearchProvider.providers();
+    var selectHTML = Object.keys(providers).map(provider => {
+      return '<option value="' + provider + '" ' +
+        ((provider === selected) ? 'selected="selected"' : '') +
+        '>' + providers[provider].title + '</option>';
+    }).join('');
+
+    suggestionsSelect.innerHTML = selectHTML;
   });
 
   function encodeTerms(str, search) {
@@ -28,6 +41,9 @@
 
     init: function() {
       Provider.prototype.init.apply(this, arguments);
+      suggestionsSelect.addEventListener('change', function(e) {
+        SearchProvider.setProvider(e.target.value);
+      });
     },
 
     click: function(e) {
