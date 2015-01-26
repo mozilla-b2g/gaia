@@ -275,11 +275,8 @@ var StatusBar = {
     // Listen to Custom event send by 'nfc_manager.js'
     window.addEventListener('nfc-state-changed', this);
 
-    // 'bluetoothconnectionchange' fires when the overall bluetooth connection
-    //  changes.
     // 'bluetoothprofileconnectionchange' fires when a bluetooth connection of
     //  a specific profile changes.
-    window.addEventListener('bluetoothconnectionchange', this);
     window.addEventListener('bluetoothprofileconnectionchange', this);
 
     // Listen to 'moztimechange'
@@ -431,10 +428,6 @@ var StatusBar = {
 
       case 'datachange':
         this.update.data.call(this);
-        break;
-
-      case 'bluetoothconnectionchange':
-        this.update.bluetooth.call(this);
         break;
 
       case 'bluetoothprofileconnectionchange':
