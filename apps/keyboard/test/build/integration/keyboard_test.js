@@ -81,7 +81,9 @@ suite('Keyboard layouts building tests', function() {
   });
 
   // Build with all layouts and dictionaries
-  test('APP=keyboard GAIA_KEYBOARD_LAYOUTS=* ' +
+  // XXX: bug 1125703: disable this test until bug 1119731's
+  //      false-negative is resolved.
+  test.skip('APP=keyboard GAIA_KEYBOARD_LAYOUTS=* ' +
     'GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS=* make', function(done) {
     var cmd = 'APP=keyboard GAIA_KEYBOARD_LAYOUTS=* ' +
     'GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS=* make';
@@ -184,7 +186,9 @@ suite('Keyboard layouts building tests', function() {
   });
 
   // Build with all layouts with no dictionaries
-  test('APP=keyboard GAIA_KEYBOARD_LAYOUTS=noPreloadDictRequired ' +
+  // XXX: bug 1125703: disable this test until bug 1119731's
+  //      false-negative is resolved.
+  test.skip('APP=keyboard GAIA_KEYBOARD_LAYOUTS=noPreloadDictRequired ' +
     'GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS="" make',
   function(done) {
     var cmd = 'APP=keyboard GAIA_KEYBOARD_LAYOUTS=noPreloadDictRequired ' +
