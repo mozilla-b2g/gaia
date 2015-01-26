@@ -28,7 +28,7 @@
   <!-- L10n -->
   <script defer src="shared/js/l10n.js"></script>
 
-  <!-- Settings panel -->
+  <!-- general settings -->
   <script defer src="js/keyboard/settings.js"></script>
   <script defer src="js/shared/promise_storage.js"></script>
   <script defer src="js/settings/close_locks.js"></script>
@@ -37,6 +37,16 @@
   <script defer src="js/settings/general_settings_view.js"></script>
   <script defer src="js/settings/general_panel.js"></script>
   <script defer src="js/settings/panel_controller.js"></script>
+
+  <!-- installable keyboard settings -->
+  <script defer src="js/settings/layout_dictionary_downloader.js"></script>
+  <script defer src="js/settings/layout_dictionary.js"></script>
+  <script defer src="js/settings/layout_dictionary_list.js"></script>
+  <script defer src="js/settings/layout_item.js"></script>
+  <script defer src="js/settings/layout_item_list.js"></script>
+  <script defer src="js/settings/layout_item_view.js"></script>
+  <script defer src="js/settings/layout_item_list_view.js"></script>
+
   <script defer src="js/settings/keyboard_settings_app.js"></script>
   <script defer src="js/settings/bootstrap.js"></script>
 </head>
@@ -94,6 +104,33 @@
           <!-- User dictionary settings <li> will be added here. -->
         </ul>
       </section>
+      <div id="installable-keyboard" hidden>
+        <header>
+          <h2 data-l10n-id="installed-keyboards-title"></h2>
+        </header>
+        <section data-type="list">
+          <ul id="installed-keyboards-list">
+          </ul>
+        <header>
+          <h2 data-l10n-id="more-keyboards-title"></h2>
+        </header>
+        <section data-type="list">
+          <ul id="installable-keyboards-list">
+          </ul>
+          <template id="installable-keyboard-list-item">
+            <li class="installable-keyboard-item">
+              <aside class="pack-end">
+                <button class="download" data-action="download" data-l10n-id="downloadButton"></button>
+                <button class="cancel-download" data-action="cancelDownload" data-l10n-id="cancelDownloadButton"></button>
+                <button class="remove" data-action="remove" data-l10n-id="removeButton"></button>
+              </aside>
+              <p class="label"></p>
+              <p><small class="status"></small></p>
+              <progress class="progress" hidden>
+            </li>
+          </template>
+        </section>
+      </div>
       <!-- Handwriting settings section will be added here. -->
     </div>
   </section>
