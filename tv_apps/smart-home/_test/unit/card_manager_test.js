@@ -2,17 +2,17 @@
 /* global Application, CardManager, Deck, Folder,
           MockCardStore, MockPipedPromise, MockXMLHttpRequest */
 
-require('/tv_shared/js/vendor/evt.js');
+require('/tv_apps/tv_shared/js/vendor/evt.js');
 require('/shared/js/uuid.js');
-require('/tv_shared/js/shared_utils.js');
-require('/test/unit/mock_piped_promise.js');
-require('/test/unit/mock_card_store.js');
-require('/test/unit/mock_xml_http_request.js');
-require('/tv_shared/js/cards/card.js');
-require('/tv_shared/js/cards/deck.js');
-require('/tv_shared/js/cards/folder.js');
-require('/tv_shared/js/cards/application.js');
-require('/tv_shared/js/cards/app_bookmark.js');
+require('/tv_apps/tv_shared/js/shared_utils.js');
+require('/tv_apps/tv_shared/test/unit/mocks/mock_piped_promise.js');
+require('/tv_apps/tv_shared/test/unit/mocks/mock_card_store.js');
+require('/tv_apps/tv_shared/test/unit/mocks/mock_xml_http_request.js');
+require('/tv_apps/tv_shared/js/cards/card.js');
+require('/tv_apps/tv_shared/js/cards/deck.js');
+require('/tv_apps/tv_shared/js/cards/folder.js');
+require('/tv_apps/tv_shared/js/cards/application.js');
+require('/tv_apps/tv_shared/js/cards/app_bookmark.js');
 
 suite('smart-home/CardManager', function() {
   var realPipedPromise;
