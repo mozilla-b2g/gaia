@@ -497,10 +497,11 @@ suite('system/AppChrome', function() {
 
     teardown(function(done) {
       // setThemeColor triggers a rAF loop that doesn't finish until
-      // it gets a transition end event. Some tests dispatch this event
-      // but others don't so here we dispatch again.
+      // it gets a transitionend event. Some tests dispatch this event
+      // but others don't so we dispatch it again here in case it hasn't
+      // been dispatched yet.
       //
-      // If we fail to do this the rAF loop triggered by a previous test
+      // If we fail to do this, the rAF loop triggered by a previous test
       // might still be running when we start the next test which will
       // mean we *sometimes* get surprising values for
       // stubRequestAnimationFrame.callCount.
