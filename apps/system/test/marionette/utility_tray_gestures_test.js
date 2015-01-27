@@ -1,6 +1,5 @@
 'use strict';
 
-var Actions = require('marionette-client').Actions;
 var System = require('./lib/system.js');
 var UtilityTray = require('./lib/utility_tray');
 
