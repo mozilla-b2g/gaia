@@ -47,15 +47,23 @@ suite('system/CellBroadcastSystem', function() {
   suite('show', function() {
     var realMobileOperator;
     var fakeMessageID = 0;
-    var fakeMcc = 123;
+    var fakeMcc = [123, 456];
 
     setup(function() {
+      this.sinon.stub(CarrierInfoNotifier, 'show');
+      this.sinon.stub(window, 'dispatchEvent');
+      [0, 1].forEach((id) => {
+        var conn = new window.MockMobileconnection();
+        conn.voice = {
+          network: {
+            mcc: fakeMcc[id]
+          }
+        };
+
+        window.navigator.mozMobileConnections.mAddMobileConnection(conn, id);
+      });
+
       realMobileOperator = window.MobileOperator;
-      window.navigator.mozMobileConnections[0].voice = {
-        network: {
-          mcc: fakeMcc
-        }
-      };
       window.MobileOperator = {
         BRAZIL_MCC:
           window.navigator.mozMobileConnections[0].voice.network.mcc,
@@ -67,23 +75,33 @@ suite('system/CellBroadcastSystem', function() {
       window.MobileOperator = realMobileOperator;
     });
 
-    test('and if it\'s Brazil mcc, will send out event', function(done) {
-      window.addEventListener('cellbroadcastmsgchanged', function cb() {
-        window.removeEventListener('cellbroadcastmsgchanged', cb);
-        done();
-      });
+    test('if SIM1 is Brazil mcc, will send out event', function() {
       subject.show({
         message: {
           messageId: fakeMessageID,
-          body: {}
-        },
-        serviceId: 0,
+          body: {},
+          serviceId: 0
+        }
       });
+
+      sinon.assert.called(window.dispatchEvent);
+      sinon.assert.notCalled(CarrierInfoNotifier.show);
+    });
+
+    test('if SIM 2 is not Brazil mcc, will not send out event', function() {
+      subject.show({
+        message: {
+          messageId: fakeMessageID,
+          body: {},
+          serviceId: 1
+        }
+      });
+
+      sinon.assert.notCalled(window.dispatchEvent);
+      sinon.assert.called(CarrierInfoNotifier.show);
     });
 
     test('return while message is CMAS', function() {
-      this.sinon.stub(CarrierInfoNotifier, 'show');
-
       subject.show({
         message: {
           messageId: 4370,
