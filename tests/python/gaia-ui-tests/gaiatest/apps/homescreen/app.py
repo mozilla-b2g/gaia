@@ -64,8 +64,6 @@ class Homescreen(Base):
             release().\
             wait(1).\
             perform()
-        # why wait twice?  commented the next line; cause failure to occur.
-        # Wait(self.marionette).until(expected.element_displayed(app))
         # Ensure that edit mode is active
         Wait(self.marionette).until(expected.element_present(
             *self._edit_mode_locator))

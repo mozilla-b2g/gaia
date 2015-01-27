@@ -3,11 +3,11 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import time
-import pdb
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
 from gaiatest.apps.search.app import Search
 from gaiatest.apps.homescreen.regions.collections import Collection
+
 
 class TestBrowserBookmark(GaiaTestCase):
 
@@ -17,7 +17,6 @@ class TestBrowserBookmark(GaiaTestCase):
         GaiaTestCase.setUp(self)
         self.connect_to_local_area_network()
         self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
-        # not sure why the Smart Collection geolocation is being prompted.
         self.apps.set_permission_by_url(Collection.manifest_url, 'geolocation', 'deny')
 
         self.test_url = self.marionette.absolute_url('mozilla.html')
