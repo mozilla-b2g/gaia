@@ -360,6 +360,8 @@ var StatusBar = {
 
       case 'attentionopened':
         this.toggleTimeLabel(true);
+        this.element.classList.add('maximized');
+        this.element.classList.remove('light');
         break;
 
       case 'attentionclosed':
