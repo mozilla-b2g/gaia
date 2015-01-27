@@ -1,12 +1,16 @@
 'use strict';
 
-/* global AppUsageMetrics, MockasyncStorage, MockNavigatorSettings */
+/* global AppUsageMetrics, MockasyncStorage, MockNavigatorSettings,
+          MockSIMSlotManager  */
 
 
 require('/shared/js/settings_listener.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
 requireApp('system/js/app_usage_metrics.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+
+require('/shared/test/unit/mocks/mock_simslot_manager.js');
+require('/shared/test/unit/mocks/mock_simslot.js');
 
 /*
  * This test suite has several sub-suites that verify that:
@@ -19,7 +23,7 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
  *    retries are handled correctly after a transmission failure.
  */
 suite('AppUsageMetrics:', function() {
-  var realMozSettings, realOnLine;
+  var realMozSettings, realOnLine, realSIMSlotManager, realPerformanceNow;
   var isOnLine = true;
 
   function navigatorOnLine() {
@@ -32,8 +36,10 @@ suite('AppUsageMetrics:', function() {
 
   suiteSetup(function() {
     realMozSettings = navigator.mozSettings;
+    realSIMSlotManager = window.SIMSlotManager;
     navigator.mozSettings = MockNavigatorSettings;
     window.asyncStorage = MockasyncStorage;
+    window.SIMSlotManager = MockSIMSlotManager;
 
     navigator.addIdleObserver = function(o) {
       setTimeout(function() {
@@ -49,11 +55,15 @@ suite('AppUsageMetrics:', function() {
       set: setNavigatorOnLine
     });
 
+    realPerformanceNow = window.performance.now;
+    window.performance.now = function() { return Date.now(); };
+
     AppUsageMetrics.DEBUG = false; // Shut up console output in test logs
   });
 
   suiteTeardown(function() {
     navigator.mozSettings = realMozSettings;
+    window.SIMSlotManager = realSIMSlotManager;
     delete window.asyncStorage;
 
     delete navigator.addIdleObserver;
@@ -64,6 +74,8 @@ suite('AppUsageMetrics:', function() {
     } else {
       delete navigator.onLine;
     }
+
+    window.performance.now = realPerformanceNow;
   });
 
   /*
@@ -203,6 +215,11 @@ suite('AppUsageMetrics:', function() {
         done(assert.deepEqual(data1.data, data2.data));
       });
     });
+
+    test('getDayKey', function() {
+      var data = new UsageData();
+      assert.equal(data.getDayKey(new Date(2015, 0, 12)), '20150112');
+    });
   });
 
   /*
@@ -214,7 +231,6 @@ suite('AppUsageMetrics:', function() {
   suite('event handling:', function() {
     var aum;
     var realSettingsListener;
-    var realPerformanceNow;
     var installSpy, uninstallSpy, invocationSpy, activitySpy;
     var clock;
 
@@ -226,8 +242,6 @@ suite('AppUsageMetrics:', function() {
         unobserve: function() {}
       };
 
-      realPerformanceNow = window.performance.now;
-      window.performance.now = function() { return Date.now(); };
 
       // Monitor UsageData calls
       var proto = AppUsageMetrics.UsageData.prototype;
@@ -249,7 +263,6 @@ suite('AppUsageMetrics:', function() {
 
     teardown(function() {
       window.SettingsListener = realSettingsListener;
-      window.performance.now = realPerformanceNow;
       aum.stop();
     });
 
@@ -632,13 +645,15 @@ suite('AppUsageMetrics:', function() {
    * Test that we properly transmit the metrics we've collected.
    */
   suite('Metrics transmission', function() {
-    var aum, clock, XHR, xhr, transmit;
+    var aum, clock, XHR, xhr, transmit, mockSettings;
 
     setup(function(done) {
       // Use fakes
       clock = this.sinon.useFakeTimers();
       XHR = sinon.useFakeXMLHttpRequest();
       XHR.onCreate = function(instance) { xhr = instance; };
+
+      mockSettings = MockNavigatorSettings.mSettings;
 
       // Create an AUM instance
       aum = new AppUsageMetrics();
@@ -734,6 +749,10 @@ suite('AppUsageMetrics:', function() {
 
     test('transmit sends correct data', function() {
       // Record some data
+      mockSettings['deviceinfo.hardware'] = 'hardware';
+      mockSettings['developer.menu.enabled'] = 'true';
+      mockSettings['deviceinfo.product_model'] = 'model';
+
       var metrics = aum.metrics;
       metrics.recordInstall('app1');
       metrics.recordUninstall('app2');
@@ -757,6 +776,17 @@ suite('AppUsageMetrics:', function() {
       var payload = JSON.parse(xhr.requestBody);
       assert.ok(payload);
       assert.deepEqual(payload.apps, metrics.data.apps);
+
+      var apps = ['app1', 'app2', 'app3', 'homescreen'];
+      var dayKey = metrics.getDayKey(sendTime);
+      apps.forEach(function(app) {
+        assert.ok(app in payload.apps);
+
+        var keys = Object.keys(payload.apps[app]);
+        assert.equal(keys.length, 1);
+        assert.equal(keys[0], dayKey);
+      });
+
       assert.equal(payload.start, metrics.data.start);
       assert.equal(payload.stop, sendTime);
       assert.equal(payload.deviceID, aum.deviceID);
@@ -764,10 +794,16 @@ suite('AppUsageMetrics:', function() {
       assert.equal(payload.screen.width, screen.width);
       assert.equal(payload.screen.height, screen.height);
       assert.equal(payload.screen.devicePixelRatio, window.devicePixelRatio);
-      assert.ok('deviceinfo.update_channel' in payload.deviceinfo);
-      assert.ok('deviceinfo.platform_version' in payload.deviceinfo);
-      assert.ok('deviceinfo.platform_build_id' in payload.deviceinfo);
-      assert.ok('developer.menu.enabled' in payload.deviceinfo);
+
+      var deviceinfo = payload.deviceinfo;
+      assert.equal(deviceinfo['developer.menu.enabled'], 'true');
+      assert.equal(deviceinfo['deviceinfo.hardware'], 'hardware');
+      assert.equal(deviceinfo['deviceinfo.product_model'], 'model');
+      assert.equal(deviceinfo['deviceinfo.os'], 'unknown');
+      assert.equal(deviceinfo['deviceinfo.platform_build_id'], 'unknown');
+      assert.equal(deviceinfo['deviceinfo.platform_version'], 'unknown');
+      assert.equal(deviceinfo['deviceinfo.software'], 'unknown');
+      assert.equal(deviceinfo['deviceinfo.update_channel'], 'unknown');
 
       // Make sure we're recording a new batch of metrics
       assert.notEqual(metrics, aum.metrics);
