@@ -1,6 +1,5 @@
-'use strict';
-
 /* global WifiHelper */
+'use strict';
 
 require('/shared/js/wifi_helper.js');
 
@@ -89,7 +88,7 @@ suite('WifiHelper', function() {
         }
       };
       // Force to use our mozWifiManager instead of the stub of desktop-helper
-      WifiHelper.wifiManager = navigator.mozWifiManager;
+      WifiHelper.wifiManager = function() { return navigator.mozWifiManager;};
     });
 
     suiteTeardown(function() {
