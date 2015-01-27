@@ -7,8 +7,16 @@ define(function(require) {
   'use strict';
 
   var APIVersionDetector = require('modules/bluetooth/version_detector');
-  
+
   var APIVersion = APIVersionDetector.getVersion();
+
+  var _debug = false;
+  var Debug = function bti_debug(msg) {
+    if (_debug) {
+      console.log('--> [BluetoothItem]: ' + msg);
+    }
+  };
+
   /**
    * @alias module:panels/root/bluetooth_item
    * @class BluetoothItem
@@ -60,6 +68,7 @@ define(function(require) {
           if (this._APIVersion() === 1) {
             bluetoothModulePath = 'modules/bluetooth/bluetooth_v1';
           } else if (this._APIVersion() === 2) {
+            Debug('loading.. modules/bluetooth/bluetooth_context');
             bluetoothModulePath = 'modules/bluetooth/bluetooth';
           }
 
@@ -84,6 +93,7 @@ define(function(require) {
       }
 
       this._getBluetooth().then(function(bluetooth) {
+        Debug('Got bluetooth context');
         if (bluetooth.enabled) {
           if (bluetooth.numberOfPairedDevices === 0) {
             element.setAttribute('data-l10n-id', 'bt-status-nopaired');
