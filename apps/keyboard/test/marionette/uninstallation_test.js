@@ -56,10 +56,16 @@ marionette('Show Keyboard App after uninstallation', function() {
   function check3rdPartyIme() {
     // switch back to system
     client.switchToFrame();
-    systemInputMgmt.switchToActiveKeyboardFrame();
+
+
+    // wait for the 2nd keyboard is loaded
+    var inputWindows = systemInputMgmt.inputWindows;
     client.waitFor(function() {
-      return imeTestApp.sendKeyButton.displayed();
+      return (inputWindows.length > 1);
     });
+
+    systemInputMgmt.switchToActiveKeyboardFrame();
+    return imeTestApp.sendKeyButton.displayed();
   }
 
   setup(function() {
@@ -104,14 +110,8 @@ marionette('Show Keyboard App after uninstallation', function() {
   });
 
   test('Should not show IME switching key after uninstallation', function() {
-    client.findElement(Keyboard.Selector.imeSwitchingKey,
-      function(err, element) {
-        // Should not find the IME switching key
-        if (err) {
-          assert.equal(err.name, 'NoSuchElement');
-        } else {
-          assert.ok(false);
-        }
-      });
+    // Since the switching key is gone, we would show ',' on the first page
+    var commaKey = keyboard.getKey(',');
+    assert.ok(commaKey.displayed());
   });
 });
