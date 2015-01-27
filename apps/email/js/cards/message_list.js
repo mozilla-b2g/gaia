@@ -515,11 +515,16 @@ return [
       // Unstar if everything is starred, otherwise star
       this.setAsStarred = !(numStarred && numStarred ===
                             this.selectedMessages.length);
+      mozL10n.setAttributes(this.starBtn,
+        this.setAsStarred ? 'message-star-button' : 'message-unstar-button');
+
       // Mark read if everything is unread, otherwise unread
       this.setAsRead = (hasMessages && numRead === 0);
 
       // Update mark read/unread button to show what action will be taken.
       this.readBtn.classList.toggle('unread', numRead > 0);
+      mozL10n.setAttributes(this.readBtn, numRead > 0 ?
+        'message-mark-unread-button' : 'message-mark-read-button');
 
       // Update disabled state based on if there are selected messages
       this.toolbarEditButtonNames.forEach(function(key) {
