@@ -415,6 +415,7 @@
     <script defer src="js/app_install_cancel_dialog.js"></script>
     <script defer src="js/app_download_cancel_dialog.js"></script>
     <script defer src="js/setup_installed_app_dialog.js"></script>
+    <script defer src="js/ime_layout_dialog.js"></script>
 
     <!-- Edge Gestures -->
     <script defer src="js/stack_manager.js"></script>
@@ -931,32 +932,6 @@
         <menu>
           <button id="updates-viaDataConnection-notnow-button" type="reset" data-l10n-id="notNow">Not Now</button>
           <button id="updates-viaDataConnection-download-button" class="recommend" type="submit" data-l10n-id="download">Download</button>
-        </menu>
-      </form>
-
-      <form id="ime-layout-dialog" class="ime-layout-dialog"
-            data-type="confirm" role="dialog"
-            data-z-index-level="ime-layout-dialog">
-        <section>
-          <h1 data-l10n-id="ime-addkeyboards">Add keyboards</h1>
-          <!-- template for selecting IME layout after 3rd-party keyboard installed -->
-          <div id="ime-list-template" hidden>
-            <!--
-            <li>
-              <a>${displayName}</a>
-              <label class="pack-checkbox ime">
-                <input type="checkbox" name="keyboards" value="${imeName}">
-                <span></span>
-              </label>
-            </li>
-            -->
-          </div>
-          <ul id="ime-list">
-          </ul>
-        </section>
-        <menu data-items="2">
-          <button id="ime-cancel-button" type="button" data-l10n-id="cancel">Cancel</button>
-          <button id="ime-confirm-button" class="recommend" type="button" data-l10n-id="confirm">Confirm</button>
         </menu>
       </form>
 

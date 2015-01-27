@@ -4,7 +4,7 @@
 'use strict';
 
 (function(exports) {
-  var ImeLayoutDialog = function AppInstallDialog(options) {
+  var ImeLayoutDialog = function ImeLayoutDialog(options) {
     this.options = options || {};
     this.render();
     this.publish('created');
@@ -44,8 +44,7 @@
     };
 
     this.elementIds = [
-      'list-template', 'list',
-      'cancel-button', 'confirm-button'
+      'list', 'cancel-button', 'confirm-button'
     ];
 
     this.elementIds.forEach(function createElementRef(id) {
@@ -55,25 +54,13 @@
   };
 
   ImeLayoutDialog.prototype.view = function appid_view() {
-    return `<form id="${this.instanceID}"
+    return `<form id="${this.instanceID}" class="generic-dialog" 
             data-type="confirm" role="dialog"
             data-z-index-level="ime-layout-dialog" hidden>
               <section>
                 <h1 data-l10n-id="ime-addkeyboards">Add keyboards</h1>
                 <!-- template for selecting IME layout
                 after 3rd-party keyboard installed -->
-                <div id="ime-list-template" hidden>
-                  <!--
-                  <li>
-                    <a>${displayName}</a>
-                    <label class="pack-checkbox ime">
-                      <input type="checkbox" name="keyboards"
-                      value="${imeName}">
-                      <span></span>
-                    </label>
-                  </li>
-                  -->
-                </div>
                 <ul id="ime-list"></ul>
               </section>
               <menu data-items="2">
@@ -87,6 +74,22 @@
                 </button>
               </menu>
             </form>`;
+  };
+
+  ImeLayoutDialog.prototype.renderList = function appid_renderList(names) {
+    // build the list of keyboard layouts
+    var listHtml = '';
+    var imeLayoutDialog = this.imeLayoutDialog;
+    names.forEach(function(name) {
+      listHtml += `<li>
+                     <a>${name.displayName}</a>
+                     <label class="pack-checkbox ime">
+                       <input type="checkbox" name="keyboards" value="${name.name}">
+                       <span></span>
+                     </label>
+                   </li>`;
+    });
+    this.elements.list.innerHTML = listHtml;
   };
 
   ImeLayoutDialog.prototype.getView = function appid_getView() {

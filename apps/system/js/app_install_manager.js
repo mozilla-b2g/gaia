@@ -2,6 +2,9 @@
 /* global BaseModule */
 /* global AppInstallDialog */
 /* global AppInstallCancelDialog */
+/* global AppDownloadCancelDialog */
+/* global SetupInstalledAppDialog */
+/* global ImeLayoutDialog */
 /* global ConfirmDialogHelper */
 /* global FtuLauncher */
 /* global KeyboardHelper */
@@ -11,7 +14,6 @@
 /* global NotificationScreen */
 /* global StatusBar */
 /* global SystemBanner */
-/* global Template */
 /* global UtilityTray */
 /* global applications */
 
@@ -22,7 +24,6 @@
   };
 
   AppInstallManager.IMPORTS = [
-    'shared/js/template.js',
     'shared/js/homescreens/confirm_dialog_helper.js'
   ];
 
@@ -47,12 +48,7 @@
       this.installCancelDialog = new AppInstallCancelDialog();
       this.downloadCancelDialog = new AppDownloadCancelDialog();
       this.setupInstalledAppDialog = new SetupInstalledAppDialog();
-
-      this.imeLayoutDialog = document.getElementById('ime-layout-dialog');
-      this.imeListTemplate = document.getElementById('ime-list-template');
-      this.imeList = document.getElementById('ime-list');
-      this.imeCancelButton = document.getElementById('ime-cancel-button');
-      this.imeConfirmButton = document.getElementById('ime-confirm-button');     
+      this.imeLayoutDialog = new ImeLayoutDialog();     
 
       this.notifContainer =
               document.getElementById('install-manager-notification-container');
@@ -96,8 +92,10 @@
       this.setupInstalledAppDialog.elements.confirmButton.onclick =
         this.handleSetupConfirmAction.bind(this);
 
-      this.imeCancelButton.onclick = this.hideIMEList.bind(this);
-      this.imeConfirmButton.onclick = this.handleImeConfirmAction.bind(this);
+      this.imeLayoutDialog.elements.cancelButton.onclick =
+        this.hideIMEList.bind(this);
+      this.imeLayoutDialog.elements.confirmButton.onclick =
+        this.handleImeConfirmAction.bind(this);
 
       // bind these handlers so that we can have only one instance and check
       // them later on
@@ -125,7 +123,7 @@
       }
 
       // hide IME layout list if presented
-      if (this.imeLayoutDialog.classList.contains('visible')) {
+      if (!this.imeLayoutDialog.element.hidden) {
         this.hideIMEList();
       }
     },
@@ -395,30 +393,26 @@
         return;
       }
 
-      // build the list of keyboard layouts
-      var listHtml = '';
-      var imeListWrap = Template(this.imeListTemplate);
+      var names = [];
       for (var name in inputs) {
-        var displayIMEName = new ManifestHelper(inputs[name]).name;
-        listHtml += imeListWrap.interpolate({
-          imeName: name,
-          displayName: displayIMEName
-        });
+        var displayName = new ManifestHelper(inputs[name]).name;
+        names.push({ name: name, displayName: displayName });
       }
-      // keeping li template
-      this.imeList.innerHTML = listHtml;
-      this.imeLayoutDialog.classList.add('visible');
+      this.imeLayoutDialog.renderList(names);
+      this.imeLayoutDialog.show();
     },
 
     hideIMEList: function ai_hideIMEList() {
-      this.imeLayoutDialog.classList.remove('visible');
-      this.imeList.innerHTML = '';
+      var imeLayoutDialog = this.imeLayoutDialog;
+      imeLayoutDialog.hide();
+      imeLayoutDialog.elements.list.innerHTML = '';
       this.completedSetupTask();
     },
 
     handleImeConfirmAction: function ai_handleImeConfirmAction() {
       var manifestURL = this.setupQueue[0].manifestURL;
-      var keyboards = this.imeList.getElementsByTagName('input');
+      var keyboards =
+        this.imeLayoutDialog.elements.list.getElementsByTagName('input');
       for (var i = 0, l = keyboards.length; i < l; i++) {
         var keyboardIME = keyboards[i];
         if (keyboardIME.checked) {
