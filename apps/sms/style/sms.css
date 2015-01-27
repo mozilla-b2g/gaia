@@ -870,18 +870,6 @@ section[role="region"].new .article-list[data-type="list"]  li {
   pointer-events: none;
 }
 
-.thread-participant-count {
-  display: none;
-}
-
-/**
- * In RTL mode location of this counter should be changed accordingly, but
- * indicator itself (eg. "(+3)") should be always LTR
- */
-.thread-group-header > .thread-participant-count {
-  display: unset;
-}
-
 .subheader {
   position: absolute;
   z-index: 6; /* should be between 4 and 9 (inclusive). 3 is the z-index for

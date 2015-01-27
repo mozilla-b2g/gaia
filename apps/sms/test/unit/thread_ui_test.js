@@ -4361,8 +4361,81 @@ suite('thread_ui.js >', function() {
     });
 
     suite('updateHeaderData', function() {
-      test('returns a promise that is eventually resolved', function(done) {
-        ThreadUI.updateHeaderData().then(done, done);
+      var fakeContactOne, fakeContactTwo;
+      setup(function() {
+        fakeContactOne = {
+          name: ['TestName'],
+          tel: [{ value: '+1111' }]
+        };
+
+        fakeContactTwo = {
+          name: ['TestName#2'],
+          tel: [{ value: '+2222' }]
+        };
+
+        this.sinon.spy(navigator.mozL10n, 'setAttributes');
+
+        this.sinon.stub(Contacts, 'findByAddress');
+        Contacts.findByAddress.withArgs('+1111').yields(fakeContactOne);
+        Contacts.findByAddress.withArgs('+2222').yields(fakeContactTwo);
+
+        this.sinon.spy(ThreadUI, 'updateCarrier');
+
+        Threads.set(1, {
+          participants: ['+1111']
+        });
+
+        Threads.set(2, {
+          participants: ['+2222', '+1111', '+3333']
+        });
+      });
+
+      test('does not update anything if there is no active thread',
+      function(done) {
+        Threads.currentId = 0;
+
+        ThreadUI.updateHeaderData().then(() => {
+          sinon.assert.notCalled(Contacts.findByAddress);
+          sinon.assert.notCalled(ThreadUI.updateCarrier);
+        }).then(done, done);
+      });
+
+      test('updates header for single-participant thread', function(done) {
+        Threads.currentId = 1;
+
+        ThreadUI.updateHeaderData().then(() => {
+          assert.equal(headerText.dataset.number, '+1111');
+          assert.equal(headerText.dataset.isContact, 'true');
+          assert.equal(headerText.dataset.title, fakeContactOne.name[0]);
+          assert.equal(
+            headerText.innerHTML, '<bdi>' + fakeContactOne.name[0] + '</bdi>'
+          );
+          assert.isFalse(headerText.hasAttribute('data-l10n-id'));
+
+          sinon.assert.calledWith(
+            ThreadUI.updateCarrier, Threads.get(1), fakeContactOne
+          );
+        }).then(done, done);
+      });
+
+      test('updates header for multi-participant thread', function(done) {
+        Threads.currentId = 2;
+
+        ThreadUI.updateHeaderData().then(() => {
+          assert.equal(headerText.dataset.number, '+2222');
+          assert.equal(headerText.dataset.isContact, 'true');
+          assert.equal(headerText.dataset.title, fakeContactTwo.name[0]);
+          assert.equal(
+            headerText.innerHTML,
+            '<bdi>' + fakeContactTwo.name[0] + '</bdi><bdi dir="ltr"> (+' +
+              (Threads.active.participants.length - 1) + ')</bdi>'
+          );
+          assert.isFalse(headerText.hasAttribute('data-l10n-id'));
+
+          sinon.assert.calledWith(
+            ThreadUI.updateCarrier, Threads.get(2), fakeContactTwo
+          );
+        }).then(done, done);
       });
     });
 
@@ -4495,20 +4568,44 @@ suite('thread_ui.js >', function() {
     });
 
     suite('setHeaderContent', function() {
-      test('Removes l10n attributes if content is HTML', function() {
+      setup(function() {
+        this.sinon.spy(navigator.mozL10n, 'setAttributes');
+      });
+
+      test('Correctly sets HTML string', function() {
         headerText.textContent = 'Header';
         headerText.setAttribute('data-l10n-id', 'header-id');
-        headerText.setAttribute('data-l10n-args', '{ args: "header-args" }');
 
-        ThreadUI.setHeaderContent('<bdi>BiDi Header</bdi>');
+        ThreadUI.setHeaderContent({ html: '<bdi>BiDi Header</bdi>' });
 
         assert.equal(headerText.innerHTML, '<bdi>BiDi Header</bdi>');
         assert.isFalse(headerText.hasAttribute('data-l10n-id'));
-        assert.isFalse(headerText.hasAttribute('data-l10n-args'));
       });
 
-      test('Removes nested HTML if content is l10n attributes', function() {
-        this.sinon.spy(navigator.mozL10n, 'setAttributes');
+      test('Correctly sets localizable string', function() {
+        headerText.innerHTML = '<bdi>BiDi Header</bdi>';
+
+        ThreadUI.setHeaderContent('header-l10n-id');
+
+        assert.equal(headerText.innerHTML, '');
+        assert.equal(headerText.getAttribute('data-l10n-id'), 'header-l10n-id');
+
+        // If previous header content isn't HTML then content isn't manually
+        // cleared, but rather left for l10n lib to update it
+        headerText.textContent = 'Header';
+
+        ThreadUI.setHeaderContent('other-header-l10n-id');
+
+        assert.equal(headerText.innerHTML, 'Header');
+        sinon.assert.calledWithExactly(
+          navigator.mozL10n.setAttributes,
+          headerText,
+          'other-header-l10n-id',
+          undefined
+        );
+      });
+
+      test('Correctly sets localizable string with arguments', function() {
         headerText.innerHTML = '<bdi>BiDi Header</bdi>';
 
         ThreadUI.setHeaderContent({
