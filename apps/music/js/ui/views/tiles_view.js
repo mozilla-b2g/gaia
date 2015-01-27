@@ -38,6 +38,7 @@ var TilesView = {
     this.view.addEventListener('input', this);
     this.view.addEventListener('touchend', this);
     this.searchInput.addEventListener('focus', this);
+    this.searchInput.addEventListener('keypress', this);
   },
 
   clean: function tv_clean() {
@@ -209,6 +210,14 @@ var TilesView = {
           SearchView.search(target.value);
         }
 
+        break;
+
+      case 'keypress':
+        if (target.id === 'views-tiles-search-input') {
+          if (evt.keyCode === evt.DOM_VK_RETURN) {
+            evt.preventDefault();
+          }
+        }
         break;
 
       default:
