@@ -316,6 +316,10 @@ suite('Latin en_us worker', function() {
       prediction('sadjasuufehwuefhwejfd', [], next);
     });
 
+    test('$ should not yield autosuggest', function(next) {
+      prediction('$', [], next);
+    });
+
     suite('Capitalization and suggestions', function() {
       test('virgule', function(next) {
         prediction('virgule', ['virgule', 'virgules', 'Virgil'], next);

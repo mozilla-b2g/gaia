@@ -1,9 +1,11 @@
 'use strict';
 
+var Actions = require('marionette-client').Actions;
 var Collection = require('./lib/collection');
 var Home2 = require('./lib/home2');
 var EmeServer = require(
   '../../../../shared/test/integration/eme_server/parent');
+var System = require('../../../../apps/system/test/marionette/lib/system');
 
 marionette('Vertical - Collection Browser', function() {
 
@@ -22,11 +24,11 @@ marionette('Vertical - Collection Browser', function() {
   });
 
   setup(function() {
-    actions = client.loader.getActions();
+    actions = new Actions(client);
     selectors = Collection.Selectors;
     collection = new Collection(client);
-    home = client.loader.getAppClass('verticalhome');
-    system = client.loader.getAppClass('system');
+    home = new Home2(client);
+    system = new System(client);
     system.waitForStartup();
 
     home.waitForLaunch();
@@ -42,7 +44,7 @@ marionette('Vertical - Collection Browser', function() {
     // A collection name from the cateories_list.json stub
     var collectionName = 'Around Me';
     collection.selectNew(collectionName);
-    client.apps.switchToApp(home.URL);
+    client.apps.switchToApp(Home2.URL);
 
     // Drag the 'Browser' application into the created collection.
     var browserIcon = home.getIcon(browserManifest);
@@ -61,7 +63,7 @@ marionette('Vertical - Collection Browser', function() {
       .perform();
 
     // Exit edit mode.
-    var done = client.helper.waitForElement(home.Selectors.editHeaderDone);
+    var done = client.helper.waitForElement(Home2.Selectors.editHeaderDone);
     done.click();
 
     // Enter the created collection.

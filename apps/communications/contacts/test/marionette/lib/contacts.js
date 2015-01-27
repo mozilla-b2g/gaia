@@ -55,9 +55,11 @@ Contacts.Selectors = {
   formFamilyName: '#familyName',
   formSave: '#save-button',
   formTel: '#contacts-form-phones input[type="tel"]',
+  formDelFirstTel: '#add-phone-0 .img-delete-button',
   formTelLabelFirst: '#tel_type_0',
   formTelNumberSecond: '#number_1',
   formEmailFirst: '#email_0',
+  formAddNewTel: '#add-new-phone',
 
   groupList: ' #groups-list',
   list: '#view-contacts-list',
@@ -139,6 +141,15 @@ Contacts.prototype = {
       size().height;
     var test = function() {
       return element.location().y >= bodyHeight;
+    };
+    this.client.waitFor(test);
+  },
+
+  waitForFadeIn: function(element) {
+    var test = function() {
+      var opacity = element.cssProperty('opacity');
+      var pointerEvents = element.cssProperty('pointer-events');
+      return opacity == 1 && pointerEvents == 'auto';
     };
     this.client.waitFor(test);
   },

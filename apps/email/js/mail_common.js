@@ -1355,6 +1355,7 @@ FormNavigation.prototype = {
 function displaySubject(subjectNode, message) {
   var subject = message.subject && message.subject.trim();
   if (subject) {
+    subjectNode.removeAttribute('data-l10n-id');
     subjectNode.textContent = subject;
     subjectNode.classList.remove('msg-no-subject');
   }

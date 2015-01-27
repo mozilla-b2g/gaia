@@ -1,3 +1,5 @@
+/* globals BrowserFrame */
+
 'use strict';
 
 /* Unit test of browser_frame.js */
@@ -17,14 +19,13 @@ suite('browser class > ', function() {
       assert.equal(b.element.getAttribute('mozapptype'), 'critical');
     });
 
-    test('mozapptype: dialer', function() {
+    test('mozapptype: callscreen', function() {
       var port = '';
       if (window.location.port !== '') {
         port = ':' + window.location.port;
       }
       var b = new BrowserFrame({
-        url: window.location.protocol + '//' +
-            'communications.gaiamobile.org' + port + '/dialer'
+        url: window.location.protocol + '//' + 'callscreen.gaiamobile.org'
       });
       assert.equal(b.element.getAttribute('mozapptype'), 'critical');
     });

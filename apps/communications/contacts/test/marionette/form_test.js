@@ -213,4 +213,50 @@ marionette('Contacts > Form', function() {
                fbContactData.email[0].value);
       });
   });
+
+  suite('> Addind and removing', function() {
+    test('Template ids unique', function() {
+      var data = {
+        givenName: ['John'],
+        familyName: ['Doe'],
+        tel: ['1111111']
+      };
+
+      subject.addContact(data);
+
+      // Edit again first contact
+      client.helper.waitForElement(selectors.listContactFirstText).click();
+
+      subject.waitSlideLeft('details');
+
+      client.helper.waitForElement(selectors.detailsEditContact)
+      .click();
+
+      subject.waitForFormShown();
+
+      client.helper.waitForElement(selectors.formAddNewTel).click();
+      client.helper.waitForElement('#number_1').sendKeys('222222');
+
+      client.findElement(selectors.formSave).click();
+
+      subject.waitForFormTransition();
+
+      // Go back to the edit form
+      client.helper.waitForElement(selectors.detailsEditContact).click();
+
+      subject.waitForFormShown();
+
+
+      // Delete the first phone and click on add a new phone
+      client.helper.waitForElement(selectors.formDelFirstTel).click();
+      client.helper.waitForElement(selectors.formAddNewTel).click();
+      client.helper.waitForElement(selectors.formSave).click();
+
+      subject.waitForFadeIn(client.helper.waitForElement(selectors.details));
+
+      var phoneList = client.findElements(selectors.formTel);
+      assert.equal(phoneList.length, 2);
+      assert.equal(phoneList[1].getAttribute('id'), 'number_2');
+    });
+  });
 });
