@@ -3,6 +3,11 @@
 /* global Worker */
 
 suite('Latin en_us worker', function() {
+
+  // Disabled bug 1126012
+  /* jshint -W027 */
+  return;
+
   var worker;
   suiteSetup(function(next) {
     worker = new Worker('../../js/worker.js');
