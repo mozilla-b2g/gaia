@@ -111,9 +111,7 @@ var Dialog = function(params) {
       form.focus();
     }
 
-    // If we add a class, the animation will not be perform properly.
-    // see Bug 1095338 for further information
-    document.body.style.pointerEvents = 'initial';
+    document.body.classList.remove('dialog-animating');
   });
 
   menu.addEventListener('click', function(event) {
@@ -148,9 +146,7 @@ Dialog.prototype.show = function() {
     this.form.clientTop;
   }
   this.form.classList.add('visible');
-  // If we add a class, the animation will not be perform properly.
-  // see Bug 1095338 for further information
-  document.body.style.pointerEvents = 'none';
+  document.body.classList.add('dialog-animating');
 };
 
 Dialog.prototype.hide = function() {

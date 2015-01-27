@@ -268,12 +268,12 @@ suite('Dialog', function() {
     var dialog = new Dialog(params);
     // We append the element to the DOM
     dialog.show();
-    assert.equal(document.body.style.pointerEvents, 'none');
+    assert.isTrue(document.body.classList.contains('dialog-animating'));
     var transitionend = new TransitionEvent('transitionend', {
       bubbles: true,
       propertyName: 'transform'
     });
     dialog.form.dispatchEvent(transitionend);
-    assert.equal(document.body.style.pointerEvents, 'initial');
+    assert.isFalse(document.body.classList.contains('dialog-animating'));
   });
 });
