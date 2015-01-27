@@ -78,8 +78,10 @@ function Commander(cmd) {
     //      pattern inside each script or find a sync module which doesn't
     //      require recompile again since TPBL doesn't support that.
     sh(cmds, function(err, stdout, stderr) {
-      if (err === null && typeof callback === 'function') {
-        callback(stdout);
+      if (err === null) {
+        callback && callback(0);
+      } else {
+        callback && callback(1);
       }
       q.resolve();
     });
