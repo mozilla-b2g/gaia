@@ -8,6 +8,7 @@ var calendarObserver = require('calendar_observer');
 var debug = require('debug')('views/advanced_settings');
 var forEach = require('object').forEach;
 var providerFactory = require('provider/provider_factory');
+var settingsObserver = require('settings_observer');
 var template = require('templates/account');
 
 require('dom!advanced-settings-view');
@@ -17,7 +18,6 @@ var ACCOUNT_PREFIX = 'account-';
 function AdvancedSettings(options) {
   View.apply(this, arguments);
 
-  this._loadingCalendarList = true;
   this._addAccount = this._addAccount.bind(this);
   this._updateAccount = this._updateAccount.bind(this);
   this._removeAccount = this._removeAccount.bind(this);
@@ -100,8 +100,8 @@ AdvancedSettings.prototype = {
     account.on('update', this._updateAccount);
     account.on('preRemove', this._removeAccount);
     setting.on('syncFrequencyChange', this);
-    setting.on('defaultCalendarChange', this);
     calendarObserver.on('change', this._renderCalendarSelect);
+    settingsObserver.on('defaultCalendar', this._renderCalendarSelect);
     this.createAccountButton.addEventListener('click', this.onCreateAccount);
     this.syncFrequency.addEventListener('change', this);
     this.defaultCalendar.addEventListener('change', this);
@@ -111,9 +111,6 @@ AdvancedSettings.prototype = {
 
   handleSettingDbChange: function(type, value) {
     switch (type) {
-      case 'defaultCalendarChange':
-        // TODO(gareth)
-        break;
       case 'syncFrequencyChange':
         this.syncFrequency.value = String(value);
         break;
@@ -205,46 +202,43 @@ AdvancedSettings.prototype = {
   },
 
   onfirstseen: function() {
-    if (this._loadingCalendarList) {
-      this.defaultCalendar.classList.add(this.LOADING);
-    }
+    this.render();
   },
 
-  _renderCalendarSelect: function(calendarList) {
+  _renderCalendarSelect: function() {
     // TODO(gareth): This method is mostly shared with
-    //     views/modify_event. Should consolidate somehow.
-    var setting = this.app.store('Setting');
-    setting.getValue('defaultCalendar', defaultCalendar => {
-      var element = this.defaultCalendar;
-      element.innerHTML = '';
-      forEach(calendarList, (id, object) => {
-        var calendar = object.calendar;
-        var capabilities = object.capabilities;
-        if (!calendar.localDisplayed || !capabilities.canCreateEvent) {
-          return;
-        }
+    //     views/modify_event. Should consolidate somehow...
+    var calendarList = calendarObserver.calendarList;
+    var defaultCalendar = settingsObserver.setting.defaultCalendar;
 
-        var l10n = navigator.mozL10n;
-        var option = document.createElement('option');
-        if (id === Local.calendarId) {
-          option.text = l10n.get('calendar-local');
-          option.setAttribute('data-l10n-id', 'calendar-local');
-        } else {
-          option.text = calendar.remote.name;
-        }
+    if (!Object.keys(calendarList).length) {
+      return;
+    }
 
-        option.value = id;
-        if (defaultCalendar != null) {
-          option.selected = (defaultCalendar === id);
-        }
+    var element = this.defaultCalendar;
+    element.innerHTML = '';
+    forEach(calendarList, (id, object) => {
+      var calendar = object.calendar;
+      var capabilities = object.capabilities;
+      if (!calendar.localDisplayed || !capabilities.canCreateEvent) {
+        return;
+      }
 
-        element.add(option);
+      var l10n = navigator.mozL10n;
+      var option = document.createElement('option');
+      if (id === Local.calendarId) {
+        option.text = l10n.get('calendar-local');
+        option.setAttribute('data-l10n-id', 'calendar-local');
+      } else {
+        option.text = calendar.remote.name;
+      }
 
-        if (this._loadingCalendarList) {
-          this._loadingCalendarList = false;
-          this.defaultCalendar.classList.add(this.LOADING);
-        }
-      });
+      option.value = id;
+      if (defaultCalendar != null) {
+        option.selected = (defaultCalendar === id);
+      }
+
+      element.add(option);
     });
   },
 
@@ -309,9 +303,6 @@ AdvancedSettings.prototype = {
     settings.getValue('alldayAlarmDefault', renderAlarmDefault('allday'));
     accounts.all(renderAccounts);
   }
-
 };
-
-AdvancedSettings.prototype.onfirstseen = AdvancedSettings.prototype.render;
 
 });

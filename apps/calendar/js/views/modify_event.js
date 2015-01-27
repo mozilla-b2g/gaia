@@ -11,11 +11,11 @@ var dateFormat = require('date_format');
 var debug = require('debug')('views/modify_event');
 var forEach = require('object').forEach;
 var getTimeL10nLabel = require('calc').getTimeL10nLabel;
+var settingsObserver = require('settings_observer');
 
 require('dom!modify-event-view');
 
 function ModifyEvent(options) {
-  this._loadingCalendarList = true;
   this.deleteRecord = this.deleteRecord.bind(this);
   this._renderCalendarSelect = this._renderCalendarSelect.bind(this);
   this._toggleAllDay = this._toggleAllDay.bind(this);
@@ -56,14 +56,7 @@ ModifyEvent.prototype = {
     EventBase.prototype._initEvents.apply(this, arguments);
 
     calendarObserver.on('change', this._renderCalendarSelect);
-
-    // TODO(gareth): Clean this up when with a settingsObserver...
-    debug('Will listen to settings for change to defaultCalendar.');
-    var settings = this.app.store('Setting');
-    settings.on('defaultCalendarChange', () => {
-      debug('Noticed change to default calendar!');
-      this._renderCalendarSelect(calendarObserver.calendarList);
-    });
+    settingsObserver.on('defaultCalendar', this._renderCalendarSelect);
 
     this.deleteButton.addEventListener('click', this.deleteRecord);
     this.form.addEventListener('click', this.focusHandler);
@@ -136,46 +129,41 @@ ModifyEvent.prototype = {
       return !!this.provider;
   },
 
-  onfirstseen: function() {
-    if (this._loadingCalendarList) {
-      this.getEl('calendarId').classList.add(this.LOADING);
+  _renderCalendarSelect: function() {
+    debug('Will re-render calendar select.');
+    var calendarList = calendarObserver.calendarList;
+    var defaultCalendar = settingsObserver.setting.defaultCalendar;
+
+    if (!Object.keys(calendarList).length) {
+      return;
     }
-  },
 
-  _renderCalendarSelect: function(calendarList) {
-    var setting = this.app.store('Setting');
-    setting.getValue('defaultCalendar').then(defaultCalendar => {
-      debug('Will render calendar select with default value', defaultCalendar);
-      var element = this.getEl('calendarId');
-      element.innerHTML = '';
-      forEach(calendarList, (id, object) => {
-        var calendar = object.calendar;
-        var capabilities = object.capabilities;
-        if (!calendar.localDisplayed || !capabilities.canCreateEvent) {
-          return;
-        }
+    var element = this.getEl('calendarId');
+    element.innerHTML = '';
+    forEach(calendarList, (id, object) => {
+      var calendar = object.calendar;
+      var capabilities = object.capabilities;
+      if (!calendar.localDisplayed || !capabilities.canCreateEvent) {
+        return;
+      }
 
-        var l10n = navigator.mozL10n;
-        var option = document.createElement('option');
-        if (id === Local.calendarId) {
-          option.text = l10n.get('calendar-local');
-          option.setAttribute('data-l10n-id', 'calendar-local');
-        } else {
-          option.text = calendar.remote.name;
-        }
+      var l10n = navigator.mozL10n;
+      var option = document.createElement('option');
+      if (id === Local.calendarId) {
+        option.text = l10n.get('calendar-local');
+        option.setAttribute('data-l10n-id', 'calendar-local');
+      } else {
+        option.text = calendar.remote.name;
+      }
 
-        option.value = id;
-        if (defaultCalendar != null) {
-          option.selected = (defaultCalendar === id);
-        }
+      option.value = id;
+      option.value = id;
+      if (defaultCalendar != null) {
+        option.selected = (defaultCalendar === id);
+      }
 
-        element.add(option);
-
-        if (this._loadingCalendarList) {
-          this._loadingCalendarList = false;
-          this.getEl('calendarId').classList.remove(this.LOADING);
-        }
-      });
+      element.add(option);
+      this.getEl('calendarId').classList.remove(this.LOADING);
     });
   },
 
@@ -555,7 +543,8 @@ ModifyEvent.prototype = {
     this.getEl('description').textContent = model.description;
 
     // update calendar id
-    this.getEl('calendarId').value = model.calendarId;
+    this.getEl('calendarId').value =
+      model.calendarId || settingsObserver.setting.defaultCalendar;
 
     // calendar display
     var currentCalendar = this.getEl('currentCalendar');

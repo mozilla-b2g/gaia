@@ -22,6 +22,7 @@ var periodicSyncController = require('controllers/periodic_sync');
 var page = require('ext/page');
 var performance = require('performance');
 var providerFactory = require('provider/provider_factory');
+var settingsObserver = require('settings_observer');
 var snakeCase = require('snake_case');
 
 var pendingClass = 'pending-operation';
@@ -86,6 +87,7 @@ module.exports = {
     dayObserver.eventStore = this.store('Event');
     dayObserver.syncController = this.syncController;
     dayObserver.timeController = this.timeController;
+    settingsObserver.settingsStore = this.store('Setting');
 
     // observe sync events
     this.observePendingObject(this.syncController);
@@ -354,6 +356,7 @@ module.exports = {
       this.store('Calendar').all(() => {
         dayObserver.init();
         calendarObserver.init();
+        settingsObserver.init();
       });
 
       // we init the UI after the db.load to increase perceived performance

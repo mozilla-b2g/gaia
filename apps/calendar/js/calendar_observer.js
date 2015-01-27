@@ -17,9 +17,9 @@ observer.calendarList = null;
 observer.init = function() {
   this.calendarList = {};
   this._cacheCalendar = this._cacheCalendar.bind(this);
+  this._purgeCalendar = this._purgeCalendar.bind(this);
   this.calendarStore.on('add', this._cacheCalendar);
   this.calendarStore.on('update', this._cacheCalendar);
-  this._purgeCalendar = this._purgeCalendar.bind(this);
   this.calendarStore.on('remove', this._purgeCalendar);
   this.calendarStore.all().then(calendars => {
     forEach(calendars, this._cacheCalendar);
@@ -51,7 +51,6 @@ observer.on('newListener',  (event, listener) => {
     return;
   }
 
-  debug('New change listener!');
   nextTick(() => {
     var calendars = observer.calendarList;
     if (calendars && Object.keys(calendars).length) {
