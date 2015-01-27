@@ -1,5 +1,6 @@
 /* global SettingsListener, Service */
-/* exported Bluetooth */
+/* exported Bluetooth1 */
+(function(exports) {
 'use strict';
 
 var Bluetooth = {
@@ -242,3 +243,6 @@ var Bluetooth = {
     return window.navigator.mozBluetooth.enabled;
   }
 };
+
+  exports.Bluetooth1 = Bluetooth;
+})(window);

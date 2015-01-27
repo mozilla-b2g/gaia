@@ -6,6 +6,7 @@
 /* globals BluetoothTransfer, NDEFUtils, NfcConnectSystemDialog,
            NDEF, NfcUtils, NotificationHelper, SettingsListener */
 /* exported NfcHandoverManager */
+(function(exports) {
 'use strict';
 
 /**
@@ -700,3 +701,5 @@ var NfcHandoverManager = {
   }
 };
 
+  exports.NfcHandoverManager = NfcHandoverManager;
+})(window);

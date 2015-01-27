@@ -1,5 +1,4 @@
-/* global MockMozBluetooth, Bluetooth, BluetoothTransfer,
-   NfcHandoverManager, BaseModule */
+/* global MockMozBluetooth, BaseModule */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_bluetooth.js');
@@ -21,8 +20,8 @@ suite('system/BluetoothCore', function() {
     realMozBluetooth = navigator.mozBluetooth;
     switchReadOnlyProperty(navigator, 'mozBluetooth', MockMozBluetooth);
 
-    window.Bluetooth = { init: function() {} };
-    window.BluetoothTransfer = { init: function() {} };
+    window.Bluetooth1 = { init: function() {} };
+    window.BluetoothTransfer1 = { init: function() {} };
     window.NfcHandoverManager = { init: function() {} };
 
     requireApp('system/js/service.js');
@@ -36,9 +35,9 @@ suite('system/BluetoothCore', function() {
   suite('BluetoothCore API', function() {
     var subject;
     setup(function() {
-      this.sinon.stub(Bluetooth, 'init');
-      this.sinon.stub(BluetoothTransfer, 'init');
-      this.sinon.stub(NfcHandoverManager, 'init');
+      this.sinon.stub(window.Bluetooth1, 'init');
+      this.sinon.stub(window.BluetoothTransfer1, 'init');
+      this.sinon.stub(window.NfcHandoverManager, 'init');
       subject = BaseModule.instantiate('BluetoothCore');
       subject.start();
     });
@@ -48,9 +47,9 @@ suite('system/BluetoothCore', function() {
     });
 
     test('read', function() {
-      assert.ok(Bluetooth.init.called);
-      assert.ok(BluetoothTransfer.init.called);
-      assert.ok(NfcHandoverManager.init.called);
+      assert.ok(window.Bluetooth1.init.called);
+      assert.ok(window.BluetoothTransfer1.init.called);
+      assert.ok(window.NfcHandoverManager.init.called);
     });
   });
 });
