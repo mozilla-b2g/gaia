@@ -153,10 +153,10 @@
 
           // If suggestions are disabled, only use local providers
           if (this.suggestionsEnabled || !provider.remote) {
-
             if (provider.remote) {
               // Do not send full URLs to remote providers
-              if (UrlHelper.isURL(input)) {
+              // or when inside a private browser.
+              if (UrlHelper.isURL(input) || msg.data.isPrivateBrowser) {
                 return;
               }
 

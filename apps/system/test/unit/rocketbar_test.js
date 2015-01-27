@@ -611,6 +611,11 @@ suite('system/Rocketbar', function() {
   });
 
   test('handleInput()', function() {
+    MockService.currentApp = {
+      isPrivateBrowser: function() {
+        return false;
+      }
+    };
     var showResultsStub = this.sinon.stub(subject, 'showResults');
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');
 
@@ -697,6 +702,11 @@ suite('system/Rocketbar', function() {
   });
 
   test('handleSearchMessage()', function() {
+    MockService.currentApp = {
+      isPrivateBrowser: function() {
+        return false;
+      }
+    };
     var initSearchConnectionStub = this.sinon.stub(subject,
       'initSearchConnection');
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');
