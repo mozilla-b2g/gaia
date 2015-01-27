@@ -615,6 +615,7 @@
       this.gridView.element.dispatchEvent(
         new CustomEvent('editmode-start'));
       document.addEventListener('visibilitychange', this);
+      this.container.addEventListener('collection-close', this);
       this.gridView.render();
     },
 
@@ -630,6 +631,7 @@
       document.body.classList.remove('edit-mode');
       this.gridView.element.dispatchEvent(new CustomEvent('editmode-end'));
       document.removeEventListener('visibilitychange', this);
+      this.container.removeEventListener('collection-close', this);
       this.removeDragHandlers();
       this.gridView.render();
     },
@@ -651,6 +653,10 @@
      */
     handleEvent: function(e) {
       switch(e.type) {
+          case 'collection-close':
+            this.exitEditMode();
+            break;
+
           case 'visibilitychange':
             if (document.hidden) {
               this.exitEditMode();
@@ -663,6 +669,12 @@
 
           case 'contextmenu':
             if (this.icon || this.canceled) {
+              return;
+            }
+
+            if (this.gridView._collectionOpen) {
+              e.stopImmediatePropagation();
+              e.preventDefault();
               return;
             }
 
@@ -679,7 +691,7 @@
 
             this.icon = this.gridView.findItemFromElement(e.target, true);
 
-            if (!this.icon || !this.icon.isDraggable() ||
+            if (!this.icon || !this.icon.element || !this.icon.isDraggable() ||
                 this.icon.detail.type === 'placeholder') {
               this.icon = null;
               return;
@@ -688,6 +700,7 @@
             this.target = this.icon.element;
             this.addDragHandlers();
 
+            e.stopImmediatePropagation();
             e.preventDefault();
 
             this.begin(e);

@@ -7,6 +7,11 @@
 
 (function(exports) {
 
+  /* The time for which we'll disable launching other icons after tapping on
+   * an app icon. This will also disable edit mode.
+   */
+  const APP_LAUNCH_TIMEOUT = 3000;
+
   /**
    * GridView is a generic class to render and display a grid of items.
    * @param {Object} config Configuration object containing:
@@ -16,6 +21,8 @@
     this.config = config;
     this.clickIcon = this.clickIcon.bind(this);
     this.onVisibilityChange = this.onVisibilityChange.bind(this);
+    this.onCollectionLaunch = this.onCollectionLaunch.bind(this);
+    this.onCollectionClose = this.onCollectionClose.bind(this);
 
     if (config.features.zoom) {
       this.zoom = new GridZoom(this);
@@ -63,6 +70,11 @@
      * We are in the state of launching an app.
      */
     _launchingApp: false,
+
+    /**
+     * A collection is open
+     */
+    _collectionOpen: false,
 
     /**
      * Adds an item into the items array.
@@ -155,11 +167,19 @@
 
     start: function() {
       this.element.addEventListener('click', this.clickIcon);
+      this.element.addEventListener('collection-launch',
+                                    this.onCollectionLaunch);
+      this.element.addEventListener('collection-close',
+                                    this.onCollectionClose);
       window.addEventListener('visibilitychange', this.onVisibilityChange);
     },
 
     stop: function() {
       this.element.removeEventListener('click', this.clickIcon);
+      this.element.removeEventListener('collection-launch',
+                                       this.onCollectionLaunch);
+      this.element.removeEventListener('collection-close',
+                                       this.onCollectionClose);
       window.removeEventListener('visibilitychange', this.onVisibilityChange);
     },
 
@@ -207,6 +227,14 @@
 
     onVisibilityChange: function() {
       this._launchingApp = false;
+    },
+
+    onCollectionLaunch: function() {
+      this._collectionOpen = true;
+    },
+
+    onCollectionClose: function() {
+      this._collectionOpen = false;
     },
 
     /**
@@ -271,7 +299,7 @@
         this._launchingTimeout = window.setTimeout(function() {
           this._launchingTimeout = null;
           this._launchingApp = false;
-        }.bind(this), 3000);
+        }.bind(this), APP_LAUNCH_TIMEOUT);
       }
 
       icon[action](e.target);
