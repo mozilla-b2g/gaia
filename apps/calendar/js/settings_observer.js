@@ -30,8 +30,7 @@ observer.onNewListener = function(event, listener) {
   if (event in this.pending) {
     // We're already subscribed to the store, but
     // we're also in the process of getting the initial value.
-    // Return a promise that will resolve when we have the first value.
-    return this.pending[event];
+    return;
   }
 
   var store = this.settingsStore;
