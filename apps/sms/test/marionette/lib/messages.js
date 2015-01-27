@@ -9,6 +9,26 @@
     BACKSPACE: '\ue003'
   };
 
+  function observeElementStability(el) {
+    delete el.dataset.__stable;
+
+    function markElementAsStable() {
+      return setTimeout(function() {
+        el.dataset.__stable = 'true';
+        observer.disconnect();
+      }, 1000);
+    }
+
+    var timeout = markElementAsStable();
+    var observer = new MutationObserver(function() {
+      if (timeout) {
+        clearTimeout(timeout);
+        timeout = markElementAsStable();
+      }
+    });
+    observer.observe(el, { childList: true, subtree: true });
+  }
+
   var SELECTORS = Object.freeze({
     main: '#main-wrapper',
 
@@ -17,6 +37,7 @@
     attachmentMenu: '#attachment-options',
 
     Composer: {
+      toField: '#messages-to-field',
       recipientsInput: '#messages-to-field [contenteditable=true]',
       recipient: '#messages-recipients-list .recipient[contenteditable=false]',
       messageInput: '#messages-input',
@@ -66,6 +87,10 @@
         Selectors: SELECTORS,
 
         Composer: {
+          get toField() {
+            return client.helper.waitForElement(SELECTORS.Composer.toField);
+          },
+
           get recipientsInput() {
             return client.helper.waitForElement(
               SELECTORS.Composer.recipientsInput
@@ -237,16 +262,25 @@
               break;
             }
           }
-
-          client.helper.waitForElementToDisappear(menuElement);
         },
 
         addRecipient: function(number) {
           this.Composer.recipientsInput.sendKeys(number + Chars.ENTER);
 
-          client.helper.waitForElement(
-            '#messages-recipients-list .recipient[data-number="' + number + '"]'
-          );
+          // Since recipient.js re-renders recipients all the time (when new
+          // recipient is added or old is removed) and it can happen several
+          // times during single "add" or "remove" operation we should
+          // wait until Recipients View is in a final state. The problem here is
+          // that between "findElement" and "displayed" calls element can
+          // actually be removed from DOM and re-created again that will lead to
+          // "stale element" exception.
+          var toField = this.Composer.toField;
+          toField.scriptWith(observeElementStability);
+          client.helper.waitFor(function() {
+            return toField.scriptWith(function(el) {
+              return !!el.dataset.__stable;
+            });
+          });
         },
 
         clearRecipient: function() {
