@@ -291,6 +291,8 @@ var ListView = {
 
   playWithShuffleAll: function lv_playWithShuffleAll() {
     ModeManager.push(MODE_PLAYER, function() {
+      PlayerView.clean();
+
       musicdb.count('metadata.title', null, function(count) {
         var info = {
           key: 'metadata.title',
@@ -314,6 +316,8 @@ var ListView = {
 
   playWithIndex: function lv_playWithIndex(index) {
     ModeManager.push(MODE_PLAYER, function() {
+      PlayerView.clean();
+
       if (App.pendingPick) {
         PlayerView.setSourceType(TYPE_SINGLE);
       } else {

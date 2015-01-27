@@ -37,6 +37,14 @@ var PlayerView = {
     return document.getElementById('player-audio');
   },
 
+  get foreCoverImage() {
+    return document.querySelector('.cover-image.visible');
+  },
+
+  get backCoverImage() {
+    return document.querySelector('.cover-image:not(.visible)');
+  },
+
   get playStatus() {
     return this._playStatus;
   },
@@ -74,8 +82,7 @@ var PlayerView = {
 
     this.timeoutID;
     this.cover = document.getElementById('player-cover');
-    this.coverImage = document.getElementById('player-cover-image');
-    this.offscreenImage = new Image();
+    this.coverImageURL = null;
     this.shareButton = document.getElementById('player-cover-share');
 
     this.repeatButton = document.getElementById('player-album-repeat');
@@ -168,6 +175,8 @@ var PlayerView = {
 
     this.dataSource = [];
     this.playingBlob = null;
+    this.coverImageURL = null;
+    this.foreCoverImage.style.backgroundImage = '';
   },
 
   setSourceType: function pv_setSourceType(type) {
@@ -242,23 +251,17 @@ var PlayerView = {
   },
 
   setCoverImage: function pv_setCoverImage(fileinfo) {
-    // Reset the image to be ready for fade-in
-    this.offscreenImage.src = '';
-    this.coverImage.classList.remove('fadeIn');
-
     LazyLoader.load('js/metadata/album_art_cache.js', function() {
-      AlbumArtCache.getCoverURL(fileinfo).then(function(url) {
-        this.offscreenImage.addEventListener('load', pv_showImage.bind(this));
-        this.offscreenImage.src = url;
-      }.bind(this));
+      AlbumArtCache.getFullSizeURL(fileinfo).then(function(url) {
+        if (this.coverImageURL !== url) {
+          this.coverImageURL = url;
 
-      function pv_showImage(evt) {
-        /* jshint validthis:true */
-        evt.target.removeEventListener('load', pv_showImage);
-        var url = 'url(' + this.offscreenImage.src + ')';
-        this.coverImage.style.backgroundImage = url;
-        this.coverImage.classList.add('fadeIn');
-      }
+          var back = this.backCoverImage, fore = this.foreCoverImage;
+          back.style.backgroundImage = 'url(' + url + ')';
+          back.classList.add('visible');
+          fore.classList.remove('visible');
+        }
+      }.bind(this));
     }.bind(this));
   },
 
@@ -434,7 +437,7 @@ var PlayerView = {
     // probably use a blank picture (or their own placeholder).
     if (this.audio.currentTime === 0) {
       LazyLoader.load('js/metadata/album_art_cache.js', function() {
-        AlbumArtCache.getCoverBlob(fileinfo).then(function(blob) {
+        AlbumArtCache.getThumbnailBlob(fileinfo).then(function(blob) {
           notifyMetadata.picture = blob;
           MusicComms.notifyMetadataChanged(notifyMetadata);
         });
@@ -828,7 +831,7 @@ var PlayerView = {
 
     musicdb.getFile(songData.name, function(file) {
       LazyLoader.load('js/metadata/album_art_cache.js', function() {
-        AlbumArtCache.getCoverBlob(songData).then(function(pictureBlob) {
+        AlbumArtCache.getThumbnailBlob(songData).then(function(pictureBlob) {
           var filename = songData.name,
           name = filename.substring(filename.lastIndexOf('/') + 1);
 
@@ -942,7 +945,8 @@ var PlayerView = {
       case 'click':
         switch (target.id) {
           case 'player-cover':
-          case 'player-cover-image':
+          case 'player-cover-image-1':
+          case 'player-cover-image-2':
             this.showInfo();
             break;
           case 'player-controls-play':
