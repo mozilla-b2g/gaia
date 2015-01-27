@@ -1,5 +1,5 @@
 /* global evt, SharedUtils, Promise, PipedPromise, Application, CardStore,
-        Deck, AppBookmark, Folder */
+        Deck, AppBookmark, Folder, AsyncSemaphore */
 
 (function(exports) {
   'use strict';
@@ -28,26 +28,7 @@
 
     installedApps: {},
 
-    // We have two states: READY and SYNCING. When we are in SYNCING mode, it
-    // means either _cardList is out-dated or cardStore is out-dated. We need to
-    // block anyone who try to access _cardList until cardManager turns back to
-    // READY state.
-    _state: CardManager.STATES.SYNCING,
-
-    get state() {
-      return this._state;
-    },
-
-    set state(to) {
-      if (CardManager.STATES[to] && CardManager.STATES[to] !== this._state) {
-        this._state = CardManager.STATES[to];
-        this.fire('state-changed', this._state);
-      }
-    },
-
-    isReady: function cr_isReady() {
-      return this.state === CardManager.STATES.READY;
-    },
+    _asyncSemaphore: undefined,
 
     _isHiddenApp: function cm_isHiddenApp(role) {
       if (!role) {
@@ -90,14 +71,14 @@
       var that = this;
       return new Promise(function(resolve, reject) {
         if (folder instanceof Folder && folder.cardsInFolder.length > 0) {
-          that.state = CardManager.STATES.SYNCING;
+          that._asyncSemaphore.v();
           var cardEntriesInFolder =
             folder.cardsInFolder.map(that._serializeCard.bind(that));
           that._cardStore.saveData(folder.folderId,
             cardEntriesInFolder).then(function() {
               folder.state = Folder.STATES.NORMAL;
             }).then(function() {
-              that.state = CardManager.STATES.READY;
+              that._asyncSemaphore.p();
               resolve();
             }, reject);
         } else {
@@ -117,7 +98,7 @@
       return new Promise(function(resolve, reject) {
         var saveDataPromises = [];
         var newCardList;
-        that.state = CardManager.STATES.SYNCING;
+        that._asyncSemaphore.v();
         // The cards inside of folder are not saved nested in cardList
         // but we explicit save them under key of folderId.
         // Here we save content of each folder one by one
@@ -143,10 +124,12 @@
            that._cardList.map(that._serializeCard.bind(that));
         return that._cardStore.saveData('cardList', cardEntries);
       }).then(function() {
-        that.state = CardManager.STATES.READY;
+        that._asyncSemaphore.p();
         if (options && options.cleanEmptyFolder) {
           that.fire('card-removed', emptyFolderIndices);
         }
+      }).catch(function() {
+        that._asyncSemaphore.p();
       });
     },
 
@@ -155,6 +138,7 @@
       return this._getPipedPromise('_loadDefaultCardList',
         function(resolve, reject) {
           var defaultCardListFile = 'tv_shared/resources/default-cards.json';
+          that._asyncSemaphore.v();
           that._loadFile({
             url: defaultCardListFile,
             responseType: 'json'
@@ -173,9 +157,12 @@
               });
             // write cardList into data store for the first time
             that.writeCardlistInCardStore().then(resolve, reject);
-          }, function onReject(error) {
+          }).then(function() {
+            that._asyncSemaphore.p();
+          }).catch(function onReject(error) {
             var reason ='request ' + defaultCardListFile +
               ' got reject ' + error;
+            that._asyncSemaphore.p();
             reject(reason);
           });
         });
@@ -184,7 +171,7 @@
     _onCardStoreChange: function cm_onCardStoreChange(evt) {
       var that = this;
       if (evt.id === 'cardList' && evt.operation === 'updated') {
-        this.state = CardManager.STATES.SYNCING;
+        that._asyncSemaphore.v();
         // When we receives 'cardlist-changed' in readonly mode, it means
         // Smart-Home app has change cardList. We'd better re-fetch cardList
         // as a whole.
@@ -192,7 +179,7 @@
           this._cardList = [];
         }
         this._reloadCardList().then(function() {
-          that.state = CardManager.STATES.READY;
+          that._asyncSemaphore.p();
           that.fire('cardlist-changed');
         });
       }
@@ -206,51 +193,64 @@
       }
     },
 
+    _initCardStoreIfNeeded: function cm_initCardStore() {
+      if (!this._cardStore) {
+        this._cardStore =
+          new CardStore(this._mode, this._manifestURLOfCardStore);
+        this._cardStore.on('change', this._onCardStoreChange.bind(this));
+      }
+    },
+
+    // XXX: DO NOT call this directly except for _reloadCardList.
+    // Because it is not protected by AsyncSemaphore. We should change it as
+    // returning a `Promise`
+    _loadCardListFromCardStore:
+      function cm_loadCardListFromCardStore(cardListFromCardStore) {
+        var that = this;
+        cardListFromCardStore.forEach(function(cardEntry) {
+          var found = that.findCardFromCardList({cardEntry: cardEntry});
+          if (!found) {
+            var card = that._deserializeCardEntry(cardEntry);
+            // The cards inside of folder are not saved nested in
+            // datastore 'cardList'. But we explicit save them under key
+            // of folderId. So we need to retrieve them by their folderId
+            // and put them back to folders where they belong.
+            if (card instanceof Folder &&
+                card.state === Folder.STATES.DESERIALIZING) {
+              // to load content of folder
+              that._cardStore.getData(card.folderId).then(
+                function(innerCardList) {
+                  innerCardList.forEach(function(innerCardEntry) {
+                    card.cardsInFolder.push(
+                      that._deserializeCardEntry(innerCardEntry));
+                  });
+                });
+            }
+            that._cardList.push(card);
+          }
+        });
+      },
+
     _reloadCardList: function cm_loadCardList() {
       var that = this;
       return this._getPipedPromise('_reloadCardList',
         function(resolve, reject) {
-          // initialize card store if needed
-          if (!that._cardStore) {
-            that._cardStore =
-              new CardStore(that._mode, that._manifestURLOfCardStore);
-            that._cardStore.on('change', that._onCardStoreChange.bind(that));
+          that._asyncSemaphore.v();
+          that._initCardStoreIfNeeded();
+          resolve(that._cardStore.getData('cardList'));
+        }).then(function(cardListFromCardStore) {
+          if (cardListFromCardStore) {
+            // XXX: Change _loadCardListFromCardStore as returning a `Promise`
+            that._loadCardListFromCardStore(cardListFromCardStore);
+          } else {
+            // no cardList in datastore, load default from config file
+            return Promise.resolve(that._loadDefaultCardList());
           }
-          that.state = CardManager.STATES.SYNCING;
-          that._cardStore.getData('cardList').then(function(cardList) {
-            if (cardList) {
-              cardList.forEach(function(cardEntry) {
-                var found = that.findCardFromCardList({cardEntry: cardEntry});
-                if (!found) {
-                  var card = that._deserializeCardEntry(cardEntry);
-                  // The cards inside of folder are not saved nested in
-                  // datastore 'cardList'. But we explicit save them under key
-                  // of folderId. So we need to retrieve them by their folderId
-                  // and put them back to folders where they belong.
-                  if (card instanceof Folder &&
-                      card.state === Folder.STATES.DESERIALIZING) {
-                    // to load content of folder
-                    that._cardStore.getData(card.folderId).then(
-                      function(innerCardList) {
-                        innerCardList.forEach(function(innerCardEntry) {
-                          card.cardsInFolder.push(
-                            that._deserializeCardEntry(innerCardEntry));
-                        });
-                      });
-                  }
-                  that._cardList.push(card);
-                }
-              });
-              resolve();
-            } else {
-              // no cardList in datastore, load default from config file
-              that._loadDefaultCardList().then(function() {
-                resolve();
-              }, reject);
-            }
-          }).then(function() {
-            that.state = CardManager.STATES.READY;
-          });
+        }).then(function() {
+          that._asyncSemaphore.p();
+        }).catch(function(reason) {
+          console.warn('Unable to reload cardList due to ' + reason);
+          that._asyncSemaphore.p();
         });
     },
 
@@ -356,107 +356,128 @@
         name: name,
         state: Folder.STATES.DETACHED
       });
-      if (typeof index !== 'number') {
-        index = this._cardList.length;
-      }
-      this._cardList.splice(index, 0, newFolder);
-      // Notice that we are not saving card list yet
-      // Because newFolder is empty, it is meaningless to save it
-      // But we need to hook `folder-changed` event handler in case
-      // we need to save it when its content changed
-      newFolder.on('folder-changed', this._onFolderChange.bind(this));
-      this.fire('card-inserted', newFolder, index);
+
+      this._asyncSemaphore.wait(function() {
+        if (typeof index !== 'number') {
+          index = this._cardList.length;
+        }
+        this._cardList.splice(index, 0, newFolder);
+        // Notice that we are not saving card list yet
+        // Because newFolder is empty, it is meaningless to save it
+        // But we need to hook `folder-changed` event handler in case
+        // we need to save it when its content changed
+        newFolder.on('folder-changed', this._onFolderChange.bind(this));
+        this.fire('card-inserted', newFolder, index);
+      }, this);
+
       return newFolder;
     },
 
     insertCard: function cm_insertCard(options) {
       var that = this;
-      var newCard = this._deserializeCardEntry(options.cardEntry);
-      var position;
-      if (options.index === 'number') {
-        position = options.index;
-      } else if (!newCard.group) {
-        position = this._cardList.length;
-      } else {
-        // If the given card belongs to a deck (has type), we assume the deck
-        // spans a group with all its bookmarks following deck icon itself, and
-        // the given card should be put at the end of the group.
-        position = -1;
-        for(var idx = 0; idx < this._cardList.length; idx++) {
-          var card = this._cardList[idx];
-          if(position === -1 && !(card instanceof Deck)) {
-            // Only Decks are admitted as the start of the group.
-            continue;
-          } else if (position !== -1 && card.group !== newCard.group) {
-            // We've exceeded the end of the group.
-            break;
-          } else if (card.group === newCard.group) {
-            // We're still inside the group.
-            position = idx;
+      this._asyncSemaphore.wait(function() {
+        /// XXX: We really should check if card specified in options is
+        /// pinned or not, in order not to pin the same card twice
+        var newCard = this._deserializeCardEntry(options.cardEntry);
+        var position;
+
+        if (options.index === 'number') {
+          position = options.index;
+        } else if (!newCard.group) {
+          position = this._cardList.length;
+        } else {
+          // If the given card belongs to a deck (has type), we assume the deck
+          // spans a group with all its bookmarks following deck icon itself,
+          // and the given card should be put at the end of the group.
+          position = -1;
+          for(var idx = 0; idx < this._cardList.length; idx++) {
+            var card = this._cardList[idx];
+            if(position === -1 && !(card instanceof Deck)) {
+              // Only Decks are admitted as the start of the group.
+              continue;
+            } else if (position !== -1 && card.group !== newCard.group) {
+              // We've exceeded the end of the group.
+              break;
+            } else if (card.group === newCard.group) {
+              // We're still inside the group.
+              position = idx;
+            }
+          }
+          position += 1;
+          // No corresponding deck found; insert at bottom.
+          if (position === 0) {
+            position = this._cardList.length;
           }
         }
-        position += 1;
-        // No corresponding deck found; insert at bottom.
-        if (position === 0) {
-          position = this._cardList.length;
-        }
-      }
 
-      this._cardList.splice(position, 0, newCard);
-      this.writeCardlistInCardStore().then(function() {
-        that.fire('card-inserted', newCard, position);
-      });
+        this._cardList.splice(position, 0, newCard);
+        this.writeCardlistInCardStore().then(function() {
+          that.fire('card-inserted', newCard, position);
+        });
+      }, this);
     },
 
     removeCard: function cm_removeCard(item) {
-      var that = this;
-      var index =
-        (typeof item === 'number') ? item : this._cardList.indexOf(item);
+      this._asyncSemaphore.wait(function() {
+        var that = this;
+        var index =
+          (typeof item === 'number') ? item : this._cardList.indexOf(item);
 
-      if (index >= 0) {
-        this._cardList.splice(index, 1);
-        this.writeCardlistInCardStore().then(function() {
-          that.fire('card-removed', [index]);
-        });
-      }
+        if (index >= 0) {
+          this._cardList.splice(index, 1);
+          this.writeCardlistInCardStore().then(function() {
+            that.fire('card-removed', [index]);
+          });
+        }
+      }, this);
     },
 
     updateCard: function cm_updateCard(item, index) {
       var that = this;
-      if (typeof index === 'undefined') {
-        index = this._cardList.findIndex(function(elem) {
-          return elem.cardId === item.cardId;
-        });
-      }
-      if (index >= 0) {
-        this._cardList[index] = item;
-        this.writeCardlistInCardStore().then(function() {
-          that.fire('card-updated', that._cardList[index], index);
-        });
-      }
+      this._asyncSemaphore.wait(function() {
+        if (typeof index === 'undefined') {
+          index = this._cardList.findIndex(function(elem) {
+            return elem.cardId === item.cardId;
+          });
+        }
+        if (index >= 0) {
+          this._cardList[index] = item;
+          this.writeCardlistInCardStore().then(function() {
+            that.fire('card-updated', that._cardList[index], index);
+          });
+        }
+      }, this);
     },
 
     swapCard: function cm_switchCard(item1, item2) {
-      var idx1, idx2;
-      idx1 = (typeof item1 === 'number') ?
-        idx1 = item1 :
-        this._cardList.indexOf(item1);
-      idx2 = (typeof item2 === 'number') ?
-        idx2 = item2 :
-        this._cardList.indexOf(item2);
-      var tmp = this._cardList[idx1];
-      this._cardList[idx1] = this._cardList[idx2];
-      this._cardList[idx2] = tmp;
+      this._asyncSemaphore.wait(function() {
+        var that = this;
+        var idx1, idx2;
+        idx1 = (typeof item1 === 'number') ?
+          idx1 = item1 :
+          this._cardList.indexOf(item1);
+        idx2 = (typeof item2 === 'number') ?
+          idx2 = item2 :
+          this._cardList.indexOf(item2);
+        var tmp = this._cardList[idx1];
+        this._cardList[idx1] = this._cardList[idx2];
+        this._cardList[idx2] = tmp;
 
-      this.writeCardlistInCardStore();
-
-      this.fire('card-swapped',
-                        this._cardList[idx1], this._cardList[idx2], idx1, idx2);
+        this.writeCardlistInCardStore().then(function() {
+          that.fire('card-swapped',
+                        that._cardList[idx1], that._cardList[idx2], idx1, idx2);
+        });
+      }, this);
     },
 
     init: function cm_init(mode) {
       var that = this;
       var appMgmt = navigator.mozApps.mgmt;
+
+      this._asyncSemaphore = new AsyncSemaphore();
+      // protect from async access to cardList
+      this._asyncSemaphore.v();
+
       this._mode = mode || 'readwrite';
       // If we are running in readonly mode, we need to tell card store what
       // manifestURL of the datastore we are going to use, because we are not
@@ -465,8 +486,10 @@
         this._manifestURLOfCardStore =
          'app://smart-home.gaiamobile.org/manifest.webapp';
       }
+
       return this._getPipedPromise('init', function(resolve, reject) {
-        appMgmt.getAll().onsuccess = function onsuccess(event) {
+        var request = appMgmt.getAll();
+        request.onsuccess = function onsuccess(event) {
           event.target.result.forEach(function eachApp(app) {
             var manifest = app.manifest;
             if (!app.launch || !manifest || !manifest.icons ||
@@ -476,12 +499,16 @@
             that.installedApps[app.manifestURL] = app;
           });
 
-          that._reloadCardList().then(function() {
-            resolve();
-          });
+          resolve(that._reloadCardList());
+        };
+        request.onerror = function() {
+          reject();
+          that._asyncSemaphore.p();
         };
         appMgmt.addEventListener('install', that);
         appMgmt.addEventListener('uninstall', that);
+      }).then(function() {
+        that._asyncSemaphore.p();
       });
     },
 
@@ -490,7 +517,6 @@
       appMgmt.removeEventListener('install', this);
       appMgmt.removeEventListener('uninstall', this);
 
-      this.state = CardManager.STATES.SYNCING;
       this._cardList = [];
       this._cardStore.off('change');
       this._cardStore = undefined;
@@ -577,21 +603,18 @@
       });
     },
 
-    // TODO: need to be protected by state and _reloadCardList
     getCardList: function cm_getCardList() {
       var that = this;
       return this._getPipedPromise('getCardList', function(resolve, reject) {
-        if (!that._isCardListLoaded()) {
-          that._reloadCardList().then(function() {
-            resolve(that._cardList);
-          });
-        } else {
-          resolve(that._cardList);
-        }
+        that._asyncSemaphore.wait(function() {
+          resolve(that._reloadCardList());
+        }, that);
+      }).then(function() {
+        return Promise.resolve(that._cardList);
       });
     },
 
-    // TODO: need to be protected by state and _reloadCardList
+    // TODO: need to be protected by semaphore
     // There are three types of query:
     // 1. query by cardId
     // 2. query by manifestURL and optionally launchURL
@@ -629,32 +652,14 @@
       return found;
     },
 
-    // TODO: need to be protected by state and _reloadCardList
-    findFolderFromCardList: function cm_findFolderFromCardList(query) {
-      var found;
-      this._cardList.some(function(card) {
-        if (card instanceof Folder && card.folderId === query.folderId) {
-          found = card;
-          return true;
-        }
-      });
-      return found;
-    },
-
     isPinned: function cm_isPinned(options) {
       var that = this;
       return this._getPipedPromise('isPinned', function(resolve, reject) {
-        // we only answered isPinned when card manager is in READY state
-        if (that.isReady()) {
-          resolve(!!that.findCardFromCardList(options));
-        } else {
-          // card manager is not ready, so we append query at the end of
-          // promise of _reloadCardList (which would guarantee card manager will
-          // be READY eventually)
-          that._reloadCardList().then(function() {
-            resolve(!!that.findCardFromCardList(options));
-          });
-        }
+        that._asyncSemaphore.wait(function() {
+          resolve(that._reloadCardList());
+        }, that);
+      }).then(function() {
+        return Promise.resolve(!!that.findCardFromCardList(options));
       });
     },
 
