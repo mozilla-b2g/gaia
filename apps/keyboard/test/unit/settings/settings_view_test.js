@@ -1,9 +1,10 @@
 'use strict';
 
 /* global SettingsManagerBase, SettingsPromiseManager, CloseLockManager,
-          CloseLock, SettingsView */
+          CloseLock, SettingsView, BaseView */
 
 require('/js/settings/close_locks.js');
+require('/js/settings/base_view.js');
 require('/js/settings/settings_view.js');
 
 require('/js/keyboard/settings.js');
@@ -68,6 +69,10 @@ suite('SettingsView', function() {
 
   teardown(function() {
     view.stop();
+  });
+
+  test('inheritance from BaseView', function() {
+    assert.instanceOf(view, BaseView);
   });
 
   test('init settings returns', function() {

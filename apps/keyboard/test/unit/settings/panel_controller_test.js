@@ -1,35 +1,82 @@
 'use strict';
 
-/* global PanelController, DialogController, MockPromise */
+/* global PanelController, DialogController, MockPromise, BaseView,
+          GeneralPanel, UserDictionaryListPanel, UserDictionaryEditDialog */
 
+require('/js/settings/base_view.js');
+require('/js/settings/general_panel.js');
+require('/js/settings/user_dictionary_list_panel.js');
+require('/js/settings/user_dictionary_edit_dialog.js');
 require('/js/settings/panel_controller.js');
 require('/shared/test/unit/mocks/mock_promise.js');
 
 suite('PanelController', function() {
   var controller;
-  var rootPanelElem;
+  var stubGeneralPanel;
+  var stubUserDictionaryListPanel;
+  var app;
   var panel;
   var options;
   var stubCreateTransitionPromise;
 
   setup(function() {
-    rootPanelElem = document.createElement('div');
+    stubGeneralPanel = this.sinon.stub(Object.create(GeneralPanel.prototype));
+
+    stubUserDictionaryListPanel =
+      this.sinon.stub(Object.create(UserDictionaryListPanel.prototype));
+    this.sinon.stub(window, 'UserDictionaryListPanel')
+      .returns(stubUserDictionaryListPanel);
 
     panel = {
-      beforeShow: this.sinon.stub().returns('promiseBeforeShow'),
-      show: this.sinon.stub().returns('promiseShow'),
-      beforeHide: this.sinon.stub().returns('promiseBeforeHide'),
-      hide: this.sinon.stub().returns('promiseHide'),
-      _container: document.createElement('div')
+      beforeShow: this.sinon.stub().returns('promisePBeforeShow'),
+      show: this.sinon.stub().returns('promisePShow'),
+      beforeHide: this.sinon.stub().returns('promisePBeforeHide'),
+      hide: this.sinon.stub().returns('promisePHide'),
+      container: document.createElement('div')
     };
+
+    stubGeneralPanel.beforeShow.returns('promiseGBeforeShow');
+    stubGeneralPanel.show.returns('promiseGShow');
+    stubGeneralPanel.beforeHide.returns('promiseGBeforeHide');
+    stubGeneralPanel.hide.returns('promiseGHide');
+
+    app = {};
 
     options = {};
 
     this.sinon.stub(window, 'Promise', MockPromise);
     this.sinon.spy(window.Promise, 'resolve');
 
-    controller = new PanelController(rootPanelElem);
+    controller = new PanelController(app);
+    this.sinon.stub(controller, 'RootPanelClass').returns(stubGeneralPanel);
     controller.start();
+
+    // test for start()
+    assert.isTrue(stubGeneralPanel.start.called);
+
+    // test for subcomponent constructors
+    assert.isTrue(controller.RootPanelClass.calledWith(app));
+
+    // start(): Promise.resolve <----> 1st .then()
+    assert.isTrue(controller.rootPanel.beforeShow.calledOnce);
+    assert.isTrue(window.Promise.resolve.calledWith('promiseGBeforeShow'));
+
+    // start(): 1st .then() onwards
+    var p1 = window.Promise.resolve.firstCall.returnValue;
+    var val1 = p1.mFulfillToValue(undefined);
+
+    assert.equal(val1, 'promiseGShow');
+
+    assert.isTrue(controller.rootPanel.show.calledOnce);
+
+
+    // reset some stubbed calls so the actual test cases aren't affected
+    window.Promise.resolve.reset();
+    controller.rootPanel.beforeShow.reset();
+    controller.rootPanel.show.reset();
+
+
+    controller.rootPanel.container = document.createElement('div');
 
     stubCreateTransitionPromise =
       this.sinon.stub(controller, '_createTransitionPromise')
@@ -38,34 +85,66 @@ suite('PanelController', function() {
 
   teardown(function() {
     controller.stop();
+
+    assert.isTrue(stubUserDictionaryListPanel.stop.called);
+    assert.isTrue(stubGeneralPanel.stop.called);
+  });
+
+  test('alternative RootPanelClass', function(){
+    var AlternativeClass = function(){};
+    AlternativeClass.prototype =
+      this.sinon.stub(Object.create(BaseView.prototype));
+
+    var controller2 = new PanelController(app, AlternativeClass);
+
+    controller2.start(app);
+
+    assert.isTrue(AlternativeClass.prototype.start.called,
+      'start of AlternativeClass should be called');
   });
 
   test('navigateToPanel', function() {
     controller.navigateToPanel(panel, options);
 
     // Promise.resolve <----> 1st .then()
-    assert.isTrue(panel.beforeShow.calledWith(options));
+    assert.isTrue(controller.rootPanel.beforeHide.called);
 
-    assert.isTrue(window.Promise.resolve.calledWith('promiseBeforeShow'));
+    assert.isTrue(window.Promise.resolve.calledWith('promiseGBeforeHide'));
 
     // 1st .then() <----> 2nd .then()
     var p1 = window.Promise.resolve.firstCall.returnValue;
     var val1 = p1.mFulfillToValue(undefined);
-    assert.equal(val1, 'promiseTransition');
 
-    assert.isTrue(stubCreateTransitionPromise.calledWith(panel._container));
+    assert.isTrue(panel.beforeShow.calledWith(options));
 
-    assert.isTrue(panel._container.classList.contains('current'));
-    assert.isTrue(rootPanelElem.classList.contains('prev'));
-    assert.isFalse(rootPanelElem.classList.contains('current'));
+    assert.equal(val1, 'promisePBeforeShow');
 
-
-    // 2nd .then() onwards
+    // 2nd .then() <----> 3rd .then()
     var p2 = p1.mGetNextPromise();
     var val2 = p2.mFulfillToValue(undefined);
 
+    assert.equal(val2, 'promiseTransition');
+
+    assert.isTrue(stubCreateTransitionPromise.calledWith(panel.container));
+
+    assert.isTrue(panel.container.classList.contains('current'));
+    assert.isTrue(controller.rootPanel.container.classList.contains('prev'));
+    assert.isFalse(
+      controller.rootPanel.container.classList.contains('current'));
+
+    // 3rd .then() <----> 4th .then()
+    var p3 = p2.mGetNextPromise();
+    var val3 = p3.mFulfillToValue(undefined);
+
+    assert.isTrue(controller.rootPanel.hide.calledOnce);
+    assert.equal(val3, 'promiseGHide');
+
+    // 4th .then() onwards
+    var p4 = p3.mGetNextPromise();
+    var val4 = p4.mFulfillToValue(undefined);
+
     assert.isTrue(panel.show.calledOnce);
-    assert.equal(val2, 'promiseShow');
+    assert.equal(val4, 'promisePShow');
   });
 
   test('navigateToRoot', function() {
@@ -74,51 +153,67 @@ suite('PanelController', function() {
     controller.navigateToRoot();
 
     // Promise.resolve <----> 1st .then()
-    assert.isTrue(panel.beforeHide.calledOnce);
+    assert.isTrue(controller._currentPanel.beforeHide.called);
 
-    assert.isTrue(window.Promise.resolve.calledWith('promiseBeforeHide'));
+    assert.isTrue(window.Promise.resolve.calledWith('promisePBeforeHide'));
 
     // 1st .then() <----> 2nd .then()
     var p1 = window.Promise.resolve.firstCall.returnValue;
     var val1 = p1.mFulfillToValue(undefined);
-    assert.equal(val1, 'promiseTransition');
 
-    assert.isTrue(stubCreateTransitionPromise.calledWith(panel._container));
+    assert.isTrue(controller.rootPanel.beforeShow.calledOnce);
 
-    assert.isFalse(panel._container.classList.contains('current'));
-    assert.isFalse(rootPanelElem.classList.contains('prev'));
-    assert.isTrue(rootPanelElem.classList.contains('current'));
-
+    assert.equal(val1, 'promiseGBeforeShow');
 
     // 2nd .then() <----> 3rd .then()
     var p2 = p1.mGetNextPromise();
     var val2 = p2.mFulfillToValue(undefined);
 
-    assert.isTrue(panel.hide.calledOnce);
-    assert.equal(val2, 'promiseHide');
+    assert.equal(val2, 'promiseTransition');
 
+    assert.isTrue(stubCreateTransitionPromise.calledWith(panel.container));
 
-    // 3rd .then() onwards
-    p2.mGetNextPromise().mFulfillToValue(undefined);
+    assert.isFalse(panel.container.classList.contains('current'));
+    assert.isFalse(controller.rootPanel.container.classList.contains('prev'));
+    assert.isTrue(
+      controller.rootPanel.container.classList.contains('current'));
 
-    assert.strictEqual(controller._currentPanel, null);
+    // 3rd .then() <----> 4th .then()
+    var p3 = p2.mGetNextPromise();
+    var val3 = p3.mFulfillToValue(undefined);
+
+    assert.isTrue(controller._currentPanel.hide.calledOnce);
+    assert.equal(val3, 'promisePHide');
+
+    // 4th .then() onwards
+    var p4 = p3.mGetNextPromise();
+    var val4 = p4.mFulfillToValue(undefined);
+
+    assert.isTrue(controller.rootPanel.show.calledOnce);
+    assert.equal(val4, 'promiseGShow');
   });
 });
 
 suite('DialogController', function() {
+  var stubUserDictionaryEditDialog;
   var controller;
   var dialog;
   var options;
   var stubCreateTransitionPromise;
 
   setup(function() {
+    stubUserDictionaryEditDialog =
+      this.sinon.stub(Object.create(UserDictionaryEditDialog.prototype));
+    this.sinon.stub(window, 'UserDictionaryEditDialog')
+      .returns(stubUserDictionaryEditDialog);
+
     dialog = {
-      beforeShow: this.sinon.stub().returns('promiseBeforeShow'),
-      show: this.sinon.stub().returns('promiseShow'),
-      beforeHide: this.sinon.stub().returns('promiseBeforeHide'),
-      hide: this.sinon.stub().returns('promiseHide'),
+      beforeShow: this.sinon.stub().returns('promiseDBeforeShow'),
+      show: this.sinon.stub().returns('promiseDShow'),
+      beforeHide: this.sinon.stub().returns('promiseDBeforeHide'),
+      hide: this.sinon.stub().returns('promiseDHide'),
       onsubmit: undefined,
-      _container: document.createElement('div')
+      container: document.createElement('div')
     };
 
     options = {};
@@ -136,6 +231,8 @@ suite('DialogController', function() {
 
   teardown(function() {
     controller.stop();
+
+    assert.isTrue(stubUserDictionaryEditDialog.stop.called);
   });
 
   suite('openDialog with a dialog', function() {
@@ -156,20 +253,18 @@ suite('DialogController', function() {
     test('normal flow', function() {
       // Promise.resolve <----> 1st .then()
 
-      assert.equal(options.dialogController, controller);
-
       assert.isTrue(dialog.beforeShow.calledWith(options));
 
-      assert.isTrue(window.Promise.resolve.calledWith('promiseBeforeShow'));
+      assert.isTrue(window.Promise.resolve.calledWith('promiseDBeforeShow'));
 
       // 1st .then() <----> 2nd .then()
       var p1 = window.Promise.resolve.firstCall.returnValue;
       var val1 = p1.mFulfillToValue(undefined);
       assert.equal(val1, 'promiseTransition');
 
-      assert.isTrue(stubCreateTransitionPromise.calledWith(dialog._container));
+      assert.isTrue(stubCreateTransitionPromise.calledWith(dialog.container));
 
-      assert.isTrue(dialog._container.classList.contains('displayed'));
+      assert.isTrue(dialog.container.classList.contains('displayed'));
 
 
       // 2nd .then() onwards
@@ -177,7 +272,7 @@ suite('DialogController', function() {
       var val2 = p2.mFulfillToValue(undefined);
 
       assert.isTrue(dialog.show.calledOnce);
-      assert.equal(val2, 'promiseShow');
+      assert.equal(val2, 'promiseDShow');
 
       // inside onsubmit
 
@@ -190,7 +285,7 @@ suite('DialogController', function() {
 
       // Promise.resolve <-----> 1st .then(), inside onsubmit
       assert.isTrue(
-        window.Promise.resolve.secondCall.calledWith('promiseBeforeHide')
+        window.Promise.resolve.secondCall.calledWith('promiseDBeforeHide')
       );
 
       // 1st .then() <----> 2nd .then(), inside onsubmit
@@ -198,9 +293,9 @@ suite('DialogController', function() {
       var valS1 = pS1.mFulfillToValue(undefined);
       assert.equal(valS1, 'promiseTransition');
 
-      assert.isTrue(stubCreateTransitionPromise.calledWith(dialog._container));
+      assert.isTrue(stubCreateTransitionPromise.calledWith(dialog.container));
 
-      assert.isFalse(dialog._container.classList.contains('displayed'));
+      assert.isFalse(dialog.container.classList.contains('displayed'));
 
 
       // 2nd .then() onwards, inside onsubmit
@@ -208,7 +303,7 @@ suite('DialogController', function() {
       var valS2 = pS2.mFulfillToValue(undefined);
       assert.strictEqual(dialog.onsubmit, undefined);
 
-      assert.equal(valS2, 'promiseHide');
+      assert.equal(valS2, 'promiseDHide');
     });
 
     test('exception flow', function() {
