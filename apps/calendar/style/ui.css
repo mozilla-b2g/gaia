@@ -205,10 +205,11 @@ body[data-path="/day/"] #view-selector > .day > a:active {
   margin-bottom: 0;
   font-size: 1.9rem;
   line-height: 3.3rem;
+  text-align: start;
 }
 
 #advanced-settings-view .settings-list label span:first-child {
-  padding-left: 1.5rem;
+  -moz-padding-start: 1.5rem;
 }
 
 #advanced-settings-view .settings-list label,
