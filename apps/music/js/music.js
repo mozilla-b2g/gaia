@@ -151,7 +151,7 @@ var App = (function() {
     // been loaded yet, so make sure we load it first. This should prevent us
     // from having to worry about loading it anywhere else in the code, since
     // showCurrentView is called pretty early in the startup process.
-    LazyLoader.load('js/metadata/album_art.js', function() {
+    LazyLoader.load('js/metadata/album_art_cache.js', function() {
       function showListView() {
         var option = TabBar.option;
         var info = {
