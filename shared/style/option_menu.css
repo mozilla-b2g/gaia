@@ -13,3 +13,15 @@ form[role="dialog"][data-subtype="menu"].visible {
   transform: translateY(0);
 }
 
+/* ----------------------------------
+ * This CSS disables interaction with the application during dialog animations,
+ * to prevent multiple clicks on elements.
+ * See Bug 1125369 for more information.
+ * ---------------------------------- */
+.dialog-animating {
+  pointer-events: none;
+}
+
+.dialog-animating .disable-when-dialog-animates {
+  pointer-events: none;
+}
