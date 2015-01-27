@@ -3,7 +3,8 @@
            MockSettingsListener, MocksHelper, MockSIMSlot, MockSIMSlotManager,
            MockService, StatusBar, Service,
            MockMobileconnection, MockAppWindowManager,
-           MockNavigatorBattery, UtilityTray, MockAppWindow */
+           MockNavigatorBattery, UtilityTray, MockAppWindow, layoutManager */
+
 'use strict';
 
 require('/shared/test/unit/mocks/mock_settings_listener.js');
@@ -1895,36 +1896,55 @@ suite('system/Statusbar', function() {
     });
   });
 
+  suite('_updateMinimizedStatusBarWidth', function() {
+    var app;
+    setup(function() {
+      app = getMockApp();
+      Service.currentApp = app;
+    });
+
+    test('does not update minimizedWidth when maximized', function() {
+      var unchangedValue = '#';
+      StatusBar._minimizedStatusBarWidth = unchangedValue;
+      this.sinon.stub(StatusBar, '_updateIconVisibility');
+      Service.currentApp = app;
+      StatusBar._updateMinimizedStatusBarWidth();
+      assert.equal(unchangedValue, StatusBar._minimizedStatusBarWidth);
+      assert.isTrue(StatusBar._updateIconVisibility.calledOnce);
+    });
+
+    test('minimizedWidth when minimized when rocketbar', function() {
+      var mockedWidth = 100;
+      this.sinon.stub(app._topWindow.appChrome, 'isMaximized')
+        .returns(false);
+      layoutManager.width = 123;
+      app._topWindow.appChrome.element = getMockChrome(mockedWidth);
+      StatusBar._updateMinimizedStatusBarWidth();
+      var expectedValue = layoutManager.width - mockedWidth - 5 - 3;
+      assert.equal(StatusBar._minimizedStatusBarWidth, expectedValue);
+    });
+
+    test('minimizedWidth when minimized without rocketbar', function() {
+      var mockedWidth = 1234;
+      this.sinon.stub(app._topWindow.appChrome, 'isMaximized')
+        .returns(false);
+      this.sinon.stub(StatusBar, '_getMaximizedStatusBarWidth')
+        .returns(mockedWidth);
+      Service.currentApp = app;
+      StatusBar._updateMinimizedStatusBarWidth();
+      assert.equal(StatusBar._minimizedStatusBarWidth, mockedWidth);
+    });
+  });
+
   suite('setAppearance', function() {
+    var app;
     setup(function() {
       StatusBar.element.classList.remove('light');
       StatusBar.element.classList.remove('maximized');
+      app = getMockApp();
     });
 
     test('setAppearance light and maximized', function() {
-      var app = {
-        _topWindow: {
-          appChrome: {
-            useLightTheming: function useLightTheming() {
-              return true;
-            },
-            isMaximized: function isMaximized() {
-              return true;
-            }
-          }
-        },
-        appChrome: {
-          isMaximized: function isMaximized() {
-            return true;
-          }
-        },
-        getTopMostWindow: function getTopMostWindow() {
-          return this._topWindow;
-        },
-        getBottomMostWindow: function getBottomMostWindow() {
-          return this;
-        }
-      };
       var spyTopUseLightTheming = this.sinon.spy(app._topWindow.appChrome,
                                                  'useLightTheming');
       var spyTopIsMaximized = this.sinon.spy(app._topWindow.appChrome,
@@ -2649,4 +2669,45 @@ suite('system/Statusbar', function() {
       assert.isTrue(setAppearanceStub.calledWith(app));
     });
   });
+
+  function getMockApp() {
+    return {
+      _topWindow: {
+        appChrome: {
+          useLightTheming: function useLightTheming() {
+            return true;
+          },
+          isMaximized: function isMaximized() {
+            return true;
+          }
+        }
+      },
+      appChrome: {
+        isMaximized: function isMaximized() {
+          return true;
+        }
+      },
+      getTopMostWindow: function getTopMostWindow() {
+        return this._topWindow;
+      },
+      getBottomMostWindow: function getBottomMostWindow() {
+        return this;
+      }
+    };
+  }
+
+  function getMockChrome(mockedWidth) {
+    var element = {
+      querySelector: function() {
+        return {
+          getBoundingClientRect: function() {
+            return {
+              width: mockedWidth
+            };
+          }
+        };
+      }
+    };
+    return element;
+  }
 });
