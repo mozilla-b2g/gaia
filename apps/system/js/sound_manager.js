@@ -1,8 +1,6 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 /* global AsyncSemaphore, Bluetooth, CustomDialog, FtuLauncher, ScreenManager,
-          SettingsListener, Service */
+          SettingsListener, Service, HeadphoneIcon, PlayingIcon, MuteIcon,
+          LazyLoader */
 
 (function(exports) {
   'use strict';
@@ -53,6 +51,36 @@
     'telephony': 5,
     'content': 15,
     'bt_sco': 15
+  };
+
+  SoundManager.prototype.name = 'SoundManager';
+
+  SoundManager.prototype.publish = function(evtName, detail) {
+    window.dispatchEvent(new CustomEvent(evtName), {
+      detail: detail || this
+    });
+  };
+
+  SoundManager.prototype.setHeadsetState = function(enabled) {
+    if (this.isHeadsetConnected === enabled) {
+      return;
+    }
+    this.isHeadsetConnected = enabled;
+    if (this.headphoneIcon) {
+      this.headphoneIcon.update();
+    }
+    this.publish('headphones-status-changed', this.isHeadsetConnected);
+  };
+
+  SoundManager.prototype.setAudioChannel = function(channel) {
+    if (this.currentChannel === channel) {
+      return;
+    }
+    this.currentChannel = channel;
+    if (this.playingIcon) {
+      this.playingIcon.update();
+    }
+    this.publish('audio-channel-changed', this.currentChannel);
   };
 
   /**
@@ -220,6 +248,9 @@
    * @returns {SoundManager}
    */
   SoundManager.prototype.start = function sm_start() {
+    this.element = document.getElementById('volume');
+    this.screen = document.getElementById('screen');
+    this.overlay = document.getElementById('system-overlay');
     window.addEventListener('volumeup', this);
     window.addEventListener('volumedown', this);
     window.addEventListener('mute', this);
@@ -231,6 +262,27 @@
     window.addEventListener('holdhome', this);
     window.addEventListener('homescreenopening', this);
     window.addEventListener('homescreenopened', this);
+
+    LazyLoader.load(['js/headphone_icon.js',
+                     'js/mute_icon.js',
+                     'js/playing_icon.js']).then(function() {
+      this.playingIcon = new PlayingIcon(this);
+      this.playingIcon.start();
+      this.headphoneIcon = new HeadphoneIcon(this);
+      this.headphoneIcon.start();
+      this.muteIcon = new MuteIcon(this);
+      this.muteIcon.start();
+    }.bind(this)).catch(function(err) {
+      console.error(err); 
+    });
+
+    // mozChromeEvent fired from Gecko is earlier been loaded,
+    // so we use mozAudioChannelManager to
+    // check the headphone plugged or not when booting up
+    var acm = navigator.mozAudioChannelManager;
+    if (acm) {
+      this.setHeadsetState(acm.headphones);
+    }
 
     this.initVibrationUserPref();
     this.bindVolumeSettingsHandlers();
@@ -248,6 +300,9 @@
         self.CEAccumulatorTime = value;
       }
     });
+
+    Service.registerState('isHeadsetConnected', this);
+    Service.registerState('currentChannel', this);
   };
 
   /**
@@ -267,6 +322,9 @@
     window.removeEventListener('holdhome', this);
     window.removeEventListener('homescreenopening', this);
     window.removeEventListener('homescreenopened', this);
+
+    Service.unregisterState('isHeadsetConnected', this);
+    Service.unregisterState('currentChannel', this);
   };
 
   /**
@@ -297,11 +355,11 @@
                               'bt_sco');
             break;
           case 'audio-channel-changed':
-            this.currentChannel = e.detail.channel;
+            this.setAudioChannel(e.detail.channel);
             this.ceAccumulator();
             break;
           case 'headphones-status-changed':
-            this.isHeadsetConnected = (e.detail.state !== 'off');
+            this.setHeadsetState(e.detail.state !== 'off');
             this.ceAccumulator();
             break;
           case 'default-volume-channel-changed':
@@ -454,6 +512,7 @@
           self.writeVibrationUserPref(vibration);
         }
         self.vibrationEnabled = vibration;
+        self.muteIcon && self.muteIcon.update();
       };
 
       if (self.setVibrationEnabledCount > 0) {
@@ -551,7 +610,7 @@
     };
 
     var self = this;
-    var screen = document.getElementById('screen');
+    var screen = this.screen;
 
     if (okfn instanceof Function) {
       cancel.callback = function onCancel() {
@@ -685,10 +744,12 @@
           } else if (channel === 'notification' && volume > 0) {
             self.leaveSilentMode('notification',
                             /* skip volume restore */ true);
+            self.icon && self.icon.update();
           } else if (channel === 'notification' && volume === 0) {
             // Enter silent mode when notification volume is 0
             // no matter who sets this value.
             self.enterSilentMode('notification');
+            self.icon && self.icon.update();
           }
 
           if (!self.volumeFetched && ++callbacksReceived === callsMade) {
@@ -767,13 +828,13 @@
   /**
    * It enables the vibration and returns the mute state.
    * @memberOf SoundManager.prototype
-   * @param {Number} curVolume the base volume
    * @param {Number} delta the offset of the change
    * @param {String} channel the target channel
    * @returns {String} the mute state
    */
   SoundManager.prototype.getVibrationAndMuteState = function sm_getState(
-                                                    curVolume, delta, channel) {
+                                                    delta, channel) {
+    var curVolume = this.currentVolume[channel];
     if (channel === 'notification') {
       var state;
       var volume = curVolume;
@@ -799,7 +860,7 @@
         state = 'OFF';
       }
       // Notify the user vibration is enabled when volume is 0.
-      if (volume === 0 && this.vibrationEnabled) {
+      if (delta !== 0 && volume === 0 && this.vibrationEnabled) {
         this.notifyByVibrating();
       }
 
@@ -922,8 +983,7 @@
     var volume = this.calculateVolume(this.currentVolume[channel], delta,
                                        channel);
     this.muteState =
-      this.getVibrationAndMuteState(this.currentVolume[channel], delta,
-                                     channel);
+      this.getVibrationAndMuteState(delta, channel);
 
     // Silent mode entry point
     if (volume <= 0 && delta < 0 && channel == 'notification') {
@@ -942,8 +1002,8 @@
     this.currentVolume[channel] = volume =
       Math.max(0, Math.min(SoundManager.MAX_VOLUME[channel], volume));
 
-    var overlay = document.getElementById('system-overlay');
-    var notification = document.getElementById('volume');
+    var overlay = this.overlay;
+    var notification = this.element;
     var overlayClasses = overlay.classList;
     var classes = notification.classList;
 
@@ -1022,6 +1082,7 @@
     SettingsListener.getSettingsLock().set({
       'vibration.enabled': enabled
     });
+    this.muteIcon && this.muteIcon.update();
   };
 
   exports.SoundManager = SoundManager;
