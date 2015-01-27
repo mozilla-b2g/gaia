@@ -509,7 +509,8 @@
       if (this._port) {
         this._port.postMessage({
           action: 'change',
-          input: input
+          input: input,
+          isPrivateBrowser: Service.currentApp.isPrivateBrowser()
         });
       }
     },
