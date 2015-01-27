@@ -116,7 +116,7 @@ function createReportDiv(reports) {
     status = REPORT_MAP[deliveryStatus][readStatus];
   } else {
     console.error('Invalid message report status: ' + deliveryStatus);
-    return reportDiv;    
+    return reportDiv;
   }
   reportDiv.dataset.deliveryStatus = status;
 
@@ -317,7 +317,7 @@ var VIEWS = {
         this.renderContactList(createListWithMsgInfo(message));
       }).bind(this);
 
-      ThreadUI.setHeaderContent({ id: 'message-report' });
+      ThreadUI.setHeaderContent('message-report');
       ThreadUI.setHeaderAction('close');
     },
 

@@ -92,7 +92,8 @@ var ThreadUI = {
       'not-downloaded',
       'recipient',
       'date-group',
-      'header'
+      'header',
+      'group-header'
     ];
 
     AttachmentMenu.init('attachment-options-menu');
@@ -1011,7 +1012,7 @@ var ThreadUI = {
         args: { n: recipientCount }
       });
     } else {
-      this.setHeaderContent({ id: 'newMessage' });
+      this.setHeaderContent('newMessage');
     }
   },
 
@@ -1366,14 +1367,14 @@ var ThreadUI = {
         this.headerText.dataset.isContact = !!details.isContact;
         this.headerText.dataset.title = contactName;
 
-        this.headerText.classList.toggle(
-          'thread-group-header',
-          thread.participants.length > 1
-        );
-        this.setHeaderContent(this.tmpl.header.interpolate({
-          name: contactName,
-          participantCount: (thread.participants.length - 1).toString()
-        }));
+        var headerContentTemplate = thread.participants.length > 1 ?
+          this.tmpl.groupHeader : this.tmpl.header;
+        this.setHeaderContent({
+          html: headerContentTemplate.interpolate({
+            name: contactName,
+            participantCount: (thread.participants.length - 1).toString()
+          })
+        });
 
         this.updateCarrier(thread, contacts);
         resolve();
@@ -1387,26 +1388,29 @@ var ThreadUI = {
    * markup to support bidirectional content, but other panels still use it with
    * mozL10n.setAttributes as it would contain only localizable text. We should
    * get rid of this method once bug 961572 and bug 1011085 are landed.
-   * @param {string|{ id: string, args: Object }} content Should be either safe
-   * HTML string or object with l10nId and l10nArgs.
+   * @param {string|{ html: string }|{id: string, args: Object }} contentL10n
+   * Should be either safe HTML string or l10n properties.
    * @public
    */
-  setHeaderContent: function thui_setHeaderContent(content) {
-    if (typeof content === 'string') {
-      this.headerText.removeAttribute('data-l10n-id');
-      this.headerText.removeAttribute('data-l10n-args');
+  setHeaderContent: function thui_setHeaderContent(contentL10n) {
+    if (typeof contentL10n === 'string') {
+      contentL10n = { id: contentL10n };
+    }
 
-      this.headerText.innerHTML = content;
-    } else {
+    if (contentL10n.id) {
       // Remove rich HTML content before we set l10n attributes as l10n lib
       // fails in this case
-      if (this.headerText.firstElementChild) {
-        this.headerText.textContent = '';
-      }
-
+      this.headerText.firstElementChild && (this.headerText.textContent = '');
       navigator.mozL10n.setAttributes(
-        this.headerText, content.id, content.args
+        this.headerText, contentL10n.id, contentL10n.args
       );
+      return;
+    }
+
+    if (contentL10n.html) {
+      this.headerText.removeAttribute('data-l10n-id');
+      this.headerText.innerHTML = contentL10n.html;
+      return;
     }
   },
 
