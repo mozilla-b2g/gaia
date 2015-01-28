@@ -8,12 +8,11 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "messages": [
-    { "alarm": "/index.html" },
-    { "notification": "/index.html" }
+    { "notification": "/index.html" },
+    { "request-sync": "/index.html" }
   ],
   "permissions": {
     "themeable":{},
-    "alarms":{},
     "browser": {},
     "audio-channel-notification":{},
     "contacts":{ "access": "readcreate" },

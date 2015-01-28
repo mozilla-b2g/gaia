@@ -5,7 +5,7 @@
  * Main: Spawns worker
  * Worker: Loads core JS
  * Worker: 'hello' => main
- * Main: 'hello' => worker with online status and mozAlarms status
+ * Main: 'hello' => worker with online status and navigator.sync status
  * Worker: Creates MailUniverse
  * Worker 'mailbridge'.'hello' => main
  * Main: Creates MailAPI, sends event to UI
