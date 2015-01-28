@@ -88,3 +88,8 @@ section[role="region"].dialog.fade {
 section[role="region"].dialog.fade.current {
   opacity: 1;
 }
+
+html[dir="rtl"] section[role="region"].dialog .settings-dialog-title,
+html[dir="rtl"] section[role="region"].dialog .settings-dialog-message {
+  text-align: right;
+}
