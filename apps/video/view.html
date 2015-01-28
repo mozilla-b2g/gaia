@@ -21,32 +21,13 @@
         <video id="player" preload="metadata"></video>
       </div>
       <!-- video controls -->
-      <div id="videoControls" class="hidden">
+      <div id="mediaControlsContainer" class="hidden">
         <section role="region">
           <gaia-header id="player-header" action="back">
             <h1 id="video-title"></h1>
             <button id="save" data-l10n-id="save" hidden></button>
           </gaia-header>
-
-          <footer id="videoBar">
-            <div id="timeSlider">
-              <span id="elapsed-text"></span>
-              <div id="slider-wrapper">
-                <div id="elapsedTime" class="progress"></div>
-                <div id="bufferedTime" class="progress"></div>
-                <div id="timeBackground" class="progress"></div>
-                <button id="playHead"></button>
-              </div>
-              <span id="duration-text"></span>
-            </div>
-          </footer>
-          <footer id="videoControlBar">
-            <div id="videoToolBar">
-              <button id="seek-backward" class="player-controls-button" data-icon="skip-back"></button>
-              <button id="play" class="player-controls-button" data-icon="pause"></button>
-              <button id="seek-forward" class="player-controls-button" data-icon="skip-forward"></button>
-            </div>
-          </footer>
+          <gaia-media-controls id="media-controls"></gaia-media-controls>
         </section>
         <!-- display messages like "Cannot load video" here -->
         <form id="in-use-overlay" role="dialog" data-type="confirm" class="hidden">
@@ -76,6 +57,7 @@
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css">
     <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css">
     <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
+    <script defer src="shared/elements/gaia-media-controls/dist/gaia-media-controls.js"></script>
 
     <!-- App Code -->
     <script defer src="js/video_loading_checker.js"></script>

@@ -30,10 +30,10 @@ body > section {
 }
 
 /*
- * while videoControls is hidden,
+ * while mediaControls is hidden,
  * it should be stay on screen for mousedown event
  */
-#videoControls.hidden {
+#mediaControlsContainer.hidden {
   display: block;
   visibility: visible;
 }
@@ -104,7 +104,7 @@ span.line-break {
 }
 
 /* All of the main views fill the screen */
-#thumbnail-list-view, #thumbnail-select-view, #player-view {
+#thumbnail-views, #player-view {
   position: absolute;
   top: 0;
   left: 0;
@@ -188,13 +188,13 @@ span.line-break {
 /*
  * give the very last thumbnail a large bottom margin so that it doesn't
  * get stuck hidden behind the overlaid toolbar.
- * for normal thumbnail-list-view case, it is 4rem at bottom.
+ * for normal thumbnails-list case, it is 4rem at bottom.
  */
 #thumbnails>li:last-child{
   margin-bottom: 4rem;
 }
 /*
- * for normal thumbnail-select-view case, it is 5rem at top and 4rem at bottom.
+ * for normal thumbnails-select case, it is 5rem at top and 4rem at bottom.
  */
 #thumbnails.select>li:last-child{
   margin-bottom: 9rem;
@@ -262,11 +262,11 @@ span.line-break {
 
 /*
  * In view.html (but not index.html) we put the in-use-overlay element
- * inside videoControls. In that case there is a 5rem title bar that needs
+ * inside mediaControls. In that case there is a 5rem title bar that needs
  * to be visible, so we alter the top position. And if we're handling
  * a pick activity, we also need the title bar with the back button to show.
  */
-#videoControls > #in-use-overlay,
+#mediaControlsContainer > #in-use-overlay,
 body.pick-activity > #in-use-overlay {
   top: 5rem;
 }
@@ -441,7 +441,7 @@ header .icon:after {
 }
 
 /* video player controls */
-#videoControls {
+#mediaControlsContainer {
   position: absolute;
   top: 0;
   left: 0;
@@ -452,214 +452,19 @@ header .icon:after {
   will-change: opacity;
   -moz-transition: opacity 0.5s;
 }
-#videoControls.hidden {
+#mediaControlsContainer.hidden {
   opacity: 0;
 }
 
-#videoControls.hidden > * {
+#mediaControlsContainer.hidden > * {
   pointer-events: none;
 }
 
-/* main control bar: play|pause, timeupdate, rwd|fwd
-   For landscape mode here. Settings for portrait mode is written in
-   media query at bottom */
-#videoBar {
+gaia-media-controls {
   position: absolute;
-  right: 0;
-  bottom: 4.4rem;
   left: 0;
-  height: 4rem;
-  font-size: 0;
-  border-bottom: 0.1rem solid rgba(255,255,255, 0.1);
-  background-color: rgba(0,0,0, 0.85);
-  white-space: nowrap;
-  z-index: 10;
-}
-
-#videoBar:last-child {
+  right: 0;
   bottom: 0;
-}
-
-#elapsed-text,
-#timeSlider,
-#slider-wrapper,
-#duration-text {
-  display: inline-block;
-  position: relative;
-  line-height: 4.2rem;
-  vertical-align: top;
-}
-
-#elapsed-text, #duration-text {
-  color: #ffffff;
-  font-size: 1.4rem;
-}
-
-/* elapsed-text and duration-text have padding on left and right
-   to support ltr and rtl locales */
-#elapsed-text {
-  width: 3.8rem;
-  padding: 0 1.5rem;
-  text-align: center;
-}
-
-#duration-text {
-  width: 3.8rem;
-  padding: 0 1.5rem;
-  text-align: center;
-}
-
-/* time slider */
-#timeSlider {
-  position: relative;
-  width: 100%;
-  z-index: 10;
-}
-
-#slider-wrapper {
-  /* Take into account width and padding of elapsed and duration text */
-  width: calc(100% - 13.6rem);
-  height: 4.2rem;
-}
-
-#slider-wrapper div {
-  position: absolute;
-  pointer-events: none;
-}
-
-.progress {
-  height: 0.3rem;
-  width: 0;
-  top: 50%;
-  margin-top: -0.1rem;
-}
-
-#elapsedTime {
-  background-color: #00caf2;
-  z-index: 30;
-  margin-top: -0.2rem;
-}
-
-#bufferedTime {
-  background-color: blue;
-  z-index: 20;
-}
-
-#timeBackground {
-  width: 100%;
-  height: 0.1rem;
-  background-color: #a6b4b6;
-  z-index: 10;
-}
-
-#videoControlBar {
-  height: 4.5rem;
-}
-
-#videoToolBar {
-  position: relative;
-  height: 4.8rem;
-  font-size: 0;
-  vertical-align: top;
-  border-top: 0.1rem solid rgba(255,255,255, 0.1);
-  background-color: #000;
-  overflow: hidden;
-  direction: ltr
-}
-
-#seek-backward,
-#seek-forward,
-#play {
-  position: relative;
-  height: 100%;
-  padding: 0;
-  font-weight: 500;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: 3rem;
-}
-
-#seek-backward,
-#seek-forward {
-  width: 33%;
-}
-
-#play {
-  width: 34%;
-}
-
-#play.paused:before {
-  content: 'play';
-  padding-left: 4px;
-}
-
-.player-controls-button {
-  color: #FFFFFF;
-  border: none;
-  border-radius: 0;
-  background: transparent;
-}
-
-.player-controls-button:hover {
-  background: transparent;
-}
-
-.player-controls-button:active {
-  background: #00caf2;
-}
-
-.player-controls-button:disabled {
-  opacity: 0.3;
-}
-
-.player-controls-button:disabled:active {
-  background: transparent;
-}
-
-#playHead {
-  position: absolute;
-  top: calc(50% - 1.15rem);
-  width: 2.3rem;
-  height: 2.3rem;
-
-  /* For LTR langauges, position the playhead 1.15 rems to the left 
-   * so that the center of the playhead aligns with the beginning of
-   * the time slider.
-   */
-  margin-left: -1.15rem;
-
-  /* For RTL langauges, position the playhead 1.15 rems to the right 
-   * so that the center of the playhead aligns with the end of
-   * the time slider.
-   */
-  margin-right: -1.15rem;
- 
-  border: none;
-  background: none;
-  pointer-events: none;
-  z-index: 40;
-}
-
-#playHead:after {
-  content: "";
-  position: absolute;
-  top: calc(50% - 1.15rem);
-  left: calc(50% - 1.15rem);
-  width: 2.3rem;
-  height: 2.3rem;
-  border-radius: 50%;
-  background-color: #fff;
-}
-
-#playHead.active:before {
-  content: "";
-  position: absolute;
-  top: calc(50% - 3.05rem);
-  left: calc(50% - 3.05rem);
-  width: 6.1rem;
-  height: 6.1rem;
-  border-radius: 50%;
-  background-color: #00CAF2;
 }
 
 /* layout changes for pick activity */
@@ -678,7 +483,8 @@ body:not(.pick-activity) #picker-close {
  *    in shadow-dom.
  */
 
-body:not(.pick-activity) #picker-done {
+body:not(.pick-activity) #picker-done,
+body:not(.pick-activity) #picker-header {
   display: none !important; /* 1 */
 }
 
@@ -704,6 +510,7 @@ body.pick-activity #thumbnails-bottom {
   order: 1;
   align-self: auto;
   word-break: break-all;
+  direction: ltr /* the title is from the file name : always ltr */
 }
 
 .thumbnail .details .duration-text {
@@ -737,33 +544,27 @@ body.pick-activity #thumbnails-bottom {
   display: none !important; /* 1 */
 }
 
-/* selection mode */
-.layout-selection #thumbnail-list-view,
-.layout-selection #player-view {
-  display: none;
+/* not selection mode */
+body:not(.layout-selection) .thumbnails-select,
+/* not list mode */
+body:not(.layout-list) .thumbnails-list,
+/* not fullscreen-player mode */
+body:not(.layout-fullscreen-player) #player-view {
+  display: none !important; /* 1 */
 }
 
-/* list mode */
-.layout-list #thumbnail-select-view,
-.layout-list #player-view {
-  display: none;
-}
-
-/* fullscreen-player mode */
-.layout-fullscreen-player #thumbnail-select-view,
-.layout-fullscreen-player #thumbnail-list-view,
 .layout-fullscreen-player #thumbnails {
   display: none;
+}
+
+/* overlay mode */
+.overlay #app-container {
+  visibility: hidden;
 }
 
 /* spinner is only valid for tablet and landscape mode */
 body:not(.view-activity) #spinner-overlay {
   display: none;
-}
-
-/* make videocontrolbar visible  when picking */
-body.pick-activity #videoControls #videoBar{
-  bottom: 4.4rem;
 }
 
 /*
@@ -792,4 +593,8 @@ form[role="dialog"][data-type="confirm"] button.hidden {
  */
 * {
   -moz-user-select: none;
+}
+
+html[dir=rtl] #video-title {
+  direction: ltr;
 }
