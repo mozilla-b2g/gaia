@@ -123,7 +123,9 @@ require.config({
         'modules/bluetooth/version_detector',
         'modules/app_storage',
         'modules/battery',
-        'modules/wifi_context'
+        'modules/wifi_context',
+        'modules/bluetooth/bluetooth_v1',
+        'modules/bluetooth/bluetooth_context'
       ]
     },
     {
@@ -330,7 +332,7 @@ require.config({
         'main',
         'modules/bluetooth/version_detector',
         'modules/bluetooth/bluetooth_v1',
-        'modules/bluetooth/bluetooth'
+        'modules/bluetooth/bluetooth_context'
       ]
     },
     {

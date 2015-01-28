@@ -1,5 +1,3 @@
-/* global console */
-
 /**
  * VersionDetector:
  *   - VersionDetector is an detector that identify the version of platform
@@ -14,6 +12,13 @@ define(function(require) {
 
   var NavigatorBluetooth = require('modules/navigator/mozBluetooth');
 
+  var _debug = false;
+  var Debug = function vd_debug(msg) {
+    if (_debug) {
+      console.log('--> [VersionDetector]: ' + msg);
+    }
+  };
+
   var VersionDetector = {
     /**
      * The value indicates whether the API version is responding.
@@ -22,7 +27,9 @@ define(function(require) {
      * @memberOf VersionDetector
      * @return {number}
      */
-    getVersion: function() {
+    getVersion: function vd_getVersion() {
+      Debug('getVersion(): NavigatorBluetooth.onattributechanged = ' +
+                 NavigatorBluetooth.onattributechanged);
       if (!NavigatorBluetooth) {
         console.error('[VersionDetector]: ' +
                       'navigator.mozBluetooth is not existed!!');
