@@ -255,7 +255,7 @@ label.list-pack-checkbox, .settings-input-list .list-pack-switch {
 .list-pack-switch .list-pack-switch-text,
 .list-pack-checkbox .list-pack-checkbox-text {
   flex-grow: 2;
-  -moz-margin-end: 9.5rem;
+  -moz-margin-end: 7.5rem;
   line-height: inherit;
 }
 
@@ -295,6 +295,13 @@ html:-moz-dir(rtl) .list-text {
   text-align: right;
 }
 
+/* Select items with list text do not need the after spacing for the submenu
+   chevrons, as the select that is on a line below the text will have the
+   chevron if it is needed, so give more space for the text. */
+li.select-item .list-text {
+  padding: 0 1.5rem;
+}
+
 .list-sub-text {
   text-decoration: none;
   overflow: hidden;
@@ -315,6 +322,12 @@ html:-moz-dir(rtl) .list-sub-text {
 
 li.align-center {
   text-align: center;
+}
+
+.item-with-children .list-text {
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  line-height: inherit;
 }
 
 .item-with-children::after  {
