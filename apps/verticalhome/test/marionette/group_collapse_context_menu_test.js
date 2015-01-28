@@ -15,7 +15,7 @@ marionette('Vertical - Group', function() {
     home.waitForLaunch();
   });
 
-  test('check dragging icon into collapsed group', function() {
+  test('check initiating context menu from collapsed group', function() {
     function scrollIntoView(el) {
       el.scrollIntoView(false);
     }
