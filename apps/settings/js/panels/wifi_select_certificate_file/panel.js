@@ -3,7 +3,7 @@ define(function(require) {
 
   var SettingsPanel = require('modules/settings_panel');
   var SettingsService = require('modules/settings_service');
-  var SettingsUtils = require('modules/settings_utils');
+  var DialogService = require('modules/dialog_service');
   var EnumerateAll = require('shared/device_storage/enumerate_all');
   var WifiHelper = require('shared/wifi_helper');
   var wifiManager = WifiHelper.getWifiManager();
@@ -17,8 +17,6 @@ define(function(require) {
         elements.panel = panel;
         elements.certificateFilesList =
           panel.querySelector('.wifi-certificate-files-List');
-        elements.certificateFailedDialog =
-          panel.querySelector('.certificate-import-failed');
       },
       onBeforeShow: function(panel) {
         this._cleanup();
@@ -52,6 +50,17 @@ define(function(require) {
           console.warn('failed to get file:' + cursor.error.name);
         };
       },
+      _setCertificateItemsEnabled: function(enabled) {
+        var items = elements.certificateFilesList.querySelectorAll('li');
+        var update = enabled ? function(item) {
+          item.classList.remove('disabled');
+        } : function(item) {
+          item.classList.add('disabled');
+        };
+        for (var i = 0; i < items.length; i++) {
+          update(items[i]);
+        }
+      },
       _createLinkAnchor: function(file) {
         // create anchor
         var anchor = document.createElement('a');
@@ -61,44 +70,33 @@ define(function(require) {
         var li = document.createElement('li');
         li.appendChild(anchor);
 
-        anchor.onclick = function settingsNicknameForImportCertificateFile() {
-          SettingsUtils.openDialog('wifi-enterCertificateNickname', {
-            certificateName: certificateName,
-            onSubmit: function() {
-              // TODO
-              // we have to make a new mechanism for this case
-              var inputNickname =
-                document.querySelector('.certificate-file-nickname');
+        anchor.onclick = () => {
+          DialogService.show('wifi-enterCertificateNickname', {
+            certificateName: certificateName
+          }).then((result) => {
+            var type = result.type;
+            var value = result.value;
 
+            if (type === 'submit') {
               var certRequest =
-                wifiManager.importCert(file, '', inputNickname.value);
+                wifiManager.importCert(file, '', value.nickname);
 
               // Gray out all item of certificate files
               // since we are importing other file.
-              var items = elements.certificateFilesList.querySelectorAll('li');
-
-              for (var i = 0; i < items.length; i++) {
-                items[i].classList.add('disabled');
-              }
-
-              certRequest.onsuccess = function() {
+              this._setCertificateItemsEnabled(false);
+              certRequest.onsuccess = () => {
                 // direct dialog to "wifi-manageCertificates"
                 SettingsService.navigate('wifi-manageCertificates');
               };
 
-              certRequest.onerror = function() {
-                // Pop out alert message for certificate import failed
-                var dialog = elements.certificateFailedDialog;
-                dialog.hidden = false;
-                dialog.onsubmit = function confirm() {
-                  dialog.hidden = true;
-                };
-
-                // Re-enable all items of certificate files
-                // since import file process is completed.
-                for (var i = 0; i < items.length; i++) {
-                  items[i].classList.remove('disabled');
-                }
+              certRequest.onerror = () => {
+                DialogService.alert('certificate-import-failed-description', {
+                  title: 'certificate-import-failed'
+                }).then(() => {
+                  // Re-enable all items of certificate files
+                  // since import file process is completed.
+                  this._setCertificateItemsEnabled(true);
+                });
               };
             }
           });
