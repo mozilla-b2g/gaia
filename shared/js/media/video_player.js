@@ -21,10 +21,14 @@ function VideoPlayer(container) {
   if (typeof container === 'string')
     container = document.getElementById(container);
 
-  function newelt(parent, type, classes) {
+  function newelt(parent, type, classes, l10n_id) {
     var e = document.createElement(type);
-    if (classes)
+    if (classes) {
       e.className = classes;
+    }
+    if (l10n_id) {
+      e.dataset.l10nId = l10n_id;
+    }
     parent.appendChild(e);
     return e;
   }
@@ -33,9 +37,11 @@ function VideoPlayer(container) {
   var poster = newelt(container, 'img', 'videoPoster');
   var player = newelt(container, 'video', 'videoPlayer');
   var controls = newelt(container, 'div', 'videoPlayerControls');
-  var playbutton = newelt(controls, 'button', 'videoPlayerPlayButton');
+  var playbutton = newelt(controls, 'button', 'videoPlayerPlayButton',
+                          'playbackPlay');
   var footer = newelt(controls, 'div', 'videoPlayerFooter hidden');
-  var pausebutton = newelt(footer, 'button', 'videoPlayerPauseButton');
+  var pausebutton = newelt(footer, 'button', 'videoPlayerPauseButton',
+                           'playbackPause');
   var slider = newelt(footer, 'div', 'videoPlayerSlider');
   var elapsedText = newelt(slider, 'span', 'videoPlayerElapsedText');
   var progress = newelt(slider, 'div', 'videoPlayerProgress');
@@ -44,8 +50,8 @@ function VideoPlayer(container) {
   var playHead = newelt(progress, 'div', 'videoPlayerPlayHead');
   var durationText = newelt(slider, 'span', 'videoPlayerDurationText');
   // expose fullscreen button, so that client can manipulate it directly
-  var fullscreenButton = newelt(slider, 'button',
-                          'videoPlayerFullscreenButton');
+  var fullscreenButton = newelt(slider, 'button', 'videoPlayerFullscreenButton',
+                                'playbackFullscreen');
 
   this.poster = poster;
   this.player = player;
