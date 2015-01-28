@@ -90,9 +90,9 @@ var UIManager = {
     'time-configuration-label',
     'time-form',
     // 3G
-    'data-connection-switch',
+    'data-connection-checkbox',
     // Geolocation
-    'geolocation-switch',
+    'geolocation-checkbox',
     // Tutorial
     'lets-go-button',
     'update-lets-go-button',
@@ -139,7 +139,7 @@ var UIManager = {
     this.simInfoBack.addEventListener('click', this);
     this.simInfoForward.addEventListener('click', this);
 
-    this.dataConnectionSwitch.addEventListener('change', this);
+    this.dataConnectionCheckbox.addEventListener('change', this);
 
     this.wifiRefreshButton.addEventListener('click', this);
     this.wifiJoinButton.addEventListener('click', this);
@@ -164,7 +164,7 @@ var UIManager = {
     this.timeConfiguration.addEventListener('input', this);
     this.dateConfiguration.addEventListener('input', this);
 
-    this.geolocationSwitch.addEventListener('change', this);
+    this.geolocationCheckbox.addEventListener('change', this);
 
     this.fxaCreateAccount.addEventListener('click', this);
 
@@ -567,8 +567,7 @@ var UIManager = {
   },
 
   updateDataConnectionStatus: function ui_udcs(status) {
-    var input = this.dataConnectionSwitch.querySelector('input');
-    input.checked = status;
+    this.dataConnectionCheckbox.checked = status;
   },
 
   changeStatusBarColor: function ui_csbc(color) {
