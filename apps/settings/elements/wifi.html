@@ -2,7 +2,7 @@
   <template>
 
     <gaia-header action="back" data-href="#root">
-      <h1 data-l10n-id="wifi-header"> Wi-Fi </h1>
+      <h1 data-l10n-id="wifi-header"></h1>
     </gaia-header>
 
     <div>
@@ -10,51 +10,49 @@
         <li class="wifi-enabled">
           <label class="pack-switch">
             <input type="checkbox" data-ignore>
-            <span data-l10n-id="wifi">Wi-Fi</span>
+            <span data-l10n-id="wifi"></span>
           </label>
         </li>
         <li hidden>
           <label class="pack-checkbox">
             <input type="checkbox" name="wifi.notification">
-            <span data-l10n-id="networkNotification">Network notification</span>
-            <small data-l10n-id="networkNotification-expl">Notify me when an open network is available</small>
+            <span data-l10n-id="networkNotification"></span>
+            <small data-l10n-id="networkNotification-expl"></small>
           </label>
         </li>
         <li class="wps-column">
           <a class="menu-item" href="#">
-            <span data-l10n-id="wpsMessage">Connect with WPS</span>
-            <small data-l10n-id="wpsDescription2">Automatic Wi-Fi setup</small>
+            <span data-l10n-id="wpsMessage"></span>
+            <small data-l10n-id="wpsDescription2"></small>
           </a>
         </li>
       </ul>
 
       <header>
-        <h2 data-l10n-id="availableNetworks"> Available Networks </h2>
+        <h2 data-l10n-id="availableNetworks"></h2>
       </header>
       <ul class="wifi-availableNetworks" data-state="off">
-        <li class="explanation" data-state="off" data-l10n-id="wifi-disabled">
-          Turn Wi-Fi on to view available networks.
-        </li>
+        <li class="explanation" data-state="off" data-l10n-id="wifi-disabled"></li>
         <li data-state="on">
-          <progress></progress><span data-l10n-id="scanning">Searching…</span>
+          <progress></progress><span data-l10n-id="scanning"></span>
         </li>
         <li data-state="ready">
-          <button data-l10n-id="scanNetworks">Search Again</button>
+          <button data-l10n-id="scanNetworks"></button>
         </li>
       </ul>
 
       <header>
-        <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
+        <h2 data-l10n-id="advancedSettings"></h2>
       </header>
       <ul>
         <li>
-          <a class="menu-item manageNetworks" href="#">
-            <span data-l10n-id="manageNetworks">Manage networks</span>
+          <a class="menu-item" href="#wifi-manageNetworks">
+            <span data-l10n-id="manageNetworks"></span>
           </a>
         </li>
         <li>
-          <a class="menu-item manageCertificates" href="#">
-            <span data-l10n-id="manageCertificates">Manage certificates</span>
+          <a class="menu-item" href="#wifi-manageCertificates">
+            <span data-l10n-id="manageCertificates"></span>
           </a>
         </li>
       </ul>
@@ -64,14 +62,12 @@
 
     <form role="dialog" data-type="confirm" class="wifi-bad-credentials-dialog" hidden>
       <section>
-        <h1 data-l10n-id="wifi-bad-credentials-title">Failed connecting to Wi-Fi</h1>
-        <p data-l10n-id="wifi-bad-credentials-confirm">
-          Unable to connect to {{ssid}}, authentication failed due to bad credentials. Please re-enter the network password.
-        </p>
+        <h1 data-l10n-id="wifi-bad-credentials-title"></h1>
+        <p data-l10n-id="wifi-bad-credentials-confirm"></p>
       </section>
       <menu>
-        <button data-l10n-id="cancel" class="wifi-bad-credentials-cancel">Cancel</button>
-        <button data-l10n-id="ok" class="wifi-bad-credentials-confirm recommend">Ok</button>
+        <button data-l10n-id="cancel" class="wifi-bad-credentials-cancel"></button>
+        <button data-l10n-id="ok" class="wifi-bad-credentials-confirm recommend"></button>
       </menu>
     </form>
   </template>
