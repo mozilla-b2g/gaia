@@ -91,9 +91,9 @@ var UIManager = {
     'time-configuration-label',
     'time-form',
     // 3G
-    'data-connection-switch',
+    'data-connection-checkbox',
     // Geolocation
-    'geolocation-switch',
+    'geolocation-checkbox',
     // Tutorial
     'lets-go-button',
     'update-lets-go-button',
@@ -140,7 +140,7 @@ var UIManager = {
     this.simInfoBack.addEventListener('click', this);
     this.simInfoForward.addEventListener('click', this);
 
-    this.dataConnectionSwitch.addEventListener('click', this);
+    this.dataConnectionCheckbox.addEventListener('change', this);
 
     this.wifiRefreshButton.addEventListener('click', this);
     this.wifiJoinButton.addEventListener('click', this);
@@ -170,7 +170,7 @@ var UIManager = {
     this.timeConfiguration.addEventListener('input', this);
     this.dateConfiguration.addEventListener('input', this);
 
-    this.geolocationSwitch.addEventListener('click', this);
+    this.geolocationCheckbox.addEventListener('change', this);
 
     this.fxaCreateAccount.addEventListener('click', this);
 
@@ -357,10 +357,9 @@ var UIManager = {
         window.setTimeout(SdManager.importContacts, 0);
         break;
       // 3G
-      case 'data-connection-switch':
+      case 'data-connection-checkbox':
         this.dataConnectionChangedByUsr = true;
-        var status = event.target.checked;
-        DataMobile.toggle(status);
+        DataMobile.toggle(event.target.checked);
         break;
       // WIFI
       case 'wifi-refresh-button':
@@ -389,7 +388,7 @@ var UIManager = {
         this.setDate();
         break;
       // Geolocation
-      case 'geolocation-switch':
+      case 'geolocation-checkbox':
         this.updateSetting(event.target.name, event.target.checked);
         break;
       // Privacy
@@ -575,7 +574,7 @@ var UIManager = {
   },
 
   updateDataConnectionStatus: function ui_udcs(status) {
-    this.dataConnectionSwitch.checked = status;
+    this.dataConnectionCheckbox.checked = status;
   },
 
   changeStatusBarColor: function ui_csbc(color) {
