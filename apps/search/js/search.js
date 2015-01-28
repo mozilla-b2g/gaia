@@ -10,6 +10,7 @@
   /* global SearchProvider */
   // timeout before notifying providers
   var SEARCH_DELAY = 500;
+  var MAX_GRID_SIZE = 4;
 
   window.Search = {
 
@@ -17,12 +18,16 @@
 
     providers: {},
 
+    gridCount: 0,
+
     searchResults: document.getElementById('search-results'),
 
     offlineMessage: document.getElementById('offline-message'),
     settingsConnectivity: document.getElementById('settings-connectivity'),
     suggestionsWrapper: document.getElementById('suggestions-wrapper'),
     loadingElement: document.getElementById('loading'),
+    grid: document.getElementById('icons'),
+    gridWrapper: document.getElementById('icons-wrapper'),
 
     suggestionsEnabled: false,
 
@@ -84,9 +89,8 @@
     },
 
     resize: function() {
-      var grid = document.getElementById('icons');
-      if (grid && grid.render) {
-        grid.render({
+      if (this.grid && this.grid.render) {
+        this.grid.render({
           rerender: true,
           skipDivider: true
         });
@@ -204,27 +208,30 @@
      * @param {Array} results The results of the provider search.
      */
     collect: function(provider, results) {
-
       if (provider.remote) {
         this.loadingElement.classList.remove('loading');
       }
 
-      if (!provider.dedupes) {
-        provider.render(results);
-        return;
+      if (provider.dedupes) {
+        results = this.dedupe.reduce(results, provider.dedupeStrategy);
       }
 
-      results = this.dedupe.reduce(results, provider.dedupeStrategy);
-      provider.render(results);
-
-      if (provider.grid) {
-        var childNodes = provider.grid.childNodes;
-        if (childNodes.length) {
-          var item = childNodes[childNodes.length - 1];
-          var rect = item.getBoundingClientRect();
-          provider.grid.style.height = rect.bottom + 'px';
+      if (provider.isGridProvider &&
+        (results.length + this.gridCount) > MAX_GRID_SIZE) {
+        var spaces = MAX_GRID_SIZE - this.gridCount;
+        if (spaces < 1) {
+          this.abort();
+          return;
         }
+        results.splice(spaces, (results.length - spaces));
       }
+
+      if (provider.isGridProvider) {
+        this.gridCount += results.length;
+      }
+  
+      this.gridWrapper.classList.toggle('hidden', !this.gridCount);
+      provider.render(results);
     },
 
     /**
@@ -255,14 +262,14 @@
     },
 
     /**
-     * Called when the user submits the search form
+     * Clear results from each provider.
      */
     clear: function(msg) {
       this.abort();
       for (var i in this.providers) {
         this.providers[i].clear();
       }
-
+      this.gridCount = 0;
       this.suggestionNotice.hidden = true;
     },
 
