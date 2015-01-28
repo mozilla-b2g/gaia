@@ -5,6 +5,8 @@
 
 
 require('/shared/js/settings_listener.js');
+require('/shared/js/telemetry.js');
+require('/shared/js/uuid.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
 requireApp('system/js/app_usage_metrics.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -519,8 +521,7 @@ suite('AppUsageMetrics:', function() {
     test('ftu.pingURL is used as a base URL by default', function(done) {
       mockSettings['ftu.pingURL'] = 'foo://bar';
       aum.startCollecting(function() {
-        assert.equal(AppUsageMetrics.REPORT_URL,
-                     'foo://bar/metrics/FirefoxOS/appusage');
+        assert.equal(AppUsageMetrics.REPORT_URL, 'foo://bar');
         done();
       });
     });
@@ -770,40 +771,52 @@ suite('AppUsageMetrics:', function() {
 
       // Check URL and method
       assert.equal(xhr.method, 'POST');
-      assert.equal(xhr.url, AppUsageMetrics.REPORT_URL);
+
+      var baseURL = AppUsageMetrics.REPORT_URL;
+      assert.ok(xhr.url.indexOf(baseURL) === 0);
+
+      var path = xhr.url.substring(baseURL.length + 1).split('/');
+      assert.equal(path[0], aum.deviceID);
+      assert.equal(path[1], AppUsageMetrics.TELEMETRY_REASON);
+      assert.equal(path[2], AppUsageMetrics.TELEMETRY_APP_NAME);
+      assert.equal(path[3], 'unknown');
+      assert.equal(path[4], 'unknown');
+      assert.equal(path[5], 'unknown');
 
       // Make sure that the correct data was sent
       var payload = JSON.parse(xhr.requestBody);
       assert.ok(payload);
-      assert.deepEqual(payload.apps, metrics.data.apps);
+      assert.equal(payload.ver, AppUsageMetrics.TELEMETRY_VERSION);
 
+      var info = payload.info;
+      assert.deepEqual(info.apps, metrics.data.apps);
       var apps = ['app1', 'app2', 'app3', 'homescreen'];
       var dayKey = metrics.getDayKey(sendTime);
       apps.forEach(function(app) {
-        assert.ok(app in payload.apps);
+        assert.ok(app in info.apps);
 
-        var keys = Object.keys(payload.apps[app]);
+        var keys = Object.keys(info.apps[app]);
         assert.equal(keys.length, 1);
         assert.equal(keys[0], dayKey);
       });
 
-      assert.equal(payload.start, metrics.data.start);
-      assert.equal(payload.stop, sendTime);
-      assert.equal(payload.deviceID, aum.deviceID);
-      assert.equal(payload.locale, navigator.language);
-      assert.equal(payload.screen.width, screen.width);
-      assert.equal(payload.screen.height, screen.height);
-      assert.equal(payload.screen.devicePixelRatio, window.devicePixelRatio);
+      assert.equal(info.start, metrics.data.start);
+      assert.equal(info.stop, sendTime);
+      assert.equal(info.deviceID, aum.deviceID);
+      assert.equal(info.locale, navigator.language);
+      assert.equal(info.screen.width, screen.width);
+      assert.equal(info.screen.height, screen.height);
+      assert.equal(info.screen.devicePixelRatio, window.devicePixelRatio);
 
-      var deviceinfo = payload.deviceinfo;
-      assert.equal(deviceinfo['developer.menu.enabled'], 'true');
-      assert.equal(deviceinfo['deviceinfo.hardware'], 'hardware');
-      assert.equal(deviceinfo['deviceinfo.product_model'], 'model');
-      assert.equal(deviceinfo['deviceinfo.os'], 'unknown');
-      assert.equal(deviceinfo['deviceinfo.platform_build_id'], 'unknown');
-      assert.equal(deviceinfo['deviceinfo.platform_version'], 'unknown');
-      assert.equal(deviceinfo['deviceinfo.software'], 'unknown');
-      assert.equal(deviceinfo['deviceinfo.update_channel'], 'unknown');
+      var deviceInfo = info.deviceinfo;
+      assert.equal(deviceInfo['developer.menu.enabled'], 'true');
+      assert.equal(deviceInfo['deviceinfo.hardware'], 'hardware');
+      assert.equal(deviceInfo['deviceinfo.product_model'], 'model');
+      assert.equal(deviceInfo['deviceinfo.os'], 'unknown');
+      assert.equal(deviceInfo['deviceinfo.platform_build_id'], 'unknown');
+      assert.equal(deviceInfo['deviceinfo.platform_version'], 'unknown');
+      assert.equal(deviceInfo['deviceinfo.software'], 'unknown');
+      assert.equal(deviceInfo['deviceinfo.update_channel'], 'unknown');
 
       // Make sure we're recording a new batch of metrics
       assert.notEqual(metrics, aum.metrics);
