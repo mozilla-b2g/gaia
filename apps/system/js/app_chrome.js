@@ -503,6 +503,12 @@
     };
 
   AppChrome.prototype.setThemeColor = function ac_setThemColor(color) {
+
+    // Do not set theme color for private windows
+    if (this.app.isPrivateBrowser()) {
+      return;
+    }
+
     this.element.style.backgroundColor = color;
 
     if (!this.app.isHomescreen) {
