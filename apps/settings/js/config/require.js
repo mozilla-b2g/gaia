@@ -211,8 +211,7 @@ require.config({
       name: 'panels/wifi/panel',
       exclude: [
         'main',
-        'modules/dialog_service',
-        'modules/settings_utils'
+        'modules/dialog_service'
       ]
     },
     {
