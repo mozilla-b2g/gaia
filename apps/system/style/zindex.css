@@ -163,10 +163,11 @@
   z-index: 4097;
 }
 
-/* Level 5: Activity menu, context menu, value selector */
+/* Level 5: Activity menu, context menu, system-dialog, value selector */
 /* The action menu goes over the gesture-panel so that gestures are not
    triggered when the action menu is visible. */
-#screen > [data-z-index-level="action-menu"] {
+#screen > [data-z-index-level="action-menu"],
+#screen > [data-z-index-level="system-dialog"] {
   z-index: 4098;
 }
 
@@ -199,9 +200,6 @@
   z-index: 2046;
 }
 
-#screen > [data-z-index-level="system-dialog"] {
-  z-index: 2045;
-}
 
 /* Keep keyboard and edges zones under lockscreen when locked */
 #screen.locked > [data-z-index-level="keyboards"] {
