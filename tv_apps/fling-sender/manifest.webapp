@@ -1,0 +1,21 @@
+{
+  "name": "Fling Sender",
+  "description": "Smart Screen Fling Sender",
+  "launch_path": "/index.html",
+  "type": "certified",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "locales": {
+    "en-US": {
+      "name": "Fling Sender",
+      "description": "Smart Screen Fling Sender"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "354": "/style/icons/appic_developer_354.png",
+    "708": "/style/icons/appic_developer_708.png"
+  }
+}
