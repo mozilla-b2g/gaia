@@ -172,7 +172,7 @@ class Homescreen(Base):
 
     class InstalledApp(PageRegion):
 
-        _delete_app_locator = (By.CSS_SELECTOR, 'span.remove')
+        _delete_app_locator = (By.CSS_SELECTOR, '.remove')
 
         @property
         def name(self):

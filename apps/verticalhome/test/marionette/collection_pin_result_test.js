@@ -81,11 +81,18 @@ marionette('Vertical - Collection', function() {
     // new section.
     var firstIcon = client.findElement(selectors.firstPinnedResult);
 
-    actions.longPress(firstIcon, 1).perform();
+    actions
+      .longPress(firstIcon.findElement('a'), 1)
+      .perform();
     var headerText =
       client.helper.waitForElement(home.Selectors.editHeaderText);
 
-    actions.press(firstIcon).wait(1).move(headerText).release().perform();
+    actions
+      .press(firstIcon.findElement('a'))
+      .wait(1)
+      .move(headerText)
+      .release()
+      .perform();
     assert.equal(client.findElements(selectors.allDividers).length, 1,
                  'there is only one divider');
   });

@@ -60,8 +60,10 @@
         icon.element.dataset.isDraggable = true;
 
         // Remove links are not present for web results
-        var removeEl = document.createElement('span');
+        var removeEl = document.createElement('button');
         removeEl.className = 'remove';
+        navigator.mozL10n.setAttributes(removeEl, 'gaia-grid-remove',
+          { name: icon.name });
         icon.element.appendChild(removeEl);
 
         // Change the location of the icon in the grid to be after the current
@@ -109,7 +111,8 @@
     handleEvent: function(e) {
       switch(e.type) {
           case 'contextmenu':
-            var identifier = this.identifier = e.target.dataset.identifier;
+            var identifier = this.identifier =
+              e.target.parentNode.dataset.identifier;
             if (!identifier) {
               return;
             }

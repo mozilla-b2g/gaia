@@ -60,15 +60,16 @@ marionette('Vertical - Collection Pin Bookmark', function() {
 
   test('pins the bookmarked result', function() {
     var bookmarkIcon = home.getIcon(bookmarkIdentifier);
+    var bookmarkIconTarget = bookmarkIcon.findElement('a');
     // scrolling with APZC confuses marionette when tapping: Bug 1046706
     home.moveIconToIndex(bookmarkIcon, 1);
 
-    actions.longPress(bookmarkIcon, 1).perform();
+    actions.longPress(bookmarkIconTarget, 1).perform();
     client.helper.waitForElement(home.Selectors.editHeaderText);
 
     actions
       // Long tap the bookmark icon
-      .press(bookmarkIcon)
+      .press(bookmarkIconTarget)
       .wait(1)
 
       // Now drop the icon into the collection

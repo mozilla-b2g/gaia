@@ -271,7 +271,7 @@
 
       if (action === 'launch') {
         // We do not allow users to launch icons in edit mode
-        if (inEditMode && e.target.classList.contains('icon')) {
+        if (inEditMode && e.target.parentNode.classList.contains('icon')) {
           // Check if we're trying to edit a bookmark or collection
           if (!icon.isEditable()) {
             return;
