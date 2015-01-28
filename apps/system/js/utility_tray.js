@@ -95,6 +95,7 @@ window.UtilityTray = {
 
     Service.register('makeAmbientIndicatorActive', this);
     Service.register('makeAmbientIndicatorInactive', this);
+    Service.register('hide', this);
   },
 
   startY: undefined,

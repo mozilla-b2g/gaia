@@ -20,7 +20,8 @@
     'TelephonySettings',
     'OperatorVariantManager',
     'CostControl',
-    'InternetSharing'
+    'InternetSharing',
+    'DataConnectionManager'
   ];
 
   BaseModule.create(MobileConnectionCore, {
