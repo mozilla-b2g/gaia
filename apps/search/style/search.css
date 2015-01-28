@@ -100,7 +100,7 @@ h2 span {
 }
 
 #places-header {
-  margin-top: 2.1rem;
+  margin-top: 0.9rem;
   margin-left: 0.5rem;
   margin-right: 0.6rem;
 }
@@ -171,9 +171,12 @@ h2 span {
 
 /* web */
 section.apps {
-  padding-top: 0.5rem;
   /* Hide the whitespace between inline elements */
   font-size: 0;
+  height: 10rem;
+  overflow: hidden;
+  padding-top: 1.3rem;
+  padding-bottom: 1.5rem;
 }
 
 gaia-grid {
@@ -244,6 +247,8 @@ gaia-grid {
   padding: 2.5rem 0;
   display: none;
   text-align: center;
+  position: absolute;
+  width: 100%;
 }
 
 #loading.loading {
