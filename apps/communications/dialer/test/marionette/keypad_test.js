@@ -103,6 +103,119 @@ marionette('Dialer > Keypad', function() {
     reflowHelper.stopTracking();
   });
 
+  test('Entering a digit in the middle of the number', function() {
+    typeNumber();
+
+    var number = subject.client.findElement(selectors.phoneNumber);
+    number.scriptWith(function (numberElement) {
+      numberElement.selectionStart = numberElement.selectionEnd = 1;
+      numberElement.click();
+    });
+
+    var zero = subject.client.findElement(selectors.zero);
+    keypadTap(zero);
+    assert.equal(number.getAttribute('value'), '1023');
+  });
+
+  test('Replace a selection in the middle of the number', function() {
+    typeNumber();
+
+    var number = subject.client.findElement(selectors.phoneNumber);
+    number.scriptWith(function (numberElement) {
+      numberElement.selectionStart = 1;
+      numberElement.selectionEnd = 2;
+      numberElement.click();
+    });
+
+    var zero = subject.client.findElement(selectors.zero);
+    keypadTap(zero);
+    assert.equal(number.getAttribute('value'), '103');
+  });
+
+  test('Replace a selection in the middle of the number with a long press',
+  function() {
+    typeNumber();
+
+    var number = subject.client.findElement(selectors.phoneNumber);
+    number.scriptWith(function (numberElement) {
+      numberElement.selectionStart = 1;
+      numberElement.selectionEnd = 2;
+      numberElement.click();
+    });
+
+    var zero = subject.client.findElement(selectors.zero);
+    keypadTap(zero, true);
+    assert.equal(number.getAttribute('value'), '1+3');
+  });
+
+  test('Entering a long press in the middle of the number', function() {
+    typeNumber();
+
+    var number = subject.client.findElement(selectors.phoneNumber);
+    number.scriptWith(function (numberElement) {
+      numberElement.selectionStart = numberElement.selectionEnd = 1;
+      numberElement.click();
+    });
+
+    var zero = subject.client.findElement(selectors.zero);
+    keypadTap(zero, true);
+    assert.equal(number.getAttribute('value'), '1+23');
+  });
+
+  test('Entering a digit in the middle of a long number', function() {
+    var insPosition = 3; // index where the cursor would be placed by the user
+    var realInsPosition = insPosition + 2; // index inside the complete number
+                                           // +2 for the space of the ellipsis
+
+    var typedNumber = typeLongNumber();
+    var numberAfterInsertion =
+      typedNumber.substr(0, realInsPosition) + '0' +
+      typedNumber.substr(realInsPosition);
+    var expectedValueAfterInsertion =
+      '\u2026' + numberAfterInsertion.substr(4); // 1 for the overflowing char,
+                                                 // 2 for the ellipsis itself,
+                                                 // 1 more for the new char.
+
+
+    var number = subject.client.findElement(selectors.phoneNumber);
+    var args = [number, insPosition];
+    client.executeScript(function (numberElement, insPosition) {
+      numberElement.selectionStart = numberElement.selectionEnd = insPosition;
+      numberElement.click();
+    }, args);
+
+    var zero = subject.client.findElement(selectors.zero);
+    keypadTap(zero);
+    assert.equal(number.getAttribute('value'), expectedValueAfterInsertion);
+  });
+
+  test('Entering a long press in the middle of a long number', function() {
+    var insPosition = 3; // index where the cursor would be placed by the user
+    var realInsPosition = insPosition + 2; // index inside the complete number
+                                           // +2 for the space of the ellipsis
+
+    var typedNumber = typeLongNumber();
+    var numberAfterInsertion =
+      typedNumber.substr(0, realInsPosition) + '+' +
+      typedNumber.substr(realInsPosition);
+    var expectedValueAfterInsertion =
+      '\u2026' + numberAfterInsertion.substr(4); // 1 for the overflowing char,
+                                                 // 2 for the ellipsis itself,
+                                                 // 1 more for the new char.
+
+
+    var number = subject.client.findElement(selectors.phoneNumber);
+    var args = [number, insPosition];
+    client.executeScript(function (numberElement, insPosition) {
+      numberElement.selectionStart = numberElement.selectionEnd = insPosition;
+      numberElement.click();
+    }, args);
+
+    var zero = subject.client.findElement(selectors.zero);
+    keypadTap(zero, true);
+    assert.equal(number.getAttribute('value'), expectedValueAfterInsertion);
+  });
+
   test('Using the special extention key', function() {
     var zero = subject.client.findElement(selectors.zero);
     var number = subject.client.findElement(selectors.phoneNumber);
