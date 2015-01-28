@@ -25,7 +25,7 @@
             "entrypoint",
             "./bin/ci run build_unit"
           ],
-          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.7.2",
           "maxRunTime": 1800
         },
         "extra": {
@@ -64,7 +64,7 @@
             "entrypoint",
             "./bin/ci run build_integration"
           ],
-          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.7.2",
           "maxRunTime": 1800
         },
         "extra": {
@@ -103,7 +103,7 @@
             "entrypoint",
             "./bin/ci run build_integration"
           ],
-          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.7.2",
           "maxRunTime": 1800
         },
         "extra": {
@@ -142,7 +142,7 @@
             "entrypoint",
             "./bin/ci run build_integration"
           ],
-          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.7.2",
           "maxRunTime": 1800
         },
         "extra": {
@@ -181,7 +181,7 @@
             "entrypoint",
             "./bin/ci run build_integration"
           ],
-          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.7.2",
           "maxRunTime": 1800
         },
         "extra": {
@@ -214,7 +214,7 @@
             "entrypoint",
             "./bin/ci run csslint"
           ],
-          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.7.2",
           "maxRunTime": 1800,
           "env": {}
         },
@@ -248,7 +248,7 @@
             "entrypoint",
             "./bin/ci run jsonlint"
           ],
-          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.7.2",
           "maxRunTime": 1800,
           "env": {}
         },
@@ -282,7 +282,7 @@
             "entrypoint",
             "./bin/ci run gjslint"
           ],
-          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.7.2",
           "maxRunTime": 1800,
           "env": {}
         },
@@ -316,7 +316,7 @@
             "entrypoint",
             "./bin/ci run jshint"
           ],
-          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.7.2",
           "maxRunTime": 1800,
           "env": {}
         },
