@@ -18,7 +18,14 @@ suite('message_list', function() {
     isStarred: true,
     isRead: true
   };
-  var mockMessage = {};
+  var mockMessage = {
+    author: { name: 'author' },
+    subject: 'subject',
+    snippet: 'this is a body snippet',
+    date: Date.now(),
+    sendStatus: {}
+  };
+  var mockMatches = { author: { text: 'auth', matchRuns: [] } };
 
   function testRefreshBtnAccessibility(syncing) {
     assert.equal(subject.refreshBtn.getAttribute('data-l10n-id'),
@@ -30,11 +37,22 @@ suite('message_list', function() {
     }
   }
 
+  function testSelectedMessage(element, editMode, selected) {
+    assert.equal(element.getAttribute('aria-selected'),
+      editMode ? selected ? 'true' : 'false'  : null);
+    assert.equal(element.querySelector('input[type=checkbox]').checked,
+      editMode && selected);
+  }
+
   suiteSetup(function(done) {
     testConfig({
       suiteTeardown: suiteTeardown,
       done: done
-    }, ['header_cursor', 'element!cards/message_list'], function(hc, ml) {
+    }, [
+      'header_cursor',
+      'element!cards/message_list',
+      'tmpl!cards/msg/header_item.html'], function(hc, ml, hi) {
+      mockMessage.element = hi.cloneNode(true);
       hc.cursor.messagesSlice = mockMessagesSlice;
       MessageList = ml;
     });
@@ -139,6 +157,135 @@ suite('message_list', function() {
         'message-star-button');
       assert.equal(subject.readBtn.getAttribute('data-l10n-id'),
         'message-mark-read-button');
+    });
+  });
+
+  suite('setMessageChecked', function() {
+    var element;
+    setup(function() {
+      element = Object.create(mockMessage).element;
+    });
+
+    test('set checked', function() {
+      subject.setMessageChecked(element, true);
+      testSelectedMessage(element, true, true);
+    });
+
+    test('set not checked', function() {
+      subject.setMessageChecked(element, false);
+      testSelectedMessage(element, true, false);
+    });
+  });
+
+  suite('setSelectState', function() {
+    var message, element;
+    setup(function() {
+      message = Object.create(mockMessage);
+      element = message.element;
+      subject.selectedMessages = [];
+      subject.editMode = true;
+    });
+
+    test('not in edit mode', function() {
+      subject.editMode = false;
+      subject.setSelectState(element, message);
+      testSelectedMessage(element, false);
+    });
+
+    test('set selected', function() {
+      subject.selectedMessages.push(message);
+      subject.setSelectState(element, message);
+      testSelectedMessage(element, true, true);
+    });
+
+    test('set not selected', function() {
+      subject.selectedMessages.pop(message);
+      subject.setSelectState(element, message);
+      testSelectedMessage(element, true, false);
+    });
+  });
+
+  suite('_setEditMode', function() {
+    var element;
+    setup(function() {
+      var message = Object.create(mockMessage);
+      subject.updateMessageDom(true, message);
+      element = message.element;
+      assert.isNull(element.getAttribute('aria-selected'));
+      subject.messagesContainer.appendChild(element);
+    });
+
+    test('in editMode', function() {
+      subject._setEditMode(true);
+      testSelectedMessage(element, true, false);
+    });
+  });
+
+  suite('updateMessageDom', function() {
+    var message, element;
+    setup(function() {
+      message = Object.create(mockMessage);
+      element = message.element;
+      subject.editMode = true;
+      subject.selectedMessages = [];
+    });
+
+    test('not edit mode', function() {
+      subject.editMode = false;
+      subject.updateMessageDom(true, message);
+      testSelectedMessage(element, false);
+    });
+
+    test('message selected', function() {
+      subject.selectedMessages.push(message);
+      subject.updateMessageDom(true, message);
+      testSelectedMessage(element, true, true);
+    });
+
+    test('message not selected', function() {
+      subject.selectedMessages.pop(message);
+      subject.updateMessageDom(true, message);
+      testSelectedMessage(element, true, false);
+    });
+  });
+
+  suite('updateMatchedMessageDom', function() {
+    var message, element;
+    setup(function() {
+      message = Object.create(mockMessage);
+      element = message.element;
+      subject.editMode = true;
+      subject.selectedMessages = [];
+    });
+
+    test('not edit mode', function() {
+      subject.editMode = false;
+      subject.updateMatchedMessageDom(true, {
+        element: element,
+        header: message,
+        matches: mockMatches
+      });
+      testSelectedMessage(element, false);
+    });
+
+    test('message selected', function() {
+      subject.selectedMessages.push(message);
+      subject.updateMatchedMessageDom(true, {
+        element: element,
+        header: message,
+        matches: mockMatches
+      });
+      testSelectedMessage(element, true, true);
+    });
+
+    test('message not selected', function() {
+      subject.selectedMessages.pop(message);
+      subject.updateMatchedMessageDom(true, {
+        element: element,
+        header: message,
+        matches: mockMatches
+      });
+      testSelectedMessage(element, true, false);
     });
   });
 });
