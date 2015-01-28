@@ -75,6 +75,7 @@
 
         that.cardManager.on('card-inserted', that.onCardInserted.bind(that));
         that.cardManager.on('card-removed', that.onCardRemoved.bind(that));
+        that.cardManager.on('card-updated', that.onCardUpdated.bind(that));
 
         that.spatialNavigator.on('focus', that.handleFocus.bind(that));
         that.spatialNavigator.on('unfocus', that.handleUnfocus.bind(that));
@@ -132,6 +133,12 @@
     onCardInserted: function(card, idx) {
       this.cardScrollable.insertNodeBefore(this._createCardNode(card), idx);
       this.cardScrollable.focus(idx);
+    },
+
+    onCardUpdated: function(card, idx) {
+      var item = this.cardScrollable.getItemFromNode(
+                                              this.cardScrollable.getNode(idx));
+      item.setAttribute('label', card.name);
     },
 
     onCardRemoved: function(indices) {
@@ -470,7 +477,7 @@
     },
 
     openSettings: function() {
-      /*jshint nonew: false */
+      /* jshint nonew: false */
       new MozActivity({
         name: 'configure',
         data: {}

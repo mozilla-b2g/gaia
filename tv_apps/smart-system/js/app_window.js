@@ -2093,6 +2093,8 @@
   AppWindow.prototype.focus = function() {
     if (this.contextmenu && this.contextmenu.hasMenuVisible()) {
       this.contextmenu.focus();
+    } else if (this.modalDialog && this.modalDialog.isVisible()) {
+      this.modalDialog.focus();
     } else {
       // Call mixed in class.
       BrowserMixin.focus.call(this);
