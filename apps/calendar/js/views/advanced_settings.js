@@ -2,13 +2,10 @@ define(function(require, exports, module) {
 'use strict';
 
 var AlarmTemplate = require('templates/alarm');
-var Local = require('provider/local');
+var CalendarSelect = require('calendar_select');
 var View = require('view');
-var calendarObserver = require('calendar_observer');
 var debug = require('debug')('views/advanced_settings');
-var forEach = require('object').forEach;
 var providerFactory = require('provider/provider_factory');
-var settingsObserver = require('settings_observer');
 var template = require('templates/account');
 
 require('dom!advanced-settings-view');
@@ -21,8 +18,9 @@ function AdvancedSettings(options) {
   this._addAccount = this._addAccount.bind(this);
   this._updateAccount = this._updateAccount.bind(this);
   this._removeAccount = this._removeAccount.bind(this);
-  this._renderCalendarSelect = this._renderCalendarSelect.bind(this);
   this.onCreateAccount = this.onCreateAccount.bind(this);
+
+  this.calendarSelect = new CalendarSelect(this.defaultCalendar);
 
   this._initEvents();
 }
@@ -100,8 +98,7 @@ AdvancedSettings.prototype = {
     account.on('update', this._updateAccount);
     account.on('preRemove', this._removeAccount);
     setting.on('syncFrequencyChange', this);
-    calendarObserver.on('change', this._renderCalendarSelect);
-    settingsObserver.on('defaultCalendar', this._renderCalendarSelect);
+    this.calendarSelect.init();
     this.createAccountButton.addEventListener('click', this.onCreateAccount);
     this.syncFrequency.addEventListener('change', this);
     this.defaultCalendar.addEventListener('change', this);
@@ -203,43 +200,6 @@ AdvancedSettings.prototype = {
 
   onfirstseen: function() {
     this.render();
-  },
-
-  _renderCalendarSelect: function() {
-    // TODO(gareth): This method is mostly shared with
-    //     views/modify_event. Should consolidate somehow...
-    var calendarList = calendarObserver.calendarList;
-    var defaultCalendar = settingsObserver.setting.defaultCalendar;
-
-    if (!Object.keys(calendarList).length) {
-      return;
-    }
-
-    var element = this.defaultCalendar;
-    element.innerHTML = '';
-    forEach(calendarList, (id, object) => {
-      var calendar = object.calendar;
-      var capabilities = object.capabilities;
-      if (!calendar.localDisplayed || !capabilities.canCreateEvent) {
-        return;
-      }
-
-      var l10n = navigator.mozL10n;
-      var option = document.createElement('option');
-      if (id === Local.calendarId) {
-        option.text = l10n.get('calendar-local');
-        option.setAttribute('data-l10n-id', 'calendar-local');
-      } else {
-        option.text = calendar.remote.name;
-      }
-
-      option.value = id;
-      if (defaultCalendar != null) {
-        option.selected = (defaultCalendar === id);
-      }
-
-      element.add(option);
-    });
   },
 
   render: function() {

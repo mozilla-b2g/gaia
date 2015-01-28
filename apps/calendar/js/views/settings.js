@@ -5,7 +5,6 @@ var CalendarTemplate = require('templates/calendar');
 var View = require('view');
 var calendarObserver = require('calendar_observer');
 var debug = require('debug')('views/settings');
-var find = require('object').find;
 var forEach = require('object').forEach;
 
 require('dom!settings');
@@ -180,34 +179,10 @@ Settings.prototype = {
     delete this._updateTimeouts[id];
 
     var calendars = this.app.store('Calendar');
-    var settings = this.app.store('Setting');
-
-    var changeDisplay = calendars.get(id).then(calendar => {
+    return calendars.get(id).then(calendar => {
       calendar.localDisplayed = displayed;
       return calendars.persist(calendar);
-    });
-
-    var maybeChangeDefault = settings.get('defaultCalendar').then(calendar => {
-      if (calendar !== id) {
-        return;
-      }
-
-      // Uh-oh! We're hiding the default calendar! Choose a new one.
-      var calendarList = calendarObserver.calendarList;
-      var nextDefault = find(calendarList, (id, object) => {
-        var calendar = object.calendar;
-        var capabilities = object.capabilities;
-        return calendar.localDisplayed && capabilities.canCreateEvent;
-      });
-
-      var value = nextDefault && nextDefault.key ? nextDefault.key : null;
-      return settings.set('defaultCalendar', value);
-    });
-
-    return Promise.all([
-      changeDisplay,
-      maybeChangeDefault
-    ])
+    })
     .then((id, model) => {
       return this.ondisplaypersist && this.ondisplaypersist(model);
     })

@@ -2,22 +2,18 @@ define(function(require, exports, module) {
 'use strict';
 
 var AlarmTemplate = require('templates/alarm');
+var CalendarSelect = require('calendar_select');
 var EventBase = require('./event_base');
 var InputParser = require('shared/input_parser');
-var Local = require('provider/local');
 var QueryString = require('querystring');
-var calendarObserver = require('calendar_observer');
 var dateFormat = require('date_format');
 var debug = require('debug')('views/modify_event');
-var forEach = require('object').forEach;
 var getTimeL10nLabel = require('calc').getTimeL10nLabel;
-var settingsObserver = require('settings_observer');
 
 require('dom!modify-event-view');
 
 function ModifyEvent(options) {
   this.deleteRecord = this.deleteRecord.bind(this);
-  this._renderCalendarSelect = this._renderCalendarSelect.bind(this);
   this._toggleAllDay = this._toggleAllDay.bind(this);
   EventBase.apply(this, arguments);
 }
@@ -55,8 +51,13 @@ ModifyEvent.prototype = {
   _initEvents: function() {
     EventBase.prototype._initEvents.apply(this, arguments);
 
-    calendarObserver.on('change', this._renderCalendarSelect);
-    settingsObserver.on('defaultCalendar', this._renderCalendarSelect);
+    var calendarSelect = new CalendarSelect(this.getEl('calendarId'));
+    calendarSelect.init();
+    calendarSelect.on('render', () => {
+      debug('Calendar <select> is rendered. Will remove loading class.');
+      this.getEl('calendarId').classList.remove(this.LOADING);
+    });
+    this.calendarSelect = calendarSelect;
 
     this.deleteButton.addEventListener('click', this.deleteRecord);
     this.form.addEventListener('click', this.focusHandler);
@@ -127,44 +128,6 @@ ModifyEvent.prototype = {
    */
   isSaved: function() {
       return !!this.provider;
-  },
-
-  _renderCalendarSelect: function() {
-    debug('Will re-render calendar select.');
-    var calendarList = calendarObserver.calendarList;
-    var defaultCalendar = settingsObserver.setting.defaultCalendar;
-
-    if (!Object.keys(calendarList).length) {
-      return;
-    }
-
-    var element = this.getEl('calendarId');
-    element.innerHTML = '';
-    forEach(calendarList, (id, object) => {
-      var calendar = object.calendar;
-      var capabilities = object.capabilities;
-      if (!calendar.localDisplayed || !capabilities.canCreateEvent) {
-        return;
-      }
-
-      var l10n = navigator.mozL10n;
-      var option = document.createElement('option');
-      if (id === Local.calendarId) {
-        option.text = l10n.get('calendar-local');
-        option.setAttribute('data-l10n-id', 'calendar-local');
-      } else {
-        option.text = calendar.remote.name;
-      }
-
-      option.value = id;
-      option.value = id;
-      if (defaultCalendar != null) {
-        option.selected = (defaultCalendar === id);
-      }
-
-      element.add(option);
-      this.getEl('calendarId').classList.remove(this.LOADING);
-    });
   },
 
   /**
@@ -542,9 +505,7 @@ ModifyEvent.prototype = {
 
     this.getEl('description').textContent = model.description;
 
-    // update calendar id
-    this.getEl('calendarId').value =
-      model.calendarId || settingsObserver.setting.defaultCalendar;
+    this.calendarSelect.render();
 
     // calendar display
     var currentCalendar = this.getEl('currentCalendar');
