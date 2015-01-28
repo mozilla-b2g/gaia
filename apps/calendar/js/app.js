@@ -33,7 +33,7 @@ var pendingClass = 'pending-operation';
  * location to reference database.
  */
 module.exports = {
-  _mozTimeRefreshTimeout: 3000,
+  startingURL: window.location.href,
 
   /**
    * Entry point for application
@@ -149,10 +149,8 @@ module.exports = {
    * Internally restarts the application.
    */
   forceRestart: function() {
-    if (!this.restartPending) {
-      this.restartPending = true;
-      this._location.href = this.startingURL;
-    }
+    debug('Will restart calendar app.');
+    window.location.href = this.startingURL;
   },
 
   /**
@@ -297,7 +295,7 @@ module.exports = {
     // the user has completed their selection.
     window.addEventListener('moztimechange', () => {
       debug('Noticed timezone change!');
-      nextTick(() => this.forceRestart(), this._mozTimeRefreshTimeout);
+      nextTick(this.forceRestart);
     });
   },
 
@@ -338,6 +336,8 @@ module.exports = {
    */
   init: function() {
     debug('Will initialize calendar app...');
+
+    this.forceRestart = this.forceRestart.bind(this);
 
     if (!this.db) {
       this.configure(new Db('b2g-calendar', this), new Router(page));
