@@ -372,7 +372,9 @@ suite('dialer/call_log', function() {
     var retryCount = groupDOM.querySelector('.retry-count');
     assert.ok(retryCount, 'Retry count ok');
     if (group.retryCount > 1) {
-      assert.equal(retryCount.innerHTML, '(' + group.retryCount + ')');
+      assert.equal(
+        retryCount.querySelector('bdi').innerHTML,
+        '(' + group.retryCount + ')');
     }
     if (callback) {
       callback();

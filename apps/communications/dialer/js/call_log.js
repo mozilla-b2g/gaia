@@ -507,7 +507,9 @@ var CallLog = {
     retryCount.className = 'retry-count';
 
     if (group.retryCount && group.retryCount > 1) {
-      retryCount.textContent = '(' + group.retryCount + ')';
+      var bdiRetry = document.createElement('bdi');
+      bdiRetry.textContent = '(' + group.retryCount + ')';
+      retryCount.appendChild(bdiRetry);
     }
 
     primInfo.appendChild(primInfoMain);
