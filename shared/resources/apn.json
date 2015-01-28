@@ -1360,7 +1360,7 @@
     {"carrier":"Celloneet MMS","apn":"mms.celloneet.com","user":"user1@mms.celloneet.com","password":"celloneet","mmsc":"http://mms.celloneet.com/servlets/mms","mmsproxy":"63.99.231.135","mmsport":"8080","type":["mms"]}
   ],
   "410": [
-    {"carrier":"ATT Nextgenphone","apn":"nxtgenphone","type":["default","mms","supl","fota","hipri"],"mmsc":"http://mmsc.mobile.att.net","mmsproxy":"proxy.mobile.att.net","mmsport":"80"},
+    {"carrier":"ATT Phone","apn":"phone","type":["default","mms","supl","fota"],"mmsc":"http://mmsc.mobile.att.net","mmsproxy":"proxy.mobile.att.net","mmsport":"80"},
     {"carrier":"ATT WAP","apn":"wap.cingular","proxy":"wireless.cingular.com","port":"80","server":"cingulargprs.com","mmsc":"http://mmsc.cingular.com/","mmsproxy":"wireless.cingular.com","type":["default","supl","mms"]},
     {"carrier":"Defense Mobile","apn":"PRODATA","mmsc":"http://mmsc.mobile.att.net","mmsproxy":"proxy.mobile.att.net","mmsport":"80","type":["default","mms","supl"],"protocol":"IP","mtusize":"1410","mvno_type":"gid","mvno_match_data":"60FF"},
     {"carrier":"TFDATA","apn":"tfdata","type":["default","mms","supl","hipri","fota"],"protocol":"IP","roaming_protocol":"IP","mmsc":"http://mms-tf.net","mmsproxy":"mms3.tracfone.com","mmsport":"80","mvno_type":"gid","mvno_match_data":"deff"},
