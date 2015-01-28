@@ -1,11 +1,11 @@
-/* global MockL10n, PairExpiredDialog */
+/* global MockL10n */
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('Bluetooth app > PairExpiredDialog ', function() {
-  var realL10n;
+  var realL10n, PairExpiredDialog;
 
   suiteSetup(function(done) {
     realL10n = window.navigator.mozL10n;
@@ -13,7 +13,15 @@ suite('Bluetooth app > PairExpiredDialog ', function() {
 
     loadBodyHTML('./_message.html');
 
-    requireApp('bluetooth/js/pair_expired_dialog.js', done);
+    var module = [
+      'views/pair_expired_dialog'
+    ];
+    var map = {};
+    var requireCtx = testRequire([], map, function() {});
+    requireCtx(module, function(pairExpiredDialog) {
+      PairExpiredDialog = pairExpiredDialog;
+      done();
+    }.bind(this));
   });
 
   suiteTeardown(function() {

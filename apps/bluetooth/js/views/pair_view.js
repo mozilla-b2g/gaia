@@ -102,8 +102,10 @@ var Pairview = {
   },
 
   close: function pv_close() {
-    window.opener.PairManager.setConfirmation(this._device.address, false);
-    window.close();
+    window.opener.require(['modules/pair_manager'], (PairManager) => {
+      PairManager.setConfirmation(this._device.address, false);
+      window.close();
+    });
   },
 
   closeInput: function pv_closeInput() {
@@ -133,21 +135,29 @@ var Pairview = {
 
             switch (this._pairMethod) {
               case 'confirmation':
-                window.opener.PairManager.setConfirmation(this._device.address,
-                                                          true);
+                window.opener.require(['modules/pair_manager'], 
+                  (PairManager) => {
+                  PairManager.setConfirmation(this._device.address, true);
+                  window.close();
+                });
                 break;
               case 'pincode':
                 var pinValue = this.pinInput.value;
-                window.opener.PairManager.setPinCode(this._device.address,
-                                                     pinValue);
+                window.opener.require(['modules/pair_manager'], 
+                  (PairManager) => {
+                  PairManager.setPinCode(this._device.address, pinValue);
+                  window.close();
+                });
                 break;
               case 'passkey':
                 var passkeyValue = this.passkeyInput.value;
-                window.opener.PairManager.setPasskey(this._device.address,
-                                                     passkeyValue);
+                window.opener.require(['modules/pair_manager'], 
+                  (PairManager) => {
+                  PairManager.setPasskey(this._device.address, passkeyValue);
+                  window.close();
+                });
                 break;
             }
-            window.close();
             break;
           case 'button-close':
             this.close();
