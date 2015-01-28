@@ -1,6 +1,7 @@
 /* global BalanceTab, ConfigManager, Common, NonReadyScreen, SimManager,
           debug, CostControl, TelephonyTab, ViewManager, LazyLoader,
-          PerformanceTestingHelper, AirplaneModeHelper, setNextReset */
+          PerformanceTestingHelper, AirplaneModeHelper, setNextReset,
+          asyncStorage */
 /* exported CostControlApp */
 
 'use strict';
@@ -211,6 +212,31 @@ var CostControlApp = (function() {
   }
 
   function startApp(callback) {
+    // If customMode is not ready and it was activated on previous execution,
+    // we have to change the setup plan to no plan.
+    if (!ConfigManager.supportCustomizeMode) {
+      SimManager.requestDataSimIcc(function(dataSim) {
+        ConfigManager.requestSettings(dataSim.iccId, function(settings) {
+          if (settings.trackingPeriod === 'custom') {
+            ConfigManager.setOption({ trackingPeriod: 'never' });
+            // Removing manually if a nextReset alarm exists
+            // XXX: This is not part of configuration by SIM so we bypass
+            // ConfigManager
+            asyncStorage.getItem('nextResetAlarm', function(id) {
+              // There is already an alarm, remove it
+              debug('Current nextResetAlarm', id + '.', id ? 'Removing.' : '');
+              if (id) {
+                navigator.mozAlarms.remove(id);
+              }
+              asyncStorage.setItem('nextResetAlarm', null, function() {
+                ConfigManager.setOption({ nextReset: null });
+              });
+            });
+          }
+        });
+      });
+    }
+
     if (SimManager.isMultiSim()) {
       window.addEventListener('dataSlotChange', _onDataSimChange);
     }
@@ -219,6 +245,7 @@ var CostControlApp = (function() {
         startFTE();
         return;
       }
+
       loadMessageHandler();
 
       costcontrol = instance;
