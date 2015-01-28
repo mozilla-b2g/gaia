@@ -256,10 +256,6 @@
     <link rel="stylesheet" type="text/css" href="style/permission_manager/permission_manager.css">
     <script defer src="js/permission_manager.js"></script>
 
-    <!-- App Install -->
-    <link rel="stylesheet" type="text/css" href="style/app_install_manager/app_install_manager.css">
-    <script defer src="js/app_install_manager.js"></script>
-
     <!-- Cost Control -->
     <link rel="stylesheet" type="text/css" href="style/cost_control/cost_control.css">
 
@@ -412,6 +408,14 @@
     <script defer src="js/layout_manager.js"></script>
     <script defer src="js/suspending_app_priority_manager.js"></script>
     <script defer src="js/input_window.js"></script>
+
+    <!-- App Install -->
+    <link rel="stylesheet" type="text/css" href="style/app_install_manager/app_install_manager.css">
+    <script defer src="js/app_install_dialog.js"></script>
+    <script defer src="js/app_install_cancel_dialog.js"></script>
+    <script defer src="js/app_download_cancel_dialog.js"></script>
+    <script defer src="js/setup_installed_app_dialog.js"></script>
+    <script defer src="js/ime_layout_dialog.js"></script>
 
     <!-- Edge Gestures -->
     <script defer src="js/stack_manager.js"></script>
@@ -883,58 +887,6 @@
       <div id="app-uninstall-dialog" data-z-index-level="app-uninstall-dialog">
       </div>
 
-      <form id="app-install-dialog" class="app-install-dialog generic-dialog"
-            data-type="confirm" role="dialog"
-            data-z-index-level="app-install-dialog">
-        <section>
-          <h1 id="app-install-message"></h1>
-          <dl>
-            <dt data-l10n-id="size">Size</dt>
-              <dd id="app-install-size"></dd>
-            <dt data-l10n-id="author">Author</dt>
-              <dd>
-                <span id="app-install-author-name"></span><br />
-                <span id="app-install-author-url"></span>
-              </dd>
-          </dl>
-        </section>
-        <menu data-items="2">
-          <button id="app-install-cancel-button" data-l10n-id="cancel">Cancel</button>
-          <button id="app-install-install-button" class="recommend" data-l10n-id="install">Install</button>
-        </menu>
-      </form>
-
-      <form id="app-install-cancel-dialog" class="app-install-dialog generic-dialog"
-            data-type="confirm" role="dialog"
-            data-z-index-level="app-install-dialog">
-        <section>
-          <h1 data-l10n-id="cancel-install">Cancel Install</h1>
-          <p>
-            <small data-l10n-id="cancelling-will-not-refund">Cancelling will not refund a purchase. Refunds for paid content are provided by the original seller.</small>
-            <small data-l10n-id="apps-can-be-installed-later">Apps can be installed later from the original installation source.</small>
-          </p>
-          <p data-l10n-id="are-you-sure-you-want-to-cancel">Are you sure you want to cancel this install?</p>
-        </section>
-        <menu data-items="2">
-          <button id="app-install-confirm-cancel-button" type="reset" data-l10n-id="cancel-install-button">Cancel Install</button>
-          <button id="app-install-resume-button" type="submit" data-l10n-id="resume">Resume</button>
-        </menu>
-      </form>
-
-      <form id="app-download-cancel-dialog" class="app-install-dialog generic-dialog"
-        data-type="confirm" role="dialog"
-        data-z-index-level="app-install-dialog">
-        <section>
-          <h1></h1>
-          <p data-l10n-id="app-download-can-be-restarted">The download can
-          be restarted later.</p>
-        </section>
-        <menu data-items="2">
-          <button id="app-download-stop-button" class="danger confirm" data-l10n-id="app-download-stop-button">Stop Download</button>
-          <button id="app-download-continue-button" class="cancel" type="reset" data-l10n-id="continue">Continue</button>
-        </menu>
-      </form>
-
       <form id="updates-download-dialog" data-type="confirm" role="dialog"
             data-z-index-level="updates-download-dialog" data-nowifi="false"
             data-data-connection-inline-warning="false" class="generic-dialog">
@@ -980,45 +932,6 @@
         <menu>
           <button id="updates-viaDataConnection-notnow-button" type="reset" data-l10n-id="notNow">Not Now</button>
           <button id="updates-viaDataConnection-download-button" class="recommend" type="submit" data-l10n-id="download">Download</button>
-        </menu>
-      </form>
-
-      <form id="setup-installed-app-dialog" class="setup-installed-app-dialog"
-            data-type="confirm" role="dialog"
-            data-z-index-level="setup-installed-app-dialog">
-        <section>
-          <h1 id="setup-app-name"></h1>
-          <p id="setup-app-description"></p>
-        </section>
-        <menu data-items="2">
-          <button id="setup-cancel-button" type="button" data-l10n-id="later">Later</button>
-          <button id="setup-confirm-button" class="recommend" type="button" data-l10n-id="setup">Setup</button>
-        </menu>
-      </form>
-
-      <form id="ime-layout-dialog" class="ime-layout-dialog"
-            data-type="confirm" role="dialog"
-            data-z-index-level="ime-layout-dialog">
-        <section>
-          <h1 data-l10n-id="ime-addkeyboards">Add keyboards</h1>
-          <!-- template for selecting IME layout after 3rd-party keyboard installed -->
-          <div id="ime-list-template" hidden>
-            <!--
-            <li>
-              <a>${displayName}</a>
-              <label class="pack-checkbox ime">
-                <input type="checkbox" name="keyboards" value="${imeName}">
-                <span></span>
-              </label>
-            </li>
-            -->
-          </div>
-          <ul id="ime-list">
-          </ul>
-        </section>
-        <menu data-items="2">
-          <button id="ime-cancel-button" type="button" data-l10n-id="cancel">Cancel</button>
-          <button id="ime-confirm-button" class="recommend" type="button" data-l10n-id="confirm">Confirm</button>
         </menu>
       </form>
 
