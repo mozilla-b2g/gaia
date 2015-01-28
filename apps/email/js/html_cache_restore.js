@@ -285,8 +285,8 @@ window.htmlCacheRestorePendingMessage = [];
     if (navigator.mozHasPendingMessage('activity')) {
       window.htmlCacheRestorePendingMessage.push('activity');
     }
-    if (navigator.mozHasPendingMessage('alarm')) {
-      window.htmlCacheRestorePendingMessage.push('alarm');
+    if (navigator.mozHasPendingMessage('request-sync')) {
+      window.htmlCacheRestorePendingMessage.push('request-sync');
     }
     if (navigator.mozHasPendingMessage('notification')) {
       window.htmlCacheRestorePendingMessage.push('notification');
