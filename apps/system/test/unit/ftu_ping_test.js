@@ -11,6 +11,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_mobile_operator.js');
 
+require('/shared/js/telemetry.js');
 require('/shared/js/uuid.js');
 require('/shared/test/unit/mocks/mock_simslot_manager.js');
 require('/shared/test/unit/mocks/mock_simslot.js');
@@ -80,49 +81,6 @@ suite('FtuPing', function() {
     FtuPing = null;
   });
 
-  suite('generatePingURL', function() {
-    setup(function() {
-      MockNavigatorSettings.mSettings['ftu.pingURL'] = 'test_url';
-      MockasyncStorage.mItems['ftu.pingID'] = 'test_id';
-    });
-
-    test('returns expected url', function(done) {
-      var mockSettings = MockNavigatorSettings.mSettings;
-      mockSettings['deviceinfo.platform_version'] = 'test_version';
-      mockSettings['app.update.channel'] = 'test_channel';
-      mockSettings['deviceinfo.platform_build_id'] = 'test_build_id';
-
-      FtuPing.initSettings(function() {
-        var url = FtuPing.generatePingURL();
-        assert.equal(url, 'test_url/test_id/ftu/FirefoxOS/test_version/' +
-                          'test_channel/test_build_id');
-        done();
-      });
-    });
-
-    test('returns unknown for empty properties', function(done) {
-      FtuPing.initSettings(function() {
-        var url = FtuPing.generatePingURL();
-        assert.equal(url, 'test_url/test_id/ftu/FirefoxOS/unknown/unknown/' +
-                          'unknown');
-        done();
-      });
-    });
-
-    test('encodes URI parameters', function(done) {
-      var mockSettings = MockNavigatorSettings.mSettings;
-      mockSettings['deviceinfo.platform_version'] = 'i have/';
-      mockSettings['app.update.channel'] = 'lots of:';
-      mockSettings['deviceinfo.platform_build_id'] = 'spaces man?';
-      FtuPing.initSettings(function() {
-        var url = FtuPing.generatePingURL();
-        assert.equal(url, 'test_url/test_id/ftu/FirefoxOS/i%20have%2F/' +
-                          'lots%20of%3A/spaces%20man%3F');
-        done();
-      });
-    });
-  });
-
   test('getAsyncStorageItems gets all items', function(done) {
     this.timeout(5000);
     MockasyncStorage.mItems.a = 1;
@@ -185,7 +143,6 @@ suite('FtuPing', function() {
       this.timeout(3000);
       doneCallback = function() {
         var pingData = FtuPing.getPingData();
-        assert.equal(pingData.ver, 3);
         assert.ok(pingData.pingID);
         assert.equal(pingData.pingID, MockasyncStorage.mItems['ftu.pingID']);
 
@@ -439,7 +396,9 @@ suite('FtuPing', function() {
                      'application/json');
 
         var data = JSON.parse(MockXMLHttpRequest.mLastSendData);
-        assert.equal(data['deviceinfo.os'], 'test_os');
+        assert.ok(data.info);
+        assert.equal(data.ver, 1);
+        assert.equal(data.info['deviceinfo.os'], 'test_os');
         done();
       });
     });
