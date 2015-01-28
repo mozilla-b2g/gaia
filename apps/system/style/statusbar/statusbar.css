@@ -157,14 +157,6 @@ body #statusbar {
   opacity: 0;
 }
 
-.statusbar > .sb-start-upper {
-  visibility: hidden;
-  position: absolute;
-  left: 0;
-  top: calc(var(--statusbar-height) * -1);
-}
-
-body .utility-tray .statusbar > .sb-start-upper,
 .utility-tray #statusbar > #statusbar-title,
 #statusbar-title.hidden {
   visibility: visible;
@@ -650,11 +642,6 @@ html[dir="rtl"] #screen.lockscreen-camera > #statusbar {
 html[dir="rtl"] .statusbar {
   left: 0;
   right: unset;
-}
-
-html[dir="rtl"] .statusbar > .sb-start-upper {
-  left: unset;
-  right: 0
 }
 
 html[dir="rtl"] #statusbar-connections[data-multiple="true"] .statusbar-signal::before {
