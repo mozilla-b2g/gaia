@@ -29,7 +29,10 @@ var SheetsTransition = {
     if (this._current) {
       this._setDuration(this._current, 0);
       this._current.classList.add('inside-edges');
-      currentApp && currentApp.setActive(false);
+      // XXX: We should setActive(false) here but
+      // it will cause image flicking, see
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=1125792
+      currentApp && currentApp.setNFCFocus(false);
     }
 
     if (this._new) {
