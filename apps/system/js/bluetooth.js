@@ -3,6 +3,9 @@
 'use strict';
 
 var Bluetooth = {
+  // name is needed for Service.registerState
+  name: 'Bluetooth',
+
   get Profiles() {
     return {
       HFP: 'hfp',   // Hands-Free Profile
