@@ -20,8 +20,13 @@
   proto._settingsKey = 'landing_app.manifestURL';
 
   proto.__defineGetter__('hasLandingApp', function lal_hasLandingApp() {
-    return !!this._currentManifestURL;
+    return !!this._checkManifestURL();
   });
+
+  proto._checkManifestURL = function lal_checkManifestURL(manifestURL) {
+    return !!applications.getByManifestURL(manifestURL ||
+                                           this._currentManifestURL);
+  };
 
   proto._fetchSettings = function lal_fetchSettings() {
     var that = this;
@@ -46,7 +51,7 @@
             that._instance.ensure();
           }
         }
-        if (!that._currentManifestURL) {
+        if (!that._checkManifestURL()) {
           console.warn('We enable landing app but without defining it?');
         }
         that._ready = true;

@@ -1,5 +1,6 @@
 /* exported TitleBar */
-/* global ModeManager, MODE_PICKER, MODE_PLAYER, PlayerView, AlbumArt, App */
+/* global ModeManager, MODE_PICKER, MODE_PLAYER, PlayerView, AlbumArtCache,
+   App */
 'use strict';
 
 var TitleBar = {
@@ -69,7 +70,7 @@ var TitleBar = {
               PlayerView.currentIndex
             ];
             var playingBlob = PlayerView.playingBlob;
-            AlbumArt.getCoverBlob(currentFileinfo).then(function(picture) {
+            AlbumArtCache.getCoverBlob(currentFileinfo).then(function(picture) {
               var currentMetadata = currentFileinfo.metadata;
               App.pendingPick.postResult({
                 type: playingBlob.type,

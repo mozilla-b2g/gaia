@@ -4,7 +4,7 @@
           LayoutManager, SettingsPromiseManager, L10nLoader,
           TargetHandlersManager, FeedbackManager, VisualHighlightManager,
           CandidatePanelManager, UpperCaseStateManager, LayoutRenderingManager,
-          IMERender, StateManager, HandwritingPadsManager */
+          StateManager, HandwritingPadsManager, ViewManager */
 
 (function(exports) {
 
@@ -23,6 +23,7 @@ var KeyboardApp = function() {
   this.upperCaseStateManager = null;
   this.layoutRenderingManager = null;
   this.stateManager = null;
+  this.viewManager = null;
 
   this.inputContext = null;
 };
@@ -77,6 +78,10 @@ KeyboardApp.prototype._startComponents = function() {
   this.visualHighlightManager = new VisualHighlightManager(this);
   this.visualHighlightManager.start();
 
+  // Initialize the rendering module
+  this.viewManager = new ViewManager(this);
+  this.viewManager.start();
+
   var renderingManager = this.layoutRenderingManager =
     new LayoutRenderingManager(this);
   renderingManager.start();
@@ -90,9 +95,6 @@ KeyboardApp.prototype._startComponents = function() {
   this.candidatePanelManager.oncandidateschange =
     renderingManager.updateCandidatesRendering.bind(renderingManager);
   this.candidatePanelManager.start();
-
-  // Initialize the rendering module
-  IMERender.init(this.layoutRenderingManager);
 
   this.stateManager = new StateManager(this);
   this.stateManager.start();
@@ -145,6 +147,9 @@ KeyboardApp.prototype._stopComponents = function() {
 
   this.stateManager.stop();
   this.stateManager = null;
+
+  this.viewManager.stop();
+  this.viewManager = null;
 };
 
 KeyboardApp.prototype.getContainer = function() {
@@ -205,12 +210,6 @@ KeyboardApp.prototype.setLayoutPage = function setLayoutPage(page) {
   if (typeof engine.setLayoutPage === 'function') {
     engine.setLayoutPage(this.layoutManager.currentPageIndex);
   }
-};
-
-// XXX: this should move to InputMethodGlue after
-// IMERender() is no longer a global class.
-KeyboardApp.prototype.getNumberOfCandidatesPerRow = function() {
-  return IMERender.getNumberOfCandidatesPerRow();
 };
 
 exports.KeyboardApp = KeyboardApp;

@@ -200,6 +200,9 @@ suite('OptionMenu', function() {
       buttons = menu.form.querySelectorAll('button');
     });
     test('Buttons', function() {
+      Array.forEach(buttons, (button) => {
+        assert.equal(button.type, 'button');
+      });
       assert.equal(buttons.length, 2);
     });
     test('Button Text', function() {

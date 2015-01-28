@@ -255,7 +255,7 @@ label.list-pack-checkbox, .settings-input-list .list-pack-switch {
 .list-pack-switch .list-pack-switch-text,
 .list-pack-checkbox .list-pack-checkbox-text {
   flex-grow: 2;
-  -moz-margin-end: 9.5rem;
+  -moz-margin-end: 7.5rem;
   line-height: inherit;
 }
 
@@ -295,6 +295,13 @@ html:-moz-dir(rtl) .list-text {
   text-align: right;
 }
 
+/* Select items with list text do not need the after spacing for the submenu
+   chevrons, as the select that is on a line below the text will have the
+   chevron if it is needed, so give more space for the text. */
+li.select-item .list-text {
+  padding: 0 1.5rem;
+}
+
 .list-sub-text {
   text-decoration: none;
   overflow: hidden;
@@ -315,6 +322,12 @@ html:-moz-dir(rtl) .list-sub-text {
 
 li.align-center {
   text-align: center;
+}
+
+.item-with-children .list-text {
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  line-height: inherit;
 }
 
 .item-with-children::after  {
@@ -454,4 +467,29 @@ cards-settings-debug button {
   display: block;
   margin: 1.5rem auto;
   width: calc(100% - 3rem);
+}
+
+/* Shared style overrides for the "are you sure" unencrypted connection
+   confirmation. Since the button text is longer than the typical yes/no, give
+   each button full width, with them stacked on top of each other. Also remove
+   extraneous p border. */
+form.tng-plain-socket-confirm[role="dialog"][data-type="confirm"] {
+   padding-bottom: 13rem;
+}
+
+form.tng-plain-socket-confirm[role="dialog"][data-type="confirm"] menu {
+  display: block;
+  white-space: unset;
+}
+
+form.tng-plain-socket-confirm[role="dialog"][data-type="confirm"] menu button {
+  margin: 0.5rem 0;
+}
+
+form.tng-plain-socket-confirm[role="dialog"][data-type="confirm"] p {
+  border-top: 0;
+}
+
+form.tng-plain-socket-confirm[role="dialog"][data-type="confirm"] p:first-of-type {
+  border-top: 0.1rem solid #686868;
 }

@@ -343,6 +343,53 @@ suite('system/Statusbar', function() {
     });
   });
 
+  suite('Statusbar should reflect fullscreen state', function() {
+    teardown(function() {
+      StatusBar.element.classList.remove('fullscreen');
+      StatusBar.element.classList.remove('fullscreen-layout');
+    });
+
+    test('Launch a non-fullscreen app', function() {
+      var app = new MockAppWindow();
+      this.sinon.stub(app, 'isFullScreen').returns(false);
+      StatusBar.handleEvent(new CustomEvent('appopened', { detail:app }));
+      assert.isFalse(StatusBar.element.classList.contains('fullscreen'));
+    });
+
+    test('Launch a fullscreen app', function() {
+      var app = new MockAppWindow();
+      this.sinon.stub(app, 'isFullScreen').returns(true);
+      StatusBar.handleEvent(new CustomEvent('appopened', { detail:app }));
+      assert.isTrue(StatusBar.element.classList.contains('fullscreen'));
+    });
+
+    test('Launch a fullscreen-layout app', function() {
+      var app = new MockAppWindow();
+      this.sinon.stub(app, 'isFullScreenLayout').returns(true);
+      StatusBar.handleEvent(new CustomEvent('appopened', { detail:app }));
+      assert.isTrue(StatusBar.element.classList.contains('fullscreen-layout'));
+    });
+
+    test('Launch a non-fullscreen-layout app', function() {
+      var app = new MockAppWindow();
+      this.sinon.stub(app, 'isFullScreenLayout').returns(false);
+      StatusBar.handleEvent(new CustomEvent('appopened', { detail:app }));
+      assert.isFalse(StatusBar.element.classList.contains('fullscreen-layout'));
+    });
+
+    test('Back to home should remove fullscreen state', function() {
+      var app = new MockAppWindow();
+      this.sinon.stub(app, 'isFullScreen').returns(true);
+      this.sinon.stub(app, 'isFullScreenLayout').returns(true);
+      StatusBar.handleEvent(new CustomEvent('appopened', { detail:app }));
+      var home = new MockAppWindow();
+      StatusBar.handleEvent(new CustomEvent('homescreenopened',
+        { detail: home }));
+      assert.isFalse(StatusBar.element.classList.contains('fullscreen'));
+      assert.isFalse(StatusBar.element.classList.contains('fullscreen-layout'));
+    });
+  });
+
   suite('system-downloads', function() {
     test('incrementing should display the icon', function() {
       StatusBar.incSystemDownloads();
@@ -430,6 +477,8 @@ suite('system/Statusbar', function() {
       StatusBar.handleEvent(evt);
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
+      assert.equal(StatusBar.element.classList.contains('maximized'), true);
+      assert.equal(StatusBar.element.classList.contains('light'), false);
     });
     test('attentionsceen hide', function() {
       // Test this when lockscreen is off.
@@ -2100,10 +2149,13 @@ suite('system/Statusbar', function() {
     }
 
     function triggerEvent(event) {
+      // XXX: Use MockAppWindow instead
       var currentApp = {
         getTopMostWindow: function getTopMostWindow() {
           return this._topWindow;
-        }
+        },
+        isFullScreen: function() {},
+        isFullScreenLayout: function() {}
       };
       Service.currentApp = currentApp;
       var evt = new CustomEvent(event, {detail: currentApp});
@@ -2547,6 +2599,44 @@ suite('system/Statusbar', function() {
 
       StatusBar.cloneStatusbar();
       assert.equal(StatusBar.statusbarIconsMin.className, className);
+    });
+  });
+
+  suite('handle UpdateManager events', function() {
+    var app;
+    setup(function() {
+      app = {
+        isFullScreen: function() {
+          return false;
+        },
+        getTopMostWindow: function() {
+          return app;
+        },
+
+        element: document.createElement('div')
+      };
+
+      Service.currentApp = app;
+      StatusBar.element.classList.add('light');
+    });
+
+    teardown(function() {
+      Service.currentApp = null;
+    });
+
+    test('should remove light class', function() {
+      assert.isTrue(StatusBar.element.classList.contains('light'));
+      var evt = new CustomEvent('updatepromptshown');
+      StatusBar.handleEvent(evt);
+      assert.isFalse(StatusBar.element.classList.contains('light'));
+    });
+
+    test('should restore the current theme', function() {
+      var evt = new CustomEvent('updateprompthidden');
+      var setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
+      StatusBar.handleEvent(evt);
+      assert.isTrue(setAppearanceStub.called);
+      assert.isTrue(setAppearanceStub.calledWith(app));
     });
   });
 });

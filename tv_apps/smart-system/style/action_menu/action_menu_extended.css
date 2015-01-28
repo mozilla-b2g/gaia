@@ -23,7 +23,8 @@ form[role="dialog"][data-type="object"] > div > menu > div > button .icon {
 
 form[role="dialog"][data-type="action"] > div > menu > div > button.hover .icon,
 form[role="dialog"][data-type="object"] > div > menu > div > button.hover .icon {
-  filter: invert(82.4%);
+  filter: url(invert.svg#invert);
+  opacity: 0.824;
 }
 
 form[role="dialog"][data-type="action"],

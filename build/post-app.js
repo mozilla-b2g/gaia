@@ -6,7 +6,7 @@ exports.execute = function(options, webapp) {
   // Filter images/video by GAIA_DEV_PIXELS_PER_PX.
   require('./media-resolution').execute(options, webapp);
 
-  // Updates hostnames for InterApp Communication APIs.
+  // Updates manifest.webapp
   require('./post-manifest').execute(options, webapp);
 
   require('./multilocale').execute(options, webapp);

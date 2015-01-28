@@ -40,6 +40,8 @@
       window.addEventListener('appopened', this);
       window.addEventListener('cardviewclosed', this);
       window.addEventListener('mozChromeEvent', this);
+      window.addEventListener('updatepromptshown', this);
+      window.addEventListener('updateprompthidden', this);
 
       ['touchstart', 'touchmove', 'touchend',
        'mousedown', 'mousemove', 'mouseup'].forEach(function(e) {
@@ -141,6 +143,14 @@
                 break;
             }
             break;
+        case 'updatepromptshown':
+          this.lifecycleEnabled = false;
+          break;
+        case 'updateprompthidden':
+          if (Service.currentApp && !Service.currentApp.isHomescreen) {
+            this.lifecycleEnabled = true;
+          }
+          break;
       }
     },
 

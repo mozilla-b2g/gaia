@@ -26,6 +26,7 @@
  * - urn:schemas-upnp-org:service:ConnectionManager:3
  *
  */
+/* jshint ignore:start */
 !(function( global, undefined ) {
 
   if( !global.Plug || !global.Plug.UPnP ) {

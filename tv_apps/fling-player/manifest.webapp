@@ -1,0 +1,25 @@
+{
+  "name": "Fling Player",
+  "description": "Smart Screen Fling Player",
+  "launch_path": "/index.html",
+  "type": "certified",
+  "role": "system",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "locales": {
+    "en-US": {
+      "name": "Fling Player",
+      "description": "Smart Screen Fling Player"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "354": "/style/icons/appic_developer_354.png",
+    "708": "/style/icons/appic_developer_708.png"
+  },
+  "permissions": {
+    "audio-channel-content":{}
+  }
+}

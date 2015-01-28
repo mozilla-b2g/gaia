@@ -35,10 +35,10 @@ suite('webapp-optimize.js', function() {
     };
 
     app = proxyquire.noCallThru().load(
-            '../../webapp-optimize', {
-              './utils': mockUtils,
-              './jsmin': mockJsmin
-            });
+      '../../webapp-optimize', {
+        './utils': mockUtils,
+        './jsmin': mockJsmin
+      });
 
     mockFile = {
       remove: function(recursive) {

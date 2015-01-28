@@ -1,4 +1,5 @@
-/* global homescreenLauncher, Service, LazyLoader, LandingAppLauncher */
+/* global homescreenLauncher, Service, FtuLauncher, LandingAppLauncher,
+          AppWindowManager */
 
 'use strict';
 (function(exports) {
@@ -83,6 +84,7 @@
     },
 
     handleEvent: function hwm_handleEvent(evt) {
+      var detail;
       switch(evt.type) {
         case 'appswitching':
           this.getHomescreen().showFadeOverlay();
@@ -96,7 +98,7 @@
           break;
         case 'open-app':
         case 'webapps-launch':
-          var detail = evt.detail;
+          detail = evt.detail;
           if (detail.manifestURL === homescreenLauncher.manifestURL ||
               detail.manifestURL === this.landingAppLauncher.manifestURL) {
             this.launchHomescreen(evt, detail.manifestURL);
@@ -106,13 +108,18 @@
           }
           break;
         case 'appopened':
-          var detail = evt.detail;
+          detail = evt.detail;
           if (detail.manifestURL === FtuLauncher.getFtuManifestURL()) {
             // we don't need to set activeHome as anything if it is ftu.
             break;
           } else if (detail.isHomescreen) {
             this._activeHome = ('LandingAppWindow' === detail.CLASS_NAME) ?
                                  this.landingAppLauncher : homescreenLauncher;
+          } else if (detail.manifest && detail.manifest.role === 'search') {
+            // XXX: Bug 1124112 - Seamlessly launch search app from home
+            // We have to ensure that the search app is fully rendered before
+            // closing the home app so defer it by "setTimeout".
+            setTimeout(this.closeHomeApp.bind(this));
           } else {
             this.closeHomeApp();
           }
@@ -143,7 +150,7 @@
           }
           break;
         case 'homescreenopened':
-          var detail = evt.detail;
+          detail = evt.detail;
           // Landing app is also a homescreen. We need to which one is opened
           // and show/hide the correct homescreen
           if (detail.CLASS_NAME === 'LandingAppWindow') {
@@ -248,6 +255,7 @@
       if (!this.landingAppLauncher.hasLandingApp) {
         // cal getHomescreen to ensure it.
         this.getHomescreen();
+        this.publish('home');
         return;
       }
 
@@ -299,8 +307,8 @@
      * @memberOf HomescreenWindowManager.prototype
      */
     getHomescreen: function getHomescreen(isHomeEvent) {
-      if (!exports.homescreenLauncher || !exports.homescreenLauncher.ready ||
-          !this.landingAppLauncher || !this.landingAppLauncher.ready) {
+      if ((!exports.homescreenLauncher || !exports.homescreenLauncher.ready) &&
+          (!this.landingAppLauncher || !this.landingAppLauncher.ready)) {
         return null;
       }
 

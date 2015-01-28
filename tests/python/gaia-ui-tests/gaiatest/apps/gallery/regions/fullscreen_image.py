@@ -2,10 +2,17 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette import expected
-from marionette import Wait
-from marionette.by import By
-from marionette.marionette import Actions
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+    from marionette.marionette import Actions
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
+    from marionette_driver.marionette import Actions
+
 from gaiatest.apps.base import Base
 
 
@@ -15,6 +22,7 @@ class FullscreenImage(Base):
     '''
     _fullscreen_view_locator = (By.ID, 'fullscreen-view')
     _current_image_locator = (By.CSS_SELECTOR, '#frames .current > .image-view')
+    _current_frame_locator = (By.CSS_SELECTOR, '#frames .current')
     _photos_toolbar_locator = (By.ID, 'fullscreen-toolbar')
     _delete_image_locator = (By.ID, 'fullscreen-delete-button-tiny')
     _confirm_delete_locator = (By.ID, 'confirm-ok')
@@ -47,6 +55,10 @@ class FullscreenImage(Base):
     @property
     def current_image_size_height(self):
         return self.marionette.find_element(*self._current_image_locator).size['height']
+
+    @property
+    def current_image_frame(self):
+        return self.marionette.find_element(*self._current_frame_locator)
 
     def flick_to_next_image(self):
         self._flick_to_image('next')

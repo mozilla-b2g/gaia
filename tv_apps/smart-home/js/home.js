@@ -1,11 +1,12 @@
 'use strict';
-/* global SpatialNavigator, XScrollable, KeyNavigationAdapter, Edit */
-/* global CardManager, URL, Application, Clock, Folder, Deck, CardFilter */
-/* global SearchBar */
+/* global Application, CardFilter, CardManager, Clock, Deck, Edit, Folder, Home,
+          KeyNavigationAdapter, MessageHandler, MozActivity, SearchBar,
+          SharedUtils, SpatialNavigator, URL, XScrollable */
+/* jshint nonew: false */
 
 (function(exports) {
 
-  const FULLSIZED_ICON = 336;
+  const FULLSIZED_ICON = 336 * (window.devicePixelRatio || 1);
   const DEFAULT_ICON = 'url("/style/images/appic_developer.png")';
   const DEFAULT_BGCOLOR = 'rgba(0, 0, 0, 0.5)';
   const DEFAULT_BGCOLOR_ARRAY = [0, 0, 0, 0.5];
@@ -14,7 +15,7 @@
 
   Home.prototype = {
     navigableIds:
-        ['search-button', 'search-input', 'settings-group', 'filter-tab-group'],
+        ['search-button', 'search-input', 'settings-group'],
 
     topElementIds: ['search-button', 'search-input', 'settings-group',
         'edit-button', 'settings-button'],
@@ -22,7 +23,7 @@
         'filter-tv-button', 'filter-dashboard-button', 'filter-device-button',
         'filter-app-button'],
 
-    navigableClasses: ['filter-tab', 'command-button'],
+    navigableClasses: ['command-button'],
     navigableScrollable: [],
     cardScrollable: undefined,
     folderScrollable: undefined,
@@ -51,6 +52,9 @@
       this.searchBar.on('shown', this.onSearchBarShown.bind(this));
       this.searchBar.on('hidden', this.onSearchBarHidden.bind(this));
 
+      this.messageHandler = new MessageHandler();
+      this.messageHandler.init(this);
+
       this.cardManager.getCardList().then(function(cardList) {
         that._createCardList(cardList);
         that.cardScrollable = new XScrollable({
@@ -61,13 +65,17 @@
         var collection = that.getNavigateElements();
 
         that.spatialNavigator = new SpatialNavigator(collection);
+        that.spatialNavigator.crossOnly = true;
         that.keyNavigatorAdapter = new KeyNavigationAdapter();
         that.keyNavigatorAdapter.init();
         that.keyNavigatorAdapter.on('move', that.onMove.bind(that));
-        that.keyNavigatorAdapter.on('enter', that.onEnter.bind(that));
+        // All behaviors which no need to have multple events while holding the
+        // key should use keyup.
+        that.keyNavigatorAdapter.on('enter-keyup', that.onEnter.bind(that));
 
         that.cardManager.on('card-inserted', that.onCardInserted.bind(that));
         that.cardManager.on('card-removed', that.onCardRemoved.bind(that));
+        that.cardManager.on('card-updated', that.onCardUpdated.bind(that));
 
         that.spatialNavigator.on('focus', that.handleFocus.bind(that));
         that.spatialNavigator.on('unfocus', that.handleUnfocus.bind(that));
@@ -93,6 +101,18 @@
         that.edit = new Edit();
         that.edit.init(
                   that.spatialNavigator, that.cardManager, that.cardScrollable);
+
+        // In some case, we can do action at keydown which is translated as
+        // onEnter in home.js. But in button click case, we need to listen
+        // keyup. So, instead keydown/keyup, we just use click event to handle
+        // it. The click event is translated at smart-button when use press
+        // enter on smart-button.
+        that.searchButton.addEventListener('click', function() {
+          that.searchBar.show();
+          // hide the searchButton because searchBar has an element whose
+          // appearance is the same as it.
+          that.searchButton.classList.add('hidden');
+        }.bind(that));
       });
     },
 
@@ -112,9 +132,13 @@
 
     onCardInserted: function(card, idx) {
       this.cardScrollable.insertNodeBefore(this._createCardNode(card), idx);
-      if(this.edit.mode === 'edit') {
-        this.cardScrollable.focus(idx);
-      }
+      this.cardScrollable.focus(idx);
+    },
+
+    onCardUpdated: function(card, idx) {
+      var item = this.cardScrollable.getItemFromNode(
+                                              this.cardScrollable.getNode(idx));
+      item.setAttribute('label', card.name);
     },
 
     onCardRemoved: function(indices) {
@@ -168,7 +192,7 @@
           var blob = iconData[0];
           var size = iconData[1];
           if (size >= FULLSIZED_ICON) {
-            that._setCardIcon(cardButton, blob, null);
+            that._setCardIcon(cardButton, card, blob, null);
           } else {
             that._getIconColor(blob, function(color, err) {
               if (err) {
@@ -277,16 +301,6 @@
       }
 
       var focus = this.spatialNavigator.getFocusedElement();
-      // XXX: We customized some navigating target here for those targets that
-      // don't move as we expected.
-      // We are planning to replace spatialNavigator with other solution, since
-      // most navigating case in smart-home is relatively simpler and
-      // spatialNavigator seems a little bit overkilled.
-      if((key === 'down' && this.topElementIds.indexOf(focus.id) !== -1) ||
-         (key === 'up' && this.bottomElementIds.indexOf(focus.id) !== -1)) {
-        this.spatialNavigator.focus(this.cardScrollable);
-        return;
-      }
 
       if (!(focus.CLASS_NAME == 'XScrollable' && focus.move(key))) {
         this.spatialNavigator.move(key);
@@ -304,11 +318,6 @@
         this.openSettings();
       } else if (focusElem === this.editButton) {
         this.edit.toggleEditMode();
-      } else if (focusElem === this.searchButton) {
-        this.searchBar.show();
-        // hide the searchButton because searchBar has an element whose
-        // appearance is the same as it.
-        this.searchButton.classList.add('hidden');
       } else {
         // Current focus is on a card
         var cardId = focusElem.dataset.cardId;
@@ -320,10 +329,18 @@
     },
 
     onSearchBarShown: function() {
-      new MozActivity({
-        name: 'search'
+      var hideSearchBar = function() {
+        document.removeEventListener('visibilitychange', hideSearchBar);
+        this.searchBar.hide();
+      }.bind(this);
+      document.addEventListener('visibilitychange', hideSearchBar);
+
+      var activity = new MozActivity({
+        name: 'search',
+        data: { keyword: '' }
       });
-      this.searchBar.hide();
+
+      activity.onerror = hideSearchBar;
     },
 
     onSearchBarHidden: function() {
@@ -460,6 +477,7 @@
     },
 
     openSettings: function() {
+      /* jshint nonew: false */
       new MozActivity({
         name: 'configure',
         data: {}
@@ -476,7 +494,7 @@
       var timeFormat = use12Hour ? _('shortTimeFormat12') :
                                    _('shortTimeFormat24');
       // remove AM/PM and we use our owned style to show it.
-      var timeFormat = timeFormat.replace('%p', '').trim();
+      timeFormat = timeFormat.replace('%p', '').trim();
       var formatted = f.localeFormat(now, timeFormat);
 
       var timeElem = document.getElementById('time');

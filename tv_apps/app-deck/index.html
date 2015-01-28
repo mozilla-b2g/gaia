@@ -9,8 +9,12 @@
     <link rel="stylesheet" type="text/css" href="tv_shared/components/smart-button/style.css">
 
     <link rel="stylesheet" type="text/css" href="style/app_deck.css">
+    <link rel="stylesheet" type="text/css" href="style/app_deck_list.css">
     <link rel="stylesheet" type="text/css" href="tv_shared/style/navigation.css">
     <link rel="stylesheet" type="text/css" href="tv_shared/style/icons.css">
+
+    <!-- default cards for first time launch -->
+    <link rel="resource" type="application/json" href="tv_shared/resources/default-cards.json">
 
     <!-- For test purpose on phone only -->
     <script defer src="shared/js/gesture_detector.js"></script>
@@ -38,6 +42,7 @@
     <script defer src="tv_shared/components/smart-button/script.js"></script>
 
     <!-- Specific code -->
+    <script defer src="js/promotion_list.js"></script>
     <script defer src="js/context_menu.js"></script>
     <script defer src="js/app_deck.js"></script>
 
@@ -51,30 +56,31 @@
   <body>
     <article id="main-section" contextmenu="context-menu">
       <section role="region" class="skin-dark" id="jumbotron">
-        <div id="app-deck-header">
-          <h1 id="app-deck-header-title">Lorem Ipsum</h1>
-          <div id="app-deck-header-description">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do </div>
+        <!-- do not add hidden here because we need it visible to probe its size -->
+        <div id="app-deck-animation-banner" class="app-deck-animation-banner">
+          <div class="banner-background"></div>
+          <div class="banner-text-container">
+            <h1 class="banner-title"></h1>
+            <div class="banner-description"></div>
+          </div>
+        </div>
+        <div id="app-deck-main-banner" class="app-deck-main-banner">
+          <div class="banner-background"></div>
+          <div class="banner-text-container">
+            <h1 class="banner-title"></h1>
+            <span class="banner-description"></span>
+          </div>
         </div>
         <div id="app-deck-list-frame">
-          <div id="app-deck-list">
-            <div class="app-banner navigable"></div>
-            <div class="app-banner navigable"></div>
-            <div class="app-banner navigable"></div>
-            <div class="app-banner navigable"></div>
-            <div class="app-banner navigable"></div>
-            <div class="app-banner navigable"></div>
-          </div>
+          <div id="app-deck-list"></div>
         </div>
       </section>
       <section role="region" class="skin-dark" id="app-deck-grid-view-container">
         <div id="app-deck-grid-view"></div>
       </section>
       <menu type="context" id="context-menu">
-        <menuitem label="Pin to Home" icon="tv_shared/style/icons/ic_pin.png" data-l10n-id="pin-to-home" id="pin-to-home"></menuitem>
-        <menuitem label="Remove" icon="tv_shared/style/icons/ic_delete.png" data-l10n-id="remove-card" id="remove-card"></menuitem>
-        <menuitem label="Sort by Name" data-l10n-id="sort-by-name" id="sort-by-name"></menuitem>
-        <menuitem label="Sort by Category" data-l10n-id="sort-by-category" id="sort-by-category"></menuitem>
-        <menuitem label="Sort by Time Added" data-l10n-id="sort-by-time-added" id="sort-by-time-added"></menuitem>
+        <menuitem icon="tv_shared/style/icons/ic_pin.png" data-l10n-id="pin-to-home" id="pin-to-home"></menuitem>
+        <menuitem icon="tv_shared/style/icons/ic_delete.png" data-l10n-id="remove-card" id="remove-card"></menuitem>
       </menu>
     </article>
   </body>

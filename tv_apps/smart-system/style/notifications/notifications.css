@@ -26,6 +26,9 @@ smart-banner#notification-container.hidden {
   line-height: 7rem;
   height: 7rem;
   display: block;
+  text-overflow: ellipsis;
+  max-width: 40rem;
+  overflow: hidden;
 }
 
 .notification-title {

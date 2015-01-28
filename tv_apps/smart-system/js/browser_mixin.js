@@ -1,10 +1,11 @@
+/* global layoutManager, AppWindow */
 'use strict';
 
 (function(window) {
   /**
    * @mixin BrowserMixin
    */
-  window.BrowserMixin = {
+  var BrowserMixin = {
     reload: function bm_reload() {
       if (this.browser.element) {
         this.browser.element.reload();
@@ -103,26 +104,32 @@
         }
 
         self.debug('getScreenshot succeed!');
-        if (invoked)
+        if (invoked) {
           return;
+        }
         self.debug('get screenshot success!!!!');
         invoked = true;
-        if (timer)
+        if (timer) {
           window.clearTimeout(timer);
-        if (callback)
+        }
+        if (callback) {
           callback(result);
+        }
       };
 
       req.onerror = function gotScreenshotFromFrameError(evt) {
 
         self.debug('getScreenshot failed!');
-        if (invoked)
+        if (invoked) {
           return;
+        }
         invoked = true;
-        if (timer)
+        if (timer) {
           window.clearTimeout(timer);
-        if (callback)
+        }
+        if (callback) {
           callback();
+        }
       };
     },
 
@@ -204,16 +211,19 @@
         var r = this.browser.element.getCanGoBack();
         r.onsuccess = function(evt) {
           self._backable = evt.target.result;
-          if (callback)
+          if (callback) {
             callback(evt.target.result);
+          }
         };
         r.onerror = function(evt) {
-          if (callback)
+          if (callback) {
             callback();
+          }
         };
       } else {
-        if (callback)
+        if (callback) {
           callback();
+        }
       }
     },
 
@@ -227,16 +237,19 @@
         var r = this.browser.element.getCanGoForward();
         r.onsuccess = function(evt) {
           self._forwardable = evt.target.result;
-          if (callback)
+          if (callback) {
             callback(evt.target.result);
+          }
         };
         r.onerror = function(evt) {
-          if (callback)
+          if (callback) {
             callback();
+          }
         };
       } else {
-        if (callback)
+        if (callback) {
           callback();
+        }
       }
     },
 
@@ -248,5 +261,7 @@
     }
   };
 
+  window.BrowserMixin = BrowserMixin;
+
   AppWindow.addMixin(BrowserMixin);
-}(this));
+}(window));

@@ -51,6 +51,13 @@ Search.prototype = {
   getResultSelector: function(identifier) {
     return '.icon[data-identifier="' + identifier + '"]';
   },
+  
+  /**
+   * Return selector for the history list item by URL
+   */
+  getHistoryResultSelector: function(url) {
+    return '.result[data-url="' + url + '"]';
+  },
 
   /**
    * Return grid results for a particular identifier

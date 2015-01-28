@@ -26,7 +26,7 @@
   clear: both;
   display: none;
   height: 4.2rem;
-  padding-left: 3rem;
+  -moz-padding-start: 3rem;
   color: red;
   font-size: 1.5rem;
   line-height: 4.2rem;

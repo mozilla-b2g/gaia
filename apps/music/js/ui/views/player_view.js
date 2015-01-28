@@ -1,5 +1,5 @@
 /* exported PlayerView */
-/* global TitleBar, MusicComms, musicdb, ModeManager, App, AlbumArt,
+/* global TitleBar, MusicComms, musicdb, ModeManager, App, AlbumArtCache,
           AudioMetadata, ListView, ForwardLock, formatTime, MozActivity,
           asyncStorage, SETTINGS_OPTION_KEY, MODE_PLAYER */
 'use strict';
@@ -248,7 +248,7 @@ var PlayerView = {
     this.offscreenImage.src = '';
     this.coverImage.classList.remove('fadeIn');
 
-    AlbumArt.getCoverURL(fileinfo).then(function(url) {
+    AlbumArtCache.getCoverURL(fileinfo).then(function(url) {
       this.offscreenImage.addEventListener('load', pv_showImage.bind(this));
       this.offscreenImage.src = url;
     }.bind(this));
@@ -429,7 +429,7 @@ var PlayerView = {
     // picture. If .picture is null, something went wrong and listeners should
     // probably use a blank picture (or their own placeholder).
     if (this.audio.currentTime === 0) {
-      AlbumArt.getCoverBlob(fileinfo).then(function(blob) {
+      AlbumArtCache.getCoverBlob(fileinfo).then(function(blob) {
         notifyMetadata.picture = blob;
         MusicComms.notifyMetadataChanged(notifyMetadata);
       });
@@ -702,6 +702,7 @@ var PlayerView = {
     this.isTouching = this.isFastSeeking = true;
     var offset = direction * 2;
 
+    this.prevPlayStatus = this.playStatus;
     this.playStatus = direction ? PLAYSTATUS_FWD_SEEK : PLAYSTATUS_REV_SEEK;
     this.updateRemotePlayStatus();
 
@@ -716,8 +717,9 @@ var PlayerView = {
       window.clearInterval(this.intervalID);
     }
 
-    // After we cancel the fast seeking, an 'playing' will be fired,
-    // so that we don't have to update the remote play status here.
+    this.playStatus = this.prevPlayStatus;
+    this.prevPlayStatus = null;
+    this.updateRemotePlayStatus();
   },
 
   updateSeekBar: function pv_updateSeekBar() {
@@ -738,7 +740,10 @@ var PlayerView = {
 
   seekAudio: function pv_seekAudio(seekTime) {
     if (seekTime !== undefined) {
-      this.audio.currentTime = seekTime;
+      // Because of bug 1119186, setting the currentTime to a value as same as
+      // the audio.duration seems corrupts the audio element, so here we floor
+      // the seek time to prevent it.
+      this.audio.currentTime = Math.floor(seekTime);
     }
 
     var startTime = this.audio.startTime;
@@ -805,7 +810,7 @@ var PlayerView = {
     }
 
     musicdb.getFile(songData.name, function(file) {
-      AlbumArt.getCoverBlob(songData).then(function(pictureBlob) {
+      AlbumArtCache.getCoverBlob(songData).then(function(pictureBlob) {
         var filename = songData.name,
         name = filename.substring(filename.lastIndexOf('/') + 1);
 
@@ -920,10 +925,10 @@ var PlayerView = {
             this.showInfo();
             break;
           case 'player-controls-play':
-            if (this.playStatus === PLAYSTATUS_PLAYING) {
-              this.pause();
-            } else {
+            if (this.playControl.classList.contains('is-pause')) {
               this.play();
+            } else {
+              this.pause();
             }
             break;
           case 'player-album-repeat':

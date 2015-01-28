@@ -182,6 +182,34 @@ suite('system/AttentionWindowManager', function() {
       window.attentionWindowManager = null;
     });
 
+    test('broadcast secure app opened event', function() {
+      attentionWindowManager._instances =
+        new Map([[att3, att3], [att2, att2], [att1, att1]]);
+      var stubBroadcast = [
+        this.sinon.stub(att1, 'broadcast'),
+        this.sinon.stub(att2, 'broadcast'),
+        this.sinon.stub(att3, 'broadcast')
+      ];
+      window.dispatchEvent(new CustomEvent('secure-appopened'));
+      assert.isTrue(stubBroadcast[0].calledWith('secure-appopened'));
+      assert.isTrue(stubBroadcast[1].calledWith('secure-appopened'));
+      assert.isTrue(stubBroadcast[2].calledWith('secure-appopened'));
+    });
+
+    test('broadcast secure app closed event', function() {
+      attentionWindowManager._instances =
+        new Map([[att3, att3], [att2, att2], [att1, att1]]);
+      var stubBroadcast = [
+        this.sinon.stub(att1, 'broadcast'),
+        this.sinon.stub(att2, 'broadcast'),
+        this.sinon.stub(att3, 'broadcast')
+      ];
+      window.dispatchEvent(new CustomEvent('secure-appclosed'));
+      assert.isTrue(stubBroadcast[0].calledWith('secure-appclosed'));
+      assert.isTrue(stubBroadcast[1].calledWith('secure-appclosed'));
+      assert.isTrue(stubBroadcast[2].calledWith('secure-appclosed'));
+    });
+
     test('broadcast lockscreen app opened event', function() {
       attentionWindowManager._instances =
         new Map([[att3, att3], [att2, att2], [att1, att1]]);

@@ -588,6 +588,87 @@ suite('thread_list_ui', function() {
     });
   });
 
+  suite('markReadUnread', function() {
+    setup(function() {
+      var threads = [{
+        id: 1,
+        date: new Date(2013, 1, 2),
+        unread: false
+      }, {
+        id: 2,
+        date: new Date(2013, 1, 0),
+        unread: true
+      }, {
+        id: 3,
+        date: new Date(2013, 1, 2),
+        unread: true
+      }, {
+        id: 4,
+        date: new Date(2013, 1, 0),
+        unread: true
+      }, {
+        id: 5,
+        date: new Date(2013, 1, 2),
+        unread: false
+      }, {
+        id: 6,
+        date: new Date(2013, 1, 0),
+        unread: false
+      }];
+
+      threads.forEach((threadInfo) => {
+        var thread = Thread.create(MockMessages.sms({
+          threadId: threadInfo.id,
+          timestamp: +threadInfo.date
+        }), { unread: threadInfo.unread });
+        Threads.set(thread.id, thread);
+        ThreadListUI.appendThread(thread);
+      });
+
+      ThreadListUI.selectionHandler = null;
+      ThreadListUI.startEdit();
+    });
+
+    test('one read and one unread Thread', function() {
+      var firstThreadNode = document.getElementById('thread-1'),
+          secondThreadNode = document.getElementById('thread-2');
+
+      ThreadListUI.selectionHandler.selected = new Set(['1', '2']);
+
+      ThreadListUI.checkInputs();
+      ThreadListUI.markReadUnread();
+
+      assert.isFalse(firstThreadNode.classList.contains('unread'));
+      assert.isFalse(secondThreadNode.classList.contains('unread'));
+    });
+
+    test('both Threads are unread', function() {
+      var firstThreadNode = document.getElementById('thread-3'),
+          secondThreadNode = document.getElementById('thread-4');
+
+      ThreadListUI.selectionHandler.selected = new Set(['3', '4']);
+
+      ThreadListUI.checkInputs();
+      ThreadListUI.markReadUnread();
+
+      assert.isFalse(firstThreadNode.classList.contains('unread'));
+      assert.isFalse(secondThreadNode.classList.contains('unread'));
+    });
+
+    test('both Threads are read', function() {
+     var firstThreadNode = document.getElementById('thread-5'),
+         secondThreadNode = document.getElementById('thread-6');
+
+      ThreadListUI.selectionHandler.selected = new Set(['5', '6']);
+
+      ThreadListUI.checkInputs();
+      ThreadListUI.markReadUnread();
+
+      assert.isTrue(firstThreadNode.classList.contains('unread'));
+      assert.isTrue(secondThreadNode.classList.contains('unread'));
+    });
+  });
+
   suite('delete', function() {
     var threadDraftIds = [100, 200],
         threadIds = [1, 2, 3];
@@ -664,8 +745,16 @@ suite('thread_list_ui', function() {
       test('called confirm with proper message', function(done) {
         selectThreadsAndDelete(threadDraftIds).then(() => {
           sinon.assert.calledWith(
-            Utils.confirm, 'deleteThreads-confirmation2', null,
-            { text: 'delete', className: 'danger' }
+            Utils.confirm,
+            {
+              id: 'deleteThreads-confirmation-message',
+              args: { n: threadDraftIds.length }
+            },
+            null,
+            {
+              text: 'delete',
+              className: 'danger'
+            }
           );
         }).then(done, done);
       });

@@ -11,7 +11,6 @@
   function Suggestions() {
     this.el = document.getElementById('collections-select');
     this.el.addEventListener('blur', this);
-    this.el.addEventListener('change', this);
     window.addEventListener('visibilitychange', this);
     this.hide();
 
@@ -25,11 +24,6 @@
         this.reject = reject;
 
         var frag = document.createDocumentFragment();
-        var custom = document.createElement('option');
-        custom.value = 'custom';
-
-        custom.textContent = _('custom');
-        frag.appendChild(custom);
 
         // localization. use:
         // 1. name provided by Mozilla l10n team
@@ -73,16 +67,19 @@
         });
 
         this.el.appendChild(frag);
-        this.show();
+        if (localeCategories.length < 1) {
+          alert(_('no-available-collections'));
+          this.hide();
+          this.reject('cancelled');
+        } else {
+          this.show();
+        }
       }.bind(this));
     };
   }
 
   Suggestions.prototype = {
     handleEvent: function suggestions_handleEvent(e) {
-      var customSelected =
-        this.el.querySelectorAll('option[value="custom"]:checked').length;
-
       switch (e.type) {
         case 'visibilitychange':
           if (document.hidden) {
@@ -93,30 +90,15 @@
         case 'blur':
           this.hide();
 
-          if (!customSelected) {
-            var selected = map.call(this.el.querySelectorAll('option:checked'),
-              function getId(opt) {
-                return Number(opt.dataset.categoryId);
-              });
+          var selected = map.call(this.el.querySelectorAll('option:checked'),
+            function getId(opt) {
+              return Number(opt.dataset.categoryId);
+            });
 
-            if (selected.length) {
-              this.resolve(selected);
-            } else {
-              this.reject('cancelled');
-            }
-          }
-          break;
-
-        case 'change':
-          if (customSelected) {
-            this.hide();
-
-            var query = window.prompt(_('prompt-create-custom'));
-            if (query) {
-              this.resolve(query);
-            } else {
-              this.reject('cancelled');
-            }
+          if (selected.length) {
+            this.resolve(selected);
+          } else {
+            this.reject('cancelled');
           }
           break;
       }

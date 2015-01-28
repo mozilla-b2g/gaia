@@ -4,7 +4,7 @@
 'use strict';
 
 // Keep this in sync with SimSettingsHelper.
-const ALWAYS_ASK_OPTION_VALUE = '-1';
+const ALWAYS_ASK_OPTION_VALUE = -1;
 
 var MultiSimActionButton = function MultiSimActionButton(
   button, callCallback, settingsKey, phoneNumberGetter) {
@@ -88,7 +88,7 @@ MultiSimActionButton.prototype._click = function(event) {
     return;
   }
 
-  if (cardIndex == ALWAYS_ASK_OPTION_VALUE) {
+  if (cardIndex === ALWAYS_ASK_OPTION_VALUE) {
     // The user has requested that we ask them every time for this key,
     // so we prompt them to pick a SIM even when they only click.
     this._getOrPickSim(cardIndex, phoneNumber);

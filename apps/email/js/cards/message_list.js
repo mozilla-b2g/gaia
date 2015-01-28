@@ -654,7 +654,7 @@ return [
 
       this.folderNameNode.textContent = folder.name;
       this.updateUnread(folder.unread);
-
+      this.messagesContainer.setAttribute('aria-label', folder.name);
       this.hideEmptyLayout();
 
       // You can't refresh messages in the localdrafts folder.
@@ -691,11 +691,6 @@ return [
       this.vScroll.clearDisplay();
       this.curPhrase = phrase;
       this.curFilter = filter;
-
-      if (phrase.length < 1) {
-        this.showEmptyLayout();
-        return false;
-      }
 
       // We are creating a new slice, so any pending snippet requests are moot.
       this._snippetRequestPending = false;

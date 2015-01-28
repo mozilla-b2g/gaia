@@ -94,12 +94,6 @@
       this.initNotice();
       this.initConnectivityCheck();
 
-      // Fire off a dummy geolocation request so the prompt can be responded
-      // to before the user starts typing
-      if ('geolocation' in navigator) {
-        navigator.geolocation.getCurrentPosition(function(){});
-      }
-
       this.contextmenu = new Contextmenu();
       window.addEventListener('resize', this.resize);
     },
@@ -153,10 +147,10 @@
 
           // If suggestions are disabled, only use local providers
           if (this.suggestionsEnabled || !provider.remote) {
-
             if (provider.remote) {
               // Do not send full URLs to remote providers
-              if (UrlHelper.isURL(input)) {
+              // or when inside a private browser.
+              if (UrlHelper.isURL(input) || msg.data.isPrivateBrowser) {
                 return;
               }
 

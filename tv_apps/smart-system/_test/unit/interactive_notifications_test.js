@@ -1,4 +1,4 @@
-/* global InteractiveNotifications, MockIACHandler */
+/* global InteractiveNotifications */
 
 'use strict';
 requireApp('smart-system/test/unit/mock_iac_handler.js');
@@ -35,7 +35,7 @@ suite('interactive notifications', function() {
     'getTopMostWindow': function() {
       return this;
     }
-  }
+  };
 
   var fakeAppWinMgr = {
     'getActiveApp': function() {
@@ -332,7 +332,7 @@ suite('interactive notifications', function() {
     }
 
     suiteSetup(function() {
-      window.MockIACHandler._portMap['interactivenotifications'] = port;
+      window.MockIACHandler._portMap.interactivenotifications = port;
     });
 
     suiteTeardown(function() {

@@ -57,7 +57,7 @@ var Normalizer = {
       'Q': 'Ꝗ',
       'r': 'ŕřŗṙṛȑȓṟɍɽ',
       'R': 'ŔŘŖṘṚȐȒṞɌⱤ',
-      's': 'śšşŝșṡṣß$',
+      's': 'śšşŝșṡṣß',
       'S': 'ŚŠŞŜȘṠṢ',
       't': 'ťţṱțⱦṫṭƭṯʈŧ',
       'T': 'ŤŢṰȚȾṪṬƬṮƮŦ',
@@ -129,6 +129,14 @@ var Normalizer = {
       return escaped.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
     }
     return escaped;
+  },
+
+  unescapeHTML: function normalizer_unescapeHTML(text) {
+    return text.replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#x27;/g, '\'');
   },
 
   /**

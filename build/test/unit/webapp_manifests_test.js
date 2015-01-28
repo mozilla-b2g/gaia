@@ -81,7 +81,10 @@ suite('webapp-manifest.js', function() {
         packageEtag: 'metaDataPackageEtag'
       },
       sourceDirectoryName: 'sourceDirectoryName',
-      domain: 'domain'
+      domain: 'domain',
+      profileDirectoryFile: {
+        leafName: 'testuuid'
+      }
     };
   });
 

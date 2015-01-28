@@ -9,15 +9,14 @@ requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_stack_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
-requireApp('system/test/unit/mock_trusted_ui_manager.js');
 
+require('/shared/js/event_safety.js');
 require('/shared/js/tagged.js');
 require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
 var mocksForTaskManager = new MocksHelper([
-  'TrustedUIManager',
   'HomescreenLauncher',
   'StackManager',
   'HomescreenWindow',
@@ -1051,7 +1050,7 @@ suite('system/TaskManager >', function() {
 
       window.dispatchEvent(new CustomEvent('lockscreen-appopened'));
       waitForEvent(window, 'cardviewclosed').then(function() {
-        sinon.assert.calledOrder([taskManager.exitToApp, taskManager.hide]);
+        sinon.assert.callOrder(taskManager.exitToApp, taskManager.hide);
       }, failOnReject);
     });
 
@@ -1062,7 +1061,7 @@ suite('system/TaskManager >', function() {
 
       window.dispatchEvent(new CustomEvent('attentionopened'));
       waitForEvent(window, 'cardviewclosed').then(function() {
-        sinon.assert.calledOrder([taskManager.exitToApp, taskManager.hide]);
+        sinon.assert.callOrder(taskManager.exitToApp, taskManager.hide);
       }, failOnReject);
     });
 
@@ -1133,18 +1132,17 @@ suite('system/TaskManager >', function() {
         fakeFinish(this.sinon.clock, activeApp);
       });
 
-      test('active app is opened on home event', function(done) {
-        var activeApp = MockService.currentApp;
-        var stub = this.sinon.stub(activeApp, 'open');
+      test('home should go back home', function(done) {
+        var stub = this.sinon.stub(home, 'open');
 
         waitForEvent(window, 'cardviewclosed').then(function() {
-          assert.isTrue(stub.calledOnce, 'active app open method was called');
+          assert.isTrue(stub.calledOnce, 'home was opened');
         }, failOnReject)
         .then(function() { done(); }, done);
 
         var event = new CustomEvent('home');
         taskManager.respondToHierarchyEvent(event);
-        fakeFinish(this.sinon.clock, activeApp);
+        fakeFinish(this.sinon.clock, home);
       });
 
       test('newStackPosition is defined when app is selected', function(done) {

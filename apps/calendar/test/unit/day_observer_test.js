@@ -9,6 +9,8 @@ suite('day_observer', function() {
   var busyToday1, busyToday2, busyTomorrow, busyTodayAllday;
   var event1, event2, event3, event4;
   var calendar, hiddenCalendar;
+  var calendarColor = '#00aacc';
+  var hiddenCalendarColor = '#BADA55';
   var subject;
   var today;
   var tomorrow;
@@ -47,10 +49,12 @@ suite('day_observer', function() {
   // to simulate the app start
   suiteSetup(function(done) {
     calendar = Factory('calendar', {
-      localDisplayed: true
+      localDisplayed: true,
+      color: calendarColor
     });
     hiddenCalendar = Factory('calendar', {
-      localDisplayed: false
+      localDisplayed: false,
+      color: hiddenCalendarColor
     });
 
     var calendarId = calendar._id;
@@ -184,17 +188,20 @@ suite('day_observer', function() {
         assert.deepEqual(records.basic, [
           {
             event: event1,
-            busytime: busyToday1
+            busytime: busyToday1,
+            color: calendarColor
           },
           {
             event: event2,
-            busytime: busyToday2
+            busytime: busyToday2,
+            color: calendarColor
           }
         ]);
         assert.deepEqual(records.allday, [
           {
             event: event4,
-            busytime: busyTodayAllday
+            busytime: busyTodayAllday,
+            color: calendarColor
           }
         ]);
         done();
@@ -207,11 +214,13 @@ suite('day_observer', function() {
         assert.deepEqual(records.basic, [
           {
             event: event2,
-            busytime: busyToday2
+            busytime: busyToday2,
+            color: calendarColor
           },
           {
             event: event3,
-            busytime: busyTomorrow
+            busytime: busyTomorrow,
+            color: calendarColor
           }
         ]);
         assert.deepEqual(records.allday, []);
@@ -253,22 +262,34 @@ suite('day_observer', function() {
         // it should call it once without the new events to make sure our views
         // are "eventually" in sync
         if (count === 1) {
-          assert.equal(records.amount, 0);
+          assert.equal(records.amount, 0, 'first');
           assert.deepEqual(records.basic, []);
           assert.deepEqual(records.allday, []);
           return;
         }
 
         if (count === 2) {
-          assert.equal(records.amount, 2);
+          if (records.amount === 1) {
+            // busytimeStore.persist is async and might take longer than
+            // a single dispatch to display all the busytimes, so we make sure
+            // we only bump the count if it really updated the value to match
+            // the expected result. that is enough to prove that UI will
+            // "eventually" reflect the correct amount of items. (Bug 1115083)
+            count -= 1;
+            return;
+          }
+
+          assert.equal(records.amount, 2, 'after persist');
           assert.deepEqual(records.basic, [
             {
               event: event3,
-              busytime: busyYesterday
+              busytime: busyYesterday,
+              color: calendarColor
             },
             {
               event: event4,
-              busytime: busyYesterday2
+              busytime: busyYesterday2,
+              color: calendarColor
             }
           ]);
           assert.deepEqual(records.allday, []);
@@ -278,11 +299,12 @@ suite('day_observer', function() {
         }
 
         if (count === 3) {
-          assert.equal(records.amount, 1);
+          assert.equal(records.amount, 1, 'after remove');
           assert.deepEqual(records.basic, [
             {
               event: event3,
-              busytime: busyYesterday
+              busytime: busyYesterday,
+              color: calendarColor
             }
           ]);
           assert.deepEqual(records.allday, []);
@@ -294,15 +316,17 @@ suite('day_observer', function() {
           return;
         }
 
-        assert.equal(records.amount, 2);
+        assert.equal(records.amount, 2, 'after calendar visible');
         assert.deepEqual(records.basic, [
           {
             event: event3,
-            busytime: busyYesterday
+            busytime: busyYesterday,
+            color: calendarColor
           },
           {
             event: event4,
-            busytime: busyYesterdayHidden
+            busytime: busyYesterdayHidden,
+            color: calendarColor
           }
         ]);
         assert.deepEqual(records.allday, []);

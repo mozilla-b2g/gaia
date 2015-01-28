@@ -7,7 +7,6 @@ var app = require('app');
 var debug = require('debug')('views/settings');
 var forEach = require('object').forEach;
 
-require('css!settings');
 require('dom!settings');
 
 function Settings(options) {
@@ -66,6 +65,7 @@ Settings.prototype = {
 
     advancedSettingsButton: '#settings .settings',
     syncButton: '#settings .sync',
+    syncProgress: '#settings .sync-progress',
 
     // A view that settings overlays. Still needs to be active/visible but
     // hidden from the screen reader.
@@ -108,8 +108,22 @@ Settings.prototype = {
     return this._findElement('syncButton');
   },
 
+  get syncProgress() {
+    return this._findElement('syncProgress');
+  },
+
   get timeViews() {
     return this._findElement('timeViews');
+  },
+
+  _syncStartStatus: function () {
+    this.syncProgress.setAttribute('data-l10n-id', 'sync-progress-syncing');
+    this.syncProgress.classList.add('syncing');
+  },
+
+  _syncCompleteStatus: function () {
+    this.syncProgress.setAttribute('data-l10n-id', 'sync-progress-complete');
+    this.syncProgress.classList.remove('syncing');
   },
 
   _observeUI: function() {
@@ -119,6 +133,9 @@ Settings.prototype = {
     });
 
     this.syncButton.addEventListener('click', this._onSyncClick.bind(this));
+    this.app.syncController.on('syncStart', this._syncStartStatus.bind(this));
+    this.app.syncController.on('syncComplete',
+      this._syncCompleteStatus.bind(this));
 
     this.calendars.addEventListener(
       'change', this._onCalendarDisplayToggle.bind(this)

@@ -27,7 +27,10 @@
   pointer-events: none;
 }
 
-.appWindow.attentionWindow .render {
+/* Attention Screen needs to be clickable */
+
+.appWindow.attentionWindow .render,
+.appWindow.attentionWindow.toaster-mode {
   pointer-events: auto;
 }
 
@@ -324,6 +327,8 @@
 
 .appWindow.suspended > .identification-overlay,
 .appWindow:not(.active):not(.in-task-manager).overlay > .identification-overlay {
+  transition: none;
+
   visibility: visible;
   opacity: 1;
 }

@@ -60,6 +60,7 @@
     "189": "/style/icons/system_189.png",
     "284": "/style/icons/system_284.png"
   },
+  "orientation": "landscape",
   "activities": {
     "view": {
       "filters": {

@@ -1,7 +1,7 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global AsyncSemaphore, Bluetooth, CustomDialog, FtuLauncher, ScreenManager,
+/* global AsyncSemaphore, CustomDialog, FtuLauncher, ScreenManager,
           SettingsCache, SettingsListener, Service */
 
 (function(exports) {
@@ -11,7 +11,6 @@
    * and volume/channel change events.
    * @class SoundManager
    * @requires AsyncSemaphore
-   * @requires Bluetooth
    * @requires FtuLauncher
    * @requires ScreenManager
    */

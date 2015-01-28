@@ -1,6 +1,7 @@
 /* global BalanceTab, ConfigManager, Common, NonReadyScreen, SimManager,
           debug, CostControl, TelephonyTab, ViewManager, LazyLoader,
-          PerformanceTestingHelper, AirplaneModeHelper, setNextReset */
+          PerformanceTestingHelper, AirplaneModeHelper, setNextReset,
+          asyncStorage */
 /* exported CostControlApp */
 
 'use strict';
@@ -211,6 +212,31 @@ var CostControlApp = (function() {
   }
 
   function startApp(callback) {
+    // If customMode is not ready and it was activated on previous execution,
+    // we have to change the setup plan to no plan.
+    if (!ConfigManager.supportCustomizeMode) {
+      SimManager.requestDataSimIcc(function(dataSim) {
+        ConfigManager.requestSettings(dataSim.iccId, function(settings) {
+          if (settings.trackingPeriod === 'custom') {
+            ConfigManager.setOption({ trackingPeriod: 'never' });
+            // Removing manually if a nextReset alarm exists
+            // XXX: This is not part of configuration by SIM so we bypass
+            // ConfigManager
+            asyncStorage.getItem('nextResetAlarm', function(id) {
+              // There is already an alarm, remove it
+              debug('Current nextResetAlarm', id + '.', id ? 'Removing.' : '');
+              if (id) {
+                navigator.mozAlarms.remove(id);
+              }
+              asyncStorage.setItem('nextResetAlarm', null, function() {
+                ConfigManager.setOption({ nextReset: null });
+              });
+            });
+          }
+        });
+      });
+    }
+
     if (SimManager.isMultiSim()) {
       window.addEventListener('dataSlotChange', _onDataSimChange);
     }
@@ -219,6 +245,7 @@ var CostControlApp = (function() {
         startFTE();
         return;
       }
+
       loadMessageHandler();
 
       costcontrol = instance;
@@ -380,10 +407,7 @@ var CostControlApp = (function() {
 
           // XXX: Break initialization to allow Gecko to render the animation on
           // time.
-          setTimeout(function continueLoading() {
-            if (typeof callback === 'function') {
-              window.setTimeout(callback, 0);
-            }
+          requestAnimationFrame(function continueLoading() {
             document.getElementById('main').classList.remove('non-ready');
 
             if (mode === 'PREPAID') {
@@ -403,6 +427,7 @@ var CostControlApp = (function() {
             }
           });
         }
+        callback && callback();
       });
     });
   }
@@ -411,26 +436,24 @@ var CostControlApp = (function() {
     return window.location.hash.split('#')[1] === 'datausage-tab';
   }
 
+  function onFteFinished(e) {
+    if (e.origin !== Common.COST_CONTROL_APP) {
+      return;
+    }
+    var type = e.data.type;
+    if (type === 'fte_finished') {
+      window.removeEventListener('message', onFteFinished);
+      document.getElementById('splash_section').hidden = 'true';
+
+      // Only hide the FTE view when everything in the UI is ready
+      ConfigManager.requestAll(function() {
+        startApp(Common.closeFTE);
+      });
+    }
+  }
+
   function startFTE() {
-    window.addEventListener('message', function handler_finished(e) {
-      if (e.origin !== Common.COST_CONTROL_APP) {
-        return;
-      }
-
-      var type = e.data.type;
-
-      if (type === 'fte_finished') {
-        window.removeEventListener('message', handler_finished);
-        document.getElementById('splash_section').
-          hidden = 'true';
-
-        // Only hide the FTE view when everything in the UI is ready
-        ConfigManager.requestAll(function() {
-          startApp(Common.closeFTE);
-        });
-      }
-    });
-
+    window.addEventListener('message', onFteFinished);
     var mode = ConfigManager.getApplicationMode();
     Common.startFTE(mode);
   }
@@ -494,6 +517,7 @@ var CostControlApp = (function() {
       isApplicationLocalized = false;
       window.removeEventListener('dataSlotChange', _onDataSimChange);
       window.removeEventListener('hashchange', _onHashChange);
+      window.removeEventListener('message', onFteFinished);
       window.location.hash = '';
       nonReadyScreen = null;
     },

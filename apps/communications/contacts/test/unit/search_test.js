@@ -8,13 +8,14 @@ require('/shared/js/contacts/utilities/event_listeners.js');
 require('/shared/js/contacts/utilities/image_loader.js');
 require('/shared/js/lazy_loader.js');
 require('/shared/js/contacts/utilities/dom.js');
+require('/shared/js/utilities.js');
 require('/shared/js/contacts/search.js');
 
 suite('Search mode', function() {
   var searchBox, searchList, noResults;
   var contact = {
     id: 'b1ae8e148bd14560aaa9d7265bb39b0f',
-    givenName: ['Aaeéií() BC'],
+    givenName: ['Aaeéií(") BC'],
     familyName: ['Surname'],
     tel: [{ value:'555555555'}]
   };
@@ -81,6 +82,15 @@ suite('Search mode', function() {
     });
   });
 
+  test('Search for quotes', function(done) {
+    searchBox.value = '"';
+    contacts.Search.search(function search_finished() {
+      done(function() {
+        assertContactFound(contact.id, 1);
+      });
+    });
+  });
+
   test('Search phone number', function(done) {
     searchBox.value = contact.tel[0].value;
     contacts.Search.search(function search_finished() {
@@ -138,8 +148,9 @@ suite('Search mode', function() {
       searchBox.value = contact.givenName[0][0];
       contacts.Search.search(function search_finished() {
         done(function() {
-          assert.equal(contact.givenName[0],
-                                searchList.querySelector('strong').textContent);
+          var selector = '#groups-list-search .contact-item .contact-text';
+          assert.equal(contact.givenName[0] + ' ' + contact.familyName[0],
+                                searchList.querySelector(selector).textContent);
         });
       });
     });

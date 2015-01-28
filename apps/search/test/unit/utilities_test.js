@@ -1,4 +1,4 @@
-/* globals DateHelper, HtmlHelper */
+/* globals DateHelper */
 
 'use strict';
 
@@ -73,15 +73,6 @@ suite('Date Helper', function() {
       assertMidnight(yearStarted);
     });
 
-  });
-
-});
-
-suite('HTML Helper', function() {
-
-  test('createHighlightHTML', function() {
-    var result = HtmlHelper.createHighlightHTML('abc', 'b');
-    assert.equal(result, 'a<span class="highlight">b</span>c');
   });
 
 });

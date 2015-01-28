@@ -2,16 +2,15 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
+try:
+    from marionette.by import By
+except:
+    from marionette_driver.by import By
 from gaiatest import GaiaTestCase
 from gaiatest.apps.gallery.app import Gallery
 
 
 class TestGalleryEditPhoto(GaiaTestCase):
-
-    _edit_effect_button_locator = (By.ID, 'edit-effect-button')
-    _effect_options_locator = (By.CSS_SELECTOR, '#edit-effect-options a')
-    _edit_save_locator = (By.ID, 'edit-save-button')
 
     def setUp(self):
         GaiaTestCase.setUp(self)

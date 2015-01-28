@@ -1,5 +1,5 @@
-/* global evt, addMixin, Promise, PipedPromise, Application, CardStore,
-        Deck, AppBookmark, Folder, uuid */
+/* global evt, SharedUtils, Promise, PipedPromise, Application, CardStore,
+        Deck, AppBookmark, Folder */
 
 (function(exports) {
   'use strict';
@@ -154,7 +154,7 @@
       var that = this;
       return this._getPipedPromise('_loadDefaultCardList',
         function(resolve, reject) {
-          var defaultCardListFile = 'js/init.json';
+          var defaultCardListFile = 'tv_shared/resources/default-cards.json';
           that._loadFile({
             url: defaultCardListFile,
             responseType: 'json'
@@ -356,7 +356,7 @@
         name: name,
         state: Folder.STATES.DETACHED
       });
-      if (!(typeof index === 'number')) {
+      if (typeof index !== 'number') {
         index = this._cardList.length;
       }
       this._cardList.splice(index, 0, newFolder);
@@ -371,17 +371,40 @@
 
     insertCard: function cm_insertCard(options) {
       var that = this;
-      var card = this._deserializeCardEntry(options.cardEntry);
-      var index = (typeof options.index === 'number') ?
-        options.index : this._cardList.length;
+      var newCard = this._deserializeCardEntry(options.cardEntry);
+      var position;
+      if (options.index === 'number') {
+        position = options.index;
+      } else if (!newCard.group) {
+        position = this._cardList.length;
+      } else {
+        // If the given card belongs to a deck (has type), we assume the deck
+        // spans a group with all its bookmarks following deck icon itself, and
+        // the given card should be put at the end of the group.
+        position = -1;
+        for(var idx = 0; idx < this._cardList.length; idx++) {
+          var card = this._cardList[idx];
+          if(position === -1 && !(card instanceof Deck)) {
+            // Only Decks are admitted as the start of the group.
+            continue;
+          } else if (position !== -1 && card.group !== newCard.group) {
+            // We've exceeded the end of the group.
+            break;
+          } else if (card.group === newCard.group) {
+            // We're still inside the group.
+            position = idx;
+          }
+        }
+        position += 1;
+        // No corresponding deck found; insert at bottom.
+        if (position === 0) {
+          position = this._cardList.length;
+        }
+      }
 
-      // TODO: If the given card belongs to an app, we assume the app spans a
-      // pseudo group with all its bookmarks following app icon itself, and the
-      // given card should be put at the end of the group.
-
-      this._cardList.splice(index, 0, card);
+      this._cardList.splice(position, 0, newCard);
       this.writeCardlistInCardStore().then(function() {
-        that.fire('card-inserted', card, index);
+        that.fire('card-inserted', newCard, position);
       });
     },
 
@@ -394,6 +417,21 @@
         this._cardList.splice(index, 1);
         this.writeCardlistInCardStore().then(function() {
           that.fire('card-removed', [index]);
+        });
+      }
+    },
+
+    updateCard: function cm_updateCard(item, index) {
+      var that = this;
+      if (typeof index === 'undefined') {
+        index = this._cardList.findIndex(function(elem) {
+          return elem.cardId === item.cardId;
+        });
+      }
+      if (index >= 0) {
+        this._cardList[index] = item;
+        this.writeCardlistInCardStore().then(function() {
+          that.fire('card-updated', that._cardList[index], index);
         });
       }
     },
@@ -468,12 +506,14 @@
         this.installedApps[manifestURL].updateManifest;
       var entryPoints = manifest.entry_points;
       var entries = [];
+      var removable = this.installedApps[manifestURL].removable;
 
       if (!entryPoints || manifest.type !== 'certified') {
         entries.push({
           manifestURL: manifestURL,
           entryPoint: '',
           name: manifest.name,
+          removable: removable,
           type: 'Application'
         });
       } else {
@@ -483,6 +523,7 @@
               manifestURL: manifestURL,
               entryPoint: entryPoint,
               name: entryPoints[entryPoint].name,
+              removable: removable,
               type: 'Application'
             });
           }
@@ -553,7 +594,7 @@
     // TODO: need to be protected by state and _reloadCardList
     // There are three types of query:
     // 1. query by cardId
-    // 2. query by manifestURL
+    // 2. query by manifestURL and optionally launchURL
     // 3. query by cardEntry (i.e. serialized card)
     findCardFromCardList: function cm_findCardFromCardList(query) {
       var found;
@@ -564,10 +605,14 @@
         } else if (query.manifestURL && card.nativeApp &&
             card.nativeApp.manifestURL === query.manifestURL) {
 
-          // The launchURL only happens to AppBookmark, we only need to check if
-          // launchURL is exactly the same in this case.
-          if (!(card instanceof AppBookmark) ||
-              (query.launchURL && card.launchURL === query.launchURL)) {
+          // if we specify launchURL in query, then we must compare
+          // launchURL first
+          if (query.launchURL) {
+            if (card.launchURL === query.launchURL) {
+              found = card;
+              return true;
+            }
+          } else if (!(card instanceof AppBookmark)) {
             found = card;
             return true;
           }
@@ -580,7 +625,7 @@
             return true;
           }
         }
-      })
+      });
       return found;
     },
 
@@ -592,7 +637,7 @@
           found = card;
           return true;
         }
-      })
+      });
       return found;
     },
 
@@ -608,7 +653,7 @@
           // be READY eventually)
           that._reloadCardList().then(function() {
             resolve(!!that.findCardFromCardList(options));
-          })
+          });
         }
       });
     },

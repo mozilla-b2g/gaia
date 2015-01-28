@@ -82,15 +82,14 @@ var MetadataFormats = (function() {
      * Parse a file and return a Promise with the metadata.
      *
      * @param {BlobView} header The file in question.
-     * @param {Metadata} metadata The (partially filled-in) metadata object.
      * @return {Promise} A Promise that resolves with the completed metadata
      *   object.
      */
-    parse: function(header, metadata) {
+    parse: function(header) {
       var info = this._formatInfo;
       return new Promise(function(resolve, reject) {
         LazyLoader.load(info.file, function() {
-          resolve(info.module.parse(header, metadata));
+          resolve(info.module.parse(header));
         });
       });
     }

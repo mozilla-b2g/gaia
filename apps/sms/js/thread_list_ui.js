@@ -45,7 +45,7 @@ var ThreadListUI = {
 
     // TODO: https://bugzilla.mozilla.org/show_bug.cgi?id=854413
     [
-      'container', 'no-messages',
+      'container', 'no-messages', 'read-unread-button',
       'check-uncheck-all-button','composer-link',
       'delete-button', 'edit-header','options-button',
       'edit-mode', 'edit-form', 'draft-saved-banner'
@@ -58,6 +58,10 @@ var ThreadListUI = {
     // TODO this should probably move to a "WrapperView" class
     this.composerLink.addEventListener(
       'click', this.launchComposer.bind(this)
+    );
+
+    this.readUnreadButton.addEventListener(
+      'click', this.markReadUnread.bind(this)
     );
 
     this.deleteButton.addEventListener(
@@ -291,22 +295,77 @@ var ThreadListUI = {
   },
 
   checkInputs: function thlui_checkInputs() {
-    var selected = this.selectionHandler.selectedCount;
+    var selected = this.selectionHandler;
 
-    if (selected === ThreadListUI.allInputs.length) {
+    if (selected.selectedCount === ThreadListUI.allInputs.length) {
       this.checkUncheckAllButton.setAttribute('data-l10n-id', 'deselect-all');
     } else {
       this.checkUncheckAllButton.setAttribute('data-l10n-id', 'select-all');
     }
-    if (selected) {
+    if (selected.selectedCount) {
       this.deleteButton.disabled = false;
       navigator.mozL10n.setAttributes(this.editMode, 'selected-threads', {
-        n: selected
+        n: selected.selectedCount
       });
+
+      var hasUnreadselected = selected.selectedList.some((id) => {
+        var thread  = Threads.get(id);
+
+        if (thread && thread.unreadCount) {
+          return thread.unreadCount > 0;
+        }
+        return false;
+      });
+
+      var allDraft = selected.selectedList.every((id) => {
+        return (typeof Threads.get(id) === 'undefined');
+      });
+
+      if (allDraft) {
+        this.readUnreadButton.disabled = true;
+      } else {
+        if (!hasUnreadselected) {
+          this.readUnreadButton.dataset.action = 'mark-as-unread';
+        } else {
+          this.readUnreadButton.dataset.action = 'mark-as-read';
+        }
+        this.readUnreadButton.disabled = false;
+      }
+
     } else {
       this.deleteButton.disabled = true;
+      this.readUnreadButton.disabled = true;
       navigator.mozL10n.setAttributes(this.editMode, 'selectThreads-title');
     }
+  },
+
+  markReadUnread: function thlui_markReadUnread() {
+    var selected = this.selectionHandler;
+    var isRead = (this.readUnreadButton.dataset.action === 'mark-as-read');
+
+    selected.selectedList.forEach((id) => {
+      var thread  = Threads.get(id);
+      var markable = thread && (!thread.hasDrafts || isRead);
+
+      if (markable) {
+        var selectThread = document.getElementById('thread-' + thread.id);
+
+        thread.unreadCount = isRead ? 0 : 1;
+        if (isRead) {
+          if (selectThread.classList.contains('unread')) {
+            selectThread.classList.remove('unread');
+          }
+        } else {
+          if (!selectThread.classList.contains('unread')) {
+          selectThread.classList.add('unread');
+          }
+        }
+
+        MessageManager.markThreadRead(thread.id, isRead);
+      }
+    });
+
+    this.cancelEdit();
   },
 
   removeThread: function thlui_removeThread(threadId) {
@@ -422,8 +481,15 @@ var ThreadListUI = {
     }
 
     return Utils.confirm(
-      'deleteThreads-confirmation2', null,
-      { text: 'delete', className: 'danger' }
+      {
+        id: 'deleteThreads-confirmation-message',
+        args: { n: this.selectionHandler.selectedCount }
+      },
+      null,
+      {
+        text: 'delete',
+        className: 'danger'
+      }
     ).then(performDeletion.bind(this));
   },
 
@@ -473,6 +539,7 @@ var ThreadListUI = {
           // Elements
           container: this.container,
           checkUncheckAllButton: this.checkUncheckAllButton,
+
           // Methods
           checkInputs: this.checkInputs.bind(this),
           getAllInputs: this.getAllInputs.bind(this),

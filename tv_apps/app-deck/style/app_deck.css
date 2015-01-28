@@ -33,63 +33,12 @@ section {
   overflow: hidden;
 }
 
-#jumbotron {
-  width: 100%;
-  height: auto;
-  overflow-y: hidden;
-  overflow-x: auto;
-  white-space: nowrap;
-  text-align: center;
-  vertical-align: middle;
-  background-color: #000000;
-}
-
-#app-deck-header {
-  max-width: 120rem;
-  height: 22.6rem;
-  display: inline-block;
-}
-
-#app-deck-header-title {
-  height: 7.2rem;
-  font-size: 5.2rem;
-  font-style: italic;
-  color: #ffffff;
-}
-
-#app-deck-header-description {
-  color: #ffffff;
-  font-size: 2.4rem;
-  font-style: italic;
-  height: 3.6rem;
-  margin-top: -3rem;
-}
-
-#app-deck-list-frame {
-  width: 100%;
-  height: 26.2rem;
-  overflow: hidden;
-}
-
-#app-deck-list {
-  position: relative;
-  transition: transform 0.2s ease;
-  transform-origin: 0 50%;
-}
-
-.app-banner {
-  display: inline-block;
-  background-color: #999;
-  width: 38.4rem;
-  height: 21.8rem;
-  margin: 2.2rem 1.4rem;
-  left: 0;
-  position: absolute;
-}
-
 #app-deck-grid-view-container {
   width: 100%;
-  height: calc(100% - 48.8rem);
+  height: calc(100% - 46.6rem);
+  position: absolute;
+  left: 0;
+  bottom: 0;
   background-color: #e0e0e0;
 }
 
@@ -97,7 +46,8 @@ section {
   /* top = (6 - 5.8)rem, left = right = (14.2 - 2.6)rem */
   padding: 0.2rem 11.6rem 0 11.6rem;
   height: 100%;
-  overflow-y: scroll;
+  overflow: hidden;
+  scroll-behavior: smooth;
 }
 
 smart-button[type="app-button"] {
@@ -109,17 +59,9 @@ smart-button[type="app-button"] {
   background-size: 100% auto;
 }
 
-smart-button[type="app-button"].fullsized {
-  background-size: 18rem auto;
-}
-
-smart-button[type="app-button"].fitted {
-  background-size: 12rem auto;
-}
-
 /** we use :after as label */
 smart-button[type="app-button"]:after {
   width: 18rem;
   height: 5rem;
-  background-color: rgba(64, 64, 64, 0.3);
+  font-size: 1.6rem;
 }

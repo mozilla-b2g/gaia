@@ -3,6 +3,8 @@
 
 requireApp('costcontrol/shared/js/format.js');
 requireApp('costcontrol/test/unit/mock_date.js');
+requireApp('costcontrol/test/unit/mock_debug.js');
+requireApp('costcontrol/js/config/config_manager.js');
 requireApp('costcontrol/js/config/vivo/config.js');
 
 suite('Custom VIVO configuration Test Suite >', function() {

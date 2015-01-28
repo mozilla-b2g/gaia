@@ -11,7 +11,7 @@
       document.getElementById('text-selection-dialog-root');
     this.event = null;
     this._enabled = false;
-    this._hideTimeout = null;
+    this._shortcutTimeout = null;
     this._injected = false;
     this._hasCutOrCopied = false;
     this._ignoreSelectionChange = false;
@@ -73,6 +73,7 @@
     window.addEventListener('mozChromeEvent', this);
     window.addEventListener('value-selector-shown', this);
     window.addEventListener('value-selector-hidden', this);
+    window.addEventListener('system-resize', this);
   };
 
   TextSelectionDialog.prototype.stop = function tsd_stop() {
@@ -86,6 +87,7 @@
     window.removeEventListener('mozChromeEvent', this);
     window.removeEventListener('value-selector-shown', this);
     window.removeEventListener('value-selector-hidden', this);
+    window.removeEventListener('system-resize', this);
   };
 
   TextSelectionDialog.prototype.debug = function tsd_debug(msg) {
@@ -97,6 +99,14 @@
 
   TextSelectionDialog.prototype.handleEvent = function tsd_handleEvent(evt) {
     switch (evt.type) {
+      case 'system-resize':
+        // When shortcut mode, gaia gets no selectionchanged when lost focus,
+        // so we listen to system-resize event to hide the bubble.
+        if (this._shortcutTimeout) {
+          this._resetShortcutTimeout();
+          this.hide();
+        }
+        break;
       case 'home':
       case 'activeappchanged':
       case 'hierachychanged':
@@ -216,10 +226,16 @@
       this.hide();
     };
 
+  TextSelectionDialog.prototype._resetShortcutTimeout =
+    function tsd__resetShortcutTimeout() {
+      window.clearTimeout(this._shortcutTimeout);
+      this._shortcutTimeout = null;
+    };
+
   TextSelectionDialog.prototype._triggerShortcutTimeout =
     function tsd__triggerShortcutTimeout() {
-      window.clearTimeout(this._hideTimeout);
-      this._hideTimeout = window.setTimeout(function() {
+      this._resetShortcutTimeout();
+      this._shortcutTimeout = window.setTimeout(function() {
         this.close();
       }.bind(this), this.SHORTCUT_TIMEOUT);
     };
@@ -373,8 +389,7 @@
 
 
   TextSelectionDialog.prototype.show = function tsd_show(detail) {
-
-    clearTimeout(this._hideTimeout);
+    this._resetShortcutTimeout();
     var numOfSelectOptions = 0;
     var options = [ 'Paste', 'Copy', 'Cut', 'SelectAll' ];
 
@@ -475,7 +490,7 @@
     this.hide();
     this.element.blur();
     this.textualmenuDetail = null;
-    clearTimeout(this._hideTimeout);
+    this._resetShortcutTimeout();
   };
 
   exports.TextSelectionDialog = TextSelectionDialog;

@@ -4,11 +4,18 @@
 
 import time
 
-from marionette import expected
-from marionette import Wait
-from marionette.by import By
-from marionette.marionette import Actions
-from marionette.errors import FrameSendFailureError
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+    from marionette.marionette import Actions
+    from marionette.errors import FrameSendFailureError
+except:
+    from marionette_driver import (expected,
+                            Wait)
+    from marionette_driver.by import By
+    from marionette_driver.marionette import Actions
+    from marionette_driver.errors import FrameSendFailureError
 
 from gaiatest.apps.base import Base
 
@@ -42,6 +49,14 @@ class Camera(Base):
         Base.launch(self)
         self.wait_for_capture_ready()
         self.wait_for_element_not_displayed(*self._loading_screen_locator)
+
+    def wait_for_loading_spinner_hidden(self):
+        loading_spinner = self.marionette.find_element(*self._loading_screen_locator)
+        Wait(self.marionette).until(expected.element_not_displayed(loading_spinner))
+
+    def wait_for_loading_spinner_displayed(self):
+        loading_spinner = self.marionette.find_element(*self._loading_screen_locator)
+        Wait(self.marionette).until(expected.element_displayed(loading_spinner))
 
     @property
     def camera_mode(self):
@@ -78,7 +93,9 @@ class Camera(Base):
         self.wait_for_thumbnail_visible()
 
     def tap_capture(self):
-        self.marionette.find_element(*self._capture_button_locator).tap()
+        capture_button = self.marionette.find_element(*self._capture_button_locator)
+        Wait(self.marionette).until(expected.element_enabled(capture_button))
+        capture_button.tap()
 
     def tap_select_button(self):
         select = self.marionette.find_element(*self._select_button_locator)

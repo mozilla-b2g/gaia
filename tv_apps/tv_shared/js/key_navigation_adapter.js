@@ -1,42 +1,49 @@
 /* global KeyEvent, evt */
 (function(exports) {
   'use strict';
+  // KeyNavigationAdapter files event with '-keyup' as postfix. All behaviors
+  // which no need to have multple events while holding the key should use
+  // keyup.
   function KeyNavigationAdapter() {
   }
 
   KeyNavigationAdapter.prototype = evt({
     init: function kna_init() {
+      window.addEventListener('keydown', this);
       window.addEventListener('keyup', this);
     },
     uninit: function kna_uninit() {
+      window.removeEventListener('keydown', this);
       window.removeEventListener('keyup', this);
     },
 
     handleEvent: function kna_handleEvent(evt) {
       switch (evt.type) {
+        case 'keydown':
         case 'keyup':
-        this.handleKeyEvent(this.convertKeyToString(evt.keyCode));
-        break;
+          this.handleKeyEvent(this.convertKeyToString(evt.keyCode), evt.type);
+          break;
       }
     },
 
-    handleKeyEvent: function kna_handleKeyEvent(key) {
+    handleKeyEvent: function kna_handleKeyEvent(key, eventType) {
       // XXX : It's better to use KeyEvent.Key and use "ArrowUp", "ArrowDown",
       // "ArrowLeft", "ArrowRight" for switching after Gecko synced with W3C
       // KeyboardEvent.Key standard. Here we still use KeyCode and customized
       // string of "up", "down", "left", "right" for the moment.
+      var evtPostfix = 'keyup' === eventType ? '-keyup' : '';
       switch (key) {
         case 'up':
         case 'down':
         case 'left':
         case 'right':
-          this.fire('move', key);
+          this.fire('move' + evtPostfix, key);
           break;
         case 'enter':
-          this.fire('enter');
+          this.fire('enter' + evtPostfix);
           break;
         case 'esc':
-          this.fire('esc');
+          this.fire('esc' + evtPostfix);
           break;
       }
     },

@@ -113,7 +113,7 @@
     },
 
     updateTrackInfoBar: function avtm_updateTrackInfoBar() {
-      trackInfoBar.textContent =
+      this.trackInfoBar.textContent =
         '<<' + this.artist + ' - ' + this.title + '>>' +
         this.duration + '/' + (this.position ? this.position : '00:00:00');
     },

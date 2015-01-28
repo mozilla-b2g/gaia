@@ -683,7 +683,16 @@ ImapJobDriver.prototype = {
 
         // - got the target folder conn, now do the copies
         function gotTargetConn(targetConn, targetStorage) {
-          var uidnext = targetConn.box.uidNext;
+          var usingUid, nextId;
+          // Some servers don't provide
+          if (targetConn.box.uidNext) {
+            usingUid = true;
+            nextId = targetConn.box.uidNext;
+          } else {
+            usingUid = false;
+            nextId = targetConn.box.exists;
+          }
+
           folderConn._conn.copyMessages(serverIds.join(','),
                                         targetStorage.folderMeta.path,
                                         { byUid: true },
@@ -701,9 +710,9 @@ ImapJobDriver.prototype = {
           // - copies are done, find the UIDs
           function copiedMessages_findNewUIDs() {
             var fetcher = targetConn._conn.listMessages(
-              uidnext + ':*',
+              nextId + ':*',
               ['UID', 'BODY.PEEK[HEADER.FIELDS (MESSAGE-ID)]'],
-              { byUid: true },
+              { byUid: usingUid },
               function (err, messages) {
                 if (err) {
                   perFolderDone();

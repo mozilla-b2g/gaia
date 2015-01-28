@@ -4,7 +4,7 @@
 
 #appPermissions ul li img,
 #homescreens ul li img {
-  margin-right: 1.4rem;
+  -moz-margin-end: 1.4rem;
   width: 3rem;
   height: 3rem;
   filter: url('shadow.svg#drop-shadow');
@@ -25,16 +25,6 @@
 
 #appPermissions .cb-alert {
   position: fixed;
-}
-
-/**
- * Right To Left Layout
- */
-
-html[dir="rtl"] #appPermissions ul li img,
-html[dir="rtl"] #homescreens ul li img {
-  margin-left: 1.4rem;
-  margin-right: -3rem;
 }
 
 /**

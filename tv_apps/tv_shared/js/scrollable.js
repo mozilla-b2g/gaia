@@ -57,7 +57,7 @@
 
     this.itemClassName = param.itemClassName;
     var items = Array.prototype.slice.call(
-                    document.getElementsByClassName(param.itemClassName));
+                    this.listElem.getElementsByClassName(param.itemClassName));
 
     this.scale = 1;
     this._setNodesPosition();
@@ -213,7 +213,7 @@
     },
 
     getNode: function(index) {
-      return this.listElem.children[index];
+      return this.nodes[index];
     },
 
     removeNode: function(node) {
@@ -303,6 +303,10 @@
     get currentIndex() {
       return this.nodes.indexOf(
         this.getNodeFromItem(this.spatialNavigator.getFocusedElement()));
+    },
+
+    get length() {
+      return this.nodes.length;
     },
 
     _setNodesPosition: function() {

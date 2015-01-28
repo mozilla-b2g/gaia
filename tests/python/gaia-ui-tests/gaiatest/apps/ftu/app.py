@@ -4,10 +4,16 @@
 
 import re
 
-from marionette import expected
-from marionette import Wait
-from marionette.by import By
-from marionette.errors import FrameSendFailureError
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+    from marionette.errors import FrameSendFailureError
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
+    from marionette_driver.errors import FrameSendFailureError
 
 from gaiatest.apps.base import Base
 
@@ -35,7 +41,7 @@ class Ftu(Base):
     _found_wifi_networks_locator = (By.CSS_SELECTOR, 'ul#networks-list li')
     _password_input_locator = (By.ID, 'wifi_password')
     _join_network_locator = (By.ID, 'wifi-join-button')
-    _progress_activity_locator = (By.ID, 'progress-activity')
+    _loading_overlay_locator = (By.ID, 'loading-overlay')
 
     # Step Date & Time
     _section_date_time_locator = (By.ID, 'date_and_time')
@@ -115,7 +121,10 @@ class Ftu(Base):
         return self.is_element_displayed(*self._lets_go_button_locator)
 
     def tap_next(self):
-        self.marionette.find_element(*self._next_button_locator).tap()
+        next_button = Wait(self.marionette).until(
+            expected.element_present(*self._next_button_locator))
+        Wait(self.marionette).until(expected.element_enabled(next_button))
+        next_button.tap()
 
     def a11y_click_next(self):
         self.accessibility.click(self.marionette.find_element(*self._next_button_locator))
@@ -145,7 +154,7 @@ class Ftu(Base):
         self.accessibility.click(checkbox)
 
     def tap_next_to_wifi_section(self):
-        progress = self.marionette.find_element(*self._progress_activity_locator)
+        progress = self.marionette.find_element(*self._loading_overlay_locator)
         self.tap_next()
         Wait(self.marionette).until(expected.element_not_displayed(progress))
         Wait(self.marionette).until(expected.element_displayed(
@@ -153,12 +162,9 @@ class Ftu(Base):
                 *self._section_wifi_locator))))
 
     def a11y_click_next_to_wifi_section(self):
-        progress = self.marionette.find_element(*self._progress_activity_locator)
         self.a11y_click_next()
-        Wait(self.marionette).until(expected.element_not_displayed(progress))
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_wifi_locator))))
+        self.wait_for_element_not_displayed(*self._loading_overlay_locator)
+        self.wait_for_element_displayed(*self._section_wifi_locator)
 
     def wait_for_networks_available(self):
         Wait(self.marionette).until(lambda m: len(m.find_elements(
@@ -170,6 +176,7 @@ class Ftu(Base):
         wifi_network = Wait(self.marionette).until(
             expected.element_present(*wifi_network_locator))
         self.marionette.execute_script("arguments[0].scrollIntoView(false);", [wifi_network])
+        Wait(self.marionette).until(expected.element_displayed(wifi_network))
         return wifi_network
 
     def connect_to_wifi(self, network_ssid, password, key_management=None):

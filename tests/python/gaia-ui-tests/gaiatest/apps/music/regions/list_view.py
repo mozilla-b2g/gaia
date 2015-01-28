@@ -2,9 +2,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette import expected
-from marionette import Wait
-from marionette.by import By
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
 
 from gaiatest.apps.base import Base, PageRegion
 from gaiatest.apps.music.regions.sublist_view import SublistView
@@ -13,7 +18,16 @@ from gaiatest.apps.music.regions.player_view import PlayerView
 
 class ListView(Base):
 
+    _view_locator = (By.ID, 'views')
     _list_item_locator = (By.CSS_SELECTOR, '.list-item')
+
+    def __init__(self, marionette):
+        Base.__init__(self, marionette)
+
+        Wait(self.marionette).until(
+            lambda m: self.marionette.find_element(*self._view_locator).get_attribute('class') == 'scrolling')
+        Wait(self.marionette).until(
+            lambda m: self.marionette.find_element(*self._view_locator).get_attribute('class') != 'scrolling')
 
     @property
     def media(self):

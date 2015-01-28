@@ -16,12 +16,11 @@ const ActivityDataType = {
   IMAGE: 'image/*',
   AUDIO: 'audio/*',
   VIDEO: 'video/*',
-  URL: 'url'
+  URL: 'url',
+  VCARD: 'text/vcard'
 };
 
 var ActivityHandler = {
-  isLocked: false,
-
   // Will hold current activity object
   _activity: null,
 
@@ -76,15 +75,15 @@ var ActivityHandler = {
   },
 
   /**
-  * Finds a contact from a number.
+  * Finds a contact from a number or email address.
   * Returns a promise that resolve with a contact
   * or is rejected if not found
   * @returns Promise that resolve to a
   * {number: String, name: String, source: 'contacts'}
   */
-  _findContactByNumber: function findContactByNumber(number) {
+  _findContactByTarget: function findContactByTarget(target) {
     var deferred = Utils.Promise.defer();
-    Contacts.findByPhoneNumber(number, (results) => {
+    Contacts.findByAddress(target, (results) => {
       var record, name, contact;
 
       // Bug 867948: results null is a legitimate case
@@ -92,7 +91,7 @@ var ActivityHandler = {
         record = results[0];
         name = record.name.length && record.name[0];
         contact = {
-          number: number,
+          number: target,
           name: name,
           source: 'contacts'
         };
@@ -100,7 +99,7 @@ var ActivityHandler = {
         deferred.resolve(contact);
         return;
       }
-      deferred.reject(new Error('No contact found with number: ' + number));
+      deferred.reject(new Error('No contact found with target: ' + target));
       return;
 
     });
@@ -109,36 +108,37 @@ var ActivityHandler = {
   },
 
   _onNewActivity: function newHandler(activity) {
-
-    // This lock is for avoiding several calls at the same time.
-    if (this.isLocked) {
-      return;
-    }
-
-    this.isLocked = true;
-
     var viewInfo = {
       body: activity.source.data.body,
-      number: activity.source.data.number,
+      number: activity.source.data.target || activity.source.data.number,
       contact: null,
       threadId: null
     };
 
-    // try to get a thread from number
-    // if no thread, promise is rejected and we try to find a contact
-    return MessageManager.findThreadFromNumber(viewInfo.number).then(
-      function onResolve(threadId) {
-        viewInfo.threadId = threadId;
-      },
-      function onReject() {
-        return ActivityHandler._findContactByNumber(viewInfo.number)
-          .then( (contact) => viewInfo.contact = contact);
-      }
-    )
-    // case no contact and no thread id: gobble the error
-    .catch(() => {})
-    // finally call toView whatever contact and threadId we have.
-    .then( () => this.toView(viewInfo) );
+    var focusComposer = false;
+    var threadPromise;
+    if (viewInfo.number) {
+      // It's reasonable to focus on composer if we already have some phone
+      // number or even contact to fill recipients input
+      focusComposer = true;
+      // try to get a thread from number
+      // if no thread, promise is rejected and we try to find a contact
+      threadPromise = MessageManager.findThreadFromNumber(viewInfo.number).then(
+        function onResolve(threadId) {
+          viewInfo.threadId = threadId;
+        },
+        function onReject() {
+          return ActivityHandler._findContactByTarget(viewInfo.number)
+            .then((contact) => viewInfo.contact = contact);
+        }
+      )
+      // case no contact and no thread id: gobble the error
+      .catch(() => {});
+    }
+
+    return (threadPromise || Promise.resolve()).then(
+      () => this.toView(viewInfo, focusComposer)
+    );
   },
 
   _onShareActivity: function shareHandler(activity) {
@@ -181,6 +181,14 @@ var ActivityHandler = {
         break;
       case ActivityDataType.URL:
         dataToShare = activityData.url;
+        break;
+      // As for the moment we only allow to share one vcard we treat this case
+      // in an specific block
+      case ActivityDataType.VCARD:
+        dataToShare = new Attachment(activityData.blobs[0], {
+          name: activityData.filenames[0],
+          isDraft: true
+        });
         break;
       default:
         this.leaveActivity(
@@ -291,62 +299,45 @@ var ActivityHandler = {
       ActivityHandler.displayUnsentConfirmation(activity);
     }
   },
-  // Deliver the user to the correct view
-  // based on the params provided in the
-  // "message" object.
-  //
-  toView: function ah_toView(message) {
-    /**
-     *  "message" is either a message object that belongs
-     *  to a thread, or a message object from the system.
-     *
-     *
-     *  message {
-     *    number: A string phone number to pre-populate
-     *            the recipients list with.
-     *
-     *    body: An optional body to preset the compose
-     *           input with.
-     *
-     *    contact: An optional "contact" object
-     *
-     *    threadId: An option threadId corresponding
-     *              to a new or existing thread.
-     *
-     *  }
-     */
 
-    if (!message) {
-      return;
-    }
-
-    this.isLocked = false;
-    var threadId = message.threadId ? message.threadId : null;
-    var body = message.body || '';
-    var number = message.number ? message.number : '';
-    var contact = message.contact ? message.contact : null;
-
-    var showAction = function act_action() {
+  /**
+   * Delivers the user to the correct view based on the params provided in the
+   * "message" parameter.
+   * @param {{number: string, body: string, contact: MozContact,
+   * threadId: number}} message It's either a message object that belongs to a
+   * thread, or a message object from the system. "number" is a string phone
+   * number to pre-populate the recipients list with, "body" is an optional body
+   * to preset the compose input with, "contact" is an optional MozContact
+   * instance, "threadId" is an optional threadId corresponding to a new or
+   * existing thread.
+   * @param {Boolean} focusComposer Indicates whether we need to focus composer
+   * when we navigate to Thread panel.
+   */
+  toView: function ah_toView(message, focusComposer) {
+    var navigateToView = function act_navigateToView() {
       // If we only have a body, just trigger a new message.
-      if (!threadId) {
-        ActivityHandler.triggerNewMessage(body, number, contact);
+      if (!message.threadId) {
+        ActivityHandler.triggerNewMessage(
+          message.body, message.number, message.contact
+        );
         return;
       }
 
-      Navigation.toPanel('thread', { id: threadId }).then(Compose.focus);
+      Navigation.toPanel(
+        'thread', { id: message.threadId, focusComposer: focusComposer }
+      );
     };
 
     navigator.mozL10n.once(function waitLocalized() {
       if (!document.hidden) {
         // Case of calling from Notification
-        showAction();
+        navigateToView();
         return;
       }
 
-      document.addEventListener('visibilitychange',
-        function waitVisibility() {
-          document.removeEventListener('visibilitychange', waitVisibility);
-          showAction();
+      document.addEventListener('visibilitychange', function waitVisibility() {
+        document.removeEventListener('visibilitychange', waitVisibility);
+        navigateToView();
       });
     });
   },

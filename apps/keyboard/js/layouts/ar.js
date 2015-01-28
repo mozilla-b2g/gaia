@@ -9,7 +9,11 @@ Keyboards.ar = {
   basicLayoutKey: 'أ ب ج',
   width: 11,
   alt : {
-	  ي:'ى'
+    'غ': 'إ آ',
+    'ا': 'أ ء',
+    'ى': 'ئ',
+    'و': 'ؤ',
+    'ط': 'ظ'
   },
   keys: [
     [
@@ -19,11 +23,11 @@ Keyboards.ar = {
     ], [
       { value: 'ش' }, { value: 'س' }, { value: 'ي' }, { value: 'ب' },
       { value: 'ل' } , { value: 'ا' }, { value: 'ت' }, { value: 'ن' },
-      { value: 'م' }, { value: 'ك' }, { value: 'ة' }
+      { value: 'م' }, { value: 'ك' }
     ], [
       { value: '⇪', ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK },
-      { value: 'ء' }, { value: 'ظ' }, { value: 'ط' }, { value: 'ذ' },
-      { value: 'د' }, { value: 'ز' }, { value: 'ر' }, { value: 'و' },
+      { value: 'ذ' }, { value: 'د' }, { value: 'ر' }, { value: 'ى' },
+      { value: 'ة' }, { value: 'و' }, { value: 'ز' }, { value: 'ط' },
       { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
     ], [
       { value: '&nbsp', ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE },

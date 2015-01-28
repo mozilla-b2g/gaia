@@ -283,7 +283,7 @@ InputMethodGlue.prototype.replaceSurroundingText = function(text, offset,
 };
 
 InputMethodGlue.prototype.getNumberOfCandidatesPerRow = function() {
-  return this.app.getNumberOfCandidatesPerRow();
+  return this.app.viewManager.getNumberOfCandidatesPerRow();
 };
 
 InputMethodGlue.prototype.getData = function(dataPath) {

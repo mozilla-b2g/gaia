@@ -1,6 +1,7 @@
 'use strict';
 
 var TextSelection = require('./text_selection');
+var SelectionHelper = require('./selection_helper');
 
 function FakeTextSelectionApp(client) {
   this.client = client;
@@ -14,13 +15,23 @@ function FakeTextSelectionApp(client) {
 module.exports = FakeTextSelectionApp;
 
 FakeTextSelectionApp.Selector = Object.freeze({
-  bottomLeftInput: '#bottom-left-input',
-  bottomRightInput: '#bottom-right-input',
-  centerInput: '#center-input',
-  topLeftInput: '#top-left-input',
-  topRightInput: '#top-right-input',
-  normalDiv: '#noneditable',
-  nonSelectedDiv: '#noneditable-userselectnone'
+  // dialogposition.html
+  DialogPositionBottomLeftInput: '#bottom-left-input',
+  DialogPositionBottomRightInput: '#bottom-right-input',
+  DialogPositionCenterInput: '#center-input',
+  DialogPositionTopLeftInput: '#top-left-input',
+  DialogPositionTopRightInput: '#top-right-input',
+  // functionality.html
+  FunctionalitySourceInput: '#functionality-source',
+  FunctionalityTargetInput: '#functionality-target',
+  // noneditable.html
+  NonEditableCenterInput: '#ne-center-input',
+  NonEditableNormalDiv: '#noneditable',
+  NonEditableNonSelectedDiv: '#noneditable-userselectnone',
+  // bug.html
+  BugCenterInput: '#bug-center-input',
+  BugButtomInput: '#bug-buttom-input',
+  BugNormalDiv: '#bug-normal-div',
 });
 
 FakeTextSelectionApp.ORIGIN = 'app://faketextselectionapp.gaiamobile.org';
@@ -36,38 +47,63 @@ FakeTextSelectionApp.prototype = {
     });
   },
 
-  get nonSelectedDiv() {
-    return this._getElement('nonSelectedDiv');
+  get DialogPositionCenterInput() {
+    return this._getElement('DialogPositionCenterInput');
   },
 
-  get normalDiv() {
-    return this._getElement('normalDiv');
+  get DialogPositionBottomLeftInput() {
+    return this._getElement('DialogPositionBottomLeftInput');
   },
 
-  get centerInput() {
-    return this._getElement('centerInput');
+  get DialogPositionBottomRightInput() {
+    return this._getElement('DialogPositionBottomRightInput');
   },
 
-  get bottomLeftInput() {
-    return this._getElement('bottomLeftInput');
+  get DialogPositionTopLeftInput() {
+    return this._getElement('DialogPositionTopLeftInput');
   },
 
-  get bottomRightInput() {
-    return this._getElement('bottomRightInput');
+  get DialogPositionTopRightInput() {
+    return this._getElement('DialogPositionTopRightInput');
   },
 
-  get topLeftInput() {
-    return this._getElement('topLeftInput');
+  get FunctionalitySourceInput() {
+    return this._getElement('FunctionalitySourceInput');
   },
 
-  get topRightInput() {
-    return this._getElement('topRightInput');
+  get FunctionalityTargetInput() {
+    return this._getElement('FunctionalityTargetInput');
+  },
+
+  get NonEditableCenterInput() {
+    return this._getElement('NonEditableCenterInput');
+  },
+
+  get NonEditableNormalDiv() {
+    return this._getElement('NonEditableNormalDiv');
+  },
+
+  get NonEditableNonSelectedDiv() {
+    return this._getElement('NonEditableNonSelectedDiv');
+  },
+
+  get BugCenterInput() {
+    return this._getElement('BugCenterInput');
+  },
+
+  get BugButtomInput() {
+    return this._getElement('BugButtomInput');
+  },
+
+  get BugNormalDiv() {
+    return this._getElement('BugNormalDiv');
   },
 
   _getElement: function(target) {
     var element = this.client.helper.waitForElement(
       FakeTextSelectionApp.Selector[target]);
     element.location = element.location();
+    element.selectionHelper = new SelectionHelper(this.client, element);
     return element;
   },
 
@@ -84,20 +120,31 @@ FakeTextSelectionApp.prototype = {
     this.textSelection.longPress(dom);
   },
 
-  // Copy element from fromEle and paste it to toEle.
-  copyTo: function(fromEle, toEle) {
+  copy: function(fromEle) {
     this.longPress(fromEle);
     this.textSelection.pressCopy();
+  },
+
+  paste: function(toEle) {
     this.longPress(toEle);
     this.textSelection.pressPaste();
   },
 
-  // Cut element from fromEle and paste it to toEle.
-  cutTo: function(fromEle, toEle) {
+  cut: function(fromEle) {
     this.longPress(fromEle);
     this.textSelection.pressCut();
-    this.longPress(toEle);
-    this.textSelection.pressPaste();
+  },
+
+  // Copy element from fromEle and paste it to toEle.
+  copyTo: function(fromEle, toEle) {
+    this.copy(fromEle);
+    this.paste(toEle);
+  },
+
+  // Cut element from fromEle and paste it to toEle.
+  cutTo: function(fromEle, toEle) {
+    this.cut(fromEle);
+    this.paste(toEle);
   },
 
   // Select all of ele and cut it.
@@ -105,5 +152,15 @@ FakeTextSelectionApp.prototype = {
     this.longPress(ele);
     this.textSelection.pressSelectAll();
     this.textSelection.pressCut();
+  },
+
+  setTestFrame: function(frameName) {
+    this.client.executeScript(function(frameName) {
+      window.wrappedJSObject.location.href = '/' + frameName + '.html';
+    }, [frameName]);
+  },
+
+  switchToTestApp: function() {
+    this.textSelection.switchToCurrentApp();
   }
 };

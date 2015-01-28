@@ -32,6 +32,9 @@ Month.prototype = {
   /** @type {SingleMonth} */
   currentFrame: null,
 
+  /** @type {DOMElement} used to detect if dbltap happened on same date */
+  _lastTarget: null,
+
   /**
    * store current, previous and next months
    * we load them beforehand and keep on the cache to speed up swipes
@@ -105,12 +108,25 @@ Month.prototype = {
         this.controller.selectedDay = date;
         break;
       case 'dbltap':
-        this.app.go('/day/');
+        // make sure we discard double taps that started on a different day
+        if (this._lastTarget === target) {
+          this._goToAddEvent();
+        }
         break;
       case 'monthChange':
         this.changeDate(e.data[0]);
         break;
     }
+    this._lastTarget = target;
+  },
+
+  _goToAddEvent: function(date) {
+    // slight delay to avoid tapping the elements inside the add event screen
+    setTimeout(() => {
+      // don't need to set the date since the first tap triggers a click that
+      // sets the  timeController.selectedDay
+      this.app.go('/event/add/');
+    }, 50);
   },
 
   changeDate: function(time) {
@@ -120,9 +136,7 @@ Month.prototype = {
       this.currentFrame.deactivate();
     }
 
-    this._getFrame(this._previousTime());
     this.currentFrame = this._getFrame(this.date);
-    this._getFrame(this._nextTime());
 
     this._trimFrames();
     this._appendFrames();

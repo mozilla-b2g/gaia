@@ -217,12 +217,6 @@
 
       var inEditMode = this.dragdrop && this.dragdrop.inEditMode;
 
-      // Exit from edit mode when user clicks an empty space
-      if (inEditMode && e.target.classList.contains('placeholder')) {
-        window.dispatchEvent(new CustomEvent('hashchange'));
-        return;
-      }
-
       var action = 'launch';
       if (e.target.classList.contains('remove')) {
         action = 'remove';
@@ -431,6 +425,7 @@
 
       var nextDivider = null;
       var oddDivider = true;
+      var isRTL = (document.documentElement.dir === 'rtl');
       for (var idx = 0; idx <= this.items.length - 1; idx++) {
         var item = this.items[idx];
 
@@ -473,6 +468,9 @@
 
           // Insert placeholders to fill remaining space
           var remaining = this.layout.cols - x;
+          if (isRTL) {
+            x = (this.layout.gridWidth - this.layout.gridItemWidth) - x;
+          }
           this.createPlaceholders([x, y], idx, remaining);
 
           // Increment the current index due to divider insertion
@@ -486,9 +484,15 @@
         }
 
         item.setPosition(idx);
+
         if (!options.skipItems) {
           item.hasCachedIcon && ++pendingCachedIcons;
-          item.setCoordinates(x * this.layout.gridItemWidth,
+          var xPosition = x * this.layout.gridItemWidth;
+          if (isRTL) {
+            xPosition =
+              (this.layout.gridWidth - this.layout.gridItemWidth) - xPosition;
+          }
+          item.setCoordinates(xPosition,
                               this.layout.offsetY);
           if (!item.active) {
             item.render();
@@ -510,6 +514,11 @@
           step(item);
         }
       }
+
+      // All the children of this element are absolutely positioned and then
+      // transformed, so manually set a height for the convenience of
+      // embedders.
+      this.element.style.height = this.layout.offsetY + 'px';
 
       this.element.setAttribute('cols', this.layout.cols);
       pendingCachedIcons === 0 && onCachedIconRendered();

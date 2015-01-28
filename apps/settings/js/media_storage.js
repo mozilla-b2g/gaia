@@ -839,7 +839,9 @@ require([
               }.bind(this), LATENCY_CHECK_STATUS_AFTER_IDLE_IN_MILLISECONDS);
             }
           }
-        } else {
+        } else if (storageName !== 'sdcard') {
+          // Only enable default media location
+          // in case of external storage event
           this.enableDefaultMediaLocationSelection(true);
         }
       }

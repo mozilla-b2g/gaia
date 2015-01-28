@@ -505,4 +505,38 @@ suite('app', function() {
       sinon.assert.calledOnce(this.done);
     });
   });
+
+  suite('after critical path', function() {
+    setup(function() {
+
+      // Stop annoying logs
+      this.sandbox.stub(console, 'log');
+      this.app.boot();
+      this.app.emit('viewfinder:visible');
+    });
+
+    test('It loads l10n', function() {
+      sinon.assert.calledWith(this.app.require, ['l10n']);
+    });
+
+    test('It loads lazy controllers', function() {
+      sinon.assert.calledWith(this.app.require, this.app.controllers.lazy);
+    });
+
+    test('It fires the \'loaded\' event only when:', function() {
+      var loadL10nRequireCallback = this.app.require.args[0][1];
+      var loadLazyControllersRequireCallback = this.app.require.args[1][1];
+
+      // 1. l10n has loaded
+      loadL10nRequireCallback();
+
+      // 2. Lazy controllers have loaded
+      loadLazyControllersRequireCallback();
+
+      // 3. Storage has been checked
+      this.app.emit('storage:checked');
+
+      sinon.assert.calledWith(this.app.emit, 'loaded');
+    });
+  });
 });

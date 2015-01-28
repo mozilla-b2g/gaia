@@ -4,10 +4,16 @@
 
 import time
 
-from marionette import expected
-from marionette.by import By
-from marionette.marionette import Actions
-from marionette.wait import Wait
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+    from marionette.marionette import Actions
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
+    from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.phone.regions.call_screen import CallScreen
@@ -86,7 +92,8 @@ class Keypad(BaseKeypad, Phone):
         return AddNewNumber(self.marionette)
 
     def wait_for_search_popup_visible(self):
-        self.wait_for_element_displayed(*self._search_popup_locator)
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._search_popup_locator))
 
     @property
     def suggested_name(self):
@@ -101,8 +108,11 @@ class Keypad(BaseKeypad, Phone):
         return CallScreen(self.marionette)
 
     def wait_for_phone_number_ready(self):
-        # Entering dialer and expecting a phone number there is js that sets the phone value and enables this button
-        self.wait_for_condition(lambda m: m.find_element(*self._add_new_contact_button_locator).is_enabled())
+        # entering dialer and expecting a phone number there is javascript that
+        # sets the phone value and enables this button
+        add_contact = self.marionette.find_element(
+            *self._add_new_contact_button_locator)
+        Wait(self.marionette).until(expected.element_enabled(add_contact))
 
 
 class AddNewNumber(Base):
@@ -115,7 +125,10 @@ class AddNewNumber(Base):
         Wait(self.marionette).until(lambda m: form.location['y'] == 0)
 
     def tap_create_new_contact(self):
-        self.marionette.find_element(*self._create_new_contact_locator).tap()
+
+        create_new_contact = self.marionette.find_element(*self._create_new_contact_locator)
+        Wait(self.marionette).until(expected.element_displayed(create_new_contact))
+        create_new_contact.tap()
 
         from gaiatest.apps.contacts.regions.contact_form import NewContact
         new_contact = NewContact(self.marionette)

@@ -275,11 +275,8 @@ var StatusBar = {
     // Listen to Custom event send by 'nfc_manager.js'
     window.addEventListener('nfc-state-changed', this);
 
-    // 'bluetoothconnectionchange' fires when the overall bluetooth connection
-    //  changes.
     // 'bluetoothprofileconnectionchange' fires when a bluetooth connection of
     //  a specific profile changes.
-    window.addEventListener('bluetoothconnectionchange', this);
     window.addEventListener('bluetoothprofileconnectionchange', this);
 
     // Listen to 'moztimechange'
@@ -305,6 +302,10 @@ var StatusBar = {
     window.addEventListener('homescreenopening', this);
     window.addEventListener('homescreenopened', this);
     window.addEventListener('stackchanged', this);
+
+    // Listen to updates dialog
+    window.addEventListener('updatepromptshown', this);
+    window.addEventListener('updateprompthidden', this);
 
     // Track Downloads via the Downloads API.
     var mozDownloadManager = navigator.mozDownloadManager;
@@ -360,6 +361,8 @@ var StatusBar = {
 
       case 'attentionopened':
         this.toggleTimeLabel(true);
+        this.element.classList.add('maximized');
+        this.element.classList.remove('light');
         break;
 
       case 'attentionclosed':
@@ -427,10 +430,6 @@ var StatusBar = {
 
       case 'datachange':
         this.update.data.call(this);
-        break;
-
-      case 'bluetoothconnectionchange':
-        this.update.bluetooth.call(this);
         break;
 
       case 'bluetoothprofileconnectionchange':
@@ -569,6 +568,12 @@ var StatusBar = {
 
       case 'appopened':
       case 'appchromeexpanded':
+        if (evt.type === 'appopened') {
+          this.element.classList.toggle('fullscreen',
+            evt.detail.isFullScreen());
+          this.element.classList.toggle('fullscreen-layout',
+            evt.detail.isFullScreenLayout());
+        }
         this.setAppearance(evt.detail);
         this.element.classList.remove('hidden');
         this._updateMinimizedStatusBarWidth();
@@ -595,6 +600,8 @@ var StatusBar = {
           this._pausedForGesture = false;
         }
         this.element.classList.remove('hidden');
+        this.element.classList.remove('fullscreen');
+        this.element.classList.remove('fullscreen-layout');
         break;
       case 'activityterminated':
         // In this particular case, we want to restore the original color of
@@ -611,6 +618,12 @@ var StatusBar = {
         // about it and then come and ask @nullaus
         this.addSystemDownloadListeners(evt.download);
         break;
+       case 'updatepromptshown':
+          this.element.classList.remove('light');
+          break;
+        case 'updateprompthidden':
+          this.setAppearance(Service.currentApp);
+          break;
     }
   },
 
@@ -894,7 +907,7 @@ var StatusBar = {
     if (active) {
       var wifiManager = window.navigator.mozWifiManager;
       if (wifiManager) {
-        wifiManager.connectionInfoUpdate = this.update.wifi.bind(this);
+        wifiManager.onconnectioninfoupdate = this.update.wifi.bind(this);
       }
 
       this.update.wifi.call(this);
@@ -1252,8 +1265,8 @@ var StatusBar = {
           if (icon.dataset.connecting) {
             delete icon.dataset.connecting;
           }
-          var level = Math.floor(
-            wifiManager.connectionInformation.relSignalStrength / 25);
+          var level = Math.min(Math.floor(
+            wifiManager.connectionInformation.relSignalStrength / 20), 4);
           icon.dataset.level = level;
           icon.setAttribute('aria-label', navigator.mozL10n.get(
             'statusbarWiFiConnected', {level: level}));

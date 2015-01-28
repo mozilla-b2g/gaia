@@ -1,12 +1,15 @@
 'use strict';
 
 /* global UserDictionaryListPanel, MockEventTarget, CloseLockManager, CloseLock,
-          PanelController, UserDictionary, MockPromise */
+          PanelController, DialogController, UserDictionary, MockPromise,
+          BaseView */
 
 require('/shared/test/unit/mocks/mock_event_target.js');
 require('/shared/test/unit/mocks/mock_promise.js');
 
 require('/js/settings/close_locks.js');
+require('/js/settings/base_view.js');
+require('/js/settings/general_panel.js');
 require('/js/settings/panel_controller.js');
 require('/js/settings/user_dictionary.js');
 
@@ -32,7 +35,8 @@ suite('UserDictionary List Panel', function() {
     app = {
       closeLockManager: this.sinon.stub(new CloseLockManager()),
       panelController: this.sinon.stub(new PanelController()),
-      userDictionaryEditPanel: 'dummyEditPanel'
+      dialogController: this.sinon.stub(new DialogController()),
+      userDictionaryEditDialog: 'dummyEditDialog'
     };
 
     panel = new UserDictionaryListPanel(app);
@@ -63,16 +67,20 @@ suite('UserDictionary List Panel', function() {
     stubContainer.querySelector
       .withArgs('#ud-addword-btn').returns(stubAddWordBtn);
 
-    panel.init();
+    panel.start();
 
-    assert.equal(panel._container, stubContainer);
+    assert.equal(panel.container, stubContainer);
     assert.equal(panel._listContainer, stubListContainer);
 
     assert.isTrue(stubUserDictionary.start.called);
   });
 
   teardown(function() {
-    panel.uninit();
+    panel.stop();
+  });
+
+  test('inheritance from BaseView', function() {
+    assert.instanceOf(panel, BaseView);
   });
 
   suite('Transition hooks', function() {
@@ -82,15 +90,13 @@ suite('UserDictionary List Panel', function() {
       setup(function(){
         p = new MockPromise();
         stubUserDictionary.getList.returns(p);
-
-        panel._initialized = false;
-        this.sinon.stub(panel, 'init');
       });
 
-      test('call init if necessary', function() {
+      test('do not populate more than once', function() {
+        panel.beforeShow();
         panel.beforeShow();
 
-        assert.isTrue(panel.init.called);
+        assert.isTrue(stubUserDictionary.getList.calledOnce);
       });
 
       suite('getList', function() {
@@ -197,7 +203,7 @@ suite('UserDictionary List Panel', function() {
     setup(function() {
       pDialog = new MockPromise();
 
-      app.panelController.openDialog.returns(pDialog);
+      app.dialogController.openDialog.returns(pDialog);
     });
 
     test('canceled dialog', function() {
@@ -205,8 +211,8 @@ suite('UserDictionary List Panel', function() {
 
       panel._showAddDialog();
 
-      assert.isTrue(
-        app.panelController.openDialog.calledWith(app.userDictionaryEditPanel));
+      assert.isTrue(app.dialogController.openDialog.calledWith(
+        app.dialogController.userDictionaryEditDialog));
 
       pDialog.mFulfillToValue({action: 'cancel'});
       assert.isFalse(stubAddWord.called);
@@ -276,16 +282,14 @@ suite('UserDictionary List Panel', function() {
       };
       panel._domWordMap.set(stubWordElem, 'star');
 
-      app.panelController.openDialog.returns(pDialog);
+      app.dialogController.openDialog.returns(pDialog);
     });
 
     test('word is correctly propogated to dialog', function() {
       panel._showEditDialog(stubWordElem);
 
-      assert.isTrue(
-        app.panelController.openDialog.calledWith(app.userDictionaryEditPanel),
-        'star'
-      );
+      assert.isTrue(app.dialogController.openDialog.calledWith(
+        app.dialogController.userDictionaryEditDialog, {word: 'star'}));
     });
 
     test('canceled dialog', function() {

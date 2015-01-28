@@ -19,7 +19,7 @@
             <div class="item">
               <div class="item-body-exp">
                 <button class="activity call-action icon icon-call" id="call-or-pick-#i#">
-                  <b aria-label="Call" data-l10n-id="makeCall">#value#</b>
+                  <b aria-label="Call" data-l10n-id="makeCall"><bdi>#value#</bdi></b>
                   <span class="js-sim-indication"></span>
                 </button>
               </div>
@@ -46,6 +46,10 @@
 
               <button id="link_button" class="activity icon icon-link">
                 #action#
+              </button>
+
+              <button id="share_button" data-l10n-id="share-contact" class="activity icon icon-share">
+                Share
               </button>
           </li>
 
@@ -79,6 +83,9 @@
                 <button id="email-or-pick-#i#" class="activity icon icon-email">
                   <b aria-label="Email" data-l10n-id="composeEmail">#value#</b>
                 </button>
+              </div>
+              <div class="item-media pull-right">
+                <button id="send-sms-to-email-button-#i#" class="activity send-sms icon icon-message" data-l10n-id="send-sms-button" aria-label="SMS"></button>
               </div>
             </div>
           </li>

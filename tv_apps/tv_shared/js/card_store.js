@@ -1,4 +1,4 @@
-/* global evt, addMixin, PipedPromise */
+/* global evt, PipedPromise, SharedUtils */
 
 (function(exports) {
   'use strict';

@@ -1,4 +1,4 @@
-/* global AppWindowManager, SettingsCache, Service, SimPinDialog */
+/* global AppWindowManager, SettingsCache, Service */
 'use strict';
 
 (function(exports) {

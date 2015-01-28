@@ -17,6 +17,7 @@ function VerticalHome(client) {
 VerticalHome.URL = 'app://verticalhome.gaiamobile.org';
 
 VerticalHome.Selectors = {
+  grid: '#icons',
   editHeaderText: '#edit-header h1',
   editHeaderDone: '#exit-edit-mode',
   editGroup: '#edit-group',
@@ -218,6 +219,18 @@ VerticalHome.prototype = {
     return this.client.helper.waitForElement(
       '[data-identifier*="' + manifestUrl +
       (entryPoint ? '-' + entryPoint : '') + '"]'
+    );
+  },
+
+  /**
+  Fetch the nth icon on the homescreen.
+
+  @param {number} the icon number we want
+  @return {Marionette.Element}
+   */
+  getNthIcon: function(number) {
+    return this.client.helper.waitForElement(
+      '.icon:nth-of-type(' + number + ')'
     );
   },
 

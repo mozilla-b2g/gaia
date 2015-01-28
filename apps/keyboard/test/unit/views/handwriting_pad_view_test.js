@@ -27,9 +27,14 @@ suite('Views > HandwritingPadView', function() {
   document.body.style.pad = 0;
   document.body.style.margin = 0;
 
+  var viewManager = {
+    registerView: sinon.stub()
+  };
+
   suite('basic testing', function() {
     setup(function() {
-      handwritingPadView = new HandwritingPadView();
+      var target = {};
+      handwritingPadView = new HandwritingPadView(target, {}, viewManager);
       handwritingPadView.render();
       canvas = handwritingPadView.element;
     });

@@ -1,7 +1,9 @@
+/* global KeyEvent */
 /**
  * base widget used in ValueSelector and SpinDatePicker widget
  */
-var ValuePicker = (function() {
+window.ValuePicker = (function() {
+  'use strict';
   //
   // Constructor
   //
@@ -14,6 +16,7 @@ var ValuePicker = (function() {
     this._lower = 0;
     this._upper = unitStyle.valueDisplayedText.length - 1;
     this._range = unitStyle.valueDisplayedText.length;
+    this._unitStyle = unitStyle;
     this._currentIndex = 0;
     this.init();
   }
@@ -38,11 +41,13 @@ var ValuePicker = (function() {
       tunedIndex = Math.floor(tunedIndex);
     }
 
-    if (tunedIndex < this._lower)
+    if (tunedIndex < this._lower) {
       tunedIndex = this._lower;
+    }
 
-    if (tunedIndex > this._upper)
+    if (tunedIndex > this._upper) {
       tunedIndex = this._upper;
+    }
 
     var beforeIndex = this._currentIndex;
     if (this._currentIndex != tunedIndex) {
@@ -77,7 +82,7 @@ var ValuePicker = (function() {
     if (upper !== null) {
       this._upper = upper;
     } else {
-      this._upper = unitStyle.valueDisplayedText.length - 1;
+      this._upper = this._unitStyle.valueDisplayedText.length - 1;
     }
 
     var unitElement = this.element.firstElementChild;
@@ -181,8 +186,9 @@ var ValuePicker = (function() {
   }
 
   function empty(element) {
-    while (element.hasChildNodes())
+    while (element.hasChildNodes()) {
       element.removeChild(element.lastChild);
+    }
     element.innerHTML = '';
   }
 
@@ -218,6 +224,7 @@ var ValuePicker = (function() {
   }
 
   function vp_touchmove(event) {
+    /*jshint validthis: true */
     event.stopPropagation();
     event.target.setCapture(true);
     currentEvent = cloneEvent(event);
@@ -231,13 +238,15 @@ var ValuePicker = (function() {
     tunedIndex = calcTargetIndex(this._space);
     var roundedIndex = Math.round(tunedIndex * 10) / 10;
 
-    if (roundedIndex != this._currentIndex)
+    if (roundedIndex != this._currentIndex) {
       this.setSelectedIndex(toFixed(roundedIndex), true);
+    }
 
     startEvent = currentEvent;
   }
 
   function vp_touchend(event) {
+    /*jshint validthis: true */
     event.stopPropagation();
     this.removeEventListeners();
 
@@ -251,6 +260,7 @@ var ValuePicker = (function() {
   }
 
   function vp_touchstart(event) {
+    /*jshint validthis: true */
     event.stopPropagation();
 
     startEvent = currentEvent = cloneEvent(event);
@@ -262,10 +272,12 @@ var ValuePicker = (function() {
   }
 
   function vp_keypress(event) {
-    if (event.keyCode == KeyEvent.DOM_VK_DOWN)
+    /*jshint validthis: true */
+    if (event.keyCode == KeyEvent.DOM_VK_DOWN) {
       this.setSelectedIndex(this._currentIndex - 1);
-    else
+    } else {
       this.setSelectedIndex(this._currentIndex + 1);
+    }
   }
 
   return VP;

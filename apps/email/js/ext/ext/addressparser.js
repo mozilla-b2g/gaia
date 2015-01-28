@@ -237,7 +237,15 @@
         "(": ")",
         "<": ">",
         ",": "",
-        ":": ";"
+        // Groups are ended by semicolons
+        ":": ";",
+        // Semicolons are not a legal delimiter per the RFC2822 grammar other
+        // than for terminating a group, but they are also not valid for any
+        // other use in this context.  Given that some mail clients have
+        // historically allowed the semicolon as a delimiter equivalent to the
+        // comma in their UI, it makes sense to treat them the same as a comma
+        // when used outside of a group.
+        ";": ""
     };
 
     /**

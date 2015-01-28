@@ -2,10 +2,16 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
+
 from gaiatest.apps.base import Base
-from marionette import Wait
-from marionette import expected
 
 
 class Activities(Base):
@@ -53,6 +59,8 @@ class Activities(Base):
         camera = Camera(self.marionette)
         self.wait_for_condition(lambda m: self.apps.displayed_app.name == camera.name)
         self.apps.switch_to_displayed_app()
+        camera.wait_for_loading_spinner_displayed()
+        camera.wait_for_loading_spinner_hidden()
         camera.wait_for_capture_ready()
         return camera
 

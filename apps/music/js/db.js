@@ -1,6 +1,7 @@
 /* exported musicdb, initDB */
-/* global App, AudioMetadata, LazyLoader, MediaDB, ModeManager, MODE_LIST,
-          MODE_PICKER, MODE_TILES, MusicComms, PlayerView, TabBar, TilesView */
+/* global AlbumArt, App, AudioMetadata, LazyLoader, MediaDB, ModeManager,
+   MODE_LIST, MODE_PICKER, MODE_TILES, MusicComms, PlayerView, TabBar,
+   TilesView */
 'use strict';
 
 // The MediaDB object that manages the filesystem and the database of metadata
@@ -39,9 +40,14 @@ function initDB() {
   });
 
   function metadataParserWrapper(file, onsuccess, onerror) {
-    LazyLoader.load('js/metadata_scripts.js', function() {
-      AudioMetadata.parse(file).then(onsuccess, onerror);
-    });
+    LazyLoader.load(
+      ['/js/metadata_scripts.js', '/js/metadata/album_art.js'],
+      function() {
+        AudioMetadata.parse(file).then(function(metadata) {
+          return AlbumArt.process(file, metadata);
+        }).then(onsuccess, onerror);
+      }
+    );
   }
 
   function updateRecord(record, oldVersion, newVersion) {

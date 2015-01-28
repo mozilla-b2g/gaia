@@ -25,6 +25,8 @@
     <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
     <link rel="localization" href="locales/countries.{locale}.properties">
     <link rel="localization" href="locales/privacypanel.{locale}.properties">
+    <link rel="localization" href="locales/permissions.{locale}.properties">
+    <link rel="localization" href="shared/locales/permissions/permissions.{locale}.properties">
 
     <!-- Templates: Location Accuracy -->
     <link rel="import" href="/templates/ala/main.html">
@@ -38,6 +40,13 @@
     <link rel="import" href="/templates/rpp/features.html">
     <link rel="import" href="/templates/rpp/screenlock.html">
     <link rel="import" href="/templates/rpp/passcode.html">
+
+    <!-- Templates: Transparency Control -->
+    <link rel="import" href="/templates/tc/main.html">
+    <link rel="import" href="/templates/tc/applications.html">
+    <link rel="import" href="/templates/tc/app_details.html">
+    <link rel="import" href="/templates/tc/permissions.html">
+    <link rel="import" href="/templates/tc/perm_details.html">
 
     <!-- Templates: Guided Tour -->
     <link rel="import" href="/templates/gt/main.html">
@@ -81,8 +90,13 @@
           </a>
         </li>
         <li>
-          <a id="menu-item-rpp" class="menu-item pp-link" data-icon="messages" href="#rpp-main">
+          <a id="menu-item-rpp" class="menu-item pp-link" data-icon="lock" href="#rpp-main">
             <span data-l10n-id="remote-privacy-protection">Remote Privacy Protection</span>
+          </a>
+        </li>
+        <li>
+          <a id="menu-item-tc" class="menu-item pp-link" data-icon="tick-circle" href="#tc-main">
+            <span data-l10n-id="transparency-control">Transparency Control</span>
           </a>
         </li>
         <li>
@@ -92,7 +106,7 @@
         </li>
       </ul>
     </section>
-    
+
     <!-- Sections: Location Accuracy -->
     <section is="ala-main" role="region" id="ala-main" data-section="ala"></section>
     <section is="ala-exceptions" role="region" id="ala-exceptions" data-section="ala"></section>
@@ -105,6 +119,13 @@
     <section is="rpp-features" role="region" id="rpp-features" data-section="rpp"></section>
     <section is="rpp-screenlock" role="region" id="rpp-screenlock" data-section="rpp"></section>
     <section is="rpp-passcode" role="region" id="rpp-passcode" data-section="rpp"></section>
+
+    <!-- Sections: Transparency Control -->
+    <section role="region" data-section="tc" is="tc-main"         id="tc-main"></section>
+    <section role="region" data-section="tc" is="tc-applications" id="tc-applications"></section>
+    <section role="region" data-section="tc" is="tc-appDetails"   id="tc-appDetails"></section>
+    <section role="region" data-section="tc" is="tc-permissions"  id="tc-permissions"></section>
+    <section role="region" data-section="tc" is="tc-permDetails"  id="tc-permDetails"></section>
 
     <!-- Sections: Guided Tour -->
     <section is="gt-main" role="region" id="gt-main" data-section="gt"></section>
@@ -121,6 +142,8 @@
     <!-- Sections: About -->
     <section is="about" role="region" id="about" data-section="about"></section>
 
+    <!-- Require /js/app.js and all its dependencies -->
     <script data-main="js/app" src="js/vendor/alameda.js"></script>
+
   </body>
 </html>

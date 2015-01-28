@@ -190,6 +190,13 @@
   };
 
   /**
+   * Set active should be only applied to top most window.
+   */
+  AppWindow.prototype.setActive = function(enable) {
+    this.getTopMostWindow()._setActive(enable);
+  };
+
+  /**
    * In order to prevent flashing of unpainted frame
    * during switching from one to another,
    * many event listener & callbacks are employed.
@@ -367,6 +374,7 @@
     if (this.browser) {
       return;
     }
+    this.isCrashed = false;
     this.debug(' ...revived!');
     this.browser = new BrowserFrame(this.browser_config);
     this.browserContainer.appendChild(this.browser.element);
@@ -792,11 +800,14 @@
           that.element.removeEventListener('_opened', onOpened);
           that.appChrome = new AppChrome(that);
 
-          // We can encounter an error before chrome loads - in this case,
-          // manually call its error handler
-          if (that.netRestrictionDialog &&
-              !that.netRestrictionDialog.classList.contains('hidden')) {
+          // Some signals that chrome needs to respond to can occur before
+          // chrome has loaded - in those cases, manually call the handlers.
+          if (that.inError) {
             that.appChrome.handleEvent({type: 'mozbrowsererror'});
+          }
+          if (that.loading) {
+            that.appChrome.handleEvent({type: 'mozbrowserloadstart'});
+            that.appChrome.handleEvent({type: '_loading'});
           }
         });
       } else {
@@ -836,6 +847,8 @@
 
   AppWindow.prototype._handle__orientationchange = function(evt) {
     if (this.isActive()) {
+      this.frontWindow && this.frontWindow.broadcast('orientationchange');
+
       if (!this.isHomescreen) {
         this._resize(evt.detail);
         return;
@@ -845,13 +858,6 @@
       } else if (Service.currentApp && Service.currentApp === this) {
         this.lockOrientation();
       }
-    }
-
-    // We don't want to resize/reflow all backgrounds app
-    // so we make sure the iframe doesn't get resized
-    if (this.browser) {
-      this.iframe.style.width = this.width + 'px';
-      this.iframe.style.height = this.height + 'px';
     }
 
     var width = layoutManager.width;
@@ -904,8 +910,10 @@
   AppWindow.prototype._handle_mozbrowsererror =
     function aw__handle_mozbrowsererror(evt) {
       if (evt.detail.type !== 'fatal') {
+        this.inError = true;
         return;
       }
+      this.isCrashed = true;
       // Send event instead of call crash reporter directly.
       this.publish('crashed');
 
@@ -923,6 +931,7 @@
   AppWindow.prototype._handle_mozbrowserloadstart =
     function aw__handle_mozbrowserloadstart(evt) {
       this.loading = true;
+      this.inError = false;
       this._changeState('loading', true);
       this.publish('loading');
     };
@@ -1232,11 +1241,6 @@
    */
   AppWindow.prototype._hideScreenshotOverlay =
     function aw__hideScreenshotOverlay() {
-      // The iframe might be "freezed" to an old size
-      // making sure it's resized properly before dipslaying it
-      this.iframe.style.width = '';
-      this.iframe.style.height = '';
-
       if (!this.screenshotOverlay ||
           !this.screenshotOverlay.classList.contains('visible')) {
         return;
@@ -1301,6 +1305,12 @@
     } else {
       window.dispatchEvent(evt);
     }
+
+    // The other module could have all kind of window events
+    window.dispatchEvent(new CustomEvent('window' + event, {
+      bubbles: true,
+      detail: this
+    }));
   };
 
   AppWindow.prototype.broadcast = function aw_broadcast(event, detail) {
@@ -1848,6 +1858,12 @@
   };
 
   AppWindow.prototype._handle__swipein = function aw_swipein() {
+    if (this.isCrashed) {
+      if (this.transitionController) {
+        this.transitionController.clearTransitionClasses();
+      }
+      return;
+    }
     // Revive the browser element if it's got killed in background.
     this.reviveBrowser();
     // Request "open" to our internal transition controller.

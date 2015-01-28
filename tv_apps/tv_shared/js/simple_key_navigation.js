@@ -1,3 +1,4 @@
+/* global evt, KeyEvent */
 (function(exports) {
   'use strict';
   /**
@@ -18,26 +19,49 @@
     'VERTICAL': 'vertical'
   });
 
-  proto.start = function skn_start(list, direction) {
+  proto.start = function skn_start(list, direction, isChild) {
     this.direction = direction;
     this.updateList(list);
-    window.addEventListener('keyup', this);
+    this.isChild = !!isChild;
+    if (!isChild) {
+      window.addEventListener('keydown', this);
+    }
   };
 
   proto.stop = function skn_stop() {
-    window.removeEventListener('keyup', this);
-  }
+    window.removeEventListener('keydown', this);
+  };
 
   proto.updateList = function skn_updateList(list) {
     this._List = list;
     this._focusedIndex = -1;
     if (list.length > 0) {
       this._focusedIndex = 0;
-      if (list[0].focus && (typeof list[0].focus) === 'function') {
-        list[0].focus();
-      }
-      this.fire('focusChanged', list[0]);
+      this.focus();
     }
+  };
+
+  proto.focus = function skn_focus() {
+    var elem = this._List[this._focusedIndex];
+    if (elem.focus && (typeof elem.focus) === 'function') {
+      elem.focus();
+    }
+    // Fon nested case, we need to propagate child navigator event to parent.
+    if (elem instanceof SimpleKeyNavigation) {
+      elem = elem._List[elem._focusedIndex];
+    }
+    this.fire('focusChanged', elem);
+  };
+
+  proto.blur = function skn_blur() {
+    var elem = this._List[this._focusedIndex];
+    elem.blur && (typeof elem.blur === 'function') && elem.blur();
+
+    // Fon nested case, we need to propagate child navigator event to parent.
+    if (elem instanceof SimpleKeyNavigation) {
+      elem = elem._List[elem._focusedIndex];
+    }
+    this.fire('focusBlurred', elem);
   };
 
   proto.movePrevious = function skn_movePrevious() {
@@ -46,12 +70,7 @@
     }
 
     this._focusedIndex--;
-    if (this._List[this._focusedIndex].focus &&
-        (typeof this._List[this._focusedIndex].focus) === 'function') {
-
-      this._List[this._focusedIndex].focus();
-    }
-    this.fire('focusChanged', this._List[this._focusedIndex]);
+    this.focus();
   };
 
   proto.moveNext = function skn_moveNext() {
@@ -59,12 +78,7 @@
       return;
     }
     this._focusedIndex++;
-    if (this._List[this._focusedIndex].focus &&
-        (typeof this._List[this._focusedIndex].focus) === 'function') {
-
-      this._List[this._focusedIndex].focus();
-    }
-    this.fire('focusChanged', this._List[this._focusedIndex]);
+    this.focus();
   };
 
   proto.handleKeyMove = function skn_handleKeyMove(e, pre, next) {
@@ -75,11 +89,20 @@
     }
   };
 
+  proto.propagateKeyMove = function skn_propagateKeyMove(e, pre, next) {
+    if (this._List[this._focusedIndex] instanceof SimpleKeyNavigation &&
+      (e.keyCode === pre || e.keyCode === next)) {
+      this._List[this._focusedIndex].handleEvent(e);
+    }
+  };
+
   proto.handleEvent = function skn_handleEvent(e) {
     if (this.direction === SimpleKeyNavigation.DIRECTION.HORIZONTAL) {
       this.handleKeyMove(e, KeyEvent.DOM_VK_LEFT, KeyEvent.DOM_VK_RIGHT);
+      this.propagateKeyMove(e, KeyEvent.DOM_VK_UP, KeyEvent.DOM_VK_DOWN);
     } else {
       this.handleKeyMove(e, KeyEvent.DOM_VK_UP, KeyEvent.DOM_VK_DOWN);
+      this.propagateKeyMove(e, KeyEvent.DOM_VK_LEFT, KeyEvent.DOM_VK_RIGHT);
     }
   };
 

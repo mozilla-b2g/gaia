@@ -1,4 +1,5 @@
 /* global require, exports */
+/* jshint loopfunc:true */
 'use strict';
 
 (function(exports) {
@@ -37,6 +38,8 @@
         this.analyzeHtml.bind(this));
       files.filter(this.filterFiles.bind(this, 'css')).forEach(
         this.analyzeCss.bind(this));
+      files.filter(this.filterFiles.bind(this, 'json')).forEach(
+        this.copyJson.bind(this));
     },
 
     copyFileToStage: function(file, target) {
@@ -51,7 +54,8 @@
       // Case 1/ Regular file
       if (file.isFile()) {
         try {
-          utils.copyFileTo(file, utils.dirname(target.path), target.leafName, true);
+          utils.copyFileTo(file, utils.dirname(target.path),
+                           target.leafName, true);
         } catch (e) {
           throw new Error('Unable to add following file in stage: ' +
                           path + '\n' + e);
@@ -59,7 +63,8 @@
       }
       // Case 2/ Directory
       else if (file.isDirectory()) {
-        utils.copyDirTo(file, utils.dirname(target.path), target.leafName, true);
+        utils.copyDirTo(file, utils.dirname(target.path),
+                        target.leafName, true);
       }
     },
 
@@ -139,6 +144,11 @@
       var content = utils.getFileContent(file).replace(COMMENTED, '');
       this.copyMatchedFilesToStage(CSS_IMPORT, content);
       this.copyMatchedFilesToStage(CSS_FONT, content);
+    },
+
+    copyJson: function(file) {
+      var content = utils.getFileContent(file);
+      this.copyMatchedFilesToStage(SHARED_USAGE, content);
     },
 
     filterFiles: function(type, file) {
