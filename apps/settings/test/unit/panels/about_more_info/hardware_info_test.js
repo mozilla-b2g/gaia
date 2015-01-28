@@ -17,7 +17,7 @@ suite('about hardware info >', function() {
       'shared/settings_listener': 'shared_mocks/mock_settings_listener',
       'modules/bluetooth/version_detector': 'MockVersionDetector',
       'modules/bluetooth/bluetooth_v1': 'MockBluetooth1',
-      'modules/bluetooth/bluetooth': 'MockBluetooth2'
+      'modules/bluetooth/bluetooth_context': 'MockBluetooth2'
     }
   };
 
