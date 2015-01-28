@@ -19,7 +19,7 @@
           "cache": {
             "gaia-misc-caches": "/home/tester/caches/"
           },
-          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.7.2",
           "command": [
             "entrypoint",
             "echo 'what' && make node_modules && node tests/taskcluster/bin/graph > /graph.json && cat /graph.json"
