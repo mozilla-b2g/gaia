@@ -443,11 +443,6 @@ return [
         this.messagesContainer.classList.add('show-edit');
 
         this.selectedMessages = [];
-        var cbs = this.messagesContainer
-                  .querySelectorAll('input[type=checkbox]');
-        for (i = 0; i < cbs.length; i++) {
-          cbs[i].checked = false;
-        }
         this.selectedMessagesUpdated();
       }
       else {
@@ -461,16 +456,14 @@ return [
         this.editToolbar.classList.add('collapsed');
         this.messagesContainer.classList.remove('show-edit');
 
-        // (Do this based on the DOM nodes actually present; if the user has
-        // been scrolling a lot, this.selectedMessages may contain messages that
-        // no longer have a domNode around.)
-        var selectedMsgNodes =
-          this.getElementsByClassName('msg-header-item-selected');
-        for (i = selectedMsgNodes.length - 1; i >= 0; i--) {
-          selectedMsgNodes[i].classList.remove('msg-header-item-selected');
-        }
-
         this.selectedMessages = null;
+      }
+
+      // Reset checked mode for all message items.
+      var msgNodes = this.messagesContainer.querySelectorAll(
+        '.msg-header-item');
+      for (i = 0; i < msgNodes.length; i++) {
+        this.setMessageChecked(msgNodes[i], false);
       }
 
       // UXXX do we want to disable the buttons if nothing is selected?
@@ -1407,10 +1400,7 @@ return [
                                 sendState === 'error');
 
       // edit mode select state
-      if (this.editMode) {
-        var checkbox = msgNode.querySelector('input[type=checkbox]');
-        checkbox.checked = this.selectedMessages.indexOf(message) !== -1;
-      }
+      this.setSelectState(msgNode, message);
     },
 
     updateMatchedMessageDom: function(firstTime, matchedHeader) {
@@ -1491,10 +1481,29 @@ return [
       subjectNode.classList.toggle('icon-short', message.isStarred);
 
       // edit mode select state
+      this.setSelectState(msgNode, message);
+    },
+
+    /**
+     * Set or unset the select state based on the edit mode.
+     */
+    setSelectState: function(msgNode, message) {
       if (this.editMode) {
-        var checkbox = msgNode.querySelector('input[type=checkbox]');
-        checkbox.checked = this.selectedMessages.indexOf(message) !== -1;
+        this.setMessageChecked(msgNode,
+          this.selectedMessages.indexOf(message) !== -1);
+      } else {
+        msgNode.removeAttribute('aria-selected');
       }
+    },
+
+    /**
+     * Set the checked state for the message item in the list. It sets both
+     * checkbox checked and aria-selected states.
+     */
+    setMessageChecked: function(msgNode, checked) {
+      var checkbox = msgNode.querySelector('input[type=checkbox]');
+      checkbox.checked = checked;
+      msgNode.setAttribute('aria-selected', checked);
     },
 
     /**
@@ -1578,15 +1587,13 @@ return [
 
       if (this.editMode) {
         var idx = this.selectedMessages.indexOf(header);
-        var cb = messageNode.querySelector('input[type=checkbox]');
         if (idx !== -1) {
           this.selectedMessages.splice(idx, 1);
-          cb.checked = false;
         }
         else {
           this.selectedMessages.push(header);
-          cb.checked = true;
         }
+        this.setMessageChecked(messageNode, idx === -1);
         this.selectedMessagesUpdated();
         return;
       }
