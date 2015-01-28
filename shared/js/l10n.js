@@ -1620,16 +1620,13 @@
   }
 
   function init(pretranslate) {
-    if (pretranslate) {
-      initResources.call(navigator.mozL10n);
-    } else {
-      // if pretranslate is false, we want to initialize MO
-      // early, to collect nodes injected between now and when resources
-      // are loaded because we're not going to translate the whole
-      // document once l10n resources are ready.
+    if (!pretranslate) {
+      // initialize MO early to collect nodes injected between now and when
+      // resources are loaded because we're not going to translate the whole
+      // document once l10n resources are ready
       initObserver();
-      window.setTimeout(initResources.bind(navigator.mozL10n));
     }
+    initResources.call(navigator.mozL10n);
   }
 
   function initResources() {
