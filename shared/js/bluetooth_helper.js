@@ -196,6 +196,11 @@ var BluetoothHelper = function() {
     },
 
     getAddress: function(cb) {
+      if (_v2) {
+        console.log('getAddress function is deprecated');
+        return;
+      }
+
       _ready(function() {
         var address = _adapter.address;
         cb(address);
