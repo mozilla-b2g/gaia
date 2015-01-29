@@ -64,6 +64,7 @@ function addSettings(appDirPath, distDirPath, enabledFeatures) {
   if (enabledFeatures.userDict) {
     insertScript('js/settings/user_dictionary_edit_dialog.js');
     insertScript('js/settings/user_dictionary_list_panel.js');
+    insertScript('js/settings/word_list_converter.js');
     insertScript('js/settings/user_dictionary.js');
 
     var udSettings = utils.getFile(appDirPath, 'user-dictionary-settings.html');

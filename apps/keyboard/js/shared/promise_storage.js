@@ -160,6 +160,35 @@ PromiseStorage.prototype.setItem = function(name, data) {
   });
 };
 
+// items is a object mapping from name to data.
+PromiseStorage.prototype.setItems = function(items) {
+  return this._getTxn('readwrite').then(function(txn) {
+    var store = txn.objectStore(this.STORE_NAME);
+    var reqPromises = Object.keys(items).map(function(name) {
+      var data = items[name];
+      return new Promise(function(resolve, reject) {
+        var req = store.put(data, name);
+        req.onerror = function(e) {
+          reject(req.error);
+        };
+        req.onsuccess = function() {
+          resolve();
+        };
+      });
+    }, this);
+
+    return new Promise(function(resolve) {
+      txn.oncomplete = function() {
+        resolve(Promise.all(reqPromises));
+      };
+    });
+  }.bind(this)).catch(function(e) {
+    e && console.error(e);
+
+    return Promise.reject();
+  });
+};
+
 PromiseStorage.prototype.deleteItem = function(name) {
   return this._getTxn('readwrite').then(function(txn) {
     return new Promise(function(resolve, reject) {
