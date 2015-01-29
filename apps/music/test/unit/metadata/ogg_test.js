@@ -9,7 +9,7 @@ require('/js/metadata/vorbis_picture.js');
 
 suite('ogg tags', function() {
   var RealLazyLoader;
-  var expectedPicture;
+  var expectedPicture, expectedPicture2;
 
   setup(function(done) {
     RealLazyLoader = window.LazyLoader;
@@ -17,8 +17,13 @@ suite('ogg tags', function() {
 
     fetchBuffer('/test-data/album-art.jpg').then(function(buffer) {
       expectedPicture = buffer;
-      done();
+
+      fetchBuffer('/test-data/album-art2.jpg').then(function(buffer) {
+        expectedPicture2 = buffer;
+        done();
+      });
     });
+
   });
 
   teardown(function() {
@@ -47,4 +52,28 @@ suite('ogg tags', function() {
       })
       .then(pass(done), fail(done));
   });
+
+  test('vorbis comment multipage', function(done) {
+    fetchBlobView('/test-data/vorbis-c-multipage.ogg', 256 * 1024)
+      .then(OggMetadata.parse)
+      .then(function(metadata) {
+        assert.strictEqual(metadata.tag_format, 'vorbis');
+        assert.strictEqual(metadata.artist, 'Angra');
+        assert.strictEqual(metadata.album, 'Holy Land');
+        assert.strictEqual(metadata.title, 'Carolina IV');
+        assert.strictEqual(metadata.tracknum, 4);
+        assert.strictEqual(metadata.trackcount, 10);
+        assert.strictEqual(metadata.discnum, 1);
+        assert.strictEqual(metadata.disccount, 1);
+        assert.strictEqual(metadata.picture.flavor, 'unsynced');
+        assert.strictEqual(metadata.picture.blob.type, 'image/jpeg');
+
+        return readBlob(metadata.picture.blob);
+      })
+      .then(function(buffer) {
+        assertBuffersEqual(buffer, expectedPicture2);
+      })
+      .then(pass(done), fail(done));
+  });
+
 });
