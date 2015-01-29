@@ -201,6 +201,13 @@
   width: calc(100% - 12rem);
 }
 
+/* The rocketbar is expanded to full width when collapsed.
+   Without this definition the rocketbar width is too small as we account for the
+   widths of the back/forward buttons. */
+#windows .chrome:not(.maximized) .controls .urlbar {
+  width: calc(100% - 4.5rem);
+}
+
 .appWindow:not(.browser) .controls .forward-button:not([disabled]) + .urlbar {
   width: calc(100% - 4.5rem);
 }
@@ -242,13 +249,9 @@
   background: url("images/light/ssl_broken.png") no-repeat 0.1rem center / 3rem 3rem;
 }
 
-.collapsible .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
-.collapsible .chrome:not(.maximized) .forward-button:not([disabled]) + .urlbar {
-  transform: scaleX(var(--rocketbar-scale)) translateX(-5.5rem);
-}
-
-.collapsible .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
-  transform: scaleX(var(--rocketbar-scale)) translateX(-12rem);
+.chrome:not(.maximized) .back-button,
+.chrome:not(.maximized) .forward-button {
+  display: none;
 }
 
 
@@ -497,7 +500,6 @@ html[dir="rtl"] .search-app .chrome.maximized .controls .urlbar:after {
 
 html[dir="rtl"] .controls .urlbar {
   transform-origin: top right;
-  
 }
 
 html[dir="rtl"] .appWindow.fullscreen-app .chrome:not(.maximized) .controls .urlbar {
