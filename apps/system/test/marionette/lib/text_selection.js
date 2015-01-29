@@ -82,10 +82,13 @@ TextSelection.prototype = {
   },
 
   longPress: function(element) {
-    // Add moveByOffset to prevent contextmenu event be fired.
     var eltSize = element.size();
-    this.actions.tap(element, eltSize.width / 2, eltSize.height / 2).wait(2).
-      press(element, eltSize.width / 2, eltSize.height / 2).
+    this.longPressByPosition(element, eltSize/2, eltSize/2);
+  },
+ 
+  longPressByPosition: function(element, x, y) {
+    // Add moveByOffset to prevent contextmenu event be fired.
+    this.actions.tap(element, x, y).wait(2).press(element, x, y).
       moveByOffset(0, 0).wait(2).release().perform();
   },
 

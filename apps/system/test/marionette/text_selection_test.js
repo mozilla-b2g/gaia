@@ -265,6 +265,38 @@ marionette('Text selection >', function() {
 
         });
     });
+
+    suite('selection carets bug', function() {
+      setup(function() {
+        fakeTextselectionApp.setTestFrame('bug1120358');
+      });
+      test('bug1120358 : Positions of selection carets should be updated ' +
+           'correctly while scrolling (so far on device only)',
+        function() {
+          fakeTextselectionApp.longPressByPosition('BugContent', 30, 150);
+          var source =
+            fakeTextselectionApp.BugContent.selectionHelper.selectedContent;
+          client.executeScript('document.getElementById("bug-content").' +
+                               'scrollTop += 100');
+          client.helper.wait(500);
+          var caretPositions =
+            fakeTextselectionApp.BugContent.selectionHelper.
+            selectionLocationHelper();
+          fakeTextselectionApp.BugContent.selectionHelper.
+          moveCaretByPosition({
+            caretB: {
+              offset: {
+                x: caretPositions.caretA.x - caretPositions.caretB.x, y: 0
+              }
+            }
+          });
+          var target =
+            fakeTextselectionApp.BugContent.selectionHelper.selectedContent;
+          assert.ok(source.charAt(0)===target,
+          'carets should be dragable to narrow down selection range to the ' +
+          'first character if positions of carets are updated correctly');
+        });
+    });
   });
 
   suite('with lockscreen enabled', function() {
