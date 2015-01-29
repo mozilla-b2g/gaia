@@ -8,7 +8,6 @@ var daysBetween = Calc.daysBetween;
 var daysInWeek = Calc.daysInWeek;
 var getDayId = Calc.getDayId;
 var spanOfMonth = Calc.spanOfMonth;
-var startDay = Calc.startDay;
 
 var SELECTED = 'selected';
 
@@ -32,7 +31,6 @@ SingleMonth.prototype = {
   element: null,
 
   create: function() {
-    startDay = Calc.startDay;
     var element = document.createElement('section');
     element.className = 'month';
     element.setAttribute('role', 'grid');
@@ -45,6 +43,8 @@ SingleMonth.prototype = {
   },
 
   _renderDayHeaders: function() {
+    // startDay might change during the 'localized' event
+    var startDay = Calc.startDay;
     var days = [];
     var i;
     for (i = startDay; i < 7; i++) {

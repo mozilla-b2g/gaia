@@ -69,32 +69,78 @@ suite('calendar/calc', function() {
 
   });
 
-  test('#dayOfWeekFromSunday', function() {
-    subject.startDay = 0;
+  suite('#dayOfWeekFromStartDay', function() {
+    test('sunday', function() {
+      subject.startDay = 0;
 
-    var expected = [
-      ['sun', 0, 0],
-      ['mon', 1, 1],
-      ['tue', 2, 2],
-      ['wed', 3, 3],
-      ['thu', 4, 4],
-      ['fri', 5, 5],
-      ['sat', 6, 6]
-    ];
+      var expected = [
+        ['sun', 0, 0],
+        ['mon', 1, 1],
+        ['tue', 2, 2],
+        ['wed', 3, 3],
+        ['thu', 4, 4],
+        ['fri', 5, 5],
+        ['sat', 6, 6]
+      ];
 
-    expected.forEach(function(line) {
-      var [name, date, numeric] = line;
-      assert.equal(
-        subject.dayOfWeekFromStartDay(date),
-        numeric,
-        name
-      );
+      expected.forEach(function(line) {
+        var [name, date, numeric] = line;
+        assert.equal(
+          subject.dayOfWeekFromStartDay(date),
+          numeric,
+          name
+        );
+      });
+    });
+
+    test('Monday', function() {
+      subject.startDay = 1;
+
+      var expected = [
+        ['mon', 1, 0],
+        ['tue', 2, 1],
+        ['wed', 3, 2],
+        ['thu', 4, 3],
+        ['fri', 5, 4],
+        ['sat', 6, 5],
+        ['sun', 0, 6]
+      ];
+
+      expected.forEach(function(line) {
+        var [name, date, numeric] = line;
+        assert.equal(
+          subject.dayOfWeekFromStartDay(date),
+          numeric,
+          name
+        );
+      });
+    });
+
+    test('Saturday', function() {
+      subject.startDay = 6;
+
+      var expected = [
+        ['sat', 6, 0],
+        ['sun', 0, 1],
+        ['mon', 1, 2],
+        ['tue', 2, 3],
+        ['wed', 3, 4],
+        ['thu', 4, 5],
+        ['fri', 5, 6]
+      ];
+
+      expected.forEach(function(line) {
+        var [name, date, numeric] = line;
+        assert.equal(
+          subject.dayOfWeekFromStartDay(date),
+          numeric,
+          name
+        );
+      });
     });
   });
 
   test('#dayOfWeekFromMonday', function() {
-    subject.startDay = 1;
-
     var expected = [
       ['mon', 1, 0],
       ['tue', 2, 1],
@@ -108,30 +154,7 @@ suite('calendar/calc', function() {
     expected.forEach(function(line) {
       var [name, date, numeric] = line;
       assert.equal(
-        subject.dayOfWeekFromStartDay(date),
-        numeric,
-        name
-      );
-    });
-  });
-
-  test('#dayOfWeekFromSaturday', function() {
-    subject.startDay = 6;
-
-    var expected = [
-      ['sat', 6, 0],
-      ['sun', 0, 1],
-      ['mon', 1, 2],
-      ['tue', 2, 3],
-      ['wed', 3, 4],
-      ['thu', 4, 5],
-      ['fri', 5, 6]
-    ];
-
-    expected.forEach(function(line) {
-      var [name, date, numeric] = line;
-      assert.equal(
-        subject.dayOfWeekFromStartDay(date),
+        subject.dayOfWeekFromMonday(date),
         numeric,
         name
       );

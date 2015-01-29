@@ -31,7 +31,7 @@ WeekView.prototype = {
     }
 
     // Show monday as the first day of the grid if date is between Mon-Fri.
-    var index = Calc.dayOfWeekFromStartDay(date.getDay());
+    var index = Calc.dayOfWeekFromMonday(date.getDay());
     if (index < 5) {
       date = Calc.createDay(date, date.getDate() - index);
     }
