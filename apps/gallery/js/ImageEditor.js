@@ -698,6 +698,8 @@ function ImageEditor(imageBlob, container, edits, ready, croponly) {
   // The canvas that displays the preview
   this.previewCanvas = document.createElement('canvas');
   this.previewCanvas.id = 'edit-preview-canvas'; // for stylesheet
+  this.previewCanvas.setAttribute('data-l10n-id', 'editImagePreview');
+  this.previewCanvas.setAttribute('role', 'img');
   this.container.appendChild(this.previewCanvas);
 
   // Make sure the canvas is size for device pixels, not css pixels
