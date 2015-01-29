@@ -1075,14 +1075,14 @@ html[dir="rtl"] .contact-header aside.pack-end {
   -moz-user-select: text;
 }
 
-.no-threads {
+#threads-settings-button {
   display: none;
 }
 
-section[role=region][class*='threadlist-no-threads'] #threads-options-button {
+.threadlist-no-threads #threads-options-button {
   display: none;
 }
 
-section[role=region][class*='threadlist-no-threads'] #threads-settings-button {
+.threadlist-no-threads #threads-settings-button {
   display: unset;
 }
