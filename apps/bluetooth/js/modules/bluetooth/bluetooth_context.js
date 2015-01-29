@@ -19,7 +19,6 @@ define(function(require) {
   var BtDevice = require('modules/bluetooth/bluetooth_device');
   var Observable = require('modules/mvvm/observable');
   var ObservableArray = require('modules/mvvm/observable_array');
-  var SettingsCache = require('modules/settings_cache');
 
   var settings = navigator.mozSettings;
 
@@ -446,20 +445,23 @@ define(function(require) {
       }
 
       // Sync with settings key
-      SettingsCache.getSettings((results) => {
-        var btEnabled = results['bluetooth.enabled'];
-        if (btEnabled !== enabled) {
-          settings.createLock().set({'bluetooth.enabled': enabled});
+      var req = settings.createLock().get('bluetooth.enabled');
+      req.onsuccess = function bt_onGetBTEnabledSuccess() {
+        if (req.result) {
+          var btEnabled = req.result['bluetooth.enabled'];
+          if (btEnabled !== enabled) {
+            settings.createLock().set({'bluetooth.enabled': enabled});
+          }
+
+          // Update state
+          this.state = state;
+          Debug('_updateStatus(): set state = ' + state);
+
+          // Update enabled
+          this.enabled = enabled;
+          Debug('_updateStatus(): set enabled = ' + enabled);  
         }
-
-        // Update state
-        this.state = state;
-        Debug('_updateStatus(): set state = ' + state);
-
-        // Update enabled
-        this.enabled = enabled;
-        Debug('_updateStatus(): set enabled = ' + enabled);
-      });
+      }.bind(this);
     },
 
     /**
@@ -549,25 +551,6 @@ define(function(require) {
       }, (reason) => {
         Debug('setName(): set name failed: reason = ' + reason);
         return Promise.reject(reason);
-      });
-    },
-
-    /**
-     * Set adapter name by product model.
-     *
-     * @access public
-     * @memberOf BluetoothContext
-     */
-    setNameByProductModel: function btc_setNameByProductModel() {
-      // Bug 847459: Default name of the bluetooth device is set by bluetoothd
-      // to the value of the Android ro.product.model property upon first
-      // start. In case the user gives an empty bluetooth device name, we want
-      // to revert to the original ro.product.model. Gecko exposes it under
-      // the deviceinfo.product_model setting.
-      SettingsCache.getSettings((results) => {
-        var productModel = results['deviceinfo.product_model'];
-        Debug('setNameByProductModel(): productModel = ' + productModel);
-        this.setName(productModel);
       });
     },
 
@@ -747,7 +730,7 @@ define(function(require) {
         // The device is not existed, no need to do any thing here.
       }
     },
-
+    
     /**
      * Given address to find out device element from array.
      *
