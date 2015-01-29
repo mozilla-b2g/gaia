@@ -10,22 +10,23 @@ function bluetoothTest() {
   var btHelper = new BluetoothHelper();
 
   function update() {
-    var reqEnabled = settings.createLock().get('bluetooth.enabled');
-    reqEnabled.onsuccess = function() {
-      var isBluetoothEnabled = reqEnabled.result['bluetooth.enabled'];
+    var req = settings.createLock().get('bluetooth.enabled');
+    req.onsuccess = function() {
+      var isBluetoothEnabled = req.result['bluetooth.enabled'];
       switchButton.checked = isBluetoothEnabled;
-
       if (!isBluetoothEnabled) {
         state.innerHTML = 'Off';
         address.innerHTML = 'unknown';
       }
       else {
         state.innerHTML = 'On';
-        btHelper.getAddress(function bt_gotAddress(addr) {
-          if (isBluetoothEnabled) {
-            address.innerHTML = addr;
-          }
-        });
+        if (!btHelper.v2) {
+          btHelper.getAddress(function bt_gotAddress(addr) {
+            if (isBluetoothEnabled) {
+              address.innerHTML = addr;
+            }
+          });
+        }
       }
     };
   }
@@ -45,16 +46,49 @@ function bluetoothTest() {
 
   if (btHelper.v2) {
     version.textContent = "v2";
-    bluetooth.onadapteradded = function onAdapterAdded(evt) {
-      update();
-    }
+    bluetooth.addEventListener('attributechanged', (evt) => {
+      for (var i in evt.attrs) {
+        switch (evt.attrs[i]) {
+          case 'defaultAdapter':
+            var adapter = bluetooth.defaultAdapter;
+            if (adapter.address) { // for default On case
+              address.innerHTML = adapter.address;
+            }
+            adapter.addEventListener('attributechanged', (evt) => {
+              for (var i in evt.attrs) {
+                switch (evt.attrs[i]) {
+                  case 'state':
+                    if (adapter.state === 'enabled') {
+                      switchButton.checked = true;
+                      state.innerHTML = 'On';
+                    } else if (adapter.state === 'disabled') {
+                      switchButton.checked = false;
+                      state.innerHTML = 'Off';
+                      address.innerHTML = 'unknown';
+                    }
+                    break;
+                  case 'address':
+                    address.innerHTML = adapter.address;
+                    break;
+                  default:
+                    break;
+                }
+              }
+            });
+            break;
+          default:
+            break;
+        }
+      }
+    });
   } else {
     version.textContent = "v1";
     bluetooth.addEventListener('adapteradded', update);
+    bluetooth.addEventListener('enabled', update);
+    bluetooth.addEventListener('disabled', update);
   }
   
-  bluetooth.addEventListener('enabled', update);
-  bluetooth.addEventListener('disabled', update);
+  // init
   switchButton.addEventListener('click', bluetoothSwitch);
 
   // Update bluetooth information in the first load
