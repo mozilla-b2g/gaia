@@ -56,6 +56,7 @@
     "label": "English (UK)",
     "id": "latin::en_gb",
     "inputIds": [
+      "en-Africa",
       "en-GB"
     ],
     "preload": false,
@@ -348,6 +349,14 @@
     "dictFilePath": "dictionaries/tr.dict"
   },
   {
+    "label": "Wolof",
+    "id": "wo",
+    "inputIds": [
+      "wo"
+    ],
+    "preload": true
+  },
+  {
     "label": "Česká",
     "id": "latin::cs",
     "inputIds": [
@@ -451,6 +460,14 @@
     "id": "te",
     "inputIds": [
       "te"
+    ],
+    "preload": true
+  },
+  {
+    "label": "ไทย",
+    "id": "th",
+    "inputIds": [
+      "th"
     ],
     "preload": true
   },
