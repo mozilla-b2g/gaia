@@ -314,18 +314,28 @@ suite('system/UtilityTray', function() {
   });
 
   suite('handleEvent: screenchange', function() {
-    setup(function() {
+    teardown(function() {
+      UtilityTray.active = false;
+    });
+
+    function triggerEvent(active) {
       fakeEvt = createEvent('screenchange', false, false,
                             { screenEnabled: false });
+      UtilityTray.active = active;
       UtilityTray.show();
       UtilityTray.handleEvent(fakeEvt);
-    });
+    }
 
-    test('should be hidden', function() {
+    test('should be hidden when inactive', function() {
+      triggerEvent(false);
       assert.equal(UtilityTray.shown, false);
     });
-  });
 
+    test('should still be visible when active', function() {
+      triggerEvent(true);
+      assert.equal(UtilityTray.shown, true);
+    });
+  });
 
   suite('handleEvent: emergencyalert', function() {
     setup(function() {
@@ -552,6 +562,100 @@ suite('system/UtilityTray', function() {
 
     test('should be hidden', function() {
       assert.equal(UtilityTray.shown, false);
+    });
+  });
+
+  suite('hide() events', function() {
+    function doAction(shown) {
+      UtilityTray.shown = shown;
+      UtilityTray.hide();
+    }
+
+    test('utility-tray-overlayclosed is correctly dispatched', function(done) {
+      window.addEventListener('utility-tray-overlayclosed',
+        function gotIt() {
+          window.removeEventListener('utility-tray-overlayclosed', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+      doAction(true);
+    });
+
+    test('utilitytrayhide is correctly dispatched', function(done) {
+      window.addEventListener('utilitytrayhide',
+        function gotIt() {
+          window.removeEventListener('utilitytrayhide', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+      doAction(true);
+    });
+
+    test('utilitytray-deactivated is correctly dispatched', function(done) {
+      window.addEventListener('utilitytray-deactivated',
+        function gotIt() {
+          window.removeEventListener('utilitytray-deactivated', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+      doAction(true);
+    });
+
+    test('utility-tray-abortopen is correctly dispatched', function(done) {
+      window.addEventListener('utility-tray-abortopen',
+        function gotIt() {
+          window.removeEventListener('utility-tray-abortopen', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+      doAction(false);
+    });
+  });
+
+  suite('show() events', function() {
+    function doAction(shown) {
+      UtilityTray.shown = shown;
+      UtilityTray.show();
+    }
+
+    test('utility-tray-overlayopened is correctly dispatched', function(done) {
+      window.addEventListener('utility-tray-overlayopened',
+        function gotIt() {
+          window.removeEventListener('utility-tray-overlayopened', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+      doAction(false);
+    });
+
+    test('utilitytrayshow is correctly dispatched', function(done) {
+      window.addEventListener('utilitytrayshow',
+        function gotIt() {
+          window.removeEventListener('utilitytrayshow', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+      doAction(false);
+    });
+
+    test('utilitytray-activated is correctly dispatched', function(done) {
+      window.addEventListener('utilitytray-activated',
+        function gotIt() {
+          window.removeEventListener('utilitytray-activated', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+      doAction(false);
+    });
+
+    test('utility-tray-abortclose is correctly dispatched', function(done) {
+      window.addEventListener('utility-tray-abortclose',
+        function gotIt() {
+          window.removeEventListener('utility-tray-abortclose', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+      doAction(true);
     });
   });
 
