@@ -9,6 +9,7 @@ define(function(require) {
   var HomescreenItem = require('panels/root/homescreen_item');
   var PrivacyPanelItem = require('panels/root/privacy_panel_item');
   var BTAPIVersionDetector = require('modules/bluetooth/version_detector');
+  var DsdsSettings = require('dsds_settings');
 
   var queryRootForLowPriorityItems = function(panel) {
     // This is a map from the module name to the object taken by the constructor
@@ -96,6 +97,13 @@ define(function(require) {
             SettingsService.navigate('bluetooth_v2');
           }
         });
+
+        // If the device supports dsds, callSettings must be changed 'href' for 
+        // navigating call-iccs panel first.
+        if (DsdsSettings.getNumberOfIccSlots() > 1) {
+          var callItem = document.getElementById('menuItem-callSettings');
+          callItem.setAttribute('href', '#call-iccs');
+        }
 
         var idleObserver = {
           time: 3,
