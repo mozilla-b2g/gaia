@@ -12,5 +12,4 @@ class TestGalleryEditPhotoComboEffect(GalleryEditPhotoBase):
         self.data_layer.set_bool_pref('layers.effect.grayscale', True)
         self.data_layer.set_char_pref('layers.effect.contrast', "0.5")
 
-        self.setUp()
         self.gallery_edit_photo('IMG_0001.jpg')

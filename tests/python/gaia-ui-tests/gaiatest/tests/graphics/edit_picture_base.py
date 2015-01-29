@@ -37,7 +37,7 @@ class GalleryEditPhotoBase(GaiaImageCompareTestCase):
         gallery = Gallery(self.marionette)
         gallery.launch()
         gallery.wait_for_files_to_load(1)
-        self.assertTrue(gallery.gallery_items_number > 0)
+        self.assertTrue(gallery.gallery_items_number == 1)
 
         # open picture and capture
         image = gallery.tap_first_gallery_item()
@@ -86,7 +86,6 @@ class GalleryEditPhotoBase(GaiaImageCompareTestCase):
         self.marionette.find_element(*self._blue_steel_effect_button).tap()
         self.take_screenshot()
         self.change_orientation('landscape-primary')
-        #TODO: Press apply
         edit_image.tap_edit_tool_apply_button()
 
         # save the resulting picture

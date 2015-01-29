@@ -18,7 +18,7 @@ class TestCardsView(GaiaImageCompareTestCase):
     def setUp(self):
         GaiaImageCompareTestCase.setUp(self)
         self.push_resource(self.images, count=self.image_count)
-  
+
         self.take_screenshot()
 
         # Launch the test apps
@@ -56,8 +56,8 @@ class TestCardsView(GaiaImageCompareTestCase):
 
         # Wait for previous app ready
         cards_view.wait_for_card_ready(self._test_apps[0])
-        #sleep inside above method is insufficient
-        time.sleep(2)
+        # sleep inside above method is insufficient
+        time.sleep(5)
         self.take_screenshot()
         self.marionette.switch_to_frame(frame=card_frame)
 

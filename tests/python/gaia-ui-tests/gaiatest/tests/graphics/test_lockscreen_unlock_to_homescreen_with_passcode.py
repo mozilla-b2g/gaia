@@ -15,21 +15,22 @@ class TestLockScreen(GaiaImageCompareTestCase):
 
     def setUp(self):
         GaiaImageCompareTestCase.setUp(self)
+
+    def test_lockscreen_unlock_to_homescreen_with_passcode(self):
+        # Need to wait until the carrier is detected, so the lockscreen will display the carrier information
+        Wait(self.marionette, timeout = 30).until(lambda m: self.device.has_mobile_connection)
+
         self.data_layer.set_time(self._seconds_since_epoch * 1000)
         self.data_layer.set_setting('time.timezone', 'Atlantic/Reykjavik')
 
-        #set passcode-lock
+        # set passcode-lock
         self.data_layer.set_setting('lockscreen.passcode-lock.code', self._input_passcode)
         self.data_layer.set_setting('lockscreen.passcode-lock.enabled', True)
 
         # this time we need it locked!
         self.device.lock()
 
-    def test_lockscreen_unlock_to_homescreen_with_passcode(self):
-        #1st try
-        # Need to wait until the carrier is detected, so the lockscreen will display the carrier information
-        Wait(self.marionette, timeout=30).until(lambda m: self.device.has_mobile_connection)
-        self.connect_to_local_area_network()
+        # 1st try
 
         lock_screen = LockScreen(self.marionette)
         lock_screen.switch_to_frame()
@@ -37,7 +38,7 @@ class TestLockScreen(GaiaImageCompareTestCase):
         self.take_screenshot()
         self.device.turn_screen_off()
 
-        #2nd try
+        # 2nd try
         self.device.turn_screen_on()
         passcode_pad = lock_screen.unlock_to_passcode_pad()
         homescreen = passcode_pad.type_passcode(self._input_passcode)

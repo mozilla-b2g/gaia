@@ -42,7 +42,7 @@ class TestCalendar(GaiaImageCompareTestCase):
         self.take_screenshot()
         self.scroll(calendar._week_view_locator, 'down', 100)
         self.take_screenshot()
-        self.scroll(calendar._week_view_locator, 'left',100)
+        self.scroll(calendar._week_view_locator, 'left', 100)
         self.take_screenshot()
         self.scroll(calendar._week_view_locator, 'right', 100)
         self.take_screenshot()

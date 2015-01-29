@@ -8,5 +8,4 @@ from gaiatest.tests.graphics.orientation_zoom_base import OrientationZoomBase
 class TestGfxSmokeTestOZ(OrientationZoomBase):
 
     def test_orientation_zoom(self):
-        self.setUp()
         self.orientation_zoom_check()

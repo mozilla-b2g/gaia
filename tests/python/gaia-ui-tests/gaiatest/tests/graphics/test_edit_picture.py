@@ -8,5 +8,4 @@ from gaiatest.tests.graphics.edit_picture_base import GalleryEditPhotoBase
 class TestGalleryEditPhoto(GalleryEditPhotoBase):
 
     def test_edit_picture(self):
-        self.setUp()
         self.gallery_edit_photo('IMG_0001.jpg')

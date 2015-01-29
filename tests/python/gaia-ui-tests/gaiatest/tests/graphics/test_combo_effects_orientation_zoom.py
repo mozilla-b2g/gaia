@@ -13,5 +13,4 @@ class TestGfxSmokeTestOZComboEffects(OrientationZoomBase):
         self.data_layer.set_bool_pref('layers.effect.grayscale', True)
         self.data_layer.set_char_pref('layers.effect.contrast', "0.5")
 
-        self.setUp()
         self.orientation_zoom_check()
