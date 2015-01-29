@@ -17,6 +17,7 @@ from marionette.runtests import cli
 import mozlog
 
 from gaiatest import __name__
+
 from gaiatest import (GaiaTestCase,
                       GaiaOptionsMixin,
                       GaiaTestRunnerMixin,
