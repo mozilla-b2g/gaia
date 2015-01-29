@@ -1,3 +1,5 @@
+require('/shared/js/l10n.js');
+
 suite('controllers/preview-gallery', function() {
   'use strict';
 
