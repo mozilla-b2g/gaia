@@ -55,7 +55,6 @@ var BluetoothTransfer = {
       this.sendFileViaHandover.bind(this));
 
     Service.registerState('isSendFileQueueEmpty', this);
-    Service.registerState('isSendFileQueueEmpty', this);
   },
 
   getDeviceName: function bt_getDeviceName(address) {
