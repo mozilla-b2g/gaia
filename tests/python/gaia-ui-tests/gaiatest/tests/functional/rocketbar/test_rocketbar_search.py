@@ -25,6 +25,6 @@ class TestRocketBarSearch(GaiaTestCase):
         search_panel = homescreen.tap_search_bar()
         search_panel.type_into_search_box(test_string)
 
-        search_panel.wait_for_search_results_to_load(4)
+        search_panel.wait_for_search_results_to_load(3)
 
         self.assertGreater(len(search_panel.link_results), 0)
