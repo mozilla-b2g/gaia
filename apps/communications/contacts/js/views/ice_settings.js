@@ -2,7 +2,6 @@
 /* global ICEData */
 /* global ConfirmDialog */
 
-
 /**
  * ICE Settings view. In charge of selecting
  * the contacts for emergency and keeping sync

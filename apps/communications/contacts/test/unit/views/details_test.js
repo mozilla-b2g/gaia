@@ -1,4 +1,6 @@
 'use strict';
+
+/* global ActivityHandler */
 /* global contacts */
 /* global MockContactAllFields */
 /* global MockContacts */
@@ -8,16 +10,16 @@
 /* global MockExtFb */
 /* global Mockfb */
 /* global MocksHelper */
-/* global MockUtils */
-/* global Normalizer */
-/* global utils */
-/* global MockWebrtcClient */
-/* global ActivityHandler */
-/* global triggerEvent */
-/* export TAG_OPTIONS */
-/* exported SCALE_RATIO */
-/* exported _ */
 /* global MockMozContacts */
+/* global MockUtils */
+/* global MockWebrtcClient */
+/* global Normalizer */
+/* export TAG_OPTIONS */
+/* global triggerEvent */
+/* exported SCALE_RATIO */
+/* global utils */
+
+/* exported _ */
 
 //Avoiding lint checking the DOM file renaming it to .html
 requireApp('communications/contacts/test/unit/mock_details_dom.js.html');
@@ -35,6 +37,7 @@ require('/shared/test/unit/mocks/contacts/mock_contacts_buttons.js');
 
 require('/shared/test/unit/mocks/mock_mozContacts.js');
 requireApp('communications/contacts/js/views/details.js');
+requireApp('communications/contacts/test/unit/mock_cache.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
@@ -84,12 +87,13 @@ requireApp('communications/contacts/js/tag_optionsstem.js');
 var SCALE_RATIO = 1;
 
 var mocksHelperForDetailView = new MocksHelper([
-  'ContactPhotoHelper',
-  'WebrtcClient',
-  'LazyLoader',
   'ActivityHandler',
+  'LazyLoader',
+  'Cache',
   'ContactsButtons',
-  'mozContact'
+  'ContactPhotoHelper',
+  'mozContact',
+  'WebrtcClient'
 ]).init();
 
 suite('Render contact', function() {

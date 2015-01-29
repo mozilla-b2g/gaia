@@ -1,20 +1,23 @@
 'use strict';
+
 /* jshint nonew: false */
+
 /* global ActivityHandler */
 /* global COMMS_APP_ORIGIN */
 /* global Contacts */
 /* global ContactsButtons */
 /* global ContactPhotoHelper */
+/* globals ContactToVcardBlob */
 /* global fb */
+/* global ICEData */
 /* global LazyLoader */
+/* global MozActivity */
 /* global Normalizer */
 /* global SCALE_RATIO */
-/* global WebrtcClient */
-/* global utils */
 /* global TAG_OPTIONS */
-/* global ICEData */
-/* globals ContactToVcardBlob, VcardFilename */
-/* global MozActivity */
+/* global utils */
+/* global VcardFilename */
+/* global WebrtcClient */
 
 var contacts = window.contacts || {};
 
