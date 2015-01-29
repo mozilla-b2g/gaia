@@ -237,24 +237,26 @@ suite('webapp-shared.js', function() {
 
     test('customizeShared', function() {
       var result = [];
-      var gaia_shared = {
-        'js': ['test1.js'],
-        'style': ['test2.css']
+      var package_json = {
+        'gaia_shared': {
+          'js': ['test1.js'],
+          'style': ['test2.css']
+        }
       };
 
       mockUtils.getFileContent = function() {
-        return JSON.stringify(gaia_shared);
+        return JSON.stringify(package_json);
       };
       webappShared.webapp = {
-        buildDirectoryFile: mockUtils.getFile('test')
+        appDir: mockUtils.getFile('test')
       };
       webappShared.pushFileByType = function(kind, path) {
         result.push({kind: kind, path: path});
       };
       webappShared.customizeShared();
       assert.deepEqual(result, [
-        {kind: 'js', path: gaia_shared.js[0]},
-        {kind: 'style', path: gaia_shared.style[0]}
+        {kind: 'js', path: package_json.gaia_shared.js[0]},
+        {kind: 'style', path: package_json.gaia_shared.style[0]}
       ]);
     });
 

@@ -388,15 +388,17 @@ WebappShared.prototype.copyShared = function() {
 
 WebappShared.prototype.customizeShared = function() {
   var self = this;
-  var sharedDataFile = this.webapp.buildDirectoryFile.clone();
-  sharedDataFile.append('gaia_shared.json');
-  if (sharedDataFile.exists()) {
-    var sharedData = JSON.parse(utils.getFileContent(sharedDataFile));
-    Object.keys(sharedData).forEach(function(kind) {
-      sharedData[kind].forEach(function(path) {
-        self.pushFileByType(kind, path);
+  var packageJson = utils.getFile(this.webapp.appDir.path, 'package.json');
+  if (packageJson.exists()) {
+    let packageJsonData = JSON.parse(utils.getFileContent(packageJson));
+    if (packageJsonData.gaia_shared) {
+      let sharedData = packageJsonData.gaia_shared;
+      Object.keys(sharedData).forEach(function(kind) {
+        sharedData[kind].forEach(function(path) {
+          self.pushFileByType(kind, path);
+        });
       });
-    });
+    }
   }
 };
 
