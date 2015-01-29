@@ -55,40 +55,40 @@ var BluetoothTransfer = {
   getDeviceName: function bt_getDeviceName(address) {
     return new Promise(function(resolve) {
       var _ = navigator.mozL10n.get;
-      var adapter = Bluetooth.getAdapter();
-      if (adapter == null) {
+      var promise = Bluetooth.getAdapter();
+      promise.then(function(adapter) {
+        // Service Class Name: OBEXObjectPush, UUID: 0x1105
+        // Specification: Object Push Profile (OPP)
+        //   NOTE: Used as both Service Class Identifier and Profile.
+        // Allowed Usage: Service Class/Profile
+        // https://www.bluetooth.org/en-us/specification/assigned-numbers/
+        // service-discovery
+        var serviceUuid = '0x1105';
+        var req = adapter.getConnectedDevices(serviceUuid);
+        req.onsuccess = function bt_gotConnectedDevices() {
+          if (req.result) {
+            var connectedList = req.result;
+            var length = connectedList.length;
+            for (var i = 0; i < length; i++) {
+              if (connectedList[i].address == address) {
+                resolve(connectedList[i].name);
+              }
+            }
+          } else {
+            resolve(_('unknown-device'));
+          }
+        };
+        req.onerror = function() {
+          var msg = 'Can not check is device connected from adapter.';
+          this.debug(msg);
+          resolve(_('unknown-device'));
+        }.bind(this);
+      }.bind(this)).catch(function() {
         var msg = 'Since cannot get Bluetooth adapter, ' +
                   'resolve with an unknown device.';
         this.debug(msg);
         resolve(_('unknown-device'));
-      }
-      var self = this;
-      // Service Class Name: OBEXObjectPush, UUID: 0x1105
-      // Specification: Object Push Profile (OPP)
-      //                NOTE: Used as both Service Class Identifier and Profile.
-      // Allowed Usage: Service Class/Profile
-      // https://www.bluetooth.org/en-us/specification/assigned-numbers/
-      // service-discovery
-      var serviceUuid = '0x1105';
-      var req = adapter.getConnectedDevices(serviceUuid);
-      req.onsuccess = function bt_gotConnectedDevices() {
-        if (req.result) {
-          var connectedList = req.result;
-          var length = connectedList.length;
-          for (var i = 0; i < length; i++) {
-            if (connectedList[i].address == address) {
-              resolve(connectedList[i].name);
-            }
-          }
-        } else {
-          resolve(_('unknown-device'));
-        }
-      };
-      req.onerror = function() {
-        var msg = 'Can not check is device connected from adapter.';
-        self.debug(msg);
-        resolve(_('unknown-device'));
-      };
+      }.bind(this));
     }.bind(this));
   },
 
@@ -207,13 +207,13 @@ var BluetoothTransfer = {
 
   declineReceive: function bt_declineReceive(address) {
     CustomDialog.hide();
-    var adapter = Bluetooth.getAdapter();
-    if (adapter != null) {
+    var promise = Bluetooth.getAdapter();
+    promise.then(function(adapter) {
       adapter.confirmReceivingFile(address, false);
-    } else {
+    }).catch(function() {
       var msg = 'Cannot get adapter from system Bluetooth monitor.';
       this.debug(msg);
-    }
+    }.bind(this));
   },
 
   acceptReceive: function bt_acceptReceive(evt) {
@@ -224,14 +224,14 @@ var BluetoothTransfer = {
     var self = this;
     this.checkStorageSpace(fileSize,
       function checkStorageSpaceComplete(isStorageAvailable, errorMessage) {
-        var adapter = Bluetooth.getAdapter();
         var option = (isStorageAvailable) ? true : false;
-        if (adapter) {
+        var promise = Bluetooth.getAdapter();
+        promise.then(function(adapter) {
           adapter.confirmReceivingFile(address, option);
-        } else {
+        }).catch(function() {
           var msg = 'Cannot get adapter from system Bluetooth monitor.';
           self.debug(msg);
-        }
+        });
         // Storage is not available, then pop out a prompt with the reason
         if (!isStorageAvailable) {
           self.showStorageUnavaliablePrompt(errorMessage);
@@ -302,8 +302,8 @@ var BluetoothTransfer = {
   },
 
   sendFileViaHandover: function bt_sendFileViaHandover(mac, blob) {
-    var adapter = Bluetooth.getAdapter();
-    if (adapter != null) {
+    var promise = Bluetooth.getAdapter();
+    promise.then(function(adapter) {
       var sendingFilesSchedule = {
         viaHandover: true,
         numberOfFiles: 1,
@@ -319,10 +319,10 @@ var BluetoothTransfer = {
       setTimeout(function() {
         adapter.sendFile(mac, blob);
       }, waitConnectionReadyTimeoutTime);
-    } else {
+    }.bind(this)).catch(function() {
       var msg = 'Cannot get adapter from system Bluetooth monitor.';
       this.debug(msg);
-    }
+    }.bind(this));
   },
 
   _onUpdateProgress: function bt__onUpdateProgress(mode, evt) {
@@ -438,13 +438,13 @@ var BluetoothTransfer = {
 
   cancelTransfer: function bt_cancelTransfer(address) {
     CustomDialog.hide();
-    var adapter = Bluetooth.getAdapter();
-    if (adapter != null) {
+    var promise = Bluetooth.getAdapter();
+    promise.then(function(adapter) {
       adapter.stopSendingFile(address);
-    } else {
+    }).catch(function() {
       var msg = 'Cannot get adapter from system Bluetooth monitor.';
       this.debug(msg);
-    }
+    }.bind(this));
   },
 
   _onTransferComplete: function bt__onTransferComplete(evt) {
