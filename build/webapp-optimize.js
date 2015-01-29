@@ -139,18 +139,21 @@ HTMLOptimizer.prototype._proceedLocales = function() {
     if (!this.webapp.asts[lang]) {
       this.webapp.asts[lang] = [];
     }
-    for (let i = 0; i < this.asts[lang].length; i++) {
+    let asts = this.asts[lang];
+    let webappAsts = this.webapp.asts[lang];
+    for (let i = 0; i < asts.length; i++) {
       let index = -1;
-      for (let j = 0; j < this.webapp.asts[lang].length; j++) {
-        if (this.webapp.asts[lang][j].$i === this.asts[lang][i].$i) {
+      let identifierToFind = asts[i].$i;
+      for (let j = 0; j < webappAsts.length; j++) {
+        if (webappAsts[j].$i === identifierToFind) {
           index = j;
           break;
         }
       }
       if (index !== -1) {
-        this.webapp.asts[lang][index] = this.asts[lang][i];
+        webappAsts[index] = asts[i];
       } else {
-        this.webapp.asts[lang].push(this.asts[lang][i]);
+        webappAsts.push(asts[i]);
       }
     }
   }
