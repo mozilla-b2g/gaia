@@ -3,7 +3,7 @@ define(function(require, exports, module) {
 
 var CalendarTemplate = require('templates/calendar');
 var View = require('view');
-var calendarObserver = require('calendar_observer');
+var calendarObserver = require('observer/calendar_observer');
 var debug = require('debug')('views/settings');
 var forEach = require('object').forEach;
 

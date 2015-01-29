@@ -3,10 +3,10 @@ define(function(require) {
 
 var MonthDayAgenda = require('views/month_day_agenda');
 var dateFormat = require('date_format');
-var dayObserver = require('day_observer');
+var dayObserver = require('observer/day_observer');
 var template = require('templates/month_day_agenda');
 
-suite('Views.MonthDayAgenda', function() {
+suite('views/month_day_agenda', function() {
   var subject,
       app;
 

@@ -5,14 +5,17 @@ define(function(require) {
 var AccountTemplate = require('templates/account');
 var AdvancedSettings = require('views/advanced_settings');
 var Factory = require('test/support/factory');
+var calendarObserver = require('observer/calendar_observer');
+var settingsObserver = require('observer/settings_observer');
 
 require('dom!advanced_settings');
 
-suite('Views.AdvancedSettings', function() {
+suite('views/advanced_settings', function() {
   var subject;
   var template;
   var app;
   var accountStore;
+  var calendarStore;
   var fixtures;
   var settings;
   var triggerEvent;
@@ -55,14 +58,19 @@ suite('Views.AdvancedSettings', function() {
   setup(function(done) {
     app = testSupport.calendar.app();
     db = app.db;
-
-    template = AccountTemplate;
-    subject = new AdvancedSettings({ app: app });
-
     accountStore = app.store('Account');
+    calendarStore = app.store('Calendar');
     settings = app.store('Setting');
+    template = AccountTemplate;
+    db.open(done);
+  });
 
-    app.db.open(done);
+  setup(function() {
+    calendarObserver.calendarStore = calendarStore;
+    settingsObserver.settingsStore = settings;
+    calendarObserver.init();
+    settingsObserver.init();
+    subject = new AdvancedSettings({ app: app });
   });
 
   setup(function(done) {

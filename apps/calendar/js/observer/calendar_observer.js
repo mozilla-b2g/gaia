@@ -3,7 +3,7 @@ define(function(require, exports, module) {
 
 var EventEmitter2 = require('ext/eventemitter2');
 var debug = require('debug')('calendar_observer');
-var forEach = require('object').forEach;
+var map = require('object').map;
 var nextTick = require('next_tick');
 
 var observer = module.exports = new EventEmitter2();
@@ -21,8 +21,8 @@ observer.init = function() {
   this.calendarStore.on('add', this._cacheCalendar);
   this.calendarStore.on('update', this._cacheCalendar);
   this.calendarStore.on('remove', this._purgeCalendar);
-  this.calendarStore.all().then(calendars => {
-    forEach(calendars, this._cacheCalendar);
+  return this.calendarStore.all().then(calendars => {
+    return Promise.all(map(calendars, this._cacheCalendar));
   });
 };
 

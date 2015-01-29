@@ -2,6 +2,7 @@ define(function(require, exports, module) {
 'use strict';
 
 var Abstract = require('./abstract');
+var Local = require('provider/local');
 var denodeifyAll = require('promise').denodeifyAll;
 var nextTick = require('next_tick');
 
@@ -30,7 +31,8 @@ Setting.prototype = {
       alarmId: null,
       start: null,
       end: null
-    }
+    },
+    defaultCalendar: Local.calendarId
   },
 
   /** disable caching */

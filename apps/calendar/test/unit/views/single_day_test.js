@@ -3,9 +3,9 @@ define(function(require) {
 
 var Calc = require('calc');
 var SingleDay = require('views/single_day');
-var dayObserver = require('day_observer');
+var dayObserver = require('observer/day_observer');
 
-suite('Views.SingleDay', function() {
+suite('views/single_day', function() {
   var alldaysHolder;
   var allDayIcon;
   var app;

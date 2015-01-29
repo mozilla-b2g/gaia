@@ -4,7 +4,7 @@ define(function(require, exports, module) {
 var Overlap = require('utils/overlap');
 var localeFormat = require('date_format').localeFormat;
 var colorUtils = require('utils/color');
-var dayObserver = require('day_observer');
+var dayObserver = require('observer/day_observer');
 var relativeDuration = require('calc').relativeDuration;
 var relativeOffset = require('calc').relativeOffset;
 var getTimeL10nLabel = require('calc').getTimeL10nLabel;

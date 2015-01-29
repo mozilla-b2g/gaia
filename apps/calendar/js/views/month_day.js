@@ -2,7 +2,7 @@ define(function(require, exports, module) {
 'use strict';
 
 var Calc = require('calc');
-var dayObserver = require('day_observer');
+var dayObserver = require('observer/day_observer');
 
 // MonthDay represents a single day inside the Month view grid.
 function MonthDay(options) {

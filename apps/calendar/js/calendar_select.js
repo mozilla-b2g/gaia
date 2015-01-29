@@ -8,10 +8,10 @@ define(function(require, exports, module) {
 
 var Local = require('provider/local');
 var Responder = require('responder');
-var calendarObserver = require('calendar_observer');
+var calendarObserver = require('observer/calendar_observer');
 var debug = require('debug')('calendar_select');
 var forEach = require('object').forEach;
-var settingsObserver = require('settings_observer');
+var settingsObserver = require('observer/settings_observer');
 
 function CalendarSelect(element) {
   Responder.call(this);
