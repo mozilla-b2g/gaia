@@ -160,17 +160,25 @@ function updateFreqUI() {
   frequencyDialer.setFrequency(mozFMRadio.frequency);
   var frequency = frequencyDialer.getFrequency();
   favoritesList.select(frequency);
-  $('bookmark-button').dataset.bookmarked = favoritesList.contains(frequency);
+  var bookmarkButton = $('bookmark-button');
+  bookmarkButton.dataset.bookmarked = favoritesList.contains(frequency);
+  bookmarkButton.setAttribute('aria-pressed',
+    favoritesList.contains(frequency));
 }
 
 function updatePowerUI() {
   var enabled = mozFMRadio.enabled;
+  var powerSwitch = $('power-switch');
   if (enabled) {
     window.performance.mark('fmRadioEnabled');
     PerformanceTestingHelper.dispatch('fm-radio-enabled');
+    // ACCESSIBILITY - Must set data-l10n-id to reflect Off switch
+    powerSwitch.setAttribute('data-l10n-id', 'power-switch-off');
+  } else {
+    // ACCESSIBILITY - Must set data-l10n-id to reflect On switch
+    powerSwitch.setAttribute('data-l10n-id', 'power-switch-on');
   }
   console.log('Power status: ' + (enabled ? 'on' : 'off'));
-  var powerSwitch = $('power-switch');
   powerSwitch.dataset.enabled = enabled;
   powerSwitch.dataset.enabling = enabling;
 }
@@ -350,7 +358,23 @@ var frequencyDialer = {
       document.body.addEventListener('touchend', fd_body_touchend, false);
     }
 
-    $('dialer-container').addEventListener('touchstart', fd_touchstart, false);
+    function fd_key(event) {
+      if (event.keyCode === event.DOM_VK_UP) {
+        tunedFrequency = self._currentFreqency + 0.1;
+      } else if (event.keyCode === event.DOM_VK_DOWN) {
+        tunedFrequency = self._currentFreqency - 0.1;
+      } else {
+        return;
+      }
+
+      tunedFrequency = self.setFrequency(toFixed(tunedFrequency));
+      cancelSeekAndSetFreq(tunedFrequency);
+    }
+
+    var dialerContainer = $('dialer-container');
+    dialerContainer.addEventListener('touchstart', fd_touchstart, false);
+    // ACCESSIBILITY - Add keypress event for screen reader
+    dialerContainer.addEventListener('keypress', fd_key, false);
   },
 
   _initUI: function() {
@@ -456,6 +480,7 @@ var frequencyDialer = {
         dialer.childNodes[i].style.MozTransform =
           'translateX(' + this._translateX + 'px)';
       }
+      $('dialer-container').setAttribute('aria-valuenow', frequency);
     }
   },
 
@@ -599,6 +624,7 @@ var favoritesList = {
     var elem = document.createElement('div');
     elem.id = this._getUIElemId(item);
     elem.className = 'fav-list-item';
+    elem.setAttribute('role', 'option');
     var html = '';
     html += '<div class="fav-list-frequency">';
     html += item.frequency.toFixed(1);
@@ -706,8 +732,10 @@ var favoritesList = {
       var item = items[i];
       if (this._getElemFreq(item) == freq) {
         item.classList.add('selected');
+        item.setAttribute('aria-selected', true);
       } else {
         item.classList.remove('selected');
+        item.setAttribute('aria-selected', false);
       }
     }
   }
@@ -776,7 +804,9 @@ function init() {
   }, false);
 
   speakerManager.onspeakerforcedchange = function onspeakerforcedchange() {
-    $('speaker-switch').dataset.speakerOn = speakerManager.speakerforced;
+    var speakerSwitch = $('speaker-switch');
+    speakerSwitch.dataset.speakerOn = speakerManager.speakerforced;
+    speakerSwitch.setAttribute('aria-pressed', speakerManager.speakerforced);
   };
 
   mozFMRadio.onfrequencychange = updateFreqUI;

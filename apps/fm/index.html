@@ -25,29 +25,29 @@
     <div id="container" dir="ltr">
       <div id="frequency-bar">
         <div id="frequency-display">
-          <a id="speaker-switch" href="#speaker" data-speaker-on="false"></a>
-          <a id="bookmark-button" href="#bookmark" data-bookmarked="false"></a>
-          <div id="frequency">0</div>
+          <a id="speaker-switch" href="#speaker" data-speaker-on="false" data-l10n-id="speaker-switch" role="button" aria-pressed="false"></a>
+          <div id="frequency" role="status">0</div>
+          <a id="bookmark-button" href="#bookmark" data-bookmarked="false" data-l10n-id="bookmark-button" role="button"></a>
         </div>
       </div>
       <div id="dialer-bar">
-        <div id="dialer-container">
+        <div id="dialer-container" data-l10n-id="dialer-container" role="slider" aria-valuemin="87.5" aria-valuemax="108" aria-controls="frequency">
           <div id="frequency-indicator"></div>
           <div id="frequency-dialer" class="animation-on"></div>
         </div>
       </div>
       <div id="fav-list">
-        <div id="fav-list-container"></div>
+        <div id="fav-list-container" role="listbox" data-l10n-id="fav-list-container"></div>
       </div>
-      <div id="action-bar">
+      <div id="action-bar" role="toolbar">
         <div>
-          <a id="frequency-op-seekdown" href="#seekdown"></a>
+          <a id="frequency-op-seekdown" href="#seekdown" data-l10n-id="frequency-op-seekdown" role="button"></a>
         </div>
         <div>
-          <a id="power-switch" href="#power-switch" data-enabled="false" data-enabling="false"><span></span></a>
+          <a id="power-switch" href="#power-switch" data-enabled="false" data-enabling="false" data-l10n-id="power-switch-off" role="button"><span></span></a>
         </div>
         <div>
-          <a id="frequency-op-seekup" href="#seekup"></a>
+          <a id="frequency-op-seekup" href="#seekup" data-l10n-id="frequency-op-seekup" role="button"></a>
         </div>
       </div>
     </div>
