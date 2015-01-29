@@ -523,7 +523,6 @@
      * @memberof PermissionManager.prototype
      */
     listDeviceOptions: function pm_listDeviceOptions() {
-      var _ = navigator.mozL10n.get;
       var self = this;
       var template = new Template('device-list-item-tmpl');
       var checked;
@@ -544,7 +543,7 @@
         item_li.innerHTML = template.interpolate({
                               id: option,
                               checked: checked,
-                              label: _('device-' + option)
+                              label: 'device-' + option
                             });
         self.devices.appendChild(item_li);
       });
