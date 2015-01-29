@@ -1,14 +1,13 @@
 'use strict';
 
 /* global MockNavigatorSettings */
-requireApp('settings/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp('bluetooth/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 suite('BluetoothContext', function() {
   var realSettings;
   var adapterManager;
   var btContext;
   var btDevice;
-  var mockSettingsCache;
   var observableArray;
 
   suiteSetup(function() {
@@ -25,15 +24,13 @@ suite('BluetoothContext', function() {
       'modules/bluetooth/bluetooth_adapter_manager',
       'modules/bluetooth/bluetooth_context',
       'modules/bluetooth/bluetooth_device',
-      'unit/mock_settings_cache',
       'modules/mvvm/observable_array'
     ];
 
     var map = {
       '*': {
         'modules/bluetooth/bluetooth_adapter_manager': 'MockAdapterManager',
-        'modules/bluetooth/bluetooth_device': 'MockBluetoothDevice',
-        'modules/settings_cache': 'unit/mock_settings_cache'
+        'modules/bluetooth/bluetooth_device': 'MockBluetoothDevice'
       }
     };
 
@@ -61,12 +58,10 @@ suite('BluetoothContext', function() {
     }.bind(this));
 
     testRequire(modules, map, function(AdapterManager, BluetoothContext, 
-                                       BluetoothDevice, MockSettingsCache, 
-                                       ObservableArray) {
+                                       BluetoothDevice, ObservableArray) {
       adapterManager = AdapterManager;
       btContext = BluetoothContext;
       btDevice = BluetoothDevice;
-      mockSettingsCache = MockSettingsCache;
       observableArray = ObservableArray;
 
       MockNavigatorSettings.mSetup();
@@ -504,6 +499,7 @@ suite('BluetoothContext', function() {
       setup(function() {
         btContext.enabled = false;
         btContext.state = 'disabled';
+        navigator.mozSettings.mSettings['bluetooth.enabled'] = false;
         fakeTimer = this.sinon.useFakeTimers();
       });
 
@@ -521,6 +517,7 @@ suite('BluetoothContext', function() {
       setup(function() {
         btContext.enabled = false;
         btContext.state = 'disabled';
+        navigator.mozSettings.mSettings['bluetooth.enabled'] = false;
         fakeTimer = this.sinon.useFakeTimers();
       });
 
@@ -538,6 +535,7 @@ suite('BluetoothContext', function() {
       setup(function() {
         btContext.enabled = true;
         btContext.state = 'enabled';
+        navigator.mozSettings.mSettings['bluetooth.enabled'] = true;
         fakeTimer = this.sinon.useFakeTimers();
       });
 
@@ -555,6 +553,7 @@ suite('BluetoothContext', function() {
       setup(function() {
         btContext.enabled = true;
         btContext.state = 'enabled';
+        navigator.mozSettings.mSettings['bluetooth.enabled'] = true;
         fakeTimer = this.sinon.useFakeTimers();
       });
 
@@ -822,27 +821,6 @@ suite('BluetoothContext', function() {
           assert.equal(reason, 'default adapter is not existed!!');
         }).then(done, done);
       });
-    });
-  });
-
-  suite('setNameByProductModel > ', function() {
-    var fakeTimer, modelName;
-    setup(function() {
-      modelName = 'modelName';
-      mockSettingsCache.mockSettings({'deviceinfo.product_model': modelName});
-      fakeTimer = this.sinon.useFakeTimers();
-      this.sinon.stub(btContext, 'setName');
-    });
-
-    teardown(function() {
-      mockSettingsCache.mTeardown();
-    });
-
-    test('setName will be called with "modelName" ' +
-         'from settings cache ', function() {
-      btContext.setNameByProductModel();
-      fakeTimer.tick();
-      assert.isTrue(btContext.setName.calledWith(modelName));
     });
   });
 

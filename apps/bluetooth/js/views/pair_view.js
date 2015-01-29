@@ -7,16 +7,19 @@
 
 var Pairview = {
   /**
-   * device to pair with.
+   * flag for debugging.
    */
-  _device: null,
+  _debug: false,
+
+  /**
+   * remote device name to pair with.
+   */
+  _remoteDeviceName: null,
 
   /**
    * device authentication method
    */
   _pairMethod: null,
-
-  _pairMode: 'active',
 
   _passkey: '',
 
@@ -29,11 +32,9 @@ var Pairview = {
 
   comfirmationItem: document.getElementById('confirmation-method'),
   pinInputItem: document.getElementById('pin-input-method'),
-  passkeyInputItem: document.getElementById('passkey-input-method'),
 
   passkey: document.getElementById('passkey'),
   pinInput: document.getElementById('pin-input'),
-  passkeyInput: document.getElementById('passkey-input'),
 
   get isFullAttentionMode() {
     return (window.innerHeight > 200);
@@ -50,7 +51,8 @@ var Pairview = {
     this.closeButton.addEventListener('click', this);
     window.addEventListener('resize', this);
 
-    var truncatedDeviceName = getTruncated(this._device.name, {
+    this._remoteDeviceName = this._remoteDeviceName || _('unnamed-device');
+    var truncatedDeviceName = getTruncated(this._remoteDeviceName, {
       node: this.nameLabel,
       maxLine: 2,
       ellipsisIndex: 3
@@ -59,7 +61,11 @@ var Pairview = {
     this.nameLabel.textContent = truncatedDeviceName;
     this.pairview.hidden = false;
 
-    var stringName = this._pairMode + '-pair-' + this._pairMethod;
+    // Since pairing process is migrated from Settings app to Bluetooth app,
+    // there is no way to identify the pairing request in active/passive mode.
+    // In order to let the pairing messsage consistency,
+    // given the pairing mode to be passive.
+    var stringName = 'passive-pair-' + this._pairMethod;
     this.pairDescription.textContent =
       _(stringName, {device: truncatedDeviceName});
 
@@ -68,30 +74,36 @@ var Pairview = {
         this.passkey.textContent = this._passkey;
         this.comfirmationItem.hidden = false;
         this.pinInputItem.hidden = true;
-        this.passkeyInputItem.hidden = true;
         break;
 
       case 'pincode':
         this.pinInputItem.hidden = false;
         this.comfirmationItem.hidden = true;
-        this.passkeyInputItem.hidden = true;
         this.pinInput.focus();
-        break;
-
-      case 'passkey':
-        this.passkeyInputItem.hidden = false;
-        this.comfirmationItem.hidden = true;
-        this.pinInputItem.hidden = true;
-        this.passkeyInput.focus();
         break;
     }
   },
 
-  init: function pv_init(mode, method, device, passkey) {
-    this._pairMode = mode;
+  /**
+   * It is used to init pairing information in this pair view.
+   *
+   * @memberOf Pairview
+   * @access public
+   * @param {String} method - method of this pairing request
+   * @param {Object} options
+   * @param {BluetoothDevice} options.device - property device as the remote 
+                                               bluetooth device
+   * @param {BluetoothPairingHandle} options.handle - property handle that 
+                                                      carries specific method 
+                                                      to reply by user.
+   */
+  init: function pv_init(method, options) {
     this._pairMethod = method;
-    this._device = device;
-    if (passkey) {
+    this._options = options;
+    this._remoteDeviceName = options.device.name;
+
+    if (options.handle && options.handle.passkey) {
+      var passkey = options.handle.passkey;
       var len = passkey.toString().length;
       var zeros = (len < 6) ? (new Array((6 - len) + 1)).join('0') : '';
       this._passkey = zeros + passkey;
@@ -102,18 +114,39 @@ var Pairview = {
   },
 
   close: function pv_close() {
-    window.opener.require(['modules/pair_manager'], (PairManager) => {
-      PairManager.setConfirmation(this._device.address, false);
-      window.close();
-    });
+    switch (this._pairMethod) {
+      case 'pincode':
+        // Since user clicked close button, we set a empty code to reject.
+        this._options.handle.setPinCode('').then(() => {
+          this.debug('Resolved setPinCode operation for set empty pin code');
+          // Close window by self.
+          window.close();
+        }, (aReason) => {
+          this.debug('Rejected setPinCode with reason: ' + aReason +
+                     ' for set empty pin code');
+          // Close window by self.
+          window.close();
+        });
+        break;
+      case 'confirmation':
+        // Since user clicked close button, we reject the pairing request here.
+        this._options.handle.setPairingConfirmation(false).then(() => {
+          this.debug('Resolved setPairingConfirmation operation for reject');
+          // Close window by self.
+          window.close();
+        }, (aReason) => {
+          this.debug('Rejected setPairingConfirmation with reason: ' + 
+                     aReason + ' for reject');
+          // Close window by self.
+          window.close();
+        });
+        break;
+    }
   },
 
   closeInput: function pv_closeInput() {
     if (!this.pinInputItem.hidden) {
       this.pinInput.blur();
-    }
-    if (!this.passkeyInputItem.hidden) {
-      this.passkeyInput.blur();
     }
   },
 
@@ -134,26 +167,27 @@ var Pairview = {
             this.closeButton.disabled = true;
 
             switch (this._pairMethod) {
-              case 'confirmation':
-                window.opener.require(['modules/pair_manager'], 
-                  (PairManager) => {
-                  PairManager.setConfirmation(this._device.address, true);
-                  window.close();
-                });
-                break;
               case 'pincode':
-                var pinValue = this.pinInput.value;
-                window.opener.require(['modules/pair_manager'], 
-                  (PairManager) => {
-                  PairManager.setPinCode(this._device.address, pinValue);
+                var pinCode = this.pinInput.value;
+                this._options.handle.setPinCode(pinCode).then(() => {
+                  this.debug('Resolved setPinCode operation');
+                  // Close window by self.
+                  window.close();
+                }, (aReason) => {
+                  this.debug('Rejected setPinCode with reason: ' + aReason);
+                  // Close window by self.
                   window.close();
                 });
                 break;
-              case 'passkey':
-                var passkeyValue = this.passkeyInput.value;
-                window.opener.require(['modules/pair_manager'], 
-                  (PairManager) => {
-                  PairManager.setPasskey(this._device.address, passkeyValue);
+              case 'confirmation':
+                this._options.handle.setPairingConfirmation(true).then(() => {
+                  this.debug('Resolved setPairingConfirmation operation');
+                  // Close window by self.
+                  window.close();
+                }, (aReason) => {
+                  this.debug('Rejected setPairingConfirmation ' + 
+                             ' with reason: ' + aReason);
+                  // Close window by self.
                   window.close();
                 });
                 break;
@@ -175,6 +209,12 @@ var Pairview = {
 
       default:
         break;
+    }
+  },
+
+  debug: function(msg) {
+    if (this._debug) {
+      console.log('Pairview(): ' + msg);
     }
   }
 };

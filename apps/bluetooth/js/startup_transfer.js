@@ -14,6 +14,7 @@ require(['config/require'], function() {
       });
     } else if (version === 2) {
       // TODO: Load new script for transfer/device with API version 2.
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=1121909
       console.log('[startup_transfer]: ' + 
                   'Load new script for transfer/device with API version 2.');
     }
