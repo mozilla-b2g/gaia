@@ -1,8 +1,6 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-// When bug 794999 is resolved, switch to use the abstract Trusted UI Component
-
 'use strict';
 
 const kIdentityScreen = '/sign_in#NATIVE';
@@ -59,6 +57,24 @@ var Identity = (function() {
 
 
           if (e.detail.showUI) {
+            // We need to tell the chrome side about the user manually closing
+            // the identity flow so the mozId API can notify to the caller about
+            // the flow being canceled.
+            var ontrustedclosed = (function(event) {
+              if (!event.detail ||
+                  !event.detail.config ||
+                  !event.detail.config.requestId) {
+                return;
+              }
+              window.removeEventListener('trustedclosed', ontrustedclosed);
+              this._dispatchEvent({
+                id: event.detail.config.requestId,
+                type: 'cancel',
+                errorMsg: 'DIALOG_CLOSED_BY_USER'
+              });
+            }).bind(this);
+            window.addEventListener('trustedclosed', ontrustedclosed);
+
             window.dispatchEvent(new CustomEvent('launchtrusted', {
               detail: {
                 name: navigator.mozL10n.get('persona-signin'),
