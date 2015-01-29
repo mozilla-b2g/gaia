@@ -13,6 +13,8 @@ define(function(require) {
 
   return function ctor_wifi_manage_networks_panel() {
     var elements = {};
+    var listItems = {};
+
     return SettingsPanel({
       onInit: function(panel) {
         var self = this;
@@ -52,6 +54,28 @@ define(function(require) {
         SettingsListener.observe('deviceinfo.mac', '', function(macAddress) {
           elements.macAddress.textContent = macAddress;
         });
+
+        WifiContext.addEventListener('wifiEnabled', function(event) {
+          var activeItem =
+            elements.knownNetworkListWrapper.querySelector('.active');
+          WifiUtils.updateListItemStatus({
+            listItems: listItems,
+            activeItemDOM: activeItem,
+            network: event.network,
+            networkStatus: event.status
+          });
+        });
+
+        WifiContext.addEventListener('wifiStatusChange', function(event) {
+          var activeItem =
+            elements.knownNetworkListWrapper.querySelector('.active');
+          WifiUtils.updateListItemStatus({
+            listItems: listItems,
+            activeItemDOM: activeItem,
+            network: event.network,
+            networkStatus: event.status
+          });
+        });
       },
       onBeforeShow: function(panel) {
         this._cleanup();
@@ -62,16 +86,33 @@ define(function(require) {
         while (wrapper.hasChildNodes()) {
           wrapper.removeChild(wrapper.firstChild);
         }
+        listItems = {};
       },
       _scan: function() {
         WifiKnownNetworks.scan(function(networks) {
           var networkKeys = Object.getOwnPropertyNames(networks);
+          var network;
           if (networkKeys.length) {
             networkKeys.sort();
+
             for (var i = 0; i < networkKeys.length; i++) {
-              var aItem = WifiUtils.newListItem(
-                networks[networkKeys[i]], this._forgetNetwork.bind(this));
-              elements.knownNetworkListWrapper.appendChild(aItem);
+              network = networks[networkKeys[i]];
+              var aItem = WifiUtils.newListItem({
+                network: network,
+                onClick: this._forgetNetwork.bind(this),
+                showNotInRange: false
+              });
+
+              if (WifiHelper.isConnected(network)) {
+                elements.knownNetworkListWrapper.insertBefore(
+                  aItem, elements.knownNetworkListWrapper.firstChild);
+              } else {
+                elements.knownNetworkListWrapper.appendChild(aItem);
+              }
+
+              // We have to keep them so that we can easily update
+              // its status without cleanup
+              listItems[networkKeys[i]] = aItem;
             }
           } else {
             // display a "no known networks" message if necessary
