@@ -1074,3 +1074,15 @@ html[dir="rtl"] .contact-header aside.pack-end {
 .editable-select-mode [contenteditable] {
   -moz-user-select: text;
 }
+
+.no-threads {
+  display: none;
+}
+
+section[role=region][class*='threadlist-no-threads'] #threads-options-button {
+  display: none;
+}
+
+section[role=region][class*='threadlist-no-threads'] #threads-settings-button {
+  display: unset;
+}

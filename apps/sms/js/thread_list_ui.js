@@ -48,7 +48,8 @@ var ThreadListUI = {
       'container', 'no-messages', 'read-unread-button',
       'check-uncheck-all-button','composer-link',
       'delete-button', 'edit-header','options-button',
-      'edit-mode', 'edit-form', 'draft-saved-banner'
+      'settings-button','edit-mode', 'edit-form',
+      'draft-saved-banner'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('threads-' + id);
     }, this);
@@ -74,6 +75,12 @@ var ThreadListUI = {
 
     this.optionsButton.addEventListener(
       'click', this.showOptions.bind(this)
+    );
+
+    this.settingsButton.addEventListener(
+      'click', function oSettings() {
+        ActivityPicker.openSettings();
+      }
     );
 
     this.container.addEventListener(
@@ -496,9 +503,16 @@ var ThreadListUI = {
   setEmpty: function thlui_setEmpty(empty) {
     var addWhenEmpty = empty ? 'add' : 'remove';
     var removeWhenEmpty = empty ? 'remove' : 'add';
+    var panel = document.getElementById('thread-list');
 
     ThreadListUI.noMessages.classList[removeWhenEmpty]('hide');
     ThreadListUI.container.classList[addWhenEmpty]('hide');
+    if(empty){
+      panel.classList.add('threadlist-no-threads');
+    }
+    else if(!empty){
+      panel.classList.remove('threadlist-no-threads');
+    }
   },
 
   showOptions: function thlui_options() {
