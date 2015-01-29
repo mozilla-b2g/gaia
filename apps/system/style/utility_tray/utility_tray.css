@@ -142,3 +142,10 @@
     width: calc(100%);
   }
 }
+
+/* RTL View */
+
+html[dir="rtl"] #statusbar-tray > .sb-start-upper {
+  left: unset;
+  right: 0
+}
