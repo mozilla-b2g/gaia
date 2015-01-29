@@ -21,7 +21,8 @@
     'stopRecording'
   ];
   AppWindowManager.STATES = [
-    'slowTransition'
+    'slowTransition',
+    'getActiveApp'
   ];
   AppWindowManager.EVENTS = [
     'cardviewbeforeshow',
