@@ -24,7 +24,7 @@ class Gallery(Base):
     _empty_gallery_title_locator = (By.ID, 'overlay-title')
     _empty_gallery_text_locator = (By.ID, 'overlay-text')
     _progress_bar_locator = (By.ID, 'progress')
-    _thumbnail_list_view_locator = (By.ID, 'thumbnail-list-view')
+    _thumbnail_list_view_locator = (By.CSS_SELECTOR, '#thumbnail-views > footer.thumbnails-list')
     _switch_to_camera_button_locator = (By.ID, 'thumbnails-camera-button')
     _switch_to_multiple_selection_view_locator = (By.ID, 'thumbnails-select-button')
 
