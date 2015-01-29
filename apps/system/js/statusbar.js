@@ -1093,6 +1093,7 @@ var StatusBar = {
         }
 
         var previousHiddenState = icon.hidden;
+        var previousActiveState = icon.dataset.inactive;
         var previousRoamingHiddenState = roaming.hidden;
 
         if (this.settingValues['ril.radio.disabled']) {
@@ -1149,6 +1150,7 @@ var StatusBar = {
         }
 
         if (previousHiddenState !== icon.hidden ||
+          previousActiveState !== icon.dataset.inactive ||
           previousRoamingHiddenState !== roaming.hidden) {
           isDirty = true;
         }
