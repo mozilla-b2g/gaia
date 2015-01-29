@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8" />
+    <title>Audio channel test app</title>
+    <link rel="stylesheet" type="text/css" href="style/main.css"/>
+  </head>
+
+  <body>
+    <span>Normal</span>
+    <audio controls="controls" src="jonobacon-freesoftwaresong2.ogg"></audio>
+    <span>Content</span>
+    <audio controls="controls" src="jonobacon-freesoftwaresong2.ogg" mozAudioChannel="content"></audio>
+    <span>Notification</span>
+    <audio controls="controls" src="jonobacon-freesoftwaresong2.ogg" mozAudioChannel="notification"></audio>
+    <span>Alarm</span>
+    <audio controls="controls" src="jonobacon-freesoftwaresong2.ogg" mozAudioChannel="alarm"></audio>
+    <span>Voip</span>
+    <audio controls="controls" src="jonobacon-freesoftwaresong2.ogg" mozAudioChannel="voip"></audio>
+    <span>Ringer</span>
+    <audio controls="controls" src="jonobacon-freesoftwaresong2.ogg" mozAudioChannel="ringer"></audio>
+    <span>Public Notification</span>
+    <audio controls="controls" src="jonobacon-freesoftwaresong2.ogg" mozAudioChannel="publicnotification"></audio>
+  </body>
+</html>
+
