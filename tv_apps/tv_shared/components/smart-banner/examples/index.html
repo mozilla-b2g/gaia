@@ -25,16 +25,19 @@
     }
 
     smart-banner {
-      position: absolute;
-      right: 5rem;
-      bottom: 6rem;
-    }
-
-    smart-banner {
       background-image: url('test-icon.png');
     }
   </style>
   <script>
+
+    function flyOpenMenu() {
+      document.getElementById('test-target').flyOpen();
+    }
+
+    function hideMenu() {
+      document.getElementById('test-target').hide();
+    }
+
     function openMenu() {
       document.getElementById('test-target').open();
     }
@@ -52,11 +55,12 @@
     }
 
     window.onload = function() {
-      ['opened', 'closed', 'will-open', 'will-close'].forEach(function(evt) {
-        document.getElementById('test-target').addEventListener(evt,
-          function() {
-            console.log(evt + ' received!');
-          });
+      ['opened', 'closed', 'will-open', 'will-close'].forEach(
+        function(evt) {
+          document.getElementById('test-target').addEventListener(evt,
+            function() {
+              console.log(evt + ' received!');
+            });
       });
     };
   </script>
@@ -66,6 +70,8 @@
   <script src="../script.js" type="text/javascript"></script>
 </head>
 <body role="application">
+  <button type="button" onclick="hideMenu();">Hide</button>
+  <button type="button" onclick="flyOpenMenu();">Fly and Open</button>
   <button type="button" onclick="openMenu();">Open</button>
   <button type="button" onclick="closeMenu();">Close</button>
   <button type="button" onclick="focusMenu();">Focus</button>
