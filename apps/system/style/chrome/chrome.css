@@ -189,27 +189,27 @@
 }
 
 
-.controls .forward-button:not([disabled]) + .urlbar {
+.chrome.maximized .controls .forward-button:not([disabled]) + .urlbar {
   width: calc(100% - 8rem);
 }
 
-.controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar {
+.chrome.maximized .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar {
   width: calc(100% - 8rem);
 }
 
-.controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
+.chrome.maximized .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
   width: calc(100% - 12rem);
 }
 
-.appWindow:not(.browser) .controls .forward-button:not([disabled]) + .urlbar {
+.appWindow:not(.browser) .chrome.maximized .controls .forward-button:not([disabled]) + .urlbar {
   width: calc(100% - 4.5rem);
 }
 
-.appWindow:not(.browser) .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar {
+.appWindow:not(.browser) .chrome.maximized .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar {
   width: calc(100% - 4.5rem);
 }
 
-.appWindow:not(.browser) .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
+.appWindow:not(.browser) .chrome.maximized .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
   width: calc(100% - 8.5rem);
 }
 
@@ -242,14 +242,11 @@
   background: url("images/light/ssl_broken.png") no-repeat 0.1rem center / 3rem 3rem;
 }
 
-.collapsible .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
-.collapsible .chrome:not(.maximized) .forward-button:not([disabled]) + .urlbar {
-  transform: scaleX(var(--rocketbar-scale)) translateX(-5.5rem);
+.chrome:not(.maximized) .back-button,
+.chrome:not(.maximized) .forward-button {
+  display: none;
 }
 
-.collapsible .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
-  transform: scaleX(var(--rocketbar-scale)) translateX(-12rem);
-}
 
 
 /* Buttons */
@@ -497,7 +494,7 @@ html[dir="rtl"] .search-app .chrome.maximized .controls .urlbar:after {
 
 html[dir="rtl"] .controls .urlbar {
   transform-origin: top right;
-  
+
 }
 
 html[dir="rtl"] .appWindow.fullscreen-app .chrome:not(.maximized) .controls .urlbar {
