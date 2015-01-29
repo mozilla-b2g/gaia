@@ -101,6 +101,8 @@ var AlarmEdit = function() {
   this.inputs.name.addEventListener('keypress', this.handleNameInput);
   this.inputs.volume.addEventListener('change', handleDomEvent);
 
+  this.isSaving = false;
+
   // If the phone locks during preview, pause the sound.
   // TODO: When this is no longer a singleton, unbind the listener.
   window.addEventListener('visibilitychange', function() {
@@ -283,6 +285,12 @@ Utils.extend(AlarmEdit.prototype, {
   },
 
   save: function aev_save(callback) {
+    if (this.isSaving) {
+      // Ignore double-taps on the "Save" button. When this view gets
+      // refactored, we should opt for a more coherent way of managing
+      // UI state to avoid glitches like this.
+      return;
+    }
     var alarm = this.alarm;
 
     if (this.element.dataset.id && this.element.dataset.id !== '') {
@@ -302,7 +310,10 @@ Utils.extend(AlarmEdit.prototype, {
     alarm.snooze = parseInt(this.getSnoozeSelect(), 10);
     AudioManager.setAlarmVolume(this.getAlarmVolumeValue());
 
+    this.isSaving = true;
+
     alarm.schedule('normal').then(() => {
+      this.isSaving = false;
       window.dispatchEvent(new CustomEvent('alarm-changed', {
         detail: { alarm: alarm, showBanner: true }
       }));
