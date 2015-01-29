@@ -4,11 +4,14 @@
 /* global ICEData */
 
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
+requireApp('communications/contacts/test/unit/mock_cache.js');
 requireApp('communications/contacts/js/utilities/ice_data.js');
 require('/shared/test/unit/mocks/mock_ice_store.js');
 
 var mocksHelper = new MocksHelper([
-  'asyncStorage', 'ICEStore'
+  'asyncStorage',
+  'Cache',
+  'ICEStore'
 ]);
 
 mocksHelper.init();

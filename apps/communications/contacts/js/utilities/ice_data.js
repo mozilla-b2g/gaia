@@ -1,4 +1,6 @@
 'use strict';
+
+/* global Cache */
 /* global ICEStore */
 
 /**
@@ -62,6 +64,8 @@
    */
   function setICEContact(id, pos, active) {
     active = active || false;
+
+    Cache.evict();
 
     // Save locally
     localIceContacts[pos] = {
@@ -211,7 +215,7 @@
     // to notify or not
     pendingChanges.push(evt);
     if (!performingChange) {
-      performChange();  
+      performChange();
     }
   }
 
