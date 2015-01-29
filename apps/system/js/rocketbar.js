@@ -64,6 +64,7 @@
       }
       this.searchWindow &&
       this.searchWindow.setVisibleForScreenReader(active);
+      return true;
     },
 
     /**

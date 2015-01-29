@@ -62,12 +62,13 @@
 
   SecureWindowManager.prototype.setHierarchy = function(active) {
     if (!this.states.activeApp) {
-      return;
+      return false;
     }
     if (active) {
       this.states.activeApp.focus();
     }
     this.states.activeApp.setVisibleForScreenReader(active);
+    return true;
   };
   SecureWindowManager.prototype.getActiveWindow = function() {
     return this.isActive() ? this.states.activeApp : null;

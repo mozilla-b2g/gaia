@@ -180,6 +180,7 @@ suite('system/HierarchyManager', function() {
         this.sinon.stub(fakeAppWindowManager, 'setHierarchy');
         this.sinon.stub(fakeAppWindowManager, 'isActive').returns(true);
         this.sinon.stub(fakeSystemDialogManager, 'isActive').returns(true);
+        this.sinon.stub(fakeSystemDialogManager, 'setHierarchy').returns(true);
         subject.registerHierarchy(fakeAppWindowManager);
         subject.registerHierarchy(fakeSystemDialogManager);
         subject.focus(fakeAppWindowManager);
@@ -195,6 +196,18 @@ suite('system/HierarchyManager', function() {
         subject.registerHierarchy(fakeSystemDialogManager);
         subject.focus(fakeSystemDialogManager);
         assert.isTrue(fakeSystemDialogManager.setHierarchy.calledWith(true));
+      });
+
+    test('should not blur lower priority module ' +
+      'when higher priority module is not focused successfully', function() {
+        this.sinon.stub(fakeAppWindowManager, 'setHierarchy');
+        this.sinon.stub(fakeAppWindowManager, 'isActive').returns(true);
+        this.sinon.stub(fakeSystemDialogManager, 'isActive').returns(true);
+        this.sinon.stub(fakeSystemDialogManager, 'setHierarchy').returns(false);
+        subject.registerHierarchy(fakeAppWindowManager);
+        subject.registerHierarchy(fakeSystemDialogManager);
+        subject.focus(fakeAppWindowManager);
+        assert.isFalse(fakeAppWindowManager.setHierarchy.calledOnce);
       });
   });
 

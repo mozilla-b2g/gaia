@@ -106,10 +106,16 @@
         } else {
           this.debug('next top most is null.');
         }
-        // Blur the last top most module.
-        lastTopMost && lastTopMost.setHierarchy &&
-        lastTopMost.setHierarchy(false);
-        // Focus the new one.
+
+        if (this._topMost && this._topMost.setHierarchy &&
+            this._topMost.setHierarchy(true)) {
+          // Blur previous module only when current module is successfully
+          // focused.
+          lastTopMost && lastTopMost.setHierarchy &&
+          lastTopMost.setHierarchy(false);
+
+        }
+
         this._topMost && this._topMost.setHierarchy &&
         this._topMost.setHierarchy(true);
         this.publish('changed');
