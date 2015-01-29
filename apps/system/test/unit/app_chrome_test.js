@@ -632,6 +632,15 @@ suite('system/AppChrome', function() {
       chrome.setThemeColor('black');
       assert.equal(chrome.scrollable.style.backgroundColor, '');
     });
+
+    test('does not set for private windows', function() {
+      app = new AppWindow(fakeWebSite);
+      this.sinon.stub(app, 'isPrivateBrowser').returns(true);
+      chrome = new AppChrome(app);
+      assert.equal(chrome.scrollable.style.backgroundColor, '');
+      chrome.setThemeColor('black');
+      assert.equal(chrome.scrollable.style.backgroundColor, '');
+    });
   });
 
   suite('Search request', function() {
