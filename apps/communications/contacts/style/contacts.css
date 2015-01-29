@@ -450,7 +450,7 @@ gaia-header [data-icon] {
 }
 
 #view-settings [data-type="list"] .fb-item p {
-  padding-left: 4.2rem;
+  -moz-padding-start: 4.2rem;
   font-size: 1.4rem;
 }
 
@@ -461,6 +461,10 @@ gaia-header [data-icon] {
 
 #view-settings [data-type="list"] .fb-item {
   background: url(/contacts/style/images/f_logo.png) no-repeat 0 calc(50% + 0.5rem) / 3rem;
+}
+
+html[dir=rtl] #view-settings [data-type="list"] .fb-item {
+  background: url(/contacts/style/images/f_logo.png) no-repeat scroll 100% calc(50% + 0.5rem) / 3rem auto;
 }
 
 #view-settings [data-type="list"] .fb-item p:first-of-type {
@@ -476,11 +480,25 @@ gaia-header [data-icon] {
   pointer-events: none;
   position: absolute;
   top: 1rem;
+}
+
+html[dir=rtl] #view-settings [data-type="list"] .fb-item aside {
+  left: 0;
+}
+
+html[dir=ltr] #view-settings [data-type="list"] .fb-item aside {
   right: 0;
 }
 
 #view-settings [data-type="list"] .fb-item aside label {
   position: absolute;
+}
+
+html[dir=rtl] #view-settings [data-type="list"] .fb-item aside label {
+  left: 0;
+}
+
+html[dir=ltr] #view-settings [data-type="list"] .fb-item aside label {
   right: 0;
 }
 
