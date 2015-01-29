@@ -1003,11 +1003,12 @@ function Commander(cmd) {
       log('cmd', command + ' ' + args.join(' '));
       process.init(_file);
       process.run(true, args, args.length);
+      callback && callback(process.exitValue);
     } catch (e) {
+      callback && callback(1);
       throw new Error('having trouble when execute ' + command +
         ' ' + args.join(' '));
     }
-    callback && callback();
   };
 
   /**
