@@ -37,6 +37,9 @@ require.config({
     'shared/lazy_loader': {
       exports: 'LazyLoader'
     },
+    'shared/search_provider': {
+      exports: 'SearchProvider'
+    },
     'shared/manifest_helper': {
       exports: 'ManifestHelper'
     },
@@ -330,7 +333,7 @@ require.config({
         'main',
         'modules/bluetooth/version_detector',
         'modules/bluetooth/bluetooth_v1',
-        'modules/bluetooth/bluetooth'
+        'modules/bluetooth/bluetooth_context'
       ]
     },
     {

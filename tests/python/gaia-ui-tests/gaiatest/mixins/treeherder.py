@@ -223,7 +223,7 @@ class TreeherderTestRunnerMixin(object):
                     'title': 'Error:'})
 
         # Attach reports
-        for report in [self.html_output, self.xml_output]:
+        for report in [self.html_output]:
             if report is not None:
                 filename = os.path.split(report)[-1]
                 try:

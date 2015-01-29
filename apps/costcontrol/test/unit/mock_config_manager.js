@@ -80,6 +80,7 @@ var MockConfigManager = function(config) {
     },
     setConfig: function(newConfig) {
       config = newConfig;
-    }
+    },
+    supportCustomizeMode: false
   };
 };

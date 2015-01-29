@@ -6,11 +6,17 @@
  * ---------------------------------- */
 
 [role="dialog"] p {
-  font-weight: 300;
-  font-size: 2.2rem;
-  color: #FAFAFA;
-  margin: 1rem 0 0 0;
-  padding: 1rem 1.5rem;
+  font-weight: normal;
+  font-style: italic;
+  font-size: 3.8rem;
+  line-height: 3.8rem;
+  color: #f9f9f9;
+  padding: 0 0 3.4rem 0;
+  text-align: center;
+}
+
+[role="dialog"].modal-dialog-prompt h3 {
+  display: none;
 }
 
 [role="dialog"] p:last-child {

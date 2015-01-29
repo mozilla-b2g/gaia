@@ -164,7 +164,8 @@
 
   <!-- overwrite APNs until they get updated in the upstream database -->
 
-  <apn carrier="ATT Phone"
+  <apn carrier_name="ATT Nextgenphone"
+      carrier="ATT Phone"
       overwrite="true"
       mcc="310"
       mnc="410"

@@ -154,7 +154,16 @@
     },
 
     renameCard: function(scrollable, nodeElem) {
-      //TODO: implement renaming
+      var card = this.cardManager.findCardFromCardList({
+        cardId: scrollable.getItemFromNode(nodeElem).dataset.cardId
+      });
+      var _ = navigator.mozL10n.get;
+      var result = prompt(_('enter-new-name'), card.name);
+      if (!result) {
+        return;
+      }
+      card.name = result;
+      this.cardManager.updateCard(card);
     },
 
     deleteCard: function(scrollable, nodeElem) {

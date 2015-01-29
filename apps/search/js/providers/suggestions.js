@@ -1,20 +1,22 @@
 (function() {
 
   'use strict';
-  /* global eme, Promise, Provider, Search */
+  /* globals Promise, Provider, Search */
+  /* globals LazyLoader */
+  /* globals SearchProvider */
 
-  var ANNOTATION_REGEX = /\[*(.+?)\]*/g;
+  SearchProvider.providerUpdated(function() {
+    var elem = document.getElementById('suggestion-provider');
+    navigator.mozL10n.setAttributes(elem, 'search-header', {
+      provider: SearchProvider('title').toUpperCase()
+    });
+  });
 
-  function deannotate(match, p1) {
-    return p1;
+  function encodeTerms(str, search) {
+    return str.replace('{searchTerms}', encodeURIComponent(search));
   }
 
-  function getSuggestionText(item) {
-    return item.replace(ANNOTATION_REGEX, deannotate);
-  }
-
-  function Suggestions(eme) {
-  }
+  function Suggestions() {}
 
   Suggestions.prototype = {
 
@@ -24,46 +26,26 @@
 
     remote: true,
 
-    init: function(config) {
+    init: function() {
       Provider.prototype.init.apply(this, arguments);
-      eme.init();
     },
 
     click: function(e) {
-      var suggestion = e.target && e.target.dataset.suggestion;
-      if (suggestion) {
-       Search.setInput(suggestion);
-      }
+      var suggestion = e.target.dataset.suggestion;
+      var url = encodeTerms(SearchProvider('searchUrl'), suggestion);
+      Search.navigate(url);
     },
 
     search: function(input) {
-      return new Promise((resolve, reject) =>
-        eme.init().then(() => {
-        this.clear();
-        if (!eme.api.Search) {
-          reject();
-          return;
-        }
-
-        this.request = eme.api.Search.suggestions({
-          'query': input
+      return new Promise((resolve, reject) => {
+        var url = encodeTerms(SearchProvider('suggestUrl'), input);
+        LazyLoader.getJSON(url, true).then(result => {
+          var results = result[1];
+          // We add an item to search the entered term as well
+          results.unshift(result[0]);
+          resolve(results);
         });
-
-        this.request.then((data) => {
-          var items = data.response;
-          if (items && items.length) {
-            // The E.me API can return the query as a suggestion
-            // Filter this out
-            var matchingIndex = items.indexOf(input);
-            if (matchingIndex !== -1) {
-              items.splice(matchingIndex, 1);
-            }
-          }
-          resolve(items);
-        }, (reason) => {
-          reject();
-        });
-      }));
+      });
     },
 
     render: function(items) {
@@ -71,17 +53,14 @@
       ul.setAttribute('role', 'listbox');
 
       items.forEach(function each(item) {
-        var text = getSuggestionText(item);
         var li = document.createElement('li');
-        li.dataset.suggestion = li.textContent = text;
+        li.dataset.suggestion = li.textContent = item;
         li.setAttribute('role', 'option');
-        // Can not simply read the text since we also have the bullet
-        // character that the screen reader should avoid.
-        li.setAttribute('aria-label', text);
         ul.appendChild(li);
       });
 
       this.clear();
+
       if (ul.childNodes.length) {
         this.container.appendChild(ul);
       }
@@ -89,6 +68,6 @@
 
   };
 
-  Search.provider(new Suggestions(window.eme));
+  Search.provider(new Suggestions());
 
 }());

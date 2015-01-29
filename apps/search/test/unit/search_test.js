@@ -42,8 +42,8 @@ suite('search/search', function() {
     clock = sinon.useFakeTimers();
 
     requireApp('search/js/search.js', function() {
-      assert.equal(Search.toShowNotice, null);
-      Search.toShowNotice = false;
+      // assert.equal(Search.toShowNotice, null);
+      // Search.toShowNotice = false;
 
       Search._port = { postMessage: function() {} };
       done();
@@ -253,34 +253,6 @@ suite('search/search', function() {
       });
       clock.tick(1000); // For typing timeout
       assert.ok(stub.calledOnce);
-    });
-
-    test('Uses configured search template', function() {
-      var navigateStub = this.sinon.stub(Search, 'navigate');
-      var realUrlTemplate = Search.urlTemplate;
-      Search.urlTemplate = 'http://example.com/?q={searchTerms}';
-      var msg = {
-        data: {
-          input: 'foo'
-        }
-      };
-      Search.submit(msg);
-      assert.ok(navigateStub.calledWith('http://example.com/?q=foo'));
-      Search.urlTemplate = realUrlTemplate;
-    });
-
-    test('Uses special case for everything.me full search', function() {
-      var expandSearchStub = this.sinon.stub(Search, 'expandSearch');
-      var realUrlTemplate = Search.urlTemplate;
-      Search.urlTemplate = 'everything.me';
-      var msg = {
-        data: {
-          input: 'foo'
-        }
-      };
-      Search.submit(msg);
-      assert.ok(expandSearchStub.calledOnce);
-      Search.urlTemplate = realUrlTemplate;
     });
   });
 

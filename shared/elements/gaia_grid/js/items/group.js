@@ -322,6 +322,12 @@
           });
         }
 
+        // If the item is active, re-render it so that its pixel-height is
+        // correct when the rest of the grid is rendered.
+        if (this.active) {
+          this.render();
+        }
+
         this.grid.render();
 
         var dragging = this.grid.dragdrop && this.grid.dragdrop.inDragAction;
