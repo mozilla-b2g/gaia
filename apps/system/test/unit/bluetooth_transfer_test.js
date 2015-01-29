@@ -606,10 +606,10 @@ suite('system/bluetooth_transfer', function() {
         var stubOnFilesSending =
           this.sinon.stub(BluetoothTransfer, '_onFilesSending');
         var stubSetTimeout = this.sinon.stub(window, 'setTimeout');
-        BluetoothTransfer.sendFileViaHandover(
-          'AA:BB:CC:00:11:55',
-          'blahblahblah\0xa0\0xa0blahblahblah'
-        );
+        BluetoothTransfer._sendFileViaHandover({detail: {
+          mac: 'AA:BB:CC:00:11:55',
+          blob: 'blahblahblah\0xa0\0xa0blahblahblah'
+        }});
 
         assert.isTrue(stubOnFilesSending.called);
         assert.equal(typeof stubOnFilesSending.getCall(0).args[0], 'object');
@@ -625,10 +625,10 @@ suite('system/bluetooth_transfer', function() {
 
         var stubGetAdapater =
           this.sinon.stub(MockBluetooth, 'getAdapter').returns(null);
-        BluetoothTransfer.sendFileViaHandover(
-          'AA:BB:CC:00:11:66',
-          'blahblahblah\0xa0\0xa0blahblahblahblah'
-        );
+        BluetoothTransfer._sendFileViaHandover({detail: {
+          mac: 'AA:BB:CC:00:11:66',
+          blob: 'blahblahblah\0xa0\0xa0blahblahblahblah'
+        }});
 
         stubOnFilesSending.reset();
         assert.isFalse(stubOnFilesSending.called);
@@ -765,15 +765,14 @@ suite('system/bluetooth_transfer', function() {
     });
 
     suite('NfcHandoverManager interactions', function() {
-      var stubTransferComplete;
       var stubRemoveProgress;
       var stubSummarizeSentFilesReport;
 
       var transferEvt;
 
       setup(function() {
-        stubTransferComplete = this.sinon.stub(MockNfcHandoverManager,
-          'transferComplete');
+        this.sinon.stub(window, 'dispatchEvent');
+        this.sinon.stub(window, 'CustomEvent');
 
         // In this suite, we care about NfcHandoverManager.transferComplete()
         // only.
@@ -793,7 +792,6 @@ suite('system/bluetooth_transfer', function() {
       });
 
       teardown(function() {
-        stubTransferComplete.restore();
         stubRemoveProgress.restore();
         stubSummarizeSentFilesReport.restore();
       });
@@ -803,8 +801,8 @@ suite('system/bluetooth_transfer', function() {
 
         BluetoothTransfer._onTransferComplete(transferEvt);
 
-        assert.equal(stubTransferComplete.callCount, 1);
-        assert.deepEqual(stubTransferComplete.firstCall.args[0], {
+        assert.ok(window.dispatchEvent.calledOnce);
+        assert.ok(window.CustomEvent.firstCall.args[0], {
           viaHandover: false,
           success: true,
           received: false
@@ -819,8 +817,8 @@ suite('system/bluetooth_transfer', function() {
         });
         BluetoothTransfer._onTransferComplete(transferEvt);
 
-        assert.equal(stubTransferComplete.callCount, 1);
-        assert.deepEqual(stubTransferComplete.firstCall.args[0], {
+        assert.ok(window.dispatchEvent.calledOnce);
+        assert.ok(window.CustomEvent.firstCall.args[0], {
           viaHandover: true,
           success: true,
           received: false

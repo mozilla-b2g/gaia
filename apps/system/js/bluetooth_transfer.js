@@ -50,6 +50,10 @@ var BluetoothTransfer = {
     window.addEventListener('bluetooth-opp-transfer-complete',
       this._onTransferComplete.bind(this)
     );
+
+    window.addEventListener('bluetooth-handover-file',
+      this._sendFileViaHandover.bind(this)
+    );
   },
 
   getDeviceName: function bt_getDeviceName(address) {
@@ -301,7 +305,9 @@ var BluetoothTransfer = {
     return this._sendingFilesQueue.length === 0;
   },
 
-  sendFileViaHandover: function bt_sendFileViaHandover(mac, blob) {
+  _sendFileViaHandover: function bt__sendFileViaHandover(evt) {
+    var mac = evt.detail.mac;
+    var blob = evt.detail.blob;
     var adapter = Bluetooth.getAdapter();
     if (adapter != null) {
       var sendingFilesSchedule = {
@@ -506,7 +512,9 @@ var BluetoothTransfer = {
     var details = {received: transferInfo.received,
                    success: transferInfo.success,
                    viaHandover: viaHandover};
-    NfcHandoverManager.transferComplete(details);
+    window.dispatchEvent(new CustomEvent('nfc-transfer-complete', {
+      detail: details
+    }));
   },
 
   summarizeSentFilesReport: function bt_summarizeSentFilesReport(transferInfo) {
