@@ -3,6 +3,7 @@
 /* API Summary:
    stopSendingFile(in DOMString aDeviceAddress);
    confirmReceivingFile(in DOMString aDeviceAddress, in bool aConfirmation); */
+(function(exports) {
 'use strict';
 /* global Bluetooth, CustomDialog, NfcHandoverManager, MimeMapper,
           MozActivity, NotificationHelper, UtilityTray, NfcHandoverManager*/
@@ -637,3 +638,6 @@ var BluetoothTransfer = {
   }
 
 };
+
+  exports.BluetoothTransfer = BluetoothTransfer;
+})(window);
