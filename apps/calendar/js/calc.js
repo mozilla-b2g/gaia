@@ -36,6 +36,17 @@ exports.daysInWeek = function() {
 };
 
 /**
+ * Calculates day of week when starting day is Monday.
+ */
+exports.dayOfWeekFromMonday = function(numeric) {
+  var day = numeric - 1;
+  if (day < 0) {
+    return 6;
+  }
+  return day;
+};
+
+/**
  * Calculates day of week from startDay value
  * passed by the locale currently being used
  */

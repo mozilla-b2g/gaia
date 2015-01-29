@@ -538,7 +538,7 @@ html[dir="rtl"] .md__event .icon-calendar-alarm {
 }
 
 html[dir="rtl"] .md__current-time:before {
-  border-width: 0.4rem 0.6rem 0.4rem 0;
+  transform: scale(-0.99) translateY(-0.25rem);
 }
 
 html[dir="rtl"] .week-view .md__current-time:before,
@@ -556,5 +556,5 @@ html[dir="rtl"] .day-view .md__current-time:after {
 html[dir="rtl"] .md__add-event:before {
   left: unset;
   right: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(50%, -50%);
 }

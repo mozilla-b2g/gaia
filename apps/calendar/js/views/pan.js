@@ -14,13 +14,8 @@ function Pan(options) {
   this.targets = options.targets;
   this.overflows = options.overflows || [];
 
-  var size = Math.max(options.gridSize || 0, 1);
-  var cells = Math.max(options.visibleCells || 0, 1);
-
-  this._gridSize = size;
-  this._visibleCells = cells;
-  this._minX = size * cells * -2;
-  this._origX = this._startX = this._curX = this._destX = this._minX / 2;
+  this._gridSize = Math.max(options.gridSize || 0, 1);
+  this._visibleCells = Math.max(options.visibleCells || 0, 1);
   this._startMouseX = this._startMouseY = 0;
   this._isVertical = false;
   this._startTime = 0;
@@ -36,6 +31,7 @@ function Pan(options) {
   this._onTouchMove = this._onTouchMove.bind(this);
   this._onTouchEnd = this._onTouchEnd.bind(this);
   this._tick = this._tick.bind(this);
+  this._setBaseValues = this._setBaseValues.bind(this);
   this._onTweenEnd = null;
 }
 module.exports = Pan;
@@ -51,7 +47,24 @@ Pan.prototype = {
     element.addEventListener('touchmove', this._onTouchMove);
     element.addEventListener('touchend', this._onTouchEnd);
     element.addEventListener('touchcancel', this._onTouchEnd);
+    window.addEventListener('localized', this._setBaseValues);
+    this._setBaseValues();
+  },
 
+  _setBaseValues: function() {
+    var delta = this._gridSize * this._visibleCells;
+
+    if (document.documentElement.dir === 'rtl') {
+      this._dir = -1;
+      this._minX = 0;
+      this._maxX = delta * 2;
+    } else {
+      this._dir = 1;
+      this._minX = delta * -2;
+      this._maxX = 0;
+    }
+
+    this._origX = this._startX = this._curX = this._destX = delta * -this._dir;
     this._set(this._origX);
   },
 
@@ -114,7 +127,7 @@ Pan.prototype = {
     duration = duration != null ? duration : this.TRANSITION_DURATION;
 
     this._startX = this._curX;
-    this._destX = clamp(x, this._minX, 0);
+    this._destX = clamp(x, this._minX, this._maxX);
 
     var now = Date.now();
     this._endTime = now + duration;
@@ -182,15 +195,14 @@ Pan.prototype = {
     this._updateDestination(snap);
 
     this.emit('release', {
-      diff: Math.round((this._origX - this._destX) / this._gridSize)
+      diff: Math.round((this._origX - this._destX) / this._gridSize) * this._dir
     });
   },
 
   _set: function(x) {
-    x = clamp(x, this._minX, 0);
-    var _x = (document.documentElement.dir === 'rtl') ? -x : x;
+    x = clamp(x, this._minX, this._maxX);
     this.targets.forEach(el => {
-      el.style.transform = 'translateX(' + _x +'px)';
+      el.style.transform = 'translateX(' + x +'px)';
     });
     this._curX = x;
   },
