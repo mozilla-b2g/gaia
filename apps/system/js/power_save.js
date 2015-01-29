@@ -1,6 +1,5 @@
 'use strict';
-/* global batteryOverlay, MozActivity, NotificationHelper,
-   SettingsListener */
+/* global MozActivity, NotificationHelper, SettingsListener */
 
 (function(exports) {
 
@@ -139,7 +138,7 @@
     },
 
     doCheckThreshold: function(value) {
-      var battery = batteryOverlay._battery;
+      var battery = this.batteryOverlay._battery;
 
       // If 'turn on automatically' is set to 'never', don't change the
       // power saving state
@@ -167,7 +166,7 @@
     },
 
     onBatteryChange: function() {
-      var battery = batteryOverlay._battery;
+      var battery = this.batteryOverlay._battery;
 
       if (battery.charging) {
         if (this._powerSaveEnabled) {
