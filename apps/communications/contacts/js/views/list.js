@@ -326,10 +326,11 @@ contacts.List = (function() {
 
     var complete = function complete() {
       initConfiguration(function onInitConfiguration() {
-        getContactsByGroup(onError, contacts);
-        if (typeof callback === 'function') {
-          callback();
-        } // Used in unit testing.
+        getContactsByGroup(onError, contacts).then(() => {
+          if (typeof callback === 'function') {
+            callback();
+          } // Used in unit testing.
+        });
       });
     };
 
@@ -1192,29 +1193,22 @@ contacts.List = (function() {
   };
 
   var getContactsByGroup = function gCtByGroup(errorCb, contacts) {
-    if (!Contacts.asyncScriptsLoaded) {
-      // delay loading if they're not there yet
-      window.addEventListener('asyncScriptsLoaded', function listener() {
-        window.removeEventListener('asyncScriptsLoaded', listener);
-
-        getContactsByGroup(errorCb, contacts);
-      });
-      return;
-    }
-    notifiedAboveTheFold = false;
-    if (contacts) {
-      if (!contacts.length) {
-        toggleNoContactsScreen(true);
+    return Contacts.asyncScriptsLoaded.then(() => {
+      notifiedAboveTheFold = false;
+      if (contacts) {
+        if (!contacts.length) {
+          toggleNoContactsScreen(true);
+          dispatchCustomEvent('listRendered');
+          return;
+        }
+        toggleNoContactsScreen(false);
+        loadChunk(contacts);
+        onListRendered();
         dispatchCustomEvent('listRendered');
         return;
       }
-      toggleNoContactsScreen(false);
-      loadChunk(contacts);
-      onListRendered();
-      dispatchCustomEvent('listRendered');
-      return;
-    }
-    getAllContacts(errorCb, loadChunk);
+      getAllContacts(errorCb, loadChunk);
+    });
   };
 
   var getContactById = function(contactID, successCb, errorCb) {

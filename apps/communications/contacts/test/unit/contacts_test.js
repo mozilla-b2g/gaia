@@ -433,38 +433,33 @@ suite('Contacts', function() {
   suite('Async scripts loading', function() {
     var lastParams;
     setup(function() {
-      this.sinon.spy(window, 'dispatchEvent');
       this.sinon.stub(LazyLoader, 'load', function(p, cb) {
         lastParams = p;
         cb();
       });
     });
     test('> normal load of the scripts', function() {
-      Contacts.onLocalized();
-
-      sinon.assert.called(window.dispatchEvent);
-      assert.isNotNull(navigator.mozContacts.oncontactchange);
+      Contacts.onLocalized().then(() => {
+        sinon.assert.called(window.dispatchEvent);
+        assert.isNotNull(navigator.mozContacts.oncontactchange);
+      });
     });
     test('> loading scripts with nfc enabled', function() {
       var oldNFC = navigator.mozNfc;
       navigator.mozNfc = true;
-      Contacts.onLocalized();
-
-      sinon.assert.called(window.dispatchEvent);
-      assert.isNotNull(navigator.mozContacts.oncontactchange);
-      assert.isTrue(lastParams.indexOf('/contacts/js/nfc.js') > -1);
-
-      navigator.mozNfc = oldNFC;
+      Contacts.onLocalized().then(() => {
+        assert.isNotNull(navigator.mozContacts.oncontactchange);
+        assert.isTrue(lastParams.indexOf('/contacts/js/nfc.js') > -1);
+        navigator.mozNfc = oldNFC;
+      });
     });
     test('> loading scripts while handling an open activity',
      function() {
       ActivityHandler.currentlyHandling = true;
-      Contacts.onLocalized();
-
-      sinon.assert.called(window.dispatchEvent);
-      assert.isNull(navigator.mozContacts.oncontactchange);
-
-      ActivityHandler.currentlyHandling = false;
+      Contacts.onLocalized().then(() => {
+        assert.isNull(navigator.mozContacts.oncontactchange);
+        ActivityHandler.currentlyHandling = false;
+      });
     });
   });
 
