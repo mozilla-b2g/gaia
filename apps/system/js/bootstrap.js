@@ -11,7 +11,7 @@
          applications, Rocketbar, LayoutManager, PermissionManager,
          SoftwareButtonManager, Accessibility, NfcUtils,
          TextSelectionDialog, SleepMenu, AppUsageMetrics,
-         LockScreenPasscodeValidator, NfcManager,
+         LockScreenPasscodeValidator,
          ExternalStorageMonitor, TrustedWindowManager,
          BrowserSettings, AppMigrator, SettingsMigrator,
          CpuManager, CellBroadcastSystem, EdgeSwipeDetector, QuickSettings,
@@ -178,8 +178,6 @@ window.addEventListener('load', function startup() {
   window.layoutManager = new LayoutManager();
   window.layoutManager.start();
   window.nfcUtils = new NfcUtils();
-  window.nfcManager = new NfcManager();
-  window.nfcManager.start();
   window.permissionManager = new PermissionManager();
   window.permissionManager.start();
   window.places = new Places();
