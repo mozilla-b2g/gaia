@@ -54,11 +54,11 @@
     },
 
     connect: function ns_connect() {
-      if(!navigator.presentation) {
+      if(!navigator.mozPresentation) {
         return null;
       }
 
-      return navigator.presentation.startSession(this.urlInput.value).then(
+      return navigator.mozPresentation.startSession(this.urlInput.value).then(
 
         function onFullfilled(session) {
           this.session = session;

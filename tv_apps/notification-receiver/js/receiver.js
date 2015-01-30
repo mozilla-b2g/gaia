@@ -35,22 +35,22 @@
       this._onMessage = this._handleMessage.bind(this);
       this._onStateChange = this._handleStateChange.bind(this);
 
-      if (navigator.presentation) {
-        if (navigator.presentation.session) {
+      if (navigator.mozPresentation) {
+        if (navigator.mozPresentation.session) {
           this._onSessionReady();
         } else {
-          navigator.presentation.addEventListener('sessionready',
+          navigator.mozPresentation.addEventListener('sessionready',
             this._onSessionReady);
         }
       }
     },
 
     uninit: function r_uninit() {
-      if (navigator.presentation) {
-        navigator.presentation.removeEventListener('sessionready',
+      if (navigator.mozPresentation) {
+        navigator.mozPresentation.removeEventListener('sessionready',
           this._onSessionReady);
 
-        var session = navigator.presentation.session;
+        var session = navigator.mozPresentation.session;
         if (session) {
           session.removeEventListener('message', this._onMessage);
           session.removeEventListener('statechange', this._onStateChange);
@@ -59,7 +59,7 @@
     },
 
     _handleSessionReady: function r_handleSessionReady() {
-      var session = navigator.presentation.session;
+      var session = navigator.mozPresentation.session;
       session.addEventListener('message', this._onMessage);
       session.addEventListener('statechange', this._onStateChange);
     },
