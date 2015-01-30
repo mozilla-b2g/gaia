@@ -124,22 +124,38 @@ define(function(require) {
       _forgetNetwork: function(network) {
         var self = this;
         var forgetNetworkDialog = elements.forgetNetworkDialog;
-        forgetNetworkDialog.hidden = false;
+        var cancelBtn =
+          forgetNetworkDialog.querySelector('button[type="reset"]');
+        var forgetBtn =
+          forgetNetworkDialog.querySelector('button.forget-network');
 
-        forgetNetworkDialog.onsubmit = function forget() {
+        var forget = function() {
           var request = wifiManager.forget(network);
           request.onsuccess = function() {
             self._cleanup();
             self._scan();
-            forgetNetworkDialog.hidden = true;
+            enableDialog(false);
           };
           return false;
         };
 
-        forgetNetworkDialog.onreset = function cancel() {
-          forgetNetworkDialog.hidden = true;
+        var cancel = function() {
+          enableDialog(false);
           return false;
         };
+
+        var enableDialog = function(enabled) {
+          if (enabled) {
+            cancelBtn.addEventListener('click', cancel);
+            forgetBtn.addEventListener('click', forget);
+          } else {
+            cancelBtn.removeEventListener('click', cancel);
+            forgetBtn.removeEventListener('click', forget);
+          }
+          forgetNetworkDialog.hidden = !enabled;
+        };
+
+        enableDialog(true);
       }
     });
   };
