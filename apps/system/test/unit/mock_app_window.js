@@ -26,6 +26,8 @@
   MockAppWindow.prototype = {
     prefix: 'mock-app-',
     isHomescreen: false,
+    CLASS_NAME: 'AppWindow',
+    HIERARCHY_MANAGER: 'AppWindowManager',
     get browserContainer() {
       if (!this._browserContainer) {
         this._browserContainer = document.createElement('div');

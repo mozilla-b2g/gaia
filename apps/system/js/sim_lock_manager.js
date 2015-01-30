@@ -18,9 +18,6 @@
     'simlockback',
     'simlockrequestclose'
   ];
-  SimLockManager.STATES = [
-    'isActive'
-  ];
   SimLockManager.SUB_MODULES = [
     'SimLockSystemDialog'
   ];
@@ -29,9 +26,6 @@
     _duringCall: false,
     _showPrevented: false,
     _alreadyShown: false,
-    isActive: function() {
-      return this._alreadyShown;
-    },
 
     _handle_simslotready: function() {
       this.showIfLocked();
