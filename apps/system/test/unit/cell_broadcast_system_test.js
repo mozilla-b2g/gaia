@@ -1,4 +1,4 @@
-/* global MocksHelper, MockNavigatorMozMobileConnections */
+/* global MocksHelper, MockNavigatorMozMobileConnections, CarrierInfoNotifier */
 'use strict';
 
 requireApp('system/js/carrier_info_notifier.js');
