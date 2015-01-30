@@ -589,14 +589,34 @@ suite('system/Rocketbar', function() {
     assert.ok(setInputStub.calledWith(''));
   });
 
-  test('handle hierarchy event - system-resize', function() {
-    subject.activate();
-    subject.searchWindow.frontWindow = {
-      resize: function() {}
-    };
-    var stub = this.sinon.stub(subject.searchWindow.frontWindow, 'resize');
-    subject.respondToHierarchyEvent(new CustomEvent('system-resize'));
-    assert.ok(stub.calledOnce);
+  suite('handle hierarchy event - system-resize', function() {
+    setup(function() {
+      subject.activate();
+    });
+
+    teardown(function() {
+      subject.searchWindow.frontWindow = undefined;
+    });
+
+    test('Search window with front window', function() {
+      subject.searchWindow.frontWindow = {
+        resize: function() {}
+      };
+      var stub = this.sinon.stub(subject.searchWindow.frontWindow, 'resize');
+      var respond =
+        subject.respondToHierarchyEvent(new CustomEvent('system-resize'));
+
+      assert.ok(stub.calledOnce);
+      assert.isFalse(respond);
+
+      stub.restore();
+    });
+
+    test('Search window without front window', function() {
+      var respond =
+        subject.respondToHierarchyEvent(new CustomEvent('system-resize'));
+      assert.isTrue(respond);
+    });
   });
 
   test('_handle_home', function() {
