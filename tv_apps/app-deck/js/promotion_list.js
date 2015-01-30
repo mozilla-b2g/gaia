@@ -104,13 +104,14 @@
   };
 
   proto._slideItemIn = function pl_slideItemIn(item) {
-    this.animator.classList.remove('hidden');
-    this.animator.classList.add('standby');
-
     // fill animation and start to slide
     this._fillMainBanner(this.animator, item);
     // cancel previous one if we already have it.
     this._cancelSliding();
+
+    // remove hidden and add standby to prepare for the startup of animation.
+    this.animator.classList.remove('hidden');
+    this.animator.classList.add('standby');
 
     this._animationTimeout = setTimeout(function() {
       this._contextItem = item;
@@ -125,6 +126,11 @@
     if (this._animationTimeout) {
       clearTimeout(this._animationTimeout);
       this._animationTimeout = 0;
+      // If _animationTimeout is not 0, it means the animation is prepared but
+      // is not triggered. So, we need to rollback the state while clear the
+      // timer.
+      this.animator.classList.remove('standby');
+      this.animator.classList.add('hidden');
     }
   };
 
@@ -140,7 +146,17 @@
     }
 
     if (this._contextItem === item) {
-      this._cancelSliding();
+      // If the context item is self, we don't need to slide anything and should
+      // clear all pending or sliding timer.
+      if (this.animator.classList.contains('sliding')) {
+        // If _contextItem is sliding now, we should clear the pending animation
+        // which means user presses key back and forward quickly.
+        this._pendingAnimationItem = null;
+      } else {
+        // We still need to clear the sliding timer because the waiting item may
+        // not be current item.
+        this._cancelSliding();
+      }
       return;
     }
 
