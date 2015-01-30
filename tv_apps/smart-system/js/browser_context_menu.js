@@ -1,4 +1,4 @@
-/* global MozActivity, IconsHelper, LazyLoader, applications */
+/* global MozActivity, IconsHelper, LazyLoader, applications, Animations */
 /* global BookmarksDatabase, XScrollable, KeyNavigationAdapter, SharedUtils */
 
 (function(window) {
@@ -33,6 +33,9 @@
     // All behaviors which no need to have multple events while holding the
         // key should use keyup
     this.keyNavigationAdapter.on('esc-keyup', this.hide.bind(this));
+
+    this.circleAnimation = Animations
+                           .createCircleAnimation(this.containerElement);
 
     return this;
   };
@@ -72,7 +75,10 @@
   };
 
   BrowserContextMenu.prototype._fetchElements = function bcm__fetchElements() {
-    this.element = document.getElementById(this.CLASS_NAME + this.instanceID);
+
+    var id = this.CLASS_NAME + this.instanceID;
+    this.element = document.getElementById(id);
+    this.contextFrame = document.getElementById(id + '-frame');
     this.elements = {};
 
     var toCamelCase = function toCamelCase(str) {
@@ -95,7 +101,8 @@
               ' data-type="action" ' +
               'id="' + this.CLASS_NAME + this.instanceID + '">' +
               '<header class="contextmenu-header"></header>' +
-              '<div class="contextmenu-list-frame">' +
+              '<div id="' + this.CLASS_NAME + this.instanceID + '-frame"' +
+                'class="contextmenu-list-frame">' +
                 '<menu class="contextmenu-list"></menu>' +
               '</div>' +
             '</form>';
@@ -155,39 +162,72 @@
     }
     this._injected = true;
     this.buildMenu(menu);
-    this.element.classList.add('visible');
     document.activeElement.blur();
     this.scrollable.catchFocus();
+    this.circleAnimation.play({type: 'grow'}, function() {
+      this.element.classList.add('visible');
+    }.bind(this));
+  },
+
+  BrowserContextMenu.prototype._createElement = function(item) {
+    var self = this;
+
+    var container = document.createElement('div');
+    var action = document.createElement('button');
+    var icon = document.createElement('div');
+    action.dataset.id = item.id;
+    action.dataset.value = item.value;
+    var l10nPayload = item.labelL10nId ? item.labelL10nId : {raw: item.label};
+    SharedUtils.localizeElement(action, l10nPayload);
+
+    action.className = self.ELEMENT_PREFIX + 'button';
+
+    if (item.icon) {
+      icon.classList.add(item.iconClass || 'icon');
+      icon.style.backgroundImage = 'url(' + item.icon + ')';
+    }
+
+    action.addEventListener('click', function(evt) {
+      if (self.hide(evt)) {
+        self.clickedItemCallback = item.callback.bind(item);
+      }
+    });
+
+    action.appendChild(icon);
+    container.appendChild(action);
+    this.elements.list.appendChild(container);
+  },
+
+  BrowserContextMenu.prototype._createTransitionHandler = function() {
+    var self = this;
+    var onFrameDisappear = function onFrameDisappear(evt) {
+      if (evt.propertyName === 'opacity' &&
+          evt.target === self.contextFrame) {
+        self.element.classList.remove('visible');
+        self.contextFrame.classList.remove('disappear');
+        self.contextFrame.removeEventListener(
+                             'transitionend', onFrameDisappear);
+        self.circleAnimation.play({type: 'shrink'}, function() {
+          if (self.app) {
+            self.app.focus();
+          }
+          if (self.clickedItemCallback) {
+            self.clickedItemCallback();
+          }
+        });
+      }
+    };
+
+    this.contextFrame.addEventListener('transitionend', onFrameDisappear);
   },
 
   BrowserContextMenu.prototype.buildMenu = function(items) {
     var self = this;
+
     this.elements.list.innerHTML = '';
-    items.forEach(function traveseItems(item) {
-      var container = document.createElement('div');
-      var action = document.createElement('button');
-      var icon = document.createElement('div');
-      action.dataset.id = item.id;
-      action.dataset.value = item.value;
-      var l10nPayload = item.labelL10nId ? item.labelL10nId : {raw: item.label};
-      SharedUtils.localizeElement(action, l10nPayload);
+    items.forEach(this._createElement, this);
 
-      action.className = self.ELEMENT_PREFIX + 'button';
-
-      if (item.icon) {
-        icon.classList.add(item.iconClass || 'icon');
-        icon.style.backgroundImage = 'url(' + item.icon + ')';
-      }
-
-      action.addEventListener('click', function(evt) {
-        self.hide(evt);
-        item.callback();
-      });
-
-      action.appendChild(icon);
-      container.appendChild(action);
-      this.elements.list.appendChild(container);
-    }, this);
+    this._createTransitionHandler();
 
     this.scrollable = new XScrollable({
       frameElem: this.elements.listFrame,
@@ -230,22 +270,25 @@
 
   BrowserContextMenu.prototype.hide = function(evt) {
     if (!this.element) {
-      return;
+      return false;
     }
-
-    this.keyNavigationAdapter.uninit();
 
     if (evt) {
       evt.preventDefault();
     }
 
+    if (this.circleAnimation.isPlaying()) {
+      return false;
+    }
+
+    this.keyNavigationAdapter.uninit();
+
     if (this.scrollable.currentItem) {
       this.scrollable.currentItem.blur();
     }
-    this.element.classList.remove('visible');
-    if (this.app) {
-      this.app.focus();
-    }
+
+    this.contextFrame.classList.add('disappear');
+    return true;
   };
 
   BrowserContextMenu.prototype.openUrl = function(url) {
