@@ -1,0 +1,108 @@
+@import url('../shared/style/input_areas.css');
+@import url('../shared/style/headers.css');
+@import url('../shared/style/switches.css');
+@import url('../shared/style/buttons.css');
+@import url('../shared/style/status.css');
+@import url('../shared/style/confirm.css');
+@import url('../shared/style/action_menu.css');
+@import url('../shared/style/progress_activity.css');
+@import url('../shared/style/tabs.css');
+@import url('../shared/style/value_selector.css');
+
+@import url('common.css');
+@import url('compose_cards.css');
+@import url('marquee.css');
+@import url('message_cards.css');
+@import url('setup_cards.css');
+
+
+@import url('../shared/elements/gaia-icons/gaia-icons.css');
+@import url('system/initlogo.css');
+@import url('battery_overlay/battery_overlay.css');
+@import url('wrapper/wrapper.css');
+@import url('chrome/chrome.css');
+@import url('../shared/elements/gaia_overflow_menu/style/external.css');
+@import url('definitions.css');
+
+@import url('system/system.css');
+@import url('system/keyboard.css');
+@import url('system/global-overlays.css');
+@import url('ime_menu.css');
+
+@import url('../shared/style/confirm.css');
+@import url('../shared/style/input_areas.css');
+@import url('../shared/style/switches.css');
+@import url('../shared/style/value_selector.css');
+@import url('../shared/style/date_selector.css');
+@import url('../shared/style/time_selector.css');
+@import url('../shared/style/object_menu.css');
+
+<!-- Include shared web components -->
+@import url('../shared/elements/gaia_progress/style/external.css');
+@import url('../shared/elements/gaia-icons/gaia-icons.css');
+
+@import url('fake-notification.css');
+@import url('ttlview/ttlview.css');
+@import url('accessibility/accessibility.css');
+@import url('sleep_menu/sleep_menu.css');
+@import url('utility_tray/utility_tray.css');
+@import url('../shared/style/action_menu.css');
+@import url('action_menu/action_menu_extended.css');
+
+@import url('date_selector/date_selector_extended.css');
+@import url('time_selector/time_selector_extended.css');
+
+@import url('statusbar/statusbar.css');
+
+@import url('software_button_manager/software_button_manager.css');
+
+@import url('icc.css');
+
+@import url('textselection_dialog/textselection_dialog.css');
+
+@import url('modal_dialog/prompt.css');
+@import url('modal_dialog/modal_dialog.css');
+
+@import url('authentication_dialog.css');
+
+@import url('value_selector/value_selector.css');
+
+@import url('trusted_ui/trusted_ui.css');
+
+@import url('permission_manager/permission_manager.css');
+
+@import url('app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css');
+
+@import url('app_install_manager/app_install_manager.css');
+@import url('cost_control/cost_control.css');
+@import url('quick_settings/quick_settings.css');
+@import url('media_playback/media_playback.css');
+@import url('notifications/notifications.css');
+@import url('notifications/downloads.css');
+@import url('cards_view/cards_view.css');
+@import url('bluetooth_transfer/bluetooth_transfer.css');
+@import url('update_manager/update_manager.css');
+@import url('media_recording/media_recording.css');
+@import url('themes/default/system.css');
+@import url('themes/default/core.css');
+@import url('themes/default/menus.css');
+@import url('themes/default/buttons.css');
+@import url('themes/default/banner.css');
+@import url('crash_reporter/crash_reporter.css');
+@import url('browser_frame/browser_frame.css');
+@import url('emergency_callback_manager/emergency_callback_manager.css');
+@import url('../shared/style/shrinking_ui.css');
+@import url('window_layout.css');
+@import url('window.css');
+@import url('app_titlebar.css');
+@import url('edges/edges.css');
+@import url('entry_sheet/entry_sheet.css');
+
+@import url('devtools/developer_hud.css');
+@import url('zindex.css');
+@import url('storage_watcher/storage_watcher.css');
+@import url('rocketbar/rocketbar.css');
+@import url('simcard.css');
+@import url('nfcconnect.css');
+@import url('firefox_account/firefox_account_container.css');
+@import url('mobileid/mobileid.css');

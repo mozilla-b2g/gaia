@@ -1,0 +1,7 @@
+{
+  "js": ["icc_helper.js", "mime_mapper.js", "advanced_timer.js", "iac_handler.js", "apn_helper.js", "tagged.js", "date_time_helper.js", "input_mgmt/input_app_list.js", "keyboard_helper.js", "template.js", "bookmarks_database.js", "elements/gaia_overflow_menu/script.js", "homescreens/confirm_dialog_helper.js", "image_utils.js", "uuid.js", "basket_client.js", "download/download_helper.js", "download/download_ui.js", "download/download_formatter.js", "download/download_store.js", "icons_helper.js"],
+  "style": ["confirm.css", "input_areas.css", "switches.css", "value_selector.css", "date_selector.css", "time_selector.css", "object_menu.css"],
+  "resources": ["apn.json", "branding/initlogo.png", "branding/initlogo_large.png", "media/ringtones/ringer_firefox.opus", "media/notifications/notifier_firefox.opus"],
+  "elements": ["gaia_confirm/script.js", "gaia_menu/script.js", "gaia_menu/locales/gaia_menu.{locale}.properties"],
+  "locales": ["date/date.{locale}.properties", "permissions/permissions.{locale}.properties", "download/download.{locale}.properties", "voicemail/voicemail.{locale}.properties", "lockscreen/lockscreen.{locale}.properties"]
+}
