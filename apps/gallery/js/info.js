@@ -3,6 +3,8 @@ $('info-close-button').onclick = function hideFileInformation() {
   // Enable NFC sharing when user closes info and returns to fullscreen view
   NFC.share(getCurrentFile);
   $('info-view').classList.add('hidden');
+  Array.forEach(document.querySelectorAll('body > section'),
+    function(elt) { elt.removeAttribute('aria-hidden'); });
 };
 
 function showFileInformation(fileinfo) {
@@ -19,6 +21,8 @@ function showFileInformation(fileinfo) {
   // We need to disable NFC sharing when showing file info view
   NFC.unshare();
   $('info-view').classList.remove('hidden');
+  Array.forEach(document.querySelectorAll('body > section'),
+    function(elt) { elt.setAttribute('aria-hidden', true); });
 
   function populateMediaInfo(fileinfo) {
     var data = {

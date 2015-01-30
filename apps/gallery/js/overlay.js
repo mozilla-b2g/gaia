@@ -35,6 +35,8 @@ var Overlay = {
   hide: function hide() {
     Overlay.current = null;
     $('overlay').classList.add('hidden');
+    Array.forEach(document.querySelectorAll('body > section'),
+      function(elt) { elt.removeAttribute('aria-hidden'); });
   },
 
   show: function show(id) {
@@ -104,6 +106,8 @@ var Overlay = {
       $('overlay-title').setAttribute('data-l10n-id', title);
       $('overlay-text').setAttribute('data-l10n-id', text);
       $('overlay').classList.remove('hidden');
+      Array.forEach(document.querySelectorAll('body > section'),
+        function(elt) { elt.setAttribute('aria-hidden', true); });
     });
   },
 

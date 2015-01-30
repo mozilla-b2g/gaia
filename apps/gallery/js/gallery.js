@@ -940,7 +940,7 @@ function deleteSelectedItems() {
     cancelId: 'cancel',
     confirmId: 'delete',
     danger: true
-  }, function() { // onSuccess
+  }, function() { // onConfirm
     // deleteFile is O(n), so this loop is O(n*n). If used with really large
     // selections, it might have noticably bad performance.  If so, we
     // can write a more efficient deleteFiles() function.
@@ -949,7 +949,14 @@ function deleteSelectedItems() {
       deleteFile(getFileIndex(selected[i].dataset.filename));
     }
     clearSelection();
+    Array.forEach(document.querySelectorAll('body > section'),
+      function(elt) { elt.removeAttribute('aria-hidden'); });
+  }, function() { // onCancel
+    Array.forEach(document.querySelectorAll('body > section'),
+      function(elt) { elt.removeAttribute('aria-hidden'); });
   });
+  Array.forEach(document.querySelectorAll('body > section'),
+    function(elt) { elt.setAttribute('aria-hidden', true); });
 }
 
 // Clicking on the share button in select mode shares all selected images
