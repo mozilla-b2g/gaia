@@ -1,7 +1,7 @@
 'use strict';
 
 /* exported MockSystemICC */
-function MockSystemICC(iccManager) {
+function MockSystemICC(iccManager, mobileConnections) {
   return {
     onresponse: function() {},
     _iccManager: iccManager,
@@ -34,6 +34,14 @@ function MockSystemICC(iccManager) {
     },
 
     hideViews: function() {},
+
+    getConnection: function(iccId) {
+      return mobileConnections[iccId];
+    },
+
+    getIcc: function(iccId){
+      return iccManager.getIccById(iccId);
+    },
 
     discardCurrentMessageIfNeeded: function(new_message) {}
   };
