@@ -14,15 +14,15 @@ suite('notification-receiver/Receiver', function() {
   var realNotification;
 
   suiteSetup(function() {
-    realPresentation = window.navigator.presentation;
-    window.navigator.presentation = MockPresentation;
+    realPresentation = navigator.mozPresentation;
+    navigator.mozPresentation = MockPresentation;
 
     realNotification = window.Notification;
     window.Notification = MockNotification;
   });
 
   suiteTeardown(function() {
-    window.navigator.presentation = realPresentation;
+    navigator.mozPresentation = realPresentation;
     window.Notification = realNotification;
   });
 
@@ -34,7 +34,7 @@ suite('notification-receiver/Receiver', function() {
 
     teardown(function() {
       MockPresentationSession.addEventListener.restore();
-      navigator.presentation._mReset();
+      navigator.mozPresentation._mReset();
       receiver.uninit();
     });
 
@@ -44,7 +44,7 @@ suite('notification-receiver/Receiver', function() {
 
         assert.isFalse(receiver._handleSessionReady.called);
         receiver.init();
-        navigator.presentation._mInjectSession(
+        navigator.mozPresentation._mInjectSession(
           MockPresentationSession._mCreateSession());
         assert.isTrue(receiver._handleSessionReady.calledOnce);
         assert.isTrue(
@@ -55,7 +55,7 @@ suite('notification-receiver/Receiver', function() {
 
     test('> _handleSessionReady should called once ' +
       'when session object is ready', function() {
-        navigator.presentation._mInjectSession(
+        navigator.mozPresentation._mInjectSession(
           MockPresentationSession._mCreateSession());
         this.sinon.spy(receiver, '_handleSessionReady');
 
@@ -73,13 +73,13 @@ suite('notification-receiver/Receiver', function() {
     setup(function() {
       receiver = new Receiver();
       this.sinon.spy(receiver, '_handleMessage');
-      navigator.presentation._mInjectSession(
+      navigator.mozPresentation._mInjectSession(
         MockPresentationSession._mCreateSession());
       receiver.init();
     });
 
     teardown(function() {
-      navigator.presentation._mReset();
+      navigator.mozPresentation._mReset();
       receiver.uninit();
     });
 
