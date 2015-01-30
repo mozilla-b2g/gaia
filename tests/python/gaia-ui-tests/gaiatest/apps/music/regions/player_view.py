@@ -44,6 +44,7 @@ class PlayerView(Base):
         """
 
         self.tap_cover_in_player_view()
+        Wait(self.marionette).until(expected.element_displayed(*self._get_star_locator(rate)))
         self.marionette.find_element(*self._get_star_locator(rate)).tap()
 
     @property
