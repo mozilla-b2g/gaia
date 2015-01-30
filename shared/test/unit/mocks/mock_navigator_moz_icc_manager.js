@@ -159,6 +159,7 @@
 
       object.sendStkResponse = function() {};
       object.sendStkMenuSelection = function() {};
+      object.sendStkEventDownload = function() {};
 
       return object;
     },
