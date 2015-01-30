@@ -59,5 +59,14 @@
   window.onload = function() {
     window.fp = new FlingPlayer();
     window.fp.init();
+
+    if (document.visibilityState === 'hidden') {
+      navigator.mozApps.getSelf().onsuccess = function(evt) {
+        var app = evt.target.result;
+        if (app) {
+          app.launch();
+        }
+      };
+    }
   };
 })(window);
