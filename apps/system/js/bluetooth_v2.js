@@ -301,15 +301,25 @@ var Bluetooth = {
         function onAttributeChanged(evt) {
           for (var i in evt.attrs) {
             switch (evt.attrs[i]) {
-              case 'address':
-                this.debug('defaultAdapter changed. address:',
-                  this._bluetooth.defaultAdapter.address);
+              case 'defaultAdapter':
+                this.debug('defaultAdapter changed.');
                 this._adapter = this._bluetooth.defaultAdapter;
+                this._adapter.onattributechanged = function onAttributeChanged(evt) {
+                  for (var i in evt.attrs) {
+                    switch (evt.attrs[i]) {
+                      case 'address':
+                        this.debug('defaultAdapter changed. address:',
+                          this._bluetooth.defaultAdapter.address);
+                        break;
+                      case 'stat':
+                        this._isEnabled = this._bluetooth.defaultAdapter.state;
+                        break;
+                      default:
+                        break;
+                    }
+                  }
+                }
                 resolve(this._adapter);
-                break;
-              case 'stat':
-                this._isEnabled = this._bluetooth.defaultAdapter.state;
-                break;
               default:
                 break;
             }
