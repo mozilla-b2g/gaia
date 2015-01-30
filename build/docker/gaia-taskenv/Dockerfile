@@ -30,3 +30,5 @@ run git config --global user.name "gaia-taskenv"
 copy ./bin/entrypoint /home/tester/bin/entrypoint
 copy ./bin/buildbot_step /home/tester/bin/buildbot_step
 run chmod a+x /home/tester/bin/entrypoint
+
+run npm install -g taskcluster-vcs@0.0.2  taskcluster-npm-cache@1.1
