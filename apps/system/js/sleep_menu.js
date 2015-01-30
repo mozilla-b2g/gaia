@@ -429,7 +429,9 @@
      */
     _actualPowerOff: function sm_actualPowerOff(isReboot) {
       var power = navigator.mozPower;
-
+      if (window.Radio) {
+        window.Radio.enabled = false;
+      }
       if (isReboot) {
         power.reboot();
       } else {
