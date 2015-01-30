@@ -1089,19 +1089,6 @@ section[role="status"].toast-visible {
 /******************************************************************************
  * Right-To-Left layout
  */
-
-html[dir="rtl"] section[role="region"] {
-  transform: translateX(-100%);
-}
-
-html[dir="rtl"] section[role="region"].previous {
-  transform: translateX(+100%);
-}
-
-html[dir="rtl"] section[role="region"].current {
-  transform: translateX(0);
-}
-
 html[dir="rtl"] .passcode-input {
   left: unset;
   right: 0;
