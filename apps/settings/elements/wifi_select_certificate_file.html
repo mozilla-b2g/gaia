@@ -1,9 +1,8 @@
 <element name="wifi-selectCertificateFile" extends="section">
   <template>
 
-    <gaia-header>
-      <button type="reset" data-icon="back"><span data-l10n-id="back">Back</span></button>
-      <h1 data-l10n-id="selectCertificateFile"> Select certificate file </h1>
+    <gaia-header action="back" data-href="#wifi-manageCertificates">
+      <h1 data-l10n-id="selectCertificateFile"></h1>
     </gaia-header>
 
     <div>
@@ -13,11 +12,11 @@
 
     <form role="dialog" data-type="confirm" class="certificate-import-failed" hidden>
       <section>
-        <h1 data-l10n-id="certificate-import-failed">Certificate import failed</h1>
-        <p data-l10n-id="certificate-import-failed-description">This may be due to a damaged certificate file, for example.</p>
+        <h1 data-l10n-id="certificate-import-failed"></h1>
+        <p data-l10n-id="certificate-import-failed-description"></p>
       </section>
       <menu>
-        <button data-l10n-id="ok" class="full danger" id="certificate-deletion-failed-confirm">OK</button>
+        <button data-l10n-id="ok" class="full danger" id="certificate-deletion-failed-confirm"></button>
       </menu>
     </form>
 
