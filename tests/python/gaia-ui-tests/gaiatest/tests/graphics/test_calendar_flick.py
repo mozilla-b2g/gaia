@@ -38,9 +38,9 @@ class TestCalendar(GaiaImageCompareTestCase):
 
         calendar.tap_week_display_button()
         self.take_screenshot()
-        self.scroll(calendar._week_view_locator, 'up', 100)
+        self.scroll(calendar._week_view_locator, 'up', 300)
         self.take_screenshot()
-        self.scroll(calendar._week_view_locator, 'down', 100)
+        self.scroll(calendar._week_view_locator, 'down', 300)
         self.take_screenshot()
         self.scroll(calendar._week_view_locator, 'left', 100)
         self.take_screenshot()
@@ -49,9 +49,9 @@ class TestCalendar(GaiaImageCompareTestCase):
 
         calendar.tap_day_display_button()
         self.take_screenshot()
-        self.scroll(calendar._day_view_locator, 'up', 100)
+        self.scroll(calendar._day_view_locator, 'up', 300)
         self.take_screenshot()
-        self.scroll(calendar._day_view_locator, 'down', 100)
+        self.scroll(calendar._day_view_locator, 'down', 300)
         self.take_screenshot()
         self.scroll(calendar._day_view_locator, 'left', 100)
         self.take_screenshot()
