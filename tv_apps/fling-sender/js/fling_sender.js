@@ -17,9 +17,10 @@
     this._urlBox = $('url-text-box');
     this._seekBox = $('seek-text-box');
 
-    ['load-btn', 'play-btn', 'pause-btn', 'seek-btn'].forEach(function(id) {
-      $(id).addEventListener('click', this);
-    }.bind(this));
+    ['start-btn', 'load-btn', 'play-btn', 'pause-btn', 'seek-btn'].forEach(
+      function(id) {
+        $(id).addEventListener('click', this);
+      }.bind(this));
   };
 
   proto.handleEvent = function fs_handleEvent(evt) {
