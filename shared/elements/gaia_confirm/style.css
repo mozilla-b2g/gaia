@@ -16,7 +16,6 @@ gaia-confirm {
   /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
   created by white-spaces and break lines in the code betewen inline-block elements */
   color: #fff;
-  text-align: left;
   display: flex;
   align-items: stretch;
   flex-direction: column;
@@ -25,6 +24,14 @@ gaia-confirm {
   magic number ideally to place confirm dialogs on top.
   */
   z-index: 2147483646;
+}
+
+html[dir="ltr"] gaia-confirm {
+  text-align: left;
+}
+
+html[dir="rtl"] gaia-confirm {
+  text-align: right;
 }
 
 gaia-confirm[hidden] {
