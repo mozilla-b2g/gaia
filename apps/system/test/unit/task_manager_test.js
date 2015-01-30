@@ -1229,8 +1229,18 @@ suite('system/TaskManager >', function() {
   });
 
   suite('event handling while shown', function() {
+    var sms, game;
     setup(function(done) {
       taskManager.hide(true);
+      sms = apps['http://sms.gaiamobile.org'];
+      game = apps['http://game.gaiamobile.org'];
+      MockStackManager.mStack = [ sms, game ];
+      MockStackManager.mCurrent = 0;
+      MockAppWindowManager.mRunningApps = {
+        'http://sms.gaiamobile.org': sms,
+        'http://game.gaiamobile.org': game
+      };
+
       waitForEvent(window, 'cardviewshown')
         .then(function() { done(); }, failOnReject);
       taskManager.isTaskStrip = false;
@@ -1266,6 +1276,22 @@ suite('system/TaskManager >', function() {
                        name + ' event was handled');
       });
     }, this);
+
+    // ensure lockscreen-appopened and attentionopened cause
+    // exit to last app
+    ['lockscreen-appopened', 'attentionopened'].forEach(function(name) {
+      test('exit to last app on ' + name, function() {
+        this.sinon.stub(sms, 'open');
+        this.sinon.spy(taskManager, 'exitToApp');
+        var evt = new CustomEvent(name, { });
+        window.dispatchEvent(evt);
+        assert.isTrue(taskManager.exitToApp.calledWith(sms),
+                      name + ' exitToApp called with last app');
+        assert.isTrue(sms.open.called,
+                      name + ' resulted in opening last app');
+      });
+    }, this);
+
   });
 
   suite('exit >', function() {

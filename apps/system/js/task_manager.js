@@ -78,6 +78,8 @@
      */
     sortingDirection: null,
 
+    _shouldGoBackHome: false,
+
     _showing: false
   }, {
     /**
@@ -372,13 +374,17 @@
     // If we are currently displaying the homescreen but we have apps in the
     // stack we will display the most recently used application.
     if (this.currentPosition == -1 || StackManager.outOfStack()) {
+      this._shouldGoBackHome = true;
       if (stack.length) {
         this.currentPosition = this.isTaskStrip ? 0 : stack.length - 1;
       } else {
       // consider homescreen the active app
         this.currentPosition = -1;
       }
+    } else {
+      this._shouldGoBackHome = false;
     }
+
     this.currentDisplayed = this.currentPosition;
     var currentApp = (stack.length && this.currentPosition > -1 &&
                      stack[this.currentPosition]);
@@ -840,8 +846,12 @@
       case 'attentionopened':
         this.newStackPosition = null;
         this.hide(true);
+        // try to return to previous app
+        if (!this._shouldGoBackHome && this.stack) {
+          app = this.stack[this.currentPosition];
+        }
         // no need to animate while in background
-        this.exitToApp(null, 'immediately');
+        this.exitToApp(app, 'immediately');
         break;
 
       case 'taskmanagershow':
