@@ -36,14 +36,34 @@ suite('observer/calendar_observer', function() {
   });
 
   test('calendarList should have cached calendars', function() {
-    assert.deepEqual(calendarObserver.calendarList, {
-      one: { _id: 'one', accountId: 55 },
-      two: { _id: 'two', accountId: 55 }
+    assert.lengthOf(Object.keys(calendarObserver.calendarList), 2);
+    var one = calendarObserver.calendarList.one;
+    var two = calendarObserver.calendarList.two;
+    assert.strictEqual(one.calendar.accountId, 55);
+    assert.strictEqual(one.calendar._id, 'one');
+    assert.isTrue(one.capabilities.canCreateEvent);
+    assert.strictEqual(two.calendar.accountId, 55);
+    assert.strictEqual(two.calendar._id, 'two');
+    assert.isTrue(two.capabilities.canCreateEvent);
+  });
+
+  test('change should notify new listeners of all calendars', function(done) {
+    calendarObserver.on('change', calendarList => {
+      assert.lengthOf(Object.keys(calendarList), 2);
+      done();
     });
   });
 
-  test('change should notify new listeners of all calendars', function() {
-    // TODO
+  test('adding a calendar should trigger observer', function() {
+    // TODO(gareth)
+  });
+
+  test('updating a calendar should trigger observer', function() {
+    // TODO(gareth)
+  });
+
+  test('deleting a calendar should trigger observer', function() {
+    // TODO(gareth)
   });
 });
 
