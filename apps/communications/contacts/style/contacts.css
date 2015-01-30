@@ -340,7 +340,7 @@ form p textarea + button[type="reset"].hide {
   margin-left: 0 !important;
 }
 
-#contact-detail p > strong,
+#contact-detail bdi > strong,
 .action-block b,
 .comment-notes {
   font-size: 1.6rem;
