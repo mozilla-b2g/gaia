@@ -216,11 +216,12 @@ var WifiUI = {
 
     // And then end we update the selected network
     var newWifi = document.getElementById(ssid);
-    newWifi.dataset.wifiSelected = true;
-    newWifi.querySelector('p[data-security-level]').setAttribute(
-                        'data-l10n-id', 'shortStatus-connecting');
-    newWifi.querySelector('aside').classList.add('connecting');
-
+    // We should update the state to 'connecting' in here to show the change
+    // to the user, instead of waiting for the api (takes longer). But currently
+    // there's no feedback from the api when connecting to a hidden wifi fails
+    // so we skip the visual changes
+    // see https://bugzilla.mozilla.org/show_bug.cgi?id=1107431#c25
+    newWifi.setAttribute('data-wifi-selected', true);
 
     // Finally we try to connect to the network
     WifiManager.connect(ssid, password, user);
