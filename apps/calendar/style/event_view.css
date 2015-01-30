@@ -19,8 +19,11 @@
   margin: 0;
   padding: 2rem 1.8rem;
   list-style-type: none;
+}
+
+#event-view ul * {
   /* allow selection of whole event data */
-  -moz-user-select: all;
+  -moz-user-select: text;
 }
 
 #event-view .content {
