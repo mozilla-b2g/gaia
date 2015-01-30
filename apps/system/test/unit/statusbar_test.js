@@ -2527,6 +2527,12 @@ suite('system/Statusbar', function() {
 
       assert.isFalse(updateIconSpy.called);
     });
+
+    test('should reprioritize when inactive state changes', function() {
+      fakeIcons.signals[0].dataset.inactive = true;
+      StatusBar.update.signal.call(StatusBar);
+      assert.isTrue(updateIconSpy.called);
+    });
   });
 
   suite('Data icons', function() {
