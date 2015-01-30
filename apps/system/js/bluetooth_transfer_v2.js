@@ -9,6 +9,7 @@
 
 // BluetoothTransfer.prototype = {
 var BluetoothTransfer = {
+  name: 'BluetoothTransfer',
   // The first-in-first-out queue maintain each scheduled sending task.
   // Each element is a object for scheduled sending tasks.
   _sendingFilesQueue: [],
@@ -55,6 +56,11 @@ var BluetoothTransfer = {
     window.addEventListener('bluetooth-opp-transfer-complete',
       this._onTransferComplete.bind(this)
     );
+
+    window.addEventListener('bluetooth-sendfile-via-handover',
+      this.sendFileViaHandover.bind(this));
+
+    Service.registerState('isSendFileQueueEmpty', this);
   },
 
   getDeviceName: function bt_getDeviceName(address) {
@@ -175,14 +181,13 @@ var BluetoothTransfer = {
   },
 
   onReceivingFileConfirmation: function bt_onReceivingFileConfirmation(evt) {
-    //TODO
-    /*if (NfcHandoverManager.isHandoverInProgress()) {
+    if (Service.query('NfcHandoverManager.isHandoverInProgress')) {
       // Bypassing confirm dialog while incoming file transfer via NFC Handover
       this.debug('Incoming file via NFC Handover. Bypassing confirm dialog');
       window.dispatchEvent(new CustomEvent('nfc-transfer-started'));
       this.acceptReceive(evt);
       return;
-    }*/
+    }
 
     // Prompt appears when a transfer request from a paired device is received.
     var address = evt.address;
@@ -340,11 +345,13 @@ var BluetoothTransfer = {
     };
   },
 
-  get isSendFileQueueEmpty() {
+  isSendFileQueueEmpty: function() {
     return this._sendingFilesQueue.length === 0;
   },
 
-  sendFileViaHandover: function bt_sendFileViaHandover(mac, blob) {
+  sendFileViaHandover: function bt_sendFileViaHandover(evt) {
+    var mac = evt.detail.mac;
+    var blob = evt.detail.blob;
     var promise = Bluetooth2.getAdapter();
     promise.then(function(adapter) {
       if (adapter != null) {
@@ -354,7 +361,7 @@ var BluetoothTransfer = {
           numSuccessful: 0,
           numUnsuccessful: 0
         };
-        this.onFilesSending({detail: sendingFilesSchedule});
+        this._onFilesSending({detail: sendingFilesSchedule});
         // XXX: Bug 915602 - [Bluetooth] Call sendFile api will crash
         // the system while device is just paired.
         // The paired device is ready to send file.
@@ -533,10 +540,7 @@ var BluetoothTransfer = {
       l10nArgs.bodyL10n = 'unknown-file';
     }
 
-    var promise = NotificationHelper.send(nData.titleL10n, {
-      'bodyL10n': nData.bodyL10n,
-      'icon': icon
-    });
+    var promise = NotificationHelper.send(nData.titleL10n, l10nArgs);
 
     if (nData.onclick) {
       promise.then(function(notification) {
@@ -553,11 +557,12 @@ var BluetoothTransfer = {
     this.summarizeSentFilesReport(transferInfo);
 
     // Inform NfcHandoverManager that the transfer completed
-    //TODO
-    /*var details = {received: transferInfo.received,
+    var details = {received: transferInfo.received,
                    success: transferInfo.success,
                    viaHandover: viaHandover};
-    NfcHandoverManager.transferComplete(details);*/
+
+    window.dispatchEvent(new CustomEvent('nfc-transfer-completed', {
+      detail: details}));
   },
 
   summarizeSentFilesReport: function bt_summarizeSentFilesReport(transferInfo) {

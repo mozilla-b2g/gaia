@@ -12,6 +12,7 @@
 
 // Bluetooth.prototype = {
 var Bluetooth = {
+  name: 'Bluetooth',
   /**
    * keep a global connected property.
    *
