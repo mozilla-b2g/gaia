@@ -1058,7 +1058,7 @@ suite('Render contacts list', function() {
         assert.equal(node.dataset.order,
           Normalizer.escapeHTML(expected, true));
 
-        var printed = node.querySelector('p');
+        var printed = node.querySelector('bdi');
 
         // Check as well the correct highlight
         // familyName to be in bold
@@ -1090,7 +1090,7 @@ suite('Render contacts list', function() {
       assert.equal(
         node.dataset.order, Normalizer.escapeHTML(expected, true));
 
-      var name = node.querySelector('p');
+      var name = node.querySelector('bdi');
 
       // Check highlight
       // Given name to be in bold
