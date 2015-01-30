@@ -147,7 +147,7 @@
     this.setActive(true);
 
     var screenElement = this.screenElement;
-    var activeApp = Service.query('getTopMostWindow');
+    var activeApp = Service.query('AppWindowManager.getActiveApp');
     if (!activeApp) {
       screenElement.classList.add('cards-view');
       return;

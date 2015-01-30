@@ -136,7 +136,9 @@ function FMDInit() {
   });
 }
 
-window.addEventListener('load', function fmdlauncher_load() {
-  window.removeEventListener('load', fmdlauncher_load);
-  FMDInit();
-});
+window.FindmydeviceLauncher = function() {};
+FindmydeviceLauncher.prototype.start = function() {
+  LazyLoader.load(['shared/js/findmydevice_iac_api.js']).then(function() {
+    FMDInit();
+  });
+};

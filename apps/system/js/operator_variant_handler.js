@@ -179,7 +179,13 @@
                                 .data.type;
 
         // Get a list of matching APNs
-        callback(ApnHelper.getCompatible(apn, mcc, mnc, networkType));
+        if (ApnHelper) {
+          callback(ApnHelper.getCompatible(apn, mcc, mnc, networkType));
+        } else {
+          LazyLoader.load(['shared/js/apn_helper.js']).then(function() {
+            callback(ApnHelper.getCompatible(apn, mcc, mnc, networkType));
+          });
+        }
       });
     },
 

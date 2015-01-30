@@ -7,10 +7,9 @@
     this.core = core;
     this.mobileConnections = mobileConnections;
   };
-  //MobileConnectionCore.IMPORTS = [
-  //  'shared/js/simslot.js',
-  //  'shared/js/simslot_manager.js'
-  //];
+  MobileConnectionCore.IMPORTS = [
+    'shared/js/icc_helper.js'
+  ];
   MobileConnectionCore.SUB_MODULES = [
     'Radio',
     'CallForwarding',
@@ -20,7 +19,9 @@
     'TelephonySettings',
     'OperatorVariantManager',
     'CostControl',
-    'InternetSharing'
+    'InternetSharing',
+    'CarrierInfoNotifier',
+    'IccCore'
   ];
 
   BaseModule.create(MobileConnectionCore, {

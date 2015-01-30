@@ -66,6 +66,9 @@
     'launchtrusted',
     'taskmanager-activated'
   ];
+  AppWindowManager.IMPORTS = [
+    'shared/js/tagged.js' // Used by taskCard, maybe everything needs it later
+  ];
   AppWindowManager.SUB_MODULES = [
     'StackManager',
     'SheetsTransition',
@@ -73,8 +76,9 @@
     'TaskManager',
     'FtuLauncher',
     'AppWindowFactory',
-    'Rocketbar',
-    'Places'
+    'Places',
+    'SuspendingAppPriorityManager',
+    'AppInstallManager'
   ];
   AppWindowManager.SETTINGS = [
     'continuous-transition.enabled',
@@ -275,7 +279,7 @@
           // Hide keyboard immediately.
           this.service.request('hideInputWindowImmediately');
         }
-      } else if (this.rocketbar && this.rocketbar.active) {
+      } else if (Service.query('Rocketbar.isActive')) {
         // Wait for the rocketbar to close
         window.addEventListener('rocketbar-overlayclosed', function onClose() {
           window.removeEventListener('rocketbar-overlayclosed', onClose);

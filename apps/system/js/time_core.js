@@ -21,6 +21,8 @@
      */
     _stepReady: false,
     _start: function() {
+      // XXX can be removed while gecko support navigator.mozHour12 API
+      LazyLoader.load(['shared/js/date_time_helper.js']);
       this.service.request('stepReady', '#date_and_time').then(function() {
         this._stepReady = true;
         return LazyLoader.load(['js/clock.js', 'js/time_icon.js']);

@@ -26,7 +26,7 @@ var BluetoothTransfer = {
     return transferStatusList;
   },
 
-  init: function bt_init() {
+  start: function bt_init() {
     // Bind message handler for sending files from Bluetooth app
     window.addEventListener('iac-bluetoothTransfercomms',
       this._onFilesSending.bind(this)

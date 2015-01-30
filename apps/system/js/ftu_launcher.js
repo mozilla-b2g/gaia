@@ -13,6 +13,10 @@
     'lockscreen-appopened',
     'appopened'
   ];
+  FtuLauncher.IMPORTS = [
+    'shared/js/uuid.js',
+    'js/ftu_ping.js'
+  ];
   FtuLauncher.STATES = [
     'isFtuUpgrading',
     'isFtuRunning',
@@ -20,6 +24,9 @@
   ];
   FtuLauncher.SERVICES = [
     'stepReady'
+  ];
+  FtuLauncher.SUB_MODULES = [
+    'NewsletterManager'
   ];
   BaseModule.create(FtuLauncher, {
     name: 'FtuLauncher',
