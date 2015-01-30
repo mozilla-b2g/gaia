@@ -7,7 +7,7 @@
 
 'use strict';
 
-require('/js/event_dispatcher.js');
+require('/shared/js/event_dispatcher.js');
 
 require('/test/unit/mock_message_manager.js');
 require('/test/unit/mock_navigation.js');

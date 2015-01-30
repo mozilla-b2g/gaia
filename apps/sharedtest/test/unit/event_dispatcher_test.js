@@ -4,7 +4,7 @@
 
 'use strict';
 
-require('/js/event_dispatcher.js');
+require('/shared/js/event_dispatcher.js');
 
 suite('EventDispatcher >', function() {
   var originalObject = {

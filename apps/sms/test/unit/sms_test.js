@@ -8,6 +8,7 @@
 'use strict';
 
 
+require('/shared/js/event_dispatcher.js');
 require('/shared/js/lazy_loader.js');
 require('/shared/js/gesture_detector.js');
 require('/shared/js/sticky_header.js');
@@ -29,7 +30,6 @@ require('/test/unit/messages_mockup.js');
 require('/test/unit/thread_list_mockup.js');
 
 require('/js/selection_handler.js');
-require('/js/event_dispatcher.js');
 require('/js/navigation.js');
 require('/js/link_helper.js');
 require('/js/drafts.js');

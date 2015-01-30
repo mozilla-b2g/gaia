@@ -5,7 +5,8 @@
 
 'use strict';
 
-require('/js/event_dispatcher.js');
+require('/shared/js/event_dispatcher.js');
+
 require('/js/iac/event_dispatcher.js');
 require('/test/unit/mock_shared_worker.js');
 

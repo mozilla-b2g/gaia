@@ -2,6 +2,58 @@
 
 /* exported EventDispatcher */
 
+/*
+ * This file provides an helper to add custom events to any object.
+ *
+ * In order to use this functionality wrap your object using the
+ * 'EventDispatcher.mixin' function:
+ *
+ * var obj = EventDispatcher.mixin(new SomeObj());
+ *
+ * A list of events can be optionally provided and it is recommended to do so.
+ * If a list is provided then only the events present in the list will be
+ * allowed. Using events not present in the list will cause other functions to
+ * throw an error:
+ *
+ * var obj = EventDispatcher.mixin(new SomeObj(), [
+ *   'somethinghappened',
+ *   'somethingelsehappened'
+ * ]);
+ *
+ * The wrapped object will have four new methods: 'on', 'off', 'offAll'
+ * and 'emit'. Use 'on' to register a new event-handler:
+ *
+ * obj.on("somethinghappened", function onSomethingHappened() { ... });
+ *
+ * If the same event-handler is added multiple times then only one will be
+ * registered, e.g.:
+ *
+ * function onSomethingHappened() { ... }
+ * obj.on("somethinghappened", onSomethingHappened);
+ * obj.on("somethinghappened", onSomethingHappened); // Does nothing
+ *
+ * Use 'off' to remove a registered listener:
+ *
+ * obj.off("somethinghappened", onSomethingHappened);
+ *
+ * And use 'offAll' to remove all registered event listeners for the specified
+ * event:
+ *
+ * obj.offAll("somethinghappened");
+ *
+ * When used without parameters 'offAll' removes all registered event handlers,
+ * this can be useful when writing unit-tests.
+ *
+ * Finally use 'emit' to send an event to the registered handlers:
+ *
+ * obj.emit("somethinghappened");
+ *
+ * An optional parameter can be passed to 'emit' to be passed to the registered
+ * handlers:
+ *
+ * obj.emit("somethinghappened", 123);
+ */
+
 (function(exports) {
   'use strict';
 
