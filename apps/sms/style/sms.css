@@ -1078,11 +1078,3 @@ html[dir="rtl"] .contact-header aside.pack-end {
 #threads-settings-button {
   display: none;
 }
-
-.threadlist-no-threads #threads-options-button {
-  display: none;
-}
-
-.threadlist-no-threads #threads-settings-button {
-  display: unset;
-}
