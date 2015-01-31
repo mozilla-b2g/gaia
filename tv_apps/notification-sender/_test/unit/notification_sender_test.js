@@ -27,13 +27,13 @@ suite('NotificationSender >', function() {
 
   setup(function() {
     subject = new NotificationSender();
-    realPresentation = navigator.presentation;
-    navigator.presentation = MockPresentation;
+    realPresentation = navigator.mozPresentation;
+    navigator.mozPresentation = MockPresentation;
 
   });
 
   teardown(function() {
-    navigator.presentation = realPresentation;
+    navigator.mozPresentation = realPresentation;
     MockPresentation._mReset();
     MockPresentationSession._mReset();
   });
