@@ -1062,3 +1062,7 @@ html[dir="rtl"] .contact-header aside.pack-end {
 .editable-select-mode [contenteditable] {
   -moz-user-select: text;
 }
+
+#threads-settings-button {
+  display: none;
+}
