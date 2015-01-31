@@ -154,7 +154,7 @@
     this.buildMenu(menu);
 
     this._createCloseMenuHandler();
-    this.circleAnimation.play({type: 'grow'}, function() {
+    this.circleAnimation.play('grow', function() {
       this.element.classList.add('visible');
       Animations.doBubbleAnimation(
                   this.contextFrame, '.' + this.ELEMENT_PREFIX + 'button', 100);
@@ -209,7 +209,7 @@
         self.contextFrame.classList.remove('disappear');
         self.contextFrame.removeEventListener(
                              'transitionend', onFrameDisappear);
-        self.circleAnimation.play({type: 'shrink'}, function() {
+        self.circleAnimation.play('shrink', function() {
           if (self.app) {
             self.app.focus();
           }

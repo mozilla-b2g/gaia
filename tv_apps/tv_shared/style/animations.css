@@ -5,7 +5,6 @@
   z-index: 9999;
   border-radius: 50%;
   height: 50rem;
-  /*Width must be the same as circleSize in doCircleTransition function*/
   width: 50rem;
   top: calc(100% - 25rem);
   left: calc(50% - 25rem);
@@ -13,11 +12,17 @@
 }
 
 .animation-circle.grow {
-  transition: transform 1s cubic-bezier(0.25, 0, 0 ,1);
+  animation: circleGrow 1s cubic-bezier(0, 0, 0 ,1);
 }
 
 .animation-circle.shrink {
-  transition: transform 0.7s cubic-bezier(0.5, 0, 0, 1);
+  animation: circleGrow 0.65s cubic-bezier(0.6, 0, 1 ,1);
+  animation-direction: reverse;
+}
+
+@keyframes circleGrow {
+    0%   {transform: scale(0.8);}
+    100% {transform: scale(6);} /* for 1920x1080 screen only */
 }
 
 .animation-bubble-start,
