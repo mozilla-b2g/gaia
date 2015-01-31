@@ -23,151 +23,149 @@
   var performance = window.performance;
   var console = window.console;
 
-  if (typeof performance.mark === 'function') {
-    return;
-  }
+  if (typeof performance.mark !== 'function') {
+    // Create a performance entry in the logs in a certain format so performance
+    // tests can extract and parse
+    var logEntry = function(entry) {
+      setTimeout(function() {
+        var message = 'Performance Entry: ' +
+          entry.entryType + '|' +
+          entry.name + '|' +
+          entry.startTime + '|' +
+          entry.duration + '|' +
+          (entry.time || 0);
 
-  // Create a performance entry in the logs in a certain format so performance
-  // tests can extract and parse
-  var logEntry = function(entry) {
-    setTimeout(function() {
-      var message = 'Performance Entry: ' +
-        entry.entryType + '|' +
-        entry.name + '|' +
-        entry.startTime + '|' +
-        entry.duration + '|' +
-        (entry.time || 0);
+        console.log(message);
+      }, 0);
+    };
 
-      console.log(message);
-    }, 0);
-  };
+    // only used for measure(), to quickly see the latest timestamp of a mark
+    var marks = {};
 
-  // only used for measure(), to quickly see the latest timestamp of a mark
-  var marks = {};
+    /**
+     * UserTiming mark
+     * http://www.w3.org/TR/user-timing/#dom-performance-mark
+     *
+     * @param {string} markName Mark name
+     */
+    performance.mark = function(markName) {
+      var now = performance.now();
+      var epoch = Date.now();
 
-  /**
-   * UserTiming mark
-   * http://www.w3.org/TR/user-timing/#dom-performance-mark
-   *
-   * @param {string} markName Mark name
-   */
-  performance.mark = function(markName) {
-    var now = performance.now();
-    var epoch = Date.now();
+      // mark name is required
+      if (typeof markName === 'undefined') {
+        throw new SyntaxError('Mark name must be specified');
+      }
 
-    // mark name is required
-    if (typeof markName === 'undefined') {
-      throw new SyntaxError('Mark name must be specified');
-    }
+      // mark name can't be a NT timestamp
+      if (performance.timing && markName in performance.timing) {
+        throw new SyntaxError('Mark name is not allowed');
+      }
 
-    // mark name can't be a NT timestamp
-    if (performance.timing && markName in performance.timing) {
-      throw new SyntaxError('Mark name is not allowed');
-    }
+      if (!marks[markName]) {
+        marks[markName] = [];
+      }
 
-    if (!marks[markName]) {
-      marks[markName] = [];
-    }
+      marks[markName].push(now);
 
-    marks[markName].push(now);
-
-    // add to perf timeline as well
-    logEntry({
-      entryType: 'mark',
-      name: markName,
-      startTime: now,
-      duration: 0,
-      time: epoch // NON-STANDARD EXTENSION
-    });
-  };
-
-  /**
-   * UserTiming measure
-   * http://www.w3.org/TR/user-timing/#dom-performance-measure
-   *
-   * @param {string} measureName Measure name
-   * @param {string} [startMark] Start mark name
-   * @param {string} [endMark] End mark name
-   */
-  performance.measure = function(measureName, startMark, endMark) {
-    var now = performance.now();
-    var epoch = Date.now();
-
-    if (!measureName) {
-      throw new Error('Measure must be specified');
-    }
-
-    // if there isn't a startMark, we measure from navigationStart to now
-    if (!startMark) {
+      // add to perf timeline as well
       logEntry({
-        entryType: 'measure',
-        name: measureName,
-        startTime: 0,
-        duration: now,
+        entryType: 'mark',
+        name: markName,
+        startTime: now,
+        duration: 0,
         time: epoch // NON-STANDARD EXTENSION
       });
+    };
 
-      return;
-    }
+    /**
+     * UserTiming measure
+     * http://www.w3.org/TR/user-timing/#dom-performance-measure
+     *
+     * @param {string} measureName Measure name
+     * @param {string} [startMark] Start mark name
+     * @param {string} [endMark] End mark name
+     */
+    performance.measure = function(measureName, startMark, endMark) {
+      var now = performance.now();
+      var epoch = Date.now();
 
-    // If there is a startMark, check for it first in the NavigationTiming
-    // interface, then check our own marks.
-    var startMarkTime = 0;
-    if (performance.timing && startMark in performance.timing) {
-      // mark cannot have a timing of 0
-      if (startMark !== 'navigationStart' &&
-        performance.timing[startMark] === 0) {
-        throw new Error(startMark + ' has a timing of 0');
+      if (!measureName) {
+        throw new Error('Measure must be specified');
       }
 
-      // time is the offset of this mark to navigationStart's time
-      startMarkTime = performance.timing[startMark] -
-        performance.timing.navigationStart;
-    } else {
-      if (startMark in marks) {
-        startMarkTime = marks[startMark][marks[startMark].length - 1];
-      } else {
-        throw new Error(startMark + ' mark not found');
+      // if there isn't a startMark, we measure from navigationStart to now
+      if (!startMark) {
+        logEntry({
+          entryType: 'measure',
+          name: measureName,
+          startTime: 0,
+          duration: now,
+          time: epoch // NON-STANDARD EXTENSION
+        });
+
+        return;
       }
-    }
 
-    // If there is a endMark, check for it first in the NavigationTiming
-    // interface, then check our own marks.
-    var endMarkTime = now;
-
-    if (endMark) {
-      endMarkTime = 0;
-
-      if (performance.timing && endMark in performance.timing) {
+      // If there is a startMark, check for it first in the NavigationTiming
+      // interface, then check our own marks.
+      var startMarkTime = 0;
+      if (performance.timing && startMark in performance.timing) {
         // mark cannot have a timing of 0
-        if (endMark !== 'navigationStart' &&
-          performance.timing[endMark] === 0) {
-          throw new Error(endMark + ' has a timing of 0');
+        if (startMark !== 'navigationStart' &&
+          performance.timing[startMark] === 0) {
+          throw new Error(startMark + ' has a timing of 0');
         }
 
         // time is the offset of this mark to navigationStart's time
-        endMarkTime = performance.timing[endMark] -
+        startMarkTime = performance.timing[startMark] -
           performance.timing.navigationStart;
       } else {
-        if (endMark in marks) {
-          endMarkTime = marks[endMark][marks[endMark].length - 1];
+        if (startMark in marks) {
+          startMarkTime = marks[startMark][marks[startMark].length - 1];
         } else {
-          throw new Error(endMark + ' mark not found');
+          throw new Error(startMark + ' mark not found');
         }
       }
-    }
 
-    // add to our measure array
-    var duration = endMarkTime - startMarkTime;
+      // If there is a endMark, check for it first in the NavigationTiming
+      // interface, then check our own marks.
+      var endMarkTime = now;
 
-    logEntry({
-      entryType: 'measure',
-      name: measureName,
-      startTime: startMarkTime,
-      duration: duration,
-      time: epoch // NON-STANDARD EXTENSION
-    });
-  };
+      if (endMark) {
+        endMarkTime = 0;
+
+        if (performance.timing && endMark in performance.timing) {
+          // mark cannot have a timing of 0
+          if (endMark !== 'navigationStart' &&
+            performance.timing[endMark] === 0) {
+            throw new Error(endMark + ' has a timing of 0');
+          }
+
+          // time is the offset of this mark to navigationStart's time
+          endMarkTime = performance.timing[endMark] -
+            performance.timing.navigationStart;
+        } else {
+          if (endMark in marks) {
+            endMarkTime = marks[endMark][marks[endMark].length - 1];
+          } else {
+            throw new Error(endMark + ' mark not found');
+          }
+        }
+      }
+
+      // add to our measure array
+      var duration = endMarkTime - startMarkTime;
+
+      logEntry({
+        entryType: 'measure',
+        name: measureName,
+        startTime: startMarkTime,
+        duration: duration,
+        time: epoch // NON-STANDARD EXTENSION
+      });
+    };
+  }
 
   // Export UserTiming to the appropriate location.
   //
