@@ -77,6 +77,18 @@ var ScreenManager = {
   _previousLux: undefined,
 
   /*
+   * auto adjust screen delays, see autoAdjustBrightness function
+   * wait for _autoAdjustDelay milliseconds before adjusting brightness value
+   */
+  _autoAdjustState: 0,
+  _autoAdjustDelay: 750,
+
+  /*
+   * keep track of last lux value during autoAdjustBrightness delay's
+   */
+  _autoDelayPrevLux: undefined,
+
+  /*
    * This property will host a ScreenBrightnessTransition instance
    * and control the brightness transition for us.
    * Eventually we want to move all brightness controls
@@ -195,16 +207,54 @@ var ScreenManager = {
   //
   // Automatically adjust the screen brightness based on the ambient
   // light (in lux) measured by the device light sensor
+  // This function uses a state machine to delay before
+  // adjusting the brightness. If the user waves a finger over
+  // the sensor, the display brightness will not be changed.
+  // The state machine (recorded in _autoAdjustState):
+  // state 0: startup state, lux value is stored in _autoDelayPrevLux
+  //          transitions to state 1 if lux delta > AUTO_BRIGHTNESS_MIN_DELTA
+  // state 1: in delay timer, lux value is stored in _autoDelayPrevLux
+  //          transitions to state 2 once time delay has elapsed
+  // state 2: end of delay, use _autoDelayPrevLux value for screen brightness
+  //          transitions to state 0 automatically
   //
+
   autoAdjustBrightness: function scm_adjustBrightness(lux) {
+    var self = this;
     if (lux < 1) { // Can't take the log of 0 or negative numbers
       lux = 1;
     }
-
     if (this._previousLux !== undefined) {
       var brightnessDelta = Math.abs(this._previousLux - lux);
       if (brightnessDelta <= this.AUTO_BRIGHTNESS_MIN_DELTA) {
         return;
+      }
+      // lux delta over the threshold, start a time delay, state 0 -> 1
+      if (this._autoAdjustState === 0) {
+        this._autoAdjustState = 1;
+        this._autoDelayPrevLux = lux;
+        // initialize delay timer
+        setTimeout(function () {
+            // function called when delay has elapsed, state 1 -> 2
+            self._autoAdjustState = 2;
+            self.autoAdjustBrightness(lux); // adjust the display (if required)
+          }, this._autoAdjustDelay );
+        return;
+      }
+      // lux change during delay timer
+      else if (this._autoAdjustState === 1) {
+        this._autoDelayPrevLux = lux;
+        return;
+      }
+      // end of delay, adjust brightness, state 2 -> 0
+      else if (this._autoAdjustState === 2) {
+        this._autoAdjustState = 0;
+        lux = this._autoDelayPrevLux;
+        brightnessDelta = Math.abs(this._previousLux - lux);
+        if (brightnessDelta <= this.AUTO_BRIGHTNESS_MIN_DELTA) {
+          return;
+        }
+        // fall through...
       }
     }
     this._previousLux = lux;
