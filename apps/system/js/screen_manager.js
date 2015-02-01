@@ -76,6 +76,12 @@ var ScreenManager = {
    */
   _previousLux: undefined,
 
+  AUTO_BRIGHTNESS_THROTTLING_DELAY_MS: 500,
+
+  _screenBrightnessThrottlingTimeout: null,
+
+  _screenBrightnessThrottlingValues: [],
+
   /*
    * This property will host a ScreenBrightnessTransition instance
    * and control the brightness transition for us.
@@ -192,6 +198,30 @@ var ScreenManager = {
     }
   },
 
+  throttleAutoAdjustBrightness: function scm_throttleAutoAdjustBrightness(lux) {
+    this._screenBrightnessThrottlingValues.push(lux);
+
+    if (this._screenBrightnessThrottlingTimeout === null) {
+      this._screenBrightnessThrottlingTimeout = setTimeout(
+        () => this.averageAutoAdjustBrightness(),
+        this.AUTO_BRIGHTNESS_THROTTLING_DELAY_MS
+      );
+    }
+  },
+
+  averageAutoAdjustBrightness: function scm_averageAutoAdjustBrightness() {
+    var l = this._screenBrightnessThrottlingValues.length;
+    var sum = 0;
+    for (var i = 0; i < l; i++) {
+      sum += this._screenBrightnessThrottlingValues[i];
+    }
+    var mean = sum / l;
+    this._screenBrightnessThrottlingValues.length = 0;
+    this._screenBrightnessThrottlingTimeout = null;
+
+    this.autoAdjustBrightness(mean);
+  },
+
   //
   // Automatically adjust the screen brightness based on the ambient
   // light (in lux) measured by the device light sensor
@@ -234,7 +264,7 @@ var ScreenManager = {
             this._inTransition) {
           return;
         }
-        this.autoAdjustBrightness(evt.value);
+        this.throttleAutoAdjustBrightness(evt.value);
         break;
 
       case 'sleep':

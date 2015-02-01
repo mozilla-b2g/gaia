@@ -1,5 +1,6 @@
 /* globals ScreenManager, ScreenBrightnessTransition,
            ScreenWakeLockManager,
+           DeviceLightEvent,
            MocksHelper, MockLockScreen, MockMozPower,
            MockSettingsListener, MocksleepMenu */
 
@@ -157,30 +158,35 @@ suite('system/ScreenManager', function() {
       test('if _deviceLightEnabled is false', function() {
         ScreenManager._deviceLightEnabled = false;
         ScreenManager.handleEvent({'type': 'devicelight'});
-        assert.isFalse(stubAutoAdjust.called);
-        stubAutoAdjust.reset();
+        sinon.assert.notCalled(stubAutoAdjust);
       });
 
       test('if screenEnabled is false', function() {
         ScreenManager.screenEnabled = false;
         ScreenManager.handleEvent({'type': 'devicelight'});
-        assert.isFalse(stubAutoAdjust.called);
-        stubAutoAdjust.reset();
+        sinon.assert.notCalled(stubAutoAdjust);
       });
 
       test('if _inTransition is true', function() {
         ScreenManager._inTransition = true;
         ScreenManager.handleEvent({'type': 'devicelight'});
-        assert.isFalse(stubAutoAdjust.called);
-        stubAutoAdjust.reset();
+        sinon.assert.notCalled(stubAutoAdjust);
       });
 
       test('put all together', function() {
         ScreenManager._deviceLightEnabled = true;
         ScreenManager.screenEnabled = true;
         ScreenManager._inTransition = false;
-        ScreenManager.handleEvent({'type': 'devicelight'});
-        assert.isTrue(stubAutoAdjust.called);
+        var event = new DeviceLightEvent('devicelight', { value: 5 });
+        ScreenManager.handleEvent(event);
+        event = new DeviceLightEvent('devicelight', { value: 9 });
+        ScreenManager.handleEvent(event);
+
+        sinon.assert.notCalled(stubAutoAdjust);
+        this.sinon.clock.tick(
+          ScreenManager.AUTO_BRIGHTNESS_THROTTLING_DELAY_MS
+        );
+        sinon.assert.calledWith(stubAutoAdjust, 7);
       });
     });
 
