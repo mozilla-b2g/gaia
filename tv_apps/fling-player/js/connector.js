@@ -27,7 +27,7 @@
     }
 
     this._session = session;
-    presentation.addEventListener('message', this);
+    this._session.onmessage = this.handleEvent.bind(this);
     this.initEvents();
   };
 
@@ -92,8 +92,7 @@
     if (error) {
       reply.error = error;
     }
-    //this._session.send(reply);
-    console.log('send ack: ' + JSON.stringify(reply));
+    this._session.send(JSON.stringify(reply));
   };
 
   proto.reportStatus = function c_reportStatus(status, data) {
@@ -109,8 +108,7 @@
     if (data.detail) {
       msg.detail = data.detail;
     }
-    console.log('send msg: ' + JSON.stringify(msg));
-    //this._session.send(msg);
+    this._session.send(JSON.stringify(msg));
   };
 
   proto.handleEvent = function c_handleEvent(evt) {
@@ -119,7 +117,7 @@
         this.initSession(presentation.session);
         break;
       case 'message':
-        this.handleRemoteMessage(evt.data);
+        this.handleRemoteMessage(JSON.parse(evt.data));
         break;
     }
   };

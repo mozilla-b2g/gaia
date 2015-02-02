@@ -26,7 +26,7 @@
   proto.handleEvent = function fs_handleEvent(evt) {
     switch(evt.type) {
       case 'message':
-        this.handleMessage(evt.data);
+        this.handleMessage(JSON.parse(evt.data));
         switch(evt.data.type) {
           case 'ack':
             this.handleMessage($('ack-result'), evt.data);
@@ -79,7 +79,7 @@
     }
     navigator.mozPresentation.startSession(PLAYER_URL).then(function (session) {
       this._session = session;
-      this._session.addEventListener('message', this);
+      this._session.onmessage = this.handleEvent.bind(this);
       this.enableButtons();
     }.bind(this), function fail() {
       console.log('start session rejected');
@@ -96,7 +96,7 @@
         msg[k] = data[k];
       }
     }
-    this._session.send(msg);
+    this._session.send(JSON.stringify(msg));
   };
 
   exports.FlingSender = FlingSender;
