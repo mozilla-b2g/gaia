@@ -57,6 +57,28 @@ define(function(require) {
         title.textContent = title.textContent;
       });
     },
+
+    /**
+     * We will use this method to get icc object.
+     *
+     * @memberOf SettingsUtils
+     * @param {Number} cardIndex - card index
+     */
+    getIccByIndex: function su_getIccByIndex(cardIndex) {
+      if (cardIndex === undefined) {
+        return null;
+      }
+
+      var iccObj;
+      if (navigator.mozMobileConnections[cardIndex]) {
+        var iccId = navigator.mozMobileConnections[cardIndex].iccId;
+        if (iccId) {
+          iccObj = navigator.mozIccManager.getIccById(iccId);
+        }
+      }
+
+      return iccObj;
+    }
   };
 
   return SettingsUtils;
