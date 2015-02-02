@@ -52,6 +52,11 @@ EditEvent.prototype = {
     this.setFormValue('location', value);
   },
 
+  get calendars() {
+    var select = this.findElement('select[name="calendarId"]');
+    return select.findElements('option');
+  },
+
   set calendar(value) {
     var select = this.findElement('select[name="calendarId"]');
     this.client.helper.tapSelectOption(select, value);

@@ -9,6 +9,9 @@ var Calendar = require('./lib/calendar'),
 var calendarName = 'firefox-os';
 
 marionette('interop basic', function() {
+  /* jshint -W027*/
+  return;
+
   var app, server;
   var client = marionette.client({
     settings: {

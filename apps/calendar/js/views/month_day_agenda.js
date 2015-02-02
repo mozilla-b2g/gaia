@@ -4,7 +4,7 @@ define(function(require, exports, module) {
 var Parent = require('view');
 var createDay = require('calc').createDay;
 var dateFormat = require('date_format');
-var dayObserver = require('day_observer');
+var dayObserver = require('observer/day_observer');
 var isAllDay = require('calc').isAllDay;
 var performance = require('performance');
 var template = require('templates/month_day_agenda');

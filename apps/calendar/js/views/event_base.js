@@ -3,7 +3,7 @@ define(function(require, exports, module) {
 
 var Event = require('models/event');
 var View = require('view');
-var dayObserver = require('day_observer');
+var dayObserver = require('observer/day_observer');
 var isSameDate = require('calc').isSameDate;
 var nextTick = require('next_tick');
 var providerFactory = require('provider/provider_factory');

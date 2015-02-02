@@ -2,9 +2,9 @@ define(function(require) {
 'use strict';
 
 var Factory = require('test/support/factory');
-var dayObserver = require('day_observer');
+var dayObserver = require('observer/day_observer');
 
-suite('day_observer', function() {
+suite('observer/day_observer', function() {
   var app;
   var busyToday1, busyToday2, busyTomorrow, busyTodayAllday;
   var event1, event2, event3, event4;

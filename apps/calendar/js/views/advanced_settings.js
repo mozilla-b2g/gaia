@@ -2,7 +2,9 @@ define(function(require, exports, module) {
 'use strict';
 
 var AlarmTemplate = require('templates/alarm');
+var CalendarSelect = require('calendar_select');
 var View = require('view');
+var debug = require('debug')('views/advanced_settings');
 var providerFactory = require('provider/provider_factory');
 var template = require('templates/account');
 
@@ -12,6 +14,14 @@ var ACCOUNT_PREFIX = 'account-';
 
 function AdvancedSettings(options) {
   View.apply(this, arguments);
+
+  this._addAccount = this._addAccount.bind(this);
+  this._updateAccount = this._updateAccount.bind(this);
+  this._removeAccount = this._removeAccount.bind(this);
+  this.onCreateAccount = this.onCreateAccount.bind(this);
+
+  this.calendarSelect = new CalendarSelect(this.defaultCalendar);
+
   this._initEvents();
 }
 module.exports = AdvancedSettings;
@@ -25,7 +35,7 @@ AdvancedSettings.prototype = {
     createAccountButton: '#advanced-settings-view .create-account',
     accountListHeader: '#advanced-settings-view .account-list-header',
     syncFrequency: '#setting-sync-frequency',
-
+    defaultCalendar: '#setting-default-calendar',
     standardAlarmLabel: '#default-event-alarm',
     alldayAlarmLabel: '#default-allday-alarm'
   },
@@ -44,6 +54,10 @@ AdvancedSettings.prototype = {
 
   get syncFrequency() {
     return this._findElement('syncFrequency');
+  },
+
+  get defaultCalendar() {
+    return this._findElement('defaultCalendar');
   },
 
   get standardAlarmLabel() {
@@ -80,16 +94,14 @@ AdvancedSettings.prototype = {
   _initEvents: function() {
     var account = this.app.store('Account');
     var setting = this.app.store('Setting');
-
-    account.on('add', this._addAccount.bind(this));
-    account.on('update', this._updateAccount.bind(this));
-    account.on('preRemove', this._removeAccount.bind(this));
-
-    this.createAccountButton.addEventListener('click',
-                                             this.onCreateAccount.bind(this));
+    account.on('add', this._addAccount);
+    account.on('update', this._updateAccount);
+    account.on('preRemove', this._removeAccount);
     setting.on('syncFrequencyChange', this);
+    this.calendarSelect.init();
+    this.createAccountButton.addEventListener('click', this.onCreateAccount);
     this.syncFrequency.addEventListener('change', this);
-
+    this.defaultCalendar.addEventListener('change', this);
     this.standardAlarmLabel.addEventListener('change', this);
     this.alldayAlarmLabel.addEventListener('change', this);
   },
@@ -103,6 +115,7 @@ AdvancedSettings.prototype = {
   },
 
   handleSettingUiChange: function(type, value) {
+    debug('Will change db setting for', type, 'to', value);
     var store = this.app.store('Setting');
     // basic conversions
     if (value === 'null') {
@@ -116,9 +129,10 @@ AdvancedSettings.prototype = {
         if (value !== null) {
           value = parseInt(value);
         }
-        store.set(type, value);
         break;
     }
+
+    return store.set(type, value);
   },
 
   handleEvent: function(event) {
@@ -127,6 +141,7 @@ AdvancedSettings.prototype = {
         var target = event.target;
         this.handleSettingUiChange(target.name, target.value);
         break;
+      case 'defaultCalendarChange':
       case 'syncFrequencyChange':
         this.handleSettingDbChange(event.type, event.data[0]);
         break;
@@ -181,6 +196,10 @@ AdvancedSettings.prototype = {
       var parentNode = el.parentNode;
       parentNode.removeChild(el);
     }
+  },
+
+  onfirstseen: function() {
+    this.render();
   },
 
   render: function() {
@@ -244,9 +263,6 @@ AdvancedSettings.prototype = {
     settings.getValue('alldayAlarmDefault', renderAlarmDefault('allday'));
     accounts.all(renderAccounts);
   }
-
 };
-
-AdvancedSettings.prototype.onfirstseen = AdvancedSettings.prototype.render;
 
 });

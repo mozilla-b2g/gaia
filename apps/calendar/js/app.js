@@ -12,7 +12,8 @@ var ServiceController = require('controllers/service');
 var SyncController = require('controllers/sync');
 var TimeController = require('controllers/time');
 var Views = {};
-var dayObserver = require('day_observer');
+var calendarObserver = require('observer/calendar_observer');
+var dayObserver = require('observer/day_observer');
 var debug = require('debug')('app');
 var messageHandler = require('message_handler');
 var nextTick = require('next_tick');
@@ -21,6 +22,7 @@ var periodicSyncController = require('controllers/periodic_sync');
 var page = require('ext/page');
 var performance = require('performance');
 var providerFactory = require('provider/provider_factory');
+var settingsObserver = require('observer/settings_observer');
 var snakeCase = require('snake_case');
 
 var pendingClass = 'pending-operation';
@@ -79,11 +81,13 @@ module.exports = {
     notificationsController.app = this;
     periodicSyncController.app = this;
 
+    calendarObserver.calendarStore = this.store('Calendar');
     dayObserver.busytimeStore = this.store('Busytime');
     dayObserver.calendarStore = this.store('Calendar');
     dayObserver.eventStore = this.store('Event');
     dayObserver.syncController = this.syncController;
     dayObserver.timeController = this.timeController;
+    settingsObserver.settingsStore = this.store('Setting');
 
     // observe sync events
     this.observePendingObject(this.syncController);
@@ -349,7 +353,11 @@ module.exports = {
       // calendars data, otherwise we might display events from calendars that
       // are not visible. this also makes sure we load the calendars as soon as
       // possible
-      this.store('Calendar').all(() => dayObserver.init());
+      this.store('Calendar').all(() => {
+        dayObserver.init();
+        calendarObserver.init();
+        settingsObserver.init();
+      });
 
       // we init the UI after the db.load to increase perceived performance
       // (will feel like busytimes are displayed faster)
