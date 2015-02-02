@@ -30,7 +30,7 @@ FakeTextSelectionApp.Selector = Object.freeze({
   NonEditableNonSelectedDiv: '#noneditable-userselectnone',
   // bug.html
   BugCenterInput: '#bug-center-input',
-  BugButtomInput: '#bug-buttom-input',
+  BugBottomInput: '#bug-bottom-input',
   BugNormalDiv: '#bug-normal-div',
   // bug1120358.html
   BugContent: '#bug-content',
