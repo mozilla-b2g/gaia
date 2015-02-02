@@ -15,7 +15,7 @@
      * A static timeout to make sure
      * the next event don't happen too late.
      */
-    NEXTPAINT_TIMEOUT: 500,
+    NEXTPAINT_TIMEOUT: 400,
 
     /**
      * Wait for a next paint event from mozbrowser iframe,
@@ -36,6 +36,12 @@
         }
         return;
       }
+
+      if (this.isHomescreen) {
+        setTimeout(callback);
+        return;
+      }
+
       var iframe = this.browser.element;
       var nextPaintTimer;
       var self = this;

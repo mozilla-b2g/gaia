@@ -1118,6 +1118,12 @@ suite('system/AppWindow', function() {
       app1.waitForNextPaint(callback2);
       this.sinon.clock.tick(app1.NEXTPAINT_TIMEOUT);
       assert.isTrue(callback2.called);
+
+      app1.isHomescreen = true;
+      var callback3 = this.sinon.spy();
+      app1.waitForNextPaint(callback3);
+      this.sinon.clock.tick();
+      assert.isTrue(callback3.called);
     });
   });
 
