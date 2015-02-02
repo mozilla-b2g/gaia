@@ -17,22 +17,23 @@
     this._urlBox = $('url-text-box');
     this._seekBox = $('seek-text-box');
 
-    ['start-btn', 'load-btn', 'play-btn', 'pause-btn', 'seek-btn'].forEach(
-      function(id) {
-        $(id).addEventListener('click', this);
-      }.bind(this));
+    ['start-btn', 'close-btn', 'load-btn', 'play-btn', 'pause-btn',
+     'seek-btn'].forEach(function(id) {
+
+      $(id).addEventListener('click', this);
+    }.bind(this));
   };
 
   proto.handleEvent = function fs_handleEvent(evt) {
     switch(evt.type) {
       case 'message':
-        this.handleMessage(JSON.parse(evt.data));
-        switch(evt.data.type) {
+        var data = JSON.parse(evt.data);
+        switch(data.type) {
           case 'ack':
-            this.handleMessage($('ack-result'), evt.data);
+            this.handleMessage($('ack-result'), data);
             break;
           case 'status':
-            this.handleMessage($('status-result'), evt.data);
+            this.handleMessage($('status-result'), data);
             break;
         }
         break;
@@ -40,6 +41,9 @@
         switch(evt.target.id) {
           case 'start-btn':
             this.startSession();
+            break;
+          case 'close-btn':
+            this.closeSession();
             break;
           case 'load-btn':
             this.sendCommand('load', {
@@ -63,13 +67,20 @@
   };
 
   proto.handleMessage = function fs_handleMessage(element, msg) {
-    element.textContent += JSON.stringify(msg);
+    element.textContent = JSON.stringify(msg);
   };
 
-  proto.enableButtons = function fs_enableButtons() {
-    ['load-btn', 'play-btn', 'pause-btn', 'seek-btn',
+  proto.handleStateChange = function fs_handleStateChange() {
+    if (!this._session || this._session.state === 'disconnected') {
+      this.disableButtons(true);
+      this._session = null;
+    }
+  };
+
+  proto.disableButtons = function fs_disableButtons(disabled) {
+    ['close-btn', 'load-btn', 'play-btn', 'pause-btn', 'seek-btn',
      'url-text-box', 'seek-text-box'].forEach(function(id) {
-      $(id).disabled = false;
+      $(id).disabled = disabled;
     }.bind(this));
   };
 
@@ -80,10 +91,17 @@
     navigator.mozPresentation.startSession(PLAYER_URL).then(function (session) {
       this._session = session;
       this._session.onmessage = this.handleEvent.bind(this);
-      this.enableButtons();
+      this._session.onstatechange = this.handleStateChange.bind(this);
+      this.disableButtons(false);
     }.bind(this), function fail() {
       console.log('start session rejected');
     }.bind(this));
+  };
+
+  proto.closeSession = function fs_closeSession() {
+    if (this._session) {
+      this._session.disconnect();
+    }
   };
 
   proto.sendCommand = function fs_sendCommand(command, data) {
