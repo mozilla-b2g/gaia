@@ -45,7 +45,6 @@ function Pop3Account(universe, compositeAccount, accountId, credentials,
   this._pendingConnectionRequests = [];
   this._backoffEndpoint =
       errbackoff.createEndpoint('pop3:' + this.id, this, this._LOG);
-  this.tzOffset = 0; // POP3 has no concept of time zones.
 
   // If we have an existing connection from setting up the account, we
   // can reuse that during the first sync.

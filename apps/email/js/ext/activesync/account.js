@@ -124,10 +124,6 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
   this.meta = folderInfos.$meta;
   this.mutations = folderInfos.$mutations;
 
-  // ActiveSync has no need of a timezone offset, but it simplifies things for
-  // FolderStorage to be able to rely on this.
-  this.tzOffset = 0;
-
   // Sync existing folders
   for (var folderId in folderInfos) {
     if (folderId[0] === '$')

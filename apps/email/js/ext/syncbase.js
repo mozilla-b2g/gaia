@@ -240,14 +240,16 @@ exports.BISECT_DATE_AT_N_MESSAGES = 60;
  */
 exports.TOO_MANY_MESSAGES = 2000;
 
-
 /**
- * If a folder has no messages, then we need to default the timezone, and
- * California is the most popular! (Someday: does DST matter?)
+ * How fuzzy should we consider the results from an IMAP server's
+ * SEARCH? Our database lookup during IMAP sync is extended on both
+ * sides by this amount. (IMAP servers do not consistently return
+ * SEARCH results, primarily due to timezone and implementation
+ * inconsistencies; see bug 886534.)
  *
- * IMAP only.
+ * IMAP only, fortunately.
  */
-exports.DEFAULT_TZ_OFFSET = -7 * 60 * 60 * 1000;
+exports.IMAP_SEARCH_AMBIGUITY_MS = $date.DAY_MILLIS;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Size Estimate Constants
