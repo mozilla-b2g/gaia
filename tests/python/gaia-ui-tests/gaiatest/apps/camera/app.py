@@ -208,7 +208,7 @@ class ImagePreview(Base):
 
     # for Gallery app switch
     _progress_bar_locator = (By.ID, 'progress')
-    _thumbnail_list_view_locator = (By.ID, 'thumbnail-list-view')
+    _thumbnail_list_view_locator = (By.CSS_SELECTOR, '#thumbnail-views > footer.thumbnails-list')
 
     @property
     def is_image_preview_visible(self):

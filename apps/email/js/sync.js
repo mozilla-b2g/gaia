@@ -75,6 +75,8 @@ define(function(require) {
           });
         }
 
+        title = title || mozL10n.get('notification-no-subject');
+
         var notification = new Notification(title, notificationOptions);
 
         // If the app is open, but in the background, when the notification
