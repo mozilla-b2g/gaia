@@ -344,7 +344,15 @@ contacts.Form = (function() {
       renderTemplate(field, contact[field]);
     });
 
-    deleteContactButton.onclick = function deleteClicked(event) {
+    deleteContactButton.addEventListener(
+      'click', deleteClicked.bind(this)
+    );
+    
+    deleteContactButton.addEventListener(
+      'contextmenu', deleteClicked.bind(this)
+    );
+
+    function deleteClicked(event) {
       var msg = 'deleteConfirmMsg';
       var yesObject = {
         title: 'delete',
@@ -366,7 +374,7 @@ contacts.Form = (function() {
       };
 
       Contacts.confirmDialog(null, msg, noObject, yesObject);
-    };
+    }
   };
 
   // Checks whether is an ICE contact or not
