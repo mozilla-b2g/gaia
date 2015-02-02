@@ -2,38 +2,36 @@
   <template>
 
     <header>
-      <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
-      <h1 data-l10n-id="callForwarding-header"> Call forwarding </h1>
+      <button type="reset"><span data-l10n-id="back" class="icon icon-back"></span></button>
+      <h1 data-l10n-id="callForwarding-header"></h1>
     </header>
 
     <div>
       <ul id="list-callForwarding">
         <li id="fdnSettingsBlocked" class="description" hidden>
-          <p data-l10n-id="fdn-enabled-warning">
-            Call forwarding is disabled by FDN.
-          </p>
+          <p data-l10n-id="fdn-enabled-warning"></p>
         </li>
         <li id="li-cfu-desc">
-          <a id="menuItem-callForwardingUnconditional" data-href="#call-cf-unconditionalSettings">
-            <span data-l10n-id="callForwardingUnconditional">Always forward</span>
+          <a class="callForwardingUnconditional" href="#">
+            <span data-l10n-id="callForwardingUnconditional"></span>
             <small id="cfu-desc"></small>
           </a>
         </li>
         <li id="li-cfmb-desc">
-          <a id="menuItem-callForwardingMobileBusy" data-href="#call-cf-mobileBusySettings">
-            <span data-l10n-id="callForwardingMobileBusy">Forward when busy</span>
+          <a class="callForwardingMobileBusy" href="#">
+            <span data-l10n-id="callForwardingMobileBusy"></span>
             <small id="cfmb-desc"></small>
           </a>
         </li>
         <li id="li-cfnrep-desc">
-          <a id="menuItem-callForwardingNoReply" data-href="#call-cf-noReplySettings">
-            <span data-l10n-id="callForwardingNoReply">Forward when unanswered</span>
+          <a class="callForwardingNoReply" href="#">
+            <span data-l10n-id="callForwardingNoReply"></span>
             <small id="cfnrep-desc"></small>
           </a>
         </li>
         <li id="li-cfnrea-desc">
-          <a id="menuItem-callForwardingNotReachable" data-href="#call-cf-notReachableSettings">
-            <span data-l10n-id="callForwardingNotReachable">Forward when unreachable</span>
+          <a class="callForwardingNotReachable" href="#">
+            <span data-l10n-id="callForwardingNotReachable"></span>
             <small id="cfnrea-desc"></small>
           </a>
         </li>
