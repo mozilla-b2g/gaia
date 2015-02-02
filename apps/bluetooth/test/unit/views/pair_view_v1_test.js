@@ -28,7 +28,7 @@ suite('Bluetooth app > Pairview ', function() {
 
     loadBodyHTML('./_onpair.html');
 
-    requireApp('bluetooth/js/views/pair_view.js', done);
+    requireApp('bluetooth/js/views/pair_view_v1.js', done);
   });
 
   suiteTeardown(function() {
