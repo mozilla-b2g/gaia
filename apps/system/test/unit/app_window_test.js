@@ -633,8 +633,10 @@ suite('system/AppWindow', function() {
 
   suite('ScreenshotOverlay State Control', function() {
     var app1;
+    var app2;
     setup(function() {
       app1 = new AppWindow(fakeAppConfig1);
+      app2 = new AppWindow(fakeAppConfig2);
       // Inject mozBrowser API to app iframe
       injectFakeMozBrowserAPI(app1.browser.element);
     });
@@ -680,6 +682,24 @@ suite('system/AppWindow', function() {
       assert.isTrue(app1.screenshotOverlay.classList.contains('visible'));
     });
 
+    test('show the frontest app ScreenshotOverlay', function() {
+      app1.frontWindow = app2;
+      this.sinon.stub(app2, 'isActive').returns(true);
+      var stubRequestScreenshotURL =
+        this.sinon.stub(app2, 'requestScreenshotURL');
+      app1._showScreenshotOverlay();
+      assert.isTrue(stubRequestScreenshotURL.called);
+      assert.isTrue(app2.screenshotOverlay.classList.contains('visible'));
+    });
+
+    test('should not show the frontest app ScreenshotOverlay if it is ' +
+         'not active', function() {
+      app1.frontWindow = app2;
+      this.sinon.stub(app2, 'isActive').returns(false);
+      app1._showScreenshotOverlay();
+      assert.isFalse(app2.screenshotOverlay.classList.contains('visible'));
+    });
+
     test('hideScreenshotOverlay', function() {
       app1.screenshotOverlay.classList.add('visible');
       app1.element.classList.add('overlay');
@@ -689,6 +709,23 @@ suite('system/AppWindow', function() {
       assert.isTrue(app1.element.classList.contains('overlay'));
       this.sinon.clock.tick(); // We wait for the next tick
       assert.isFalse(app1.element.classList.contains('overlay'));
+    });
+
+    test('hideScreenshotOverlay and its front window', function() {
+      app1.frontWindow = app2;
+      this.sinon.stub(app2, 'isActive').returns(true);
+      app2.screenshotOverlay.classList.add('visible');
+      app1.screenshotOverlay.classList.add('visible');
+      app2.element.classList.add('overlay');
+      app1.element.classList.add('overlay');
+      app1._hideScreenshotOverlay();
+      assert.isFalse(app1.screenshotOverlay.classList.contains('visible'));
+      assert.isFalse(app2.screenshotOverlay.classList.contains('visible'));
+      assert.isTrue(app1.element.classList.contains('overlay'));
+      assert.isTrue(app2.element.classList.contains('overlay'));
+      this.sinon.clock.tick(); // We wait for the next tick
+      assert.isFalse(app1.element.classList.contains('overlay'));
+      assert.isFalse(app2.element.classList.contains('overlay'));
     });
 
     test('hideScreenshotOverlay noop when the screenshot is not displayed',
