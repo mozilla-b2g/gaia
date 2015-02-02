@@ -2,6 +2,28 @@
 
 (function(exports) {
 
+var LayoutItemErrorInfo = function(layoutItemState) {
+  switch (layoutItemState) {
+    case LayoutItem.prototype.STATE_INSTALLING_CANCELLABLE:
+      this.error = this.ERROR_DOWNLOADERROR;
+      break;
+
+    case LayoutItem.prototype.STATE_INSTALLING:
+      this.error = this.ERROR_INSTALLERROR;
+      break;
+
+    case LayoutItem.prototype.STATE_REMOVING:
+      this.error = this.ERROR_REMOVEERROR;
+      break;
+
+    default:
+      throw new Error('LayoutItemErrorInfo: Error at invalid state.');
+  }
+};
+LayoutItemErrorInfo.prototype.ERROR_DOWNLOADERROR = 1;
+LayoutItemErrorInfo.prototype.ERROR_INSTALLERROR = 2;
+LayoutItemErrorInfo.prototype.ERROR_REMOVEERROR = 3;
+
 var LayoutItem = function(list, layout) {
   this.list = list;
 
@@ -23,6 +45,7 @@ var LayoutItem = function(list, layout) {
   }
 
   this._dictionary = null;
+  this._userCancelled = undefined;
 };
 
 LayoutItem.prototype.STATE_PRELOADED = 1;
@@ -32,6 +55,7 @@ LayoutItem.prototype.STATE_INSTALLING = 4;
 LayoutItem.prototype.STATE_INSTALLED = 5;
 LayoutItem.prototype.STATE_REMOVING = 6;
 
+LayoutItem.prototype.onerror = null;
 LayoutItem.prototype.onstatechange = null;
 LayoutItem.prototype.onprogress = null;
 
@@ -60,6 +84,8 @@ LayoutItem.prototype.install = function() {
   }
 
   var openLock = this.list.closeLockManager.requestLock('stayAwake');
+
+  this._userCancelled = false;
 
   var p = Promise.resolve()
     .then(function() {
@@ -93,9 +119,17 @@ LayoutItem.prototype.install = function() {
       });
     }.bind(this))
     .then(this.list.setLayoutAsInstalled.bind(this.list, this.id))
-    .then(openLock.unlock.bind(openLock))
-    .then(this._changeState.bind(this, this.STATE_INSTALLED))
+    .then(function() {
+      this._userCancelled = undefined;
+      openLock.unlock();
+      this._changeState(this.STATE_INSTALLED);
+    }.bind(this))
     .catch(function(e) {
+      if (!this._userCancelled) {
+        this._triggerError();
+      }
+
+      this._userCancelled = undefined;
       this.downloadLoadedSize = 0;
       this.downloadTotalSize = 0;
 
@@ -114,6 +148,7 @@ LayoutItem.prototype.cancelInstall = function() {
       'Can\'t cancel an install under this state.');
   }
 
+  this._userCancelled = true;
   this._dictionary.removeForLayout(this);
 };
 
@@ -154,6 +189,7 @@ LayoutItem.prototype.remove = function() {
     .then(openLock.unlock.bind(openLock))
     .then(this._changeState.bind(this, this.STATE_INSTALLABLE))
     .catch(function(e) {
+      this._triggerError();
       openLock.unlock();
       this._changeState(this.STATE_INSTALLED);
 
@@ -180,6 +216,12 @@ LayoutItem.prototype.updateInstallProgress = function(loaded, total) {
   }
 };
 
+LayoutItem.prototype._triggerError = function() {
+  if (typeof this.onerror === 'function') {
+    this.onerror(new LayoutItemErrorInfo(this.state));
+  }
+};
+
 LayoutItem.prototype._changeState = function(state) {
   this.state = state;
 
@@ -188,6 +230,7 @@ LayoutItem.prototype._changeState = function(state) {
   }
 };
 
+exports.LayoutItemErrorInfo = LayoutItemErrorInfo;
 exports.LayoutItem = LayoutItem;
 
 }(window));
