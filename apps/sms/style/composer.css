@@ -240,7 +240,6 @@ form[role="search"] button[type="submit"]:after {
   align-content: space-between;
   flex-wrap: wrap;
 
-  height: 100%;
   width: 6rem;
 
   -moz-user-select: none; /* without this, tapping on the element selects its content */
