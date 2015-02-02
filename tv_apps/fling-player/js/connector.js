@@ -10,6 +10,10 @@
   var proto = Connector.prototype;
 
   proto.init = function c_init() {
+    if (!presentation) {
+      return;
+    }
+
     if (presentation.session) {
       this.initSession(presentation.session);
     } else {
@@ -18,6 +22,10 @@
   };
 
   proto.initSession = function c_initSession(session) {
+    if (!presentation) {
+      return;
+    }
+
     this._session = session;
     presentation.addEventListener('message', this);
     this.initEvents();
