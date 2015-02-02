@@ -728,7 +728,11 @@ contacts.List = (function() {
         viewHeight = config.viewHeight;
       } else {
         viewHeight = scrollable.getBoundingClientRect().height;
-        utils.cookie.update({viewHeight: viewHeight});
+        // If the groups list is hiden, we'll get no height and so we don't
+        // store it.
+        if (viewHeight) {
+          utils.cookie.update({viewHeight: viewHeight});
+        }
       }
     }
     return viewHeight;
