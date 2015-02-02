@@ -1,17 +1,26 @@
+'use strict';
+
 var assert = require('assert'),
     NotificationTest = require('./lib/notification').NotificationTest,
     NotificationList = require('./lib/notification').NotificationList;
 
+var UtilityTray = require('./lib/utility_tray');
+
 var TARGET_APP = 'app://email.gaiamobile.org';
 var TARGET_APP_MANIFEST = TARGET_APP + '/manifest.webapp';
 
-marionette('launch an app via notification click', function() {
+marionette('notification actions', function() {
   var client = marionette.client({
+    prefs: {
+      'dom.w3c_touch_events.enabled': 1
+    },
     settings: {
       'ftu.manifestURL': null,
       'lockscreen.enabled': false
     }
   });
+
+  var utilityTray, actions;
   var notificationList = new NotificationList(client);
   var notification;
 
@@ -33,13 +42,15 @@ marionette('launch an app via notification click', function() {
 
     // go back to the system app
     client.switchToFrame();
+
+    utilityTray = new UtilityTray(client);
+    actions = client.loader.getActions();
   });
 
   test('clicking notification launches app', function() {
     // show utility tray
-    client.executeScript(function() {
-      window.wrappedJSObject.UtilityTray.show(true);
-    });
+    utilityTray.open();
+    utilityTray.waitForOpened();
 
     // make sure we have our notification to click
     notificationList.refresh();
@@ -51,6 +62,25 @@ marionette('launch an app via notification click', function() {
 
     // email will clear the notification from the tray, so wait
     // until the notification has indeed been cleared
+    client.waitFor(function() {
+      notificationList.refresh();
+      var notifications = notificationList.getForApp(TARGET_APP_MANIFEST);
+      return notifications.length === 0;
+    });
+  });
+
+  test('swiping to dismiss', function() {
+    // show utility tray
+    utilityTray.open();
+    utilityTray.waitForOpened();
+
+    // make sure we have our notification to click
+    notificationList.refresh();
+    var notifications = notificationList.getForApp(TARGET_APP_MANIFEST);
+    assert.equal(notifications.length, 1);
+
+    actions.flick(utilityTray.firstNotification, 5, 15, 125, 15, 100).perform();
+
     client.waitFor(function() {
       notificationList.refresh();
       var notifications = notificationList.getForApp(TARGET_APP_MANIFEST);
