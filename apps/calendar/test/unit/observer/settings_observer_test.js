@@ -19,6 +19,10 @@ suite('observer/settings_observer', function() {
   test('should emit correct value for setting', function() {
     // TODO
   });
+
+  test('changing setting should trigger observer', function() {
+    // TODO
+  });
 });
 
 });
