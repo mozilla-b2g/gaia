@@ -194,6 +194,15 @@ body.pickView #thumbnails {
   top: 5rem;
 }
 
+/*
+ * Give the very last thumbnail a large bottom margin so that it doesn't
+ * hide behind the overlaid toolbar in thumbnail list and select view.
+ */
+body.thumbnailSelectView #thumbnails > li:last-child .thumbnail:last-child,
+body.thumbnailListView #thumbnails > li:last-child .thumbnail:last-child {
+  margin-bottom: 4.5rem;
+}
+
 .thumbnail-group-header {
   font-size: 1.6rem;
   font-weight: 400;
@@ -279,15 +288,6 @@ body.pickView #thumbnails {
 /* RTL modifications */
 html[dir=rtl] #thumbnails-number-selected {
   direction: rtl;
-}
-
-/*
- * give the very last thumbnail a large bottom margin so that it doesn't
- * hide behind the overlaid toolbar in thumbnail list and select view.
- */
-body.thumbnailSelectView .thumbnail:last-child,
-body.thumbnailListView .thumbnail:last-child {
-  margin-bottom: 4.5rem;
 }
 
 @media (orientation: landscape) {
