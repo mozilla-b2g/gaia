@@ -26,7 +26,7 @@ and talk to us on IRC:
 
 ## Autolander (bot)
 
-Autolander is a bot which integrations github and bugzilla workflows. Opt-into new features by adding +autolander to your pull request title.
+Autolander is a bot which integrations github and bugzilla workflows.
 
 Features available:
   - Automatic pull request to bugzilla attachment linking.
@@ -34,7 +34,7 @@ Features available:
   - Comments in the bug with the landed commit, and marks the bug as fixed.
   - Validates pull request title and commit message formats.
   - Currently only runs a subset of the gaia CI tests which are stable on taskcluster. Ensure you have a green gaia-try run before adding checkin-needed.
-  - See more at: https://github.com/mozilla/autolander
+  - See more at: https://github.com/mozilla/autolander [The Autolander guide on MDN](https://developer.mozilla.org/en-US/Firefox_OS/Developing_Gaia/Submitting_a_Gaia_patch#Easy_patch_submission_with_Autolander)
 
 
 ## Tests
