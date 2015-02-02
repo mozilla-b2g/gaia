@@ -1,5 +1,5 @@
 /* globals ScreenManager, ScreenBrightnessTransition,
-           ScreenWakeLockManager,
+           ScreenWakeLockManager, ScreenAutoBrightness,
            MocksHelper, MockLockScreen, MockMozPower,
            MockSettingsListener, MocksleepMenu */
 
@@ -42,6 +42,7 @@ var mocksForScreenManager = new MocksHelper([
   'Service'
 ]).init();
 
+require('/js/screen_auto_brightness.js');
 require('/js/screen_brightness_transition.js');
 require('/js/wake_lock_manager.js');
 
@@ -51,6 +52,7 @@ suite('system/ScreenManager', function() {
 
   var stubScreenBrightnessTransition;
   var stubScreenWakeLockManager;
+  var stubScreenAutoBrightness;
 
   setup(function(done) {
     window.lockScreen = MockLockScreen;
@@ -61,6 +63,11 @@ suite('system/ScreenManager', function() {
       this.sinon.stub(ScreenBrightnessTransition.prototype);
     this.sinon.stub(window, 'ScreenBrightnessTransition')
       .returns(stubScreenBrightnessTransition);
+
+    stubScreenAutoBrightness =
+      this.sinon.stub(ScreenAutoBrightness.prototype);
+    this.sinon.stub(window, 'ScreenAutoBrightness')
+      .returns(stubScreenAutoBrightness);
 
     stubScreenWakeLockManager =
       this.sinon.stub(ScreenWakeLockManager.prototype);
@@ -148,31 +155,23 @@ suite('system/ScreenManager', function() {
 
   suite('handleEvent()', function() {
     suite('Testing devicelight event', function() {
-      var stubAutoAdjust;
-
-      setup(function() {
-        stubAutoAdjust = this.sinon.stub(ScreenManager, 'autoAdjustBrightness');
-      });
 
       test('if _deviceLightEnabled is false', function() {
         ScreenManager._deviceLightEnabled = false;
         ScreenManager.handleEvent({'type': 'devicelight'});
-        assert.isFalse(stubAutoAdjust.called);
-        stubAutoAdjust.reset();
+        assert.isFalse(stubScreenAutoBrightness.autoAdjust.called);
       });
 
       test('if screenEnabled is false', function() {
         ScreenManager.screenEnabled = false;
         ScreenManager.handleEvent({'type': 'devicelight'});
-        assert.isFalse(stubAutoAdjust.called);
-        stubAutoAdjust.reset();
+        assert.isFalse(stubScreenAutoBrightness.autoAdjust.called);
       });
 
       test('if _inTransition is true', function() {
         ScreenManager._inTransition = true;
         ScreenManager.handleEvent({'type': 'devicelight'});
-        assert.isFalse(stubAutoAdjust.called);
-        stubAutoAdjust.reset();
+        assert.isFalse(stubScreenAutoBrightness.autoAdjust.called);
       });
 
       test('put all together', function() {
@@ -180,7 +179,7 @@ suite('system/ScreenManager', function() {
         ScreenManager.screenEnabled = true;
         ScreenManager._inTransition = false;
         ScreenManager.handleEvent({'type': 'devicelight'});
-        assert.isTrue(stubAutoAdjust.called);
+        assert.isTrue(stubScreenAutoBrightness.autoAdjust.called);
       });
     });
 
@@ -594,7 +593,6 @@ suite('system/ScreenManager', function() {
       stubSetBrightness = this.sinon.stub(ScreenManager, 'setScreenBrightness');
       stubAddListener = this.sinon.stub(window, 'addEventListener');
       stubRemoveListener = this.sinon.stub(window, 'removeEventListener');
-      ScreenManager._previousLux = 20;
     });
 
     test('if setDeviceLightEnabled(false) and ' +
@@ -608,14 +606,12 @@ suite('system/ScreenManager', function() {
     test('if argument is true', function() {
       ScreenManager.setDeviceLightEnabled(true);
       assert.isFalse(stubSetBrightness.called);
-      assert.isUndefined(ScreenManager._previousLux);
     });
 
     test('if argument is false', function() {
       ScreenManager.setDeviceLightEnabled(false);
       assert.isFalse(stubAddListener.called);
       assert.isTrue(stubRemoveListener.called);
-      assert.isUndefined(ScreenManager._previousLux);
     });
 
     test('if argument & screenEnabled are both true', function() {
@@ -623,7 +619,6 @@ suite('system/ScreenManager', function() {
       ScreenManager.setDeviceLightEnabled(true);
       assert.isTrue(stubAddListener.called);
       assert.isFalse(stubRemoveListener.called);
-      assert.isUndefined(ScreenManager._previousLux);
     });
   });
 
@@ -662,55 +657,6 @@ suite('system/ScreenManager', function() {
     assert.isTrue(stubDispatchEvent.called);
   });
 
-  suite('autoAdjustBrightness()', function() {
-    var stubSetBrightness;
-
-    setup(function() {
-      ScreenManager._targetBrightness = -1;
-      ScreenManager._previousLux = undefined;
-      stubSetBrightness = this.sinon.stub(ScreenManager, 'setScreenBrightness');
-    });
-
-    test('auto adjust brightness to lux 0.1', function() {
-      ScreenManager.autoAdjustBrightness(0.1);
-      assert.isTrue(stubSetBrightness.calledWith(0.1));
-    });
-
-    test('auto adjust brightness to lux 1', function() {
-      ScreenManager.autoAdjustBrightness(1);
-      assert.isTrue(stubSetBrightness.calledWith(0.1));
-    });
-
-    test('auto adjust brightness to lux 10', function() {
-      ScreenManager.autoAdjustBrightness(10);
-      assert.isTrue(stubSetBrightness.calledWith(0.27));
-    });
-
-    test('auto adjust brightness to lux 10000', function() {
-      ScreenManager.autoAdjustBrightness(10000);
-      assert.isTrue(stubSetBrightness.calledWith(1));
-    });
-
-    test('auto adjust brightness to lux 20000', function() {
-      ScreenManager.autoAdjustBrightness(20000);
-      assert.isTrue(stubSetBrightness.calledWith(1));
-    });
-
-    test('auto adjust to same value as current brightness', function() {
-      ScreenManager._previousLux = 1;
-      ScreenManager.autoAdjustBrightness(1);
-      assert.isFalse(stubSetBrightness.called);
-    });
-
-    test('auto adjust is not triggered if the change is too small', function() {
-      ScreenManager._previousLux = 1;
-      ScreenManager.autoAdjustBrightness(8);
-      sinon.assert.notCalled(stubSetBrightness);
-      ScreenManager.autoAdjustBrightness(12);
-      sinon.assert.called(stubSetBrightness);
-    });
-  });
-
   suite('toggleScreen()', function() {
     var stubTurnOff, stubTurnOn;
 
@@ -734,7 +680,7 @@ suite('system/ScreenManager', function() {
     });
   });
 
-  suite('Attention window openn events', function() {
+  suite('Attention window open events', function() {
     test('handle attentionopening event', function() {
       // The public interface is event, so we manually fire and forward it to
       // the handler, to avoid the asynchronous part which is unnecessary in
