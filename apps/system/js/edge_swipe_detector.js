@@ -99,9 +99,12 @@
         case 'mousedown':
         case 'mousemove':
         case 'mouseup':
-          // Preventing gecko reflows until
-          // https://bugzilla.mozilla.org/show_bug.cgi?id=1005815 lands
+          // We want to pass mouse events through to the iframe underneath
+          // always.
           e.preventDefault();
+          var iframe = StackManager.getCurrent().getTopMostWindow().iframe;
+          iframe.sendMouseEvent(e.type, e.screenX, e.screenY, e.button,
+                                (e.type == 'mousemove' ? 0 : 1), 0);
           break;
         case 'touchstart':
           e.preventDefault();
