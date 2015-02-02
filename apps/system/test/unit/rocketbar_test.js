@@ -1,6 +1,6 @@
 'use strict';
 /* global Rocketbar, MocksHelper, MockIACPort, MockSearchWindow,
-   MockService, MockPromise */
+   MockService, MockPromise, MockAppWindow */
 
 require('/shared/js/event_safety.js');
 requireApp('system/test/unit/mock_app_window.js');
@@ -587,6 +587,53 @@ suite('system/Rocketbar', function() {
 
     // Should clear the input
     assert.ok(setInputStub.calledWith(''));
+  });
+
+  suite('handle hierarchy event - value selector', function() {
+    test('Value selector event with front window',
+      function() {
+        var searchWindow = new MockSearchWindow();
+        subject.searchWindow = searchWindow;
+        var app1 = new MockAppWindow();
+        this.sinon.stub(searchWindow, 'getTopMostWindow').returns(app1);
+        this.sinon.stub(app1, 'broadcast');
+        var respond =
+          subject.respondToHierarchyEvent(new CustomEvent('mozChromeEvent', {
+            detail: {
+              type: 'inputmethod-contextchange'
+            }
+          }));
+        assert.isFalse(respond);
+        assert.isTrue(app1.broadcast.calledWith('inputmethod-contextchange'));
+      });
+
+    test('Value selector event without front window',
+      function() {
+        var searchWindow = new MockSearchWindow();
+        subject.searchWindow = searchWindow;
+        this.sinon.stub(searchWindow, 'broadcast');
+        var respond =
+          subject.respondToHierarchyEvent(new CustomEvent('mozChromeEvent', {
+            detail: {
+              type: 'inputmethod-contextchange'
+            }
+          }));
+        assert.isFalse(respond);
+        assert.isTrue(
+          searchWindow.broadcast.calledWith('inputmethod-contextchange'));
+      });
+
+    test('Value selector event without search window',
+      function() {
+        subject.searchWindow = null;
+        var respond =
+          subject.respondToHierarchyEvent(new CustomEvent('mozChromeEvent', {
+            detail: {
+              type: 'inputmethod-contextchange'
+            }
+          }));
+        assert.isTrue(respond);
+      });
   });
 
   suite('handle hierarchy event - system-resize', function() {
