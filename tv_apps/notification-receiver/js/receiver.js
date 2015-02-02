@@ -52,7 +52,9 @@
 
         var session = navigator.mozPresentation.session;
         if (session) {
-          session.removeEventListener('message', this._onMessage);
+          // XXX: message is an exception that we could not use addEventListener
+          // on it. See http://bugzil.la/1128384
+          session.onmessage = undefined;
           session.removeEventListener('statechange', this._onStateChange);
         }
       }
@@ -60,7 +62,9 @@
 
     _handleSessionReady: function r_handleSessionReady() {
       var session = navigator.mozPresentation.session;
-      session.addEventListener('message', this._onMessage);
+      // XXX: message is an exception that we could not use addEventListener
+      // on it. See http://bugzil.la/1128384
+      session.onmessage = this._onMessage;
       session.addEventListener('statechange', this._onStateChange);
     },
 
@@ -75,7 +79,7 @@
       if (message.name) {
         sender = message.name;
       } else {
-        sender = message.call;
+        sender = message.callingParty;
       }
       switch(message.type) {
         case 'start-ringing':
@@ -90,12 +94,12 @@
       return body;
     },
 
-    // We assume incoming message event are in format below for now:
-    // 1. {data: {"call":"0987654321", "type":"start-ringing"}}
-    // 2. {data: {"call":"0987654321", "type":"stop-ringing"}}
+    // We assume incoming message event are in string format below for now:
+    // 1. {data: {"callingParty":"0987654321", "type":"start-ringing"}}
+    // 2. {data: {"callingParty":"0987654321", "type":"stop-ringing"}}
     // 3. {
     //      data: {
-    //        "call":"+886987654321",
+    //        "callingParty":"+886987654321",
     //        "name":null,
     //        "type":"sms",
     //        "body":"Test"
@@ -103,7 +107,7 @@
     //    }
     // Message format is subject to change.
     _handleMessage: function r_handleMessage(evt) {
-      var message = evt.data;
+      var message = JSON.parse(evt.data);
       var type = message.type;
 
       if (this._isKnownType(type)) {

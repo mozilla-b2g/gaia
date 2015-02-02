@@ -30,6 +30,10 @@
       }
     },
 
+    get onmessage () {
+      return this._onmessage;
+    },
+
     send: function(data) {
     },
 

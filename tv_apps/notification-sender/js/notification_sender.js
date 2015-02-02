@@ -1,4 +1,4 @@
-
+/* global Promise */
 (function(exports) {
   'use strict';
 
@@ -28,8 +28,11 @@
       switch (evt.type) {
         case 'click':
           if (target.tagName == 'BUTTON') {
-            this.sendMessage(
-                        target.dataset.messageType, target.dataset.messageBody);
+            this.sendMessage({
+              type: target.dataset.messageType,
+              callingParty: target.dataset.callingParty,
+              body: target.dataset.messageBody
+            });
           }
           break;
       }

@@ -35,7 +35,7 @@
       <header>
         <h1>Notification Sender</h1>
       </header>
-      <input id="url-input" type="text" value="http://www.test.url.goes.here"></input><br>
+      <input id="url-input" type="text" value="app://notification-receiver.gaiamobile.org/index.html"></input><br>
       <button type="underlined-text" id="connect-btn" label="connect">
         Connect
       </button><br>
@@ -44,13 +44,13 @@
       </button><br>
       <hr>
       <section id="send-panel">
-        <button type="underlined-text" data-message-type="start-ringing">
+        <button type="underlined-text" data-message-type="start-ringing" data-calling-party="+886987654321">
           Start ringing
         </button><br>
-        <button type="underlined-text" data-message-type="stop-ringing">
+        <button type="underlined-text" data-message-type="stop-ringing" data-calling-party="+886987654321">
           Stop ringing
         </button><br>
-        <button type="underlined-text" data-message-type="sms" data-message-body="hello world">
+        <button type="underlined-text" data-message-type="sms" data-message-body="hello world" data-calling-party="+886987654321">
           Send SMS
         </button>
       </section>

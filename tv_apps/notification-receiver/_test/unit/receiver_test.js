@@ -47,8 +47,7 @@ suite('notification-receiver/Receiver', function() {
         navigator.mozPresentation._mInjectSession(
           MockPresentationSession._mCreateSession());
         assert.isTrue(receiver._handleSessionReady.calledOnce);
-        assert.isTrue(
-          MockPresentationSession.addEventListener.calledWith('message'));
+        assert.ok(MockPresentationSession.onmessage);
         assert.isTrue(
           MockPresentationSession.addEventListener.calledWith('statechange'));
       });
@@ -62,8 +61,7 @@ suite('notification-receiver/Receiver', function() {
         assert.isFalse(receiver._handleSessionReady.called);
         receiver.init();
         assert.isTrue(receiver._handleSessionReady.calledOnce);
-        assert.isTrue(
-          MockPresentationSession.addEventListener.calledWith('message'));
+        assert.ok(MockPresentationSession.onmessage);
         assert.isTrue(
           MockPresentationSession.addEventListener.calledWith('statechange'));
       });
@@ -86,10 +84,10 @@ suite('notification-receiver/Receiver', function() {
     test('should invoke _handleMessage', function() {
       // XXX: evt is subject to changed if we change message data format
       var evt = {
-        data: {
+        data: JSON.stringify({
           type: 'start-ringing',
           call: '0987654321'
-        }
+        })
       };
       MockPresentationSession._mFireEvent('message', evt);
       assert.isTrue(receiver._handleMessage.calledOnce);
