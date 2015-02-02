@@ -272,7 +272,6 @@ var Bluetooth = {
      * So we need to listen to corresponding events to know we are (aren't)
      * connected, then summarize to an event and dispatch to StatusBar
      */
-
     // In headset connected case:
     adapter.addEventListener('hfpstatuschanged',
       function bt_hfpStatusChanged(evt) {
@@ -291,6 +290,45 @@ var Bluetooth = {
   },
 
   /**
+   * update bluetooth enable state
+   *
+   * @private
+   * @param  {Object} evt event object
+   */
+  _adapterAttrChangeHandler: function bt__adapterAttrChangeHandler(evt) {
+    for (var i in evt.attrs) {
+      switch (evt.attrs[i]) {
+        case 'stat':
+          this._isEnabled = this._bluetooth.defaultAdapter.state;
+          break;
+        default:
+          break;
+      }
+    }
+  },
+
+  /**
+   * update bluetooth adapter
+   *
+   * @private
+   * @param  {Object} evt event object
+   */
+  _bluetoothAttrChangeHandler: function bt__bluetoothAttrChangeHandler(resolve, evt) {
+    for (var i in evt.attrs) {
+      switch (evt.attrs[i]) {
+        case 'defaultAdapter':
+          this._adapter = this._bluetooth.defaultAdapter;
+          this.debug('defaultAdapter changed.');
+          this._adapter.addEventListener('attributechanged',
+            this._adapterAttrChangeHandler.bind(this));
+          resolve(this._adapter);
+        default:
+          break;
+      }
+    }
+  },
+
+  /**
    * called by external for re-use adapter.
    *
    * @public
@@ -298,37 +336,15 @@ var Bluetooth = {
   getAdapter: function bt_getAdapter() {
     return new Promise(function(resolve, reject) {
       // need time to get bluetooth adapter at first run
-      this._bluetooth.onattributechanged =
-        function onAttributeChanged(evt) {
-          for (var i in evt.attrs) {
-            switch (evt.attrs[i]) {
-              case 'defaultAdapter':
-                this.debug('defaultAdapter changed.');
-                this._adapter = this._bluetooth.defaultAdapter;
-                this._adapter.onattributechanged = function onAttributeChanged(evt) {
-                  for (var i in evt.attrs) {
-                    switch (evt.attrs[i]) {
-                      case 'address':
-                        this.debug('defaultAdapter changed. address:',
-                          this._bluetooth.defaultAdapter.address);
-                        break;
-                      case 'stat':
-                        this._isEnabled = this._bluetooth.defaultAdapter.state;
-                        break;
-                      default:
-                        break;
-                    }
-                  }
-                }
-                resolve(this._adapter);
-              default:
-                break;
-            }
-          }
-      }.bind(this);
+      this._bluetooth.addEventListener('attributechanged',
+        this._bluetoothAttrChangeHandler.bind(this, resolve));
 
-      this._adapter = this._bluetooth.defaultAdapter;
-      if (this._adapter) {
+      // handle default Bluetooth ON cases
+      if (this._bluetooth.defaultAdapter) {
+        this._adapter = this._bluetooth.defaultAdapter;
+        if (this._bluetooth.defaultAdapter.stat) {
+          this._isEnabled = this._bluetooth.defaultAdapter.state;
+        }
         resolve(this._adapter);
       }
     }.bind(this));

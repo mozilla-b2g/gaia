@@ -203,13 +203,13 @@ suite('system/bluetooth_transfer_v2', function() {
 
   suite('initDefaultAdapter', function() {
     setup(function() {
-      this.sinon.stub(Bluetooth, '_updateProfileStat');
+      // this.sinon.spy(Bluetooth, '_updateProfileStat');
       this.sinon.stub(Bluetooth, 'getAdapter', function() {
         return new Promise(function(resolve) {
           resolve(MockBTAdapter);
         });
       });
-      Bluetooth2._initDefaultAdapter();
+      Bluetooth._initDefaultAdapter();
     });
 
     test('getAdapter is called', function() {
@@ -218,29 +218,102 @@ suite('system/bluetooth_transfer_v2', function() {
 
     // test('_updateProfileStat is called', function() {
     //   assert.ok(Bluetooth._updateProfileStat.called);
+      // assert.ok(Bluetooth._updateProfileStat.calledWith(MockBTAdapter));
     // });
   });
 
   suite('getAdapter', function() {
     setup(function() {
-      // this.sinon.stub(Bluetooth, '_updateProfileStat');
-      // this.sinon.stub(Bluetooth, 'getAdapter', function() {
-      //   return new Promise(function(resolve) {
-      //     resolve(MockBTAdapter);
-      //   });
-      // });
-      // this.sinon.stub(MockBTAdapter, 'onhfpstatuschanged');
-      // this.sinon.stub(MockBTAdapter, 'ona2dpstatuschanged');
-      // this.sinon.stub(MockBTAdapter, 'onscostatuschanged');
-      // this.sinon.stub(Bluetooth, '_setProfileConnected');
-      // Bluetooth2._updateProfileStat(MockBTAdapter);
+      this.sinon.spy(MockMozBluetooth, 'addEventListener');
+      this.sinon.stub(Bluetooth, '_bluetoothAttrChangeHandler');
     });
 
-    test('statuschanged is called', function() {
-      // window.dispatchEvent(new CustomEvent(''));
-      // assert.ok(MockBTAdapter.onhfpstatuschanged.called);
-      // assert.ok(MockBTAdapter.ona2dpstatuschanged.called);
-      // assert.ok(MockBTAdapter.onscostatuschanged.called);
+    teardown(function() {
+      Bluetooth._adapter = null;
+      MockMozBluetooth.defaultAdapter = null;
+    });
+
+    test('addEventListener is called', function() {
+      Bluetooth.getAdapter();
+      assert.ok(MockMozBluetooth.addEventListener.calledWith('attributechanged'));
+    });
+
+    test('addEventListener is called', function() {
+      MockMozBluetooth.defaultAdapter = MockBTAdapter;
+      Bluetooth.getAdapter();
+      assert.equal(Bluetooth._adapter, MockBTAdapter);
+    });
+
+    test('addEventListener is called', function() {
+      Bluetooth.getAdapter();
+      assert.equal(Bluetooth._adapter, null);
+    });
+  });
+
+  suite('_bluetoothAttrChangeHandler', function() {
+    setup(function() {
+      this.sinon.spy(MockBTAdapter, 'addEventListener');
+    });
+
+    teardown(function() {
+      Bluetooth._adapter = null;
+    });
+
+    test('addEventListener is called when defaultAdapter is matched', function() {
+      var evt = {
+        attrs: ['defaultAdapter']
+      }
+      MockMozBluetooth.defaultAdapter = MockBTAdapter;
+      Bluetooth._bluetoothAttrChangeHandler(Promise.resolve, evt);
+      assert.equal(Bluetooth._adapter, MockBTAdapter);
+      assert.ok(MockBTAdapter.addEventListener.called);
+    });
+
+    test('addEventListener is not called when no matched attribute', function() {
+      var evt = {
+        attrs: []
+      }
+      MockMozBluetooth.defaultAdapter = null;
+      Bluetooth._bluetoothAttrChangeHandler(Promise.resolve, evt);
+      assert.equal(Bluetooth._adapter, null);
+      assert.ok(!MockBTAdapter.addEventListener.called);
+    });
+  });
+
+  suite('_adapterAttrChangeHandler', function() {
+    setup(function() {
+      MockMozBluetooth.defaultAdapter = MockBTAdapter;
+    });
+
+    teardown(function() {
+      MockMozBluetooth.defaultAdapter = null;
+      Bluetooth._isEnabled = null;
+    });
+
+    test('addEventListener is called', function() {
+      var evt = {
+        attrs: ['stat']
+      }
+      MockMozBluetooth.defaultAdapter.state = true;
+      Bluetooth._adapterAttrChangeHandler(evt);
+      assert.equal(Bluetooth._isEnabled, true);
+    });
+
+    test('addEventListener is called', function() {
+      var evt = {
+        attrs: ['stat']
+      }
+      MockMozBluetooth.defaultAdapter.state = false;
+      Bluetooth._adapterAttrChangeHandler(evt);
+      assert.equal(Bluetooth._isEnabled, false);
+    });
+
+    test('addEventListener is called', function() {
+      var evt = {
+        attrs: []
+      }
+      Bluetooth._adapterAttrChangeHandler(evt);
+      assert.equal(Bluetooth._isEnabled, null);
     });
   });
 });

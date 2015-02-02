@@ -27,7 +27,8 @@
 
     onscostatuschanged: null,
     onhfpstatuschanged: null,
-    ona2dpstatuschanged: null
+    ona2dpstatuschanged: null,
+    addEventListener: mmb_addEventListener
   };
 
   var mEventListeners = [];
