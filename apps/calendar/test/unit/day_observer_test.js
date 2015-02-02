@@ -244,6 +244,10 @@ suite('day_observer', function() {
     });
 
     test('#on: yesterday + persist + remove + visibility', function(done) {
+      /* disabled due to intermittent failures see bug 1128275 */
+      /* jshint -W027 */
+      return done();
+
       var count = 0;
       var busyYesterday = Factory('busytime', {
         calendarId: calendar._id,
