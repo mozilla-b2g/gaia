@@ -285,8 +285,8 @@ html[dir=rtl] #thumbnails-number-selected {
  * give the very last thumbnail a large bottom margin so that it doesn't
  * hide behind the overlaid toolbar in thumbnail list and select view.
  */
-body.thumbnailSelectView .thumbnail:last-child,
-body.thumbnailListView .thumbnail:last-child {
+body.thumbnailSelectView #thumbnails > li:last-child .thumbnail:last-child,
+body.thumbnailListView #thumbnails > li:last-child .thumbnail:last-child {
   margin-bottom: 4.5rem;
 }
 
