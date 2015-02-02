@@ -9,7 +9,7 @@
 .bluetooth-device {
   background-repeat: no-repeat;
   background-position: right 3rem top 50%; /* same position as for Wi-Fi signal levels */
-  padding-right: 2rem;
+  -moz-padding-end: 2rem;
 }
 
 .bluetooth-device:before {
@@ -131,4 +131,13 @@
 
 .bluetooth-type-video-display:before {
   background-position: -36rem -3rem;
+}
+
+/******************************************************************************
+ * Right-to-Left layout
+ */
+
+html[dir="rtl"] .bluetooth-device:before {
+  left: 0;
+  right: unset;
 }
