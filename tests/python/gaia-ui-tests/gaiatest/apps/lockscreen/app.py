@@ -1,6 +1,7 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+from datetime import datetime
 
 try:
     from marionette import (expected,
@@ -54,7 +55,14 @@ class LockScreen(Base):
 
     @property
     def time(self):
-        return self.marionette.find_element(*self._time_locator).text
+        # The lockscreen doesn't display AM/PM since 2.0. It's still present behind a hidden span though.
+        lockscreen_time = self.marionette.execute_script(
+            "return document.getElementById('%s').innerHTML" % self._time_locator[1])
+        return lockscreen_time.replace('<span>', '').replace('</span>', '')
+
+    @property
+    def time_in_datetime(self):
+        return datetime.strptime(self.time, '%I:%M %p')
 
     def unlock(self):
         self._slide_to_unlock('homescreen')
