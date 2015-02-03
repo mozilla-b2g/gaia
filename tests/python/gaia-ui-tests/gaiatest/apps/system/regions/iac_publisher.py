@@ -3,8 +3,12 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 try:
+    from marionette import (expected,
+                            Wait)
     from marionette.by import By
 except:
+    from marionette_driver import (expected,
+                                   Wait)
     from marionette_driver.by import By
 
 from gaiatest.apps.base import Base
@@ -22,7 +26,8 @@ class IacPublisher(Base):
 
     def launch(self):
         Base.launch(self, launch_timeout=120000)
-        self.wait_for_element_displayed(*self._pub_app_msg_to_send_locator)
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._pub_app_msg_to_send_locator))
 
     def type_message(self, value):
         message_field = self.marionette.find_element(*self._pub_app_msg_to_send_locator)
@@ -34,8 +39,10 @@ class IacPublisher(Base):
         self.marionette.find_element(*self._pub_app_send_button_locator).tap()
 
     def wait_for_message_received(self):
-        self.wait_for_element_present(*self._pub_app_received_str_msg_locator) and \
-        self.wait_for_element_present(*self._pub_app_received_blob_msg_locator)
+        Wait(self.marionette).until(
+            expected.element_present(*self._pub_app_received_str_msg_locator))
+        Wait(self.marionette).until(
+            expected.element_present(*self._pub_app_received_blob_msg_locator))
 
     @property
     def received_str_message(self):
