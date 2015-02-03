@@ -321,7 +321,8 @@
 #screen:-moz-full-screen-ancestor > [data-z-index-level="ime-layout-dialog"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="fullscreen-software-home-button"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="gesture-panel"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="attention-indicator"]
+#screen:-moz-full-screen-ancestor > [data-z-index-level="attention-indicator"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="utility-tray"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="global-overlays"] {
   z-index: 2147483647;
 }
