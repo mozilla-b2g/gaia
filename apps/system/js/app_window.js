@@ -1383,9 +1383,8 @@
 
     // If we have sidebar in the future, change layoutManager then.
     width = layoutManager.width;
-
     // Adjust height for activity windows which open while rocketbar is open.
-    if (this.parentApp) {
+    if (this.parentApp && this.config.isActivity && this.config.inline) {
       var parent = applications.getByManifestURL(this.parentApp);
       if (parent.manifest.role === 'search') {
         height += StatusBar.height * window.devicePixelRatio;

@@ -1,6 +1,6 @@
 /* global AppWindow, ScreenLayout, MockOrientationManager, MockAppWindowManager,
-      LayoutManager, MocksHelper, MockContextMenu, layoutManager,
-      MockAppTransitionController, MockPermissionSettings */
+      LayoutManager, MocksHelper, MockContextMenu, layoutManager, MockStatusBar,
+      MockAppTransitionController, MockPermissionSettings, MockApplications */
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -14,13 +14,14 @@ requireApp('system/test/unit/mock_app_chrome.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 requireApp('system/test/unit/mock_app_transition_controller.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
+requireApp('system/test/unit/mock_statusbar.js');
 
 requireApp('system/shared/test/unit/mocks/mock_permission_settings.js');
 
 var mocksForAppWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
   'ManifestHelper', 'LayoutManager', 'ScreenLayout', 'AppChrome',
-  'AppTransitionController', 'AppWindowManager'
+  'AppTransitionController', 'AppWindowManager', 'StatusBar'
 ]).init();
 
 suite('system/AppWindow', function() {
@@ -33,6 +34,7 @@ suite('system/AppWindow', function() {
     window.layoutManager = new LayoutManager();
     window.layoutManager.start();
 
+    window.applications = MockApplications;
     realPermissionSettings = navigator.mozPermissionSettings;
     navigator.mozPermissionSettings = MockPermissionSettings;
     MockPermissionSettings.mSetup();
@@ -51,6 +53,7 @@ suite('system/AppWindow', function() {
   });
 
   teardown(function() {
+    window.applications = null;
     navigator.mozPermissionSettings = realPermissionSettings;
     delete window.layoutManager;
 
@@ -170,8 +173,10 @@ suite('system/AppWindow', function() {
 
   suite('Resize', function() {
     var app1;
+    var searchApp;
     setup(function() {
       app1 = new AppWindow(fakeAppConfig1);
+      searchApp = new AppWindow(fakeSearchAppConfig);
     });
     teardown(function() {});
 
@@ -207,6 +212,18 @@ suite('system/AppWindow', function() {
       stubIsActive.returns(true);
       app1.resize();
       assert.equal(app1.height, layoutManager.height);
+    });
+
+    test('Resize activity window launched from rocketbar', function() {
+      var stubIsActive = this.sinon.stub(app1, 'isActive');
+      this.sinon.stub(MockApplications, 'getByManifestURL').returns(searchApp);
+      stubIsActive.returns(true);
+      app1.config.isActivity = true;
+      app1.config.inline = true;
+      app1.parentApp = searchApp;
+      app1.resize();
+      assert.equal(app1.height, layoutManager.height +
+        MockStatusBar.height * window.devicePixelRatio);
     });
 
     test('Send message to appChrome: w/o keyboard', function() {
