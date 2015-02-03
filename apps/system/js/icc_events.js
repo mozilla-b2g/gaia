@@ -111,12 +111,11 @@ var icc_events = {
   },
 
   handleUserActivityEvent:
-    function icc_events_handleUserActivity(message, idleObserverObject) {
+    function icc_events_handleUserActivity(message) {
       DUMP(' STK User Activity');
       this.downloadEvent(message, {
         eventType: icc._iccManager.STK_EVENT_TYPE_USER_ACTIVITY
       });
-      navigator.removeIdleObserver(idleObserverObject);
     },
 
   handleIdleScreenAvailableEvent:
@@ -157,29 +156,18 @@ var icc_events = {
     DUMP('icc_events_register fpr card ' + message.iccId +
       ' - Events list:', eventList);
 
-    var conn = icc.getConnection(message.iccId);
-    this.register_icc_event_voicechange = function(evt) {
-      icc_events.handleLocationStatus(message, evt);
-    };
-    conn.removeEventListener('voicechange',
-      this.register_icc_event_voicechange);
+    if (this.stkUserActivity) {
+      navigator.removeIdleObserver(this.stkUserActivity);
+    }
 
-    this.register_icc_event_idlescreen = function() {
-      icc_events.handleIdleScreenAvailableEvent(message);
-    };
     window.removeEventListener('lock',
       this.register_icc_event_idlescreen);
 
-    this.icc_events_browsertermination = function(e) {
-      var app = applications.getByManifestURL(e.detail.origin +
-        '/manifest.webapp');
-      if (!app) {
-        return;
-      }
-      if (app.manifest.permissions.browser) {
-        icc_events.handleBrowserTerminationEvent(message, e);
-      }
-    };
+    if (this.icc_events_languageChanged) {
+      window.navigator.mozSettings.removeObserver('language.current',
+        this.icc_events_languageChanged);
+    }
+
     window.removeEventListener('appterminated',
       this.icc_events_browsertermination);
 
@@ -201,20 +189,23 @@ var icc_events = {
         break;
       case icc._iccManager.STK_EVENT_TYPE_USER_ACTIVITY:
         DUMP('icc_events_register - User activity event');
-        var stkUserActivity = {
+        this.stkUserActivity = {
           time: 1,
           onidle: function() {
             DUMP('STK Event - User activity - Going to idle');
           },
           onactive: function() {
             DUMP('STK Event - User activity - Going to active');
-            icc_events.handleUserActivityEvent(message, stkUserActivity);
+            icc_events.handleUserActivityEvent(message);
           }
         };
-        navigator.addIdleObserver(stkUserActivity);
+        navigator.addIdleObserver(this.stkUserActivity);
         break;
       case icc._iccManager.STK_EVENT_TYPE_IDLE_SCREEN_AVAILABLE:
         DUMP('icc_events_register - Idle screen available event');
+        this.register_icc_event_idlescreen = function() {
+          icc_events.handleIdleScreenAvailableEvent(message);
+        };
         window.addEventListener('lock', this.register_icc_event_idlescreen);
         break;
       case icc._iccManager.STK_EVENT_TYPE_CARD_READER_STATUS:
@@ -222,13 +213,24 @@ var icc_events = {
         break;
       case icc._iccManager.STK_EVENT_TYPE_LANGUAGE_SELECTION:
         DUMP('icc_events_register - Language selection event');
+        this.icc_events_languageChanged = function(e) {
+          icc_events.handleLanguageSelectionEvent(message, e);
+        };
         window.navigator.mozSettings.addObserver('language.current',
-          function icc_events_languageChanged(e) {
-            icc_events.handleLanguageSelectionEvent(message, e);
-          });
+          this.icc_events_languageChanged);
         break;
       case icc._iccManager.STK_EVENT_TYPE_BROWSER_TERMINATION:
         DUMP('icc_events_register - Browser termination event');
+        this.icc_events_browsertermination = function(e) {
+          var app = applications.getByManifestURL(e.detail.origin +
+            '/manifest.webapp');
+          if (!app) {
+            return;
+          }
+          if (app.manifest.permissions.browser) {
+            icc_events.handleBrowserTerminationEvent(message, e);
+          }
+        };
         window.addEventListener('appterminated',
           this.icc_events_browsertermination);
         break;
