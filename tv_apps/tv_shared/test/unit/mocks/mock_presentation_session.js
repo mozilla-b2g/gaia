@@ -38,11 +38,11 @@
     },
 
     disconnect: function() {
-      this._state = 'disconnected';
+      this._state = false;
     },
 
-    // two states: 'connected' and 'disconnected'
-    _state: 'disconnected',
+    // two states: true and false
+    _state: false,
 
     get state () {
       return this._state;
@@ -87,7 +87,7 @@
       }
       this._onstatechange = undefined;
       this._onmessage = undefined;
-      this._state = 'disconnected';
+      this._state = false;
     }
 
   };
