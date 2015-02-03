@@ -13,6 +13,9 @@
       "description": "Smart Screen Fling Sender"
     }
   },
+  "permissions": {
+    "desktop-notification": {}
+  },
   "default_locale": "en-US",
   "icons": {
     "354": "/style/icons/appic_developer_354.png",
