@@ -18,8 +18,6 @@ class Browser(Base):
     _browser_app_locator = (By.CSS_SELECTOR, 'div.browser[transition-state="opened"]')
     _browser_frame_locator = (By.CSS_SELECTOR, 'iframe.browser')
 
-    _browser_view_locator = (By.ID, 'outer-wrapper')
-
     _menu_button_locator = (By.CSS_SELECTOR, '.menu-button')
     _add_to_home_button_locator = (By.CSS_SELECTOR, 'button[data-id="add-to-homescreen"]')
     _share_button_locator = (By.CSS_SELECTOR, 'button[data-id="share"]')
