@@ -36,7 +36,7 @@ var CellBroadcastSystem = {
     // XXX: check bug-926169
     // this is used to keep all tests passing while introducing multi-sim APIs
     var msg = event.message;
-    var serviceId = event.serviceId || 0;
+    var serviceId = msg.serviceId || 0;
     var conn = window.navigator.mozMobileConnections[serviceId];
 
     if (conn &&
