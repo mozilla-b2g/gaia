@@ -193,9 +193,16 @@ section[role="region"] > gaia-header .icon.icon-edit-contact {
   overflow: inherit;
 }
 
-#contact-form div.with-overflow button[type="reset"] {
+#contact-form div.with-overflow p input[name="givenName"] + button[type="reset"],
+#contact-form div.with-overflow p input[name="familyName"] + button[type="reset"] {
   width: 5rem;     /* The affordance is increased by 1 rem */
   right: calc(-0.5rem + -0.3rem);
+}
+
+html[dir="rtl"] #contact-form div.with-overflow p input[name="givenName"] + button[type="reset"],
+html[dir="rtl"] #contact-form div.with-overflow p input[name="familyName"] + button[type="reset"] {
+  right: auto;
+  left: calc(30rem - 20rem + -0.3rem + -0.5rem);
 }
 
 #contact-form div.with-overflow input {
