@@ -2,6 +2,7 @@
   "name": "dlnaPlayer",
   "description": "Gaia dlna player",
   "type": "certified",
+  "role": "system",
   "launch_path": "index.html",
   "developer": {
     "name": "Rex Lee, Shih-Chiang Chien",
