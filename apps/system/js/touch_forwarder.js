@@ -49,6 +49,10 @@
         touch = e.changedTouches[0];
         this._updateShouldTap(touch);
 
+        if (this._shouldTap) {
+          sendTapMouseEvents(iframe, touch.clientX, touch.clientY);
+        }
+
         this._resetState();
         break;
     }
@@ -76,6 +80,16 @@
     }
 
     iframe.sendTouchEvent.apply(iframe, unsynthetizeEvent(e));
+  }
+
+  function sendTapMouseEvents(iframe, x, y) {
+    if (!iframe) {
+      return;
+    }
+
+    iframe.sendMouseEvent('mousemove', x, y, 0, 0, 0);
+    iframe.sendMouseEvent('mousedown', x, y, 0, 1, 0);
+    iframe.sendMouseEvent('mouseup', x, y, 0, 1, 0);
   }
 
   function unsynthetizeEvent(e) {
