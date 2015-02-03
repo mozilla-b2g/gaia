@@ -43,7 +43,7 @@
       return;
     }
     // If system is at fullscreen mode, let utility tray to handle the event.
-    if (!this.app || (!this.app.isFullScreen() && !document.mozFullScreen)) {
+    if (!this.app || !this.app.isFullScreen()) {
       return;
     }
     this.app.debug('processing touch event...', evt.type);
