@@ -12,7 +12,6 @@ require('/tv_apps/tv_shared/js/cards/card.js');
 require('/tv_apps/tv_shared/js/cards/deck.js');
 require('/tv_apps/tv_shared/js/cards/folder.js');
 require('/tv_apps/tv_shared/js/cards/application.js');
-require('/tv_apps/tv_shared/js/cards/app_bookmark.js');
 require('/tv_apps/tv_shared/js/async_semaphore.js');
 
 suite('smart-home/CardManager', function() {

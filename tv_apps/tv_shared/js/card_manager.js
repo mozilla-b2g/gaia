@@ -1,5 +1,5 @@
 /* global evt, SharedUtils, Promise, PipedPromise, Application, CardStore,
-        Deck, AppBookmark, Folder, AsyncSemaphore */
+        Deck, Folder, AsyncSemaphore */
 
 (function(exports) {
   'use strict';
@@ -48,14 +48,12 @@
     _deserializeCardEntry: function cm_deserializeCardEntry(cardEntry) {
       var cardInstance;
       switch (cardEntry.type) {
+        case 'AppBookmark':
         case 'Application':
           cardInstance = Application.deserialize(cardEntry, this.installedApps);
           break;
         case 'Deck':
           cardInstance = Deck.deserialize(cardEntry, this.installedApps);
-          break;
-        case 'AppBookmark':
-          cardInstance = AppBookmark.deserialize(cardEntry, this.installedApps);
           break;
         case 'Folder':
           cardInstance = Folder.deserialize(cardEntry);
@@ -635,7 +633,7 @@
               found = card;
               return true;
             }
-          } else if (!(card instanceof AppBookmark)) {
+          } else {
             found = card;
             return true;
           }

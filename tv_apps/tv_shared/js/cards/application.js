@@ -8,6 +8,8 @@
     this.name = options.name;
     this.cachedIconBlob = undefined;
     this.cachedIconURL = options.cachedIconURL;
+    this.thumbnail = options.thumbnail;
+    this.launchURL = options.launchURL;
     this.group = options.group;
     Card.prototype.constructor.call(this);
   };
@@ -18,6 +20,8 @@
       cardInstance = new Application({
         nativeApp: installedApps[cardEntry.manifestURL],
         name: cardEntry.name,
+        thumnail: cardEntry.thumbnail,
+        launchURL: cardEntry.launchURL,
         group: cardEntry.group
       });
     }
@@ -38,20 +42,46 @@
     });
   });
 
-  Application.prototype.launch = function app_launch(args) {
-    if (this.nativeApp && this.nativeApp.launch) {
-      this.nativeApp.launch(args);
-    }
-  };
-
   Application.prototype.serialize = function app_serialize() {
     return {
       manifestURL: this.nativeApp.manifestURL,
       name: this.name,
       type: 'Application',
+      thumbnail: this.thumbnail,
+      launchURL: this.launchURL,
       group: this.group
     };
   };
+
+  Application.prototype.launch = function app_launch(args) {
+    if (this.nativeApp && this.nativeApp.launch && !this.launchURL) {
+      this.nativeApp.launch(args);
+    } else {
+      if (!Application._iacPort) {
+        console.error('no iacPort found, we cannot launch Application');
+        return;
+      }
+
+      Application._iacPort.postMessage({
+        'manifestURL': this.nativeApp.manifestURL,
+        'timestamp': (new Date()).getTime(),
+        'url': this.launchURL
+      });
+    }
+  };
+
+  window.addEventListener('load', function _retrieveIACPort() {
+    window.removeEventListener('load', _retrieveIACPort);
+
+    navigator.mozApps.getSelf().onsuccess = function(evt) {
+      var app = evt.target.result;
+      if (app) {
+        app.connect('customlaunchpath').then(function onAccepted(ports) {
+          Application._iacPort = ports[0];
+        });
+      }
+    };
+  });
 
   exports.Application = Application;
 }(window));
