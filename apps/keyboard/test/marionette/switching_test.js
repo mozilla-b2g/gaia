@@ -49,6 +49,10 @@ marionette('switch Keyboard App', function() {
   function check3rdPartyIme() {
     // switch back to system
     client.switchToFrame();
+
+    // wait for the 2nd keyboard is loaded
+    systemInputMgmt.ensureInputWindowCount(2);
+
     systemInputMgmt.switchToActiveKeyboardFrame();
     assert.ok(imeTestApp.sendKeyButton.displayed());
   }
