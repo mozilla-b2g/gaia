@@ -335,7 +335,7 @@ var ChartUtils = (function() {
     var leftTag = formatChartDate(model.axis.X.lower);
     ctx.font = makeCSSFontString(FONT_SIZE, FONT_WEIGHT);
     ctx.textBaseline = 'top';
-    ctx.textAlign = 'start';
+    ctx.textAlign = 'left';
 
     var isBelowToday = model.todayLabel.x0 <=
                        model.originX + ctx.measureText(leftTag).width;
@@ -345,7 +345,7 @@ var ChartUtils = (function() {
 
     // Right tag
     var rightTag = formatChartDate(model.axis.X.upper);
-    ctx.textAlign = 'end';
+    ctx.textAlign = 'right';
 
     isBelowToday = model.todayLabel.x1 >=
                    model.endX - ctx.measureText(rightTag).width;
