@@ -452,7 +452,6 @@ section[role="region"].new > header:first-child form {
   font-size: 1.4rem;
   line-height: 2.2rem;
   text-align: start;
-  text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
 
@@ -464,7 +463,7 @@ section[role="region"].new > header:first-child form {
   color: #008787;
 }
 
-.has-carrier .carrier-wrapper {
+.carrier-wrapper, .has-carrier {
   display: block;
 }
 
@@ -933,16 +932,24 @@ body[role="application"] form[role="dialog"][data-type="action"] > header:first-
 }
 
 /* Phone details label styles */
-.phone-type,
-.phone-type-separator,
-.phone-carrier,
-.phone-carrier-separator {
-  display: none;
+.carrier-information {
+  display: flex;
 }
 
-.has-phone-type > .phone-type,
+.phone-type, .phone-number, .phone-carrier {
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 0 1 auto;
+}
+
+.phone-type-separator,
+.phone-carrier-separator {
+  display: none;
+  flex: 0 0 0.3em;
+}
+
 .has-phone-type > .phone-type-separator,
-.has-phone-carrier > .phone-carrier,
 .has-phone-carrier > .phone-carrier-separator {
   display: unset;
 }
