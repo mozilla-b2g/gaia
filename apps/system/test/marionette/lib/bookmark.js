@@ -2,14 +2,12 @@
 /* global module */
 
 var Rocketbar = require('./rocketbar');
-var Search = require('../../../../../apps/search/test/marionette/lib/search');
-var System = require('./system');
 
 function Bookmark(client) {
   this.client = client;
   this.rocketbar = new Rocketbar(client);
-  this.search = new Search(client);
-  this.system = new System(client);
+  this.search = client.loader.getAppClass('search');
+  this.system = client.loader.getAppClass('system');
 }
 
 Bookmark.prototype = {
@@ -52,8 +50,6 @@ Bookmark.prototype = {
    * and saves it as a bookmark.
    */
   openAndSave: function(url) {
-    this.search.removeGeolocationPermission();
-
     this.rocketbar.homescreenFocus();
     this.rocketbar.enterText(url + '\uE006');
 

@@ -2,23 +2,35 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
+
 from gaiatest.apps.base import Base
+from gaiatest.apps.base import PageRegion
 
 
 class Messages(Base):
 
     name = 'Messages'
 
-    _create_new_message_locator = (By.ID, 'icon-add')
+    _create_new_message_locator = (By.ID, 'threads-composer-link')
     _first_message_locator = (By.ID, 'thread-1')
     _messages_frame_locator = (By.CSS_SELECTOR, 'iframe[data-url*=sms]')
-    _options_icon_locator = (By.ID, 'threads-options-icon')
+    _options_icon_locator = (By.ID, 'threads-options-button')
     _app_ready_locator = (By.CLASS_NAME, 'js-app-ready')
+    _draft_message_locator = (By.CSS_SELECTOR, 'li.draft')
 
     def launch(self):
         Base.launch(self)
-        self.wait_for_element_displayed(*self._app_ready_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._app_ready_locator))))
 
     def tap_create_new_message(self):
         self.marionette.find_element(*self._create_new_message_locator).tap()
@@ -31,12 +43,34 @@ class Messages(Base):
         return Activities(self.marionette)
 
     def wait_for_message_list(self):
-        self.wait_for_element_displayed(*self._create_new_message_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._create_new_message_locator))))
 
     def wait_for_message_received(self, timeout=180):
-        self.wait_for_element_displayed(*self._first_message_locator, timeout=timeout)
+        Wait(self.marionette, timeout).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._first_message_locator))))
 
     def tap_first_received_message(self):
         self.marionette.find_element(*self._first_message_locator).tap()
         from gaiatest.apps.messages.regions.message_thread import MessageThread
         return MessageThread(self.marionette)
+
+    @property
+    def draft_message(self):
+        return [DraftMessage(self.marionette, draft_message)
+                for draft_message in self.marionette.find_elements(*self._draft_message_locator)]
+
+
+class DraftMessage(PageRegion):
+    _draft_icon_locator = (By.CSS_SELECTOR, '.icon-draft[data-l10n-id="is-draft"]')
+
+    @property
+    def is_draft_icon_displayed(self):
+        return self.root_element.find_element(*self._draft_icon_locator).is_displayed()
+
+    def tap_draft_message(self):
+        self.root_element.tap()
+        from gaiatest.apps.messages.regions.new_message import NewMessage
+        return NewMessage(self.marionette)

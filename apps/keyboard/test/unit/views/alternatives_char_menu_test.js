@@ -20,9 +20,14 @@ suite('Views > AlternativesCharMenuView', function() {
 
   var dummyKeyElement = document.createElement('button');
 
+  var viewManager = {
+    registerView: sinon.stub()
+  };
+
   suite('basic show/hide testing', function() {
     setup(function() {
-      menu = new AlternativesCharMenuView(rootElement, altChars, options);
+      menu = new AlternativesCharMenuView(rootElement, altChars, options,
+                                          viewManager);
     });
 
     test(' > show()', function() {
@@ -61,7 +66,8 @@ suite('Views > AlternativesCharMenuView', function() {
 
       rootElement.appendChild(fakeMenu);
 
-      menu = new AlternativesCharMenuView(rootElement, altChars, options);
+      menu = new AlternativesCharMenuView(rootElement, altChars, options,
+                                          viewManager);
 
       this.sinon.stub(menu, 'getMenuContainer');
       menu.getMenuContainer.returns(fakeMenu);
@@ -130,7 +136,8 @@ suite('Views > AlternativesCharMenuView', function() {
       rootElement.appendChild(fakeMenu);
 
       var altChars = ['a', 'b', 'c', 'd', 'e', 'f'];
-      menu = new AlternativesCharMenuView(rootElement, altChars, options);
+      menu = new AlternativesCharMenuView(rootElement, altChars, options,
+                                          viewManager);
 
       this.sinon.stub(menu, 'getMenuContainer');
       menu.getMenuContainer.returns(fakeMenu);
@@ -204,7 +211,8 @@ suite('Views > AlternativesCharMenuView', function() {
       rootElement.appendChild(fakeMenu);
 
       var altChars = ['a', 'b', 'c', 'd', 'e'];
-      menu = new AlternativesCharMenuView(rootElement, altChars, options);
+      menu = new AlternativesCharMenuView(rootElement, altChars, options,
+                                          viewManager);
 
       this.sinon.stub(menu, 'getMenuContainer');
       menu.getMenuContainer.returns(fakeMenu);

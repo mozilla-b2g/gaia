@@ -105,6 +105,7 @@
     },
     startTone: function(dtmfChar) {},
     stopTone: function() {},
+    sendTones: function() {},
 
     addEventListener: mnmt_addEventListener,
     removeEventListener: mnmt_removeEventListener,

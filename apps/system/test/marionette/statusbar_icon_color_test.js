@@ -1,9 +1,6 @@
 'use strict';
 
-var Actions = require('marionette-client').Actions;
-var System = require('../../../system/test/marionette/lib/system');
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar');
-var Search = require('../../../../apps/search/test/marionette/lib/search');
 var Bookmark = require('../../../system/test/marionette/lib/bookmark');
 var helper = require('../../../../tests/js-marionette/helper.js');
 var SETTINGS_APP = 'app://settings.gaiamobile.org';
@@ -23,15 +20,19 @@ marionette('Statusbar colors', function() {
   });
 
   var system;
-  var bookmark = new Bookmark(client);
-  var actions = new Actions(client);
-  var search = new Search(client);
+  var bookmark;
+  var actions;
+  var search;
   var rocketbar = new Rocketbar(client);
   var server;
-  var utilityTray = new UtilityTray(client);
+  var utilityTray;
 
   setup(function() {
-    system = new System(client);
+    actions = client.loader.getActions();
+    search = client.loader.getAppClass('search');
+    system = client.loader.getAppClass('system');
+    utilityTray = new UtilityTray(client);
+    bookmark = new Bookmark(client);
     system.waitForStartup();
   });
 
@@ -86,7 +87,6 @@ marionette('Statusbar colors', function() {
   test('statusbar icons keep color after activity', function() {
     waitVisible();
     helper.unlockScreen(client);
-    search.removeGeolocationPermission();
     rocketbar.homescreenFocus();
     var url = server.url('sample.html');
     rocketbar.enterText(url + '\uE006');
@@ -106,6 +106,12 @@ marionette('Statusbar colors', function() {
     waitVisible();
     waitForDarkColor();
     launchSettingsActivity();
+    client.waitFor(function() {
+      var filter = system.statusbar.scriptWith(function(element) {
+        return window.getComputedStyle(element).filter;
+      });
+      return filter.indexOf('none') === -1;
+    });
     waitForLightColor();
   });
 
@@ -115,10 +121,19 @@ marionette('Statusbar colors', function() {
     client.apps.launch(SETTINGS_APP);
     waitForLightColor();
     utilityTray.open();
+    client.waitFor(function() {
+      var filter = system.statusbar.scriptWith(function(element) {
+        return window.getComputedStyle(element).filter;
+      });
+      return filter.indexOf('none') > -1;
+    });
     waitForDarkColor();
   });
 
   function launchSettingsActivity() {
+    var SMS_APP = 'app://sms.gaiamobile.org';
+    client.apps.launch(SMS_APP);
+    client.switchToFrame();
     client.executeScript(function() {
       var activity = new window.wrappedJSObject.MozActivity({
         name: 'configure',

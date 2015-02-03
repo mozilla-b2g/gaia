@@ -10,6 +10,19 @@
       location: 'ext/imap-handler/src',
       main: 'imap-handler'
     }],
+
+    map: {
+      'browserbox': {
+        'axe': 'axeshim-browserbox'
+      },
+      'browserbox-imap': {
+        'axe': 'axeshim-browserbox'
+      },
+      'ext/smtpclient': {
+        'axe': 'axeshim-smtpclient'
+      },
+    },
+
     paths: {
       // Configure any manual paths here:
       'bleach': 'ext/bleach.js/lib/bleach',
@@ -31,6 +44,8 @@
       'alameda': 'ext/alameda',
       'axe': 'ext/axe',
       'axe-logger': 'ext/axe-logger',
+      'axeshim-browserbox': 'ext/axeshim-browserbox',
+      'axeshim-smtpclient': 'ext/axeshim-smtpclient',
       'bleach.js': 'ext/bleach.js',
       'browserbox': 'ext/browserbox',
       'browserbox-imap': 'ext/browserbox-imap',

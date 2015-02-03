@@ -7,7 +7,9 @@ function MockApp() {
 }
 
 MockApp.prototype = {
-  HIDDEN_ROLES: ['system', 'keyboard', 'homescreen', 'search'],
+  HIDDEN_ROLES: [
+    'system', 'keyboard', 'homescreen', 'search', 'addon', 'langpack'
+  ],
   init: function() {
     MockApp.initialized = true;
   },

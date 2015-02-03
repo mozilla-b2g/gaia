@@ -268,7 +268,7 @@
 
 #lockscreen-area-slide {
   text-align: center;
-  width: calc(100%);
+  width: 100%;
 }
 
 #lockscreen .touched .lockscreen-icon {
@@ -445,4 +445,15 @@ button::-moz-focus-inner {
   font-size: 1.4rem;
   font-weight: 700;
   color: black;
+}
+
+/* RTL View */
+
+#lockscreen-alt-camera.lockscreen-icon:-moz-dir(rtl) {
+  float: left;
+}
+
+#lockscreen-message:-moz-dir(rtl) {
+  left: unset;
+  right: 0;
 }

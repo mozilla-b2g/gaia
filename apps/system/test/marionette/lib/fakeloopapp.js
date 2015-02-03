@@ -11,7 +11,9 @@ module.exports = FakeLoopApp;
 FakeLoopApp.DEFAULT_ORIGIN = 'fakeloopapp.gaiamobile.org';
 
 FakeLoopApp.Selector = Object.freeze({
-  title : 'h1'
+  title: 'h1',
+  toaster: '.attentionWindow.toaster-mode[toaster-transition-state="opened"]',
+  mainWindow: '.attentionWindow.top-most.active'
 });
 
 FakeLoopApp.prototype = {
@@ -19,6 +21,14 @@ FakeLoopApp.prototype = {
 
   get title() {
     return this.client.findElement(FakeLoopApp.Selector.title);
+  },
+
+  get toaster() {
+    return this.client.helper.waitForElement(FakeLoopApp.Selector.toaster);
+  },
+
+  get mainWindow() {
+    return this.client.helper.waitForElement(FakeLoopApp.Selector.mainWindow);
   },
 
   launch: function() {

@@ -2,8 +2,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
-from marionette.marionette import Actions
+try:
+    from marionette.by import By
+    from marionette.marionette import Actions
+except:
+    from marionette_driver.by import By
+    from marionette_driver.marionette import Actions
+
 from gaiatest.apps.base import Base
 
 
@@ -20,6 +25,13 @@ class System(Base):
     _update_manager_toaster_locator = (By.ID, 'update-manager-toaster')
 
     _software_home_button_locator = (By.ID, 'software-home-button')
+
+    @property
+    def status_bar(self):
+        self.marionette.switch_to_frame()
+        from gaiatest.apps.system.regions.status_bar import StatusBar
+        element = self.marionette.find_element(*self._status_bar_locator)
+        return StatusBar(self.marionette, element)
 
     def wait_for_status_bar_displayed(self):
         self.wait_for_element_displayed(*self._status_bar_locator)
@@ -43,11 +55,11 @@ class System(Base):
         self.wait_for_element_not_displayed(*self._software_home_button_locator)
 
     def open_utility_tray(self):
+        body = self.marionette.find_element(By.TAG_NAME, 'body')
         statusbar = self.marionette.find_element(*self._status_bar_locator)
-        statusbar_x = int(statusbar.size['width'])
-        statusbar_y_start = int(statusbar.size['height'] / 2)
-        statusbar_y_end = int(statusbar.size['height'] * 160)
-        Actions(self.marionette).flick(statusbar, statusbar_x, statusbar_y_start, statusbar_x, statusbar_y_end, 100).perform()
+        statusbar_x = int(statusbar.size['width']/2)
+        statusbar_y_end = int(body.size['height'])
+        Actions(self.marionette).press(statusbar).move_by_offset(statusbar_x, statusbar_y_end).release().perform()
 
         from gaiatest.apps.system.regions.utility_tray import UtilityTray
         return UtilityTray(self.marionette)

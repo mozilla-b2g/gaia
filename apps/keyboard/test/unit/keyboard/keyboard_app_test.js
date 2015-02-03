@@ -1,13 +1,15 @@
 'use strict';
 
-/* global KeyboardApp, KeyboardConsole, InputMethodManager, LayoutManager,
-          SettingsPromiseManager, L10nLoader, TargetHandlersManager,
-          FeedbackManager, VisualHighlightManager, CandidatePanelManager,
-          UpperCaseStateManager, LayoutRenderingManager, StateManager,
-          MockInputMethodManager, HandwritingPadsManager */
+/* global KeyboardApp, KeyboardConsole, InputMethodManager,
+          InputMethodDatabaseLoader, LayoutManager, SettingsPromiseManager,
+          L10nLoader, TargetHandlersManager, FeedbackManager,
+          VisualHighlightManager, CandidatePanelManager, UpperCaseStateManager,
+          LayoutRenderingManager, StateManager,
+          MockInputMethodManager, HandwritingPadsManager, ViewManager */
 
 require('/js/keyboard/console.js');
 require('/js/keyboard/input_method_manager.js');
+require('/js/keyboard/input_method_database_loader.js');
 require('/js/keyboard/layout_manager.js');
 require('/js/keyboard/settings.js');
 require('/js/keyboard/l10n_loader.js');
@@ -19,6 +21,7 @@ require('/js/keyboard/candidate_panel_manager.js');
 require('/js/keyboard/upper_case_state_manager.js');
 require('/js/keyboard/layout_rendering_manager.js');
 require('/js/keyboard/state_manager.js');
+require('/js/keyboard/view_manager.js');
 
 requireApp('keyboard/shared/test/unit/mocks/mock_event_target.js');
 requireApp('keyboard/shared/test/unit/mocks/mock_navigator_input_method.js');
@@ -28,6 +31,7 @@ require('/js/keyboard/keyboard_app.js');
 suite('KeyboardApp', function() {
   var consoleStub;
   var inputMethodManagerStub;
+  var inputMethodDatabaseLoaderStub;
   var layoutManagerStub;
   var settingsPromiseManagerStub;
   var l10nLoaderStub;
@@ -39,6 +43,7 @@ suite('KeyboardApp', function() {
   var upperCaseStateManagerStub;
   var layoutRenderingManagerStub;
   var stateManagerStub;
+  var viewManagerStub;
 
   var app;
   var realMozInputMethod;
@@ -51,6 +56,11 @@ suite('KeyboardApp', function() {
 
     consoleStub = this.sinon.stub(KeyboardConsole.prototype);
     this.sinon.stub(window, 'KeyboardConsole').returns(consoleStub);
+
+    inputMethodDatabaseLoaderStub =
+      this.sinon.stub(InputMethodDatabaseLoader.prototype);
+    this.sinon.stub(window, 'InputMethodDatabaseLoader')
+      .returns(inputMethodDatabaseLoaderStub);
 
     inputMethodManagerStub = this.sinon.stub(InputMethodManager.prototype);
     this.sinon.stub(window, 'InputMethodManager')
@@ -100,15 +110,15 @@ suite('KeyboardApp', function() {
     this.sinon.stub(window, 'LayoutRenderingManager')
       .returns(layoutRenderingManagerStub);
 
-    window.IMERender = {
-      init: this.sinon.stub(),
-      setUpperCaseLock: this.sinon.stub()
-    };
-
     stateManagerStub =
       this.sinon.stub(StateManager.prototype);
     this.sinon.stub(window, 'StateManager')
       .returns(stateManagerStub);
+
+    viewManagerStub =
+      this.sinon.stub(ViewManager.prototype);
+    this.sinon.stub(window, 'ViewManager')
+      .returns(viewManagerStub);
 
     window.requestAnimationFrame = this.sinon.stub();
 
@@ -117,6 +127,7 @@ suite('KeyboardApp', function() {
 
     assert.isTrue(window.KeyboardConsole.calledWithNew());
     assert.isTrue(window.InputMethodManager.calledWithNew());
+    assert.isTrue(window.InputMethodDatabaseLoader.calledWithNew());
     assert.isTrue(window.LayoutManager.calledWithNew());
     assert.isTrue(window.SettingsPromiseManager.calledWithNew());
     assert.isTrue(window.L10nLoader.calledWithNew());
@@ -127,16 +138,20 @@ suite('KeyboardApp', function() {
     assert.isTrue(window.UpperCaseStateManager.calledWithNew());
     assert.isTrue(window.LayoutRenderingManager.calledWithNew());
     assert.isTrue(window.StateManager.calledWithNew());
+    assert.isTrue(window.ViewManager.calledWithNew());
 
     assert.isTrue(window.InputMethodManager.calledWith(app));
+    assert.isTrue(window.InputMethodDatabaseLoader.calledWith(app));
     assert.isTrue(window.LayoutManager.calledWith(app));
     assert.isTrue(window.TargetHandlersManager.calledWith(app));
     assert.isTrue(window.FeedbackManager.calledWith(app));
     assert.isTrue(window.VisualHighlightManager.calledWith(app));
     assert.isTrue(window.CandidatePanelManager.calledWith(app));
+    assert.isTrue(window.ViewManager.calledWith(app));
 
     assert.isTrue(consoleStub.start.calledOnce);
     assert.isTrue(inputMethodManagerStub.start.calledOnce);
+    assert.isTrue(inputMethodDatabaseLoaderStub.start.calledOnce);
     assert.isTrue(layoutManagerStub.start.calledOnce);
     assert.isTrue(targetHandlersManagerStub.start.calledOnce);
     assert.isTrue(handwritingPadsManagerStub.start.calledOnce);
@@ -146,11 +161,13 @@ suite('KeyboardApp', function() {
     assert.isTrue(upperCaseStateManagerStub.start.calledOnce);
     assert.isTrue(layoutRenderingManagerStub.start.calledOnce);
     assert.isTrue(stateManagerStub.start.calledOnce);
+    assert.isTrue(viewManagerStub.start.calledOnce);
   });
 
   teardown(function() {
     app.stop();
 
+    assert.isTrue(inputMethodDatabaseLoaderStub.stop.calledOnce);
     assert.isTrue(targetHandlersManagerStub.stop.calledOnce);
     assert.isTrue(handwritingPadsManagerStub.stop.calledOnce);
     assert.isTrue(feedbackManagerStub.stop.calledOnce);
@@ -159,10 +176,9 @@ suite('KeyboardApp', function() {
     assert.isTrue(upperCaseStateManagerStub.stop.calledOnce);
     assert.isTrue(layoutRenderingManagerStub.stop.calledOnce);
     assert.isTrue(stateManagerStub.stop.calledOnce);
+    assert.isTrue(viewManagerStub.stop.calledOnce);
 
     navigator.mozInputMethod = realMozInputMethod;
-
-    window.IMERender = undefined;
   });
 
   test('getContainer', function() {
@@ -293,13 +309,5 @@ suite('KeyboardApp', function() {
       app.layoutRenderingManager.updateLayoutRendering.calledOnce);
     assert.isTrue(
       app.inputMethodManager.currentIMEngine.setLayoutPage.calledWith(42));
-  });
-
-  test('getNumberOfCandidatesPerRow', function() {
-    window.IMERender.getNumberOfCandidatesPerRow =
-      this.sinon.stub().returns(42);
-
-    var result = app.getNumberOfCandidatesPerRow();
-    assert.equal(result, 42);
   });
 });

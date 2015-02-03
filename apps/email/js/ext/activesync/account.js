@@ -124,10 +124,6 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
   this.meta = folderInfos.$meta;
   this.mutations = folderInfos.$mutations;
 
-  // ActiveSync has no need of a timezone offset, but it simplifies things for
-  // FolderStorage to be able to rely on this.
-  this.tzOffset = 0;
-
   // Sync existing folders
   for (var folderId in folderInfos) {
     if (folderId[0] === '$')
@@ -668,6 +664,10 @@ ActiveSyncAccount.prototype = {
    * Create a folder that is the child/descendant of the given parent folder.
    * If no parent folder id is provided, we attempt to create a root folder.
    *
+   * NOTE: This function is currently unused.  It might have been used for
+   * testing at some point.  It will be used again someday but should not be
+   * assumed to actually work when that day comes.
+   *
    * @args[
    *   @param[parentFolderId String]
    *   @param[folderName]
@@ -1002,7 +1002,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       accountDeleted: { where: false },
     },
     asyncJobs: {
-      runOp: { mode: true, type: true, error: false, op: false },
+      runOp: { mode: true, type: true, error: true, op: false },
       saveAccountState: { reason: true, folderSaveCount: true },
     },
     errors: {

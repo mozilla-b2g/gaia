@@ -4,8 +4,6 @@ var ReflowHelper =
     require('../../../../tests/js-marionette/reflow_helper.js');
 
 var assert = require('assert');
-var Actions = require('marionette-client').Actions;
-var System = require('./lib/system.js');
 
 var SETTINGS_APP = 'app://settings.gaiamobile.org';
 var CALENDAR_APP = 'app://calendar.gaiamobile.org';
@@ -31,9 +29,9 @@ marionette('Edges gesture >', function() {
   var halfWidth, halfHeight;
 
   setup(function() {
-    actions = new Actions(client);
+    actions = client.loader.getActions();
 
-    sys = new System(client);
+    sys = client.loader.getAppClass('system');
     sys.waitForStartup();
 
     settings = sys.waitForLaunch(SETTINGS_APP);
@@ -79,7 +77,7 @@ marionette('Edges gesture >', function() {
     assert(calendar.displayed(), 'calendar is visible');
     assert(!settings.displayed(), 'settings is invisible');
 
-    reflowHelper.startTracking(System.URL);
+    reflowHelper.startTracking(sys.URL);
     edgeSwipeToApp(sys.leftPanel, 0, halfWidth, calendar, settings);
     assert(true, 'swiped to settings');
 
@@ -112,14 +110,19 @@ marionette('Edges gesture >', function() {
     assert(calendar.displayed(), 'calendar is still visible');
   });
 
-  // Blocked by bug 874914
-  test.skip('Swiping vertically', function() {
+  test('Swiping vertically', function() {
     // Going to the settings app first
     edgeSwipeToApp(sys.leftPanel, 0, halfWidth, calendar, settings);
     assert(settings.displayed(), 'settings is visible');
 
-    actions.flick(sys.leftPanel, 10, halfHeight, 10, 0, 300).perform();
+    // Mostly vertical swipe starting on the edge zone
+    actions.flick(sys.leftPanel, 5, halfHeight + 40, 45, 40, 50).perform();
     assert(settings.displayed(), 'settings is still visible');
+
+    // The actual amount scrolled depends on the scrolling physics,
+    // BrowserElementPanning or APZ... but we only care about the
+    // view actually scrolling.
+    var fuzz = 0.7;
 
     // Checking that the settings app scrolled
     client.apps.switchToApp(SETTINGS_APP);
@@ -128,7 +131,7 @@ marionette('Edges gesture >', function() {
         return document.querySelector('#root > div').scrollTop;
       });
 
-      return scrollY >= 300;
+      return scrollY >= halfHeight * fuzz;
     });
     assert(true, 'the settings app scrolled');
   });

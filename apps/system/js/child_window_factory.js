@@ -1,6 +1,6 @@
 'use strict';
 /* global AppWindow, PopupWindow, ActivityWindow, SettingsListener,
-          AttentionWindow, MozActivity */
+          AttentionWindow, MozActivity, GlobalOverlayWindow, TrustedWindow */
 
 (function(exports) {
   var ENABLE_IN_APP_SHEET = false;
@@ -36,6 +36,8 @@
     this.app.element.addEventListener('mozbrowseropenwindow', this);
     this.app.element.addEventListener('_launchactivity',
       this.createActivityWindow.bind(this));
+    this.app.element.addEventListener('_launchtrusted',
+      this.createTrustedWindow.bind(this));
   };
 
   ChildWindowFactory.prototype.handleEvent =
@@ -58,7 +60,8 @@
       // except while FTU is running: windows must be closable & parented by FTU
       if (evt.detail.name == '_blank' &&
           !window.Service.runningFTU &&
-          evt.detail.features !== 'attention') {
+          evt.detail.features !== 'attention' &&
+          evt.detail.features !== 'global-clickthrough-overlay') {
         this.createNewWindow(evt);
         evt.stopPropagation();
         return;
@@ -89,6 +92,10 @@
           if (!this.createAttentionWindow(evt)) {
             this.createPopupWindow(evt);
           }
+          break;
+        case 'global-clickthrough-overlay':
+          // Open GlobalOverlayWindow.
+          this.createGlobalOverlayWindow(evt);
           break;
         case 'mozhaidasheet':
           // This feature is for internal usage only
@@ -141,9 +148,9 @@
     var configObject = {
       url: evt.detail.url,
       name: evt.detail.name,
-      iframe: evt.detail.frameElement
+      iframe: evt.detail.frameElement,
+      isPrivate: this.app.isPrivateBrowser()
     };
-
     window.dispatchEvent(new CustomEvent('openwindow', {
       detail: configObject
     }));
@@ -158,7 +165,8 @@
       url: evt.detail.url,
       name: this.app.name,
       iframe: evt.detail.frameElement,
-      origin: this.app.origin
+      origin: this.app.origin,
+      isPrivate: this.app.isPrivateBrowser()
     };
     if (this._sameOrigin(this.app.origin, evt.detail.url)) {
       configObject.manifestURL = this.app.manifestURL;
@@ -174,6 +182,8 @@
 
   ChildWindowFactory.prototype.createAttentionWindow = function(evt) {
     if (!this.app || !this.app.hasPermission('attention')) {
+      console.error('Cannot create attention window. ' +
+                    'Invalid of underprivileged app');
       return false;
     }
 
@@ -197,6 +207,28 @@
     return true;
   };
 
+  ChildWindowFactory.prototype.createGlobalOverlayWindow = function(evt) {
+    if (!this.app || !this.app.hasPermission('global-clickthrough-overlay')) {
+      console.error('Cannot create global overlay window. ' +
+                    'Invalid of underprivileged app');
+      return false;
+    }
+
+    var overlayFrame = evt.detail.frameElement;
+    var overlay = new GlobalOverlayWindow({
+      iframe: overlayFrame,
+      url: evt.detail.url,
+      name: evt.detail.name,
+      manifestURL: this.app.manifestURL,
+      origin: this.app.origin,
+      parentWindow: this.app
+    });
+
+    this.app.overlayWindow = overlay;
+    overlay.requestOpen();
+    return true;
+  };
+
   ChildWindowFactory.prototype._handle_child__closing = function(evt) {
     // Do nothing if we are not active or we are being killing.
     if (!this.app.isVisible() || this.app._killed) {
@@ -205,6 +237,12 @@
 
     this.app.setOrientation();
     this.app.requestForeground();
+
+    // An activity handled by ActivityWindow is always an inline activity.
+    // All window activities are handled by AppWindow. All inline
+    // activities have a rearWindow. Once this inline activity is killed,
+    // the focus should be transfered to its rear window.
+    evt.detail.rearWindow.focus();
   };
 
   ChildWindowFactory.prototype.createActivityWindow = function(evt) {
@@ -219,6 +257,14 @@
     var activity = new ActivityWindow(configuration, top);
     activity.element.addEventListener('_closing', this);
     activity.open();
+  };
+
+  ChildWindowFactory.prototype.createTrustedWindow = function(evt) {
+    var configuration = evt.detail;
+    var top = this.app.getTopMostWindow();
+    var trusted = new TrustedWindow(configuration, top);
+    trusted.element.addEventListener('_closing', this);
+    trusted.open();
   };
 
   ChildWindowFactory.prototype.launchActivity = function(evt) {

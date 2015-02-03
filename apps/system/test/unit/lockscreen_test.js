@@ -160,6 +160,24 @@ suite('system/LockScreen >', function() {
     delete subject._lockscreenConnInfoManager;
   });
 
+  test('L10n initialization: it would start to update the clock', function() {
+    this.sinon.stub(window,
+      'LockScreenConnInfoManager');
+    var originalMozl10n = window.navigator.mozL10n;
+    var originalMozMobileConnections = window.navigator.mozMobileConnections;
+    window.navigator.mozL10n = {
+      get: function() { return ''; }
+    };
+    var stubStart = this.sinon.stub(subject.clock, 'start');
+    window.navigator.mozMobileConnections = {};
+    subject._lockscreenConnInfoManager = {};
+    subject.l10nInit();
+    assert.isTrue(stubStart.called);
+    window.navigator.mozMobileConnections = originalMozMobileConnections;
+    window.navigator.mozL10n = originalMozl10n;
+    delete subject._lockscreenConnInfoManager;
+  });
+
   test('L10n initialization: it should init the conn info manager if it\'s' +
        ' undefined', function() {
     var stubConnInfoManager = this.sinon.stub(window,
@@ -206,6 +224,15 @@ suite('system/LockScreen >', function() {
         'foobar' === event.detail.passcode;
     }),
     'it did\'t fire the correspond event to validate the passcode');
+  });
+
+  test('When FTU done, update the clock', function() {
+    var method = subject.handleEvent;
+    var mockThis = {
+      refreshClock: this.sinon.stub()
+    };
+    method.call(mockThis, { 'type': 'ftudone' });
+    assert.isTrue(mockThis.refreshClock.called);
   });
 
   suite('Handle event: screenchange should propogate to _screenEnabled prop',

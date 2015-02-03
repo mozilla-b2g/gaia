@@ -1,3 +1,7 @@
+* {
+  -moz-user-select: none;
+}
+
 html, body {
   width: 100%;
   height: 100%;
@@ -6,7 +10,12 @@ html, body {
   overflow: hidden !important;
   font-size: 10px;
   font-weight: 400;
-  -moz-user-select: none;
+}
+
+input,
+textarea,
+[contenteditable="true"] {
+  -moz-user-select: text;
 }
 
 a {
@@ -114,16 +123,16 @@ gaia-buttons.forward-only .icon-previous {
 
 #sim-info-screen .sim-info {
   margin: 0 1.6rem;
-  height: 7rem;
+  display: flex;
+  flex-direction: row;
   border-bottom: 0.1rem solid #dddddd;
 }
 
 #sim-info-screen .sim-image {
-  height: 100%;
   width: 5rem;
   background-position: center center;
   background-repeat: no-repeat;
-  float: left;
+  flex: 0 0 5rem;
   -moz-margin-end: 0.5rem;
 }
 #sim-info-1 .sim-image {
@@ -139,8 +148,14 @@ gaia-buttons.forward-only .icon-previous {
   background-image: url(images/simlock02.png);
 }
 
+#sim-info-screen .sim-details {
+  flex: 1 1 auto;
+}
+
 .sim-info .sim-title {
-  margin: 0 0 0.5rem;
+  margin: 0;
+  -moz-margin-start: 0.5rem;
+  margin-bottom: 0.5rem;
   padding-top: 1rem;
   font-size: 1.6rem;
   color: #333333;
@@ -1124,8 +1139,10 @@ i.hack-first-child {
   RTL Tweeks
 */
 
-html[dir="rtl"] #sim-info-screen .sim-image {
-  float: right;
+/* navigational buttons remain right=forward, left=back */
+html[dir="rtl"] gaia-buttons.nav {
+  direction: ltr;
+  unicode-bidi:embed;
 }
 
 html[dir="rtl"] #wifi [data-type="list"] li > aside {
@@ -1179,4 +1196,9 @@ html[dir="rtl"] #hidden-wifi-authentication .pack-checkbox,
 html[dir="rtl"] #configure_network_params .pack-checkbox {
   left: unset;
   right: auto;
+}
+
+html[dir="rtl"] #import_contacts li button.icon {
+    -moz-padding-start: unset;
+    -moz-padding-end: 4rem;
 }

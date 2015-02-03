@@ -11,12 +11,11 @@ var EvmeApp = function createEvmeApp(params) {
 
 extend(EvmeApp, Bookmark);
 
-EvmeApp.prototype.launch = function evmeapp_launch(url, name, useAsyncPanZoom) {
+EvmeApp.prototype.launch = function evmeapp_launch(url, name) {
   var features = {
     name: this.manifest.name,
     icon: this.manifest.icons['60'],
-    remote: true,
-    useAsyncPanZoom: useAsyncPanZoom
+    remote: true
   };
 
   if (!GridManager.getIconForBookmark(this.origin)) {
@@ -61,7 +60,6 @@ var EvmeManager = (function EvmeManager() {
       'name': params.name,
       'icon': params.icon,
       'iconable': false,
-      'useAsyncPanZoom': params.useAsyncPanZoom,
       'type': GridItemsFactory.TYPE.COLLECTION
     });
     GridManager.install(item, params.gridPageOffset, extra);
@@ -77,8 +75,7 @@ var EvmeManager = (function EvmeManager() {
         url: params.originUrl.trim(),
         name: params.name,
         icon: params.icon,
-        iconable: false,
-        useAsyncPanZoom: params.useAsyncPanZoom
+        iconable: false
       },
       onsuccess: success,
       onerror: function(e) {
@@ -326,7 +323,7 @@ var EvmeManager = (function EvmeManager() {
       icon: params.icon
     });
 
-    evmeApp.launch(params.url, params.urlTitle, params.useAsyncPanZoom);
+    evmeApp.launch(params.url, params.urlTitle);
     currentURL = params.url;
   }
 

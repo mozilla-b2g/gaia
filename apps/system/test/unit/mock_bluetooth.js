@@ -33,6 +33,9 @@ var MockBluetooth = {
         });
         return tmpObj;
       },
+      getConnectedDevices: function mbt_getConnectedDevices() {
+        return new MockDOMRequest();
+      },
       confirmReceivingFile:
       function mbta_confirmReceivingFile(deviceAddress, flag) {
         return new MockDOMRequest();
@@ -60,6 +63,10 @@ var MockBluetooth = {
 
   isProfileConnected: function mbt_isProfileConnected(profile) {
     return this.mExpectedProfile === profile;
+  },
+
+  get isEnabled() {
+    return this.enabled;
   }
 };
 

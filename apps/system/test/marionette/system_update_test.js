@@ -1,7 +1,5 @@
 'use strict';
 
-var System = require('./lib/system');
-
 marionette('System update - Splash screen', function() {
 
   var client = marionette.client({
@@ -12,7 +10,7 @@ marionette('System update - Splash screen', function() {
   var system;
 
   setup(function() {
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
   });
 

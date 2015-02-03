@@ -8,26 +8,33 @@
 <title>Calendar</title>
 
 <!-- stylesheets -->
+<!-- need to keep shared styles on the markup so it gets copied to build_stage
 <link rel="stylesheet" type="text/css" href="/shared/style/toolbars.css">
 <link rel="stylesheet" type="text/css" href="/shared/style/tabs.css">
 <link rel="stylesheet" type="text/css" href="/shared/style/icons.css">
-<link rel="stylesheet" type="text/css" href="/style/calendar.css">
-<link rel="stylesheet" type="text/css" href="/style/ui.css">
-<link rel="stylesheet" type="text/css" href="/style/multi_day.css">
-<link rel="stylesheet" type="text/css" href="/style/month.css">
-<link rel="stylesheet" type="text/css" href="/style/building_blocks.css">
+-->
+<!-- lazy-loaded styles
+<link rel="stylesheet" type="text/css" href="/shared/style/buttons.css">
+<link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
+<link rel="stylesheet" type="text/css" href="/shared/style/switches.css">
+<link rel="stylesheet" type="text/css" href="/shared/style/status.css">
+<link rel="stylesheet" type="text/css" href="/shared/style/progress_activity.css">
+<link rel="stylesheet" type="text/css" href="/shared/style/input_areas.css">
+-->
+<link rel="stylesheet" type="text/css" href="/style/base.css">
 
 <!-- localization -->
-<link rel="manifest" href="manifest.webapp">
+<meta name="defaultLanguage" content="en-US">
+<meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
 <link rel="localization" href="locales/calendar.{locale}.properties">
 <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
 <script defer src="/shared/js/date_time_helper.js"></script>
 <script defer src="/shared/js/l10n.js"></script>
 <script defer src="/shared/js/l10n_date.js"></script>
+<script defer src="/shared/js/usertiming.js"></script>
 
 <!-- The following scripts are lazy loaded but left here to ensure
      they get copied over from shared during the build -->
-<!-- <script defer src="/shared/js/accessibility_helper.js"></script> -->
 <!-- <script defer src="/shared/js/gesture_detector.js"></script> -->
 <!-- <script defer src="/shared/js/input_parser.js"></script> -->
 <!-- <script defer src="/shared/js/lazy_loader.js"></script> -->
@@ -44,7 +51,7 @@
 <!-- Icons are lazy loaded by gaia-header -->
 <!-- <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css" /> -->
 
-<script defer src="/js/ext/alameda.js" data-main="/js/main.js"></script>
+<script defer src="/js/bundle.js"></script>
 
 <link rel="import" href="/elements/errors.html">
 <link rel="import" href="/elements/lazy_styles.html">
@@ -61,15 +68,14 @@
 
 <body role="application" class="loading theme-productivity">
 
-<section is="lazy-styles" id="lazy-styles"></section>
 <section is="errors" id="errors" role="status" aria-live="assertive" aria-atomic="true"></section>
 <section is="settings" id="settings" role="region"></section>
 
 <section id="time-views" role="region">
   <gaia-header id="time-header" action="menu">
-    <h1 id="current-month-year"></h1>
+    <h1 id="current-month-year" aria-labelledby="current-time-indicator"></h1>
     <a href="/event/add/" data-icon="add">
-      <span data-l10n-id="new-event">Add Event</span>
+      <span data-l10n-id="new-event"></span>
     </a>
   </gaia-header>
 
@@ -85,7 +91,7 @@
   -->
   <section id="month-day-agenda" role="tabpanel">
     <div id="event-list-date"></div>
-    <div id="empty-message" data-l10n-id="no-events" class="active">No Events</div>
+    <div id="empty-message" data-l10n-id="no-events" class="active"></div>
     <section id="event-list" class="day-events" role="listbox" aria-labelledby="event-list-date">
     </section>
   </section>
@@ -98,9 +104,9 @@
     <li class="today" role="presentation">
       <a id="today" href="#today" data-l10n-id="present"><span class="gaia-icon icon-calendar-today"></span></a>
     </li>
-    <li class="month" role="presentation"><a role="tab" aria-selected="true" aria-controls="month-view" id="month" data-l10n-id="show-month-view" href="/month/">Month</a></li>
-    <li class="week" role="presentation"><a role="tab" aria-selected="false" aria-controls="week-view" id="week" data-l10n-id="show-week-view" href="/week/">Week</a></li>
-    <li class="day" role="presentation"><a role="tab" aria-selected="false" aria-controls="day-view" id="day" data-l10n-id="show-day-view" href="/day/">Day</a></li>
+    <li class="month" role="presentation"><a role="tab" aria-selected="true" aria-controls="month-view" id="month" data-l10n-id="show-month-view" href="/month/"></a></li>
+    <li class="week" role="presentation"><a role="tab" aria-selected="false" aria-controls="week-view" id="week" data-l10n-id="show-week-view" href="/week/"></a></li>
+    <li class="day" role="presentation"><a role="tab" aria-selected="false" aria-controls="day-view" id="day" data-l10n-id="show-day-view" href="/day/"></a></li>
   </ul>
 </section>
 

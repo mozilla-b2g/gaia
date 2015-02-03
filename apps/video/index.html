@@ -4,7 +4,8 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8" />
     <title>Videos</title>
-    <link rel="manifest" href="manifest.webapp">
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
     <link rel="localization" href="locales/video.{locale}.properties">
     <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
     <!-- this file is loaded lazily but is listed here so it gets packaged
@@ -19,6 +20,7 @@
     <!-- Shared Libs -->
     <script defer src="shared/js/l10n.js"></script>
     <script defer src="shared/js/l10n_date.js"></script>
+    <script defer src="shared/js/usertiming.js"></script>
     <script defer src="shared/js/screen_layout.js"></script>
     <script defer src="shared/js/template.js"></script>
     <script defer src="shared/js/device_storage/enumerate_all.js"></script>
@@ -135,13 +137,12 @@
       </menu>
     </form>
 
-    <form id='options-view' role="dialog" data-type="action" class="hidden">
+    <form id="options-view" role="dialog" data-type="action" class="hidden">
       <menu>
        <button type="button" class="single-share-button"><span class="gi gi-text" data-l10n-id="share">Share</span></button>
        <button type="button" class="single-info-button"><span class="gi gi-text" data-l10n-id="more-info">More info</span></button>
        <button type="button" class="single-delete-button"><span class="gi gi-text" data-l10n-id="delete">Delete</span></button>
-       <button type="button" id="options-cancel-button"
-	           data-l10n-id="overlay-cancel-button"></button>
+       <button type="button" id="options-cancel-button" data-l10n-id="overlay-cancel-button"></button>
       </menu>
     </form>
 
@@ -152,7 +153,7 @@
     <div id="thumbnail-group-header" class="hidden">
       <!--
         <li>
-          <div class="thumbnail-group-header">${group-header}</div>
+          <div class="thumbnail-group-header"></div>
           <ul class="thumbnail-group-container"></ul>
         </li>
       -->
@@ -161,13 +162,13 @@
       <!--
         <li class="thumbnail">
           <div class="inner">
-            <div class="img"></div>
             <div class="unwatched"></div>
+            <div class="img"></div>
             <div class="details">
               <span class="title">${title}</span>
               <span class="duration-text after line-break"> ${duration-text}</span>
               <span class="size-type-group">
-                <span class="size-text after"> ${size-text}</span>
+                <span class="size-text after"></span>
                 <span class="type-text after"> ${type-text}</span>
               </span>
             </div>

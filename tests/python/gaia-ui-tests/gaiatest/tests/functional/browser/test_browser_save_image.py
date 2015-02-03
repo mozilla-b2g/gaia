@@ -2,7 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.marionette import Actions
+try:
+    from marionette.marionette import Actions
+except:
+    from marionette_driver.marionette import Actions
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.search.app import Search
@@ -15,7 +18,6 @@ class TestBrowserSaveImage(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
         self.connect_to_local_area_network()
-        self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
 
         self.test_url = self.marionette.absolute_url('IMG_0001.jpg')
 

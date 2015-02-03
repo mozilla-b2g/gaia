@@ -54,7 +54,10 @@ ContactsData.prototype = {
 
     var fbContactData;
     this.client.executeAsyncScript(saveFBContact, function(err, val) {
-      console.error(err);
+      if (err) {
+        console.error(err);
+      }
+
       fbContactData = val;
     });
 
@@ -106,7 +109,9 @@ ContactsData.prototype = {
     var contactID;
     client.executeAsyncScript(saveMozContact, [contactData, withPhoto],
       function(err, val) {
-        console.error(err);
+        if (err) {
+          console.error(err);
+        }
         contactID = val;
     });
 

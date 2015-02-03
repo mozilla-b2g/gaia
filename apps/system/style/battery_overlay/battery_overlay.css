@@ -17,6 +17,7 @@
   font-size: 1.4rem;
   font-weight: 500;
   padding: 1rem 0;
+  pointer-events: auto;
 }
 
 .icon-battery {
@@ -60,4 +61,9 @@
   from {
     transform: translateX(0);
   }
+}
+
+/* RTL View */
+html[dir="rtl"] .icon-battery {
+  float: right;
 }

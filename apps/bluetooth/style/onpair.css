@@ -11,6 +11,20 @@ html, body {
   overflow: hidden;
 }
 
+/**
+ * Disable selection by default except for input, text area, and elements with
+ * "contenteditable" .
+ */
+* {
+  -moz-user-select: none;
+}
+
+input[type="text"],
+textarea,
+[contenteditable="true"] {
+  -moz-user-select: text;
+}
+
 #pair-view {
   padding: 0;
 }

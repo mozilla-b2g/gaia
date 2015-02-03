@@ -3,7 +3,6 @@
 define(function(require) {
   var appSelf = require('app_self'),
       evt = require('evt'),
-      queryString = require('query_string'),
       queryURI = require('query_uri');
 
   var pending = {};
@@ -96,8 +95,7 @@ define(function(require) {
         });
       }
 
-      // icon url parsing is a cray cray way to pass day day
-      var data = queryString.toObject((msg.imageURL || '').split('#')[1]);
+      var data = msg.data || {};
 
       if (document.hidden) {
         appSelf.latest('self', function(app) {

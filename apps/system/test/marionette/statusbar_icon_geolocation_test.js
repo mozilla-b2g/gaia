@@ -1,6 +1,5 @@
 'use strict';
 
-var System = require('./lib/system');
 var StatusBar = require('./lib/statusbar');
 var assert = require('assert');
 var APP = 'app://sms.gaiamobile.org';
@@ -27,7 +26,7 @@ marionette('Status Bar icons - Geolocation', function() {
   }
 
   setup(function() {
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     statusBar = new StatusBar(client);
     system.waitForStartup();
     statusBar.changeDelayValue();

@@ -7,9 +7,7 @@ define(function(require) {
       evt = require('evt'),
       model = require('model'),
       mozL10n = require('l10n!'),
-      notificationHelper = require('shared/js/notification_helper'),
-      queryString = require('query_string'),
-      newLineRegExp = /\n/g;
+      notificationHelper = require('shared/js/notification_helper');
 
   // Version marker for the notification data format. It is a string because
   // query_string only deals in strings. If the format of the notification data
@@ -47,7 +45,8 @@ define(function(require) {
       console.log('email: notifications not available');
       sendNotification = function() {};
     } else {
-      sendNotification = function(notificationId, title, body, iconUrl) {
+      sendNotification = function(notificationId, title, body,
+                                  iconUrl, data, behavior) {
         console.log('Notification sent for ' + notificationId);
 
         if (Notification.permission !== 'granted') {
@@ -56,16 +55,29 @@ define(function(require) {
           return;
         }
 
+        data = data || {};
+
         //TODO: consider setting dir and lang?
         //https://developer.mozilla.org/en-US/docs/Web/API/notification
-        var notification = new Notification(title, {
+        var notificationOptions = {
           body: body,
           icon: iconUrl,
           tag: notificationId,
+          data: data,
           mozbehavior: {
             noscreen: true
           }
-        });
+        };
+
+        if (behavior) {
+          Object.keys(behavior).forEach(function(key) {
+            notificationOptions.mozbehavior[key] = behavior[key];
+          });
+        }
+
+        title = title || mozL10n.get('notification-no-subject');
+
+        var notification = new Notification(title, notificationOptions);
 
         // If the app is open, but in the background, when the notification
         // comes in, then we do not get notifived via our mozSetMessageHandler
@@ -75,6 +87,7 @@ define(function(require) {
           evt.emit('notification', {
             clicked: true,
             imageURL: iconUrl,
+            data: data,
             tag: notificationId
           });
         };
@@ -102,10 +115,7 @@ define(function(require) {
       return Notification.get().then(function(notifications) {
         var result = {};
         notifications.forEach(function(notification) {
-          // The icon URL contains data about the notification in the fragment
-          // ID, unpack it now.
-          var imageUrl = notification.icon,
-              data = queryString.toObject((imageUrl || '').split('#')[1]);
+          var data = notification.data;
 
           // Want to avoid unexpected data formats. So if not a version match
           // then just close it since it cannot be processed as expected. This
@@ -172,13 +182,8 @@ define(function(require) {
           return true;
         }
 
-        // Convert \n to a space in names, since names are concatenated later
-        // for serialization by \n. Perfect preservation of names is not needed,
-        // needed, this is just for a one line display of names in a
-        // notification body.
-        var newName = info.from.replace(newLineRegExp, ' ');
-        if (names.indexOf(newName) === -1) {
-          names.push(newName);
+        if (names.indexOf(info.from) === -1) {
+          names.push(info.from);
         }
       });
 
@@ -264,12 +269,10 @@ define(function(require) {
             return;
           }
 
-          var dataString, subject, body,
+          var dataObject, subject, body, behavior,
               count = result.count,
               oldFromNames = [];
 
-          /*
-            TODO: renable for bug 922722 once bug 1033933 is fixed.
           // Adjust counts/fromNames based on previous notification.
           var existingData = existingNotificationsData[result.id];
           if (existingData) {
@@ -277,28 +280,36 @@ define(function(require) {
               count += parseInt(existingData.count, 10);
             }
             if (existingData.fromNames) {
-              // See below where dataString joins names via \n.
-              oldFromNames = existingData.fromNames.split('\n');
+              oldFromNames = existingData.fromNames;
             }
           }
-          */
 
           if (count > 1) {
             // Multiple messages were synced.
             // topUniqueFromNames modifies result.latestMessageInfos
             var newFromNames = topUniqueFromNames(result.latestMessageInfos,
                                                   oldFromNames);
-            dataString = queryString.fromObject({
+            dataObject = {
               v: notificationDataVersion,
               ntype: 'sync',
               type: 'message_list',
               accountId: result.id,
               count: count,
-              // Using \n as a separator since dataString needs to be
-              // serialized to a string. topUniqueNames already converts names
-              // to not have \n characters.
-              fromNames: newFromNames.join('\n')
-            });
+              fromNames: newFromNames
+            };
+
+            // If already have a notification, then do not bother with sound or
+            // vibration for this update. Longer term, the notification standard
+            // will have a "silent" option, but using a non-existent URL as
+            // suggested in bug 1042361 in the meantime.
+            if (existingData && existingData.count) {
+              behavior = {
+                soundFile: 'does-not-exist-to-simulate-silent',
+                // Cannot use 0 since system/js/notifications.js explicitly
+                // ignores [0] values. [1] is good enough for this purpose.
+                vibrationPattern: [1]
+              };
+            }
 
             if (model.getAccountCount() === 1) {
               subject = mozL10n.get('new-emails-notify-one-account', {
@@ -315,15 +326,15 @@ define(function(require) {
           } else {
             // Only one message to notify about.
             var info = result.latestMessageInfos[0];
-            dataString = queryString.fromObject({
+            dataObject = {
               v: notificationDataVersion,
               ntype: 'sync',
               type: 'message_reader',
               accountId: info.accountId,
               messageSuid: info.messageSuid,
               count: 1,
-              fromNames: info.from
-            });
+              fromNames: [info.from]
+            };
 
             if (model.getAccountCount() === 1) {
               subject = info.subject;
@@ -344,7 +355,9 @@ define(function(require) {
             result.id,
             subject,
             body,
-            iconUrl + '#' + dataString
+            iconUrl,
+            dataObject,
+            behavior
           );
         });
 
@@ -478,20 +491,21 @@ define(function(require) {
       else if (data.state === 'error' && data.emitNotifications) {
         appSelf.latest('self', function(app) {
           var iconUrl = notificationHelper.getIconURI(app);
-          var dataString = queryString.fromObject({
+          var dataObject = {
             v: notificationDataVersion,
             ntype: 'outbox',
             type: 'message_reader',
             folderType: 'outbox',
             accountId: data.accountId,
             messageSuid: data.suid
-          });
+          };
 
           sendNotification(
             BACKGROUND_SEND_NOTIFICATION_ID,
             mozL10n.get('background-send-error-title'),
             data.localizedDescription,
-            iconUrl + '#' + dataString
+            iconUrl,
+            dataObject
           );
         });
       }

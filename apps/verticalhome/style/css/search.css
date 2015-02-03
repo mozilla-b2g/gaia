@@ -3,6 +3,7 @@
   background-color: rgba(0, 0, 0, 0.15);
   position: relative;
   z-index: 5;
+  -moz-user-select: none;
 }
 
 #search-form {
@@ -21,7 +22,7 @@
 #search-input {
   margin: 0;
   padding: 0;
-  margin-left: 1.5rem;
+  -moz-margin-start: 1.5rem;
   background: none;
   font-size: 1.8rem;
   border: none;
@@ -48,4 +49,16 @@
   background-repeat: no-repeat;
   background-size: 2rem;
   background-position: center right;
+}
+
+/* RTL View */
+html[dir="rtl"] #search-input {
+  text-align: right;
+  padding-right: 1.5rem;
+}
+
+html[dir="rtl"] #search-form::after {
+  left: unset;
+  right: 0;
+  background-position: center left;
 }

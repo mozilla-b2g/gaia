@@ -1,7 +1,6 @@
 define(function(require, exports, module) {
 'use strict';
 
-var AccessibilityHelper = require('shared/accessibility_helper');
 var Calc = require('calc');
 var DateL10n = require('date_l10n');
 var Db = require('db');
@@ -34,7 +33,7 @@ var pendingClass = 'pending-operation';
  * location to reference database.
  */
 module.exports = {
-  _mozTimeRefreshTimeout: 3000,
+  startingURL: window.location.href,
 
   /**
    * Entry point for application
@@ -53,9 +52,18 @@ module.exports = {
     this._routeViewFn = Object.create(null);
     this._pendingManager = new PendingManager();
 
+    var loadedSubViews = false;
+
     this._pendingManager.oncomplete = function onpending() {
       document.body.classList.remove(pendingClass);
       performance.pendingReady();
+      // start loading sub-views as soon as possible
+      if (!loadedSubViews) {
+        loadedSubViews = true;
+        // we need to grab the global `require` because the async require is
+        // not part of the AMD spec and is not be implemented by all loaders
+        window.require(['lazy_loaded', 'css!lazy_loaded']);
+      }
     };
 
     this._pendingManager.onpending = function oncomplete() {
@@ -63,6 +71,7 @@ module.exports = {
     };
 
     messageHandler.app = this;
+    messageHandler.start();
     this.timeController = new TimeController(this);
     this.syncController = new SyncController(this);
     this.serviceController = new ServiceController(this);
@@ -70,8 +79,11 @@ module.exports = {
     notificationsController.app = this;
     periodicSyncController.app = this;
 
-    dayObserver.timeController = this.timeController;
+    dayObserver.busytimeStore = this.store('Busytime');
     dayObserver.calendarStore = this.store('Calendar');
+    dayObserver.eventStore = this.store('Event');
+    dayObserver.syncController = this.syncController;
+    dayObserver.timeController = this.timeController;
 
     // observe sync events
     this.observePendingObject(this.syncController);
@@ -137,19 +149,18 @@ module.exports = {
    * Internally restarts the application.
    */
   forceRestart: function() {
-    if (!this.restartPending) {
-      this.restartPending = true;
-      this._location.href = this.startingURL;
-    }
+    debug('Will restart calendar app.');
+    window.location.href = this.startingURL;
   },
 
   /**
    * Navigates app to a new location.
    *
    * @param {String} url new view url.
+   * @param {Object} state data stored as the history state.
    */
-  go: function(url) {
-    this.router.show(url);
+  go: function(url, state) {
+    this.router.show(url, state);
   },
 
   /**
@@ -207,7 +218,27 @@ module.exports = {
 
   },
 
-  _init: function() {
+  _initControllers: function() {
+    // controllers can only be initialized after db.load
+
+    // start the workers
+    this.serviceController.start(false);
+
+    notificationsController.observe();
+    periodicSyncController.observe();
+
+    var recurringEventsController = new RecurringEventsController(this);
+    this.observePendingObject(recurringEventsController);
+    recurringEventsController.observe();
+    this.recurringEventsController = recurringEventsController;
+
+    // turn on the auto queue this means that when
+    // alarms are added to the database we manage them
+    // transparently. Defaults to off for tests.
+    this.store('Alarm').autoQueue = true;
+  },
+
+  _initUI: function() {
     // quick hack for today button
     var tablist = document.querySelector('#view-selector');
     var today = tablist.querySelector('.today a');
@@ -225,28 +256,27 @@ module.exports = {
 
     // Handle aria-selected attribute for tabs.
     tablist.addEventListener('click', (event) => {
-      if (event.target !== today) {
-        AccessibilityHelper.setAriaSelected(event.target, tabs);
+      if (event.target === today) {
+        return;
       }
+
+      Array.prototype.forEach.call(tabs, tab => {
+        if (tab !== event.target) {
+          tab.setAttribute('aria-selected', false);
+          return;
+        }
+
+        nextTick(() => tab.setAttribute('aria-selected', true));
+      });
     });
 
     this.setCurrentTimeFormat();
     // re-localize dates on screen
     this.observeDateLocalization();
 
-    this.timeController.observe();
-    notificationsController.observe();
-    periodicSyncController.observe();
-
-    // turn on the auto queue this means that when
-    // alarms are added to the database we manage them
-    // transparently. Defaults to off for tests.
-    this.store('Alarm').autoQueue = true;
-
     this.timeController.move(new Date());
 
     this.view('TimeHeader', (header) => header.render());
-    this.view('CalendarColors', (colors) => colors.render());
 
     document.body.classList.remove('loading');
 
@@ -256,12 +286,17 @@ module.exports = {
 
     this._routes();
 
-    var recurringEventsController = new RecurringEventsController(this);
-    this.observePendingObject(recurringEventsController);
-    recurringEventsController.observe();
-    this.recurringEventsController = recurringEventsController;
-
     nextTick(() => this.view('Errors'));
+
+    // Restart the calendar when the timezone changes.
+    // We do this on a timer because this event may fire
+    // many times. Refreshing the url of the calendar frequently
+    // can result in crashes so we attempt to do this only after
+    // the user has completed their selection.
+    window.addEventListener('moztimechange', () => {
+      debug('Noticed timezone change!');
+      nextTick(this.forceRestart);
+    });
   },
 
   _setPresentDate: function() {
@@ -301,26 +336,25 @@ module.exports = {
    */
   init: function() {
     debug('Will initialize calendar app...');
-    var self = this;
-    var pending = 2;
 
-    function next() {
-      pending--;
-      if (!pending) {
-        self._init();
-      }
-    }
+    this.forceRestart = this.forceRestart.bind(this);
 
     if (!this.db) {
       this.configure(new Db('b2g-calendar', this), new Router(page));
     }
 
-    // start the workers
-    this.serviceController.start(false);
+    this.db.load(() => {
+      this._initControllers();
+      // it should only start listening for month change after we have the
+      // calendars data, otherwise we might display events from calendars that
+      // are not visible. this also makes sure we load the calendars as soon as
+      // possible
+      this.store('Calendar').all(() => dayObserver.init());
 
-    var l10n = navigator.mozL10n;
-    l10n.once(next);
-    this.db.load(next);
+      // we init the UI after the db.load to increase perceived performance
+      // (will feel like busytimes are displayed faster)
+      navigator.mozL10n.once(() => this._initUI());
+    });
   },
 
   _initView: function(name) {
@@ -365,7 +399,9 @@ module.exports = {
 
     var snake = snakeCase(name);
     debug('Will try to load view', name);
-    require([ 'views/' + snake ], (aView) => {
+    // we need to grab the global `require` because the async require is not
+    // part of the AMD spec and is not be implemented by all loaders
+    window.require([ 'views/' + snake ], (aView) => {
       debug('Loaded view', name);
       Views[name] = aView;
       return this.view(name, cb);

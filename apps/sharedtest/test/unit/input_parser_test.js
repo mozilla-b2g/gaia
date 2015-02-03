@@ -1,6 +1,9 @@
+/* global InputParser */
+
 require('/shared/js/input_parser.js');
 
 suite('input_parser', function() {
+  'use strict';
   var subject;
 
   setup(function() {

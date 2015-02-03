@@ -1,6 +1,7 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* global SettingsCache, SettingsListener */
 'use strict';
 
 var Bluetooth = {
@@ -58,11 +59,13 @@ var Bluetooth = {
   connected: false,
 
   init: function bt_init() {
-    if (!window.navigator.mozSettings)
+    if (!window.navigator.mozSettings) {
       return;
+    }
 
-    if (!window.navigator.mozBluetooth)
+    if (!window.navigator.mozBluetooth) {
       return;
+    }
 
     var bluetooth = window.navigator.mozBluetooth;
     var self = this;
@@ -136,8 +139,9 @@ var Bluetooth = {
     var self = this;
 
     if (!bluetooth || !bluetooth.enabled ||
-        !('getDefaultAdapter' in bluetooth))
+        !('getDefaultAdapter' in bluetooth)) {
       return;
+    }
 
     var req = bluetooth.getDefaultAdapter();
     req.onsuccess = function bt_gotDefaultAdapter(evt) {
@@ -174,8 +178,9 @@ var Bluetooth = {
   updateConnected: function bt_updateConnected() {
     var bluetooth = window.navigator.mozBluetooth;
 
-    if (!bluetooth || !('isConnected' in bluetooth))
+    if (!bluetooth || !('isConnected' in bluetooth)) {
       return;
+    }
 
     var wasConnected = this.connected;
     this.connected = this.isProfileConnected(this.Profiles.HFP) ||

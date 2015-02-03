@@ -2,7 +2,15 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
+
 from gaiatest.apps.base import Base
 from gaiatest.apps.contacts.app import Contacts
 from gaiatest.apps.messages.app import Messages
@@ -22,14 +30,14 @@ class NewMessage(Messages):
     _message_resize_notice_locator = (By.ID, 'messages-resize-notice')
     _subject_input_locator = (By.CSS_SELECTOR, '.subject-composer-input')
     _image_attachment_locator = (By.CSS_SELECTOR, '.attachment-container.preview')
-
+    _recipients_locator = (By.CSS_SELECTOR, '#messages-recipients-list span')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.name)
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == self.name)
         self.apps.switch_to_displayed_app()
         section = self.marionette.find_element(*self._thread_messages_locator)
-        self.wait_for_condition(lambda m: section.location['x'] == 0)
+        Wait(self.marionette).until(lambda m: section.location['x'] == 0)
 
     def type_phone_number(self, value):
         # tap on the parent element to activate editable
@@ -38,15 +46,14 @@ class NewMessage(Messages):
 
     def type_message(self, value):
         # change the focus to the message field to enable the send button
-        self.wait_for_element_displayed(*self._message_field_locator)
-        message_field = self.marionette.find_element(*self._message_field_locator)
-        message_field.tap()
+        self.tap_message()
         self.keyboard.send(value)
 
     def tap_message(self):
-        self.wait_for_element_displayed(*self._message_field_locator)
-        message_field = self.marionette.find_element(*self._message_field_locator)
-        message_field.tap()
+        message = Wait(self.marionette).until(
+            expected.element_present(*self._message_field_locator))
+        Wait(self.marionette).until(expected.element_displayed(message))
+        message.tap()
 
     def tap_image_attachment(self):
         self.marionette.find_element(*self._image_attachment_locator).tap()
@@ -54,8 +61,10 @@ class NewMessage(Messages):
         return AttachmentOptions(self.marionette)
 
     def tap_send(self, timeout=120):
-        self.wait_for_condition(lambda m: m.find_element(*self._send_message_button_locator).is_enabled())
-        self.marionette.find_element(*self._send_message_button_locator).tap()
+        send = Wait(self.marionette).until(
+            expected.element_present(*self._send_message_button_locator))
+        Wait(self.marionette).until(expected.element_enabled(send))
+        send.tap()
         self.wait_for_element_not_present(*self._message_sending_locator, timeout=timeout)
         from gaiatest.apps.messages.regions.message_thread import MessageThread
         return MessageThread(self.marionette)
@@ -77,21 +86,29 @@ class NewMessage(Messages):
         return Activities(self.marionette)
 
     def wait_for_recipients_displayed(self):
-        self.wait_for_element_displayed(*self._receiver_input_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._receiver_input_locator))))
 
     def wait_for_resizing_to_finish(self):
         self.wait_for_element_not_displayed(*self._message_resize_notice_locator)
 
     def wait_for_subject_input_displayed(self):
-        self.wait_for_element_displayed(*self._subject_input_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._subject_input_locator))))
 
     def wait_for_message_input_displayed(self):
-        self.wait_for_element_displayed(*self._message_field_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._message_field_locator))))
 
     @property
     def first_recipient_name(self):
-        self.wait_for_element_displayed(*self._receiver_input_locator)
-        return self.marionette.find_element(*self._receiver_input_locator).text
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._receiver_input_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        return element.text
 
     @property
     def number_of_recipients(self):
@@ -125,3 +142,11 @@ class NewMessage(Messages):
 
     def tap_recipient_name(self):
         self.marionette.find_element(*self._receiver_input_locator).tap()
+
+    @property
+    def recipients(self):
+        return self.marionette.find_elements(*self._recipients_locator)
+
+    @property
+    def has_attachment(self):
+        return self.is_element_displayed(*self._image_attachment_locator)

@@ -2,7 +2,15 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
+
 from gaiatest.apps.base import Base
 
 
@@ -15,7 +23,8 @@ class DeviceInfo(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_element_displayed(*self._phone_number_locator)
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._phone_number_locator))
 
     @property
     def phone_number(self):
@@ -38,19 +47,20 @@ class DeviceInfo(Base):
         _os_version_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.os"]')
         _hardware_revision_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.hardware"]')
         _mac_address_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.mac"]')
-        _imei1_locator = (By.CSS_SELECTOR, '#deviceInfo-imeis span[data-slot="0"]')
-        _imei2_locator = (By.CSS_SELECTOR, '#deviceInfo-imeis span[data-slot="1"]')
-        _iccid_locator = (By.ID, 'deviceInfo-iccids')
+        _imei1_locator = (By.CSS_SELECTOR, '.deviceInfo-imeis span[data-slot="0"]')
+        _imei2_locator = (By.CSS_SELECTOR, '.deviceInfo-imeis span[data-slot="1"]')
+        _iccid_locator = (By.CSS_SELECTOR, '.deviceInfo-iccids')
         _platform_version_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.platform_version"]')
         _build_id_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.platform_build_id"]')
         _build_number_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.build_number"]')
         _update_channel_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="app.update.channel"]')
-        _git_commit_timestamp_locator = (By.ID, 'gaia-commit-date')
-        _git_commit_hash_locator = (By.ID, 'gaia-commit-hash')
+        _git_commit_timestamp_locator = (By.CSS_SELECTOR, '.gaia-commit-date')
+        _git_commit_hash_locator = (By.CSS_SELECTOR, '.gaia-commit-hash')
 
         def __init__(self, marionette):
             Base.__init__(self, marionette)
-            self.wait_for_element_displayed(*self._os_version_locator)
+            Wait(self.marionette).until(
+                expected.element_displayed(*self._os_version_locator))
 
         @property
         def os_version(self):

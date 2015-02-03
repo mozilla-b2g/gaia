@@ -15,18 +15,33 @@
   /* jshint browser:true */
 
   var io = {
-    load: function load(url, callback, sync) {
+
+    _load: function(type, url, callback, sync) {
       var xhr = new XMLHttpRequest();
+      var needParse;
 
       if (xhr.overrideMimeType) {
-        xhr.overrideMimeType('text/plain');
+        xhr.overrideMimeType(type);
       }
 
       xhr.open('GET', url, !sync);
 
-      xhr.addEventListener('load', function io_load(e) {
+      if (type === 'application/json') {
+        //  Gecko 11.0+ forbids the use of the responseType attribute when
+        //  performing sync requests (NS_ERROR_DOM_INVALID_ACCESS_ERR).
+        //  We'll need to JSON.parse manually.
+        if (sync) {
+          needParse = true;
+        } else {
+          xhr.responseType = 'json';
+        }
+      }
+
+      xhr.addEventListener('load', function io_onload(e) {
         if (e.target.status === 200 || e.target.status === 0) {
-          callback(null, e.target.responseText);
+          // Sinon.JS's FakeXHR doesn't have the response property
+          var res = e.target.response || e.target.responseText;
+          callback(null, needParse ? JSON.parse(res) : res);
         } else {
           callback(new L10nError('Not found: ' + url));
         }
@@ -42,33 +57,14 @@
       }
     },
 
-    loadJSON: function loadJSON(url, callback) {
-      var xhr = new XMLHttpRequest();
+    load: function(url, callback, sync) {
+      return io._load('text/plain', url, callback, sync);
+    },
 
-      if (xhr.overrideMimeType) {
-        xhr.overrideMimeType('application/json');
-      }
-
-      xhr.open('GET', url);
-
-      xhr.responseType = 'json';
-      xhr.addEventListener('load', function io_loadjson(e) {
-        if (e.target.status === 200 || e.target.status === 0) {
-          callback(null, e.target.response);
-        } else {
-          callback(new L10nError('Not found: ' + url));
-        }
-      });
-      xhr.addEventListener('error', callback);
-      xhr.addEventListener('timeout', callback);
-
-      // the app: protocol throws on 404, see https://bugzil.la/827243
-      try {
-        xhr.send(null);
-      } catch (e) {
-        callback(new L10nError('Not found: ' + url));
-      }
+    loadJSON: function(url, callback, sync) {
+      return io._load('application/json', url, callback, sync);
     }
+
   };
 
   function EventEmitter() {}
@@ -619,7 +615,7 @@
             this.parseEntity(entityMatch[1], entityMatch[2], ast);
           } catch (e) {
             if (ctx) {
-              ctx._emitter.emit('error', e);
+              ctx._emitter.emit('parseerror', e);
             } else {
               throw e;
             }
@@ -644,7 +640,7 @@
       var nameElements = name.split('.');
 
       if (nameElements.length > 2) {
-        throw new Error('Error in ID: "' + name + '".' +
+        throw new L10nError('Error in ID: "' + name + '".' +
             ' Nested attributes are not supported.');
       }
 
@@ -799,7 +795,7 @@
 
     return {
       id: node.$i,
-      value: node.$v || null,
+      value: node.$v === undefined ? null : node.$v,
       index: node.$x || null,
       attrs: attrs || null,
       env: env,
@@ -828,13 +824,13 @@
   }
 
 
-  function format(entity, ctxdata) {
+  function format(args, entity) {
     if (typeof entity === 'string') {
       return entity;
     }
 
     if (entity.dirty) {
-      return undefined;
+      throw new L10nError('Cyclic reference detected: ' + entity.id);
     }
 
     entity.dirty = true;
@@ -842,65 +838,43 @@
     // if format fails, we want the exception to bubble up and stop the whole
     // resolving process;  however, we still need to clean up the dirty flag
     try {
-      val = resolveValue(ctxdata, entity.env, entity.value, entity.index);
+      val = resolveValue(args, entity.env, entity.value, entity.index);
     } finally {
       entity.dirty = false;
     }
     return val;
   }
 
-  function formatValue(entity, ctxdata) {
-    if (typeof entity === 'string') {
-      return entity;
-    }
-
-    try {
-      return format(entity, ctxdata);
-    } catch (e) {
-      return undefined;
-    }
-  }
-
-  function formatEntity(entity, ctxdata) {
-    if (!entity.attrs) {
-      return formatValue(entity, ctxdata);
-    }
-
-    var formatted = {
-      value: formatValue(entity, ctxdata),
-      attrs: Object.create(null)
-    };
-
-    for (var key in entity.attrs) {
-      /* jshint -W089 */
-      formatted.attrs[key] = formatValue(entity.attrs[key], ctxdata);
-    }
-
-    return formatted;
-  }
-
-  function resolveIdentifier(ctxdata, env, id) {
+  function resolveIdentifier(args, env, id) {
     if (KNOWN_MACROS.indexOf(id) > -1) {
       return env['__' + id];
     }
 
-    if (ctxdata && ctxdata.hasOwnProperty(id) &&
-        (typeof ctxdata[id] === 'string' ||
-         (typeof ctxdata[id] === 'number' && !isNaN(ctxdata[id])))) {
-      return ctxdata[id];
+    if (args && args.hasOwnProperty(id)) {
+      if (typeof args[id] === 'string' || (typeof args[id] === 'number' &&
+          !isNaN(args[id]))) {
+        return args[id];
+      } else {
+        throw new L10nError('Arg must be a string or a number: ' + id);
+      }
     }
 
     // XXX: special case for Node.js where still:
     // '__proto__' in Object.create(null) => true
     if (id in env && id !== '__proto__') {
-      return format(env[id], ctxdata);
+      return format(args, env[id]);
     }
 
-    return undefined;
+    throw new L10nError('Unknown reference: ' + id);
   }
 
-  function subPlaceable(ctxdata, env, id) {
-    var value = resolveIdentifier(ctxdata, env, id);
+  function subPlaceable(args, env, id) {
+    var value;
+    try {
+      value = resolveIdentifier(args, env, id);
+    } catch (err) {
+      return '{{ ' + id + ' }}';
+    }
 
     if (typeof value === 'number') {
       return value;
@@ -919,36 +893,27 @@
     return '{{ ' + id + ' }}';
   }
 
-  function interpolate(ctxdata, env, arr) {
+  function interpolate(args, env, arr) {
     return arr.reduce(function(prev, cur) {
       if (typeof cur === 'string') {
         return prev + cur;
       } else if (cur.t === 'idOrVar'){
-        return prev + subPlaceable(ctxdata, env, cur.v);
+        return prev + subPlaceable(args, env, cur.v);
       }
     }, '');
   }
 
-  function resolveSelector(ctxdata, env, expr, index) {
+  function resolveSelector(args, env, expr, index) {
       var selectorName = index[0].v;
-      var selector = resolveIdentifier(ctxdata, env, selectorName);
-      if (selector === undefined) {
-        throw new L10nError('Unknown selector: ' + selectorName);
-      }
+      var selector = resolveIdentifier(args, env, selectorName);
 
       if (typeof selector !== 'function') {
-        // selector is a simple reference to an entity or ctxdata
+        // selector is a simple reference to an entity or args
         return selector;
       }
 
-      var argLength = index.length - 1;
-      if (selector.length !== argLength) {
-        throw new L10nError('Macro ' + selectorName + ' expects ' +
-                            selector.length + ' argument(s), yet ' + argLength +
-                            ' given');
-      }
-
-      var argValue = resolveIdentifier(ctxdata, env, index[1]);
+      var argValue = index[1] ?
+        resolveIdentifier(args, env, index[1]) : undefined;
 
       if (selector === env.__plural) {
         // special cases for zero, one, two if they are defined on the hash
@@ -966,7 +931,7 @@
       return selector(argValue);
   }
 
-  function resolveValue(ctxdata, env, expr, index) {
+  function resolveValue(args, env, expr, index) {
     if (typeof expr === 'string' ||
         typeof expr === 'boolean' ||
         typeof expr === 'number' ||
@@ -975,31 +940,30 @@
     }
 
     if (Array.isArray(expr)) {
-      return interpolate(ctxdata, env, expr);
+      return interpolate(args, env, expr);
     }
 
     // otherwise, it's a dict
     if (index) {
       // try to use the index in order to select the right dict member
-      var selector = resolveSelector(ctxdata, env, expr, index);
+      var selector = resolveSelector(args, env, expr, index);
       if (expr.hasOwnProperty(selector)) {
-        return resolveValue(ctxdata, env, expr[selector]);
+        return resolveValue(args, env, expr[selector]);
       }
     }
 
     // if there was no index or no selector was found, try 'other'
     if ('other' in expr) {
-      return resolveValue(ctxdata, env, expr.other);
+      return resolveValue(args, env, expr.other);
     }
 
-    return undefined;
+    // XXX Specify entity id
+    throw new L10nError('Unresolvable value');
   }
 
   var Resolver = {
     createEntry: createEntry,
     format: format,
-    formatValue: formatValue,
-    formatEntity: formatEntity,
     rePlaceables: rePlaceables
   };
 
@@ -1157,6 +1121,26 @@
                                           this.ctx.defaultLocale : id);
   }
 
+  var bindingsIO = {
+    extra: function(id, ver, path, type, callback, errback, sync) {
+      if (type === 'properties') {
+        type = 'text';
+      }
+      navigator.mozApps.getLocalizationResource(id, ver, path, type).
+        then(callback.bind(null, null), errback);
+    },
+    app: function(id, ver, path, type, callback, errback, sync) {
+      switch (type) {
+        case 'properties':
+          io.load(path, callback, sync);
+          break;
+        case 'json':
+          io.loadJSON(path, callback, sync);
+          break;
+      }
+    },
+  };
+
   Locale.prototype.build = function L_build(callback) {
     var sync = !callback;
     var ctx = this.ctx;
@@ -1166,7 +1150,7 @@
 
     function onL10nLoaded(err) {
       if (err) {
-        ctx._emitter.emit('error', err);
+        ctx._emitter.emit('fetcherror', err);
       }
       if (--l10nLoads <= 0) {
         self.isReady = true;
@@ -1197,18 +1181,25 @@
     }
 
     var idToFetch = this.isPseudo ? ctx.defaultLocale : this.id;
+    var source = navigator.mozL10n._config.localeSources[this.id] || 'app';
+    var gaiaVersion = navigator.mozL10n._config.gaiaVersion;
+
     for (var i = 0; i < ctx.resLinks.length; i++) {
-      var path = ctx.resLinks[i].replace('{locale}', idToFetch);
+      var resLink = decodeURI(ctx.resLinks[i]);
+      var path = resLink.replace('{locale}', idToFetch);
       var type = path.substr(path.lastIndexOf('.') + 1);
 
+      var cb;
       switch (type) {
         case 'json':
-          io.loadJSON(path, onJSONLoaded, sync);
+          cb = onJSONLoaded;
           break;
         case 'properties':
-          io.load(path, onPropLoaded, sync);
+          cb = onPropLoaded;
           break;
       }
+      bindingsIO[source](this.id,
+        gaiaVersion, path, type, cb, onL10nLoaded, sync);
     }
   };
 
@@ -1231,6 +1222,7 @@
 
 
 
+
   function Context(id) {
     this.id = id;
     this.isReady = false;
@@ -1244,18 +1236,19 @@
     this.locales = {};
 
     this._emitter = new EventEmitter();
+    this._ready = new Promise(this.once.bind(this));
   }
 
 
   // Getting translations
 
+  function reportMissing(id, err) {
+    this._emitter.emit('notfounderror', err);
+    return id;
+  }
+
   function getWithFallback(id) {
     /* jshint -W084 */
-
-    if (!this.isReady) {
-      throw new L10nError('Context not ready');
-    }
-
     var cur = 0;
     var loc;
     var locale;
@@ -1268,34 +1261,98 @@
       var entry = locale.entries[id];
       if (entry === undefined) {
         cur++;
-        warning.call(this, new L10nError(id + ' not found in ' + loc, id,
-                                         loc));
+        reportMissing.call(this, id, new L10nError(
+          '"' + id + '"' + ' not found in ' + loc + ' in ' + this.id,
+          id, loc));
         continue;
       }
       return entry;
     }
 
-    console.warn('mozL10n: A non-existing entity requested: ' + id);
-    error.call(this, new L10nError(id + ' not found', id));
-    return null;
+    throw new L10nError(
+      '"' + id + '"' + ' missing from all supported locales in ' + this.id, id);
   }
 
-  Context.prototype.get = function(id, ctxdata) {
-    var entry = getWithFallback.call(this, id);
-    if (entry === null) {
+  function formatValue(args, entity) {
+    if (typeof entity === 'string') {
+      return entity;
+    }
+
+    try {
+      return Resolver.format(args, entity);
+    } catch (err) {
+      this._emitter.emit('resolveerror', err);
+      return entity.id;
+    }
+  }
+
+  function formatEntity(args, entity) {
+    if (!entity.attrs) {
+      return {
+        value: formatValue.call(this, args, entity),
+        attrs: null
+      };
+    }
+
+    var formatted = {
+      value: formatValue.call(this, args, entity),
+      attrs: Object.create(null)
+    };
+
+    for (var key in entity.attrs) {
+      /* jshint -W089 */
+      formatted.attrs[key] = formatValue.call(this, args, entity.attrs[key]);
+    }
+
+    return formatted;
+  }
+
+  function formatAsync(fn, id, args) {
+    return this._ready.then(
+      getWithFallback.bind(this, id)).then(
+        fn.bind(this, args),
+        reportMissing.bind(this, id));
+  }
+
+  Context.prototype.formatValue = function(id, args) {
+    return formatAsync.call(this, formatValue, id, args);
+  };
+
+  Context.prototype.formatEntity = function(id, args) {
+    return formatAsync.call(this, formatEntity, id, args);
+  };
+
+  function legacyGet(fn, id, args) {
+    if (!this.isReady) {
+      throw new L10nError('Context not ready');
+    }
+
+    var entry;
+    try {
+      entry = getWithFallback.call(this, id);
+    } catch (err) {
+      // Don't handle notfounderrors in individual locales in any special way
+      if (err.loc) {
+        throw err;
+      }
+      // For general notfounderrors, report them and return legacy fallback
+      reportMissing.call(this, id, err);
+      // XXX legacy compat;  some Gaia code checks if returned value is falsy or
+      // an empty string to know if a translation is available;  this is bad and
+      // will be fixed eventually in https://bugzil.la/1020138
       return '';
     }
 
-    return Resolver.formatValue(entry, ctxdata) || '';
+    // If translation is broken use regular fallback-on-id approach
+    return fn.call(this, args, entry);
+  }
+
+  Context.prototype.get = function(id, args) {
+    return legacyGet.call(this, formatValue, id, args);
   };
 
-  Context.prototype.getEntity = function(id, ctxdata) {
-    var entry = getWithFallback.call(this, id);
-    if (entry === null) {
-      return null;
-    }
-
-    return Resolver.formatEntity(entry, ctxdata);
+  Context.prototype.getEntity = function(id, args) {
+    return legacyGet.call(this, formatEntity, id, args);
   };
 
   Context.prototype.getLocale = function getLocale(code) {
@@ -1313,12 +1370,21 @@
   // Getting ready
 
   function negotiate(available, requested, defaultLocale) {
-    if (available.indexOf(requested[0]) === -1 ||
-        requested[0] === defaultLocale) {
-      return [defaultLocale];
-    } else {
-      return [requested[0], defaultLocale];
+    var supportedLocale;
+    // Find the first locale in the requested list that is supported.
+    for (var i = 0; i < requested.length; i++) {
+      var locale = requested[i];
+      if (available.indexOf(locale) !== -1) {
+        supportedLocale = locale;
+        break;
+      }
     }
+    if (!supportedLocale ||
+        supportedLocale === defaultLocale) {
+      return [defaultLocale];
+    }
+
+    return [supportedLocale, defaultLocale];
   }
 
   function freeze(supported) {
@@ -1337,8 +1403,12 @@
   }
 
   Context.prototype.registerLocales = function(defLocale, available) {
+
+    if (defLocale) {
+      this.defaultLocale = defLocale;
+    }
     /* jshint boss:true */
-    this.availableLocales = [this.defaultLocale = defLocale];
+    this.availableLocales = [this.defaultLocale];
 
     if (available) {
       for (var i = 0, loc; loc = available[i]; i++) {
@@ -1403,26 +1473,12 @@
   };
 
 
-  // Errors
-
-  function warning(e) {
-    this._emitter.emit('warning', e);
-    return e;
-  }
-
-  function error(e) {
-    this._emitter.emit('error', e);
-    return e;
-  }
-
-
 
   var DEBUG = false;
   var isPretranslated = false;
   var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
   var nodeObserver = null;
   var pendingElements = null;
-  var manifest = {};
 
   var moConfig = {
     attributes: true,
@@ -1432,12 +1488,38 @@
     attributeFilter: ['data-l10n-id', 'data-l10n-args']
   };
 
+  var Gecko2GaiaVersions = {
+    '37.0': '2.2',
+    '38.0': '3.0'
+  };
+
+  function getGaiaVersion() {
+    if (!navigator.userAgent) {
+      return undefined;
+    }
+
+    var match = /rv\:([0-9\.]+)/.exec(navigator.userAgent);
+    if (!match) {
+      return undefined;
+    }
+    if (match[1] in Gecko2GaiaVersions) {
+      return Gecko2GaiaVersions[match[1]];
+    }
+    return undefined;
+  }
+
   // Public API
 
   navigator.mozL10n = {
     ctx: new Context(window.document ? document.URL : null),
     get: function get(id, ctxdata) {
       return navigator.mozL10n.ctx.get(id, ctxdata);
+    },
+    formatValue: function(id, ctxdata) {
+      return navigator.mozL10n.ctx.formatValue(id, ctxdata);
+    },
+    formatEntity: function(id, ctxdata) {
+      return navigator.mozL10n.ctx.formatEntity(id, ctxdata);
     },
     translateFragment: function (fragment) {
       return translateFragment.call(navigator.mozL10n, fragment);
@@ -1465,6 +1547,10 @@
       }
     },
     qps: PSEUDO_STRATEGIES,
+    _config: {
+      gaiaVersion: getGaiaVersion(),
+      localeSources: Object.create(null),
+    },
     _getInternalAPI: function() {
       return {
         Error: L10nError,
@@ -1474,19 +1560,30 @@
         getPluralRule: getPluralRule,
         rePlaceables: rePlaceables,
         translateDocument: translateDocument,
-        onManifestInjected: onManifestInjected,
         onMetaInjected: onMetaInjected,
         PropertiesParser: PropertiesParser,
-        walkContent: walkContent
+        walkContent: walkContent,
+        buildLocaleList: buildLocaleList
       };
     }
   };
 
   navigator.mozL10n.ctx.ready(onReady.bind(navigator.mozL10n));
 
+  navigator.mozL10n.ctx.addEventListener('notfounderror',
+    function reportMissingEntity(e) {
+      if (DEBUG || e.loc === 'en-US') {
+        console.warn(e.toString());
+      }
+  });
+
   if (DEBUG) {
-    navigator.mozL10n.ctx.addEventListener('error', console.error);
-    navigator.mozL10n.ctx.addEventListener('warning', console.warn);
+    navigator.mozL10n.ctx.addEventListener('fetcherror',
+      console.error.bind(console));
+    navigator.mozL10n.ctx.addEventListener('parseerror',
+      console.error.bind(console));
+    navigator.mozL10n.ctx.addEventListener('resolveerror',
+      console.error.bind(console));
   }
 
   function getDirection(lang) {
@@ -1532,40 +1629,32 @@
   }
 
   function init(pretranslate) {
-    if (pretranslate) {
-      initResources.call(navigator.mozL10n);
-    } else {
-      // if pretranslate is false, we want to initialize MO
-      // early, to collect nodes injected between now and when resources
-      // are loaded because we're not going to translate the whole
-      // document once l10n resources are ready.
+    if (!pretranslate) {
+      // initialize MO early to collect nodes injected between now and when
+      // resources are loaded because we're not going to translate the whole
+      // document once l10n resources are ready
       initObserver();
-      window.setTimeout(initResources.bind(navigator.mozL10n));
     }
+    initResources.call(navigator.mozL10n);
   }
 
   function initResources() {
     /* jshint boss:true */
-    var manifestFound = false;
 
+    var meta = {};
     var nodes = document.head
                         .querySelectorAll('link[rel="localization"],' +
-                                          'link[rel="manifest"],' +
-                                          'meta[name="locales"],' +
-                                          'meta[name="default_locale"],' +
+                                          'meta[name="availableLanguages"],' +
+                                          'meta[name="defaultLanguage"],' +
                                           'script[type="application/l10n"]');
     for (var i = 0, node; node = nodes[i]; i++) {
       var type = node.getAttribute('rel') || node.nodeName.toLowerCase();
       switch (type) {
-        case 'manifest':
-          manifestFound = true;
-          onManifestInjected.call(this, node.getAttribute('href'), initLocale);
-          break;
         case 'localization':
           this.ctx.resLinks.push(node.getAttribute('href'));
           break;
         case 'meta':
-          onMetaInjected.call(this, node);
+          onMetaInjected.call(this, node, meta);
           break;
         case 'script':
           onScriptInjected.call(this, node);
@@ -1573,38 +1662,88 @@
       }
     }
 
-    // if after scanning the head any locales have been registered in the ctx
-    // it's safe to initLocale without waiting for manifest.webapp
-    if (this.ctx.availableLocales.length) {
-      return initLocale.call(this);
-    }
-
-    // if no locales were registered so far and no manifest.webapp link was
-    // found we still call initLocale with just the default language available
-    if (!manifestFound) {
-      this.ctx.registerLocales(this.ctx.defaultLocale);
-      return initLocale.call(this);
+    if (navigator.mozApps && navigator.mozApps.getAdditionalLanguages) {
+      // if the environment supports langpacks, register extra languages…
+      navigator.mozApps.getAdditionalLanguages().then(function(extraLangs) {
+        registerLocales.call(this, meta, extraLangs);
+        initLocale.call(this);
+      }.bind(this));
+      // …and listen to langpacks being added and removed
+      document.addEventListener('additionallanguageschange', function(evt) {
+        registerLocales.call(this, meta, evt.detail);
+      }.bind(this));
+    } else {
+      registerLocales.call(this, meta);
+      initLocale.call(this);
     }
   }
 
-  function onMetaInjected(node) {
-    if (this.ctx.availableLocales.length) {
-      return;
+  function registerLocales(meta, extraLangs) {
+    var locales = buildLocaleList.call(this, meta, extraLangs);
+    navigator.mozL10n._config.localeSources = locales[1];
+    this.ctx.registerLocales(locales[0], Object.keys(locales[1]));
+  }
+
+  function getMatchingLangpack(lpVersions) {
+    for (var i in lpVersions) {
+      if (lpVersions[i].target === navigator.mozL10n._config.gaiaVersion) {
+        return lpVersions[i];
+      }
+    }
+    return null;
+  }
+
+  function buildLocaleList(meta, extraLangs) {
+    var loc, lp;
+    var localeSources = Object.create(null);
+    var defaultLocale = meta.defaultLocale || this.ctx.defaultLocale;
+
+    if (meta.availableLanguages) {
+      for (loc in meta.availableLanguages) {
+        localeSources[loc] = 'app';
+      }
     }
 
+    if (extraLangs) {
+      for (loc in extraLangs) {
+        lp = getMatchingLangpack(extraLangs[loc]);
+
+        if (!lp) {
+          continue;
+        }
+        if (!(loc in localeSources) ||
+            !meta.availableLanguages[loc] ||
+            parseInt(lp.version) > meta.availableLanguages[loc]) {
+          localeSources[loc] = 'extra';
+        }
+      }
+    }
+
+    if (!(defaultLocale in localeSources)) {
+      localeSources[defaultLocale] = 'app';
+    }
+    return [defaultLocale, localeSources];
+  }
+
+  function splitAvailableLanguagesString(str) {
+    var langs = {};
+
+    str.split(',').forEach(function(lang) {
+      lang = lang.trim().split(':');
+      langs[lang[0]] = lang[1];
+    });
+    return langs;
+  }
+
+  function onMetaInjected(node, meta) {
     switch (node.getAttribute('name')) {
-      case 'locales':
-        manifest.locales = node.getAttribute('content').split(',').map(
-          Function.prototype.call, String.prototype.trim);
+      case 'availableLanguages':
+        meta.availableLanguages =
+          splitAvailableLanguagesString(node.getAttribute('content'));
         break;
-      case 'default_locale':
-        manifest.defaultLocale = node.getAttribute('content');
+      case 'defaultLanguage':
+        meta.defaultLanguage = node.getAttribute('content');
         break;
-    }
-
-    if (Object.keys(manifest).length === 2) {
-      this.ctx.registerLocales(manifest.defaultLocale, manifest.locales);
-      manifest = {};
     }
   }
 
@@ -1612,54 +1751,6 @@
     var lang = node.getAttribute('lang');
     var locale = this.ctx.getLocale(lang);
     locale.addAST(JSON.parse(node.textContent));
-  }
-
-  function onManifestInjected(url, callback) {
-    if (this.ctx.availableLocales.length) {
-      return;
-    }
-
-    io.loadJSON(url, function parseManifest(err, json) {
-      if (this.ctx.availableLocales.length) {
-        return;
-      }
-
-      if (err) {
-        this.ctx._emitter.emit('error', err);
-        this.ctx.registerLocales(this.ctx.defaultLocale);
-        if (callback) {
-          callback.call(this);
-        }
-        return;
-      }
-
-      // default_locale and locales might have been already provided by meta
-      // elements which take precedence;  check if we already have them
-      if (!('defaultLocale' in manifest)) {
-        if (json.default_locale) {
-          manifest.defaultLocale = json.default_locale;
-        } else {
-          manifest.defaultLocale = this.ctx.defaultLocale;
-          this.ctx._emitter.emit(
-            'warning', new L10nError('default_locale missing from manifest'));
-        }
-      }
-      if (!('locales' in manifest)) {
-        if (json.locales) {
-          manifest.locales = Object.keys(json.locales);
-        } else {
-          this.ctx._emitter.emit(
-            'warning', new L10nError('locales missing from manifest'));
-        }
-      }
-
-      this.ctx.registerLocales(manifest.defaultLocale, manifest.locales);
-      manifest = {};
-
-      if (callback) {
-        callback.call(this);
-      }
-    }.bind(this));
   }
 
   function initLocale() {
@@ -1673,6 +1764,7 @@
 
   function localizeMutations(mutations) {
     var mutation;
+    var targets = new Set();
 
     for (var i = 0; i < mutations.length; i++) {
       mutation = mutations[i];
@@ -1681,23 +1773,25 @@
 
         for (var j = 0; j < mutation.addedNodes.length; j++) {
           addedNode = mutation.addedNodes[j];
-
           if (addedNode.nodeType !== Node.ELEMENT_NODE) {
             continue;
           }
-
-          if (addedNode.childElementCount) {
-            translateFragment.call(this, addedNode);
-          } else if (addedNode.hasAttribute('data-l10n-id')) {
-            translateElement.call(this, addedNode);
-          }
+          targets.add(addedNode);
         }
       }
 
       if (mutation.type === 'attributes') {
-        translateElement.call(this, mutation.target);
+        targets.add(mutation.target);
       }
     }
+
+    targets.forEach(function(target) {
+      if (target.childElementCount) {
+        translateFragment.call(this, target);
+      } else if (target.hasAttribute('data-l10n-id')) {
+        translateElement.call(this, target);
+      }
+    }, this);
   }
 
   function onMutations(mutations, self) {
@@ -1776,7 +1870,8 @@
 
   var allowedHtmlAttrs = {
     'ariaLabel': 'aria-label',
-    'ariaValueText': 'aria-valuetext'
+    'ariaValueText': 'aria-valuetext',
+    'ariaMozHint': 'aria-moz-hint'
   };
 
   function translateElement(element) {
@@ -1800,12 +1895,7 @@
       return false;
     }
 
-    if (typeof entity === 'string') {
-      setTextContent.call(this, l10n.id, element, entity);
-      return true;
-    }
-
-    if (entity.value) {
+    if (typeof entity.value === 'string') {
       setTextContent.call(this, l10n.id, element, entity.value);
     }
 

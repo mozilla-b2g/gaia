@@ -2,16 +2,14 @@
 
 /* global require, exports */
 
-exports.execute = function(options) {
+exports.execute = function(options, webapp) {
   // Filter images/video by GAIA_DEV_PIXELS_PER_PX.
-  require('./media-resolution').execute(options);
+  require('./media-resolution').execute(options, webapp);
 
-  // Updates hostnames for InterApp Communication APIs.
-  require('./post-manifest').execute(options);
+  // Updates manifest.webapp
+  require('./post-manifest').execute(options, webapp);
 
-  if (options.LOCALE_BASEDIR) {
-    require('./multilocale').execute(options);
-  }
+  require('./multilocale').execute(options, webapp);
 
   // This task will do three things.
   // 1. Copy manifest to profile: generally we got manifest from
@@ -19,19 +17,19 @@ exports.execute = function(options) {
   //    so we will copy manifest.webapp if it's avaiable in build_stage/ .
   // 2. Copy external app to profile dir.
   // 3. Generate webapps.json from webapps_stage.json and copy to profile dir.
-  require('./copy-build-stage-data').execute(options);
+  require('./copy-build-stage-data').execute(options, webapp);
 
   // Web app optimization steps (like precompling l10n, concatenating js files,
   // etc..).
-  require('./webapp-optimize').execute(options);
+  require('./webapp-optimize').execute(options, webapp);
 
-  if (!options.DEBUG) {
+  if (options.DEBUG === '0') {
     // Generate $(PROFILE_FOLDER)/webapps/APP/application.zip
-    require('./webapp-zip').execute(options);
+    require('./webapp-zip').execute(options, webapp);
   }
 
   // Remove temporary l10n files created by the webapp-optimize step. Because
   // webapp-zip wants these files to still be around during the zip stage,
   // depend on webapp-zip so it runs to completion before we start the cleanup.
-  require('./optimize-clean').execute(options);
+  require('./optimize-clean').execute(options, webapp);
 };

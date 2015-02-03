@@ -43,58 +43,85 @@ body, a {
   display: flex;
 }
 
-section.suggestions {
-  margin: 0 0.7rem;
-  font-size: 1.4rem;
-  font-style: italic;
-  overflow: hidden;
-  height: 3.5rem;
+#suggestions {
+  font-size: 1.6rem;
+  overflow-x: hidden;
+  margin-right: 1.6rem;
 }
 
-section.suggestions ul {
+#suggestions ul {
   list-style: none;
-  color: #00AACC;
   white-space: nowrap;
-  overflow-x: scroll;
   padding-left: 0;
-  height: 5rem;
 }
 
-section.suggestions ul li {
-  display: inline-block;
-  margin-left: 1rem;
-  padding: 0.3rem 0.7rem 0.9rem 0;
+#suggestions li {
+  height: 6rem;
+  line-height: 6rem;
   margin: 0;
-}
-
-section.suggestions ul li+li:before {
-  content: "\2022";
-  padding-right: 0.7rem;
-  color: #666;
-}
-
-section.suggestions ul li:first-child {
-  padding-left: 0.7rem;
+  border-bottom: 0.1rem solid rgba(255, 255, 255, 0.05);
+  background-image: url(/style/icons/search.png);
+  background-repeat: no-repeat;
+  background-position: 0.8rem center;
+  text-indent: 4.5rem;
 }
 
 section .result * {
   pointer-events: none;
 }
 
+h2 {
+  text-align: center;
+  border-top: 0.3rem solid #5f5f5f;
+  font-size: 1.4rem;
+  color: #858585;
+  margin: 0.9rem 0.6rem -0.9rem 0.5rem;
+}
+
+h2 span {
+  position: relative;
+  top: -0.9rem;
+  background: #4d4d4d;
+  padding: 0 0.5rem;
+  margin-bottom: 0;
+  font-weight: 500;
+}
+
+#places-header {
+  margin-top: 2.1rem;
+}
+
+#places-header.hidden {
+  display: none;
+}
+
 .local .result {
   display: flex;
   flex-direction: row;
-  border-bottom: 1px solid #5A5A5A;
-  padding: 8px;
+  border-bottom: 1px solid #535353;
+  padding: 0.8rem 1rem;
+  margin: 0 0.5rem;
+}
+
+.result:last-child {
+  border-bottom: 0;
+}
+
+.local .result:active {
+  background-color: #3e666e;
 }
 
 .local .icon {
-  margin: 2px 8px 0 0;
-  margin-top: 2px;
+  margin: 0.4rem 1.6rem 0 0;
   display: block;
-  flex: 0 0 16px;
-  width: 16px;
-  height: 16px;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+}
+
+.local .icon img {
+  width: 32px;
+  height: 32px;
 }
 
 .local .icon.empty {
@@ -102,11 +129,29 @@ section .result * {
   border-radius: 2px;
 }
 
+.local .icon.empty img {
+  opacity: 0;
+}
+
 .local .title, .local .meta {
   display: block;
   white-space:nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.local .description {
+  overflow: hidden;
+}
+
+.local .title {
+  color: #e7e7e7;
+  font-size: 1.5rem;
+}
+
+.local .meta {
+  color: #858585;
+  font-size: 1.4rem;
 }
 
 .local .highlight {
@@ -117,6 +162,7 @@ section .result * {
 /* web */
 section.apps {
   padding-top: 0.5rem;
+  padding-bottom: 1.5rem;
   /* Hide the whitespace between inline elements */
   font-size: 0;
 }
@@ -129,14 +175,6 @@ gaia-grid {
 
 .hidden {
   display: none;
-}
-
-#suggestions-wrapper {
-  display: flex;
-}
-
-#suggestions {
-  flex: 1;
 }
 
 #suggestions-notice-wrapper {

@@ -6,7 +6,8 @@
     <link rel="stylesheet" href="style/search.css">
     <link rel="stylesheet" href="shared/elements/gaia_grid/style/external.css">
     <link rel="stylesheet" href="shared/style/progress_activity.css">
-    <link rel="manifest" href="manifest.webapp">
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
     <link rel="localization" href="locales/search.{locale}.properties">
     <link rel="localization" href="/shared/elements/gaia_grid/locales/gaia_grid.{locale}.properties">
 
@@ -14,6 +15,9 @@
     <script defer src="shared/js/lazy_loader.js"></script>
     <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/utilities.js"></script>
+    <script defer src="shared/js/settings_listener.js"></script>
+    <script defer src="shared/js/search_provider.js"></script>
+    <!-- <script defer src="shared/js/search_providers.json"></script> -->
 
     <!-- Confirm dialog component -->
     <script defer src="/shared/js/component_utils.js"></script>
@@ -38,11 +42,6 @@
     <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/url_helper.js"></script>
     <script defer src="shared/js/utilities.js"></script>
-    <script defer src="shared/js/settings_listener.js"></script>
-    <script defer src="shared/js/everythingme/eme.js"></script>
-    <script defer src="shared/js/everythingme/cache.js"></script>
-    <script defer src="shared/js/everythingme/device.js"></script>
-    <script defer src="shared/js/everythingme/api.js"></script>
     <script defer src="shared/js/dedupe.js"></script>
     <script defer src="js/places_idb.js"></script>
     <script defer src="shared/js/sync_datastore.js"></script>
@@ -54,11 +53,10 @@
 
     <!-- Ordering of the following files will impact which queries we send first -->
     <script defer src="js/providers/marketplace.js"></script>
+    <script defer src="js/providers/suggestions.js"></script>
     <script defer src="js/providers/bookmarks.js"></script>
     <script defer src="js/providers/places.js"></script>
     <script defer src="js/providers/local_apps.js"></script>
-    <script defer src="js/providers/suggestions.js"></script>
-    <script defer src="js/providers/webresults.js"></script>
 
     <!-- Include the app icon in the application.zip -->
     <link rel="resource" type="image/png" href="shared/resources/branding/browser_84.png"/>
@@ -76,12 +74,6 @@
         <span data-l10n-id="offline-message"></span>
       </div>
 
-      <div id="suggestions-wrapper">
-        <section id="suggestions"
-                 class="suggestions" data-l10n-id="suggestions"
-                 aria-label="Suggestions"></section>
-      </div>
-
       <div id="suggestions-notice-wrapper" hidden>
         <p data-l10n-id="suggestions-settings-notice"></p>
         <button id="suggestions-notice-confirm" data-l10n-id="ok"></button>
@@ -89,13 +81,22 @@
 
       <section id="contacts" class="local" data-l10n-id="contacts"
                aria-label="Contacts"></section>
-      <section id="places" class="local" data-l10n-id="places"
-               aria-label="Places"></section>
 
       <section class="apps" data-l10n-id="apps" aria-label="Apps">
         <gaia-grid cols="4" text-rows="3" id="icons"></gaia-grid>
       </section>
       <div id="loading"><progress></progress></div>
+
+      <h2 id="places-header" class="hidden"><span data-l10n-id="history"></span></h2>
+      <section id="places" class="local" data-l10n-id="places"
+               aria-label="Places"></section>
+
+      <div id="suggestions-wrapper">
+        <h2><span id="suggestion-provider"></span></h2>
+        <section id="suggestions"
+                 class="suggestions" data-l10n-id="suggestions"
+                 aria-label="Suggestions"></section>
+      </div>
     </div>
 
     <menu id="contextmenu" hidden>

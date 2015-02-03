@@ -42,7 +42,8 @@
     "audio-channel-ringer":{},
     "cellbroadcast":{},
     "input-manage":{},
-    "nfc":{ "access": "readwrite" },
+    "nfc":{},
+    "nfc-share":{},
     "nfc-manager":{},
     "downloads":{},
     "systemXHR":{},
@@ -116,6 +117,10 @@
     },
     "bluetoothTransfercomms": {
       "description": "Communication with bluetooth apps for sending files info",
+      "rules": {}
+    },
+    "settingsstk": {
+      "description": "Communicate between Settings app and System app for SIM Toolkit.",
       "rules": {}
     },
     "fxa-mgmt": {

@@ -1,3 +1,5 @@
+/* global ManifestHelper, UpdateManager, AppWindowManager, SettingsCache,
+          CustomDialog, asyncStorage */
 'use strict';
 
 /*
@@ -168,12 +170,14 @@ SystemUpdatable.prototype.uninit = function() {
 };
 
 SystemUpdatable.prototype.handleEvent = function(evt) {
-  if (evt.type !== 'mozChromeEvent')
+  if (evt.type !== 'mozChromeEvent') {
     return;
+  }
 
   var detail = evt.detail;
-  if (!detail.type)
+  if (!detail.type) {
     return;
+  }
 
   switch (detail.type) {
     case 'update-error':
@@ -266,7 +270,6 @@ SystemUpdatable.prototype.showApplyPromptBatteryNok = function(minBattery) {
 };
 
 SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
-  var _ = navigator.mozL10n.get;
 
   // Update will be completed after restart
   this.forgetKnownUpdate();

@@ -12,6 +12,7 @@
 /* global TAG_OPTIONS */
 /* global ActionMenu */
 /* global ICEData */
+/* global MergeHelper */
 
 var contacts = window.contacts || {};
 
@@ -477,6 +478,22 @@ contacts.Form = (function() {
     }
   }
 
+  /**
+   * We cannot relay on the counter, but in the next id after the
+   * last field.
+   * See bug 1113134 for related explanation.
+   */
+  function getNextTemplateId(container) {
+    var nodes = container.childNodes;
+    if (!nodes || nodes.length === 0) {
+      return 0;
+    }
+
+    var lastNode = nodes[nodes.length - 1];
+    var value = lastNode.dataset.index;
+    return value ? parseInt(value) + 1 : 0;
+  }
+
   var insertField = function insertField(type, object, targetClasses) {
     if (!type || !configs[type]) {
       console.error('Inserting field with unknown type');
@@ -519,7 +536,7 @@ contacts.Form = (function() {
         infoFromFB = true;
       }
     });
-    currField.i = counters[type];
+    currField.i = getNextTemplateId(container);
 
     var rendered = utils.templates.render(template, currField);
     // Controlling that if no tel phone is present carrier field is disabled
@@ -936,9 +953,8 @@ contacts.Form = (function() {
       }
     };
 
-    LazyLoader.load(['/shared/js/contacts/contacts_merger.js',
-                     '/shared/js/contacts/merger_adapter.js'], function() {
-      contacts.Merger.merge(contact, list, callbacks);
+    LazyLoader.load('/contacts/js/utilities/merge_helper.js', function() {
+      MergeHelper.merge(contact, list).then(callbacks.success, callbacks.error);
     });
   };
 

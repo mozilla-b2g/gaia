@@ -170,11 +170,11 @@ contacts.ICE = (function() {
     iceContactCheckboxes[index].checked = active;
     iceContactButtons[index].disabled = !active;
 
-    var span = document.createElement('span');
-    span.classList.add('ice-contact');
-    span.textContent = label;
+    var bdi = document.createElement('bdi');
+    bdi.classList.add('ice-contact');
+    bdi.textContent = label;
     iceContactButtons[index].innerHTML = '';
-    iceContactButtons[index].appendChild(span);
+    iceContactButtons[index].appendChild(bdi);
     iceContactButtons[index].dataset.contactId = contactId;
   }
 
@@ -297,7 +297,7 @@ contacts.ICE = (function() {
    */
   function showSelectList(target) {
     contacts.List.toggleICEGroup(false);
-    Contacts.setCancelableHeader(goBack);
+    Contacts.setCancelableHeader(goBack, 'selectContact');
     contacts.Settings.navigation.go('view-contacts-list', 'right-left');
     currentICETarget = target === 'select-ice-contact-1' ? 0 : 1;
     contacts.List.clearClickHandlers();

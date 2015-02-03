@@ -11,7 +11,7 @@ suite('BluetoothItem', function() {
       'modules/bluetooth/version_detector': 'MockVersionDetector',
       'modules/settings_service': 'MockSettingsService',
       'modules/bluetooth/bluetooth_v1': 'MockBluetooth_v1',
-      'modules/bluetooth/bluetooth': 'MockBluetooth_v2'
+      'modules/bluetooth/bluetooth_context': 'MockBluetooth_v2'
     }
   };
 
@@ -248,33 +248,6 @@ suite('BluetoothItem', function() {
           assert.ok(this.subject._getBluetooth);
           assert.equal(bluetooth, this.MockBluetooth_v2);
         }.bind(this));
-      });
-    });
-  });
-
-  suite('_navigatePanelWithVersionCheck > ', function() {
-    suite('API version 1 > ', function() {
-      setup(function() {
-        this.sinon.stub(this.subject, '_APIVersion').returns(1);
-        this.sinon.stub(this.MockSettingsService, 'navigate');
-      });
-
-      test('should navigate old bluetooth panel..', function() {
-        this.subject._navigatePanelWithVersionCheck();
-        sinon.assert.calledWith(this.MockSettingsService.navigate, 'bluetooth');
-      });
-    });
-
-    suite('API version 2 > ', function() {
-      setup(function() {
-        this.sinon.stub(this.subject, '_APIVersion').returns(2);
-        this.sinon.stub(this.MockSettingsService, 'navigate');
-      });
-
-      test('should navigate new bluetooth panel..', function() {
-        this.subject._navigatePanelWithVersionCheck();
-        sinon.assert.calledWith(this.MockSettingsService.navigate,
-          'bluetooth_v2');
       });
     });
   });

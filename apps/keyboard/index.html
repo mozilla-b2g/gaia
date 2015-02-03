@@ -15,14 +15,20 @@
   <script defer type="text/javascript" src="js/keyboard/layout_loader.js"></script>
   <script defer type="text/javascript" src="js/keyboard/layout_manager.js"></script>
   <script defer type="text/javascript" src="js/keyboard/layout_normalizer.js"></script>
-  <script defer type="text/javascript" src="js/render.js"></script>
+  <script defer type="text/javascript" src="js/keyboard/view_manager.js"></script>
+  <script defer type="text/javascript" src="js/views/view_utils.js"></script>
+  <script defer type="text/javascript" src="js/views/base_view.js"></script>
   <script defer type="text/javascript" src="js/views/alternatives_char_menu_view.js"></script>
   <script defer type="text/javascript" src="js/views/handwriting_pad_view.js"></script>
   <script defer type="text/javascript" src="js/views/key_view.js"></script>
   <script defer type="text/javascript" src="js/views/layout_page_view.js"></script>
+  <script defer type="text/javascript" src="js/views/candidate_panel_view.js"></script>
+  <script defer type="text/javascript" src="js/views/latin_candidate_panel_view.js"></script>
   <script defer type="text/javascript" src="js/keyboard/console.js"></script>
   <script defer type="text/javascript" src="js/keyboard/input_method_manager.js"></script>
+  <script defer type="text/javascript" src="js/keyboard/input_method_database_loader.js"></script>
   <script defer type="text/javascript" src="js/keyboard/settings.js"></script>
+  <script defer type="text/javascript" src="js/keyboard/sound_feedback_player.js"></script>
   <script defer type="text/javascript" src="js/keyboard/feedback_manager.js"></script>
   <script defer type="text/javascript" src="js/keyboard/upper_case_state_manager.js"></script>
   <script defer type="text/javascript" src="js/keyboard/candidate_panel_manager.js"></script>
@@ -40,7 +46,8 @@
   -->
 
   <!-- Localization -->
-  <link rel="manifest" href="manifest.webapp">
+  <meta name="defaultLanguage" content="en-US">
+  <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
   <link rel="localization" href="locales/keyboard.{locale}.properties">
 
   <link rel="stylesheet" type="text/css" href="style/keyboard.css" />

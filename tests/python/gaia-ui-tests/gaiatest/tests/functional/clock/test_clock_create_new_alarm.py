@@ -4,12 +4,23 @@
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.clock.app import Clock
+from gaiatest.apps.clock.regions.alarm_alert import AlarmAlertScreen
+from gaiatest.apps.homescreen.app import Homescreen
 
 
 class TestClockCreateNewAlarm(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
+
+        # Set the time on the device
+        _seconds_since_epoch = self.marionette.execute_script("""
+                var today = new Date();
+                var yr = today.getFullYear();
+                var mth = today.getMonth();
+                var day = today.getDate();
+                return new Date(yr, mth, day, 1, 0, 0).getTime();""")
+        self.data_layer.set_time(_seconds_since_epoch)
 
         self.clock = Clock(self.marionette)
         self.clock.launch()
@@ -40,7 +51,7 @@ class TestClockCreateNewAlarm(GaiaTestCase):
         self.assertTrue('The alarm is set for' in alarm_msg, 'Actual banner message was: "' + alarm_msg + '"')
         self.clock.dismiss_banner()
 
-        # ensure the new alarm has been added and is displayed
+        # ensure the new alarm has been added and it is displayed
         self.assertTrue(initial_alarms_count < len(self.clock.alarms),
                         'Alarms count did not increment')
 
@@ -50,15 +61,13 @@ class TestClockCreateNewAlarm(GaiaTestCase):
         self.assertEqual(alarms[0].label, alarm_label_text)
 
         alarm_time = self.clock.alarms[0].time()
-        # Tap to Edit alarm
+
+        # tap to Edit alarm
         edit_alarm = alarms[0].tap()
 
+        # Set the alarm time to 1 min more than the current time
         time_picker = edit_alarm.tap_time()
-
-        time_picker.spin_hour()
         time_picker.spin_minute()
-        time_picker.spin_hour24()
-
         time_picker.tap_done()
 
         edit_alarm.tap_done()
@@ -75,3 +84,16 @@ class TestClockCreateNewAlarm(GaiaTestCase):
         self.clock.alarms[0].tap_checkbox()
         self.clock.dismiss_banner()
         self.assertTrue(self.clock.alarms[0].is_alarm_active, 'user should be able to turn off the alarm.')
+
+        self.device.touch_home_button()
+        self.marionette.switch_to_frame()
+
+        self.alarm_alert = AlarmAlertScreen(self.marionette)
+        self.alarm_alert.wait_for_alarm_to_trigger()
+
+        # Check that the alarm name is the one we set
+        self.assertEqual(self.alarm_alert.alarm_label, alarm_label_text)
+        self.alarm_alert.tap_stop_alarm()
+
+        # Switch back to top level now that Clock app is gone
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == Homescreen.name)

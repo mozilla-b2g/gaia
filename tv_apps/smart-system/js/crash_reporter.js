@@ -1,13 +1,14 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* global SettingsCache, SystemBanner*/
+
 'use strict';
 
 // This file calls getElementById without waiting for an onload event, so it
 // must have a defer attribute or be included at the end of the <body>.
 
-var CrashReporter = (function() {
-  var _ = navigator.mozL10n.get;
+window.CrashReporter = (function() {
   var settings = navigator.mozSettings;
   var screen = document.getElementById('screen');
 
@@ -26,9 +27,15 @@ var CrashReporter = (function() {
 
   // This function should only ever be called once.
   function showDialog(crashID, isChrome) {
-    var title = isChrome ? _('crash-dialog-os2') :
-      _('crash-dialog-app', { name: crashedAppName });
-    document.getElementById('crash-dialog-title').textContent = title;
+    var title = isChrome ? {
+      id: 'crash-dialog-os2',
+      args: null
+    } : {
+      id: 'crash-dialog-app',
+      args: { name: crashedAppName }
+    };
+    var crashDialogTitle = document.getElementById('crash-dialog-title');
+    navigator.mozL10n.setAttributes(crashDialogTitle, title.id, title.args);
 
     // "Don't Send Report" button in dialog
     var noButton = document.getElementById('dont-send-report');
@@ -77,13 +84,18 @@ var CrashReporter = (function() {
   }
 
   function showBanner(crashID, isChrome) {
-    var message = isChrome ? _('crash-banner-os2') :
-      _('crash-banner-app', { name: crashedAppName });
+    var message = isChrome ? {
+      id: 'crash-banner-os2',
+      args: null
+    } : {
+      id: 'crash-banner-app',
+      args: { name: crashedAppName }
+    };
 
     var button = null;
     if (showReportButton) {
       button = {
-        label: _('crash-banner-report'),
+        labelL10nId: 'crash-banner-report',
         callback: function reportCrash() {
           submitCrash(crashID);
         },

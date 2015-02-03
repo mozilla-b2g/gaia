@@ -9,9 +9,9 @@ var frames = $('frames');
 // reused when we pan to the next or previous photo: next becomes
 // current, current becomes previous etc.  See nextFile() and
 // previousFile().  Note also that the Frame object is not a DOM
-// element.  Use currentFrame.container to refer to the div
+// element.  Use currentFrame.container to refer to the section
 // element. The frame constructor creates an <img> element, a <video>
-// element, and video player controls within the div, and you can refer to
+// element, and video player controls within the section, and you can refer to
 // those as currentFrame.image and currentFrame.video.player and
 // currentFrame.video.controls.
 var maxImageSize = CONFIG_MAX_IMAGE_PIXEL_SIZE;
@@ -319,9 +319,17 @@ function panHandler(event) {
   }
 
   // Don't swipe past the end of the last item or past the start of the first
-  if ((currentFileIndex === 0 && frameOffset > 0) ||
-      (currentFileIndex === files.length - 1 && frameOffset < 0)) {
-    frameOffset = 0;
+  // Handle frameOffset reset in RTL when directions are reversed. See 1099458
+  if (navigator.mozL10n.language.direction === 'ltr') {
+    if ((currentFileIndex === 0 && frameOffset > 0) ||
+        (currentFileIndex === files.length - 1 && frameOffset < 0)) {
+      frameOffset = 0;
+    }
+  } else {
+    if ((currentFileIndex === 0 && frameOffset < 0) ||
+        (currentFileIndex === files.length - 1 && frameOffset > 0)) {
+      frameOffset = 0;
+    }
   }
 
   // If the frameOffset has changed since we started, reposition the frames
@@ -456,19 +464,32 @@ var FRAME_BORDER_WIDTH = 3;
 var frameOffset = 0; // how far are the frames swiped side-to-side?
 
 function setFramesPosition() {
-  // XXX for RTL languages we should swap next and previous sides
   var width = window.innerWidth + FRAME_BORDER_WIDTH;
   currentFrame.container.style.transform =
     'translateX(' + frameOffset + 'px)';
-  nextFrame.container.style.transform =
-    'translateX(' + (frameOffset + width) + 'px)';
-  previousFrame.container.style.transform =
-    'translateX(' + (frameOffset - width) + 'px)';
+  if (navigator.mozL10n.language.direction === 'ltr') {
+    nextFrame.container.style.transform =
+      'translateX(' + (frameOffset + width) + 'px)';
+    previousFrame.container.style.transform =
+      'translateX(' + (frameOffset - width) + 'px)';
+  }
+  else {
+    // For RTL languages we swap next and previous sides
+    nextFrame.container.style.transform =
+      'translateX(' + (frameOffset - width) + 'px)';
+    previousFrame.container.style.transform =
+      'translateX(' + (frameOffset + width) + 'px)';
+  }
 
   // XXX Bug 1021782 add 'current' class to currentFrame
   nextFrame.container.classList.remove('current');
   previousFrame.container.classList.remove('current');
   currentFrame.container.classList.add('current');
+
+  // Hide adjacent frames from screen reader
+  nextFrame.container.setAttribute('aria-hidden', true);
+  previousFrame.container.setAttribute('aria-hidden', true);
+  currentFrame.container.removeAttribute('aria-hidden');
 }
 
 function resetFramesPosition() {

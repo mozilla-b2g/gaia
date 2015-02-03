@@ -2,7 +2,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
 
@@ -21,32 +28,44 @@ class EditPhoto(Base):
     def __init__(self, marionette):
         Base.__init__(self, marionette)
         # <canvas> is dynamically inserted
-        self.wait_for_element_displayed(*self._canvas_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._canvas_locator))))
 
     def tap_edit_effects_button(self):
         self.marionette.find_element(*self._edit_effect_button_locator).tap()
-        self.wait_for_element_displayed(*self._effect_options_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._effect_options_locator))))
 
     def tap_edit_crop_button(self):
         self.marionette.find_element(*self._edit_crop_button_locator).tap()
-        self.wait_for_element_displayed(*self._crop_portrait_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._crop_portrait_locator))))
 
     def tap_edit_tool_apply_button(self):
-        self.wait_for_element_displayed(*self._edit_tool_apply_button_locator)
-        self.marionette.find_element(*self._edit_tool_apply_button_locator).tap()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._edit_tool_apply_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
 
     def tap_edit_save_button(self):
-        self.wait_for_element_displayed(*self._edit_save_locator)
-        self.marionette.find_element(*self._edit_save_locator).tap()
-        self.wait_for_element_not_displayed(*self._save_progress_bar_locator)
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._edit_save_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
+        progress = self.marionette.find_element(*self._save_progress_bar_locator)
+        Wait(self.marionette).until(expected.element_not_displayed(progress))
         from gaiatest.apps.gallery.app import Gallery
         return Gallery(self.marionette)
 
     def tap_portrait_crop(self):
-        self.wait_for_element_displayed(*self._crop_portrait_locator)
-        self.marionette.find_element(*self._crop_portrait_locator).tap()
-        self.wait_for_condition(lambda m: 'selected' in m.find_element(
-            *self._crop_portrait_locator).get_attribute('class'))
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._crop_portrait_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
+        Wait(self.marionette).until(lambda m: 'selected' in element.get_attribute('class'))
 
     @property
     def effects(self):
@@ -57,4 +76,4 @@ class EditPhoto(Base):
 
         def tap(self):
             self.root_element.tap()
-            self.wait_for_condition(lambda m: 'selected' in self.root_element.get_attribute('class'))
+            Wait(self.marionette).until(lambda m: 'selected' in self.root_element.get_attribute('class'))

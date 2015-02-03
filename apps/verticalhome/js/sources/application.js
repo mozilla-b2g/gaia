@@ -3,10 +3,16 @@
 
 (function(exports) {
 
+  // XXX: This should not be hard-coded, but should come from the home screen
+  // JSON configuration file.
+  var blacklist = [
+    'app://privacy-panel.gaiamobile.org'
+  ];
+
   var appMgr = navigator.mozApps.mgmt;
   var apps = null;
 
-  window.mozPerformance.timing.mozHomescreenStart = Date.now();
+  window.performance.mark('homescreenStart@System');
 
   appMgr.getAll().onsuccess = function onsuccess(event) {
     apps = event.target.result;
@@ -188,6 +194,11 @@
       }
 
       toAdd.forEach(function _toAdd(newApp) {
+        // Do not add blacklisted apps to the grid.
+        if (blacklist.indexOf(newApp.app.origin) !== -1) {
+          return;
+        }
+
         this.addIconToGrid(newApp.app);
       }, this);
 

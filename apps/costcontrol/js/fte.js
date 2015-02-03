@@ -139,9 +139,9 @@
       document.getElementById('non2-select-weekday'));
 
     function _setResetTimeToDefault(evt) {
-      var firstWeekDay = parseInt(navigator.mozL10n.get('weekStartsOnMonday'),
-                                  10);
-      var defaultResetTime = (evt.target.value === 'weekly') ? firstWeekDay : 1;
+      var today = new Date();
+      var defaultResetTime = (evt.target.value === 'weekly') ?
+        today.getDay() : today.getDate();
       ConfigManager.setOption({ resetTime: defaultResetTime });
     }
 
@@ -203,7 +203,7 @@
     newStartScreen.dataset.viewport = 'right';
     delete newStartScreen.dataset.viewport;
 
-    for (var i = 1; i < track.lenght; i += 1) {
+    for (var i = 1; i < track.length; i += 1) {
       var id = track[i];
       if (id) {
         var screen = document.getElementById(id);

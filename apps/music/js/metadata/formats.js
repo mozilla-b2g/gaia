@@ -1,5 +1,5 @@
-/* global ForwardLockMetadata, ID3v1Metadata, ID3v2Metadata, LazyLoader,
-   MP4Metadata, OggMetadata */
+/* global FLACMetadata, ForwardLockMetadata, ID3v1Metadata, ID3v2Metadata,
+   LazyLoader, MP4Metadata, OggMetadata */
 /* exported MetadataFormats */
 'use strict';
 
@@ -44,6 +44,13 @@ var MetadataFormats = (function() {
       }
     },
     {
+      file: 'js/metadata/flac.js',
+      get module() { return FLACMetadata; },
+      match: function(header) {
+        return header.getASCIIText(0, 4) === 'fLaC';
+      }
+    },
+    {
       file: 'js/metadata/mp4.js',
       get module() { return MP4Metadata; },
       match: function(header) {
@@ -75,15 +82,14 @@ var MetadataFormats = (function() {
      * Parse a file and return a Promise with the metadata.
      *
      * @param {BlobView} header The file in question.
-     * @param {Metadata} metadata The (partially filled-in) metadata object.
      * @return {Promise} A Promise that resolves with the completed metadata
      *   object.
      */
-    parse: function(header, metadata) {
+    parse: function(header) {
       var info = this._formatInfo;
       return new Promise(function(resolve, reject) {
         LazyLoader.load(info.file, function() {
-          resolve(info.module.parse(header, metadata));
+          resolve(info.module.parse(header));
         });
       });
     }

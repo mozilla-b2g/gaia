@@ -1,0 +1,49 @@
+#main-section[data-mode="edit"] #nav-regular,
+#main-section[data-mode="arrange"] #nav-regular,
+#main-section:not([data-mode="edit"]) #nav-edit-title,
+#main-section:not([data-mode="edit"]) #nav-edit {
+  transform: translateY(-16rem);
+}
+
+#main-section[data-mode="arrange"] .app-button.focused {
+  transform: scale(1.72);
+}
+
+#main-section[data-mode="edit"] .card.focused > .card-panel {
+  display: block;
+}
+
+#main-section[data-mode="edit"] .card.focused > smart-button[app-type='deck'] ~ .card-panel {
+  display: none;
+}
+
+#main-section[data-mode="arrange"] .card.focused:after {
+  position: absolute;
+  left: -25.1rem;
+  right: -25.1rem;
+  top: -25.1rem;
+  bottom: -25.1rem;
+  content: ' ';
+}
+
+#main-section[data-mode="arrange"] .card:not(.focused) {
+  filter: url(filter.svg#brightness50percent);
+}
+
+#main-section[data-mode="arrange"] .card.focused.left_arrow:after {
+  background: url(images/animated_arrows_left.png) no-repeat left center / 13rem;
+}
+
+#main-section[data-mode="arrange"] .card.focused.right_arrow:after {
+  background: url(images/animated_arrows_right.png) no-repeat right center / 13rem;
+}
+
+#main-section[data-mode="arrange"] .card.focused.left_arrow.right_arrow:after {
+  background: url(images/animated_arrows_left.png) no-repeat left center / 13rem,
+              url(images/animated_arrows_right.png) no-repeat right center / 13rem;
+}
+
+#add-new-folder-button {
+  /* This is not displayed until folder features are implemented. */
+  display: none;
+}

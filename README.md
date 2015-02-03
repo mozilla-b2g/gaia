@@ -24,12 +24,17 @@ and talk to us on IRC:
 
 [The Gaia/Hacking page on MDN](https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Platform/Gaia/Hacking) has all the information that you need to start working on Gaia, including building and running Gaia on a compatible device or desktop computer.
 
-## Shepherd (bot)
+## Autolander (bot)
 
-Opt-into new features by adding +shepherd to your first commit.
+Autolander is a bot which integrations github and bugzilla workflows.
 
 Features available:
-  - automatic github -> bugzilla linking
+  - Automatic pull request to bugzilla attachment linking.
+  - Automatic landing, on green integration run, with a R+ from a suggested reviewer and checkin-needed keyword.
+  - Comments in the bug with the landed commit, and marks the bug as fixed.
+  - Validates pull request title and commit message formats.
+  - Currently only runs a subset of the gaia CI tests which are stable on taskcluster. Ensure you have a green gaia-try run before adding checkin-needed.
+  - See more at: https://github.com/mozilla/autolander [The Autolander guide on MDN](https://developer.mozilla.org/en-US/Firefox_OS/Developing_Gaia/Submitting_a_Gaia_patch#Easy_patch_submission_with_Autolander)
 
 
 ## Tests
@@ -214,6 +219,48 @@ See [Gaia functional tests README](https://github.com/mozilla-b2g/gaia/blob/mast
 #### Endurance
 
 See [how to run the Gaia endurance tests](https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Platform/Automated_testing/endurance_tests/how_to_run_gaiaui_endurance_tests)
+
+### Build System Tests
+
+Build system has its own unit test and integration test. Both are running on [Node.js](http://nodejs.org)
+
+#### Build System Unit Tests
+
+To run unit test locally, using following command:
+
+```
+$ make build-test-unit
+```
+
+#### Build System Integration Tests
+
+To run integration test locally, using following command:
+
+```
+$ make build-test-integration
+```
+
+#### Invoking specific test files
+
+Both the build unit or integration test can invoke specific test files by TEST_FILES
+
+```
+make build-test-unit TEST_FILES=<test file path>
+```
+
+```
+make build-test-integration TEST_FILES=<test file path>
+```
+
+For example, we could run the `keyboard_test.js` build integration test in keyboard app with the below command.
+```
+make build-test-integration TEST_FILES=apps/keyboard/test/build/integration/keyboard_test.js
+```
+
+If you would like to run more than one test, we could do the below command.
+```
+make build-test-integration TEST_FILES="apps/keyboard/test/build/integration/keyboard_test.js apps/keyboard/test/build/integration/keyboard_layout_test.js"
+```
 
 ## Generate jsdoc
 

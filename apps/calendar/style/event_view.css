@@ -21,6 +21,11 @@
   list-style-type: none;
 }
 
+#event-view ul * {
+  /* allow selection of whole event data */
+  -moz-user-select: text;
+}
+
 #event-view .content {
   word-wrap: break-word;
   -moz-hyphens: auto;

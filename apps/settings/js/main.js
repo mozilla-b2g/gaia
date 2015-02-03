@@ -6,21 +6,12 @@ require(['config/require'], function() {
     // at once here. These should be move to the dependency of each panel in the
     // future.
     require('utils');
-    require('shared/async_storage');
     require('shared/settings_listener');
-    // used by wifi.js, wifi_select_certificate_file.js
-    require('shared/wifi_helper');
-    // used by messaging.js
-    require('shared/icc_helper');
-    // used by all header building blocks
-    require('shared/font_size_utils');
 
-    var SettingsUtils = require('modules/settings_utils');
     var SettingsService = require('modules/settings_service');
-    var PageTransitions = require('modules/page_transitions');
-    var LazyLoader = require('shared/lazy_loader');
     var ScreenLayout = require('shared/screen_layout');
     var Settings = require('settings');
+    var DsdsSettings = require('dsds_settings');
 
     function isInitialPanel(panel) {
       if (Settings.isTabletAndLandscape()) {
@@ -35,14 +26,59 @@ require(['config/require'], function() {
         return;
       }
 
+      var bluetoothMenuItem =
+        document.querySelector('#root .menuItem-bluetooth');
+      if (bluetoothMenuItem) {
+        bluetoothMenuItem.setAttribute('href', '#');
+      }
+
+      var initialPanelHandler = window.LaunchContext.initialPanelHandler;
+      if (initialPanelHandler) {
+        initialPanelHandler.release();
+        var pendingTargetPanel = initialPanelHandler.pendingTargetPanel;
+        // XXX: In bluetooth and call item,
+        // we need special logic for navigating to specific panels.
+       
+        switch (pendingTargetPanel) {
+          case 'bluetooth':
+            require(['modules/bluetooth/version_detector'],
+              (versionDetector) => {
+              var version = versionDetector.getVersion();
+              if (version === 1) {
+                // navigate old bluetooth panel..
+                SettingsService.navigate('bluetooth');
+              } else if (version === 2) {
+                // navigate new bluetooth panel..
+                SettingsService.navigate('bluetooth_v2');
+              }
+            });
+            break;
+          case 'call':
+            if (DsdsSettings.getNumberOfIccSlots() > 1) {
+              // If the device support dsds,
+              // then navigate to 'call-iccs' panel
+              pendingTargetPanel = 'call-iccs';
+            }
+            SettingsService.navigate(pendingTargetPanel);
+            break;
+          default:
+            if (pendingTargetPanel) {
+              SettingsService.navigate(pendingTargetPanel);
+            }
+            break;
+        }
+      }
+
       window.removeEventListener('panelready', onPanelReady);
 
-      // Activate the animation and user interaction.
-      document.body.dataset.ready = true;
+      // XXX: Even the panel has been displayed but the content may still not
+      //      stable yet. This is a estimated timing of visually complete. We
+      //      should implement other mechanism waiting for all content ready.
+      window.performance.mark('visuallyLoaded');
+      window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
 
-      // The loading of the first panel denotes that we are ready for display
-      // and ready for user interaction
-      window.dispatchEvent(new CustomEvent('moz-content-interactive'));
+      // Activate the animation.
+      document.body.dataset.ready = true;
     }, false);
 
     window.addEventListener('telephony-settings-loaded',
@@ -52,6 +88,7 @@ require(['config/require'], function() {
 
         // The loading of telephony settings is dependent on being idle,
         // once complete we are safe to declare the settings app as loaded
+        window.performance.mark('fullyLoaded');
         window.dispatchEvent(new CustomEvent('moz-app-loaded'));
       });
 
@@ -69,22 +106,10 @@ require(['config/require'], function() {
     });
 
     var options = {
-      SettingsUtils: SettingsUtils,
       SettingsService: SettingsService,
-      PageTransitions: PageTransitions,
-      LazyLoader: LazyLoader,
       ScreenLayout: ScreenLayout
     };
-
-    if (document && (document.readyState === 'complete' ||
-        document.readyState === 'interactive')) {
-      Settings.init(options);
-    } else {
-      window.addEventListener('load', function onload() {
-        window.removeEventListener('load', onload);
-        Settings.init(options);
-      });
-    }
+    Settings.init(options);
 
     // Tell audio channel manager that we want to adjust the notification
     // channel if the user press the volumeup/volumedown buttons in Settings.

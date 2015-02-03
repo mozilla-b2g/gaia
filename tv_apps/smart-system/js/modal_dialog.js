@@ -360,7 +360,7 @@ var ModalDialog = {
 
   buildSelectOneDialog: function md_buildSelectOneDialog(data) {
     var elements = this.elements;
-    elements.selectOneTitle.textContent = data.title;
+    elements.selectOneTitle.setAttribute('data-l10n-id', data.title);
     elements.selectOneMenu.innerHTML = '';
 
     if (!data.options) {

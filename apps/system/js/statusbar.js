@@ -15,7 +15,7 @@
 */
 
 /*global Clock, SettingsListener, FtuLauncher, MobileOperator,
-         SIMSlotManager, Service, Bluetooth, UtilityTray, nfcManager,
+         SIMSlotManager, Service, Bluetooth, UtilityTray,
          layoutManager */
 
 'use strict';
@@ -143,6 +143,8 @@ var StatusBar = {
 
   _minimizedStatusBarWidth: window.innerWidth,
 
+  _pausedForGesture: false,
+
   /**
    * Object used for handling the clock UI element, wraps all related timers
    */
@@ -174,6 +176,7 @@ var StatusBar = {
     window.addEventListener('apptitlestatechanged', this);
     window.addEventListener('activitytitlestatechanged', this);
     window.addEventListener('appchromecollapsed', this);
+    window.addEventListener('appchromeexpanded', this);
     window.addEventListener('emergencycallbackstatechanged', this);
   },
 
@@ -250,6 +253,8 @@ var StatusBar = {
     window.addEventListener('utilitytraywillhide', this);
     window.addEventListener('utility-tray-overlayopened', this);
     window.addEventListener('utility-tray-overlayclosed', this);
+    window.addEventListener('utility-tray-abortopen', this);
+    window.addEventListener('utility-tray-abortclose', this);
     window.addEventListener('cardviewshown', this);
     window.addEventListener('cardviewclosed', this);
 
@@ -272,11 +277,8 @@ var StatusBar = {
     // Listen to Custom event send by 'nfc_manager.js'
     window.addEventListener('nfc-state-changed', this);
 
-    // 'bluetoothconnectionchange' fires when the overall bluetooth connection
-    //  changes.
     // 'bluetoothprofileconnectionchange' fires when a bluetooth connection of
     //  a specific profile changes.
-    window.addEventListener('bluetoothconnectionchange', this);
     window.addEventListener('bluetoothprofileconnectionchange', this);
 
     // Listen to 'moztimechange'
@@ -298,9 +300,14 @@ var StatusBar = {
     window.addEventListener('appopened', this);
     window.addEventListener('activityopened', this);
     window.addEventListener('activityterminated', this);
+    window.addEventListener('activitydestroyed', this);
     window.addEventListener('homescreenopening', this);
     window.addEventListener('homescreenopened', this);
     window.addEventListener('stackchanged', this);
+
+    // Listen to updates dialog
+    window.addEventListener('updatepromptshown', this);
+    window.addEventListener('updateprompthidden', this);
 
     // Track Downloads via the Downloads API.
     var mozDownloadManager = navigator.mozDownloadManager;
@@ -342,20 +349,22 @@ var StatusBar = {
         // or we have some bugs.
         this.toggleTimeLabel(false);
         this._updateIconVisibility();
-        this.setAppearance(evt.detail);
         this._inLockScreenMode = true;
+        this.setAppearance();
         break;
 
       case 'lockscreen-appclosing':
         // Display the clock in the statusbar when screen is unlocked
-        this._inLockScreenMode = false;
         this.toggleTimeLabel(true);
         this._updateIconVisibility();
+        this._inLockScreenMode = false;
         this.setAppearance(Service.currentApp);
         break;
 
       case 'attentionopened':
         this.toggleTimeLabel(true);
+        this.element.classList.add('maximized');
+        this.element.classList.remove('light');
         break;
 
       case 'attentionclosed':
@@ -365,7 +374,10 @@ var StatusBar = {
 
       case 'sheets-gesture-begin':
         this.element.classList.add('hidden');
-        this.pauseUpdate();
+        if (!this._pausedForGesture) {
+          this.pauseUpdate();
+          this._pausedForGesture = true;
+        }
         break;
 
       case 'utilitytraywillshow':
@@ -376,6 +388,8 @@ var StatusBar = {
 
       case 'utility-tray-overlayopened':
       case 'utility-tray-overlayclosed':
+      case 'utility-tray-abortopen':
+      case 'utility-tray-abortclose':
       case 'cardviewclosed':
         this.resumeUpdate();
         break;
@@ -383,7 +397,7 @@ var StatusBar = {
       case 'lockpanelchange':
         if (this.screen.classList.contains('locked')) {
           // Display the clock in the statusbar if on Emergency Call screen
-          var isHidden = (evt.detail.panel == 'emergency-call') ? false : true;
+          var isHidden = (evt.detail.panel !== 'emergency-call');
           this.toggleTimeLabel(!isHidden);
         }
         break;
@@ -420,10 +434,6 @@ var StatusBar = {
 
       case 'datachange':
         this.update.data.call(this);
-        break;
-
-      case 'bluetoothconnectionchange':
-        this.update.bluetooth.call(this);
         break;
 
       case 'bluetoothprofileconnectionchange':
@@ -546,6 +556,7 @@ var StatusBar = {
 
       case 'sheets-gesture-end':
         this.element.classList.remove('hidden');
+        this._pausedForGesture = false;
         this.resumeUpdate();
         break;
 
@@ -555,10 +566,18 @@ var StatusBar = {
         break;
 
       case 'appchromecollapsed':
+        this.setAppearance(evt.detail);
         this._updateMinimizedStatusBarWidth();
         break;
 
       case 'appopened':
+      case 'appchromeexpanded':
+        if (evt.type === 'appopened') {
+          this.element.classList.toggle('fullscreen',
+            evt.detail.isFullScreen());
+          this.element.classList.toggle('fullscreen-layout',
+            evt.detail.isFullScreenLayout());
+        }
         this.setAppearance(evt.detail);
         this.element.classList.remove('hidden');
         this._updateMinimizedStatusBarWidth();
@@ -569,9 +588,24 @@ var StatusBar = {
         /* falls through */
       case 'apptitlestatechanged':
       case 'activitytitlestatechanged':
-      case 'homescreenopened':
         this.setAppearance(evt.detail);
+        if (!this.isPaused()) {
+          this.element.classList.remove('hidden');
+        }
+        break;
+      case 'homescreenopened':
+        // In some cases, if the user has been switching apps so fast and
+        // quickly he press the home button, we might miss the
+        // |sheets-gesture-end| event so we must resume the statusbar
+        // if needed
+        this.setAppearance(evt.detail);
+        if (this._pausedForGesture) {
+          this.resumeUpdate();
+          this._pausedForGesture = false;
+        }
         this.element.classList.remove('hidden');
+        this.element.classList.remove('fullscreen');
+        this.element.classList.remove('fullscreen-layout');
         break;
       case 'activityterminated':
         // In this particular case, we want to restore the original color of
@@ -579,12 +613,21 @@ var StatusBar = {
         this.setAppearance(evt.detail, true);
         this.element.classList.remove('hidden');
         break;
+      case 'activitydestroyed':
+        this._updateMinimizedStatusBarWidth();
+        break;
       case 'downloadstart':
         // New download, track it so we can show or hide the active downloads
         // indicator. If you think this logic needs to change, think really hard
         // about it and then come and ask @nullaus
         this.addSystemDownloadListeners(evt.download);
         break;
+       case 'updatepromptshown':
+          this.element.classList.remove('light');
+          break;
+        case 'updateprompthidden':
+          this.setAppearance(Service.currentApp);
+          break;
     }
   },
 
@@ -627,9 +670,9 @@ var StatusBar = {
   },
 
   setAppearance: function(app, useBottomWindow) {
-    // Avoid any attempt to update the statusbar when
-    // the phone is locked
+    // The statusbar is always maximised when the phone is locked.
     if (this._inLockScreenMode) {
+      this.element.classList.add('maximized');
       return;
     }
 
@@ -658,11 +701,19 @@ var StatusBar = {
   _updateMinimizedStatusBarWidth: function sb_updateMinimizedStatusBarWidth() {
     var app = Service.currentApp;
     app = app && app.getTopMostWindow();
+    var appChrome = app && app.appChrome;
+
+    // Only calculate the search input width when the chrome is minimized
+    // Bug 1118025 for more info
+    if (appChrome && appChrome.isMaximized()) {
+      this._updateIconVisibility();
+      return;
+    }
 
     // Get the actual width of the rocketbar, and determine the remaining
     // width for the minimized statusbar.
-    var element = app && app.appChrome && app.appChrome.element &&
-      app.appChrome.element.querySelector('.urlbar .title');
+    var element = appChrome && appChrome.element &&
+      appChrome.element.querySelector('.urlbar .title');
 
     if (element) {
       this._minimizedStatusBarWidth = Math.round(
@@ -814,7 +865,7 @@ var StatusBar = {
     this.setActiveBattery(active);
 
     if (active) {
-      this.setActiveNfc(nfcManager.isActive());
+      this.setActiveNfc(Service.query('NfcManager.isActive'));
 
       this.addConnectionsListeners();
 
@@ -868,7 +919,7 @@ var StatusBar = {
     if (active) {
       var wifiManager = window.navigator.mozWifiManager;
       if (wifiManager) {
-        wifiManager.connectionInfoUpdate = this.update.wifi.bind(this);
+        wifiManager.onconnectioninfoupdate = this.update.wifi.bind(this);
       }
 
       this.update.wifi.call(this);
@@ -1050,6 +1101,7 @@ var StatusBar = {
         }
 
         var previousHiddenState = icon.hidden;
+        var previousActiveState = icon.dataset.inactive;
         var previousRoamingHiddenState = roaming.hidden;
 
         if (this.settingValues['ril.radio.disabled']) {
@@ -1106,6 +1158,7 @@ var StatusBar = {
         }
 
         if (previousHiddenState !== icon.hidden ||
+          previousActiveState !== icon.dataset.inactive ||
           previousRoamingHiddenState !== roaming.hidden) {
           isDirty = true;
         }
@@ -1226,8 +1279,8 @@ var StatusBar = {
           if (icon.dataset.connecting) {
             delete icon.dataset.connecting;
           }
-          var level = Math.floor(
-            wifiManager.connectionInformation.relSignalStrength / 25);
+          var level = Math.min(Math.floor(
+            wifiManager.connectionInformation.relSignalStrength / 20), 4);
           icon.dataset.level = level;
           icon.setAttribute('aria-label', navigator.mozL10n.get(
             'statusbarWiFiConnected', {level: level}));

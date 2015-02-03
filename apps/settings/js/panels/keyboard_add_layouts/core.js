@@ -7,8 +7,9 @@
 define(function(require) {
   'use strict';
 
-  var SettingsService = require('modules/settings_service');
   var ListView = require('modules/mvvm/list_view');
+
+  var _ = navigator.mozL10n.get;
 
   /**
    * @alias module:keyboard_add_layouts/core
@@ -75,10 +76,22 @@ define(function(require) {
      * @param {String} missingType
      */
     _showEnabledDefaultDialog: function kal_showDialog(layout, missingType) {
-      SettingsService.navigate('keyboard-enabled-default', {
-        layout: layout,
-        origin: 'keyboard-selection-addMore',
-        missingType: missingType
+      require(['modules/dialog_service'], function(DialogService) {
+        var type = _('keyboardType-' + missingType);
+        DialogService.alert({
+          id: 'defaultKeyboardEnabled',
+          args: {
+            layoutName: layout.inputManifest.name,
+            appName: layout.manifest.name
+          }
+        }, {
+          title: {
+            id: 'mustHaveOneKeyboard',
+            args: {
+              type: type
+            }
+          }
+        });
       });
     },
 

@@ -4,9 +4,14 @@
 
 from gaiatest.apps.base import Base
 
-from marionette.by import By
-from marionette.wait import Wait
-from marionette import expected
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
 
 
 class Search(Base):
@@ -34,6 +39,7 @@ class Search(Base):
 
     def wait_for_history_to_load(self, number_of_items=1):
         if number_of_items == 0:
-            self.wait_for_element_not_displayed(*self._history_item_locator)
+            Wait(self.marionette).until(
+                expected.element_not_displayed(*self._history_item_locator))
         else:
             Wait(self.marionette).until(lambda m: len(m.find_elements(*self._history_item_locator)) == number_of_items)

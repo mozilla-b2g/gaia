@@ -187,6 +187,32 @@
      */
     switchApp: function awm_switchApp(appCurrent, appNext, switching,
                                       openAnimation, closeAnimation) {
+
+      // XXX: Bug 1124112 - Seamlessly launch search app from home
+      if (appNext.manifest && appNext.manifest.role === 'search') {
+        var startSwitchApp = function() {
+          if (appNext.isDead()) {
+            this._updateActiveApp(appCurrent.instanceID);
+          } else {
+            this._updateActiveApp(appNext.instanceID);
+            appNext.open('immediate');
+            // HomescreenWindowManager will take care of "appCurrent.close()" so
+            // it's unnecessary to be handled here.
+          }
+        }.bind(this);
+
+        if (appNext.loaded) {
+          setTimeout(startSwitchApp);
+        } else {
+          appNext.element.addEventListener('_loaded', function onLoaded() {
+            appNext.element.removeEventListener('_loaded', onLoaded);
+            setTimeout(startSwitchApp);
+          });
+        }
+
+        return;
+      }
+
       this.debug('before ready check' + appCurrent + appNext);
       appNext.ready(function() {
         if (appNext.isDead()) {
@@ -260,7 +286,6 @@
       window.addEventListener('cardviewbeforeshow', this);
       window.addEventListener('launchapp', this);
       document.body.addEventListener('launchactivity', this, true);
-      window.addEventListener('home', this);
       window.addEventListener('appcreated', this);
       window.addEventListener('appterminated', this);
       window.addEventListener('homescreenterminated', this);
@@ -339,7 +364,6 @@
      */
     uninit: function awm_uninit() {
       window.removeEventListener('launchapp', this);
-      window.removeEventListener('home', this);
       window.removeEventListener('appcreated', this);
       window.removeEventListener('appterminated', this);
       window.removeEventListener('homescreenterminated', this);
@@ -521,19 +545,6 @@
               activeApp.blur();
             }
           }
-          break;
-
-        // If the lockscreen is active, it will stop propagation on this event
-        // and we'll never see it here. Similarly, other overlays may use this
-        // event to hide themselves and may prevent the event from getting here.
-        // Note that for this to work, the lockscreen and other overlays must
-        // be included in index.html before this one, so they can register their
-        // event handlers before we do.
-        case 'home':
-          if (!homescreenWindowManager.ready) {
-            return;
-          }
-          this.display(null, null, null, 'home');
           break;
 
         case 'launchapp':

@@ -1,4 +1,4 @@
-/* global KeyboardManager, Service, AppWindowManager */
+/* global KeyboardManager, Service */
 'use strict';
 
 (function(exports) {
@@ -45,8 +45,6 @@
      * @memberOf LayoutManager
      */
     get height() {
-      var activeApp = AppWindowManager.getActiveApp();
-      var isFullScreenLayout = activeApp && activeApp.isFullScreenLayout();
       var keyboardHeight = this.keyboardEnabled ?
         KeyboardManager.getHeight() : 0;
       var height = window.innerHeight - keyboardHeight;

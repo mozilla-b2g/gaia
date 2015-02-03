@@ -1,12 +1,6 @@
 'use strict';
 
 var assert = require('assert');
-var Actions = require('marionette-client').Actions;
-var Home = require(
-  '../../../../apps/verticalhome/test/marionette/lib/home2');
-var Search = require(
-  '../../../../apps/search/test/marionette/lib/search');
-var System = require('./lib/system');
 var Rocketbar = require('./lib/rocketbar');
 var Server = require('../../../../shared/test/integration/server');
 
@@ -29,14 +23,12 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
   var halfScreenHeight;
 
   setup(function(done) {
-    actions = new Actions(client);
-    home = new Home(client);
+    actions = client.loader.getActions();
+    home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
-    search = new Search(client);
-    system = new System(client);
+    search = client.loader.getAppClass('search');
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
-
-    search.removeGeolocationPermission();
 
     halfScreenHeight = client.executeScript(function() {
       return window.innerHeight;
@@ -47,7 +39,7 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
     client.switchToFrame(frame);
     client.helper.waitForElement('body');
     client.switchToFrame();
-    waitForOffscreen(System.Selector.appUrlbar);
+    waitForOffscreen(system.Selector.appUrlbar);
     Server.create(__dirname + '/fixtures/', function(err, _server) {
       server = _server;
       done(err);
@@ -75,7 +67,7 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
   test('test fullscreen chrome /w navigation', function() {
     // Validate page 1
     expandRocketbar();
-    waitForOffscreen(System.Selector.appUrlbar);
+    waitForOffscreen(system.Selector.appUrlbar);
 
     // Validate page 2
     client.switchToFrame(frame);
@@ -86,7 +78,7 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
     assert.ok(system.appChromeBack.displayed(), 'Back button is shown.');
     system.appChromeBack.click();
     assert.ok(system.appChromeForward.displayed(), 'Forward button is shown.');
-    waitForOffscreen(System.Selector.appUrlbar);
+    waitForOffscreen(system.Selector.appUrlbar);
   });
 
   test('test progressbar', function() {
@@ -101,7 +93,7 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
 
     client.switchToFrame();
     expandRocketbar();
-    var selector = System.Selector.appChromeProgressBar;
+    var selector = system.Selector.appChromeProgressBar;
     var progressBar = client.helper.waitForElement(selector);
     var chromeSize = system.appChrome.size();
     client.waitFor(function() {
@@ -112,7 +104,7 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
     });
 
     waitForOffscreen(selector);
-    var progressbar = client.findElement(System.Selector.appChromeProgressBar);
+    var progressbar = client.findElement(system.Selector.appChromeProgressBar);
     client.waitFor(function() {
       return !progressbar.displayed();
     });

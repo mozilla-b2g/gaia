@@ -1,14 +1,13 @@
 'use strict';
 
 var KeyboardTestApp = require('./lib/keyboard_test_app'),
-    System = require('./lib/system'),
     Keyboard = require('./lib/keyboard'),
     assert = require('assert');
 
 marionette('show Keyboard APP', function() {
   var apps = {};
   var keyboardTestApp = null;
-  var system = null;
+  var systemInputMgmt = null;
   var keyboard = null;
   var client = null;
 
@@ -27,7 +26,7 @@ marionette('show Keyboard APP', function() {
 
   setup(function() {
     keyboard =  new Keyboard(client);
-    system =  new System(client);
+    systemInputMgmt = client.loader.getAppClass('system', 'input_management');
 
     // create a keyboard test app
     keyboardTestApp = new KeyboardTestApp(client);
@@ -35,8 +34,8 @@ marionette('show Keyboard APP', function() {
     keyboardTestApp.textInput.click();
 
     // Wait for the keyboard pop up and switch to it
-    system.waitForKeyboardFrameDisplayed();
-    system.switchToActiveKeyboardFrame();
+    systemInputMgmt.waitForKeyboardFrameDisplayed();
+    systemInputMgmt.switchToActiveKeyboardFrame();
   });
 
   test('should show lowercase layout', function() {
@@ -79,7 +78,7 @@ marionette('show Keyboard APP', function() {
 
     // Switch back to keyboard
     client.switchToFrame();
-    system.switchToActiveKeyboardFrame();
+    systemInputMgmt.switchToActiveKeyboardFrame();
 
     // Should remain, or switched back to alpha keyboard.
     client.waitFor(function() {
@@ -114,7 +113,7 @@ marionette('show Keyboard APP', function() {
 
     client.helper.wait(3000);
 
-    system.switchToActiveKeyboardFrame();
+    systemInputMgmt.switchToActiveKeyboardFrame();
 
     var keyboardContainer =
       client.findElement('.keyboard-type-container[data-active]');

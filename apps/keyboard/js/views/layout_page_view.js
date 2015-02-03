@@ -1,6 +1,7 @@
 'use strict';
 
-/* global HandwritingPadView, KeyView, KeyboardEvent */
+/* global HandwritingPadView, KeyView, KeyboardEvent,
+   LatinCandidatePanelView, CandidatePanelView */
 
 (function(exports) {
 /**
@@ -12,23 +13,39 @@ function LayoutPageView(layout, options, viewManager) {
   this.layout = layout;
   this.options = options;
   this.viewManager = viewManager;
+  this.isUpperCase = undefined;
+
+  this.rows = new Map();
+  // Each row would contain the following info:
+  //{ element:   ,  // DOM element for this row
+  //  keys:      ,  // A map to store all the keys.
+  //}
+
+  this.candidatePanel = null;
 }
 
 LayoutPageView.prototype.render = function render() {
   var layout = this.layout;
-
-  var layoutWidth = layout.width || 10;
-  var placeHolderWidth = this.options.totalWidth / layoutWidth;
-
   var content = document.createDocumentFragment();
 
   var container = document.createElement('div');
-  if (this.options.classList) {
-    container.classList.add.apply(container.classList, this.options.classList);
+  if (this.options.classNames) {
+    container.classList.add.apply(container.classList, this.options.classNames);
   }
 
   if (layout.specificCssRule) {
     container.classList.add(layout.layoutName);
+  }
+
+  // Render candidate panel
+  if (this.options.showCandidatePanel) {
+    var candidatePanel = this.createCandidatePanel(this.layout.imEngine);
+    candidatePanel.render();
+
+    container.classList.add('candidate-panel');
+    container.appendChild(candidatePanel.element);
+
+    this.candidatePanel = candidatePanel;
   }
 
   // Create canvas for handwriting.
@@ -41,6 +58,7 @@ LayoutPageView.prototype.render = function render() {
                                                     this.viewManager);
     handwritingPadView.render();
     content.appendChild(handwritingPadView.element);
+    this.handwritingPadView = handwritingPadView;
   }
 
   layout.keys.forEach((function buildKeyboardRow(row, nrow) {
@@ -53,18 +71,46 @@ LayoutPageView.prototype.render = function render() {
       kbRow.classList.add('keyboard-last-row');
     }
 
-    row.forEach((function buildKeyboardColumns(key) {
+    var keyCount = 0;
+    var keyMap = new Map();
+
+    // Calculate the layout width for each row first.
+    row.forEach(function calcRowRatio(key, keyIndex) {
       var ratio = key.ratio || 1;
       rowLayoutWidth += ratio;
+    });
+
+    if ('handwritingPadOptions' in layout &&
+        nrow < layout.handwritingPadOptions.rowspan) {
+      rowLayoutWidth += layout.handwritingPadOptions.ratio;
+    }
+
+    row.forEach((function buildKeyboardColumns(key, keyIndex) {
+      var ratio = key.ratio || 1;
 
       // One key in layout may be used to create multiple keyViews in
       // different pages, so create a unique instance here.
       var target = Object.freeze(Object.create(key));
+
       var options = {
-        keyClassName: layout.keyClassName,
+        classNames: [],
         outputChar: key.uppercaseValue,
-        keyWidth: (placeHolderWidth * ratio)
+        outerRatio: ratio,
+        innerRatio: ratio
       };
+
+      if (layout.keyClassName) {
+        options.classNames = options.classNames.concat(
+          layout.keyClassName.split(' '));
+      }
+
+      var layoutWidth = layout.width || 10;
+      // Adjust the width of the first and the last key if there are less keys
+      // in this row.
+      if (layoutWidth != rowLayoutWidth &&
+          (keyIndex === 0 || keyIndex === row.length - 1)) {
+        options.outerRatio = ratio + ((layoutWidth - rowLayoutWidth) / 2);
+      }
 
       if (layout.secondLayout) {
         options.altOutputChar = key.value;
@@ -73,14 +119,16 @@ LayoutPageView.prototype.render = function render() {
       var keyView = new KeyView(target, options, this.viewManager);
       keyView.render();
       kbRow.appendChild(keyView.element);
+
+      keyMap.set(keyCount, keyView);
+      keyCount++;
     }.bind(this)));
 
-    if ('handwritingPadOptions' in layout &&
-        nrow < layout.handwritingPadOptions.rowspan) {
-      rowLayoutWidth += layout.handwritingPadOptions.ratio;
-    }
 
-    kbRow.dataset.layoutWidth = rowLayoutWidth;
+    this.rows.set(nrow, {
+      element: kbRow,
+      keys: keyMap
+    });
 
     content.appendChild(kbRow);
   }).bind(this));
@@ -97,21 +145,17 @@ LayoutPageView.prototype.render = function render() {
   this.element = container;
 };
 
-LayoutPageView.prototype.toggleCase = function toggleCase(options) {
-  this.element.classList.toggle('lowercase', !options.upperCase);
-};
-
 // Accepts a state object with two properties.
 //   Set isUpperCaseLocked to true if locked
 //   Set isUpperCase to true when uppercase is enabled
 //   Use false on both of these properties when uppercase is disabled
 LayoutPageView.prototype.setUpperCaseLock = function setUpperCaseLock(state) {
+  this.isUpperCase = (state.isUpperCase || state.isUpperCaseLocked);
+
   // Toggle the entire container in case this layout require different
   // rendering for upper case state, i.e. |secondLayout = true|.
   var container = this.element;
-
-  container.classList.toggle('lowercase',
-    !(state.isUpperCaseLocked || state.isUpperCase));
+  container.classList.toggle('lowercase', !this.isUpperCase);
 
   //XXX: this should be changed to accessing the KeyView directly.
   var capsLockKey = container.querySelector(
@@ -145,6 +189,117 @@ LayoutPageView.prototype.hide = function hide() {
 LayoutPageView.prototype.show = function show() {
   // For automated testing to locate the active pageView
   this.element.dataset.active = true;
+};
+
+LayoutPageView.prototype.highlightKey = function highlightKey(target) {
+  var keyView = this.viewManager.getView(target);
+  keyView.highlight({upperCase: this.isUpperCase});
+};
+
+LayoutPageView.prototype.unHighlightKey = function unHighlightKey(target) {
+  var keyView = this.viewManager.getView(target);
+  keyView.unHighlight();
+};
+
+LayoutPageView.prototype.resize = function resize(totalWidth) {
+  // Set width and height for handwriting pad.
+  if (this.handwritingPadView) {
+    var placeHolderWidth = totalWidth / (this.layout.width || 10);
+    var width = Math.floor(placeHolderWidth *
+                             this.layout.handwritingPadOptions.ratio);
+
+    // Get row height
+    var height = this.rows.get(0).element.clientHeight *
+                 this.layout.handwritingPadOptions.rowspan;
+    this.handwritingPadView.resize(width, height);
+  }
+};
+
+LayoutPageView.prototype.getVisualData = function getVisualData() {
+  // Now that key sizes have been set and adjusted for the row,
+  // loop again and record the size and position of each. If we
+  // do this as part of the loop above, we get bad position data.
+  // We do this in a seperate loop to avoid reflowing
+  var keyArray = [];
+
+  this.rows.forEach(function (row) {
+    row.keys.forEach(function(keyView) {
+      var visualKey = keyView.element.querySelector('.visual-wrapper');
+      keyArray.push({
+        code: keyView.target.keyCode,
+        x: visualKey.offsetLeft,
+        y: visualKey.offsetTop,
+        width: visualKey.clientWidth,
+        height: visualKey.clientHeight
+      });
+    });
+  });
+
+  return keyArray;
+};
+
+// A factory method to create different instances of candidate panel.
+// Right now, it depends on the input method name to show different types
+// of candidate panels.
+LayoutPageView.prototype.createCandidatePanel = function(inputMethodName) {
+  var candidatePanel;
+  var target = {};
+  var options = {
+    className: inputMethodName,
+    totalWidth: this.options.totalWidth
+  };
+
+  switch (inputMethodName) {
+    case 'latin':
+      candidatePanel =
+        new LatinCandidatePanelView(target, options, this.viewManager);
+      break;
+
+    case 'vietnamese':
+      options.widthUnit = 1;
+      candidatePanel =
+        new CandidatePanelView(target, options, this.viewManager);
+      break;
+
+    default:
+      candidatePanel =
+        new CandidatePanelView(target, options, this.viewManager);
+      break;
+  }
+
+  return candidatePanel;
+};
+
+LayoutPageView.prototype.resetCandidatePanel = function() {
+  if (!this.candidatePanel) {
+    return;
+  }
+
+  this.candidatePanel.resetScroll();
+};
+
+LayoutPageView.prototype.showCandidates = function(candidates) {
+  if (!this.candidatePanel) {
+    return;
+  }
+
+  this.candidatePanel.showCandidates(candidates);
+};
+
+LayoutPageView.prototype.showMoreCandidates = function(rowLimit, candidates) {
+  if (!this.candidatePanel) {
+    return;
+  }
+
+  this.candidatePanel.showMoreCandidates(rowLimit, candidates);
+};
+
+LayoutPageView.prototype.getNumberOfCandidatesPerRow = function() {
+  if (!this.candidatePanel) {
+    return;
+  }
+
+  return this.candidatePanel.countPerRow;
 };
 
 exports.LayoutPageView = LayoutPageView;

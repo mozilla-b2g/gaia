@@ -25,7 +25,8 @@ requirejs.config({
     'evt': '../bower_components/evt/index',
     'drag': '../bower_components/drag/index',
     'device-orientation': '../bower_components/device-orientation/index',
-    'stop-recording-event': '../shared/js/stop_recording_event'
+    'stop-recording-event': '../shared/js/stop_recording_event',
+    'usertiming': '../shared/js/usertiming'
   },
 
   // If your package uses relative `require()` paths
@@ -43,9 +44,9 @@ requirejs.config({
       main: 'gaia-icons'
     },
     {
-      name: 'pressed',
-      location: '../bower_components/pressed',
-      main: 'pressed'
+      name: 'gaia-component',
+      location: '../bower_components/gaia-component',
+      main: 'gaia-component'
     }
   ],
 

@@ -1,19 +1,15 @@
 'use strict';
 var assert = require('assert');
 
-var Home2 = require('./lib/home2');
-var System = require('../../../../apps/system/test/marionette/lib/system');
-var Actions = require('marionette-client').Actions;
-
 marionette('Vertical - Localization', function() {
 
-  var client = marionette.client(Home2.clientOptions);
+  var client = marionette.client(require(__dirname + '/client_options.js'));
   var actions, home, system;
 
   setup(function() {
-    actions = new Actions(client);
-    home = new Home2(client);
-    system = new System(client);
+    actions = client.loader.getActions();
+    home = client.loader.getAppClass('verticalhome');
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
     home.waitForLaunch();
   });
@@ -27,24 +23,25 @@ marionette('Vertical - Localization', function() {
 
     client.executeScript(function() {
       navigator.mozSettings.createLock().set({
-        'language.current': 'fr'
+        'language.current': 'qps-ploc'
       });
     });
 
     // Localization can be async, wait for the content to update
     client.waitFor(function() {
       settingsIcon = home.getIcon(settingsManifestUrl);
-      return settingsIcon.text() === home.localizedAppName('settings', 'fr');
+      return settingsIcon.text() ===
+        home.localizedAppName('settings', 'qps-ploc');
     });
   });
 
   test('Menu option localization', function() {
-    var selectors = Home2.Selectors;
+    var selectors = home.Selectors;
 
     // Change the language to french
     client.executeScript(function() {
       navigator.mozSettings.createLock().set({
-        'language.current': 'fr'
+        'language.current': 'qps-ploc'
       });
     });
 
@@ -52,7 +49,7 @@ marionette('Vertical - Localization', function() {
 
     // Element.text() does not return the content of the shadow dom,
     // so enter the shadow dom manually for now to get the text.
-    var expected = home.l10n('/locales-obj/fr.json', 'cancel');
+    var expected = home.l10n('cancel');
     client.waitFor(function(){
       var menu = client.helper.waitForElement(selectors.contextmenu);
       var content = menu.scriptWith(function(menu) {

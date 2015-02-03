@@ -297,9 +297,9 @@ suite('shared/js/text_utils.js', function() {
       // by measuring overflow width, and then dividing that by
       // the width of the characters in the string.
       var overflowWidth = stringWidth - kContainerWidth;
-      var overflowCount = Math.round(overflowWidth / charWidth);
+      var overflowCount = overflowWidth / charWidth;
 
-      assert.equal(getOverflowCount(), overflowCount);
+      assert.ok(Math.abs(getOverflowCount() - overflowCount) < 1);
     });
   });
 

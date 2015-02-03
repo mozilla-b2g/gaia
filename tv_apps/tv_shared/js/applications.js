@@ -1,5 +1,5 @@
 'use strict';
-/* global evt */
+/* global evt, ManifestHelper */
 
 (function(exports) {
 
@@ -25,6 +25,7 @@
    * - launch app
    *
    * @namespace Applications
+   * @requires ManifestHelper
    */
   var Applications = evt({
     /**
@@ -34,7 +35,9 @@
      * @type {Array}
      * @memberof Applications
      */
-    HIDDEN_ROLES: ['system', 'homescreen', 'deck'],
+    HIDDEN_ROLES: [
+      'system', 'homescreen', 'input', 'deck', 'addon', 'langpack'
+    ],
 
     /**
      * Default icon url.
@@ -174,6 +177,29 @@
       }
     },
 
+    onAppInstall: function onAppInstall(evt) {
+      var app = evt.application;
+      var manifest = app.manifest || app.updateManifest;
+
+      if (!app.launch || !manifest || !manifest.icons ||
+          this._isHiddenApp(manifest.role)) {
+        return;
+      }
+
+      var message =
+        this.installedApps[app.manifestURL] ? 'update' : 'install';
+      this.installedApps[app.manifestURL] = app;
+      this.fire(message, this.getAppEntries(app.manifestURL));
+    },
+
+    onAppUninstall: function onAppUninstall(evt) {
+      var app = evt.application;
+      if (this.installedApps[app.manifestURL]) {
+        this.fire('uninstall', this.getAppEntries(app.manifestURL));
+        delete this.installedApps[app.manifestURL];
+      }
+    },
+
     /**
      * Initialize Applications.
      *
@@ -209,28 +235,8 @@
         }
       };
 
-      appMgmt.oninstall = function(evt) {
-        var app = evt.application;
-        var manifest = app.manifest || app.updateManifest;
-
-        if (!app.launch || !manifest || !manifest.icons ||
-            self._isHiddenApp(manifest.role)) {
-          return;
-        }
-
-        var message =
-          self.installedApps[app.manifestURL] ? 'update' : 'install';
-        self.installedApps[app.manifestURL] = app;
-        self.fire(message, self.getAppEntries(app.manifestURL));
-      };
-
-      appMgmt.onuninstall = function(evt) {
-        var app = evt.application;
-        if (self.installedApps[app.manifestURL]) {
-          delete self.installedApps[app.manifestURL];
-          self.fire('uninstall', self.getAppEntries(app.manifestURL));
-        }
-      };
+      appMgmt.addEventListener('install', this);
+      appMgmt.addEventListener('uninstall', this);
     },
 
     /**
@@ -248,6 +254,8 @@
       this._readyCallbacks = [];
     },
 
+    /* jshint -W004 */
+    // XXX: Uses this to prevent 'helper' is already defined jshint error
     /**
      * Get all "entry_point"s from the specified app.
      *
@@ -265,20 +273,25 @@
         this.installedApps[manifestURL].updateManifest;
       var entryPoints = manifest.entry_points;
       var entries = [];
+      var removable = this.installedApps[manifestURL].removable;
 
       if (!entryPoints || manifest.type !== 'certified') {
+        var helper = new ManifestHelper(manifest);
         entries.push({
           manifestURL: manifestURL,
           entryPoint: '',
-          name: manifest.name
+          name: helper.name,
+          removable: removable
         });
       } else {
         for (var entryPoint in entryPoints) {
           if (entryPoints[entryPoint].icons) {
+            var helper = new ManifestHelper(entryPoints[entryPoint]);
             entries.push({
               manifestURL: manifestURL,
               entryPoint: entryPoint,
-              name: entryPoints[entryPoint].name
+              name: helper.name,
+              removable: removable
             });
           }
         }
@@ -286,6 +299,7 @@
 
       return entries;
     },
+    /* jshint +W004 */
 
     /**
      * Get all "entry_point"s from all installed apps.
@@ -372,7 +386,7 @@
       if (!entry_manifest) {
         return '';
       }
-      return entry_manifest.name;
+      return new ManifestHelper(entry_manifest).name;
     },
 
     /**
@@ -437,6 +451,17 @@
         }
       }
       return matched;
+    },
+
+    handleEvent: function handleEvent(evt) {
+      switch(evt.type) {
+        case 'install':
+          this.onAppInstall(evt);
+          break;
+        case 'uninstall':
+          this.onAppUninstall(evt);
+          break;
+      }
     }
   });
 

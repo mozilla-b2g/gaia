@@ -9,6 +9,15 @@ require.config({
     'settings': {
       exports: 'Settings'
     },
+    'dsds_settings': {
+      exports: 'DsdsSettings'
+    },
+    'simcard_lock': {
+      exports: 'SimPinLock'
+    },
+    'simcard_dialog': {
+      exports: 'SimPinDialog'
+    },
     'shared/apn_helper': {
       exports: 'ApnHelper'
     },
@@ -27,6 +36,9 @@ require.config({
     },
     'shared/lazy_loader': {
       exports: 'LazyLoader'
+    },
+    'shared/search_provider': {
+      exports: 'SearchProvider'
     },
     'shared/manifest_helper': {
       exports: 'ManifestHelper'
@@ -53,7 +65,8 @@ require.config({
       exports: 'SimSettingsHelper'
     },
     'shared/tz_select': {
-      exports: 'tzSelect'
+      exports: 'tzSelect',
+      deps: ['shared/icc_helper']
     },
     'shared/wifi_helper': {
       exports: 'WifiHelper'
@@ -94,13 +107,26 @@ require.config({
       ]
     },
     {
+      name: 'modules/dialog_service',
+      exclude: ['main']
+    },
+    {
       name: 'panels/root/panel',
       exclude: [
         'main',
+        'panels/root/low_priority_items',
+        'modules/apps_cache',
+        'modules/bluetooth/version_detector'
+      ]
+    },
+    {
+      name: 'panels/root/low_priority_items',
+      exclude: [
+        'main',
+        'modules/bluetooth/version_detector',
+        'modules/app_storage',
         'modules/battery',
-        'modules/bluetooth/bluetooth_v1',
-        'modules/bluetooth/bluetooth',
-        'modules/apps_cache'
+        'modules/wifi_context'
       ]
     },
     {
@@ -144,7 +170,10 @@ require.config({
     },
     {
       name: 'panels/screen_lock_passcode/panel',
-      exclude: ['main']
+      exclude: [
+        'main',
+        'modules/settings_utils'
+      ]
     },
     {
       name: 'panels/display/panel',
@@ -175,21 +204,18 @@ require.config({
       ]
     },
     {
-      name: 'panels/keyboard_enabled_default/dialog',
-      exclude: [
-        'main'
-      ]
-    },
-    {
       name: 'panels/app_storage/panel',
       exclude: [
         'main',
-        'modules/mvvm/observable'
+        'modules/app_storage'
       ]
     },
     {
       name: 'panels/wifi/panel',
-      exclude: ['main']
+      exclude: [
+        'main',
+        'modules/dialog_service'
+      ]
     },
     {
       name: 'panels/wifi_auth/panel',
@@ -205,15 +231,24 @@ require.config({
     },
     {
       name: 'panels/wifi_manage_certificates/panel',
-      exclude: ['main']
+      exclude: [
+        'main',
+        'modules/settings_utils'
+      ]
     },
     {
       name: 'panels/wifi_manage_networks/panel',
-      exclude: ['main']
+      exclude: [
+        'main',
+        'modules/dialog_service'
+      ]
     },
     {
       name: 'panels/wifi_select_certificate_file/panel',
-      exclude: ['main']
+      exclude: [
+        'main',
+        'modules/settings_utils'
+      ]
     },
     {
       name: 'panels/wifi_status/panel',
@@ -258,7 +293,8 @@ require.config({
       name: 'panels/hotspot/panel',
       exclude: [
         'main',
-        'modules/mvvm/observable'
+        'modules/mvvm/observable',
+        'modules/dialog_service'
       ]
     },
     {
@@ -269,10 +305,58 @@ require.config({
       ]
     },
     {
+      name: 'panels/messaging/panel',
+      exclude: [
+        'main',
+        'modules/messaging',
+        'modules/settings_utils'
+      ]
+    },
+    {
+      name: 'panels/messaging_details/panel',
+      exclude: [
+        'main',
+        'modules/messaging',
+        'modules/settings_utils'
+      ]
+    },
+    {
       name: 'panels/about/panel',
       exclude: [
         'main'
       ]
+    },
+    {
+      name: 'panels/about_more_info/panel',
+      exclude: [
+        'main',
+        'modules/bluetooth/version_detector',
+        'modules/bluetooth/bluetooth_v1',
+        'modules/bluetooth/bluetooth_context'
+      ]
+    },
+    {
+      name: 'panels/developer/panel',
+      exclude: [
+        'main',
+        'modules/dialog_service',
+        'modules/apps_cache'
+      ]
+    },
+    {
+      name: 'panels/developer_hud/panel',
+      exclude: ['main']
+    },
+    {
+      name: 'panels/call_barring/panel',
+      exclude: [
+        'main',
+        'modules/mvvm/observable'
+      ]
+    },
+    {
+      name: 'panels/call_barring_passcode_change/panel',
+      exclude: ['main']
     }
   ]
 });

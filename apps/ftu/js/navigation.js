@@ -279,9 +279,8 @@ var Navigation = {
 
     // Managing options button
     if (this.currentStep <= numSteps &&
-        (steps[this.currentStep].hash === '#wifi') ===
-          UIManager.activationScreen.classList.contains('no-options')) {
-      UIManager.activationScreen.classList.toggle('no-options');
+        (steps[this.currentStep].hash !== '#wifi')) {
+      UIManager.activationScreen.classList.add('no-options');
     }
 
     // Managing nav buttons when coming back from out-of-steps (privacy)
@@ -424,8 +423,10 @@ var Navigation = {
     }
 
     // if we are not connected we should not try fxa
-    if (futureLocation.hash === '#firefox_accounts' &&
-        !navigator.onLine) {
+    if ((futureLocation.hash === '#firefox_accounts' &&
+         !navigator.onLine) ||
+        (futureLocation.hash === '#firefox_accounts' &&
+         UIManager.skipFxA)) {
       self.postStepMessage(self.currentStep);
       self.skipStep();
     }

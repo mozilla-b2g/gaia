@@ -80,8 +80,6 @@ Create.prototype = {
     var busytimeStore = app.store('Busytime');
     var componentStore = app.store('IcalComponent');
 
-    var controller = app.timeController;
-
     var trans = eventStore.db.transaction(
       eventStore._dependentStores,
       'readwrite'
@@ -106,11 +104,6 @@ Create.prototype = {
     if (this.icalComponent) {
       componentStore.persist(this.icalComponent, trans);
     }
-
-    controller.cacheEvent(this.event);
-    controller.cacheBusytime(
-      busytimeStore.initRecord(this.busytime)
-    );
 
     var alarms = this.event.remote.alarms;
     if (alarms && alarms.length) {

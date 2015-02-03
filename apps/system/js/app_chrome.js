@@ -1,4 +1,5 @@
 /* global BookmarksDatabase */
+/* global eventSafety */
 /* global IconsHelper */
 /* global LazyLoader */
 /* global ModalDialog */
@@ -111,8 +112,10 @@
     return `<div class="chrome" id="${className}">
               <gaia-progress></gaia-progress>
               <div class="controls">
-                <button type="button" class="back-button" disabled></button>
-                <button type="button" class="forward-button" disabled></button>
+                <button type="button" class="back-button"
+                        data-l10n-id="back-button" disabled></button>
+                <button type="button" class="forward-button"
+                        data-l10n-id="forward-button" disabled></button>
                 <div class="urlbar">
                   <div class="title" data-ssl=""></div>
                   <button type="button" class="reload-button"
@@ -121,7 +124,8 @@
                           data-l10n-id="stop-button"></button>
                 </div>
                 <button type="button" class="menu-button" alt="Menu"></button>
-                <button type="button" class="windows-button"></button>
+                <button type="button" class="windows-button"
+                        data-l10n-id="windows-button"></button>
               </div>
             </div>`;
   };
@@ -223,6 +227,10 @@
 
       case 'mozbrowserloadend':
         this.handleLoadEnd(evt);
+        break;
+
+      case 'mozbrowsererror':
+        this.handleError(evt);
         break;
 
       case 'mozbrowserlocationchange':
@@ -358,6 +366,7 @@
 
     this.app.element.addEventListener('mozbrowserloadstart', this);
     this.app.element.addEventListener('mozbrowserloadend', this);
+    this.app.element.addEventListener('mozbrowsererror', this);
     this.app.element.addEventListener('mozbrowserlocationchange', this);
     this.app.element.addEventListener('mozbrowsertitlechange', this);
     this.app.element.addEventListener('mozbrowsermetachange', this);
@@ -413,6 +422,7 @@
 
     this.app.element.removeEventListener('mozbrowserloadstart', this);
     this.app.element.removeEventListener('mozbrowserloadend', this);
+    this.app.element.removeEventListener('mozbrowsererror', this);
     this.app.element.removeEventListener('mozbrowserlocationchange', this);
     this.app.element.removeEventListener('mozbrowsertitlechange', this);
     this.app.element.removeEventListener('mozbrowsermetachange', this);
@@ -493,6 +503,12 @@
     };
 
   AppChrome.prototype.setThemeColor = function ac_setThemColor(color) {
+
+    // Do not set theme color for private windows
+    if (this.app.isPrivateBrowser()) {
+      return;
+    }
+
     this.element.style.backgroundColor = color;
 
     if (!this.app.isHomescreen) {
@@ -506,14 +522,20 @@
     }
 
     var self = this;
-    var previousColor;
+    var finishedFade = false;
+    var endBackgroundFade = function() {
+      finishedFade = true;
+      self.element.removeEventListener('transitionend', endBackgroundFade);
+    };
+    this.element.addEventListener('transitionend', endBackgroundFade);
+    eventSafety(this.element, 'transitionend', endBackgroundFade, 1000);
 
     window.requestAnimationFrame(function updateAppColor() {
-      var computedColor = window.getComputedStyle(self.element).backgroundColor;
-      if (previousColor === computedColor) {
+      if (finishedFade || !self.element) {
         return;
       }
 
+      var computedColor = window.getComputedStyle(self.element).backgroundColor;
       var colorCodes = /rgb\((\d+), (\d+), (\d+)\)/.exec(computedColor);
       if (!colorCodes || colorCodes.length === 0) {
         return;
@@ -525,9 +547,12 @@
       var brightness =
         Math.sqrt((r*r) * 0.241 + (g*g) * 0.691 + (b*b) * 0.068);
 
-      self.app.element.classList.toggle('light', brightness > 200);
-      self.app.publish('titlestatechanged');
-      previousColor = computedColor;
+      var wasLight = self.app.element.classList.contains('light');
+      var isLight  = brightness > 200;
+      if (wasLight != isLight) {
+        self.app.element.classList.toggle('light', isLight);
+        self.app.publish('titlestatechanged');
+      }
       window.requestAnimationFrame(updateAppColor);
     });
   };
@@ -544,6 +569,14 @@
   };
 
   AppChrome.prototype.useLightTheming = function ac_useLightTheming() {
+    // The rear window should dictate the status bar color when the front
+    // window is a popup.
+    if (this.app.CLASS_NAME == 'PopupWindow' &&
+        this.app.rearWindow &&
+        this.app.rearWindow.appChrome) {
+      return this.app.rearWindow.appChrome.useLightTheming();
+    }
+    // All other cases can use the front window.
     return this.app.element.classList.contains('light');
   };
 
@@ -642,6 +675,14 @@
     this.containerElement.classList.remove('loading');
   };
 
+  AppChrome.prototype.handleError = function ac_handleError(evt) {
+    if (this.useCombinedChrome()) {
+      // When we get an error, keep the rocketbar maximized.
+      this.element.classList.add('maximized');
+      this.containerElement.classList.remove('scrollable');
+    }
+  };
+
   AppChrome.prototype.maximize = function ac_maximize(callback) {
     var element = this.element;
     element.classList.add('maximized');
@@ -651,18 +692,13 @@
       return;
     }
 
-    var safetyTimeout = null;
     var finish = function(evt) {
       if (evt && evt.target !== element) {
         return;
       }
-
-      element.removeEventListener('transitionend', finish);
-      clearTimeout(safetyTimeout);
       callback();
     };
-    element.addEventListener('transitionend', finish);
-    safetyTimeout = setTimeout(finish, 250);
+    eventSafety(element, 'transitionend', finish, 250);
   };
 
   AppChrome.prototype.collapse = function ac_collapse() {
@@ -710,7 +746,6 @@
             url: url,
             name: name,
             icon: icon,
-            useAsyncPanZoom: dataset.useAsyncPanZoom,
             iconable: false
           }
         });

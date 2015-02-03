@@ -46,6 +46,7 @@ button::-moz-focus-inner {
 .keyboard-row {
   text-align: center;
   font-size: 0;
+  display: flex;
 }
 .row1 {
   background-color: #5b6668;
@@ -93,6 +94,7 @@ button::-moz-focus-inner {
   /* In case the keys are nested, for example in the alt char menu,
      they need to be tappable. */
   pointer-events: auto;
+  flex: auto;
 }
 
 /* Visible keys */
@@ -144,10 +146,9 @@ button::-moz-focus-inner {
   background-color: #00aacc;
   visibility: hidden;
 
-  /* To override the text-align in .float-key-first and .float-key-last */
+  /* To override the text-align in .keyboard-key:first-child or :last-child */
   text-align: center;
 }
-
 
 .keyboard-key.highlighted {
   background-color: #4a5255;
@@ -164,26 +165,18 @@ button::-moz-focus-inner {
 /* Show the bubble text when the button is highlighted. */
 .keyboard-key.highlighted > .visual-wrapper > .popup {
   z-index: 1;
-  visibility: visible;
 }
-
 
 /* Special rules for lowercase and uppercase popups */
-
-/* Default is uppercase, so hide the lowercase popup */
-.keyboard-type-container:not(.lowercase) .popup.lowercase {
-  visibility: hidden;
-}
-
-/* For lowercase, hide the uppercase popup and show the lowercase one */
-.keyboard-type-container.lowercase > .popup.lowercase {
+.keyboard-key.highlighted.uppercase-popup .popup.uppercase {
   visibility: visible;
 }
 
-.keyboard-type-container.lowercase > .popup.uppercase {
-  visibility: hidden;
+.keyboard-key.highlighted.lowercase-popup .popup.lowercase {
+  visibility: visible;
 }
 
+/* Special rules for popups near the screen edge */
 .keyboard-row button:last-child.highlighted > .visual-wrapper > .popup {
   left: -2.4rem;
 }
@@ -191,7 +184,6 @@ button::-moz-focus-inner {
 .keyboard-row button:first-child.highlighted > .visual-wrapper > .popup {
   left: 0;
 }
-
 
 /* Special keys */
 .keyboard-key.special-key > .visual-wrapper > .key-element {
@@ -363,6 +355,9 @@ and displays the list of alternatives. */
   line-height: 6rem;
   font-weight: 500;
   color: #fff;
+
+  /* XXX: to override the .lowercase show/hide control for each key, see Bug 1091018. */
+  visibility: visible;
 }
 
 #keyboard-accent-char-menu .keyboard-key:first-child > .visual-wrapper > .key-element {
@@ -447,7 +442,6 @@ bubble above the key when you tap and hold. */
 }
 
 .keyboard-candidate-panel {
-  display: block;
   background: #252220;
   padding: 0;
   margin: 0.2rem 0 0.2rem 0;
@@ -461,8 +455,6 @@ bubble above the key when you tap and hold. */
 }
 
 #keyboard.full-candidate-panel .keyboard-candidate-panel {
-  overflow-y: auto;
-
   position: absolute;
   top: 0.1rem;
   height: -moz-calc(100% - 0.4rem);
@@ -471,7 +463,6 @@ bubble above the key when you tap and hold. */
 }
 
 .keyboard-candidate-panel-toggle-button {
-  display: none;
   z-index: 1;
   position: absolute;
   right: 0;
@@ -480,17 +471,29 @@ bubble above the key when you tap and hold. */
   height: 2.8rem;
   background: #252220 url('images/icon_extend.png') center center no-repeat;
   background-size: 2.4rem;
+  min-width: 4rem;
+}
+
+.keyboard-candidate-panel-toggle-button.hide {
+  visibility: hidden;
 }
 
 #keyboard.full-candidate-panel .keyboard-candidate-panel-toggle-button {
   background-image: url('images/icon_close.png');
+  top: 0;
+}
+
+#keyboard.full-candidate-panel .suggestions-container {
+  overflow-y: auto;
+  height: 100%;
 }
 
 .keyboard-candidate-panel .candidate-row {
   border-top: 0.1rem solid #000000;
+  display: flex;
 }
 
-.keyboard-candidate-panel .candidate-row-first {
+.keyboard-candidate-panel .candidate-row:first-child {
   border-top: none;
 }
 
@@ -499,7 +502,7 @@ bubble above the key when you tap and hold. */
 }
 
 #keyboard.candidate-panel .keyboard-candidate-panel .candidate-row-first {
-  display: block;
+  display: flex;
 }
 
 .keyboard-candidate-panel-toggle-button.highlighted,
@@ -510,10 +513,6 @@ bubble above the key when you tap and hold. */
 
 .keyboard-candidate-panel .candidate-row span {
   display: inline-block;
-  margin: 0;
-  padding: 0 2px 0 0;
-  min-width: -moz-calc(4rem - 2px);
-  height: 2.8rem;
   font-size: 2rem;
   color: #a6a6a6;
   text-align: center;
@@ -521,6 +520,13 @@ bubble above the key when you tap and hold. */
   background: transparent url('images/divider.png') right center no-repeat;
   background-size: auto 4rem;
   border: none;
+  flex: auto;
+}
+
+/* Dummy element for flex box to look like a grid */
+.keyboard-candidate-panel .candidate-row span:empty {
+  border: none;
+  background: none;
 }
 
 .keyboard-candidate-panel.vietnamese .candidate-row span {
@@ -541,7 +547,7 @@ bubble above the key when you tap and hold. */
   overflow: hidden;
 }
 
-.full-candidate-panel .keyboard-candidate-panel[data-truncated]::after {
+.full-candidate-panel .keyboard-candidate-panel[data-truncated] .suggestions-container::after {
   content: '…';
   background: none ! important;
   border-color: transparent ! important;
@@ -570,9 +576,10 @@ bubble above the key when you tap and hold. */
   overflow: hidden;
   white-space: nowrap;
   width: 100%;
+  pointer-events: none;
 }
 
-.keyboard-candidate-panel.latin span.autocorrect {
+.keyboard-candidate-panel.latin div.autocorrect span {
   color: #0ac;
 }
 
@@ -623,10 +630,10 @@ bubble above the key when you tap and hold. */
 
 /* Increase tap area for first / last keys in a row that
   doesn't fill full width */
-.keyboard-key.float-key-first {
+.keyboard-key:first-child {
   text-align: right;
 }
-.keyboard-key.float-key-last {
+.keyboard-key:last-child {
   text-align: left;
 }
 
@@ -645,13 +652,6 @@ bubble above the key when you tap and hold. */
     height: 7rem;
     line-height: 7rem;
     font-size: 3.5rem
-}
-
-.suggestions-container {
-  display: none;
-}
-.dismiss-suggestions-button {
-  visibility: hidden;
 }
 
 /*
@@ -679,10 +679,11 @@ bubble above the key when you tap and hold. */
 }
 
 .keyboard-candidate-panel.latin > .suggestions-container {
-  display: block;
+  display: flex;
   width: calc(100% - 3.6rem);
   float: left;
 }
+
 .keyboard-candidate-panel.latin > .suggestions-container > div {
   text-align: center;
   display: inline-block;
@@ -692,17 +693,9 @@ bubble above the key when you tap and hold. */
   border: 0;
   overflow: hidden;
   -moz-box-sizing: border-box;
+  flex: 1;
 }
 
-.keyboard-candidate-panel.latin > .suggestions-container.has1 > div {
-  width: calc(100% - 0.6rem);
-}
-.keyboard-candidate-panel.latin > .suggestions-container.has2 > div {
-  width: calc(50% - 0.6rem);
-}
-.keyboard-candidate-panel.latin > .suggestions-container.has3 > div {
-  width: calc(33% - 0.6rem);
-}
 
 /* Indicator for keyboard hiding action */
 .keyboard-key[data-keycode="32"] {

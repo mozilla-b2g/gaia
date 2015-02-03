@@ -16,6 +16,32 @@
   const STK_SCREEN_DEFAULT = 0x00;
   const STK_SCREEN_MAINMENU = 0x01;
   const STK_SCREEN_HELP = 0x02;
+  // 3GPP spec: TS 11.14
+  // 13.4 Type of Command and Next Action Indicator
+  const STK_NEXT_ACTION_INDICATOR = {
+    16: 'stkItemsNaiSetUpCall',
+    17: 'stkItemsNaiSendSs',
+    18: 'stkItemsNaiSendUssd',
+    19: 'stkItemsNaiSendSms',
+    32: 'stkItemsNaiPlayTone',
+    33: 'stkItemsNaiDisplayText',
+    34: 'stkItemsNaiGetInkey',
+    35: 'stkItemsNaiGetInput',
+    36: 'stkItemsNaiSelectItem',
+    37: 'stkItemsNaiSetUpMenu',
+    40: 'stkItemsNaiSetIdleModeText',
+    48: 'stkItemsNaiPerformCardApdu',  // class "a"
+    49: 'stkItemsNaiPowerOnCard',      // class "a"
+    50: 'stkItemsNaiPowerOffCard',     // class "a"
+    51: 'stkItemsNaiGetReaderStatus',  // class "a"
+    64: 'stkItemsNaiOpenChannel',      // class "e"
+    65: 'stkItemsNaiCloseChannel',     // class "e"
+    66: 'stkItemsNaiReceiveData',      // class "e"
+    67: 'stkItemsNaiSendData',         // class "e"
+    68: 'stkItemsNaiGetChannelStatus', // class "e"
+    96: 'Reserved',                    // for TIA/EIA-136
+    129: 'stkItemsNaiEndOfTheProactiveSession'
+  };
 
   /**
    * Init
@@ -36,7 +62,46 @@
     timer: null,
     timeout: 0
   };
+  var _visibilityChangeHandler = null;
   init();
+
+  function sendVisibilityChangeEvent() {
+    navigator.mozApps.getSelf().onsuccess = function(evt) {
+      var app = evt.target.result;
+      app.connect('settingsstk').then(function onConnAccepted(ports) {
+        DUMP('STK_Settings IAC: ' + ports);
+        ports.forEach(function(port) {
+          DUMP('STK_Settings IAC: ' + port);
+          port.postMessage('StkMenuHidden');
+        });
+      }, function onConnRejected(reason) {
+        DUMP('STK_Settings IAC is rejected');
+        DUMP(reason);
+      });
+    };
+  }
+
+  function getNextActionString(nextActionList, index) {
+    DUMP('STK NAL: ' + nextActionList);
+
+    var nextActionString;
+    if (nextActionList &&
+        nextActionList[index] !== null &&
+        nextActionList[index] !== 96 &&
+        STK_NEXT_ACTION_INDICATOR[nextActionList[index]]) {
+      nextActionString = STK_NEXT_ACTION_INDICATOR[nextActionList[index]];
+    } else {
+      nextActionString = null;
+    }
+    return nextActionString;
+  }
+
+  function visibilityChangeHandler() {
+    if (document.hidden && Settings && Settings.currentPanel == '#icc') {
+      DUMP('STK_Settings visibilityChangeHandler');
+      sendVisibilityChangeEvent();
+    }
+  }
 
   /**
    * Init STK UI
@@ -51,16 +116,24 @@
       function do_handleAsyncSTKCmd(event) {
         updateMenu(event.detail.menu);
       });
+
+    document.addEventListener('visibilitychange',
+      visibilityChangeHandler, false);
   }
 
   function addCloseNotificationsEvents(message) {
     function onVisibilityChange() {
       if (document.hidden && Settings && Settings.currentPanel == '#icc') {
+        document.removeEventListener('visibilitychange',
+          _visibilityChangeHandler, false);
         stkResTerminate(message);
       }
     }
-    document.removeEventListener('visibilitychange', onVisibilityChange, false);
-    document.addEventListener('visibilitychange', onVisibilityChange, false);
+    document.removeEventListener('visibilitychange',
+      _visibilityChangeHandler, false);
+    _visibilityChangeHandler = onVisibilityChange;
+    document.addEventListener('visibilitychange',
+      _visibilityChangeHandler, false);
     window.onbeforeunload = function() {
       responseSTKCommand(message, {
         resultCode: iccManager.STK_RESULT_NO_RESPONSE_FROM_USER
@@ -207,13 +280,16 @@
     DUMP('STK Main App Menu default item: ' + menu.entries.defaultItem);
 
     showTitle(menu.entries.title);
-    menu.entries.items.forEach(function(menuItem) {
+    menu.entries.items.forEach(function(menuItem, index) {
       DUMP('STK Main App Menu item: ' + menuItem.text + ' # ' +
             menuItem.identifier);
+      var nextActionString = getNextActionString(menu.entries.nextActionList,
+        index);
+      DUMP('STK NEXTACTION: ' + nextActionString);
       iccStkList.appendChild(buildMenuEntry({
         id: 'stk-menuitem-' + menuItem.identifier,
         text: menuItem.text,
-        nai: _(menuItem.nai),
+        nai: _(nextActionString),
         onclick: onMainMenuItemClick,
         attributes: [
           ['stk-menu-item-identifier', menuItem.identifier],
@@ -301,14 +377,18 @@
     DUMP('STK App Menu default item: ' + menu.defaultItem);
 
     showTitle(menu.title);
-    menu.items.forEach(function(menuItem) {
+    menu.items.forEach(function(menuItem, index) {
       DUMP('STK App Menu item: ' + menuItem.text + ' # ' +
         menuItem.identifier);
+      var nextActionString = getNextActionString(menu.nextActionList, index);
+      DUMP('STK NEXTACTION: ' + nextActionString);
       iccStkList.appendChild(buildMenuEntry({
         id: 'stk-menuitem-' + menuItem.identifier,
         text: menuItem.text,
-        nai: _(menuItem.nai),
+        nai: _(nextActionString),
         onclick: function onSelectOptionClick(event) {
+          document.removeEventListener('visibilitychange',
+            _visibilityChangeHandler, false);
           onSelectOption(message, event);
         },
         attributes: [['stk-select-option-identifier', menuItem.identifier]]

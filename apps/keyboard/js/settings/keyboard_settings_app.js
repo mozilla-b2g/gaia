@@ -1,38 +1,33 @@
 'use strict';
 
-/* global SettingsPromiseManager, CloseLockManager,
-          GeneralSettingsGroupView, HandwritingSettingsGroupView,
-          MozActivity */
+/* global SettingsPromiseManager, CloseLockManager, DialogController,
+          MozActivity, PanelController */
 
 (function(exports) {
 
 var KeyboardSettingsApp = function KeyboardSettingsApp() {
   this.closeLockManager = null;
-  this.generalSettingsGroupView = null;
-  this.handwritingSettingsGroupView = null;
+
+  this.panelController = null;
+  this.dialogController = null;
 
   this._closeLock = null;
 };
 
 KeyboardSettingsApp.prototype.start = function() {
   this.closeLockManager = new CloseLockManager();
+  this.closeLockManager.onclose = this.close.bind(this);
   this.closeLockManager.start();
 
   // SettingsPromiseManager wraps Settings DB methods into promises.
   // This must be available to *GroupView.
   this.settingsPromiseManager = new SettingsPromiseManager();
 
-  this.generalSettingsGroupView = new GeneralSettingsGroupView(this);
-  this.generalSettingsGroupView.start();
+  this.panelController = new PanelController(this);
+  this.panelController.start();
 
-  // We might not have handwriting settings
-  if (typeof HandwritingSettingsGroupView === 'function') {
-    this.handwritingSettingsGroupView = new HandwritingSettingsGroupView(this);
-    this.handwritingSettingsGroupView.start();
-  }
-
-  var header = this.header = document.getElementById('header');
-  header.addEventListener('action', this);
+  this.dialogController = new DialogController();
+  this.dialogController.start();
 
   document.addEventListener('visibilitychange', this);
 };
@@ -43,43 +38,37 @@ KeyboardSettingsApp.prototype.stop = function() {
 
   this.settingsPromiseManager = null;
 
-  this.generalSettingsGroupView.stop();
-  this.generalSettingsGroupView = null;
+  this.panelController.stop();
+  this.panelController = null;
 
-  if (this.handwritingSettingsGroupView) {
-    this.handwritingSettingsGroupView.stop();
-    this.handwritingSettingsGroupView = null;
-  }
-
-  this.header.removeEventListener('action', this);
-  this.header = null;
+  this.dialogController.stop();
+  this.dialogController = null;
 
   document.removeEventListener('visibilitychange', this);
 };
 
+KeyboardSettingsApp.prototype.close = function() {
+  this.stop();
+  window.close();
+};
+
+KeyboardSettingsApp.prototype.requestClose = function() {
+  // Until Haida lands this is how users could go back to Settings app
+  Promise.resolve(new MozActivity({
+    name: 'moz_configure_window',
+    data: { target: 'device' }
+  })).catch(function(e) {
+    console.error(e);
+  });
+};
+
 KeyboardSettingsApp.prototype.handleEvent = function(evt) {
-  switch (evt.type) {
-    case 'action':
-      // Until Haida lands this is how users could go back to Settings app
-      Promise.resolve(new MozActivity({
-        name: 'moz_configure_window',
-        data: { target: 'device' }
-      })).catch(function(e) {
-        console.error(e);
-      });
-
-      break;
-
-    case 'visibilitychange':
-      if (document.hidden) {
-        this._closeLock =
-          this.closeLockManager.requestLock('requestClose');
-      } else if (this._closeLock) {
-        this._closeLock.unlock();
-        this._closeLock = null;
-      }
-
-      break;
+  if (document.hidden) {
+    this._closeLock =
+      this.closeLockManager.requestLock('requestClose');
+  } else if (this._closeLock) {
+    this._closeLock.unlock();
+    this._closeLock = null;
   }
 };
 

@@ -733,8 +733,7 @@
       EvmeManager.addBookmark({
         'originUrl': data.app.getFavLink(),
         'name': data.data.name,
-        'icon': data.app.getIcon(),
-        'useAsyncPanZoom': data.app.isExternal()
+        'icon': data.app.getIcon()
       }, function onsuccess() {
         // analytics
         Evme.EventHandler.trigger(NAME, 'addToHomeScreen', {

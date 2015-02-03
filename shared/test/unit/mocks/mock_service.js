@@ -4,6 +4,9 @@ var MockService = {
   mTeardown: function() {
     this.runningFTU = false;
     this.mUpgrading = false;
+    this.mBtEnabled = false;
+    this.mTopMostUI = null;
+    this.mIsHandoverInProgress = false;
   },
   lowerCapital: function() {
     return 'a';
@@ -22,6 +25,14 @@ var MockService = {
         return this.mUpgrading;
       case 'getTopMostWindow':
         return this.mTopMostWindow;
+      case 'getTopMostUI':
+        return this.mTopMostUI;
+      case 'Bluetooth.isEnabled':
+        return this.mBtEnabled;
+      case 'getTopMostUI':
+        return this.mTopMostUI;
+      case 'NfcHandoverManager.isHandoverInProgress':
+        return this.mIsHandoverInProgress;
     }
     return undefined;
   },
@@ -32,6 +43,7 @@ var MockService = {
   currentTime: function() {},
   locked: false,
   runningFTU: false,
+  mBtEnabled: false,
   manifestURL: 'app://system.gaiamobile.org/manifest.webapp',
   currentApp: null
 };

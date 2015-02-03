@@ -1,6 +1,7 @@
 'use strict';
 /* global Curtain */
 /* global LazyLoader */
+/* global MergeHelper */
 
 var contacts = window.contacts || {};
 
@@ -170,10 +171,8 @@ if (!contacts.MatchingController) {
         return;
       }
 
-      LazyLoader.load(['/shared/js/contacts/contacts_merger.js',
-                       '/shared/js/contacts/utilities/image_thumbnail.js'
-                      ],
-      function loaded() {
+      var MERGE_DEPS = ['/contacts/js/utilities/merge_helper.js'];
+      LazyLoader.load(MERGE_DEPS, function loaded() {
         var cb = function cb() {
           Curtain.hide(function() {
             parent.postMessage({
@@ -188,14 +187,7 @@ if (!contacts.MatchingController) {
           list.push(matchings[id]);
         });
 
-        // Here contact is the master contact
-        contacts.Merger.merge(contact, list, {
-          success: cb,
-          error: function(e) {
-            console.error('Failed merging duplicate contacts: ', e.name);
-            cb();
-          }
-        });
+        MergeHelper.merge(contact, list).then(cb, cb);
       });
     }
 

@@ -7,7 +7,8 @@
     <title>Dialer</title>
 
     <!-- Localization -->
-    <link rel="manifest" href="../manifest.webapp">
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
     <link rel="localization" href="locales/dialer.{locale}.properties">
     <link rel="localization" href="locales/shared.{locale}.properties">
     <link rel="localization" href="../contacts/locales/contacts.{locale}.properties">
@@ -40,6 +41,7 @@
     <script defer src="/shared/js/lazy_loader.js"></script>
     <script defer src="/shared/js/font_size_utils.js"></script>
     <script defer src="/shared/js/lazy_l10n.js"></script>
+    <script defer src="/shared/js/usertiming.js"></script>
     <script defer src="/dialer/js/index.js"></script>
 
     <script defer src="/shared/js/dialer/utils.js"></script>
@@ -165,9 +167,9 @@
       <li role="presentation" id="keyboard-view">
         <a id="option-keypad" role="tab" aria-controls="keypad-panel" href="#keyboard-view" class="icon icon-keypad" data-l10n-id="keypad" aria-selected="true"></a>
         <div id="keypad-panel" role="tabpanel" class="bb-tabpanel" aria-labelledby="option-keypad">
-          <div id="phone-number-view-container">
+          <div id="phone-number-view-container" dir="ltr">
             <div class="phone-number-view-wrapper-input">
-              <input id="phone-number-view" type="text" class="phone-number-font font-light" readonly="readonly" data-l10n-id="phoneNumberInput">
+              <input id="phone-number-view" type="text" class="phone-number-font font-light textfield" readonly="readonly" data-l10n-id="phoneNumberInput">
             </div>
             <button id="keypad-delete" class="reset-button" data-value="delete" data-l10n-id="keypadDelete">
             </button>
@@ -179,7 +181,7 @@
           <button role="button" is="contact-in-overlay" id="contact-in-overlay-template" class="js-suggestion-item contact-item bb-button" hidden></button>
 
           <article id="keyboard-container">
-            <section id="keypad">
+            <section id="keypad" dir="ltr">
               <div class="keypad-row">
                 <div class="keypad-key" role="key" data-value="1">
                   <span>1</span>
@@ -273,7 +275,7 @@
       </section>
       <form id="response" role="region">
         <p>
-          <input id="response-text" type="text" data-l10n-id="type-your-response" placeholder="Type your selection..." dir="auto" required disabled>
+          <input id="response-text" type="text" data-l10n-id="type-your-response" placeholder="Type your selection..." required disabled>
           <button id="response-text-reset" type="reset" data-l10n-id="clear-all-text"> Clear-all-text </button>
         </p>
       </form>

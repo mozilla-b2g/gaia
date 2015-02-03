@@ -26,6 +26,8 @@
   MockAppWindow.prototype = {
     prefix: 'mock-app-',
     isHomescreen: false,
+    CLASS_NAME: 'AppWindow',
+    HIERARCHY_MANAGER: 'AppWindowManager',
     get browserContainer() {
       if (!this._browserContainer) {
         this._browserContainer = document.createElement('div');
@@ -99,7 +101,7 @@
     reload: function() {},
     stop: function() {},
     isBrowser: function() {},
-    isPrivateBrowser: function() {},
+    isPrivateBrowser: function() { return false; },
     isCertified: function() {},
     navigate: function() {},
     isFullScreen: function() {},
@@ -113,6 +115,7 @@
     getBottomMostWindow: function() { return this; },
     determineClosingRotationDegree: function() { return 0; },
     isTransitioning: function() { return false; },
+    isSheetTransitioning: function() { return false; },
     calibratedHeight: function() { return false; },
     isOOP: function() { return true; },
     isDead: function() { return false; },
@@ -141,7 +144,9 @@
     isForeground: function() {},
     killable: function() {},
     setVisibileForScreenReader: function() {},
-    handleStatusbarTouch: function() {}
+    handleStatusbarTouch: function() {},
+    setNFCFocus: function() {},
+    setActive: function() {}
   };
   MockAppWindow.mTeardown = function() {
     MockAppWindowHelper.mInstances = [];

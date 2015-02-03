@@ -2,10 +2,17 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
+try:
+    from marionette import Wait
+    from marionette.by import By
+except:
+    from marionette_driver import Wait
+    from marionette_driver.by import By
+
 from gaiatest.apps.base import Base
 from gaiatest.apps.homescreen.app import Homescreen
 from gaiatest.apps.emergency_call.app import EmergencyCall
+
 
 class PasscodePad(Base):
 
@@ -19,8 +26,9 @@ class PasscodePad(Base):
         lockscreen_passcode_pad = self.marionette.find_element(*self._lockscreen_passcode_pad_locator)
         emergency_button = self.marionette.find_element(*self._emergency_button_locator)
         # wait button * 4 rows === the pad's height
-        self.wait_for_condition(lambda m: lockscreen_passcode_pad.size['height'] ==
-              (4 * emergency_button.size['height']))
+        Wait(self.marionette).until(
+            lambda m: lockscreen_passcode_pad.size['height'] ==
+            (4 * emergency_button.size['height']))
 
     def type_passcode(self, passcode):
         for digit in passcode:

@@ -7,10 +7,11 @@
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
          ActivityHandler, TimeHeaders, ContactRenderer, Draft, Drafts,
          Thread, MultiSimActionButton, Navigation, Promise, LazyLoader,
-         Dialog, SharedComponents,
+         SharedComponents,
          Errors,
          EventDispatcher,
-         SelectionHandler
+         SelectionHandler,
+         TaskRunner
 */
 /*exported ThreadUI */
 
@@ -91,7 +92,8 @@ var ThreadUI = {
       'not-downloaded',
       'recipient',
       'date-group',
-      'header'
+      'header',
+      'group-header'
     ];
 
     AttachmentMenu.init('attachment-options-menu');
@@ -223,13 +225,10 @@ var ThreadUI = {
       return tmpls;
     }, {});
 
-    this.initRecipients();
-
     Compose.init('messages-compose-form');
 
     // In case of input, we have to resize the input following UX Specs.
     Compose.on('input', this.messageComposerInputHandler.bind(this));
-    Compose.on('type', this.onMessageTypeChange.bind(this));
     Compose.on('subject-change', this.onSubjectChange.bind(this));
     Compose.on('segmentinfochange', this.onSegmentInfoChange.bind(this));
 
@@ -258,6 +257,10 @@ var ThreadUI = {
     // So we assimilate recipients if user starts to interact with Composer
     Compose.on('interact', this.assimilateRecipients.bind(this));
 
+    this.container.addEventListener(
+      'click', this.assimilateRecipients.bind(this)
+    );
+
     this.multiSimActionButton = null;
 
     this.timeouts.update = null;
@@ -265,6 +268,9 @@ var ThreadUI = {
     this.shouldChangePanelNextEvent = false;
 
     this.showErrorInFailedEvent = '';
+
+    // Bound methods to be detachables
+    this.onMessageTypeChange = this.onMessageTypeChange.bind(this);
   },
 
   onVisibilityChange: function thui_onVisibilityChange(e) {
@@ -446,17 +452,16 @@ var ThreadUI = {
     }
   },
 
-  showMaxLengthNotice: function thui_showMaxLengthNotice(l10nKey) {
-    Compose.lock = true;
-    this.maxLengthNotice.querySelector('p').setAttribute(
-      'data-l10n-id',
-      l10nKey
+  showMaxLengthNotice: function thui_showMaxLengthNotice(opts) {
+    Compose.lock();
+    navigator.mozL10n.setAttributes(
+      this.maxLengthNotice.querySelector('p'), opts.l10nId, opts.l10nArgs
     );
     this.maxLengthNotice.classList.remove('hide');
   },
 
   hideMaxLengthNotice: function thui_hideMaxLengthNotice() {
-    Compose.lock = false;
+    Compose.unlock();
     this.maxLengthNotice.classList.add('hide');
   },
 
@@ -484,6 +489,7 @@ var ThreadUI = {
    * visible.
    */
   beforeEnter: function thui_beforeEnter(args) {
+    this.clearConvertNoticeBanners();
     this.setHeaderAction(ActivityHandler.isInActivity() ? 'close' : 'back');
 
     Recipients.View.isFocusable = true;
@@ -521,6 +527,13 @@ var ThreadUI = {
     Threads.currentId = args.id;
 
     var prevPanel = args.meta.prev && args.meta.prev.panel;
+
+    // If transitioning from composer, we don't need to notify about type
+    // conversion but only after the type of the thread is set
+    // (afterEnterThread)
+    if (prevPanel !== 'composer') {
+      this.enableConvertNoticeBanners();
+    }
 
     if (prevPanel !== 'group-view' && prevPanel !== 'report-view') {
       this.initializeRendering();
@@ -579,14 +592,16 @@ var ThreadUI = {
 
       // Populate draft if there is one
       // TODO merge with handleDraft ? Bug 1010216
-      var thread = Threads.get(threadId);
-      if (thread.hasDrafts) {
-        this.draft = thread.drafts.latest;
-        Compose.fromDraft(this.draft);
-        this.draft.isEdited = false;
-      } else {
-        this.draft = null;
-      }
+      Drafts.request().then(() => {
+        var thread = Threads.get(threadId);
+        if (thread.hasDrafts) {
+          this.draft = thread.drafts.latest;
+          Compose.fromDraft(this.draft);
+          this.draft.isEdited = false;
+        } else {
+          this.draft = null;
+        }
+      });
     }
 
     ThreadListUI.mark(threadId, 'read');
@@ -594,10 +609,23 @@ var ThreadUI = {
     // nothing urgent, let's do it when the main thread has some time
     setTimeout(MessageManager.markThreadRead.bind(MessageManager, threadId));
 
+    // Enable notifications redirected from composer only after the user enters.
+    if (prevPanel === 'composer') {
+      this.enableConvertNoticeBanners();
+    }
+
+    if (args.focusComposer) {
+      Compose.focus();
+    }
+
     return Utils.closeNotificationsForThread(threadId);
   },
 
   beforeLeave: function thui_beforeLeave(args) {
+    this.disableConvertNoticeBanners();
+
+    var nextPanel = args.meta.next && args.meta.next.panel;
+
     // This should be in afterLeave, but the edit mode interface does not seem
     // to slide correctly. Bug 1009541
     this.cancelEdit();
@@ -613,6 +641,9 @@ var ThreadUI = {
     }
 
     // TODO move most of back() here: Bug 1010223
+    if (nextPanel !== 'group-view' && nextPanel !== 'report-view') {
+      this.cleanFields();
+    }
   },
 
   afterLeave: function thui_afterLeave(args) {
@@ -624,7 +655,9 @@ var ThreadUI = {
     if (!Navigation.isCurrentPanel('composer')) {
       this.threadMessages.classList.remove('new');
 
-      this.recipients.length = 0;
+      if (this.recipients) {
+        this.recipients.length = 0;
+      }
 
       this.toggleRecipientSuggestions();
     }
@@ -735,6 +768,8 @@ var ThreadUI = {
   },
 
   beforeEnterComposer: function thui_beforeEnterComposer(args) {
+    this.enableConvertNoticeBanners();
+
     // TODO add the activity/forward/draft stuff here
     // instead of in afterEnter: Bug 1010223
 
@@ -881,9 +916,22 @@ var ThreadUI = {
       clearTimeout(this._convertNoticeTimeout);
     }
 
-    this._convertNoticeTimeout = setTimeout(function hideConvertNotice() {
-      this.convertNotice.classList.add('hide');
-    }.bind(this), this.CONVERTED_MESSAGE_DURATION);
+    this._convertNoticeTimeout = setTimeout(
+      this.clearConvertNoticeBanners.bind(this),
+      this.CONVERTED_MESSAGE_DURATION
+    );
+  },
+
+  clearConvertNoticeBanners: function thui_clearConvertNoticeBanner() {
+    this.convertNotice.classList.add('hide');
+  },
+
+  enableConvertNoticeBanners: function thui_enableConvertNoticeBanner() {
+    Compose.on('type', this.onMessageTypeChange);
+  },
+
+  disableConvertNoticeBanners: function thui_disableConvertNoticeBanner() {
+    Compose.off('type', this.onMessageTypeChange);
   },
 
   onSubjectChange: function thui_onSubjectChange() {
@@ -964,7 +1012,7 @@ var ThreadUI = {
         args: { n: recipientCount }
       });
     } else {
-      this.setHeaderContent({ id: 'newMessage' });
+      this.setHeaderContent('newMessage');
     }
   },
 
@@ -1063,7 +1111,6 @@ var ThreadUI = {
     }
 
     return this._onNavigatingBack().then(function() {
-      this.cleanFields();
       Navigation.toPanel('thread-list');
     }.bind(this)).catch(function(e) {
       e && console.error('Unexpected error while navigating back: ', e);
@@ -1200,10 +1247,15 @@ var ThreadUI = {
 
     if (Settings.mmsSizeLimitation) {
       if (Compose.size > Settings.mmsSizeLimitation) {
-        this.showMaxLengthNotice('message-exceeded-max-length');
+        this.showMaxLengthNotice({
+          l10nId: 'multimedia-message-exceeded-max-length',
+          l10nArgs: {
+            mmsSize: (Settings.mmsSizeLimitation / 1024).toFixed(0)
+          }
+        });
         return false;
       } else if (Compose.size === Settings.mmsSizeLimitation) {
-        this.showMaxLengthNotice('messages-max-length-text');
+        this.showMaxLengthNotice({ l10nId: 'messages-max-length-text' });
         return true;
       }
     }
@@ -1272,7 +1324,9 @@ var ThreadUI = {
       phoneDetails = Utils.getPhoneDetails(number, address);
 
       if (phoneDetails) {
-        carrierTag.innerHTML = SharedComponents.phoneDetails(phoneDetails);
+        carrierTag.innerHTML = SharedComponents.phoneDetails(
+          phoneDetails
+        ).toString();
 
         threadMessages.classList.add('has-carrier');
       } else {
@@ -1313,14 +1367,14 @@ var ThreadUI = {
         this.headerText.dataset.isContact = !!details.isContact;
         this.headerText.dataset.title = contactName;
 
-        this.headerText.classList.toggle(
-          'thread-group-header',
-          thread.participants.length > 1
-        );
-        this.setHeaderContent(this.tmpl.header.interpolate({
-          name: contactName,
-          participantCount: (thread.participants.length - 1).toString()
-        }));
+        var headerContentTemplate = thread.participants.length > 1 ?
+          this.tmpl.groupHeader : this.tmpl.header;
+        this.setHeaderContent({
+          html: headerContentTemplate.interpolate({
+            name: contactName,
+            participantCount: (thread.participants.length - 1).toString()
+          })
+        });
 
         this.updateCarrier(thread, contacts);
         resolve();
@@ -1334,26 +1388,29 @@ var ThreadUI = {
    * markup to support bidirectional content, but other panels still use it with
    * mozL10n.setAttributes as it would contain only localizable text. We should
    * get rid of this method once bug 961572 and bug 1011085 are landed.
-   * @param {string|{ id: string, args: Object }} content Should be either safe
-   * HTML string or object with l10nId and l10nArgs.
+   * @param {string|{ html: string }|{id: string, args: Object }} contentL10n
+   * Should be either safe HTML string or l10n properties.
    * @public
    */
-  setHeaderContent: function thui_setHeaderContent(content) {
-    if (typeof content === 'string') {
-      this.headerText.removeAttribute('data-l10n-id');
-      this.headerText.removeAttribute('data-l10n-args');
+  setHeaderContent: function thui_setHeaderContent(contentL10n) {
+    if (typeof contentL10n === 'string') {
+      contentL10n = { id: contentL10n };
+    }
 
-      this.headerText.innerHTML = content;
-    } else {
+    if (contentL10n.id) {
       // Remove rich HTML content before we set l10n attributes as l10n lib
       // fails in this case
-      if (this.headerText.firstElementChild) {
-        this.headerText.textContent = '';
-      }
-
+      this.headerText.firstElementChild && (this.headerText.textContent = '');
       navigator.mozL10n.setAttributes(
-        this.headerText, content.id, content.args
+        this.headerText, contentL10n.id, contentL10n.args
       );
+      return;
+    }
+
+    if (contentL10n.html) {
+      this.headerText.removeAttribute('data-l10n-id');
+      this.headerText.innerHTML = contentL10n.html;
+      return;
     }
   },
 
@@ -1377,11 +1434,11 @@ var ThreadUI = {
   // Method for rendering the first chunk at the beginning
   showFirstChunk: function thui_showFirstChunk() {
     // Show chunk of messages
-    ThreadUI.showChunkOfMessages(this.CHUNK_SIZE);
+    this.showChunkOfMessages(this.CHUNK_SIZE);
     // Boot update of headers
     TimeHeaders.updateAll('header[data-time-update]');
     // Go to Bottom
-    ThreadUI.scrollViewToBottom();
+    this.scrollViewToBottom();
   },
 
   createMmsContent: function thui_createMmsContent(dataArray) {
@@ -1414,9 +1471,11 @@ var ThreadUI = {
 
   // Method for rendering the list of messages using infinite scroll
   renderMessages: function thui_renderMessages(threadId, callback) {
+    // Use taskRunner to make sure message appended in proper order
+    var taskQueue = new TaskRunner();
     var onMessagesRendered = (function messagesRendered() {
       if (this.messageIndex < this.CHUNK_SIZE) {
-        this.showFirstChunk();
+        taskQueue.push(this.showFirstChunk.bind(this));
       }
 
       if (callback) {
@@ -1426,13 +1485,19 @@ var ThreadUI = {
 
     var onRenderMessage = (function renderMessage(message) {
       if (this._stopRenderingNextStep) {
-        // stop the iteration
+        // stop the iteration and clear the taskQueue
+        taskQueue = null;
         return false;
       }
-      this.appendMessage(message,/*hidden*/ true);
+      taskQueue.push(() => {
+        if (!this._stopRenderingNextStep) {
+          return this.appendMessage(message,/*hidden*/ true);
+        }
+        return false;
+      });
       this.messageIndex++;
       if (this.messageIndex === this.CHUNK_SIZE) {
-        this.showFirstChunk();
+        taskQueue.push(this.showFirstChunk.bind(this));
       }
       return true;
     }).bind(this);
@@ -1620,13 +1685,21 @@ var ThreadUI = {
     }
 
     if (message.type === 'mms' && !isNotDownloaded && !noAttachment) { // MMS
-      SMIL.parse(message, (slideArray) => {
-        pElement.appendChild(ThreadUI.createMmsContent(slideArray));
-        this.scrollViewToBottom();
+      return this.mmsContentParser(message).then((mmsContent) => {
+        pElement.appendChild(mmsContent);
+        return messageDOM;
       });
     }
 
-    return messageDOM;
+    return Promise.resolve(messageDOM);
+  },
+
+  mmsContentParser: function thui_mmsContentParser(message) {
+    return new Promise((resolver) => {
+      SMIL.parse(message, (slideArray) => {
+        resolver(this.createMmsContent(slideArray));
+      });
+    });
   },
 
   getMessageStatusMarkup: function(status) {
@@ -1648,17 +1721,26 @@ var ThreadUI = {
     }
 
     // build messageDOM adding the links
-    messageDOM = this.buildMessageDOM(message, hidden);
+    return this.buildMessageDOM(message, hidden).then((messageDOM) => {
+      if (this._stopRenderingNextStep) {
+        return;
+      }
 
-    messageDOM.dataset.timestamp = timestamp;
+      messageDOM.dataset.timestamp = timestamp;
 
-    // Add to the right position
-    var messageContainer = this.getMessageContainer(timestamp, hidden);
-    this._insertTimestampedNodeToContainer(messageDOM, messageContainer);
+      // Add to the right position
+      var messageContainer = this.getMessageContainer(timestamp, hidden);
+      this._insertTimestampedNodeToContainer(messageDOM, messageContainer);
 
-    if (this.inEditMode) {
-      this.checkInputs();
-    }
+      if (this.inEditMode) {
+        this.checkInputs();
+      }
+
+      if (!hidden) {
+        // Go to Bottom
+        this.scrollViewToBottom();
+      }
+    });
   },
 
   /**
@@ -1681,14 +1763,14 @@ var ThreadUI = {
   },
 
   showChunkOfMessages: function thui_showChunkOfMessages(number) {
-    var elements = ThreadUI.container.getElementsByClassName('hidden');
-    for (var i = elements.length - 1; i >= 0; i--) {
-      var element = elements[i];
+    var elements = this.container.getElementsByClassName('hidden');
+
+    Array.slice(elements, -number).forEach((element) => {
       element.classList.remove('hidden');
       if (element.tagName === 'HEADER') {
         TimeHeaders.update(element);
       }
-    }
+    });
   },
 
   showOptions: function thui_showOptions() {
@@ -1827,30 +1909,17 @@ var ThreadUI = {
       );
     }
 
-    var dialog = new Dialog({
-      title: {
-        l10nId: 'messages'
+    return Utils.confirm(
+      {
+        id: 'deleteMessages-confirmation-message',
+        args: { n: this.selectionHandler.selectedCount }
       },
-      body: {
-        l10nId: 'deleteMessages-confirmation'
-      },
-      options: {
-        cancel: {
-          text: {
-            l10nId: 'cancel'
-          }
-        },
-        confirm: {
-          text: {
-            l10nId: 'delete'
-          },
-          method: performDeletion.bind(this),
-          className: 'danger'
-        }
+      null,
+      {
+        text: 'delete',
+        className: 'danger'
       }
-    });
-
-    dialog.show();
+    ).then(performDeletion.bind(this));
   },
 
   cancelEdit: function thlui_cancelEdit() {
@@ -1926,10 +1995,9 @@ var ThreadUI = {
     // Click events originating from a "message-status" aside of an error
     // message should trigger a prompt for retransmission.
     if (elems.message.classList.contains('error') && elems.messageStatus) {
-      if (window.confirm(navigator.mozL10n.get('resend-confirmation'))) {
+      Utils.confirm('resend-confirmation').then(() => {
         this.resendMessage(elems.message.dataset.messageId);
-      }
-      return;
+      });
     }
   },
 
@@ -1982,11 +2050,11 @@ var ThreadUI = {
         evt.preventDefault();
         evt.stopPropagation();
         var messageBubble = this.getMessageBubble(evt.target);
-        var lineClassList = messageBubble.node.parentNode.classList;
 
         if (!messageBubble) {
           return;
         }
+        var lineClassList = messageBubble.node.parentNode.classList;
 
         // Show options per single message
         var messageId = messageBubble.id;
@@ -2012,6 +2080,15 @@ var ThreadUI = {
 
         params.items.push(
           {
+            l10nId: 'select-text',
+            method: (node) => {
+              this.enableBubbleSelection(
+                node.querySelector('.message-content-body')
+              );
+            },
+            params: [messageBubble.node]
+          },
+          {
             l10nId: 'view-message-report',
             method: function showMessageReport(messageId) {
               // Fetch the message by id for displaying corresponding message
@@ -2027,15 +2104,14 @@ var ThreadUI = {
           {
             l10nId: 'delete',
             method: function deleteMessage(messageId) {
-              if (window.confirm(navigator.mozL10n
-                .get('deleteMessage-confirmation'))) {
-                // Complete deletion in DB and UI
-                MessageManager.deleteMessages(messageId,
-                  function onDeletionDone() {
-                    ThreadUI.deleteUIMessages(messageId);
-                  }
+              Utils.confirm(
+                'deleteMessage-confirmation', null,
+                { text: 'delete', className: 'danger' }
+              ).then(() => {
+                MessageManager.deleteMessages(
+                  messageId, () => ThreadUI.deleteUIMessages(messageId)
                 );
-              }
+              });
             },
             params: [messageId]
           }
@@ -2126,7 +2202,9 @@ var ThreadUI = {
     }
 
     // Clean composer fields (this lock any repeated click in 'send' button)
+    this.disableConvertNoticeBanners();
     this.cleanFields();
+    this.enableConvertNoticeBanners();
 
     // If there was a draft, it just got sent
     // so delete it
@@ -2177,6 +2255,9 @@ var ThreadUI = {
         if (ActivityHandler.isInActivity()) {
           setTimeout(this.close.bind(this), this.LEAVE_ACTIVITY_DELAY);
         }
+
+        // Early return to prevent compose focused for multi-recipients sms case
+        return;
       }
 
     } else {
@@ -2197,6 +2278,9 @@ var ThreadUI = {
 
       MessageManager.sendMMS(mmsOpts);
     }
+
+    // Retaining the focus on composer.
+    Compose.focus();
   },
 
   onMessageSent: function thui_onMessageSent(e) {
@@ -2924,6 +3008,32 @@ var ThreadUI = {
       contactList.appendChild(suggestions);
       this.recipientSuggestions.scrollTop = 0;
     }
+  },
+
+  /**
+   * If the bubble selection mode is disabled, all the non-editable element
+   * should be set to user-select: none to prevent selection triggered
+   * unexpectedly. Selection functionality should be enabled only by bubble
+   * context menu.
+   * Since long press is used for context menu first, selection need to be
+   * triggered by selection API manually. Focus/blur events are used for
+   * simulating selection changed event, which is only been used in system.
+   * When the node gets blur event, bubble selection mode should be dismissed.
+   * @param {Object} node element that contains message bubble text content.
+   */
+  enableBubbleSelection: function(node) {
+    var threadMessagesClass = this.threadMessages.classList;
+    node.addEventListener('blur', function disable() {
+      node.removeEventListener('blur', disable);
+      threadMessagesClass.add('editable-select-mode');
+      // TODO: Remove this once the gecko could clear selection automatically
+      // in bug 1101376.
+      window.getSelection().removeAllRanges();
+    });
+
+    threadMessagesClass.remove('editable-select-mode');
+    node.focus();
+    window.getSelection().selectAllChildren(node);
   }
 };
 

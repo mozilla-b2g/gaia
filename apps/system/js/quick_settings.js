@@ -95,8 +95,7 @@
      * @memberof QuickSettings.prototype
      */
     monitorDataChange: function() {
-      var conns = window.navigator.mozMobileConnection ||
-        window.navigator.mozMobileConnections;
+      var conns = window.navigator.mozMobileConnections;
 
       if (!conns) {
         // hide data icon without mozMobileConnection object
@@ -330,9 +329,13 @@
               }
 
               enabled = !!this.bluetooth.dataset.enabled;
-              SettingsListener.getSettingsLock().set({
-                'bluetooth.enabled': !enabled
-              });
+              if (enabled) {
+                window.dispatchEvent(
+                  new CustomEvent('request-disable-bluetooth'));
+              } else {
+                window.dispatchEvent(
+                  new CustomEvent('request-enable-bluetooth'));
+              }
               break;
 
             case this.airplaneMode:

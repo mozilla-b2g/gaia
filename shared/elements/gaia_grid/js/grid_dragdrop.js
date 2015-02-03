@@ -60,6 +60,12 @@
     hoverItem: null,
 
     /**
+     * The group being hovered over.
+     * @type {GaiaGrid.Group}
+     */
+    hoverGroup: null,
+
+    /**
      * A port for IAC to the collections app.
      */
     collectionsPort: null,
@@ -104,19 +110,55 @@
 
       // Work around e.pageX/e.pageY being null (to make it easier to work with
       // injected events, or old versions of Marionette)
-      var pageX = (typeof e.pageX === 'undefined') ? this.icon.x : e.pageX;
-      var pageY = (typeof e.pageY === 'undefined') ? this.icon.y : e.pageY;
-
-      this.xAdjust = pageX - this.icon.x;
-      this.yAdjust = pageY - this.icon.y;
+      this.initialPageX = (typeof e.pageX === 'undefined') ?
+        this.icon.x : e.pageX;
+      this.initialPageY = (typeof e.pageY === 'undefined') ?
+        this.icon.y : e.pageY;
+      this.currentTouch = {
+          pageX: this.initialPageX,
+          pageY: this.initialPageY
+      };
 
       var items = this.gridView.items;
       var lastElement = items[items.length - 1];
       this.maxScroll = lastElement.y + lastElement.pixelHeight +
                        (this.icon.pixelHeight * ACTIVE_SCALE);
 
+      // If this is a group, or the sole icon in a group, make sure the
+      // surrounding groups are marked as invalid-drop so you can't initiate a
+      // move that would have no result.
+      var itemIndex = this.icon.detail.index;
+      if (this.icon.detail.type === 'divider') {
+        this.icon.element.classList.add('invalid-drop');
+        if (itemIndex > 0) {
+          for (var i = itemIndex - 1; i >= 0; i--) {
+            var item = items[i];
+            if (item.detail.type === 'divider') {
+              item.element.classList.add('invalid-drop');
+              break;
+            }
+          }
+        }
+      } else {
+        var itemBefore = itemIndex ? items[itemIndex - 1] : null;
+        var itemAfter = items[itemIndex + 1];
+
+        if ((itemAfter.detail.type === 'placeholder' ||
+             itemAfter.detail.type === 'divider') &&
+            (!itemBefore || itemBefore.detail.type === 'divider')) {
+          if (itemBefore) {
+            itemBefore.element.classList.add('invalid-drop');
+          }
+          var group, groupIndex = itemIndex;
+          do {
+            group = items[++groupIndex];
+          } while (group.detail.type !== 'divider');
+          group.element.classList.add('invalid-drop');
+        }
+      }
+
       // Redraw the icon at the new position and scale
-      this.positionIcon(pageX, pageY);
+      this.positionIcon();
     },
 
     finish: function(e) {
@@ -214,6 +256,7 @@
 
     finalize: function() {
       this.container.classList.remove('dragging');
+      this.container.classList.remove('hover-over-top');
       if (this.icon) {
         this.icon.element.removeEventListener('transitionend', this);
         this.icon = null;
@@ -221,6 +264,15 @@
       if (this.hoverItem) {
         this.hoverItem.element.classList.remove('hovered');
         this.hoverItem = null;
+      }
+      if (this.hoverGroup) {
+        this.hoverGroup.element.classList.remove('drop-target');
+        this.hoverGroup = null;
+      }
+      for (var i = 0, iLen = this.gridView.items.length;
+           i < iLen; i++) {
+        var item = this.gridView.items[i];
+        item.element.classList.remove('invalid-drop');
       }
     },
 
@@ -260,7 +312,7 @@
         this.scrollable.scrollTop += amount;
         exports.requestAnimationFrame(this.scrollIfNeeded.bind(this));
         touch.pageY += amount;
-        this.positionIcon(touch.pageX, touch.pageY);
+        this.positionIcon();
       }
 
       var scrollStep;
@@ -294,15 +346,35 @@
     },
 
     /**
-     * Positions an icon on the grid.
-     * @param {Integer} pageX The X coordinate of the touch.
-     * @param {Integer} pageY The Y coordinate of the touch.
+     * Highlights the group of the given icon index, or the group if the index
+     * belongs to a group.
+     * @param {Integer} index The grid index of the icon or group.
      */
-    positionIcon: function(pageX, pageY) {
+    highlightGroup: function(index) {
+      for (var i = index, iLen = this.gridView.items.length;
+           i < iLen; i++) {
+        var item = this.gridView.items[i];
+        if (item.detail.type === 'divider') {
+          if (this.hoverGroup != item) {
+            if (this.hoverGroup) {
+              this.hoverGroup.element.classList.remove('drop-target');
+            }
+            this.hoverGroup = item;
+            item.element.classList.add('drop-target');
+          }
+          break;
+        }
+      }
+    },
+
+    /**
+     * Positions an icon on the grid using the current touch coordinates.
+     */
+    positionIcon: function() {
       var iconIsDivider = this.icon.detail.type === 'divider';
 
-      pageX = pageX - this.xAdjust;
-      pageY = pageY - this.yAdjust;
+      var pageX = this.currentTouch.pageX - (this.initialPageX - this.icon.x);
+      var pageY = this.currentTouch.pageY - (this.initialPageY - this.icon.y);
 
       var oldX = this.icon.x;
       var oldY = this.icon.y;
@@ -324,7 +396,8 @@
       // Find the icon with the closest X/Y position of the move,
       // and insert ours before it.
       var foundIndex = 0;
-      var insertDividerAtTop = !iconIsDivider;
+      var insertDividerAtTop =
+        !iconIsDivider && !this.gridView.config.features.disableSections;
       pageX += this.gridView.layout.gridItemWidth / 2;
       pageY += this.icon.pixelHeight / 2;
       if (pageY >= 0) {
@@ -354,6 +427,9 @@
       // Nothing to do if we find the dragged icon or no icon
       if (foundIndex === null ||
           (!insertDividerAtTop && foundIndex === this.icon.detail.index)) {
+        if (!iconIsDivider) {
+          this.highlightGroup(this.icon.detail.index);
+        }
         return;
       }
       var foundItem = this.gridView.items[foundIndex];
@@ -371,13 +447,12 @@
 
       // If we're hovering over the top of the group, add a style class to show
       // a visual hint that this is a valid drop position.
+      // Otherwise, if the item isn't a collection or a group, trigger the
+      // hovered state on the found item.
       if (insertDividerAtTop || (iconIsDivider && pageY < 0)) {
         this.container.classList.add('hover-over-top');
-      }
-
-      // Collections and groups should not trigger a hover over collections
-      if (foundItem.detail.type !== 'collection' ||
-          (this.icon.detail.type !== 'collection' && !iconIsDivider)) {
+      } else if (foundItem.detail.type !== 'collection' ||
+                 (this.icon.detail.type !== 'collection' && !iconIsDivider)) {
         this.hoverItem = foundItem;
         this.hoverItem.element.classList.add('hovered');
       }
@@ -407,10 +482,35 @@
       }
 
       if (createDivider) {
+        // Remove the group background highlight if we're between groups
+        if (this.hoverGroup) {
+          this.hoverGroup.element.classList.remove('drop-target');
+          this.hoverGroup = null;
+        }
+
+        // Cancel rearrangement if it would have no effect.
+        if (this.gridView.items[foundIndex].element.classList.
+            contains('invalid-drop')) {
+          if (insertDividerAtTop) {
+            this.container.classList.remove('hover-over-top');
+          }
+          if (this.hoverItem) {
+            this.hoverItem.element.classList.remove('hovered');
+            this.hoverItem = null;
+          }
+          return;
+        }
+
         this.doRearrange =
           this.createNewDivider.bind(this,
                                      insertDividerAtTop ? null : foundItem);
       } else {
+        if (!iconIsDivider) {
+          // Change the display of the group the icon is hovering over to
+          // indicate it can be dropped.
+          this.highlightGroup(foundIndex);
+        }
+
         this.doRearrange = this.rearrange.bind(this, foundItem);
 
         if (rearrangeAfterDelay) {
@@ -497,7 +597,15 @@
       this.dirty = true;
       this.gridView.items.splice.apply(this.gridView.items, toInsert);
 
+      var oldX = this.icon.x;
+      var oldY = this.icon.y;
       this.gridView.render();
+
+      // In this case, we don't want to compensate for the icon moving, so
+      // we need to correct our initial values to stop the icon from jumping
+      // after rearranging.
+      this.initialPageX -= oldX - this.icon.x;
+      this.initialPageY -= oldY - this.icon.y;
     },
 
     enterEditMode: function() {
@@ -507,6 +615,7 @@
       this.gridView.element.dispatchEvent(
         new CustomEvent('editmode-start'));
       document.addEventListener('visibilitychange', this);
+      this.container.addEventListener('collection-close', this);
       this.gridView.render();
     },
 
@@ -522,6 +631,7 @@
       document.body.classList.remove('edit-mode');
       this.gridView.element.dispatchEvent(new CustomEvent('editmode-end'));
       document.removeEventListener('visibilitychange', this);
+      this.container.removeEventListener('collection-close', this);
       this.removeDragHandlers();
       this.gridView.render();
     },
@@ -543,6 +653,10 @@
      */
     handleEvent: function(e) {
       switch(e.type) {
+          case 'collection-close':
+            this.exitEditMode();
+            break;
+
           case 'visibilitychange':
             if (document.hidden) {
               this.exitEditMode();
@@ -558,6 +672,12 @@
               return;
             }
 
+            if (this.gridView._collectionOpen) {
+              e.stopImmediatePropagation();
+              e.preventDefault();
+              return;
+            }
+
             if (e.defaultPrevented) {
               // other handlers already handled this.
               // in the future, we should use the shadow root and dispatch a
@@ -565,22 +685,22 @@
               return;
             }
 
-            this.target = e.target;
-
-            if (!this.target) {
+            if (!e.target) {
               return;
             }
 
-            this.icon = this.gridView.findItemFromElement(this.target);
+            this.icon = this.gridView.findItemFromElement(e.target, true);
 
-            if (!this.icon || !this.icon.isDraggable() ||
+            if (!this.icon || !this.icon.element || !this.icon.isDraggable() ||
                 this.icon.detail.type === 'placeholder') {
               this.icon = null;
               return;
             }
 
+            this.target = this.icon.element;
             this.addDragHandlers();
 
+            e.stopImmediatePropagation();
             e.preventDefault();
 
             this.begin(e);
@@ -590,12 +710,12 @@
           case 'touchmove':
             var touch = e.touches[0];
 
-            this.positionIcon(touch.pageX, touch.pageY);
-
             this.currentTouch = {
               pageX: touch.pageX,
               pageY: touch.pageY
             };
+
+            this.positionIcon();
 
             if (!this.isScrolling) {
               this.scrollIfNeeded();

@@ -170,7 +170,7 @@
         return;
       }
       if (config.isActivity && config.inline) {
-        this.publish('launchactivity', config, document.body);
+        this.publish('launchactivity', config);
         return;
       }
 

@@ -21,21 +21,32 @@
 (function(root, factory) {
     'use strict';
 
+    var encoding;
+
     if (typeof define === 'function' && define.amd) {
+        // amd for browser
         define(['stringencoding'], function(encoding) {
             return factory(encoding.TextEncoder, encoding.TextDecoder, root.btoa);
         });
+    } else if (typeof exports === 'object' && typeof navigator !== 'undefined') {
+        // common.js for browser
+        encoding = require('wo-stringencoding');
+        module.exports = factory(encoding.TextEncoder, encoding.TextDecoder, root.btoa);
     } else if (typeof exports === 'object') {
-        var encoding = require('wo-stringencoding'),
-            btoaShim = function(str) {
-                return new Buffer(str, 'binary').toString("base64");
-            };
-        module.exports = factory(encoding.TextEncoder, encoding.TextDecoder, btoaShim);
+        // common.js for node.js
+        encoding = require('wo-stringencoding');
+        module.exports = factory(encoding.TextEncoder, encoding.TextDecoder, function(str) {
+            var NodeBuffer = require('buffer').Buffer;
+            return new NodeBuffer(str, 'binary').toString("base64");
+        });
     } else {
+        // global for browser
         root.mimefuncs = factory(root.TextEncoder, root.TextDecoder, root.btoa);
     }
 }(this, function(TextEncoder, TextDecoder, btoa) {
     'use strict';
+
+    btoa = btoa || base64Encode;
 
     var mimefuncs = {
         /**
@@ -155,9 +166,9 @@
             var mimeEncodedStr = mimefuncs.mimeEncode(data, fromCharset);
 
             mimeEncodedStr = mimeEncodedStr.
-            // fix line breaks, ensure <CR><LF>
+                // fix line breaks, ensure <CR><LF>
             replace(/\r?\n|\r/g, '\r\n').
-            // replace spaces in the end of lines
+                // replace spaces in the end of lines
             replace(/[\t ]+$/gm, function(spaces) {
                 return spaces.replace(/ /g, '=20').replace(/\t/g, '=09');
             });
@@ -178,9 +189,9 @@
             str = (str || '').toString();
 
             str = str.
-            // remove invalid whitespace from the end of lines
+                // remove invalid whitespace from the end of lines
             replace(/[\t ]+$/gm, '').
-            // remove soft line breaks
+                // remove soft line breaks
             replace(/\=(?:\r?\n|$)/g, '');
 
             return mimefuncs.mimeDecode(str, fromCharset);
@@ -462,18 +473,19 @@
          * @return {String} 'binary' string
          */
         fromTypedArray: function(buf) {
-            var i, l, str = '';
+            var i, l;
 
             // ensure the value is a Uint8Array, not ArrayBuffer if used
             if (!buf.buffer) {
                 buf = new Uint8Array(buf);
             }
 
+            var sbits = new Array(buf.length);
             for (i = 0, l = buf.length; i < l; i++) {
-                str += String.fromCharCode(buf[i]);
+                sbits[i] = String.fromCharCode(buf[i]);
             }
 
-            return str;
+            return sbits.join('');
         },
 
         /**
@@ -594,16 +606,16 @@
                             response.params[key].charset +
                             '?Q?' +
                             value.
-                        // fix invalidly encoded chars
+                            // fix invalidly encoded chars
                         replace(/[=\?_\s]/g, function(s) {
-                            var c = s.charCodeAt(0).toString(16);
-                            if (s === ' ') {
-                                return '_';
-                            } else {
-                                return '%' + (c.length < 2 ? '0' : '') + c;
-                            }
-                        }).
-                        // change from urlencoding to percent encoding
+                                var c = s.charCodeAt(0).toString(16);
+                                if (s === ' ') {
+                                    return '_';
+                                } else {
+                                    return '%' + (c.length < 2 ? '0' : '') + c;
+                                }
+                            }).
+                            // change from urlencoding to percent encoding
                         replace(/%/g, '=') +
                             '?=';
                     } else {
@@ -647,7 +659,7 @@
                 if (encodedStr.length <= maxLength) {
                     return [{
                         key: key,
-                        value: encodedStr
+                        value: /[\s";=]/.test(encodedStr) ? '"' + encodedStr + '"' : encodedStr
                     }];
                 }
 
@@ -736,7 +748,7 @@
                     // unencoded lines: {name}*{part}
                     // if any line needs to be encoded then the first line (part==0) is always encoded
                     key: key + '*' + i + (item.encoded ? '*' : ''),
-                    value: item.line
+                    value: /[\s";=]/.test(item.line) ? '"' + item.line + '"' : item.line
                 };
             });
         },
@@ -968,7 +980,18 @@
             try {
                 return new TextDecoder(fromCharset).decode(buf);
             } catch (E) {
-                return this.fromTypedArray(buf);
+                try {
+                    return new TextDecoder('utf-8', {
+                        fatal: true // if the input is not a valid utf-8 the decoder will throw
+                    }).decode(buf);
+                } catch (E) {
+                    try {
+                        return new TextDecoder('iso-8859-15').decode(buf);
+                    } catch (E) {
+                        // should not happen as there is something matching for every byte (non character bytes are allowed)
+                        return mimefuncs.fromTypedArray(buf);
+                    }
+                }
             }
 
         },
@@ -1132,6 +1155,23 @@
             return arr;
         }
     };
+
+    /*
+     * Encodes a string in base 64. DedicatedWorkerGlobalScope for Safari does not provide btoa.
+     * https://github.com/davidchambers/Base64.js
+     */
+    function base64Encode(input) {
+        var str = String(input);
+        var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+        for (var block, charCode, idx = 0, map = chars, output = ''; str.charAt(idx | 0) || (map = '=', idx % 1); output += map.charAt(63 & block >> 8 - idx % 1 * 8)) {
+            charCode = str.charCodeAt(idx += 3 / 4);
+            if (charCode > 0xFF) {
+                throw new Error("'btoa' failed: The string to be encoded contains characters outside of the Latin1 range.");
+            }
+            block = block << 8 | charCode;
+        }
+        return output;
+    }
 
     return mimefuncs;
 }));

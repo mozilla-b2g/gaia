@@ -1,5 +1,6 @@
 'use strict';
-/* global applications, BrowserConfigHelper, AppWindowManager, AppWindow */
+/* globals applications, BrowserConfigHelper, AppWindowManager, AppWindow,
+          WrapperFactory */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -50,6 +51,8 @@
       window.addEventListener('open-app', this.preHandleEvent);
       window.addEventListener('openwindow', this.preHandleEvent);
       window.addEventListener('appopenwindow', this.preHandleEvent);
+      window.addEventListener('iac-customlaunchpath', this.preHandleEvent);
+      window.addEventListener('mozChromeEvent', this.preHandleEvent);
       window.addEventListener('applicationready', (function appReady(e) {
         window.removeEventListener('applicationready', appReady);
         this._handlePendingEvents();
@@ -71,6 +74,7 @@
       window.removeEventListener('open-app', this.preHandleEvent);
       window.removeEventListener('openwindow', this.preHandleEvent);
       window.removeEventListener('appopenwindow', this.preHandleEvent);
+      window.removeEventListener('iac-customlaunchpath', this.preHandleEvent);
     },
 
     /**
@@ -97,8 +101,67 @@
       }
     },
 
+    handlePresentation: function awf_handlePresentation(detail) {
+      var parseUrl = detail.url.split('/');
+      var protocol = parseUrl[0].toUpperCase();
+      var manifestURL;
+
+      // We assume the URL is in the following format:
+      // app://<domain name>/<path>
+      // And we limit length to 3 to get rid of the <path> part.
+      parseUrl.length = 3;
+      if (protocol === 'APP:') {
+        manifestURL = parseUrl.join('/') + '/manifest.webapp';
+      } else {
+        manifestURL = null;
+      }
+      var config = new BrowserConfigHelper({
+        url: detail.url,
+        manifestURL: manifestURL
+      });
+
+      var cb = function(receivedapp) {
+        var evt = new CustomEvent('mozContentEvent', {
+          bubbles: true,
+          cancelable: false,
+          detail: {
+            type: 'presentation-receiver-launched',
+            id: detail.id,
+            frame: receivedapp.iframe
+          }
+        });
+        window.dispatchEvent(evt);
+      };
+      var app = AppWindowManager.getApp(config.origin, config.manifestURL);
+      if (app) {
+        app.kill();
+      }
+      window.addEventListener('appcreated', function awf_appcreated(evt) {
+        app = evt.detail;
+
+        if (app.config.url == config.url) {
+          window.removeEventListener('appcreated', awf_appcreated);
+          cb(app);
+        }
+      });
+      config.timestamp = detail.timestamp;
+      if (protocol === 'APP:') {
+        config.stayBackground = true;
+        this.launch(config);
+      } else {
+        WrapperFactory.launchWrapper(config);
+      }
+    },
+
     handleEvent: function awf_handleEvent(evt) {
       var detail = evt.detail;
+
+      if (evt.type == 'mozChromeEvent' &&
+        detail.type == 'presentation-launch-receiver') {
+        this.handlePresentation(evt.detail);
+        return;
+      }
+
       if (!detail.url) {
         return;
       }
@@ -108,9 +171,17 @@
       config.evtType = evt.type;
 
       switch (evt.type) {
+        case 'webapps-launch':
+        case 'iac-customlaunchpath':
+          // The changeURL was determined in gecko because we should open an app
+          // based on gecko's decision in the past. But now, we have
+          // iac-customlaunchpath. We have to change URL all the time when user
+          // uses app.launch or iac-customlaunchpath.
+          config.changeURL = true;
+          // Please no `break;` here. It's on purpose.
+          /* falls through */
         case 'openwindow':
         case 'appopenwindow':
-        case 'webapps-launch':
           config.timestamp = detail.timestamp;
           // TODO: Look up current opened window list,
           // and then create a new instance here.
@@ -174,16 +245,10 @@
         return;
       }
 
-      // The rocketbar currently handles the management of normal search app
-      // launches. Requests for the 'newtab' page will continue to filter
-      // through and publish the launchapp event.
-      if (config.manifest && config.manifest.role === 'search' &&
-          config.url.indexOf('newtab.html') === -1) {
-        return;
-      }
       var app = AppWindowManager.getApp(config.origin, config.manifestURL);
       if (app) {
-        if (config.evtType == 'appopenwindow') {
+        if (config.evtType === 'appopenwindow' ||
+            config.evtType === 'iac-customlaunchpath') {
           app.browser.element.src = config.url;
         }
         app.reviveBrowser();

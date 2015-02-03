@@ -7,7 +7,7 @@
           "name": "Gaia build tests",
           "description": "Runs entire gaia build system through all known variants.",
           "source": "http://todo.com/soon",
-          "owner": "kevin@mozilla.com"
+          "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
         "provisionerId": "aws-provisioner",
@@ -25,7 +25,7 @@
             "entrypoint",
             "./bin/ci run build_unit"
           ],
-          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.7.2",
           "maxRunTime": 1800
         },
         "extra": {
@@ -34,7 +34,8 @@
             "groupName": "Gaia build tests",
             "symbol": "GBU"
           }
-        }
+        },
+        "schedulerId": "task-graph-scheduler"
       }
     },
     {
@@ -44,7 +45,7 @@
           "name": "Gaia build tests 1",
           "description": "Runs entire gaia build system through all known variants.",
           "source": "http://todo.com/soon",
-          "owner": "kevin@mozilla.com"
+          "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
         "provisionerId": "aws-provisioner",
@@ -64,7 +65,7 @@
             "entrypoint",
             "./bin/ci run build_integration"
           ],
-          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.7.2",
           "maxRunTime": 1800
         },
         "extra": {
@@ -73,7 +74,8 @@
             "groupName": "Gaia build tests",
             "symbol": "GBI1"
           }
-        }
+        },
+        "schedulerId": "task-graph-scheduler"
       }
     },
     {
@@ -83,7 +85,7 @@
           "name": "Gaia build tests 2",
           "description": "Runs entire gaia build system through all known variants.",
           "source": "http://todo.com/soon",
-          "owner": "kevin@mozilla.com"
+          "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
         "provisionerId": "aws-provisioner",
@@ -103,7 +105,7 @@
             "entrypoint",
             "./bin/ci run build_integration"
           ],
-          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.7.2",
           "maxRunTime": 1800
         },
         "extra": {
@@ -112,7 +114,8 @@
             "groupName": "Gaia build tests",
             "symbol": "GBI2"
           }
-        }
+        },
+        "schedulerId": "task-graph-scheduler"
       }
     },
     {
@@ -122,7 +125,7 @@
           "name": "Gaia build tests 3",
           "description": "Runs entire gaia build system through all known variants.",
           "source": "http://todo.com/soon",
-          "owner": "kevin@mozilla.com"
+          "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
         "provisionerId": "aws-provisioner",
@@ -142,7 +145,7 @@
             "entrypoint",
             "./bin/ci run build_integration"
           ],
-          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.7.2",
           "maxRunTime": 1800
         },
         "extra": {
@@ -151,7 +154,8 @@
             "groupName": "Gaia build tests",
             "symbol": "GBI3"
           }
-        }
+        },
+        "schedulerId": "task-graph-scheduler"
       }
     },
     {
@@ -161,7 +165,7 @@
           "name": "Gaia build tests 4",
           "description": "Runs entire gaia build system through all known variants.",
           "source": "http://todo.com/soon",
-          "owner": "kevin@mozilla.com"
+          "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
         "provisionerId": "aws-provisioner",
@@ -181,7 +185,7 @@
             "entrypoint",
             "./bin/ci run build_integration"
           ],
-          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.7.2",
           "maxRunTime": 1800
         },
         "extra": {
@@ -190,7 +194,8 @@
             "groupName": "Gaia build tests",
             "symbol": "GBI4"
           }
-        }
+        },
+        "schedulerId": "task-graph-scheduler"
       }
     },
     {
@@ -199,7 +204,7 @@
           "name": "Gaia CSS Lint",
           "description": "CSS linter",
           "source": "http://todo.com/soon",
-          "owner": "kevin@mozilla.com"
+          "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
         "provisionerId": "aws-provisioner",
@@ -214,7 +219,7 @@
             "entrypoint",
             "./bin/ci run csslint"
           ],
-          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.7.2",
           "maxRunTime": 1800,
           "env": {}
         },
@@ -224,7 +229,8 @@
             "groupSymbol": "LINT",
             "groupName": "Linters"
           }
-        }
+        },
+        "schedulerId": "task-graph-scheduler"
       }
     },
     {
@@ -233,7 +239,7 @@
           "name": "Gaia JSON Lint",
           "description": "JSON linter",
           "source": "http://todo.com/soon",
-          "owner": "kevin@mozilla.com"
+          "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
         "provisionerId": "aws-provisioner",
@@ -248,7 +254,7 @@
             "entrypoint",
             "./bin/ci run jsonlint"
           ],
-          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.7.2",
           "maxRunTime": 1800,
           "env": {}
         },
@@ -258,7 +264,8 @@
             "groupSymbol": "LINT",
             "groupName": "Linters"
           }
-        }
+        },
+        "schedulerId": "task-graph-scheduler"
       }
     },
     {
@@ -267,7 +274,7 @@
           "name": "Gaia GJSLint",
           "description": "GJSLint",
           "source": "http://todo.com/soon",
-          "owner": "kevin@mozilla.com"
+          "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
         "provisionerId": "aws-provisioner",
@@ -282,7 +289,7 @@
             "entrypoint",
             "./bin/ci run gjslint"
           ],
-          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.7.2",
           "maxRunTime": 1800,
           "env": {}
         },
@@ -292,7 +299,8 @@
             "groupSymbol": "LINT",
             "groupName": "Linters"
           }
-        }
+        },
+        "schedulerId": "task-graph-scheduler"
       }
     },
     {
@@ -301,7 +309,7 @@
           "name": "Gaia JSHint",
           "description": "JSHint",
           "source": "http://todo.com/soon",
-          "owner": "kevin@mozilla.com"
+          "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
         "provisionerId": "aws-provisioner",
@@ -316,7 +324,7 @@
             "entrypoint",
             "./bin/ci run jshint"
           ],
-          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.7.2",
           "maxRunTime": 1800,
           "env": {}
         },
@@ -326,7 +334,8 @@
             "groupSymbol": "LINT",
             "groupName": "Linters"
           }
-        }
+        },
+        "schedulerId": "task-graph-scheduler"
       }
     }
   ]

@@ -1,12 +1,7 @@
 'use strict';
 
 var assert = require('assert');
-var Home = require(
-  '../../../../apps/verticalhome/test/marionette/lib/home2');
-var Search = require(
-  '../../../../apps/search/test/marionette/lib/search');
 var Server = require('../../../../shared/test/integration/server');
-var System = require('./lib/system');
 var Rocketbar = require('./lib/rocketbar');
 
 marionette('Browser - Navigating from the landing page',
@@ -36,30 +31,34 @@ marionette('Browser - Navigating from the landing page',
   });
 
   setup(function() {
-    home = new Home(client);
+    home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
-    search = new Search(client);
-    system = new System(client);
+    search = client.loader.getAppClass('search');
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
-
-    search.removeGeolocationPermission();
   });
 
   test('navigates the landing page in place', function() {
     // Open the landing page
-    client.apps.launch(Search.URL);
-    client.apps.switchToApp(Search.URL);
+    client.apps.launch(search.URL);
+    client.apps.switchToApp(search.URL);
     client.helper.waitForElement('body');
     client.switchToFrame();
-    system.appUrlbar.click();
-
     var nApps = system.getAppWindows().length;
     var nBrowsers = system.getBrowserWindows().length;
+
+    system.appUrlbar.click();
     var url = server.url('sample.html');
+    rocketbar.enterText(url);
+
+    // Wait for the search app to be open.
+    client.waitFor(function() {
+      return (nApps + 1) === system.getAppWindows().length;
+    });
     rocketbar.enterText(url + '\uE006');
 
-    // Opens the search window, so we should have 3 with the home screen.
-    // Wait for the expected number of app windows.
+    // Wait for the new browser window.
+    // It should override the search app.
     client.waitFor(function() {
       return (nApps + 1) === system.getAppWindows().length;
     });
@@ -69,7 +68,7 @@ marionette('Browser - Navigating from the landing page',
       'expected number of browsers');
 
     // Verify visual components are reset
-    var sel = System.Selector;
+    var sel = system.Selector;
     client.waitFor(function() {
       return !client.findElement(sel.appChromeWindowsButton).displayed();
     });

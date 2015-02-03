@@ -83,14 +83,18 @@ ul.compact li label:active {
  * change when we get `:host` and `:content` selectors
  * in shadow-dom.
  */
+
+section[role="region"] > gaia-header h1.edit-alarm-title {
+  display: block !important; /* 1 */
+}
 section[role="region"] > gaia-header h1.new-alarm-title {
   display: none !important; /* 1 */
 }
-section[role="region"].new > gaia-header h1.new-alarm-title {
-  display: flex !important; /* 1 */
-}
 section[role="region"].new > gaia-header h1.edit-alarm-title {
   display: none !important; /* 1 */
+}
+section[role="region"].new > gaia-header h1.new-alarm-title {
+  display: block !important; /* 1 */
 }
 
 /* ----------- Alarm List ---------- */
@@ -308,7 +312,7 @@ html[dir=rtl] #alarms .alarmEnable {
 html[dir=rtl] a.alarm-item > .time {
   left: auto;
   right: 1.7rem;
-  
+
 }
 html[dir=rtl] a.alarm-item > .label {
   left: 4.5rem;
@@ -319,7 +323,7 @@ html[dir=rtl] a.alarm-item > .repeat {
   right: 1.7rem;
 }
 html[dir=rtl] a.alarm-item > .repeat {
-  left: auto;  
+  left: auto;
   right: 1.7rem;
 }
 html[dir=rtl] #alarms .alarmEnable input[type="checkbox"] + span {

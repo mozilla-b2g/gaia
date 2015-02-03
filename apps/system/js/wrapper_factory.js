@@ -157,13 +157,6 @@
         config.searchURL = features.searchUrl;
       }
 
-      if ('useAsyncPanZoom' in features &&
-          features.useAsyncPanZoom === 'true') {
-        config.useAsyncPanZoom = true;
-      } else {
-        config.useAsyncPanZoom = false;
-      }
-
       if ('remote' in features) {
         config.oop = true;
       }

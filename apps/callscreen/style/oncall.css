@@ -8,6 +8,7 @@
     font-size: 10px;
     color: white;
     background: transparent;
+    -moz-user-select: none;
   }
 
   html * {
@@ -323,10 +324,15 @@
     background-size: auto 100%;
   }
 
+  #callbar-hang-up > .callbar-inner-button,
+  #callbar-answer > .callbar-inner-button {
+    margin: 1rem 1.5rem;
+  }
+
   #callbar-hang-up > .callbar-inner-button {
-    margin: 1rem 1.5rem 1rem 1.5rem;
     background: url('images/handled_call/actionicon_activecall_hangup.png') center / 4rem no-repeat,
                 #e00000;
+    -moz-margin-end: 1rem;
   }
 
   #callbar-hang-up:active > .callbar-inner-button {
@@ -335,9 +341,9 @@
   }
 
   #callbar-answer > .callbar-inner-button {
-    margin: 1rem 1.5rem 1rem .5rem;
     background: url('images/handled_call/actionicon_activecall_pickup.png') center / 4rem no-repeat,
                 #00adad;
+    -moz-margin-start: 1rem;
   }
 
   #callbar-answer:active > .callbar-inner-button {
@@ -351,7 +357,8 @@
     text-align: center;
     font-size: 1.7rem;
     line-height: 4rem;
-    margin: 0 1.5rem 0 0.5rem;
+    margin: 0 1.5rem;
+    -moz-margin-start: 0.5rem;
     font-style: italic;
   }
 
@@ -383,8 +390,8 @@
   }
 
   #calls > section div {
-    padding-left: 2.5rem;
-    padding-right: 2rem;
+    -moz-padding-start: 2.5rem;
+    -moz-padding-end: 2rem;
   }
 
   #calls.big-duration > section {
@@ -656,6 +663,12 @@
     background-image: url('images/handled_call/actionicon_callscreen_outgoingcall.png');
     background-size: 4rem;
   }
+  
+  #calls.big-duration .handled-call.held .direction:before,
+  #calls.big-duration #group-call.held .direction:before {
+    background-image: url('images/handled_call/actionicon_callscreen_pausedcall.png');
+    background-size: 4rem;
+  }
 
   #calls.big-duration .handled-call.ended .direction:before,
   #calls.big-duration #group-call.ended .direction:before {
@@ -734,15 +747,16 @@
     background: url('images/handled_call/actionicon_activecall_hold.png'),
                 #00adad;
     background-size: 4rem, auto 100%;
-    margin-left: 1rem;
-    margin-right: 1.5rem;
+    margin: 0 1rem;
+    -moz-margin-end: 1.5rem;
   }
 
   #incoming-end {
     background: url('images/handled_call/actionicon_activecall_hangup.png'),
                 #e00000;
     background-size: 4rem, auto 100%;
-    margin-left: 1.5rem;
+    margin: 0 1rem;
+    -moz-margin-start: 1.5rem;
   }
 
   .incoming-number-info {
@@ -851,12 +865,6 @@
     color: rgba(51, 51, 51, 0.7);
   }
 
-  #call-screen[data-layout="connected-hold"] #calls.big-duration .handled-call.ongoing .direction:before,
-  #call-screen[data-layout="connected-hold"] #calls.big-duration #group-call.held .direction:before {
-    background-image: url('images/handled_call/actionicon_callscreen_pausedcall.png');
-    background-size: 4rem;
-  }
-
   #call-screen[data-layout="dialing"] #callbar-hang-up > .callbar-inner-button,
   #call-screen[data-layout="connected"] #callbar-hang-up > .callbar-inner-button {
     margin: 1rem 1.5rem 1rem 1.5rem;
@@ -949,12 +957,17 @@
   .big-duration .sim {
     display: block;
     position: absolute;
-    top: 17.5rem;
+    top: 18rem;
     left: 0;
 
     font-size: 1.6rem;
     line-height: 2rem;
     text-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
+  }
+
+  html[dir="rtl"] .big-duration .sim {
+    left: auto;
+    right: 0;
   }
 
   /* Locked incoming call screen */

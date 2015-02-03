@@ -40,6 +40,13 @@ var DownloadManager = (function() {
         started = true;
         createDownloadNotification(ev.download);
         window.addEventListener('notification-clicked', handleEvent);
+
+        // Bug 1102810 - After this bug gets fixed, this listener won't be
+        // needed anymore. The API itself should handle startTime when killing
+        // the process.
+        window.addEventListener('will-shutdown', function onShutdown() {
+          ev.download.pause();
+        });
       });
     }
   }

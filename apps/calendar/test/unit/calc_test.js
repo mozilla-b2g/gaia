@@ -754,6 +754,19 @@ suite('calendar/calc', function() {
     });
   });
 
+  test('#monthStart', function() {
+    assert.deepEqual(
+      Calc.monthStart(new Date(2014, 10, 1)),
+      new Date(2014, 10, 1),
+      'first day'
+    );
+    assert.deepEqual(
+      Calc.monthStart(new Date(2014, 10, 12)),
+      new Date(2014, 10, 1),
+      'middle'
+    );
+  });
+
 });
 
 });

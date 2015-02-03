@@ -32,7 +32,7 @@ function isFileWatched(file) {
     return false;
   }
 
-  config.blacklist.forEach(function(pattern) {
+  config.rebuildBlacklist.forEach(function(pattern) {
     ignores.push(pattern);
   });
 
@@ -64,8 +64,12 @@ function buildConfigChanged(previous, current) {
 
   let flags = [];
 
+  // We don't detect FLAGS in blacklist because we don't have to rebuild again
+  // if someone specifies them.
+  let blacklist = ['REBUILD', 'P', 'VERBOSE'];
+
   for (let flag in current) {
-    if (flag !== 'REBUILD' && current[flag] !== previous[flag]) {
+    if (blacklist.indexOf(flag) === -1 && current[flag] !== previous[flag]) {
       flags.push(flag);
     }
   }
@@ -110,14 +114,20 @@ exports.execute = function(options) {
       // external apps which are always named by random uuid
       // These uuid apps may clean up later in bug 1020259
       scanningDirs.forEach(function(appDir) {
+        if (rebuildAppDirs.indexOf(appDir) !== -1 || appDir === sharedPath) {
+          return;
+        }
         var buildFile = utils.getFile(appDir, 'build', 'build.js');
-        var webapp = utils.getWebapp(appDir,
-          options.GAIA_DOMAIN, options.GAIA_SCHEME,
-          options.GAIA_PORT, options.STAGE_DIR) || {};
+        var webapp = utils.getWebapp(appDir, options);
+        if (!webapp) {
+          // Some leftover folders may still be in source tree,
+          // without any valid app, like apps/browser that has been removed.
+          return;
+        }
 
-        if ((buildFile.exists() ||
-          (utils.isExternalApp(webapp) && !webapp.pckManifest)) &&
-          rebuildAppDirs.indexOf(appDir) === -1) {
+        if (buildFile.exists() ||
+            (utils.isExternalApp(webapp) && !webapp.pckManifest) ||
+            !webapp.profileDirectoryFile.exists()) {
           rebuildAppDirs.push(appDir);
         }
       });

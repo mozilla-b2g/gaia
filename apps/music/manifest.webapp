@@ -15,12 +15,13 @@
     "settings":{ "access": "readonly" },
     "bluetooth":{},
     "audio-channel-content":{},
-    "nfc":{ "access": "readwrite" }
+    "nfc-share":{}
   },
   "activities": {
     "pick": {
       "filters": {
-        "type": ["audio/*", "audio/mpeg", "audio/ogg", "audio/mp4"]
+        "type": ["audio/*", "audio/mpeg", "audio/ogg", "audio/mp4",
+                 "audio/flac"]
        },
       "disposition": "inline",
       "returnValue": true,
@@ -28,7 +29,8 @@
     },
     "open": {
       "filters": {
-        "type": ["audio/mpeg", "audio/ogg", "audio/mp4", "audio/amr"]
+        "type": ["audio/mpeg", "audio/ogg", "audio/mp4", "audio/amr",
+                 "audio/flac"]
        },
       "disposition": "inline",
       "returnValue": true,

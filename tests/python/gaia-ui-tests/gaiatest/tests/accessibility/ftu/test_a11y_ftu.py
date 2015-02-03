@@ -1,10 +1,14 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
-from marionette.by import By
-from marionette import Wait
-from marionette.errors import StaleElementException
+try:
+    from marionette.by import By
+    from marionette import Wait
+    from marionette.errors import StaleElementException
+except:
+    from marionette_driver.by import By
+    from marionette_driver import Wait
+    from marionette_driver.errors import StaleElementException
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.ftu.app import Ftu
@@ -15,6 +19,7 @@ class TestFtuAccessibility(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
+        self.data_layer.set_setting('devtools.qps.enabled', True)
         self.ftu = Ftu(self.marionette)
         self.ftu.launch()
 
@@ -31,8 +36,10 @@ class TestFtuAccessibility(GaiaTestCase):
 
         # Select different languages
         self.assertEqual(self.ftu.selected_language, 'en-US')
-        self.ftu.a11y_click_language('fr')
-        self.assertEqual(self.ftu.selected_language, 'fr')
+        self.ftu.a11y_click_language('qps-ploc')
+        self.assertEqual(self.ftu.selected_language, 'qps-ploc')
+        self.ftu.a11y_click_language('qps-plocm')
+        self.assertEqual(self.ftu.selected_language, 'qps-plocm')
         self.ftu.a11y_click_language('en-US')
         self.assertEqual(self.ftu.selected_language, 'en-US')
 

@@ -2,9 +2,17 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
-from marionette.errors import StaleElementException
-from marionette.wait import Wait
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+    from marionette.errors import StaleElementException
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
+    from marionette_driver.errors import StaleElementException
+
 from gaiatest.apps.base import Base
 
 
@@ -31,11 +39,15 @@ class Persona(Base):
         self.tap_returning()
 
         self.marionette.switch_to_frame()
-        self.wait_for_element_not_present(*self._persona_frame_locator)
+        Wait(self.marionette).until(
+            expected.element_not_present(*self._persona_frame_locator))
         self.apps.switch_to_displayed_app()
 
     def wait_for_persona_to_load(self):
         # Wait a bit more because it's an external resource that's loading
+        # TODO - This repeatedly looks up the body element, presumably because
+        # at some point it becomes stale. We should investigate a more
+        # efficient wait.
         body_locator = (By.TAG_NAME, 'body')
         Wait(self.marionette, timeout=30, ignored_exceptions=StaleElementException).until(
             lambda m: m.find_element(*body_locator).is_displayed()
@@ -43,7 +55,8 @@ class Persona(Base):
 
     def switch_to_persona_frame(self):
         self.marionette.switch_to_frame()
-        self.frame = self.wait_for_element_present(*self._persona_frame_locator)
+        self.frame = Wait(self.marionette).until(
+            expected.element_present(*self._persona_frame_locator))
         self.marionette.switch_to_frame(self.frame)
         self.wait_for_persona_to_load()
 
@@ -58,9 +71,10 @@ class Persona(Base):
         self.switch_to_persona_frame()
 
     def tap_continue(self):
-        self.marionette.find_element(*self._continue_button_locator).tap()
-        self.wait_for_element_not_displayed(*self._continue_button_locator)
-        self.wait_for_element_displayed(*self._password_input_locator)
+        element = self.marionette.find_element(*self._continue_button_locator)
+        element.tap()
+        Wait(self.marionette).until(expected.element_not_displayed(element))
+        Wait(self.marionette).until(expected.element_displayed(*self._password_input_locator))
 
     def tap_returning(self):
         self.marionette.find_element(*self._returning_button_locator).tap()

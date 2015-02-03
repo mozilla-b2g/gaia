@@ -2,8 +2,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette import Wait
-from marionette.by import By
+try:
+    from marionette import Wait
+    from marionette.by import By
+except:
+    from marionette_driver import Wait
+    from marionette_driver.by import By
+
 from gaiatest.apps.cost_control.app import CostControl
 from gaiatest.apps.cost_control.regions.ftu_step3 import FTUStep3
 
@@ -11,7 +16,7 @@ from gaiatest.apps.cost_control.regions.ftu_step3 import FTUStep3
 class FTUStep2(CostControl):
 
     _view_locator = (By.ID, 'non-vivo-step-1')
-    _reset_report_period_select_locator = (By.CSS_SELECTOR, '#non-vivo-step-1 ul li:nth-child(1) span')
+    _reset_report_period_select_locator = (By.CSS_SELECTOR, '#non-vivo-step-1 gaia-select')
     _next_button_locator = (By.CSS_SELECTOR, '#non-vivo-step-1 button[data-l10n-id="next"]')
 
     def __init__(self, marionette):

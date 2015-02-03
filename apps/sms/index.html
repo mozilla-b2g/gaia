@@ -18,6 +18,8 @@
     <link rel="stylesheet" type="text/css" href="shared/style/lists.css">
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css">
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/tabs.css" >
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css">
     <!-- App styles -->
     <link rel="stylesheet" type="text/css" href="style/common.css">
     <link rel="stylesheet" type="text/css" href="style/sms.css">
@@ -27,7 +29,8 @@
     <link rel="stylesheet" type="text/css" href="style/attachment.css">
     <link rel="stylesheet" type="text/css" href="style/composer.css">
     <!-- Localization -->
-    <link rel="manifest" href="manifest.webapp">
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
     <link rel="localization" href="locales/sms.{locale}.properties">
     <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
     <!-- Firefox Desktop shims -->
@@ -38,9 +41,8 @@
     <script defer src="js/desktop-only/async_storage.js"></script>
     <!-- Web Components -->
     <script defer src="/shared/elements/config.js"></script>
-    <!-- <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/gaia-icons.css" /> -->
     <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css" />
-    <script defer src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
+    <script async src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
     <link rel="localization" href="/shared/elements/gaia_menu/locales/gaia_menu.{locale}.properties">
     <link rel="localization" href="/shared/elements/gaia_sim_picker/locales/gaia_sim_picker.{locale}.properties">
     <!--
@@ -56,6 +58,7 @@
     <!-- Should be removed while gecko support navigator.mozHour12 API -->
     <script defer src="shared/js/date_time_helper.js"></script>
     <script defer src="shared/js/template.js"></script>
+    <script defer src="shared/js/usertiming.js"></script>
     <script defer src="shared/js/performance_testing_helper.js"></script>
     <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
@@ -64,8 +67,8 @@
     <script defer src="shared/js/fb/fb_request.js"></script>
     <script defer src="shared/js/fb/fb_data_reader.js"></script>
     <script defer src="shared/js/fb/fb_reader_utils.js"></script>
-    <script defer src="js/navigation.js"></script>
     <script defer src="js/event_dispatcher.js"></script>
+    <script defer src="js/navigation.js"></script>
     <script defer src="js/iac/event_dispatcher.js"></script>
     <script defer src="js/time_headers.js"></script>
     <script defer src="js/contacts.js"></script>
@@ -119,8 +122,8 @@
       <section id="thread-list" class="panel" role="region">
         <gaia-header class="view-header regular-header">
           <h1 data-l10n-id="messages">Messages</h1>
-          <a href="#composer" id="icon-add" data-icon="compose"></a>
-          <a id="threads-options-icon" data-icon="more"></a>
+          <a href="#composer" id="threads-composer-link" data-icon="compose"></a>
+          <a id="threads-options-button" data-icon="more"></a>
         </gaia-header>
         <article id="threads-container" class="view-body edit-container" data-type="list">
         </article>
@@ -139,9 +142,16 @@
               <button id="threads-check-uncheck-all-button" class="edit-button" data-l10n-id="select-all"></button>
             </gaia-header>
           </section>
-          <menu>
-            <button id="threads-delete-button" data-l10n-id="delete">delete</button>
-          </menu>
+          <div class="bottom-tab" role="region" >
+            <ul class="bb-tablist">
+              <li role="presentation">
+                <button id="threads-delete-button" data-action="delete-button"></button>
+              </li>
+              <li role="presentation">
+                <button id="threads-read-unread-button" data-action="mark-as-read"></button>
+              </li>
+            </ul>
+          </div>
         </form>
 
         <section id="threads-draft-saved-banner" class="hide" role="status">
@@ -151,7 +161,7 @@
         <div id="sticky"></div>
       </section>
 
-      <section id="thread-messages" class="panel" role="region" aria-hidden="true">
+      <section id="thread-messages" class="panel editable-select-mode" role="region" aria-hidden="true">
         <gaia-header id="messages-header" class="view-header regular-header" action="back">
           <h1 id="messages-header-text" aria-hidden="true"></h1>
           <button id="messages-call-number-button" data-icon="call" class="hide"></button>
@@ -273,7 +283,9 @@
                       data-l10n-id="mms-label">MMS</span>
               </section>
               <section class="content-composer">
-                <button id="messages-attach-button" aria-label="Add attachment" data-l10n-id="attach-button" type="button"></button>
+                <div class="messages-attach-container">
+                  <button id="messages-attach-button" aria-label="Add attachment" data-l10n-id="attach-button" type="button"></button>
+                </div>
                 <div class="composer-message-input-container">
                   <div id="messages-input" contentEditable="true" name="message"
                        x-inputmode="-moz-sms" class="js-l10n-placeholder"
@@ -297,9 +309,13 @@
               <button id="messages-check-uncheck-all-button" class="edit-button" data-l10n-id="select-all"></button>
             </gaia-header>
           </section>
-          <menu>
-            <button id="messages-delete-button" data-l10n-id="delete">delete</button>
-          </menu>
+          <div class="bottom-tab" role="region" >
+            <ul class="bb-tablist">
+              <li role="presentation">
+                <button id="messages-delete-button" data-action="delete-button"></button>
+              </li>
+            </ul>
+          </div>
         </form>
         <section id="messages-recipient-suggestions" class="article-list hide" data-type="list">
           <ul class="contact-list recipient-suggestions-list" role="listbox"></ul>
@@ -446,7 +462,7 @@
           ${subject}
         </h1>
         <div class="message-content">
-          <p>${bodyHTML}</p>
+          <p class="message-content-body" tabindex="-1">${bodyHTML}</p>
           <div class="message-details">
             ${simInformationHTML}
             <time data-time-update="true" data-time-only="true" data-time="${timestamp}"></time>
@@ -503,7 +519,7 @@
       <span class="${className}" x-inputmode="verbatim"
         contenteditable="${editable}" role="${role}"
         data-number="${number}" data-source="${source}" data-name="${name}"
-        data-carrier="${carrier}" data-type="${type}">
+        data-carrier="${carrier}" data-type="${type}" dir="auto">
         ${name}
       </span>
       -->
@@ -549,25 +565,28 @@
     -->
     <div id="phone-details-tmpl" class="hide">
       <!--
-      <span class="phone-details ${hasTypeClass} ${hasCarrierClass}">
-        <span dir="auto" class="phone-type phone-details-item"
-              data-l10n-id="${type}">${type}</span><span
-              class="phone-type-separator phone-details-item"
-              data-l10n-id="phone-type-separator"></span><span
-              class="phone-number phone-details-item" dir="ltr">${number}</span><span
-              class="phone-carrier-separator phone-details-item"
-              data-l10n-id="phone-carrier-separator"></span><span
-              class="phone-carrier phone-details-item" dir="auto">${carrier}</span>
+      <span class="${hasTypeClass} ${hasCarrierClass}"><span
+            dir="auto" class="phone-type"
+            data-l10n-id="${type}">${type}</span><span
+            class="phone-type-separator"
+            data-l10n-id="phone-type-separator"></span><span
+            class="phone-number" dir="ltr">${number}</span><span
+            class="phone-carrier-separator"
+            data-l10n-id="phone-carrier-separator"></span><span
+            class="phone-carrier" dir="auto">${carrier}</span>
       </span>
+      -->
+    </div>
+
+    <div id="messages-group-header-tmpl" class="hide">
+      <!--
+      <bdi>${name}</bdi><bdi dir="ltr"> (+${participantCount})</bdi>
       -->
     </div>
 
     <div id="messages-header-tmpl" class="hide">
       <!--
       <bdi>${name}</bdi>
-      <bdi dir="ltr" class="thread-participant-count">
-      &nbsp;‎(+${participantCount})
-      </bdi>
       -->
     </div>
 

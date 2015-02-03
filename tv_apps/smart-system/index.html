@@ -21,6 +21,9 @@
     <!-- We need this before we can show the boot animation -->
     <script src="shared/js/async_storage.js"></script>
     <script src="tv_shared/js/settings_cache.js"></script>
+    <script src="tv_shared/js/animations.js"></script>
+    <script defer src="tv_shared/js/shared_utils.js"></script>
+    <script defer src="tv_shared/js/vendor/evt.js"></script>
     <script defer src="shared/js/manifest_helper.js"></script>
     <script defer src="shared/js/mime_mapper.js"></script>
     <script defer src="shared/js/settings_url.js"></script>
@@ -56,6 +59,7 @@
     <link rel="stylesheet" type="text/css" href="style/definitions.css">
     <link rel="stylesheet" type="text/css" href="style/attention_indicator.css">
     <link rel="stylesheet" type="text/css" href="tv_shared/style/navigation.css">
+    <link rel="stylesheet" type="text/css" href="tv_shared/style/animations.css">
 
     <!-- System -->
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
@@ -76,6 +80,9 @@
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia_progress/style/external.css">
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/gaia-theme.css">
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css">
+    <!-- Include tv shared web components -->
+    <link rel="stylesheet" type="text/css" href="tv_shared/components/smart-button/style.css">
+    <link rel="stylesheet" type="text/css" href="tv_shared/components/smart-banner/style.css">
 
     <link rel="stylesheet" type="text/css" href="style/fake-notification.css"/>
 
@@ -88,6 +95,9 @@
     <script defer src="shared/elements/gaia_progress/script.js"></script>
     <script defer src="shared/elements/gaia_subheader/script.js"></script>
     <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
+    <!-- Include tv shared web components -->
+    <script defer src="tv_shared/components/smart-button/script.js"></script>
+    <script defer src="tv_shared/components/smart-banner/script.js"></script>
 
     <!-- Include shared resources
     <link rel="resource" type="application/json" href="shared/resources/apn.json"/>
@@ -196,7 +206,9 @@
 
     <!-- Notifications -->
     <link rel="stylesheet" type="text/css" href="style/notifications/notifications.css">
+    <script defer src="tv_shared/js/simple_key_navigation.js"></script>
     <script defer src="js/notifications.js"></script>
+    <script defer src="js/interactive_notifications.js"></script>
 
     <!-- Bluetooth -->
     <script defer src="js/bluetooth.js"></script>
@@ -220,7 +232,8 @@
     <link rel="stylesheet" type="text/css" href="style/themes/default/menus.css">
     <link rel="stylesheet" type="text/css" href="style/themes/default/buttons.css">
     <link rel="stylesheet" type="text/css" href="style/themes/default/banner.css">
-    <link rel="manifest" href="manifest.webapp">
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="/shared/locales/branding/branding.{locale}.properties">
     <link rel="localization" href="locales/system.{locale}.properties">
     <link rel="localization" href="locales/accessibility.{locale}.properties">
@@ -250,7 +263,10 @@
     <link rel="stylesheet" type="text/css" href="style/window_layout.css">
     <link rel="stylesheet" type="text/css" href="style/window.css">
     <link rel="stylesheet" type="text/css" href="style/app_titlebar.css">
+    <link rel="stylesheet" type="text/css" href="style/browser_context_menu/browser_context_menu.css">
     <script defer src="js/base_ui.js"></script>
+    <script defer src="tv_shared/js/vendor/evt.js"></script>
+    <script defer src="tv_shared/js/scrollable.js"></script>
     <script defer src="js/browser_context_menu.js"></script>
     <script defer src="js/child_window_factory.js"></script>
     <script defer src="js/app_modal_dialog.js"></script>
@@ -301,11 +317,12 @@
     <!-- <script defer src="shared/js/icons_helper.js"></script> -->
 
     <!-- Navigation -->
-    <script defer src="tv_shared/js/vendor/evt.js"></script>
     <script defer src="tv_shared/js/spatial_navigator.js"></script>
     <script defer src="tv_shared/js/key_navigation_adapter.js"></script>
-    <script defer src="tv_shared/js/selection_border.js"></script>
     <script defer src="tv_shared/js/init_gesture.js"></script>
+
+    <!-- API Services -->
+    <script defer src="js/screenshot_service.js"></script>
   </head>
 
   <body class="theme-settings" role="application">
@@ -550,7 +567,7 @@
           <input class="input-enable" id="${id}" type="checkbox" ${checked}>
           <span></span>
         </label>
-        <span class="device-item">${label}</span>
+        <span class="device-item" data-l10n-id="${label}"></span>
       -->
       </div>
 
@@ -675,14 +692,6 @@
         </div>
       </div>
 
-      <div id="notification-toaster" data-z-index-level="notification-toaster" role="link" aria-live="assertive" aria-atomic="true" class="notification-toaster">
-        <img id="toaster-icon" role="presentation" class="toaster-icon"/>
-        <div id="notification-container">
-          <div id="toaster-title" class="toaster-title"></div>
-          <div id="toaster-detail" class="toaster-detail"></div>
-        </div>
-      </div>
-
       <!-- keyboard -->
       <div id="keyboards" class="hide" data-z-index-level="keyboards"></div>
 
@@ -691,12 +700,12 @@
         <!--
         <form role="dialog" data-type="value-selector" class="ime-menu value-selector-container" data-z-index-level="action-menu">
           <section>
-            <h1>${title}</h1>
+            <h1 data-l10n-id="${title}"></h1>
             <ol class="value-selector-options-container ime-menu-list" aria-multiselectable="false" role="listbox">
             </ol>
           </section>
           <menu class="ime-menu-button-container">
-            <button class="ime-menu-button" data-type="cancel" data-action="cancel" data-l10n-id="cancel">${cancelLabel}</button>
+            <button class="ime-menu-button" data-type="cancel" data-action="cancel" data-l10n-id="${cancelLabel}"></button>
           </menu>
         </div>
         -->
@@ -728,6 +737,17 @@
           </gaia-buttons>
         </div>
       </div>
+      <!-- notification ui -->
+      <smart-banner id="notification-container" class="hidden fading-out closed" data-z-index-level="system-notification-banner">
+        <div class="notification-message">
+          <span id="notification-title" class="notification-title"></span>
+          <span id="notification-body" class="notification-body"></span>
+        </div>
+        <menu id="notification-button-group" class="notification-button-group">
+          <smart-button id="notification-button-0" type="simple-text"></smart-button>
+          <smart-button id="notification-button-1" type="simple-text"></smart-button>
+        </menu>
+      </smart-banner>
 
       <div id="system-overlay" data-z-index-level="system-overlay">
         <div id="battery">

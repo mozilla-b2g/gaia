@@ -2,7 +2,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
+try:
+    from marionette import Wait
+    from marionette.by import By
+except:
+    from marionette_driver import Wait
+    from marionette_driver.by import By
+
 from gaiatest.apps.base import Base
 
 
@@ -19,6 +25,9 @@ class ReadEmail(Base):
     @property
     def subject(self):
         return self.marionette.find_element(*self._subject_locator).text
+
+    def wait_for_senders_email_displayed(self):
+        Wait(self.marionette).until(lambda m: m.find_element(*self._senders_email_locator).text != '')
 
     @property
     def senders_email(self):

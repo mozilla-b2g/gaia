@@ -93,7 +93,9 @@ var ConferenceGroupUI = (function() {
    *  overlay.
    */
   function removeCall(node) {
-    node.parentNode.removeChild(node);
+    if (node.parentNode) {
+      node.parentNode.removeChild(node);
+    }
   }
 
   /**

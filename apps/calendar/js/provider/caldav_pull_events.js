@@ -2,7 +2,6 @@ define(function(require, exports, module) {
 'use strict';
 
 var Calc = require('calc');
-var app = require('app');
 var debug = require('debug')('pull events');
 var uuid = require('ext/uuid');
 
@@ -10,7 +9,7 @@ var uuid = require('ext/uuid');
  * Event synchronization class for caldav provider.
  *
  * Options:
- *  - app: current calendar app (Calendar.App by default)
+ *  - app: current calendar app
  *  - account: (Calendar.Models.Account) required
  *  - calendar: (Calendar.Models.Calendar) required
  *
@@ -54,11 +53,7 @@ function PullEvents(stream, options) {
     throw new Error('.account option must be given');
   }
 
-  if (options.app) {
-    this.app = options.app;
-  } else {
-    this.app = app;
-  }
+  this.app = options.app;
 
   stream.on('event', this);
   stream.on('component', this);
@@ -208,7 +203,6 @@ PullEvents.prototype = {
       }
     }
 
-    this.app.timeController.cacheBusytime(item);
     this.busytimeQueue.push(item);
   },
 
@@ -233,9 +227,6 @@ PullEvents.prototype = {
     // related to this event as we will be adding new
     // ones as part of the sync.
     this._busytimeStore.removeEvent(id);
-    // remove details of past cached events....
-    this.app.timeController.removeCachedEvent(event._id);
-    this.app.timeController.cacheEvent(event);
 
     this.eventQueue.push(event);
 

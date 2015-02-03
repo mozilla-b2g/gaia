@@ -18,12 +18,15 @@
     <!-- Localization -->
     <script defer type="text/javascript" src="/shared/js/lazy_loader.js"></script>
     <script defer type="application/javascript" src="/shared/js/lazy_l10n.js"></script>
-    <link rel="manifest" href="manifest.webapp">
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
     <link rel="localization" href="../communications/dialer/locales/dialer.{locale}.properties">
     <link rel="localization" href="../communications/dialer/locales/shared.{locale}.properties">
     <link rel="localization" href="shared/locales/date/date.{locale}.properties">
     <link rel="localization" href="shared/locales/phone_types/phone_types.{locale}.properties">
     <link rel="localization" href="shared/locales/lockscreen/lockscreen.{locale}.properties">
+    <link rel="localization" href="shared/locales/keypad/keypad.{locale}.properties">
+    <link rel="localization" href="shared/locales/telephony/telephony.{locale}.properties">
     <!-- Making sure the shared resources will be copy into the zip
     <script type="application/javascript" src="/shared/js/l10n.js"></script>
     <script type="application/javascript" src="/shared/js/l10n_date.js"></script>
@@ -162,8 +165,7 @@
                 </span>
                 <span class="grid-cell options-column">
                   <button id="keypad-visibility" class="co-advanced-option grid center" data-l10n-id="toggleKeypad">
-                    <span class="icon icon-keypad-visibility">
-                    </span>
+                    <span class="icon icon-keypad-visibility"></span>
                   </button>
                 </span>
                 <span id="place-new-call-container" class="grid-cell options-column">
@@ -175,16 +177,15 @@
                   <button id="speaker" class="co-advanced-option grid" data-l10n-id="speakerOption">
                     <span class="icon icon-speaker"></span>
                   </button>
-                  <button id="bt" hidden class="co-advanced-option grid hide">
-                    <span class="icon icon-bt">
-                    </span>
+                  <button id="bt" hidden class="co-advanced-option grid hide" data-l10n-id="bluetoothOption">
+                    <span class="icon icon-bt"></span>
                   </button>
                 </span>
                 <span id="hold-and-merge-container" class="grid-cell options-column">
-                  <button id="on-hold" class="co-advanced-option grid" data-l10n-id="onHoldOption" disabled>
+                  <button id="on-hold" class="co-advanced-option grid" disabled data-l10n-id="onHoldOption">
                     <span class="icon icon-on-hold"></span>
                   </button>
-                  <button id="merge" class="co-advanced-option grid hide" aria-label="merge">
+                  <button id="merge" class="co-advanced-option grid hide" data-l10n-id="merge">
                     <span class="icon icon-merge"></span>
                   </button>
                 </span>
@@ -235,7 +236,7 @@
           </div>
         </div>
         <article id="keyboard-container">
-          <section id="keypad">
+          <section id="keypad" dir="ltr">
             <div class="keypad-row">
               <div class="keypad-key" role="key" data-value="1">
                 <span>1</span>

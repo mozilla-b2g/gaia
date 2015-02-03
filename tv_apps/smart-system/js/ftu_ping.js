@@ -3,7 +3,7 @@
 
 'use strict';
 
-/* global MobileOperator, SIMSlotManager, uuid, dump */
+/* global uuid, dump, SettingsCache */
 
 /**
  * A simple ping that is kicked off on first time use
@@ -174,7 +174,6 @@
     getSettings: function fp_getSettings(settingKeys, callback) {
       var settingsLeft = settingKeys.length;
       var settings = {};
-      var lock = window.navigator.mozSettings.createLock();
       settingKeys.forEach(function(key) {
         SettingsCache.get(key, function(value) {
           settingsLeft--;

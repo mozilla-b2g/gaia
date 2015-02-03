@@ -5,6 +5,7 @@
 /* global LazyLoader */
 /* global Normalizer */
 /* global utils */
+/* global HtmlHelper */
 
 
 var contacts = window.contacts || {};
@@ -134,7 +135,7 @@ contacts.Search = (function() {
   };
 
   var clearHighlights = function(node) {
-    // We travers the DOM tree and remove highlighting spans.
+    // We traverse the DOM tree and remove highlighting spans.
     // getElements instead of querySelector here because of
     // performance.
     var highlights = node.getElementsByClassName(highlightClass);
@@ -150,32 +151,57 @@ contacts.Search = (function() {
     }
   };
 
+  /**
+   * Given a contact DOM node, this function highlights the search terms it
+   * contains. First, it extract the text contents, highlights every chunk and
+   * then rebuild the content of the node respecting the location of the
+   * <strong> tag. To know where every chunk starts and ends, we use the
+   * locateHTMLTag so we know what we have to highlight.
+   *
+   * Highlighting is done in the createHighlightHTML() function inside the
+   * HtmlHelper module.
+   */
   var highlightNode = function(node) {
-    var textNode = node.querySelector('.contact-text');
-    var displayedText = textNode.textContent;
-
-    currentSearchTerms.forEach(function(term) {
-      var hRegEx = new RegExp(term, 'gi');
-      var newTerms = [], newTerm;
-
-      var result = hRegEx.exec(displayedText);
-      while (result) {
-        newTerm = displayedText.substr(result.index, term.length);
-        newTerm = Normalizer.escapeRegExp(newTerm).toLowerCase();
-        newTerms.push(newTerm);
-        result = hRegEx.exec(displayedText);
+    function doHighlight(text) {
+      if (text === '' || text === ' ') {
+        return text;
       }
 
-      newTerms = newTerms.filter(function removeDuplicates(elem, pos) {
-        return newTerms.indexOf(elem) === pos;
-      });
+      return HtmlHelper.createHighlightHTML(text, currentSearchTerms);
+    }
 
-      newTerms.forEach(function replaceWithHighlight(term) {
-        textNode.firstChild.innerHTML = textNode.textContent.replace(
-          new RegExp('(' + term + ')', 'i'),
-          '<span class="' + highlightClass + '">$1</span>');
-       });
-    });
+    function locateHTMLTag(text) {
+      var tagLocation = [];
+      tagLocation.push(text.indexOf('<'));
+      tagLocation.push(text.indexOf('>', tagLocation[0]) + 1);
+      tagLocation.push(text.indexOf('<', tagLocation[1]));
+      tagLocation.push(text.indexOf('>', tagLocation[2]) + 1);
+      return tagLocation;
+    }
+
+    var textNode = node.querySelector('.contact-text');
+    if (textNode === null) {
+      return;
+    }
+
+    var text = textNode.innerHTML;
+    var tagPos = locateHTMLTag(text);
+    var beforeTag = text.substring(0,         tagPos[0]);
+    var openTag   = text.substring(tagPos[0], tagPos[1]);
+    var inTag     = text.substring(tagPos[1], tagPos[2]);
+    var closeTag  = text.substring(tagPos[2], tagPos[3]);
+    var afterTag  = text.substring(tagPos[3]);
+    var realText = [beforeTag, inTag, afterTag];
+
+    if (tagPos[0] == -1) {
+      textNode.innerHTML = doHighlight(Normalizer.unescapeHTML(text));
+    } else {
+      for (var i = 0, len = realText.length; i < len; i++) {
+        realText[i] = doHighlight(Normalizer.unescapeHTML(realText[i]));
+      }
+      var result = [realText[0], openTag, realText[1], closeTag, realText[2]];
+      textNode.innerHTML = result.join('');
+    }
   };
 
   var updateSearchList = function updateSearchList(cb) {
@@ -392,9 +418,7 @@ contacts.Search = (function() {
     for (var c = from; c < end && c < contacts.length; c++) {
       var contact = contacts[c].node || contacts[c];
       var contactText = contacts[c].text || getSearchText(contacts[c]);
-      contactText = contactText.replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>');
+      contactText = Normalizer.unescapeHTML(contactText);
       if (!checkContactMatch(currentSearchTerms, contactText)) {
         if (contact.dataset.uuid in currentSet) {
           searchList.removeChild(currentSet[contact.dataset.uuid]);
@@ -504,7 +528,7 @@ contacts.Search = (function() {
     // new nodes should show up in that search.
     for (var i = 0, n = nodes.length; i < n; ++i) {
       var node = nodes[i];
-      var nodeText = getSearchText(node);
+      var nodeText = Normalizer.unescapeHTML(getSearchText(node));
       if (!checkContactMatch(currentSearchTerms, nodeText)) {
         searchableNodes.push({
           node: node,

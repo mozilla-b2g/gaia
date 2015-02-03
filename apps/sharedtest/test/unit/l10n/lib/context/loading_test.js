@@ -101,14 +101,14 @@ describe('A loading, ready context', function() {
     assert.doesNotThrow(function(){
       ctx.getEntity('foo');
     });
-    assert.strictEqual(ctx.getEntity('foo'), 'Foo en-US');
+    assert.strictEqual(ctx.getEntity('foo').value, 'Foo en-US');
   });
 
   it('should not throw on getEntity of an unknown entity', function() {
     assert.doesNotThrow(function(){
       ctx.getEntity('missing');
     });
-    assert.strictEqual(ctx.getEntity('missing'), null);
+    assert.strictEqual(ctx.getEntity('missing'), '');
   });
 
   it('should not throw on requestLocales', function(done) {

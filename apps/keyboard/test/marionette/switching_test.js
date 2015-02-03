@@ -3,14 +3,12 @@
 var KeyboardTestApp = require('./lib/keyboard_test_app');
 var ImeTestApp = require('./lib/ime_test_app');
 var Keyboard = require('./lib/keyboard');
-var System = require('./lib/system');
 var assert = require('assert');
-var Actions = require('marionette-client').Actions;
 
 marionette('switch Keyboard App', function() {
   var keyboardTestApp = null;
   var keyboard = null;
-  var system = null;
+  var systemInputMgmt = null;
   var imeTestApp = null;
   var client = null;
   var actions = null;
@@ -45,21 +43,20 @@ marionette('switch Keyboard App', function() {
     }
   });
 
-  actions = new Actions(client);
-
   /*
    * To check the 3rd-party IME is shown.
    */
   function check3rdPartyIme() {
     // switch back to system
     client.switchToFrame();
-    system.switchToActiveKeyboardFrame();
+    systemInputMgmt.switchToActiveKeyboardFrame();
     assert.ok(imeTestApp.sendKeyButton.displayed());
   }
 
   setup(function() {
-    keyboard =  new Keyboard(client);
-    system =  new System(client);
+    actions = client.loader.getActions();
+    keyboard = new Keyboard(client);
+    systemInputMgmt = client.loader.getAppClass('system', 'input_management');
     imeTestApp = new ImeTestApp(client);
 
     // create a keyboard test app
@@ -68,8 +65,8 @@ marionette('switch Keyboard App', function() {
     keyboardTestApp.textInput.click();
 
     // Wait for the keyboard pop up and switch to it
-    system.waitForKeyboardFrameDisplayed();
-    system.switchToActiveKeyboardFrame();
+    systemInputMgmt.waitForKeyboardFrameDisplayed();
+    systemInputMgmt.switchToActiveKeyboardFrame();
   });
 
   test('Checking the switching IME function is available', function() {
@@ -89,35 +86,35 @@ marionette('switch Keyboard App', function() {
 
     // switch back to system
     client.switchToFrame();
-    var imeMenu = system.imeMenu;
+    var imeMenu = systemInputMgmt.imeMenu;
     assert.ok(imeMenu.displayed());
 
     // select the 3rd-party IME
-    system.selectImeOption(1);
+    systemInputMgmt.selectImeOption(1);
     check3rdPartyIme();
   });
 
   test('Drag down the utility tray', function() {
     // Swipe to drag down the utility tray
-    system.dragDownUtilityTray();
+    systemInputMgmt.dragDownUtilityTray();
 
     // Check the IME switching buttion in notification
-    var imeNotification = system.imeNotification;
+    var imeNotification = systemInputMgmt.imeNotification;
     client.waitFor(function() {
       return imeNotification.displayed();
     });
 
     imeNotification.click();
 
-    assert.ok(system.imeMenu.displayed());
+    assert.ok(systemInputMgmt.imeMenu.displayed());
     //XXX: Wait for the previous keyboard to hide or we may not be able to
     //     switch to the next keyboard.
     client.waitFor(function() {
-      return system.keyboardFrameHidden();
+      return systemInputMgmt.keyboardFrameHidden();
     });
 
     // select the 3rd-party IME
-    system.selectImeOption(1);
+    systemInputMgmt.selectImeOption(1);
     check3rdPartyIme();
   });
 });

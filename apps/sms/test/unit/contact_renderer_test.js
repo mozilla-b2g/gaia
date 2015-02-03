@@ -80,7 +80,7 @@ suite('ContactRenderer', function() {
             type: 'Mobile',
             carrier: 'TEF'
           }
-        ),
+        ).toString(),
         photoHTML: '',
         type: 'Mobile'
       });
@@ -141,7 +141,7 @@ suite('ContactRenderer', function() {
         phoneDetailsHTML: SharedComponents.phoneDetails(
           { number: '+<span class="highlight">346578888888</span>' },
           { safe: ['number'] }
-        ),
+        ).toString(),
         photoHTML: '',
         type: ''
       });
@@ -577,7 +577,7 @@ suite('ContactRenderer', function() {
         phoneDetailsHTML: SharedComponents.phoneDetails(
           { number: '+<span class="highlight">346578888888</span>' },
           { safe: ['number'] }
-        ),
+        ).toString(),
         photoHTML: '',
         type: ''
       });
@@ -689,7 +689,7 @@ suite('ContactRenderer', function() {
             carrier: 'XXX'
           },
           { safe: ['number'] }
-        ),
+        ).toString(),
         photoHTML: sinon.match(photo),
         type: 'B'
       });

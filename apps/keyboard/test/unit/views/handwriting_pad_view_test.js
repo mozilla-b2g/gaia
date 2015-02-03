@@ -27,9 +27,14 @@ suite('Views > HandwritingPadView', function() {
   document.body.style.pad = 0;
   document.body.style.margin = 0;
 
+  var viewManager = {
+    registerView: sinon.stub()
+  };
+
   suite('basic testing', function() {
     setup(function() {
-      handwritingPadView = new HandwritingPadView();
+      var target = {};
+      handwritingPadView = new HandwritingPadView(target, {}, viewManager);
       handwritingPadView.render();
       canvas = handwritingPadView.element;
     });
@@ -70,6 +75,23 @@ suite('Views > HandwritingPadView', function() {
                    'Error occured in drawCanvas when press move!');
       assert.equal(point.posY, pressMove.clientY * window.devicePixelRatio,
                    'Error occured in drawCanvas when press move!');
+    });
+
+    test(' > resize()', function() {
+      Object.defineProperty(window, 'devicePixelRatio', {
+        configurable: true,
+        get: () => 2 }
+      );
+
+      handwritingPadView.resize(200, 400);
+
+      var canvas = handwritingPadView.element;
+
+      assert.equal(canvas.width, '400');
+      assert.equal(canvas.height, '800');
+
+      assert.equal(canvas.style.width, '200px');
+      assert.equal(canvas.style.height, '400px');
     });
   });
 });

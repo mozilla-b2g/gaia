@@ -1,6 +1,5 @@
 /* global MocksHelper */
 /* global HtmlImports */
-/* global FindMyDevice */
 /* global MockSettingsListener */
 /* global MockSettingsHelper */
 /* global MockLazyLoader */
@@ -98,13 +97,39 @@ suite('Find My Device panel > ', function() {
       // manually enable the loginButton
       loginButton.removeAttribute('disabled');
 
+      // Define a map so that we can replace the module with a mock.
+      var map = {
+        '*': {
+          'modules/settings_utils': 'MockSettingsUtils',
+          'shared/settings_listener': 'MockSettingsListener'
+        }
+      };
+
+      // Define the mock for replacing "modules/settings_utils".
+      define('MockSettingsUtils', function() {
+        return {
+          runHeaderFontFit: function() {}
+        };
+      });
+
+      // Define the mock for replacing "shared/settings_listener".
+      define('MockSettingsListener', function() {
+        return MockSettingsListener;
+      });
+
+      // Create a new require context for defining the mock and requiring.
+      var requireCtx = testRequire([], map, function() {});
+
       require('/js/findmydevice.js', function() {
-        subject = FindMyDevice;
-        subject.init();
-        // Ensure promise is resolved and FindMyDevice.init()
-        // is finished before tests start
-        MockLazyLoader.getJSON.getCall(0).returnValue.then(
-          function() { done(); });
+        // Use the context to require the module for testing
+        requireCtx(['findmydevice'], function(FindMyDevice) {
+          subject = FindMyDevice;
+          subject.init();
+          // Ensure promise is resolved and FindMyDevice.init()
+          // is finished before tests start
+          MockLazyLoader.getJSON.getCall(0).returnValue.then(
+            function() { done(); });
+        });
       });
     });
   });
@@ -142,10 +167,10 @@ suite('Find My Device panel > ', function() {
 
   test('ignore clicks when button is disabled', function() {
     loginButton.disabled = true;
-    var onLoginClickSpy = sinon.spy(FindMyDevice, '_onLoginClick');
+    var onLoginClickSpy = sinon.spy(subject, '_onLoginClick');
     loginButton.click();
     sinon.assert.notCalled(onLoginClickSpy);
-    FindMyDevice._onLoginClick.restore();
+    subject._onLoginClick.restore();
   });
 
   test('enable button after watch fires onready', function() {
@@ -208,10 +233,10 @@ suite('Find My Device panel > ', function() {
   test('prevent accidental auto-enable on FxA sign-in', function() {
     MockMozId.onlogout();
     loginButton.click();
-    assert.equal(true, window.FindMyDevice._interactiveLogin,
+    assert.equal(true, subject._interactiveLogin,
       'ensure _interactiveLogin is true after login button is clicked');
     MockMozId.oncancel();
-    assert.equal(false, window.FindMyDevice._interactiveLogin,
+    assert.equal(false, subject._interactiveLogin,
       'ensure _interactiveLogin is false after FxA cancel');
     MockMozId.onlogin();
     assert.equal(0, MockSettingsListener.getSettingsLock().locks.length,

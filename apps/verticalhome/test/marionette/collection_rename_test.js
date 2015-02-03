@@ -3,12 +3,10 @@
 var Collection = require('./lib/collection');
 var EmeServer = require(
   '../../../../shared/test/integration/eme_server/parent');
-var Home2 = require('./lib/home2');
-var System = require('../../../../apps/system/test/marionette/lib/system');
 
 marionette('Vertical - Collection Rename', function() {
 
-  var client = marionette.client(Home2.clientOptions);
+  var client = marionette.client(require(__dirname + '/client_options.js'));
   var collection, home, selectors, server, system;
 
   suiteSetup(function(done) {
@@ -25,14 +23,13 @@ marionette('Vertical - Collection Rename', function() {
   setup(function() {
     selectors = Collection.Selectors;
     collection = new Collection(client);
-    home = new Home2(client);
-    system = new System(client);
+    home = client.loader.getAppClass('verticalhome');
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
 
-    client.apps.launch(Home2.URL);
+    client.apps.launch(home.URL);
 
     home.waitForLaunch();
-    collection.disableGeolocation();
     EmeServer.setServerURL(client, server);
   });
 
@@ -40,7 +37,7 @@ marionette('Vertical - Collection Rename', function() {
     collection.enterCreateScreen();
     var name = 'Around Me';
     collection.selectNew(name);
-    client.apps.switchToApp(Home2.URL);
+    client.apps.switchToApp(home.URL);
 
     home.enterEditMode();
     var icon = collection.getCollectionByName(name);

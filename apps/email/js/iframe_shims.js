@@ -15,7 +15,7 @@ var DEFAULT_STYLE_TAG =
   'blockquote {' +
   'margin: 0; ' +
   // so, this is quoting styling, which makes less sense to have in here.
-  'border-left: 0.2rem solid gray;' +
+  '-moz-border-start: 0.2rem solid gray;' +
   // padding-start isn't a thing yet, somehow.
   'padding: 0; -moz-padding-start: 0.5rem; ' +
   '}\n' +
@@ -322,7 +322,8 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
     // scrolly, but I wouldn't remove this without some testing...
     'overflow: hidden; ' +
     // When scaling, use the top-left for math sanity.
-    'transform-origin: top left; ' +
+    'transform-origin: top ' +
+    (document.documentElement.dir === 'rtl' ? 'right' : 'left') + '; ' +
     // The iframe does not want to process its own clicks!  that's what
     // bindSanitizedClickHandler is for!
     'pointer-events: none;');
@@ -689,11 +690,42 @@ function bindSanitizedClickHandler(target, clickHandler, topNode, iframe) {
         var dx, dy;
         var transform = iframe.style.transform || 'scale(1)';
         var scale = transform.match(/(\d|\.)+/g)[0];
-        dx = event.detail.clientX + root.scrollLeft - msgBodyMarginLeft;
+
+        // When in rtl mode, scroll is relative to right side, but the
+        // document inside the iframe is ltr based, since it does not set a
+        // document-wide dir setting and instead the DOM content inside the
+        // message manages the dir itself.
+        if (document.dir === 'rtl') {
+          dx = event.detail.clientX - msgBodyMarginLeft +
+               // The scrollLeft is calculated from the right side, with right
+               // being zero and left being a negative value from the *right*
+               // edge of the element. So to get the x value from the left, need
+               // the difference of scrollWidth from scrollLeft (which is a
+               // negative value), and also subtracting out the width of the
+               // element to get the value relative to the *left* side of the
+               // element.
+               root.scrollWidth + root.scrollLeft - root.clientWidth;
+        } else {
+          dx = event.detail.clientX + root.scrollLeft - msgBodyMarginLeft;
+        }
+
         dy = event.detail.clientY + root.scrollTop -
              titleHeight - headerHeight - loadBarHeight -
              attachmentsHeight - attachmentsMarginTop - msgBodyMarginTop;
+
         node = iframeDoc.elementFromPoint(dx / scale, dy / scale);
+
+        // Uncomment to show a red square on where the code thinks the tap
+        // occurred in the iframe. Useful for debugging.
+        // var temp = iframeDoc.createElement('div');
+        // temp.style.position = 'absolute';
+        // temp.style.overflow = 'hidden';
+        // temp.style.top = ((dy / scale) - 5) + 'px';
+        // temp.style.left = ((dx / scale) - 5) + 'px';
+        // temp.style.width = '10px';
+        // temp.style.height = '10px';
+        // temp.style.backgroundColor = 'red';
+        // iframeDoc.body.appendChild(temp);
       } else {
         node = event.originalTarget;
       }

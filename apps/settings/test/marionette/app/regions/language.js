@@ -27,37 +27,30 @@ LanguagePanel.Selectors = {
 LanguagePanel.prototype = {
   __proto__: Base.prototype,
 
+  // The \u202a, \u202b and \u202c are special Unicode formatting codes which
+  // force the direction of the text between them.  They are added by
+  // LanguageList.wrapBidi to ensure proper display of all language names.
   _languageMap: {
     english: {
       label: 'Language',
-      optionText: '\u202aEnglish (US)\u202c',
+      desc: '\u202aEnglish (US)\u202c',
       dayRules: /Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday/
-    },
-    traditionalChinese: {
-      label: '語言',
-      optionText: '\u202a正體中文\u202c',
-      dayRules: /一|二|三|四|五|六|日/i
-    },
-    french: {
-      label: 'Langue',
-      optionText: '\u202aFrançais\u202c',
-      dayRules: /lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche/i
     },
     accented: {
       label: 'Ŀȧȧƞɠŭŭȧȧɠḗḗ',
-      optionText: '\u202aȦȧƈƈḗḗƞŧḗḗḓ Ḗḗƞɠŀīīşħ\u202c',
+      desc: '\u202aȦȧƈƈḗḗƞŧḗḗḓ Ḗḗƞɠŀīīşħ\u202c',
       dayRules: new RegExp(
         'Ḿǿǿƞḓȧȧẏ|' +
         'Ŧŭŭḗḗşḓȧȧẏ|' +
         'Ẇḗḗḓƞḗḗşḓȧȧẏ|' +
         'Ŧħŭŭřşḓȧȧẏ|' +
-        'Ŧřīīḓȧȧẏ|' +
+        'Ƒřīīḓȧȧẏ|' +
         'Şȧȧŧŭŭřḓȧȧẏ|' +
         'Şŭŭƞḓȧȧẏ')
     },
     mirrored: {
       label: '\u202e˥ɐuƃnɐƃǝ\u202c',
-      optionText: '\u202b\u202eWıɹɹoɹǝp Ǝuƃʅısɥ\u202c\u202c',
+      desc: '\u202b\u202eWıɹɹoɹǝp\u202c \u202eƎuƃʅısɥ\u202c\u202c',
       dayRules: new RegExp(
         '\u202eWoupɐʎ\u202c|' +
         '\u202e⊥nǝspɐʎ\u202c|' +
@@ -99,7 +92,7 @@ LanguagePanel.prototype = {
     if (this._languageMap[value]) {
       var oldLanguage = this.currentLanguage;
       this.tapSelectOption('languageChangeSelect',
-        this._languageMap[value].optionText);
+        this._languageMap[value].desc);
 
       this.client.waitFor(function() {
         var newLanguage = this.currentLanguage;
@@ -126,12 +119,13 @@ LanguagePanel.prototype = {
 
   back: function() {
     var parentSection = this.waitForElement('languagePanel');
+    var bodyWidth = this.findElement('body').size().width;
+
     this.findElement('header').tap(25, 25);
 
-    var bodyWidth = this.findElement('body').size().width;
     this.client.waitFor(function() {
       var loc = parentSection.location();
-      return loc.x >= bodyWidth;
+      return Math.abs(loc.x) >= bodyWidth;
     });
   }
 

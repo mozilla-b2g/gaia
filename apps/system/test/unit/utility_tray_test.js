@@ -245,6 +245,9 @@ suite('system/UtilityTray', function() {
     });
   });
 
+  test('setHierarchy', function() {
+    assert.isFalse(UtilityTray.setHierarchy());
+  });
 
   // handleEvent
   suite('handleEvent: attentionopened', function() {
@@ -256,6 +259,32 @@ suite('system/UtilityTray', function() {
 
     test('should be hidden', function() {
       assert.equal(UtilityTray.shown, false);
+    });
+  });
+
+  // handleEvent
+  suite('handleEvent: sheets-gesture-begin', function() {
+    setup(function() {
+      fakeEvt = createEvent('sheets-gesture-begin');
+      UtilityTray.show();
+      UtilityTray.handleEvent(fakeEvt);
+    });
+
+    test('should hide the ambientIndicator', function() {
+      assert.isTrue(UtilityTray.overlay.classList.contains('on-edge-gesture'));
+    });
+  });
+
+  // handleEvent
+  suite('handleEvent: sheets-gesture-end', function() {
+    setup(function() {
+      fakeEvt = createEvent('sheets-gesture-end');
+      UtilityTray.show();
+      UtilityTray.handleEvent(fakeEvt);
+    });
+
+    test('should unhide the ambientIndicator', function() {
+      assert.isFalse(UtilityTray.overlay.classList.contains('on-edge-gesture'));
     });
   });
 
@@ -275,41 +304,38 @@ suite('system/UtilityTray', function() {
     setup(function() {
       fakeEvt = createEvent('home', true);
 
-      // Since nsIDOMEvent::StopImmediatePropagation does not set
-      // any property on the event, and there is no way to add a
-      // global event listeners, let's just overidde the method
-      // to set our own property.
-      fakeEvt.stopImmediatePropagation = function() {
-        this._stopped = true;
-      };
-
       UtilityTray.show();
-      window.dispatchEvent(fakeEvt);
+      UtilityTray.respondToHierarchyEvent(fakeEvt);
     });
 
     test('should be hidden', function() {
       assert.equal(UtilityTray.shown, false);
     });
-
-    test('home should have been stopped', function() {
-      assert.equal(fakeEvt._stopped, true);
-    });
   });
-
 
   suite('handleEvent: screenchange', function() {
-    setup(function() {
+    teardown(function() {
+      UtilityTray.active = false;
+    });
+
+    function triggerEvent(active) {
       fakeEvt = createEvent('screenchange', false, false,
                             { screenEnabled: false });
+      UtilityTray.active = active;
       UtilityTray.show();
       UtilityTray.handleEvent(fakeEvt);
-    });
+    }
 
-    test('should be hidden', function() {
+    test('should be hidden when inactive', function() {
+      triggerEvent(false);
       assert.equal(UtilityTray.shown, false);
     });
-  });
 
+    test('should still be visible when active', function() {
+      triggerEvent(true);
+      assert.equal(UtilityTray.shown, true);
+    });
+  });
 
   suite('handleEvent: emergencyalert', function() {
     setup(function() {
@@ -536,6 +562,100 @@ suite('system/UtilityTray', function() {
 
     test('should be hidden', function() {
       assert.equal(UtilityTray.shown, false);
+    });
+  });
+
+  suite('hide() events', function() {
+    function doAction(shown) {
+      UtilityTray.shown = shown;
+      UtilityTray.hide();
+    }
+
+    test('utility-tray-overlayclosed is correctly dispatched', function(done) {
+      window.addEventListener('utility-tray-overlayclosed',
+        function gotIt() {
+          window.removeEventListener('utility-tray-overlayclosed', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+      doAction(true);
+    });
+
+    test('utilitytrayhide is correctly dispatched', function(done) {
+      window.addEventListener('utilitytrayhide',
+        function gotIt() {
+          window.removeEventListener('utilitytrayhide', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+      doAction(true);
+    });
+
+    test('utilitytray-deactivated is correctly dispatched', function(done) {
+      window.addEventListener('utilitytray-deactivated',
+        function gotIt() {
+          window.removeEventListener('utilitytray-deactivated', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+      doAction(true);
+    });
+
+    test('utility-tray-abortopen is correctly dispatched', function(done) {
+      window.addEventListener('utility-tray-abortopen',
+        function gotIt() {
+          window.removeEventListener('utility-tray-abortopen', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+      doAction(false);
+    });
+  });
+
+  suite('show() events', function() {
+    function doAction(shown) {
+      UtilityTray.shown = shown;
+      UtilityTray.show();
+    }
+
+    test('utility-tray-overlayopened is correctly dispatched', function(done) {
+      window.addEventListener('utility-tray-overlayopened',
+        function gotIt() {
+          window.removeEventListener('utility-tray-overlayopened', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+      doAction(false);
+    });
+
+    test('utilitytrayshow is correctly dispatched', function(done) {
+      window.addEventListener('utilitytrayshow',
+        function gotIt() {
+          window.removeEventListener('utilitytrayshow', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+      doAction(false);
+    });
+
+    test('utilitytray-activated is correctly dispatched', function(done) {
+      window.addEventListener('utilitytray-activated',
+        function gotIt() {
+          window.removeEventListener('utilitytray-activated', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+      doAction(false);
+    });
+
+    test('utility-tray-abortclose is correctly dispatched', function(done) {
+      window.addEventListener('utility-tray-abortclose',
+        function gotIt() {
+          window.removeEventListener('utility-tray-abortclose', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+      doAction(true);
     });
   });
 

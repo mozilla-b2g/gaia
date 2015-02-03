@@ -22,7 +22,7 @@
     'use strict';
 
     if (typeof define === 'function' && define.amd) {
-        define(['browserbox-imap', 'wo-utf7', 'wo-imap-handler', 'mimefuncs', 'axe-logger'], function(ImapClient, utf7, imapHandler, mimefuncs, axe) {
+        define(['browserbox-imap', 'utf7', 'imap-handler', 'mimefuncs', 'axe'], function(ImapClient, utf7, imapHandler, mimefuncs, axe) {
             return factory(ImapClient, utf7, imapHandler, mimefuncs, axe);
         });
     } else if (typeof exports === 'object') {
@@ -104,19 +104,19 @@
     // Timeout constants
 
     /**
-     * How much time to wait for the greeting from the server until the connection is considered failed
+     * Milliseconds to wait for the greeting from the server until the connection is considered failed
      */
     BrowserBox.prototype.TIMEOUT_CONNECTION = 90 * 1000;
 
     /**
-     * Time between NOOP commands while idling
+     * Milliseconds between NOOP commands while idling
      */
-    BrowserBox.prototype.TIMEOUT_NOOP = 1 * 60 * 1000;
+    BrowserBox.prototype.TIMEOUT_NOOP = 60 * 1000;
 
     /**
-     * Time until IDLE command is cancelled
+     * Milliseconds until IDLE command is cancelled
      */
-    BrowserBox.prototype.TIMEOUT_IDLE = 3 * 60 * 1000;
+    BrowserBox.prototype.TIMEOUT_IDLE = 60 * 1000;
 
     /**
      * Initialization method. Setup event handlers and such
@@ -204,16 +204,24 @@
         this._changeState(this.STATE_NOT_AUTHENTICATED);
 
         this.updateCapability(function() {
-            this.updateId(this.options.id, function() {
-                this.login(this.options.auth, function(err) {
-                    if (err) {
-                        // emit an error
-                        this.onerror(err);
-                        this.close();
-                        return;
-                    }
-                    // emit
-                    this.onauth();
+            this.upgradeConnection(function(err) {
+                if (err) {
+                    // emit an error
+                    this.onerror(err);
+                    this.close();
+                    return;
+                }
+                this.updateId(this.options.id, function() {
+                    this.login(this.options.auth, function(err) {
+                        if (err) {
+                            // emit an error
+                            this.onerror(err);
+                            this.close();
+                            return;
+                        }
+                        // emit
+                        this.onauth();
+                    }.bind(this));
                 }.bind(this));
             }.bind(this));
         }.bind(this));
@@ -259,7 +267,9 @@
             if (typeof callback === 'function') {
                 callback(err || null);
             }
-        });
+
+            this.client.close();
+        }.bind(this));
     };
 
     /**
@@ -330,6 +340,7 @@
             }.bind(this));
             this._idleTimeout = setTimeout(function() {
                 axe.debug(DEBUG_TAG, 'sending idle DONE');
+                // [0x44, 0x4f, 0x4e, 0x45, 0x0d, 0x0a] is ASCII for "DONE\r\n"
                 this.client.socket.send(new Uint8Array([0x44, 0x4f, 0x4e, 0x45, 0x0d, 0x0a]).buffer);
                 this._enteredIdle = false;
             }.bind(this), this.TIMEOUT_IDLE);
@@ -359,6 +370,43 @@
     };
 
     /**
+     * Runs STARTTLS command if needed
+     *
+     * STARTTLS details:
+     *   http://tools.ietf.org/html/rfc3501#section-6.2.1
+     *
+     * @param {Boolean} [forced] By default the command is not run if capability is already listed. Set to true to skip this validation
+     * @param {Function} callback Callback function
+     */
+    BrowserBox.prototype.upgradeConnection = function(callback) {
+
+        // skip request, if already secured
+        if (this.client.secureMode) {
+            return callback(null, false);
+        }
+
+        // skip if STARTTLS not available or starttls support disabled
+        if ((this.capability.indexOf('STARTTLS') < 0 || this.options.ignoreTLS) && !this.options.requireTLS) {
+            return callback(null, false);
+        }
+
+        this.exec('STARTTLS', function(err, response, next) {
+            if (err) {
+                callback(err);
+                next();
+            } else {
+                this.capability = [];
+                this.client.upgrade(function(err, upgraded) {
+                    this.updateCapability(function() {
+                        callback(err, upgraded);
+                    });
+                    next();
+                }.bind(this));
+            }
+        }.bind(this));
+    };
+
+    /**
      * Runs CAPABILITY command
      *
      * CAPABILITY details:
@@ -375,8 +423,15 @@
             callback = forced;
             forced = undefined;
         }
+
         // skip request, if not forced update and capabilities are already loaded
         if (!forced && this.capability.length) {
+            return callback(null, false);
+        }
+
+        // If STARTTLS is required then skip capability listing as we are going to try
+        // STARTTLS anyway and we re-check capabilities after connection is secured
+        if (!this.client.secureMode && this.options.requireTLS) {
             return callback(null, false);
         }
 
@@ -613,7 +668,7 @@
                 if (!item || !item.attributes || item.attributes.length < 3) {
                     return;
                 }
-                var branch = this._ensurePath(tree, (item.attributes[2].value || '').toString(), (item.attributes[1].value).toString());
+                var branch = this._ensurePath(tree, (item.attributes[2].value || '').toString(), (item.attributes[1] ? item.attributes[1].value : '/').toString());
                 branch.flags = [].concat(item.attributes[0] || []).map(function(flag) {
                     return (flag.value || '').toString();
                 });
@@ -640,7 +695,7 @@
                     if (!item || !item.attributes || item.attributes.length < 3) {
                         return;
                     }
-                    var branch = this._ensurePath(tree, (item.attributes[2].value || '').toString(), (item.attributes[1].value).toString());
+                    var branch = this._ensurePath(tree, (item.attributes[2].value || '').toString(), (item.attributes[1] ? item.attributes[1].value : '/').toString());
                     [].concat(item.attributes[0] || []).map(function(flag) {
                         flag = (flag.value || '').toString();
                         if (!branch.flags || branch.flags.indexOf(flag) < 0) {
@@ -657,6 +712,37 @@
 
             next();
         }.bind(this));
+    };
+
+    /**
+     * Create a mailbox with the given path.
+     *
+     * CREATE details:
+     *   http://tools.ietf.org/html/rfc3501#section-6.3.3
+     *
+     * @param {String} path
+     *     The path of the mailbox you would like to create.  This method will
+     *     handle utf7 encoding for you.
+     * @param {Function} callback
+     *     Callback that takes an error argument and a boolean indicating
+     *     whether the folder already existed.  If the mailbox creation
+     *     succeeds, the error argument will be null.  If creation fails, error
+     *     will have an error value.  In the event the server says NO
+     *     [ALREADYEXISTS], we treat that as success and return true for the
+     *     second argument.
+     */
+    BrowserBox.prototype.createMailbox = function(path, callback) {
+        this.exec({
+            command: 'CREATE',
+            attributes: [utf7.imap.encode(path)]
+        }, function(err, response, next) {
+            if (err && err.code === 'ALREADYEXISTS') {
+                callback(null, true);
+            } else {
+                callback(err, false);
+            }
+            next();
+        });
     };
 
     /**
@@ -1128,7 +1214,7 @@
                     mailbox.uidNext = Number(ok.uidnext) || 0;
                     break;
                 case 'HIGHESTMODSEQ':
-                    mailbox.highestModseq = Number(ok.highestmodseq) || 0;
+                    mailbox.highestModseq = ok.highestmodseq || '0'; // keep 64bit uint as a string
                     break;
             }
         });
@@ -1149,7 +1235,8 @@
                 return !arr ? false : [].concat(arr || []).map(function(ns) {
                     return !ns || !ns.length ? false : {
                         prefix: ns[0].value,
-                        delimiter: ns[1].value
+                        // The delimiter can legally be NIL which maps to null
+                        delimiter: ns[1] && ns[1].value
                     };
                 });
             };
@@ -1221,11 +1308,12 @@
 
         if (options.changedSince) {
             command.attributes.push([{
-                    type: 'ATOM',
-                    value: 'CHANGEDSINCE'
-                },
-                options.changedSince
-            ]);
+                type: 'ATOM',
+                value: 'CHANGEDSINCE'
+            }, {
+                type: 'ATOM',
+                value: options.changedSince
+            }]);
         }
         return command;
     };
@@ -1283,9 +1371,10 @@
         if (!Array.isArray(value)) {
             switch (key) {
                 case 'uid':
-                case 'modseq':
                 case 'rfc822.size':
                     return Number(value.value) || 0;
+                case 'modseq': // do not cast 64 bit uint to a number
+                    return value.value || '0';
             }
             return value.value;
         }
@@ -1303,7 +1392,7 @@
                 value = this._parseBODYSTRUCTURE([].concat(value || []));
                 break;
             case 'modseq':
-                value = Number((value.shift() || {}).value) || 0;
+                value = (value.shift() || {}).value || '0';
                 break;
         }
 
@@ -1414,7 +1503,7 @@
                         curNode.parameters = {};
                         [].concat(node[i] || []).forEach(function(val, j) {
                             if (j % 2) {
-                                curNode.parameters[key] = (val && val.value || '').toString();
+                                curNode.parameters[key] = mimefuncs.mimeWordsDecode((val && val.value || '').toString());
                             } else {
                                 key = (val && val.value || '').toString().toLowerCase();
                             }
@@ -1434,7 +1523,7 @@
                     curNode.parameters = {};
                     [].concat(node[i] || []).forEach(function(val, j) {
                         if (j % 2) {
-                            curNode.parameters[key] = (val && val.value || '').toString();
+                            curNode.parameters[key] = mimefuncs.mimeWordsDecode((val && val.value || '').toString());
                         } else {
                             key = (val && val.value || '').toString().toLowerCase();
                         }
@@ -1524,7 +1613,7 @@
                         curNode.dispositionParameters = {};
                         [].concat(node[i][1] || []).forEach(function(val, j) {
                             if (j % 2) {
-                                curNode.dispositionParameters[key] = (val && val.value || '').toString();
+                                curNode.dispositionParameters[key] = mimefuncs.mimeWordsDecode((val && val.value || '').toString());
                             } else {
                                 key = (val && val.value || '').toString().toLowerCase();
                             }
@@ -1581,6 +1670,8 @@
             command: options.byUid ? 'UID SEARCH' : 'SEARCH'
         };
 
+        var isAscii = true;
+
         var buildTerm = function(query) {
             var list = [];
 
@@ -1598,13 +1689,25 @@
                                 value: param
                             };
                         } else if (typeof param === "string") {
+                            if (/[\u0080-\uFFFF]/.test(param)) {
+                                isAscii = false;
+                                return {
+                                    type: "literal",
+                                    // cast unicode string to pseudo-binary as imap-handler compiles strings as octets
+                                    value: mimefuncs.fromTypedArray(mimefuncs.charset.encode(param))
+                                };
+                            }
                             return {
                                 type: "string",
                                 value: param
                             };
                         } else if (Object.prototype.toString.call(param) === "[object Date]") {
+                            // RFC 3501 allows for dates to be placed in
+                            // double-quotes or left without quotes.  Some
+                            // servers (Yandex), do not like the double quotes,
+                            // so we treat the date as an atom.
                             return {
-                                type: "string",
+                                type: "atom",
                                 value: formatDate(param)
                             };
                         } else if (Array.isArray(param)) {
@@ -1641,6 +1744,18 @@
         };
 
         command.attributes = [].concat(buildTerm(query || {}) || []);
+
+        // If any string input is using 8bit bytes, prepend the optional CHARSET argument
+        if (!isAscii) {
+            command.attributes.unshift({
+                type: "atom",
+                value: "UTF-8"
+            });
+            command.attributes.unshift({
+                type: "atom",
+                value: "CHARSET"
+            });
+        }
 
         return command;
     };
@@ -1752,13 +1867,14 @@
      * @return {Object} branch for used path
      */
     BrowserBox.prototype._ensurePath = function(tree, path, delimiter) {
-        var names = path.split(delimiter),
-            branch = tree,
-            i, j, found;
+        var names = path.split(delimiter);
+        var branch = tree;
+        var i, j, found;
+
         for (i = 0; i < names.length; i++) {
             found = false;
             for (j = 0; j < branch.children.length; j++) {
-                if (branch.children[j].name === utf7.imap.decode(names[i])) {
+                if (this._compareMailboxNames(branch.children[j].name, utf7.imap.decode(names[i]))) {
                     branch = branch.children[j];
                     found = true;
                     break;
@@ -1775,6 +1891,17 @@
             }
         }
         return branch;
+    };
+
+    /**
+     * Compares two mailbox names. Case insensitive in case of INBOX, otherwise case sensitive
+     *
+     * @param {String} a Mailbox name
+     * @param {String} b Mailbox name
+     * @returns {Boolean} True if the folder names match
+     */
+    BrowserBox.prototype._compareMailboxNames = function(a, b) {
+        return (a.toUpperCase() === 'INBOX' ? 'INBOX' : a) === (b.toUpperCase() === 'INBOX' ? 'INBOX' : b);
     };
 
     /**

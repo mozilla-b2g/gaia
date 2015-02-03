@@ -16,10 +16,12 @@
     <link rel="stylesheet" href="shared/style/confirm.css" type="text/css" />
     -->
     <!-- Localization -->
-    <link rel="manifest" href="manifest.webapp">
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
     <link rel="localization" href="locales/gallery.{locale}.properties">
     <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
     <!-- Shared code -->
+    <script defer src="shared/js/usertiming.js"></script>
     <script defer src="shared/js/performance_testing_helper.js"></script>
     <script defer src="shared/js/l10n.js"></script>
     <script defer src="shared/js/l10n_date.js"></script>
@@ -57,26 +59,34 @@
   </head>
 
   <body role="application" class="theme-media">
-    <section role="region" id="thumbnail-list-view" class="skin-dark">
-      <!-- Header only shown on tablet view  -->
-      <gaia-header id="thumbnails-list-top">
+    <!-- This section holds the thumbnails list and the headers and footers -->
+    <!-- for all views that display the thumbnails -->
+    <section role="region" id="thumbnail-views" class="skin-dark">
+      <!-- This header only shown on tablet view  -->
+      <gaia-header id="thumbnails-list-top" class="thumbnails-list">
         <h1 id="thumbnail-list-title" data-l10n-id="gallery">Gallery</h1>
       </gaia-header>
-      <footer id="thumbnails-bottom">
-        <a id="thumbnails-camera-button" class="button" data-icon="camera"></a>
-        <a id="thumbnails-select-button" class="button" data-icon="select"></a>
+      <gaia-header id="selected-header" class="thumbnails-select" action="close">
+        <h1 id="thumbnails-number-selected"></h1>
+      </gaia-header>
+      <gaia-header id="pick-header" class="thumbnails-pick" action="close">
+        <h1 id="pick-header-title" data-l10n-id="pickoneimage2"></h1>
+      </gaia-header>
+
+      <!-- This element gets positioned over different view elements -->
+      <!-- It gets styled differently depending on what it is over -->
+      <ul id="thumbnails"></ul> <!-- Thumbnails inserted here -->
+
+      <footer class="thumbnails-list" role="toolbar">
+        <a id="thumbnails-camera-button" class="button" data-icon="camera" data-l10n-id="camera-button" role="button"></a>
+        <a id="thumbnails-select-button" class="button" data-icon="select" data-l10n-id="select-multiple-button" role="button"></a>
+      </footer>
+      <footer class="thumbnails-select" role="toolbar">
+        <a id="thumbnails-delete-button" class="button" data-icon="delete" data-l10n-id="delete-button" role="button"></a>
+        <a id="thumbnails-share-button" class="button" data-icon="share" data-l10n-id="share-button" role="button"></a>
       </footer>
     </section>
 
-    <section role="region" id="thumbnail-select-view" class="skin-dark">
-      <gaia-header id="selected-header" action="close">
-        <h1 id="thumbnails-number-selected"></h1>
-      </gaia-header>
-      <footer id="thumbnails-select-bottom">
-        <a id="thumbnails-delete-button" class="button" data-icon="delete"></a>
-        <a id="thumbnails-share-button" class="button" data-icon="share"></a>
-      </footer>
-    </section>
     <section role="region" id="fullscreen-view" class="skin-dark">
       <gaia-header id="fullscreen-toolbar-header" action="back" class="large-only">
         <h1 data-l10n-id="gallery" id="fullscreen-title">Gallery</h1>
@@ -96,22 +106,22 @@
           <span data-icon="delete"></span>
         </a>
       </gaia-header>
+      <button id="fullscreen-back-button-tiny" data-l10n-id="back-button" type="reset" class="tiny-only" data-icon="back"></button>
       <div id="frames">
         <!-- the current photo plus next and previous waiting in the wings -->
-        <div id="frame1" class="frame"></div>
-        <div id="frame2" class="frame"></div>
-        <div id="frame3" class="frame"></div>
+        <section id="frame1" class="frame"></section>
+        <section id="frame2" class="frame"></section>
+        <section id="frame3" class="frame"></section>
       </div>
       <section role="status" id="edit-copy-save-banner" class="banner" hidden>
         <p id="edit-copy-save-status"></p>
       </section>
-      <button id="fullscreen-back-button-tiny" type="reset" class="tiny-only" data-icon="back"></button>
-      <footer id="fullscreen-toolbar" class="tiny-only">
-        <a id="fullscreen-camera-button-tiny" class="button" data-icon="camera"></a>
-        <a id="fullscreen-edit-button-tiny" class="button" data-icon="edit-image"></a>
-        <a id="fullscreen-share-button-tiny" class="button" data-icon="share"></a>
-        <a id="fullscreen-info-button-tiny" class="button" data-icon="info"></a>
-        <a id="fullscreen-delete-button-tiny" class="button" data-icon="delete"></a>
+      <footer id="fullscreen-toolbar" class="tiny-only" role="toolbar">
+        <a id="fullscreen-camera-button-tiny" class="button" data-icon="camera" data-l10n-id="camera-button" role="button"></a>
+        <a id="fullscreen-edit-button-tiny" class="button" data-icon="edit-image" data-l10n-id="edit-button" role="button"></a>
+        <a id="fullscreen-share-button-tiny" class="button" data-icon="share" data-l10n-id="share-button" role="button"></a>
+        <a id="fullscreen-info-button-tiny" class="button" data-icon="info" data-l10n-id="info-button" role="button"></a>
+        <a id="fullscreen-delete-button-tiny" class="button" data-icon="delete" data-l10n-id="delete-button" role="button"></a>
       </footer>
     </section>
     <form id="info-view" role="dialog" data-type="confirm" class="hidden">
@@ -134,11 +144,6 @@
                 data-l10n-id="close-button" class="full"></button>
       </menu>
     </form>
-    <section role="region" id="pick-view">
-      <gaia-header id="pick-header" action="close">
-        <h1 id="pick-header-title" data-l10n-id="pickoneimage2"></h1>
-      </gaia-header>
-    </section>
 
     <section role="region" id="crop-view" class="skin-dark">
       <gaia-header id="crop-top" action="back">
@@ -184,25 +189,25 @@
           </div>
         </div>
 
-        <div id="edit-crop-options" class="edit-options-bar hidden">
-          <a id="edit-crop-none" class="button" data-icon="undo"></a>
-          <a id="edit-crop-aspect-free" class="selected radio button"></a>
-          <a id="edit-crop-aspect-portrait" class="radio button"></a>
-          <a id="edit-crop-aspect-landscape" class="radio button"></a>
-          <a id="edit-crop-aspect-square" class="radio button"></a>
+        <div id="edit-crop-options" class="edit-options-bar hidden" role="radiogroup" data-l10n-id="crop-options">
+          <a id="edit-crop-none" class="button" data-icon="undo" role="button" data-l10n-id="crop-revert"></a>
+          <a id="edit-crop-aspect-free" class="selected radio button" role="radio" aria-checked="true" data-l10n-id="crop-aspect-free"></a>
+          <a id="edit-crop-aspect-portrait" class="radio button" role="radio" data-l10n-id="crop-aspect-portrait"></a>
+          <a id="edit-crop-aspect-landscape" class="radio button" role="radio" data-l10n-id="crop-aspect-landscape"></a>
+          <a id="edit-crop-aspect-square" class="radio button" role="radio" data-l10n-id="crop-aspect-square"></a>
         </div>
 
-        <div id="edit-effect-options" class="edit-options-bar hidden">
+        <div id="edit-effect-options" class="edit-options-bar hidden" role="radiogroup" data-l10n-id="effect-options">
           <a id="edit-effect-none" class="selected radio button bgimage"
-             data-effect="none"></a>
+             data-effect="none" role="radio" data-l10n-id="effect-none"></a>
           <a id="edit-effect-bw" class="radio button filter-bw bgimage"
-             data-effect="bw"></a>
+             data-effect="bw" role="radio" data-l10n-id="effect-bw"></a>
           <a id="edit-effect-sepia" class="radio button filter-sepia bgimage"
-             data-effect="sepia"></a>
+             data-effect="sepia" role="radio" data-l10n-id="effect-sepia"></a>
           <a id="edit-effect-bluesteel" class="radio button filter-bluesteel bgimage"
-             data-effect="bluesteel"></a>
+             data-effect="bluesteel" role="radio" data-l10n-id="effect-bluesteel"></a>
           <a id="edit-effect-faded" class="radio button filter-faded bgimage"
-             data-effect="faded"></a>
+             data-effect="faded" role="radio" data-l10n-id="effect-faded"></a>
         </div>
       </div>
       <section role="status" id="edit-enhance-banner" class="banner" hidden>
@@ -210,23 +215,19 @@
       </section>
 
       <!-- buttons for selecting the type of edit to perform -->
-      <footer id="edit-toolbar">
-        <a id="edit-exposure-button" class="button" data-icon="brightness"></a>
-        <a id="edit-crop-button" class="button" data-icon="crop"></a>
-        <a id="edit-effect-button" class="button"></a>
-        <a id="edit-enhance-button" class="button"></a>
+      <footer id="edit-toolbar" role="toolbar">
+        <a id="edit-exposure-button" class="button" data-icon="brightness" data-l10n-id="exposure-button" role="button"></a>
+        <a id="edit-crop-button" class="button" data-icon="crop" data-l10n-id="crop-button" role="button"></a>
+        <a id="edit-effect-button" class="button" data-l10n-id="effect-button" role="button"></a>
+        <a id="edit-enhance-button" class="button"  data-l10n-id="enhance-button" role="button" aria-pressed="false"></a>
       </footer>
     </section>
-
-    <!-- This element gets positioned over different view elements -->
-    <!-- It gets styled differently depending on what it is over -->
-    <ul id="thumbnails"></ul> <!-- Thumbnails inserted here -->
 
     <!-- This element is the template of each thumbnail item -->
     <div id="thumbnail-group-header" hidden>
       <!--
         <li>
-          <div class="thumbnail-group-header">${group-header}</div>
+          <div class="thumbnail-group-header"></div>
           <div class="thumbnail-group-container"></div>
         </li>
       -->

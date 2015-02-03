@@ -64,7 +64,6 @@
                 'ftudone',
                 'overlaystart',
                 'showlockscreenwindow',
-                'home',
                 'secure-appclosed',
                 'lockscreen-request-inputpad-open',
                 'lockscreen-request-inputpad-close'
@@ -94,6 +93,33 @@
     Service.register('unlock', this);
     Service.register('lock', this);
     Service.request('registerHierarchy', this);
+  };
+
+  LockScreenWindowManager.prototype._handle_home = function() {
+    if (this.isActive()) {
+      // XXX: I don't want to change the order of event registration
+      // at this early-refactoring stage, so do this to minimize the
+      // risk and complete the work.
+      window.dispatchEvent(
+        new CustomEvent('lockscreen-notify-homepressed'));
+      return false;
+    }
+    return true;
+  };
+
+  LockScreenWindowManager.prototype._handle_holdhome = function() {
+    if (this.isActive()) {
+      return false;
+    }
+    return true;
+  };
+
+  LockScreenWindowManager.prototype.respondToHierarchyEvent = function(evt) {
+    if (this['_handle_' + evt.type]) {
+      return this['_handle_' + evt.type](evt);
+    } else {
+      return true;
+    }
   };
 
   /**
@@ -168,18 +194,6 @@
               // quickly, so we need to keep this workaround.
               this.states.instance.lockOrientation();
             }
-          }
-          break;
-        case 'home':
-          // We assume that this component is started before AppWindowManager
-          // to make this blocking code works.
-          if (this.isActive()) {
-            // XXX: I don't want to change the order of event registration
-            // at this early-refactoring stage, so do this to minimize the
-            // risk and complete the work.
-            window.dispatchEvent(
-              new CustomEvent('lockscreen-notify-homepressed'));
-            evt.stopImmediatePropagation();
           }
           break;
         case 'lockscreen-request-inputpad-open':

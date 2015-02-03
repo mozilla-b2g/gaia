@@ -51,19 +51,23 @@ var WifiManager = {
       return;
     }
 
-    req.onsuccess = function onScanSuccess() {
+    var handleRequest = function handleRequest() {
       self._scanning = false;
-      self.networks = req.result;
       clearTimeout(self.scanTimeout);
       self.scanTimeout = null;
       self.onScan(self.networks);
       self.onScan = null;
     };
 
+    req.onsuccess = function onScanSuccess() {
+      self.networks = req.result;
+      handleRequest();
+    };
+
     req.onerror = function onScanError() {
-      self._scanning = false;
       console.error('Error reading networks: ' + req.error.name);
-      self.onScan = callback;
+      self.networks = [];
+      handleRequest();
     };
 
     // Timeout in case of scanning errors not thrown by the API
@@ -141,14 +145,10 @@ var WifiManager = {
     var self = this;
     if (WifiManager.api) {
       WifiManager.api.onstatuschange = function(event) {
-        if (event.status === 'connected') {
-          WifiUI.updateNetworkStatus(event.network.ssid, event.status);
-        } else if (event.status === 'disconnected' && self.onScan) {
+        if (event.status === 'disconnected' && self.onScan) {
           self.scan(self.onScan);
         } else {
-          // we assume that this status is to do with the last network
-          // we have seen.
-          WifiUI.updateNetworkStatus(self.ssid, event.status);
+          WifiUI.updateNetworkStatus(event.network.ssid, event.status);
         }
       };
     }
@@ -179,7 +179,8 @@ var WifiUI = {
         ssid: ssid,
         capabilities: [],
         security: [security],
-        relSignalStrength: 0
+        relSignalStrength: 0,
+        hidden: true
       });
       WifiManager.networks.push(network);
       this.renderNetworks(WifiManager.networks);
@@ -238,7 +239,7 @@ var WifiUI = {
     // Remove refresh option
     UIManager.activationScreen.classList.add('no-options');
     // Update title
-    UIManager.mainTitle.setAttribute('data-l10n-id', ssid);
+    UIManager.mainTitle.textContent = ssid;
 
     // Update network
     var selectedNetwork = WifiManager.getNetwork(ssid);
@@ -394,13 +395,25 @@ var WifiUI = {
   updateNetworkStatus: function wui_uns(ssid, status) {
     var element = document.getElementById(ssid);
     // Check if element exists and it's the selected network
-    if (!element || !element.dataset.wifiSelected) {
+
+    if (!element) {
       return;
     }
-
     // Update the element
-    element.querySelector('p[data-security-level]').setAttribute(
+    if (status !== 'disconnected') {
+      element.querySelector('p[data-security-level]').setAttribute(
                           'data-l10n-id', 'shortStatus-' + status);
+    } else {
+      var security = element.dataset.security;
+
+      if (security === '') {
+        security = 'Open';
+      }
+
+      element.querySelector('p[data-security-level]').setAttribute(
+                          'data-l10n-id', 'security' + security);
+      element.classList.remove('connected');
+    }
 
     // Animate icon if connecting, stop animation if
     // failed/connected/disconnected
@@ -410,8 +423,11 @@ var WifiUI = {
     } else {
       icon.classList.remove('connecting');
       if (status === 'connected') {
+        var networksList = document.getElementById('networks-list');
         icon.classList.add('connected');
         element.classList.add('connected');
+        networksList.removeChild(element);
+        networksList.insertBefore(element, networksList.firstChild);
       }
     }
   }

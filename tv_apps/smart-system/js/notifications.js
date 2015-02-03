@@ -1,27 +1,13 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* global interactiveNotifications, InteractiveNotifications, SettingsCache */
 'use strict';
 
 
 var NotificationScreen = {
-  TOASTER_TIMEOUT: 5000,
-  TRANSITION_FRACTION: 0.30,
-  TAP_THRESHOLD: 10,
-  SCROLL_THRESHOLD: 10,
-
-  _notifications: {},
-  _notification: null,
-  _containerWidth: null,
-  _touchStartX: 0,
-  _touchStartY: 0,
-  _touchPosX: 0,
-  _touching: false,
-  _isTap: false,
-  _toasterTimeout: null,
 
   silent: false,
-  vibrates: true,
   isResending: false,
   resendReceived: 0,
   resendExpecting: 0,
@@ -47,27 +33,9 @@ var NotificationScreen = {
 
   init: function ns_init() {
     window.addEventListener('mozChromeNotificationEvent', this);
-    this.toaster = document.getElementById('notification-toaster');
-    this.toasterIcon = document.getElementById('toaster-icon');
-    this.toasterTitle = document.getElementById('toaster-title');
-    this.toasterDetail = document.getElementById('toaster-detail');
-
-    ['click', 'wheel'].forEach(function(evt) {
-      this.toaster.addEventListener(evt, this);
-    }, this);
-
     window.addEventListener('ftuopen', this);
     window.addEventListener('ftudone', this);
     window.addEventListener('desktop-notification-resend', this);
-
-    this._sound = 'style/notifications/ringtones/notifier_firefox.opus';
-
-    this.ringtoneURL = new SettingsURL();
-
-    var self = this;
-    SettingsCache.observe('notification.ringtone', '', function(value) {
-      self._sound = self.ringtoneURL.set(value);
-    });
   },
 
   handleEvent: function ns_handleEvent(evt) {
@@ -87,9 +55,6 @@ var NotificationScreen = {
             break;
         }
         break;
-      case 'click':
-        this.click();
-        break;
       case 'ftuopen':
         this.toaster.removeEventListener('click', this);
         break;
@@ -103,27 +68,6 @@ var NotificationScreen = {
         }
         break;
     }
-  },
-
-  click: function ns_click() {
-    // we use displayed class as the flag of showing of toaster
-    if (!this.toaster.classList.contains('displayed')) {
-      return;
-    }
-    var notification = this._notifications[this.toaster.dataset.notificationId];
-    if (!notification) {
-      return;
-    }
-    // we sends the click to gecko and others
-    this.clickNotification(notification.id);
-
-    // Desktop notifications are removed when they are clicked (see bug 890440)
-    if (notification.type === 'desktop-notification' &&
-        notification.obsoleteAPI === 'true') {
-      this.removeNotification(notification.id);
-    }
-    // we only have toast now, so, try to close the toast.
-    this.closeToast();
   },
 
   clickNotification: function ns_clickNotification(id) {
@@ -142,74 +86,33 @@ var NotificationScreen = {
     }));
   },
 
-  updateToaster: function ns_updateToaster(detail) {
-    if (detail.icon) {
-      this.toasterIcon.src = detail.icon;
-      this.toasterIcon.hidden = false;
-    } else {
-      this.toasterIcon.hidden = true;
-    }
-
-    this.toaster.dataset.notificationId = detail.id;
-    this.toaster.dataset.type = detail.type;
-    this.toasterTitle.textContent = detail.title;
-    this.toasterTitle.lang = detail.lang;
-    this.toasterTitle.dir = detail.dir;
-
-    this.toasterDetail.textContent = detail.text;
-    this.toasterDetail.lang = detail.lang;
-    this.toasterDetail.dir = detail.dir;
-  },
-
   showToast: function ns_showToast(notification) {
-    this.updateToaster(notification);
-    this.toaster.classList.add('displayed');
-
-    if (this._toasterTimeout) {
-      clearTimeout(this._toasterTimeout);
-    }
-
-    this._toasterTimeout = setTimeout((function() {
-      this.closeToast();
-      this._toasterTimeout = null;
-      // We remove notification when toast is hidden. This may need more
-      // UX/Visual spec to define the proper way to show notification.
-      this.removeNotification(notification.id);
-    }).bind(this), this.TOASTER_TIMEOUT);
-  },
-
-  playSound: function ns_playSound(behavior) {
-    var ringtonePlayer = new Audio();
-    ringtonePlayer.src = behavior.soundFile || this._sound;
-    ringtonePlayer.mozAudioChannelType = 'notification';
-    ringtonePlayer.play();
-    window.setTimeout(function smsRingtoneEnder() {
-      ringtonePlayer.pause();
-      ringtonePlayer.removeAttribute('src');
-      ringtonePlayer.load();
-    }, 2000);
-  },
-
-  vibrate: function ns_vibrate(behavior) {
-    var pattern = [200, 200, 200];
-    if (behavior.vibrationPattern && behavior.vibrationPattern.length &&
-        behavior.vibrationPattern[0] > 0) {
-      pattern = behavior.vibrationPattern;
-    }
-
-    if (document.hidden) {
-      // bug 1030310: disable vibration for the email app when asleep
-      // bug 1050023: disable vibration for downloads when asleep
-      if (type.indexOf('download-notification-downloading') === -1 &&
-          manifestURL.indexOf('email.gaiamobile.org') === -1) {
-        window.addEventListener('visibilitychange', function waitOn() {
-          window.removeEventListener('visibilitychange', waitOn);
-          navigator.vibrate(pattern);
-        });
+    var self = this;
+    var msg = {
+      'detail': notification,
+      'title': notification.title,
+      'text': notification.text,
+      'icon': notification.icon,
+      'buttons': [{
+        'id': 'open',
+        'label': 'Open'
+      }],
+      'onClosed': function notifiationOnClosed(button) {
+        if (button === 'open') {
+          self.clickNotification(notification.id);
+          // Desktop notifications are removed when they are clicked
+          // (see bug 890440)
+          if (notification.type === 'desktop-notification' &&
+              notification.obsoleteAPI === 'true') {
+            self.removeNotification(notification.id);
+          }
+        } else {
+          self.removeNotification(notification.id);
+        }
       }
-    } else {
-      navigator.vibrate(pattern);
-    }
+    };
+    interactiveNotifications.showNotification(
+      InteractiveNotifications.TYPE.NORMAL, msg);
   },
 
   addNotification: function ns_addNotification(detail) {
@@ -225,8 +128,7 @@ var NotificationScreen = {
         'vibrationPattern': behavior.vibrationPattern
       },
       'noNotify': detail.noNotify,
-      'priority': this.PRIORITY_APPLICATIONS.indexOf(detail.manifestURL)
-                  !== -1,
+      'priority': this.PRIORITY_APPLICATIONS.indexOf(detail.manifestURL) !== -1,
       'obsoleteAPI': typeof detail.id === 'string' &&
                      detail.id.indexOf('app-notif-') === 0,
       'type': detail.type || 'desktop-notification',
@@ -237,8 +139,7 @@ var NotificationScreen = {
       'title': detail.title,
       'timestamp': detail.timestamp ? new Date(detail.timestamp) : new Date(),
       'text': detail.text
-    }
-    this._notifications[notification.id] = notification;
+    };
 
     // Tell gecko that we already show the notification.
     var event = document.createEvent('CustomEvent');
@@ -248,40 +149,26 @@ var NotificationScreen = {
     });
     window.dispatchEvent(event);
 
+    // XXX: we still need to know if the notification is silent in the future.
     // We turn the screen on if needed in order to let
     // the user see the notification toaster
-    if (!behavior.noscreen && typeof(ScreenManager) !== 'undefined' &&
-        !ScreenManager.screenEnabled) {
-      ScreenManager.turnScreenOn();
-    }
+    // if (!behavior.noscreen && typeof(ScreenManager) !== 'undefined' &&
+    //     !ScreenManager.screenEnabled) {
+    //   ScreenManager.turnScreenOn();
+    // }
 
-    var notify = !(notification.noNotify) &&
-      // don't notify for network-alerts notifications
-      (this.SILENT_APPLICATIONS.indexOf(notification.manifestURL) === -1);
+    // var notify = !(notification.noNotify) &&
+    //   // don't notify for network-alerts notifications
+    //   (this.SILENT_APPLICATIONS.indexOf(notification.manifestURL) === -1);
 
     // We don't need to show toast, play sould or vibrate when no need to
     // notify.
-    if (!notify) {
-      return;
-    }
+    // if (!notify) {
+    //   return;
+    // }
 
     // Notification toaster
     this.showToast(notification);
-
-    if (!this.isResending) {
-      // play sound
-      if (!this.silent) {
-        this.playSound(behavior);
-      }
-      // vibrate
-      if (this.vibrates) {
-        this.vibrate(behavior);
-      }
-    }
-  },
-
-  closeToast: function ns_closeToast() {
-    this.toaster.classList.remove('displayed');
   },
 
   removeNotification: function ns_removeNotification(notificationId) {
@@ -291,7 +178,6 @@ var NotificationScreen = {
       id: notificationId
     });
     window.dispatchEvent(event);
-    delete this._notifications[notificationId];
   }
 };
 
@@ -319,11 +205,3 @@ window.addEventListener('load', function() {
 });
 
 NotificationScreen.init();
-
-SettingsCache.observe('audio.volume.notification', 7, function(value) {
-  NotificationScreen.silent = (value == 0);
-});
-
-SettingsCache.observe('vibration.enabled', true, function(value) {
-  NotificationScreen.vibrates = value;
-});

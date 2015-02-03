@@ -4,11 +4,18 @@
 
 import time
 
-from marionette import expected
-from marionette import Wait
-from marionette.by import By
-from marionette.marionette import Actions
-from marionette.errors import FrameSendFailureError
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+    from marionette.marionette import Actions
+    from marionette.errors import FrameSendFailureError
+except:
+    from marionette_driver import (expected,
+                            Wait)
+    from marionette_driver.by import By
+    from marionette_driver.marionette import Actions
+    from marionette_driver.errors import FrameSendFailureError
 
 from gaiatest.apps.base import Base
 
@@ -42,6 +49,14 @@ class Camera(Base):
         Base.launch(self)
         self.wait_for_capture_ready()
         self.wait_for_element_not_displayed(*self._loading_screen_locator)
+
+    def wait_for_loading_spinner_hidden(self):
+        loading_spinner = self.marionette.find_element(*self._loading_screen_locator)
+        Wait(self.marionette).until(expected.element_not_displayed(loading_spinner))
+
+    def wait_for_loading_spinner_displayed(self):
+        loading_spinner = self.marionette.find_element(*self._loading_screen_locator)
+        Wait(self.marionette).until(expected.element_displayed(loading_spinner))
 
     @property
     def camera_mode(self):
@@ -78,7 +93,9 @@ class Camera(Base):
         self.wait_for_thumbnail_visible()
 
     def tap_capture(self):
-        self.marionette.find_element(*self._capture_button_locator).tap()
+        capture_button = self.marionette.find_element(*self._capture_button_locator)
+        Wait(self.marionette).until(expected.element_enabled(capture_button))
+        capture_button.tap()
 
     def tap_select_button(self):
         select = self.marionette.find_element(*self._select_button_locator)
@@ -147,6 +164,9 @@ class Camera(Base):
         thumbnail = Wait(self.marionette).until(expected.element_present(*self._thumbnail_button_locator))
         Wait(self.marionette).until(expected.element_displayed(thumbnail))
 
+    def tap_thumbnail(self):
+        self.marionette.find_element(*self._thumbnail_button_locator).tap()
+
     @property
     def is_thumbnail_visible(self):
         return self.is_element_displayed(*self._thumbnail_button_locator)
@@ -177,15 +197,69 @@ class ImagePreview(Base):
     _media_frame_locator = (By.ID, 'preview')
     _image_preview_locator = (By.CSS_SELECTOR, '#media-frame > img')
     _camera_button_locator = (By.ID, 'camera-button')
+    _video_play_button_locator = (By.CLASS_NAME, 'videoPlayerPlayButton')
+    _video_pause_button_locator = (By.CLASS_NAME, 'videoPlayerPauseButton')
+    _video_progress_bar_locator = (By.CLASS_NAME, 'videoPlayerProgress')
+    _options_button_locator = (By.CLASS_NAME, 'preview-option-icon')
+    _delete_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="delete"]')
+    _gallery_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="open-gallery"]')
+    _confirm_delete_button = (By.ID, 'dialog-yes')
+    _option_menu_locator = (By.CLASS_NAME, 'js-menu')
+
+    # for Gallery app switch
+    _progress_bar_locator = (By.ID, 'progress')
+    _thumbnail_list_view_locator = (By.CSS_SELECTOR, '#thumbnail-views > footer.thumbnails-list')
 
     @property
     def is_image_preview_visible(self):
         return self.is_element_displayed(*self._image_preview_locator)
 
+    @property
+    def is_video_play_button_visible(self):
+        return self.is_element_displayed(*self._video_play_button_locator)
+
+    @property
+    def is_progress_bar_showing(self):
+        return self.is_element_displayed(*self._video_progress_bar_locator)
+
     def wait_for_media_frame(self):
         media_frame = self.marionette.find_element(*self._media_frame_locator)
         screen_height = int(self.marionette.execute_script('return window.screen.height;'))
         Wait(self.marionette).until(lambda m: (media_frame.location['y'] + media_frame.size['height']) == screen_height)
+
+    def tap_video_player_play_button(self):
+        self.marionette.find_element(*self._video_play_button_locator).tap()
+        Wait(self.marionette).until(lambda m: self.is_progress_bar_showing is True)
+
+    def tap_video_player_pause_button(self):
+        self.marionette.find_element(*self._video_pause_button_locator).tap()
+        Wait(self.marionette).until(lambda m: self.is_progress_bar_showing is False)
+
+    def tap_options(self):
+        self.marionette.find_element(*self._options_button_locator).tap()
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(*self._option_menu_locator))))
+
+    def delete_file(self):
+        self.tap_options()
+        self.marionette.find_element(*self._delete_button_locator).tap()
+        element = Wait(self.marionette).until(expected.element_present(*self._confirm_delete_button))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
+
+    def tap_switch_to_gallery(self):
+        self.tap_options()
+        self.marionette.find_element(*self._gallery_button_locator).tap()
+        from gaiatest.apps.gallery.app import Gallery
+        gallery_app = Gallery(self.marionette)
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == gallery_app.name)
+        self.apps.switch_to_displayed_app()
+        self.wait_for_element_not_displayed(*self._progress_bar_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._thumbnail_list_view_locator))))
+
+        return gallery_app
 
     def tap_camera(self):
         self.marionette.find_element(*self._camera_button_locator).tap()

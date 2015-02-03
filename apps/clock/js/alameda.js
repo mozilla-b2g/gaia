@@ -1,16 +1,16 @@
 /**
- * alameda 0.0.9 Copyright (c) 2011-2012, The Dojo Foundation All Rights Reserved.
+ * alameda 0.2.0-native-promise Copyright (c) 2011-2014, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
  * see: http://github.com/requirejs/alameda for details
  */
 //Going sloppy to avoid 'use strict' string cost, but strict practices should
 //be followed.
 /*jslint sloppy: true, nomen: true, regexp: true */
-/*global setTimeout, process, document, navigator, importScripts */
+/*global document, navigator, importScripts, Promise, setTimeout */
 
 var requirejs, require, define;
 (function (global, undef) {
-    var prim, topReq, dataMain, src, subPath,
+    var topReq, dataMain, src, subPath,
         bootstrapConfig = requirejs || require,
         hasOwn = Object.prototype.hasOwnProperty,
         contexts = {},
@@ -50,14 +50,17 @@ var requirejs, require, define;
     }
 
     /**
-     * Mixes in properties from source into target,
+     * Simple function to mix in properties from source into target,
      * but only if target does not already have a property of the same name.
      */
     function mixin(target, source, force, deepStringMixin) {
         if (source) {
             eachProp(source, function (value, prop) {
                 if (force || !hasProp(target, prop)) {
-                    if (deepStringMixin && typeof value !== 'string') {
+                    if (deepStringMixin && typeof value === 'object' && value &&
+                        !Array.isArray(value) && typeof value !== 'function' &&
+                        !(value instanceof RegExp)) {
+
                         if (!target[prop]) {
                             target[prop] = {};
                         }
@@ -84,190 +87,6 @@ var requirejs, require, define;
         return g;
     }
 
-    //START prim
-    /**
-     * Changes from baseline prim
-     * - no hasProp or hasOwn (already defined in this file)
-     * - no hideResolutionConflict, want early errors, trusted code.
-     * - each() changed to Array.forEach
-     * - removed UMD registration
-     */
-    /**
-     * prim 0.0.4 Copyright (c) 2012-2013, The Dojo Foundation All Rights Reserved.
-     * Available via the MIT or new BSD license.
-     * see: http://github.com/requirejs/prim for details
-     */
-
-    /*global setImmediate, process, setTimeout */
-    (function () {
-        'use strict';
-        var waitingId,
-            waiting = [];
-
-        function check(p) {
-            if (hasProp(p, 'e') || hasProp(p, 'v')) {
-                throw new Error('nope');
-            }
-            return true;
-        }
-
-        function callWaiting() {
-            waitingId = 0;
-            var w = waiting;
-            waiting = [];
-            while (w.length) {
-                w.shift()();
-            }
-        }
-
-        function asyncTick(fn) {
-            waiting.push(fn);
-            if (!waitingId) {
-                waitingId = setTimeout(callWaiting, 0);
-            }
-        }
-
-        function syncTick(fn) {
-            fn();
-        }
-
-        function notify(ary, value) {
-            prim.nextTick(function () {
-                ary.forEach(function (item) {
-                    item(value);
-                });
-            });
-        }
-
-        prim = function prim(options) {
-            var p,
-                ok = [],
-                fail = [],
-                nextTick = options && options.sync ? syncTick : prim.nextTick;
-
-            return (p = {
-                callback: function (yes, no) {
-                    if (no) {
-                        p.errback(no);
-                    }
-
-                    if (hasProp(p, 'v')) {
-                        nextTick(function () {
-                            yes(p.v);
-                        });
-                    } else {
-                        ok.push(yes);
-                    }
-                },
-
-                errback: function (no) {
-                    if (hasProp(p, 'e')) {
-                        nextTick(function () {
-                            no(p.e);
-                        });
-                    } else {
-                        fail.push(no);
-                    }
-                },
-
-                finished: function () {
-                    return hasProp(p, 'e') || hasProp(p, 'v');
-                },
-
-                rejected: function () {
-                    return hasProp(p, 'e');
-                },
-
-                resolve: function (v) {
-                    if (check(p)) {
-                        p.v = v;
-                        notify(ok, v);
-                    }
-                    return p;
-                },
-                reject: function (e) {
-                    if (check(p)) {
-                        p.e = e;
-                        notify(fail, e);
-                    }
-                    return p;
-                },
-
-                start: function (fn) {
-                    p.resolve();
-                    return p.promise.then(fn);
-                },
-
-                promise: {
-                    then: function (yes, no) {
-                        var next = prim(options);
-
-                        p.callback(function (v) {
-                            try {
-                                if (yes && typeof yes === 'function') {
-                                    v = yes(v);
-                                }
-
-                                if (v && typeof v.then === 'function') {
-                                    v.then(next.resolve, next.reject);
-                                } else {
-                                    next.resolve(v);
-                                }
-                            } catch (e) {
-                                next.reject(e);
-                            }
-                        }, function (e) {
-                            var err;
-
-                            try {
-                                if (!no || typeof no !== 'function') {
-                                    next.reject(e);
-                                } else {
-                                    err = no(e);
-
-                                    if (err && typeof err.then === 'function') {
-                                        err.then(next.resolve, next.reject);
-                                    } else {
-                                        next.resolve(err);
-                                    }
-                                }
-                            } catch (e2) {
-                                next.reject(e2);
-                            }
-                        });
-
-                        return next.promise;
-                    },
-
-                    fail: function (no) {
-                        return p.promise.then(null, no);
-                    },
-
-                    end: function () {
-                        p.errback(function (e) {
-                            throw e;
-                        });
-                    }
-                }
-            });
-        };
-        prim.serial = function (ary) {
-            var result = prim().resolve().promise;
-            ary.forEach(function (item) {
-                result = result.then(function () {
-                    return item();
-                });
-            });
-            return result;
-        };
-
-        prim.nextTick = typeof setImmediate === 'function' ? setImmediate.bind() :
-            (typeof process !== 'undefined' && process.nextTick ?
-                process.nextTick : (typeof setTimeout !== 'undefined' ?
-                    asyncTick : syncTick));
-    }());
-    //END prim
-
     function newContext(contextName) {
         var req, main, makeMap, callDep, handlers, checkingLater, load, context,
             defined = {},
@@ -279,6 +98,7 @@ var requirejs, require, define;
                 waitSeconds: 7,
                 baseUrl: './',
                 paths: {},
+                bundles: {},
                 pkgs: {},
                 shim: {},
                 config: {}
@@ -292,7 +112,38 @@ var requirejs, require, define;
             startTime = (new Date()).getTime(),
             errCount = 0,
             trackedErrors = {},
-            urlFetched = {};
+            urlFetched = {},
+            bundlesMap = {};
+
+        //Uses a resolved promise to get an async resolution, but
+        //using the microtask queue inside a promise, instead of
+        //a setTimeout, so that other things in the main event
+        //loop do not hold up the processing.
+        var nextMicroTaskPass;
+        (function () {
+            'use strict';
+
+            var waitingResolving,
+                waiting = [];
+
+            function callWaiting() {
+                waitingResolving = null;
+                var w = waiting;
+                waiting = [];
+                while (w.length) {
+                    w.shift()();
+                }
+            }
+
+            nextMicroTaskPass = function (fn) {
+                waiting.push(fn);
+                if (!waitingResolving) {
+                    waitingResolving = new Promise(function (resolve, reject) {
+                        resolve();
+                    }).then(callWaiting).catch(delayedError);
+                }
+            };
+        }());
 
         /**
          * Trims the . and .. from an array of path segments.
@@ -304,8 +155,8 @@ var requirejs, require, define;
          * @param {Array} ary the array of path segments.
          */
         function trimDots(ary) {
-            var i, part;
-            for (i = 0; ary[i]; i += 1) {
+            var i, part, length = ary.length;
+            for (i = 0; i < length; i++) {
                 part = ary[i];
                 if (part === '.') {
                     ary.splice(i, 1);
@@ -338,11 +189,11 @@ var requirejs, require, define;
          * @returns {String} normalized name
          */
         function normalize(name, baseName, applyMap) {
-            var pkgName, pkgConfig, mapValue, nameParts, i, j, nameSegment,
+            var pkgMain, mapValue, nameParts, i, j, nameSegment, lastIndex,
                 foundMap, foundI, foundStarMap, starI,
                 baseParts = baseName && baseName.split('/'),
                 normalizedBaseParts = baseParts,
-                map = applyMap && config.map,
+                map = config.map,
                 starMap = map && map['*'];
 
             //Adjust any relative paths.
@@ -351,29 +202,26 @@ var requirejs, require, define;
                 //otherwise, assume it is a top-level require that will
                 //be relative to baseUrl in the end.
                 if (baseName) {
-                    if (getOwn(config.pkgs, baseName)) {
-                        //If the baseName is a package name, then just treat it as one
-                        //name to concat the name with.
-                        normalizedBaseParts = baseParts = [baseName];
-                    } else {
-                        //Convert baseName to array, and lop off the last part,
-                        //so that . matches that 'directory' and not name of the baseName's
-                        //module. For instance, baseName of 'one/two/three', maps to
-                        //'one/two/three.js', but we want the directory, 'one/two' for
-                        //this normalization.
-                        normalizedBaseParts = baseParts.slice(0, baseParts.length - 1);
+                    //Convert baseName to array, and lop off the last part,
+                    //so that . matches that 'directory' and not name of the baseName's
+                    //module. For instance, baseName of 'one/two/three', maps to
+                    //'one/two/three.js', but we want the directory, 'one/two' for
+                    //this normalization.
+                    normalizedBaseParts = baseParts.slice(0, baseParts.length - 1);
+                    name = name.split('/');
+                    lastIndex = name.length - 1;
+
+                    // If wanting node ID compatibility, strip .js from end
+                    // of IDs. Have to do this here, and not in nameToUrl
+                    // because node allows either .js or non .js to map
+                    // to same file.
+                    if (config.nodeIdCompat && jsSuffixRegExp.test(name[lastIndex])) {
+                        name[lastIndex] = name[lastIndex].replace(jsSuffixRegExp, '');
                     }
 
-                    name = normalizedBaseParts.concat(name.split('/'));
+                    name = normalizedBaseParts.concat(name);
                     trimDots(name);
-
-                    //Some use of packages may use a . path to reference the
-                    //'main' module name, so normalize for that.
-                    pkgConfig = getOwn(config.pkgs, (pkgName = name[0]));
                     name = name.join('/');
-                    if (pkgConfig && name === pkgName + '/' + pkgConfig.main) {
-                        name = pkgName;
-                    }
                 } else if (name.indexOf('./') === 0) {
                     // No baseName, so this is ID is resolved relative
                     // to baseUrl, pull off the leading dot.
@@ -382,10 +230,10 @@ var requirejs, require, define;
             }
 
             //Apply map config if available.
-            if (applyMap && (baseParts || starMap) && map) {
+            if (applyMap && map && (baseParts || starMap)) {
                 nameParts = name.split('/');
 
-                for (i = nameParts.length; i > 0; i -= 1) {
+                outerLoop: for (i = nameParts.length; i > 0; i -= 1) {
                     nameSegment = nameParts.slice(0, i).join('/');
 
                     if (baseParts) {
@@ -402,14 +250,10 @@ var requirejs, require, define;
                                     //Match, update name to the new value.
                                     foundMap = mapValue;
                                     foundI = i;
-                                    break;
+                                    break outerLoop;
                                 }
                             }
                         }
-                    }
-
-                    if (foundMap) {
-                        break;
                     }
 
                     //Check for a star map match, but just hold on to it,
@@ -432,9 +276,12 @@ var requirejs, require, define;
                 }
             }
 
-            return name;
-        }
+            // If the name points to a package's name, use
+            // the package main instead.
+            pkgMain = getOwn(config.pkgs, name);
 
+            return pkgMain ? pkgMain : name;
+        }
 
         function makeShimExports(value) {
             function fn() {
@@ -524,8 +371,8 @@ var requirejs, require, define;
                 //Support require(['a'])
                 callback = callback || function () {};
 
-                //Simulate async callback;
-                prim.nextTick(function () {
+                //Complete async to maintain expected execution semantics.
+                nextMicroTaskPass(function () {
                     //Grab any modules that were defined after a
                     //require call.
                     takeQueue();
@@ -538,9 +385,20 @@ var requirejs, require, define;
             req.isBrowser = typeof document !== 'undefined' &&
                 typeof navigator !== 'undefined';
 
-            req.nameToUrl = function (moduleName, ext) {
-                var paths, pkgs, pkg, pkgPath, syms, i, parentModule, url,
-                    parentPath;
+            req.nameToUrl = function (moduleName, ext, skipExt) {
+                var paths, syms, i, parentModule, url,
+                    parentPath, bundleId,
+                    pkgMain = getOwn(config.pkgs, moduleName);
+
+                if (pkgMain) {
+                    moduleName = pkgMain;
+                }
+
+                bundleId = getOwn(bundlesMap, moduleName);
+
+                if (bundleId) {
+                    return req.nameToUrl(bundleId, ext, skipExt);
+                }
 
                 //If a colon is in the URL, it indicates a protocol is used and it is just
                 //an URL to a file, or if it starts with a slash, contains a query arg (i.e. ?)
@@ -554,7 +412,6 @@ var requirejs, require, define;
                 } else {
                     //A module that needs to be converted to a path.
                     paths = config.paths;
-                    pkgs = config.pkgs;
 
                     syms = moduleName.split('/');
                     //For each module name segment, see if there is a path
@@ -562,7 +419,7 @@ var requirejs, require, define;
                     //and work up from it.
                     for (i = syms.length; i > 0; i -= 1) {
                         parentModule = syms.slice(0, i).join('/');
-                        pkg = getOwn(pkgs, parentModule);
+
                         parentPath = getOwn(paths, parentModule);
                         if (parentPath) {
                             //If an array, it means there are a few choices,
@@ -572,22 +429,12 @@ var requirejs, require, define;
                             }
                             syms.splice(0, i, parentPath);
                             break;
-                        } else if (pkg) {
-                            //If module name is just the package name, then looking
-                            //for the main module.
-                            if (moduleName === pkg.name) {
-                                pkgPath = pkg.location + '/' + pkg.main;
-                            } else {
-                                pkgPath = pkg.location;
-                            }
-                            syms.splice(0, i, pkgPath);
-                            break;
                         }
                     }
 
                     //Join the path parts together, then figure out if baseUrl is needed.
                     url = syms.join('/');
-                    url += (ext || (/\?/.test(url) ? '' : '.js'));
+                    url += (ext || (/^data\:|\?/.test(url) || skipExt ? '' : '.js'));
                     url = (url.charAt(0) === '/' || url.match(/^[\w\+\.\-]+:/) ? '' : config.baseUrl) + url;
                 }
 
@@ -602,15 +449,19 @@ var requirejs, require, define;
              * plain URLs like nameToUrl.
              */
             req.toUrl = function (moduleNamePlusExt) {
-                var index = moduleNamePlusExt.lastIndexOf('.'),
-                    ext = null;
+                var ext,
+                    index = moduleNamePlusExt.lastIndexOf('.'),
+                    segment = moduleNamePlusExt.split('/')[0],
+                    isRelative = segment === '.' || segment === '..';
 
-                if (index !== -1) {
+                //Have a file extension alias, and it is not the
+                //dots from a relative path.
+                if (index !== -1 && (!isRelative || index > 1)) {
                     ext = moduleNamePlusExt.substring(index, moduleNamePlusExt.length);
                     moduleNamePlusExt = moduleNamePlusExt.substring(0, index);
                 }
 
-                return req.nameToUrl(normalize(moduleNamePlusExt, relName), ext);
+                return req.nameToUrl(normalize(moduleNamePlusExt, relName), ext, true);
             };
 
             req.defined = function (id) {
@@ -628,8 +479,18 @@ var requirejs, require, define;
         function resolve(name, d, value) {
             if (name) {
                 defined[name] = value;
+                if (requirejs.onResourceLoad) {
+                    requirejs.onResourceLoad(context, d.map, d.deps);
+                }
             }
+            d.finished = true;
             d.resolve(value);
+        }
+
+        function reject(d, err) {
+            d.finished = true;
+            d.rejected = true;
+            d.reject(err);
         }
 
         function makeNormalize(relName) {
@@ -643,15 +504,15 @@ var requirejs, require, define;
                 ret = d.factory.apply(defined[name], d.values);
 
             if (name) {
-                //If setting exports via "module" is in play,
-                //favor that over return value and exports.
-                //After that, favor a non-undefined return
-                //value over exports use.
-                if (d.cjsModule && d.cjsModule.exports !== undef &&
-                        d.cjsModule.exports !== defined[name]) {
-                    ret = d.cjsModule.exports;
-                } else if (ret === undef && d.usingExports) {
-                    ret = defined[name];
+                // Favor return value over exports. If node/cjs in play,
+                // then will not have a return value anyway. Favor
+                // module.exports assignment over exports object.
+                if (ret === undef) {
+                    if (d.cjsModule) {
+                        ret = d.cjsModule.exports;
+                    } else if (d.usingExports) {
+                        ret = defined[name];
+                    }
                 }
             } else {
                 //Remove the require deferred from the list to
@@ -665,7 +526,7 @@ var requirejs, require, define;
         //This method is attached to every module deferred,
         //so the "this" in here is the module deferred object.
         function depFinished(val, i) {
-            if (!this.rejected() && !this.depDefined[i]) {
+            if (!this.rejected && !this.depDefined[i]) {
                 this.depDefined[i] = true;
                 this.depCount += 1;
                 this.values[i] = val;
@@ -676,8 +537,10 @@ var requirejs, require, define;
         }
 
         function makeDefer(name) {
-            var d = prim({
-                sync: !!name
+            var d = {};
+            d.promise = new Promise(function (resolve, reject) {
+                d.resolve = resolve;
+                d.reject = reject;
             });
             d.map = name ? makeMap(name, null, true) : {};
             d.depCount = 0;
@@ -710,12 +573,12 @@ var requirejs, require, define;
 
         function makeErrback(d, name) {
             return function (err) {
-                if (!d.rejected()) {
+                if (!d.rejected) {
                     if (!err.dynaId) {
                         err.dynaId = 'id' + (errCount += 1);
                         err.requireModules = [name];
                     }
-                    d.reject(err);
+                    reject(d, err);
                 }
             };
         }
@@ -727,7 +590,7 @@ var requirejs, require, define;
             //in the then callback execution.
             callDep(depMap, relName).then(function (val) {
                 d.depFinished(val, i);
-            }, makeErrback(d, depMap.id)).fail(makeErrback(d, d.map.id));
+            }, makeErrback(d, depMap.id)).catch(makeErrback(d, d.map.id));
         }
 
         function makeLoad(id) {
@@ -748,7 +611,7 @@ var requirejs, require, define;
                 /*jslint evil: true */
                 var d = getDefer(id),
                     map = makeMap(makeMap(id).n),
-                    plainId = map.id;
+                   plainId = map.id;
 
                 fromTextCalled = true;
 
@@ -774,8 +637,8 @@ var requirejs, require, define;
                 try {
                     req.exec(text);
                 } catch (e) {
-                    throw new Error('fromText eval for ' + plainId +
-                                    ' failed: ' + e);
+                    reject(d, new Error('fromText eval for ' + plainId +
+                                    ' failed: ' + e));
                 }
 
                 //Execute any waiting define created by the plainId
@@ -855,7 +718,7 @@ var requirejs, require, define;
         }
 
         callDep = function (map, relName) {
-            var args,
+            var args, bundleId,
                 name = map.id,
                 shim = config.shim[name];
 
@@ -865,26 +728,33 @@ var requirejs, require, define;
                 main.apply(undef, args);
             } else if (!hasProp(deferreds, name)) {
                 if (map.pr) {
-                    return callDep(makeMap(map.pr)).then(function (plugin) {
-                        //Redo map now that plugin is known to be loaded
-                        var newMap = makeMap(name, relName, true),
-                            newId = newMap.id,
-                            shim = getOwn(config.shim, newId);
+                    //If a bundles config, then just load that file instead to
+                    //resolve the plugin, as it is built into that bundle.
+                    if ((bundleId = getOwn(bundlesMap, name))) {
+                        map.url = req.nameToUrl(bundleId);
+                        load(map);
+                    } else {
+                        return callDep(makeMap(map.pr)).then(function (plugin) {
+                            //Redo map now that plugin is known to be loaded
+                            var newMap = makeMap(name, relName, true),
+                                newId = newMap.id,
+                                shim = getOwn(config.shim, newId);
 
-                        //Make sure to only call load once per resource. Many
-                        //calls could have been queued waiting for plugin to load.
-                        if (!hasProp(calledPlugin, newId)) {
-                            calledPlugin[newId] = true;
-                            if (shim && shim.deps) {
-                                req(shim.deps, function () {
+                            //Make sure to only call load once per resource. Many
+                            //calls could have been queued waiting for plugin to load.
+                            if (!hasProp(calledPlugin, newId)) {
+                                calledPlugin[newId] = true;
+                                if (shim && shim.deps) {
+                                    req(shim.deps, function () {
+                                        callPlugin(plugin, newMap, relName);
+                                    });
+                                } else {
                                     callPlugin(plugin, newMap, relName);
-                                });
-                            } else {
-                                callPlugin(plugin, newMap, relName);
+                                }
                             }
-                        }
-                        return getDefer(newId).promise;
-                    });
+                            return getDefer(newId).promise;
+                        });
+                    }
                 } else if (shim && shim.deps) {
                     req(shim.deps, function () {
                         load(map);
@@ -967,12 +837,6 @@ var requirejs, require, define;
             return result;
         };
 
-        function makeConfig(name) {
-            return function () {
-                return config.config[name] || {};
-            };
-        }
-
         handlers = {
             require: function (name) {
                 return makeRequire(name);
@@ -989,8 +853,10 @@ var requirejs, require, define;
                 return {
                     id: name,
                     uri: '',
-                    exports: defined[name],
-                    config: makeConfig(name)
+                    exports: handlers.exports(name),
+                    config: function () {
+                        return getOwn(config.config, name) || {};
+                    }
                 };
             }
         };
@@ -999,7 +865,7 @@ var requirejs, require, define;
             var id = d.map.id;
 
             traced[id] = true;
-            if (!d.finished() && d.deps) {
+            if (!d.finished && d.deps) {
                 d.deps.forEach(function (depMap) {
                     var depId = depMap.id,
                         dep = !hasProp(handlers, depId) && getDefer(depId);
@@ -1008,7 +874,7 @@ var requirejs, require, define;
                     //being defined, so still in the registry,
                     //and only if it has not been matched up
                     //in the module already.
-                    if (dep && !dep.finished() && !processed[depId]) {
+                    if (dep && !dep.finished && !processed[depId]) {
                         if (hasProp(traced, depId)) {
                             d.deps.forEach(function (depMap, i) {
                                 if (depMap.id === depId) {
@@ -1034,10 +900,10 @@ var requirejs, require, define;
             if (loadCount === 0) {
                 //If passed in a deferred, it is for a specific require call.
                 //Could be a sync case that needs resolution right away.
-                //Otherwise, if no deferred, means a nextTick and all
-                //waiting require deferreds should be checked.
+                //Otherwise, if no deferred, means it was the last ditch
+                //timeout-based check, so check all waiting require deferreds.
                 if (d) {
-                    if (!d.finished()) {
+                    if (!d.finished) {
                         breakCycle(d, {}, {});
                     }
                 } else if (requireDeferreds.length) {
@@ -1053,7 +919,7 @@ var requirejs, require, define;
             if (expired) {
                 //If wait time expired, throw error of unloaded modules.
                 eachProp(deferreds, function (d) {
-                    if (!d.finished()) {
+                    if (!d.finished) {
                         notFinished.push(d.map.id);
                     }
                 });
@@ -1062,20 +928,25 @@ var requirejs, require, define;
                 req.onError(err);
             } else if (loadCount || requireDeferreds.length) {
                 //Something is still waiting to load. Wait for it, but only
-                //if a later check is not already scheduled.
+                //if a later check is not already scheduled. Using setTimeout
+                //because want other things in the event loop to happen,
+                //to help in dependency resolution, and this is really a
+                //last ditch check, mostly for detecting timeouts (cycles
+                //should come through the main() use of check()), so it can
+                //wait a bit before doing the final check.
                 if (!checkingLater) {
                     checkingLater = true;
-                    prim.nextTick(function () {
+                    setTimeout(function () {
                         checkingLater = false;
                         check();
-                    });
+                    }, 70);
                 }
             }
         }
 
         //Used to break out of the promise try/catch chains.
         function delayedError(e) {
-            prim.nextTick(function () {
+            setTimeout(function () {
                 if (!e.dynaId || !trackedErrors[e.dynaId]) {
                     trackedErrors[e.dynaId] = true;
                     req.onError(e);
@@ -1101,7 +972,7 @@ var requirejs, require, define;
                 deps = [];
             }
 
-            d.promise.fail(errback || delayedError);
+            d.promise.catch(errback || delayedError);
 
             //Use name if no relName
             relName = relName || name;
@@ -1150,6 +1021,8 @@ var requirejs, require, define;
                     } else if (depName === "module") {
                         //CommonJS module spec 1.1
                         d.values[i] = d.cjsModule = handlers.module(name);
+                    } else if (depName === undefined) {
+                        d.values[i] = undefined;
                     } else {
                         waitForDep(depMap, relName, d, i);
                     }
@@ -1197,29 +1070,35 @@ var requirejs, require, define;
 
             //Save off the paths and packages since they require special processing,
             //they are additive.
-            var primId,
-                pkgs = config.pkgs,
-                shim = config.shim,
+            var shim = config.shim,
                 objs = {
                     paths: true,
+                    bundles: true,
                     config: true,
                     map: true
                 };
 
             eachProp(cfg, function (value, prop) {
                 if (objs[prop]) {
-                    if (prop === 'map') {
-                        if (!config.map) {
-                            config.map = {};
-                        }
-                        mixin(config[prop], value, true, true);
-                    } else {
-                        mixin(config[prop], value, true);
+                    if (!config[prop]) {
+                        config[prop] = {};
                     }
+                    mixin(config[prop], value, true, true);
                 } else {
                     config[prop] = value;
                 }
             });
+
+            //Reverse map the bundles
+            if (cfg.bundles) {
+                eachProp(cfg.bundles, function (value, prop) {
+                    value.forEach(function (v) {
+                        if (v !== prop) {
+                            bundlesMap[v] = prop;
+                        }
+                    });
+                });
+            }
 
             //Merge shim
             if (cfg.shim) {
@@ -1241,41 +1120,31 @@ var requirejs, require, define;
             //Adjust packages if necessary.
             if (cfg.packages) {
                 cfg.packages.forEach(function (pkgObj) {
-                    var location;
+                    var location, name;
 
                     pkgObj = typeof pkgObj === 'string' ? { name: pkgObj } : pkgObj;
+
+                    name = pkgObj.name;
                     location = pkgObj.location;
+                    if (location) {
+                        config.paths[name] = pkgObj.location;
+                    }
 
-                    //Create a brand new object on pkgs, since currentPackages can
-                    //be passed in again, and config.pkgs is the internal transformed
-                    //state for all package configs.
-                    pkgs[pkgObj.name] = {
-                        name: pkgObj.name,
-                        location: location || pkgObj.name,
-                        //Remove leading dot in main, so main paths are normalized,
-                        //and remove any trailing .js, since different package
-                        //envs have different conventions: some use a module name,
-                        //some use a file name.
-                        main: (pkgObj.main || 'main')
-                              .replace(currDirRegExp, '')
-                              .replace(jsSuffixRegExp, '')
-                    };
+                    //Save pointer to main module ID for pkg name.
+                    //Remove leading dot in main, so main paths are normalized,
+                    //and remove any trailing .js, since different package
+                    //envs have different conventions: some use a module name,
+                    //some use a file name.
+                    config.pkgs[name] = pkgObj.name + '/' + (pkgObj.main || 'main')
+                                 .replace(currDirRegExp, '')
+                                 .replace(jsSuffixRegExp, '');
                 });
-
-                //Done with modifications, assing packages back to context config
-                config.pkgs = pkgs;
-            }
-
-            //If want prim injected, inject it now.
-            primId = config.definePrim;
-            if (primId) {
-                waiting[primId] = [primId, [], function () { return prim; }];
             }
 
             //If a deps array or a config callback is specified, then call
             //require with those args. This is useful when require is defined as a
             //config object before require.js is loaded.
-            if (cfg.deps) {
+            if (cfg.deps || cfg.callback) {
                 req(cfg.deps, cfg.callback);
             }
 
@@ -1331,7 +1200,7 @@ var requirejs, require, define;
     }
 
     //data-main support.
-    if (topReq.isBrowser) {
+    if (topReq.isBrowser && !contexts._.config.skipDataMain) {
         dataMain = document.querySelectorAll('script[data-main]')[0];
         dataMain = dataMain && dataMain.getAttribute('data-main');
         if (dataMain) {

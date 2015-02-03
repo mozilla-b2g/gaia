@@ -33,6 +33,12 @@ marionette('Messages Composer', function() {
     assert.isFalse(element.displayed(), 'Element should not be displayed');
   }
 
+  function assertIsFocused(element, message) {
+    assert.isTrue(element.scriptWith(function(el) {
+      return document.activeElement === el;
+    }), message);
+  }
+
   setup(function() {
     messagesApp = Messages.create(client);
     activityCallerApp = MessagesActivityCaller.create(client);
@@ -40,6 +46,58 @@ marionette('Messages Composer', function() {
     client.contentScript.inject(
       __dirname + '/mocks/mock_navigator_moz_mobile_message.js'
     );
+    client.contentScript.inject(
+      __dirname + '/mocks/mock_navigator_moz_icc_manager.js'
+    );
+  });
+
+  suite('Preserve message input while navigating', function() {
+    var composer, threadList, thread;
+    var message = 'test message';
+
+    function waitForThreadList() {
+      client.helper.waitForElement(threadList.mmsThread);
+    }
+
+    function createMMSThread() {
+      threadList.navigateToComposer();
+      messagesApp.addRecipient('a@b.c');
+      messagesApp.addRecipient('s@p.c');
+      composer.messageInput.sendKeys('MMS thread.');
+      messagesApp.send();
+    }
+
+    setup(function() {
+      thread = messagesApp.Thread;
+      composer = messagesApp.Composer;
+      threadList = messagesApp.ThreadList;
+
+      messagesApp.launch();
+      createMMSThread();
+      messagesApp.performHeaderAction();
+      waitForThreadList();
+      threadList.mmsThread.tap();
+
+      composer.messageInput.tap();
+      composer.messageInput.sendKeys(message);
+    });
+
+    test('Message input is preserved when navigating to and from group-view',
+    function() {
+      thread.headerTitle.tap();
+      client.helper.waitForElement(messagesApp.Participants.main);
+      messagesApp.performHeaderAction();
+      assert.equal(composer.messageInput.text(), message);
+    });
+
+    test('Message input is preserved when navigating to and from ' +
+    'message-report', function() {
+      messagesApp.contextMenu(thread.message);
+      messagesApp.selectAppMenuOption('View message report');
+      client.helper.waitForElement(messagesApp.Report.main);
+      messagesApp.performHeaderAction();
+      assert.equal(composer.messageInput.text(), message);
+    });
   });
 
   suite('Messages Composer Test Suite', function() {
@@ -161,12 +219,45 @@ marionette('Messages Composer', function() {
         el.scrollIntoView(false);
       });
 
+      // Remove this workaround once Marionette bug is resolved:
+      // "Bug 1046706 - "tap" does not find the element after scrolling in APZC"
+      client.helper.wait(600);
+
       composer.attachment.tap();
       messagesApp.selectAttachmentMenuOption('Remove image');
 
       client.helper.waitForElementToDisappear(composer.mmsLabel);
       client.helper.waitForElement(composer.charCounter);
       assert.equal(composer.charCounter.text(), '15/1');
+
+      // Case #14: add an email recipient, the message is converted to MMS.
+      messagesApp.addRecipient('a@b.com');
+      assertIsDisplayed(composer.mmsLabel);
+
+      // Case #15: remove the email recipient, the message is converted to SMS.
+      messagesApp.Composer.recipients[0].tap();
+      messagesApp.clearRecipient();
+      assertIsNotDisplayed(composer.mmsLabel);
+    });
+
+    test('Subject focus management', function() {
+      var composer = messagesApp.Composer;
+
+      // Case #1: Add subject input, once added it should be focused
+      messagesApp.showSubject();
+      assertIsFocused(composer.subjectInput, 'Subject input should be focused');
+
+      // Case #2: Hide subject field, focus should be moved to message field
+      messagesApp.hideSubject();
+      assertIsFocused(composer.messageInput, 'Message input should be focused');
+
+      // Case #3: Focus should be moved to message input when subject is removed
+      // by user with backspace key as well
+      messagesApp.showSubject();
+      assertIsFocused(composer.subjectInput, 'Subject input should be focused');
+
+      composer.subjectInput.sendKeys(Messages.Chars.BACKSPACE);
+      assertIsFocused(composer.messageInput, 'Message input should be focused');
     });
   });
 });

@@ -159,6 +159,7 @@
     if (evt.type.startsWith('input-app')) {
       inputWindow = evt.detail;
     }
+    this._debug('handleEvent: ' + evt.type);
     switch (evt.type) {
       case 'input-appopened':
       case 'input-appheightchanged':
@@ -189,6 +190,18 @@
         }
         break;
       case 'input-appclosed':
+        // bug 1112416: when blur and focus successively fire, there is a racing
+        // where we may close an inputWindow while its input app is still busy
+        // to become ready. If we were to set that inputWindow as inactive
+        // input, it would abort that input app's becoming-ready progress and
+        // we'll get stuck. Thus, do not really set the inactiveness when we
+        // know the inputWindow is waiting to be ready.
+        this._debug('inputWindow pendingReady: ' + inputWindow._pendingReady);
+
+        if (inputWindow._pendingReady) {
+          return;
+        }
+
         inputWindow._setAsActiveInput(false);
         if (!this._currentWindow) {
           this._kbPublish('keyboardhidden', undefined);
@@ -261,15 +274,23 @@
     this.isOutOfProcessEnabled = value;
   };
 
+  // returns true if the currentWindow is being removed
+  // we can't use Array.prototype.every() or some() because we'll anyway have
+  // to loop through the whole array
   InputWindowManager.prototype._onInputLayoutsRemoved =
   function iwm_onInputLayoutsRemoved(manifestURLs) {
+    var currentWindowRemoved = false;
+
     manifestURLs.forEach(manifestURL => {
       if (this._currentWindow &&
           this._currentWindow.manifestURL === manifestURL) {
         this.hideInputWindow();
+        currentWindowRemoved = true;
       }
       this._removeInputApp(manifestURL);
     });
+
+    return currentWindowRemoved;
   };
 
   InputWindowManager.prototype._removeInputApp =

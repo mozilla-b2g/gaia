@@ -13,7 +13,8 @@
     <link href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css" rel="stylesheet" type="text/css">
     <link href="../shared/elements/gaia-icons/gaia-icons.css" rel="stylesheet" type="text/css">
 
-    <link rel="manifest" href="../manifest.webapp">
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
     <link rel="localization" href="locales/fxa.{locale}.properties">
 
     <link rel="import" href="elements/fxa-email.html">
@@ -90,10 +91,10 @@
       <section>
         <h1 id="fxa-error-title">Error message</h1>
         <p><small id="fxa-error-msg">Error message.</small></p>
-        <menu>
-          <button class="full" data-l10n-id="fxa-ok" id="fxa-error-ok">OK</button>
-        </menu>
       </section>
+      <menu>
+        <button class="full" data-l10n-id="fxa-ok" id="fxa-error-ok">OK</button>
+      </menu>
     </form>
   </body>
 </html>

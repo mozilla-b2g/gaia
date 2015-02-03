@@ -57,7 +57,6 @@ suite('GaiaGrid > Bookmark', function() {
       assert.isTrue(features.contains('name=' + subject.name));
       assert.isTrue(features.contains('icon=' + subject.icon));
       assert.isTrue(features.contains('remote=true'));
-      assert.isTrue(features.contains('useAsyncPanZoom=true'));
       assert.isFalse(features.contains('searchName='));
       assert.isFalse(features.contains('searchUrl='));
       done();

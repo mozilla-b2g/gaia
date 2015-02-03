@@ -15,16 +15,24 @@
     SYSTEM_ONLY_KEYS: Object.freeze([
       'power',
       'home',
+      'mozhomescreen',
       'exit'
     ]),
     APP_CANCELLED_KEYS: Object.freeze([
       'volumeup',
       'volumedown'
     ]),
+    // Home key has different .key values on different devices.
+    HOME_KEY_ALIAS: Object.freeze([
+      'home',
+      'mozhomescreen',
+      'exit'
+    ]),
     TRANSLATION_TABLE: Object.freeze({
       'power': 'sleep-button',
       'exit': 'home-button',
       'home': 'home-button',
+      'mozhomescreen': 'home-button',
       'volumeup': 'volume-up-button',
       'volumedown': 'volume-down-button'
     }),
@@ -51,6 +59,9 @@
       return event.type === 'keyup' ||
         event.type === 'keydown';
     },
+    _targetToIframe: function bkem_targetToIframe(event) {
+      return (event.target instanceof HTMLIFrameElement);
+    },
     _applyPolicy: function bkem_applyPolicy(event) {
       // all other unknown keys are default to APP-ONLY
       // so we assume there is no translation needed by default
@@ -62,14 +73,21 @@
       } else if (this._isAppCancelledKey(event) && this._isAfterEvent(event)) {
         // if embedded frame cancel the event, we need to translate it then
         needTranslation = !event.embeddedCancelled;
-      } else if (this._isKeyEvent(event)){
+      } else if (this._isKeyEvent(event) &&
+          !this._targetToIframe(event)) {
+        // When focus is on embedded iframe and user press hardware key, system
+        // app will receive an extra keydown keyup event targeted to the iframe.
+        // We should ignore this event otherwise we will have strange state
+        // transition in HardwareButton module.
+        // Please see https://bugzilla.mozilla.org/show_bug.cgi?id=989198#c194
+        // and https://bugzilla.mozilla.org/show_bug.cgi?id=1014418#c20
         needTranslation = true;
       }
       return needTranslation;
     },
     isHomeKey: function bkem_isHomeKey(event) {
       var key = this._getLowerCaseKeyName(event);
-      return key === 'exit' || key === 'home';
+      return (this.HOME_KEY_ALIAS.indexOf(key) > -1);
     },
     isHardwareKeyEvent: function bkem_isHardwareKeyEvent(type) {
       return (this.KEY_EVENTS.indexOf(type) > -1);

@@ -1,4 +1,5 @@
 'use strict';
+/* global Format */
 
 //
 // Create a <video> element and  <div> containing a video player UI and
@@ -18,13 +19,15 @@
 // and if the user clicks play again, we resume the video where we left off.
 //
 function VideoPlayer(container) {
-  if (typeof container === 'string')
+  if (typeof container === 'string') {
     container = document.getElementById(container);
+  }
 
   function newelt(parent, type, classes) {
     var e = document.createElement(type);
-    if (classes)
+    if (classes) {
       e.className = classes;
+    }
     parent.appendChild(e);
     return e;
   }
@@ -124,8 +127,8 @@ function VideoPlayer(container) {
 
   function hidePoster() {
     poster.style.display = 'none';
+    poster.removeAttribute('src');
     if (capturedFrame) {
-      poster.removeAttribute('src');
       URL.revokeObjectURL(capturedFrame);
       capturedFrame = null;
     }
@@ -133,10 +136,12 @@ function VideoPlayer(container) {
 
   function showPoster() {
     poster.style.display = 'block';
-    if (capturedFrame)
+    if (capturedFrame) {
       poster.src = capturedFrame;
-    else
+    }
+    else {
       poster.src = posterurl;
+    }
   }
 
   // Call this when the container size changes
@@ -159,8 +164,9 @@ function VideoPlayer(container) {
     // Show the big central play button
     playbutton.classList.remove('hidden');
 
-    if (this.onpaused)
+    if (this.onpaused) {
       this.onpaused();
+    }
   };
 
   // Set up the playing state
@@ -241,15 +247,16 @@ function VideoPlayer(container) {
   player.onended = ended;
 
   function ended() {
-    if (dragging)
+    if (dragging) {
       return;
+    }
     if (endedTimer) {
       clearTimeout(endedTimer);
       endedTimer = null;
     }
     self.pause();
     self.init();
-  };
+  }
 
   // Update the slider and elapsed time as the video plays
   player.ontimeupdate = updateTime;
@@ -262,12 +269,15 @@ function VideoPlayer(container) {
       // We can't update a progress bar if we don't know how long
       // the video is. It is kind of a bug that the <video> element
       // can't figure this out for ogv videos.
-      if (player.duration === Infinity || player.duration === 0)
+      if (player.duration === Infinity || player.duration === 0) {
         return;
+      }
 
       var percent = (player.currentTime / player.duration) * 100 + '%';
+      var startEdge =
+        navigator.mozL10n.language.direction === 'ltr' ? 'left' : 'right';
       elapsedBar.style.width = percent;
-      playHead.style.left = percent;
+      playHead.style[startEdge] = percent;
     }
 
     // Since we don't always get reliable 'ended' events, see if
@@ -277,7 +287,7 @@ function VideoPlayer(container) {
     // a timeout a half a second after we'd expect an ended event.
     if (!endedTimer) {
       if (!dragging && player.currentTime >= player.duration - 1) {
-        var timeUntilEnd = (player.duration - player.currentTime + .5);
+        var timeUntilEnd = (player.duration - player.currentTime + 0.5);
         endedTimer = setTimeout(ended, timeUntilEnd * 1000);
       }
     }
@@ -296,8 +306,9 @@ function VideoPlayer(container) {
     if (document.hidden) {
       // If we're just showing the poster image when we're hidden
       // then we don't have to do anything special
-      if (!self.playerShowing)
+      if (!self.playerShowing) {
         return;
+      }
 
       self.pause();
 
@@ -335,8 +346,9 @@ function VideoPlayer(container) {
 
     // Don't do anything if we don't know our size.
     // This could happen if we get a resize event before our metadata loads
-    if (!videowidth || !videoheight)
+    if (!videowidth || !videoheight) {
       return;
+    }
 
     var width, height; // The size the video will appear, after rotation
     switch (rotation) {
@@ -420,8 +432,9 @@ function VideoPlayer(container) {
   slider.addEventListener('pan', function pan(e) {
     e.stopPropagation();
     // We can't do anything if we don't know our duration
-    if (player.duration === Infinity)
+    if (player.duration === Infinity) {
       return;
+    }
 
     if (!dragging) {  // Do this stuff on the first pan event only
       dragging = true;
@@ -434,6 +447,11 @@ function VideoPlayer(container) {
     var rect = backgroundBar.getBoundingClientRect();
     var position = computePosition(e.detail.position, rect);
     var pos = Math.min(Math.max(position, 0), 1);
+    // Handle pos so that slider moves correct way
+    // when user drags it for RTL locales
+    if (navigator.mozL10n.language.direction === 'rtl') {
+      pos = 1 - pos;
+    }
     player.currentTime = player.duration * pos;
     updateTime();
   });

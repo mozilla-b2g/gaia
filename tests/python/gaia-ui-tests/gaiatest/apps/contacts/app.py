@@ -2,11 +2,16 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette import expected
-from marionette.by import By
-from marionette.errors import JavascriptException
-from marionette import expected
-from marionette import Wait
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+    from marionette.errors import JavascriptException
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
+    from marionette_driver.errors import JavascriptException
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -21,12 +26,11 @@ class Contacts(Base):
     _favorites_list_locator = (By.ID, 'contacts-list-favorites')
     _select_all_wrapper_locator = (By.ID, 'select-all-wrapper')
     _select_all_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="selectAll"]')
-    _export_button_locator = (By.ID, 'select-action')
+    _select_action_button_locator = (By.ID, 'select-action')
     _status_message_locator = (By.ID, 'statusMsg')
-
+    _confirm_delete_locator = (By.CSS_SELECTOR, 'button.danger[data-l10n-id="delete"]')
+    _no_contacts_message_locator = (By.CSS_SELECTOR, '*[data-l10n-id="no-contacts"]')
     _group_container_selector = "#groups-container"
-
-    #  contacts
     _contact_locator = (By.CSS_SELECTOR, 'li[data-uuid]:not([data-group="ice"])')
 
     def launch(self):
@@ -92,7 +96,20 @@ class Contacts(Base):
         self.marionette.find_element(*self._select_all_button_locator).tap()
 
     def tap_export(self):
-        self.marionette.find_element(*self._export_button_locator).tap()
+        self._tap_action_button()
+
+    def tap_delete(self):
+        self._tap_action_button()
+
+    def _tap_action_button(self):
+        # The same button is used to do bulk operations (like delete or export). The displayed string changes though.
+        # Hence, let's define more semantically explicit functions.
+        self.marionette.find_element(*self._select_action_button_locator).tap()
+
+    def tap_confirm_delete(self):
+        delete_button = Wait(self.marionette).until(expected.element_present(*self._confirm_delete_locator))
+        Wait(self.marionette).until(expected.element_displayed(delete_button))
+        delete_button.tap()
 
     @property
     def is_favorites_list_displayed(self):
@@ -105,10 +122,15 @@ class Contacts(Base):
         Wait(self.marionette).until(expected.element_displayed(status))
         return status.text
 
+    @property
+    def is_no_contacts_message_displayed(self):
+        return self.marionette.find_element(*self._no_contacts_message_locator).is_displayed()
+
     class Contact(PageRegion):
 
-        _name_locator = (By.CSS_SELECTOR, 'p > strong')
-        _full_name_locator = (By.CSS_SELECTOR, 'p.contact-text')
+        _name_locator = (By.CSS_SELECTOR, 'bdi > strong')
+        _full_name_locator = (By.CSS_SELECTOR, 'p.contact-text bdi')
+        _image_locator = (By.CSS_SELECTOR, 'span[data-type="img"]')
 
         @property
         def name(self):
@@ -117,6 +139,10 @@ class Contacts(Base):
         @property
         def full_name(self):
             return self.root_element.find_element(*self._full_name_locator).text
+
+        @property
+        def image_data_group(self):
+            return self.root_element.find_element(*self._image_locator).get_attribute('data-group')
 
         def tap(self, return_class='ContactDetails'):
             self.root_element.find_element(*self._name_locator).tap()

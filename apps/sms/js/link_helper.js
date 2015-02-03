@@ -58,7 +58,7 @@ function checkDomain(domain) {
 }
 
 // defines things that can match right before to be a "safe" link
-var safeStart = /[\s,:;\(>]/;
+var safeStart = /[\s,:;\(>\u0080-\uFFFF]/;
 
 const MINIMUM_DIGITS_IN_PHONE_NUMBER = 5;
 const LEADING_DIGIT_BREAKPOINT = 7;

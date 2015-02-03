@@ -1,12 +1,7 @@
 'use strict';
 
 var assert = require('assert');
-var Home = require(
-  '../../../../apps/verticalhome/test/marionette/lib/home2');
-var Search = require(
-  '../../../../apps/search/test/marionette/lib/search');
 var Server = require('../../../../shared/test/integration/server');
-var System = require('./lib/system');
 var Rocketbar = require('./lib/rocketbar');
 
 marionette('Browser - Launch the same origin after navigating away',
@@ -36,13 +31,11 @@ marionette('Browser - Launch the same origin after navigating away',
   });
 
   setup(function() {
-    home = new Home(client);
+    home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
-    search = new Search(client);
-    system = new System(client);
+    search = client.loader.getAppClass('search');
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
-
-    search.removeGeolocationPermission();
   });
 
   test('opens a new sheet with window.open()', function() {

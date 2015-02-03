@@ -443,11 +443,6 @@ return [
         this.messagesContainer.classList.add('show-edit');
 
         this.selectedMessages = [];
-        var cbs = this.messagesContainer
-                  .querySelectorAll('input[type=checkbox]');
-        for (i = 0; i < cbs.length; i++) {
-          cbs[i].checked = false;
-        }
         this.selectedMessagesUpdated();
       }
       else {
@@ -461,16 +456,14 @@ return [
         this.editToolbar.classList.add('collapsed');
         this.messagesContainer.classList.remove('show-edit');
 
-        // (Do this based on the DOM nodes actually present; if the user has
-        // been scrolling a lot, this.selectedMessages may contain messages that
-        // no longer have a domNode around.)
-        var selectedMsgNodes =
-          this.getElementsByClassName('msg-header-item-selected');
-        for (i = selectedMsgNodes.length - 1; i >= 0; i--) {
-          selectedMsgNodes[i].classList.remove('msg-header-item-selected');
-        }
-
         this.selectedMessages = null;
+      }
+
+      // Reset checked mode for all message items.
+      var msgNodes = this.messagesContainer.querySelectorAll(
+        '.msg-header-item');
+      for (i = 0; i < msgNodes.length; i++) {
+        this.setMessageChecked(msgNodes[i], false);
       }
 
       // UXXX do we want to disable the buttons if nothing is selected?
@@ -515,11 +508,16 @@ return [
       // Unstar if everything is starred, otherwise star
       this.setAsStarred = !(numStarred && numStarred ===
                             this.selectedMessages.length);
+      mozL10n.setAttributes(this.starBtn,
+        this.setAsStarred ? 'message-star-button' : 'message-unstar-button');
+
       // Mark read if everything is unread, otherwise unread
       this.setAsRead = (hasMessages && numRead === 0);
 
       // Update mark read/unread button to show what action will be taken.
       this.readBtn.classList.toggle('unread', numRead > 0);
+      mozL10n.setAttributes(this.readBtn, numRead > 0 ?
+        'message-mark-unread-button' : 'message-mark-read-button');
 
       // Update disabled state based on if there are selected messages
       this.toolbarEditButtonNames.forEach(function(key) {
@@ -654,7 +652,7 @@ return [
 
       this.folderNameNode.textContent = folder.name;
       this.updateUnread(folder.unread);
-
+      this.messagesContainer.setAttribute('aria-label', folder.name);
       this.hideEmptyLayout();
 
       // You can't refresh messages in the localdrafts folder.
@@ -691,11 +689,6 @@ return [
       this.vScroll.clearDisplay();
       this.curPhrase = phrase;
       this.curFilter = filter;
-
-      if (phrase.length < 1) {
-        this.showEmptyLayout();
-        return false;
-      }
 
       // We are creating a new slice, so any pending snippet requests are moot.
       this._snippetRequestPending = false;
@@ -766,6 +759,21 @@ return [
       headerCursor.messagesSlice.requestGrowth(1, true);
     },
 
+    /**
+     * Set the refresh button state based on the new message status.
+     */
+    setRefreshState: function(syncing) {
+      if (syncing) {
+          this.refreshBtn.dataset.state = 'synchronizing';
+          this.refreshBtn.setAttribute('role', 'progressbar');
+          mozL10n.setAttributes(this.refreshBtn, 'messages-refresh-progress');
+      } else {
+        this.refreshBtn.dataset.state = 'synchronized';
+        this.refreshBtn.removeAttribute('role');
+        mozL10n.setAttributes(this.refreshBtn, 'messages-refresh-button');
+      }
+    },
+
     // The funny name because it is auto-bound as a listener for
     // messagesSlice events in headerCursor using a naming convention.
     messages_status: function(newStatus) {
@@ -787,8 +795,7 @@ return [
           this.syncingNode.classList.remove('collapsed');
           this.syncMoreNode.classList.add('collapsed');
           this.hideEmptyLayout();
-
-          this.refreshBtn.dataset.state = 'synchronizing';
+          this.setRefreshState(true);
       } else if (newStatus === 'syncfailed' ||
                  newStatus === 'synced') {
         if (newStatus === 'syncfailed') {
@@ -800,7 +807,7 @@ return [
             text: mozL10n.get('toaster-retryable-syncfailed')
           });
         }
-        this.refreshBtn.dataset.state = 'synchronized';
+        this.setRefreshState(false);
         this.syncingNode.classList.add('collapsed');
         this._manuallyTriggeredSync = false;
       }
@@ -1084,7 +1091,10 @@ return [
         return;
       }
 
-      var cacheNode = this.cloneNode(true);
+      // Safely clone the node so we can mutate the tree to cut out the parts
+      // we do not want/need.
+      var cacheNode =
+            htmlCache.cloneAsInertNodeAvoidingCustomElementHorrors(this);
       cacheNode.dataset.cached = 'cached';
 
       // Make sure toolbar is visible, could be hidden by drawer
@@ -1390,10 +1400,7 @@ return [
                                 sendState === 'error');
 
       // edit mode select state
-      if (this.editMode) {
-        var checkbox = msgNode.querySelector('input[type=checkbox]');
-        checkbox.checked = this.selectedMessages.indexOf(message) !== -1;
-      }
+      this.setSelectState(msgNode, message);
     },
 
     updateMatchedMessageDom: function(firstTime, matchedHeader) {
@@ -1464,13 +1471,8 @@ return [
         snippetNode.classList.toggle('icon-short', message.hasAttachments);
       }
 
-      // unread (we use very specific classes directly on the nodes rather than
-      // child selectors for hypothetical speed)
-      var unreadNode =
-        msgNode.querySelector('.msg-header-unread-section');
-      unreadNode.classList.toggle('msg-header-unread-section-unread',
-                                  !message.isRead);
-      dateNode.classList.toggle('msg-header-date-unread', !message.isRead);
+      // Set unread state.
+      msgNode.classList.toggle('unread', !message.isRead);
 
       // star
       var starNode = msgNode.querySelector('.msg-header-star');
@@ -1479,10 +1481,29 @@ return [
       subjectNode.classList.toggle('icon-short', message.isStarred);
 
       // edit mode select state
+      this.setSelectState(msgNode, message);
+    },
+
+    /**
+     * Set or unset the select state based on the edit mode.
+     */
+    setSelectState: function(msgNode, message) {
       if (this.editMode) {
-        var checkbox = msgNode.querySelector('input[type=checkbox]');
-        checkbox.checked = this.selectedMessages.indexOf(message) !== -1;
+        this.setMessageChecked(msgNode,
+          this.selectedMessages.indexOf(message) !== -1);
+      } else {
+        msgNode.removeAttribute('aria-selected');
       }
+    },
+
+    /**
+     * Set the checked state for the message item in the list. It sets both
+     * checkbox checked and aria-selected states.
+     */
+    setMessageChecked: function(msgNode, checked) {
+      var checkbox = msgNode.querySelector('input[type=checkbox]');
+      checkbox.checked = checked;
+      msgNode.setAttribute('aria-selected', checked);
     },
 
     /**
@@ -1566,15 +1587,13 @@ return [
 
       if (this.editMode) {
         var idx = this.selectedMessages.indexOf(header);
-        var cb = messageNode.querySelector('input[type=checkbox]');
         if (idx !== -1) {
           this.selectedMessages.splice(idx, 1);
-          cb.checked = false;
         }
         else {
           this.selectedMessages.push(header);
-          cb.checked = true;
         }
+        this.setMessageChecked(messageNode, idx === -1);
         this.selectedMessagesUpdated();
         return;
       }
@@ -1759,12 +1778,10 @@ return [
         }
 
         this.editBtn.disabled = true;
-        this.refreshBtn.dataset.state = 'synchronizing';
       } else {
         // After sync, the edit button should remain disabled only if
         // the list is empty.
         this.editBtn.disabled = this.isEmpty();
-        this.refreshBtn.dataset.state = 'synchronized';
 
         // Similarly, we must stop the refresh icons for each message
         // from rotating further. For instance, if we are offline, we
@@ -1774,6 +1791,7 @@ return [
           items[i].classList.remove('msg-header-syncing-section-syncing');
         }
       }
+      this.setRefreshState(syncing);
     },
 
     onRefresh: function() {

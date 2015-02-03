@@ -20,6 +20,7 @@ var App = (function() {
   function init() {
     navigator.mozL10n.once(function onLocalizationInit() {
       // Tell performance monitors that our chrome is visible.
+      window.performance.mark('navigationLoaded');
       window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
 
       initDB();
@@ -40,6 +41,7 @@ var App = (function() {
         if (!chromeInteractive) {
           chromeInteractive = true;
           // Tell performance monitors that our chrome is interactible.
+          window.performance.mark('navigationInteractive');
           window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
         }
       });
@@ -145,11 +147,11 @@ var App = (function() {
   }
 
   function showCurrentView(callback) {
-    // We need AlbumArt.getCoverURL() to display thumbnails; it might not have
-    // been loaded yet, so make sure we load it first. This should prevent us
-    // from having to worry about loading it anywhere else in the code, since
+    // We need AlbumArtCache.getCoverURL() to display thumbnails; it might not
+    // have been loaded yet, so make sure we load it first. This should prevent
+    // us from having to worry about loading it anywhere else in the code, since
     // showCurrentView is called pretty early in the startup process.
-    LazyLoader.load('js/metadata/album_art.js', function() {
+    LazyLoader.load('js/metadata/album_art_cache.js', function() {
       function showListView() {
         var option = TabBar.option;
         var info = {
@@ -212,7 +214,9 @@ var App = (function() {
           // XXX: Maybe we could emit these events earlier, when we've just
           // finished the "above the fold" content. That's hard to do on
           // arbitrary screen resolutions, though.
+          window.performance.mark('visuallyLoaded');
           window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+          window.performance.mark('contentInteractive');
           window.dispatchEvent(new CustomEvent('moz-content-interactive'));
 
           if (callback) {

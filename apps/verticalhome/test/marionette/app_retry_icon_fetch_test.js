@@ -2,8 +2,6 @@
 'use strict';
 
 var assert = require('assert');
-var Home2 = require('./lib/home2');
-var System = require('../../../../apps/system/test/marionette/lib/system');
 var AppInstall =
   require('../../../../apps/system/test/marionette/lib/app_install');
 
@@ -13,7 +11,7 @@ var iconAppState = require('./lib/icon_app_state');
 var launchIcon = require('./lib/launch_icon');
 
 marionette('Vertical Home - Hosted app failed icon fetch', function() {
-  var client = marionette.client(Home2.clientOptions);
+  var client = marionette.client(require(__dirname + '/client_options.js'));
   var server;
   setup(function(done) {
     var app = __dirname + '/fixtures/template_app';
@@ -27,8 +25,8 @@ marionette('Vertical Home - Hosted app failed icon fetch', function() {
   var system;
   var appInstall;
   setup(function() {
-    subject = new Home2(client);
-    system = new System(client);
+    subject = client.loader.getAppClass('verticalhome');
+    system = client.loader.getAppClass('system');
     appInstall = new AppInstall(client);
 
     system.waitForStartup();

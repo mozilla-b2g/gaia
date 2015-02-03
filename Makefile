@@ -85,12 +85,11 @@ DEVICE_DEBUG?=0
 NO_LOCK_SCREEN?=0
 SCREEN_TIMEOUT?=-1
 PRODUCTION?=0
-DESKTOP_SHIMS?=0
 GAIA_OPTIMIZE?=0
 GAIA_DEV_PIXELS_PER_PX?=1
 
 # Parallel build for multicores CPU
-P?=0
+P?=1
 
 # Alias
 ifdef GAIA_DPPX
@@ -109,16 +108,6 @@ GAIA_DEVICE_TYPE?=phone
 TEST_AGENT_PORT?=8789
 GAIA_APP_TARGET?=engineering
 
-# Flag to ease build a simulator-compatible profile
-SIMULATOR?=0
-ifeq ($(SIMULATOR),1)
-DESKTOP=1
-NOFTU=1
-NOFTUPING=1
-DEVICE_DEBUG=1
-SCREEN_TIMEOUT=0
-endif
-
 # Enable compatibility to run in Firefox Desktop
 DESKTOP?=$(DEBUG)
 # Disable first time experience screen
@@ -134,10 +123,6 @@ ifeq ($(DEVICE_DEBUG),1)
 REMOTE_DEBUGGER=1
 NO_LOCK_SCREEN=1
 SCREEN_TIMEOUT=300
-endif
-
-ifeq ($(SIMULATOR),1)
-SCREEN_TIMEOUT=0
 endif
 
 # We also disable FTU when running in Firefox or in debug mode
@@ -293,6 +278,7 @@ XPCSHELL_GUESS = $(firstword $(wildcard \
     $(XULRUNNER_DIRECTORY)/B2G.app/Contents/MacOS/xpcshell \
     $(XULRUNNER_DIRECTORY)/bin/XUL.framework/Versions/Current/xpcshell \
     $(XULRUNNER_DIRECTORY)/bin/xpcshell* \
+    $(XULRUNNER_DIRECTORY)/b2g/xpcshell* \
   ))
 ifneq (,$(XPCSHELL_GUESS))
 XPCSHELLSDK := $(abspath $(XPCSHELL_GUESS))
@@ -454,6 +440,13 @@ GAIA_CONCAT_LOCALES?=1
 
 # This variable is for customizing the keyboard layouts in a build.
 GAIA_KEYBOARD_LAYOUTS?=en,pt-BR,es,de,fr,fr-CA,pl,ko,zh-Hans-Pinyin,en-Dvorak
+# We optionally offers downloading the dictionary from the CDN, instead of
+# including it in the build.
+# Latin IMEngine-backed layouts specified under this variable will have
+# their dictionaries included in the package. The user has to optionally
+# download the dictionary in keyboard settings page in order to enable the
+# layout.
+GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS?=$(GAIA_KEYBOARD_LAYOUTS)
 
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
@@ -478,6 +471,7 @@ ifeq ($(strip $(NPM)),)
 endif
 
 TEST_AGENT_CONFIG="./dev_apps/test-agent/config.json"
+TEST_AGENT_COVERAGE="./build/config/test-agent-coverage.json"
 
 #Marionette testing variables
 #make sure we're python 2.7.x
@@ -499,18 +493,20 @@ define BUILD_CONFIG
   "PROFILE_FOLDER" : "$(PROFILE_FOLDER)", \
   "GAIA_SCHEME" : "$(SCHEME)", \
   "GAIA_DOMAIN" : "$(GAIA_DOMAIN)", \
-  "DEBUG" : $(DEBUG), \
-  "LOCAL_DOMAINS" : $(LOCAL_DOMAINS), \
-  "DESKTOP" : $(DESKTOP), \
-  "DEVICE_DEBUG" : $(DEVICE_DEBUG), \
-  "NO_LOCK_SCREEN" : $(NO_LOCK_SCREEN), \
-  "SCREEN_TIMEOUT" : $(SCREEN_TIMEOUT), \
+  "DEBUG" : "$(DEBUG)", \
+  "LOCAL_DOMAINS" : "$(LOCAL_DOMAINS)", \
+  "DESKTOP" : "$(DESKTOP)", \
+  "DEVICE_DEBUG" : "$(DEVICE_DEBUG)", \
+  "NO_LOCK_SCREEN" : "$(NO_LOCK_SCREEN)", \
+  "SCREEN_TIMEOUT" : "$(SCREEN_TIMEOUT)", \
   "SYSTEM" : "$(SYSTEM)", \
   "GAIA_PORT" : "$(GAIA_PORT)", \
   "GAIA_LOCALES_PATH" : "$(GAIA_LOCALES_PATH)", \
   "GAIA_INSTALL_PARENT" : "$(GAIA_INSTALL_PARENT)", \
   "LOCALES_FILE" : "$(subst \,\\,$(LOCALES_FILE))", \
   "GAIA_KEYBOARD_LAYOUTS" : "$(GAIA_KEYBOARD_LAYOUTS)", \
+  "GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS" : "$(GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS)", \
+  "GAIA_KEYBOARD_ENABLE_USER_DICT" : "$(GAIA_KEYBOARD_ENABLE_USER_DICT)", \
   "LOCALE_BASEDIR" : "$(subst \,\\,$(LOCALE_BASEDIR))", \
   "BUILD_APP_NAME" : "$(BUILD_APP_NAME)", \
   "PRODUCTION" : "$(PRODUCTION)", \
@@ -540,7 +536,8 @@ define BUILD_CONFIG
   "BUILD_DEBUG" : "$(BUILD_DEBUG)", \
   "VARIANT_PATH" : "$(VARIANT_PATH)", \
   "REBUILD": "$(REBUILD)", \
-  "P" : "$(P)"
+  "P" : "$(P)", \
+  "VERBOSE" : "$(VERBOSE)"
 }
 endef
 
@@ -582,9 +579,7 @@ webapp-zip: app
 
 # Get additional extensions
 $(STAGE_DIR)/additional-extensions/downloaded.json: build/config/additional-extensions.json $(wildcard .build/config/custom-extensions.json)
-ifeq ($(SIMULATOR),1)
-	# Prevent installing external firefox helper addon for the simulator
-else ifeq ($(DESKTOP),1)
+ifeq ($(DESKTOP),1)
 	@$(call run-js-command,additional-extensions)
 endif
 
@@ -683,16 +678,11 @@ extensions: $(STAGE_DIR)/additional-extensions/downloaded.json
 ifeq ($(BUILD_APP_NAME),*)
 	@rm -rf $(EXT_DIR)
 	@mkdir -p $(EXT_DIR)
-ifeq ($(SIMULATOR),1)
-	cp -r tools/extensions/{activities@gaiamobile.org,activities,alarms@gaiamobile.org,alarms,desktop-helper,desktop-helper@gaiamobile.org} $(EXT_DIR)/
-else ifeq ($(DESKTOP),1)
-	cp -r tools/extensions/* $(EXT_DIR)/
+ifeq ($(DESKTOP),1)
 	cp -r $(STAGE_DIR)/additional-extensions/* $(EXT_DIR)/
-else ifeq ($(DEBUG),1)
-	cp tools/extensions/httpd@gaiamobile.org $(EXT_DIR)/
-	cp -r tools/extensions/httpd $(EXT_DIR)/
-else ifeq ($(DESKTOP_SHIMS),1)
-	cp -r tools/extensions/{desktop-helper,desktop-helper@gaiamobile.org} $(EXT_DIR)/
+endif
+ifeq ($(DEBUG),1)
+	cp -r tools/extensions/{httpd,httpd@gaiamobile.org} $(EXT_DIR)/
 endif
 	@echo "Finished: Generating extensions"
 endif
@@ -708,6 +698,7 @@ NODE_MODULES_REV=$(shell cat gaia_node_modules.revision)
 # modules.tar and git-gaia-node-modules are the possible values for
 # $(NODE_MODULES_SRC). See the node_modules target.
 modules.tar: gaia_node_modules.revision
+	@echo Downloading latest node_modules package. This may take several minutes...
 	-$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/$(NODE_MODULES_REV) &&\
 	mv $(NODE_MODULES_REV) "$(NODE_MODULES_SRC)"
 
@@ -793,6 +784,10 @@ test-perf:
 	REPORTER=$(REPORTER) \
 	./bin/gaia-perf-marionette
 
+.PHONY: raptor
+raptor: node_modules
+	NO_LOCK_SCREEN=1 NOFTU=1 SCREEN_TIMEOUT=0 GAIA_DISTRIBUTION_DIR=node_modules/gaia-raptor/dist PROFILE_FOLDER=profile-raptor make reset-gaia
+
 .PHONY: tests
 tests: app offline
 	echo "Checking if the mozilla build has tests enabled..."
@@ -853,15 +848,15 @@ endif
 test-agent-test: node_modules
 ifneq ($(strip $(APP)),)
 	@echo 'Running tests for $(APP)';
-	./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER) $(APP_TEST_LIST)
+	./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) -t "$(TEST_AGENT_COVERAGE)" -m "://([a-zA-Z-_]+)\." --reporter $(REPORTER) $(APP_TEST_LIST)
 else
 	@echo 'Running all tests';
-	./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER)
+	./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) -t "$(TEST_AGENT_COVERAGE)" -m "://([a-zA-Z-_]+)\." --reporter $(REPORTER)
 endif
 
 .PHONY: test-agent-server
 test-agent-server: common-install node_modules
-	./node_modules/test-agent/bin/js-test-agent server --port $(TEST_AGENT_PORT) -c ./shared/test/unit/test-agent-server.js --http-path . --growl
+	./node_modules/test-agent/bin/js-test-agent server --port $(TEST_AGENT_PORT) -c ./build/config/test-agent-server.js -t "$(TEST_AGENT_COVERAGE)" -m "://([a-zA-Z-_]+)\." --http-path . --growl
 
 .PHONY: marionette
 marionette:
@@ -924,6 +919,7 @@ endif
 
 ifdef VERBOSE
 	JSHINT_ARGS := $(JSHINT_ARGS) --verbose
+	VERBOSE=1
 endif
 
 hint: node_modules/.bin/jshint
@@ -1033,7 +1029,7 @@ endif
 
 # clean out build products
 clean:
-	rm -rf profile profile-debug profile-test profile-gaia-test-b2g profile-gaia-test-firefox $(PROFILE_FOLDER) $(STAGE_DIR) docs minidumps
+	rm -rf profile profile-debug profile-test profile-gaia-test-b2g profile-gaia-test-firefox profile-raptor $(PROFILE_FOLDER) $(STAGE_DIR) docs minidumps
 
 # clean out build products and tools
 really-clean: clean
@@ -1042,11 +1038,11 @@ really-clean: clean
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
 
-build-test-unit: $(NPM_INSTALLED_PROGRAMS)
-	./bin/build-test $(shell find build/test/unit/*.test.js)
+build-test-unit: b2g_sdk $(NPM_INSTALLED_PROGRAMS)
+	@$(call run-js-command,build-test,TEST_TYPE=unit REPORTER=$(REPORTER) TRY_ENV=$(TRY_ENV) TEST_FILES="$(TEST_FILES)")
 
-build-test-integration: $(NPM_INSTALLED_PROGRAMS)
-	./bin/build-test $(shell find build/test/integration/*.test.js)
+build-test-integration: b2g_sdk $(NPM_INSTALLED_PROGRAMS)
+	@$(call run-js-command,build-test,TEST_TYPE=integration REPORTER=$(REPORTER) TRY_ENV=$(TRY_ENV) TEST_FILES="$(TEST_FILES)")
 
 build-test-unit-coverage: $(NPM_INSTALLED_PROGRAMS)
 	@$(call run-build-coverage,build/test/unit)

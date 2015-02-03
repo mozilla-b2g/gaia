@@ -9,11 +9,21 @@
     'unregisterHierarchy'
   ];
   HierarchyManager.STATES = [
-    'getTopMostWindow'
+    'getTopMostWindow',
+    'getTopMostUI'
+  ];
+  HierarchyManager.EVENTS = [
+    'home',
+    'holdhome',
+    'system-resize',
+    'launchactivity',
+    'mozChromeEvent',
+    'windowopened',
+    'windowclosed'
   ];
   BaseModule.create(HierarchyManager, {
     name: 'HierarchyManager',
-    EVENT_PREFIX: 'hierachy',
+    EVENT_PREFIX: 'hierarchy',
     _ui_list: null,
     _topMost: null,
     DEBUG: false,
@@ -50,15 +60,16 @@
      * @type {Array}
      */
     PRIORITIES: [
+      'OverlayWindowManager',
       'InitLogoHandler',
       'AttentionWindowManager',
       'SecureWindowManager',
       'LockScreenWindowManager',
       'UtilityTray',
-      'TaskManager',
       'SystemDialogManager',
       'Rocketbar',
-      'AppWindowManager'
+      'AppWindowManager',
+      'TaskManager'
     ],
 
     _stop: function() {
@@ -87,14 +98,24 @@
       if (this._topMost !== lastTopMost) {
         if (lastTopMost) {
           this.debug('last top most is ' + lastTopMost.name);
+        } else {
+          this.debug('last top most is null.');
         }
         if (found) {
           this.debug('next top most is ' + this._topMost.name);
+        } else {
+          this.debug('next top most is null.');
         }
-        // Blur the last top most module.
-        lastTopMost && lastTopMost.setHierarchy &&
-        lastTopMost.setHierarchy(false);
-        // Focus the new one.
+
+        if (this._topMost && this._topMost.setHierarchy &&
+            this._topMost.setHierarchy(true)) {
+          // Blur previous module only when current module is successfully
+          // focused.
+          lastTopMost && lastTopMost.setHierarchy &&
+          lastTopMost.setHierarchy(false);
+
+        }
+
         this._topMost && this._topMost.setHierarchy &&
         this._topMost.setHierarchy(true);
         this.publish('changed');
@@ -121,10 +142,55 @@
       module.setHierarchy(true);
     },
 
+    updateTopMostWindow: function() {
+      var topMostWindow = this.getTopMostWindow();
+      if (topMostWindow !== this._topMostWindow) {
+        this._topMostWindow = topMostWindow;
+        this.publish('topmostwindowchanged');
+      }
+    },
+
     handleEvent: function(evt) {
-      this.debug('handling ' + evt.type);
-      this.updateHierarchy();
+      this.debug(evt.type);
+      switch (evt.type) {
+        case 'windowopened':
+        case 'windowclosed':
+          this.updateTopMostWindow();
+          break;
+        case 'mozChromeEvent':
+          if (!evt.detail ||
+              evt.detail.type !== 'inputmethod-contextchange') {
+            break;
+          }
+          /* falls through */
+        case 'home':
+        case 'holdhome':
+        case 'launchactivity':
+        case 'webapps-launch':
+        case 'system-resize':
+          this.broadcast(evt);
+          break;
+        default:
+          this.debug('handling ' + evt.type);
+          this.updateHierarchy();
+          break;
+      }
       return false;
+    },
+
+    /**
+     * Broadcast hierarchy based event until it's blocked
+     * @param  {DOMEvent} evt Event to be broadcast
+     */
+    broadcast: function(evt) {
+      this._ui_list.some(function(ui) {
+        if (ui.respondToHierarchyEvent) {
+          // If the module wants to interrupt the event,
+          // it should return false in the broadcast function.
+          this.debug('handover ' + evt.type + ' to ' + ui.name);
+          return (ui.respondToHierarchyEvent(evt) !== true);
+        }
+      }, this);
     },
 
     /**

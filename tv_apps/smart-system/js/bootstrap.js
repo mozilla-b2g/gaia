@@ -8,8 +8,8 @@
          SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory,
          applications, LayoutManager, PermissionManager, Accessibility,
-         TextSelectionDialog, SleepMenu,
-         ExternalStorageMonitor, SelectionBorder */
+         TextSelectionDialog, SleepMenu, InteractiveNotifications,
+         ExternalStorageMonitor */
 'use strict';
 
 
@@ -134,11 +134,6 @@ window.addEventListener('load', function startup() {
   window.wallpaperManager = new window.WallpaperManager();
   window.wallpaperManager.start();
 
-  window.selectionBorder = new SelectionBorder({
-        multiple: false,
-        container: document.getElementById('screen'),
-        forground: true });
-
   // unit tests call start() manually
   if (navigator.mozL10n) {
     navigator.mozL10n.once(function l10n_ready() {
@@ -146,7 +141,8 @@ window.addEventListener('load', function startup() {
       window.mediaRecording.start();
     });
   }
-
+  window.interactiveNotifications = new InteractiveNotifications();
+  window.interactiveNotifications.start();
   // We need to be sure to get the focus in order to wake up the screen
   // if the phone goes to sleep before any user interaction.
   // Apparently it works because no other window has the focus at this point.

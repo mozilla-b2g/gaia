@@ -6,12 +6,15 @@ require('/js/views/key_view.js');
 
 suite('Views > KeyView', function() {
   var keyView = null;
+  var viewManager = {
+    registerView: sinon.stub()
+  };
 
   suite('some basic functions',  function() {
     setup(function() {
       var target = {};
       var options = {};
-      keyView = new KeyView(target, options);
+      keyView = new KeyView(target, options, viewManager);
     });
 
     test(' > render()', function() {
@@ -21,12 +24,22 @@ suite('Views > KeyView', function() {
       assert.notEqual(keyView.element, null);
     });
 
-    test(' > highlight()', function() {
+    test(' > highlight() with upper case', function() {
       keyView.render();
       assert.isFalse(keyView.element.classList.contains('highlighted'));
 
-      keyView.highlight();
+      keyView.highlight({upperCase: true});
       assert.isTrue(keyView.element.classList.contains('highlighted'));
+      assert.isTrue(keyView.element.classList.contains('uppercase-popup'));
+    });
+
+    test(' > highlight() with lower case', function() {
+      keyView.render();
+      assert.isFalse(keyView.element.classList.contains('highlighted'));
+
+      keyView.highlight({upperCase: false});
+      assert.isTrue(keyView.element.classList.contains('highlighted'));
+      assert.isTrue(keyView.element.classList.contains('lowercase-popup'));
     });
 
     test(' > unHighlight()', function() {
@@ -37,6 +50,8 @@ suite('Views > KeyView', function() {
 
       keyView.unHighlight();
       assert.isFalse(keyView.element.classList.contains('highlighted'));
+      assert.isFalse(keyView.element.classList.contains('uppercase-popup'));
+      assert.isFalse(keyView.element.classList.contains('lowercase-popup'));
     });
   });
 
@@ -54,7 +69,7 @@ suite('Views > KeyView', function() {
        keyWidth: 99
       };
 
-      var keyView = new KeyView(key, options);
+      var keyView = new KeyView(key, options, viewManager);
       keyView.render();
 
       assert.isTrue(keyView.element.classList.contains('keyboard-key'));
@@ -98,7 +113,7 @@ suite('Views > KeyView', function() {
        keyWidth: 99
       };
 
-      var keyView = new KeyView(key, options);
+      var keyView = new KeyView(key, options, viewManager);
       keyView.render();
 
       assert.isTrue(keyView.element.classList.contains('keyboard-key'));
@@ -119,7 +134,7 @@ suite('Views > KeyView', function() {
        ]
       };
 
-      var keyView = new KeyView(key, options);
+      var keyView = new KeyView(key, options, viewManager);
       keyView.render();
 
       options.attributeList.forEach(function(attribute) {
@@ -137,15 +152,18 @@ suite('Views > KeyView', function() {
 
       var options = {
        keyWidth: 99,
-       keyClassName: 'another-className'
+       classNames: ['another-className']
       };
 
-      var keyView = new KeyView(key, options);
+      var keyView = new KeyView(key, options, viewManager);
       keyView.render();
 
       assert.isTrue(keyView.element.classList.contains('keyboard-key'));
       assert.isTrue(keyView.element.classList.contains(key.className));
-      assert.isTrue(keyView.element.classList.contains(options.keyClassName));
+
+      options.classNames.forEach(function(className) {
+        assert.isTrue(keyView.element.classList.contains(className));
+      });
     });
 
     test('disabled key', function() {
@@ -159,7 +177,7 @@ suite('Views > KeyView', function() {
        keyWidth: 99,
       };
 
-      var keyView = new KeyView(key, options);
+      var keyView = new KeyView(key, options, viewManager);
       keyView.render();
 
       assert.equal(keyView.element.getAttribute('disabled'), 'true');
@@ -176,7 +194,7 @@ suite('Views > KeyView', function() {
        altOutputChar: '*k'
       };
 
-      var keyView = new KeyView(key, options);
+      var keyView = new KeyView(key, options, viewManager);
       keyView.render();
 
       var visualWrapper = keyView.element.firstElementChild;
@@ -198,7 +216,7 @@ suite('Views > KeyView', function() {
        altOutputChar: '*k'
       };
 
-      var keyView = new KeyView(key, options);
+      var keyView = new KeyView(key, options, viewManager);
       keyView.render();
 
       var visualWrapper = keyView.element.firstElementChild;

@@ -20,6 +20,12 @@
   const COLLAPSED_GROUP_MARGIN_RIGHT = 53;
 
   /**
+   * Time, in ms, before removing the 'toggling' class from the expand/collapse
+   * toggle element.
+   */
+  const TOGGLE_TIMEOUT = 250;
+
+  /**
    * A replacement for the default Divider class that implements group
    * collapsing and provides convenience functions for group drag'n'drop.
    */
@@ -27,7 +33,7 @@
     this.detail = detail || {};
     this.detail.type = 'divider';
     this.detail.index = 0;
-    this.detail.collapsed = !!this.detail.collapsed;
+    this.pendingCollapse = this.detail.collapsed = !!this.detail.collapsed;
   }
 
   Group.prototype = {
@@ -42,6 +48,15 @@
     get headerHeight() {
       return this.detail.collapsed ? 20 : 30;
     },
+
+    /**
+     * The collapsed state. Used to defer the actual state change of
+     * collapse/expand so that anything re-rendering the grid between setting
+     * the state and the re-render caused by the state change doesn't cause
+     * the group to be positioned incorrectly.
+     */
+    pendingCollapse: false,
+    pendingCollapseTimeout: null,
 
     /**
      * Height in pixels of the background of the group.
@@ -137,6 +152,7 @@
      * just validates the style class of the group.
      */
     _renderChildren: function(nApps) {
+      var isRTL = (document.documentElement.dir === 'rtl');
       if (!this.detail.collapsed) {
         this.element.classList.remove('collapsed');
         return;
@@ -153,7 +169,9 @@
         (this.grid.layout.gridWidth -
          COLLAPSED_GROUP_MARGIN_LEFT - COLLAPSED_GROUP_MARGIN_RIGHT) /
         COLLAPSED_GROUP_SIZE);
-      var x = COLLAPSED_GROUP_MARGIN_LEFT;
+      var x = isRTL ?
+              (this.grid.layout.gridWidth - COLLAPSED_GROUP_MARGIN_RIGHT) :
+              COLLAPSED_GROUP_MARGIN_LEFT;
       y += this.headerHeight;
 
       var maxGridItemWidth =
@@ -168,10 +186,10 @@
 
           var itemVisible = (i - (index - nApps)) < COLLAPSED_GROUP_SIZE;
           if (!itemVisible) {
-            item.setCoordinates(x - width, y);
+            item.setCoordinates(isRTL ? x + width : x - width, y);
           } else {
             item.setCoordinates(x, y);
-            x += width;
+            x += isRTL ? -width: width;
           }
 
           item.render();
@@ -254,6 +272,8 @@
     },
 
     setActive: function(active) {
+      GaiaGrid.GridItem.prototype.setActive.call(this, active);
+
       // Make sure we're collapsed
       this.collapse();
 
@@ -263,10 +283,63 @@
         function(item) { item.element.classList.add('active'); } :
         function(item) { item.element.classList.remove('active'); };
       this.forEachItem(callback);
+    },
 
-      // This needs to be called last, or the grid will skip rendering this
-      // group and the collapse won't cause the icons below to shift position
-      GaiaGrid.GridItem.prototype.setActive.call(this, active);
+    /*
+     * As the start of a collapse/expand animation can involve a lot of work,
+     * the response isn't always instant. To help alleviate this, we show a
+     * quick response on the toggle element first before initiating the rest
+     * of the work.
+     */
+    _rerenderOnToggle: function() {
+      if (this.pendingCollapseTimeout) {
+        clearTimeout(this.pendingCollapseTimeout);
+        this.pendingCollapseTimeout = null;
+      }
+
+      if (this.toggleElement) {
+        this.toggleElement.classList.add('toggling');
+        setTimeout(() => { this.toggleElement.classList.remove('toggling'); },
+                   TOGGLE_TIMEOUT);
+      }
+
+      // Ideally, this setTimeout would be a requestAnimationFrame, but the
+      // above class-adding seems to end up coalesced with the code inside
+      // requestAnimationFrame, rather than it happening on the next frame.
+      // The same thing happens with any setTimeout lower than about 20ms too.
+      this.pendingCollapseTimeout = setTimeout(() => {
+        this.detail.collapsed = this.pendingCollapse;
+        this.pendingCollapseTimeout = null;
+
+        if (!this.detail.collapsed) {
+          // Remove collapsed styling from all icons
+          this.forEachItem(function(item) {
+            item.scale = 1;
+            if (item.element) {
+              item.element.classList.remove('collapsed');
+              item.element.classList.remove('hidden');
+            }
+          });
+        }
+
+        // If the item is active, re-render it so that its pixel-height is
+        // correct when the rest of the grid is rendered.
+        if (this.active) {
+          this.render();
+        }
+
+        this.grid.render();
+
+        var dragging = this.grid.dragdrop && this.grid.dragdrop.inDragAction;
+        if (dragging) {
+          // If we're dragging, make sure to reposition the icon in the correct
+          // place, as the render call won't redraw us
+          this.grid.dragdrop.positionIcon();
+        } else {
+          // If we're not dragging, save the collapsed state
+          window.dispatchEvent(new CustomEvent('gaiagrid-saveitems'));
+        }
+      }, 20);
     },
 
     collapse: function() {
@@ -274,13 +347,8 @@
         return;
       }
 
-      this.detail.collapsed = true;
-      this.grid.render();
-
-      var dragging = this.grid.dragdrop && this.grid.dragdrop.inDragAction;
-      if (!dragging) {
-        window.dispatchEvent(new CustomEvent('gaiagrid-saveitems'));
-      }
+      this.pendingCollapse = true;
+      this._rerenderOnToggle();
     },
 
     expand: function() {
@@ -288,24 +356,8 @@
         return;
       }
 
-      this.detail.collapsed = false;
-
-      // Remove collapsed styling from all icons
-      this.forEachItem(function(item) {
-        item.scale = 1;
-        if (item.element) {
-          item.element.classList.remove('collapsed');
-          item.element.classList.remove('hidden');
-        }
-      });
-
-      this.grid.render();
-
-      // If we're not dragging, save the collapsed state
-      var dragging = this.grid.dragdrop && this.grid.dragdrop.inDragAction;
-      if (!dragging) {
-        window.dispatchEvent(new CustomEvent('gaiagrid-saveitems'));
-      }
+      this.pendingCollapse = false;
+      this._rerenderOnToggle();
     },
 
     launch: function(target) {

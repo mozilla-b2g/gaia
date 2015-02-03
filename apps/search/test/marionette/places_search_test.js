@@ -1,17 +1,12 @@
 'use strict';
 
-/* globals __dirname */
-
-var Home2 = require('../../../verticalhome/test/marionette/lib/home2');
-var System = require('../../../system/test/marionette/lib/system');
-var Search = require('./lib/search');
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar.js');
 var Server = require('../../../../shared/test/integration/server');
 var assert = require('assert');
 
 marionette('Places tests', function() {
 
-  var client = marionette.client(Home2.clientOptions);
+  var client = marionette.client(require(__dirname + '/client_options.js'));
   var home, search, server, rocketbar, system;
 
   suiteSetup(function(done) {
@@ -26,12 +21,11 @@ marionette('Places tests', function() {
   });
 
   setup(function() {
-    home = new Home2(client);
-    search = new Search(client);
+    home = client.loader.getAppClass('verticalhome');
+    search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
-    search.removeGeolocationPermission();
   });
 
   test('Test url searching', function() {
@@ -51,24 +45,24 @@ marionette('Places tests', function() {
     // Go home
     client.switchToFrame();
     home.pressHomeButton();
-    client.apps.switchToApp(Home2.URL);
+    client.apps.switchToApp(home.URL);
 
     // Redo search for url
     home.focusRocketBar();
     rocketbar.enterText(url);
     search.goToResults();
-    var id = search.getResultSelector(url);
-    var app = client.helper.waitForElement(id);
+    var id = search.getHistoryResultSelector(url);
+    var result = client.helper.waitForElement(id);
 
     // Click result and check app loads
-    app.click();
+    result.click();
     client.switchToFrame();
     rocketbar.switchToBrowserFrame(url);
 
     // Go home
     client.switchToFrame();
     home.pressHomeButton();
-    client.apps.switchToApp(Home2.URL);
+    client.apps.switchToApp(home.URL);
 
     // Input a different url and press enter to visit
     home.focusRocketBar();
@@ -86,7 +80,7 @@ marionette('Places tests', function() {
     rocketbar.focus();
     rocketbar.enterText('non_matching_string');
     search.goToResults();
-    assert.equal(client.findElements(Search.Selectors.firstPlace).length, 0);
+    assert.equal(client.findElements(search.Selectors.firstPlace).length, 0);
   });
 
   test.skip('Ensures urls visited twice only show in results once', function() {
@@ -105,12 +99,12 @@ marionette('Places tests', function() {
 
     // Wait to get the correct amount of results
     client.waitFor(function() {
-      return client.findElements(Search.Selectors.firstPlace).length === 1;
+      return client.findElements(search.Selectors.firstPlace).length === 1;
     }.bind(this));
 
     // Wait for a second and check we dont get extra results
     client.helper.wait(1000);
-    assert.equal(client.findElements(Search.Selectors.firstPlace).length, 1);
+    assert.equal(client.findElements(search.Selectors.firstPlace).length, 1);
   });
 
   test.skip('Ensure favicon is loaded', function() {

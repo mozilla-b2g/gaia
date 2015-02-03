@@ -115,13 +115,35 @@ var GaiaDataLayer = {
     var req = icc.updateContact(aType, aContact);
     req.onsuccess = function() {
       console.log('success saving contact to SIM');
-      marionetteScriptFinished(true);
+      marionetteScriptFinished(req.result);
     };
     req.onerror = function() {
       console.error('error saving contact to SIM', req.error.name);
       marionetteScriptFinished(false);
     };
   },
+
+
+  deleteSIMContact: function(aType, aId) {
+
+    // Get 1st SIM
+    var iccId = window.navigator.mozIccManager.iccIds[0];
+    var icc = window.navigator.mozIccManager.getIccById(iccId);
+
+    var aContact = new mozContact();
+    aContact.id = aId;
+
+    var req = icc.updateContact(aType, aContact);
+    req.onsuccess = function() {
+      console.log('success removing contact from SIM');
+      marionetteScriptFinished(true);
+    };
+    req.onerror = function() {
+      console.error('error removing contact from SIM', req.error.name);
+      marionetteScriptFinished(false);
+    };
+  },
+
 
   getAllContacts: function(aCallback) {
     var callback = aCallback || marionetteScriptFinished;
@@ -477,7 +499,7 @@ var GaiaDataLayer = {
         }
         else {
           // File.name returns a fully qualified path
-          files.push(file.name);
+          files.push({'name': file.name, 'size': file.size});
           req.continue();
         }
       }
@@ -634,7 +656,7 @@ var GaiaDataLayer = {
 
   bluetoothSetDeviceName: function(device_name, aCallback) {
     var callback = aCallback || marionetteScriptFinished;
-    console.log('Setting device\'s bluetooth name to \'%s\'' % device_name);
+    console.log('Setting device\'s bluetooth name to \'%s\'', device_name);
 
     var req = window.navigator.mozBluetooth.getDefaultAdapter();
     req.onsuccess = function() {

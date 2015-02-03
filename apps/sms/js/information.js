@@ -116,7 +116,7 @@ function createReportDiv(reports) {
     status = REPORT_MAP[deliveryStatus][readStatus];
   } else {
     console.error('Invalid message report status: ' + deliveryStatus);
-    return reportDiv;    
+    return reportDiv;
   }
   reportDiv.dataset.deliveryStatus = status;
 
@@ -171,27 +171,6 @@ function showSimInfo(element, iccId) {
   }
 
   element.classList.remove('hide');
-}
-
-// Compute attachment size and return the corresponding l10nId(KB/MB) and
-// args (total attachment size for message)
-function sizeL10nParam(attachments) {
-  var l10nId, l10nArgs;
-  var size = attachments.reduce(function(size, attachment) {
-    return (size += attachment.content.size);
-  }, 0);
-  var sizeKB = size / 1024;
-  if (sizeKB < 1000) {
-    l10nId = 'attachmentSize';
-    l10nArgs = { n: sizeKB.toFixed(1) };
-  } else {
-    l10nId = 'attachmentSizeMB';
-    l10nArgs = { n: (sizeKB / 1024).toFixed(1) };
-  }
-  return {
-    l10nId: l10nId,
-    l10nArgs: l10nArgs
-  };
 }
 
 // Incoming message: return array of sender number string;
@@ -295,7 +274,10 @@ var VIEWS = {
 
           // Message total size show/hide
           if (message.attachments && message.attachments.length > 0) {
-            var params = sizeL10nParam(message.attachments);
+            var size = message.attachments.reduce(function(size, attachment) {
+              return (size += attachment.content.size);
+            }, 0);
+            var params = Utils.getSizeForL10n(size);
             setL10nAttributes(this.size, params.l10nId, params.l10nArgs);
             this.sizeBlock.classList.remove('hide');
           }
@@ -335,7 +317,7 @@ var VIEWS = {
         this.renderContactList(createListWithMsgInfo(message));
       }).bind(this);
 
-      ThreadUI.setHeaderContent({ id: 'message-report' });
+      ThreadUI.setHeaderContent('message-report');
       ThreadUI.setHeaderAction('close');
     },
 
@@ -375,7 +357,7 @@ var VIEWS = {
 };
 
 var Information = function(type) {
-  Utils.extend(this, VIEWS[type]);
+  Object.assign(this, VIEWS[type]);
 
   if (this.init) {
     this.init();

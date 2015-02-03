@@ -665,13 +665,6 @@ MailBridge.prototype = {
     proxy.sendSplice(0, 0, wireReps, true, false);
   },
 
-  _cmd_createFolder: function mb__cmd_createFolder(msg) {
-    this.universe.createFolder(
-      msg.accountId,
-      msg.parentFolderId,
-      msg.containOnlyOtherFolders);
-  },
-
   _cmd_viewFolderMessages: function mb__cmd_viewFolderMessages(msg) {
     var proxy = this._slices[msg.handle] =
           new SliceBridgeProxy(this, 'headers', msg.handle);

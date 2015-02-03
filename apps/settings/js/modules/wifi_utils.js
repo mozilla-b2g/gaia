@@ -28,11 +28,10 @@ define(function(require) {
      * Create a network list item
      *
      * @memberOf WifiUtils
-     * @param {Object} network
-     * @param {Function} callback
+     * @param {Object} options
      * @returns {HTMLLIElement}
      */
-    newListItem: function(network, callback) {
+    newListItem: function(options) {
       /**
        * A Wi-Fi list item has the following HTML structure:
        *   <li>
@@ -43,6 +42,9 @@ define(function(require) {
        *     </a>
        *   </li>
        */
+      var network = options.network;
+      var showNotInRange = options.showNotInRange || false;
+      var onClick = options.onClick || function() {};
 
       // icon
       var icon = document.createElement('aside');
@@ -60,8 +62,9 @@ define(function(require) {
       var keys = WifiHelper.getSecurity(network);
       var networkNotInRange = (network.known && level === 0);
       var hasSecurity = (keys && keys.length);
+
       if (hasSecurity) {
-        if (networkNotInRange) {
+        if (showNotInRange && networkNotInRange) {
           small.setAttribute('data-l10n-id', 'notInRange');
         } else {
           navigator.mozL10n.setAttributes(small, 'securedBy',
@@ -69,7 +72,7 @@ define(function(require) {
         }
         icon.classList.add('secured');
       } else {
-        if (networkNotInRange) {
+        if (showNotInRange && networkNotInRange) {
           small.setAttribute('data-l10n-id', 'notInRange');
         } else {
           small.setAttribute('data-l10n-id', 'securityOpen');
@@ -82,6 +85,7 @@ define(function(require) {
 
       // create list item
       var li = document.createElement('li');
+      li.dataset.ssid = network.ssid;
       li.appendChild(icon);
       li.appendChild(a);
 
@@ -95,7 +99,7 @@ define(function(require) {
 
       // bind connection callback
       li.onclick = function() {
-        callback(network);
+        onClick(network);
       };
       return li;
     },
@@ -233,6 +237,86 @@ define(function(require) {
       certRequest.onerror = function() {
         console.warn('getImportedCerts failed');
       };
+    },
+
+    /**
+     * Updates the icon of the given network
+     *
+     * @memberOf WifiUtils
+     * @param {Object} network
+     * @param {Integer} networkSignal
+     */
+    updateNetworkSignal: function(network, networkSignal) {
+      var li = document.querySelector('li[data-ssid="' + network.ssid + '"]');
+      var icon = li.querySelector('aside');
+      // Clean previous state
+      icon.className = icon.className.replace(/level-\w*/, '');
+      var level = Math.min(Math.floor(networkSignal / 20), 4);
+      icon.classList.add('level-' + level);
+    },
+
+    /**
+     * Get concated networkKey which can be used as identifier
+     *
+     * @memberOf WifiUtils
+     * @param {Object} network
+     * @return {String} concated network identifier
+     */
+    getNetworkKey: function(network) {
+      if (!network) {
+        return '';
+      } else {
+        var key =
+          network.ssid + '+' + WifiHelper.getSecurity(network).join('+');
+        return key;
+      }
+    },
+
+    /**
+     * Reflect incoming network status on related listItem (show different UI)
+     *
+     * @memberOf WifiUtils
+     * @param {Object} options
+     * @param {Object} options.listItems - listItems with DOM elements
+     * @param {Object} options.activeItemDOM - DOM element for active item
+     * @param {Object} options.network - network object
+     * @param {Object} options.networkStatus - current status for network
+     */
+    updateListItemStatus: function(options) {
+      options = options || {};
+      var listItems = options.listItems;
+      var activeItemDOM = options.activeItemDOM;
+      var network = options.network;
+      var networkStatus = options.networkStatus;
+
+      if (!network || !networkStatus || !listItems) {
+        console.log('Please check passing options for updateListItemStatus');
+        return;
+      }
+
+      var key = this.getNetworkKey(network);
+      var listItemDOM = listItems[key];
+
+      if (activeItemDOM && activeItemDOM != listItemDOM) {
+        activeItemDOM.classList.remove('active');
+        activeItemDOM.querySelector('small').
+          setAttribute('data-l10n-id', 'shortStatus-disconnected');
+        activeItemDOM.querySelector('aside').classList.remove('connecting');
+        activeItemDOM.querySelector('aside').classList.remove('connected');
+      }
+
+      if (listItemDOM) {
+        listItemDOM.classList.add('active');
+        listItemDOM.querySelector('small').
+          setAttribute('data-l10n-id', 'shortStatus-' + networkStatus);
+        if (networkStatus === 'connecting') {
+          listItemDOM.querySelector('aside').classList.remove('connected');
+          listItemDOM.querySelector('aside').classList.add('connecting');
+        } else if (networkStatus === 'connected') {
+          listItemDOM.querySelector('aside').classList.remove('connecting');
+          listItemDOM.querySelector('aside').classList.add('connected');
+        }
+      }
     }
   };
 

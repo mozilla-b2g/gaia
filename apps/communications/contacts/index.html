@@ -56,6 +56,7 @@
     <script defer src="/shared/js/l10n_date.js"></script>
     <script defer src="/contacts/js/activities.js"></script>
     <script defer src="/shared/js/lazy_loader.js"></script>
+    <script defer src="/shared/js/usertiming.js"></script>
     <script defer src="/shared/js/contact_photo_helper.js"></script>
 
     <script defer src="/shared/js/async_storage.js"></script>
@@ -89,7 +90,8 @@
     <!-- for perf-measurement related utilities -->
     <script defer src='/shared/js/performance_testing_helper.js'></script>
 
-    <link rel="manifest" href="../manifest.webapp">
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
     <link rel="localization" href="locales/contacts.{locale}.properties">
     <link rel="localization" href="../dialer/locales/shared.{locale}.properties">
     <link rel="localization" href="/shared/locales/import_contacts/import_contacts.{locale}.properties">
@@ -120,6 +122,8 @@
     <link href="/shared/js/dialer/telephony_messages.js">
 
     <link href="/shared/pages/import/js/parameters.js">
+
+    <link href="/shared/js/utilities.js">
     -->
 
     <link rel="import" href="elements/confirm.html">
@@ -237,7 +241,7 @@
     <section is="search-view" id="search-view" class="view"></section>
     <section is="view-screenshot" id='view-screenshot' role="region" class="view hide"></section>
     <section is="view-contact-details" id='view-contact-details' role="region" class="view view-right view-contact-profile view-noscroll"></section>
-    <section is="view-contact-form" id='view-contact-form' role="region" class="view view-bottom view-edit-contact"></section>
+    <section is="view-contact-form" id='view-contact-form' role="region" class="view view-noscroll view-bottom view-edit-contact"></section>
     <section is="view-select-tag" id="view-select-tag" role="region" class="view view-right view-select-tag"></section>
     <form id="action-menu" role="dialog" data-type="action" class="hide">
       <header id="org-title" data-l10n-id="select_recipient"> Select recipient </header>

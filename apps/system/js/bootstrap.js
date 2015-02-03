@@ -11,12 +11,11 @@
          applications, Rocketbar, LayoutManager, PermissionManager,
          SoftwareButtonManager, Accessibility, NfcUtils,
          TextSelectionDialog, SleepMenu, AppUsageMetrics,
-         LockScreenPasscodeValidator, NfcManager,
-         ExternalStorageMonitor,
+         LockScreenPasscodeValidator,
+         ExternalStorageMonitor, TrustedWindowManager,
          BrowserSettings, AppMigrator, SettingsMigrator,
          CpuManager, CellBroadcastSystem, EdgeSwipeDetector, QuickSettings,
-         BatteryOverlay, BaseModule, AppWindowManager, KeyboardManager,
-         TrustedUIManager */
+         BatteryOverlay, BaseModule, AppWindowManager, KeyboardManager */
 'use strict';
 
 /* === Shortcuts === */
@@ -42,9 +41,6 @@ window.addEventListener('load', function startup() {
   function registerGlobalEntries() {
     /** @global */
     KeyboardManager.init();
-
-    // Must load after KeyboardManager for correct handling mozChromeEvent.
-    TrustedUIManager.init();
 
     /** @global */
     window.appWindowManager = new AppWindowManager();
@@ -72,11 +68,14 @@ window.addEventListener('load', function startup() {
       new SystemDialogManager();
 
     /** @global */
+    window.trustedWindowManager = window.trustedWindowManager ||
+      new TrustedWindowManager();
+    window.trustedWindowManager.start();
+
+    /** @global */
     window.lockScreenWindowManager = new window.LockScreenWindowManager();
     window.lockScreenWindowManager.start();
 
-    // Let systemDialogManager handle inputmethod-contextchange event before
-    // starting appWindowManager. See bug 1082741.
     window.appWindowManager.start();
 
     /** @global */
@@ -158,6 +157,8 @@ window.addEventListener('load', function startup() {
   /** @global */
   window.attentionWindowManager = new window.AttentionWindowManager();
   window.attentionWindowManager.start();
+  window.globalOverlayWindowManager = new window.GlobalOverlayWindowManager();
+  window.globalOverlayWindowManager.start();
   window.dialerAgent = new DialerAgent();
   window.dialerAgent.start();
   window.edgeSwipeDetector = new EdgeSwipeDetector();
@@ -177,8 +178,6 @@ window.addEventListener('load', function startup() {
   window.layoutManager = new LayoutManager();
   window.layoutManager.start();
   window.nfcUtils = new NfcUtils();
-  window.nfcManager = new NfcManager();
-  window.nfcManager.start();
   window.permissionManager = new PermissionManager();
   window.permissionManager.start();
   window.places = new Places();
@@ -224,7 +223,7 @@ window.addEventListener('load', function startup() {
   window.dispatchEvent(evt);
 
 
-  window.mozPerformance.timing.mozSystemLoadEnd = Date.now();
+  window.performance.mark('loadEnd');
 
   window.core = BaseModule.instantiate('Core');
   window.core && window.core.start();

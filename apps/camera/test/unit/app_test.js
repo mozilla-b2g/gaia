@@ -10,13 +10,15 @@ suite('app', function() {
       'lib/camera/camera',
       'view',
       'lib/geo-location',
+      'lib/orientation',
       'lib/setting',
       'lib/pinch'
-    ], function(App, Camera, View, GeoLocation, Setting, Pinch) {
+    ], function(App, Camera, View, GeoLocation, orientation, Setting, Pinch) {
       self.App = App;
       self.View = View;
       self.Camera = Camera;
       self.Geolocation = GeoLocation;
+      self.orientation = orientation;
       self.Setting = Setting;
       self.Pinch = Pinch;
       done();
@@ -64,6 +66,7 @@ suite('app', function() {
       win: mocks.win(),
       el: document.createElement('div'),
       geolocation: sinon.createStubInstance(this.Geolocation),
+      orientation: this.orientation,
       pinch: sinon.createStubInstance(this.Pinch),
       activity: {},
       camera: sinon.createStubInstance(this.Camera),
@@ -364,11 +367,16 @@ suite('app', function() {
   suite('App#onVisible()', function() {
     setup(function() {
       sinon.spy(this.app, 'geolocationWatch');
+      this.sandbox.spy(this.app.orientation, 'lock');
       this.app.onVisible();
     });
 
     test('Should begin watching location again', function() {
-      assert.ok(this.app.geolocationWatch.called);
+      sinon.assert.called(this.app.geolocationWatch);
+    });
+
+    test('It locks the orientation to portrait', function() {
+      sinon.assert.called(this.app.orientation.lock);
     });
   });
 
@@ -495,6 +503,40 @@ suite('app', function() {
 
     test('It calls the callback', function() {
       sinon.assert.calledOnce(this.done);
+    });
+  });
+
+  suite('after critical path', function() {
+    setup(function() {
+
+      // Stop annoying logs
+      this.sandbox.stub(console, 'log');
+      this.app.boot();
+      this.app.emit('viewfinder:visible');
+    });
+
+    test('It loads l10n', function() {
+      sinon.assert.calledWith(this.app.require, ['l10n']);
+    });
+
+    test('It loads lazy controllers', function() {
+      sinon.assert.calledWith(this.app.require, this.app.controllers.lazy);
+    });
+
+    test('It fires the \'loaded\' event only when:', function() {
+      var loadL10nRequireCallback = this.app.require.args[0][1];
+      var loadLazyControllersRequireCallback = this.app.require.args[1][1];
+
+      // 1. l10n has loaded
+      loadL10nRequireCallback();
+
+      // 2. Lazy controllers have loaded
+      loadLazyControllersRequireCallback();
+
+      // 3. Storage has been checked
+      this.app.emit('storage:checked');
+
+      sinon.assert.calledWith(this.app.emit, 'loaded');
     });
   });
 });

@@ -8,7 +8,6 @@ var Presets = require('presets');
 var URI = require('utils/uri');
 var View = require('view');
 
-require('css!modify_account_view');
 require('dom!modify-account-view');
 
 var DEFAULT_AUTH_TYPE = 'basic';
@@ -190,9 +189,9 @@ ModifyAccount.prototype = {
     window.history.back();
   },
 
-  cancelDelete: function() {
+  cancelDelete: function(event) {
     this.element.classList.remove(this.removeDialogClass);
-    this.cancel();
+    this.cancel(event);
   },
 
   save: function(options, e) {
@@ -360,6 +359,7 @@ ModifyAccount.prototype = {
     list.remove('provider-' + this.model.providerType);
     list.remove('auth-' + this.authenticationType);
     list.remove('error');
+    list.remove(this.removeDialogClass);
 
     this.fields.user.disabled = false;
     this.saveButton.disabled = false;

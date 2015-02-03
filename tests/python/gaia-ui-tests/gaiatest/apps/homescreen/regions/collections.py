@@ -2,8 +2,16 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
-from marionette.marionette import Actions
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+    from marionette.marionette import Actions
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
+    from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -19,9 +27,9 @@ class Collection(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.name)
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == self.name)
         self.apps.switch_to_displayed_app()
-        self.wait_for_condition(lambda m: len(m.find_elements(*self._apps_locator)) > 0)
+        Wait(self.marionette).until(expected.elements_present(*self._apps_locator))
 
     @property
     def applications(self):
@@ -41,16 +49,18 @@ class Collection(Base):
 
             self.root_element.tap()
             # Wait for the displayed app to be that we have tapped
-            self.wait_for_condition(lambda m: self.apps.displayed_app.name == app_name)
+            Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == app_name)
             self.apps.switch_to_displayed_app()
 
             # Wait for title to load (we cannot be more specific because the aut may change)
-            self.wait_for_condition(lambda m: m.title)
+            Wait(self.marionette).until(lambda m: m.title)
 
         def long_tap_to_install(self):
             Actions(self.marionette).long_press(self.root_element, 2).perform()
 
         def tap_save_to_home_screen(self):
-            self.wait_for_element_displayed(*self._modal_dialog_save_locator)
-            self.marionette.find_element(*self._modal_dialog_save_locator).tap()
+            element = Wait(self.marionette).until(expected.element_present(
+                *self._modal_dialog_save_locator))
+            Wait(self.marionette).until(expected.element_displayed(element))
+            element.tap()
             return BookmarkMenu(self.marionette)

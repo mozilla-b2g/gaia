@@ -61,6 +61,8 @@
    */
   LockScreenWindow.prototype.lockscreen = null;
 
+  LockScreenWindow.prototype.HIERARCHY_MANAGER = 'LockScreenWindowManager';
+
   /**
    * We would maintain our own events by other components.
    *
@@ -244,11 +246,21 @@
       // until it works. It may fail at the moment the screenchange
       // event has been fired, so we may need to try it several times.
       var tryLockOrientation = () => {
-        if(screen.mozLockOrientation('portrait-primary')) {
+        if (screen.mozLockOrientation('portrait-primary')) {
+          if (!this.orientationLockID) {
+            throw new Error('No orientation ID. This function should only' +
+                'be invoked as a interval callback');
+          }
           window.clearInterval(this.orientationLockID);
+          this.orientationLockID = null;
         }
       };
       if (OrientationManager.isOnRealDevice()) {
+        if (this.orientationLockID) {
+          // The previous one still present and was not cleared,
+          // so do nothing.
+          return;
+        }
         this.orientationLockID =
           window.setInterval(tryLockOrientation, 4);
         // 4ms is the minimum interval according to W3C#setTimeout standard.

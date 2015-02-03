@@ -10,7 +10,7 @@ html {
   display: none;
 }
 #net-error.no-frame #actions {
-  display: block;
+  display: flex;
 }
 
 #net-error.framed form[role="dialog"] {

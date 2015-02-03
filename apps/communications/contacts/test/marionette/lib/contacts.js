@@ -37,10 +37,24 @@ Contacts.Selectors = {
   detailsEditContact: '#edit-contact-button',
   detailsTelLabelFirst: '#phone-details-template-0 h2',
   detailsTelButtonFirst: 'button.icon-call[data-tel]',
+  detailsEmail: '#contact-detail-inner #email-details-template-0 div.item',
+  detailsAddress: '#contact-detail-inner #address-details-template-0 div.item',
+  detailsOrg: '#contact-detail-inner #org-title',
+  detailsNote: '#contact-detail-inner #note-details-template-0',
   detailsFindDuplicate: '#contact-detail-inner #find-merge-button',
   detailsFavoriteButton: '#toggle-favorite',
   detailsContactName: '#contact-name-title',
   detailsHeader: '#details-view-header',
+  detailsSocialLabel: '#contact-detail-inner #details-list #social-label',
+  detailsSocialTemplate: '#contact-detail-inner #details-list .social-actions',
+  detailsCoverImage: '#cover-img',
+  detailsLinkButton: '#contact-detail-inner #link_button',
+  detailsShareButton: '#contact-detail-inner #share_button',
+  fbMsgButton: '#contact-detail-inner #msg_button',
+  fbWallButton: '#contact-detail-inner #wall_button',
+  fbProfileButton: '#contact-detail-inner #profile_button',
+
+  findDupsButton: '#details-list #find-merge-button',
 
   duplicateFrame: 'iframe[src*="matching_contacts.html"]',
   duplicateHeader: '#title',
@@ -64,7 +78,10 @@ Contacts.Selectors = {
   formTelLabelFirst: '#tel_type_0',
   formTelNumberSecond: '#number_1',
   formEmailFirst: '#email_0',
+  formEmailSecond: '#email_1',
   formPhotoButton: '#photo-button',
+  formAddNewTel: '#add-new-phone',
+  formAddNewEmail: '#add-new-email',
 
   groupList: ' #groups-list',
   list: '#view-contacts-list',
@@ -95,6 +112,7 @@ Contacts.Selectors = {
   iceSwitch1: '#ice-contacts-1-switch',
   iceInputSwitch1: '#ice-contacts-1-switch input[type="checkbox"]',
   iceSwitch2: '#ice-contacts-2-switch',
+  iceInputSwitch2: '#ice-contacts-2-switch input[type="checkbox"]',
   iceButton1: '#select-ice-contact-1',
   iceButton2: '#select-ice-contact-2',
   iceGroupOpen: '#section-group-ice',
@@ -102,7 +120,10 @@ Contacts.Selectors = {
 
   activityChooser: 'form[data-type="action"]',
   buttonActivityChooser: 'form[data-type="action"] button',
-  actionMenu: '#action-menu'
+  actionMenu: '#action-menu',
+  actionMenuList: '#value-menu',
+
+  systemMenu: 'form[data-z-index-level="action-menu"]'
 };
 
 Contacts.prototype = {
@@ -196,6 +217,25 @@ Contacts.prototype = {
     this.client.helper.waitForElementToDisappear(form);
   },
 
+  editContact: function() {
+    var selectors = Contacts.Selectors;
+
+    var edit = this.client.helper.waitForElement(selectors.detailsEditContact);
+    this.clickOn(edit);
+    this.waitForFadeIn(this.client.helper.waitForElement(selectors.form));
+  },
+
+  // Goes back to the Contact List view from a Details view
+  backToList: function() {
+    var selectors = Contacts.Selectors;
+
+    // Now we go back to the ICE settings and check that our ICE remains
+    this.waitForFadeIn(this.client.helper.waitForElement(selectors.details));
+    var header = this.client.helper.waitForElement(selectors.detailsHeader);
+    this.actions.wait(0.5).tap(header, 10, 10).perform();
+    this.waitSlideLeft('list');
+  },
+
   enterContactDetails: function(details) {
 
     var selectors = Contacts.Selectors;
@@ -230,6 +270,25 @@ Contacts.prototype = {
     this.enterContactDetails(details);
 
     this.client.helper.waitForElement(selectors.list);
+  },
+
+  addContactMultipleEmails: function(details) {
+    var selectors = Contacts.Selectors;
+
+    var addContact = this.client.findElement(selectors.formNew);
+    addContact.click();
+    this.client.helper.waitForElement(selectors.formAddNewEmail).click();
+
+    this.enterContactDetails(details);
+
+    this.client.helper.waitForElement(selectors.list);
+  },
+
+  get systemMenu() {
+    var selectors = Contacts.Selectors;
+    // Switch to the system app first.
+    this.client.switchToFrame();
+    return this.client.helper.waitForElement(selectors.systemMenu);
   },
 
   /**

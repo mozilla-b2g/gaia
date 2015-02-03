@@ -50,34 +50,31 @@ function ThumbnailDateGroup(item) {
 
   this.thumbnails = [];
   this.groupID = ThumbnailDateGroup.getGroupID(item);
-  this.htmlNode = null;
-  this.container = null;
+  this.date = item.date;
 
-  var _this = this;
-  var _ = navigator.mozL10n.get;
+  if (!ThumbnailDateGroup.Template) {
+    throw new Error('template is required while rendering.');
+  }
 
-  render();
+  var htmlText = ThumbnailDateGroup.Template.interpolate();
 
-  function render() {
-    if (!ThumbnailDateGroup.Template) {
-      throw new Error('template is required while rendering.');
-    }
+  // create dummy node for converting to DOM node.
+  var dummyDiv = document.createElement('DIV');
+  dummyDiv.innerHTML = htmlText;
+  var domNode = dummyDiv.firstElementChild;
 
-    var dateFormatter = new navigator.mozL10n.DateTimeFormat();
-    var htmlText = ThumbnailDateGroup.Template.interpolate({
-      'group-header': dateFormatter.localeFormat(new Date(item.date),
-                                                 _('date-group-header'))});
+  if (!domNode) {
+    throw new Error('the template is empty');
+  }
+  this.htmlNode = domNode;
+  this.container = domNode.querySelector('.thumbnail-group-container');
+  this.header = domNode.querySelector('.thumbnail-group-header');
 
-    // create dummy node for converting to DOM node.
-    var dummyDiv = document.createElement('DIV');
-    dummyDiv.innerHTML = htmlText;
-    var domNode = dummyDiv.firstElementChild;
-
-    if (!domNode) {
-      throw new Error('the template is empty');
-    }
-    _this.htmlNode = domNode;
-    _this.container = domNode.querySelector('.thumbnail-group-container');
+  // Localize the date header if L10N is ready. Otherwise,
+  // ThumbnailList.localize will call localize when the it becomes
+  // ready or when the locale changes.
+  if (navigator.mozL10n.readyState === 'complete') {
+    this.localize();
   }
 }
 
@@ -147,4 +144,17 @@ ThumbnailDateGroup.prototype.removeItem = function(thumbnail) {
   }
   this.thumbnails.splice(idx, 1);
   this.container.removeChild(thumbnail.htmlNode);
+};
+
+ThumbnailDateGroup.formatter = new navigator.mozL10n.DateTimeFormat();
+
+ThumbnailDateGroup.prototype.localize = function() {
+  // Localize the date header for this group
+  var date = new Date(this.date);
+  var format = navigator.mozL10n.get('date-group-header');
+  var formattedDate = ThumbnailDateGroup.formatter.localeFormat(date, format);
+  this.header.textContent = formattedDate;
+
+  // Then localize the thumbnails in the group.
+  this.thumbnails.forEach(function(thumbnail) { thumbnail.localize(); });
 };

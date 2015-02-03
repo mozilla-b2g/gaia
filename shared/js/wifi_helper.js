@@ -188,7 +188,12 @@ var WifiHelper = {
       // use ssid + security as a composited key
       var key = network.ssid + '+' +
         self.getSecurity(network).join('+');
-      networksObject[key] = network;
+      // ensure the wifi AP with the strongest signal is picked from wifi APs
+      // with the same SSID
+      if (!networksObject[key] ||
+          network.relSignalStrength > networksObject[key].relSignalStrength) {
+        networksObject[key] = network;
+      }
     });
     return networksObject;
   },

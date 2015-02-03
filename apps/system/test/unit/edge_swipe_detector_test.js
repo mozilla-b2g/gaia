@@ -84,12 +84,6 @@ suite('system/EdgeSwipeDetector >', function() {
     name: 'FTU'
   };
 
-  function appLaunch(config) {
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('launchapp', true, false, config);
-    window.dispatchEvent(evt);
-  }
-
   function homescreen() {
     window.dispatchEvent(new Event('homescreenopened'));
   }
@@ -104,8 +98,12 @@ suite('system/EdgeSwipeDetector >', function() {
   function launchTransitionEnd(config) {
     var evt = document.createEvent('CustomEvent');
     config || (config = dialer);
-    evt.initCustomEvent('appopen', true, false, config);
+    evt.initCustomEvent('appopened', true, false, config);
     window.dispatchEvent(evt);
+  }
+
+  function launchDownloadDialogEvent(type) {
+    window.dispatchEvent(new CustomEvent(type));
   }
 
   suite('When the homescreen is displayed', function() {
@@ -152,7 +150,7 @@ suite('system/EdgeSwipeDetector >', function() {
     });
 
     test('the edges should be enabled', function() {
-      appLaunch(dialer);
+      launchTransitionEnd(dialer);
       assert.isFalse(subject.previous.classList.contains('disabled'));
       assert.isFalse(subject.next.classList.contains('disabled'));
     });
@@ -167,7 +165,7 @@ suite('system/EdgeSwipeDetector >', function() {
       });
 
       test('the edges should not be enabled', function() {
-        appLaunch(dialer);
+        launchTransitionEnd(dialer);
         var previous = subject.previous;
         assert.isTrue(previous.classList.contains('disabled'));
         assert.isTrue(subject.next.classList.contains('disabled'));
@@ -185,7 +183,7 @@ suite('system/EdgeSwipeDetector >', function() {
     suite('in background', function() {
       setup(function() {
         dialer.stayBackground = true;
-        appLaunch(dialer);
+        launchTransitionEnd(dialer);
       });
 
       test('the edges should not be enabled', function() {
@@ -203,30 +201,6 @@ suite('system/EdgeSwipeDetector >', function() {
     });
   });
 
-  suite('When a wrapper is launched', function() {
-    var google = {
-      url: 'http://google.com/index.html',
-      origin: 'http://google.com'
-    };
-
-    function wrapperLaunch(config) {
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('launchapp', true, false, config);
-      window.dispatchEvent(evt);
-    }
-
-    setup(function() {
-      subject.previous.classList.add('disabled');
-      subject.next.classList.add('disabled');
-    });
-
-    test('the edges should be enabled', function() {
-      wrapperLaunch(google);
-      assert.isFalse(subject.previous.classList.contains('disabled'));
-      assert.isFalse(subject.next.classList.contains('disabled'));
-    });
-  });
-
   suite('When the setting is enabled', function() {
     setup(function() {
       subject.lifecycleEnabled = true;
@@ -234,7 +208,7 @@ suite('system/EdgeSwipeDetector >', function() {
       subject.previous.classList.add('disabled');
       subject.next.classList.add('disabled');
 
-      appLaunch(dialer);
+      launchTransitionEnd(dialer);
     });
 
     teardown(function() {
@@ -265,7 +239,7 @@ suite('system/EdgeSwipeDetector >', function() {
       subject.previous.classList.remove('disabled');
       subject.next.classList.remove('disabled');
 
-      appLaunch(dialer);
+      launchTransitionEnd(dialer);
     });
 
     teardown(function() {
@@ -441,7 +415,7 @@ suite('system/EdgeSwipeDetector >', function() {
     suite('During an edge swipe', function() {
       test('it should begin one transition', function() {
         var beginSpy = this.sinon.spy(MockSheetsTransition, 'begin');
-        swipe(this.sinon.clock, panel, 3, (width / 2), 240, 250);
+        swipe(this.sinon.clock, panel, 3, (width / 2), 240, 240);
 
         assert.isTrue(beginSpy.calledOnce);
       });
@@ -457,7 +431,7 @@ suite('system/EdgeSwipeDetector >', function() {
         test('it should not move the sheets', function() {
           var moveSpy = this.sinon.spy(MockSheetsTransition, 'moveInDirection');
           swipe(this.sinon.clock, nextPanel, width, (width - 50),
-                240, 250);
+                240, 240);
           assert.isTrue(moveSpy.notCalled);
         });
 
@@ -477,12 +451,12 @@ suite('system/EdgeSwipeDetector >', function() {
 
       test('it should compute the progress correctly', function() {
         var moveSpy = this.sinon.spy(MockSheetsTransition, 'moveInDirection');
-        swipe(this.sinon.clock, panel, 0, (width / 2), 240, 250);
+        swipe(this.sinon.clock, panel, 0, (width / 2), 240, 240);
 
         assert.isTrue(moveSpy.lastCall.args[1] > 0.45);
         assert.isTrue(moveSpy.lastCall.args[1] < 0.55);
 
-        swipe(this.sinon.clock, panel, 0, (width / 4), 240, 250);
+        swipe(this.sinon.clock, panel, 0, (width / 4), 240, 240);
 
         assert.isTrue(moveSpy.lastCall.args[1] > 0.20);
         assert.isTrue(moveSpy.lastCall.args[1] < 0.30);
@@ -493,7 +467,7 @@ suite('system/EdgeSwipeDetector >', function() {
           var beginSpy = this.sinon.spy(MockSheetsTransition, 'begin');
           var moveSpy = this.sinon.spy(MockSheetsTransition, 'moveInDirection');
           swipe(this.sinon.clock, subject.previous, 0, (width / 2),
-                240, 250);
+                240, 240);
 
           assert.isTrue(beginSpy.calledWith('ltr'));
           assert.equal(moveSpy.lastCall.args[0], 'ltr');
@@ -503,7 +477,7 @@ suite('system/EdgeSwipeDetector >', function() {
           var beginSpy = this.sinon.spy(MockSheetsTransition, 'begin');
           var moveSpy = this.sinon.spy(MockSheetsTransition, 'moveInDirection');
           swipe(this.sinon.clock, subject.next, width, (width / 2),
-                240, 250);
+                240, 240);
 
           assert.isTrue(beginSpy.calledWith('rtl'));
           assert.equal(moveSpy.lastCall.args[0], 'rtl');
@@ -516,7 +490,7 @@ suite('system/EdgeSwipeDetector >', function() {
         var nextPanel = subject.next;
         layoutManager.width = width - 50;
         swipe(this.sinon.clock, nextPanel, width, (width / 2),
-              240, 250, true);
+              240, 240, true);
         this.sinon.clock.tick();
 
         var moveSpy = this.sinon.spy(MockSheetsTransition, 'moveInDirection');
@@ -526,29 +500,29 @@ suite('system/EdgeSwipeDetector >', function() {
         assert.isTrue(moveSpy.calledOnce);
       });
 
-      test('it should compute negative progress if needed', function() {
+      test('it should not move back when the progress becomes negative',
+      function() {
         var nextPanel = subject.next;
         layoutManager.width = width - 50;
         swipe(this.sinon.clock, nextPanel, (width - 40), (width / 2),
-              240, 250, true);
+              240, 240, true);
         this.sinon.clock.tick();
 
         var moveSpy = this.sinon.spy(MockSheetsTransition, 'moveInDirection');
 
         // Finishing farther on the right of where we started
-        touchMove(nextPanel, [(width - 25)], [250]);
+        touchMove(nextPanel, [(width - 25)], [240]);
         this.sinon.clock.tick();
-        touchEnd(nextPanel, [(width - 25)], [250]);
+        touchEnd(nextPanel, [(width - 25)], [240]);
 
-        var progress = moveSpy.firstCall.args[1];
-        assert.isTrue(progress < 0);
+        sinon.assert.notCalled(moveSpy);
       });
 
       test('it should never forward a tap', function() {
         var fwSpy = this.sinon.spy(MockTouchForwarder.prototype, 'forward');
 
         swipe(this.sinon.clock, panel, 0, (width / 2),
-              240, 250, true);
+              240, 240, true);
         this.sinon.clock.tick();
 
         // Finishing exactly where we started
@@ -561,15 +535,21 @@ suite('system/EdgeSwipeDetector >', function() {
     });
 
     suite('During a vertical swipe', function() {
-      var halfScreen;
+      var halfScreen, verticalSwipe, verticalSwipeInward;
 
       setup(function() {
         halfScreen = Math.floor(window.innerHeight / 2);
+        verticalSwipe = (function() {
+          return swipe(this.sinon.clock, panel, 3, 7, 20, halfScreen);
+        }).bind(this);
+        verticalSwipeInward = (function() {
+          return swipe(this.sinon.clock, panel, 7, 3, 20, halfScreen);
+        }).bind(this);
       });
 
       test('it should not move the sheets', function() {
         var moveSpy = this.sinon.spy(MockSheetsTransition, 'moveInDirection');
-        swipe(this.sinon.clock, panel, 3, 7, 20, halfScreen);
+        verticalSwipe();
         assert.isFalse(moveSpy.called);
       });
 
@@ -585,7 +565,7 @@ suite('system/EdgeSwipeDetector >', function() {
 
       test('it should forward the touchstart event', function() {
         var fwSpy = this.sinon.spy(MockTouchForwarder.prototype, 'forward');
-        var recvEvents = swipe(this.sinon.clock, panel, 3, 7, 20, halfScreen);
+        var recvEvents = verticalSwipe();
 
         var call = fwSpy.firstCall;
         assert.equal(call.args[0], recvEvents[0]);
@@ -594,25 +574,37 @@ suite('system/EdgeSwipeDetector >', function() {
       test('it should forward the touchmove events after a threshold',
       function() {
         var fwSpy = this.sinon.spy(MockTouchForwarder.prototype, 'forward');
-        var recvEvents = swipe(this.sinon.clock, panel, 3, 7, 20, halfScreen);
+        var recvEvents = verticalSwipe();
 
         var call = fwSpy.secondCall;
-        assert.equal(call.args[0], recvEvents[10]);
+        assert.equal(call.args[0], recvEvents[7]);
 
         call = fwSpy.thirdCall;
-        assert.equal(call.args[0], recvEvents[11]);
+        assert.equal(call.args[0], recvEvents[8]);
       });
 
-      test('it should snap the sheets in place whithout waiting', function() {
+      test('it should still forward touch move for inward swipes',
+      function() {
+        var fwSpy = this.sinon.spy(MockTouchForwarder.prototype, 'forward');
+        var recvEvents = verticalSwipeInward();
+
+        var call = fwSpy.secondCall;
+        assert.equal(call.args[0], recvEvents[7]);
+
+        call = fwSpy.thirdCall;
+        assert.equal(call.args[0], recvEvents[8]);
+      });
+
+      test('not horizontal anymore, should snap the sheets', function() {
         var snapSpy = this.sinon.spy(MockSheetsTransition, 'snapInPlace');
-        swipe(this.sinon.clock, panel, 3, 7, 20, halfScreen,
+        swipe(this.sinon.clock, panel, 3, 17, 20, halfScreen,
               25, true /* no touchend */);
         assert.isTrue(snapSpy.calledOnce);
       });
 
       test('it should forward the touchend event', function() {
         var fwSpy = this.sinon.spy(MockTouchForwarder.prototype, 'forward');
-        var recvEvents = swipe(this.sinon.clock, panel, 3, 7, 20, halfScreen);
+        var recvEvents = verticalSwipe();
 
         var call = fwSpy.lastCall;
         assert.equal(call.args[0], recvEvents[(recvEvents.length - 1)]);
@@ -826,27 +818,27 @@ suite('system/EdgeSwipeDetector >', function() {
       suite('when the progress was < 20%', function() {
         test('it should snap the sheets in place', function() {
           var snapSpy = this.sinon.spy(MockSheetsTransition, 'snapInPlace');
-          swipe(this.sinon.clock, panel, 3, (width / 8), 240, 250);
+          swipe(this.sinon.clock, panel, 3, (width / 8), 240, 240);
           assert.isTrue(snapSpy.calledOnce);
         });
 
         test('it should snap before we end the sheets transition', function() {
           var snapSpy = this.sinon.spy(MockSheetsTransition, 'snapInPlace');
           var endSpy = this.sinon.spy(MockSheetsTransition, 'end');
-          swipe(this.sinon.clock, panel, 3, (width / 8), 240, 250);
+          swipe(this.sinon.clock, panel, 3, (width / 8), 240, 240);
           assert.isTrue(snapSpy.calledBefore(endSpy));
         });
 
         suite('but there is inertia', function() {
           test('it should snap the sheets back', function() {
             var snapSpy = this.sinon.spy(MockSheetsTransition, 'snapBack');
-            swipe(this.sinon.clock, panel, 3, (width / 8), 240, 250, 100);
+            swipe(this.sinon.clock, panel, 3, (width / 8), 240, 240, 100);
             assert.isTrue(snapSpy.calledOnce);
           });
 
           test('it should pass the speed to snapBack', function() {
             var snapSpy = this.sinon.spy(MockSheetsTransition, 'snapBack');
-            swipe(this.sinon.clock, panel, 3, (width / 8), 240, 250, 100);
+            swipe(this.sinon.clock, panel, 3, (width / 8), 240, 240, 100);
 
             var givenSpeed = snapSpy.firstCall.args[0];
 
@@ -857,7 +849,7 @@ suite('system/EdgeSwipeDetector >', function() {
           test('it should go back in the stack',
           function() {
             var goSpy = this.sinon.spy(MockStackManager, 'goPrev');
-            swipe(this.sinon.clock, panel, 3, (width / 8), 240, 250, 100);
+            swipe(this.sinon.clock, panel, 3, (width / 8), 240, 240, 100);
             assert.isTrue(goSpy.calledOnce);
           });
         });
@@ -866,13 +858,13 @@ suite('system/EdgeSwipeDetector >', function() {
       suite('when the progress was > 20% ltr', function() {
         test('it should snap the sheets back', function() {
           var snapSpy = this.sinon.spy(MockSheetsTransition, 'snapBack');
-          swipe(this.sinon.clock, panel, 3, (width / 1.4), 240, 250);
+          swipe(this.sinon.clock, panel, 3, (width / 1.4), 240, 240);
           assert.isTrue(snapSpy.calledOnce);
         });
 
         test('it should pass the speed to snapBack', function() {
           var snapSpy = this.sinon.spy(MockSheetsTransition, 'snapBack');
-          swipe(this.sinon.clock, panel, 3, (width / 1.4), 240, 250);
+          swipe(this.sinon.clock, panel, 3, (width / 1.4), 240, 240);
 
           var givenSpeed = snapSpy.firstCall.args[0];
 
@@ -883,14 +875,14 @@ suite('system/EdgeSwipeDetector >', function() {
         test('it should snap go back in the stack',
         function() {
           var goSpy = this.sinon.spy(MockStackManager, 'goPrev');
-          swipe(this.sinon.clock, panel, 3, (width / 1.4), 240, 250);
+          swipe(this.sinon.clock, panel, 3, (width / 1.4), 240, 240);
           assert.isTrue(goSpy.calledOnce);
         });
 
         test('it should snap before we end the sheets transition', function() {
           var snapSpy = this.sinon.spy(MockSheetsTransition, 'snapBack');
           var endSpy = this.sinon.spy(MockSheetsTransition, 'end');
-          swipe(this.sinon.clock, panel, 3, (width / 1.4), 240, 250);
+          swipe(this.sinon.clock, panel, 3, (width / 1.4), 240, 240);
           assert.isTrue(snapSpy.calledBefore(endSpy));
         });
       });
@@ -902,13 +894,13 @@ suite('system/EdgeSwipeDetector >', function() {
 
         test('it should snap the sheets forward', function() {
           var snapSpy = this.sinon.spy(MockSheetsTransition, 'snapForward');
-          swipe(this.sinon.clock, panel, width, (width / 2.5), 240, 250);
+          swipe(this.sinon.clock, panel, width, (width / 2.5), 240, 240);
           assert.isTrue(snapSpy.calledOnce);
         });
 
         test('it should pass the speed to snapForward', function() {
           var snapSpy = this.sinon.spy(MockSheetsTransition, 'snapForward');
-          swipe(this.sinon.clock, panel, width, (width / 2.5), 240, 250);
+          swipe(this.sinon.clock, panel, width, (width / 2.5), 240, 240);
 
           var givenSpeed = snapSpy.firstCall.args[0];
 
@@ -919,14 +911,14 @@ suite('system/EdgeSwipeDetector >', function() {
         test('it should snap go forward in the stack',
         function() {
           var goSpy = this.sinon.spy(MockStackManager, 'goNext');
-          swipe(this.sinon.clock, panel, width, (width / 2.5), 240, 250);
+          swipe(this.sinon.clock, panel, width, (width / 2.5), 240, 240);
           assert.isTrue(goSpy.calledOnce);
         });
 
         test('it should snap before we end the sheets transition', function() {
           var snapSpy = this.sinon.spy(MockSheetsTransition, 'snapForward');
           var endSpy = this.sinon.spy(MockSheetsTransition, 'end');
-          swipe(this.sinon.clock, panel, width, (width / 2.5), 240, 250);
+          swipe(this.sinon.clock, panel, width, (width / 2.5), 240, 240);
           assert.isTrue(snapSpy.calledBefore(endSpy));
         });
       });
@@ -986,6 +978,44 @@ suite('system/EdgeSwipeDetector >', function() {
 
     teardown(function() {
       subject.lifecycleEnabled = false;
+    });
+  });
+
+  suite('handleEvent: download dialog events', function() {
+    setup(function() {
+      subject.lifecycleEnabled = true;
+      MockService.currentApp = {
+        isHomescreen: false
+      };
+    });
+
+    teardown(function() {
+      subject.lifecycleEnabled = false;
+      MockService.currentApp = null;
+    });
+
+    test('the edges should be disabled', function() {
+      launchDownloadDialogEvent('updatepromptshown');
+      assert.isTrue(subject.previous.classList.contains('disabled'));
+      assert.isTrue(subject.next.classList.contains('disabled'));
+    });
+
+    test('the edges should be enabled', function() {
+      launchDownloadDialogEvent('updateprompthidden');
+      assert.isFalse(subject.previous.classList.contains('disabled'));
+      assert.isFalse(subject.next.classList.contains('disabled'));
+    });
+
+    test('the edges should stay disabled when homescreen is active',
+      function() {
+        subject.lifecycleEnabled = false;
+        MockService.currentApp.isHomescreen = true;
+        launchDownloadDialogEvent('updatepromptshown');
+        assert.isTrue(subject.previous.classList.contains('disabled'));
+        assert.isTrue(subject.next.classList.contains('disabled'));
+        launchDownloadDialogEvent('updateprompthidden');
+        assert.isTrue(subject.previous.classList.contains('disabled'));
+        assert.isTrue(subject.next.classList.contains('disabled'));
     });
   });
 

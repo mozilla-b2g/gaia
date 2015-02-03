@@ -399,6 +399,14 @@ form button::-moz-focus-inner {
 
 .bb-editable [contenteditable="false"].invalid {
   background-color: #fedcdc;
+   /**
+   * We don't use -moz-padding-start here because padding location shouldn't
+   * depend on text direction of [contenteditable] content itself. For LTR mode
+   * "invalid" element with either LTR or RTL content should have always left
+   * padding to accommodate "invalid" icon, for RTL mode it should be on the
+   * right side, so to align it correctly we should override padding depending
+   * on text direction of parent element.
+   */
   padding-left: 3.3rem;
 }
 
@@ -487,6 +495,17 @@ html[dir="rtl"] ::-moz-placeholder {
   text-align: right;
 }
 
+html[dir="rtl"] input[type="text"],
+html[dir="rtl"] input[type="password"],
+html[dir="rtl"] input[type="email"],
+html[dir="rtl"] input[type="tel"],
+html[dir="rtl"] input[type="search"],
+html[dir="rtl"] input[type="url"],
+html[dir="rtl"] input[type="number"],
+html[dir="rtl"] textarea {
+  text-align: right;
+}
+
 html[dir="rtl"] fieldset legend {
   background: rgba(0,0,0,0.05) url(input_areas/images/dialog_rtl.svg) no-repeat 1rem calc(100% - 1rem);
 }
@@ -506,14 +525,10 @@ html[dir="rtl"] input[type="datetime-local"][disabled] {
   background-image: url(input_areas/images/dialog_disabled_rtl.svg);
 }
 
-html[dir="rtl"] form p input:focus {
-  padding: 0 1.5rem 0 3rem;
-}
-
 html[dir="rtl"] form p input + button[type="reset"],
 html[dir="rtl"] form p textarea + button[type="reset"] {
   right: auto;
-  left: -0.3rem;
+  left: 0.3rem;
 }
 
 html[dir="rtl"] form[role="search"] p {
@@ -535,4 +550,27 @@ html[dir="rtl"] form[role="search"] button[type="submit"] {
 html[dir="rtl"] form[role="search"] button[type="submit"]:after {
   right: 0;
   left: auto;
+}
+
+.bb-editable:-moz-dir(rtl) [contenteditable="false"].invalid {
+   /**
+   * See LTR ".bb-editable [contenteditable="false"].invalid" rule above for the
+   * explanation why we don't use -moz-padding-start/-end here.
+   */
+  padding: 0 3.3rem 0 1.5rem;
+}
+
+.bb-editable:-moz-dir(rtl) [contenteditable="false"].invalid:before {
+  left: unset;
+  right: 0.8rem;
+}
+
+html[dir="rtl"] form p input:focus {
+  padding-right: 1.5rem;
+  padding-left: 3rem;
+}
+
+html[dir="rtl"] form p input:-moz-dir(ltr),
+html[dir="rtl"] form p input:-moz-dir(ltr):focus {
+  text-align: left;
 }

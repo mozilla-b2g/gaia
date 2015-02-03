@@ -1,15 +1,12 @@
 'use strict';
 
-var Actions = require('marionette-client').Actions;
 var Collection = require('./lib/collection');
 var EmeServer = require(
   '../../../../shared/test/integration/eme_server/parent');
-var Home2 = require('./lib/home2');
-var System = require('../../../../apps/system/test/marionette/lib/system');
 
 marionette('Vertical - Collection', function() {
 
-  var client = marionette.client(Home2.clientOptions);
+  var client = marionette.client(require(__dirname + '/client_options.js'));
   var actions, collection, home, selectors, server, system;
 
   suiteSetup(function(done) {
@@ -24,15 +21,14 @@ marionette('Vertical - Collection', function() {
   });
 
   setup(function() {
-    actions = new Actions(client);
+    actions = client.loader.getActions();
     selectors = Collection.Selectors;
     collection = new Collection(client);
-    home = new Home2(client);
-    system = new System(client);
+    home = client.loader.getAppClass('verticalhome');
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
 
     home.waitForLaunch();
-    collection.disableGeolocation();
     EmeServer.setServerURL(client, server);
   });
 
@@ -45,7 +41,7 @@ marionette('Vertical - Collection', function() {
     // A collection name from the cateories_list.json stub
     var collectionName = 'Around Me';
     collection.selectNew(collectionName);
-    client.apps.switchToApp(Home2.URL);
+    client.apps.switchToApp(home.URL);
 
     // Drag the 'Phone' application into the created collection.
     // We specifically choose phone because it has an entry point.
@@ -65,7 +61,7 @@ marionette('Vertical - Collection', function() {
       .perform();
 
     // Exit edit mode.
-    var done = client.helper.waitForElement(Home2.Selectors.editHeaderDone);
+    var done = client.helper.waitForElement(home.Selectors.editHeaderDone);
     done.click();
 
     // Enter the created collection.

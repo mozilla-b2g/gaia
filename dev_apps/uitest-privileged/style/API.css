@@ -28,4 +28,7 @@ button, input[type='button'] {
 li > button, .small {
   font-size: 1.2rem;
 }
-
+/* secure element buttons */
+.tiny > button {
+  font-size: 1rem;
+}

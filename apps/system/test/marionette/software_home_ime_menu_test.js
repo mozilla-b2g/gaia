@@ -1,9 +1,5 @@
 'use strict';
 
-var Home = require(
-  '../../../verticalhome/test/marionette/lib/home2');
-var System = require('./lib/system');
-
 marionette('Software Home Button - IME Menu', function() {
 
   var client = marionette.client({
@@ -20,8 +16,8 @@ marionette('Software Home Button - IME Menu', function() {
   var home, system;
 
   setup(function() {
-    home = new Home(client);
-    system = new System(client);
+    home = client.loader.getAppClass('verticalhome');
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
     home.waitForLaunch();
     client.switchToFrame();
@@ -29,6 +25,8 @@ marionette('Software Home Button - IME Menu', function() {
 
   test('Proper layout for alerts', function() {
     client.executeScript(function() {
+      window.wrappedJSObject.KeyboardManager._showingInputGroup = 'text';
+
       window.dispatchEvent(new CustomEvent('mozChromeEvent', {
         detail: {
           type: 'inputmethod-showall'

@@ -29,7 +29,7 @@
 
     ensureVideoLoads: function vpc_ensureVideoLoads(callback) {
       var self = this;
-      var videoLoadedTimeoutId = setTimeout(showOverlay.bind(null, this), 1000);
+      var videoLoadedTimeoutId = setTimeout(showOverlay.bind(null, this), 1500);
       this.player.addEventListener('loadedmetadata', handleLoadedMetadata);
 
       function handleLoadedMetadata() {
@@ -47,7 +47,7 @@
     },
 
     ensureVideoPlays: function() {
-      this.playingTimeout = setTimeout(showOverlay.bind(null, this), 1000);
+      this.playingTimeout = setTimeout(showOverlay.bind(null, this), 1500);
       this.playingListener = this.cancelEnsureVideoPlays.bind(this);
       // When the video hardware is in use, we still get a playing event
       // after calling play(). So to ensure that playback is actually

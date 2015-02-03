@@ -1,8 +1,6 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-// When bug 794999 is resolved, switch to use the abstract Trusted UI Component
-
 'use strict';
 
 const kIdentityScreen = '/sign_in#NATIVE';
@@ -25,11 +23,11 @@ var Identity = (function() {
       switch (e.detail.type) {
         // Chrome asks Gaia to show the identity dialog.
         case 'id-dialog-open':
-          if (!chromeEventId)
+          if (!chromeEventId) {
             return;
-
+          }
           // When opening the dialog, we record the chrome event id, which
-          // we will need to send back to the TrustedUIManager when asking
+          // we will need to send back to the TrustedWindowManager when asking
           // to close.
           this.trustedUILayers[requestId] = chromeEventId;
 
@@ -48,7 +46,7 @@ var Identity = (function() {
             (e.detail.showUI ? kIdentityScreen : kIdentityFrame);
           frame.dataset.url = frame.src;
           frame.addEventListener('mozbrowserloadstart',
-              function loadStart(evt) {
+            function loadStart(evt) {
             // After creating the new frame containing the identity flow, we
             // send it back to chrome so the identity callbacks can be injected.
             this._dispatchEvent({
@@ -59,10 +57,32 @@ var Identity = (function() {
 
 
           if (e.detail.showUI) {
-            // The identity flow is shown within the trusted UI.
-            TrustedUIManager.open(navigator.mozL10n.get('persona-signin'),
-                                  frame,
-                                  this.trustedUILayers[requestId]);
+            // We need to tell the chrome side about the user manually closing
+            // the identity flow so the mozId API can notify to the caller about
+            // the flow being canceled.
+            var ontrustedclosed = (function(event) {
+              if (!event.detail ||
+                  !event.detail.config ||
+                  !event.detail.config.requestId) {
+                return;
+              }
+              window.removeEventListener('trustedclosed', ontrustedclosed);
+              this._dispatchEvent({
+                id: event.detail.config.requestId,
+                type: 'cancel',
+                errorMsg: 'DIALOG_CLOSED_BY_USER'
+              });
+            }).bind(this);
+            window.addEventListener('trustedclosed', ontrustedclosed);
+
+            window.dispatchEvent(new CustomEvent('launchtrusted', {
+              detail: {
+                name: navigator.mozL10n.get('persona-signin'),
+                frame: frame,
+                requestId: requestId,
+                chromeId: chromeEventId
+              }
+            }));
           } else {
             var container = document.getElementById('screen');
             container.appendChild(frame);
@@ -73,10 +93,12 @@ var Identity = (function() {
 
         case 'id-dialog-done':
           if (e.detail.showUI) {
-            TrustedUIManager.close(this.trustedUILayers[requestId],
-                                   (function dialogClosed() {
-              delete this.trustedUILayers[requestId];
-            }).bind(this));
+            window.dispatchEvent(new CustomEvent('killtrusted', {
+              detail: {
+                requestId: requestId,
+                chromeId: chromeEventId
+              }
+            }));
           }
           this._dispatchEvent({ id: chromeEventId });
           break;

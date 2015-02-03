@@ -1,6 +1,7 @@
 define(function(require) {
 'use strict';
 
+require('shared/js/usertiming');
 require('shared/js/performance_testing_helper');
 
 var Tabs = require('tabs');
@@ -39,12 +40,14 @@ var App = {
       }.bind(this)
     );
 
+    window.performance.mark('navigationLoaded');
     this.dispatchPerformanceEvent('moz-chrome-dom-loaded');
 
     this.navigate({ hash: '#alarm-panel' }, function() {
       // Dispatch an event to mark when we've finished loading.
       // At this point, the navigation is usable, and the primary
       // alarm list tab has begun loading.
+      window.performance.mark('navigationInteractive');
       this.dispatchPerformanceEvent('moz-chrome-interactive');
     }.bind(this));
     return this;
@@ -84,8 +87,11 @@ var App = {
     // At this point, the alarm list has been loaded, and all facets
     // of Clock are now interactive. The other panels are lazily
     // loaded when the user switches tabs.
+    window.performance.mark('visuallyLoaded');
     this.dispatchPerformanceEvent('moz-app-visually-complete');
+    window.performance.mark('contentInteractive');
     this.dispatchPerformanceEvent('moz-content-interactive');
+    window.performance.mark('fullyLoaded');
     this.dispatchPerformanceEvent('moz-app-loaded');
   },
 

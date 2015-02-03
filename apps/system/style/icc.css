@@ -11,6 +11,11 @@
   top: var(--statusbar-height);
   background: #f4f4f4;
   color: #000;
+  -moz-box-sizing: border-box;
+}
+
+#icc-view span[data-icon] {
+  margin: 1rem 0;
 }
 
 #icc-view > section {
@@ -38,10 +43,6 @@
 #icc-input menu button:first-child,
 #icc-confirm menu button:first-child {
   margin: 0;
-}
-#icc-confirm menu button {
-  width: calc((100% - 2rem) / 2);
-  margin-left: 1rem;
 }
 
 #icc-input menu button,

@@ -17,29 +17,38 @@ var mocksForDownloadManager = new MocksHelper([
 
 suite('system/DownloadManager >', function() {
 
-  var id = 'this-is-a-fake-uuid';
+  var mockDownload = {
+    id: 'this-is-a-fake-uuid',
+    pause: sinon.spy()
+  };
 
   mocksForDownloadManager.attachTestHelpers();
 
-  test('Notification has been created successfully', function() {
+  setup(function() {
     navigator.mozDownloadManager.ondownloadstart({
-      download: {
-        id: id
-      }
+      download: mockDownload
     });
+  });
 
+  test('Notification has been created successfully', function() {
     assert.equal(MockDownloadNotification.methodCalled, 'DownloadNotification');
   });
 
   test('Notification has been clicked', function() {
     var event = new CustomEvent('notification-clicked', {
       detail: {
-        id: id
+        id: mockDownload.id
       }
     });
 
     window.dispatchEvent(event);
 
     assert.equal(MockDownloadNotification.methodCalled, 'onClick');
+  });
+
+  test('Pause when shutdown', function() {
+    var event = new CustomEvent('will-shutdown');
+    window.dispatchEvent(event);
+    assert.isTrue(mockDownload.pause.called);
   });
 });

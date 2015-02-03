@@ -1,17 +1,30 @@
-/* global AudioMetadata */
-/* exported parseMetadata, loadPicture */
+/* global BlobView */
+/* exported fetchBlobView, fetchBuffer, readPicSlice, assertBuffersEqual, pass,
+   fail */
 
 'use strict';
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
-require('/shared/test/unit/mocks/mock_navigator_getdevicestorage.js');
+require('/shared/js/blobview.js');
+require('/js/metadata/formats.js');
 
-function _fetch(url) {
+function pass(done) {
+  return function() { done(); };
+}
+
+function fail(done, desc) {
+  if (!desc) {
+    desc = 'unknown error';
+  }
+  return function(err) { done(err || new Error(desc)); };
+}
+
+function fetchBuffer(url) {
   return new Promise(function(resolve, reject) {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url);
     xhr.onload = function() {
-      if (xhr.status != 200) {
+      if (xhr.status !== 200) {
         reject(new Error('Failed with status: ' + xhr.status));
       } else {
         resolve(this.response);
@@ -25,43 +38,46 @@ function _fetch(url) {
   });
 }
 
-function parseMetadata(filename) {
-  var songBlob;
-  return _fetch(filename).then(function(data) {
-    songBlob = new Blob([data]);
-    return AudioMetadata.parse(songBlob);
-  }).then(function(metadata) {
-    if (metadata.picture) {
-      return new Promise(function(resolve, reject) {
-        var reader = new FileReader();
-        var coverBlob = metadata.picture.blob || songBlob.slice(
-          metadata.picture.start, metadata.picture.end, metadata.picture.type
-        );
-        reader.readAsArrayBuffer(coverBlob);
-        reader.onload = function(event) {
-          metadata.picture = {
-            flavor: metadata.picture.flavor,
-            type: coverBlob.type,
-            data: new Uint8Array(event.target.result)
-          };
-          resolve(metadata);
-        };
-        reader.onerror = function(event) {
-          reject(event.target.error);
-        };
-      });
-    } else {
-      return Promise.resolve(metadata);
-    }
+function makeBlobView(blob, size) {
+  if (size === undefined) {
+    size = 64 * 1024;
+  }
+
+  return new Promise(function(resolve, reject) {
+    BlobView.get(blob, 0, size, function(blobview, error) {
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve(blobview);
+    });
   });
 }
 
-function loadPicture(url, type, flavor) {
-  return _fetch(url).then(function(data) {
-    return {
-      flavor: flavor,
-      type: type,
-      data: new Uint8Array(data)
+function fetchBlobView(url, size) {
+  return fetchBuffer(url).then(function(buffer) {
+    return makeBlobView(new Blob([buffer]), size);
+  });
+}
+
+function readBlob(blob) {
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.readAsArrayBuffer(blob);
+    reader.onload = function(event) {
+      resolve(reader.result);
+    };
+    reader.onerror = function(event) {
+      reject(event.target.error);
     };
   });
+}
+
+function readPicSlice(blob, picture) {
+  var slice = blob.slice(picture.start, picture.end, picture.type);
+  return readBlob(slice);
+}
+
+function assertBuffersEqual(a, b) {
+  return assert.deepEqual(new Uint8Array(a), new Uint8Array(b));
 }

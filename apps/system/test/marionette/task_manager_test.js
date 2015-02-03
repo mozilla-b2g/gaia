@@ -1,7 +1,5 @@
 'use strict';
 
-var System = require('./lib/system');
-var Actions = require('marionette-client').Actions;
 var TaskManager = require('./lib/task_manager');
 var FakeApp = require('./lib/fakeapp');
 var assert = require('assert');
@@ -35,8 +33,8 @@ marionette('Task Manager', function() {
   var fullWidth, halfWidth, halfHeight;
 
   setup(function() {
-    actions = new Actions(client);
-    system = new System(client);
+    actions = client.loader.getActions();
+    system = client.loader.getAppClass('system');
     taskManager = new TaskManager(client);
 
     system.waitForStartup();
@@ -86,7 +84,7 @@ marionette('Task Manager', function() {
       taskManager.hide();
 
       client.waitFor(function(){
-        return client.findElement(System.Selector.activeHomescreenFrame)
+        return client.findElement(system.Selector.activeHomescreenFrame)
           .displayed();
       });
     });
@@ -117,14 +115,16 @@ marionette('Task Manager', function() {
       });
     });
 
-    test('pressing home should launch the centered app', function() {
+    test('pressing home should still take you back to the homescreen',
+    function() {
       actions.flick(taskManager.element, 30, halfHeight,
                     halfWidth, halfHeight).perform();
 
       taskManager.hide();
 
-      client.waitFor(function() {
-        return !firstApp.iframe.displayed() && secondApp.iframe.displayed();
+      client.waitFor(function(){
+        return client.findElement(system.Selector.activeHomescreenFrame)
+          .displayed();
       });
     });
   });
@@ -153,7 +153,7 @@ marionette('Task Manager', function() {
 
     taskManager.show();
 
-    reflowHelper.startTracking(System.URL);
+    reflowHelper.startTracking(system.URL);
 
     // Going back and forth
     var element = taskManager.element;

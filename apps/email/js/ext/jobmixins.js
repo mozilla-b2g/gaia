@@ -34,6 +34,7 @@ exports.local_do_modtags = function(op, doneCallback, undo) {
   var self = this;
   var addTags = undo ? op.removeTags : op.addTags,
       removeTags = undo ? op.addTags : op.removeTags;
+  var mutationsPerformed = 0;
   this._partitionAndAccessFoldersSequentially(
     op.messages,
     false,
@@ -49,15 +50,16 @@ exports.local_do_modtags = function(op, doneCallback, undo) {
         if (addTags) {
           for (iTag = 0; iTag < addTags.length; iTag++) {
             tag = addTags[iTag];
-            if (tag === '\\Seen') {
-              storage.folderMeta.unreadCount--;
-            }
             // The list should be small enough that native stuff is better
             // than JS bsearch.
             existing = header.flags.indexOf(tag);
             if (existing !== -1)
               continue;
             header.flags.push(tag);
+            mutationsPerformed++;
+            if (tag === '\\Seen') {
+              storage.folderMeta.unreadCount--;
+            }
             header.flags.sort(); // (maintain sorted invariant)
             modified = true;
           }
@@ -65,13 +67,14 @@ exports.local_do_modtags = function(op, doneCallback, undo) {
         if (removeTags) {
           for (iTag = 0; iTag < removeTags.length; iTag++) {
             tag = removeTags[iTag];
-            if (tag === '\\Seen') {
-              storage.folderMeta.unreadCount++;
-            }
             existing = header.flags.indexOf(tag);
             if (existing === -1)
               continue;
             header.flags.splice(existing, 1);
+            mutationsPerformed++;
+            if (tag === '\\Seen') {
+              storage.folderMeta.unreadCount++;
+            }
             modified = true;
           }
         }
@@ -80,6 +83,18 @@ exports.local_do_modtags = function(op, doneCallback, undo) {
       }
     },
     function() {
+      // If we didn't actually do anything, then we don't actually need to do
+      // anything on the server either and we can skip it.
+      //
+      // Note that this does get us into some edge cases around the semantics of
+      // undo.  Before this change, "undo" always just meant "do the opposite
+      // modification of what I said" which is notably different from "undo the
+      // things you actually just did" which gave rise to the (currently
+      // unfixed) https://bugzil.la/997496.  And so with this change, we'll do
+      // the "right" thing, but in other cases we'll still do the "wrong" thing.
+      if (mutationsPerformed === 0) {
+        op.serverStatus = 'skip';
+      }
       doneCallback(null, null, true);
     },
     null, // connection loss does not happen for local-only ops
@@ -393,7 +408,7 @@ exports.local_do_downloadBodies = function(op, callback) {
 };
 
 exports.do_downloadBodies = function(op, callback) {
-  var aggrErr, totalDownloaded = 0;
+  var aggrErr = null, totalDownloaded = 0;
   this._partitionAndAccessFoldersSequentially(
     op.messages,
     true,

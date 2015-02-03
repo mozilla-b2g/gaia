@@ -10,13 +10,15 @@
 (function ICEData(exports) {
 
   if (exports.ICEData) {
-    return; 
+    return;
   }
 
   var localIceContacts = [];
   var ICE_CONTACTS_KEY = 'ice-contacts';
   var onChangeCallbacks = [];
   var onChangeAttached = false;
+  var pendingChanges = [];
+  var performingChange = false;
 
   /**
    * Loads the local formated data into an internal
@@ -52,7 +54,7 @@
   }
 
   /**
-   * Set the values for ICE contacts, both in local and in the
+   * Set the value of an ICE contact, both in local and in the
    * datastore
    * @param id (string) contact id
    * @param pos (int) current position (0,1)
@@ -66,9 +68,38 @@
       id: id,
       active: active
     };
-    window.asyncStorage.setItem(ICE_CONTACTS_KEY, localIceContacts);
-    // Save in the datastore
-    return modifyICEInDS();
+    return setIceContactsItem(localIceContacts).then(() => {
+      // Save in the datastore
+      return modifyICEInDS();
+    });
+  }
+
+  /**
+   * Set the values for ICE contacts, both in local and in the
+   * datastore
+   * @param iceContactList the list with ids of ICE Contacts to be set
+   */
+  function setICEContacts(iceContactList) {
+    if (!Array.isArray(iceContactList)) {
+      return Promise.resolve();
+    }
+
+    // Save locally
+    localIceContacts = [
+      {
+        id: iceContactList[0],
+        active: !!iceContactList[0]
+      },
+      {
+        id: iceContactList[1],
+        active: !!iceContactList
+      }
+    ];
+
+    return setIceContactsItem(localIceContacts).then(() => {
+      // Save in the datastore
+      return modifyICEInDS();
+    });
   }
 
   /**
@@ -107,7 +138,7 @@
       localIceContacts[index].id = null;
       localIceContacts[index].active = false;
 
-      setIceContactsItem(ICE_CONTACTS_KEY, localIceContacts).then(function() {
+      setIceContactsItem(localIceContacts).then(function() {
         return modifyICEInDS().then(() => {
           notifyCallbacks(localIceContacts);
         });
@@ -115,9 +146,10 @@
     });
   }
 
-  function setIceContactsItem(key, iceContactsList) {
+  function setIceContactsItem(iceContactsList) {
     return new Promise(function(resolve, reject) {
-      window.asyncStorage.setItem(key, iceContactsList, resolve, reject);
+      window.asyncStorage.setItem(ICE_CONTACTS_KEY, iceContactsList,
+                                  resolve, reject);
     });
   }
 
@@ -155,22 +187,50 @@
     });
   }
 
-  function onChangeEvent(evt) {
+  function handleChangeEvent(evt) {
     // Figure out if we got a change in a ICE contact
     var contact = localIceContacts.find(function(x) {
       return x.id === evt.detail.contactID;
     });
 
     if (!contact) {
-      return;
+      return Promise.resolve();
     }
 
     // If it's a delete update all the storages
     if (evt.detail.reason === 'remove') {
-      removeICEContact(contact.id);
+      return removeICEContact(contact.id);
     } else {
       notifyCallbacks(localIceContacts);
+      return Promise.resolve();
     }
+  }
+
+  function onChangeEvent(evt) {
+    // We should refresh the iceContacts before determining if it is necessary
+    // to notify or not
+    pendingChanges.push(evt);
+    if (!performingChange) {
+      performChange();  
+    }
+  }
+
+  // We perform any change sequentially to avoid any race condition while
+  // saving to disc the ICE state.
+  function performChange() {
+    performingChange = true;
+    var evt = pendingChanges.pop();
+
+    if (!evt) {
+      performingChange = false;
+      return;
+    }
+
+    function callback() {
+      handleChangeEvent(evt).then(performChange);
+    }
+
+    load().then(callback, callback);
   }
 
   function getActiveIceContacts() {
@@ -196,6 +256,7 @@
   exports.ICEData = {
     load: load,
     setICEContact: setICEContact,
+    setICEContacts: setICEContacts,
     removeICEContact: removeICEContact,
     get iceContacts() { return localIceContacts; },
     getActiveIceContacts: getActiveIceContacts,

@@ -76,6 +76,8 @@
 
   AttentionWindow.prototype.CLASS_LIST = 'appWindow attentionWindow';
 
+  AttentionWindow.prototype.HIERARCHY_MANAGER = 'AttentionWindowManager';
+
   /**
    * Turn on this flag to dump debugging messages for all attention windows.
    * @type {Boolean}
@@ -88,11 +90,10 @@
 
   AttentionWindow.prototype.view = function attw_view() {
     this.debug('intance id: ' + this.instanceID);
-    return '<div class="' + this.CLASS_LIST +
-            '" id="' + this.instanceID + '">' +
-            '<div class="browser-container"></div>' +
-            '<div class="screenshot-overlay"></div>' +
-            '</div>';
+    return `<div class="${this.CLASS_LIST}" id="${this.instanceID}">
+            <div class="browser-container"></div>
+            <div class="screenshot-overlay"></div>
+            </div>`;
   };
 
   AttentionWindow.SUB_COMPONENTS = {
@@ -229,6 +230,8 @@
     // Resize the window to accommodate the presence or absence of the software
     // home button.
     this._resize();
+    // Unset width because we don't need
+    this.element.style.width = '';
 
     AppWindow.prototype.show.call(this);
   };

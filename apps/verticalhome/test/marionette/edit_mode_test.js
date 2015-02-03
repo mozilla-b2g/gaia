@@ -1,25 +1,19 @@
 'use strict';
 
-var Actions = require('marionette-client').Actions;
-
-var Home2 = require('./lib/home2');
-var System = require('../../../../apps/system/test/marionette/lib/system');
-
 marionette('Vertical - Edit Mode', function() {
 
-  var client = marionette.client(Home2.clientOptions);
+  var client = marionette.client(require(__dirname + '/client_options.js'));
   var actions, home, system;
   var selectors;
 
   setup(function() {
-    selectors = Home2.Selectors;
-
-    actions = new Actions(client);
-    home = new Home2(client);
-    system = new System(client);
+    actions = client.loader.getActions();
+    home = client.loader.getAppClass('verticalhome');
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
+    selectors = home.Selectors;
 
-    client.apps.launch(Home2.URL);
+    client.apps.launch(home.URL);
 
     home.waitForLaunch();
   });

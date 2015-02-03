@@ -1,5 +1,4 @@
-/* global MockL10n, SimFdnLock, test, suite, suiteTeardown, suiteSetup,
-   setup, assert, MockSimPinDialog */
+/* global MockL10n, MockSimPinDialog */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -7,31 +6,32 @@ require('/apps/settings/test/unit/mock_sim_pin_dialog.js');
 require('/shared/test/unit/load_body_html_helper.js');
 
 suite('SimCardFdn > ', function() {
-  var realL10n;
-  var realSimPinDialog;
-  var MockL10nStub;
+  var SimFdnLock;
+  var map = {
+    '*': {
+      'modules/dialog_service': 'MockDialogService'
+    }
+  };
 
-  suiteSetup(function(done) {
-    realL10n = window.navigator.mozL10n;
-    // dont exec the init so quick
-    MockL10nStub = sinon.stub(MockL10n, 'once', function() {});
+  setup(function(done) {
+    this.sinon.stub(MockL10n, 'once', function() {});
 
     window.navigator.mozL10n = MockL10n;
-
-    if (window.SimPinDialog) {
-      realSimPinDialog = window.SimPinDialog;
-    }
     window.SimPinDialog = MockSimPinDialog;
 
     loadBodyHTML('./simcard_fdn_test.html');
-    require('/apps/settings/js/simcard_fdn.js', done);
+    define('MockDialogService', function() {
+      return {};
+    });
+
+    var requireCtx = testRequire([], map, function() {});
+    requireCtx(['simcard_fdn'], function(requiredSimFdnLock) {
+      SimFdnLock = requiredSimFdnLock;
+      done();
+    });
   });
 
-  suiteTeardown(function() {
-    window.navigator.mozL10n = realL10n;
-    window.SimPinDialog = realSimPinDialog;
-
-    MockL10nStub.restore();
+  teardown(function() {
     document.body.innerHTML = '';
   });
 

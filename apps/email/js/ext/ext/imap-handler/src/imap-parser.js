@@ -59,7 +59,7 @@
             case "BAD":
             case "PREAUTH":
             case "BYE":
-                responseCode = this.remainder.match(/^ \[[^\]]*\]/);
+                responseCode = this.remainder.match(/^ \[(?:[^\]]*\])+/);
                 if (responseCode) {
                     this.humanReadable = this.remainder.substr(responseCode[0].length).trim();
                     this.remainder = responseCode[0];
@@ -261,7 +261,7 @@
 
                             // ) closes a list
                         case ")":
-                            if (this.currentNode.type  !==  "LIST") {
+                            if (this.currentNode.type !== "LIST") {
                                 throw new Error("Unexpected list terminator ) at position " + (this.pos + i));
                             }
 
@@ -274,7 +274,7 @@
 
                             // ] closes section group
                         case "]":
-                            if (this.currentNode.type  !==  "SECTION") {
+                            if (this.currentNode.type !== "SECTION") {
                                 throw new Error("Unexpected section terminator ] at position " + (this.pos + i));
                             }
                             this.currentNode.closed = true;
@@ -285,7 +285,7 @@
 
                             // < starts a new partial
                         case "<":
-                            if (this.str.charAt(i - 1)  !==  "]") {
+                            if (this.str.charAt(i - 1) !== "]") {
                                 this.currentNode = this.createNode(this.currentNode, this.pos + i);
                                 this.currentNode.type = "ATOM";
                                 this.currentNode.value = chr;
@@ -322,7 +322,8 @@
 
                             // [ starts section
                         case "[":
-                            if (["OK", "NO", "BAD", "BYE", "PREAUTH"].indexOf(this.parent.command.toUpperCase()) >= 0) {
+                            // If it is the *first* element after response command, then process as a response argument list
+                            if (["OK", "NO", "BAD", "BYE", "PREAUTH"].indexOf(this.parent.command.toUpperCase()) >= 0 && this.currentNode === this.tree) {
                                 this.currentNode.endPos = this.pos + i;
 
                                 this.currentNode = this.createNode(this.currentNode, this.pos + i);
@@ -332,19 +333,44 @@
                                 this.currentNode.type = "SECTION";
                                 this.currentNode.closed = false;
                                 this.state = "NORMAL";
-                            }else{
-                                this.currentNode = this.createNode(this.currentNode, this.pos + i);
-                                this.currentNode.type = "ATOM";
-                                this.currentNode.value = chr;
-                                this.state = "ATOM";
-                            }
-                            break;
 
-                        // Any ATOM supported char starts a new Atom sequence, otherwise throw an error
+                                // RFC2221 defines a response code REFERRAL whose payload is an
+                                // RFC2192/RFC5092 imapurl that we will try to parse as an ATOM but
+                                // fail quite badly at parsing.  Since the imapurl is such a unique
+                                // (and crazy) term, we just specialize that case here.
+                                if (this.str.substr(i + 1, 9).toUpperCase() === "REFERRAL ") {
+                                    // create the REFERRAL atom
+                                    this.currentNode = this.createNode(this.currentNode, this.pos + i + 1);
+                                    this.currentNode.type = "ATOM";
+                                    this.currentNode.endPos = this.pos + i + 8;
+                                    this.currentNode.value = "REFERRAL";
+                                    this.currentNode = this.currentNode.parentNode;
+
+                                    // eat all the way through the ] to be the  IMAPURL token.
+                                    this.currentNode = this.createNode(this.currentNode, this.pos + i + 10);
+                                    // just call this an ATOM, even though IMAPURL might be more correct
+                                    this.currentNode.type = "ATOM";
+                                    // jump i to the "]"
+                                    i = this.str.indexOf("]", i + 10);
+                                    this.currentNode.endPos = this.pos + i - 1;
+                                    this.currentNode.value = this.str.substring(this.currentNode.startPos - this.pos,
+                                                                                this.currentNode.endPos - this.pos + 1);
+                                    this.currentNode = this.currentNode.parentNode;
+
+                                    // close out the SECTION
+                                    this.currentNode.closed = true;
+                                    this.currentNode = this.currentNode.parentNode;
+                                    checkSP();
+                                }
+
+                                break;
+                            }
+                            /* falls through */
                         default:
+                            // Any ATOM supported char starts a new Atom sequence, otherwise throw an error
                             // Allow \ as the first char for atom to support system flags
                             // Allow % to support LIST "" %
-                            if (imapFormalSyntax["ATOM-CHAR"]().indexOf(chr) < 0 && chr  !==  "\\" && chr  !==  "%") {
+                            if (imapFormalSyntax["ATOM-CHAR"]().indexOf(chr) < 0 && chr !== "\\" && chr !== "%") {
                                 throw new Error("Unexpected char at position " + (this.pos + i));
                             }
 
@@ -360,9 +386,6 @@
 
                     // space finishes an atom
                     if (chr === " ") {
-                        if ([")", "]"].indexOf(this.str.charAt(i + 1)) >= 0) {
-                            throw new Error("Unexpected whitespace at position " + (this.pos + i + 1));
-                        }
                         this.currentNode.endPos = this.pos + i - 1;
                         this.currentNode = this.currentNode.parentNode;
                         this.state = "NORMAL";
@@ -414,7 +437,7 @@
                     }
 
                     // if the char is not ATOM compatible, throw. Allow \* as an exception
-                    if (imapFormalSyntax["ATOM-CHAR"]().indexOf(chr) < 0 && chr  !==  "]" && !(chr === "*" && this.currentNode.value === "\\")) {
+                    if (imapFormalSyntax["ATOM-CHAR"]().indexOf(chr) < 0 && chr !== "]" && !(chr === "*" && this.currentNode.value === "\\")) {
                         throw new Error("Unexpected char at position " + (this.pos + i));
                     } else if (this.currentNode.value === "\\*") {
                         throw new Error("Unexpected char at position " + (this.pos + i));
@@ -469,11 +492,11 @@
                         throw new Error("Unexpected partial separator . at position " + this.pos);
                     }
 
-                    if (imapFormalSyntax.DIGIT().indexOf(chr) < 0 && chr  !==  ".") {
+                    if (imapFormalSyntax.DIGIT().indexOf(chr) < 0 && chr !== ".") {
                         throw new Error("Unexpected char at position " + (this.pos + i));
                     }
 
-                    if (this.currentNode.value.match(/^0$|\.0$/) && chr  !==  ".") {
+                    if (this.currentNode.value.match(/^0$|\.0$/) && chr !== ".") {
                         throw new Error("Invalid partial at position " + (this.pos + i));
                     }
 
@@ -516,6 +539,16 @@
                         }
                         this.currentNode.literalLength = Number(this.currentNode.literalLength);
                         this.currentNode.started = true;
+
+                        if (!this.currentNode.literalLength) {
+                            // special case where literal content length is 0
+                            // close the node right away, do not wait for additional input
+                            this.currentNode.endPos = this.pos + i;
+                            this.currentNode.closed = true;
+                            this.currentNode = this.currentNode.parentNode;
+                            this.state = "NORMAL";
+                            checkSP();
+                        }
                         break;
                     }
                     if (imapFormalSyntax.DIGIT().indexOf(chr) < 0) {
@@ -530,11 +563,11 @@
                 case "SEQUENCE":
                     // space finishes the sequence set
                     if (chr === " ") {
-                        if (!this.currentNode.value.substr(-1).match(/\d/) && this.currentNode.value.substr(-1)  !==  "*") {
+                        if (!this.currentNode.value.substr(-1).match(/\d/) && this.currentNode.value.substr(-1) !== "*") {
                             throw new Error("Unexpected whitespace at position " + (this.pos + i));
                         }
 
-                        if (this.currentNode.value.substr(-1) === "*" && this.currentNode.value.substr(-2, 1)  !==  ":") {
+                        if (this.currentNode.value.substr(-1) === "*" && this.currentNode.value.substr(-2, 1) !== ":") {
                             throw new Error("Unexpected whitespace at position " + (this.pos + i));
                         }
 
@@ -543,10 +576,23 @@
                         this.currentNode = this.currentNode.parentNode;
                         this.state = "NORMAL";
                         break;
+                    } else if (this.currentNode.parentNode &&
+                               chr === "]" &&
+                               this.currentNode.parentNode.type === "SECTION") {
+                        this.currentNode.endPos = this.pos + i - 1;
+                        this.currentNode = this.currentNode.parentNode;
+
+                        this.currentNode.closed = true;
+                        this.currentNode.endPos = this.pos + i;
+                        this.currentNode = this.currentNode.parentNode;
+                        this.state = "NORMAL";
+
+                        checkSP();
+                        break;
                     }
 
                     if (chr === ":") {
-                        if (!this.currentNode.value.substr(-1).match(/\d/) && this.currentNode.value.substr(-1)  !==  "*") {
+                        if (!this.currentNode.value.substr(-1).match(/\d/) && this.currentNode.value.substr(-1) !== "*") {
                             throw new Error("Unexpected range separator : at position " + (this.pos + i));
                         }
                     } else if (chr === "*") {
@@ -554,10 +600,10 @@
                             throw new Error("Unexpected range wildcard at position " + (this.pos + i));
                         }
                     } else if (chr === ",") {
-                        if (!this.currentNode.value.substr(-1).match(/\d/) && this.currentNode.value.substr(-1)  !==  "*") {
+                        if (!this.currentNode.value.substr(-1).match(/\d/) && this.currentNode.value.substr(-1) !== "*") {
                             throw new Error("Unexpected sequence separator , at position " + (this.pos + i));
                         }
-                        if (this.currentNode.value.substr(-1) === "*" && this.currentNode.value.substr(-2, 1)  !==  ":") {
+                        if (this.currentNode.value.substr(-1) === "*" && this.currentNode.value.substr(-2, 1) !== ":") {
                             throw new Error("Unexpected sequence separator , at position " + (this.pos + i));
                         }
                     } else if (!chr.match(/\d/)) {

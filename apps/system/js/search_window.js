@@ -25,7 +25,8 @@
   SearchWindow.SUB_COMPONENTS = {
     'childWindowFactory': window.ChildWindowFactory,
     'contextmenu': window.BrowserContextMenu,
-    'transitionController': window.AppTransitionController
+    'transitionController': window.AppTransitionController,
+    'valueSelector': window.ValueSelector
   };
 
   SearchWindow.prototype = Object.create(AppWindow.prototype);
@@ -40,6 +41,8 @@
 
   SearchWindow.prototype.CLASS_LIST = 'appWindow searchWindow';
 
+  SearchWindow.prototype.HIERARCHY_MANAGER = 'Rocketbar';
+
   SearchWindow.prototype.openAnimation = 'immediate';
 
   SearchWindow.prototype.closeAnimation = 'immediate';
@@ -50,11 +53,10 @@
     document.getElementById('rocketbar-results');
 
   SearchWindow.prototype.view = function aw_view() {
-    return '<div class=" ' + this.CLASS_LIST +
-             ' " id="' + this.instanceID +
-             '" transition-state="closed">' +
-             '<div class="browser-container"></div>' +
-           '</div>';
+    return `<div class="${this.CLASS_LIST}" id="${this.instanceID}"
+             transition-state="closed">
+             <div class="browser-container"></div>
+           </div>`;
   };
 
   // The search window orientation depends on the orientation of the

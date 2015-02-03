@@ -3,8 +3,17 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import time
-from marionette.by import By
-from marionette.marionette import Actions
+
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+    from marionette.marionette import Actions
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
+    from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -41,13 +50,13 @@ class Homescreen(Base):
         return SearchPanel(self.marionette)
 
     def wait_for_app_icon_present(self, app_name):
-        self.wait_for_condition(lambda m: self.installed_app(app_name))
+        Wait(self.marionette, timeout=30).until(lambda m: self.installed_app(app_name))
 
     def wait_for_app_icon_not_present(self, app_name):
-        self.wait_for_condition(lambda m: self.installed_app(app_name) is None)
+        Wait(self.marionette).until(lambda m: self.installed_app(app_name) is None)
 
     def wait_for_bookmark_icon_not_present(self, bookmark_title):
-        self.wait_for_condition(lambda m: self.bookmark(bookmark_title) is None)
+        Wait(self.marionette).until(lambda m: self.bookmark(bookmark_title) is None)
 
     def is_app_installed(self, app_name):
         """Checks whether app is installed"""
@@ -61,9 +70,10 @@ class Homescreen(Base):
             release().\
             wait(1).\
             perform()
-        self.wait_for_condition(lambda m: app.is_displayed())
+        Wait(self.marionette).until(expected.element_displayed(app))
         # Ensure that edit mode is active
-        self.wait_for_condition(lambda m: self.is_edit_mode_active)
+        Wait(self.marionette).until(expected.element_present(
+            *self._edit_mode_locator))
 
     def open_context_menu(self):
         test = self.marionette.find_element(*self._landing_page_locator)
@@ -143,11 +153,12 @@ class Homescreen(Base):
                 for root_element in self.app_elements if root_element.is_displayed()]
 
     def wait_for_number_of_apps(self, number_of_apps=1):
-        self.wait_for_condition(lambda m: len(self.app_elements) >= number_of_apps)
+        Wait(self.marionette).until(lambda m: len(self.app_elements) >= number_of_apps)
 
     def installed_app(self, app_name):
         for root_el in self.marionette.find_elements(*self._homescreen_all_icons_locator):
-            if root_el.text == app_name:
+            if root_el.text == app_name and (root_el.get_attribute('data-app-state') == 'ready' or
+                'bookmark' in root_el.get_attribute('class') or 'collection' in root_el.get_attribute('class')):
                 return self.InstalledApp(self.marionette, root_el)
 
     def bookmark(self, bookmark_title):
@@ -173,7 +184,7 @@ class Homescreen(Base):
             # TODO bug 1043293 introduced a timing/tap race issue here
             time.sleep(0.5)
             self.root_element.tap(y=1)
-            self.wait_for_condition(lambda m: self.apps.displayed_app.name.lower() == expected_name.lower())
+            Wait(self.marionette).until(lambda m: self.apps.displayed_app.name.lower() == expected_name.lower())
             self.apps.switch_to_displayed_app()
 
         def tap_delete_app(self):

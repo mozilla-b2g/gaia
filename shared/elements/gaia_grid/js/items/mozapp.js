@@ -48,7 +48,9 @@
   /**
   `app.manifest.role`s which should not be displayed on the grid.
   */
-  Mozapp.HIDDEN_ROLES = ['system', 'input', 'homescreen', 'search'];
+  Mozapp.HIDDEN_ROLES = [
+    'system', 'input', 'homescreen', 'search', 'addon', 'langpack'
+  ];
 
   Mozapp.prototype = {
 
@@ -301,6 +303,10 @@
           return this.resume();
         case APP_LOADING:
           return this.cancel();
+      }
+
+      if (window.performance.mark) {
+        window.performance.mark('appLaunch@' + app.manifest.name);
       }
 
       if (this.entryPoint) {

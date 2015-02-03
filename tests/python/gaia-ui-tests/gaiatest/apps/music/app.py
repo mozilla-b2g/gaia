@@ -2,7 +2,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.music.regions.list_view import ListView
@@ -22,14 +29,16 @@ class Music(Base):
 
     def launch(self):
         Base.launch(self)
-        self.wait_for_element_not_displayed(*self._loading_spinner_locator)
+        Wait(self.marionette).until(expected.element_not_displayed(
+            *self._loading_spinner_locator))
 
     def wait_for_music_tiles_displayed(self):
-        self.wait_for_element_displayed(*self._music_tiles_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            *self._music_tiles_locator))
 
     def wait_for_empty_message_to_load(self):
-        empty_title = self.marionette.find_element(*self._empty_music_title_locator)
-        self.wait_for_condition(lambda m: empty_title.text != '')
+        element = self.marionette.find_element(*self._empty_music_title_locator)
+        Wait(self.marionette).until(lambda m: not element.text == '')
 
     @property
     def empty_music_title(self):
@@ -40,16 +49,22 @@ class Music(Base):
         return self.marionette.find_element(*self._empty_music_text_locator).text
 
     def tap_albums_tab(self):
-        self.wait_for_element_displayed(*self._albums_tab_locator)
-        self.marionette.find_element(*self._albums_tab_locator).tap()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._albums_tab_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
         return ListView(self.marionette)
 
     def tap_songs_tab(self):
-        self.wait_for_element_displayed(*self._songs_tab_locator)
-        self.marionette.find_element(*self._songs_tab_locator).tap()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._songs_tab_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
         return ListView(self.marionette)
 
     def tap_artists_tab(self):
-        self.wait_for_element_displayed(*self._artists_tab_locator)
-        self.marionette.find_element(*self._artists_tab_locator).tap()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._artists_tab_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
         return ListView(self.marionette)

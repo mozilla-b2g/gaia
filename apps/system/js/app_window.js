@@ -91,6 +91,21 @@
   AppWindow.prototype._DEBUG = false;
 
   /**
+   * This is telling us who is the hierarchy manager to manage this window.
+   * * HierarchyManager ->
+   *  * AttentionWindowManager -> AttentionWindow, CallscreenWindow
+   *                              (-> its popup/activity)
+   *  * SecureWindowManager -> SecureWindow (-> its popup/activity)
+   *  * LockScreenWindowManager -> LockScreenWindow (-> its popup/activity)
+   *  * GlobalOverlayWindowManager -> GlobalOverlayWindow
+   *                                  (-> its popup/activity)
+   *  * Rocketbar -> SearchWindow (-> its popup/activity)
+   *  * AppWindowManager -> AppWindow, HomescreenWindow (-> its popup/activity)
+   * @type {String}
+   */
+  AppWindow.prototype.HIERARCHY_MANAGER = 'AppWindowManager';
+
+  /**
    * Generate instanceID of this instance.
    */
   AppWindow.prototype.generateID = function() {
@@ -190,6 +205,13 @@
   };
 
   /**
+   * Set active should be only applied to top most window.
+   */
+  AppWindow.prototype.setActive = function(enable) {
+    this.getTopMostWindow()._setActive(enable);
+  };
+
+  /**
    * In order to prevent flashing of unpainted frame
    * during switching from one to another,
    * many event listener & callbacks are employed.
@@ -244,6 +266,7 @@
    */
   AppWindow.prototype._showFrame = function aw__showFrame() {
     this.debug('before showing frame');
+    this.reviveBrowser();
 
     // If we're already showing, do nothing!
     if (!this.browser.element.classList.contains('hidden')) {
@@ -273,7 +296,7 @@
     this.debug('before hiding frame');
 
     // If we're already hidden, we have nothing to do!
-    if (this.browser.element.classList.contains('hidden')) {
+    if (!this.browser || this.browser.element.classList.contains('hidden')) {
       return;
     }
 
@@ -285,6 +308,7 @@
    * An appWindow is active means:
    * 1. Going to be opened.
    * 2. Already opened.
+   * 3. Not going to be closed.
    *
    * Note: The element has active class unless it's at closed state.
    * But a closing instance is not recognized as active.
@@ -300,6 +324,10 @@
       return true;
     }
 
+    if (this.element.classList.contains('will-become-inactive')) {
+      return false;
+    }
+
     if (this.transitionController) {
       return (this.transitionController._transitionState == 'opened' ||
               this.transitionController._transitionState == 'opening');
@@ -310,14 +338,31 @@
   };
 
   /**
+   * An appWindow should resize:
+   * 1. If it's active
+   * 2. If it was just queued for close.
+   *
+   * @return {Boolean} The instance should be resized.
+   */
+  AppWindow.prototype.shouldResize = function aw_shouldResize() {
+    if (this.element.classList.contains('will-become-inactive')) {
+      return true;
+    }
+
+    return this.isActive();
+  };
+
+  AppWindow.prototype.isSheetTransitioning =
+    function aw_isSheetTransitioning() {
+      return this.element.classList.contains('inside-edges');
+    };
+
+  /**
    * TODO: Integrate swipe transition.
    *
    * @return {Boolean} The instance is transitioning or not.
    */
   AppWindow.prototype.isTransitioning = function aw_isTransitioning() {
-    if (this.element.classList.contains('inside-edges')) {
-      return true;
-    }
     if (this.transitionController) {
       return (this.transitionController._transitionState == 'opening' ||
               this.transitionController._transitionState == 'closing');
@@ -344,6 +389,7 @@
     if (this.browser) {
       return;
     }
+    this.isCrashed = false;
     this.debug(' ...revived!');
     this.browser = new BrowserFrame(this.browser_config);
     this.browserContainer.appendChild(this.browser.element);
@@ -517,21 +563,20 @@
   AppWindow.prototype.containerElement = document.getElementById('windows');
 
   AppWindow.prototype.view = function aw_view() {
-    return '<div class=" ' + this.CLASS_LIST +
-            ' " id="' + this.instanceID +
-            '" transition-state="closed">' +
-              '<div class="identification-overlay">' +
-                '<div>' +
-                  '<div class="icon"></div>' +
-                  '<span class="title"></span>' +
-                '</div>' +
-              '</div>' +
-              '<div class="fade-overlay"></div>' +
-              '<div class="touch-blocker"></div>' +
-              '<div class="browser-container">' +
-              ' <div class="screenshot-overlay"></div>' +
-              '</div>' +
-           '</div>';
+    return `<div class="${this.CLASS_LIST}" id="${this.instanceID}"
+              transition-state="closed">
+              <div class="identification-overlay">
+                <div>
+                  <div class="icon"></div>
+                  <span class="title"></span>
+                </div>
+              </div>
+              <div class="fade-overlay"></div>
+              <div class="touch-blocker"></div>
+              <div class="browser-container">
+               <div class="screenshot-overlay"></div>
+              </div>
+           </div>`;
   };
 
   /**
@@ -769,6 +814,16 @@
         that.element.addEventListener('_opened', function onOpened() {
           that.element.removeEventListener('_opened', onOpened);
           that.appChrome = new AppChrome(that);
+
+          // Some signals that chrome needs to respond to can occur before
+          // chrome has loaded - in those cases, manually call the handlers.
+          if (that.inError) {
+            that.appChrome.handleEvent({type: 'mozbrowsererror'});
+          }
+          if (that.loading) {
+            that.appChrome.handleEvent({type: 'mozbrowserloadstart'});
+            that.appChrome.handleEvent({type: '_loading'});
+          }
         });
       } else {
         this.appChrome = new AppChrome(this);
@@ -805,19 +860,23 @@
     this.publish('namechanged');
   };
 
-  AppWindow.prototype._handle__orientationchange = function() {
-    if (this.isActive() && !this.isHomescreen) {
-      // Will be resized by the AppWindowManager
-      return;
+  AppWindow.prototype._handle__orientationchange = function(evt) {
+    if (this.isActive()) {
+      this.frontWindow && this.frontWindow.broadcast('orientationchange');
+
+      if (!this.isHomescreen) {
+        this._resize(evt.detail);
+        return;
+      // XXX: Preventing orientaiton of homescreen app is changed by background
+      //      app. It's a workaround for bug 1089951.
+      //      It should be remove once bug 1043102 is done.
+      } else if (Service.currentApp && Service.currentApp === this) {
+        this.lockOrientation();
+      }
     }
 
-    // Resize only the overlays not the app
     var width = layoutManager.width;
-    var height = layoutManager.height;
-
-    this.iframe.style.width = this.width + 'px';
-    this.iframe.style.height = this.height + 'px';
-
+    var height = layoutManager.getHeightFor(this);
     this.element.style.width = width + 'px';
     this.element.style.height = height + 'px';
 
@@ -866,8 +925,10 @@
   AppWindow.prototype._handle_mozbrowsererror =
     function aw__handle_mozbrowsererror(evt) {
       if (evt.detail.type !== 'fatal') {
+        this.inError = true;
         return;
       }
+      this.isCrashed = true;
       // Send event instead of call crash reporter directly.
       this.publish('crashed');
 
@@ -885,6 +946,7 @@
   AppWindow.prototype._handle_mozbrowserloadstart =
     function aw__handle_mozbrowserloadstart(evt) {
       this.loading = true;
+      this.inError = false;
       this._changeState('loading', true);
       this.publish('loading');
     };
@@ -1178,7 +1240,7 @@
       }
 
       if (this.identificationOverlay) {
-        this.identificationOverlay.classList.add('visible');
+        this.element.classList.add('overlay');
       }
 
       this.screenshotOverlay.classList.add('visible');
@@ -1194,7 +1256,6 @@
    */
   AppWindow.prototype._hideScreenshotOverlay =
     function aw__hideScreenshotOverlay() {
-
       if (!this.screenshotOverlay ||
           !this.screenshotOverlay.classList.contains('visible')) {
         return;
@@ -1204,11 +1265,11 @@
       this.screenshotOverlay.style.backgroundImage = '';
 
       if (this.identificationOverlay) {
-        var overlay = this.identificationOverlay;
+        var element = this.element;
         // A white flash can occur when removing the screenshot
         // so we trigger this transition after a tick to hide it.
         setTimeout(function nextTick() {
-          overlay.classList.remove('visible');
+          element.classList.remove('overlay');
         });
       }
     };
@@ -1259,6 +1320,12 @@
     } else {
       window.dispatchEvent(evt);
     }
+
+    // The other module could have all kind of window events
+    window.dispatchEvent(new CustomEvent('window' + event, {
+      bubbles: true,
+      detail: this
+    }));
   };
 
   AppWindow.prototype.broadcast = function aw_broadcast(event, detail) {
@@ -1375,10 +1442,10 @@
       return this._defaultOrientation;
     };
 
-  AppWindow.prototype._resize = function aw__resize() {
+  AppWindow.prototype._resize = function aw__resize(ignoreKeyboard) {
     var height, width;
     this.debug('force RESIZE...');
-    if (layoutManager.keyboardEnabled) {
+    if (!ignoreKeyboard && layoutManager.keyboardEnabled) {
       /**
        * The event is dispatched on the app window only when keyboard is up.
        *
@@ -1395,10 +1462,15 @@
        */
       this.broadcast('withoutkeyboard');
     }
-    height = layoutManager.height;
+    height = layoutManager.getHeightFor(this, ignoreKeyboard);
 
     // If we have sidebar in the future, change layoutManager then.
     width = layoutManager.width;
+
+    if (this.element.style.width === width + 'px' &&
+        this.element.style.height === height + 'px') {
+      return;
+    }
 
     // Adjust height for activity windows which open while rocketbar is open.
     if (this.parentApp) {
@@ -1410,11 +1482,11 @@
 
     this.width = width;
     this.height = height;
-    this.element.style.width = this.width + 'px';
-    this.element.style.height = this.height + 'px';
 
-    this.iframe.style.width = '';
-    this.iframe.style.height = '';
+    this.element.style.width = width + 'px';
+    this.element.style.height = height + 'px';
+
+    this.reviveBrowser();
 
     this.resized = true;
     if (this.screenshotOverlay) {
@@ -1431,7 +1503,7 @@
      * @event AppWindow#appresize
      */
     this.publish('resize');
-    this.debug('W:', this.width, 'H:', this.height);
+    this.debug('W:', width, 'H:', height);
   };
 
   /**
@@ -1454,7 +1526,7 @@
     }
     this.debug('request RESIZE...active? ', this.isActive());
     var bottom = this.getBottomMostWindow();
-    if (!bottom.isActive() || this.isTransitioning()) {
+    if (!bottom.shouldResize() || this.isTransitioning()) {
       return;
     }
     if (this.frontWindow) {
@@ -1496,6 +1568,7 @@
                       OrientationManager.globalOrientation;
     if (orientation) {
       var rv = screen.mozLockOrientation(orientation);
+
       if (rv === false) {
         console.warn('screen.mozLockOrientation() returned false for',
                      this.origin, 'orientation', orientation);
@@ -1800,6 +1873,12 @@
   };
 
   AppWindow.prototype._handle__swipein = function aw_swipein() {
+    if (this.isCrashed) {
+      if (this.transitionController) {
+        this.transitionController.clearTransitionClasses();
+      }
+      return;
+    }
     // Revive the browser element if it's got killed in background.
     this.reviveBrowser();
     // Request "open" to our internal transition controller.
@@ -1831,10 +1910,6 @@
   };
 
   AppWindow.prototype._handle__sheetsgestureend = function aw_sgend() {
-    if (this.isActive()) {
-      this.debug('nothing to do during sheetsgestureend');
-      return;
-    }
     this.debug('hiding screenshot on sheetsgestureend');
     this._hideScreenshotOverlay();
   };

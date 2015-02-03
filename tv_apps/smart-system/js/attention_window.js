@@ -1,4 +1,4 @@
-/* global AppWindow, applications */
+/* global AppWindow */
 'use strict';
 
 (function(exports) {

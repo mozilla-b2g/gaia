@@ -20,7 +20,7 @@ var MP4Metadata = (function() {
     '\xa9nam' : 'title',
     'trkn'    : 'tracknum',
     'disk'    : 'discnum',
-    'covr'    : 'image'
+    'covr'    : 'picture'
   };
 
   // These MP4 atoms are stored as pairs of integers, so they get mapped to
@@ -61,10 +61,9 @@ var MP4Metadata = (function() {
    * Parse a file and return a Promise with the metadata.
    *
    * @param {BlobView} blobview The audio file to parse.
-   * @param {Metadata} metadata The (partially filled-in) metadata object.
    * @return {Promise} A Promise returning the parsed metadata object.
    */
-  function parse(blobview, metadata) {
+  function parse(blobview) {
     if (!checkMP4Type(blobview, MP4Types)) {
       // The MP4 file might be a video or it might be some
       // kind of audio that we don't support. We used to treat
@@ -75,6 +74,7 @@ var MP4Metadata = (function() {
       return Promise.reject(new Error('Unknown MP4 file type'));
     }
 
+    var metadata = {};
     metadata.tag_format = 'mp4';
     return findMoovAtom(blobview, metadata).then(function(result) {
       if (!result) {
@@ -158,7 +158,9 @@ var MP4Metadata = (function() {
         if (offset + size + 16 <= atom.blob.size) {
           atom.getMore(offset + size, 16, function(moov) {
             try {
-              resolve(findMoovAtom(moov));
+              findMoovAtom(moov).then(function(result) {
+                resolve(result);
+              });
             } catch (e) {
               reject(e);
             }

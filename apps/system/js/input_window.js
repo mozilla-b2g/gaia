@@ -22,6 +22,9 @@
 
     this.splashed = true;
 
+    // we're waiting for _ready to fire to do something further
+    this._pendingReady = false;
+
     AppWindow.call(this, configs);
 
     // input keyboard transition was not supposed to have a timeout before,
@@ -51,11 +54,10 @@
   InputWindow.prototype.containerElement = document.getElementById('keyboards');
 
   InputWindow.prototype.view = function iw_view() {
-    return '<div class=" ' + this.CLASS_LIST +
-            ' " id="' + this.instanceID +
-            '" transition-state="closed">' +
-              '<div class="browser-container"></div>' +
-           '</div>';
+    return `<div class="${this.CLASS_LIST}" id="${this.instanceID}"
+            transition-state="closed">
+              <div class="browser-container"></div>
+           </div>`;
   };
 
   InputWindow.prototype.eventPrefix = 'input-app';
@@ -119,6 +121,7 @@
   InputWindow.prototype._handle__ready =
   function iw_handle__ready(evt) {
     this.element.removeEventListener('_ready', this);
+    this._pendingReady = false;
 
     this._setHeight(evt.detail.height);
 
@@ -228,6 +231,7 @@
     this.immediateOpen = configs.immediateOpen;
 
     this.element.addEventListener('_ready', this);
+    this._pendingReady = true;
 
     this._setAsActiveInput(true);
 

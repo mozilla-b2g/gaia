@@ -3,9 +3,16 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import time
-from marionette import expected
-from marionette import Wait
-from marionette.by import By
+
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
+
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
 
@@ -23,7 +30,8 @@ class HTML5Player(PageRegion):
         Base.__init__(self, marionette)
         self.root_element = Wait(self.marionette).until(
             expected.element_present(*self._video_element_locator))
-        Wait(self.marionette).until(expected.element_displayed(self.root_element))
+        Wait(self.marionette).until(
+            expected.element_displayed(self.root_element))
 
     def wait_for_video_loaded(self):
         # Wait long enough to make sure enough of the video has been loaded
@@ -52,8 +60,19 @@ class HTML5Player(PageRegion):
         return (int(self.get_location('playButton')[0]) > 0)
 
     def invoke_controls(self):
-        Wait(self.marionette).until(lambda m: self.controls_visible is False)
+        Wait(self.marionette).until(lambda m: not self.controls_visible)
         self.root_element.tap()
+        Wait(self.marionette).until(lambda m: self.controls_visible)
+
+    def show_controls(self):
+        Wait(self.marionette).until(lambda m: not self.controls_visible)
+        self.marionette.execute_script("""
+           var a = SpecialPowers.Cc["@mozilla.org/inspector/dom-utils;1"]
+               .getService(SpecialPowers.Ci.inIDOMUtils)
+               .getChildrenForNode(document.getElementsByTagName('video')[0], true);
+           var x = a[1].ownerDocument.getAnonymousElementByAttribute(a[1],'class', 'controlBar');
+           x.removeAttribute('hidden');
+         """)
         Wait(self.marionette).until(lambda m: self.controls_visible)
 
     def get_location(self, class_name):
@@ -77,34 +96,28 @@ class HTML5Player(PageRegion):
         if location[0] <= 0 or location[1] <= 0:
             print 'x=%d, y=%d' % (location[0], location[1])
             self.assertTrue(False)
-        self.root_element.tap(x=int(location[0])+5, y=int(location[1])+5)
+        self.root_element.tap(x=int(location[0]) + 5, y=int(location[1]) + 5)
 
     def tap_play(self):
         self.tap_video_control('playButton')
-        Wait(self.marionette).until(lambda m: self.is_playing is True)
+        Wait(self.marionette).until(lambda m: self.is_playing)
         # Tapping the play button makes the controls disappear, wait for that to happen
-        Wait(self.marionette).until(lambda m: self.controls_visible is False)
+        Wait(self.marionette).until(lambda m: not self.controls_visible)
 
     def tap_pause(self):
         self.tap_video_control('playButton')
-        Wait(self.marionette).until(lambda m: self.is_playing is False)
+        Wait(self.marionette).until(lambda m: not self.is_playing)
 
     def tap_mute(self):
         self.tap_video_control('muteButton')
-        Wait(self.marionette).until(lambda m: self.is_muted is True)
+        Wait(self.marionette).until(lambda m: self.is_muted)
 
     def tap_unmute(self):
         self.tap_video_control('muteButton')
-        Wait(self.marionette).until(lambda m: self.is_muted is False)
+        Wait(self.marionette).until(lambda m: not self.is_muted)
 
     def tap_full_screen(self):
         self.tap_video_control('fullscreenButton')
-
-    def is_video_playing(self):
-        # test that newer timestamp has greater value than previous one
-        tstart = self.current_timestamp
-        time.sleep(2)
-        return tstart < self.current_timestamp
 
     @property
     def current_timestamp(self):

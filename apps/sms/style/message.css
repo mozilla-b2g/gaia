@@ -1,11 +1,11 @@
 .message.incoming {
-  padding-left: 1.5rem;
-  padding-right: 4rem;
+  -moz-padding-start: 1.5rem;
+  -moz-padding-end: 4rem;
 }
 
 .message.outgoing {
-  padding-left: 4rem;
-  padding-right: 1.5rem;
+  -moz-padding-start: 4rem;
+  -moz-padding-end: 1.5rem;
 }
 
 .message .bubble {
@@ -15,6 +15,10 @@
   padding: 1rem 1.5rem;
   overflow: visible;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.15);
+}
+
+.bubble .message-content-body:focus {
+  -moz-user-select: text;
 }
 
 .message.outgoing .bubble {
@@ -43,14 +47,18 @@
   color: #fff;
 }
 
-/* BB overrides */
+.message p.message-content-body {
+  white-space: pre-wrap;
 
+  outline: none;
+}
+
+/* BB overrides */
 .message.outgoing p:first-of-type:last-of-type,
 .message.incoming p:first-of-type:last-of-type {
   padding-top: 0.5rem;
 
   line-height: 2rem;
-  white-space: pre-wrap;
 }
 
 .message.incoming p:first-of-type {
@@ -90,6 +98,8 @@
   font-size: 1.4rem;
   font-style: italic;
   line-height: 1.7rem;
+
+  unicode-bidi: -moz-plaintext;
 }
 
 .message.has-subject .message-subject {
@@ -100,6 +110,10 @@
 .message-content a {
   color: #004eff;
   text-decoration: underline;
+}
+
+.message-content > p {
+  unicode-bidi: -moz-plaintext;
 }
 
 .message-details {
@@ -197,4 +211,17 @@
 .message.pending .download {
   border-color: transparent;
   opacity: 0.8;
+}
+
+/* RTL for message bubble float direction and border-radius*/
+.message.outgoing .bubble:-moz-dir(rtl) {
+  float: left;
+
+  border-radius: 0 1.5rem 1.5rem 1.5rem;
+}
+
+.message.incoming .bubble:-moz-dir(rtl) {
+  float: right;
+
+  border-radius: 1.5rem 0 1.5rem 1.5rem;
 }

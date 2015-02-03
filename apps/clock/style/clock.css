@@ -13,6 +13,11 @@ html, body {
   -moz-user-select: none;
 }
 
+/* Absolutely-positioned elements don't inherit -moz-user-select. */
+#clock-tabs {
+  -moz-user-select: none;
+}
+
 #clock-view {
   width: 100%;
   height: calc(100% - 0.13rem);

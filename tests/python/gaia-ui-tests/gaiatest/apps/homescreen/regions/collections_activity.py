@@ -2,9 +2,17 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
 
 from gaiatest.apps.base import Base
+
 
 class CollectionsActivity(Base):
 
@@ -15,9 +23,10 @@ class CollectionsActivity(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_condition(lambda m: self.apps.displayed_app.src == self._src)
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.src == self._src)
         self.apps.switch_to_displayed_app()
-        self.wait_for_element_not_displayed(*self._collection_loading_locator)
+        loading = self.marionette.find_element(*self._collection_loading_locator)
+        Wait(self.marionette).until(expected.element_not_displayed(loading))
 
     @property
     def collection_name_list(self):

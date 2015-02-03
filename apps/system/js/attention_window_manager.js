@@ -44,6 +44,46 @@
       return this._topMostWindow;
     },
 
+    respondToHierarchyEvent: function(evt) {
+      if (this['_handle_' + evt.type]) {
+        return this['_handle_' + evt.type](evt);
+      } else {
+        return true;
+      }
+    },
+
+    _handle_home: function(evt) {
+      if (!this.hasActiveWindow()) {
+        return true;
+      }
+      this._topMostWindow = null;
+      var nextApp = homescreenLauncher.getHomescreen();
+      if (Service.locked) {
+        this.closeAllAttentionWindows();
+      } else if (nextApp && !nextApp.isDead()) {
+        nextApp.ready(this.closeAllAttentionWindows.bind(this));
+      } else {
+        this.closeAllAttentionWindows();
+      }
+      return true;
+    },
+
+    '_handle_system-resize': function() {
+      if (this._topMostWindow) {
+        this._topMostWindow.resize();
+        return false;
+      }
+      return true;
+    },
+
+    _handle_holdhome: function() {
+      if (this.isActive()) {
+        this._topMostWindow = null;
+        this.closeAllAttentionWindows();
+      }
+      return true;
+    },
+
     /**
      * Return current alive attention window instances in a map.
      * @return {Map} The attention window map
@@ -66,13 +106,12 @@
       window.addEventListener('attentionclosing', this);
       window.addEventListener('attentionrequestopen', this);
       window.addEventListener('attentionrequestclose', this);
-      window.addEventListener('home', this);
-      window.addEventListener('holdhome', this);
       window.addEventListener('emergencyalert', this);
       window.addEventListener('launchapp', this);
-      window.addEventListener('system-resize', this);
       window.addEventListener('lockscreen-appclosed', this);
       window.addEventListener('lockscreen-appopened', this);
+      window.addEventListener('secure-appclosed', this);
+      window.addEventListener('secure-appopened', this);
       window.addEventListener('rocketbar-overlayopened', this);
       Service.request('registerHierarchy', this);
     },
@@ -89,13 +128,12 @@
       window.removeEventListener('attentionclosing', this);
       window.removeEventListener('attentionrequestopen', this);
       window.removeEventListener('attentionrequestclose', this);
-      window.removeEventListener('home', this);
-      window.removeEventListener('holdhome', this);
       window.removeEventListener('emergencyalert', this);
       window.removeEventListener('launchapp', this);
-      window.removeEventListener('system-resize', this);
       window.removeEventListener('lockscreen-appclosed', this);
       window.removeEventListener('lockscreen-appopened', this);
+      window.removeEventListener('secure-appclosed', this);
+      window.removeEventListener('secure-appopened', this);
       window.removeEventListener('rocketbar-overlayopened', this);
       Service.request('unregisterHierarchy', this);
     },
@@ -113,6 +151,7 @@
           this._openedInstances.set(attention, attention);
           this.updateAttentionIndicator();
           this.publish('-activated');
+          this.updateClassState();
           break;
 
         case 'attentionrequestclose':
@@ -160,6 +199,7 @@
             this.publish('-deactivated');
           }
           this.updateAttentionIndicator();
+          this.updateClassState();
           break;
 
         case 'attentionrequestopen':
@@ -205,54 +245,56 @@
           }
           this._openedInstances.delete(attention);
           this.updateAttentionIndicator();
-          break;
-
-        case 'home':
-          if (!this.hasActiveWindow()) {
-            return;
-          }
-          this._topMostWindow = null;
-          var nextApp = homescreenLauncher.getHomescreen();
-          if (Service.locked) {
-            this.closeAllAttentionWindows();
-          } else if (nextApp && !nextApp.isDead()) {
-            nextApp.ready(this.closeAllAttentionWindows.bind(this));
-          } else {
-            this.closeAllAttentionWindows();
-          }
+          this.updateClassState();
           break;
 
         case 'launchapp':
           if (evt.detail && evt.detail.stayBackground) {
             break; 
           } // jshint ignore:line
-        case 'holdhome':
         case 'emergencyalert':
         case 'rocketbar-overlayopened':
           this._topMostWindow = null;
           this.closeAllAttentionWindows();
           break;
 
-        case 'system-resize':
-          if (this._topMostWindow) {
-            this._topMostWindow.resize();
-            evt.stopImmediatePropagation();
-          }
-          break;
-
         case 'lockscreen-appclosed':
         case 'lockscreen-appopened':
+        case 'secure-appopened':
+        case 'secure-appclosed':
           this._instances.forEach(function(instance) {
             instance.broadcast(evt.type);
           });
           break;
       }
     },
+    /**
+     * Traverse the instances list to get the count of displayed window.
+     * @return {Number} The count of displayed window
+     */
+    getShownWindowCount: function() {
+      var count = this._instances.length;
+      this._instances.forEach(function(attention) {
+        if (attention.isHidden()) {
+          count--;
+        }
+      });
+      return count;
+    },
     updateAttentionIndicator: function() {
-      if (this._openedInstances.size == this._instances.length) {
+      if (this._openedInstances.size == this.getShownWindowCount()) {
         Service.request('makeAmbientIndicatorInactive');
       } else {
         Service.request('makeAmbientIndicatorActive');
+      }
+    },
+    updateClassState: function() {
+      // XXX We set a class to screen to allow overriding the screen.lock class.
+      // When we get rid of screen.lock in the future, this can go away safely.
+      if (this._openedInstances.size !== 0) {
+        this.screen.classList.add('attention');
+      } else {
+        this.screen.classList.remove('attention');
       }
     },
     closeAllAttentionWindows: function() {

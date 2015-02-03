@@ -184,6 +184,35 @@ section[role="region"] > gaia-header .icon.icon-edit-contact {
 .item.first {
   width: 30rem;
   padding: 1rem 1rem 0 1rem;
+  /* We enable overflow wrt bug 1094709 */
+  overflow: inherit;
+}
+
+/* Bug 1094709. We can now click on rightmost part and the reset will work */
+#contact-form div.with-overflow {
+  overflow: inherit;
+}
+
+#contact-form div.with-overflow button[type="reset"] {
+  width: 5rem;     /* The affordance is increased by 1 rem */
+  right: calc(-0.5rem + -0.3rem);
+}
+
+#contact-form div.with-overflow input {
+  width: 20rem;
+}
+
+#contact-form div.with-overflow input[name="org"] {
+  width: 30rem;
+}
+
+/* this is needed because it overflows the photo container */
+div.with-overflow > p.input-container {
+  pointer-events: none;
+}
+
+div.with-overflow > p.input-container > input {
+  pointer-events: auto;
 }
 
 .view-edit-contact .tail-actions {
@@ -223,7 +252,7 @@ section[role="region"] > gaia-header .icon.icon-edit-contact {
 }
 
 .two_fields > :first-child {
-  margin-right: 1rem;
+  -moz-margin-end: 1rem;
   width: 12rem;
 }
 
@@ -297,7 +326,9 @@ form p textarea + button[type="reset"].hide {
   overflow: hidden;
   width: 1.5rem;
   height: 1.5rem;
-  margin: -0.2rem 1rem 0 0;
+  margin: 0;
+  margin-top: -0.2rem;
+  -moz-margin-end: 1rem;
 }
 
 .icon-social.icon-fb,
@@ -309,7 +340,7 @@ form p textarea + button[type="reset"].hide {
   margin-left: 0 !important;
 }
 
-#contact-detail p > strong,
+#contact-detail bdi > strong,
 .action-block b,
 .comment-notes {
   font-size: 1.6rem;
@@ -326,7 +357,7 @@ form p textarea + button[type="reset"].hide {
 }
 
 .facebook fieldset {
-  margin-left: 4rem;
+  -moz-margin-start: 4rem;
 }
 
 .facebook fieldset, .facebook legend, .facebook input {
@@ -407,20 +438,22 @@ gaia-header [data-icon] {
   justify-content: space-between;
 }
 #view-settings [data-type="list"] li#settingsOrder aside {
+  top: 0.5rem;
+  margin: 0;
   pointer-events: none;
-  align-self: flex-end;
+  align-self: center;
 }
 
 /* Cutom FB item */
 #view-settings [data-type="list"] .fb-item {
-  height: auto;
   border-bottom: none;
   display: flex;
   flex-direction: column;
 }
 
 #view-settings [data-type="list"] .fb-item p {
-  padding-left: 4.3rem;
+  -moz-padding-start: 4.2rem;
+  font-size: 1.4rem;
 }
 
 #view-settings [data-type="list"] .fb-item p span {
@@ -428,23 +461,46 @@ gaia-header [data-icon] {
   padding-bottom: 0.4rem;
 }
 
+#view-settings [data-type="list"] .fb-item {
+  background: url(/contacts/style/images/f_logo.png) no-repeat 0 calc(50% + 0.5rem) / 3rem;
+}
+
+html[dir=rtl] #view-settings [data-type="list"] .fb-item {
+  background: url(/contacts/style/images/f_logo.png) no-repeat scroll 100% calc(50% + 0.5rem) / 3rem auto;
+}
+
 #view-settings [data-type="list"] .fb-item p:first-of-type {
-  background: url(/contacts/style/images/f_logo.png) no-repeat 0.5rem calc(50% + 0.5rem) / 3rem;
   height: 3rem;
+  font-size: 1.9rem;
   line-height: 3rem;
 }
 
 #view-settings [data-type="list"] .fb-item aside {
   width: 6.5rem;
-  height: 6rem;
+  height: 5rem;
+  margin: 0;
   pointer-events: none;
   position: absolute;
-  top: 0;
+  top: 1rem;
+}
+
+html[dir=rtl] #view-settings [data-type="list"] .fb-item aside {
+  left: 0;
+}
+
+html[dir=ltr] #view-settings [data-type="list"] .fb-item aside {
   right: 0;
 }
 
 #view-settings [data-type="list"] .fb-item aside label {
   position: absolute;
+}
+
+html[dir=rtl] #view-settings [data-type="list"] .fb-item aside label {
+  left: 0;
+}
+
+html[dir=ltr] #view-settings [data-type="list"] .fb-item aside label {
   right: 0;
 }
 
@@ -682,7 +738,8 @@ gaia-header [data-icon] {
   margin-top: 1rem;
 }
 
-#sources > li {
+#sources > li,
+#contactsManagement > li {
   border-bottom: none;
   height: auto;
 }
@@ -706,7 +763,7 @@ gaia-header [data-icon] {
 }
 
 .group-section {
-  padding-left: 1.5rem;
+  -moz-padding-start: 1.5rem;
 }
 
 .datetime {
@@ -793,16 +850,6 @@ form[role="dialog"][data-type="edit"].contacts-select:not(.insearchmode) gaia-he
   image-rendering: auto;
 }
 
-html[dir="rtl"] #no-contacts .icon {
-  padding-right: 3.5rem;
-  padding-left: 0;
-}
-
-html[dir="rtl"] #no-contacts .create.icon,
-html[dir="rtl"] #no-contacts .import.icon {
-  background-position: 100% 50%;
-}
-
 nav[data-type="scrollbar"] li .pack-icon-ice {
   width: 1.2rem;
   height: 1.2rem;
@@ -810,16 +857,6 @@ nav[data-type="scrollbar"] li .pack-icon-ice {
   vertical-align: middle;
   background: transparent no-repeat center center / 1.2rem;
   background-image: url("/contacts/style/images/ice_small.png");
-}
-
-html[dir="rtl"] #no-contacts .icon {
-  padding-right: 3.5rem;
-  padding-left: 0;
-}
-
-html[dir="rtl"] #no-contacts .create.icon,
-html[dir="rtl"] #no-contacts .import.icon {
-  background-position: 100% 50%;
 }
 
 fieldset legend {
@@ -847,7 +884,10 @@ form[role="combobox"] span[data-field="type"] {
 
 .img-delete-button {
   padding: 0;
-  margin: 0.2rem 1rem 0 0.2rem;
+  margin: 0;
+  margin-top: 0.2rem;
+  -moz-margin-start: 0.2rem;
+  -moz-margin-end: 1rem;
   width: 2.8rem;
   color: #fff;
   background: url('images/icon_remove.png') no-repeat scroll 0 0 / 3rem auto transparent;
@@ -965,4 +1005,48 @@ form[role="combobox"] span[data-field="type"] {
 li button[data-field-type]:active {
   background: transparent;
   color: #5F5F5F;
+}
+
+/* RTL View */
+
+html[dir="rtl"] .field-template {
+  border-radius: 0 15px 0 0;
+}
+
+html[dir="rtl"] #no-contacts .icon {
+  padding-right: 3.5rem;
+  padding-left: 0;
+}
+
+html[dir="rtl"] #no-contacts .create.icon,
+html[dir="rtl"] #no-contacts .import.icon {
+  background-position: 100% 50%;
+}
+
+html[dir="rtl"] #contact-form div.with-overflow button[type="reset"] {
+  left: calc(-0.5rem + -0.3rem);
+  right: unset;
+}
+
+html[dir="rtl"] #view-settings [data-type="list"] .fb-item aside {
+  left: 0;
+  right: unset;
+}
+
+html[dir="rtl"] #view-settings [data-type="list"] .fb-item {
+  background-position: 100% calc(50% + 0.5rem);
+}
+
+html[dir="rtl"] #view-settings [data-type="list"] .fb-item aside label {
+  left: 0;
+  right: unset;
+}
+
+html[dir="rtl"] #view-settings [data-type="list"] li button.icon:before {
+  left: auto;
+  right: 0.5rem;
+}
+
+html[dir="rtl"] .img-delete-button {
+  background-position: 100% 0;
 }

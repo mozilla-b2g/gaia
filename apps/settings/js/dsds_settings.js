@@ -4,10 +4,11 @@
 'use strict';
 
 var DsdsSettings = (function(window, document, undefined) {
-  var _settings = null;
-  var _iccManager = null;
+  var _settings = window.navigator.mozSettings;
   var _mobileConnections = null;
-
+  if (window.navigator.mozMobileConnections) {
+    _mobileConnections = window.navigator.mozMobileConnections;
+  }
   /** */
   var _iccCardIndexForCallSettings = 0;
 
@@ -18,13 +19,10 @@ var DsdsSettings = (function(window, document, undefined) {
    * Init function.
    */
   function ds_init() {
-    _settings = window.navigator.mozSettings;
-    _iccManager = window.navigator.mozIccManager;
-    _mobileConnections = window.navigator.mozMobileConnections;
-    if (!_settings || !_mobileConnections || !_iccManager) {
+    if (!_settings || !_mobileConnections) {
       return;
     }
-    ds_handleCallSettingSimPanel();
+    ds_handleDefaultIccCard();
     ds_handleCellAndDataSettingSimPanel();
   }
 
@@ -34,7 +32,9 @@ var DsdsSettings = (function(window, document, undefined) {
    * @return {Numeric} Number of ICC slots.
    */
   function ds_getNumberOfIccSlots() {
-    return _mobileConnections.length;
+    if (_mobileConnections) {
+      return _mobileConnections.length;
+    }
   }
 
   /**
@@ -53,29 +53,22 @@ var DsdsSettings = (function(window, document, undefined) {
   }
 
   /**
-   * Hide or show the call settings panel in which we show the ICC cards.
-   */
-  function ds_handleCallSettingSimPanel() {
-    var callItem = null;
-
-    if (ds_getNumberOfIccSlots() > 1) {
-      callItem = document.getElementById('menuItem-callSettings');
-      callItem.setAttribute('href', '#call-iccs');
-      if ((_mobileConnections[0].radioState !== 'enabled') ||
-          (!_mobileConnections[0].iccId &&
-           !_mobileConnections[1].iccId)) {
-        return;
-      }
-      callItem = document.getElementById('call-settings');
-      callItem.removeAttribute('aria-disabled');
-    }
-  }
-
-  /**
    *
    */
   function ds_getIccCardIndexForCellAndDataSettings() {
     return _iccCardIndexForCellAndDataSettings;
+  }
+
+  /**
+   * Find out first available iccID for default iccID
+   */
+  function ds_handleDefaultIccCard() {
+    for (var i = 0, len = _mobileConnections.length; i < len; i++) {
+      if (_mobileConnections[i].iccId !== null) {
+        ds_setIccCardIndexForCellAndDataSettings(i);
+        break;
+      }
+    }
   }
 
   /**

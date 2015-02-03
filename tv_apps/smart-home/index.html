@@ -5,109 +5,148 @@
     <meta charset="utf-8">
     <title>Home</title>
 
+    <!-- building blocks -->
+    <link rel="stylesheet" type="text/css" href="tv_shared/font/gaia-device-icons.css">
+    <link rel="stylesheet" type="text/css" href="tv_shared/components/smart-button/style.css">
+    <link rel="stylesheet" type="text/css" href="tv_shared/components/menu-group/style.css">
+
+    <!-- home -->
+    <link rel="stylesheet" type="text/css" href="style/header.css">
     <link rel="stylesheet" type="text/css" href="style/home.css">
+    <link rel="stylesheet" type="text/css" href="style/deck.css">
+    <link rel="stylesheet" type="text/css" href="style/edit.css">
     <link rel="stylesheet" type="text/css" href="tv_shared/style/navigation.css">
+    <link rel="stylesheet" type="text/css" href="style/info-bar.css">
+    <link rel="stylesheet" type="text/css" href="style/search-bar.css">
+
+    <!-- default cards for first time launch -->
+    <link rel="resource" type="application/json" href="tv_shared/resources/default-cards.json">
 
     <!-- For test purpose on phone only -->
     <script defer src="shared/js/gesture_detector.js"></script>
     <script defer src="tv_shared/js/init_gesture.js"></script>
 
+    <!-- Shared libraries -->
+    <script defer src="shared/js/uuid.js"></script>
+    <script defer src="shared/js/iac_handler.js"></script>
+
     <!-- Helper libraries -->
     <script defer src="tv_shared/js/vendor/evt.js"></script>
     <script defer src="tv_shared/js/shared_utils.js"></script>
-    <script defer src="js/piped_promise.js"></script>
+    <script defer src="tv_shared/js/clock.js"></script>
+    <script defer src="tv_shared/js/piped_promise.js"></script>
+    <script defer src="tv_shared/js/card_store.js"></script>
+    <script defer src="tv_shared/js/cards/card.js"></script>
+    <script defer src="tv_shared/js/cards/application.js"></script>
+    <script defer src="tv_shared/js/cards/deck.js"></script>
+    <script defer src="tv_shared/js/cards/app_bookmark.js"></script>
+    <script defer src="tv_shared/js/cards/folder.js"></script>
+    <script defer src="tv_shared/js/card_manager.js"></script>
+
+    <!-- building blocks -->
+    <script defer src="tv_shared/components/smart-button/script.js"></script>
+    <!-- menu group depends on evt, it should be added after evt.js -->
+    <script defer src="tv_shared/components/menu-group/script.js"></script>
+
     <!-- Shared TV library for keyboard-based navigating -->
-    <script defer src="tv_shared/js/selection_border.js"></script>
+    <script defer src="tv_shared/js/scrollable.js"></script>
     <script defer src="tv_shared/js/spatial_navigator.js"></script>
     <script defer src="tv_shared/js/key_navigation_adapter.js"></script>
     <!-- Specific code -->
-    <script defer src="js/card.js"></script>
-    <script defer src="js/application.js"></script>
-    <script defer src="js/deck.js"></script>
-    <script defer src="js/app_bookmark.js"></script>
-    <!-- XXX: we should remove fake_deck once we have real decks -->
-    <script defer src="js/fake_deck.js"></script>
-    <script defer src="js/card_store.js"></script>
-    <script defer src="js/card_manager.js"></script>
-    <script defer src="js/scrollable.js"></script>
-    <script defer src="js/context_menu.js"></script>
+    <script defer src="js/card_filter.js"></script>
+    <script defer src="js/connection_manager.js"></script>
     <script defer src="js/message_handler.js"></script>
+    <script defer src="js/edit.js"></script>
+    <script defer src="js/search_bar.js"></script>
+
     <script defer src="js/home.js"></script>
 
-    <!-- Shared libraries -->
+    <!-- Shared L10n libraries -->
     <script src="shared/js/l10n.js"></script>
+    <script src="shared/js/l10n_date.js"></script>
 
     <!-- L10n properties -->
-    <link rel="manifest" href="manifest.webapp"/>
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="locales/home.{locale}.properties"/>
     <link rel="localization" href="shared/locales/date/date.{locale}.properties"/>
   </head>
 
   <body>
-    <article role="region" class="skin-dark" id="main-section" contextmenu="mymenu">
-      <section id="clock">
-        <span id="time">10:30</span><span id="day-period" data-l10n-id="time_am">am</span>
-      </section>
-      <section id="search">
-        <div id="search-container" role="button">
-          <input id="search-input" type="text" role="presentation" placeholder="I'm thinking of..."></input>
-        </div>
-      </section>
+    <article role="region" class="skin-dark" id="main-section">
+      <section id="background" class="background"></section>
+      <nav id="nav-regular">
+        <section id="header-buttons" class="left-top-panel">
+          <smart-button data-icon="search" id="search-button" class="search-button"></smart-button>
+          <menu-group data-icon="setting" id="settings-group" class="settings-group" rotate>
+            <smart-button type="simple-text" id="edit-button" class="edit-button">
+              <span data-l10n-id="edit">edit</span>
+            </smart-button>
+            <smart-button type="simple-text" id="settings-button" class="settings-button">
+              <span data-l10n-id="settings">settings</span>
+            </smart-button>
+          </menu-group>
+        </section>
+        <section id="information-bar" class="information-bar">
+          <div id="clock-info" class="clock-info"><span id="time" class="time"></span></div>
+          <div id="weather-info" class="weather-info">
+            <!-- use span here because we will change to icon font -->
+            <span id="weather-image" class="weather-image"></span>
+            <span id="temperature" class="temperature">
+              <!-- do not add \n here because it adds a space between temperature-number, degree-marker and degree-system -->
+              <label class="temperature-number">72</label><label class="degree-marker">&#xb0;</label><label class="degree-system">F</label>
+            </span>
+            <span id="weather-text" class="weather-text">Mostly Cloudy</span>
+          </div>
+        </section>
+      </nav>
+      <nav id="nav-edit-title">
+        <header data-l10n-id="edit-mode-title">
+            Edit mode
+        </header>
+      </nav>
+      <nav id="nav-edit">
+        <section id="edit-menu">
+          <smart-button type="underlined-text" id="done-button">
+            <span data-l10n-id="done">done</span>
+          </smart-button>
+          <smart-button type="text-and-icon" id="add-new-folder-button" data-icon="add">
+            <span data-l10n-id="add-new-folder">add new folder</span>
+          </smart-button>
+        </section>
+      </nav>
 
       <section id="card-viewer">
         <div id="card-list-frame">
-          <div id="card-list" data-default-item="2">
+          <div id="card-list" data-default-item="0">
           </div>
         </div>
       </section>
-      <section id="folder-viewer">
-        <div id="folder-list-frame">
-          <div id="folder-list" data-default-item="0">
-            <div class="folder-card">
-              <div class="folder-card-thumbnail"></div>
-              <div class="folder-card-description">This is a foldercard</div>
-            </div>
-            <div class="folder-card">
-              <div class="folder-card-thumbnail"></div>
-              <div class="folder-card-description">This is a foldercard</div>
-            </div>
-            <div class="folder-card">
-              <div class="folder-card-thumbnail"></div>
-              <div class="folder-card-description">This is a foldercard</div>
-            </div>
-            <div class="folder-card">
-              <div class="folder-card-thumbnail"></div>
-              <div class="folder-card-description">This is a foldercard</div>
-            </div>
-            <div class="folder-card">
-              <div class="folder-card-thumbnail"></div>
-              <div class="folder-card-description">This is a foldercard</div>
-            </div>
-            <div class="folder-card">
-              <div class="folder-card-thumbnail"></div>
-              <div class="folder-card-description"></div>
-            </div>
-          </div>
+      <section id="filter-tab-container" class="filter-tab-container">
+        <menu-group data-icon="filter" id="filter-tab-group" class="filter-tab-group">
+          <smart-button type="simple-text" id="filter-all-button" data-icon-type="filter">
+            <span data-l10n-id="all">all</span>
+          </smart-button>
+          <smart-button type="simple-text" id="filter-tv-button" data-icon-type="tv">
+            <span data-l10n-id="tv">live-tv</span>
+          </smart-button>
+          <smart-button type="simple-text" id="filter-dashboard-button" data-icon-type="dashboard">
+            <span data-l10n-id="dash">dashboard</span>
+          </smart-button>
+          <smart-button type="simple-text" id="filter-device-button" data-icon-type="device">
+            <span data-l10n-id="device">device</span>
+          </smart-button>
+          <smart-button type="simple-text" id="filter-app-button" data-icon-type="application">
+            <span data-l10n-id="app">app</span>
+          </smart-button>
+        </menu-group>
+      </section>
+      <section id="search-bar" class="search-bar hidden">
+        <smart-button data-icon="mic" class="search-mic-button fade-out"></smart-button>
+        <div data-icon="search" class="search-input">
+          <span data-l10n-id="search-default-text">search</span>
         </div>
       </section>
-      <section id="filter-tab-container">
-        <div class="filter-tab" data-l10n-id="all">all</div>
-        <div class="filter-tab" data-l10n-id="dash">dash</div>
-        <div class="filter-tab" data-l10n-id="tv">tv</div>
-        <div class="filter-tab" data-l10n-id="device">device</div>
-        <div class="filter-tab" data-l10n-id="app">app</div>
-      </section>
-      <section id="commands">
-        <div class="command-button" data-l10n-id="edit">edit</div>
-        <div id="settings-button" class="command-button" data-l10n-id="settings">settings</div>
-      </section>
-      <!-- XXX: This context menu is for test purpose and without actual
-           features on spec. We have to change it after required implementations
-           are ready. -->
-      <menu type="context" id="mymenu">
-        <menuitem label="Pin to card" id="pin-to-card"></menuitem>
-        <menuitem label="Remove card" id="remove-card"></menuitem>
-      </menu>
     </article>
   </body>
 

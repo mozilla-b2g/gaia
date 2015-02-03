@@ -1,4 +1,4 @@
-/* global AppModalDialog, airplaneMode, BaseUI */
+/* global AppModalDialog, BaseUI */
 'use strict';
 
 (function(exports) {
@@ -103,79 +103,77 @@
   };
 
   AppModalDialog.prototype.view = function amd_view() {
-    return '<div class="modal-dialog"' +
-            ' id="' + this.CLASS_NAME + this.instanceID + '">' +
-            '<form class="modal-dialog-alert generic-dialog" ' +
-            'role="dialog" tabindex="-1">' +
-            '<div class="modal-dialog-message-container inner">' +
-              '<h3 class="modal-dialog-alert-title"></h3>' +
-              '<p>' +
-                '<span class="modal-dialog-alert-message"></span>' +
-              '</p>' +
-            '</div>' +
-            '<menu>' +
-              '<button class="modal-dialog-alert-ok confirm affirmative" ' +
-              'data-l10n-id="ok">OK</button>' +
-            '</menu>' +
-          '</form>' +
-          '<form class="modal-dialog-confirm generic-dialog" ' +
-          'role="dialog" tabindex="-1">' +
-            '<div class="modal-dialog-message-container inner">' +
-              '<h3 class="modal-dialog-confirm-title"></h3>' +
-              '<p>' +
-                '<span class="modal-dialog-confirm-message"></span>' +
-              '</p>' +
-            '</div>' +
-            '<menu data-items="2">' +
-              '<button class="modal-dialog-confirm-cancel cancel" ' +
-              'data-l10n-id="cancel">Cancel</button>' +
-              '<button class="modal-dialog-confirm-ok confirm affirmative" ' +
-              'data-l10n-id="ok">OK</button>' +
-            '</menu>' +
-          '</form>' +
-          '<form class="modal-dialog-prompt generic-dialog" ' +
-            'role="dialog" tabindex="-1">' +
-            '<div class="modal-dialog-message-container inner">' +
-              '<h3 class="modal-dialog-prompt-title"></h3>' +
-              '<p>' +
-                '<span class="modal-dialog-prompt-message"></span>' +
-                '<input class="modal-dialog-prompt-input" />' +
-              '</p>' +
-            '</div>' +
-            '<menu data-items="2">' +
-              '<button class="modal-dialog-prompt-cancel cancel"' +
-              ' data-l10n-id="cancel">Cancel</button>' +
-              '<button class="modal-dialog-prompt-ok confirm affirmative" ' +
-              'data-l10n-id="ok">OK</button>' +
-            '</menu>' +
-          '</form>' +
-          '<form class="modal-dialog-select-one generic-dialog" ' +
-            'role="dialog" ' +
-            'tabindex="-1">' +
-            '<div class="modal-dialog-message-container inner">' +
-              '<h3 class="modal-dialog-select-one-title"></h3>' +
-              '<ul class="modal-dialog-select-one-menu"></ul>' +
-            '</div>' +
-            '<menu>' +
-              '<button class="modal-dialog-select-one-cancel cancel" ' +
-              'data-l10n-id="cancel">Cancel</button>' +
-            '</menu>' +
-          '</form>' +
-          '<form class="modal-dialog-custom-prompt generic-dialog" ' +
-            'role="dialog" ' +
-            'tabindex="-1">' +
-            '<div class="modal-dialog-message-container inner">' +
-              '<h3 class="modal-dialog-custom-prompt-title"></h3>' +
-              '<p class="modal-dialog-custom-prompt-message"></p>' +
-              '<label class="pack-checkbox">' +
-                '<input class="modal-dialog-custom-prompt-checkbox" ' +
-                'type="checkbox"/>' +
-                '<span></span>' +
-              '</label>' +
-            '</div>' +
-            '<menu class="modal-dialog-custom-prompt-buttons"></menu>' +
-          '</form>' +
-        '</div>';
+    var id = this.CLASS_NAME + this.instanceID;
+    return `<div class="modal-dialog" id="${id}">
+            <form class="modal-dialog-alert generic-dialog"
+            role="dialog" tabindex="-1">
+            <div class="modal-dialog-message-container inner">
+              <h3 class="modal-dialog-alert-title"></h3>
+              <p>
+                <span class="modal-dialog-alert-message"></span>
+              </p>
+            </div>
+            <menu>
+              <button class="modal-dialog-alert-ok confirm affirmative"
+              data-l10n-id="ok"></button>
+            </menu>
+          </form>
+          <form class="modal-dialog-confirm generic-dialog"
+          role="dialog" tabindex="-1">
+            <div class="modal-dialog-message-container inner">
+              <h3 class="modal-dialog-confirm-title"></h3>
+              <p>
+                <span class="modal-dialog-confirm-message"></span>
+              </p>
+            </div>
+            <menu data-items="2">
+              <button class="modal-dialog-confirm-cancel cancel"
+              data-l10n-id="cancel"></button>
+              <button class="modal-dialog-confirm-ok confirm affirmative"
+              data-l10n-id="ok"></button>
+            </menu>
+          </form>
+          <form class="modal-dialog-prompt generic-dialog"
+            role="dialog" tabindex="-1">
+            <div class="modal-dialog-message-container inner">
+              <h3 class="modal-dialog-prompt-title"></h3>
+              <p>
+                <span class="modal-dialog-prompt-message"></span>
+                <input class="modal-dialog-prompt-input" />
+              </p>
+            </div>
+            <menu data-items="2">
+              <button class="modal-dialog-prompt-cancel cancel"
+               data-l10n-id="cancel"></button>
+              <button class="modal-dialog-prompt-ok confirm affirmative"
+              data-l10n-id="ok"></button>
+            </menu>
+          </form>
+          <form class="modal-dialog-select-one generic-dialog"
+            role="dialog" tabindex="-1">
+            <div class="modal-dialog-message-container inner">
+              <h3 class="modal-dialog-select-one-title"></h3>
+              <ul class="modal-dialog-select-one-menu"></ul>
+            </div>
+            <menu>
+              <button class="modal-dialog-select-one-cancel cancel"
+              data-l10n-id="cancel"></button>
+            </menu>
+          </form>
+          <form class="modal-dialog-custom-prompt generic-dialog"
+            role="dialog" tabindex="-1">
+            <div class="modal-dialog-message-container inner">
+              <h3 class="modal-dialog-custom-prompt-title"></h3>
+              <p class="modal-dialog-custom-prompt-message"></p>
+              <label class="pack-checkbox">
+                <input class="modal-dialog-custom-prompt-checkbox"
+                type="checkbox"/>
+                <span></span>
+              </label>
+            </div>
+            <menu class="modal-dialog-custom-prompt-buttons"></menu>
+          </form>
+        </div>`;
   };
 
   AppModalDialog.prototype.processNextEvent = function amd_processNextEvent() {

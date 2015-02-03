@@ -2,10 +2,7 @@
 'use strict';
 
 var assert = require('assert');
-var Actions = require('marionette-client').Actions;
 
-var Home2 = require('./lib/home2');
-var System = require('../../../../apps/system/test/marionette/lib/system');
 var AppInstall =
   require('../../../../apps/system/test/marionette/lib/app_install');
 
@@ -14,7 +11,7 @@ var getIconId = require('./lib/icon_id');
 
 marionette('Vertical - App uninstall while pending', function() {
 
-  var client = marionette.client(Home2.clientOptions);
+  var client = marionette.client(require(__dirname + '/client_options.js'));
   var actions, home, system, appInstall;
   var selectors;
 
@@ -28,19 +25,19 @@ marionette('Vertical - App uninstall while pending', function() {
   });
 
   setup(function() {
-    selectors = Home2.Selectors;
     appInstall = new AppInstall(client);
 
-    actions = new Actions(client);
-    home = new Home2(client);
-    system = new System(client);
+    actions = client.loader.getActions();
+    home = client.loader.getAppClass('verticalhome');
+    system = client.loader.getAppClass('system');
+    selectors = home.Selectors;
 
     // ensure that the zip file does not get sent
     server.cork(server.applicationZipUri);
 
     // wait for the system app to be running
     system.waitForStartup();
-    client.apps.launch(Home2.URL);
+    client.apps.launch(home.URL);
     home.waitForLaunch();
 
     // install the app

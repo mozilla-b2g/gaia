@@ -49,7 +49,7 @@ var Startup = {
   ],
 
   _lazyLoadInit: function() {
-    LazyLoader.load(this._lazyLoadScripts, function() {
+    return LazyLoader.load(this._lazyLoadScripts).then(() => {
       LocalizationHelper.init();
 
       InterInstanceEventDispatcher.connect();
@@ -65,30 +65,60 @@ var Startup = {
 
       // Dispatch post-initialize event for continuing the pending action
       Startup.emit('post-initialize');
+      window.performance.mark('contentInteractive');
       window.dispatchEvent(new CustomEvent('moz-content-interactive'));
 
       // Fetch mmsSizeLimitation and max concat
       Settings.init();
 
+      window.performance.mark('objectsInitEnd');
       PerformanceTestingHelper.dispatch('objects-init-finished');
     });
   },
 
+  /**
+   * We wait for the DOMContentLoaded event in the event sequence. After we
+   * loaded the first panel of threads, we lazy load all non-critical JS files.
+   * As a result, if the 'load' event was not sent yet, this will delay it even
+   * more until all these non-critical JS files are loaded. This is fine.
+   */
   init: function() {
+    function initializeDefaultPanel(firstPageLoadedCallback) {
+      Navigation.off('navigated', initializeDefaultPanel);
+
+      ThreadListUI.init();
+      ThreadListUI.renderThreads(firstPageLoadedCallback, function() {
+        window.performance.mark('fullyLoaded');
+        window.dispatchEvent(new CustomEvent('moz-app-loaded'));
+        App.setReady();
+      });
+    }
+
     var loaded = function() {
       window.removeEventListener('DOMContentLoaded', loaded);
+
+      window.performance.mark('navigationLoaded');
       window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
 
       MessageManager.init();
       Navigation.init();
-      ThreadListUI.init();
-      ThreadListUI.renderThreads(this._lazyLoadInit.bind(this), function() {
-        window.dispatchEvent(new CustomEvent('moz-app-loaded'));
-        App.setReady();
-      });
+
+      // If target panel is different from the default one, let's load remaining
+      // scripts as soon as possible, otherwise we can wait until first page of
+      // threads is loaded and rendered.
+      var panelName = Navigation.getPanelName();
+      if (panelName && panelName !== 'thread-list') {
+        // Initialize default panel only after target panel is ready.
+        Navigation.on('navigated', initializeDefaultPanel);
+
+        this._lazyLoadInit();
+      } else {
+        initializeDefaultPanel(this._lazyLoadInit.bind(this));
+      }
 
       // dispatch chrome-interactive when thread list related modules
       // initialized
+      window.performance.mark('navigationInteractive');
       window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
     }.bind(this);
 

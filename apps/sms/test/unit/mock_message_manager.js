@@ -5,6 +5,7 @@
 
 var MockMessageManager = {
   _message: null,
+  init: () => {},
   getThreads: function() {},
   getMessages: function() {},
   getMessage: function() {
@@ -30,6 +31,7 @@ var MockMessageManager = {
   retrieveMMS: function() {},
   markMessagesRead: function() {},
   markThreadRead: function() {},
+  findThreadFromNumber: function() {},
   getSegmentInfo: function() {
     return Promise.reject(new Error('not implemented '));
   },

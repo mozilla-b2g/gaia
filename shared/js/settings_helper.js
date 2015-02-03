@@ -69,15 +69,17 @@
       };
     };
 
+    var _valuechanged = function sh_valuehanged(e) {
+      _value = e.settingValue;
+    };
+
     var _init = function sh_init(callback) {
       _getValue(function(value) {
         _value = value ? value : _defaultValue;
         _return(callback);
       });
 
-      _settings.addObserver(SETTINGS_KEY, function valuehanged(e) {
-        _value = e.settingValue;
-      });
+      _settings.addObserver(SETTINGS_KEY, _valuechanged);
     };
 
     _init(function() {
@@ -109,6 +111,12 @@
         _ready(function() {
           _setValue(value, _return.bind(null, callback));
         });
+      },
+      /**
+       * Cleanup ressources, specifically observers.
+       */
+      uninit: function() {
+        _settings.removeObserver(SETTINGS_KEY, _valuechanged);
       }
     };
   };

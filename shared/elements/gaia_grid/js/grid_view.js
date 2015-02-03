@@ -4,19 +4,13 @@
 /* global GridLayout */
 /* global GridZoom */
 /* global LazyLoader */
-/* global performance */
 
 (function(exports) {
 
-  // This constant is the delay between the last scroll event and the moment we
-  // listen to touchstart events again.
-  const PREVENT_TAP_TIMEOUT = 300;
-
-  // If the delta move from touchstart to touchend is greater than this, we'll
-  // ignore the touchend event to launch an app.
-  // "20" comes from Gecko, and we also try to have a greater value for devices
-  // with more pixels.
-  var SCROLL_THRESHOLD = 20 * window.devicePixelRatio;
+  /* The time for which we'll disable launching other icons after tapping on
+   * an app icon. This will also disable edit mode.
+   */
+  const APP_LAUNCH_TIMEOUT = 3000;
 
   /**
    * GridView is a generic class to render and display a grid of items.
@@ -25,12 +19,10 @@
    */
   function GridView(config) {
     this.config = config;
-    this.onTouchStart = this.onTouchStart.bind(this);
-    this.onTouchEnd = this.onTouchEnd.bind(this);
-    this.onScroll = this.onScroll.bind(this);
-    this.onContextMenu = this.onContextMenu.bind(this);
+    this.clickIcon = this.clickIcon.bind(this);
     this.onVisibilityChange = this.onVisibilityChange.bind(this);
-    this.lastScrollTime = 0;
+    this.onCollectionLaunch = this.onCollectionLaunch.bind(this);
+    this.onCollectionClose = this.onCollectionClose.bind(this);
 
     if (config.features.zoom) {
       this.zoom = new GridZoom(this);
@@ -78,6 +70,11 @@
      * We are in the state of launching an app.
      */
     _launchingApp: false,
+
+    /**
+     * A collection is open
+     */
+    _collectionOpen: false,
 
     /**
      * Adds an item into the items array.
@@ -133,14 +130,25 @@
       for (var i = 0, iLen = this.items.length; i < iLen; i++) {
         var item = this.items[i];
 
-        var middleX = item.x + itemMiddleOffset;
-        var middleY = item.y + item.pixelHeight / 2;
+        // Don't consider items that can't be dragged
+        if (!item.isDraggable()) {
+          continue;
+        }
+
+        // If sections are disabled, don't consider dividers
+        if (this.config.features.disableSections &&
+            item.detail.type === 'divider') {
+          continue;
+        }
 
         // Do not consider collapsed items, unless they are dividers.
         if (item.detail.type !== 'divider' &&
             item.element.classList.contains('collapsed')) {
           continue;
         }
+
+        var middleX = item.x + itemMiddleOffset;
+        var middleY = item.y + item.pixelHeight / 2;
 
         var xDistance = (isRow || item.detail.type === 'divider') ?
           0 : x - middleX;
@@ -158,77 +166,24 @@
     },
 
     start: function() {
-      this.element.addEventListener('touchstart', this.onTouchStart);
-      this.element.addEventListener('touchend', this.onTouchEnd);
-      this.element.addEventListener('contextmenu', this.onContextMenu);
-      window.addEventListener('scroll', this.onScroll, true);
+      this.element.addEventListener('click', this.clickIcon);
+      this.element.addEventListener('collection-launch',
+                                    this.onCollectionLaunch);
+      this.element.addEventListener('collection-close',
+                                    this.onCollectionClose);
       window.addEventListener('visibilitychange', this.onVisibilityChange);
-      this.lastTouchStart = null;
     },
 
     stop: function() {
-      this.element.removeEventListener('touchstart', this.onTouchStart);
-      this.element.removeEventListener('touchend', this.onTouchEnd);
-      this.element.removeEventListener('contextmenu', this.onContextMenu);
-      window.removeEventListener('scroll', this.onScroll, true);
+      this.element.removeEventListener('click', this.clickIcon);
+      this.element.removeEventListener('collection-launch',
+                                       this.onCollectionLaunch);
+      this.element.removeEventListener('collection-close',
+                                       this.onCollectionClose);
       window.removeEventListener('visibilitychange', this.onVisibilityChange);
-      this.lastTouchStart = null;
     },
 
-    onContextMenu: function(e) {
-      setTimeout(function() {
-        if (e.defaultPrevented) {
-          this.lastTouchStart = null;
-        }
-      }.bind(this));
-    },
-
-    // bug 1015000
-    onScroll: function() {
-      this.lastScrollTime = performance.now();
-    },
-
-    onTouchStart: function(e) {
-      // we track the last touchstart
-      this.lastTouchStart = e.changedTouches[0];
-    },
-
-    // click = last touchstart, then touchend for same finger happening not too
-    // far
-    // Gecko does that automatically but since we want to use touch events for
-    // more responsiveness, we also need to replicate that behavior.
-    onTouchEnd: function(e) {
-      var lastScrollTime = this.lastScrollTime;
-      this.lastScrollTime = 0;
-      var diff = performance.now() - lastScrollTime;
-      if (diff > 0 && diff < PREVENT_TAP_TIMEOUT) {
-        return;
-      }
-
-      var lastTouchStart = this.lastTouchStart;
-
-      if (!lastTouchStart) {
-        // This variable is deleted once a contextmenu event is received
-        return;
-      }
-
-      var touch = e.changedTouches.identifiedTouch(lastTouchStart.identifier);
-      if (!touch) {
-        return;
-      }
-
-      var deltaX = lastTouchStart.clientX - touch.clientX;
-      var deltaY = lastTouchStart.clientY - touch.clientY;
-
-      this.lastTouchStart = null;
-
-      var move = Math.hypot(deltaX, deltaY);
-      if (move < SCROLL_THRESHOLD) {
-        this.clickIcon(e);
-      }
-    },
-
-    findItemFromElement: function(element) {
+    findItemFromElement: function(element, excludeCollapsedIcons) {
       while (element && element.parentNode !== this.element) {
         element = element.parentNode;
       }
@@ -236,17 +191,34 @@
         return null;
       }
 
+      var i, iLen = this.items.length;
       var identifier = element.dataset.identifier;
       var icon = this.icons[identifier];
 
       // If the element didn't have an identifier, try to search for it
       // manually.
       if (!icon) {
-        for (var i = 0, iLen = this.items.length; i < iLen; i++) {
+        for (i = 0; i < iLen; i++) {
           if (this.items[i].element === element) {
             icon = this.items[i];
             break;
           }
+        }
+      }
+
+      if (icon && excludeCollapsedIcons) {
+        // If this is a collapsed item, return its group instead
+        if (icon.detail.type !== 'divider' &&
+            icon.detail.type !== 'placeholder' &&
+            icon.element.classList.contains('collapsed')) {
+          for (i = icon.detail.index + 1; i < iLen; i++) {
+            if (this.items[i].detail.type === 'divider') {
+              return this.items[i];
+            }
+          }
+
+          console.warn('Collapsed icon found with no group');
+          icon = null;
         }
       }
 
@@ -257,6 +229,14 @@
       this._launchingApp = false;
     },
 
+    onCollectionLaunch: function() {
+      this._collectionOpen = true;
+    },
+
+    onCollectionClose: function() {
+      this._collectionOpen = false;
+    },
+
     /**
      * Launches an app.
      */
@@ -264,12 +244,6 @@
       e.preventDefault();
 
       var inEditMode = this.dragdrop && this.dragdrop.inEditMode;
-
-      // Exit from edit mode when user clicks an empty space
-      if (inEditMode && e.target.classList.contains('placeholder')) {
-        window.dispatchEvent(new CustomEvent('hashchange'));
-        return;
-      }
 
       var action = 'launch';
       if (e.target.classList.contains('remove')) {
@@ -325,7 +299,7 @@
         this._launchingTimeout = window.setTimeout(function() {
           this._launchingTimeout = null;
           this._launchingApp = false;
-        }.bind(this), 3000);
+        }.bind(this), APP_LAUNCH_TIMEOUT);
       }
 
       icon[action](e.target);
@@ -447,8 +421,6 @@
       this.removeAllPlaceholders();
       this.cleanItems(options.skipDivider);
 
-
-
       // Reset offset steps
       this.layout.offsetY = 0;
 
@@ -481,6 +453,7 @@
 
       var nextDivider = null;
       var oddDivider = true;
+      var isRTL = (document.documentElement.dir === 'rtl');
       for (var idx = 0; idx <= this.items.length - 1; idx++) {
         var item = this.items[idx];
 
@@ -523,6 +496,9 @@
 
           // Insert placeholders to fill remaining space
           var remaining = this.layout.cols - x;
+          if (isRTL) {
+            x = (this.layout.gridWidth - this.layout.gridItemWidth) - x;
+          }
           this.createPlaceholders([x, y], idx, remaining);
 
           // Increment the current index due to divider insertion
@@ -536,9 +512,15 @@
         }
 
         item.setPosition(idx);
+
         if (!options.skipItems) {
           item.hasCachedIcon && ++pendingCachedIcons;
-          item.setCoordinates(x * this.layout.gridItemWidth,
+          var xPosition = x * this.layout.gridItemWidth;
+          if (isRTL) {
+            xPosition =
+              (this.layout.gridWidth - this.layout.gridItemWidth) - xPosition;
+          }
+          item.setCoordinates(xPosition,
                               this.layout.offsetY);
           if (!item.active) {
             item.render();
@@ -560,6 +542,11 @@
           step(item);
         }
       }
+
+      // All the children of this element are absolutely positioned and then
+      // transformed, so manually set a height for the convenience of
+      // embedders.
+      this.element.style.height = this.layout.offsetY + 'px';
 
       this.element.setAttribute('cols', this.layout.cols);
       pendingCachedIcons === 0 && onCachedIconRendered();

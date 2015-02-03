@@ -74,9 +74,7 @@
         // If we already have a browser and we receive an open request,
         // display it in the current browser frame.
         var activeApp = AppWindowManager.getActiveApp();
-        var isSearchApp = (activeApp.manifest &&
-          activeApp.manifest.role === 'search');
-        if (activeApp && (activeApp.isBrowser() || isSearchApp)) {
+        if (activeApp && activeApp.isBrowser()) {
           activeApp.navigate(url);
           return;
         }
@@ -155,13 +153,6 @@
       if ('searchName' in features) {
         config.searchName = features.searchName;
         config.searchURL = features.searchUrl;
-      }
-
-      if ('useAsyncPanZoom' in features &&
-          features.useAsyncPanZoom === 'true') {
-        config.useAsyncPanZoom = true;
-      } else {
-        config.useAsyncPanZoom = false;
       }
 
       if ('remote' in features) {

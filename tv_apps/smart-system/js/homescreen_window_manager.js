@@ -1,4 +1,5 @@
-/* global homescreenLauncher, Service, LazyLoader, LandingAppLauncher */
+/* global homescreenLauncher, Service, FtuLauncher, LandingAppLauncher,
+          AppWindowManager */
 
 'use strict';
 (function(exports) {
@@ -57,6 +58,9 @@
       window.addEventListener('appopened', this);
       window.addEventListener('activityopened', this);
       window.addEventListener('homescreenopened', this);
+      window.addEventListener('home', this);
+      window.addEventListener('launchapp', this);
+      // The removal of the followings will be at the ready event.
       window.addEventListener('homescreen-ready', this);
       window.addEventListener('landing-app-ready', this);
     },
@@ -75,9 +79,12 @@
       window.removeEventListener('appopened', this);
       window.removeEventListener('activityopened', this);
       window.removeEventListener('homescreenopened', this);
+      window.removeEventListener('launchapp', this);
+      window.removeEventListener('home', this);
     },
 
     handleEvent: function hwm_handleEvent(evt) {
+      var detail;
       switch(evt.type) {
         case 'appswitching':
           this.getHomescreen().showFadeOverlay();
@@ -91,7 +98,7 @@
           break;
         case 'open-app':
         case 'webapps-launch':
-          var detail = evt.detail;
+          detail = evt.detail;
           if (detail.manifestURL === homescreenLauncher.manifestURL ||
               detail.manifestURL === this.landingAppLauncher.manifestURL) {
             this.launchHomescreen(evt, detail.manifestURL);
@@ -101,26 +108,49 @@
           }
           break;
         case 'appopened':
-          var detail = evt.detail;
+          detail = evt.detail;
           if (detail.manifestURL === FtuLauncher.getFtuManifestURL()) {
             // we don't need to set activeHome as anything if it is ftu.
             break;
           } else if (detail.isHomescreen) {
             this._activeHome = ('LandingAppWindow' === detail.CLASS_NAME) ?
                                  this.landingAppLauncher : homescreenLauncher;
+          } else if (detail.manifest && detail.manifest.role === 'search') {
+            // XXX: Bug 1124112 - Seamlessly launch search app from home
+            // We have to ensure that the search app is fully rendered before
+            // closing the home app so defer it by "setTimeout".
+            setTimeout(this.closeHomeApp.bind(this));
           } else {
-            // If we don't have _activeHome that means ftu is opened, we need to
-            // make sure landing app is the one after ftu.
-            if (this._activeHome) {
-              this._activeHome.getHomescreen().ensure(true);
-              this._activeHome.getHomescreen().setVisible(false);
-              this._activeHome.getHomescreen().close('immediate');
-              this._activeHome = null;
-            }
+            this.closeHomeApp();
+          }
+          break;
+        case 'launchapp':
+          if (this._underlayApp &&
+              evt.detail.manifestURL === this._underlayApp.manifestURL) {
+
+            // The 'appopened' event will not be fired in this case because this
+            // app is already opened. AppWindowManager will change the active
+            // app to the opening app and trying to close homescreen app through
+            // launchapp event. AppTransitionController may find the app is
+            // already opened. So, it doesn't dispatch appopened and focus the
+            // appWindow.
+            //
+            // In this case, HomescreenWindowManager will not close and reset
+            // _activeHome. We should call closeHomeApp to reset the variable
+            // and focus back.
+            this.closeHomeApp();
+
+            this._underlayApp.focus();
+            this._underlayApp = null;
+          } else if (this._underlayApp) {
+            // If we have _underlayApp but another app is launching, we need to
+            // close the _underlayApp.
+            this._underlayApp.close();
+            this._underlayApp = null;
           }
           break;
         case 'homescreenopened':
-          var detail = evt.detail;
+          detail = evt.detail;
           // Landing app is also a homescreen. We need to which one is opened
           // and show/hide the correct homescreen
           if (detail.CLASS_NAME === 'LandingAppWindow') {
@@ -140,6 +170,9 @@
           if (this._activeHome) {
             this._activityCount--;
           }
+          break;
+        case 'home':
+          this.showHomeApp();
           break;
         case 'landing-app-ready':
         case 'homescreen-ready':
@@ -161,6 +194,42 @@
           }
           break;
       }
+    },
+
+    closeHomeApp: function hwm_closeHomeApp(nextApp) {
+      if (!this._activeHome) {
+        return;
+      }
+
+      this._activeHome.getHomescreen().ensure(true);
+      this._activeHome.getHomescreen().setVisible(false);
+      this._activeHome.getHomescreen().close('immediate');
+      this._activeHome = null;
+    },
+
+    showHomeApp: function hwm_showHomeApp() {
+      var originApp = AppWindowManager.getActiveApp();
+      var homeApp = this.getHomescreen(true);
+      if (originApp.instanceID === homeApp.instanceID) {
+        // If we open an activity at home and press home, the originApp is home
+        // app and the next app is also home app. In this case, we don't need
+        // to reopen it again.
+        homeApp.focus();
+        return;
+      }
+      homeApp.ready((function() {
+        if (originApp.isHomescreen) {
+          if (this._underlayApp) {
+            this._underlayApp.close('immediate');
+            this._underlayApp = null;
+          }
+          originApp.close('immediate');
+          homeApp.open();
+        } else {
+          this._underlayApp = originApp;
+          homeApp.open();
+        }
+      }).bind(this));
     },
 
     setHomescreenVisible: function hwm_hideActiveHome(launcher, visible) {
@@ -186,6 +255,7 @@
       if (!this.landingAppLauncher.hasLandingApp) {
         // cal getHomescreen to ensure it.
         this.getHomescreen();
+        this.publish('home');
         return;
       }
 
@@ -200,8 +270,12 @@
       } else if (homescreenLauncher.manifestURL === manifestURL) {
         // in appX trying to switch to home
         this.publish('home');
+      } else if (this.landingAppLauncher.manifestURL === manifestURL) {
+        // We set the activeHome as normal home and use home event to switch to
+        // landing app
+        this._activeHome = homescreenLauncher;
+        this.publish('home');
       }
-      // We don't support appX trying to switch to landing app
     },
 
     handleHomeEvent: function handleHomeEvent() {
@@ -233,8 +307,8 @@
      * @memberOf HomescreenWindowManager.prototype
      */
     getHomescreen: function getHomescreen(isHomeEvent) {
-      if (!exports.homescreenLauncher || !exports.homescreenLauncher.ready ||
-          !this.landingAppLauncher || !this.landingAppLauncher.ready) {
+      if ((!exports.homescreenLauncher || !exports.homescreenLauncher.ready) &&
+          (!this.landingAppLauncher || !this.landingAppLauncher.ready)) {
         return null;
       }
 

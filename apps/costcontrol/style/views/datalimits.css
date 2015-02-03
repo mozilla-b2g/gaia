@@ -2,6 +2,7 @@
 #data-limit-dialog {
   top: 0;
   z-index: 20;
+  -moz-user-select: none;
 }
 
 #data-limit-dialog form {
@@ -14,7 +15,6 @@
 }
 
 #data-limit-dialog form button.switch-unit-button {
-  float: right;
   margin: 0;
   width: 9rem;
   height: 2rem;
@@ -34,22 +34,17 @@
 }
 
 #data-limit-dialog form input {
-  text-align: right;
+  text-align: end;
   font-weight: 500;
   font-size: 2.4rem;
   width: calc(100% - 1rem);
   margin: 0;
 }
 
-#data-limit-dialog .content .info {
-  text-align: center;
-}
-
 #data-limit-dialog .content .info h2 {
   font-size: 1.8rem;
   line-height: 1em;
   font-weight: normal;
-  text-align: left;
   margin-bottom: 1rem;
 }
 
@@ -57,7 +52,6 @@
   font-size: 1.4rem;
   line-height: 1.3em;
   color: #505859;
-  text-align: left;
   margin-bottom: 0.5rem;
 }
 

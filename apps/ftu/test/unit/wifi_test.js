@@ -198,25 +198,32 @@ suite('wifi > ', function() {
         }
       );
 
-      stub.onSecondCall().returns(
+      WifiManager.scan(function(networks) {
+        assert.ok(stub.calledOnce);
+        assert.ok(showOverlayStub.called, 'shows loading overlay');
+        assert.equal(networks.length, 0, 'no networks returned');
+        assert.ok(consoleSpy.calledOnce);
+        done();
+      });
+    });
+
+    test('should execute callback when scan fails', function() {
+      var fakeCallback = this.sinon.spy();
+
+      var stub = this.sinon.stub(MockNavigatorMozWifiManager, 'getNetworks');
+      stub.onFirstCall().returns(
         {
-          set onsuccess(callback) {
-            this.result = fakeNetworks;
+          set onerror(callback) {
+            this.error = {
+              name: 'error'
+            };
             callback();
           }
         }
       );
 
-      WifiManager.scan(function(networks) {
-        assert.ok(stub.calledTwice);
-        assert.ok(showOverlayStub.called, 'shows loading overlay');
-        assert.isDefined(networks, 'networks eventually returned');
-        assert.ok(consoleSpy.calledOnce);
-        done();
-      });
-
-      //simulate a status change
-      WifiManager.api.onstatuschange({status: 'disconnected'});
+      WifiManager.scan(fakeCallback);
+      assert.isTrue(fakeCallback.calledOnce);
     });
 
     test('timeout error', function(done) {
@@ -281,6 +288,100 @@ suite('wifi > ', function() {
 
       var hiddenNetwork = document.querySelector('#testSSID');
       assert.isNotNull(hiddenNetwork, 'hidden network should be rendered');
+    });
+
+    suite('Update UI', function() {
+      var realWifiManagerOnScan;
+
+      setup(function() {
+        WifiUI.renderNetworks(fakeNetworks);
+        realWifiManagerOnScan = WifiManager.onScan;
+        WifiManager.onScan = null;
+      });
+
+      teardown(function() {
+        WifiManager.onScan = realWifiManagerOnScan;
+      });
+
+      test('Should update the previous connected network', function() {
+        var previousNetwork = fakeNetworks[0];
+        var currentNetwork = fakeNetworks[1];
+        var previousNetworkElement =
+          document.querySelector('li[data-ssid="' +
+            previousNetwork.ssid + '"]');
+        var previousNetworkSecurity =
+          previousNetworkElement.querySelector('p[data-security-level]');
+
+        var currentNetworkElement =
+          document.querySelector('li[data-ssid="' +
+            currentNetwork.ssid + '"]');
+        var currentNetworkSecurity =
+          currentNetworkElement.querySelector('p[data-security-level]');
+
+        WifiManager.api.onstatuschange({status: 'connected',
+          network: previousNetwork});
+
+        assert.isTrue(previousNetworkElement.classList.contains('connected'));
+        assert.equal(previousNetworkSecurity.dataset.l10nId,
+          'shortStatus-connected');
+
+        WifiManager.api.onstatuschange({status: 'disconnected',
+          network: previousNetwork});
+        WifiManager.api.onstatuschange({status: 'connected',
+          network: currentNetwork});
+
+        assert.isFalse(previousNetworkElement.classList.contains('connected'));
+        assert.isTrue(currentNetworkElement.classList.contains('connected'));
+        assert.equal(previousNetworkSecurity.dataset.l10nId,
+          'securityOpen');
+        assert.equal(currentNetworkSecurity.dataset.l10nId,
+          'shortStatus-connected');
+      });
+
+      test('Should move the current connected network to the top', function() {
+        var currentNetwork = fakeNetworks[2];
+        var currentNetworkElement =
+          document.querySelector('li[data-ssid="' +
+            currentNetwork.ssid + '"]');
+        var networksList = document.getElementById('networks-list');
+        WifiManager.api.onstatuschange({status: 'connected',
+          network: currentNetwork});
+
+        var firstChild = networksList.children[0];
+
+        assert.equal(currentNetworkElement, firstChild);
+      });
+    });
+  });
+
+  suite('Choose networks', function() {
+    setup(function() {
+      WifiUI.renderNetworks(fakeNetworks);
+      UIManager.activationScreen =
+        document.getElementById('activation-screen');
+      UIManager.mainTitle = document.getElementById('main-title');
+      UIManager.wifiJoinButton = document.getElementById('wifi-join-button');
+      UIManager.navBar = document.getElementById('nav-bar');
+    });
+
+    teardown(function() {
+      UIManager.activationScreen = null;
+      UIManager.mainTitle = null;
+      UIManager.wifiJoinButton = null;
+      UIManager.navBar = null;
+    });
+
+    test('Should set header properly', function() {
+      var network = document.querySelector('li[data-ssid="Mozilla Guest"]');
+      var header = UIManager.mainTitle;
+      var event = {
+        target: network
+      };
+
+      WifiUI.chooseNetwork(event);
+      assert.equal(header.textContent, network.dataset.ssid);
+      assert.isTrue(UIManager.activationScreen.
+        classList.contains('no-options'));
     });
   });
 });

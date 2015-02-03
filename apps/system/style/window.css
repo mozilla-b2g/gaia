@@ -7,7 +7,7 @@
   pointer-events: none;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow):not(.lockScreenInputWindow) {
+.appWindow:not(.homescreen):not(.searchWindow):not(.lockScreenInputWindow):not(.globalOverlayWindow) {
   background-color: black;
 }
 
@@ -20,7 +20,21 @@
   background-color: transparent;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow).light {
+/* Utility tray needs to be actionable on the attention screen */
+
+.appWindow.attentionWindow,
+.appWindow.attentionWindow .chrome .controls {
+  pointer-events: none;
+}
+
+/* Attention Screen needs to be clickable */
+
+.appWindow.attentionWindow .render,
+.appWindow.attentionWindow.toaster-mode {
+  pointer-events: auto;
+}
+
+.appWindow:not(.homescreen):not(.searchWindow):not(.globalOverlayWindow).light {
   background-color: #fff;
 }
 
@@ -36,15 +50,15 @@
   background-size: auto 0.3rem;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow).render > div.browser-container {
+.appWindow:not(.homescreen):not(.searchWindow):not(.globalOverlayWindow).render > div.browser-container {
   background-color: #fff;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow).light.render > div.browser-container {
+.appWindow:not(.homescreen):not(.searchWindow):not(.globalOverlayWindow).light.render > div.browser-container {
   background-color: #f2f2f2;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow).render > div.browser-container > iframe {
+.appWindow:not(.homescreen):not(.searchWindow):not(.globalOverlayWindow).render > div.browser-container > iframe {
   background-color: #fff;
 }
 
@@ -218,6 +232,7 @@
   pointer-events: all;
 }
 
+.appWindow.overlay .touch-blocker,
 .appWindow.transition-closing .touch-blocker,
 .appWindow.enlarge .touch-blocker,
 .appWindow.transition-opening .touch-blocker {
@@ -297,7 +312,7 @@
 }
 
 .appWindow.collapsible:not(.active) .screenshot-overlay {
-  margin-top: 4.6rem;
+  margin-top: var(--rocketbar-urlbar-height);
 }
 
 .appWindow > .identification-overlay {
@@ -311,16 +326,18 @@
 }
 
 .appWindow.suspended > .identification-overlay,
-.appWindow:not(.active):not(.in-task-manager) > .identification-overlay.visible {
+.appWindow:not(.active):not(.in-task-manager).overlay > .identification-overlay {
+  transition: none;
+
   visibility: visible;
   opacity: 1;
 }
 
 /* we don't want to show the overlay at all during the opening
    transition (from the homescreen and from the cardview) */
-#screen .appWindow.in-task-manager > .identification-overlay.visible,
-.appWindow.enlarge > .identification-overlay.visible,
-.appWindow.from-cardview > .identification-overlay.visible {
+#screen .appWindow.in-task-manager.overlay > .identification-overlay,
+.appWindow.enlarge.overlay > .identification-overlay,
+.appWindow.from-cardview.overlay > .identification-overlay {
   opacity: 0 !important;
   transition: none !important;
 }

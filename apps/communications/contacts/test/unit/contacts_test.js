@@ -8,6 +8,7 @@
           MockImportStatusData, MockMozContacts
 */
 
+require('/shared/js/usertiming.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
 requireApp('communications/contacts/test/unit/mock_cookie.js');
@@ -276,7 +277,15 @@ suite('Contacts', function() {
     });
 
     suite('> CancelableActivity', function() {
-      var settingsButton, header, addButton, appTitleElement;
+      var settingsButton, header, addButton, appTitleElement,
+          prevCurrentlyHandling, prevActivityName, prevActivityDataType;
+
+      suiteSetup(function() {
+        prevCurrentlyHandling = window.ActivityHandler.currentlyHandling;
+        prevActivityName = window.ActivityHandler.activityName;
+        prevActivityDataType = window.ActivityHandler.activityDataType;
+        window.ActivityHandler.currentlyHandling = true;
+      });
 
       setup(function() {
         settingsButton = document.getElementById('settings-button');
@@ -285,8 +294,25 @@ suite('Contacts', function() {
         appTitleElement = document.getElementById('app-title');
       });
 
+      teardown(function() {
+        window.ActivityHandler.activityName = prevActivityName;
+        window.ActivityHandler.activityDataType = prevActivityDataType;
+      });
+
+      suiteTeardown(function() {
+        window.ActivityHandler.currentlyHandling = prevCurrentlyHandling;
+      });
+
+      function checkClassAdded(isFiltered, activityName, activityType) {
+        window.ActivityHandler.activityName = activityName;
+        window.ActivityHandler.activityDataType = [activityType];
+        var classList = document.getElementById('groups-list').classList;
+        Contacts.checkCancelableActivity();
+        assert.isTrue(isFiltered === classList.contains('disable-fb-items'));
+        classList.remove('disable-fb-items');
+      }
+
       test('> handling an activity', function() {
-        window.ActivityHandler.currentlyHandling = true;
         Contacts.checkCancelableActivity();
 
         // Settings is hidden
@@ -297,26 +323,13 @@ suite('Contacts', function() {
         assert.equal(header.getAttribute('action'), 'close');
         // Title shows CONTACTS
         assert.equal(appTitleElement.getAttribute('data-l10n-id'), 'contacts');
-
-        window.ActivityHandler.currentlyHandling = false;
       });
 
-      test('>selecting from the list', function() {
-        window.contacts.List.isSelecting = true;
-
-        Contacts.checkCancelableActivity();
-
-        // Cancel is hidden
-        assert.isFalse(header.hasAttribute('action'));
-        // Settings is visible
-        assert.isFalse(addButton.classList.contains('hide'));
-        // Add contact is visible
-        assert.isFalse(settingsButton.classList.contains('hide'));
-        // Title shows SELECT
-        assert.equal(appTitleElement.getAttribute('data-l10n-id'),
-          'selectContact');
-
-        window.contacts.List.isSelecting = false;
+      test('> text/vcard pick activity disables Facebook contacts', function() {
+        checkClassAdded(true, 'pick', 'text/vcard');
+        checkClassAdded(false, 'open', 'text/vcard');
+        checkClassAdded(false, 'open', 'webcontacts/contact');
+        checkClassAdded(false, 'pick', 'webcontacts/contact');
       });
     });
   });
@@ -467,14 +480,6 @@ suite('Contacts', function() {
       this.sinon.stub(Contacts, 'view', function(view, cb) {
         cb();
       });
-    });
-
-    test('> on visibility change: visible', function() {
-      MockMozL10n.realL10nCB();
-      fireVisibilityChange();
-
-      sinon.assert.called(Contacts.checkCancelableActivity);
-      sinon.assert.notCalled(ActivityHandler.postCancel);
     });
 
     test('> in settings view, should refresh for new timestamp', function() {

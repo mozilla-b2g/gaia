@@ -116,6 +116,21 @@ function cropResizeRotate(blob, cropRegion, outputSize, outputType,
     throw new Error('wrong number of arguments: ' + arguments.length);
   }
 
+  if (cropRegion) { // make a private copy
+    cropRegion = {
+      left: cropRegion.left,
+      top: cropRegion.top,
+      width: cropRegion.width,
+      height: cropRegion.height
+    };
+  }
+
+  if (outputSize && typeof outputSize === 'object') { // make a private copy
+    outputSize = {
+      width: outputSize.width,
+      height: outputSize.height
+    };
+  }
   // If we were passed a metadata object, pass it to gotSize. Otherwise,
   // find the metadata object first and then pass it.
   if (metadata) {

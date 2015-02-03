@@ -14,7 +14,7 @@
     this.onselected = successCb || function() {};
     this.oncancel = cancelCb || function() {};
     this.listItems = listItems;
-    this.title = title;
+    this.titleL10nId = title;
   }
 
   ImeMenu.prototype = {
@@ -35,8 +35,8 @@
       var _ = navigator.mozL10n ? navigator.mozL10n.get : function(){};
 
       dummy.innerHTML = Template('ime-menu-template').interpolate({
-        title: this.title,
-        cancelLabel: _('cancel'),
+        title: this.titleL10nId,
+        cancelLabel: 'cancel',
         settingsLabel: _('ime-settings')
       });
       this.container = dummy.firstElementChild;

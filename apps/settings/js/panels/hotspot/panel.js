@@ -3,7 +3,7 @@
 define(function(require) {
   'use strict';
 
-  var SettingsService = require('modules/settings_service');
+  var DialogService = require('modules/dialog_service');
   var SettingsPanel = require('modules/settings_panel');
   var Hotspot = require('panels/hotspot/hotspot');
   var HotspotSettings =
@@ -98,8 +98,8 @@ define(function(require) {
       },
 
       _updateHotspotSecurity: function(newValue) {
-        elements.hotspotSecurityType.
-          setAttribute('data-l10n-id', 'hotspot-' + newValue);
+        elements.hotspotSecurityType.setAttribute('data-l10n-id',
+          'hotspot-' + newValue);
       },
 
       _updateHotspotSSID: function(newValue) {
@@ -108,7 +108,8 @@ define(function(require) {
 
       _setHotspotSettingsEnabled: function(enabled) {
         // disable the setting button when internet sharing is enabled
-        elements.hotspotSettingBtn.disabled = enabled;
+        elements.hotspotSettingBtn.parentNode.setAttribute('aria-disabled',
+          enabled);
         elements.hotspotElement.checked = enabled;
       },
 
@@ -129,11 +130,9 @@ define(function(require) {
       },
 
       _onHotspotSettingsClick: function() {
-        SettingsService.navigate('hotspot-wifiSettings',
-          {
-            settings: hotspotSettings
-          }
-        );
+        DialogService.show('hotspot-wifiSettings', {
+          settings: hotspotSettings
+        });
       },
 
       _openIncompatibleSettingsDialog:

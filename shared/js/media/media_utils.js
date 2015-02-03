@@ -44,8 +44,9 @@ var MediaUtils = {
       return r;
     }
 
+    duration = Math.round(duration);
     var minutes = Math.floor(duration / 60);
-    var seconds = Math.floor(duration % 60);
+    var seconds = duration % 60;
     if (minutes < 60) {
       return padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
     }
@@ -70,8 +71,9 @@ var MediaUtils = {
       if (data.hasOwnProperty(id)) {
         var element = document.getElementById(id);
         //fill respective value tag to display value passed in data object
-        if (element)
+        if (element) {
           element.textContent = data[id];
+        }
       }
     }
   },
@@ -79,24 +81,29 @@ var MediaUtils = {
   // Assuming that array is sorted according to comparator, return the
   // array index at which element should be inserted to maintain sort order
   binarySearch: function(array, element, comparator, from, to) {
-    if (comparator === undefined)
+    if (comparator === undefined) {
       comparator = function(a, b) {
         return a - b;
       };
+    }
 
-    if (from === undefined)
+    if (from === undefined) {
       return MediaUtils.binarySearch(array, element, comparator, 0,
                                      array.length);
+    }
 
-    if (from === to)
+    if (from === to) {
       return from;
+    }
 
     var mid = Math.floor((from + to) / 2);
 
     var result = comparator(element, array[mid]);
-    if (result < 0)
+    if (result < 0) {
       return MediaUtils.binarySearch(array, element, comparator, from, mid);
-    else
+    }
+    else {
       return MediaUtils.binarySearch(array, element, comparator, mid + 1, to);
+    }
   }
 };

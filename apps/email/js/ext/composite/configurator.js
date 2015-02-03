@@ -123,11 +123,9 @@ exports.configurator = {
     Promise.all([incomingPromise, outgoingPromise])
       .then(function(results) {
         var incomingConn = results[0].conn;
-        var timezoneOffset = null;
         var defineAccount;
 
         if (incomingType === 'imap') {
-          timezoneOffset = results[0].timezoneOffset;
           defineAccount = this._defineImapAccount;
         } else if (incomingType === 'pop3') {
           incomingInfo.preferredAuthMethod = incomingConn.authMethod;
@@ -136,9 +134,9 @@ exports.configurator = {
         defineAccount.call(this,
                            universe, userDetails, credentials,
                            incomingInfo, smtpConnInfo, incomingConn,
-                           timezoneOffset, callback);
+                           callback);
       }.bind(this))
-      .catch(function(err) {
+      .catch(function(ambiguousErr) {
         // One of the account sides failed. Normally we leave the
         // IMAP/POP3 side open for reuse, but if the SMTP
         // configuration falied we must close the incoming connection.
@@ -146,9 +144,12 @@ exports.configurator = {
         // `.then` callback.)
         incomingPromise.then(function incomingOkButOutgoingFailed(result) {
           result.conn.close();
-          callback(err, /* conn: */ null, { server: smtpConnInfo.hostname });
-        }).catch(function incomingFailed(/* ignored error */) {
-          callback(err, /* conn: */ null, { server: incomingInfo.hostname });
+          // the error is no longer ambiguous; it was SMTP
+          callback(ambiguousErr, /* conn: */ null,
+                   { server: smtpConnInfo.hostname });
+        }).catch(function incomingFailed(incomingErr) {
+          callback(incomingErr, /* conn: */ null,
+                   { server: incomingInfo.hostname });
         });
      });
  },
@@ -197,11 +198,7 @@ exports.configurator = {
       },
 
       identities: $accountcommon.recreateIdentities(universe, accountId,
-                                     oldAccountDef.identities),
-      // this default timezone here maintains things; but people are going to
-      // need to create new accounts at some point...
-      tzOffset: oldAccountInfo.tzOffset !== undefined ?
-                  oldAccountInfo.tzOffset : -7 * 60 * 60 * 1000,
+                                     oldAccountDef.identities)
     };
 
     this._loadAccount(universe, accountDef,
@@ -218,7 +215,7 @@ exports.configurator = {
    */
   _defineImapAccount: function(universe, userDetails, credentials,
                                incomingInfo, smtpConnInfo, imapProtoConn,
-                               tzOffset, callback) {
+                               callback) {
     var accountId = $a64.encodeInt(universe.config.nextAccountNum++);
     var accountDef = {
       id: accountId,
@@ -250,8 +247,7 @@ exports.configurator = {
           signature: null,
           signatureEnabled: false
         },
-      ],
-      tzOffset: tzOffset,
+      ]
     };
 
     this._loadAccount(universe, accountDef, null,
@@ -268,7 +264,7 @@ exports.configurator = {
    */
   _definePop3Account: function(universe, userDetails, credentials,
                                incomingInfo, smtpConnInfo, pop3ProtoConn,
-                               nullTZOffset, callback) {
+                               callback) {
     var accountId = $a64.encodeInt(universe.config.nextAccountNum++);
     var accountDef = {
       id: accountId,

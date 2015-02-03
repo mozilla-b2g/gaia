@@ -16,6 +16,16 @@ window.GaiaGrid = (function(win) {
   var baseurl = window.GaiaGridBaseurl ||
     '/shared/elements/gaia_grid/';
 
+  /* Configuration from the grid is picked up by attributes on the element.
+   * The following attributes are valid:
+   * - dragdrop
+   *   Enables drag-and-drop of icons and groups within the grid.
+   * - zoom
+   *   Enables changing the grid column-width with a pinch gesture.
+   * - disable-sections
+   *   Only valid with dragdrop enabled, this disables creating new dividers
+   *   or groups.
+   */
   proto.createdCallback = function() {
     var shadow = this.createShadowRoot();
     this._template = template.content.cloneNode(true);
@@ -28,7 +38,8 @@ window.GaiaGrid = (function(win) {
       element: this,
       features: {
         dragdrop: this.getAttribute('dragdrop') !== null,
-        zoom: this.getAttribute('zoom') !== null
+        zoom: this.getAttribute('zoom') !== null,
+        disableSections: this.getAttribute('disable-sections') !== null
       }
     });
 

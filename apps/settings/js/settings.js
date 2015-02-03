@@ -59,6 +59,7 @@ var Settings = {
     }
 
     if (hash === '#wifi') {
+      window.performance.mark('wifiListStart');
       PerformanceTestingHelper.dispatch('start-wifi-list-test');
     }
 
@@ -76,25 +77,13 @@ var Settings = {
       return;
     }
 
-    this.SettingsUtils = options.SettingsUtils;
     this.SettingsService = options.SettingsService;
-    this.PageTransitions = options.PageTransitions;
     this.ScreenLayout = options.ScreenLayout;
 
     // XXX: We need to set to currentPanel here although SettingsService already
     //      knows the default panel id. This line will be removed along with
     //      "currentPanel" soon.
     this.currentPanel = window.LaunchContext.initialPanelId;
-
-    navigator.mozL10n.once(function loadWhenIdle() {
-      var idleObserver = {
-        time: 3,
-        onidle: function() {
-          navigator.removeIdleObserver(idleObserver);
-        }.bind(this)
-      };
-      navigator.addIdleObserver(idleObserver);
-    }.bind(this));
 
     // make operations not block the load time
     setTimeout((function nextTick() {

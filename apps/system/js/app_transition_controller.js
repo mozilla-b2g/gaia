@@ -1,4 +1,4 @@
-/* global AppWindowManager, SettingsListener, Service, rocketbar */
+/* global AppWindowManager, SettingsListener, Service */
 'use strict';
 
 (function(exports) {
@@ -216,7 +216,9 @@
 
       this.resetTransition();
       /* The AttentionToaster will take care of that for AttentionWindows */
-      if (!this.app.isAttentionWindow && !this.app.isCallscreenWindow) {
+      /* InputWindow & InputWindowManager will take care of visibility of IM */
+      if (!this.app.isAttentionWindow && !this.app.isCallscreenWindow &&
+          !this.app.isInputMethod) {
         this.app.setVisible(false);
       }
 
@@ -259,6 +261,7 @@
         return;
       }
 
+      this.app.reviveBrowser();
       this.resetTransition();
       this.app.element.removeAttribute('aria-hidden');
       this.app.show();
@@ -289,9 +292,11 @@
     // See: https://bugzilla.mozilla.org/show_bug.cgi?id=961557
     // XXX: We should let HierarchyManager to manage the focus.
     // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1079748
+    var bottomWindow = this.app.getBottomMostWindow();
     return (this._transitionState == 'opened' &&
-            !rocketbar.active &&
-            !Service.query('SimLockManager.isActive'));
+            Service.query('getTopMostWindow') === this.app &&
+            Service.query('getTopMostUI').name ===
+            bottomWindow.HIERARCHY_MANAGER);
   };
 
   AppTransitionController.prototype.requireOpen = function(animation) {

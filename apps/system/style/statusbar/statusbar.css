@@ -6,7 +6,8 @@
   height: 2rem;
 }
 
-#screen.rocketbar-focused .gesture-panel {
+#screen.rocketbar-focused #left-panel,
+#screen.rocketbar-focused #right-panel {
   pointer-events: none;
 }
 
@@ -49,8 +50,8 @@
   visibility: visible;
 }
 
-#screen:not(.locked):not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray).fullscreen-app #statusbar,
-#screen:not(.locked):not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray).fullscreen-layout-app #statusbar,
+#screen:not(.locked):not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray) #statusbar.fullscreen,
+#screen:not(.locked):not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray) #statusbar.fullscreen-layout,
 #screen.locked.secure-app:not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray).fullscreen-app #statusbar,
 #screen.locked.secure-app:not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray).fullscreen-layout-app #statusbar {
   opacity: 0;
@@ -156,14 +157,6 @@ body #statusbar {
   opacity: 0;
 }
 
-.statusbar > .sb-start-upper {
-  visibility: hidden;
-  position: absolute;
-  left: 0;
-  top: calc(var(--statusbar-height) * -1);
-}
-
-body .utility-tray .statusbar > .sb-start-upper,
 .utility-tray #statusbar > #statusbar-title,
 #statusbar-title.hidden {
   visibility: visible;
@@ -234,7 +227,7 @@ body .utility-tray .statusbar > .sb-start {
 }
 
 #statusbar-connections[data-multiple="true"] .statusbar-signal {
-  -moz-margin-start: 0.8rem;
+  margin-left: 0.8rem;
 }
 
 #statusbar-connections[data-multiple="true"] .statusbar-signal::before {
@@ -619,6 +612,7 @@ body .utility-tray .statusbar > .sb-start {
 .sb-hide-tethering .sb-icon-tethering,
 .sb-hide-bluetooth .sb-icon-bluetooth,
 .sb-hide-nfc .sb-icon-nfc,
+.sb-hide-debugging .sb-icon-debugging,
 .sb-hide-emergency-cb-notification .sb-icon-emergency-cb-notification,
 .sb-hide-system-downloads .sb-icon-system-downloads,
 .sb-hide-usb .sb-icon-usb,
@@ -650,23 +644,9 @@ html[dir="rtl"] .statusbar {
   right: unset;
 }
 
-html[dir="rtl"] .statusbar > .sb-start-upper {
-  left: unset;
-  right: 0
-}
-
-html[dir="rtl"] #statusbar-connections > * {
-  float: left;
-}
-
-html[dir="rtl"] #statusbar-connections .sb-icon-roaming {
-  left: unset;
-  right: 0;
-}
-
 html[dir="rtl"] #statusbar-connections[data-multiple="true"] .statusbar-signal::before {
-  left: unset;
-  right: -0.6rem;
+  left: -0.6rem;;
+  right: unset;
 }
 
 html[dir="rtl"] #statusbar-connections .statusbar-signal .statusbar-data {
@@ -677,7 +657,7 @@ html[dir="rtl"] #statusbar-connections .statusbar-signal .statusbar-data {
 
 html[dir="rtl"] #statusbar-connections[data-multiple="true"] .statusbar-signal .statusbar-data {
   left: unset;
-  right: -.7rem;
+  right: .7rem;
   text-align: right;
 }
 

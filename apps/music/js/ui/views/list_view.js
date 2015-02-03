@@ -44,6 +44,7 @@ var ListView = {
     this.view.addEventListener('touchend', this);
     this.view.addEventListener('scroll', this);
     this.searchInput.addEventListener('focus', this);
+    this.searchInput.addEventListener('keypress', this);
   },
 
   clean: function lv_clean() {
@@ -430,6 +431,14 @@ var ListView = {
           SearchView.search(target.value);
         }
 
+        break;
+
+      case 'keypress':
+        if (target.id === 'views-list-search-input') {
+          if (evt.keyCode === evt.DOM_VK_RETURN) {
+            evt.preventDefault();
+          }
+        }
         break;
 
       case 'touchmove':

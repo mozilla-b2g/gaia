@@ -13,7 +13,9 @@ var GridManager = (function() {
   var SAVE_STATE_TIMEOUT = 100;
   var BASE_HEIGHT = 460; // 480 - 20 (status bar height)
 
-  var HIDDEN_ROLES = ['system', 'input', 'homescreen', 'theme'];
+  var HIDDEN_ROLES = [
+    'system', 'input', 'homescreen', 'theme', 'addon', 'langpack'
+  ];
 
   // Store the pending apps to be installed until SingleVariant conf is loaded
   var pendingInstallRequests = [];
@@ -55,8 +57,6 @@ var GridManager = (function() {
   var currentPage = 0;
 
   var saveStateTimeout = null;
-
-  var _ = navigator.mozL10n.get;
 
   // Limits for changing pages during dragging
   var limits = {
@@ -1113,7 +1113,7 @@ var GridManager = (function() {
         if (app.type === GridItemsFactory.TYPE.COLLECTION) {
           appsByOrigin[app.origin] = app;
           if (haveLocale) {
-            descriptor.localizedName = _(app.manifest.name);
+            descriptor.localizedName = navigator.mozL10n.get(app.manifest.name);
           }
         } else {
           bookmarksById[app.id] = app;
@@ -1255,7 +1255,6 @@ var GridManager = (function() {
       removable: app.removable,
       name: iconsAndNameHolder.name,
       icon: bestMatchingIcon(app, iconsAndNameHolder),
-      useAsyncPanZoom: app.useAsyncPanZoom,
       isHosted: isHosted(app),
       hasOfflineCache: hasOfflineCache(app),
       type: app.type,
@@ -1264,7 +1263,7 @@ var GridManager = (function() {
 
     if (haveLocale) {
       if (app.type === GridItemsFactory.TYPE.COLLECTION) {
-        descriptor.localizedName = _(manifest.name);
+        descriptor.localizedName = navigator.mozL10n.get(manifest.name);
       } else if (app.type !== GridItemsFactory.TYPE.BOOKMARK) {
         descriptor.localizedName = iconsAndNameHolder.name;
       }

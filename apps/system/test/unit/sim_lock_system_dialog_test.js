@@ -1,9 +1,10 @@
 /* globals MockL10n, MocksHelper, MockSIMSlot, MockSIMSlotManager,
-           SimLockSystemDialog */
+           SimLockSystemDialog, MockApplications */
 
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
+requireApp('system/test/unit/mock_applications.js');
 requireApp('system//shared/test/unit/mocks/mock_simslot.js');
 requireApp('system//shared/test/unit/mocks/mock_simslot_manager.js');
 
@@ -31,6 +32,8 @@ suite('sim lock dialog', function() {
   });
 
   setup(function() {
+    window.applications = MockApplications;
+    window.applications.ready = true;
     stubByQuery = this.sinon.stub(document, 'querySelector');
     stubByQuery.returns(document.createElement('div'));
     stubById = this.sinon.stub(document, 'getElementById');
@@ -44,6 +47,20 @@ suite('sim lock dialog', function() {
   teardown(function() {
     stubByQuery.restore();
     stubById.restore();
+  });
+
+  test('done: should prevent default to keep keyboard open', function() {
+    var fakeMouseDownEvt = new CustomEvent('mousedown');
+    this.sinon.stub(fakeMouseDownEvt, 'preventDefault');
+    subject.dialogDone.dispatchEvent(fakeMouseDownEvt);
+    assert.isTrue(fakeMouseDownEvt.preventDefault.called);
+  });
+
+  test('skip: should prevent default to keep keyboard open', function() {
+    var fakeMouseDownEvt = new CustomEvent('mousedown');
+    this.sinon.stub(fakeMouseDownEvt, 'preventDefault');
+    subject.dialogSkip.dispatchEvent(fakeMouseDownEvt);
+    assert.isTrue(fakeMouseDownEvt.preventDefault.called);
   });
 
   test('requestFocus should be called when inputFieldControl is called',

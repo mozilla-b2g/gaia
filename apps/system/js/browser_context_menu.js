@@ -76,12 +76,13 @@
   };
 
   BrowserContextMenu.prototype.view = function() {
-    return '<form class="contextmenu" role="dialog" tabindex="-1"' +
-              ' data-type="action" ' +
-              'id="' + this.CLASS_NAME + this.instanceID + '">' +
-              '<header class="contextmenu-header"></header>' +
-              '<menu class="contextmenu-list"></menu>' +
-            '</form>';
+    var id = this.CLASS_NAME + this.instanceID;
+    var content = `<form class="contextmenu" role="dialog" tabindex="-1"
+              data-type="action" id="${id}">
+              <header class="contextmenu-header"></header>
+              <menu class="contextmenu-list"></menu>
+            </form>`;
+    return content;
   };
 
   BrowserContextMenu.prototype.kill = function() {
@@ -251,7 +252,6 @@
     if (isPrivate) {
       var privateBrowserUrl = location.origin + '/private_browser.html';
       var config = new BrowserConfigHelper({url: privateBrowserUrl});
-      config.useAsyncPanZoom = true;
       config.oop = true;
       config.isPrivate = true;
       var newApp = new AppWindow(config);

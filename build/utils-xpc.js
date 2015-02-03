@@ -14,6 +14,9 @@ Cu.import('resource://gre/modules/reflect.jsm');
 
 var utils = require('./utils.js');
 var subprocess = require('sdk/system/child_process/subprocess');
+
+const UUID_FILENAME = 'uuid.json';
+
 /**
  * Returns an array of nsIFile's for a given directory
  *
@@ -146,7 +149,9 @@ function writeContent(file, content) {
  */
 function getFile() {
   try {
-    let file = new FileUtils.File(arguments[0]);
+    let first = utils.getOsType().indexOf('WIN') === -1 ?
+      arguments[0] : arguments[0].replace(/\//g, '\\');
+    let file = new FileUtils.File(first);
     if (arguments.length > 1) {
       let args = Array.prototype.slice.call(arguments, 1);
       args.forEach(function(dir) {
@@ -284,6 +289,28 @@ function readZipManifest(appDir) {
                   ' app (' + appDir.leafName + ')\n');
 }
 
+let UUID_MAPPING;
+
+function getUUIDMapping(config) {
+  if (UUID_MAPPING) {
+    return UUID_MAPPING;
+  }
+  UUID_MAPPING = {};
+  // Try to retrieve it from $GAIA_DISTRIBUTION_DIR/uuid.json if exists.
+  try {
+    var uuidFile = getFile(config.GAIA_DISTRIBUTION_DIR, UUID_FILENAME);
+    if (uuidFile.exists()) {
+      utils.log('webapp-manifests',
+        'uuid.json in GAIA_DISTRIBUTION_DIR found.');
+      UUID_MAPPING = JSON.parse(getFileContent(uuidFile));
+    }
+  } catch (e) {
+    // ignore exception if GAIA_DISTRIBUTION_DIR does not exist.
+  }
+  return UUID_MAPPING;
+}
+exports.getUUIDMapping = getUUIDMapping;
+
 /**
  * Get an app's detail in an object. For example:
  * {
@@ -294,13 +321,10 @@ function readZipManifest(appDir) {
  * }
  *
  * @param app {string} - the app name
- * @param domain {string} - the domain name, like 'gaiamobile.org'
- * @param scheme {string} - 'http://' or 'app://'
- * @param port {string} - '8080' or keep null
- * @param stageDir {string} - the path of the build stage directory
+ * @param config {object} - the config object, with all env variables
  * @return {obeject} - the information of the webapp
  */
-function getWebapp(app, domain, scheme, port, stageDir) {
+function getWebapp(app, config) {
   let appDir = getFile(app);
   if (!appDir.exists()) {
     throw new Error(' -*- build/utils.js: file not found (' +
@@ -322,7 +346,7 @@ function getWebapp(app, domain, scheme, port, stageDir) {
   let manifestJSON = getJSON(manifest);
 
   // Use the folder name as the the domain name
-  let appDomain = appDir.leafName + '.' + domain;
+  let appDomain = appDir.leafName + '.' + config.GAIA_DOMAIN;
   if (manifestJSON.origin) {
     appDomain = utils.getNewURI(manifestJSON.origin).host;
   }
@@ -331,11 +355,9 @@ function getWebapp(app, domain, scheme, port, stageDir) {
     appDir: appDir,
     manifest: manifestJSON,
     manifestFile: manifest,
-    buildManifestFile: manifest,
-    url: scheme + appDomain,
+    url: config.GAIA_SCHEME + appDomain,
     domain: appDomain,
     sourceDirectoryFile: manifestFile.parent,
-    buildDirectoryFile: manifestFile.parent,
     sourceDirectoryName: appDir.leafName,
     sourceAppDirectoryName: appDir.parent.leafName
   };
@@ -352,10 +374,40 @@ function getWebapp(app, domain, scheme, port, stageDir) {
   }
 
   // Some webapps control their own build
-  webapp.buildDirectoryFile = utils.getFile(stageDir,
+  webapp.buildDirectoryFile = utils.getFile(config.STAGE_DIR,
     webapp.sourceDirectoryName);
   webapp.buildManifestFile = utils.getFile(webapp.buildDirectoryFile.path,
     'manifest.webapp');
+
+  // Generate the webapp folder name in the profile. Only if it's privileged
+  // and it has an origin in its manifest file it'll be able to specify a custom
+  // folder name. Otherwise, generate an UUID to use as folder name.
+  var webappTargetDirName;
+  if (isExternalApp(webapp)) {
+    var type = webapp.appStatus;
+    var isPackaged = false;
+    if (webapp.pckManifest) {
+      isPackaged = true;
+      if (webapp.metaData.origin) {
+        throw new Error('External webapp `' + webapp.sourceDirectoryName +
+                        '` can not have origin in metadata because is ' +
+                        'packaged');
+      }
+    }
+    if (type === 2 && isPackaged && webapp.pckManifest.origin) {
+      webappTargetDirName = utils.getNewURI(webapp.pckManifest.origin).host;
+    } else {
+      // uuid is used for webapp directory name, save it for further usage
+      let mapping = getUUIDMapping(config);
+      var uuid = mapping[webapp.sourceDirectoryName] ||
+                 generateUUID().toString();
+      mapping[webapp.sourceDirectoryName] = webappTargetDirName = uuid;
+    }
+  } else {
+    webappTargetDirName = webapp.domain;
+  }
+  webapp.profileDirectoryFile = utils.getFile(config.PROFILE_DIR, 'webapps',
+                                              webappTargetDirName);
 
   return webapp;
 }
@@ -364,16 +416,13 @@ function getWebapp(app, domain, scheme, port, stageDir) {
  * Get the collection of the information of webapps.
  *
  * @param appdirs {[string]} - the list of all app names
- * @param domain {string} - the domain name, like 'gaiamobile.org'
- * @param scheme {string} - 'http://' or 'app://'
- * @param port {string} - '8080' or keep null
- * @param stageDir {string} - the path of the build stage directory
+ * @param config {object} - the config object, with all env variables
  * @return {[obeject]} - the list of information of the webapps
  */
-function makeWebappsObject(appdirs, domain, scheme, port, stageDir) {
+function makeWebappsObject(appdirs, config) {
   var apps = [];
   appdirs.forEach(function(app) {
-    var webapp = getWebapp(app, domain, scheme, port, stageDir);
+    var webapp = getWebapp(app, config);
     if (webapp) {
       apps.push(webapp);
     }
@@ -404,11 +453,9 @@ var gaia = {
         engine: this.config.GAIA_ENGINE,
         sharedFolder: getFile(this.config.GAIA_DIR, 'shared'),
         webapps: makeWebappsObject(this.config.GAIA_APPDIRS.split(' '),
-          this.config.GAIA_DOMAIN, this.config.GAIA_SCHEME,
-          this.config.GAIA_PORT, this.config.STAGE_DIR),
+                                   this.config),
         rebuildWebapps: makeWebappsObject(this.config.rebuildAppDirs,
-          this.config.GAIA_DOMAIN, this.config.GAIA_SCHEME,
-          this.config.GAIA_PORT, this.config.STAGE_DIR),
+                                          this.config),
         distributionDir: this.config.GAIA_DISTRIBUTION_DIR
       };
     }
@@ -956,11 +1003,12 @@ function Commander(cmd) {
       log('cmd', command + ' ' + args.join(' '));
       process.init(_file);
       process.run(true, args, args.length);
+      callback && callback(process.exitValue);
     } catch (e) {
+      callback && callback(1);
       throw new Error('having trouble when execute ' + command +
         ' ' + args.join(' '));
     }
-    callback && callback();
   };
 
   /**
@@ -1220,11 +1268,12 @@ var scriptLoader = {
       if (withoutCache) {
         uri += '?d=' + new Date().getTime();
       }
-      Services.scriptloader.loadSubScript(uri, exportObj);
+      Services.scriptloader.loadSubScript(uri, exportObj, 'UTF-8');
       this.scripts[filePath] = true;
     } catch(e) {
       delete this.scripts[filePath];
-      throw 'cannot load script from ' + filePath;
+      throw 'Utils.scriptLoader: Cannot load script from ' + filePath +
+            ': ' + e.toString();
     }
   }
 };
@@ -1237,7 +1286,6 @@ exports.getFile = getFile;
 exports.ensureFolderExists = ensureFolderExists;
 exports.getJSON = getJSON;
 exports.getFileAsDataURI = getFileAsDataURI;
-exports.makeWebappsObject = makeWebappsObject;
 exports.getDistributionFileContent = getDistributionFileContent;
 exports.resolve = resolve;
 exports.getBuildConfig = getBuildConfig;

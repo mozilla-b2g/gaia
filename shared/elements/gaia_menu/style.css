@@ -289,3 +289,8 @@ button[disabled]:last-child {
   color: #a6a6a6;
   opacity: 1;
 }
+
+/* RTL View */
+button:-moz-dir(rtl) {
+  text-align: right;
+}

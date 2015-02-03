@@ -7,10 +7,11 @@ var Settings = require('../app/app'),
 
 marionette('manipulate language settings', function() {
   var client = marionette.client({
-  settings: {
-    'ftu.manifestURL': null,
-    'lockscreen.enabled': false
-  }});
+    settings: {
+      'ftu.manifestURL': null,
+      'lockscreen.enabled': false
+    }
+  });
   var settingsApp;
 
   setup(function() {
@@ -22,41 +23,49 @@ marionette('manipulate language settings', function() {
     var languagePanel;
 
     setup(function() {
+      client.settings.set('devtools.qps.enabled', true);
       languagePanel = settingsApp.languagePanel;
       languagePanel.setupDefaultLanguage();
     });
 
+    teardown(function() {
+      client.settings.set('devtools.qps.enabled', false);
+    });
+
     test('label in the panel is translated.', function() {
-      languagePanel.currentLanguage = 'traditionalChinese';
-      assert.equal(languagePanel.currentLanguage, 'traditionalChinese');
+      languagePanel.currentLanguage = 'accented';
+      assert.equal(languagePanel.currentLanguage, 'accented');
+
+      languagePanel.currentLanguage = 'mirrored';
+      assert.equal(languagePanel.currentLanguage, 'mirrored');
 
       languagePanel.currentLanguage = 'english';
       assert.equal(languagePanel.currentLanguage, 'english');
-
-      languagePanel.currentLanguage = 'french';
-      assert.equal(languagePanel.currentLanguage, 'french');
     });
 
     test('mozSettings value is correct', function() {
-      languagePanel.currentLanguage = 'french';
-      assert.equal(languagePanel.currentLanguageFromMozSettings, 'fr');
+      languagePanel.currentLanguage = 'accented';
+      assert.equal(languagePanel.currentLanguageFromMozSettings,
+                   'qps-ploc');
+
+      languagePanel.currentLanguage = 'mirrored';
+      assert.equal(languagePanel.currentLanguageFromMozSettings,
+                   'qps-plocm');
 
       languagePanel.currentLanguage = 'english';
-      assert.equal(languagePanel.currentLanguageFromMozSettings, 'en-US');
-
-      languagePanel.currentLanguage = 'traditionalChinese';
-      assert.equal(languagePanel.currentLanguageFromMozSettings, 'zh-TW');
+      assert.equal(languagePanel.currentLanguageFromMozSettings,
+                   'en-US');
     });
 
     test('sample format is translated', function() {
-      languagePanel.currentLanguage = 'french';
-      assert.ok(languagePanel.isSampleFormatTranslated('french'));
+      languagePanel.currentLanguage = 'accented';
+      assert.ok(languagePanel.isSampleFormatTranslated('accented'));
+
+      languagePanel.currentLanguage = 'mirrored';
+      assert.ok(languagePanel.isSampleFormatTranslated('mirrored'));
 
       languagePanel.currentLanguage = 'english';
       assert.ok(languagePanel.isSampleFormatTranslated('english'));
-
-      languagePanel.currentLanguage = 'traditionalChinese';
-      assert.ok(languagePanel.isSampleFormatTranslated('traditionalChinese'));
     });
   });
 
@@ -71,10 +80,6 @@ marionette('manipulate language settings', function() {
 
       languagePanel = settingsApp.languagePanel;
       languagePanel.setupDefaultLanguage();
-      languagePanel.back();
-    });
-
-    teardown(function() {
       languagePanel.back();
     });
 

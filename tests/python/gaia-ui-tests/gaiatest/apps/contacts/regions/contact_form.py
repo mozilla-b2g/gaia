@@ -2,9 +2,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette import expected
-from marionette import Wait
-from marionette.by import By
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
 from gaiatest.apps.base import Base
 
 
@@ -104,6 +109,10 @@ class ContactForm(Base):
         element = self.marionette.find_element(*self._comment_locator)
         element.clear()
         element.send_keys(value)
+
+    def tap_comment(self):
+        element = self.marionette.find_element(*self._comment_locator)
+        element.tap()
 
     @property
     def picture_style(self):

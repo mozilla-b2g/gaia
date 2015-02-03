@@ -4,7 +4,6 @@ define(function(require, exports, module) {
 var View = require('view');
 
 require('dom!errors');
-require('dom!lazy-styles');
 
 function Errors() {
   View.apply(this, arguments);

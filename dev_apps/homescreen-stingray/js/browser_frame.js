@@ -56,12 +56,6 @@
       browser.setAttribute('parentapp', config.parentApp);
     }
 
-    if (config.useAsyncPanZoom) {
-      // XXX: Move this dataset assignment into app window object.
-      browser.dataset.useAsyncPanZoom = true;
-      browser.setAttribute('mozasyncpanzoom', 'true');
-    }
-
     if (config.url) {
       browser.src = config.url;
       // XXX: This one is for some failing python tests using

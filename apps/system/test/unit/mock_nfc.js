@@ -11,24 +11,26 @@
     checkP2PRegistration: function(manifestURL) {
       return Promise.resolve(true);
     },
-
+    addEventListener: function(type, subject) {
+      this.subject = subject;
+    },
     notifyUserAcceptedP2P: function(manifestURL) { return {}; },
 
     onpeerready: function() {},
 
-    getNFCPeer: function() {
-      return {
-        sendNDEF: function(req) {
-          MockNfc.mSentRequest = req;
-        }
-      };
-    },
-
     mTriggerOnpeerready: function(detail) {
+      if (this.subject) {
+        this.subject.handleEvent(detail);
+      }
       MockNfc.onpeerready(detail);
     },
 
-    mSentRequest: null
+    mSentRequest: null,
+    MockNFCPeer: {
+      sendNDEF: function(req) {
+        MockNfc.mSentRequest = req;
+      }
+    }
   };
 
   exports.MockNfc = MockNfc;

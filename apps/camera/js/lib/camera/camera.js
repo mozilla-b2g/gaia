@@ -80,10 +80,6 @@ function Camera(options) {
   this.focus = new Focus(options.focus);
   this.suspendedFlashCount = 0;
 
-  // Indicate this first
-  // load hasn't happened yet.
-  this.isFirstLoad = true;
-
   // Always boot in 'picture' mode
   // with 'back' camera. This may need
   // to be configurable at some point.
@@ -111,15 +107,6 @@ function Camera(options) {
 Camera.prototype.load = function() {
   debug('load camera');
 
-  // First load is different as we
-  // fetch the mozCameraConfig from
-  // the previous session and boot
-  // with that to optimize startup.
-  if (this.isFirstLoad) {
-    this.firstLoad();
-    return;
-  }
-
   var loadingNewCamera = this.selectedCamera !== this.lastLoadedCamera;
   var self = this;
 
@@ -144,7 +131,6 @@ Camera.prototype.load = function() {
   // as the previous camera config
   // won't apply to the new camera.
   if (this.mozCamera) {
-    this.mozCameraConfig = null;
     this.release(ready);
   } else {
     ready();
@@ -162,104 +148,9 @@ Camera.prototype.load = function() {
   // request the camera again in exactly
   // the same state it was previously in.
   function ready() {
-    self.requestCamera(self.selectedCamera, self.mozCameraConfig);
+    self.requestCamera(self.selectedCamera);
     self.lastLoadedCamera = self.selectedCamera;
   }
-};
-
-/**
- * When the camera is loaded for the first
- * time run this specially optimized load path.
- *
- * We fetch the a previous camera config from storage
- * and request the camera *with* a configuration.
- *
- * This means that we get back a pre-configured
- * mozCamera and we don't have to run `.configure()`
- * on the critical path. This saves us ~400ms.
- *
- * @private
- */
-Camera.prototype.firstLoad = function() {
-  debug('first load');
-
-  var config = this.fetchBootConfig() || {};
-  var self = this;
-
-  // Save this to memory so that we can re-request
-  // the camera quickly after it has been .release()'d.
-  this.mozCameraConfig = config.mozCameraConfig;
-
-  // Request the camera, passing in the config.
-  // If this is the first time the camera app
-  // has been used `mozCameraConfig` will be undefined.
-  this.requestCamera(this.selectedCamera, this.mozCameraConfig);
-
-  // Set the pictureSize and recorderProfile
-  // as soon as we get the camera hardware.
-  // Set the `pictureSize` and `recorderProfile`
-  // from the cache so that any subsequent requests
-  // to `setPictureSize` and `setRecorderProfile`
-  // don't trigger slow hardware configuration.
-  this.once('newcamera', function() {
-    var noConfigure = { configure: false };
-    self.setPictureSize(config.pictureSize, noConfigure);
-    self.setRecorderProfile(config.recorderProfile, noConfigure);
-  });
-
-  // First load is done.
-  this.isFirstLoad = false;
-};
-
-/**
- * Save the current camera configuration
- * to persistent storage.
- *
- * This configuration is later used by
- * `.firstLoad()` to optimize the
- * first camera request.
- *
- * We only save the config if the camera
- * is using the 'back' camera in 'picture'
- * mode, as this is the mode we boot
- * the camera in. If partners have issues
- * with this, perhap we can make this
- * configurable.
- *
- * We're using localStorage because it's
- * currently the fastest option.
- *
- * @private
- */
-Camera.prototype.saveBootConfig = function() {
-  if (!this.cacheConfig) { return; }
-  if (this.selectedCamera !== 'back') { return; }
-  if (this.mode !== 'picture') { return; }
-  // Store the things we need for quickLoad
-  var json = {
-    mozCameraConfig: this.mozCameraConfig,
-    recorderProfile: this.recorderProfile,
-    pictureSize: this.pictureSize
-  };
-
-  this.configStorage.setItem('cameraBootConfig', JSON.stringify(json));
-  debug('saved camera config', json);
-};
-
-/**
- * Fetch the boot config from storage.
- *
- * We use this config to optimize the
- * first load of the camera on the
- * app's critical path.
- *
- * @return {Object}
- */
-Camera.prototype.fetchBootConfig = function() {
-  var string = this.configStorage.getItem('cameraBootConfig');
-  var json = string && JSON.parse(string);
-  debug('got camera config', json);
-  return json;
 };
 
 /**
@@ -269,6 +160,12 @@ Camera.prototype.fetchBootConfig = function() {
  * @private
  */
 Camera.prototype.requestCamera = function(camera, config) {
+  if (!config) {
+    config = {
+      mode: this.mode
+    };
+  }
+
   debug('request camera', camera, config);
   if (this.isBusy) { return; }
 
@@ -276,11 +173,8 @@ Camera.prototype.requestCamera = function(camera, config) {
   var self = this;
 
   // Indicate 'busy'
+  this.configured = false;
   this.busy('requestingCamera');
-
-  // If a config was passed we assume
-  // the camera has been configured.
-  this.configured = !!config;
 
   // Make initial request
   request();
@@ -291,24 +185,27 @@ Camera.prototype.requestCamera = function(camera, config) {
    * @private
    */
   function request() {
-    navigator.mozCameras.getCamera(camera, config || {}, onSuccess, onError);
+    navigator.mozCameras.getCamera(camera, config)
+      .then(onSuccess, onError);
+
     self.emit('requesting');
     debug('camera requested', camera, config);
     attempts--;
   }
 
-  function onSuccess(mozCamera) {
+  function onSuccess(params) {
     debug('successfully got mozCamera');
 
     // release camera when press power key
     // as soon as you open a camera app
     if (document.hidden) {
-      self.mozCamera = mozCamera;
+      self.mozCamera = params.camera;
       self.release();
       return;
     }
 
-    self.setupNewCamera(mozCamera);
+    self.updateConfig(params.configuration);
+    self.setupNewCamera(params.camera);
     self.configureFocus();
     self.emit('focusconfigured', {
       mode: self.mozCamera.focusMode,
@@ -348,6 +245,13 @@ Camera.prototype.requestCamera = function(camera, config) {
   }
 };
 
+Camera.prototype.updateConfig = function(config) {
+  this.givenPreviewSize = config.previewSize;
+  this.pictureSize = config.pictureSize;
+  this.recorderProfile = config.recorderProfile;
+  this.configured = true;
+};
+
 /**
  * Configures the newly recieved
  * mozCamera object.
@@ -366,10 +270,12 @@ Camera.prototype.setupNewCamera = function(mozCamera) {
   this.mozCamera = mozCamera;
 
   // Bind to some events
-  this.mozCamera.onShutter = this.onShutter;
-  this.mozCamera.onClosed = this.onClosed;
-  this.mozCamera.onPreviewStateChange = this.onPreviewStateChange;
-  this.mozCamera.onRecorderStateChange = this.onRecorderStateChange;
+  this.mozCamera.addEventListener('shutter', this.onShutter);
+  this.mozCamera.addEventListener('close', this.onClosed);
+  this.mozCamera.addEventListener('previewstatechange',
+                                  this.onPreviewStateChange);
+  this.mozCamera.addEventListener('recorderstatechange',
+                                  this.onRecorderStateChange);
 
   this.capabilities = this.formatCapabilities(capabilities);
 
@@ -435,22 +341,22 @@ Camera.prototype.configure = function() {
   this.busy();
 
   // Create a new `mozCameraConfig`
-  this.mozCameraConfig = {
+  var mozCameraConfig = {
     mode: this.mode,
-    previewSize: this.previewSize(),
+    pictureSize: this.pictureSize,
     recorderProfile: this.recorderProfile
   };
 
   // Configure the camera hardware
-  this.mozCamera.setConfiguration(this.mozCameraConfig, onSuccess, onError);
-  debug('mozCamera configuring', this.mozCameraConfig);
+  this.mozCamera.setConfiguration(mozCameraConfig)
+    .then(onSuccess, onError);
+  debug('mozCamera configuring', mozCameraConfig);
 
-  function onSuccess() {
+  function onSuccess(config) {
     debug('configuration success');
     if (!self.mozCamera) { return; }
+    self.updateConfig(config);
     self.configureFocus();
-    self.configured = true;
-    self.saveBootConfig();
     self.emit('configured');
     self.ready();
   }
@@ -530,10 +436,7 @@ Camera.prototype.previewSizes = function() {
  * @private
  */
 Camera.prototype.previewSize = function() {
-  var sizes = this.previewSizes();
-  var size = CameraUtils.getOptimalPreviewSize(sizes);
-  debug('get optimal previewSize', size);
-  return size;
+  return this.givenPreviewSize;
 };
 
 /**
@@ -580,12 +483,15 @@ Camera.prototype.setPictureSize = function(size, options) {
     return;
   }
 
-  this.mozCamera.setPictureSize(size);
   this.pictureSize = size;
-  this.setThumbnailSize();
 
   // Configure the hardware only when required
-  if (configure) { this.configure(); }
+  if (configure) {
+    this.configure();
+  } else {
+    this.mozCamera.setPictureSize(size);
+  }
+  this.setThumbnailSize();
 
   debug('pictureSize changed');
   return this;
@@ -708,12 +614,14 @@ Camera.prototype.release = function(done) {
   this.busy();
   this.stopRecording();
   this.set('focus', 'none');
-  this.mozCamera.release(onSuccess, onError);
+  this.mozCamera.release().then(onSuccess, onError);
   this.releasing = true;
   this.mozCamera = null;
 
   // Reset cached parameters
   delete this.pictureSize;
+  delete this.recorderProfile;
+  delete this.givenPreviewSize;
 
   function onSuccess() {
     debug('successfully released');
@@ -845,7 +753,7 @@ Camera.prototype.takePicture = function(options) {
 
   function takePicture() {
     self.busy('takingPicture');
-    self.mozCamera.takePicture(config, onSuccess, onError);
+    self.mozCamera.takePicture(config).then(onSuccess, onError);
   }
 
   function onError(error) {
@@ -969,12 +877,8 @@ Camera.prototype.startRecording = function(options) {
 
       video.filepath = filepath;
       self.emit('willrecord');
-      self.mozCamera.startRecording(
-        config,
-        storage,
-        filepath,
-        onSuccess,
-        onError);
+      self.mozCamera.startRecording(config, storage, filepath)
+        .then(onSuccess, onError);
     }
   }
 
@@ -1146,16 +1050,15 @@ Camera.prototype.onShutter = function() {
   this.emit('shutter');
 };
 
-
 /**
  * Emit a 'closed' event when camera controller
  * closes
  *
  * @private
  */
-Camera.prototype.onClosed = function(reason) {
+Camera.prototype.onClosed = function(e) {
   this.shutdown();
-  this.emit('closed', reason);
+  this.emit('closed', e.reason);
 };
 
 /**
@@ -1163,10 +1066,11 @@ Camera.prototype.onClosed = function(reason) {
  * from the camera hardware. If 'stopped'
  * or 'paused' the camera must not be used.
  *
- * @param  {String} state ['stopped', 'paused']
+ * @param  event with {String} newState ['started', 'stopped', 'paused']
  * @private
  */
-Camera.prototype.onPreviewStateChange = function(state) {
+Camera.prototype.onPreviewStateChange = function(e) {
+  var state = e.newState;
   debug('preview state change: %s', state);
   this.previewState = state;
   this.emit('preview:' + state);
@@ -1178,7 +1082,8 @@ Camera.prototype.onPreviewStateChange = function(state) {
  * @param  {String} msg
  * @private
  */
-Camera.prototype.onRecorderStateChange = function(msg) {
+Camera.prototype.onRecorderStateChange = function(e) {
+  var msg = e.newState;
   if (msg === 'FileSizeLimitReached') {
     this.emit('filesizelimitreached');
   }

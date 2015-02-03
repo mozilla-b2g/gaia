@@ -1,13 +1,7 @@
 'use strict';
 
-var Home = require(
-  '../../../verticalhome/test/marionette/lib/home2');
 var Rocketbar = require('./lib/rocketbar');
-var Search = require(
-  '../../../../apps/search/test/marionette/lib/search');
 var Server = require('../../../../shared/test/integration/server');
-var System = require('./lib/system');
-var Actions = require('marionette-client').Actions;
 var assert = require('chai').assert;
 
 marionette('Software Home Button - File Open Error', function() {
@@ -26,13 +20,12 @@ marionette('Software Home Button - File Open Error', function() {
   var home, rocketbar, search, server, system, actions;
 
   setup(function() {
-    home = new Home(client);
+    home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
-    search = new Search(client);
-    system = new System(client);
-    actions = new Actions(client);
+    search = client.loader.getAppClass('search');
+    system = client.loader.getAppClass('system');
+    actions = client.loader.getActions();
     system.waitForStartup();
-    search.removeGeolocationPermission();
   });
 
   suiteSetup(function(done) {

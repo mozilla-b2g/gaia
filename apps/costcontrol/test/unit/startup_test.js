@@ -1,12 +1,14 @@
 /* global MockCommon, MockCostControl, MockNavigatorMozMobileConnections, Event,
-          CostControlApp, Common, MockConfigManager, MockSettingsListener,
+          CostControlApp, Common, MockConfigManager, asyncStorage,
           MockMozNetworkStats, MocksHelper, SimManager, MockNavigatorSettings,
-          AirplaneModeHelper, MockNavigatorMozIccManager
+          AirplaneModeHelper
 */
 /* exported PerformanceTestingHelper */
 'use strict';
 
+require('/shared/js/usertiming.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/test/unit/mock_debug.js');
 require('/test/unit/mock_common.js');
 require('/test/unit/mock_moz_l10n.js');
@@ -71,6 +73,7 @@ if (!window.navigator.mozSettings) {
 
 var MocksHelperForUnitTest = new MocksHelper([
   'LazyLoader',
+  'asyncStorage',
   'AirplaneModeHelper',
   'ConfigManager',
   'CostControl',
@@ -252,7 +255,8 @@ suite('Application Startup Modes Test Suite >', function() {
       loadBodyHTML('/index.html');
       this.sinon.spy(window.navigator.mozIccManager, 'addEventListener');
 
-      // Force loadDataSimIccId to fail
+      // The icc request fails, because of this request doesn't work if the
+      // airplane mode is enabled.
       sinon.stub(SimManager, 'requestDataSimIcc', failingRequestDataSIMIccId);
 
       // airplanemode activated for enable the iccmanager listeners
@@ -260,8 +264,6 @@ suite('Application Startup Modes Test Suite >', function() {
 
       window.addEventListener('viewchanged', function _onalert(evt) {
         window.removeEventListener('viewchanged', _onalert);
-        sinon.assert.calledWith(window.navigator.mozIccManager.addEventListener,
-                                'iccdetected');
 
         // Restore the stub method and disabling the airplanemode
         SimManager.requestDataSimIcc.restore();
@@ -275,63 +277,39 @@ suite('Application Startup Modes Test Suite >', function() {
           applicationMode: applicationMode
         });
 
-        // Check the app start correctly
+        // The assertion function contains a listener to detect when the fte is
+        // ready, for this reason it must be placed before dispatching the
+        // airplanemode disabled event
         assertFTEStarted(applicationMode, done);
 
         // Launch the second start-up
-        MockNavigatorMozIccManager.triggerEventListeners('iccdetected', {});
+        var eventDetail = { detail: {serviceId: 'data'}};
+        var airplaneModeDisabledEvent =
+          new CustomEvent('airplaneModeDisabled', eventDetail);
+        window.dispatchEvent(airplaneModeDisabledEvent);
       });
 
       CostControlApp.init();
   });
 
-  test(
-    'First Time Experience Loaded when new SIM > DATA_USAGE_ONLY',
+  test('SIM is not detected, the icc request is failing',
     function(done) {
-      var applicationMode = 'DATA_USAGE_ONLY';
-      setupCardState({cardState: 'ready'});
-      window.ConfigManager = new MockConfigManager({
-        fakeSettings: { fte: true },
-        applicationMode: applicationMode
-      });
+      loadBodyHTML('/index.html');
 
-      assertFTEStarted(applicationMode, done);
+      this.sinon.stub(SimManager, 'requestDataSimIcc',
+                      failingRequestDataSIMIccId);
 
+        // Config the app to start (FTE)
+        var applicationMode = 'DATA_USAGE_ONLY';
+        window.CostControl = new MockCostControl();
+        window.ConfigManager = new MockConfigManager({
+          applicationMode: applicationMode
+        });
+
+      AirplaneModeHelper._status = 'disabled';
       CostControlApp.init();
-    }
-  );
-
-  test(
-    'First Time Experience Loaded when new SIM > PREPAID',
-    function(done) {
-      var applicationMode = 'PREPAID';
-      setupCardState({cardState: 'ready'});
-      window.ConfigManager = new MockConfigManager({
-        fakeSettings: { fte: true },
-        applicationMode: applicationMode
-      });
-
-      assertFTEStarted(applicationMode, done);
-
-      CostControlApp.init();
-    }
-  );
-
-  test(
-    'First Time Experience Loaded when new SIM > POSTPAID',
-    function(done) {
-      var applicationMode = 'POSTPAID';
-      setupCardState({cardState: 'ready'});
-      window.ConfigManager = new MockConfigManager({
-        fakeSettings: { fte: true },
-        applicationMode: applicationMode
-      });
-
-      assertFTEStarted(applicationMode, done);
-
-      CostControlApp.init();
-    }
-  );
+      assertNonReadyScreen('NonReadyScreen in state: null', done);
+  });
 
   function setupLayoutMode(applicationMode) {
     loadBodyHTML('/index.html');
@@ -380,50 +358,166 @@ suite('Application Startup Modes Test Suite >', function() {
     CostControlApp.init();
   });
 
-  test(
-    'DSDS Ensure the FTE will be closed when there are a data slot change',
-    function(done) {
-      var defaultDataSlotId = 0, newDataSlotId = 1,
-          dataSlot = 'ril.data.defaultServiceId';
+  suite('supportCustomizeMode setting', function() {
+    var MockMozAlarms = {
+      add: function() {},
+      remove: function() {}
+    };
+    var realMozAlarms;
 
-      MockNavigatorSettings.mSettings[dataSlot] = defaultDataSlotId;
-      var applicationMode = 'DATA_USAGE_ONLY';
-      setupCardState({cardState: 'ready'});
-      window.Common = new MockCommon({ activateFTEListener: true });
-      window.ConfigManager = new MockConfigManager({
-        fakeSettings: { fte: true },
-        applicationMode: applicationMode
-      });
+    suiteSetup(function() {
+      realMozAlarms = window.navigator.mozAlarms;
+      window.navigator.mozAlarms = MockMozAlarms;
+    });
 
-      MockNavigatorMozMobileConnections.mAddMobileConnection(
-        {  iccId: '0000000' } ,1);
+    suiteTeardown(function() {
+      window.navigator.mozAlarms = realMozAlarms;
+    });
 
-      SimManager.reset();
+    test('Start up with custom mode when functionality is disabled produces ' +
+         'a change to the never mode',
+      function(done) {
+        var expectedMode = 'never';
+        var applicationMode = 'DATA_USAGE_ONLY';
+        setupCardState({cardState: 'ready'});
+        window.ConfigManager = new MockConfigManager(
+          {
+            fakeSettings: {
+              fte: true,
+              trackingPeriod: 'custom'
+            },
+            applicationMode: applicationMode
+          }
+        );
 
-      window.addEventListener('ftestarted', function _onftestarted(evt) {
-        window.removeEventListener('ftestarted', _onftestarted);
-        var iframe = document.getElementById('fte_view');
+        window.addEventListener('ftestarted', function _onftestarted(evt) {
+          window.removeEventListener('ftestarted', _onftestarted);
+          assert.equal(window.ConfigManager.option('trackingPeriod'),
+                       expectedMode);
+          done();
+        });
 
-        assert.ok(!iframe.classList.contains('non-ready'));
+        CostControlApp.init();
+      }
+    );
 
-        // The second SIM has FTE passed
+    test('Start up with custom mode when functionality is disabled remove ' +
+         'nextReset alarm',
+      function(done) {
+        var expectedMode = 'never';
+        var nextResetAlarmId = '111';
+        var applicationMode = 'DATA_USAGE_ONLY';
+        this.sinon.stub(asyncStorage, 'getItem').yields(nextResetAlarmId);
+        this.sinon.stub(asyncStorage, 'setItem').yields();
+        this.sinon.stub(navigator.mozAlarms, 'remove', function() {});
+        setupCardState({cardState: 'ready'});
+        window.ConfigManager = new MockConfigManager(
+          {
+            fakeSettings: {
+              fte: true,
+              trackingPeriod: 'custom',
+              nextReset: new Date()
+            },
+            applicationMode: applicationMode
+          }
+        );
+
+        window.addEventListener('ftestarted', function _onftestarted(evt) {
+          window.removeEventListener('ftestarted', _onftestarted);
+          assert.equal(window.ConfigManager.option('trackingPeriod'),
+                       expectedMode);
+          sinon.assert.calledWith(navigator.mozAlarms.remove, nextResetAlarmId);
+          assert.isNull(window.ConfigManager.option('nextReset'));
+          done();
+        });
+
+        CostControlApp.init();
+      }
+    );
+  });
+
+  suite('FTE Startup Test Suite >', function() {
+    test(
+      'First Time Experience Loaded when new SIM > DATA_USAGE_ONLY',
+      function(done) {
+        var applicationMode = 'DATA_USAGE_ONLY';
+        setupCardState({cardState: 'ready'});
         window.ConfigManager = new MockConfigManager({
-          fakeSettings: { fte: false },
+          fakeSettings: { fte: true },
           applicationMode: applicationMode
         });
 
-        window.addEventListener('fteClosed', function checkAssertions() {
-          window.removeEventListener('fteClosed', checkAssertions);
-            iframe = document.getElementById('fte_view');
-            assert.ok(iframe.classList.contains('non-ready'));
+        assertFTEStarted(applicationMode, done);
 
-            done();
+        CostControlApp.init();
+      }
+    );
+
+    test(
+      'First Time Experience Loaded when new SIM > PREPAID',
+      function(done) {
+        var applicationMode = 'PREPAID';
+        setupCardState({cardState: 'ready'});
+        window.ConfigManager = new MockConfigManager({
+          fakeSettings: { fte: true },
+          applicationMode: applicationMode
         });
 
-        MockSettingsListener.mTriggerCallback(dataSlot, newDataSlotId);
-      });
+        assertFTEStarted(applicationMode, done);
 
-      CostControlApp.init();
-    }
-  );
+        CostControlApp.init();
+      }
+    );
+
+    test(
+      'First Time Experience Loaded when new SIM > POSTPAID',
+      function(done) {
+        var applicationMode = 'POSTPAID';
+        setupCardState({cardState: 'ready'});
+        window.ConfigManager = new MockConfigManager({
+          fakeSettings: { fte: true },
+          applicationMode: applicationMode
+        });
+
+        assertFTEStarted(applicationMode, done);
+
+        CostControlApp.init();
+      }
+    );
+
+    var updateUITestCase = [
+      {
+        description : 'UpdateUI executes the callback after a mode change',
+        applicationMode : 'DATA_USAGE_ONLY'
+      },
+      {
+        description :
+          'UpdateUI executes the callback even if there is not a mode change',
+        applicationMode : null
+      }
+    ];
+
+    updateUITestCase.forEach(function(testCase) {
+      test(testCase.description, function(done) {
+        var applicationMode = testCase.applicationMode;
+        setupCardState({cardState: 'ready'});
+        window.ConfigManager = new MockConfigManager({
+          fakeSettings: { fte: true },
+          applicationMode: applicationMode
+        });
+        function _finalizeFTE (evt) {
+          window.removeEventListener('ftestarted', _finalizeFTE);
+          window.ConfigManager.setOption({ fte: false }, function() {
+            window.postMessage({ type: 'fte_finished' },
+                               Common.COST_CONTROL_APP);
+          });
+        }
+        window.addEventListener('ftestarted', _finalizeFTE);
+
+        this.sinon.stub(Common, 'closeFTE', done);
+
+        CostControlApp.init();
+      });
+    });
+  });
 });

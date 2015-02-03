@@ -138,6 +138,10 @@
    */
   var inputSequencePromise = Promise.resolve();
 
+  // If this promise exists, that means we are
+  // currently loading the new dictionary.
+  var getDictionaryDataPromise = null;
+
   // keyboard.js calls this to pass us the interface object we need
   // to communicate with it
   function init(interfaceObject) {
@@ -258,12 +262,39 @@
     if ((!worker && !newlang) || (worker && newlang === language))
       return;
 
+    language = newlang;
+
     // If there is a worker, and no new language, then kill the worker
     if (worker && !newlang) {
       terminateWorker();
       return;
     }
 
+    getDictionaryDataPromise =
+      keyboard.getData('dictionaries/' + newlang + '.dict')
+      .then(function(dictData) {
+        getDictionaryDataPromise = null;
+
+        if (!dictData) {
+          console.error(
+            'latin.js: dictionary is specified but can\'t be loaded.');
+          language = undefined;
+
+          terminateWorker();
+          return;
+        }
+
+        setLanguageSync(newlang, dictData);
+      })['catch'](function(e) { // workaround gjslint error
+        e && console.error('latin.js', e);
+
+        getDictionaryDataPromise = null;
+        language = undefined;
+        terminateWorker();
+      })['catch'](function(e) { e && console.error(e); });
+  }
+
+  function setLanguageSync(newlang, dictData) {
     // If we get here, then we have to create a worker and set its language
     // or change the language of an existing worker.
     if (!worker) {
@@ -294,17 +325,21 @@
       };
     }
 
-    // Tell the worker what language we're using. They may cause it to
-    // load or reload its dictionary.
-    language = newlang;  // Remember the new language
-    worker.postMessage({ cmd: 'setLanguage', args: [language]});
+    // Tell the worker what language we're using and also pass the dictionary
+    // data.
+    worker.postMessage({
+      cmd: 'setLanguage',
+      args: [language, dictData]
+    }, [dictData]);
 
     // And now that we've changed the language, ask for new suggestions
     updateSuggestions();
   }
 
   function displaysCandidates() {
-    return !!(suggesting && worker);
+    // If we are suggesting for the language,
+    // we should always display the condidate panel.
+    return !!(suggesting && language);
   }
 
   /*
@@ -890,10 +925,21 @@
     if (!suggesting && !correcting)
       return;
 
-    // If we don't have a worker (probably because no dictionary) then
-    // do nothing
-    if (!worker)
+    // If there is no dictionary language, do nothing
+    if (!language)
       return;
+
+    // If we are still loading the dictionary, do nothing
+    if (getDictionaryDataPromise)
+      return;
+
+    // This shouldn't happen -- we previously allow layout to be selected
+    // without the dictionary, but the build script has since prevent that.
+    if (!worker) {
+      console.error('latin.js: called updateSuggestions() w/o an worker.');
+
+      return;
+    }
 
     // If we deferred suggestions because of a key repeat, clear that timer
     if (suggestionsTimer) {

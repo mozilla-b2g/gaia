@@ -1,12 +1,11 @@
 /* global AppWindow, Card, MocksHelper, CardsHelper */
 'use strict';
 
+require('/shared/js/tagged.js');
 requireApp('system/test/unit/mock_app_window.js');
-requireApp('system/test/unit/mock_trusted_ui_manager.js');
 
 var mocksForCard = new MocksHelper([
-  'AppWindow',
-  'TrustedUIManager'
+  'AppWindow'
 ]).init();
 
 suite('system/Card', function() {
@@ -58,6 +57,19 @@ suite('system/Card', function() {
         manager: mockManager
       });
       this.card.render();
+    });
+
+    test('card instance properties', function() {
+      // sanity check properties expected to be exposed on the instance
+      assert.isDefined(this.card.app);
+      assert.isDefined(this.card.instanceID);
+      assert.isDefined(this.card.title);
+      assert.isDefined(this.card.subTitle);
+      assert.isDefined(this.card.iconValue);
+      assert.isDefined(this.card.viewClassList);
+      assert.isDefined(this.card.titleId);
+      assert.isDefined(this.card.closeButtonVisibility);
+      assert.isDefined(this.card.favoriteButtonVisibility);
     });
 
     test('exposes expected element properties', function(){

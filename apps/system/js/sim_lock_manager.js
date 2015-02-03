@@ -1,4 +1,4 @@
-/* global SIMSlotManager, Service, BaseModule */
+/* global SIMSlotManager, Service, BaseModule, applications */
 'use strict';
 
 (function(exports) {
@@ -18,9 +18,6 @@
     'simlockback',
     'simlockrequestclose'
   ];
-  SimLockManager.STATES = [
-    'isActive'
-  ];
   SimLockManager.SUB_MODULES = [
     'SimLockSystemDialog'
   ];
@@ -29,9 +26,6 @@
     _duringCall: false,
     _showPrevented: false,
     _alreadyShown: false,
-    isActive: function() {
-      return this._alreadyShown;
-    },
 
     _handle_simslotready: function() {
       this.showIfLocked();
@@ -59,12 +53,12 @@
 
     _handle_simlockback: function(evt) {
       var index = evt.detail._currentSlot.index;
-      this.showIfLocked(index - 1);
+      this.showIfLocked(index - 1, false);
     },
 
     _handle_simlockskip: function(evt) {
       var index = evt.detail._currentSlot.index;
-      if (index + 1 >= this.mobileConnections.length - 1) {
+      if (index + 1 > this.mobileConnections.length - 1) {
         evt.detail.close('skip');
       } else {
         if (!this.showIfLocked(index + 1, true)) {
@@ -75,10 +69,10 @@
 
     _handle_simlockrequestclose: function(evt) {
       var index = evt.detail._currentSlot.index;
-      if (index + 1 >= this.mobileConnections.length - 1) {
+      if (index + 1 > this.mobileConnections.length - 1) {
         evt.detail.close();
       } else {
-        if (!this.showIfLocked(index + 1, true)) {
+        if (!this.showIfLocked(index + 1, false)) {
           evt.detail.close();
         }
       }
@@ -147,6 +141,9 @@
       var settingsManifestURL =
         'app://settings.gaiamobile.org/manifest.webapp';
       if (app.manifestURL == settingsManifestURL) {
+        if (this.simLockSystemDialog.visible) {
+          this.simLockSystemDialog.close();
+        }
         return;
       }
 
@@ -157,6 +154,20 @@
       // but only put the SIM PIN dialog upon the opening/opened app.
       // Will revisit this in
       // https://bugzilla.mozilla.org/show_bug.cgi?id=SIMPIN-Dialog
+    },
+
+    isBothSlotsLocked: function sl_isBothSlotsLocked(){
+      if(!SIMSlotManager.isMultiSIM() ||
+          SIMSlotManager.hasOnlyOneSIMCardDetected()){
+        return false;
+      }
+
+      var simSlots = SIMSlotManager.getSlots();
+      var isBothLocked = true;
+      for (var i = 0; i < simSlots.length; i++) {
+        isBothLocked = isBothLocked && simSlots[i].isLocked();
+      }
+      return isBothLocked;
     },
 
     showIfLocked: function sl_showIfLocked(currentSlotIndex, skipped) {
@@ -175,7 +186,7 @@
         return false;
       }
 
-      if (this.simLockSystemDialog.visible) {
+      if (currentSlotIndex === null && this.simLockSystemDialog.visible) {
         this.warn('Already displayed.');
         return false;
       }
@@ -194,7 +205,12 @@
         return false;
       }
 
+      if (!applications.ready) {
+        return false;
+      }
+
       return SIMSlotManager.getSlots().some(function iterator(slot, index) {
+        // If currentSlotIndex is present then we just need to handle this slot
         if (currentSlotIndex && index !== currentSlotIndex) {
           return false;
         }
@@ -206,12 +222,12 @@
 
         // Only render if not already displaying, or
         // displaying and skipping
-        if (this.simLockSystemDialog.hidden ? !skipped : skipped) {
+        if (skipped == null && this.simLockSystemDialog.visible) {
           return false;
         }
 
         // Always showing the first slot first.
-        if (!this._alreadyShown && index > 1) {
+        if (!this._alreadyShown && this.isBothSlotsLocked() && index > 0) {
           return false;
         }
 

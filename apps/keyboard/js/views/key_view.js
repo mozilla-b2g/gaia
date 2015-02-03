@@ -8,10 +8,10 @@
 function KeyView(target, options, viewManager) {
   this.target = target;
   this.attributeList = options.attributeList || [];
-  this.className = '';
+  this.classNames = ['keyboard-key'];
 
   if (target.isSpecialKey) {
-    this.className = 'special-key';
+    this.classNames.push('special-key');
   } else {
     // The 'key' role tells an assistive technology that these buttons
     // are used for composing text or numbers, and should be easier to
@@ -22,13 +22,13 @@ function KeyView(target, options, viewManager) {
       value: 'key'
     });
 
-    if (options.keyClassName) {
-      this.className = options.keyClassName;
+    if (options.classNames) {
+      this.classNames = this.classNames.concat(options.classNames);
     }
   }
 
   if (target.className) {
-    this.className += ' ' + target.className;
+    this.classNames = this.classNames.concat(target.className.split(' '));
   }
 
   if (target.disabled) {
@@ -57,8 +57,9 @@ function KeyView(target, options, viewManager) {
   this.outputChar = (options.outputChar) || target.value;
   this.altOutputChar = options.altOutputChar;
 
-  this.keyWidth = options.keyWidth;
-
+  this.innerRatio = options.innerRatio;
+  this.outerRatio = options.outerRatio;
+  this.width = options.keyWidth;
   this.viewManager = viewManager;
 }
 
@@ -83,8 +84,18 @@ KeyView.prototype.ARIA_LABELS = {
 KeyView.prototype.render = function render() {
   // Create the DOM element for the key.
   var contentNode = document.createElement('button');
-  contentNode.className = 'keyboard-key ' + this.className;
-  contentNode.style.width = this.keyWidth + 'px';
+  if (this.classNames) {
+    contentNode.classList.add.apply(contentNode.classList, this.classNames);
+  }
+
+  if (this.outerRatio && this.outerRatio != 1) {
+    contentNode.style.flex = this.outerRatio;
+  }
+
+  // Still need this for alternative char menu.
+  if (this.width) {
+    contentNode.style.width = this.width + 'px';
+  }
 
   if (this.attributeList) {
     this.attributeList.forEach(function(attribute) {
@@ -94,6 +105,9 @@ KeyView.prototype.render = function render() {
 
   var vWrapperNode = document.createElement('span');
   vWrapperNode.className = 'visual-wrapper';
+  if (this.outerRatio !== this.innerRatio) {
+    vWrapperNode.style.width = 100 * this.innerRatio / this.outerRatio + '%';
+  }
 
   var labelNode = document.createElement('span');
   // Using innerHTML here because some labels (so far only the &nbsp; in the
@@ -146,18 +160,25 @@ KeyView.prototype.render = function render() {
   }
 
   this.element = contentNode;
-
-  if (this.viewManager) {
-    this.viewManager.registerView(this.target, this);
-  }
+  this.viewManager.registerView(this.target, this);
 };
 
-KeyView.prototype.highlight = function highlight() {
+KeyView.prototype.highlight = function highlight(options) {
+  options = options || {};
+  if (options.upperCase) {
+    this.element.classList.add('uppercase-popup');
+  } else {
+    this.element.classList.add('lowercase-popup');
+  }
+
   this.element.classList.add('highlighted');
 };
 
 KeyView.prototype.unHighlight = function unHighlight() {
   this.element.classList.remove('highlighted');
+
+  this.element.classList.remove('uppercase-popup');
+  this.element.classList.remove('lowercase-popup');
 };
 
 exports.KeyView = KeyView;

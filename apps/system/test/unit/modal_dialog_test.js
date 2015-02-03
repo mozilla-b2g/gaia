@@ -222,5 +222,12 @@ suite('system/ModalDialog >', function() {
 
       ModalDialogCleanUp();
     });
+
+    test('should not updateHeight on resize event and not visible', function() {
+      ModalDialog.overlay.style.height = '';
+      this.sinon.stub(ModalDialog, 'isVisible').returns(false);
+      window.dispatchEvent(new CustomEvent('resize'));
+      assert.isFalse(parseInt(ModalDialog.overlay.style.height, 10) > 0);
+    });
   });
 });

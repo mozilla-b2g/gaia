@@ -2,10 +2,16 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
+
 from gaiatest.apps.base import Base
-from marionette import Wait
-from marionette import expected
 
 
 class Activities(Base):
@@ -17,6 +23,7 @@ class Activities(Base):
     _wallpaper_button_locator = (By.XPATH, "//*[text()='Wallpaper']")
     _gallery_button_locator = (By.XPATH, '//*[text()="Gallery"]')
     _camera_button_locator = (By.XPATH, '//*[text()="Camera"]')
+    _messages_button_locator = (By.XPATH, '//*[text()="Messages"]')
     _cancel_button_locator = (By.CSS_SELECTOR, 'form[data-type="action"] button[data-action="cancel"]')
 
     _save_image_locator = (By.CSS_SELECTOR, 'button[data-id="save-image"]')
@@ -52,6 +59,8 @@ class Activities(Base):
         camera = Camera(self.marionette)
         self.wait_for_condition(lambda m: self.apps.displayed_app.name == camera.name)
         self.apps.switch_to_displayed_app()
+        camera.wait_for_loading_spinner_displayed()
+        camera.wait_for_loading_spinner_hidden()
         camera.wait_for_capture_ready()
         return camera
 
@@ -72,3 +81,9 @@ class Activities(Base):
     @property
     def is_menu_visible(self):
         return self.is_element_displayed(*self._actions_menu_locator)
+
+    def share_to_messages(self):
+        self.marionette.find_element(*self._messages_button_locator).tap()
+        self.wait_for_element_not_displayed(*self._actions_menu_locator)
+        from gaiatest.apps.messages.regions.new_message import NewMessage
+        return NewMessage(self.marionette)

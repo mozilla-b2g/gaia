@@ -6,7 +6,6 @@ require('/js/views/handwriting_pad_view.js');
 require('/js/views/layout_page_view.js');
 
 suite('Views > LayoutPageView', function() {
-
   var dummyLayout = {
     width: 2,
     keys: [
@@ -14,8 +13,12 @@ suite('Views > LayoutPageView', function() {
     ]
   };
 
+  var viewManager = {
+    registerView: sinon.stub()
+  };
+
   test(' > show() ', function() {
-    var pageView = new LayoutPageView(dummyLayout, {});
+    var pageView = new LayoutPageView(dummyLayout, {}, viewManager);
     pageView.render();
 
     pageView.show();
@@ -25,7 +28,7 @@ suite('Views > LayoutPageView', function() {
   });
 
   test(' > hide() ', function() {
-    var pageView = new LayoutPageView(dummyLayout, {});
+    var pageView = new LayoutPageView(dummyLayout, {}, viewManager);
     pageView.render();
 
     pageView.hide();
@@ -45,7 +48,7 @@ suite('Views > LayoutPageView', function() {
         ]
       };
 
-      var pageView = new LayoutPageView(layout, {});
+      var pageView = new LayoutPageView(layout, {}, viewManager);
       pageView.render();
 
       var container = pageView.element;
@@ -66,32 +69,12 @@ suite('Views > LayoutPageView', function() {
         keyClassName: 'c9'
       };
 
-      var pageView = new LayoutPageView(layout, {});
+      var pageView = new LayoutPageView(layout, {}, viewManager);
       pageView.render();
 
       var container = pageView.element;
       assert.equal(container.querySelectorAll('.keyboard-key').length, 2);
       assert.equal(container.querySelectorAll('.keyboard-key.c9').length, 2);
-    });
-
-    test('rowLayoutWidth should be sum of all key ratios', function() {
-      var layout = {
-        width: 9,
-        keys: [
-          [{ value: 'a', ratio: 3 }, { value: 'b', ratio: 2 }],
-          [{ value: 'a' }, { value: 'b' }],
-          [{ value: 'a', ratio: 5 }, { value: 'b' }]
-        ]
-      };
-
-      var pageView = new LayoutPageView(layout, {});
-      pageView.render();
-
-      var container = pageView.element;
-      var rows = container.querySelectorAll('.keyboard-row');
-      assert.equal(rows[0].dataset.layoutWidth, 5);
-      assert.equal(rows[1].dataset.layoutWidth, 2);
-      assert.equal(rows[2].dataset.layoutWidth, 6);
     });
 
     test('Keycode should be set', function() {
@@ -102,7 +85,7 @@ suite('Views > LayoutPageView', function() {
         ]
       };
 
-      var pageView = new LayoutPageView(layout, {});
+      var pageView = new LayoutPageView(layout, {}, viewManager);
       pageView.render();
 
       var container = pageView.element;
@@ -122,9 +105,12 @@ suite('Views > LayoutPageView', function() {
         ]
       };
 
-      var pageView = new LayoutPageView(layout, {});
+      var pageView = new LayoutPageView(layout, {}, viewManager);
       pageView.render();
-      pageView.toggleCase({upperCase: true});
+      pageView.setUpperCaseLock({
+        isUpperCase: true,
+        isUpperCaseLocked: false
+      });
 
       var container = pageView.element;
 
@@ -145,9 +131,12 @@ suite('Views > LayoutPageView', function() {
         ]
       };
 
-      var pageView = new LayoutPageView(layout, {});
+      var pageView = new LayoutPageView(layout, {}, viewManager);
       pageView.render();
-      pageView.toggleCase({upperCase: false});
+      pageView.setUpperCaseLock({
+        isUpperCase: false,
+        isUpperCaseLocked: false
+      });
 
       var container = pageView.element;
 
@@ -168,9 +157,12 @@ suite('Views > LayoutPageView', function() {
         ]
       };
 
-      var pageView = new LayoutPageView(layout, {});
+      var pageView = new LayoutPageView(layout, {}, viewManager);
       pageView.render();
-      pageView.toggleCase({upperCase: false});
+      pageView.setUpperCaseLock({
+        isUpperCase: false,
+        isUpperCaseLocked: false
+      });
 
       var container = pageView.element;
 
@@ -202,7 +194,7 @@ suite('Views > LayoutPageView', function() {
         ]
       };
 
-      var pageView = new LayoutPageView(layout, {});
+      var pageView = new LayoutPageView(layout, {}, viewManager);
       pageView.render();
 
       var container = pageView.element;
@@ -219,7 +211,7 @@ suite('Views > LayoutPageView', function() {
           specificCssRule: true
         };
 
-        var pageView = new LayoutPageView(layout, {});
+        var pageView = new LayoutPageView(layout, {}, viewManager);
         pageView.render();
 
         var container = pageView.element;
@@ -234,7 +226,7 @@ suite('Views > LayoutPageView', function() {
           specificCssRule: false
         };
 
-        var pageView = new LayoutPageView(layout, {});
+        var pageView = new LayoutPageView(layout, {}, viewManager);
         pageView.render();
 
         var container = pageView.element;
@@ -255,7 +247,7 @@ suite('Views > LayoutPageView', function() {
           ]
         ]
       };
-      pageView = new LayoutPageView(layout, {});
+      pageView = new LayoutPageView(layout, {}, viewManager);
       pageView.render();
     });
 
@@ -314,6 +306,53 @@ suite('Views > LayoutPageView', function() {
       assert.isTrue(capsLockKey.classList.contains('kbr-key-hold'));
 
       assert.equal(capsLockKey.getAttribute('aria-pressed'), 'true');
+    });
+  });
+
+  suite(' > highlightKey() and unHighlightKey()', function() {
+    var pageView  = null;
+    var keyView;
+
+    setup(function() {
+      var layout = {
+        width: 2,
+        keys: []
+      };
+
+      keyView = {
+        highlight: sinon.stub(),
+        unHighlight: sinon.stub()
+      };
+
+      var viewManager = {
+        getView: function() {
+          return keyView;
+        }
+      };
+
+      pageView = new LayoutPageView(layout, {}, viewManager);
+      pageView.render();
+    });
+
+    test('highlightKey() with upperCase', function() {
+      pageView.isUpperCase = true;
+      pageView.highlightKey({});
+
+      assert.isTrue(keyView.highlight.calledOnce);
+      assert.isTrue(keyView.highlight.calledWith({upperCase: true}));
+    });
+
+    test('highlightKey() with upperCase', function() {
+      pageView.isUpperCase = false;
+      pageView.highlightKey({});
+
+      assert.isTrue(keyView.highlight.calledOnce);
+      assert.isTrue(keyView.highlight.calledWith({upperCase: false}));
+    });
+
+    test('unHighlightKey()', function() {
+      pageView.unHighlightKey({});
+      assert.isTrue(keyView.unHighlight.calledOnce);
     });
   });
 });

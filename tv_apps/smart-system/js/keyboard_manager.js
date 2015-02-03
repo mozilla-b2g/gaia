@@ -202,35 +202,38 @@ var KeyboardManager = {
       group = 'text';
     }
 
-      var previousLayout = this._showingLayoutInfo.layout;
+    var previousLayout = this._showingLayoutInfo.layout;
 
-      // Get the last keyboard the user used for this group
-      var currentActiveLayout = KeyboardHelper.getCurrentActiveLayout(group);
-      var currentActiveLayoutIdx;
-      if (currentActiveLayout && this.inputLayouts.layouts[group]) {
-        for (var i = 0; i < this.inputLayouts.layouts[group].length; i++) {
-          // See if we still have that keyboard in our current layouts
-          var layout = this.inputLayouts.layouts[group][i];
-          if (layout.manifestURL === currentActiveLayout.manifestURL &&
-              layout.id === currentActiveLayout.id) {
-            // If so, default to that, saving the users choice
-            currentActiveLayoutIdx = i;
-            break;
-          }
-        }
+    var resetPreviousFrame = function() {
+      // We need to reset the previous frame only when we switch to a new frame
+      // this "frame" is decided by layout properties
+      if (previousLayout &&
+          (previousLayout.manifestURL !==
+           this._showingLayoutInfo.layout.manifestURL ||
+           previousLayout.id !== this._showingLayoutInfo.layout.id)
+         ) {
+        this._debug('reset previousFrame.');
+        this.inputFrameManager.resetFrame(previousLayout);
       }
+    }.bind(this);
 
-      this._setKeyboardToShow(group, currentActiveLayoutIdx);
 
-    // We need to reset the previous frame only when we switch to a new frame
-    // this "frame" is decided by layout properties
-    if (previousLayout &&
-        (previousLayout.manifestURL !==
-         this._showingLayoutInfo.layout.manifestURL ||
-         previousLayout.id !== this._showingLayoutInfo.layout.id)
-       ) {
-      this._debug('reset previousFrame.');
-      this.inputFrameManager.resetFrame(previousLayout);
+    if (this.inputLayouts.layouts[group].activeLayout !== undefined) {
+      this._setKeyboardToShow(group);
+      resetPreviousFrame();
+    } else {
+      this.inputLayouts.getGroupCurrentActiveLayoutIndexAsync(group)
+        .then(currentActiveLayoutIdx => {
+          this._setKeyboardToShow(group, currentActiveLayoutIdx);
+          resetPreviousFrame();
+        })
+        .catch(e => {
+          console.error(`KeyboardManager: failed to retrieve
+                         currentActiveLayoutIdx`, e);
+          // launch keyboard anyway, just don't assign a default layout
+          this._setKeyboardToShow(group);
+          resetPreviousFrame();
+        });
     }
   },
 
@@ -340,14 +343,12 @@ var KeyboardManager = {
       return;
     }
     if (undefined === index) {
-      index = this.inputLayouts.layouts[group].activeLayout;
+      index = this.inputLayouts.layouts[group].activeLayout || 0;
     }
     this._debug('set layout to display: group=' + group + ' index=' + index);
     var layout = this.inputLayouts.layouts[group][index];
     this.inputFrameManager.launchFrame(layout, launchOnly);
     this._setShowingLayoutInfo(group, index, layout);
-
-    this.inputLayouts.setGroupsActiveLayout(layout);
 
     // By setting launchOnly to true, we load the keyboard frame w/o bringing it
     // to the backgorund; this is convenient to call
@@ -357,9 +358,7 @@ var KeyboardManager = {
       return;
     }
 
-    this.inputLayouts.layouts[group].activeLayout = index;
-    KeyboardHelper.saveCurrentActiveLayout(group,
-      layout.id, layout.manifestURL);
+    this.inputLayouts.saveGroupsCurrentActiveLayout(layout);
 
     // Make sure we are not in the transition out state
     // while user foucus quickly again.
@@ -479,7 +478,7 @@ var KeyboardManager = {
   _showImeMenu: function km_showImeMenu() {
     var showedGroup = this._showingLayoutInfo.group;
     var activeLayout = this.inputLayouts.layouts[showedGroup].activeLayout;
-    var actionMenuTitle = navigator.mozL10n.get('choose-option');
+    var actionMenuTitleL10nId = 'choose-option';
 
     this._waitForSwitchTimeout(function listLayouts() {
       var items = this.inputLayouts.layouts[showedGroup].map(
@@ -494,7 +493,7 @@ var KeyboardManager = {
 
       this.hideKeyboard();
 
-      var menu = new ImeMenu(items, actionMenuTitle,
+      var menu = new ImeMenu(items, actionMenuTitleL10nId,
         this._imeMenuCallback.bind(this, showedGroup),
         this._imeMenuCallback.bind(this, showedGroup));
 

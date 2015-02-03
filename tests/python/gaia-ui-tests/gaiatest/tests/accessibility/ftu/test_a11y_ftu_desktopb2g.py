@@ -15,16 +15,12 @@ class TestFtuAccessibility(GaiaTestCase):
         self.ftu.launch()
 
     def test_a11y_ftu(self):
-
         # This test runs on TBPL only (device is covered by test_a11y_ftu.py)
 
         self.wait_for_condition(lambda m: self.ftu.languages_list > 0,
                                 message='No languages listed on screen')
 
         # Select different languages
-        self.assertEqual(self.ftu.selected_language, 'en-US')
-        self.ftu.a11y_click_language('fr')
-        self.assertEqual(self.ftu.selected_language, 'fr')
         self.ftu.a11y_click_language('en-US')
         self.assertEqual(self.ftu.selected_language, 'en-US')
 

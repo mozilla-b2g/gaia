@@ -1,7 +1,10 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* globals ContactPhotoHelper, Notification, Promise, Threads, Settings */
+/* globals ContactPhotoHelper, Notification, Promise, Threads, Settings,
+           Dialog,
+           Promise
+*/
 
 (function(exports) {
   'use strict';
@@ -130,14 +133,6 @@
       }
 
       return details;
-    },
-
-    extend: function ut_extend(target, source) {
-      for (var key in source) {
-        if (source.hasOwnProperty(key)) {
-          target[key] = source[key];
-        }
-      }
     },
 
     /**
@@ -292,6 +287,32 @@
       });
     },
 
+    /**
+    * Gets localization details for attachment size label.
+    * @param size Attachment blob size in bytes.
+    * @returns {{l10nId: string, l10nArgs: {n: string}}}
+    */
+    getSizeForL10n: function ut_getSizeForL10n(size) {
+      // blob size with unit (B or KB or MB)
+      var sizeKB = size / 1024;
+      var sizeMB = sizeKB / 1024;
+      if (size < 1000) {
+        return {
+          l10nId: 'attachmentSizeB',
+          l10nArgs: { n: size }
+        };
+      } else if (sizeKB < 1000) {
+        return {
+          l10nId: 'attachmentSizeKB',
+          l10nArgs: { n: sizeKB.toFixed(1) }
+        };
+      }
+      return {
+        l10nId: 'attachmentSizeMB',
+        l10nArgs: { n: sizeMB.toFixed(1) }
+      };
+    },
+
     //  resizeImageBlobWithRatio have additional ratio to force image
     //  resize to smaller size to avoid edge case about quality adjustment
     //  not working.
@@ -424,12 +445,18 @@
         return null;
       }
       var mainPart = mime.slice(0, index);
+      var secondPart = mime.substr(index + 1);
+
       switch (mainPart) {
         case 'image':
           return 'img';
+        case 'text':
+          if (secondPart !== 'plain') {
+            return 'ref';
+          }
+          return mainPart;
         case 'video':
         case 'audio':
-        case 'text':
         case 'application':
           return mainPart;
         default:
@@ -569,28 +596,6 @@
     },
 
     /**
-     * Converts image DOM node to canvas respecting image ratio.
-     * @param imageNode Image DOM node to convert.
-     * @param width Target image width.
-     * @param height Target image height.
-     * @returns {Node} Canvas object created from image DOM node.
-     */
-    imageToCanvas: function(imageNode, width, height) {
-      var ratio = Math.max(imageNode.width / width, imageNode.height / height);
-
-      var canvas = document.createElement('canvas');
-      canvas.width = Math.round(imageNode.width / ratio);
-      canvas.height = Math.round(imageNode.height / ratio);
-
-      var context = canvas.getContext('2d', { willReadFrequently: true });
-
-      // Using canvas width and height with correct image proportions
-      context.drawImage(imageNode, 0, 0, canvas.width, canvas.height);
-
-      return canvas;
-    },
-
-    /**
      * Returns a function that will call specified "func" function only after it
      * stops being called for a specified wait time.
      * @param {function} func Function to call.
@@ -616,6 +621,86 @@
 
         timeout = setTimeout(executeLater, waitTime);
       };
+    },
+
+    /**
+     * Shows modal alert dialog with single OK button to dismiss it.
+     * @param {string|{ raw: string|Node }|{id: string, args: Object }} message
+     * Message displayed in the alert. 1. If "message" is string then it's
+     * considered as l10n identifier; 2. if "message" is object with "raw"
+     * property then "raw" property is used as non-localizable string or as a
+     * complete Node; 3. If "message" is object with "id" and/or "args"
+     * properties then "id" is considered as l10n identifier and "args" as l10n
+     * string arguments.
+     * @param {string|{ raw: string|Node }|{id: string, args: Object }} title
+     * Optional dialog title, if not passed - default title is used. For
+     * possible parameter value see "message" parameter description above.
+     * @returns {Promise} Return promise is always successfully resolved.
+     */
+    alert: function (message, title) {
+      var deferred = this.Promise.defer();
+
+      var dialog = new Dialog({
+        title: title || 'modal-dialog-default-title',
+        body: message,
+        options: {
+          cancel: {
+            text: 'modal-dialog-ok-button',
+            method: deferred.resolve
+          }
+        }
+      });
+      dialog.show();
+
+      return deferred.promise;
+    },
+
+    /**
+     * Shows modal confirm dialog with two buttons, first acts as cancel action,
+     * second one - as confirm action.
+     * @param {string|{ raw: string|Node }|{id: string, args: Object }} message
+     * Message displayed in the confirm. 1. If "message" is string then it's
+     * considered as l10n identifier; 2. if "message" is object with "raw"
+     * property then "raw" property is used as non-localizable string or as a
+     * complete Node; 3. If "message" is object with "id" and/or "args"
+     * properties then "id" is considered as l10n identifier and "args" as l10n
+     * string arguments.
+     * @param {string|{ raw: string|Node }|{id: string, args: Object }} title
+     * Optional dialog title, if not passed - default title is used. For
+     * possible parameter value see "message" parameter description above.
+     * @param {{ text: string|{ raw: string|Node }|{id: string, args: Object },
+     * className: string}} confirmOptions Optional customizations for confirm
+     * button, custom text(for possible parameter values see "message"
+     * parameter description above) and custom class name.
+     * @returns {Promise} Returned promise is resolved when user tap on confirm
+     * button and rejected when user taps on cancel button.
+     */
+    confirm: function (message, title, confirmOptions) {
+      var confirmButtonText = confirmOptions && confirmOptions.text ||
+        'modal-dialog-ok-button';
+      var confirmButtonClassName = confirmOptions && confirmOptions.className ||
+        'recommend';
+
+      var deferred = this.Promise.defer();
+      var dialog = new Dialog({
+        title: title || 'modal-dialog-default-title',
+        body: message,
+        options: {
+          cancel: {
+            text: 'modal-dialog-cancel-button',
+            method: deferred.reject
+          },
+
+          confirm: {
+            text: confirmButtonText,
+            className: confirmButtonClassName,
+            method: deferred.resolve
+          }
+        }
+      });
+      dialog.show();
+
+      return deferred.promise;
     },
 
     /**

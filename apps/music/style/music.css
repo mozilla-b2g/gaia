@@ -1,3 +1,11 @@
+/*
+ * By default do not allow any user text selection, only enable
+ * for certain parts on a per-element/region area.
+*/
+* {
+  -moz-user-select: none;
+}
+
 html {
   height: 100%;
   width: 100%;
@@ -314,6 +322,14 @@ body.picker-mode #title-player {
 }
 
 /*
+ * Enable the text selection in the tiles and list search inputs.
+ */
+#views-tiles-search-input,
+#views-list-search-input {
+  -moz-user-select: text;
+}
+
+/*
  * Bug 968456 - Ensure background
  * scrolls w/ the content
  */
@@ -428,6 +444,40 @@ body.picker-mode #title-player {
   /* We set a background URL here when the thumbnail loads */
 }
 
+/* Tiles are grouped in 6. Left and right groups. */
+html[dir="ltr"] .tile:nth-child(12n+1),
+html[dir="ltr"] .tile:nth-child(12n+2),
+html[dir="ltr"] .tile:nth-child(12n+3),
+html[dir="ltr"] .tile:nth-child(12n+4),
+html[dir="ltr"] .tile:nth-child(12n+5),
+html[dir="ltr"] .tile:nth-child(12n+6),
+html[dir="rtl"] .tile:nth-child(12n+7),
+html[dir="rtl"] .tile:nth-child(12n+8),
+html[dir="rtl"] .tile:nth-child(12n+9),
+html[dir="rtl"] .tile:nth-child(12n+10),
+html[dir="rtl"] .tile:nth-child(12n+11),
+html[dir="rtl"] .tile:nth-child(12n+12) {
+  float: left;
+  left: 0.5%;
+}
+
+/* right groups */
+html[dir="ltr"] .tile:nth-child(12n+7),
+html[dir="ltr"] .tile:nth-child(12n+8),
+html[dir="ltr"] .tile:nth-child(12n+9),
+html[dir="ltr"] .tile:nth-child(12n+10),
+html[dir="ltr"] .tile:nth-child(12n+11),
+html[dir="ltr"] .tile:nth-child(12n+12),
+html[dir="rtl"] .tile:nth-child(12n+1),
+html[dir="rtl"] .tile:nth-child(12n+2),
+html[dir="rtl"] .tile:nth-child(12n+3),
+html[dir="rtl"] .tile:nth-child(12n+4),
+html[dir="rtl"] .tile:nth-child(12n+5),
+html[dir="rtl"] .tile:nth-child(12n+6) {
+  float: right;
+  right: 0.5%;
+}
+
 /* Favor scrolling performance over quality while scrolling */
 #views.scroll li.list-item,
 #views.scrolling .tile {
@@ -521,18 +571,6 @@ body.picker-mode #title-player {
   color: rgba(255, 255, 255, 0.8);
 }
 
-.float-left {
-  position: relative;
-  float: left;
-  left: 0.5%;
-}
-
-.float-right {
-  position: relative;
-  float: right;
-  right: 0.5%;
-}
-
 #player-cover {
   position: relative;
   width: 100%;
@@ -595,23 +633,25 @@ body.picker-mode #title-player {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: left;
   text-indent: 3rem;
   text-shadow: black 0.1rem 0.1rem;
   line-height: 2.5rem;
+  width: 75%;
+  height: auto;
 }
 
 #player-cover-artist {
-  width: 75%;
-  height: auto;
-  text-align: left;
   font-size: 1.9rem;
 }
 
 #player-cover-album {
-  width: 75%;
-  height: auto;
-  text-align: left;
   font-size: 1.7rem;
+}
+
+html[dir="rtl"] #player-cover-artist,
+html[dir="rtl"] #player-cover-album {
+  text-align: right;
 }
 
 #player-cover-artist.hidden-cover-share,
@@ -631,6 +671,12 @@ body.picker-mode #title-player {
   right: -2%;
   z-index: 1;
   color: #fff;
+}
+
+html[dir="rtl"] #player-cover-share {
+  right: unset;
+  left: -2%;
+  margin: 0 0 0 1rem;
 }
 
 #player-cover-buttons {
@@ -702,6 +748,10 @@ button::-moz-focus-inner {
   background-repeat: no-repeat;
   background-color: transparent;
   background-size: 2.2rem;
+}
+
+html[dir="rtl"] .rating-star {
+  float: right;
 }
 
 .star-on {

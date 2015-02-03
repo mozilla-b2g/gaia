@@ -85,15 +85,6 @@ suite('shared/MobileOperator', function() {
       assert.isUndefined(infos.carrier);
       assert.isUndefined(infos.region);
     });
-    test('Connection with roaming and SPN display', function() {
-      var iccObj = MockNavigatorMozIccManager.getIccById('FakeIccId');
-      MockMobileConnection.voice.roaming = true;
-      iccObj.iccInfo.isDisplaySpnRequired = true;
-      var infos = MobileOperator.userFacingInfo(MockMobileConnection);
-      assert.equal(infos.operator, 'Fake short');
-      assert.isUndefined(infos.carrier);
-      assert.isUndefined(infos.region);
-    });
   });
   suite('Brazilian connection', function() {
     test('Connection ', function() {

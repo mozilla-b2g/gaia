@@ -25,8 +25,12 @@
     <link rel="stylesheet" type="text/css" href="style/views/datalimits.css">
     <link rel="stylesheet" type="text/css" href="style/views/timestamp-highlights.css">
 
+     <!-- Firefox Desktop shims -->
+    <script defer src="js/desktop-only/navigator_moz_settings.js"></script>
+
     <!-- Localization -->
-    <link rel="manifest" href="manifest.webapp">
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="locales/costcontrol.{locale}.properties">
     <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
     <script type="text/javascript" defer src="shared/js/l10n.js"></script>
@@ -35,7 +39,8 @@
     <!-- TODO: Lazyly loaded, remove when mozHour12 is part of the platform
     <script type="text/javascript" defer src="shared/js/date_time_helper.js"></script>
     -->
-    <script defer src='/shared/js/performance_testing_helper.js'></script>
+    <script defer src="/shared/js/usertiming.js"></script>
+    <script defer src="/shared/js/performance_testing_helper.js"></script>
 
     <!-- Gaia Components -->
     <script defer src="/shared/elements/config.js"></script>
@@ -102,7 +107,7 @@
               <label class="end" for="low-limit-input" data-l10n-id="low-balance-explanation2">When balance is below</label>
               <div class="low-limit-container hbox middle">
                 <input class="settings-option" data-option="lowLimitThreshold" data-disable-on="lowLimit=false" id="low-limit-input" type="number" step="any" />
-                <span id="settings-low-limit-currency"></span>
+                <span id="settings-low-limit-currency" dir="auto"></span>
               </div>
             </li>
           </ul>
@@ -241,18 +246,14 @@
       <form role="dialog" class="view" data-type="action" data-viewport="ethereal" id="reset-data-dialog" >
         <header data-l10n-id="reset-data-usage">Reset Data usage</header>
         <menu>
-          <button type="button" id="reset-data-mobile-usage" data-l10n-id="reset-mobile">Reset mobile data</button>
-          <button type="button" id="reset-data-wifi-usage" data-l10n-id="reset-wifi">Reset Wi-Fi data</button>
-          <button type="button" id="reset-all-data-usage" data-l10n-id="reset-all-data-usage">Reset mobile & Wi-Fi data</button>
-
           <button type="button" data-l10n-id="cancel" class="close-reset-dialog">Cancel</button>
         </menu>
       </form>
     <!-- Reset confirmation -->
-      <form role="dialog" class="view" data-type="confirm" data-viewport="ethereal" id="reset-telephony-dialog">
+      <form role="dialog" class="view" data-type="confirm" data-viewport="ethereal" id="reset-dialog">
           <section>
               <h1 data-l10n-id="confirmation">Confirmation</h1>
-              <p data-l10n-id="reset-confirmation-warning">All current data will be deleted. Are you sure you want to reset?</p>
+              <p data-l10n-id="reset-telephony-confirmation-warning">All current data will be deleted. Are you sure you want to reset?</p>
           </section>
           <menu>
               <button data-l10n-id="cancel" class="close-reset-dialog">Cancel</button>

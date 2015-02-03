@@ -7,6 +7,7 @@
         Navigation,
         Promise,
         ThreadUI,
+        Threads,
         EventDispatcher,
         DOMError
 */
@@ -46,6 +47,9 @@ var Compose = (function() {
     size: null,
     lastScrollPosition: 0,
     resizing: false,
+
+    // Stop further input because the max size is exceeded
+    locked: false,
 
     // 'sms' or 'mms'
     type: 'sms',
@@ -176,12 +180,12 @@ var Compose = (function() {
 
   function composeKeyEvents(e) {
     // if locking and no-backspace pressed, cancel
-    if (compose.lock && e.which !== 8) {
+    if (state.locked && e.which !== 8) {
       e.preventDefault();
     } else {
       // trigger a recompute of size on the keypresses
       state.size = null;
-      compose.lock = false;
+      compose.unlock();
     }
   }
 
@@ -324,6 +328,8 @@ var Compose = (function() {
       dom.attachButton = document.getElementById('messages-attach-button');
       dom.optionsMenu = document.getElementById('attachment-options-menu');
       dom.counter = dom.form.querySelector('.js-message-counter');
+      dom.messagesAttach = dom.form.querySelector('.messages-attach-container');
+      dom.composerButton = dom.form.querySelector('.composer-button-container');
 
       subject = new SubjectComposer(
         dom.form.querySelector('.js-subject-composer')
@@ -367,9 +373,10 @@ var Compose = (function() {
 
       var onInteracted = this.emit.bind(this, 'interact');
 
-      dom.message.addEventListener('click', onInteracted);
       dom.message.addEventListener('focus', onInteracted);
-      dom.attachButton.addEventListener('click', onInteracted);
+      dom.message.addEventListener('click', onInteracted);
+      dom.messagesAttach.addEventListener('click', onInteracted);
+      dom.composerButton.addEventListener('click', onInteracted);
       subject.on('focus', onInteracted);
 
       return this;
@@ -425,6 +432,7 @@ var Compose = (function() {
         // to be properly rendered after a cold start for the app
         if (fragment.blob) {
           fragment = new Attachment(fragment.blob, {
+            name: fragment.name,
             isDraft: true
           });
         }
@@ -480,9 +488,21 @@ var Compose = (function() {
       return state.empty;
     },
 
-    /** Stop further input because the max size is exceded
+    /**
+     * Lock composer when size limit is reached.
      */
-    lock: false,
+    lock: function() {
+      state.locked = true;
+      dom.attachButton.disabled = true;
+    },
+
+    /**
+     * Unlock composer when size is decreased again.
+     */    
+    unlock: function() {
+      state.locked = false;
+      dom.attachButton.disabled = false;
+    },
 
     disable: function(state) {
       dom.sendButton.disabled = state;
@@ -633,9 +653,12 @@ var Compose = (function() {
       /* Bug 1040144: replace ThreadUI direct invocation by a instanciation-time
        * property
        */
-      var hasEmailRecipient = ThreadUI.recipients.list.some(
-        function(recipient) { return recipient.isEmail; }
-      );
+      var recipients = Threads.active ?
+        Threads.active.participants :
+        ThreadUI.recipients && ThreadUI.recipients.numbers;
+      var hasEmailRecipient = recipients ?
+        recipients.some(Utils.isEmailAddress) :
+        false;
 
       /* Note: in the future, we'll maybe want to force 'mms' from the UI */
       var newType =
@@ -665,7 +688,7 @@ var Compose = (function() {
       /* Bug 1040144: replace ThreadUI direct invocation by a instanciation-time
        * property */
       var recipients = ThreadUI.recipients;
-      var recipientsValue = recipients.inputValue;
+      var recipientsValue = recipients && recipients.inputValue;
       var hasRecipients = false;
 
       // Set hasRecipients to true based on the following conditions:
@@ -696,8 +719,14 @@ var Compose = (function() {
     _onAttachmentRequestError: function c_onAttachmentRequestError(err) {
       var errId = err instanceof DOMError ? err.name : err.message;
       if (errId === 'file too large') {
-        alert(navigator.mozL10n.get('files-too-large', { n: 1 }));
-      
+        Utils.alert({
+          id: 'attached-files-too-large',
+          args: {
+            n: 1,
+            mmsSize: (Settings.mmsSizeLimitation / 1024).toFixed(0)
+          }
+        });
+
       //'pick cancelled' is the error thrown when the pick activity app is
       // canceled normally
       } else if (errId !== 'ActivityCanceled' && errId !== 'pick cancelled') {
@@ -793,7 +822,7 @@ var Compose = (function() {
       // Mimick the DOMRequest API
       var requestProxy = {};
       var activityData = {
-        type: ['image/*', 'audio/*', 'video/*']
+        type: ['image/*', 'audio/*', 'video/*', 'text/vcard']
       };
       var activity;
 

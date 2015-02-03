@@ -89,8 +89,21 @@ var BluetoothHelper = function() {
     var req = _bluetooth.getDefaultAdapter();
     if (req) {
       req.onsuccess = function() {
+        var _oldAdapter;
+        if (_adapter) {
+          _oldAdapter = _adapter;
+        }
+
         _isReady = true;
         _adapter = req.result;
+
+        // Put the callback function of onpairedstatuschanged to the new adapter
+        // because the new adapter won't remember those callback function which
+        // is registered before. In other word, we get a new adpater after
+        // turned on/off Bluetooth. The new adapter have no registered callback.
+        if (_oldAdapter && _oldAdapter.onpairedstatuschanged) {
+          _adapter.onpairedstatuschanged = _oldAdapter.onpairedstatuschanged;
+        }
 
         _callbacks.forEach(function(callback) {
           callback();
@@ -183,6 +196,11 @@ var BluetoothHelper = function() {
     },
 
     getAddress: function(cb) {
+      if (_v2) {
+        console.log('getAddress function is deprecated');
+        return;
+      }
+
       _ready(function() {
         var address = _adapter.address;
         cb(address);
@@ -258,7 +276,7 @@ var BluetoothHelper = function() {
       }
     },
 
-    disable:  function() {
+    disable: function() {
       if (_v2) {
         _ready(function() {
           _adapter.disable();

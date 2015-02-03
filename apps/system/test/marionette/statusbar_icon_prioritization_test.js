@@ -1,6 +1,5 @@
 'use strict';
 
-var System = require('./lib/system');
 var StatusBar = require('./lib/statusbar');
 var assert = require('assert');
 var SETTINGS_APP = 'app://settings.gaiamobile.org';
@@ -21,7 +20,7 @@ marionette('Status Bar icons - Prioritization', function() {
   var statusBar;
 
   setup(function() {
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     statusBar = new StatusBar(client);
     system.waitForStartup();
   });

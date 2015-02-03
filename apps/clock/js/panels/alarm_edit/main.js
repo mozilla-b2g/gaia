@@ -101,6 +101,8 @@ var AlarmEdit = function() {
   this.inputs.name.addEventListener('keypress', this.handleNameInput);
   this.inputs.volume.addEventListener('change', handleDomEvent);
 
+  this.isSaving = false;
+
   // If the phone locks during preview, pause the sound.
   // TODO: When this is no longer a singleton, unbind the listener.
   window.addEventListener('visibilitychange', function() {
@@ -283,28 +285,39 @@ Utils.extend(AlarmEdit.prototype, {
   },
 
   save: function aev_save(callback) {
+    if (this.isSaving) {
+      // Ignore double-taps on the "Save" button. When this view gets
+      // refactored, we should opt for a more coherent way of managing
+      // UI state to avoid glitches like this.
+      return;
+    }
+    var alarm = this.alarm;
+
     if (this.element.dataset.id && this.element.dataset.id !== '') {
-      this.alarm.id = parseInt(this.element.dataset.id, 10);
+      alarm.id = parseInt(this.element.dataset.id, 10);
     } else {
-      delete this.alarm.id;
+      delete alarm.id;
     }
 
-    this.alarm.label = this.inputs.name.value;
+    alarm.label = this.inputs.name.value;
 
     var time = this.getTimeSelect();
-    this.alarm.hour = time.hour;
-    this.alarm.minute = time.minute;
-    this.alarm.repeat = this.buttons.repeat.value;
-    this.alarm.sound = this.getSoundSelect();
-    this.alarm.vibrate = this.checkboxes.vibrate.checked;
-    this.alarm.snooze = parseInt(this.getSnoozeSelect(), 10);
+    alarm.hour = time.hour;
+    alarm.minute = time.minute;
+    alarm.repeat = this.buttons.repeat.value;
+    alarm.sound = this.getSoundSelect();
+    alarm.vibrate = this.checkboxes.vibrate.checked;
+    alarm.snooze = parseInt(this.getSnoozeSelect(), 10);
     AudioManager.setAlarmVolume(this.getAlarmVolumeValue());
 
-    this.alarm.schedule('normal').then(() => {
+    this.isSaving = true;
+
+    alarm.schedule('normal').then(() => {
+      this.isSaving = false;
       window.dispatchEvent(new CustomEvent('alarm-changed', {
-        detail: { alarm: this.alarm, showBanner: true }
+        detail: { alarm: alarm, showBanner: true }
       }));
-      callback && callback(null, this.alarm);
+      callback && callback(null, alarm);
     });
   },
 

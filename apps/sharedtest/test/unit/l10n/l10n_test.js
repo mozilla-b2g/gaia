@@ -1,4 +1,5 @@
 suite('L10n', function() {
+  'use strict';
   var _;
   var _translateFragment;
 
@@ -24,7 +25,8 @@ suite('L10n', function() {
     '                            <span>Tap for more info.</span>',
     'inline-translation-test   = static content provided by inlined JSON',
     'a11y-label.ariaLabel      = label via ARIA',
-    'a11y-label.ariaValueText  = valuetext via ARIA'
+    'a11y-label.ariaValueText  = valuetext via ARIA',
+    'a11y-label.ariaMozHint    = moz-hint via ARIA'
   ].join('\n');
 
   var inlineL10Props = {
@@ -139,6 +141,12 @@ suite('L10n', function() {
       _translateFragment(elem);
       assert.equal(elem.getAttribute('aria-valuetext'), 'valuetext via ARIA');
     });
+
+    test('ARIA moz-hint', function() {
+      elem.dataset.l10nId = 'a11y-label';
+      _translateFragment(elem);
+      assert.equal(elem.getAttribute('aria-moz-hint'), 'moz-hint via ARIA');
+    });
   });
 
   suite('localize + translate', function() {
@@ -243,4 +251,3 @@ suite('L10n', function() {
     });
   });
 });
-

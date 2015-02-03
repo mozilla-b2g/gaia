@@ -19,6 +19,25 @@ define(function(require) {
     'dun': 'dunSettings-header'
   };
 
+  var _getDialogService = function() {
+    return new Promise(function(resolve) {
+      require(['modules/dialog_service'], resolve);
+    });
+  };
+
+  var _showChangeApnWarning = function() {
+    return _getDialogService().then((DialogService) => {
+      return DialogService.confirm('change-apn-warning-message1', {
+        title: 'apnSettings',
+        submitButton: {
+          id: 'yes',
+          style: 'recommend'
+        },
+        cancelButton: 'cancel'
+      });
+    });
+  };
+
   return function ctor_apn_settings_panel() {
     var _rootElement;
     var _mainHeader;
@@ -27,39 +46,10 @@ define(function(require) {
     var _apnListView;
     var _addApnBtn;
 
-    var _warningDialog;
-    var _warningDialogOkBtn;
-    var _warningDialogCancelBtn;
-
     var _role;
 
     var _apnType = 'default';
     var _serviceId = 0;
-
-    var _showApnChangeWarningDialog = function(callback) {
-      if (typeof callback !== 'function') {
-        return;
-      }
-
-      if (!_warningDialog) {
-        _warningDialog = _rootElement.querySelector('.change-apn-warning');
-        _warningDialogOkBtn = _warningDialog.querySelector('.ok-btn');
-        _warningDialogCancelBtn = _warningDialog.querySelector('.cancel-btn');
-      }
-
-      _warningDialog.addEventListener('click', function onclick(event) {
-        if (event.target == _warningDialogOkBtn) {
-          _warningDialog.removeEventListener('click', onclick);
-          _warningDialog.hidden = true;
-          callback(true);
-        } else if (event.target == _warningDialogCancelBtn) {
-          _warningDialog.removeEventListener('click', onclick);
-          _warningDialog.hidden = true;
-          callback(false);
-        }
-      });
-      _warningDialog.hidden = false;
-    };
 
     var _onApnItemClick = function(serviceId, apnType, apnItem) {
       SettingsService.navigate('apn-editor',
@@ -82,8 +72,8 @@ define(function(require) {
       SettingsCache.getSettings(function(results) {
         if (results['ril.data.roaming_enabled'] === true) {
           // Only display the warning when roaming is enabled.
-          _showApnChangeWarningDialog(function(value) {
-            if (value) {
+          _showChangeApnWarning().then((result) => {
+            if (result.type === 'submit') {
               setActive();
             }
           });

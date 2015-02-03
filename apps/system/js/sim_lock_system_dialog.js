@@ -1,4 +1,4 @@
-/* global SystemDialog, SIMSlotManager */
+/* global SystemDialog, SIMSlotManager, applications */
 'use strict';
 
 (function(exports) {
@@ -15,7 +15,7 @@
      * render the dialog
      */
     this.render();
-    this.publish('created');
+    this._dispatchEvent('created');
   };
 
   SimLockSystemDialog.prototype = Object.create(SystemDialog.prototype,
@@ -52,71 +52,67 @@
   SimLockSystemDialog.prototype.EVENT_PREFIX = 'simlock';
 
   SimLockSystemDialog.prototype.view = function spd_view() {
-    return '<div id="' + this.instanceID + '" role="dialog" ' +
-           'class="generic-dialog" data-z-index-level="system-dialog" hidden>' +
-           '<section role="region">' +
-             '<gaia-header>' +
-               '<h1></h1>' +
-             '</gaia-header>' +
-             '<div class="container">' +
-             '<div id="errorMsg" class="error" hidden>' +
-               '<div id="messageHeader">The PIN was incorrect.</div>' +
-               '<span id="messageBody">3 tries left.</span>' +
-             '</div>' +
-             //<!-- tries left -->
-             '<div id="triesLeft" data-l10n-id="inputCodeRetriesLeft" hidden>' +
-               '3 tries left</div>' +
-             //<!-- sim pin input field -->
-             '<div id="pinArea" hidden>' +
-               '<div data-l10n-id="simPin">SIM PIN</div>' +
-               '<div class="input-wrapper">' +
-                 '<input name="simpin" type="password" x-inputmode="digit" ' +
-                 'size="8" maxlength="8" />' +
-               '</div>' +
-             '</div>' +
-             //<!-- sim puk input field -->
-             '<div id="pukArea" hidden>' +
-               '<div data-l10n-id="pukCode">PUK Code</div>' +
-               '<div class="input-wrapper">' +
-                 '<input name="simpuk" type="password" x-inputmode="digit" ' +
-                 'size="8" maxlength="8" />' +
-               '</div>' +
-             '</div>' +
-             //<!-- sim nck/cck/spck input field -->
-             '<div id="xckArea" hidden>' +
-               '<div name="xckDesc" data-l10n-id="nckCode">NCK Code</div>' +
-               '<div class="input-wrapper">' +
-                 '<input name="xckpin" type="number" size="16" ' +
-                 'maxlength="16" />' +
-               '</div>' +
-             '</div>' +
-             //<!-- new sim pin input field -->
-             '<div id="newPinArea" hidden>' +
-               '<div data-l10n-id="newSimPinMsg">' +
-                 'Create PIN (must contain 4 to 8 digits)' +
-               '</div>' +
-               '<div class="input-wrapper">' +
-                 '<input name="newSimpin" type="password" ' +
-                 'x-inputmode="digit" size="8" maxlength="8" />' +
-               '</div>' +
-             '</div>' +
-             //<!-- confirm new sim pin input field -->
-             '<div id="confirmPinArea" hidden>' +
-               '<div data-l10n-id="confirmNewSimPinMsg">' +
-                 'Confirm New PIN' +
-               '</div>' +
-               '<div class="input-wrapper">' +
-                 '<input name="confirmNewSimpin" type="password" ' +
-                 'x-inputmode="digit" size="8" maxlength="8" />' +
-               '</div>' +
-             '</div>' +
-             '</div>' +
-           '</section>' +
-           '<menu data-items="2">' +
-             '<button type="reset" data-l10n-id="skip">Skip</button>' +
-             '<button data-l10n-id="ok" type="submit">Done</button>' +
-           '</menu>' +
-           '</div>';
+    return `<div id="${this.instanceID}" role="dialog"
+           class="generic-dialog" data-z-index-level="system-dialog" hidden>
+           <section role="region">
+             <gaia-header>
+               <h1></h1>
+             </gaia-header>
+             <div class="container">
+             <div id="errorMsg" class="error" hidden>
+               <div id="messageHeader">The PIN was incorrect.</div>
+               <span id="messageBody">3 tries left.</span>
+             </div>
+             <!-- tries left -->
+             <div id="triesLeft" data-l10n-id="inputCodeRetriesLeft" hidden>
+            </div>
+             <!-- sim pin input field -->
+             <div id="pinArea" hidden>
+               <div data-l10n-id="simPin"></div>
+               <div class="input-wrapper">
+                 <input name="simpin" type="password" x-inputmode="digit"
+                 size="8" maxlength="8" />
+               </div>
+             </div>
+             <!-- sim puk input field -->
+             <div id="pukArea" hidden>
+               <div data-l10n-id="pukCode"></div>
+               <div class="input-wrapper">
+                 <input name="simpuk" type="password" x-inputmode="digit"
+                 size="8" maxlength="8" />
+               </div>
+             </div>
+             <!-- sim nck/cck/spck input field -->
+             <div id="xckArea" hidden>
+               <div name="xckDesc" data-l10n-id="nckCode"></div>
+               <div class="input-wrapper">
+                 <input name="xckpin" type="number" size="16"
+                 maxlength="16" />
+               </div>
+             </div>
+             <!-- new sim pin input field -->
+             <div id="newPinArea" hidden>
+               <div data-l10n-id="newSimPinMsg"></div>
+               <div class="input-wrapper">
+                 <input name="newSimpin" type="password"
+                 x-inputmode="digit" size="8" maxlength="8" />
+               </div>
+             </div>
+             <!-- confirm new sim pin input field -->
+             <div id="confirmPinArea" hidden>
+               <div data-l10n-id="confirmNewSimPinMsg"></div>
+               <div class="input-wrapper">
+                 <input name="confirmNewSimpin" type="password"
+                 x-inputmode="digit" size="8" maxlength="8" />
+               </div>
+             </div>
+             </div>
+           </section>
+           <menu data-items="2">
+             <button type="reset" data-l10n-id="skip"></button>
+             <button data-l10n-id="ok" type="submit"></button>
+           </menu>
+           </div>`;
   };
 
   SimLockSystemDialog.prototype.onHide = function() {
@@ -132,6 +128,8 @@
   SimLockSystemDialog.prototype._registerEvents = function() {
     this.dialogDone.onclick = this.verify.bind(this);
     this.dialogSkip.onclick = this.skip.bind(this);
+    this.dialogDone.onmousedown = this._handle_mousedown.bind(this);
+    this.dialogSkip.onmousedown = this._handle_mousedown.bind(this);
     this.header.addEventListener('action', this.back.bind(this));
     this.pinInput = this.getNumberPasswordInputField('simpin');
     this.pukInput = this.getNumberPasswordInputField('simpuk');
@@ -366,6 +364,10 @@
       this.requestFocus();
     };
 
+  SimLockSystemDialog.prototype._handle_mousedown = function(evt) {
+    evt.preventDefault();
+  };
+
   SimLockSystemDialog.prototype.verify = function() {
     if (this.lockType === 'pin') {
       this.unlockPin();
@@ -428,7 +430,7 @@
   };
 
   SimLockSystemDialog.prototype.requestClose = function() {
-    this.publish('requestclose');
+    this._dispatchEvent('requestclose');
   };
 
   SimLockSystemDialog.prototype.hide = function() {
@@ -437,17 +439,17 @@
   };
 
   SimLockSystemDialog.prototype.close = function() {
-    this.publish('close');
+    this._dispatchEvent('close');
     this.hide();
     this._visible = false;
   };
 
   SimLockSystemDialog.prototype.skip = function() {
-    this.publish('skip');
+    this._dispatchEvent('skip');
   };
 
   SimLockSystemDialog.prototype.back = function() {
-    this.publish('back');
+    this._dispatchEvent('back');
   };
 
   // With the keyboard active the inputs, ensure they get scrolled
@@ -465,7 +467,19 @@
     };
 
   SimLockSystemDialog.prototype.requestFocus = function() {
-    this.publish('requestfocus');
+    this._dispatchEvent('requestfocus');
+  };
+
+  SimLockSystemDialog.prototype._dispatchEvent = function _dispatchEvent(name) {
+    var self = this;
+    if (applications.ready) {
+      this.publish(name);
+    } else {
+      window.addEventListener('applicationready', function onReady() {
+        window.removeEventListener('applicationready', onReady);
+        self.publish(name);
+      });
+    }
   };
 
   exports.SimLockSystemDialog = SimLockSystemDialog;

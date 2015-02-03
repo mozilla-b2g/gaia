@@ -7,7 +7,7 @@
 import time
 
 from gaiatest import GaiaEnduranceTestCase
-from gaiatest.apps.browser.app import Browser
+from gaiatest.apps.search.app import Search
 
 
 class TestEnduranceBrowserCell(GaiaEnduranceTestCase):
@@ -26,11 +26,12 @@ class TestEnduranceBrowserCell(GaiaEnduranceTestCase):
 
     def browser_cell(self):
         # Start browser and load page and verify, code taken from test_browser_cell_data.py
-        browser = Browser(self.marionette)
-        browser.launch()
+        search = Search(self.marionette)
+        search.launch()
 
-        browser.go_to_url('http://mozqa.com/data/firefox/layout/mozilla.html', timeout=120)
+        browser = search.go_to_url('http://mozqa.com/data/firefox/layout/mozilla.html')
 
+        browser.wait_for_page_to_load(120)
         browser.switch_to_content()
 
         self.wait_for_element_present(*self._page_title_locator, timeout=120)
@@ -40,9 +41,10 @@ class TestEnduranceBrowserCell(GaiaEnduranceTestCase):
         # Wait a couple of seconds with page displayed
         time.sleep(2)
 
-        # Close the browser using home button
-        self.app = browser
+        # Close browser via cards view
+        self.app_under_test = "search"
         self.close_app()
+        self.app_under_test = "browser"
 
         # Sleep between iterations
         time.sleep(10)

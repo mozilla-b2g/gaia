@@ -35,8 +35,11 @@
      *    manifestURL: the keyboard's manifestURL
      *    path: the keyboard's launch path
      * }
-     * Additionally, each array has an |activeLayout|, which is the index, in
-     * that array, of the the currently-activated layout of the group.
+     * Additionally, each array has an |_activeLayoutIdx|, which is the index,
+     * in that array, of the the currently-activated layout of the group.
+     * Outside world (i.e. KeyboardManager) is not supposed to directly write
+     * |_activeLayoutIdx| (KM should use the layout index as |setKeyboardToShow|
+     * parameter; and IL.saveGroupsCurrentActiveLayout is called by setKBToShow.
      */
     this.layouts = {};
 
@@ -56,15 +59,22 @@
       this._groupToTypeTable[group] = this._groupToTypeTable[group] || [];
       this._groupToTypeTable[group].push(type);
     }, this);
+
+    this._currentActiveLayouts = {};
+
+    this._promise = null;
   };
 
   InputLayouts.prototype.start = function il_start() {
-
+    this._getSettings();
   };
 
   InputLayouts.prototype.stop = function il_stop() {
-
+    this._promise = null;
   };
+
+  InputLayouts.prototype.SETTINGS_KEY_CURRENT_ACTIVE =
+    'keyboard.current-active-layouts';
 
   InputLayouts.prototype._transformLayout =
     function il_transformLayout(layout) {
@@ -163,18 +173,10 @@
     });
   };
 
-  InputLayouts.prototype.setGroupsActiveLayout =
-    function il_setGroupsActiveLayout(layout) {
-    this._layoutToGroupMapping[layout.manifestURL + '/' + layout.id].forEach(
-      groupInfo => {
-        this.layouts[groupInfo.group].activeLayout = groupInfo.index;
-      });
-  };
-
   InputLayouts.prototype.processLayouts =
     function il_processLayouts(appLayouts) {
     this.layouts = {};
-    this._enabledApps = Set();
+    this._enabledApps = new Set();
 
     this._insertLayouts(appLayouts);
     this._insertFallbackLayouts();
@@ -183,12 +185,94 @@
 
     // some initialization
     for (var group in this.layouts) {
-      this.layouts[group].activeLayout = 0;
+      this.layouts[group]._activeLayoutIdx = undefined;
     }
 
     this._emitLayoutsCount();
 
     return this._enabledApps;
+  };
+
+  // We only care about currentActiveLayout for now
+  InputLayouts.prototype._getSettings = function il_getSettings() {
+    if (!navigator.mozSettings) {
+      throw 'InputLayouts: No mozSettings?';
+    }
+
+    if (!this._promise) {
+      this._promise =
+        navigator.mozSettings.createLock().get(this.SETTINGS_KEY_CURRENT_ACTIVE)
+          .then(result => {
+            var value = result[this.SETTINGS_KEY_CURRENT_ACTIVE];
+            if (value) {
+              this._currentActiveLayouts = value;
+            }
+
+            return this._currentActiveLayouts;
+          }).catch(e => {
+            this._promise = null;
+            throw e;
+          });
+    }
+
+    return this._promise;
+  };
+
+  // Return the Promise that would resolve to the active layout index of the
+  // group, as indicated by settings
+  InputLayouts.prototype.getGroupCurrentActiveLayoutIndexAsync =
+  function il_getGroupCurrentActiveLayoutIndexAsync(group) {
+    return this._getSettings().then(currentActiveLayouts => {
+      var currentActiveLayout = currentActiveLayouts[group];
+      var currentActiveLayoutIdx;
+
+      if (currentActiveLayout && this.layouts[group]) {
+        this.layouts[group].every((layout, index) => {
+          if (layout.manifestURL === currentActiveLayout.manifestURL &&
+              layout.id === currentActiveLayout.id) {
+            // If so, default to that, saving the users choice
+            currentActiveLayoutIdx = index;
+            return false;
+          }
+          return true;
+        });
+      }
+
+      return currentActiveLayoutIdx;
+    });
+  };
+
+  // Set the active layout index for the groups supported by the layout,
+  // to the bookkeeping variables and into the settings
+  InputLayouts.prototype.saveGroupsCurrentActiveLayout =
+  function il_saveGroupsCurrentActiveLayout(layout) {
+    var supportedGroups = [];
+
+    this._layoutToGroupMapping[layout.manifestURL + '/' + layout.id].forEach(
+      groupInfo => {
+        this.layouts[groupInfo.group]._activeLayoutIdx = groupInfo.index;
+
+        supportedGroups.push(groupInfo.group);
+      });
+
+    supportedGroups.forEach(group => {
+      var curr = this._currentActiveLayouts[group];
+      if (curr && curr.id === layout.id &&
+          curr.manifestURL === layout.manifestURL) {
+        return;
+      }
+
+      this._currentActiveLayouts[group] = {
+        id: layout.id,
+        manifestURL: layout.manifestURL
+      };
+    });
+
+    var toSet = {};
+    toSet[this.SETTINGS_KEY_CURRENT_ACTIVE] = this._currentActiveLayouts;
+    var req = navigator.mozSettings.createLock().set(toSet);
+    req.onerror =
+      () => console.error('Error while seaving currentActiveLayout', req.error);
   };
 
   exports.InputLayouts = InputLayouts;

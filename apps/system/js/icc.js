@@ -8,6 +8,8 @@ var icc = {
   _defaultURL: null,
   _inputTimeout: 40000,
   _toneDefaultTimeout: 5000,
+  _screen: null,
+  _currentMessage: null,
 
   checkPlatformCompatibility: function icc_checkPlatformCompat() {
     // The STK_RESULT_ACTION_CONTRADICTION_TIMER_STATE constant will be added
@@ -25,6 +27,7 @@ var icc = {
     if (!this._iccManager) {
       return;
     }
+    this._screen = document.getElementById('screen');
     this.checkPlatformCompatibility();
     var self = this;
     this.clearMenuCache(function() {
@@ -76,6 +79,29 @@ var icc = {
         self._toneDefaultTimeout = e.settingValue;
       }
     );
+
+    window.addEventListener('iac-settingsstk', function(evt) {
+      var message = evt.detail;
+      DUMP('STK_System IAC!!!!');
+      if (message === 'StkMenuHidden') {
+        window.dispatchEvent(new CustomEvent('stkMenuHidden'));
+      }
+    });
+
+    // Wait desktop-notification-resend event
+    // for loading all notifications before last power off.
+    window.addEventListener('desktop-notification-resend',
+      self.clearIdleTextNotification);
+  },
+
+  clearIdleTextNotification: function icc_clearIdleTextNotification() {
+    Notification.get().then(function(notifications) {
+      for (var i = 0; i < notifications.length; i++) {
+        if (notifications[i].tag.indexOf('stkNotification_') === 0) {
+          notifications[i].close();
+        }
+      }
+    });
   },
 
   getIccInfo: function icc_getIccInfo() {
@@ -156,6 +182,7 @@ var icc = {
       cmdId = '0x' + message.command.typeOfCommand.toString(16);
     }
     if (icc_worker[cmdId]) {
+      this.resize();
       return icc_worker[cmdId](message);
     }
 
@@ -176,9 +203,11 @@ var icc = {
    * Response ICC Command
    */
   responseSTKCommand: function icc_responseSTKCommand(message, response) {
+    DUMP('sendStkResponse to message: ', message);
     DUMP('STK sendStkResponse -- # response = ', response);
     var _icc = icc.getIcc(message.iccId);
     _icc && _icc.sendStkResponse(message.command, response);
+    message.response = true;
   },
 
   /**
@@ -254,6 +283,7 @@ var icc = {
     if (!this.icc_view) {
       this.icc_view = document.getElementById('icc-view');
     }
+    this._screen.classList.remove('icc');
     this.icc_view.classList.remove('visible');
     var icc_view_boxes = this.icc_view.children;
     for (var i = 0; i < icc_view_boxes.length; i++) {
@@ -261,6 +291,7 @@ var icc = {
     }
     window.removeEventListener('keyboardchange', this.keyboardChangedEvent);
     window.removeEventListener('keyboardhide', this.keyboardChangedEvent);
+    this._currentMessage = null;
   },
 
   setupView: function icc_setupView(viewId) {
@@ -297,18 +328,20 @@ var icc = {
     }
   },
 
+  resize: function() {
+    var height = window.layoutManager.height - StatusBar.height;
+    this.icc_view.style.height = height + 'px';
+  },
+
   alert: function icc_alert(stkMessage, message) {
     if (!this.icc_alert) {
       this.icc_alert = document.getElementById('icc-alert');
-      this.icc_alert_maintitle = document.getElementById('icc-alert-maintitle');
       this.icc_alert_subtitle = document.getElementById('icc-alert-subtitle');
       this.icc_alert_msg = document.getElementById('icc-alert-msg');
       this.icc_alert_btn = document.getElementById('icc-alert-btn');
       this.setupView(this.icc_alert);
     }
 
-    this.icc_alert_maintitle.setAttribute('data-l10n-id',
-      'icc-message-maintitle');
     navigator.mozL10n.setAttributes(
       this.icc_alert_subtitle,
       'icc-message-subtitle',
@@ -321,6 +354,7 @@ var icc = {
     };
 
     this.icc_alert_msg.textContent = message;
+    this._screen.classList.add('icc');
     this.icc_alert.classList.add('visible');
     this.icc_view.classList.add('visible');
   },
@@ -331,8 +365,6 @@ var icc = {
   confirm: function(stkMessage, message, timeout, callback) {
     if (!this.icc_confirm) {
       this.icc_confirm = document.getElementById('icc-confirm');
-      this.icc_confirm_maintitle =
-        document.getElementById('icc-confirm-maintitle');
       this.icc_confirm_subtitle =
         document.getElementById('icc-confirm-subtitle');
       this.icc_confirm_msg = document.getElementById('icc-confirm-msg');
@@ -348,8 +380,6 @@ var icc = {
       callback = function() {};
     }
 
-    this.icc_confirm_maintitle.setAttribute('data-l10n-id',
-      'icc-message-maintitle');
     navigator.mozL10n.setAttributes(
       this.icc_confirm_subtitle,
       'icc-message-subtitle',
@@ -387,6 +417,7 @@ var icc = {
     };
 
     this.icc_confirm_msg.textContent = message;
+    this._screen.classList.add('icc');
     this.icc_confirm.classList.add('visible');
     this.icc_view.classList.add('visible');
   },
@@ -398,8 +429,6 @@ var icc = {
     if (!this.icc_asyncconfirm) {
       this.icc_asyncconfirm =
         document.getElementById('icc-asyncconfirm');
-      this.icc_asyncconfirm_maintitle =
-        document.getElementById('icc-asyncconfirm-maintitle');
       this.icc_asyncconfirm_subtitle =
         document.getElementById('icc-asyncconfirm-subtitle');
       this.icc_asyncconfirm_msg =
@@ -411,8 +440,6 @@ var icc = {
       this.setupView(this.icc_asyncconfirm);
     }
 
-    this.icc_asyncconfirm_maintitle.setAttribute('data-l10n-id',
-      'icc-message-maintitle');
     navigator.mozL10n.setAttributes(
       this.icc_asyncconfirm_subtitle,
       'icc-message-subtitle',
@@ -420,16 +447,27 @@ var icc = {
     );
 
     var self = this;
+
+    function stkMenuHiddenHandler(event) {
+      window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
+      self.hideViews();
+      callback(false);
+    }
+    window.addEventListener('stkMenuHidden', stkMenuHiddenHandler);
+
     this.icc_asyncconfirm_btn_no.onclick = function rejectConfirm() {
+      window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
       self.hideViews();
       callback(false);
     };
     this.icc_asyncconfirm_btn_yes.onclick = function acceptConfirm() {
+      window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
       self.hideViews();
       callback(true);
     };
 
     this.icc_asyncconfirm_msg.textContent = message;
+    this._screen.classList.add('icc');
     this.icc_asyncconfirm.classList.add('visible');
     this.icc_view.classList.add('visible');
   },
@@ -502,13 +540,22 @@ var icc = {
         timeoutId = null;
       }
     }
+    function stkMenuHiddenHandler(event) {
+      window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
+      clearInputTimeout();
+      self.hideViews();
+      self.terminateResponse(stkMessage);
+      callback(null);
+    }
     function setInputTimeout() {
       DUMP('setting new STK INPUT timeout to - ', timeout);
       if (timeout) {
         clearInputTimeout();
         timeoutId = setTimeout(function() {
+          window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
           self.hideViews();
           callback(false);
+          self.icc_input_header.removeEventListener('action', actionHandler);
         }, timeout);
       }
     }
@@ -577,52 +624,86 @@ var icc = {
           options.maxLength);
       };
       this.icc_input_btn.onclick = function() {
+        window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
         clearInputTimeout();
         self.hideViews();
         callback(true, self.icc_input_box.value);
+        self.icc_input_header.removeEventListener('action', actionHandler);
       };
       this.icc_input_box.focus();
     } else {
       this.icc_input.classList.add('yesnomode');
       this.icc_input_box.type = 'hidden';
       this.icc_input_btn_yes.onclick = function(event) {
+        window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
         clearInputTimeout();
         self.hideViews();
         callback(true, true);
+        self.icc_input_header.removeEventListener('action', actionHandler);
       };
       this.icc_input_btn_no.onclick = function(event) {
+        window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
         clearInputTimeout();
         self.hideViews();
         callback(true, false);
+        self.icc_input_header.removeEventListener('action', actionHandler);
       };
     }
 
     this.icc_input_box.value = '';
     this.icc_input_msg.textContent = message;
+    this._screen.classList.add('icc');
     this.icc_input.classList.add('visible');
     this.icc_view.classList.add('visible');
 
-    // STK Default response (BACK, CLOSE and HELP)
-    this.icc_input_header.addEventListener('action', function() {
+    var actionHandler = function() {
       clearInputTimeout();
       self.hideViews();
       self.backResponse(stkMessage);
       callback(null);
-    });
+      self.icc_input_header.removeEventListener('action', actionHandler);
+      window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
+    };
+
+    window.addEventListener('stkMenuHidden', stkMenuHiddenHandler);
+
+    // STK Default response (BACK, CLOSE and HELP)
+    this.icc_input_header.addEventListener('action', actionHandler);
+
     this.icc_input_btn_close.onclick = function() {
+      window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
       clearInputTimeout();
       self.hideViews();
       self.terminateResponse(stkMessage);
       callback(null);
+      self.icc_input_header.removeEventListener('action', actionHandler);
     };
     this.icc_input_btn_help.onclick = function() {
+      window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
       clearInputTimeout();
       self.hideViews();
       self.responseSTKCommand(stkMessage, {
         resultCode: self._iccManager.STK_RESULT_HELP_INFO_REQUIRED
       });
       callback(null);
+      self.icc_input_header.removeEventListener('action', actionHandler);
     };
+  },
+
+  discardCurrentMessageIfNeeded: function(new_message) {
+    var _currentMessage = this._currentMessage;
+    if (_currentMessage && _currentMessage !== new_message) {
+      this.hideViews();
+      if (!_currentMessage.response) {
+        DUMP('New message received, discarding previous message...');
+        this.responseSTKCommand(_currentMessage, {
+          resultCode:
+            icc._iccManager.STK_RESULT_TERMINAL_CRNTLY_UNABLE_TO_PROCESS
+        });
+      }
+    }
+
+    this._currentMessage = new_message;
   }
 };
 

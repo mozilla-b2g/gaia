@@ -54,7 +54,7 @@
           </a>
         </li>
         <li>
-          <a class="menuItem-bluetooth menu-item" data-icon="bluetooth">
+          <a class="menuItem-bluetooth menu-item" data-icon="bluetooth" href="#bluetooth">
             <span data-l10n-id="bluetooth">Bluetooth</span>
             <small class="bluetooth-desc menu-item-desc"></small>
           </a>
@@ -121,6 +121,11 @@
         <li class="themes-section" hidden>
           <a id="menuItem-themes" class="menu-item" data-icon="themes" href="#themes" data-l10n-id="themes">Themes</a>
         </li>
+        <li id="addons-section" hidden>
+          <a id="menuItem-addons" class="menu-item" data-icon="add" href="#addons">
+            <span data-l10n-id="addons">Addons</span>
+          </a>
+        </li>
       </ul>
 
       <header>
@@ -133,7 +138,7 @@
             <small id="fxa-desc" class="menu-item-desc"></small>
           </a>
         </li>
-        <li data-show-name="findmydevice.ui.enabled" hidden>
+        <li>
           <a id="menuItem-findmydevice" class="menu-item" data-icon="find" href="#findmydevice">
             <span data-l10n-id="findmydevice">Find My Device</span>
             <small class="findmydevice-desc menu-item-desc"></small>
@@ -172,6 +177,12 @@
           <small id="browsingPrivacy-desc" class="menu-item-desc"></small>
           <a id="menuItem-browsingPrivacy" class="menu-item" data-icon="browsing" href="#browsingPrivacy" data-l10n-id="browsingPrivacy">Browsing Privacy</a>
         </li>
+        <li class="privacy-panel-item" hidden>
+          <a id="menuItem-privacyPanel" class="menu-item" data-icon="developer" href="#privacyPanel">
+            <span data-l10n-id="privacy-panel">Privacy Panel</span>
+            <small id="privacyPanel-desc" class="menu-item-desc"></small>
+          </a>
+        </li>
       </ul>
 
       <header>
@@ -180,7 +191,7 @@
       <ul>
         <li class="pack-split usb-item">
           <label class="pack-switch">
-            <input class="usb-switch" data-ignore type="checkbox">
+            <input class="usb-switch" data-ignore type="checkbox" disabled>
             <span></span>
           </label>
           <label id="menuItem-enableStorage" class="name">
@@ -250,19 +261,6 @@
       <ul id="icc-entries">
       </ul>
     </div>
-
-    <form role="dialog" data-type="confirm" class="turn-on-ums-dialog" hidden>
-      <section>
-        <h1 data-l10n-id="ums-warning-title">Enable USB storage?</h1>
-        <p data-l10n-id="ums-confirm">
-          Enabling USB storage allows another computer or device connected using USB to access files on this phone.
-        </p>
-      </section>
-      <menu>
-        <button data-l10n-id="cancel" class="ums-cancel-option">Cancel</button>
-        <button data-l10n-id="ok" class="ums-confirm-option recommend">OK</button>
-      </menu>
-    </form>
 
     <panel data-path="panels/root/panel"><panel>
 

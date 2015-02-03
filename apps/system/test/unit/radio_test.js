@@ -30,7 +30,14 @@ suite('Radio > ', function() {
   });
 
   suite('AirplaneMode', function() {
-    test('Should turn off if airplaneMode is enabled on stared', function() {
+    test('Should do nothing if airplaneMode is undefined', function() {
+      this.sinon.stub(radio, '_setRadioEnabled');
+      this.sinon.stub(radio.service, 'query').returns(undefined);
+      radio._start();
+      assert.isFalse(radio._setRadioEnabled.called);
+    });
+
+    test('Should turn off if airplaneMode is enabled on started', function() {
       this.sinon.stub(radio, '_setRadioEnabled');
       this.sinon.stub(radio.service, 'query').returns(true);
       radio._start();
@@ -40,7 +47,7 @@ suite('Radio > ', function() {
         MockNavigatorMozMobileConnections[1], false, 1));
     });
 
-    test('Should turn on if airplaneMode is disabled on stared', function() {
+    test('Should turn on if airplaneMode is disabled on started', function() {
       this.sinon.stub(radio, '_setRadioEnabled');
       this.sinon.stub(radio.service, 'query').returns(false);
       radio._start();

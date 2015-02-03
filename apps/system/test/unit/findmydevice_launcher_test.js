@@ -1,9 +1,18 @@
-/* global MocksHelper, MockL10n, MockNavigatorSettings, MockSettingsHelper,
-   MockMozActivity, MockNotifications, MockNavigatormozSetMessageHandler,
-   IAC_API_WAKEUP_REASON_LOGIN, IAC_API_WAKEUP_REASON_LOGOUT,
-   IAC_API_WAKEUP_REASON_STALE_REGISTRATION,
-   IAC_API_WAKEUP_REASON_ENABLED_CHANGED,
-   IAC_API_WAKEUP_REASON_LOCKSCREEN_CLOSED
+/* global FMDNotificationsHandler,
+          MocksHelper,
+          MockL10n,
+          MockMozActivity,
+          MockNavigatormozSetMessageHandler,
+          MockNavigatorSettings,
+          MockNotifications,
+          MockService,
+          MockSettingsHelper,
+          IAC_API_WAKEUP_REASON_LOGIN,
+          IAC_API_WAKEUP_REASON_LOGOUT,
+          IAC_API_WAKEUP_REASON_STALE_REGISTRATION,
+          IAC_API_WAKEUP_REASON_ENABLED_CHANGED,
+          IAC_API_WAKEUP_REASON_LOCKSCREEN_CLOSED,
+          FMDInit
 */
 
 'use strict';
@@ -16,28 +25,29 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_notification.js');
+require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/js/findmydevice_iac_api.js');
 
 const FMD_RETRIES = 5;
+const FMD_TAG = 'findmydevice.enable-failed';
 
 var mocksForFindMyDevice = new MocksHelper([
-  'Dump', 'Notification', 'SettingsHelper', 'MozActivity'
+  'Dump', 'Notification', 'SettingsHelper', 'MozActivity', 'Service'
 ]).init();
 
-suite('FindMyDevice Launcher >', function(done) {
+suite('FindMyDevice Launcher >', function() {
   var realMozSettings;
   var realMozL10n;
   var realMozSetMessageHandler;
 
   mocksForFindMyDevice.attachTestHelpers();
 
-  suiteSetup(function(done) {
+  suiteSetup(function() {
     realMozSettings = navigator.mozSettings;
     realMozL10n = navigator.mozL10n;
     realMozSetMessageHandler = navigator.mozSetMessageHandler;
 
     navigator.mozSettings = MockNavigatorSettings;
-    MockNavigatorSettings.mSetup();
 
     MockMozActivity.mSetup();
 
@@ -45,11 +55,6 @@ suite('FindMyDevice Launcher >', function(done) {
     MockNavigatormozSetMessageHandler.mSetup();
 
     navigator.mozL10n = MockL10n;
-
-    // We need to load this after setting up MockNavigatorSettings
-    require('/js/findmydevice_launcher.js', function() {
-      done();
-    });
   });
 
   suiteTeardown(function() {
@@ -60,8 +65,17 @@ suite('FindMyDevice Launcher >', function(done) {
     MockNavigatormozSetMessageHandler.mTeardown();
   });
 
-  setup(function() {
-    this.sinon.stub(window, 'wakeUpFindMyDevice');
+  setup(function(done) {
+    MockNavigatorSettings.mSetup();
+    require('/js/findmydevice_launcher.js', (function() {
+      FMDInit();
+      this.sinon.stub(window, 'wakeUpFindMyDevice');
+      done();
+    }).bind(this));
+  });
+
+  teardown(function() {
+    MockNavigatorSettings.mTeardown();
   });
 
   test('send ENABLED_CHANGED wakeup message when enabled', function() {
@@ -112,6 +126,13 @@ suite('FindMyDevice Launcher >', function(done) {
       {settingValue: FMD_RETRIES + 1});
     sinon.assert.callCount(notificationSpy, 2);
 
+    assert.isTrue(notificationSpy.calledWithNew());
+    assert.equal(notificationSpy.firstCall.args[0], 'unable-to-connect');
+
+    var options = notificationSpy.firstCall.args[1];
+    assert.equal(options.icon, 'style/find_my_device/images/findMyDevice.png');
+    assert.equal(options.tag, FMD_TAG);
+    assert.equal(options.data.systemMessageTarget, 'findmydevice');
   });
 
   test('MozActivity is issued if notification clicked', function() {
@@ -191,4 +212,84 @@ suite('FindMyDevice Launcher >', function(done) {
     sinon.assert.calledWith(window.wakeUpFindMyDevice,
       IAC_API_WAKEUP_REASON_LOGOUT);
   });
+
+  suite('System message notification', function() {
+    var serviceSpy;
+
+    var notification = {
+      body: 'tap-to-check-settings',
+      tag: FMD_TAG,
+      data: {
+        systemMessageTarget: 'screenshot'
+      },
+      close: function() {}
+    };
+
+    suite('start condition', function() {
+      test('FMDInit() requests handleSystemMessageNotification service',
+        function() {
+          serviceSpy = this.sinon.spy(MockService, 'request');
+          FMDInit();
+          assert.isTrue(serviceSpy.calledOnce);
+          assert.isTrue(serviceSpy.calledWith(
+            'handleSystemMessageNotification', 'findmydevice',
+            FMDNotificationsHandler));
+        });
+    });
+
+    suite('handleSystemMessageNotification behavior', function() {
+      test('calls FMDOpenSettings', function() {
+        var FMDOpenSettingsSpy = this.sinon.spy(window, 'FMDOpenSettings');
+        FMDNotificationsHandler.handleSystemMessageNotification(notification);
+        assert.isTrue(FMDOpenSettingsSpy.calledOnce);
+      });
+
+      test('calls closeSystemMessageNotification',
+        function() {
+          var closeSpy = this.sinon.spy(FMDNotificationsHandler,
+                                        'closeSystemMessageNotification');
+          FMDNotificationsHandler.handleSystemMessageNotification(notification);
+          assert.isTrue(closeSpy.calledOnce);
+          assert.isTrue(closeSpy.calledWith(notification));
+        });
+    });
+
+    suite('closeSystemMessageNotification behavior', function() {
+      var notifCloseSpy, notificationGetStub;
+
+      setup(function() {
+        notifCloseSpy = this.sinon.spy(notification, 'close');
+        notificationGetStub = function notificationGet() {
+          return {
+            then: function(cb) {
+              cb && cb([ notification ]);
+            }
+          };
+        };
+        this.sinon.stub(window.Notification, 'get', notificationGetStub);
+      });
+
+      test('closes notification by tag', function() {
+        FMDNotificationsHandler.closeSystemMessageNotification(notification);
+        assert.isTrue(window.Notification.get.calledOnce);
+        assert.isTrue(window.Notification.get.calledWith(
+          { tag: notification.tag}));
+        assert.isTrue(notifCloseSpy.calledOnce);
+      });
+
+      test('closes notification by body', function() {
+        var tag = notification.tag;
+        notification.tag = undefined;
+
+        FMDNotificationsHandler.closeSystemMessageNotification(notification);
+        assert.isTrue(window.Notification.get.calledOnce);
+        assert.isTrue(window.Notification.get.calledWith(
+          { tag: notification.tag}));
+        assert.isTrue(notifCloseSpy.calledOnce);
+
+        notification.tag = tag;
+      });
+    });
+  });
+
 });

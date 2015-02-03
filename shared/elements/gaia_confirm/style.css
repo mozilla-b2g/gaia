@@ -54,8 +54,8 @@ h1 {
   margin: 0;
   padding: 1rem 1.5rem 0;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  max-height: 7rem;
+  word-wrap: break-word;
 }
 
 /* Specific component code */

@@ -118,6 +118,7 @@ StateManager.prototype._updateActiveState = function(active) {
         // want to input continuously between two layouts.
         this.app.candidatePanelManager.hideFullPanel();
         this.app.candidatePanelManager.updateCandidates([]);
+        this.app.feedbackManager.activate();
       }.bind(this),
       // Switch the layout,
       this.app.layoutManager.switchCurrentLayout.bind(
@@ -128,12 +129,7 @@ StateManager.prototype._updateActiveState = function(active) {
       this.app.layoutRenderingManager.updateLayoutRendering
         .bind(this.app.layoutRenderingManager),
       // ... load l10n.js (if it's not loaded yet.)
-      this.app.l10nLoader.load.bind(this.app.l10nLoader),
-      // ... set the keyboard.current value,
-      // (everything.me uses this setting to improve searches,
-      //  but they really shouldn't.)
-      this.app.settingsPromiseManager.set.bind(this.app.settingsPromiseManager,
-        { 'keyboard.current': this._layoutName })
+      this.app.l10nLoader.load.bind(this.app.l10nLoader)
     ]);
   } else {
     // Do nothing if we are already hidden.
@@ -147,15 +143,11 @@ StateManager.prototype._updateActiveState = function(active) {
         this.app.candidatePanelManager.hideFullPanel();
         this.app.candidatePanelManager.updateCandidates([]);
         this.app.targetHandlersManager.activeTargetsManager.clearAllTargets();
+        this.app.feedbackManager.deactivate();
       }.bind(this),
       // ... switch the IMEngine to default,
       this.app.inputMethodManager.switchCurrentIMEngine.bind(
-        this.app.inputMethodManager, 'default'),
-      // ... set the keyboard.current value,
-      // (everything.me uses this setting to improve searches,
-      //  but they really shouldn't.)
-      this.app.settingsPromiseManager.set.bind(
-        this.app.settingsPromiseManager, { 'keyboard.current': undefined })
+        this.app.inputMethodManager, 'default')
     ]);
   }
 

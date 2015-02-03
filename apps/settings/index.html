@@ -19,6 +19,8 @@
     <link rel="stylesheet" type="text/css" href="style/icons.css">
     <link rel="stylesheet" type="text/css" href="style/settings.css">
     <link rel="stylesheet" type="text/css" href="style/settings_large.css" data-device-type="tablet">
+    <link rel="stylesheet" type="text/css" href="style/settings_phone.css" data-device-type="none">
+    <link rel="stylesheet" type="text/css" href="style/dialog.css">
     <!-- Panel Stylesheets
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
@@ -32,6 +34,7 @@
     <link rel="stylesheet" type="text/css" href="style/downloads.css"/>
     <script defer="" src="shared/js/component_utils.js"></script>
     <script defer="" src="shared/elements/gaia_buttons/script.js"></script>
+    <script defer="" src="shared/elements/gaia_confirm/script.js"></script>
     -->
 
     <!-- Shared resources
@@ -43,6 +46,7 @@
     <link rel="resource" type="application/json" href="shared/resources/media/notifications/"/>
     <link rel="resource" type="application/json" href="shared/resources/keyboard_layouts.json"/>
     <link rel="resource" type="image/png" href="shared/resources/branding/privacy_sprite.png"/>
+    <link rel="resource" type="application/json" href="shared/js/search_providers.json"/>
     -->
 
     <!-- Components -->
@@ -52,7 +56,8 @@
     <script src="shared/elements/gaia-header/dist/gaia-header.js"></script>
 
     <!-- Localization -->
-    <link rel="manifest" href="./manifest.webapp">
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
 
     <link rel="localization" href="shared/locales/download/download.{locale}.properties">
     <link rel="localization" href="shared/locales/branding/branding.{locale}.properties">
@@ -70,6 +75,7 @@
     <script src="/shared/js/lazy_loader.js"></script>
 
     <!-- For perf-measurement related utilities -->
+    <script src="/shared/js/usertiming.js"></script>
     <script defer="" src="/shared/js/performance_testing_helper.js"></script>
 
     <!-- Screen layout watcher -->
@@ -107,6 +113,7 @@
     <!--<script defer src="shared/js/tz_select.js"></script> -->
     <!--<script defer src="shared/js/sim_settings_helper.js"></script> -->
     <!--<script defer src="shared/js/template.js"></script> -->
+    <!--<script defer src="shared/js/search_provider.js"></script> -->
 
     <!-- all non-#root panels will lazy-load their own scripts -->
     <link rel="import" href="/elements/wifi_status.html">
@@ -118,10 +125,18 @@
     <link rel="import" href="/elements/wifi_select_certificate_file.html">
     <link rel="import" href="/elements/wifi_enter_certificate_nickname.html">
     <link rel="import" href="/elements/wifi.html">
+
+    <!-- Call Forwarding -->
     <link rel="import" href="/elements/call_cf_not_reachable_settings.html">
     <link rel="import" href="/elements/call_cf_no_reply_settings.html">
     <link rel="import" href="/elements/call_cf_mobile_busy_settings.html">
     <link rel="import" href="/elements/call_cf_unconditional_settings.html">
+    <link rel="import" href="/elements/call_cf_settings.html">
+
+    <!-- Call Barring -->
+    <link rel="import" href="/elements/call_barring.html">
+    <link rel="import" href="/elements/call_barring_passcode_change.html">
+
     <link rel="import" href="/elements/call_voice_mail_settings.html">
     <link rel="import" href="/elements/call_pin2_dialog.html">
     <link rel="import" href="/elements/call_fdn_list_add.html">
@@ -135,8 +150,6 @@
     <link rel="import" href="/elements/apn_list.html">
     <link rel="import" href="/elements/apn_editor.html">
     <link rel="import" href="/elements/carrier_operator_settings.html">
-    <link rel="import" href="/elements/carrier_dc_warning.html">
-    <link rel="import" href="/elements/carrier_dr_warning.html">
     <link rel="import" href="/elements/carrier_detail.html">
     <link rel="import" href="/elements/carrier.html">
     <link rel="import" href="/elements/bluetooth.html">
@@ -155,9 +168,9 @@
     <link rel="import" href="/elements/homescreens_details.html">
     <link rel="import" href="/elements/homescreens.html">
     <link rel="import" href="/elements/keyboard.html">
-    <link rel="import" href="/elements/keyboard_enabled_default.html">
     <link rel="import" href="/elements/keyboard_selection_add_more.html">
     <link rel="import" href="/elements/themes.html">
+    <link rel="import" href="/elements/addons.html">
     <link rel="import" href="/elements/screen_lock_passcode.html">
     <link rel="import" href="/elements/screen_lock.html">
     <link rel="import" href="/elements/simpin_dialog.html">
@@ -194,6 +207,9 @@
     <link rel="import" href="/elements/frame.html">
     <link rel="import" href="/elements/templates/messaging.html">
     <link rel="import" href="/elements/root.html">
+    <link rel="import" href="/elements/settings_alert_dialog.html">
+    <link rel="import" href="/elements/settings_confirm_dialog.html">
+    <link rel="import" href="/elements/settings_prompt_dialog.html">
   </head>
   <body class="skin-organic uninit theme-settings">
     <!--
@@ -221,13 +237,13 @@
       -->
 
     <!-- Connectivity :: Wi-Fi :: Network Status -->
-    <section is="wifi-status" role="region" id="wifi-status"></section>
+    <section is="wifi-status" role="region" id="wifi-status" class="dialog"></section>
     <!-- Connectivity :: Wi-Fi :: Network Authentication -->
-    <section is="wifi-auth" role="region" id="wifi-auth"></section>
+    <section is="wifi-auth" role="region" id="wifi-auth" class="dialog"></section>
     <!-- Connectivity :: Wi-Fi :: Join Hidden Network -->
-    <section is="wifi-joinHidden" role="region" id="wifi-joinHidden"></section>
+    <section is="wifi-joinHidden" role="region" id="wifi-joinHidden" class="dialog"></section>
     <!-- Connectivity :: Wi-Fi :: WPS -->
-    <section is="wifi-wps" role="region" id="wifi-wps"></section>
+    <section is="wifi-wps" role="region" id="wifi-wps" class="dialog"></section>
     <!-- Connectivity :: Wi-Fi :: Saved Networks -->
     <section is="wifi-manageNetworks" role="region" id="wifi-manageNetworks"></section>
     <!-- Connectivity :: Wi-Fi :: Manage Certificates -->
@@ -237,7 +253,7 @@
     <!-- Connectivity :: Wi-Fi :: Enter Certificate Nickname -->
     <section is="wifi-enterCertificateNickname" role="region" id="wifi-enterCertificateNickname"></section>
     <!-- Connectivity :: Wi-Fi -->
-    <section is="wifi" role="region" id="wifi" data-require-sub-panels="true"></section>
+    <section is="wifi" role="region" id="wifi"></section>
     <!-- Connectivity :: Call :: Call Forwarding Not Reachable -->
     <section is="call-cf-notReachableSettings" role="region" id="call-cf-notReachableSettings"></section>
     <!-- Connectivity :: Call :: Call Forwarding No Reply -->
@@ -246,8 +262,14 @@
     <section is="call-cf-mobileBusySettings" role="region" id="call-cf-mobileBusySettings"></section>
     <!-- Connectivity :: Call :: Call Forwarding Unconditional -->
     <section is="call-cf-unconditionalSettings" role="region" id="call-cf-unconditionalSettings"></section>
+    <!-- Connectivity :: Call :: Call Forwarding Settings -->
+    <section is="call-cfSettings" role="region" id="call-cfSettings"></section>
+    <!-- Connectivity :: Call :: Call Barring Settings -->
+    <section is="call-cbSettings" role="region" id="call-cbSettings"></section>
+    <!-- Connectivity :: Call :: Call Barring Passcode Change -->
+    <section is="call-barring-passcode-change" role="region" id="call-barring-passcode-change"></section>
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: Authorized Numbers :: Add -->
-    <section is="call-fdnList-add" role="region" id="call-fdnList-add"></section>
+    <section is="call-fdnList-add" role="region" id="call-fdnList-add" class="dialog"></section>
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: Authorized Numbers -->
     <section is="call-fdnList" role="region" id="call-fdnList" data-require-sub-panels="true"></section>
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: SIM PIN2 Input -->
@@ -255,7 +277,7 @@
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) -->
     <section is="call-fdnSettings" role="region" id="call-fdnSettings"></section>
     <!-- Connectivity :: Call :: Voice Mail -->
-    <section is="call-voiceMailSettings" role="region" id="call-voiceMailSettings"></section>
+    <section is="call-voiceMailSettings" role="region" id="call-voiceMailSettings" class="dialog"></section>
     <!-- Connectivity :: Call :: ICCs -->
     <section is="call-iccs" role="region" id="call-iccs"></section>
     <!-- Connectivity :: Call -->
@@ -272,10 +294,6 @@
     <section is="apn-list" role="region" id="apn-list"></section>
     <!-- Connectivity :: Cellular & Data :: APN Editor -->
     <section is="apn-editor" role="region" id="apn-editor"></section>
-    <!-- Connectivity :: Cellular & Data :: Data Connection Warnings -->
-    <section is="carrier-dc-warning" role="region" id="carrier-dc-warning"></section>
-    <!-- Connectivity :: Cellular & Data :: Data Roaming Warnings -->
-    <section is="carrier-dr-warning" role="region" id="carrier-dr-warning"></section>
     <!-- Connectivity :: Cellular & Data :: Detail -->
     <section is="carrier-detail" role="region" id="carrier-detail"></section>
     <!-- Connectivity :: Cellular & Data -->
@@ -285,12 +303,12 @@
     <!-- Connectivity :: Bluetooth v2 -->
     <section is="bluetooth_v2" role="region" id="bluetooth_v2"></section>
     <!-- Connectivity :: Internet Sharing :: Portable Wi-Fi Hotspot -->
-    <section is="hotspot-wifiSettings" role="region" id="hotspot-wifiSettings"></section>
+    <section is="hotspot-wifiSettings" role="region" id="hotspot-wifiSettings" class="dialog"></section>
     <!-- Connectivity :: Internet Sharing -->
     <section is="hotspot" role="region" id="hotspot"></section>
 
     <!-- Personalization :: Sound -->
-    <section is="sound" role="region" id="sound" data-require-sub-panels="true"></section>
+    <section is="sound" role="region" id="sound"></section>
     <!-- Personalization :: Display -->
     <section is="display" role="region" id="display"></section>
     <!-- Personalization :: Homescreen -->
@@ -310,24 +328,25 @@
     <!-- Personalization :: Homescreens :: details -->
     <section is="homescreens-details" role="region" id="homescreens-details"></section>
     <!-- Personalization :: Homescreens -->
-    <section is="homescreens" role="region" id="homescreens" data-require-sub-panels="true"></section>
+    <section is="homescreens" role="region" id="homescreens"></section>
     <!-- Personalization :: Keyboard :: Select Keyboard :: Add More Keyboards -->
     <section is="keyboard-selection-addMore" role="region" id="keyboard-selection-addMore"></section>
     <!-- Personalization :: Keyboard :: Select Keyboard -->
     <section is="keyboard-selection" role="region" id="keyboard-selection"></section>
     <!-- Personalization :: Keyboard -->
-    <section is="keyboard" role="region" id="keyboard" data-require-sub-panels="true"></section>
-    <section is="keyboard-enabled-default" role="region" id="keyboard-enabled-default"></section>
+    <section is="keyboard" role="region" id="keyboard"></section>
     <!-- Personalization :: Themes -->
     <section is="themes" role="region" id="themes"></section>
+    <!-- Personalization :: Addons -->
+    <section is="addons" role="region" id="addons"></section>
 
     <!-- Accounts :: Find My Device -->
     <section is="findmydevice" role="region" id="findmydevice"></section>
 
     <!-- Security :: Screen Lock :: PIN Input -->
-    <section is="screenLock-passcode" role="region" id="screenLock-passcode"></section>
+    <section is="screenLock-passcode" role="region" id="screenLock-passcode" class="dialog"></section>
     <!-- Security :: Screen Lock -->
-    <section is="screenLock" role="region" id="screenLock" data-passcode-enabled="false" data-lockscreen-enabled="false" data-require-sub-panels="true"></section>
+    <section is="screenLock" role="region" id="screenLock" data-passcode-enabled="false" data-lockscreen-enabled="false"></section>
     <!-- Security :: SIM Security :: SIM PIN Input -->
     <section is="simpin-dialog" role="region" id="simpin-dialog"></section>
     <!-- Security :: SIM Security -->
@@ -335,7 +354,7 @@
     <!-- Security :: Application Permissions :: Details -->
     <section is="appPermissions-details" role="region" id="appPermissions-details"></section>
     <!-- Security :: Application Permissions -->
-    <section is="appPermissions" role="region" id="appPermissions" data-require-sub-panels="true"></section>
+    <section is="appPermissions" role="region" id="appPermissions"></section>
     <!-- Security :: Do Not Track -->
     <section is="doNotTrack" role="region" id="doNotTrack"></section>
     <!-- Security :: Browser -->
@@ -382,7 +401,7 @@
     <!-- Device :: Send Feedback -->
     <section is="improveBrowserOS-chooseFeedback" role="region" id="improveBrowserOS-chooseFeedback"></section>
     <!-- Device :: Improve Browser OS -->
-    <section is="improveBrowserOS" role="region" id="improveBrowserOS" data-require-sub-panels="true"></section>
+    <section is="improveBrowserOS" role="region" id="improveBrowserOS"></section>
     <!-- Device :: Help -->
     <section is="help" role="region" id="help"></section>
     <!-- SIM Toolkit -->
@@ -391,6 +410,12 @@
     <section is="fxa" role="region" id="fxa"></section>
     <!-- Iframe -->
     <section is="frame" role="region" id="frame"></section>
+    <!-- SettingsDialog :: AlertDialog -->
+    <section is="settings-alert-dialog" class="dialog" role="region" id="settings-alert-dialog"></section>
+    <!-- SettingsDialog :: ConFirmDialog -->
+    <section is="settings-confirm-dialog" class="dialog" role="region" id="settings-confirm-dialog"></section>
+    <!-- SettingsDialog :: PromptDialog -->
+    <section is="settings-prompt-dialog" class="dialog" role="region" id="settings-prompt-dialog"></section>
 
     <!-- templates -->
     <!-- templates :: Messaging -->
@@ -410,6 +435,21 @@
         <button class="incompatible-settings-ok-btn recommend" data-l10n-id="enable">Enable</button>
       </menu>
     </form>
+
+    <form role="dialog" data-type="confirm" class="turn-on-ums-dialog" hidden>
+      <section>
+        <h1 data-l10n-id="ums-warning-title">Enable USB storage?</h1>
+        <p data-l10n-id="ums-confirm">
+          Enabling USB storage allows another computer or device connected using USB to access files on this phone.
+        </p>
+      </section>
+      <menu>
+        <button data-l10n-id="cancel" class="ums-cancel-option">Cancel</button>
+        <button data-l10n-id="ok" class="ums-confirm-option recommend">OK</button>
+      </menu>
+    </form>
+
+    <div class="settings-dialog-overlay" hidden></div>
 
     <script src="js/startup.js"></script>
   </body>

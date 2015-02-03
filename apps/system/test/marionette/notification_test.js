@@ -172,7 +172,9 @@ function dispatchNotification(client) {
   var toaster = client.findElement('#notification-toaster');
   var notify = new NotificationTest(client, details);
 
-  client.helper.waitForElement('#notification-toaster.displayed');
+  client.helper.waitFor(function() {
+    return client.findElement('#notification-toaster.displayed').displayed();
+  });
   return toaster;
 }
 

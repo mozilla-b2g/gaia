@@ -70,6 +70,7 @@ return [
       this._on('msg-delete-btn', 'click', 'onDelete');
       this._on('msg-star-btn', 'click', 'onToggleStar');
       this._on('msg-move-btn', 'click', 'onMove');
+      this._on('msg-mark-read-btn', 'click', 'onMarkRead');
       this._on('msg-envelope-bar', 'click', 'onEnvelopeClick');
       this._on('msg-reader-load-infobar', 'click', 'onLoadBarClick');
 
@@ -130,10 +131,15 @@ return [
       // - mark message read (if it is not already)
       if (!this.header.isRead) {
         this.header.setRead(true);
+      } else {
+        this.readBtn.classList.remove('unread');
+        mozL10n.setAttributes(this.readBtn, 'message-mark-read-button');
       }
 
-      this.querySelector('.msg-star-btn').classList
-          .toggle('msg-star-btn-on', this.hackMutationHeader.isStarred);
+      this.starBtn.classList.toggle('msg-star-btn-on',
+                                     this.hackMutationHeader.isStarred);
+      this.starBtn.setAttribute('aria-pressed',
+        this.hackMutationHeader.isStarred);
 
       this.emit('header');
     },
@@ -206,6 +212,12 @@ return [
       // the iframe work needs to happen once DOM is available.
       if (!this._inDom) {
         this._afterInDomMessage = currentMessage;
+        return;
+      }
+
+      // Ignore doing extra work if current message is the same as the one
+      // already tied to this message reader.
+      if (this.header && this.header.id === currentMessage.header.id) {
         return;
       }
 
@@ -374,11 +386,12 @@ return [
     },
 
     onToggleStar: function() {
-      var button = this.querySelector('.msg-star-btn');
-      button.classList.toggle('msg-star-btn-on',
-                              !this.hackMutationHeader.isStarred);
+      this.starBtn.classList.toggle('msg-star-btn-on',
+                                    !this.hackMutationHeader.isStarred);
 
       this.hackMutationHeader.isStarred = !this.hackMutationHeader.isStarred;
+      this.starBtn.setAttribute('aria-pressed',
+        this.hackMutationHeader.isStarred);
       this.header.setStarred(this.hackMutationHeader.isStarred);
     },
 
@@ -391,6 +404,20 @@ return [
       }.bind(this), function(folder) {
         return folder.isValidMoveTarget;
       });
+    },
+
+    setRead: function(isRead) {
+      this.hackMutationHeader.isRead = isRead;
+      this.header.setRead(isRead);
+
+      // Want the button state to reflect the current read state.
+      this.readBtn.classList.toggle('unread', !isRead);
+      mozL10n.setAttributes(this.readBtn,
+        isRead ? 'message-mark-read-button' : 'message-mark-unread-button');
+    },
+
+    onMarkRead: function() {
+      this.setRead(!this.hackMutationHeader.isRead);
     },
 
     /**
@@ -813,7 +840,8 @@ return [
 
       // Nuke existing body, show progress while waiting
       // for message to load.
-      this.rootBodyNode.innerHTML = '<progress></progress>';
+      this.rootBodyNode.innerHTML =
+        '<progress data-l10n-id="message-body-container-progress"></progress>';
 
       // Make sure load bar is not shown between loads too.
       this.loadBar.classList.add('collapsed');
@@ -996,11 +1024,12 @@ return [
               state = 'downloadable';
             } else {
               state = 'nodownload';
+              attachmentDownloadable = false;
             }
             attTemplate.setAttribute('state', state);
             filenameTemplate.textContent = attachment.filename;
-            filesizeTemplate.textContent = fileDisplay.fileSize(
-              attachment.sizeEstimateInBytes);
+            fileDisplay.fileSize(filesizeTemplate,
+                                 attachment.sizeEstimateInBytes);
 
             var attachmentNode = attTemplate.cloneNode(true);
             attachmentNode.classList.add(mimeClass);
@@ -1014,6 +1043,8 @@ return [
                 'click', this.onDownloadAttachmentClick.bind(
                   this, attachmentNode, attachment));
             }
+            attachmentNode.setAttribute('aria-disabled',
+              !attachmentDownloadable);
             attachmentNode.querySelector('.msg-attachment-view')
               .addEventListener('click',
                                 this.onViewAttachmentClick.bind(

@@ -152,6 +152,11 @@
   LockScreen.prototype.handleEvent =
   function ls_handleEvent(evt) {
     switch (evt.type) {
+      // In FTU user may change date & time.
+      case 'ftudone':
+      case 'moztimechange':
+        this.refreshClock(new Date());
+        break;
       case 'lockscreen-notification-request-activate-unlock':
         this._activateUnlock();
         break;
@@ -382,7 +387,8 @@
 
     /* blocking holdhome and prevent Cards View from show up */
     window.addEventListener('holdhome', this, true);
-    window.addEventListener('ftuopen', this);
+    window.addEventListener('ftudone', this);
+    window.addEventListener('moztimechange', this);
     window.addEventListener('timeformatchange', this);
 
     /* media playback widget */
@@ -496,7 +502,7 @@
     this.timeFormat = window.navigator.mozHour12 ?
       navigator.mozL10n.get('shortTimeFormat12') :
       navigator.mozL10n.get('shortTimeFormat24');
-    this.refreshClock(new Date());
+    this.clock.start(this.refreshClock.bind(this));
 
     // mobile connection state on lock screen.
     // It needs L10n too. But it's not a re-entrable function,
