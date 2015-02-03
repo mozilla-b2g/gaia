@@ -177,9 +177,9 @@
     };
 
   ActivityWindow.prototype.view = function acw_view() {
-    this.instanceID = this.CLASS_NAME + '_' + _id++;
+    this.instanceID = _id;
     return '<div class="appWindow activityWindow inline-activity' +
-            '" id=' + this.instanceID + '">' +
+            '" id="activity-window-' + _id++ + '">' +
             '<div class="titlebar">' +
             ' <div class="notifications-shadow"></div>' +
             '</div>' +
@@ -225,7 +225,7 @@
     };
     this.browser = new BrowserFrame(this.browser_config);
     this.element =
-      document.getElementById(this.instanceID);
+      document.getElementById('activity-window-' + this.instanceID);
 
     if (this.transparent) {
       this.element.classList.add('transparent-inline-activity');
