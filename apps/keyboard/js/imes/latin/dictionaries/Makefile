@@ -7,6 +7,7 @@
 # ro.dict, ru.dict, sk.dict, sl.dict, sq.dict, sr.dict, sr-Cyrl.dict, sr-Latn.dict, sr.dict, sv.dict, tr.dict
 
 WHITELIST = \
+ af.dict \
  bg.dict \
  bs.dict \
  ca.dict \
