@@ -12,3 +12,17 @@ body {
   font-family: sans-serif;
   color: #fff;
 }
+
+/**
+ * Disable selection by default except for input, text area, and elements with
+ * "contenteditable".
+ */
+* {
+  -moz-user-select: none;
+}
+
+input[type="text"],
+textarea,
+[contenteditable="true"] {
+  -moz-user-select: text;
+}
