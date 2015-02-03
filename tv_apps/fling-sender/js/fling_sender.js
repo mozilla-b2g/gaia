@@ -1,3 +1,4 @@
+/* global Notification */
 (function(exports) {
   'use strict';
 
@@ -71,9 +72,16 @@
   };
 
   proto.handleStateChange = function fs_handleStateChange() {
-    if (!this._session || this._session.state === 'disconnected') {
+    if (!this._session || !this._session.state) {
       this.disableButtons(true);
       this._session = null;
+      if (!this._sessionCloseExpected) {
+        /*jshint nonew: false */
+        new Notification('fling player disconnected', {
+          'body': 'fling player is unexpectedly disconnected.'
+        });
+      }
+      this._sessionCloseExpected = false;
     }
   };
 
@@ -100,6 +108,7 @@
 
   proto.closeSession = function fs_closeSession() {
     if (this._session) {
+      this._sessionCloseExpected = true;
       this._session.disconnect();
     }
   };
