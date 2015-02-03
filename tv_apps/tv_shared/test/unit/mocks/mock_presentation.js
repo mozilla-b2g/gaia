@@ -11,7 +11,7 @@
 
     startSession: function(url, sessionId) {
       var session = MockPresentationSession._mCreateSession();
-      session._state = 'connected';
+      session._state = true;
       return Promise.resolve(session);
     },
 

@@ -120,7 +120,7 @@
     },
 
     _handleStateChange: function r_handleStateChange(evt) {
-      if (evt.state === 'disconnected') {
+      if (!evt.state) {
         this.uninit();
         window.close();
       }
