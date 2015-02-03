@@ -778,9 +778,9 @@ function() {
 });
 
 /**
- * TC blur slider for permissions module.
+ * ALA blur slider module.
  * 
- * @module BlurSliderPerm
+ * @module BlurSlider
  * @return {Object}
  */
 define('ala/blur_slider_perm',[],
@@ -801,8 +801,8 @@ function() {
     init: function(element, value, callback) {
       this.callback = callback || function(){};
       
-      this.input = element.querySelector('.perm-slider');
-      this.label = element.querySelector('.perm-label');
+      this.input = element.querySelector('.blur-slider');
+      this.label = element.querySelector('.blur-label');
    
       this._setLabel(value);
 
@@ -871,18 +871,18 @@ function() {
      */
     getRadius: function(value) {
       switch(parseInt(value)) {
-        case 1:   return 5;
-        case 2:   return 10;
-        case 3:   return 20;
-        case 4:   return 50;
-        case 5:   return 100;
-        case 6:   return 150;
-        case 7:   return 200;
-        case 8:   return 500;
-        case 9:   return 750;
-        case 10:  return 1000;
-        case 11:  return 5000;
-        case 12:  return 10000;
+        case 1:   return 0.5;
+        case 2:   return 1;
+        case 3:   return 2;
+        case 4:   return 5;
+        case 5:   return 10;
+        case 6:   return 15;
+        case 7:   return 20;
+        case 8:   return 50;
+        case 9:   return 75;
+        case 10:  return 100;
+        case 11:  return 500;
+        case 12:  return 1000;
         default:  return null;
       }
     }
@@ -895,18 +895,18 @@ function() {
    */
   BlurSliderPerm.getLabel = function(value) {
     switch(parseInt(value)) {
-      case 1:   return '5';
-      case 2:   return '10';
-      case 3:   return '20';
-      case 4:   return '50';
-      case 5:   return '100';
-      case 6:   return '150';
-      case 7:   return '200';
-      case 8:   return '500';
-      case 9:   return '750';
-      case 10:  return '1000';
-      case 11:  return '5000';
-      case 12:  return '10000';
+      case 1:   return '500m';
+      case 2:   return '1km';
+      case 3:   return '2km';
+      case 4:   return '5km';
+      case 5:   return '10km';
+      case 6:   return '15km';
+      case 7:   return '20km';
+      case 8:   return '50km';
+      case 9:   return '75km';
+      case 10:  return '100km';
+      case 11:  return '500km';
+      case 12:  return '1000km';
       default:  return '';
     }
   };
@@ -3119,18 +3119,7 @@ function(panels, appList, permDetails, BlurSlider) {
      */
     init: function init(permissionTable) {
       _permListContainer = document.getElementById('tc-permList');
-      var sortingKeySelect = document.getElementById('tc-sortingKey');
-      //var permPriority = document.getElementByName('permdetails.blur.slider').value;
-      //console.log(permPriority);
-      var refreshPermList = function refreshPermList() { 
-          this.renderPermissionList(sortingKeySelect.value);
-        }.bind(this);
-      sortingKeySelect.addEventListener('change', refreshPermList);
-      window.addEventListener('applicationinstall', refreshPermList);
-      window.addEventListener('applicationuninstall', refreshPermList);
-   // some permissions might have a localized name in their manifest
-      window.addEventListener('localized', refreshPermList);
-      
+
       appList.init(permissionTable).then(this.renderPermissionList.bind(this),
           error => console.error(error));
 
@@ -3154,51 +3143,10 @@ function(panels, appList, permDetails, BlurSlider) {
      * @method renderAppList
      * @param {String} sortKey [optional]  Either 'name', 'trust', 'vendor'.
      */
-    renderPermissionList: function renderPermissionList(sortKey) {
-      //_permListContainer.innerHTML = '';
-    	this._clear();
-        if (!sortKey || sortKey === 'name') {
-          // apps are already sorted by name, just display them
-          this._showPermList(appList.permissions);
-        }
-        else {
-          var perms = appList.getSortedPerms(sortKey);
-          // sorting by headers work because the sort key is either:
-          // - a "vendor" name, in which case it makes sense to sort by name
-          // - 'certified|privileged|web', which luckily matches the order we want
-          Object.keys(apps).sort().forEach(header => {
-            var l10nPrefix = (sortKey === 'trust') ? 'tc-trust-' : '';
-            this._showPermSeparator(header, l10nPrefix);
-            this._showPermList(perms[header], header);
-          });
-        }
-      },
-    
-    _clear: function _clear() {
-        _permListContainer.innerHTML = '';
-      },
+    renderPermissionList: function renderPermissionList() {
+      _permListContainer.innerHTML = '';
 
-    
-    _showPermSeparator: function _showPermSeparator(separator, l10nPrefix) {
-        if (!separator) {
-          return;
-        }
-        var header = document.createElement('header');
-        var title = document.createElement('h2');
-        if (l10nPrefix) {
-          title.setAttribute('data-l10n-id', l10nPrefix + separator);
-        } else { // vendor names don't need any localization
-          title.textContent = separator;
-        }
-        header.appendChild(title);
-        _permListContainer.appendChild(header);
-      },
-    
-    _showPermList: function _showPermList(apps, groupKey){
       var list = document.createElement('ul');
-      if (groupKey){
-    	  list.dataset.key = groupKey; // Marionette Key
-      }
       appList.permissions.forEach(perm => {
         var item = document.createElement('li');
         var link = document.createElement('a');
