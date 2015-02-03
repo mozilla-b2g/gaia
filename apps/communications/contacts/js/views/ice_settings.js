@@ -170,11 +170,11 @@ contacts.ICE = (function() {
     iceContactCheckboxes[index].checked = active;
     iceContactButtons[index].disabled = !active;
 
-    var span = document.createElement('span');
-    span.classList.add('ice-contact');
-    span.textContent = label;
+    var bdi = document.createElement('bdi');
+    bdi.classList.add('ice-contact');
+    bdi.textContent = label;
     iceContactButtons[index].innerHTML = '';
-    iceContactButtons[index].appendChild(span);
+    iceContactButtons[index].appendChild(bdi);
     iceContactButtons[index].dataset.contactId = contactId;
   }
 

@@ -128,8 +128,8 @@ class Contacts(Base):
 
     class Contact(PageRegion):
 
-        _name_locator = (By.CSS_SELECTOR, 'p > strong')
-        _full_name_locator = (By.CSS_SELECTOR, 'p.contact-text')
+        _name_locator = (By.CSS_SELECTOR, 'bdi > strong')
+        _full_name_locator = (By.CSS_SELECTOR, 'p.contact-text bdi')
         _image_locator = (By.CSS_SELECTOR, 'span[data-type="img"]')
 
         @property
