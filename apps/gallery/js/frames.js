@@ -72,6 +72,7 @@ frames.addEventListener('dbltap', dblTapHandler);
 frames.addEventListener('pan', panHandler);
 frames.addEventListener('swipe', swipeHandler);
 frames.addEventListener('transform', transformHandler);
+frames.addEventListener('wheel', wheelHandler);
 
 currentFrame.video.onfullscreentap =
   previousFrame.video.onfullscreentap =
@@ -397,6 +398,19 @@ function swipeHandler(event) {
     // Ignore  pan and zoom gestures while the transition happens
     transitioning = true;
     setTimeout(function() { transitioning = false; }, time);
+  }
+}
+
+// When a screen reader swipes with two fingers
+function wheelHandler(event) {
+  if (event.deltaMode !== event.DOM_DELTA_PAGE || !event.deltaX) {
+    return;
+  }
+
+  if (event.deltaX > 0) {
+    nextFile(150);
+  } else {
+    previousFile(150);
   }
 }
 
