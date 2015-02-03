@@ -87,6 +87,32 @@ marionette('week view', function() {
     assert.operator(multiMonthCount, '>', 0, 'header with multiple months');
   });
 
+  test('swipe right should decrease date', function() {
+    var currentDate = new Date(week.allDay.getAttribute('data-date'));
+    // we swipe left until the date change
+    var newDate;
+    client.helper.waitFor(function() {
+      app.swipeRight();
+      newDate = new Date(week.allDay.getAttribute('data-date'));
+      return newDate !== currentDate;
+    });
+    // check that the new date is after the old one
+    assert.ok(newDate < currentDate, 'Swipe left should increase date');
+  });
+
+  test('swipe left should increase date', function() {
+    var currentDate = new Date(week.allDay.getAttribute('data-date'));
+    // we swipe left until the date change
+    var newDate;
+    client.helper.waitFor(function() {
+      app.swipeLeft();
+      newDate = new Date(week.allDay.getAttribute('data-date'));
+      return newDate !== currentDate;
+    });
+    // check that the new date is after the old one
+    assert.ok(newDate > currentDate, 'Swipe left should increase date');
+  });
+
   test('event + style + scroll + click', function() {
     // "better" to do all these checks at once because of performance
 

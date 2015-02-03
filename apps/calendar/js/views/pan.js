@@ -37,6 +37,11 @@ function Pan(options) {
   this._onTouchEnd = this._onTouchEnd.bind(this);
   this._tick = this._tick.bind(this);
   this._onTweenEnd = null;
+
+  // RTL
+  var getDir = () => document.documentElement.dir === 'rtl' ? -1 : +1;
+  window.addEventListener('localized', () => this._dir = getDir());
+  this._dir = getDir();
 }
 module.exports = Pan;
 
@@ -73,7 +78,7 @@ Pan.prototype = {
 
     var dx = this._startMouseX - evt.touches[0].clientX;
     var dy = this._startMouseY - evt.touches[0].clientY;
-    this._dx = dx;
+    this._dx = this._dir * dx;
 
     if (!this._lockedAxis) {
       var adx = Math.abs(dx);
@@ -99,7 +104,7 @@ Pan.prototype = {
       this._lockScroll();
     }
 
-    this._updateDestination(this._origX - dx, 0);
+    this._updateDestination(this._origX - this._dx, 0);
   },
 
   _lockScroll: function() {
@@ -189,7 +194,7 @@ Pan.prototype = {
   _set: function(x) {
     x = clamp(x, this._minX, 0);
     this.targets.forEach(el => {
-      el.style.transform = 'translateX(' + x +'px)';
+      el.style.transform = 'translateX(' + (this._dir * x) + 'px)';
     });
     this._curX = x;
   },

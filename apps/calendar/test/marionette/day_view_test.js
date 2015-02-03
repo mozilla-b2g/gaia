@@ -264,27 +264,34 @@ marionette('day view', function() {
 
     test('swipe to the next day', function() {
       var previousScrollTop = day.scrollTop;
+      var todayDate = new Date(app.headerContent.getAttribute('data-date'));
       app.swipeLeft();
+      var nextDate = new Date(app.headerContent.getAttribute('data-date'));
 
       assert.equal(
         day.scrollTop,
         previousScrollTop,
         'same scrollTop'
       );
+      assert.ok(todayDate < nextDate, 'Swipe left should increase date.');
     });
 
     test('swipe to the previous day', function() {
       var previousScrollTop = day.scrollTop;
+      var todayDate = new Date(app.headerContent.getAttribute('data-date'));
       app.swipeRight();
+      var previousDate = new Date(app.headerContent.getAttribute('data-date'));
 
       assert.equal(
         day.scrollTop,
         previousScrollTop,
         'same scrollTop'
       );
+      assert.ok(todayDate > previousDate, 'Swipe right should decrease date.');
     });
 
     test('swipe to the today', function() {
+      var todayDate = new Date(app.headerContent.getAttribute('data-date'));
       app.swipeRight();
       app.swipeLeft();
 
@@ -293,6 +300,12 @@ marionette('day view', function() {
         day.getDestinationScrollTop(new Date().getHours() - 1),
         'scroll to the 8AM element'
       );
+      client.helper.waitFor(function() {
+        var newDate = new Date(app.headerContent.getAttribute('data-date'));
+        return newDate.getFullYear() === todayDate.getFullYear() &&
+          newDate.getMonth() === todayDate.getMonth() &&
+          newDate.getDay() === todayDate.getDay();
+      });
     });
   });
 

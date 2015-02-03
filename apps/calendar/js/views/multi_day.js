@@ -219,6 +219,7 @@ MultiDay.prototype = {
   },
 
   _localize: function() {
+    this._render();
     this._setupHours();
     this._refreshCurrentTime();
   },
