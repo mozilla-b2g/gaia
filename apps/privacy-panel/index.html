@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en-US" dir="ltr">
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
@@ -21,37 +21,47 @@
     <link rel="stylesheet" type="text/css" href="style/panels.css">
 
     <!-- Localization -->
-    <link rel="manifest" href="manifest.webapp">
-    <link rel="localization" href="locales/countries.{locale}.properties">
-    <link rel="localization" href="locales/privacypanel.{locale}.properties">
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="ar:201500160452, bg:201500160452, bn-BD:201500160452, ca:201500160452, cs:201500160452, da:201500160452, de:201500160452, el:201500160452, en-US:201500160452, es:201500160452, eu:201500160452, fr:201500160452, gl:201500160452, hr:201500160452, hu:201500160452, it:201500160452, ja:201500160452, km:201500160452, ko:201500160452, lt:201500160452, mk:201500160452, ms:201500160452, ne-NP:201500160452, nl:201500160452, pa:201500160452, pl:201500160452, pt-BR:201500160452, ro:201500160452, ru:201500160452, sk:201500160452, sq:201500160452, sr-Cyrl:201500160452, sr-Latn:201500160452, sv-SE:201500160452, tr:201500160452, zh-CN:201500160452, zh-TW:201500160452">
+    <link rel="localization" href="/locales-obj/{locale}.json">
+    
+    
+    
 
     <!-- Templates: Location Accuracy -->
-    <link rel="import" href="/templates/ala/main.html">
-    <link rel="import" href="/templates/ala/exceptions.html">
-    <link rel="import" href="/templates/ala/exception.html">
-    <link rel="import" href="/templates/ala/custom.html">
+    
+    
+    
+    
 
     <!-- Templates: Remote Privacy Protection -->
-    <link rel="import" href="/templates/rpp/main.html">
-    <link rel="import" href="/templates/rpp/change_pass.html">
-    <link rel="import" href="/templates/rpp/features.html">
-    <link rel="import" href="/templates/rpp/screenlock.html">
-    <link rel="import" href="/templates/rpp/passcode.html">
+    
+    
+    
+    
+    
+
+    <!-- Templates: Transparency Control -->
+    
+    
+    
+    
+    
 
     <!-- Templates: Guided Tour -->
-    <link rel="import" href="/templates/gt/main.html">
-    <link rel="import" href="/templates/gt/ala_explain.html">
-    <link rel="import" href="/templates/gt/ala_blur.html">
-    <link rel="import" href="/templates/gt/ala_custom.html">
-    <link rel="import" href="/templates/gt/ala_exceptions.html">
-    <link rel="import" href="/templates/gt/rpp_explain.html">
-    <link rel="import" href="/templates/gt/rpp_passphrase.html">
-    <link rel="import" href="/templates/gt/rpp_locate.html">
-    <link rel="import" href="/templates/gt/rpp_ring.html">
-    <link rel="import" href="/templates/gt/rpp_lock.html">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
     <!-- Templates: About -->
-    <link rel="import" href="/templates/about/main.html">
+    
 
     <!-- Shared JavaScripts -->
     <!-- <script src="shared/js/l10n.js"></script> -->
@@ -61,6 +71,8 @@
     <!-- <script src="shared/js/html_imports.js"></script> -->
     <!-- <script src="shared/js/lazy_loader.js"></script> -->
     <!-- <script src="shared/js/async_storage.js"></script> -->
+    <!-- <script src="shared/js/jquery-2.1.1.min.js"></script>  -->
+	<!-- <script src="shared/js/jquery.mobile-1.4.5.min.js"></script>  -->
   </head>
 
   <body class="skin-organic theme-settings">
@@ -80,10 +92,22 @@
           </a>
         </li>
         <li>
-          <a id="menu-item-rpp" class="menu-item pp-link" data-icon="messages" href="#rpp-main">
+          <a id="menu-item-rpp" class="menu-item pp-link" data-icon="lock" href="#rpp-main">
             <span data-l10n-id="remote-privacy-protection">Remote Privacy Protection</span>
           </a>
         </li>
+        <li>
+          <a id="menu-item-tc" class="menu-item pp-link" data-icon="tick-circle" href="#tc-main">
+            <span data-l10n-id="transparency-control">Transparency Control</span>
+          </a>
+        </li>
+        <!-- 
+        <li>
+          <a id="menu-item-tc" class="menu-item pp-link" data-icon="lock" href="#tc-meter">
+            <span data-l10n-id="transparency-control">Privacy Meter</span>
+          </a>
+        </li>
+         -->
         <li>
           <a id="menu-item-gt" class="menu-item pp-link" data-icon="flag" href="#gt-main">
             <span data-l10n-id="guided-tour">Guided Tour</span>
@@ -91,35 +115,914 @@
         </li>
       </ul>
     </section>
-    
+
     <!-- Sections: Location Accuracy -->
-    <section is="ala-main" role="region" id="ala-main" data-section="ala"></section>
-    <section is="ala-exceptions" role="region" id="ala-exceptions" data-section="ala"></section>
-    <section is="ala-exception" role="region" id="ala-exception" data-section="ala"></section>
-    <section is="ala-custom" role="region" id="ala-custom" data-section="ala"></section>
+    <section role="region" id="ala-main" data-section="ala"><!--
+    <header>
+      <a class="pp-link back" href="#root">
+        <span class="icon gaia-icon-back">back</span>
+      </a>
+      <h1 data-l10n-id="location-accuracy">Location Accuracy</h1>
+    </header>
+    <div>
+      <ul>
+        <li>
+          <label class="pack-switch">
+            <input class="uninit" name="geolocation.enabled" type="checkbox">
+            <span data-l10n-id="use-geolocation">Use geolocation</span>
+          </label>
+        </li>
+        <li class="show-when-geolocation-on">
+          <label class="pack-switch">
+            <input class="uninit" name="ala.settings.enabled" type="checkbox">
+            <span data-l10n-id="use-location-adjustment">Use location adjustment</span>
+          </label>
+        </li>
+        <li class="hide-when-ala-on">
+          <p class="description" data-l10n-id="location-adjustment-information">
+            Remember: Location Adjustment influences the location Firefox OS provides to apps. It will not affect your IP-address or locale settings, so some services might still be able to locate you.
+          </p>
+        </li>
+        <li class="show-when-ala-on">
+          <p class="description" data-l10n-id="location-adjustment-description">
+            Adjust the global accuracy level of your current location for all apps, define and set a permanent fixed location and add exceptions for single apps.
+          </p>
+        </li>
+        <li class="show-when-ala-on geolocation-type-box">
+          <p>
+            <span class="button icon icon-dialog">
+              <select name="geolocation.type">
+                <option value="blur" data-l10n-id="adjustment">Adjustment</option>
+                <option value="user-defined" data-l10n-id="custom-location">Custom Location</option>
+                <option value="no-location" data-l10n-id="no-location" selected="">No Location</option>
+                <option value="precise" data-l10n-id="precise">Precise</option>
+              </select>
+            </span>
+          </p>
+        </li>
+        <li class="type-blur type-box show-when-ala-on">
+          <label>
+            <p class="blur-label"></p>
+            <input class="blur-slider" name="geolocation.blur.slider" step="1" min="1" max="12" data-default="1" type="range">
+          </label>
+        </li>
+        <li class="type-custom-location type-box show-when-ala-on custom-location-description">
+          <p class="description" data-l10n-id="custom-location-description">Set a custom location which is used as a fixed position.</p>
+        </li>
+        <li class="type-custom-location type-box show-when-ala-on">
+          <a class="menu-item set-custom-location panel-link" href="#">
+            <span data-l10n-id="set-custom-location">Set custom location</span>
+          </a>
+        </li>
+        <li class="show-when-ala-on add-exception-box">
+          <a class="menu-item pp-link panel-link" href="#ala-exceptions">
+            <span data-l10n-id="add-exceptions">Add exceptions</span>
+          </a>
+        </li>
+        <div class="custom-location-alert overlay" hidden="">
+          <div class="modal modal-alert">
+            <h1 data-l10n-id="attention">Attention!</h1>
+            <p data-l10n-id="ala-custom-location-alert">You haven't set a custom location yet. Please set this before working on other settings!</p>
+            <button class="btn btn-blue">Set custom location</button>
+          </div>
+        </div>
+      </ul>
+    </div>
+  --></section>
+    <section role="region" id="ala-exceptions" data-section="ala"><!--
+    <header>
+      <a class="pp-link back" href="#ala-main">
+        <span class="icon gaia-icon-back">back</span>
+      </a>
+      <h1 data-l10n-id="location-accuracy">Location Accuracy</h1>
+    </header>
+    <div>
+      <ul id="app-list">
+        <li>
+          <p class="description" data-l10n-id="app-list-description">
+            This list shows all the apps, which are allowed to use your location.
+          </p>
+        </li>
+      </ul>
+    </div>
+  --></section>
+    <section role="region" id="ala-exception" data-section="ala"><!--
+    <header>
+      <a class="pp-link back" href="#ala-exceptions">
+        <span class="icon gaia-icon-back">back</span>
+      </a>
+      <h1 data-l10n-id="location-accuracy">Location Accuracy</h1>
+    </header>
+    <div>
+      <ul>
+        <li>
+          <p class="description" data-l10n-id="exceptions-application-description">
+            Adjust the custom location accuracy level of the following app:
+          </p>
+        </li>
+        <li class="app-info app-element">
+          <a class="menu-item">
+            <img src="">
+            <span></span>
+          </a>
+        </li>
+        <li>
+          <p>
+            <span class="button icon icon-dialog">
+              <select class="app-type">
+                <option value="system-settings" data-l10n-id="global-settings">Global Settings</option>
+                <option value="blur" data-l10n-id="adjustment">Adjustment</option>
+                <option value="user-defined" data-l10n-id="custom-location">Custom Location</option>
+                <option value="no-location" data-l10n-id="no-location">No Location</option>
+                <option value="precise" data-l10n-id="precise">Precise</option>
+              </select>
+            </span>
+          </p>
+        </li>
+
+        <li class="type-blur type-box">
+          <label>
+            <p class="blur-label"></p>
+            <input class="blur-slider" value="1" step="1" min="1" max="12" type="range">
+          </label>
+        </li>
+
+        <li class="type-custom-location type-box custom-location-description">
+          <p class="description" data-l10n-id="custom-location-description">Set a custom location which is used as a fixed position.</p>
+        </li>
+        <li class="type-custom-location type-box">
+          <a class="menu-item set-custom-location panel-link" href="#set-custom-location">
+            <span data-l10n-id="set-custom-location">Set custom location</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div class="app-custom-location-alert overlay" hidden="">
+      <div class="modal modal-alert">
+        <h1 data-l10n-id="attention">Attention!</h1>
+        <p data-l10n-id="ala-custom-location-alert">You haven't set a custom location yet. Please set this before working on other settings!</p>
+        <button class="btn btn-blue" data-l10n-id="set-custom-location">Set custom location</button>
+      </div>
+    </div>
+  --></section>
+    <section role="region" id="ala-custom" data-section="ala"><!--
+    <header>
+      <a class="back" href="#">
+        <span class="icon gaia-icon-back">back</span>
+      </a>
+      <h1 data-l10n-id="define-custom-location">Define custom loaction</h1>
+    </header>
+    <div>
+      <ul>
+        <li>
+          <label class="pack-radio">
+            <input class="dcl-type-rc" value="rc" type="radio">
+            <span data-l10n-id="choose-a-region-city">Choose a region/city</span>
+          </label>
+        </li>
+        <li class="dcl-rc-region">
+          <p data-l10n-id="region">Region</p>
+          <span class="button icon icon-dialog">
+            <select class="dcl-region" name="dcl.region" data-value-type="string">
+            </select>
+          </span>
+        </li>
+        <li class="dcl-rc-city">
+          <p data-l10n-id="city">City</p>
+          <span class="button icon icon-dialog">
+            <select class="dcl-city" name="dcl.city" data-value-type="string">
+            </select>
+          </span>
+        </li>
+        <li>
+          <label class="pack-radio">
+            <input class="dcl-type-gps" value="gps" type="radio">
+            <span data-l10n-id="enter-gps-coordinates">Enter GPS Coordinates</span>
+          </label>
+        </li>
+        <li class="dcl-gps-area">
+          <p class="description" data-l10n-id="enter-gps-description">
+            Please enter the GPS coordinates for longitude from -180.0 to 180 and latitude from -90.0 to 90.0 degree with a dot to separate full degrees lower values.
+          </p>
+          <p data-l10n-id="latitude">
+            Latitude
+          </p>
+          <input class="dcl-latitude" min="-90.0" max="90.0" step="0.000001" value="0" type="number">
+          <p data-l10n-id="longitude">
+            Longitude
+          </p>
+          <input class="dcl-longitude" min="-180.0" max="180.0" step="0.000001" value="0" type="number">
+        </li>
+      </ul>
+    </div>
+  --></section>
 
     <!-- Sections: Remote Privacy Protection -->
-    <section is="rpp-main" role="region" id="rpp-main" data-section="rpp"></section>
-    <section is="rpp-change-pass" role="region" id="rpp-change-pass" data-section="rpp"></section>
-    <section is="rpp-features" role="region" id="rpp-features" data-section="rpp"></section>
-    <section is="rpp-screenlock" role="region" id="rpp-screenlock" data-section="rpp"></section>
-    <section is="rpp-passcode" role="region" id="rpp-passcode" data-section="rpp"></section>
+    <section role="region" id="rpp-main" data-section="rpp"><!--
+    <header>
+      <a class="pp-link back" href="#root">
+        <span class="icon gaia-icon-back">back</span>
+      </a>
+      <h1 data-l10n-id="rpp-panel">Remote Privacy Protection</h1>
+    </header>
+    <div>
+      <ul id="rpp-register" class="rpp-box">
+        <li>
+          <p class="description" data-l10n-id="rpp-new-password-description">
+            Please set a passphrase to secure your remote features (maximum 100 characters).
+          </p>
+          <form id="rpp-register-form">
+            <input class="pass1" data-l10-id="new-passphrase" placeholder="New passphrase" type="password">
+            <input class="pass2" data-l10-id="confirm-new-passphrase" placeholder="Confirm new passphrase" type="password">
+            <div class="validation-message"></div>
+            <input class="rpp-register-ok btn" value="OK" type="submit">
+          </form>
+        </li>
+      </ul>
+      <ul id="rpp-login" class="rpp-box">
+        <li>
+          <p class="description" data-l10n-id="rpp-login-description">
+            Please enter your passphrase.
+          </p>
+        </li>
+        <li>
+          <form id="rpp-login-form">
+            <input class="pass1" data-l10-id="passphrase" placeholder="Passphrase" type="password">
+            <div class="validation-message"></div>
+            <a class="change-password-link link-text pp-link" href="#rpp-change-pass">
+              <span data-l10n-id="rpp-change-password">Forgot/Change your passphrase?</span>
+            </a>
+            <input class="rpp-login-ok btn" value="OK" type="submit">
+          </form>
+        </li>
+      </ul>
+    </div>
+  --></section>
+    <section role="region" id="rpp-change-pass" data-section="rpp"><!--
+    <header>
+      <a class="pp-link back" href="#rpp-main">
+        <span class="icon gaia-icon-back">back</span>
+      </a>
+      <h1 data-l10n-id="rpp-panel">Remote Privacy Protection</h1>
+    </header>
+    <div>
+      <ul>
+        <li>
+          <p class="description" data-l10n-id="rpp-change-password-description">
+            To reset your passphrase please enter Passcode lock or SIM PIN and new passphrase.
+          </p>
+        </li>
+        <li>
+          <form id="rpp-change-pass-form">
+            <select class="pin-type"></select>
+            <input class="pin" x-inputmode="digit" size="4" maxlength="4" placeholder="" type="password">
+            <div class="pin-validation-message"></div>
+            <input class="pass1" data-l10-id="new-passphrase" placeholder="New passphrase" type="password">
+            <input class="pass2" data-l10-id="confirm-new-passphrase" placeholder="Confirm new passphrase" type="password">
+            <div class="validation-message"></div>
+            <input class="rpp-change-pass-ok btn" value="OK" type="submit">
+          </form>
+        </li>
+      </ul>
+    </div>
+  --></section>
+    <section role="region" id="rpp-features" data-section="rpp"><!--
+    <header>
+      <a class="pp-link back" href="#root">
+        <span class="icon gaia-icon-back">back</span>
+      </a>
+      <h1 data-l10n-id="rpp-panel">Remote Privacy Protection</h1>
+    </header>
+    <div>
+      <ul class="remote-settings">
+        <li class="remote-locate hint">
+          <label class="pack-switch">
+            <input name="rpp.locate.enabled" class="uninit" type="checkbox">
+            <span data-l10n-id="remote-locate">Remote Locate</span>
+          </label>
+          <p class="explanation" data-l10n-id="remote-locate-desc">You can locate this device via SMS as following: “RPP locate YOURPASSPHRASE”</p>
+        </li>
+        <li class="remote-ring hint">
+          <label class="pack-switch">
+            <input name="rpp.ring.enabled" class="uninit" type="checkbox">
+            <span data-l10n-id="remote-ring">Remote Ring</span>
+          </label>
+          <p class="explanation" data-l10n-id="remote-ring-desc">You can ring this device via SMS as following: “RPP ring YOURPASSPHRASE”</p>
+        </li>
+        <li class="remote-lock hint">
+          <label class="pack-switch">
+            <input name="rpp.lock.enabled" class="uninit" type="checkbox">
+            <span data-l10n-id="remote-lock">Remote Lock</span>
+          </label>
+          <p class="explanation" data-l10n-id="remote-lock-desc">You can lock this device via SMS as following: “RPP lock YOURPASSPHRASE”</p>
+        </li>
+      </ul>
+      <div class="overlay">
+        <div class="modal modal-alert">
+          <h1 data-l10n-id="attention">Attention!</h1>
+          <p data-l10n-id="rpp-lockscreen-alert">Please activate lockscreen AND passcode in the system settings to use the Remote Privacy Protection.</p>
+          <a href="#rpp-screenlock" class="btn btn-blue pp-link">Take me there</a>
+        </div>
+      </div>
+    </div>
+  --></section>
+    <section role="region" id="rpp-screenlock" data-section="rpp"><!--
+    <header>
+      <a class="pp-link back" href="#rpp-features">
+        <span class="icon gaia-icon-back">back</span>
+      </a>
+      <h1 data-l10n-id="screen-lock-header">Screen Lock</h1>
+    </header>
+    <div>
+      <ul>
+        <li>
+          <label class="pack-switch">
+            <input name="lockscreen.enabled" class="lockscreen-enable uninit" type="checkbox">
+            <span data-l10n-id="lock-screen">Lock Screen</span>
+          </label>
+        </li>
+        <li class="lockscreen-enabled">
+          <label class="pack-switch">
+            <input name="lockscreen.passcode-lock.enabled" class="passcode-enable uninit" type="checkbox">
+            <span data-l10n-id="passcode-lock">Passcode Lock</span>
+          </label>
+        </li>
+        <li class="passcode-enabled" id="passcode-timeout-row">
+          <p data-l10n-id="require-passcode">Require passcode</p>
+          <span class="button icon icon-dialog">
+            <select name="lockscreen.passcode-lock.timeout">
+              <option value="0" data-l10n-id="immediately" selected="">Immediately</option>
+              <option value="60" data-l10n-id="after-one-minute">After 1 minute</option>
+              <option value="300" data-l10n-id="after-five-minutes">After 5 minutes</option>
+              <option value="900" data-l10n-id="after-fifteen-minutes">After 15 minutes</option>
+              <option value="1800" data-l10n-id="after-thirty-minutes">After 30 minutes</option>
+              <option value="3600" data-l10n-id="after-one-hour">After 1 hour</option>
+            </select>
+          </span>
+        </li>
+        <li class="passcode-enabled">
+          <button class="passcode-edit icon icon-view" data-l10n-id="change-passcode">
+            Change Passcode
+          </button>
+        </li>
+      </ul>
+    </div>
+  --></section>
+    <section role="region" id="rpp-passcode" data-section="rpp"><!--
+    <header>
+      <a class="pp-link back" href="#rpp-screenlock">
+        <span class="icon gaia-icon-back">back</span>
+      </a>
+      <menu type="toolbar">
+        <button class="passcode-change" data-mode="new" data-l10n-id="change">Change</button>
+        <button class="passcode-create" data-mode="create" data-l10n-id="create">Create</button>
+      </menu>
+      <h1 data-l10n-id="passcode-heading" data-mode="create">Passcode</h1>
+      <h1 data-l10n-id="current-passcode" data-mode="edit">Current Passcode</h1>
+      <h1 data-l10n-id="new-passcode" data-mode="new">New Passcode</h1>
+      <h1 data-l10n-id="enter-passcode" data-mode="confirm,confirmLock">Enter Passcode</h1>
+    </header>
+    <div class="passcode-overlay">
+      <input x-inputmode="digit" class="passcode-input" type="number">
+      <div class="passcode-container">
+        <div class="passcode" id="passcode-pseudo-input">
+          <label data-l10n-id="create-a-passcode" data-mode="new,create">Create a Passcode</label>
+          <label data-l10n-id="passcode" data-mode="confirm,confirmLock,edit">Passcode</label>
+          <span class="passcode-digit"></span>
+          <span class="passcode-digit"></span>
+          <span class="passcode-digit"></span>
+          <span class="passcode-digit"></span>
+        </div>
+        <div class="passcode" data-mode="new,create" id="passcode-pseudo-confirm-input">
+          <label data-l10n-id="confirm-passcode" data-mode="new,create">Confirm Passcode</label>
+          <span class="passcode-digit"></span>
+          <span class="passcode-digit"></span>
+          <span class="passcode-digit"></span>
+          <span class="passcode-digit"></span>
+        </div>
+        <div class="passcode-error" data-l10n-id="incorrect-passcode" data-type="incorrect">Incorrect passcode!</div>
+        <div class="passcode-error" data-l10n-id="passcode-doesnt-match" data-type="mismatch">Passcode doesn't match. Try again!</div>
+      </div>
+    </div>
+  --></section>
+
+    <!-- Sections: Transparency Control -->
+    <section role="region" data-section="tc" id="tc-main"><!--
+    <header>
+      <a class="pp-link back" href="#root">
+        <span class="icon gaia-icon-back">back</span>
+      </a>
+      <h1 data-l10n-id="tc-panel">Transparency Control</h1>
+    </header>
+
+    <div>
+      <ul>
+        <li>
+          <a class="menu-item pp-link panel-link" href="#tc-applications">
+            <span data-l10n-id="tc-applications">Applications</span>
+          </a>
+        </li>
+        <li>
+          <a class="menu-item pp-link panel-link" href="#tc-permissions">
+            <span data-l10n-id="tc-permissions">Permissions</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  --></section>
+    
+    <section role="region" data-section="tc" id="tc-meter">  
+      <!--
+    <header>
+      <a class="back" href="#">
+        <span class="icon gaia-icon-back">back</span>
+      </a>
+      <h1 data-l10n-id="define-custom-location">Define custom loaction</h1>
+    </header>
+    <div>
+      <ul>
+        <li>
+          <label class="pack-radio">
+            <input class="dcl-type-rc" value="rc" type="radio">
+            <span data-l10n-id="choose-a-region-city">Choose a region/city</span>
+          </label>
+        </li>
+        <li class="dcl-rc-region">
+          <p data-l10n-id="region">Region</p>
+          <span class="button icon icon-dialog">
+            <select class="dcl-region" name="dcl.region" data-value-type="string">
+            </select>
+          </span>
+        </li>
+        <li class="dcl-rc-city">
+          <p data-l10n-id="city">City</p>
+          <span class="button icon icon-dialog">
+            <select class="dcl-city" name="dcl.city" data-value-type="string">
+            </select>
+          </span>
+        </li>
+        <li>
+          <label class="pack-radio">
+            <input class="dcl-type-gps" value="gps" type="radio">
+            <span data-l10n-id="enter-gps-coordinates">Enter GPS Coordinates</span>
+          </label>
+        </li>
+        <li class="dcl-gps-area">
+          <p class="description" data-l10n-id="enter-gps-description">
+            Please enter the GPS coordinates for longitude from -180.0 to 180 and latitude from -90.0 to 90.0 degree with a dot to separate full degrees lower values.
+          </p>
+          <p data-l10n-id="latitude">
+            Latitude
+          </p>
+          <input class="dcl-latitude" min="-90.0" max="90.0" step="0.000001" value="0" type="number">
+          <p data-l10n-id="longitude">
+            Longitude
+          </p>
+          <input class="dcl-longitude" min="-180.0" max="180.0" step="0.000001" value="0" type="number">
+        </li>
+      </ul>
+    </div>
+  --></section>
+    
+    <section role="region" data-section="tc" id="tc-applications"><!--
+    <header>
+      <a class="pp-link back" href="#tc-main">
+        <span class="icon gaia-icon-back">back</span>
+      </a>
+      <h1 data-l10n-id="tc-applications">Applications</h1>
+    </header>
+
+    <div>
+      <ul>
+        <li>
+          <span class="button icon icon-dialog">
+            <select id="tc-sortKey">
+              <option value="name" data-l10n-id="tc-sort-alphabetical" selected="">alphabetical</option>
+              <option value="trust" data-l10n-id="tc-sort-trustLevel">Trust Level</option>
+              <option value="vendor" data-l10n-id="tc-sort-vendor">Vendor</option>
+            </select>
+          </span>
+        </li>
+      </ul>
+
+      <div id="tc-appList"></div>
+    </div>
+  --></section>
+    <section role="region" data-section="tc" id="tc-appDetails"><!--
+    <header>
+      <a class="pp-link back" href="#tc-applications">
+        <span class="icon gaia-icon-back">back</span>
+      </a>
+      <h1></h1>
+    </header>
+
+    <div>
+      <ul>
+        <li class="app-info app-element">
+          <a class="menu-item">
+            <img src="">
+            <span></span>
+          </a>
+        </li>
+      </ul>
+
+      <div id="tc-perm-explicit" class="permission-group" hidden="">
+        <header>
+          <h2 data-l10n-id="tc-explicit-permissions">Permissions</h2>
+        </header>
+        <ul class="permission-list"></ul>
+      </div>
+
+      <div id="tc-perm-implicit" class="permission-group" hidden="">
+        <header>
+          <h2 data-l10n-id="tc-implicit-permissions">Implicit Permissions</h2>
+        </header>
+        <ul class="permission-list"></ul>
+      </div>
+
+      <div class="debug" hidden="">
+        <header>
+          <h2>Debug</h2>
+        </header>
+        <pre></pre>
+      </div>
+
+    </div>
+  --></section>
+    <section role="region" data-section="tc" id="tc-permissions"><!--
+    <header>
+      <a class="pp-link back" href="#tc-main">
+        <span class="icon gaia-icon-back">back</span>
+      </a>
+      <h1 data-l10n-id="tc-permissions">Permissions</h1>
+    </header>
+
+    <div>
+	<ul>
+        <li>
+          <span class="button icon icon-dialog">
+            <select id="tc-sortingKey">
+              <option value="name" data-l10n-id="tc-sort-alphabetical" selected="">alphabetical</option>
+              <option value="trust" data-l10n-id="tc-sort-trustLevel">Trust Level</option>
+              <option value="vendor" data-l10n-id="tc-sort-vendor">Vendor</option>
+            </select>
+          </span>
+        </li>
+      </ul>
+	
+    <div id="tc-permList"></div>
+    
+    </div>
+  --></section>
+    <section role="region" data-section="tc" id="tc-permDetails"><!--
+    <header>
+      <a class="pp-link back" href="#tc-permissions">
+        <span class="icon gaia-icon-back">back</span>
+      </a>
+      <h1></h1>
+    </header>
+
+    <div>
+      <ul class="permission-list">
+        <li class="perm-info">
+          <a><span></span></a>
+          <p class="description"></p>
+        </li>
+      </ul>
+
+      <div class="permission-group" hidden="">
+        <header>
+          <h2 data-l10n-id="tc-apps-accessing-permission">Apps accessing this permission</h2>
+        </header>
+        <ul class="app-list"></ul>
+        <header>
+		<h3 data-l10n-id="tc-apps-permission-priority">You may set priority for this perticular permission.</h3>
+		</header>
+        <ul>
+        <li class="type-blur type-box">
+          <label>
+            <p class="blur-label"></p>
+            <input class="blur-slider" name="permdetails.blur.slider" type="range" step="1" min="1" max="12" data-default="5">
+          </label>
+        </li>
+        </ul>
+      </div>
+    </div>
+  --></section>
 
     <!-- Sections: Guided Tour -->
-    <section is="gt-main" role="region" id="gt-main" data-section="gt"></section>
-    <section is="gt-ala-explain" role="region" id="gt-ala-explain" data-section="gt"></section>
-    <section is="gt-ala-blur" role="region" id="gt-ala-blur" data-section="gt"></section>
-    <section is="gt-ala-custom" role="region" id="gt-ala-custom" data-section="gt"></section>
-    <section is="gt-ala-exceptions" role="region" id="gt-ala-exceptions" data-section="gt"></section>
-    <section is="gt-rpp-explain" role="region" id="gt-rpp-explain" data-section="gt"></section>
-    <section is="gt-rpp-passphrase" role="region" id="gt-rpp-passphrase" data-section="gt"></section>
-    <section is="gt-rpp-locate" role="region" id="gt-rpp-locate" data-section="gt"></section>
-    <section is="gt-rpp-ring" role="region" id="gt-rpp-ring" data-section="gt"></section>
-    <section is="gt-rpp-lock" role="region" id="gt-rpp-lock" data-section="gt"></section>
+    <section role="region" id="gt-main" data-section="gt"><!--
+    <header class="gt-header">
+      <a class="pp-link back" href="#root">
+        <span class="icon gaia-icon-close">back</span>
+      </a>
+    </header>
+    <div>
+      <ul>
+        <li>
+          <div class="gt-picture">
+            <img src="style/images/guided_tour/privacy-panel-gt-01.svg">
+          </div>
+          <div class="gt-description">
+            <h2 data-l10n-id="gt-main-header">Welcome to the Privacy Panel!</h2>
+            <p data-l10n-id="gt-main-desc">
+              This app will help you enhance your privacy protection and enables you to lock or find your phone if it's lost. Just have a closer look. It takes only 2 minutes!
+            </p>
+          </div>
+          <div class="gt-action">
+            <div class="gt-pager page-1"></div>
+            <a class="pp-link btn btn-blue" href="#gt-ala-explain" data-l10n-id="get-started">Get started!</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  --></section>
+    <section role="region" id="gt-ala-explain" data-section="gt"><!--
+    <header class="gt-header">
+      <a class="pp-link back" href="#root">
+        <span class="icon gaia-icon-close">back</span>
+      </a>
+    </header>
+    <div>
+      <ul>
+        <li>
+          <div class="gt-picture">
+            <img src="style/images/guided_tour/privacy-panel-gt-02.svg">
+          </div>
+          <div class="gt-description">
+            <h2 data-l10n-id="gt-ala-explain-header">What is Location Adjustment good for?</h2>
+            <p data-l10n-id="gt-ala-explain-desc">
+              Many apps access your geolocation, like the addressbook or the camera. If you don't want to disclose your exact position, you can adjust the accuracy of your current location that is used by apps, set a custom location or hide your geolocation.
+            </p>
+          </div>
+          <div class="gt-action">
+            <div class="gt-pager page-2"></div>
+            <a class="pp-link btn btn-dark-gray back" href="#gt-main" data-l10n-id="back">Back</a>
+            <a class="pp-link btn btn-blue" href="#gt-ala-blur" data-l10n-id="next">Next</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  --></section>
+    <section role="region" id="gt-ala-blur" data-section="gt"><!--
+    <header class="gt-header">
+      <a class="pp-link back" href="#root">
+        <span class="icon gaia-icon-close">back</span>
+      </a>
+    </header>
+    <div>
+      <ul>
+        <li>
+          <div class="gt-picture">
+            <img src="style/images/guided_tour/privacy-panel-gt-03.svg">
+          </div>
+          <div class="gt-description">
+            <h2 data-l10n-id="gt-ala-blur-header">How to set Location Adjustment?</h2>
+            <p data-l10n-id="gt-ala-blur-desc">
+            Not every app needs your exact location to work properly.  Instead of sharing your exact coordinates, you can choose to effectively blur your location to e.g. 50 miles around you. This way, your weather app will still work, but you are not disclosing your exact location. Remember: Location Adjustment will not completely hide you!
+            </p>
+          </div>
+          <div class="gt-action">
+            <div class="gt-pager page-3"></div>
+            <a class="pp-link btn btn-dark-gray back" href="#gt-ala-explain" data-l10n-id="back">Back</a>
+            <a class="pp-link btn btn-blue" href="#gt-ala-custom" data-l10n-id="next">Next</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  --></section>
+    <section role="region" id="gt-ala-custom" data-section="gt"><!--
+    <header class="gt-header">
+      <a class="pp-link back" href="#root">
+        <span class="icon gaia-icon-close">back</span>
+      </a>
+    </header>
+    <div>
+      <ul>
+        <li>
+          <div class="gt-picture">
+            <img src="style/images/guided_tour/privacy-panel-gt-04.svg">
+          </div>
+          <div class="gt-description">
+            <h2 data-l10n-id="gt-ala-custom-header">What is Custom Location?</h2>
+            <p data-l10n-id="gt-ala-custom-desc">
+              With the custom location setting you are able to hide your real location and set it to another place worldwide. You choose where you are!
+            </p>
+          </div>
+          <div class="gt-action">
+            <div class="gt-pager page-4"></div>
+            <a class="pp-link btn btn-dark-gray back" href="#gt-ala-blur" data-l10n-id="back">Back</a>
+            <a class="pp-link btn btn-blue" href="#gt-ala-exceptions" data-l10n-id="next">Next</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  --></section>
+    <section role="region" id="gt-ala-exceptions" data-section="gt"><!--
+    <header class="gt-header">
+      <a class="pp-link back" href="#root">
+        <span class="icon gaia-icon-close">back</span>
+      </a>
+    </header>
+    <div>
+      <ul>
+        <li>
+          <div class="gt-picture">
+            <img src="style/images/guided_tour/privacy-panel-gt-05.svg">
+          </div>
+          <div class="gt-description">
+            <h2 data-l10n-id="gt-ala-exceptions-header">What is location per app?</h2>
+            <p data-l10n-id="gt-ala-exceptions-desc">
+              Here you will find an overview of all apps, that can access your geolocation. You can adjust the settings for each app individually. They overwrite the global location accuracy for that app.
+            </p>
+          </div>
+          <div class="gt-action">
+            <div class="gt-pager page-5"></div>
+            <a class="pp-link btn btn-dark-gray back" href="#gt-ala-custom" data-l10n-id="back">Back</a>
+            <a class="pp-link btn btn-blue" href="#gt-rpp-explain" data-l10n-id="next">Next</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  --></section>
+    <section role="region" id="gt-rpp-explain" data-section="gt"><!--
+    <header class="gt-header">
+      <a class="pp-link back" href="#root">
+        <span class="icon gaia-icon-close">back</span>
+      </a>
+    </header>
+    <div>
+      <ul>
+        <li>
+          <div class="gt-picture">
+            <img src="style/images/guided_tour/privacy-panel-gt-06.svg">
+          </div>
+          <div class="gt-description">
+            <h2 data-l10n-id="gt-rpp-explain-header">Remote Privacy Protection? What is it?</h2>
+            <p data-l10n-id="gt-rpp-explain-desc">
+              If your phone is stolen or lost, you can use the Remote Privacy Protection. With another phone you can locate it, let it ring or even lock it remotely. You first have to set your personal passphrase and enable the features you will want to use (locate, ring and lock).
+            </p>
+          </div>
+          <div class="gt-action">
+            <div class="gt-pager page-6"></div>
+            <a class="pp-link btn btn-dark-gray back" href="#gt-ala-exceptions" data-l10n-id="back">Back</a>
+            <a class="pp-link btn btn-blue" href="#gt-rpp-passphrase" data-l10n-id="next">Next</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  --></section>
+    <section role="region" id="gt-rpp-passphrase" data-section="gt"><!--
+    <header class="gt-header">
+      <a class="pp-link back" href="#root">
+        <span class="icon gaia-icon-close">back</span>
+      </a>
+    </header>
+    <div>
+      <ul>
+        <li>
+          <div class="gt-picture">
+            <img src="style/images/guided_tour/privacy-panel-gt-07.svg">
+          </div>
+          <div class="gt-description">
+            <h2 data-l10n-id="gt-rpp-passphrase-header">How to set your personal passphrase?</h2>
+            <p data-l10n-id="gt-rpp-passphrase-desc">
+              Tap "Remote Privacy Protection" and set your passphrase to secure your remote features. If you have forgotten your actual passphrase you can reset it using your SIM PIN or lockscreen passcode.
+            </p>
+          </div>
+          <div class="gt-action">
+            <div class="gt-pager page-7"></div>
+            <a class="pp-link btn btn-dark-gray back" href="#gt-rpp-explain" data-l10n-id="back">Back</a>
+            <a class="pp-link btn btn-blue" href="#gt-rpp-locate" data-l10n-id="next">Next</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  --></section>
+    <section role="region" id="gt-rpp-locate" data-section="gt"><!--
+    <header class="gt-header">
+      <a class="pp-link back" href="#root">
+        <span class="icon gaia-icon-close">back</span>
+      </a>
+    </header>
+    <div>
+      <ul>
+        <li>
+          <div class="gt-picture">
+            <img src="style/images/guided_tour/privacy-panel-gt-08.svg">
+          </div>
+          <div class="gt-description">
+            <h2 data-l10n-id="gt-rpp-locate-header">How to locate my phone?</h2>
+            <p>
+              <span data-l10n-id="gt-rpp-locate-desc1">If your phone is lost, just take the phone of a friend and send a SMS with</span><br>
+              <b><span data-l10n-id="gt-rpp-locate-command">“RPP locate YOURPASSPHRASE“</span></b><br>
+              <span data-l10n-id="gt-rpp-locate-desc2">to your phone number and you‘ll get the exact GPS coordinates via SMS in return. Make sure to set up the passphrase!</span>
+            </p>
+          </div>
+          <div class="gt-action">
+            <div class="gt-pager page-8"></div>
+            <a class="pp-link btn btn-dark-gray back" href="#gt-rpp-passphrase" data-l10n-id="back">Back</a>
+            <a class="pp-link btn btn-blue" href="#gt-rpp-ring" data-l10n-id="next">Next</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  --></section>
+    <section role="region" id="gt-rpp-ring" data-section="gt"><!--
+    <header class="gt-header">
+      <a class="pp-link back" href="#root">
+        <span class="icon gaia-icon-close">back</span>
+      </a>
+    </header>
+    <div>
+      <ul>
+        <li>
+          <div class="gt-picture">
+            <img src="style/images/guided_tour/privacy-panel-gt-09.svg">
+          </div>
+          <div class="gt-description">
+            <h2 data-l10n-id="gt-rpp-ring-header">How to ring your phone?</h2>
+            <p>
+              <span data-l10n-id="gt-rpp-ring-desc1">It‘s easy! Just send an SMS with</span><br>
+              <b><span data-l10n-id="gt-rpp-ring-command">“RPP ring YOURPASSPHRASE”</span></b><br>
+              <span data-l10n-id="gt-rpp-ring-desc2">to your phone number and it will ring until you find it and unlock it.</span>
+            </p>
+          </div>
+          <div class="gt-action">
+            <div class="gt-pager page-9"></div>
+            <a class="pp-link btn btn-dark-gray back" href="#gt-rpp-locate" data-l10n-id="back">Back</a>
+            <a class="pp-link btn btn-blue" href="#gt-rpp-lock" data-l10n-id="next">Next</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  --></section>
+    <section role="region" id="gt-rpp-lock" data-section="gt"><!--
+    <header class="gt-header">
+      <a class="pp-link back" href="#root">
+        <span class="icon gaia-icon-close">back</span>
+      </a>
+    </header>
+    <div>
+      <ul>
+        <li>
+          <div class="gt-picture">
+            <img src="style/images/guided_tour/privacy-panel-gt-10.svg">
+          </div>
+          <div class="gt-description">
+            <h2 data-l10n-id="gt-rpp-lock-header">How to lock my phone?</h2>
+            <p>
+              <span data-l10n-id="gt-rpp-lock-desc1">If you have lost your phone and you want to lock it remotely just send an SMS with</span><br>
+              <b><span data-l10n-id="gt-rpp-lock-command">“RPP lock YOURPASSPHRASE”</span></b><br>
+              <span data-l10n-id="gt-rpp-lock-desc2">to your phone number. The phone will lock itself and only you will be able to unlock it with your regular screen passcode.</span>
+            </p>
+          </div>
+          <div class="gt-action">
+            <div class="gt-pager page-10"></div>
+            <a class="pp-link btn btn-dark-gray back" href="#gt-rpp-ring" data-l10n-id="back">Back</a>
+            <a class="pp-link btn btn-blue back" href="#root" data-l10n-id="finish-tour">Finish Tour</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  --></section>
 
     <!-- Sections: About -->
-    <section is="about" role="region" id="about" data-section="about"></section>
+    <section role="region" id="about" data-section="about"><!--
+    <header>
+      <a class="pp-link back" href="#root">
+        <span class="icon gaia-icon-back">back</span>
+      </a>
+      <h1 data-l10n-id="about-privacy-panel">About Privacy Panel</h1>
+    </header>
+    <div>
+      <ul>
+        <li>
+          <span data-l10n-id="version">Version</span>
+          <small id="privacy-panel-version" class="multiline"></small>
+        </li>
+        <li>
+          <span data-l10n-id="build-id">Build-ID</span>
+          <small id="privacy-panel-build" class="multiline"></small>
+        </li>
+      </ul>
+      <header>
+        <h2 data-l10n-id="about-header">About the Privacy Panel</h2>
+      </header>
+      <ul>
+        <li>
+          <p class="description" data-l10n-id="about-description">
+            Together with Deutsche Telecom the Mozilla Foundation developed the
+            Privacy Panel to enable the user to take back control of their
+            personal data…
+          </p>
+        </li>
+      </ul>
+    </div>
+  --></section>
 
+    <!-- Require /js/app.js and all its dependencies -->
     <script data-main="js/app" src="js/vendor/alameda.js"></script>
-  </body>
+   </body>
+
 </html>

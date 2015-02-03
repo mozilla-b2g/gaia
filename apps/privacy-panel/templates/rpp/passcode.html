@@ -1,4 +1,5 @@
-<element name="rpp-passcode" extends="section">
+<html>
+  <head></head><body><element name="rpp-passcode" extends="section">
   <template>
     <header>
       <a class="pp-link back" href="#rpp-screenlock">
@@ -14,7 +15,7 @@
       <h1 data-l10n-id="enter-passcode" data-mode="confirm,confirmLock">Enter Passcode</h1>
     </header>
     <div class="passcode-overlay">
-      <input type="number" x-inputmode="digit" class="passcode-input" />
+      <input x-inputmode="digit" class="passcode-input" type="number">
       <div class="passcode-container">
         <div class="passcode" id="passcode-pseudo-input">
           <label data-l10n-id="create-a-passcode" data-mode="new,create">Create a Passcode</label>
@@ -37,3 +38,5 @@
     </div>
   </template>
 </element>
+</body>
+</html>

@@ -1,186 +1,147 @@
-/**
- * Global styles
- */
 
 :focus {
   outline:none;
 }
-
 ::-moz-focus-inner {
   border:0;
 }
-
-
-/**
- * Root panel
- */
-
 section[data-settings="false"] #back-to-settings {
   visibility: hidden;
 }
-
 section[data-settings="true"] #back-to-settings {
   visibility: visible;
 }
-
-
-/**
- * Lists
- */
-
 ul li {
   border-bottom: none;
   border-top: 0.1rem solid #e6e6e3;
 }
-
 ul li:first-child {
   border-bottom: none;
   border-top: none;
 }
-
 input[type="range"].blur-slider {
   width: calc(100% - 3rem);
 }
-
 .link-text {
   display: block;
   padding: 1rem 0 2rem 0;
 }
-
 .app-element img {
   height: 3rem;
   left: 0;
   position: absolute;
   top: 1.6rem;
   width: 3rem;
+  filter: url('shadow.svg#drop-shadow');
 }
-
 .app-info {
   border-top: none;
 }
-
 .app-info :after {
   display: none;
 }
-
 [hidden] {
   visibility: hidden;
 }
-
-
-/**
- * ALA
- */
-
 .show-when-geolocation-on {
   display: none;
 }
-
 section[data-geolocation="true"] .show-when-geolocation-on {
   display: block;
 }
-
 .show-when-ala-on,
 .hide-when-ala-on {
   display: none;
 }
-
 section[data-geolocation="true"][data-ala="true"] .show-when-ala-on {
   display: block;
 }
-
 section[data-geolocation="true"][data-ala="false"] .hide-when-ala-on {
   display: block;
 }
-
 #ala-exception .type-box,
 section[data-geolocation="true"][data-ala="true"] .type-box {
   border-top: none;
   display: none;
 }
-
 #ala-exception[data-type="blur"] .type-box.type-blur,
 section[data-geolocation="true"][data-ala="true"][data-type="blur"] .type-box.type-blur {
   display: block;
 }
-
 #ala-exception[data-type="user-defined"] .type-box.type-custom-location,
 section[data-geolocation="true"][data-ala="true"][data-type="user-defined"] .type-box.type-custom-location {
   display: block;
 }
-
 #ala-custom[data-type="rc"] .dcl-gps-area,
 #ala-custom[data-type="gps"] .dcl-rc-region,
 #ala-custom[data-type="gps"] .dcl-rc-city {
   opacity: 0.3;
 }
-
 #ala-custom[data-type="gps"] .dcl-gps-area,
 #ala-custom[data-type="rc"] .dcl-rc-region,
 #ala-custom[data-type="rc"] .dcl-rc-city {
   opacity: 1;
 }
-
 .panel-link {
   padding-left: 30px;
 }
-
 .blur-label {
   padding-top: 5px;
 }
-
 .custom-location-description {
   min-height: 0;
 }
-
 .custom-location-description p {
   padding-bottom: 0;
   padding-top: 0;
 }
-
-/**
- * Guided tour
- */
-
+section[role="region"] .permission-group header h2 {
+  margin-top: 1.5rem;
+}
+.permission-list li * {
+  padding-top: 0.5em;
+}
+.perm-info a {
+  padding-top: 0;
+  min-height: 3rem;
+}
+.perm-info a span {
+  min-height: 3rem;
+}
+ul li > a span:nth-of-type(2):not(.button) {
+  line-height: 3rem;
+}
 section[data-section="gt"] > div {
   top: 0;
   height: 100%;
 }
-
 section[role="region"] > header.gt-header:first-child {
   background: none;
   position: absolute;
 }
-
 section[role="region"] > header.gt-header:first-child a:hover {
   background: none;
 }
-
 section[role="region"] > header.gt-header:first-child .icon-close {
   background-image: url(images/close.png);
 }
-
 section[role="region"] > div.gt-box {
   top: 0;
   height: 100%;
 }
-
 .gt-picture {
   height: calc(50% - 2rem);
   background: #CEE2E3;
   overflow: hidden;
   text-align: center;
 }
-
 .gt-picture img {
   width: 100%;
 }
-
 .gt-description {
   overflow: auto;
   height: calc(50% - 4rem);
 }
-
 .gt-description h2 {
   color: #00caf2;
   text-align: center;
@@ -191,7 +152,6 @@ section[role="region"] > div.gt-box {
   padding: 1.4rem 1rem 1rem 1rem;
   font-weight: 300;
 }
-
 .gt-description p {
   line-height: 1.5rem;
   font-size: 1.1rem;
@@ -199,7 +159,6 @@ section[role="region"] > div.gt-box {
   color: #585858;
   padding: 0 2rem;
 }
-
 .gt-action {
   display: flex;
   justify-content: center;
@@ -216,7 +175,6 @@ section[role="region"] > div.gt-box {
   pointer-events: auto;
   padding-top: 1rem;
 }
-
 .gt-pager {
   background: url("images/guided_tour/gt-pager.png") no-repeat center 0;
   height: 10px;
@@ -225,43 +183,33 @@ section[role="region"] > div.gt-box {
   top: 0;
   width: 100%;
 }
-
 .gt-pager.page-2 {
   background-position: 50% -10px;
 }
-
 .gt-pager.page-3 {
   background-position: 50% -20px;
 }
-
 .gt-pager.page-4 {
   background-position: 50% -30px;
 }
-
 .gt-pager.page-5 {
   background-position: 50% -40px;
 }
-
 .gt-pager.page-6 {
   background-position: 50% -50px;
 }
-
 .gt-pager.page-7 {
   background-position: 50% -60px;
 }
-
 .gt-pager.page-8 {
   background-position: 50% -70px;
 }
-
 .gt-pager.page-9 {
   background-position: 50% -80px;
 }
-
 .gt-pager.page-10 {
   background-position: 50% -90px;
 }
-
 .btn {
   position: relative;
   font-family: sans-serif;
@@ -287,23 +235,19 @@ section[role="region"] > div.gt-box {
   text-decoration: none;
   outline: none;
 }
-
 .btn.btn-blue {
   background-color: #00caf2;
   border-color: #00caf2;
   color: #fff;
 }
-
 .btn.btn-dark-gray {
   background-color: #5f5f5f;
   border: none;
   color: #fff;
 }
-
 section[data-section="gt"] ul {
   height: 100%;
 }
-
 section[data-section="gt"] ul li {
   height: 100%;
   display: block;
@@ -311,26 +255,17 @@ section[data-section="gt"] ul li {
   padding: 0;
   border: none;
 }
-
 section[data-section="gt"] ul li > * {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: normal;
 }
-
 section[data-section="gt"] .btn {
   margin: 0 0 0 1rem;
 }
-
-
-/**
- * Remote Privacy Protection
- */
-
 .rpp-box {
   display: none;
 }
-
 .validation-message,
 .pin-validation-message {
   color: red;
@@ -338,12 +273,6 @@ section[data-section="gt"] .btn {
   white-space: normal;
   margin: 1rem;
 }
-
-
-/**
- * Alerts
- */
-
 .overlay {
   position: fixed;
   height: 100%;
@@ -356,7 +285,6 @@ section[data-section="gt"] .btn {
   justify-content: center;
   align-items: center;
 }
-
 .overlay .modal {
   background: #fff;
   width: 22rem;
@@ -366,17 +294,14 @@ section[data-section="gt"] .btn {
   box-sizing: border-box;
   padding: 2rem;
 }
-
 .overlay .modal p,
 .overlay .modal .link-text {
   font-size: 1.2rem;
   padding: 1.5rem 0;
 }
-
 .overlay .modal button {
   margin: 0;
 }
-
 .overlay .modal-alert h1 {
   margin: 0 0 1rem 0;
   padding: 0;
@@ -386,51 +311,33 @@ section[data-section="gt"] .btn {
   text-align: center;
   font-size: 2rem;
 }
-
 .overlay .modal-alert h1 {
   color: #e30613;
 }
-
-/**
- * RPP auth
- */
 #rpp-main[data-login-box="true"] #rpp-login {
   display: block;
 }
-
 #rpp-main[data-login-box="false"] #rpp-register {
   display: block;
 }
-
-
-/**
- * Screenlock and passcode panels
- */
-
 #rpp-screenlock li.lockscreen-enabled {
   display: none;
 }
-
 #rpp-screenlock[data-lockscreen-enabled="true"] li.lockscreen-enabled {
   display: block;
 }
-
 #rpp-screenlock li.passcode-enabled {
   display: none;
 }
-
 #rpp-screenlock[data-lockscreen-enabled="true"][data-passcode-enabled="true"] li.passcode-enabled {
   display: block;
 }
-
 #rpp-screenlock li.passcode-enabled {
   display: none;
 }
-
 #rpp-screenlock[data-lockscreen-enabled="true"][data-passcode-enabled="true"] li.passcode-enabled {
   display: block;
 }
-
 #rpp-passcode .passcode-error {
   clear: both;
   display: none;
@@ -440,26 +347,21 @@ section[data-section="gt"] .btn {
   font-size: 1.5rem;
   line-height: 4.2rem;
 }
-
 #rpp-passcode[data-passcode-status="error"][data-mode="confirm"] div.passcode-error[data-type="incorrect"],
 #rpp-passcode[data-passcode-status="error"][data-mode="confirmLock"] div.passcode-error[data-type="incorrect"],
 #rpp-passcode[data-passcode-status="error"][data-mode="edit"] div.passcode-error[data-type="incorrect"] {
   display: block;
 }
-
 #rpp-passcode[data-passcode-status="error"][data-mode="new"] div.passcode-error[data-type="mismatch"],
 #rpp-passcode[data-passcode-status="error"][data-mode="create"] div.passcode-error[data-type="mismatch"] {
   display: block;
 }
-
 #rpp-passcode[data-passcode-status="error"] menu[data-mode="new"] {
   display: none;
 }
-
 .passcode-change div.passcode-overlay {
   position: relative;
 }
-
 #rpp-passcode label {
   -moz-box-sizing: border-box;
   display: block;
@@ -470,19 +372,15 @@ section[data-section="gt"] .btn {
   color: #000;
   font-size: 1.8rem;
 }
-
 #rpp-passcode [data-mode] {
   display: none;
 }
-
 #rpp-passcode menu[type="toolbar"] {
   width: 8rem;
 }
-
 #rpp-passcode menu[type="toolbar"] button {
   width: 100%;
 }
-
 #rpp-passcode[data-mode="create"]  [data-mode*="create"],
 #rpp-passcode[data-mode="confirm"] [data-mode*="confirm"],
 #rpp-passcode[data-mode="confirmLock"] [data-mode*="confirmLock"],
@@ -490,22 +388,18 @@ section[data-section="gt"] .btn {
 #rpp-passcode[data-mode="new"]     [data-mode*="new"] {
   display: block;
 }
-
 #passcode-confirm {
   display: none;
 }
-
 #rpp-passcode[data-status="success"] #passcode-confirm {
   display: inherit;
 }
-
 .passcode-input {
   z-index: -1;
   position: absolute;
   top: -5rem;
   left: 0;
 }
-
 .passcode-container {
   position: absolute;
   z-index: 1;
@@ -514,13 +408,11 @@ section[data-section="gt"] .btn {
   left: 0;
   background: url(images/document-bg.png);
 }
-
 .passcode {
   width: calc(100% - 2rem);
   margin: 0 auto;
   overflow: hidden;
 }
-
 .passcode-digit {
   -moz-box-sizing: border-box;
   position: relative;
@@ -533,7 +425,6 @@ section[data-section="gt"] .btn {
   background-color: #fff;
   border-radius: 0.3rem;
 }
-
 span.passcode-digit[data-dot]::before {
   content: '';
   display: block;
@@ -547,10 +438,6 @@ span.passcode-digit[data-dot]::before {
   margin-left: -0.75rem;
   margin-top: -0.75rem;
 }
-
-/** Icons
- ---------------------------------------------------------*/
-
 [class^="gaia-icon-"]:before,
 [class*="gaia-icon-"]:before {
   font-family: "gaia-icons";
@@ -562,27 +449,16 @@ span.passcode-digit[data-dot]::before {
   color: #657073;
   font-style: normal;
 }
-
 .gaia-icon-close:before {
   content: 'close';
   color: #fff;
 }
-
 .gaia-icon-back:before {
   content: 'back';
 }
-
 .gaia-icon-about:before {
   content: 'info';
 }
-
-/**
- * [dir='rtl']
- *
- * Switch to use the 'forward' icon
- * when in right-to-left direction.
- */
-
 [dir='rtl'] .icon-back:before {
   content: 'forward';
 }

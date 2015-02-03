@@ -1,4 +1,5 @@
-<element name="rpp-screenlock" extends="section">
+<html>
+  <head></head><body><element name="rpp-screenlock" extends="section">
   <template>
     <header>
       <a class="pp-link back" href="#rpp-features">
@@ -10,13 +11,13 @@
       <ul>
         <li>
           <label class="pack-switch">
-            <input type="checkbox" name="lockscreen.enabled" class="lockscreen-enable uninit">
+            <input name="lockscreen.enabled" class="lockscreen-enable uninit" type="checkbox">
             <span data-l10n-id="lock-screen">Lock Screen</span>
           </label>
         </li>
         <li class="lockscreen-enabled">
           <label class="pack-switch">
-            <input type="checkbox" name="lockscreen.passcode-lock.enabled" class="passcode-enable uninit">
+            <input name="lockscreen.passcode-lock.enabled" class="passcode-enable uninit" type="checkbox">
             <span data-l10n-id="passcode-lock">Passcode Lock</span>
           </label>
         </li>
@@ -24,7 +25,7 @@
           <p data-l10n-id="require-passcode">Require passcode</p>
           <span class="button icon icon-dialog">
             <select name="lockscreen.passcode-lock.timeout">
-              <option value="0" data-l10n-id="immediately" selected>Immediately</option>
+              <option value="0" data-l10n-id="immediately" selected="">Immediately</option>
               <option value="60" data-l10n-id="after-one-minute">After 1 minute</option>
               <option value="300" data-l10n-id="after-five-minutes">After 5 minutes</option>
               <option value="900" data-l10n-id="after-fifteen-minutes">After 15 minutes</option>
@@ -42,3 +43,5 @@
     </div>
   </template>
 </element>
+</body>
+</html>

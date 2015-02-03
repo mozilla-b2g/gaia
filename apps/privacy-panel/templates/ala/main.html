@@ -1,4 +1,5 @@
-<element name="ala-main" extends="section">
+<html>
+  <head></head><body><element name="ala-main" extends="section">
   <template>
     <header>
       <a class="pp-link back" href="#root">
@@ -10,13 +11,13 @@
       <ul>
         <li>
           <label class="pack-switch">
-            <input type="checkbox" class="uninit" name="geolocation.enabled">
+            <input class="uninit" name="geolocation.enabled" type="checkbox">
             <span data-l10n-id="use-geolocation">Use geolocation</span>
           </label>
         </li>
         <li class="show-when-geolocation-on">
           <label class="pack-switch">
-            <input type="checkbox" class="uninit" name="ala.settings.enabled">
+            <input class="uninit" name="ala.settings.enabled" type="checkbox">
             <span data-l10n-id="use-location-adjustment">Use location adjustment</span>
           </label>
         </li>
@@ -36,7 +37,7 @@
               <select name="geolocation.type">
                 <option value="blur" data-l10n-id="adjustment">Adjustment</option>
                 <option value="user-defined" data-l10n-id="custom-location">Custom Location</option>
-                <option value="no-location" data-l10n-id="no-location" selected>No Location</option>
+                <option value="no-location" data-l10n-id="no-location" selected="">No Location</option>
                 <option value="precise" data-l10n-id="precise">Precise</option>
               </select>
             </span>
@@ -45,7 +46,7 @@
         <li class="type-blur type-box show-when-ala-on">
           <label>
             <p class="blur-label"></p>
-            <input class="blur-slider" name="geolocation.blur.slider" type="range" step="1" min="1" max="12" data-default="1">
+            <input class="blur-slider" name="geolocation.blur.slider" step="1" min="1" max="12" data-default="1" type="range">
           </label>
         </li>
         <li class="type-custom-location type-box show-when-ala-on custom-location-description">
@@ -61,7 +62,7 @@
             <span data-l10n-id="add-exceptions">Add exceptions</span>
           </a>
         </li>
-        <div class="custom-location-alert overlay" hidden>
+        <div class="custom-location-alert overlay" hidden="">
           <div class="modal modal-alert">
             <h1 data-l10n-id="attention">Attention!</h1>
             <p data-l10n-id="ala-custom-location-alert">You haven't set a custom location yet. Please set this before working on other settings!</p>
@@ -72,3 +73,5 @@
     </div>
   </template>
 </element>
+</body>
+</html>

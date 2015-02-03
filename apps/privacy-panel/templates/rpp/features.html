@@ -1,4 +1,5 @@
-<element name="rpp-features" extends="section">
+<html>
+  <head></head><body><element name="rpp-features" extends="section">
   <template>
     <header>
       <a class="pp-link back" href="#root">
@@ -10,21 +11,21 @@
       <ul class="remote-settings">
         <li class="remote-locate hint">
           <label class="pack-switch">
-            <input type="checkbox" name="rpp.locate.enabled" class="uninit">
+            <input name="rpp.locate.enabled" class="uninit" type="checkbox">
             <span data-l10n-id="remote-locate">Remote Locate</span>
           </label>
           <p class="explanation" data-l10n-id="remote-locate-desc">You can locate this device via SMS as following: “RPP locate YOURPASSPHRASE”</p>
         </li>
         <li class="remote-ring hint">
           <label class="pack-switch">
-            <input type="checkbox" name="rpp.ring.enabled" class="uninit">
+            <input name="rpp.ring.enabled" class="uninit" type="checkbox">
             <span data-l10n-id="remote-ring">Remote Ring</span>
           </label>
           <p class="explanation" data-l10n-id="remote-ring-desc">You can ring this device via SMS as following: “RPP ring YOURPASSPHRASE”</p>
         </li>
         <li class="remote-lock hint">
           <label class="pack-switch">
-            <input type="checkbox" name="rpp.lock.enabled" class="uninit">
+            <input name="rpp.lock.enabled" class="uninit" type="checkbox">
             <span data-l10n-id="remote-lock">Remote Lock</span>
           </label>
           <p class="explanation" data-l10n-id="remote-lock-desc">You can lock this device via SMS as following: “RPP lock YOURPASSPHRASE”</p>
@@ -39,4 +40,5 @@
       </div>
     </div>
   </template>
-</element>
+</element></body>
+</html>
