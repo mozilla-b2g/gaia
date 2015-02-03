@@ -57,12 +57,8 @@ marionette('Show Keyboard App after uninstallation', function() {
     // switch back to system
     client.switchToFrame();
 
-
     // wait for the 2nd keyboard is loaded
-    var inputWindows = systemInputMgmt.inputWindows;
-    client.waitFor(function() {
-      return (inputWindows.length > 1);
-    });
+    systemInputMgmt.ensureInputWindowCount(2);
 
     systemInputMgmt.switchToActiveKeyboardFrame();
     return imeTestApp.sendKeyButton.displayed();
