@@ -1,6 +1,6 @@
 # Chunking task for marionette js tests...
 ---
-reruns: 4
+reruns: 1
 task:
   metadata:
     name: 'Marionette JS tests chunk {{chunk}}'
@@ -19,19 +19,27 @@ task:
     # Chunking logic is actually in the Makefile here which may make it
     # confusing to figure out who calls what this should be improved.
     env:
+      NODE_DEBUG: '*'
       PART: '{{chunk}}'
-      NBPARTS: '{{totalChunks}}'
       REPORTER: 'mocha-tbpl-reporter'
+      NBPARTS: '{{totalChunks}}'
       TEST_MANIFEST: './shared/test/integration/tbpl-manifest.json'
 
     command:
       - entrypoint
-      - mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log
-
+      - mkdir -p artifacts && ./bin/ci run marionette_js
     artifacts:
+      'public/marionette-mocha-gecko.log':
+        type: file
+        path: '{{gaia}}/marionette-mocha-gecko.log'
+        expires: '{{nextYear}}'
       'public/marionette_js_tests':
         type: directory
         path: '{{gaia}}/artifacts/'
+        expires: '{{nextYear}}'
+      'public/crashes':
+        type: directory
+        path: '{{gaia}}/crash/'
         expires: '{{nextYear}}'
 
   extra:

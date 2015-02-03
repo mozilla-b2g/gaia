@@ -17,10 +17,6 @@
 #                                                                             #
 # MOZPERFOUT  : File path to output mozperf data. Empty mean stdout.          #
 #                                                                             #
-# MARIONETTE_RUNNER_HOST : The Marionnette runner host.                       #
-#                          Current values can be 'marionette-b2gdesktop-host' #
-#                          and 'marionette-device-host'                       #
-#                                                                             #
 # COVERAGE    : Add blanket testing coverage report to use for test output.   #
 #                                                                             #
 # GAIA_APP_CONFIG : The app.list file representing applications to include in #
@@ -172,10 +168,8 @@ export BUILDAPP
 export npm_config_loglevel=warn
 ifneq ($(BUILDAPP),desktop)
 REPORTER?=mocha-tbpl-reporter
-MARIONETTE_RUNNER_HOST?=marionette-socket-host
 endif
 REPORTER?=spec
-MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
 TEST_MANIFEST?=./shared/test/integration/local-manifest.json
 MOZPERFOUT?=""
 
@@ -709,23 +703,7 @@ git-gaia-node-modules: gaia_node_modules.revision
 	(cd "$(NODE_MODULES_SRC)" && git fetch && git reset --hard "$(NODE_MODULES_REV)" )
 
 node_modules: gaia_node_modules.revision
-	# Running make without using a dependency ensures that we can run
-	# "make node_modules" with a custom NODE_MODULES_GIT_URL variable, and then
-	# run another target without specifying the variable
-	$(MAKE) $(NODE_MODULES_SRC)
-ifeq "$(NODE_MODULES_SRC)" "modules.tar"
-	$(TAR_WILDCARDS) --strip-components 1 -x -m -f $(NODE_MODULES_SRC) "mozilla-b2g-gaia-node-modules-*/node_modules"
-else
-	rm -fr node_modules
-	cp -R $(NODE_MODULES_SRC)/node_modules node_modules
-endif
-	npm install && npm rebuild
-	@echo "node_modules installed."
-	touch -c $@
-ifeq ($(BUILDAPP),device)
-	export LANG=en_US.UTF-8; \
-	npm install marionette-socket-host
-endif
+	npm install
 
 ###############################################################################
 # Tests                                                                       #
@@ -763,10 +741,9 @@ test-integration: clean $(PROFILE_FOLDER) test-integration-test
 #
 # Remember to remove this target after bug-969215 is finished !
 .PHONY: test-integration-test
-test-integration-test:
+test-integration-test: b2g
+	TEST_MANIFEST=$(TEST_MANIFEST) \
 	./bin/gaia-marionette \
-		--host $(MARIONETTE_RUNNER_HOST) \
-		--manifest $(TEST_MANIFEST) \
 		--reporter $(REPORTER) \
 		--buildapp $(BUILDAPP)
 
@@ -780,7 +757,6 @@ caldav-server-install:
 .PHONY: test-perf
 test-perf:
 	MOZPERFOUT="$(MOZPERFOUT)" APPS="$(APPS)" \
-	MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) GAIA_DIR="`pwd`" \
 	REPORTER=$(REPORTER) \
 	./bin/gaia-perf-marionette
 
