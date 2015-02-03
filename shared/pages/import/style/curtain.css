@@ -45,7 +45,7 @@ form[role="dialog"][data-type="confirm"][data-state="message"] menu {
 
 form[role="dialog"][data-type="confirm"][data-state="error"] menu #retry,
 form[role="dialog"][data-type="confirm"][data-state="timeout"] menu #retry {
-  margin-left: 1rem;
+  -moz-margin-start: 1rem;
 }
 
 /* Sections */
@@ -75,5 +75,5 @@ p[role="status"] {
 }
 
 #progress p[role="status"] {
-  text-align: left;
+  text-align: start;
 }
