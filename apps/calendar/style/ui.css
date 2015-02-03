@@ -231,12 +231,12 @@ body[data-path="/day/"] #view-selector > .day > a:active {
 }
 
 #advanced-settings-view .account-list a {
-  padding-right: 4rem;
+  -moz-padding-end: 4rem;
 }
 
 #advanced-settings-view .account-list .error a {
   background: transparent url('icons/accountwarning.png') no-repeat left / 2rem auto;
-  padding-left: 2.7rem;
+  -moz-padding-start: 2.7rem;
 }
 
 #advanced-settings-view .preset:after {
@@ -333,4 +333,15 @@ gaia-header > a > span {
 .icon-calendar-today:before,
 .icon-calendar-eventalarm:before {
   font-size: 3.2rem;
+}
+
+/* RTL View */
+
+html[dir="rtl"] #view-selector > .today {
+  border-left: 0.1rem solid #F2F2F2;
+  border-right: unset;
+}
+
+html[dir="rtl"] #advanced-settings-view .account-list .error a {
+  background-position: right;
 }
