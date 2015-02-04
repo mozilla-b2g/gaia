@@ -88,6 +88,12 @@ marionette('Show Keyboard App after uninstallation', function() {
     keyboard.imeSwitchingKey.click();
     check3rdPartyIme();
 
+    // XXX: Blur the input field, otherwise the keyboard frame has higher
+    // z-index than dialog and we can't click it
+    systemInputMgmt.waitForKeyboardFrameDisplayed();
+    client.apps.switchToApp(KeyboardTestApp.ORIGIN);
+    keyboardTestApp.nonInputArea.click();
+
     // Uninstall the current active IME
     appInstall.uninstall(ImeTestApp.MANIFEST_URL);
     client.switchToFrame();
