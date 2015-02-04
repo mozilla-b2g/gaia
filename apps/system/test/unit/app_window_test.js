@@ -1689,8 +1689,10 @@ suite('system/AppWindow', function() {
 
       var chromeEventSpy = this.sinon.stub(AppChrome.prototype, 'handleEvent');
 
+      app1.inError = true;
       app1.element.dispatchEvent(new CustomEvent('_opened'));
 
+      sinon.assert.calledWith(chromeEventSpy, {type: 'mozbrowsererror'});
       sinon.assert.calledWith(chromeEventSpy, {type: 'mozbrowserloadstart'});
       sinon.assert.calledWith(chromeEventSpy, {type: '_loading'});
     });
