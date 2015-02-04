@@ -107,6 +107,12 @@ form[role="search"] button[type="submit"] + p > textarea {
 
   font-size: 1.7rem;
   line-height: 2.1rem;
+
+  unicode-bidi: -moz-plaintext;
+}
+
+#messages-input.placeholder {
+  unicode-bidi: unset;
 }
 
 #messages-input:after {

@@ -62,6 +62,17 @@
     }
   }
 
+  /** Without bug 1103011 fixed, subject's caret would not be set at correct
+   * position with dir attribute set to auto. So we need to specify the auto
+   * direction only when subject is not empty.
+   */
+  function updateDirection(value) {
+    /* jshint validthis: true */
+    var priv = privateMembers.get(this);
+
+    priv.input.dir = value ? 'auto': '';
+  }
+
   function updateValue(newValue) {
     /* jshint validthis: true */
     var priv = privateMembers.get(this);
@@ -75,6 +86,7 @@
     if (priv.value !== newValue) {
       priv.value = newValue;
       priv.updatePlaceholder();
+      priv.updateDirection(newValue);
 
       this.emit('change');
     }
@@ -106,7 +118,8 @@
 
       // methods
       updateValue: updateValue.bind(this),
-      updatePlaceholder: updatePlaceholder.bind(this)
+      updatePlaceholder: updatePlaceholder.bind(this),
+      updateDirection: updateDirection.bind(this)
     };
     privateMembers.set(this, priv);
 
