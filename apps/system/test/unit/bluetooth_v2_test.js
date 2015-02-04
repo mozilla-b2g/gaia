@@ -165,26 +165,23 @@ suite('system/bluetooth_transfer_v2', function() {
 
   suite('handleEvent', function() {
     setup(function() {
-      this.sinon.spy(navigator.mozBluetooth, 'addEventListener');
-      this.sinon.spy(window, 'addEventListener');
-      this.sinon.spy(window, 'dispatchEvent');
-      this.sinon.stub(Bluetooth, '_initDefaultAdapter');
-      this.sinon.stub(Bluetooth, '_setProfileConnected');
-      this.sinon.stub(MockBTAdapter, 'enable', function() {
-        return new Promise(function(resolve) {
-          resolve();
-        });
-      });
-      this.sinon.stub(Bluetooth, 'getAdapter', function() {
-        return new Promise(function(resolve) {
-          resolve(MockBTAdapter);
-        });
-      });
-      Bluetooth.start();
+      // this.sinon.stub(MockBTAdapter, 'enable', function() {
+      //   return new Promise(function(resolve) {console.log('PPPP');
+      //     resolve();
+      //   });
+      // });
+      // this.sinon.stub(Bluetooth, 'getAdapter', function() {
+      //   return new Promise(function(resolve) {
+      //     resolve(MockBTAdapter);
+      //   });
+      // });
+      this.sinon.spy(Bluetooth, 'getAdapter');
+      this.sinon.spy(MockBTAdapter, 'enable');
+      this.sinon.spy(MockBTAdapter, 'disable');
     });
 
     test('request-enable-bluetooth is called', function() {
-      window.dispatchEvent(new CustomEvent('request-enable-bluetooth'));
+      Bluetooth.handleEvent({type: 'request-enable-bluetooth'});
       assert.ok(Bluetooth.getAdapter.called);
       // this.sinon.clock.tick();
       // assert.ok(MockBTAdapter.enable.called);
@@ -193,8 +190,10 @@ suite('system/bluetooth_transfer_v2', function() {
     });
 
     test('request-disable-bluetooth is called', function() {
-      window.dispatchEvent(new CustomEvent('request-disable-bluetooth'));
+      Bluetooth.handleEvent({type: 'request-disable-bluetooth'});
+      // window.dispatchEvent(new CustomEvent('request-disable-bluetooth'));
       assert.ok(Bluetooth.getAdapter.called);
+      // assert.ok(MockBTAdapter.disable.called);
     //   // this.sinon.clock.tick();
     //   assert.equal(MockNavigatorSettings.mSettings['bluetooth.enabled'],
     //     false);

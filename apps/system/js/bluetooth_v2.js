@@ -183,27 +183,27 @@ var Bluetooth = {
     switch (evt.type) {
       // enable bluetooth hardware and update settings value
       case 'request-enable-bluetooth':
-        this.getAdapter().then(function(adapter) {
-          adapter.enable().then(function onResolve() {
+        this.getAdapter().then((adapter) => {
+          adapter.enable().then(() => { //resolve
             SettingsListener.getSettingsLock().set({
               'bluetooth.enabled': true
             });
-          }, function onReject() {
+          }, () => { //reject
             this.debug('can not get bluetooth adapter');
-          }.bind(this));
-        }.bind(this));
+          });
+        });
         break;
       // disable bluetooth hardware and update settings value
       case 'request-disable-bluetooth':
-        this.getAdapter().then(function(adapter) {
-          adapter.disable().then(function onResolve() {
+        this.getAdapter().then((adapter) => {
+          adapter.disable().then(() => { //resolve
             SettingsListener.getSettingsLock().set({
               'bluetooth.enabled': false
             });
-          }, function onReject() {
+          }, () => { //reject
             this.debug('can not get bluetooth adapter');
-          }.bind(this));
-        }.bind(this));
+          });
+        });
         break;
     }
   },
@@ -254,9 +254,9 @@ var Bluetooth = {
    * @private
    */
   _initDefaultAdapter: function bt_initDefaultAdapter() {
-    this.getAdapter().then(function(adapter) {
+    this.getAdapter().then((adapter) => {
       this._updateProfileStat(adapter);
-    }.bind(this));
+    });
   },
 
   /**
@@ -273,20 +273,17 @@ var Bluetooth = {
      * connected, then summarize to an event and dispatch to StatusBar
      */
     // In headset connected case:
-    adapter.addEventListener('hfpstatuschanged',
-      function bt_hfpStatusChanged(evt) {
+    adapter.addEventListener('hfpstatuschanged', (evt) => {
         this._setProfileConnected(this.Profiles.HFP, evt.status);
-    }.bind(this));
+    });
 
-    adapter.addEventListener('a2dpstatuschanged',
-      function bt_a2dpStatusChanged(evt) {
-        this._setProfileConnected(this.Profiles.A2DP, evt.status);
-    }.bind(this));
+    adapter.addEventListener('a2dpstatuschanged', (evt) => {
+      this._setProfileConnected(this.Profiles.A2DP, evt.status);
+    });
 
-    adapter.addEventListener('scostatuschanged',
-      function bt_scoStatusChanged(evt) {
-        this._setProfileConnected(this.Profiles.SCO, evt.status);
-    }.bind(this));
+    adapter.addEventListener('scostatuschanged', (evt) => {
+      this._setProfileConnected(this.Profiles.SCO, evt.status);
+    });
   },
 
   /**
