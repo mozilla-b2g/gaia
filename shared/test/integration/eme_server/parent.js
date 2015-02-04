@@ -80,7 +80,7 @@ module.exports.setServerURL = function(client, server) {
   var chrome = client.scope({ context: 'chrome' });
   chrome.executeAsyncScript(function(url) {
     var request = navigator.mozSettings.createLock().set({
-      'everythingme.api.url': url
+      'appsearch.url': url
     });
     request.onsuccess = function() {
       marionetteScriptFinished();
