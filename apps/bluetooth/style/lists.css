@@ -91,7 +91,10 @@ ul > li > progress + span {
   display: inline-block;
   vertical-align: middle;
   margin: 0;
-  padding: 0 0 0 1rem;
+  padding-top: 0;
+  padding-bottom: 0;
+  -moz-padding-end: 0;
+  -moz-padding-start: 1rem;
   color: #505b5b;
   font-size: 1.4rem;
   line-height: 6rem;
@@ -107,15 +110,6 @@ ul > li > progress.overlapping-icon {
 
 ul > li > progress.hidden {
   display: none;
-}
-
-ul > li > progress + span {
-  display: inline-block;
-  vertical-align: middle;
-  margin: 0;
-  padding: 0 0 0 1rem;
-  color: #505b5b;
-  font-size: 1.4rem;
 }
 
 /* description + value on the same line */
@@ -220,19 +214,19 @@ ul li > label.pack-switch > input ~ span:after {
 }
 
 ul li > label.pack-checkbox > span {
-  padding-right: 6.1rem;
+  -moz-padding-end: 6.1rem;
 }
 
 ul li > label.pack-radio ~ p {
-  padding-right: 3rem;
+  -moz-padding-end: 3rem;
 }
 
 ul li > label.pack-switch > span {
-   padding-right: 9rem;
+  -moz-padding-end: 9rem;
 }
 
 ul li > label.pack-radio > span {
-  padding-right: 5.9rem;
+  -moz-padding-end: 5.9rem;
 }
 
 ul li > label.pack-checkbox:active,
@@ -262,11 +256,6 @@ ul li p + label:not([for]) {
 /******************************************************************************
  * Right-to-Left layout
  */
-
-html[dir="rtl"] ul > li > progress + span {
-  padding-left: 0;
-  padding-right: 1rem;
-}
 
 html[dir="rtl"] ul li > a span:nth-of-type(2):not(.button) {
   left: 1.5rem;
@@ -302,30 +291,14 @@ html[dir="rtl"] ul li > label.pack-switch > input ~ span:after {
   right: auto;
 }
 
-html[dir="rtl"] ul li > label.pack-checkbox > span {
-  padding-left: 6.1rem;
-
-}
 html[dir="rtl"] ul li > label.pack-checkbox > span:not(.menu-item) {
   padding-left: 6.1rem;
   padding-right: 3rem;
 }
 
-html[dir="rtl"] ul li > label.pack-radio ~ p {
-  padding-left: 3rem;
-}
-
-html[dir="rtl"] ul li > label.pack-switch > span {
-  padding-left: 9rem;
-}
-
 html[dir="rtl"] ul li > label.pack-switch > span:not(.menu-item) {
   padding-left: 9rem;
   padding-right: 3rem;
-}
-
-html[dir="rtl"] ul li > label.pack-radio > span {
-  padding-left: 5.9rem;
 }
 
 html[dir="rtl"] ul li > label.pack-radio > span:not(.menu-item) {
@@ -356,4 +329,10 @@ html[dir="rtl"] ul li.bluetooth-device > a{
 html[dir="rtl"] ul li > label.pack-checkbox > .color-preview:before {
   margin-left: 1rem;
   margin-right: -1rem;
+}
+
+/* Customization style for overlapping .bluetooth-device:before */
+html[dir="rtl"] ul > li > progress.overlapping-icon {
+  right: unset;
+  left: 3rem;
 }
