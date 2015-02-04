@@ -195,7 +195,7 @@ function init() {
       // The 'browse' activity is the way we launch Gallery from Camera.
       // If this was a cold start, then the db needs to be initialized.
       if (!photodb) {
-        initDB();  // Initialize the media database
+        initDB();
         setView(LAYOUT_MODE.list);
       }
       else {
@@ -208,8 +208,9 @@ function init() {
         // to the thumbnail list would cause her to lose work, so in those
         // cases we don't change anything and let the gallery resume where
         // the user left it.  See Bug 846220.
-        if (currentView === LAYOUT_MODE.fullscreen)
+        if (currentView === LAYOUT_MODE.fullscreen) {
           setView(LAYOUT_MODE.list);
+        }
       }
       break;
     case 'pick':
@@ -224,6 +225,11 @@ function init() {
 // Initialize MediaDB objects for photos and videos, and set up their
 // event handlers.
 function initDB() {
+  if (photodb) {
+    console.warn('MediaDB already initialized');
+    return;
+  }
+
   photodb = new MediaDB('pictures', metadataParserWrapper, {
     version: 2,
     autoscan: false,     // We're going to call scan() explicitly
