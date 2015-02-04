@@ -47,7 +47,8 @@ suite('notification-receiver/Receiver', function() {
         navigator.mozPresentation._mInjectSession(
           MockPresentationSession._mCreateSession());
         assert.isTrue(receiver._handleSessionReady.calledOnce);
-        assert.ok(MockPresentationSession.onmessage);
+        assert.ok(
+          MockPresentationSession.addEventListener.calledWith('message'));
         assert.isTrue(
           MockPresentationSession.addEventListener.calledWith('statechange'));
       });
@@ -61,7 +62,8 @@ suite('notification-receiver/Receiver', function() {
         assert.isFalse(receiver._handleSessionReady.called);
         receiver.init();
         assert.isTrue(receiver._handleSessionReady.calledOnce);
-        assert.ok(MockPresentationSession.onmessage);
+        assert.ok(
+          MockPresentationSession.addEventListener.calledWith('message'));
         assert.isTrue(
           MockPresentationSession.addEventListener.calledWith('statechange'));
       });

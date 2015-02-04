@@ -30,7 +30,7 @@
           if (target.tagName == 'BUTTON') {
             this.sendMessage({
               type: target.dataset.messageType,
-              callingParty: target.dataset.callingParty,
+              title: target.dataset.messageTitle,
               body: target.dataset.messageBody
             });
           }
