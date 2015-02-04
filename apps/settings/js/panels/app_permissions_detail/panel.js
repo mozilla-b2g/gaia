@@ -28,7 +28,7 @@ define(function(require) {
         this._verbose = null;
         elements = {
           panelHeader: panel.querySelector('gaia-header'),
-          uninstallButton: panel.querySelector('.uninstall-app'),
+          uninstallButton: panel.querySelector('.uninstall-app > button'),
           list: panel.querySelector('.permissionsListHeader + ul'),
           header: panel.querySelector('.permissionsListHeader'),
           developerLink: panel.querySelector('.developer-infos > a'),
