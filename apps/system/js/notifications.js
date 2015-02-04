@@ -7,6 +7,8 @@
 var NotificationScreen = {
   TOASTER_TIMEOUT: 5000,
   TRANSITION_FRACTION: 0.30,
+  TRANSITION_DURATION: 300,
+  SWIPE_INERTIA: 100,
   TAP_THRESHOLD: 10,
   SCROLL_THRESHOLD: 10,
   CLEAR_DELAY: 80,
@@ -228,6 +230,7 @@ var NotificationScreen = {
     this._touchStartX = evt.touches[0].pageX;
     this._touchStartY = evt.touches[0].pageY;
     this._touchPosX = 0;
+    this._touchStartTime = evt.timeStamp;
     this._touching = true;
     this._isTap = true;
   },
@@ -259,6 +262,7 @@ var NotificationScreen = {
     this._touchPosX = evt.touches[0].pageX - this._touchStartX;
     if (Math.abs(this._touchPosX) >= this.TAP_THRESHOLD) {
       this._isTap = false;
+      this.notificationsContainer.style.overflow = 'hidden';
     }
     if (!this._isTap) {
       this._notification.style.transform =
@@ -274,6 +278,8 @@ var NotificationScreen = {
     evt.preventDefault();
     this._touching = false;
 
+    this.notificationsContainer.style.overflow = '';
+
     if (this._isTap) {
       var event = new CustomEvent('tap', {
         bubbles: true,
@@ -284,12 +290,21 @@ var NotificationScreen = {
       return;
     }
 
-    if (Math.abs(this._touchPosX) >
+    // Taking speed into account to detect swipes
+    var deltaT = evt.timeStamp - this._touchStartTime;
+    var speed = this._touchPosX / deltaT;
+    var inertia = speed * this.SWIPE_INERTIA;
+    var finalDelta = Math.abs(this._touchPosX + inertia);
+
+    if (finalDelta >
         this._containerWidth * this.TRANSITION_FRACTION) {
       if (this._touchPosX < 0) {
         this._notification.classList.add('left');
       }
-      this.swipeCloseNotification();
+
+      var durationLeft = (1 - (finalDelta / this._containerWidth)) *
+                         this.TRANSITION_DURATION;
+      this.swipeCloseNotification(durationLeft);
     } else {
       this.cancelSwipe();
     }
@@ -581,7 +596,7 @@ var NotificationScreen = {
       }));
   },
 
-  swipeCloseNotification: function ns_swipeCloseNotification() {
+  swipeCloseNotification: function ns_swipeCloseNotification(duration) {
     var notification = this._notification;
     this._notification = null;
 
@@ -611,6 +626,8 @@ var NotificationScreen = {
     });
 
     notification.classList.add('disappearing');
+    duration = duration || this.TRANSITION_DURATION;
+    notification.style.transitionDuration = duration + 'ms';
     notification.style.transform = '';
   },
 

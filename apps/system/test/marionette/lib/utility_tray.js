@@ -20,11 +20,16 @@
       element: '#utility-tray',
       screen: '#screen.utility-tray',
       notifContainer: '#desktop-notifications-container',
+      notification: '#desktop-notifications-container .notification',
       grippy: '#utility-tray-grippy'
     },
 
     get visible() {
       return this.client.findElement(this.Selectors.screen);
+    },
+
+    get firstNotification() {
+      return this.client.findElement(this.Selectors.notification);
     },
 
     waitForOpened: function() {
