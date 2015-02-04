@@ -1,9 +1,7 @@
 'use strict';
 
-/* global MockL10n, SpinDatePicker */
-
-require('/js/value_selector/value_picker.js');
-require('/js/value_selector/spin_date_picker.js');
+requireApp('system/js/value_selector/value_picker.js');
+requireApp('system/js/value_selector/spin_date_picker.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('value selector/spin date picker', function() {
@@ -26,7 +24,7 @@ suite('value selector/spin date picker', function() {
 
   setup(function() {
     // mockup element
-    function mock_obj() {}
+    function mock_obj() {};
     mock_obj.prototype.querySelector = function() {
       return document.createElement('div').
         appendChild(document.createElement('div'));
