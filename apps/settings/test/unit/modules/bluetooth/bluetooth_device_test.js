@@ -1,13 +1,28 @@
 'use strict';
 
 suite('BluetoothDevice', function() {
-  var bluetoothDevice, mockDeviceObj;
+  var bluetoothDevice, mockBtClassOfDeviceMapper, mockDeviceObj;
 
   setup(function(done) {
     var modules = [
-      'modules/bluetooth/bluetooth_device'
+      'modules/bluetooth/bluetooth_device',
+      'modules/bluetooth/bluetooth_cod_mapper'
     ];
-    var map = {};
+
+    var map = {
+      'modules/bluetooth': {
+        'modules/bluetooth/bluetooth_cod_mapper': 'MockBtClassOfDeviceMapper'
+      }
+    };
+
+    mockBtClassOfDeviceMapper = {
+      getDeviceType: function() {return '';}
+    };
+
+    define('MockBtClassOfDeviceMapper', function() {
+      return mockBtClassOfDeviceMapper;
+    });
+
     mockDeviceObj = {
       onattributechanged: {},
       name: 'device-01',
@@ -30,11 +45,11 @@ suite('BluetoothDevice', function() {
 
     suite('create > ', function() {
       test('Will create BluetoothDevice with "name", "paired", ' +
-           '"address", and "cod" properties. ', function() {
+           '"address", and "type" properties. ', function() {
         assert.equal(bluetoothDeviceCreated.name, mockDeviceObj.name);
         assert.equal(bluetoothDeviceCreated.paired, mockDeviceObj.paired);
         assert.equal(bluetoothDeviceCreated.address, mockDeviceObj.address);
-        assert.equal(bluetoothDeviceCreated.cod, mockDeviceObj.cod);
+        assert.isDefined(bluetoothDeviceCreated.type);
       });
     });
 
