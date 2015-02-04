@@ -11,9 +11,9 @@ var utils = require('./utils');
 // For now, we would not allow multiple apps with the same appName.
 function getManifestURL(webappsMapping, appName) {
   if (!webappsMapping[appName]) {
-    throw new Error(
-      'Can not find application ' + appName + 'in webappsMapping'
-    );
+    utils.log('keyboard-layouts', 'Can not find application ' + appName +
+      ' in webappsMapping');
+    return '';
   }
 
   return webappsMapping[appName].manifestURL;
