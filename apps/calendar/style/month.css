@@ -38,7 +38,7 @@ section.month li {
   -moz-user-select: none;
   font-size: 1.4rem;
   line-height: 120%;
-  margin-right: 0.1rem;
+  -moz-margin-end: 0.1rem;
   width: 4.4rem;
 }
 
@@ -47,14 +47,10 @@ section.month li {
  * we should turn it off.
  */
 section.month li:last-child {
-  margin-right: 0;
+  -moz-margin-end: 0;
 }
 
-.rtl section.month li {
-  float: right;
-}
-
-.ltr section.month li {
+section.month li {
   float: left;
 }
 
@@ -78,6 +74,7 @@ section.month li:last-child {
 section.month ol {
   height: 4.4rem;
   margin-bottom: 0.1rem;
+  display: flex;
 }
 
 /* The last week doesn't need a bottom border. */
@@ -144,7 +141,7 @@ section.month .icon-calendar-dot {
 
 section.month .icon-calendar-dot:before {
   /* center dots */
-  margin-left: calc(50% - 1.8rem);
+  -moz-margin-start: calc(50% - 1.8rem);
 }
 
 /* month-day-agenda
@@ -328,4 +325,44 @@ section.month .icon-calendar-dot:before {
   line-height: 6rem;
   position: absolute;
   right: 1rem;
+}
+
+/* RTL View */
+html[dir="rtl"] section.month li {
+  float: left;
+}
+
+html[dir="rtl"] section.month .busy-indicator {
+  flex-direction: row-reverse;
+}
+
+html[dir="rtl"] #month-day-agenda .icon-calendar-alarm {
+  left: 0;
+  right: unset;
+}
+
+html[dir="rtl"] #month-day-agenda .icon-calendar-dot {
+  left: unset;
+  right: -1.4rem;
+}
+
+html[dir="rtl"] #month-day-agenda .event-time {
+  float: right;
+  text-align: right;
+}
+
+html[dir="rtl"] #month-day-agenda .event-details {
+  left: unset;
+  right: 11.5rem;
+  text-align: right;
+}
+
+html[dir="rtl"] #month-day-agenda .has-alarms .icon-calendar-alarm {
+  left: 1rem;
+  right: unset;
+}
+
+html[dir="rtl"] #month-day-agenda .details,
+html[dir="rtl"] #event-list-date {
+  text-align: right;
 }

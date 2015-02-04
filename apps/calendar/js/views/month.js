@@ -15,6 +15,7 @@ var XSWIPE_OFFSET = window.innerWidth / 10;
 function Month() {
   View.apply(this, arguments);
   this.frames = new Map();
+  window.addEventListener('localized', this);
 }
 module.exports = Month;
 
@@ -110,6 +111,9 @@ Month.prototype = {
       case 'monthChange':
         this.changeDate(e.data[0]);
         break;
+      case 'localized':
+        this.reconstruct();
+        break;
     }
   },
 
@@ -185,6 +189,12 @@ Month.prototype = {
       this.frames.delete(key);
       frame.destroy();
     });
+  },
+
+  reconstruct: function() {
+    // Watch for changed value from transition of a locale to another
+    this.destroy();
+    this.changeDate(this.controller.month);
   }
 
 };
