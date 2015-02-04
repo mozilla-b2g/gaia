@@ -18,9 +18,6 @@
     'simlockback',
     'simlockrequestclose'
   ];
-  SimLockManager.STATES = [
-    'isActive'
-  ];
   SimLockManager.SUB_MODULES = [
     'SimLockSystemDialog'
   ];
@@ -29,9 +26,6 @@
     _duringCall: false,
     _showPrevented: false,
     _alreadyShown: false,
-    isActive: function() {
-      return this._alreadyShown;
-    },
 
     _handle_simslotready: function() {
       this.showIfLocked();
@@ -162,6 +156,20 @@
       // https://bugzilla.mozilla.org/show_bug.cgi?id=SIMPIN-Dialog
     },
 
+    isBothSlotsLocked: function sl_isBothSlotsLocked(){
+      if(!SIMSlotManager.isMultiSIM() ||
+          SIMSlotManager.hasOnlyOneSIMCardDetected()){
+        return false;
+      }
+
+      var simSlots = SIMSlotManager.getSlots();
+      var isBothLocked = true;
+      for (var i = 0; i < simSlots.length; i++) {
+        isBothLocked = isBothLocked && simSlots[i].isLocked();
+      }
+      return isBothLocked;
+    },
+
     showIfLocked: function sl_showIfLocked(currentSlotIndex, skipped) {
       if (!SIMSlotManager.ready) {
         this.warn('SIMSlot not ready yet.');
@@ -219,8 +227,7 @@
         }
 
         // Always showing the first slot first.
-        if (!this._alreadyShown &&
-          !SIMSlotManager.hasOnlyOneSIMCardDetected() && index > 0) {
+        if (!this._alreadyShown && this.isBothSlotsLocked() && index > 0) {
           return false;
         }
 

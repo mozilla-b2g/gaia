@@ -61,6 +61,8 @@
    */
   LockScreenWindow.prototype.lockscreen = null;
 
+  LockScreenWindow.prototype.HIERARCHY_MANAGER = 'LockScreenWindowManager';
+
   /**
    * We would maintain our own events by other components.
    *

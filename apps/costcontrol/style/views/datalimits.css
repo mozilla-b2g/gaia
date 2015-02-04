@@ -2,6 +2,7 @@
 #data-limit-dialog {
   top: 0;
   z-index: 20;
+  -moz-user-select: none;
 }
 
 #data-limit-dialog form {

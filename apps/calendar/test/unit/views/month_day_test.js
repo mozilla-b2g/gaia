@@ -53,7 +53,7 @@ suite('Views.MonthDay', function() {
       subject.create();
       assert.include(
         subject.element.outerHTML,
-        'data-l10n-id="past-other-month"'
+        'data-l10n-id="past-other-month-description"'
       );
     });
 
@@ -64,7 +64,7 @@ suite('Views.MonthDay', function() {
       subject.create();
       assert.include(
         subject.element.outerHTML,
-        'data-l10n-id="future-other-month"'
+        'data-l10n-id="future-other-month-description"'
       );
     });
   });

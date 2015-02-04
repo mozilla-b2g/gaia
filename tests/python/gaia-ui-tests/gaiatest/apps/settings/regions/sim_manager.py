@@ -2,11 +2,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import time
-
 try:
+    from marionette import Wait
+    from marionette import expected
     from marionette.by import By
 except:
+    from marionette_driver import Wait
+    from marionette_driver import expected
     from marionette_driver.by import By
 
 from gaiatest.apps.base import Base
@@ -34,8 +36,9 @@ class SimManager(Base):
 
         # A confirmation modal about stopping the data connection gets displayed in the System app
         self.marionette.switch_to_frame()
-        self.wait_for_element_displayed(*self._confirm_suspended_locator)
-        self.marionette.find_element(*self._confirm_suspended_locator).tap()
+        confirm = Wait(self.marionette).until(expected.element_present(*self._confirm_suspended_locator))
+        Wait(self.marionette).until(expected.element_displayed(confirm))
+        confirm.tap()
         self.apps.switch_to_displayed_app()
 
     @property

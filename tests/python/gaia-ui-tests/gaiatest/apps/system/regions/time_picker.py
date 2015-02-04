@@ -5,9 +5,13 @@
 import time
 
 try:
+    from marionette import (expected,
+                            Wait)
     from marionette.by import By
     from marionette.marionette import Actions
 except:
+    from marionette_driver import (expected,
+                                   Wait)
     from marionette_driver.by import By
     from marionette_driver.marionette import Actions
 
@@ -27,15 +31,16 @@ class TimePicker(Base):
     def __init__(self, marionette):
         Base.__init__(self, marionette)
         self.marionette.switch_to_frame()
-        self.wait_for_element_displayed(*self._current_element(*self._hour_picker_locator))
+        Wait(self.marionette).until(expected.element_displayed(*self._hour_picker_locator))
 
-        # TODO: wait for the time piker to fade in Bug 1038186
+        # TODO: wait for the time picker to fade in Bug 1038186
         time.sleep(2)
 
     def tap_done(self):
+        time_picker = self.marionette.find_element(*self._time_picker_locator)
         self.marionette.find_element(*self._done_button_locator).tap()
-        self.wait_for_element_not_displayed(*self._time_picker_locator)
-        # TODO: wait for the time piker to fade out Bug 1038186
+        Wait(self.marionette).until(expected.element_not_displayed(time_picker))
+        # TODO: wait for the time picker to fade out Bug 1038186
         time.sleep(2)
         self.apps.switch_to_displayed_app()
 
@@ -50,7 +55,7 @@ class TimePicker(Base):
     def spin_minute(self):
         old_minute = self.minute
         self._flick_menu_up(self._minutes_picker_locator)
-        self.wait_for_condition(lambda m: self.minute != old_minute)
+        Wait(self.marionette).until(lambda m: self.minute != old_minute)
 
     @property
     def hour24(self):

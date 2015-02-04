@@ -325,15 +325,20 @@ suite('BluetoothContext', function() {
   });
 
   suite('_onAdapterDevicepaired > ', function() {
-    var mockAdapter;
+    var mockAdapter, mockEvent;
     setup(function() {
       mockAdapter = {};
+      mockEvent = {
+        device: {
+          address: 'AA:BB:CC:00:11:01'
+        }
+      };
       this.sinon.stub(btContext, '_refreshPairedDevicesInfo');
     });
 
     test('_refreshPairedDevicesInfo() should be called with adapter ',
     function() {
-      btContext._onAdapterDevicepaired(mockAdapter);
+      btContext._onAdapterDevicepaired(mockAdapter, mockEvent);
       assert.isTrue(btContext._refreshPairedDevicesInfo.calledWith(
         mockAdapter));
     });

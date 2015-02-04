@@ -31,6 +31,8 @@ MonthDay.prototype = {
     // a different month (Bug 1092729)
     if (l10nStateId === 'future' || l10nStateId === 'past') {
       l10nStateId = '';
+    } else {
+      l10nStateId += '-description';
     }
 
     var el = document.createElement('li');

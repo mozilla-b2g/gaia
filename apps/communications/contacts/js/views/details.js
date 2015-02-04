@@ -42,6 +42,7 @@ contacts.Details = (function() {
       detailsInner,
       dom,
       currentSocial,
+      header,
       _;
 
   var socialButtonIds = [
@@ -53,6 +54,7 @@ contacts.Details = (function() {
   var init = function cd_init(currentDom) {
     _ = navigator.mozL10n.get;
     dom = currentDom || document;
+    header = dom.querySelector('#details-view-header');
     contactDetails = dom.querySelector('#contact-detail');
     listContainer = dom.querySelector('#details-list');
     detailsName = dom.querySelector('#contact-name-title');
@@ -200,7 +202,8 @@ contacts.Details = (function() {
     cover.addEventListener('touchstart', onTouchStart, true);
   };
 
-  var render = function cd_render(currentContact, fbContactData) {
+  // readOnly tells us if we should allow editing the rendered contact.
+  var render = function cd_render(currentContact, fbContactData, readOnly) {
     if(isAFavoriteChange){
       isAFavoriteChange = false;
       return Promise.resolve(isAFavoriteChange);
@@ -213,6 +216,15 @@ contacts.Details = (function() {
 
     // Initially enabled and only disabled if necessary
     editContactButton.removeAttribute('disabled');
+    editContactButton.classList.remove('hide');
+    header.setAttribute('action', 'back');
+    socialTemplate.classList.remove('hide');
+
+    if (readOnly) {
+      editContactButton.classList.add('hide');
+      header.setAttribute('action', 'close');
+      socialTemplate.classList.add('hide');
+    }
 
     if (!fbContactData && isFbContact) {
       var fbContact = new fb.Contact(contactData);

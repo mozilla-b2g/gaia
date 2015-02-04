@@ -25,7 +25,7 @@
 
 #contacts-list-container > ol > li[data-uuid] {
   display: block;
-  padding-left: 4rem;
+  -moz-padding-start: 4rem;
   border-top: none !important;
 }
 
@@ -111,4 +111,11 @@ form[role="dialog"][data-type="edit"] #main {
 
 [data-type="list"] li[data-visited="true"] aside img {
   border-style: solid;
+}
+
+/* RTL View */
+
+html[dir="rtl"] #contacts-list-container label {
+  left: unset;
+  right: 0;
 }

@@ -1,5 +1,5 @@
 /* global MockL10n, MockNavigatormozSetMessageHandler, MockNavigatorSettings,
-   MockBluetoothHelperInstance, MockNavigatormozApps, MockMozBluetooth */
+   MockNavigatormozApps, MockMozBluetooth */
 
 'use strict';
 
@@ -23,10 +23,11 @@ suite('Bluetooth app > PairManager ', function() {
   var realMozSettings;
   var realMozApps;
   var realMozBluetooth;
+  var AdapterManager;
+  var BtContext;
   var PairManager;
   var PairExpiredDialog;
   var Pairview;
-  var BluetoothHelper;
 
   suiteSetup(function(done) {
     realL10n = window.navigator.mozL10n;
@@ -49,23 +50,48 @@ suite('Bluetooth app > PairManager ', function() {
     var modules = [
       'unit/mock_pair_expired_dialog',
       'unit/mock_pair_view',
-      'shared_mocks/mock_bluetooth_helper',
+      'modules/bluetooth/bluetooth_adapter_manager',
+      'modules/bluetooth/bluetooth_context',
       'modules/pair_manager'
     ];
 
     var maps = {
-      'modules/pair_manager': {
+      '*': {
         'views/pair_expired_dialog': 'unit/mock_pair_expired_dialog',
-        'shared/bluetooth_helper': 'shared_mocks/mock_bluetooth_helper'
+        'modules/bluetooth/bluetooth_adapter_manager': 'MockAdapterManager',
+        'modules/bluetooth/bluetooth_context': 'MockBluetoothContext'
       }
     };
 
+    this.MockAdapterManager = {
+      defaultAdapter: {},
+      observe: function() {}
+    };
+
+    define('MockAdapterManager', function() {
+      return this.MockAdapterManager;
+    }.bind(this));
+
+    this.MockBluetoothContext = {
+      callbacks: {
+        'enabled': []
+      },
+      observe: function(eventName, callback) {
+        this.callbacks[eventName].push(callback);
+      }
+    };
+
+    define('MockBluetoothContext', function() {
+      return this.MockBluetoothContext;
+    }.bind(this));
+
     var requireCtx = testRequire([], maps, function() {});
-    requireCtx(modules, function(pairExpiredDialog, pairview, 
-                                 BluetoothHelperModule, pairManager) {
+    requireCtx(modules, function(pairExpiredDialog, pairview, adapterManager, 
+                                 btContext, pairManager) {
       PairExpiredDialog = pairExpiredDialog;
       Pairview = pairview;
-      BluetoothHelper = BluetoothHelperModule();
+      AdapterManager = adapterManager;
+      BtContext = btContext;
       PairManager = pairManager;
       done();
     }.bind(this));
@@ -84,8 +110,14 @@ suite('Bluetooth app > PairManager ', function() {
 
   suite('init > ', function() {
     setup(function() {
-      this.sinon.stub(PairManager, 'onRequestPairing');
-      this.sinon.stub(PairManager, 'onBluetoothCancel');
+      this.sinon.stub(AdapterManager, 'observe');
+      this.sinon.spy(BtContext, 'observe');
+      this.sinon.stub(PairManager, '_onDefaultAdapterChanged');
+      this.sinon.stub(PairManager, '_watchOndisplaypasskeyreq');
+      this.sinon.stub(PairManager, '_watchOnenterpincodereq');
+      this.sinon.stub(PairManager, '_watchOnpairingconfirmationreq');
+      this.sinon.stub(PairManager, '_watchOnpairingconsentreq');
+      this.sinon.stub(PairManager, '_onRequestPairingFromSystemMessage');
       this.sinon.stub(PairManager, 'showPendingPairing');
       this.sinon.stub(PairManager, 'onBluetoothDisabled');
       PairManager.init();
@@ -95,8 +127,25 @@ suite('Bluetooth app > PairManager ', function() {
       MockNavigatorSettings.mTeardown();
     });
 
-    test('bluetoothHelper is existed >', function() {
-      assert.isDefined(PairManager.bluetoothHelper);
+    suite('observe "defaultAdapter" from AdapterManager > ', function() {
+      test('AdapterManager "defaultAdapter" property should be observed, ' +
+           'and access defaultAdapter from AdapterManager manually ', 
+      function() {
+        assert.isTrue(AdapterManager.observe.calledWith('defaultAdapter'));
+        assert.isTrue(PairManager._onDefaultAdapterChanged.calledWith(
+          AdapterManager.defaultAdapter));
+      });
+    });
+
+    suite('should watch pairing request events from dom event > ', function() {
+      test('"_watchOndisplaypasskeyreq", "_watchOnenterpincodereq", ' +
+           '"_watchOnpairingconfirmationreq", "_watchOnpairingconsentreq" ' +
+           'should be called ', function() {
+        assert.isTrue(PairManager._watchOndisplaypasskeyreq.called);
+        assert.isTrue(PairManager._watchOnenterpincodereq.called);
+        assert.isTrue(PairManager._watchOnpairingconfirmationreq.called);
+        assert.isTrue(PairManager._watchOnpairingconsentreq.called);
+      });
     });
 
     suite('fire "bluetooth-pairing-request" event > ', function() {
@@ -107,25 +156,12 @@ suite('Bluetooth app > PairManager ', function() {
         MockNavigatormozSetMessageHandler.mTrigger(eventName, message);
       });
 
-      test('handle event with onRequestPairing()', function() {
-        assert.isTrue(PairManager.onRequestPairing.calledWith(message),
-        'the "onRequestPairing" should be called with "message" object ' +
-        'after received "bluetooth-pairing-request" event');
-      });
-    });
-
-    suite('fire "bluetooth-cancel" event > ', function() {
-      var message, eventName;
-      setup(function() {
-        message = {};
-        eventName = 'bluetooth-cancel';
-        MockNavigatormozSetMessageHandler.mTrigger(eventName, message);
-      });
-
-      test('handle event with onBluetoothCancel()', function() {
-        assert.isTrue(PairManager.onBluetoothCancel.calledWith(message),
-        'the "onBluetoothCancel" should be called with "message" object ' +
-        'after received "bluetooth-cancel" event');
+      test('handle event with _onRequestPairingFromSystemMessage()',
+      function() {
+        assert.isTrue(
+          PairManager._onRequestPairingFromSystemMessage.calledWith(message),
+        'the "_onRequestPairingFromSystemMessage" should be called with ' +
+        '"message" object after received "bluetooth-pairing-request" event ');
       });
     });
 
@@ -146,74 +182,81 @@ suite('Bluetooth app > PairManager ', function() {
       });
     });
 
-    suite('mozBluetooth fire ondisabled event > ', function() {
-      test('mozBluetooth.ondisabled should be define with callback ' +
-           'onBluetoothDisabled()', function() {
-        assert.isDefined(navigator.mozBluetooth.ondisabled);
-        navigator.mozBluetooth.ondisabled();
+    suite('observe "enabled" from BtContext > ', function() {
+      var property;
+      setup(function() {
+        property = 'enabled';
+      });
+      test('BtContext "enabled" property should be observed, ' +
+           'onBluetoothDisabled() should be called ' +
+           'while BtContext "enabled" property changed to false ', function() {
+        assert.isTrue(BtContext.observe.calledWith(property));
+        BtContext.callbacks[property][0](false);
         assert.isTrue(PairManager.onBluetoothDisabled.called);
       });
-    });
 
-    suite('bluetooth enabled status change > ', function() {
-      var btEnabledKey = 'bluetooth.enabled';
-      suite('bluetooth enabled changed to be false > ', function() {
-        setup(function() {
-          MockNavigatorSettings.mTriggerObservers(btEnabledKey,
-                                                  {settingValue: false});
-        });
-
-        test('observes settings key "bluetooth.enabled"', function() {
-          assert.equal(MockNavigatorSettings.mObservers[btEnabledKey].length,
-                       1);
-        });
-
-        test('onBluetoothDisabled() should be called while bluetooth.enabled ' +
-             'settings key value changed with false', function() {
-          assert.isTrue(PairManager.onBluetoothDisabled.called);
-        });
-      });
-
-      suite('bluetooth enabled changed to be true > ', function() {
-        setup(function() {
-          MockNavigatorSettings.mTriggerObservers(btEnabledKey,
-                                                  {settingValue: true});
-        });
-
-        test('observes settings key "bluetooth.enabled"', function() {
-          assert.equal(MockNavigatorSettings.mObservers[btEnabledKey].length,
-                       1);
-        });
-
-        test('onBluetoothDisabled() should not be called while bluetooth' +
-             '.enabled settings key value changed with true', function() {
-          assert.isFalse(PairManager.onBluetoothDisabled.called);
-        });
+      test('onBluetoothDisabled() should not be called ' +
+           'while BtContext "enabled" property changed to true ', function() {
+        BtContext.callbacks[property][0](true);
+        assert.isFalse(PairManager.onBluetoothDisabled.called);
       });
     });
   });
 
-  suite('onRequestPairing > ', function() {
-    var pairingInfo = {};
+  suite('_onDefaultAdapterChanged > ', function() {
+    var mockNewAdapter;
+    setup(function() {
+      mockNewAdapter = {};
+      PairManager._defaultAdapter = null;
+    });
+
+    test('_defaultAdapter should be defined ', function() {
+      PairManager._onDefaultAdapterChanged(mockNewAdapter);
+      assert.equal(PairManager._defaultAdapter, mockNewAdapter);
+    });
+  });
+
+  suite('_watchOndisplaypasskeyreq > ', function() {
+    setup(function() {
+      PairManager._defaultAdapter = {
+        pairingReqs: {
+          ondisplaypasskeyreq: null
+        }
+      };
+    });
+
+    test('pairingReqs.ondisplaypasskeyreq should be accessed with callback',
+    function() {
+      PairManager._watchOndisplaypasskeyreq();
+      assert.isDefined(
+        PairManager._defaultAdapter.pairingReqs.ondisplaypasskeyreq);
+    });
+  });
+
+  suite('_onRequestPairing > ', function() {
+    var pairingInfo = {
+      method: 'confirmation',
+      evt: {}
+    };
     suite('screen locked mode > ', function() {
       setup(function(done) {
         this.sinon.stub(PairManager, 'fireNotification');
         this.sinon.stub(PairManager, 'cleanPendingPairing');
         this.sinon.stub(PairManager, 'showPairview');
         MockNavigatorSettings.mSettings['lockscreen.locked'] = true;
-        PairManager.onRequestPairing(pairingInfo);
+        PairManager._onRequestPairing(pairingInfo);
         setTimeout(done);
       });
 
-      test('handle showPairview() from onRequestPairing() ', function() {
+      test('handle showPairview() from _onRequestPairing() ', function() {
         assert.isTrue(PairManager.fireNotification.calledWith(pairingInfo),
-        'fireNotification() should be called after do onRequestPairing() ' +
+        'fireNotification() should be called after do _onRequestPairing() ' +
         'in screen lock mode');
         assert.isFalse(PairManager.cleanPendingPairing.called,
         'cleanPendingPairing() should not be called after do ' +
-        'onRequestPairing() in screen lock mode');
+        '_onRequestPairing() in screen lock mode');
         assert.isFalse(PairManager.showPairview.called,
-        'showPairview() should not be called after do onRequestPairing() ' +
+        'showPairview() should not be called after do _onRequestPairing() ' +
         'in screen lock mode');
       });
     });
@@ -224,17 +267,17 @@ suite('Bluetooth app > PairManager ', function() {
         this.sinon.stub(PairManager, 'cleanPendingPairing');
         this.sinon.stub(PairManager, 'showPairview');
         MockNavigatorSettings.mSettings['lockscreen.locked'] = false;
-        PairManager.onRequestPairing(pairingInfo);
+        PairManager._onRequestPairing(pairingInfo);
         setTimeout(done);
       });
 
-      test('handle showPairview() from onRequestPairing() ', function() {
+      test('handle showPairview() from _onRequestPairing() ', function() {
         assert.isFalse(PairManager.fireNotification.called,
-        'fireNotification() should not be called after do onRequestPairing() ' +
-        'in screen lock mode');
+        'fireNotification() should not be called after ' +
+        'do _onRequestPairing() in screen lock mode');
         assert.isTrue(PairManager.cleanPendingPairing.called,
         'cleanPendingPairing() should not be called after do ' +
-        'onRequestPairing() in screen lock mode');
+        '_onRequestPairing() in screen lock mode');
         assert.isTrue(PairManager.showPairview.calledWith(pairingInfo),
         'showPairview() should be called after do onRequestPairing() ' +
         'in screen unlock mode');
@@ -255,11 +298,15 @@ suite('Bluetooth app > PairManager ', function() {
 
       PairManager.pendingPairing = null;
       pairingInfo = {
-        name: 'device-01'
+        evt: {
+          device: {
+            name: 'device-01'
+          }
+        }
       };
       titleResult = _('bluetooth-pairing-request-now-title');
       optionsResult = {
-        body: pairingInfo.name,
+        body: pairingInfo.evt.device.name,
         icon: 'app://bluetooth.gaiamobile.org/style/images/icon_bluetooth.png',
         tag: 'pairing-request'
       };
@@ -440,7 +487,7 @@ suite('Bluetooth app > PairManager ', function() {
   });
 
   suite('showPairview > ', function() {
-    var openStub, pairviewInitSpy, pairingInfo, resultDevice;
+    var openStub, pairviewInitSpy, pairingInfo;
     suiteSetup(function() {
       pairviewInitSpy = sinon.spy(Pairview, 'init');
       openStub = sinon.stub(window, 'open', function() {
@@ -448,18 +495,10 @@ suite('Bluetooth app > PairManager ', function() {
       });
 
       pairingInfo = {
-        address: '00:11:22:AA:BB:CC',
-        name: 'device-01',
-        icon: 'device',
-        passkey: 123456,
-        method: 'passkey'
+        method: 'confirmation',
+        evt: {}
       };
 
-      resultDevice = {
-        address: '00:11:22:AA:BB:CC',
-        name: 'device-01',
-        icon: 'device'
-      };
       PairManager.showPairview(pairingInfo);
     });
 
@@ -470,40 +509,9 @@ suite('Bluetooth app > PairManager ', function() {
 
     test('should init Pairview after page onloaded ', function() {
       PairManager.childWindow.onload();
-      assert.isTrue(pairviewInitSpy.calledWith('passive', pairingInfo.method,
-                                               resultDevice,
-                                               pairingInfo.passkey));
+      assert.isTrue(pairviewInitSpy.calledWith(pairingInfo.method,
+                                               pairingInfo.evt));
 
-    });
-  });
-
-  suite('onBluetoothCancel > ', function() {
-    setup(function() {
-      this.sinon.stub(Pairview, 'closeInput');
-      PairManager.childWindow = {
-        Pairview: Pairview,
-        close: this.sinon.spy()
-      };
-
-      PairManager.pendingPairing = {/* something here */};
-      switchReadOnlyProperty(PairExpiredDialog, 'isVisible', true);
-      this.sinon.stub(PairExpiredDialog, 'close');
-      this.sinon.stub(window, 'close');
-    });
-
-    teardown(function() {
-      switchReadOnlyProperty(PairExpiredDialog, 'isVisible', false);
-    });
-
-    test('Pairview.closeInput() should be called, childWindow should be close' +
-      ', pendingPairing should be null, ' +
-      'window.close() should be called', function() {
-        PairManager.onBluetoothCancel('message');
-        assert.isTrue(PairManager.childWindow.Pairview.closeInput.called);
-        assert.isTrue(PairManager.childWindow.close.called);
-        assert.equal(PairManager.pendingPairing, null);
-        assert.isTrue(PairExpiredDialog.close.called);
-        assert.isTrue(window.close.called);
     });
   });
 
@@ -524,68 +532,6 @@ suite('Bluetooth app > PairManager ', function() {
         assert.isTrue(PairManager.childWindow.Pairview.closeInput.called);
         assert.isTrue(PairManager.childWindow.close.called);
         assert.isTrue(window.close.called);
-    });
-  });
-
-  suite('inform pairing interface > ', function() {
-    suite('setPairingConfirmationSpy > ', function() {
-      var setPairingConfirmationSpy;
-      setup(function() {
-        PairManager.init();
-      });
-
-      teardown(function() {
-        setPairingConfirmationSpy.restore();
-      });
-
-      test('should inform bluetooth to setPairingConfirmation ', function() {
-        var address = '00:11:22:AA:BB:CC';
-        var confirmed = true;
-        setPairingConfirmationSpy = this.sinon.spy(
-          MockBluetoothHelperInstance, 'setPairingConfirmation');
-        PairManager.setConfirmation(address, confirmed);
-        assert.isTrue(setPairingConfirmationSpy.calledWith(address, confirmed));
-      });
-    });
-
-    suite('setPinCodeSpy > ', function() {
-      var setPinCodeSpy;
-      setup(function() {
-        PairManager.init();
-      });
-
-      teardown(function() {
-        setPinCodeSpy.restore();
-      });
-
-      test('should inform bluetooth to setPinCode ', function() {
-        var address = '00:11:22:AA:BB:CC';
-        var pincode = 'SixteenTxtLength';
-        setPinCodeSpy = this.sinon.spy(
-          MockBluetoothHelperInstance, 'setPinCode');
-        PairManager.setPinCode(address, pincode);
-        assert.isTrue(setPinCodeSpy.calledWith(address, pincode));
-      });
-    });
-
-    suite('setPasskeySpy > ', function() {
-      var setPasskeySpy;
-      setup(function() {
-        PairManager.init();
-      });
-
-      teardown(function() {
-        setPasskeySpy.restore();
-      });
-
-      test('should inform bluetooth to setPasskey ', function() {
-        var address = '00:11:22:AA:BB:CC';
-        var passkey = 123456;
-        setPasskeySpy = this.sinon.spy(
-          MockBluetoothHelperInstance, 'setPasskey');
-        PairManager.setPasskey(address, passkey);
-        assert.isTrue(setPasskeySpy.calledWith(address, parseInt(passkey, 10)));
-      });
     });
   });
 });

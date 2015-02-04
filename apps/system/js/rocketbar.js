@@ -205,10 +205,8 @@
     },
 
     '_handle_system-resize': function() {
-      if (this.isActive()) {
-        if (this.searchWindow.frontWindow) {
-          this.searchWindow.frontWindow.resize();
-        }
+      if (this.isActive() && this.searchWindow.frontWindow) {
+        this.searchWindow.frontWindow.resize();
         return false;
       }
       return true;
@@ -474,6 +472,25 @@
     handleLock: function() {
       this.hideResults();
       this.deactivate();
+    },
+
+    /**
+     * This function is called in respondToHierarchyEvent()
+     * when there is a value selector event and rocketbar
+     * is the current top most UI by HierarchyManager.
+     * @param  {Object} evt Event object
+     */
+    '_handle_mozChromeEvent': function(evt) {
+      if (!evt.detail || evt.detail.type !== 'inputmethod-contextchange') {
+        return true;
+      }
+      if (this.searchWindow) {
+        this.searchWindow.getTopMostWindow()
+            .broadcast('inputmethod-contextchange',
+          evt.detail);
+        return false;
+      }
+      return true;
     },
 
     /**

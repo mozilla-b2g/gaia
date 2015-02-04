@@ -1,6 +1,6 @@
 'use strict';
 /* global Rocketbar, MocksHelper, MockIACPort, MockSearchWindow,
-   MockService, MockPromise */
+   MockService, MockPromise, MockAppWindow */
 
 require('/shared/js/event_safety.js');
 requireApp('system/test/unit/mock_app_window.js');
@@ -589,14 +589,81 @@ suite('system/Rocketbar', function() {
     assert.ok(setInputStub.calledWith(''));
   });
 
-  test('handle hierarchy event - system-resize', function() {
-    subject.activate();
-    subject.searchWindow.frontWindow = {
-      resize: function() {}
-    };
-    var stub = this.sinon.stub(subject.searchWindow.frontWindow, 'resize');
-    subject.respondToHierarchyEvent(new CustomEvent('system-resize'));
-    assert.ok(stub.calledOnce);
+  suite('handle hierarchy event - value selector', function() {
+    test('Value selector event with front window',
+      function() {
+        var searchWindow = new MockSearchWindow();
+        subject.searchWindow = searchWindow;
+        var app1 = new MockAppWindow();
+        this.sinon.stub(searchWindow, 'getTopMostWindow').returns(app1);
+        this.sinon.stub(app1, 'broadcast');
+        var respond =
+          subject.respondToHierarchyEvent(new CustomEvent('mozChromeEvent', {
+            detail: {
+              type: 'inputmethod-contextchange'
+            }
+          }));
+        assert.isFalse(respond);
+        assert.isTrue(app1.broadcast.calledWith('inputmethod-contextchange'));
+      });
+
+    test('Value selector event without front window',
+      function() {
+        var searchWindow = new MockSearchWindow();
+        subject.searchWindow = searchWindow;
+        this.sinon.stub(searchWindow, 'broadcast');
+        var respond =
+          subject.respondToHierarchyEvent(new CustomEvent('mozChromeEvent', {
+            detail: {
+              type: 'inputmethod-contextchange'
+            }
+          }));
+        assert.isFalse(respond);
+        assert.isTrue(
+          searchWindow.broadcast.calledWith('inputmethod-contextchange'));
+      });
+
+    test('Value selector event without search window',
+      function() {
+        subject.searchWindow = null;
+        var respond =
+          subject.respondToHierarchyEvent(new CustomEvent('mozChromeEvent', {
+            detail: {
+              type: 'inputmethod-contextchange'
+            }
+          }));
+        assert.isTrue(respond);
+      });
+  });
+
+  suite('handle hierarchy event - system-resize', function() {
+    setup(function() {
+      subject.activate();
+    });
+
+    teardown(function() {
+      subject.searchWindow.frontWindow = undefined;
+    });
+
+    test('Search window with front window', function() {
+      subject.searchWindow.frontWindow = {
+        resize: function() {}
+      };
+      var stub = this.sinon.stub(subject.searchWindow.frontWindow, 'resize');
+      var respond =
+        subject.respondToHierarchyEvent(new CustomEvent('system-resize'));
+
+      assert.ok(stub.calledOnce);
+      assert.isFalse(respond);
+
+      stub.restore();
+    });
+
+    test('Search window without front window', function() {
+      var respond =
+        subject.respondToHierarchyEvent(new CustomEvent('system-resize'));
+      assert.isTrue(respond);
+    });
   });
 
   test('_handle_home', function() {

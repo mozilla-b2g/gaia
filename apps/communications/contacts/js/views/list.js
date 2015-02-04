@@ -638,6 +638,7 @@ contacts.List = (function() {
       ele = document.createElement('p');
     }
     ele.classList.add('contact-text');
+    var bdi = document.createElement('bdi');
     var givenName = (contact.givenName && contact.givenName[0]) || '';
     var familyName = (contact.familyName && contact.familyName[0]) || '';
 
@@ -648,12 +649,14 @@ contacts.List = (function() {
     }
 
     if (orderByLastName) {
-      ele.appendChild(document.createTextNode(givenName + ' '));
-      ele.appendChild(createStrongTag(familyName));
+      bdi.appendChild(document.createTextNode(givenName + ' '));
+      bdi.appendChild(createStrongTag(familyName));
     } else {
-      ele.appendChild(createStrongTag(givenName));
-      ele.appendChild(document.createTextNode(' ' + familyName));
+      bdi.appendChild(createStrongTag(givenName));
+      bdi.appendChild(document.createTextNode(' ' + familyName));
     }
+
+    ele.appendChild(bdi);
     return ele;
   }
 
@@ -728,7 +731,11 @@ contacts.List = (function() {
         viewHeight = config.viewHeight;
       } else {
         viewHeight = scrollable.getBoundingClientRect().height;
-        utils.cookie.update({viewHeight: viewHeight});
+        // If the groups list is hiden, we'll get no height and so we don't
+        // store it.
+        if (viewHeight) {
+          utils.cookie.update({viewHeight: viewHeight});
+        }
       }
     }
     return viewHeight;

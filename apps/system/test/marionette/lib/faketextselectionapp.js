@@ -32,6 +32,8 @@ FakeTextSelectionApp.Selector = Object.freeze({
   BugCenterInput: '#bug-center-input',
   BugButtomInput: '#bug-buttom-input',
   BugNormalDiv: '#bug-normal-div',
+  // bug1120358.html
+  BugContent: '#bug-content',
 });
 
 FakeTextSelectionApp.ORIGIN = 'app://faketextselectionapp.gaiamobile.org';
@@ -99,6 +101,10 @@ FakeTextSelectionApp.prototype = {
     return this._getElement('BugNormalDiv');
   },
 
+  get BugContent() {
+    return this._getElement('BugContent');
+  },
+
   _getElement: function(target) {
     var element = this.client.helper.waitForElement(
       FakeTextSelectionApp.Selector[target]);
@@ -118,6 +124,13 @@ FakeTextSelectionApp.prototype = {
       FakeTextSelectionApp.Selector[target]);
     // wait for keyboard showing up first
     this.textSelection.longPress(dom);
+  },
+
+  longPressByPosition: function(target, x, y) {
+    var dom = this.client.helper.waitForElement(
+      FakeTextSelectionApp.Selector[target]);
+    // wait for keyboard showing up first
+    this.textSelection.longPressByPosition(dom, x, y);
   },
 
   copy: function(fromEle) {

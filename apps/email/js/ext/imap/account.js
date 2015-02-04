@@ -106,7 +106,6 @@ function ImapAccount(universe, compositeAccount, accountId, credentials,
   if (existingProtoConn)
     this._reuseConnection(existingProtoConn);
 
-  this.tzOffset = compositeAccount.accountDef.tzOffset;
   this._jobDriver = new $imapjobs.ImapJobDriver(
                           this, this._folderInfos.$mutationState, this._LOG);
 

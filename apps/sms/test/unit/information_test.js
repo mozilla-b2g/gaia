@@ -62,6 +62,7 @@ suite('Information view', function() {
     loadBodyHTML('/index.html');
     this.sinon.spy(navigator.mozL10n, 'setAttributes');
     this.sinon.stub(MessageManager, 'on');
+    this.sinon.spy(ThreadUI, 'setHeaderContent');
     contact = MockContact();
   });
 
@@ -183,7 +184,7 @@ suite('Information view', function() {
           ];
 
           this.sinon.spy(Template.prototype, 'interpolate');
-          this.sinon.stub(Contacts, 'findByAddress');        
+          this.sinon.stub(Contacts, 'findByAddress');
 
           reportView.renderContactList(oldParticipant);
           oldRenderingId = reportView.renderingId;
@@ -292,7 +293,7 @@ suite('Information view', function() {
       assert.equal(reportView.subject.classList.contains('hide'), subjectHide);
       if (!subjectHide && subjectContent) {
         assert.equal(reportView.subject.querySelector('.detail').textContent,
-                     subjectContent);        
+                     subjectContent);
       }
 
       if (delivery === 'error') {
@@ -323,6 +324,7 @@ suite('Information view', function() {
       }
 
       sinon.assert.called(reportView.renderContactList);
+      sinon.assert.calledWithMatch(ThreadUI.setHeaderContent, 'message-report');
     }
 
     test('Outgoing Message report(status sending)', function() {
@@ -1058,7 +1060,6 @@ suite('Information view', function() {
       });
       groupView = new Information('group');
       this.sinon.spy(groupView, 'renderContactList');
-      this.sinon.spy(ThreadUI, 'setHeaderContent');
       groupView.render();
     });
 

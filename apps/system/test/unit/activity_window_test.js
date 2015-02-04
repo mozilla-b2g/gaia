@@ -27,6 +27,17 @@ suite('system/ActivityWindow', function() {
       'name': 'Fake Activity'
     }
   };
+  var fakeConfigFullScreen = {
+    'url': 'app://fakeact.gaiamobile.org/pick.html',
+    'oop': true,
+    'name': 'Fake Activity',
+    'manifestURL': 'app://fakeact.gaiamobile.org/manifest.webapp',
+    'origin': 'app://fakeact.gaiamobile.org',
+    'manifest': {
+      'name': 'Fake Activity',
+      'fullscreen': true
+    }
+  };
 
   setup(function(done) {
     stubById = this.sinon.stub(document, 'getElementById', function(id) {
@@ -107,6 +118,11 @@ suite('system/ActivityWindow', function() {
 
     test('copy fullscreen from caller', function() {
       var activity = new ActivityWindow(fakeConfig, appF);
+      assert.isTrue(activity.element.classList.contains('fullscreen-app'));
+    });
+
+    test('prioritize fullscreen mode of the activity', function() {
+      var activity = new ActivityWindow(fakeConfigFullScreen, app);
       assert.isTrue(activity.element.classList.contains('fullscreen-app'));
     });
 

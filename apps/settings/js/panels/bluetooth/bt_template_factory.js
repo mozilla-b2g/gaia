@@ -74,7 +74,6 @@ define(function(require) {
   }
 
   function _updateItemState(li, element, statePaired) {
-    Debug('_updateItemState(): statePaired = ' + statePaired);
     if (statePaired === false) {
       li.removeAttribute('aria-disabled');
       element.setAttribute('data-l10n-id', 'device-status-tap-connect');
@@ -82,7 +81,7 @@ define(function(require) {
       li.setAttribute('aria-disabled', true);
       element.setAttribute('data-l10n-id', 'device-status-pairing');
     } else if (statePaired === true) {
-      li.parentNode.removeAttribute('aria-disabled');
+      li.removeAttribute('aria-disabled');
       element.setAttribute('data-l10n-id', 'device-status-paired');
     }
   }

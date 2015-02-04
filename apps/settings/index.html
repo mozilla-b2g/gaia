@@ -19,7 +19,7 @@
     <link rel="stylesheet" type="text/css" href="style/icons.css">
     <link rel="stylesheet" type="text/css" href="style/settings.css">
     <link rel="stylesheet" type="text/css" href="style/settings_large.css" data-device-type="tablet">
-    <link rel="stylesheet" type="text/css" href="style/settings_phone.css" data-device-type="phone">
+    <link rel="stylesheet" type="text/css" href="style/settings_phone.css" data-device-type="none">
     <link rel="stylesheet" type="text/css" href="style/dialog.css">
     <!-- Panel Stylesheets
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
@@ -170,6 +170,7 @@
     <link rel="import" href="/elements/keyboard.html">
     <link rel="import" href="/elements/keyboard_selection_add_more.html">
     <link rel="import" href="/elements/themes.html">
+    <link rel="import" href="/elements/addons.html">
     <link rel="import" href="/elements/screen_lock_passcode.html">
     <link rel="import" href="/elements/screen_lock.html">
     <link rel="import" href="/elements/simpin_dialog.html">
@@ -250,17 +251,17 @@
     <!-- Connectivity :: Wi-Fi :: Select Certificate File -->
     <section is="wifi-selectCertificateFile" role="region" id="wifi-selectCertificateFile"></section>
     <!-- Connectivity :: Wi-Fi :: Enter Certificate Nickname -->
-    <section is="wifi-enterCertificateNickname" role="region" id="wifi-enterCertificateNickname"></section>
+    <section is="wifi-enterCertificateNickname" role="region" id="wifi-enterCertificateNickname" class="dialog"></section>
     <!-- Connectivity :: Wi-Fi -->
     <section is="wifi" role="region" id="wifi"></section>
     <!-- Connectivity :: Call :: Call Forwarding Not Reachable -->
-    <section is="call-cf-notReachableSettings" role="region" id="call-cf-notReachableSettings"></section>
+    <section is="call-cf-not-reachable-settings" role="region" id="call-cf-not-reachable-settings" class="dialog"></section>
     <!-- Connectivity :: Call :: Call Forwarding No Reply -->
-    <section is="call-cf-noReplySettings" role="region" id="call-cf-noReplySettings"></section>
+    <section is="call-cf-no-reply-settings" role="region" id="call-cf-no-reply-settings" class="dialog"></section>
     <!-- Connectivity :: Call :: Call Forwarding Mobile Busy -->
-    <section is="call-cf-mobileBusySettings" role="region" id="call-cf-mobileBusySettings"></section>
+    <section is="call-cf-mobile-busy-settings" role="region" id="call-cf-mobile-busy-settings" class="dialog"></section>
     <!-- Connectivity :: Call :: Call Forwarding Unconditional -->
-    <section is="call-cf-unconditionalSettings" role="region" id="call-cf-unconditionalSettings"></section>
+    <section is="call-cf-unconditional-settings" role="region" id="call-cf-unconditional-settings" class="dialog"></section>
     <!-- Connectivity :: Call :: Call Forwarding Settings -->
     <section is="call-cfSettings" role="region" id="call-cfSettings"></section>
     <!-- Connectivity :: Call :: Call Barring Settings -->
@@ -336,6 +337,8 @@
     <section is="keyboard" role="region" id="keyboard"></section>
     <!-- Personalization :: Themes -->
     <section is="themes" role="region" id="themes"></section>
+    <!-- Personalization :: Addons -->
+    <section is="addons" role="region" id="addons"></section>
 
     <!-- Accounts :: Find My Device -->
     <section is="findmydevice" role="region" id="findmydevice"></section>

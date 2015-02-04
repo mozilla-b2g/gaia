@@ -46,6 +46,7 @@ Contacts.Selectors = {
   detailsContactName: '#contact-name-title',
   detailsHeader: '#details-view-header',
   detailsSocialLabel: '#contact-detail-inner #details-list #social-label',
+  detailsSocialTemplate: '#contact-detail-inner #details-list .social-actions',
   detailsCoverImage: '#cover-img',
   detailsLinkButton: '#contact-detail-inner #link_button',
   detailsShareButton: '#contact-detail-inner #share_button',
@@ -77,8 +78,10 @@ Contacts.Selectors = {
   formTelLabelFirst: '#tel_type_0',
   formTelNumberSecond: '#number_1',
   formEmailFirst: '#email_0',
+  formEmailSecond: '#email_1',
   formPhotoButton: '#photo-button',
   formAddNewTel: '#add-new-phone',
+  formAddNewEmail: '#add-new-email',
 
   groupList: ' #groups-list',
   list: '#view-contacts-list',
@@ -118,6 +121,7 @@ Contacts.Selectors = {
   activityChooser: 'form[data-type="action"]',
   buttonActivityChooser: 'form[data-type="action"] button',
   actionMenu: '#action-menu',
+  actionMenuList: '#value-menu',
 
   systemMenu: 'form[data-z-index-level="action-menu"]'
 };
@@ -262,6 +266,18 @@ Contacts.prototype = {
 
     var addContact = this.client.findElement(selectors.formNew);
     addContact.click();
+
+    this.enterContactDetails(details);
+
+    this.client.helper.waitForElement(selectors.list);
+  },
+
+  addContactMultipleEmails: function(details) {
+    var selectors = Contacts.Selectors;
+
+    var addContact = this.client.findElement(selectors.formNew);
+    addContact.click();
+    this.client.helper.waitForElement(selectors.formAddNewEmail).click();
 
     this.enterContactDetails(details);
 

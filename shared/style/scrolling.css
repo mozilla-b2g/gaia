@@ -6,7 +6,7 @@ nav[data-type="scrollbar"] {
   right: 0;
   top: 0;
   bottom: 0;
- }
+}
 
 /* Mirror */
 nav[data-type="scrollbar"] p {
@@ -89,4 +89,20 @@ nav[data-type="scrollbar"] li .pack-icon-favorites {
 /* Themes */
 /*.skin-comms*/ nav[data-type="scrollbar"] p {
   background-color: rgba(80, 80, 80, 0.8);
+}
+
+/* RTL View */
+html[dir="rtl"] nav[data-type="scrollbar"] {
+  left: 0;
+  right: unset;
+}
+
+html[dir="rtl"] nav[data-type="scrollbar"] p {
+  left: 10rem;
+  right: unset;
+}
+
+html[dir="rtl"] nav[data-type="scrollbar"] p img {
+  left: unset;
+  right: 3.5rem;
 }

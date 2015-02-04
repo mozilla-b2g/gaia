@@ -3,11 +3,14 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 try:
+    from marionette import Wait
+    from marionette import expected
     from marionette.by import By
 except:
+    from marionette_driver import Wait
+    from marionette_driver import expected
     from marionette_driver.by import By
 
-from gaiatest import GaiaData
 from gaiatest.apps.base import Base
 
 
@@ -17,24 +20,23 @@ class DoNotTrack(Base):
     _disallow_tracking_checkbox_locator = (By.XPATH, '//li/label[span[@data-l10n-id="doNotTrackActions"]]')
     _do_not_have_pref_on_tracking_checkbox_locator = (By.XPATH, '//li/label[span[@data-l10n-id="doNotHavePrefOnTracking"]]')
 
-    def __init__(self, marionette):
-        Base.__init__(self, marionette)
-        self.data_layer = GaiaData(self.marionette)
-
     def tap_allow_tracking(self):
-        el = self.marionette.find_element(*self._allow_tracking_checkbox_locator)
-        el.tap()
-        self.wait_for_condition(lambda m: self.data_layer.get_setting('privacy.donottrackheader.value') == '0')
-        self.wait_for_condition(lambda m: self.data_layer.get_bool_pref('privacy.donottrackheader.enabled') == True)
+        label = self.marionette.find_element(
+            *self._allow_tracking_checkbox_locator)
+        label.tap()
+        radio = label.find_element(By.TAG_NAME, 'input')
+        Wait(self.marionette).until(expected.element_selected(radio))
 
     def tap_disallow_tracking(self):
-        el = self.marionette.find_element(*self._disallow_tracking_checkbox_locator)
-        el.tap()
-        self.wait_for_condition(lambda m: self.data_layer.get_setting('privacy.donottrackheader.value') == '1')
-        self.wait_for_condition(lambda m: self.data_layer.get_bool_pref('privacy.donottrackheader.enabled') == True)
+        label = self.marionette.find_element(
+            *self._disallow_tracking_checkbox_locator)
+        label.tap()
+        radio = label.find_element(By.TAG_NAME, 'input')
+        Wait(self.marionette).until(expected.element_selected(radio))
 
     def tap_do_not_have_pref_on_tracking(self):
-        el = self.marionette.find_element(*self._do_not_have_pref_on_tracking_checkbox_locator)
-        el.tap()
-        self.wait_for_condition(lambda m: self.data_layer.get_setting('privacy.donottrackheader.value') == '-1')
-        self.wait_for_condition(lambda m: self.data_layer.get_bool_pref('privacy.donottrackheader.enabled') == False)
+        label = self.marionette.find_element(
+            *self._do_not_have_pref_on_tracking_checkbox_locator)
+        label.tap()
+        radio = label.find_element(By.TAG_NAME, 'input')
+        Wait(self.marionette).until(expected.element_selected(radio))

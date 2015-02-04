@@ -319,7 +319,11 @@ define(function(require) {
     _onAdapterDevicepaired:
     function btc__onAdapterDevicepaired(adapter, evt) {
       Debug('_onAdapterDevicepaired evt = ' + evt);
-      // have to get device object in this event handler Ex. evt --> device
+      // have to get device object in this event handler 
+      // Ex. evt.device --> device
+
+      // Remove the paired device from remote devices list.
+      this._removeItemFromList(this._remoteDevices, evt.device.address);
 
       // Instead of adding the paired device in paired devices list,
       // get paired devices from adapter directly.
@@ -719,6 +723,28 @@ define(function(require) {
         // The device is existed, no need to do any thing here.
         // set device in devices list
         // operatingDevices.set(index, device);
+      }
+    },
+
+    /**
+     * Given an observable arrry and item address. The function will remove it,
+     * if it's existed in the array.
+     *
+     * @access private
+     * @memberOf BluetoothContext
+     * @param {Observable array} list
+     * @param {String} address
+     */
+    _removeItemFromList: function btc__removeItemFromList(list, address) {
+      // check the device is existed or not in remote/paired devices array
+      var index = 
+        list.array.findIndex(this._findDeviceByAddress.bind(this, address));
+      if (index > -1) {
+        // The device is existed, remove it from observable list.
+        list.splice(index, 1);
+        Debug('_removeItemFromList(): index = ' + index);
+      } else {
+        // The device is not existed, no need to do any thing here.
       }
     },
 

@@ -701,11 +701,19 @@ var StatusBar = {
   _updateMinimizedStatusBarWidth: function sb_updateMinimizedStatusBarWidth() {
     var app = Service.currentApp;
     app = app && app.getTopMostWindow();
+    var appChrome = app && app.appChrome;
+
+    // Only calculate the search input width when the chrome is minimized
+    // Bug 1118025 for more info
+    if (appChrome && appChrome.isMaximized()) {
+      this._updateIconVisibility();
+      return;
+    }
 
     // Get the actual width of the rocketbar, and determine the remaining
     // width for the minimized statusbar.
-    var element = app && app.appChrome && app.appChrome.element &&
-      app.appChrome.element.querySelector('.urlbar .title');
+    var element = appChrome && appChrome.element &&
+      appChrome.element.querySelector('.urlbar .title');
 
     if (element) {
       this._minimizedStatusBarWidth = Math.round(
@@ -1093,6 +1101,7 @@ var StatusBar = {
         }
 
         var previousHiddenState = icon.hidden;
+        var previousActiveState = icon.dataset.inactive;
         var previousRoamingHiddenState = roaming.hidden;
 
         if (this.settingValues['ril.radio.disabled']) {
@@ -1149,6 +1158,7 @@ var StatusBar = {
         }
 
         if (previousHiddenState !== icon.hidden ||
+          previousActiveState !== icon.dataset.inactive ||
           previousRoamingHiddenState !== roaming.hidden) {
           isDirty = true;
         }
