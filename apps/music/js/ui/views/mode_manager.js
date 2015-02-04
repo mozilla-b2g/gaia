@@ -1,7 +1,5 @@
 /* exported ModeManager */
-/* global TitleBar, TabBar,
-          LazyLoader, PlayerView,
-          App, displayingScanProgress:true */
+/* global TitleBar, TabBar, LazyLoader, PlayerView, App */
 'use strict';
 
 // This Application has five modes: TILES, SEARCH, LIST, SUBLIST, and PLAYER
@@ -97,8 +95,6 @@ var ModeManager = {
     if (title) {
       TitleBar.changeTitleText(title);
     }
-
-
   },
 
   _updateMode: function(callback) {
@@ -119,7 +115,7 @@ var ModeManager = {
         }
 
         // Music only share the playing file when it's in player mode.
-        this.enableNFCSharing(true);
+        this._enableNFCSharing(true);
 
         if (callback) {
           callback();
@@ -131,7 +127,7 @@ var ModeManager = {
       } else if (mode === MODE_SUBLIST) {
         document.getElementById('views-sublist').classList.remove('hidden');
       } else if (mode === MODE_SEARCH_FROM_TILES ||
-               mode === MODE_SEARCH_FROM_LIST) {
+                 mode === MODE_SEARCH_FROM_LIST) {
         document.getElementById('search').classList.remove('hidden');
         // XXX Please see Bug 857674 and Bug 886254 for detail.
         // There is some unwanted logic that will automatically adjust
@@ -143,7 +139,7 @@ var ModeManager = {
       }
 
       // Disable the NFC sharing when it's in the other modes.
-      this.enableNFCSharing(false);
+      this._enableNFCSharing(false);
 
       if (callback) {
         callback();
@@ -166,19 +162,9 @@ var ModeManager = {
     });
 
     document.body.classList.add(modeClasses[mode - 1]);
-
-    // Don't display scan progress if we're in sublist or player mode.
-    // In these modes the user needs to see the regular titlebar so they
-    // can use the back button. If the user returns to tiles or list
-    // mode and we get more scan results we'll resume the progress display.
-    if (displayingScanProgress &&
-        (mode === MODE_SUBLIST || mode === MODE_PLAYER)) {
-      document.getElementById('scan-progress').classList.add('hidden');
-      displayingScanProgress = false;
-    }
   },
 
-  enableNFCSharing: function(enabled) {
+  _enableNFCSharing: function(enabled) {
     if (!navigator.mozNfc) {
       return;
     }

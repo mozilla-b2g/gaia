@@ -130,6 +130,12 @@ body {
   color: #fff;
 }
 
+/* Never show the scan progress when the title bar has a back button, since the
+   progress display would make it impossible to go back! */
+#title[action="back"] ~ #scan-progress {
+  display: none;
+}
+
 #scan-spinner {
   position: absolute;
   top: 1rem;
