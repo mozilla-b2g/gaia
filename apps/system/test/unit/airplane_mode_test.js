@@ -176,7 +176,7 @@ suite('system/airplane_mode.js', function() {
       test('we will leave airplane mode', function() {
         emitEvent('radiostatechange', 'enabled');
         emitEvent('wifi-enabled');
-        emitEvent('bluetooth-adapter-added');
+        emitEvent('bluetooth-enabled');
         emitEvent('radio-enabled');
 
         assert.isTrue(subject.enabled);

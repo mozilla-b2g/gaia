@@ -37,18 +37,6 @@ var Bluetooth = {
     }
   },
 
-  getCurrentProfiles: function bt_getCurrentProfiles() {
-    var profiles = this.Profiles;
-    var connectedProfiles = [];
-    for (var name in profiles) {
-      var profile = profiles[name];
-      if (this.isProfileConnected(profile)) {
-        connectedProfiles.push(profile);
-      }
-    }
-    return connectedProfiles;
-  },
-
   /**
    * check if bluetooth profile is connected.
    *
@@ -99,36 +87,39 @@ var Bluetooth = {
       this.icon && this.icon.update();
     }.bind(this));
 
+    // send default bluetooth state so quick settings
+    // could be get updated
+    var req = SettingsListener.getSettingsLock()
+      .get('bluetooth.enabled');
+    req.onsuccess = function get_onsuccess() {
+      if (req.result['bluetooth.enabled']) {
+        window.dispatchEvent(new CustomEvent('bluetooth-enabled'));
+      } else {
+        window.dispatchEvent(new CustomEvent('bluetooth-disabled'));
+      }
+    };
+
     // when bluetooth adapter is ready, a.k.a enabled,
-    // emit event to notify QuickSettings and try to get
-    // defaultAdapter at this moment
+    // try to get defaultAdapter at this moment
     bluetooth.onadapteradded = function bt_onAdapterAdded() {
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('bluetooth-adapter-added',
-        /* canBubble */ true, /* cancelable */ false, null);
-      window.dispatchEvent(evt);
       self.initDefaultAdapter();
     };
-    // if bluetooth is enabled in booting time, try to get adapter now
-    this.initDefaultAdapter();
 
     // when bluetooth is really enabled
+    // emit event to notify QuickSettings
     bluetooth.addEventListener('enabled', function bt_onEnabled() {
       self.icon && self.icon.update();
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('bluetooth-enabled',
-        /* canBubble */ true, /* cancelable */ false, null);
-      window.dispatchEvent(evt);
+      window.dispatchEvent(new CustomEvent('bluetooth-enabled'));
     });
 
     // when bluetooth is really disabled, emit event to notify QuickSettings
     bluetooth.addEventListener('disabled', function bt_onDisabled() {
       self.icon && self.icon.update();
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('bluetooth-disabled',
-        /* canBubble */ true, /* cancelable */ false, null);
-      window.dispatchEvent(evt);
+      window.dispatchEvent(new CustomEvent('bluetooth-disabled'));
     });
+
+    // if bluetooth is enabled in booting time, try to get adapter now
+    this.initDefaultAdapter();
 
     /* In file transfering case:
      * since System Message can't be listened in two js files within a app,
@@ -247,6 +238,6 @@ var Bluetooth = {
    * @public
    */
   get isEnabled() {
-    return window.navigator.mozBluetooth.enabled;
+    return this._settingsEnabled;
   }
 };

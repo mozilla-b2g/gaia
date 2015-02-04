@@ -12,9 +12,7 @@
     if (!icon) {
       return;
     }
-    // XXX: we should use this.manager.isEnabled,
-    // but it is not true even when bluetooth settings is enabled.
-    this.manager._settingsEnabled ? this.show() : this.hide();
+    this.manager.isEnabled ? this.show() : this.hide();
     icon.dataset.active = this.manager.connected;
     this.updateLabel('bluetooth', this.manager.connected);
   };

@@ -437,7 +437,7 @@ suite('Nfc Handover Manager Functions', function() {
 
       nfcHandoverManager._doAction(action);
 
-      window.dispatchEvent(new CustomEvent('bluetooth-adapter-added'));
+      window.dispatchEvent(new CustomEvent('bluetooth-enabled'));
       invokeBluetoothGetDefaultAdapter();
 
       assert.isTrue(action.callback.calledOnce);
@@ -469,7 +469,7 @@ suite('Nfc Handover Manager Functions', function() {
 
     var initiateFileTransfer = function() {
       spySendNDEF = sinon.spy(MockMozNfc.MockNFCPeer, 'sendNDEF');
-      window.dispatchEvent(new CustomEvent('bluetooth-adapter-added'));
+      window.dispatchEvent(new CustomEvent('bluetooth-enabled'));
       invokeBluetoothGetDefaultAdapter();
       nfcHandoverManager.handleFileTransfer(mockFileRequest.peer,
                                             mockFileRequest.blob,
