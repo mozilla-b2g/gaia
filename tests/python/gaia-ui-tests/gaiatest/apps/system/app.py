@@ -42,7 +42,7 @@ class System(Base):
 
     def wait_for_notification_toaster_displayed(self, timeout=10, message=None):
         Wait(self.marionette, timeout).until(
-            expected.element_displayed(*self._notification_toaster_locator), message)
+            expected.element_displayed(*self._notification_toaster_locator), message=message)
 
     def wait_for_notification_toaster_not_displayed(self, timeout=10):
         Wait(self.marionette, timeout).until(
