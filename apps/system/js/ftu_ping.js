@@ -95,18 +95,20 @@
       this._pingData = {};
     },
 
-    initSettings: function fp_initSettings(callback) {
-      this.reset();
-
-      this._pingData.screenHeight = window.screen.height;
-      this._pingData.screenWidth = window.screen.width;
-      this._pingData.devicePixelRatio = window.devicePixelRatio;
-      this._pingData.locale = window.navigator.language;
-
+    initSettings: function fp_initSettings() {
       var self = this;
-      this.getAsyncStorageItems([FTU_PING_ID, FTU_PING_ACTIVATION,
-                                 FTU_PING_ENABLED,
-                                 FTU_PING_NETWORK_FAIL_COUNT], function(items) {
+      return new Promise(function(resolve, reject) {
+        self.reset();
+
+        self._pingData.screenHeight = window.screen.height;
+        self._pingData.screenWidth = window.screen.width;
+        self._pingData.devicePixelRatio = window.devicePixelRatio;
+        self._pingData.locale = window.navigator.language;
+
+        self.getAsyncStorageItems([FTU_PING_ID, FTU_PING_ACTIVATION,
+                                   FTU_PING_ENABLED,
+                                   FTU_PING_NETWORK_FAIL_COUNT],
+                                  function(items) {
 
           self._pingData.pingID = items[FTU_PING_ID];
           self._pingData.activationTime = items[FTU_PING_ACTIVATION];
@@ -153,10 +155,37 @@
               mozSettings.addObserver(observeSetting, self._settingObserver);
             });
 
-            if (callback) {
-              callback();
+            resolve();
+          });
+        });
+      });
+    },
+
+    initPreinstalledApps: function fp_initPreinstalledApps(callback) {
+      var preinstalled = this._pingData.preinstalled = {};
+      var self = this;
+
+      return new Promise(function(resolve, reject) {
+        window.navigator.mozApps.mgmt.getAll().onsuccess = function(evt) {
+          var apps = evt.target.result;
+
+          apps.forEach(function(app) {
+            var url;
+            try {
+              url = new URL(app.manifestURL);
+            } catch (e) {
+              // Don't die if somehow the manifestURL is invalid
+            }
+
+            // Only report non-gaia apps
+            if (!url || url.hostname.indexOf('gaiamobile.org') === -1) {
+              preinstalled[app.manifestURL] = app.manifest.name;
             }
           });
+
+          self.debug(self._pingData.preinstalled);
+          resolve();
+        };
       });
     },
 
@@ -192,7 +221,8 @@
     },
 
     ensurePing: function fp_ensurePing() {
-      this.initSettings(this.startPing.bind(this));
+      var initPromises = [this.initSettings(), this.initPreinstalledApps()];
+      Promise.all(initPromises).then(this.startPing.bind(this));
     },
 
     onSettingChanged: function fp_onSettingChanged(evt) {
