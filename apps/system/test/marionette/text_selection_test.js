@@ -295,6 +295,23 @@ marionette('Text selection >', function() {
           'first character if positions of carets are updated correctly');
         });
     });
+
+    suite('bug1120316', function() {
+      setup(function() {
+        fakeTextselectionApp.setTestFrame('bug1120316');
+      });
+
+      test('bug1120316 : After select all, bubble should appear',
+        function() {
+          fakeTextselectionApp.selectAll('BugInput');
+          assert.ok(fakeTextselectionApp.bubbleVisiblity,
+            'bubble should show since we press selectall');
+
+          fakeTextselectionApp.selectAll('BugTextarea');
+          assert.ok(fakeTextselectionApp.bubbleVisiblity,
+            'bubble should show since we press selectall');
+        });
+    });
   });
 
   suite('with lockscreen enabled', function() {
