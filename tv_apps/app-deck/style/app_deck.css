@@ -43,8 +43,8 @@ section {
 }
 
 #app-deck-grid-view {
-  /* top = (6 - 5.8)rem, left = right = (14.2 - 2.6)rem */
-  padding: 0.2rem 11.6rem 0 11.6rem;
+  /* top = (6 - 5.8)rem */
+  padding: 0.2rem 14.2rem 0;
   height: 100%;
   overflow: hidden;
   scroll-behavior: smooth;
