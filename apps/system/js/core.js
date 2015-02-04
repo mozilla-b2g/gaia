@@ -11,6 +11,7 @@
   };
 
   Core.SUB_MODULES = [
+    'ServiceBroadcaster',
     'HierarchyManager',
     'AirplaneMode',
     'NotificationsSystemMessage',

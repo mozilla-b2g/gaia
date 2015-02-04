@@ -117,7 +117,7 @@
 
     this._fullscreen = (this.manifest && !!this.manifest.fullscreen) ?
                        !!this.manifest.fullscreen :
-                       this.rearWindow ?
+                       (this.rearWindow && this.rearWindow.isFullScreen) ?
                        this.rearWindow.isFullScreen() :
                        false;
     return this._fullscreen;

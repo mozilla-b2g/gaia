@@ -1,12 +1,20 @@
 .entrySheet {
   position: absolute;
   width: 100%;
-  height: calc(100% - 2.4rem);
-  top: 2.4rem;
   left: 0;
+  height: 100%;
+  top: 0;
   opacity: 1;
   visibility: visible;
   background: rgba(0, 0, 0, 0.5);
+}
+
+.entrySheet > .wrapper {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: calc(100% - var(--statusbar-height));
+  top: var(--statusbar-height);
 }
 
 .entrySheet .throbber {

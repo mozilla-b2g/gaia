@@ -235,8 +235,8 @@
       return;
     }
 
-    this.app.setOrientation();
-    this.app.requestForeground();
+    this.app.setOrientation && this.app.setOrientation();
+    this.app.requestForeground && this.app.requestForeground();
 
     // An activity handled by ActivityWindow is always an inline activity.
     // All window activities are handled by AppWindow. All inline
@@ -257,7 +257,7 @@
       return;
     }
     // We need to blur the opener before opening the new one.
-    top.setNFCFocus(false);
+    top.setNFCFocus && top.setNFCFocus(false);
     var activity = new ActivityWindow(configuration, top);
     activity.element.addEventListener('_closing', this);
     activity.open();

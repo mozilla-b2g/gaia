@@ -2,10 +2,13 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
-/* global BrowserFrame */
-/* global EntrySheet */
+/* global BroadcastChannel */
 
 (function(exports) {
+  var channel = new BroadcastChannel('fxa');
+  function broadcast(message) {
+    channel.postMessage(message);
+  }
   var Errors = {
     CONNECTION_ERROR: {
       title: 'fxa-connection-error-title',
@@ -84,24 +87,9 @@
       var link = shadow.getElementById('coppa-link');
       link.addEventListener('click', e => {
         e.preventDefault();
-        if (this.entrySheet) {
-          this.entrySheet.close();
-          this.entrySheet = null;
-        }
-
-        this.entrySheet = new EntrySheet(
-          window.top.document.getElementById('screen'),
-          // Prefix url with LRM character
-          // This ensures truncation occurs correctly in an RTL document
-          // We can remove this when bug 1154438 is fixed.
+        broadcast(['EntrySheet:instantiate',
           '\u200E URL:' + coppaUrl,
-          new BrowserFrame({
-            url: coppaUrl,
-            oop: true
-          })
-        );
-
-        this.entrySheet.open();
+          coppaUrl]);
       });
     };
 

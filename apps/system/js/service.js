@@ -8,6 +8,7 @@
    * @module Service
    */
   exports.Service = {
+    DEBUG: false,
     /**
      * Stores the servers by the server name.
      * @type {Map}
@@ -173,10 +174,19 @@
      * @param  {Object} server  The server
      */
     unregister: function(service, server) {
-      this._providers.delete(server.name);
       var se = this._services.get(service);
       if (se && server === se) {
         this._services.delete(service);
+      }
+      var stillServe = false;
+      this._services.forEach(function(key, value) {
+        console.log(key, value);
+        if (key.indexOf(server.name + ':') === 0) {
+          stillServe = true;
+        }
+      }, this);
+      if (!stillServe) {
+        this._providers.delete(service.name);
       }
     },
 
@@ -270,7 +280,7 @@
     },
 
     debug: function sys_debug() {
-      if (DEBUG) {
+      if (DEBUG || this.DEBUG) {
         console.log('[System]' +
           '[' + window.Service.currentTime() + ']' +
           Array.slice(arguments).concat());

@@ -98,6 +98,7 @@
     },
 
     handleEvent: function awf_handleEvent(evt) {
+      console.log(evt.type);
       var detail = evt.detail;
       if (evt.type === '_opened' || evt.type === '_terminated') {
         if (this._launchingApp === detail) {
