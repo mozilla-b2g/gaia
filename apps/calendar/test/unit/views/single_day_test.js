@@ -287,7 +287,7 @@ suite('Views.SingleDay', function() {
           'class="md__allday-events">' +
         '<a role="option" aria-labelledby="' + makeAllDayEventID('title') +
         ' ' + makeAllDayEventID('location') + '" ' +
-        'style="border-left-color: rgb(0, 255, 204); background-color: ' +
+        'style="border-color: rgb(0, 255, 204); background-color: ' +
         'rgba(0, 255, 204, 0.2);" ' +
           'class="md__event is-allday" ' +
           'href="/event/show/Curabitur-0-00-0-00">' +
@@ -318,7 +318,7 @@ suite('Views.SingleDay', function() {
       '<a aria-labelledby="' + makeFirstEventID('title') + ' ' +
         makeFirstEventID('location') + ' ' +
         makeFirstEventID('description') + '" ' +
-        'style="border-left-color: rgb(0, 255, 204); background-color: ' +
+        'style="border-color: rgb(0, 255, 204); background-color: ' +
         'rgba(0, 255, 204, 0.2); height: 49.9px; top: 250px;" ' +
         'class="md__event" href="/event/show/Lorem-Ipsum-5-00-6-00">' +
         '<span id="' + makeFirstEventID('title') + '" ' +
@@ -336,7 +336,7 @@ suite('Views.SingleDay', function() {
         makeSecondEventID('location') + ' ' +
         makeSecondEventID('icon') + ' ' +
         makeSecondEventID('description') + '" ' +
-        'style="border-left-color: rgb(0, 255, 204); background-color: ' +
+        'style="border-color: rgb(0, 255, 204); background-color: ' +
         'rgba(0, 255, 204, 0.2); height: 549.9px; top: 300px;" ' +
         'class="md__event has-alarms" ' +
         'href="/event/show/Maecennas-6-00-17-00">' +
