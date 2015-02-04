@@ -169,7 +169,9 @@ module.exports = {
     router.state('/day/', 'Day');
     router.state('/month/', ['Month', 'MonthDayAgenda']);
     router.modifier('/settings/', 'Settings', { clear: false });
-    router.modifier('/advanced-settings/', 'AdvancedSettings');
+    router.modifier('/advanced-settings/', 'AdvancedSettings', {
+      color: 'settings'
+    });
 
     router.state('/alarm-display/:id', 'ViewEvent', { path: false });
 

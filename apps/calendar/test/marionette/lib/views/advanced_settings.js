@@ -14,7 +14,7 @@ AdvancedSettings.prototype = {
 
   close: function() {
     this
-      .findElement('menu[type="toolbar"]')
+      .findElement('a[href="/settings/"]')
       .click();
   },
 
