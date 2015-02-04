@@ -82,12 +82,7 @@ var TonePlayer = {
       return;
     }
 
-    if (this._channel) {
-      this._audioContext = new AudioContext(this._channel);
-    } else {
-      // If no channel was specified stick with the default one.
-      this._audioContext = new AudioContext();
-    }
+    this._audioContext = new AudioContext(this._channel);
   },
 
   _trashAudio: function tp_trashAudio() {
