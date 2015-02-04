@@ -615,7 +615,19 @@ header .icon:after {
   top: calc(50% - 1.15rem);
   width: 2.3rem;
   height: 2.3rem;
+
+  /* For LTR langauges, position the playhead 1.15 rems to the left 
+   * so that the center of the playhead aligns with the beginning of
+   * the time slider.
+   */
   margin-left: -1.15rem;
+
+  /* For RTL langauges, position the playhead 1.15 rems to the right 
+   * so that the center of the playhead aligns with the end of
+   * the time slider.
+   */
+  margin-right: -1.15rem;
+ 
   border: none;
   background: none;
   pointer-events: none;
