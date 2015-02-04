@@ -14,6 +14,11 @@ li button.icon-message:before {
 li button.send-sms {
   width: 0;
 }
+
+html[dir="rtl"] li .activity.icon.send-sms {
+  padding: 1rem 1.3rem 1rem 3rem;
+}
+
 li button.icon-email:before {
   background-image: url("/shared/style/contacts/images/mail.png") !important;
 }
@@ -85,6 +90,11 @@ li button.icon-email:before {
 .item-media.pull-right {
   -moz-margin-start: 1rem;
   -moz-margin-end: 0;
+}
+
+html[dir="rtl"] .item-media.pull-right {
+  margin-right: 1rem;
+  margin-left: 0;
 }
 
 .item-media.pull-right button {
