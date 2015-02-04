@@ -1,12 +1,7 @@
 'use strict';
-/* global MockL10n */
-/* global MockNavigatorMozMobileConnections */
-/* global MockNavigatorSettings */
-/* global MocksHelper */
-/* global MockSettingsListener */
-/* global MockWifiManager */
-/* global QuickSettings */
-
+/* global MockL10n, MockNavigatorMozMobileConnections,
+   MockNavigatorSettings, MocksHelper, MockSettingsListener,
+   MockWifiManager, QuickSettings, MockMozBluetooth */
 
 require('/test/unit/mock_activity.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -15,8 +10,16 @@ require('/shared/test/unit/mocks/mock_settings_helper.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_bluetooth_v2.js');
 
 require('/js/quick_settings.js');
+
+function switchReadOnlyProperty(originObject, propName, targetObj) {
+  Object.defineProperty(originObject, propName, {
+    configurable: true,
+    get: function() { return targetObj; }
+  });
+}
 
 var mocksForQuickSettings = new MocksHelper([
   'MozActivity',
@@ -30,6 +33,7 @@ suite('quick settings > ', function() {
   var realL10n;
   var realSettings;
   var realMozMobileConnections;
+  var realMozBluetooth;
   var fakeQuickSettingsNode;
   var realAirplaneMode;
   var subject;
@@ -45,6 +49,8 @@ suite('quick settings > ', function() {
     navigator.mozL10n = MockL10n;
     realMozMobileConnections = navigator.mozMobileConnections;
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
+    realMozBluetooth = navigator.mozBluetooth;
+    switchReadOnlyProperty(navigator, 'mozBluetooth', MockMozBluetooth);
   });
 
   suiteTeardown(function() {
@@ -53,6 +59,7 @@ suite('quick settings > ', function() {
     navigator.mozL10n = realL10n;
     navigator.mozSettings = realSettings;
     window.AirplaneMode = realAirplaneMode;
+    switchReadOnlyProperty(navigator, 'mozBluetooth', realMozBluetooth);
   });
 
   setup(function() {

@@ -16,7 +16,10 @@
     enable: function mba_enable() {},
     disable: function mba_disable() {},
 
-    onscostatuschanged: null
+    onscostatuschanged: null,
+    onhfpstatuschanged: null,
+    ona2dpstatuschanged: null,
+    addEventListener: mmb_addEventListener
   };
 
   var mEventListeners = [];

@@ -162,6 +162,61 @@
     },
 
     /**
+     * BT APIv2: Watch 'onattributechanged' event from mozBluetooth for
+     * updating default adapter information.
+     *
+     * 'onattributechanged' event description:
+     * A handler to trigger when bluetooth manager's only property
+     * defaultAdapter has changed.
+     *
+     * @private
+     * @param  {Object} evt event object
+     */
+    _bluetoothAttrChangeHandler: function bt__bluetoothAttrChangeHandler(evt) {
+      for (var i in evt.attrs) {
+        switch (evt.attrs[i]) {
+          case 'defaultAdapter':
+            // Default adapter attribute change.
+            // Usually, it means that we reach new default adapter.
+            var adapter = window.navigator.mozBluetooth.defaultAdapter;
+            adapter.addEventListener('attributechanged',
+              this._bluetoothAdapterAttrChangeHandler.bind(this, adapter));
+            break;
+          default:
+            break;
+        }
+      }
+    },
+
+    /**
+     * BT APIv2: Watch 'onattributechanged' event from
+     * mozBluetooth.defaultAdapter for updating state information.
+     *
+     * @private
+     * @param  {Object} evt event object
+     */
+    _bluetoothAdapterAttrChangeHandler:
+      function bt__bluetoothAdapterAttrChangeHandler(adapter, evt) {
+        for (var i in evt.attrs) {
+          switch (evt.attrs[i]) {
+            case 'state':
+              if (adapter.state === 'enabled') {
+                this.bluetooth.dataset.enabled = 'true';
+              } else if (adapter.state === 'disabled') {
+                delete this.bluetooth.dataset.enabled;
+              } else {
+                this.bluetooth.dataset.initializing = 'true';
+              }
+              this.setAccessibilityAttributes(this.bluetooth,
+                'bluetoothButton');
+              break;
+            default:
+              break;
+          }
+        }
+    },
+
+    /**
      * Monitor bluetooth setting and initialization/disable ready event
      * - when settings changed, update UI and lock toogle to prevent quickly
      *   tapping on it.
@@ -171,31 +226,62 @@
      */
     monitorBluetoothChange: function() {
       var self = this;
-      var btFirstSet = true;
-      SettingsListener.observe('bluetooth.enabled', true, function(value) {
-        // check self.bluetooth.dataset.enabled and value are identical
-        if ((self.bluetooth.dataset.enabled && value) ||
-          (self.bluetooth.dataset.enabled === undefined && !value)) {
-          return;
-        }
+      if (typeof(window.navigator.mozBluetooth.onattributechanged) ===
+        'undefined') { // APIv1 listen settings value then update state by event
+        var btFirstSet = true;
+        SettingsListener.observe('bluetooth.enabled', true, function(value) {
+          // check self.bluetooth.dataset.enabled and value are identical
+          if ((self.bluetooth.dataset.enabled && value) ||
+            (self.bluetooth.dataset.enabled === undefined && !value)) {
+            return;
+          }
 
-        if (value) {
-          self.bluetooth.dataset.enabled = 'true';
-        } else {
-          delete self.bluetooth.dataset.enabled;
-        }
+          if (value) {
+            self.bluetooth.dataset.enabled = 'true';
+          } else {
+            delete self.bluetooth.dataset.enabled;
+          }
 
-        // Set to the initializing state to block user interaction until the
-        // operation completes. (unless we are being called for the first time,
-        // where Bluetooth is already initialize
-        if (!btFirstSet) {
-          self.bluetooth.dataset.initializing = 'true';
-        }
-        btFirstSet = false;
+          // Set to the initializing state to block user interaction until the
+          // operation completes. (unless we are being called for the first
+          // time, where Bluetooth is already initialize
+          if (!btFirstSet) {
+            self.bluetooth.dataset.initializing = 'true';
+          }
+          btFirstSet = false;
 
-        self.setAccessibilityAttributes(self.bluetooth, 'bluetoothButton');
-      });
-      window.addEventListener('bluetooth-adapter-added', this);
+          self.setAccessibilityAttributes(self.bluetooth, 'bluetoothButton');
+        });
+      } else { // APIv2 listen mozBluetooth adapter state directly
+        var req = navigator.mozSettings.createLock().get('bluetooth.enabled');
+        req.onsuccess = function() {
+          // set default state
+          var value = req.result['bluetooth.enabled'];
+          if (value) {
+            this.bluetooth.dataset.enabled = 'true';
+          } else {
+            delete self.bluetooth.dataset.enabled;
+          }
+
+          var _attributeHandler = this._bluetoothAttrChangeHandler.bind(this);
+          window.navigator.mozBluetooth.addEventListener('adapterremoved',
+            () => {
+              window.navigator.mozBluetooth
+                .removeEventListener(_attributeHandler);
+          });
+
+          window.navigator.mozBluetooth.addEventListener('attributechanged',
+            _attributeHandler);
+
+          // while default adapter is ready
+          var adapter = window.navigator.mozBluetooth.defaultAdapter;
+          if (adapter) {
+            adapter.addEventListener('attributechanged',
+              this._bluetoothAdapterAttrChangeHandler.bind(this, adapter));
+          }
+        }.bind(this);
+      }
+      window.addEventListener('bluetooth-enabled', this);
       window.addEventListener('bluetooth-disabled', this);
     },
 
@@ -362,7 +448,7 @@
           break;
 
           // unlock bluetooth toggle
-        case 'bluetooth-adapter-added':
+        case 'bluetooth-enabled':
         case 'bluetooth-disabled':
           delete this.bluetooth.dataset.initializing;
           this.setAccessibilityAttributes(this.bluetooth, 'bluetoothButton');
