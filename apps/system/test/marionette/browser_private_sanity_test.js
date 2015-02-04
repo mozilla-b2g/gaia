@@ -47,6 +47,7 @@ marionette('Private Browser - Basic Sanity Test', function() {
 
   test('Should not keep personal info like localStorage',
     function() {
+      assert.ok(false);
     // Use the home-screen search box to open up the system browser
     var url = server.url('sample.html');
     rocketbar.homescreenFocus();
