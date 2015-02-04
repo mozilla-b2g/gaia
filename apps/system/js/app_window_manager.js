@@ -831,7 +831,7 @@
         activated = true;
       } else if (!appHasChanged && this._activeApp && !this.activated) {
         activated = true;
-      } 
+      }
 
       this._activeApp = this._apps[instanceID];
       if (!this._activeApp) {
