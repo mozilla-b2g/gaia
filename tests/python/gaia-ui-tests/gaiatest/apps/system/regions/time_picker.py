@@ -4,6 +4,8 @@
 
 import time
 
+from marionette import expected
+from marionette import Wait
 try:
     from marionette import (expected,
                             Wait)
