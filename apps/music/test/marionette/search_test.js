@@ -117,6 +117,10 @@ marionette('Music player search', function() {
                    'The NSA');
       assert.equal(resultsList[1].findElement('.search-highlight').text(),
                    'The');
+
+      var noResult = client.findElement(Music.Selector.searchNoResult);
+      assert.ok(noResult);
+      assert.ok(!noResult.displayed());
     });
 
     test('Check simple search results in tracks.', function() {
@@ -127,8 +131,24 @@ marionette('Music player search', function() {
                    'The Ecuadorian Embassy');
       assert.equal(resultsList[0].findElement('.search-highlight').text(),
                    'The');
+      var noResult = client.findElement(Music.Selector.searchNoResult);
+      assert.ok(noResult);
+      assert.ok(!noResult.displayed());
     });
 
+    test('Check empty results', function() {
+      music.searchTiles('qwerty');
+
+      var view = client.findElement(Music.Selector.searchNoResult);
+
+      assert.ok(view);
+
+      client.waitFor(function() {
+        return view.displayed();
+      });
+
+      assert.ok(view.displayed());
+    });
   });
 
   suite('Search context tests', function () {
