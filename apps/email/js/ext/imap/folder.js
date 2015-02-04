@@ -743,14 +743,6 @@ ImapFolderConn.prototype = {
         if (rep.isDownloaded)
           return;
 
-        var request = {
-          uid: header.srvid,
-          partInfo: rep._partInfo,
-          bodyRepIndex: idx,
-          createSnippet: idx === bodyRepIdx,
-          headerUpdatedCallback: latch.defer(header.srvid + '-' + rep._partInfo)
-        };
-
         // default to the entire remaining email. We use the estimate * largish
         // multiplier so even if the size estimate is wrong we should fetch more
         // then the requested number of bytes which if truncated indicates the
@@ -783,6 +775,19 @@ ImapFolderConn.prototype = {
         // network request than breaking here.
         if (bytesToFetch <= 0)
           bytesToFetch = 64;
+
+        // CONDITIONAL LOGIC BARRIER CONDITIONAL LOGIC BARRIER DITTO DITTO
+        // Do not do return/continue after this point because we call
+        // latch.defer below, and we break if we call it and then throw away
+        // that callback without calling it.  (Unsurprisingly.)
+
+        var request = {
+          uid: header.srvid,
+          partInfo: rep._partInfo,
+          bodyRepIndex: idx,
+          createSnippet: idx === bodyRepIdx,
+          headerUpdatedCallback: latch.defer(header.srvid + '-' + rep._partInfo)
+        };
 
         // we may only need a subset of the total number of bytes.
         if (overallMaximumBytes !== undefined || rep.amountDownloaded) {
