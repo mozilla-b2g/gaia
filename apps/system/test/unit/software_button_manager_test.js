@@ -502,4 +502,20 @@ suite('enable/disable software home button', function() {
         contains('attention-lockscreen'));
     });
   });
+
+  suite('general event handling', function() {
+    test('should listen when enabled', function() {
+      this.sinon.stub(MockOrientationManager, 'fetchCurrentOrientation');
+      subject.enabled = true;
+      window.dispatchEvent(new CustomEvent('mozorientationchange'));
+      sinon.assert.calledOnce(MockOrientationManager.fetchCurrentOrientation);
+    });
+
+    test('should not listen when disabled', function() {
+      this.sinon.stub(MockOrientationManager, 'fetchCurrentOrientation');
+      subject.enabled = false;
+      window.dispatchEvent(new CustomEvent('mozorientationchange'));
+      sinon.assert.notCalled(MockOrientationManager.fetchCurrentOrientation);
+    });
+  });
 });
