@@ -91,6 +91,8 @@
       window.addEventListener('batteryshutdown', this);
       window.addEventListener('cardviewbeforeshow', this);
 
+      this.elements.overlay.addEventListener('mousedown', this, true);
+
       window.addEventListener('attentionopened', this);
       this.elements.cancel.addEventListener('click', this);
 
@@ -242,6 +244,14 @@
           if (!evt.detail.screenEnabled) {
             this.hide();
           }
+          break;
+
+        case 'mousedown':
+          // Prevent focus from being moved to Sleep Menu.
+          // TODO: Instead of doing this, we should hook this module to
+          // HierarchyManager and take/release focus as we show/hide.
+          evt.preventDefault();
+
           break;
 
         case 'click':
