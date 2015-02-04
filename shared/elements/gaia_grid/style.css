@@ -137,7 +137,7 @@
 }
 
 .dragging .icon.active:not(.hidden) {
-  z-index: 5;
+  z-index: 6;
   opacity: 0.65;
 }
 
@@ -184,7 +184,7 @@
 }
 
 .dragging .group.active {
-  z-index: 4;
+  z-index: 5;
 }
 
 .divider.group {
@@ -208,12 +208,13 @@
 }
 
 .group .header {
-  height: 3rem;
+  height: 4rem;
+  z-index: 4;
 }
 
 .group .header span {
   position: absolute;
-  height: 3rem;
+  height: 4rem;
   top: 0;
 
   background-position: center top;
