@@ -21,6 +21,9 @@ FakeTextSelectionApp.Selector = Object.freeze({
   topRightInput: '#top-right-input',
   normalDiv: '#noneditable',
   nonSelectedDiv: '#noneditable-userselectnone'
+  // bug1120316.html
+  BugInput: '#bug-input',
+  BugTextarea: '#bug-textarea',
 });
 
 FakeTextSelectionApp.ORIGIN = 'app://faketextselectionapp.gaiamobile.org';
@@ -64,6 +67,14 @@ FakeTextSelectionApp.prototype = {
     return this._getElement('topRightInput');
   },
 
+  get BugInput() {
+    return this._getElement('BugInput');
+  },
+
+  get BugTextarea() {
+    return this._getElement('BugTextarea');
+  },
+
   _getElement: function(target) {
     var element = this.client.helper.waitForElement(
       FakeTextSelectionApp.Selector[target]);
@@ -105,5 +116,16 @@ FakeTextSelectionApp.prototype = {
     this.longPress(ele);
     this.textSelection.pressSelectAll();
     this.textSelection.pressCut();
+  },
+
+  selectAll: function(ele) {
+    this.longPress(ele);
+    this.textSelection.pressSelectAll();
+  },
+
+  setTestFrame: function(frameName) {
+    this.client.executeScript(function(frameName) {
+      window.wrappedJSObject.location.href = '/' + frameName + '.html';
+    }, [frameName]);
   }
 };
