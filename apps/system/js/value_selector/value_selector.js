@@ -239,9 +239,6 @@
     }
     this.element.blur();
     this.element.hidden = true;
-    if (this.app) {
-      this.app.focus();
-    }
     this.publish('hidden');
   };
 

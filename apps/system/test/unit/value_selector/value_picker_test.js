@@ -1,5 +1,7 @@
 'use strict';
 
+/* global ValuePicker */
+
 requireApp('system/js/value_selector/value_picker.js');
 
 suite('value selector/value picker', function() {
