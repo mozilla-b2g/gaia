@@ -189,7 +189,7 @@
       if (this.insertPosition) {
         // If we are inserting in any index we can just call render
         // with the index.
-        app.grid.add(collection, this.insertPosition);
+        app.grid.add(collection, this.insertPosition, true);
       } else {
         // Manually inject this book mark into the app item list for now.
         app.grid.appendItemToExpandedGroup(collection);
