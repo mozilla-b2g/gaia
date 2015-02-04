@@ -188,20 +188,6 @@ suite('WiFi > ', function() {
       assert.equal(Wifi.screenOffTimeout, 2000);
     });
 
-    test('Test SettingsListener callback wifi.sleepMode is set to true',
-      function() {
-        Wifi.wifiSleepMode = false;
-        SettingsListener.mCallbacks['wifi.sleepMode'](true);
-        assert.equal(Wifi.wifiSleepMode, true);
-    });
-
-    test('Test SettingsListener callback wifi.sleepMode is set to false',
-      function() {
-        Wifi.wifiSleepMode = true;
-        SettingsListener.mCallbacks['wifi.sleepMode'](false);
-        assert.equal(Wifi.wifiSleepMode, false);
-    });
-
     test('Test SettingsListener callback wifi.enabled is set to true',
       function() {
         Wifi.wifiEnabled = false;
@@ -344,18 +330,13 @@ suite('WiFi > ', function() {
       stubMozWifiManager.restore();
     });
 
-
-    test('Test starting with a timer if turn on wifi sleep mode', function() {
+    test('Test starting with a timer', function() {
       SettingsListener.mCallbacks['wifi.screen_off_timeout'](100);
-      SettingsListener.mCallbacks['wifi.sleepMode'](true);
 
       ScreenManager.screenEnabled = false;
       Wifi.wifiDisabledByWakelock = true;
       stubWifiWakeLockManager.isHeld = false;
       Wifi.wifiEnabled = true;
-      Wifi.wifiSleepMode = true;
-
-      assert.equal(Wifi.wifiSleepMode, true);
 
       var stubMozAlarms = this.sinon.stub(navigator,
         'mozAlarms', MockMozAlarms);
@@ -372,49 +353,10 @@ suite('WiFi > ', function() {
         });
 
       Wifi.maybeToggleWifi();
-      if (Wifi.wifiSleepMode == true) {
-        assert.equal(isSetSystemMessageHandlerCalled, true);
-        assert.equal(MockMozAlarms._timezone, 'ignoreTimezone');
-        assert.equal(MockMozAlarms._func, 'wifi-off');
-      }
 
-      navigator.battery = realBattery;
-      stubMozAlarms.restore();
-      stubSetSystemMessageHandler.restore();
-      stubMozWifiManager.restore();
-    });
-
-    test('Test starting with a timer if turn off wifi sleep mode', function() {
-      SettingsListener.mCallbacks['wifi.screen_off_timeout'](100);
-      SettingsListener.mCallbacks['wifi.sleepMode'](false);
-
-      ScreenManager.screenEnabled = false;
-      Wifi.wifiDisabledByWakelock = true;
-      stubWifiWakeLockManager.isHeld = false;
-      Wifi.wifiEnabled = true;
-      Wifi.wifiSleepMode = false;
-
-      assert.equal(Wifi.wifiSleepMode, false);
-      var stubMozAlarms = this.sinon.stub(navigator,
-        'mozAlarms', MockMozAlarms);
-      var isSetSystemMessageHandlerCalled = false;
-      var stubSetSystemMessageHandler =
-        this.sinon.stub(Wifi, 'setSystemMessageHandler', function() {
-          isSetSystemMessageHandlerCalled = true;
-        });
-      navigator.battery = { charging: false };
-
-      var stubMozWifiManager = this.sinon.stub(navigator,
-        'mozWifiManager', {
-          setPowerSavingMode: function(enabled) {}
-        });
-
-      Wifi.maybeToggleWifi();
-      if (Wifi.wifiSleepMode == true) {
-        assert.equal(isSetSystemMessageHandlerCalled, true);
-        assert.equal(MockMozAlarms._timezone, 'ignoreTimezone');
-        assert.equal(MockMozAlarms._func, 'wifi-off');
-      }
+      assert.equal(isSetSystemMessageHandlerCalled, true);
+      assert.equal(MockMozAlarms._timezone, 'ignoreTimezone');
+      assert.equal(MockMozAlarms._func, 'wifi-off');
 
       navigator.battery = realBattery;
       stubMozAlarms.restore();
