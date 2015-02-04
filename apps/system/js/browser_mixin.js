@@ -168,7 +168,8 @@
     },
 
     focus: function bm_focus() {
-      if (this.browser && this.browser.element) {
+      if (this.browser && this.browser.element &&
+          !(this.contextmenu && this.contextmenu.isShown())) {
         this.browser.element.focus();
       }
     },
