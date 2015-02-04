@@ -180,8 +180,8 @@ input:focus {
 }
 
 [data-type="list"] li {
-  margin: 0 1.5rem;
-  width: calc(100% - 3rem);
+  -moz-margin-start: 1.5rem;
+  width: calc(100% - 1.5rem);
   height: auto;
 }
 
