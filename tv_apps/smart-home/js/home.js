@@ -52,10 +52,10 @@
       this.searchBar.on('shown', this.onSearchBarShown.bind(this));
       this.searchBar.on('hidden', this.onSearchBarHidden.bind(this));
 
-      this.messageHandler = new MessageHandler();
-      this.messageHandler.init(this);
-
       this.cardManager.getCardList().then(function(cardList) {
+        that.messageHandler = new MessageHandler();
+        that.messageHandler.init(that);
+
         that._createCardList(cardList);
         that.cardScrollable = new XScrollable({
                 frameElem: 'card-list-frame',

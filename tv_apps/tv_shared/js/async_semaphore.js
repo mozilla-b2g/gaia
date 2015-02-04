@@ -1,11 +1,8 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 'use strict';
 
 (function(exports) {
   var AsyncSemaphore = function as_contructor() {
-    if (!this instanceof AsyncSemaphore) {
+    if (!(this instanceof AsyncSemaphore)) {
       return new AsyncSemaphore();
     }
     this._init();

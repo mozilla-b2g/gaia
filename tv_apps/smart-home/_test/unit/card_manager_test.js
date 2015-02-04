@@ -1,5 +1,5 @@
 'use strict';
-/* global Application, CardManager, Deck, Folder,
+/* global Application, CardManager, Deck, Folder, AsyncSemaphore,
           MockCardStore, MockPipedPromise, MockXMLHttpRequest */
 
 require('/tv_apps/tv_shared/js/vendor/evt.js');
@@ -13,6 +13,7 @@ require('/tv_apps/tv_shared/js/cards/deck.js');
 require('/tv_apps/tv_shared/js/cards/folder.js');
 require('/tv_apps/tv_shared/js/cards/application.js');
 require('/tv_apps/tv_shared/js/cards/app_bookmark.js');
+require('/tv_apps/tv_shared/js/async_semaphore.js');
 
 suite('smart-home/CardManager', function() {
   var realPipedPromise;
@@ -92,13 +93,17 @@ suite('smart-home/CardManager', function() {
 
   });
 
-  suite('_reloadCardList', function() {
+  suite('_reloadCardList()', function() {
     var cardManager;
     var realXMLHttpRequest;
 
     setup(function() {
       cardManager = new CardManager();
+      // We bypass init() because it involves navigator.mozApps.mgmt
+      // Instead we need to prepare necessary properties of cardManager
+      cardManager._cardList = [];
       cardManager._cardStore = MockCardStore;
+      cardManager._asyncSemaphore = new AsyncSemaphore();
       realXMLHttpRequest = window.XMLHttpRequest;
       window.XMLHttpRequest = MockXMLHttpRequest;
       this.sinon.spy(cardManager, 'writeCardlistInCardStore');
@@ -120,8 +125,6 @@ suite('smart-home/CardManager', function() {
       cardManager._reloadCardList().then(function() {
         assert.isTrue(cardManager._cardList.length > 0);
         assert.equal(cardManager._cardList[0].name, 'Television');
-      }, function(reason) {
-        assert.fail('should not reject promise due to ' + reason);
       }).then(done, done);
     });
 
@@ -151,6 +154,7 @@ suite('smart-home/CardManager', function() {
           });
         });
       });
+
   });
 
   suite('findCardFromCardList', function() {
@@ -220,6 +224,9 @@ suite('smart-home/CardManager', function() {
     var dashboardCardId;
     setup(function() {
       cardManager = new CardManager();
+      // We bypass init() because it involves navigator.mozApps.mgmt
+      // Instead we need to prepare necessary properties of cardManager
+      cardManager._asyncSemaphore = new AsyncSemaphore();
       cardManager._cardStore = MockCardStore;
       cardManager._cardList = [
         new Deck({
@@ -285,12 +292,16 @@ suite('smart-home/CardManager', function() {
 
   });
 
+
   suite('writeCardlistInCardStore', function() {
     var cardManager;
     var emptyFolder, secondEmptyFolder;
 
     setup(function() {
       cardManager = new CardManager();
+      // We bypass init() because it involves navigator.mozApps.mgmt
+      // Instead we need to prepare necessary properties of cardManager
+      cardManager._asyncSemaphore = new AsyncSemaphore();
       cardManager._cardStore = MockCardStore;
 
       emptyFolder = new Folder({
