@@ -13,6 +13,10 @@ var Wifi = {
   // If it's set to 0, wifi will never be turn off.
   screenOffTimeout: 0,
 
+  // When wifiSleepMode is true, Wi-Fi will be automatically turned off
+  // during sleep to save battery power.
+  wifiSleepMode: false,
+
   // if Wifi is enabled but disconnected, try to scan for networks every
   // kScanInterval ms.
   kScanInterval: 20 * 1000,
@@ -83,6 +87,10 @@ var Wifi = {
       'wifi.screen_off_timeout', 600000, function(value) {
         self.screenOffTimeout = value;
       });
+
+    SettingsListener.observe('wifi.sleepMode', true, function(value) {
+      self.wifiSleepMode = value;
+    });
 
     // Track the wifi.enabled mozSettings value
     SettingsListener.observe('wifi.enabled', true, function(value) {
@@ -192,20 +200,26 @@ var Wifi = {
       // Set System Message Handler, so we will be notified when alarm goes off.
       this.setSystemMessageHandler();
 
-      // Start with a timer, only turn off wifi till timeout.
-      var date = new Date(Date.now() + this.screenOffTimeout);
-      var self = this;
-      var req = navigator.mozAlarms.add(date, 'ignoreTimezone', 'wifi-off');
-      req.onsuccess = function wifi_offAlarmSet() {
-        self._alarmId = req.result;
-        releaseCpuLock();
-      };
-      req.onerror = function wifi_offAlarmSetFailed() {
-        console.warn('Fail to set wifi sleep timer on Alarm API. ' +
-          'Turn off wifi immediately.');
-        self.sleep();
-        releaseCpuLock();
-      };
+      // When user wants to allow wifi off then start with a timer,
+      // only turn off wifi till timeout.
+      if (this.wifiSleepMode == true) {
+        var date = new Date(Date.now() + this.screenOffTimeout);
+        var self = this;
+        var req = navigator.mozAlarms.add(date, 'ignoreTimezone', 'wifi-off');
+        req.onsuccess = function wifi_offAlarmSet() {
+          self._alarmId = req.result;
+          releaseCpuLock();
+        };
+        req.onerror = function wifi_offAlarmSetFailed() {
+          console.warn('Fail to set wifi sleep timer on Alarm API. ' +
+            'Turn off wifi immediately.');
+          self.sleep();
+          releaseCpuLock();
+        };
+      }
+      else {
+        return;
+      }
     }
     // ... and quietly turn it back on or cancel the timer otherwise
     else {
