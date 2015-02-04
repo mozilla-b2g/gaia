@@ -175,12 +175,10 @@ suite('system/BrowserContextMenu', function() {
   suite('manually launch menu', function() {
     var md1;
 
-    setup(function(done) {
+    setup(function() {
       var app1 = new AppWindow(fakeAppConfig1);
       md1 = new BrowserContextMenu(app1);
-      md1.showDefaultMenu().then(function() {
-        done();
-      });
+      md1.showDefaultMenu();
     });
 
     test('Conext Menu is shown', function() {

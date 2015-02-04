@@ -4,6 +4,8 @@
 /* exported BookmarkEditor */
 
 var BookmarkEditor = {
+  BOOKMARK_ICON_SIZE: 60,
+  
   init: function bookmarkEditor_show(options) {
     this.data = options.data;
     this.onsaved = options.onsaved;
@@ -19,11 +21,15 @@ var BookmarkEditor = {
   },
 
   _init: function bookmarkEditor_init(mode) {
+    var _ = navigator.mozL10n.get;
     this.mode = document.body.dataset.mode = mode;
     this.bookmarkTitle = document.getElementById('bookmark-title');
     this.bookmarkIcon = document.getElementById('bookmark-icon');
     this.cancelButton = document.getElementById('cancel-button');
     this.saveButton = document.getElementById('done-button');
+    this.appInstallationSection = document.getElementById('app-installation');
+    this.appNameText = document.getElementById('app-name');
+    this.installAppButton = document.getElementById('install-app-button');
 
     this.cancelButton.addEventListener('click', this.close.bind(this));
     this.saveListener = this.save.bind(this);
@@ -32,6 +38,11 @@ var BookmarkEditor = {
     this.bookmarkTitle.value = this.data.name || '';
 
     this._renderIcon();
+
+    if (this.data.manifestURL) {
+      this.manifestURL = this.data.manifestURL;
+      this._fetchManifest(this.manifestURL);
+    }
 
     this._checkDoneButton();
     this.form = document.getElementById('bookmark-form');
@@ -42,6 +53,9 @@ var BookmarkEditor = {
     this.clearButton.addEventListener(touchstart, this._clearTitle.bind(this));
     if (mode === 'put') {
       this._onEditMode();
+      this.saveButton.textContent = _('done-action');
+    } else {
+      this.saveButton.textContent = _('add-action');
     }
 
     // We're appending new elements to DOM so to make sure headers are
@@ -54,7 +68,26 @@ var BookmarkEditor = {
 
   _renderIcon: function renderIcon() {
     var icon = new Icon(this.bookmarkIcon, this.data.icon);
-    icon.render();
+    icon.render({'size': this.BOOKMARK_ICON_SIZE});
+  },
+  
+  _fetchManifest: function bookmarkEditor_fetchManifest(manifestURL) {
+    var manifestPromise = window.WebManifestHelper.getManifest(manifestURL);
+    
+    manifestPromise.then((function(manifestData) {
+      if (manifestData) {
+        this.installAppButtonListener = this._installApp.bind(this);
+        this.installAppButton.addEventListener('click',
+          this.installAppButtonListener);
+        this.appInstallationSection.classList.remove('hidden');
+        this.appNameText.textContent = manifestData.short_name ||
+          manifestData.name;
+      }
+    }).bind(this)).catch(function(error) {
+      console.error('Unable to get web manifest: ' + error);
+    });
+    
+    return manifestPromise;
   },
 
   _onEditMode: function bookmarkEditor_onEditMode() {
@@ -87,9 +120,17 @@ var BookmarkEditor = {
     var title = this.bookmarkTitle.value.trim();
     this.saveButton.disabled = title === '';
   },
+  
+  _installApp: function bookmarkEditor_installApp() {
+    window.navigator.mozApps.install(this.manifestURL);
+  },
 
   save: function bookmarkEditor_save(evt) {
     this.saveButton.removeEventListener('click', this.saveListener);
+    if (this.installAppButtonListener) {
+      this.installAppButton.removeEventListener('click',
+        this.installAppButtonListener);
+    }
 
     // Only allow urls to be bookmarked.
     // This is defensive check - callers should filter out non-URLs.
