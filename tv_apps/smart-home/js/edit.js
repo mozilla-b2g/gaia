@@ -47,10 +47,15 @@
         this.mainSection.dataset.mode = '';
         this.spatialNavigator.multiAdd(this.regularNavElements);
         this.spatialNavigator.multiRemove(this.editNavElements);
-        this.spatialNavigator.focus(this.editButton);
         this.cardScrollable.setScale();
         this.cardScrollable.listElem.classList.add('exiting-edit-mode');
-        this.cardManager.writeCardlistInCardStore({cleanEmptyFolder: true});
+        this.cardManager.writeCardlistInCardStore({cleanEmptyFolder: true})
+          .then(function() {
+            // Since writeCardlistInCardStore triggers card-removed event that
+            // causes re-focus on other elements of card list, we need to wait
+            // until those actions to be done before focusing editButton.
+            this.spatialNavigator.focus(this.editButton);
+          }.bind(this));
         this._concealPanel(this.currentScrollable, this.currentNode);
       } else {
         this.mainSection.dataset.mode = 'edit';
