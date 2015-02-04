@@ -314,10 +314,12 @@ apps/system/test/unit/mock_wifi_manager.js
 apps/system/test/unit/operator_variant_helper_test.js
 apps/system/test/unit/orientation_manager_test.js
 apps/system/test/unit/settings_helper_test.js
+apps/system/test/unit/spin_date_picker_test.js
 apps/system/test/unit/storage_watcher_test.js
 apps/system/test/unit/updatable_test.js
 apps/system/test/unit/update_manager_test.js
 apps/system/test/unit/utility_tray_test.js
+apps/system/test/unit/value_picker_test.js
 apps/system/test/unit/wifi_test.js
 apps/system/test/unit/wrapper_factory_test.js
 apps/video/js/db.js
