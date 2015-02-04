@@ -1,0 +1,40 @@
+# git-ls-files --others --exclude-from=.git/info/exclude
+
+# Source Control
+.git
+.svn
+.hg
+
+# OSX
+.VolumeIcon.icns
+.fseventsd
+.Spotlight-V100
+.Trashes
+.DS_Store
+._*
+Icon?
+
+
+# Junk
+*~
+*.sw?
+*.pid
+*.db
+*.sqlite
+# *.log
+*.[oa]
+
+
+# Node
+npm-debug.log
+node_modules/
+node_modules/*
+test/*.log
+test/fixtures/*.json
+test/fixtures/logs/*.log
+lib-cov/
+*.sass-cache
+# *.cache
+
+# Project
+tmp

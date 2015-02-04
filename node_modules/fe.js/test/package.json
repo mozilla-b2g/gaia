@@ -1,0 +1,24 @@
+{
+  "name": "fe.js-test",
+  "version": "0.0.1",
+  "author": "Greg Weng <gweng@mozilla.com>",
+  "description": "Test the package creating dummy files and directories in a easy way",
+  "contributors": [
+    {
+      "name": "Greg Weng",
+      "email": "gweng@mozilla.com"
+    }
+  ],
+  "keywords": [],
+  "dependencies": {
+    "assert": "",
+    "proxyquire": "",
+    "cucumber": "",
+    "wrench": ""
+  },
+  "analyze": false,
+  "license": "GPLv3",
+  "engines": {
+    "node": ">=0.6"
+  }
+}

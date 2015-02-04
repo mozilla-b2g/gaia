@@ -6,7 +6,7 @@ task:
     name: 'Marionette JS tests chunk {{chunk}}'
     description: Run entire suite of marionette js tests
 
-  workerType: '{{workerType}}'
+  workerType: 'gaia-staging'
   provisionerId: '{{provisionerId}}'
   scopes:
     # Source caches contains various sources (including a tarball of gaia source
@@ -19,14 +19,13 @@ task:
     # Chunking logic is actually in the Makefile here which may make it
     # confusing to figure out who calls what this should be improved.
     env:
-      PART: '{{chunk}}'
-      NBPARTS: '{{totalChunks}}'
       REPORTER: 'mocha-tbpl-reporter'
       TEST_MANIFEST: './shared/test/integration/tbpl-manifest.json'
+      TEST_FILES: 'apps/ftu/test/marionette/wifi_hidden_network_test.js apps/ftu/test/marionette/wifi_scanning_test.js apps/gallery/test/marionette/delete_image_test.js apps/gallery/test/marionette/edit_image_test.js apps/gallery/test/marionette/fullscreen_image_test.js apps/homescreen/test/marionette/active_icons_test.js apps/homescreen/test/marionette/install_bookmark_test.js apps/homescreen/test/marionette/remove_bookmark_test.js'
 
     command:
       - entrypoint
-      - mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log
+      - mkdir -p artifacts && npm rebuild && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log
 
     artifacts:
       'public/marionette_js_tests':

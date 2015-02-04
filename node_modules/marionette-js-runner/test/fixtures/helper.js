@@ -1,0 +1,1 @@
+global.MAGIC_GLOBAL_VARIABLE = true;

@@ -1,0 +1,26 @@
+{
+  "test-suffix": "*-test.js",
+  "tests": [
+
+    "/test/test-agent/browser-worker/config-test.js",
+    "/test/test-agent/browser-worker/error-reporting-test.js",
+    "/test/test-agent/browser-worker/mocha-driver-test.js",
+    "/test/test-agent/browser-worker/multi-domain-driver-test.js",
+    "/test/test-agent/browser-worker/post-message-test.js",
+    "/test/test-agent/browser-worker/test-ui-test.js",
+    "/test/test-agent/browser-worker/websocket-test.js",
+    "/test/test-agent/browser-worker-test.js",
+    "/test/test-agent/common/mocha-test-events-test.js",
+    "/test/test-agent/config-test.js",
+    "/test/test-agent/export-error-test.js",
+    "/test/test-agent/inspect-test.js",
+    "/test/test-agent/loader-test.js",
+    "/test/test-agent/mocha/concurrent-reporting-events-test.js",
+    "/test/test-agent/mocha/reporter-test.js",
+    "/test/test-agent/mocha/runner-stream-proxy-test.js",
+    "/test/test-agent/pool-base-test.js",
+    "/test/test-agent/responder-test.js",
+    "/test/test-agent/sandbox-test.js",
+    "/test/test-agent/websocket-client-test.js"
+  ]
+}

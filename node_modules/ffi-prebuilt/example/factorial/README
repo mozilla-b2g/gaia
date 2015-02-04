@@ -1,0 +1,12 @@
+To compile `libfactorial.dylib` on OS X:
+
+    $ gcc -dynamiclib -undefined suppress -flat_namespace factorial.c -o libfactorial.dylib
+
+To compile `libfactorial.so` on Linux/Solaris/etc.:
+
+    $ gcc -shared -fpic factorial.c -o libfactorial.so
+
+To run the example:
+
+    $ node factorial.js 35
+    Your output: 6399018521010896896

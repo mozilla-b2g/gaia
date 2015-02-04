@@ -1,0 +1,243 @@
+WebSocket Client & Server Implementation for Node
+=================================================
+
+Overview
+--------
+This is a (mostly) pure JavaScript implementation of the WebSocket protocol versions 8 and 13 for Node.  There are some example client and server applications that implement various interoperability testing protocols in the "test" folder.
+
+Documentation
+=============
+
+[You can read the full API documentation in the docs folder.](docs/index.md)
+
+Current News
+------------
+
+* Version 1.0.10 is a quick followup release to 1.0.9 that only includes one bugfix for issue #146.
+
+* Version 1.0.9 has a bunch of bug fixes, enhancements, and new features.  For a full list, check out the the [changelog](CHANGELOG.md). A few highlights:
+  * Fixed the obscure "ghost connections" bug where the `WebSocketConnection` would sometimes fail to emit the `close` event when there was an error such as ECONNRESET on the underlying socket.
+  * Adding option to ignore `X-Forwarded-For` headers when accepting connections from untrusted clients.
+  * Can now simultaneously listen on ws:// and wss://
+  * Incorporating upstream enhancements to native extensions.  Hopefully the build process on Windows will go a bit more smoothly now.
+  * Better and more fair handling of buffered incoming messges under load.
+
+* As of version 1.0.7, ***Native modules are now optional.*** If they fail to compile, WebSocket-Node will still work but will not verify that received UTF-8 data is valid, and xor masking/unmasking of payload data for security purposes will not be as efficient as it is performed in JavaScript instead of native code.
+
+Changelog
+---------
+
+Current Version: 1.0.10
+
+[View the changelog](CHANGELOG.md)
+
+Browser Support
+---------------
+
+* Firefox 7-9 (Old) (Protocol Version 8)
+* Firefox 10+ (Protocol Version 13)
+* Chrome 14,15 (Old) (Protocol Version 8)
+* Chrome 16+ (Protocol Version 13)
+* Internet Explorer 10+ (Protocol Version 13)
+* Safari 6+ (Protocol Version 13)
+
+***Safari older than 6.0 is not supported since it uses a very old draft of WebSockets***
+
+***If you need to simultaneously support legacy browser versions that had implemented draft-75/draft-76/draft-00, take a look here: https://gist.github.com/1428579***
+
+For a WebSocket client written in ActionScript 3, see my [AS3WebScocket](https://github.com/Worlize/AS3WebSocket) project.
+
+Benchmarks
+----------
+There are some basic benchmarking sections in the Autobahn test suite.  I've put up a [benchmark page](http://worlize.github.com/WebSocket-Node/benchmarks/) that shows the results from the Autobahn tests run against AutobahnServer 0.4.10, WebSocket-Node 1.0.2, WebSocket-Node 1.0.4, and ws 0.3.4.
+
+Autobahn Tests
+--------------
+The very complete [Autobahn Test Suite](http://autobahn.ws/testsuite/) is used by most WebSocket implementations to test spec compliance and interoperability.
+
+- [View Server Test Results](http://worlize.github.com/WebSocket-Node/test-report/servers/)
+- [View Client Test Results](http://worlize.github.com/WebSocket-Node/test-report/clients/)
+
+Notes
+-----
+This library has been used in production on [worlize.com](https://www.worlize.com) since April 2011 and seems to be stable.  Your mileage may vary.
+
+**Tested with the following node versions:**
+
+- 0.8.28
+- 0.10.32
+
+It may work in earlier or later versions but I'm not actively testing it outside of the listed versions.  YMMV.
+
+Installation
+------------
+
+A few users have reported difficulties building the native extensions without first manually installing node-gyp.  If you have trouble building the native extensions, make sure you've got a C++ compiler, and have done `npm install -g node-gyp` first. 
+
+Native extensions are optional, however, and WebSocket-Node will work even if the extensions cannot be compiled.
+
+In your project root:
+
+    $ npm install websocket
+  
+Then in your code:
+
+```javascript
+var WebSocketServer = require('websocket').server;
+var WebSocketClient = require('websocket').client;
+var WebSocketFrame  = require('websocket').frame;
+var WebSocketRouter = require('websocket').router;
+```
+
+Note for Windows Users
+----------------------
+Because there is a small C++ component used for validating UTF-8 data, you will need to install a few other software packages in addition to Node to be able to build this module:
+
+- [Microsoft Visual C++](http://www.microsoft.com/visualstudio/en-us/products/2010-editions/visual-cpp-express)
+- [Python 2.7](http://www.python.org/download/) (NOT Python 3.x)
+
+
+Current Features:
+-----------------
+- Licensed under the Apache License, Version 2.0
+- Protocol version "8" and "13" (Draft-08 through the final RFC) framing and handshake
+- Can handle/aggregate received fragmented messages
+- Can fragment outgoing messages
+- Router to mount multiple applications to various path and protocol combinations
+- TLS supported for outbound connections via WebSocketClient
+- TLS supported for server connections (use https.createServer instead of http.createServer)
+  - Thanks to [pors](https://github.com/pors) for confirming this!
+- Cookie setting and parsing
+- Tunable settings
+  - Max Receivable Frame Size
+  - Max Aggregate ReceivedMessage Size
+  - Whether to fragment outgoing messages
+  - Fragmentation chunk size for outgoing messages
+  - Whether to automatically send ping frames for the purposes of keepalive
+  - Keep-alive ping interval
+  - Whether or not to automatically assemble received fragments (allows application to handle individual fragments directly)
+  - How long to wait after sending a close frame for acknowledgment before closing the socket.
+
+
+Known Issues/Missing Features:
+------------------------------
+- No API for user-provided protocol extensions.
+
+
+Usage Examples
+==============
+
+Server Example
+--------------
+
+Here's a short example showing a server that echos back anything sent to it, whether utf-8 or binary.
+
+```javascript
+#!/usr/bin/env node
+var WebSocketServer = require('websocket').server;
+var http = require('http');
+
+var server = http.createServer(function(request, response) {
+    console.log((new Date()) + ' Received request for ' + request.url);
+    response.writeHead(404);
+    response.end();
+});
+server.listen(8080, function() {
+    console.log((new Date()) + ' Server is listening on port 8080');
+});
+
+wsServer = new WebSocketServer({
+    httpServer: server,
+    // You should not use autoAcceptConnections for production
+    // applications, as it defeats all standard cross-origin protection
+    // facilities built into the protocol and the browser.  You should
+    // *always* verify the connection's origin and decide whether or not
+    // to accept it.
+    autoAcceptConnections: false
+});
+
+function originIsAllowed(origin) {
+  // put logic here to detect whether the specified origin is allowed.
+  return true;
+}
+
+wsServer.on('request', function(request) {
+    if (!originIsAllowed(request.origin)) {
+      // Make sure we only accept requests from an allowed origin
+      request.reject();
+      console.log((new Date()) + ' Connection from origin ' + request.origin + ' rejected.');
+      return;
+    }
+    
+    var connection = request.accept('echo-protocol', request.origin);
+    console.log((new Date()) + ' Connection accepted.');
+    connection.on('message', function(message) {
+        if (message.type === 'utf8') {
+            console.log('Received Message: ' + message.utf8Data);
+            connection.sendUTF(message.utf8Data);
+        }
+        else if (message.type === 'binary') {
+            console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
+            connection.sendBytes(message.binaryData);
+        }
+    });
+    connection.on('close', function(reasonCode, description) {
+        console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
+    });
+});
+```
+
+Client Example
+--------------
+
+This is a simple example client that will print out any utf-8 messages it receives on the console, and periodically sends a random number.
+
+*This code demonstrates a client in Node.js, not in the browser*
+
+```javascript
+#!/usr/bin/env node
+var WebSocketClient = require('websocket').client;
+
+var client = new WebSocketClient();
+
+client.on('connectFailed', function(error) {
+    console.log('Connect Error: ' + error.toString());
+});
+
+client.on('connect', function(connection) {
+    console.log('WebSocket client connected');
+    connection.on('error', function(error) {
+        console.log("Connection Error: " + error.toString());
+    });
+    connection.on('close', function() {
+        console.log('echo-protocol Connection Closed');
+    });
+    connection.on('message', function(message) {
+        if (message.type === 'utf8') {
+            console.log("Received: '" + message.utf8Data + "'");
+        }
+    });
+    
+    function sendNumber() {
+        if (connection.connected) {
+            var number = Math.round(Math.random() * 0xFFFFFF);
+            connection.sendUTF(number.toString());
+            setTimeout(sendNumber, 1000);
+        }
+    }
+    sendNumber();
+});
+
+client.connect('ws://localhost:8080/', 'echo-protocol');
+```
+    
+Request Router Example
+----------------------
+
+For an example of using the request router, see `libwebsockets-test-server.js` in the `test` folder.
+
+
+Resources
+---------
+
+A presentation on the state of the WebSockets protocol that I gave on July 23, 2011 at the LA Hacker News meetup.  [WebSockets: The Real-Time Web, Delivered](http://www.scribd.com/doc/60898569/WebSockets-The-Real-Time-Web-Delivered)
