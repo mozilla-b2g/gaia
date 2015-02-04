@@ -30,6 +30,8 @@
       this.cardManager.on('card-swapped', this.onCardSwapped.bind(this));
 
       this.cardScrollable.on('focus', this.handleCardFocus.bind(this));
+      this.cardScrollable.on('listTransformEnd',
+                                  this.handleListTransformEnd.bind(this));
 
       this.spatialNavigator.on('focus', this.handleFocus.bind(this));
       this.spatialNavigator.on('unfocus', this.handleUnfocus.bind(this));
@@ -47,6 +49,7 @@
         this.spatialNavigator.multiRemove(this.editNavElements);
         this.spatialNavigator.focus(this.editButton);
         this.cardScrollable.setScale();
+        this.cardScrollable.listElem.classList.add('exiting-edit-mode');
         this.cardManager.writeCardlistInCardStore({cleanEmptyFolder: true});
         this._concealPanel(this.currentScrollable, this.currentNode);
       } else {
@@ -106,7 +109,7 @@
     },
 
     _setHintArrow: function() {
-      var index = parseInt(this.currentNode.dataset.idx);
+      var index = parseInt(this.currentNode.dataset.idx, 10);
       this.currentNode.classList.toggle('left_arrow', index > 0);
       this.currentNode.classList.toggle('right_arrow',
                                     index < this.currentScrollable.length - 1);
@@ -241,6 +244,12 @@
     handleCardUnfocus: function(scrollable, itemElem, nodeElem) {
       this._concealPanel(scrollable, nodeElem);
       nodeElem.classList.remove('focused');
+    },
+
+    handleListTransformEnd: function() {
+      if (this.mode === '') {
+        this.cardScrollable.listElem.classList.remove('exiting-edit-mode');
+      }
     },
 
     get mode() {

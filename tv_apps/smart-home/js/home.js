@@ -10,6 +10,7 @@
   const DEFAULT_ICON = 'url("/style/images/appic_developer.png")';
   const DEFAULT_BGCOLOR = 'rgba(0, 0, 0, 0.5)';
   const DEFAULT_BGCOLOR_ARRAY = [0, 0, 0, 0.5];
+  const CARDLIST_LEFT_MARGIN = 6.8;
 
   function Home() {}
 
@@ -60,7 +61,8 @@
         that.cardScrollable = new XScrollable({
                 frameElem: 'card-list-frame',
                 listElem: 'card-list',
-                itemClassName: 'app-button'}),
+                itemClassName: 'app-button',
+                leftMargin: CARDLIST_LEFT_MARGIN}),
         that.navigableScrollable = [that.cardScrollable];
         var collection = that.getNavigateElements();
 
@@ -85,8 +87,6 @@
                                     that.handleScrollableItemUnfocus.bind(that);
         that.navigableScrollable.forEach(function(scrollable) {
           scrollable.on('focus', handleScrollableItemFocusBound);
-        });
-        that.navigableScrollable.forEach(function(scrollable) {
           scrollable.on('unfocus', handleScrollableItemUnfocusBound);
         });
 
