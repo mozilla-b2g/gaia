@@ -26,6 +26,10 @@
   content: ' ';
 }
 
+#card-list.exiting-edit-mode {
+  transition: transform 0.8s cubic-bezier(.6, 0, 0, 1);
+}
+
 #main-section[data-mode="arrange"] .card:not(.focused) {
   filter: url(filter.svg#brightness50percent);
 }
@@ -46,4 +50,14 @@
 #add-new-folder-button {
   /* This is not displayed until folder features are implemented. */
   display: none;
+}
+
+#main-section[data-mode="edit"] .background,
+#main-section[data-mode="arrange"] .background {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+#main-section[data-mode="edit"] #card-list,
+#main-section[data-mode="arrange"] #card-list {
+  transition: transform 0.66s cubic-bezier(.25, 0, 0, 1);
 }

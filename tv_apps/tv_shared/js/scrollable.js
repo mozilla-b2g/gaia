@@ -40,10 +40,11 @@
    * The main reason for this is that scrollable.js uses transformX internally
    * to locate position of nodes (to achieve edit/arrange feature).
    *
-   * The left and right margin should be set through scrollable.margin
+   * Left margin should be set through scrollable.leftMargin.
    * (which is default to 2, and can be assigned through initialize params)
    */
-  var DEFAULT_MARGIN = 2;
+  var DEFAULT_SPACING = 2;
+  var DEFAULT_LEFT_MARGIN = 2;
   function XScrollable(param) {
     this.translateX = 0;
 
@@ -53,11 +54,14 @@
                     document.getElementById(param.listElem) : param.listElem;
     this.nodes = Array.prototype.slice.call(this.listElem.children);
 
-    this.margin = param.margin ? param.margin : DEFAULT_MARGIN;
+    this.spacing = param.spacing || DEFAULT_SPACING;
+    this.leftMargin = param.leftMargin || DEFAULT_LEFT_MARGIN;
 
     this.itemClassName = param.itemClassName;
     var items = Array.prototype.slice.call(
                     this.listElem.getElementsByClassName(param.itemClassName));
+
+    this.listElem.addEventListener('transitionend', this);
 
     this.scale = 1;
     this._setNodesPosition();
@@ -75,11 +79,16 @@
 
   XScrollable.prototype = evt({
     CLASS_NAME: 'XScrollable',
+
+    uninit: function(elem) {
+      this.listElem.removeEventListener('transitionend', this);
+    },
+
     getItemRect: function(elem) {
       var frameRect = this.frameElem.getBoundingClientRect();
       var node = this.getNodeFromItem(elem);
-      var result = { left: (frameRect.left + this.margin * 10 +
-          (node.offsetWidth + this.margin * 10) *
+      var result = { left: (frameRect.left + this.spacing * 10 +
+          (node.offsetWidth + this.spacing * 10) *
           parseInt(node.dataset.idx, 10)) *
           this.scale + this.translateX,
         top: (frameRect.top + elem.offsetTop) * this.scale,
@@ -102,46 +111,39 @@
     setScale: function(scale) {
       scale = scale ? scale : 1;
       this.scale = scale;
+      // We need to reset translateX and let getScrollOffset detect the
+      // scroll amont again against new scale to focused element.
       this.translateX = 0;
       this.scrollTo(this.currentItem);
-      this._setNodesPosition();
     },
 
     _getScrollOffset: function(itemElem) {
       var sibling;
       var node = this.getNodeFromItem(itemElem);
       var idx = parseInt(node.dataset.idx, 10);
-      var unitLength = (node.offsetWidth + this.margin * 10) * this.scale;
+      var unitLength = (node.offsetWidth + this.spacing * 10) * this.scale;
       var right = unitLength * (idx + 1);
       var left = unitLength * idx;
       var previousLeft = unitLength * (idx - 1);
       var frameWidth = this.frameElem.offsetWidth;
-      if (left + this.translateX < 0) {
+
+      // If elements don't overflow, align them in center.
+      if (unitLength * this.length + this.leftMargin * 10 < frameWidth) {
+        return -(unitLength * this.length - this.spacing * 10 - frameWidth) / 2;
+      }
+
+      if (left + this.translateX < this.leftMargin * 10) {
         sibling = this.getPrevItem(itemElem);
         if (sibling) {
           return -(previousLeft + 0.5 * unitLength);
         } else {
-          return 0;
+          return this.leftMargin * 10;
         }
       } else if (right > (frameWidth - this.translateX)) {
         return frameWidth - (right + 0.5 * unitLength);
       } else {
         return this.translateX;
       }
-    },
-
-    // When nodes occupy less space than whole scrollable, we calculate left
-    // margin such that nodes are center-aligned.
-    _getLeftMargin: function() {
-      if (!this.nodes[0]) {
-        return 0;
-      }
-      var unitLength =
-        (this.nodes[0].offsetWidth + this.margin * 10) * this.scale;
-      var frameWidth = this.frameElem.offsetWidth;
-      return Math.max(0,
-        (frameWidth - unitLength * this.nodes.length - this.margin * 10) / 2 /
-                                                                    this.scale);
     },
 
     getNodeFromItem: function(itemElem) {
@@ -318,9 +320,7 @@
     _setNodePosition: function(idx) {
       this.nodes[idx].dataset.idx = idx;
       this.getNodeFromItem(this.nodes[idx]).style.transform =
-          'translateX(calc((100% + ' + this.margin + 'rem) * ' + idx + ' + ' +
-                                        (this._getLeftMargin() / 10) + 'rem))';
-
+          'translateX(calc((100% + ' + this.spacing + 'rem) * ' + idx + '))';
     },
 
     swap: function(node1, node2) {
@@ -368,6 +368,13 @@
 
     move: function(direction) {
       return this.spatialNavigator.move(direction);
+    },
+
+    handleEvent: function (evt) {
+      if (evt.type === 'transitionend' && evt.target === this.listElem &&
+                                          evt.propertyName === 'transform') {
+        this.fire('listTransformEnd', this.listElem);
+      }
     }
 
   });
