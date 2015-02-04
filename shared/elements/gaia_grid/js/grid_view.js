@@ -81,8 +81,9 @@
      * If the item is an icon, add it to icons.
      * @param {Object} item The grid object, should inherit from GridItem.
      * @param {Object} insertTo The position to insert the item into our list.
+     * @param {Boolean} expandGroup Expand the group this item is will be in.
      */
-    add: function(item, insertTo) {
+    add: function(item, insertTo, expandGroup) {
       if (!item) {
         return;
       }
@@ -111,7 +112,21 @@
       if (!isNaN(parseFloat(insertTo)) && isFinite(insertTo)) {
         this.items.splice(insertTo, 0, item);
       } else {
+        insertTo = this.items.length;
         this.items.push(item);
+      }
+
+      if (expandGroup) {
+        for (var i = insertTo + 1, iLen = this.items.length;
+             i < iLen; i++) {
+          var divider = this.items[i];
+          if (divider.detail.type === 'divider') {
+            if (divider.detail.collapsed) {
+              divider.expand();
+            }
+            break;
+          }
+        }
       }
     },
 
