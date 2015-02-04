@@ -256,6 +256,11 @@ suite('system/HierarchyManager', function() {
     });
 
     test('Should broadcast event from top to bottom until blocked', function() {
+      this.sinon.stub(fakeRocketbar, 'isActive').returns(true);
+      this.sinon.stub(fakeSystemDialogManager, 'isActive').returns(true);
+      this.sinon.stub(fakeAppWindowManager, 'isActive').returns(true);
+      this.sinon.stub(fakeTaskManager, 'isActive').returns(true);
+      this.sinon.stub(fakeAttentionWindowManager, 'isActive').returns(true);
       this.sinon.stub(fakeRocketbar,
         'respondToHierarchyEvent').returns(true);
       this.sinon.stub(fakeSystemDialogManager,
@@ -279,5 +284,66 @@ suite('system/HierarchyManager', function() {
       assert.isFalse(fakeTaskManager
         .respondToHierarchyEvent.calledWith(homeEvt));
     });
+
+    test('Should skip broadcasting if an module is inactive', function() {
+      this.sinon.stub(fakeRocketbar, 'isActive').returns(true);
+      this.sinon.stub(fakeSystemDialogManager, 'isActive').returns(true);
+      this.sinon.stub(fakeAppWindowManager, 'isActive').returns(false);
+      this.sinon.stub(fakeTaskManager, 'isActive').returns(true);
+      this.sinon.stub(fakeAttentionWindowManager, 'isActive').returns(true);
+      this.sinon.stub(fakeRocketbar,
+        'respondToHierarchyEvent').returns(true);
+      this.sinon.stub(fakeSystemDialogManager,
+        'respondToHierarchyEvent').returns(true);
+      this.sinon.stub(fakeAppWindowManager,
+        'respondToHierarchyEvent').returns(false);
+      this.sinon.stub(fakeTaskManager,
+        'respondToHierarchyEvent').returns(true);
+      this.sinon.stub(fakeAttentionWindowManager,
+        'respondToHierarchyEvent').returns(true);
+      var homeEvt = new CustomEvent('home');
+      window.dispatchEvent(homeEvt);
+      assert.isTrue(fakeAttentionWindowManager
+        .respondToHierarchyEvent.calledWith(homeEvt));
+      assert.isTrue(fakeRocketbar
+        .respondToHierarchyEvent.calledWith(homeEvt));
+      assert.isTrue(fakeSystemDialogManager
+        .respondToHierarchyEvent.calledWith(homeEvt));
+      assert.isFalse(fakeAppWindowManager
+        .respondToHierarchyEvent.calledWith(homeEvt));
+      assert.isTrue(fakeTaskManager
+        .respondToHierarchyEvent.calledWith(homeEvt));
+    });
+
+    test('Deliver to the last person in the list if not catched',
+      function() {
+      this.sinon.stub(fakeRocketbar, 'isActive').returns(false);
+      this.sinon.stub(fakeSystemDialogManager, 'isActive').returns(false);
+      this.sinon.stub(fakeAppWindowManager, 'isActive').returns(false);
+      this.sinon.stub(fakeTaskManager, 'isActive').returns(false);
+      this.sinon.stub(fakeAttentionWindowManager, 'isActive').returns(false);
+      this.sinon.stub(fakeRocketbar,
+        'respondToHierarchyEvent').returns(true);
+      this.sinon.stub(fakeSystemDialogManager,
+        'respondToHierarchyEvent').returns(true);
+      this.sinon.stub(fakeAppWindowManager,
+        'respondToHierarchyEvent').returns(true);
+      this.sinon.stub(fakeTaskManager,
+        'respondToHierarchyEvent').returns(true);
+      this.sinon.stub(fakeAttentionWindowManager,
+        'respondToHierarchyEvent').returns(true);
+      var holdhomeEvt = new CustomEvent('holdhome');
+      window.dispatchEvent(holdhomeEvt);
+      assert.isFalse(fakeAttentionWindowManager
+        .respondToHierarchyEvent.calledWith(holdhomeEvt));
+      assert.isFalse(fakeRocketbar
+        .respondToHierarchyEvent.calledWith(holdhomeEvt));
+      assert.isFalse(fakeSystemDialogManager
+        .respondToHierarchyEvent.calledWith(holdhomeEvt));
+      assert.isFalse(fakeAppWindowManager
+        .respondToHierarchyEvent.calledWith(holdhomeEvt));
+      assert.isTrue(fakeTaskManager
+        .respondToHierarchyEvent.calledWith(holdhomeEvt));
+      });
   });
 });
