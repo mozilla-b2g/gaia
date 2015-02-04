@@ -99,6 +99,7 @@ require([
         _mobileConnection.voice && _mobileConnection.voice.type);
 
       cs_initVoiceMailClickEvent();
+      cs_initCallForwardingClickEvent();
 
       // Init call setting stuff.
       cs_initVoiceMailSettings();
@@ -106,7 +107,6 @@ require([
       cs_initCallWaiting();
       cs_initCallerId();
       cs_initFdnItem();
-      window.setTimeout(cs_initCallForwardingObservers, 500);
 
       // Update items in the call settings panel.
       window.addEventListener('panelready', function(e) {
@@ -226,7 +226,6 @@ require([
       cs_updateVoiceMailItemState();
       cs_updateFdnStatus();
       cs_updateVoicePrivacyItemState();
-
       cs_updateCallerIdPreference();
       cs_updateCallerIdItemState();
       cs_updateCallWaitingItemState();
@@ -491,66 +490,50 @@ require([
       unconditional.onerror = onerror;
     }
 
-    /**
-     *
-     */
-    function cs_initCallForwardingObservers() {
-      var settingKeys = ['unconditional',
-                         'mobilebusy',
-                         'noreply',
-                         'notreachable'];
-      settingKeys.forEach(function(key) {
-        _settings.addObserver('ril.cf.' + key + '.enabled', function(event) {
-          // While storing the settings into the database we avoid observing
-          // changes on those ones and enabling/disabling call forwarding.
-          if (_ignoreSettingChanges) {
-            return;
-          }
-          // Bails out in case the reason is already enabled/disabled.
-          if (_cfReasonStates[_cfReasonMapping[key]] === event.settingValue) {
-            return;
-          }
-          var selector = 'input[data-setting="ril.cf.' + key + '.number"]';
-          var textInput = document.querySelector(selector);
-          var mozMobileCFInfo = {};
+    function cs_setForwardingValues(options) {
+      var key = options.key;
+      var number = options.number;
+      var enabled = !!options.enabled;
 
-          mozMobileCFInfo['action'] = event.settingValue ?
-            _cfAction.CALL_FORWARD_ACTION_REGISTRATION :
-            _cfAction.CALL_FORWARD_ACTION_DISABLE;
-          mozMobileCFInfo['reason'] = _cfReasonMapping[key];
-          mozMobileCFInfo['serviceClass'] = _voiceServiceClassMask;
+      if (!key || _ignoreSettingChanges) {
+        return;
+      } else if (_cfReasonStates[_cfReasonMapping[key]] === enabled) {
+        // Bails out in case the reason is already enabled/disabled.
+        return;
+      } else {
+        var mozMobileCFInfo = {};
+        mozMobileCFInfo['action'] = enabled ?
+          _cfAction.CALL_FORWARD_ACTION_REGISTRATION :
+          _cfAction.CALL_FORWARD_ACTION_DISABLE;
+        mozMobileCFInfo['reason'] = _cfReasonMapping[key];
+        mozMobileCFInfo['serviceClass'] = _voiceServiceClassMask;
 
-          if (!cs_isPhoneNumberValid(textInput.value)) {
-            DialogService.alert('callForwardingInvalidNumberError', {
-              title: 'callForwardingConfirmTitle',
-              submitButton: 'continue'
-            });
-
-            cs_enableTapOnCallerIdItem(false);
-            cs_enableTapOnCallWaitingItem(false);
-            cs_enableTapOnCallBarringItem(false);
-            cs_enableTapOnCallForwardingItems(false);
-            cs_updateCallForwardingSubpanels();
-            return;
-          }
-          mozMobileCFInfo['number'] = textInput.value;
+        if (!cs_isPhoneNumberValid(number)) {
+          DialogService.alert('callForwardingInvalidNumberError', {
+            title: 'callForwardingConfirmTitle',
+            submitButtonText: 'continue'
+          });
+          cs_enableTapOnCallerIdItem(false);
+          cs_enableTapOnCallWaitingItem(false);
+          cs_enableTapOnCallForwardingItems(false);
+          cs_updateCallForwardingSubpanels();
+        } else {
+          mozMobileCFInfo['number'] = number;
           mozMobileCFInfo['timeSeconds'] =
             mozMobileCFInfo['reason'] !=
               _cfReason.CALL_FORWARD_REASON_NO_REPLY ? 0 : 20;
 
-          var req = _mobileConnection.setCallForwardingOption(mozMobileCFInfo);
+          var req = _mobileConnection.setCallForwardingOption(
+            mozMobileCFInfo);
 
           cs_enableTapOnCallerIdItem(false);
           cs_enableTapOnCallWaitingItem(false);
-          cs_enableTapOnCallBarringItem(false);
           cs_enableTapOnCallForwardingItems(false);
           cs_displayInfoForAll('callSettingsQuery');
 
           req.onsuccess = function() {
-            cs_updateCallForwardingSubpanels(null,
-                                             true,
-                                             key,
-                                             mozMobileCFInfo['action']);
+            cs_updateCallForwardingSubpanels(null, true, key,
+              mozMobileCFInfo['action']);
           };
           req.onerror = function() {
             DialogService.alert('callForwardingSetError', {
@@ -559,8 +542,8 @@ require([
             });
             cs_updateCallForwardingSubpanels();
           };
-        });
-      });
+        }
+      }
     }
 
     /**
@@ -970,6 +953,86 @@ require([
       document.querySelector('.menuItem-voicemail').onclick = function() {
         DialogService.show('call-voiceMailSettings');
       };
+    }
+
+    function cs_initCallForwardingClickEvent() {
+      // We will concate strings like (for grep use)
+      //
+      // ril.cf.mobilebusy.enabled
+      // ril.cf.mobilebusy.number
+      // ril.cf.noreply.number
+      // ril.cf.noreply.enabled
+      // ril.cf.notreachable.number
+      // ril.cf.notreachable.enabled
+      // ril.cf.unconditional.number
+      // ril.cf.unconditional.enabled
+      var mapping = {
+        mobileBusy: {
+          menuItemSelector: '.callForwardingMobileBusy',
+          panelId: 'call-cf-mobile-busy-settings',
+          settingsKey: 'mobilebusy'
+        },
+        noReply: {
+          menuItemSelector: '.callForwardingNoReply',
+          panelId: 'call-cf-no-reply-settings',
+          settingsKey: 'noreply'
+        },
+        notReachable: {
+          menuItemSelector: '.callForwardingNotReachable',
+          panelId: 'call-cf-not-reachable-settings',
+          settingsKey: 'notreachable'
+        },
+        unconditional: {
+          menuItemSelector: '.callForwardingUnconditional',
+          panelId: 'call-cf-unconditional-settings',
+          settingsKey: 'unconditional'
+        }
+      };
+
+      for (var key in mapping) {
+        var item = mapping[key];
+        var panelId = item.panelId;
+        var settingsKey = item.settingsKey;
+        var menuItem = document.querySelector(item.menuItemSelector);
+
+        var onclick = function(panelId, settingsKey) {
+          SettingsCache.getSettings(function(results) {
+            var number = results['ril.cf.' + settingsKey + '.number'];
+            var enabled = results['ril.cf.' + settingsKey + '.enabled'];
+
+            // Reflect related settings value on the panel
+            DialogService.show(panelId, {
+              number: number,
+              enabled: enabled
+            }).then(function(result) {
+              var type = result.type;
+              var value = result.value || {};
+              var returnNumber = value.number || '';
+              var returnEnabled = value.enabled || false;
+
+              if (type === 'submit') {
+                var obj = {};
+                obj['ril.cf.' + settingsKey + '.number'] = returnNumber;
+                obj['ril.cf.' + settingsKey + '.enabled'] = returnEnabled;
+
+                var req = _settings.createLock().set(obj);
+                req.onsuccess = function() {
+                  cs_setForwardingValues({
+                    key: settingsKey,
+                    enabled: returnEnabled,
+                    number: returnNumber
+                  });
+                };
+                req.onerror = function() {
+                  console.log('We cant set value to ', settingsKey);
+                  console.log('Value -> ', JSON.stringify(obj));
+                };
+              }
+            });
+          });
+        };
+        menuItem.onclick = onclick.bind(null, panelId, settingsKey);
+      }
     }
 
     /**
