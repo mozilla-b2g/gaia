@@ -1,4 +1,4 @@
-/* global layoutManager, SettingsListener */
+/* global layoutManager, SettingsListener, Service */
 'use strict';
 (function(exports) {
   var DEBUG = false;
@@ -69,6 +69,7 @@
     this._enabled = true;
     window.addEventListener('hierachychanged', this);
     window.addEventListener('activeappchanged', this);
+    window.addEventListener('screenchange', this);
     window.addEventListener('home', this);
     window.addEventListener('mozChromeEvent', this);
     window.addEventListener('value-selector-shown', this);
@@ -83,6 +84,7 @@
     this._enabled = false;
     window.removeEventListener('hierachychanged', this);
     window.removeEventListener('activeappchanged', this);
+    window.removeEventListener('screenchange', this);
     window.removeEventListener('home', this);
     window.removeEventListener('mozChromeEvent', this);
     window.removeEventListener('value-selector-shown', this);
@@ -105,6 +107,11 @@
         if (this._shortcutTimeout) {
           this._resetShortcutTimeout();
           this.hide();
+        }
+        break;
+      case 'screenchange':
+        if (!evt.detail.screenEnabled && Service.locked) {
+          this.close();
         }
         break;
       case 'home':
