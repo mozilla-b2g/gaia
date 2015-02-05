@@ -719,6 +719,8 @@ else
 	rm -fr node_modules
 	cp -R $(NODE_MODULES_SRC)/node_modules node_modules
 endif
+	node --version
+	npm --version
 	npm install && npm rebuild
 	@echo "node_modules installed."
 	touch -c $@
