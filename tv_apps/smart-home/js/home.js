@@ -218,7 +218,7 @@
         this._setCardIcon(cardButton, card, card.thumbnail,
                           card.backgroundColor);
         // TODO add backgroundColor??? How to do it???
-      } else if (!card.cachedIconBlob && !card.cachedIconURL) {
+      } else if (!card.cachedIconBlob) {
         // We don't have cachedIconBlob, just get icon from app
         this.cardManager.getIconBlob({
           manifestURL: manifestURL,
@@ -247,11 +247,6 @@
         // We already have cacedIconBlob which is created by previous step.
         this._setCardIcon(cardButton, card, card.cachedIconBlob,
                           card.backgroundColor);
-      } else if (card.cachedIconURL) {
-        // the pre-set icon.
-        cardButton.classList.add('fullsized');
-        cardButton.style.backgroundImage =
-          'url("' + card.cachedIconURL + '")';
       }
     },
 

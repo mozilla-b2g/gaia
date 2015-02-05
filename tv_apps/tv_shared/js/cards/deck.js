@@ -7,7 +7,6 @@
     this.nativeApp = options.nativeApp;
     this.name = options.name;
     this.deckClass = options.deckClass;
-    this.cachedIconURL = options.cachedIconURL;
     this.group = options.group;
     Card.prototype.constructor.call(this);
   };
@@ -20,7 +19,6 @@
         nativeApp: cardEntry.manifestURL &&
           installedApps[cardEntry.manifestURL],
         deckClass: cardEntry.deckClass,
-        cachedIconURL: cardEntry.cachedIconURL,
         group: cardEntry.group
       });
     }
@@ -53,7 +51,6 @@
     return {
       name: this.name,
       deckClass: this.deckClass,
-      cachedIconURL: this.cachedIconURL,
       manifestURL: this.nativeApp && this.nativeApp.manifestURL,
       type: 'Deck',
       group: this.group

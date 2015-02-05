@@ -7,7 +7,6 @@
     this.nativeApp = options.nativeApp;
     this.name = options.name;
     this.cachedIconBlob = undefined;
-    this.cachedIconURL = options.cachedIconURL;
     this.thumbnail = options.thumbnail;
     this.launchURL = options.launchURL;
     this.group = options.group;
