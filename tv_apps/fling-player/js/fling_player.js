@@ -15,6 +15,13 @@
     this._controlBar = $('video-control-bar');
     this.initPlayer();
     this.initSession();
+    document.addEventListener('visibilitychange', function visibilityChanged() {
+      // We don't need to restore the video while visibilityState goes back
+      // because system app will kill the original one and relaunch a new one.
+      if (document.visibilityState === 'hidden') {
+        this._player.release();
+      }
+    }.bind(this));
   };
 
   proto.initSession = function fp_initSession() {
