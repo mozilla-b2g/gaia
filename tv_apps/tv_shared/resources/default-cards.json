@@ -4,7 +4,6 @@
       "name": "Television",
       "type": "Deck",
       "deckClass": "tv",
-      "cachedIconURL": "style/images/appic_tv_temp.png",
       "group": "tv"
     },
     {
@@ -12,7 +11,6 @@
       "type": "Deck",
       "deckClass": "application",
       "manifestURL": "app://app-deck.gaiamobile.org/manifest.webapp",
-      "cachedIconURL": "style/images/appic_application_temp.png",
       "group": "app"
     },
     {
@@ -20,14 +18,12 @@
       "type": "Deck",
       "deckClass": "device",
       "manifestURL": "app://device-deck.gaiamobile.org/manifest.webapp",
-      "cachedIconURL": "style/images/appic_device_temp.png",
       "group": "device"
     },
     {
       "name": "Dashboard",
       "type": "Deck",
       "deckClass": "dashboard",
-      "cachedIconURL": "style/images/appic_dashboard_temp.png",
       "group": "dashboard"
     }
   ]
