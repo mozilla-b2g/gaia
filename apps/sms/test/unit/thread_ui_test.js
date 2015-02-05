@@ -195,6 +195,7 @@ suite('thread_ui.js >', function() {
     ThreadUI.init();
 
     sticky = MockStickyHeader;
+    MockOptionMenu.mSetup();
   });
 
   teardown(function() {
@@ -210,6 +211,7 @@ suite('thread_ui.js >', function() {
     mocksHelper.teardown();
 
     sticky = null;
+    MockOptionMenu.mTeardown();
   });
 
   suite('scrolling', function() {
@@ -3571,8 +3573,6 @@ suite('thread_ui.js >', function() {
 
       this.sinon.spy(LinkActionHandler, 'onClick');
       this.sinon.spy(ThreadUI, 'promptContact');
-      MockOptionMenu.mSetup();
-
 
       this.sinon.stub(LinkHelper, 'searchAndLinkClickableData', function() {
         return '<a data-dial="123123123" data-action="dial-link">123123123</a>';
@@ -3595,7 +3595,6 @@ suite('thread_ui.js >', function() {
     teardown(function() {
       ThreadUI.container.innerHTML = '';
       link = null;
-      MockOptionMenu.mTeardown();
       ThreadUI.stopRendering();
     });
 
@@ -3988,13 +3987,11 @@ suite('thread_ui.js >', function() {
     setup(function() {
       Threads.delete(1);
       MockActivityPicker.dial.mSetup();
-      MockOptionMenu.mSetup();
     });
 
     teardown(function() {
       Threads.delete(1);
       MockActivityPicker.dial.mTeardown();
-      MockOptionMenu.mTeardown();
     });
 
     suite('OptionMenu >', function() {
@@ -4495,7 +4492,6 @@ suite('thread_ui.js >', function() {
     suite('Multi participant', function() {
       setup(function() {
         MockActivityPicker.dial.mSetup();
-        MockOptionMenu.mSetup();
 
         Threads.set(1, {
           participants: ['999', '888']
@@ -4510,7 +4506,6 @@ suite('thread_ui.js >', function() {
       teardown(function() {
         Threads.delete(1);
         MockActivityPicker.dial.mTeardown();
-        MockOptionMenu.mTeardown();
       });
 
       suite('Options', function() {
@@ -5801,13 +5796,6 @@ suite('thread_ui.js >', function() {
    * - 'Settings' for all cases
    */
   suite('Options menu', function() {
-    setup(function() {
-      MockOptionMenu.mSetup();
-    });
-
-    teardown(function() {
-      MockOptionMenu.mTeardown();
-    });
 
     suite('opens from new message', function() {
       var options;
@@ -6908,11 +6896,15 @@ suite('thread_ui.js >', function() {
   });
 
   suite('Bubble selection', function() {
-    var messageDOM, messageId, node, threadMessagesClass, range;
+    var messageDOM, messageId, node, threadMessagesClass, range, ctMenuEvent;
 
     setup(function(done) {
       threadMessagesClass = ThreadUI.threadMessages.classList;
       messageId = 1;
+      ctMenuEvent = new MouseEvent('contextmenu', {
+        'bubbles': true,
+        'cancelable': true
+      });
       ThreadUI.appendMessage({
         id: messageId,
         type: 'sms',
@@ -6924,6 +6916,8 @@ suite('thread_ui.js >', function() {
         node = messageDOM.querySelector('.message-content-body');
         this.sinon.spy(node, 'focus');
         this.sinon.stub(node, 'addEventListener');
+        this.sinon.spy(ThreadUI.container, 'addEventListener');
+        this.sinon.spy(ThreadUI.container, 'removeEventListener');
       }).then(done, done);
     });
 
@@ -6939,6 +6933,15 @@ suite('thread_ui.js >', function() {
       assert.isTrue(range > 0);
     });
 
+    test('Contextmenu disabled while bubble select mode enable', function() {
+      // Enable bubble select mode
+      ThreadUI.enableBubbleSelection(node);
+      // Dispatch custom event for testing long press
+      messageDOM.querySelector('section').dispatchEvent(ctMenuEvent);
+
+      assert.equal(MockOptionMenu.calls.length, 0);
+    });
+
     test('Disable bubble selection mode', function() {
       ThreadUI.enableBubbleSelection(node);
       node.addEventListener.yield('blur');
@@ -6946,6 +6949,15 @@ suite('thread_ui.js >', function() {
       range = window.getSelection().rangeCount;
       assert.isTrue(threadMessagesClass.contains('editable-select-mode'));
       assert.isTrue(range === 0);
+      sinon.assert.calledWithMatch(
+        ThreadUI.container.addEventListener,
+        'contextmenu',
+        ThreadUI
+      );
+      // Dispatch custom event for testing long press after mode exit
+      messageDOM.querySelector('section').dispatchEvent(ctMenuEvent);
+
+      assert.equal(MockOptionMenu.calls.length, 1);
     });
   });
 });

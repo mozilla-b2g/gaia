@@ -173,18 +173,12 @@ var ThreadUI = {
       'click', this.onNewMessageNoticeClick.bind(this)
     );
 
-    this.container.addEventListener(
-      'click', this.handleEvent.bind(this)
-    );
-    this.container.addEventListener(
-      'contextmenu', this.handleEvent.bind(this)
-    );
-    this.editForm.addEventListener(
-      'submit', this.handleEvent.bind(this)
-    );
-    this.composeForm.addEventListener(
-      'submit', this.handleEvent.bind(this)
-    );
+    // These events will be handled in handleEvent function
+    this.container.addEventListener('click', this);
+    this.container.addEventListener('contextmenu', this);
+    this.editForm.addEventListener('submit', this);
+    this.composeForm.addEventListener('submit', this);
+
     // For picking a contact from Contacts. It's mouse down for
     // avoiding weird effect of keyboard, as in 'send' button.
     this.contactPickButton.addEventListener(
@@ -2042,6 +2036,7 @@ var ThreadUI = {
       case 'contextmenu':
         evt.preventDefault();
         evt.stopPropagation();
+
         var messageBubble = this.getMessageBubble(evt.target);
 
         if (!messageBubble) {
@@ -3007,7 +3002,8 @@ var ThreadUI = {
    * If the bubble selection mode is disabled, all the non-editable element
    * should be set to user-select: none to prevent selection triggered
    * unexpectedly. Selection functionality should be enabled only by bubble
-   * context menu.
+   * context menu. While in bubble selection mode, context menu is disabled
+   * temporary for better use experience.
    * Since long press is used for context menu first, selection need to be
    * triggered by selection API manually. Focus/blur events are used for
    * simulating selection changed event, which is only been used in system.
@@ -3016,14 +3012,17 @@ var ThreadUI = {
    */
   enableBubbleSelection: function(node) {
     var threadMessagesClass = this.threadMessages.classList;
-    node.addEventListener('blur', function disable() {
+    var disable = () => {
+      this.container.addEventListener('contextmenu', this);
       node.removeEventListener('blur', disable);
       threadMessagesClass.add('editable-select-mode');
       // TODO: Remove this once the gecko could clear selection automatically
       // in bug 1101376.
       window.getSelection().removeAllRanges();
-    });
+    };
 
+    node.addEventListener('blur', disable);
+    this.container.removeEventListener('contextmenu', this);
     threadMessagesClass.remove('editable-select-mode');
     node.focus();
     window.getSelection().selectAllChildren(node);
