@@ -817,6 +817,7 @@ MailBridge.prototype = {
     var self = this;
     this.universe.downloadMessageAttachments(
       msg.suid, msg.date, msg.relPartIndices, msg.attachmentIndices,
+      msg.registerAttachments,
       function(err) {
         self.__sendMessage({
           type: 'downloadedAttachments',
