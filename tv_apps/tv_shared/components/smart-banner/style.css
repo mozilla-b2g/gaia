@@ -1,23 +1,29 @@
 /**
  * Button state:
  *    1. normal (class name: [none])
- *    4. opening (class name: opening)
- *    5. closing (class name: closing)
- *    6. closed (class name: closed)
+ *    2. opening (class name: opening)
+ *    3. opened (class name: opened)
+ *    4. closing (class name: closing)
+ *    5. closed (class name: closed)
+ *    6. hiding (class name: hiding)
+ *    8. flying (class name: flying)
 **/
 
 /**
- * focus: closed -> opening -> ''
- * close: '' -> closing -> closed;
+ * Normal:
+ *   open: closed -> opening -> opened
+ *   close: opened -> closing -> closed
+ *   hide: current state -> hiding -> closed
+ *   flyOpen: flying -> closed -> opening -> opened
 **/
 
 smart-banner {
   outline: 0;
   display: inline-block;
   height: 7rem;
-  /* left 2.8, icon 5.4, child panding 2 = 10.2rem */
-  padding-left: 10.2rem;
-  padding-right: 4.4rem;
+  /* Same as closed state */
+  padding-left: 11rem;
+  padding-right: 0;
   padding-top: 2rem;
   padding-bottom: 2rem;
   opacity: 1;
@@ -38,9 +44,9 @@ smart-banner {
   font-size: 2.8rem;
   line-height: 7rem;
 
-  transition-property: all;
+  transition-property: none;
   transition-timing-function: cubic-bezier(0.25, 0, 0, 1.0);
-  transition-duration: 0.42s;
+  transition-duration: 0s;
 }
 
 smart-banner:before {
@@ -82,7 +88,6 @@ smart-banner[data-icon].closed:before {
 smart-banner.closed {
   padding-left: 11rem;
   padding-right: 0;
-
   transition-duration: 0.5s;
   background-color: rgba(0, 0, 0, 0.5);
 }
@@ -91,10 +96,15 @@ smart-banner.closed > * {
   display: none;
 }
 
+smart-banner.opened {
+  padding-right: 4.4rem;
+}
+
 smart-banner.opening {
+  transition-property: all;
   transition-duration: 0.72s;
   /* add the same padding-right of normal to make it run transition */
-  padding-right: 4rem;
+  padding-right: 4.4rem;
 }
 
 smart-banner.opening:before {
@@ -102,7 +112,24 @@ smart-banner.opening:before {
 }
 
 smart-banner.closing {
+  transition-property: all;
   transition-duration: 0.5s;
+  padding-left: 11rem;
   padding-right: 0;
   background-color: rgba(0, 0, 0, 0.5);
+}
+
+smart-banner.hiding {
+  opacity: 0;
+  transition-property: opacity;
+  transition-duration: 1s;
+}
+
+smart-banner.flying {
+  animation: flyAnimation 1s;
+}
+
+@keyframes flyAnimation {
+    from {transform: translateY(20rem);}
+    to {transform: translateY(0);}
 }
