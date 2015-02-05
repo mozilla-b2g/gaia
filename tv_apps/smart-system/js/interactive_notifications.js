@@ -189,7 +189,8 @@
       // focus() for us when the focus switches to another button.
       this._keyNavigator.start([$('notification-button-0'),
                                 $('notification-button-1')],
-                               SimpleKeyNavigation.DIRECTION.HORIZONTAL);
+                               SimpleKeyNavigation.DIRECTION.HORIZONTAL,
+                               {target: this._banner});
     } else {
       document.activeElement.blur();
     }

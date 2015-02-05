@@ -8,13 +8,14 @@
   }
 
   KeyNavigationAdapter.prototype = evt({
-    init: function kna_init() {
-      window.addEventListener('keydown', this);
-      window.addEventListener('keyup', this);
+    init: function kna_init(targetElement) {
+      this._targetElement = targetElement || window;
+      this._targetElement.addEventListener('keydown', this);
+      this._targetElement.addEventListener('keyup', this);
     },
     uninit: function kna_uninit() {
-      window.removeEventListener('keydown', this);
-      window.removeEventListener('keyup', this);
+      this._targetElement.removeEventListener('keydown', this);
+      this._targetElement.removeEventListener('keyup', this);
     },
 
     handleEvent: function kna_handleEvent(evt) {

@@ -19,17 +19,18 @@
     'VERTICAL': 'vertical'
   });
 
-  proto.start = function skn_start(list, direction, isChild) {
+  proto.start = function skn_start(list, direction, options) {
     this.direction = direction;
     this.updateList(list);
-    this.isChild = !!isChild;
-    if (!isChild) {
-      window.addEventListener('keydown', this);
+    this.isChild = !!options.isChild;
+    this.target = options.target || window;
+    if (!this.isChild) {
+      this.target.addEventListener('keydown', this);
     }
   };
 
   proto.stop = function skn_stop() {
-    window.removeEventListener('keydown', this);
+    this.target.removeEventListener('keydown', this);
   };
 
   proto.updateList = function skn_updateList(list) {
