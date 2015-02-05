@@ -39,6 +39,7 @@ var MockUIManager = {
     'xck-retries-left',
     'xck-input',
     'xck-error',
+    'xck-info',
     // SIM info
     'sim-info-screen',
     'sim-info-back',
