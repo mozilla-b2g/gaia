@@ -11,6 +11,7 @@
 define(function(require) {
   'use strict';
 
+  var BtClassOfDeviceMapper = require('modules/bluetooth/bluetooth_cod_mapper');
   var Observable = require('modules/mvvm/observable');
 
   var _debug = false;
@@ -20,7 +21,7 @@ define(function(require) {
       console.log('--> [BluetoothDevice]: ' + msg);
     };
   }
-  
+
   /**
    * @class BluetoothDevice
    * @requires module:modules/mvvm/observable
@@ -28,11 +29,12 @@ define(function(require) {
    * @return {Observable} observableBluetoothDevice
    */
   return function ctor_bluetooth_device(device) {
+    var type = BtClassOfDeviceMapper.getDeviceType(device.cod);
     var observableBluetoothDevice = Observable({
       name: device.name,
       paired: device.paired,
       address: device.address,
-      cod: device.cod
+      type: type
     });
 
     /**
@@ -42,13 +44,13 @@ define(function(require) {
      */
     device.onattributechanged = function btd_onDeviceAttributeChanged(evt) {
       for (var i in evt.attrs) {
-        Debug('onDeviceAttributeChanged(): ' + evt.attrs[i]);  
+        Debug('onDeviceAttributeChanged(): ' + evt.attrs[i]);
         switch (evt.attrs[i]) {
           case 'name':
             observableBluetoothDevice.name = device.name;
             break;
           case 'paired':
-            Debug('onDeviceAttributeChanged(): ' + 
+            Debug('onDeviceAttributeChanged(): ' +
                   'device.paired = ' + device.paired);
             observableBluetoothDevice.paired = device.paired;
             break;
