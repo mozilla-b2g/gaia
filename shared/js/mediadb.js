@@ -385,6 +385,7 @@ var MediaDB = (function() {
     this.version = options.version || 1;
     this.mimeTypes = options.mimeTypes;
     this.autoscan = (options.autoscan !== undefined) ? options.autoscan : true;
+    this.doNotWaitForDeviceStorage = options.doNotWaitForDeviceStorage || false;
     this.state = MediaDB.OPENING;
     this.scanning = false;  // becomes true while scanning
     this.parsingBigFiles = false;
@@ -525,6 +526,20 @@ var MediaDB = (function() {
         // so move on and initialize device storage
         initDeviceStorage();
       };
+
+      // At this point, the db is initialized and ready for use.
+      // Typically we don't send our 'ready' request until we have the
+      // newest file modification time and have verified that device
+      // storage is ready for use. But if the user has set the
+      // doNotWaitForDeviceStorage option, the we'll go ahead and
+      // send the 'ready' event now. This should allow apps to start
+      // enumerating the db while we're still checking on device storage
+      // status. If it turns out that device storage is not available
+      // then we'll send an 'unavailable' event just as we would have
+      // without that option.
+      if (this.doNotWaitForDeviceStorage) {
+        changeState(media, MediaDB.READY);
+      }
     };
 
     // helper function to create all indexes

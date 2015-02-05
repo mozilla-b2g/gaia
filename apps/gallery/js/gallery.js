@@ -226,9 +226,10 @@ function init() {
 function initDB() {
   photodb = new MediaDB('pictures', metadataParserWrapper, {
     version: 2,
-    autoscan: false,     // We're going to call scan() explicitly
-    batchHoldTime: 2000, // Batch files during scanning
-    batchSize: 3         // Max batch size when scanning
+    autoscan: false,                 // We're going to call scan() explicitly
+    doNotWaitForDeviceStorage: true, // Send the 'ready' event sooner
+    batchHoldTime: 2000,             // Batch files during scanning
+    batchSize: 3                     // Max batch size when scanning
   });
 
   // This is where we find videos once the photodb notifies us that a
