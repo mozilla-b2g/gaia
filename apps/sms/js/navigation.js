@@ -43,27 +43,27 @@ var Navigation = {
   panels: {
     'thread': {
       behaviour: 'ThreadUI',
-      wrapperPosition: 'left',
+      wrapperPosition: 'panel-position-2',
       container: 'thread-messages'
     },
     'thread-list': {
       behaviour: 'ThreadListUI',
-      wrapperPosition: 'right',
+      wrapperPosition: 'panel-position-1',
       container: 'thread-list'
     },
     'composer': {
       behaviour: 'ThreadUI',
-      wrapperPosition: 'left',
+      wrapperPosition: 'panel-position-2',
       container: 'thread-messages'
     },
     'group-view': {
       behaviour: 'GroupView',
-      wrapperPosition: 'left',
+      wrapperPosition: 'panel-position-2',
       container: 'thread-messages'
     },
     'report-view': {
       behaviour: 'ReportView',
-      wrapperPosition: 'left',
+      wrapperPosition: 'panel-position-2',
       container: 'thread-messages'
     }
   },
