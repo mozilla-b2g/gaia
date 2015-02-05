@@ -1,4 +1,4 @@
-/* global MozActivity */
+/* global MozActivity, NotificationHelper */
 
 'use strict';
 
@@ -211,19 +211,18 @@
      * @memberof Screenshot.prototype
      */
     _notify: function notify(titleid, body, bodyid, onClick) {
-      var title = navigator.mozL10n.get(titleid) || titleid;
-      body = body || navigator.mozL10n.get(bodyid);
-      var notification = new window.Notification(title, {
-        body: body,
-        icon: '/style/icons/Gallery.png'
+      NotificationHelper.send(titleid, {
+        'body': body,
+        'bodyL10n': bodyid,
+        'icon': '/style/icons/Gallery.png'
+      }).then(function(notification) {
+        notification.addEventListener('click', function() {
+          notification.close();
+          if (onClick) {
+            onClick();
+          }
+        });
       });
-
-      notification.onclick = function() {
-        notification.close();
-        if (onClick) {
-          onClick();
-        }
-      };
     }
   };
 
