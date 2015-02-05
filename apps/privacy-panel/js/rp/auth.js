@@ -1,6 +1,6 @@
 /**
  * Auth panels (login/register/change passphrase).
- * 
+ *
  * @module AuthPanel
  * @return {Object}
  */
@@ -14,7 +14,7 @@ function(panels, PassPhrase, SettingsListener) {
   'use strict';
 
   function AuthPanel() {
-    this.passphrase;  
+    this.passphrase;
     this.lsPasscode = false;
     this.lsPasscodeEnabled = false;
     this.simcards = null;
@@ -24,7 +24,7 @@ function(panels, PassPhrase, SettingsListener) {
 
     /**
      * Initialize RP panel and all its sections
-     * 
+     *
      * @method init
      * @constructor
      */
@@ -76,6 +76,7 @@ function(panels, PassPhrase, SettingsListener) {
 
       SettingsListener.observe('lockscreen.passcode-lock.enabled', false,
         function(value) {
+          /* global Event */
           this.lsPasscodeEnabled = value;
 
           // Each time user decides to disable passcode, show him that he can't
@@ -91,7 +92,7 @@ function(panels, PassPhrase, SettingsListener) {
     /**
      * Defines whenever we can login to rp setting or do we need to register
      * new passphrase.
-     * 
+     *
      * @method defineFTU
      */
     defineFTU: function() {
@@ -158,7 +159,7 @@ function(panels, PassPhrase, SettingsListener) {
 
     /**
      * Compares and validates two strings. Returns error strings.
-     * 
+     *
      * @param  {String} pass1 First password
      * @param  {String} pass2 Second password
      * @return {String}       Empty string when success
@@ -175,7 +176,7 @@ function(panels, PassPhrase, SettingsListener) {
       }
 
       if (!rgx.test(pass1)) {
-        return 'passphrase-invalid'; 
+        return 'passphrase-invalid';
       }
 
       if (pass1 !== pass2) {
@@ -187,7 +188,7 @@ function(panels, PassPhrase, SettingsListener) {
 
     /**
      * Compares and validates two strings. Returns error strings.
-     * 
+     *
      * @param  {String} pass1 First password
      * @param  {String} pass2 Second password
      * @return {String}       Empty string when success
@@ -200,7 +201,7 @@ function(panels, PassPhrase, SettingsListener) {
       }
 
       if (!rgx.test(pass1)) {
-        return 'pin-invalid'; 
+        return 'pin-invalid';
       }
 
       if (pass1 !== pass2) {
@@ -239,7 +240,7 @@ function(panels, PassPhrase, SettingsListener) {
 
     /**
      * Clear form and validation messages
-     * 
+     *
      * @method clearRegisterForm
      */
     clearRegisterForm: function() {
@@ -275,7 +276,7 @@ function(panels, PassPhrase, SettingsListener) {
 
     /**
      * Clear form and validation messages
-     * 
+     *
      * @method clearLoginForm
      */
     clearLoginForm: function() {
@@ -293,72 +294,78 @@ function(panels, PassPhrase, SettingsListener) {
      * @param {Object} event JavaScript event
      */
     changePassphrase: function(event) {
-      var form    = this.changeForm;
-      var pin     = form.querySelector('.pin').value;
-      var pass1   = form.querySelector('.pass1').value;
-      var pass2   = form.querySelector('.pass2').value;
-      var type    = form.querySelector('.pin-type').value;
-      var passmsg = form.querySelector('.validation-message');
-      var pinmsg  = form.querySelector('.pin-validation-message');
-      var passError;
+      var form = this.changeForm;
+      var pin  = form.querySelector('.pin').value;
+      var type = form.querySelector('.pin-type').value;
 
       event.preventDefault();
 
+      if (type === 'passcode') {
+        this.verifyPassCode(pin);
+      } else {
+        this.verifySIMPIN(this.simcards[type], pin);
+      }
+    },
+
+    changePIN: function(pinError, retryCount) {
+      var form    = this.changeForm;
+      var pass1   = form.querySelector('.pass1').value;
+      var pass2   = form.querySelector('.pass2').value;
+      var passmsg = form.querySelector('.validation-message');
+      var pinmsg  = form.querySelector('.pin-error-message');
+      var pintry  = form.querySelector('.pin-tries-left');
+      var passError;
+
       passmsg.textContent = '';
       pinmsg.textContent = '';
+      pintry.textContent = '';
 
-      var resultCallback = function(pinError) {
-        if (pinError) {
-          pinmsg.setAttribute('data-l10n-id', pinError);
-          return;
+      if (pinError) {
+        pinmsg.setAttribute('data-l10n-id', pinError);
+        if (pinError === 'sim-invalid') {
+          navigator.mozL10n.setAttributes(pintry, 'pin-tries-left', {
+            n: retryCount
+          });
+          pintry.hidden = !retryCount;
         }
-
-        passError = this.comparePasswords(pass1, pass2);
-        if (passError) {
-          passmsg.setAttribute('data-l10n-id', passError);
-          return;
-        }
-
-        this.passphrase.change(pass1).then(function() {
-          panels.show({ id: 'rp-features' });
-        });
-      }.bind(this);
-
-      if (type === 'passcode') {
-        this.verifyPassCode(pin, resultCallback);
-      } else {
-        this.verifySIMPIN(this.simcards[type], pin, resultCallback);
+        return;
       }
+
+      pintry.hidden = true;
+
+      passError = this.comparePasswords(pass1, pass2);
+      if (passError) {
+        passmsg.setAttribute('data-l10n-id', passError);
+        return;
+      }
+
+      this.passphrase.change(pass1).then(function() {
+        panels.show({ id: 'rp-features' });
+      });
     },
 
-    verifySIMPIN: function(simcard, pin, callback) {
+    verifySIMPIN: function(simcard, pin) {
       var unlock = simcard.unlockCardLock({ lockType : 'pin', pin: pin });
-      unlock.onsuccess = callback.bind(this, '');
-      unlock.onerror = callback.bind(this, 'sim-invalid');
+      unlock.onsuccess = () => this.changePIN();
+      unlock.onerror   = () => this.changePIN('sim-invalid',
+                                              unlock.error.retryCount);
     },
 
-    verifyPassCode: function(pin, callback) {
-      var status = '';
-      if (pin.length > 4){
-        status = 'passcode-long'; 
-      }
-      else{
-        status = this.comparePINs(pin, this.lsPasscode);
-      }
-      callback = callback || function() {};
-
-      callback(status);
+    verifyPassCode: function(pin) {
+      var status = (pin.length > 4) ? 'passcode-long' :
+                                      this.comparePINs(pin, this.lsPasscode);
+      this.changePIN(status);
     },
 
     /**
      * Clear form and validation messages
-     * 
+     *
      * @method clearChangeForm
      */
     clearChangeForm: function() {
       var form    = this.changeForm;
       var passmsg = form.querySelector('.validation-message');
-      var pinmsg  = form.querySelector('.pin-validation-message');
+      var pinmsg  = form.querySelector('.pin-error-message');
 
       form.reset();
       passmsg.textContent = '';
@@ -367,7 +374,7 @@ function(panels, PassPhrase, SettingsListener) {
 
     /**
      * Toggle alert box, show it when user doesn't have passcode enabled
-     * 
+     *
      * @method toggleAlertBox
      */
     toggleAlertBox: function() {
