@@ -30,10 +30,10 @@ class CardsView(Base):
     _close_buttons_locator = (By.CSS_SELECTOR, '#cards-view li[data-origin*="%s"] .close-button')
 
     def _app_card_locator(self, app):
-        return (self._apps_cards_locator[0], self._apps_cards_locator[1] % app.lower())
+        return (self._apps_cards_locator[0], self._apps_cards_locator[1] % app.lower().replace('-', ''))
 
     def _close_button_locator(self, app):
-        return (self._close_buttons_locator[0], self._close_buttons_locator[1] % app.lower())
+        return (self._close_buttons_locator[0], self._close_buttons_locator[1] % app.lower().replace('-', ''))
 
     @property
     def cards(self):

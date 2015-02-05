@@ -37,6 +37,7 @@ class Email(Base):
     _search_textbox_locator = (By.CSS_SELECTOR, 'form[role="search"]')
     _email_subject_locator = (By.XPATH, '//a[@data-index!="-1"]/div/span[text()="%s"]')
     _back_button_locator = (By.CLASS_NAME, 'sup-back-btn')
+    emails_list_header_locator = (By.CSS_SELECTOR, '.msg-list-header')
 
     def basic_setup_email(self, name, email, password):
 
@@ -148,7 +149,7 @@ class Email(Base):
 
     @property
     def header(self):
-        return Header(self.marionette)
+        return Header(self.marionette, self.marionette.find_element(*self.emails_list_header_locator))
 
     @property
     def toolbar(self):
@@ -160,7 +161,7 @@ class Email(Base):
 
     def wait_for_emails_to_sync(self):
         element = self.marionette.find_element(*self._refresh_button_locator)
-        Wait(self.marionette).until(
+        Wait(self.marionette, timeout=60).until(
             lambda m: element.get_attribute(
                 'data-state') == 'synchronized')
 
@@ -202,32 +203,32 @@ class Email(Base):
                 return False
 
 
-class Header(Base):
+class Header(PageRegion):
 
-    _menu_button_locator = (By.CSS_SELECTOR, '.card.center .msg-folder-list-btn')
-    _compose_button_locator = (By.CSS_SELECTOR, '.card.center .msg-compose-btn')
-    _label_locator = (By.CSS_SELECTOR, '.card.center .msg-list-header-folder-label.header-label')
+    _menu_button_locator = (By.CSS_SELECTOR, '.msg-folder-list-btn')
+    _compose_button_locator = (By.CSS_SELECTOR, '.msg-compose-btn')
+    _label_locator = (By.CSS_SELECTOR, '.msg-list-header-folder-label.header-label')
 
     def a11y_click_menu(self):
-        self.accessibility.click(self.marionette.find_element(*self._menu_button_locator))
+        self.accessibility.click(self.root_element.find_element(*self._menu_button_locator))
         toolbar = ToolBar(self.marionette)
         Wait(self.marionette).until(lambda m: toolbar.is_a11y_visible)
         return toolbar
 
     def tap_menu(self):
-        self.marionette.find_element(*self._menu_button_locator).tap()
+        self.root_element.find_element(*self._menu_button_locator).tap()
         toolbar = ToolBar(self.marionette)
         Wait(self.marionette).until(lambda m: toolbar.is_visible)
         return toolbar
 
     def tap_compose(self):
-        self.marionette.find_element(*self._compose_button_locator).tap()
+        self.root_element.find_element(*self._compose_button_locator).tap()
         from gaiatest.apps.email.regions.new_email import NewEmail
         return NewEmail(self.marionette)
 
     @property
     def label(self):
-        return self.marionette.find_element(*self._label_locator).text
+        return self.root_element.find_element(*self._label_locator).text
 
     @property
     def is_menu_visible(self):
