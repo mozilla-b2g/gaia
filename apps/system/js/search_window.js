@@ -37,7 +37,7 @@
 
   SearchWindow.prototype._DEBUG = false;
 
-  SearchWindow.prototype.CLASS_NAME = 'Search';
+  SearchWindow.prototype.CLASS_NAME = 'SearchWindow';
 
   SearchWindow.prototype.CLASS_LIST = 'appWindow searchWindow';
 
