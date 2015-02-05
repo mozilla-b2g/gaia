@@ -10,7 +10,7 @@ html, body {
   -moz-user-select: none;
 }
 
-label, a, p, small, h2 {
+label, a, p, small, gaia-subheader {
   -moz-user-select: none;
 }
 
@@ -73,10 +73,6 @@ aside.pack-end > label {
 section[data-type="list"] p>label {
   width: 100%;
   display: inline-block;
-}
-
-section[role="region"] header h2, section[role="dialog"] header h2 {
-  padding: 0.8rem 3rem;
 }
 
 /* XXX we're trying to offset what we have inherted from lists.css only to make

@@ -22,6 +22,7 @@
 
   <script defer src="shared/js/component_utils.js"></script>
   <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
+  <script defer src="shared/elements/gaia_subheader/script.js"></script>
   <script defer src="shared/elements/gaia_buttons/script.js"></script>
   <script defer src="shared/elements/gaia_confirm/script.js"></script>
 
@@ -105,15 +106,16 @@
         </ul>
       </section>
       <div id="installable-keyboard" hidden>
-        <header>
-          <h2 data-l10n-id="installed-keyboards-title"></h2>
-        </header>
+        <gaia-subheader skin="organic">
+          <span data-l10n-id="installed-keyboards-title"></span>
+        </gaia-subheader>
         <section data-type="list">
           <ul id="installed-keyboards-list">
           </ul>
-        <header>
-          <h2 data-l10n-id="more-keyboards-title"></h2>
-        </header>
+        </section>
+        <gaia-subheader skin="organic">
+          <span data-l10n-id="more-keyboards-title"></span>
+        </gaia-subheader>
         <section data-type="list">
           <ul id="installable-keyboards-list">
           </ul>
