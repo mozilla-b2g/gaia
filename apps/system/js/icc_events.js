@@ -123,7 +123,8 @@ var icc_events = {
     function icc_events_handleBrowserTerminationEvent(message, evt) {
       DUMP(' STK Browser termination');
       this.downloadEvent(message, {
-        eventType: icc._iccManager.STK_EVENT_TYPE_BROWSER_TERMINATION
+        eventType: icc._iccManager.STK_EVENT_TYPE_BROWSER_TERMINATION,
+        terminationCause: icc._iccManager.STK_BROWSER_TERMINATION_CAUSE_USER
       });
   },
 
