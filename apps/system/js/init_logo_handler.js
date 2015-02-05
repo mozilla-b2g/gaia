@@ -1,4 +1,4 @@
-/* global SettingsHelper */
+/* global SettingsCache */
 
 'use strict';
 
@@ -33,8 +33,8 @@ var CustomLogoPath = (function() {
 
   function init(aNext) {
     try {
-      var powerSetting = SettingsHelper(SETTING_POWER, {});
-      powerSetting.get(function gotPS(powerValues) {
+      SettingsCache.get(SETTING_POWER, function(value) {
+        var powerValues = value || DEFAULT_RESOURCES;
         _poweron.video = powerValues[ATT_PWRON_VIDEO] ||
           DEFAULT_RESOURCES.poweron.video;
         _poweron.image = powerValues[ATT_PWRON_IMG] ||

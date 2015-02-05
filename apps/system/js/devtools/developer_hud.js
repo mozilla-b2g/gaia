@@ -1,4 +1,4 @@
-/* global SettingsListener */
+/* global SettingsCache */
 
 (function(exports) {
   'use strict';
@@ -8,7 +8,7 @@
    * @class DeveloperHUD
    */
   function DeveloperHUD() {
-    SettingsListener.observe('devtools.overlay.system',
+    SettingsCache.observe('devtools.overlay.system',
                              false, this.toggleSystemHUD.bind(this));
   }
 

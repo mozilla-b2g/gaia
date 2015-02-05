@@ -1,5 +1,5 @@
 'use strict';
-/* global SettingsListener */
+/* global SettingsCache */
 
 (function(exports) {
 
@@ -18,7 +18,7 @@
    * @class TTLView
    */
   function TTLView() {
-    SettingsListener.observe('debug.ttl.enabled', false, function(value) {
+    SettingsCache.observe('debug.ttl.enabled', false, function(value) {
       !!value ? this.show() : this.hide();
     }.bind(this));
   }

@@ -143,7 +143,7 @@ var PowerSaveHandler = (function PowerSaveHandler() {
   var _powerSaveEnabledLock = false;
 
   function init() {
-    SettingsListener.observe('powersave.enabled', false,
+    SettingsCache.observe('powersave.enabled', false,
       function sl_getPowerSave(value) {
         var enabled = value;
         if (enabled) {
@@ -156,7 +156,7 @@ var PowerSaveHandler = (function PowerSaveHandler() {
 
     // Monitor the states of various modules
     for (var j in _states) {
-      SettingsListener.observe(j, true, function getState(state, value) {
+      SettingsCache.observe(j, true, function getState(state, value) {
         _states[state] = value;
       }.bind(null, j));
     }
@@ -237,7 +237,7 @@ var PowerSaveHandler = (function PowerSaveHandler() {
       return;
     }
 
-    SettingsListener.observe('powersave.threshold', -1,
+    SettingsCache.observe('powersave.threshold', -1,
       function getThreshold(value) {
         // If 'turn on automatically' is set to 'never', don't change the
         // power saving state

@@ -1,5 +1,5 @@
 'use strict';
-/* globals applications, VersionHelper, dump, FtuPing */
+/* globals applications, VersionHelper, dump, FtuPing, SettingsCache */
 /* This module deals with FTU stuff.
    FTU is known as First Time Usage,
    which is the first app the users would use, to configure their phone. */
@@ -133,9 +133,8 @@ var FtuLauncher = {
   launch: function fl_launch() {
     var self = this;
 
-    var req = navigator.mozSettings.createLock().get('ftu.manifestURL');
-    req.onsuccess = function() {
-      var manifestURL = req.result['ftu.manifestURL'];
+    SettingsCache.get('ftu.manifestURL', function(value) {
+      var manifestURL = value;
 
       self._ftuManifestURL = manifestURL;
       if (!manifestURL) {
@@ -155,11 +154,7 @@ var FtuLauncher = {
       self._ftuOrigin = ftu.origin;
       // Open FTU
       ftu.launch();
-    };
-    req.onerror = function() {
-      dump('Couldn\'t get the ftu manifestURL.\n');
-      self.skip();
-    };
+    });
   },
 
   skip: function fl_skip() {

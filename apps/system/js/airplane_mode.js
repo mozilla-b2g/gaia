@@ -1,4 +1,4 @@
-/* global SettingsListener, AirplaneMode */
+/* global SettingsCache, SettingsListener, AirplaneMode */
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -14,21 +14,21 @@
       var settingSuspendedID = settingID + '.suspended';
       // forget the mozSetting states when user toggle 'xyz' on manually,
       // e.g. set 'xyz'.suspend = false when 'xyz'.enabled === true
-      window.navigator.mozSettings.addObserver(
-        settingEnabledID,
-        function(e) {
-          if (e.settingValue) {
+      SettingsCache.observe(settingEnabledID,
+        '',
+        function(value) {
+          if (value) {
             self._unsuspend(settingSuspendedID);
           }
         });
       // init and observe the corresponding mozSettings
       // for Data connection, Bluetooth, Wifi, GPS, and NFC
-      SettingsListener.observe(settingEnabledID, false,
+      SettingsCache.observe(settingEnabledID, false,
         function(value) {
           self._settings[settingEnabledID] = value;
         });
       // remember the mozSetting states before the airplane mode disables them
-      SettingsListener.observe(settingSuspendedID, false,
+      SettingsCache.observe(settingSuspendedID, false,
         function(value) {
           self._settings[settingSuspendedID] = value;
         });
@@ -356,7 +356,7 @@
       this._serviceHelper.init();
 
       // monitor airplaneMode communication key change
-      SettingsListener.observe('airplaneMode.enabled', false, function(value) {
+      SettingsCache.observe('airplaneMode.enabled', false, function(value) {
         self.enabled = value;
       });
 

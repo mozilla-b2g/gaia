@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /* global AsyncSemaphore, Bluetooth, CustomDialog, FtuLauncher, ScreenManager,
-          SettingsListener, System */
+          SettingsCache, SettingsListener, System */
 
 (function(exports) {
   'use strict';
@@ -236,7 +236,7 @@
     this.bindVolumeSettingsHandlers();
 
     var self = this;
-    SettingsListener.observe('audio.volume.cemaxvol', 11, function(volume) {
+    SettingsCache.observe('audio.volume.cemaxvol', 11, function(volume) {
       self.CEWarningVol = volume;
     });
 
@@ -443,7 +443,7 @@
       }
     });
     // observe settings
-    SettingsListener.observe(SoundManager.VIBRATION_SETTINGS_KEY,
+    SettingsCache.observe(SoundManager.VIBRATION_SETTINGS_KEY,
                              true, function(vibration) {
       var setBySelf = false;
       var toggleVibrationEnabled = function toggle_vibration_enabled() {
@@ -674,7 +674,7 @@
 
     function observeSettingsVolumeChange(channel) {
       var setting = 'audio.volume.' + channel;
-      SettingsListener.observe(setting, 5, function onChange(volume) {
+      SettingsCache.observe(setting, 5, function onChange(volume) {
         var settingsChange = function settings_change() {
           var max = SoundManager.MAX_VOLUME[channel];
           self.currentVolume[channel] =
