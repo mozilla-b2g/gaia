@@ -861,14 +861,14 @@ var UpdateManager = {
   // This is going to be part of l10n.js
   _humanizeSize: function um_humanizeSize(bytes) {
     var _ = navigator.mozL10n.get;
-    var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'];
+    var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
 
     if (!bytes)
-      return '0.00 ' + _(units[0]);
+      return '0.00 ' + _('byteUnit-' + units[0]);
 
     var e = Math.floor(Math.log(bytes) / Math.log(1024));
     return (bytes / Math.pow(1024, Math.floor(e))).toFixed(2) + ' ' +
-      _(units[e]);
+      _('byteUnit-' + units[e]);
   },
 
   _closeDownloadDialog: function um_closeDownloadDialog() {
