@@ -1009,6 +1009,12 @@ function Commander(cmd) {
       throw new Error('having trouble when execute ' + command +
         ' ' + args.join(' '));
     }
+
+    processEvents(function () {
+      return {
+        wait: false
+      };
+    });
   };
 
   /**
@@ -1278,6 +1284,16 @@ var scriptLoader = {
   }
 };
 
+var requireNode = function() {
+  var node = new Commander('node');
+  node.initPath(getEnvPath());
+
+  this.run = function(path) {
+    node.run(['--harmony', '-e', 'require("./build/' + path + '").execute(' +
+      getEnv('BUILD_CONFIG') + ')']);
+  };
+};
+
 exports.Q = Promise;
 exports.ls = ls;
 exports.getFileContent = getFileContent;
@@ -1304,6 +1320,7 @@ exports.generateUUID = generateUUID;
 exports.copyRec = copyRec;
 exports.createZip = createZip;
 exports.scriptParser = Reflect.parse;
+exports.requireNode = requireNode;
 // ===== the following functions support node.js compitable interface.
 exports.deleteFile = deleteFile;
 exports.listFiles = listFiles;

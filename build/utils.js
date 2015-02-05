@@ -353,3 +353,10 @@ exports.cloneJSON = cloneJSON;
  * @exports jsComparator
  */
 exports.jsComparator = jsComparator;
+
+/**
+ * Common function.
+ * @exports requireNode
+ */
+exports.requireNode = utils.requireNode;
+
