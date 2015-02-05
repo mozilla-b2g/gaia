@@ -1245,6 +1245,7 @@ suite('system/AppWindow', function() {
     test('setVisible: true should revive browser', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
+      app1.setVisible(false);
       this.sinon.stub(app1, 'reviveBrowser');
 
       app1.setVisible(true);
@@ -1254,12 +1255,29 @@ suite('system/AppWindow', function() {
     test('setVisible: true', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
+      app1.setVisible(false);
+
       var stub_showFrame = this.sinon.stub(app1,
         '_showFrame');
 
       app1.setVisible(true);
       assert.isFalse(app1.screenshotOverlay.classList.contains('visible'));
       assert.isTrue(stub_showFrame.called);
+    });
+
+    test('setVisible: true, multiple times', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      injectFakeMozBrowserAPI(app1.browser.element);
+      app1.setVisible(false);
+
+      var stub_showFrame = this.sinon.stub(app1,
+        '_showFrame');
+
+      app1.setVisible(true);
+      this.sinon.clock.tick();
+      app1.setVisible(true);
+      assert.isFalse(app1.screenshotOverlay.classList.contains('visible'));
+      assert.isTrue(stub_showFrame.calledOnce);
     });
 
     test('setVisible: false', function() {
@@ -1272,12 +1290,27 @@ suite('system/AppWindow', function() {
       assert.isTrue(stub_hideFrame.called);
     });
 
+    test('setVisible: false, multiple times', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      injectFakeMozBrowserAPI(app1.browser.element);
+      var stub_hideFrame = this.sinon.stub(app1,
+        '_hideFrame');
+
+      app1.setVisible(false);
+      this.sinon.clock.tick();
+      app1.setVisible(false);
+      assert.isTrue(stub_hideFrame.calledOnce);
+    });
+
     test('setVisible to front window', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var app2 = new AppWindow(fakeAppConfig2);
+      app1.setVisible(false);
+
       var stubApp2SetVisible = this.sinon.stub(app2, 'setVisible');
       app1.frontWindow = app2;
       app2.rearWindow = app1;
+
       app1.setVisible(true);
       assert.isTrue(stubApp2SetVisible.calledWith(true));
 
@@ -1288,13 +1321,15 @@ suite('system/AppWindow', function() {
     test('setVisible: homescreen', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
+      app1.isHomescreen = true;
+      app1.setVisible(true);
+
       var stub_hideFrame = this.sinon.stub(app1,
         '_hideFrame');
-      app1.isHomescreen = true;
 
       app1.setVisible(false);
       assert.isFalse(app1.screenshotOverlay.classList.contains('visible'));
-      assert.isTrue(stub_hideFrame.called);
+      assert.isTrue(stub_hideFrame.calledOnce);
     });
 
     test('setVisible: homescreen child', function() {
@@ -1312,7 +1347,7 @@ suite('system/AppWindow', function() {
     test('setVisible: called twice', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
-      app1.browser.element.classList.add('hidden');
+      app1.setVisible(false);
       var stubMixinSetVisible = this.sinon.stub(app1, '_setVisible');
 
       app1.setVisible(true);
