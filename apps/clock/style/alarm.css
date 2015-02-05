@@ -75,6 +75,10 @@ ul.compact li label:active {
   display: none;
 }
 
+#time-select {
+  text-indent: 1000rem;
+}
+
 /**
  * 1. COMPLEX: Scoped style-sheets within <gaia-header>
  * trump all other rules. !important is required
