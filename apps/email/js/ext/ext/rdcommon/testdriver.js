@@ -443,7 +443,7 @@ TestDefinerRunner.prototype = {
       if (rval instanceof Error) {
         // in the event we threw during the case setup phase, it's a failure.
         if (self._superDebug)
-          self._superDebug(' :( setup func error thrown!');
+          self._superDebug(' :( setup func error thrown! ' + rval);
         defContext._log.result('fail');
         testCase.log.result('fail');
         reject(false);
