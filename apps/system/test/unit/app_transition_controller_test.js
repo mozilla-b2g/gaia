@@ -279,6 +279,21 @@ suite('system/AppTransitionController', function() {
     assert.isTrue(stubFocus.notCalled);
   });
 
+  test('Do not focus the search window', function() {
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    app1.CLASS_NAME = 'SearchWindow';
+    var acn1 = new AppTransitionController(app1);
+    var stubFocus = this.sinon.stub(app1, 'focus');
+    app1.loaded = true;
+    MockService.mTopMostUI = {
+      name: 'AppWindowManager'
+    };
+    acn1._transitionState = 'opened';
+
+    acn1.handle_opened();
+    assert.isTrue(stubFocus.notCalled);
+  });
+
   suite('Opened', function() {
     var app1, acn1, stubRequestForeground, stubSetOrientation, stubShow;
     setup(function() {
