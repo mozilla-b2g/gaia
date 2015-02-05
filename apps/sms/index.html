@@ -233,38 +233,6 @@
             </section>
           </div>
         </div>
-        <article id="information-participants" class="view-body article-list hide" data-type="list">
-          <ul class="contact-list"></ul>
-        </article>
-        <article id="information-report" class="view-body article-list report-view hide" data-type="list">
-          <div class="description">
-            <p class="type"></p>
-            <p class="subject">
-              <span data-l10n-id="message-subject"></span>
-              <span class="detail"></span>
-            </p>
-            <p class="sent-block">
-              <span class="sent-title"></span>
-              <span class="sent-timestamp l10n-contains-date detail"></span>
-            </p>
-            <p class="received-block">
-              <span data-l10n-id="message-received"></span>
-              <span class="received-timestamp l10n-contains-date detail"></span>
-            </p>
-            <p class="size-block">
-              <span data-l10n-id="message-size-was"></span>
-              <span class="size detail"></span>
-            </p>
-            <p class="sim-info hide">
-              <span data-l10n-id="message-via"></span>
-              <span class="sim-detail detail"></span>
-            </p>
-          </div>
-          <span class="contact-title"></span>
-          <ul class="contact-list"></ul>
-          <button class="resend-btn" data-l10n-id="message-resend">
-          </button>
-        </article>
         <article id="composer-container" class="view-body">
           <div class="flex-composer">
             <div id="messages-container" data-type="list" class="article-list"></div>
@@ -320,6 +288,50 @@
         <section id="messages-recipient-suggestions" class="article-list hide" data-type="list">
           <ul class="contact-list recipient-suggestions-list" role="listbox"></ul>
         </section>
+      </section>
+
+      <section id="information-participants" class="panel hide" role="region">
+        <gaia-header id="information-group-header" class="header" action="back">
+          <h1 data-l10n-id="participant" class="header-text"></h1>
+        </gaia-header>
+        <article class="view-body article-list" data-type="list">
+          <ul class="contact-list"></ul>
+        </article>
+      </section>
+
+      <section id="information-report" class="panel hide" role="region">
+        <gaia-header id="information-report-header" class="header" action="close">
+          <h1 data-l10n-id="message-report"></h1>
+        </gaia-header>
+        <article class="view-body article-list report-view container" data-type="list">
+          <div class="description">
+            <p class="type"></p>
+            <p class="subject">
+              <span data-l10n-id="message-subject"></span>
+              <span class="detail"></span>
+            </p>
+            <p class="sent-block">
+              <span class="sent-title"></span>
+              <span class="sent-timestamp l10n-contains-date detail"></span>
+            </p>
+            <p class="received-block">
+              <span data-l10n-id="message-received"></span>
+              <span class="received-timestamp l10n-contains-date detail"></span>
+            </p>
+            <p class="size-block">
+              <span data-l10n-id="message-size-was"></span>
+              <span class="size detail"></span>
+            </p>
+            <p class="sim-info hide">
+              <span data-l10n-id="message-via"></span>
+              <span class="sim-detail detail"></span>
+            </p>
+          </div>
+          <span class="contact-title"></span>
+          <ul class="contact-list"></ul>
+          <button class="resend-btn" data-l10n-id="message-resend">
+          </button>
+        </article>
       </section>
     </article>
 
