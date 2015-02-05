@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+/**
+ * @fileoverview This script runs js marionette tests and has a bit of logic
+ *     to retry test files on failure to reduce the extent to which
+ *     transient/intermittent harness issues show up as breakages on CI.
+ */
 var Promise = require('es6-promise').Promise;
 var format = require('util').format;
 var path = require('path');
