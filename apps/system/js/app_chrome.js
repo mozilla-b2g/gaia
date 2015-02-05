@@ -241,7 +241,7 @@
         this.handleScrollAreaChanged(evt);
         break;
 
-      case 'mozbrowsersecuritychange':
+      case '_securitychange':
         this.handleSecurityChanged(evt);
         break;
 
@@ -371,7 +371,7 @@
     this.app.element.addEventListener('mozbrowsertitlechange', this);
     this.app.element.addEventListener('mozbrowsermetachange', this);
     this.app.element.addEventListener('mozbrowserscrollareachanged', this);
-    this.app.element.addEventListener('mozbrowsersecuritychange', this);
+    this.app.element.addEventListener('_securitychange', this);
     this.app.element.addEventListener('_loading', this);
     this.app.element.addEventListener('_loaded', this);
     this.app.element.addEventListener('_namechanged', this);
@@ -472,7 +472,7 @@
   };
 
   AppChrome.prototype.handleSecurityChanged = function(evt) {
-    this.title.dataset.ssl = evt.detail.state;
+    this.title.dataset.ssl = this.app.getSSLState();
   };
 
   AppChrome.prototype.handleTitleChanged = function(evt) {

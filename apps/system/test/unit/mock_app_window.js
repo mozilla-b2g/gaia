@@ -13,7 +13,7 @@
         try {
           this[key] = config[key];
         } catch (e) {
-          
+
         }
       }
       this.config = config;
@@ -144,7 +144,8 @@
     setVisibileForScreenReader: function() {},
     handleStatusbarTouch: function() {},
     setNFCFocus: function() {},
-    setActive: function() {}
+    setActive: function() {},
+    getSSLState: function() { return ''; }
   };
   MockAppWindow.mTeardown = function() {
     MockAppWindowHelper.mInstances = [];
