@@ -676,6 +676,9 @@
   };
 
   AppChrome.prototype.handleError = function ac_handleError(evt) {
+    if (evt.detail && evt.detail.type === 'fatal') {
+      return;
+    }
     if (this.useCombinedChrome()) {
       // When we get an error, keep the rocketbar maximized.
       this.element.classList.add('maximized');
