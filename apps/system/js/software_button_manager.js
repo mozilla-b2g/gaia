@@ -164,6 +164,7 @@
       window.addEventListener('system-resize',
                               this._updateButtonRect.bind(this));
       window.addEventListener('edge-touch-redispatch', this);
+      window.addEventListener('hierachychanged', this);
     },
 
    /**
@@ -319,6 +320,13 @@
           break;
         case 'orientationchange':
           this.element.classList.remove('no-transition');
+          break;
+        case 'hierachychanged':
+          if (this.enabled && Service.query('getTopMostWindow')) {
+            this.element.classList.toggle('attention-lockscreen',
+              Service.query('getTopMostWindow').CLASS_NAME ===
+              'LockScreenWindow');
+          }
           break;
       }
     },
