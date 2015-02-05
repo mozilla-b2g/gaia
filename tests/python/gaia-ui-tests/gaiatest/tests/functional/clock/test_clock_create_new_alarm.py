@@ -67,7 +67,7 @@ class TestClockCreateNewAlarm(GaiaTestCase):
 
         # Set the alarm time to 1 min more than the current time
         time_picker = edit_alarm.tap_time()
-        time_picker.spin_minute()
+        time_picker.add_minute()
         time_picker.tap_done()
 
         edit_alarm.tap_done()
