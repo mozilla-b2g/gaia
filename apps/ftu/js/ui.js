@@ -80,6 +80,7 @@ var UIManager = {
     'hidden-wifi-ssid',
     'hidden-wifi-security',
     'hidden-wifi-password',
+    'hidden-wifi-password-box',
     'hidden-wifi-identity',
     'hidden-wifi-identity-box',
     'hidden-wifi-show-password',
@@ -149,13 +150,18 @@ var UIManager = {
     this.hiddenWifiSecurity.addEventListener('change', this);
     this.wifiJoinButton.disabled = true;
 
-    this.hiddenWifiPassword.addEventListener('keyup', function() {
-      this.wifiJoinButton.disabled = !WifiHelper.isValidInput(
-        this.hiddenWifiSecurity.value,
-        this.hiddenWifiPassword.value,
-        this.hiddenWifiIdentity.value
+    var checkHiddenWifiJoin = function() {
+      this.wifiJoinButton.disabled =  this.hiddenWifiSsid.value === '' ||
+             !WifiHelper.isValidInput(this.hiddenWifiSecurity.value,
+                                      this.hiddenWifiPassword.value,
+                                      this.hiddenWifiIdentity.value
       );
-    }.bind(this));
+    }.bind(this);
+
+    this.hiddenWifiSsid.addEventListener('keyup', checkHiddenWifiJoin);
+    this.hiddenWifiIdentity.addEventListener('keyup', checkHiddenWifiJoin);
+    this.hiddenWifiPassword.addEventListener('keyup', checkHiddenWifiJoin);
+    this.hiddenWifiSecurity.addEventListener('change', checkHiddenWifiJoin);
 
     this.hiddenWifiShowPassword.onchange = function togglePasswordVisibility() {
       UIManager.hiddenWifiPassword.type = this.checked ? 'text' : 'password';
@@ -370,7 +376,8 @@ var UIManager = {
         WifiUI.addHiddenNetwork();
         break;
       case 'hidden-wifi-security':
-        var securityType = event.target.value;
+        // Assuming that [0] is None, we prefer '' for collision on translations
+        var securityType = event.target.selectedIndex ? event.target.value : '';
         WifiUI.handleHiddenWifiSecurity(securityType);
         break;
       // Date & Time
