@@ -119,6 +119,9 @@ REMOTE_DEBUGGER?=0
 # Debug mode for build process
 BUILD_DEBUG?=0
 
+# Are we building for RAPTOR?
+RAPTOR?=0
+
 ifeq ($(DEVICE_DEBUG),1)
 REMOTE_DEBUGGER=1
 NO_LOCK_SCREEN=1
@@ -537,7 +540,8 @@ define BUILD_CONFIG
   "VARIANT_PATH" : "$(VARIANT_PATH)", \
   "REBUILD": "$(REBUILD)", \
   "P" : "$(P)", \
-  "VERBOSE" : "$(VERBOSE)"
+  "VERBOSE" : "$(VERBOSE)", \
+  "RAPTOR" : "$(RAPTOR)" \
 }
 endef
 
@@ -788,7 +792,7 @@ test-perf:
 
 .PHONY: raptor
 raptor: node_modules
-	NO_LOCK_SCREEN=1 NOFTU=1 SCREEN_TIMEOUT=0 GAIA_DISTRIBUTION_DIR=node_modules/gaia-raptor/dist PROFILE_FOLDER=profile-raptor make reset-gaia
+	RAPTOR=1 NO_LOCK_SCREEN=1 NOFTU=1 SCREEN_TIMEOUT=0 GAIA_DISTRIBUTION_DIR=node_modules/gaia-raptor/dist PROFILE_FOLDER=profile-raptor make reset-gaia
 
 .PHONY: tests
 tests: app offline
