@@ -138,6 +138,10 @@ input.cmp-subject-text {
   -moz-user-select: text;
 }
 
+.cmp-body-text * {
+  -moz-user-select: text;
+}
+
 .cmp-body-html {
   margin: 0 1.5rem;
 }
