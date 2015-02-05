@@ -117,8 +117,7 @@ suite('smart-home/CardManager', function() {
     test('should load cardList from datastore if possible', function(done) {
       MockCardStore.mPrepareData('cardList', [{
         'name': 'Television',
-        'type': 'Deck',
-        'cachedIconURL': 'style/icons/Blank.png'
+        'type': 'Deck'
       }]);
 
       cardManager._reloadCardList().then(function() {
@@ -146,8 +145,7 @@ suite('smart-home/CardManager', function() {
             response: {
               'card_list': [{
                   'name': 'Devices',
-                  'type': 'Deck',
-                  'cachedIconURL': 'style/icons/Blank.png'
+                  'type': 'Deck'
               }]
             }
           });
@@ -170,8 +168,7 @@ suite('smart-home/CardManager', function() {
             manifest: {},
             manifestURL: 'app://dashboard.gaiamobile.org/manifest.webapp'
           },
-          launchURL: 'app://dashboard.gaiamobile.org/index.html',
-          cachedIconURL: 'style/icons/Blank.png'
+          launchURL: 'app://dashboard.gaiamobile.org/index.html'
         }),
         new Deck({
           name: 'TV',
@@ -181,8 +178,7 @@ suite('smart-home/CardManager', function() {
             manifest: {},
             manifestURL: 'app://tv-deck.gaiamobile.org/manifest.webapp'
           },
-          launchURL: 'app://tv-deck.gaiamobile.org/index.html',
-          cachedIconURL: 'style/icons/Blank.png'
+          launchURL: 'app://tv-deck.gaiamobile.org/index.html'
         })
       ];
       dashboardCardId = cardManager._cardList[0].cardId;
@@ -236,8 +232,7 @@ suite('smart-home/CardManager', function() {
             manifest: {},
             manifestURL: 'app://dashboard.gaiamobile.org/manifest.webapp'
           },
-          launchURL: 'app://dashboard.gaiamobile.org/index.html',
-          cachedIconURL: 'style/icons/Blank.png'
+          launchURL: 'app://dashboard.gaiamobile.org/index.html'
         })
       ];
       dashboardCardId = cardManager._cardList[0].cardId;
@@ -263,8 +258,7 @@ suite('smart-home/CardManager', function() {
       var newFolder = cardManager.insertNewFolder('a test folder');
       assert.isFalse(cardManager.writeCardlistInCardStore.calledOnce);
       newFolder.addCard(new Application({
-        name: 'Music',
-        cachedIconURL: 'style/icons/Blank.png'
+        name: 'Music'
       }));
 
       assert.isTrue(cardManager.writeCardlistInCardStore.calledOnce);
@@ -320,8 +314,7 @@ suite('smart-home/CardManager', function() {
             manifest: {},
             manifestURL: 'app://dashboard.gaiamobile.org/manifest.webapp'
           },
-          launchURL: 'app://dashboard.gaiamobile.org/index.html',
-          cachedIconURL: 'style/icons/Blank.png'
+          launchURL: 'app://dashboard.gaiamobile.org/index.html'
         }),
         emptyFolder,
         secondEmptyFolder,
