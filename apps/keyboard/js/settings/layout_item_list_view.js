@@ -4,6 +4,55 @@
 
 (function(exports) {
 
+// This is a simple wrapper that wraps <gaia-toast> into our view management.
+// The reason we did this is because we need to defer the toast from showing,
+// if our containing view is not visible.
+var LayoutItemDownloadErrorToastView = function() {
+  BaseView.apply(this);
+
+  this.isVisible = false;
+  this.showDeferred = false;
+};
+LayoutItemDownloadErrorToastView.prototype = Object.create(BaseView.prototype);
+LayoutItemDownloadErrorToastView.prototype.CONTAINER_ID =
+  'installable-keyboards-download-error-toast';
+LayoutItemDownloadErrorToastView.prototype.start = function() {
+  BaseView.prototype.start.call(this);
+  this.isVisible = false;
+  this.showDeferred = false;
+};
+LayoutItemDownloadErrorToastView.prototype.stop = function() {
+  BaseView.prototype.stop.call(this);
+  this.isVisible = false;
+  this.showDeferred = false;
+};
+LayoutItemDownloadErrorToastView.prototype.show = function() {
+  BaseView.prototype.show.call(this);
+
+  this.isVisible = true;
+  if (this.showDeferred) {
+    this.container.show();
+    this.showDeferred = false;
+  }
+};
+LayoutItemDownloadErrorToastView.prototype.beforeHide = function() {
+  BaseView.prototype.beforeHide.call(this);
+
+  this.isVisible = false;
+  this.container.hide();
+};
+LayoutItemDownloadErrorToastView.prototype.showToast = function() {
+  if (!this.isVisible) {
+    this.showDeferred = true;
+
+    return;
+  }
+
+  // The <gaia-toast> will hide itself, or delay the timeout if it is already
+  // shown.
+  this.container.show();
+};
+
 var LayoutItemRemovalConfirmationDialogView = function() {
   BaseView.apply(this);
 };
@@ -119,6 +168,9 @@ LayoutItemListView.prototype.start = function() {
   this.childViews.removeDialog =
     new LayoutItemRemovalConfirmationDialogView();
   this.childViews.removeDialog.start();
+  this.childViews.downloadErrorToast =
+    new LayoutItemDownloadErrorToastView();
+  this.childViews.downloadErrorToast.start();
 
   this._installedListContainer =
     document.getElementById(this.INSTALLED_LIST_ID);
@@ -142,6 +194,10 @@ LayoutItemListView.prototype.confirmRemoval = function(view, layoutName) {
   }.bind(this);
 
   this.childViews.removeDialog.showDialog(layoutName);
+};
+
+LayoutItemListView.prototype.showDownloadErrorToast = function() {
+  this.childViews.downloadErrorToast.showToast();
 };
 
 LayoutItemListView.prototype._handleModelReady = function() {
@@ -214,6 +270,8 @@ LayoutItemListView.prototype.stop = function() {
   }
 };
 
+exports.LayoutItemDownloadErrorToastView =
+  LayoutItemDownloadErrorToastView;
 exports.LayoutItemRemovalConfirmationDialogView =
   LayoutItemRemovalConfirmationDialogView;
 exports.LayoutItemListView = LayoutItemListView;

@@ -32,6 +32,7 @@ LayoutItemView.prototype.IN_LIST_INSTALLABLE = 1;
 LayoutItemView.prototype.TEMPLATE_ID = 'installable-keyboard-list-item';
 
 LayoutItemView.prototype.start = function() {
+  this._model.onerror = this._showError.bind(this);
   this._model.onprogress = this._updateProgress.bind(this);
   this._model.onstatechange = this._updateUI.bind(this);
 
@@ -155,6 +156,27 @@ LayoutItemView.prototype._updateUI = function() {
   }
 };
 
+LayoutItemView.prototype._showError = function(errorInfo) {
+  switch (errorInfo.error) {
+    case errorInfo.ERROR_DOWNLOADERROR:
+      this.list.showDownloadErrorToast();
+      break;
+
+    case errorInfo.ERROR_INSTALLERROR:
+      console.error('LayoutItemView: layout installation error.');
+      break;
+
+    case errorInfo.ERROR_REMOVEERROR:
+      console.error('LayoutItemView: layout removal error.');
+      break;
+
+    default:
+      console.error('LayoutItemView: undefined onerror call,', errorInfo);
+
+      break;
+  }
+};
+
 LayoutItemView.prototype.handleEvent = function(evt) {
   var el = evt.target;
 
@@ -162,21 +184,28 @@ LayoutItemView.prototype.handleEvent = function(evt) {
   // is applicable for certain action, nor we keep the returned promise and
   // react on it. UI updates are all tie to state updates,
   // and state updates only.
+  var p;
   switch (el.dataset.action) {
     case 'download':
-      this._model.install();
+      p = this._model.install();
 
       break;
 
     case 'cancelDownload':
-      this._model.cancelInstall();
+      p = this._model.cancelInstall();
 
       break;
 
     case 'remove':
-      this.list.confirmRemoval(this, this._model.name);
+      p = this.list.confirmRemoval(this, this._model.name);
 
       break;
+  }
+
+  if (p) {
+    p.catch(function(e) {
+      e && console.error(e);
+    });
   }
 };
 

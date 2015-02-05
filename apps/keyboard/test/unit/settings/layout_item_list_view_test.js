@@ -18,6 +18,7 @@ suite('LayoutItemListView', function() {
   var layoutItemListStub;
 
   var dialogElStub;
+  var toastStub;
 
   setup(function() {
     layoutItemListStub =
@@ -47,13 +48,19 @@ suite('LayoutItemListView', function() {
     dialogElStub.appendChild(document.createElement('p'));
     dialogElStub.hidden = true;
 
+    toastStub = document.createElement('div');
+    toastStub.show = this.sinon.stub();
+    toastStub.hide = this.sinon.stub();
+
     listView = new LayoutItemListView(app);
 
     this.sinon.stub(document, 'getElementById')
       .withArgs(listView.CONTAINER_ID).returns(containerElStub)
       .withArgs(listView.INSTALLED_LIST_ID).returns(installedListElStub)
       .withArgs(listView.INSTALLABLE_LIST_ID).returns(installableListElStub)
-      .withArgs('installable-keyboards-removal-dialog').returns(dialogElStub);
+      .withArgs('installable-keyboards-removal-dialog').returns(dialogElStub)
+      .withArgs('installable-keyboards-download-error-toast')
+        .returns(toastStub);
 
     listView.start();
 
@@ -152,6 +159,30 @@ suite('LayoutItemListView', function() {
 
       assert.isTrue(dialogElStub.hidden);
       assert.isTrue(itemView.confirmRemoveItem.calledOnce);
+    });
+  });
+
+  suite('showDownloadErrorToast', function() {
+    test('call before the panel is shown', function() {
+      listView.showDownloadErrorToast();
+
+      assert.isFalse(toastStub.show.calledOnce);
+    });
+
+    test('call after the panel is shown', function() {
+      listView.beforeShow();
+      listView.show();
+
+      listView.showDownloadErrorToast();
+
+      assert.isTrue(toastStub.show.calledOnce);
+    });
+
+    test('hide the panel', function() {
+      listView.beforeHide();
+      listView.hide();
+
+      assert.isTrue(toastStub.hide.calledOnce);
     });
   });
 });
