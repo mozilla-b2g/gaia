@@ -2078,6 +2078,27 @@ suite('system/AppWindow', function() {
       assert.isTrue(stubSetVisible.calledWith(true), 'setVisible');
       assert.isTrue(stubBroadcast.calledWith('focus'));
     });
+
+    test('browsersecuritychange event', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      // expect indeterminate state before first event
+      var publishStub = this.sinon.stub(app1, 'publish');
+      assert.equal(app1.getSSLState(), '',
+                  'SSL state is empty before the first security change');
+
+
+      ['broken', 'secure', 'insecure'].forEach(function(state, i) {
+        app1.handleEvent({
+          type: 'mozbrowsersecuritychange',
+          detail: {
+            'state': state
+          }
+        });
+        assert.equal(app1.getSSLState(), state);
+        assert.equal(publishStub.getCall(i).args[0], 'securitychange');
+        assert.equal(publishStub.getCall(i).args[1], state);
+      });
+    });
   });
 
   test('Change URL at run time', function() {
@@ -2121,6 +2142,7 @@ suite('system/AppWindow', function() {
     assert.isNull(app1.iframe);
     assert.isTrue(app1.suspended);
     assert.isTrue(stubPublish.calledWith('suspended'));
+    assert.equal(app1._sslState, '');
   });
 
   test('set child window', function() {
