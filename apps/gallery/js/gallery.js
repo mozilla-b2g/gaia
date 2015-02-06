@@ -107,7 +107,7 @@ var videostorage;
 var isInitThumbnail = false;
 
 // If we're doing a pick activity, this variable will be true
-var picking = false;
+var picking = (window.location.href === '#pick');
 
 // Flag that indicates that we've edited a picture and just saved it
 var justSavedEditedImage = false;
@@ -179,10 +179,12 @@ function init() {
   window.performance.mark('navigationInteractive');
   window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
 
+  // Finish initialization of the MediaDB object
+  finishDBInitialization();
+
   // If we were not invoked by an activity, then start off in thumbnail
   // list mode, and fire up the MediaDB object.
-  if (!navigator.mozHasPendingMessage('activity')) {
-    initDB();
+  if (!picking) {
     setView(LAYOUT_MODE.list);
   }
 
@@ -193,65 +195,39 @@ function init() {
     switch (activityName) {
     case 'browse':
       // The 'browse' activity is the way we launch Gallery from Camera.
-      // If this was a cold start, then the db needs to be initialized.
-      if (!photodb) {
-        initDB();  // Initialize the media database
+      //
+      // If the gallery was already running we we arrived here via a
+      // browse activity, then the user is probably coming to us from the
+      // camera, and she probably wants to see the list of thumbnails.
+      // If we're currently displaying a single image, switch to the
+      // thumbnails. But if the user left the gallery in the middle of
+      // an edit or in the middle of making a selection, then returning
+      // to the thumbnail list would cause her to lose work, so in those
+      // cases we don't change anything and let the gallery resume where
+      // the user left it.  See Bug 846220.
+      if (!currentView || currentView === LAYOUT_MODE.fullscreen) {
         setView(LAYOUT_MODE.list);
-      }
-      else {
-        // If the gallery was already running we we arrived here via a
-        // browse activity, then the user is probably coming to us from the
-        // camera, and she probably wants to see the list of thumbnails.
-        // If we're currently displaying a single image, switch to the
-        // thumbnails. But if the user left the gallery in the middle of
-        // an edit or in the middle of making a selection, then returning
-        // to the thumbnail list would cause her to lose work, so in those
-        // cases we don't change anything and let the gallery resume where
-        // the user left it.  See Bug 846220.
-        if (currentView === LAYOUT_MODE.fullscreen)
-          setView(LAYOUT_MODE.list);
       }
       break;
     case 'pick':
-      picking = true;
-      initDB();
       LazyLoader.load('js/pick.js', function() { Pick.start(a); });
       break;
     }
   });
 }
 
-// Initialize MediaDB objects for photos and videos, and set up their
-// event handlers.
-function initDB() {
-  photodb = new MediaDB('pictures', metadataParserWrapper, {
-    version: 2,
-    autoscan: false,     // We're going to call scan() explicitly
-    batchHoldTime: 2000, // Batch files during scanning
-    batchSize: 3         // Max batch size when scanning
-  });
 
-  // This is where we find videos once the photodb notifies us that a
-  // new video poster image has been detected. Note that we need this
-  // even during a pick activity when we're not displaying videos
-  // because we might still might find and parse metadata for new
-  // videos during the scanning process.
-  videostorage = navigator.getDeviceStorage('videos');
-
-  var loaded = false;
-  function metadataParserWrapper(file, onsuccess, onerror, bigFile) {
-    if (loaded) {
-      metadataParser(file, onsuccess, onerror, bigFile);
-      return;
-    }
-
-    LazyLoader.load(['js/metadata_scripts.js',
-                     'shared/js/media/crop_resize_rotate.js'], function() {
-      loaded = true;
-      metadataParser(file, onsuccess, onerror, bigFile);
-    });
-  }
-
+//
+// We create the MediaDB in startDBInitialization() and let it start
+// getting itself ready. But we don't add event handlers to it in that
+// function because the event handlers typically manipulate the DOM and
+// the DOM may not be ready yet. So once the DOM is ready and localized
+// we call this function to set the event handlers. By the time we get
+// here we may have missed an event, so after setting the handlers, we
+// check the current state of the MediaDB object and call whichever
+// handler we missed.
+//
+function finishDBInitialization() {
   // show dialog in upgradestart, when it finished, it will turned to ready.
   photodb.onupgrading = function(evt) {
     Overlay.show('upgrade');
@@ -262,7 +238,7 @@ function initDB() {
   // This may be called before onready if it is unavailable to begin with
   // We don't need one of these handlers for the video db, since both
   // will get the same event at more or less the same time.
-  photodb.onunavailable = function(event) {
+  photodb.onunavailable = function() {
     // Switch back to the thumbnail view unless it is a pick activity.
     // If we were viewing or editing an image it might not be there
     // anymore when the MediaDB becomes available again.
@@ -274,7 +250,7 @@ function initDB() {
 
     // If storage becomes unavailble (e.g. the user starts a USB Mass Storage
     // Lock the user out of the app, and tell them why
-    var why = event.detail;
+    var why = photodb.state;
     if (why === MediaDB.NOCARD)
       Overlay.show('nocard');
     else if (why === MediaDB.UNMOUNTED)
@@ -352,6 +328,34 @@ function initDB() {
 
   // XXX: remove this hack as part of fixing bug 1046995
   doNotScanInBackgroundHack(photodb);
+
+  // If the mediadb is not still in its initial OPENING state then we
+  // missed a "ready" or "unavailable" or "upgrading" event, and need
+  // to call the appropriate handler now. Note that we don't start scanning
+  // until after the ready event arrives and we enumerate the db, so it
+  // is not possible for us to miss a scanstart or scanend events. And if
+  // we miss a created or deleted event, the relevant files will be found
+  // during the enumeration, so this is all we have to look for now
+
+  switch (photodb.state) {
+  case MediaDB.OPENING:
+    // No events missed.
+    break;
+
+  case MediaDB.UPGRADING:
+    photodb.onupgrading();
+    break;
+
+  case MediaDB.READY:
+    console.log('missed ready event. calling handler now');
+    photodb.onready();
+    break;
+
+  case MediaDB.NOCARD:
+  case MediaDB.UNMOUNTED:
+    photodb.onunavailable();
+    break;
+  }
 }
 
 // Pass the filename of the poster image and get the video file back
