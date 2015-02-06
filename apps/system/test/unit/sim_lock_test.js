@@ -203,6 +203,8 @@ suite('SimLock', function() {
       setup(function() {
         MockSIMSlotManager.ready = true;
         addSimSlot();
+        sinon.stub(MockSIMSlotManager,'hasOnlyOneSIMCardDetected')
+          .returns(true);
       });
 
       teardown(function() {
@@ -211,15 +213,11 @@ suite('SimLock', function() {
 
       test('sim1 is absent', function() {
         MockSIMSlotManager.mInstances[0].isAbsent = true;
-        sinon.stub(MockSIMSlotManager,'hasOnlyOneSIMCardDetected')
-          .returns(true);
         assert.isFalse(SimLock.isBothSlotsLocked());
       });
 
       test('sim2 is absent', function() {
         MockSIMSlotManager.mInstances[1].isAbsent = true;
-        sinon.stub(MockSIMSlotManager,'hasOnlyOneSIMCardDetected')
-          .returns(true);
         assert.isFalse(SimLock.isBothSlotsLocked());
       });
     });
