@@ -4,7 +4,7 @@
 
 (function(exports) {
 
-var LayoutItemView = function(layoutItem) {
+var LayoutItemView = function(list, layoutItem) {
   BaseView.apply(this);
 
   this._statusEl = null;
@@ -16,6 +16,7 @@ var LayoutItemView = function(layoutItem) {
       'please pass an approate instance as the model.');
   }
 
+  this.list = list;
   this._model = layoutItem;
 };
 
@@ -173,10 +174,14 @@ LayoutItemView.prototype.handleEvent = function(evt) {
       break;
 
     case 'remove':
-      this._model.remove();
+      this.list.confirmRemoval(this, this._model.name);
 
       break;
   }
+};
+
+LayoutItemView.prototype.confirmRemoveItem = function() {
+  this._model.remove();
 };
 
 LayoutItemView.prototype.stop = function() {

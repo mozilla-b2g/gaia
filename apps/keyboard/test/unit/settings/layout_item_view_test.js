@@ -1,15 +1,18 @@
 'use strict';
 
-/* global LayoutItemView, LayoutItem */
+/* global LayoutItemListView, LayoutItemView, LayoutItem */
 
 require('/js/settings/base_view.js');
 
 require('/js/settings/layout_item.js');
 require('/js/settings/layout_item_view.js');
+require('/js/settings/layout_item_list_view.js');
 
 suite('LayoutItemListView', function() {
   var view;
+
   var itemStub;
+  var listViewStub;
 
   var labelEl;
   var statusEl;
@@ -25,7 +28,9 @@ suite('LayoutItemListView', function() {
     itemStub.fileSize = 24601;
     itemStub.state = itemStub.STATE_PRELOADED;
 
-    view = new LayoutItemView(itemStub);
+    listViewStub = this.sinon.stub(Object.create(LayoutItemListView.prototype));
+
+    view = new LayoutItemView(listViewStub, itemStub);
 
     var templateEl = document.createElement('template');
     templateEl.innerHTML =
@@ -164,7 +169,7 @@ suite('LayoutItemListView', function() {
       assert.isTrue(itemStub.cancelInstall.calledOnce);
     });
 
-    test('cancelDownload', function() {
+    test('remove', function() {
       var evt = {
         type: 'click',
         target: {
@@ -175,7 +180,13 @@ suite('LayoutItemListView', function() {
       };
       view.handleEvent(evt);
 
-      assert.isTrue(itemStub.remove.calledOnce);
+      assert.isTrue(listViewStub.confirmRemoval.calledWith(view, 'Pig Latin'));
     });
+  });
+
+  test('confirmRemoveItem', function() {
+    view.confirmRemoveItem();
+
+    assert.isTrue(itemStub.remove.calledOnce);
   });
 });
