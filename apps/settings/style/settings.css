@@ -1014,11 +1014,17 @@ ul li > label.range-icons.volume input {
 }
 
 #fxa-unverified .description {
+  padding-top: 1.5rem;
+}
+
+#fxa-unverified .description:before {
+  position: absolute;
+  content: "";
+  width: 7rem;
+  height: 7rem;
   background-image: url('images/fxa_envelope.png');
   background-repeat: no-repeat;
   background-size: 7rem;
-  background-position: 0 1.5rem;
-  padding-top: 1.5rem;
 }
 
 #fxa-unverified .disabled {
