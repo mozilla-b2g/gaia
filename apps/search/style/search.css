@@ -1,6 +1,15 @@
+/**
+ * Disable selection by default except for elements with
+ * "contenteditable".
+ */
 * {
   margin: 0;
   padding: 0;
+  -moz-user-select: none;
+}
+
+[contenteditable="true"] {
+  -moz-user-select: text;
 }
 
 html, body {
