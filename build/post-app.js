@@ -27,9 +27,4 @@ exports.execute = function(options, webapp) {
     // Generate $(PROFILE_FOLDER)/webapps/APP/application.zip
     require('./webapp-zip').execute(options, webapp);
   }
-
-  // Remove temporary l10n files created by the webapp-optimize step. Because
-  // webapp-zip wants these files to still be around during the zip stage,
-  // depend on webapp-zip so it runs to completion before we start the cleanup.
-  require('./optimize-clean').execute(options, webapp);
 };
