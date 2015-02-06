@@ -5,31 +5,11 @@
   /* globals LazyLoader */
   /* globals SearchProvider */
 
-  var suggestionsProvider = document.getElementById('suggestions-provider');
-  var suggestionsSelect = document.getElementById('suggestions-select');
-
   SearchProvider.providerUpdated(function() {
-
-    navigator.mozL10n.setAttributes(suggestionsProvider, 'search-header', {
+    var elem = document.getElementById('suggestion-provider');
+    navigator.mozL10n.setAttributes(elem, 'search-header', {
       provider: SearchProvider('title').toUpperCase()
     });
-
-    var providers = SearchProvider.providers();
-    var selectFragment = document.createDocumentFragment();
-    var optionNode = document.createElement('option');
-
-    Object.keys(providers).forEach(provider => {
-      var option = optionNode.cloneNode();
-      option.value = provider;
-      option.text = providers[provider].title;
-      if (provider === SearchProvider.selected()) {
-        option.selected = true;
-      }
-      selectFragment.appendChild(option);
-    });
-
-    suggestionsSelect.innerHTML = '';
-    suggestionsSelect.appendChild(selectFragment);
   });
 
   function encodeTerms(str, search) {
@@ -48,9 +28,6 @@
 
     init: function() {
       Provider.prototype.init.apply(this, arguments);
-      suggestionsSelect.addEventListener('change', function(e) {
-        SearchProvider.setProvider(e.target.value);
-      });
     },
 
     click: function(e) {
