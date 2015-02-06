@@ -8,6 +8,8 @@
   /* global SettingsListener */
   /* global UrlHelper */
   /* global SearchProvider */
+  /* global MozActivity */
+
   // timeout before notifying providers
   var SEARCH_DELAY = 500;
   var MAX_GRID_SIZE = 4;
@@ -35,7 +37,9 @@
      * on first use
      */
     suggestionNotice: document.getElementById('suggestions-notice-wrapper'),
-    toShowNotice: false,
+    settingsLink: document.getElementById('settings-link'),
+
+    toShowNotice: null,
     NOTICE_KEY: 'notice-shown',
 
     init: function() {
@@ -141,6 +145,7 @@
 
           // If suggestions are disabled, only use local providers
           if (this.suggestionsEnabled || !provider.remote) {
+
             if (provider.remote) {
               // Do not send full URLs to remote providers
               // or when inside a private browser.
@@ -181,14 +186,30 @@
     initNotice: function() {
 
       var confirm = document.getElementById('suggestions-notice-confirm');
-
       confirm.addEventListener('click', this.discardNotice.bind(this, true));
+
+      if (this.settingsLink) {
+        this.settingsLink
+          .addEventListener('click', this.openSettings.bind(this));
+      }
 
       asyncStorage.getItem(this.NOTICE_KEY, function(value) {
         if (this.toShowNotice === null) {
           this.toShowNotice = !value;
         }
       }.bind(this));
+    },
+
+    openSettings: function() {
+      this.discardNotice();
+      /* jshint nonew: false */
+      new MozActivity({
+        name: 'configure',
+        data: {
+          target: 'device',
+          section: 'search'
+        }
+      });
     },
 
     discardNotice: function(focus) {

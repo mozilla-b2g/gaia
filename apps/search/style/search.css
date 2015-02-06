@@ -247,15 +247,21 @@ gaia-grid {
   font-style: italic;
 }
 
+#settings-link {
+  color: #00AACC;
+}
+
 #suggestions-notice-wrapper::before {
   content: ' ';
   height: 0;
   width: 0;
   position: absolute;
-  border: 9px solid transparent;
-  border-left-color: rgba(45, 45, 45, 0.94);
-  top: -0.9rem;
-  left: 0;
+  border-style: solid;
+  border-width: 0 1rem 1rem 1rem;
+  border-color: transparent transparent rgba(45, 45, 45, 0.94) transparent;
+  top: -1rem;
+  left: 50%;
+  margin-left: -1rem;
   z-index: -1;
 }
 
