@@ -44,6 +44,14 @@ suite('message_list', function() {
       editMode && selected);
   }
 
+  function testMessageState(message, state) {
+    message.sendStatus.state = state !== 'none' ? state : undefined;
+    subject.updateMessageDom(true, message);
+    assert.equal(message.element.querySelector(
+      '.msg-header-syncing-section').getAttribute('data-l10n-id'),
+      'message-header-state-' + state);
+  }
+
   suiteSetup(function(done) {
     testConfig({
       suiteTeardown: suiteTeardown,
@@ -246,6 +254,18 @@ suite('message_list', function() {
       subject.selectedMessages.pop(message);
       subject.updateMessageDom(true, message);
       testSelectedMessage(element, true, false);
+    });
+
+    test('message has a sending state', function() {
+      testMessageState(message, 'sending');
+    });
+
+    test('message has an error state', function() {
+      testMessageState(message, 'error');
+    });
+
+    test('message has no state', function() {
+      testMessageState(message, 'none');
     });
   });
 
