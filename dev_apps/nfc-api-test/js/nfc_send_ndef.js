@@ -26,9 +26,9 @@ var NfcSendDemo = {
   handlePeerFound: function nd_handlePeerFound(event) {
     var peer = event.peer;
     var result = this.tagContainer.querySelector('[data-type="send-result"]');
-
     var ndefHelper = new NDEFHelper();
-    var record = ndefHelper.createURI('http://www.mozilla.org');
+    var url = document.getElementById('urlOptions');
+    var record = ndefHelper.createURI(url[url.selectedIndex].value);
 
     peer.sendNDEF([record]).then(() => {
       result.style.color = "Green";
