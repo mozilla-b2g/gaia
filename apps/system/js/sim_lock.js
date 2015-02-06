@@ -180,7 +180,7 @@ var SimLock = {
     }
   },
 
-  isBothSlotsLocked: function sl_isBothSlotsLocked(){
+  isBothSlotsLocked: function sl_isBothSlotsLocked() {
     if(!SIMSlotManager.isMultiSIM() ||
       SIMSlotManager.hasOnlyOneSIMCardDetected()){
       return false;
