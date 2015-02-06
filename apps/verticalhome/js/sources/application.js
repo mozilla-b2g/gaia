@@ -6,6 +6,8 @@
   var appMgr = navigator.mozApps.mgmt;
   var apps = null;
 
+  console.log('[VerticalHome] homescreenStart@System');
+
   appMgr.getAll().onsuccess = function onsuccess(event) {
     apps = event.target.result;
     window.dispatchEvent(new CustomEvent('navigator-mozapps-ready'));

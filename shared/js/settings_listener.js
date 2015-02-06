@@ -35,6 +35,18 @@ var SettingsListener = {
       return;
     }
 
+    var systemSettingsCache = window.SystemSettingsCache;
+    if (systemSettingsCache) {
+      // XXX: Bug 1117445, reduce system app launch time.
+      // If SystemSettingsCache is available, use this shortcut to speed up.
+      // SystemSettingsCache call settings.createLock().get('*') and will have
+      // all settings value, ideally we can always hit cache and save some time.
+      // Note that we don't add any settings observer when cache is available,
+      // observer will be added in SystemSettingsCache and we can early return.
+      systemSettingsCache.get(name, callback);
+      return;
+    }
+
     var req;
     try {
       req = this.getSettingsLock().get(name);
