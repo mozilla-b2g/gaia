@@ -607,10 +607,12 @@ html[dir="rtl"] .tile:nth-child(12n+6) {
 
 #player-cover.slideOut #player-cover-caption {
   transform: translateY(100%);
+  visibility: visible;
 }
 
 #player-cover.slideOut #player-cover-buttons {
   transform: translateY(-100%);
+  visibility: visible;
 }
 
 #player-cover-caption,
@@ -619,7 +621,8 @@ html[dir="rtl"] .tile:nth-child(12n+6) {
   width: 100%;
   height: 5rem;
   background-color: rgba(0, 0, 0, 0.5);
-  transition: transform 700ms ease-in-out;
+  transition: transform 700ms ease-in-out, visibility 700ms ease-in-out;
+  visibility: hidden;
 }
 
 #player-cover-caption {
