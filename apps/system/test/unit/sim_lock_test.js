@@ -231,6 +231,8 @@ suite('SimLock', function() {
         addSimSlot();
         slot1 = MockSIMSlotManager.mInstances[0];
         slot2 = MockSIMSlotManager.mInstances[1];
+        sinon.stub(MockSIMSlotManager,'hasOnlyOneSIMCardDetected')
+          .returns(false);
       });
 
       teardown(function() {
