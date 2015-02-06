@@ -3,6 +3,7 @@
 /* global AppWindow */
 /* global BookmarksDatabase */
 /* global BrowserConfigHelper */
+/* global WebManifestHelper */
 
 (function(window) {
   'use strict';
@@ -233,16 +234,34 @@
       name: name,
       iconable: false
     };
+    
+    var fireActivity = function(data) {
+      new MozActivity({
+        name: 'save-bookmark',
+        data: data
+      });
+    };
 
     LazyLoader.load('shared/js/icons_helper.js', (() => {
       IconsHelper.getIcon(url, null, {icons: favicons}).then(icon => {
         if (icon) {
           data.icon = icon;
         }
-        new MozActivity({
-          name: 'save-bookmark',
-          data: data
-        });
+        
+        if (!this.app.webManifestURL) {
+          fireActivity(data);
+          return new Promise();
+        } else {
+          return WebManifestHelper.getManifest(this.app.webManifestURL);
+        }
+      }).then(webManifestData => {
+          if (webManifestData.name) {
+            data.name = webManifestData.name;
+          }
+          fireActivity(data);
+      }, function(error) {
+         fireActivity(data);
+         console.error('Unable to get web manifest: ' + error);
       });
     }));
   };
