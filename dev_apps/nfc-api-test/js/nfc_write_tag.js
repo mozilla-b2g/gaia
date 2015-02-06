@@ -26,9 +26,9 @@ var NfcWriteDemo = {
   handleTagFound: function nd_handleTagFound(event) {
     var tag = event.tag;
     var result = this.tagContainer.querySelector('[data-type="write-result"]');
-
     var ndefHelper = new NDEFHelper();
-    var record = ndefHelper.createURI('http://www.mozilla.org');
+    var url = document.getElementById('urlOptions');
+    var record = ndefHelper.createURI(url[url.selectedIndex].value);
 
     tag.writeNDEF([record]).then(() => {
       result.style.color = "Green";
