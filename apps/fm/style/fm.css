@@ -454,7 +454,7 @@ a#frequency-op-seekup:active {
   top: 0;
   left: 0;
   color: #FFF;
-  background: url(images/popup-texture.png) transparent repeat 0 0 / 100% 100%;
+  background-color: #2d2d2d;
 }
 
 .warning .warning-header {
