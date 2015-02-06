@@ -1,4 +1,5 @@
 (function(window, undefined) {
+
   'use strict';
 
   /* jshint validthis:true */
@@ -1667,7 +1668,7 @@
     if (navigator.mozApps && navigator.mozApps.getAdditionalLanguages) {
       // if the environment supports langpacks, register extra languages…
       additionalLanguagesPromise =
-        navigator.mozApps.getAdditionalLanguages().catch((e) => {
+        navigator.mozApps.getAdditionalLanguages().catch(function(e) {
           console.error('Error while loading getAdditionalLanguages', e);
         });
 
@@ -1679,10 +1680,10 @@
       additionalLanguagesPromise = Promise.resolve();
     }
 
-    additionalLanguagesPromise.then((extraLangs) => {
+    additionalLanguagesPromise.then(function(extraLangs) {
       registerLocales.call(this, meta, extraLangs);
       initLocale.call(this);
-    });
+    }.bind(this));
   }
 
   function registerLocales(meta, extraLangs) {
