@@ -274,13 +274,20 @@ function initDB() {
       Overlay.show('pluggedin');
   };
 
+  photodb.onenumerable = function() {
+    // Start enumerating the db and creating thumbnails as soon as we're ready
+    initThumbnails();
+  };
+
   photodb.onready = function() {
     // Hide the nocard or pluggedin overlay if it is displayed
     if (Overlay.current === 'nocard' || Overlay.current === 'pluggedin' ||
         Overlay.current === 'upgrade')
       Overlay.hide();
 
-    initThumbnails();
+    // We also scan the file system for new files every time we get
+    // a ready event. That code is in a different event handler that is
+    // not registered until initThumbnails() finishes, however.
   };
 
   photodb.onscanstart = function onscanstart() {
@@ -463,6 +470,7 @@ function initThumbnails() {
     batch.length = 0;
     if (!firstBatchDisplayed) {
       firstBatchDisplayed = true;
+
       // Tell performance monitors that "above the fold" content is displayed
       // and is ready to interact with.
       window.performance.mark('visuallyLoaded');
@@ -493,8 +501,13 @@ function initThumbnails() {
     PerformanceTestingHelper.dispatch('media-enumerated');
 
     // Now that we've enumerated all the photos and videos we already know
-    // about go start looking for new photos and videos.
-    photodb.scan();
+    // about it is time to go and scan the filesystem for new ones. If the
+    // MediaDB is fully ready, we can scan now.  Either way, we always want
+    // to scan every time we get a new 'ready' event.
+    photodb.addEventListener('ready', function() { photodb.scan(); });
+    if (photodb.state === MediaDB.READY) { // if already ready then scan now
+      photodb.scan();
+    }
   }
 }
 
@@ -771,6 +784,11 @@ function thumbnailClickHandler(evt) {
 
   if (!target || !target.classList.contains('thumbnailImage'))
     return;
+
+  // If the MediaDB is not fully ready yet, then ignore the event
+  if (photodb.state !== MediaDB.READY) {
+    return;
+  }
 
   var index = getFileIndex(target.dataset.filename);
   if (picking && currentView === LAYOUT_MODE.pick && index >= 0) {
