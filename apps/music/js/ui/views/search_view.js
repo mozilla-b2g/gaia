@@ -32,11 +32,7 @@ var SearchView = {
 
   showNoResult: function sv_showNoResult(show) {
     var view = document.getElementById('views-search-no-result');
-    if (show) {
-      view.classList.remove('hidden');
-    } else {
-      view.classList.add('hidden');
-    }
+    view.classList.toggle('hidden', !show);
   },
 
   init: function sv_init() {
