@@ -600,6 +600,7 @@
               <option value="name" data-l10n-id="tc-sort-alphabetical" selected="">alphabetical</option>
               <option value="trust" data-l10n-id="tc-sort-trustLevel">Trust Level</option>
               <option value="vendor" data-l10n-id="tc-sort-vendor">Vendor</option>
+              <option value="rev" data-l10n-id="tc-sort-rev">Reverse</option>
             </select>
           </span>
         </li>
@@ -695,17 +696,13 @@
           <h2 data-l10n-id="tc-apps-accessing-permission">Apps accessing this permission</h2>
         </header>
         <ul class="app-list"></ul>
-        <header>
-		<h3 data-l10n-id="tc-apps-permission-priority">You may set priority for this particular permission.</h3>
-		</header>
-        <ul class="app-list"></ul>
 	
 		<h3 data-l10n-id="tc-apps-permission-priority">You may set priority for this particular permission.</h3>
 		<ul>
         <li class="type-blur type-box">
           <label>
-            <p class="blur-label"></p>
-            <input class="blur-slider" name="permdetails.blur.slider" type="range" step="1" min="1" max="12" data-default="1">
+            <p class="perm-label"></p>
+            <input class="perm-slider" name="permdetails.blur.slider" type="range" step="1" min="1" max="20" data-default="1">
           </label>
         </li>
         </ul>

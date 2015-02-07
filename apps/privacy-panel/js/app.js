@@ -151,10 +151,10 @@ function(lazyLoader, SettingsListener, SettingsHelper) {
      *
      * @method saveSetting
      */
-    saveSetting: function() {
+    saveSetting: function() { 
       var value = this.type === 'checkbox' ? this.checked : this.value;
       SettingsHelper(this.name).set(value);
-    }
+    }     
   };
 
   /**
@@ -338,7 +338,8 @@ define('app_list',[], function() {
   var _orderBy = {
     name: (a, b) => a.name.localeCompare(b.name, _lang), // default
     trust: (a, b) => a.trust > b.trust, // 'certified', 'privileged', 'web'
-    vendor: (a, b) => a.vendor.localeCompare(b.vendor, _lang)
+    vendor: (a, b) => a.vendor.localeCompare(b.vendor, _lang),
+    reverse: (a, b) => b.name.localeCompare(a.name, _lang)
   };
 
 
@@ -626,11 +627,15 @@ define('app_list',[], function() {
         }
         sorted[header].push(app);
       });
-
+      if (sortKey === 'rev'){
+    	  for (var header in sorted) {
+    	        sorted[header].sort(_orderBy.reverse);
+    	      }
+      } else {
       for (var header in sorted) {
         sorted[header].sort(_orderBy.name);
       }
-
+      }
       return sorted;
     }
 
@@ -776,33 +781,32 @@ function() {
   return BlurSlider;
 
 });
-
+//////////////////////////////////BEGIN - permission priority slider module/////////////////////////////
 /**
- * TC blur slider for permission details module.
+ * TC priority slider for permission details module.
  * 
- * @module BlurSliderPerm
+ * @module PermPrioritySlider
  * @return {Object}
  */
-define('ala/blur_slider_perm',[],
-
+define('tc/perm_priority_slider',[],
 function() {
   
 
-  function BlurSliderPerm() {}
+  function PermPrioritySlider() {}
 
-  BlurSliderPerm.prototype = {
+  PermPrioritySlider.prototype = {
     /**
-     * Initialize ala blur slider.
+     * Initialize slider for permission priority.
      * @param {Object} element
      * @param {String} value
      * @param {Function} callback
-     * @return {BlurSlider}
+     * @return {PermPrioritySlider}
      */
     init: function(element, value, callback) {
       this.callback = callback || function(){};
       
-      this.input = element.querySelector('.blur-slider');
-      this.label = element.querySelector('.blur-label');
+      this.input = element.querySelector('.perm-slider');
+      this.label = element.querySelector('.perm-label');
    
       this._setLabel(value);
 
@@ -847,74 +851,90 @@ function() {
      */
     _changeSliderValue: function(value) {
       // value validation
-      value = (value > 0 && value <= 12) ? value : 1;
+      value = (value > 0 && value <= 20) ? value : 1;
 
       // update label
       this._setLabel(value);
 
       // run callback
-      this.callback(this.getRadius(value));
+      this.callback(this.getRange(value));
     },
 
     /**
-     * Set radius label.
+     * Set range label.
      * @param {String} value
      */
     _setLabel: function(value) {
-      this.label.textContent = BlurSliderPerm.getLabel(value);
+      this.label.textContent = PermPrioritySlider.getLabel(value);
     },
 
     /**
-     * Get radius value from input value.
+     * Get range value from input value.
      * @param {Number} value
      * @return {Number}
      */
-    getRadius: function(value) {
+    getRange: function(value) {
       switch(parseInt(value)) {
         case 1:   return 5;
         case 2:   return 10;
-        case 3:   return 20;
-        case 4:   return 50;
-        case 5:   return 100;
-        case 6:   return 150;
-        case 7:   return 200;
-        case 8:   return 500;
-        case 9:   return 750;
-        case 10:  return 1000;
-        case 11:  return 5000;
-        case 12:  return 10000;
+        case 3:   return 15;
+        case 4:   return 20;
+        case 5:   return 25;
+        case 6:   return 30;
+        case 7:   return 35;
+        case 8:   return 40;
+        case 9:   return 45;
+        case 10:  return 50;
+        case 11:  return 55;
+        case 12:  return 60;
+        case 13:  return 65;
+        case 14:  return 70;
+        case 15:  return 75;
+        case 16:  return 80;
+        case 17:  return 85;
+        case 18:  return 90;
+        case 19:  return 95;
+        case 20:  return 100;
         default:  return null;
       }
     }
   };
 
   /**
-   * Get radius label from input value.
+   * Get range label from input value.
    * @param {Number} value
    * @return {String}
    */
-  BlurSliderPerm.getLabel = function(value) {
+  PermPrioritySlider.getLabel = function(value) {
     switch(parseInt(value)) {
-      case 1:   return '5';
-      case 2:   return '10';
-      case 3:   return '20';
-      case 4:   return '50';
-      case 5:   return '100';
-      case 6:   return '150';
-      case 7:   return '200';
-      case 8:   return '500';
-      case 9:   return '750';
-      case 10:  return '1000';
-      case 11:  return '5000';
-      case 12:  return '10000';
+    case 1:   return 5;
+    case 2:   return 10;
+    case 3:   return 15;
+    case 4:   return 20;
+    case 5:   return 25;
+    case 6:   return 30;
+    case 7:   return 35;
+    case 8:   return 40;
+    case 9:   return 45;
+    case 10:  return 50;
+    case 11:  return 55;
+    case 12:  return 60;
+    case 13:  return 65;
+    case 14:  return 70;
+    case 15:  return 75;
+    case 16:  return 80;
+    case 17:  return 85;
+    case 18:  return 90;
+    case 19:  return 95;
+    case 20:  return 100;
       default:  return '';
     }
   };
 
-  return BlurSliderPerm;
+  return PermPrioritySlider;
 
 });
-
+//////////////////////////////////END - permission priority slider module/////////////////////////////
 
 /**
  * ALA exceptions panel.
@@ -2896,7 +2916,7 @@ function(panels, appList, appDetails) {
       if (!sortKey || sortKey === 'name') {
         // apps are already sorted by name, just display them
         this._showAppList(appList.applications);
-      }
+      } else if (sortKey === 'rev'){}
       else {
         var apps = appList.getSortedApps(sortKey);
         // sorting by headers work because the sort key is either:
@@ -2971,7 +2991,7 @@ function(panels, appList, appDetails) {
  * @module TcPermDetailsPanel
  * @return {Object}
  */
-define('tc/perm_details',['app_list', 'ala/blur_slider_perm'], function(appList, BlurSliderPerm) {
+define('tc/perm_details',['app_list', 'tc/perm_priority_slider'], function(appList, PermPrioritySlider) {
   
 
   var _panel = null;
@@ -2980,14 +3000,14 @@ define('tc/perm_details',['app_list', 'ala/blur_slider_perm'], function(appList,
   var _permGroup = null;
 
   var _currentPerm = null;
-  var blurSlider = null;
+  var prioritySlider = null;
 
   /**
    * Helper object for the perm_applications subpanel.
    *
    * @constructor
    */
-  function TcPermDetailsPanel() { this.blurSlider = new BlurSliderPerm(); }
+  function TcPermDetailsPanel() { this.prioritySlider = new PermPrioritySlider(); }
 
   TcPermDetailsPanel.prototype = {
 
@@ -3004,7 +3024,6 @@ define('tc/perm_details',['app_list', 'ala/blur_slider_perm'], function(appList,
       _permInfo = _panel.querySelector('.perm-info');
       _permApps = _panel.querySelector('.app-list');
       _permGroup = _panel.querySelector('.permission-group');
-      
             //initialize blur slider element
       /*SettingsHelper('geolocation.blur.slider', 1).get(function(value) {
         this.blurSlider.init(
@@ -3016,11 +3035,11 @@ define('tc/perm_details',['app_list', 'ala/blur_slider_perm'], function(appList,
         );
       }.bind(this));
       */
-      this.blurSlider.init(
+      this.prioritySlider.init(
           _panel.querySelector('.type-blur'),
           1,
           function(value) {
-            this.blurSlider.getValue();
+            this.prioritySlider.getValue();
           }.bind(this)
         );
 
@@ -3154,11 +3173,9 @@ function(panels, appList, permDetails, BlurSlider) {
      * @param {String} sortKey [optional]  Either 'name', 'trust', 'vendor'.
      */
     renderPermissionList: function renderPermissionList(sortKey) {
-      //_permListContainer.innerHTML = '';
-      
-      this._clear();
+      this._clear(); // holds the permission list container.
       if (!sortKey || sortKey === 'name') {
-      // apps are already sorted by name, just display them
+      // permissions are already sorted by name, just display them
       this._showPermList(appList.permissions);
       }
       else {
@@ -3211,8 +3228,12 @@ function(panels, appList, permDetails, BlurSlider) {
         link.classList.add('panel-link');
         link.addEventListener('click', function showAppDetails() {
           panels.show({ id: 'tc-permDetails', options: perm });
+          
+          console.log(perm);
+          TestingInputName = perm.key;
+          document.querySelector('input.perm-slider').name = perm.key;
         });
-
+        
         item.appendChild(link);
         list.appendChild(item);
       });
