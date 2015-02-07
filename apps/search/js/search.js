@@ -152,14 +152,17 @@
               this.loadingElement.classList.add('loading');
             }
 
-            provider.search(input).then((results) => {
-              if (provider.name === 'Suggestions') {
-                var shown = (input.length > 2 &&
-                             results.length &&
-                             this.toShowNotice);
-                this.suggestionNotice.hidden = !shown;
+            if (provider.name === 'Suggestions') {
+              var toShow = input.length > 2 &&
+                this.toShowNotice &&
+                this.suggestionNotice.hidden &&
+                navigator.onLine;
+              if (toShow) {
+                this.suggestionNotice.hidden = false;
               }
+            }
 
+            provider.search(input).then((results) => {
               this.collect(provider, results);
             }).catch((err) => {
               if (provider.remote) {

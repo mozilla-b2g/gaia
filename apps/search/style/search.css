@@ -20,7 +20,7 @@ body, a {
 #offline-message {
   font-size: 1.4rem;
   font-style: italic;
-  margin: 0.3rem 1rem 0;
+  margin: 1rem 1rem 0;
   text-align: center;
   display: none;
   justify-content: center;
@@ -33,6 +33,10 @@ body, a {
   height: 1.4rem;
   margin-top: -0.1rem;
   padding-right: 0.8rem;
+}
+
+#search-results {
+  padding-top: 1.3rem;
 }
 
 #search-results.offline #suggestions {
@@ -108,7 +112,7 @@ h2 {
 h2 span, h2 label {
   position: relative;
   top: -0.9rem;
-  background: #4d4d4d;
+  background: #333;
   padding: 0 1rem;
   margin-bottom: 0;
   font-weight: 500;
@@ -127,13 +131,22 @@ h2 span, h2 label {
 .local .result {
   display: flex;
   flex-direction: row;
-  border-bottom: 1px solid #535353;
-  padding: 0.8rem 1rem;
-  margin: 0 0.5rem;
+  padding: 0.8rem 1.5rem;
+  position: relative;
 }
 
-.result:last-child {
-  border-bottom: 0;
+.local .result:after {
+  position: absolute;
+  bottom: 0;
+  left: 0.5rem;
+  content: " ";
+  width: calc(100% - 1rem);
+  height: 0.1rem;
+  background: #535353;
+}
+
+.local .result:last-child:after {
+  display: none;
 }
 
 .local .result:active {
@@ -194,7 +207,6 @@ section.apps {
   font-size: 0;
   height: 10rem;
   overflow: hidden;
-  padding-top: 1.3rem;
   padding-bottom: 1.5rem;
 }
 
