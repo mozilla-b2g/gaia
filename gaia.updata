@@ -71,6 +71,7 @@ mozilla-b2g-gaia-node-modules-*
 /.cproject
 /.project
 /.settings
-
+/.Private                                                                                                                        
 venv/
-
+/.updata
+/.Firefoxkit b2g.updata
