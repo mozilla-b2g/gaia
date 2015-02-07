@@ -23,7 +23,6 @@ class PlayerView(Base):
     _player_seek_elapsed_locator = (By.ID, 'player-seek-elapsed')
     _player_controls_play_locator = (By.ID, 'player-controls-play')
     _cover_image_locator = (By.ID, 'player-cover-image')
-    _cover_share_locator = (By.ID, 'player-cover-share')
     _rating_view_locator = (By.ID, 'player-album-rating')
     _stars_on_locator = (By.CSS_SELECTOR, '.rating-star.star-on')
 
@@ -35,16 +34,6 @@ class PlayerView(Base):
 
         Wait(self.marionette).until(expected.element_displayed(
             Wait(self.marionette).until(expected.element_present(*self._rating_view_locator))))
-
-    def wait_until_player_view_displayed(self):
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(*self._cover_image_locator))))
-
-    def tap_share_button(self):
-        self.tap_cover_in_player_view()
-        self.marionette.find_element(*self._cover_share_locator).tap()
-        from gaiatest.apps.system.regions.activities import Activities
-        return Activities(self.marionette)
 
     def _get_star_locator(self, rating):
         return By.CSS_SELECTOR, '.rating-star[data-rating="%s"]' % rating

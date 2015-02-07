@@ -16,7 +16,6 @@ class RingTone(Base):
     name = 'Ringtones'
     _ring_tone_locator = (By.CSS_SELECTOR, '#list-parent section > ul > li')
     _set_button_locator = (By.ID, 'set')
-    _save_button_locator = (By.ID, 'save')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -25,11 +24,6 @@ class RingTone(Base):
 
     def set_ringtone(self):
         self.marionette.find_element(*self._set_button_locator).tap()
-
-    def tap_save(self):
-        save_button = self.marionette.find_element(*self._save_button_locator)
-        Wait(self.marionette).until(lambda m: save_button.get_attribute('disabled') == 'false')
-        save_button.tap()
 
     @property
     def ring_tones(self):
