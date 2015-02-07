@@ -43,6 +43,24 @@ body, a {
   display: flex;
 }
 
+#suggestions-provider {
+  color: #00aac5;
+  position: relative;
+  padding: 0 2rem 0 1rem;
+}
+
+#suggestions-provider::before {
+  content: ' ';
+  position: absolute;
+  bottom: 0.2rem;
+  right: .8rem;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 .8rem .8rem;
+  border-color: transparent transparent #00aac5 transparent;
+}
+
 #suggestions {
   font-size: 1.6rem;
   overflow-x: hidden;
@@ -71,6 +89,7 @@ section .result * {
 }
 
 h2 {
+  position: relative;
   text-align: center;
   border-top: 0.3rem solid #5f5f5f;
   font-size: 1.4rem;
@@ -78,11 +97,19 @@ h2 {
   margin: 0.9rem 0.6rem -0.9rem 0.5rem;
 }
 
-h2 span {
+/* The select box is hidden behind search provider label since we
+    only want to see the dialog prompt, not the actual select box  */
+#suggestions-select {
+  position: absolute;
+  top: -0.8rem;
+  height: 1.5rem;
+}
+
+h2 span, h2 label {
   position: relative;
   top: -0.9rem;
   background: #4d4d4d;
-  padding: 0 0.5rem;
+  padding: 0 1rem;
   margin-bottom: 0;
   font-weight: 500;
 }
