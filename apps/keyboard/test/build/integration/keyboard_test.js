@@ -400,6 +400,10 @@ suite('Keyboard settings building tests', function() {
         }), 'No script should include user_dictionary_list_panel.js');
 
         assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).every(function(elem){
+          return elem.src !== 'js/settings/word_list_converter.js';
+        }), 'No script should include word_list_converter.js');
+
+        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).every(function(elem){
           return elem.src !== 'js/settings/user_dictionary.js';
         }), 'No script should include user_dictionary.js');
 
@@ -426,6 +430,10 @@ suite('Keyboard settings building tests', function() {
         assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
           return elem.src === 'js/settings/user_dictionary_list_panel.js';
         }), 'Some script should include user_dictionary_list_panel.js');
+
+        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
+          return elem.src === 'js/settings/word_list_converter.js';
+        }), 'Some script should include word_list_converter.js');
 
         assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
           return elem.src === 'js/settings/user_dictionary.js';
