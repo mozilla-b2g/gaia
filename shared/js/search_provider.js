@@ -113,6 +113,15 @@
     updatedFun = cb;
   };
 
+  SearchProvider.setProvider = function(value) {
+    if (!(value in providers)) {
+      return false;
+    }
+    var setting = {};
+    setting[SEARCH_PROVIDER_KEY] = value;
+    navigator.mozSettings.createLock().set(setting);
+  };
+
   SearchProvider.selected = function() {
     return provider;
   };
