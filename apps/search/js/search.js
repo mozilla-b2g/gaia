@@ -155,7 +155,8 @@
             if (provider.name === 'Suggestions') {
               var toShow = input.length > 2 &&
                 this.toShowNotice &&
-                this.suggestionNotice.hidden;
+                this.suggestionNotice.hidden &&
+                navigator.onLine;
               if (toShow) {
                 this.suggestionNotice.hidden = false;
               }
