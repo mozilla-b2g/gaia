@@ -131,6 +131,11 @@
   height: 100%;
 }
 
+.appWindow.searchWindow > .value-selector {
+  top: calc(-1 * (var(--rocketbar-urlbar-height) + var(--statusbar-height)));
+  height: calc(100% + var(--rocketbar-urlbar-height) + var(--statusbar-height));
+}
+
 .appWindow > .fade-overlay,
 .appWindow > .identification-overlay {
   top: 0;
