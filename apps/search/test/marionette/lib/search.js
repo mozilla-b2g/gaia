@@ -28,7 +28,8 @@ Search.Selectors = {
   firstRunConfirm: '#suggestions-notice-confirm',
   topSites: '.top-site',
   historyResults: '#history .result',
-  suggestions: '#suggestions li'
+  suggestions: '#suggestions li',
+  switchProviders: '#suggestions-select'
 };
 
 Search.prototype = {
@@ -120,7 +121,11 @@ Search.prototype = {
     this.client.switchToFrame();
     this.client.apps.switchToApp.apply(this.client.apps, arguments);
     this.client.helper.waitForElement('body');
-  }
+  },
+
+  get switchProvidersSelect() {
+    return this.client.helper.waitForElement(Search.Selectors.switchProviders);
+  },
 
 };
 
