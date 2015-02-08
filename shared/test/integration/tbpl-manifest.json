@@ -38,6 +38,7 @@
     "apps/system/fxa/test/marionette/fxa_screen_flow_test.js": "Bug 1064305 - [Marionette] FxA tests - intermittent timeout failures on system/fxa/test/marionette/fxa_screen_flow_test.js",
     "apps/system/test/marionette/browser_fullscreen_navigation_chrome_test.js": "Bug 1092022 - Intermittent failing test, TEST-UNEXPECTED-FAIL | Browser - App /w Fullscreen Navigation Chrome test progressbar",
     "apps/system/test/marionette/global_overlay_window_test.js": "Bug 1117125 - Update b2g desktop in tbpl after bug 1101029 lands",
+    "apps/system/test/marionette/media_playback_test.js": "Bug 1106420 - Intermittent test | media playback tests should hide now playing info by exiting",
     "apps/system/test/marionette/software_home_file_open_error_test.js": "Bug 1119079 - Intermittent software_home_file_open_error_test.js | Software Home Button - File Open Error Proper layout for file error dialog",
     "apps/verticalhome/test/marionette/app_hosted_use_cached_icon_test.js": "Bug 1037194 - TEST-UNEXPECTED-FAIL | Vertical Home - Hosted app cached icon fetch fallback to default icon",
     "apps/verticalhome/test/marionette/collection_pin_result_uninstall_test.js": "Bug 1098310 - TEST-UNEXPECTED-FAIL | Vertical - Collection uninstall pinned collection web result",
