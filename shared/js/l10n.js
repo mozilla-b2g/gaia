@@ -1,5 +1,4 @@
 (function(window, undefined) {
-
   'use strict';
 
   /* jshint validthis:true */
@@ -1123,7 +1122,7 @@
   }
 
   var bindingsIO = {
-    extra: function(id, ver, path, type, callback, errback, sync) {
+    extra: function(id, ver, path, type, callback, errback) {
       if (type === 'properties') {
         type = 'text';
       }
@@ -1182,8 +1181,12 @@
     }
 
     var idToFetch = this.isPseudo ? ctx.defaultLocale : this.id;
-    var source = navigator.mozL10n._config.localeSources[this.id] || 'app';
-    var gaiaVersion = navigator.mozL10n._config.gaiaVersion;
+    var gaiaVersion = null;
+    var source = 'app';
+    if (typeof(navigator) !== 'undefined') {
+      source = navigator.mozL10n._config.localeSources[this.id] || 'app';
+      gaiaVersion = navigator.mozL10n._config.gaiaVersion;
+    }
 
     for (var i = 0; i < ctx.resLinks.length; i++) {
       var resLink = decodeURI(ctx.resLinks[i]);
