@@ -59,13 +59,20 @@ var ConfigManager = (function() {
   var CONFIG_CACHE = [];
 
   function getApplicationMode() {
+    if (operatorCustomMode) {
+      return 'OPERATOR_CUSTOM';
+    }
     if (noConfigFound) {
       return 'DATA_USAGE_ONLY';
     }
     return settings.plantype.toUpperCase();
   }
 
-  var configuration, configurationIndex, noConfigFound = false;
+  var configuration,
+      configurationIndex,
+      noConfigFound = false,
+      operatorCustomMode = false;
+
   function setConfig(newConfiguration) {
     configuration = newConfiguration;
     debug('Provider configuration done!');
@@ -121,7 +128,8 @@ var ConfigManager = (function() {
     var mnc = currentDataIcc.iccInfo.mnc;
     var key = mcc + '_' + mnc;
     var configDir = configurationIndex[key];
-    if (!configDir) {
+    operatorCustomMode = (configDir === 'operator_custom');
+    if (!configDir || operatorCustomMode) {
       configDir = 'default';
       noConfigFound = true;
     }
