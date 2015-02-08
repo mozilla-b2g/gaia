@@ -203,7 +203,7 @@ suite('SimLock', function() {
       setup(function() {
         MockSIMSlotManager.ready = true;
         addSimSlot();
-        sinon.stub(MockSIMSlotManager,'hasOnlyOneSIMCardDetected')
+        this.sinon.stub(MockSIMSlotManager,'hasOnlyOneSIMCardDetected')
           .returns(true);
       });
 
@@ -231,7 +231,7 @@ suite('SimLock', function() {
         addSimSlot();
         slot1 = MockSIMSlotManager.mInstances[0];
         slot2 = MockSIMSlotManager.mInstances[1];
-        sinon.stub(MockSIMSlotManager,'hasOnlyOneSIMCardDetected')
+        this.sinon.stub(MockSIMSlotManager,'hasOnlyOneSIMCardDetected')
           .returns(false);
       });
 
@@ -276,7 +276,7 @@ suite('SimLock', function() {
     });
 
     test('should paint the first simslot on first render', function() {
-      sinon.stub(SimLock, 'isBothSlotsLocked').returns(false);
+      this.sinon.stub(SimLock, 'isBothSlotsLocked').returns(false);
       assert.isFalse(SimLock._alreadyShown);
       SimLock.showIfLocked();
       assert.isTrue(SimPinDialog.show.called);
@@ -285,7 +285,7 @@ suite('SimLock', function() {
 
 
     test('should do nothing if !applications.ready', function() {
-      sinon.stub(SimLock, 'isBothSlotsLocked').returns(false);
+      this.sinon.stub(SimLock, 'isBothSlotsLocked').returns(false);
       window.applications.ready = false;
       SimLock.showIfLocked();
       assert.isFalse(SimPinDialog.show.called);
@@ -293,7 +293,7 @@ suite('SimLock', function() {
     });
 
     test('should not show if locked', function() {
-      sinon.stub(SimLock, 'isBothSlotsLocked').returns(false);
+      this.sinon.stub(SimLock, 'isBothSlotsLocked').returns(false);
       System.locked = true;
       SimLock.showIfLocked();
       assert.isFalse(SimPinDialog.show.called);
@@ -301,7 +301,7 @@ suite('SimLock', function() {
     });
 
     test('should not show on Ftu', function() {
-      sinon.stub(SimLock, 'isBothSlotsLocked').returns(false);
+      this.sinon.stub(SimLock, 'isBothSlotsLocked').returns(false);
       sinon.stub(FtuLauncher, 'isFtuRunning').returns(true);
       sinon.stub(FtuLauncher, 'isFtuUpgrading').returns(false);
       SimLock.showIfLocked();
@@ -311,7 +311,7 @@ suite('SimLock', function() {
     });
 
     test('should not show during a call', function() {
-      sinon.stub(SimLock, 'isBothSlotsLocked').returns(false);
+      this.sinon.stub(SimLock, 'isBothSlotsLocked').returns(false);
       SimLock._duringCall = true;
       SimLock.showIfLocked();
       assert.isFalse(SimPinDialog.show.called);
@@ -321,7 +321,7 @@ suite('SimLock', function() {
     suite('Multisim handling', function() {
       setup(function() {
         addSimSlot();
-        sinon.stub(SimLock, 'isBothSlotsLocked').returns(true);
+        this.sinon.stub(SimLock, 'isBothSlotsLocked').returns(true);
       });
 
       teardown(function() {
