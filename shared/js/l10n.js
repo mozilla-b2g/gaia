@@ -1,4 +1,5 @@
 (function(window, undefined) {
+
   'use strict';
 
   /* jshint validthis:true */
@@ -1655,20 +1656,27 @@
       }
     }
 
+    var additionalLanguagesPromise;
+
     if (navigator.mozApps && navigator.mozApps.getAdditionalLanguages) {
       // if the environment supports langpacks, register extra languages…
-      navigator.mozApps.getAdditionalLanguages().then(function(extraLangs) {
-        registerLocales.call(this, meta, extraLangs);
-        initLocale.call(this);
-      }.bind(this));
+      additionalLanguagesPromise =
+        navigator.mozApps.getAdditionalLanguages().catch(function(e) {
+          console.error('Error while loading getAdditionalLanguages', e);
+        });
+
       // …and listen to langpacks being added and removed
       document.addEventListener('additionallanguageschange', function(evt) {
         registerLocales.call(this, meta, evt.detail);
       }.bind(this));
     } else {
-      registerLocales.call(this, meta);
-      initLocale.call(this);
+      additionalLanguagesPromise = Promise.resolve();
     }
+
+    additionalLanguagesPromise.then(function(extraLangs) {
+      registerLocales.call(this, meta, extraLangs);
+      initLocale.call(this);
+    }.bind(this));
   }
 
   function registerLocales(meta, extraLangs) {
