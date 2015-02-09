@@ -242,3 +242,7 @@ html[dir="rtl"] #downloadList {
 html[dir="rtl"] #downloadList ul li > label.pack-checkbox {
   margin-left: .5rem;
 }
+
+html[dir="rtl"] #downloads-edit-button::before {
+  transform: initial;
+}
