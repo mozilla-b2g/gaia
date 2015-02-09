@@ -427,7 +427,7 @@ var CostControlApp = (function() {
             }
           });
         }
-        callback && callback();
+        (typeof callback === 'function') && callback();
       });
     });
   }
