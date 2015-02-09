@@ -51,7 +51,7 @@ class Ftu(Base):
 
     # Step Geolocation
     _section_geolocation_locator = (By.ID, 'geolocation')
-    _enable_geolocation_checkbox_locator = (By.CSS_SELECTOR, '#geolocation-switch > label')
+    _enable_geolocation_checkbox_locator = (By.CSS_SELECTOR, '#geolocation-switch > span')
 
     # Section Import contacts
     _section_import_contacts_locator = (By.ID, 'import_contacts')
