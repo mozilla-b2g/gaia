@@ -26,6 +26,7 @@ Search.Selectors = {
   firstPlace: '#places div .title',
   firstPlaceContainer: '#places',
   firstRunConfirm: '#suggestions-notice-confirm',
+  privateWindow: '#private-window',
   topSites: '.top-site',
   historyResults: '#history .result',
   suggestions: '#suggestions li',
@@ -53,7 +54,7 @@ Search.prototype = {
   getResultSelector: function(identifier) {
     return '.icon[data-identifier="' + identifier + '"]';
   },
-  
+
   /**
    * Return selector for the history list item by URL
    */
