@@ -29,6 +29,7 @@ smart-button {
   background-repeat: no-repeat;
   background-size: 5.4rem auto;
   background-position: center center;
+  font-style: italic;
 
   transition-property: all;
   transition-timing-function: cubic-bezier(0.25, 0, 0, 1.0);
@@ -309,7 +310,6 @@ smart-button[type="banner-button"] {
 
   color: #ffffff;
   font-size: 2rem;
-  font-style: italic;
 
   width: 36rem;
   height: 20rem;
