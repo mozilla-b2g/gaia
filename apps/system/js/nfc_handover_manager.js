@@ -576,7 +576,7 @@
         self._debug('Connect aborted');
       };
       if (!this.nfcConnectSystemDialog) {
-        LazyLoader.load(['js/nfc_connect_system_dialog.js']).then(function() {
+        LazyLoader.load('js/system_nfc_connect_dialog.js', function() {
           this.nfcConnectSystemDialog = new NfcConnectSystemDialog();
           this.nfcConnectSystemDialog.show(btssp.localName, onconfirm, onabort);
         }.bind(this));
