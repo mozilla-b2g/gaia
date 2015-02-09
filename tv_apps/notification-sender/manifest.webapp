@@ -16,6 +16,5 @@
   "default_locale": "en-US",
   "icons": {
     "128": "/style/icons/Blank.png"
-  },
-  "orientation": "landscape"
+  }
 }
