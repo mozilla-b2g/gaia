@@ -26,7 +26,6 @@
     offlineMessage: document.getElementById('offline-message'),
     settingsConnectivity: document.getElementById('settings-connectivity'),
     suggestionsWrapper: document.getElementById('suggestions-wrapper'),
-    loadingElement: document.getElementById('loading'),
     grid: document.getElementById('icons'),
     gridWrapper: document.getElementById('icons-wrapper'),
 
@@ -143,38 +142,29 @@
         Object.keys(providers).forEach((providerKey) => {
           var provider = providers[providerKey];
 
-          // If suggestions are disabled, only use local providers
-          if (this.suggestionsEnabled || !provider.remote) {
+          var preventRemoteFetch =
+            UrlHelper.isURL(input) ||
+            msg.data.isPrivateBrowser ||
+            !this.suggestionsEnabled;
 
-            if (provider.remote) {
-              // Do not send full URLs to remote providers
-              // or when inside a private browser.
-              if (UrlHelper.isURL(input) || msg.data.isPrivateBrowser) {
-                return;
-              }
-
-              // Show the loading element when searching remote providers.
-              this.loadingElement.classList.add('loading');
-            }
-
-            if (provider.name === 'Suggestions') {
-              var toShow = input.length > 2 &&
-                this.toShowNotice &&
-                this.suggestionNotice.hidden &&
-                navigator.onLine;
-              if (toShow) {
-                this.suggestionNotice.hidden = false;
-              }
-            }
-
-            provider.search(input).then((results) => {
-              this.collect(provider, results);
-            }).catch((err) => {
-              if (provider.remote) {
-                this.loadingElement.classList.remove('loading');
-              }
-            });
+          if (provider.remote && preventRemoteFetch) {
+            return;
           }
+
+          if (provider.name === 'Suggestions') {
+            var toShow = input.length > 2 &&
+              this.toShowNotice &&
+              this.suggestionsEnabled &&
+              this.suggestionNotice.hidden &&
+              navigator.onLine;
+            if (toShow) {
+              this.suggestionNotice.hidden = false;
+            }
+          }
+
+          provider.search(input, preventRemoteFetch).then((results) => {
+            this.collect(provider, results);
+          });
         });
       }, SEARCH_DELAY);
     },
@@ -237,9 +227,6 @@
      * @param {Array} results The results of the provider search.
      */
     collect: function(provider, results) {
-      if (provider.remote) {
-        this.loadingElement.classList.remove('loading');
-      }
 
       if (provider.dedupes) {
         results = this.dedupe.reduce(results, provider.dedupeStrategy);
