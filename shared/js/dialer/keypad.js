@@ -198,7 +198,10 @@ var KeypadManager = {
                                                 this.hangUpCallFromKeypad);
     }
 
-    TonePlayer.init(this._onCall ? 'telephony' : 'notification');
+    /* XXX: We should be using the `notification' channel here but we can't due
+     * to bug 1092346 and pass `null' instead, forcing the use of the default
+     * audio channel. */
+    TonePlayer.init(this._onCall ? 'telephony' : null);
 
     this.render();
     LazyLoader.load(['/shared/style/action_menu.css',

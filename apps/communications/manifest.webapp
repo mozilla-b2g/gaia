@@ -78,7 +78,7 @@
     "desktop-notification":{},
     "alarms": {},
     "systemXHR": {},
-    "audio-channel-notification":{},
+    "audio-channel-content":{},
     "idle":{},
     "storage": {},
     "device-storage:sdcard": { "access": "readcreate" },
