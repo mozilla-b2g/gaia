@@ -1,8 +1,6 @@
 /* global MozActivity, IconsHelper, LazyLoader */
 /* global applications */
-/* global AppWindow */
 /* global BookmarksDatabase */
-/* global BrowserConfigHelper */
 
 (function(window) {
   'use strict';
@@ -250,12 +248,7 @@
   BrowserContextMenu.prototype.newWindow = function(manifest, isPrivate) {
     // For private windows we create an empty private app window.
     if (isPrivate) {
-      var privateBrowserUrl = location.origin + '/private_browser.html';
-      var config = new BrowserConfigHelper({url: privateBrowserUrl});
-      config.oop = true;
-      config.isPrivate = true;
-      var newApp = new AppWindow(config);
-      newApp.requestOpen();
+      window.dispatchEvent(new CustomEvent('new-private-window'));
       return;
     }
 

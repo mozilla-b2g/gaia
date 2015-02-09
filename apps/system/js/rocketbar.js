@@ -647,6 +647,9 @@
       }
 
       switch (e.detail.action) {
+        case 'private-window':
+          window.dispatchEvent(new CustomEvent('new-private-window'));
+          break;
         case 'render':
           this.activate().then(this.focus.bind(this));
           break;
