@@ -142,15 +142,24 @@ suite('Nfc Handover Manager Functions', function() {
       nfcHandoverManager.stop();
     });
 
-    test('nfc/HandoverSelect', function() {
+    test('nfc/system_nfc_connect_dialog is loaded', function() {
       this.sinon.stub(MockLazyLoader, 'load').returns({
         then: function(callback) {
           callback();
         }
       });
+      nfcHandoverManager.nfcConnectSystemDialog = null;
+      nfcHandoverManager.tryHandover(activityInjection1.records,
+                                     activityInjection1.peer);
+      assert.ok(MockLazyLoader.load
+        .calledWith('js/system_nfc_connect_dialog.js'));
+    });
+
+    test('nfc/HandoverSelect', function() {
       var spyName = this.sinon.spy(NfcConnectSystemDialog.prototype, 'show');
       var spyPairing = this.sinon.spy(nfcHandoverManager, '_doPairing');
 
+      nfcHandoverManager.nfcConnectSystemDialog = new NfcConnectSystemDialog();
       nfcHandoverManager.tryHandover(activityInjection1.records,
                                      activityInjection1.peer);
       assert.isTrue(spyName.withArgs('UE MINI BOOM').calledOnce);
@@ -158,14 +167,10 @@ suite('Nfc Handover Manager Functions', function() {
     });
 
     test('nfc/SimplifiedPairingRecord', function() {
-      this.sinon.stub(MockLazyLoader, 'load').returns({
-        then: function(callback) {
-          callback();
-        }
-      });
       var spyName = this.sinon.spy(NfcConnectSystemDialog.prototype, 'show');
       var spyPairing = this.sinon.spy(nfcHandoverManager, '_doPairing');
 
+      nfcHandoverManager.nfcConnectSystemDialog = new NfcConnectSystemDialog();
       nfcHandoverManager.tryHandover(activityInjection2.records,
                                      activityInjection2.peer);
       assert.isTrue(spyName.withArgs('MBH10').calledOnce);
