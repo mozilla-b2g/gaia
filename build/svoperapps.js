@@ -66,10 +66,10 @@ function(manifest, metadata, appPath, cb, errCb) {
   utils.log('svoperapps.js',
             'download packaged app from: ' + manifest.package_path);
   // write update.webapp
-  utils.writeContentToFile(utils.joinPath(appPath, 'update.webapp'),
+  utils.writeContent(utils.getFile(appPath, 'update.webapp'),
                            JSON.stringify(manifest));
   // write metadata.json
-  utils.writeContentToFile(utils.joinPath(appPath, 'metadata.json'),
+  utils.writeContent(utils.getFile(appPath, 'metadata.json'),
                            JSON.stringify(metadata));
 
   // download application
@@ -89,10 +89,10 @@ function(manifest, metadata, appPath, callback, errCallback) {
   }
 
   // write manifest
-  utils.writeContentToFile(utils.joinPath(appPath, 'manifest.webapp'),
+  utils.writeContent(utils.getFile(appPath, 'manifest.webapp'),
                            JSON.stringify(manifest));
   // write metadata
-  utils.writeContentToFile(utils.joinPath(appPath, 'metadata.json'),
+  utils.writeContent(utils.getFile(appPath, 'metadata.json'),
                            JSON.stringify(metadata));
   callback();
 };
