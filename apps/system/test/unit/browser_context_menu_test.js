@@ -161,12 +161,24 @@ suite('system/BrowserContextMenu', function() {
       'url("' + fakeContextMenuEvent.detail.contextmenu.items[0].icon + '")');
   });
 
-  test('manually launch menu', function(done) {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var md1 = new BrowserContextMenu(app1);
-    md1.showDefaultMenu().then(function() {
-      assert.isTrue(md1.element.classList.contains('visible'));
-      done();
+  suite('manually launch menu', function() {
+    var md1;
+
+    setup(function(done) {
+      var app1 = new AppWindow(fakeAppConfig1);
+      md1 = new BrowserContextMenu(app1);
+      md1.showDefaultMenu().then(function() {
+        done();
+      });
+    });
+
+    test('Conext Menu is shown', function() {
+      assert.isTrue(md1.isShown());
+    });
+
+    test('Conext Menu is not shown', function() {
+      md1.hide();
+      assert.isFalse(md1.isShown());
     });
   });
 
