@@ -54,12 +54,6 @@ marionette('Search - Notice Test', function() {
     search.goToResults();
     assert.ok(!client.findElement(confirmSelector).displayed());
 
-    // Notice should be displayed if we show > 3 characters
-    client.switchToFrame();
-    rocketbar.enterText('abc');
-    search.goToResults();
-    client.helper.waitForElement(confirmSelector);
-
     // Should not show notice if suggestions are disabled
     client.settings.set('search.suggestions.enabled', false);
     client.switchToFrame();
@@ -67,8 +61,14 @@ marionette('Search - Notice Test', function() {
     search.goToResults();
     client.helper.waitForElementToDisappear(confirmSelector);
 
-    // Notice should be dismissed if we press enter
+    // Notice should be displayed if we show > 3 characters
     client.settings.set('search.suggestions.enabled', true);
+    client.switchToFrame();
+    rocketbar.enterText('abc');
+    search.goToResults();
+    client.helper.waitForElement(confirmSelector);
+
+    // Notice should be dismissed if we press enter
     client.switchToFrame();
     var searchText = 'abc\uE006';
     rocketbar.enterText(searchText);
