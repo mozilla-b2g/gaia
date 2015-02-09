@@ -270,14 +270,13 @@ gaia-grid {
   white-space: normal !important;
 }
 
-#loading {
-  padding: 2.5rem 0;
+.loading {
   display: none;
+  padding: 2.5rem 0;
   text-align: center;
-  position: absolute;
   width: 100%;
 }
 
-#loading.loading {
+[data-loading=true] .loading {
   display: block;
 }

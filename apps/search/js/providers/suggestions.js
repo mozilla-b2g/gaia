@@ -5,6 +5,7 @@
   /* globals LazyLoader */
   /* globals SearchProvider */
 
+  var suggestionsWrapper = document.getElementById('suggestions-wrapper');
   var suggestionsProvider = document.getElementById('suggestions-provider');
   var suggestionsSelect = document.getElementById('suggestions-select');
 
@@ -44,8 +45,6 @@
 
     name: 'Suggestions',
 
-    remote: true,
-
     init: function() {
       Provider.prototype.init.apply(this, arguments);
       suggestionsSelect.addEventListener('change', function(e) {
@@ -59,14 +58,22 @@
       Search.navigate(url);
     },
 
-    search: function(input) {
+    search: function(input, preventRemote) {
+      this.render([input]);
+
+      if (!navigator.onLine || preventRemote) {
+        return Promise.resolve([input]);
+      }
+
+      suggestionsWrapper.dataset.loading = true;
+
       return SearchProvider.ready().then(() => {
         return new Promise((resolve, reject) => {
           var url = encodeTerms(SearchProvider('suggestUrl'), input);
           LazyLoader.getJSON(url, true).then(result => {
             var results = result[1];
             // We add an item to search the entered term as well
-            results.unshift(result[0]);
+            results.unshift(input);
             resolve(results);
           });
         });
@@ -84,6 +91,7 @@
         ul.appendChild(li);
       });
 
+      suggestionsWrapper.dataset.loading = false;
       this.clear();
 
       if (ul.childNodes.length) {
