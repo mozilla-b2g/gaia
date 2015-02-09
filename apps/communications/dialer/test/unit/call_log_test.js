@@ -330,6 +330,7 @@ suite('dialer/call_log', function() {
           group.voicemail ? 'voiceMail' :
             (group.emergency ? 'emergencyNumber' : '');
         assert.equal(primaryInfoMain.getAttribute('data-l10n-id'), expected);
+        assert.isNull(primaryInfoMain.querySelector('bdi'));
       } else {
         assert.equal(
           primaryInfoMain.querySelector('bdi').innerHTML, group.number);
@@ -395,7 +396,7 @@ suite('dialer/call_log', function() {
     } else if (contact && contact.org) {
       assert.equal(primaryInfoMain.innerHTML, contact.org);
     } else if (number) {
-      assert.equal(primaryInfoMain.innerHTML, number);
+      assert.equal(primaryInfoMain.querySelector('bdi').innerHTML, number);
     }
 
     // Additional info.
