@@ -7,253 +7,443 @@ require('/js/imes/latin/latin.js');
 
 require('/js/keyboard/input_method_database_loader.js');
 
-suite('Latin en_us worker', function() {
+suite('Latin worker', function() {
   var worker;
-  suiteSetup(function(next) {
+  var keymaps = {};
+
+  suiteSetup(function() {
     worker = new Worker('../../../../js/imes/latin/worker.js');
 
-    var loader = new InputMethodDatabaseLoader();
-    loader.start();
-    loader.SOURCE_DIR = '/js/imes/';
-    loader.load('latin', 'dictionaries/en_us.dict').then(function(dictData) {
-      worker.postMessage({
-        cmd: 'setLanguage',
-        args: ['en_us', dictData]
-      }, [dictData]);
-    })['catch'](function(e) { // workaround gjlsint error
-      console.error(e.toString());
+    keymaps.qwerty = InputMethods.latin.generateNearbyKeyMap({
+      'keyboardWidth': 320,
+      'keyboardHeight': 205,
+      'keyArray': [{
+        'code': 113,
+        'x': 0,
+        'y': 29,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 119,
+        'x': 32,
+        'y': 29,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 101,
+        'x': 64,
+        'y': 29,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 114,
+        'x': 96,
+        'y': 29,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 116,
+        'x': 128,
+        'y': 29,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 121,
+        'x': 160,
+        'y': 29,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 117,
+        'x': 192,
+        'y': 29,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 105,
+        'x': 224,
+        'y': 29,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 111,
+        'x': 256,
+        'y': 29,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 112,
+        'x': 288,
+        'y': 29,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 97,
+        'x': 16,
+        'y': 80,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 115,
+        'x': 48,
+        'y': 80,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 100,
+        'x': 80,
+        'y': 80,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 102,
+        'x': 112,
+        'y': 80,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 103,
+        'x': 144,
+        'y': 80,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 104,
+        'x': 176,
+        'y': 80,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 106,
+        'x': 208,
+        'y': 80,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 107,
+        'x': 240,
+        'y': 80,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 108,
+        'x': 272,
+        'y': 80,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 20,
+        'x': 0,
+        'y': 131,
+        'width': 48,
+        'height': 43
+      }, {
+        'code': 122,
+        'x': 48,
+        'y': 131,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 120,
+        'x': 80,
+        'y': 131,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 99,
+        'x': 112,
+        'y': 131,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 118,
+        'x': 144,
+        'y': 131,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 98,
+        'x': 176,
+        'y': 131,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 110,
+        'x': 208,
+        'y': 131,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 109,
+        'x': 240,
+        'y': 131,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 8,
+        'x': 272,
+        'y': 131,
+        'width': 48,
+        'height': 43
+      }, {
+        'code': 65534,
+        'x': 0,
+        'y': 182,
+        'width': 48,
+        'height': 43
+      }, {
+        'code': 65533,
+        'x': 48,
+        'y': 182,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 32,
+        'x': 80,
+        'y': 182,
+        'width': 144,
+        'height': 43
+      }, {
+        'code': 46,
+        'x': 224,
+        'y': 182,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 13,
+        'x': 256,
+        'y': 182,
+        'width': 64,
+        'height': 43
+      }],
+      'keyWidth': 32,
+      'keyHeight': 50
     });
 
-    var keymap = InputMethods.latin.generateNearbyKeyMap({
-        'keyboardWidth': 320,
-        'keyboardHeight': 205,
-        'keyArray': [{
-          'code': 113,
-          'x': 0,
-          'y': 29,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 119,
-          'x': 32,
-          'y': 29,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 101,
-          'x': 64,
-          'y': 29,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 114,
-          'x': 96,
-          'y': 29,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 116,
-          'x': 128,
-          'y': 29,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 121,
-          'x': 160,
-          'y': 29,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 117,
-          'x': 192,
-          'y': 29,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 105,
-          'x': 224,
-          'y': 29,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 111,
-          'x': 256,
-          'y': 29,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 112,
-          'x': 288,
-          'y': 29,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 97,
-          'x': 16,
-          'y': 80,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 115,
-          'x': 48,
-          'y': 80,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 100,
-          'x': 80,
-          'y': 80,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 102,
-          'x': 112,
-          'y': 80,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 103,
-          'x': 144,
-          'y': 80,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 104,
-          'x': 176,
-          'y': 80,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 106,
-          'x': 208,
-          'y': 80,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 107,
-          'x': 240,
-          'y': 80,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 108,
-          'x': 272,
-          'y': 80,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 20,
-          'x': 0,
-          'y': 131,
-          'width': 48,
-          'height': 43
-        }, {
-          'code': 122,
-          'x': 48,
-          'y': 131,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 120,
-          'x': 80,
-          'y': 131,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 99,
-          'x': 112,
-          'y': 131,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 118,
-          'x': 144,
-          'y': 131,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 98,
-          'x': 176,
-          'y': 131,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 110,
-          'x': 208,
-          'y': 131,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 109,
-          'x': 240,
-          'y': 131,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 8,
-          'x': 272,
-          'y': 131,
-          'width': 48,
-          'height': 43
-        }, {
-          'code': 65534,
-          'x': 0,
-          'y': 182,
-          'width': 48,
-          'height': 43
-        }, {
-          'code': 65533,
-          'x': 48,
-          'y': 182,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 32,
-          'x': 80,
-          'y': 182,
-          'width': 144,
-          'height': 43
-        }, {
-          'code': 46,
-          'x': 224,
-          'y': 182,
-          'width': 32,
-          'height': 43
-        }, {
-          'code': 13,
-          'x': 256,
-          'y': 182,
-          'width': 64,
-          'height': 43
-        }],
-        'keyWidth': 32,
-        'keyHeight': 50
-      });
-
-    worker.postMessage({
-      cmd: 'setNearbyKeys',
-      args: [keymap]
+    keymaps.azerty = InputMethods.latin.generateNearbyKeyMap({
+      'keyboardWidth': 320,
+      'keyboardHeight': 205,
+      'keyArray': [{
+        'code': 97,
+        'x': 0,
+        'y': 29,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 122,
+        'x': 32,
+        'y': 29,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 101,
+        'x': 64,
+        'y': 29,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 114,
+        'x': 96,
+        'y': 29,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 116,
+        'x': 128,
+        'y': 29,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 121,
+        'x': 160,
+        'y': 29,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 117,
+        'x': 192,
+        'y': 29,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 105,
+        'x': 224,
+        'y': 29,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 111,
+        'x': 256,
+        'y': 29,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 112,
+        'x': 288,
+        'y': 29,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 113,
+        'x': 0,
+        'y': 80,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 115,
+        'x': 32,
+        'y': 80,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 100,
+        'x': 64,
+        'y': 80,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 102,
+        'x': 96,
+        'y': 80,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 103,
+        'x': 128,
+        'y': 80,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 104,
+        'x': 160,
+        'y': 80,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 106,
+        'x': 192,
+        'y': 80,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 107,
+        'x': 224,
+        'y': 80,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 108,
+        'x': 256,
+        'y': 80,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 109,
+        'x': 288,
+        'y': 80,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 20,
+        'x': 0,
+        'y': 131,
+        'width': 48,
+        'height': 43
+      }, {
+        'code': 119,
+        'x': 48,
+        'y': 131,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 120,
+        'x': 80,
+        'y': 131,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 99,
+        'x': 112,
+        'y': 131,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 118,
+        'x': 144,
+        'y': 131,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 98,
+        'x': 176,
+        'y': 131,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 110,
+        'x': 208,
+        'y': 131,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 39,
+        'x': 240,
+        'y': 131,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 8,
+        'x': 272,
+        'y': 131,
+        'width': 48,
+        'height': 43
+      }, {
+        'code': 18,
+        'x': 0,
+        'y': 182,
+        'width': 64,
+        'height': 43
+      }, {
+        'code': -3,
+        'x': 64,
+        'y': 182,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 32,
+        'x': 96,
+        'y': 182,
+        'width': 128,
+        'height': 43
+      }, {
+        'code': 46,
+        'x': 224,
+        'y': 182,
+        'width': 32,
+        'height': 43
+      }, {
+        'code': 13,
+        'x': 256,
+        'y': 182,
+        'width': 64,
+        'height': 43
+      }],
+      'keyWidth': 32,
+      'keyHeight': 51
     });
-
-    var successCount = 0;
-    worker.onmessage = function(e) {
-      if (e.data.cmd !== 'success') {
-        dump('worker.onmessage unexpected result ' + e.message + '\n');
-      }
-      assert.equal(e.data.cmd, 'success');
-
-      if (e.data.fn === 'setLanguage' || e.data.fn === 'setNearbyKeys') {
-        successCount++;
-
-        if (successCount === 2) {
-          next();
-        }
-      }
-    };
   });
 
   setup(function() {
     worker.onmessage = sinon.stub();
+  });
+
+  test('Worker should throw if language doesnt exist', function(next) {
+    worker.postMessage({ cmd: 'setLanguage', args: ['no-existente'] });
+    onWorkerMessage(function(data) {
+
+      assert.equal(data.cmd, 'error');
+      next();
+    });
   });
 
   function onWorkerMessage(filter, callback) {
@@ -297,39 +487,70 @@ suite('Latin en_us worker', function() {
     assert.notEqual(res.length, 0);
   }
 
-  test('Worker should throw if language doesnt exist', function(next) {
-    worker.postMessage({ cmd: 'setLanguage', args: ['no-existente'] });
-    onWorkerMessage(function(data) {
+  function prediction(input, expected, next) {
+    worker.postMessage({cmd: 'predict', args: [input]});
 
-      assert.equal(data.cmd, 'error');
+    onWorkerMessage('predictions', function(data) {
+
+      var suggestions = data.suggestions;
+
+      assert.equal(data.cmd, 'predictions');
+      assert.equal(data.input, input);
+
+      suggestions = suggestions.map(function(s) {
+        return s[0];
+      });
+
+      assert.equal(suggestions[0], expected[0]);
+      if (expected[1] !== null)
+        assert.equal(suggestions[1], expected[1]);
+      if (expected[2] !== null)
+        assert.equal(suggestions[2], expected[2]);
+
       next();
     });
-  });
+  }
 
-  suite('Predicitions', function() {
-    function prediction(input, expected, next) {
-      worker.postMessage({cmd: 'predict', args: [input]});
+  function setupLanguage(langCode, keymap, next) {
+    var loader = new InputMethodDatabaseLoader();
+    loader.start();
+    loader.SOURCE_DIR = '/js/imes/';
+    loader.load('latin', 'dictionaries/' + langCode + '.dict')
+    .then(function(dictData) {
+      worker.postMessage({
+        cmd: 'setLanguage',
+        args: [langCode, dictData]
+      }, [dictData]);
+    })['catch'](function(e) { // workaround gjlsint error
+      console.error(e.toString());
+    });
 
-      onWorkerMessage('predictions', function(data) {
+    worker.postMessage({
+      cmd: 'setNearbyKeys',
+      args: [keymap]
+    });
 
-        var suggestions = data.suggestions;
+    var successCount = 0;
+    worker.onmessage = function(e) {
+      if (e.data.cmd !== 'success') {
+        dump('worker.onmessage unexpected result ' + e.message + '\n');
+      }
+      assert.equal(e.data.cmd, 'success');
 
-        assert.equal(data.cmd, 'predictions');
-        assert.equal(data.input, input);
+      if (e.data.fn === 'setLanguage' || e.data.fn === 'setNearbyKeys') {
+        successCount++;
 
-        suggestions = suggestions.map(function(s) {
-          return s[0];
-        });
+        if (successCount === 2) {
+          next();
+        }
+      }
+    };
+  }
 
-        assert.equal(suggestions[0], expected[0]);
-        if (expected[1] !== null)
-          assert.equal(suggestions[1], expected[1]);
-        if (expected[2] !== null)
-          assert.equal(suggestions[2], expected[2]);
-
-        next();
-      });
-    }
+  suite('en_us predictions', function() {
+    suiteSetup(function(next) {
+      setupLanguage('en_us', keymaps.qwerty, next);
+    });
 
     test('i should be predicted as I', function(next) {
       prediction('i', ['I', 'in', 'is'], next);
@@ -494,6 +715,16 @@ suite('Latin en_us worker', function() {
       test('kn / km / in / on', function(next) {
         prediction('kn', ['km', 'in', 'on'], next);
       });
+    });
+  });
+
+  suite('fr predictions', function() {
+    suiteSetup(function(next) {
+      setupLanguage('fr', keymaps.azerty, next);
+    });
+
+    test('123 should not yield prediction', function(next) {
+      prediction('123', [null, null, null], next);
     });
   });
 });
