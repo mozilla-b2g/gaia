@@ -24,12 +24,13 @@ class EmailUtil:
         self.senders_account = senders_account
 
         # connect to SMTP server
-        self.server = smtplib.SMTP_SSL(self.senders_account['smtp_hostname'],
-                                       str(self.senders_account['smtp_port']))
+        self.server = smtplib.SMTP_SSL(self.senders_account['hostname'],
+                                       str(self.senders_account['port']))
         self.server.set_debuglevel(False)
 
-        self.server.login(self.senders_account['email'],
-                          self.senders_account['password'])
+        if 'email' in self.senders_account and 'password' in self.senders_account:
+            self.server.login(self.senders_account['email'],
+                              self.senders_account['password'])
 
         msg = MIMEText(mock_email.message)
         msg['Subject'] = mock_email.subject
