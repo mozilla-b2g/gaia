@@ -394,8 +394,10 @@
      */
     _showInitialPanel: function as_showInitialPanel(initialPanelId) {
       var initialPanel = document.getElementById(initialPanelId);
-      initialPanel.classList.add('current');
-      initialPanel.innerHTML = initialPanel.firstChild.textContent;
+      // Use lazy loade because it handles the case in DEBUG mode.
+      return LazyLoader.load([initialPanel]).then(() => {
+        initialPanel.classList.add('current');
+      });
     },
 
     /**
@@ -469,9 +471,11 @@
         window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
       });
 
-      return this._getInitialPanelId().then((initialPanelId) => {
-        this._showInitialPanel(initialPanelId);
-
+      var initialPanelId;
+      return this._getInitialPanelId().then((panelId) => {
+        initialPanelId = panelId;
+        return this._showInitialPanel(panelId);
+      }).then(() => {
         // XXX: This is an optimization for the root panel to avoid reflow that
         //      could be observed by users.
         var customPanelHandler;
