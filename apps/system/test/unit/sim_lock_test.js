@@ -1,5 +1,6 @@
 /* global SimLock, MockL10n, MocksHelper, SimPinDialog, System */
-/* global MockSIMSlotManager, MockVersionHelper, FtuLauncher */
+/* global MockSIMSlotManager, MockSIMSlot */
+/* global MockVersionHelper, FtuLauncher */
 /* global preInit, VersionHelper:true, MockApplications */
 
 'use strict';
