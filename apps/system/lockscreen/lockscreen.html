@@ -15,6 +15,7 @@
   <script defer src="lockscreen/js/lockscreen_notification_builder.js"></script>
   <script defer src="lockscreen/js/lockscreen_notifications.js"></script>
   <script defer src="lockscreen/js/lockscreen_charging.js"></script>
+  <script defer src="lockscreen/js/settings/settings_cache.js"></script>
   <script defer src="lockscreen/js/source/source_event.js"></script>
   <script defer src="lockscreen/js/source/dom_event_source.js"></script>
   <script defer src="lockscreen/js/source/setting_source.js"></script>
@@ -23,10 +24,19 @@
   <script defer src="lockscreen/js/stream/stream.js"></script>
   <script defer src="lockscreen/js/component/lockscreen_basic_component.js"></script>
   <script defer src="lockscreen/js/state/lockscreen_basic_state.js"></script>
+
   <script defer src="lockscreen/js/widgets/clock/lockscreen_clock_widget.js"></script>
   <script defer src="lockscreen/js/widgets/clock/lockscreen_clock_widget_setup.js"></script>
   <script defer src="lockscreen/js/widgets/clock/lockscreen_clock_widget_tick.js"></script>
   <script defer src="lockscreen/js/widgets/clock/lockscreen_clock_widget_suspend.js"></script>
+
+  <script defer src="lockscreen/js/widgets/connection_states/lockscreen_connection_states_widget.js"></script>
+  <script defer src="lockscreen/js/widgets/connection_states/lockscreen_connection_states_widget_setup.js"></script>
+  <script defer src="lockscreen/js/widgets/connection_states/lockscreen_connection_states_widget_airplane_mode.js"></script>
+  <script defer src="lockscreen/js/widgets/connection_states/lockscreen_connection_states_widget_radio_on.js"></script>
+  <script defer src="lockscreen/js/widgets/connection_states/lockscreen_connection_states_widget_emergency_calls_only.js"></script>
+  <script defer src="lockscreen/js/widgets/connection_states/lockscreen_connection_states_sim_widget.js"></script>
+  <script defer src="lockscreen/js/widgets/connection_states/lockscreen_connection_states_sim_widget_setup.js"></script>
 
   <script defer src="lockscreen/js/lockscreen.js"></script>
 
@@ -51,7 +61,17 @@
   <div id="lockscreen-container">
     <div id="lockscreen-panel-main" class="lockscreen-panel">
       <div id="lockscreen-header">
-        <div id="lockscreen-conn-states" hidden></div>
+        <div id="lockscreen-conn-states">
+          <div id="lockscreen-conn-states-simone">
+            <span id="lockscreen-conn-states-simoneid" class="lockscreen-conn-states-simid"></span>
+            <span id="lockscreen-conn-states-simoneline" class="connstate-line lockscreen-connstate-line"></span>
+          </div>
+          <div id="lockscreen-conn-states-simtwo">
+            <span id="lockscreen-conn-states-simtwoid" class="lockscreen-conn-states-simid"></span>
+            <span id="lockscreen-conn-states-simtwoline" class="connstate-line lockscreen-connstate-line"></span>
+          </div>
+        </div>
+
         <div id="lockscreen-mute" hidden></div>
         <div id="lockscreen-alt-camera" class="lockscreen-icon">
           <div id="lockscreen-alt-camera-button" role="button" data-l10n-id="camera-a11y-button" aria-label="Camera"></div>

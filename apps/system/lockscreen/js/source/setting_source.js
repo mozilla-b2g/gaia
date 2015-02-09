@@ -11,8 +11,10 @@
     this.configs = {
       settings: configs.settings || []
     };
-    this._collector = navigator.mozSettings.addObserver;
-    this._decollector = navigator.mozSettings.removeObserver;
+    this._collector = navigator.mozSettings.addObserver
+      .bind(navigator.mozSettings);
+    this._decollector = navigator.mozSettings.removeObserver
+      .bind(navigator.mozSettings);
     this._forwardTo = null;
     // Some API you just can't bind it with the object,
     // but a function.
