@@ -84,8 +84,14 @@
       }
     },
 
+    // To guard against calling cardManager.swapCard too frequently.
+    // If we are in process of swapping, we should not call
+    // cardManager.swapCard(). Please see http://bugzil.la/1130701
+    _isSwapping: false,
+
     onCardSwapped: function(card1, card2, idx1, idx2) {
       this.cardScrollable.swap(idx1, idx2);
+      this._isSwapping = false;
     },
 
     onMove: function(key) {
@@ -94,9 +100,13 @@
       }
 
       var focus = this.spatialNavigator.getFocusedElement();
-      if (focus.CLASS_NAME === 'XScrollable') {
+      // To guard against calling cardManager.swapCard too frequently.
+      // If we are in process of swapping, we should not call
+      // cardManager.swapCard(). Please see http://bugzil.la/1130701
+      if (focus.CLASS_NAME === 'XScrollable' && !this._isSwapping) {
         var targetItem = focus.getTargetItem(key);
         if (targetItem) {
+          this._isSwapping = true;
           this.cardManager.swapCard(
             this.cardManager.findCardFromCardList(
                                     {cardId: focus.currentItem.dataset.cardId}),
