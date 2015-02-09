@@ -380,7 +380,6 @@ section ul.operate-certificate {
   background: url(images/document_bg.png);
 }
 
-
 /******************************************************************************
 * Media Storage settings
 */
@@ -1145,6 +1144,14 @@ html[dir="rtl"] #feedback-happy {
 
 html[dir="rtl"] #feedback-sad {
   float: left;
+}
+
+html[dir="rtl"] #mediaStorage ul li > a span:nth-of-type(2):not(.button) {
+  left: 0;
+}
+
+html[dir="rtl"] #applicationStorage ul li > a span:nth-of-type(2):not(.button) {
+  left: 0;
 }
 
 html[dir="rtl"] ul li > label.range-icons.volume input {
