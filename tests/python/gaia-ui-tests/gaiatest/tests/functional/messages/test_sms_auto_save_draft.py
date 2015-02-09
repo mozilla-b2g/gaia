@@ -32,6 +32,7 @@ class TestSmsAutoSaveDrafts(GaiaTestCase):
         self.apps.switch_to_displayed_app()
 
         new_message.type_message(_text_message_content)
+        self.assertEqual(new_message.message, _text_message_content)
 
         # close message app and leave cards view
         self.device.hold_home_button()
