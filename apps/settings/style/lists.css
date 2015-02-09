@@ -469,7 +469,7 @@ dl dd {
  */
 
 html[dir="rtl"] ul li > a span:nth-of-type(2):not(.button) {
-  left: 0;
+  left: 1.5rem;
   right: unset;
 }
 
@@ -499,4 +499,8 @@ html[dir="rtl"] ul li.pack-split:after {
 html[dir="rtl"] ul li.sound-setting > label input[type="range"] {
   left: unset;
   right: 1.5rem;
+}
+
+html[dir="rtl"] ul li .info-item .info-item-content {
+  text-align: left;
 }
