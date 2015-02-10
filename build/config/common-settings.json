@@ -26,6 +26,7 @@
    "audio.volume.cemaxvol": 11,
    "bluetooth.enabled": false,
    "bluetooth.debugging.enabled": false,
+   "bluetooth.snoop.enabled": false,
    "bluetooth.suspended": false,
    "bluetooth.device.connected": null,
    "camera.sound.enabled": true,
