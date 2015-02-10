@@ -235,7 +235,8 @@ function L10nManager(gaiaDir,
   function buildL10nMeta(file, doc) {
     var metas = {
       availableLanguages: doc.querySelector('meta[name="availableLanguages"]'),
-      defaultLanguage: doc.querySelector('meta[name="defaultLanguage"]')
+      defaultLanguage: doc.querySelector('meta[name="defaultLanguage"]'),
+      appVersion: doc.querySelector('meta[name="appVersion"]')
     };
 
     if ((!metas.availableLanguages || !metas.defaultLanguage) &&
@@ -260,6 +261,10 @@ function L10nManager(gaiaDir,
       metas.defaultLanguage = createMeta(doc, 'defaultLanguage');
     }
 
+    if (!metas.appVersion) {
+      metas.appVersion = createMeta(doc, 'appVersion');
+    }
+
     metas.defaultLanguage.setAttribute('content', self.defaultLocale);
 
     var timestamp = getTimestamp(new Date());
@@ -267,6 +272,12 @@ function L10nManager(gaiaDir,
       self.locales.map(function(loc) {
         return loc + ':' + timestamp;
       }).join(', '));
+
+    var settingsFile = utils.getFile(self.gaiaDir, 'build', 'config',
+        'common-settings.json');
+    var settings = utils.getJSON(settingsFile);
+
+    metas.appVersion.setAttribute('content', settings['moz.b2g.version']);
 
     var str = utils.serializeDocument(doc);
     utils.writeContent(file, str);

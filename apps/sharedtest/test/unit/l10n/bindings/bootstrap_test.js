@@ -10,12 +10,12 @@ suite('L10n bootstrap', function() {
       var L10n = navigator.mozL10n._getInternalAPI();
       defaultLocale = navigator.mozL10n.ctx.defaultLocale;
       buildLocaleList = L10n.buildLocaleList.bind(navigator.mozL10n);
-      realGaiaVersion = navigator.mozL10n._config.gaiaVersion;
-      navigator.mozL10n._config.gaiaVersion = '2.2';
+      realGaiaVersion = navigator.mozL10n._config.appVersion;
+      navigator.mozL10n._config.appVersion = '2.2';
     });
 
     suiteTeardown(function() {
-      navigator.mozL10n._config.gaiaVersion = realGaiaVersion;
+      navigator.mozL10n._config.appVersion = realGaiaVersion;
       realGaiaVersion = undefined;
       defaultLocale = undefined;
       buildLocaleList = undefined;
