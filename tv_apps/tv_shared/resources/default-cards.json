@@ -1,12 +1,6 @@
 {
   "card_list": [
     {
-      "name": "Television",
-      "type": "Deck",
-      "deckClass": "tv",
-      "group": "tv"
-    },
-    {
       "name": "Apps",
       "type": "Deck",
       "deckClass": "application",
