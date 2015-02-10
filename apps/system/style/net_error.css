@@ -128,3 +128,7 @@ form[role="dialog"][data-type="action"] > menu > button.icon-settings {
 :-moz-dir(rtl) form[role="dialog"][data-type="action"] > menu > button.icon {
   background-position: right 0.5rem center;
 }
+
+:-moz-dir(rtl) #net-error.framed #retry-icon {
+  float: left;
+}
