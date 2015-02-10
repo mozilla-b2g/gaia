@@ -273,15 +273,17 @@ var PlayerView = {
   },
 
   setRepeat: function pv_setRepeat(value) {
-    var repeatClasses = ['repeat-off', 'repeat-list', 'repeat-song'];
+    var repeatModes = ['repeat-off', 'repeat-list', 'repeat-song'];
 
     // Remove all repeat classes before applying a new one
-    repeatClasses.forEach(function pv_resetRepeat(targetClass) {
+    repeatModes.forEach(function pv_resetRepeat(targetClass) {
       this.repeatButton.classList.remove(targetClass);
     }.bind(this));
 
     this.repeatOption = value;
-    this.repeatButton.classList.add(repeatClasses[this.repeatOption]);
+    this.repeatButton.classList.add(repeatModes[this.repeatOption]);
+    this.repeatButton.setAttribute(
+      'data-l10n-id', repeatModes[this.repeatOption]);
   },
 
   setShuffle: function pv_setShuffle(value, index) {
