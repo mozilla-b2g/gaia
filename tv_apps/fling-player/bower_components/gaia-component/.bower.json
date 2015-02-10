@@ -1,0 +1,26 @@
+{
+  "name": "gaia-component",
+  "version": "0.2.1",
+  "authors": [
+    "Wilson Page <wilsonpage@me.com>"
+  ],
+  "main": "gaia-component.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "homepage": "https://github.com/gaia-components/gaia-component",
+  "_release": "0.2.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.2.1",
+    "commit": "bf9a25d6673e3481f2c5544d876dcf3e8ba86d40"
+  },
+  "_source": "git://github.com/gaia-components/gaia-component.git",
+  "_target": "~0.2.0",
+  "_originalSource": "gaia-components/gaia-component"
+}
