@@ -166,6 +166,8 @@
     this.scrollable.catchFocus();
     this.circleAnimation.play({type: 'grow'}, function() {
       this.element.classList.add('visible');
+      Animations.doBubbleAnimation(
+                  this.contextFrame, '.' + this.ELEMENT_PREFIX + 'button', 100);
     }.bind(this));
   },
 

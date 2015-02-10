@@ -2,6 +2,10 @@ form[role="dialog"][data-type="action"].contextmenu {
   transition: none;
 }
 
+form.contextmenu > div.contextmenu-list-frame {
+  height: 32rem;
+}
+
 .contextmenu-list-frame.disappear {
   transition: opacity 0.3s;
   opacity: 0;
