@@ -207,14 +207,4 @@ suite('STK (icc_worker) >', function() {
     launchStkCommand(stkTestCommands.STK_CMD_PLAY_TONE);
   });
 
-  test('visibilitychange => STK_RESULT_UICC_SESSION_TERM_BY_USER',
-    function(done) {
-      window.icc.onresponse = function(message, response) {
-        window.icc.onresponse = function() {};  // Avoid multiple calls
-        assert.equal(response.resultCode,
-          navigator.mozIccManager.STK_RESULT_UICC_SESSION_TERM_BY_USER);
-        done();
-      };
-      document.dispatchEvent(new CustomEvent('visibilitychange'));
-    });
 });
