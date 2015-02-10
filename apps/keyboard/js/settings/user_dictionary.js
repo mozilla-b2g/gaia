@@ -56,11 +56,18 @@ UserDictionary.prototype.getList = function() {
 // We queue the saves such that firing successive saves won't easily break.
 // Meanwhile, the queued save has to resolve back to the view to update the
 // UI accordingly.
+// Returns the list of words as it has been sorted here.
 // XXX: implement abortable queue for successive saves such that we skip
 //      not-yet-executed intermediate saves.
 // XXX: blob generation can be time-consuming. WebWorker-ize it?
 UserDictionary.prototype._saveDict = function() {
+  // Keep the words sorted.
+  // XXX: We're not yet able to do true lexicographical sort, see bug 866301.
+  //      But here, let's at least do some case insensitive sort, though.
   var wordList = Array.from(this._wordSet);
+  wordList = wordList.sort((a, b) =>
+    a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase()));
+  this._wordSet = new Set(wordList);
 
   var dictBlob =
     0 === wordList.length ?
@@ -68,10 +75,14 @@ UserDictionary.prototype._saveDict = function() {
     new WordListConverter(wordList).toBlob();
 
   var p = this._saveQueue.then(
-    () => this._dbStore.setItems({
-      'wordlist': wordList,
-      'dictblob': dictBlob
-    })
+    () => {
+      this._dbStore.setItems({
+        'wordlist': wordList,
+        'dictblob': dictBlob
+      });
+
+      return wordList;
+    }
   );
 
   this._saveQueue = p;
@@ -107,13 +118,15 @@ UserDictionary.prototype.updateWord = function(oldWord, word) {
   word = word.trim();
 
   if (oldWord === word) {
-    return Promise.resolve();
+    return Promise.resolve(Array.from(this._wordSet));
   }
 
   // if new word already exists, delete the old and save,
   // but tell view about this scenario
   this._wordSet.delete(oldWord);
   if (this._wordSet.has(word)) {
+    // XXX: word list resolved from saveDict is lost, but we don't really care
+    //      since we'll only be deleteing something at view
     return this._saveDict().then(() => Promise.reject('existing'));
   } else {
     this._wordSet.add(word);

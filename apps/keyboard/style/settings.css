@@ -241,6 +241,10 @@ input:focus {
   display: none;
 }
 
+#ud-wordlist-list a {
+  pointer-events: none;
+}
+
 #panel-ud-editword #ud-editword-add-header {
   display: none;
 }

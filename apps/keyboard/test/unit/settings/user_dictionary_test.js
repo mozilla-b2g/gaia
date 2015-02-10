@@ -142,6 +142,8 @@ suite('UserDictionary', function() {
 
       var pRet = model.updateWord('oldstar', 'oldstar');
 
+      assert.isTrue(Promise.resolve.calledWith(['oldstar']),
+        'resolve() should be called with wordlist as parameter');
       assert.equal(pRet, pRes);
     });
     test('new word is trimmed correctly', function(){
@@ -264,6 +266,21 @@ suite('UserDictionary', function() {
           wordlist: [],
           dictblob: undefined
         }));
+
+        done();
+      }, done);
+    });
+
+    test('Word list is returned and sorted', function(done) {
+      model._wordSet = new Set(['apply', 'Banana', 'Apple']);
+
+      pSave1 = model._saveDict();
+
+      rSaveQueue();
+      rDB1();
+
+      pSave1.then(wordList => {
+        assert.deepEqual(wordList, ['Apple', 'apply', 'Banana']);
 
         done();
       }, done);
