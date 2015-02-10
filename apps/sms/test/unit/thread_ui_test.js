@@ -4179,6 +4179,53 @@ suite('thread_ui.js >', function() {
             assert.equal(items[4].l10nId, 'cancel');
           });
 
+          test('No menu displayed while activating header in activity',
+            function() {
+
+            var contact = new MockContact();
+            this.sinon.stub(ActivityHandler, 'isInActivity').returns(true);
+
+            ThreadUI.prompt({
+              number: '999',
+              contactId: contact.id,
+              isContact: true,
+              header: document.createElement('div')
+            });
+
+            assert.equal(MockOptionMenu.calls.length, 0);
+
+          });
+
+          test('No view contact option while in message and activity',
+            function() {
+
+            var contact = new MockContact();
+            this.sinon.stub(ActivityHandler, 'isInActivity').returns(true);
+
+            ThreadUI.prompt({
+              number: '999',
+              contactId: contact.id,
+              isContact: true,
+              inMessage: true,
+              header: document.createElement('div')
+            });
+
+            assert.equal(MockOptionMenu.calls.length, 1);
+
+            var call = MockOptionMenu.calls[0];
+            var items = call.items;
+
+            assert.equal(items.length, 3);
+
+            // The only item is a "cancel" option
+            assert.equal(items[0].l10nId, 'call');
+
+            // The only item is a "cancel" option
+            assert.equal(items[1].l10nId, 'sendMessage');
+
+            // The only item is a "cancel" option
+            assert.equal(items[2].l10nId, 'cancel');
+          });
         });
 
         suite('onHeaderActivation >', function() {

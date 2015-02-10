@@ -2853,7 +2853,7 @@ var ThreadUI = {
       );
     }
 
-    if (opt.contactId) {
+    if (opt.contactId && !ActivityHandler.isInActivity()) {
 
         props = [{ id: opt.contactId }];
 
@@ -2869,7 +2869,12 @@ var ThreadUI = {
       );
     }
 
-    // All activations will see a "Cancel" option
+    // Menu should not be displayed if no option required, otherwise all
+    // activations will see a "Cancel" option
+    if (params.items.length === 0) {
+      return;
+    }
+
     params.items.push({
       l10nId: 'cancel',
       incomplete: true
