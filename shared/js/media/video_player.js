@@ -23,13 +23,18 @@ function VideoPlayer(container) {
     container = document.getElementById(container);
   }
 
-  function newelt(parent, type, classes, l10n_id) {
+  function newelt(parent, type, classes, l10n_id, attributes) {
     var e = document.createElement(type);
     if (classes) {
       e.className = classes;
     }
     if (l10n_id) {
       e.dataset.l10nId = l10n_id;
+    }
+    if (attributes) {
+      for (var attribute in attributes) {
+        e.setAttribute(attribute, attributes[attribute]);
+      }
     }
     parent.appendChild(e);
     return e;
@@ -44,7 +49,8 @@ function VideoPlayer(container) {
   var footer = newelt(controls, 'div', 'videoPlayerFooter hidden');
   var pausebutton = newelt(footer, 'button', 'videoPlayerPauseButton',
                            'playbackPause');
-  var slider = newelt(footer, 'div', 'videoPlayerSlider');
+  var slider = newelt(footer, 'div', 'videoPlayerSlider', null,
+                      { 'role': 'slider', 'aria-valuemin': 0 });
   var elapsedText = newelt(slider, 'span', 'videoPlayerElapsedText');
   var progress = newelt(slider, 'div', 'videoPlayerProgress');
   var backgroundBar = newelt(progress, 'div', 'videoPlayerBackgroundBar');
@@ -236,7 +242,12 @@ function VideoPlayer(container) {
 
   // Set the video duration when we get metadata
   player.onloadedmetadata = function() {
-    durationText.textContent = formatTime(player.duration);
+    var formattedTime = formatTime(player.duration);
+    durationText.textContent = formattedTime;
+    slider.setAttribute('aria-valuemax', player.duration);
+    // This sets the aria-label to a localized slider description
+    navigator.mozL10n.setAttributes(slider, 'playbackSeekBar',
+                                    {'duration': formattedTime});
     // start off in the paused state
     self.pause();
   };
@@ -269,7 +280,10 @@ function VideoPlayer(container) {
   // Set the elapsed time and slider position
   function updateTime() {
     if (!controlsHidden) {
-      elapsedText.textContent = formatTime(player.currentTime);
+      var formattedTime = formatTime(player.currentTime);
+      elapsedText.textContent = formattedTime;
+      slider.setAttribute('aria-valuenow', player.currentTime);
+      slider.setAttribute('aria-valuetext', formattedTime);
 
       // We can't update a progress bar if we don't know how long
       // the video is. It is kind of a bug that the <video> element
@@ -468,6 +482,22 @@ function VideoPlayer(container) {
       self.pause();
     } else if (!pausedBeforeDragging) {
       player.play();
+    }
+  });
+
+  slider.addEventListener('keypress', function(e) {
+    // The standard accessible control for sliders is arrow up/down keys.
+    // Our screenreader synthesizes those events on swipe up/down gestures.
+    // Currently, we only allow screen reader users to adjust sliders with a
+    // constant step size (there is no page up/down equivalent). In the case
+    // of videos, we make sure that the maximum amount of steps for the entire
+    // duration is 20, or 2 second increments if the duration is less then 40
+    // seconds.
+    var step = Math.max(player.duration/20, 2);
+    if (e.keyCode == e.DOM_VK_DOWN) {
+      player.currentTime -= step;
+    } else if (e.keyCode == e.DOM_VK_UP) {
+      player.currentTime += step;
     }
   });
 
