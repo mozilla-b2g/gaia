@@ -7,10 +7,10 @@
   height: calc(100% - 7rem);
 }
 
-/* Extending action menu with icon capability & transition*/
+/* Extending action menu with icon capability & transition */
 
-form[role="dialog"][data-type="action"] > div > menu > div > button .icon,
-form[role="dialog"][data-type="object"] > div > menu > div > button .icon {
+smart-button[type="contextmenu"] > .icon {
+  content: attr(data-icon);
   background-position: center top 4.8rem;
   background-size: 10rem;
   background-repeat: no-repeat;
@@ -21,8 +21,7 @@ form[role="dialog"][data-type="object"] > div > menu > div > button .icon {
   height: 100%;
 }
 
-form[role="dialog"][data-type="action"] > div > menu > div > button.hover .icon,
-form[role="dialog"][data-type="object"] > div > menu > div > button.hover .icon {
+smart-button[type="contextmenu"].focused:not(.pressed) > .icon {
   filter: url(invert.svg#invert);
   opacity: 0.824;
 }
@@ -40,77 +39,71 @@ form[role="dialog"][data-type="object"].visible {
 	transform: translateY(0);
 }
 
-@media (min-width: 768px) {
-  form[role="dialog"][data-type="action"],
-  form[role="dialog"][data-type="object"] {
-    -moz-box-sizing: border-box;
-    background-color: rgba(0,0,0,0.9);
-  }
+form[role="dialog"][data-type="action"],
+form[role="dialog"][data-type="object"] {
+  -moz-box-sizing: border-box;
+  background-color: rgba(0,0,0,0.9);
+}
 
-  form[role="dialog"][data-type="action"] > header,
-  form[role="dialog"][data-type="object"] > header {
-    top: 5rem;
-    left: 7.6rem;
-    font-size: 5.4rem;
-    font-style: italic;
-    height: 10rem;
-    color: white;
-    border: none;
-    padding: 0;
-  }
+form[role="dialog"][data-type="action"] > header,
+form[role="dialog"][data-type="object"] > header {
+  top: 5rem;
+  left: 7.6rem;
+  font-size: 5.4rem;
+  font-style: italic;
+  height: 10rem;
+  color: white;
+  border: none;
+  padding: 0;
+}
 
-  form[role="dialog"][data-type="action"] > div,
-  form[role="dialog"][data-type="object"] > div {
-    margin: 0 auto;
-    width: 100%;
-    height: 30rem;
-    padding-top: 3rem;
-    top: calc(50% - 15rem);
-    left: 0;
-    text-align: center;
-    overflow: hidden;
-    position: absolute;
-  }
+form[role="dialog"][data-type="action"] > div,
+form[role="dialog"][data-type="object"] > div {
+  margin: 0 auto;
+  width: 100%;
+  height: 30rem;
+  padding-top: 3rem;
+  top: calc(50% - 15rem);
+  left: 0;
+  text-align: center;
+  overflow: hidden;
+  position: absolute;
+}
 
-  form[role="dialog"][data-type="action"] > div > menu {
-    transition: transform 0.2s ease;
-  }
+form[role="dialog"][data-type="action"] > div > menu {
+  transition: transform 0.2s ease;
+}
 
-  form[role="dialog"][data-type="action"] > div > menu > div,
-  form[role="dialog"][data-type="action"] > div > menu > div {
-    position: absolute;
-    left: 0;
-    margin: 0 3rem;
-  }
+form[role="dialog"][data-type="action"] > div > menu > div,
+form[role="dialog"][data-type="action"] > div > menu > div {
+  position: absolute;
+  left: 0;
+  margin: 0 3rem;
+}
 
-  form[role="dialog"][data-type="action"] > div > menu > div > button,
-  form[role="dialog"][data-type="object"] > div > menu > div > button {
-    width: 24rem;
-    height: 24rem;
-    border-radius: 12rem;
-    background-color: #5f5f5f;
-    padding-top: 14.8rem;
-    padding-bottom: 5rem;
-    font-size: 2rem;
-    font-style: italic;
-    text-align: center;
-    color: white;
-    transition: transform 0.2s ease, background-color 0.2s ease;
-  }
+smart-button[type="contextmenu"] {
+  width: 24rem;
+  height: 24rem;
+  border-radius: 12rem;
+  background-color: #5f5f5f;
+  padding-top: 14.8rem;
+  padding-bottom: 5rem;
+  font-size: 2rem;
+  font-style: italic;
+  text-align: center;
+  color: white;
+  line-height: 2.8rem;
+  box-sizing: border-box;
+}
 
-  form[role="dialog"][data-type="action"] > div > menu > div > button.hover,
-  form[role="dialog"][data-type="object"] > div > menu > div > button.hover {
-    transform: scale(1.2);
-    background-color: white;
-    color: #2d2d2d;
-  }
+smart-button[type="contextmenu"].focused {
+  transform: scale(1.2);
+  color: #2d2d2d;
+  background-color: white;
+}
 
-  form[role="dialog"][data-type="action"] > div > menu > div > button.pressed,
-  form[role="dialog"][data-type="object"] > div > menu > div > button.pressed {
-    background-color: #00caf2;
-    color: white;
-  }
-
-  [role="dialog"][data-type="action"] > div > menu > div:last-child > button:before {
-    display: none;
-  }
+smart-button[type="contextmenu"].pressed {
+  transform: scale(1);
+  background-color: #00caf2;
+  color: white;
+}
