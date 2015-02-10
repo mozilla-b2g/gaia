@@ -20,10 +20,10 @@ FakeTextSelectionApp.Selector = Object.freeze({
   topLeftInput: '#top-left-input',
   topRightInput: '#top-right-input',
   normalDiv: '#noneditable',
-  nonSelectedDiv: '#noneditable-userselectnone'
+  nonSelectedDiv: '#noneditable-userselectnone',
   // bug1120316.html
   BugInput: '#bug-input',
-  BugTextarea: '#bug-textarea',
+  BugTextarea: '#bug-textarea'
 });
 
 FakeTextSelectionApp.ORIGIN = 'app://faketextselectionapp.gaiamobile.org';
