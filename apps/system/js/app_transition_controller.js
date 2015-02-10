@@ -221,6 +221,7 @@
           !this.app.isInputMethod) {
         this.app.setVisible(false);
       }
+      this.app.setNFCFocus(false);
 
       this.app.element.classList.remove('active');
     };
@@ -284,6 +285,7 @@
     if (this._shouldFocusApp()) {
       this.app.debug('focusing this app.');
       this.app.focus();
+      this.app.setNFCFocus(true);
     }
   };
 

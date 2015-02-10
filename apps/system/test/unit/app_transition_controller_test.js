@@ -254,6 +254,7 @@ suite('system/AppTransitionController', function() {
     var app1 = new MockHomescreenWindow('fake');
     var acn1 = new AppTransitionController(app1);
     var stubFocus = this.sinon.stub(app1, 'focus');
+    this.sinon.stub(app1, 'setNFCFocus');
     app1.loaded = true;
     MockService.mTopMostUI = {
       name: 'AppWindowManager'
@@ -263,12 +264,14 @@ suite('system/AppTransitionController', function() {
 
     acn1.handle_opened();
     assert.isTrue(stubFocus.called);
+    assert.isTrue(app1.setNFCFocus.calledWith(true));
   });
 
   test('Do not focus if we are not top most window', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var acn1 = new AppTransitionController(app1);
     var stubFocus = this.sinon.stub(app1, 'focus');
+    this.sinon.stub(app1, 'setNFCFocus');
     app1.loaded = true;
     MockService.mTopMostUI = {
       name: 'SystemDialogManager'
@@ -277,6 +280,7 @@ suite('system/AppTransitionController', function() {
 
     acn1.handle_opened();
     assert.isTrue(stubFocus.notCalled);
+    assert.isFalse(app1.setNFCFocus.called);
   });
 
   suite('Opened', function() {
@@ -317,8 +321,10 @@ suite('system/AppTransitionController', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var acn1 = new AppTransitionController(app1);
     var stubSetVisible = this.sinon.stub(app1, 'setVisible');
+    this.sinon.stub(app1, 'setNFCFocus');
     acn1.handle_closed();
     assert.isTrue(stubSetVisible.calledWith(false));
+    assert.isTrue(app1.setNFCFocus.calledWith(false));
   });
 
   test('Do not send to background in closed handler for attention windows',
