@@ -75,6 +75,9 @@
 
     this.setScale();
 
+    this.isSliding = false;
+    this.listElem.addEventListener(
+                        'transitionend', this._onSlideEnd.bind(this));
   }
 
   XScrollable.prototype = evt({
@@ -100,6 +103,54 @@
 
     getBoundingClientRect: function() {
       return this.frameElem.getBoundingClientRect();
+    },
+
+    _getScrollDistance: function(itemElem) {
+      return this._getScrollOffset(itemElem);
+    },
+
+    endSlide: function() {
+      // remove transition we added
+      this.listElem.classList.add('no-transition');
+      // if an user close home app when card-list is sliding, we have to force
+      // close the sliding transition (transition-delay = 0 is not working)
+      getComputedStyle(this.listElem).width;
+      this.listElem.classList.remove('no-transition');
+      this.listElem.classList.remove('card-slide');
+      this.listElem.style.transitionDuration = null;
+
+      // set positions of other nodes to create moving effect
+      this._setOtherNodesPosition(this.newCardIndex);
+      this.focus(this.newCardIndex);
+      this.fire('slideEnd');
+      this.isSliding = false;
+    },
+
+    _onSlideEnd: function(evt) {
+      if (evt.target === this.listElem &&
+          evt.propertyName === 'transform' &&
+          this.isSliding) {
+        this.endSlide();
+      }
+    },
+
+    _slide: function(newItem, idx) {
+      this.isSliding = true;
+      this.newCardIndex = idx;
+
+      // Start sliding animation of card list.
+      // Also consider the case when the card-list does not need to scroll
+      // or the document is not visibile.
+      var prevTransform = this.listElem.style.transform;
+      var distance = Math.abs(this._getScrollDistance(newItem) -
+                              this.translateX);
+      this.listElem.style.transitionDuration = distance / 2000 + 's';
+      this.scrollTo(newItem);
+      if (!prevTransform ||
+          prevTransform === this.listElem.style.transform||
+          document.visibilityState !== 'visible') {
+        this.endSlide();
+      }
     },
 
     scrollTo: function(itemElem) {
@@ -289,12 +340,11 @@
                       parseInt(startNode.dataset.idx, 10) : this.nodes.length;
       this.nodes.splice(newIdx, 0, newNode);
       this.listElem.appendChild(newNode);
-      this._setNodesPosition();
+      this._setNodePosition(newIdx);
 
       this.spatialNavigator.add(itemElem);
+      this._slide(this.getItemFromNode(newNode), newIdx);
 
-      // We need to trigger focus again to confirm relocating selection border.
-      this.spatialNavigator.focus(this.spatialNavigator.getFocusedElement());
       return true;
     },
 
@@ -309,6 +359,14 @@
 
     get length() {
       return this.nodes.length;
+    },
+
+    _setOtherNodesPosition: function(skipIdx) {
+      for(var idx in this.nodes) {
+        if (idx != skipIdx) {
+          this._setNodePosition(idx);
+        }
+      }
     },
 
     _setNodesPosition: function() {

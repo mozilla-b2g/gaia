@@ -115,8 +115,8 @@
     'childWindowFactory': window.ChildWindowFactory
   };
 
-  HomescreenWindow.prototype.openAnimation = 'zoom-out';
-  HomescreenWindow.prototype.closeAnimation = 'zoom-in';
+  HomescreenWindow.prototype.openAnimation = 'immediate';
+  HomescreenWindow.prototype.closeAnimation = 'immediate';
 
   HomescreenWindow.prototype._handle__opening = function hw__handle__opening() {
     this.ensure();

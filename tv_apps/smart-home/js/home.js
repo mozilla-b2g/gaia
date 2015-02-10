@@ -1,7 +1,7 @@
 'use strict';
 /* global Application, CardFilter, CardManager, Clock, Deck, Edit, Folder, Home,
           KeyNavigationAdapter, MessageHandler, MozActivity, SearchBar,
-          SharedUtils, SpatialNavigator, URL, XScrollable */
+          SharedUtils, SpatialNavigator, URL, XScrollable, Animations */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -24,6 +24,7 @@
         'filter-tv-button', 'filter-dashboard-button', 'filter-device-button',
         'filter-app-button'],
 
+    isNavigable: true,
     navigableClasses: ['command-button'],
     navigableScrollable: [],
     cardScrollable: undefined,
@@ -113,7 +114,52 @@
           // appearance is the same as it.
           that.searchButton.classList.add('hidden');
         }.bind(that));
+
+        // handle animation
+        that.endBubble = null;
+        document.addEventListener(
+                'visibilitychange', that.onVisibilityChange.bind(that));
+        // if this init function is executed after the document is set to
+        // visible, the visibilitychange event may not be triggered.
+        if (document.visibilityState === 'visible') {
+          that.onVisibilityChange();
+        }
       });
+    },
+
+    onVisibilityChange: function() {
+      if (document.visibilityState === 'visible') {
+        this.cardScrollable.currentItem.blur();
+        this.endBubble = Animations.doBubbleAnimation(
+                          this.cardListElem, '.app-button', 100, function() {
+          // if there is a pin activity, we do not have to focus element,
+          // because focus will be triggered in pin callback
+          if (!this.messageHandler.resumeActivity()) {
+            var focusElem = this.spatialNavigator.getFocusedElement();
+            if (focusElem.CLASS_NAME === 'XScrollable') {
+              this.cardScrollable.catchFocus();
+            } else {
+              this.spatialNavigator.focus();
+            }
+          }
+          this.isNavigable = true;
+          this.endBubble = null;
+        }.bind(this));
+      } else {
+        this.messageHandler.stopActivity();
+        this.isNavigable = false;
+        // An user may close home app when bubbling or sliding animations are
+        // still playing, and then open home app again right away. In this case,
+        // the user will see the last unfinished animations. In order to solve
+        // this, we have to force disable all the animations and trigger their
+        // callbacks when home app is in hidden state.
+        if (this.endBubble) {
+          this.endBubble();
+        }
+        if (this.cardScrollable.isSliding) {
+          this.cardScrollable.endSlide();
+        }
+      }
     },
 
     initClock: function() {
@@ -131,8 +177,24 @@
     },
 
     onCardInserted: function(card, idx) {
-      this.cardScrollable.insertNodeBefore(this._createCardNode(card), idx);
-      this.cardScrollable.focus(idx);
+      var newCardElem = this._createCardNode(card);
+      var newCardButtonElem = newCardElem.firstElementChild;
+      // Initial transition for new card
+      newCardButtonElem.classList.add('new-card');
+      newCardButtonElem.classList.add('new-card-transition');
+      newCardButtonElem.addEventListener('transitionend', function onPinned() {
+        newCardButtonElem.classList.remove('new-card-transition');
+        newCardButtonElem.removeEventListener('transitionend', onPinned);
+      });
+      this.cardListElem.classList.add('card-list-slide');
+
+      // insert new card into cardScrollable
+      this.isNavigable = false;
+      this.cardScrollable.on('slideEnd', function() {
+        newCardButtonElem.classList.remove('new-card');
+        this.isNavigable = true;
+      }.bind(this));
+      this.cardScrollable.insertNodeBefore(newCardElem, idx);
     },
 
     onCardUpdated: function(card, idx) {
@@ -329,7 +391,7 @@
     },
 
     onMove: function(key) {
-      if (this.edit.onMove(key)) {
+      if (!this.isNavigable || this.edit.onMove(key)) {
         return;
       }
 
@@ -341,7 +403,7 @@
     },
 
     onEnter: function() {
-      if (this.edit.onEnter()) {
+      if (!this.isNavigable || this.edit.onEnter()) {
         return;
       }
 

@@ -12,14 +12,14 @@
       window.dispatchEvent(eventObj);
 
       eventObj = document.createEvent('Events');
-      eventObj.initEvent('keyup', true, true);
+      eventObj.initEvent('keypress', true, true);
       eventObj.key = key;
       eventObj.keyCode = keyCode;
       eventObj.which = keyCode;
       window.dispatchEvent(eventObj);
 
       eventObj = document.createEvent('Events');
-      eventObj.initEvent('keypress', true, true);
+      eventObj.initEvent('keyup', true, true);
       eventObj.key = key;
       eventObj.keyCode = keyCode;
       eventObj.which = keyCode;
