@@ -288,6 +288,16 @@ class GaiaData(object):
         return self.marionette.execute_script("return window.navigator.mozBluetooth.enabled")
 
     @property
+    def bluetooth_is_discoverable(self):
+        self.marionette.switch_to_frame()
+        return self.marionette.execute_script("return window.wrappedJSObject.Bluetooth.defaultAdapter.discoverable")
+
+    @property
+    def bluetooth_name(self):
+        self.marionette.switch_to_frame()
+        return self.marionette.execute_script("return window.wrappedJSObject.Bluetooth.defaultAdapter.name")
+
+    @property
     def is_cell_data_enabled(self):
         return self.get_setting('ril.data.enabled')
 
