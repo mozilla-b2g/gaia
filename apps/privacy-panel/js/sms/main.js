@@ -102,6 +102,7 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
 
       // If there is no passcode, do nothing.
       if (!this._passcodeEnabled || !this._lockscreenEnabled) {
+        // Before ready! =(
         return;
       }
 
