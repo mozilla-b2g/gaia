@@ -3014,18 +3014,29 @@ var ThreadUI = {
    * @param {Object} node element that contains message bubble text content.
    */
   enableBubbleSelection: function(node) {
+    var selection = window.getSelection();
     var threadMessagesClass = this.threadMessages.classList;
     node.addEventListener('blur', function disable() {
       node.removeEventListener('blur', disable);
       threadMessagesClass.add('editable-select-mode');
       // TODO: Remove this once the gecko could clear selection automatically
       // in bug 1101376.
-      window.getSelection().removeAllRanges();
+      selection.removeAllRanges();
     });
 
     threadMessagesClass.remove('editable-select-mode');
     node.focus();
-    window.getSelection().selectAllChildren(node);
+
+    if (node.children.length > 0) {
+      var range = document.createRange();
+      var textNodes = node.querySelectorAll('span');
+
+      range.setStartBefore(textNodes[0]);
+      range.setEndAfter(textNodes[textNodes.length - 1]);
+      selection.addRange(range);
+    } else {
+      selection.selectAllChildren(node);
+    }
   }
 };
 
