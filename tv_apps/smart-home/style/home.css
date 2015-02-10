@@ -71,8 +71,11 @@ section {
   top: -23.14rem;
   width: 100%;
   height: 14.926rem;
-  display: none;
   text-align: center;
+  /* Use visibility hidden instead of display none here because display none
+     may prevent transition happens */
+  visibility: hidden;
+  z-index: 0;
 }
 
 .card-panel smart-button {
@@ -80,6 +83,8 @@ section {
   margin-left: 1.86em;
   width: 14.926rem;
   height: 14.926rem;
+  transform: translateY(12rem);
+  opacity: 0;
 }
 
 .card-panel smart-button:first-child {
@@ -92,6 +97,11 @@ section {
   font-size: 10.07rem;
   line-height: 15.47rem;
 
+}
+
+.card smart-button.app-button {
+  /* smart-button should be in front of card-panel */
+  z-index: 1;
 }
 
 .card.focused {
