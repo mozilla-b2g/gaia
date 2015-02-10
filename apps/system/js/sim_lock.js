@@ -56,8 +56,6 @@ var SimLock = {
     window.addEventListener('simpinskip', this);
     window.addEventListener('simpinback', this);
     window.addEventListener('simpinrequestclose', this);
-
-    this._alreadyShown = false;
   },
 
   handleEvent: function sl_handleEvent(evt) {
@@ -182,6 +180,20 @@ var SimLock = {
     }
   },
 
+  isBothSlotsLocked: function sl_isBothSlotsLocked() {
+    if (!SIMSlotManager.isMultiSIM() ||
+      SIMSlotManager.hasOnlyOneSIMCardDetected()) {
+      return false;
+    }
+
+    var simSlots = SIMSlotManager.getSlots();
+    var isBothLocked = true;
+    for (var i = 0; i < simSlots.length; i++) {
+      isBothLocked = isBothLocked && simSlots[i].isLocked();
+    }
+    return isBothLocked;
+  },
+
   showIfLocked: function sl_showIfLocked(currentSlotIndex, skipped) {
     var self = this;
     if (!applications.ready) {
@@ -223,7 +235,7 @@ var SimLock = {
       }
 
       // Always showing the first slot first.
-      if (!this._alreadyShown && index > 0) {
+      if (!this._alreadyShown && this.isBothSlotsLocked() && index > 0) {
         return false;
       }
 

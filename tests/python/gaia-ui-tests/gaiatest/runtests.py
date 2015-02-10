@@ -12,7 +12,6 @@ from marionette import MarionetteTextTestRunner
 from marionette import BaseMarionetteTestRunner
 from marionette.runtests import cli
 
-from gaiatest import __name__
 from gaiatest import GaiaTestCase, GaiaOptionsMixin, GaiaTestRunnerMixin, \
     TreeherderOptionsMixin, TreeherderTestRunnerMixin
 from version import __version__
@@ -54,7 +53,7 @@ class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin,
                 os.path.dirname(__file__), 'resources'))
         BaseMarionetteTestRunner.__init__(self, **kwargs)
         GaiaTestRunnerMixin.__init__(self, **kwargs)
-        HTMLReportingTestRunnerMixin.__init__(self, name=__name__,
+        HTMLReportingTestRunnerMixin.__init__(self, name='gaiatest-v2.1',
                                               version=__version__, **kwargs)
         TreeherderTestRunnerMixin.__init__(self, **kwargs)
         self.test_handlers = [GaiaTestCase]

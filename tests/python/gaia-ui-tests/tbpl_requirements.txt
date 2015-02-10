@@ -1,1 +1,1 @@
-marionette_client
+marionette_client-mozilla-b2g34_v2_1

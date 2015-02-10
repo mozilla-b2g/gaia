@@ -164,7 +164,18 @@ var Settings = {
       Settings._currentActivity.postResult(null);
       Settings._currentActivity = null;
       Settings._currentActivitySection = null;
-      Settings.SettingsService.navigate('root');
+
+      // check bug 1120351
+      //
+      // Because "inline activity" is not in v2.1 scope, we are not able
+      // to easily postResult() back to caller app and exit Settings app.
+      //
+      // So in v2.1, if the caller app is Setting app, we will mess up its
+      // internal states and make Settings app broken.
+      //
+      // In order to perfectly workaround this problem, the better way is to
+      // close settings app when webActivity is done to mimic inline activity.
+      window.close();
     }
   },
 

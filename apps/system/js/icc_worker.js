@@ -43,9 +43,6 @@ var icc_worker = {
   '0x5': function STK_CMD_SET_UP_EVENT_LIST(message) {
     DUMP('STK_CMD_SET_UP_EVENT_LIST:', message.command.options);
     icc_events.register(message, message.command.options.eventList);
-    icc.responseSTKCommand(message, {
-      resultCode: icc._iccManager.STK_RESULT_OK
-    });
   },
 
   // STK_CMD_SET_UP_CALL
@@ -290,17 +287,6 @@ var icc_worker = {
     var options = message.command.options;
 
     DUMP('STK Input title: ' + options.text);
-
-    document.addEventListener('visibilitychange',
-      function stkInputNoAttended() {
-        document.removeEventListener('visibilitychange', stkInputNoAttended,
-          true);
-        icc.responseSTKCommand(message, {
-          resultCode:
-            icc._iccManager.STK_RESULT_UICC_SESSION_TERM_BY_USER
-        });
-        icc.hideViews();
-      }, true);
 
     var duration = options.duration;
     var timeout = (duration &&

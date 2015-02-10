@@ -8,6 +8,7 @@ var icc = {
   _defaultURL: null,
   _inputTimeout: 40000,
   _toneDefaultTimeout: 5000,
+  _screen: null,
 
   checkPlatformCompatibility: function icc_checkPlatformCompat() {
     // The STK_RESULT_ACTION_CONTRADICTION_TIMER_STATE constant will be added
@@ -22,6 +23,7 @@ var icc = {
 
   init: function icc_init() {
     this._iccManager = window.navigator.mozIccManager;
+    this._screen = document.getElementById('screen');
     this.checkPlatformCompatibility();
     var self = this;
     this.clearMenuCache(function() {
@@ -73,6 +75,14 @@ var icc = {
         self._toneDefaultTimeout = e.settingValue;
       }
     );
+
+    window.addEventListener('iac-settingsstk', function(evt) {
+      var message = evt.detail;
+      DUMP('STK_System IAC!!!!');
+      if (message === 'StkMenuHidden') {
+        window.dispatchEvent(new CustomEvent('stkMenuHidden'));
+      }
+    });
   },
 
   getIccInfo: function icc_getIccInfo() {
@@ -177,6 +187,7 @@ var icc = {
    * Response ICC Command
    */
   responseSTKCommand: function icc_responseSTKCommand(message, response) {
+    DUMP('sendStkResponse to message: ', message);
     DUMP('STK sendStkResponse -- # response = ', response);
     var _icc = icc.getIcc(message.iccId);
     _icc && _icc.sendStkResponse(message.command, response);
@@ -320,6 +331,7 @@ var icc = {
     };
 
     this.icc_alert_msg.textContent = message;
+    this._screen.classList.add('icc');
     this.icc_alert.classList.add('visible');
     this.icc_view.classList.add('visible');
   },
@@ -384,6 +396,7 @@ var icc = {
     };
 
     this.icc_confirm_msg.textContent = message;
+    this._screen.classList.add('icc');
     this.icc_confirm.classList.add('visible');
     this.icc_view.classList.add('visible');
   },
@@ -415,16 +428,27 @@ var icc = {
       });
 
     var self = this;
+
+    function stkMenuHiddenHandler(event) {
+      window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
+      self.hideViews();
+      callback(false);
+    }
+    window.addEventListener('stkMenuHidden', stkMenuHiddenHandler);
+
     this.icc_asyncconfirm_btn_no.onclick = function rejectConfirm() {
+      window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
       self.hideViews();
       callback(false);
     };
     this.icc_asyncconfirm_btn_yes.onclick = function acceptConfirm() {
+      window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
       self.hideViews();
       callback(true);
     };
 
     this.icc_asyncconfirm_msg.textContent = message;
+    this._screen.classList.add('icc');
     this.icc_asyncconfirm.classList.add('visible');
     this.icc_view.classList.add('visible');
   },
@@ -494,11 +518,19 @@ var icc = {
         timeoutId = null;
       }
     }
+    function stkMenuHiddenHandler(event) {
+      window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
+      clearInputTimeout();
+      self.hideViews();
+      self.terminateResponse(stkMessage);
+      callback(null);
+    }
     function setInputTimeout() {
       DUMP('setting new STK INPUT timeout to - ', timeout);
       if (timeout) {
         clearInputTimeout();
         timeoutId = setTimeout(function() {
+          window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
           self.hideViews();
           callback(false);
         }, timeout);
@@ -566,6 +598,7 @@ var icc = {
           options.maxLength);
       };
       this.icc_input_btn.onclick = function() {
+        window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
         clearInputTimeout();
         self.hideViews();
         callback(true, self.icc_input_box.value);
@@ -575,11 +608,13 @@ var icc = {
       this.icc_input.classList.add('yesnomode');
       this.icc_input_box.type = 'hidden';
       this.icc_input_btn_yes.onclick = function(event) {
+        window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
         clearInputTimeout();
         self.hideViews();
         callback(true, true);
       };
       this.icc_input_btn_no.onclick = function(event) {
+        window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
         clearInputTimeout();
         self.hideViews();
         callback(true, false);
@@ -588,23 +623,30 @@ var icc = {
 
     this.icc_input_box.value = '';
     this.icc_input_msg.textContent = message;
+    this._screen.classList.add('icc');
     this.icc_input.classList.add('visible');
     this.icc_view.classList.add('visible');
 
     // STK Default response (BACK, CLOSE and HELP)
     this.icc_input_header.addEventListener('action', function() {
+      window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
       clearInputTimeout();
       self.hideViews();
       self.backResponse(stkMessage);
       callback(null);
     });
+
+    window.addEventListener('stkMenuHidden', stkMenuHiddenHandler);
+
     this.icc_input_btn_close.onclick = function() {
+      window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
       clearInputTimeout();
       self.hideViews();
       self.terminateResponse(stkMessage);
       callback(null);
     };
     this.icc_input_btn_help.onclick = function() {
+      window.removeEventListener('stkMenuHidden', stkMenuHiddenHandler);
       clearInputTimeout();
       self.hideViews();
       self.responseSTKCommand(stkMessage, {
