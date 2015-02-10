@@ -41,6 +41,11 @@ section {
   display: none;
 }
 
+/* hide sections from screen reader when modal dialogs are showing */
+body.showing-dialog > section {
+  visibility: hidden;
+}
+
 /* All of the main views fill the screen */
 #fullscreen-view, #edit-view, #crop-view, #thumbnail-views {
   position: absolute;

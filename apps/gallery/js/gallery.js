@@ -950,7 +950,8 @@ function deleteSelectedItems() {
     messageArgs: {n: selected.length},
     cancelId: 'cancel',
     confirmId: 'delete',
-    danger: true
+    danger: true,
+    bodyClass: 'showing-dialog'
   }, function() { // onSuccess
     // deleteFile is O(n), so this loop is O(n*n). If used with really large
     // selections, it might have noticably bad performance.  If so, we

@@ -140,7 +140,8 @@ function deleteSingleItem() {
     messageId: msg,
     cancelId: 'cancel',
     confirmId: 'delete',
-    danger: true
+    danger: true,
+    bodyClass: 'showing-dialog'
   }, function() { // onSuccess
     // disable delete, edit and share button to prevent
     // operations while delete item

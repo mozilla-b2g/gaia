@@ -36,7 +36,6 @@ class TestGalleryMultiDelete(GaiaTestCase):
 
         # Tap the delete button and confirm by default
         gallery_multi_view.tap_delete_button()
-        gallery.wait_for_thumbnail_view_to_load()
+        gallery.wait_for_overlay_to_show()
 
-        # Verify empty gallery title.
-        Wait(self.marionette).until(lambda m: gallery.empty_gallery_title == 'No photos or videos')
+        self.assertEqual(gallery.empty_gallery_title, 'No photos or videos')
