@@ -39,6 +39,8 @@ var UtilityTray = {
     window.addEventListener('launchapp', this);
     window.addEventListener('displayapp', this);
     window.addEventListener('appopening', this);
+    window.addEventListener('appopened', this);
+    window.addEventListener('mozfullscreenchange', this);
     window.addEventListener('resize', this);
 
     // Listen for screen reader edge gestures
@@ -106,6 +108,16 @@ var UtilityTray = {
         if (this.shown) {
           this.hide();
         }
+        break;
+      case 'appopened':
+        var app = evt.detail;
+        // We won't get the touchend in this case
+        if (app && app.isFullScreen()) {
+          this.hide();
+        }
+        break;
+      case 'mozfullscreenchange':
+        this.hide();
         break;
 
       case 'launchapp':
@@ -370,6 +382,7 @@ var UtilityTray = {
     style.MozTransform = '';
     this.notifications.style.transform = 'translateY(100%)';
     this.shown = false;
+    this.active = false;
     window.dispatchEvent(new CustomEvent('utility-tray-overlayclosed'));
 
     if (!alreadyHidden) {
