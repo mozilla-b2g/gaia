@@ -13,6 +13,10 @@
   visibility: visible;
 }
 
+#main-section[data-mode="edit"] .card.focused > smart-button {
+  transform: scale(1.4);
+}
+
 #main-section[data-mode="edit"] .card.focused > .card-panel smart-button {
   transform: translateY(0);
   opacity: 1;
@@ -24,15 +28,17 @@
   transform: scale(1.2) translateY(0);
 }
 
-#main-section[data-mode="edit"] .card.focused > .card-panel smart-button:nth-child(1) {
-  transition-delay: 0.3s;
+#main-section[data-mode="edit"] .card > .card-panel smart-button:nth-child(2) {
+  transition-delay: 0.1s;
 }
 
-#main-section[data-mode="edit"] .card.focused > .card-panel smart-button:nth-child(2) {
-  transition-delay: 0.4s;
+/* Delete button may have 0.1s delay when focused */
+#main-section[data-mode="edit"] .card.focused > smart-button:not(.focused) + .card-panel smart-button {
+  transition-delay: 0s;
 }
 
-#main-section[data-mode="edit"] .card.focused > smart-button[app-type='deck'] ~ .card-panel {
+#main-section[data-mode="edit"] .card.focused > smart-button[app-type='deck'] ~ .card-panel,
+#main-section[data-mode="edit"] .card.focused > smart-button.animation-bubble-start ~ .card-panel {
   display: none;
 }
 
