@@ -633,6 +633,11 @@ span.passcode-digit[data-dot]::before {
  * when in right-to-left direction.
  */
 
-[dir='rtl'] .icon-back:before {
+[dir="rtl"] .icon-back:before {
   content: 'forward';
+}
+
+[dir="rtl"] .app-element img {
+  left: unset;
+  right: 0;
 }
