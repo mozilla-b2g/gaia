@@ -4,9 +4,11 @@
 
 try:
     from marionette.by import By
+    from marionette.wait import Wait
 except:
     from marionette_driver.by import By
-from marionette.wait import Wait
+    from marionette_driver import Wait
+
 from gaiatest import GaiaTestCase
 from gaiatest.apps.search.app import Search
 from gaiatest.apps.cost_control.app import CostControl
