@@ -34,18 +34,15 @@
         ScreenManager.turnScreenOn();
       }
 
-      var _ = navigator.mozL10n.get;
-      // TODO: Remove this message once Gecko is in sync
-      var text = 'remoteDebuggerMessage';
-      if (e.detail.session) {
-        var session = e.detail.session;
-        if (!session.server.port) {
-          text = 'remoteDebuggerPromptUSB';
-        } else {
-          text = {
-            raw: _('remoteDebuggerPromptTCP', session.client)
-          };
-        }
+      var session = e.detail.session;
+      var text;
+      if (!session.server.port) {
+        text = 'remoteDebuggerPromptUSB';
+      } else {
+        text = {
+          id: 'remoteDebuggerPromptTCP',
+          args: session.client
+        };
       }
 
       // Reusing the ModalDialog infrastructure.

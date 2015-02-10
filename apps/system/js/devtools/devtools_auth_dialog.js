@@ -17,7 +17,7 @@
                 'class="generic-dialog"' +
                 'data-z-index-level="devtools-auth-dialog" hidden>' +
              '<div class="container">' +
-               '<header data-l10n-id="devtools-auth-scan"></header>' +
+               '<header data-l10n-id="devtools-auth-scan2"></header>' +
                '<div class="video-container">' +
                  '<video></video>' +
                '</div>' +
