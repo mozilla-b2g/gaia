@@ -65,11 +65,13 @@
           this._nfcActive === enable ||
           (this.CLASS_NAME !== 'AppWindow' &&
            this.CLASS_NAME !== 'ActivityWindow' &&
-           this.CLASS_NAME !== 'PopupWindow')) {
+           this.CLASS_NAME !== 'PopupWindow') &&
+           this.CLASS_NAME !== 'HomescreenWindow') {
           // XXX: Implement this.belongToAppWindow()
         return;
       }
-      this.debug(this.name + ' is setting nfc active to: ' + enable);
+      this.debug(this.name + ':' + this.instanceID +
+        ' is setting nfc active to: ' + enable);
       try {
         this._nfcActive = enable;
         this.browser.element.setNFCFocus(enable);
