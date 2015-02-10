@@ -1181,11 +1181,11 @@
     }
 
     var idToFetch = this.isPseudo ? ctx.defaultLocale : this.id;
-    var gaiaVersion = null;
+    var appVersion = null;
     var source = 'app';
     if (typeof(navigator) !== 'undefined') {
       source = navigator.mozL10n._config.localeSources[this.id] || 'app';
-      gaiaVersion = navigator.mozL10n._config.gaiaVersion;
+      appVersion = navigator.mozL10n._config.appVersion;
     }
 
     for (var i = 0; i < ctx.resLinks.length; i++) {
@@ -1203,7 +1203,7 @@
           break;
       }
       bindingsIO[source](this.id,
-        gaiaVersion, path, type, cb, onL10nLoaded, sync);
+        appVersion, path, type, cb, onL10nLoaded, sync);
     }
   };
 
@@ -1492,26 +1492,6 @@
     attributeFilter: ['data-l10n-id', 'data-l10n-args']
   };
 
-  var Gecko2GaiaVersions = {
-    '37.0': '2.2',
-    '38.0': '3.0'
-  };
-
-  function getGaiaVersion() {
-    if (!navigator.userAgent) {
-      return undefined;
-    }
-
-    var match = /rv\:([0-9\.]+)/.exec(navigator.userAgent);
-    if (!match) {
-      return undefined;
-    }
-    if (match[1] in Gecko2GaiaVersions) {
-      return Gecko2GaiaVersions[match[1]];
-    }
-    return undefined;
-  }
-
   // Public API
 
   navigator.mozL10n = {
@@ -1552,7 +1532,7 @@
     },
     qps: PSEUDO_STRATEGIES,
     _config: {
-      gaiaVersion: getGaiaVersion(),
+      appVersion: null,
       localeSources: Object.create(null),
     },
     _getInternalAPI: function() {
@@ -1650,6 +1630,7 @@
                         .querySelectorAll('link[rel="localization"],' +
                                           'meta[name="availableLanguages"],' +
                                           'meta[name="defaultLanguage"],' +
+                                          'meta[name="appVersion"],' +
                                           'script[type="application/l10n"]');
     for (var i = 0, node; node = nodes[i]; i++) {
       var type = node.getAttribute('rel') || node.nodeName.toLowerCase();
@@ -1697,7 +1678,7 @@
 
   function getMatchingLangpack(lpVersions) {
     for (var i in lpVersions) {
-      if (lpVersions[i].target === navigator.mozL10n._config.gaiaVersion) {
+      if (lpVersions[i].target === navigator.mozL10n._config.appVersion) {
         return lpVersions[i];
       }
     }
@@ -1754,6 +1735,9 @@
         break;
       case 'defaultLanguage':
         meta.defaultLanguage = node.getAttribute('content');
+        break;
+      case 'appVersion':
+        navigator.mozL10n._config.appVersion = node.getAttribute('content');
         break;
     }
   }
