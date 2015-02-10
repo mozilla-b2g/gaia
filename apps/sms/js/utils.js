@@ -299,17 +299,17 @@
       if (size < 1000) {
         return {
           l10nId: 'attachmentSizeB',
-          l10nArgs: { n: size }
+          l10nArgs: { n: size, unit: 'byteUnit-B' }
         };
       } else if (sizeKB < 1000) {
         return {
           l10nId: 'attachmentSizeKB',
-          l10nArgs: { n: sizeKB.toFixed(1) }
+          l10nArgs: { n: sizeKB.toFixed(1), unit: 'byteUnit-KB' }
         };
       }
       return {
         l10nId: 'attachmentSizeMB',
-        l10nArgs: { n: sizeMB.toFixed(1) }
+        l10nArgs: { n: sizeMB.toFixed(1), unit: 'byteUnit-MB' }
       };
     },
 

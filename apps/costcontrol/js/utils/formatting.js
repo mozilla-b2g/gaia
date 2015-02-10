@@ -80,18 +80,18 @@ var Formatting = (function() {
   function roundData(value, positions) {
     positions = (typeof positions === 'undefined') ? 2 : positions;
     if (value < 1000) {
-      return [value.toFixed(positions), _('B')];
+      return [value.toFixed(positions), _('byteUnit-B')];
     }
 
     if (value < 1000000) {
-      return [(value / 1000).toFixed(positions), _('KB')];
+      return [(value / 1000).toFixed(positions), _('byteUnit-KB')];
     }
 
     if (value < 1000000000) {
-      return [(value / 1000000).toFixed(positions), _('MB')];
+      return [(value / 1000000).toFixed(positions), _('byteUnit-MB')];
     }
 
-    return [(value / 1000000000).toFixed(positions), _('GB')];
+    return [(value / 1000000000).toFixed(positions), _('byteUnit-GB')];
   }
 
   function getPositions(value, deltaPositions) {
