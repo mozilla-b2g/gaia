@@ -2,6 +2,8 @@
 /* global Rocketbar, MocksHelper, MockIACPort, MockSearchWindow,
    MockService, MockPromise, MockAppWindow */
 
+require('/js/browser.js');
+require('/js/browser_config_helper.js');
 require('/shared/js/event_safety.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_search_window.js');
@@ -799,6 +801,16 @@ suite('system/Rocketbar', function() {
     };
     subject.handleSearchMessage(event);
     assert.ok(hideResultsStub.calledOnce);
+
+    // private-window message
+    var eventStub = sinon.spy(window, 'dispatchEvent');
+    subject.handleSearchMessage({
+      type: 'iac-search-results',
+      detail: {
+        action: 'private-window'
+      }
+    });
+    assert.equal(eventStub.getCall(0).args[0].type, 'new-private-window');
 
     // No _port
     subject._port = null;

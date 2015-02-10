@@ -1,7 +1,7 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global ActivityWindowManager, SecureWindowFactory,
+/*global ActivityWindowManager, Browser, SecureWindowFactory,
          SecureWindowManager, HomescreenLauncher, HomescreenWindowManager,
          FtuLauncher, SourceView, ScreenManager, Places, Activities,
          DeveloperHUD, DialerAgent, RemoteDebugger, HomeGesture,
@@ -240,5 +240,8 @@ window.addEventListener('wallpaperchange', function(evt) {
     'url(' + evt.detail.url + ')';
 });
 
+
+window.browser = new Browser();
+window.browser.start();
 window.browserSettings = new BrowserSettings();
 window.browserSettings.start();
