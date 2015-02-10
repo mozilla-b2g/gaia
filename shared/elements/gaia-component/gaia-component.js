@@ -1,6 +1,10 @@
 ;(function(define){define(function(require,exports,module){
 'use strict';
 
+/**
+ * Locals
+ */
+
 var textContent = Object.getOwnPropertyDescriptor(Node.prototype, 'textContent');
 var removeAttribute = HTMLElement.prototype.removeAttribute;
 var setAttribute = HTMLElement.prototype.setAttribute;
@@ -27,22 +31,47 @@ var hasShadowCSS = (function() {
  * @public
  */
 module.exports.register = function(name, props) {
+
+  // Decide on a base protoype, create a handy
+  // reference to super (extended) class, then clean up.
+  var parent = props.extends ? props.extends.prototype : base;
+  props.super = parent;
+  delete props.extends;
+
+  // Pull out CSS that needs to be in the light-dom
+  if (props.template) {
+    var output = processCss(props.template, name);
+
+    props.template = document.createElement('template');
+    props.template.innerHTML = output.template;
+    props.lightCss = output.lightCss;
+
+    props.globalCss = props.globalCss || '';
+    props.globalCss += output.globalCss;
+  }
+
+  // Inject global CSS into the document,
+  // and delete as no longer needed
   injectGlobalCss(props.globalCss);
-  delete props.globalCSS;
+  delete props.globalCss;
 
-  var proto = Object.assign(Object.create(base), props);
-  var output = extractLightDomCSS(proto.template, name);
-  var _attrs = Object.assign(props.attrs || {}, attrs);
+  // Merge base getter/setter attributes with the user's,
+  // then define the property descriptors on the prototype.
+  var descriptors = Object.assign(props.attrs || {}, baseAttrs);
 
-  proto.template = output.template;
-  proto.lightCss = output.lightCss;
+  // Store the orginal descriptors somewhere
+  // a little more private and delete the original
+  props._attrs = props.attrs;
+  delete props.attrs;
 
-  Object.defineProperties(proto, _attrs);
+  // Create the prototype, extended from the parent
+  var proto = Object.assign(Object.create(parent), props);
 
-  // Register and return the constructor
-  // and expose `protoytpe` (bug 1048339)
-  var El = document.registerElement(name, { prototype: proto });
-  return El;
+  // Define the properties directly on the prototype
+  Object.defineProperties(proto, descriptors);
+
+  // Register the custom-element and return the constructor
+  return document.registerElement(name, { prototype: proto });
 };
 
 var base = Object.assign(Object.create(HTMLElement.prototype), {
@@ -50,10 +79,9 @@ var base = Object.assign(Object.create(HTMLElement.prototype), {
   attached: noop,
   detached: noop,
   created: noop,
-  template: '',
 
   createdCallback: function() {
-    this.injectLightCss(this);
+    injectLightCss(this);
     this.created();
   },
 
@@ -77,12 +105,26 @@ var base = Object.assign(Object.create(HTMLElement.prototype), {
    * @param  {String||null} to
    */
   attributeChangedCallback: function(name, from, to) {
-    if (this.attrs && this.attrs[name]) { this[name] = to; }
+    var prop = toCamelCase(name);
+    if (this._attrs && this._attrs[prop]) { this[prop] = to; }
     this.attributeChanged(name, from, to);
   },
 
   attachedCallback: function() { this.attached(); },
   detachedCallback: function() { this.detached(); },
+
+  /**
+   * A convenient method for setting up
+   * a shadow-root using the defined template.
+   *
+   * @return {ShadowRoot}
+   */
+  setupShadowRoot: function() {
+    if (!this.template) { return; }
+    var node = document.importNode(this.template.content, true);
+    this.createShadowRoot().appendChild(node);
+    return this.shadowRoot;
+  },
 
   /**
    * Sets an attribute internally
@@ -108,36 +150,14 @@ var base = Object.assign(Object.create(HTMLElement.prototype), {
    * @param {String} name
    * @param {String} value
    */
-  removeAttr: function() {
+  removeAttr: function(name) {
     var internal = this.shadowRoot.firstElementChild;
-    removeAttribute.call(internal, name, value);
-    removeAttribute.call(this, name, value);
-  },
-
-  /**
-   * The Gecko platform doesn't yet have
-   * `::content` or `:host`, selectors,
-   * without these we are unable to style
-   * user-content in the light-dom from
-   * within our shadow-dom style-sheet.
-   *
-   * To workaround this, we clone the <style>
-   * node into the root of the component,
-   * so our selectors are able to target
-   * light-dom content.
-   *
-   * @private
-   */
-  injectLightCss: function(el) {
-    if (hasShadowCSS) { return; }
-    this.lightStyle = document.createElement('style');
-    this.lightStyle.setAttribute('scoped', '');
-    this.lightStyle.innerHTML = el.lightCss;
-    el.appendChild(this.lightStyle);
+    removeAttribute.call(internal, name);
+    removeAttribute.call(this, name);
   }
 });
 
-var attrs = {
+var baseAttrs = {
   textContent: {
     set: function(value) {
       var node = firstChildTextNode(this);
@@ -151,12 +171,26 @@ var attrs = {
   }
 };
 
+/**
+ * Return the first child textNode.
+ *
+ * @param  {Element} el
+ * @return {TextNode}
+ */
 function firstChildTextNode(el) {
   for (var i = 0; i < el.childNodes.length; i++) {
     var node = el.childNodes[i];
     if (node && node.nodeType === 3) { return node; }
   }
 }
+
+var regex = {
+  shadowCss: /(?:\:host|\:\:content)[^{]*\{[^}]*\}/g,
+  ':host': /(?:\:host)/g,
+  ':host()': /\:host\((.+)\)/g,
+  ':host-context': /\:host-context\((.+)\)([^{,]+)?/g,
+  '::content': /(?:\:\:content)/g
+};
 
 /**
  * Extracts the :host and ::content rules
@@ -166,20 +200,34 @@ function firstChildTextNode(el) {
  *
  * @return {String}
  */
-function extractLightDomCSS(template, name) {
-  var regex = /(?::host|::content)[^{]*\{[^}]*\}/g;
+function processCss(template, name) {
+  var globalCss = '';
   var lightCss = '';
 
   if (!hasShadowCSS) {
-    template = template.replace(regex, function(match) {
-      lightCss += match.replace(/::content|:host/g, name);
+    template = template.replace(regex.shadowCss, function(match) {
+      var hostContext = regex[':host-context'].exec(match);
+
+      if (hostContext) {
+        globalCss += match
+          .replace(regex['::content'], '')
+          .replace(regex[':host-context'], '$1 ' + name + '$2')
+          .replace(/ +/g, ' '); // excess whitespace
+      } else {
+        lightCss += match
+          .replace(regex[':host()'], name + '$1')
+          .replace(regex[':host'], name)
+          .replace(regex['::content'], name);
+      }
+
       return '';
     });
   }
 
   return {
     template: template,
-    lightCss: lightCss
+    lightCss: lightCss,
+    globalCss: globalCss
   };
 }
 
@@ -196,8 +244,48 @@ function extractLightDomCSS(template, name) {
 function injectGlobalCss(css) {
   if (!css) return;
   var style = document.createElement('style');
-  style.innerHTML = css;
+  style.innerHTML = css.trim();
   document.head.appendChild(style);
+}
+
+
+/**
+ * The Gecko platform doesn't yet have
+ * `::content` or `:host`, selectors,
+ * without these we are unable to style
+ * user-content in the light-dom from
+ * within our shadow-dom style-sheet.
+ *
+ * To workaround this, we clone the <style>
+ * node into the root of the component,
+ * so our selectors are able to target
+ * light-dom content.
+ *
+ * @private
+ */
+function injectLightCss(el) {
+  if (hasShadowCSS) { return; }
+  el.lightStyle = document.createElement('style');
+  el.lightStyle.setAttribute('scoped', '');
+  el.lightStyle.innerHTML = el.lightCss;
+  el.appendChild(el.lightStyle);
+}
+
+/**
+ * Convert hyphen separated
+ * string to camel-case.
+ *
+ * Example:
+ *
+ *   toCamelCase('foo-bar'); //=> 'fooBar'
+ *
+ * @param  {Sring} string
+ * @return {String}
+ */
+function toCamelCase(string) {
+  return string.replace(/-(.)/g, function replacer(string, p1) {
+    return p1.toUpperCase();
+  });
 }
 
 });})(typeof define=='function'&&define.amd?define
