@@ -72,6 +72,12 @@ ifdef LOCALES_FILE
 	REBUILD=1
 endif
 
+# Switching XPCShell/Node.js build runner
+BUILD_RUNNER=run-js-command
+ifeq ($(RUN_ON_NODE), 1)
+BUILD_RUNNER=run-node-command
+endif
+
 -include local.mk
 
 # Headless bot does not need the full output of wget
@@ -562,11 +568,11 @@ LANG=POSIX # Avoiding sort order differences between OSes
 
 .PHONY: app
 app: b2g_sdk profile-dir
-	@$(call run-js-command,app)
+	@$(call $(BUILD_RUNNER),app)
 
 .PHONY: pre-app
 pre-app: b2g_sdk profile-dir
-	@$(call run-js-command,pre-app)
+	@$(call $(BUILD_RUNNER),pre-app)
 
 # Keep old targets just for people/scripts still using it
 .PHONY: post-manifest
@@ -584,7 +590,7 @@ webapp-zip: app
 # Get additional extensions
 $(STAGE_DIR)/additional-extensions/downloaded.json: build/config/additional-extensions.json $(wildcard .build/config/custom-extensions.json)
 ifeq ($(DESKTOP),1)
-	@$(call run-js-command,additional-extensions)
+	@$(call $(BUILD_RUNNER),additional-extensions)
 endif
 
 profile-dir:
@@ -671,7 +677,7 @@ endif # USE_LOCAL_XULRUNNER_SDK
 
 # Generate profile/prefs.js
 preferences: profile-dir b2g_sdk
-	@$(call run-js-command,preferences)
+	@$(call $(BUILD_RUNNER),preferences)
 
 # Generate profile/settings.json
 settings: pre-app
@@ -933,10 +939,10 @@ hint: node_modules/.bin/jshint
 	@./node_modules/.bin/jshint $(JSHINT_ARGS) $(JSHINTED_PATH) $(LINTED_FILES) || (echo Please consult https://github.com/mozilla-b2g/gaia/tree/master/build/jshint/README.md to get some information about how to fix jshint issues. && exit 1)
 
 csslint: b2g_sdk
-	@$(call run-js-command,csslint)
+	@$(call $(BUILD_RUNNER),csslint)
 
 jsonlint: b2g_sdk
-	@$(call run-js-command,jsonlint)
+	@$(call $(BUILD_RUNNER),jsonlint)
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
@@ -974,7 +980,7 @@ install-gaia: $(PROFILE_FOLDER) push
 # push target to update the gaia files and reboot b2g
 .PHONY: push
 push: b2g_sdk
-	@$(call run-js-command,push-to-device)
+	@$(call $(BUILD_RUNNER),push-to-device)
 
 # Copy demo media to the sdcard.
 # If we've got old style directories on the phone, rename them first.
@@ -1045,10 +1051,10 @@ really-clean: clean
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
 
 build-test-unit: b2g_sdk $(NPM_INSTALLED_PROGRAMS)
-	@$(call run-js-command,build-test,TEST_TYPE=unit REPORTER=$(REPORTER) TRY_ENV=$(TRY_ENV) TEST_FILES="$(TEST_FILES)")
+	@$(call $(BUILD_RUNNER),build-test,TEST_TYPE=unit REPORTER=$(REPORTER) TRY_ENV=$(TRY_ENV) TEST_FILES="$(TEST_FILES)")
 
 build-test-integration: b2g_sdk $(NPM_INSTALLED_PROGRAMS)
-	@$(call run-js-command,build-test,TEST_TYPE=integration REPORTER=$(REPORTER) TRY_ENV=$(TRY_ENV) TEST_FILES="$(TEST_FILES)")
+	@$(call $(BUILD_RUNNER),build-test,TEST_TYPE=integration REPORTER=$(REPORTER) TRY_ENV=$(TRY_ENV) TEST_FILES="$(TEST_FILES)")
 
 build-test-unit-coverage: $(NPM_INSTALLED_PROGRAMS)
 	@$(call run-build-coverage,build/test/unit)
