@@ -411,12 +411,19 @@
      * @param {Integer} idx The number of placeholders to create.
      */
     createPlaceholders: function(coordinates, idx, count) {
+      var isRTL = (document.documentElement.dir === 'rtl');
       for (var i = 0; i < count; i++) {
         var item = new GaiaGrid.Placeholder();
         this.items.splice(idx + i, 0, item);
         item.setPosition(idx + i);
-        item.setCoordinates((coordinates[0] + i) * this.layout.gridItemWidth,
-                            this.layout.offsetY);
+
+        var xPosition = (coordinates[0] + i) * this.layout.gridItemWidth;
+        if (isRTL) {
+          xPosition =
+            (this.layout.gridWidth - this.layout.gridItemWidth) - xPosition;
+        }
+        item.setCoordinates(xPosition, this.layout.offsetY);
+
         item.render();
       }
     },
@@ -511,9 +518,6 @@
 
           // Insert placeholders to fill remaining space
           var remaining = this.layout.cols - x;
-          if (isRTL) {
-            x = (this.layout.gridWidth - this.layout.gridItemWidth) - x;
-          }
           this.createPlaceholders([x, y], idx, remaining);
 
           // Increment the current index due to divider insertion
@@ -535,8 +539,7 @@
             xPosition =
               (this.layout.gridWidth - this.layout.gridItemWidth) - xPosition;
           }
-          item.setCoordinates(xPosition,
-                              this.layout.offsetY);
+          item.setCoordinates(xPosition, this.layout.offsetY);
           if (!item.active) {
             item.render();
 
