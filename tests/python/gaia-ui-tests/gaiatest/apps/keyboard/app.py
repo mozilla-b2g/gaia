@@ -161,7 +161,7 @@ class Keyboard(Base):
         return self.marionette.execute_script('return window.wrappedJSObject.app.inputContext.inputMode;')
 
     # this is to switch to the frame of keyboard
-    def switch_to_keyboard(self):
+    def switch_to_keyboard(self, focus=False):
         self.marionette.switch_to_frame()
         input_window = self.marionette.find_element(*self._input_window_locator)
         Wait(self.marionette).until(
@@ -170,7 +170,7 @@ class Keyboard(Base):
             % (input_window.is_displayed(), input_window.get_attribute('class')))
 
         keybframe = self.marionette.find_element(*self._keyboard_active_frame_locator)
-        return self.marionette.switch_to_frame(keybframe, focus=False)
+        return self.marionette.switch_to_frame(keybframe, focus)
 
     @property
     def current_keyboard(self):
@@ -331,6 +331,8 @@ class Keyboard(Base):
         self.apps.switch_to_displayed_app()
 
     def dismiss(self):
+        # Make sure that keyboard is focused, otherwise dismissing it doesn't work
+        self.switch_to_keyboard(focus=True)
         self.marionette.switch_to_frame()
         # navigator.mozKeyboard is needed for v1.3 support
         self.marionette.execute_script("""
