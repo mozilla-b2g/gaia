@@ -119,6 +119,9 @@ REMOTE_DEBUGGER?=0
 # Debug mode for build process
 BUILD_DEBUG?=0
 
+# Share performance and usage data
+SHARE_PERF_USAGE?=1
+
 ifeq ($(DEVICE_DEBUG),1)
 REMOTE_DEBUGGER=1
 NO_LOCK_SCREEN=1
@@ -537,7 +540,8 @@ define BUILD_CONFIG
   "VARIANT_PATH" : "$(VARIANT_PATH)", \
   "REBUILD": "$(REBUILD)", \
   "P" : "$(P)", \
-  "VERBOSE" : "$(VERBOSE)"
+  "VERBOSE" : "$(VERBOSE)", \
+  "SHARE_PERF_USAGE": "$(SHARE_PERF_USAGE)" \
 }
 endef
 
