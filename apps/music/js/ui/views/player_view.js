@@ -302,6 +302,7 @@ var PlayerView = {
     } else {
       this.shuffleButton.classList.remove('shuffle-on');
     }
+    this.shuffleButton.setAttribute('aria-pressed', this.shuffleOption);
   },
 
   setRatings: function pv_setRatings(rated) {
