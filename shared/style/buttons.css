@@ -432,7 +432,7 @@ html[dir="rtl"] li .bb-button.icon-dialog:before,
 html[dir="rtl"] li .button.icon-dialog:before {
   left: 0.8rem;
   right: unset;
-  transform: rotate(135deg);
+  transform: rotate(315deg);
   border-left: unset;
   border-right: 0.7rem solid #00aac5;
 }
