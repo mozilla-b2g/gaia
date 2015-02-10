@@ -199,9 +199,7 @@ suite('STK (App menu) >', function() {
     });
 
     test('Check initialization', function() {
-      assert.ok(document.getElementById('icc-stk-app-back'));
-      assert.ok(document.getElementById('icc-stk-help-exit'));
-      assert.ok(document.getElementById('icc-stk-exit'));
+      assert.ok(document.getElementById('icc-stk-main-header'));
       assert.ok(document.getElementById('icc-stk-header'));
       assert.ok(document.getElementById('icc-stk-subheader'));
       assert.ok(document.getElementById('icc-stk-list'));

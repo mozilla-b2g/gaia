@@ -13,9 +13,6 @@
   var _ = navigator.mozL10n.get;
 
   // Consts
-  const STK_SCREEN_DEFAULT = 0x00;
-  const STK_SCREEN_MAINMENU = 0x01;
-  const STK_SCREEN_HELP = 0x02;
   // 3GPP spec: TS 11.14
   // 13.4 Type of Command and Next Action Indicator
   const STK_NEXT_ACTION_INDICATOR = {
@@ -47,11 +44,9 @@
    * Init
    */
   var iccStkList = document.getElementById('icc-stk-list');
+  var iccStkMainHeader = document.getElementById('icc-stk-main-header');
   var iccStkHeader = document.getElementById('icc-stk-header');
   var iccStkSubheader = document.getElementById('icc-stk-subheader');
-  var exitHelp = document.getElementById('icc-stk-help-exit');
-  var backButton = document.getElementById('icc-stk-app-back');
-  var exitButton = document.getElementById('icc-stk-exit');
   var stkOpenAppName = null;
   var stkLastSelectedText = null;
   var goBackTimer = {
@@ -63,6 +58,7 @@
     timeout: 0
   };
   var _visibilityChangeHandler = null;
+  var _backHandler = function() {};
   init();
 
   function sendVisibilityChangeEvent() {
@@ -119,6 +115,8 @@
 
     document.addEventListener('visibilitychange',
       visibilityChangeHandler, false);
+
+    iccStkMainHeader.addEventListener('action', _backHandler);
   }
 
   function addCloseNotificationsEvents(message) {
@@ -195,30 +193,6 @@
   }
 
   /**
-   * Updates the STK header buttons
-   */
-  function setSTKScreenType(type) {
-    switch (type) {
-      case STK_SCREEN_MAINMENU:
-        exitButton.classList.remove('hidden');
-        backButton.classList.add('hidden');
-        exitHelp.classList.add('hidden');
-        break;
-
-      case STK_SCREEN_HELP:
-        exitButton.classList.add('hidden');
-        backButton.classList.add('hidden');
-        exitHelp.classList.remove('hidden');
-        break;
-
-      default:  // STK_SCREEN_DEFAULT
-        exitButton.classList.add('hidden');
-        backButton.classList.remove('hidden');
-        exitHelp.classList.add('hidden');
-    }
-  }
-
-  /**
    * Response ICC Command
    */
   function responseSTKCommand(message, response) {
@@ -235,10 +209,6 @@
     DUMP('STK Proactive Message:', message);
 
     stkCancelGoBack();
-
-    // By default a generic screen
-    setSTKScreenType(STK_SCREEN_DEFAULT);
-
     reopenSettings();
 
     switch (message.command.typeOfCommand) {
@@ -246,9 +216,7 @@
         addCloseNotificationsEvents(message);
         updateSelection(message);
         Settings.currentPanel = '#icc';
-        backButton.onclick = function _back() {
-          stkResGoBack(message);
-        };
+        _backHandler = stkResGoBack.bind(null, message);
         break;
 
       default:
@@ -269,7 +237,6 @@
     stkCancelGoBack();
 
     clearList();
-    setSTKScreenType(STK_SCREEN_MAINMENU);
 
     if (!menu || !menu.entries || !menu.entries.items ||
       (menu.entries.items.length == 1 && menu.entries.items[0] === null)) {
@@ -314,6 +281,10 @@
       updateMenu(menu);
       Settings.currentPanel = '#icc';
     };
+
+    _backHandler = function backToRootPanel() {
+      Settings.currentPanel = '#root';
+    };
   }
 
   function onMainMenuItemClick(event) {
@@ -332,8 +303,6 @@
 
     clearList();
 
-    setSTKScreenType(STK_SCREEN_HELP);
-
     showTitle(_('operatorServices-helpmenu'));
     menu.entries.items.forEach(function(menuItem) {
       DUMP('STK Main App Help item: ' + menuItem.text + ' # ' +
@@ -349,9 +318,7 @@
       }));
     });
 
-    exitHelp.onclick = function _closeHelp() {
-      updateMenu(menu);
-    };
+    _backHandler = updateMenu.bind(null, menu);
   }
 
   function onMainMenuHelpItemClick(event) {
@@ -427,8 +394,6 @@
 
     clearList();
 
-    setSTKScreenType(STK_SCREEN_HELP);
-
     showTitle(_('operatorServices-helpmenu'));
     menu.items.forEach(function(menuItem) {
       DUMP('STK Main App Help item: ' + menuItem.text + ' # ' +
@@ -446,9 +411,7 @@
       }));
     });
 
-    exitHelp.onclick = function _closeHelp() {
-      updateSelection(message);
-    };
+    _backHandler = updateSelection.bind(null, message);
   }
 
   function onSelectionHelpItemClick(message, event) {
