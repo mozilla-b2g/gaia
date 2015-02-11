@@ -8,6 +8,7 @@ var View = require('view');
 var dateFromId = Calc.dateFromId;
 var monthStart = Calc.monthStart;
 var performance = require('performance');
+var router = require('router');
 
 // minimum difference between X and Y axis to be considered an horizontal swipe
 var XSWIPE_OFFSET = window.innerWidth / 10;
@@ -130,7 +131,7 @@ Month.prototype = {
     setTimeout(() => {
       // don't need to set the date since the first tap triggers a click that
       // sets the  timeController.selectedDay
-      this.app.go('/event/add/');
+      router.go('/event/add/');
     }, 50);
   },
 

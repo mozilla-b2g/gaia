@@ -7,6 +7,7 @@ var dayObserver = require('day_observer');
 var isToday = require('calc').isToday;
 var nextTick = require('next_tick');
 var providerFactory = require('provider/provider_factory');
+var router = require('router');
 
 function EventBase(options) {
   View.apply(this, arguments);
@@ -282,7 +283,7 @@ EventBase.prototype = {
 
     var id = data.params.id;
     var classList = this.element.classList;
-    var last = this.app.router.last;
+    var last = router.last;
 
     if (last && last.path) {
       if (!(/^\/(day|event|month|week)/.test(last.path))) {
