@@ -154,6 +154,14 @@ function(lazyLoader, SettingsListener, SettingsHelper) {
     saveSetting: function() { 
       var value = this.type === 'checkbox' ? this.checked : this.value;
       SettingsHelper(this.name).set(value);
+      ////////////////////Saving the value to LocalForage/////////////////////////
+      console.log(this.name);
+      localforage.setItem(this.name, this.value, function(err, value) {
+   		console.log("setItem: " + value);
+			});
+			localforage.getItem(this.name).then(function(value) {
+   		console.log("getItem: " + value);
+			});
     }     
   };
 
@@ -3039,10 +3047,18 @@ define('tc/perm_details',['app_list', 'tc/perm_priority_slider'], function(appLi
           _panel.querySelector('.type-blur'),
           1,
           function(value) {
-            this.prioritySlider.getValue();
+            this.prioritySlider.getValue(_currentPerm);
           }.bind(this)
         );
-
+      /*
+      var perms = 
+    	  appList.permissions.forEach(perm => {
+    		  var temp = perm.name;
+    		  //console.log(temp);
+    	  }
+    			  ); var asdf = this.prioritySlider.getRange(1);
+      console.log(asdf);
+		*/
       window.addEventListener('localized', function tcPermDetailsLangChange() {
         this.renderPermDetails(_currentPerm);
       }.bind(this));
@@ -3229,10 +3245,11 @@ function(panels, appList, permDetails, BlurSlider) {
         link.addEventListener('click', function showAppDetails() {
           panels.show({ id: 'tc-permDetails', options: perm });
           
-          console.log(perm);
+          // testing ... 
           TestingInputName = perm.key;
-          document.querySelector('input.perm-slider').name = perm.key;
-        });
+          document.querySelector('input.perm-slider').name = perm.name;
+          
+        }); //console.log(perm);
         
         item.appendChild(link);
         list.appendChild(item);
