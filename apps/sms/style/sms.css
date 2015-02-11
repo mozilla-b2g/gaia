@@ -1024,7 +1024,7 @@ html[dir="rtl"] .contact-header aside.pack-end {
 }
 
 /* Text selection control */
-#main-wrapper {
+html {
   -moz-user-select: none;
 }
 .editable-select-mode [contenteditable] {
