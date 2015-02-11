@@ -219,7 +219,7 @@ var Settings = {
           }
         } else if (section === 'call') {
           var serviceId = activityRequest.source.data.serviceId;
-          if (serviceId) {
+          if (typeof serviceId !== "undefined") {
             DsdsSettings.setIccCardIndexForCallSettings(serviceId);
           }
         }
