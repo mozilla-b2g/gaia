@@ -318,17 +318,17 @@ TSTSerializer.prototype.serializeToNodes = function() {
 
 
 // JSConv:
-// In the JS version, since we're not directly writing to a file,
-// 'output' is a JS array. We convert to UInt8Array when we
-// finishes pushing to 'output'. This is because UInt8Array's length
-// has to be decided at instantiation.
-// XXX: See if we can pre-determine the length when instantiating
-//      the buffer.
+// In the JS version, since we're not directly writing to a file, 'output' is a
+// Uint8Array. We use an offset to record the position where we have written to
+// 'output'.
 var TSTBlobBuilder = function(nodes, characterFrequency, maxWordLength) {
   this._nodes = nodes;
   this._characterFrequency = characterFrequency;
   this._maxWordLength = maxWordLength;
   this._output = null;
+  // JSConv: a position of 0 is meaningful, so we use |undefined| here to denote
+  //         uninitialized value.
+  this._outputPos = undefined;
 };
 
 TSTBlobBuilder.prototype.debug = function(msg) {
@@ -338,28 +338,36 @@ TSTBlobBuilder.prototype.debug = function(msg) {
 };
 
 TSTBlobBuilder.prototype.toBlobArray = function() {
-  this._output = [];
+  var nodeslen = this._computeOffsets();
 
-  // JSConv: `nodeslen` in original code isn't used
-  this._computeOffsets();
+  // JSConv: The blob is (15 + (numCharTableEntry*6) + nodeslen) bytes long
+  //         Let's pre-allocate the array for better performance.
+  //         15 is (header/12B + maxWordLength/1B + charTableEntryCount/2B)
+  //         6 is (charCode/2B + charFrequency/4B)
+
+  this._output =
+    new Uint8Array(15 + (6 * Object.keys(this._characterFrequency).length) +
+                   nodeslen);
+
+  this._outputPos = 0;
 
   // 12-byte header with version number
-  this._output.push('F'.charCodeAt(0));
-  this._output.push('x'.charCodeAt(0));
-  this._output.push('O'.charCodeAt(0));
-  this._output.push('S'.charCodeAt(0));
-  this._output.push('D'.charCodeAt(0));
-  this._output.push('I'.charCodeAt(0));
-  this._output.push('C'.charCodeAt(0));
-  this._output.push('T'.charCodeAt(0));
-  this._output.push(0);
-  this._output.push(0);
-  this._output.push(0);
-  this._output.push(1);
+  this._output[this._outputPos++] = 'F'.charCodeAt(0);
+  this._output[this._outputPos++] = 'x'.charCodeAt(0);
+  this._output[this._outputPos++] = 'O'.charCodeAt(0);
+  this._output[this._outputPos++] = 'S'.charCodeAt(0);
+  this._output[this._outputPos++] = 'D'.charCodeAt(0);
+  this._output[this._outputPos++] = 'I'.charCodeAt(0);
+  this._output[this._outputPos++] = 'C'.charCodeAt(0);
+  this._output[this._outputPos++] = 'T'.charCodeAt(0);
+  this._output[this._outputPos++] = 0;
+  this._output[this._outputPos++] = 0;
+  this._output[this._outputPos++] = 0;
+  this._output[this._outputPos++] = 1;
 
   // Output the length of the longest word in the dictionary.
   // This allows to easily reject input that is longer
-  this._output.push(Math.min(this._maxWordLength, 255));
+  this._output[this._outputPos++] = Math.min(this._maxWordLength, 255);
 
   // Output a table of letter frequencies. The search algorithm may
   // want to use this to decide which diacritics to try, for example.
@@ -375,21 +383,21 @@ TSTBlobBuilder.prototype.toBlobArray = function() {
   // The original Python code used big-endian conversion, so we
   // push MSB first down to LSB.
 
-  this._output.push((characters.length >> 8) & 0xFF);
+  this._output[this._outputPos++] = (characters.length >> 8) & 0xFF;
 
-  this._output.push(characters.length & 0xFF);
+  this._output[this._outputPos++] = characters.length & 0xFF;
 
   characters.forEach(function(chFreq) {
     var charCode = chFreq.ch.charCodeAt(0);
 
-    this._output.push((charCode >> 8) & 0xFF);
-    this._output.push(charCode & 0xFF);
+    this._output[this._outputPos++] = (charCode >> 8) & 0xFF;
+    this._output[this._outputPos++] = charCode & 0xFF;
 
     var freq = chFreq.freq;
-    this._output.push((freq >> 24) & 0xFF);
-    this._output.push((freq >> 16) & 0xFF);
-    this._output.push((freq >> 8) & 0xFF);
-    this._output.push(freq & 0xFF);
+    this._output[this._outputPos++] = (freq >> 24) & 0xFF;
+    this._output[this._outputPos++] = (freq >> 16) & 0xFF;
+    this._output[this._outputPos++] = (freq >> 8) & 0xFF;
+    this._output[this._outputPos++] = freq & 0xFF;
   }, this);
 
   // Write the nodes of the tree to the array.
@@ -427,9 +435,9 @@ TSTBlobBuilder.prototype._computeOffsets = function() {
 };
 
 TSTBlobBuilder.prototype._writeUint24 = function(x) {
-  this._output.push((x >> 16) & 0xFF);
-  this._output.push((x >> 8) & 0xFF);
-  this._output.push(x & 0xFF);
+  this._output[this._outputPos++] = (x >> 16) & 0xFF;
+  this._output[this._outputPos++] = (x >> 8) & 0xFF;
+  this._output[this._outputPos++] = x & 0xFF;
 };
 
 TSTBlobBuilder.prototype._emitNode = function(node) {
@@ -443,13 +451,13 @@ TSTBlobBuilder.prototype._emitNode = function(node) {
   const freq = 31;
 
   var firstbyte = cbit | sbit | nbit | (freq & 0x1F);
-  this._output.push(firstbyte);
+  this._output[this._outputPos++] = firstbyte;
 
   if (cbit) { // If there is a character for this node
     if (sbit) { // if it is two bytes long
-      this._output.push(charcode >> 8);
+      this._output[this._outputPos++] = charcode >> 8;
     }
-    this._output.push(charcode & 0xFF);
+    this._output[this._outputPos++] = charcode & 0xFF;
   }
 
   // Write the next node if we have one
@@ -483,13 +491,12 @@ WordListConverter.prototype.toBlob = function() {
 
   var nodes = new TSTSerializer(tstBuilder.getTreeRoot()).serializeToNodes();
 
-  var blobArray =
+  this.blob =
     new TSTBlobBuilder(nodes,
                        tstBuilder.getCharacterFrequency(),
                        tstBuilder.getMaxWordLength())
     .toBlobArray();
 
-  this.blob = new Uint8Array(blobArray);
   return this.blob;
 };
 
