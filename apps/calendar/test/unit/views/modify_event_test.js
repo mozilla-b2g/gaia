@@ -12,6 +12,7 @@ var Template = require('template');
 var View = require('view');
 var nextTick = require('next_tick');
 var providerFactory = require('provider/provider_factory');
+var router = require('router');
 
 require('dom!modify_event');
 require('dom!show_event');
@@ -70,7 +71,7 @@ suite('views/modify_event', function() {
   var realGo;
 
   teardown(function() {
-    app.go = realGo;
+    router.go = realGo;
   });
 
   suiteTemplate('show-event', {
@@ -83,7 +84,7 @@ suite('views/modify_event', function() {
 
   setup(function(done) {
     app = testSupport.calendar.app();
-    realGo = app.go;
+    realGo = router.go;
 
     eventStore = app.store('Event');
     accountStore = app.store('Account');
@@ -616,7 +617,7 @@ suite('views/modify_event', function() {
         callback();
       };
 
-      app.go = function(place) {
+      router.go = function(place) {
         assert.notEqual(place, '/foo', 'redirect is changed to event url');
         done();
       };
@@ -634,7 +635,7 @@ suite('views/modify_event', function() {
       calledWith = null;
       list = subject.element.classList;
 
-      app.go = function(place) {
+      router.go = function(place) {
         redirectTo = place;
       };
     });

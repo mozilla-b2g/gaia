@@ -7,7 +7,7 @@ var Db = require('db');
 var ErrorController = require('controllers/error');
 var PendingManager = require('pending_manager');
 var RecurringEventsController = require('controllers/recurring_events');
-var Router = require('router');
+var router = require('router');
 var ServiceController = require('controllers/service');
 var SyncController = require('controllers/sync');
 var TimeController = require('controllers/time');
@@ -18,7 +18,6 @@ var messageHandler = require('message_handler');
 var nextTick = require('next_tick');
 var notificationsController = require('controllers/notifications');
 var periodicSyncController = require('controllers/periodic_sync');
-var page = require('ext/page');
 var performance = require('performance');
 var providerFactory = require('provider/provider_factory');
 var snakeCase = require('snake_case');
@@ -40,11 +39,10 @@ module.exports = {
    * must be called at least once before
    * using other methods.
    */
-  configure: function(db, router) {
-    debug('Configure calendar with db and router.');
+  configure: function(db) {
+    debug('Configure calendar with db.');
     this.db = db;
-    this.router = router;
-    this.router.app = this;
+    router.app = this;
 
     providerFactory.app = this;
 
@@ -52,17 +50,28 @@ module.exports = {
     this._routeViewFn = Object.create(null);
     this._pendingManager = new PendingManager();
 
-    var loadedSubViews = false;
+    var loadedLazyStyles = false;
 
     this._pendingManager.oncomplete = function onpending() {
       document.body.classList.remove(pendingClass);
       performance.pendingReady();
       // start loading sub-views as soon as possible
-      if (!loadedSubViews) {
-        loadedSubViews = true;
+      if (!loadedLazyStyles) {
+        loadedLazyStyles = true;
+
+        // XXX: not loading the 'lazy_loaded.js' here anymore because for some
+        // weird reason curl.js was returning an object instead of
+        // a constructor when loading the "views/view_event" when starting the
+        // app from a notification; might be related to the fact we bundled
+        // multiple modules into the same file, are using the "paths" config to
+        // set the location and also using the async require in 2 places and
+        // using different module ids for each call.. the important thing is
+        // that this should still give a good performance result and works as
+        // expected.
+
         // we need to grab the global `require` because the async require is
-        // not part of the AMD spec and is not be implemented by all loaders
-        window.require(['lazy_loaded', 'css!lazy_loaded']);
+        // not part of the AMD spec and is not implemented by all loaders
+        window.require(['css!lazy_loaded']);
       }
     };
 
@@ -153,57 +162,26 @@ module.exports = {
     window.location.href = this.startingURL;
   },
 
-  /**
-   * Navigates app to a new location.
-   *
-   * @param {String} url new view url.
-   * @param {Object} state data stored as the history state.
-   */
-  go: function(url, state) {
-    this.router.show(url, state);
-  },
-
-  /**
-   * Shortcut for app.router.state
-   */
-  state: function() {
-    this.router.state.apply(this.router, arguments);
-  },
-
-  /**
-   * Shortcut for app.router.modifier
-   */
-  modifier: function() {
-    this.router.modifier.apply(this.router, arguments);
-  },
-
-  /**
-   * Shortcut for app.router.resetState
-   */
-  resetState: function() {
-    this.router.resetState();
-  },
-
   _routes: function() {
 
     /* routes */
-    this.state('/week/', 'Week');
-    this.state('/day/', 'Day');
-    this.state('/month/', ['Month', 'MonthDayAgenda']);
-    this.modifier('/settings/', 'Settings', { clear: false });
-    this.modifier('/advanced-settings/', 'AdvancedSettings');
+    router.state('/week/', 'Week');
+    router.state('/day/', 'Day');
+    router.state('/month/', ['Month', 'MonthDayAgenda']);
+    router.modifier('/settings/', 'Settings', { clear: false });
+    router.modifier('/advanced-settings/', 'AdvancedSettings');
 
-    this.state('/alarm-display/:id', 'ViewEvent', { path: false });
+    router.state('/alarm-display/:id', 'ViewEvent', { path: false });
 
-    this.state('/event/add/', 'ModifyEvent');
-    this.state('/event/edit/:id', 'ModifyEvent');
-    this.state('/event/show/:id', 'ViewEvent');
+    router.state('/event/add/', 'ModifyEvent');
+    router.state('/event/edit/:id', 'ModifyEvent');
+    router.state('/event/show/:id', 'ViewEvent');
 
-    this.modifier('/select-preset/', 'CreateAccount');
-    this.modifier('/create-account/:preset', 'ModifyAccount');
-    this.modifier('/update-account/:id', 'ModifyAccount');
+    router.modifier('/select-preset/', 'CreateAccount');
+    router.modifier('/create-account/:preset', 'ModifyAccount');
+    router.modifier('/update-account/:id', 'ModifyAccount');
 
-    this.router.start();
+    router.start();
 
     // at this point the tabs should be interactive and the router ready to
     // handle the path changes (meaning the user can start interacting with
@@ -213,7 +191,7 @@ module.exports = {
     var pathname = window.location.pathname;
     // default view
     if (pathname === '/index.html' || pathname === '/') {
-      this.go('/month/');
+      router.go('/month/');
     }
 
   },
@@ -340,7 +318,7 @@ module.exports = {
     this.forceRestart = this.forceRestart.bind(this);
 
     if (!this.db) {
-      this.configure(new Db('b2g-calendar', this), new Router(page));
+      this.configure(new Db('b2g-calendar', this));
     }
 
     this.db.load(() => {
@@ -400,7 +378,7 @@ module.exports = {
     var snake = snakeCase(name);
     debug('Will try to load view', name);
     // we need to grab the global `require` because the async require is not
-    // part of the AMD spec and is not be implemented by all loaders
+    // part of the AMD spec and is not implemented by all loaders
     window.require([ 'views/' + snake ], (aView) => {
       debug('Loaded view', name);
       Views[name] = aView;

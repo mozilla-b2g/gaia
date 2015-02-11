@@ -9,6 +9,7 @@ var QueryString = require('querystring');
 var dateFormat = require('date_format');
 var getTimeL10nLabel = require('calc').getTimeL10nLabel;
 var nextTick = require('next_tick');
+var router = require('router');
 
 require('dom!modify-event-view');
 
@@ -412,13 +413,13 @@ ModifyEvent.prototype = {
           // We need to return all the way to the top of the stack
           // We can remove this once we have a history stack
           self.app.view('ViewEvent', function(view) {
-            self.app.go(view.returnTop(), state);
+            router.go(view.returnTop(), state);
           });
 
           return;
         }
 
-        self.app.go(self.returnTo(), state);
+        router.go(self.returnTo(), state);
       });
     }
   },
@@ -445,7 +446,7 @@ ModifyEvent.prototype = {
           // We need to return all the way to the top of the stack
           // We can remove this once we have a history stack
           self.app.view('ViewEvent', function(view) {
-            self.app.go(view.returnTop());
+            router.go(view.returnTop());
           });
         });
       };

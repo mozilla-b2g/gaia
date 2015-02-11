@@ -27,7 +27,6 @@ require.config({
 // call to list modules that are bundled to avoid duplicate defines
 require.config({
   paths: {
-    'views/current_time': 'lazy_loaded',
     'views/week': 'lazy_loaded',
     'views/advanced_settings': 'lazy_loaded',
     'views/create_account': 'lazy_loaded',

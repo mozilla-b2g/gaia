@@ -59,7 +59,6 @@ function issueNotification(alarm) {
 
     var body = event.remote.description || '';
     debug('Will send event notification with title:', title, 'body:', body);
-    notification.app = exports.app;
     return notification.sendNotification(
       title,
       body,

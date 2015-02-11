@@ -3,6 +3,7 @@ define(function(require, exports, module) {
 
 var View = require('view');
 var dateFormat = require('date_format');
+var router = require('router');
 
 var SETTINGS = /settings/;
 
@@ -15,9 +16,9 @@ function TimeHeader() {
     e.stopPropagation();
     var path = window.location.pathname;
     if (SETTINGS.test(path)) {
-      this.app.resetState();
+      router.resetState();
     } else {
-      this.app.router.show('/settings/');
+      router.show('/settings/');
     }
   });
 }

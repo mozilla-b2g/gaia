@@ -5,11 +5,9 @@ define(function(require, exports, module) {
 var NotificationHelper = require('shared/notification_helper');
 var debug = require('debug')('notification');
 var performance = require('performance');
+var router = require('router');
 
 var cachedSelf;
-
-// Will be injected...
-exports.app = null;
 
 exports.sendNotification = function(title, body, url) {
   return getSelf().then(app => {
@@ -78,7 +76,7 @@ exports.launch = launch;
 // Bring ourselves to the foreground at some url.
 function foreground(url) {
   return getSelf().then(app => {
-    exports.app.go(url);
+    router.go(url);
     return app && app.launch();
   });
 }
