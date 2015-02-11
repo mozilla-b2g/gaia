@@ -95,6 +95,8 @@ var ListView = {
       headerLi = document.createElement('li');
       headerLi.className = 'list-header';
       headerLi.textContent = this.lastFirstLetter || '?';
+      headerLi.setAttribute('role', 'heading');
+      headerLi.setAttribute('aria-level', '2');
     }
 
     return headerLi;
