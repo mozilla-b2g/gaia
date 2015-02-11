@@ -31,7 +31,7 @@
   overflow: hidden;
 }
 
-.confirm-media-frame > img {
+.confirm-media-frame > .image-view {
   top: 0;  /* javascript modifies this position with a transform */
   left: 0;
   position: absolute;
