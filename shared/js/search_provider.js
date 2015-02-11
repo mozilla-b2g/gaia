@@ -32,6 +32,7 @@
 
   // Allow consumers to wait for data to be initialised
   var readyPromise;
+  var resolver;
 
   function extend(dest, source) {
     for (var k in source) {
@@ -97,9 +98,9 @@
         provider = value;
       }
 
-      if (readyPromise && isReady()) {
-        readyPromise();
-        readyPromise = null;
+      if (resolver && isReady()) {
+        resolver();
+        resolver = null;
       }
 
       if (updatedFun) {
@@ -179,8 +180,9 @@
   };
 
   SearchProvider.ready = function() {
-    if (isReady()) {
-      return Promise.resolve();
+
+    if (readyPromise) {
+      return readyPromise;
     }
 
     // Attempt to load cached provider configuration
@@ -200,9 +202,11 @@
       }
     };
 
-    return new Promise(resolve => {
-      readyPromise = resolve;
+    readyPromise = new Promise(resolve => {
+      resolver = resolve;
     });
+
+    return readyPromise;
   };
 
   exports.SearchProvider = SearchProvider;
