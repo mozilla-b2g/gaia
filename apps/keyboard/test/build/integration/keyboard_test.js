@@ -93,11 +93,9 @@ suite('Keyboard layouts building tests', function() {
         'webapps', 'keyboard.gaiamobile.org', 'application.zip');
       var appDirPath = config.GAIA_DIR + '/apps/keyboard';
       var layoutIds =
-        fs.readdirSync(appDirPath + '/js/layouts').map(function(filename) {
-          if (path.extname(filename) !== '.js') {
-            return;
-          }
-
+        fs.readdirSync(appDirPath + '/js/layouts').filter(function(filename) {
+          return (path.extname(filename) === '.js');
+        }).map(function(filename) {
           return path.basename(filename, '.js');
         });
 
