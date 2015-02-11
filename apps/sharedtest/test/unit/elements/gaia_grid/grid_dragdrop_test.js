@@ -262,4 +262,41 @@ suite('GaiaGrid > DragDrop', function() {
     assert.isFalse(divider1.element.classList.contains('invalid-drop'));
     assert.isFalse(divider2.element.classList.contains('invalid-drop'));
   });
+
+  test('empty groups remain during dragging', function() {
+    // Each of the three bookmark items is now in a group by itself. Dragging
+    // any of them outside of that group should leave an empty group, until
+    // dragging finishes (and then that group should disappear).
+
+    // Test this by dragging the first and last items into the middle group,
+    // testing that the empty group remains until the drag finishes.
+    var firstIcon = grid.items[0];
+    var middleIcon = grid.items[4];
+    var lastIcon = grid.items[8];
+
+    // Expand the last divider
+    grid.items[9].expand();
+    this.sinon.clock.tick(20);
+
+    var nDividers = countDividers();
+    var subject = grid.dragdrop;
+    subject.icon = firstIcon;
+    subject.target = firstIcon.element;
+    subject.begin({});
+    subject.rearrange(middleIcon);
+    assert.equal(nDividers, countDividers());
+    subject.finish();
+    subject.finalize();
+    assert.equal(nDividers - 1, countDividers());
+
+    nDividers = countDividers();
+    subject.icon = lastIcon;
+    subject.target = lastIcon.element;
+    subject.begin({});
+    subject.rearrange(firstIcon);
+    assert.equal(nDividers, countDividers());
+    subject.finish();
+    subject.finalize();
+    assert.equal(nDividers - 1, countDividers());
+  });
 });
