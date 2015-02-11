@@ -1038,6 +1038,21 @@ html[dir="rtl"] .contact-header aside.pack-end {
   float: left;
 }
 
+/* ellipsis direction hack before bug 883884 fixed */
+.suggestion > .name > bdi,
+.contact-header > .name > bdi {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  max-width: 100%;
+}
+
+/* margin bottom adjustment for inline-block bdi element */
+.suggestion > .name,
+.contact-header > .name {
+  margin-bottom: -0.5rem;
+}
+
 /* Text selection control */
 html {
   -moz-user-select: none;
