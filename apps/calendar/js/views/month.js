@@ -56,7 +56,8 @@ Month.prototype = {
     if (Math.abs(data.dy) > (Math.abs(data.dx) - XSWIPE_OFFSET)) {
       return;
     }
-    this._move(data.dx < 0);
+    var dir = document.documentElement.dir === 'rtl' ? -1 : 1;
+    this._move(dir * data.dx < 0);
   },
 
   _onwheel: function(event) {
