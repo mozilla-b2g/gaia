@@ -16,18 +16,21 @@ Services.obs.addObserver(function(document) {
   }
 
   var window = document.defaultView.wrappedJSObject;
-  var messageHandler;
+  var messageHandlers = {};
 
   window.navigator.__defineGetter__('mozSetMessageHandler', function() {
     return function(type, callback) {
-      if (type === 'alarm') {
-        messageHandler = callback;
-      }
+      messageHandlers[type] = callback;
     };
   });
 
   window.__defineGetter__('fireMessageHandler', function() {
-    return function(data) {
+    return function(data, type) {
+      // For historical purposes, this only supported alarm callbacks. To avoid
+      // force updating code that still assumes that, still assume that as a
+      // default.
+      type = type || 'alarm';
+      var messageHandler = messageHandlers[type];
       if (messageHandler && typeof(messageHandler) === 'function') {
         messageHandler(data);
         return true;

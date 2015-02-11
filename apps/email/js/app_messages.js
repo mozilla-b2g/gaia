@@ -115,8 +115,8 @@ define(function(require) {
     evt.on(
         'notification', appMessages.onNotification.bind(appMessages));
 
-    // Do not listen for navigator.mozSetMessageHandler('alarm') type, that is
-    // only done in the back end's cronsync for now.
+    // Do not listen for navigator.mozSetMessageHandler('request-sync')
+    // type, that is only done in the back end's cronsync for now.
   } else {
     console.warn('Activity support disabled!');
   }

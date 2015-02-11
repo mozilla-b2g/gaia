@@ -1,9 +1,10 @@
 /*jshint browser: true */
-/*global define, console, plog, Notification */
+/*global define, console, Notification */
 'use strict';
 define(function(require) {
 
-  var appSelf = require('app_self'),
+  var cronSyncStartTime,
+      appSelf = require('app_self'),
       evt = require('evt'),
       model = require('model'),
       mozL10n = require('l10n!'),
@@ -96,6 +97,7 @@ define(function(require) {
 
     api.oncronsyncstart = function(accountIds) {
       console.log('email oncronsyncstart: ' + accountIds);
+      cronSyncStartTime = Date.now();
       var accountKey = makeAccountKey(accountIds);
       waitingOnCron[accountKey] = true;
     };
@@ -229,13 +231,9 @@ define(function(require) {
         });
 
         if (!hasBeenVisible && !stillWaiting) {
-          var msg = 'mail sync complete, closing mail app';
-          if (typeof plog === 'function') {
-            plog(msg);
-          } else {
-            console.log(msg);
-          }
-
+          console.log('sync completed in ' +
+                     ((Date.now() - cronSyncStartTime) / 1000) +
+                     ' seconds, closing mail app');
           window.close();
         }
       }

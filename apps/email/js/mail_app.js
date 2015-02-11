@@ -204,9 +204,9 @@ if (appMessages.hasPending('activity') ||
   console.log('email waitForAppMessage');
 }
 
-if (appMessages.hasPending('alarm')) {
-  // There is an alarm, do not use the cache node, start fresh,
-  // as we were woken up just for the alarm.
+if (appMessages.hasPending('request-sync')) {
+  // There is an sync task, do not use the cache node, start fresh,
+  // as we were woken up just for the sync task.
   cachedNode = null;
   startedInBackground = true;
   console.log('email startedInBackground');
