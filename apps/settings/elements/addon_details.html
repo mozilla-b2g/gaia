@@ -1,0 +1,52 @@
+<element name="addon-details" extends="section">
+  <template>
+
+    <gaia-header action="back" data-href="#addons">
+      <h1 id="addon-details-header" data-l10n-id="addon-details-header"></h1>
+    </gaia-header>
+
+    <div id="addon-details-body">
+      <ul>
+        <li id="#addon-detail-toggle">
+          <label class="pack-switch">
+            <input id="addon-enabled" type="checkbox" data-ignore>
+            <span data-l10n-id="addon-enable"></span>
+          </label>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="addon-description-header"></h2>
+      </header>
+      <p class="addon-paragraph">
+        <img id="addon-detail-icon">
+        <span id="addon-description-text"></span>
+      </p>
+      <p class="addon-paragraph" id="addon-developer"></p>
+
+      <header>
+        <h2 data-l10n-id="addon-targets"></h2>
+      </header>
+      <p id="addon-no-targets" class="addon-paragraph"
+         data-l10n-id="addon-no-targets" hidden>
+      </p>
+      <ul id="addon-targets">
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="addon-options"></h2>
+      </header>
+      <ul>
+        <li>
+          <button id="addon-share" data-l10n-id="addon-share"></button>
+        </li>
+        <li>
+          <button id="addon-delete" data-l10n-id="addon-delete" class="danger">
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <panel data-path="panels/addon_details/panel"></panel>
+  </template>
+</element>

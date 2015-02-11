@@ -2,31 +2,22 @@ define(function(require) {
   'use strict';
 
   var SettingsPanel = require('modules/settings_panel');
-  var AddonsManager = require('panels/addons/addons_manager');
   var AddonsList = require('panels/addons/addons_list');
 
   return function ctor_addons_panel() {
-    var addonsManager = AddonsManager();
-    var addonsList;
+    var view;
 
     return SettingsPanel({
       onInit: function(panel) {
-        var elements = {
-          list: panel.querySelector('.addon-list')
-        };
-        return addonsManager.init().then( () => {
-          addonsList = new AddonsList(elements.list, addonsManager);  
-        });
+        view = AddonsList(panel);
       },
 
       onBeforeShow: function() {
-        addonsList.enabled = true;
-        addonsManager.enabled = true;
+        view.render();
       },
 
       onBeforeHide: function() {
-        addonsList.enabled = false;
-        addonsManager.enabled = false;
+        view.teardown();
       }
     });
   };
