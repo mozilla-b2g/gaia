@@ -67,7 +67,6 @@
       // application which is launched by different launchURL, we must specify
       // 'launchURL' here.
       this.sendMessage('unpin', {
-        name: app.name,
         manifestURL: app.manifestURL
       });
     },
@@ -92,7 +91,6 @@
               new MozActivity({
                 name: 'pin',
                 data: {
-                  name: app.name,
                   type: 'Application',
                   group: 'app',
                   manifestURL: app.manifestURL,

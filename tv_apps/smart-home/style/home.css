@@ -206,3 +206,49 @@ nav header {
 smart-button.hidden {
   display: none;
 }
+
+
+/* For smart-button, we put card name in pseudo-element :after. However, we need
+ * to localize card name and l10n library do not support localizing element with
+ * children elements.
+ * Instead of using :after, we create a 'span' element under smart-button and
+ * put card name in it.
+ */
+smart-button[type="app-button"]:after {
+  content: none;
+}
+
+smart-button[type="app-button"] > span.name {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+
+  width: 33.6rem;
+  height: 8rem;
+
+  padding-top: 1rem;
+
+  line-height: 3rem;
+  text-align: center;
+
+  font-size: 2.8rem;
+  font-style: italic;
+  color: #ffffff;
+}
+
+smart-button[type="app-button"][app-type="deck"] > span.name {
+  background-color: transparent;
+}
+
+smart-button[type="app-button"][app-type="tv"] > span.name {
+  background-color: #d90c83;
+}
+
+smart-button[type="app-button"][app-type="app"] > span.name {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+smart-button[type="app-button"][app-type="device"] > span.name {
+  background-color: #4a82ea;
+}
+
