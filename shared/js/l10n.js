@@ -576,7 +576,7 @@
     init: function() {
       this.patterns = {
         comment: /^\s*#|^\s*$/,
-        entity: /^([^=\s]+)\s*=\s*(.+)$/,
+        entity: /^([^=\s]+)\s*=\s*(.*)$/,
         multiline: /[^\\]\\$/,
         index: /\{\[\s*(\w+)(?:\(([^\)]*)\))?\s*\]\}/i,
         unicode: /\\u([0-9a-fA-F]{1,4})/g,
