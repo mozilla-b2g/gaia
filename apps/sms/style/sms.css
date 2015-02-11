@@ -829,6 +829,12 @@ Do not remove.
   background: #fff;
 }
 
+/* Adjust the name line-height to prevent bottom of chars been cut */
+.contact-list .suggestion > .name {
+  line-height: 2.4rem;
+  margin-top: -0.2rem;
+}
+
 body[role="application"] form[role="dialog"][data-type="action"] > section:first-child{
   height: auto;
   border-bottom: 0.1rem solid #616262;
@@ -859,8 +865,8 @@ form[role="dialog"][data-type="action"].contact-prompt > header {
 }
 
 .contact-header .name {
-  line-height: 2.5rem;
-  padding: 0.5rem 0 0.8rem;
+  line-height: 3.3rem;
+  padding: 0.1rem 0 0.4rem;
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1036,6 +1042,16 @@ html[dir="rtl"] #messages-contact-pick-button .icon-user {
 /* RTL for contact prompt header */
 html[dir="rtl"] .contact-header aside.pack-end {
   float: left;
+}
+
+/* ellipsis direction hack before bug 883884 fixed */
+.ellipsis-dir-fix {
+  display: block;
+  width: -moz-fit-content;
+  max-width: 100%;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Text selection control */

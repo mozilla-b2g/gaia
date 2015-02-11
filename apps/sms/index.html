@@ -375,7 +375,7 @@
           data-number="${number}" data-source="contacts" data-name="${name}"
           data-type="${type}" data-carrier="${carrier}">
           ${photoHTML}
-          <p class="name"><bdi>${nameHTML}</bdi></p>
+          <p class="name"><bdi class="ellipsis-dir-fix">${nameHTML}</bdi></p>
           <p class="number">${phoneDetailsHTML}</p>
         </a>
       </li>
@@ -387,7 +387,7 @@
       <li>
         <div class="js-contact-info">
           ${photoHTML}
-          <p class="name"><bdi>${nameHTML}</bdi></p>
+          <p class="name"><bdi class="ellipsis-dir-fix">${nameHTML}</bdi></p>
           <p class="number">${phoneDetailsHTML}</p>
         </div>
       </li>
@@ -414,7 +414,7 @@
       <!--
       <div class="contact-header">
         ${photoHTML}
-        <p class="name"><bdi>${name}</bdi></p>
+        <p class="name"><bdi class="ellipsis-dir-fix">${name}</bdi></p>
         <p class="details">${phoneDetailsHTML}</p>
       </div>
       -->
@@ -437,7 +437,7 @@
     <div id="messages-number-tmpl" class="hide">
       <!--
       <a class="suggestion js-contact-info" data-number="${number}" data-source="manual" data-name="${number}">
-        <p class="name"><bdi>${number}</bdi></p>
+        <p class="name"><bdi class="ellipsis-dir-fix">${number}</bdi></p>
       </a>
       -->
     </div>
