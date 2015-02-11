@@ -1,5 +1,14 @@
 {
-  "name": "First Addon",
+  "type": "certified",
   "role": "addon",
-  "type": "privileged"
+  "name": "First Test",
+  "description": "A test add-on that doesn't actually do anything",
+  "developer": {
+    "name": "The Gaia Team"
+  },
+  "customizations": [{
+    "filter": ".*",
+    "css": [],
+    "scripts": []
+  }]
 }

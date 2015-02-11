@@ -1,5 +1,14 @@
 {
-  "name": "Second Addon",
+  "type": "certified",
   "role": "addon",
-  "type": "privileged"
+  "name": "Second Test",
+  "description": "Another test add-on that doesn't actually do anything",
+  "developer": {
+    "name": "The Gaia Team"
+  },
+  "customizations": [{
+    "filter": "settings.gaiamobile.org",
+    "css": [],
+    "scripts": []
+  }]
 }
