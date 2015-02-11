@@ -45,8 +45,10 @@ marionette('Search - Suggestions Test', function() {
     home.waitForLaunch();
     home.focusRocketBar();
 
+    search.triggerFirstRun(rocketbar);
     rocketbar.enterText('sometext');
     search.goToResults();
+
     // Ensure we get 2 results (hardcoded in the provider results)
     client.waitFor(function() {
       return client.findElements(search.Selectors.suggestions).length === 2;

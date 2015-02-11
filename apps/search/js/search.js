@@ -8,6 +8,8 @@
   /* global SettingsListener */
   /* global UrlHelper */
   /* global SearchProvider */
+  /* global MozActivity */
+
   // timeout before notifying providers
   var SEARCH_DELAY = 500;
   var MAX_GRID_SIZE = 4;
@@ -24,7 +26,6 @@
     offlineMessage: document.getElementById('offline-message'),
     settingsConnectivity: document.getElementById('settings-connectivity'),
     suggestionsWrapper: document.getElementById('suggestions-wrapper'),
-    loadingElement: document.getElementById('loading'),
     grid: document.getElementById('icons'),
     gridWrapper: document.getElementById('icons-wrapper'),
 
@@ -35,7 +36,9 @@
      * on first use
      */
     suggestionNotice: document.getElementById('suggestions-notice-wrapper'),
-    toShowNotice: false,
+    settingsLink: document.getElementById('settings-link'),
+
+    toShowNotice: null,
     NOTICE_KEY: 'notice-shown',
 
     init: function() {
@@ -139,37 +142,29 @@
         Object.keys(providers).forEach((providerKey) => {
           var provider = providers[providerKey];
 
-          // If suggestions are disabled, only use local providers
-          if (this.suggestionsEnabled || !provider.remote) {
-            if (provider.remote) {
-              // Do not send full URLs to remote providers
-              // or when inside a private browser.
-              if (UrlHelper.isURL(input) || msg.data.isPrivateBrowser) {
-                return;
-              }
+          var preventRemoteFetch =
+            UrlHelper.isURL(input) ||
+            msg.data.isPrivateBrowser ||
+            !this.suggestionsEnabled;
 
-              // Show the loading element when searching remote providers.
-              this.loadingElement.classList.add('loading');
-            }
-
-            if (provider.name === 'Suggestions') {
-              var toShow = input.length > 2 &&
-                this.toShowNotice &&
-                this.suggestionNotice.hidden &&
-                navigator.onLine;
-              if (toShow) {
-                this.suggestionNotice.hidden = false;
-              }
-            }
-
-            provider.search(input).then((results) => {
-              this.collect(provider, results);
-            }).catch((err) => {
-              if (provider.remote) {
-                this.loadingElement.classList.remove('loading');
-              }
-            });
+          if (provider.remote && preventRemoteFetch) {
+            return;
           }
+
+          if (provider.name === 'Suggestions') {
+            var toShow = input.length > 2 &&
+              this.toShowNotice &&
+              this.suggestionsEnabled &&
+              this.suggestionNotice.hidden &&
+              navigator.onLine;
+            if (toShow) {
+              this.suggestionNotice.hidden = false;
+            }
+          }
+
+          provider.search(input, preventRemoteFetch).then((results) => {
+            this.collect(provider, results);
+          });
         });
       }, SEARCH_DELAY);
     },
@@ -181,14 +176,30 @@
     initNotice: function() {
 
       var confirm = document.getElementById('suggestions-notice-confirm');
-
       confirm.addEventListener('click', this.discardNotice.bind(this, true));
+
+      if (this.settingsLink) {
+        this.settingsLink
+          .addEventListener('click', this.openSettings.bind(this));
+      }
 
       asyncStorage.getItem(this.NOTICE_KEY, function(value) {
         if (this.toShowNotice === null) {
           this.toShowNotice = !value;
         }
       }.bind(this));
+    },
+
+    openSettings: function() {
+      this.discardNotice();
+      /* jshint nonew: false */
+      new MozActivity({
+        name: 'configure',
+        data: {
+          target: 'device',
+          section: 'search'
+        }
+      });
     },
 
     discardNotice: function(focus) {
@@ -216,9 +227,6 @@
      * @param {Array} results The results of the provider search.
      */
     collect: function(provider, results) {
-      if (provider.remote) {
-        this.loadingElement.classList.remove('loading');
-      }
 
       if (provider.dedupes) {
         results = this.dedupe.reduce(results, provider.dedupeStrategy);
