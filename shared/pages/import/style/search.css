@@ -154,7 +154,7 @@ html[dir="rtl"] #no-result {
   display: none !important;
 }
 
-span.highlight {
+mark {
   background-color: #b2f2ff;
 }
 

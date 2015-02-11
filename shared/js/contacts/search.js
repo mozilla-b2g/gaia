@@ -40,8 +40,7 @@ contacts.Search = (function() {
       imgLoader,
       searchEnabled = false,
       source = null,
-      navigationController = null,
-      highlightClass = 'highlight';
+      navigationController = null;
 
   // The _source argument should be an adapter object that provides access
   // to the contact nodes in the app.  This is done by defining the following
@@ -137,10 +136,10 @@ contacts.Search = (function() {
   };
 
   var clearHighlights = function(node) {
-    // We travers the DOM tree and remove highlighting spans.
+    // We traverse the DOM tree and remove highlighting marks.
     // getElements instead of querySelector here because of
     // performance.
-    var highlights = node.getElementsByClassName(highlightClass);
+    var highlights = node.getElementsByTagName('mark');
     while(highlights.length) {
       var parent = highlights[0].parentNode;
       while(highlights[0].firstChild) {
@@ -154,7 +153,7 @@ contacts.Search = (function() {
   };
 
   var highlightNode = function(node) {
-    var textNode = node.querySelector('.contact-text');
+    var textNode = node.querySelector('.contact-text bdi');
     var displayedText = textNode.textContent;
     var normalizedDisplayedText = Normalizer.toAscii(displayedText);
 
@@ -668,9 +667,6 @@ contacts.Search = (function() {
     'isInSearchMode': isInSearchMode,
     'enableSearch': enableSearch,
     'selectRow': selectRow,
-    'updateSearchList': updateSearchList,
-    'getHighlightClass': function(){
-      return highlightClass;
-    }
+    'updateSearchList': updateSearchList
   };
 })();
