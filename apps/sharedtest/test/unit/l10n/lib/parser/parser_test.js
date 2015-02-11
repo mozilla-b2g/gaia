@@ -20,12 +20,21 @@ describe('L10n Parser', function() {
     assert.strictEqual(ast[0].$v, 'string');
   });
 
+  it('empty value', function() {
+    var ast = L10n.PropertiesParser.parse(null, 'id =');
+    assert.equal(ast[0].$v, '');
+  });
+
+  it('empty value with white spaces', function() {
+    var ast = L10n.PropertiesParser.parse(null, 'id =  ');
+    assert.equal(ast[0].$v, '');
+  });
+
   it('basic errors', function() {
     var strings = [
       '',
       'id',
       'id ',
-      'id =',
       '+id',
       '=id',
     ];
@@ -41,6 +50,16 @@ describe('L10n Parser', function() {
   it('basic attributes', function() {
     var ast = L10n.PropertiesParser.parse(null, 'id.attr1 = foo');
     assert.equal(ast[0].attr1, 'foo');
+  });
+
+  it('empty attribute', function() {
+    var ast = L10n.PropertiesParser.parse(null, 'id.attr1 =');
+    assert.equal(ast[0].attr1, '');
+  });
+
+  it('empty attribute with white spaces', function() {
+    var ast = L10n.PropertiesParser.parse(null, 'id.attr1 = ');
+    assert.equal(ast[0].attr1, '');
   });
 
   it('attribute errors', function() {
