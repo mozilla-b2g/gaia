@@ -1,102 +1,134 @@
-'use strict';
-
 define(function() {
-  function unobserve(_eventHandlers, prop, handler) {
-    // arguments in reverse order to support .bind(handler) for the
-    // unbind from all case
-    function removeHandler(handler, prop) {
-      var handlers = _eventHandlers[prop];
-      if (!handlers) {
+  'use strict';
+
+  var OP_PREFIX = (name) => { '$OP_' + name; };
+
+  function Observable(obj) {
+    this._init(obj);
+  }
+
+  Observable.prototype.observe = function o_observe(name, observer) {
+    this[name]; // XXX: enforce the setter
+    if (!this[OP_PREFIX(name)]) {
+      throw new Error('Observable property ' + name + ' does not exist');
+    }
+
+    if (typeof observer !== 'function') {
+      return;
+    }
+
+    if (!this._observers) {
+      this._observers = {};
+    }
+
+    var observers = this._observers[name];
+    if (typeof observers === 'undefined') {
+      observers = this._observers[name] = [];
+    }
+    observers.push(observer);
+  };
+
+  Observable.prototype.unobserve = function o_unobserve(name, observer) {
+    if (typeof name === 'function') {
+      // (observer) -- remove from every key in _observers
+      Object.keys(this._observers).forEach(
+        this._removeObserver.bind(this, name));
+    } else if (observer) {
+      // (prop, observer) -- remove observer from the specific prop
+      this._removeObserver(observer, name);
+    } else if (name in this._observers) {
+      // (prop) -- otherwise remove all observers for property
+      this._observers[name] = [];
+    }
+  };
+
+  Observable.prototype._removeObserver =
+    function o__removeObserver(observer, name) {
+      // arguments in reverse order to support .bind(observer) for the
+      // unbind from all case
+      var observers = !!this._observers && this._observers[name];
+      if (!observers) {
         return;
       }
-      var index = handlers.indexOf(handler);
+      var index = observers.indexOf(observer);
       if (index >= 0) {
-        handlers.splice(index, 1);
+        observers.splice(index, 1);
       }
+  };
+
+  Observable.prototype._init = function o_init(obj) {
+    if (!obj) {
+      return;
     }
-
-    if (typeof prop === 'function') {
-      // (handler) -- remove from every key in _eventHandlers
-      Object.keys(_eventHandlers).forEach(removeHandler.bind(null, prop));
-    } else if (handler) {
-      // (prop, handler) -- remove handler from the specific prop
-      removeHandler(handler, prop);
-    } else if (prop in _eventHandlers) {
-      // (prop) -- otherwise remove all handlers for property
-      _eventHandlers[prop] = [];
-    }
-  }
-
-  /*
-   * An Observable is able to notify its property change. It is initialized by
-   * an ordinary object.
-   */
-  function Observable(obj) {
-    var _eventHandlers = {};
-    var _observable = {
-      observe: function o_observe(p, handler) {
-        /*
-         * We should check if _observable[_p] exists. Since _observable[_p] is
-         * created along with _eventHandlers[p], here we simply check
-         * _eventHandlers[p].
-         */
-        var handlers = _eventHandlers[p];
-        if (handlers) {
-          handlers.push(handler);
-        }
-      },
-      /**
-       * unobserve([prop], handler) - remove handler from observeable callbacks
-       */
-      unobserve: unobserve.bind(null, _eventHandlers)
-    };
-
-    var _getFunctionTemplate = function(p) {
-      return function() {
-        return _observable['_' + p];
-      };
-    };
-
-    var _setFunctionTemplate = function(p) {
-      return function(value) {
-        var oldValue = _observable['_' + p];
-        if (oldValue !== value) {
-          _observable['_' + p] = value;
-          var handlers = _eventHandlers[p];
-          handlers.forEach(function(handler) {
-            handler(value, oldValue);
-          });
-        }
-      };
-    };
-
-    /*
-     * Iterate all properties in the object and create corresponding getter and
-     * setter for them.
-     */
-    for (var p in obj) {
-      // If p is a function, simply add it to the observable.
-      if (typeof obj[p] === 'function') {
-        _observable[p] = obj[p];
+    for (var name in obj) {
+      // If name is a function, simply add it to the observable.
+      if (typeof obj[name] === 'function') {
         continue;
       }
-
-      _eventHandlers[p] = [];
-
-      Object.defineProperty(_observable, '_' + p, {
-        value: obj[p],
-        writable: true
-      });
-
-      Object.defineProperty(_observable, p, {
-        enumerable: true,
-        get: _getFunctionTemplate(p),
-        set: _setFunctionTemplate(p)
+      _defineObservableProperty(this, name, {
+        value: obj[name]
       });
     }
+  };
 
-    return _observable;
+  function _ctor(obj) {
+    return new Observable(obj);
   }
 
-  return Observable;
+  function _defineObservableProperty(object, name, options) {
+    var defaultValue = options && options.value;
+    Object.defineProperty(object, name, {
+      enumerable: true,
+      get: function() {
+        var value = this[OP_PREFIX(name)];
+        if (typeof value === 'undefined') {
+          value = this[OP_PREFIX(name)] = defaultValue;
+        }
+        return value;
+      },
+      set: function(value) {
+        var oldValue = this[name];
+        if (oldValue !== value) {
+          this[OP_PREFIX(name)] = value;
+
+          var observers = !!this._observers && this._observers[name];
+          if (!observers) {
+            return;
+          }
+          observers.forEach(function(observer) {
+            observer(value, oldValue);
+          });
+        }
+      }
+    });
+  }
+
+  function _augment(prototype) {
+    Object.keys(Observable.prototype).forEach(function(key) {
+      prototype[key] = Observable.prototype[key];
+    });
+  }
+
+  Object.defineProperty(_ctor, 'augment', {
+    enumerable: true,
+    writable: false,
+    value: _augment
+  });
+
+  Object.defineProperty(_ctor, 'ctor', {
+    enumerable: true,
+    writable: false,
+    value: function(obj) {
+      Observable.call(this, obj);
+      return this;
+    }
+  });
+
+  Object.defineProperty(_ctor, 'defineObservableProperty', {
+    enumerable: true,
+    writable: false,
+    value: _defineObservableProperty
+  });
+
+  return _ctor;
 });
