@@ -1,0 +1,40 @@
+{
+  "name": "BzDeck",
+  "description": "A useful, experimental Bugzilla client demonstrating modern Web application technologies such as CSS3, DOM4, HTML5, ECMAScript 6 and WAI-ARIA.",
+  "version": "2015-02-03",
+  "launch_path": "/",
+  "developer": {
+    "name": "BriteGrid",
+    "url": "http://www.britegrid.com/"
+  },
+  "permissions": {
+    "desktop-notification": {
+      "description": "Required to show notifications on desktop or Notification Center."
+    },
+    "storage": {
+      "description": "Required to store bug data locally"
+    }
+  },
+  "activities": {
+    "view": {
+      "href": "./index.html",
+      "filters": {
+        "type": "url",
+        "url": {
+          "required": true,
+          "pattern": "/^https?:\\/\\/(?:bugzilla\\.mozilla\\.org\\/show_bug\\.cgi\\?id=|bugzil\\.la\\/)(\\d+)$/"
+        }
+      }
+    }
+  },
+  "icons": {
+    "16": "/static/images/logo/icon-16.png",
+    "32": "/static/images/logo/icon-32.png",
+    "48": "/static/images/logo/icon-48.png",
+    "64": "/static/images/logo/icon-64.png",
+    "128": "/static/images/logo/icon-128.png",
+    "256": "/static/images/logo/icon-256.png",
+    "512": "/static/images/logo/icon-512.png"
+  },
+  "default_locale": "en"
+}
