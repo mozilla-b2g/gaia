@@ -212,7 +212,8 @@
   z-index: 4;
 }
 
-.group .header span {
+.group .header span,
+.group .header button {
   position: absolute;
   height: 4rem;
   top: 0;
@@ -242,6 +243,12 @@
 .group .header .toggle {
   width: 5.34rem;
   right: 0;
+
+  border: none;
+  margin: 0;
+  padding: 0;
+
+  background-color: transparent;
   background-image: url('images/collapse_arrow.png');
   transform-origin: 50% 1.6rem;
   pointer-events: auto;

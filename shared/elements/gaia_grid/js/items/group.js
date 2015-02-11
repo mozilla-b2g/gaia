@@ -128,10 +128,11 @@
       this.headerSpanElement.appendChild(span);
 
       // Create the expand/collapse toggle
-      span = document.createElement('span');
-      span.className = 'toggle';
-      this.headerSpanElement.appendChild(span);
-      this.toggleElement = span;
+      var button = document.createElement('button');
+      button.className = 'toggle';
+      button.dataset.l10nId = 'gaia-grid-toggle-expanded';
+      this.headerSpanElement.appendChild(button);
+      this.toggleElement = button;
 
       // Create the group separator (only seen in non-edit mode)
       span = document.createElement('span');
@@ -228,6 +229,11 @@
       // Place the header span
       this.headerSpanElement.style.transform =
         'translate(0px, ' + y + 'px)';
+
+      if (this.toggleElement) {
+        var toggleLabel = this.detail.collapsed ? 'collapsed' : 'expanded';
+        this.toggleElement.dataset.l10nId = 'gaia-grid-toggle-' + toggleLabel;
+      }
 
       // Calculate the height of the background span
       if (this.detail.collapsed) {
