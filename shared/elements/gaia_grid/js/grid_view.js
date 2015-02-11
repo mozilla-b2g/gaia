@@ -366,10 +366,12 @@
       this.items.forEach(function(item, idx) {
         if (item instanceof GaiaGrid.Placeholder) {
 
-          // If the previous item is a divider, and we are in edit mode
-          // we do not remove the placeholder. This is so the section will
-          // remain even if the user drags the icon around. Bug 1014982
-          if (previousItem && previousItem instanceof GaiaGrid.Divider &&
+          // If the previous item is a divider, or there is no previous item,
+          // and we are in edit mode, we do not remove the placeholder.
+          // This is so the section will remain even if the user drags the
+          // icon around. Bug 1014982
+          if ((!previousItem ||
+               (previousItem && previousItem instanceof GaiaGrid.Divider)) &&
               this.dragdrop && this.dragdrop.inDragAction) {
             return;
           }
