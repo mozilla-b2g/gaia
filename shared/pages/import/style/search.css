@@ -148,7 +148,7 @@ form.search button[type="submit"] {
   display: none !important;
 }
 
-span.highlight {
+mark {
   background-color: #b2f2ff;
 }
 
