@@ -118,8 +118,10 @@
 
   MediaPlaybackActions.prototype.killMusicApp =
   function() {
-    this.ensure()
-      .close(this.musicAppInfo.origin);
+    try {
+      this.ensure()
+        .close(this.musicAppInfo.origin);
+    } catch(e) {}
     return this;
   };
 
