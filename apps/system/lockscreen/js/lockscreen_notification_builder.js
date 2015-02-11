@@ -52,7 +52,7 @@
   LockScreenNotificationBuilder.prototype.decorate =
   function lsnb_decorate(node) {
     // If this is the previous node before the activated one,
-    // it should hide the buttom border.
+    // it should hide the bottom border.
     var next = node.nextElementSibling;
     if (null !== next && next.classList.contains('actionable')) {
       node.classList.add('previous-actionable');

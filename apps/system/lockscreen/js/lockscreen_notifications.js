@@ -139,7 +139,7 @@
   };
 
   /**
-   * Get the notification at the buttom boundary.
+   * Get the notification at the bottom boundary.
    */
   LockScreenNotifications.prototype.notificationAtBottomBoundary =
   function lsn_notificationAtBottomBoundary() {
