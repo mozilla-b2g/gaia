@@ -9,7 +9,7 @@
   var suggestionsProvider = document.getElementById('suggestions-provider');
   var suggestionsSelect = document.getElementById('suggestions-select');
 
-  SearchProvider.providerUpdated(function() {
+  function providerUpdated() {
 
     navigator.mozL10n.setAttributes(suggestionsProvider, 'search-header', {
       provider: SearchProvider('title').toUpperCase()
@@ -31,7 +31,7 @@
 
     suggestionsSelect.innerHTML = '';
     suggestionsSelect.appendChild(selectFragment);
-  });
+  }
 
   function encodeTerms(str, search) {
     return str.replace('{searchTerms}', encodeURIComponent(search));
@@ -45,10 +45,30 @@
 
     name: 'Suggestions',
 
+    currentSearch: null,
+
     init: function() {
       Provider.prototype.init.apply(this, arguments);
+
       suggestionsSelect.addEventListener('change', function(e) {
         SearchProvider.setProvider(e.target.value);
+      });
+
+      SearchProvider.ready().then(() => {
+        providerUpdated();
+        SearchProvider.providerUpdated(() => {
+          providerUpdated();
+          this.redoSearch();
+        });
+      });
+    },
+
+    redoSearch: function() {
+      if (!this.currentSearch) {
+        return;
+      }
+      this.search(this.currentSearch).then(results => {
+        this.render(results);
       });
     },
 
@@ -59,6 +79,8 @@
     },
 
     search: function(input, preventRemote) {
+
+      this.currentSearch = input;
       this.render([input]);
 
       if (!navigator.onLine || preventRemote) {
@@ -92,11 +114,16 @@
       });
 
       suggestionsWrapper.dataset.loading = false;
-      this.clear();
+      this.container.innerHTML = '';
 
       if (ul.childNodes.length) {
         this.container.appendChild(ul);
       }
+    },
+
+    clear: function() {
+      Provider.prototype.clear.apply(this, arguments);
+      this.currentSearch = null;
     }
 
   };

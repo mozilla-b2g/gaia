@@ -29,6 +29,7 @@
 
   // Allow consumers to wait for data to be initialised
   var readyPromise;
+  var resolver;
 
   // TODO: This should implement how we pick the partner from
   // the details of the users build
@@ -71,9 +72,9 @@
         provider = value;
       }
 
-      if (readyPromise && isReady()) {
-        readyPromise();
-        readyPromise = null;
+      if (resolver && isReady()) {
+        resolver();
+        resolver = null;
       }
 
       if (updatedFun) {
@@ -131,12 +132,15 @@
   };
 
   SearchProvider.ready = function() {
-    if (isReady()) {
-      return Promise.resolve();
+
+    if (readyPromise) {
+      return readyPromise;
     }
-    return new Promise(resolve => {
-      readyPromise = resolve;
+    readyPromise = new Promise(resolve => {
+      resolver = resolve;
     });
+
+    return readyPromise;
   };
 
   exports.SearchProvider = SearchProvider;
