@@ -106,8 +106,12 @@
   animation: fadeInApp 0.6s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
+.appWindow.fast-fade-in {
+  animation: fastFadeInApp 0.3s forwards cubic-bezier(0.25, 0.0, 0.0, 1.0);
+}
+
 .appWindow.fade-out {
-  animation: fadeOutApp 0.6s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: fadeOutApp 0.6s forwards cubic-bezier(0.25, 0.0, 0.0, 1.0);
 }
 
 /* Invoking secure app moves out */
@@ -126,18 +130,23 @@
        }
 }
 
+@keyframes fastFadeInApp {
+  0%  {
+         transform: scale(1.0);
+         opacity: 0.0;
+      }
+  100% {
+         transform: scale(1.0);
+         opacity: 1.0;
+       }
+}
+
 /* Invoked secure app moves in */
 @keyframes fadeOutApp {
   0%  {
-         transform: scale(1.0);
          opacity: 1.0;
       }
-  50% {
-         transform: scale(1.5);
-         opacity: 0.5;
-      }
   100% {
-         transform: scale(2);
          opacity: 0.0;
        }
 }

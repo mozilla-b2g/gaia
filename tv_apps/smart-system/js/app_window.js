@@ -703,8 +703,8 @@
     'childWindowFactory': window.ChildWindowFactory,
   };
 
-  AppWindow.prototype.openAnimation = 'enlarge';
-  AppWindow.prototype.closeAnimation = 'reduce';
+  AppWindow.prototype.openAnimation = 'invoked';
+  AppWindow.prototype.closeAnimation = 'fade-out';
 
   /**
    * Install sub components belong to this window instance.

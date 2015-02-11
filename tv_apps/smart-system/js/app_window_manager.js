@@ -195,9 +195,8 @@
             this._updateActiveApp(appCurrent.instanceID);
           } else {
             this._updateActiveApp(appNext.instanceID);
+            appCurrent.close('immediate');
             appNext.open('immediate');
-            // HomescreenWindowManager will take care of "appCurrent.close()" so
-            // it's unnecessary to be handled here.
           }
         }.bind(this);
 
@@ -257,7 +256,7 @@
                       ((switching === true) ? 'invoked' : openAnimation));
         if (appCurrent && appCurrent.instanceID !== appNext.instanceID) {
           appCurrent.close(immediateTranstion ? 'immediate' :
-            ((switching === true) ? 'invoking' : closeAnimation));
+            ((switching === true) ? 'fade-out' : closeAnimation));
         } else {
           this.debug('No current running app!');
         }

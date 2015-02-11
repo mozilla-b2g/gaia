@@ -22,7 +22,7 @@
 
   LandingAppWindow.prototype.CLASS_NAME = 'LandingAppWindow';
 
-  LandingAppWindow.prototype.openAnimation = 'immediate';
+  LandingAppWindow.prototype.openAnimation = 'invoked';
   LandingAppWindow.prototype.closeAnimation = 'immediate';
 
   LandingAppWindow.prototype.view = function hw_view() {

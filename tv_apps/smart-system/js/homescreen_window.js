@@ -116,7 +116,7 @@
   };
 
   HomescreenWindow.prototype.openAnimation = 'immediate';
-  HomescreenWindow.prototype.closeAnimation = 'immediate';
+  HomescreenWindow.prototype.closeAnimation = 'fade-out';
 
   HomescreenWindow.prototype._handle__opening = function hw__handle__opening() {
     this.ensure();
@@ -230,9 +230,11 @@
    * this {HomescreenWindow}
    * memberof HomescreenWindow
    */
-  HomescreenWindow.prototype.showFadeOverlay = function hw_showFadeOverlay() {
-    this.fadeOverlay.classList.remove('hidden');
-  };
+  HomescreenWindow.prototype.showFadeOverlay =
+    function hw_showFadeOverlay(color) {
+      this.fadeOverlay.classList.remove('hidden');
+      this.fadeOverlay.style.backgroundColor = color || 'black';
+    };
 
   exports.HomescreenWindow = HomescreenWindow;
 }(window));

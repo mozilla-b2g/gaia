@@ -58,6 +58,7 @@
       window.addEventListener('appopened', this);
       window.addEventListener('activityopened', this);
       window.addEventListener('homescreenopened', this);
+      window.addEventListener('homescreenclosed', this);
       window.addEventListener('home', this);
       window.addEventListener('launchapp', this);
       // The removal of the followings will be at the ready event.
@@ -124,6 +125,14 @@
             this.closeHomeApp();
           }
           break;
+        case 'homescreenclosed':
+          if (this._underlayApp) {
+            // If we have _underlayApp but another app is launching, we need to
+            // close the _underlayApp.
+            this._underlayApp.close('immediate');
+            this._underlayApp = null;
+          }
+          break;
         case 'launchapp':
           if (this._underlayApp &&
               evt.detail.manifestURL === this._underlayApp.manifestURL) {
@@ -137,16 +146,12 @@
             //
             // In this case, HomescreenWindowManager will not close and reset
             // _activeHome. We should call closeHomeApp to reset the variable
-            // and focus back.
-            this.closeHomeApp();
+            // and focus back. switchApp in app window manager will handle
+            // home close.
 
             this._underlayApp.focus();
             this._underlayApp = null;
-          } else if (this._underlayApp) {
-            // If we have _underlayApp but another app is launching, we need to
-            // close the _underlayApp.
-            this._underlayApp.close();
-            this._underlayApp = null;
+            this._activeHome = null;
           }
           break;
         case 'homescreenopened':
