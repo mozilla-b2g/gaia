@@ -74,7 +74,8 @@
 .report-view > .contact-list > li {
   height: auto;
   min-height: 9rem;
-  padding: 1rem;
+  padding-top: 0.7rem;
+  padding-bottom: 1rem;
   -moz-padding-end: 0;
   -moz-padding-start: 1.5rem;
 }
@@ -101,7 +102,7 @@
 
   font-size: 1.8rem;
   font-weight: 500;
-  line-height: 2rem;
+  line-height: 2.6rem;
 }
 
 .report-view > .contact-list aside {
@@ -110,7 +111,7 @@
 }
 
 .report-view > .contact-list .number {
-  padding-top: 0.9rem;
+  padding-top: 0.6rem;
 }
 
 .report-view > .contact-list div {
