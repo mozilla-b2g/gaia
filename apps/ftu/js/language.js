@@ -44,7 +44,7 @@ var LanguageManager = {
   buildLanguageList: function settings_buildLanguageList() {
     var container = document.querySelector('#languages ul');
     container.innerHTML = '';
-    LanguageList.get(function fillLanguageList(allLanguages, currentLanguage) {
+    LanguageList.get().then(function fillLanguageList([allLanguages, currentLanguage]) {
       for (var lang in allLanguages) {
         var input = document.createElement('input');
         input.type = 'radio';

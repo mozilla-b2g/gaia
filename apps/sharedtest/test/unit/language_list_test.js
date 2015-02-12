@@ -41,7 +41,7 @@ suite('Language List', function() {
     });
 
     test('the first time loads languages from file', function(done) {
-      LanguageList.get(function() {
+      LanguageList.get().then(function() {
         assert.isTrue(LanguageList._readFile.called,
                       '_readFile is called');
         assert.isTrue(LanguageList._readSetting.called,
@@ -54,7 +54,7 @@ suite('Language List', function() {
     });
 
     test('on consecutive calls loads languages from cache', function(done) {
-      LanguageList.get(function() {
+      LanguageList.get().then(function() {
         assert.isFalse(LanguageList._readFile.called,
                       '_readFile is not called');
         assert.isTrue(LanguageList._readSetting.called,

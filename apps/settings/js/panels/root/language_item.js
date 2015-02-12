@@ -31,7 +31,7 @@ define(function(require) {
      */
     _refreshText: function l_refeshText(element) {
       // display the current locale in the main panel
-      LanguageList.get(function displayLang(languages, currentLanguage) {
+      LanguageList.get().then(function displayLang([languages, currentLanguage]) {
         element.textContent = LanguageList.wrapBidi(
           currentLanguage, languages[currentLanguage]);
       });
@@ -52,7 +52,7 @@ define(function(require) {
       if (this._enabled === value || !navigator.mozL10n) {
         return;
       }
-      
+
       this._enabled = value;
       if (this._enabled) {
         window.addEventListener('localized', this._boundRefreshText);

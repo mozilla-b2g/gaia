@@ -12,7 +12,7 @@ define(function(require) {
 
   Languages.prototype = {
     buildList: function() {
-      LanguageList.get(function fillList(languages, currentLang) {
+      LanguageList.get().then(function fillList([languages, currentLang]) {
         var options = document.createDocumentFragment();
         for (var lang in languages) {
           var isCurrent = (lang === currentLang);
