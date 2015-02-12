@@ -401,6 +401,7 @@
       pageX += this.gridView.layout.gridItemWidth / 2;
       pageY += this.icon.pixelHeight / 2;
       if (pageY >= 0) {
+        this.container.classList.remove('hover-over-top');
         insertDividerAtTop = false;
         foundIndex =
           this.gridView.getNearestItemIndex(pageX, pageY, iconIsDivider);
@@ -415,7 +416,6 @@
       }
       if (this.hoverItem) {
         this.hoverItem.element.classList.remove('hovered');
-        this.container.classList.remove('hover-over-top');
         this.hoverItem = null;
       }
 
@@ -450,7 +450,7 @@
       // Otherwise, if the item isn't a collection or a group, trigger the
       // hovered state on the found item.
       if (insertDividerAtTop || (iconIsDivider && pageY < 0)) {
-        this.container.classList.add('hover-over-top');
+        insertDividerAtTop = true;
       } else if (foundItem.detail.type !== 'collection' ||
                  (this.icon.detail.type !== 'collection' && !iconIsDivider)) {
         this.hoverItem = foundItem;
@@ -467,9 +467,7 @@
       if (!insertDividerAtTop && !iconIsDivider &&
           (foundItem.detail.type === 'divider')) {
         // Allow dropping into a collapsed group
-        createDivider = !foundItem.detail.collapsed ||
-          (pageY >= foundItem.y + foundItem.pixelHeight);
-        if (!createDivider) {
+        if (foundItem.detail.collapsed) {
           rearrangeAfterDelay = false;
           foundItem.element.classList.remove('hovered');
 
@@ -478,6 +476,8 @@
           if (this.icon.detail.index < foundIndex) {
             foundItem = this.gridView.items[foundIndex - 1];
           }
+        } else {
+          createDivider = true;
         }
       }
 
@@ -489,16 +489,35 @@
         }
 
         // Cancel rearrangement if it would have no effect.
-        if (this.gridView.items[foundIndex].element.classList.
-            contains('invalid-drop')) {
-          if (insertDividerAtTop) {
-            this.container.classList.remove('hover-over-top');
+        var redundantRearrange = false;
+        if (insertDividerAtTop) {
+          if (iconIsDivider) {
+            redundantRearrange = true;
+            for (var i = this.icon.detail.index - 1; i >= 0; i--) {
+              if (this.gridView.items[i].detail.type === 'divider') {
+                redundantRearrange = false;
+                break;
+              }
+            }
+          } else {
+            if (this.icon.detail.index === 0 &&
+                this.gridView.items[1].detail.type === 'placeholder') {
+              redundantRearrange = true;
+            }
           }
+        } else {
+          redundantRearrange = this.gridView.items[foundIndex].element.
+            classList.contains('invalid-drop');
+        }
+
+        if (redundantRearrange) {
           if (this.hoverItem) {
             this.hoverItem.element.classList.remove('hovered');
             this.hoverItem = null;
           }
           return;
+        } else if (insertDividerAtTop) {
+          this.container.classList.add('hover-over-top');
         }
 
         this.doRearrange =
