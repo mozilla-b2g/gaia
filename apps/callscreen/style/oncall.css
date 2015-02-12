@@ -837,6 +837,11 @@
     padding-right: 3rem;
   }
 
+  html[dir="rtl"] #calls:not(.big-duration) #group-call-label {
+    padding-right: 0;
+    text-align: right;
+  }
+
   #group-call .hangup-button,
   #calls:not(.big-duration) #group-call > .duration.isTimer{
     display: none;
