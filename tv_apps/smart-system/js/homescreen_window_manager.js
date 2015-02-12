@@ -56,6 +56,7 @@
       window.addEventListener('open-app', this);
       window.addEventListener('webapps-launch', this);
       window.addEventListener('appopened', this);
+      window.addEventListener('appterminated', this);
       window.addEventListener('activityopened', this);
       window.addEventListener('homescreenopened', this);
       window.addEventListener('homescreenclosed', this);
@@ -78,6 +79,7 @@
       window.removeEventListener('open-app', this);
       window.removeEventListener('webapps-launch', this);
       window.removeEventListener('appopened', this);
+      window.removeEventListener('appterminated', this);
       window.removeEventListener('activityopened', this);
       window.removeEventListener('homescreenopened', this);
       window.removeEventListener('launchapp', this);
@@ -125,6 +127,12 @@
             this.closeHomeApp();
           }
           break;
+        case 'appterminated':
+          if (this._underlayApp &&
+              evt.detail.manifestURL === this._underlayApp.manifestURL) {
+            this._underlayApp = null;
+          }
+          break;
         case 'homescreenclosed':
           if (this._underlayApp) {
             // If we have _underlayApp but another app is launching, we need to
@@ -135,7 +143,8 @@
           break;
         case 'launchapp':
           if (this._underlayApp &&
-              evt.detail.manifestURL === this._underlayApp.manifestURL) {
+              evt.detail.manifestURL === this._underlayApp.manifestURL &&
+              !evt.detail.stayBackground) {
 
             // The 'appopened' event will not be fired in this case because this
             // app is already opened. AppWindowManager will change the active
