@@ -1361,10 +1361,11 @@ suite('system/AppWindow', function() {
       assert.isNull(sheets[1].previousWindow);
     });
 
-    test('Error event', function() {
+    test('Error event while suspending is disabled', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var stubKill = this.sinon.stub(app1, 'kill');
       var stubPublish = this.sinon.stub(app1, 'publish');
+      AppWindow.SUSPENDING_ENABLED = false;
       app1.handleEvent({
         type: 'mozbrowsererror',
         detail: {
@@ -1394,7 +1395,7 @@ suite('system/AppWindow', function() {
             type: 'fatal'
           }
         });
-        assert.isTrue(app1.isCrashed);
+        assert.isFalse(app1.isCrashed);
         assert.isTrue(stubDestroyBrowser.called);
         assert.isTrue(stubKill.called);
         AppWindow.SUSPENDING_ENABLED = false;
