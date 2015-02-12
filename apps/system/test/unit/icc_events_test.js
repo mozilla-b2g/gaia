@@ -453,7 +453,7 @@ suite('STK (icc_events) >', function() {
       icc_events.register(message, message.command.options.eventList);
     }
 
-    window.dispatchEvent(new CustomEvent('lockscreen-appopened'));
+    window.dispatchEvent(new CustomEvent('homescreenopened'));
     assert.isTrue(icc1.sendStkEventDownload.calledOnce);
     icc1.sendStkEventDownload.restore();
     icc_events.handleIdleScreenAvailableEvent.restore();
