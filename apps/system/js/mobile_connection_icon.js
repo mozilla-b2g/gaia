@@ -47,10 +47,11 @@
     var allAbsent = SIMSlotManager.getSlots().every(function(simslot) {
       return simslot.isAbsent();
     });
-    this.element.dataset.multiple = allAbsent ? 'false' : 'true';
+    this.element.dataset.multiple = SIMSlotManager.isMultiSIM();
     if (allAbsent) {
       // XXX: show absent icon
       this.debug('Force showing icon at index 0 due to all absent');
+      this.element.dataset.multiple = false;
       this.signals[0].show(true);
     }
     var onceVisible = this.signals.some(function(icon) {
