@@ -916,7 +916,7 @@ form[role="combobox"] span[data-field="type"] {
   color: #5f5f5f;
   height: 5rem;
   vertical-align: middle;
-  padding-left: 4rem;
+  -moz-padding-start: 4rem;
   margin: 0;
 }
 
