@@ -231,7 +231,7 @@ suite('Nfc Handover Manager Functions', function() {
 
     setup(function() {
       MockBluetooth.enabled = true;
-
+      MockBluetoothTransfer.fileTransferInProgress = false;
       spySendNDEF = this.sinon.spy(MockMozNfc.MockNFCPeer, 'sendNDEF');
 
       fileRequest = {
@@ -276,6 +276,18 @@ suite('Nfc Handover Manager Functions', function() {
       var ndefPromise = spySendNDEF.returnValues[0];
       ndefPromise.mFulfillToValue();
       assert.equal(1, NfcHandoverManager.sendFileQueue.length);
+    });
+
+    test('Sending aborts when another file is transmitted concurrently',
+      function() {
+
+      MockBluetoothTransfer.fileTransferInProgress = true;
+      var stubShowNotification = this.sinon.stub(NfcHandoverManager,
+                                                 '_showTryAgainNotification');
+      MockNavigatormozSetMessageHandler.mTrigger(
+        'nfc-manager-send-file', fileRequest);
+      assert.isTrue(stubShowNotification.calledOnce,
+                    'Notification not shown');
     });
 
     test('Aborts when sendNDEF() fails.', function() {
@@ -351,6 +363,26 @@ suite('Nfc Handover Manager Functions', function() {
       sendFileRequest.fireSuccess();
 
       assert.isTrue(fileRequest.onsuccess.calledOnce);
+    });
+
+    test('Empty Handover Select results in abort',
+      function() {
+
+      fileRequest.onerror = sinon.stub();
+      NfcHandoverManager.sendFileQueue.push(fileRequest);
+
+      var stubShowNotification = this.sinon.stub(NfcHandoverManager,
+                                                 '_showTryAgainNotification');
+      var spySendFile = this.sinon.spy(MockBluetoothTransfer,
+        'sendFileViaHandover');
+
+      var select = NDEFUtils.encodeEmptyHandoverSelect();
+      NfcHandoverManager._handleHandoverSelect(select);
+
+      assert.isTrue(spySendFile.notCalled);
+      assert.isTrue(fileRequest.onerror.calledOnce);
+      assert.isTrue(stubShowNotification.calledOnce,
+                    'Notification not shown');
     });
   });
 

@@ -7,6 +7,7 @@
 
   var MockBluetoothTransfer = {
     sendFileQueueEmpty: true,
+    fileTransferInProgress: false,
     sendFileViaHandover: function(mac, blob) {
       var req = new MockDOMRequest();
       var details = {received: false,
@@ -22,6 +23,10 @@
 
     get isSendFileQueueEmpty() {
       return MockBluetoothTransfer.sendFileQueueEmpty;
+    },
+
+    get isFileTransferInProgress() {
+      return MockBluetoothTransfer.fileTransferInProgress;
     }
   };
 
