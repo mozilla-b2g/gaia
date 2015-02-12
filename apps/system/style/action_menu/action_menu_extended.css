@@ -27,7 +27,7 @@
 form[role="dialog"][data-type="action"] > menu > button.icon,
 form[role="dialog"][data-type="object"] > menu > button.icon {
   background-repeat: no-repeat;
-  padding-left: 4rem;
+  -moz-padding-start: 4rem;
   background-size: 3rem;
   background-position: 0.5rem center;
 }
