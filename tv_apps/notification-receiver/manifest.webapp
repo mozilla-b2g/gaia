@@ -16,8 +16,8 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "354": "/style/icons/appic_developer_354.png",
-    "708": "/style/icons/appic_developer_708.png"
+    "90": "/style/icons/appic_iot_90.png",
+    "135": "/style/icons/appic_iot_135.png"
   },
   "permissions": {
     "systemXHR":{},
