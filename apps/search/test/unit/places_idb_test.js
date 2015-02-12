@@ -85,6 +85,25 @@ suite('search/places_idb', function() {
     });
   });
 
+  test('Test frecency filter', function(done) {
+    Promise.all([
+      subject.add('url', place(google, -1, 0)),
+      subject.add('url', place(yahoo, -2, 2)),
+      subject.add('url', place(mozilla, 1, 3))
+    ]).then(function() {
+      subject.read('frecency', 5, function(results) {
+        assert.equal(results.length, 1);
+        assert.equal(results[0].url, mozilla);
+        done();
+      }, function(place) {
+        if (place.frecency <= 0) {
+          return false;
+        }
+        return true;
+      });
+    });
+  });
+
   test('Test filter', function(done) {
     Promise.all([
       subject.add('url', place(mozilla, 1, 0)),
