@@ -179,6 +179,15 @@
   max-width: 100%;
 }
 
+/*
+Disable events for placeholders, so we don't trigger touch events in edit mode.
+We only do this in edit-mode, otherwise we might trigger entering edit mode
+instead of the context menu.
+*/
+.edit-mode .placeholder {
+  pointer-events: none;
+}
+
 #confirm-message {
   z-index: 100;
 }
@@ -326,6 +335,10 @@
 .edit-mode .group .separator > span {
   opacity: 0;
 }
+
+/* For preventing entering edit mode when long-pressing on a placeholder */
+.edit-mode .group .background,
+.edit-mode .group .shadow,
 
 .group.collapsed .header,
 .group.collapsed .background,
