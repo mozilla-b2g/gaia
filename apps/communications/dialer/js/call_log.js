@@ -556,6 +556,10 @@ var CallLog = {
     main.appendChild(addInfo);
 
     if (phoneNumberTypeL10nId) {
+      // Check if this element has a `bdi` child, and remove it if it does.
+      var bdiPrim = primInfoMain.querySelector('bdi');
+      primInfoMain.removeChild(bdiPrim);
+
       primInfoMain.setAttribute('data-l10n-id', phoneNumberTypeL10nId);
       var primElem = primInfoMain.parentNode;
       var parent = primElem.parentNode;
@@ -970,14 +974,17 @@ var CallLog = {
    */
   updateContactInfo: function cl_updateContactInfo(element, contact,
                                                    matchingTel) {
-    var primInfoCont = element.getElementsByClassName('primary-info-main')[0];
+    var primInfoCont = element.querySelector('.primary-info-main');
     var addInfo = element.getElementsByClassName('additional-info')[0];
     var typeAndCarrier = addInfo.querySelector('.type-carrier');
 
     if (!matchingTel) {
       if (element.dataset.contactId) {
         // Remove contact info.
-        primInfoCont.textContent = element.dataset.phoneNumber;
+        primInfoCont.textContent = '';
+        var bdi = document.createElement('bdi');
+        bdi.textContent = element.dataset.phoneNumber;
+        primInfoCont.appendChild(bdi);
         typeAndCarrier.textContent = '';
         delete element.dataset.contactId;
       }
