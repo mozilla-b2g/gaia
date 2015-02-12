@@ -1,4 +1,4 @@
-/* global Notification */
+/* global Notification, asyncStorage */
 (function(exports) {
   'use strict';
 
@@ -17,6 +17,11 @@
   proto.init = function fs_init() {
     this._urlBox = $('url-text-box');
     this._seekBox = $('seek-text-box');
+    asyncStorage.getItem('latest-url', function(v) {
+      if (v) {
+        this._urlBox.value = v;
+      }
+    }.bind(this));
 
     ['start-btn', 'close-btn', 'load-btn', 'play-btn', 'pause-btn',
      'seek-btn'].forEach(function(id) {
@@ -47,6 +52,7 @@
             this.closeSession();
             break;
           case 'load-btn':
+            asyncStorage.setItem('latest-url', this._urlBox.value);
             this.sendCommand('load', {
               'url': this._urlBox.value
             });
