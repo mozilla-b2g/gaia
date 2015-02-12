@@ -556,7 +556,8 @@ var CallLog = {
     main.appendChild(addInfo);
 
     if (phoneNumberTypeL10nId) {
-      primInfoMain.setAttribute('data-l10n-id', phoneNumberTypeL10nId);
+      primInfoMain.querySelector('bdi')
+        .setAttribute('data-l10n-id', phoneNumberTypeL10nId);
       var primElem = primInfoMain.parentNode;
       var parent = primElem.parentNode;
       parent.insertBefore(addInfo, primElem.nextElementSibling);
