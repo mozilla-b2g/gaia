@@ -20,12 +20,17 @@ exports.sendNotification = function(title, body, url) {
     var icon = NotificationHelper.getIconURI(app);
     icon += '?';
     icon += url;
-    var notification = new Notification(title, { body: body, icon: icon });
+    var notification = new Notification(title, {
+      body: body,
+      icon: icon,
+      // we use the URL as the ID so we display a single notification for each
+      // busytime (it will override previous notifications)
+      tag: url
+    });
     return new Promise((resolve, reject) => {
       notification.onshow = resolve;
       notification.onerror = reject;
       notification.onclick = function() {
-        notification.close();
         launch(url);
       };
     });
@@ -59,6 +64,12 @@ function getSelf() {
  * Start the calendar app and open the url.
  */
 function launch(url) {
+  // we close all the notifications for the same busytime when we launch the
+  // app; we do it like this to make sure we use the same codepath for cases
+  // where notification was handled by mozSetMessageHandler or by the
+  // Notification instance onclick listener (Bug 1132336)
+  closeNotifications(url);
+
   if (performance.isComplete('moz-app-loaded')) {
     return foreground(url);
   }
@@ -78,6 +89,12 @@ function foreground(url) {
   return getSelf().then(app => {
     router.go(url);
     return app && app.launch();
+  });
+}
+
+function closeNotifications(url) {
+  Notification.get({ tag: url }).then(notifications => {
+    notifications.forEach(n => n.close());
   });
 }
 
