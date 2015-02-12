@@ -59,7 +59,7 @@
  */
 
 .preview-menu {
-  position: relative;   
+  position: relative;
   z-index: 1; /* 1 */
   opacity: 0;
   visibility: hidden;
@@ -75,6 +75,15 @@
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
+}
+
+/**
+ * 1. HACK
+ * To revert mirroring applied by button.css
+ * https://bugzilla.mozilla.org/show_bug.cgi?id=1128861
+ */
+html[dir="rtl"] button.preview-share-icon:before {
+  transform: none; /* 1 */
 }
 
 /**
