@@ -20,10 +20,12 @@ gaia-menu {
   font-size: 0;
   color: #fff;
   display: block;
+  transition: transform ease-in-out 0.3s, visibility 0.3s;
 }
 
 gaia-menu[hidden] {
-  display: none;
+  transform: translateY(100%);
+  visibility: hidden;
 }
 
 gaia-menu:before {
