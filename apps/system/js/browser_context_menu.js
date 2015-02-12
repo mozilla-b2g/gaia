@@ -125,6 +125,7 @@
     }
     this._injected = true;
     this.buildMenu(menu);
+    this.app && this.app.blur();
     this.element.classList.add('visible');
   },
 
