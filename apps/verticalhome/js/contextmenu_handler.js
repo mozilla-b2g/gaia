@@ -31,7 +31,7 @@
                            'js/contextmenu_ui.js'];
           LazyLoader.load(resources, function loaded() {
             // pass the event through for processing
-            setTimeout(() => { contextMenuUI.show(e); });
+            contextMenuUI.show(e);
           });
 
           break;
