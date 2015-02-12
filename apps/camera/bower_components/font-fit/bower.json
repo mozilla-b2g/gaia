@@ -1,10 +1,10 @@
 {
-  "name": "gaia-component",
-  "version": "0.2.1",
+  "name": "font-fit",
+  "main": "font-fit.js",
+  "version": "0.2.2",
   "authors": [
     "Wilson Page <wilsonpage@me.com>"
   ],
-  "main": "gaia-component.js",
   "license": "MIT",
   "ignore": [
     "**/.*",
