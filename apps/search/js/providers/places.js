@@ -371,6 +371,9 @@
             return formatPlace(result, filter);
           }));
         }, function filterFun(result) {
+          if (result.frecency <= 0) {
+            return false;
+          }
           var url = parseUrl(result.url);
           var matches = !(url.hostname in matchedOrigins) &&
             (matchesFilter(result.title, filter) ||
