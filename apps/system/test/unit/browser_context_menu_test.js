@@ -149,10 +149,12 @@ suite('system/BrowserContextMenu', function() {
   test('launch menu', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var md1 = new BrowserContextMenu(app1);
+    this.sinon.stub(app1, 'blur');
     var stubStopPropagation =
       this.sinon.stub(fakeContextMenuEvent, 'stopPropagation');
 
     md1.handleEvent(fakeContextMenuEvent);
+    assert.isTrue(app1.blur.called);
     assert.isTrue(stubStopPropagation.called);
     assert.isTrue(md1.element.classList.contains('visible'));
     assert.equal(
