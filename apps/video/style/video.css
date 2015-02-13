@@ -678,7 +678,8 @@ body:not(.pick-activity) #picker-close {
  *    in shadow-dom.
  */
 
-body:not(.pick-activity) #picker-done {
+body:not(.pick-activity) #picker-done,
+body:not(.pick-activity) #picker-header {
   display: none !important; /* 1 */
 }
 
@@ -754,6 +755,11 @@ body.pick-activity #thumbnails-bottom {
 .layout-fullscreen-player #thumbnail-list-view,
 .layout-fullscreen-player #thumbnails {
   display: none;
+}
+
+/* overlay mode */
+.overlay #app-container {
+  visibility: hidden;
 }
 
 /* spinner is only valid for tablet and landscape mode */

@@ -42,6 +42,11 @@ function getAsset(filename, loadCallback) {
   req.send();
 }
 
+function testOverlayVisibility(expected) {
+  assert.equal(document.body.classList.contains('overlay'), expected);
+  assert.equal(dom.overlay.classList.contains('hidden'), !expected);
+}
+
 suite('Video App Unit Tests', function() {
   var nativeMozL10n;
   var videoName = 'video name';
@@ -228,6 +233,8 @@ suite('Video App Unit Tests', function() {
     setup(function() {
       dom.overlayTitle.setAttribute('data-l10n-id', '');
       dom.overlayText.setAttribute('data-l10n-id', '');
+      dom.overlay.classList.add('hidden');
+      document.body.classList.remove('overlay');
     });
 
     suiteTeardown(function() {
@@ -241,7 +248,7 @@ suite('Video App Unit Tests', function() {
       thumbnailList.addItem({'name': thumbnailItemName});
       updateDialog();
       setTimeout(function() {
-        assert.isTrue(dom.overlay.classList.contains('hidden'));
+        testOverlayVisibility(false);
         done();
       }, 1);
     });
@@ -260,6 +267,7 @@ suite('Video App Unit Tests', function() {
 
       // Allow lazy loader to load
       setTimeout(function() {
+        testOverlayVisibility(true);
         assert.isTrue(dom.overlayMenu.classList.contains('hidden'));
         assert.isTrue(dom.overlayActionButton.classList.contains('hidden'));
         assert.equal(dom.overlayTitle.getAttribute('data-l10n-id'),
@@ -285,6 +293,7 @@ suite('Video App Unit Tests', function() {
 
       // Allow lazy loader to load
       setTimeout(function() {
+        testOverlayVisibility(true);
         assert.isFalse(dom.overlayMenu.classList.contains('hidden'));
         assert.isFalse(dom.overlayActionButton.classList.contains('hidden'));
         assert.equal(dom.overlayActionButton.getAttribute('data-l10n-id'),
@@ -310,6 +319,7 @@ suite('Video App Unit Tests', function() {
 
       // Allow lazy loader to load
       setTimeout(function() {
+        testOverlayVisibility(true);
         assert.isTrue(dom.overlayMenu.classList.contains('hidden'));
         assert.isTrue(dom.overlayActionButton.classList.contains('hidden'));
         assert.equal(dom.overlayTitle.getAttribute('data-l10n-id'),
@@ -333,6 +343,7 @@ suite('Video App Unit Tests', function() {
 
       // Allow lazy loader to load
       setTimeout(function() {
+        testOverlayVisibility(true);
         assert.isTrue(dom.overlayMenu.classList.contains('hidden'));
         assert.isTrue(dom.overlayActionButton.classList.contains('hidden'));
         assert.equal(dom.overlayTitle.getAttribute('data-l10n-id'),
