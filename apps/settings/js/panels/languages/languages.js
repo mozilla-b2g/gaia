@@ -43,10 +43,11 @@ define(function(require) {
         var version = result['deviceinfo.os'];
         /* jshint -W031 */
         new window.MozActivity({
-          name: 'marketplace-langpacks',
+          name: 'marketplace-category',
           data: {
+            slug: 'langpacks',
             // Marketplace expects major.minor
-            version: version.split('.').slice(0, 2).join('.')
+            fxos_version: version.split('.').slice(0, 2).join('.')
           }
         });
       });
