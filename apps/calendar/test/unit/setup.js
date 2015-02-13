@@ -12,6 +12,11 @@ function configureLoader() {
       sharedtest: '/shared/test/unit',
       test: '/test/unit'
     },
+    map: {
+      '*': {
+        'ext/page': 'test/support/fake_page'
+      }
+    },
     shim: {
       'ext/caldav': { exports: 'Caldav' },
       'ext/ical': { exports: 'ICAL' },
@@ -39,7 +44,7 @@ function l10nMeta(defaultLanguage, availableLanguages) {
   var metaAL = document.createElement('meta');
   metaAL.setAttribute('name', 'availableLanguages');
   metaAL.setAttribute('content', availableLanguages.join(', '));
-  
+
   document.head.appendChild(metaDL);
   document.head.appendChild(metaAL);
 }
@@ -314,9 +319,7 @@ window.testSupport.calendar = {
   app: function() {
     var Db = requirejs('db');
     var MockProvider = requirejs('test/support/mock_provider');
-    var Router = requirejs('router');
     var app = requirejs('app');
-    var fakePage = requirejs('test/support/fake_page');
     var providerFactory = requirejs('provider/provider_factory');
 
     if (app._pendingManger) {
@@ -331,7 +334,7 @@ window.testSupport.calendar = {
     }
 
     var db = new Db('b2g-test-calendar');
-    app.configure(db, new Router(fakePage));
+    app.configure(db);
     providerFactory.app = app;
     providerFactory.providers.Mock = new MockProvider({ app: app });
     app.dateFormat = navigator.mozL10n.DateTimeFormat();
