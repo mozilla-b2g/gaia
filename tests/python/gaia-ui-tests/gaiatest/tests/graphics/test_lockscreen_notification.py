@@ -36,6 +36,9 @@ class TestLockScreen(GaiaImageCompareTestCase):
         self.marionette.execute_script('new Notification("%s", {body: "%s"});'
                                        % (self._notification_title + "_3", self._notification_body + "_3"))
         Wait(self.marionette).until(lambda m: len(lock_screen.notifications) == 3)
-        import time
-        time.sleep(3)  # wait until the notification banner is closed
+
+        # wait until device is off and turn back on
+        Wait(self.marionette, timeout=20).until(
+            lambda m: not self.device.is_screen_enabled)
+        self.device.turn_screen_on()
         self.take_screenshot()
