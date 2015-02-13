@@ -3,8 +3,7 @@
 var assert = require('chai').assert;
 var proxyquire = require('proxyquire');
 var path = require('path');
-var mockUtils =
-  require('./mock_utils.js');
+var mockUtils = require('./mock_utils.js');
 
 suite('webapp-optimize.js', function() {
   var app;

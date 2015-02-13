@@ -3,8 +3,7 @@
 var assert = require('chai').assert;
 var path = require('path');
 var proxyquire = require('proxyquire');
-var mockUtils =
-  require('./mock_utils.js');
+var mockUtils = require('./mock_utils.js');
 
 suite('webapp-shared.js', function() {
   var app;

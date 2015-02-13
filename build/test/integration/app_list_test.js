@@ -1,8 +1,5 @@
 'use strict';
 
-/* jshint node: true, mocha: true */
-/* global suiteSetup */
-
 var assert = require('chai').assert;
 var helper = require('./helper');
 var fs = require('fs');

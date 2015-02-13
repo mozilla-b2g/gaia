@@ -1,7 +1,7 @@
 'use strict';
 
-/* global require, process, suite, setup, test, teardown */
-/* jshint -W101 */
+/* jshint maxlen: 130 */
+
 var rmrf = require('rimraf').sync;
 var AdmZip = require('adm-zip');
 var helper = require('./helper');

@@ -1,8 +1,5 @@
 'use strict';
 
-/* jshint node: true, mocha: true */
-/* global suiteSetup, suiteTeardown */
-
 var assert = require('chai').assert;
 var rmrf = require('rimraf').sync;
 var helper = require('./helper');
