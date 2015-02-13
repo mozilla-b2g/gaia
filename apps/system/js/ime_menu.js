@@ -36,8 +36,7 @@
 
       dummy.innerHTML = Template('ime-menu-template').interpolate({
         title: this.title,
-        cancelLabel: _('cancel'),
-        settingsLabel: _('ime-settings')
+        cancelLabel: _('cancel')
       });
       this.container = dummy.firstElementChild;
 
