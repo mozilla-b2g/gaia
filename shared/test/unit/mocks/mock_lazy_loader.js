@@ -5,16 +5,13 @@ var MockLazyLoader = {
   load: function(fileArray, callback) {
     if (callback) {
       callback();
+    } else {
+      return {
+        then: function(callback) {
+          callback();
+        }
+      };
     }
-    return new Promise(function(resolve) {
-      if (this.mLoadRightAway) {
-        resolve();
-      }
-    }.bind(this));
-  },
-
-  mTeardown: function() {
-    this.mLoadRightAway = false;
   },
 
   getJSON: function(file) {

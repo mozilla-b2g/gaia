@@ -2,9 +2,8 @@
 
 /* globals MockPromise, MockNfc, MockBluetooth, MocksHelper, NDEF,
            MockService, NfcUtils, MozActivity, NfcHandoverManager,
-           MockNfcHandoverManager, BaseModule, MockLazyLoader, NfcIcon */
+           MockNfcHandoverManager, BaseModule */
 
-require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/js/nfc_utils.js');
 require('/shared/test/unit/mocks/mock_event_target.js');
@@ -18,9 +17,6 @@ requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_bluetooth.js');
 require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/js/base_module.js');
-requireApp('system/js/base_ui.js');
-requireApp('system/js/base_icon.js');
-requireApp('system/js/nfc_icon.js');
 requireApp('system/js/nfc_manager.js');
 
 var mocksForNfcManager = new MocksHelper([
@@ -29,8 +25,7 @@ var mocksForNfcManager = new MocksHelper([
   'ScreenManager',
   'SettingsListener',
   'NfcHandoverManager',
-  'Service',
-  'LazyLoader'
+  'Service'
 ]).init();
 
 var MockMessageHandlers = {};
@@ -55,13 +50,10 @@ suite('Nfc Manager Functions', function() {
     instanceID: 'instanceID'
   };
   setup(function() {
-    window.NfcHandoverManager = MockNfcHandoverManager;
-    MockLazyLoader.mLaodRightAway = true;
-    this.sinon.spy(MockLazyLoader, 'load');
     fakeApp = new window.AppWindow(fakeAppConfig);
     realMozSetMessageHandler = window.navigator.mozSetMessageHandler;
     window.navigator.mozSetMessageHandler = MockMozSetMessageHandler;
-
+    window.NfcHandoverManager = MockNfcHandoverManager;
     realMozBluetooth = window.navigator.mozBluetooth;
     Object.defineProperty(navigator, 'mozBluetooth', {
       configurable: true,
@@ -86,17 +78,6 @@ suite('Nfc Manager Functions', function() {
       }
     });
     stubWriteSetting.restore();
-  });
-
-  test('Should lazy load icon', function() {
-    assert.isTrue(MockLazyLoader.load.calledWith(['js/nfc_icon.js']));
-  });
-
-  test('Should update icon once hardware state changed', function() {
-    nfcManager.icon = new NfcIcon(nfcManager);
-    this.sinon.stub(nfcManager.icon, 'update');
-    nfcManager._handleNFCOnOff();
-    assert.isTrue(nfcManager.icon.update.called);
   });
 
   suite('start', function() {

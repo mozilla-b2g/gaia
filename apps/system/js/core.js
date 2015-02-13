@@ -13,14 +13,7 @@
   Core.SUB_MODULES = [
     'HierarchyManager',
     'AirplaneMode',
-    'NotificationsSystemMessage',
-    'AlarmMonitor',
-    'DebuggingMonitor',
-    'NetworkActivity',
-    'TimeCore',
-    'GeolocationCore',
-    'TetheringMonitor',
-    'UsbCore'
+    'NotificationsSystemMessage'
   ];
 
   Core.SERVICES = [
@@ -31,7 +24,6 @@
     name: 'Core',
 
     REGISTRY: {
-      'mozTelephony': 'TelephonyMonitor',
       'mozSettings': 'SettingsCore',
       'mozBluetooth': 'BluetoothCore',
       'mozMobileConnections': 'MobileConnectionCore',

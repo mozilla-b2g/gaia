@@ -1,6 +1,6 @@
 'use strict';
 
-/* globals MockNavigatorMozMobileConnections, Service */
+/* globals MockNavigatorMozMobileConnections */
 
 requireApp('system/js/update_manager.js');
 
@@ -12,7 +12,7 @@ requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_system_banner.js');
 requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/js/service.js');
+requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_wake_lock.js');
@@ -24,6 +24,7 @@ requireApp('system/test/unit/mock_asyncStorage.js');
 require('/test/unit/mock_update_manager.js');
 
 var mocksForUpdateManager = new MocksHelper([
+  'StatusBar',
   'SystemBanner',
   'NotificationScreen',
   'UtilityTray',
@@ -111,7 +112,6 @@ suite('system/UpdateManager', function() {
   });
 
   setup(function() {
-    this.sinon.stub(Service, 'request');
     // they are automatically restored at teardown by the test agent
     this.sinon.useFakeTimers();
 
@@ -1902,8 +1902,8 @@ suite('system/UpdateManager', function() {
           });
 
           test('should ask for statusbar indicator', function() {
-            var incMethod = 'incDownloads';
-            assert.isTrue(Service.request.calledWith(incMethod));
+            var incMethod = 'incSystemDownloads';
+            assert.ok(MockStatusBar.wasMethodCalled[incMethod]);
           });
 
           test('should request wifi wake lock', function() {
@@ -1958,8 +1958,8 @@ suite('system/UpdateManager', function() {
           });
 
           test('should remove statusbar indicator', function() {
-            var decMethod = 'decDownloads';
-            assert.isTrue(Service.request.calledWith(decMethod));
+            var decMethod = 'decSystemDownloads';
+            assert.ok(MockStatusBar.wasMethodCalled[decMethod]);
           });
 
           test('should release the wifi wake lock', function() {

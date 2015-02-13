@@ -1,10 +1,9 @@
-/* global Service, LazyLoader */
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
 
 var Wifi = {
-  name: 'Wifi',
-
   wifiEnabled: true,
 
   wifiDisabledByWakelock: false,
@@ -24,30 +23,12 @@ var Wifi = {
 
   _scanTimer: null,
 
-  _enabled: false,
-
-  get enabled() {
-    return this._enabled;
-  },
-
   init: function wf_init() {
     if (!window.navigator.mozSettings)
       return;
 
-    if (!window.navigator.mozWifiManager) {
+    if (!window.navigator.mozWifiManager)
       return;
-    }
-
-    this.wifiManager = window.navigator.mozWifiManager;
-
-    Service.request('stepReady', '#wifi').then(function() {
-      return LazyLoader.load(['js/wifi_icon.js']);
-    }.bind(this)).then(function() {
-      this.icon = new WifiIcon(this);
-      this.icon.start();
-    }.bind(this))['catch'](function(err) { // XXX: workaround gjslint
-      console.error(err);
-    });
 
     window.addEventListener('screenchange', this);
 
@@ -80,24 +61,18 @@ var Wifi = {
     var wifiManager = window.navigator.mozWifiManager;
     // when wifi is really enabled, emit event to notify QuickSettings
     wifiManager.onenabled = function onWifiEnabled() {
-      self._enabled = true;
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('wifi-enabled',
         /* canBubble */ true, /* cancelable */ false, null);
       window.dispatchEvent(evt);
-      self.icon && self.icon.update();
     };
 
     // when wifi is really disabled, emit event to notify QuickSettings
     wifiManager.ondisabled = function onWifiDisabled() {
-      this._enabled = false;
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('wifi-disabled',
         /* canBubble */ true, /* cancelable */ false, null);
       window.dispatchEvent(evt);
-      if (self.icon) {
-        self.icon.update();
-      }
     };
 
     // when wifi status change, emit event to notify StatusBar/UpdateManager
@@ -106,11 +81,6 @@ var Wifi = {
       evt.initCustomEvent('wifi-statuschange',
         /* canBubble */ true, /* cancelable */ false, null);
       window.dispatchEvent(evt);
-      self.icon && self.icon.update();
-    };
-
-    wifiManager.onconnectioninfoupdate = function() {
-      self.icon && self.icon.update();
     };
 
     SettingsListener.observe(
@@ -121,8 +91,6 @@ var Wifi = {
     SettingsListener.observe('wifi.sleepMode', true, function(value) {
       self.wifiSleepMode = value;
     });
-
-    Service.registerState('enabled', this);
 
     // Track the wifi.enabled mozSettings value
     SettingsListener.observe('wifi.enabled', true, function(value) {
@@ -141,9 +109,6 @@ var Wifi = {
       }
 
       self.wifiEnabled = value;
-      if (self.icon) {
-        self.icon && self.icon.update();
-      }
 
       clearTimeout(self._scanTimer);
       if (!value)

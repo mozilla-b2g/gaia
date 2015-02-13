@@ -1,4 +1,4 @@
-/* global WifiWakeLockManager, MocksHelper, MockLazyLoader */
+/* global WifiWakeLockManager */
 
 'use strict';
 
@@ -6,12 +6,7 @@ require('/test/unit/mock_wifi_manager.js');
 require('/test/unit/mock_navigator_moz_power.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
-require('/shared/test/unit/mocks/mock_lazy_loader.js');
-requireApp('system/test/unit/mock_ftu_launcher.js');
-requireApp('system/js/service.js');
-requireApp('system/js/base_ui.js');
-requireApp('system/js/base_icon.js');
-requireApp('system/js/wifi_icon.js');
+
 require('/js/wake_lock_manager.js');
 
 var MockScreenManager = {
@@ -61,17 +56,12 @@ function MockAddEventListener(event, listener) {
   MockEventListener[event] = listener;
 }
 
-var mocksForWifi = new MocksHelper([
-  'LazyLoader'
-]).init();
-
 suite('WiFi > ', function() {
   var stubMozSettings;
   var stubWifiManager;
   var stubRequestWakeLock;
   var stubAddEventListener;
   var stubWifiWakeLockManager;
-  mocksForWifi.attachTestHelpers();
 
   var fakeClock;
 
@@ -86,9 +76,6 @@ suite('WiFi > ', function() {
   var firstRequire = true;
 
   setup(function(done) {
-    MockLazyLoader.mLoadRightAway = true;
-    MockFtuLauncher.mReadyRightAway = true;
-    this.sinon.spy(MockLazyLoader, 'load');
     stubRequestWakeLock = this.sinon.stub(navigator,
       'requestWakeLock', MockRequestWakeLock);
 
@@ -154,23 +141,7 @@ suite('WiFi > ', function() {
     navigator.mozWifiManager = realWifiManager;
   });
 
-  test('Should lazy load icon', function(done) {
-    assert.isFalse(MockLazyLoader.load.calledWith(['js/wifi_icon.js']));
-    Service.register('stepReady', MockFtuLauncher);
-    Service.request('stepReady', 'test').then(function() {
-      assert.isTrue(MockLazyLoader.load.calledWith(['js/wifi_icon.js']));
-      done();
-    });
-  });
-
   suite('Init', function() {
-    setup(function() {
-      Wifi.icon = new WifiIcon(Wifi);
-      this.sinon.stub(Wifi.icon, 'update');
-    });
-    teardown(function() {
-      Wifi.icon = null;
-    });
     test('Test Wifi.handleEvent is bind', function() {
       var isMaybeToggleWifiCalled = false;
       var stubWifiMaybeToggleWifi =
@@ -204,13 +175,10 @@ suite('WiFi > ', function() {
 
       navigator.mozWifiManager.onenabled();
       assert.equal(localEvent.type, 'wifi-enabled');
-      assert.isTrue(Wifi.icon.update.called);
       navigator.mozWifiManager.ondisabled();
       assert.equal(localEvent.type, 'wifi-disabled');
-      assert.isTrue(Wifi.icon.update.calledTwice);
       navigator.mozWifiManager.onstatuschange();
       assert.equal(localEvent.type, 'wifi-statuschange');
-      assert.isTrue(Wifi.icon.update.calledThrice);
 
       stubDispatchEvent.restore();
     });
@@ -239,7 +207,6 @@ suite('WiFi > ', function() {
         Wifi.wifiEnabled = false;
         SettingsListener.mCallbacks['wifi.enabled'](true);
         assert.equal(Wifi.wifiEnabled, true);
-        assert.isTrue(Wifi.icon.update.called);
     });
 
     test('Test SettingsListener callback wifi.enabled is set to false',
@@ -247,7 +214,6 @@ suite('WiFi > ', function() {
         Wifi.wifiEnabled = true;
         SettingsListener.mCallbacks['wifi.enabled'](false);
         assert.equal(Wifi.wifiEnabled, false);
-        assert.isTrue(Wifi.icon.update.called);
     });
 
     test('Test WifiWakeLockManager is started', function() {

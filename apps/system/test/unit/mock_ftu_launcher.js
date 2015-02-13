@@ -4,12 +4,6 @@
   exports.MockFtuLauncher = {
     mIsRunning: false,
     mIsUpgrading: false,
-    mReadyRightAway: false,
-    mTeardown: function() {
-      this.mIsRunning = false;
-      this.mIsUpgrading = false;
-      this.mReadyRightAway = false;
-    },
 
     isFtuRunning: function() {
       return this.mIsRunning;
@@ -26,14 +20,6 @@
       return 'app://ftu.gaiamobile.org';
     },
 
-    respondToHierarchyEvent: function() {},
-
-    stepReady: function() {
-      return new Promise(function(resolve) {
-        if (this.mReadyRightAway) {
-          resolve();
-        }
-      }.bind(this));
-    }
+    respondToHierarchyEvent: function() {}
   };
 }(window));

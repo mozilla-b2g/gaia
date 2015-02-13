@@ -143,7 +143,11 @@ suite('Nfc Handover Manager Functions', function() {
     });
 
     test('nfc/system_nfc_connect_dialog is loaded', function() {
-      this.sinon.stub(MockLazyLoader, 'load');
+      this.sinon.stub(MockLazyLoader, 'load').returns({
+        then: function(callback) {
+          callback();
+        }
+      });
       nfcHandoverManager.nfcConnectSystemDialog = null;
       nfcHandoverManager.tryHandover(activityInjection1.records,
                                      activityInjection1.peer);
@@ -229,12 +233,9 @@ suite('Nfc Handover Manager Functions', function() {
 
     test('_handleHandoverSelect() attempts to pair BT devices', function() {
       var handoverSelect = NDEFUtils.encodeHandoverSelect(mac, cps);
-
-      nfcHandoverManager.bluetooth.enabled = true;
       nfcHandoverManager._handleHandoverSelect(handoverSelect);
       assert.isTrue(spyPairing.calledOnce);
       assert.equal(mac, spyPairing.firstCall.args[0]);
-      nfcHandoverManager.bluetooth.enabled = false;
     });
   });
 

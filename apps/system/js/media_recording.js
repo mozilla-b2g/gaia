@@ -1,4 +1,4 @@
-/* global applications, ManifestHelper, RecordingIcon, LazyLoader */
+/* global applications, ManifestHelper */
 (function(exports) {
   'use strict';
 
@@ -33,12 +33,6 @@
       this.container = document.getElementById('media-recording-status-list');
 
       window.addEventListener('mozChromeEvent', this);
-      LazyLoader.load(['js/recording_icon.js']).then(function() {
-        this.icon = new RecordingIcon(this);
-        this.icon.start();
-      }.bind(this)).catch(function(err) {
-        console.error(err);
-      });
     },
 
     /**
@@ -47,9 +41,6 @@
      */
     stop: function mr_stop() {
       this.isRecording = false;
-      if (this.icon) {
-        this.icon.stop();
-      }
       this.messages = [];
       this.container = null;
 
@@ -243,7 +234,6 @@
         }
       });
       window.dispatchEvent(event);
-      this.icon && this.icon.update();
     },
 
     /**

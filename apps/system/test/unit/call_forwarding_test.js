@@ -1,10 +1,9 @@
-/* global MockNavigatorSettings, CallForwardingsIcon, MocksHelper,
+/* global MockNavigatorSettings,
    MockSIMSlotManager, MockSettingsHelper, MockasyncStorage,
-   MockMobileconnection, MockSIMSlot, BaseModule, MockLazyLoader */
+   MockMobileconnection, MockSIMSlot, BaseModule */
 
 'use strict';
 
-requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/shared/test/unit/mocks/mock_simslot.js');
 requireApp('system/shared/test/unit/mocks/mock_simslot_manager.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
@@ -14,23 +13,13 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_helper.js');
 requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
-requireApp('system/js/base_ui.js');
-requireApp('system/js/base_icon.js');
-requireApp('system/js/settings_core.js');
-requireApp('system/js/call_forwarding_icon.js');
-requireApp('system/js/base_icon_collection.js');
 requireApp('system/js/call_forwarding.js');
-
-var mocksForCallForwarding = new MocksHelper([
-  'LazyLoader'
-]).init();
 
 suite('system/callForwarding >', function() {
   var realSIMSlotManager;
   var realMozSettings;
   var realSettingsHelper;
   var realAsyncStorage;
-  mocksForCallForwarding.attachTestHelpers();
 
   // Must be in sync with nsIDOMMozMobileCFInfo interface.
   var cfReason = {
@@ -72,8 +61,6 @@ suite('system/callForwarding >', function() {
   });
 
   setup(function() {
-    MockLazyLoader.mLoadRightAway = true;
-    this.sinon.spy(MockLazyLoader, 'load');
     this.mockMobileConnection = MockMobileconnection();
     this.slots = [new MockSIMSlot(this.mockMobileConnection, 0)];
     this.iccid = 'iccid1';
@@ -92,35 +79,6 @@ suite('system/callForwarding >', function() {
     MockSettingsHelper.mTeardown();
     MockNavigatorSettings.mTeardown();
     MockasyncStorage.mTeardown();
-  });
-
-  suite('settings changed', function() {
-    var settingsCore;
-    setup(function() {
-      settingsCore = BaseModule.instantiate('SettingsCore');
-      settingsCore.start();
-      this.callForwarding.start();
-    });
-
-    teardown(function() {
-      this.callForwarding.stop();
-      settingsCore.stop();
-    });
-
-    test('Should lazy load icon', function() {
-      MockNavigatorSettings.mTriggerObservers('ril.cf.enabled',
-        { settingValue: [true] });
-      assert.isTrue(MockLazyLoader.load.calledWith(
-        ['js/call_forwarding_icon.js']));
-    });
-
-    test('Should update icon', function() {
-      this.callForwarding.icon = new CallForwardingsIcon(this.callForwarding);
-      this.sinon.stub(this.callForwarding.icon, 'update');
-      MockNavigatorSettings.mTriggerObservers('ril.cf.enabled',
-        { settingValue: [false] });
-      assert.isTrue(this.callForwarding.icon.update.called);
-    });
   });
 
   suite('start()', function() {
@@ -299,8 +257,6 @@ suite('system/callForwarding >', function() {
             };
 
             this.callForwarding.start();
-            this.callForwarding.icon =
-              new CallForwardingsIcon(this.callForwarding);
           });
 
           test('should early return if the event is not available', function() {
