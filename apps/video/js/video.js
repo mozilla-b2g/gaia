@@ -751,6 +751,7 @@ function showOverlay(id) {
     currentOverlay = id;
 
     if (id === null) {
+      document.body.classList.remove('overlay');
       dom.overlay.classList.add('hidden');
       return;
     }
@@ -781,6 +782,7 @@ function showOverlay(id) {
     dom.overlayTitle.setAttribute('data-l10n-id', title);
     dom.overlayText.setAttribute('data-l10n-id', text);
     dom.overlay.classList.remove('hidden');
+    document.body.classList.add('overlay');
   });
 }
 
