@@ -348,6 +348,9 @@ export GAIA_DIR
 export SEP
 export SEP_FOR_SED
 
+# Need to predefine XULRUNNERSDK, XPCSHELLSDK, GAIA_DIR
+include build/common.mk
+
 ifndef GAIA_APP_CONFIG
 GAIA_APP_CONFIG=$(GAIA_DIR)$(SEP)build$(SEP)config$(SEP)$(GAIA_DEVICE_TYPE)$(SEP)apps-$(GAIA_APP_TARGET).list
 endif
@@ -417,21 +420,11 @@ endif
 
 GAIA_ALLAPPDIRS=$(shell find -L $(GAIA_DIR)$(SEP)apps $(GAIA_DIR)$(SEP)dev_apps $(GAIA_DIR)$(SEP)tv_apps -maxdepth 1 -mindepth 1 -type d  | sed 's@[/\\]@$(SEP_FOR_SED)@g')
 
-GAIA_APPDIRS=$(shell while read LINE; do \
-  if [ "$${LINE\#$${LINE%?}}" = "*" ]; then \
-    srcdir="`echo "$$LINE" | sed 's/.\{2\}$$//'`"; \
-    [ -d $(GAIA_DIR)$(SEP)$$srcdir ] && find -L $(GAIA_DIR)$(SEP)$$srcdir -mindepth 1 -maxdepth 1 -type d | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
-    [ -d $(GAIA_DISTRIBUTION_DIR)$(SEP)$$srcdir ] && find -L $(GAIA_DISTRIBUTION_DIR)$(SEP)$$srcdir -mindepth 1 -maxdepth 1 -type d | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
-  else \
-    if [ -d "$(GAIA_DISTRIBUTION_DIR)$(SEP)$$LINE" ]; then \
-      echo "$(GAIA_DISTRIBUTION_DIR)$(SEP)$$LINE" | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
-    elif [ -d "$(GAIA_DIR)$(SEP)$$LINE" ]; then \
-      echo "$(GAIA_DIR)$(SEP)$$LINE" | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
-    elif [ -d "$$LINE" ]; then \
-      echo "$$LINE" | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
-    fi \
-  fi \
-done < $(GAIA_APP_CONFIG))
+GAIA_APPDIRS?=$(shell $(call run-js-command,scan-appdir, \
+		GAIA_APP_CONFIG="$(GAIA_APP_CONFIG)" \
+		GAIA_DIR="$(GAIA_DIR)" \
+		GAIA_DISTRIBUTION_DIR="$(GAIA_DISTRIBUTION_DIR)" \
+		GAIA_APP_SRCDIRS="$(GAIA_APP_SRCDIRS)"))
 
 ifneq ($(GAIA_OUTOFTREE_APP_SRCDIRS),)
   $(shell mkdir -p outoftree_apps \
@@ -552,8 +545,6 @@ define BUILD_CONFIG
 endef
 
 export BUILD_CONFIG
-
-include build/common.mk
 
 # Generate profile/
 $(PROFILE_FOLDER): profile-dir app test-agent-config contacts extensions b2g_sdk .git/hooks/pre-commit
