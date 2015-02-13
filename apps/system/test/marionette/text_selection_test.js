@@ -354,6 +354,24 @@ marionette('Text selection >', function() {
             'bubble should show since we press selectall');
         });
     });
+
+    suite('bug1097419', function() {
+      setup(function() {
+        fakeTextselectionApp.setTestFrame('bug1097419');
+      });
+
+      test('bug1097419 : copypaste bubble should also be launchable if input ' +
+           'is an iframe of an appWindow' ,
+        function() {
+          client.switchToFrame(fakeTextselectionApp.BugIframe);
+          var inputInsideIframe = client.helper.waitForElement('input');
+          fakeTextselectionApp.textSelection.longPress(inputInsideIframe);
+          assert.ok(fakeTextselectionApp.bubbleVisiblity,
+            'bubble should show since we press selectall');
+
+        });
+    });
+
   });
 
   suite.skip('with lockscreen enabled', function() {

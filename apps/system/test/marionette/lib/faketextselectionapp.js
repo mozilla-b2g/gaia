@@ -37,6 +37,8 @@ FakeTextSelectionApp.Selector = Object.freeze({
   // bug1120316.html
   BugInput: '#bug-input',
   BugTextarea: '#bug-textarea',
+  // but1097419.html
+  BugIframe: '#bug-iframe'
 });
 
 FakeTextSelectionApp.ORIGIN = 'app://faketextselectionapp.gaiamobile.org';
@@ -114,6 +116,10 @@ FakeTextSelectionApp.prototype = {
 
   get BugTextarea() {
     return this._getElement('BugTextarea');
+  },
+
+  get BugIframe() {
+    return this._getElement('BugIframe');
   },
 
   _getElement: function(target) {
