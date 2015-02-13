@@ -47,6 +47,16 @@ smart-button[type="app-button"].deck-dashboard {
   height: 67.2rem;
   transform: scale(1.2);
   animation: defaultWaveAnimation 5.0s linear 0s infinite normal;
+  animation-play-state: paused;
+}
+
+.card.focused .deck-wave {
+  animation-play-state: running;
+}
+
+#main-section[data-mode="edit"] .deck-wave,
+#main-section[data-mode="arrange"] .deck-wave {
+  animation-play-state: paused;
 }
 
 .wave-front {
@@ -55,10 +65,6 @@ smart-button[type="app-button"].deck-dashboard {
 
 .wave-back {
   animation-duration: 3.0s;
-}
-
-div.wave-paused {
-  animation-play-state: paused;
 }
 
 .tv-wave-front {

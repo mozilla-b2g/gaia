@@ -277,18 +277,6 @@
       waveBack.className = 'deck-wave';
       waveBack.classList.add('wave-back');
       waveBack.classList.add(card.deckClass + '-wave-back');
-      waveBack.classList.add('wave-paused');
-
-      // run the animation after the deck finishing focus transition
-      cardButton.addEventListener('focus', function(evt) {
-          waveBack.classList.remove('wave-paused');
-          waveFront.classList.remove('wave-paused');
-      });
-
-      cardButton.addEventListener('blur', function(evt) {
-          waveBack.classList.add('wave-paused');
-          waveFront.classList.add('wave-paused');
-      });
 
       cardButton.appendChild(waveBack);
       cardButton.appendChild(deckIcon);
