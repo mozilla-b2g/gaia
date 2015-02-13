@@ -86,8 +86,9 @@ suite('Languages > ', function() {
     });
     test('we launch a MozActivity', function() {
       languages.showMoreLanguages();
-      assert.equal(window.MozActivity.calls[0].name, 'marketplace-langpacks');
-      assert.equal(window.MozActivity.calls[0].data.version, OSVersion);
+      assert.equal(window.MozActivity.calls[0].name, 'marketplace-category');
+      assert.equal(window.MozActivity.calls[0].data.slug, 'langpacks');
+      assert.equal(window.MozActivity.calls[0].data.fxos_version, OSVersion);
     });
   });
 
