@@ -1,5 +1,6 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global IccHelper */
 
 'use strict';
 
@@ -9,6 +10,7 @@ var About = {
     this.loadHardwareInfo();
     this.loadLastUpdated();
     this.networkStatus();
+    IccHelper.oniccinfochange = this.loadHardwareInfo.bind(this);
   },
 
   networkStatus: function about_networkStatus() {

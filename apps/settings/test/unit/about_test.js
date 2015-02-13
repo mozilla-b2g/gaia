@@ -1,4 +1,4 @@
-/* global MockL10n, MockNavigatorMozMobileConnections,
+/* global MockL10n, MockNavigatorMozMobileConnections, MockIccHelper,
           MockNavigatorMozIccManager, MockNavigatorSettings, MocksHelper,
           About */
 
@@ -11,9 +11,11 @@ requireApp('settings/test/unit/mocks_helper.js');
 requireApp('settings/js/about.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
+require('/shared/test/unit/mocks/mock_icc_helper.js');
 
 var mocksForAbout = [
   'Settings',
+  'IccHelper',
   'NavigatorMozMobileConnections',
   'NavigatorMozIccManager'
 ];
@@ -318,6 +320,14 @@ suite('about >', function() {
         var span = deviceInfoPhoneNum.querySelector('#deviceInfo-msisdns span');
         assert.equal(span.textContent, 'msisdn');
       });
+
+      test('should show new msisdn when iccInfo is changed.', function() {
+        MockNavigatorMozIccManager.getIccById(iccIds[0]).iccInfo =
+          { msisdn: 'msisdnChanged' };
+        MockIccHelper.mTriggerEventListeners('iccinfochange', null);
+        var span = deviceInfoPhoneNum.querySelector('#deviceInfo-msisdns span');
+        assert.equal(span.textContent, 'msisdnChanged');
+      });
     });
 
     suite('multiple sim', function() {
@@ -369,6 +379,18 @@ suite('about >', function() {
           deviceInfoPhoneNum.querySelectorAll('#deviceInfo-msisdns span');
         assert.equal(spans[0].textContent, 'SIM 1: mdn1');
         assert.equal(spans[1].textContent, 'SIM 2: mdn2');
+      });
+
+      test('should show new mdn when iccInfo is changed.', function() {
+        MockNavigatorMozIccManager.getIccById(iccIds[0]).iccInfo =
+          { mdn: 'mdn1changed' };
+        MockNavigatorMozIccManager.getIccById(iccIds[1]).iccInfo =
+          { mdn: 'mdn2changed' };
+        MockIccHelper.mTriggerEventListeners('iccinfochange', null);
+        var spans =
+          deviceInfoPhoneNum.querySelectorAll('#deviceInfo-msisdns span');
+        assert.equal(spans[0].textContent, 'SIM 1: mdn1changed');
+        assert.equal(spans[1].textContent, 'SIM 2: mdn2changed');
       });
     });
   });
