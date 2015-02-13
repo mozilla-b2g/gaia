@@ -172,13 +172,16 @@
       var userLang = document.documentElement.lang;
 
       if (navigator.mozL10n && userLang in navigator.mozL10n.qps) {
-        return navigator.mozL10n.qps[userLang].translate(this.descriptor.name);
+        return navigator.mozL10n.qps[userLang].
+          translate(this.descriptor.short_name || this.descriptor.name);
       }
 
       var locales = this.descriptor.locales;
-      var localized = locales && locales[userLang] && locales[userLang].name;
+      var localized =
+        locales && locales[userLang] &&
+        (locales[userLang].short_name || locales[userLang].name);
 
-      return localized || this.descriptor.name;
+      return localized || this.descriptor.short_name || this.descriptor.name;
     },
 
     /**
