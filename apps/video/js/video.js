@@ -14,21 +14,18 @@ var dom = {};
 
 var ids = ['thumbnail-list-view', 'thumbnails-bottom', 'thumbnail-list-title',
            'thumbnails', 'thumbnails-video-button', 'thumbnails-select-button',
-           'thumbnail-select-view',
-           'thumbnails-delete-button', 'thumbnails-share-button',
-           'thumbnails-select-top', 'thumbnails-number-selected',
-           'player-view', 'fullscreen-button', 'spinner-overlay',
+           'thumbnail-select-view', 'thumbnails-delete-button',
+           'thumbnails-share-button', 'thumbnails-select-top',
+           'thumbnails-number-selected', 'player-view', 'spinner-overlay',
            'thumbnails-single-delete-button', 'thumbnails-single-share-button',
            'thumbnails-single-info-button', 'info-view', 'info-close-button',
            'player', 'overlay', 'overlay-title', 'overlay-text',
            'overlay-menu', 'overlay-action-button', 'player-header',
-           'video-container', 'videoControls', 'videoBar', 'videoControlBar',
-           'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
-           'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
-           'slider-wrapper', 'throbber', 'picker-close', 'picker-title',
-           'picker-header', 'picker-done', 'options', 'options-view',
-           'options-cancel-button', 'seek-backward', 'seek-forward',
-           'in-use-overlay', 'in-use-overlay-title', 'in-use-overlay-text'];
+           'video-container', 'mediaControlsContainer', 'close', 'video-title',
+           'throbber', 'picker-close', 'picker-title', 'picker-header',
+           'picker-done', 'options', 'options-view', 'options-cancel-button',
+           'in-use-overlay', 'in-use-overlay-title', 'in-use-overlay-text',
+           'media-controls'];
 
 ids.forEach(function createElementRef(name) {
   dom[toCamelCase(name)] = document.getElementById(name);
@@ -37,17 +34,11 @@ ids.forEach(function createElementRef(name) {
 dom.player.mozAudioChannelType = 'content';
 
 function $(id) { return document.getElementById(id); }
-var playing = false;
 
 // if this is true then the video tag is showing
 // if false, then the gallery is showing
 var playerShowing = false;
 
-// keep the screen on when playing
-var endedTimer;
-
-// same thing for the controls
-var controlShowing = false;
 var controlFadeTimeout = null;
 
 // In thumbnailSelectView, we allow the user to select thumbnails.
@@ -70,12 +61,8 @@ var HAVE_NOTHING = 0;
 var storageState;
 var currentOverlay;
 
-var dragging = false;
 // touch start id is the identifier of touch event. we only need to process
 // events related to this id.
-var touchStartID = null;
-var isPausedWhileDragging;
-var sliderRect;
 var thumbnailList;
 
 var pendingPick;
@@ -98,8 +85,6 @@ var pendingUpdateTitleText = false;
 // Videos recorded by our own camera have filenames of this form
 var FROMCAMERA = /DCIM\/\d{3}MZLLA\/VID_\d{4}\.3gp$/;
 
-var videoControlsAutoHidingMsOverride;
-
 // We have a single instance of the loading checker because it is used
 // across functions
 var loadingChecker =
@@ -110,7 +95,7 @@ var loadingChecker =
 document.addEventListener('visibilitychange', function visibilityChange() {
   if (document.hidden) {
     stopParsingMetadata();
-    if (playing) {
+    if (!dom.player.paused) {
       pause();
     }
   }
@@ -153,6 +138,7 @@ if (!isPhone) {
 }
 
 function init() {
+
   thumbnailList = new ThumbnailList(ThumbnailDateGroup, dom.thumbnails);
   // configure the template id for template group and view.
   ThumbnailDateGroup.Template = new Template('thumbnail-group-header');
@@ -170,14 +156,14 @@ function init() {
   }
 
   initPlayerControls();
-  ForwardRewindController.init(dom.player, dom.seekForward, dom.seekBackward);
 
   // We get headphoneschange event when the headphones is plugged or unplugged
   var acm = navigator.mozAudioChannelManager;
   if (acm) {
     acm.addEventListener('headphoneschange', function onheadphoneschange() {
-      if (!acm.headphones && playing) {
-        setVideoPlaying(false);
+      // Pause video when headphones are unplugged (if video is playing)
+      if (!acm.headphones && !dom.player.paused) {
+        pause();
       }
     });
   }
@@ -230,23 +216,31 @@ function initLayout() {
 }
 
 function initPlayerControls() {
-  // slider dragging
-  dom.sliderWrapper.addEventListener('touchstart', handleSliderTouchStart);
-  // handles slider dragging
-  dom.sliderWrapper.addEventListener('touchmove', handleSliderTouchMove);
-  dom.sliderWrapper.addEventListener('touchend', handleSliderTouchEnd);
 
-  // handle video player
-  dom.player.addEventListener('timeupdate', timeUpdated);
-  dom.player.addEventListener('seeked', updateVideoControlSlider);
-  dom.player.addEventListener('ended', playerEnded);
+  initVideoControls();
 
   // handle user tapping events
-  dom.videoControls.addEventListener('click', toggleVideoControls, true);
-  dom.play.addEventListener('click', handlePlayButtonClick);
+  dom.mediaControlsContainer.addEventListener('click',
+                                              toggleVideoControls,
+                                              true);
   dom.playerHeader.addEventListener('action', handleCloseButtonClick);
   dom.pickerDone.addEventListener('click', postPickResult);
   dom.options.addEventListener('click', showOptionsView);
+}
+
+function initVideoControls() {
+
+  dom.mediaControls.initialize(dom.player);
+
+  // Add listeners for video controls web component
+  //
+  // play, pause
+  dom.mediaControls.addEventListener('play-button-click',
+    handlePlayButtonClick);
+
+  // Fullscreen button (tablet only)
+  dom.mediaControls.addEventListener('fullscreen-button-click',
+    toggleFullscreenPlayer);
 }
 
 function initOptionsButtons() {
@@ -263,8 +257,7 @@ function initOptionsButtons() {
   dom.infoCloseButton.addEventListener('click', hideInfoView);
   // option button cancel
   dom.optionsCancelButton.addEventListener('click', hideOptionsView);
-  // fullscreen player
-  dom.fullscreenButton.addEventListener('click', toggleFullscreenPlayer);
+
   // fullscreen toolbar
   addEventListeners('.single-delete-button', 'click', deleteCurrentVideo);
   addEventListeners('.single-share-button', 'click', shareCurrentVideo);
@@ -300,11 +293,11 @@ function toggleVideoControls(e) {
   // We cannot change the visibility state of video contorls when we are in
   // picking mode.
   if (!pendingPick) {
-    if (!controlShowing) {
+    if (dom.mediaControls.hidden) {
       // If control not shown, tap any place to show it.
       setControlsVisibility(true);
       e.cancelBubble = true;
-    } else if (e.originalTarget === dom.videoControls) {
+    } else if (e.originalTarget === dom.mediaControlsContainer) {
       // If control is shown, only tap the empty area should show it.
       setControlsVisibility(false);
     }
@@ -467,7 +460,7 @@ function showOptionsView() {
   // to play it. Similarly, if the user is going to delete the video there is
   // no point in continuing to play it. And if they care enough about it to
   // look for more info about it, they probably don't want to miss anything.
-  if (playing) {
+  if (!dom.player.paused) {
     pause();
   }
   dom.optionsView.classList.remove('hidden');
@@ -785,60 +778,24 @@ function showOverlay(id) {
 }
 
 function setControlsVisibility(visible) {
+
   // in tablet landscape mode, we always shows controls in list layout. We
   // don't need to hide it.
   if (isPhone || isPortrait ||
       currentLayoutMode !== LAYOUT_MODE.list) {
+    dom.mediaControlsContainer.classList[visible ? 'remove' : 'add']('hidden');
 
-    dom.videoControls.classList[visible ? 'remove' : 'add']('hidden');
-    controlShowing = visible;
+    // Let the media controls know whether it is visible
+    dom.mediaControls.hidden = !visible;
+
   } else {
     // always set it as shown.
-    controlShowing = true;
-  }
-  // to sync the slider under the case of auto-pause(unplugging headset), we
-  // need to update the slider when controls is visible.
-  if (controlShowing) {
-    updateVideoControlSlider();
+    dom.mediaControls.hidden = false;
   }
 }
 
-function movePlayHead(percent) {
-  if (navigator.mozL10n.language.direction === 'ltr') {
-    dom.playHead.style.left = percent;
-  }
-  else {
-    dom.playHead.style.right = percent;
-  }
-}
-
-function updateVideoControlSlider() {
-  // We update the slider when we get a 'seeked' event.
-  // Don't do updates while we're seeking because the position we fastSeek()
-  // to probably isn't exactly where we requested and we don't want jerky
-  // updates
-  if (dom.player.seeking) {
-    return;
-  }
-
-  var percent = (dom.player.currentTime / dom.player.duration) * 100;
-  if (isNaN(percent)) {
-    return;
-  }
-
-  percent += '%';
-
-  dom.elapsedText.textContent =
-                  MediaUtils.formatDuration(dom.player.currentTime);
-  dom.elapsedTime.style.width = percent;
-  // Don't move the play head if the user is dragging it.
-  if (!dragging) {
-    movePlayHead(percent);
-  }
-}
-
-function setVideoPlaying(playing) {
-  if (playing) {
+function setVideoPlaying() {
+  if (dom.player.paused) {
     play();
   } else {
     pause();
@@ -879,7 +836,7 @@ function deleteCurrentVideo() {
 }
 
 function handlePlayButtonClick() {
-  setVideoPlaying(dom.player.paused);
+  setVideoPlaying();
 }
 
 function handleCloseButtonClick() {
@@ -906,29 +863,6 @@ function shareCurrentVideo() {
   videodb.getFile(currentVideo.name, function(blob) {
     share([blob]);
   });
-}
-
-function handleSliderTouchStart(event) {
-  // If we have a touch start event, we don't need others.
-  if (null != touchStartID) {
-    return;
-  }
-  touchStartID = event.changedTouches[0].identifier;
-
-  isPausedWhileDragging = dom.player.paused;
-  dragging = true;
-  // calculate the slider wrapper size for slider dragging.
-  sliderRect = dom.sliderWrapper.getBoundingClientRect();
-
-  // We can't do anything if we don't know our duration
-  if (dom.player.duration === Infinity)
-    return;
-
-  if (!isPausedWhileDragging) {
-    dom.player.pause();
-  }
-
-  handleSliderTouchMove(event);
 }
 
 function setVideoUrl(player, video, callback) {
@@ -1005,7 +939,6 @@ function showPlayer(video, autoPlay, enterFullscreen, keepControls) {
     dom.player.onseeked = null;
     setControlsVisibility(true);
 
-    // to schedule auto hiding when caller don't need to keep controls always.
     if (!keepControls) {
       scheduleVideoControlsAutoHiding();
     }
@@ -1028,11 +961,6 @@ function showPlayer(video, autoPlay, enterFullscreen, keepControls) {
       switchLayout(LAYOUT_MODE.fullscreenPlayer);
     }
 
-    dom.durationText.textContent = MediaUtils.formatDuration(
-      dom.player.duration);
-    timeUpdated();
-
-    dom.play.classList.remove('paused');
     playerShowing = true;
 
     var rotation;
@@ -1078,7 +1006,6 @@ function hidePlayer(updateVideoMetadata, callback) {
     // switch to the video gallery view
     switchLayout(LAYOUT_MODE.list);
 
-    dom.play.classList.remove('paused');
     playerShowing = false;
     updateDialog();
 
@@ -1142,33 +1069,8 @@ function hidePlayer(updateVideoMetadata, callback) {
   }
 }
 
-function playerEnded() {
-  // Ignore ended events that occur while the user is dragging the slider
-  if (dragging) {
-    return;
-  }
-
-  if (endedTimer) {
-    clearTimeout(endedTimer);
-    endedTimer = null;
-  }
-
-  // If we are still playing when this 'ended' event arrives, then the
-  // user played the video all the way to the end, and we skip to the
-  // beginning and pause so it is easy for the user to restart. If we
-  // reach the end because the user fast forwarded or dragged the slider
-  // to the end, then we will have paused the video before we get this
-  // event and in that case we will remain paused at the end of the video.
-  if (playing) {
-    dom.player.currentTime = 0;
-    pause();
-  }
-}
-
 function play() {
   loadingChecker.ensureVideoPlays();
-  // Switch the button icon
-  dom.play.classList.remove('paused');
 
   // Start recording statistics
   //
@@ -1178,114 +1080,17 @@ function play() {
   VideoStats.start(dom.player);
 
   dom.player.play();
-  playing = true;
 }
 
 function pause() {
   loadingChecker.cancelEnsureVideoPlays();
 
-  // Switch the button icon
-  dom.play.classList.add('paused');
-
-  // Check the dragging is true or not before pausing
-  if (dragging) {
-    dragging = false;
-    dom.playHead.classList.remove('active');
-  }
-
   // Stop playing the video
   dom.player.pause();
-  playing = false;
 
   //stop recording statistics and print them
   VideoStats.stop();
   VideoStats.dump();
-}
-
-// Update the progress bar and play head as the video plays
-function timeUpdated() {
-  if (controlShowing) {
-    // We can't update a progress bar if we don't know how long
-    // the video is. It is kind of a bug that the <video> element
-    // can't figure this out for ogv videos.
-    if (dom.player.duration === Infinity || dom.player.duration === 0) {
-      return;
-    }
-
-    updateVideoControlSlider();
-  }
-
-  // Since we don't always get reliable 'ended' events, see if
-  // we've reached the end this way.
-  // See: https://bugzilla.mozilla.org/show_bug.cgi?id=783512
-  // If we're within 1 second of the end of the video, register
-  // a timeout a half a second after we'd expect an ended event.
-  if (!endedTimer) {
-    if (!dragging && dom.player.currentTime >= dom.player.duration - 1) {
-      var timeUntilEnd = (dom.player.duration - dom.player.currentTime + .5);
-      endedTimer = setTimeout(playerEnded, timeUntilEnd * 1000);
-    }
-  } else if (dragging && dom.player.currentTime < dom.player.duration - 1) {
-    // If there is a timer set and we drag away from the end, cancel the timer
-    clearTimeout(endedTimer);
-    endedTimer = null;
-  }
-}
-
-function handleSliderTouchEnd(event) {
-  // We don't care the event not related to touchStartID
-  if (!event.changedTouches.identifiedTouch(touchStartID)) {
-    return;
-  }
-  touchStartID = null;
-
-  if (!dragging) {
-    // We don't need to do anything without dragging.
-    return;
-  }
-
-  dragging = false;
-
-  dom.playHead.classList.remove('active');
-
-  if (dom.player.currentTime === dom.player.duration) {
-    pause();
-  } else if (!isPausedWhileDragging) {
-    dom.player.play();
-  }
-}
-
-function handleSliderTouchMove(event) {
-  if (!dragging) {
-    return;
-  }
-
-  var touch = event.changedTouches.identifiedTouch(touchStartID);
-  // We don't care the event not related to touchStartID
-  if (!touch) {
-    return;
-  }
-
-  function getTouchPos() {
-    return (navigator.mozL10n.language.direction === 'ltr') ?
-       (touch.clientX - sliderRect.left) :
-       (sliderRect.right - touch.clientX);
-  }
-
-  var touchPos = getTouchPos();
-
-  var pos = touchPos / sliderRect.width;
-  pos = Math.max(pos, 0);
-  pos = Math.min(pos, 1);
-
-  // Update the slider to match the position of the user's finger.
-  // Note, however, that we don't update the displayed time until
-  // we actually get a 'seeked' event.
-  var percent = pos * 100 + '%';
-  dom.playHead.classList.add('active');
-  movePlayHead(percent);
-  dom.elapsedTime.style.width = percent;
-  dom.player.fastSeek(dom.player.duration * pos);
 }
 
 function toCamelCase(str) {

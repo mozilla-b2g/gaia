@@ -8,6 +8,7 @@
     <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
     <link rel="localization" href="locales/video.{locale}.properties">
     <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
+    <link rel="localization" href="/shared/locales/media/media.{locale}.properties">
     <!-- this file is loaded lazily but is listed here so it gets packaged
     <link rel="stylesheet" href="shared/style/confirm.css" type="text/css" />
     -->
@@ -39,6 +40,7 @@
     <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css" />
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css" />
     <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
+    <script defer src="shared/elements/gaia-media-controls/dist/gaia-media-controls.js"></script>
 
     <script defer src="js/metadata.js"></script>
     <script defer src="js/db.js"></script>
@@ -46,7 +48,6 @@
     <script defer src="js/thumbnail_date_group.js"></script>
     <script defer src="js/thumbnail_item.js"></script>
     <script defer src="js/video_utils.js"></script>
-    <script defer src="js/forward_rewind_controller.js"></script>
     <script defer src="js/video_loading_checker.js"></script>
     <script defer src="js/video.js"></script>
   </head>
@@ -83,33 +84,14 @@
         <video src="about:blank" id="player"></video>
       </div>
       <!-- video controls -->
-      <div id="videoControls">
+      <div id="mediaControlsContainer">
         <section role="region">
           <gaia-header id="player-header" action="back">
             <h1 id="video-title"></h1>
             <button id="options" data-icon="more"></button>
             <button id="picker-done" data-l10n-id="done">Done</button>
           </gaia-header>
-          <footer id="videoBar">
-            <div id="timeSlider">
-              <span id="elapsed-text"></span>
-              <div id="slider-wrapper">
-                <div id="elapsedTime" class="progress"></div>
-                <div id="bufferedTime" class="progress"></div>
-                <div id="timeBackground" class="progress"></div>
-                <button id="playHead"></button>
-              </div>
-              <span id="duration-text"></span>
-            </div>
-            <div id="fullscreen-button"></div>
-          </footer>
-          <footer id="videoControlBar">
-            <div id="videoToolBar">
-              <button id="seek-backward" class="player-controls-button" data-icon="skip-back"></button>
-              <button id="play" class="player-controls-button" data-icon="pause"></button>
-              <button id="seek-forward" class="player-controls-button" data-icon="skip-forward"></button>
-            </div>
-          </footer>
+          <gaia-media-controls id="media-controls"></gaia-media-controls>
         </section>
       </div>
     </section>
