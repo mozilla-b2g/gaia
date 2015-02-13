@@ -122,7 +122,7 @@
 
       if (typeof payload === 'object') {
         if (payload.id) {
-          navigator.mozL10n.setAttribute(element, payload.id, payload.args);
+          navigator.mozL10n.setAttributes(element, payload.id, payload.args);
           return;
         } else if (payload.raw) {
           element.removeAttribute('data-l10n-id');
