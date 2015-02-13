@@ -210,18 +210,6 @@ var KeypadManager = {
     this._observePreferences();
   },
 
-  moveCaretToEnd: function hk_util_moveCaretToEnd(el) {
-    if (typeof el.selectionStart == 'number') {
-      el.selectionStart = el.selectionEnd = el.value.length;
-    } else if (typeof el.createTextRange != 'undefined') {
-      el.focus();
-      var range = el.createTextRange();
-      range.collapse(false);
-      range.select();
-    }
-    this._insertPosition = null;
-  },
-
   render: function hk_render(layoutType) {
     if (layoutType == 'oncall') {
       if (CallsHandler.activeCall) {
@@ -336,6 +324,7 @@ var KeypadManager = {
    * @param {String} key The key that was hit by this touchstart event.
    */
   _touchStart: function kh_touchStart(key) {
+
     this._longPress = false;
     this._lastPressedKey = key;
 
@@ -360,22 +349,17 @@ var KeypadManager = {
 
         if (key == 'delete') {
           self._clearPhoneNumber();
-        } else {
-          var index = self._phoneNumber.length - 1;
-
-          // Remove last key, this is a long press and we want to add the
-          // long pressed symbol
-          if (index >= 0 && self._phoneNumber[index] === key) {
-            self._phoneNumber = self._phoneNumber.substr(0, index);
-          }
-
-          if (key === '0') {
-            self._phoneNumber += '+';
-          } else if (key === '*') {
-            // ',' DTMF separator can't be the first
-            if (self._phoneNumber.length > 0) {
-              self._phoneNumber += ',';
-            }
+        } else if (key === '0') {
+          self._replaceLastKey('+');
+        } else if (key === '*') {
+          var isAtTheEnd = self._insertPosition === null;
+          var isFirst = self._insertPosition === 1 ||
+                        (isAtTheEnd && self._phoneNumber.length === 1);
+          // ',' DTMF separator can't be the first
+          if (!isFirst) {
+            self._replaceLastKey(',');
+          } else {
+            self._deleteAtInsertPosition();
           }
         }
 
@@ -405,10 +389,10 @@ var KeypadManager = {
         this._phoneNumber = key;
         this.replaceAdditionalContactInfo('');
       } else {
-        this._phoneNumber += key;
+        this._insertAtCaret(key);
       }
     } else {
-      this._phoneNumber += key;
+      this._insertAtCaret(key);
     }
 
     setTimeout(function(self) {
@@ -460,41 +444,32 @@ var KeypadManager = {
       });
     }
 
+    this.restoreCaretPosition();
+
     // If it was a long press our work is already done
     if (this._longPress) {
       this._longPress = false;
       this._holdTimer = null;
-      this.restoreCaretPosition();
       return;
     }
 
     if (this._holdTimer) {
       clearTimeout(this._holdTimer);
     }
-
-    if (key === 'delete') {
-      this.restoreCaretPosition();
-    } else {
-      this.moveCaretToEnd(this.phoneNumberView);
-    }
   },
 
   keyHandler: function kh_keyHandler(event) {
+    // Avoid the keys to get focus.
+    event.preventDefault();
 
     // When long pressing on the voicemail button, if a menu pops up on top of
     // the 1 button, a click will go through and target that button unless we
     // preventDefault the contextmenu event.
     if (event.type == 'contextmenu') {
-      event.preventDefault();
       return;
     }
 
     var key = event.target.dataset.value;
-
-    // Prevent the delete keys to get the focus.
-    if (key === 'delete') {
-      event.preventDefault();
-    }
 
     // We could receive this event from an element that
     // doesn't have the dataset value. Got the last key
@@ -866,6 +841,24 @@ var KeypadManager = {
     this._insertPosition = this._realStartPosition();
   },
 
+  _replaceLastKey: function kh_replaceLastKey(newKey) {
+    this._deleteAtInsertPosition();
+    this.restoreCaretPosition();
+    this._insertAtCaret(newKey);
+  },
+
+  _insertAtCaret: function kh_insertAtCaret(key) {
+    if (this._insertPosition === null) {
+      this._phoneNumber += key;
+    } else {
+      var start = this._realStartPosition();
+      var end = this._realEndPosition();
+      this._phoneNumber = this._phoneNumber.substring(0, start) + key +
+                          this._phoneNumber.substring(end);
+      this._insertPosition = start + 1;
+    }
+  },
+
   _deleteAtInsertPosition: function kh_deleteAtInsertPosition() {
     if (this._insertPosition === null) {
       this._phoneNumber = this._phoneNumber.slice(0, -1);
@@ -903,6 +896,8 @@ var KeypadManager = {
       this.phoneNumberView.selectionStart = caretPosition;
       this.phoneNumberView.selectionEnd = caretPosition;
       this.phoneNumberView.focus();
+    } else {
+      this.phoneNumberView.blur();
     }
   },
 

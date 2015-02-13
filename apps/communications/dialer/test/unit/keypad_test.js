@@ -154,11 +154,13 @@ suite('dialer/keypad', function() {
         node = document.createElement('div');
         fakeEventStart = {
           target: node,
+          preventDefault: function() {},
           stopPropagation: function() {},
           type: 'touchstart'
         };
         fakeEventEnd = {
           target: node,
+          preventDefault: function() {},
           stopPropagation: function() {},
           type: 'touchend'
         };
@@ -236,6 +238,7 @@ suite('dialer/keypad', function() {
             remove: function() {}
           }
         },
+        preventDefault: function() {},
         stopPropagation: function() {},
         type: null
       };
@@ -254,6 +257,7 @@ suite('dialer/keypad', function() {
     test('Adds active class to keys when pressed', function() {
       var fakeEvent = {
         target: document.createElement('div'),
+        preventDefault: function() {},
         stopPropagation: function() {},
         type: null
       };
@@ -471,6 +475,7 @@ suite('dialer/keypad', function() {
               remove: function() {}
             }
           },
+          preventDefault: function() {},
           stopPropagation: function() {},
           type: null
         };
@@ -709,11 +714,13 @@ suite('dialer/keypad', function() {
         node = document.createElement('div');
         fakeEventStart = {
           target: node,
+          preventDefault: function() {},
           stopPropagation: function() {},
           type: 'touchstart'
         };
         fakeEventEnd = {
           target: node,
+          preventDefault: function() {},
           stopPropagation: function() {},
           type: 'touchend'
         };
