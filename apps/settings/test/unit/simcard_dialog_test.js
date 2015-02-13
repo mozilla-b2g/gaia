@@ -23,7 +23,9 @@ suite('SimCardDialog > ', function() {
   var dialogDom;
   var dialogDoneButton;
   var dialogPinInput;
+  var errorMsgHeader;
   var fakeIccId = '1111';
+  var realAlert;
 
   mocksForSettingsHelper.attachTestHelpers();
 
@@ -36,9 +38,13 @@ suite('SimCardDialog > ', function() {
 
     realMozMobileConnections = window.navigator.mozMobileConnections;
     window.navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
+
+    realAlert = window.alert;
+    window.alert = function(msg) { console.log('Alert: ' + msg); };
   });
 
   suiteTeardown(function() {
+    window.alert = realAlert;
     window.navigator.mozL10n = realL10n;
     window.navigator.mozIccManager = realIccManager;
     window.navigator.mozMobileConnections = realMozMobileConnections;
@@ -53,6 +59,7 @@ suite('SimCardDialog > ', function() {
     MockNavigatorMozMobileConnections[1].iccId = fakeIccId;
 
     dialogDom = document.getElementById('simpin-dialog-mock');
+    errorMsgHeader = dialogDom.querySelector('.sim-messageHeader');
     dialogDoneButton = dialogDom.querySelector('button[type="submit"]');
     dialogPinInput = dialogDom.querySelector('input');
     dialog = new SimPinDialog(dialogDom);
@@ -88,6 +95,86 @@ suite('SimCardDialog > ', function() {
     });
 
     test('we would leave this dialog for system and just skip', function() {
+      assert.isFalse(onsuccess.called);
+      assert.isTrue(oncancel.called);
+    });
+  });
+
+  suite('Test we get a generic error if no lockError name is provided',
+        function() {
+    var realGetIccByIndex;
+    var icc;
+    var onsuccess;
+    var oncancel;
+    var msgHeaderSpy;
+
+    setup(function() {
+      onsuccess = this.sinon.stub();
+      oncancel = this.sinon.stub();
+
+      icc = navigator.mozIccManager.getIccById('1111');
+      this.sinon.stub(icc, 'updateContact', function(contact) {
+        return {
+          set onsuccess(callback) {},
+          set onerror(callback) {
+            this.error = {
+              name: 'GenericError',
+              lockType: 'fdn'
+            };
+            callback();
+          }
+        };
+      });
+
+      this.sinon.stub(icc, 'unlockCardLock', function(contact) {
+        return {
+          set onsuccess(callback) {},
+          set onerror(callback) {
+            this.error = {
+              name: 'GenericError',
+              lockType: 'fdn'
+            };
+            callback();
+          }
+        };
+      });
+
+      realGetIccByIndex = window.getIccByIndex;
+      window.getIccByIndex = this.sinon.stub();
+      window.getIccByIndex.returns(icc);
+
+      msgHeaderSpy = this.sinon.spy(errorMsgHeader, 'setAttribute');
+    });
+
+    teardown(function() {
+      window.getIccByIndex = realGetIccByIndex;
+    });
+
+    test('FDN Contact Update fails with a generic error', function() {
+      // 'get_pin2' will trigger an `icc.updateContact` operation, which we
+      // have mocked above to give an error.
+      dialog.show('get_pin2', {
+        cardIndex: 0,
+        onsuccess: onsuccess,
+        oncancel: oncancel
+      });
+
+      dialogPinInput.value = '1234';
+      dialogDoneButton.onclick();
+
+      assert.isFalse(onsuccess.called);
+      assert.isTrue(oncancel.called);
+    });
+
+    test('Triggers generic error flow', function() {
+      dialog.show('unlock_pin', {
+        cardIndex: 0,
+        onsuccess: onsuccess,
+        oncancel: oncancel
+      });
+      dialogPinInput.value = '1234';
+      dialogDoneButton.onclick();
+
       assert.isFalse(onsuccess.called);
       assert.isTrue(oncancel.called);
     });
