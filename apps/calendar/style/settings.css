@@ -248,6 +248,11 @@ not actually shown since the top header should be transparent.
 }
 
 /* RTL View */
+
+html[dir="rtl"] #settings .calendars label > .name {
+  text-align: right;
+}
+
 html[dir="rtl"] #settings .calendars label > span {
   float: right;
   text-align: start;

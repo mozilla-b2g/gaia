@@ -7,7 +7,7 @@ module.exports = create({
   provider: function() {
     var name = this.h('name');
     return `<li class="${name}" role="presentation">
-        <a data-l10n-id="preset-${name}" role="option"
+        <a data-l10n-id="preset-${name}" role="option" dir="auto"
            data-provider="${name}" href="/create-account/${name}">
         </a>
       </li>`;
@@ -19,7 +19,7 @@ module.exports = create({
     var user = this.h('user');
 
     return `<li id="account-${id}" role="presentation">
-        <a href="/update-account/${id}" role="option">
+        <a href="/update-account/${id}" role="option" dir="auto">
           <span class="preset" data-l10n-id="preset-${preset}"></span>
           <span class="user">${user}</span>
         </a>
