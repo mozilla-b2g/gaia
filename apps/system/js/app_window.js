@@ -146,6 +146,9 @@
       this.config.chrome.maximized = true;
     }
 
+    if (this.manifest) {
+      this.shortName = new ManifestHelper(this.manifest).short_name;
+    }
     if (!this.manifest && this.config && this.config.title) {
       this.updateName(this.config.title);
     } else {
@@ -852,6 +855,7 @@
       return;
     }
     this.name = new ManifestHelper(this.manifest).name;
+    this.shortName = new ManifestHelper(this.manifest).short_name;
 
     if (this.identificationTitle) {
       this.identificationTitle.textContent = this.name;
