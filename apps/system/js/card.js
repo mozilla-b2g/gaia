@@ -126,7 +126,8 @@
    */
   Card.prototype._populateViewData = function() {
     var app = this.app;
-    this.title = (app.isBrowser() && app.title) ? app.title : app.name;
+    this.title = (app.isBrowser() && app.title) ?
+                  app.title : app.shortName || app.name;
     this.sslState = app.getSSLState();
     this.subTitle = '';
     this.iconValue = '';
