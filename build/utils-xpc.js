@@ -412,57 +412,6 @@ function getWebapp(app, config) {
   return webapp;
 }
 
-/**
- * Get the collection of the information of webapps.
- *
- * @param appdirs {[string]} - the list of all app names
- * @param config {object} - the config object, with all env variables
- * @return {[obeject]} - the list of information of the webapps
- */
-function makeWebappsObject(appdirs, config) {
-  var apps = [];
-  appdirs.forEach(function(app) {
-    var webapp = getWebapp(app, config);
-    if (webapp) {
-      apps.push(webapp);
-    }
-  });
-  return apps;
-}
-
-/**
- * Information of Gaia building session. For example, if we `getInstance`
- * from it, the result would be:
- * {
- *    stageDir: the path of the `build_stage` directory,
- *    engine: 'firefox' or 'b2g'
- *    ...
- *    distributionDir: the path of the `distribution` directory
- * }
- */
-var gaia = {
-  config: {},
-  aggregatePrefix: 'gaia_build_',
-  getInstance: function(config) {
-    if (JSON.stringify(this.config) !== JSON.stringify(config) ||
-      !this.instance) {
-      config.rebuildAppDirs = config.rebuildAppDirs || [];
-      this.config = config;
-      this.instance = {
-        stageDir: getFile(this.config.STAGE_DIR),
-        engine: this.config.GAIA_ENGINE,
-        sharedFolder: getFile(this.config.GAIA_DIR, 'shared'),
-        webapps: makeWebappsObject(this.config.GAIA_APPDIRS.split(' '),
-                                   this.config),
-        rebuildWebapps: makeWebappsObject(this.config.rebuildAppDirs,
-                                          this.config),
-        distributionDir: this.config.GAIA_DISTRIBUTION_DIR
-      };
-    }
-    return this.instance;
-  }
-};
-
 // FIXME (Bug 952901): because TBPL use path style like C:/path1/path2 for
 // LOCALE_BASEDIR but we expect C:\path1\path2, so we need convert it if this
 // script is running on Windows.
@@ -725,15 +674,6 @@ function readJSONFromPath(path) {
   } else {
     throw new Error('The path is not a file.');
   }
-}
-
-/**
- * Write content to a file
- * The 'path' must not come with '../' or './' .
- * Note: this function is a wrapper for node.js
- */
-function writeContentToFile(path, content) {
-  writeContent(getFile(path), content);
 }
 
 /**
@@ -1078,8 +1018,25 @@ function getEnvPath() {
  * Get an new process instance
  * @return {nsIProcess}
  */
-function getProcess() {
-  return Cc['@mozilla.org/process/util;1'].createInstance(Ci.nsIProcess);
+function spawnProcess(module, appOptions) {
+  var proc = Cc['@mozilla.org/process/util;1'].createInstance(Ci.nsIProcess);
+  var xpcshell = utils.getEnv('XPCSHELLSDK');
+  var args = [
+    '-f', utils.getEnv('GAIA_DIR') + '/build/xpcshell-commonjs.js',
+    '-e', 'run("' + module + '", "' + JSON.stringify(appOptions)
+      .replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '");'
+  ];
+  proc.init(utils.getFile(xpcshell));
+  proc.run(false, args, args.length);
+  return proc;
+}
+
+function processIsRunning(proc) {
+  return proc.isRunning;
+}
+
+function getProcessExitCode(proc) {
+  return proc.exitValue;
 }
 
 /**
@@ -1333,19 +1290,19 @@ exports.copyToStage = copyToStage;
 exports.createXMLHttpRequest = createXMLHttpRequest;
 exports.downloadJSON = downloadJSON;
 exports.readJSONFromPath = readJSONFromPath;
-exports.writeContentToFile = writeContentToFile;
 exports.processEvents = processEvents;
 exports.readZipManifest = readZipManifest;
 exports.log = log;
 exports.killAppByPid = killAppByPid;
 exports.getEnv = getEnv;
 exports.setEnv = setEnv;
-exports.getProcess = getProcess;
 exports.isExternalApp = isExternalApp;
+exports.spawnProcess = spawnProcess;
+exports.processIsRunning = processIsRunning;
+exports.getProcessExitCode = getProcessExitCode;
 exports.getDocument = getDocument;
 exports.getWebapp = getWebapp;
 exports.Services = Services;
-exports.gaia = gaia;
 exports.concatenatedScripts = concatenatedScripts;
 exports.dirname = dirname;
 exports.basename = basename;

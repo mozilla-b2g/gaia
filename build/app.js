@@ -17,19 +17,6 @@ function getAppRegExp(options) {
   return appRegExp;
 }
 
-function spawnProcess(module, appOptions) {
-  let proc = utils.getProcess();
-  let xpcshell = utils.getEnv('XPCSHELLSDK');
-  let args = [
-    '-f', utils.getEnv('GAIA_DIR') + '/build/xpcshell-commonjs.js',
-    '-e', 'run("' + module + '", "' + JSON.stringify(appOptions)
-      .replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '");'
-  ];
-  proc.init(utils.getFile(xpcshell));
-  proc.run(false, args, args.length);
-  return proc;
-}
-
 function buildApps(options) {
   var processes = [];
   var gaia = utils.gaia.getInstance(options);
@@ -70,15 +57,15 @@ function buildApps(options) {
       if (parseInt(options.P) > 0) {
         // A workaround for bug 1093267
         if (appDir.indexOf('communications') !== -1) {
-          communications = spawnProcess('build-app', appOptions);
+          communications = utils.spawnProcess('build-app', appOptions);
           processes.push({
             name: 'communications',
-            content: communications
+            instance: communications
           });
         } else {
           processes.push({
             name: appDirFile.leafName,
-            content: spawnProcess('build-app', appOptions)
+            instance: utils.spawnProcess('build-app', appOptions)
           });
         }
       } else {
@@ -91,7 +78,7 @@ function buildApps(options) {
       if (appDir.indexOf('callscreen') !== -1) {
         if (communications) {
           utils.processEvents(function () {
-            return { wait: communications.isRunning };
+            return { wait: utils.processIsRunning(communications) };
           });
         }
       }
@@ -104,14 +91,14 @@ function buildApps(options) {
   utils.processEvents(function () {
     return {
       wait: processes.some(function(proc) {
-        return proc.content.isRunning;
+        return utils.processIsRunning(proc.instance);
       })
     };
   });
 
   var failed = false;
   processes.forEach(function(proc) {
-    var exitValue = proc.content.exitValue;
+    var exitValue = utils.getProcessExitCode(proc.instance);
     if (exitValue !== 0) {
       failed = true;
       utils.log('failed', 'building ' + proc.name +
