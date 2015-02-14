@@ -2,7 +2,9 @@
 
 /* exported CallGroupMenu */
 
-/* globals CallInfo, LazyLoader, MozActivity, OptionMenu */
+
+/* globals ConfirmDialog, CallLogDBManager, CallInfo, LazyLoader, MozActivity, 
+           OptionMenu  */
 
 var CallGroupMenu = (function() {
 
@@ -28,8 +30,54 @@ var CallGroupMenu = (function() {
     }
   };
 
+  var _delete = function(evt) {
+
+    var msg = {'id': 'delete-n-log?', 'args': {n: 1}};
+    var yesObject = {
+      title: 'delete',
+      isDanger: true,
+      callback: function deleteLogGroup() {
+
+        
+        var logGroup = evt.target;
+
+        var dataset = logGroup.dataset;
+        var toDelete = {
+          date: parseInt(dataset.timestamp),
+          number: dataset.phoneNumber === null ? '' : dataset.phoneNumber,
+          type: dataset.type
+        };
+        if (dataset.status) {
+          toDelete.status = dataset.status;
+        }
+
+        CallLogDBManager.deleteGroupList([toDelete], function() {
+          // remove DOM elements.
+          var olContainer = logGroup.parentNode;
+          olContainer.removeChild(logGroup);
+          if (olContainer.children.length === 0) {
+            var section = olContainer.parentNode;
+            section.parentNode.removeChild(section);
+          }
+        });
+
+        ConfirmDialog.hide();
+      }
+    };
+
+    var noObject = {
+      title: 'cancel',
+      callback: function onCancel() {
+        ConfirmDialog.hide();
+      }
+    };
+
+    ConfirmDialog.show(null, msg, noObject, yesObject);
+  };
+
   return {
-    show: function(groupPrimaryInfo, phoneNumber, date, type, status) {
+    show: function(groupPrimaryInfo, phoneNumber, date, type, status, evt) {
+
       var params = {
         items: [{
           l10nId: 'callInformation',
@@ -39,6 +87,10 @@ var CallGroupMenu = (function() {
           l10nId: 'sendSms',
           method: _sendSms,
           params: [phoneNumber]
+        },{
+          l10nId: 'delete',
+          method: _delete,
+          params: [evt]
         },{ // Last item is the Cancel button
           l10nId: 'cancel',
           incomplete: true
