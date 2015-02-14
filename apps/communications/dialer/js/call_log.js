@@ -124,6 +124,7 @@ var CallLog = {
                                      document.getElementById('sticky'));
 
       self.becameVisible();
+      self.onScrollContainer();
     });
 
     // Listen for database upgrade events.
@@ -143,6 +144,22 @@ var CallLog = {
       self._dbupgrading = false;
       self.render();
     };
+  },
+
+  onScrollContainer: function onScrollContainer(){
+    var scrollTimeOut;
+    var callLogView = this.callLogView;
+    this.callLogContainer.addEventListener('scroll', function(){
+      callLogView.classList.add('scrolling');
+      
+      if(scrollTimeOut) {
+        window.clearTimeout(scrollTimeOut);
+      }
+
+      scrollTimeOut = window.setTimeout(function() {
+        callLogView.classList.remove('scrolling');
+      }, 150);
+    });
   },
 
   _updateCallTimes: function cl_updateCallTimes() {
