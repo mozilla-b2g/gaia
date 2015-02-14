@@ -90,13 +90,19 @@
 
 /* Text */
 .fileName {
-  padding: 1rem 6rem 1rem 3.5rem;
+  padding-top: 1rem;
+  -moz-padding-end: 6rem;
+  padding-bottom: 1rem;
+  -moz-padding-start: 3.5rem;
   -moz-box-sizing: border-box;
 }
 
 .info {
   font-size: 1.2rem;
-  padding: 0 6rem 0 3.5rem;
+  padding-top: 0;
+  -moz-padding-end: 6rem;
+  padding-bottom: 0;
+  -moz-padding-start: 3.5rem;
   -moz-box-sizing: border-box;
 }
 
@@ -205,7 +211,6 @@
   margin: 0;
   pointer-events: all;
   right: 0;
-
 }
 
 #downloadList ul > li[data-state="downloading"] .pack-end {
@@ -227,20 +232,6 @@
   background: url('images/download_refresh.png');
   background-repeat: no-repeat;
   background-position: center;
-}
-
-/**
- * Setting `direction: ltr;` to every element in the "Downloads" section because
- * downloaded item names are always LTR: elements should stay as they are no
- * matter what direction the system uses.
- */
-
-html[dir="rtl"] #downloadList {
-  direction: ltr;
-}
-
-html[dir="rtl"] #downloadList ul li > label.pack-checkbox {
-  margin-left: .5rem;
 }
 
 html[dir="rtl"] #downloads-edit-button::before {
