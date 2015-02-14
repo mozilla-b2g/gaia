@@ -103,6 +103,7 @@ GaiaBuilder.prototype = {
 
     // if profile is build continue.
     if (this.hasProfile) {
+      debug('invoke super');
       // invoke the superclass which handles the boilerplate
       super_.prototype.build.call(this, overrides, callback);
       return;
@@ -116,6 +117,7 @@ GaiaBuilder.prototype = {
         // this working successfully.
         throw err;
       }
+      debug('invoke super after building...');
       super_.prototype.build.call(this, overrides, callback);
     }.bind(this));
   }
