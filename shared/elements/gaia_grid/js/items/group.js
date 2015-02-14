@@ -367,9 +367,13 @@
     },
 
     launch: function(target) {
+      if (target !== this.toggleElement) {
+        return;
+      }
+
       if (this.detail.collapsed) {
         this.expand();
-      } else if (target === this.toggleElement) {
+      } else {
         this.collapse();
       }
     },
