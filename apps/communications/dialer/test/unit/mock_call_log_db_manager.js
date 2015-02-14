@@ -44,9 +44,16 @@ var MockCallLogDBManager = {
   updateGroupContactInfo: function(contact, matchingTel, callback) {
     var callsMatched = 0;
     this._calls.forEach(function(call) {
-      if (call.contact.matchingTel.value == matchingTel.value) {
-        call.contact = contact;
-        callsMatched++;
+      if(call.contact) {
+        if (call.contact.matchingTel.value == matchingTel.value) {
+          call.contact = contact;
+          callsMatched++;
+        }
+      } else {
+        if(call.number == matchingTel.value) {
+          call.contact = contact;
+          callsMatched++;
+        }
       }
     });
     callback(callsMatched);
