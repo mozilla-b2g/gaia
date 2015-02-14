@@ -6,6 +6,7 @@ var MockService = {
     this.mUpgrading = false;
     this.mBtEnabled = false;
     this.mTopMostUI = null;
+    this.mIsHandoverInProgress = false;
   },
   lowerCapital: function() {
     return 'a';
@@ -30,6 +31,8 @@ var MockService = {
         return this.mBtEnabled;
       case 'getTopMostUI':
         return this.mTopMostUI;
+      case 'NfcHandoverManager.isHandoverInProgress':
+        return this.mIsHandoverInProgress;
     }
     return undefined;
   },

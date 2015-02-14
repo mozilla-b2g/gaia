@@ -1,5 +1,5 @@
 'use strict';
-/* global SharedUtils */
+/* global KeyEvent */
 
 window.SmartButton = (function(win) {
   // Extend from the HTMLButtonElement prototype
@@ -19,7 +19,6 @@ window.SmartButton = (function(win) {
   };
 
   proto.handleEvent = function(evt) {
-    var self = this;
     switch(evt.type) {
       case 'mousedown':
       case 'touchstart':

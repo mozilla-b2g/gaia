@@ -1,6 +1,6 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* global SettingsCache, AppWindowManager */
 'use strict';
 
 var ScreenManager = {
@@ -66,7 +66,7 @@ var ScreenManager = {
    * At a value of about .3, the screen will typically be at maximum
    * brightness in outdoor daylight conditions, even when overcast.
    */
-  AUTO_BRIGHTNESS_CONSTANT: .27,
+  AUTO_BRIGHTNESS_CONSTANT: 0.27,
 
   /*
    * When we change brightness we animate it smoothly.
@@ -127,9 +127,10 @@ var ScreenManager = {
         if (topic == 'screen') {
           self._screenWakeLocked = (state == 'locked-foreground');
 
-          if (self._screenWakeLocked)
+          if (self._screenWakeLocked) {
             // Turn screen on if wake lock is acquire
             self.turnScreenOn();
+          }
           self._reconfigScreenTimeout();
         } else if (topic == 'cpu') {
           power.cpuSleepAllowed = (state != 'locked-foreground' &&
@@ -141,8 +142,9 @@ var ScreenManager = {
     this._firstOn = false;
     SettingsCache.observe('screen.timeout', 60,
     function screenTimeoutChanged(value) {
-      if (typeof value !== 'number')
+      if (typeof value !== 'number') {
         value = parseInt(value);
+      }
       self._idleTimeout = value;
       self._setIdleTimeout(self._idleTimeout);
 
@@ -178,8 +180,9 @@ var ScreenManager = {
   autoAdjustBrightness: function scm_adjustBrightness(lux) {
     var currentBrightness = this._targetBrightness;
 
-    if (lux < 1)  // Can't take the log of 0 or negative numbers
+    if (lux < 1) { // Can't take the log of 0 or negative numbers
       lux = 1;
+    }
 
     var computedBrightness =
       Math.log(lux) / Math.LN10 * this.AUTO_BRIGHTNESS_CONSTANT;
@@ -188,8 +191,9 @@ var ScreenManager = {
                                      Math.min(1.0, computedBrightness));
 
     // If nothing changed, we're done.
-    if (clampedBrightness === currentBrightness)
+    if (clampedBrightness === currentBrightness) {
       return;
+    }
 
     this.setScreenBrightness(clampedBrightness, false);
   },
@@ -204,8 +208,9 @@ var ScreenManager = {
         break;
       case 'devicelight':
         if (!this._deviceLightEnabled || !this.screenEnabled ||
-            this._inTransition)
+            this._inTransition) {
           return;
+        }
         this.autoAdjustBrightness(evt.value);
         break;
 
@@ -256,12 +261,14 @@ var ScreenManager = {
   },
 
   turnScreenOff: function scm_turnScreenOff(instant, reason) {
-    if (!this.screenEnabled)
+    if (!this.screenEnabled) {
       return false;
+    }
 
     var self = this;
-    if (reason)
+    if (reason) {
       this._screenOffBy = reason;
+    }
 
     // Remember the current screen brightness. We will restore it when
     // we turn the screen back on.
@@ -277,8 +284,9 @@ var ScreenManager = {
     var screenOff = function scm_screenOff() {
       self._setIdleTimeout(0);
 
-      if (self._deviceLightEnabled)
+      if (self._deviceLightEnabled) {
         window.removeEventListener('devicelight', self);
+      }
 
       window.removeEventListener('lockscreen-appclosing', self);
       window.removeEventListener('lockpanelchange', self);
@@ -309,8 +317,9 @@ var ScreenManager = {
     this.setScreenBrightness(0.1, false);
     this._inTransition = true;
     setTimeout(function noticeTimeout() {
-      if (!self._inTransition)
+      if (!self._inTransition) {
         return;
+      }
 
       screenOff();
     }, self._dimNotice);
@@ -334,15 +343,17 @@ var ScreenManager = {
 
     // Actually turn the screen on.
     var power = navigator.mozPower;
-    if (power)
+    if (power) {
       power.screenEnabled = true;
+    }
     this.screenEnabled = true;
     this.screen.classList.remove('screenoff');
 
     // Attaching the event listener effectively turn on the hardware
     // device light sensor, which _must be_ done after power.screenEnabled.
-    if (this._deviceLightEnabled)
+    if (this._deviceLightEnabled) {
       window.addEventListener('devicelight', this);
+    }
 
     this._reconfigScreenTimeout();
     this.fireScreenChangeEvent();
@@ -394,8 +405,9 @@ var ScreenManager = {
   setScreenBrightness: function scm_setScreenBrightness(brightness, instant) {
     this._targetBrightness = brightness;
     var power = navigator.mozPower;
-    if (!power)
+    if (!power) {
       return;
+    }
 
     // Make sure we don't have another brightness change scheduled
     if (this._transitionBrightnessTimer) {
@@ -403,8 +415,9 @@ var ScreenManager = {
       this._transitionBrightnessTimer = null;
     }
 
-    if (typeof instant !== 'boolean')
+    if (typeof instant !== 'boolean') {
       instant = true;
+    }
 
     if (instant) {
       power.screenBrightness = brightness;
@@ -429,8 +442,9 @@ var ScreenManager = {
       return;
     }
 
-    if (screenBrightness > this._targetBrightness)
+    if (screenBrightness > this._targetBrightness) {
       delta *= -1;
+    }
 
     screenBrightness += delta;
     power.screenBrightness = screenBrightness;
@@ -448,8 +462,9 @@ var ScreenManager = {
     }
     this._deviceLightEnabled = enabled;
 
-    if (!this.screenEnabled)
+    if (!this.screenEnabled) {
       return;
+    }
 
     // Disable/enable device light sensor accordingly.
     // This will also toggle the actual hardware, which
@@ -468,8 +483,9 @@ var ScreenManager = {
     this._idled = false;
 
     // 0 is the value used to disable idle timer by user and by us.
-    if (time === 0)
+    if (time === 0) {
       return;
+    }
 
     var self = this;
     var idleCallback = function idle_proxy() {

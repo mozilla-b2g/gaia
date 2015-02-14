@@ -98,10 +98,8 @@ define(function(require) {
       },
 
       _updateHotspotSecurity: function(newValue) {
-        var prefix = (newValue === 'open') ? '\u202b' : '\u202a';
-        var suffix = '\u202c';
-        elements.hotspotSecurityType.innerHTML =
-          prefix + navigator.mozL10n.get('hotspot-' + newValue) + suffix;
+        elements.hotspotSecurityType.setAttribute('data-l10n-id',
+          'hotspot-' + newValue);
       },
 
       _updateHotspotSSID: function(newValue) {
@@ -110,7 +108,8 @@ define(function(require) {
 
       _setHotspotSettingsEnabled: function(enabled) {
         // disable the setting button when internet sharing is enabled
-        elements.hotspotSettingBtn.disabled = enabled;
+        elements.hotspotSettingBtn.parentNode.setAttribute('aria-disabled',
+          enabled);
         elements.hotspotElement.checked = enabled;
       },
 

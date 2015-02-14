@@ -333,6 +333,36 @@
                                 this.currentNode.type = "SECTION";
                                 this.currentNode.closed = false;
                                 this.state = "NORMAL";
+
+                                // RFC2221 defines a response code REFERRAL whose payload is an
+                                // RFC2192/RFC5092 imapurl that we will try to parse as an ATOM but
+                                // fail quite badly at parsing.  Since the imapurl is such a unique
+                                // (and crazy) term, we just specialize that case here.
+                                if (this.str.substr(i + 1, 9).toUpperCase() === "REFERRAL ") {
+                                    // create the REFERRAL atom
+                                    this.currentNode = this.createNode(this.currentNode, this.pos + i + 1);
+                                    this.currentNode.type = "ATOM";
+                                    this.currentNode.endPos = this.pos + i + 8;
+                                    this.currentNode.value = "REFERRAL";
+                                    this.currentNode = this.currentNode.parentNode;
+
+                                    // eat all the way through the ] to be the  IMAPURL token.
+                                    this.currentNode = this.createNode(this.currentNode, this.pos + i + 10);
+                                    // just call this an ATOM, even though IMAPURL might be more correct
+                                    this.currentNode.type = "ATOM";
+                                    // jump i to the "]"
+                                    i = this.str.indexOf("]", i + 10);
+                                    this.currentNode.endPos = this.pos + i - 1;
+                                    this.currentNode.value = this.str.substring(this.currentNode.startPos - this.pos,
+                                                                                this.currentNode.endPos - this.pos + 1);
+                                    this.currentNode = this.currentNode.parentNode;
+
+                                    // close out the SECTION
+                                    this.currentNode.closed = true;
+                                    this.currentNode = this.currentNode.parentNode;
+                                    checkSP();
+                                }
+
                                 break;
                             }
                             /* falls through */
@@ -545,6 +575,19 @@
                         this.currentNode.endPos = this.pos + i - 1;
                         this.currentNode = this.currentNode.parentNode;
                         this.state = "NORMAL";
+                        break;
+                    } else if (this.currentNode.parentNode &&
+                               chr === "]" &&
+                               this.currentNode.parentNode.type === "SECTION") {
+                        this.currentNode.endPos = this.pos + i - 1;
+                        this.currentNode = this.currentNode.parentNode;
+
+                        this.currentNode.closed = true;
+                        this.currentNode.endPos = this.pos + i;
+                        this.currentNode = this.currentNode.parentNode;
+                        this.state = "NORMAL";
+
+                        checkSP();
                         break;
                     }
 

@@ -1,8 +1,9 @@
 /* exported KeypadManager */
 
 /* globals AddContactMenu, CallHandler, CallLogDBManager, CallsHandler,
-           CallScreen, CustomDialog, DtmfTone, FontSizeManager, LazyLoader,
-           LazyL10n, MultiSimActionButton, SettingsListener, TonePlayer */
+           CallScreen, ConfirmDialog, CustomDialog, DtmfTone, FontSizeManager,
+           LazyLoader, LazyL10n, MultiSimActionButton, Promise,
+           SimSettingsHelper, SettingsListener, TonePlayer */
 
 'use strict';
 
@@ -27,6 +28,13 @@ var KeypadManager = {
 
   // Keep in sync with Lockscreen and keyboard vibration
   kVibrationDuration: 50, // ms
+
+  // Due to the ellipsis capabilities of the number view, the cursor position
+  // in the input element, does not match the point where new digits should be
+  // added to the current number or where the deletion operation should take
+  // place. This property holds the position of the edition point for the
+  // current number (_phoneNumber property).
+  _insertPosition: null,
 
   onValueChanged: null,
 
@@ -121,6 +129,8 @@ var KeypadManager = {
     this._onCall = !!oncall;
 
     this.phoneNumberView.value = '';
+    this.phoneNumberView
+      .addEventListener('click', this._updateInsertPosition.bind(this));
     this._phoneNumber = '';
 
     var keyHandler = this.keyHandler.bind(this);
@@ -198,17 +208,6 @@ var KeypadManager = {
                      '/dialer/js/suggestion_bar.js']);
 
     this._observePreferences();
-  },
-
-  moveCaretToEnd: function hk_util_moveCaretToEnd(el) {
-    if (typeof el.selectionStart == 'number') {
-      el.selectionStart = el.selectionEnd = el.value.length;
-    } else if (typeof el.createTextRange != 'undefined') {
-      el.focus();
-      var range = el.createTextRange();
-      range.collapse(false);
-      range.select();
-    }
   },
 
   render: function hk_render(layoutType) {
@@ -325,6 +324,7 @@ var KeypadManager = {
    * @param {String} key The key that was hit by this touchstart event.
    */
   _touchStart: function kh_touchStart(key) {
+
     this._longPress = false;
     this._lastPressedKey = key;
 
@@ -343,19 +343,24 @@ var KeypadManager = {
     }
 
     // Manage long press
-    if ((key == '0' && !this._onCall) || key == 'delete') {
+    if (((key == '0' || key == '*') && !this._onCall) || key == 'delete') {
       this._holdTimer = setTimeout(function(self) {
+        self.restoreCaretPosition();
+
         if (key == 'delete') {
-          self._phoneNumber = '';
-        } else {
-          var index = self._phoneNumber.length - 1;
-
-          //Remove last 0, this is a long press and we want to add the '+'
-          if (index >= 0 && self._phoneNumber[index] === '0') {
-            self._phoneNumber = self._phoneNumber.substr(0, index);
+          self._clearPhoneNumber();
+        } else if (key === '0') {
+          self._replaceLastKey('+');
+        } else if (key === '*') {
+          var isAtTheEnd = self._insertPosition === null;
+          var isFirst = self._insertPosition === 1 ||
+                        (isAtTheEnd && self._phoneNumber.length === 1);
+          // ',' DTMF separator can't be the first
+          if (!isFirst) {
+            self._replaceLastKey(',');
+          } else {
+            self._deleteAtInsertPosition();
           }
-
-          self._phoneNumber += '+';
         }
 
         self._longPress = true;
@@ -375,7 +380,7 @@ var KeypadManager = {
     }
 
     if (key == 'delete') {
-      this._phoneNumber = this._phoneNumber.slice(0, -1);
+      this._deleteAtInsertPosition();
     } else if (this.phoneNumberViewContainer.classList.
       contains('keypad-visible')) {
 
@@ -384,10 +389,10 @@ var KeypadManager = {
         this._phoneNumber = key;
         this.replaceAdditionalContactInfo('');
       } else {
-        this._phoneNumber += key;
+        this._insertAtCaret(key);
       }
     } else {
-      this._phoneNumber += key;
+      this._insertAtCaret(key);
     }
 
     setTimeout(function(self) {
@@ -428,6 +433,19 @@ var KeypadManager = {
       TonePlayer.stop();
     }
 
+    // Handle speed dial numbers
+    if (this._isSpeedDialNumber(this._phoneNumber)) {
+      var self = this;
+      var index = this._phoneNumber.slice(0, -1); // Remove the trailing '#'
+
+      this._getSpeedDialNumber(+index).then(
+      function(number) {
+        self.updatePhoneNumber(number, 'begin', false);
+      });
+    }
+
+    this.restoreCaretPosition();
+
     // If it was a long press our work is already done
     if (this._longPress) {
       this._longPress = false;
@@ -441,12 +459,13 @@ var KeypadManager = {
   },
 
   keyHandler: function kh_keyHandler(event) {
+    // Avoid the keys to get focus.
+    event.preventDefault();
 
     // When long pressing on the voicemail button, if a menu pops up on top of
     // the 1 button, a click will go through and target that button unless we
     // preventDefault the contextmenu event.
     if (event.type == 'contextmenu') {
-      event.preventDefault();
       return;
     }
 
@@ -496,6 +515,139 @@ var KeypadManager = {
     }
   },
 
+  /**
+   * Returns true if the number is a speed dial code as described in
+   * 3GPP TS 22.030 6.6.4. Speed dial codes are in the N(N)(N)# format.
+   */
+  _isSpeedDialNumber: function(number) {
+    return !!number.match(/^[0-9][0-9]{0,2}\#$/);
+  },
+
+  /**
+   * Returns the telephony number corresponding to the specified index. Speed
+   * dial numbers are retrieved from the SIM contacts list and not from the
+   * regular contacts.
+   *
+   * @param {Integer} index The index of the speed dial number.
+   * @returns {Promise} A promise that resolves to the corresponding number.
+   */
+  _getSpeedDialNumber: function(index) {
+    var self = this;
+    var cardIndex;
+
+    index--; // Speed dial indexes are 1-based
+
+    return new Promise(function(resolve, reject) {
+      LazyLoader.load(['/shared/js/sim_settings_helper.js'], function() {
+        SimSettingsHelper.getCardIndexFrom('outgoingCall',
+        function(defaultCardIndex) {
+          if (defaultCardIndex == SimSettingsHelper.ALWAYS_ASK_OPTION_VALUE) {
+            LazyLoader.load(['/shared/js/component_utils.js',
+                             '/shared/elements/gaia_sim_picker/script.js'],
+            function() {
+              var simPicker = document.getElementById('sim-picker');
+              simPicker.getOrPick(defaultCardIndex, null,
+              function(pickedCardIndex) {
+                cardIndex = pickedCardIndex;
+                resolve();
+              });
+            });
+          } else {
+            cardIndex = defaultCardIndex;
+            resolve();
+          }
+        });
+      });
+    }).then(function() {
+      return self._getSimContactsList(cardIndex).then(
+      function(simContactsList) {
+        if ((index >= 0) && (index < simContactsList.length)) {
+          return simContactsList[index].number;
+        } else {
+          return Promise.reject();
+        }
+      });
+    });
+  },
+
+  /**
+   * Creates an array of contacts populated using the ADN contacts retrieved
+   * from a SIM card. Every contact will contain only the ID and first
+   * telephone number and the array will be sorted by ID. This array is then
+   * suitable to be used to pick speed dial numbers.
+   *
+   * @param {Array} contacts An array of mozContact elements.
+   * @returns {Array} An array of telephone numbers / ID couples sorted by ID.
+   */
+  _createSimContactList: function(contacts) {
+    var numbers = new Array(contacts.length);
+
+    for (var i = 0; i < contacts.length; i++) {
+      numbers[i] = {
+        id: contacts[i].id,
+        number: contacts[i].tel[0].value,
+      };
+    }
+
+    numbers.sort(function(a, b) {
+      if (a.id.length == b.id.length) {
+        return (a.id > b.id) ? 1 : 0;
+      } else {
+        return (a.id.length > b.id.length) ? 1 : 0;
+      }
+    });
+
+    return numbers;
+  },
+
+  /**
+   * Gets the SIM contacts list for the specified SIM card.
+   *
+   * @param {Integer} cardIndex The SIM card index.
+   * @returns {Promise} A promise that is resolved with the contacts list.
+   */
+  _getSimContactsList: function(cardIndex) {
+    var self = this;
+    var canceled = false;
+
+    return new Promise(function(resolve, reject) {
+      LazyLoader.load(['/shared/style/confirm.css',
+                       '/shared/js/confirm.js',
+                       document.getElementById('confirmation-message')],
+        function() {
+          var iccId = navigator.mozIccManager.iccIds[cardIndex];
+          var icc = navigator.mozIccManager.getIccById(iccId);
+          var req = icc.readContacts('adn');
+
+          req.onsuccess = function(event) {
+            var adnContacts = event.target.result;
+            var contacts = self._createSimContactList(adnContacts);
+
+            if (!canceled) {
+              ConfirmDialog.hide();
+            }
+
+            resolve(contacts);
+          };
+          req.onerror = function(error) {
+            console.error('Could not retrieve the ADN contacts from SIM card ' +
+                          cardIndex + ', got error ' + error.name);
+            reject();
+          };
+
+          ConfirmDialog.show('loadingContacts', null, {
+            title: 'cancel',
+            callback: function() {
+              canceled = true;
+              ConfirmDialog.hide();
+              reject();
+            }
+          });
+        }
+      );
+    });
+  },
+
   sanitizePhoneNumber: function(number) {
     return number.replace(/\s+/g, '');
   },
@@ -534,8 +686,8 @@ var KeypadManager = {
         this.callBarAddContact.setAttribute('disabled', 'disabled');
       }
       this.deleteButton.style.visibility = visibility;
+      this.phoneNumberView.blur(); // update avoiding caret flickering
       this.phoneNumberView.value = phoneNumber;
-      this.moveCaretToEnd(this.phoneNumberView);
 
       FontSizeManager.adaptToSpace(
         FontSizeManager.DIAL_PAD, this.phoneNumberView, forceMaxFontSize,
@@ -683,5 +835,113 @@ var KeypadManager = {
         self._vibrationEnabled = !!value;
       });
     });
+  },
+
+  _updateInsertPosition: function kh_updateInsertPosition() {
+    this._insertPosition = this._realStartPosition();
+  },
+
+  _replaceLastKey: function kh_replaceLastKey(newKey) {
+    this._deleteAtInsertPosition();
+    this.restoreCaretPosition();
+    this._insertAtCaret(newKey);
+  },
+
+  _insertAtCaret: function kh_insertAtCaret(key) {
+    if (this._insertPosition === null) {
+      this._phoneNumber += key;
+    } else {
+      var start = this._realStartPosition();
+      var end = this._realEndPosition();
+      this._phoneNumber = this._phoneNumber.substring(0, start) + key +
+                          this._phoneNumber.substring(end);
+      this._insertPosition = start + 1;
+    }
+  },
+
+  _deleteAtInsertPosition: function kh_deleteAtInsertPosition() {
+    if (this._insertPosition === null) {
+      this._phoneNumber = this._phoneNumber.slice(0, -1);
+    } else {
+      var start = this._realStartPosition();
+      var end = this._realEndPosition();
+      if (start > 0 && start === end) {
+        start = end - 1;
+      }
+      this._phoneNumber = this._phoneNumber.substring(0, start) +
+                          this._phoneNumber.substring(end);
+      this._insertPosition = this._phoneNumber ? start : null;
+    }
+  },
+
+  _clearPhoneNumber: function kh_clearPhoneNumber() {
+    if (this._insertPosition === null) {
+      this._phoneNumber = '';
+    } else {
+      var start = this._realStartPosition();
+      this._phoneNumber = this._phoneNumber.substring(start);
+      this._insertPosition = this._phoneNumber ? 0 : null;
+    }
+  },
+
+  /**
+   * Sets the caret position inside the phone number input of the dialer
+   * according to the insert position (which is the real place where the caret
+   * should be inside the complete number) taking into account the number of
+   * ellipsed characters.
+   */
+  restoreCaretPosition: function kh_restoreCaretPosition() {
+    if (this._insertPosition !== null) {
+      var caretPosition = this._caretPosition(this._insertPosition);
+      this.phoneNumberView.selectionStart = caretPosition;
+      this.phoneNumberView.selectionEnd = caretPosition;
+      this.phoneNumberView.focus();
+    } else {
+      this.phoneNumberView.blur();
+    }
+  },
+
+  /**
+   * Gets the real start index for a selection in the phone view considering
+   * the ellipsed characters.
+   */
+  _realStartPosition: function kh_realStartPosition() {
+    var start = this.phoneNumberView.selectionStart;
+    return this._realPosition(this.phoneNumberView, start);
+  },
+
+  /**
+   * Gets the real end index for a selection in the phone view considering
+   * the ellipsed characters.
+   */
+  _realEndPosition: function kh_realEndPosition() {
+    var end = this.phoneNumberView.selectionEnd;
+    return this._realPosition(this.phoneNumberView, end);
+  },
+
+  /**
+   * Gets the position where the cursor should be placed inside the phone
+   * view (considering the ellipsed scenaries) from the real edition point.
+   */
+  _caretPosition: function kh_caretPosition(realPosition) {
+    return realPosition - this._ellipsisOffset(this.phoneNumberView);
+  },
+
+  /**
+   * Utility to calculate the real cursor position given an input with
+   * ellipsed characters and a position inside the current value.
+   */
+  _realPosition: function kh_realPosition(input, position) {
+    return position + this._ellipsisOffset(this.phoneNumberView);
+  },
+
+  /**
+   * Calculates the amount of characters that are not visible in the current
+   * view. This includes all the ellipsed characters and the ellipsis
+   * character itself.
+   */
+  _ellipsisOffset: function kh_ellipsisOffset(input) {
+    var ellipsedCharacters = +input.dataset.ellipsedCharacters;
+    return ellipsedCharacters ? (ellipsedCharacters - 1) : 0;
   }
 };

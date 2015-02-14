@@ -8,14 +8,24 @@ import shutil
 import tempfile
 import time
 
-from marionette import MarionetteTestCase, EnduranceTestCaseMixin, \
-    B2GTestCaseMixin, MemoryEnduranceTestCaseMixin
-from marionette.by import By
-from marionette import expected
-from marionette.errors import NoSuchElementException
-from marionette.errors import StaleElementException
-from marionette.errors import InvalidResponseException
-from marionette.wait import Wait
+from marionette import (MarionetteTestCase,
+                        EnduranceTestCaseMixin,
+                        B2GTestCaseMixin,
+                        MemoryEnduranceTestCaseMixin)
+try:
+    from marionette import expected
+    from marionette.by import By
+    from marionette.errors import (NoSuchElementException,
+                                   StaleElementException,
+                                   InvalidResponseException)
+    from marionette.wait import Wait
+except:
+    from marionette_driver import expected
+    from marionette_driver.by import By
+    from marionette_driver.errors import (NoSuchElementException,
+                                   StaleElementException,
+                                   InvalidResponseException)
+    from marionette_driver.wait import Wait
 
 from file_manager import GaiaDeviceFileManager, GaiaLocalFileManager
 
@@ -276,6 +286,16 @@ class GaiaData(object):
     @property
     def bluetooth_is_enabled(self):
         return self.marionette.execute_script("return window.navigator.mozBluetooth.enabled")
+
+    @property
+    def bluetooth_is_discoverable(self):
+        self.marionette.switch_to_frame()
+        return self.marionette.execute_script("return window.wrappedJSObject.Bluetooth.defaultAdapter.discoverable")
+
+    @property
+    def bluetooth_name(self):
+        self.marionette.switch_to_frame()
+        return self.marionette.execute_script("return window.wrappedJSObject.Bluetooth.defaultAdapter.name")
 
     @property
     def is_cell_data_enabled(self):
@@ -884,6 +904,9 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
 
         # disable sound completely
         self.data_layer.set_volume(0)
+
+        # disable search suggestions
+        self.data_layer.set_setting('search.suggestions.enabled', False)
 
         # disable auto-correction of keyboard
         self.data_layer.set_setting('keyboard.autocorrect', False)

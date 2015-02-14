@@ -2,13 +2,19 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+    from marionette.errors import StaleElementException
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
+    from marionette_driver.errors import StaleElementException
+
 from gaiatest.apps.phone.app import Phone
 from gaiatest.apps.base import PageRegion
-
-from marionette import Wait
-from marionette import expected
-from marionette.errors import StaleElementException
 
 
 class CallLog(Phone):
@@ -36,8 +42,10 @@ class CallLog(Phone):
 
     def __init__(self, marionette):
         Phone.__init__(self, marionette)
-        self.wait_for_element_not_displayed(*self._upgrade_progress_locator)
-        self.wait_for_element_displayed(*self._all_calls_tab_link_locator)
+        Wait(self.marionette).until(
+            expected.element_not_displayed(*self._upgrade_progress_locator))
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._all_calls_tab_link_locator))
 
     def tap_all_calls_tab(self):
         self.marionette.find_element(*self._all_calls_tab_link_locator).tap()
@@ -66,13 +74,13 @@ class CallLog(Phone):
                                        self._call_log_edit_delete_button_locator[1])
 
     def tap_delete_confirmation_button(self):
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._call_log_delete_confirmation_locator))))
-        self.marionette.find_element(*self._call_log_delete_confirmation_locator).tap()
+        confirm = Wait(self.marionette).until(
+            expected.element_present(*self._call_log_delete_confirmation_locator))
+        Wait(self.marionette).until(expected.element_displayed(confirm))
+        confirm.tap()
 
-        Wait(self.marionette, ignored_exceptions=[StaleElementException])\
-            .until(lambda m: len(self.call_list) == 0)
+        Wait(self.marionette, ignored_exceptions=StaleElementException).until(
+            lambda m: len(self.call_list) == 0)
 
     @property
     def header_text(self):

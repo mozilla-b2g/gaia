@@ -1,6 +1,6 @@
 'use strict';
 
-/* global LayoutRenderingManager, KeyboardConsole, IMERender */
+/* global LayoutRenderingManager, KeyboardConsole */
 
 require('/js/keyboard/console.js');
 
@@ -9,6 +9,7 @@ require('/js/keyboard/layout_rendering_manager.js');
 suite('LayoutRenderingManager', function() {
   var app;
   var manager;
+  var viewManager;
 
   setup(function() {
     this.sinon.stub(window, 'setTimeout');
@@ -17,10 +18,9 @@ suite('LayoutRenderingManager', function() {
     this.sinon.stub(window, 'removeEventListener');
     this.sinon.stub(window, 'resizeTo');
 
-    window.IMERender = {
-      setInputMethodName: this.sinon.stub(),
-      draw: this.sinon.stub(),
-      resizeUI: this.sinon.stub(),
+    viewManager = {
+      render: this.sinon.stub(),
+      resize: this.sinon.stub(),
       setUpperCaseLock: this.sinon.stub(),
       showCandidates: this.sinon.stub(),
       getWidth: this.sinon.stub().returns(600),
@@ -53,10 +53,12 @@ suite('LayoutRenderingManager', function() {
       },
       upperCaseStateManager: {
         isUpperCase: true
-      }
+      },
+      viewManager: viewManager
     };
 
-    Object.defineProperty(window, 'hidden', { value: false });
+    Object.defineProperty(window, 'hidden',
+                          { value: false, configurable: true });
 
     manager = new LayoutRenderingManager(app);
     manager.start();
@@ -71,13 +73,13 @@ suite('LayoutRenderingManager', function() {
     var p;
 
     teardown(function(done) {
-      IMERender.draw.getCall(0).args[2].call(window);
+      viewManager.render.getCall(0).args[2].call(window);
 
       p.then(function() {
         assert.equal(
-          IMERender.setUpperCaseLock.firstCall.args[0],
+          viewManager.setUpperCaseLock.firstCall.args[0],
           app.upperCaseStateManager);
-        assert.equal(IMERender.showCandidates.firstCall.args[0],
+        assert.equal(viewManager.showCandidates.firstCall.args[0],
           app.candidatePanelManager.currentCandidates);
         assert.isTrue(
           app.inputMethodManager.currentIMEngine.setLayoutParams.calledWith({
@@ -100,29 +102,25 @@ suite('LayoutRenderingManager', function() {
       app.upperCaseStateManager.isUpperCase = false;
       p = manager.updateLayoutRendering();
 
-      assert.isTrue(IMERender.draw.calledWith(
+      assert.isTrue(viewManager.render.calledWith(
         app.layoutManager.currentPage,
         {
           uppercase: false,
           inputType: 'foo',
           showCandidatePanel: false
         }));
-
-      assert.isTrue(IMERender.setInputMethodName.calledWith('default'));
     });
 
     test('w/o autoCorrectLanguage, w/o displaysCandidates()', function() {
       p = manager.updateLayoutRendering();
 
-      assert.isTrue(IMERender.draw.calledWith(
+      assert.isTrue(viewManager.render.calledWith(
         app.layoutManager.currentPage,
         {
           uppercase: true,
           inputType: 'foo',
           showCandidatePanel: false
         }));
-
-      assert.isTrue(IMERender.setInputMethodName.calledWith('default'));
     });
 
     test('w/ autoCorrectLanguage, w/o displaysCandidates()', function() {
@@ -130,7 +128,7 @@ suite('LayoutRenderingManager', function() {
 
       p = manager.updateLayoutRendering();
 
-      assert.isTrue(IMERender.draw.calledWith(
+      assert.isTrue(viewManager.render.calledWith(
         app.layoutManager.currentPage,
         {
           uppercase: true,
@@ -146,7 +144,7 @@ suite('LayoutRenderingManager', function() {
 
       p = manager.updateLayoutRendering();
 
-      assert.isTrue(IMERender.draw.calledWith(
+      assert.isTrue(viewManager.render.calledWith(
         app.layoutManager.currentPage,
         {
           uppercase: true,
@@ -160,7 +158,7 @@ suite('LayoutRenderingManager', function() {
 
       p = manager.updateLayoutRendering();
 
-      assert.isTrue(IMERender.draw.calledWith(
+      assert.isTrue(viewManager.render.calledWith(
         app.layoutManager.currentPage,
         {
           uppercase: true,
@@ -176,7 +174,7 @@ suite('LayoutRenderingManager', function() {
 
       p = manager.updateLayoutRendering();
 
-      assert.isTrue(IMERender.draw.calledWith(
+      assert.isTrue(viewManager.render.calledWith(
         app.layoutManager.currentPage,
         {
           uppercase: true,
@@ -194,7 +192,7 @@ suite('LayoutRenderingManager', function() {
       };
       manager.handleEvent(evt);
 
-      assert.isFalse(IMERender.resizeUI.calledOnce);
+      assert.isFalse(viewManager.resize.calledOnce);
       assert.isFalse(
         app.inputMethodManager.currentIMEngine.setLayoutParams.calledOnce);
       assert.isFalse(window.resizeTo.calledOnce);
@@ -203,7 +201,7 @@ suite('LayoutRenderingManager', function() {
     test('updateCandidatesRendering', function() {
       manager.updateCandidatesRendering();
 
-      assert.isFalse(IMERender.showCandidates.calledOnce);
+      assert.isFalse(viewManager.showCandidates.calledOnce);
     });
 
     test('updateUpperCaseRendering', function() {
@@ -225,7 +223,7 @@ suite('LayoutRenderingManager', function() {
         assert.isTrue(false, 'Should not reject.');
       }).then(done, done);
 
-      IMERender.draw.getCall(0).args[2].call(window);
+      viewManager.render.getCall(0).args[2].call(window);
     });
 
     test('resize event', function() {
@@ -235,8 +233,7 @@ suite('LayoutRenderingManager', function() {
       };
       manager.handleEvent(evt);
 
-      assert.isTrue(
-        IMERender.resizeUI.calledWith(app.layoutManager.currentPage));
+      assert.isTrue(viewManager.resize.calledOnce);
 
       assert.isTrue(
         app.inputMethodManager.currentIMEngine.setLayoutParams.calledWith({
@@ -253,8 +250,8 @@ suite('LayoutRenderingManager', function() {
     test('updateCandidatesRendering', function() {
       manager.updateCandidatesRendering();
 
-      assert.isTrue(IMERender.showCandidates.calledTwice);
-      assert.equal(IMERender.showCandidates.secondCall.args[0],
+      assert.isTrue(viewManager.showCandidates.calledTwice);
+      assert.equal(viewManager.showCandidates.secondCall.args[0],
         app.candidatePanelManager.currentCandidates);
     });
 
@@ -265,8 +262,8 @@ suite('LayoutRenderingManager', function() {
 
       window.requestAnimationFrame.getCall(0).args[0].call(window);
 
-      assert.isTrue(IMERender.setUpperCaseLock.calledTwice);
-      assert.equal(IMERender.setUpperCaseLock.secondCall.args[0],
+      assert.isTrue(viewManager.setUpperCaseLock.calledTwice);
+      assert.equal(viewManager.setUpperCaseLock.secondCall.args[0],
         app.upperCaseStateManager);
     });
   });

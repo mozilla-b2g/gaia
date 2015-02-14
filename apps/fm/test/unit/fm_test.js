@@ -20,17 +20,52 @@ suite('FM', function() {
     }
   }
 
+  function testScreenReaderSwipe(swipeDirection, startFreq, expectedFreq) {
+      var modifier, key;
+
+      if (swipeDirection === 'up') {
+        modifier = 0.1;
+        key = 38; // DOM_VK_UP = 38
+      } else if (swipeDirection === 'down') {
+        modifier = -0.1;
+        key = 40; // DOM_VK_DOWN = 40
+      }
+
+      var keyEvent = document.createEvent('KeyboardEvent');
+      keyEvent.initKeyEvent('keypress',
+        true, true, window,
+        false, false, false, false,
+        key, 0);
+
+      frequencyDialer.setFrequency(startFreq);
+
+      $('dialer-container').dispatchEvent(keyEvent);
+      assert.equal(frequencyDialer._currentFreqency, expectedFreq);
+  }
+
+  function testPowerSwitchLabel() {
+    assert.equal(mozFMRadio.enabled ? 'power-switch-off' : 'power-switch-on',
+      $('power-switch').getAttribute('data-l10n-id'));
+  }
+
   suite('frequency dialer', function() {
 
     suiteSetup(function() {
+      sinon.stub(favoritesList, '_save').returns(true);
+      favoritesList._favList = {};
+
+      sinon.stub(historyList, '_save').returns(true);
+
       tempNode = document.createElement('div');
       tempNode.id = 'test';
       tempNode.innerHTML =
         '<div id="frequency-bar">' +
         '  <div id="frequency-display">' +
+        '    <a id="speaker-switch" href="#speaker" data-speaker-on="false"' +
+        '      aria-pressed="false"></a>' +
+        '    <div id="frequency">0</div>' +
         '    <a id="bookmark-button" href="#bookmark"' +
         '      data-bookmarked="false"></a>' +
-        '    <div id="frequency">0</div>' +
         '  </div>' +
         '</div>' +
         '<div id="dialer-bar">' +
@@ -38,6 +73,12 @@ suite('FM', function() {
         '    <div id="frequency-indicator"></div>' +
         '    <div id="frequency-dialer" class="animation-on"></div>' +
         '  </div>' +
+        '</div>' +
+        '<div id="fav-list-container"></div>' +
+        '<div>' +
+        '  <a id="power-switch" href="#power-switch" data-enabled="false"' +
+        '    data-enabling="false" role="button"><span></span>' +
+        '  </a>' +
         '</div>' +
         '<div id="antenna-warning" hidden="hidden"></div>';
 
@@ -68,6 +109,43 @@ suite('FM', function() {
 
     test('updated #frequency dom display digits', function() {
       assert.equal($('frequency').textContent, 87.5);
+    });
+
+    test('compare new set frequency with aria-valuenow', function() {
+      var frequency = 95.7;
+      var freq = frequencyDialer.setFrequency(frequency);
+      assert.equal($('dialer-container').getAttribute('aria-valuenow'),
+        frequency.toString());
+    });
+
+    test('screen reader swipe up on dialer', function() {
+      testScreenReaderSwipe('up', 95.7, 95.8);
+      testScreenReaderSwipe('down', 95.7, 95.6);
+    });
+
+    test('maintain aria-pressed on bookmark button', function() {
+      var bookmarkButton = $('bookmark-button');
+
+      // Start at arbitrary station
+      mozFMRadio.setFrequency(88.6);
+      updateFreqUI();
+      assert.equal('false', bookmarkButton.getAttribute('aria-pressed'));
+      // Add station to favorites
+      favoritesList.add(88.6);
+      updateFreqUI();
+      assert.equal('true', bookmarkButton.getAttribute('aria-pressed'));
+      // Browse to different station
+      mozFMRadio.setFrequency(99.5);
+      updateFreqUI();
+      assert.equal('false', bookmarkButton.getAttribute('aria-pressed'));
+      // Come back to first station
+      mozFMRadio.setFrequency(88.6);
+      updateFreqUI();
+      assert.equal('true', bookmarkButton.getAttribute('aria-pressed'));
+      // Remove station from favorites
+      favoritesList.remove(88.6);
+      updateFreqUI();
+      assert.equal('false', bookmarkButton.getAttribute('aria-pressed'));
     });
 
     // temporarily removing due to test not passing on TBPL Bug 876265
@@ -102,8 +180,6 @@ suite('FM', function() {
   suite('favorite list', function() {
 
     suiteSetup(function() {
-      favoritesList._save = function() {return true};
-      favoritesList._favList = {};
       tempNode = document.createElement('div');
       tempNode.id = 'test';
       tempNode.innerHTML = '<div id="fav-list-container"></div>';
@@ -160,6 +236,24 @@ suite('FM', function() {
       assert.ok(isAscending);
     });
 
+    test('set aria-selected = true on active favorite stations, else false',
+      function() {
+        var testFreqs = [88.6, 103.7, 104.8, 55.6];
+        var favorites = $$('#fav-list-container div.fav-list-item');
+
+        favoritesList.add(88.6);
+        favoritesList.add(103.7);
+        favoritesList.add(104.8);
+
+        testFreqs.forEach(function(testFreq, index, array) {
+          favoritesList.select(testFreq);
+          for (var i = 0; i < favorites.length; i++) {
+            assert.equal(favoritesList._getElemFreq(favorites[i]) === testFreq ?
+              'true' : 'false', favorites[i].getAttribute('aria-selected'));
+          }
+      });
+    });
+
   });
 
   suite('update display states', function() {
@@ -172,7 +266,7 @@ suite('FM', function() {
         '<div id="antenna-warning" hidden></div>' +
         '<div id="frequency-bar"></div>' +
         '<a id="power-switch" href="#power-switch" data-enabled="false"' +
-        '  data-enabling="false"></a></div>';
+        '  data-enabling="false" data-l10n-id="power-switch-off"></a></div>';
 
       document.body.appendChild(tempNode);
       updateEnablingState(true);
@@ -200,6 +294,14 @@ suite('FM', function() {
       test('#antenna-warning is hidden', function() {
         assert.ok(!!$('antenna-warning').hidden, mozFMRadio.antennaAvailable);
       });
+
+      test('#power-switch has appropriate aria-label based on enabled status',
+        function() {
+          testPowerSwitchLabel();
+          $('power-switch').click();
+          testPowerSwitchLabel();
+        }
+      );
     });
   });
 
@@ -307,7 +409,7 @@ suite('FM', function() {
           '<div id="frequency-bar">' +
           '  <div id="frequency-display">' +
           '    <a id="speaker-switch" href="#speaker" ' +
-                'data-speaker-on="false"></a>' +
+                'data-speaker-on="false" aria-pressed="false"></a>' +
           '    <a id="bookmark-button" href="#bookmark"' +
           '      data-bookmarked="false"></a>' +
           '    <div id="frequency">0</div>' +
@@ -384,6 +486,15 @@ suite('FM', function() {
           assert.equal(mozFMRadio.enabled, false);
         }
       );
+
+      test('test speaker switch accessibility', function() {
+        var speakerSwitch = $('speaker-switch');
+        assert.equal(speakerSwitch.getAttribute('aria-pressed'), 'false');
+        speakerSwitch.click();
+        assert.equal(speakerSwitch.getAttribute('aria-pressed'), 'true');
+      });
+
     }
   );
+
 });

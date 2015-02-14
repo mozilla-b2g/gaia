@@ -675,7 +675,7 @@ var LOGFAB = exports.LOGFAB = log.register(module, {
       sync: {},
       syncDateRange: {
         newMessages: true, existingMessages: true, deletedMessages: true,
-        start: false, end: false, skewedStart: false, skewedEnd: false,
+        start: false, end: false,
       },
     },
   },

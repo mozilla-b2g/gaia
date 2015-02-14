@@ -1,5 +1,5 @@
 /* globals ConnectionServiceManager, ContentDirectoryManager, AVTManager,
-   DeviceManager, RenderCtrlManager */
+   DeviceManager */
 'use strict';
 
 function DlnaPlayer() {

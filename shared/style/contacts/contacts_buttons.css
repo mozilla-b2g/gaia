@@ -34,7 +34,7 @@ li button.icon-email:before {
   font-style: normal;
   line-height: 4rem;
   height: 4rem;
-  text-align: right;
+  text-align: end;
   width: 5.5rem;
   right: 1rem;
   top: 0;
@@ -48,13 +48,12 @@ li button.icon-email:before {
 }
 
 #sim-picker {
-  text-align: left;
+  text-align: start;
 }
 
 #contact-detail h2 {
   display: flex;
   margin: 0 1.5rem 0.2rem;
-
   text-transform: uppercase;
   font-size: 1.8rem;
   color: #4997a7;
@@ -80,16 +79,16 @@ li button.icon-email:before {
 
 .item-media {
   float: left;
-  margin-right: 1rem;
+  -moz-margin-end: 1rem;
 }
 
 .item-media.pull-right {
-  margin-left: 1rem;
-  margin-right: 0;
+  -moz-margin-start: 1rem;
+  -moz-margin-end: 0;
 }
 
 .item-media.pull-right button {
-  padding-right: 3rem;
+  -moz-padding-end: 3rem;
 }
 
 .item-body {
@@ -134,4 +133,33 @@ li button.activity > b {
 
 .remark-missed {
   color: #CC0000 !important;
+}
+
+/* RTL View */
+html[dir="rtl"] .has-preferred-sim .icon-call b {
+  left: 6.5rem;
+  right: unset;
+}
+
+html[dir="rtl"] .call-action .js-sim-indication {
+  left: 1rem;
+  right: unset;
+  background-position: left bottom 0.2rem;
+}
+
+html[dir="rtl"] .item-media {
+  float: right;
+}
+
+html[dir="rtl"] .pull-left {
+  float: right;
+}
+
+html[dir="rtl"] .pull-right {
+  float: left;
+}
+
+html[dir="rtl"] li button.activity > b {
+  left: 3rem;
+  right: 1.5rem;
 }

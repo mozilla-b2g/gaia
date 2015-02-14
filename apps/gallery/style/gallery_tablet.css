@@ -89,8 +89,9 @@ body.thumbnailListView #thumbnails {
   visibility: visible;
 }
 
-#thumbnails-list-top {
-  display: block;
+/* Header in default thumbnail list appears in tablets only */
+body.thumbnailListView #thumbnail-list-top {
+  display: block !important;
 }
 
 #thumbnails.list {
@@ -416,10 +417,6 @@ body.thumbnailListView #fullscreen-view.toolbar-hidden .videoPlayerFooter.hidden
   display: block !important; /* 1 */
 }
 
-#thumbnails-list-top {
-  display: block;
-}
-
 @media (min-width: 768px) and (min-height: 768px) {
   section[role="region"].skin-organic > header:first-child h1,
   .skin-organic section[role="region"] > header:first-child h1,
@@ -550,14 +547,9 @@ section[role="region"] > header:first-child menu[type="toolbar"] button:after {
     left: 40rem;
   }
 
-  body.thumbnailListView #thumbnails,
-  body.thumbnailSelectView #thumbnails {
+  body.thumbnailListView #thumbnail-views,
+  body.thumbnailSelectView #thumbnail-views {
     visibility: visible;
-    width: 40rem;
-  }
-
-  #thumbnail-list-view,
-  #thumbnail-select-view {
     width: 40rem;
   }
 

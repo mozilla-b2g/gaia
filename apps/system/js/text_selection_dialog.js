@@ -11,7 +11,7 @@
       document.getElementById('text-selection-dialog-root');
     this.event = null;
     this._enabled = false;
-    this._hideTimeout = null;
+    this._shortcutTimeout = null;
     this._injected = false;
     this._hasCutOrCopied = false;
     this._ignoreSelectionChange = false;
@@ -67,6 +67,7 @@
       return;
     }
     this._enabled = true;
+    window.addEventListener('hierachychanged', this);
     window.addEventListener('activeappchanged', this);
     window.addEventListener('home', this);
     window.addEventListener('mozChromeEvent', this);
@@ -79,6 +80,7 @@
       return;
     }
     this._enabled = false;
+    window.removeEventListener('hierachychanged', this);
     window.removeEventListener('activeappchanged', this);
     window.removeEventListener('home', this);
     window.removeEventListener('mozChromeEvent', this);
@@ -97,6 +99,7 @@
     switch (evt.type) {
       case 'home':
       case 'activeappchanged':
+      case 'hierachychanged':
         this.close();
         break;
       case 'value-selector-shown':
@@ -108,7 +111,27 @@
       case 'mozChromeEvent':
         switch (evt.detail.type) {
           case 'selectionstatechanged':
-            this._onSelectionStateChanged(evt);
+            if (this._ignoreSelectionChange) {
+              return;
+            }
+            evt.preventDefault();
+            evt.stopPropagation();
+
+            var detail = evt.detail.detail;
+            if (!detail) {
+              return;
+            }
+            this.debug('on receive selection change event');
+            this.debug(JSON.stringify(detail));
+
+            this._isSelectionVisible = detail.visible;
+            // Separate collapse mode and selection mode for easier handling.
+            if (detail.isCollapsed) {
+              this._onCollapsedMode(detail);
+            } else {
+              this._onSelectionMode(detail);
+
+            }
             break;
           case 'scrollviewchange':
             this.debug('scrollviewchange');
@@ -126,6 +149,7 @@
             }
             break;
           case 'touchcarettap':
+            // We'll remove this event handler after bug 1120750 is merged.
             this.debug('touchcarettap');
             this.show(this.textualmenuDetail);
             this._triggerShortcutTimeout();
@@ -134,36 +158,39 @@
     }
   };
 
-  TextSelectionDialog.prototype._onSelectionStateChanged =
-    function tsd__onSelectionStateChanged(evt) {
-      if (this._ignoreSelectionChange) {
-        return;
+  TextSelectionDialog.prototype._onCollapsedMode =
+    function tsd__onCollapsedMode(detail) {
+      var states = detail.states;
+      var commands = detail.commands;
+      this.textualmenuDetail = detail;
+      // User can tap on empty column within shortcut timeout or simply tap on
+      // caret to launch bubble.
+      if (states.indexOf('taponcaret') !== -1 ||
+          (states.indexOf('mouseup') !== -1 && this._hasCutOrCopied) ||
+          (this._transitionState === 'opened' &&
+           states.indexOf('updateposition') !== -1 )) {
+        // In collapsed mode, only paste option will be displaed if we have
+        // copied or cut before.
+        commands.canSelectAll = false;
+        this.show(detail);
+        this._triggerShortcutTimeout();
+      } else {
+        this.hide();
       }
-      evt.preventDefault();
-      evt.stopPropagation();
+    };
 
-      var detail = evt.detail.detail;
-      if (!detail) {
-        return;
-      }
-      this.debug('on receive selection change event');
-      this.debug(JSON.stringify(detail));
+  TextSelectionDialog.prototype._onSelectionMode =
+    function tsd__onSelectionMode(detail) {
       var rect = detail.rect;
       var states = detail.states;
       var commands = detail.commands;
-      var isCollapsed = detail.isCollapsed;
-      var isTempShortcut = this._hasCutOrCopied && isCollapsed;
       var rectHeight = rect.top - rect.bottom;
       var rectWidth = rect.right - rect.left;
 
-      this._isSelectionVisible = detail.visible;
-      // In collapsed mode, only paste option will be displaed if we have copied
-      // or cut before.
-      if (isCollapsed && states.indexOf('mouseup') !== -1) {
-        this.textualmenuDetail = detail;
-        commands.canSelectAll = false;
+      if (!this._isSelectionVisible) {
+        this.close();
+        return;
       }
-
       // If current element lost focus, we should hide the bubble.
       if (states.indexOf('blur') !== -1) {
         this.hide();
@@ -178,14 +205,14 @@
       }
 
       if (states.indexOf('mouseup') !== -1 && rectHeight === 0 &&
-          rectWidth === 0 && !isTempShortcut) {
+          rectWidth === 0) {
         this.hide();
         return;
       }
 
       // We should not do anything if below cases happen.
       if (states.length === 0 || (
-          rectHeight === 0 && rectWidth === 0 && !isTempShortcut) ||
+          rectHeight === 0 && rectWidth === 0) ||
           !(commands.canPaste || commands.canCut || commands.canSelectAll ||
             commands.canCopy)
         ) {
@@ -200,25 +227,22 @@
       if (states.indexOf('selectall') !== -1 ||
           states.indexOf('mouseup') !== -1 ||
           states.indexOf('updateposition') !== -1) {
-        if (!isTempShortcut && isCollapsed ||
-            !this._isSelectionVisible) {
-          this.close();
-          return;
-        }
-
         this.show(detail);
-        if (isTempShortcut) {
-          this._triggerShortcutTimeout();
-        }
         return;
       }
       this.hide();
     };
 
+  TextSelectionDialog.prototype._resetShortcutTimeout =
+    function tsd__resetShortcutTimeout() {
+      window.clearTimeout(this._shortcutTimeout);
+      this._shortcutTimeout = null;
+    };
+
   TextSelectionDialog.prototype._triggerShortcutTimeout =
     function tsd__triggerShortcutTimeout() {
-      window.clearTimeout(this._hideTimeout);
-      this._hideTimeout = window.setTimeout(function() {
+      this._resetShortcutTimeout();
+      this._shortcutTimeout = window.setTimeout(function() {
         this.close();
       }.bind(this), this.SHORTCUT_TIMEOUT);
     };
@@ -372,8 +396,7 @@
 
 
   TextSelectionDialog.prototype.show = function tsd_show(detail) {
-
-    clearTimeout(this._hideTimeout);
+    this._resetShortcutTimeout();
     var numOfSelectOptions = 0;
     var options = [ 'Paste', 'Copy', 'Cut', 'SelectAll' ];
 
@@ -474,7 +497,7 @@
     this.hide();
     this.element.blur();
     this.textualmenuDetail = null;
-    clearTimeout(this._hideTimeout);
+    this._resetShortcutTimeout();
   };
 
   exports.TextSelectionDialog = TextSelectionDialog;

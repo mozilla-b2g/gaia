@@ -2,10 +2,15 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
 
-from marionette import expected
-from marionette.by import By
-from marionette import Wait
 from gaiatest.apps.base import Base
 
 
@@ -30,4 +35,4 @@ class FindMyDevice(Base):
         Wait(self.marionette).until(expected.element_displayed(findmydevice))
         checkbox = Wait(self.marionette, timeout=60).until(
             expected.element_present(*self._checkbox_locator))
-        Wait(self.marionette).until(lambda m: checkbox.is_selected())
+        Wait(self.marionette).until(expected.element_selected(checkbox))

@@ -30,6 +30,10 @@ Week.prototype = {
     });
   },
 
+  get daysHolder() {
+    return this.findElement('.md__days');
+  },
+
   get days() {
     return this.findElements('.md__day');
   },
@@ -59,8 +63,12 @@ Week.prototype = {
     return this.findElement('.md__all-day');
   },
 
-  get allDay() {
-    return this.findElements('.md__allday')[1];
+  get activeAllDays() {
+    return this.findElements('.md__allday[aria-hidden="false"]');
+  },
+
+  get allDaysHolder() {
+    return this.findElement('.md__alldays');
   },
 
   get scrollTop() {
@@ -69,10 +77,15 @@ Week.prototype = {
     });
   },
 
-  waitForHourScrollEnd: function() {
+  waitForHourScrollEnd: function(hour) {
     // if displaying current day it scrolls to current time, if not it scrolls
-    // to 8AM
-    var hour = this.todayDates.length ? new Date().getHours() - 1 : 8;
+    // to 8AM; it should also scroll to the created event, that's why we allow
+    // overriding the `hour`.
+    if (hour == null) {
+      hour = this.todayDates.length ?
+        Math.max(new Date().getHours() - 1, 0) :
+        8;
+    }
     var expected = this.getDestinationScrollTop(hour);
     this._waitForScrollEnd(expected);
   },
@@ -81,9 +94,13 @@ Week.prototype = {
     this.client.waitFor(function() {
       return this.scrollTop === expected;
     }.bind(this));
+    this.client.waitFor(function() {
+      return this.main.cssProperty('overflowY') !== 'hidden';
+    }.bind(this));
   },
 
   getDestinationScrollTop: function(hour) {
+    hour = Math.max(hour, 0);
     var bottomScrollTop = this.main.scriptWith(function(el) {
       return el.scrollHeight - el.clientHeight;
     });

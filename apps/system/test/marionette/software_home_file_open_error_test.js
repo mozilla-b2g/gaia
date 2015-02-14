@@ -26,7 +26,6 @@ marionette('Software Home Button - File Open Error', function() {
     system = client.loader.getAppClass('system');
     actions = client.loader.getActions();
     system.waitForStartup();
-    search.removeGeolocationPermission();
   });
 
   suiteSetup(function(done) {

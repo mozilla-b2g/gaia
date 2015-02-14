@@ -4,10 +4,8 @@
 
 let utils = require('utils');
 
-var KeyboardLayoutDetail = function(id, options) {
+var KeyboardLayoutDetail = function(id) {
   this.id = id;
-
-  this.options = options || {};
 };
 
 // A KeyboardLayoutDetail instance contains the following properties.
@@ -20,11 +18,24 @@ KeyboardLayoutDetail.prototype.layoutFile = null;
 KeyboardLayoutDetail.prototype.types = null;
 KeyboardLayoutDetail.prototype.imEngineId = undefined;
 KeyboardLayoutDetail.prototype.imEngineDir = null;
+
+// How size is counted is imEngine dependent.
+KeyboardLayoutDetail.prototype.fileSize = null;
 KeyboardLayoutDetail.prototype.preloadDictRequired = undefined;
-KeyboardLayoutDetail.prototype.dictId = undefined;
-KeyboardLayoutDetail.prototype.dictLabel = undefined;
+
+KeyboardLayoutDetail.prototype.dictPreloaded = false;
+
+// The nsIFile instance points to the dictionary file in the tree.
 KeyboardLayoutDetail.prototype.dictFile = null;
-KeyboardLayoutDetail.prototype.dictFilePath = null;
+
+// The filename of the dictionary; use for construting CDN URL.
+// Must be unique for a given resource.
+KeyboardLayoutDetail.prototype.dictFilename = undefined;
+
+// The path within the packaged app, relative to the imEngine dir root.
+// Must be unique for a given resource.
+// This is also used to construct database ID.
+KeyboardLayoutDetail.prototype.dictFilePath = undefined;
 
 // Read the .js file for the named keyboard layout and extract
 // its information.
@@ -58,7 +69,7 @@ KeyboardLayoutDetail.prototype.load = function(appDir) {
 
   // These properties exists in all layouts.
   this.label = win.Keyboards[id].menuLabel;
-  this.types = win.Keyboards[id].types;
+  this.types = win.Keyboards[id].types.sort();
   this.imEngineId = win.Keyboards[id].imEngine;
   if (this.imEngineId) {
     this.imEngineDir =
@@ -70,34 +81,31 @@ KeyboardLayoutDetail.prototype.load = function(appDir) {
     }
   }
 
-  // Handle its dictionary declarations, if any.
+  // Handle its dictionary declarations, and count the size, if any.
+  var lang;
   switch (this.imEngineId) {
     case 'latin':
       this.preloadDictRequired = false;
-      this.dictId = win.Keyboards[id].autoCorrectLanguage;
-      if (this.dictId) {
-        this.dictFilePath = 'dictionaries/' + this.dictId + '.dict';
-
-        var dictMetadata = JSON.parse(utils.getFileContent(
-          utils.getFile(appDir.path, 'js', 'imes', 'latin',
-            'dictionaries', 'dict_metadata.json')));
-
-        if (!dictMetadata[this.dictId] || !dictMetadata[this.dictId].label) {
-          throw new Error('KeyboardLayoutDetail: ' +
-            'Keyboard layout ' + id + '.js' +
-            ' specified a dictionary ' + this.dictId + ' without label ' +
-            'for latin engine.');
-        }
-        this.dictLabel = dictMetadata[this.dictId].label;
+      lang = win.Keyboards[id].autoCorrectLanguage;
+      if (lang) {
+        this.dictFilename = lang + '.dict';
+        this.dictFilePath = 'dictionaries/' + this.dictFilename;
         this.dictFile = utils.getFile(appDir.path, 'js', 'imes', 'latin',
-                                      'dictionaries', this.dictId + '.dict');
+                                      'dictionaries', this.dictFilename);
 
         if (!this.dictFile.exists()) {
           throw new Error('KeyboardLayoutDetail: ' +
             'Keyboard layout ' + id + '.js' +
             ' specified a non-exist dictionary for latin engine.');
         }
+
+        // Consider the file size of the layout as the size of the dinctionary.
+        this.fileSize = this.dictFile.fileSize;
+      } else {
+        // To prevent this to be 0, set the size to it's layoutFile.
+        this.fileSize = this.layoutFile.fileSize;
       }
+
       break;
 
     case 'handwriting':
@@ -107,6 +115,16 @@ KeyboardLayoutDetail.prototype.load = function(appDir) {
       // These IMs come with dictionary data in the tree. They must be
       // excluded in a "noPreloadDictRequired" build to conserve build size.
       this.preloadDictRequired = true;
+
+      // The file size of the layout would be the size of the engine dir.
+      this.fileSize = utils.ls(this.imEngineDir, true)
+        .map(function(file) {
+          return file.fileSize;
+        })
+        .reduceRight(function(prev, fileSize) {
+          return prev + fileSize;
+        }, 0);
+
       break;
 
     case 'jsavrophonetic':
@@ -117,12 +135,25 @@ KeyboardLayoutDetail.prototype.load = function(appDir) {
       // These IMs only come with some logic in JavaScript with no preload
       // dictionaries -- we can safely include them w/o taking too much size.
       this.preloadDictRequired = false;
+
+      // The file size of the layout would be the size of the engine dir.
+      this.fileSize = utils.ls(this.imEngineDir, true)
+        .map(function(file) {
+          return file.fileSize;
+        })
+        .reduceRight(function(prev, fileSize) {
+          return prev + fileSize;
+        }, 0);
+
       break;
 
     default:
+      // To prevent this to be 0, set the size to it's layoutFile.
+      this.fileSize = this.layoutFile.fileSize;
+
       // It's possible the layout doesn't have an IMEngine, and it's acceptible.
       if (!this.imEngineId) {
-        return;
+        break;
       }
 
       // Throw so people are forced to place their IMEngine correctly here.
@@ -145,14 +176,39 @@ function(layoutIds, preloadDictLayoutIds) {
   }
 
   this.layoutDetails = [];
+
+  // We need to track the dict separately here --
+  // because we want to set all layouts using the same dictionary to be
+  // considered preloaded.
+  var imEngineDictIdSet = new Set();
+
   layoutIdSet.forEach(function(layoutId) {
-    var detail = new KeyboardLayoutDetail(layoutId, {
-      preloadDictionary: preloadDictLayoutIdSet.has(layoutId)
-    });
+    var detail = new KeyboardLayoutDetail(layoutId);
     detail.load(this.appDir);
+
+    if (detail.dictFile && preloadDictLayoutIdSet.has(layoutId)) {
+      imEngineDictIdSet.add(detail.imEngineId + '/' + detail.dictFilePath);
+    }
 
     this.layoutDetails.push(detail);
   }, this);
+
+  this.layoutDetails.sort(function(a, b) {
+    if (a.id > b.id) {
+      return 1;
+    } else if (a.id < b.id) {
+      return -1;
+    }
+
+    throw new Error('KeyboardLayoutConfigurator: ' +
+      'Found two identical layout id: ' + a.id);
+  });
+
+  this.layoutDetails.forEach(function(detail) {
+    if (imEngineDictIdSet.has(detail.imEngineId + '/' + detail.dictFilePath)) {
+      detail.dictPreloaded = true;
+    }
+  });
 };
 
 KeyboardLayoutConfigurator.prototype._expandLayoutIdSet = function(layoutIds) {
@@ -266,8 +322,7 @@ KeyboardLayoutConfigurator.prototype._copyDicts = function(distDir) {
     // Copy the dictFile if applicable.
     switch (layoutDetail.imEngineId) {
       case 'latin':
-        if (!layoutDetail.dictFile ||
-            !layoutDetail.options.preloadDictionary) {
+        if (!layoutDetail.dictPreloaded) {
           return;
         }
 
@@ -280,12 +335,38 @@ KeyboardLayoutConfigurator.prototype._copyDicts = function(distDir) {
   }, this);
 };
 
+KeyboardLayoutConfigurator.prototype.getLayoutsJSON = function() {
+  var layouts = [];
+
+  this.layoutDetails.forEach(function(layoutDetail) {
+    var layout = {
+      id: layoutDetail.id,
+      name: layoutDetail.label,
+      imEngineId: layoutDetail.imEngineId,
+      types: layoutDetail.types,
+      dictFileSize: layoutDetail.fileSize
+    };
+
+    if (layoutDetail.dictFile) {
+      layout.preloaded = layoutDetail.dictPreloaded;
+
+      layout.dictFilename = layoutDetail.dictFilename;
+      layout.dictFilePath = layoutDetail.dictFilePath;
+    } else {
+      layout.preloaded = true;
+    }
+
+    layouts.push(layout);
+  });
+
+  return layouts;
+};
+
 KeyboardLayoutConfigurator.prototype.addInputsToManifest = function(manifest) {
   this.layoutDetails.forEach(function(layoutDetail) {
     // Layout does not get declared statically
     // if its dictionary is not preloaded.
-    if (layoutDetail.dictFile &&
-        !layoutDetail.options.preloadDictionary) {
+    if (layoutDetail.dictFile && !layoutDetail.dictPreloaded) {
       return;
     }
 

@@ -90,7 +90,8 @@
     <!-- for perf-measurement related utilities -->
     <script defer src='/shared/js/performance_testing_helper.js'></script>
 
-    <link rel="manifest" href="../manifest.webapp">
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
     <link rel="localization" href="locales/contacts.{locale}.properties">
     <link rel="localization" href="../dialer/locales/shared.{locale}.properties">
     <link rel="localization" href="/shared/locales/import_contacts/import_contacts.{locale}.properties">
@@ -121,6 +122,8 @@
     <link href="/shared/js/dialer/telephony_messages.js">
 
     <link href="/shared/pages/import/js/parameters.js">
+
+    <link href="/shared/js/utilities.js">
     -->
 
     <link rel="import" href="elements/confirm.html">
@@ -147,7 +150,7 @@
       <!-- Contacts List Section -->
       <section id='view-contacts-list' role="region" data-state="active" class="view view-noscroll view-contacts-list">
         <gaia-header id="contacts-list-header">
-          <h1 id="app-title" data-l10n-id="contacts">Contacts</h1>
+          <h1 id="app-title" data-l10n-id="contacts"></h1>
           <button id="add-contact-button" data-icon="add" data-l10n-id="addButton"></button>
           <button id="settings-button" data-icon="settings" data-l10n-id="settingsButton"></button>
         </gaia-header>

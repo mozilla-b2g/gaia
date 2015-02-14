@@ -100,7 +100,7 @@ var icc_worker = {
 
     if (!options.text) {
       var _ = navigator.mozL10n.get;
-      options.text = _('icc-alertMessage-defaultmessage');
+      options.text = _('icc-alertMessage-send-ss');
     }
     icc.alert(message, options.text);
   },
@@ -108,7 +108,13 @@ var icc_worker = {
   // STK_CMD_SEND_USSD
   '0x12': function STK_CMD_SEND_USSD(message) {
     DUMP('STK_CMD_SEND_USSD:', message.command.options);
-    this['0x13'](message);
+    var options = message.command.options;
+    if (options.text) {
+      icc.confirm(message, options.text);
+    } else if (options.text !== undefined) {
+      var _ = navigator.mozL10n.get;
+      icc.alert(message, _('icc-alertMessage-send-ussd'));
+    }
   },
 
   // STK_CMD_SEND_SMS
@@ -122,7 +128,7 @@ var icc_worker = {
       icc.confirm(message, options.text);
     } else if (options.text !== undefined) {
       var _ = navigator.mozL10n.get;
-      icc.alert(message, _('icc-alertMessage-defaultmessage'));
+      icc.alert(message, _('icc-alertMessage-send-sms'));
     }
   },
 

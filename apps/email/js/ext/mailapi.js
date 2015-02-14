@@ -2130,7 +2130,7 @@ var RE_HTTP = /^https?:/i;
 //                       Otherwise we use the same base regexp from our URL
 //                       logic.
 var RE_MAIL =
-  /(^|[\s(,;])([^(,;@\s]+@[a-z0-9.\-]{2,250}[.][a-z0-9\-]{2,32})/im;
+  /(^|[\s(,;<>])([^(,;<>@\s]+@[a-z0-9.\-]{2,250}[.][a-z0-9\-]{2,32})/im;
 var RE_MAILTO = /^mailto:/i;
 
 var MailUtils = {

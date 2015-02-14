@@ -268,6 +268,7 @@ suite('sim mgmt >', function() {
     suite('PIN unlock ', function() {
       setup(function() {
         iccInfo0.cardState = 'pinRequired';
+        SimManager.resetForm();
         SimManager.handleCardState();
         // start from original state each test
         UIManager.pinInput.classList.remove('onerror');
@@ -312,6 +313,30 @@ suite('sim mgmt >', function() {
         assert.isFalse(UIManager.pinError.classList.contains('hidden'));
         assert.isFalse(SimManager.icc0.unlocked);
       });
+      test('wrong sim pin with > 1 retries', function() {
+        SimManager.icc0.mozIcc.retryCount = 2;
+        UIManager.pinInput.value = '0000'; // special failure pin value
+        SimManager.unlock();
+        assert.isFalse(UIManager.pinRetriesLeft.classList.contains('hidden'));
+        assert.isTrue(UIManager.pinInput.classList.contains('onerror'));
+        assert.isFalse(UIManager.pinError.classList.contains('hidden'));
+        assert.isFalse(SimManager.icc0.unlocked);
+        assert.isFalse(UIManager.activationScreen.classList.contains('show'));
+        assert.isTrue(UIManager.unlockSimScreen.classList.contains('show'));
+        assert.isTrue(UIManager.pinError.querySelector('.lastchance')
+          .classList.contains('hidden'));
+        assert.isFalse(UIManager.pinError.querySelector('.main')
+          .classList.contains('hidden'));
+      });
+      test('wrong sim pin with exactly 1 retry', function() {
+        SimManager.icc0.mozIcc.retryCount = 1;
+        UIManager.pinInput.value = '0000'; // special failure pin value
+        SimManager.unlock();
+        assert.isFalse(UIManager.pinError.querySelector('.lastchance')
+          .classList.contains('hidden'));
+        assert.isTrue(UIManager.pinError.querySelector('.main')
+          .classList.contains('hidden'));
+      });
       test('all fields correct', function() {
         fireRetryCountCallback();
         assert.isFalse(UIManager.pinRetriesLeft.classList.contains('hidden'));
@@ -329,6 +354,7 @@ suite('sim mgmt >', function() {
     suite('PUK unlock ', function() {
       setup(function() {
         iccInfo0.cardState = 'pukRequired';
+        SimManager.resetForm();
         SimManager.handleCardState();
         // start from original state each test
         UIManager.pukInput.classList.remove('onerror');
@@ -379,6 +405,34 @@ suite('sim mgmt >', function() {
                        'hidden'));
         assert.isFalse(SimManager.icc0.unlocked);
       });
+      test('wrong sim puk with > 1 retries', function() {
+        SimManager.icc0.mozIcc.retryCount = 2;
+        UIManager.pukInput.value = '00000000'; // special failure pin value
+        UIManager.newpinInput.value = 1234;
+        UIManager.confirmNewpinInput.value = 1234;
+        SimManager.unlock();
+        assert.isFalse(UIManager.pukRetriesLeft.classList.contains('hidden'));
+        assert.isTrue(UIManager.pukInput.classList.contains('onerror'));
+        assert.isFalse(UIManager.pukError.classList.contains('hidden'));
+        assert.isFalse(SimManager.icc0.unlocked);
+        assert.isFalse(UIManager.activationScreen.classList.contains('show'));
+        assert.isTrue(UIManager.unlockSimScreen.classList.contains('show'));
+        assert.isTrue(UIManager.pukError.querySelector('.lastchance')
+          .classList.contains('hidden'));
+        assert.isFalse(UIManager.pukError.querySelector('.main')
+          .classList.contains('hidden'));
+      });
+      test('wrong sim puk with exactly 1 retry', function() {
+        SimManager.icc0.mozIcc.retryCount = 1;
+        UIManager.pukInput.value = '00000000'; // special failure pin value
+        UIManager.newpinInput.value = 1234;
+        UIManager.confirmNewpinInput.value = 1234;
+        SimManager.unlock();
+        assert.isFalse(UIManager.pukError.querySelector('.lastchance')
+          .classList.contains('hidden'));
+        assert.isTrue(UIManager.pukError.querySelector('.main')
+          .classList.contains('hidden'));
+      });
       test('all fields correct', function() {
         fireRetryCountCallback();
         assert.isFalse(UIManager.pukRetriesLeft.classList.contains('hidden'));
@@ -405,6 +459,7 @@ suite('sim mgmt >', function() {
     suite('XCK unlock ', function() {
       setup(function() {
         iccInfo0.cardState = 'networkLocked';
+        SimManager.resetForm();
         SimManager.handleCardState();
         // start from original state each test
         UIManager.xckInput.classList.remove('onerror');
@@ -429,6 +484,30 @@ suite('sim mgmt >', function() {
         assert.isTrue(UIManager.xckInput.classList.contains('onerror'));
         assert.isFalse(UIManager.xckError.classList.contains('hidden'));
         assert.isFalse(SimManager.icc0.unlocked);
+      });
+      test('wrong sim XCK with > 1 retries', function() {
+        SimManager.icc0.mozIcc.retryCount = 2;
+        UIManager.xckInput.value = '00000000'; // special failure pin value
+        SimManager.unlock();
+        assert.isFalse(UIManager.xckRetriesLeft.classList.contains('hidden'));
+        assert.isTrue(UIManager.xckInput.classList.contains('onerror'));
+        assert.isFalse(UIManager.xckError.classList.contains('hidden'));
+        assert.isFalse(SimManager.icc0.unlocked);
+        assert.isFalse(UIManager.activationScreen.classList.contains('show'));
+        assert.isTrue(UIManager.unlockSimScreen.classList.contains('show'));
+        assert.isTrue(UIManager.xckError.querySelector('.lastchance')
+          .classList.contains('hidden'));
+        assert.isFalse(UIManager.xckError.querySelector('.main')
+          .classList.contains('hidden'));
+      });
+      test('wrong sim XCK with exactly 1 retry', function() {
+        SimManager.icc0.mozIcc.retryCount = 1;
+        UIManager.xckInput.value = '00000000'; // special failure pin value
+        SimManager.unlock();
+        assert.isFalse(UIManager.xckError.querySelector('.lastchance')
+          .classList.contains('hidden'));
+        assert.isTrue(UIManager.xckError.querySelector('.main')
+          .classList.contains('hidden'));
       });
       test('all fields correct', function() {
         fireRetryCountCallback();

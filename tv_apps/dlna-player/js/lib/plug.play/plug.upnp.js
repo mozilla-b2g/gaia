@@ -20,6 +20,7 @@
  *       add mozSystem: true to XMLHttpRequest,
  *       and missellaneous.
  */
+/* jshint ignore:start */
 !(function( global, undefined ) {
 
 // *** rsvp.js (https://github.com/tildeio/rsvp.js)
@@ -307,7 +308,7 @@
 
       return promise;
 
-    }
+    };
 
   };
 
@@ -673,7 +674,8 @@
     var responseContainer = upnpResponseXML.getElementsByTagName ?
                               upnpResponseXML.getElementsByTagName( upnpActionName + "Response" ) : null;
 
-    // If we don't have any response variables, try again with the namespace attached (required for lib to work in Firefox)
+    // If we don't have any response variables, try again with the namespace
+    // attached (required for lib to work in Firefox)
     if( responseContainer === null || responseContainer.length <= 0 ) {
       responseContainer = upnpResponseXML.getElementsByTagName ?
                                 upnpResponseXML.getElementsByTagName( "u:" + upnpActionName + "Response" ) : null;
@@ -910,7 +912,7 @@
   })(hexChars);
 
   function toHex(n){
-      var result = ''
+      var result = '';
       var start = true;
       for (var i=32; i>0;){
           i-=4;
@@ -969,7 +971,7 @@
           z = (new Array(c + 1)).join("0"), r = n + f;
           return (s || "") + (l ? r = z + r : r += z).substr(0, i += l ? z.length : 0) + (i < r.length ? "." + r.substr(i) : "");
       });
-  };
+  }
 
   // STRING FUNCTIONS
 
@@ -1014,7 +1016,8 @@
 
           struct = struct.slice(1, struct.length);
 
-          // avoid NaN timestamps caused by “undefined” values being passed to Date.UTC
+          // avoid NaN timestamps caused by “undefined” values being
+          // passed to Date.UTC
           for (var i = 0, k; (k = numericKeys[i]); ++i) {
               struct[k] = +struct[k] || 0;
           }

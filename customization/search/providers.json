@@ -16,5 +16,11 @@
     "urlTemplate": "https://www.bing.com/search?q={searchTerms}",
     "suggestionsUrlTemplate": "http://api.bing.com/osjson.aspx?query={searchTerms}",
     "iconUrl": "bing.ico"
+  },
+  {
+    "title": "DuckDuckGo",
+    "urlTemplate": "https://duckduckgo.com/?t=ffos&q={searchTerms}",
+    "suggestionsUrlTemplate": "https://ac.duckduckgo.com/ac/?q={searchTerms}&type=list",
+    "iconUrl": "ddg.ico"
   }
 ]

@@ -1,5 +1,5 @@
 'use strict';
-
+/* global AppWindowManager, IACHandler */
 (function(exports) {
   window.addEventListener('iac-screenshot', function(evt) {
     var data = evt.detail.data;

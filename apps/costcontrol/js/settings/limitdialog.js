@@ -18,6 +18,11 @@ function dataLimitConfigurer(guiWidget, settings, viewManager, widgetRoot) {
     return Formatting.formatData([value, _(unit)]);
   };
 
+  window.addEventListener('localized', function _onLocalize() {
+    var tagSpan = guiWidget.querySelector('.tag');
+    tagSpan.textContent = format(dataLimitInput.value);
+  });
+
   // Configure dialog
   var okButton = dialog.querySelector('button.recommend');
   if (okButton) {
@@ -51,6 +56,13 @@ function dataLimitConfigurer(guiWidget, settings, viewManager, widgetRoot) {
     );
   }
 
+  function isNotRemovingChar(newChar) {
+    return REMOVE_CHAR_CODE !== newChar;
+  }
+
+  function isAllowedValue(newValue) {
+     return isValidValue(newValue) || wouldBeValid(newValue);
+  }
   // Checks if value is numeric and it has a valid format
   // Not allowed entry characters '-', ',' or more than one '.'
   function isValidValue(newValue) {
@@ -62,8 +74,9 @@ function dataLimitConfigurer(guiWidget, settings, viewManager, widgetRoot) {
            isValidFormat(newValue);
   }
 
-  function isNotRemovingChar(newChar) {
-    return REMOVE_CHAR_CODE !== newChar;
+  function wouldBeValid(lowLimitValue) {
+    var allowedEntry = new RegExp('^0?(\\.0?)?$');
+    return allowedEntry.test(lowLimitValue);
   }
 
   function preventBadInput(valid, newChar, currentInput) {
@@ -88,7 +101,7 @@ function dataLimitConfigurer(guiWidget, settings, viewManager, widgetRoot) {
       // If the entry is not valid or the result of the input is invalid, we
       // have to prevent the event propagation
       if (isNotRemovingChar(newChar) &&
-          preventBadInput(isValidValue, newChar, currentInput)) {
+          preventBadInput(isAllowedValue, newChar, currentInput)) {
         event.preventDefault();
         event.stopPropagation();
         return;
@@ -131,11 +144,17 @@ function dataLimitConfigurer(guiWidget, settings, viewManager, widgetRoot) {
   // Configure the swicth unit button
   var currentUnit = settings.option('dataLimitUnit');
   var switchUnitButton = dialog.querySelector('.switch-unit-button');
-  switchUnitButton.querySelector('span.tag').textContent = _(currentUnit);
+  function localizeSwitchUnitButton(unit) {
+    switchUnitButton.setAttribute('data-l10n-id', 'unit-' + unit);
+    switchUnitButton.querySelector('span.tag').setAttribute(
+      'data-l10n-id', unit);
+  }
+
+  localizeSwitchUnitButton(currentUnit);
   switchUnitButton.addEventListener('click',
     function ccapp_switchUnit() {
       currentUnit = (currentUnit === 'MB') ? 'GB' : 'MB';
-      switchUnitButton.querySelector('span.tag').textContent = _(currentUnit);
+      localizeSwitchUnitButton(currentUnit);
     }
   );
 
@@ -173,7 +192,7 @@ function dataLimitConfigurer(guiWidget, settings, viewManager, widgetRoot) {
       }
 
       // Set dialog
-      switchUnitButton.querySelector('span.tag').textContent = _(value);
+      localizeSwitchUnitButton(value);
 
       var tagSpan = guiWidget.querySelector('.tag');
       tagSpan.textContent = format(dataLimitInput.value);
@@ -188,7 +207,7 @@ function dataLimitConfigurer(guiWidget, settings, viewManager, widgetRoot) {
     dataLimitInput.setSelectionRange(dataLimitInput.value.length,
                                      dataLimitInput.value.length);
     oldUnitValue = settings.option('dataLimitUnit');
-    switchUnitButton.querySelector('span.tag').textContent = _(oldUnitValue);
+    localizeSwitchUnitButton(oldUnitValue);
   });
 
 }

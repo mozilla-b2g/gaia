@@ -2,6 +2,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+try:
+    from marionette import Wait
+except ImportError:
+    from marionette_driver import Wait
+
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
 from gaiatest.apps.settings.app import Settings
@@ -21,7 +26,8 @@ class TestHomescreenLayout(GaiaTestCase):
         """
 
         self.homescreen.wait_for_number_of_apps(1)
-        self.assertEqual(3, self.homescreen.number_of_columns)
+        initial_number_of_columns = self.homescreen.number_of_columns
+        self.assertEqual(3, initial_number_of_columns)
 
         settings = Settings(self.marionette)
         settings.launch()
@@ -30,6 +36,7 @@ class TestHomescreenLayout(GaiaTestCase):
         homescreen_settings.select_icon_layout('Four Columns')
         self.device.touch_home_button()
 
+        Wait(self.marionette).until(lambda m: initial_number_of_columns != self.homescreen.number_of_columns)
         self.assertEqual(4, self.homescreen.number_of_columns)
 
         settings.launch()

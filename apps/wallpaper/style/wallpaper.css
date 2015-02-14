@@ -1,3 +1,11 @@
+* {
+  /**
+    By default do not allow any user text selection, only enable
+    for certain parts on a per-element/region area
+  */
+    -moz-user-select: none;
+}
+
 html, body {
   margin: 0;
   padding: 0;

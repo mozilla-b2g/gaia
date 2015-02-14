@@ -3,7 +3,7 @@ define(function(require) {
 
 var FakePage = require('test/support/fake_page');
 var MockView = require('test/support/mock_view');
-var Router = require('router');
+var router = require('router');
 
 suite('router', function() {
   var subject;
@@ -16,7 +16,9 @@ suite('router', function() {
 
   setup(function() {
     page = FakePage;
-    subject = new Router(page);
+    subject = router;
+    subject.page = FakePage;
+    subject._activeObjects = [];
     page.routes.length = 0;
   });
 

@@ -12,6 +12,7 @@ require('/shared/js/mime_mapper.js');
 require('/test/unit/mock_utility_tray.js');
 require('/test/unit/mock_nfc_handover_manager.js');
 require('/test/unit/mock_activity.js');
+require('/shared/test/unit/mocks/mock_service.js');
 
 var realCustomDialog = require('/shared/js/custom_dialog.js');
 
@@ -21,7 +22,7 @@ var mocksForBluetoothTransfer = new MocksHelper([
   'CustomDialog',
   'MozActivity',
   'UtilityTray',
-  'NfcHandoverManager'
+  'Service'
 ]).init();
 
 suite('system/bluetooth_transfer', function() {
@@ -190,7 +191,7 @@ suite('system/bluetooth_transfer', function() {
           detail: sendingFilesSchedule
         };
         var title = 'transfer-has-started-title';
-        BluetoothTransfer.onFilesSending(evt);
+        BluetoothTransfer._onFilesSending(evt);
         assert.equal(2, BluetoothTransfer._sendingFilesQueue.length);
         assert.equal(MockNotificationHelper.mTitleL10n, title);
       });
@@ -256,10 +257,6 @@ suite('system/bluetooth_transfer', function() {
 
     suite('confirmation, decline, accept, and storage check', function() {
       test('receivingFileConfirmation', function() {
-        var stubIsHandOverInProgress =
-          this.sinon.stub(MockNfcHandoverManager, 'isHandoverInProgress')
-          .returns(false);
-
         var stubGetDeviceName =
           this.sinon.stub(BluetoothTransfer, 'getDeviceName', function() {
           return Promise.resolve('nameName');
@@ -274,7 +271,6 @@ suite('system/bluetooth_transfer', function() {
           fileLength: 1048000
         };
         BluetoothTransfer.onReceivingFileConfirmation(evt);
-        assert.isTrue(stubIsHandOverInProgress.called);
         assert.isTrue(stubGetDeviceName.calledWith(evt.address));
         stubGetDeviceName().then(function() {
           assert.deepEqual(
@@ -604,12 +600,14 @@ suite('system/bluetooth_transfer', function() {
         var spySendFile =
           this.sinon.spy(MockBluetooth.defaultAdapter, 'sendFile');
         var stubOnFilesSending =
-          this.sinon.stub(BluetoothTransfer, 'onFilesSending');
+          this.sinon.stub(BluetoothTransfer, '_onFilesSending');
         var stubSetTimeout = this.sinon.stub(window, 'setTimeout');
-        BluetoothTransfer.sendFileViaHandover(
-          'AA:BB:CC:00:11:55',
-          'blahblahblah\0xa0\0xa0blahblahblah'
-        );
+        BluetoothTransfer.sendFileViaHandover({
+          detail: {
+            mac: 'AA:BB:CC:00:11:55',
+            blob: 'blahblahblah\0xa0\0xa0blahblahblah'
+          }
+        });
 
         assert.isTrue(stubOnFilesSending.called);
         assert.equal(typeof stubOnFilesSending.getCall(0).args[0], 'object');
@@ -625,10 +623,12 @@ suite('system/bluetooth_transfer', function() {
 
         var stubGetAdapater =
           this.sinon.stub(MockBluetooth, 'getAdapter').returns(null);
-        BluetoothTransfer.sendFileViaHandover(
-          'AA:BB:CC:00:11:66',
-          'blahblahblah\0xa0\0xa0blahblahblahblah'
-        );
+        BluetoothTransfer.sendFileViaHandover({
+          detail: {
+            mac: 'AA:BB:CC:00:11:66',
+            blob: 'blahblahblah\0xa0\0xa0blahblahblahblah'
+          }
+        });
 
         stubOnFilesSending.reset();
         assert.isFalse(stubOnFilesSending.called);
@@ -644,7 +644,7 @@ suite('system/bluetooth_transfer', function() {
           }
         };
 
-        BluetoothTransfer.onUpdateProgress('start', evt);
+        BluetoothTransfer._onUpdateProgress('start', evt);
         assert.isTrue(stubInitProgress.calledWith('info123'));
 
         // mode = progress
@@ -656,7 +656,7 @@ suite('system/bluetooth_transfer', function() {
           fileLength: '2048'
         };
 
-        BluetoothTransfer.onUpdateProgress('progress', evt);
+        BluetoothTransfer._onUpdateProgress('progress', evt);
         assert.isTrue(
             Math.abs(stubUpdateProgress.getCall(0).args[0]) -
             (evt.processedLength / evt.fileLength) <
@@ -665,12 +665,12 @@ suite('system/bluetooth_transfer', function() {
         assert.equal(stubUpdateProgress.getCall(0).args[1], evt);
 
         evt.fileLength = 0;
-        BluetoothTransfer.onUpdateProgress('progress', evt);
+        BluetoothTransfer._onUpdateProgress('progress', evt);
         assert.isTrue(stubUpdateProgress.calledWith(0, evt));
 
         evt.fileLength = 1024;
         evt.processedLength = 1000;
-        BluetoothTransfer.onUpdateProgress('progress', evt);
+        BluetoothTransfer._onUpdateProgress('progress', evt);
         assert.isTrue(stubUpdateProgress.calledWith(0, evt));
 
         stubUpdateProgress.reset();
@@ -754,27 +754,23 @@ suite('system/bluetooth_transfer', function() {
 
     suite('isSendFileQueueEmpty', function() {
       test('True if queue is empty', function() {
-        assert.isTrue(BluetoothTransfer.isSendFileQueueEmpty);
+        assert.isTrue(BluetoothTransfer.isSendFileQueueEmpty());
       });
 
       test('False is queue is not empty', function() {
         BluetoothTransfer._sendingFilesQueue.push(1);
-        assert.isFalse(BluetoothTransfer.isSendFileQueueEmpty);
+        assert.isFalse(BluetoothTransfer.isSendFileQueueEmpty());
         BluetoothTransfer._sendingFilesQueue.splice(0);
       });
     });
 
     suite('NfcHandoverManager interactions', function() {
-      var stubTransferComplete;
       var stubRemoveProgress;
       var stubSummarizeSentFilesReport;
 
       var transferEvt;
 
       setup(function() {
-        stubTransferComplete = this.sinon.stub(MockNfcHandoverManager,
-          'transferComplete');
-
         // In this suite, we care about NfcHandoverManager.transferComplete()
         // only.
         stubRemoveProgress = this.sinon.stub(BluetoothTransfer,
@@ -793,18 +789,18 @@ suite('system/bluetooth_transfer', function() {
       });
 
       teardown(function() {
-        stubTransferComplete.restore();
         stubRemoveProgress.restore();
         stubSummarizeSentFilesReport.restore();
       });
 
       test('transferComplete() called for NFC originated transfer',
         function() {
+        var stubEvent = this.sinon.stub(window, 'dispatchEvent');
+        BluetoothTransfer._onTransferComplete(transferEvt);
 
-        BluetoothTransfer.onTransferComplete(transferEvt);
-
-        assert.equal(stubTransferComplete.callCount, 1);
-        assert.deepEqual(stubTransferComplete.firstCall.args[0], {
+        assert.equal(stubEvent.firstCall.args[0].type,
+          'nfc-transfer-completed');
+        assert.deepEqual(stubEvent.firstCall.args[0].detail, {
           viaHandover: false,
           success: true,
           received: false
@@ -813,14 +809,13 @@ suite('system/bluetooth_transfer', function() {
 
       test('transferComplete() called for non-NFC originated transfer',
         function() {
-
+        var stubEvent = this.sinon.stub(window, 'dispatchEvent');
         BluetoothTransfer._sendingFilesQueue.push({
           viaHandover: true
         });
-        BluetoothTransfer.onTransferComplete(transferEvt);
+        BluetoothTransfer._onTransferComplete(transferEvt);
 
-        assert.equal(stubTransferComplete.callCount, 1);
-        assert.deepEqual(stubTransferComplete.firstCall.args[0], {
+        assert.deepEqual(stubEvent.firstCall.args[0].detail, {
           viaHandover: true,
           success: true,
           received: false

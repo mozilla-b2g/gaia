@@ -1,12 +1,6 @@
 'use strict';
-/* global evt, SettingsList, LazyLoader, SelectionBorder, SpatialNavigator */
+/* global SettingsList */
 (function(exports) {
-
-  function nodeListToArray(obj) {
-    return [].map.call(obj, function(element) {
-      return element;
-    })
-  }
 
   function SettingsGroup() {
     var self = this;

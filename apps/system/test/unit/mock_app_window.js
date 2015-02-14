@@ -13,7 +13,7 @@
         try {
           this[key] = config[key];
         } catch (e) {
-          
+
         }
       }
       this.config = config;
@@ -26,6 +26,8 @@
   MockAppWindow.prototype = {
     prefix: 'mock-app-',
     isHomescreen: false,
+    CLASS_NAME: 'AppWindow',
+    HIERARCHY_MANAGER: 'AppWindowManager',
     get browserContainer() {
       if (!this._browserContainer) {
         this._browserContainer = document.createElement('div');
@@ -142,7 +144,10 @@
     isForeground: function() {},
     killable: function() {},
     setVisibileForScreenReader: function() {},
-    handleStatusbarTouch: function() {}
+    handleStatusbarTouch: function() {},
+    setNFCFocus: function() {},
+    setActive: function() {},
+    getSSLState: function() { return ''; }
   };
   MockAppWindow.mTeardown = function() {
     MockAppWindowHelper.mInstances = [];

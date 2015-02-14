@@ -4,7 +4,9 @@
 (function(exports) {
 
   // Hidden manifest roles that we do not show
-  const HIDDEN_ROLES = ['system', 'input', 'homescreen', 'theme', 'addon'];
+  const HIDDEN_ROLES = [
+    'system', 'input', 'homescreen', 'theme', 'addon', 'langpack'
+  ];
 
   function App() {
     window.performance.mark('navigationLoaded');
@@ -146,6 +148,7 @@
         var element = item.element.querySelector('.title');
         element.textContent = item.name;
       });
+      this.renderGrid();
     },
 
     /**

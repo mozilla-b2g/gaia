@@ -2,7 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette import Wait
+try:
+    from marionette import Wait
+except:
+    from marionette_driver import Wait
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
@@ -15,9 +18,6 @@ class TestLaunchApp(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
         self.connect_to_local_area_network()
-
-        # Turn off geolocation prompt for smart collections
-        self.apps.set_permission('Smart Collections', 'geolocation', 'deny')
 
         self.homescreen = Homescreen(self.marionette)
         self.apps.switch_to_displayed_app()

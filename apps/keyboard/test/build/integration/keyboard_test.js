@@ -1,14 +1,16 @@
 'use strict';
 
-/* global require, suite, process, test, suiteSetup, teardown */
+/* jshint node: true, mocha: true */
+/* global suiteSetup */
 
 var assert = require('chai').assert;
 var path = require('path');
 var fs = require('fs');
 var helper = require('helper');
 var AdmZip = require('adm-zip');
+var jsdom = require('jsdom-nogyp').jsdom;
 
-suite('Keyboard tests', function() {
+suite('Keyboard layouts building tests', function() {
   suiteSetup(helper.cleanupWorkspace);
   teardown(helper.cleanupWorkspace);
 
@@ -69,10 +71,10 @@ suite('Keyboard tests', function() {
       var dictJSON = JSON.parse(fs.readFileSync(
             appDirPath +
             '/test/build/integration/resources/' +
-            'default-make-dictionaries.json'));
+            'default-make-layouts.json'));
 
       helper.checkFileContentInZip(
-        zipPath, 'js/settings/dictionaries.json', dictJSON, true);
+        zipPath, 'js/settings/layouts.json', dictJSON, true);
 
       done();
     });
@@ -91,11 +93,9 @@ suite('Keyboard tests', function() {
         'webapps', 'keyboard.gaiamobile.org', 'application.zip');
       var appDirPath = config.GAIA_DIR + '/apps/keyboard';
       var layoutIds =
-        fs.readdirSync(appDirPath + '/js/layouts').map(function(filename) {
-          if (path.extname(filename) !== '.js') {
-            return;
-          }
-
+        fs.readdirSync(appDirPath + '/js/layouts').filter(function(filename) {
+          return (path.extname(filename) === '.js');
+        }).map(function(filename) {
           return path.basename(filename, '.js');
         });
 
@@ -172,10 +172,10 @@ suite('Keyboard tests', function() {
       var dictJSON = JSON.parse(fs.readFileSync(
             appDirPath +
             '/test/build/integration/resources/' +
-            'all-layout-make-dictionaries.json'));
+            'all-layout-make-layouts.json'));
 
       helper.checkFileContentInZip(
-        zipPath, 'js/settings/dictionaries.json', dictJSON, true);
+        zipPath, 'js/settings/layouts.json', dictJSON, true);
 
       done();
     });
@@ -216,10 +216,10 @@ suite('Keyboard tests', function() {
       var dictJSON = JSON.parse(fs.readFileSync(
             appDirPath +
             '/test/build/integration/resources/' +
-            'no-preload-dict-required-make-dictionaries.json'));
+            'no-preload-dict-required-make-layouts.json'));
 
       helper.checkFileContentInZip(
-        zipPath, 'js/settings/dictionaries.json', dictJSON, true);
+        zipPath, 'js/settings/layouts.json', dictJSON, true);
 
       done();
     });
@@ -275,8 +275,10 @@ suite('Keyboard tests', function() {
       var inputKeysInManifest = Object.keys(manifest.inputs);
 
       // Only layouts with dictionaries should be declaried.
+      // Noted that en-Dvorak use the same dictionary as en so it should also
+      // be declaried.
       assert.deepEqual(inputKeysInManifest.sort(),
-        ['en', 'ko', 'number', 'zh-Hans-Pinyin']);
+        ['en', 'en-Dvorak', 'ko', 'number', 'zh-Hans-Pinyin']);
 
       // Verify dictionaries are not built (except en_us.dict)
       dicts.forEach(function(dict) {
@@ -288,12 +290,160 @@ suite('Keyboard tests', function() {
       var dictJSON = JSON.parse(fs.readFileSync(
             appDirPath +
             '/test/build/integration/resources/' +
-            'default-make-en-dict-dictionaries.json'));
+            'default-make-en-dict-layouts.json'));
 
       helper.checkFileContentInZip(
-        zipPath, 'js/settings/dictionaries.json', dictJSON, true);
+        zipPath, 'js/settings/layouts.json', dictJSON, true);
 
       done();
+    });
+  });
+});
+
+suite('Keyboard settings building tests', function() {
+  suiteSetup(helper.cleanupWorkspace);
+  teardown(helper.cleanupWorkspace);
+
+  // parse settings.html and return domDoc.
+  var getSettingsDomDoc = function() {
+    var zipPath = path.join(process.cwd(), 'profile',
+      'webapps', 'keyboard.gaiamobile.org', 'application.zip');
+
+    // Verify settings.html content in manifest
+    var zip = new AdmZip(zipPath);
+    var entry = zip.getEntry('settings.html');
+    return jsdom(zip.readAsText(entry));
+  };
+
+  // return an array of <scripts> tag in <head>
+  var getScriptsFromDomDoc = function(domDoc) {
+    // We don't have Array.from in our node version, so use an old way to
+    // convert HTMLCollections to array
+    return Array.prototype.slice.call(
+             domDoc.head.getElementsByTagName('script'));
+  };
+
+  suite('For handwriting', function() {
+    // return an array of <sections> in the general panel
+    var getSectionsFromGeneralPanel = function(domDoc) {
+      return Array.prototype.slice.call(
+               domDoc.querySelectorAll('#general-container > section'));
+    };
+
+    // default: there shouldn't be handwriting elements in resulting file
+    test('APP=keyboard make', function(done) {
+      var cmd = 'APP=keyboard make';
+      helper.exec(cmd, function(error, stdout, stderr) {
+        helper.checkError(error, stdout, stderr);
+
+        var settingsDOMDoc = getSettingsDomDoc();
+
+        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).every(function(elem){
+          return elem.src !== 'js/settings/handwriting_settings_view.js';
+        }), 'No script should include handwriting_settings_view.js');
+
+        assert.isTrue(
+        getSectionsFromGeneralPanel(settingsDOMDoc).every(function(elem){
+          return elem.id !== 'handwriting-settings';
+        }), 'No section in general panel should include handwriting settings');
+
+        done();
+      });
+    });
+
+    test('GAIA_KEYBOARD_LAYOUTS=zh-Hans-Handwriting APP=keyboard make',
+    function(done) {
+      var cmd = 'GAIA_KEYBOARD_LAYOUTS=zh-Hans-Handwriting APP=keyboard make';
+      helper.exec(cmd, function(error, stdout, stderr) {
+        helper.checkError(error, stdout, stderr);
+
+        var settingsDOMDoc = getSettingsDomDoc();
+
+        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
+          return elem.src === 'js/settings/handwriting_settings_view.js';
+        }), 'Some script should include handwriting_settings_view.js');
+
+        assert.isTrue(
+        getSectionsFromGeneralPanel(settingsDOMDoc).some(function(elem){
+          return elem.id === 'handwriting-settings';
+        }),
+          'Some section in general panel should include handwriting settings');
+
+        done();
+      });
+    });
+  });
+
+  suite('User dictionary', function() {
+    // return an array of <li> in the root panel's first section's ui
+    var getLIsFromGeneralPanel = function(domDoc) {
+      return Array.prototype.slice.call(
+               domDoc.querySelectorAll('#general-settings > ul > li'));
+    };
+
+    // default: there shouldn't be user dictionary elements in resulting file
+    test('APP=keyboard make', function(done) {
+      var cmd = 'APP=keyboard make';
+      helper.exec(cmd, function(error, stdout, stderr) {
+        helper.checkError(error, stdout, stderr);
+
+        var settingsDOMDoc = getSettingsDomDoc();
+
+        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).every(function(elem){
+          return elem.src !== 'js/settings/user_dictionary_edit_dialog.js';
+        }), 'No script should include user_dictionary_edit_dialog.js');
+
+        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).every(function(elem){
+          return elem.src !== 'js/settings/user_dictionary_list_panel.js';
+        }), 'No script should include user_dictionary_list_panel.js');
+
+        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).every(function(elem){
+          return elem.src !== 'js/settings/word_list_converter.js';
+        }), 'No script should include word_list_converter.js');
+
+        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).every(function(elem){
+          return elem.src !== 'js/settings/user_dictionary.js';
+        }), 'No script should include user_dictionary.js');
+
+        assert.isTrue(
+        getLIsFromGeneralPanel(settingsDOMDoc).every(function(elem){
+          return elem.querySelector('a#menu-userdict') === null;
+        }), 'No <li> in general panel should include user dict settings');
+
+        done();
+      });
+    });
+
+    test('GAIA_KEYBOARD_ENABLE_USER_DICT=1 APP=keyboard make', function(done) {
+      var cmd = 'GAIA_KEYBOARD_ENABLE_USER_DICT=1 APP=keyboard make';
+      helper.exec(cmd, function(error, stdout, stderr) {
+        helper.checkError(error, stdout, stderr);
+
+        var settingsDOMDoc = getSettingsDomDoc();
+
+        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
+          return elem.src === 'js/settings/user_dictionary_edit_dialog.js';
+        }), 'Some script should include user_dictionary_edit_dialog.js');
+
+        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
+          return elem.src === 'js/settings/user_dictionary_list_panel.js';
+        }), 'Some script should include user_dictionary_list_panel.js');
+
+        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
+          return elem.src === 'js/settings/word_list_converter.js';
+        }), 'Some script should include word_list_converter.js');
+
+        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
+          return elem.src === 'js/settings/user_dictionary.js';
+        }), 'Some script should include user_dictionary.js');
+
+        assert.isTrue(
+        getLIsFromGeneralPanel(settingsDOMDoc).some(function(elem){
+          return elem.querySelector('a#menu-userdict') !== null;
+        }), 'Some <li> in general panel should include user dict settings');
+
+        done();
+      });
     });
   });
 });

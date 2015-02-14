@@ -72,7 +72,9 @@ contacts.NFC = (function() {
   };
 
   var handlePeerReadyForFb = function() {
-    Contacts.showStatus('facebook-export-forbidden');
+    Contacts.showStatus({
+      id: 'facebook-export-forbidden'
+    });
   };
 
   return {

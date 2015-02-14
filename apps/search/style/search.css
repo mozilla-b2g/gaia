@@ -1,12 +1,22 @@
+/**
+ * Disable selection by default except for elements with
+ * "contenteditable".
+ */
 * {
   margin: 0;
   padding: 0;
+  -moz-user-select: none;
+}
+
+[contenteditable="true"] {
+  -moz-user-select: text;
 }
 
 html, body {
   height: 100%;
   font-size: 10px;
 }
+
 
 /* RTL fixes being tracked in bug 1008013 */
 html[dir="rtl"] {
@@ -20,7 +30,7 @@ body, a {
 #offline-message {
   font-size: 1.4rem;
   font-style: italic;
-  margin: 0.3rem 1rem 0;
+  margin: 1rem 1rem 0;
   text-align: center;
   display: none;
   justify-content: center;
@@ -35,6 +45,10 @@ body, a {
   padding-right: 0.8rem;
 }
 
+#search-results {
+  padding-top: 1.3rem;
+}
+
 #search-results.offline #suggestions {
   display: none;
 }
@@ -43,63 +57,130 @@ body, a {
   display: flex;
 }
 
-section.suggestions {
-  margin: 0 0.7rem;
-  font-size: 1.4rem;
-  font-style: italic;
-  overflow: hidden;
-  height: 3.5rem;
+#suggestions-provider {
+  color: #00aac5;
+  position: relative;
+  padding: 0 2rem 0 1rem;
 }
 
-section.suggestions ul {
+#suggestions-provider::before {
+  content: ' ';
+  position: absolute;
+  bottom: 0.2rem;
+  right: .8rem;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 .8rem .8rem;
+  border-color: transparent transparent #00aac5 transparent;
+}
+
+#suggestions {
+  font-size: 1.6rem;
+  overflow-x: hidden;
+  margin-right: 1.6rem;
+}
+
+#suggestions ul {
   list-style: none;
-  color: #00AACC;
   white-space: nowrap;
-  overflow-x: scroll;
   padding-left: 0;
-  height: 5rem;
 }
 
-section.suggestions ul li {
-  display: inline-block;
-  margin-left: 1rem;
-  padding: 0.3rem 0.7rem 0.9rem 0;
+#suggestions li {
+  height: 6rem;
+  line-height: 6rem;
   margin: 0;
-}
-
-section.suggestions ul li+li:before {
-  content: "\2022";
-  padding-right: 0.7rem;
-  color: #666;
-}
-
-section.suggestions ul li:first-child {
-  padding-left: 0.7rem;
+  border-bottom: 0.1rem solid rgba(255, 255, 255, 0.05);
+  background-image: url(/style/icons/search.png);
+  background-repeat: no-repeat;
+  background-position: 0.8rem center;
+  text-indent: 4.5rem;
 }
 
 section .result * {
   pointer-events: none;
 }
 
+h2 {
+  position: relative;
+  text-align: center;
+  border-top: 0.3rem solid #5f5f5f;
+  font-size: 1.4rem;
+  color: #858585;
+  margin: 0.9rem 0.6rem -0.9rem 0.5rem;
+}
+
+/* The select box is hidden behind search provider label since we
+    only want to see the dialog prompt, not the actual select box  */
+#suggestions-select {
+  position: absolute;
+  top: -0.8rem;
+  height: 1.5rem;
+}
+
+h2 span, h2 label {
+  position: relative;
+  top: -0.9rem;
+  background: #333;
+  padding: 0 1rem;
+  margin-bottom: 0;
+  font-weight: 500;
+}
+
+#places-header {
+  margin-top: 0.9rem;
+}
+
+#places-header.hidden {
+  display: none;
+}
+
 .local .result {
   display: flex;
   flex-direction: row;
-  border-bottom: 1px solid #5A5A5A;
-  padding: 8px;
+  padding: 0.8rem 1.5rem;
+  position: relative;
+}
+
+.local .result:after {
+  position: absolute;
+  bottom: 0;
+  left: 0.5rem;
+  content: " ";
+  width: calc(100% - 1rem);
+  height: 0.1rem;
+  background: #535353;
+}
+
+.local .result:last-child:after {
+  display: none;
+}
+
+.local .result:active {
+  background-color: #3e666e;
 }
 
 .local .icon {
-  margin: 2px 8px 0 0;
-  margin-top: 2px;
+  margin: 0.4rem 1.6rem 0 0;
   display: block;
-  flex: 0 0 16px;
-  width: 16px;
-  height: 16px;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+}
+
+.local .icon img {
+  width: 32px;
+  height: 32px;
 }
 
 .local .icon.empty {
   border: 1px dashed #5A5A5A;
   border-radius: 2px;
+}
+
+.local .icon.empty img {
+  opacity: 0;
 }
 
 .local .title, .local .meta {
@@ -109,6 +190,20 @@ section .result * {
   text-overflow: ellipsis;
 }
 
+.local .description {
+  overflow: hidden;
+}
+
+.local .title {
+  color: #e7e7e7;
+  font-size: 1.5rem;
+}
+
+.local .meta {
+  color: #858585;
+  font-size: 1.4rem;
+}
+
 .local .highlight {
   font-weight: bold;
   text-decoration: underline;
@@ -116,9 +211,11 @@ section .result * {
 
 /* web */
 section.apps {
-  padding-top: 0.5rem;
   /* Hide the whitespace between inline elements */
   font-size: 0;
+  height: 10rem;
+  overflow: hidden;
+  padding-bottom: 1.5rem;
 }
 
 gaia-grid {
@@ -129,14 +226,6 @@ gaia-grid {
 
 .hidden {
   display: none;
-}
-
-#suggestions-wrapper {
-  display: flex;
-}
-
-#suggestions {
-  flex: 1;
 }
 
 #suggestions-notice-wrapper {
@@ -166,15 +255,21 @@ gaia-grid {
   font-style: italic;
 }
 
+#settings-link {
+  color: #00AACC;
+}
+
 #suggestions-notice-wrapper::before {
   content: ' ';
   height: 0;
   width: 0;
   position: absolute;
-  border: 9px solid transparent;
-  border-left-color: rgba(45, 45, 45, 0.94);
-  top: -0.9rem;
-  left: 0;
+  border-style: solid;
+  border-width: 0 1rem 1rem 1rem;
+  border-color: transparent transparent rgba(45, 45, 45, 0.94) transparent;
+  top: -1rem;
+  left: 50%;
+  margin-left: -1rem;
   z-index: -1;
 }
 
@@ -185,12 +280,13 @@ gaia-grid {
   white-space: normal !important;
 }
 
-#loading {
-  padding: 2.5rem 0;
+.loading {
   display: none;
+  padding: 2.5rem 0;
   text-align: center;
+  width: 100%;
 }
 
-#loading.loading {
+[data-loading=true] .loading {
   display: block;
 }

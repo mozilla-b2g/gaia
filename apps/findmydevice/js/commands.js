@@ -207,4 +207,4 @@ var Commands = {
   }
 };
 
-navigator.mozL10n.once(Commands.init.bind(Commands));
+Commands.init();

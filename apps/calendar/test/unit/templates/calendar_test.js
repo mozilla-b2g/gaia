@@ -19,14 +19,15 @@ suite('Templates.Calendar', function() {
     var model = {
       localDisplayed: true,
       _id: Local.calendarId,
-      name: 'foo'
+      name: 'foo',
+      color: '#BADA55'
     };
 
     var output = renderHTML('item', model);
     assert.ok(output);
-    assert.match(output, /calendar-id-local-first"\s+role="presentation"/);
+    assert.match(output, /calendar-local-first"\s+role="presentation"/);
     assert.match(output,
-      /"gaia-icon icon-calendar-dot calendar-text-color"\s+aria-hidden="true"/);
+      /icon-calendar-dot"\s+style="color:#BADA55"\s+aria-hidden="true"/);
     assert.match(output,
       /class="pack-checkbox" role="option" aria-selected="true"/);
     assert.include(output, 'calendar-local');

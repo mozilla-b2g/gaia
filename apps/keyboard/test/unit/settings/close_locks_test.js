@@ -6,19 +6,17 @@ require('/js/settings/close_locks.js');
 
 suite('CloseLockManager', function() {
   var manager;
-  var stubClose;
 
   setup(function() {
-    stubClose = this.sinon.stub(window, 'close');
-
     manager = new CloseLockManager();
+    manager.onclose = this.sinon.stub();
     manager.start();
   });
 
   test('requestClose', function() {
     manager.requestLock('requestClose');
 
-    assert.isTrue(stubClose.calledOnce);
+    assert.isTrue(manager.onclose.called);
   });
 
   suite('stayAwake', function() {
@@ -32,29 +30,29 @@ suite('CloseLockManager', function() {
       var closeLock;
       setup(function() {
         closeLock = manager.requestLock('requestClose');
-        assert.isFalse(stubClose.calledOnce);
+        assert.isFalse(manager.onclose.calledOnce);
       });
 
       test('unlock awakeLock', function() {
         awakeLock.unlock();
-        assert.isTrue(stubClose.calledOnce);
+        assert.isTrue(manager.onclose.calledOnce);
       });
 
       test('unlock closeLock', function() {
         closeLock.unlock();
-        assert.isFalse(stubClose.calledOnce);
+        assert.isFalse(manager.onclose.calledOnce);
 
         awakeLock.unlock();
-        assert.isFalse(stubClose.calledOnce);
+        assert.isFalse(manager.onclose.calledOnce);
       });
     });
 
     test('requestClose after unlock', function() {
       awakeLock.unlock();
-      assert.isFalse(stubClose.calledOnce);
+      assert.isFalse(manager.onclose.calledOnce);
 
       manager.requestLock('requestClose');
-      assert.isTrue(stubClose.calledOnce);
+      assert.isTrue(manager.onclose.calledOnce);
     });
   });
 });

@@ -4,7 +4,9 @@ define(function(require, exports, module) {
 
 var COPY_METHODS = ['start', 'stop', 'show'];
 
-function Router(page) {
+var page = require('ext/page');
+
+function Router() {
   var i = 0;
   var len = COPY_METHODS.length;
 
@@ -12,14 +14,17 @@ function Router(page) {
   this._activeObjects = [];
 
   for (; i < len; i++) {
-    this[COPY_METHODS[i]] = this.page[COPY_METHODS[i]].bind(this.page);
+    this[COPY_METHODS[i]] = page[COPY_METHODS[i]].bind(page);
   }
 
   this._lastState = this._lastState.bind(this);
 }
-module.exports = Router;
 
 Router.prototype = {
+
+  go: function(path, context) {
+    this.show(path, context);
+  },
 
   /**
    * Tells router to manage the object.
@@ -171,5 +176,9 @@ Router.prototype = {
     this.state(path, view, options);
   }
 };
+
+// router is singleton to simplify dependency graph, specially since it's
+// needed by notifications and it could get into weird race conditions
+module.exports = new Router();
 
 });

@@ -3,7 +3,6 @@
 
 (function(window) {
   var DEBUG = false;
-  var _id = 0;
 
   /**
    * The virtual class inherited by all UI in system which has
@@ -11,8 +10,10 @@
    *
    * @class BaseUI
    */
-  window.BaseUI = function BaseUI() {
-  };
+  function BaseUI() {
+  }
+
+  window.BaseUI = BaseUI;
 
   BaseUI.prototype.EVENT_PREFIX = 'base-';
 
@@ -119,4 +120,4 @@
         Array.slice(arguments).concat());
     }
   };
-}(this));
+}(window));

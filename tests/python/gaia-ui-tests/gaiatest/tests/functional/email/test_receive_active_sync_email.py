@@ -16,7 +16,7 @@ class TestReceiveActiveSyncEmail(GaiaTestCase):
     def setUp(self):
         try:
             self.testvars['email']['ActiveSync']
-            self.testvars['email']['IMAP']
+            self.testvars['email']['smtp']
         except KeyError:
             raise SkipTest('account details not present in test variables')
 
@@ -40,7 +40,7 @@ class TestReceiveActiveSyncEmail(GaiaTestCase):
         # send email to active sync account
         mock_email = MockEmail(senders_email=self.testvars['email']['IMAP']['email'],
                                recipients_email=self.testvars['email']['ActiveSync']['email'])
-        EmailUtil().send(self.testvars['email']['IMAP'], mock_email)
+        EmailUtil().send(self.testvars['email']['smtp'], mock_email)
 
         self.marionette.switch_to_frame()
         system = System(self.marionette)

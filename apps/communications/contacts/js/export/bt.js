@@ -159,7 +159,7 @@ var ContactsBTExport = function ContactsBTExport() {
             }
 
             var a = new MozActivity({
-              name: 'share',
+              name: 'export',
               data: {
                 type: 'text/vcard',
                 number: 1,

@@ -9,30 +9,41 @@
     <link rel="stylesheet" type="text/css" href="tv_shared/font/gaia-device-icons.css">
     <link rel="stylesheet" type="text/css" href="tv_shared/components/smart-button/style.css">
     <link rel="stylesheet" type="text/css" href="tv_shared/components/menu-group/style.css">
+    <link rel="stylesheet" type="text/css" href="tv_shared/style/animations.css">
 
     <!-- home -->
     <link rel="stylesheet" type="text/css" href="style/header.css">
     <link rel="stylesheet" type="text/css" href="style/home.css">
+    <link rel="stylesheet" type="text/css" href="style/deck.css">
+    <link rel="stylesheet" type="text/css" href="style/edit.css">
     <link rel="stylesheet" type="text/css" href="tv_shared/style/navigation.css">
     <link rel="stylesheet" type="text/css" href="style/info-bar.css">
+    <link rel="stylesheet" type="text/css" href="style/search-bar.css">
+
+    <!-- default cards for first time launch -->
+    <link rel="resource" type="application/json" href="tv_shared/resources/default-cards.json">
 
     <!-- For test purpose on phone only -->
     <script defer src="shared/js/gesture_detector.js"></script>
     <script defer src="tv_shared/js/init_gesture.js"></script>
+
+    <!-- Shared libraries -->
+    <script defer src="shared/js/uuid.js"></script>
+    <script defer src="shared/js/iac_handler.js"></script>
 
     <!-- Helper libraries -->
     <script defer src="tv_shared/js/vendor/evt.js"></script>
     <script defer src="tv_shared/js/shared_utils.js"></script>
     <script defer src="tv_shared/js/clock.js"></script>
     <script defer src="tv_shared/js/piped_promise.js"></script>
-    <script defer src="shared/js/uuid.js"></script>
     <script defer src="tv_shared/js/card_store.js"></script>
     <script defer src="tv_shared/js/cards/card.js"></script>
     <script defer src="tv_shared/js/cards/application.js"></script>
     <script defer src="tv_shared/js/cards/deck.js"></script>
-    <script defer src="tv_shared/js/cards/app_bookmark.js"></script>
     <script defer src="tv_shared/js/cards/folder.js"></script>
+    <script defer src="tv_shared/js/async_semaphore.js"></script>
     <script defer src="tv_shared/js/card_manager.js"></script>
+    <script defer src="tv_shared/js/animations.js"></script>
 
     <!-- building blocks -->
     <script defer src="tv_shared/components/smart-button/script.js"></script>
@@ -45,17 +56,20 @@
     <script defer src="tv_shared/js/key_navigation_adapter.js"></script>
     <!-- Specific code -->
     <script defer src="js/card_filter.js"></script>
+    <script defer src="js/connection_manager.js"></script>
     <script defer src="js/message_handler.js"></script>
     <script defer src="js/edit.js"></script>
+    <script defer src="js/search_bar.js"></script>
 
     <script defer src="js/home.js"></script>
 
-    <!-- Shared libraries -->
+    <!-- Shared L10n libraries -->
     <script src="shared/js/l10n.js"></script>
     <script src="shared/js/l10n_date.js"></script>
 
     <!-- L10n properties -->
-    <link rel="manifest" href="manifest.webapp"/>
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="locales/home.{locale}.properties"/>
     <link rel="localization" href="shared/locales/date/date.{locale}.properties"/>
   </head>
@@ -106,7 +120,7 @@
 
       <section id="card-viewer">
         <div id="card-list-frame">
-          <div id="card-list" data-default-item="2">
+          <div id="card-list" data-default-item="0">
           </div>
         </div>
       </section>
@@ -128,6 +142,12 @@
             <span data-l10n-id="app">app</span>
           </smart-button>
         </menu-group>
+      </section>
+      <section id="search-bar" class="search-bar hidden">
+        <smart-button data-icon="mic" class="search-mic-button fade-out"></smart-button>
+        <div data-icon="search" class="search-input">
+          <span data-l10n-id="search-default-text">search</span>
+        </div>
       </section>
     </article>
   </body>

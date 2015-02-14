@@ -53,6 +53,10 @@ TextSelection.prototype = {
     return location;
   },
 
+  switchToCurrentApp: function() {
+    this.client.apps.switchToApp(this._getDisplayedAppInfo().origin);
+  },
+
   /**
    * Get appWindow's id and origin of displayed app.
    * XXXXX: Since gecko is not ready yet, we need to simulate gecko dispatching
@@ -78,7 +82,14 @@ TextSelection.prototype = {
   },
 
   longPress: function(element) {
-    this.actions.tap(element, 10, 10).wait(2).longPress(element, 2).perform();
+    var eltSize = element.size();
+    this.longPressByPosition(element, eltSize/2, eltSize/2);
+  },
+ 
+  longPressByPosition: function(element, x, y) {
+    // Add moveByOffset to prevent contextmenu event be fired.
+    this.actions.tap(element, x, y).wait(2).press(element, x, y).
+      moveByOffset(0, 0).wait(2).release().perform();
   },
 
   pressCopy: function() {

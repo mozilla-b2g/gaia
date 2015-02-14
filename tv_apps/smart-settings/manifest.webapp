@@ -27,7 +27,7 @@
     "189": "/style/icons/settings_189.png",
     "284": "/style/icons/settings_284.png"
   },
-  "orientation": "default",
+  "orientation": "landscape",
   "activities": {
     "configure": {
       "disposition": "inline",

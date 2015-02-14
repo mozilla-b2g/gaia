@@ -11,8 +11,9 @@ var CrashReporter = (function() {
   var settings = navigator.mozSettings;
   var screen = document.getElementById('screen');
 
-  // The name of the app that just crashed.
-  var crashedAppName = '';
+  // The name of the app that just crashed. We'll have special handling for
+  // when this remains null or is set to null.
+  var crashedAppName = null;
 
   // Whether or not to show a "Report" button in the banner.
   var showReportButton = false;
@@ -30,8 +31,11 @@ var CrashReporter = (function() {
     if (isChrome) {
       navigator.mozL10n.setAttributes(elem, 'crash-dialog-os2');
     } else {
-      navigator.mozL10n.setAttributes(elem,
-        'crash-dialog-app', { name: crashedAppName });
+      navigator.mozL10n.setAttributes(
+        elem,
+        'crash-dialog-app',
+        { name: crashedAppName || _('crash-dialog-app-noname') }
+      );
     }
 
     // "Don't Send Report" button in dialog
@@ -81,8 +85,9 @@ var CrashReporter = (function() {
   }
 
   function showBanner(crashID, isChrome) {
+    var appName = crashedAppName || _('crash-dialog-app-noname');
     var message = isChrome ? _('crash-banner-os2') :
-      _('crash-banner-app', { name: crashedAppName });
+      _('crash-banner-app', { name: appName });
 
     var button = null;
     if (showReportButton) {
@@ -164,6 +169,8 @@ var CrashReporter = (function() {
   window.addEventListener('searchcrashed', handleAppCrash);
 
   return {
+    handleCrash: handleCrash,
+    handleAppCrash: handleAppCrash,
     setAppName: setAppName
   };
 })();

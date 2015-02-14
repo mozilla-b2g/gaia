@@ -4,6 +4,7 @@
   top: 0;
   transform: translate(0, 0);
   transition: none;
+  -moz-user-select: none;
 }
 
 #firsttime-view .view[data-viewport="right"] {

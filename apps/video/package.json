@@ -1,0 +1,10 @@
+{
+  "webide": {
+    "prepackage": {
+      "command": "make",
+      "env": ["APP=video"],
+      "cwd": "../.."
+    },
+    "packageDir": "../../build_stage/video/"
+  }
+}

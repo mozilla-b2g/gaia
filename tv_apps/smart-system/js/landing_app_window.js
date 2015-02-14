@@ -22,8 +22,8 @@
 
   LandingAppWindow.prototype.CLASS_NAME = 'LandingAppWindow';
 
-  LandingAppWindow.prototype.openAnimation = 'immediately';
-  LandingAppWindow.prototype.closeAnimation = 'immediately';
+  LandingAppWindow.prototype.openAnimation = 'invoked';
+  LandingAppWindow.prototype.closeAnimation = 'immediate';
 
   LandingAppWindow.prototype.view = function hw_view() {
     return '<div class="appWindow homescreen landing-app" id="landing-app">' +
@@ -43,12 +43,6 @@
       if (this.frontWindow) {
         // Just kill front window but not switch to the first page.
         this.frontWindow.kill();
-      } else {
-        // we add time as hash to tell app it is ensured and app can use it to
-        // scroll to top, like vertical home.
-        this.browser.element.src = this.browser_config.url.indexOf('#') > -1 ?
-                                   this.browser_config.url + Date.now() :
-                                   this.browser_config.url + '#' + Date.now();
       }
     }
 

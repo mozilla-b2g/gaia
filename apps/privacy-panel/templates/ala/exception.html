@@ -1,17 +1,15 @@
 <element name="ala-exception" extends="section">
   <template>
-    <header>
+    <gaia-header>
       <a class="pp-link back" href="#ala-exceptions">
-        <span class="icon gaia-icon-back">back</span>
+        <span class="icon gaia-icon-back"></span>
       </a>
-      <h1 data-l10n-id="location-accuracy">Location Accuracy</h1>
-    </header>
+      <h1 data-l10n-id="ala-panel"></h1>
+    </gaia-header>
     <div>
       <ul>
         <li>
-          <p class="description" data-l10n-id="exceptions-application-description">
-            Adjust the custom location accuracy level of the following app:
-          </p>
+          <p class="description" data-l10n-id="exceptions-application-description"></p>
         </li>
         <li class="app-info app-element">
           <a class="menu-item">
@@ -23,11 +21,11 @@
           <p>
             <span class="button icon icon-dialog">
               <select class="app-type">
-                <option value="system-settings" data-l10n-id="global-settings">Global Settings</option>
-                <option value="blur" data-l10n-id="adjustment">Adjustment</option>
-                <option value="user-defined" data-l10n-id="custom-location">Custom Location</option>
-                <option value="no-location" data-l10n-id="no-location">No Location</option>
-                <option value="precise" data-l10n-id="precise">Precise</option>
+                <option value="system-settings" data-l10n-id="global-settings"></option>
+                <option value="blur" data-l10n-id="adjustment"></option>
+                <option value="user-defined" data-l10n-id="custom-location"></option>
+                <option value="no-location" data-l10n-id="no-location"></option>
+                <option value="precise" data-l10n-id="precise"></option>
               </select>
             </span>
           </p>
@@ -41,20 +39,20 @@
         </li>
 
         <li class="type-custom-location type-box custom-location-description">
-          <p class="description" data-l10n-id="custom-location-description">Set a custom location which is used as a fixed position.</p>
+          <p class="description" data-l10n-id="custom-location-description"></p>
         </li>
         <li class="type-custom-location type-box">
           <a class="menu-item set-custom-location panel-link" href="#set-custom-location">
-            <span data-l10n-id="set-custom-location">Set custom location</span>
+            <span data-l10n-id="set-custom-location"></span>
           </a>
         </li>
       </ul>
     </div>
     <div class="app-custom-location-alert overlay" hidden>
       <div class="modal modal-alert">
-        <h1 data-l10n-id="attention">Attention!</h1>
-        <p data-l10n-id="ala-custom-location-alert">You haven't set a custom location yet. Please set this before working on other settings!</p>
-        <button class="btn btn-blue" data-l10n-id="set-custom-location">Set custom location</button>
+        <h1 data-l10n-id="attention"></h1>
+        <p data-l10n-id="ala-custom-location-alert"></p>
+        <button class="btn btn-blue" data-l10n-id="set-location"></button>
       </div>
     </div>
   </template>

@@ -8,6 +8,7 @@ var View = require('view');
 var dateFromId = Calc.dateFromId;
 var monthStart = Calc.monthStart;
 var performance = require('performance');
+var router = require('router');
 
 // minimum difference between X and Y axis to be considered an horizontal swipe
 var XSWIPE_OFFSET = window.innerWidth / 10;
@@ -15,6 +16,7 @@ var XSWIPE_OFFSET = window.innerWidth / 10;
 function Month() {
   View.apply(this, arguments);
   this.frames = new Map();
+  window.addEventListener('localized', this);
 }
 module.exports = Month;
 
@@ -31,6 +33,9 @@ Month.prototype = {
 
   /** @type {SingleMonth} */
   currentFrame: null,
+
+  /** @type {DOMElement} used to detect if dbltap happened on same date */
+  _lastTarget: null,
 
   /**
    * store current, previous and next months
@@ -52,7 +57,8 @@ Month.prototype = {
     if (Math.abs(data.dy) > (Math.abs(data.dx) - XSWIPE_OFFSET)) {
       return;
     }
-    this._move(data.dx < 0);
+    var dir = document.documentElement.dir === 'rtl' ? -1 : 1;
+    this._move(dir * data.dx < 0);
   },
 
   _onwheel: function(event) {
@@ -105,12 +111,28 @@ Month.prototype = {
         this.controller.selectedDay = date;
         break;
       case 'dbltap':
-        this.app.go('/day/');
+        // make sure we discard double taps that started on a different day
+        if (this._lastTarget === target) {
+          this._goToAddEvent();
+        }
         break;
       case 'monthChange':
         this.changeDate(e.data[0]);
         break;
+      case 'localized':
+        this.reconstruct();
+        break;
     }
+    this._lastTarget = target;
+  },
+
+  _goToAddEvent: function(date) {
+    // slight delay to avoid tapping the elements inside the add event screen
+    setTimeout(() => {
+      // don't need to set the date since the first tap triggers a click that
+      // sets the  timeController.selectedDay
+      router.go('/event/add/');
+    }, 50);
   },
 
   changeDate: function(time) {
@@ -120,9 +142,7 @@ Month.prototype = {
       this.currentFrame.deactivate();
     }
 
-    this._getFrame(this._previousTime());
     this.currentFrame = this._getFrame(this.date);
-    this._getFrame(this._nextTime());
 
     this._trimFrames();
     this._appendFrames();
@@ -187,6 +207,12 @@ Month.prototype = {
       this.frames.delete(key);
       frame.destroy();
     });
+  },
+
+  reconstruct: function() {
+    // Watch for changed value from transition of a locale to another
+    this.destroy();
+    this.changeDate(this.controller.month);
   }
 
 };

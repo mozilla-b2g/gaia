@@ -1,5 +1,5 @@
 'use strict';
-/* global SharedUtils, evt */
+/* global evt */
 
 window.MenuGroup = (function(win) {
 
@@ -18,8 +18,8 @@ window.MenuGroup = (function(win) {
     var style;
     while(child) {
       style = window.getComputedStyle(child);
-      childWidth += child.offsetWidth + parseInt(style.marginLeft, 10)
-                                      + parseInt(style.marginRight, 10);
+      childWidth += child.offsetWidth + parseInt(style.marginLeft, 10) +
+                                        parseInt(style.marginRight, 10);
       child = child.nextElementSibling;
     }
     return childWidth;
@@ -35,7 +35,6 @@ window.MenuGroup = (function(win) {
   };
 
   proto.handleEvent = function(evt) {
-    var self = this;
     switch(evt.type) {
       // Like System app, the transition is our state machine.
       case 'transitionend':

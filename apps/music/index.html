@@ -15,7 +15,8 @@
     <link rel="stylesheet" type="text/css" href="shared/style/tabs.css"/>
     <link rel="stylesheet" type="text/css" href="style/music.css"/>
     <!-- Localization -->
-    <link rel="manifest" href="manifest.webapp">
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
     <link rel="localization" href="locales/music.{locale}.properties">
     <!-- Shared code -->
     <script defer src="shared/js/usertiming.js"></script>
@@ -52,7 +53,7 @@
 
   <body role="application" class="theme-media">
     <gaia-header id="title" action="back">
-      <h1 id="title-text" data-l10n-id="music">Music</h1>
+      <h1 id="title-text" data-l10n-id="music"></h1>
       <button id="title-player" data-icon="play-circle" hidden></button>
       <button id="title-done" data-l10n-id="done" hidden>Done</button>
     </gaia-header>
@@ -61,7 +62,8 @@
         <form id="views-tiles-search" role="search" class="skin-dark">
           <button id="views-tiles-search-close" data-l10n-id="search-close" type="submit">close</button>
           <p>
-            <input id="views-tiles-search-input" type="text" dir="auto"
+            <input id="views-tiles-search-input" type="search" dir="auto"
+                   x-inputmode="verbatim"
                    data-l10n-id="search-music" placeholder="SearcH MusiC">
             <button id="views-tiles-search-clear" type="reset">Clear</button>
           </p>
@@ -73,6 +75,7 @@
           <button id="views-list-search-close" data-l10n-id="search-close" type="submit">close</button>
           <p>
             <input id="views-list-search-input" type="search"
+                   x-inputmode="verbatim"
                    data-l10n-id="search-music" placeholder="SearcH MusiC">
             <button id="views-list-search-clear" type="reset">Clear</button>
           </p>
@@ -97,16 +100,16 @@
           <div id="player-cover-caption">
             <div id="player-cover-artist" data-l10n-id="songArtist">Song Artist</div>
             <div id="player-cover-album" data-l10n-id="songAlbum">Song Album</div>
-            <button id="player-cover-share" class="player-cover-button" data-icon="share"></button>
+            <button id="player-cover-share" class="player-cover-button" data-icon="share" data-l10n-id="share-song"></button>
           </div>
           <div id="player-cover-buttons">
             <button id="player-album-repeat" class="player-cover-button" data-icon="repeat"></button>
-            <div id="player-album-rating">
-              <button class="rating-star" data-rating="1"></button>
-              <button class="rating-star" data-rating="2"></button>
-              <button class="rating-star" data-rating="3"></button>
-              <button class="rating-star" data-rating="4"></button>
-              <button class="rating-star" data-rating="5"></button>
+            <div id="player-album-rating" data-l10n-id="player-album-rating" role="radiogroup">
+              <button class="rating-star" data-rating="1" role="radio" data-l10n-id="rating-star" data-l10n-args='{"n":"1"}'></button>
+              <button class="rating-star" data-rating="2" role="radio" data-l10n-id="rating-star" data-l10n-args='{"n":"2"}'></button>
+              <button class="rating-star" data-rating="3" role="radio" data-l10n-id="rating-star" data-l10n-args='{"n":"3"}'></button>
+              <button class="rating-star" data-rating="4" role="radio" data-l10n-id="rating-star" data-l10n-args='{"n":"4"}'></button>
+              <button class="rating-star" data-rating="5" role="radio" data-l10n-id="rating-star" data-l10n-args='{"n":"5"}'></button>
             </div>
             <button id="player-album-shuffle" class="player-cover-button" data-icon="shuffle"></button>
           </div>
@@ -131,6 +134,9 @@
       </div>
     </div>
     <div id="search" class="hidden">
+      <div id="views-search-no-result" class="search-category hidden">
+        <p id="search-no-result" data-l10n-id="search-no-result">No musiC founD</p>
+      </div>
       <div id="views-search-artists" class="search-category hidden">
         <gaia-subheader skin="dark">
           <span data-l10n-id="search-artists">ArtistS</span>

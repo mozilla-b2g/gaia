@@ -19,7 +19,8 @@ class TestSmsAddContact(GaiaTestCase):
         # insert contact
         self.contact = MockContact(tel={
             'type': 'Mobile',
-            'value': '555%s' % repr(time.time()).replace('.', '')[8:]})
+            'value': '555%s' % repr(time.time()).replace('.', '')[8:]},
+            email=None)
         self.data_layer.insert_contact(self.contact)
 
         self.messages = Messages(self.marionette)

@@ -1,18 +1,17 @@
 /**
  * ALA exceptions panel.
- * 
+ *
  * @module ExceptionsPanel
  * @return {Object}
  */
 define([
   'panels',
   'ala/blur_slider',
-  'ala/app_list',
   'shared/settings_listener',
   'shared/settings_helper'
 ],
 
-function(panels, BlurSlider, appList, SettingsListener, SettingsHelper) {
+function(panels, BlurSlider, SettingsListener, SettingsHelper) {
   'use strict';
 
   function ExceptionsPanel() {
@@ -24,7 +23,7 @@ function(panels, BlurSlider, appList, SettingsListener, SettingsHelper) {
 
     /**
      * Initialize ALA exceptions panel.
-     * 
+     *
      * @method init
      * @constructor
      */
@@ -61,8 +60,6 @@ function(panels, BlurSlider, appList, SettingsListener, SettingsHelper) {
       }
 
       // render app list
-      var manifest, icon, appSettings, type, li;
-
       this.apps.forEach(function(item, index) {
 
         // remove Privacy Panel application from list
@@ -70,37 +67,34 @@ function(panels, BlurSlider, appList, SettingsListener, SettingsHelper) {
           return;
         }
 
-        manifest = item.manifest || item.updateManifest;
-        icon = appList.icon(item);
-
-        type = undefined;
-        appSettings = this.exceptionsList[item.origin];
-
+        var type, typeArg;
+        var appSettings = this.exceptionsList[item.origin];
         if (appSettings) {
-          type = appSettings.type;
           switch (appSettings.type) {
             case 'user-defined':
-              type = 'User defined';
+              type = 'type-user-defined';
               break;
             case 'blur':
-              type = BlurSlider.getLabel(appSettings.slider) +' blur';
+              type = 'type-blur';
+              typeArg = { blurRadius: BlurSlider.getLabel(appSettings.slider) };
               break;
             case 'precise':
-              type = 'Precise';
+              type = 'type-precise';
               break;
             case 'no-location':
-              type = 'No location';
+              type = 'type-no-location';
               break;
             default:
+              type = appSettings.type;
               break;
           }
         }
 
-        li = this.renderAppItem({
+        var li = this.renderAppItem({
           origin: item.origin,
-          name: manifest.name,
+          name: item.name,
           index: index,
-          iconSrc: icon,
+          iconSrc: item.iconURL,
           type: type
         });
 
@@ -129,9 +123,13 @@ function(panels, BlurSlider, appList, SettingsListener, SettingsHelper) {
       link.appendChild(name);
 
       if (itemData.type) {
-        var type = document.createElement('small');
-        type.textContent = itemData.type;
-        link.appendChild(type);
+        navigator.mozL10n.setAttributes('type', itemData.type);
+        if (itemData.typeArg) {
+          navigator.mozL10n.setAttributes('type', itemData.type,
+                                        itemData.typeArg);
+        }
+
+        link.appendChild(itemData.type);
       }
 
       link.addEventListener('click',

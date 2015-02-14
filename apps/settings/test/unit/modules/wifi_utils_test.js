@@ -53,6 +53,90 @@ suite('WifiUtils', function() {
     assert.equal(li.getAttribute('data-l10n-id'), 'test');
   });
 
+  suite('updateListItemStatus', function() {
+    var fakeNetworkKey = 'network1';
+    var fakeListItems;
+    var fakeListItemDOM;
+    var fakeActiveItemDOM;
+
+    setup(function() {
+      this.sinon.stub(wifiUtils, 'getNetworkKey').returns(fakeNetworkKey);
+
+      fakeListItems = {};
+      fakeListItemDOM = document.createElement('div');
+      fakeListItemDOM.appendChild(document.createElement('small'));
+      fakeListItemDOM.appendChild(document.createElement('aside'));
+
+      fakeActiveItemDOM = document.createElement('div');
+      fakeActiveItemDOM.appendChild(document.createElement('small'));
+      fakeActiveItemDOM.appendChild(document.createElement('aside'));
+
+      fakeListItems[fakeNetworkKey] = fakeListItemDOM;
+    });
+
+    suite('with no needed parameters', function() {
+      setup(function() {
+        this.sinon.stub(window.console, 'log');
+        wifiUtils.updateListItemStatus();
+      });
+      test('we will get error message', function() {
+        assert.isTrue(window.console.log.called);
+      });
+    });
+
+    suite('if we are connecting to an AP with `connecting` status', function() {
+      setup(function() {
+        wifiUtils.updateListItemStatus({
+          network: {},
+          networkStatus: 'connecting',
+          listItems: fakeListItems,
+          activeItemDOM: fakeActiveItemDOM
+        });
+      });
+
+      test('activeItemDOM is cleaned up to normal status', function() {
+        assert.isFalse(fakeActiveItemDOM.classList.contains('active'));
+        assert.equal(fakeActiveItemDOM.querySelector('small').dataset.l10nId,
+          'shortStatus-disconnected');
+        assert.isFalse(fakeActiveItemDOM.querySelector(
+          'aside').classList.contains('connecting'));
+        assert.isFalse(fakeActiveItemDOM.querySelector(
+          'aside').classList.contains('connected'));
+      });
+
+      test('listItemDOM is in right status', function() {
+        assert.isTrue(fakeListItemDOM.classList.contains('active'));
+        assert.equal(fakeListItemDOM.querySelector('small').dataset.l10nId,
+          'shortStatus-connecting');
+        assert.isTrue(fakeListItemDOM.querySelector(
+          'aside').classList.contains('connecting'));
+        assert.isFalse(fakeListItemDOM.querySelector(
+          'aside').classList.contains('connected'));
+      });
+    });
+
+    suite('if we are connecting to an AP with `connected` status', function() {
+      setup(function() {
+        wifiUtils.updateListItemStatus({
+          network: {},
+          networkStatus: 'connected',
+          listItems: fakeListItems,
+          activeItemDOM: fakeActiveItemDOM
+        });
+      });
+
+      test('listItemDOM is in right status', function() {
+        assert.isTrue(fakeListItemDOM.classList.contains('active'));
+        assert.equal(fakeListItemDOM.querySelector('small').dataset.l10nId,
+          'shortStatus-connected');
+        assert.isTrue(fakeListItemDOM.querySelector(
+          'aside').classList.contains('connected'));
+        assert.isFalse(fakeListItemDOM.querySelector(
+          'aside').classList.contains('connecting'));
+      });
+    });
+  });
+
   suite('changeDisplay', function() {
     var dialog;
     var eap;
@@ -173,7 +257,9 @@ suite('WifiUtils', function() {
       };
       var l10nSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
 
-      var listItem = wifiUtils.newListItem(testNetwork, null);
+      var listItem = wifiUtils.newListItem({
+        network: testNetwork
+      });
 
       var icon = listItem.querySelector('aside');
       assert.ok(icon.classList.contains('secured'));
@@ -196,7 +282,9 @@ suite('WifiUtils', function() {
       };
       var l10nSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
 
-      var listItem = wifiUtils.newListItem(testNetwork, null);
+      var listItem = wifiUtils.newListItem({
+        network: testNetwork
+      });
 
       var icon = listItem.querySelector('aside');
       assert.ok(icon.classList.contains('secured'));
@@ -217,7 +305,10 @@ suite('WifiUtils', function() {
         relSignalStrength: 0,
         known: true,
       };
-      var listItem = wifiUtils.newListItem(testNetwork, null);
+      var listItem = wifiUtils.newListItem({
+        network: testNetwork,
+        showNotInRange: true
+      });
 
       var icon = listItem.querySelector('aside');
       assert.ok(icon.classList.contains('secured'));
@@ -237,7 +328,9 @@ suite('WifiUtils', function() {
         relSignalStrength: 40,
         known: false,
       };
-      var listItem = wifiUtils.newListItem(testNetwork, null);
+      var listItem = wifiUtils.newListItem({
+        network: testNetwork
+      });
 
       var icon = listItem.querySelector('aside');
       assert.ok(!icon.classList.contains('secured'));
@@ -257,7 +350,9 @@ suite('WifiUtils', function() {
         relSignalStrength: 40,
         known: true,
       };
-      var listItem = wifiUtils.newListItem(testNetwork, null);
+      var listItem = wifiUtils.newListItem({
+        network: testNetwork
+      });
 
       var icon = listItem.querySelector('aside');
       assert.ok(!icon.classList.contains('secured'));
@@ -277,7 +372,10 @@ suite('WifiUtils', function() {
         relSignalStrength: 0,
         known: true,
       };
-      var listItem = wifiUtils.newListItem(testNetwork, null);
+      var listItem = wifiUtils.newListItem({
+        network: testNetwork,
+        showNotInRange: true
+      });
 
       var icon = listItem.querySelector('aside');
       assert.ok(!icon.classList.contains('secured'));
@@ -305,7 +403,9 @@ suite('WifiUtils', function() {
         relSignalStrength: 40,
         known: false,
       };
-      listItem = wifiUtils.newListItem(testNetwork, null);
+      listItem = wifiUtils.newListItem({
+        network: testNetwork
+      });
       networkIcon = listItem.querySelector('aside');
 
       availableNetworks = document.querySelector('ul.wifi-availableNetworks');

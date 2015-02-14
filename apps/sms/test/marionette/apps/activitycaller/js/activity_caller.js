@@ -32,6 +32,21 @@
     });
   }
 
+  function generateVcardBlob() {
+    return new Promise(function(resolve) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', '/data/vcard_4.vcf');
+      xhr.overrideMimeType('text/vcard');
+      xhr.responseType = 'blob';
+
+      xhr.onload = function() {
+        resolve(xhr.response);
+      };
+
+      xhr.send();
+    });
+  }
+
   window.addEventListener('load', function() {
     var shareImageButton = document.getElementById('share-image');
 
@@ -83,5 +98,16 @@
         activity.postError(e);
       });
     });
+
+    var pickContactButton = document.getElementById('pick-contact');
+    pickContactButton.addEventListener('click', function() {
+      generateVcardBlob().then(function(blob) {
+        activity.postResult({
+          name: 'test_file.vcf',
+          blob: blob
+        });
+      });
+    });
+
   });
 })(window);

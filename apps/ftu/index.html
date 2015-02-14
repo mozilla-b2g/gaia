@@ -30,7 +30,8 @@
   <link rel="resource" type="image/png" href="/shared/resources/branding/logosmall.png"/>
   <link rel="resource" type="image/png" href="/shared/resources/branding/powered.png"/>
   <link rel="resource" type="image/png" href="/shared/resources/branding/privacy_sprite.png"/>
-  <link rel="manifest" href="manifest.webapp">
+  <meta name="defaultLanguage" content="en-US">
+  <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
   <link rel="localization" href="/shared/locales/branding/branding.{locale}.properties">
   <!-- This is needed for not duplicating SIM Import and FB Import locales -->
   <link rel="localization" href="/shared/locales/import_contacts/import_contacts.{locale}.properties">
@@ -101,7 +102,6 @@
 
   <!-- Components -->
   <script defer src="/shared/js/component_utils.js"></script>
-  <script defer src="/shared/elements/gaia_switch/script.js"></script>
   <script defer src="/shared/elements/gaia_buttons/script.js"></script>
   <script defer src="/shared/elements/gaia_subheader/script.js"></script>
   <script defer src="/shared/elements/config.js"></script>
@@ -198,7 +198,7 @@
 
   <section id="sim-info-screen" role="region" class="skin-organic">
     <gaia-header>
-      <h1 id="sim-info-header" data-l10n-id="simManager">SIM Manager</h1>
+      <h1 id="sim-info-header" data-l10n-id="simManager"></h1>
     </gaia-header>
     <article role="main">
       <section>
@@ -257,9 +257,10 @@
         <article data-type="list">
           <ul>
             <li>
-              <gaia-switch id="data-connection-switch">
-                <label data-l10n-id="dataConnection"></label>
-              </gaia-switch>
+              <label class="pack-switch" id="data-connection-switch">
+                <input class="uninit" id="data-connection-checkbox" type="checkbox">
+                <span data-l10n-id="dataConnection"></span>
+              </label>
             </li>
           </ul>
         </article>
@@ -331,7 +332,7 @@
                 </label>
                 <input type="text" name="wifi_identity" id="hidden-wifi-identity" dir="auto"/>
               </li>
-              <li>
+              <li id="hidden-wifi-password-box">
                 <label id="label_hidden_wifi_password" for="hidden-wifi-password" data-l10n-id="password">
                   Password
                 </label>
@@ -398,9 +399,10 @@
         <article data-type="list">
           <ul>
             <li>
-              <gaia-switch id="geolocation-switch" name="geolocation.enabled" checked>
-                <label data-l10n-id="geolocationCheckbox"></label>
-              </gaia-switch>
+              <label class="pack-switch" id="geolocation-switch">
+                <input class="uninit" id="geolocation-checkbox" name="geolocation.enabled" type="checkbox" checked>
+                <span data-l10n-id="geolocationCheckbox">Geolocation</span>
+              </label>
             </li>
           </ul>
         </article>

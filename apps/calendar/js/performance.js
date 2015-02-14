@@ -13,12 +13,23 @@ exports._isMonthReady = false;
 exports._isVisuallyActive = false;
 exports._isPendingReady = false;
 
+// TODO: It would be nice if this had an events interface so I could
+//     simply do performance.once('moz-app-loaded', () => ...) and
+//     I would be called immediately if we were already loaded or
+//     when we're loaded otherwise.
+var dispatched = {};
+
 /**
  * Performance testing events. See <https://bugzil.la/996038>.
  */
 function dispatch(eventType) {
+  dispatched[eventType] = true;
   window.dispatchEvent(new CustomEvent(eventType));
 }
+
+exports.isComplete = function(eventType) {
+  return dispatched[eventType];
+};
 
 /**
  * Dispatch 'moz-chrome-dom-loaded' event.

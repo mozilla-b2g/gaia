@@ -478,7 +478,7 @@ var KeyboardManager = {
   _showImeMenu: function km_showImeMenu() {
     var showedGroup = this._showingLayoutInfo.group;
     var activeLayout = this.inputLayouts.layouts[showedGroup].activeLayout;
-    var actionMenuTitle = navigator.mozL10n.get('choose-option');
+    var actionMenuTitleL10nId = 'choose-option';
 
     this._waitForSwitchTimeout(function listLayouts() {
       var items = this.inputLayouts.layouts[showedGroup].map(
@@ -493,7 +493,7 @@ var KeyboardManager = {
 
       this.hideKeyboard();
 
-      var menu = new ImeMenu(items, actionMenuTitle,
+      var menu = new ImeMenu(items, actionMenuTitleL10nId,
         this._imeMenuCallback.bind(this, showedGroup),
         this._imeMenuCallback.bind(this, showedGroup));
 

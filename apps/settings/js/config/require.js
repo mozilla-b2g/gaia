@@ -9,6 +9,9 @@ require.config({
     'settings': {
       exports: 'Settings'
     },
+    'dsds_settings': {
+      exports: 'DsdsSettings'
+    },
     'simcard_lock': {
       exports: 'SimPinLock'
     },
@@ -33,6 +36,9 @@ require.config({
     },
     'shared/lazy_loader': {
       exports: 'LazyLoader'
+    },
+    'shared/search_provider': {
+      exports: 'SearchProvider'
     },
     'shared/manifest_helper': {
       exports: 'ManifestHelper'
@@ -208,8 +214,7 @@ require.config({
       name: 'panels/wifi/panel',
       exclude: [
         'main',
-        'modules/dialog_service',
-        'modules/settings_utils'
+        'modules/dialog_service'
       ]
     },
     {
@@ -327,7 +332,7 @@ require.config({
         'main',
         'modules/bluetooth/version_detector',
         'modules/bluetooth/bluetooth_v1',
-        'modules/bluetooth/bluetooth'
+        'modules/bluetooth/bluetooth_context'
       ]
     },
     {
@@ -340,6 +345,17 @@ require.config({
     },
     {
       name: 'panels/developer_hud/panel',
+      exclude: ['main']
+    },
+    {
+      name: 'panels/call_barring/panel',
+      exclude: [
+        'main',
+        'modules/mvvm/observable'
+      ]
+    },
+    {
+      name: 'panels/call_barring_passcode_change/panel',
       exclude: ['main']
     }
   ]

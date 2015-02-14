@@ -14,15 +14,6 @@
     var w = device.screen.width;
     var h = device.screen.height;
 
-    var lat;
-    var lon;
-    var position = device.position;
-
-    if (position && position.coords) {
-      lat = position.coords.latitude;
-      lon = position.coords.longitude;
-    }
-
     // default to undefined's so that JSON.stringify will drop them
     return {
       lc: device.language || undefined,
@@ -33,9 +24,7 @@
       ct: device.dataConnectionType || undefined,
       mcc: device.mcc || undefined,
       mnc: device.mnc || undefined,
-      sr: (w && h) ? [w, h].join('x') : undefined,
-      ll: (lat && lon) ? [lat,lon].join(',') : undefined
-      // TODO hc: home country
+      sr: (w && h) ? [w, h].join('x') : undefined
     };
 
   }

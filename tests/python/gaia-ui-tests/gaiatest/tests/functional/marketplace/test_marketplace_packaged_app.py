@@ -2,9 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette import expected
-from marionette import Wait
-from marionette.by import By
+try:
+    from marionette import Wait
+except:
+    from marionette_driver import Wait
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
 from gaiatest.apps.marketplace.app import Marketplace
@@ -12,24 +13,22 @@ from gaiatest.apps.homescreen.regions.confirm_install import ConfirmInstall
 
 
 class TestSearchMarketplaceAndInstallApp(GaiaTestCase):
-    
+
     app_search = 'test-webapi-permissions :packaged'
     app_title = 'Privileged App Test'
-    
+
     def setUp(self):
         GaiaTestCase.setUp(self)
         self.connect_to_local_area_network()
-
-        # Turn off geolocation prompt for smart collections, because this
-        # pops up on automation machines for some reason
-        self.apps.set_permission('Smart Collections', 'geolocation', 'deny')
 
     def test_search_and_install_app(self):
 
         marketplace = Marketplace(self.marionette)
         marketplace.launch()
 
-        results = marketplace.search(self.app_search)
+        marketplace.search(self.app_search)
+        # Make sure All apps is chosen as search filter
+        results = marketplace.filter_search_all_apps()
         first_result = results.search_results[0]
         app_name = first_result.get_app_name()
         first_result.tap_install_button()

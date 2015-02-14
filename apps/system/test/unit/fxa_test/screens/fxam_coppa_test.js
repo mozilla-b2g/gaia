@@ -107,7 +107,6 @@ suite('Screen: COPPA', function() {
       showErrorOverlaySpy = this.sinon.spy(FxaModuleErrorOverlay, 'show');
       showErrorResponse = this.sinon.spy(FxaModuleCoppa, 'showErrorResponse');
       fxaAgeSelect.value = new Date().getFullYear();
-
     });
 
     teardown(function() {

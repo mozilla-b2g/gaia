@@ -1,0 +1,10 @@
+{
+  "webide": {
+    "prepackage": {
+      "command": "make",
+      "env": ["APP=download"],
+      "cwd": "../.."
+    },
+    "packageDir": "../../build_stage/download/"
+  }
+}

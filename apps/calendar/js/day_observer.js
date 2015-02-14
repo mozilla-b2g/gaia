@@ -261,9 +261,11 @@ function sortedInsert(group, busy) {
   var index = binsearch.insert(group, busy.startDate, (date, record) => {
     return compare(date, record.busytime.startDate);
   });
+  var event = events.get(busy.eventId);
   group.splice(index, 0, {
-    event: events.get(busy.eventId),
-    busytime: busy
+    event: event,
+    busytime: busy,
+    color: exports.calendarStore.getColorByCalendarId(event.calendarId)
   });
 }
 

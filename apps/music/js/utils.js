@@ -1,5 +1,5 @@
 /* exported formatTime, createListElement */
-/* global Normalizer, AlbumArt */
+/* global Normalizer, AlbumArtCache */
 'use strict';
 
 function formatTime(secs) {
@@ -93,7 +93,7 @@ function createListElement(option, data, index, highlight) {
       // Use background image instead of creating img elements can reduce
       // the amount of total elements in the DOM tree, it can save memory
       // and gecko can render the elements faster as well.
-      AlbumArt.getCoverURL(data).then(function(url) {
+      AlbumArtCache.getCoverURL(data).then(function(url) {
         li.style.backgroundImage = 'url(' + url + ')';
       });
 

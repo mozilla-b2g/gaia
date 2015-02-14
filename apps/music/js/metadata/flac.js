@@ -1,3 +1,4 @@
+/* global LazyLoader, VorbisPictureComment */
 /* exported FLACMetadata */
 'use strict';
 
@@ -29,43 +30,62 @@ var FLACMetadata = (function() {
    * Parse a file and return a Promise with the metadata.
    *
    * @param {BlobView} blobview The audio file to parse.
-   * @param {Metadata} metadata The (partially filled-in) metadata object.
    * @return {Promise} A Promise returning the parsed metadata object.
    */
-  function parse(blobview, metadata) {
+  function parse(blobview) {
     // First four bytes are "fLaC" or we wouldn't be here.
     blobview.seek(4);
 
-    metadata.tag_format = 'flac';
-    return findVorbisCommentBlock(blobview).then(function(block) {
-      if (!block) {
-        return metadata;
+    return new Promise(function(resolve, reject) {
+      var metadata = {};
+      metadata.tag_format = 'flac';
+
+      var has_vorbis_comment = false;
+      var has_picture = false;
+
+      function processBlock(block) {
+        if (!block) {
+          resolve(metadata);
+          return false;
+        }
+
+        if (block.block_type === 4) {
+          readAllComments(block.view, metadata);
+          has_vorbis_comment = true;
+        } else if (block.block_type === 6) {
+          LazyLoader.load('js/metadata/vorbis_picture.js', function() {
+            metadata.picture = VorbisPictureComment.readPicFrame(block.view);
+            metadata.picture.start += block.view.viewOffset;
+            metadata.picture.end += block.view.viewOffset;
+          });
+          has_picture = true;
+
+        }
+
+        return (!has_vorbis_comment || !has_picture);
       }
-      return readAllComments(block.view, metadata);
+
+      findMetadataBlocks(blobview, processBlock);
     });
   }
 
   /**
-   * Step over metadata blocks until we find the Vorbis comment block.
+   * Step over metadata blocks until we find the proper metadata block.
    *
    * @param {BlobView} blobview The BlobView for the file.
-   * @return {Promise} A promise resolving to an object describing the metadata
-   *   block. See readMetadataBlockHeader for more details.
+   * @param {function} callback The callback to process the block with.
    */
-  function findVorbisCommentBlock(blobview) {
-    return readMetadataBlockHeader(blobview).then(function(block) {
-      // XXX: Support album art.
-      // See: http://flac.sourceforge.net/format.html#metadata_block_picture
-
-      // Did we find a Vorbis comment block yet?
-      if (block.block_type === 4) {
-        return block;
-      } else if (block.last) {
-        return null;
+  function findMetadataBlocks(blobview, callback) {
+    readMetadataBlockHeader(blobview).then(function(block) {
+      if (!callback(block) || block.last) {
+        callback(null);
       } else {
-        block.view.advance(block.length);
-        return findVorbisCommentBlock(block.view);
+        block.view.advance(block.length - block.view.index);
+        findMetadataBlocks(block.view, callback);
       }
+    }).catch(function(err) {
+      console.error('Error finding FLAC metadata:', err);
+      callback(null);
     });
   }
 
@@ -74,7 +94,7 @@ var FLACMetadata = (function() {
    * enough extra data to read the next block's header.
    *
    * @param {BlobView} blobview The BlobView for the file.
-   * @param {Promise} A promise resolving to an object with the following
+   * @return {Promise} A Promise resolving to an object with the following
    *   fields:
    *     {Boolean} last True if this is the last metadata block.
    *     {Number} block_type The block's type, as an integer.
@@ -120,29 +140,21 @@ var FLACMetadata = (function() {
     page.advance(vendor_string_length); // skip vendor string
 
     var num_comments = page.readUnsignedInt(true);
-    // |metadata| already has some of its values filled in (namely the title
-    // field). To make sure we overwrite the pre-filled metadata, but also
-    // append any repeated fields from the file, we keep track of the fields
-    // we've seen in the file separately.
-    var seen_fields = {};
     for (var i = 0; i < num_comments; i++) {
       try {
         var comment = readComment(page);
         if (comment) {
-          if (seen_fields.hasOwnProperty(comment.field)) {
-            // If we already have a value, append this new one.
-            metadata[comment.field] += ' / ' + comment.value;
-          } else {
-            // Otherwise, just save the single value.
+          if (!(comment.field in metadata)) {
             metadata[comment.field] = comment.value;
-            seen_fields[comment.field] = true;
+          } else {
+            // We already have a value, so append this new one.
+            metadata[comment.field] += ' / ' + comment.value;
           }
         }
       } catch (e) {
-        console.warn('Error parsing ogg metadata frame', e);
+        console.warn('Error parsing vorbis comment', e);
       }
     }
-    return metadata;
   }
 
   /**

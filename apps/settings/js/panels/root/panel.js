@@ -6,9 +6,11 @@ define(function(require) {
   var Root = require('panels/root/root');
   var AirplaneModeItem = require('panels/root/airplane_mode_item');
   var ThemesItem = require('panels/root/themes_item');
+  var AddonsItem = require('panels/root/addons_item');
   var HomescreenItem = require('panels/root/homescreen_item');
   var PrivacyPanelItem = require('panels/root/privacy_panel_item');
   var BTAPIVersionDetector = require('modules/bluetooth/version_detector');
+  var DsdsSettings = require('dsds_settings');
 
   var queryRootForLowPriorityItems = function(panel) {
     // This is a map from the module name to the object taken by the constructor
@@ -46,6 +48,7 @@ define(function(require) {
     var themesItem;
     var homescreenItem;
     var privacyPanelItem;
+    var addonsItem;
 
     var lowPriorityRoots = null;
     var initLowPriorityItemsPromise = null;
@@ -78,6 +81,8 @@ define(function(require) {
           ThemesItem(panel.querySelector('.themes-section'));
         homescreenItem =
           HomescreenItem(panel.querySelector('#homescreens-section'));
+        addonsItem =
+          AddonsItem(panel.querySelector('#addons-section'));
         privacyPanelItem = PrivacyPanelItem({
           element: panel.querySelector('.privacy-panel-item'),
           link: panel.querySelector('.privacy-panel-item a')
@@ -97,6 +102,13 @@ define(function(require) {
           }
         });
 
+        // If the device supports dsds, callSettings must be changed 'href' for 
+        // navigating call-iccs panel first.
+        if (DsdsSettings.getNumberOfIccSlots() > 1) {
+          var callItem = document.getElementById('menuItem-callSettings');
+          callItem.setAttribute('href', '#call-iccs');
+        }
+
         var idleObserver = {
           time: 3,
           onidle: function() {
@@ -114,6 +126,7 @@ define(function(require) {
         themesItem.enabled = true;
         privacyPanelItem.enabled = true;
         homescreenItem.enabled = true;
+        addonsItem.enabled = true;
 
         if (initLowPriorityItemsPromise) {
           initLowPriorityItemsPromise.then(function(items) {
@@ -126,6 +139,7 @@ define(function(require) {
         themesItem.enabled = false;
         homescreenItem.enabled = false;
         privacyPanelItem.enabled = false;
+        addonsItem.enabled = false;
 
         if (initLowPriorityItemsPromise) {
           initLowPriorityItemsPromise.then(function(items) {

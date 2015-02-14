@@ -1,6 +1,9 @@
+/* global SimplePhoneMatcher */
+
 requireApp('sharedtest/shared/js/simple_phone_matcher.js');
 
 suite('lib/simple_phone_matcher', function() {
+  'use strict';
   suite('sanitization', function() {
     test('should remove dots', function() {
       var number = '06.98.05.70.56';
@@ -37,7 +40,7 @@ suite('lib/simple_phone_matcher', function() {
     function testVariants(number, variant) {
       var variants = SimplePhoneMatcher.generateVariants(number);
       assert.include(variants, variant);
-    };
+    }
 
     function testVariantsBothWays(first, second) {
       var variants = SimplePhoneMatcher.generateVariants(first);
@@ -45,7 +48,7 @@ suite('lib/simple_phone_matcher', function() {
 
       variants = SimplePhoneMatcher.generateVariants(second);
       assert.include(variants, first);
-    };
+    }
 
     test('should sort variants by length', function() {
       var number = '+55 97 111 8876';
@@ -195,8 +198,8 @@ suite('lib/simple_phone_matcher', function() {
   suite('best match search', function() {
     var variants;
 
-    function testBestMatch(totalMatchNum, allMatches, 
-      bestMatchIndex, localIndex, 
+    function testBestMatch(totalMatchNum, allMatches,
+      bestMatchIndex, localIndex,
       variants, matches) {
       var result = {
         totalMatchNum: totalMatchNum,

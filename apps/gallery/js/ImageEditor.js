@@ -114,7 +114,9 @@ function editPhoto(n) {
     currentEditTool = null;
 
     // Set auto enhance icon to default off state
-    $('edit-enhance-button').classList.remove('on');
+    var editEnhanceButton = $('edit-enhance-button');
+    editEnhanceButton.setAttribute('aria-pressed', false);
+    editEnhanceButton.classList.remove('on');
     // Set edit screen header title
     $('edit-title').setAttribute('data-l10n-id', 'edit');
     // Disable save and edit tool apply button until an edit is applied
@@ -144,9 +146,14 @@ function editPhoto(n) {
   setView(LAYOUT_MODE.edit);
 
   // Set the default option buttons to correspond to those edits
-  editOptionButtons.forEach(function(b) { b.classList.remove('selected'); });
-  $('edit-crop-aspect-free').classList.add('selected');
-  $('edit-effect-none').classList.add('selected');
+  editOptionButtons.forEach(function(b) { selectEditOption(b, false); });
+  selectEditOption($('edit-crop-aspect-free'), true);
+  selectEditOption($('edit-effect-none'), true);
+}
+
+function selectEditOption(radio, selected) {
+  radio.classList.toggle('selected', selected);
+  radio.setAttribute('aria-checked', selected);
 }
 
 // Crop and Effect buttons call this
@@ -156,8 +163,8 @@ function editOptionsHandler() {
   // buttons have radio behavior
   var parent = this.parentNode;
   var buttons = parent.querySelectorAll('a.radio.button');
-  Array.forEach(buttons, function(b) { b.classList.remove('selected'); });
-  this.classList.add('selected');
+  Array.forEach(buttons, function(b) { selectEditOption(b, false); });
+  selectEditOption(this, true);
 
   // Set selected effect or cropMode elementId in editSettings object
   // to initialize UI on re-enter of an editMode
@@ -372,8 +379,8 @@ function cancelEditTool() {
     case 'crop':
       // On cancel in Crop Edit Tool, restore crop state in editSettings object
       // and revert selected option node.
-      $(editSettings.crop.cropModeId).classList.remove('selected');
-      $(savedEditSettings.crop.cropModeId).classList.add('selected');
+      selectEditOption($(editSettings.crop.cropModeId), false);
+      selectEditOption($(savedEditSettings.crop.cropModeId), true);
 
       editSettings.crop = savedEditSettings.crop;
 
@@ -397,8 +404,8 @@ function cancelEditTool() {
     case 'effect':
       // On cancel in Effect Edit Tool, restore effect state
       // in editSettings object and revert selected option node.
-      $(editSettings.effect.effectId).classList.remove('selected');
-      $(savedEditSettings.effect.effectId).classList.add('selected');
+      selectEditOption($(editSettings.effect.effectId), false);
+      selectEditOption($(savedEditSettings.effect.effectId), true);
       editSettings.effect = savedEditSettings.effect;
       break;
   }
@@ -472,6 +479,7 @@ function setAutoEnhanceState(isEnhanced) {
   var statusLabel = $('edit-enhance-status');
   var enhanceButton = $('edit-enhance-button');
   var banner = $('edit-enhance-banner');
+  enhanceButton.setAttribute('aria-pressed', isEnhanced);
   if (isEnhanced) {
     showStatus('enhance-on');
     enhanceButton.classList.add('on');
@@ -513,8 +521,8 @@ function hideEditToolView() {
 function undoCropHandler() {
   // Switch to free-form cropping
   Array.forEach($('edit-crop-options').querySelectorAll('a.radio.button'),
-                function(b) { b.classList.remove('selected'); });
-  $('edit-crop-aspect-free').classList.add('selected');
+                function(b) { selectEditOption(b, false); });
+  selectEditOption($('edit-crop-aspect-free'), true);
   imageEditor.setCropAspectRatio(); // freeform
   // And revert to full-size image
   imageEditor.undoCrop();
@@ -690,6 +698,8 @@ function ImageEditor(imageBlob, container, edits, ready, croponly) {
   // The canvas that displays the preview
   this.previewCanvas = document.createElement('canvas');
   this.previewCanvas.id = 'edit-preview-canvas'; // for stylesheet
+  this.previewCanvas.setAttribute('data-l10n-id', 'editImagePreview');
+  this.previewCanvas.setAttribute('role', 'img');
   this.container.appendChild(this.previewCanvas);
 
   // Make sure the canvas is size for device pixels, not css pixels
@@ -796,6 +806,12 @@ ImageEditor.prototype.generateNewPreview = function(callback) {
   this.edits.crop.w = this.source.width;
   this.edits.crop.h = this.source.height;
 
+  // Update the destination rectangle with the new dimensions, too
+  this.dest.x = Math.floor((this.previewCanvas.width - previewWidth) / 2);
+  this.dest.y = Math.floor((this.previewCanvas.height - previewHeight) / 2);
+  this.dest.width = previewWidth;
+  this.dest.height = previewHeight;
+
   // Create a preview image
   var canvas = document.createElement('canvas');
   canvas.width = previewWidth;
@@ -837,7 +853,6 @@ ImageEditor.prototype.resetPreview = function() {
 };
 
 ImageEditor.prototype.resize = function() {
-  var self = this;
   var canvas = this.previewCanvas;
   var dpr = window.devicePixelRatio;
   canvas.width = Math.ceil(canvas.clientWidth * dpr);
@@ -858,25 +873,22 @@ ImageEditor.prototype.resize = function() {
   // croponly case and in the regular image editing case
   if (this.croponly) {
     this.displayCropOnlyPreview();
-    restoreCropRegion();
   }
   else {
     this.resetPreview();
-    this.edit(restoreCropRegion);
+    this.edit();
   }
 
   // Restore the crop region to what it was before the resize
-  function restoreCropRegion() {
-    if (hadCropOverlay) {
-      // showCropOverlay normally resets cropRegion to the full extent,
-      // so we need to pass in a new crop region to use
-      var newRegion = {};
-      newRegion.left = Math.floor(savedCropRegion.left * self.scale);
-      newRegion.top = Math.floor(savedCropRegion.top * self.scale);
-      newRegion.right = Math.floor(savedCropRegion.right * self.scale);
-      newRegion.bottom = Math.floor(savedCropRegion.bottom * self.scale);
-      self.showCropOverlay(newRegion);
-    }
+  if (hadCropOverlay) {
+    // showCropOverlay normally resets cropRegion to the full extent,
+    // so we need to pass in a new crop region to use
+    var newRegion = {};
+    newRegion.left = Math.floor(savedCropRegion.left * this.scale);
+    newRegion.top = Math.floor(savedCropRegion.top * this.scale);
+    newRegion.right = Math.floor(savedCropRegion.right * this.scale);
+    newRegion.bottom = Math.floor(savedCropRegion.bottom * this.scale);
+    this.showCropOverlay(newRegion);
   }
 };
 
@@ -929,14 +941,6 @@ ImageEditor.prototype.edit = function(callback) {
 
 ImageEditor.prototype.finishEdit = function(callback) {
   var canvas = this.previewCanvas;
-  var xOffset = Math.floor((canvas.width - this.preview.width) / 2);
-  var yOffset = Math.floor((canvas.height - this.preview.height) / 2);
-
-  this.dest.x = xOffset;
-  this.dest.y = yOffset;
-  this.dest.width = this.preview.width;
-  this.dest.height = this.preview.height;
-
   this.processor.draw(this.preview, this.needsUpload,
                       0, 0, this.preview.width, this.preview.height,
                       this.dest.x, this.dest.y, this.dest.width,

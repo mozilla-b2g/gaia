@@ -47,18 +47,15 @@
     /* jshint boss:true */
     var containsFetchableLocale = false;
 
+    var meta = {};
     var nodes = document.head
                         .querySelectorAll('link[rel="localization"],' +
-                                          'link[rel="manifest"],' +
-                                          'meta[name="locales"],' +
-                                          'meta[name="default_locale"]');
+                                          'meta[name="availableLanguages"],' +
+                                          'meta[name="defaultLanguage"]');
 
     for (var i = 0, node; node = nodes[i]; i++) {
       var type = node.getAttribute('rel') || node.nodeName.toLowerCase();
       switch (type) {
-        case 'manifest':
-          L10n.onManifestInjected.call(this, node.getAttribute('href'));
-          break;
         case 'localization':
           if (!('noFetch' in node.dataset)) {
             containsFetchableLocale = true;
@@ -66,7 +63,7 @@
           this.ctx.resLinks.push(node.getAttribute('href'));
           break;
         case 'meta':
-          L10n.onMetaInjected.call(this, node);
+          L10n.onMetaInjected.call(this, node, meta);
           break;
       }
     }
@@ -74,6 +71,11 @@
     if (!containsFetchableLocale) {
       document.documentElement.dataset.noCompleteBug = true;
     }
+
+    var availableLangs = meta.availableLanguages ?
+      Object.keys(meta.availableLanguages) : null;
+
+    this.ctx.registerLocales(meta.defaultLanguage, availableLangs);
   }
 
 

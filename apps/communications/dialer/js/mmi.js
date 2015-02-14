@@ -255,9 +255,9 @@ var MmiManager = {
         // If the error is related with an incorrect old PIN, we get the
         // number of remainings attempts.
         if (mmiError.additionalInformation &&
-            (mmiError.name === 'emMmiErrorPasswordIncorrect' ||
-             mmiError.name === 'emMmiErrorBadPin' ||
-             mmiError.name === 'emMmiErrorBadPuk')) {
+            (mmiError.statusMessage === 'emMmiErrorPasswordIncorrect' ||
+             mmiError.statusMessage === 'emMmiErrorBadPin' ||
+             mmiError.statusMessage === 'emMmiErrorBadPuk')) {
           error += '\n' + this._('emMmiErrorPinPukAttempts', {
             n: mmiError.additionalInformation
           });

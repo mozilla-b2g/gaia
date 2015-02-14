@@ -423,8 +423,10 @@ var Navigation = {
     }
 
     // if we are not connected we should not try fxa
-    if (futureLocation.hash === '#firefox_accounts' &&
-        !navigator.onLine) {
+    if ((futureLocation.hash === '#firefox_accounts' &&
+         !navigator.onLine) ||
+        (futureLocation.hash === '#firefox_accounts' &&
+         UIManager.skipFxA)) {
       self.postStepMessage(self.currentStep);
       self.skipStep();
     }

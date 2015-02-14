@@ -36,8 +36,6 @@ marionette('Browser - Launch the same origin after navigating away',
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForStartup();
-
-    search.removeGeolocationPermission();
   });
 
   test('opens a new sheet with window.open()', function() {

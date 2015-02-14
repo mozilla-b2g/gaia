@@ -2,11 +2,16 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.wait import Wait
+try:
+    from marionette.wait import Wait
+except ImportError:
+    from marionette_driver import Wait
 import plivo
 
 
 class PlivoUtil(object):
+
+    DEFAULT_TIMEOUT = 30
 
     def __init__(self, auth_id, auth_token, plivo_phone_number):
         self.api = plivo.RestAPI(auth_id, auth_token)
@@ -24,7 +29,7 @@ class PlivoUtil(object):
             return response[1]
         raise self.PlivoError('get_account', response)
 
-    def make_call(self, to_number, timeout=30):
+    def make_call(self, to_number, timeout=DEFAULT_TIMEOUT):
         """Place a call to a number and wait for the call_uuid to be available
             Return the call_uuid
         """
@@ -51,6 +56,16 @@ class PlivoUtil(object):
         )
         return call['call_uuid']
 
+    def wait_for_call_connected(self, call_uuid, timeout=DEFAULT_TIMEOUT):
+        Wait(self, timeout).until(
+            lambda p: p.is_call_connected(call_uuid),
+            message="Plivo didn't report the call as connected.")
+
+    def wait_for_call_completed(self, call_uuid, timeout=DEFAULT_TIMEOUT):
+        Wait(self, timeout).until(
+            lambda p: p.is_call_completed(call_uuid),
+            message="Plivo didn't report the call as completed")
+
     def get_call_for_number(self, to_number):
         # We cannot get details directly for a number,
         # so we need to get all live calls and look for the number
@@ -61,6 +76,10 @@ class PlivoUtil(object):
 
         for call in calls:
             response = self.api.get_live_call({'call_uuid': call})
+            # Sometimes a call_uuid is present in get_live_calls() but Plivo is not fast enough to
+            # immediately create the corresponding endpoint (see bug 1113154)
+            if response[0] == 404:
+                raise self.PlivoActiveCallNotFound
             if response[0] != 200:
                 raise self.PlivoError('get_live_call', response)
             if str(response[1]['to']) == str(to_number):

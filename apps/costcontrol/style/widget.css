@@ -2,11 +2,12 @@
 * {
   margin: 0;
   padding: 0;
-  text-align: left;
+  text-align: start;
 }
 
 html {
   font-size: 10px;
+  -moz-user-select: none;
 }
 
 body {
@@ -27,7 +28,7 @@ button::-moz-focus-inner {
 }
 
 p.meta {
-  font: italic 1.2rem/1.2rem auto;
+  font: italic 1.2rem auto;
   color: #858585;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -59,7 +60,7 @@ p.meta {
 }
 
 #fte-view p.meta {
-  font: italic 1.2rem/1.2rem auto;
+  font: italic 1.2rem auto;
   color: #858585;
   white-space: nowrap;
   text-overflow: ellipsis;

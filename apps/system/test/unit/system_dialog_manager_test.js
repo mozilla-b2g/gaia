@@ -1,6 +1,8 @@
+/* global MockAppWindow */
 (function() {
 'use strict';
 
+requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_system_dialog.js');
 requireApp('system/test/unit/mock_system_simcard_dialog.js');
 requireApp('system/js/system_dialog_manager.js');
@@ -13,7 +15,7 @@ var mocksForSystemDialogManager = new window.MocksHelper([
 
 suite('system/SystemDialogManager', function() {
   mocksForSystemDialogManager.attachTestHelpers();
-  var stubById, dialogFake,
+  var dialogFake,
       optionsFake = {
         onShow: function() {},
         onHide: function() {}
@@ -26,17 +28,34 @@ suite('system/SystemDialogManager', function() {
       };
 
   setup(function() {
-    stubById = this.sinon.stub(document, 'getElementById');
-    stubById.returns(document.createElement('div'));
+    this.sinon.stub(document, 'getElementById').returns(
+      document.createElement('div'));
 
     dialogFake = new window.SystemDialog(optionsFake);
     window.systemDialogManager = new window.SystemDialogManager();
-
+    window.systemDialogManager.init();
   });
 
   teardown(function() {
     window.systemDialogManager.states.activeDialog = null;
-    stubById.restore();
+  });
+
+  suite('Should change fullscreen state when appWindow opened', function() {
+    test('Launch a non-fullscreen app', function() {
+      var app = new MockAppWindow();
+      this.sinon.stub(app, 'isFullScreen').returns(false);
+      window.dispatchEvent(new CustomEvent('appopened', { detail:app }));
+      assert.isFalse(window.systemDialogManager.elements.containerElement
+                    .classList.contains('fullscreen'));
+    });
+
+    test('Launch a fullscreen app', function() {
+      var app = new MockAppWindow();
+      this.sinon.stub(app, 'isFullScreen').returns(true);
+      window.dispatchEvent(new CustomEvent('appopened', { detail:app }));
+      assert.isTrue(window.systemDialogManager.elements.containerElement
+                    .classList.contains('fullscreen'));
+    });
   });
 
   suite('Hierarchy functions', function() {
@@ -44,7 +63,7 @@ suite('system/SystemDialogManager', function() {
       this.sinon.stub(dialogFake, '_setVisibleForScreenReader');
       this.sinon.stub(dialogFake, 'focus');
       window.systemDialogManager.activateDialog(dialogFake);
-      window.systemDialogManager.setHierarchy(true);
+      assert.isTrue(window.systemDialogManager.setHierarchy(true));
       assert.isTrue(dialogFake._setVisibleForScreenReader.calledWith(true));
       assert.isTrue(dialogFake.focus.called);
 
@@ -85,6 +104,7 @@ suite('system/SystemDialogManager', function() {
         detail: dialogFake});
       assert.isNull(window.systemDialogManager.states.activeDialog,
         'the dialog should not be activated');
+      assert.isFalse(window.systemDialogManager.setHierarchy(true));
       var createdDialog =
       window.systemDialogManager.states.runningDialogs[dialogFake.instanceID];
       window.assert.isObject(createdDialog,

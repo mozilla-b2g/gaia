@@ -50,8 +50,6 @@ Bookmark.prototype = {
    * and saves it as a bookmark.
    */
   openAndSave: function(url) {
-    this.search.removeGeolocationPermission();
-
     this.rocketbar.homescreenFocus();
     this.rocketbar.enterText(url + '\uE006');
 

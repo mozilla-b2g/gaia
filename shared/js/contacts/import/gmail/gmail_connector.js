@@ -209,8 +209,13 @@ var GmailConnector = (function GmailConnector() {
     if (contact.tel && contact.tel.length > 0) {
       tel = contact.tel[0].value;
     }
-    output.givenName = contact.givenName || tel ||
-                                            output.email1 || contact.org || '';
+    if(contact.givenName) {
+      output.givenName = contact.givenName;
+    } else if(!contact.familyName) {
+      output.givenName = output.email1 || contact.org || tel;
+    } else if(contact.familyName) {
+      output.givenName = '' ;
+    }
 
     var photoUrl = buildContactPhotoURL(contact, accessToken);
     if (photoUrl) {

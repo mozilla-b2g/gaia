@@ -3,21 +3,47 @@
 
 (function(exports) {
 
+  const DEBUG = false;
+  var debug = function(str) {
+    //dump('usb_storage: ' + str + '\n');
+    console.log('usb_storage: ' + str);
+  };
+
   /**
    * UsbStorage listens to lock and unlock events and changes the
    * setting which controls automount behavior of USB storage.
    * Storage operates both on lock/unlock events, as well as the
    * ums.enabled setting which is set in the settings app.
+   *
+   * Once storage has been enabled (which requires the phone to be
+   * unlocked), we want to keep it enabled, even if the phone is
+   * locked afterwards. However, unplugging the USB cable should
+   * then require being unlocked before enabling again.
+   *
+   * This also needs to work properly if the lockscreen is
+   * disabled.
+   *
+   * Some further potential wrinkles:
+   *
+   * - MTP can be enabled/disabled at will
+   * - UMS can be enabled at will, but requires a USB cable unplug
+   *   to complete.
+   *
    * @class UsbStorage
    */
   function UsbStorage() {
-    // Disable ums by default
-    this._setMode(this.automounterDisable);
+    // The AutoMounter already sets ums.mode to disabled at startup, so we
+    // just set our internal state. We shouldn't blindly call _setMode since
+    // when B2G is restarted, it only restarts the b2g executable, and
+    // vold isn't restarted. So we need to adapt to the initial conditions
+    // not set them.
+    this._mode = this.automounterDisable;
     this.bindUsbStorageChanged = this._usbStorageChanged.bind(this);
     this.start();
   }
 
   UsbStorage.prototype = {
+
     /**
      * ums.mode setting value when the automounter is disabled.
      * @memberof UsbStorage.prototype
@@ -41,7 +67,8 @@
     automounterDisableWhenUnplugged: 2,
 
     /**
-     * ums.mode setting value when the automounter is in mtp mode
+     * ums.mode setting value when the automounter is in mtp modenot
+     * mcuy
      * @memberof UsbStorage.prototype
      * @type {Number}
      */
@@ -108,6 +135,7 @@
      * @memberof UsbStorage.prototype
      */
     start: function() {
+      DEBUG && debug('UsbStorage.start called');
       window.addEventListener('lockscreen-appopened', this);
       window.addEventListener('lockscreen-appclosed', this);
       SettingsListener.observe(this.umsEnabled, false,
@@ -119,11 +147,49 @@
      * @memberof UsbStorage.prototype
      */
     stop: function() {
-      Service.locked = false;
+      DEBUG && debug('UsbStorage.stop called');
       window.removeEventListener('lockscreen-appopened', this);
       window.removeEventListener('lockscreen-appclosed', this);
       SettingsListener.unobserve(this.umsEnabled,
         this.bindUsbStorageChanged);
+    },
+
+    /**
+     * Get a string version of the protocol.
+     * @memberof UsbStorage.prototype
+     * @param {Number} protocol current protocol denotes ums or mtp.
+     */
+
+    _protocolStr: function(protocol) {
+      if (protocol == this.protocolUMS) {
+        return 'UMS';
+      }
+      if (protocol == this.protocolMTP) {
+        return 'MTP';
+      }
+      return '???';
+    },
+
+    /**
+     * Get a string version of the mode.
+     * @memberof UsbStorage.prototype
+     * @param {Number} mode for automounter.
+     */
+
+    _modeStr: function(mode) {
+      if (mode == this.automounterDisable) {
+        return 'Disabled';
+      }
+      if (mode == this.automounterUmsEnable) {
+        return 'Enable-UMS';
+      }
+      if (mode == this.automounterDisableWhenUnplugged) {
+        return 'DisabledWhenUnplugged';
+      }
+      if (mode == this.automounterMtpEnable) {
+        return 'Enable-MTP';
+      }
+      return '???';
     },
 
     /**
@@ -132,14 +198,25 @@
      * @param {Boolean} enabled enables/disables automounting.
      */
     _usbStorageChanged: function(enabled) {
+      this._enabled = enabled;
+      DEBUG && debug('USB Storage Changed: ' + enabled);
+      this._getUsbProtocol();
+    },
+
+    /**
+     * Retrieve the protocol so that that we know whether MTP or UMS
+     * was enabled/disabled.
+     * @memberof UsbStorage.prototype
+     */
+    _getUsbProtocol: function() {
       var req = navigator.mozSettings.createLock()
         .get(this.usbTransferProtocol);
       req.onsuccess = function() {
         var protocol = this._keyMigration(
           req.result[this.usbTransferProtocol]);
-        this._enabled = enabled;
         this._protocol = protocol;
-        this._configUsbTransfer();
+        DEBUG && debug('_getUsbProtocol: ' + this._protocolStr(protocol));
+        this._updateMode();
       }.bind(this);
     },
 
@@ -154,77 +231,75 @@
         cset[this.usbTransferProtocol] = this.protocolUMS;
         navigator.mozSettings.createLock().set(cset);
         return this.protocolUMS;
-      } else {
-        return protocol;
       }
+      return protocol;
     },
 
     /**
-     * Set proper usb transfer mode.
+     * Sets the mode to agree with the current state of things.
      * @memberof UsbStorage.prototype
-     * @param {Boolean} enabled enables/disables automounting.
-     * @param {Number} protocol current protocol denotes ums or mtp.
      */
-    _configUsbTransfer: function() {
-      this._mode = this._modeMapping(this._enabled, this._protocol);
-      if (Service.locked && this._protocol === this.automounterUmsEnable) {
-        // covers startup
-        // Setting mode due to screen locked
-        this._setMode(this.automounterDisable);
-      } else {
-        // Setting mode due to change in ums.enabled
-        this._setMode(this._mode);
+    _updateMode: function() {
+      if (typeof(this._enabled) == 'undefined') {
+        DEBUG && debug('_updateMode: _enabled not yet set - ignoring');
+        return;
       }
-    },
 
-    /**
-     * Maps a ums.enabled onto an automount value.
-     * @memberof UsbStorage.prototype
-     * @param {Boolean} enabled enables/disables automounting.
-     * @return {Number} The automount enabled/disabled value.
-     */
-    _modeMapping: function(enabled, protocol) {
-      var output = this.automounterDisable;
-      if (enabled) {
-        if (protocol === this.protocolMTP) {
-          output = this.automounterMtpEnable;
+      var mode = this.automounterDisable;
+
+      if (this._enabled && !Service.locked) {
+        // This is the only time that UMS or MTP should be enabled.
+        if (this._protocol == this.protocolMTP) {
+          mode = this.automounterMtpEnable;
         } else {
-          output = this.automounterUmsEnable;
+          mode = this.automounterUmsEnable;
+        }
+      } else {
+        // DisableWhenUnplugged can also be interpreted as EnableUntilUnplugged
+        // so we need to make sure that we only transition to
+        // automounterDisableWhenUnplugged if we're already in an enabled mode.
+
+        if (this._mode != this.automounterDisable &&
+            (this._protocol == this.protocolUMS || this._enabled)) {
+          // For UMS, we can't disable immediately, so we always defer
+          // to when the usb cable is unplugged.
+          // For MTP, if the user disables it, we can act immediately, but
+          // for screen lock we want to defer until the usb cable is unplugged.
+          mode = this.automounterDisableWhenUnplugged;
         }
       }
-      return output;
+
+      this._setMode(mode);
     },
 
     /**
-     * Sets the automount mode.
+     * Sets the automount mode. This is split into a separate
+     * function to facilitate testing, and should only be called
+     * from _updateMode().
      * @memberof UsbStorage.prototype
      * @param {Number} val The value we are setting automount to.
-     */
-    _setMode: function(val) {
-      var param = {};
-      param[this.umsMode] = val;
-      SettingsListener.getSettingsLock().set(param);
+     * */
+    _setMode: function(mode) {
+      if (mode != this._mode) {
+        this._mode = mode;
+        var param = {};
+        param[this.umsMode] = mode;
+        SettingsListener.getSettingsLock().set(param);
+      }
     },
 
-    /**
-     * General event handler interface.
-     * Updates the overlay with as we receive load events.
-     * @memberof UsbStorage.prototype
-     * @param  {DOMEvent} evt The event.
-     */
+
+     /**
+      * General event handler interface.
+      * Updates the overlay with as we receive load events.
+      * @memberof UsbStorage.prototype
+      * @param {DOMEvent} evt The event.
+      */
     handleEvent: function(e) {
       switch (e.type) {
         case 'lockscreen-appopened':
-          // Setting mode due to screen locked
-          this._setMode(this.automounterDisableWhenUnplugged);
-          break;
         case 'lockscreen-appclosed':
-          if (typeof(this._mode) == 'undefined') {
-            return;
-          }
-
-          // Setting mode due to screen unlocked
-          this._setMode(this._mode);
+          this._updateMode();
           break;
         default:
           return;

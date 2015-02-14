@@ -4,7 +4,7 @@ export LC_ALL=C NO_XFAIL=1
 
 ############################### JS Lint #####################################
 
-LINTED_DIRECTORIES="apps shared build/test/unit dev_apps/demo-keyboard"
+LINTED_DIRECTORIES="apps shared build/test/unit tv_apps"
 JSHINT_EXECUTABLE="node_modules/.bin/jshint"
 JSHINT_XFAIL_LIST="build/jshint/xfail.list"
 JSHINT_ARGS="--reporter=build/jshint/xfail $JSHINT_ARGS"

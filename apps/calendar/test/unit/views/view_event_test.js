@@ -6,11 +6,12 @@ var EventBase = require('views/event_base');
 var View = require('view');
 var ViewEvent = require('views/view_event');
 var providerFactory = require('provider/provider_factory');
-var app = require('app');
+var router = require('router');
 
 require('dom!show_event');
 
 suite('Views.ViewEvent', function() {
+  var app;
   var subject;
   var controller;
 
@@ -43,7 +44,7 @@ suite('Views.ViewEvent', function() {
   var realGo;
 
   teardown(function() {
-    app.go = realGo;
+    router.go = realGo;
     delete providerFactory.providers.Test;
   });
 
@@ -52,7 +53,7 @@ suite('Views.ViewEvent', function() {
   });
 
   setup(function(done) {
-    realGo = app.go;
+    realGo = router.go;
     app = testSupport.calendar.app();
 
     eventStore = app.store('Event');
@@ -270,7 +271,7 @@ suite('Views.ViewEvent', function() {
   suite('navigation', function() {
     test('cancel button step back', function(done) {
 
-      app.go = function(place) {
+      router.go = function(place) {
         assert.equal(place, '/foo', 'redirects to proper location');
         done();
       };
@@ -282,7 +283,7 @@ suite('Views.ViewEvent', function() {
 
     test('cancel button return top', function(done) {
 
-      app.go = function(place) {
+      router.go = function(place) {
         assert.equal(place, '/bar', 'redirects to proper location');
         done();
       };
@@ -294,7 +295,7 @@ suite('Views.ViewEvent', function() {
 
     test('edit button click', function(done) {
 
-      app.go = function(place) {
+      router.go = function(place) {
         assert.equal(place, '/event/edit/funtime/', 'redirects to event page');
         done();
       };

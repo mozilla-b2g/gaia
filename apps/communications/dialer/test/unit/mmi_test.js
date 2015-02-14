@@ -2,7 +2,7 @@
            MmiManager, MockMmiUI, MockMobileconnection, MockMobileOperator,
            MockNavigatormozApps, MockNavigatorMozIccManager,
            MockNavigatorMozMobileConnections, MockNavigatorMozTelephony,
-           MocksHelper, Notification */
+           MocksHelper, Notification, MockL10n */
 
 'use strict';
 
@@ -56,6 +56,9 @@ suite('dialer/mmi', function() {
   var realMobileConnections;
   var realMozTelephony;
   var mobileConn;
+  var realL10n;
+  var _;
+
 
   mocksHelperForMMI.attachTestHelpers();
 
@@ -75,6 +78,10 @@ suite('dialer/mmi', function() {
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
 
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+    _ = MockL10n.get;
+
     /* Replace the default mock connection with our own specialized version
      * tailored for this suite of tests. */
     mobileConn = new MockMobileconnection();
@@ -88,6 +95,7 @@ suite('dialer/mmi', function() {
     navigator.mozTelephony = realMozTelephony;
     navigator.mozMobileConnections = realMobileConnections;
     navigator.mozTelephony = realMozTelephony;
+    navigator.mozL10n = realL10n;
   });
 
   setup(function() {
@@ -641,6 +649,46 @@ suite('dialer/mmi', function() {
       MmiManager.notifySuccess(message, CALL_FORWARDING_STATUS_MMI_CODE);
 
       checkMessages(message.additionalInformation);
+    });
+  });
+
+  suite('SIM Card PIN change via MMI.', function() {
+    var SIM_PIN_CHANGE_MMI_CODE = '**04';
+
+    test('Check SIM Card PIN changes successful', function() {
+      var message = {
+        serviceCode: 'scPin',
+        statusMessage: 'smPinChanged',
+        success: 'true'
+      };
+      MmiManager.notifySuccess(message, SIM_PIN_CHANGE_MMI_CODE);
+      sinon.assert.calledWithMatch(MockMmiUI.success, 'smPinChanged', 'scPin');
+    });
+
+    test('Check error message for incorrect PIN is correct', function() {
+      var message = {
+        serviceCode: 'scPin',
+        statusMessage: 'emMmiErrorBadPin',
+        success: 'false',
+        additionalInformation: 2
+      };
+
+      MmiManager.notifyError(message);
+      sinon.assert.calledWithMatch(MockMmiUI.error,
+        _('emMmiErrorBadPin') + '\n' + _('emMmiErrorPinPukAttempts',
+        { n: message.additionalInformation}),
+        'scPin');
+    });
+
+    test('Check error message for PUK locked due to max attempts', function() {
+      var message = {
+        serviceCode: 'scPin',
+        statusMessage: 'emMmiErrorNeedsPuk',
+        success: 'false'
+      };
+      MmiManager.notifyError(message);
+      sinon.assert.calledWithMatch(MockMmiUI.error, 'emMmiErrorNeedsPuk',
+        'scPin');
     });
   });
 });

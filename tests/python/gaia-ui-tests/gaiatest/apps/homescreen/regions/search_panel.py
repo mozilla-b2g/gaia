@@ -4,9 +4,14 @@
 
 import urllib
 
-from marionette import expected
-from marionette import Wait
-from marionette.by import By
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -20,6 +25,7 @@ class SearchPanel(Base):
     _rocketbar_input_locator = (By.ID, 'rocketbar-input')
     _search_results_offline_locator = (By.ID, 'offline-message')
     _search_results_offline_settings_locator = (By.ID, 'settings-connectivity')
+    _link_results_locator = (By.CSS_SELECTOR, '#suggestions li')
 
     def _switch_to_search_results_frame(self):
         self.marionette.switch_to_frame()
@@ -88,10 +94,8 @@ class SearchPanel(Base):
 
     @property
     def link_results(self):
-        # A link result just opens a page in a frame
         return [self.Result(marionette=self.marionette, element=result)
-                for result in self.marionette.find_elements(*self._search_results_locator)
-                    if not self._is_result_a_webapp(result)]
+                for result in self.marionette.find_elements(*self._link_results_locator)]
 
     class Result(PageRegion):
 

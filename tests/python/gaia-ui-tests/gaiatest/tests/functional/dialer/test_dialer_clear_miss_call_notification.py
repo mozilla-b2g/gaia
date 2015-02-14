@@ -3,7 +3,10 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette import SkipTest
-from marionette.wait import Wait
+try:
+    from marionette.wait import Wait
+except:
+    from marionette_driver.wait import Wait
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.phone.regions.call_screen import CallScreen
@@ -38,7 +41,6 @@ class TestDialerClearMissCallNotification(GaiaTestCase):
         2) After the call log appears, drop down the notification panel again.
         3) The notification for the call that was just tapped is no longer present.
         """
-        PLIVO_TIMEOUT = 30
         plivo_phone_number = self.testvars['plivo']['phone_number']
 
         # Create a missed call notification
@@ -49,16 +51,13 @@ class TestDialerClearMissCallNotification(GaiaTestCase):
             plivo_phone_number,
         )
         self.call_uuid = self.plivo.make_call(
-            to_number=self.testvars['local_phone_numbers'][0].replace('+', ''),
-            timeout=PLIVO_TIMEOUT)
+            to_number=self.testvars['local_phone_numbers'][0].replace('+', ''))
 
         call_screen = CallScreen(self.marionette)
         call_screen.wait_for_incoming_call()
-        self.plivo.hangup_call(self.call_uuid)
 
-        Wait(self.plivo, timeout=PLIVO_TIMEOUT).until(
-            lambda p: p.is_call_completed(self.call_uuid),
-            message="Plivo didn't report the call as completed")
+        self.plivo.hangup_call(self.call_uuid)
+        self.plivo.wait_for_call_completed(self.call_uuid)
         self.call_uuid = None
 
         system = System(self.marionette)

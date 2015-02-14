@@ -21,10 +21,15 @@ smart-button {
   border: none;
   /* the radius is still make button as round even if we don't have border */
   border-radius: 50%;
+  /* 50% is not a real circle because of rounding, we have to use a value larger
+     than 50% */
+  -moz-outline-radius: 60%;
+  outline: transparent 0 solid;
   background-color: rgba(0, 0, 0, 0.5);
   background-repeat: no-repeat;
   background-size: 5.4rem auto;
   background-position: center center;
+  font-style: italic;
 
   transition-property: all;
   transition-timing-function: cubic-bezier(0.25, 0, 0, 1.0);
@@ -169,22 +174,29 @@ smart-button[type="underlined-text"].pressed {
  * App Icons
 **/
 smart-button[type="app-button"] {
-  width: 33.6rem;
-  height: 33.6rem;
+  /* To use 33.4rem instead of to use 33.6rem is to work around the anti-alias
+     pixel. So, the circle is filled by the background almost totally. */
+  width: 33.4rem;
+  height: 33.4rem;
   position: relative;
   overflow: hidden;
-  box-sizing: border-box;
   background-color: transparent;
 }
 
 smart-button[type="app-button"].focused {
   transform: scale(1.4);
-  border: 0.8rem solid #ffffff;
+  /* To use outline will not change the size of button and make the whole button
+     thrilling. */
+  outline: 0.8rem solid #ffffff;
 }
 
 smart-button[type="app-button"].pressed {
-  transform: scale(1.2);
-  border: 1.0rem solid #ffffff;
+  /* While scaling, we may have a gap between outline and icon which may be
+     anti-alias pixel. So, we use scale(1.22) to prevent such kind of case */
+  transform: scale(1.22);
+  /* To use outline will not change the size of button and make the whole button
+     thrilling. */
+  outline: 1.0rem solid #ffffff;
 }
 
 smart-button[type="app-button"].fullsized {
@@ -217,12 +229,47 @@ smart-button[type="app-button"]:after {
   color: #ffffff;
 }
 
+/**
+ * text backgorund color
+**/
+smart-button[type="app-button"][app-type="deck"]:after {
+  background-color: transparent;
+}
 
+smart-button[type="app-button"][app-type="tv"]:after {
+  background-color: #d90c83;
+}
+
+smart-button[type="app-button"][app-type="app"]:after {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+smart-button[type="app-button"][app-type="device"]:after {
+  background-color: #4a82ea;
+}
+
+smart-button[type="app-button"][app-type="folder"] {
+  background-color: #595959;
+}
+
+smart-button[type="app-button"]:before {
+  left: 0;
+  line-height: 30rem;
+  font-size: 16rem;
+  width: 100%;
+}
+
+smart-button[type="app-button"][app-type="folder"]:before {
+  color: #CCCCCC;
+}
+
+/**
+ * End of App Icons
+**/
 
 /**
  * text and icon button
  */
-
 smart-button[type="text-and-icon"] {
   position: relative;
   color: white;
@@ -256,24 +303,142 @@ smart-button[type="text-and-icon"].pressed {
  */
 
 /**
- * text backgorund color
+ * banner button
 **/
-smart-button[type="app-button"][app-type="deck"]:after {
-  background-color: transparent;
+smart-button[type="banner-button"] {
+  position: relative;
+
+  color: #ffffff;
+  font-size: 2rem;
+
+  width: 36rem;
+  height: 20rem;
+  overflow: hidden;
+
+  border-radius: 0;
+  border: 0 solid #ffffff;
+
+  background-color: #5f5f5f;
+  background-repeat: no-repeat;
+  background-size: 120%;
+
+  box-sizing: border-box;
+
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.25, 0, 0.5, 1.0);
+  transition-duration: 0.1s;
 }
 
-smart-button[type="app-button"][app-type="tv"]:after {
-  background-color: #d90c83;
-}
+smart-button[type="banner-button"][label]:before {
+  content: attr(label);
 
-smart-button[type="app-button"][app-type="app"]:after {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  height: 5rem;
+
+  line-height: 5rem;
+  text-align: center;
   background-color: rgba(0, 0, 0, 0.4);
 }
 
-smart-button[type="app-button"][app-type="device"]:after {
-  background-color: #4a82ea;
+smart-button[type="banner-button"]:after {
+  content: " ";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: 0;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.25, 0, 0, 1.0);
+  transition-duration: 0.06s;
+  background-color: rgba(255, 255, 255, 0);
+}
+
+smart-button[type="banner-button"].focused {
+  transform: none;
+  border-width: 1.2rem;
+  background-size: 100%;
+  transition-duration: 0.24s;
+}
+
+smart-button[type="banner-button"].pressed {
+  transform: scale(0.945, 0.9);
+}
+
+smart-button[type="banner-button"].pressed:after {
+  background-color: rgba(255, 255, 255, 0.5);
 }
 
 /**
- * End of App Icons
+ * banner button
 **/
+
+/**
+ * circle text button
+ */
+smart-button[type="circle-text"] {
+  width: 21rem;
+  height: 21rem;
+  color: white;
+  background-color: #5f6368;
+  line-height: 21rem;
+  padding: 2.5rem 2rem 1.5rem 2rem;
+  text-align: center;
+  font-size: 3.2rem;
+  font-weight: bolder;
+  overflow: hidden;
+  transition-property: transform, color, background-color;
+}
+
+smart-button[type="circle-text"].focused {
+  transform: scale(1.2);
+  color: #2d2d2d;
+  background-color: white;
+  transition-property: transform, color, background-color;
+}
+
+smart-button[type="circle-text"].pressed {
+  transform: scale(1);
+  color: white;
+  background-color: #00caf2;
+  transition-property: transform, color, background-color;
+}
+
+smart-button[type="circle-text"].primary {
+  background-color: #00caf2;
+  transition-property: transform, color, background-color;
+}
+
+smart-button[type="circle-text"].primary.focused {
+  color: #ffffff;
+  background-color: #00caf2;
+  transition-property: transform, color, background-color;
+}
+
+smart-button[type="circle-text"].primary.pressed {
+  background-color: #0097b5;
+  transition-property: transform, color, background-color;
+}
+
+smart-button[type="circle-text"].danger {
+  background-color: #e63d2f;
+  transition-property: transform, color, background-color;
+}
+
+smart-button[type="circle-text"].danger.focused {
+  color: #ffffff;
+  background-color: #e63d2f;
+  transition-property: transform, color, background-color;
+}
+
+smart-button[type="circle-text"].danger.pressed {
+  background-color: #ac2e23;
+  transition-property: transform, color, background-color;
+}
+
+/**
+ * End of circle text button
+ */

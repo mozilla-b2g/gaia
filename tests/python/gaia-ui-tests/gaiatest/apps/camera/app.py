@@ -4,11 +4,18 @@
 
 import time
 
-from marionette import expected
-from marionette import Wait
-from marionette.by import By
-from marionette.marionette import Actions
-from marionette.errors import FrameSendFailureError
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+    from marionette.marionette import Actions
+    from marionette.errors import FrameSendFailureError
+except:
+    from marionette_driver import (expected,
+                            Wait)
+    from marionette_driver.by import By
+    from marionette_driver.marionette import Actions
+    from marionette_driver.errors import FrameSendFailureError
 
 from gaiatest.apps.base import Base
 
@@ -22,6 +29,8 @@ class Camera(Base):
     # Controls View
     _controls_locator = (By.CSS_SELECTOR, '.controls')
     _switch_button_locator = (By.CSS_SELECTOR, '.test-switch')
+    _camera_switch_locator = (By.CSS_SELECTOR, ".mode-switch_bg-icon[data-icon='camera']")
+    _video_switch_locator = (By.CSS_SELECTOR, ".mode-switch_bg-icon[data-icon='video']")
     _capture_button_locator = (By.CSS_SELECTOR, '.test-capture')
     _gallery_button_locator = (By.CSS_SELECTOR, '.test-gallery')
     _thumbnail_button_locator = (By.CSS_SELECTOR, 'img.test-thumbnail')
@@ -42,6 +51,14 @@ class Camera(Base):
         Base.launch(self)
         self.wait_for_capture_ready()
         self.wait_for_element_not_displayed(*self._loading_screen_locator)
+
+    def wait_for_loading_spinner_hidden(self):
+        loading_spinner = self.marionette.find_element(*self._loading_screen_locator)
+        Wait(self.marionette).until(expected.element_not_displayed(loading_spinner))
+
+    def wait_for_loading_spinner_displayed(self):
+        loading_spinner = self.marionette.find_element(*self._loading_screen_locator)
+        Wait(self.marionette).until(expected.element_displayed(loading_spinner))
 
     @property
     def camera_mode(self):
@@ -78,7 +95,9 @@ class Camera(Base):
         self.wait_for_thumbnail_visible()
 
     def tap_capture(self):
-        self.marionette.find_element(*self._capture_button_locator).tap()
+        capture_button = self.marionette.find_element(*self._capture_button_locator)
+        Wait(self.marionette).until(expected.element_enabled(capture_button))
+        capture_button.tap()
 
     def tap_select_button(self):
         select = self.marionette.find_element(*self._select_button_locator)
@@ -98,9 +117,12 @@ class Camera(Base):
         switch = self.marionette.find_element(*self._switch_button_locator)
         Wait(self.marionette).until(expected.element_displayed(switch))
 
+        camera = switch.find_element(*self._camera_switch_locator)
+        video = switch.find_element(*self._video_switch_locator)
+
         current_camera_mode = self.camera_mode
         # TODO: Use marionette.tap(_switch_button_locator) to switch camera mode
-        Actions(self.marionette).press(switch).move_by_offset(0, 0).release().perform()
+        Actions(self.marionette).press(camera).move(video).release().perform()
 
         controls = self.marionette.find_element(*self._controls_locator)
         Wait(self.marionette).until(lambda m: controls.get_attribute('data-enabled') == 'true')
@@ -191,7 +213,7 @@ class ImagePreview(Base):
 
     # for Gallery app switch
     _progress_bar_locator = (By.ID, 'progress')
-    _thumbnail_list_view_locator = (By.ID, 'thumbnail-list-view')
+    _thumbnail_list_view_locator = (By.CSS_SELECTOR, '#thumbnail-views > footer.thumbnails-list')
 
     @property
     def is_image_preview_visible(self):

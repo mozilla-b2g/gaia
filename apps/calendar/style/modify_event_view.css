@@ -33,7 +33,7 @@
   -moz-box-sizing: border-box;
   float: left;
   width: 60%;
-  padding-right: 0.5rem;
+  -moz-padding-end: 0.5rem;
 }
 
 #modify-event-view li.end-time,
@@ -56,7 +56,8 @@
 }
 
 #modify-event-view li.allday {
-  padding: 0 0 0 1.5rem;
+  padding: 0;
+  -moz-padding-start: 1.5rem;
   margin: 0 0 1rem 0;
   font-size: 1.9rem;
   line-height: 4rem;
@@ -64,7 +65,8 @@
 }
 
 #modify-event-view h3 {
-  padding: 0 0 0 1.5rem;
+  padding: 0;
+  -moz-padding-start: 1.5rem;
   font-size: 1.9rem;
   line-height: 3rem;
   font-weight: normal;
@@ -73,7 +75,8 @@
 #modify-event-view li.allday > label {
   height: 100%;
   width: 100%;
-  padding: 0 5rem 0 0;
+  padding: 0;
+  -moz-padding-end: 5rem;
   line-height: 1.3em;
 }
 
@@ -142,4 +145,19 @@
 
 #modify-event-view .save[aria-disabled="true"] {
   pointer-events: none;
+}
+
+/* RTL View */
+html[dir="rtl"] #modify-event-view li.end-date,
+html[dir="rtl"] #modify-event-view li.start-date {
+  float: right;
+}
+html[dir="rtl"] #modify-event-view li.end-time,
+html[dir="rtl"] #modify-event-view li.start-time {
+  float: right
+}
+
+html[dir="rtl"] #modify-event-view li.allday > label > span:after {
+  left: 0;
+  right: auto;
 }

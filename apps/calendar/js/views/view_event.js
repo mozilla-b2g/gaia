@@ -5,9 +5,9 @@ var DurationTime = require('templates/duration_time');
 var EventBase = require('./event_base');
 var Local = require('provider/local');
 var alarmTemplate = require('templates/alarm');
+var router = require('router');
 
 require('dom!event-view');
-require('css!event_view');
 
 function ViewEvent(options) {
   EventBase.apply(this, arguments);
@@ -33,7 +33,7 @@ ViewEvent.prototype = {
    * Dismiss modification and go back to previous screen.
    */
   cancel: function() {
-    this.app.go(this.returnTop());
+    router.go(this.returnTop());
   },
 
   primary: function(event) {
@@ -44,7 +44,7 @@ ViewEvent.prototype = {
     // Disable the button on primary event to avoid race conditions
     this.primaryButton.setAttribute('aria-disabled', 'true');
 
-    this.app.go('/event/edit/' + this.busytime._id + '/');
+    router.go('/event/edit/' + this.busytime._id + '/');
   },
 
   /**
@@ -83,10 +83,8 @@ ViewEvent.prototype = {
     this.setContent('location', model.location);
 
     if (this.originalCalendar) {
-      // Set calendar color.
-      this.element
-        .querySelector('section[data-type="list"]')
-        .className = 'calendar-id-' + model.calendarId;
+      this.element.querySelector('.icon-calendar-dot').style.color =
+        this.originalCalendar.color;
 
       var calendarId = this.originalCalendar.remote.id;
       var isLocalCalendar = calendarId === Local.calendarId;

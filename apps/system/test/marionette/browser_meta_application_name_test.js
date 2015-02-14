@@ -42,8 +42,6 @@ marionette('Browser - Site loading background', function() {
     client.apps.launch(home.URL);
     home.waitForLaunch();
     client.switchToFrame();
-
-    search.removeGeolocationPermission();
   });
 
   test('application-name meta tag changes rocketbar value', function() {

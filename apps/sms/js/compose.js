@@ -7,6 +7,7 @@
         Navigation,
         Promise,
         ThreadUI,
+        Threads,
         EventDispatcher,
         DOMError
 */
@@ -46,6 +47,9 @@ var Compose = (function() {
     size: null,
     lastScrollPosition: 0,
     resizing: false,
+
+    // Stop further input because the max size is exceeded
+    locked: false,
 
     // 'sms' or 'mms'
     type: 'sms',
@@ -176,12 +180,12 @@ var Compose = (function() {
 
   function composeKeyEvents(e) {
     // if locking and no-backspace pressed, cancel
-    if (compose.lock && e.which !== 8) {
+    if (state.locked && e.which !== 8) {
       e.preventDefault();
     } else {
       // trigger a recompute of size on the keypresses
       state.size = null;
-      compose.lock = false;
+      compose.unlock();
     }
   }
 
@@ -428,6 +432,7 @@ var Compose = (function() {
         // to be properly rendered after a cold start for the app
         if (fragment.blob) {
           fragment = new Attachment(fragment.blob, {
+            name: fragment.name,
             isDraft: true
           });
         }
@@ -483,9 +488,21 @@ var Compose = (function() {
       return state.empty;
     },
 
-    /** Stop further input because the max size is exceded
+    /**
+     * Lock composer when size limit is reached.
      */
-    lock: false,
+    lock: function() {
+      state.locked = true;
+      dom.attachButton.disabled = true;
+    },
+
+    /**
+     * Unlock composer when size is decreased again.
+     */    
+    unlock: function() {
+      state.locked = false;
+      dom.attachButton.disabled = false;
+    },
 
     disable: function(state) {
       dom.sendButton.disabled = state;
@@ -636,9 +653,12 @@ var Compose = (function() {
       /* Bug 1040144: replace ThreadUI direct invocation by a instanciation-time
        * property
        */
-      var hasEmailRecipient = ThreadUI.recipients.list.some(
-        function(recipient) { return recipient.isEmail; }
-      );
+      var recipients = Threads.active ?
+        Threads.active.participants :
+        ThreadUI.recipients && ThreadUI.recipients.numbers;
+      var hasEmailRecipient = recipients ?
+        recipients.some(Utils.isEmailAddress) :
+        false;
 
       /* Note: in the future, we'll maybe want to force 'mms' from the UI */
       var newType =
@@ -668,7 +688,7 @@ var Compose = (function() {
       /* Bug 1040144: replace ThreadUI direct invocation by a instanciation-time
        * property */
       var recipients = ThreadUI.recipients;
-      var recipientsValue = recipients.inputValue;
+      var recipientsValue = recipients && recipients.inputValue;
       var hasRecipients = false;
 
       // Set hasRecipients to true based on the following conditions:
@@ -802,7 +822,7 @@ var Compose = (function() {
       // Mimick the DOMRequest API
       var requestProxy = {};
       var activityData = {
-        type: ['image/*', 'audio/*', 'video/*']
+        type: ['image/*', 'audio/*', 'video/*', 'text/vcard']
       };
       var activity;
 

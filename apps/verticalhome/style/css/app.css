@@ -13,15 +13,11 @@ body {
   overflow-x: hidden;
 }
 
-/* RTL fixes being tracked in bug 1008013 */
-html[dir="rtl"] {
-  direction: ltr;
-}
-
 gaia-grid {
   display: block;
   height: 100%;
   width: 100%;
+  margin-bottom: 5rem;
 }
 
 #curtain {

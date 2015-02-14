@@ -1,7 +1,5 @@
 'use strict';
 
-/* global IMERender */
-
 (function(exports) {
 
 /**
@@ -25,10 +23,10 @@ VisualHighlightManager.prototype.show = function(target) {
   this.highlightDelayTimers.forEach(function(timer, target) {
     clearTimeout(timer);
     this.highlightDelayTimers.delete(target);
-    IMERender.unHighlightKey(target);
+    this.app.viewManager.unHighlightKey(target);
   }, this);
 
-  IMERender.highlightKey(target);
+  this.app.viewManager.highlightKey(target);
 };
 
 VisualHighlightManager.prototype.hide = function(target) {
@@ -38,7 +36,7 @@ VisualHighlightManager.prototype.hide = function(target) {
 
   var timer = setTimeout(function() {
     this.highlightDelayTimers.delete(target);
-    IMERender.unHighlightKey(target);
+    this.app.viewManager.unHighlightKey(target);
   }.bind(this), this.HIGHTLIGHT_DELAY_MS);
 
   this.highlightDelayTimers.set(target, timer);

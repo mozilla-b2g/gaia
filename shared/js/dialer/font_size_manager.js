@@ -91,13 +91,17 @@ var FontSizeManager = (function fontSizeManager() {
     if (infos && infos.overflow) {
       var overflowCount = FontSizeUtils.getOverflowCount(
         view.value || view.textContent, newFontSize, viewFont, viewWidth);
+
+      // Add two characters to the overflowcount to account for "…" width
+      overflowCount += 2;
       _useEllipsis(view, overflowCount, ellipsisSide);
+      view.dataset.ellipsedCharacters = overflowCount;
+    } else {
+      view.dataset.ellipsedCharacters = 0;
     }
   }
 
   function _useEllipsis(view, overflowCount, ellipsisSide) {
-    // Add two characters to the overflowcount to account for "…" width
-    overflowCount += 2;
     var side = ellipsisSide || 'begin';
     var localizedSide;
     if (navigator.mozL10n.language.direction === 'rtl') {

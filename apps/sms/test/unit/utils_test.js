@@ -932,7 +932,8 @@ suite('Utils', function() {
       'not-a-mime': null,
       'text': null,
       'application/video': 'application',
-      'multipart/form-data': null
+      'multipart/form-data': null,
+      'text/vcard': 'ref'
     };
 
     Object.keys(tests).forEach(function(testIndex) {
@@ -1034,58 +1035,6 @@ suite('Utils', function() {
           'Notification.get(tag: threadId:closeError): '
         );
       }).then(done, done);
-    });
-  });
-
-  suite('Utils.imageToCanvas', function() {
-    setup(function() {
-      this.sinon.stub(CanvasRenderingContext2D.prototype, 'drawImage');
-    });
-
-    test('correct ratio is used', function() {
-      var imgNode = document.createElement('img'),
-          targetWidth = 100,
-          targetHeight = 200,
-          heightRatio = 2,
-          widthRatio = 3;
-
-      imgNode.width = targetWidth * widthRatio;
-      imgNode.height = targetHeight * heightRatio;
-
-      var canvas = Utils.imageToCanvas(imgNode, targetWidth, targetHeight);
-
-      assert.equal(canvas.width, Math.round(imgNode.width / widthRatio));
-      assert.equal(canvas.height, Math.round(imgNode.height / widthRatio));
-
-      heightRatio = 3;
-      widthRatio = 2;
-
-      imgNode.width = targetWidth * widthRatio;
-      imgNode.height = targetHeight * heightRatio;
-
-      canvas = Utils.imageToCanvas(imgNode, targetWidth, targetHeight);
-
-      assert.equal(canvas.width, Math.round(imgNode.width / heightRatio));
-      assert.equal(canvas.height, Math.round(imgNode.height / heightRatio));
-    });
-
-    test('canvas is drawn with right dimensions', function() {
-      var imgNode = document.createElement('img'),
-          targetWidth = 100,
-          targetHeight = 200,
-          ratio = 2;
-
-      imgNode.width = targetWidth * ratio;
-      imgNode.height = targetHeight * ratio;
-
-      var canvas = Utils.imageToCanvas(imgNode, targetWidth, targetHeight);
-
-      assert.equal(canvas.width, Math.round(imgNode.width / ratio));
-      assert.equal(canvas.height, Math.round(imgNode.height / ratio));
-      sinon.assert.calledWith(
-        CanvasRenderingContext2D.prototype.drawImage,
-        imgNode, 0, 0, canvas.width, canvas.height
-      );
     });
   });
 

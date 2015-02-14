@@ -18,6 +18,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/lists.css">
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css">
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/tabs.css" >
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css">
     <!-- App styles -->
     <link rel="stylesheet" type="text/css" href="style/common.css">
@@ -28,7 +29,8 @@
     <link rel="stylesheet" type="text/css" href="style/attachment.css">
     <link rel="stylesheet" type="text/css" href="style/composer.css">
     <!-- Localization -->
-    <link rel="manifest" href="manifest.webapp">
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
     <link rel="localization" href="locales/sms.{locale}.properties">
     <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
     <!-- Firefox Desktop shims -->
@@ -119,7 +121,7 @@
     <article id="main-wrapper" class="wrapper" data-position='right'>
       <section id="thread-list" class="panel" role="region">
         <gaia-header class="view-header regular-header">
-          <h1 data-l10n-id="messages">Messages</h1>
+          <h1 data-l10n-id="messages"></h1>
           <a href="#composer" id="threads-composer-link" data-icon="compose"></a>
           <a id="threads-options-button" data-icon="more"></a>
         </gaia-header>
@@ -136,13 +138,20 @@
         <form id="threads-edit-form" role="dialog" data-type="edit">
           <section role="region" class="theme-settings">
             <gaia-header id="threads-edit-header" action="close">
-              <h1 id="threads-edit-mode" data-l10n-id="selectThreads-title">Select</h1>
+              <h1 id="threads-edit-mode" data-l10n-id="selectThreads-title"></h1>
               <button id="threads-check-uncheck-all-button" class="edit-button" data-l10n-id="select-all"></button>
             </gaia-header>
           </section>
-          <menu>
-            <button id="threads-delete-button" data-l10n-id="delete">delete</button>
-          </menu>
+          <div class="bottom-tab" role="region" >
+            <ul class="bb-tablist">
+              <li role="presentation">
+                <button id="threads-delete-button" data-action="delete-button"></button>
+              </li>
+              <li role="presentation">
+                <button id="threads-read-unread-button" data-action="mark-as-read"></button>
+              </li>
+            </ul>
+          </div>
         </form>
 
         <section id="threads-draft-saved-banner" class="hide" role="status">
@@ -224,38 +233,6 @@
             </section>
           </div>
         </div>
-        <article id="information-participants" class="view-body article-list hide" data-type="list">
-          <ul class="contact-list"></ul>
-        </article>
-        <article id="information-report" class="view-body article-list report-view hide" data-type="list">
-          <div class="description">
-            <p class="type"></p>
-            <p class="subject">
-              <span data-l10n-id="message-subject"></span>
-              <span class="detail"></span>
-            </p>
-            <p class="sent-block">
-              <span class="sent-title"></span>
-              <span class="sent-timestamp l10n-contains-date detail"></span>
-            </p>
-            <p class="received-block">
-              <span data-l10n-id="message-received"></span>
-              <span class="received-timestamp l10n-contains-date detail"></span>
-            </p>
-            <p class="size-block">
-              <span data-l10n-id="message-size-was"></span>
-              <span class="size detail"></span>
-            </p>
-            <p class="sim-info hide">
-              <span data-l10n-id="message-via"></span>
-              <span class="sim-detail detail"></span>
-            </p>
-          </div>
-          <span class="contact-title"></span>
-          <ul class="contact-list"></ul>
-          <button class="resend-btn" data-l10n-id="message-resend">
-          </button>
-        </article>
         <article id="composer-container" class="view-body">
           <div class="flex-composer">
             <div id="messages-container" data-type="list" class="article-list"></div>
@@ -296,17 +273,65 @@
         <form role="dialog" id="messages-edit-form" data-type="edit" >
           <section role="region" class="theme-settings">
             <gaia-header id="messages-edit-header" action="close">
-              <h1 id="messages-edit-mode" data-l10n-id="deleteMessages-title">Delete Messages</h1>
+              <h1 id="messages-edit-mode" data-l10n-id="deleteMessages-title"></h1>
               <button id="messages-check-uncheck-all-button" class="edit-button" data-l10n-id="select-all"></button>
             </gaia-header>
           </section>
-          <menu>
-            <button id="messages-delete-button" data-l10n-id="delete">delete</button>
-          </menu>
+          <div class="bottom-tab" role="region" >
+            <ul class="bb-tablist">
+              <li role="presentation">
+                <button id="messages-delete-button" data-action="delete-button"></button>
+              </li>
+            </ul>
+          </div>
         </form>
         <section id="messages-recipient-suggestions" class="article-list hide" data-type="list">
           <ul class="contact-list recipient-suggestions-list" role="listbox"></ul>
         </section>
+      </section>
+
+      <section id="information-participants" class="panel hide" role="region">
+        <gaia-header id="information-group-header" class="header" action="back">
+          <h1 data-l10n-id="participant" class="header-text"></h1>
+        </gaia-header>
+        <article class="view-body article-list" data-type="list">
+          <ul class="contact-list"></ul>
+        </article>
+      </section>
+
+      <section id="information-report" class="panel hide" role="region">
+        <gaia-header id="information-report-header" class="header" action="close">
+          <h1 data-l10n-id="message-report"></h1>
+        </gaia-header>
+        <article class="view-body article-list report-view container" data-type="list">
+          <div class="description">
+            <p class="type"></p>
+            <p class="subject">
+              <span data-l10n-id="message-subject"></span>
+              <span class="detail"></span>
+            </p>
+            <p class="sent-block">
+              <span class="sent-title"></span>
+              <span class="sent-timestamp l10n-contains-date detail"></span>
+            </p>
+            <p class="received-block">
+              <span data-l10n-id="message-received"></span>
+              <span class="received-timestamp l10n-contains-date detail"></span>
+            </p>
+            <p class="size-block">
+              <span data-l10n-id="message-size-was"></span>
+              <span class="size detail"></span>
+            </p>
+            <p class="sim-info hide">
+              <span data-l10n-id="message-via"></span>
+              <span class="sim-detail detail"></span>
+            </p>
+          </div>
+          <span class="contact-title"></span>
+          <ul class="contact-list"></ul>
+          <button class="resend-btn" data-l10n-id="message-resend">
+          </button>
+        </article>
       </section>
     </article>
 
@@ -552,25 +577,28 @@
     -->
     <div id="phone-details-tmpl" class="hide">
       <!--
-      <span class="phone-details ${hasTypeClass} ${hasCarrierClass}"><span
-            dir="auto" class="phone-type phone-details-item"
+      <span class="${hasTypeClass} ${hasCarrierClass}"><span
+            dir="auto" class="phone-type"
             data-l10n-id="${type}">${type}</span><span
-            class="phone-type-separator phone-details-item"
+            class="phone-type-separator"
             data-l10n-id="phone-type-separator"></span><span
-            class="phone-number phone-details-item" dir="ltr">${number}</span><span
-            class="phone-carrier-separator phone-details-item"
+            class="phone-number" dir="ltr">${number}</span><span
+            class="phone-carrier-separator"
             data-l10n-id="phone-carrier-separator"></span><span
-            class="phone-carrier phone-details-item" dir="auto">${carrier}</span>
+            class="phone-carrier" dir="auto">${carrier}</span>
       </span>
+      -->
+    </div>
+
+    <div id="messages-group-header-tmpl" class="hide">
+      <!--
+      <bdi>${name}</bdi><bdi dir="ltr"> (+${participantCount})</bdi>
       -->
     </div>
 
     <div id="messages-header-tmpl" class="hide">
       <!--
       <bdi>${name}</bdi>
-      <bdi dir="ltr" class="thread-participant-count">
-      &nbsp;‎(+${participantCount})
-      </bdi>
       -->
     </div>
 

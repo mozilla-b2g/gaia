@@ -3,7 +3,7 @@
 var assert = require('assert');
 var AlaMainPanel = require('./lib/panels/ala_main');
 
-marionette('check ala main panel', function() {
+marionette('adjustable location accuracy panel', function() {
   var client = marionette.client({
     settings: {
       'privacy-panel-gt-complete': true,
@@ -19,7 +19,7 @@ marionette('check ala main panel', function() {
     subject.init();
   });
 
-  test('ability to set geolocation and use location adjustment', function() {
+  test('ability to set geolocation and location adjustment', function() {
     var useLocationBlurBox = client.findElement('.show-when-geolocation-on');
     var geolocationTypeBox = client.findElement('.geolocation-type-box');
     var description1 = client.findElement('.hide-when-ala-on');
@@ -28,9 +28,9 @@ marionette('check ala main panel', function() {
     var typeBlur = client.findElement('.type-blur');
     var typeCustom = client.findElement('.type-custom-location');
     var geolocationSwitcher = client.findElement(
-      'span[data-l10n-id="use-geolocation"]');
+      'span[data-l10n-id="geolocation"]');
     var alaSwitcher = client.findElement(
-      'span[data-l10n-id="use-location-adjustment"]');
+      'span[data-l10n-id="location-adjustment"]');
 
     assert.ok(!useLocationBlurBox.displayed());
 
@@ -44,7 +44,7 @@ marionette('check ala main panel', function() {
     assert.ok(!description2.displayed());
 
 
-    // turn use location adjustment on
+    // turn location adjustment on
     alaSwitcher.click();
     client.waitFor(function() {
       return geolocationTypeBox.displayed();
@@ -54,9 +54,9 @@ marionette('check ala main panel', function() {
     assert.ok(!typeBlur.displayed());
     assert.ok(!typeCustom.displayed());
 
-    
+
     /**@todo: test select values change */
-    
+
 
     // turn geolocation off
     geolocationSwitcher.click();
@@ -65,7 +65,7 @@ marionette('check ala main panel', function() {
     });
     assert.ok(!geolocationTypeBox.displayed());
 
-    
+
     // turn geolocation on
     geolocationSwitcher.click();
     client.waitFor(function() {
@@ -74,7 +74,7 @@ marionette('check ala main panel', function() {
     assert.ok(geolocationTypeBox.displayed());
 
 
-    // turn use location adjustment off
+    // turn location adjustment off
     alaSwitcher.click();
     client.waitFor(function() {
       return !geolocationTypeBox.displayed();

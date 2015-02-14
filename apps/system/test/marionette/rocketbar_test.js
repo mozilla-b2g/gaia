@@ -24,7 +24,6 @@ marionette('Rocketbar', function() {
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForStartup();
-    search.removeGeolocationPermission();
   });
 
   test.skip('Focus', function() {

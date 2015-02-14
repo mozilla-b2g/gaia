@@ -40,10 +40,11 @@
    * The main reason for this is that scrollable.js uses transformX internally
    * to locate position of nodes (to achieve edit/arrange feature).
    *
-   * The left and right margin should be set through scrollable.margin
+   * Left margin should be set through scrollable.leftMargin.
    * (which is default to 2, and can be assigned through initialize params)
    */
-  var DEFAULT_MARGIN = 2;
+  var DEFAULT_SPACING = 2;
+  var DEFAULT_LEFT_MARGIN = 2;
   function XScrollable(param) {
     this.translateX = 0;
 
@@ -53,11 +54,14 @@
                     document.getElementById(param.listElem) : param.listElem;
     this.nodes = Array.prototype.slice.call(this.listElem.children);
 
-    this.margin = param.margin ? param.margin : DEFAULT_MARGIN;
+    this.spacing = param.spacing || DEFAULT_SPACING;
+    this.leftMargin = param.leftMargin || DEFAULT_LEFT_MARGIN;
 
     this.itemClassName = param.itemClassName;
     var items = Array.prototype.slice.call(
-                    document.getElementsByClassName(param.itemClassName));
+                    this.listElem.getElementsByClassName(param.itemClassName));
+
+    this.listElem.addEventListener('transitionend', this);
 
     this.scale = 1;
     this._setNodesPosition();
@@ -71,15 +75,23 @@
 
     this.setScale();
 
+    this.isSliding = false;
+    this.listElem.addEventListener(
+                        'transitionend', this._onSlideEnd.bind(this));
   }
 
   XScrollable.prototype = evt({
     CLASS_NAME: 'XScrollable',
+
+    uninit: function(elem) {
+      this.listElem.removeEventListener('transitionend', this);
+    },
+
     getItemRect: function(elem) {
       var frameRect = this.frameElem.getBoundingClientRect();
       var node = this.getNodeFromItem(elem);
-      var result = { left: (frameRect.left + this.margin * 10 +
-          (node.offsetWidth + this.margin * 10) *
+      var result = { left: (frameRect.left + this.spacing * 10 +
+          (node.offsetWidth + this.spacing * 10) *
           parseInt(node.dataset.idx, 10)) *
           this.scale + this.translateX,
         top: (frameRect.top + elem.offsetTop) * this.scale,
@@ -93,6 +105,54 @@
       return this.frameElem.getBoundingClientRect();
     },
 
+    _getScrollDistance: function(itemElem) {
+      return this._getScrollOffset(itemElem);
+    },
+
+    endSlide: function() {
+      // remove transition we added
+      this.listElem.classList.add('no-transition');
+      // if an user close home app when card-list is sliding, we have to force
+      // close the sliding transition (transition-delay = 0 is not working)
+      getComputedStyle(this.listElem).width;
+      this.listElem.classList.remove('no-transition');
+      this.listElem.classList.remove('card-slide');
+      this.listElem.style.transitionDuration = null;
+
+      // set positions of other nodes to create moving effect
+      this._setOtherNodesPosition(this.newCardIndex);
+      this.focus(this.newCardIndex);
+      this.fire('slideEnd');
+      this.isSliding = false;
+    },
+
+    _onSlideEnd: function(evt) {
+      if (evt.target === this.listElem &&
+          evt.propertyName === 'transform' &&
+          this.isSliding) {
+        this.endSlide();
+      }
+    },
+
+    _slide: function(newItem, idx) {
+      this.isSliding = true;
+      this.newCardIndex = idx;
+
+      // Start sliding animation of card list.
+      // Also consider the case when the card-list does not need to scroll
+      // or the document is not visibile.
+      var prevTransform = this.listElem.style.transform;
+      var distance = Math.abs(this._getScrollDistance(newItem) -
+                              this.translateX);
+      this.listElem.style.transitionDuration = distance / 2000 + 's';
+      this.scrollTo(newItem);
+      if (!prevTransform ||
+          prevTransform === this.listElem.style.transform||
+          document.visibilityState !== 'visible') {
+        this.endSlide();
+      }
+    },
+
     scrollTo: function(itemElem) {
       this.translateX = this._getScrollOffset(itemElem);
       this.listElem.style.transform = 'translateX(' + this.translateX + 'px) ' +
@@ -102,6 +162,8 @@
     setScale: function(scale) {
       scale = scale ? scale : 1;
       this.scale = scale;
+      // We need to reset translateX and let getScrollOffset detect the
+      // scroll amont again against new scale to focused element.
       this.translateX = 0;
       this.scrollTo(this.currentItem);
     },
@@ -110,17 +172,23 @@
       var sibling;
       var node = this.getNodeFromItem(itemElem);
       var idx = parseInt(node.dataset.idx, 10);
-      var unitLength = (node.offsetWidth + this.margin * 10) * this.scale;
+      var unitLength = (node.offsetWidth + this.spacing * 10) * this.scale;
       var right = unitLength * (idx + 1);
       var left = unitLength * idx;
       var previousLeft = unitLength * (idx - 1);
       var frameWidth = this.frameElem.offsetWidth;
-      if (left + this.translateX < 0) {
+
+      // If elements don't overflow, align them in center.
+      if (unitLength * this.length + this.leftMargin * 10 < frameWidth) {
+        return -(unitLength * this.length - this.spacing * 10 - frameWidth) / 2;
+      }
+
+      if (left + this.translateX < this.leftMargin * 10) {
         sibling = this.getPrevItem(itemElem);
         if (sibling) {
           return -(previousLeft + 0.5 * unitLength);
         } else {
-          return 0;
+          return this.leftMargin * 10;
         }
       } else if (right > (frameWidth - this.translateX)) {
         return frameWidth - (right + 0.5 * unitLength);
@@ -198,7 +266,7 @@
     },
 
     getNode: function(index) {
-      return this.listElem.children[index];
+      return this.nodes[index];
     },
 
     removeNode: function(node) {
@@ -229,6 +297,35 @@
       return true;
     },
 
+    removeNodes: function(indices) {
+      // Find nearest nodes that is not removed as new focus.
+      var focusIdx = this.nodes.indexOf(this.getNodeFromItem(this.currentItem));
+      var newFocusIdx;
+      var minDistance = Number.MAX_VALUE;
+
+      var newNodes = this.nodes.filter(function(node, oldindex) {
+        if(indices.indexOf(oldindex) !== -1) {
+          var itemElem = this.getItemFromNode(node);
+          this.spatialNavigator.remove(itemElem);
+          this.listElem.removeChild(node);
+          return false;
+        }
+
+        var distance = Math.abs(focusIdx - oldindex);
+        if(distance < minDistance) {
+          minDistance = distance;
+          newFocusIdx = oldindex;
+        }
+        return true;
+      }, this);
+
+      var newFocus = this.getItemFromNode(this.nodes[newFocusIdx]);
+      this.nodes = newNodes;
+      this._setNodesPosition();
+
+      this.spatialNavigator.focus(newFocus);
+    },
+
     insertNodeBefore: function(newNode, startNode) {
       if (typeof startNode === 'number') {
         startNode = this.nodes[startNode];
@@ -240,20 +337,36 @@
       }
 
       var newIdx = startNode ?
-                       parseInt(startNode.dataset.idx, 10) : this.nodes.length;
+                      parseInt(startNode.dataset.idx, 10) : this.nodes.length;
       this.nodes.splice(newIdx, 0, newNode);
       this.listElem.appendChild(newNode);
-      this._setNodesPosition();
+      this._setNodePosition(newIdx);
 
       this.spatialNavigator.add(itemElem);
+      this._slide(this.getItemFromNode(newNode), newIdx);
 
-      // We need to trigger focus again to confirm relocating selection border.
-      this.spatialNavigator.focus(this.spatialNavigator.getFocusedElement());
       return true;
     },
 
     get currentItem() {
       return this.spatialNavigator.getFocusedElement();
+    },
+
+    get currentIndex() {
+      return this.nodes.indexOf(
+        this.getNodeFromItem(this.spatialNavigator.getFocusedElement()));
+    },
+
+    get length() {
+      return this.nodes.length;
+    },
+
+    _setOtherNodesPosition: function(skipIdx) {
+      for(var idx in this.nodes) {
+        if (idx != skipIdx) {
+          this._setNodePosition(idx);
+        }
+      }
     },
 
     _setNodesPosition: function() {
@@ -265,9 +378,7 @@
     _setNodePosition: function(idx) {
       this.nodes[idx].dataset.idx = idx;
       this.getNodeFromItem(this.nodes[idx]).style.transform =
-          'translateX(calc((100% + ' + this.margin + 'rem) * ' + idx + ' + ' +
-                                                         this.margin + 'rem))';
-
+          'translateX(calc((100% + ' + this.spacing + 'rem) * ' + idx + '))';
     },
 
     swap: function(node1, node2) {
@@ -306,8 +417,22 @@
       this.spatialNavigator.focus(this.currentItem);
     },
 
+    focus: function(item) {
+      if (typeof item === 'number') {
+        item = this.getItemFromNode(this.nodes[item]);
+      }
+      this.spatialNavigator.focus(item);
+    },
+
     move: function(direction) {
       return this.spatialNavigator.move(direction);
+    },
+
+    handleEvent: function (evt) {
+      if (evt.type === 'transitionend' && evt.target === this.listElem &&
+                                          evt.propertyName === 'transform') {
+        this.fire('listTransformEnd', this.listElem);
+      }
     }
 
   });

@@ -30,94 +30,162 @@ suite('system/USB Storage', function() {
       this.sinon.stub(UsbStorage.prototype, '_usbStorageChanged');
       subject = new UsbStorage();
       MockSettingsListener.mCallbacks['ums.enabled'](1);
-      assert.ok(setModeStub.calledWith(subject.automounterDisable));
+      assert.ok(setModeStub.notCalled);
       assert.ok(subject._usbStorageChanged.called);
     });
   });
 
   suite('configUsbTransfer', function() {
-    test('calls setMode', function() {
+    test('doesn\'t call _setMode', function() {
       var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
       subject = new UsbStorage();
-      assert.ok(setModeStub.calledWith(subject.automounterDisable));
+      assert.ok(setModeStub.notCalled);
     });
 
-    test('sets ums mode when locked', function() {
+    test('Leaves UMS disabled when locked', function() {
       var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
       window.Service.locked = true;
       subject = new UsbStorage();
-      subject._protocol = '0';
+      subject._mode = subject.automounterDisable;
+      subject._protocol = '0'; // UMS
       subject._enabled = true;
-      subject._configUsbTransfer();
+      subject._updateMode();
       assert.ok(setModeStub.calledWith(subject.automounterDisable));
     });
 
-    test('sets mtp mode when locked', function() {
-      var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
-      window.Service.locked = true;
-      subject = new UsbStorage();
-      subject._protocol = '1';
-      subject._enabled = true;
-      subject._configUsbTransfer();
-      assert.ok(setModeStub.calledWith(subject.automounterMtpEnable));
-    });
-
-    test('sets current mtp mode', function() {
+    test('Enables UMS when unlocked (and previously disabled)', function() {
       var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
       window.Service.locked = false;
       subject = new UsbStorage();
-      subject._protocol = '1';
+      subject._mode = subject.automounterDisable;
+      subject._protocol = '0'; // UMS
       subject._enabled = true;
-      subject._configUsbTransfer();
-      assert.ok(setModeStub.calledWith(subject.automounterMtpEnable));
-    });
-
-    test('sets current ums mode', function() {
-      var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
-      window.Service.locked = false;
-      subject = new UsbStorage();
-      subject._protocol = '0';
-      subject._enabled = true;
-      subject._configUsbTransfer();
+      subject._updateMode();
       assert.ok(setModeStub.calledWith(subject.automounterUmsEnable));
     });
-  });
 
-  suite('modeMapping', function() {
-    test('return values', function() {
-      assert.equal(subject._modeMapping(false, '0'), 0);
-      assert.equal(subject._modeMapping(false, '1'), 0);
-      assert.equal(subject._modeMapping(true, '0'), 1);
-      assert.equal(subject._modeMapping(true, '1'), 3);
+    test('Enables UMS when unlocked (and previously disableWhenUnplugged)',
+         function() {
+      var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
+      window.Service.locked = false;
+      subject = new UsbStorage();
+      subject._mode = subject.automounterDisableWhenUnplugged;
+      subject._protocol = '0'; // UMS
+      subject._enabled = true;
+      subject._updateMode();
+      assert.ok(setModeStub.calledWith(subject.automounterUmsEnable));
     });
-  });
 
-  suite('setMode', function() {
-    test('sets umsMode', function() {
-      MockSettingsListener.getSettingsLock().clear();
-      subject._setMode(1);
-      var lock = MockSettingsListener.getSettingsLock().locks[0];
-      assert.equal(lock['ums.mode'], 1);
+    test('If active, set UMS disableWhenUnplugged when locked', function() {
+      var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
+      window.Service.locked = true;
+      subject = new UsbStorage();
+      subject._mode = subject.automounterUmsEnable;
+      subject._protocol = '0'; // UMS
+      subject._enabled = true;
+      subject._updateMode();
+      assert.ok(setModeStub.calledWith(
+        subject.automounterDisableWhenUnplugged));
+    });
+
+    test('If active, set UMS disableWhenUnplugged when user disables',
+         function() {
+      var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
+      window.Service.locked = false;
+      subject = new UsbStorage();
+      subject._mode = subject.automounterUmsEnable;
+      subject._protocol = '0'; // UMS
+      subject._enabled = false;
+      subject._updateMode();
+      assert.ok(setModeStub.calledWith(
+        subject.automounterDisableWhenUnplugged));
+    });
+
+    test('Leaves MTP disabled when locked', function() {
+      var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
+      window.Service.locked = true;
+      subject = new UsbStorage();
+      subject._mode = subject.automounterDisable;
+      subject._protocol = '1'; // MTP
+      subject._enabled = true;
+      subject._updateMode();
+      assert.ok(setModeStub.calledWith(subject.automounterDisable));
+    });
+
+    test('Enables MTP when unlocked (and previously disabled)', function() {
+      var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
+      window.Service.locked = false;
+      subject = new UsbStorage();
+      subject._mode = subject.automounterDisable;
+      subject._protocol = '1'; // MTP
+      subject._enabled = true;
+      subject._updateMode();
+      assert.ok(setModeStub.calledWith(subject.automounterMtpEnable));
+    });
+
+    test('Enables MTP when unlocked (and previously disableWhenUnplugged)',
+         function() {
+      var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
+      window.Service.locked = false;
+      subject = new UsbStorage();
+      subject._mode = subject.automounterDisableWhenUnplugged;
+      subject._protocol = '1'; // MTP
+      subject._enabled = true;
+      subject._updateMode();
+      assert.ok(setModeStub.calledWith(subject.automounterMtpEnable));
+    });
+
+    test('If active, set MTP disableWhenUnplugged when locked', function() {
+      var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
+      window.Service.locked = true;
+      subject = new UsbStorage();
+      subject._mode = subject.automounterMtpEnable;
+      subject._protocol = '1'; // MTP
+      subject._enabled = true;
+      subject._updateMode();
+      assert.ok(setModeStub.calledWith(
+        subject.automounterDisableWhenUnplugged));
+    });
+
+    test('If active, set MTP disabled when user disables', function() {
+      var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
+      window.Service.locked = false;
+      subject = new UsbStorage();
+      subject._mode = subject.automounterMtpEnable;
+      subject._protocol = '1'; // MTP
+      subject._enabled = false;
+      subject._updateMode();
+      assert.ok(setModeStub.calledWith(subject.automounterDisable));
     });
   });
 
   suite('handleEvent', function() {
-    test('lock calls setMode', function() {
+    test('lock calls _setMode', function() {
       var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
+      window.Service.locked = true;
+      subject = new UsbStorage();
+      subject._mode = subject.automounterUmsEnable;
+      subject._protocol = '0'; // UMS
+      subject._enabled = true;
       subject.handleEvent({
         type: 'lockscreen-appopened'
       });
-      assert.ok(setModeStub.calledWith(2));
+      assert.ok(setModeStub.calledWith(
+        subject.automounterDisableWhenUnplugged));
     });
 
-    test('unlock calls setMode', function() {
+    test('unlock calls _setMode', function() {
       // Not a real value, but tests that it passes through
-      subject._mode = 3;
       var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
+      window.Service.locked = false;
+      subject = new UsbStorage();
+      subject._mode = subject.automounterDisableWhenUnplugged;
+      subject._protocol = '0'; // UMS
+      subject._enabled = true;
       subject.handleEvent({
         type: 'lockscreen-appclosed'
       });
-      assert.ok(setModeStub.calledWith(3));
+      assert.ok(setModeStub.calledWith(subject.automounterUmsEnable));
     });
   });
 });

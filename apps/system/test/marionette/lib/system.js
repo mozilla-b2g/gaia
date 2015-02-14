@@ -43,6 +43,7 @@ System.Selector = Object.freeze({
   dialogOverlay: '#screen #dialog-overlay',
   downloadDialog: '#downloadConfirmUI',
   imeMenu: '.ime-menu',
+  inlineActivity: '.appWindow.inline-activity',
   sleepMenuContainer: '#sleep-menu-container',
   softwareButtons: '#software-buttons',
   softwareHome: '#software-home-button',
@@ -57,6 +58,8 @@ System.Selector = Object.freeze({
   statusbarLabel: '#statusbar-label',
   systemBanner: '.banner.generic-dialog',
   topPanel: '#top-panel',
+  trustedWindow: '.appWindow.active.trustedwindow',
+  trustedWindowChrome: '.appWindow.active.trustedwindow .chrome',
   leftPanel: '#left-panel',
   rightPanel: '#right-panel',
   utilityTray: '#utility-tray',
@@ -192,6 +195,10 @@ System.prototype = {
     return this.client.helper.waitForElement(System.Selector.imeMenu);
   },
 
+  get inlineActivity() {
+    return this.client.helper.waitForElement(System.Selector.inlineActivity);
+  },
+
   get sleepMenuContainer() {
     return this.client.helper.waitForElement(
       System.Selector.sleepMenuContainer);
@@ -232,6 +239,16 @@ System.prototype = {
 
   get systemBanner() {
     return this.client.helper.waitForElement(System.Selector.systemBanner);
+  },
+
+  get trustedWindow() {
+    return this.client.helper.waitForElement(
+      System.Selector.trustedWindow);
+  },
+
+  get trustedWindowChrome() {
+    return this.client.helper.waitForElement(
+      System.Selector.trustedWindowChrome);
   },
 
   get utilityTray() {

@@ -1,4 +1,4 @@
-/* global AppWindowManager, SettingsListener, Service, rocketbar */
+/* global AppWindowManager, SettingsListener, Service */
 'use strict';
 
 (function(exports) {
@@ -288,13 +288,14 @@
   };
 
   AppTransitionController.prototype._shouldFocusApp = function() {
-    // XXX: Rocketbar losing input focus
-    // See: https://bugzilla.mozilla.org/show_bug.cgi?id=961557
-    // XXX: We should let HierarchyManager to manage the focus.
-    // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1079748
-    return (this._transitionState == 'opened' &&
-            !rocketbar.active &&
-            !Service.query('SimLockManager.isActive'));
+    // SearchWindow should not focus itself,
+    // because the input is inside system app.
+    var bottomWindow = this.app.getBottomMostWindow();
+    return (this.app.CLASS_NAME !== 'SearchWindow' &&
+            this._transitionState == 'opened' &&
+            Service.query('getTopMostWindow') === this.app &&
+            Service.query('getTopMostUI').name ===
+            bottomWindow.HIERARCHY_MANAGER);
   };
 
   AppTransitionController.prototype.requireOpen = function(animation) {

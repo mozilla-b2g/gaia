@@ -107,6 +107,12 @@ form[role="search"] button[type="submit"] + p > textarea {
 
   font-size: 1.7rem;
   line-height: 2.1rem;
+
+  unicode-bidi: -moz-plaintext;
+}
+
+#messages-input.placeholder {
+  unicode-bidi: unset;
 }
 
 #messages-input:after {
@@ -240,7 +246,6 @@ form[role="search"] button[type="submit"]:after {
   align-content: space-between;
   flex-wrap: wrap;
 
-  height: 100%;
   width: 6rem;
 
   -moz-user-select: none; /* without this, tapping on the element selects its content */
@@ -291,6 +296,11 @@ form[role="search"] button[type="submit"]:after {
   background: transparent
               url('images/icons/actionicon_sms_add_attachment_30x30.png')
               no-repeat center / 3rem;
+}
+
+#messages-attach-button[disabled] {
+  background-blend-mode: luminosity;
+  opacity: 0.3;
 }
 
 /*

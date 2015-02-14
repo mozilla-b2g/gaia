@@ -1,7 +1,5 @@
 'use strict';
 
-/* global IMERender */
-
 (function(exports) {
 
 /**
@@ -35,13 +33,14 @@ AlternativesCharMenuManager.prototype.show = function(target) {
     return;
   }
 
+  var viewManager = this.app.viewManager;
+  // XXX: Should not acess view in manager.
   // Get the targetRect before menu is shown.
   var targetRect =
-    IMERender.getView(target).element.getBoundingClientRect();
+    viewManager.getView(target).element.getBoundingClientRect();
 
-  // XXX: Remove reference to IMERender in the global in the future.
-  this._currentMenuView = IMERender.showAlternativesCharMenu(target,
-                                                             alternatives);
+  this._currentMenuView = viewManager.showAlternativesCharMenu(target,
+                                                               alternatives);
   this.isShown = true;
 
   this._originalTarget = target;
@@ -101,7 +100,7 @@ AlternativesCharMenuManager.prototype.hide = function() {
   }
 
   // XXX: Remove reference to IMERender in the global in the future.
-  IMERender.hideAlternativesCharMenu();
+  this.app.viewManager.hideAlternativesCharMenu();
   this.isShown = false;
 
   this._originalTarget = null;

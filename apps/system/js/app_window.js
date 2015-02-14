@@ -91,6 +91,21 @@
   AppWindow.prototype._DEBUG = false;
 
   /**
+   * This is telling us who is the hierarchy manager to manage this window.
+   * * HierarchyManager ->
+   *  * AttentionWindowManager -> AttentionWindow, CallscreenWindow
+   *                              (-> its popup/activity)
+   *  * SecureWindowManager -> SecureWindow (-> its popup/activity)
+   *  * LockScreenWindowManager -> LockScreenWindow (-> its popup/activity)
+   *  * GlobalOverlayWindowManager -> GlobalOverlayWindow
+   *                                  (-> its popup/activity)
+   *  * Rocketbar -> SearchWindow (-> its popup/activity)
+   *  * AppWindowManager -> AppWindow, HomescreenWindow (-> its popup/activity)
+   * @type {String}
+   */
+  AppWindow.prototype.HIERARCHY_MANAGER = 'AppWindowManager';
+
+  /**
    * Generate instanceID of this instance.
    */
   AppWindow.prototype.generateID = function() {
@@ -187,6 +202,13 @@
       this.debug(e.stack);
     }
     console.log('======================');
+  };
+
+  /**
+   * Set active should be only applied to top most window.
+   */
+  AppWindow.prototype.setActive = function(enable) {
+    this.getTopMostWindow()._setActive(enable);
   };
 
   /**
@@ -367,6 +389,7 @@
     if (this.browser) {
       return;
     }
+    this.isCrashed = false;
     this.debug(' ...revived!');
     this.browser = new BrowserFrame(this.browser_config);
     this.browserContainer.appendChild(this.browser.element);
@@ -395,6 +418,7 @@
     this.browserContainer.removeChild(this.browser.element);
     this.browser = null;
     this.iframe = null;
+    this._sslState = '';
     this.publish('suspended');
   };
 
@@ -738,6 +762,7 @@
      'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
      'mozbrowsertitlechange', 'mozbrowserlocationchange',
      'mozbrowsermetachange', 'mozbrowsericonchange', 'mozbrowserasyncscroll',
+     'mozbrowsersecuritychange',
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
      '_orientationchange', '_focus', '_blur',  '_hidewindow', '_sheetdisplayed',
      '_sheetsgestureend', '_cardviewbeforeshow', '_cardviewclosed',
@@ -792,11 +817,14 @@
           that.element.removeEventListener('_opened', onOpened);
           that.appChrome = new AppChrome(that);
 
-          // We can encounter an error before chrome loads - in this case,
-          // manually call its error handler
-          if (that.netRestrictionDialog &&
-              !that.netRestrictionDialog.classList.contains('hidden')) {
+          // Some signals that chrome needs to respond to can occur before
+          // chrome has loaded - in those cases, manually call the handlers.
+          if (that.inError) {
             that.appChrome.handleEvent({type: 'mozbrowsererror'});
+          }
+          if (that.loading) {
+            that.appChrome.handleEvent({type: 'mozbrowserloadstart'});
+            that.appChrome.handleEvent({type: '_loading'});
           }
         });
       } else {
@@ -836,6 +864,8 @@
 
   AppWindow.prototype._handle__orientationchange = function(evt) {
     if (this.isActive()) {
+      this.frontWindow && this.frontWindow.broadcast('orientationchange');
+
       if (!this.isHomescreen) {
         this._resize(evt.detail);
         return;
@@ -846,15 +876,9 @@
         this.lockOrientation();
       }
     }
-    // Resize only the overlays not the app
+
     var width = layoutManager.width;
     var height = layoutManager.getHeightFor(this);
-
-    if (this.browser) {
-      this.iframe.style.width = this.width + 'px';
-      this.iframe.style.height = this.height + 'px';
-    }
-
     this.element.style.width = width + 'px';
     this.element.style.height = height + 'px';
 
@@ -903,8 +927,10 @@
   AppWindow.prototype._handle_mozbrowsererror =
     function aw__handle_mozbrowsererror(evt) {
       if (evt.detail.type !== 'fatal') {
+        this.inError = true;
         return;
       }
+      this.isCrashed = true;
       // Send event instead of call crash reporter directly.
       this.publish('crashed');
 
@@ -922,6 +948,7 @@
   AppWindow.prototype._handle_mozbrowserloadstart =
     function aw__handle_mozbrowserloadstart(evt) {
       this.loading = true;
+      this.inError = false;
       this._changeState('loading', true);
       this.publish('loading');
     };
@@ -1209,6 +1236,10 @@
    */
   AppWindow.prototype._showScreenshotOverlay =
     function aw__showScreenshotOverlay() {
+      if (this.frontWindow && this.frontWindow.isActive()) {
+        this.frontWindow._showScreenshotOverlay();
+        return;
+      }
       if (!this.screenshotOverlay ||
           this.screenshotOverlay.classList.contains('visible')) {
         return;
@@ -1231,7 +1262,9 @@
    */
   AppWindow.prototype._hideScreenshotOverlay =
     function aw__hideScreenshotOverlay() {
-
+      if (this.frontWindow && this.frontWindow.isActive()) {
+        this.frontWindow._hideScreenshotOverlay();
+      }
       if (!this.screenshotOverlay ||
           !this.screenshotOverlay.classList.contains('visible')) {
         return;
@@ -1296,6 +1329,12 @@
     } else {
       window.dispatchEvent(evt);
     }
+
+    // The other module could have all kind of window events
+    window.dispatchEvent(new CustomEvent('window' + event, {
+      bubbles: true,
+      detail: this
+    }));
   };
 
   AppWindow.prototype.broadcast = function aw_broadcast(event, detail) {
@@ -1452,12 +1491,11 @@
 
     this.width = width;
     this.height = height;
-    this.element.style.width = this.width + 'px';
-    this.element.style.height = this.height + 'px';
+
+    this.element.style.width = width + 'px';
+    this.element.style.height = height + 'px';
 
     this.reviveBrowser();
-    this.iframe.style.width = '';
-    this.iframe.style.height = '';
 
     this.resized = true;
     if (this.screenshotOverlay) {
@@ -1474,7 +1512,7 @@
      * @event AppWindow#appresize
      */
     this.publish('resize');
-    this.debug('W:', this.width, 'H:', this.height);
+    this.debug('W:', width, 'H:', height);
   };
 
   /**
@@ -1844,6 +1882,12 @@
   };
 
   AppWindow.prototype._handle__swipein = function aw_swipein() {
+    if (this.isCrashed) {
+      if (this.transitionController) {
+        this.transitionController.clearTransitionClasses();
+      }
+      return;
+    }
     // Revive the browser element if it's got killed in background.
     this.reviveBrowser();
     // Request "open" to our internal transition controller.
@@ -2229,6 +2273,29 @@
     }
     this.setVisible(false);
   };
+
+
+  /**
+   *  Track current SSL state of the browser.
+   */
+  AppWindow.prototype._sslState = '';
+
+  /**
+   * Handle mozbrowsersecuritychange events from the browser
+   */
+  AppWindow.prototype._handle_mozbrowsersecuritychange =
+    function aw__handle_mozbrowsersecuritychange(evt) {
+      var state = this._sslState = evt.detail.state;
+      this.publish('securitychange', state);
+    };
+
+  /**
+   * Get the current SSL state for the browser
+   */
+  AppWindow.prototype.getSSLState = function() {
+    return this._sslState;
+  };
+
 
   /**
    * Statusbar will bypass touch event to us via this method

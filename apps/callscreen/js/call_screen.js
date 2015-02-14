@@ -250,8 +250,10 @@ var CallScreen = {
   },
 
   removeCall: function cs_removeCall(node) {
-    node.parentNode.removeChild(node);
-    this.updateCallsDisplay();
+    if (node.parentNode) {
+      node.parentNode.removeChild(node);
+      this.updateCallsDisplay();
+    }
   },
 
   resizeHandler: function cs_resizeHandler() {

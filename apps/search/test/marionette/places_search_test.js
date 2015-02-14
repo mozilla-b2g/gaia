@@ -26,7 +26,6 @@ marionette('Places tests', function() {
     rocketbar = new Rocketbar(client);
     system = client.loader.getAppClass('system');
     system.waitForStartup();
-    search.removeGeolocationPermission();
   });
 
   test('Test url searching', function() {
@@ -52,11 +51,11 @@ marionette('Places tests', function() {
     home.focusRocketBar();
     rocketbar.enterText(url);
     search.goToResults();
-    var id = search.getResultSelector(url);
-    var app = client.helper.waitForElement(id);
+    var id = search.getHistoryResultSelector(url);
+    var result = client.helper.waitForElement(id);
 
     // Click result and check app loads
-    app.click();
+    result.click();
     client.switchToFrame();
     rocketbar.switchToBrowserFrame(url);
 

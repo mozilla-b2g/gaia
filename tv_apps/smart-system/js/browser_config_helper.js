@@ -1,3 +1,4 @@
+/* global applications, ManifestHelper */
 'use strict';
 
 (function(window) {
@@ -32,7 +33,7 @@
    * * oop: indicate it's running out of process or in process.
    *
    * @param {Object} [config] Config for creating appWindow.
-   * @param {String} [config.appURL] The URL of the app or the page to be
+   * @param {String} [config.url] The URL of the app or the page to be
    *                                 opened.
    * @param {String} [config.manifestURL] The manifest URL of the app.
    * @param {String} [config.name] - optional The name of the app.
@@ -113,4 +114,4 @@
       this.manifest = null;
     }
   };
-})(this);
+})(window);

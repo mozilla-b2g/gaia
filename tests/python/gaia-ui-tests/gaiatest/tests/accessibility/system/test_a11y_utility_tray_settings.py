@@ -4,7 +4,10 @@
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.system.app import System
-from marionette.wait import Wait
+try:
+    from marionette.wait import Wait
+except:
+    from marionette_driver.wait import Wait
 
 
 class TestUtilityTraySettingsAccessibility(GaiaTestCase):

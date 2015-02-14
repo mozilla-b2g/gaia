@@ -189,8 +189,8 @@ suite('Views.Month', function() {
     );
     assert.equal(
       dayIds(),
-      'd-2014-9-1, d-2014-10-1, d-2014-11-1',
-      '1: month elements should be sorted'
+      'd-2014-10-1',
+      '1: single element at first call'
     );
 
     base = new Date(2015, 0, 1);
@@ -198,7 +198,7 @@ suite('Views.Month', function() {
     assert.deepEqual(subject.currentFrame.date, base, '2: currentFrame.date');
     assert.equal(
       dayIds(),
-      'd-2014-11-1, d-2015-0-1, d-2015-1-1',
+      'd-2014-10-1, d-2015-0-1',
       '2: month elements should be sorted'
     );
 
@@ -207,7 +207,7 @@ suite('Views.Month', function() {
     assert.deepEqual(subject.currentFrame.date, base, '3: currentFrame.date');
     assert.equal(
       dayIds(),
-      'd-2014-2-1, d-2014-3-1, d-2014-4-1',
+      'd-2014-3-1, d-2014-10-1, d-2015-0-1',
       '3: month elements should be sorted'
     );
   });

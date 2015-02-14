@@ -18,6 +18,6 @@ ImeTestApp.Selector = Object.freeze({
 
 ImeTestApp.prototype = {
   get sendKeyButton() {
-    return this.client.findElement(ImeTestApp.Selector.sendKeyButton);
+    return this.client.helper.waitForElement(ImeTestApp.Selector.sendKeyButton);
   }
 };

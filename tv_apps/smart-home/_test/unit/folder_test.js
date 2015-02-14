@@ -1,12 +1,12 @@
 'use strict';
 
-/* Folder */
+/* global Deck, Folder */
 
-require('/tv_shared/js/vendor/evt.js');
+require('/tv_apps/tv_shared/js/vendor/evt.js');
 require('/shared/js/uuid.js');
-require('/tv_shared/js/cards/card.js');
-require('/tv_shared/js/cards/deck.js');
-require('/tv_shared/js/cards/folder.js');
+require('/tv_apps/tv_shared/js/cards/card.js');
+require('/tv_apps//tv_shared/js/cards/deck.js');
+require('/tv_apps//tv_shared/js/cards/folder.js');
 
 suite('tv_shared/Folder', function() {
   var folder;
@@ -16,10 +16,6 @@ suite('tv_shared/Folder', function() {
   var assertFolderIsEmpty = function() {
     assert.isTrue(folder.cardsInFolder.length === 0);
   };
-
-  var assertFolderIsNotEmpty = function() {
-    assert.isTrue(folder.cardsInFolder.length > 0);
-  }
 
   setup(function() {
     folder = new Folder({

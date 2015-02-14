@@ -84,12 +84,6 @@ suite('system/EdgeSwipeDetector >', function() {
     name: 'FTU'
   };
 
-  function appLaunch(config) {
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('launchapp', true, false, config);
-    window.dispatchEvent(evt);
-  }
-
   function homescreen() {
     window.dispatchEvent(new Event('homescreenopened'));
   }
@@ -104,8 +98,12 @@ suite('system/EdgeSwipeDetector >', function() {
   function launchTransitionEnd(config) {
     var evt = document.createEvent('CustomEvent');
     config || (config = dialer);
-    evt.initCustomEvent('appopen', true, false, config);
+    evt.initCustomEvent('appopened', true, false, config);
     window.dispatchEvent(evt);
+  }
+
+  function launchDownloadDialogEvent(type) {
+    window.dispatchEvent(new CustomEvent(type));
   }
 
   suite('When the homescreen is displayed', function() {
@@ -152,7 +150,7 @@ suite('system/EdgeSwipeDetector >', function() {
     });
 
     test('the edges should be enabled', function() {
-      appLaunch(dialer);
+      launchTransitionEnd(dialer);
       assert.isFalse(subject.previous.classList.contains('disabled'));
       assert.isFalse(subject.next.classList.contains('disabled'));
     });
@@ -167,7 +165,7 @@ suite('system/EdgeSwipeDetector >', function() {
       });
 
       test('the edges should not be enabled', function() {
-        appLaunch(dialer);
+        launchTransitionEnd(dialer);
         var previous = subject.previous;
         assert.isTrue(previous.classList.contains('disabled'));
         assert.isTrue(subject.next.classList.contains('disabled'));
@@ -185,7 +183,7 @@ suite('system/EdgeSwipeDetector >', function() {
     suite('in background', function() {
       setup(function() {
         dialer.stayBackground = true;
-        appLaunch(dialer);
+        launchTransitionEnd(dialer);
       });
 
       test('the edges should not be enabled', function() {
@@ -203,30 +201,6 @@ suite('system/EdgeSwipeDetector >', function() {
     });
   });
 
-  suite('When a wrapper is launched', function() {
-    var google = {
-      url: 'http://google.com/index.html',
-      origin: 'http://google.com'
-    };
-
-    function wrapperLaunch(config) {
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('launchapp', true, false, config);
-      window.dispatchEvent(evt);
-    }
-
-    setup(function() {
-      subject.previous.classList.add('disabled');
-      subject.next.classList.add('disabled');
-    });
-
-    test('the edges should be enabled', function() {
-      wrapperLaunch(google);
-      assert.isFalse(subject.previous.classList.contains('disabled'));
-      assert.isFalse(subject.next.classList.contains('disabled'));
-    });
-  });
-
   suite('When the setting is enabled', function() {
     setup(function() {
       subject.lifecycleEnabled = true;
@@ -234,7 +208,7 @@ suite('system/EdgeSwipeDetector >', function() {
       subject.previous.classList.add('disabled');
       subject.next.classList.add('disabled');
 
-      appLaunch(dialer);
+      launchTransitionEnd(dialer);
     });
 
     teardown(function() {
@@ -265,7 +239,7 @@ suite('system/EdgeSwipeDetector >', function() {
       subject.previous.classList.remove('disabled');
       subject.next.classList.remove('disabled');
 
-      appLaunch(dialer);
+      launchTransitionEnd(dialer);
     });
 
     teardown(function() {
@@ -1004,6 +978,44 @@ suite('system/EdgeSwipeDetector >', function() {
 
     teardown(function() {
       subject.lifecycleEnabled = false;
+    });
+  });
+
+  suite('handleEvent: download dialog events', function() {
+    setup(function() {
+      subject.lifecycleEnabled = true;
+      MockService.currentApp = {
+        isHomescreen: false
+      };
+    });
+
+    teardown(function() {
+      subject.lifecycleEnabled = false;
+      MockService.currentApp = null;
+    });
+
+    test('the edges should be disabled', function() {
+      launchDownloadDialogEvent('updatepromptshown');
+      assert.isTrue(subject.previous.classList.contains('disabled'));
+      assert.isTrue(subject.next.classList.contains('disabled'));
+    });
+
+    test('the edges should be enabled', function() {
+      launchDownloadDialogEvent('updateprompthidden');
+      assert.isFalse(subject.previous.classList.contains('disabled'));
+      assert.isFalse(subject.next.classList.contains('disabled'));
+    });
+
+    test('the edges should stay disabled when homescreen is active',
+      function() {
+        subject.lifecycleEnabled = false;
+        MockService.currentApp.isHomescreen = true;
+        launchDownloadDialogEvent('updatepromptshown');
+        assert.isTrue(subject.previous.classList.contains('disabled'));
+        assert.isTrue(subject.next.classList.contains('disabled'));
+        launchDownloadDialogEvent('updateprompthidden');
+        assert.isTrue(subject.previous.classList.contains('disabled'));
+        assert.isTrue(subject.next.classList.contains('disabled'));
     });
   });
 

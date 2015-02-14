@@ -2,9 +2,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette import expected
-from marionette import Wait
-from marionette.by import By
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
 
@@ -19,7 +24,7 @@ class Gallery(Base):
     _empty_gallery_title_locator = (By.ID, 'overlay-title')
     _empty_gallery_text_locator = (By.ID, 'overlay-text')
     _progress_bar_locator = (By.ID, 'progress')
-    _thumbnail_list_view_locator = (By.ID, 'thumbnail-list-view')
+    _thumbnail_list_view_locator = (By.CSS_SELECTOR, '#thumbnail-views > footer.thumbnails-list')
     _switch_to_camera_button_locator = (By.ID, 'thumbnails-camera-button')
     _switch_to_multiple_selection_view_locator = (By.ID, 'thumbnails-select-button')
 

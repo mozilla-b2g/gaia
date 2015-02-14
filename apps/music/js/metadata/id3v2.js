@@ -28,24 +28,21 @@ var ID3v2Metadata = (function() {
    * Parse a file and return a Promise with the metadata.
    *
    * @param {BlobView} blobview The audio file to parse.
-   * @param {Metadata} metadata The (partially filled-in) metadata object.
    * @return {Promise} A Promise returning the parsed metadata object.
    */
-  function parse(blobview, metadata) {
+  function parse(blobview) {
     var header = parseHeader(blobview);
     if (header.version > 4) {
       console.warn('mp3 file with unknown metadata version');
-      return Promise.resolve(metadata);
+      return Promise.resolve({});
     }
-    metadata.tag_format = header.versionString;
     return new Promise(function(resolve, reject) {
       blobview.getMore(blobview.index, header.length, function(moreview, err) {
         if (err) {
           reject(err);
           return;
         }
-        parseFrames(header, moreview, metadata);
-        resolve(metadata);
+        resolve(parseFrames(header, moreview));
       });
     });
   }
@@ -88,10 +85,12 @@ var ID3v2Metadata = (function() {
    *
    * @param {Object} header The header object for this ID3 tag.
    * @param {BlobView} blobview The audio file to parse.
-   * @param {Metadata} metadata The (partially filled-in) metadata object.
    * @return {Promise} A Promise returning the parsed metadata object.
    */
-  function parseFrames(header, blobview, metadata) {
+  function parseFrames(header, blobview) {
+    var metadata = {};
+    metadata.tag_format = header.versionString;
+
     // In id3v2.3, the "unsynchronized" flag in the tag header applies to
     // the whole tag (excluding the tag header). In id3v2.4, the flag is just
     // an indicator that we should expect to see the "unsynchronized" flag
@@ -123,6 +122,8 @@ var ID3v2Metadata = (function() {
       }
       parseFrame(header, blobview, metadata);
     }
+
+    return metadata;
   }
 
   /**

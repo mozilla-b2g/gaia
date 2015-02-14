@@ -78,6 +78,12 @@ suite('system/AttentionWindow', function() {
       app = new AppWindow(fakeAppConfig);
     });
 
+    test('show()', function() {
+      var attention = new AttentionWindow(fakeAttentionConfig, app);
+      attention.show();
+      assert.equal(attention.element.style.width, '');
+    });
+
     test('clear the fake notification node when removed.', function() {
       var attention = new AttentionWindow(fakeAttentionConfig, app);
       attention.destroy();

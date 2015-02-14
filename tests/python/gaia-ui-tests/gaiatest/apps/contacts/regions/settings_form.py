@@ -2,9 +2,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette import expected
-from marionette import Wait
-from marionette.by import By
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
 from gaiatest.apps.base import Base
 
 
@@ -103,7 +108,7 @@ class SettingsForm(Base):
         element.tap()
         Wait(self.marionette).until(
             lambda m: m.find_element(*self._sync_friends_locator).location['x'] == 0)
-        from gaiatest.apps.contacts.regions.facebook import FacebookLogin
+        from gaiatest.apps.system.regions.facebook import FacebookLogin
         return FacebookLogin(self.marionette)
 
     def tap_import_from_sdcard(self):

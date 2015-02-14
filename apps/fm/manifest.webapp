@@ -12,7 +12,8 @@
     "storage":{},
     "fmradio":{},
     "settings":{ "access": "readonly" },
-    "speaker-control":{}
+    "speaker-control":{},
+    "audio-channel-content":{}
   },
   "locales": {
     "ar": {

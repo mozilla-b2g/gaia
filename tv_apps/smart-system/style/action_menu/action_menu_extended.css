@@ -7,21 +7,23 @@
   height: calc(100% - 7rem);
 }
 
-/* Extending action menu with icon capability & transition*/
+/* Extending action menu with icon capability & transition */
 
-form[role="dialog"][data-type="action"] > menu > button.icon,
-form[role="dialog"][data-type="object"] > menu > button.icon {
+smart-button[type="contextmenu"] > .icon {
+  content: attr(data-icon);
+  background-position: center top 4.8rem;
+  background-size: 10rem;
   background-repeat: no-repeat;
-  padding-left: 4rem;
-  background-size: 3rem;
-  background-position: 0.5rem center;
+  left: 0;
+  top: 0;
+  position: absolute;
+  width: 100%;
+  height: 100%;
 }
 
-form[role="dialog"][data-type="action"] > menu > button.tail-icon,
-form[role="dialog"][data-type="object"] > menu > button.tail-icon {
-  background-repeat: no-repeat;
-  background-size: 3rem;
-  background-position: right 0.5rem top 0.5rem;
+smart-button[type="contextmenu"].focused:not(.pressed) > .icon {
+  filter: url(invert.svg#invert);
+  opacity: 0.824;
 }
 
 form[role="dialog"][data-type="action"],
@@ -37,84 +39,71 @@ form[role="dialog"][data-type="object"].visible {
 	transform: translateY(0);
 }
 
-@media (min-width: 768px) {
-  form[role="dialog"][data-type="action"],
-  form[role="dialog"][data-type="object"] {
-    -moz-box-sizing: border-box;
-    background-color: rgba(0,0,0,0.6);
-  }
+form[role="dialog"][data-type="action"],
+form[role="dialog"][data-type="object"] {
+  -moz-box-sizing: border-box;
+  background-color: rgba(0,0,0,0.9);
+}
 
-  form[role="dialog"][data-type="action"] > header,
-  form[role="dialog"][data-type="object"] > header {
-    background: none;
-    top: calc(50% - 24rem);
-    left: calc(50% - 34rem);
-    width: 68rem;
-    height: 7rem;
-    padding: 0 6rem;
-    font-size: 2.2rem;
-    line-height: 7rem;
-    background-color: #333333;
-    box-shadow: 0 0 1rem #222222;
-    border: 0.1rem solid #282828;
-    border-bottom: none;
-  }
+form[role="dialog"][data-type="action"] > header,
+form[role="dialog"][data-type="object"] > header {
+  top: 5rem;
+  left: 7.6rem;
+  font-size: 5.4rem;
+  font-style: italic;
+  height: 10rem;
+  color: white;
+  border: none;
+  padding: 0;
+}
 
-  form[role="dialog"][data-type="action"] > header:after,
-  form[role="dialog"][data-type="object"] > header:after {
-    background: #222323;
-    left: 6rem;
-    width: 54rem;
-  }
+form[role="dialog"][data-type="action"] > div,
+form[role="dialog"][data-type="object"] > div {
+  margin: 0 auto;
+  width: 100%;
+  height: 30rem;
+  padding-top: 3rem;
+  top: calc(50% - 15rem);
+  left: 0;
+  text-align: center;
+  overflow: hidden;
+  position: absolute;
+}
 
-  form[role="dialog"][data-type="action"] > menu,
-  form[role="dialog"][data-type="object"] > menu {
-    top: calc(50% - 24rem + 7rem);
-    left: calc(50% - 34rem);
-    width: 55.8rem; /* 68 - 12 - 0.2(border compensate)*/
-    height: 31rem; /* 38 - 7 */
-    padding: 0 6rem;
-    font-size: 2.2rem;
-    background-color: #333333;
-    box-shadow: 0 0 1rem #222222;
-    border: 0.1rem solid #282828;
-    border-top: none;
-    z-index:1;
-  }
+form[role="dialog"][data-type="action"] > div > menu {
+  transition: transform 0.2s ease;
+}
 
-  form[role="dialog"][data-type="action"] > menu > button,
-  form[role="dialog"][data-type="object"] > menu > button {
-    box-shadow: 0 0 1rem #222222;
-    border: 0.1rem solid #282828;
-    background: none no-repeat 1rem 50%;
-    background-color: #898989;
-    height: 4.7rem;
-    font-size: 2.3rem;
-    line-height: 3rem;
-    font-weight: 400;
-    padding: 1rem 6rem;
-    margin: 2.4rem 0 0 0;
-  }
+form[role="dialog"][data-type="action"] > div > menu > div,
+form[role="dialog"][data-type="action"] > div > menu > div {
+  position: absolute;
+  left: 0;
+  margin: 0 3rem;
+}
 
-  form[role="dialog"][data-type="action"] > menu > button:last-child,
-  form[role="dialog"][data-type="object"] > menu > button:last-child {
-    position: absolute;
-    margin-top: 1.5rem;
-    font-size: 2.3rem;
-    line-height: 2.3rem;
-    font-weight: 400;
-    width: 18rem;
-    height: 4rem;
-    margin-left: calc(50% - 9rem);
-  }
+smart-button[type="contextmenu"] {
+  width: 24rem;
+  height: 24rem;
+  border-radius: 12rem;
+  background-color: #5f5f5f;
+  padding-top: 14.8rem;
+  padding-bottom: 5rem;
+  font-size: 2rem;
+  font-style: italic;
+  text-align: center;
+  color: white;
+  line-height: 2.8rem;
+  box-sizing: border-box;
+}
 
-  form[role="dialog"][data-type="action"] > menu > button:last-child:before,
-  form[role="dialog"][data-type="object"] > menu > button:last-child:before {
-    background: none;
-    background-color: #333333;
-    width: 67.8rem;
-    left: calc(50% - 33.9rem);
-    bottom: calc(50% - 14rem);
-    z-index: -1;
-  }
+smart-button[type="contextmenu"].focused {
+  transform: scale(1.2);
+  color: #2d2d2d;
+  background-color: white;
+}
+
+smart-button[type="contextmenu"].pressed {
+  transform: scale(1);
+  background-color: #00caf2;
+  color: white;
 }

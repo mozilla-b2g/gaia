@@ -32,10 +32,6 @@ form[role="dialog"][data-type="confirm"] p {
   white-space: pre-line;
 }
 
-form[data-type="confirm"] .phone-details .phone-number {
-  display: inline;
-}
-
 gaia-header {
   position: relative;
   z-index: 10;
@@ -74,6 +70,14 @@ form[role="dialog"][data-type="edit"] > menu {
 
 #threads-container[data-type="list"] [data-last-message-type="mms"] .mms-icon {
   display: inline;
+}
+
+.edit .bottom-tab[role="region"] {
+  visibility: visible;
+}
+
+.bottom-tab[role="region"] {
+  visibility: hidden;
 }
 
 #threads-container[data-type="list"] [data-last-message-type="mms"] .body-text {
@@ -117,7 +121,7 @@ form[role="dialog"][data-type="edit"] > menu {
 }
 
 .edit #threads-container[data-type="list"] {
-  height: calc(100% - 12rem);
+  height: calc(100% - 10rem);
 }
 
 #threads-container[data-type="list"] header {
@@ -169,6 +173,30 @@ form[role="dialog"][data-type="edit"] > menu {
   font-size: 2.5rem;
 }
 
+/* Override Building Block Tabs styles */
+form[role="dialog"][data-type="edit"] .bb-tablist:before {
+  bottom: 5.5rem ;
+}
+
+form[role="dialog"][data-type="edit"] .bb-tablist > li {
+  height: 5.5rem ;
+}
+
+.bb-tablist > li button {
+  background-position: 50% 50% ;
+}
+
+.bb-tablist > li button[data-action="delete-button"] {
+  background-image: url("images/icons/delete.png");
+}
+
+.bb-tablist > li button[data-action="mark-as-read"] {
+  background-image: url("images/icons/ico_in_markasread_30x30.png");
+}
+
+.bb-tablist > li button[data-action="mark-as-unread"] {
+  background-image: url("images/icons/ico_in_markasunread_30x30.png");
+}
 
 /**
  * Bug 967878, 979018 -[Messages] Background doesn't
@@ -291,7 +319,7 @@ form[role="dialog"][data-type="edit"] > menu {
   transform: translateX(-100%);
 }
 
-#threads-container, #thread-messages {
+#threads-container, #thread-messages, #information-participants, #information-report {
   z-index: 10;
   background: white;
 }
@@ -505,7 +533,7 @@ section[role="region"].new > header:first-child form {
 */
 
 .edit #messages-container {
-  margin-bottom: 7rem;
+  margin-bottom: 5.5rem;
 }
 
 .edit .article-list[data-type="list"] .message {
@@ -874,18 +902,6 @@ section[role="region"].new .article-list[data-type="list"]  li {
   pointer-events: none;
 }
 
-.thread-participant-count {
-  display: none;
-}
-
-/**
- * In RTL mode location of this counter should be changed accordingly, but
- * indicator itself (eg. "(+3)") should be always LTR
- */
-.thread-group-header > .thread-participant-count {
-  display: unset;
-}
-
 .subheader {
   position: absolute;
   z-index: 6; /* should be between 4 and 9 (inclusive). 3 is the z-index for
@@ -907,23 +923,6 @@ body[role="application"] form[role="dialog"][data-type="action"] > header:first-
   height: 4rem;
 }
 
-/**
- * 1. COMPLEX: Scoped style-sheets within <gaia-header>
- * trump all other rules. !important is required
- * for an app to over-ride the default appearance
- * of content within the custom-element. This may
- * change when we get `:host` and `:content` selectors
- * in shadow-dom.
- */
-
-/* Elements related to information view */
-section[role="region"][class*='-information'] #messages-options-button,
-section[role="region"][class*='-information'] #messages-subheader,
-section[role="region"][class*='-information'] #messages-container,
-section[role="region"][class*='-information'] #messages-compose-form {
-  display: none !important; /* 1 */
-}
-
 #messages-back-button:hover {
   background-color: transparent;
 }
@@ -934,16 +933,18 @@ section[role="region"][class*='-information'] #messages-compose-form {
 }
 
 /* Phone details label styles */
-.phone-details > .phone-details-item {
+.phone-type,
+.phone-type-separator,
+.phone-carrier,
+.phone-carrier-separator {
   display: none;
 }
 
-.phone-details.has-phone-type > .phone-type,
-.phone-details.has-phone-type > .phone-type-separator,
-.phone-details > .phone-number,
-.phone-details.has-phone-carrier > .phone-carrier,
-.phone-details.has-phone-carrier > .phone-carrier-separator {
-  display: inline;
+.has-phone-type > .phone-type,
+.has-phone-type > .phone-type-separator,
+.has-phone-carrier > .phone-carrier,
+.has-phone-carrier > .phone-carrier-separator {
+  display: unset;
 }
 
 /* RTL View */

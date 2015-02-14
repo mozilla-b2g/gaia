@@ -17,12 +17,14 @@ var mocksHelperForContextMenuHandler = new MocksHelper([
 suite('contextmenu_handler.js >', function() {
 
   var realL10n = null;
+  var clock = null;
 
   mocksHelperForContextMenuHandler.attachTestHelpers();
 
   suiteSetup(function(done) {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+    clock = sinon.useFakeTimers();
     loadBodyHTML('/index.html');
     require('/js/contextmenu_handler.js', done);
   });
@@ -32,11 +34,16 @@ suite('contextmenu_handler.js >', function() {
     realL10n = null;
   });
 
+  function dispatchContextMenu() {
+    contextMenuHandler.container.dispatchEvent(new CustomEvent('contextmenu'));
+    clock.tick();
+  }
+
   test(' Handling contextmenu event', function() {
     window.app = new App();
     var stub = sinon.stub(contextMenuUI, 'show');
 
-    contextMenuHandler.container.dispatchEvent(new CustomEvent('contextmenu'));
+    dispatchContextMenu();
     sinon.assert.called(stub);
 
     stub.restore();
@@ -48,7 +55,7 @@ suite('contextmenu_handler.js >', function() {
     window.app.grid._grid.dragdrop.inEditMode = true;
     var stub = sinon.stub(contextMenuUI, 'show');
 
-    contextMenuHandler.container.dispatchEvent(new CustomEvent('contextmenu'));
+    dispatchContextMenu();
     sinon.assert.notCalled(stub);
 
     stub.restore();

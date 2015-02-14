@@ -1,5 +1,5 @@
 'use strict';
-/* global SharedUtils, evt */
+/* global evt */
 
 window.SmartBanner = (function(win) {
 
@@ -7,9 +7,14 @@ window.SmartBanner = (function(win) {
   var proto = evt(Object.create(HTMLElement.prototype));
 
   proto.createdCallback = function() {
+    this.init();
+    this.addEventListener('transitionend', this);
+    this.addEventListener('animationend', this);
+  };
+
+  proto.init = function() {
     this.style.width = '0';
     this.classList.add('closed');
-    this.addEventListener('transitionend', this);
   };
 
   proto.calculateChildWidth = function() {
@@ -18,8 +23,8 @@ window.SmartBanner = (function(win) {
     var style;
     while(child) {
       style = window.getComputedStyle(child);
-      childWidth += child.offsetWidth + parseInt(style.marginLeft, 10)
-                                      + parseInt(style.marginRight, 10);
+      childWidth += child.offsetWidth + parseInt(style.marginLeft, 10) +
+                                      parseInt(style.marginRight, 10);
       child = child.nextElementSibling;
     }
     return childWidth;
@@ -35,33 +40,56 @@ window.SmartBanner = (function(win) {
   };
 
   proto.handleEvent = function(evt) {
-    var self = this;
     switch(evt.type) {
       // Like System app, the transition is our state machine.
       case 'transitionend':
         // We only process 'background-color' because all states have this
         // change.
         if ((evt.propertyName !== 'background-color' &&
+             evt.propertyName !== 'opacity' &&
              evt.propertyName !== 'width') ||
             evt.target !== this) {
           break;
         }
 
         if (this.classList.contains('opening')) {
+          this.classList.add('opened');
           this.classList.remove('opening');
           // final state: opened
           this.fireEvent('opened');
         } else if (this.classList.contains('closing')) {
-          this.classList.remove('closing');
           this.classList.add('closed');
+          this.classList.remove('closing');
           // final state: closed
           this.fireEvent('closed');
         }
+
+        // go back to initial state after hiding
+        if (this.classList.contains('hiding')) {
+          this.classList.remove('opened');
+          this.classList.remove('opening');
+          this.classList.remove('closing');
+          this.classList.remove('flying');
+          this.classList.remove('hiding');
+
+          this.init();
+          this.fireEvent('hidden');
+        }
+
+        break;
+      case 'animationend':
+        this.classList.remove('flying');
+        this.open();
         break;
     }
   };
 
   proto.focus = proto.open = function() {
+    // no operation during flying and hiding
+    if (this.classList.contains('flying') ||
+        this.classList.contains('hiding')) {
+      return;
+    }
     this.fireEvent('will-open');
     // If we get focus when we closing the group, we need to cancel the closing
     // state.
@@ -73,12 +101,28 @@ window.SmartBanner = (function(win) {
   };
 
   proto.blur = proto.close = function() {
+    // no operation during flying and hiding
+    if (this.classList.contains('flying') ||
+        this.classList.contains('hiding')) {
+      return;
+    }
     this.fireEvent('will-close');
     // We may call close at mid state, we need to reset all of them and go to
     // closing state
+    this.classList.remove('opened');
     this.classList.remove('opening');
     this.classList.add('closing');
     this.style.width = '0';
+  };
+
+  proto.hide = function(callback) {
+    this.classList.add('hiding');
+  };
+
+  proto.flyOpen = function() {
+    if (this.classList.contains('closed')) {
+      this.classList.add('flying');
+    }
   };
 
   // Register and return the constructor

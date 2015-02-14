@@ -19,9 +19,7 @@ HandwritingPadView.prototype.render = function render() {
   this.element = document.createElement('canvas');
   this.element.className = 'handwriting-pad';
 
-  if (this.viewManager) {
-    this.viewManager.registerView(this.target, this);
-  }
+  this.viewManager.registerView(this.target, this);
 };
 
 HandwritingPadView.prototype.drawHandwritingPad =

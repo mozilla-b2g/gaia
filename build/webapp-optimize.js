@@ -1,5 +1,7 @@
-/*global exports, require, dump*/
 'use strict';
+
+/* global exports, require */
+
 /**
  * webpp-optimize will do below things.
  * 1. Inline embeded html from <link rel="import" href="test.html" name="name">
@@ -33,8 +35,8 @@ var HTMLOptimizer = function(options) {
   // When file has done optimized, we call done.
   this.done = options.callback;
   /**
-   * Witconfig.GAIA_CONCAT_LOCALES for each HTML file, we retrieve multi-locale 
-   * ASTs: a full set of all l10n strings that are loaded by the HTML 
+   * Witconfig.GAIA_CONCAT_LOCALES for each HTML file, we retrieve multi-locale
+   * ASTs: a full set of all l10n strings that are loaded by the HTML
    * document, including all strings that are used dynamically from JS;
    * it gets merged into webapp.asts.
    */
@@ -129,7 +131,7 @@ HTMLOptimizer.prototype._proceedLocales = function() {
     processedLocales++;
   }
 
-  for (var lang in this.asts)  {
+  for (let lang in this.asts)  {
     // skip to the next language if the AST is null
     if (!this.asts[lang]) {
       continue;
@@ -137,8 +139,22 @@ HTMLOptimizer.prototype._proceedLocales = function() {
     if (!this.webapp.asts[lang]) {
       this.webapp.asts[lang] = [];
     }
-    for (var i = 0; i < this.asts[lang].length; i++) {
-      this.webapp.asts[lang].push(this.asts[lang][i]);
+    let asts = this.asts[lang];
+    let webappAsts = this.webapp.asts[lang];
+    for (let i = 0; i < asts.length; i++) {
+      let index = -1;
+      let identifierToFind = asts[i].$i;
+      for (let j = 0; j < webappAsts.length; j++) {
+        if (webappAsts[j].$i === identifierToFind) {
+          index = j;
+          break;
+        }
+      }
+      if (index !== -1) {
+        webappAsts[index] = asts[i];
+      } else {
+        webappAsts.push(asts[i]);
+      }
     }
   }
 
@@ -235,8 +251,7 @@ HTMLOptimizer.prototype.embededGlobals = function() {
  */
 HTMLOptimizer.prototype.concatL10nResources = function() {
   var doc = this.win.document;
-  var links = doc.querySelectorAll('link[rel="localization"], ' +
-                                   'link[rel="manifest"]');
+  var links = doc.querySelectorAll('link[rel="localization"]');
   if (!links.length) {
     return;
   }
@@ -250,30 +265,6 @@ HTMLOptimizer.prototype.concatL10nResources = function() {
     var rel = link.getAttribute('rel');
 
     switch (rel) {
-      case 'manifest':
-        var url = link.getAttribute('href');
-        var manifest = {};
-        try {
-          manifest = JSON.parse(this.getFileByRelativePath(url).content);
-        } catch(err) {
-          dump('Unable to parse ' + url + ' manifest: ' + err.message);
-          throw err;
-        }
-
-        if (manifest.default_locale) {
-          var defaultLocaleMeta = doc.createElement('meta');
-          defaultLocaleMeta.name = 'default_locale';
-          defaultLocaleMeta.content = manifest.default_locale;
-          parentNode.insertBefore(defaultLocaleMeta, links[0]);
-        }
-
-        if (manifest.locales) {
-          var localesMeta = doc.createElement('meta');
-          localesMeta.name = 'locales';
-          localesMeta.content = Object.keys(manifest.locales).join(', ');
-          parentNode.insertBefore(localesMeta, links[0]);
-        }
-        break;
       case 'localization':
         // if any l10n link does have a no-fetch
         // attribute, we will embed the whole l10n AST
@@ -511,32 +502,9 @@ HTMLOptimizer.prototype.optimizeDeviceTypeCSS = function() {
  */
 HTMLOptimizer.prototype.serializeNewHTMLDocumentOutput = function() {
   var doc = this.win.document;
-  // the doctype string should always be '<!DOCTYPE html>' but just in case...
-  var doctypeStr = '';
-  var dt = doc.doctype;
-  if (dt && dt.name) {
-    doctypeStr = '<!DOCTYPE ' + dt.name;
-    if (dt.publicId) {
-      doctypeStr += ' PUBLIC ' + dt.publicId;
-    }
-    if (dt.systemId) {
-      doctypeStr += ' ' + dt.systemId;
-    }
-    doctypeStr += '>\n';
-  }
 
-  // outerHTML breaks the formating, so let's use innerHTML instead
-  var htmlStr = '<html';
-  var docElt = doc.documentElement;
-  var attrs = docElt.attributes;
-  for (var i = 0; i < attrs.length; i++) {
-    htmlStr += ' ' + attrs[i].nodeName.toLowerCase() +
-               '="' + attrs[i].nodeValue + '"';
-  }
-  var innerHTML = docElt.innerHTML.replace(/  \n*<\/body>\n*/, '  </body>\n');
-  htmlStr += '>\n  ' + innerHTML + '\n</html>\n';
-
-  utils.writeContent(this.htmlFile, doctypeStr + htmlStr);
+  var str = utils.serializeDocument(doc);
+  utils.writeContent(this.htmlFile, str);
 };
 
 HTMLOptimizer.prototype.getFileByRelativePath = function(relativePath) {
@@ -741,10 +709,7 @@ WebappOptimize.prototype.execute = function(config) {
   files.forEach(this.processFile, this);
 };
 
-function execute(options) {
-  var webapp = utils.getWebapp(options.APP_DIR,
-    options.GAIA_DOMAIN, options.GAIA_SCHEME,
-    options.GAIA_PORT, options.STAGE_DIR);
+function execute(options, webapp) {
   var locales;
   if (options.GAIA_CONCAT_LOCALES === '1') {
     locales = getLocales(options);

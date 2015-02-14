@@ -204,7 +204,8 @@ span.line-break {
   font-size: 1.6rem;
   font-weight: 400;
   color: #8a9699;
-  padding: 0 0 0 1rem;
+  padding: 0;
+  -moz-padding-start: 1rem;
   height: 4rem;
   line-height: 4rem;
 }
@@ -620,7 +621,19 @@ header .icon:after {
   top: calc(50% - 1.15rem);
   width: 2.3rem;
   height: 2.3rem;
+
+  /* For LTR langauges, position the playhead 1.15 rems to the left 
+   * so that the center of the playhead aligns with the beginning of
+   * the time slider.
+   */
   margin-left: -1.15rem;
+
+  /* For RTL langauges, position the playhead 1.15 rems to the right 
+   * so that the center of the playhead aligns with the end of
+   * the time slider.
+   */
+  margin-right: -1.15rem;
+ 
   border: none;
   background: none;
   pointer-events: none;
@@ -665,7 +678,8 @@ body:not(.pick-activity) #picker-close {
  *    in shadow-dom.
  */
 
-body:not(.pick-activity) #picker-done {
+body:not(.pick-activity) #picker-done,
+body:not(.pick-activity) #picker-header {
   display: none !important; /* 1 */
 }
 
@@ -741,6 +755,11 @@ body.pick-activity #thumbnails-bottom {
 .layout-fullscreen-player #thumbnail-list-view,
 .layout-fullscreen-player #thumbnails {
   display: none;
+}
+
+/* overlay mode */
+.overlay #app-container {
+  visibility: hidden;
 }
 
 /* spinner is only valid for tablet and landscape mode */

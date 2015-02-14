@@ -51,10 +51,10 @@ textarea {
  -moz-user-select: text;
 }
 
-.ltr {
+html[dir="ltr"] {
   text-align: left;
 }
 
-.rtl {
+html[dir="rtl"] {
   text-align: right;
 }

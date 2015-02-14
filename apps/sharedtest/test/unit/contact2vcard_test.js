@@ -164,7 +164,6 @@ suite('mozContact to vCard', function() {
 
       ContactToVcardBlob(contacts, function(blob) {
         assert.isNotNull(blob);
-        assert.equal('text/vcard', blob.type);
 
         // Fetch the same content as a normal vcard
         ContactToVcard(contacts, function append(vcards, nCards) {
@@ -187,5 +186,46 @@ suite('mozContact to vCard', function() {
         });
       });
     });
+  });
+
+  suite('MIME types >', function() {
+    var contact;
+
+    suiteSetup(function() {
+      contact = new MockContactAllFields(true);
+      contact.photo = null;
+    });
+
+    test('> Contact transformed to vcard. No options', function(done) {
+      ContactToVcardBlob([contact], function blobReady(vcardBlob) {
+        assert.isTrue(vcardBlob.size > 0);
+
+        assert.equal(vcardBlob.type, 'text/vcard; charset=utf-8');
+        done();
+      });
+    });
+
+    test('> Contact transformed to vcard. Only MIME type', function(done) {
+      var targetType = 'text/x-vcard';
+      ContactToVcardBlob([contact], function blobReady(vcardBlob) {
+        assert.isTrue(vcardBlob.size > 0);
+
+        assert.equal(vcardBlob.type, targetType + '; charset=utf-8');
+        done();
+      }, { type: targetType });
+    });
+
+    test('> Contact transformed to vcard. MIME type & charset',
+      function(done) {
+        var targetType = 'text/x-vcard; charset=iso-8859-1';
+
+        ContactToVcardBlob([contact], function blobReady(vcardBlob) {
+          assert.isTrue(vcardBlob.size > 0);
+
+          assert.equal(vcardBlob.type, targetType);
+          done();
+        }, { type: targetType });
+    });
+
   });
 });

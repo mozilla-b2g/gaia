@@ -2,11 +2,15 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
+try:
+    from marionette.by import By
+except:
+    from marionette_driver.by import By
+
 from gaiatest.apps.base import Base
 
 
-class UserMediaPage(Base):    
+class UserMediaPage(Base):
     _audio_button_locator = (By.CSS_SELECTOR, 'button[data-type="startAudioButton"]')
     _video_button_locator = (By.CSS_SELECTOR, 'button[data-type="startVideoButton"]')
 
