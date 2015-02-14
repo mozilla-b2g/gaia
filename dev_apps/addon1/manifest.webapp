@@ -1,0 +1,14 @@
+{
+  "name": "Colorful Settings",
+  "description": "A test add-on that makes the settings app much more colorful",
+  "developer": {
+    "name": "Fabrice Desré"
+  },
+  "role": "addon",
+  "type": "certified",
+  "customizations": [{
+    "filter": "settings.gaiamobile.org",
+    "css": ["colorful.css"],
+    "scripts": []
+  }]
+}
