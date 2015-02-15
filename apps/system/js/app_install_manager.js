@@ -314,7 +314,7 @@ var AppInstallManager = {
     var appManifest = new ManifestHelper(manifest);
     var name = appManifest.name;
     var l10nId = appManifest.role === 'langpack' ?
-      'langpack-install-success' : 'app-install-success';
+      'langpack-install-success2' : 'app-install-success';
     this.systemBanner.show(
       navigator.mozL10n.get(l10nId, { appName: name }));
   },
