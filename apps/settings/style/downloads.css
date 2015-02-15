@@ -234,6 +234,12 @@
   background-position: center;
 }
 
-html[dir="rtl"] #downloads-edit-button::before {
+/* RTL rules */
+html:-moz-dir(rtl) #downloadList aside.pack-end {
+  right: auto;
+  left: 0;
+}
+
+html:-moz-dir(rtl) #downloads-edit-button::before {
   transform: initial;
 }
