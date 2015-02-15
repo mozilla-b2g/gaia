@@ -1243,7 +1243,7 @@ suite('system/AppInstallManager >', function() {
 
       test('should display the special text for langpacks', function() {
         assert.equal(MockSystemBanner.mMessage,
-        'langpack-install-success{"appName":"' + mockAppName + '"}');
+        'langpack-install-success2{"appName":"' + mockAppName + '"}');
       });
     });
 
