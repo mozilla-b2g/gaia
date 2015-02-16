@@ -1242,8 +1242,3 @@ html[dir="rtl"] #configure_network_params .pack-checkbox {
   left: unset;
   right: auto;
 }
-
-html[dir="rtl"] #import_contacts li button.icon {
-    -moz-padding-start: unset;
-    -moz-padding-end: 4rem;
-}
