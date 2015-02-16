@@ -930,7 +930,6 @@
         this.inError = true;
         return;
       }
-      this.isCrashed = true;
       // Send event instead of call crash reporter directly.
       this.publish('crashed');
 
@@ -941,6 +940,7 @@
           this.frontWindow.kill();
         }
       } else {
+        this.isCrashed = true;
         this.kill(evt);
       }
     };
