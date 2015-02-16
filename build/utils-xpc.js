@@ -30,7 +30,7 @@ const UUID_FILENAME = 'uuid.json';
  */
 function ls(dir, recursive, pattern, include) {
   let results = [];
-  if (!dir.exists()) {
+  if (!dir || !dir.exists()) {
     return results;
   }
 
