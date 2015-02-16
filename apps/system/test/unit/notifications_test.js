@@ -354,14 +354,17 @@ suite('system/NotificationScreen >', function() {
     });
 
     function testNotificationWithDirection(dir) {
-      var toasterTitle = NotificationScreen.toasterTitle;
+      var toaster = NotificationScreen.toaster;
       var imgpath = 'http://example.com/test.png';
       var detail = {icon: imgpath,
                     title: 'title',
                     detail: 'detail',
                     bidi: dir};
       NotificationScreen.addNotification(detail);
-      assert.equal(dir, toasterTitle.dir);
+      assert.equal(dir, toaster.dir);
+      var notificationNode =
+        document.getElementsByClassName('notification')[0];
+      assert.equal(dir, notificationNode.dir);
     }
 
     test('calling addNotification with rtl direction', function() {
@@ -373,31 +376,31 @@ suite('system/NotificationScreen >', function() {
     });
 
     test('calling addNotification with auto direction', function() {
-      testNotificationWithDirection('auto');
+      testNotificationWithDirection('');
     });
 
     test('calling addNotification without direction', function() {
-      var toasterTitle = NotificationScreen.toasterTitle;
+      var toaster = NotificationScreen.toaster;
       var imgpath = 'http://example.com/test.png';
       var detail = {icon: imgpath, title: 'title', detail: 'detail'};
       NotificationScreen.addNotification(detail);
-      assert.equal('auto', toasterTitle.dir);
+      assert.equal('', toaster.dir);
     });
 
     test('calling addNotification with language', function() {
-      var toasterTitle = NotificationScreen.toasterTitle;
+      var toaster = NotificationScreen.toaster;
       var imgpath = 'http://example.com/test.png';
       var detail = {icon: imgpath, title: 'title', lang: 'en'};
       NotificationScreen.addNotification(detail);
-      assert.equal('en', toasterTitle.lang);
+      assert.equal('en', toaster.lang);
     });
 
     test('calling addNotification without language', function() {
-      var toasterTitle = NotificationScreen.toasterTitle;
+      var toaster = NotificationScreen.toaster;
       var imgpath = 'http://example.com/test.png';
       var detail = {icon: imgpath, title: 'title'};
       NotificationScreen.addNotification(detail);
-      assert.equal('undefined', toasterTitle.lang);
+      assert.equal('undefined', toaster.lang);
     });
 
     test('calling addNotification with timestamp', function() {
@@ -951,4 +954,12 @@ suite('system/NotificationScreen >', function() {
     });
   });
 
+  suite('events >', function() {
+
+    test('localization event', function() {
+      var spy = this.sinon.spy(NotificationScreen, 'updateNotificationsDir');
+      window.dispatchEvent(new CustomEvent('localized'));
+      assert.ok(spy.called);
+    });
+  });
 });
