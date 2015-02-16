@@ -4,7 +4,7 @@ define(function(require) {
   var _ = window.navigator.mozL10n.get;
   var AirplaneModeHelper = require('shared/airplane_mode_helper');
   var SIMSlotManager = require('shared/simslot_manager');
-  var SimPinDialog = require('simcard_dialog');
+  var DialogService = require('modules/dialog_service');
   var Template = require('shared/template');
   var Toaster = require('shared/toaster');
 
@@ -19,7 +19,6 @@ define(function(require) {
         this.iccManager = window.navigator.mozIccManager;
         this.isAirplaneMode = (AirplaneModeHelper.getStatus() === 'enabled');
         this.simPinTemplate = new Template(this._elements.simPinTmpl);
-        this.simPinDialog = new SimPinDialog(this._elements.dialog);
 
         this._elements.simPinContainer.addEventListener('click', this);
         this.addIccDetectedEvent();
@@ -116,30 +115,7 @@ define(function(require) {
           break;
 
         case 'changeSimPin':
-          // TODO:
-          // remember to update SimPinDialog for DSDS structure
-          this.simPinDialog.show('change_pin', {
-            cardIndex: cardIndex,
-            // show toast after user successfully change pin
-            onsuccess: function toastOnSuccess() {
-              var toast;
-              if (SIMSlotManager.isMultiSIM()) {
-                toast = {
-                  messageL10nId: 'simPinChangedSuccessfullyWithIndex',
-                  messageL10nArgs: {'index': +(cardIndex) + 1},
-                  latency: 3000,
-                  useTransition: true
-                };
-              } else {
-                toast = {
-                  messageL10nId: 'simPinChangedSuccessfully',
-                  latency: 3000,
-                  useTransition: true
-                };
-              }
-              Toaster.showToast(toast);
-            }
-          });
+          this.changeSimPin(cardIndex);
           break;
       }
     },
@@ -150,33 +126,61 @@ define(function(require) {
 
       switch (icc.cardState) {
         case 'pukRequired':
-          this.simPinDialog.show('unlock_puk', {
-            cardIndex: cardIndex,
-            onsuccess: () => {
+          return DialogService.show('simpin-dialog', {
+            method: 'unlock_puk',
+            cardIndex: cardIndex
+          }).then((result) => {
+            var type = result.type;
+            if (type === 'submit') {
               // successful unlock puk will be in simcard lock enabled state
               checkbox.checked = true;
               this.updateSimPinUI(cardIndex);
-            },
-            oncancel: () => {
+            } else {
               checkbox.checked = !enabled;
               this.updateSimPinUI(cardIndex);
             }
           });
-          break;
         default:
           var action = enabled ? 'enable_lock' : 'disable_lock';
-          this.simPinDialog.show(action, {
-            cardIndex: cardIndex,
-            onsuccess: () => {
+          return DialogService.show('simpin-dialog', {
+            method: action,
+            cardIndex: cardIndex
+          }).then((result) => {
+            var type = result.type;
+            if (type === 'submit') {
               this.updateSimPinUI(cardIndex);
-            },
-            oncancel: () => {
+            } else {
               checkbox.checked = !enabled;
               this.updateSimPinUI(cardIndex);
             }
           });
-          break;
       }
+    },
+    changeSimPin: function(cardIndex) {
+      return DialogService.show('simpin-dialog', {
+        method: 'change_pin',
+        cardIndex: cardIndex
+      }).then(function(result) {
+        var type = result.type;
+        if (type === 'submit') {
+          var toast;
+          if (SIMSlotManager.isMultiSIM()) {
+            toast = {
+              messageL10nId: 'simPinChangedSuccessfullyWithIndex',
+              messageL10nArgs: {'index': +(cardIndex) + 1},
+              latency: 3000,
+              useTransition: true
+            };
+          } else {
+            toast = {
+              messageL10nId: 'simPinChangedSuccessfully',
+              latency: 3000,
+              useTransition: true
+            };
+          }
+          Toaster.showToast(toast);
+        }
+      });
     },
     addIccDetectedEvent: function simpin_addIccDetectedEvent() {
       // if there is a change that icc instance is available

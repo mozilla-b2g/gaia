@@ -57,6 +57,23 @@ define(function(require) {
         title.textContent = title.textContent;
       });
     },
+
+
+    getIccByCardIndex: function(cardIndex) {
+      if (cardIndex === undefined) {
+        return null;
+      }
+
+      var iccObj;
+      if (navigator.mozMobileConnections[cardIndex]) {
+        var iccId = navigator.mozMobileConnections[cardIndex].iccId;
+        if (iccId) {
+          iccObj = navigator.mozIccManager.getIccById(iccId);
+        }
+      }
+
+      return iccObj;
+    }
   };
 
   return SettingsUtils;
