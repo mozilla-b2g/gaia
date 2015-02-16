@@ -134,4 +134,55 @@ suite('Observable', function() {
 
     executeTest();
   });
+
+  suite('Read-only property', function() {
+    var props = ['fakePropertyName', 'fakePropertyName2'];
+    var defaultPropValues = ['fakeValue', 'fakeValue2'];
+
+    suiteSetup(function(done) {
+      testRequire(['modules/mvvm/observable'], (function(Observable) {
+        function NewObservable() {}
+        Observable.augment(NewObservable.prototype);
+        Observable.defineObservableProperty(NewObservable.prototype, props[0], {
+          permission: 'r',
+          value: defaultPropValues[0]
+        });
+        Observable.defineObservableProperty(NewObservable.prototype, props[1], {
+          permission: 'r',
+          value: defaultPropValues[1]
+        });
+        this.Observable = function() {
+          return new NewObservable();
+        };
+        done();
+      }).bind(this));
+    });
+
+    test('unable to set the property', function() {
+      var observable = this.Observable();
+      function setReadOnlyProperty() {
+        observable[props[0]] = 300;
+      }
+      assert.throw(setReadOnlyProperty, TypeError,
+        'setting a property that has only a getter');
+    });
+
+    test('internal property exists', function() {
+      var observable = this.Observable();
+      assert.equal(observable['_' + props[0]], defaultPropValues[0]);
+      assert.equal(observable['_' + props[1]], defaultPropValues[1]);
+    });
+
+    test('calls to the listeners when the internal property changes',
+      function(done) {
+        var newPropValue = 'newFakeValue';
+        var observable = this.Observable();
+        observable.observe(props[1], function(newValue, oldValue) {
+          assert.equal(oldValue, defaultPropValues[1]);
+          assert.equal(newValue, newPropValue);
+          done();
+        });
+        observable['_' + props[1]] = newPropValue;
+    });
+  });
 });

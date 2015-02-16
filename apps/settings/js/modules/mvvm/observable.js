@@ -1,15 +1,16 @@
 define(function() {
   'use strict';
 
-  var OP_PREFIX = (name) => { '$OP_' + name; };
+  var OP_PREFIX = (name) => { return '$OP_' + name; };
 
   function Observable(obj) {
     this._init(obj);
   }
 
   Observable.prototype.observe = function o_observe(name, observer) {
-    this[name]; // XXX: enforce the setter
-    if (!this[OP_PREFIX(name)]) {
+    var propertyInfo =
+      this._observablePropertiesInfo && this._observablePropertiesInfo[name];
+    if (!propertyInfo) {
       throw new Error('Observable property ' + name + ' does not exist');
     }
 
@@ -19,6 +20,12 @@ define(function() {
 
     if (!this._observers) {
       this._observers = {};
+    }
+
+    // For read-only properties, the observer should be register on its internal
+    // property.
+    if (propertyInfo.permission === 'r') {
+      name = '_' + name;
     }
 
     var observers = this._observers[name];
@@ -33,12 +40,26 @@ define(function() {
       // (observer) -- remove from every key in _observers
       Object.keys(this._observers).forEach(
         this._removeObserver.bind(this, name));
-    } else if (observer) {
-      // (prop, observer) -- remove observer from the specific prop
-      this._removeObserver(observer, name);
-    } else if (name in this._observers) {
-      // (prop) -- otherwise remove all observers for property
-      this._observers[name] = [];
+    } else {
+      var propertyInfo =
+      this._observablePropertiesInfo && this._observablePropertiesInfo[name];
+      if (!propertyInfo) {
+        throw new Error('Observable property ' + name + ' does not exist');
+      }
+
+      // For read-only properties, the observer should be register on its
+      // internal property.
+      if (propertyInfo.permission === 'r') {
+        name = '_' + name;
+      }
+
+      if (observer) {
+        // (prop, observer) -- remove observer from the specific prop
+        this._removeObserver(observer, name);
+      } else if (name in this._observers) {
+        // (prop) -- otherwise remove all observers for property
+        this._observers[name] = [];
+      }
     }
   };
 
@@ -77,21 +98,45 @@ define(function() {
 
   function _defineObservableProperty(object, name, options) {
     var defaultValue = options && options.value;
-    Object.defineProperty(object, name, {
-      enumerable: true,
+    var permission = (options && options.permission) || 'rw';
+    var readOnly = permission === 'r';
+
+    var observablePropertiesInfo = object._observablePropertiesInfo;
+    if (!observablePropertiesInfo) {
+      observablePropertiesInfo = object._observablePropertiesInfo = {};
+    }
+    observablePropertiesInfo[name] = {
+      permission: permission
+    };
+
+    // For read only properties, we create a setter for "name" and an internal
+    // property called "_name".
+    var propName = name;
+    if (readOnly) {
+      propName = '_' + name;
+      Object.defineProperty(object, name, {
+        enumerable: true,
+        get: function() {
+          return this[propName];
+        }
+      });
+    }
+
+    Object.defineProperty(object, propName, {
+      enumerable: !readOnly,
       get: function() {
-        var value = this[OP_PREFIX(name)];
+        var value = this[OP_PREFIX(propName)];
         if (typeof value === 'undefined') {
-          value = this[OP_PREFIX(name)] = defaultValue;
+          value = this[OP_PREFIX(propName)] = defaultValue;
         }
         return value;
       },
       set: function(value) {
-        var oldValue = this[name];
+        var oldValue = this[propName];
         if (oldValue !== value) {
-          this[OP_PREFIX(name)] = value;
+          this[OP_PREFIX(propName)] = value;
 
-          var observers = !!this._observers && this._observers[name];
+          var observers = !!this._observers && this._observers[propName];
           if (!observers) {
             return;
           }
