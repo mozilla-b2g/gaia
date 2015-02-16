@@ -30,6 +30,10 @@ gaia-grid {
   transition: opacity 0.5s ease-in, background 0s linear 0.5s;
 }
 
+.edit-mode {
+  -moz-user-select: none;
+}
+
 .edit-mode #curtain {
   background: var(--background, #333);
   opacity: 1;
