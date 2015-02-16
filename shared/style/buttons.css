@@ -178,7 +178,7 @@ li .button[aria-disabled="true"] {
 li button.icon,
 li .bb-button.icon,
 li .button.icon {
-  padding-right: 4rem;
+  -moz-padding-end: 4rem;
 }
 
 li button.icon:before,
@@ -460,10 +460,4 @@ html[dir="rtl"] .button[data-icon] select {
   left: unset;
   right: 0.3rem; /* .3rem space because of italic */
   text-indent: 1rem;
-}
-
-html[dir="rtl"] li button.icon,
-html[dir="rtl"] li .bb-button.icon,
-html[dir="rtl"] li .button.icon {
-    padding-right: 1rem;
 }
