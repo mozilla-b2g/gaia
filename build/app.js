@@ -1,9 +1,7 @@
 'use strict';
 
-/* global require, exports, quit */
-
-var utils = require('utils');
-var rebuild = require('rebuild');
+var utils = require('./utils');
+var rebuild = require('./rebuild');
 
 function getAppRegExp(options) {
   var appRegExp;
@@ -107,11 +105,12 @@ function buildApps(options) {
   });
 
   if (failed) {
-    quit(1);
+    utils.exit(1);
   }
 }
 
-exports.execute = function(options) {
+exports.execute = function() {
+  var options = JSON.parse(utils.getEnv('BUILD_CONFIG'));
   var stageDir = utils.getFile(options.STAGE_DIR);
   utils.ensureFolderExists(stageDir);
 

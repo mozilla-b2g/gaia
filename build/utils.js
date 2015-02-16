@@ -4,7 +4,7 @@
  */
 
 'use strict';
-/* global exports, require, process*/
+
 const FILE_TYPE_FILE = 0;
 const FILE_TYPE_DIRECTORY = 1;
 
@@ -337,6 +337,7 @@ exports.readZipManifest = utils.readZipManifest;
 exports.writeContentToFile = utils.writeContentToFile;
 exports.processEvents = utils.processEvents;
 exports.log = utils.log;
+exports.exit = utils.exit;
 exports.getExtension = getExtension;
 exports.killAppByPid = utils.killAppByPid;
 exports.getEnv = utils.getEnv;

@@ -1,7 +1,7 @@
 'use strict';
 
-/* global require, Services, dump, FileUtils, exports, OS, Promise, Reflect */
-/* jshint -W079, -W118 */
+/* global Services, dump, FileUtils, OS, quit */
+/* jshint -W118 */
 
 const { Cc, Ci, Cr, Cu, CC } = require('chrome');
 
@@ -1215,6 +1215,10 @@ function removeFiles(dir, filenames) {
   });
 }
 
+function exit(code) {
+  quit(code);
+}
+
 /**
  * To cache loaded scripts with a wrapped loader.
  * The 'exportObj' is the context of the script, which is to prevent
@@ -1293,6 +1297,7 @@ exports.readJSONFromPath = readJSONFromPath;
 exports.processEvents = processEvents;
 exports.readZipManifest = readZipManifest;
 exports.log = log;
+exports.exit = exit;
 exports.killAppByPid = killAppByPid;
 exports.getEnv = getEnv;
 exports.setEnv = setEnv;

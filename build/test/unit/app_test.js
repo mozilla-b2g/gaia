@@ -18,8 +18,8 @@ suite('app.js', function() {
 
   setup(function() {
     var stubs = {
-      'utils': mockUtils,
-      'rebuild': {},
+      './utils': mockUtils,
+      './rebuild': {},
       './post-app': { execute: function() {} }
     };
     app = proxyquire.noCallThru().load('../../app', stubs);

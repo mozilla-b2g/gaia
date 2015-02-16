@@ -10,8 +10,6 @@
  * which contains the complete functions used in 'utils.js'
  */
 
-/* jshint node: true */
-
 var utils = require('./utils.js');
 var path = require('path');
 var childProcess = require('child_process');
