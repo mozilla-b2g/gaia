@@ -1,8 +1,5 @@
 'use strict';
 
-/* jshint node:true */
-/* global suite, suiteSetup, suiteTeardown, test */
-
 var assert = require('chai').assert;
 var fs = require('fs');
 var path = require('path');

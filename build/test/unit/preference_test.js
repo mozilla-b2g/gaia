@@ -2,8 +2,7 @@
 
 var assert = require('chai').assert;
 var proxyquire = require('proxyquire');
-var mockUtils =
-  require('./mock_utils.js');
+var mockUtils = require('./mock_utils.js');
 
 suite('preferences.js', function() {
   var app;

@@ -1,6 +1,7 @@
 'use strict';
-/* global require, suite, process, test, suiteSetup, teardown */
-/* jshint -W101 */
+
+/* jshint maxlen: 130 */
+
 var assert = require('chai').assert;
 var fs = require('fs');
 var path = require('path');
