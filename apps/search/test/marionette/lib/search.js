@@ -28,6 +28,7 @@ Search.Selectors = {
   firstRunConfirm: '#suggestions-notice-confirm',
   privateWindow: '#private-window',
   topSites: '.top-site',
+  historyHeader: '#history-header',
   historyResults: '#history .result',
   suggestions: '#suggestions li',
   switchProviders: '#suggestions-select'
