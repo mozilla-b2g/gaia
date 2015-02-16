@@ -1703,6 +1703,13 @@
 
   AppWindow.prototype.getIconForSplash =
     function aw_getIconForSplash(manifest) {
+      if (this.isPrivate) {
+        var privateIconPath = '/style/icons/pb_icon.png';
+        this._splash = privateIconPath;
+        this.preloadSplash();
+        return privateIconPath;
+      }
+
       var icons = this.manifest ?
         ('icons' in this.manifest ? this.manifest.icons : null) : null;
       if (!icons) {

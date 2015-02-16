@@ -325,6 +325,10 @@
   transition: opacity 0.2s ease-in, visibility 0.2s;
 }
 
+.appWindow.private > .identification-overlay {
+  background: rgba(57, 46, 84, 0.9);
+}
+
 .appWindow.suspended > .identification-overlay,
 .appWindow:not(.active):not(.in-task-manager).overlay > .identification-overlay {
   transition: none;
@@ -356,8 +360,7 @@
   left: calc(50% - 3rem);
   width: 6rem;
   height: 6rem;
-
-  background-size: contain;
+  background: no-repeat center / contain;
 }
 
 .identification-overlay > div .title {
@@ -377,6 +380,10 @@
   white-space: nowrap;
 
   overflow: hidden;
+}
+
+.private .identification-overlay > div .title {
+  color: #e7e7e7;
 }
 
 .appWindow iframe.hidden {
