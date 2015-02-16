@@ -123,6 +123,7 @@ class Ftu(Base):
     def tap_next(self):
         next_button = Wait(self.marionette).until(
             expected.element_present(*self._next_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(next_button))
         Wait(self.marionette).until(expected.element_enabled(next_button))
         next_button.tap()
 
@@ -390,6 +391,7 @@ class Ftu(Base):
     def tap_take_tour(self):
         take_tour = Wait(self.marionette).until(
             expected.element_present(*self._take_tour_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(take_tour))
         Wait(self.marionette).until(expected.element_enabled(take_tour))
         take_tour.tap()
 
@@ -404,6 +406,7 @@ class Ftu(Base):
         next = Wait(self.marionette).until(
             expected.element_present(*self._tour_next_button_locator))
         Wait(self.marionette).until(expected.element_displayed(next))
+        Wait(self.marionette).until(expected.element_enabled(next))
         next.tap()
 
     def tap_back(self):
