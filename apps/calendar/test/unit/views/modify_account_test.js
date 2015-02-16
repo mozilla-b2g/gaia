@@ -11,6 +11,7 @@ var Presets = require('presets');
 var nextTick = require('next_tick');
 var router = require('router');
 
+require('/shared/elements/gaia-header/dist/gaia-header.js');
 require('dom!modify_event');
 require('dom!show_event');
 

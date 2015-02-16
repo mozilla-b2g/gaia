@@ -26,7 +26,7 @@ AdvancedSettings.prototype = {
     createAccountButton: '#advanced-settings-view .create-account',
     accountListHeader: '#advanced-settings-view .account-list-header',
     syncFrequency: '#setting-sync-frequency',
-
+    header: '#advanced-settings-header',
     standardAlarmLabel: '#default-event-alarm',
     alldayAlarmLabel: '#default-allday-alarm'
   },
@@ -53,6 +53,10 @@ AdvancedSettings.prototype = {
 
   get alldayAlarmLabel() {
     return this._findElement('alldayAlarmLabel');
+  },
+
+  get header() {
+    return this._findElement('header');
   },
 
   get standardAlarm() {
@@ -236,6 +240,8 @@ AdvancedSettings.prototype = {
         next();
       };
     }
+
+    this.header.runFontFitSoon();
 
     var settings = this.app.store('Setting');
     var accounts = this.app.store('Account');
