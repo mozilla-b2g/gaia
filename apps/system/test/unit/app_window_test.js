@@ -1575,10 +1575,11 @@ suite('system/AppWindow', function() {
       assert.isNull(sheets[1].previousWindow);
     });
 
-    test('Error event', function() {
+    test('App crashed and suspending is disabled', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var stubKill = this.sinon.stub(app1, 'kill');
       var stubPublish = this.sinon.stub(app1, 'publish');
+      AppWindow.SUSPENDING_ENABLED = false;
       app1.handleEvent({
         type: 'mozbrowsererror',
         detail: {
@@ -1590,8 +1591,8 @@ suite('system/AppWindow', function() {
       assert.isTrue(stubPublish.calledWith('crashed'));
     });
 
-    test('Destroy only the browser when app crashed and ' +
-          'suspending is enabled',
+    test('App crashed and suspending is enabled' +
+          'when app is inactive',
       function() {
         var apps = openPopups(2);
         var app1 = apps[0];
@@ -1608,13 +1609,13 @@ suite('system/AppWindow', function() {
             type: 'fatal'
           }
         });
-        assert.isTrue(app1.isCrashed);
+        assert.isFalse(app1.isCrashed);
         assert.isTrue(stubDestroyBrowser.called);
         assert.isTrue(stubKill.called);
         AppWindow.SUSPENDING_ENABLED = false;
       });
 
-    test('Kill the app directly even suspending is enabled ' +
+    test('App crashed and suspending is enabled ' +
           'when the app is active',
       function() {
         var app1 = new AppWindow(fakeAppConfig1);
