@@ -96,6 +96,7 @@
 
     onCardSwapped: function(card1, card2, idx1, idx2) {
       this.cardScrollable.swap(idx1, idx2);
+      this._setHintArrow();
       this._isSwapping = false;
     },
 
@@ -117,7 +118,6 @@
                                     {cardId: focus.currentItem.dataset.cardId}),
             this.cardManager.findCardFromCardList(
                                     {cardId: targetItem.dataset.cardId}));
-          this._setHintArrow();
         }
       }
       return true;
