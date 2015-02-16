@@ -130,21 +130,6 @@
     this.browser_config = configuration;
     // Store initial configuration in this.config
     this.config = configuration;
-    this.config.chrome = (this.manifest && this.manifest.chrome) ?
-      this.manifest.chrome :
-      this.config.chrome;
-
-    if (!this.config.chrome) {
-      this.config.chrome = {
-        scrollable: this.isBrowser(),
-        maximized: this.isBrowser()
-      };
-    } else if (this.config.chrome.navigation) {
-      this.config.chrome.scrollable = !this.isFullScreen();
-      // This is for backward compatibility with application that
-      // requests the |navigation| flag in their manifest.
-      this.config.chrome.maximized = true;
-    }
 
     if (!this.manifest && this.config && this.config.title) {
       this.updateName(this.config.title);
@@ -165,6 +150,51 @@
       this.previousWindow.setNextWindow(this);
     } else if (this.rearWindow) {
       this.rearWindow.setFrontWindow(this);
+    }
+
+    // W3C web app manifest "display" property takes precedence
+    if (this.manifest && this.manifest.display) {
+      switch(this.manifest.display) {
+        case 'fullscreen':
+          this._fullScreen = true;
+          this.config.chrome = {
+            scrollable: false,
+            maximized: false,
+          };
+          return; // Early return
+        case 'standalone':
+          this.config.chrome = {
+            scrollable: false,
+            maximized: false,
+          };
+          return;
+        case 'minimal-ui':
+        case 'browser':
+          this.config.chrome = {
+            scrollable: true,
+            maximized: true,
+          };
+          return;
+        default:
+          console.error('Invalid display property in web app manifest.');
+      }
+    }
+
+    // Fall back to mozApp manifest chrome and fullscreen properties
+    this.config.chrome = (this.manifest && this.manifest.chrome) ?
+      this.manifest.chrome :
+      this.config.chrome;
+
+    if (!this.config.chrome) {
+      this.config.chrome = {
+        scrollable: this.isBrowser(),
+        maximized: this.isBrowser()
+      };
+    } else if (this.config.chrome.navigation) {
+      this.config.chrome.scrollable = !this.isFullScreen();
+      // This is for backward compatibility with application that
+      // requests the |navigation| flag in their manifest.
+      this.config.chrome.maximized = true;
     }
   };
 
@@ -762,7 +792,7 @@
      'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
      'mozbrowsertitlechange', 'mozbrowserlocationchange',
      'mozbrowsermetachange', 'mozbrowsericonchange', 'mozbrowserasyncscroll',
-     'mozbrowsersecuritychange',
+     'mozbrowsersecuritychange', 'mozbrowsermanifestchange',
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
      '_orientationchange', '_focus', '_blur',  '_hidewindow', '_sheetdisplayed',
      '_sheetsgestureend', '_cardviewbeforeshow', '_cardviewclosed',
@@ -1007,6 +1037,7 @@
   AppWindow.prototype._handle_mozbrowserlocationchange =
     function aw__handle_mozbrowserlocationchange(evt) {
       this.favicons = {};
+      this.webManifestURL = null;
       this.config.url = evt.detail;
       // Integration test needs to locate the frame by this attribute.
       this.browser.element.dataset.url = evt.detail;
@@ -1081,6 +1112,13 @@
           break;
       }
 
+    };
+
+  AppWindow.prototype._handle_mozbrowsermanifestchange =
+    function aw__handle_mozbrowsermanifestchange(evt) {
+      if (evt.detail.href) {
+        this.webManifestURL = evt.detail.href;
+      }
     };
 
   AppWindow.prototype._registerEvents = function aw__registerEvents() {
