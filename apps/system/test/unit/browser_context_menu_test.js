@@ -61,6 +61,12 @@ suite('system/BrowserContextMenu', function() {
     origin: 'app://www.fake'
   };
 
+  var fakeBrowserConfig = {
+    url: 'http://mozilla.org/index.html',
+    manifest: {},
+    origin: 'http://mozilla.org'
+  };
+
   var fakePrivateConfig = {
     url: 'app://www.fake/index.html',
     manifest: {},
@@ -252,6 +258,27 @@ suite('system/BrowserContextMenu', function() {
     var app = MockAppWindowHelper.mLatest;
     assert.equal(app.isPrivate, true);
   });
+
+  test('bookmark/share buttons hidden in private browser', function(done) {
+    var app1 = new AppWindow(fakePrivateConfig);
+    var md1 = new BrowserContextMenu(app1);
+    var app2 = new AppWindow(fakeBrowserConfig);
+    var md2 = new BrowserContextMenu(app2);
+
+    var md1ShowStub = this.sinon.stub(md1, 'showMenu');
+    var md2ShowStub = this.sinon.stub(md2, 'showMenu');
+    Promise.all([
+      md1.showDefaultMenu(),
+      md2.showDefaultMenu()
+    ]).then(() => {
+      var md1Items = md1ShowStub.getCall(0).args[0];
+      var md2Items = md2ShowStub.getCall(0).args[0];
+      // We should not show the bookmark or share buttons.
+      assert.equal(md2Items.length - md1Items.length, 2);
+      done();
+    });
+  });
+
 
   test('openUrl()', function() {
     var app1 = new AppWindow(fakeAppConfig1);

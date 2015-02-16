@@ -330,6 +330,11 @@
       var config = this.app.config;
       var menuData = [];
 
+      var finish = () => {
+        this.showMenu(menuData);
+        resolve();
+      };
+
       menuData.push({
         id: 'new-window',
         label: _('new-window'),
@@ -348,6 +353,14 @@
         callback: this.showWindows.bind(this)
       });
 
+      // Do not show the bookmark/share buttons if the url starts with app.
+      // This is because in some cases we use the app chrome to view system
+      // pages. E.g., private browsing.
+      if (config.url.startsWith('app')) {
+        finish();
+        return;
+      }
+
       BookmarksDatabase.get(config.url).then((result) => {
         if (!result) {
           menuData.push({
@@ -363,8 +376,7 @@
           callback: this.shareUrl.bind(this, config.url)
         });
 
-        this.showMenu(menuData);
-        resolve();
+        finish();
       });
     });
   };
