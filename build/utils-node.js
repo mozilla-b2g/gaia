@@ -56,6 +56,7 @@ module.exports = {
   },
 
   getFile: function() {
+    var self = this;
     var src = path.join.apply(path, arguments);
     var fileStat;
     try {
@@ -67,7 +68,7 @@ module.exports = {
     }
     return {
       exists: function() {
-        return fs.existsSync(src);
+        return self.fileExists(src);
       },
       remove: function() {
         fs.removeSync(src);
@@ -122,7 +123,7 @@ module.exports = {
 
   readZipManifest: function(file) {
     var zipPath = this.joinPath(file.path, 'application.zip');
-    if (!fs.accessSync(zipPath)) {
+    if (!this.fileExists(zipPath)) {
       return;
     }
     var manifest = new JSZip(fs.readFileSync(zipPath)).file('manifest.webapp');
@@ -307,11 +308,11 @@ module.exports = {
     let updateFile = appDir.path + '/update.webapp';
 
     // Ignore directories without manifest
-    if (!fs.accessSync(manifestFile) && !fs.accessSync(updateFile)) {
+    if (!this.fileExists(manifestFile) && !this.fileExists(updateFile)) {
       return;
     }
 
-    let manifest = fs.accessSync(manifestFile) ? manifestFile : updateFile;
+    let manifest = this.fileExists(manifestFile) ? manifestFile : updateFile;
     let manifestJSON = this.getJSON(this.getFile(manifest));
 
     // Use the folder name as the the domain name
@@ -381,7 +382,9 @@ module.exports = {
   },
 
   getNewURI: function(uri) {
-    return url.parse(uri);
+    var result = url.parse(uri);
+    result.prePath = result.protocol + '//' + result.host;
+    return result;
   },
 
   isExternalApp: function(webapp) {
@@ -443,7 +446,7 @@ module.exports = {
   },
 
   fileExists: function(path) {
-    return fs.accessSync(path);
+    return fs.existsSync(path);
   },
 
   listFiles: function(path, type, recursive, exclude) {
