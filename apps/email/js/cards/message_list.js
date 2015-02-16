@@ -1392,15 +1392,19 @@ return [
 
       // sendState is only intended for outbox messages, so not all
       // messages will have sendStatus defined.
-      var sendState = (message.sendStatus && message.sendStatus.state) ||
-        'none';
+      var sendState = message.sendStatus && message.sendStatus.state;
 
       syncNode.classList.toggle('msg-header-syncing-section-syncing',
                                 sendState === 'sending');
       syncNode.classList.toggle('msg-header-syncing-section-error',
                                 sendState === 'error');
+
       // Set the accessible label for the syncNode.
-      mozL10n.setAttributes(syncNode, 'message-header-state-' + sendState);
+      if (sendState) {
+        mozL10n.setAttributes(syncNode, 'message-header-state-' + sendState);
+      } else {
+        syncNode.removeAttribute('data-l10n-id');
+      }
 
       // edit mode select state
       this.setSelectState(msgNode, message);

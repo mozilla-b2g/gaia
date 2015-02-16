@@ -45,11 +45,16 @@ suite('message_list', function() {
   }
 
   function testMessageState(message, state) {
-    message.sendStatus.state = state !== 'none' ? state : undefined;
+    message.sendStatus.state = state;
     subject.updateMessageDom(true, message);
-    assert.equal(message.element.querySelector(
-      '.msg-header-syncing-section').getAttribute('data-l10n-id'),
-      'message-header-state-' + state);
+    var syncingNode = message.element
+                      .querySelector('.msg-header-syncing-section');
+    if (state) {
+      assert.equal(syncingNode.getAttribute('data-l10n-id'),
+        'message-header-state-' + state);
+    } else {
+      assert.equal(true, !syncingNode.hasAttribute('data-l10n-id'));
+    }
   }
 
   suiteSetup(function(done) {
@@ -265,7 +270,7 @@ suite('message_list', function() {
     });
 
     test('message has no state', function() {
-      testMessageState(message, 'none');
+      testMessageState(message);
     });
   });
 
