@@ -95,10 +95,8 @@ NotificationList.prototype = {
         title: document.querySelector(query + ' > .title-container .title')
           .innerHTML,
         body: document.querySelector(query + ' > .detail').innerHTML,
-        lang: document.querySelector(query + ' > .title-container')
-          .getAttribute('lang'),
-        dir: document.querySelector(query + ' > .title-container')
-          .getAttribute('dir'),
+        lang: document.querySelector(query).getAttribute('lang'),
+        dir: document.querySelector(query).getAttribute('dir'),
         manifestURL: node.getAttribute('data-manifest-u-r-l'),
         query: query
       });
@@ -144,6 +142,9 @@ NotificationList.prototype = {
         continue;
       }
       if (details.bidi && notification.bidi !== details.bidi) {
+        continue;
+      }
+      if (details.dir && notification.dir !== details.dir) {
         continue;
       }
       ++count;
