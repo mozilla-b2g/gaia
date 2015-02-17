@@ -705,6 +705,7 @@ body.pick-activity #thumbnails-bottom {
   order: 1;
   align-self: auto;
   word-break: break-all;
+  direction: ltr /* the title is from the file name : always ltr */
 }
 
 .thumbnail .details .duration-text {
@@ -798,4 +799,8 @@ form[role="dialog"][data-type="confirm"] button.hidden {
  */
 * {
   -moz-user-select: none;
+}
+
+html[dir=rtl] #video-title {
+  direction: ltr;
 }
