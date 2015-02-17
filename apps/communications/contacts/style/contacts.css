@@ -1056,3 +1056,8 @@ html[dir="rtl"] #view-settings [data-type="list"] li button.icon:before {
 html[dir="rtl"] .img-delete-button {
   background-position: 100% 0;
 }
+
+html[dir="rtl"] #import-settings [data-type="list"] li button.icon:before {
+  left: auto;
+  right: 0.5rem;
+}
