@@ -8,6 +8,7 @@
   /* global SettingsListener */
   /* global UrlHelper */
   /* global SearchProvider */
+  /* global MetricsHelper */
   /* global MozActivity */
 
   // timeout before notifying providers
@@ -44,6 +45,9 @@
     init: function() {
 
       this.dedupe = new SearchDedupe();
+
+      this.metrics = new MetricsHelper();
+      this.metrics.init();
 
       // Initialize the parent port connection
       var self = this;
@@ -261,6 +265,8 @@
 
       // Not a valid URL, could be a search term
       if (UrlHelper.isNotURL(input)) {
+        this.metrics.report('websearch', SearchProvider('title'));
+
         var url = SearchProvider('searchUrl')
           .replace('{searchTerms}', encodeURIComponent(input));
         this.navigate(url);
