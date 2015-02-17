@@ -151,11 +151,13 @@ function(lazyLoader, SettingsListener, SettingsHelper) {
      *
      * @method saveSetting
      */
-    saveSetting: function() { 
+    saveSetting: function() {
       var value = this.type === 'checkbox' ? this.checked : this.value;
       SettingsHelper(this.name).set(value);
       ////////////////////Saving the value to LocalForage/////////////////////////
-      console.log(this.name);
+//       var TCPermName = this.getAttribute("data-permname");
+//       console.log(TCPermName);
+      console.log(this.name)
       localforage.setItem(this.name, this.value, function(err, value) {
    		console.log("setItem: " + value);
 			});
@@ -3084,7 +3086,14 @@ define('tc/perm_details',['app_list', 'tc/perm_priority_slider'], function(appLi
 
       _currentPerm = perm; // in case we need to refresh this panel
       _panel.querySelector('h1').textContent = perm.name;
-
+      console.log("Perm name:" + perm.name);
+      var slider = this.prioritySlider;
+      localforage.getItem(perm.name).then(function(value) {
+   		    if (value) {
+            slider.setValue(value)
+          }
+          console.log("Stored Value: " + value);
+			});
       _permInfo.querySelector('span').textContent = perm.name;
       _permInfo.querySelector('p').textContent = perm.desc;
 
