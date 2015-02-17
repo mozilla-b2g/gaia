@@ -2,9 +2,11 @@
 
 /* global loadBodyHTML, BookmarkEditor, BookmarksDatabase, Icon */
 /* global requireApp, require, suite, suiteTeardown, suiteSetup, test, assert,
-          sinon */
+          sinon, MockWebManifestHelper */
 
 require('/shared/test/unit/load_body_html_helper.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
+requireApp('bookmark/test/unit/mock_web_manifest_helper.js');
 
 require('/shared/js/homescreens/icon.js');
 requireApp('bookmark/js/bookmark_editor.js');
@@ -13,7 +15,8 @@ require('/shared/js/url_helper.js');
 
 suite('bookmark_editor.js >', function() {
 
-  var getStub, iconRenderStub;
+  var getStub, iconRenderStub, realL10n,
+  realWebManifestHelper;
 
   var name = 'Mozilla';
   var url = 'http://www.mozilla.org/es-ES/firefox/new/';
@@ -26,6 +29,8 @@ suite('bookmark_editor.js >', function() {
   var databaseInError = false;
 
   suiteSetup(function() {
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = window.MockL10n;
     loadBodyHTML('/save.html');
     getStub = sinon.stub(BookmarksDatabase, 'get', function(purl) {
       return {
@@ -35,13 +40,17 @@ suite('bookmark_editor.js >', function() {
       };
     });
     iconRenderStub = sinon.stub(Icon.prototype, 'render', function() {});
+    realWebManifestHelper = window.WebManifestHelper;
+    window.WebManifestHelper = MockWebManifestHelper;
   });
 
   suiteTeardown(function() {
+    navigator.mozL10n = realL10n;
     document.body.innerHTML = '';
     databaseInError = false;
     getStub.restore();
     iconRenderStub.restore();
+    window.WebManifestHelper = realWebManifestHelper;
   });
 
   function noop() {
@@ -157,6 +166,33 @@ suite('bookmark_editor.js >', function() {
       assert.isFalse(BookmarkEditor.saveButton.disabled);
     });
 
+  });
+
+  suite('Install App >', function() {
+    suiteSetup(function() {
+      BookmarkEditor.init({
+        data: {
+          name: 'My App',
+          url: 'http://example.com'
+        },
+        oncancelled: noop
+      });
+    });
+
+    test('Fetch web manifest', function(done) {
+      BookmarkEditor._fetchManifest().then(
+      function () {
+          assert.isFalse(
+            BookmarkEditor.appInstallationSection.classList.contains(
+              'hidden'));
+          assert.equal(BookmarkEditor.appNameText.textContent, 'App');
+          done();
+      },
+      function (err) {
+        done(err);
+        console.error(err);
+      });
+    });
   });
 
 });
