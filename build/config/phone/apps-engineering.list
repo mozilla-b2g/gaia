@@ -23,7 +23,6 @@ dev_apps/test-receiver-inline
 dev_apps/test-wappush
 dev_apps/uitest
 dev_apps/uitest-privileged
-dev_apps/test-fxa-client
 dev_apps/sheet-app-1
 dev_apps/sheet-app-2
 dev_apps/sheet-app-3

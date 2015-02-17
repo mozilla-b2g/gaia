@@ -1,4 +1,5 @@
 'use strict';
+/* global FxAccountsIACHelper */
 
 var hideTimer;
 var Overlay = {
@@ -86,12 +87,12 @@ var TestFxAClient = function TestFxAClient() {
 
   var showResponse = function showResponse(response) {
     Overlay.hide();
-    _setResponse(response)
+    _setResponse(response);
   };
 
   var showError = function showResponse(response) {
     Overlay.hide();
-    _setResponse(response, true)
+    _setResponse(response, true);
   };
 
   var handler = function handler(evt) {
