@@ -194,12 +194,9 @@ Bluetooth.prototype = {
     this.getAdapter().then((adapter) => {
       adapter.enable().then(() => { //resolve
         this._updateProfileStat(adapter);
-        var reqEn = navigator.mozSettings.createLock().set({
+        navigator.mozSettings.createLock().set({
           'bluetooth.enabled': true
         });
-        reqEn.onsuccess = function() {
-          window.dispatchEvent(new CustomEvent('bluetooth-enabled'));
-        }.bind(this);
       }, () => { //reject
         this.debug('can not get bluetooth adapter');
       });
@@ -217,12 +214,9 @@ Bluetooth.prototype = {
     this.debug('bluetooth settings disabled');
     this.getAdapter().then((adapter) => {
       adapter.disable().then(() => { //resolve
-        var reqDis = navigator.mozSettings.createLock().set({
+        navigator.mozSettings.createLock().set({
           'bluetooth.enabled': false
         });
-        reqDis.onsuccess = function() {
-          window.dispatchEvent(new CustomEvent('bluetooth-disabled'));
-        }.bind(this);
       }, () => { //reject
         this.debug('can not get bluetooth adapter');
       });
@@ -287,9 +281,11 @@ Bluetooth.prototype = {
           case 'state':
             if (this._adapter.state === 'enabled') {
               this._isEnabled = true;
+              window.dispatchEvent(new CustomEvent('bluetooth-enabled'));
               // this.icon && this.icon.update();
             } else if (this._adapter.state === 'disabled') {
               this._isEnabled = false;
+              window.dispatchEvent(new CustomEvent('bluetooth-disabled'));
               // this.icon && this.icon.update();
             }
             break;

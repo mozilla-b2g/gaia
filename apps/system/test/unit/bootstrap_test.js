@@ -1,8 +1,7 @@
 'use strict';
 /*global MockNavigatormozApps, MockNavigatorSettings, MocksHelper, MockL10n,
          MockApplications, Applications, MockNavigatormozSetMessageHandler,
-         MockGetDeviceStorages, MockVersionHelper, MockKeyboardManager,
-         MockMozBluetooth */
+         MockGetDeviceStorages, MockVersionHelper, MockKeyboardManager */
 
 requireApp('system/shared/js/performance_testing_helper.js');
 requireApp('system/shared/js/usertiming.js');
@@ -20,7 +19,6 @@ requireApp('system/shared/test/unit/mocks/mock_settings_url.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_getdevicestorage.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_getdevicestorages.js');
-require('/shared/test/unit/mocks/mock_navigator_moz_bluetooth_v2.js');
 requireApp('system/js/browser.js');
 requireApp('system/js/accessibility.js');
 requireApp('system/js/accessibility_quicknav_menu.js');
@@ -90,13 +88,6 @@ requireApp('system/test/unit/mock_version_helper.js');
 requireApp('system/js/base_module.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
 
-function switchReadOnlyProperty(originObject, propName, targetObj) {
-  Object.defineProperty(originObject, propName, {
-    configurable: true,
-    get: function() { return targetObj; }
-  });
-}
-
 var mocksForBootstrap = new MocksHelper([
   'AirplaneMode',
   'Applications',
@@ -124,7 +115,6 @@ suite('system/Bootstrap', function() {
   var realDocumentElementLang;
   var realApplications;
   var realVersionHelper;
-  var realMozBluetooth;
   var fakeElement;
   var realKeyboardManager;
 
@@ -174,9 +164,6 @@ suite('system/Bootstrap', function() {
     realKeyboardManager = window.KeyboardManager;
     window.KeyboardManager = MockKeyboardManager;
 
-    realMozBluetooth = navigator.mozBluetooth;
-    switchReadOnlyProperty(navigator, 'mozBluetooth', MockMozBluetooth);
-
     requireApp('system/js/bootstrap.js', done);
   });
 
@@ -200,8 +187,6 @@ suite('system/Bootstrap', function() {
     realNavigatorGetDeviceStorages = null;
 
     window.KeyboardManager = realKeyboardManager;
-
-    switchReadOnlyProperty(navigator, 'mozBluetooth', realMozBluetooth);
 
     document.documentElement.dir = realDocumentElementDir;
     document.documentElement.lang = realDocumentElementLang;
