@@ -89,6 +89,9 @@ require.config({
     },
     'shared/airplane_mode_helper': {
       exports: 'AirplaneModeHelper'
+    },
+    'shared/homescreens/vertical_preferences': {
+      exports: 'verticalPreferences'
     }
   },
   modules: [
