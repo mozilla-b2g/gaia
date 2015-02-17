@@ -10,7 +10,6 @@
   border:0;
 }
 
-
 /**
  * Disable selection by default except for input, text area, and elements with
  * "contenteditable".
@@ -30,20 +29,6 @@ textarea,
 [contenteditable="true"] {
   -moz-user-select: text;
 }
-
-
-/**
- * Root panel
- */
-
-section[data-settings="false"] #back-to-settings {
-  visibility: hidden;
-}
-
-section[data-settings="true"] #back-to-settings {
-  visibility: visible;
-}
-
 
 /**
  * Lists
