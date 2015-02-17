@@ -1259,6 +1259,12 @@ function NodeHelper(path) {
   }
 }
 
+function relativePath(from, to) {
+  var fromFile = utils.getFile(from);
+  var toFile = utils.getFile(to);
+  return toFile.getRelativeDescriptor(fromFile);
+}
+
 exports.Q = Promise;
 exports.ls = ls;
 exports.getFileContent = getFileContent;
@@ -1318,3 +1324,4 @@ exports.existsInAppDirs = existsInAppDirs;
 exports.removeFiles = removeFiles;
 exports.scriptLoader = scriptLoader;
 exports.NodeHelper = NodeHelper;
+exports.relativePath = relativePath;

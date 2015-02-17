@@ -25,7 +25,7 @@ function execute(options) {
   }
 
   // Copy shared files to stage folders
-  require('./webapp-shared').execute(options);
+  nodeHelper.require('webapp-shared', options);
 
   // Copy common files such as webapps.json
   require('./copy-common-files').execute(options);
