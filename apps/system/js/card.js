@@ -135,6 +135,10 @@
     this.viewClassList = ['card', 'appIconPreview'];
     this.titleId = 'card-title-' + this.instanceID;
 
+    if (app.isPrivate) {
+      this.viewClassList.push('private');
+    }
+
     // app icon overlays screenshot by default
     // and will be removed if/when we display the screenshot
     var iconURI = CardsHelper.getIconURIForApp(this.app);
