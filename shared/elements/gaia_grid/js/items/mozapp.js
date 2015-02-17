@@ -308,9 +308,11 @@
           return this.cancel();
       }
 
-      if (window.performance.mark) {
-        window.performance.mark('appLaunch@' + app.manifest.name);
-      }
+      var appContext = app.manifestURL
+        .replace('app://', '')
+        .replace('/manifest.webapp', '');
+
+      window.performance.mark('appLaunch@' + appContext);
 
       if (this.entryPoint) {
         return app.launch(this.entryPoint);
