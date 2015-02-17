@@ -34,11 +34,11 @@ class TestFtuAccessibility(GaiaTestCase):
         # Tap the statistics box and check that it sets a setting
         self.ftu.a11y_click_statistics_checkbox()
         self.wait_for_condition(
-            lambda m: self.data_layer.get_setting('debug.performance_data.shared'),
+            lambda m: not self.data_layer.get_setting('debug.performance_data.shared'),
             message='Share performance data was not set')
         self.ftu.a11y_click_statistics_checkbox()
         self.wait_for_condition(
-            lambda m: not self.data_layer.get_setting('debug.performance_data.shared'),
+            lambda m: self.data_layer.get_setting('debug.performance_data.shared'),
             message='Share performance data was not unset')
 
         self.ftu.a11y_click_next_to_privacy_browser_section()

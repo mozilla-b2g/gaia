@@ -128,6 +128,9 @@ BUILD_DEBUG?=0
 # Are we building for RAPTOR?
 RAPTOR?=0
 
+# Share performance and usage data
+SHARE_PERF_USAGE?=1
+
 ifeq ($(DEVICE_DEBUG),1)
 REMOTE_DEBUGGER=1
 NO_LOCK_SCREEN=1
@@ -540,7 +543,8 @@ define BUILD_CONFIG
   "REBUILD": "$(REBUILD)", \
   "P" : "$(P)", \
   "VERBOSE" : "$(VERBOSE)", \
-  "RAPTOR" : "$(RAPTOR)" \
+  "RAPTOR" : "$(RAPTOR)", \
+  "SHARE_PERF_USAGE": "$(SHARE_PERF_USAGE)" \
 }
 endef
 
