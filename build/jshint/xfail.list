@@ -13,15 +13,11 @@ apps/email/test/config.js
 apps/email/test/marionette/activity_create_email_account_complete_test.js
 apps/email/test/marionette/lib/debug.js
 apps/email/test/marionette/lib/email_data.js
-apps/email/test/marionette/lib/email_evt.js
 apps/email/test/marionette/lib/email_sync.js
-apps/email/test/marionette/lib/notification.js
 apps/email/test/marionette/lib/server_helper.js
 apps/email/test/marionette/lib/servers/fakeimap.js
 apps/email/test/marionette/local_drafts_test.js
-apps/email/test/marionette/notification_click_test.js
 apps/email/test/marionette/notification_disable_test.js
-apps/email/test/marionette/notification_foreground_test.js
 apps/email/test/marionette/notification_set_interval_test.js
 apps/email/test/marionette/reply_imap_email_test.js
 apps/email/test/marionette/send_imap_email_test.js
