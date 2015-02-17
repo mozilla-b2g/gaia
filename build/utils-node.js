@@ -10,8 +10,6 @@
  * which contains the complete functions used in 'utils.js'
  */
 
-/* jshint node: true */
-
 var utils = require('./utils.js');
 var path = require('path');
 var childProcess = require('child_process');
@@ -69,10 +67,10 @@ module.exports = {
     }
     return {
       exists: function() {
-        return fs.accessSync(src);
+        return fs.existsSync(src);
       },
       remove: function() {
-        fs.remove(src);
+        fs.removeSync(src);
       },
       isDirectory: function() {
         return !!fileStat && fileStat.isDirectory();

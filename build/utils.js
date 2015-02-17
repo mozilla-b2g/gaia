@@ -1,10 +1,10 @@
+'use strict';
+
 /**
  * This file exports all 'utils' functions, which indeed exports the
  * implementations inside the 'utils-node' and 'utils-xpc' files.
  */
 
-'use strict';
-/* global exports, require, process*/
 const FILE_TYPE_FILE = 0;
 const FILE_TYPE_DIRECTORY = 1;
 
@@ -361,4 +361,4 @@ exports.getAppNameRegex = getAppNameRegex;
 exports.serializeDocument = serializeDocument;
 exports.cloneJSON = cloneJSON;
 exports.jsComparator = jsComparator;
-exports.requireNode = utils.requireNode;
+exports.NodeHelper = utils.NodeHelper;
