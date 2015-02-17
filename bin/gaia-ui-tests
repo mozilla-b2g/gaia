@@ -3,6 +3,8 @@
 export GAIATEST_ACKNOWLEDGED_RISKS=true
 export GAIATEST_SKIP_WARNING=true
 
+DIR="$( cd "$( dirname "$SOURCE" )" && pwd )"
+
 # Get the b2g desktop binary...
 get_b2g_bin() {
   local folder=$(find . -d 1 -name 'b2g' | cut -f 1 -d " ")
@@ -43,11 +45,27 @@ cd $root/../ && \
 python setup.py develop && \
 # Back to root.
 cd $OLDPWD && \
+
+if [ -z "$TEST_FILES" ]; then
+  TEST_FILES="$DIR/tests/python/gaia-ui-tests/gaiatest/tests/functional/manifest.ini"
+fi
+
+
 # Run the tests.
-python $gaiatest --app=b2gdesktop \
-          --binary=$b2g \
-          --profile=$profile \
-          --type=b2g \
-          --timeout=10000 \
-          --restart \
-          $@
+if [ "$BUILDAPP" == "device" ]; then
+  adb forward tcp:2828 tcp:2828 && \
+  python $gaiatest \
+    --address=localhost:2828 \
+    --type=b2g \
+    --timeout=30000 \
+    --restart \
+    $TEST_FILES
+else
+  python $gaiatest --app=b2gdesktop \
+    --binary=$b2g \
+    --profile=$profile \
+    --type=b2g \
+    --timeout=10000 \
+    --restart \
+    $TEST_FILES
+fi

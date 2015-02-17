@@ -773,6 +773,10 @@ test-integration-test:
 		--reporter $(REPORTER) \
 		--buildapp $(BUILDAPP)
 
+.PHONY: test-gaia-ui-test
+test-gaia-ui-test:
+	./bin/gaia-ui-tests
+
 .PHONY: caldav-server-install
 caldav-server-install:
 	source tests/ci/venv.sh; \
@@ -1036,7 +1040,7 @@ clean:
 
 # clean out build products and tools
 really-clean: clean
-	rm -rf b2g-* .b2g-* b2g_sdk node_modules b2g modules.tar js-marionette-env
+	rm -rf b2g-* .b2g-* b2g_sdk node_modules b2g modules.tar js-marionette-env ci-venv
 
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
