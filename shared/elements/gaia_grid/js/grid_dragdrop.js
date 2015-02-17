@@ -493,7 +493,7 @@
         if (insertDividerAtTop) {
           if (iconIsDivider) {
             redundantRearrange = true;
-            for (var i = foundIndex - 1; i >= 0; i--) {
+            for (var i = this.icon.detail.index - 1; i >= 0; i--) {
               if (this.gridView.items[i].detail.type === 'divider') {
                 redundantRearrange = false;
                 break;
