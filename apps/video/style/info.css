@@ -41,3 +41,8 @@
   /* no separator after the last item in the list */
   border-bottom: none;
 }
+
+#info-name {
+ /* file name is not directional and stays LTR */
+ direction: ltr;
+}
