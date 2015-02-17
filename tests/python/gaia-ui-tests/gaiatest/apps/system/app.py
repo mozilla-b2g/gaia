@@ -30,6 +30,9 @@ class System(Base):
 
     _software_home_button_locator = (By.ID, 'software-home-button')
 
+    _software_buttons_locator = (By.ID, 'software-buttons')
+    _screen_locator = (By.ID, 'screen')
+
     @property
     def status_bar(self):
         self.marionette.switch_to_frame()
@@ -89,3 +92,14 @@ class System(Base):
 
     def wait_for_airplane_mode_icon_displayed(self):
         Wait(self.marionette).until(expected.element_displayed(*self._airplane_mode_statusbar_locator))
+
+    @property
+    def software_buttons_height(self):
+        """
+        Gets the height of the software buttons container on the screen.
+        Always returns 0 if software buttons are not displayed.
+        """
+        if 'software-button-enabled' in self.marionette.find_element(*self._screen_locator).get_attribute('class'):
+            return self.marionette.find_element(*self._software_buttons_locator).size['height']
+        else:
+            return 0
