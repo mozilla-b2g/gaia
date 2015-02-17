@@ -108,6 +108,7 @@
     this.browser_config.isSearch = true;
     this.config = this.browser_config;
     this.isSearch = true;
+    this.name = this.manifest.name;
 
     this.render();
     this.open();
