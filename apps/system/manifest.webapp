@@ -110,6 +110,10 @@
       "description": "Communicate between search results and search app",
       "rules": {}
     },
+    "app-metrics": {
+      "description": "Communicate between system app metrics and search app",
+      "rules": {}
+    },
     "ftucomms": {
       "description": "Communicate between communications/ftu and System",
       "rules": {}

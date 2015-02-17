@@ -254,6 +254,7 @@ suite('AppUsageMetrics:', function() {
       usage.recordInvocation(app1, 10000);
       usage.recordInvocation(app2, 20000);
       usage.recordActivity(app2, 'app3');
+      usage.recordSearch('provider1');
     }
 
     test('merge', function() {
@@ -305,6 +306,17 @@ suite('AppUsageMetrics:', function() {
       var data = new UsageData();
       assert.equal(data.getDayKey(new Date(2015, 0, 12)), '20150112');
     });
+
+    test('record search', function() {
+      var metrics = new UsageData();
+      metrics.recordSearch('provider1');
+      metrics.recordSearch('provider2');
+      assert.equal(metrics.getSearchCounts('provider1').count, 1);
+      assert.equal(metrics.getSearchCounts('provider2').count, 1);
+
+      metrics.recordSearch('provider2');
+      assert.equal(metrics.getSearchCounts('provider2').count, 2);
+    });
   });
 
   /*
@@ -316,7 +328,7 @@ suite('AppUsageMetrics:', function() {
   suite('event handling:', function() {
     var aum;
     var realSettingsListener;
-    var installSpy, uninstallSpy, invocationSpy, activitySpy;
+    var installSpy, uninstallSpy, invocationSpy, activitySpy, searchSpy;
     var app1, app2, app3, homescreen, lockscreen, callscreen, attention1;
     var clock;
 
@@ -336,6 +348,7 @@ suite('AppUsageMetrics:', function() {
       uninstallSpy = this.sinon.spy(proto, 'recordUninstall');
       invocationSpy = this.sinon.spy(proto, 'recordInvocation');
       activitySpy = this.sinon.spy(proto, 'recordActivity');
+      searchSpy = this.sinon.spy(proto, 'recordSearch');
 
       // Create and initialize an AUM instance. It won't start automatically
       aum = new AppUsageMetrics();
@@ -375,6 +388,7 @@ suite('AppUsageMetrics:', function() {
       assert.equal(uninstallSpy.callCount, 0);
       assert.equal(invocationSpy.callCount, 0);
       assert.equal(activitySpy.callCount, 0);
+      assert.equal(searchSpy.callCount, 0);
     });
 
     test('install event', function() {
@@ -384,6 +398,7 @@ suite('AppUsageMetrics:', function() {
       assert.equal(uninstallSpy.callCount, 0);
       assert.equal(invocationSpy.callCount, 0);
       assert.equal(activitySpy.callCount, 0);
+      assert.equal(searchSpy.callCount, 0);
     });
 
     test('uninstall event', function() {
@@ -393,6 +408,7 @@ suite('AppUsageMetrics:', function() {
       assert.equal(installSpy.callCount, 0);
       assert.equal(invocationSpy.callCount, 0);
       assert.equal(activitySpy.callCount, 0);
+      assert.equal(searchSpy.callCount, 0);
     });
 
     test('app transition', function() {
@@ -627,6 +643,15 @@ suite('AppUsageMetrics:', function() {
         screenOffBy: 'lockscreen'
       });
       assert.equal(invocationSpy.callCount, lastCallCount);
+    });
+
+    test('search request', function() {
+      dispatch('iac-app-metrics', {
+        action: 'websearch',
+        data: 'provider3'
+      });
+      assert.ok(searchSpy.calledOnce);
+      assert.equal(searchSpy.getCall(0).args[0], 'provider3');
     });
   });
 
@@ -906,6 +931,7 @@ suite('AppUsageMetrics:', function() {
       metrics.recordUninstall(app1);
       metrics.recordInvocation(homescreen, 10000);
       metrics.recordActivity(homescreen, 'app4');
+      metrics.recordSearch('provider1');
 
       // Transmit the data
       var sendTime = Date.now();
@@ -946,6 +972,8 @@ suite('AppUsageMetrics:', function() {
         assert.equal(keys[0], dayKey);
       });
 
+      assert.deepEqual(info.searches, metrics.data.searches);
+      assert.property(info.searches, 'provider1');
       assert.equal(info.start, metrics.data.start);
       assert.equal(info.stop, sendTime);
       assert.equal(info.deviceID, aum.deviceID);
@@ -973,6 +1001,7 @@ suite('AppUsageMetrics:', function() {
 
       // Record some data
       metrics.recordInstall(app1);
+      metrics.recordSearch('provider1');
 
       // start a transmission
       aum.transmit();
@@ -1010,6 +1039,7 @@ suite('AppUsageMetrics:', function() {
 
       // Record some data
       metrics.recordInstall(app1);
+      metrics.recordSearch('provider1');
 
       // start a transmission
       aum.transmit();
