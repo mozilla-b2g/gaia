@@ -53,24 +53,25 @@
   <body role="application" class="skin-dark theme-media">
     <div id="app-container">
       <div id="two-column-spearator"></div>
-      <section role="region" id="thumbnail-list-view">
-        <gaia-header id="picker-header" action="back">
+      <section role="region" id="thumbnail-views">
+        <gaia-header id="picker-header" action="back" class="thumbnails-list">
           <h1 id="picker-title" data-l10n-id="pick-title"></h1>
           <h1 id="thumbnail-list-title">Video</h1>
         </gaia-header>
-
-        <footer id="thumbnails-bottom">
-          <a id="thumbnails-video-button" class="button" data-icon="video"></a>
-          <a id="thumbnails-select-button" class="button" data-icon="select"></a>
-        </footer>
-      </section>
-
-      <section role="region" id="thumbnail-select-view" class="skin-dark">
-        <gaia-header id="thumbnails-select-top" action="close">
+        <gaia-header id="thumbnails-select-top" action="close"
+                     class="thumbnails-select">
           <h1 id="thumbnails-number-selected"></h1>
         </gaia-header>
 
-        <footer id="thumbnails-select-bottom">
+        <!-- This element gets positioned over different view elements -->
+        <!-- It gets styled differently depending on what it is over -->
+        <ul id="thumbnails"></ul> <!-- Thumbnails inserted here -->
+
+        <footer id="thumbnails-bottom" class="thumbnails-list">
+          <a id="thumbnails-video-button" class="button" data-icon="video"></a>
+          <a id="thumbnails-select-button" class="button" data-icon="select"></a>
+        </footer>
+        <footer id="thumbnails-select-bottom" class="thumbnails-select">
           <a id="thumbnails-delete-button" class="button" data-icon="delete"></a>
           <a id="thumbnails-share-button" class="button" data-icon="share"></a>
         </footer>
@@ -148,9 +149,6 @@
       </menu>
     </form>
 
-    <!-- This element gets positioned over different view elements -->
-    <!-- It gets styled differently depending on what it is over -->
-    <ul id="thumbnails"></ul> <!-- Thumbnails inserted here -->
     <!-- This element is the template of each thumbnail item -->
     <div id="thumbnail-group-header" class="hidden">
       <!--

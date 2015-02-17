@@ -30,7 +30,7 @@ Video.Selector = Object.freeze({
   videoControls: '#videoControls',
   overlay: '#overlay',
   thumbnailsSelectButton: '#thumbnails-select-button',
-  thumbnailSelectView: '#thumbnail-select-view',
+  thumbnailSelectTop: '#thumbnail-select-top',
   thumbnailsShareButton: '#thumbnails-share-button',
   thumbnailsVideoButton: '#thumbnails-video-button',
   thumbnailsDeleteButton: '#thumbnails-delete-button',
@@ -159,7 +159,7 @@ Video.prototype = {
   enterSelectionMode: function() {
     this.client.helper.waitForElement(Video.Selector.thumbnailsSelectButton)
       .click();
-    this.client.helper.waitForElement(Video.Selector.thumbnailSelectView);
+    this.client.helper.waitForElement(Video.Selector.thumbnailSelectTop);
   },
 
   /**
