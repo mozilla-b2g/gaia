@@ -61,8 +61,8 @@ apps/system/style/system/system.css 0 2
 apps/system/style/window.css 0 3
 apps/system/style/zindex.css 0 4
 apps/video/style/info.css 0 2
-apps/video/style/video.css 0 8
-apps/video/style/video_tablet.css 0 4
+apps/video/style/video.css 0 9
+apps/video/style/video_tablet.css 0 11
 apps/wappush/style/wappush.css 0 1
 apps/search/style/search.css 0 2
 shared/elements/gaia_grid/style.css 0 5

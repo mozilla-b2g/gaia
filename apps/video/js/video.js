@@ -12,23 +12,22 @@ const LAYOUT_MODE = {
 
 var dom = {};
 
-var ids = ['thumbnail-list-view', 'thumbnails-bottom', 'thumbnail-list-title',
-           'thumbnails', 'thumbnails-video-button', 'thumbnails-select-button',
-           'thumbnail-select-view',
-           'thumbnails-delete-button', 'thumbnails-share-button',
-           'thumbnails-select-top', 'thumbnails-number-selected',
-           'player-view', 'fullscreen-button', 'spinner-overlay',
-           'thumbnails-single-delete-button', 'thumbnails-single-share-button',
-           'thumbnails-single-info-button', 'info-view', 'info-close-button',
-           'player', 'overlay', 'overlay-title', 'overlay-text',
-           'overlay-menu', 'overlay-action-button', 'player-header',
-           'video-container', 'videoControls', 'videoBar', 'videoControlBar',
-           'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
-           'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
-           'slider-wrapper', 'throbber', 'picker-close', 'picker-title',
-           'picker-header', 'picker-done', 'options', 'options-view',
-           'options-cancel-button', 'seek-backward', 'seek-forward',
-           'in-use-overlay', 'in-use-overlay-title', 'in-use-overlay-text'];
+var ids = ['thumbnail-list-title', 'thumbnails', 'thumbnails-video-button',
+           'thumbnails-select-button', 'thumbnails-delete-button',
+           'thumbnails-share-button', 'thumbnails-select-top',
+           'thumbnails-number-selected', 'player-view', 'fullscreen-button',
+           'spinner-overlay', 'thumbnails-single-delete-button',
+           'thumbnails-single-share-button', 'thumbnails-single-info-button',
+           'info-view', 'info-close-button', 'player', 'overlay',
+           'overlay-title', 'overlay-text', 'overlay-menu',
+           'overlay-action-button', 'player-header', 'video-container',
+           'videoControls', 'videoBar', 'videoControlBar', 'close', 'play',
+           'playHead', 'timeSlider', 'elapsedTime', 'video-title',
+           'duration-text', 'elapsed-text', 'bufferedTime', 'slider-wrapper',
+           'throbber', 'picker-close', 'picker-title', 'picker-header',
+           'picker-done', 'options', 'options-view', 'options-cancel-button',
+           'seek-backward', 'seek-forward', 'in-use-overlay',
+           'in-use-overlay-title', 'in-use-overlay-text'];
 
 ids.forEach(function createElementRef(name) {
   dom[toCamelCase(name)] = document.getElementById(name);
@@ -50,7 +49,7 @@ var endedTimer;
 var controlShowing = false;
 var controlFadeTimeout = null;
 
-// In thumbnailSelectView, we allow the user to select thumbnails.
+// In thumbnails select view, we allow the user to select thumbnails.
 // These variables hold the names of the selected files, and map those
 // names to the corresponding File objects
 var selectedFileNames = [];
