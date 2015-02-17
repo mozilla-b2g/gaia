@@ -147,3 +147,8 @@
   font-weight: 500;
   color: #5f5f5f;
 }
+
+/*RTL style*/
+html[dir=rtl] #datausage-tab .app-usage-bar-used {
+  float: right;
+}
