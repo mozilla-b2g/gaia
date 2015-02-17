@@ -1158,3 +1158,8 @@ html[dir="rtl"] .list-playlist-icon {
   opacity: 1;
   transition: all 600ms ease;
 }
+
+.tile-title-artist:-moz-dir(rtl),
+.tile-title-album:-moz-dir(rtl) {
+  text-align: right;
+}
