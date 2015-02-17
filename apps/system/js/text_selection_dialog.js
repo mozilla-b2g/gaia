@@ -19,6 +19,7 @@
     this._transitionState = 'closed';
     this._scrolling = false;
     this._isSelectionVisible = true;
+    this.textualmenuDetail = null;
     SettingsListener.observe('copypaste.enabled', true,
       function onObserve(value) {
         if (value) {
@@ -188,7 +189,7 @@
       var rectWidth = rect.right - rect.left;
 
       if (!this._isSelectionVisible) {
-        this.close();
+        this.hide();
         return;
       }
       // If current element lost focus, we should hide the bubble.
@@ -226,7 +227,8 @@
 
       if (states.indexOf('selectall') !== -1 ||
           states.indexOf('mouseup') !== -1 ||
-          states.indexOf('updateposition') !== -1) {
+          (states.indexOf('updateposition') !== -1 &&
+           this.textualmenuDetail != null)) {
         this.show(detail);
         return;
       }
