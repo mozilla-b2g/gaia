@@ -16,10 +16,14 @@ a.menu-item:after {
   content: "forward-light";
   position: absolute;
   top: 0;
-  right: 0.3rem;
+  right: -0.9rem;
   font-size: 25px;
   line-height: 6rem;
-  color: #657073;
+  color: #a5acae;
+}
+
+a.menu-item:active:after {
+  color: #91aab0;
 }
 
 .menu-item::before {
