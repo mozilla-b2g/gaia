@@ -635,7 +635,7 @@ var KeypadManager = {
             reject();
           };
 
-          ConfirmDialog.show('loadingContacts', null, {
+          ConfirmDialog.show('loadingSimContacts', null, {
             title: 'cancel',
             callback: function() {
               canceled = true;
