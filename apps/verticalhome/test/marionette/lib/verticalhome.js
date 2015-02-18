@@ -353,24 +353,9 @@ VerticalHome.prototype = {
    * the grid to create a new group, and thus new placeholders.
    */
   openContextMenu: function() {
-    function placeholderExists() {
-      return !!document.querySelector('#icons .placeholder');
-    }
-
-    var selectors = VerticalHome.Selectors;
     var actions = this.client.loader.getActions();
-
-    if (!this.client.executeScript(placeholderExists)) {
-      this.enterEditMode();
-      var done = this.client.findElement(selectors.editHeaderDone);
-      var firstIcon = this.client.findElement(selectors.firstIcon);
-      actions.press(firstIcon).wait(1).move(done).release().perform();
-      this.exitEditMode();
-    }
-
-    var placeholder = this.client.findElement(selectors.placeholders);
-    placeholder.scriptWith(function(e) { e.scrollIntoView(false); });
-    actions.longPress(placeholder, 1).perform();
+    var body = this.client.findElement('body');
+    actions.longPress(body, 1).perform();
   }
 };
 
