@@ -262,14 +262,13 @@ var NotificationScreen = {
       return;
     }
 
-    evt.preventDefault();
-
     this._touchPosX = evt.touches[0].pageX - this._touchStartX;
     if (Math.abs(this._touchPosX) >= this.TAP_THRESHOLD) {
       this._isTap = false;
       this.notificationsContainer.style.overflow = 'hidden';
     }
     if (!this._isTap) {
+      evt.preventDefault();
       this._notification.style.transform =
         'translateX(' + this._touchPosX + 'px)';
     }
