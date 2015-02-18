@@ -167,6 +167,14 @@ Music.prototype = {
     }
   },
 
+  waitFinishedScanning: function() {
+    this.client.waitFor(function() {
+      return this.client.executeScript(function() {
+        return window.wrappedJSObject.musicdb.scanning === false;
+      });
+    }.bind(this));
+  },
+
   waitForFirstTile: function() {
     this.client.helper.waitForElement(Music.Selector.firstTile);
   },
