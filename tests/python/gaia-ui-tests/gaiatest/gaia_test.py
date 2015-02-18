@@ -182,11 +182,9 @@ class GaiaData(object):
 
     @property
     def sim_contacts(self):
-        # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
+        self.marionette.switch_to_frame()
         adn_contacts = self.marionette.execute_async_script('return GaiaDataLayer.getSIMContacts("adn");', special_powers=True)
         sdn_contacts = self.marionette.execute_async_script('return GaiaDataLayer.getSIMContacts("sdn");', special_powers=True)
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
         return adn_contacts + sdn_contacts
 
     def insert_contact(self, contact):
@@ -198,22 +196,16 @@ class GaiaData(object):
         self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
 
     def insert_sim_contact(self, contact, contact_type='adn'):
-        # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
         mozcontact = contact.create_mozcontact()
         result = self.marionette.execute_async_script('return GaiaDataLayer.insertSIMContact("%s", %s);'
                                                       % (contact_type, json.dumps(mozcontact)), special_powers=True)
         assert result, 'Unable to insert SIM contact %s' % contact
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
         return result
 
     def delete_sim_contact(self, moz_contact_id, contact_type='adn'):
-        # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
         result = self.marionette.execute_async_script('return GaiaDataLayer.deleteSIMContact("%s", "%s");'
                                                       % (contact_type, moz_contact_id), special_powers=True)
         assert result, 'Unable to insert SIM contact %s' % moz_contact_id
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
 
     def remove_all_contacts(self):
         # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
