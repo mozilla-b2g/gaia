@@ -92,16 +92,19 @@ function runTests(filenames, args, retry) {
       fail: 'failed',
       pending: 'todo'
     }, function(string, key) {
-      var regexp = new RegExp(string + ':\s*(\d+)');
+      var regexp = new RegExp(string + ':\\s*(\\d+)');
       var match = stdout.match(regexp);
       var count;
       try {
-        count = parseInt(match[0]);
+        count = parseInt(match[1]);
       } catch (error) {
-        return console.error(
+        console.error(error);
+        console.error(
           'Couldn\'t find ' + string + ' count in marionette-mocha output:\n' +
           stdout
         );
+
+        return;
       }
 
       tally[key] += count;
