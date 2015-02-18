@@ -77,6 +77,10 @@ h2 span {
   margin-top: 2.1rem;
 }
 
+#history-header.hidden {
+  display: none;
+}
+
 #history .result {
   font-size: 1.6rem;
   display: flex;
