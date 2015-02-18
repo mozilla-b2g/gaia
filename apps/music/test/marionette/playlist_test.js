@@ -165,4 +165,79 @@ marionette('Music player playlist', function() {
       assert.equal(PlaylistHelper.songTitle(songs[3]), 'Crash');
     });
   });
+
+  suite('Highest rated playlist', function() {
+    setup(function() {
+      client.fileManager.removeAllFiles();
+      client.fileManager.add([
+        {
+          type: 'music',
+          filePath: 'apps/music/test-data/playlists/a.ogg'
+        },
+        {
+          type: 'music',
+          filePath: 'apps/music/test-data/playlists/b.ogg'
+        },
+        {
+          type: 'music',
+          filePath: 'apps/music/test-data/playlists/c.ogg'
+        },
+        {
+          type: 'music',
+          filePath: 'apps/music/test-data/playlists/w.ogg'
+        },
+        {
+          type: 'music',
+          filePath: 'apps/music/test-data/playlists/x.ogg'
+        },
+        {
+          type: 'music',
+          filePath: 'apps/music/test-data/playlists/y.ogg'
+        },
+      ]);
+    });
+
+    test('Rating sort order', function() {
+      music.launch();
+      music.waitForFirstTile();
+
+      music.switchToAlbumsView();
+
+      music.selectAlbum('We crash computers');
+
+      music.waitForSongs(function(songs) {
+        return songs.length >= 6;
+      });
+
+      var songs = music.songs;
+      assert.equal(songs.length, 6);
+
+      client.executeScript(function() {
+        var w = window.wrappedJSObject;
+        var songData = w.SubListView.dataSource[3];
+        songData.metadata.rated = 4;
+        w.musicdb.updateMetadata(songData.name, songData.metadata);
+
+        songData = w.SubListView.dataSource[1];
+        songData.metadata.rated = 5;
+        w.musicdb.updateMetadata(songData.name, songData.metadata);
+      });
+
+      music.switchToPlaylistsView();
+
+      music.selectPlaylist('Highest rated');
+
+      music.waitForSongs(function(songs) {
+        return songs.length >= 6;
+      });
+      songs = music.songs;
+
+      assert.equal(PlaylistHelper.songIndex(songs[0]), '1');
+      assert.equal(PlaylistHelper.songTitle(songs[0]), 'XOXO');
+
+      assert.equal(PlaylistHelper.songIndex(songs[1]), '2');
+      assert.equal(PlaylistHelper.songTitle(songs[1]), 'Crash');
+    });
+
+  });
 });
