@@ -27,6 +27,7 @@
     <!-- We need this before we can show the boot animation -->
     <script src="shared/js/settings_helper.js"></script>
     <script defer src="shared/js/icc_helper.js"></script>
+    <script defer src="shared/js/stk_helper.js"></script>
     <script defer src="shared/js/mime_mapper.js"></script>
     <script defer src="shared/js/settings_url.js"></script>
     <script defer src="shared/js/advanced_timer.js"></script>
@@ -1100,48 +1101,52 @@
 
       <!-- icc / stk -->
       <div id="icc-view" class="generic-dialog" data-z-index-level="icc-view" role="dialog">
-        <section role="region" class="skin-organic" id="icc-alert">
+        <section role="region" class="skin-organic" id="icc-alert" data-icons="false">
           <gaia-header>
             <h1 id="icc-alert-maintitle" data-l10n-id="icc-message-maintitle"></h1>
           </gaia-header>
           <gaia-subheader skin="organic"><span id="icc-alert-subtitle"></span></gaia-subheader>
+          <span id="icc-alert-icons" class="icons"></span>
           <p id="icc-alert-msg"></p>
           <menu>
             <button type="button" data-l10n-id="close" id="icc-alert-btn" class="recommend full"></button>
           </menu>
         </section>
-        <section role="region" class="skin-organic" id="icc-confirm">
+        <section role="region" class="skin-organic" id="icc-confirm" data-icons="false">
           <gaia-header>
             <a href="#"><span data-icon="back" id="icc-confirm-btn_back"></span></a>
             <h1 id="icc-confirm-maintitle" data-l10n-id="icc-message-maintitle"></h1>
           </gaia-header>
           <gaia-subheader><span id="icc-confirm-subtitle"></span></gaia-subheader>
+          <span id="icc-confirm-icons" class="icons"></span>
           <p id="icc-confirm-msg"></p>
           <menu data-items="2">
             <button type="button" data-l10n-id="close" id="icc-confirm-btn_close"></button>
             <button type="button" data-l10n-id="ok" id="icc-confirm-btn" class="recommend"></button>
           </menu>
         </section>
-        <section role="region" class="skin-organic" id="icc-asyncconfirm">
+        <section role="region" class="skin-organic" id="icc-asyncconfirm" data-icons="false">
           <gaia-header>
             <h1 id="icc-asyncconfirm-maintitle" data-l10n-id="icc-message-maintitle"></h1>
           </gaia-header>
           <gaia-subheader skin="organic">
             <span id="icc-asyncconfirm-subtitle"></span>
           </gaia-subheader>
+          <span id="icc-asyncconfirm-icons" class="icons"></span>
           <p id="icc-asyncconfirm-msg"></p>
           <menu data-items="2">
             <button type="button" data-l10n-id="no" id="icc-asyncconfirm-btn-no"></button>
             <button type="button" data-l10n-id="yes" id="icc-asyncconfirm-btn-yes" class="recommend"></button>
           </menu>
         </section>
-        <section role="region" class="skin-organic" id="icc-input">
+        <section role="region" class="skin-organic" id="icc-input" data-icons="false">
           <gaia-header id="icc-input-header" action="back">
             <h1 id="icc-input-maintitle" data-l10n-id="icc-message-maintitle"></h1>
             <button type="button" data-l10n-id="help" id="icc-input-btn_help"></button>
           </gaia-header>
           <gaia-subheader skin="organic"><span id="icc-input-subtitle"></span></gaia-subheader>
           <form>
+            <span id="icc-input-icons" class="icons"></span>
             <p id="icc-input-msg"></p>
             <input id="icc-input-box" required="" type="text" dir="auto" />
           </form>
