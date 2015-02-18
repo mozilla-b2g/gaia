@@ -26,6 +26,7 @@ VerticalHome.Selectors = {
   editGroupTitleClear: '#edit-group-title-clear',
   search: '#search',
   firstIcon: '#icons div.icon:not(.placeholder)',
+  group: '#icons .group',
   groupHeader: '#icons .group .header',
   groupTitle: '#icons .group .header .title',
   groupBackground: '#icons .group .background',
@@ -371,6 +372,35 @@ VerticalHome.prototype = {
     var placeholder = this.client.findElement(selectors.placeholders);
     placeholder.scriptWith(function(e) { e.scrollIntoView(false); });
     actions.longPress(placeholder, 1).perform();
+  },
+
+  /**
+   * Waits for any in-progress drag action to complete.
+   */
+  waitForDragFinish: function() {
+    var grid = this.client.findElement(VerticalHome.Selectors.grid);
+    this.client.waitFor(function() {
+      return grid.scriptWith(function(grid) {
+        return !grid.classList.contains('dragging');
+      });
+    });
+
+    // Elements in the grid may still be animating into position after
+    // dragging has finalised. This shouldn't happen as all the animations
+    // are timed to finish together, but this seems to help with intermittent
+    // failures...
+    this.client.loader.getActions().wait(1).perform();
+  },
+
+  /**
+   * Waits for a particular group's collapse state to change.
+   */
+  waitForCollapseState: function(group, state) {
+    this.client.waitFor(function() {
+      return group.scriptWith(function(group) {
+        return group.classList.contains('collapsed');
+      }) === state;
+    });
   }
 };
 
