@@ -273,6 +273,18 @@ function checkForParsingErrors(content) {
   let messages = Services.console.getMessageArray();
   Services.console.reset();
 
+  // Temporary fix for bug 1133971.
+  // Allow CSS properties which we support in later versions of B2G.
+  // Once we have bug 1089710 landed we can remove this workaround.
+  messages = messages.filter(function(message) {
+    var msg = message.message;
+    if (msg.indexOf('offset-inline') !== -1 ||
+        msg.indexOf('offset-block') !== -1) {
+      return false;
+    }
+    return true;
+  });
+
   return messages;
 }
 
