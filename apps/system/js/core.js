@@ -20,7 +20,8 @@
     'TimeCore',
     'GeolocationCore',
     'TetheringMonitor',
-    'UsbCore'
+    'UsbCore',
+    'CameraTrigger'
   ];
 
   Core.SERVICES = [
