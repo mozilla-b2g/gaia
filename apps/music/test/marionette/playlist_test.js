@@ -289,12 +289,24 @@ marionette('Music player playlist', function() {
 
       client.executeScript(function() {
         var w = window.wrappedJSObject;
-        var songData = w.SubListView.dataSource[3];
+        var songData = w.SubListView.dataSource[4];
+        songData.metadata.played = 2;
+        w.musicdb.updateMetadata(songData.name, songData.metadata);
+
+        songData = w.SubListView.dataSource[3];
         songData.metadata.played = 4;
+        w.musicdb.updateMetadata(songData.name, songData.metadata);
+
+        songData = w.SubListView.dataSource[2];
+        songData.metadata.played = 3;
         w.musicdb.updateMetadata(songData.name, songData.metadata);
 
         songData = w.SubListView.dataSource[1];
         songData.metadata.played = 5;
+        w.musicdb.updateMetadata(songData.name, songData.metadata);
+
+        songData = w.SubListView.dataSource[0];
+        songData.metadata.played = 1;
         w.musicdb.updateMetadata(songData.name, songData.metadata);
       });
 
@@ -312,6 +324,25 @@ marionette('Music player playlist', function() {
 
       assert.equal(PlaylistHelper.songIndex(songs[1]), '2');
       assert.equal(PlaylistHelper.songTitle(songs[1]), 'Crash');
+
+      // Trick to go back to the playlistview.
+      // Alternative is to tap the back button.
+      music.switchToAlbumsView();
+      music.switchToPlaylistsView();
+
+      // Least played
+      music.selectPlaylist('Least played');
+
+      music.waitForSongs(function(songs) {
+        return songs.length >= 6;
+      });
+      songs = music.songs;
+
+      assert.equal(PlaylistHelper.songIndex(songs[0]), '1');
+      assert.equal(PlaylistHelper.songTitle(songs[0]), 'Abort');
+
+      assert.equal(PlaylistHelper.songIndex(songs[1]), '2');
+      assert.equal(PlaylistHelper.songTitle(songs[1]), 'Yield to thread');
     });
 
   });
