@@ -134,6 +134,10 @@ Music.prototype = {
     this.client.helper.waitForElement('body');
   },
 
+  close: function() {
+    this.client.apps.close(this.origin);
+  },
+
   switchToMe: function(options) {
     options = options || {};
 
