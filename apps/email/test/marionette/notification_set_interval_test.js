@@ -18,20 +18,23 @@ marionette('email notifications, set interval', function() {
                   }
                 }, this);
 
-  function getSynRegistrations(client) {
-    var regs;
+  function getAlarms(client) {
+    var alarms;
     client.waitFor(function() {
-      regs = client.executeScript(function() {
-        var nav = window.wrappedJSObject.navigator;
-        return nav.__mozFakeSyncRegistrations;
+      alarms = client.executeScript(function() {
+        var alarms = window.wrappedJSObject.navigator.__mozFakeAlarms;
+        if (alarms && alarms.length) {
+            return alarms;
+        }
        });
-      return regs;
+      return alarms;
     });
-    return regs;
+    return alarms;
   }
 
   setup(function() {
     app = new Email(client);
+    client.contentScript.inject(SHARED_PATH + '/mock_navigator_mozalarms.js');
     app.launch();
   });
 
@@ -49,6 +52,12 @@ marionette('email notifications, set interval', function() {
     // change.
     var emailData = new EmailData(client);
     emailData.waitForCurrentAccountUpdate('syncInterval', 3600000);
+
+    // Make sure an alarm was set.
+    var alarms = getAlarms(client);
+    assert(alarms.length === 1, 'have one alarm');
+    var alarm = alarms[0];
+    assert(alarm.interval === 3600000, 'has correct interval value');
 
     // Close the app, relaunch and make sure syncInterval was
     // persisted correctly
