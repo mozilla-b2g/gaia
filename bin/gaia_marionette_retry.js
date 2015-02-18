@@ -67,32 +67,57 @@ function runTests(filenames, args, retry) {
   }
 
   var next = filenames.pop();
-  var tally;
+  var tally = {};
   return runTests(filenames, args, retry)
   .then(function(results) {
-    tally = results;
+    [
+      'pass',
+      'fail',
+      'pending'
+    ].forEach(function(key) {
+      tally[key] = results[key] || 0;
+    });
+
     return runTest(next, args, retry);
   })
   .then(function(result) {
     // Now we have to output our result and package it
     // so that it can be aggregated for final results.
     var stdout = result.stdout;
+
     // This is the bit before the test run's mocha "epilogue".
     var incremental = stdout.slice(0, stdout.indexOf('*~*~*'));
+
     // Print incremental result.
     process.stdout.write(incremental);
-    // Parse the epilogue to get pass, fail, and pending counts.
-    var pass = parseInt(stdout.match(/passed:\s*(\d+)/)[1]);
-    var fail = parseInt(stdout.match(/failed:\s*(\d+)/)[1]);
-    var pending = parseInt(stdout.match(/todo:\s*(\d+)/)[1]);
-    tally.pass += pass;
-    tally.fail += fail;
-    tally.pending += pending;
 
-    if (fail) {
-      // Print out the exit code.
-      console.log('Exit code %d', result.code);
-    }
+    // Parse the epilogue to get pass, fail, and pending counts.
+    forEach({
+      pass: 'passed',
+      fail: 'failed',
+      pending: 'todo'
+    }, function(string, key) {
+      var regexp = new RegExp(string + ':\\s*(\\d+)');
+      var match = stdout.match(regexp);
+      var count;
+      try {
+        count = parseInt(match[1]);
+      } catch (error) {
+        console.error(error);
+        console.error(
+          'Couldn\'t find ' + string + ' count in marionette-mocha output:\n' +
+          stdout
+        );
+
+        return;
+      }
+
+      tally[key] += count;
+      if (key === 'fail' && count > 0) {
+        // Print out the exit code.
+        console.log('Exit code %d', result.code);
+      }
+    });
 
     return Promise.resolve(tally);
   })
@@ -153,6 +178,12 @@ function runTest(filename, args, retry) {
  */
 function testDidFailOnTbpl(stdout, stderr) {
   return stdout.indexOf('TEST-UNEXPECTED-FAIL') !== -1;
+}
+
+function forEach(obj, fn) {
+  for (var key in obj) {
+    fn(obj[key], key);
+  }
 }
 
 if (require.main === module) {
