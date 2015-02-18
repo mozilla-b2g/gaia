@@ -271,5 +271,48 @@ marionette('Music player playlist', function() {
       assert.equal(PlaylistHelper.songTitle(songs[0]),
                    'The Ecuadorian Embassy');
     });
+
+    test('Most played playlist sort order', function() {
+      music.launch();
+      music.waitForFirstTile();
+
+      music.switchToAlbumsView();
+
+      music.selectAlbum('We crash computers');
+
+      music.waitForSongs(function(songs) {
+        return songs.length >= 6;
+      });
+
+      var songs = music.songs;
+      assert.equal(songs.length, 6);
+
+      client.executeScript(function() {
+        var w = window.wrappedJSObject;
+        var songData = w.SubListView.dataSource[3];
+        songData.metadata.played = 4;
+        w.musicdb.updateMetadata(songData.name, songData.metadata);
+
+        songData = w.SubListView.dataSource[1];
+        songData.metadata.played = 5;
+        w.musicdb.updateMetadata(songData.name, songData.metadata);
+      });
+
+      music.switchToPlaylistsView();
+
+      music.selectPlaylist('Most played');
+
+      music.waitForSongs(function(songs) {
+        return songs.length >= 6;
+      });
+      songs = music.songs;
+
+      assert.equal(PlaylistHelper.songIndex(songs[0]), '1');
+      assert.equal(PlaylistHelper.songTitle(songs[0]), 'XOXO');
+
+      assert.equal(PlaylistHelper.songIndex(songs[1]), '2');
+      assert.equal(PlaylistHelper.songTitle(songs[1]), 'Crash');
+    });
+
   });
 });
