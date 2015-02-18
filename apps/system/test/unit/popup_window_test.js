@@ -76,11 +76,22 @@ suite('system/PopupWindow', function() {
     assert.isTrue(stubOpen.called);
   });
 
-  test('requst close should close directly', function() {
+  test('requestClose should close directly', function() {
     app = new AppWindow(fakeAppConfig);
     var popup = new PopupWindow(fakePopupConfig);
     var stubClose = this.sinon.stub(popup, 'close');
     popup.requestClose();
     assert.isTrue(stubClose.called);
+  });
+
+  test('Theme color should be the one from the parent', function() {
+    app = new AppWindow(fakeAppConfig);
+    app.themeColor = 'black';
+    fakePopupConfig.rearWindow = app;
+    var popup = new PopupWindow(fakePopupConfig);
+    assert.equal(app.themeColor, 'black');
+    assert.equal(popup.themeColor, 'black');
+    assert.equal(popup.element.classList.contains('light'),
+      app.element.classList.contains('light'));
   });
 });

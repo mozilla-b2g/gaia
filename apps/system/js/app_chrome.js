@@ -504,12 +504,20 @@
     };
 
   AppChrome.prototype.setThemeColor = function ac_setThemColor(color) {
-
     // Do not set theme color for private windows
     if (this.app.isPrivateBrowser()) {
       return;
     }
 
+    var bottomApp = this.app.getBottomMostWindow();
+
+    if (this.app.CLASS_NAME === 'PopupWindow' &&
+      bottomApp &&
+      bottomApp.themeColor) {
+      color = bottomApp.themeColor;
+    }
+
+    this.app.themeColor = color;
     this.element.style.backgroundColor = color;
 
     if (!this.app.isHomescreen) {
