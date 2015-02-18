@@ -269,6 +269,7 @@
         this._notifyUnlockingStop();
         break;
       case 'lockscreenslide-activate-left':
+      case 'holdcamera':
         this._activateCamera();
         break;
       case 'lockscreenslide-activate-right':
@@ -386,6 +387,9 @@
     // listen to media playback events to adjust notification container height
     window.addEventListener('iac-mediacomms', this);
     window.addEventListener('appterminated', this);
+
+    // Listen to event to start the Camera app
+    window.addEventListener('holdcamera', this);
 
     window.SettingsListener.observe('lockscreen.enabled', true,
       (function(value) {
