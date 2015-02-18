@@ -56,6 +56,7 @@
     <link rel="localization" href="locales/clock.{locale}.properties">
     <link rel="localization" href="locales/alarms.{locale}.properties">
     <script defer src="/shared/js/date_time_helper.js"></script>
+    <script defer data-main="js/startup.js" src="js/alameda.js"></script>
   </head>
 
   <body class="theme-media">
@@ -70,11 +71,9 @@
     </div>
 
     <ul role="tablist" class="bb-tablist skin-dark bottom" id="clock-tabs">
-      <li role="presentation"><a id="alarm-tab" aria-controls="alarm-panel" aria-selected="true" role="tab" href="#alarm-panel" data-l10n-id="alarm">Alarm</a></li>
-      <li role="presentation"><a id="timer-tab" aria-controls="timer-panel" aria-selected="false" role="tab" href="#timer-panel" data-l10n-id="timer">Timer</a></li>
-      <li role="presentation"><a id="stopwatch-tab" aria-controls="stopwatch-panel" aria-selected="false" role="tab" href="#stopwatch-panel" data-l10n-id="stopwatch">Stopwatch</a></li>
+      <li role="presentation"><a id="alarm-tab" aria-controls="alarm-panel" aria-selected="true" role="tab" href="#alarm-panel" data-l10n-id="alarm"></a></li>
+      <li role="presentation"><a id="timer-tab" aria-controls="timer-panel" aria-selected="false" role="tab" href="#timer-panel" data-l10n-id="timer"></a></li>
+      <li role="presentation"><a id="stopwatch-tab" aria-controls="stopwatch-panel" aria-selected="false" role="tab" href="#stopwatch-panel" data-l10n-id="stopwatch"></a></li>
     </ul>
-
-    <script data-main="js/startup.js" src="js/alameda.js"></script>
   </body>
 </html>
