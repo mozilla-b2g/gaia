@@ -42,7 +42,7 @@ suite('L10n bootstrap', function() {
     test('full meta, simple availableLanguages, no extra', function() {
       var meta = {
         defaultLocale: 'ab-CD',
-        availableLanguages: {'lang1': undefined}
+        availableLanguages: {'lang1': NaN}
       };
       var res = buildLocaleList(meta);
 
@@ -53,7 +53,7 @@ suite('L10n bootstrap', function() {
     test('full meta, no extra', function() {
       var meta = {
         defaultLocale: 'ab-CD',
-        availableLanguages: {'lang1': '201501151000'}
+        availableLanguages: {'lang1': 201501151000}
       };
       var res = buildLocaleList(meta);
 
@@ -64,11 +64,11 @@ suite('L10n bootstrap', function() {
     test('full meta, extra, matching target', function() {
       var meta = {
         defaultLocale: 'ab-CD',
-        availableLanguages: {'lang1': '201501151000'}
+        availableLanguages: {'lang1': 201501151000}
       };
       var extraLangs = {
         'lang2': [
-          {'version': '201501151213', 'target': '2.2'}
+          {'revision': 201501151213, 'target': '2.2'}
         ]
       };
       var res = buildLocaleList(meta, extraLangs);
@@ -84,11 +84,11 @@ suite('L10n bootstrap', function() {
     test('full meta, extra, target not matching', function() {
       var meta = {
         defaultLocale: 'ab-CD',
-        availableLanguages: {'lang1': '201501151000'}
+        availableLanguages: {'lang1': 201501151000}
       };
       var extraLangs = {
         'lang2': [
-          {'version': '201501151213', 'target': '2.3'}
+          {'revision': 201501151213, 'target': '2.3'}
         ]
       };
       var res = buildLocaleList(meta, extraLangs);
@@ -100,11 +100,11 @@ suite('L10n bootstrap', function() {
     test('full meta, extra, updated locale', function() {
       var meta = {
         defaultLocale: 'ab-CD',
-        availableLanguages: {'lang1': '201501151000'}
+        availableLanguages: {'lang1': 201501151000}
       };
       var extraLangs = {
         'lang1': [
-          {'version': '201501151213', 'target': '2.2'}
+          {'revision': 201501151213, 'target': '2.2'}
         ]
       };
       var res = buildLocaleList(meta, extraLangs);
@@ -116,11 +116,11 @@ suite('L10n bootstrap', function() {
     test('full meta, extra, updated locale obsolete', function() {
       var meta = {
         defaultLocale: 'ab-CD',
-        availableLanguages: {'lang1': '201501161000'}
+        availableLanguages: {'lang1': 201501161000}
       };
       var extraLangs = {
         'lang1': [
-          {'version': '201501151213', 'target': '2.2'}
+          {'revision': 201501151213, 'target': '2.2'}
         ]
       };
       var res = buildLocaleList(meta, extraLangs);
