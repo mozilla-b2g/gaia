@@ -93,8 +93,13 @@
      <p class="subtitle">${this.subTitle}</p>
     </div>
 
-    <div class="screenshotView bb-button" data-l10n-id="openCard"
-      role="link"></div>
+    <div class="appIconView" style="background-image:${this.iconValue}"></div>
+    <div class="appPreview bb-button" data-l10n-id="openCard"
+      role="link">
+      <div class="windowReflection"
+           style="background-image:-moz-element(#${this.app.instanceID})"></div>
+      <div class="windowScreenshot"></div>
+    </div>
     <div class="appIconView" style="background-image:${this.iconValue}"></div>
 
     <footer class="card-tray">
@@ -305,6 +310,7 @@
       elem.classList.add('browser');
     }
 
+    var previewContainer = this.previewContainer;
     var screenshotView = this.screenshotView;
     var isIconPreview = !this.getScreenshotPreviewsSetting();
     if (isIconPreview) {
@@ -325,7 +331,7 @@
     var isLandscape = (degree == 90 || degree == 270);
 
     // Rotate screenshotView if needed
-    screenshotView.classList.add('rotate-' + degree);
+    previewContainer.classList.add('rotate-' + degree);
 
     if (isIconPreview) {
       return;
@@ -335,33 +341,33 @@
       // We must exchange width and height if it's landscape mode
       var width = elem.clientHeight;
       var height = elem.clientWidth;
-      screenshotView.style.width = width + 'px';
-      screenshotView.style.height = height + 'px';
-      screenshotView.style.left = ((height - width) / 2) + 'px';
-      screenshotView.style.top = ((width - height) / 2) + 'px';
+      previewContainer.style.width = width + 'px';
+      previewContainer.style.height = height + 'px';
+      previewContainer.style.left = ((height - width) / 2) + 'px';
+      previewContainer.style.top = ((width - height) / 2) + 'px';
     }
 
     // If we have a cached screenshot, use that first
     var cachedLayer = app.requestScreenshotURL();
 
     if (cachedLayer && app.isActive()) {
-      screenshotView.classList.toggle('fullscreen',
+      previewContainer.classList.toggle('fullscreen',
                                       app.isFullScreen());
-      screenshotView.classList.toggle('maximized',
+      previewContainer.classList.toggle('maximized',
                                       app.appChrome.isMaximized());
       screenshotView.style.backgroundImage =
-        'url(' + cachedLayer + '),' +
-        '-moz-element(#' + this.app.instanceID + ')';
+        'url(' + cachedLayer + ')';
     } else {
       screenshotView.style.backgroundImage =
-        'url(none),' +
-        '-moz-element(#' + this.app.instanceID + ')';
+        'url(none)';
     }
 
   };
 
   Card.prototype._fetchElements = function c__fetchElements() {
-    this.screenshotView = this.element.querySelector('.screenshotView');
+    this.previewContainer = this.element.querySelector('.appPreview');
+    this.screenshotView = this.previewContainer
+                          .querySelector('.windowScreenshot');
     this.titleNode = this.element.querySelector('h1.title');
     this.iconButton = this.element.querySelector('.appIcon');
   };

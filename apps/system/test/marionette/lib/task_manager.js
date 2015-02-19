@@ -9,7 +9,8 @@
     selectors: {
       element: '#cards-view',
       cards: '#cards-view li',
-      screenshot: '.screenshotView'
+      screenshot: '.windowScreenshot',
+      reflection: '.windowReflection'
     },
     get element() {
       return this.client.helper.waitForElement(this.selectors.element);
