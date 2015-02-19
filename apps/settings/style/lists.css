@@ -151,7 +151,7 @@ ul li > *, ul li > label > *, ul li > a > * {
 }
 
 /* sublines */
-ul li > small, ul li > label > small , ul li > a > small {
+ul li > small, ul li > label > small , ul li > a > small, ul li > a > label > small {
   display: block;
   font-size: 1.4rem;
   color: #505859;
