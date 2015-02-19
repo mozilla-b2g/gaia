@@ -1,4 +1,4 @@
-/* global _, debug, ConfigManager, CostControl, Formatting,
+/* global debug, ConfigManager, CostControl, Formatting,
           SimManager, Common, ChartUtils */
 /* jshint -W120 */
 
@@ -18,8 +18,6 @@ var DataUsageTab = (function() {
   var appList, noData;
 
   var costcontrol, initialized, model;
-
-  var SYSTEM_MANIFEST = 'app://system.gaiamobile.org/manifest.webapp';
 
   function setupTab() {
     if (initialized) {
@@ -341,7 +339,7 @@ var DataUsageTab = (function() {
   function drawApps(model) {
 
     function createAppItem(app) {
-      var isSystem = app.manifestURL === SYSTEM_MANIFEST;
+      var isSystem = app.manifestURL === Common.SYSTEM_MANIFEST;
       var appElement = document.createElement('li');
       appElement.className = 'app-item';
 
@@ -367,9 +365,7 @@ var DataUsageTab = (function() {
 
       var nameElement = document.createElement('div');
       nameElement.className = 'app-info-row app-name';
-      nameElement.textContent = isSystem ?
-                                _('data-usage-other-apps') :
-                                Common.getLocalizedAppName(app);
+      nameElement.textContent = Common.getLocalizedAppName(app);
       appInfoElement.appendChild(nameElement);
 
       var barElement = document.createElement('div');
@@ -412,6 +408,7 @@ var DataUsageTab = (function() {
     // allocated to an app) to the System application.
     function fixResidualTraffic() {
       var breakdownTotal = 0;
+      mobileApps[Common.SYSTEM_MANIFEST] = {total: 0};
       if (manifests.length > 0) {
         breakdownTotal =
           manifests.reduce(function(accumulatedTraffic, appManifest) {
@@ -419,14 +416,11 @@ var DataUsageTab = (function() {
           }, 0);
       }
       var residualTraffic = mobileTotal - breakdownTotal;
-      // Updating System traffic to add the residual traffic
+      // System traffic is the residual traffic
       if (residualTraffic > 0) {
-        // Ensure system app exists
-        mobileApps[SYSTEM_MANIFEST] = mobileApps[SYSTEM_MANIFEST] || {total: 0};
-        var systemTraffic = mobileApps[SYSTEM_MANIFEST].total + residualTraffic;
-        mobileApps[SYSTEM_MANIFEST].total = systemTraffic;
-        if (!manifests[SYSTEM_MANIFEST]) {
-          manifests.push(SYSTEM_MANIFEST);
+        mobileApps[Common.SYSTEM_MANIFEST].total = residualTraffic;
+        if (!manifests[Common.SYSTEM_MANIFEST]) {
+          manifests.push(Common.SYSTEM_MANIFEST);
         }
       }
     }
