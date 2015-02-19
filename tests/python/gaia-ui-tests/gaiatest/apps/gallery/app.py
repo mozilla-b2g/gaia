@@ -21,6 +21,7 @@ class Gallery(Base):
     name = 'Gallery'
 
     _gallery_items_locator = (By.CSS_SELECTOR, 'div.thumbnail')
+    _overlay_locator = (By.ID, 'overlay')
     _empty_gallery_title_locator = (By.ID, 'overlay-title')
     _empty_gallery_text_locator = (By.ID, 'overlay-text')
     _progress_bar_locator = (By.ID, 'progress')
@@ -28,15 +29,23 @@ class Gallery(Base):
     _switch_to_camera_button_locator = (By.ID, 'thumbnails-camera-button')
     _switch_to_multiple_selection_view_locator = (By.ID, 'thumbnails-select-button')
 
-    def launch(self):
+    def launch(self, empty=False):
         Base.launch(self)
         self.wait_for_element_not_displayed(*self._progress_bar_locator)
-        self.wait_for_thumbnail_view_to_load()
+        if empty:
+            self.wait_for_overlay_to_show()
+        else:
+            self.wait_for_thumbnail_view_to_load()
 
     def wait_for_thumbnail_view_to_load(self):
         Wait(self.marionette).until(expected.element_displayed(
             Wait(self.marionette).until(expected.element_present(
                 *self._thumbnail_list_view_locator))))
+
+    def wait_for_overlay_to_show(self):
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._overlay_locator))))
 
     def wait_for_files_to_load(self, files_number):
         Wait(self.marionette).until(lambda m: m.execute_script(

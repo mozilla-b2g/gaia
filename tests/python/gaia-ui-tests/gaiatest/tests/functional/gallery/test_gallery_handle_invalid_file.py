@@ -26,7 +26,7 @@ class TestGalleryHandleInvalidPhoto(GaiaTestCase):
         self.push_resource(filename)
 
         gallery = Gallery(self.marionette)
-        gallery.launch()
+        gallery.launch(filename != "image_formats/x07.jpg")
 
         self.assertTrue(len(self.data_layer.picture_files) == 1)
 
