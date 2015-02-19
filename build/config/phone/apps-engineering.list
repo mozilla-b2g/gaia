@@ -33,9 +33,6 @@ dev_apps/contacts-manager
 dev_apps/contacts-ds-provider1
 dev_apps/contacts-ds-provider2
 dev_apps/demo-hci-event
-dev_apps/nfc-api-test
 dev_apps/theme-test-1
 dev_apps/theme-test-2
 dev_apps/theme-test-3
-dev_apps/addon1
-dev_apps/viewsource
