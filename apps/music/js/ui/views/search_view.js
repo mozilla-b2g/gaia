@@ -121,7 +121,7 @@ var SearchView = {
       view.getElementsByClassName('search-results')[0].innerHTML = '';
       view.classList.add('hidden');
     });
-    this.showNoResult(true);
+    this.showNoResult(false);
     this.dataSource = [];
   },
 
