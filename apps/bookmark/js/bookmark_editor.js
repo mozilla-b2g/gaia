@@ -25,6 +25,7 @@ var BookmarkEditor = {
     var _ = navigator.mozL10n.get;
     this.mode = document.body.dataset.mode = mode;
     this.bookmarkTitle = document.getElementById('bookmark-title');
+    this.bookmarkURL = document.getElementById('bookmark-url');
     this.bookmarkIcon = document.getElementById('bookmark-icon');
     this.cancelButton = document.getElementById('cancel-button');
     this.saveButton = document.getElementById('done-button');
@@ -40,6 +41,8 @@ var BookmarkEditor = {
 
     this.bookmarkTitle.value = this.data.name || '';
 
+    this.bookmarkURL.textContent = this.data.url;
+    
     this._renderIcon();
 
     if (this.data.manifestURL) {
