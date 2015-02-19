@@ -126,7 +126,7 @@ suite('conference group handler', function() {
         this.sinon.spy(MockConferenceGroupUI, 'setGroupDetailsHeader');
         flush();
         sinon.assert.calledWith(
-          MockConferenceGroupUI.setGroupDetailsHeader, bdiCompare.outerHTML);
+          MockConferenceGroupUI.setGroupDetailsHeader, bdiCompare.textContent);
         assert.deepEqual(MockLazyL10n.keys.conferenceCall, {n: 2});
       });
 
