@@ -21,7 +21,6 @@ dev_apps/test-receiver-1
 dev_apps/test-receiver-2
 dev_apps/test-receiver-inline
 dev_apps/test-wappush
-dev_apps/test-shared-css
 dev_apps/uitest
 dev_apps/uitest-privileged
 dev_apps/test-fxa-client
