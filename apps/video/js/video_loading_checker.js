@@ -74,9 +74,11 @@
     checker.overlayText.setAttribute('data-l10n-id',
                                      'video-hardware-in-use-text');
     checker.overlay.classList.remove('hidden');
+    document.body.classList.add('in-use-overlay');
   }
 
   function hideOverlay(checker) {
+    document.body.classList.remove('in-use-overlay');
     checker.overlay.classList.add('hidden');
   }
 

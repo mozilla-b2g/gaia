@@ -9,7 +9,9 @@ from gaiatest.apps.base import Base
 
 class FullscreenVideo(Base):
 
-    _video_controls_locator = (By.ID, 'videoControls')
+    _video_controls_header = (By.ID, 'player-header')
+    _video_controls_video_bar = (By.ID, 'videoBar')
+    _video_controls_video_control_bar = (By.ID, 'videoControlBar')
     _video_title_locator = (By.ID, 'video-title')
     _elapsed_text_locator = (By.ID, 'elapsed-text')
     _video_player_locator = (By.ID, 'player')
@@ -20,7 +22,9 @@ class FullscreenVideo(Base):
 
     def show_controls(self):
         self.marionette.find_element(*self._video_player_locator).tap()
-        self.wait_for_element_displayed(*self._video_controls_locator)
+        self.wait_for_element_displayed(*self._video_controls_header)
+        self.wait_for_element_displayed(*self._video_controls_video_bar)
+        self.wait_for_element_displayed(*self._video_controls_video_control_bar)
 
     @property
     def elapsed_time(self):
