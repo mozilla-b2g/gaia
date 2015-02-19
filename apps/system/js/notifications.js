@@ -7,6 +7,8 @@
 var NotificationScreen = {
   TOASTER_TIMEOUT: 5000,
   TRANSITION_FRACTION: 0.30,
+  TRANSITION_DURATION: 300,
+  SWIPE_INERTIA: 100,
   TAP_THRESHOLD: 10,
   SCROLL_THRESHOLD: 10,
   CLEAR_DELAY: 80,
@@ -92,6 +94,7 @@ var NotificationScreen = {
     window.addEventListener('ftuopen', this);
     window.addEventListener('ftudone', this);
     window.addEventListener('desktop-notification-resend', this);
+    window.addEventListener('localized', this);
 
     this._sound = 'style/notifications/ringtones/notifier_firefox.opus';
 
@@ -174,6 +177,7 @@ var NotificationScreen = {
         break;
       case 'ftudone':
         this.toaster.addEventListener('tap', this);
+        this.updateNotificationIndicator();
         break;
       case 'desktop-notification-resend':
         this.resendExpecting = evt.detail.number;
@@ -187,6 +191,9 @@ var NotificationScreen = {
         setTimeout((function() {
           this.clearLockScreen();
         }).bind(this), 400);
+        break;
+      case 'localized':
+        this.updateNotificationsDir();
         break;
     }
   },
@@ -228,6 +235,7 @@ var NotificationScreen = {
     this._touchStartX = evt.touches[0].pageX;
     this._touchStartY = evt.touches[0].pageY;
     this._touchPosX = 0;
+    this._touchStartTime = evt.timeStamp;
     this._touching = true;
     this._isTap = true;
   },
@@ -259,6 +267,7 @@ var NotificationScreen = {
     this._touchPosX = evt.touches[0].pageX - this._touchStartX;
     if (Math.abs(this._touchPosX) >= this.TAP_THRESHOLD) {
       this._isTap = false;
+      this.notificationsContainer.style.overflow = 'hidden';
     }
     if (!this._isTap) {
       this._notification.style.transform =
@@ -274,6 +283,8 @@ var NotificationScreen = {
     evt.preventDefault();
     this._touching = false;
 
+    this.notificationsContainer.style.overflow = '';
+
     if (this._isTap) {
       var event = new CustomEvent('tap', {
         bubbles: true,
@@ -284,12 +295,21 @@ var NotificationScreen = {
       return;
     }
 
-    if (Math.abs(this._touchPosX) >
+    // Taking speed into account to detect swipes
+    var deltaT = evt.timeStamp - this._touchStartTime;
+    var speed = this._touchPosX / deltaT;
+    var inertia = speed * this.SWIPE_INERTIA;
+    var finalDelta = Math.abs(this._touchPosX + inertia);
+
+    if (finalDelta >
         this._containerWidth * this.TRANSITION_FRACTION) {
       if (this._touchPosX < 0) {
         this._notification.classList.add('left');
       }
-      this.swipeCloseNotification();
+
+      var durationLeft = (1 - (finalDelta / this._containerWidth)) *
+                         this.TRANSITION_DURATION;
+      this.swipeCloseNotification(durationLeft);
     } else {
       this.cancelSwipe();
     }
@@ -329,7 +349,8 @@ var NotificationScreen = {
     }));
 
     // Desktop notifications are removed when they are clicked (see bug 890440)
-    if (notificationNode.dataset.type === 'desktop-notification' &&
+    if (notificationNode &&
+        notificationNode.dataset.type === 'desktop-notification' &&
         notificationNode.dataset.obsoleteAPI === 'true') {
       this.closeNotification(notificationNode);
     }
@@ -362,6 +383,25 @@ var NotificationScreen = {
     return date;
   },
 
+  /* updateNotificationsDir makes sure all the notifications'
+   * directions are updated accoring to the system direction
+   * if they have dir explicitely specified to "auto", which is
+   * how we want the auto to behave, otherwise every child element
+   * will be aligned according to its own direction which creates
+   * a UI mess we can't control by changing the system
+   * language/direction
+   */
+  updateNotificationsDir: function ns_updateNotificationsDir() {
+    var newDir = document.documentElement.dir;
+    var notificationGroup = document.getElementsByClassName('notification');
+    for (var i = 0, l = notificationGroup.length; i < l; i++) {
+      var predefinedDir = notificationGroup[i].dataset.predefinedDir;
+      if ((predefinedDir === 'auto') || !predefinedDir) {
+        notificationGroup[i].dir = newDir;
+      }
+    }
+  },
+
   updateToaster: function ns_updateToaster(detail, type, dir) {
     if (detail.icon) {
       this.toasterIcon.src = detail.icon;
@@ -372,13 +412,11 @@ var NotificationScreen = {
 
     this.toaster.dataset.notificationId = detail.id;
     this.toaster.dataset.type = type;
-    this.toasterTitle.textContent = detail.title;
-    this.toasterTitle.lang = detail.lang;
-    this.toasterTitle.dir = dir;
+    this.toaster.lang = detail.lang;
+    this.toaster.dir = dir;
 
+    this.toasterTitle.textContent = detail.title;
     this.toasterDetail.textContent = detail.text;
-    this.toasterDetail.lang = detail.lang;
-    this.toasterDetail.dir = dir;
   },
 
   addNotification: function ns_addNotification(detail) {
@@ -395,6 +433,17 @@ var NotificationScreen = {
       this.container.querySelector('.priority-notifications') :
       this.container.querySelector('.other-notifications');
 
+    /* If dir "auto" was specified by the notification,
+     * use document direction instead because dir="auto"
+     * does not align the notification node according to
+     * the system language direction but instead it aligns
+     * every child element according to its own language
+     * which creates a UI mess we can't control by changing
+     * the system language.
+     */
+    var dir = (detail.bidi === 'auto' || typeof detail.bidi === 'undefined') ?
+      document.documentElement.dir : detail.bidi;
+
     // We need to animate the ambient indicator when the toast
     // timesout, so we skip updating it here, by passing a skip bool
     this.addUnreadNotification(detail.id, true);
@@ -405,6 +454,10 @@ var NotificationScreen = {
 
     notificationNode.dataset.notificationId = detail.id;
     notificationNode.dataset.noClear = behavior.noclear ? 'true' : 'false';
+
+    notificationNode.lang = detail.lang;
+    notificationNode.dir = dir;
+    notificationNode.dataset.predefinedDir = detail.bidi;
 
     notificationNode.dataset.obsoleteAPI = 'false';
     if (typeof detail.id === 'string' &&
@@ -422,20 +475,13 @@ var NotificationScreen = {
       notificationNode.appendChild(icon);
     }
 
-    var dir = (detail.bidi === 'ltr' ||
-               detail.bidi === 'rtl') ?
-          detail.bidi : 'auto';
-
     var titleContainer = document.createElement('div');
     titleContainer.classList.add('title-container');
-    titleContainer.lang = detail.lang;
-    titleContainer.dir = dir;
 
     var title = document.createElement('div');
     title.classList.add('title');
     title.textContent = detail.title;
-    title.lang = detail.lang;
-    title.dir = dir;
+
     titleContainer.appendChild(title);
 
     var time = document.createElement('span');
@@ -450,8 +496,6 @@ var NotificationScreen = {
     var message = document.createElement('div');
     message.classList.add('detail');
     message.textContent = detail.text;
-    message.lang = detail.lang;
-    message.dir = dir;
     notificationNode.appendChild(message);
 
     var notifSelector = '[data-notification-id="' + detail.id + '"]';
@@ -468,7 +512,11 @@ var NotificationScreen = {
       } else if (oldIcon) {
         oldNotif.removeChild(oldIcon);
       }
+      // but we still need to update type, lang and dir.
       oldNotif.dataset.type = type;
+      oldNotif.lang = detail.lang;
+      oldNotif.dir = dir;
+
       notificationNode = oldNotif;
     } else {
       notificationContainer.insertBefore(notificationNode,
@@ -580,7 +628,7 @@ var NotificationScreen = {
       }));
   },
 
-  swipeCloseNotification: function ns_swipeCloseNotification() {
+  swipeCloseNotification: function ns_swipeCloseNotification(duration) {
     var notification = this._notification;
     this._notification = null;
 
@@ -610,6 +658,8 @@ var NotificationScreen = {
     });
 
     notification.classList.add('disappearing');
+    duration = duration || this.TRANSITION_DURATION;
+    notification.style.transitionDuration = duration + 'ms';
     notification.style.transform = '';
   },
 
@@ -640,6 +690,11 @@ var NotificationScreen = {
 
   updateNotificationIndicator: function ns_updateNotificationIndicator() {
     if (this.unreadNotifications.length) {
+      // If the ftu is running we should not show the ambient indicator
+      // because the statusbar is not accessible
+      if (Service.query('isFtuRunning')) {
+        return;
+      }
       this.ambientIndicator.classList.add('unread');
       navigator.mozL10n.setAttributes(
         this.ambientIndicator,
@@ -717,6 +772,13 @@ var NotificationScreen = {
                       });
     var notification;
     this.clearAllButton.disabled = true;
+    // When focus is on a disabled element, Gecko will not dispatch any keyboard
+    // events to it (the disabled element) and its parent.
+    // The clearAll Button is focused but disabled right away after
+    // user click it. We need to blur the focus immediately, otherwise System
+    // app could not receive any keyboard events. See more detail on
+    // http://bugzil.la/1106844
+    this.clearAllButton.blur();
     if (!clearable.length) {
       return;
     }

@@ -13,7 +13,6 @@ suite('Provider.CaldavPullEvents', function() {
   var fixtures;
   var ical;
   var subject;
-  var controller;
   var stream;
   var db;
   var app;
@@ -80,7 +79,6 @@ suite('Provider.CaldavPullEvents', function() {
   setup(function(done) {
     app = testSupport.calendar.app();
     db = app.db;
-    controller = app.timeController;
 
     db.open(function(err) {
       assert.ok(!err);
@@ -516,17 +514,11 @@ suite('Provider.CaldavPullEvents', function() {
   });
 
   suite('#handleOccurrenceSync', function() {
-    var addedTimes = [];
     var times = [];
     var event;
 
     setup(function(done) {
       event = serviceEvent('dailyEvent');
-      addedTimes.length = 0;
-
-      controller.cacheBusytime = function(given) {
-        addedTimes.push(given);
-      };
 
       var stream = new Responder();
 
@@ -575,8 +567,6 @@ suite('Provider.CaldavPullEvents', function() {
         subject.alarmQueue.length, alarms.length,
         'moves moves to alarm queue'
       );
-
-      assert.equal(addedTimes[0]._id, expected._id, 'added times');
     });
 
   });
@@ -698,19 +688,8 @@ suite('Provider.CaldavPullEvents', function() {
     });
 
     test('event new', function() {
-      var calledWith;
-      controller.cacheEvent = function() {
-        calledWith = arguments;
-      };
-
       var event = serviceEvent('singleEvent');
       stream.emit('event', event);
-
-      assert.hasProperties(
-        calledWith[0].remote,
-        event.remote,
-        'caches remote event'
-      );
 
       assert.deepEqual(
         subject.eventQueue,

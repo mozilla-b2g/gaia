@@ -12,7 +12,8 @@
 
   Core.SUB_MODULES = [
     'HierarchyManager',
-    'AirplaneMode'
+    'AirplaneMode',
+    'NotificationsSystemMessage'
   ];
 
   Core.SERVICES = [
@@ -25,7 +26,8 @@
     REGISTRY: {
       'mozSettings': 'SettingsCore',
       'mozBluetooth': 'BluetoothCore',
-      'mozMobileConnections': 'MobileConnectionCore'
+      'mozMobileConnections': 'MobileConnectionCore',
+      'mozNfc': 'NfcCore'
     },
 
     getAPI: function(api) {

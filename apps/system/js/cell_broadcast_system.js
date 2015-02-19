@@ -67,7 +67,7 @@
      */
     show: function cbs_show(event) {
       var msg = event.message;
-      var serviceId = event.serviceId || 0;
+      var serviceId = msg.serviceId || 0;
       var conn = window.navigator.mozMobileConnections[serviceId];
       var id = msg.messageId;
 

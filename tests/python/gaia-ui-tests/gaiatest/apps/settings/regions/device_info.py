@@ -2,7 +2,15 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
+
 from gaiatest.apps.base import Base
 
 
@@ -15,7 +23,8 @@ class DeviceInfo(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_element_displayed(*self._phone_number_locator)
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._phone_number_locator))
 
     @property
     def phone_number(self):
@@ -50,7 +59,8 @@ class DeviceInfo(Base):
 
         def __init__(self, marionette):
             Base.__init__(self, marionette)
-            self.wait_for_element_displayed(*self._os_version_locator)
+            Wait(self.marionette).until(
+                expected.element_displayed(*self._os_version_locator))
 
         @property
         def os_version(self):

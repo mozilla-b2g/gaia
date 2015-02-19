@@ -27,6 +27,7 @@ var MockMozL10n = window.navigator.mozL10n = {
   translate: function() {},
   once: function(cb) {
     this.realL10nCB = cb;
+    cb();
   },
   setAttributes: function(element, id, args) {
     element.setAttribute('data-l10n-id', id);

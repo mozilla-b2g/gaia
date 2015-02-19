@@ -107,6 +107,12 @@ Thread.prototype = {
           name: name,
           message: Array.prototype.slice.call(arguments).join(', ')
         }]);
+      },
+      error: function() {
+        return postMessage(['error', {
+          name: name,
+          message: Array.prototype.slice.call(arguments).join(', ')
+        }]);
       }
     };
   }

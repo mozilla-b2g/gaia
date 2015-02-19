@@ -79,11 +79,13 @@ suiteGroup('views/settings', function() {
       '      <div role="toolbar">',
       '        <button class="settings toolbar-item">',
       '          <span class="icon"',
-      '                data-l10n-id="advanced-settings-short">Settings</span>',
+      '                data-l10n-id="advanced-settings-short-icon-button">',
+      '          </span>',
       '        </button>',
       '        <button class="sync update toolbar-item">',
       '          <span class="icon"',
-      '                data-l10n-id="drawer-sync-button">Sync</span>',
+      '                data-l10n-id="drawer-sync-icon-button"></span>',
+      '          <span class="sync-progress" role="progressbar"></span>',
       '        </button>',
       '      </div>',
       '    </div>',
@@ -168,6 +170,10 @@ suiteGroup('views/settings', function() {
 
   test('#syncProgressTarget', function() {
     assert.ok(subject.syncProgressTarget);
+  });
+
+  test('#syncProgress', function() {
+    assert.ok(subject.syncProgress);
   });
 
   suite('#_observeAccountStore', function() {
@@ -336,16 +342,27 @@ suiteGroup('views/settings', function() {
     });
   });
 
-  test('sync', function() {
-    var controller = app.syncController;
-    var calledWith;
+  suite('syncProgress', function() {
 
-    controller.all = function() {
-      calledWith = arguments;
-    };
+    test('syncStart', function(done) {
+      app.syncController.on('syncStart', function () {
+        assert.ok(subject.syncProgress.classList.contains('syncing'));
+        assert.equal(subject.syncProgress.getAttribute('data-l10n-id'),
+        'sync-progress-syncing');
+        done();
+      });
+      app.syncController.emit('syncStart');
+    });
 
-    triggerEvent(subject.syncButton, 'click');
-    assert.ok(calledWith);
+    test('syncComplete', function(done) {
+      app.syncController.on('syncComplete', function () {
+        assert.equal(subject.syncProgress.getAttribute('data-l10n-id'),
+        'sync-progress-complete');
+        assert.notOk(subject.syncProgress.classList.contains('syncing'));
+        done();
+      });
+      app.syncController.emit('syncComplete');
+    });
   });
 
   suite('#_onCalendarDisplayToggle', function() {

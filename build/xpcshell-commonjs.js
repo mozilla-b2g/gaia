@@ -131,6 +131,9 @@ var CommonjsRunner = function(module, appOptions) {
   if (typeof btoa === 'function') {
     globals.btoa = btoa;
   }
+  if (typeof quit === 'function') {
+    globals.quit = quit;
+  }
 
   let loader = Loader.Loader({
     paths: paths,
@@ -161,7 +164,6 @@ CommonjsRunner.prototype.run = function() {
       output += this.appDirFile.leafName;
     }
     output += '/' + this.module;
-    dump('run-js-command ' + output + '\n');
 
     this.require(this.module).execute(options);
 

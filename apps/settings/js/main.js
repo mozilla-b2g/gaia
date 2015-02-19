@@ -11,6 +11,7 @@ require(['config/require'], function() {
     var SettingsService = require('modules/settings_service');
     var ScreenLayout = require('shared/screen_layout');
     var Settings = require('settings');
+    var DsdsSettings = require('dsds_settings');
 
     function isInitialPanel(panel) {
       if (Settings.isTabletAndLandscape()) {
@@ -27,26 +28,44 @@ require(['config/require'], function() {
 
       var bluetoothMenuItem =
         document.querySelector('#root .menuItem-bluetooth');
-      bluetoothMenuItem.setAttribute('href', '#');
+      if (bluetoothMenuItem) {
+        bluetoothMenuItem.setAttribute('href', '#');
+      }
 
       var initialPanelHandler = window.LaunchContext.initialPanelHandler;
       if (initialPanelHandler) {
         initialPanelHandler.release();
         var pendingTargetPanel = initialPanelHandler.pendingTargetPanel;
-        // XXX: special logic for navigating to bluetooth panels
-        if (pendingTargetPanel === 'bluetooth') {
-          require(['modules/bluetooth/version_detector'], (versionDetector) => {
-            var version = versionDetector.getVersion();
-            if (version === 1) {
-              // navigate old bluetooth panel..
-              SettingsService.navigate('bluetooth');
-            } else if (version === 2) {
-              // navigate new bluetooth panel..
-              SettingsService.navigate('bluetooth_v2');
+        // XXX: In bluetooth and call item,
+        // we need special logic for navigating to specific panels.
+       
+        switch (pendingTargetPanel) {
+          case 'bluetooth':
+            require(['modules/bluetooth/version_detector'],
+              (versionDetector) => {
+              var version = versionDetector.getVersion();
+              if (version === 1) {
+                // navigate old bluetooth panel..
+                SettingsService.navigate('bluetooth');
+              } else if (version === 2) {
+                // navigate new bluetooth panel..
+                SettingsService.navigate('bluetooth_v2');
+              }
+            });
+            break;
+          case 'call':
+            if (DsdsSettings.getNumberOfIccSlots() > 1) {
+              // If the device support dsds,
+              // then navigate to 'call-iccs' panel
+              pendingTargetPanel = 'call-iccs';
             }
-          });
-        } else if (pendingTargetPanel) {
-          SettingsService.navigate(pendingTargetPanel);
+            SettingsService.navigate(pendingTargetPanel);
+            break;
+          default:
+            if (pendingTargetPanel) {
+              SettingsService.navigate(pendingTargetPanel);
+            }
+            break;
         }
       }
 
@@ -55,6 +74,7 @@ require(['config/require'], function() {
       // XXX: Even the panel has been displayed but the content may still not
       //      stable yet. This is a estimated timing of visually complete. We
       //      should implement other mechanism waiting for all content ready.
+      window.performance.mark('visuallyLoaded');
       window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
 
       // Activate the animation.
@@ -68,6 +88,7 @@ require(['config/require'], function() {
 
         // The loading of telephony settings is dependent on being idle,
         // once complete we are safe to declare the settings app as loaded
+        window.performance.mark('fullyLoaded');
         window.dispatchEvent(new CustomEvent('moz-app-loaded'));
       });
 

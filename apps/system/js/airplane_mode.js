@@ -33,7 +33,7 @@
     /*
      * This is an internal key to store current state of AirplaneMode
      */
-    _enabled: null,
+    _enabled: undefined,
 
     /*
      * This is an event mapping table that will help us wait for

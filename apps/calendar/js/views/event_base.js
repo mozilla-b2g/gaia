@@ -3,8 +3,11 @@ define(function(require, exports, module) {
 
 var Event = require('models/event');
 var View = require('view');
+var dayObserver = require('day_observer');
+var isToday = require('calc').isToday;
 var nextTick = require('next_tick');
 var providerFactory = require('provider/provider_factory');
+var router = require('router');
 
 function EventBase(options) {
   View.apply(this, arguments);
@@ -193,28 +196,25 @@ EventBase.prototype = {
   _loadModel: function(id, callback) {
     var self = this;
     var token = ++this._changeToken;
-    var time = this.app.timeController;
     var classList = this.element.classList;
 
     classList.add(this.LOADING);
 
-    time.findAssociated(id, function(err, list) {
-      if (err) {
-        classList.remove(this.LOADING);
-        console.error('Error looking up records for id: ', id);
-      }
-
-      var records = list[0];
+    dayObserver.findAssociated(id).then(record => {
       if (token === self._changeToken) {
         self.useModel(
-          records.busytime,
-          records.event,
+          record.busytime,
+          record.event,
           callback
         );
       } else {
         // ensure loading is removed
         classList.remove(this.LOADING);
       }
+    })
+    .catch(() => {
+      classList.remove(this.LOADING);
+      console.error('Error looking up records for id: ', id);
     });
   },
 
@@ -224,15 +224,10 @@ EventBase.prototype = {
    * @return {Calendar.Models.Model} new model.
    */
   _createModel: function(time) {
-    var now = new Date();
+    // time can be null in some cases, default to today (eg. unit tests)
+    time = time || new Date();
 
-    if (time < now) {
-      time = now;
-      now.setHours(now.getHours() + 1);
-      now.setMinutes(0);
-      now.setSeconds(0);
-      now.setMilliseconds(0);
-    }
+    this._setDefaultHour(time);
 
     var model = new Event();
     model.startDate = time;
@@ -243,6 +238,17 @@ EventBase.prototype = {
     model.endDate = end;
 
     return model;
+  },
+
+  _setDefaultHour: function(date) {
+    if (isToday(date)) {
+      var now = new Date();
+      // events created today default to begining of the next hour
+      date.setHours(now.getHours() + 1, 0, 0, 0);
+    } else {
+      // events created on other days default to 8AM
+      date.setHours(8, 0, 0, 0);
+    }
   },
 
   /**
@@ -277,7 +283,7 @@ EventBase.prototype = {
 
     var id = data.params.id;
     var classList = this.element.classList;
-    var last = this.app.router.last;
+    var last = router.last;
 
     if (last && last.path) {
       if (!(/^\/(day|event|month|week)/.test(last.path))) {

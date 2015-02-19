@@ -5,6 +5,7 @@
 
 var MockMessageManager = {
   _message: null,
+  init: () => {},
   getThreads: function() {},
   getMessages: function() {},
   getMessage: function() {

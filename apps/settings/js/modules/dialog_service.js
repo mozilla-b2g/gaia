@@ -11,9 +11,21 @@
  *
  * 1. Alert dialog
  *
- * DialogService
- * .alert('this is alert message', {
- *   title: 'This is alert dialog'
+ * DialogService.alert({
+ *   id: 'MessageId',
+ *   args: {}
+ * }, {
+ *   title: { id: 'TitleId', args: {} }
+ * })
+ * .then(function(result) {
+ *   var type = result.type;
+ * });
+ *
+ * NOTE:
+ * If there is no args in locales, you can direclty pass l10nId without args.
+ *
+ * DialogService.alert('MessageId', {
+ *   title: 'TitleId'
  * })
  * .then(function(result) {
  *   var type = result.type;
@@ -21,11 +33,13 @@
  *
  * 2. Confirm dialog
  *
- * DialogService
- * .confirm('this is confirm message', {
- *   title: 'This is confirm dialog',
- *   submitButtonText: 'GO',
- *   cancelButtonText: 'BACK'
+ * DialogService.confirm({
+ *   id: 'MessageId',
+ *   args: {}
+ * }, {
+ *   title: { id: 'TitleId', args: {} },
+ *   submitButton: { id: 'SubmitButtonId', args: {}, style: 'recommend' },
+ *   cancelButton: { id: 'CancelButtonId', args: {} }
  * })
  * .then(function(result) {
  *   var type = result.type;
@@ -33,8 +47,11 @@
  *
  * 3. Prompt dialog
  * 
- * DialogService.prompt('this is a prompt message', {
- *   title: 'Please type email'
+ * DialogService.prompt({
+ *   id: 'MessageId',
+ *   args: {}
+ * }, {
+ *   title: { id: 'TitleId', args: {} },
  *   defaultValue: 'e.g. test@mozilla.com',
  * }).then(function(result) {
  *   var type = result.type;
@@ -94,7 +111,7 @@ define(function(require) {
         type: 'alert',
         message: message,
         title: options.title,
-        submitButtonText: options.submitButtonText
+        submitButton: options.submitButton
       });
     },
 
@@ -113,8 +130,8 @@ define(function(require) {
         type: 'confirm',
         message: message,
         title: options.title,
-        submitButtonText: options.submitButtonText,
-        cancelButtonText: options.cancelButtonText
+        submitButton: options.submitButton,
+        cancelButton: options.cancelButton
       });
     },
 
@@ -134,8 +151,8 @@ define(function(require) {
         message: message,
         title: options.title,
         defaultValue: options.defaultValue,
-        submitButtonText: options.submitButtonText,
-        cancelButtonText: options.cancelButtonText
+        submitButton: options.submitButton,
+        cancelButton: options.cancelButton
       });
     },
 

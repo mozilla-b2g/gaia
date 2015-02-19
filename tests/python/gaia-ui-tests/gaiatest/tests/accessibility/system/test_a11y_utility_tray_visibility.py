@@ -13,7 +13,7 @@ class TestUtilityTrayVisibilityAccessibility(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
         self.system = System(self.marionette)
-        self.status_bar = StatusBar(self.marionette)
+        self.status_bar = self.system.status_bar
         self.utility_tray = UtilityTray(self.marionette)
 
     def test_a11y_utility_tray_visibility(self):
@@ -24,7 +24,7 @@ class TestUtilityTrayVisibilityAccessibility(GaiaTestCase):
         # Utility tray is hidden by default.
         self.assertTrue(self.accessibility.is_hidden(utility_tray_container))
 
-        self.status_bar.a11y_wheel_status_bar_time()
+        self.status_bar.maximized.a11y_wheel_status_bar_time()
         self.utility_tray.wait_for_notification_container_displayed()
 
         # Utility tray should now be visible.

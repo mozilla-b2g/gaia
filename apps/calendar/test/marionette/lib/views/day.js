@@ -14,7 +14,7 @@ Day.prototype = {
   selector: '#day-view',
 
   get activeDay() {
-    return this.findElements('.md__day')[1];
+    return this.findElement('.md__day[aria-hidden="false"]');
   },
 
   get events() {

@@ -1,11 +1,9 @@
-/* global MozActivity, IconsHelper, LazyLoader */
-/* global applications */
-/* global BookmarksDatabase */
+/* global MozActivity, IconsHelper, LazyLoader, applications, Animations */
+/* global BookmarksDatabase, XScrollable, KeyNavigationAdapter, SharedUtils */
 
 (function(window) {
   'use strict';
 
-  var _ = navigator.mozL10n.get;
   var _id = 0;
   /**
    * The ContextMenu of the AppWindow.
@@ -23,27 +21,26 @@
     this._injected = false;
     this.app.element.addEventListener('mozbrowsercontextmenu', this);
 
-    this.spatialNavigator = new SpatialNavigator();
-
     this.keyNavigationAdapter = new KeyNavigationAdapter();
     this.keyNavigationAdapter.on('move', function(key) {
-      this.spatialNavigator.move(key);
+      this.scrollable && this.scrollable.move(key);
     }.bind(this));
-    this.keyNavigationAdapter.on('enter', function() {
-      this.spatialNavigator.getFocusedElement().click();
-    }.bind(this))
 
-    this.spatialNavigator.on('focus', this.handleFocus.bind(this));
+    // All behaviors which no need to have multple events while holding the
+    // key should use keyup
+    this.keyNavigationAdapter.on('esc-keyup', this.hide.bind(this));
+
+    this.circleAnimation = Animations
+                           .createCircleAnimation(this.containerElement);
+
     return this;
   };
 
   BrowserContextMenu.prototype = Object.create(window.BaseUI.prototype);
 
-  BrowserContextMenu.prototype.handleFocus = function(elem) {
+  BrowserContextMenu.prototype.handleFocus = function(scrollable, elem) {
     if (elem.nodeName) {
-      selectionBorder.select(elem);
-    } else {
-      selectionBorder.selectRect(elem);
+      elem.focus();
     }
   };
 
@@ -67,7 +64,10 @@
   };
 
   BrowserContextMenu.prototype._fetchElements = function bcm__fetchElements() {
-    this.element = document.getElementById(this.CLASS_NAME + this.instanceID);
+
+    var id = this.CLASS_NAME + this.instanceID;
+    this.element = document.getElementById(id);
+    this.contextFrame = document.getElementById(id + '-frame');
     this.elements = {};
 
     var toCamelCase = function toCamelCase(str) {
@@ -76,22 +76,13 @@
       });
     };
 
-    this.elementClasses = ['header', 'list'];
+    this.elementClasses = ['header', 'list', 'list-frame'];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     this.elementClasses.forEach(function createElementRef(name) {
       this.elements[toCamelCase(name)] =
         this.element.querySelector('.' + this.ELEMENT_PREFIX + name);
     }, this);
-    var cancel = document.createElement('button');
-    cancel.id = 'ctx-cancel-button';
-    cancel.dataset.action = 'cancel';
-    cancel.dataset.l10nId = 'cancel';
-    this.elements.cancel = cancel;
-  };
-
-  BrowserContextMenu.prototype._registerEvents = function() {
-    this.elements.cancel.addEventListener('click', this.hide.bind(this));
   };
 
   BrowserContextMenu.prototype.view = function() {
@@ -99,7 +90,10 @@
               ' data-type="action" ' +
               'id="' + this.CLASS_NAME + this.instanceID + '">' +
               '<header class="contextmenu-header"></header>' +
-              '<menu class="contextmenu-list"></menu>' +
+              '<div id="' + this.CLASS_NAME + this.instanceID + '-frame"' +
+                'class="contextmenu-list-frame">' +
+                '<menu class="contextmenu-list"></menu>' +
+              '</div>' +
             '</form>';
   };
 
@@ -110,8 +104,6 @@
 
   BrowserContextMenu.prototype.show = function(evt) {
     var detail = evt.detail;
-
-    this.keyNavigationAdapter.init();
 
     var hasContextMenu = detail.contextmenu &&
       detail.contextmenu.items.length > 0;
@@ -140,6 +132,18 @@
     evt.preventDefault();
     evt.stopPropagation();
     this.showMenu(items);
+
+    // We need to init this after showMenu for fetching this.element
+    this.keyNavigationAdapter.init(this.element);
+  };
+
+  BrowserContextMenu.prototype.hasMenuVisible = function() {
+    return this.element && this.element.classList.contains('visible');
+  };
+
+  BrowserContextMenu.prototype.focus = function() {
+    document.activeElement.blur();
+    this.scrollable.catchFocus();
   };
 
   BrowserContextMenu.prototype.showMenu = function(menu) {
@@ -148,55 +152,103 @@
     }
     this._injected = true;
     this.buildMenu(menu);
-    this.element.classList.add('visible');
-    // XXX: Set a reasonable delay to ensure selectionBorder appears after
-    // animation for displaying context menu is ended.
-    // We will introduce new spec that doesn't need selection_border anymore.
-    // After that we won't have to do hard-coded timeout.
-    setTimeout(function firstfocus(evt) {
-      this.spatialNavigator.focus();
-    }.bind(this), 600);
+
+    this._createCloseMenuHandler();
+    this.circleAnimation.play('grow', function() {
+      this.element.classList.add('visible');
+      Animations.doBubbleAnimation(
+                  this.contextFrame, '.' + this.ELEMENT_PREFIX + 'button', 100);
+      // XXX: We need to wait a short interval before we can focus on the
+      // button element. (This is NOT related to bubble animation above)
+      // so we temporarily use setTimeout here.
+      // This may need to be fixed from Gecko.
+      setTimeout(function() {
+        document.activeElement.blur();
+        this.scrollable.catchFocus();
+      }.bind(this), 100);
+    }.bind(this));
+  },
+
+  BrowserContextMenu.prototype._createElement = function(item) {
+    var self = this;
+
+    var container = document.createElement('div');
+    var action = document.createElement('smart-button');
+    var icon = document.createElement('div');
+
+    action.dataset.id = item.id;
+    action.dataset.value = item.value;
+    var l10nPayload = item.labelL10nId ? item.labelL10nId : {raw: item.label};
+    SharedUtils.localizeElement(action, l10nPayload);
+
+    action.className = self.ELEMENT_PREFIX + 'button';
+    action.setAttribute('type', 'contextmenu');
+
+    icon.classList.add('icon');
+    if (item.icon) {
+      icon.style.backgroundImage = 'url(' + item.icon + ')';
+    }
+
+    action.addEventListener('click', function(evt) {
+      if (self.hide(evt)) {
+        self.clickedItemCallback = item.callback.bind(item);
+      }
+    });
+
+    action.appendChild(icon);
+    container.appendChild(action);
+    this.elements.list.appendChild(container);
+  },
+
+  BrowserContextMenu.prototype._createCloseMenuHandler = function() {
+    var self = this;
+    var onFrameDisappear = function onFrameDisappear(evt) {
+      if (evt.propertyName === 'opacity' &&
+          evt.target === self.contextFrame) {
+        self.element.classList.remove('visible');
+        self.contextFrame.classList.remove('disappear');
+        self.contextFrame.removeEventListener(
+                             'transitionend', onFrameDisappear);
+        self.circleAnimation.play('shrink', function() {
+          if (self.app) {
+            self.app.focus();
+          }
+          if (self.clickedItemCallback) {
+            self.clickedItemCallback();
+          }
+        });
+      }
+    };
+
+    this.contextFrame.addEventListener('transitionend', onFrameDisappear);
   },
 
   BrowserContextMenu.prototype.buildMenu = function(items) {
     var self = this;
+
     this.elements.list.innerHTML = '';
-    items.forEach(function traveseItems(item) {
-      var action = document.createElement('button');
-      action.dataset.id = item.id;
-      action.dataset.value = item.value;
-      action.textContent = item.label;
+    items.forEach(this._createElement, this);
 
-      if (item.icon) {
-        action.classList.add(item.iconClass || 'icon');
-        action.style.backgroundImage = 'url(' + item.icon + ')';
-      }
-
-      action.addEventListener('click', function(evt) {
-        self.hide(evt);
-        item.callback();
-      });
-
-      this.elements.list.appendChild(action);
-    }, this);
-
-    this.elements.cancel.textContent = _('cancel');
-    this.elements.list.appendChild(this.elements.cancel);
-    this.spatialNavigator.setCollection(Array.prototype.slice.call(
-                        this.elements.list.getElementsByTagName('button')));
+    this.scrollable = new XScrollable({
+      frameElem: this.elements.listFrame,
+      listElem: this.elements.list,
+      itemClassName: self.ELEMENT_PREFIX + 'button',
+      spacing: 8.2
+    });
+    this.scrollable.on('focus', this.handleFocus.bind(this));
   };
 
   BrowserContextMenu.prototype._listItems = function(detail) {
-
     var items = [];
 
     // contextmenu.items are specified by the web content via html5
     // context menu api
     if (detail.contextmenu && detail.contextmenu.items.length) {
+      var that = this;
       detail.contextmenu.items.forEach(function(choice, index) {
         items.push({
           label: choice.label,
-          icon: choice.icon,
+          icon: that.app.origin + '/' + choice.icon,
           callback: function() {
             detail.contextMenuItemSelected(choice.id);
           }
@@ -217,22 +269,25 @@
 
   BrowserContextMenu.prototype.hide = function(evt) {
     if (!this.element) {
-      return;
+      return false;
     }
-
-    this.keyNavigationAdapter.uninit();
-
-    selectionBorder.deselectAll();
 
     if (evt) {
       evt.preventDefault();
     }
 
-    this.element.blur();
-    this.element.classList.remove('visible');
-    if (this.app) {
-      this.app.focus();
+    if (this.circleAnimation.isPlaying()) {
+      return false;
     }
+
+    this.keyNavigationAdapter.uninit();
+
+    if (this.scrollable.currentItem) {
+      this.scrollable.currentItem.blur();
+    }
+
+    this.contextFrame.classList.add('disappear');
+    return true;
   };
 
   BrowserContextMenu.prototype.openUrl = function(url) {
@@ -296,19 +351,19 @@
       case 'A':
         return [{
           id: 'open-in-new-window',
-          label: _('open-in-new-window'),
+          labelL10nId: 'open-in-new-window',
           callback: this.openUrl.bind(this, uri)
         }, {
           id: 'bookmark-link',
-          label: _('add-link-to-home-screen'),
+          labelL10nId: 'add-link-to-home-screen',
           callback: this.bookmarkUrl.bind(this, uri, text)
         }, {
           id: 'save-link',
-          label: _('save-link'),
+          labelL10nId: 'save-link',
           callback: this.app.browser.element.download.bind(this, uri)
         }, {
           id: 'share-link',
-          label: _('share-link'),
+          labelL10nId: 'share-link',
           callback: this.shareUrl.bind(this, uri)
         }];
 
@@ -327,11 +382,11 @@
 
         return [{
           id: 'save-' + type,
-          label: _('save-' + type),
+          labelL10nId: 'save-' + type,
           callback: this.app.browser.element.download.bind(this, uri)
         }, {
           id: 'share-' + type,
-          label: _('share-' + type),
+          labelL10nId: 'share-' + type,
           callback: this.shareUrl.bind(this, uri)
         }];
 
@@ -352,14 +407,14 @@
         if (!result) {
           menuData.push({
             id: 'add-to-homescreen',
-            label: _('add-to-home-screen'),
+            labelL10nId: 'add-to-home-screen',
             callback: this.bookmarkUrl.bind(this, config.url, name)
           });
         }
 
         menuData.push({
           id: 'share',
-          label: _('share'),
+          labelL10nId: 'share',
           callback: this.shareUrl.bind(this, config.url)
         });
 
@@ -369,4 +424,4 @@
     });
   };
 
-}(this));
+}(window));

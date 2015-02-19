@@ -1,4 +1,5 @@
 'use strict';
+/* global __dirname */
 
 marionette('Find My Device lock >', function() {
   var assert = require('assert');
@@ -13,6 +14,10 @@ marionette('Find My Device lock >', function() {
       'ftu.manifestURL': null,
       'lockscreen.enabled': false
     },
+    apps: {
+      'test-findmydevice.gaiamobile.org':
+        __dirname + '/fixtures/test-findmydevice',
+    }
   });
 
   setup(function() {

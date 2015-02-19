@@ -2,11 +2,15 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
+try:
+    from marionette.by import By
+except:
+    from marionette_driver.by import By
+
 from gaiatest.apps.base import Base
 
 
-class GeolocationPage(Base):    
+class GeolocationPage(Base):
     _submit_button_locator = (By.ID, 'submit')
 
     _frame_locator = (By.CSS_SELECTOR, "#test-iframe[src*='geolocation']")

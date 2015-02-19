@@ -1,7 +1,6 @@
 'use strict';
 
 var assert = require('assert');
-var Actions = require('marionette-client').Actions;
 var Rocketbar = require('./lib/rocketbar.js');
 
 var SETTINGS_APP = 'app://settings.gaiamobile.org';
@@ -24,7 +23,7 @@ marionette('Global search >', function() {
   var halfWidth, halfHeight;
 
   setup(function() {
-    actions = new Actions(client);
+    actions = client.loader.getActions();
 
     sys = client.loader.getAppClass('system');
     sys.waitForStartup();
@@ -53,7 +52,6 @@ marionette('Global search >', function() {
   test('Triggering the search from the hot corner', function() {
     var top = sys.topPanel;
     actions.tap(top, 10, 0, 10).perform();
-    rocketbar.goThroughPermissionPrompt();
     client.waitFor(function() {
       return rocketbar.backdrop.displayed();
     });
@@ -74,7 +72,6 @@ marionette('Global search >', function() {
     });
 
     // No permission prompt, no focused rocketbar either
-    assert(!rocketbar.permissionOk.displayed());
     assert(!rocketbar.backdrop.displayed());
 
     assert(true, 'search was not triggered');

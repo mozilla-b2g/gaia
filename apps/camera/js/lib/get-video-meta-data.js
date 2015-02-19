@@ -42,9 +42,9 @@ function createVideoPosterImage(blob, done) {
     offscreenVideo.preload = 'metadata';
     offscreenVideo.src = url;
     offscreenVideo.onerror = onError;
-    offscreenVideo.onloadedmetadata = onLoadedMetaData;
+    offscreenVideo.onloadeddata = onLoadedData;
 
-    function onLoadedMetaData() {
+    function onLoadedData() {
       var videowidth = offscreenVideo.videoWidth;
       var videoheight = offscreenVideo.videoHeight;
 

@@ -2,6 +2,7 @@
 
 require.config({
   baseUrl: '/js',
+  waitSeconds: 60,
   paths: {
     shared: '/shared/js'
   },

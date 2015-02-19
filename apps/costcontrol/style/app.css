@@ -13,6 +13,7 @@ a::-moz-focus-inner {
 html {
   font-size: 10px;
   color: #000;
+  -moz-user-select: none;
 }
 
 body {
@@ -110,6 +111,7 @@ gaia-header [data-icon]:before {
   overflow-x: hidden;
   overflow-y: auto;
   position: absolute;
+  -moz-user-select: none;
   bottom: 0;
   top: 0;
   left: 0;
@@ -171,6 +173,7 @@ gaia-header [data-icon]:before {
 .fake-select select {
   height: 100%;
   position: absolute;
+  -moz-user-select: none;
   top: 0;
   left: 0;
   opacity: 0;
@@ -218,6 +221,7 @@ section.graph {
 
 section.graph canvas {
   position: absolute;
+  -moz-user-select: none;
   left: 0;
   top: 0;
   width: 100%;

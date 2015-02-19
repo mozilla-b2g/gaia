@@ -8,7 +8,8 @@
     "system": [ "net_error.html" ]
   },
   "INLINE_OPTIMIZE_WHITELIST": {
-    "system": [ "net_error.html" ]
+    "system": [ "net_error.html" ],
+    "smart-system": [ "net_error.html" ]
   },
   "PRETRANSLATION_BLACKLIST": {
     "keyboard": ["index.html"]

@@ -39,7 +39,8 @@
  *  normal app termination from abnormal and I can't figure out any way
  *  to tell when an app has crashed.
  */
-/* global asyncStorage, SettingsListener, performance */
+/* global asyncStorage, SettingsListener, performance, SIMSlotManager,
+          MobileOperator */
 (function(exports) {
   'use strict';
 
@@ -49,7 +50,7 @@
 
   // This is the asyncStorage key we use to persist our app usage data so
   // that it survives across device restarts.
-  const PERSISTENCE_KEY = 'metrics.app_usage.data';
+  const PERSISTENCE_KEY = 'metrics.app_usage.data.v2';
 
   // This is the asyncStorage key we use to persist our device ID
   const DEVICE_ID_KEY = 'metrics.app_usage.deviceID';
@@ -88,7 +89,6 @@
     ATTENTIONOPENED,
     ATTENTIONCLOSED
   ];
-
 
   // This AppUsageMetrics() constructor is the value we export from
   // this module. This constructor does no initialization itself: that
@@ -135,7 +135,7 @@
 
   // How often do we try to send the reports
   // Can be overridden with metrics.appusage.reportInterval setting.
-  AUM.REPORT_INTERVAL = 24 * 60 * 60 * 1000;  // 1 day
+  AUM.REPORT_INTERVAL = 14 * 24 * 60 * 60 * 1000;  // 2 weeks
 
   // If the telemetry server does not respond within this amount of time
   // just give up and try again later.
@@ -613,18 +613,75 @@
     };
 
     var deviceInfoQuery = {
-      'deviceinfo.update_channel': 'unknown',
-      'deviceinfo.platform_version': 'unknown',
+      'developer.menu.enabled': false, // If true, data is probably an outlier
+      'deviceinfo.hardware': 'unknown',
+      'deviceinfo.os': 'unknown',
       'deviceinfo.platform_build_id': 'unknown',
-      'developer.menu.enabled': false // If true, data is probably an outlier
+      'deviceinfo.platform_version': 'unknown',
+      'deviceinfo.product_model': 'unknown',
+      'deviceinfo.software': 'unknown',
+      'deviceinfo.update_channel': 'unknown'
     };
 
     // Query the settings db to get some more device-specific information
-    AUM.getSettings(deviceInfoQuery, function(deviceinfo) {
-      data.deviceinfo = deviceinfo;
+    AUM.getSettings(deviceInfoQuery, function(deviceInfo) {
+      data.deviceinfo = deviceInfo;
+      data.simInfo = getSIMInfo();
+
       // Now transmit the data
       send(data);
     });
+
+    function getSIMInfo() {
+      var simInfo = {
+        network: null,
+        icc: null
+      };
+
+      if (SIMSlotManager.noSIMCardConnectedToNetwork()) {
+        // No connected SIMs
+        return simInfo;
+      }
+
+      var slots = SIMSlotManager.getSlots().filter(function(slot) {
+        return !slot.isAbsent() && !slot.isLocked();
+      });
+
+      if (slots.length === 0) {
+        // No unlocked or active SIM slots
+        return simInfo;
+      }
+
+      var conn = slots[0].conn;
+      if (!conn) {
+        // No connection
+        return simInfo;
+      }
+
+      var iccObj = navigator.mozIccManager.getIccById(conn.iccId);
+      var iccInfo = iccObj ? iccObj.iccInfo : null;
+      var voiceNetwork = conn.voice ? conn.voice.network : null;
+      if (!iccInfo && !voiceNetwork) {
+        // No voice network or ICC info
+        return simInfo;
+      }
+
+      simInfo.network = MobileOperator.userFacingInfo(conn);
+      if (voiceNetwork) {
+        simInfo.network.mnc = voiceNetwork.mnc;
+        simInfo.network.mcc = voiceNetwork.mcc;
+      }
+
+      if (iccInfo) {
+        simInfo.icc = {
+          mnc: iccInfo.mnc,
+          mcc: iccInfo.mcc,
+          spn: iccInfo.spn
+        };
+      }
+
+      return simInfo;
+    }
 
     function send(data) {
       var xhr = new XMLHttpRequest({ mozSystem: true, mozAnon: true });
@@ -671,20 +728,35 @@
     this.relativeStartTime = performance.now();
   }
 
-  UsageData.prototype.getAppUsage = function(app) {
+  /*
+   * Get app usage for the current date
+   */
+  UsageData.prototype.getAppUsage = function(app, dayKey) {
     var usage = this.data.apps[app];
+    dayKey = dayKey || this.getDayKey();
+
+    // We lazily initialize both the per-app and per-day usage maps
     if (!usage) {
-      // If no usage exists for this app, create a new empty object for it.
-      usage = {
+      this.data.apps[app] = usage = {};
+    }
+
+    var dayUsage = usage[dayKey];
+    if (!dayUsage) {
+      dayUsage = usage[dayKey] = {
         usageTime: 0,
         invocations: 0,
         installs: 0,
         uninstalls: 0,
         activities: {}
       };
-      this.data.apps[app] = usage;
     }
-    return usage;
+    return dayUsage;
+  };
+
+  UsageData.prototype.getDayKey = function(date) {
+    date = date || new Date();
+    var dayKey = date.toISOString().substring(0, 10);
+    return dayKey.replace(/-/g, '');
   };
 
   UsageData.prototype.startTime = function() {
@@ -761,18 +833,21 @@
     // in the new batch and merge the new usage data with the old
     // usage data.
     for (var app in newbatch.data.apps) {
-      var newusage = newbatch.data.apps[app];
-      var oldusage = this.getAppUsage(app);
+      var newdays = newbatch.data.apps[app];
+      for (var day in newdays) {
+        var newusage = newdays[day];
+        var oldusage = this.getAppUsage(app, day);
 
-      oldusage.usageTime += newusage.usageTime;
-      oldusage.invocations += newusage.invocations;
-      oldusage.installs += newusage.installs;
-      oldusage.uninstalls += newusage.uninstalls;
+        oldusage.usageTime += newusage.usageTime;
+        oldusage.invocations += newusage.invocations;
+        oldusage.installs += newusage.installs;
+        oldusage.uninstalls += newusage.uninstalls;
 
-      for (var url in newusage.activities) {
-        var newcount = newusage.activities[url];
-        var oldcount = oldusage.activities[url] || 0;
-        oldusage.activities[url] = oldcount + newcount;
+        for (var url in newusage.activities) {
+          var newcount = newusage.activities[url];
+          var oldcount = oldusage.activities[url] || 0;
+          oldusage.activities[url] = oldcount + newcount;
+        }
       }
     }
   };

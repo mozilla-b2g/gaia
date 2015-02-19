@@ -1,7 +1,6 @@
 'use strict';
 
 var assert = require('assert');
-var Actions = require('marionette-client').Actions;
 var Bookmark = require('../../../../apps/system/test/marionette/lib/bookmark');
 var Collection = require('./lib/collection');
 var EmeServer = require(
@@ -29,7 +28,7 @@ marionette('Vertical - Collection Pin Bookmark', function() {
   var bookmarkIdentifier = 'http://mozilla1.org/';
 
   setup(function() {
-    actions = new Actions(client);
+    actions = client.loader.getActions();
     bookmark = new Bookmark(client);
     selectors = Collection.Selectors;
     collection = new Collection(client);
@@ -38,7 +37,6 @@ marionette('Vertical - Collection Pin Bookmark', function() {
     system.waitForStartup();
 
     home.waitForLaunch();
-    collection.disableGeolocation();
     EmeServer.setServerURL(client, server);
 
     // Create a collection

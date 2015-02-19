@@ -1,7 +1,10 @@
 import argparse
 import sys
 
-from marionette import Marionette
+try:
+    from marionette import Marionette
+except:
+    from marionette_driver import Marionette
 
 import gaiatest
 

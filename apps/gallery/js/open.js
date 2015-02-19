@@ -12,13 +12,6 @@ navigator.mozL10n.once(function() {
 
   function $(id) { return document.getElementById(id); }
 
-  // If we can't figure out the image size in megapixels, then we have to base
-  // our decision whether or not to display it on the file size. Note that
-  // this is a very, very imperfect test. imagesize.js has code to determine
-  // the image size for jpeg, png and gif images, so we only have to use this
-  // file size test for other image formats.
-  var MAX_FILE_SIZE = .5 * 1024 * 1024;
-
   function handleOpenActivity(request) {
     activity = request;
     activityData = activity.source.data;
@@ -175,21 +168,21 @@ navigator.mozL10n.once(function() {
       }
     }
 
-    // Called when metadata parsing fails.
+    // Called if getImageSize parsing fails.
     function error(msg) {
       //
-      // This wasn't a JPEG, PNG, or GIF image.
+      // This wasn't a JPEG, PNG, GIF, or BMP image and we can't figure
+      // out the size of the image. Without the size, we can't pass the
+      // image to MediaFrame.displayImage().
       //
-      // If the file size isn't too large, try to display it anyway,
-      // and then display an error message if the frame.onerror
-      // function gets called.
+      // XXX: Currently, we know how to get the sizes of all the image
+      // types that this activity is registered to handle. If we add new
+      // image types to manifest.webapp, then we should update
+      // shared/js/media/image_size.js to compute the size or we should
+      // add code here to load the image into an offscreen <img> to
+      // determine its size (but only if the file size is not too large).
       //
-      if (blob.size < MAX_FILE_SIZE) {
-        frame.displayImage(blob);
-      }
-      else {
-        displayError('imagetoobig');
-      }
+      displayError('imageinvalid');
     }
   }
 

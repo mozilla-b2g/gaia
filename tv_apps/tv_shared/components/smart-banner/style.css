@@ -1,0 +1,135 @@
+/**
+ * Button state:
+ *    1. normal (class name: [none])
+ *    2. opening (class name: opening)
+ *    3. opened (class name: opened)
+ *    4. closing (class name: closing)
+ *    5. closed (class name: closed)
+ *    6. hiding (class name: hiding)
+ *    8. flying (class name: flying)
+**/
+
+/**
+ * Normal:
+ *   open: closed -> opening -> opened
+ *   close: opened -> closing -> closed
+ *   hide: current state -> hiding -> closed
+ *   flyOpen: flying -> closed -> opening -> opened
+**/
+
+smart-banner {
+  outline: 0;
+  display: inline-block;
+  height: 7rem;
+  /* Same as closed state */
+  padding-left: 11rem;
+  padding-right: 0;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  opacity: 1;
+  /* we need to set border to none to remove the button border */
+  border: none;
+  /* the radius is still make button as round even if we don't have border */
+  border-radius: 5.5rem;
+  background-color: rgba(0, 0, 0, 0.5);
+  background-repeat: no-repeat;
+  background-size: 5.4rem auto;
+  background-position: 2.8rem 50%;
+
+  word-break: keep-all;
+  white-space: nowrap;
+  overflow: hidden;
+  position: relative;
+
+  font-size: 2.8rem;
+  line-height: 7rem;
+
+  transition-property: none;
+  transition-timing-function: cubic-bezier(0.25, 0, 0, 1.0);
+  transition-duration: 0s;
+}
+
+smart-banner:before {
+  content: " ";
+  background-repeat: no-repeat;
+  background-size: 5.4rem auto;
+  background-position: center;
+  width: 5.4rem;
+  height: 7rem;
+  display: inline-block;
+  position: absolute;
+  left: 2.8rem;
+
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.25, 0, 0, 1.0);
+  transition-duration: 0.42s;
+}
+
+smart-banner.closed:before {
+  width: 11rem;
+  left: 0;
+}
+
+smart-banner[data-icon]:before {
+  width: 5.4rem;
+  left: 4.4rem;
+  font-size: 5.4rem;
+  line-height: 11rem;
+  text-align: center;
+  color: #5f6368;
+  white-space: normal;
+  top: 0;
+}
+
+smart-banner[data-icon].closed:before {
+  left: 2.8rem;
+}
+
+smart-banner.closed {
+  padding-left: 11rem;
+  padding-right: 0;
+  transition-duration: 0.5s;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+smart-banner.closed > * {
+  display: none;
+}
+
+smart-banner.opened {
+  padding-right: 4.4rem;
+}
+
+smart-banner.opening {
+  transition-property: all;
+  transition-duration: 0.72s;
+  /* add the same padding-right of normal to make it run transition */
+  padding-right: 4.4rem;
+}
+
+smart-banner.opening:before {
+  transition-duration: 0.72s;
+}
+
+smart-banner.closing {
+  transition-property: all;
+  transition-duration: 0.5s;
+  padding-left: 11rem;
+  padding-right: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+smart-banner.hiding {
+  opacity: 0;
+  transition-property: opacity;
+  transition-duration: 1s;
+}
+
+smart-banner.flying {
+  animation: flyAnimation 1s;
+}
+
+@keyframes flyAnimation {
+    from {transform: translateY(20rem);}
+    to {transform: translateY(0);}
+}

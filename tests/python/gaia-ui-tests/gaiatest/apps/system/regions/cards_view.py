@@ -3,8 +3,17 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import time
-from marionette.by import By
-from marionette.marionette import Actions
+
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+    from marionette.marionette import Actions
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
+    from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -21,10 +30,10 @@ class CardsView(Base):
     _close_buttons_locator = (By.CSS_SELECTOR, '#cards-view li[data-origin*="%s"] .close-button')
 
     def _app_card_locator(self, app):
-        return (self._apps_cards_locator[0], self._apps_cards_locator[1] % app.lower())
+        return (self._apps_cards_locator[0], self._apps_cards_locator[1] % app.lower().replace('-', ''))
 
     def _close_button_locator(self, app):
-        return (self._close_buttons_locator[0], self._close_buttons_locator[1] % app.lower())
+        return (self._close_buttons_locator[0], self._close_buttons_locator[1] % app.lower().replace('-', ''))
 
     @property
     def cards(self):
@@ -43,7 +52,7 @@ class CardsView(Base):
     def wait_for_card_ready(self, app):
         cards = self.marionette.find_element(*self._cards_view_locator)
         card = self.marionette.find_element(*self._app_card_locator(app))
-        self.wait_for_condition(lambda m: cards.size['width'] - card.size['width'] == 2 * card.location['x'])
+        Wait(self.marionette).until(lambda m: cards.size['width'] - card.size['width'] == 2 * card.location['x'])
         # TODO: Remove sleep when we find a better wait
         time.sleep(0.2)
 
@@ -65,19 +74,25 @@ class CardsView(Base):
         return self.is_element_present(*self._app_card_locator(app))
 
     def tap_app(self, app):
-        self.wait_for_condition(lambda m: self.is_app_displayed(app))
+        Wait(self.marionette).until(lambda m: self.is_app_displayed(app))
         self.marionette.find_element(*self._app_card_locator(app)).tap()
 
     def close_app(self, app):
         self.wait_for_card_ready(app)
+        Wait(self.marionette).until(
+            expected.element_present(*self._app_card_locator(app)))
         self.marionette.find_element(*self._close_button_locator(app)).tap()
-        self.wait_for_element_not_present(*self._app_card_locator(app))
+        Wait(self.marionette).until(
+            expected.element_not_present(*self._app_card_locator(app)))
 
     def wait_for_cards_view(self):
-        self.wait_for_condition(lambda m: m.find_element(*self._cards_view_locator).get_attribute('class') == 'active')
+        cards_view = self.marionette.find_element(*self._cards_view_locator)
+        Wait(self.marionette).until(
+            lambda m: cards_view.get_attribute('class') == 'active')
 
     def wait_for_cards_view_not_displayed(self):
-        self.wait_for_element_not_displayed(*self._cards_view_locator)
+        Wait(self.marionette).until(
+            expected.element_not_displayed(*self._cards_view_locator))
 
     def swipe_to_previous_app(self):
         current_frame = self.apps.displayed_app.frame

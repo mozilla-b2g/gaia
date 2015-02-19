@@ -81,20 +81,10 @@ define(function(require) {
       // Stop propagation & prevent default not to block other settings events.
       event.stopImmediatePropagation();
       event.preventDefault();
-      
+
       if (this._app) {
-        // Let privacy-panel app know that we launched it from settings
-        // so the app can show us a back button pointing to settings app.
-        var flag = navigator.mozSettings.createLock().set({
-          'privacypanel.launched.by.settings': true
-        });
-        flag.onsuccess = function() {
-          this._app.launch();
-        }.bind(this);
-        flag.onerror = function() {
-          console.error('Problem with launching Privacy Panel');
-          alert('Problem with launching Privacy Panel');
-        };
+        // Bug 1120733: Privacy-panel app is always launched from settings
+        this._app.launch();
       } else {
         alert(navigator.mozL10n.get('no-privacy-panel'));
       }

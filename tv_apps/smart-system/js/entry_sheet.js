@@ -3,8 +3,8 @@
 /* Define a entry sheet.
  * It creates a element provided by container, title, content.
  */
-
-var EntrySheet = (function invocation() {
+/* jshint ignore:start */
+window.EntrySheet = (function invocation() {
   function EntrySheet() { // This constructor function is a local variable.
     render.apply(this, arguments); // All arguments are values to render
   }
@@ -93,7 +93,6 @@ var EntrySheet = (function invocation() {
     });
   }
 
-  var nextId = 0;
   // The public API for this module is the EntrySheet() constructor function.
   // We need to export that function from this private namespace so that
   // it can be used on the outside. In this case, we export the constructor
@@ -101,3 +100,4 @@ var EntrySheet = (function invocation() {
   // on the first line above.
   return EntrySheet;
 }()); // Invoke the function immediately after defining it.
+/* jshint ignore:end */

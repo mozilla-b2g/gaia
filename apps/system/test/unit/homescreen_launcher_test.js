@@ -3,18 +3,16 @@
 /* global HomescreenLauncher */
 /* global MockSettingsListener */
 /* global MockApplications */
-/* global MockTrustedUIManager */
 
 requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_applications.js');
-requireApp('system/test/unit/mock_trusted_ui_manager.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/js/homescreen_launcher.js');
 
 var mocksForHomescreenLauncher = new MocksHelper([
-  'Applications', 'HomescreenWindow', 'TrustedUIManager',
+  'Applications', 'HomescreenWindow',
   'FtuLauncher', 'SettingsListener', 'LayoutManager'
 ]).init();
 
@@ -37,7 +35,7 @@ suite('system/HomescreenLauncher', function() {
     setup(function() {
       MockApplications.ready = true;
     });
-
+ 
     teardown(function() {
       if (typeof window.homescreenLauncher !== 'undefined') {
         window.homescreenLauncher.stop();
@@ -122,40 +120,18 @@ suite('system/HomescreenLauncher', function() {
       stubEnsure.restore();
     });
 
-    test('trustedUI shown', function() {
+    test('appopened', function() {   
       MockSettingsListener.mCallbacks['homescreen.manifestURL']('first.home');
-      homescreen = window.homescreenLauncher.getHomescreen();
-      var stubToggle = this.sinon.stub(homescreen, 'toggle');
-      window.homescreenLauncher.handleEvent({
-        type: 'trusteduishow'
-      });
-      assert.isTrue(stubToggle.calledWith(true));
-      stubToggle.restore();
-    });
-
-    test('trustedUI hidden', function() {
-      MockSettingsListener.mCallbacks['homescreen.manifestURL']('first.home');
-      homescreen = window.homescreenLauncher.getHomescreen();
-      this.sinon.stub(homescreen, 'toggle');
-      window.homescreenLauncher.handleEvent({
-        type: 'trusteduihide'
-      });
-    });
-
-    test('appopened', function() {
-      MockSettingsListener.mCallbacks['homescreen.manifestURL']('first.home');
-      var hasTrustedUI = this.sinon.stub(MockTrustedUIManager, 'hasTrustedUI');
-      hasTrustedUI.returns(false);
-      homescreen = window.homescreenLauncher.getHomescreen();
-      var stubFadeOut = this.sinon.stub(homescreen, 'fadeOut');
-
-      window.homescreenLauncher.handleEvent({
-        type: 'appopened',
-        detail: {
-          origin: 'fake'
-        }
-      });
-      assert.isTrue(stubFadeOut.called);
+      homescreen = window.homescreenLauncher.getHomescreen();    
+      var stubFadeOut = this.sinon.stub(homescreen, 'fadeOut');    
+   
+      window.homescreenLauncher.handleEvent({    
+        type: 'appopened',   
+        detail: {    
+          origin: 'fake'   
+        }    
+      });    
+      assert.isTrue(stubFadeOut.called);   
     });
 
     test('keyboard showed', function() {

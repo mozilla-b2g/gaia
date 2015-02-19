@@ -11,7 +11,7 @@ class TestRocketBarSearch(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
-        self.apps.set_permission_by_url('app://search.gaiamobile.org/manifest.webapp', 'geolocation', 'deny')
+        self.data_layer.set_setting('search.suggestions.enabled', True)
         self.connect_to_local_area_network()
 
     def test_launch_rocketbar_search(self):
@@ -25,6 +25,6 @@ class TestRocketBarSearch(GaiaTestCase):
         search_panel = homescreen.tap_search_bar()
         search_panel.type_into_search_box(test_string)
 
-        search_panel.wait_for_search_results_to_load(4)
+        search_panel.wait_for_search_results_to_load(3)
 
         self.assertGreater(len(search_panel.link_results), 0)

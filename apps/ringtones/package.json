@@ -1,0 +1,10 @@
+{
+  "webide": {
+    "prepackage": {
+      "command": "make",
+      "env": ["APP=ringtones"],
+      "cwd": "../.."
+    },
+    "packageDir": "../../build_stage/ringtones/"
+  }
+}

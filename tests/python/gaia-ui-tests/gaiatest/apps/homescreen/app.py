@@ -4,10 +4,16 @@
 
 import time
 
-from marionette import expected
-from marionette import Wait
-from marionette.by import By
-from marionette.marionette import Actions
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+    from marionette.marionette import Actions
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
+    from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -44,7 +50,7 @@ class Homescreen(Base):
         return SearchPanel(self.marionette)
 
     def wait_for_app_icon_present(self, app_name):
-        Wait(self.marionette).until(lambda m: self.installed_app(app_name))
+        Wait(self.marionette, timeout=30).until(lambda m: self.installed_app(app_name))
 
     def wait_for_app_icon_not_present(self, app_name):
         Wait(self.marionette).until(lambda m: self.installed_app(app_name) is None)
@@ -151,7 +157,8 @@ class Homescreen(Base):
 
     def installed_app(self, app_name):
         for root_el in self.marionette.find_elements(*self._homescreen_all_icons_locator):
-            if root_el.text == app_name:
+            if root_el.text == app_name and (root_el.get_attribute('data-app-state') == 'ready' or
+                'bookmark' in root_el.get_attribute('class') or 'collection' in root_el.get_attribute('class')):
                 return self.InstalledApp(self.marionette, root_el)
 
     def bookmark(self, bookmark_title):

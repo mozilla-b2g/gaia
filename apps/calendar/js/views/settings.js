@@ -3,11 +3,10 @@ define(function(require, exports, module) {
 
 var CalendarTemplate = require('templates/calendar');
 var View = require('view');
-var app = require('app');
 var debug = require('debug')('views/settings');
 var forEach = require('object').forEach;
+var router = require('router');
 
-require('css!settings');
 require('dom!settings');
 
 function Settings(options) {
@@ -66,6 +65,7 @@ Settings.prototype = {
 
     advancedSettingsButton: '#settings .settings',
     syncButton: '#settings .sync',
+    syncProgress: '#settings .sync-progress',
 
     // A view that settings overlays. Still needs to be active/visible but
     // hidden from the screen reader.
@@ -108,17 +108,34 @@ Settings.prototype = {
     return this._findElement('syncButton');
   },
 
+  get syncProgress() {
+    return this._findElement('syncProgress');
+  },
+
   get timeViews() {
     return this._findElement('timeViews');
+  },
+
+  _syncStartStatus: function () {
+    this.syncProgress.setAttribute('data-l10n-id', 'sync-progress-syncing');
+    this.syncProgress.classList.add('syncing');
+  },
+
+  _syncCompleteStatus: function () {
+    this.syncProgress.setAttribute('data-l10n-id', 'sync-progress-complete');
+    this.syncProgress.classList.remove('syncing');
   },
 
   _observeUI: function() {
     this.advancedSettingsButton.addEventListener('click', function(e) {
       e.stopPropagation();
-      app.router.show('/advanced-settings/');
+      router.show('/advanced-settings/');
     });
 
     this.syncButton.addEventListener('click', this._onSyncClick.bind(this));
+    this.app.syncController.on('syncStart', this._syncStartStatus.bind(this));
+    this.app.syncController.on('syncComplete',
+      this._syncCompleteStatus.bind(this));
 
     this.calendars.addEventListener(
       'change', this._onCalendarDisplayToggle.bind(this)
@@ -288,7 +305,7 @@ Settings.prototype = {
   _onDrawerTransitionEnd: function(e) {
     this._updateDrawerAnimState('done');
     if (!document.body.classList.contains('settings-drawer-visible')) {
-      this.app.resetState();
+      router.resetState();
     }
   },
 

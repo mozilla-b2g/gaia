@@ -104,7 +104,7 @@ span.line-break {
 }
 
 /* All of the main views fill the screen */
-#thumbnail-list-view, #thumbnail-select-view, #player-view {
+#thumbnail-views, #player-view {
   position: absolute;
   top: 0;
   left: 0;
@@ -188,13 +188,13 @@ span.line-break {
 /*
  * give the very last thumbnail a large bottom margin so that it doesn't
  * get stuck hidden behind the overlaid toolbar.
- * for normal thumbnail-list-view case, it is 4rem at bottom.
+ * for normal thumbnails-list case, it is 4rem at bottom.
  */
 #thumbnails>li:last-child{
   margin-bottom: 4rem;
 }
 /*
- * for normal thumbnail-select-view case, it is 5rem at top and 4rem at bottom.
+ * for normal thumbnails-select case, it is 5rem at top and 4rem at bottom.
  */
 #thumbnails.select>li:last-child{
   margin-bottom: 9rem;
@@ -204,7 +204,8 @@ span.line-break {
   font-size: 1.6rem;
   font-weight: 400;
   color: #8a9699;
-  padding: 0 0 0 1rem;
+  padding: 0;
+  -moz-padding-start: 1rem;
   height: 4rem;
   line-height: 4rem;
 }
@@ -620,7 +621,19 @@ header .icon:after {
   top: calc(50% - 1.15rem);
   width: 2.3rem;
   height: 2.3rem;
+
+  /* For LTR langauges, position the playhead 1.15 rems to the left 
+   * so that the center of the playhead aligns with the beginning of
+   * the time slider.
+   */
   margin-left: -1.15rem;
+
+  /* For RTL langauges, position the playhead 1.15 rems to the right 
+   * so that the center of the playhead aligns with the end of
+   * the time slider.
+   */
+  margin-right: -1.15rem;
+ 
   border: none;
   background: none;
   pointer-events: none;
@@ -665,7 +678,8 @@ body:not(.pick-activity) #picker-close {
  *    in shadow-dom.
  */
 
-body:not(.pick-activity) #picker-done {
+body:not(.pick-activity) #picker-done,
+body:not(.pick-activity) #picker-header {
   display: none !important; /* 1 */
 }
 
@@ -691,6 +705,7 @@ body.pick-activity #thumbnails-bottom {
   order: 1;
   align-self: auto;
   word-break: break-all;
+  direction: ltr /* the title is from the file name : always ltr */
 }
 
 .thumbnail .details .duration-text {
@@ -724,23 +739,22 @@ body.pick-activity #thumbnails-bottom {
   display: none !important; /* 1 */
 }
 
-/* selection mode */
-.layout-selection #thumbnail-list-view,
-.layout-selection #player-view {
-  display: none;
+/* not selection mode */
+body:not(.layout-selection) .thumbnails-select,
+/* not list mode */
+body:not(.layout-list) .thumbnails-list,
+/* not fullscreen-player mode */
+body:not(.layout-fullscreen-player) #player-view {
+  display: none !important; /* 1 */
 }
 
-/* list mode */
-.layout-list #thumbnail-select-view,
-.layout-list #player-view {
-  display: none;
-}
-
-/* fullscreen-player mode */
-.layout-fullscreen-player #thumbnail-select-view,
-.layout-fullscreen-player #thumbnail-list-view,
 .layout-fullscreen-player #thumbnails {
   display: none;
+}
+
+/* overlay mode */
+.overlay #app-container {
+  visibility: hidden;
 }
 
 /* spinner is only valid for tablet and landscape mode */
@@ -771,4 +785,16 @@ form[role="dialog"][data-type="confirm"] button.hidden {
   outline: none;
   border: none;
   padding: 0;
+}
+
+/*
+ * By default do not allow any user text selection, only enable
+ * on a per-element/region area.
+ */
+* {
+  -moz-user-select: none;
+}
+
+html[dir=rtl] #video-title {
+  direction: ltr;
 }

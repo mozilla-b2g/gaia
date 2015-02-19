@@ -89,8 +89,9 @@ body.thumbnailListView #thumbnails {
   visibility: visible;
 }
 
-#thumbnails-list-top {
-  display: block;
+/* Header in default thumbnail list appears in tablets only */
+body.thumbnailListView #thumbnail-list-top {
+  display: block !important;
 }
 
 #thumbnails.list {
@@ -338,7 +339,7 @@ body.fullscreenView #fullscreen-back-button-large {
  */
 #overlay,
 #confirm-dialog {
-  background: rgba(51, 51, 51, 0.6);
+  background: rgb(51, 51, 51);
 }
 
 #overlay section,
@@ -414,10 +415,6 @@ body.thumbnailListView #fullscreen-view.toolbar-hidden .videoPlayerFooter.hidden
  */
 #fullscreen-toolbar-header {
   display: block !important; /* 1 */
-}
-
-#thumbnails-list-top {
-  display: block;
 }
 
 @media (min-width: 768px) and (min-height: 768px) {
@@ -550,14 +547,9 @@ section[role="region"] > header:first-child menu[type="toolbar"] button:after {
     left: 40rem;
   }
 
-  body.thumbnailListView #thumbnails,
-  body.thumbnailSelectView #thumbnails {
+  body.thumbnailListView #thumbnail-views,
+  body.thumbnailSelectView #thumbnail-views {
     visibility: visible;
-    width: 40rem;
-  }
-
-  #thumbnail-list-view,
-  #thumbnail-select-view {
     width: 40rem;
   }
 

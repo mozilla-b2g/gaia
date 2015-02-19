@@ -4,6 +4,7 @@ define(function(require, exports, module) {
 var AlarmTemplate = require('templates/alarm');
 var View = require('view');
 var providerFactory = require('provider/provider_factory');
+var router = require('router');
 var template = require('templates/account');
 
 require('dom!advanced-settings-view');
@@ -136,7 +137,7 @@ AdvancedSettings.prototype = {
   onCreateAccount: function(event) {
     event.stopPropagation();
     event.preventDefault();
-    this.app.router.show(event.target.getAttribute('href'));
+    router.show(event.target.getAttribute('href'));
   },
 
   _addAccount: function(id, model) {

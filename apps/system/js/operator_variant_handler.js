@@ -209,9 +209,9 @@
       var listMvnoType = apn.mvno_type || '';
       var listMvnoMatchData = apn.mvno_match_data || '';
 
-      if (mvnoType &&
-         (mvnoType === listMvnoType) &&
-         (mvnoMatchData === listMvnoMatchData)) {
+      if (!listMvnoType ||
+          (mvnoType && mvnoType === listMvnoType &&
+           mvnoMatchData === listMvnoMatchData)) {
           filteredApnList.push(apn);
           return this.filterApnsByMvnoRules(apnIndex + 1,
                                             allApnList,
@@ -235,9 +235,7 @@
                                             listMvnoMatchData,
                                             onFinish);
         }
-        if (!listMvnoType) {
-          filteredApnList.push(apn);
-        }
+
         this.filterApnsByMvnoRules(apnIndex + 1,
                                    allApnList,
                                    filteredApnList,
@@ -246,9 +244,6 @@
                                    onFinish);
       }).bind(this);
       request.onerror = (function onErrorHandler() {
-        if (!listMvnoType) {
-          filteredApnList.push(apn);
-        }
         this.filterApnsByMvnoRules(apnIndex + 1,
                                    allApnList,
                                    filteredApnList,

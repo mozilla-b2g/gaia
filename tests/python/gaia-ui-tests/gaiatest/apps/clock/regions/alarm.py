@@ -4,9 +4,14 @@
 
 import time
 
-from marionette import expected
-from marionette import Wait
-from marionette.by import By
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+except:
+    from marionette_driver import (expected,
+                            Wait)
+    from marionette_driver.by import By
 
 from gaiatest.apps.clock.app import Clock
 

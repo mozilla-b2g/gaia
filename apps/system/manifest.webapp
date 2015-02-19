@@ -42,6 +42,7 @@
     "audio-channel-ringer":{},
     "cellbroadcast":{},
     "input-manage":{},
+    "nfc":{},
     "nfc-share":{},
     "nfc-manager":{},
     "downloads":{},

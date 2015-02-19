@@ -1,4 +1,4 @@
-/* global Contacts, VCardReader, ConfirmDialog, contacts, LazyLoader, _ */
+/* global Contacts, VCardReader, ConfirmDialog, contacts, LazyLoader */
 'use strict';
 
 var utils = window.utils || {};
@@ -94,7 +94,7 @@ utils.importFromVcard = function(file, callback) {
           imported_contact();
         }
         if (!cancelled) {
-          cursor.continue(); 
+          cursor.continue();
         }
       };
 
@@ -125,12 +125,15 @@ utils.importFromVcard = function(file, callback) {
         } else {
           utils.overlay.hide();
           if (!cancelled) {
-            var msgImported = _('memoryCardContacts-imported3', {
-              n: importedContacts
-            });
-            var msgDupsMerged = numDupsMerged ? _('contactsMerged', {
-              numDups: numDupsMerged
-            }) : null;
+            var msgImported = {
+              id: 'memoryCardContacts-imported3',
+              args: {n: importedContacts}
+            };
+            var msgDupsMerged = numDupsMerged ? {
+              id: 'contactsMerged',
+              args: {numDups: numDupsMerged}
+            } : null;
+
             utils.status.show(msgImported, msgDupsMerged);
           }
           if (importedContacts > 0) {

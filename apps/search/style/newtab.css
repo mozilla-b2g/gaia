@@ -39,7 +39,7 @@ h2 span {
 }
 
 #top-sites .top-site:nth-child(2n) {
-  margin-left: 1rem;
+  -moz-margin-start: 1rem;
 }
 
 .top-site {
@@ -61,7 +61,7 @@ h2 span {
   font-style: italic;
   display: block;
   width: 100%;
-  text-align: left;
+  text-align: start;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -75,6 +75,10 @@ h2 span {
 
 #history-header {
   margin-top: 2.1rem;
+}
+
+#history-header.hidden {
+  display: none;
 }
 
 #history .result {
@@ -96,7 +100,10 @@ h2 span {
 }
 
 #history .icon {
-  margin: 0.3rem 0.8rem 0 0;
+  margin-top: 0.3rem;
+  margin-bottom: 0;
+  -moz-margin-start: 0;
+  -moz-margin-end: 0.8rem;
   display: block;
   flex: 0 0 1.6rem;
   width: 1.6rem;
@@ -133,4 +140,9 @@ h2 span {
   color: #858585;
   font-weight: normal;
   margin-top: 1rem;
+}
+
+/* RTL View */
+html[dir="rtl"] .top-site {
+  float: right;
 }

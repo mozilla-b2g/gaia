@@ -2,13 +2,13 @@
   <template>
 
     <gaia-header action="back" data-href="#root">
-      <h1 data-l10n-id="callSettings-header"> Call Settings </h1>
+      <h1 data-l10n-id="callSettings-header"></h1>
     </gaia-header>
 
     <div>
       <ul>
         <li>
-          <a class="menu-item" href="#" data-href="#call-voiceMailSettings">
+          <a class="menu-item menuItem-voicemail" href="#">
             <span data-l10n-id="voiceMail">Voicemail</span>
             <small id="voiceMail-desc"></small>
           </a>
@@ -38,45 +38,22 @@
             </select>
           </span>
         </li>
-        <li>
+        <li id="menuItem-callFdn" hidden>
           <a class="menu-item" href="#" data-href="#call-fdnSettings">
             <span data-l10n-id="fdnSettings">Fixed Dialing Numbers</span>
             <small id="fdnSettings-desc"></small>
           </a>
         </li>
-      </ul>
-
-      <header id="header-callForwarding" hidden>
-        <h2 data-l10n-id="callForwarding"> Call Forwarding </h2>
-      </header>
-      <ul id="list-callForwarding" hidden>
-        <li id="fdnSettingsBlocked" class="description" hidden>
-          <p data-l10n-id="fdn-enabled-warning">
-            Call forwarding is disabled by FDN.
-          </p>
-        </li>
-        <li id="li-cfu-desc" aria-disabled="true">
-          <a class="menu-item" id="menuItem-callForwardingUnconditional" href="#" data-href="#call-cf-unconditionalSettings">
-            <span data-l10n-id="callForwardingUnconditional">Always forward</span>
-            <small id="cfu-desc"></small>
+        <li id="menuItem-callForwarding" hidden>
+          <a class="menu-item" data-href="#call-cfSettings">
+            <span data-l10n-id="callForwarding">Call forwarding</span>
+            <small id="li-cf-desc"></small>
           </a>
         </li>
-        <li id="li-cfmb-desc" aria-disabled="true">
-          <a class="menu-item" id="menuItem-callForwardingMobileBusy" href="#" data-href="#call-cf-mobileBusySettings">
-            <span data-l10n-id="callForwardingMobileBusy">Forward when busy</span>
-            <small id="cfmb-desc"></small>
-          </a>
-        </li>
-        <li id="li-cfnrep-desc" aria-disabled="true">
-          <a class="menu-item" id="menuItem-callForwardingNoReply" href="#" data-href="#call-cf-noReplySettings">
-            <span data-l10n-id="callForwardingNoReply">Forward when unanswered</span>
-            <small id="cfnrep-desc"></small>
-          </a>
-        </li>
-        <li id="li-cfnrea-desc" aria-disabled="true">
-          <a class="menu-item" id="menuItem-callForwardingNotReachable" href="#" data-href="#call-cf-notReachableSettings">
-            <span data-l10n-id="callForwardingNotReachable">Forward when unreachable</span>
-            <small id="cfnrea-desc"></small>
+        <li id="menuItem-callBarring" hidden>
+          <a class="menu-item" data-href="#call-cbSettings">
+            <span data-l10n-id="callBarring">Call barring</span>
+            <small id="li-cb-desc"></small>
           </a>
         </li>
       </ul>
@@ -98,18 +75,6 @@
       <menu>
         <button class="cw-alert-cancel" data-l10n-id="cancel">Cancel</button>
         <button class="cw-alert-set recommend" data-l10n-id="set">Set</button>
-      </menu>
-    </form>
-
-    <form role="dialog" data-type="confirm" hidden class="cf-alert">
-      <section>
-        <h1 data-l10n-id="callForwardingConfirmTitle">Call forwarding confirmation message</h1>
-        <p>
-          <strong id="cf-confirm-message"></strong>
-        </p>
-      </section>
-      <menu>
-        <button class="cf-alert-continue full" data-l10n-id="continue">Continue</button>
       </menu>
     </form>
 

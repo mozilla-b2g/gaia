@@ -21,12 +21,26 @@
           "required": true
         }
       }
+    },
+    "unpin": {
+      "filters": {
+        "manifestURL": {
+          "required": true
+        }
+      }
+    }
+  },
+  "connections": {
+    "appdeck-channel": {
+      "description": "communications for app-deck to add/remove application cards",
+      "rules": {}
     }
   },
   "default_locale": "en-US",
   "icons": {
     "128": "/style/icons/Blank.png"
   },
+  "orientation": "landscape",
   "permissions": {
     "webapps-manage": {},
     "open-remote-window":{},

@@ -4,14 +4,17 @@
     "assert",
     "suite",
     "test",
+    "define",
     "setup",
     "teardown",
     "suiteSetup",
     "suiteTeardown",
     "require",
     "requireApp",
+    "testRequire",
     "sinon",
     "mocha",
-    "loadBodyHTML"
+    "loadBodyHTML",
+    "Promise"
   ]
 }

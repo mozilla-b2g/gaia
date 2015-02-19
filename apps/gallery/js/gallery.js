@@ -38,12 +38,9 @@ var TRANSITION_FRACTION = 0.25;
 // never go slower (except slide show transitions).
 var TRANSITION_SPEED = 0.75;
 
-// How many thumbnails are visible on a page.
-// Batch sizes are based on this.
-var PAGE_SIZE = 15;
-
 // UI elements
-var thumbnails = $('thumbnails');
+var thumbnails;
+var thumbnailList;
 
 var fullscreenView = $('fullscreen-view');
 
@@ -79,14 +76,6 @@ for (var i = 0; i < fullscreenButtonIds.length; i++) {
   fullscreenButtons[fullscreenButtonIds[i]] = document.getElementById(name);
 }
 
-// This array holds information about all the image and video files we
-// know about. Each array element is an object that includes a
-// filename and metadata. The array is initially filled when we enumerate
-// the photo and video databases, and has elements added and removed when
-// we receive create and delete events from the media databases.
-var files = [];
-var thumbnailList;
-
 var currentFileIndex = 0;       // What file is currently displayed
 var editedPhotoIndex;
 
@@ -96,18 +85,10 @@ var editedPhotoIndex;
 var selectedFileNames = [];
 var selectedFileNamesToBlobs = {};
 
-// The MediaDB object that manages the filesystem and the database of metadata
-var photodb;
-
 // We manage videos through their poster images, which are photos and so get
 // listed in the photodb above. But when we need to access the actual video
 // file, we have to get that from a device storage object for videos.
-var videostorage;
-
-var isInitThumbnail = false;
-
-// If we're doing a pick activity, this variable will be true
-var picking = false;
+var videostorage = navigator.getDeviceStorage('videos');
 
 // Flag that indicates that we've edited a picture and just saved it
 var justSavedEditedImage = false;
@@ -115,242 +96,6 @@ var justSavedEditedImage = false;
 // We store the last focused thumbnail so that we can quickly get the
 // selected thumbnails.
 var lastFocusedThumbnail = null;
-
-// Have we completed our first scan yet?
-var firstScanDone = false;
-
-// mozL10n.once is the main entry point for the app.
-navigator.mozL10n.once(function showBody() {
-  // <body> children are hidden until the UI is translated
-  document.body.classList.remove('hidden');
-
-  // Tell performance monitors that our chrome is visible
-  window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
-
-  // load frame_script.js for preview mode and show loading background
-  if (!isPhone) {
-    LazyLoader.load('js/frame_scripts.js');
-  }
-
-  // Now initialize the rest of the app.
-  init();
-});
-
-function init() {
-  // Clicking on the select button goes to thumbnail select mode
-  $('thumbnails-select-button').onclick =
-    setView.bind(null, LAYOUT_MODE.select);
-
-  // Clicking on the cancel button goes from thumbnail select mode
-  // back to thumbnail list mode
-  $('selected-header').addEventListener('action',
-    setView.bind(null, LAYOUT_MODE.list));
-
-  if (!isPhone) {
-    $('fullscreen-toolbar-header').addEventListener('action', function() {
-      setView(LAYOUT_MODE.list);
-    });
-  }
-
-  // The camera buttons should launch the camera app
-  fullscreenButtons.camera.onclick = launchCameraApp;
-
-  $('thumbnails-camera-button').onclick = launchCameraApp;
-  Overlay.addEventListener('camera', launchCameraApp);
-
-  // Clicking on the delete button in thumbnail select mode deletes all
-  // selected items
-  $('thumbnails-delete-button').onclick = deleteSelectedItems;
-
-  // Clicking on the share button in select mode shares all selected images
-  $('thumbnails-share-button').onclick = shareSelectedItems;
-
-  Overlay.addEventListener('cancel', function() {
-    if (picking) {
-      Pick.cancel();
-    }
-  });
-
-  // Handle resize events
-  window.onresize = resizeHandler;
-
-  // Tell performance monitors that our chrome is ready to interact with.
-  window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
-
-  // If we were not invoked by an activity, then start off in thumbnail
-  // list mode, and fire up the MediaDB object.
-  if (!navigator.mozHasPendingMessage('activity')) {
-    initDB();
-    setView(LAYOUT_MODE.list);
-  }
-
-  // Register a handler for activities. This will take care of the rest
-  // of the initialization process.
-  navigator.mozSetMessageHandler('activity', function activityHandler(a) {
-    var activityName = a.source.name;
-    switch (activityName) {
-    case 'browse':
-      // The 'browse' activity is the way we launch Gallery from Camera.
-      // If this was a cold start, then the db needs to be initialized.
-      if (!photodb) {
-        initDB();  // Initialize the media database
-        setView(LAYOUT_MODE.list);
-      }
-      else {
-        // If the gallery was already running we we arrived here via a
-        // browse activity, then the user is probably coming to us from the
-        // camera, and she probably wants to see the list of thumbnails.
-        // If we're currently displaying a single image, switch to the
-        // thumbnails. But if the user left the gallery in the middle of
-        // an edit or in the middle of making a selection, then returning
-        // to the thumbnail list would cause her to lose work, so in those
-        // cases we don't change anything and let the gallery resume where
-        // the user left it.  See Bug 846220.
-        if (currentView === LAYOUT_MODE.fullscreen)
-          setView(LAYOUT_MODE.list);
-      }
-      break;
-    case 'pick':
-      picking = true;
-      initDB();
-      LazyLoader.load('js/pick.js', function() { Pick.start(a); });
-      break;
-    }
-  });
-}
-
-// Initialize MediaDB objects for photos and videos, and set up their
-// event handlers.
-function initDB() {
-  photodb = new MediaDB('pictures', metadataParserWrapper, {
-    version: 2,
-    autoscan: false,     // We're going to call scan() explicitly
-    batchHoldTime: 2000, // Batch files during scanning
-    batchSize: 3         // Max batch size when scanning
-  });
-
-  // This is where we find videos once the photodb notifies us that a
-  // new video poster image has been detected. Note that we need this
-  // even during a pick activity when we're not displaying videos
-  // because we might still might find and parse metadata for new
-  // videos during the scanning process.
-  videostorage = navigator.getDeviceStorage('videos');
-
-  var loaded = false;
-  function metadataParserWrapper(file, onsuccess, onerror, bigFile) {
-    if (loaded) {
-      metadataParser(file, onsuccess, onerror, bigFile);
-      return;
-    }
-
-    LazyLoader.load(['js/metadata_scripts.js',
-                     'shared/js/media/crop_resize_rotate.js'], function() {
-      loaded = true;
-      metadataParser(file, onsuccess, onerror, bigFile);
-    });
-  }
-
-  // show dialog in upgradestart, when it finished, it will turned to ready.
-  photodb.onupgrading = function(evt) {
-    Overlay.show('upgrade');
-  };
-
-  // This is called when DeviceStorage becomes unavailable because the
-  // sd card is removed or because it is mounted for USB mass storage
-  // This may be called before onready if it is unavailable to begin with
-  // We don't need one of these handlers for the video db, since both
-  // will get the same event at more or less the same time.
-  photodb.onunavailable = function(event) {
-    // Switch back to the thumbnail view unless it is a pick activity.
-    // If we were viewing or editing an image it might not be there
-    // anymore when the MediaDB becomes available again.
-    if (!picking) {
-      setView(LAYOUT_MODE.list);
-    } else {
-      setView(LAYOUT_MODE.pick);
-      cleanupCrop();
-    }
-
-    // If storage becomes unavailble (e.g. the user starts a USB Mass Storage
-    // Lock the user out of the app, and tell them why
-    var why = event.detail;
-    if (why === MediaDB.NOCARD)
-      Overlay.show('nocard');
-    else if (why === MediaDB.UNMOUNTED)
-      Overlay.show('pluggedin');
-  };
-
-  photodb.onready = function() {
-    // Hide the nocard or pluggedin overlay if it is displayed
-    if (Overlay.current === 'nocard' || Overlay.current === 'pluggedin' ||
-        Overlay.current === 'upgrade')
-      Overlay.hide();
-
-    initThumbnails();
-  };
-
-  photodb.onscanstart = function onscanstart() {
-    // Prevents user to edit images when scanning pictures from storage
-    fullscreenButtons.edit.classList.add('disabled');
-    // Show the scanning indicator
-    $('progress').classList.remove('hidden');
-    $('throbber').classList.add('throb');
-  };
-
-  photodb.onscanend = function onscanend() {
-    // Allows the user to edit images when scanning is finished
-    fullscreenButtons.edit.classList.remove('disabled');
-
-    if (Overlay.current === 'scanning')
-      Overlay.show('emptygallery');
-    else if (!isPhone && !currentFrame.displayingImage &&
-             !currentFrame.displayingVideo) {
-      // focus on latest one if client hasn't clicked any of
-      // them
-      showFile(0);
-    }
-
-    // Hide the scanning indicator
-    $('progress').classList.add('hidden');
-    $('throbber').classList.remove('throb');
-
-    // If this was the first scan after startup, then tell
-    // performance monitors that the app is finally fully loaded and stable.
-    if (!firstScanDone) {
-      firstScanDone = true;
-      window.dispatchEvent(new CustomEvent('moz-app-loaded'));
-    }
-  };
-
-  // On devices with internal and external device storage, this handler is
-  // triggered when the user removes the sdcard. MediaDB remains usable
-  // and we'll get a bunch of deleted events for the files that are no longer
-  // available. But we need to listen to this event so we can switch back
-  // to the list of thumbnails. We don't want to be left viewing or editing
-  // a photo that is no longer available.
-  photodb.oncardremoved = function oncardremoved() {
-    // If the user pulls the sdcard while trying to pick an image, give up
-    if (picking) {
-      Pick.cancel();
-      return;
-    }
-
-    setView(LAYOUT_MODE.list);
-  };
-
-  // One or more files was created (or was just discovered by a scan)
-  photodb.oncreated = function(event) {
-    event.detail.forEach(fileCreated);
-  };
-
-  // One or more files were deleted (or were just discovered missing by a scan)
-  photodb.ondeleted = function(event) {
-    event.detail.forEach(fileDeleted);
-  };
-
-  // XXX: remove this hack as part of fixing bug 1046995
-  doNotScanInBackgroundHack(photodb);
-}
 
 // Pass the filename of the poster image and get the video file back
 function getVideoFile(filename, callback) {
@@ -397,110 +142,6 @@ function compareFilesByDate(a, b) {
   return 0;
 }
 
-//
-// Enumerate existing entries in the media database in reverse
-// chronological order (most recent first) and display thumbnails for them all.
-// After the thumbnails are displayed, scan for new files.
-//
-// This function gets called when the app first starts up, and also
-// when the sdcard becomes available again after a USB mass storage
-// session or an sdcard replacement.
-//
-function initThumbnails() {
-  // If we've already been called once, then we've already got thumbnails
-  // displayed. There is no need to re-enumerate them, so we just go
-  // straight to scanning for new files
-  if (isInitThumbnail) {
-    photodb.scan();
-    return;
-  }
-
-  isInitThumbnail = true;
-
-  // configure the template id for template group
-  ThumbnailDateGroup.Template = new Template('thumbnail-group-header');
-
-  // For gallery group view initialise ThumbnailList object
-  thumbnailList = new ThumbnailList(ThumbnailDateGroup, thumbnails);
-
-  // Handle clicks on the thumbnails we're about to create
-  thumbnails.addEventListener('click', thumbnailClickHandler);
-
-  // We need to enumerate both the photo and video dbs and interleave
-  // the files they return so that everything is in chronological order
-  // from most recent to least recent.
-
-  // Temporary arrays to hold enumerated files
-  var batch = [];
-  var batchsize = PAGE_SIZE;
-  var firstBatchDisplayed = false;
-
-  photodb.enumerate('date', null, 'prev', function(fileinfo) {
-    if (fileinfo) {
-      // For a pick activity, don't display videos
-      if (picking && fileinfo.metadata.video)
-        return;
-
-      // Bug 1003036 fixed an issue where explicitly created preview
-      // images could be saved with fractional sizes. We don't do that
-      // anymore, but we still need to clean up existing bad data here.
-      var metadata = fileinfo.metadata;
-      if (metadata &&
-          metadata.preview &&
-          metadata.preview.filename) {
-        metadata.preview.width = Math.floor(metadata.preview.width);
-        metadata.preview.height = Math.floor(metadata.preview.height);
-      }
-
-      batch.push(fileinfo);
-      if (batch.length >= batchsize) {
-        flush();
-        batchsize *= 2;
-      }
-    }
-    else {
-      done();
-    }
-  });
-
-  function flush() {
-    batch.forEach(thumb);
-    batch.length = 0;
-    if (!firstBatchDisplayed) {
-      firstBatchDisplayed = true;
-      // Tell performance monitors that "above the fold" content is displayed
-      // and is ready to interact with.
-      window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
-      window.dispatchEvent(new CustomEvent('moz-content-interactive'));
-    }
-  }
-
-  function thumb(fileinfo) {
-    files.push(fileinfo);              // remember the file
-    // Create the thumbnail view for this file
-    // and insert it at the right spot
-    thumbnailList.addItem(fileinfo);
-  }
-
-  function done() {
-    flush();
-    if (files.length === 0) { // If we didn't find anything
-      Overlay.show('scanning');
-    }
-
-    // Send a custom event to performance monitors to note that we're done
-    // enumerating the database at this point. We won't send the final
-    // moz-app-loaded event until we're completely stable and have
-    // finished scanning.
-    PerformanceTestingHelper.dispatch('media-enumerated');
-
-    // Now that we've enumerated all the photos and videos we already know
-    // about go start looking for new photos and videos.
-    photodb.scan();
-  }
-}
-
-//
 // getFileIndex return position of a file thumbnail in gallery view
 // It first find thumbnail's position within its own group
 // then add the sizes of previous groups
@@ -660,7 +301,7 @@ function fileCreated(fileinfo) {
 function scrollToShowThumbnail(n) {
   if (!files[n])
     return;
-  var selector = 'li[data-filename="' + files[n].name + '"]';
+  var selector = 'img[data-filename="' + files[n].name + '"]';
   var thumbnail = thumbnails.querySelector(selector);
   if (thumbnail) {
     var screenTop = thumbnails.scrollTop;
@@ -773,6 +414,11 @@ function thumbnailClickHandler(evt) {
 
   if (!target || !target.classList.contains('thumbnailImage'))
     return;
+
+  // If the MediaDB is not fully ready yet, then ignore the event
+  if (photodb.state !== MediaDB.READY) {
+    return;
+  }
 
   var index = getFileIndex(target.dataset.filename);
   if (picking && currentView === LAYOUT_MODE.pick && index >= 0) {
@@ -934,7 +580,8 @@ function deleteSelectedItems() {
     messageArgs: {n: selected.length},
     cancelId: 'cancel',
     confirmId: 'delete',
-    danger: true
+    danger: true,
+    bodyClass: 'showing-dialog'
   }, function() { // onSuccess
     // deleteFile is O(n), so this loop is O(n*n). If used with really large
     // selections, it might have noticably bad performance.  If so, we

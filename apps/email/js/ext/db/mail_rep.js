@@ -94,7 +94,8 @@ function makeHeaderInfo(raw) {
     hasAttachments: raw.hasAttachments || false,
     // These can be empty strings which are falsey, so no ||
     subject: (raw.subject != null) ? raw.subject : null,
-    snippet: (raw.snippet != null) ? raw.snippet : null
+    snippet: (raw.snippet != null) ? raw.snippet : null,
+    imapMissingInSyncRange: raw.imapMissingInSyncRange || null
   };
 }
 

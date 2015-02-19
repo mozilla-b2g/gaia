@@ -10,7 +10,6 @@
 
 (function(exports) {
   var _id = 0;
-  var _ = navigator.mozL10n.get;
 
   var newTabManifestURL = null;
   SettingsCache.observe('rocketbar.newTabAppURL', '',
@@ -70,13 +69,6 @@
     var chrome = this.app.config.chrome;
     if (!chrome) {
       return;
-    }
-
-    if (this.isSearchApp()) {
-      this.app.element.classList.add('search-app');
-      this.title.textContent = _('search-or-enter-address');
-    } else {
-      this.app.element.classList.remove('search-app');
     }
 
     if (chrome.bar) {
@@ -387,9 +379,6 @@
     };
 
   AppChrome.prototype.setFreshTitle = function ac_setFreshTitle(title) {
-    if (this.isSearchApp()) {
-      return;
-    }
     this.title.textContent = title;
     clearTimeout(this._titleTimeout);
     this._recentTitle = true;
@@ -614,11 +603,6 @@
     return dataset.searchURL && this._currentURL === dataset.searchURL;
   };
 
-  AppChrome.prototype.isSearchApp = function() {
-    return this.app.config.manifest &&
-      this.app.config.manifest.role === 'search';
-  };
-
   AppChrome.prototype.addBookmark = function ac_addBookmark() {
     var dataset = this.app.config;
     var favicons = this.app.favicons;
@@ -662,7 +646,7 @@
     }
 
     var data = {
-      title: _('add-to-home-screen'),
+      title: 'add-to-home-screen',
       options: []
     };
 

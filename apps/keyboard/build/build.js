@@ -3,7 +3,8 @@
 /* global require, exports */
 
 var utils = require('utils');
-var keyboardConfig = require('./keyboard-config');
+var KeyboardLayoutConfigurator =
+  require('./layout_configurator').KeyboardLayoutConfigurator;
 var settingsConfig = require('./settings-config');
 
 var KeyboardAppBuilder = function() {
@@ -11,42 +12,12 @@ var KeyboardAppBuilder = function() {
 
 // set options
 KeyboardAppBuilder.prototype.setOptions = function(options) {
-  this.allLayouts = options.GAIA_KEYBOARD_LAYOUTS.split(',');
+  this.enabledLayouts = options.GAIA_KEYBOARD_LAYOUTS.split(',');
+  this.preloadDictLayouts =
+    options.GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS.split(',');
+  this.userDictEnabled = options.GAIA_KEYBOARD_ENABLE_USER_DICT === '1';
   this.distDir = utils.getFile(options.STAGE_APP_DIR);
   this.appDir = utils.getFile(options.APP_DIR);
-};
-
-KeyboardAppBuilder.prototype.getLayoutsForVersion = function(version) {
-  var layouts = [];
-  switch (version) {
-    case 'one':
-      this.allLayouts.forEach(function(layoutName) {
-        var file = utils.getFile(
-          this.appDir.path, 'js', 'layouts', layoutName + '.js');
-        if (file.exists()) {
-          layouts.push(layoutName);
-        }
-      }.bind(this));
-
-      break;
-
-    case 'two':
-      // TBD
-
-      break;
-  }
-
-  return layouts;
-};
-
-KeyboardAppBuilder.prototype.throwForNoneExistLayouts = function() {
-  this.allLayouts.forEach(function(layoutName) {
-    if (this.versionOneLayouts.indexOf(layoutName) === -1 &&
-      this.versionTwoLayouts.indexOf(layoutName) === -1) {
-      throw new Error('Keyboard layout ' + layoutName + '.js specified by ' +
-        'GAIA_KEYBOARD_LAYOUTS not found.');
-    }
-  }.bind(this));
 };
 
 // Copy static files to build_stage.
@@ -55,36 +26,22 @@ KeyboardAppBuilder.prototype.copyStaticFiles = function() {
   var filenames = ['resources'];
   var dirs = [];
 
-  if (this.versionOneLayouts.length) {
-    dirs = dirs.concat('js', 'js/imes', 'js/imes/latin');
-    // Unfortunately we have to explicitly list many files here
-    // because the whitelist most not include optional layout
-    // specific files.
-    filenames = filenames.concat('index.html',
-                                 'locales',
-                                 'settings.html',
-                                 'style',
-                                 'js/render.js',
-                                 'js/settings',
-                                 'js/keyboard',
-                                 'js/views',
-                                 'js/imes/latin/latin.js',
-                                 'js/imes/latin/predictions.js',
-                                 'js/imes/latin/worker.js');
-  }
-  if (this.versionTwoLayouts.length) {
-    /* TBD, maybe
-
-    filenames = filenames.concat('index2.html', 'style2', 'js2');
-
-    and move more shared files out of the two `if` blocks.
-
-    */
-  }
+  dirs = dirs.concat('js', 'js/imes');
+  // Unfortunately we have to explicitly list many files here
+  // because the whitelist must not include optional layout
+  // specific files.
+  filenames = filenames.concat('index.html',
+                               'locales',
+                               'settings.html',
+                               'style',
+                               'js/settings',
+                               'js/shared',
+                               'js/keyboard',
+                               'js/views');
 
   dirs.forEach(function(dirName) {
     var dir = utils.getFile.apply(utils,
-      [this.appDir.path].concat(dirName.split('/')));
+      [this.distDir.path].concat(dirName.split('/')));
     utils.ensureFolderExists(dir);
   }.bind(this));
 
@@ -105,49 +62,54 @@ KeyboardAppBuilder.prototype.copyStaticFiles = function() {
 };
 
 KeyboardAppBuilder.prototype.copyLayouts = function() {
-  // XXX we probably need better separation between this
-  // and keyboard-config.js
+  this.layoutConfigurator.copyFiles(this.distDir);
+};
 
-  // For v1 keyboard
-  keyboardConfig.copyLayoutsAndResources(
-    this.appDir, this.distDir, this.versionOneLayouts);
+KeyboardAppBuilder.prototype.generateLayoutsJSON = function() {
+  // Write a dictionary list file into keyboard/js/settings/
+  // This file is noly used in keyboard settings page.
+  // (That's why we annotate latin.js too.)
+  var configFileDesc = utils.getFile(
+    this.distDir.path, 'js', 'settings', 'layouts.json');
 
-  // TBD: v2
+  var layouts = this.layoutConfigurator.getLayoutsJSON();
+
+  utils.writeContent(
+    configFileDesc, JSON.stringify(layouts, null, 2));
 };
 
 KeyboardAppBuilder.prototype.generateManifest = function() {
-  // XXX we probably need better separation between this
-  // and keyboard-config.js
-
   var manifest =
     utils.getJSON(utils.getFile(this.appDir.path, 'manifest.webapp'));
 
-  // For v1 keyboard
-  manifest = keyboardConfig.addEntryPointsToManifest(
-    this.appDir, this.distDir, this.versionOneLayouts, manifest);
-
-  // TBD: v2
+  this.layoutConfigurator.addInputsToManifest(manifest);
 
   // Write content to build_stage
   utils.writeContent(utils.getFile(this.distDir.path, 'manifest.webapp'),
-                     JSON.stringify(manifest));
+                     JSON.stringify(manifest, null, 2));
 };
 
 KeyboardAppBuilder.prototype.modifySettings = function() {
-  if (settingsConfig.checkHandwriting(this.allLayouts)) {
-    settingsConfig.addHandwritingSettings(this.appDir.path, this.distDir.path);
-  }
+  var enabledFeatures = {
+    handwriting: settingsConfig.checkHandwriting(this.enabledLayouts),
+    userDict: this.userDictEnabled
+  };
+
+  settingsConfig.addSettings(
+    this.appDir.path, this.distDir.path, enabledFeatures);
 };
 
 KeyboardAppBuilder.prototype.execute = function(options) {
   this.setOptions(options);
 
-  // Check against allLayouts. Most of the code should be gone with v1 keyboard.
-  this.versionOneLayouts = this.getLayoutsForVersion('one');
-  this.versionTwoLayouts = this.getLayoutsForVersion('two');
-  this.throwForNoneExistLayouts();
+  this.layoutConfigurator =
+    new KeyboardLayoutConfigurator(this.appDir);
+  this.layoutConfigurator
+    .loadLayouts(this.enabledLayouts, this.preloadDictLayouts);
+
   this.copyStaticFiles();
   this.copyLayouts();
+  this.generateLayoutsJSON();
   this.generateManifest();
   this.modifySettings();
 };

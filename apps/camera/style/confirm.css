@@ -29,10 +29,9 @@
   padding: 0;
   margin: 0;
   overflow: hidden;
-  -moz-user-select: none;
 }
 
-.confirm-media-frame > img {
+.confirm-media-frame > .image-view {
   top: 0;  /* javascript modifies this position with a transform */
   left: 0;
   position: absolute;
@@ -40,7 +39,6 @@
   padding: 0;
   margin: 0;
   pointer-events: none;
-  -moz-user-select: none;
 }
 
 .confirm-media-frame > video {

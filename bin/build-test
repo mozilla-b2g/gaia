@@ -1,8 +1,0 @@
-#! /bin/bash -vex
-
-./node_modules/.bin/mocha \
-  --harmony \
-  --reporter ${REPORTER:=spec} \
-  --ui tdd \
-  --timeout 300000 \
-  $(./bin/chunk ${TOTAL_CHUNKS:=1} ${THIS_CHUNK:=1} $@)

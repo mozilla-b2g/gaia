@@ -10,12 +10,13 @@
     <link rel="stylesheet" type="text/css" href="style/system/initlogo.css">
 
     <!-- Shared code -->
-    <script src="shared/js/performance_testing_helper.js"></script>
+    <script src="shared/js/usertiming.js"></script>
     <script src="shared/js/l10n.js"></script>
     <script src="shared/js/l10n_date.js"></script>
     <script src="shared/js/idletimer.js"></script>
     <script src="shared/js/dump.js"></script>
     <script defer src="shared/js/nfc_utils.js"></script>
+    <script defer src="shared/js/event_safety.js"></script>
     <script defer src="shared/js/gesture_detector.js"></script>
     <script defer src="shared/js/settings_listener.js"></script>
     <script defer src="shared/js/custom_dialog.js"></script>
@@ -76,6 +77,7 @@
     <!-- System -->
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
     <link rel="stylesheet" type="text/css" href="style/system/keyboard.css">
+    <link rel="stylesheet" type="text/css" href="style/system/global-overlays.css">
     <link rel="stylesheet" type="text/css" href="style/ime_menu.css">
 
     <!-- Include shared building blocks -->
@@ -128,11 +130,13 @@
     <script defer src="js/wake_lock_manager.js"></script>
 
     <script defer src="js/cpu_manager.js"></script>
+    <script defer src="js/screen_auto_brightness.js"></script>
     <script defer src="js/screen_brightness_transition.js"></script>
     <script defer src="js/screen_manager.js"></script>
     <script defer src="js/activities.js"></script>
     <script defer src="js/usb_storage.js"></script>
     <script defer src="js/external_storage_monitor.js"></script>
+    <script defer src="js/browser.js"></script>
     <script defer src="js/browser_settings.js"></script>
     <script defer src="js/bootstrap.js"></script>
     <script defer src="js/screenshot.js"></script>
@@ -249,7 +253,6 @@
 
     <!-- Trusted UI -->
     <link rel="stylesheet" type="text/css" href="style/trusted_ui/trusted_ui.css">
-    <script defer src="js/trusted_ui.js"></script>
 
     <!-- Permission Manager -->
     <link rel="stylesheet" type="text/css" href="style/permission_manager/permission_manager.css">
@@ -286,9 +289,6 @@
 
     <!-- Nfc -->
     <script defer src="js/ndef_utils.js"></script>
-    <script defer src="js/nfc_handover_manager.js"></script>
-    <script defer src="js/nfc_manager.js"></script>
-    <script defer src="js/nfc_handler.js"></script>
 
     <!-- Cards View -->
     <link rel="stylesheet" type="text/css" href="style/cards_view/cards_view.css">
@@ -319,7 +319,8 @@
     <link rel="stylesheet" type="text/css" href="style/themes/default/menus.css">
     <link rel="stylesheet" type="text/css" href="style/themes/default/buttons.css">
     <link rel="stylesheet" type="text/css" href="style/themes/default/banner.css">
-    <link rel="manifest" href="manifest.webapp">
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
     <link rel="localization" href="/shared/locales/branding/branding.{locale}.properties">
     <link rel="localization" href="locales/system.{locale}.properties">
     <link rel="localization" href="locales/accessibility.{locale}.properties">
@@ -388,16 +389,20 @@
     <script defer src="js/activity_window_manager.js"></script>
     <script defer src="js/app_window_factory.js"></script>
     <script defer src="js/attention_window.js"></script>
+    <script defer src="js/global_overlay_window.js"></script>
+    <script defer src="js/trusted_window.js"></script>
     <script defer src="js/callscreen_window.js"></script>
     <script defer src="js/dialer_agent.js"></script>
     <script defer src="js/attention_window_manager.js"></script>
+    <script defer src="js/trusted_window_manager.js"></script>
+    <script defer src="js/global_overlay_window_manager.js"></script>
     <script defer src="js/app_window_manager.js"></script>
     <script defer src="js/secure_window.js"></script>
     <script defer src="js/secure_window_factory.js"></script>
     <script defer src="js/secure_window_manager.js"></script>
     <script defer src="js/system_dialog.js"></script>
     <script defer src="js/system_dialog_manager.js"></script>
-    <script defer src="js/system_nfc_connect_dialog.js"></script>
+    <script defer src="js/devtools/devtools_auth_dialog.js"></script>
     <script defer src="js/fxa_dialog.js"></script>
     <script defer src="js/lockscreen_window.js"></script>
     <script defer src="js/lockscreen_input_window.js"></script>
@@ -418,10 +423,12 @@
     <script defer src="js/entry_sheet.js"></script>
 
     <!-- Developer Tools -->
-    <script defer src="js/remote_debugger.js"></script>
+    <script defer src="js/devtools/remote_debugger.js"></script>
     <script defer src="js/devtools/logshake.js"></script>
     <script defer src="js/devtools/developer_hud.js"></script>
     <link rel="stylesheet" type="text/css" href="style/devtools/developer_hud.css">
+    <script defer src="js/devtools/devtools_auth.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/devtools/devtools_auth.css">
 
     <!-- z-indexes of all the overlays in the system -->
     <link rel="stylesheet" type="text/css" href="style/zindex.css">
@@ -431,7 +438,6 @@
     <link rel="stylesheet" type="text/css" href="style/storage_watcher/storage_watcher.css">
 
     <!-- Rocketbar -->
-    <script defer src="js/browser.js"></script>
     <script defer src="js/rocketbar.js"></script>
     <script defer src="js/search_window.js"></script>
     <script defer src="shared/js/url_helper.js"></script>
@@ -469,7 +475,7 @@
         <!-- Rocketbar-->
         <div id="rocketbar">
           <form id="rocketbar-form" class="hidden">
-            <input id="rocketbar-input" type="search" x-inputmode="verbatim" dir="auto"
+            <input id="rocketbar-input" type="search" x-inputmode="verbatim"
               placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="" />
             <button type="button" id="rocketbar-clear" data-l10n-id="clear" aria-label="Clear"></button>
             <button type="button" id="rocketbar-cancel" data-l10n-id="close"></button>
@@ -479,8 +485,6 @@
         <div id="statusbar-icons">
           <div id="statusbar-maximized-wrapper">
             <div id="statusbar-maximized" class="statusbar" role="group" data-l10n-id="statusbar" aria-describedby="ambient-indicator">
-              <!-- Carrier & date label -->
-              <div id="statusbar-label" class="sb-start-upper sb-icon-label" role="listitem"></div>
 
               <!-- Unused -->
               <div id="statusbar-sms" class="sb-icon sb-icon-sms" hidden role="listitem"></div>
@@ -531,7 +535,10 @@
         <div id="notifications">
           <!-- Notifications -->
           <div id="utility-tray-notifications" data-l10n-id="utilityTray" role="dialog" aria-label="Utility tray" data-z-index-level="utility-tray-notifications">
-            <div id="statusbar-tray"></div>
+            <div id="statusbar-tray">
+                <!-- Carrier & date label -->
+                <div id="statusbar-label" class="sb-start-upper sb-icon-label" role="listitem"></div>
+            </div>
             <div id="notification-bar" class="fake-notification">
               <div data-icon="notifications"></div>
               <div class="title-container">
@@ -841,8 +848,8 @@
             <h1 id="permission-title"></h1>
             <h2 id="permission-message"></h2>
             <div id="permission-more-info" class="hidden">
-              <a id="permission-more-info-link" data-l10n-id="more-info" href="#">More Info…</a>
-              <a id="permission-hide-info-link" data-l10n-id="hide-info" href="#" class="hidden">Hide Info</a>
+              <a id="permission-more-info-link" data-l10n-id="more-info" href="#"></a>
+              <a id="permission-hide-info-link" data-l10n-id="hide-info" href="#" class="hidden"></a>
               <div id="permission-more-info-box" class="hidden"> </div>
             </div>
             <div id="permission-remember-section">
@@ -850,7 +857,7 @@
                 <input type="checkbox" id="permission-remember-checkbox" />
                 <span></span>
               </label>
-              <a data-l10n-id="remember-my-choice" id="permission-remember-label">Remember my choice</a>
+              <a data-l10n-id="remember-my-choice" id="permission-remember-label"></a>
             </div>
             <div id="permission-device-selector"></div>
             <ul id="permission-devices">
@@ -1021,8 +1028,8 @@
           <p data-l10n-id="data-roaming-enabled-warning2"></p>
         </section>
         <menu>
-          <button type="button" class="quick-setting-data-cancel-btn recommend" data-l10n-id="notNow">Not now</button>
-          <button type="button" class="quick-setting-data-ok-btn" data-l10n-id="turnOn">Turn ON</button>
+          <button type="button" class="quick-setting-data-cancel-btn recommend" data-l10n-id="notNow"></button>
+          <button type="button" class="quick-setting-data-ok-btn" data-l10n-id="turnOn"></button>
         </menu>
       </form>
 
@@ -1053,6 +1060,9 @@
 
       <!-- keyboard -->
       <div id="keyboards" data-z-index-level="keyboards"></div>
+
+      <!-- Global overlays -->
+      <div id="global-overlays" data-z-index-level="global-overlays"></div>
 
       <!-- template for IME Menu. -->
       <div id="ime-menu-template" hidden>
@@ -1085,7 +1095,7 @@
       <!-- cards view -->
       <div id="cards-view" data-z-index-level="cards-view">
         <ul id="cards-list"></ul>
-        <span id="cards-no-recent-windows" class="no-recent-apps" data-l10n-id="no-recent-app-windows">No recent windows</span>
+        <span id="cards-no-recent-windows" class="no-recent-apps" data-l10n-id="no-recent-app-windows"></span>
       </div>
 
       <!-- icc / stk -->
@@ -1102,7 +1112,7 @@
         </section>
         <section role="region" class="skin-organic" id="icc-confirm">
           <gaia-header>
-            <a href="#"><span class="icon icon-back" id="icc-confirm-btn_back"></span></a>
+            <a href="#"><span data-icon="back" id="icc-confirm-btn_back"></span></a>
             <h1 id="icc-confirm-maintitle" data-l10n-id="icc-message-maintitle"></h1>
           </gaia-header>
           <gaia-subheader><span id="icc-confirm-subtitle"></span></gaia-subheader>

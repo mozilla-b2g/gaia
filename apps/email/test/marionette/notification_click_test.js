@@ -1,14 +1,14 @@
 /*jshint node: true */
 /*global marionette, setup, test */
+'use strict';
 
 var Email = require('./lib/email');
-var EmailEvt = require('./lib/email_evt');
 var EmailSync = require('./lib/email_sync');
-var Notification = require('./lib/notification');
+var NotificationLib = require('./lib/notification');
 var serverHelper = require('./lib/server_helper');
 
 marionette('email notifications, click', function() {
-  var app, sync, notification, evt,
+  var app, sync, notification,
       client = marionette.client(),
       server1 = serverHelper.use({
                   credentials: {
@@ -39,8 +39,9 @@ marionette('email notifications, click', function() {
     // no cross sending of email across fakeserver instances.
     app.manualSetupImapEmail(server1);
 
-    for (var i = 0; i < messageCount; i++)
+    for (var i = 0; i < messageCount; i++) {
       sendEmail(server1);
+    }
 
     // Now set up second account, to confirm system notifications
     // are only triggered in certain situations.
@@ -52,8 +53,7 @@ marionette('email notifications, click', function() {
 
   setup(function() {
     app = new Email(client);
-    evt = new EmailEvt(client);
-    notification = new Notification(client);
+    notification = new NotificationLib(client);
     sync = new EmailSync(client);
     sync.setup();
 
@@ -65,13 +65,7 @@ marionette('email notifications, click', function() {
 
     sync.triggerSync();
 
-    // Go back to system app
-    client.switchToFrame();
-    var url = notification.getFirstIconUrl();
-
-    // Then back to email, and fake a notification event
-    client.apps.switchToApp(Email.EMAIL_ORIGIN);
-    evt.emitNotificationWithUrl(url);
+    notification.triggerFirstNotification();
 
     // Since a single message notification, should go to message_reader.
     app.waitForMessageReader();
@@ -83,13 +77,7 @@ marionette('email notifications, click', function() {
 
     sync.triggerSync();
 
-    // Go back to system app
-    client.switchToFrame();
-    var url = notification.getFirstIconUrl();
-
-    // Then back to email, and fake a notification event
-    client.apps.switchToApp(Email.EMAIL_ORIGIN);
-    evt.emitNotificationWithUrl(url);
+    notification.triggerFirstNotification();
 
     // Since a single message notification, should go to message_reader.
     app.waitForMessageList();

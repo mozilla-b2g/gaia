@@ -1,7 +1,7 @@
 'use strict';
 
 var Actions = require('marionette-client').Actions;
-var StatusBar = require('./lib/statusbar');
+var SETTINGS_APP = 'app://settings.gaiamobile.org';
 
 marionette('Statusbar Visibility', function() {
   var client = marionette.client({
@@ -10,14 +10,12 @@ marionette('Statusbar Visibility', function() {
     },
     settings: {
       'ftu.manifestURL': null,
-      'lockscreen.enabled': false,
-      'nfc.enabled': true
+      'lockscreen.enabled': false
     }
   });
 
   var actions = new Actions(client);
-  var statusBar = new StatusBar(client);
-  var halfScreenHeight, system;
+  var halfScreenHeight, system, grippyHeight;
 
   setup(function() {
     system = client.loader.getAppClass('system');
@@ -25,6 +23,8 @@ marionette('Statusbar Visibility', function() {
     halfScreenHeight = client.executeScript(function() {
       return window.innerHeight;
     }) / 2;
+    var grippy = client.findElement('#utility-tray-grippy');
+    grippyHeight = grippy.size().height;
   });
 
   test('Visibility of date in utility tray', function() {
@@ -43,10 +43,35 @@ marionette('Statusbar Visibility', function() {
     });
   });
 
-  // skipping since nfc.enabled triggers HW change and icon is updated
-  // on success. Status bar needs to observe nfc.status setting.
-  // This will be fixed and reenabled in Bug 1103874
-  test.skip('NFC icon is visible', function() {
-    statusBar.nfc.waitForIconToAppear();
+  test('Filter is none when passing the grippyHeight', function() {
+    client.apps.launch(SETTINGS_APP);
+    actions
+      .press(system.topPanel)
+      .moveByOffset(0, grippyHeight + 1)
+      .perform();
+    client.waitFor(function() {
+      // The element is rendered with moz-element so we can't use
+      // marionette's .displayed()
+      var filter = system.statusbar.scriptWith(function(element) {
+        return window.getComputedStyle(element).filter;
+      });
+      return (filter == 'none');
+    });
+  });
+
+  test('Filter is applied before passing the grippyHeight', function() {
+    client.apps.launch(SETTINGS_APP);
+    actions
+      .press(system.topPanel)
+      .moveByOffset(0, grippyHeight - 1)
+      .perform();
+    client.waitFor(function() {
+      // The element is rendered with moz-element so we can't use
+      // marionette's .displayed()
+      var filter = system.statusbar.scriptWith(function(element) {
+        return window.getComputedStyle(element).filter;
+      });
+      return (filter != 'none');
+    });
   });
 });

@@ -1,218 +1,73 @@
-@keyframes toaster {
-  0% {
-    opacity: 0.15;
-    width: 8.6rem;
-    background-color: transparent;
-    border-left: 0.2rem solid transparent;
-    border-right: 0.2rem solid transparent;
-    border-top: 0.2rem solid white;
-  }
-  10% {
-    width: 8.6rem;
-    background-color: transparent;
-    border-left: 0.2rem solid transparent;
-    border-right: 0.2rem solid transparent;
-    border-top: 0.2rem solid white;
-  }
-  30% {
-    opacity: 1;
-    width: 8.6rem;
-    background-color: transparent;
-    border-left: 0.2rem solid transparent;
-    border-right: 0.2rem solid transparent;
-    border-top: 0.2rem solid #B3F3FF;
-  }
-  60% {
-    opacity: 1;
-    width: 8.6rem;
-    background-color: transparent;
-    border-left: 0.2rem solid transparent;
-    border-right: 0.2rem solid transparent;
-    border-top: 0.2rem solid #B3F3FF;
-  }
-  100% {
-    background-color: #00BCE2;
-    width: 100%;
-  }
-}
-
-#notification-toaster {
+smart-banner#notification-container {
   position: absolute;
-  left: 0;
-  right: 0;
-  margin: auto;
-  top: -.2rem;
-  width: 100%;
-  height: 5.2rem;
-  background-color: transparent;
-  visibility: hidden;
-  transform: translateY(-5rem);
-  transition: transform ease .3s, background-color 0s ease .3s, visibility 0s ease .3s;
+  right: 5rem;
+  bottom: 6rem;
+
+  font-size: 2.8rem;
 }
 
-/*
- * For attention window.
- */
-.fake-notification-toaster {
-  height: 5rem;
-  width: 100%;
-  position: relative;
+smart-banner#notification-container.hidden {
+  display: none;
 }
 
-.utility-tray #ambient-indicator {
-  top: 0;
-}
-
-#toaster-icon {
-  position: absolute;
-  width: 2.4rem;
-  height: 2.4rem;
-  top: 0;
-  bottom: 0;
-  margin: auto;
-  left: 1.5rem;
-  pointer-events: none;
-}
-
-#notification-container > div {
-  left: 5.6rem;
-  width: calc(100% - 7.1rem);
+.notification-message, .notification-button-group {
+  margin: 0;
   padding: 0;
-  overflow: hidden;
+  display: inline-block;
+  height: 7rem;
+  vertical-align: top;
+}
+
+.notification-title, .notification-body {
+  line-height: 7rem;
+  height: 7rem;
+  display: block;
   text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 400;
-  text-align: left;
-}
-
-.toaster-title {
-  pointer-events: none;
-  position: absolute;
-  bottom: 2.3rem;
-  color: white;
-  font-size: 1.8rem;
-}
-
-.toaster-detail {
-  pointer-events: none;
-  position: absolute;
-  bottom: .6rem;
-  color: white;
-  font-size: 1.4rem;
+  max-width: 40rem;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-#notification-toaster.displayed {
-  transform: translateY(0);
-  transition: transform .2s ease 1.2s, background-color 0s ease 1.2s, visibility 0s ease 1.2s;
-  background-color: #00BCE2;
-  visibility: visible;
+.notification-title {
+  font-weight: bold;
+  font-style: normal;
 }
 
-#ambient-indicator {
-  position: absolute;
-  top: -.2rem;
-  height: .2rem;
-  width: 100%;
-  opacity: 0;
-  background-color: #00BCE2;
-  transform: translateY(-.2rem);
-  transition: opacity .5s ease .5s, transform 0s ease 1s, background-color 0s ease 1s;
+.notification-body {
+  font-weight: 300;
+  font-style: italic;
 }
 
-#notification-toaster.displayed:after,
-#ambient-indicator:after {
-  position: absolute;
-  right: 0;
-  left: 0;
-  margin: auto;
-  border-left: 0.2rem solid transparent;
-  border-right: 0.2rem solid transparent;
-  border-top: 0.2rem solid #00d3ff;
-  bottom: 0;
-  content: '';
+.notification-button-group {
+  margin-left: 4.4rem;
+  padding-left: 5.2rem;
+  border-left: solid 1px #5f6368;
+  font-style: italic;
 }
 
-#notification-toaster:after {
-  border-color: white;
-  visibility: visible;
+.notification-button-group.hidden {
+  display: none;
 }
 
-#notification-toaster.displayed:after {
-  animation-name: toaster;
-  animation-duration: 1.2s;
-  border-color: #00BCE2;
-  transform: translateY(.2rem);
-  transition: border-color 0s ease 1.2s;
+.notification-button-group > smart-button[type="simple-text"],
+.notification-button-group > smart-button[type="simple-text"] > * {
+  padding-left: 0;
+  padding-right: 0;
+  height: 7rem;
+  width: auto;
+  line-height: 7rem;
+  vertical-align: top;
 }
 
-#ambient-indicator.unread {
-  background-color: #006e86;
-  transform: translateY(0);
-  transition: background-color .3s ease .3s;
-  opacity: 1;
+.notification-button-group > smart-button[type="simple-text"]:not(:first-child) {
+  padding-left: 2.4rem;
 }
 
-#ambient-indicator.small:after {
-  width: 8.6rem;
+.notification-button-group > smart-button[type="simple-text"].hidden {
+  display: none;
 }
 
-#ambient-indicator.medium:after {
-  width: 16.8rem;
-}
-
-#ambient-indicator.big:after {
-  width: 24.8rem;
-}
-
-#ambient-indicator.full:after {
-  width: 100%;
-  background-color: white;
-}
-
-@keyframes fn-rotate {
-  from {
-    transform: rotate(1deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* RTL View */
-
-html[dir="rtl"] #toaster-icon{
-  left: unset;
-  right: 1.5rem;
-}
-
-html[dir="rtl"] #notification-container > div {
-  left: unset;
-  right: 5.6rem;
-  text-align: right;
-}
-
-html[dir="rtl"] #notification-bar .title-container {
-  float: right;
-}
-
-html[dir="rtl"] #notifications-container .notification > img {
-  float: right;
-}
-
-html[dir="rtl"] #notifications-container .notification > div.title-container .timestamp {
-  left: 1.5rem;
-  right: unset;
-}
-
-html[dir="rtl"] #notifications-container .notification > div {
-  margin-left: unset;
-  margin-right: 3.7rem;
-}
-
-html[dir="rtl"] #notifications-container .notification > div:-moz-dir(ltr) {
-  text-align: right;
+smart-banner#notification-container.has-title .notification-title,
+smart-banner#notification-container.has-title .notification-body {
+  line-height: 3.5rem;
+  height: 3.5rem;
 }

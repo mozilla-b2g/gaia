@@ -5,24 +5,31 @@
 import json
 import os
 
-from marionette import BaseMarionetteOptions, HTMLReportingOptionsMixin, \
-    HTMLReportingTestRunnerMixin, EnduranceOptionsMixin, \
-    HTMLReportingTestResultMixin
-from marionette import MarionetteTestResult
-from marionette import MarionetteTextTestRunner
-from marionette import BaseMarionetteTestRunner
+from marionette import (BaseMarionetteOptions,
+                        HTMLReportingOptionsMixin,
+                        HTMLReportingTestRunnerMixin,
+                        EnduranceOptionsMixin,
+                        HTMLReportingTestResultMixin,
+                        MarionetteTextTestRunner,
+                        MarionetteTestResult,
+                        BaseMarionetteTestRunner)
 from marionette.runtests import cli
 import mozlog
 
 from gaiatest import __name__
-from gaiatest import GaiaTestCase, GaiaOptionsMixin, GaiaTestRunnerMixin, \
-    TreeherderOptionsMixin, TreeherderTestRunnerMixin
+
+from gaiatest import (GaiaTestCase,
+                      GaiaOptionsMixin,
+                      GaiaTestRunnerMixin,
+                      TreeherderOptionsMixin,
+                      TreeherderTestRunnerMixin,
+                      GaiaImageCompareOptionsMixin)
 from version import __version__
 
 
 class GaiaTestOptions(BaseMarionetteOptions, GaiaOptionsMixin,
                       EnduranceOptionsMixin, HTMLReportingOptionsMixin,
-                      TreeherderOptionsMixin):
+                      TreeherderOptionsMixin, GaiaImageCompareOptionsMixin):
 
     def __init__(self, **kwargs):
         BaseMarionetteOptions.__init__(self, **kwargs)
@@ -30,6 +37,7 @@ class GaiaTestOptions(BaseMarionetteOptions, GaiaOptionsMixin,
         HTMLReportingOptionsMixin.__init__(self, **kwargs)
         EnduranceOptionsMixin.__init__(self, **kwargs)
         TreeherderOptionsMixin.__init__(self, **kwargs)
+        GaiaImageCompareOptionsMixin.__init__(self, **kwargs)
 
 
 class GaiaTestResult(MarionetteTestResult, HTMLReportingTestResultMixin):
@@ -89,10 +97,11 @@ SpecialPowers.pushPermissions([
 
     def start_httpd(self, need_external_ip):
         super(GaiaTestRunner, self).start_httpd(need_external_ip)
-        self.httpd.urlhandlers.append({
-            'method': 'GET',
-            'path': '.*\.webapp',
-            'function': self.webapp_handler})
+        if self.httpd is not None:
+            self.httpd.urlhandlers.append({
+                'method': 'GET',
+                'path': '.*\.webapp',
+                'function': self.webapp_handler})
 
     def webapp_handler(self, request):
         with open(os.path.join(self.server_root, request.path[1:]), 'r') as f:

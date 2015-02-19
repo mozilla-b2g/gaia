@@ -1,12 +1,10 @@
 'use strict';
 /* global module */
 
-var Actions = require('marionette-client').Actions;
-
 function Collection(client, server) {
   this.client = client;
   this.server = server;
-  this.actions = new Actions(client);
+  this.actions = client.loader.getActions();
 }
 
 /**
@@ -85,19 +83,6 @@ Collection.prototype = {
   get firstPinnedResult() {
     return this.client.helper.waitForElement(
       Collection.Selectors.firstPinnedResult);
-  },
-
-  /**
-   * Disables the Geolocation prompt.
-   */
-  disableGeolocation: function() {
-    var client = this.client.scope({ context: 'chrome' });
-    client.executeScript(function(origin) {
-      var mozPerms = navigator.mozPermissionSettings;
-      mozPerms.set(
-        'geolocation', 'deny', origin + '/manifest.webapp', origin, false
-      );
-    }, [Collection.URL]);
   },
 
   /**

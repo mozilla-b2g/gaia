@@ -12,6 +12,24 @@ html, body {
   overflow: hidden;
 }
 
+/**
+ * Disable selection by default except for input, text area, and elements with
+ * "contenteditable".
+ */
+* {
+  -moz-user-select: none;
+}
+
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="text"],
+input[type="url"],
+textarea,
+[contenteditable="true"] {
+  -moz-user-select: text;
+}
 
 /******************************************************************************
  * Setting panels: full-size <section role="region"> blocks
@@ -236,12 +254,15 @@ body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
   font-style: normal;
   position: relative;
   margin-top: -2rem;
-  padding: 0.5rem 4rem 1.3rem 1.5rem;
+  padding-top: 0.5rem;
+  padding-bottom: 1.3rem;
+  -moz-padding-start: 1.5rem;
+  -moz-padding-end: 4rem;
   white-space: normal;
 }
 
 .hint > label:not([for]) ~ .explanation {
-  padding-right: 8rem;
+  -moz-padding-end: 8rem;
 }
 
 .hint .explanation[hidden] {
@@ -280,7 +301,7 @@ ul[data-state="ready"] li[data-state="ready"] {
 }
 
 ul[data-state="ready"] li > a {
-  padding-right: 6.2rem; /* 3rem (initial padding) + 3.2rem (wifi icon width) */
+  -moz-padding-end: 6.2rem; /* 3rem (initial padding) + 3.2rem (wifi icon width) */
 }
 
 /**
@@ -312,30 +333,30 @@ section[data-security*="EAP"] li.identity {
 section li.password {
   display: inherit; /*asf*/
   height: 12rem;
-  padding-right: 0;
+  -moz-padding-end: 0;
 }
 
 section li.password > label {
   height: 3rem;
   min-height: 0;
   margin-top: 0.5rem;
-  margin-left: 0;
+  -moz-margin-start: 0;
 }
 
 section li.password > label > span:after {
   left: 0;
   right: auto;
-  margin-left: 0;
+  -moz-margin-start: 0;
 }
 
 
 section li.password > label > span {
-  padding-left: 3rem;
+  -moz-padding-start: 3rem;
   height: 3rem;
   color: #848484;
   font-size: 1.7rem;
   line-height: 3rem;
-  margin-right: 1.5rem;
+  -moz-margin-end: 1.5rem;
 }
 
 section li.password > label:active {
@@ -358,7 +379,6 @@ section ul.operate-certificate {
   width: 100%;
   background: url(images/document_bg.png);
 }
-
 
 /******************************************************************************
 * Media Storage settings
@@ -422,7 +442,7 @@ section ul.operate-certificate {
 }
 
 #mediaStorage .stackedbar-color-label + a {
-  padding-left: 4rem;
+  -moz-padding-start: 4rem;
 }
 /******************************************************************************
  * Call settings
@@ -469,6 +489,141 @@ section ul.operate-certificate {
   pointer-events: none;
 }
 
+/** Call Barring Settings *****************************************************/
+#call-cbSettings span {
+  /* two lines instead of wrapped text */
+  white-space: normal;
+}
+
+/** Call barring password **/
+#cb-passcode section {
+  padding: 0;
+}
+#cb-passcode-title {
+  border-top: 0;
+  border-bottom: 0.1rem solid #686868;
+  padding: 1.5rem 3.5rem;
+  margin-bottom: 2rem;
+  font-size: 1.7rem;
+}
+#cb-passcode-pseudo-input {
+  width: 80%;
+}
+#cb-passcode-def {
+  display: block;
+  border: 0;
+  padding-left: 3.5rem;
+  line-height: 2rem;
+  font-size: 1.4rem;
+  font-weight: lighter;
+  color: #CBCBCB;
+}
+
+/** Call Barring Password Change
+  * copied from panels/screen_lock_passcode
+  * this should dissapear if we unify both screens
+  */
+#call-barring-passcode-change .passcode-error {
+  clear: both;
+  display: none;
+  height: 4.2rem;
+  padding-left: 3rem;
+  color: red;
+  font-size: 1.5rem;
+  line-height: 4.2rem;
+}
+
+#call-barring-passcode-change[data-passcode-status="error"] .passcode-error {
+  display: block;
+}
+
+.passcode-change div.passcode-overlay {
+  position: relative;
+}
+
+#call-barring-passcode-change label {
+  -moz-box-sizing: border-box;
+  display: block;
+  width: auto;
+  height: auto;
+  margin: 1.6rem 0 0.4rem;
+  padding: 0 2rem;
+  color: #000;
+  font-size: 1.8rem;
+}
+
+/**
+ * 1. Important required to override styles
+ *    inside <gaia-header> <style scoped>
+ *    Once we have ::content selector we
+ *    can drop the <style scoped> and this
+ *    !important won't be needed anymore.
+ */
+#call-barring-passcode-change [data-mode] {
+  display: none !important; /* 1 */
+}
+#call-barring-passcode-change[data-mode="edit"]    [data-mode*="edit"],
+#call-barring-passcode-change[data-mode="new"]     [data-mode*="new"] {
+  display: block !important; /* 1 */
+}
+#call-barring-passcode-change #passcode-confirm {
+  opacity: 0.3;
+  pointer-events: none;
+}
+#call-barring-passcode-change[data-passcode-status="success"] #passcode-confirm {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.passcode-input {
+  z-index: -1;
+  position: absolute;
+  top: -5rem;
+  left: 0;
+}
+
+.passcode-container {
+  position: absolute;
+  z-index: 1;
+  width: 100%;
+  top: 0;
+  left: 0;
+  background: url(images/document-bg.png);
+}
+
+.passcode {
+  width: calc(100% - 2rem);
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.passcode-digit {
+  -moz-box-sizing: border-box;
+  position: relative;
+  float: left;
+  width: calc(25% - 1rem);
+  height: 4rem;
+  margin: 0 0.5rem;
+  border: 0.1rem solid #c2c2c2;
+  text-align: center;
+  background-color: #fff;
+  border-radius: 0.3rem;
+}
+
+span.passcode-digit[data-dot]::before {
+  content: '';
+  display: block;
+  position: absolute;
+  width: 1.5rem;
+  height: 1.5rem;
+  background-color: #3e3b39;
+  border-radius: 0.75rem;
+  top: 50%;
+  left: 50%;
+  margin-left: -0.75rem;
+  margin-top: -0.75rem;
+}
+
 /******************************************************************************
  * APN settings
  */
@@ -486,7 +641,7 @@ section ul.operate-certificate {
   left: -1.5rem;
   top: 0;
   width: calc(100% - 3.5rem);
-  padding-left: 1.5rem;
+  -moz-padding-start: 1.5rem;
 }
 
 .apn-list .apn-item .name:active {
@@ -510,13 +665,6 @@ section ul.operate-certificate {
 /******************************************************************************
  * Internet sharing (Wi-Fi HotSpot)
  */
-
-#hotspot ul li > a span {
-  max-width: 50%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 
 #hotspot ul #hotspot-settings-section > a span {
   max-width: 100%;
@@ -565,7 +713,7 @@ section ul.operate-certificate {
 
 .wallpaper .wallpaper-button > span:before {
   font-size: 40px;
-  margin-right: -2px;
+  -moz-margin-end: -2px;
 }
 
 .wallpaper .wallpaper-preview {
@@ -590,7 +738,7 @@ section ul.operate-certificate {
  */
 
 .manage-tones-button {
-  padding-left: 3rem;
+  -moz-padding-start: 3rem;
 }
 
 /******************************************************************************
@@ -612,10 +760,11 @@ ul li > label.range-icons:before {
 
 ul li > label.range-icons span {
   position: absolute;
-  top: 0; left: 0;
+  top: 0;
+  left: 0;
   height: 100%;
-  padding: 0px;
-  margin: 0px 1.5rem;
+  padding: 0;
+  margin: 0 1.5rem;
   pointer-events: none;
   color: #657073;
   line-height: 6rem;
@@ -869,11 +1018,17 @@ ul li > label.range-icons.volume input {
 }
 
 #fxa-unverified .description {
+  padding-top: 1.5rem;
+}
+
+#fxa-unverified .description:before {
+  position: absolute;
+  content: "";
+  width: 7rem;
+  height: 7rem;
   background-image: url('images/fxa_envelope.png');
   background-repeat: no-repeat;
   background-size: 7rem;
-  background-position: 0 1.5rem;
-  padding-top: 1.5rem;
 }
 
 #fxa-unverified .disabled {
@@ -882,7 +1037,7 @@ ul li > label.range-icons.volume input {
 
 #fxa-unverified-text {
   padding-top: 0.8rem;
-  margin-left: 6rem;
+  -moz-margin-start: 6rem;
 }
 
 /******************************************************************************
@@ -898,16 +1053,19 @@ ul li > label.range-icons.volume input {
   min-height: 6rem;
   height: auto;
   line-height: 2.3rem;
-  padding: 1.9rem 4rem 1.5rem 3rem;
+  padding-top: 1.9rem;
+  padding-bottom: 1.5rem;
+  -moz-padding-start: 3rem;
+  -moz-padding-end: 4rem;
 }
 
 #developer ul li > label.pack-switch > span,
 #developer-hud ul li > label.pack-switch > span {
-  padding-right: 9rem;
+  -moz-padding-end: 9rem;
 }
 
 #developer-hud ul li > label > span.color-preview {
-  padding-left: 5rem;
+  -moz-padding-start: 5rem;
 }
 
 #developer-hud ul li.hud-separator {
@@ -941,99 +1099,44 @@ section[role="status"].toast-visible {
 /******************************************************************************
  * Right-To-Left layout
  */
-
-html[dir="rtl"] section[role="region"] {
-  transform: translateX(-100%);
-}
-
-html[dir="rtl"] section[role="region"].previous  {
-  transform: translateX(+100%);
-}
-
-html[dir="rtl"] section[role="region"].current {
-  transform: translateX(0);
-}
-
-/* 'show password' checkboxes */
-html[dir="rtl"] label[for^="pwd"] {
-  padding-left: inherit;
-  padding-right: 3rem;
-}
-
-/* Following RTL Tweaks */
-
-html[dir="rtl"] .hint .explanation {
-  padding-left: 4rem;
-  padding-right: 1.5rem;
-  white-space: normal;
-}
-
-html[dir="rtl"] .hint > label:not([for]) ~ .explanation {
-  padding-left: 8rem;
-  padding-right: 1.5rem;
-}
-
-html[dir="rtl"] ul[data-state="ready"] li > a {
-  padding-left: 6.2rem; /* 3rem (initial padding) + 3.2rem (wifi icon width) */
-  padding-right: 3rem;
-}
-
-html[dir="rtl"] section li.password {
-  padding-left: 0;
-}
-
-html[dir="rtl"] section li.password > label {
-  left: 1.5rem;
+html[dir="rtl"] .passcode-input {
+  left: unset;
   right: 0;
 }
 
 html[dir="rtl"] section li.password > label > span:after {
   left: auto;
-  right: 1.5rem;
-  margin-left: auto;
-  margin-right: 0;
-}
-
-html[dir="rtl"] section li.password > label > span {
-  margin-left: 0;
-  margin-right: 0;
-  padding-right: 3rem;
+  right: 0;
 }
 
 html[dir="rtl"] #mediaStorage .stackedbar-color-label {
-  left: auto;
+  left: unset;
   right: 1.5rem;
 }
 
-html[dir="rtl"] #mediaStorage .stackedbar-color-label + a {
-  padding-left: 0;
-  padding-right: 4rem;
+html[dir="rtl"] .apn-list .apn-item .name {
+  left: unset;
+  right: -1.5rem;
 }
 
-html[dir="rtl"] #call .cw-alert .cw-alert-checkbox-label {
+html[dir="rtl"] .apn-list .apn-item:after {
+  left: 3.5rem;
+  right: unset;
+}
+
+html[dir="rtl"] ul li > label.range-icons span:last-child {
   left: 0;
   right: auto;
 }
 
-html[dir="rtl"] #wallpaper-button {
-  left: auto;
-  right: 0;
-}
-
-html[dir="rtl"] ul li > label.range-icons.brightness:before {
-  background-position: 100% 50%, 0 50%;
-  left: auto;
-  right: 1rem;
-}
-
-html[dir="rtl"] .brightness-manual div {
-  left: auto;
+html[dir="rtl"] li.brightness-manual div {
+  left: unset;
   right: 5rem;
 }
 
-html[dir="rtl"] #time-manual input {
-  left: auto;
-  right: 0;
+html[dir="rtl"] #dateTime .timezone.disabled select {
+  left: unset;
+  right: 1rem;
 }
 
 html[dir="rtl"] #sendFeedback .pack-checkbox span {
@@ -1049,26 +1152,20 @@ html[dir="rtl"] #feedback-sad {
   float: left;
 }
 
-html[dir="rtl"] ul li > label.range-icons.volume span {
-  left: auto;
-  right: 0;
+html[dir="rtl"] #mediaStorage ul li > a span:nth-of-type(2):not(.button) {
+  left: 0;
+}
+
+html[dir="rtl"] #applicationStorage ul li > a span:nth-of-type(2):not(.button) {
+  left: 0;
 }
 
 html[dir="rtl"] ul li > label.range-icons.volume input {
+  margin-left: unset;
   margin-right: 5.8rem;
 }
 
-html[dir="rtl"] #developer-hud ul li > label > span.color-preview {
-  padding-left: 0;
-  padding-right: 5rem;
-}
-
-html[dir="rtl"] .apn-list .apn-item .name {
-  right: -1.5rem;
-  padding-right: 1.5rem;
-}
-
-html[dir="rtl"] .apn-list .apn-item:after {
-  left: 3.5rem;
-  right: unset;
+html[dir="rtl"] ul li > label.range-icons span {
+  left: unset;
+  right: 0;
 }

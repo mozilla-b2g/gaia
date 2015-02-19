@@ -35,6 +35,7 @@ var Overlay = {
   hide: function hide() {
     Overlay.current = null;
     $('overlay').classList.add('hidden');
+    document.body.classList.remove('showing-dialog');
   },
 
   show: function show(id) {
@@ -44,6 +45,7 @@ var Overlay = {
       $('overlay-camera-button').classList.add('hidden');
       $('overlay-cancel-button').classList.add('hidden');
       $('overlay-menu').classList.add('hidden');
+      document.body.classList.add('showing-dialog');
       var title, text;
       switch (id) {
         case null:

@@ -18,9 +18,6 @@
     'simlockback',
     'simlockrequestclose'
   ];
-  SimLockManager.STATES = [
-    'isActive'
-  ];
   SimLockManager.SUB_MODULES = [
     'SimLockSystemDialog'
   ];
@@ -29,9 +26,6 @@
     _duringCall: false,
     _showPrevented: false,
     _alreadyShown: false,
-    isActive: function() {
-      return this._alreadyShown;
-    },
 
     _handle_simslotready: function() {
       this.showIfLocked();
@@ -147,6 +141,9 @@
       var settingsManifestURL =
         'app://settings.gaiamobile.org/manifest.webapp';
       if (app.manifestURL == settingsManifestURL) {
+        if (this.simLockSystemDialog.visible) {
+          this.simLockSystemDialog.close();
+        }
         return;
       }
 
@@ -157,6 +154,20 @@
       // but only put the SIM PIN dialog upon the opening/opened app.
       // Will revisit this in
       // https://bugzilla.mozilla.org/show_bug.cgi?id=SIMPIN-Dialog
+    },
+
+    isBothSlotsLocked: function sl_isBothSlotsLocked(){
+      if(!SIMSlotManager.isMultiSIM() ||
+          SIMSlotManager.hasOnlyOneSIMCardDetected()){
+        return false;
+      }
+
+      var simSlots = SIMSlotManager.getSlots();
+      var isBothLocked = true;
+      for (var i = 0; i < simSlots.length; i++) {
+        isBothLocked = isBothLocked && simSlots[i].isLocked();
+      }
+      return isBothLocked;
     },
 
     showIfLocked: function sl_showIfLocked(currentSlotIndex, skipped) {
@@ -216,8 +227,7 @@
         }
 
         // Always showing the first slot first.
-        if (!this._alreadyShown &&
-          !SIMSlotManager.hasOnlyOneSIMCardDetected() && index > 0) {
+        if (!this._alreadyShown && this.isBothSlotsLocked() && index > 0) {
           return false;
         }
 

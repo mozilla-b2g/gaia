@@ -1,6 +1,6 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-/* global SettingsCache */
+/* global SettingsCache, SettingsListener, ScreenManager */
 'use strict';
 
 var Wifi = {
@@ -22,11 +22,13 @@ var Wifi = {
   _scanTimer: null,
 
   init: function wf_init() {
-    if (!window.navigator.mozSettings)
+    if (!window.navigator.mozSettings) {
       return;
+    }
 
-    if (!window.navigator.mozWifiManager)
+    if (!window.navigator.mozWifiManager) {
       return;
+    }
 
     window.addEventListener('screenchange', this);
 
@@ -38,8 +40,9 @@ var Wifi = {
     // bring wifi back.
     var name = 'wifi.disabled_by_wakelock';
     SettingsCache.get(name, function gotWifiDisabledByWakelock(value) {
-      if (!value)
+      if (!value) {
         return;
+      }
 
       // Re-enable wifi and reset wifi.disabled_by_wakelock
       // SettingsListener.getSettingsLock() always return invalid lock
@@ -100,22 +103,25 @@ var Wifi = {
       self.wifiEnabled = value;
 
       clearTimeout(self._scanTimer);
-      if (!value)
+      if (!value) {
         return;
+      }
 
       // If wifi is enabled but disconnected.
       // we would need to call getNetworks() continuously
       // so we could join known wifi network
       self._scanTimer = setInterval(function wifi_scan() {
-        if (wifiManager.connection.status == 'disconnected')
+        if (wifiManager.connection.status == 'disconnected') {
           wifiManager.getNetworks();
+        }
       });
     });
 
     var power = navigator.mozPower;
     power.addWakeLockListener(function wifi_handleWakeLock(topic, state) {
-      if (topic !== 'wifi')
+      if (topic !== 'wifi') {
         return;
+      }
 
       self.wifiWakeLocked = (state == 'locked-foreground' ||
                              state == 'locked-background');
@@ -295,21 +301,23 @@ var Wifi = {
     // Keep this value in disk so if the phone reboots we'll
     // be able to turn the wifi back on.
     request = lock.set({ 'wifi.disabled_by_wakelock': true });
-    request.onsuccess = function() { wakeLockForSettings.unlock() };
+    request.onsuccess = function() { wakeLockForSettings.unlock(); };
     request.onerror = request.onsuccess;
   },
 
   // Register for handling system message,
   // this cannot be done during |init()| because of bug 797803
   setSystemMessageHandler: function wifi_setSystemMessageHandler() {
-    if (this._systemMessageHandlerRegistered)
+    if (this._systemMessageHandlerRegistered) {
       return;
+    }
 
     this._systemMessageHandlerRegistered = true;
     var self = this;
     navigator.mozSetMessageHandler('alarm', function gotAlarm(message) {
-      if (message.data !== 'wifi-off')
+      if (message.data !== 'wifi-off') {
         return;
+      }
 
       self.sleep();
     });

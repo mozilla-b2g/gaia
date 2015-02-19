@@ -13,7 +13,7 @@ function ManifestHelper_get(prop) {
   var lang = navigator.mozL10n.language.code || '';
 
   if (lang in navigator.mozL10n.qps &&
-      (prop === 'name' || prop === 'description')) {
+      (prop === 'name' || prop === 'description' || prop == 'short_name')) {
     value = navigator.mozL10n.qps[navigator.language].translate(value);
   } else if (manifest.locales) {
     // try to replace values from the locales object using the best language

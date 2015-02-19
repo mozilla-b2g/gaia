@@ -8,14 +8,17 @@ suite('VisualHighlightManager', function() {
   var app;
   var manager;
   var target;
+  var viewManager;
 
   setup(function() {
-    app = {};
-
-    // Create fake IMERender
-    window.IMERender = {
+    // Create fake viewManager
+    viewManager = {
       highlightKey: this.sinon.stub(),
       unHighlightKey: this.sinon.stub()
+    };
+
+    app = {
+      viewManager: viewManager
     };
 
     target = {};
@@ -28,14 +31,13 @@ suite('VisualHighlightManager', function() {
   });
 
   teardown(function() {
-    window.IMERender = null;
     app = null;
   });
 
   test('show', function() {
     manager.show(target);
 
-    assert.isTrue(window.IMERender.highlightKey.calledWith(target));
+    assert.isTrue(viewManager.highlightKey.calledWith(target));
   });
 
   test('show after hide', function() {
@@ -45,10 +47,10 @@ suite('VisualHighlightManager', function() {
 
     manager.show(target2);
 
-    assert.isTrue(window.IMERender.unHighlightKey.calledWith(target),
+    assert.isTrue(viewManager.unHighlightKey.calledWith(target),
       'The first target highlight should be hidden immediately.');
 
-    assert.isTrue(window.IMERender.highlightKey.calledWith(target2));
+    assert.isTrue(viewManager.highlightKey.calledWith(target2));
   });
 
   test('hide', function() {
@@ -60,7 +62,7 @@ suite('VisualHighlightManager', function() {
 
     window.setTimeout.getCall(0).args[0].call(window);
 
-    assert.isTrue(window.IMERender.unHighlightKey.calledWith(target));
+    assert.isTrue(viewManager.unHighlightKey.calledWith(target));
   });
 
   test('hide twice within HIGHTLIGHT_DELAY_MS', function() {
@@ -81,6 +83,6 @@ suite('VisualHighlightManager', function() {
 
     window.setTimeout.getCall(1).args[0].call(window);
 
-    assert.isTrue(window.IMERender.unHighlightKey.calledWith(target));
+    assert.isTrue(viewManager.unHighlightKey.calledWith(target));
   });
 });

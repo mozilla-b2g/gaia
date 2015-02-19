@@ -9,8 +9,8 @@ var QueryString = require('querystring');
 var dateFormat = require('date_format');
 var getTimeL10nLabel = require('calc').getTimeL10nLabel;
 var nextTick = require('next_tick');
+var router = require('router');
 
-require('css!modify_event_view');
 require('dom!modify-event-view');
 
 function ModifyEvent(options) {
@@ -36,6 +36,7 @@ ModifyEvent.prototype = {
     element: '#modify-event-view',
     alarmList: '#modify-event-view .alarms',
     form: '#modify-event-view form',
+    startTimeLocale: '#start-time-locale',
     endDateLocale: '#end-date-locale',
     endTimeLocale: '#end-time-locale',
     status: '#modify-event-view section[role="status"]',
@@ -81,6 +82,10 @@ ModifyEvent.prototype = {
     } else {
       // disable case
       this.element.classList.remove(this.ALLDAY);
+      if (e) {
+        // only reset the start/end time if coming from an user interaction
+        this._resetDateTime();
+      }
     }
 
     // because of race conditions it is theoretically possible
@@ -94,6 +99,23 @@ ModifyEvent.prototype = {
     if (e) {
       this.event.alarms = [];
       this.updateAlarms(allday);
+    }
+  },
+
+  _resetDateTime: function() {
+    // if start event was "all day" and switch to regular event start/end time
+    // will be the same, so we reset to default start time, otherwise we keep
+    // the previously selected value
+    var startDateTime = this._getStartDateTime();
+    if (startDateTime === this._getEndDateTime()) {
+      var startDate = new Date(startDateTime);
+      this._setDefaultHour(startDate);
+      this.getEl('startTime').value = InputParser.exportTime(startDate);
+      this._renderDateTimeLocale(
+        this._findElement('startTimeLocale'), startDate);
+      // default event duration is 1 hour
+      this._duration = 60 * 60 * 1000;
+      this._setEndDateTimeWithCurrentDuration();
     }
   },
 
@@ -379,19 +401,25 @@ ModifyEvent.prototype = {
         // of the dom elements so selectedDay must come after.
         self.app.timeController.selectedDay = moveDate;
 
+        // we pass the date so we are able to scroll to the event on the
+        // day/week views
+        var state = {
+          eventStartHour: moveDate.getHours()
+        };
+
         if (method === 'updateEvent') {
           // If we edit a view our history stack looks like:
           //   /week -> /event/view -> /event/save -> /event/view
           // We need to return all the way to the top of the stack
           // We can remove this once we have a history stack
           self.app.view('ViewEvent', function(view) {
-            self.app.go(view.returnTop());
+            router.go(view.returnTop(), state);
           });
 
           return;
         }
 
-        self.app.go(self.returnTo());
+        router.go(self.returnTo(), state);
       });
     }
   },
@@ -418,7 +446,7 @@ ModifyEvent.prototype = {
           // We need to return all the way to the top of the stack
           // We can remove this once we have a history stack
           self.app.view('ViewEvent', function(view) {
-            self.app.go(view.returnTop());
+            router.go(view.returnTop());
           });
         });
       };
@@ -617,20 +645,16 @@ ModifyEvent.prototype = {
     }
 
     this.getEl('startDate').value = InputParser.exportDate(startDate);
-    this._setupDateTimeSync(
-      'date', 'startDate', 'start-date-locale', startDate);
+    this._setupDateTimeSync('startDate', 'start-date-locale', startDate);
 
     this.getEl('endDate').value = InputParser.exportDate(endDate);
-    this._setupDateTimeSync(
-      'date', 'endDate', 'end-date-locale', endDate);
+    this._setupDateTimeSync('endDate', 'end-date-locale', endDate);
 
     this.getEl('startTime').value = InputParser.exportTime(startDate);
-    this._setupDateTimeSync(
-      'time', 'startTime', 'start-time-locale', startDate);
+    this._setupDateTimeSync('startTime', 'start-time-locale', startDate);
 
     this.getEl('endTime').value = InputParser.exportTime(endDate);
-    this._setupDateTimeSync(
-      'time', 'endTime', 'end-time-locale', endDate);
+    this._setupDateTimeSync('endTime', 'end-time-locale', endDate);
 
     this.getEl('description').textContent = model.description;
 
@@ -654,13 +678,14 @@ ModifyEvent.prototype = {
    * Handling a layer over <input> to have localized
    * date/time
    */
-  _setupDateTimeSync: function(type, src, target, value) {
+  _setupDateTimeSync: function(src, target, value) {
     var targetElement = document.getElementById(target);
     if (!targetElement) {
       return;
     }
-    this._renderDateTimeLocale(type, targetElement, value);
+    this._renderDateTimeLocale(targetElement, value);
 
+    var type = targetElement.dataset.type;
     var callback = type === 'date' ?
       this._updateDateLocaleOnInput : this._updateTimeLocaleOnInput;
 
@@ -693,10 +718,10 @@ ModifyEvent.prototype = {
     var date = new Date(this._getStartDateTime() + this._duration);
     var endDateLocale = this._findElement('endDateLocale');
     var endTimeLocale = this._findElement('endTimeLocale');
-    this.getEl('endDate').value = date.toLocaleFormat('%Y-%m-%d');
-    this.getEl('endTime').value = date.toLocaleFormat('%H:%M:%S');
-    this._renderDateTimeLocale('date', endDateLocale, date);
-    this._renderDateTimeLocale('time', endTimeLocale, date);
+    this.getEl('endDate').value = InputParser.exportDate(date);
+    this.getEl('endTime').value = InputParser.exportTime(date);
+    this._renderDateTimeLocale(endDateLocale, date);
+    this._renderDateTimeLocale(endTimeLocale, date);
   },
 
   _getStartDateTime: function() {
@@ -709,8 +734,9 @@ ModifyEvent.prototype = {
       this.getEl('endTime').value).getTime();
   },
 
-  _renderDateTimeLocale: function(type, targetElement, value) {
+  _renderDateTimeLocale: function(targetElement, value) {
     // we inject the targetElement to make it easier to test
+    var type = targetElement.dataset.type;
     var localeFormat = dateFormat.localeFormat;
     var formatKey = this.formats[type];
     if (type === 'time') {
@@ -727,7 +753,7 @@ ModifyEvent.prototype = {
     var selected = InputParser.importDate(e.target.value);
     // use date constructor to avoid issues, see Bug 966516
     var date = new Date(selected.year, selected.month, selected.date);
-    this._renderDateTimeLocale('date', targetElement, date);
+    this._renderDateTimeLocale(targetElement, date);
   },
 
   _updateTimeLocaleOnInput: function(targetElement, e) {
@@ -736,7 +762,7 @@ ModifyEvent.prototype = {
     date.setHours(selected.hours);
     date.setMinutes(selected.minutes);
     date.setSeconds(0);
-    this._renderDateTimeLocale('time', targetElement, date);
+    this._renderDateTimeLocale(targetElement, date);
   },
 
   /**

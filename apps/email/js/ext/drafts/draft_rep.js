@@ -47,7 +47,7 @@ function mergeDraftStates(oldHeader, oldBody,
     replyTo: identity.replyTo,
     date: newDraftInfo.date,
     flags: [],
-    hasAttachments: oldHeader ? oldHeader.hasAttachments : false,
+    hasAttachments: oldBody ? oldBody.attachments.length > 0 : false,
     subject: newDraftRep.subject,
     snippet: newDraftRep.body.text.substring(0, 100),
   });

@@ -1,7 +1,10 @@
+/* global LazyL10n, LazyLoader */
+
 require('/shared/js/lazy_loader.js');
 require('/shared/js/lazy_l10n.js');
 
 suite('LazyL10n', function() {
+  'use strict';
   var realL10n;
 
   suiteSetup(function() {
@@ -111,8 +114,6 @@ suite('LazyL10n', function() {
 
     test('should insert then wait for mozL10n.once if not loaded',
       function(done) {
-      var headCount = document.head.childNodes.length;
-
       var callback = function() {
         assert.isTrue(LazyL10n._baseLoaded);
         assert.isTrue(checkLinkedScripts(['/shared/js/l10n.js',
@@ -126,8 +127,6 @@ suite('LazyL10n', function() {
     });
 
     test('subsequent gets should have all dependencies loaded', function(done) {
-      var headCount = document.head.childNodes.length;
-
       var callback = function() {
         assert.isTrue(LazyL10n._baseLoaded);
         assert.isTrue(checkLinkedScripts(['/shared/js/l10n.js',

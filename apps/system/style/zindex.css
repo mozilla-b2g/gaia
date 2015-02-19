@@ -128,8 +128,11 @@
   z-index: 16384;
 }
 
+#screen > [data-z-index-level="text-selection-dialog"] {
+  z-index: 16383;
+}
 
-/* Level 4: Attention window */
+/* Level 4: Attention */
 /*
  * Promote keyboards to stk message screen level even
  * when device is locked
@@ -155,14 +158,17 @@
   z-index: 8192;
 }
 
-/* Level 5: Activity menu, context menu, value selector */
-#screen > [data-z-index-level="action-menu"] {
-  z-index: 4096;
-}
-
 /* The edges zones get promoted when an action menu is displayed */
 #screen.action-menu > [data-z-index-level="gesture-panel"] {
   z-index: 4097;
+}
+
+/* Level 5: Activity menu, context menu, system-dialog, value selector */
+/* The action menu goes over the gesture-panel so that gestures are not
+   triggered when the action menu is visible. */
+#screen > [data-z-index-level="action-menu"],
+#screen > [data-z-index-level="system-dialog"] {
+  z-index: 4098;
 }
 
 #screen > [data-z-index-level="gesture-panel"] {
@@ -194,10 +200,6 @@
   z-index: 2046;
 }
 
-#screen > [data-z-index-level="system-dialog"],
-#screen > [data-z-index-level="text-selection-dialog"] {
-  z-index: 2045;
-}
 
 /* Keep keyboard and edges zones under lockscreen when locked */
 #screen.locked > [data-z-index-level="keyboards"] {
@@ -300,6 +302,7 @@
 #screen:-moz-full-screen-ancestor > [data-z-index-level="action-menu"],
 #screen.locked:-moz-full-screen-ancestor > [data-z-index-level="statusbar"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="lockscreen-camera"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="system-dialog"],
 
 #screen:-moz-full-screen-ancestor > [data-z-index-level="app"] > .appWindow.active > [data-z-index-level="value-selector"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="system-overlay"],
@@ -316,7 +319,9 @@
 #screen:-moz-full-screen-ancestor > [data-z-index-level="ime-layout-dialog"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="fullscreen-software-home-button"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="gesture-panel"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="attention-indicator"] {
+#screen:-moz-full-screen-ancestor > [data-z-index-level="attention-indicator"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="utility-tray"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="global-overlays"] {
   z-index: 2147483647;
 }
 
@@ -332,5 +337,16 @@
  * and the screen reader is on
  */
 #screen > [data-z-index-level="accessibility-captions"] {
+  z-index: 2147483647;
+}
+
+/**
+ * Global overlays are on top of everything, all the time.
+ */
+#screen > [data-z-index-level="global-overlays"] {
+  z-index: 2147483647;
+}
+
+#screen > [data-z-index-level="global-overlays"] > .appWindow.overlayWindow {
   z-index: 2147483647;
 }

@@ -21,7 +21,6 @@ var mocksHelperForDragDrop = new MocksHelper([
 
 suite('GaiaGrid > DragDrop', function() {
   var grid;
-  var dragdrop;
 
   var stubPage1 = {
     name: 'first',
@@ -64,11 +63,14 @@ suite('GaiaGrid > DragDrop', function() {
     this.container.innerHTML = '<gaia-grid dragdrop group></gaia-grid>';
     document.body.appendChild(this.container);
     grid = this.container.firstElementChild._grid;
-    dragdrop = this.container.firstElementChild._grid;
 
     grid.add(new GaiaGrid.Bookmark(stubPage1));
     grid.add(new GaiaGrid.Bookmark(stubPage2));
     grid.render();
+  });
+
+  setup(function() {
+    this.sinon.useFakeTimers();
   });
 
   test('changes position of icons', function() {
@@ -153,6 +155,7 @@ suite('GaiaGrid > DragDrop', function() {
     assert.ok(divider.element.classList.contains('group'));
 
     divider.collapse();
+    this.sinon.clock.tick(20);
     assert.equal(divider.detail.collapsed, true);
 
     var subject = grid.dragdrop;
@@ -179,6 +182,7 @@ suite('GaiaGrid > DragDrop', function() {
     var divider = grid.items[3];
     assert.equal(divider.detail.type, 'divider');
     divider.collapse();
+    this.sinon.clock.tick(20);
 
     divider = grid.items[3];
     assert.equal(divider.detail.type, 'divider');
@@ -207,10 +211,12 @@ suite('GaiaGrid > DragDrop', function() {
     var divider = grid.items[1];
     assert.equal(divider.detail.type, 'divider');
     divider.expand();
+    this.sinon.clock.tick(20);
 
     divider = grid.items[3];
     assert.equal(divider.detail.type, 'divider');
     divider.expand();
+    this.sinon.clock.tick(20);
 
     // Add a new item to test adding groups between groups
     grid.add(new GaiaGrid.Bookmark(stubPage3), 0);
@@ -229,5 +235,83 @@ suite('GaiaGrid > DragDrop', function() {
 
     assert.equal(countDividers(), dividers + 1);
     assert.equal(grid.items[4].name, 'third');
+  });
+
+  test('check no visual indicator for redundant moves', function() {
+    // Each of these dividers represents a group with one item, so dragging any
+    // group or item should mark the previous group and the group itself as
+    // invalid drop targets
+    var divider1 = grid.items[3];
+    var divider2 = grid.items[7];
+    var divider3 = grid.items[9];
+
+    var subject = grid.dragdrop;
+    subject.icon = divider2;
+    subject.begin({});
+
+    assert.isTrue(divider1.element.classList.contains('invalid-drop'));
+    assert.isTrue(divider2.element.classList.contains('invalid-drop'));
+    assert.isFalse(divider3.element.classList.contains('invalid-drop'));
+
+    subject.finish();
+    subject.finalize();
+
+    // Check that dragging the first divider over the top of the container
+    // wouldn't cause a redundant move.
+    subject.icon = divider1;
+    subject.begin({});
+    subject.handleEvent({
+      type: 'touchmove',
+      touches: [{
+        pageX: 0,
+        pageY: -100
+      }]
+    });
+
+    assert.isFalse(grid.element.classList.contains('hover-over-top'));
+
+    // Tidy up
+    subject.finish();
+    subject.finalize();
+
+    assert.isFalse(divider1.element.classList.contains('invalid-drop'));
+    assert.isFalse(divider2.element.classList.contains('invalid-drop'));
+  });
+
+  test('empty groups remain during dragging', function() {
+    // Each of the three bookmark items is now in a group by itself. Dragging
+    // any of them outside of that group should leave an empty group, until
+    // dragging finishes (and then that group should disappear).
+
+    // Test this by dragging the first and last items into the middle group,
+    // testing that the empty group remains until the drag finishes.
+    var firstIcon = grid.items[0];
+    var middleIcon = grid.items[4];
+    var lastIcon = grid.items[8];
+
+    // Expand the last divider
+    grid.items[9].expand();
+    this.sinon.clock.tick(20);
+
+    var nDividers = countDividers();
+    var subject = grid.dragdrop;
+    subject.icon = firstIcon;
+    subject.target = firstIcon.element;
+    subject.begin({});
+    subject.rearrange(middleIcon);
+    assert.equal(nDividers, countDividers());
+    subject.finish();
+    subject.finalize();
+    assert.equal(nDividers - 1, countDividers());
+
+    nDividers = countDividers();
+    subject.icon = lastIcon;
+    subject.target = lastIcon.element;
+    subject.begin({});
+    subject.rearrange(firstIcon);
+    assert.equal(nDividers, countDividers());
+    subject.finish();
+    subject.finalize();
+    assert.equal(nDividers - 1, countDividers());
   });
 });

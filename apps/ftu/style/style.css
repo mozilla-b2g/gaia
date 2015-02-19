@@ -1,3 +1,7 @@
+* {
+  -moz-user-select: none;
+}
+
 html, body {
   width: 100%;
   height: 100%;
@@ -6,7 +10,12 @@ html, body {
   overflow: hidden !important;
   font-size: 10px;
   font-weight: 400;
-  -moz-user-select: none;
+}
+
+input,
+textarea,
+[contenteditable="true"] {
+  -moz-user-select: text;
 }
 
 a {
@@ -75,6 +84,56 @@ gaia-buttons.forward-only .icon-previous {
   display: none !important;
 }
 
+/******************************************************************************
+ * Boolean inputs
+ */
+
+/* custom styles for boolean inputs (see /shared/style/switches.css)
+ * (incremental parity with Settings)
+ */
+
+[data-type="list"] li > label.pack-switch {
+  text-transform: none;
+  -moz-margin-start: -1.5rem;
+  -moz-margin-end: -1.5rem;
+  width: 100%;
+  height: calc(100% - 1rem);
+  min-height: 5rem;
+  overflow: visible;
+  display: flex;
+  /* override switches.css treatment */
+  pointer-events: auto;
+  position: relative;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  left: auto;
+}
+
+[data-type="list"] li > label.pack-switch > span {
+  text-decoration: none;
+  outline: 0;
+  color: #000;
+  -moz-box-sizing: border-box;
+  font-size: 1.9rem;
+  padding: 1rem 1.5rem;
+  -moz-padding-end: 9rem;
+  margin: 0 -1.5rem;
+  line-height: normal;
+  height: auto;
+  overflow: hidden;
+  display: block;
+}
+
+[data-type="list"] li > .pack-switch input ~ span::after {
+  left: auto;
+  right: 0;
+}
+[dir="rtl"][data-type="list"] li > .pack-switch input ~ span::after {
+  left: 0;
+  right: auto;
+}
+
 /*
   Header conditional button
 */
@@ -114,16 +173,16 @@ gaia-buttons.forward-only .icon-previous {
 
 #sim-info-screen .sim-info {
   margin: 0 1.6rem;
-  height: 7rem;
+  display: flex;
+  flex-direction: row;
   border-bottom: 0.1rem solid #dddddd;
 }
 
 #sim-info-screen .sim-image {
-  height: 100%;
   width: 5rem;
   background-position: center center;
   background-repeat: no-repeat;
-  float: left;
+  flex: 0 0 5rem;
   -moz-margin-end: 0.5rem;
 }
 #sim-info-1 .sim-image {
@@ -139,8 +198,14 @@ gaia-buttons.forward-only .icon-previous {
   background-image: url(images/simlock02.png);
 }
 
+#sim-info-screen .sim-details {
+  flex: 1 1 auto;
+}
+
 .sim-info .sim-title {
-  margin: 0 0 0.5rem;
+  margin: 0;
+  -moz-margin-start: 0.5rem;
+  margin-bottom: 0.5rem;
   padding-top: 1rem;
   font-size: 1.6rem;
   color: #333333;
@@ -1079,7 +1144,7 @@ i.hack-first-child {
 
 #data_3g [data-type="list"] li,
 #geolocation [data-type="list"] li {
-  -moz-padding-start: 1.5rem;
+  -moz-padding-start: 3rem;
 }
 
 #data_3g .content,
@@ -1090,11 +1155,6 @@ i.hack-first-child {
 #data_3g .content p,
 #geolocation .content p {
   font-size: 1.4rem;
-}
-
-#data_3g .pack-switch,
-#geolocation .pack-switch {
-  height: 100%;
 }
 
 /*
@@ -1128,10 +1188,6 @@ i.hack-first-child {
 html[dir="rtl"] gaia-buttons.nav {
   direction: ltr;
   unicode-bidi:embed;
-}
-
-html[dir="rtl"] #sim-info-screen .sim-image {
-  float: right;
 }
 
 html[dir="rtl"] #wifi [data-type="list"] li > aside {

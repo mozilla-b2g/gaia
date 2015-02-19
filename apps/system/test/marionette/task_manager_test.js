@@ -1,6 +1,5 @@
 'use strict';
 
-var Actions = require('marionette-client').Actions;
 var TaskManager = require('./lib/task_manager');
 var FakeApp = require('./lib/fakeapp');
 var assert = require('assert');
@@ -34,7 +33,7 @@ marionette('Task Manager', function() {
   var fullWidth, halfWidth, halfHeight;
 
   setup(function() {
-    actions = new Actions(client);
+    actions = client.loader.getActions();
     system = client.loader.getAppClass('system');
     taskManager = new TaskManager(client);
 
@@ -116,14 +115,16 @@ marionette('Task Manager', function() {
       });
     });
 
-    test('pressing home should launch the centered app', function() {
+    test('pressing home should still take you back to the homescreen',
+    function() {
       actions.flick(taskManager.element, 30, halfHeight,
                     halfWidth, halfHeight).perform();
 
       taskManager.hide();
 
-      client.waitFor(function() {
-        return !firstApp.iframe.displayed() && secondApp.iframe.displayed();
+      client.waitFor(function(){
+        return client.findElement(system.Selector.activeHomescreenFrame)
+          .displayed();
       });
     });
   });

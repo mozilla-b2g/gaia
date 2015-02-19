@@ -58,7 +58,8 @@
   font-family: sans-serif;
   font-style: italic;
   height: 4rem;
-  margin: 0 0 0 1rem;
+  margin: 0;
+  -moz-margin-start: 1rem;
   padding: 0 1.2rem;
   -moz-box-sizing: border-box;
   display: block;
@@ -123,5 +124,5 @@
 }
 
 [role="dialog"][data-type="edit"] > menu button:first-child {
-  margin-left: 0;
+  -moz-margin-start: 0;
 }

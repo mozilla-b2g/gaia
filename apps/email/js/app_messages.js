@@ -3,7 +3,6 @@
 define(function(require) {
   var appSelf = require('app_self'),
       evt = require('evt'),
-      queryString = require('query_string'),
       queryURI = require('query_uri');
 
   var pending = {};
@@ -96,8 +95,7 @@ define(function(require) {
         });
       }
 
-      // icon url parsing is a cray cray way to pass day day
-      var data = queryString.toObject((msg.imageURL || '').split('#')[1]);
+      var data = msg.data || {};
 
       if (document.hidden) {
         appSelf.latest('self', function(app) {
@@ -117,8 +115,8 @@ define(function(require) {
     evt.on(
         'notification', appMessages.onNotification.bind(appMessages));
 
-    // Do not listen for navigator.mozSetMessageHandler('alarm') type, that is
-    // only done in the back end's cronsync for now.
+    // Do not listen for navigator.mozSetMessageHandler('request-sync')
+    // type, that is only done in the back end's cronsync for now.
   } else {
     console.warn('Activity support disabled!');
   }

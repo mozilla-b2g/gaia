@@ -1,12 +1,11 @@
 'use strict';
 
-/* global IMERender, Promise */
+/* global Promise */
 
 (function(exports) {
 
 var LayoutRenderingManager = function(app) {
   this.app = app;
-
   // Reference of the layoutManager.currentPage that is
   // currently being rendered. Only updates when updateLayoutRendering()
   // is called.
@@ -63,7 +62,7 @@ LayoutRenderingManager.prototype.handleEvent = function() {
     return;
   }
 
-  IMERender.resizeUI(this.app.layoutManager.currentPage);
+  this.app.viewManager.resize();
   this._updateHeight();
 
   // TODO: need to check how to handle orientation change case to
@@ -80,7 +79,8 @@ LayoutRenderingManager.prototype.updateCandidatesRendering = function() {
     return;
   }
 
-  IMERender.showCandidates(this.app.candidatePanelManager.currentCandidates);
+  this.app.viewManager.showCandidates(
+      this.app.candidatePanelManager.currentCandidates);
 };
 
 LayoutRenderingManager.prototype.updateUpperCaseRendering = function() {
@@ -99,7 +99,7 @@ LayoutRenderingManager.prototype.updateUpperCaseRendering = function() {
     this.app.console.log(
       'LayoutRenderingManager.updateUpperCaseRendering()::' +
       'requestAnimationFrame');
-    IMERender.setUpperCaseLock(this.app.upperCaseStateManager);
+    this.app.viewManager.setUpperCaseLock(this.app.upperCaseStateManager);
   }.bind(this));
 };
 
@@ -128,7 +128,7 @@ LayoutRenderingManager.prototype.updateLayoutRendering = function() {
       currentIMEngine.displaysCandidates()));
 
   var p = new Promise(function(resolve) {
-    IMERender.draw(currentPage, {
+    this.app.viewManager.render(currentPage, {
       uppercase: this.app.upperCaseStateManager.isUpperCase,
       inputType: this.app.getBasicInputType(),
       showCandidatePanel: needsCandidatePanel
@@ -138,11 +138,6 @@ LayoutRenderingManager.prototype.updateLayoutRendering = function() {
   // Make sure JS error is not sliently ignored.
   p.catch(function(e) { console.error(e); });
 
-  // Tell the renderer what input method we're using. This will set a CSS
-  // classname that can be used to style the keyboards differently
-  IMERender.setInputMethodName(
-    this.app.layoutManager.currentPage.imEngine || 'default');
-
   this.app.console.timeEnd('LayoutRenderingManager.updateLayoutRendering()');
 
   return p;
@@ -151,11 +146,11 @@ LayoutRenderingManager.prototype.updateLayoutRendering = function() {
 LayoutRenderingManager.prototype.drawHandwritingPad = function(press,
                                                                start,
                                                                strokeWidth) {
-  return IMERender.drawHandwritingPad(press, start, strokeWidth);
+  return this.app.viewManager.drawHandwritingPad(press, start, strokeWidth);
 };
 
 LayoutRenderingManager.prototype.clearHandwritingPad = function(target) {
-  IMERender.clearHandwritingPad(target);
+  this.app.viewManager.clearHandwritingPad(target);
 };
 
 // So there are a couple of things that we want don't want to block
@@ -165,10 +160,11 @@ LayoutRenderingManager.prototype._afterRenderDrew = function() {
   this.app.console.time('LayoutRenderingManager._afterRenderDrew()');
 
   // Reflect the current upper case state on the newly rendered layout.
-  IMERender.setUpperCaseLock(this.app.upperCaseStateManager);
+  this.app.viewManager.setUpperCaseLock(this.app.upperCaseStateManager);
 
   // Reflect the current candidates on the current layout.
-  IMERender.showCandidates(this.app.candidatePanelManager.currentCandidates);
+  this.app.viewManager.showCandidates(
+      this.app.candidatePanelManager.currentCandidates);
 
   // Tell the input method about the new keyboard layout
   this._updateLayoutParams();
@@ -195,15 +191,15 @@ LayoutRenderingManager.prototype._updateLayoutParams = function() {
     return;
   }
 
-  var candidatePanel = IMERender.candidatePanel;
+  var candidatePanel = this.app.viewManager.candidatePanel;
   var yBias = candidatePanel ? candidatePanel.clientHeight : 0;
 
   currentIMEngine.setLayoutParams({
-    keyboardWidth: IMERender.getWidth(),
-    keyboardHeight: (IMERender.getHeight() - yBias),
-    keyArray: IMERender.getKeyArray(),
-    keyWidth: IMERender.getKeyWidth(),
-    keyHeight: IMERender.getKeyHeight()
+    keyboardWidth: this.app.viewManager.getWidth(),
+    keyboardHeight: (this.app.viewManager.getHeight() - yBias),
+    keyArray: this.app.viewManager.getKeyArray(),
+    keyWidth: this.app.viewManager.getKeyWidth(),
+    keyHeight: this.app.viewManager.getKeyHeight()
   });
 };
 
@@ -211,8 +207,8 @@ LayoutRenderingManager.prototype._updateHeight = function() {
   this.app.console.log('LayoutRenderingManager._updateHeight()');
   this.app.console.time('LayoutRenderingManager._updateHeight()');
   // height of the current active IME + 1px for the borderTop
-  var imeHeight = IMERender.getHeight() + 1;
-  var imeWidth = IMERender.getWidth();
+  var imeHeight = this.app.viewManager.getHeight() + 1;
+  var imeWidth = this.app.viewManager.getWidth();
 
   this.app.console.timeEnd('LayoutRenderingManager._updateHeight()');
   this.app.console.timeEnd('activate');

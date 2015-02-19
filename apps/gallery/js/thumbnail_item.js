@@ -19,6 +19,7 @@ function ThumbnailItem(fileData) {
 
   this.htmlNode = document.createElement('div');
   this.htmlNode.classList.add('thumbnail');
+  this.htmlNode.setAttribute('role', 'button');
   this.imgNode = document.createElement('img');
   this.imgNode.alt = '';
   this.imgNode.classList.add('thumbnailImage');
@@ -28,4 +29,18 @@ function ThumbnailItem(fileData) {
   var url = URL.createObjectURL(fileData.metadata.thumbnail);
   this.imgNode.src = url;
   this.htmlNode.appendChild(this.imgNode);
+
+  if (navigator.mozL10n.readyState === 'complete') {
+   this.localize();
+  }
 }
+
+ThumbnailItem.formatter = new navigator.mozL10n.DateTimeFormat();
+
+ThumbnailItem.prototype.localize = function() {
+  var date = new Date(this.data.date);
+  var description = navigator.mozL10n.get(!this.data.metadata.video ?
+    'imageDescriptionShort' : 'videoDescriptionShort');
+  var label = ThumbnailItem.formatter.localeFormat(date, description);
+  this.imgNode.setAttribute('aria-label', label);
+};

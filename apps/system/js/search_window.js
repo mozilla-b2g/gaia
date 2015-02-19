@@ -25,7 +25,8 @@
   SearchWindow.SUB_COMPONENTS = {
     'childWindowFactory': window.ChildWindowFactory,
     'contextmenu': window.BrowserContextMenu,
-    'transitionController': window.AppTransitionController
+    'transitionController': window.AppTransitionController,
+    'valueSelector': window.ValueSelector
   };
 
   SearchWindow.prototype = Object.create(AppWindow.prototype);
@@ -36,9 +37,11 @@
 
   SearchWindow.prototype._DEBUG = false;
 
-  SearchWindow.prototype.CLASS_NAME = 'Search';
+  SearchWindow.prototype.CLASS_NAME = 'SearchWindow';
 
   SearchWindow.prototype.CLASS_LIST = 'appWindow searchWindow';
+
+  SearchWindow.prototype.HIERARCHY_MANAGER = 'Rocketbar';
 
   SearchWindow.prototype.openAnimation = 'immediate';
 

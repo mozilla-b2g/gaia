@@ -19,6 +19,7 @@
     <link rel="stylesheet" type="text/css" href="style/icons.css">
     <link rel="stylesheet" type="text/css" href="style/settings.css">
     <link rel="stylesheet" type="text/css" href="style/settings_large.css" data-device-type="tablet">
+    <link rel="stylesheet" type="text/css" href="style/settings_phone.css" data-device-type="none">
     <link rel="stylesheet" type="text/css" href="style/dialog.css">
     <!-- Panel Stylesheets
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
@@ -45,6 +46,7 @@
     <link rel="resource" type="application/json" href="shared/resources/media/notifications/"/>
     <link rel="resource" type="application/json" href="shared/resources/keyboard_layouts.json"/>
     <link rel="resource" type="image/png" href="shared/resources/branding/privacy_sprite.png"/>
+    <link rel="resource" type="application/json" href="shared/js/search_providers.json"/>
     -->
 
     <!-- Components -->
@@ -54,7 +56,8 @@
     <script src="shared/elements/gaia-header/dist/gaia-header.js"></script>
 
     <!-- Localization -->
-    <link rel="manifest" href="./manifest.webapp">
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
 
     <link rel="localization" href="shared/locales/download/download.{locale}.properties">
     <link rel="localization" href="shared/locales/branding/branding.{locale}.properties">
@@ -72,6 +75,7 @@
     <script src="/shared/js/lazy_loader.js"></script>
 
     <!-- For perf-measurement related utilities -->
+    <script src="/shared/js/usertiming.js"></script>
     <script defer="" src="/shared/js/performance_testing_helper.js"></script>
 
     <!-- Screen layout watcher -->
@@ -109,6 +113,8 @@
     <!--<script defer src="shared/js/tz_select.js"></script> -->
     <!--<script defer src="shared/js/sim_settings_helper.js"></script> -->
     <!--<script defer src="shared/js/template.js"></script> -->
+    <!--<script defer src="shared/js/search_provider.js"></script> -->
+    <!--<script defer src="shared/js/homescreens/vertical_preferences.js"></script> -->
 
     <!-- all non-#root panels will lazy-load their own scripts -->
     <link rel="import" href="/elements/wifi_status.html">
@@ -120,10 +126,18 @@
     <link rel="import" href="/elements/wifi_select_certificate_file.html">
     <link rel="import" href="/elements/wifi_enter_certificate_nickname.html">
     <link rel="import" href="/elements/wifi.html">
+
+    <!-- Call Forwarding -->
     <link rel="import" href="/elements/call_cf_not_reachable_settings.html">
     <link rel="import" href="/elements/call_cf_no_reply_settings.html">
     <link rel="import" href="/elements/call_cf_mobile_busy_settings.html">
     <link rel="import" href="/elements/call_cf_unconditional_settings.html">
+    <link rel="import" href="/elements/call_cf_settings.html">
+
+    <!-- Call Barring -->
+    <link rel="import" href="/elements/call_barring.html">
+    <link rel="import" href="/elements/call_barring_passcode_change.html">
+
     <link rel="import" href="/elements/call_voice_mail_settings.html">
     <link rel="import" href="/elements/call_pin2_dialog.html">
     <link rel="import" href="/elements/call_fdn_list_add.html">
@@ -137,8 +151,6 @@
     <link rel="import" href="/elements/apn_list.html">
     <link rel="import" href="/elements/apn_editor.html">
     <link rel="import" href="/elements/carrier_operator_settings.html">
-    <link rel="import" href="/elements/carrier_dc_warning.html">
-    <link rel="import" href="/elements/carrier_dr_warning.html">
     <link rel="import" href="/elements/carrier_detail.html">
     <link rel="import" href="/elements/carrier.html">
     <link rel="import" href="/elements/bluetooth.html">
@@ -157,9 +169,9 @@
     <link rel="import" href="/elements/homescreens_details.html">
     <link rel="import" href="/elements/homescreens.html">
     <link rel="import" href="/elements/keyboard.html">
-    <link rel="import" href="/elements/keyboard_enabled_default.html">
     <link rel="import" href="/elements/keyboard_selection_add_more.html">
     <link rel="import" href="/elements/themes.html">
+    <link rel="import" href="/elements/addons.html">
     <link rel="import" href="/elements/screen_lock_passcode.html">
     <link rel="import" href="/elements/screen_lock.html">
     <link rel="import" href="/elements/simpin_dialog.html">
@@ -226,11 +238,11 @@
       -->
 
     <!-- Connectivity :: Wi-Fi :: Network Status -->
-    <section is="wifi-status" role="region" id="wifi-status"></section>
+    <section is="wifi-status" role="region" id="wifi-status" class="dialog"></section>
     <!-- Connectivity :: Wi-Fi :: Network Authentication -->
     <section is="wifi-auth" role="region" id="wifi-auth" class="dialog"></section>
     <!-- Connectivity :: Wi-Fi :: Join Hidden Network -->
-    <section is="wifi-joinHidden" role="region" id="wifi-joinHidden"></section>
+    <section is="wifi-joinHidden" role="region" id="wifi-joinHidden" class="dialog"></section>
     <!-- Connectivity :: Wi-Fi :: WPS -->
     <section is="wifi-wps" role="region" id="wifi-wps" class="dialog"></section>
     <!-- Connectivity :: Wi-Fi :: Saved Networks -->
@@ -240,27 +252,31 @@
     <!-- Connectivity :: Wi-Fi :: Select Certificate File -->
     <section is="wifi-selectCertificateFile" role="region" id="wifi-selectCertificateFile"></section>
     <!-- Connectivity :: Wi-Fi :: Enter Certificate Nickname -->
-    <section is="wifi-enterCertificateNickname" role="region" id="wifi-enterCertificateNickname"></section>
+    <section is="wifi-enterCertificateNickname" role="region" id="wifi-enterCertificateNickname" class="dialog"></section>
     <!-- Connectivity :: Wi-Fi -->
     <section is="wifi" role="region" id="wifi"></section>
     <!-- Connectivity :: Call :: Call Forwarding Not Reachable -->
-    <section is="call-cf-notReachableSettings" role="region" id="call-cf-notReachableSettings"></section>
+    <section is="call-cf-not-reachable-settings" role="region" id="call-cf-not-reachable-settings" class="dialog"></section>
     <!-- Connectivity :: Call :: Call Forwarding No Reply -->
-    <section is="call-cf-noReplySettings" role="region" id="call-cf-noReplySettings"></section>
+    <section is="call-cf-no-reply-settings" role="region" id="call-cf-no-reply-settings" class="dialog"></section>
     <!-- Connectivity :: Call :: Call Forwarding Mobile Busy -->
-    <section is="call-cf-mobileBusySettings" role="region" id="call-cf-mobileBusySettings"></section>
+    <section is="call-cf-mobile-busy-settings" role="region" id="call-cf-mobile-busy-settings" class="dialog"></section>
     <!-- Connectivity :: Call :: Call Forwarding Unconditional -->
-    <section is="call-cf-unconditionalSettings" role="region" id="call-cf-unconditionalSettings"></section>
+    <section is="call-cf-unconditional-settings" role="region" id="call-cf-unconditional-settings" class="dialog"></section>
+    <!-- Connectivity :: Call :: Call Forwarding Settings -->
+    <section is="call-cfSettings" role="region" id="call-cfSettings"></section>
+    <!-- Connectivity :: Call :: Call Barring Settings -->
+    <section is="call-cbSettings" role="region" id="call-cbSettings"></section>
+    <!-- Connectivity :: Call :: Call Barring Passcode Change -->
+    <section is="call-barring-passcode-change" role="region" id="call-barring-passcode-change"></section>
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: Authorized Numbers :: Add -->
-    <section is="call-fdnList-add" role="region" id="call-fdnList-add"></section>
+    <section is="call-fdnList-add" role="region" id="call-fdnList-add" class="dialog"></section>
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: Authorized Numbers -->
     <section is="call-fdnList" role="region" id="call-fdnList" data-require-sub-panels="true"></section>
-    <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: SIM PIN2 Input -->
-    <section is="call-pin2-dialog" role="region" id="call-pin2-dialog"></section>
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) -->
     <section is="call-fdnSettings" role="region" id="call-fdnSettings"></section>
     <!-- Connectivity :: Call :: Voice Mail -->
-    <section is="call-voiceMailSettings" role="region" id="call-voiceMailSettings"></section>
+    <section is="call-voiceMailSettings" role="region" id="call-voiceMailSettings" class="dialog"></section>
     <!-- Connectivity :: Call :: ICCs -->
     <section is="call-iccs" role="region" id="call-iccs"></section>
     <!-- Connectivity :: Call -->
@@ -277,10 +293,6 @@
     <section is="apn-list" role="region" id="apn-list"></section>
     <!-- Connectivity :: Cellular & Data :: APN Editor -->
     <section is="apn-editor" role="region" id="apn-editor"></section>
-    <!-- Connectivity :: Cellular & Data :: Data Connection Warnings -->
-    <section is="carrier-dc-warning" role="region" id="carrier-dc-warning"></section>
-    <!-- Connectivity :: Cellular & Data :: Data Roaming Warnings -->
-    <section is="carrier-dr-warning" role="region" id="carrier-dr-warning"></section>
     <!-- Connectivity :: Cellular & Data :: Detail -->
     <section is="carrier-detail" role="region" id="carrier-detail"></section>
     <!-- Connectivity :: Cellular & Data -->
@@ -322,9 +334,10 @@
     <section is="keyboard-selection" role="region" id="keyboard-selection"></section>
     <!-- Personalization :: Keyboard -->
     <section is="keyboard" role="region" id="keyboard"></section>
-    <section is="keyboard-enabled-default" role="region" id="keyboard-enabled-default"></section>
     <!-- Personalization :: Themes -->
     <section is="themes" role="region" id="themes"></section>
+    <!-- Personalization :: Addons -->
+    <section is="addons" role="region" id="addons"></section>
 
     <!-- Accounts :: Find My Device -->
     <section is="findmydevice" role="region" id="findmydevice"></section>
@@ -334,7 +347,7 @@
     <!-- Security :: Screen Lock -->
     <section is="screenLock" role="region" id="screenLock" data-passcode-enabled="false" data-lockscreen-enabled="false"></section>
     <!-- Security :: SIM Security :: SIM PIN Input -->
-    <section is="simpin-dialog" role="region" id="simpin-dialog"></section>
+    <section is="simpin-dialog" role="region" id="simpin-dialog" class="dialog"></section>
     <!-- Security :: SIM Security -->
     <section is="simpin" role="region" id="simpin" data-require-sub-panels="true"></section>
     <!-- Security :: Application Permissions :: Details -->

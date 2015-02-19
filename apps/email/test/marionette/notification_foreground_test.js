@@ -1,10 +1,11 @@
 /*jshint node: true */
 /*global marionette, setup, test */
+'use strict';
 
 var Email = require('./lib/email');
 var EmailSync = require('./lib/email_sync');
 var assert = require('assert');
-var Notification = require('./lib/notification');
+var NotificationLib = require('./lib/notification');
 var serverHelper = require('./lib/server_helper');
 
 marionette('email notifications, foreground', function() {
@@ -39,8 +40,9 @@ marionette('email notifications, foreground', function() {
     // no cross sending of email across fakeserver instances.
     app.manualSetupImapEmail(server1);
 
-    for (var i = 0; i < messageCount; i++)
+    for (var i = 0; i < messageCount; i++) {
       sendEmail(server1);
+    }
 
     // Now set up second account, to confirm system notifications
     // are only triggered in certain situations.
@@ -52,7 +54,7 @@ marionette('email notifications, foreground', function() {
 
   setup(function() {
     app = new Email(client);
-    notification = new Notification(client);
+    notification = new NotificationLib(client);
     sync = new EmailSync(client);
     sync.setup();
 
@@ -65,12 +67,8 @@ marionette('email notifications, foreground', function() {
 
     sync.triggerSync();
 
-    // Go back to system app
-    client.switchToFrame();
-
-    // Make sure notification container is visible
     assert(notification
-           .getFirstIconUrl().indexOf('type=message_reader') !== -1);
+           .getFirstNotificationData().data.type === 'message_reader');
   });
 
   test('should have bulk message notification in the different account',
@@ -79,12 +77,8 @@ marionette('email notifications, foreground', function() {
 
     sync.triggerSync();
 
-    // Go back to system app
-    client.switchToFrame();
-
-    // Make sure notification container is visible
     assert(notification
-           .getFirstIconUrl().indexOf('type=message_list') !== -1);
+           .getFirstNotificationData().data.type === 'message_list');
   });
 
   test('should not get a notification for same account', function() {

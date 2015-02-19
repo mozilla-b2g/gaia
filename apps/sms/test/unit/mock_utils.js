@@ -8,7 +8,6 @@ var MockUtils = {
   // Utils.js
   camelCase: Utils.camelCase,
   date: Utils.date,
-  extend: Utils.extend,
   getDayDate: Utils.getDayDate,
   getHeaderDate: Utils.getHeaderDate,
   getFormattedHour: Utils.getFormattedHour,
@@ -31,5 +30,7 @@ var MockUtils = {
   closeNotificationsForThread: () => Promise.resolve(),
   imageToDataUrl: Utils.imageToDataUrl,
   debounce: Utils.debounce,
+  alert: Utils.alert,
+  confirm: Utils.confirm,
   Promise: Utils.Promise
 };

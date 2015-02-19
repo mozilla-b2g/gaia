@@ -8,12 +8,11 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "messages": [
-    { "alarm": "/index.html" },
-    { "notification": "/index.html" }
+    { "notification": "/index.html" },
+    { "request-sync": "/index.html" }
   ],
   "permissions": {
     "themeable":{},
-    "alarms":{},
     "browser": {},
     "audio-channel-notification":{},
     "contacts":{ "access": "readcreate" },
@@ -59,7 +58,8 @@
     },
     "share": {
       "filters": {
-        "type": ["audio/*", "image/*", "url", "video/*", "application/*"]
+        "type": ["audio/*", "image/*", "url",
+                  "video/*", "application/*", "text/vcard"]
       },
       "disposition": "window",
       "returnValue": true
@@ -67,10 +67,10 @@
     "view": {
       "filters": {
         "type": "url",
-        "url": { "required":true, "pattern":"mailto:.{1,16384}" },
-        "disposition": "window",
-        "returnValue": true
-      }
+        "url": { "required":true, "pattern":"mailto:.{1,16384}" }
+      },
+      "disposition": "window",
+      "returnValue": true
     }
   },
   "redirects": [

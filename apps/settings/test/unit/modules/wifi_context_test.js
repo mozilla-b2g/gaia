@@ -114,6 +114,24 @@ suite('WifiContext', function() {
     });
   });
 
+  suite('WifiConnectionInfoUpdate', function() {
+    var fakeCb;
+
+    setup(function() {
+      fakeCb = sinon.spy();
+      wifiContext.addEventListener('wifiConnectionInfoUpdate', fakeCb);
+    });
+
+    teardown(function() {
+      wifiContext.removeEventListener('wifiConnectionInfoUpdate', fakeCb);
+    });
+
+    test('when wifiManager.onconnectioninfoupdate, trigger cb', function() {
+      wifiManager.onconnectioninfoupdate();
+      assert.isTrue(fakeCb.called);
+    });
+  });
+
   suite('wifiStatusText', function() {
     suiteTeardown(function() {
       delete(wifiManager.connection.status);

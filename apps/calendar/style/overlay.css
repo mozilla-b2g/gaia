@@ -12,3 +12,7 @@ body[data-path^="/update-account/"] #modify-account-view {
   z-index: 1200;
   visibility: visible;
 }
+
+.yahoo {
+  direction: ltr;
+}

@@ -45,9 +45,7 @@ marionette('day view', function() {
         duration: 3
       });
       day.waitForDisplay();
-      day.waitForHourScrollEnd();
-      // Scroll to top to make sure we could click the event element.
-      day.scrollToTop();
+      day.waitForHourScrollEnd(0);
     });
 
     test('click after first hour', function() {
@@ -327,6 +325,38 @@ marionette('day view', function() {
       var currentTime = pad(now.getHours()) + ':' + pad(now.getMinutes());
       assert.equal(day.currentTime.text(), currentTime);
     });
+  });
+
+  test('double tap all day + toggle all day', function() {
+    day.waitForHourScrollEnd();
+
+    day.actions
+      .doubleTap(day.activeAllDays[0], 150, 30)
+      .perform();
+
+    var event = app.editEvent;
+    event.waitForDisplay();
+    assert.ok(event.allDay, 'is all day event');
+    var oldStart = event.startTime;
+    var oldEnd = event.endTime;
+    event.allDay = false;
+    event.title = 'Foo';
+    client.waitFor(function() {
+      return event.startTime !== oldStart && event.endTime !== oldEnd;
+    });
+    var now = new Date();
+    var start = new Date(now.getTime());
+    start.setHours(now.getHours() + 1, 0, 0, 0);
+    var end = new Date(start.getTime());
+    end.setHours(start.getHours() + 1, 0, 0, 0);
+    var isToday = start.toISOString().slice(0, 10) === event.startDate;
+    var expectedStart = isToday ? pad(start.getHours()) + ':00:00' : '08:00:00';
+    var expectedEnd = isToday ? pad(end.getHours()) + ':00:00' : '09:00:00';
+    assert.equal(event.startTime, expectedStart, 'startTime');
+    assert.equal(event.endTime, expectedEnd, 'endTime');
+
+    event.save();
+    day.waitForDisplay();
   });
 
   function pad(n) {

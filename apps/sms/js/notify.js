@@ -3,32 +3,54 @@
 (function(exports) {
   'use strict';
 
-  function entry(key, value) {
-    settings[key] = urls[key] ? urls[key].set(value) : value;
-  }
-
-  var mozSettings = navigator.mozSettings;
-  var settings = {};
-  var urls = {
-    'notification.ringtone': new SettingsURL()
+  var SETTINGS = {
+    notificationVolume: 'audio.volume.notification',
+    vibration: 'vibration.enabled',
+    ringtone: 'notification.ringtone'
   };
 
-  [
-    'audio.volume.notification',
-    'notification.ringtone',
-    'vibration.enabled'
-  ].forEach(function(key) {
-    if (mozSettings) {
-      var request = mozSettings.createLock().get(key);
+  function entry(key, value) {
+    if (urls[key]) {
+      return new SettingsURL().set(value);
+    }
+    return value;
+  }
+
+  // one day we'll be able to use ES6 initializers instead
+  var urls = {};
+  urls[SETTINGS.ringtone] = 1;
+
+  function getSetting(key) {
+    if (!navigator.mozSettings) {
+      return Promise.reject(new Error('The mozSettings API is not available.'));
+    }
+
+    var request = navigator.mozSettings.createLock().get(key);
+    return new Promise((resolve, reject) => {
       request.onsuccess = function() {
-        entry(key, request.result[key]);
+        resolve(entry(key, request.result[key]));
       };
 
-      mozSettings.addObserver(key, function(event) {
-        entry(key, event.settingValue);
-      });
-    }
-  });
+      request.onerror = function() {
+        reject(new Error('Error while retrieving ' + key));
+      };
+    });
+  }
+
+  function getSettings(settings) {
+    return Promise.all(
+      settings.map(getSetting)
+    ).catch((e) => {
+      // catch and log errors
+      console.error('Error while retrieving settings', e.message, e);
+      return settings.map(() => null);
+    }).then((results) => {
+      return settings.reduce((result, setting, i) => {
+        result[setting] = results[i];
+        return result;
+      }, {});
+    });
+  }
 
   function ringtone(ringtoneFile) {
     var ringtonePlayer = new Audio();
@@ -56,16 +78,22 @@
 
   var Notify = {
     ringtone: function notification_ringtone() {
-      if (settings['audio.volume.notification'] &&
-          settings['notification.ringtone']) {
-        ringtone(settings['notification.ringtone']);
-      }
+      return getSettings(
+        [SETTINGS.notificationVolume, SETTINGS.ringtone]
+      ).then((settings) => {
+        if (settings[SETTINGS.notificationVolume] &&
+            settings[SETTINGS.ringtone]) {
+          ringtone(settings[SETTINGS.ringtone]);
+        }
+      });
     },
 
     vibrate: function notification_vibrate() {
-      if (settings['vibration.enabled']) {
-        vibrate();
-      }
+      return getSettings([SETTINGS.vibration]).then((settings) => {
+        if (settings[SETTINGS.vibration]) {
+          vibrate();
+        }
+      });
     }
   };
 

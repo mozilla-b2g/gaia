@@ -1,11 +1,11 @@
 'use strict';
 
-/* global GeneralSettingsGroupView, HandwritingSettingsGroupView,
-          KeyboardSettingsApp */
+/* global KeyboardSettingsApp, PanelController, DialogController */
 
 require('/js/settings/close_locks.js');
-require('/js/settings/general_settings.js');
-require('/js/settings/handwriting_settings.js');
+require('/js/settings/base_view.js');
+require('/js/settings/general_panel.js');
+require('/js/settings/panel_controller.js');
 
 require('/js/settings/keyboard_settings_app.js');
 
@@ -14,9 +14,8 @@ suite('KeyboardSettingsApp', function() {
 
   var realMozActivity;
 
-  var headerStub;
-  var stubGeneralSettingsGroupView;
-  var stubHandwritingSettingsGroupView;
+  var stubPanelController;
+  var stubDialogController;
 
   var isHidden;
 
@@ -43,23 +42,17 @@ suite('KeyboardSettingsApp', function() {
     this.sinon.stub(document, 'addEventListener');
     this.sinon.stub(document, 'removeEventListener');
 
-    headerStub = document.createElement('gaia-header');
-    this.sinon.spy(headerStub, 'addEventListener');
-    this.sinon.spy(headerStub, 'removeEventListener');
-
     window.SettingsPromiseManager = this.sinon.stub();
 
-    stubGeneralSettingsGroupView =
-      this.sinon.stub(Object.create(GeneralSettingsGroupView.prototype));
-    this.sinon.stub(window, 'GeneralSettingsGroupView')
-      .returns(stubGeneralSettingsGroupView);
+    stubPanelController =
+      this.sinon.stub(Object.create(PanelController.prototype));
+    this.sinon.stub(window, 'PanelController')
+      .returns(stubPanelController);
 
-    stubHandwritingSettingsGroupView =
-      this.sinon.stub(Object.create(HandwritingSettingsGroupView.prototype));
-    this.sinon.stub(window, 'HandwritingSettingsGroupView')
-      .returns(stubHandwritingSettingsGroupView);
-
-    this.sinon.stub(document, 'getElementById').returns(headerStub);
+    stubDialogController =
+      this.sinon.stub(Object.create(DialogController.prototype));
+    this.sinon.stub(window, 'DialogController')
+      .returns(stubDialogController);
 
     app = new KeyboardSettingsApp();
   });
@@ -69,38 +62,37 @@ suite('KeyboardSettingsApp', function() {
   });
 
   suite('start', function() {
+    var skipStopOnTeardown;
+
     setup(function() {
+      skipStopOnTeardown = false;
+
       app.start();
 
       assert.isTrue(window.SettingsPromiseManager.calledOnce);
-      assert.isTrue(stubGeneralSettingsGroupView.start.calledOnce);
-      assert.isTrue(stubHandwritingSettingsGroupView.start.calledOnce);
 
-      assert.isTrue(document.getElementById.calledWith('header'));
-      assert.isTrue(headerStub.addEventListener.calledWith('action', app));
+      assert.isTrue(stubPanelController.start.calledOnce);
+      assert.isTrue(window.PanelController.calledWith(app));
+      assert.isTrue(stubDialogController.start.calledOnce);
 
       assert.isTrue(
         document.addEventListener.calledWith('visibilitychange', app));
     });
 
     teardown(function() {
-      app.stop();
+      if (!skipStopOnTeardown) {
+        app.stop();
+      }
 
-      assert.isTrue(stubGeneralSettingsGroupView.stop.calledOnce);
-      assert.isTrue(stubHandwritingSettingsGroupView.stop.calledOnce);
-
-      assert.isTrue(headerStub.removeEventListener.calledWith('action', app));
+      assert.isTrue(stubPanelController.stop.calledOnce);
+      assert.isTrue(stubDialogController.stop.calledOnce);
 
       assert.isTrue(
         document.removeEventListener.calledWith('visibilitychange', app));
     });
 
-    test('start/stop', function() {});
-
-    test('back', function() {
-      app.handleEvent({
-        type: 'action'
-      });
+    test('requestClose', function() {
+      app.requestClose();
 
       assert.isTrue(window.MozActivity.calledWith({
         name: 'moz_configure_window',
@@ -110,30 +102,41 @@ suite('KeyboardSettingsApp', function() {
 
     test('visibilitychange to hidden', function() {
       isHidden = true;
+      skipStopOnTeardown = true;
+
+      this.sinon.spy(app, 'stop');
+
       app.handleEvent({
         type: 'visibilitychange'
       });
 
       assert.isTrue(window.close.calledOnce);
+      assert.isTrue(app.stop.calledOnce);
     });
 
     test('visibilitychange to visible w/ stay awake lock', function() {
       var lock = app.closeLockManager.requestLock('stayAwake');
 
       isHidden = true;
+
+      this.sinon.spy(app, 'stop');
+
       app.handleEvent({
         type: 'visibilitychange'
       });
       assert.isFalse(window.close.calledOnce);
+      assert.isFalse(app.stop.calledOnce);
 
       isHidden = false;
       app.handleEvent({
         type: 'visibilitychange'
       });
       assert.isFalse(window.close.calledOnce);
+      assert.isFalse(app.stop.calledOnce);
 
       lock.unlock();
       assert.isFalse(window.close.calledOnce);
+      assert.isFalse(app.stop.calledOnce);
     });
   });
 });

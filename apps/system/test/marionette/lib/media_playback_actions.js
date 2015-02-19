@@ -8,7 +8,6 @@
    */
   MediaPlaybackActions.prototype.start =
   function(client) {
-    this.Actions = require('marionette-client').Actions;
     this.Ensure = require('./ensure.js');
     this.FakeMusic = require('./media_playback_fake_music.js');
     this.client = client;
@@ -119,8 +118,10 @@
 
   MediaPlaybackActions.prototype.killMusicApp =
   function() {
-    this.ensure()
-      .close(this.musicAppInfo.origin);
+    try {
+      this.ensure()
+        .close(this.musicAppInfo.origin);
+    } catch(e) {}
     return this;
   };
 

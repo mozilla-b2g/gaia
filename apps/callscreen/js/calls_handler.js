@@ -27,8 +27,6 @@ var CallsHandler = (function callsHandler() {
   telephony.oncallschanged = onCallsChanged;
 
   // Setting up the SimplePhoneMatcher
-  // XXX: check bug-926169
-  // this is used to keep all tests passing while introducing multi-sim APIs
   var conn = window.navigator.mozMobileConnections &&
              window.navigator.mozMobileConnections[0];
 

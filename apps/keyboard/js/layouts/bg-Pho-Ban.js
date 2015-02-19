@@ -5,6 +5,7 @@ Keyboards['bg-Pho-Ban'] = {
   types: ['text', 'url', 'email', 'password'],
   imEngine: 'latin',
   autoCorrectLanguage: 'bg',
+  basicLayoutKey: 'AБB',
   width: 11,
   alt: {
     'и': 'ѝ'

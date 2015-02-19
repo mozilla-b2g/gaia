@@ -6,43 +6,39 @@ var create = require('template').create;
 
 var MonthDayAgenda = create({
   event: function() {
-    var calendarId = this.h('calendarId');
     var busytimeId = this.h('busytimeId');
+    var color = this.h('color');
 
-    var eventTime = (function() {
-      if (this.arg('isAllDay')) {
-        return '<div class="all-day" data-l10n-id="hour-allday"></div>';
-      }
+    var eventTime;
+    if (this.arg('isAllDay')) {
+      eventTime = '<div class="all-day" data-l10n-id="hour-allday"></div>';
+    } else {
       var startTime = formatTime(this.arg('startTime'));
       var endTime = formatTime(this.arg('endTime'));
-      return `<div class="start-time">${startTime}</div>
-              <div class="end-time">${endTime}</div>`;
-    }.call(this));
+      eventTime = `<div class="start-time">${startTime}</div>
+        <div class="end-time">${endTime}</div>`;
+    }
 
-    var eventDetails = (function() {
-      var title = this.h('title');
-      var result = `<h5 role="presentation">${title}</h5>`;
-      var location = this.h('location');
-      if (location && location.length > 0) {
-        result += `<span class="details">
-          <span class="location">${location}</span>
-        </span>`;
-      }
-      return result;
-    }.call(this));
+    var title = this.h('title');
+    var eventDetails = `<h5 role="presentation">${title}</h5>`;
+    var location = this.h('location');
+    if (location && location.length > 0) {
+      eventDetails += `<span class="details">
+        <span class="location">${location}</span>
+      </span>`;
+    }
 
     var alarmClass = this.arg('hasAlarms') ? 'has-alarms' : '';
 
-    return `<a href="/event/show/${busytimeId}/"
-      class="event calendar-id-${calendarId} ${alarmClass}"
+    return `<a href="/event/show/${busytimeId}/" class="event ${alarmClass}"
       role="option" aria-describedby="${busytimeId}-icon-calendar-alarm">
       <div class="container">
-        <div class="gaia-icon icon-calendar-dot calendar-text-color"
+      <div class="gaia-icon icon-calendar-dot" style="color:${color}"
           aria-hidden="true"></div>
         <div class="event-time">${eventTime}</div>
         <div class="event-details">${eventDetails}</div>
         <div id="${busytimeId}-icon-calendar-alarm" aria-hidden="true"
-          class="gaia-icon icon-calendar-alarm calendar-text-color"
+          class="gaia-icon icon-calendar-alarm" style="color:${color}"
           data-l10n-id="icon-calendar-alarm"></div>
       </div>
       </a>`;

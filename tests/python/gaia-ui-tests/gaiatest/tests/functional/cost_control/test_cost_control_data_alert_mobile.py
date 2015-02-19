@@ -2,7 +2,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
+try:
+    from marionette.by import By
+    from marionette.wait import Wait
+except:
+    from marionette_driver.by import By
+    from marionette_driver import Wait
+
 from gaiatest import GaiaTestCase
 from gaiatest.apps.search.app import Search
 from gaiatest.apps.cost_control.app import CostControl
@@ -18,7 +24,6 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
         GaiaTestCase.setUp(self)
         self.data_layer.disable_wifi()
         self.data_layer.connect_to_cell_data()
-        self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
 
     def test_cost_control_data_alert_mobile(self):
         """https://moztrap.mozilla.org/manage/case/8938/"""
@@ -41,12 +46,12 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
 
         # open browser to get some data downloaded
         search = Search(self.marionette)
-        search.launch()
+        search.launch(launch_timeout=30000)
         browser = search.go_to_url('http://www.mozilla.org/')
         browser.wait_for_page_to_load(180)
 
         browser.switch_to_content()
-        self.wait_for_condition(lambda m: "Home of the Mozilla Project" in m.title)
+        Wait(self.marionette, timeout=60).until(lambda m: "Home of the Mozilla Project" in m.title)
         browser.switch_to_chrome()
 
         # get the notification bar
@@ -59,7 +64,8 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
         self.marionette.switch_to_frame(usage_iframe)
 
         # make sure the color changed
-        self.wait_for_condition(
-            lambda m: 'reached-limit' in self.marionette.find_element(
-                *self._data_usage_view_locator).get_attribute('class'),
-            message='Data usage bar did not breach limit')
+        # The timeout is increased, because for some reason, it takes some time
+        # before the limit view is shown (the browser has to finish loading?)
+        usage_view = self.marionette.find_element(*self._data_usage_view_locator)
+        Wait(self.marionette, timeout=40).until(lambda m: 'reached-limit' in usage_view.get_attribute('class'),
+             message='Data usage bar did not breach limit')

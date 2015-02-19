@@ -21,6 +21,7 @@
  * - urn:schemas-upnp-org:service:RenderingControl:3
  *
  */
+/* jshint ignore:start */
 !(function( global, undefined ) {
 
   if( !global.Plug || !global.Plug.UPnP ) {

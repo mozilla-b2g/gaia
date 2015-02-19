@@ -1,5 +1,5 @@
 /*global MocksHelper, MockL10n, AppWindow, BrowserContextMenu,
-  MockMozActivity, MozActivity, MockAppWindowHelper */
+  MockMozActivity, MozActivity, MockAppWindowHelper, Browser */
 
 'use strict';
 
@@ -10,6 +10,7 @@ requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/js/browser_config_helper.js');
+require('/js/browser.js');
 
 var mocksForAppModalDialog = new MocksHelper([
   'AppWindow', 'MozActivity', 'LazyLoader', 'IconsHelper'
@@ -40,6 +41,8 @@ suite('system/BrowserContextMenu', function() {
     realMozActivity = window.MozActivity;
     window.MozActivity = MockMozActivity;
     MozActivity.mSetup();
+    window.browser = new Browser();
+    window.browser.start();
   });
 
   teardown(function() {
@@ -56,6 +59,12 @@ suite('system/BrowserContextMenu', function() {
     manifest: {},
     manifestURL: 'app://wwww.fake/ManifestURL',
     origin: 'app://www.fake'
+  };
+
+  var fakeBrowserConfig = {
+    url: 'http://mozilla.org/index.html',
+    manifest: {},
+    origin: 'http://mozilla.org'
   };
 
   var fakePrivateConfig = {
@@ -146,10 +155,12 @@ suite('system/BrowserContextMenu', function() {
   test('launch menu', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var md1 = new BrowserContextMenu(app1);
+    this.sinon.stub(app1, 'blur');
     var stubStopPropagation =
       this.sinon.stub(fakeContextMenuEvent, 'stopPropagation');
 
     md1.handleEvent(fakeContextMenuEvent);
+    assert.isTrue(app1.blur.called);
     assert.isTrue(stubStopPropagation.called);
     assert.isTrue(md1.element.classList.contains('visible'));
     assert.equal(
@@ -161,12 +172,22 @@ suite('system/BrowserContextMenu', function() {
       'url("' + fakeContextMenuEvent.detail.contextmenu.items[0].icon + '")');
   });
 
-  test('manually launch menu', function(done) {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var md1 = new BrowserContextMenu(app1);
-    md1.showDefaultMenu().then(function() {
-      assert.isTrue(md1.element.classList.contains('visible'));
-      done();
+  suite('manually launch menu', function() {
+    var md1;
+
+    setup(function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      md1 = new BrowserContextMenu(app1);
+      md1.showDefaultMenu();
+    });
+
+    test('Conext Menu is shown', function() {
+      assert.isTrue(md1.isShown());
+    });
+
+    test('Conext Menu is not shown', function() {
+      md1.hide();
+      assert.isFalse(md1.isShown());
     });
   });
 
@@ -235,6 +256,27 @@ suite('system/BrowserContextMenu', function() {
     var app = MockAppWindowHelper.mLatest;
     assert.equal(app.isPrivate, true);
   });
+
+  test('bookmark/share buttons hidden in private browser', function(done) {
+    var app1 = new AppWindow(fakePrivateConfig);
+    var md1 = new BrowserContextMenu(app1);
+    var app2 = new AppWindow(fakeBrowserConfig);
+    var md2 = new BrowserContextMenu(app2);
+
+    var md1ShowStub = this.sinon.stub(md1, 'showMenu');
+    var md2ShowStub = this.sinon.stub(md2, 'showMenu');
+    Promise.all([
+      md1.showDefaultMenu(),
+      md2.showDefaultMenu()
+    ]).then(() => {
+      var md1Items = md1ShowStub.getCall(0).args[0];
+      var md2Items = md2ShowStub.getCall(0).args[0];
+      // We should not show the bookmark or share buttons.
+      assert.equal(md2Items.length - md1Items.length, 2);
+      done();
+    });
+  });
+
 
   test('openUrl()', function() {
     var app1 = new AppWindow(fakeAppConfig1);

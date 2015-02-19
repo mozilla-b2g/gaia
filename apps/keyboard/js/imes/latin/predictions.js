@@ -228,7 +228,8 @@ var Predictions = function() {
       'w': 'ẂẃŴŵẄẅẆẇẈẉẀẁⱲⱳ',
       'x': 'ẌẍẊẋ',
       'y': 'ÝýŶŷŸÿẎẏỴỵỲỳƳƴỶỷỾỿȲȳɎɏỸỹ',
-      'z': 'ŹźŽžẐẑⱫⱬŻżẒẓȤȥẔẕƵƶ'
+      'z': 'ŹźŽžẐẑⱫⱬŻżẒẓȤȥẔẕƵƶ',
+      '$': '$'
     };
 
     // The reverse mapping from accented forms to the normalized ASCII form

@@ -1,7 +1,6 @@
 define(function(require) {
   'use strict';
 
-  var SettingsUtils = require('modules/settings_utils');
   var SettingsPanel = require('modules/settings_panel');
   var WifiUtils = require('modules/wifi_utils');
   var WifiHelper = require('shared/wifi_helper');
@@ -21,10 +20,6 @@ define(function(require) {
           panel.querySelector('.importCertificate');
         elements.deleteCertificateBtn =
           panel.querySelector('.deleteCertificate');
-
-        elements.importCertificateBtn.onclick = function() {
-          SettingsUtils.openDialog('wifi-selectCertificateFile');
-        };
 
         elements.deleteCertificateBtn.onclick =
           this._deleteCertificate.bind(this);

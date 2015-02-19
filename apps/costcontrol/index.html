@@ -35,7 +35,8 @@
     <link rel="stylesheet" type="text/css" href="style/views/appdetail.css">
 
     <!-- Localization -->
-    <link rel="manifest" href="manifest.webapp">
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="locales/costcontrol.{locale}.properties">
 
     <!-- Firefox Desktop shims -->
@@ -57,7 +58,8 @@
     <script type="text/javascript" defer src="shared/js/settings_listener.js"></script>
     <script type="text/javascript" defer src="shared/js/lazy_loader.js"></script>
     <script type="text/javascript" defer src="shared/js/format.js"></script>
-    <script type="text/javascript" defer src='/shared/js/performance_testing_helper.js'></script>
+    <script type="text/javascript" defer src="/shared/js/usertiming.js"></script>
+    <script type="text/javascript" defer src="/shared/js/performance_testing_helper.js"></script>
     <script type="text/javascript" defer src="/shared/js/url_helper.js"></script>
 
     <!-- Gaia Components -->
@@ -85,7 +87,7 @@
         <!-- XXX: The order of sections is important (tabs should be place above
              the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
         <gaia-header>
-          <h1 data-l10n-id="usage">Usage</h1>
+          <h1 data-l10n-id="usage"></h1>
           <button class="settings-button" data-icon="settings"></button>
         </gaia-header>
 

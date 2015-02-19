@@ -2,6 +2,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+try:
+    from marionette import Wait
+except:
+    from marionette_driver import Wait
+
 from gaiatest import GaiaTestCase
 from gaiatest.apps.settings.app import Settings
 
@@ -24,30 +29,17 @@ class TestSettingsDoNotTrack(GaiaTestCase):
 
         # turn to "disallow tracking"
         do_not_track_settings.tap_disallow_tracking()
-
-        # should be 1
-        self.assertEqual(self.data_layer.get_int_pref('privacy.donottrackheader.value'), 1)
-        # should be enabled
-        self.assertEqual(self.data_layer.get_bool_pref('privacy.donottrackheader.enabled'), True)
-
-        # Return to Settings app after checking pref
+        Wait(self.marionette).until(lambda m: self.data_layer.get_int_pref('privacy.donottrackheader.value') == 1)
+        Wait(self.marionette).until(lambda m: self.data_layer.get_bool_pref('privacy.donottrackheader.enabled'))
         self.apps.switch_to_displayed_app()
 
         # turn to "allow tracking"
         do_not_track_settings.tap_allow_tracking()
-
-        # should be 0
-        self.assertEqual(self.data_layer.get_int_pref('privacy.donottrackheader.value'), 0)
-        # should be enabled
+        Wait(self.marionette).until(lambda m: self.data_layer.get_int_pref('privacy.donottrackheader.value') == 0)
         self.assertEqual(self.data_layer.get_bool_pref('privacy.donottrackheader.enabled'), True)
-
-        # Return to Settings app after checking pref
         self.apps.switch_to_displayed_app()
 
         # turn back to "no pref"
         do_not_track_settings.tap_do_not_have_pref_on_tracking()
-
-        # should be back to "no pref"
-        self.assertEqual(self.data_layer.get_int_pref('privacy.donottrackheader.value'), -1)
-        # should be disabled
-        self.assertEqual(self.data_layer.get_bool_pref('privacy.donottrackheader.enabled'), False)
+        Wait(self.marionette).until(lambda m: self.data_layer.get_int_pref('privacy.donottrackheader.value') == -1)
+        Wait(self.marionette).until(lambda m: not self.data_layer.get_bool_pref('privacy.donottrackheader.enabled'))

@@ -214,7 +214,7 @@
 }
 
 #screen > [data-z-index-level="ext-selection-dialog"] {
-  z-index: 10;
+  z-index: 100;
 }
 
 /* Level 8 */
@@ -231,45 +231,45 @@
  * - keyboard frame must be below active ones
  * - keyboard frame must be above inactive ones
  * - during an edge gesture a new app coming from the right needs to be on top
- * - app frame must be on top of homescreen frame, inactive or active.
+ * - active homescreen frame must be on top of app frame.
+ * - app frame must be on top of inactie homescreen frame.
  * - finally, everything else needs to be on top of them (hence the lowest nums)
  */
 #screen > [data-z-index-level="app"] > .appWindow.out-to-right {
-  z-index: 8;
+  z-index: 20;
 }
 
 #screen > [data-z-index-level="app"] > .appWindow.transition-opening:not(.homescreen):not(.attentionWindow) {
-  z-index: 7;
+  z-index: 18;
 }
 
-#screen > [data-z-index-level="app"] > .appWindow.transition-closing:not(.homescreen):not(.attentionWindow) {
-  z-index: 6;
+#screen > [data-z-index-level="app"] > .appWindow.transition-closing:not(.attentionWindow) {
+  z-index: 16;
+}
+
+#screen > [data-z-index-level="app"] > .appWindow.homescreen.active {
+  z-index: 14;
 }
 
 #screen > [data-z-index-level="app"] > .appWindow.active:not(.homescreen):not(.attentionWindow),
 #screen > [data-z-index-level="app"] > .appWindow:not(.homescreen):not(.lockScreenWindow):not(.attentionWindow),
 #screen > [data-z-index-level="app"] > .appWindow.will-become-active {
-  z-index: 6;
+  z-index: 12;
 }
 
 #screen > [data-z-index-level="app"] > .appWindow.in-from-left {
-  z-index: 5;
-}
-
-#screen > [data-z-index-level="app"] > .appWindow.homescreen.active {
-  z-index: 4;
+  z-index: 10;
 }
 
 #screen > [data-z-index-level="app"] > .appWindow:not(.attentionWindow) {
-  z-index: 3;
+  z-index: 8;
 }
 
 #screen > [data-z-index-level="app"] > .appWindow.homescreen {
-  z-index: 2;
+  z-index: 6;
 }
 
-#screen > [data-z-index-level="app"] > .appWindow.homescreen.transition-opening,
-#screen > [data-z-index-level="app"] > .appWindow.homescreen.transition-closing {
+#screen > [data-z-index-level="app"] > .appWindow.homescreen.transition-opening {
   z-index: 0;
 }
 

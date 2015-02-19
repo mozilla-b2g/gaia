@@ -266,8 +266,8 @@ suite('system/DownloadNotification >', function() {
       this.sinon.stub(NotificationScreen, 'removeNotification');
       download.state = 'finalized';
       download.listeners[0]();
-      assert.isFalse(NotificationScreen.removeNotification.called,
-                     'Notification should remain when download is finalized.');
+      assert.isTrue(NotificationScreen.removeNotification.called,
+        'Notification should not remain when download is finalized.');
     });
 
   });

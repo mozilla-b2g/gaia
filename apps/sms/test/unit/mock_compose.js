@@ -13,6 +13,8 @@ var MockCompose = {
     return this.mEmpty;
   },
   isSubjectMaxLength: () => false,
+  lock: function() {},
+  unlock: function() {},
   disable: function(state) {},
   scrollToTarget: function(target) {},
   scrollMessageContent: function() {},
@@ -43,6 +45,5 @@ var MockCompose = {
     this.mSubjectShowing = false;
     this.size = null;
     this.type = 'sms';
-    this.lock = false;
   }
 };

@@ -168,5 +168,53 @@ suite('ICE Data', function() {
       });
     });
 
+    test('> Several contacts removed', function(done) {
+      var changeCallback;
+
+      window.asyncStorage.keys = {
+        'ice-contacts': [{ id: 1, active: true}, {id: 2, active: true}]
+      };
+
+      var stub = sinon.stub(document, 'addEventListener', function(name, cb) {
+        changeCallback = cb;
+      });
+
+      var listenerCalled = 0;
+
+      subject.listenForChanges(function() {
+        listenerCalled++;
+        assert.isFalse(subject.iceContacts[(listenerCalled-1)].id ===
+         listenerCalled);
+        assert.isFalse(subject.iceContacts[(listenerCalled-1)].active);
+        if (listenerCalled === 2) {
+          done(function() {
+            stub.restore();
+          });
+        }
+      }).then(function() {
+        // Perform several changes, but we will receive just 2 changes
+        // in the callback above as we defined 2 ICE contacts and we
+        // removed those
+            changeCallback({
+              detail: {
+                contactID: 1,
+                reason: 'remove'
+              }
+            });
+            changeCallback({
+              detail: {
+                contactID: 2,
+                reason: 'remove'
+              }
+            });
+            changeCallback({
+              detail: {
+                contactID: 3,
+                reason: 'remove'
+              }
+            });
+      });
+    });
+
   });
 });

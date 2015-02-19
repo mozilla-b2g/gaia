@@ -11,7 +11,8 @@
   <link href="style/error_overlay.css" rel="stylesheet" type="text/css">
   <link href="style/mobile_id.css" rel="stylesheet" type="text/css">
 
-  <link rel="manifest" href="../manifest.webapp">
+  <meta name="defaultLanguage" content="en-US">
+  <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
   <link rel="localization" href="locales/mobile_id.{locale}.properties">
 
   <!-- Gaia Components -->
@@ -36,7 +37,7 @@
   <body class="theme-settings" role="application">
     <section class="skin-organic" role="region">
       <gaia-header id="header" action="close">
-        <h1 data-l10n-id="errorTitle">Mobile identity</h1>
+        <h1 data-l10n-id="errorTitle"></h1>
       </gaia-header>
       <progress id="verification-code-timer" value="" max="100"></progress>
       <!--

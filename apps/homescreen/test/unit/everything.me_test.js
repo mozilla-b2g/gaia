@@ -1,12 +1,11 @@
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('homescreen/test/unit/mock_everything.me.html.js');
 requireElements('homescreen/elements/search_page.html');
 requireApp('homescreen/test/unit/mock_asyncStorage.js');
 requireApp('homescreen/test/unit/mock_lazy_loader.js');
-requireApp('homescreen/test/unit/mock_l10n.js');
 requireApp('homescreen/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('homescreen/everything.me/js/everything.me.js');
 
@@ -23,7 +22,8 @@ mocksHelperForEVME.init();
 suite('everything.me.js >', function() {
   var wrapperNode,
       realAsyncStorage,
-      realMozSettings;
+      realMozSettings,
+      realL10n;
 
   suiteTemplate('search-page', {
     id: 'search-page'
@@ -35,6 +35,8 @@ suite('everything.me.js >', function() {
     window.asyncStorage = MockasyncStorage;
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
 
     wrapperNode = document.createElement('section');
     wrapperNode.innerHTML = MockEverythingMeHtml;
@@ -51,6 +53,7 @@ suite('everything.me.js >', function() {
     mocksHelperForEVME.suiteTeardown();
     window.asyncStorage = realAsyncStorage;
     navigator.mozSettings = realMozSettings;
+    navigator.mozL10n = realL10n;
 
     document.body.removeChild(wrapperNode);
   });

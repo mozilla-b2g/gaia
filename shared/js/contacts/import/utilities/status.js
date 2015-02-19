@@ -35,25 +35,41 @@ utils.status = (function() {
   };
 
   var setL10nAttributes = function(node, l10n) {
-    if (typeof l10n === 'string') {
-      node.setAttribute('data-l10n-id', l10n);
-    } else {
+    if (l10n && l10n.id) {
       navigator.mozL10n.setAttributes(node, l10n.id, l10n.args);
+      return true;
+    } else {
+      console.error('Status arguments must be objects');
+      return false;
     }
   };
 
-  var showStatus = function(textId, additionalId) {
+  /**
+   * Fills the DOM with the proper content and makes it visible
+   * As parameters, it consums objects of the form
+   * {
+   *    id: id,
+   *    args: args
+   * }
+   * @param mainMessage: the message to display
+   * @param extra: an optional extra line for the message
+   */
+  var showStatus = function(mainMessage, extra) {
     // clean listeners in case of previous race conditions
     statusMsg.removeEventListener('transitionend', showAnimationDone);
     statusMsg.removeEventListener('transitionend', hideAnimationDone);
 
     LazyLoader.load([statusMsg], function _loaded() {
-      setL10nAttributes(statusMsg.querySelector('p'), textId);
+      // if parameters correct keep going
+      if (!setL10nAttributes(statusMsg.querySelector('p'), mainMessage)) {
+        return;
+      }
 
-      if (additionalId) {
+      // check for additional messages
+      if (extra) {
         additionalLine = document.createElement('p');
         statusMsg.appendChild(additionalLine);
-        setL10nAttributes(additionalLine, additionalId);
+        setL10nAttributes(additionalLine, extra);
       }
 
       // If showing already, we increase the time after the change

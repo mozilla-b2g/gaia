@@ -34,7 +34,6 @@
   display: flex;
   flex: 1;
   align-items: center;
-  -moz-user-select: none;
   transition: opacity 100ms;
 }
 
@@ -275,7 +274,6 @@
   top: calc(50% - 5.1rem);
   width: 10.2rem;
   height: 10.2rem;
-  -moz-user-select: none;
 }
 
 /** Circle

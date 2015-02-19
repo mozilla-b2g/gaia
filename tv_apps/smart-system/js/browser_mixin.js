@@ -1,10 +1,11 @@
+/* global layoutManager, AppWindow */
 'use strict';
 
 (function(window) {
   /**
    * @mixin BrowserMixin
    */
-  window.BrowserMixin = {
+  var BrowserMixin = {
     reload: function bm_reload() {
       if (this.browser.element) {
         this.browser.element.reload();
@@ -103,33 +104,55 @@
         }
 
         self.debug('getScreenshot succeed!');
-        if (invoked)
+        if (invoked) {
           return;
+        }
         self.debug('get screenshot success!!!!');
         invoked = true;
-        if (timer)
+        if (timer) {
           window.clearTimeout(timer);
-        if (callback)
+        }
+        if (callback) {
           callback(result);
+        }
       };
 
       req.onerror = function gotScreenshotFromFrameError(evt) {
 
         self.debug('getScreenshot failed!');
-        if (invoked)
+        if (invoked) {
           return;
+        }
         invoked = true;
-        if (timer)
+        if (timer) {
           window.clearTimeout(timer);
-        if (callback)
+        }
+        if (callback) {
           callback();
+        }
       };
     },
 
     focus: function bm_focus() {
-      if (this.browser && this.browser.element) {
-        this.browser.element.focus();
-      }
+      setTimeout(function() {
+        /**
+         * Bug 552255 blocks setting focus with handler of KeyboardEvent. See
+         * http://tinyurl.com/k4uu2rl for more information.
+         *
+         * To workaround it, we have to use setTimeout to run focus with another
+         * thread.
+        **/
+        if (this.browser && this.browser.element && this.isActive()) {
+          /**
+           * According to Bug 1113592 comment 9's finding, we have to blur the
+           * previous focused window to bypass the security check.
+          **/
+          if (document.activeElement) {
+            document.activeElement.blur();
+          }
+          this.browser.element.focus();
+        }
+      }.bind(this));
     },
 
     blur: function bm_blur() {
@@ -188,16 +211,19 @@
         var r = this.browser.element.getCanGoBack();
         r.onsuccess = function(evt) {
           self._backable = evt.target.result;
-          if (callback)
+          if (callback) {
             callback(evt.target.result);
+          }
         };
         r.onerror = function(evt) {
-          if (callback)
+          if (callback) {
             callback();
+          }
         };
       } else {
-        if (callback)
+        if (callback) {
           callback();
+        }
       }
     },
 
@@ -211,16 +237,19 @@
         var r = this.browser.element.getCanGoForward();
         r.onsuccess = function(evt) {
           self._forwardable = evt.target.result;
-          if (callback)
+          if (callback) {
             callback(evt.target.result);
+          }
         };
         r.onerror = function(evt) {
-          if (callback)
+          if (callback) {
             callback();
+          }
         };
       } else {
-        if (callback)
+        if (callback) {
           callback();
+        }
       }
     },
 
@@ -232,5 +261,7 @@
     }
   };
 
+  window.BrowserMixin = BrowserMixin;
+
   AppWindow.addMixin(BrowserMixin);
-}(this));
+}(window));

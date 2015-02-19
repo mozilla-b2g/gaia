@@ -257,6 +257,9 @@ function execute(config) {
   // Set the ftu ping URL -- we set this regardless of NOFTU for now
   settings['ftu.pingURL'] = config.FTU_PING_URL;
 
+  // Whether or not performance and usage data are shared by default
+  settings['debug.performance_data.shared'] = config.SHARE_PERF_USAGE === '1';
+
   // Set the rocketbar URL
   settings['rocketbar.searchAppURL'] = utils.gaiaOriginURL('search',
     config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT) + '/index.html';

@@ -74,7 +74,7 @@
     };
 
     var system;
-    var utilityTray = new UtilityTray(client);
+    var utilityTray;
     var rocketbar = new Rocketbar(client);
     var fxASystemDialog = new FxASystemDialog(client);
     var lockscreen = new Lockscreen();
@@ -84,6 +84,7 @@
 
     suite('Test aria-hidden and top most UI', function() {
       setup(function() {
+        utilityTray = new UtilityTray(client);
         system = client.loader.getAppClass('system');
         system.waitForStartup();
         lockscreen.unlock();
@@ -134,7 +135,8 @@
         client.apps.launch('app://' + CALLER_APP);
         utilityTray.open();
         assert.equal(getTopMost(), 'UtilityTray');
-        assert.equal(getActiveAppWindowAriaHidden(), 'true');
+        // Don't blur current app when utilityTray is pulled down.
+        assert.equal(getActiveAppWindowAriaHidden(), 'false');
         utilityTray.close();
         assert.equal(getTopMost(), 'AppWindowManager');
         assert.equal(getActiveAppWindowAriaHidden(), 'false');
@@ -143,7 +145,6 @@
       test('Invoke rocketbar', function() {
         assert.equal(getTopMost(), 'AppWindowManager');
         rocketbar.homescreenFocus();
-        rocketbar.goThroughPermissionPrompt();
         assert.equal(getTopMost(), 'Rocketbar');
         assert.equal(getActiveAppWindowAriaHidden(), 'true');
         rocketbar.cancel.click();
@@ -259,7 +260,7 @@
           var h1 = fakeDialerApp.getCallHeight();
           client.findElement('#input').click();
           client.switchToFrame();
-          client.helper.waitForElement('.inputWindow.active');
+          system.waitForKeyboard();
           var apph2 = getAppHeight(fakeDialerApp.origin);
           var h2 = fakeDialerApp.getCallHeight();
           assert.notEqual(h1, h2);
@@ -271,7 +272,7 @@
         var h1 = getAppHeight('app://' + CALLER_APP);
         client.findElement('#input').click();
         client.switchToFrame();
-        client.helper.waitForElement('.inputWindow.active');
+        system.waitForKeyboard();
         var h2 = getAppHeight('app://' + CALLER_APP);
         assert.notEqual(h1, h2);
       });
@@ -285,7 +286,7 @@
           var systemDialogHeight1 = fxASystemDialog.getHeight();
           fxASystemDialog.focus();
           client.switchToFrame();
-          client.helper.waitForElement('.inputWindow.active');
+          system.waitForKeyboard();
 
           var systemDialogHeight2 = fxASystemDialog.getHeight();
           var h2 = getAppHeight('app://' + CALLER_APP);

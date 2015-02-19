@@ -56,6 +56,8 @@ var ConfigManager = (function() {
     'isWifiChartVisible': false
   };
 
+  var CONFIG_CACHE = [];
+
   function getApplicationMode() {
     if (noConfigFound) {
       return 'DATA_USAGE_ONLY';
@@ -100,10 +102,21 @@ var ConfigManager = (function() {
 
   function loadConfiguration(currentDataIcc, callback) {
     var configFilePath = getConfigFilePath(currentDataIcc);
-    LazyLoader.load(configFilePath, callback);
+    if (CONFIG_CACHE[configFilePath]) {
+      ConfigManager.setConfig(CONFIG_CACHE[configFilePath]);
+      (typeof callback === 'function') && callback();
+    } else {
+      LazyLoader.load(configFilePath, function() {
+        // configuration variable is set by calling setConfig() inside the
+        // configuration file.
+        CONFIG_CACHE[configFilePath] = configuration;
+        (typeof callback === 'function') && callback();
+      });
+    }
   }
 
   function getConfigFilePath(currentDataIcc) {
+    noConfigFound = false;
     var mcc = currentDataIcc.iccInfo.mcc;
     var mnc = currentDataIcc.iccInfo.mnc;
     var key = mcc + '_' + mnc;
@@ -118,9 +131,9 @@ var ConfigManager = (function() {
   function loadConfigurationIndex(callback) {
     LazyLoader.getJSON('/js/config/index.json').then(function(json) {
       configurationIndex = json;
-      if (configurationIndex === null) { // TODO Remove workaround when 
+      if (configurationIndex === null) { // TODO Remove workaround when
 					 // Bug 1069808 is fixed.
-        console.error('Error loading the configuration index!' + 
+        console.error('Error loading the configuration index!' +
                       'Response from LazyLoader was null.');
         configurationIndex = {};
       }
@@ -131,7 +144,7 @@ var ConfigManager = (function() {
         });
       }
     }, function(error) {
-      console.error('Error loading the configuration index! ' + 
+      console.error('Error loading the configuration index! ' +
                     'Error code: ' + error);
       configurationIndex = {};
     });
@@ -351,7 +364,10 @@ var ConfigManager = (function() {
     // XXX: Once loaded via requestConfiguration() / requestAll() it is ensured
     // it wont change so you can use this to access OEM confguration in a
     // synchronous fashion.
-    get configuration() { return configuration; }
+    get configuration() { return configuration; },
+    // XXX: Bug 1126178-[CostControl] Remove ConfigManager.supportCustomizeMode
+    // when the functionality is ready
+    supportCustomizeMode: false
   };
 
 }());

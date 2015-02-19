@@ -1,0 +1,10 @@
+{
+  "webide": {
+    "prepackage": {
+      "command": "make",
+      "env": ["APP=bookmark"],
+      "cwd": "../.."
+    },
+    "packageDir": "../../build_stage/bookmark/"
+  }
+}

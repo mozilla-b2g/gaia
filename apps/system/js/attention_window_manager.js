@@ -110,6 +110,8 @@
       window.addEventListener('launchapp', this);
       window.addEventListener('lockscreen-appclosed', this);
       window.addEventListener('lockscreen-appopened', this);
+      window.addEventListener('secure-appclosed', this);
+      window.addEventListener('secure-appopened', this);
       window.addEventListener('rocketbar-overlayopened', this);
       Service.request('registerHierarchy', this);
     },
@@ -130,6 +132,8 @@
       window.removeEventListener('launchapp', this);
       window.removeEventListener('lockscreen-appclosed', this);
       window.removeEventListener('lockscreen-appopened', this);
+      window.removeEventListener('secure-appclosed', this);
+      window.removeEventListener('secure-appopened', this);
       window.removeEventListener('rocketbar-overlayopened', this);
       Service.request('unregisterHierarchy', this);
     },
@@ -256,6 +260,8 @@
 
         case 'lockscreen-appclosed':
         case 'lockscreen-appopened':
+        case 'secure-appopened':
+        case 'secure-appclosed':
           this._instances.forEach(function(instance) {
             instance.broadcast(evt.type);
           });

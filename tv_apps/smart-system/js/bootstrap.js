@@ -8,26 +8,10 @@
          SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory,
          applications, LayoutManager, PermissionManager, Accessibility,
-         TextSelectionDialog, SleepMenu,
-         ExternalStorageMonitor, SelectionBorder */
+         TextSelectionDialog, SleepMenu, InteractiveNotifications,
+         ExternalStorageMonitor */
 'use strict';
 
-
-/* === Shortcuts === */
-/* For hardware key handling that doesn't belong to anywhere */
-var Shortcuts = {
-  init: function rm_init() {
-    window.addEventListener('keyup', this);
-  },
-
-  handleEvent: function rm_handleEvent(evt) {
-    if (!ScreenManager.screenEnabled || evt.keyCode !== evt.DOM_VK_F6) {
-      return;
-    }
-
-    document.location.reload();
-  }
-};
 
 window.addEventListener('load', function startup() {
   /**
@@ -92,7 +76,6 @@ window.addEventListener('load', function startup() {
   // Enable checkForUpdate as well if booted without FTU
   window.addEventListener('ftuskip', doneWithFTU);
 
-  Shortcuts.init();
   ScreenManager.turnScreenOn();
 
   // To make sure homescreen window manager can intercept webapps-launch event,
@@ -134,11 +117,6 @@ window.addEventListener('load', function startup() {
   window.wallpaperManager = new window.WallpaperManager();
   window.wallpaperManager.start();
 
-  window.selectionBorder = new SelectionBorder({
-        multiple: false,
-        container: document.getElementById('screen'),
-        forground: true });
-
   // unit tests call start() manually
   if (navigator.mozL10n) {
     navigator.mozL10n.once(function l10n_ready() {
@@ -146,7 +124,8 @@ window.addEventListener('load', function startup() {
       window.mediaRecording.start();
     });
   }
-
+  window.interactiveNotifications = new InteractiveNotifications();
+  window.interactiveNotifications.start();
   // We need to be sure to get the focus in order to wake up the screen
   // if the phone goes to sleep before any user interaction.
   // Apparently it works because no other window has the focus at this point.

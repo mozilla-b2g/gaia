@@ -6,23 +6,28 @@ define(function(require) {
 
   return function ctor_languages_panel() {
     var languages = Languages();
-    var localizedEventListener;
+    var onLocalized = languages.onLocalized.bind(languages);
+    var onAdditionalLanguagesChange = languages.buildList.bind(languages);
 
     return SettingsPanel({
       onBeforeShow: function() {
         languages.buildList();
         languages.updateDateTime();
-
-        localizedEventListener = function() {
-          languages.onLocalized(languages);
-        };
-        window.addEventListener('localized', localizedEventListener);
+        window.addEventListener('localized', onLocalized);
+        document.addEventListener(
+          'additionallanguageschange', onAdditionalLanguagesChange);
       },
       onBeforeHide: function() {
-        window.removeEventListener('localized', localizedEventListener);
+        window.removeEventListener('localized', onLocalized);
+        document.removeEventListener(
+          'additionallanguageschange', onAdditionalLanguagesChange);
       },
       onInit: function(panel) {
-        languages.onInit(panel);
+        var elements = {
+          moreLanguages: panel.querySelector('.menuItem-more-languages'),
+          langSel: panel.querySelector('select[name="language.current"]')
+        };
+        languages.onInit(panel, elements);
       }
     });
   };

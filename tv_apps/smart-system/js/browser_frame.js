@@ -17,13 +17,15 @@
 
 (function(window) {
   var nextId = 0;
-  window.BrowserFrame = function BrowserFrame() {
+  function BrowserFrame() {
     this.element = null;
     this._id = nextId++;
     // All arguments are values to createFrame
     createFrame.apply(this, arguments);
     return this;
-  };
+  }
+
+  window.BrowserFrame = BrowserFrame;
 
   BrowserFrame.prototype.CLASS_NAME = 'browser';
 
@@ -32,6 +34,7 @@
   // within this function scope so we don't have to define them as a
   // property of Browser or prefix them with underscores.
   function createFrame(config, frame) {
+    /*jshint validthis: true */
     var browser = frame || document.createElement('iframe');
     browser.setAttribute('mozallowfullscreen', 'true');
 
@@ -45,8 +48,9 @@
     // window.open method.
     browser.name = config.window_name || 'main';
 
-    if (config.oop)
+    if (config.oop) {
       browser.setAttribute('remote', 'true');
+    }
 
     if (config.manifestURL) {
       browser.setAttribute('mozapp', config.manifestURL);
@@ -78,7 +82,7 @@
     this.config = config;
 
     this.element = browser;
-  };
+  }
 
   function setMozAppType(iframe, config) {
     // XXX: Those urls needs to be built dynamically.
@@ -100,4 +104,4 @@
       iframe.setAttribute('mozapptype', 'search');
     }
   }
-}(this));
+}(window));

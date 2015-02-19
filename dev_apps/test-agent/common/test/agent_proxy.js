@@ -38,7 +38,7 @@
     blanketUrl: CommonResourceLoader.url('/common/vendor/blanket/blanket.js'),
     defaultConfig: {
       'data-cover-only': 'js/',
-      'data-cover-never': '["test/unit/","alameda.js"]',
+      'data-cover-never': '["test/unit/","alameda.js","/shared/"]',
       'data-cover-flags': 'lazyload',
       'data-cover-adapter': CommonResourceLoader
         .url('/common/vendor/blanket/test-agent-blanket.js')

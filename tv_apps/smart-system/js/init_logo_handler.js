@@ -1,4 +1,4 @@
-/* global SettingsCache */
+/* global SettingsCache, LogoLoader */
 
 'use strict';
 
@@ -29,7 +29,7 @@ var CustomLogoPath = (function() {
     _poweron.image = DEFAULT_RESOURCES.poweron.image;
     _poweroff.video = DEFAULT_RESOURCES.poweroff.video;
     _poweroff.image = DEFAULT_RESOURCES.poweroff.image;
-  };
+  }
 
   function init(aNext) {
     try {
@@ -52,7 +52,7 @@ var CustomLogoPath = (function() {
                     ex);
       aNext && aNext();
     }
-  };
+  }
 
   return {
     get poweron() {
@@ -100,7 +100,6 @@ var InitLogoHandler = {
       this.carrierLogo.parentNode.removeChild(self.carrierLogo);
       this._setReady();
     } else {
-      var self = this;
       document.addEventListener('DOMContentLoaded', function() {
         if (self.carrierLogo) {
           self.carrierLogo.parentNode.removeChild(self.carrierLogo);
@@ -155,8 +154,9 @@ var InitLogoHandler = {
       return;
     }
 
-    if (this.animated)
+    if (this.animated) {
       return;
+    }
 
     this.animated = true;
 

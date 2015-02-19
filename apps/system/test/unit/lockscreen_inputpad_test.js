@@ -214,8 +214,7 @@ suite('LockScreenInputpad', function() {
     });
 
     suite('click', function() {
-      var evt,
-          stubHandlePassCodeInput;
+      var evt;
       setup(function() {
         evt = {
           type: 'click',
@@ -231,15 +230,34 @@ suite('LockScreenInputpad', function() {
           },
           dataset: {}
         };
-        stubHandlePassCodeInput = sinon.stub(subject,
-          'handlePassCodeInput');
+
       });
       test('it would get the key', function() {
+        var stubHandlePassCodeInput = sinon.stub(subject,
+          'handlePassCodeInput');
         subject.handleEvent(evt);
         assert.isTrue(stubHandlePassCodeInput.calledWith('f'));
       });
-      teardown(function() {
-        stubHandlePassCodeInput.restore();
+      test('it would vibrate', function() {
+        var method = subject.handlePassCodeInput;
+        var mockThis = {
+          lockScreen: {
+            overlay: document.createElement('div'),
+            checkPassCode: () => {}
+          },
+          states: {
+            passCodeEntered: '123',
+            padVibrationEnabled: true
+          },
+          configs: {
+            padVibrationDuration: 100
+          },
+          updatePassCodeUI: () => {},
+          padVibrationEnabled: true
+        };
+        var stubVibrate = this.sinon.stub(navigator, 'vibrate');
+        method.call(mockThis, '4');
+        assert.isTrue(stubVibrate.called);
       });
     });
   });

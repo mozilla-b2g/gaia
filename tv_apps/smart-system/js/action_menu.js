@@ -9,17 +9,17 @@
    * dom and event listeners.
    * @class ActionMenu
    * @param {Array} listItems An array of objects to display.
-   * @param {String} title The content of the header.
+   * @param {String} titleL10nId The l10n id of the header.
    * @param {Function} successCb Called when the user selects an option.
    * @param {Function} cancelCb Called when the menu is cancelled.
    * @param {Boolean} preventFocusChange Set to true to prevent focus changing.
    */
-  function ActionMenu(listItems, title, successCb, cancelCb,
+  function ActionMenu(listItems, titleL10nId, successCb, cancelCb,
   preventFocusChange) {
     this.onselected = successCb || function() {};
     this.oncancel = cancelCb || function() {};
     this.listItems = listItems;
-    this.title = title;
+    this.titleL10nId = titleL10nId;
   }
 
   ActionMenu.prototype = {
@@ -46,8 +46,8 @@
 
       // An action menu has a mandatory header
       this.header = document.createElement('header');
-      if (this.title !== undefined) {
-        this.header.textContent = this.title;
+      if (this.titleL10nId !== undefined) {
+        this.header.setAttribute('data-l10n-id', this.titleL10nId);
       }
 
       this.container.appendChild(this.header);
@@ -121,8 +121,7 @@
         }
         this.menu.appendChild(action);
       }, this);
-      var _ = navigator.mozL10n.get;
-      this.cancel.textContent = _('cancel');
+      this.cancel.setAttribute('data-l10n-id', 'cancel');
       this.menu.appendChild(this.cancel);
     },
 

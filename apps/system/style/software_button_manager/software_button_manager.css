@@ -25,6 +25,10 @@
   visibility: visible;
 }
 
+#screen.locked.attention #software-buttons.visible.attention-lockscreen {
+  visibility: hidden;
+}
+
 #software-buttons-fullscreen-layout {
   bottom: 0;
 }

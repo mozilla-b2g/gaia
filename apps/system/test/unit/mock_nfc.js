@@ -11,12 +11,17 @@
     checkP2PRegistration: function(manifestURL) {
       return Promise.resolve(true);
     },
-
+    addEventListener: function(type, subject) {
+      this.subject = subject;
+    },
     notifyUserAcceptedP2P: function(manifestURL) { return {}; },
 
     onpeerready: function() {},
 
     mTriggerOnpeerready: function(detail) {
+      if (this.subject) {
+        this.subject.handleEvent(detail);
+      }
       MockNfc.onpeerready(detail);
     },
 

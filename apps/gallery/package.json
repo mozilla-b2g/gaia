@@ -1,0 +1,10 @@
+{
+  "webide": {
+    "prepackage": {
+      "command": "make",
+      "env": ["APP=gallery"],
+      "cwd": "../.."
+    },
+    "packageDir": "../../build_stage/gallery/"
+  }
+}

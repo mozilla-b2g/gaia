@@ -24,6 +24,7 @@
   float: none !important;
 }
 
+/* 1. Text in the info view should not be selectable */
 #info-view > section > dl > dd {
   display: block;
   color: #ffffff;
@@ -33,9 +34,15 @@
   margin: 0;
   padding: 0 0 1.2rem 1rem;
   border-bottom: 0.1rem solid rgba(255,255,255,0.1);
+  -moz-user-select: none; /* 1 */
 }
 
 #info-view > section > dl > dd:last-child {
   /* no separator after the last item in the list */
   border-bottom: none;
+}
+
+#info-name {
+ /* file name is not directional and stays LTR */
+ direction: ltr;
 }

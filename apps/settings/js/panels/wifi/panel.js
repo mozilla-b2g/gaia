@@ -2,7 +2,6 @@ define(function(require) {
   'use strict';
 
   var DialogService = require('modules/dialog_service');
-  var SettingsUtils = require('modules/settings_utils');
   var SettingsPanel = require('modules/settings_panel');
   var SettingsListener = require('shared/settings_listener');
   var WifiWps = require('panels/wifi/wifi_wps');
@@ -27,9 +26,7 @@ define(function(require) {
           wpsColumn: panel.querySelector('.wps-column'),
           wpsInfoBlock: panel.querySelector('.wps-column small'),
           wpsPbcLabelBlock: panel.querySelector('.wps-column span'),
-          manageNetworksBtn: panel.querySelector('.manageNetworks'),
           wifiCheckbox: panel.querySelector('.wifi-enabled input'),
-          manageCertificatesBtn: panel.querySelector('.manageCertificates'),
           wifiAvailableNetworks: panel.querySelector('.wifi-availableNetworks'),
           dialogElement: panel.querySelector('.wifi-bad-credentials-dialog'),
           okBtn: panel.querySelector('.wifi-bad-credentials-confirm'),
@@ -74,14 +71,6 @@ define(function(require) {
 
         elements.wpsColumn.addEventListener('click',
           this._onWpsColumnClick.bind(this));
-
-        elements.manageCertificatesBtn.addEventListener('click', function() {
-          SettingsUtils.openDialog('wifi-manageCertificates');
-        });
-
-        elements.manageNetworksBtn.addEventListener('click', function() {
-          SettingsUtils.openDialog('wifi-manageNetworks');
-        });
 
         // wifiContext related events
         WifiContext.addEventListener('wifiEnabled', function() {

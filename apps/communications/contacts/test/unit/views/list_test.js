@@ -19,6 +19,7 @@
 /* global LazyLoader */
 
 require('/shared/js/lazy_loader.js');
+require('/shared/js/usertiming.js');
 require('/shared/js/text_normalizer.js');
 require('/shared/js/tag_visibility_monitor.js');
 require('/shared/js/contacts/utilities/dom.js');
@@ -141,7 +142,7 @@ suite('Render contacts list', function() {
   function doRefreshContact(list, contact) {
     list.refresh(contact);
     // If a contact is added to a new list, then the list might be dynamically
-    // created.  Therefore, refresh our DOM references each time contacts are
+    // created. Therefore, refresh our DOM references each time contacts are
     // changed.
     updateDomReferences();
   }
@@ -1057,7 +1058,7 @@ suite('Render contacts list', function() {
         assert.equal(node.dataset.order,
           Normalizer.escapeHTML(expected, true));
 
-        var printed = node.querySelector('p');
+        var printed = node.querySelector('bdi');
 
         // Check as well the correct highlight
         // familyName to be in bold
@@ -1089,7 +1090,7 @@ suite('Render contacts list', function() {
       assert.equal(
         node.dataset.order, Normalizer.escapeHTML(expected, true));
 
-      var name = node.querySelector('p');
+      var name = node.querySelector('bdi');
 
       // Check highlight
       // Given name to be in bold
@@ -1129,13 +1130,16 @@ suite('Render contacts list', function() {
       });
     });
 
+    setup(function() {
+      mockNavigationStack = new MockNavigationStack();
+    });
+
     suiteTeardown(function() {
       searchList.remove();
     });
 
     test('enter select mode', function(done) {
       var selectActionTitle = 'title';
-      mockNavigationStack = new MockNavigationStack();
       subject.selectFromList(selectActionTitle, null, function onSelectMode() {
         // Check visibility
 
@@ -1170,6 +1174,65 @@ suite('Render contacts list', function() {
 
         done();
       }, mockNavigationStack);
+    });
+
+    test('filter out facebook contacts', function(done) {
+      subject.selectFromList('', null, function onSelectMode() {
+        var node = document.getElementById('groups-list');
+        assert.isTrue(node.classList.contains('disable-fb-items'));
+        done();
+      }, mockNavigationStack,
+      {
+        filterList: [
+          {
+            'containerClass' : 'disable-fb-items',
+            'numFilteredContacts' : 0
+          }
+        ]
+      });
+    });
+
+    test('when selecting all, number of contacts selected excludes fb contacts',
+        function(done) {
+      var numFilteredContacts = 3;
+
+      subject.selectFromList('', null, function onSelectMode() {
+        var stub = sinon.stub(window.Contacts, 'updateSelectCountTitle',
+         function(count) {
+            stub.restore();
+            subject.exitSelectMode();
+            done(function() {
+              assert.equal(subject.total - numFilteredContacts, count);
+            });
+          }
+        );
+        document.getElementById('select-all').click();
+      }, mockNavigationStack,
+      {
+        filterList: [
+          {
+            'containerClass': 'disable-fb-items',
+            'numFilteredContacts': numFilteredContacts
+          }
+        ]
+      });
+    });
+
+    test('if every contact is a fb contact, disable "select all" button',
+        function(done) {
+      subject.selectFromList('', null, function onSelectMode() {
+        done(function() {
+          assert.isTrue(document.getElementById('select-all').disabled);
+        });
+      }, mockNavigationStack,
+      {
+        filterList: [
+          {
+            'containerClass': 'disable-fb-items',
+            'numFilteredContacts': subject.total
+          }
+        ]
+      });
     });
 
     suite('Selection checks', function() {

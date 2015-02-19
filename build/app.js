@@ -1,6 +1,6 @@
 'use strict';
 
-/* global require, exports */
+/* global require, exports, quit */
 
 var utils = require('utils');
 var rebuild = require('rebuild');
@@ -15,19 +15,6 @@ function getAppRegExp(options) {
     throw e;
   }
   return appRegExp;
-}
-
-function spawnProcess(module, appOptions) {
-  let proc = utils.getProcess();
-  let xpcshell = utils.getEnv('XPCSHELLSDK');
-  let args = [
-    '-f', utils.getEnv('GAIA_DIR') + '/build/xpcshell-commonjs.js',
-    '-e', 'run("' + module + '", "' + JSON.stringify(appOptions)
-      .replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '");'
-  ];
-  proc.init(utils.getFile(xpcshell));
-  proc.run(false, args, args.length);
-  return proc;
 }
 
 function buildApps(options) {
@@ -70,10 +57,16 @@ function buildApps(options) {
       if (parseInt(options.P) > 0) {
         // A workaround for bug 1093267
         if (appDir.indexOf('communications') !== -1) {
-          communications = spawnProcess('build-app', appOptions);
-          processes.push(communications);
+          communications = utils.spawnProcess('build-app', appOptions);
+          processes.push({
+            name: 'communications',
+            instance: communications
+          });
         } else {
-          processes.push(spawnProcess('build-app', appOptions));
+          processes.push({
+            name: appDirFile.leafName,
+            instance: utils.spawnProcess('build-app', appOptions)
+          });
         }
       } else {
         require('./build-app').execute(appOptions);
@@ -85,23 +78,37 @@ function buildApps(options) {
       if (appDir.indexOf('callscreen') !== -1) {
         if (communications) {
           utils.processEvents(function () {
-            return { wait: communications.isRunning };
+            return { wait: utils.processIsRunning(communications) };
           });
         }
       }
 
       utils.copyToStage(appOptions);
-      require('./post-app').execute(appOptions);
+      require('./post-app').execute(appOptions, app);
     }
   });
 
   utils.processEvents(function () {
     return {
       wait: processes.some(function(proc) {
-        return proc.isRunning;
+        return utils.processIsRunning(proc.instance);
       })
     };
   });
+
+  var failed = false;
+  processes.forEach(function(proc) {
+    var exitValue = utils.getProcessExitCode(proc.instance);
+    if (exitValue !== 0) {
+      failed = true;
+      utils.log('failed', 'building ' + proc.name +
+        ' app failed with exit code ' + exitValue);
+    }
+  });
+
+  if (failed) {
+    quit(1);
+  }
 }
 
 exports.execute = function(options) {
