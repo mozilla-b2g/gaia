@@ -394,6 +394,11 @@
     -moz-padding-end: 2rem;
   }
 
+  #calls > section.ended div {
+    -moz-padding-start: 1.5rem;
+    -moz-padding-end: 1rem;
+  }
+
   #calls.big-duration > section {
     height: 23rem;
     background-color: transparent;
@@ -426,6 +431,10 @@
   #calls:not(.big-duration) > section .numberWrapper {
     padding-left: 4rem;
     padding-right: 9rem;
+  }
+
+  #calls:not(.big-duration) > section.ended .numberWrapper {
+    margin-right: 2rem;
   }
 
   #calls:not(.big-duration) > section:not(.ended) .duration:not(.isTimer) {
@@ -612,6 +621,10 @@
   #calls > section.ended .additionalContactInfo,
   #calls.big-duration > section.ended .additionalContactInfo {
     color: rgba(255, 255, 255, 0.6);
+  }
+
+  #calls:not(.big-duration) > section.ended .additionalContactInfo {
+    margin-right: 4rem;
   }
 
   #calls.big-duration > section.held .duration {
