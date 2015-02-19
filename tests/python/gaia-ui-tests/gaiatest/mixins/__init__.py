@@ -5,3 +5,4 @@
 from gaia import *
 from treeherder import TreeherderOptionsMixin, \
     TreeherderTestRunnerMixin
+from imagecompare import GaiaImageCompareOptionsMixin

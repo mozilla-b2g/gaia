@@ -10,7 +10,8 @@ from datetime import date
 
 class MockCall(dict):
 
-    def __init__(self, phone_number=None, call_type='incoming', date=date.today(), duration=1, serviceId=0, **kwargs):
+    def __init__(self, phone_number=None, call_type='incoming', date=date.today(), duration=1,
+                 status='cancelled', serviceId=0, emergency=False, voicemail=False, **kwargs):
         super(MockCall, self).__init__(self, **kwargs)
 
         current_time = repr(time.time()).replace('.', '')
@@ -19,6 +20,9 @@ class MockCall(dict):
         self['date'] = '{:%m/%d/%Y}'.format(date)
         self['duration'] = duration
         self['serviceId'] = serviceId
+        self['status'] = status
+        self['emergency'] = emergency
+        self['voicemail'] = voicemail
 
         # update with any keyword arguments passed
         self.update(**kwargs)

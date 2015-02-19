@@ -10,7 +10,7 @@ var CallLog = {
   _headersInterval: null,
   _empty: true,
   _dbupgrading: false,
-  _contactCache: true,
+  _contactCache: false,
 
   init: function cl_init() {
     if (this._initialized) {
@@ -18,6 +18,7 @@ var CallLog = {
       return;
     }
 
+    window.performance.mark('callLogStart');
     PerformanceTestingHelper.dispatch('start-call-log');
 
     this._initialized = true;
@@ -34,33 +35,7 @@ var CallLog = {
     ];
     var self = this;
 
-    // Get the latest contact cache revision and the actual Contacts API
-    // db revision. If both values differ, we need to update the contact cache
-    // and its revision and directly query the Contacts API to render the
-    // appropriate information while the cache is being rebuilt.
-    window.asyncStorage.getItem('contactCacheRevision',
-                                function onItem(cacheRevision) {
-      Contacts.getRevision(function(contactsRevision) {
-        // We don't need to sync if this is the first time that we use the call
-        // log.
-        if (!cacheRevision || cacheRevision > contactsRevision) {
-          window.asyncStorage.setItem('contactCacheRevision',
-                                      contactsRevision);
-          return;
-        }
-
-        self._contactCache = (cacheRevision >= contactsRevision);
-        if (self._contactCache) {
-          return;
-        }
-
-        CallLogDBManager.invalidateContactsCache(function(error) {
-          if (!error) {
-            self._contactCache = true;
-          }
-        });
-      });
-    });
+    var validContactsCachePromise = this._validateContactsCache();
 
     LazyLoader.load(lazyFiles, function resourcesLoaded() {
       var mainNodes = [
@@ -88,41 +63,43 @@ var CallLog = {
       var dualSim = navigator.mozIccManager.iccIds.length > 1;
       self.callLogContainer.classList.toggle('dual-sim', dualSim);
 
-      self.render();
+      validContactsCachePromise.then(function() {
+        self.render();
 
-      window.addEventListener('timeformatchange',
-        self._updateCallTimes.bind(self));
-      self.callLogIconEdit.addEventListener('click',
-        self.showEditMode.bind(self));
-      self.editModeHeader.addEventListener('action',
-        self.hideEditMode.bind(self));
-      self.missedFilter.addEventListener('click',
-        self.filter.bind(self));
-      self.allFilter.addEventListener('click',
-        self.unfilter.bind(self));
-      self.callLogContainer.addEventListener('click', self);
-      self.callLogContainer.addEventListener('contextmenu', self);
-      self.selectAllThreads.addEventListener('click',
-        self.selectAll.bind(self));
-      self.deselectAllThreads.addEventListener('click',
-        self.deselectAll.bind(self));
-      self.deleteButton.addEventListener('click',
-        self.deleteLogGroups.bind(self));
-      document.addEventListener('visibilitychange', function() {
-        if (document.hidden) {
-          self.pauseHeaders();
-        } else {
-          self.updateHeadersContinuously();
-          if (window.location.hash === '#call-log-view') {
-            self.becameVisible();
+        window.addEventListener('timeformatchange',
+          self._updateCallTimes.bind(self));
+        self.callLogIconEdit.addEventListener('click',
+          self.showEditMode.bind(self));
+        self.editModeHeader.addEventListener('action',
+          self.hideEditMode.bind(self));
+        self.missedFilter.addEventListener('click',
+          self.filter.bind(self));
+        self.allFilter.addEventListener('click',
+          self.unfilter.bind(self));
+        self.callLogContainer.addEventListener('click', self);
+        self.callLogContainer.addEventListener('contextmenu', self);
+        self.selectAllThreads.addEventListener('click',
+          self.selectAll.bind(self));
+        self.deselectAllThreads.addEventListener('click',
+          self.deselectAll.bind(self));
+        self.deleteButton.addEventListener('click',
+          self.deleteLogGroups.bind(self));
+        document.addEventListener('visibilitychange', function() {
+          if (document.hidden) {
+            self.pauseHeaders();
+          } else {
+            self.updateHeadersContinuously();
+            if (window.location.hash === '#call-log-view') {
+              self.becameVisible();
+            }
           }
-        }
+        });
+
+        self.sticky = new StickyHeader(self.callLogContainer,
+                                       document.getElementById('sticky'));
+
+        self.becameVisible();
       });
-
-      self.sticky = new StickyHeader(self.callLogContainer,
-                                     document.getElementById('sticky'));
-
-      self.becameVisible();
     });
 
     // Listen for database upgrade events.
@@ -142,6 +119,50 @@ var CallLog = {
       self._dbupgrading = false;
       self.render();
     };
+  },
+
+  /**
+   * Returns a promise that is fullfilled once the contact cache has been
+   * validated. Note that the contents of the contact cache may still be stale
+   * after the promise is fullfilled. This only guarantees that
+   * this._contactCache contains a valid value.
+   *
+   * @return {Promise} A promise that is fullfilled once we've validated the
+   *                   contact cache.
+   */
+  _validateContactsCache: function cl_validateContactsCache() {
+    return new Promise(function(resolve, reject) {
+      /* Get the latest contact cache revision and the actual Contacts API
+       * db revision. If both values differ, we need to update the contact cache
+       * and its revision and directly query the Contacts API to render the
+       * appropriate information while the cache is being rebuilt. */
+      window.asyncStorage.getItem('contactCacheRevision',
+      function onItem(cacheRevision) {
+        Contacts.getRevision(function(contactsRevision) {
+          /* We don't need to sync if this is the first time that we use the
+           * call log. */
+          if (!cacheRevision || cacheRevision > contactsRevision) {
+            window.asyncStorage.setItem('contactCacheRevision',
+                                        contactsRevision);
+            resolve();
+            return;
+          }
+
+          self._contactCache = (cacheRevision >= contactsRevision);
+          if (self._contactCache) {
+            resolve();
+            return;
+          }
+
+          CallLogDBManager.invalidateContactsCache(function(error) {
+            if (!error) {
+              self._contactCache = true;
+              resolve();
+            }
+          });
+        });
+      });
+    });
   },
 
   _updateCallTimes: function cl_updateCallTimes() {
@@ -208,12 +229,14 @@ var CallLog = {
           daysToRender.push(chunk);
           self.renderSeveralDays(daysToRender);
           if (!screenRendered) {
+            window.performance.mark('firstChunkReady');
             PerformanceTestingHelper.dispatch('first-chunk-ready');
           }
           self.enableEditMode();
           self.sticky.refresh();
           self.updateHeadersContinuously();
         }
+        window.performance.measure('callLogReady', 'callLogStart');
         PerformanceTestingHelper.dispatch('call-log-ready');
         return;
       }
@@ -232,6 +255,7 @@ var CallLog = {
             !screenRendered) {
           renderNow = true;
           screenRendered = true;
+          window.performance.mark('firstChunkReady');
           PerformanceTestingHelper.dispatch('first-chunk-ready');
         } else if (batchGroupCounter >= MAX_GROUPS_TO_BATCH_RENDER) {
           renderNow = true;
@@ -491,7 +515,9 @@ var CallLog = {
       primInfoMain.textContent = contact.primaryInfo;
     } else {
       if (number) {
-        primInfoMain.textContent = number;
+        var bdi = document.createElement('bdi');
+        bdi.textContent = number;
+        primInfoMain.appendChild(bdi);
       } else {
         primInfoMain.setAttribute('data-l10n-id', 'withheld-number');
       }
@@ -501,7 +527,9 @@ var CallLog = {
     retryCount.className = 'retry-count';
 
     if (group.retryCount && group.retryCount > 1) {
-      retryCount.textContent = '(' + group.retryCount + ')';
+      var bdiRetry = document.createElement('bdi');
+      bdiRetry.textContent = '(' + group.retryCount + ')';
+      retryCount.appendChild(bdiRetry);
     }
 
     primInfo.appendChild(primInfoMain);
@@ -548,6 +576,10 @@ var CallLog = {
     main.appendChild(addInfo);
 
     if (phoneNumberTypeL10nId) {
+      // Check if this element has a `bdi` child, and remove it if it does.
+      var bdiPrim = primInfoMain.querySelector('bdi');
+      primInfoMain.removeChild(bdiPrim);
+
       primInfoMain.setAttribute('data-l10n-id', phoneNumberTypeL10nId);
       var primElem = primInfoMain.parentNode;
       var parent = primElem.parentNode;
@@ -881,10 +913,11 @@ var CallLog = {
   },
 
   _removeContact: function _removeContact(log, contactId, updateDb) {
-    var self = this;
     // If the cache is valid, we also need to remove the contact from the
     // cache
-    if (self._contactCache && updateDb) {
+    if (this._contactCache && updateDb) {
+      var self = this;
+
       CallLogDBManager.removeGroupContactInfo(contactId, null,
                                               function(result) {
         if (typeof result === 'number' && result > 0) {
@@ -892,7 +925,7 @@ var CallLog = {
         }
       });
     } else {
-      self.updateContactInfo(log);
+      this.updateContactInfo(log);
     }
   },
 
@@ -962,14 +995,17 @@ var CallLog = {
    */
   updateContactInfo: function cl_updateContactInfo(element, contact,
                                                    matchingTel) {
-    var primInfoCont = element.getElementsByClassName('primary-info-main')[0];
+    var primInfoCont = element.querySelector('.primary-info-main');
     var addInfo = element.getElementsByClassName('additional-info')[0];
     var typeAndCarrier = addInfo.querySelector('.type-carrier');
 
     if (!matchingTel) {
       if (element.dataset.contactId) {
         // Remove contact info.
-        primInfoCont.textContent = element.dataset.phoneNumber;
+        primInfoCont.textContent = '';
+        var bdi = document.createElement('bdi');
+        bdi.textContent = element.dataset.phoneNumber;
+        primInfoCont.appendChild(bdi);
         typeAndCarrier.textContent = '';
         delete element.dataset.contactId;
       }

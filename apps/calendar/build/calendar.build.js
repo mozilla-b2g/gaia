@@ -5,6 +5,7 @@
   fileExclusionRegExp: /^\.|^build$|^test$/,
   mainConfigFile: '../js/main.js',
   optimize: 'none',
+  logLevel: 2,
 
   // Be sure to normalize all define() calls by extracting
   // dependencies so Function toString is not needed, and
@@ -17,13 +18,32 @@
 
   modules: [
     {
-      name: 'ext/alameda',
+      create: true,
+      name: 'bundle',
       include: [
+        'ext/curl',
         'main',
-        'app',
-        'debug',
-        'next_tick'
+        'views/errors',
+        'views/month',
+        'views/month_day_agenda',
+        'views/time_header'
       ]
+    },
+    {
+      create: true,
+      name: 'lazy_loaded',
+      include: [
+        'views/current_time',
+        'views/week',
+        'views/advanced_settings',
+        'views/create_account',
+        'views/day',
+        'views/modify_account',
+        'views/modify_event',
+        'views/settings',
+        'views/view_event'
+      ],
+      exclude: ['bundle']
     },
     {
       name: 'caldav_worker',
@@ -50,79 +70,12 @@
     },
     {
       name: 'ext/ical'
-    },
-    {
-      name: 'views/advanced_settings',
-      exclude: ['main']
-    },
-    {
-      name: 'views/calendar_colors',
-      exclude: ['main']
-    },
-    {
-      name: 'views/create_account',
-      exclude: ['main']
-    },
-    {
-      name: 'views/current_time',
-      exclude: ['main']
-    },
-    {
-      name: 'views/day',
-      exclude: ['main']
-    },
-    {
-      name: 'views/errors',
-      exclude: ['main']
-    },
-    {
-      name: 'views/modify_account',
-      exclude: ['main']
-    },
-    {
-      name: 'views/modify_event',
-      exclude: ['main']
-    },
-    {
-      name: 'views/month',
-      exclude: ['main']
-    },
-    {
-      name: 'views/month_day_agenda',
-      exclude: ['main']
-    },
-    {
-      name: 'views/settings',
-      exclude: ['main']
-    },
-    {
-      name: 'views/time_header',
-      exclude: ['main']
-    },
-    {
-      name: 'views/view_event',
-      exclude: ['main']
-    },
-    {
-      name: 'views/week',
-      exclude: ['main']
     }
   ],
 
   paths: {
     prim: 'empty:',
     shared: '../shared/js'
-  },
-
-  // Rewrite the waitSeconds directive so that we never time out
-  // waiting for modules to load in production. See
-  // js/require_config.js for more details.
-  onBuildWrite: function(id, url, contents) {
-    if (id === 'main') {
-      return contents.replace(/waitSeconds:\s*\d+/, 'waitSeconds: 0');
-    } else {
-      return contents;
-    }
   },
 
   // Keeping build dir since Makefile cleans it up and

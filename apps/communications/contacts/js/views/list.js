@@ -50,6 +50,8 @@ contacts.List = (function() {
       groupList = null,
       searchList = null,
       currentlySelected = 0,
+      currentFilterList = null,
+      numFilteredContacts = 0,
       selectNavigationController = null,
       boundSelectAction4Select = null,
       // Dictionary by contact id with the rows on screen
@@ -636,6 +638,7 @@ contacts.List = (function() {
       ele = document.createElement('p');
     }
     ele.classList.add('contact-text');
+    var bdi = document.createElement('bdi');
     var givenName = (contact.givenName && contact.givenName[0]) || '';
     var familyName = (contact.familyName && contact.familyName[0]) || '';
 
@@ -646,12 +649,14 @@ contacts.List = (function() {
     }
 
     if (orderByLastName) {
-      ele.appendChild(document.createTextNode(givenName + ' '));
-      ele.appendChild(createStrongTag(familyName));
+      bdi.appendChild(document.createTextNode(givenName + ' '));
+      bdi.appendChild(createStrongTag(familyName));
     } else {
-      ele.appendChild(createStrongTag(givenName));
-      ele.appendChild(document.createTextNode(' ' + familyName));
+      bdi.appendChild(createStrongTag(givenName));
+      bdi.appendChild(document.createTextNode(' ' + familyName));
     }
+
+    ele.appendChild(bdi);
     return ele;
   }
 
@@ -726,7 +731,11 @@ contacts.List = (function() {
         viewHeight = config.viewHeight;
       } else {
         viewHeight = scrollable.getBoundingClientRect().height;
-        utils.cookie.update({viewHeight: viewHeight});
+        // If the groups list is hiden, we'll get no height and so we don't
+        // store it.
+        if (viewHeight) {
+          utils.cookie.update({viewHeight: viewHeight});
+        }
       }
     }
     return viewHeight;
@@ -870,7 +879,7 @@ contacts.List = (function() {
       return;
     }
 
-    forceICEGroupToBeHidden = !(!!show); 
+    forceICEGroupToBeHidden = !(!!show);
     forceICEGroupToBeHidden ? hideICEGroup() : showICEGroup();
   }
 
@@ -1176,7 +1185,7 @@ contacts.List = (function() {
   };
 
   var showNoContactsAlert = function showNoContactsAlert() {
-    var msg = 'noContactsActivity';
+    var msg = 'noContactsActivity2';
     var noObject = {
       title: 'ok',
       isDanger: false,
@@ -1220,7 +1229,7 @@ contacts.List = (function() {
       successCb();
       return;
     }
-    
+
     var options = {
       filterBy: ['id'],
       filterOp: 'equals',
@@ -1661,8 +1670,8 @@ contacts.List = (function() {
     fullfiled when we select manually the contacts.
 
     If we click in select all, the promise will be resolved
-    in the future, once all contacts are fecth and filter wich
-    ones are selected.
+    in the future, once all contacts are fetched and the
+    ones selected are filtered.
   */
   var selectAction = function selectAction(action) {
     updateSelectCount(0);
@@ -1731,7 +1740,7 @@ contacts.List = (function() {
         selectAllPending = true && !loaded;
         selectAllContacts();
 
-        currentlySelected = contacts.List.total;
+        currentlySelected = contacts.List.total - numFilteredContacts;
 
         selectAllDisabled = true;
         break;
@@ -1879,6 +1888,21 @@ contacts.List = (function() {
     }
     searchList.classList.add('selecting');
 
+    if (options && Array.isArray(options.filterList)) {
+      currentFilterList = options.filterList;
+      numFilteredContacts = 0;
+
+      currentFilterList.forEach(function(filter) {
+        groupList.classList.add(filter.containerClass);
+        searchList.classList.add(filter.containerClass);
+        numFilteredContacts += filter.numFilteredContacts;
+      });
+
+      if (contacts.List.total == numFilteredContacts) {
+        selectAll.disabled = true;
+      }
+    }
+
     updateRowsOnScreen();
 
     clearClickHandlers();
@@ -1907,6 +1931,20 @@ contacts.List = (function() {
     identify such action.
 
     Also provide a callback to be invoked when we enter in select mode.
+
+    The 'options' object allows to filter out contacts passing an array of
+    objects composed of a 'containerClass' string, which will be applied to the
+    contact list, and a 'numFilteredContacts' integer, which tells the number
+    of contacts that will be affected. As an example, to filter out FB contacts:
+
+      options = {
+        'filterList': [
+          {
+            'containerClass' : 'disable-fb-items',
+            'numFilteredContacts' : 42
+          }
+        ]
+      };
   */
   var selectFromList = function selectFromList(title, action, callback,
       navigationController, options) {
@@ -2062,6 +2100,15 @@ contacts.List = (function() {
     scrollable.classList.remove('selecting');
     fastScroll.classList.remove('selecting');
     utils.alphaScroll.toggleFormat('normal');
+
+    if (Array.isArray(currentFilterList)){
+      currentFilterList.forEach(function(filter) {
+        groupList.classList.remove(filter.containerClass);
+        searchList.classList.remove(filter.containerClass);
+      });
+      currentFilterList = null;
+      numFilteredContacts = 0;
+    }
 
     updateRowsOnScreen();
 

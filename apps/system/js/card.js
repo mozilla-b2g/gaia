@@ -1,4 +1,4 @@
-/* globals BaseUI, CardsHelper, Tagged, TrustedUIManager */
+/* globals BaseUI, CardsHelper, Tagged */
 
 /* exported Card */
 
@@ -126,7 +126,9 @@
    */
   Card.prototype._populateViewData = function() {
     var app = this.app;
-    this.title = (app.isBrowser() && app.title) ? app.title : app.name;
+    this.title = (app.isBrowser() && app.title) ?
+                  app.title : app.shortName || app.name;
+    this.sslState = app.getSSLState();
     this.subTitle = '';
     this.iconValue = '';
     this.closeButtonVisibility = 'visible';
@@ -141,18 +143,23 @@
     }
 
     var origin = app.origin;
-    var popupFrame;
     var frameForScreenshot = app.getFrameForScreenshot();
+    var displayUrl = '';
 
-    if (frameForScreenshot &&
+    if (app.isBrowser()) {
+      displayUrl = app.config.url || origin;
+    } else if(frameForScreenshot &&
         CardsHelper.getOffOrigin(frameForScreenshot.src, origin)) {
-      this.subTitle = CardsHelper.getOffOrigin(
-                        frameForScreenshot.src, origin);
+      displayUrl = CardsHelper.getOffOrigin(frameForScreenshot.src, origin);
+    }
+    if (displayUrl) {
+      this.subTitle = this.getDisplayURLString(displayUrl);
     }
 
-    if (TrustedUIManager.hasTrustedUI(app.origin)) {
-      popupFrame = TrustedUIManager.getDialogFromOrigin(app.origin);
-      this.title = CardsHelper.escapeHTML(popupFrame.name || '', true);
+    var topMostWindow = app.getTopMostWindow();
+    if (topMostWindow && topMostWindow.CLASS_NAME === 'TrustedWindow') {
+      var name = topMostWindow.name;
+      this.title = CardsHelper.escapeHTML(name || '', true);
       this.viewClassList.push('trustedui');
     } else if (!this.app.killable()) {
       // unclosable app
@@ -210,6 +217,12 @@
     elem.innerHTML = this.view();
 
     // Label the card by title (for screen reader).
+    elem.setAttribute('aria-labelledby', this.titleId);
+
+    // Indicate security state where applicable & available
+    if (this.sslState) {
+      elem.dataset.ssl = this.sslState;
+    }
     elem.setAttribute('aria-labelledby', this.titleId);
 
     this.viewClassList.forEach(function(cls) {
@@ -347,6 +360,19 @@
     this.screenshotView = this.element.querySelector('.screenshotView');
     this.titleNode = this.element.querySelector('h1.title');
     this.iconButton = this.element.querySelector('.appIcon');
+  };
+
+  Card.prototype.getDisplayURLString = function(url) {
+    // truncation/simplification of URL for card display
+    var anURL;
+    try {
+      anURL = this.app ? new URL(url, this.app.origin) : new URL(url);
+    } catch (e) {
+      // return as-is if url was not valid
+      return url;
+    }
+    var displayString = url.substring(url.indexOf(anURL.host));
+    return displayString;
   };
 
   return (exports.Card = Card);

@@ -21,6 +21,9 @@
     <!-- We need this before we can show the boot animation -->
     <script src="shared/js/async_storage.js"></script>
     <script src="tv_shared/js/settings_cache.js"></script>
+    <script src="tv_shared/js/animations.js"></script>
+    <script defer src="tv_shared/js/shared_utils.js"></script>
+    <script defer src="tv_shared/js/vendor/evt.js"></script>
     <script defer src="shared/js/manifest_helper.js"></script>
     <script defer src="shared/js/mime_mapper.js"></script>
     <script defer src="shared/js/settings_url.js"></script>
@@ -32,6 +35,8 @@
     <script defer src="shared/js/font_size_utils.js"></script>
     <!-- XXX can be removed while gecko support navigator.mozHour12 API -->
     <script defer src="shared/js/date_time_helper.js"></script>
+    <script defer src="tv_shared/js/simple_key_navigation.js"></script>
+    <script defer src="tv_shared/js/key_navigation_adapter.js"></script>
 
     <script defer src="js/service.js"></script>
     <script defer src="js/base_ui.js"></script>
@@ -56,6 +61,7 @@
     <link rel="stylesheet" type="text/css" href="style/definitions.css">
     <link rel="stylesheet" type="text/css" href="style/attention_indicator.css">
     <link rel="stylesheet" type="text/css" href="tv_shared/style/navigation.css">
+    <link rel="stylesheet" type="text/css" href="tv_shared/style/animations.css">
 
     <!-- System -->
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
@@ -76,6 +82,9 @@
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia_progress/style/external.css">
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/gaia-theme.css">
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css">
+    <!-- Include tv shared web components -->
+    <link rel="stylesheet" type="text/css" href="tv_shared/components/smart-button/style.css">
+    <link rel="stylesheet" type="text/css" href="tv_shared/components/smart-banner/style.css">
 
     <link rel="stylesheet" type="text/css" href="style/fake-notification.css"/>
 
@@ -88,6 +97,9 @@
     <script defer src="shared/elements/gaia_progress/script.js"></script>
     <script defer src="shared/elements/gaia_subheader/script.js"></script>
     <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
+    <!-- Include tv shared web components -->
+    <script defer src="tv_shared/components/smart-button/script.js"></script>
+    <script defer src="tv_shared/components/smart-banner/script.js"></script>
 
     <!-- Include shared resources
     <link rel="resource" type="application/json" href="shared/resources/apn.json"/>
@@ -111,7 +123,7 @@
     <script defer src="js/external_storage_monitor.js"></script>
     <script defer src="js/bootstrap.js"></script>
     <script defer src="js/screenshot.js"></script>
-    <script defer src="js/async_semaphore.js"></script>
+    <script defer src="tv_shared/js/async_semaphore.js"></script>
     <script defer src="js/sound_manager.js"></script>
     <script defer src="js/browser_key_event_manager.js"></script>
     <script defer src="js/hardware_buttons.js"></script>
@@ -197,6 +209,7 @@
     <!-- Notifications -->
     <link rel="stylesheet" type="text/css" href="style/notifications/notifications.css">
     <script defer src="js/notifications.js"></script>
+    <script defer src="js/interactive_notifications.js"></script>
 
     <!-- Bluetooth -->
     <script defer src="js/bluetooth.js"></script>
@@ -220,7 +233,8 @@
     <link rel="stylesheet" type="text/css" href="style/themes/default/menus.css">
     <link rel="stylesheet" type="text/css" href="style/themes/default/buttons.css">
     <link rel="stylesheet" type="text/css" href="style/themes/default/banner.css">
-    <link rel="manifest" href="manifest.webapp">
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="/shared/locales/branding/branding.{locale}.properties">
     <link rel="localization" href="locales/system.{locale}.properties">
     <link rel="localization" href="locales/accessibility.{locale}.properties">
@@ -250,7 +264,10 @@
     <link rel="stylesheet" type="text/css" href="style/window_layout.css">
     <link rel="stylesheet" type="text/css" href="style/window.css">
     <link rel="stylesheet" type="text/css" href="style/app_titlebar.css">
+    <link rel="stylesheet" type="text/css" href="style/browser_context_menu/browser_context_menu.css">
     <script defer src="js/base_ui.js"></script>
+    <script defer src="tv_shared/js/vendor/evt.js"></script>
+    <script defer src="tv_shared/js/scrollable.js"></script>
     <script defer src="js/browser_context_menu.js"></script>
     <script defer src="js/child_window_factory.js"></script>
     <script defer src="js/app_modal_dialog.js"></script>
@@ -301,10 +318,7 @@
     <!-- <script defer src="shared/js/icons_helper.js"></script> -->
 
     <!-- Navigation -->
-    <script defer src="tv_shared/js/vendor/evt.js"></script>
     <script defer src="tv_shared/js/spatial_navigator.js"></script>
-    <script defer src="tv_shared/js/key_navigation_adapter.js"></script>
-    <script defer src="tv_shared/js/selection_border.js"></script>
     <script defer src="tv_shared/js/init_gesture.js"></script>
 
     <!-- API Services -->
@@ -344,7 +358,7 @@
           <!-- "Crash Reports" information page -->
           <section role="region">
             <gaia-header id="crash-reports-header" action="close">
-              <h1 data-l10n-id="crashReports">Crash Reports</h1>
+              <h1 data-l10n-id="crashReports"></h1>
             </gaia-header>
             <div>
               <ul>
@@ -553,7 +567,7 @@
           <input class="input-enable" id="${id}" type="checkbox" ${checked}>
           <span></span>
         </label>
-        <span class="device-item">${label}</span>
+        <span class="device-item" data-l10n-id="${label}"></span>
       -->
       </div>
 
@@ -562,18 +576,9 @@
             data-z-index-level="app-install-dialog">
         <section>
           <h1 id="app-install-message"></h1>
-          <dl>
-            <dt data-l10n-id="size">Size</dt>
-              <dd id="app-install-size"></dd>
-            <dt data-l10n-id="author">Author</dt>
-              <dd>
-                <span id="app-install-author-name"></span><br />
-                <span id="app-install-author-url"></span>
-              </dd>
-          </dl>
           <menu data-items="2">
-            <button id="app-install-cancel-button" data-l10n-id="cancel">Cancel</button>
-            <button id="app-install-install-button" class="recommend" data-l10n-id="install">Install</button>
+            <smart-button id="app-install-cancel-button" data-l10n-id="cancel" type="circle-text">Cancel</smart-button>
+            <smart-button id="app-install-install-button" class="recommend primary" data-l10n-id="install" type="circle-text">Install</smart-button>
           </menu>
         </section>
       </form>
@@ -582,15 +587,24 @@
             data-type="confirm" role="dialog"
             data-z-index-level="app-install-dialog">
         <section>
-          <h1 data-l10n-id="cancel-install">Cancel Install</h1>
-          <p>
-            <small data-l10n-id="cancelling-will-not-refund">Cancelling will not refund a purchase. Refunds for paid content are provided by the original seller.</small>
-            <small data-l10n-id="apps-can-be-installed-later">Apps can be installed later from the original installation source.</small>
-          </p>
-          <p data-l10n-id="are-you-sure-you-want-to-cancel">Are you sure you want to cancel this install?</p>
+          <h1 data-l10n-id="cancelling-will-not-refund">Cancelling will not refund a purchase. Refunds for paid content are provided by the original seller.</h1>
+          <h1 data-l10n-id="apps-can-be-installed-later">Apps can be installed later from the original installation source.</h1>
+          <h1 data-l10n-id="are-you-sure-you-want-to-cancel">Are you sure you want to cancel this install?</h1>
           <menu data-items="2">
-            <button id="app-install-confirm-cancel-button" type="reset" data-l10n-id="cancel-install-button">Cancel Install</button>
-            <button id="app-install-resume-button" type="submit" data-l10n-id="resume">Resume</button>
+            <smart-button id="app-install-confirm-cancel-button" type="circle-text" data-l10n-id="cancel-install-button">Cancel Install</smart-button>
+            <smart-button id="app-install-resume-button" type="circle-text" data-l10n-id="resume">Resume</smart-button>
+          </menu>
+        </section>
+      </form>
+
+      <form id="app-uninstall-dialog" class='app-uninstall-dialog generic-dialog'
+            data-type="confirm" role="dialog"
+            data-z-index-level="app-install-dialog">
+        <section>
+          <h1 id="app-uninstall-message"></h1>
+          <menu data-items="2">
+            <smart-button id="app-uninstall-cancel-button" data-l10n-id="cancel" type="circle-text">Cancel</smart-button>
+            <smart-button id="app-uninstall-confirm-button" class="danger" data-l10n-id="delete" type="circle-text">delete</smart-button>
           </menu>
         </section>
       </form>
@@ -678,14 +692,6 @@
         </div>
       </div>
 
-      <div id="notification-toaster" data-z-index-level="notification-toaster" role="link" aria-live="assertive" aria-atomic="true" class="notification-toaster">
-        <img id="toaster-icon" role="presentation" class="toaster-icon"/>
-        <div id="notification-container">
-          <div id="toaster-title" class="toaster-title"></div>
-          <div id="toaster-detail" class="toaster-detail"></div>
-        </div>
-      </div>
-
       <!-- keyboard -->
       <div id="keyboards" class="hide" data-z-index-level="keyboards"></div>
 
@@ -694,12 +700,12 @@
         <!--
         <form role="dialog" data-type="value-selector" class="ime-menu value-selector-container" data-z-index-level="action-menu">
           <section>
-            <h1>${title}</h1>
+            <h1 data-l10n-id="${title}"></h1>
             <ol class="value-selector-options-container ime-menu-list" aria-multiselectable="false" role="listbox">
             </ol>
           </section>
           <menu class="ime-menu-button-container">
-            <button class="ime-menu-button" data-type="cancel" data-action="cancel" data-l10n-id="cancel">${cancelLabel}</button>
+            <button class="ime-menu-button" data-type="cancel" data-action="cancel" data-l10n-id="${cancelLabel}"></button>
           </menu>
         </div>
         -->
@@ -731,6 +737,17 @@
           </gaia-buttons>
         </div>
       </div>
+      <!-- notification ui -->
+      <smart-banner id="notification-container" class="hidden closed" data-z-index-level="system-notification-banner">
+        <div class="notification-message">
+          <span id="notification-title" class="notification-title"></span>
+          <span id="notification-body" class="notification-body"></span>
+        </div>
+        <menu id="notification-button-group" class="notification-button-group">
+          <smart-button id="notification-button-0" type="simple-text"></smart-button>
+          <smart-button id="notification-button-1" type="simple-text"></smart-button>
+        </menu>
+      </smart-banner>
 
       <div id="system-overlay" data-z-index-level="system-overlay">
         <div id="battery">

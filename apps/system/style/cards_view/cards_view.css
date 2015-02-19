@@ -7,7 +7,7 @@
   height: 100%;
   -moz-user-select: none;
   overflow: hidden;
-  background-color: black;
+  background-color: rgb(51, 51, 51);
 }
 
 @media not all and (-moz-physical-home-button) {
@@ -58,7 +58,7 @@
 }
 
 #cards-view.empty {
-  background-color: rgba(0, 0, 0, .8);
+  background-color: rgba(51, 51, 51, .85);
 }
 
 #cards-view ul {
@@ -166,6 +166,10 @@
   padding: 0;
   box-sizing: border-box;
   color: #fff;
+  background-color: #5f5f5f;
+}
+
+#cards-view.filtered .card-tray {
   background-color: #f4f4f4;
 }
 
@@ -183,21 +187,27 @@
   border: none;
   pointer-events: auto;
 
-  background-size: 2rem auto;
+  background-size: 20px 20px;
   background-position: center center;
   background-repeat: no-repeat;
   background-color: transparent;
 }
 
 #cards-view .card-tray .close-button {
-  background-image: url(../task-manager/close.png);
+  background-image: url(../task-manager/light/close.png);
   left: 0;
+}
+#cards-view.filtered .card-tray .close-button {
+  background-image: url(../task-manager/dark/close.png);
 }
 
 #cards-view .card-tray .favorite-button {
-  background-image: url(../task-manager/favorite.png);
+  background-image: url(../task-manager/light/favorite.png);
   right: 0;
   display: none;
+}
+#cards-view.filtered .card-tray .favorite-button {
+  background-image: url(../task-manager/dark/favorite.png);
 }
 
 #cards-view .card-tray > button.appIcon {
@@ -232,8 +242,8 @@
 
 #cards-view .card .title {
   width: 100%;
-  height: 3rem;
-  line-height: 3rem;
+  height: 2rem;
+  line-height: 2rem;
 
   overflow-x: hidden;
   margin: 0;
@@ -251,15 +261,48 @@
 #cards-view .card p.subtitle {
   display: none;
   pointer-events: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+  text-align: center;
+  font-weight: normal;
 }
 
-#cards-view.filtered .card .titles p.subtitle {
-  display: none;
+#cards-view .card.browser p.subtitle {
+  color: #858585;
   pointer-events: auto;
+}
+
+#cards-view.filtered .card p.subtitle {
+  display: none;
+}
+
+#cards-view .card p.subtitle:not(:empty),
+#cards-view.filtered .card p.subtitle:not(:empty) {
+  display: block;
+}
+
+#cards-view .card p.subtitle:not(:empty) {
+  display: block;
+}
+
+#cards-view .card[data-ssl="secure"] p.subtitle:not(:empty) {
+  -moz-padding-start: 2rem;
+  background: url("../chrome/images/light/ssl.png") no-repeat 0.1rem center / 2rem 2rem;
+}
+
+#cards-view .card[data-ssl="broken"] p.subtitle:not(:empty) {
+  -moz-padding-start: 3rem;
+  background: url("../chrome/images/light/ssl_broken.png") no-repeat 0.1rem center / 2rem 2rem;
 }
 
 #cards-view.filtered .card .titles h1 {
   color: #4d4d4d;
+}
+
+html[dir="rtl"] #cards-view .card[data-ssl="broken"] p.subtitle:not(:empty),
+html[dir="rtl"] #cards-view .card[data-ssl="secure"] p.subtitle:not(:empty) {
+  background-position: calc(100% - 0.1rem) center
 }
 
 

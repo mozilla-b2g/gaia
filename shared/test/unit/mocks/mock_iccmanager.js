@@ -8,6 +8,7 @@ var MockIccManager = function() {
   this.sdnContacts = [];
   this.isAdnOnError = false;
   this.isSdnOnError = false;
+  this.async = false;
 };
 
 MockIccManager.prototype.getIccById = function(id) {
@@ -18,34 +19,55 @@ MockIccManager.prototype.getIccById = function(id) {
     },
     'readContacts': function(type) {
       if (type === 'adn') {
-        return new MockReadContactsRequest(self.isAdnOnError, self.adnContacts);
+        return new MockReadContactsRequest(self.isAdnOnError, self.adnContacts,
+                                           self.async);
       }
       if (type === 'sdn') {
-        return new MockReadContactsRequest(self.isSdnOnError, self.sdnContacts);
+        return new MockReadContactsRequest(self.isSdnOnError, self.sdnContacts,
+                                           self.async);
       }
     }
   };
 };
 
 
-function MockReadContactsRequest(willFail, result) {
+function MockReadContactsRequest(willFail, result, async) {
   this._result = result;
   this._willFail = willFail;
+  this._async = async;
 }
 
 MockReadContactsRequest.prototype = {
   set onsuccess(successCb) {
+    var self = this;
+
     if (!this._willFail) {
       this.result = this._result;
-      (typeof successCb === 'function') &&
-      successCb();
+      if (typeof successCb === 'function') {
+        if (this._async) {
+          setTimeout(function() {
+            successCb({ target: self });
+          });
+        } else {
+          successCb({ target: this });
+        }
+      }
     }
   },
   set onerror(errorCb) {
+    var self = this;
+
     if (this._willFail) {
       this.error = { name: 'error' };
-      (typeof errorCb === 'function') &&
-      errorCb();
+      if (typeof errorCb === 'function') {
+        if (this._async) {
+          setTimeout(function() {
+            errorCb(self.error);
+          });
+        } else {
+          errorCb(this.error);
+        }
+      }
     }
   }
 };

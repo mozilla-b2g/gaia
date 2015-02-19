@@ -22,6 +22,7 @@
  * - urn:schemas-upnp-org:service:ContentDirectory:4
  *
  */
+/* jshint ignore:start */
 !(function( global, undefined ) {
 
   if( !global.Plug || !global.Plug.UPnP ) {

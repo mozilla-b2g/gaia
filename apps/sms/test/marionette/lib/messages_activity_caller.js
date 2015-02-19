@@ -6,6 +6,7 @@
     shareMenu: 'form[data-z-index-level="action-menu"]',
     shareImageButton: '#share-image',
     pickImageButton: '#pick-image',
+    pickContactButton: '#pick-contact',
     sendMessageButton: '#send-message'
   });
 
@@ -53,6 +54,10 @@
 
         pickImage: function() {
           client.helper.waitForElement(SELECTORS.pickImageButton).tap();
+        },
+
+        pickContact: function() {
+          client.helper.waitForElement(SELECTORS.pickContactButton).tap();
         },
 
         sendMessage: function(number, body) {

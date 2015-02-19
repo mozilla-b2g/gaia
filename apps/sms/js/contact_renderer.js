@@ -256,7 +256,7 @@ ContactRenderer.prototype = {
         carrier: data.carrier
       }, {
         safe: ['number']
-      });
+      }).toString();
 
       // Render contact photo only for specific flavor
       data.photoHTML = renderPhoto && details.photoURL ?

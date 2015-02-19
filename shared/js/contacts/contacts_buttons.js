@@ -88,8 +88,8 @@ var ContactsButtons = {
   },
 
   _onSendSmsClicked: function onSendSmsClicked(evt) {
-    var tel = evt.target.dataset.tel;
-    SmsIntegration.sendSms(tel);
+    var target = evt.target.dataset.target;
+    SmsIntegration.sendSms(target);
   },
 
   _onEmailOrPickClick: function onEmailOrPickClick(evt) {
@@ -128,7 +128,7 @@ var ContactsButtons = {
 
       // Add event listeners to the phone template components
       var sendSmsButton = template.querySelector('#send-sms-button-' + tel);
-      sendSmsButton.dataset.tel = telField.value;
+      sendSmsButton.dataset.target = telField.value;
       sendSmsButton.addEventListener('click',
                                      this._onSendSmsClicked.bind(this));
 
@@ -163,6 +163,12 @@ var ContactsButtons = {
       var emailsTemplate =
         document.querySelector('#email-details-template-\\#i\\#');
       var template = utils.templates.render(emailsTemplate, emailField);
+
+      var sendSmsButton = template.querySelector('#send-sms-to-email-button-' +
+                                                 email);
+      sendSmsButton.dataset.target = emailField.value;
+      sendSmsButton.addEventListener('click',
+                                     this._onSendSmsClicked.bind(this));
 
       // Add event listeners to the phone template components
       var emailButton = template.querySelector('#email-or-pick-' + email);

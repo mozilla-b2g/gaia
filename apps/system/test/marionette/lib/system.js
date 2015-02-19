@@ -43,23 +43,30 @@ System.Selector = Object.freeze({
   dialogOverlay: '#screen #dialog-overlay',
   downloadDialog: '#downloadConfirmUI',
   imeMenu: '.ime-menu',
+  inlineActivity: '.appWindow.inline-activity',
   sleepMenuContainer: '#sleep-menu-container',
   softwareButtons: '#software-buttons',
   softwareHome: '#software-home-button',
   softwareHomeFullscreen: '#fullscreen-software-home-button',
   softwareHomeFullscreenLayout: '#software-buttons-fullscreen-layout',
   statusbar: '#statusbar',
+  statusbarShadow: '.appWindow.active .statusbar-shadow',
+  statusbarShadowTray: '#statusbar-tray',
+  statusbarShadowActivity: '.activityWindow.active .statusbar-shadow',
   statusbarMaximizedWrapper: '#statusbar-maximized-wrapper',
   statusbarMinimizedWrapper: '#statusbar-minimized-wrapper',
   statusbarLabel: '#statusbar-label',
   systemBanner: '.banner.generic-dialog',
   topPanel: '#top-panel',
+  trustedWindow: '.appWindow.active.trustedwindow',
+  trustedWindowChrome: '.appWindow.active.trustedwindow .chrome',
   leftPanel: '#left-panel',
   rightPanel: '#right-panel',
   utilityTray: '#utility-tray',
   visibleForm: '#screen > form.visible',
   cancelActivity: 'form.visible button[data-action="cancel"]',
-  nfcIcon: '#statusbar-nfc'
+  nfcIcon: '#statusbar-nfc',
+  activeKeyboard: '.inputWindow.active'
 });
 
 System.prototype = {
@@ -188,6 +195,10 @@ System.prototype = {
     return this.client.helper.waitForElement(System.Selector.imeMenu);
   },
 
+  get inlineActivity() {
+    return this.client.helper.waitForElement(System.Selector.inlineActivity);
+  },
+
   get sleepMenuContainer() {
     return this.client.helper.waitForElement(
       System.Selector.sleepMenuContainer);
@@ -230,6 +241,16 @@ System.prototype = {
     return this.client.helper.waitForElement(System.Selector.systemBanner);
   },
 
+  get trustedWindow() {
+    return this.client.helper.waitForElement(
+      System.Selector.trustedWindow);
+  },
+
+  get trustedWindowChrome() {
+    return this.client.helper.waitForElement(
+      System.Selector.trustedWindowChrome);
+  },
+
   get utilityTray() {
     return this.client.findElement(System.Selector.utilityTray);
   },
@@ -260,6 +281,18 @@ System.prototype = {
 
   get nfcIcon() {
     return this.client.findElement(System.Selector.nfcIcon);
+  },
+
+  get statusbarShadow() {
+    return this.client.findElement(System.Selector.statusbarShadow);
+  },
+
+  get statusbarShadowTray() {
+    return this.client.findElement(System.Selector.statusbarShadowTray);
+  },
+
+  get statusbarShadowActivity() {
+    return this.client.findElement(System.Selector.statusbarShadowActivity);
   },
 
   getAppIframe: function(url) {
@@ -315,6 +348,10 @@ System.prototype = {
       iframe.wrappedJSObject.getScreenshot(1, 1).then(marionetteScriptFinished,
                                                       marionetteScriptFinished);
     }, [iframe]);
+  },
+
+  waitForKeyboard: function() {
+    this.client.helper.waitForElement(System.Selector.activeKeyboard);
   },
 
   goHome: function() {

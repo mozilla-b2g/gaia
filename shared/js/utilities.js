@@ -1,3 +1,7 @@
+'use strict';
+/* global Normalizer */
+/* exported DateHelper, NumberHelper, HtmlHelper, StringHelper */
+
 var DateHelper = {
   todayStarted: function dh_todayStarted() {
     var now = (new Date()).valueOf();
@@ -73,57 +77,11 @@ var NumberHelper = {
    */
     zfill: function nh_zfill(string, len) {
       var s = string;
-      while (s.length < len) s = '0' + s;
+      while (s.length < len) {
+        s = '0' + s;
+      }
       return s;
     }
-};
-
-// Taken (and modified) from /apps/sms/js/searchUtils.js
-// and /apps/sms/js/utils.js
-var HtmlHelper = {
-  createHighlightHTML: function ut_createHighlightHTML(text, searchRegExp) {
-    if (!searchRegExp) {
-      return this.escapeHTML(text);
-    }
-    searchRegExp = new RegExp(searchRegExp, 'gi');
-    var sliceStrs = text.split(searchRegExp);
-    var patterns = text.match(searchRegExp);
-    if (!patterns) {
-      return this.escapeHTML(text);
-    }
-    var str = '';
-    for (var i = 0; i < patterns.length; i++) {
-      str = str +
-        this.escapeHTML(sliceStrs[i]) + '<span class="highlight">' +
-        this.escapeHTML(patterns[i]) + '</span>';
-    }
-    str += this.escapeHTML(sliceStrs.pop());
-    return str;
-  },
-
-  escapeHTML: function ut_escapeHTML(str, escapeQuotes) {
-    var span = document.createElement('span');
-    span.textContent = str;
-
-    // Escape space for displaying multiple space in message.
-    span.innerHTML = span.innerHTML.replace(/\s/g, '&nbsp;');
-
-    if (escapeQuotes)
-      return span.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;'); //"
-    return span.innerHTML;
-  },
-
-  // Import elements into context. The first argument
-  // is the context to import into, each subsequent
-  // argument is the id of an element to import.
-  // Elements can be accessed using the camelCased id
-  importElements: function importElements(context) {
-    var ids = [].slice.call(arguments, 1);
-    ids.forEach(function(id) {
-      context[StringHelper.camelCase(id)] = document.getElementById(id);
-    });
-  }
-
 };
 
 var StringHelper = {
@@ -141,4 +99,66 @@ var StringHelper = {
       return p1.toUpperCase();
     });
   }
+};
+
+var HtmlHelper = {
+  createHighlightHTML: function ut_createHighlightHTML(text, terms) {
+    // We store here what positions in the text are going to be enclosed in
+    // highlight tags as boolean values. Positions in toHighlight correspond to
+    // positions in the text string.
+    var toHighlight = [];
+    var normalizedText = Normalizer.toAscii(text).toLowerCase();
+
+    terms.forEach(function(term) {
+      term = Normalizer.toAscii(term).toLowerCase();
+      var index = normalizedText.indexOf(term);
+      while (index >= 0) {
+        for(var i = 0, length = term.length; i < length; i++){
+          toHighlight[index + i] = true;
+        }
+        index = normalizedText.indexOf(term, index + term.length);
+      }
+    });
+
+    var highlighted = [];
+    for(var i = 0; i < text.length; i++){
+      if (!toHighlight[i]) {
+        highlighted.push(text[i]);
+      } else {
+        var term = '';
+        while (toHighlight[i]) {
+          term += text[i];
+          i++;
+        }
+        i--;
+        highlighted.push('<mark>', term, '</mark>');
+      }
+    }
+    return highlighted.join('');
+  },
+
+  escapeHTML: function ut_escapeHTML(str, escapeQuotes) {
+    var span = document.createElement('span');
+    span.textContent = str;
+
+    // Escape space for displaying multiple space in message.
+    span.innerHTML = span.innerHTML.replace(/\s/g, '&nbsp;');
+
+    if (escapeQuotes) {
+      return span.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;'); //"
+    }
+    return span.innerHTML;
+  },
+
+  // Import elements into context. The first argument
+  // is the context to import into, each subsequent
+  // argument is the id of an element to import.
+  // Elements can be accessed using the camelCased id
+  importElements: function importElements(context) {
+    var ids = [].slice.call(arguments, 1);
+    ids.forEach(function(id) {
+      context[StringHelper.camelCase(id)] = document.getElementById(id);
+    });
+  }
+
 };

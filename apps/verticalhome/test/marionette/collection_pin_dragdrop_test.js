@@ -1,6 +1,5 @@
 'use strict';
 
-var Actions = require('marionette-client').Actions;
 var Collection = require('./lib/collection');
 var EmeServer = require(
   '../../../../shared/test/integration/eme_server/parent');
@@ -22,7 +21,7 @@ marionette('Vertical - Collection', function() {
   });
 
   setup(function() {
-    actions = new Actions(client);
+    actions = client.loader.getActions();
     selectors = Collection.Selectors;
     collection = new Collection(client);
     home = client.loader.getAppClass('verticalhome');
@@ -30,7 +29,6 @@ marionette('Vertical - Collection', function() {
     system.waitForStartup();
 
     home.waitForLaunch();
-    collection.disableGeolocation();
     EmeServer.setServerURL(client, server);
   });
 

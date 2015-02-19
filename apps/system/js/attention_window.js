@@ -76,6 +76,8 @@
 
   AttentionWindow.prototype.CLASS_LIST = 'appWindow attentionWindow';
 
+  AttentionWindow.prototype.HIERARCHY_MANAGER = 'AttentionWindowManager';
+
   /**
    * Turn on this flag to dump debugging messages for all attention windows.
    * @type {Boolean}
@@ -228,6 +230,8 @@
     // Resize the window to accommodate the presence or absence of the software
     // home button.
     this._resize();
+    // Unset width because we don't need
+    this.element.style.width = '';
 
     AppWindow.prototype.show.call(this);
   };

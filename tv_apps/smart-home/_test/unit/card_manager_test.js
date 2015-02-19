@@ -1,15 +1,18 @@
 'use strict';
+/* global Application, CardManager, Deck, Folder, AsyncSemaphore,
+          MockCardStore, MockPipedPromise, MockXMLHttpRequest */
 
-/* global CardManager */
-
-require('/tv_shared/js/vendor/evt.js');
-require('/js/utils.js');
-require('/test/unit/mock_piped_promise.js');
-require('/test/unit/mock_card_store.js');
-require('/test/unit/mock_xml_http_request.js');
-require('/js/card.js');
-require('/js/deck.js');
-require('/js/application.js');
+require('/tv_apps/tv_shared/js/vendor/evt.js');
+require('/shared/js/uuid.js');
+require('/tv_apps/tv_shared/js/shared_utils.js');
+require('/tv_apps/tv_shared/test/unit/mocks/mock_piped_promise.js');
+require('/tv_apps/tv_shared/test/unit/mocks/mock_card_store.js');
+require('/tv_apps/tv_shared/test/unit/mocks/mock_xml_http_request.js');
+require('/tv_apps/tv_shared/js/cards/card.js');
+require('/tv_apps/tv_shared/js/cards/deck.js');
+require('/tv_apps/tv_shared/js/cards/folder.js');
+require('/tv_apps/tv_shared/js/cards/application.js');
+require('/tv_apps/tv_shared/js/async_semaphore.js');
 
 suite('smart-home/CardManager', function() {
   var realPipedPromise;
@@ -21,7 +24,7 @@ suite('smart-home/CardManager', function() {
     // promise. So we use a MockPipedPromise (which is just a genuine native
     // Promise) instead.
     window.PipedPromise = MockPipedPromise;
-    require('/js/card_manager.js', function() {
+    require('/tv_shared/js/card_manager.js', function() {
       done();
     });
   });
@@ -89,15 +92,20 @@ suite('smart-home/CardManager', function() {
 
   });
 
-  suite('_reloadCardList', function() {
+  suite('_reloadCardList()', function() {
     var cardManager;
     var realXMLHttpRequest;
 
     setup(function() {
       cardManager = new CardManager();
+      // We bypass init() because it involves navigator.mozApps.mgmt
+      // Instead we need to prepare necessary properties of cardManager
+      cardManager._cardList = [];
       cardManager._cardStore = MockCardStore;
+      cardManager._asyncSemaphore = new AsyncSemaphore();
       realXMLHttpRequest = window.XMLHttpRequest;
       window.XMLHttpRequest = MockXMLHttpRequest;
+      this.sinon.spy(cardManager, 'writeCardlistInCardStore');
     });
 
     teardown(function() {
@@ -109,15 +117,12 @@ suite('smart-home/CardManager', function() {
     test('should load cardList from datastore if possible', function(done) {
       MockCardStore.mPrepareData('cardList', [{
         'name': 'Television',
-        'type': 'Deck',
-        'cachedIconURL': 'style/icons/Blank.png'
+        'type': 'Deck'
       }]);
 
       cardManager._reloadCardList().then(function() {
         assert.isTrue(cardManager._cardList.length > 0);
         assert.equal(cardManager._cardList[0].name, 'Television');
-      }, function(reason) {
-        assert.fail('should not reject promise due to ' + reason);
       }).then(done, done);
     });
 
@@ -126,6 +131,7 @@ suite('smart-home/CardManager', function() {
         cardManager._reloadCardList().then(function() {
           assert.isTrue(cardManager._cardList.length > 0);
           assert.equal(cardManager._cardList[0].name, 'Devices');
+          assert.isTrue(cardManager.writeCardlistInCardStore.calledOnce);
         }, function(reason) {
           assert.fail('should not reject promise due to ' + reason);
         }).then(done, done);
@@ -139,13 +145,13 @@ suite('smart-home/CardManager', function() {
             response: {
               'card_list': [{
                   'name': 'Devices',
-                  'type': 'Deck',
-                  'cachedIconURL': 'style/icons/Blank.png'
+                  'type': 'Deck'
               }]
             }
           });
         });
       });
+
   });
 
   suite('findCardFromCardList', function() {
@@ -156,7 +162,23 @@ suite('smart-home/CardManager', function() {
       cardManager._cardList = [
         new Deck({
           name: 'Dashboard',
-          cachedIconURL: 'style/icons/Blank.png'
+          nativeApp: {
+            name: 'Dashboard',
+            removable: false,
+            manifest: {},
+            manifestURL: 'app://dashboard.gaiamobile.org/manifest.webapp'
+          },
+          launchURL: 'app://dashboard.gaiamobile.org/index.html'
+        }),
+        new Deck({
+          name: 'TV',
+          nativeApp: {
+            name: 'TV',
+            removable: false,
+            manifest: {},
+            manifestURL: 'app://tv-deck.gaiamobile.org/manifest.webapp'
+          },
+          launchURL: 'app://tv-deck.gaiamobile.org/index.html'
         })
       ];
       dashboardCardId = cardManager._cardList[0].cardId;
@@ -173,6 +195,16 @@ suite('smart-home/CardManager', function() {
       assert.equal(card.name, 'Dashboard');
     });
 
+    test('should return undefined by querying non-existing launchURL',
+      function() {
+        var card = cardManager.findCardFromCardList({
+          manifestURL: 'app://tv-deck.gaiamobile.org/manifest.webapp',
+          launchURL: 'app://tv-deck.gaiamobile.org/#42'
+        });
+
+      assert.isUndefined(card);
+    });
+
     test('should return undefined if not found', function() {
       var card = cardManager.findCardFromCardList({
         cardId: 'incorrect-card-id'
@@ -181,4 +213,140 @@ suite('smart-home/CardManager', function() {
     });
 
   });
+
+  suite('insertNewFolder', function() {
+    var cardManager;
+    var dashboardCardId;
+    setup(function() {
+      cardManager = new CardManager();
+      // We bypass init() because it involves navigator.mozApps.mgmt
+      // Instead we need to prepare necessary properties of cardManager
+      cardManager._asyncSemaphore = new AsyncSemaphore();
+      cardManager._cardStore = MockCardStore;
+      cardManager._cardList = [
+        new Deck({
+          name: 'Dashboard',
+          nativeApp: {
+            name: 'Dashboard',
+            removable: false,
+            manifest: {},
+            manifestURL: 'app://dashboard.gaiamobile.org/manifest.webapp'
+          },
+          launchURL: 'app://dashboard.gaiamobile.org/index.html'
+        })
+      ];
+      dashboardCardId = cardManager._cardList[0].cardId;
+
+      this.sinon.spy(cardManager, 'writeFolderInCardStore');
+      this.sinon.spy(cardManager, 'writeCardlistInCardStore');
+    });
+
+    teardown(function() {
+      MockCardStore.mClearData();
+      cardManager = undefined;
+    });
+
+    test('should return new folder instance whenever a new folder is inserted',
+      function() {
+        var newFolder = cardManager.insertNewFolder('an empty folder');
+
+        assert.ok(newFolder.folderId);
+        assert.equal(newFolder.state, Folder.STATES.DETACHED);
+      });
+
+    test('should write to data store when folder has content', function() {
+      var newFolder = cardManager.insertNewFolder('a test folder');
+      assert.isFalse(cardManager.writeCardlistInCardStore.calledOnce);
+      newFolder.addCard(new Application({
+        name: 'Music'
+      }));
+
+      assert.isTrue(cardManager.writeCardlistInCardStore.calledOnce);
+    });
+
+    test('should insert at correct location if index is specified', function() {
+      var targetLocation = 0;
+      var newFolder =
+        cardManager.insertNewFolder('a test folder', targetLocation);
+      assert.isFalse(cardManager.writeCardlistInCardStore.calledOnce);
+      newFolder.addCard(new Application({
+        name: 'Music',
+        nativeApp: {
+          name: 'Music',
+          removable: false,
+          manifest: {},
+          manifestURL: 'app://music.gaiamobile.org/manifest.webapp'
+        }
+      }));
+
+      assert.isTrue(cardManager.writeCardlistInCardStore.calledOnce);
+      assert.equal(cardManager._cardList[targetLocation], newFolder);
+    });
+
+  });
+
+
+  suite('writeCardlistInCardStore', function() {
+    var cardManager;
+    var emptyFolder, secondEmptyFolder;
+
+    setup(function() {
+      cardManager = new CardManager();
+      // We bypass init() because it involves navigator.mozApps.mgmt
+      // Instead we need to prepare necessary properties of cardManager
+      cardManager._asyncSemaphore = new AsyncSemaphore();
+      cardManager._cardStore = MockCardStore;
+
+      emptyFolder = new Folder({
+        name: 'New Folder'
+      });
+
+      secondEmptyFolder = new Folder({
+        name: 'New Folder 2'
+      });
+
+      cardManager._cardList = [
+        new Deck({
+          name: 'Dashboard',
+          nativeApp: {
+            name: 'Dashboard',
+            removable: false,
+            manifest: {},
+            manifestURL: 'app://dashboard.gaiamobile.org/manifest.webapp'
+          },
+          launchURL: 'app://dashboard.gaiamobile.org/index.html'
+        }),
+        emptyFolder,
+        secondEmptyFolder,
+        new Application({
+          name: 'Music',
+          nativeApp: {
+            name: 'Music',
+            removable: false,
+            manifest: {},
+            manifestURL: 'app://music.gaiamobile.org/manifest.webapp'
+          }
+        })
+      ];
+    });
+
+    teardown(function() {
+      MockCardStore.mClearData();
+      cardManager = undefined;
+    });
+
+    test('write with empty folder should eliminate it from card list',
+      function(done) {
+        var expectedLength = cardManager._cardList.length - 2;
+
+        cardManager.writeCardlistInCardStore({
+          cleanEmptyFolder: true
+        }).then(function() {
+          assert.equal(cardManager._cardList.length, expectedLength);
+          assert.isTrue(cardManager._cardList.indexOf(emptyFolder) < 0);
+          done();
+        });
+      });
+  });
+
 });

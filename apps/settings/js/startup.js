@@ -394,8 +394,10 @@
      */
     _showInitialPanel: function as_showInitialPanel(initialPanelId) {
       var initialPanel = document.getElementById(initialPanelId);
-      initialPanel.classList.add('current');
-      initialPanel.innerHTML = initialPanel.firstChild.textContent;
+      // Use lazy loade because it handles the case in DEBUG mode.
+      return LazyLoader.load([initialPanel]).then(() => {
+        initialPanel.classList.add('current');
+      });
     },
 
     /**
@@ -422,7 +424,7 @@
 
       var that = this;
       Object.defineProperty(exports, 'LaunchContext', {
-        configurable: false,
+        configurable: true,
         get: function() {
           return that._launchContext;
         }
@@ -460,16 +462,20 @@
       navigator.mozL10n.once(function l10nDone() {
         // Since the settings app contains its chrome already existing in the
         // DOM, we can fire that it's loaded as soon as the DOM is localized
+        window.performance.mark('navigationLoaded');
         window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
 
         // Since the settings app has no functional chrome, we can fire the
         // interactive event now because there are no events to bind
+        window.performance.mark('navigationInteractive');
         window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
       });
 
-      return this._getInitialPanelId().then((initialPanelId) => {
-        this._showInitialPanel(initialPanelId);
-
+      var initialPanelId;
+      return this._getInitialPanelId().then((panelId) => {
+        initialPanelId = panelId;
+        return this._showInitialPanel(panelId);
+      }).then(() => {
         // XXX: This is an optimization for the root panel to avoid reflow that
         //      could be observed by users.
         var customPanelHandler;
@@ -483,6 +489,7 @@
 
         // Initial panel handler registers basic events for interaction so we
         // can fire the content interactive evnet here.
+        window.performance.mark('contentInteractive');
         window.dispatchEvent(new CustomEvent('moz-content-interactive'));
 
         this._createLaunchContext(initialPanelId, initialPanelHandler,

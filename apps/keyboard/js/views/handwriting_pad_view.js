@@ -19,9 +19,7 @@ HandwritingPadView.prototype.render = function render() {
   this.element = document.createElement('canvas');
   this.element.className = 'handwriting-pad';
 
-  if (this.viewManager) {
-    this.viewManager.registerView(this.target, this);
-  }
+  this.viewManager.registerView(this.target, this);
 };
 
 HandwritingPadView.prototype.drawHandwritingPad =
@@ -78,6 +76,16 @@ HandwritingPadView.prototype._getPressPoint =
       posY: posY
     };
   };
+
+HandwritingPadView.prototype.resize = function resize(width, height) {
+  var canvas = this.element;
+
+  canvas.width = width * window.devicePixelRatio;
+  canvas.style.width = width + 'px';
+
+  canvas.height = height * window.devicePixelRatio;
+  canvas.style.height = height + 'px';
+};
 
 exports.HandwritingPadView = HandwritingPadView;
 

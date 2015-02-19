@@ -2,7 +2,6 @@
 define(function(require) {
   'use strict';
 
-  var SettingsUtils = require('modules/settings_utils');
   var DialogService = require('modules/dialog_service');
   var WifiUtils = require('modules/wifi_utils');
   var WifiHelper = require('shared/wifi_helper');
@@ -16,12 +15,12 @@ define(function(require) {
       _scanRate: 5000, // 5s after last scan results
       _scanning: false,
       _autoscan: false,
-      _index: [], // index of all scanned networks
+      _index: {}, // index of all scanned networks
       _networks: {},
       _list: elements.wifiAvailableNetworks,
       clear: function(addScanningItem) {
         // clear the network list
-        this._index = [];
+        this._index = {};
         this._networks = {};
 
         // remove all items except the text expl.
@@ -34,39 +33,8 @@ define(function(require) {
 
         list.dataset.state = addScanningItem ? 'on' : 'off';
       },
-      display: function(event) {
-        var network = event ? event.network : null;
-        var networkStatus = event ? event.status : null;
-
-        // display a message on the network item matching the ssid
-        if (!network) {
-          return;
-        }
-
-        var key = this._getNetworkKey(network);
-        var listItem = this._index[key];
-        var active = list.querySelector('.active');
-
-        if (active && active != listItem) {
-          active.classList.remove('active');
-          active.querySelector('small').
-            setAttribute('data-l10n-id', 'shortStatus-disconnected');
-          active.querySelector('aside').classList.remove('connecting');
-          active.querySelector('aside').classList.remove('connected');
-        }
-        if (listItem) {
-          listItem.classList.add('active');
-          listItem.querySelector('small').
-            setAttribute('data-l10n-id', 'shortStatus-' + networkStatus);
-          if (networkStatus === 'connecting') {
-            listItem.querySelector('aside').classList.add('connecting');
-          }
-          if (networkStatus === 'connected') {
-            listItem.querySelector('aside').classList.remove('connecting');
-          }
-        }
-      },
       scan: function() {
+        window.performance.measure('settingPanelWifiVisible', 'wifiListStart');
         PerformanceTestingHelper.dispatch('settings-panel-wifi-visible');
 
         // scan wifi networks and display them in the list
@@ -91,7 +59,7 @@ define(function(require) {
 
           for (var i = 0; i < allNetworks.length; ++i) {
             network = allNetworks[i];
-            var key = self._getNetworkKey(network);
+            var key = WifiUtils.getNetworkKey(network);
             // keep connected network first, or select the highest strength
             if (!self._networks[key] || network.connected) {
               self._networks[key] = network;
@@ -117,8 +85,11 @@ define(function(require) {
             // add detected networks
             for (var j = 0; j < networkKeys.length; j++) {
               network = self._networks[networkKeys[j]];
-              var listItem = WifiUtils.newListItem(network,
-                self._toggleNetwork.bind(self));
+              var listItem = WifiUtils.newListItem({
+                network: network,
+                onClick: self._toggleNetwork.bind(self),
+                showNotInRange: true
+              });
               // put connected network on top of list
               if (WifiHelper.isConnected(network)) {
                 list.insertBefore(listItem,
@@ -139,6 +110,7 @@ define(function(require) {
           // display the "Search Again" button
           list.dataset.state = 'ready';
 
+          window.performance.measure('settingsPanelWifiReady', 'wifiListStart');
           PerformanceTestingHelper.dispatch('settings-panel-wifi-ready');
 
           // auto-rescan if requested
@@ -153,6 +125,7 @@ define(function(require) {
           // always try again.
           self._scanning = false;
 
+          window.performance.measure('settingsPanelWifiReady', 'wifiListStart');
           PerformanceTestingHelper.dispatch('settings-panel-wifi-ready');
 
           window.setTimeout(self.scan.bind(self), self._scanRate);
@@ -179,12 +152,6 @@ define(function(require) {
       get scanning() {
         return this._scanning;
       },
-      // use ssid + security as a composited key
-      _getNetworkKey: function(network) {
-        var key = network.ssid + '+' +
-          WifiHelper.getSecurity(network).join('+');
-        return key;
-      },
       _toggleNetwork: function(network) {
         var self = this;
 
@@ -194,16 +161,17 @@ define(function(require) {
 
         if (WifiHelper.isConnected(network)) {
           // online: show status + offer to disconnect
-          SettingsUtils.openDialog('wifi-status', {
+          DialogService.show('wifi-status', {
             sl: sl,
             network: network,
             security: security,
-            onSubmit: function(network) {
-              // disconnect first, then rescan
+          }).then(function(result) {
+            var type = result.type;
+            if (type === 'submit') {
               WifiContext.forgetNetwork(network, function() {
                 self.scan();
               });
-            }.bind({}, network),
+            }
           });
         } else if (network.password && (network.password == '*')) {
           // offline, known network (hence the '*' password value):
@@ -247,10 +215,27 @@ define(function(require) {
 
     // networkStatus has one of the following values:
     // connecting, associated, connected, connectingfailed, disconnected.
-    WifiContext.addEventListener('wifiEnabled',
-      wifiNetworkList.display.bind(wifiNetworkList));
-    WifiContext.addEventListener('wifiStatusChange',
-      wifiNetworkList.display.bind(wifiNetworkList));
+    WifiContext.addEventListener('wifiEnabled', function(event) {
+      WifiUtils.updateListItemStatus({
+        listItems: wifiNetworkList._index,
+        activeItemDOM: list.querySelector('.active'),
+        network: event.network,
+        networkStatus: event.status
+      });
+    });
+
+    WifiContext.addEventListener('wifiStatusChange', function(event) {
+      WifiUtils.updateListItemStatus({
+        listItems: wifiNetworkList._index,
+        activeItemDOM: list.querySelector('.active'),
+        network: event.network,
+        networkStatus: event.status
+      });
+    });
+
+    WifiContext.addEventListener('wifiConnectionInfoUpdate', function(event) {
+      WifiUtils.updateNetworkSignal(event.network, event.relSignalStrength);
+    });
 
     return wifiNetworkList;
   };

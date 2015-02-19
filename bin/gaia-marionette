@@ -153,9 +153,16 @@ if [ "$DUMP_PATH" ]; then
   DEVICE_OPTS="$ADDITIONAL_OPTS --dump-path $DUMP_PATH"
 fi
 
+TARGET=""
+if [[ $@ == *"mocha-tbpl-reporter"* ]]; then
+  TARGET=$DIR/gaia_marionette_retry.js
+else
+  TARGET=$DIR/../node_modules/.bin/marionette-mocha
+fi
+
 # wrap marionette-mocha with gaia's defaults. We also need to alter the paths to
 # xpcshell in available for email fake servers.
-PATH=$XPCSHELL_DIR:$PATH $DIR/../node_modules/.bin/marionette-mocha \
+PATH=$XPCSHELL_DIR:$PATH $TARGET \
   $VERBOSE_OPTS \
   $OOP_OPTS \
   $RUNTIME_OPTS \

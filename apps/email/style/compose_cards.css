@@ -22,6 +22,8 @@
 .cmp-bubble-container {
   width: calc(100% - 1rem);
   float: left;
+  display: inline-flex;
+  flex-wrap: wrap;
 }
 
 html:-moz-dir(rtl) .cmp-bubble-container {
@@ -31,7 +33,6 @@ html:-moz-dir(rtl) .cmp-bubble-container {
 /* Make sure these styles take precedence over the base msg-peep-bubble styles
    by using both class names */
 .cmp-peep-bubble.msg-peep-bubble {
-  float: left;
   margin: 0.3rem 0.6rem;
   border: 0;
   border-radius: 1.4rem;
@@ -39,10 +40,8 @@ html:-moz-dir(rtl) .cmp-bubble-container {
   font-style: italic;
   color: #2c2c2c;
   background-color: white;
-}
-
-html:-moz-dir(rtl) .cmp-peep-bubble.msg-peep-bubble {
-  float: right;
+  flex-shrink: 0;
+  flex-grow: 0;
 }
 
 .cmp-peep-bubble.msg-peep-bubble:active {
@@ -75,21 +74,16 @@ input.cmp-addr-text, input.cmp-subject-text {
 }
 
 input.cmp-addr-text, input.cmp-dot-text {
-  float: left;
-  width: 0.5rem;
-  max-width: 100%;
+  flex-grow: 1;
+  flex-shrink: 1;
+  width: 0;
   text-overflow: ellipsis;
   overflow: hidden;
   word-wrap: normal;
   white-space: nowrap;
 }
 
-html:-moz-dir(rtl) input.cmp-addr-text, input.cmp-dot-text {
-  float: right;
-}
-
 input.cmp-subject-text {
-  display: table-cell;
   font-size: 1.6rem;
   text-overflow: ellipsis;
 }
@@ -141,6 +135,10 @@ input.cmp-subject-text {
   outline: 0;
   white-space: pre-wrap;
   word-wrap: break-word;
+  -moz-user-select: text;
+}
+
+.cmp-body-text * {
   -moz-user-select: text;
 }
 
@@ -250,6 +248,7 @@ html:-moz-dir(rtl) .cmp-attachment-filesize {
   background: url("images/icons/actionicon_email_removeattachment.png") no-repeat scroll center / 2rem;
   width: 2rem;
   border: 0.4rem solid transparent;
+  height: 100%;
 }
 
 .cmp-messages-sending p {

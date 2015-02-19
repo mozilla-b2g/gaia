@@ -50,6 +50,7 @@ form[role="dialog"][data-type="confirm"] h1 {
   color: #fff;
   margin: 0;
   padding: 1rem 1.5rem 0;
+  word-wrap: break-word;
 }
 
 /* Menu & buttons setup */
@@ -58,7 +59,7 @@ form[role="dialog"][data-type="confirm"] menu {
   margin: 0;
   padding: 1.5rem;
   background: #4d4d4d;
-  display: block;
+  display: flex;
   overflow: hidden;
   position: absolute;
   left: 0;
@@ -135,38 +136,34 @@ button[disabled]::-moz-selection {
   -moz-user-select: none;
 }
 
+form[role="dialog"][data-type="confirm"] menu button {
+  margin: 0;
+  -moz-margin-end: 1rem;
+}
 
 form[role="dialog"][data-type="confirm"] menu button:last-child {
-  margin-left: 1rem;
+  -moz-margin-end: 0;
 }
 
-form[role="dialog"][data-type="confirm"] menu button,
-form[role="dialog"][data-type="confirm"] menu button:first-child {
-  margin: 0 0.5rem;
-}
-
-form[role="dialog"][data-type="confirm"] menu button {
-  width: calc((100% - 2rem) / 2);
-}
-
-form[role="dialog"][data-type="confirm"] menu button.full {
-  width: 100%;
-}
-
-/* Specific component code */
+/*
+** Specific component code
+**
+** 1. Text in confirm dialog should not be selectable.
+ */
 form[role="dialog"][data-type="confirm"] p {
   word-wrap: break-word;
   margin: 1rem 0 0;
   padding: 1rem 1.5rem;
   border-top: 0.1rem solid #686868;
   line-height: 3rem;
+  -moz-user-select: none; /* 1 */
 }
 
-form[role="dialog"][data-type="confirm"] p span {
-    font-size: 1.5rem;
-    display: block;
-    line-height: 1.7rem;
-    color: rgba(255,255,255,0.6);
+form[role="dialog"][data-type="confirm"] p > span {
+  font-size: 1.5rem;
+  display: block;
+  line-height: 1.7rem;
+  color: rgba(255,255,255,0.6);
 }
 
 form[role="dialog"][data-type="confirm"] p img {

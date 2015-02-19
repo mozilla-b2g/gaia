@@ -7,8 +7,8 @@ var OAuthWindow = require('oauth_window');
 var Presets = require('presets');
 var URI = require('utils/uri');
 var View = require('view');
+var router = require('router');
 
-require('css!modify_account_view');
 require('dom!modify-account-view');
 
 var DEFAULT_AUTH_TYPE = 'basic';
@@ -179,7 +179,7 @@ ModifyAccount.prototype = {
     // TODO: in the future we may want to store the entry
     // url of this view and use that instead of this
     // hard coded value...
-    app.router.show('/advanced-settings/');
+    router.show('/advanced-settings/');
   },
 
   cancel: function(event) {
@@ -220,7 +220,7 @@ ModifyAccount.prototype = {
     this.accountHandler.send(this.model, function(err) {
       list.remove(self.progressClass);
       if (!err) {
-        self.app.go(self.completeUrl);
+        router.go(self.completeUrl);
       }
     });
   },

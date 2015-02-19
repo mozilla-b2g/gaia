@@ -1,9 +1,11 @@
 /* global MocksHelper, Service, MockSimLockSystemDialog */
-/* global MockSIMSlotManager, BaseModule, MockService, MockApplications */
+/* global MockSIMSlotManager, MockSIMSlot, BaseModule,
+          MockService, MockApplications */
 
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_simslot_manager.js');
+requireApp('system/shared/test/unit/mocks/mock_simslot.js');
 requireApp('system/test/unit/mock_simcard_dialog.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_service.js');
@@ -109,6 +111,104 @@ suite('SimLockManager', function() {
         assert.isFalse(subject.showIfLocked.called,
           'should not show the dialog');
       });
+
+    test('Settings app is opened', function() {
+      subject.simLockSystemDialog.visible = true;
+      subject.handleEvent({
+        type: 'appopened',
+        detail: {
+          url: 'app://settings.gaiamobile.org/index.html',
+          manifestURL: 'app://settings.gaiamobile.org/manifest.webapp',
+          manifest: {
+            permissions: {
+              telephony: {access: 'readwrite'}
+            }
+          },
+          origin: 'app://settings.gaiamobile.org'
+        }
+      });
+      assert.isTrue(subject.simLockSystemDialog.close.called);
+      assert.isFalse(subject.simLockSystemDialog.visible);
+    });
+
+  });
+
+  suite('isBothSlotsLocked', function() {
+    setup(function() {
+      MockSIMSlotManager.ready = true;
+    });
+
+    teardown(function() {
+    });
+
+    test('is not multisim', function() {
+      assert.isFalse(subject.isBothSlotsLocked());
+    });
+
+    suite('only one sim detected', function() {
+      setup(function() {
+        MockSIMSlotManager.ready = true;
+        addSimSlot();
+      });
+
+      teardown(function() {
+        removeSimSlot();
+      });
+
+      test('sim1 is absent', function() {
+        MockSIMSlotManager.mInstances[0].isAbsent = true;
+        this.sinon.stub(MockSIMSlotManager,
+          'hasOnlyOneSIMCardDetected').returns(true);
+        assert.isFalse(subject.isBothSlotsLocked());
+      });
+
+      test('sim2 is absent', function() {
+        MockSIMSlotManager.mInstances[1].isAbsent = true;
+        this.sinon.stub(MockSIMSlotManager,
+          'hasOnlyOneSIMCardDetected').returns(true);
+        assert.isFalse(subject.isBothSlotsLocked());
+      });
+    });
+
+    suite('Multisim handling', function() {
+      var slot1 = new MockSIMSlot(null, 0);
+      var slot2 = new MockSIMSlot(null, 1);
+
+      setup(function() {
+        MockSIMSlotManager.ready = true;
+        addSimSlot();
+        slot1 = MockSIMSlotManager.mInstances[0];
+        slot2 = MockSIMSlotManager.mInstances[1];
+      });
+
+      teardown(function() {
+        removeSimSlot();
+      });
+
+      test('both slots locked', function() {
+        this.sinon.stub(slot1, 'isLocked').returns(true);
+        this.sinon.stub(slot2, 'isLocked').returns(true);
+        assert.isTrue(subject.isBothSlotsLocked());
+      });
+
+      test('sim1 is not locked', function() {
+        this.sinon.stub(slot1, 'isLocked').returns(false);
+        this.sinon.stub(slot2, 'isLocked').returns(true);
+        assert.isFalse(subject.isBothSlotsLocked());
+      });
+
+      test('sim2 is not locked', function() {
+        this.sinon.stub(slot1, 'isLocked').returns(true);
+        this.sinon.stub(slot2, 'isLocked').returns(false);
+        assert.isFalse(subject.isBothSlotsLocked());
+      });
+
+      test('both slots not locked', function() {
+        this.sinon.stub(slot1, 'isLocked').returns(false);
+        this.sinon.stub(slot2, 'isLocked').returns(false);
+        assert.isFalse(subject.isBothSlotsLocked());
+      });
+    });
   });
 
   suite('showIfLocked', function() {
@@ -122,6 +222,7 @@ suite('SimLockManager', function() {
     });
 
     test('should paint the first simslot on first render', function() {
+      this.sinon.stub(subject, 'isBothSlotsLocked').returns(true);
       assert.isFalse(subject._alreadyShown);
       subject.showIfLocked();
       assert.isTrue(subject.simLockSystemDialog.show.called);
@@ -132,6 +233,7 @@ suite('SimLockManager', function() {
 
     test('should do nothing if !applications.ready', function() {
       window.applications.ready = false;
+      this.sinon.stub(subject, 'isBothSlotsLocked').returns(true);
       subject.showIfLocked();
       assert.isFalse(subject.simLockSystemDialog.show.called);
       window.applications.ready = true;
@@ -139,6 +241,7 @@ suite('SimLockManager', function() {
 
     test('should not show if locked', function() {
       Service.locked = true;
+      this.sinon.stub(subject, 'isBothSlotsLocked').returns(true);
       subject.showIfLocked();
       assert.isFalse(subject.simLockSystemDialog.show.called);
       Service.locked = false;
@@ -147,6 +250,7 @@ suite('SimLockManager', function() {
     test('should not show on Ftu', function() {
       MockService.mUpgrading = false;
       MockService.runningFTU = true;
+      this.sinon.stub(subject, 'isBothSlotsLocked').returns(true);
       subject.showIfLocked();
       assert.isFalse(subject.simLockSystemDialog.show.called);
     });
@@ -155,6 +259,7 @@ suite('SimLockManager', function() {
       setup(function() {
         MockSIMSlotManager.ready = true;
         addSimSlot();
+        this.sinon.stub(subject, 'isBothSlotsLocked').returns(true);
       });
 
       teardown(function() {
@@ -220,10 +325,7 @@ suite('SimLockManager', function() {
         addSimSlot();
         removeSIMCardFromFirstSlot();
         subject._alreadyShown = false;
-        this.sinon.stub(MockSIMSlotManager, 'hasOnlyOneSIMCardDetected',
-          function() {
-            return true;
-        });
+        this.sinon.stub(subject, 'isBothSlotsLocked').returns(false);
       });
 
       teardown(function() {
@@ -232,6 +334,35 @@ suite('SimLockManager', function() {
       });
 
       test('should show the second SIM if the first is not inserted',
+        function() {
+          subject.showIfLocked();
+          assert.equal(subject.simLockSystemDialog.show.callCount, 1);
+      });
+    });
+
+    suite('only second slot is locked', function() {
+      function removeSIMLockForFirstSlot() {
+        MockSIMSlotManager.mInstances[0].simCard.cardState = 'ready';
+      }
+
+      function restoreSIMLockForFirstSlot() {
+        MockSIMSlotManager.mInstances[0].simCard.cardState = 'pinRequired';
+      }
+
+      setup(function() {
+        MockSIMSlotManager.ready = true;
+        addSimSlot();
+        removeSIMLockForFirstSlot();
+        subject._alreadyShown = false;
+        this.sinon.stub(subject, 'isBothSlotsLocked').returns(false);
+      });
+
+      teardown(function() {
+        removeSimSlot();
+        restoreSIMLockForFirstSlot();
+      });
+
+      test('should show the second SIM if the first is not locked',
         function() {
           subject.showIfLocked();
           assert.equal(subject.simLockSystemDialog.show.callCount, 1);

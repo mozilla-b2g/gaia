@@ -3,6 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
   * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+/* jshint ignore:start */
 (function(global) {
   // Spec information:
   // http://upnp.org/specs/arch/UPnP-arch-DeviceArchitecture-v1.1.pdf
@@ -72,8 +73,8 @@
       this._searching = false;
     },
     _onmessage: function _onmessage(e) {
-      // Listen for responses from specific targets. There could be more than one
-      // available.
+      // Listen for responses from specific targets. There could be more than
+      // one available.
 
       var msg = String.fromCharCode.apply(null, new Uint8Array(e.data));
       var lines = msg.toString().split("\r\n");
@@ -462,7 +463,8 @@
           }
         }
       });
-      // trigger search on the discovery service if new search target is registered
+      // trigger search on the discovery service if new search target
+      // is registered
       Object.keys(needSearch).forEach(function(type) {
         targetRegister[type].search();
       });

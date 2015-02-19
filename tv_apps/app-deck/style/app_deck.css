@@ -1,5 +1,8 @@
 html {
   font-size: 10px;
+  /* We have Fira Sans as default font in real device. But it isn't default in
+   * browser. That's the main reason this line is here.*/
+  font-family: "Fira Sans";
 }
 
 html, body {
@@ -30,78 +33,44 @@ section {
   overflow: hidden;
 }
 
-#jumbotron {
-  width: 100%;
-  height: auto;
-  overflow-y: hidden;
-  overflow-x: auto;
-  white-space: nowrap;
-  text-align: center;
-  vertical-align: middle;
-  background-color: #000000;
-}
-
-#app-deck-header {
-  max-width: 1200px;
-  height: 20.92vh;
-  display: inline-block;
-}
-
-#app-deck-header-title {
-  height: 6.67vh;
-  font-size: 4.81vh;
-  font-style: italic;
-  color: #ffffff;
-}
-
-#app-deck-header-description {
-  color: #ffffff;
-  font-size: 2.22vh;
-  height: 3.33vh;
-  margin-top: -4vh;
-}
-
-.app-banner {
-  display: inline-block;
-  background-color: #999;
-  width: 35.55vh;
-  height: 20.18vh;
-  margin: 2.03vh 0.64vh;
-}
-
 #app-deck-grid-view-container {
   width: 100%;
-  height: auto;
+  height: calc(100% - 46.6rem);
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  background-color: #e0e0e0;
 }
 
 #app-deck-grid-view {
-  margin: 5.55vh 6.04vw 0 6.04vw;
+  /* top = (6 - 5.8)rem */
+  padding: 0.2rem 14.2rem 0;
+  height: 100%;
+  overflow: hidden;
+  scroll-behavior: smooth;
 }
 
-.app {
-  position: relative;
-  display: inline-block;
-  overflow: hidden;
-  width: 10vw;
-  height: 10vw;
-  border-radius: 50%;
-  margin: 2.4vw 1.5vh 2.4vw 1.5vh;
-  background-position: 50% 50%;
+#app-deck-grid-view:after {
+  content: "";
+  display: block;
+  /* app-deck-grid-view has padding-top 0.2rem, and the buttons in the first row
+     have margin-top 5.8rem, so app-deck-grid-view bottom should have height
+     5.8 + 0.2 - 2.9(button margin-bottom) = 3.1rem */
+  height: 3.1rem;
+}
+
+smart-button[type="app-button"] {
+  width: 18rem;
+  height: 18rem;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  margin: 5.8rem 2.6rem 2.9rem 2.6rem;
   background-size: 100% auto;
 }
 
-.app-name {
-  display: inline-block;
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 30%;
-  text-align: center;
-  background-color: rgba(64, 64, 64, 0.3);
-  color: #fff;
-  padding-top: 5%;
-}
-
-.app-name-text {
-  font-size: 1.2rem;
+/** we use :after as label */
+smart-button[type="app-button"]:after {
+  width: 18rem;
+  height: 5rem;
+  font-size: 1.6rem;
 }

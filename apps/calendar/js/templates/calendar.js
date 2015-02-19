@@ -7,6 +7,7 @@ var create = require('template').create;
 module.exports = create({
   item: function() {
     var id = this.h('_id');
+    var color = this.h('color');
     var l10n = '';
     var name = '';
 
@@ -22,9 +23,8 @@ module.exports = create({
     var checked = this.bool('localDisplayed', 'checked');
     var ariaSelected = this.bool('localDisplayed', 'aria-selected="true"');
 
-    return `<li id="calendar-${id}" class="calendar-id-${id}"
-                role="presentation">
-        <div class="gaia-icon icon-calendar-dot calendar-text-color"
+    return `<li id="calendar-${id}" role="presentation">
+        <div class="gaia-icon icon-calendar-dot" style="color:${color}"
              aria-hidden="true"></div>
         <label class="pack-checkbox" role="option" ${ariaSelected}>
           <input value="${id}" type="checkbox" ${checked}/>

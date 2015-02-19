@@ -3,6 +3,7 @@ Keyboards.he = {
   shortLabel: 'He',
   types: ['text', 'url', 'email'],
   menuLabel: 'עִבְרִית',
+  basicLayoutKey: 'אבג',
   alt: {
     // incomplete
   },

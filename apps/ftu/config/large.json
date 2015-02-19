@@ -3,7 +3,7 @@
     "steps": [
       {
         "image": "/style/images/tutorial/1_large.png",
-        "l10nKey": "tutorial-step1-large-2"
+        "l10nKey": "tutorial-step1-large-3"
       },
       {
         "image": "/style/images/tutorial/2_large.png",

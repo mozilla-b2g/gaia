@@ -117,16 +117,29 @@ define(function(require) {
         panel.addEventListener('transitionend', function paintWait(evt) {
           if ((method === 'close' || method === 'open') &&
             evt.propertyName === 'visibility') {
+              // After transition, we have to `hide` the panel, otherwise
+              // the panel would still exist on the layer and would block
+              // the scrolling event.
+              if (method === 'close') {
+                panel.hidden = true;
+              }
               panel.removeEventListener('transitionend', paintWait);
               resolve();
           }
         });
+
+        // Before transition, we have to `show` the panel, otherwise
+        // the panel before applying transition class.
+        if (method === 'open') {
+          panel.hidden = false;
+        }
 
         // We need to apply class later otherwise Gecko can't apply
         // this transition and 150ms is an approximate number after doing
         // several rounds of manual tests.
         setTimeout(function() {
           if (method === 'open') {
+            // Let's unhide the panel first
             panel.classList.add('current');
           } else {
             panel.classList.remove('current');
@@ -215,7 +228,7 @@ define(function(require) {
         if (foundPanel.onSubmit && options._type === 'submit') {
           promise = foundPanel.onSubmit();
         // custom dialog - onCancel
-        } else if (foundPanel.onCancel && options._type === 'cacnel') {
+        } else if (foundPanel.onCancel && options._type === 'cancel') {
           promise = foundPanel.onCancel();
         // if no onSubmit & onCancel, pass directly
         } else {
@@ -235,7 +248,11 @@ define(function(require) {
         return self._transit('close', dialog, options);
       })
       .then(function() {
-        // 5. Get result and cleanup dialog
+        // 5. call hide
+        return foundPanel.hide();
+      })
+      .then(function() {
+        // 6. Get result and cleanup dialog
         var result;
 
         // for prompt dialog, we have to get its own result from input text.

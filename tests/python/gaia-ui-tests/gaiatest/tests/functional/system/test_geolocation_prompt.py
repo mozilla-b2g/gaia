@@ -4,7 +4,10 @@
 
 import time
 
-from marionette import By
+try:
+    from marionette import By
+except:
+    from marionette_driver import By
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.regions.permission_dialog import PermissionDialog

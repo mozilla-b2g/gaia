@@ -1,11 +1,18 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+from datetime import datetime
 
-from marionette import expected
-from marionette import Wait
-from marionette.by import By
-from marionette.marionette import Actions
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+    from marionette.marionette import Actions
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
+    from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -28,6 +35,8 @@ class LockScreen(Base):
 
     _notification_locator = (By.CSS_SELECTOR, '#notifications-lockscreen-container > div.notification')
 
+    _time_locator = (By.ID, 'lockscreen-clock-time')
+
     def switch_to_frame(self):
         # XXX: Because we're not in frame yet. LockScreen team now is
         # trying hard to do decoupling & as-iframe at the same time,
@@ -43,6 +52,17 @@ class LockScreen(Base):
         #
         # But now we're not ready to do that yet.
         self.marionette.switch_to_frame()
+
+    @property
+    def time(self):
+        # The lockscreen doesn't display AM/PM since 2.0. It's still present behind a hidden span though.
+        lockscreen_time = self.marionette.execute_script(
+            "return document.getElementById('%s').innerHTML" % self._time_locator[1])
+        return lockscreen_time.replace('<span>', '').replace('</span>', '')
+
+    @property
+    def time_in_datetime(self):
+        return datetime.strptime(self.time, '%I:%M %p')
 
     def unlock(self):
         self._slide_to_unlock('homescreen')

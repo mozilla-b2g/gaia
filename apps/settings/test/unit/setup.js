@@ -16,7 +16,8 @@ requireApp('settings/js/vendor/alameda.js', (function() {
     },
     shim: {
       'settings': {
-        exports: 'Settings'
+        exports: 'Settings',
+        deps: ['shared/usertiming']
       },
       'shared/lazy_loader': {
         exports: 'LazyLoader'

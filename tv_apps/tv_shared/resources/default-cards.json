@@ -1,0 +1,25 @@
+{
+  "card_list": [
+    {
+      "name": "Apps",
+      "type": "Deck",
+      "deckClass": "application",
+      "manifestURL": "app://app-deck.gaiamobile.org/manifest.webapp",
+      "group": "app"
+    },
+    {
+      "name": "Devices",
+      "type": "Deck",
+      "deckClass": "device",
+      "manifestURL": "app://device-deck.gaiamobile.org/manifest.webapp",
+      "group": "device"
+    },
+    {
+      "name": "Dashboard",
+      "type": "Deck",
+      "deckClass": "dashboard",
+      "manifestURL": "app://dashboard.gaiamobile.org/manifest.webapp",
+      "group": "dashboard"
+    }
+  ]
+}

@@ -1,5 +1,5 @@
-/*global MocksHelper, MockL10n, MockGestureDetector, MockDialog,
-         loadBodyHTML, ThreadUI, MessageManager,
+/*global MocksHelper, MockL10n, MockGestureDetector,
+         loadBodyHTML, ThreadUI, Threads, MessageManager,
          ThreadListUI, Contacts, MockContact, MockThreadList,
          MockThreadMessages, getMockupedDate, Utils */
 /*
@@ -11,41 +11,43 @@
 require('/shared/js/lazy_loader.js');
 require('/shared/js/gesture_detector.js');
 require('/shared/js/sticky_header.js');
-
+require('/shared/js/usertiming.js');
+require('/shared/js/performance_testing_helper.js');
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-requireApp('sms/test/unit/mock_contact.js');
-requireApp('sms/test/unit/mock_time_headers.js');
-requireApp('sms/test/unit/mock_attachment_menu.js');
-requireApp('sms/test/unit/mock_information.js');
-requireApp('sms/test/unit/mock_dialog.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
+
+require('/test/unit/mock_contact.js');
+require('/test/unit/mock_time_headers.js');
+require('/test/unit/mock_attachment_menu.js');
+require('/test/unit/mock_information.js');
 require('/test/unit/mock_settings.js');
 require('/test/unit/mock_inter_instance_event_dispatcher.js');
-require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/test/unit/utils_mockup.js');
+require('/test/unit/messages_mockup.js');
+require('/test/unit/thread_list_mockup.js');
 
 require('/js/selection_handler.js');
 require('/js/event_dispatcher.js');
 require('/js/navigation.js');
-requireApp('sms/js/link_helper.js');
-requireApp('sms/js/drafts.js');
-requireApp('sms/js/contacts.js');
-requireApp('sms/js/utils.js');
+require('/js/link_helper.js');
+require('/js/drafts.js');
+require('/js/contacts.js');
+require('/js/utils.js');
 require('/js/subject_composer.js');
 require('/js/compose.js');
-requireApp('sms/js/threads.js');
-requireApp('sms/test/unit/utils_mockup.js');
-requireApp('sms/test/unit/messages_mockup.js');
-requireApp('sms/test/unit/thread_list_mockup.js');
-requireApp('sms/js/message_manager.js');
-requireApp('sms/js/attachment.js');
-requireApp('sms/js/thread_list_ui.js');
-requireApp('sms/js/recipients.js');
-requireApp('sms/js/thread_ui.js');
-requireApp('sms/js/waiting_screen.js');
-require('/shared/js/performance_testing_helper.js');
-requireApp('sms/js/startup.js');
+require('/js/threads.js');
+require('/js/message_manager.js');
+require('/js/attachment.js');
+require('/js/thread_list_ui.js');
+require('/js/recipients.js');
+require('/js/thread_ui.js');
+require('/js/waiting_screen.js');
+require('/js/startup.js');
+require('/js/task_runner.js');
+
 
 var MocksHelperForSmsUnitTest = new MocksHelper([
   'asyncStorage',
@@ -54,7 +56,6 @@ var MocksHelperForSmsUnitTest = new MocksHelper([
   'TimeHeaders',
   'Information',
   'ContactPhotoHelper',
-  'Dialog',
   'InterInstanceEventDispatcher',
   'LazyLoader'
 ]).init();
@@ -345,6 +346,62 @@ suite('SMS App Unit-Test', function() {
         assert.isFalse(checkUncheckAllButton.disabled);
       });
 
+      test('Read/Unread buttons', function() {
+        var readUnreadButton;
+
+        ThreadListUI.startEdit();
+        // Retrieve all inputs
+        var inputs = ThreadListUI.container.getElementsByTagName('input');
+        readUnreadButton =
+          document.querySelector('#threads-read-unread-button');
+
+        // unread button enabled when selected threads has read message only
+        Array.forEach(inputs, (input) => {
+          input.checked = true;
+          Threads.get(input.value).unreadCount = 0;
+          ThreadListUI.selectionHandler.select(input.value);
+        });
+        ThreadListUI.checkInputs();
+        assert.equal(readUnreadButton.dataset.action, 'mark-as-unread');
+
+        // read button enabled when selected threads has unread message only
+        Array.forEach(inputs, (input) => {
+          input.checked = true;
+          Threads.get(input.value).unreadCount = 1;
+          ThreadListUI.selectionHandler.select(input.value);
+        });
+        ThreadListUI.checkInputs();
+        assert.equal(readUnreadButton.dataset.action, 'mark-as-read');
+
+        // read button enabled when selected thread has read & unread message
+        Array.forEach(inputs, (input, key) => {
+          if(key === 0) {
+            Threads.get(input.value).unreadCount = 0;
+          }
+          input.checked = true;
+          ThreadListUI.selectionHandler.select(input.value);
+        });
+        ThreadListUI.checkInputs();
+        assert.equal(readUnreadButton.dataset.action, 'mark-as-read');
+
+        // read/unread button disabled when no any threads are selected
+        Array.forEach(inputs, (input) => {
+          input.checked = false;
+          ThreadListUI.selectionHandler.unselect(input.value);
+        });
+        ThreadListUI.checkInputs();
+        assert.isTrue(readUnreadButton.disabled);
+
+        // read/unread button disabled when only drafts are selected
+        Array.forEach(inputs, (input) => {
+          input.value = 'undefined';
+          input.checked = true;
+          ThreadListUI.selectionHandler.select(input.value);
+        });
+        ThreadListUI.checkInputs();
+        assert.isTrue(readUnreadButton.disabled);
+      });
+
       test('Select all while receiving new thread', function(done) {
         ThreadListUI.startEdit();
         ThreadListUI.selectionHandler.toggleCheckedAll(true);
@@ -458,9 +515,10 @@ suite('SMS App Unit-Test', function() {
         this.sinon.spy(ThreadUI, 'checkInputs');
         this.sinon.stub(ThreadListUI, 'setContact');
         ThreadUI.renderMessages(1, function() {
+          ThreadUI.startEdit();
           done();
         });
-        ThreadUI.startEdit();
+
       });
 
       teardown(function() {
@@ -502,18 +560,21 @@ suite('SMS App Unit-Test', function() {
       });
 
       test('Select all while receiving new message', function(done) {
+        this.sinon.stub(Utils, 'confirm').returns(Promise.resolve());
         ThreadUI.selectionHandler.toggleCheckedAll(true);
+        var checkboxes = Array.from(ThreadUI.container.querySelectorAll(
+          'input[type=checkbox]'
+        ));
+        var checkUncheckAllButton = document.getElementById(
+          'messages-check-uncheck-all-button'
+        );
 
-        var checkboxes =
-          ThreadUI.container.querySelectorAll('input[type=checkbox]');
-        var checkUncheckAllButton =
-          document.getElementById('messages-check-uncheck-all-button');
         assert.equal(checkboxes.length, 5);
-        assert.equal(checkboxes.length,
-          [].slice.call(checkboxes).filter(function(i) {
-            return i.checked;
-          }).length, 'All items should be checked');
-
+        assert.equal(
+          checkboxes.length,
+          checkboxes.filter((item) => item.checked).length,
+          'All items should be checked'
+        );
         // now a new message comes in...
         var incomingMessage = {
           sender: '197746797',
@@ -524,46 +585,44 @@ suite('SMS App Unit-Test', function() {
           type: 'sms',
           channel: 'sms'
         };
-        ThreadUI.appendMessage(incomingMessage);
 
-        // new checkbox should have been added
-        checkboxes =
-          ThreadUI.container.querySelectorAll('input[type=checkbox]');
-        assert.equal(checkboxes.length, 6);
-        assert.equal(checkboxes[2].checked, true);
-        assert.equal(checkboxes[5].checked, false);
+        ThreadUI.appendMessage(incomingMessage).then(() => {
+          // new checkbox should have been added
+          checkboxes = ThreadUI.container.querySelectorAll(
+            'input[type=checkbox]'
+          );
+          assert.equal(checkboxes.length, 6);
+          assert.equal(checkboxes[2].checked, true);
+          assert.equal(checkboxes[5].checked, false);
 
-        // Select-Deselect all should both be enabled
-        assert.isFalse(checkUncheckAllButton
-          .hasAttribute('disabled'), 'Check-Uncheck all enabled');
+          // Select-Deselect all should both be enabled
+          assert.isFalse(
+            checkUncheckAllButton.hasAttribute('disabled'),
+            'Check-Uncheck all enabled'
+          );
 
-        // now delete the selected messages...
-        MessageManager.deleteMessages = stub(function(list, itCb) {
-          setTimeout(itCb);
-        });
+          // now delete the selected messages...
+          this.sinon.stub(MessageManager, 'deleteMessages').yields();
 
-        var getMessageReq = {};
-        this.sinon.stub(MessageManager, 'getMessage').returns(getMessageReq);
-        getMessageReq.result = incomingMessage;
+          var getMessageReq = {
+            result: incomingMessage
+          };
+          this.sinon.stub(MessageManager, 'getMessage').returns(getMessageReq);
 
-        setTimeout(function() {
-          getMessageReq.onsuccess();
-          assert.isTrue(MockDialog.triggers.confirm.called);
-          assert.equal(MessageManager.deleteMessages.callCount, 1);
-          assert.equal(MessageManager.deleteMessages.calledWith[0].length, 5);
-          assert.equal(ThreadUI.container.querySelectorAll('li').length, 1,
-            'correct number of Thread li');
-          assert.equal(
-            ThreadUI.container.querySelector('#message-9999 p').textContent,
-            'Recibidas!');
-          done();
-        }, 1500); // only the last one is slow. What is blocking?
-
-        ThreadUI.delete();
-        MockDialog.triggers.confirm();
+          return ThreadUI.delete().then(() => {
+            getMessageReq.onsuccess();
+            sinon.assert.calledOnce(MessageManager.deleteMessages);
+            assert.equal(MessageManager.deleteMessages.args[0][0].length, 5);
+            assert.equal(ThreadUI.container.querySelectorAll('li').length, 1,
+              'correct number of Thread li');
+            assert.equal(
+              ThreadUI.container.querySelector('#message-9999 p').textContent,
+              'Recibidas!');
+          });
+        }).then(done, done);
       });
 
-      test('checkInputs should fire in edit mode', function() {
+      test('checkInputs should fire in edit mode', function(done) {
         ThreadUI.startEdit();
 
         // now a new message comes in...
@@ -574,9 +633,9 @@ suite('SMS App Unit-Test', function() {
           id: 9999,
           timestamp: Date.now(),
           channel: 'sms'
-        });
-
-        assert.ok(ThreadUI.checkInputs.called);
+        }).then(() => {
+          assert.ok(ThreadUI.checkInputs.called);
+        }).then(done, done);
       });
 
       test('checkInputs should not fire in normal mode', function(done) {
@@ -591,10 +650,9 @@ suite('SMS App Unit-Test', function() {
           id: 9999,
           timestamp: Date.now(),
           channel: 'sms'
-        });
-
-        assert.equal(ThreadUI.checkInputs.callCount, 0);
-        done();
+        }).then(() => {
+          assert.equal(ThreadUI.checkInputs.callCount, 0);
+        }).then(done, done);
       });
     });
 
@@ -612,7 +670,7 @@ suite('SMS App Unit-Test', function() {
     };
 
     //test
-    test('#Test URL in message', function() {
+    test('#Test URL in message', function(done) {
       var messageBody = 'For more details visit' +
       ' Yahoo.com, http://www.df.com' +
       ' or visit faq mail.google.com/mail/help/intl/en/about.html.' +
@@ -621,53 +679,54 @@ suite('SMS App Unit-Test', function() {
       var id = '123456';
       Message.id = id;
       Message.body = messageBody;
-      var messageDOM = ThreadUI.buildMessageDOM(Message, false);
-      var anchors = messageDOM.querySelectorAll('[data-url]');
-      assert.equal(anchors.length, 5,
-        '5 URLs are tappable in message');
-      assert.equal(anchors[0].dataset.url,
-        'http://Yahoo.com', 'First url is http://Yahoo.com');
-      assert.equal(anchors[1].dataset.url,
-        'http://www.df.com', 'Second url is http://www.df.com');
-      assert.equal(anchors[2].dataset.url,
-        'http://mail.google.com/mail/help/intl/en/about.html',
-        'Third url is http://mail.google.com/mail/help/intl/en/about.html');
-      assert.equal(anchors[3].dataset.url,
-        'http://google.com/search?q=long+url+with+queries&sourceid=firefox',
-        'Fourth is google.com/search?q=long+url+with+queries&sourceid=firefox' +
-        ' and it comes with queries!');
-      assert.equal(anchors[4].dataset.url,
-        'https://secured.web:9080',
-        'Fifth is https://secured.web:9080, secured and after a line break');
-      // The links generated shouldn have 'href'
-      var anchorsLength = anchors.length;
-      for (var i = 0; i < anchorsLength; i++) {
-        assert.equal(anchors[i].href, '');
-      }
-
+      ThreadUI.buildMessageDOM(Message, false).then((messageDOM) => {
+        var anchors = messageDOM.querySelectorAll('[data-url]');
+        assert.equal(anchors.length, 5,
+          '5 URLs are tappable in message');
+        assert.equal(anchors[0].dataset.url,
+          'http://Yahoo.com', 'First url is http://Yahoo.com');
+        assert.equal(anchors[1].dataset.url,
+          'http://www.df.com', 'Second url is http://www.df.com');
+        assert.equal(anchors[2].dataset.url,
+          'http://mail.google.com/mail/help/intl/en/about.html',
+          'Third url is http://mail.google.com/mail/help/intl/en/about.html');
+        assert.equal(anchors[3].dataset.url,
+          'http://google.com/search?q=long+url+with+queries&sourceid=firefox',
+          'google.com/search?q=long+url+with+queries&sourceid=firefox is ' +
+          'fourth and it comes with queries!');
+        assert.equal(anchors[4].dataset.url,
+          'https://secured.web:9080',
+          'Fifth is https://secured.web:9080, secured and after a line break');
+        // The links generated shouldn have 'href'
+        var anchorsLength = anchors.length;
+        for (var i = 0; i < anchorsLength; i++) {
+          assert.equal(anchors[i].href, '');
+        }
+      }).then(done, done);
     });
 
-    test('#Test URL with phone, email in message', function() {
+    test('#Test URL with phone, email in message', function(done) {
       var messageBody = 'Email at cs@yahoo.com, For more details' +
         ' visit http://www.mozilla.org/en-US/firefox/fx/, www.gmail.com' +
         ' or call 897-890-8907';
       var id = '123457';
       Message.id = id;
       Message.body = messageBody;
-      var messageDOM = ThreadUI.buildMessageDOM(Message, false);
-      var anchors = messageDOM.querySelectorAll('[data-url]');
-      assert.equal(anchors.length, 2,
-        '2 URLs are tappable in message');
-      assert.equal(anchors[0].dataset.url,
-        'http://www.mozilla.org/en-US/firefox/fx/',
-         'First url is http://www.mozilla.org/en-US/firefox/fx/');
-      assert.equal(anchors[1].dataset.url,
-        'http://www.gmail.com', 'Second url is http://www.gmail.com');
-      // The links generated shouldn have 'href'
-      var anchorsLength = anchors.length;
-      for (var i = 0; i < anchorsLength; i++) {
-        assert.equal(anchors[i].href, '');
-      }
+      ThreadUI.buildMessageDOM(Message, false).then((messageDOM) => {
+        var anchors = messageDOM.querySelectorAll('[data-url]');
+        assert.equal(anchors.length, 2,
+          '2 URLs are tappable in message');
+        assert.equal(anchors[0].dataset.url,
+          'http://www.mozilla.org/en-US/firefox/fx/',
+           'First url is http://www.mozilla.org/en-US/firefox/fx/');
+        assert.equal(anchors[1].dataset.url,
+          'http://www.gmail.com', 'Second url is http://www.gmail.com');
+        // The links generated shouldn have 'href'
+        var anchorsLength = anchors.length;
+        for (var i = 0; i < anchorsLength; i++) {
+          assert.equal(anchors[i].href, '');
+        }
+      }).then(done, done);
     });
   });
 
@@ -679,28 +738,31 @@ suite('SMS App Unit-Test', function() {
     };
 
     //test
-    test('#Test EmailAddress in message', function() {
+    test('#Test EmailAddress in message', function(done) {
       var messageBody = 'Email abc@gmail.com or myself@my.com,rs@1 ' +
                       'from yahoo.com';
       var id = '123456';
       Message.id = id;
       Message.body = messageBody;
-      var messageDOM = ThreadUI.buildMessageDOM(Message, false);
-      var anchors = messageDOM.querySelectorAll('[data-email]');
-      assert.equal(anchors.length, 2,
-        '2 Email Addresses are tappable in message');
-      assert.equal(anchors[0].dataset.email,
-        'abc@gmail.com', 'First email is abc@gmail.com');
-      assert.equal(anchors[1].dataset.email,
-        'myself@my.com', 'Second email is myself@my.com');
-      // The email links generated shouldn have 'href'
-      var anchorsLength = anchors.length;
-      for (var i = 0; i < anchorsLength; i++) {
-        assert.equal(anchors[i].href, '');
-      }
+      ThreadUI.buildMessageDOM(Message, false).then((messageDOM) => {
+        var anchors = messageDOM.querySelectorAll('[data-email]');
+        assert.equal(anchors.length, 2,
+          '2 Email Addresses are tappable in message');
+        assert.equal(anchors[0].dataset.email,
+          'abc@gmail.com', 'First email is abc@gmail.com');
+        assert.equal(anchors[1].dataset.email,
+          'myself@my.com', 'Second email is myself@my.com');
+        // The email links generated shouldn have 'href'
+        var anchorsLength = anchors.length;
+        for (var i = 0; i < anchorsLength; i++) {
+          assert.equal(anchors[i].href, '');
+        }
+      }).then(done, done);
     });
 
-    test('#Test with phone numbers, url and email in a message', function() {
+    test('#Test with phone numbers, url and email in a message',
+      function(done) {
+
       var messageBody = 'Send a text to 729725 (PAYPAL).' +
       ' money@paypal.com hi-there@mail.com,sup.port@efg.com and 35622.00' +
       ' the cs@yahoo.co.in email. www.yahoo.com,payapal.com are urls.' +
@@ -708,23 +770,24 @@ suite('SMS App Unit-Test', function() {
       var id = '123457';
       Message.id = id;
       Message.body = messageBody;
-      var messageDOM = ThreadUI.buildMessageDOM(Message, false);
-      var anchors = messageDOM.querySelectorAll('[data-email]');
-      assert.equal(anchors.length, 4,
-        '4 links are attached for  email in DOM');
-      assert.equal(anchors[0].dataset.email,
-        'money@paypal.com', 'First email is money@paypal.com');
-      assert.equal(anchors[1].dataset.email,
-        'hi-there@mail.com', 'Second email is hi-there@mail.com');
-      assert.equal(anchors[2].dataset.email,
-        'sup.port@efg.com', 'Third email is sup.port@efg.com');
-      assert.equal(anchors[3].dataset.email,
-        'cs@yahoo.co.in', 'Fourth email is cs@yahoo.co.in');
-      // The email links generated shouldn have 'href'
-      var anchorsLength = anchors.length;
-      for (var i = 0; i < anchorsLength; i++) {
-        assert.equal(anchors[i].href, '');
-      }
+      ThreadUI.buildMessageDOM(Message, false).then((messageDOM) => {
+        var anchors = messageDOM.querySelectorAll('[data-email]');
+        assert.equal(anchors.length, 4,
+          '4 links are attached for  email in DOM');
+        assert.equal(anchors[0].dataset.email,
+          'money@paypal.com', 'First email is money@paypal.com');
+        assert.equal(anchors[1].dataset.email,
+          'hi-there@mail.com', 'Second email is hi-there@mail.com');
+        assert.equal(anchors[2].dataset.email,
+          'sup.port@efg.com', 'Third email is sup.port@efg.com');
+        assert.equal(anchors[3].dataset.email,
+          'cs@yahoo.co.in', 'Fourth email is cs@yahoo.co.in');
+        // The email links generated shouldn have 'href'
+        var anchorsLength = anchors.length;
+        for (var i = 0; i < anchorsLength; i++) {
+          assert.equal(anchors[i].href, '');
+        }
+      }).then(done, done);
     });
   });
 
@@ -736,25 +799,26 @@ suite('SMS App Unit-Test', function() {
     };
 
     //test
-    test('#numberWithDash', function() {
+    test('#numberWithDash', function(done) {
       var messageBody = 'Hello there, here are numbers with ' +
                       'dashes 408-746-9721, 4087469721, 7469721';
       var id = '12345';
       Message.id = id;
       Message.body = messageBody;
-      var messageDOM = ThreadUI.buildMessageDOM(Message, false);
-      var anchors = messageDOM.querySelectorAll('[data-dial]');
-      assert.equal(anchors.length, 3,
-        '3 Contact handlers are attached for 3 phone numbers in DOM');
-      assert.equal(anchors[0].dataset.dial,
-        '408-746-9721', 'First number link is 408-746-9721');
-      assert.equal(anchors[1].dataset.dial,
-        '4087469721', 'Second number is 4087469721');
-      assert.equal(anchors[2].dataset.dial,
-        '7469721', 'Third number is 7469721');
+      ThreadUI.buildMessageDOM(Message, false).then((messageDOM) => {
+        var anchors = messageDOM.querySelectorAll('[data-dial]');
+        assert.equal(anchors.length, 3,
+          '3 Contact handlers are attached for 3 phone numbers in DOM');
+        assert.equal(anchors[0].dataset.dial,
+          '408-746-9721', 'First number link is 408-746-9721');
+        assert.equal(anchors[1].dataset.dial,
+          '4087469721', 'Second number is 4087469721');
+        assert.equal(anchors[2].dataset.dial,
+          '7469721', 'Third number is 7469721');
+      }).then(done, done);
     });
 
-    test('#complexTest with 7 digit numbers, ip, decimals', function() {
+    test('#complexTest with 7 digit numbers, ip, decimals', function(done) {
       var messageBody = '995-382-7369 futures to a 4458901 slight' +
         ' 789-7890 rebound +1-556-667-7789 on Wall Street 9953827369' +
         ' on Wednesday, +12343454567 with 55.55 futures +919810137553' +
@@ -763,30 +827,31 @@ suite('SMS App Unit-Test', function() {
       var id = '12346';
       Message.id = id;
       Message.body = messageBody;
-      var messageDOM = ThreadUI.buildMessageDOM(Message, false);
-      var anchors = messageDOM.querySelectorAll('[data-dial]');
+      ThreadUI.buildMessageDOM(Message, false).then((messageDOM) => {
+        var anchors = messageDOM.querySelectorAll('[data-dial]');
 
-      assert.equal(anchors.length, 7,
-        '7 Contact handlers are attached for 7 phone numbers in DOM');
-      assert.equal(anchors[0].dataset.dial,
-        '995-382-7369', 'First number is 995-382-7369');
-      assert.equal(anchors[1].dataset.dial,
-        '4458901', 'Second number is 4458901');
-      assert.equal(anchors[2].dataset.dial,
-        '789-7890', 'Third number is 789-7890');
-      assert.equal(anchors[3].dataset.dial,
-        '+1-556-667-7789', 'Fourth number is +1-556-667-7789');
-      assert.equal(anchors[4].dataset.dial,
-        '9953827369', 'Fifth number is 9953827369');
-      assert.equal(anchors[5].dataset.dial,
-        '+12343454567', 'Sixth number is +12343454567');
-      assert.equal(anchors[6].dataset.dial,
-        '+919810137553', 'Seventh number is +919810137553');
-      // The phone links generated shouldn have 'href'
-      var anchorsLength = anchors.length;
-      for (var i = 0; i < anchorsLength; i++) {
-        assert.equal(anchors[i].href, '');
-      }
+        assert.equal(anchors.length, 7,
+          '7 Contact handlers are attached for 7 phone numbers in DOM');
+        assert.equal(anchors[0].dataset.dial,
+          '995-382-7369', 'First number is 995-382-7369');
+        assert.equal(anchors[1].dataset.dial,
+          '4458901', 'Second number is 4458901');
+        assert.equal(anchors[2].dataset.dial,
+          '789-7890', 'Third number is 789-7890');
+        assert.equal(anchors[3].dataset.dial,
+          '+1-556-667-7789', 'Fourth number is +1-556-667-7789');
+        assert.equal(anchors[4].dataset.dial,
+          '9953827369', 'Fifth number is 9953827369');
+        assert.equal(anchors[5].dataset.dial,
+          '+12343454567', 'Sixth number is +12343454567');
+        assert.equal(anchors[6].dataset.dial,
+          '+919810137553', 'Seventh number is +919810137553');
+        // The phone links generated shouldn have 'href'
+        var anchorsLength = anchors.length;
+        for (var i = 0; i < anchorsLength; i++) {
+          assert.equal(anchors[i].href, '');
+        }
+      }).then(done, done);
     });
   });
 

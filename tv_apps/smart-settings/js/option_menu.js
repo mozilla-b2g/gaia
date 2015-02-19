@@ -1,5 +1,5 @@
 'use strict';
-/* global Base */
+/* global Base, KeyEvent, SelectionBorder, SpatialNavigator */
 (function(exports) {
 
   function OptionMenu() {
@@ -60,13 +60,13 @@
     });
 
     this.container = container;
-    var menuUIs = []
+    var menuUIs = [];
     for(var i = 0; i < this.menus.length; i++) {
       menuUIs[i] = this.createMenu(this.menus[i]);
       if (this.menus[i].selected) {
         this.currentSelectedDOM = menuUIs[i];
       }
-      container.appendChild(menuUIs[i])
+      container.appendChild(menuUIs[i]);
     }
     // init spatial navigation
     this.spatialNavigation = new SpatialNavigator(menuUIs);

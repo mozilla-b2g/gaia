@@ -1,5 +1,6 @@
 'use strict';
-/* global Base, SettingsGroup, Applications */
+/* global Applications, Base, KeyEvent, Settings,
+          SettingsGroup, SetupGroupList, SettingsList */
 
 (function(exports) {
 
@@ -230,7 +231,7 @@
 
   proto.updateSettings = function st_updateSettings(data) {
     mozSettings.createLock().set(data);
-  }
+  };
 
   exports.Settings = Settings;
 }(window));

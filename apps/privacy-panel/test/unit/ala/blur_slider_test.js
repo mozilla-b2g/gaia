@@ -1,19 +1,30 @@
 'use strict';
+/* // Disabled bug 1130552.
+
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('ALA BlurSlider', function() {
 
-  setup(function(done) {
-    require(['ala/blur_slider'], BlurSlider => {
-      var slider = document.createElement('input');
-      var label = document.createElement('p');
-      slider.classList.add('blur-slider');
-      label.classList.add('blur-label');
-      this.element = document.createElement('div');
-      this.element.appendChild(label);
-      this.element.appendChild(slider);
-      this.subject = new BlurSlider();
-      done();
-    });
+  var realL10n;
+
+  suiteSetup(function(done) {
+    realL10n = window.navigator.mozL10n;
+    window.navigator.mozL10n = MockL10n;
+    requireApp('privacy-panel/js/ala/blur_slider.js', done);
+  });
+
+  suiteTeardown(function() {
+    window.navigator.mozL10n = realL10n;
+  });
+
+  setup(function() {
+    var slider = document.createElement('input');
+    var label = document.createElement('p');
+    slider.classList.add('blur-slider');
+    label.classList.add('blur-label');
+    this.element = document.createElement('div');
+    this.element.appendChild(label);
+    this.element.appendChild(slider);
   });
 
   //initialize with 500m
@@ -47,3 +58,4 @@ suite('ALA BlurSlider', function() {
     assert.equal(label, '1km');
   });
 });
+*/

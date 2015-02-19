@@ -11,6 +11,8 @@ DataGridProvider.prototype = {
 
   name: 'DataGridProvider',
 
+  isGridProvider: true,
+
   init: function() {
     this.grid = document.getElementById('icons');
   },
@@ -23,6 +25,7 @@ DataGridProvider.prototype = {
     results.forEach(function(config, index) {
       this.grid.add(config.data);
     }, this);
+
     this.grid.render({
       skipDivider: true
     });

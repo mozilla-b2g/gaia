@@ -4,10 +4,16 @@
 
 import time
 
-from marionette.by import By
-from marionette.errors import NoSuchElementException
-from marionette.errors import StaleElementException
-from marionette.wait import Wait
+try:
+    from marionette.wait import Wait
+    from marionette.by import By
+    from marionette.errors import (NoSuchElementException,
+                               StaleElementException)
+except:
+    from marionette_driver.wait import Wait
+    from marionette_driver.by import By
+    from marionette_driver.errors import (NoSuchElementException,
+                               StaleElementException)
 
 from gaiatest import GaiaApps
 from gaiatest import Accessibility
@@ -101,7 +107,7 @@ class Base(object):
         # now back to app
         self.apps.switch_to_displayed_app()
 
-    def select(self, match_string):
+    def select(self, match_string, tap_close=True):
         # cheeky Select wrapper until Marionette has its own
         # due to the way B2G wraps the app's select box we match on text
         _close_button_locator = (By.CSS_SELECTOR, 'button.value-option-confirm')
@@ -110,7 +116,8 @@ class Base(object):
         li.tap()
 
         # Tap close and wait for it to hide
-        self.marionette.find_element(*_close_button_locator).tap()
+        if tap_close:
+          self.marionette.find_element(*_close_button_locator).tap()
         self.wait_for_select_closed(*_close_button_locator)
 
     def a11y_select(self, match_string):

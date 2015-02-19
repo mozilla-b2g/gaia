@@ -1,0 +1,10 @@
+{
+  "webide": {
+    "prepackage": {
+      "command": "make",
+      "env": ["APP=search"],
+      "cwd": "../.."
+    },
+    "packageDir": "../../build_stage/search/"
+  }
+}

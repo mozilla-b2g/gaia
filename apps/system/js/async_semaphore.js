@@ -5,7 +5,7 @@
 
 (function(exports) {
   var AsyncSemaphore = function as_contructor() {
-    if (!this instanceof AsyncSemaphore) {
+    if (!(this instanceof AsyncSemaphore)) {
       return new AsyncSemaphore();
     }
     this._init();

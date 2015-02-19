@@ -37,10 +37,11 @@
      */
     start: function esd_init() {
       window.addEventListener('homescreenopened', this);
-      window.addEventListener('appopen', this);
-      window.addEventListener('launchapp', this);
+      window.addEventListener('appopened', this);
       window.addEventListener('cardviewclosed', this);
       window.addEventListener('mozChromeEvent', this);
+      window.addEventListener('updatepromptshown', this);
+      window.addEventListener('updateprompthidden', this);
 
       ['touchstart', 'touchmove', 'touchend',
        'mousedown', 'mousemove', 'mouseup'].forEach(function(e) {
@@ -114,17 +115,14 @@
           e.preventDefault();
           this._touchEnd(e);
           break;
-        case 'appopen':
+        case 'appopened':
           var app = e.detail;
-          this.lifecycleEnabled = (app.origin !== FtuLauncher.getFtuOrigin());
+          if (!app.stayBackground) {
+            this.lifecycleEnabled = (app.origin !== FtuLauncher.getFtuOrigin());
+          }
           break;
         case 'homescreenopened':
           this.lifecycleEnabled = false;
-          break;
-        case 'launchapp':
-          if (!e.detail.stayBackground) {
-            this.lifecycleEnabled = true;
-          }
           break;
         case 'cardviewclosed':
           if (e.detail && e.detail.newStackPosition) {
@@ -145,6 +143,14 @@
                 break;
             }
             break;
+        case 'updatepromptshown':
+          this.lifecycleEnabled = false;
+          break;
+        case 'updateprompthidden':
+          if (Service.currentApp && !Service.currentApp.isHomescreen) {
+            this.lifecycleEnabled = true;
+          }
+          break;
       }
     },
 

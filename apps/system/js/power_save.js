@@ -114,7 +114,10 @@
 
       NotificationHelper.send('notification-powersaving-mode-on-title', {
         'bodyL10n': 'notification-powersaving-mode-on-description',
-        'icon': 'style/icons/Power_saving_mode.png'
+        'icon': 'style/icons/Power_saving_mode.png',
+        'mozbehavior': {
+          showOnlyOnce: true
+        }
       }).then(function(notification) {
         notification.addEventListener('click', clickCB);
       });

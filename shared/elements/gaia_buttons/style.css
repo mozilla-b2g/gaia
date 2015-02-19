@@ -8,17 +8,25 @@ gaia-buttons {
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 7rem;
+  box-sizing: border-box;
+  pointer-events: auto;
+}
+
+gaia-buttons:not(.inline) {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: 10;
-  height: 7rem;
-  box-sizing: border-box;
-  padding: 0 1.5rem 0 0;
   border-top: 0.1rem solid #e7e7e7;
+  padding: 0 1.5rem 0 0;
   background-color: #f4f4f4;
-  pointer-events: auto;
+}
+
+gaia-buttons.inline a,
+gaia-buttons.inline button {
+  margin: 0;
 }
 
 button::-moz-focus-inner {

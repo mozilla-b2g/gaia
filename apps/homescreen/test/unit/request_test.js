@@ -1,23 +1,25 @@
 'use strict';
-
-requireApp('homescreen/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('homescreen/test/unit/mock_request.html.js');
 requireApp('homescreen/js/request.js');
 
 suite('request.js >', function() {
 
-  var dialog;
+  var dialog, realL10n;
 
   suiteSetup(function() {
     dialog = document.createElement('section');
     dialog.id = 'confirm-dialog';
     dialog.innerHTML = MockRequestHtml;
     document.body.appendChild(dialog);
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
     ConfirmDialog.init();
   });
 
   suiteTeardown(function() {
     document.body.removeChild(dialog);
+    navigator.mozL10n = realL10n;
   });
 
   function showDialog() {

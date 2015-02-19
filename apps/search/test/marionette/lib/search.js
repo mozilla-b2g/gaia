@@ -17,6 +17,7 @@ function Search(client) {
 Search.URL = 'app://search.gaiamobile.org';
 
 Search.Selectors = {
+  allGridResults: 'gaia-grid .icon',
   iframe: 'iframe[mozapptype="search"]',
   firstAppContainer: 'gaia-grid',
   firstApp: 'gaia-grid .icon',
@@ -25,8 +26,11 @@ Search.Selectors = {
   firstPlace: '#places div .title',
   firstPlaceContainer: '#places',
   firstRunConfirm: '#suggestions-notice-confirm',
+  privateWindow: '#private-window',
   topSites: '.top-site',
-  historyResults: '#history .result'
+  historyResults: '#history .result',
+  suggestions: '#suggestions li',
+  switchProviders: '#suggestions-select'
 };
 
 Search.prototype = {
@@ -49,6 +53,13 @@ Search.prototype = {
    */
   getResultSelector: function(identifier) {
     return '.icon[data-identifier="' + identifier + '"]';
+  },
+
+  /**
+   * Return selector for the history list item by URL
+   */
+  getHistoryResultSelector: function(url) {
+    return '.result[data-url="' + url + '"]';
   },
 
   /**
@@ -81,18 +92,10 @@ Search.prototype = {
   },
 
   /**
-   * Workaround for bug 1022768, where app permissions are not auto ALLOWed
-   * for tests on desktop. If that bug is fixed, this function should be
-   * removed.
+   * Counts all grid search results.
    */
-  removeGeolocationPermission: function() {
-    var client = this.client.scope({ context: 'chrome' });
-    client.executeScript(function(origin) {
-      var mozPerms = navigator.mozPermissionSettings;
-      mozPerms.set(
-        'geolocation', 'deny', origin + '/manifest.webapp', origin, false
-      );
-    }, [Search.URL]);
+  countGridResults: function() {
+    return this.client.findElements(Search.Selectors.allGridResults).length;
   },
 
   /**
@@ -119,7 +122,11 @@ Search.prototype = {
     this.client.switchToFrame();
     this.client.apps.switchToApp.apply(this.client.apps, arguments);
     this.client.helper.waitForElement('body');
-  }
+  },
+
+  get switchProvidersSelect() {
+    return this.client.helper.waitForElement(Search.Selectors.switchProviders);
+  },
 
 };
 

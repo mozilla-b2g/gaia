@@ -1,0 +1,10 @@
+{
+  "webide": {
+    "prepackage": {
+      "command": "make",
+      "env": ["APP=emergency-call"],
+      "cwd": "../.."
+    },
+    "packageDir": "../../build_stage/emergency-call/"
+  }
+}

@@ -167,9 +167,15 @@ suite('system/StackManager >', function() {
     window.dispatchEvent(new Event('home'));
   }
 
-  function openAppFromCardView(app) {
+  function appOpening(app) {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('appopening', true, false, app);
+    window.dispatchEvent(evt);
+  }
+
+  function appOpened(app) {
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('appopened', true, false, app);
     window.dispatchEvent(evt);
   }
 
@@ -232,6 +238,13 @@ suite('system/StackManager >', function() {
     teardown(function() {
       StackManager.__clearAll();
     });
+  });
+
+  test('_didntMove by default is true', function() {
+    appLaunch(dialer);
+    this.sinon.stub(dialer, 'setNFCFocus');
+    StackManager.commit();
+    assert.isTrue(dialer.setNFCFocus.calledWith(true));
   });
 
   suite('Cards View Events', function() {
@@ -462,6 +475,14 @@ suite('system/StackManager >', function() {
 
     test('it should become the current stack item', function() {
       assert.deepEqual(StackManager.getCurrent().config, dialer.config);
+    });
+
+    test('it should set the position when opened', function() {
+      var fakePosition = 10;
+      assert.equal(StackManager.position, 0);
+      this.sinon.stub(StackManager, '_indexOfInstanceID').returns(fakePosition);
+      appOpened(dialer);
+      assert.equal(StackManager.position, fakePosition);
     });
 
     suite('then another app is launched', function() {
@@ -710,7 +731,7 @@ suite('system/StackManager >', function() {
     appLaunch(dialer);
     appLaunch(contact);
     appLaunch(settings);
-    openAppFromCardView(dialer);
+    appOpening(dialer);
     assert.deepEqual(StackManager.getCurrent().config, dialer.config);
   });
 

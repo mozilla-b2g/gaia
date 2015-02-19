@@ -48,7 +48,9 @@
   /**
   `app.manifest.role`s which should not be displayed on the grid.
   */
-  Mozapp.HIDDEN_ROLES = ['system', 'input', 'homescreen', 'search'];
+  Mozapp.HIDDEN_ROLES = [
+    'system', 'input', 'homescreen', 'search', 'addon', 'langpack'
+  ];
 
   Mozapp.prototype = {
 
@@ -170,13 +172,16 @@
       var userLang = document.documentElement.lang;
 
       if (navigator.mozL10n && userLang in navigator.mozL10n.qps) {
-        return navigator.mozL10n.qps[userLang].translate(this.descriptor.name);
+        return navigator.mozL10n.qps[userLang].
+          translate(this.descriptor.short_name || this.descriptor.name);
       }
 
       var locales = this.descriptor.locales;
-      var localized = locales && locales[userLang] && locales[userLang].name;
+      var localized =
+        locales && locales[userLang] &&
+        (locales[userLang].short_name || locales[userLang].name);
 
-      return localized || this.descriptor.name;
+      return localized || this.descriptor.short_name || this.descriptor.name;
     },
 
     /**
@@ -301,6 +306,10 @@
           return this.resume();
         case APP_LOADING:
           return this.cancel();
+      }
+
+      if (window.performance.mark) {
+        window.performance.mark('appLaunch@' + app.manifest.name);
       }
 
       if (this.entryPoint) {

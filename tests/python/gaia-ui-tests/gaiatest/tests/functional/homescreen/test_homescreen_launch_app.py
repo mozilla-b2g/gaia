@@ -2,7 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette import Wait
+try:
+    from marionette import Wait
+except:
+    from marionette_driver import Wait
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
@@ -16,16 +19,13 @@ class TestLaunchApp(GaiaTestCase):
         GaiaTestCase.setUp(self)
         self.connect_to_local_area_network()
 
-        # Turn off geolocation prompt for smart collections
-        self.apps.set_permission('Smart Collections', 'geolocation', 'deny')
-
         self.homescreen = Homescreen(self.marionette)
         self.apps.switch_to_displayed_app()
 
         self.test_data = {
             'name': 'Mozilla QA WebRT Tester',
-            'url': self.marionette.absolute_url('webapps/mozqa.com/manifest.webapp'),
-            'title': 'Directory listing for /'}
+            'url': self.marionette.absolute_url('webapps/mozqa.com/manifest.webapp')}
+        self.logger.info('Test data: %s' % self.test_data)
 
         # Install app
         self.marionette.execute_script(
@@ -52,4 +52,4 @@ class TestLaunchApp(GaiaTestCase):
         # Click icon and wait for h1 element displayed
         self.homescreen.installed_app(self.test_data['name']).tap_icon()
         Wait(self.marionette).until(
-            lambda m: m.title == self.test_data['title'])
+            lambda m: m.title == self.test_data['name'])

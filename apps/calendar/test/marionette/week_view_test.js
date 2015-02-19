@@ -372,6 +372,25 @@ marionette('week view', function() {
     }, { timeout: 2000 });
   });
 
+  test('scroll to event', function() {
+    week.waitForHourScrollEnd();
+    week.scrollToTop();
+
+    var startDate = new Date();
+    startDate.setHours(13, 0, 0, 0);
+
+    app.createEvent({
+      title: 'Test Week View',
+      location: 'Somewhere',
+      startDate: startDate
+    });
+
+    week.waitForDisplay();
+
+    // scroll to 1h before event
+    week.waitForHourScrollEnd(12);
+  });
+
   function pad(n) {
     return n < 10 ? '0' + n : String(n);
   }

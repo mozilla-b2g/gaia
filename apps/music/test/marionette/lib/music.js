@@ -2,12 +2,11 @@
 'use strict';
 
 var assert = require('assert');
-var Actions = require('marionette-client').Actions;
 
 function Music(client, origin) {
   this.client = client;
   this.origin = origin || ('app://' + Music.DEFAULT_ORIGIN);
-  this.actions = new Actions(client);
+  this.actions = client.loader.getActions();
 }
 
 module.exports = Music;
@@ -31,6 +30,7 @@ Music.Selector = Object.freeze({
   searchArtists: '#views-search-artists',
   searchAlbums: '#views-search-albums',
   searchTitles: '#views-search-titles',
+  searchNoResult: '#views-search-no-result',
 
   viewsList: '#views-list-anchor',
   viewsSublist: '#views-sublist-anchor',
@@ -147,7 +147,7 @@ Music.prototype = {
   },
 
   waitForFirstTile: function() {
-    this.client.helper.waitForElement(this.firstTile);
+    this.client.helper.waitForElement(Music.Selector.firstTile);
   },
 
   waitForMessageOverlayShown: function(shouldBeShown) {

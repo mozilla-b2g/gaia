@@ -716,17 +716,6 @@ suite('lib/camera/camera', function() {
       this.sandbox.stub(this.camera, 'requestCamera', function(camera, config) {
         self.camera.mozCamera = self.mozCamera;
       });
-
-      this.camera.isFirstLoad = false;
-    });
-
-    test('Should run first load if this is the first load', function() {
-      var camera = new this.Camera(this.options);
-      this.sandbox.stub(camera, 'firstLoad');
-
-      camera.load();
-
-      sinon.assert.calledOnce(camera.firstLoad);
     });
 
     test('Should not request camera until camera has finished releasing', function() {
@@ -760,18 +749,6 @@ suite('lib/camera/camera', function() {
       assert.isTrue(requestCamera.calledOnce);
     });
 
-    test('Should clear the previous `mozCameraConfig` if the `selectedCamera` changed', function() {
-      this.camera.load();
-      this.camera.selectedCamera = 'front';
-      this.camera.requestCamera.reset();
-
-      this.camera.mozCameraConfig = '<moz-camera-config>';
-
-      this.camera.load();
-      assert.equal(this.camera.mozCameraConfig, null);
-      sinon.assert.calledWith(this.camera.requestCamera, 'front', null);
-    });
-
     test('Should just `setupNewCamera` if selected camera has\'t changed', function() {
       this.camera.load();
       this.camera.requestCamera.reset();
@@ -781,15 +758,13 @@ suite('lib/camera/camera', function() {
       assert.isFalse(this.camera.requestCamera.called);
     });
 
-    test('Should call requestCamera with selectedCamera and mozCameraConfig', function() {
-      this.camera.mozCameraConfig = '<moz-camera-config>';
+    test('Should call requestCamera with selectedCamera', function() {
       this.camera.selectedCamera = '<selected-camera>';
       this.camera.load();
 
       sinon.assert.calledWith(
         this.camera.requestCamera,
-        '<selected-camera>',
-        '<moz-camera-config>'
+        '<selected-camera>'
       );
     });
   });
@@ -803,7 +778,12 @@ suite('lib/camera/camera', function() {
 
       navigator.mozCameras.getCamera.returns({
         then: function(onSuccess) {
-          onSuccess({ camera: self.mozCamera });
+          onSuccess({ camera: self.mozCamera,
+                      configuration: {
+                        previewSize: '<preview-size>',
+                        pictureSize: '<picture-size>',
+                        recorderProfile: '<recorder-profile>' }
+                    });
         }
       });
 
@@ -836,12 +816,14 @@ suite('lib/camera/camera', function() {
       assert.isTrue(navigator.mozCameras.getCamera.calledWith('back', this.mozCameraConfig));
     });
 
-    test('Should flag a `this.configured` if a config was given', function() {
+    test('Should flag a `this.configured`', function() {
+      this.camera.configured = false;
       this.camera.requestCamera('back', { some: 'config' });
       assert.isTrue(this.camera.configured);
 
-      this.camera.requestCamera();
-      assert.isFalse(this.camera.configured);
+      this.camera.configured = false;
+      this.camera.requestCamera('front');
+      assert.isTrue(this.camera.configured);
     });
 
     test('Should call .setupNewCamera', function() {
@@ -859,8 +841,11 @@ suite('lib/camera/camera', function() {
       assert.isFalse(this.camera.setupNewCamera.called);
     });
 
-    test('Should emit a \'configured\' if the camera was loaded with a config', function() {
-      this.camera.requestCamera('back', { some: 'config' });
+    test('Should emit a \'configured\'', function() {
+      this.camera.requestCamera('back');
+      assert.equal(this.camera.givenPreviewSize, '<preview-size>');
+      assert.equal(this.camera.pictureSize, '<picture-size>');
+      assert.equal(this.camera.recorderProfile, '<recorder-profile>');
       sinon.assert.calledWith(this.camera.emit, 'configured');
     });
 
@@ -898,15 +883,21 @@ suite('lib/camera/camera', function() {
       this.camera.mode = 'picture';
       this.camera.mozCamera = this.mozCamera;
       this.camera.recorderProfile = '720p';
+      this.camera.pictureSize = { width: 800, height: 600 };
+      var config = {
+        mode: 'picture',
+        previewSize: { width: 200, height: 150 },
+        pictureSize: { width: 400, height: 300 },
+        recorderProfile: '720p'
+      };
       this.mozCamera.setConfiguration.returns({
-        then: function(onSuccess) { onSuccess(); }
+        then: function(onSuccess) { onSuccess(config); }
       });
       this.camera.focus = {
         configure: sinon.stub(),
         resume: sinon.stub()
       };
       this.sandbox.stub(this.camera, 'previewSize');
-      this.sandbox.spy(this.camera, 'saveBootConfig');
       this.camera.previewSize.returns({ width: 400, height: 300 });
       this.clock = this.sandbox.useFakeTimers();
     });
@@ -917,24 +908,23 @@ suite('lib/camera/camera', function() {
 
       var config = this.mozCamera.setConfiguration.args[0][0];
 
+      // Requested configuration
       assert.deepEqual(config, {
         mode: 'picture',
-        previewSize: { width: 400, height: 300 },
+        pictureSize: { width: 800, height: 600 },
         recorderProfile: '720p'
       });
+
+      // Received configuration
+      assert.deepEqual(this.camera.givenPreviewSize, { width: 200, height: 150});
+      assert.deepEqual(this.camera.pictureSize, { width: 400, height: 300 });
+      assert.equal(this.camera.recorderProfile, '720p');
     });
 
     test('Should emit a \'configured\' event', function() {
       this.camera.configure();
       this.clock.tick(1);
       assert.isTrue(this.camera.emit.calledWith('configured'));
-    });
-
-    test('Should call `saveBootConfig`', function() {
-      this.camera.configure();
-      this.clock.tick(1);
-
-      assert.isTrue(this.camera.saveBootConfig.called);
     });
 
     test('Should not configure if there is no mozCamera', function() {
@@ -978,7 +968,12 @@ suite('lib/camera/camera', function() {
       // Dirty while configuring
       assert.isFalse(this.camera.configured);
 
-      onSuccess();
+      onSuccess({
+        mode: 'picture',
+        previewSize: { width: 400, height: 300 },
+        pictureSize: { width: 800, height: 600 },
+        recorderProfile: '720p'
+      });
     });
 
     test('Should defer calls until camera is \'ready\'', function() {
@@ -1024,7 +1019,12 @@ suite('lib/camera/camera', function() {
       sinon.assert.calledWith(this.camera.emit, 'busy');
 
       // Manually call the callback
-      onSuccess();
+      onSuccess({
+        mode: 'picture',
+        previewSize: { width: 400, height: 300 },
+        pictureSize: { width: 800, height: 600 },
+        recorderProfile: '720p'
+      });
 
       assert.isFalse(this.camera.isBusy);
       sinon.assert.called(this.camera.ready);
@@ -1039,7 +1039,12 @@ suite('lib/camera/camera', function() {
       this.camera.configure();
       this.clock.tick(1);
 
-      onSuccess();
+      onSuccess({
+        mode: 'picture',
+        previewSize: { width: 400, height: 300 },
+        pictureSize: { width: 800, height: 600 },
+        recorderProfile: '720p'
+      });
 
       sinon.assert.calledWith(this.camera.emit, 'configured');
       this.camera.emit.reset();
@@ -1136,71 +1141,13 @@ suite('lib/camera/camera', function() {
     });
 
     test('Should clear cached camera parameters', function() {
-      this.camera.pictureSize = { width: 400, height: 300 };
+      this.camera.pictureSize = '<picture-size>';
+      this.camera.recorderProfile = '<recorder-profile>';
+      this.camera.givenPreviewSize = '<preview-size>';
       this.camera.release();
       assert.ok(!this.camera.pictureSize);
-    });
-  });
-
-  suite('Camera#firstLoad()', function() {
-    setup(function() {
-      this.bootConfig = {
-        mozCameraConfig: {},
-        recorderProfile: '720p',
-        pictureSize: { width: 400, height: 300 }
-      };
-
-      sinon.stub(this.camera, 'requestCamera');
-      sinon.stub(this.camera, 'fetchBootConfig')
-        .returns(this.bootConfig);
-
-    });
-
-    test('Should fetch the boot config from storage', function() {
-      this.camera.firstLoad();
-      sinon.assert.called(this.camera.fetchBootConfig);
-    });
-
-    test('Should store the fetched `mozCameraConfig` in memory', function() {
-      this.camera.firstLoad();
-      assert.equal(this.camera.mozCameraConfig, this.bootConfig.mozCameraConfig);
-    });
-
-    test('Should set the pictureSize and recorderProfile once we have the camera', function() {
-      sinon.stub(this.camera, 'setRecorderProfile');
-      sinon.stub(this.camera, 'setPictureSize');
-
-      this.camera.firstLoad();
-
-      var onOnceNewCamera = this.camera.once.withArgs('newcamera').args[0][1];
-
-      onOnceNewCamera();
-
-      var setRecorderProfile = this.camera.setRecorderProfile.args[0];
-      var setPictureSize = this.camera.setPictureSize.args[0];
-
-      // SHould set each without configuring
-      assert.equal(setRecorderProfile[0], this.bootConfig.recorderProfile);
-      assert.deepEqual(setRecorderProfile[1], { configure: false });
-      assert.equal(setPictureSize[0], this.bootConfig.pictureSize);
-      assert.deepEqual(setPictureSize[1], { configure: false });
-    });
-  });
-
-  suite('Camera#fetchBootConfig()', function() {
-    setup(function() {
-      this.configStorage.getItem
-        .withArgs('cameraBootConfig')
-        .returns('{"mozCameraConfig":{},"pictureSize":{},"recorderProfile":"720p"}');
-    });
-
-    test('Should return the object from storage', function() {
-      var result = this.camera.fetchBootConfig();
-      assert.deepEqual(result, {
-        mozCameraConfig: {},
-        pictureSize: {},
-        recorderProfile: '720p'
-      });
+      assert.ok(!this.camera.recorderProfile);
+      assert.ok(!this.camera.givenPreviewSize);
     });
   });
 
@@ -1231,54 +1178,6 @@ suite('lib/camera/camera', function() {
     test('Should set the focus state to the passed value', function() {
       this.camera.onAutoFocusChanged('autofocus');
       assert.ok(this.camera.set.calledWith('focus', 'autofocus'));
-    });
-  });
-
-  suite('Camera#saveBootConfig()', function() {
-    setup(function() {
-      this.options.cacheConfig = true;
-      this.camera = new this.Camera(this.options);
-    });
-
-    test('Should store the `picutureSize` and `mozCameraConfig`', function() {
-      this.camera.pictureSize = '<picture-size>';
-      this.camera.recorderProfile = '<recorder-profile>';
-      this.camera.mozCameraConfig = '<moz-camera-config>';
-      this.camera.saveBootConfig();
-
-      var data = JSON.parse(this.configStorage.setItem.args[0][1]);
-      assert.equal(data.pictureSize, '<picture-size>');
-      assert.equal(data.recorderProfile, '<recorder-profile>');
-      assert.equal(data.mozCameraConfig, '<moz-camera-config>');
-    });
-
-    test('Should not store anything if `cacheConfig` is off', function() {
-      this.options.cacheConfig = false;
-      this.camera = new this.Camera(this.options);
-      this.camera.saveBootConfig();
-      sinon.assert.notCalled(this.configStorage.setItem);
-    });
-
-    test('Should only store bootConfig if mode is \'picture\' and \'back\' camera', function() {
-      this.camera.selectedCamera = 'front';
-      this.camera.mode = 'video';
-      this.camera.saveBootConfig();
-      sinon.assert.notCalled(this.configStorage.setItem);
-
-      this.camera.selectedCamera = 'back';
-      this.camera.mode = 'video';
-      this.camera.saveBootConfig();
-      sinon.assert.notCalled(this.configStorage.setItem);
-
-      this.camera.selectedCamera = 'front';
-      this.camera.mode = 'picture';
-      this.camera.saveBootConfig();
-      sinon.assert.notCalled(this.configStorage.setItem);
-
-      this.camera.selectedCamera = 'back';
-      this.camera.mode = 'picture';
-      this.camera.saveBootConfig();
-      sinon.assert.called(this.configStorage.setItem);
     });
   });
 

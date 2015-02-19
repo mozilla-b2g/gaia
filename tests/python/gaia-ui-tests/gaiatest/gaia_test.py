@@ -8,14 +8,24 @@ import shutil
 import tempfile
 import time
 
-from marionette import MarionetteTestCase, EnduranceTestCaseMixin, \
-    B2GTestCaseMixin, MemoryEnduranceTestCaseMixin
-from marionette.by import By
-from marionette import expected
-from marionette.errors import NoSuchElementException
-from marionette.errors import StaleElementException
-from marionette.errors import InvalidResponseException
-from marionette.wait import Wait
+from marionette import (MarionetteTestCase,
+                        EnduranceTestCaseMixin,
+                        B2GTestCaseMixin,
+                        MemoryEnduranceTestCaseMixin)
+try:
+    from marionette import expected
+    from marionette.by import By
+    from marionette.errors import (NoSuchElementException,
+                                   StaleElementException,
+                                   InvalidResponseException)
+    from marionette.wait import Wait
+except:
+    from marionette_driver import expected
+    from marionette_driver.by import By
+    from marionette_driver.errors import (NoSuchElementException,
+                                   StaleElementException,
+                                   InvalidResponseException)
+    from marionette_driver.wait import Wait
 
 from file_manager import GaiaDeviceFileManager, GaiaLocalFileManager
 
@@ -195,6 +205,15 @@ class GaiaData(object):
                                                       % (contact_type, json.dumps(mozcontact)), special_powers=True)
         assert result, 'Unable to insert SIM contact %s' % contact
         self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
+        return result
+
+    def delete_sim_contact(self, moz_contact_id, contact_type='adn'):
+        # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
+        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
+        result = self.marionette.execute_async_script('return GaiaDataLayer.deleteSIMContact("%s", "%s");'
+                                                      % (contact_type, moz_contact_id), special_powers=True)
+        assert result, 'Unable to insert SIM contact %s' % moz_contact_id
+        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
 
     def remove_all_contacts(self):
         # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
@@ -269,6 +288,16 @@ class GaiaData(object):
         return self.marionette.execute_script("return window.navigator.mozBluetooth.enabled")
 
     @property
+    def bluetooth_is_discoverable(self):
+        self.marionette.switch_to_frame()
+        return self.marionette.execute_script("return window.wrappedJSObject.Bluetooth.defaultAdapter.discoverable")
+
+    @property
+    def bluetooth_name(self):
+        self.marionette.switch_to_frame()
+        return self.marionette.execute_script("return window.wrappedJSObject.Bluetooth.defaultAdapter.name")
+
+    @property
     def is_cell_data_enabled(self):
         return self.get_setting('ril.data.enabled')
 
@@ -314,7 +343,7 @@ class GaiaData(object):
         self.enable_wifi()
         self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script("return GaiaDataLayer.connectToWiFi(%s)" % json.dumps(network),
-                script_timeout = max(self.marionette.timeout, 60000))
+                                                      script_timeout=max(self.marionette.timeout, 60000))
         assert result, 'Unable to connect to WiFi network'
 
     def forget_all_networks(self):
@@ -420,6 +449,12 @@ class GaiaData(object):
         result = self.marionette.execute_async_script('return GaiaDataLayer.sendSMS(%s, %s)' % (number, message), special_powers=True)
         assert result, 'Unable to send SMS to recipient %s with text %s' % (number, message)
 
+    def add_notification(self, title, options=None):
+        self.marionette.execute_script('new Notification("%s", %s);' % (title, json.dumps(options)))
+
+    def clear_notifications(self):
+        self.marionette.execute_script('window.wrappedJSObject.NotificationScreen.clearAll();')
+
     @property
     def current_audio_channel(self):
         self.marionette.switch_to_frame()
@@ -473,6 +508,7 @@ class Accessibility(object):
             raise Exception(message)
 
         return result.get('result', None)
+
 
 class FakeUpdateChecker(object):
 
@@ -719,6 +755,7 @@ class GaiaDevice(object):
     def screen_orientation(self):
         return self.marionette.execute_script('return window.screen.mozOrientation')
 
+
 class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
     def __init__(self, *args, **kwargs):
         self.restart = kwargs.pop('restart', False)
@@ -868,6 +905,9 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         # disable sound completely
         self.data_layer.set_volume(0)
 
+        # disable search suggestions
+        self.data_layer.set_setting('search.suggestions.enabled', False)
+
         # disable auto-correction of keyboard
         self.data_layer.set_setting('keyboard.autocorrect', False)
 
@@ -890,6 +930,15 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
                 assert self.device.is_online
             else:
                 raise Exception('Unable to connect to local area network')
+
+    def disable_all_network_connections(self):
+        if self.device.has_wifi:
+            self.data_layer.enable_wifi()
+            self.data_layer.forget_all_networks()
+            self.data_layer.disable_wifi()
+
+        if self.device.has_mobile_connection:
+            self.data_layer.disable_cell_data()
 
     def push_resource(self, filename, remote_path=None, count=1):
         # push to the test storage space defined by device root

@@ -50,12 +50,16 @@ var CarrierInfoNotifier = {
 
     // If we are on the lock screen then create a notification
     // that invokes the dialog
+    var notificationId = ++this._notificationId;
     var notification = NotificationScreen.addNotification({
-      id: ++this._notificationId,
+      id: notificationId,
       title: title,
       text: message
     });
-    notification.addEventListener('tap', showDialog);
+    notification.addEventListener('tap', function showDialogAndDismiss() {
+      showDialog();
+      NotificationScreen.removeNotification(notificationId);
+    });
   },
 
   playNotification: function cin_playNotification() {

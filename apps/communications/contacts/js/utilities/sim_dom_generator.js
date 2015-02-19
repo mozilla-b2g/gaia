@@ -12,7 +12,7 @@ function generateButton(singleSim, sim, index) {
     span.setAttribute('data-l10n-id', 'simCard');
   } else {
     var msisdn = sim.iccInfo && sim.iccInfo.msisdn;
-    var l10nId = msisdn ? 'simNumberWithMSISDN' : 'simNumber';
+    var l10nId = msisdn ? 'simNumberWithMSISDN' : 'simNumberNoMSISDN';
     var l10nArgs = {
       number: index,
       msisdn: msisdn

@@ -46,10 +46,20 @@ var Dialogs = {
         confirmButton.classList.remove('danger');
       }
 
+      // If the caller specified a bodyClass, add that to the classList of the
+      // body element. This can be used for accessibility, e.g., to hide the
+      // main document while a dialog is shown
+      if (options.bodyClass) {
+        document.body.classList.add(options.bodyClass);
+      }
+
       // show the confirm dialog
       dialog.classList.remove('hidden');
 
       function close(ev) {
+        if (options.bodyClass) {
+          document.body.classList.remove(options.bodyClass);
+        }
         dialog.classList.add('hidden');
         cancelButton.removeEventListener('click', onCancelClick);
         confirmButton.removeEventListener('click', onConfirmClick);

@@ -80,6 +80,7 @@ var UIManager = {
     'hidden-wifi-ssid',
     'hidden-wifi-security',
     'hidden-wifi-password',
+    'hidden-wifi-password-box',
     'hidden-wifi-identity',
     'hidden-wifi-identity-box',
     'hidden-wifi-show-password',
@@ -90,9 +91,9 @@ var UIManager = {
     'time-configuration-label',
     'time-form',
     // 3G
-    'data-connection-switch',
+    'data-connection-checkbox',
     // Geolocation
-    'geolocation-switch',
+    'geolocation-checkbox',
     // Tutorial
     'lets-go-button',
     'update-lets-go-button',
@@ -139,7 +140,7 @@ var UIManager = {
     this.simInfoBack.addEventListener('click', this);
     this.simInfoForward.addEventListener('click', this);
 
-    this.dataConnectionSwitch.addEventListener('click', this);
+    this.dataConnectionCheckbox.addEventListener('change', this);
 
     this.wifiRefreshButton.addEventListener('click', this);
     this.wifiJoinButton.addEventListener('click', this);
@@ -149,13 +150,18 @@ var UIManager = {
     this.hiddenWifiSecurity.addEventListener('change', this);
     this.wifiJoinButton.disabled = true;
 
-    this.hiddenWifiPassword.addEventListener('keyup', function() {
-      this.wifiJoinButton.disabled = !WifiHelper.isValidInput(
-        this.hiddenWifiSecurity.value,
-        this.hiddenWifiPassword.value,
-        this.hiddenWifiIdentity.value
+    var checkHiddenWifiJoin = function() {
+      this.wifiJoinButton.disabled =  this.hiddenWifiSsid.value === '' ||
+             !WifiHelper.isValidInput(this.hiddenWifiSecurity.value,
+                                      this.hiddenWifiPassword.value,
+                                      this.hiddenWifiIdentity.value
       );
-    }.bind(this));
+    }.bind(this);
+
+    this.hiddenWifiSsid.addEventListener('keyup', checkHiddenWifiJoin);
+    this.hiddenWifiIdentity.addEventListener('keyup', checkHiddenWifiJoin);
+    this.hiddenWifiPassword.addEventListener('keyup', checkHiddenWifiJoin);
+    this.hiddenWifiSecurity.addEventListener('change', checkHiddenWifiJoin);
 
     this.hiddenWifiShowPassword.onchange = function togglePasswordVisibility() {
       UIManager.hiddenWifiPassword.type = this.checked ? 'text' : 'password';
@@ -164,7 +170,7 @@ var UIManager = {
     this.timeConfiguration.addEventListener('input', this);
     this.dateConfiguration.addEventListener('input', this);
 
-    this.geolocationSwitch.addEventListener('click', this);
+    this.geolocationCheckbox.addEventListener('change', this);
 
     this.fxaCreateAccount.addEventListener('click', this);
 
@@ -248,6 +254,8 @@ var UIManager = {
       window.addEventListener(event,
         this.showActivationScreenToScreenReader.bind(this));
     }, this);
+
+    this.checkInitialFxAStatus();
   },
 
   scrollToElement: function ui_scrollToElement(container, element) {
@@ -349,10 +357,9 @@ var UIManager = {
         window.setTimeout(SdManager.importContacts, 0);
         break;
       // 3G
-      case 'data-connection-switch':
+      case 'data-connection-checkbox':
         this.dataConnectionChangedByUsr = true;
-        var status = event.target.checked;
-        DataMobile.toggle(status);
+        DataMobile.toggle(event.target.checked);
         break;
       // WIFI
       case 'wifi-refresh-button':
@@ -369,7 +376,8 @@ var UIManager = {
         WifiUI.addHiddenNetwork();
         break;
       case 'hidden-wifi-security':
-        var securityType = event.target.value;
+        // Assuming that [0] is None, we prefer '' for collision on translations
+        var securityType = event.target.selectedIndex ? event.target.value : '';
         WifiUI.handleHiddenWifiSecurity(securityType);
         break;
       // Date & Time
@@ -380,7 +388,7 @@ var UIManager = {
         this.setDate();
         break;
       // Geolocation
-      case 'geolocation-switch':
+      case 'geolocation-checkbox':
         this.updateSetting(event.target.name, event.target.checked);
         break;
       // Privacy
@@ -409,39 +417,66 @@ var UIManager = {
     settings.createLock().set(cset);
   },
 
+  setForwardButtonLabel: function ui_setForwardButtonLabel(label) {
+    var nextButton = document.getElementById('forward');
+    nextButton.setAttribute('data-l10n-id', label);
+  },
+
+  checkInitialFxAStatus: function ui_checkInitialFxAStatus() {
+    // It is possible that we enter the FTU after the user aborted a FTU
+    // session where she logged into her FxA. In that case, we show the
+    // information of her account if possible. If there is any reason why we
+    // can't get the account information, we try to log her out.
+    // It is quite unlikely that logging out fails, but in that case, we simply
+    // hide the FxA panel to avoid potential errors such as the one reported on
+    // bug 1113551. In any case, the user should be able to manage her account
+    // from the Settings app afterwards.
+    this.skipFxA = true;
+    FxAccountsIACHelper.getAccounts((account) => {
+      this.skipFxA = false;
+      this.onFxALogin(account);
+    }, () => {
+      FxAccountsIACHelper.logout(() => {
+        this.skipFxA = false;
+      });
+    });
+  },
+
   createFirefoxAccount: function ui_createFirefoxAccount() {
-    FxAccountsIACHelper.openFlow(UIManager.fxaShowResponse,
-      UIManager.fxaShowError);
+    FxAccountsIACHelper.openFlow(UIManager.onFxAFlowDone,
+                                 UIManager.onFxAError);
   },
 
-  fxaShowResponse: function ui_fxaShowResponse() {
-    FxAccountsIACHelper.getAccounts(UIManager.fxaGetAccounts,
-      UIManager.fxaShowError);
+  onFxAFlowDone: function ui_onFxAFlowDone() {
+    FxAccountsIACHelper.getAccounts((account) => {
+      if (!account) {
+        return;
+      }
+      UIManager.onFxALogin(account);
+      UIManager.setForwardButtonLabel('navbar-next');
+    }, UIManager.onFxAError);
   },
 
-  fxaGetAccounts: function ui_fxaGetAccounts(acct) {
-    if (!acct) {
+  onFxALogin: function ui_onFxALogin(account) {
+    if (!account) {
       return;
     }
     // Update the email
-    UIManager.newsletterInput.value = acct.email;
+    UIManager.newsletterInput.value = account.email;
     // Update the string
     UIManager.fxaIntro.innerHTML = '';
     navigator.mozL10n.setAttributes(
       UIManager.fxaIntro,
-      acct.verified ? 'fxa-signed-in' : 'fxa-email-sent',
+      account.verified ? 'fxa-signed-in' : 'fxa-email-sent',
       {
-        email: acct.email
+        email: account.email
       }
     );
     // Disable the button
     UIManager.fxaCreateAccount.disabled = true;
-    // Change the Skip button label
-    var nextButton = document.getElementById('forward');
-    nextButton.setAttribute('data-l10n-id', 'navbar-next');
   },
 
-  fxaShowError: function ui_fxaShowError(response) {
+  onFxAError: function ui_onFxAError(response) {
     console.error('Create FxA Error: ' + JSON.stringify(response));
     // Clean fields
     UIManager.newsletterInput.value = '';
@@ -452,9 +487,8 @@ var UIManager = {
     );
     // Enable the button
     UIManager.fxaCreateAccount.disabled = false;
-    // Change the Skip button label
-    var nextButton = document.getElementById('forward');
-    nextButton.setAttribute('data-l10n-id', 'skip');
+    // Change the forward button label
+    UIManager.setForwardButtonLabel('skip');
   },
 
   displayOfflineDialog: function ui_displayOfflineDialog(href, title) {
@@ -540,7 +574,7 @@ var UIManager = {
   },
 
   updateDataConnectionStatus: function ui_udcs(status) {
-    this.dataConnectionSwitch.checked = status;
+    this.dataConnectionCheckbox.checked = status;
   },
 
   changeStatusBarColor: function ui_csbc(color) {

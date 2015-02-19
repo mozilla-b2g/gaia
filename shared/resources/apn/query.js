@@ -293,15 +293,17 @@ document.addEventListener('DOMContentLoaded', function onload() {
           var localApns =
             localAndroidDB.documentElement.querySelectorAll('apn');
           for (var localApn of localApns) {
-            if (localApn.getAttribute('overwrite')) {
-              var pattern = '[carrier="' + localApn.getAttribute('carrier') +
-                            '"]';
+            if (localApn.getAttribute('overwrite') &&
+                localApn.getAttribute('carrier_name')) {
+              var pattern = '[carrier="' +
+                            localApn.getAttribute('carrier_name') + '"]';
               var androidApns =
                 gAndroidDB.documentElement.querySelectorAll(pattern);
+              var matchFound = false;
               for (var androidApn of androidApns) {
                 if (androidApn &&
                     androidApn.getAttribute('carrier') ===
-                    localApn.getAttribute('carrier')) {
+                    localApn.getAttribute('carrier_name')) {
 
                   if (DEBUG) {
                     console.log('- replace "' +
@@ -310,11 +312,20 @@ document.addEventListener('DOMContentLoaded', function onload() {
                                 '"');
                   }
                   localApn.removeAttribute('overwrite');
+                  localApn.removeAttribute('carrier_name');
                   var parent = androidApn.parentNode;
                   parent.insertBefore(localApn, androidApn);
                   parent.removeChild(androidApn);
+                  matchFound = true;
                 }
               }
+
+              if (!matchFound) {
+                alert("Warning!\nCould not find APN '" +
+                      localApn.getAttribute('carrier_name') +
+                      "'. Which is expected to be overwrited.");
+              }
+
               continue;
             }
 

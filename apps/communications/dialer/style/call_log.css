@@ -282,9 +282,13 @@ html[dir="rtl"] .icon-container {
 }
 
 html[dir="rtl"] .recents-edit .pack-checkbox.call-log-selection {
-  transform: translateX(-5rem);
+  transform: translateX(-4rem);
 }
 
 html[dir="rtl"] .recents-edit .log-item a {
   transform: translateX(-3rem);
+}
+
+html[dir="rtl"] #sticky {
+  background-position: calc(100% - 1.5rem) 0;
 }

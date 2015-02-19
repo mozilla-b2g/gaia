@@ -11,6 +11,13 @@ suite('AsyncSemaphore', function() {
   suiteTeardown(function() {
   });
 
+  suite('Constructor', function() {
+    test('returns instantiated object', function() {
+      var asyncSem = AsyncSemaphore();
+      assert.ok(asyncSem instanceof AsyncSemaphore);
+    });
+  });
+
   suite('Basic methods', function() {
     var tokenContext = {
         token: 'to be done'

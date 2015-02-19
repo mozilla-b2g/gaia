@@ -15,18 +15,33 @@
   /* jshint browser:true */
 
   var io = {
-    load: function load(url, callback, sync) {
+
+    _load: function(type, url, callback, sync) {
       var xhr = new XMLHttpRequest();
+      var needParse;
 
       if (xhr.overrideMimeType) {
-        xhr.overrideMimeType('text/plain');
+        xhr.overrideMimeType(type);
       }
 
       xhr.open('GET', url, !sync);
 
-      xhr.addEventListener('load', function io_load(e) {
+      if (type === 'application/json') {
+        //  Gecko 11.0+ forbids the use of the responseType attribute when
+        //  performing sync requests (NS_ERROR_DOM_INVALID_ACCESS_ERR).
+        //  We'll need to JSON.parse manually.
+        if (sync) {
+          needParse = true;
+        } else {
+          xhr.responseType = 'json';
+        }
+      }
+
+      xhr.addEventListener('load', function io_onload(e) {
         if (e.target.status === 200 || e.target.status === 0) {
-          callback(null, e.target.responseText);
+          // Sinon.JS's FakeXHR doesn't have the response property
+          var res = e.target.response || e.target.responseText;
+          callback(null, needParse ? JSON.parse(res) : res);
         } else {
           callback(new L10nError('Not found: ' + url));
         }
@@ -42,33 +57,14 @@
       }
     },
 
-    loadJSON: function loadJSON(url, callback) {
-      var xhr = new XMLHttpRequest();
+    load: function(url, callback, sync) {
+      return io._load('text/plain', url, callback, sync);
+    },
 
-      if (xhr.overrideMimeType) {
-        xhr.overrideMimeType('application/json');
-      }
-
-      xhr.open('GET', url);
-
-      xhr.responseType = 'json';
-      xhr.addEventListener('load', function io_loadjson(e) {
-        if (e.target.status === 200 || e.target.status === 0) {
-          callback(null, e.target.response);
-        } else {
-          callback(new L10nError('Not found: ' + url));
-        }
-      });
-      xhr.addEventListener('error', callback);
-      xhr.addEventListener('timeout', callback);
-
-      // the app: protocol throws on 404, see https://bugzil.la/827243
-      try {
-        xhr.send(null);
-      } catch (e) {
-        callback(new L10nError('Not found: ' + url));
-      }
+    loadJSON: function(url, callback, sync) {
+      return io._load('application/json', url, callback, sync);
     }
+
   };
 
   function EventEmitter() {}
@@ -580,7 +576,7 @@
     init: function() {
       this.patterns = {
         comment: /^\s*#|^\s*$/,
-        entity: /^([^=\s]+)\s*=\s*(.+)$/,
+        entity: /^([^=\s]+)\s*=\s*(.*)$/,
         multiline: /[^\\]\\$/,
         index: /\{\[\s*(\w+)(?:\(([^\)]*)\))?\s*\]\}/i,
         unicode: /\\u([0-9a-fA-F]{1,4})/g,
@@ -916,14 +912,8 @@
         return selector;
       }
 
-      var argLength = index.length - 1;
-      if (selector.length !== argLength) {
-        throw new L10nError('Macro ' + selectorName + ' expects ' +
-                            selector.length + ' argument(s), yet ' + argLength +
-                            ' given');
-      }
-
-      var argValue = resolveIdentifier(args, env, index[1]);
+      var argValue = index[1] ?
+        resolveIdentifier(args, env, index[1]) : undefined;
 
       if (selector === env.__plural) {
         // special cases for zero, one, two if they are defined on the hash
@@ -1131,6 +1121,26 @@
                                           this.ctx.defaultLocale : id);
   }
 
+  var bindingsIO = {
+    extra: function(id, ver, path, type, callback, errback) {
+      if (type === 'properties') {
+        type = 'text';
+      }
+      navigator.mozApps.getLocalizationResource(id, ver, path, type).
+        then(callback.bind(null, null), errback);
+    },
+    app: function(id, ver, path, type, callback, errback, sync) {
+      switch (type) {
+        case 'properties':
+          io.load(path, callback, sync);
+          break;
+        case 'json':
+          io.loadJSON(path, callback, sync);
+          break;
+      }
+    },
+  };
+
   Locale.prototype.build = function L_build(callback) {
     var sync = !callback;
     var ctx = this.ctx;
@@ -1171,19 +1181,29 @@
     }
 
     var idToFetch = this.isPseudo ? ctx.defaultLocale : this.id;
+    var appVersion = null;
+    var source = 'app';
+    if (typeof(navigator) !== 'undefined') {
+      source = navigator.mozL10n._config.localeSources[this.id] || 'app';
+      appVersion = navigator.mozL10n._config.appVersion;
+    }
+
     for (var i = 0; i < ctx.resLinks.length; i++) {
       var resLink = decodeURI(ctx.resLinks[i]);
       var path = resLink.replace('{locale}', idToFetch);
       var type = path.substr(path.lastIndexOf('.') + 1);
 
+      var cb;
       switch (type) {
         case 'json':
-          io.loadJSON(path, onJSONLoaded, sync);
+          cb = onJSONLoaded;
           break;
         case 'properties':
-          io.load(path, onPropLoaded, sync);
+          cb = onPropLoaded;
           break;
       }
+      bindingsIO[source](this.id,
+        appVersion, path, type, cb, onL10nLoaded, sync);
     }
   };
 
@@ -1354,12 +1374,21 @@
   // Getting ready
 
   function negotiate(available, requested, defaultLocale) {
-    if (available.indexOf(requested[0]) === -1 ||
-        requested[0] === defaultLocale) {
-      return [defaultLocale];
-    } else {
-      return [requested[0], defaultLocale];
+    var supportedLocale;
+    // Find the first locale in the requested list that is supported.
+    for (var i = 0; i < requested.length; i++) {
+      var locale = requested[i];
+      if (available.indexOf(locale) !== -1) {
+        supportedLocale = locale;
+        break;
+      }
     }
+    if (!supportedLocale ||
+        supportedLocale === defaultLocale) {
+      return [defaultLocale];
+    }
+
+    return [supportedLocale, defaultLocale];
   }
 
   function freeze(supported) {
@@ -1378,8 +1407,12 @@
   }
 
   Context.prototype.registerLocales = function(defLocale, available) {
+
+    if (defLocale) {
+      this.defaultLocale = defLocale;
+    }
     /* jshint boss:true */
-    this.availableLocales = [this.defaultLocale = defLocale];
+    this.availableLocales = [this.defaultLocale];
 
     if (available) {
       for (var i = 0, loc; loc = available[i]; i++) {
@@ -1450,7 +1483,6 @@
   var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
   var nodeObserver = null;
   var pendingElements = null;
-  var manifest = {};
 
   var moConfig = {
     attributes: true,
@@ -1499,6 +1531,10 @@
       }
     },
     qps: PSEUDO_STRATEGIES,
+    _config: {
+      appVersion: null,
+      localeSources: Object.create(null),
+    },
     _getInternalAPI: function() {
       return {
         Error: L10nError,
@@ -1508,10 +1544,10 @@
         getPluralRule: getPluralRule,
         rePlaceables: rePlaceables,
         translateDocument: translateDocument,
-        onManifestInjected: onManifestInjected,
         onMetaInjected: onMetaInjected,
         PropertiesParser: PropertiesParser,
-        walkContent: walkContent
+        walkContent: walkContent,
+        buildLocaleList: buildLocaleList
       };
     }
   };
@@ -1526,11 +1562,11 @@
   });
 
   if (DEBUG) {
-    navigator.mozL10n.ctx.addEventListener('manifesterror',
-      console.error.bind(console));
     navigator.mozL10n.ctx.addEventListener('fetcherror',
       console.error.bind(console));
     navigator.mozL10n.ctx.addEventListener('parseerror',
+      console.error.bind(console));
+    navigator.mozL10n.ctx.addEventListener('resolveerror',
       console.error.bind(console));
   }
 
@@ -1577,40 +1613,33 @@
   }
 
   function init(pretranslate) {
-    if (pretranslate) {
-      initResources.call(navigator.mozL10n);
-    } else {
-      // if pretranslate is false, we want to initialize MO
-      // early, to collect nodes injected between now and when resources
-      // are loaded because we're not going to translate the whole
-      // document once l10n resources are ready.
+    if (!pretranslate) {
+      // initialize MO early to collect nodes injected between now and when
+      // resources are loaded because we're not going to translate the whole
+      // document once l10n resources are ready
       initObserver();
-      window.setTimeout(initResources.bind(navigator.mozL10n));
     }
+    initResources.call(navigator.mozL10n);
   }
 
   function initResources() {
     /* jshint boss:true */
-    var manifestFound = false;
 
+    var meta = {};
     var nodes = document.head
                         .querySelectorAll('link[rel="localization"],' +
-                                          'link[rel="manifest"],' +
-                                          'meta[name="locales"],' +
-                                          'meta[name="default_locale"],' +
+                                          'meta[name="availableLanguages"],' +
+                                          'meta[name="defaultLanguage"],' +
+                                          'meta[name="appVersion"],' +
                                           'script[type="application/l10n"]');
     for (var i = 0, node; node = nodes[i]; i++) {
       var type = node.getAttribute('rel') || node.nodeName.toLowerCase();
       switch (type) {
-        case 'manifest':
-          manifestFound = true;
-          onManifestInjected.call(this, node.getAttribute('href'), initLocale);
-          break;
         case 'localization':
           this.ctx.resLinks.push(node.getAttribute('href'));
           break;
         case 'meta':
-          onMetaInjected.call(this, node);
+          onMetaInjected.call(this, node, meta);
           break;
         case 'script':
           onScriptInjected.call(this, node);
@@ -1618,38 +1647,98 @@
       }
     }
 
-    // if after scanning the head any locales have been registered in the ctx
-    // it's safe to initLocale without waiting for manifest.webapp
-    if (this.ctx.availableLocales.length) {
-      return initLocale.call(this);
+    var additionalLanguagesPromise;
+
+    if (navigator.mozApps && navigator.mozApps.getAdditionalLanguages) {
+      // if the environment supports langpacks, register extra languages…
+      additionalLanguagesPromise =
+        navigator.mozApps.getAdditionalLanguages().catch(function(e) {
+          console.error('Error while loading getAdditionalLanguages', e);
+        });
+
+      // …and listen to langpacks being added and removed
+      document.addEventListener('additionallanguageschange', function(evt) {
+        registerLocales.call(this, meta, evt.detail);
+      }.bind(this));
+    } else {
+      additionalLanguagesPromise = Promise.resolve();
     }
 
-    // if no locales were registered so far and no manifest.webapp link was
-    // found we still call initLocale with just the default language available
-    if (!manifestFound) {
-      this.ctx.registerLocales(this.ctx.defaultLocale);
-      return initLocale.call(this);
-    }
+    additionalLanguagesPromise.then(function(extraLangs) {
+      registerLocales.call(this, meta, extraLangs);
+      initLocale.call(this);
+    }.bind(this));
   }
 
-  function onMetaInjected(node) {
-    if (this.ctx.availableLocales.length) {
-      return;
+  function registerLocales(meta, extraLangs) {
+    var locales = buildLocaleList.call(this, meta, extraLangs);
+    navigator.mozL10n._config.localeSources = locales[1];
+    this.ctx.registerLocales(locales[0], Object.keys(locales[1]));
+  }
+
+  function getMatchingLangpack(lpVersions) {
+    for (var i in lpVersions) {
+      if (lpVersions[i].target === navigator.mozL10n._config.appVersion) {
+        return lpVersions[i];
+      }
+    }
+    return null;
+  }
+
+  function buildLocaleList(meta, extraLangs) {
+    var loc, lp;
+    var localeSources = Object.create(null);
+    var defaultLocale = meta.defaultLocale || this.ctx.defaultLocale;
+
+    if (meta.availableLanguages) {
+      for (loc in meta.availableLanguages) {
+        localeSources[loc] = 'app';
+      }
     }
 
+    if (extraLangs) {
+      for (loc in extraLangs) {
+        lp = getMatchingLangpack(extraLangs[loc]);
+
+        if (!lp) {
+          continue;
+        }
+        if (!(loc in localeSources) ||
+            !meta.availableLanguages[loc] ||
+            parseInt(lp.version) > meta.availableLanguages[loc]) {
+          localeSources[loc] = 'extra';
+        }
+      }
+    }
+
+    if (!(defaultLocale in localeSources)) {
+      localeSources[defaultLocale] = 'app';
+    }
+    return [defaultLocale, localeSources];
+  }
+
+  function splitAvailableLanguagesString(str) {
+    var langs = {};
+
+    str.split(',').forEach(function(lang) {
+      lang = lang.trim().split(':');
+      langs[lang[0]] = lang[1];
+    });
+    return langs;
+  }
+
+  function onMetaInjected(node, meta) {
     switch (node.getAttribute('name')) {
-      case 'locales':
-        manifest.locales = node.getAttribute('content').split(',').map(
-          Function.prototype.call, String.prototype.trim);
+      case 'availableLanguages':
+        meta.availableLanguages =
+          splitAvailableLanguagesString(node.getAttribute('content'));
         break;
-      case 'default_locale':
-        manifest.defaultLocale = node.getAttribute('content');
+      case 'defaultLanguage':
+        meta.defaultLanguage = node.getAttribute('content');
         break;
-    }
-
-    if (Object.keys(manifest).length === 2) {
-      this.ctx.registerLocales(manifest.defaultLocale, manifest.locales);
-      manifest = {};
+      case 'appVersion':
+        navigator.mozL10n._config.appVersion = node.getAttribute('content');
+        break;
     }
   }
 
@@ -1657,56 +1746,6 @@
     var lang = node.getAttribute('lang');
     var locale = this.ctx.getLocale(lang);
     locale.addAST(JSON.parse(node.textContent));
-  }
-
-  function onManifestInjected(url, callback) {
-    if (this.ctx.availableLocales.length) {
-      return;
-    }
-
-    io.loadJSON(url, function parseManifest(err, json) {
-      if (this.ctx.availableLocales.length) {
-        return;
-      }
-
-      if (err) {
-        this.ctx._emitter.emit('fetcherror', err);
-        this.ctx.registerLocales(this.ctx.defaultLocale);
-        if (callback) {
-          callback.call(this);
-        }
-        return;
-      }
-
-      // default_locale and locales might have been already provided by meta
-      // elements which take precedence;  check if we already have them
-      if (!('defaultLocale' in manifest)) {
-        if (json.default_locale) {
-          manifest.defaultLocale = json.default_locale;
-        } else {
-          manifest.defaultLocale = this.ctx.defaultLocale;
-          this.ctx._emitter.emit(
-            'manifesterror',
-            new L10nError('default_locale missing from manifest'));
-        }
-      }
-      if (!('locales' in manifest)) {
-        if (json.locales) {
-          manifest.locales = Object.keys(json.locales);
-        } else {
-          this.ctx._emitter.emit(
-            'manifesterror',
-            new L10nError('locales missing from manifest'));
-        }
-      }
-
-      this.ctx.registerLocales(manifest.defaultLocale, manifest.locales);
-      manifest = {};
-
-      if (callback) {
-        callback.call(this);
-      }
-    }.bind(this));
   }
 
   function initLocale() {
@@ -1720,6 +1759,7 @@
 
   function localizeMutations(mutations) {
     var mutation;
+    var targets = new Set();
 
     for (var i = 0; i < mutations.length; i++) {
       mutation = mutations[i];
@@ -1728,23 +1768,25 @@
 
         for (var j = 0; j < mutation.addedNodes.length; j++) {
           addedNode = mutation.addedNodes[j];
-
           if (addedNode.nodeType !== Node.ELEMENT_NODE) {
             continue;
           }
-
-          if (addedNode.childElementCount) {
-            translateFragment.call(this, addedNode);
-          } else if (addedNode.hasAttribute('data-l10n-id')) {
-            translateElement.call(this, addedNode);
-          }
+          targets.add(addedNode);
         }
       }
 
       if (mutation.type === 'attributes') {
-        translateElement.call(this, mutation.target);
+        targets.add(mutation.target);
       }
     }
+
+    targets.forEach(function(target) {
+      if (target.childElementCount) {
+        translateFragment.call(this, target);
+      } else if (target.hasAttribute('data-l10n-id')) {
+        translateElement.call(this, target);
+      }
+    }, this);
   }
 
   function onMutations(mutations, self) {

@@ -5,6 +5,7 @@ Keyboards.ru = {
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'ru',
+  basicLayoutKey: 'АБВ',
   alt: {
     е: 'ё',
     ь: 'ъ'

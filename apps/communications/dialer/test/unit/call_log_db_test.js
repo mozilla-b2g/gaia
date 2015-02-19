@@ -1,3 +1,5 @@
+/* globals CallLogDBManager, MockContacts, MocksHelper, Utils */
+
 'use strict';
 
 requireApp('communications/dialer/js/call_log_db.js');
@@ -6,10 +8,6 @@ require('/shared/js/dialer/utils.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
-
-if (!this.Contacts) {
-  this.Contacts = null;
-}
 
 var mocksHelperForCallLogDB = new MocksHelper([
   'LazyLoader',

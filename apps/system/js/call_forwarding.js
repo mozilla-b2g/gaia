@@ -85,17 +85,25 @@
       var index = slot.index;
       var simCard = slot.simCard;
 
-      if (this._callForwardingIconInitializedStates[index] || !simCard) {
-        return;
-      }
-
-      var cardState = simCard.cardState;
-      var iccid = simCard.iccInfo && simCard.iccInfo.iccid;
-      if (cardState !== 'ready' || !iccid) {
+      if (this._callForwardingIconInitializedStates[index]) {
         return;
       }
 
       var that = this;
+      var cardState = simCard && simCard.cardState;
+      var iccid = simCard && simCard.iccInfo && simCard.iccInfo.iccid;
+      // Disable call forwarding icon and early return when:
+      // 1. sim card not present, or
+      // 2. sim card state is not ready, or
+      // 3. sim card iccId is not available.
+      if (!simCard || cardState !== 'ready' || !iccid) {
+        that._callForwardingHelper.get(function(states) {
+          states[index] = false;
+          that._callForwardingHelper.set(states);
+        });
+        return;
+      }
+
       asyncStorage.getItem('ril.cf.enabled.' + iccid, function(value) {
         if (value === null) {
           value = false;
@@ -189,8 +197,6 @@
 
       this._addEventHandlers();
 
-      // Disable the call forwarding icons by default
-      this._callForwardingHelper.set(this._defaultCallForwardingIconStates);
       // Initialize the icon states
       this._slots.forEach(function(slot) {
         this._initCallForwardingState(slot);

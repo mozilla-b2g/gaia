@@ -106,7 +106,6 @@ function ImapAccount(universe, compositeAccount, accountId, credentials,
   if (existingProtoConn)
     this._reuseConnection(existingProtoConn);
 
-  this.tzOffset = compositeAccount.accountDef.tzOffset;
   this._jobDriver = new $imapjobs.ImapJobDriver(
                           this, this._folderInfos.$mutationState, this._LOG);
 
@@ -130,8 +129,40 @@ var properties = {
     return '[ImapAccount: ' + this.id + ']';
   },
 
+  //////////////////////////////////////////////////////////////////////////////
+  // Server type indicators for quirks and heuristics like sent mail
+
+  /**
+   * Is this server gmail?  Not something that just looks like gmail, but IS
+   * gmail.
+   *
+   * Gmail self-identifies via the nonstandard but documented X-GM-EXT-1
+   * capability.  Documentation is at
+   * https://developers.google.com/gmail/imap_extensions
+   */
   get isGmail() {
     return this.meta.capability.indexOf('X-GM-EXT-1') !== -1;
+  },
+
+  /**
+   * Is this a CoreMail server, as used by 126.com/163.com/others?
+   *
+   * CoreMail servers self-identify via the apparently cargo-culted
+   * X-CM-EXT-1 capability.
+   */
+  get isCoreMailServer() {
+    return this.meta.capability.indexOf('X-CM-EXT-1') !== -1;
+  },
+
+  /**
+   * Do messages sent via the corresponding SMTP account automatically show up
+   * in the sent folder?  Both Gmail and CoreMail do this.  (It's a good thing
+   * to do, it just sucks that there's no explicit IMAP capability, etc. to
+   * indicate this without us having to infer from the server type.  Although
+   * we could probe this if we wanted...)
+   */
+  get sentMessagesAutomaticallyAppearInSentFolder() {
+    return this.isGmail || this.isCoreMailServer;
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -803,9 +834,7 @@ var properties = {
    *   could generate an I/O storm, cause temporary double-storage use, etc.)
    */
   saveSentMessage: function(composer) {
-    // (gmail automatically copies the message into the sent folder; we don't
-    // have to do anything)
-    if (this.isGmail) {
+    if (this.sentMessagesAutomaticallyAppearInSentFolder) {
       return;
     }
 

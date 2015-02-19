@@ -1,0 +1,10 @@
+{
+  "settings": {
+    "src": [
+      "tv_apps/devices/js/**/*.js"
+    ],
+    "options": {
+      "destination": "docs/devices"
+    }
+  }
+}

@@ -1,5 +1,5 @@
 /* exported TilesView */
-/* global musicdb, TabBar, App, AlbumArt, SearchView, ModeManager,
+/* global musicdb, TabBar, App, AlbumArtCache, SearchView, ModeManager,
           MODE_SEARCH_FROM_TILES, IDBKeyRange, MODE_PLAYER, PlayerView,
           musicdb, TYPE_LIST */
 'use strict';
@@ -38,6 +38,7 @@ var TilesView = {
     this.view.addEventListener('input', this);
     this.view.addEventListener('touchend', this);
     this.searchInput.addEventListener('focus', this);
+    this.searchInput.addEventListener('keypress', this);
   },
 
   clean: function tv_clean() {
@@ -86,6 +87,7 @@ var TilesView = {
 
     var container = document.createElement('div');
     container.className = 'tile-container';
+    container.setAttribute('role', 'button');
 
     var titleBar = document.createElement('div');
     titleBar.className = 'tile-title-bar';
@@ -114,15 +116,6 @@ var TilesView = {
       artistName.classList.add('sub-tile-title');
     }
 
-    // Since 6 tiles are in one group
-    // the even group will be floated to left
-    // the odd group will be floated to right
-    if (Math.floor(this.index / 6) % 2 === 0) {
-      tile.classList.add('float-left');
-    } else {
-      tile.classList.add('float-right');
-    }
-
     var NUM_INITIALLY_VISIBLE_TILES = 8;
     var INITIALLY_HIDDEN_TILE_WAIT_TIME_MS = 1000;
 
@@ -132,11 +125,11 @@ var TilesView = {
 
     if (this.index <= NUM_INITIALLY_VISIBLE_TILES) {
       // Load this tile's background now, because it's visible.
-      AlbumArt.getCoverURL(result).then(setTileBackgroundClosure);
+      AlbumArtCache.getCoverURL(result).then(setTileBackgroundClosure);
     } else {
       // Defer loading hidden tiles until the visible ones are done.
       setTimeout(function() {
-        AlbumArt.getCoverURL(result).then(setTileBackgroundClosure);
+        AlbumArtCache.getCoverURL(result).then(setTileBackgroundClosure);
       }, INITIALLY_HIDDEN_TILE_WAIT_TIME_MS);
     }
 
@@ -145,6 +138,9 @@ var TilesView = {
     // The tile info(album/artist) shows only when the cover does not exist
     if (!result.metadata.picture) {
       container.appendChild(titleBar);
+    } else {
+      container.setAttribute('aria-label', artistName.textContent + ' ' + 
+                                           albumName.textContent);
     }
 
     tile.appendChild(container);
@@ -218,6 +214,14 @@ var TilesView = {
           SearchView.search(target.value);
         }
 
+        break;
+
+      case 'keypress':
+        if (target.id === 'views-tiles-search-input') {
+          if (evt.keyCode === evt.DOM_VK_RETURN) {
+            evt.preventDefault();
+          }
+        }
         break;
 
       default:

@@ -10,13 +10,6 @@ from gaiatest.apps.settings.app import Settings
 
 class TestBluetoothSettings(GaiaTestCase):
 
-    def setUp(self):
-        GaiaTestCase.setUp(self)
-
-        # Bluetooth host object
-        from gaiatest.utils.bluetooth.bluetooth_host import BluetoothHost
-        self.bluetooth_host = BluetoothHost(self.marionette)
-
     def test_toggle_bluetooth_settings(self):
         """Toggle Bluetooth via Settings - Networks & Connectivity
 
@@ -27,15 +20,22 @@ class TestBluetoothSettings(GaiaTestCase):
         settings = Settings(self.marionette)
         settings.launch()
 
+        self.assertFalse(self.data_layer.bluetooth_is_enabled)
+        self.assertFalse(self.data_layer.get_setting('bluetooth.visible'))
+
         bluetooth_settings = settings.open_bluetooth_settings()
         bluetooth_settings.enable_bluetooth()
+
+        self.assertTrue(self.data_layer.bluetooth_is_enabled)
 
         bluetooth_settings.tap_rename_my_device()
         bluetooth_settings.type_phone_name(device_name)
         bluetooth_settings.tap_update_device_name_ok()
 
+        self.assertEquals(bluetooth_settings.device_name, device_name)
+
         bluetooth_settings.enable_visible_to_all()
 
-        # Now have host machine inquire and shouldn't find our device
-        device_found = self.bluetooth_host.is_device_visible(device_name)
-        self.assertTrue(device_found, "Host should see our device (device discoverable mode is ON)")
+        self.assertTrue(self.data_layer.get_setting('bluetooth.visible'))
+        self.assertTrue(self.data_layer.bluetooth_is_discoverable)
+        self.assertEquals(self.data_layer.bluetooth_name, device_name)

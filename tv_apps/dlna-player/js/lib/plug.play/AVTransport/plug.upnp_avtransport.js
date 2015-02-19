@@ -20,6 +20,7 @@
  * - urn:schemas-upnp-org:service:AVTransport:2
  *
  */
+/* jshint ignore:start */
 !(function( global, undefined ) {
 
   if( !global.Plug || !global.Plug.UPnP ) {

@@ -16,6 +16,7 @@ class TestEmailNotification(GaiaTestCase):
     def setUp(self):
         try:
             self.testvars['email']['IMAP']
+            self.testvars['email']['smtp']
         except KeyError:
             raise SkipTest('account details not present in test variables')
 
@@ -41,7 +42,7 @@ class TestEmailNotification(GaiaTestCase):
         # send email to IMAP account
         mock_email = MockEmail(senders_email=self.testvars['email']['IMAP']['email'],
                                recipients_email=self.testvars['email']['IMAP']['email'])
-        EmailUtil().send(self.testvars['email']['IMAP'], mock_email)
+        EmailUtil().send(self.testvars['email']['smtp'], mock_email)
 
         self.marionette.switch_to_frame()
         system = System(self.marionette)
@@ -62,6 +63,9 @@ class TestEmailNotification(GaiaTestCase):
 
         self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.email.name)
         self.apps.switch_to_displayed_app()
+
+        # Wait for senders email to be shown
+        email.wait_for_senders_email_displayed()
 
         # check if the sender's email address is fine
         self.assertEqual(email.senders_email,

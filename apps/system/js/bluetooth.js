@@ -3,6 +3,7 @@
 'use strict';
 
 var Bluetooth = {
+  name: 'Bluetooth',
   get Profiles() {
     return {
       HFP: 'hfp',   // Hands-Free Profile
@@ -117,7 +118,6 @@ var Bluetooth = {
     navigator.mozSetMessageHandler('bluetooth-opp-transfer-start',
       function bt_fileTransferUpdate(transferInfo) {
         self._setProfileConnected(self.Profiles.OPP, true);
-        self.updateConnected();
         var evt = document.createEvent('CustomEvent');
         evt.initCustomEvent('bluetooth-opp-transfer-start',
           /* canBubble */ true, /* cancelable */ false,
@@ -129,7 +129,6 @@ var Bluetooth = {
     navigator.mozSetMessageHandler('bluetooth-opp-transfer-complete',
       function bt_fileTransferUpdate(transferInfo) {
         self._setProfileConnected(self.Profiles.OPP, false);
-        self.updateConnected();
         var evt = document.createEvent('CustomEvent');
         evt.initCustomEvent('bluetooth-opp-transfer-complete',
           /* canBubble */ true, /* cancelable */ false,
@@ -190,38 +189,15 @@ var Bluetooth = {
     var self = this;
     adapter.onhfpstatuschanged = function bt_hfpStatusChanged(evt) {
       self._setProfileConnected(self.Profiles.HFP, evt.status);
-      self.updateConnected();
     };
 
     adapter.ona2dpstatuschanged = function bt_a2dpStatusChanged(evt) {
       self._setProfileConnected(self.Profiles.A2DP, evt.status);
-      self.updateConnected();
     };
 
     adapter.onscostatuschanged = function bt_scoStatusChanged(evt) {
       self._setProfileConnected(self.Profiles.SCO, evt.status);
     };
-  },
-
-  updateConnected: function bt_updateConnected() {
-    var bluetooth = window.navigator.mozBluetooth;
-
-    if (!bluetooth || !('isConnected' in bluetooth)) {
-      return;
-    }
-
-    var wasConnected = this.connected;
-    this.connected = this.isProfileConnected(this.Profiles.HFP) ||
-                     this.isProfileConnected(this.Profiles.A2DP) ||
-                     this.isProfileConnected(this.Profiles.OPP);
-
-    if (wasConnected !== this.connected) {
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('bluetoothconnectionchange',
-        /* canBubble */ true, /* cancelable */ false,
-        {deviceConnected: this.connected});
-      window.dispatchEvent(evt);
-    }
   },
 
   /**

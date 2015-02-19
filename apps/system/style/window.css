@@ -7,7 +7,7 @@
   pointer-events: none;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow):not(.lockScreenInputWindow) {
+.appWindow:not(.homescreen):not(.searchWindow):not(.lockScreenInputWindow):not(.globalOverlayWindow) {
   background-color: black;
 }
 
@@ -20,7 +20,21 @@
   background-color: transparent;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow).light {
+/* Utility tray needs to be actionable on the attention screen */
+
+.appWindow.attentionWindow,
+.appWindow.attentionWindow .chrome .controls {
+  pointer-events: none;
+}
+
+/* Attention Screen needs to be clickable */
+
+.appWindow.attentionWindow .render,
+.appWindow.attentionWindow.toaster-mode {
+  pointer-events: auto;
+}
+
+.appWindow:not(.homescreen):not(.searchWindow):not(.globalOverlayWindow).light {
   background-color: #fff;
 }
 
@@ -36,15 +50,15 @@
   background-size: auto 0.3rem;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow).render > div.browser-container {
+.appWindow:not(.homescreen):not(.searchWindow):not(.globalOverlayWindow).render > div.browser-container {
   background-color: #fff;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow).light.render > div.browser-container {
+.appWindow:not(.homescreen):not(.searchWindow):not(.globalOverlayWindow).light.render > div.browser-container {
   background-color: #f2f2f2;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow).render > div.browser-container > iframe {
+.appWindow:not(.homescreen):not(.searchWindow):not(.globalOverlayWindow).render > div.browser-container > iframe {
   background-color: #fff;
 }
 
@@ -311,8 +325,14 @@
   transition: opacity 0.2s ease-in, visibility 0.2s;
 }
 
+.appWindow.private > .identification-overlay {
+  background: rgba(57, 46, 84, 0.9);
+}
+
 .appWindow.suspended > .identification-overlay,
 .appWindow:not(.active):not(.in-task-manager).overlay > .identification-overlay {
+  transition: none;
+
   visibility: visible;
   opacity: 1;
 }
@@ -340,8 +360,7 @@
   left: calc(50% - 3rem);
   width: 6rem;
   height: 6rem;
-
-  background-size: contain;
+  background: no-repeat center / contain;
 }
 
 .identification-overlay > div .title {
@@ -361,6 +380,10 @@
   white-space: nowrap;
 
   overflow: hidden;
+}
+
+.private .identification-overlay > div .title {
+  color: #e7e7e7;
 }
 
 .appWindow iframe.hidden {

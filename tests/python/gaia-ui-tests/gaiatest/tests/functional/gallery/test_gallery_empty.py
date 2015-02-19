@@ -16,7 +16,7 @@ class TestGalleryEmpty(GaiaTestCase):
         # Requires there to be no photos on SDCard which is the default
 
         gallery = Gallery(self.marionette)
-        gallery.launch()
+        gallery.launch(True)
 
         self.wait_for_condition(lambda m: gallery.empty_gallery_text == 'Use the Camera app to get started.')
 

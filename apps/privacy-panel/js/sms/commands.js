@@ -90,7 +90,6 @@ function(SettingsListener, SettingsHelper, SettingsURL) {
       lock: function fmdc_lock(message, passcode, reply) {
         var settings = {
           'lockscreen.enabled': true,
-          'lockscreen.notifications-preview.enabled': false,
           'lockscreen.passcode-lock.enabled': true,
           'lockscreen.lock-immediately': true
         };

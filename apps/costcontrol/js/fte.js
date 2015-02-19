@@ -203,7 +203,7 @@
     newStartScreen.dataset.viewport = 'right';
     delete newStartScreen.dataset.viewport;
 
-    for (var i = 1; i < track.lenght; i += 1) {
+    for (var i = 1; i < track.length; i += 1) {
       var id = track[i];
       if (id) {
         var screen = document.getElementById(id);

@@ -1,79 +1,29 @@
 'use strict';
 
 define(function(require) {
-  var SettingsCache = require('modules/settings_cache');
-  var LazyLoader = require('shared/lazy_loader');
+
+  var SearchProvider = require('shared/search_provider');
 
   function Search() {
-    this._searchUrlTemplate = null;
     this._searchEngineSelect = null;
   }
 
   Search.prototype.init = function(searchEngineSelect) {
     this._searchEngineSelect = searchEngineSelect;
-    this.getCurrentSearchEngine();
-    this.initSearchEngineSelect();
-  };
-
-  Search.prototype.getCurrentSearchEngine = function() {
-    SettingsCache.getSettings((function(settingsCache) {
-      this._searchUrlTemplate = settingsCache['search.urlTemplate'];
-    }).bind(this));
-  };
-
-  Search.prototype.initSearchEngineSelect = function() {
-    // Get search provider list from settings
-    SettingsCache.getSettings((function(settingsCache) {
-      var searchEngineList = settingsCache['search.providers'];
-      // If the list is empty, populate it from default JSON file
-      if (!searchEngineList) {
-        this.populateSearchEngines()
-        .then(this.generateSearchEngineOptions.bind(this));
-        return;
-      }
-
-      // Otherwise just go ahead and generate the options
-      this.generateSearchEngineOptions(searchEngineList);
-    }).bind(this));
-  };
-
-  /**
-   * Populate search engine list in settings from default JSON file.
-   *
-   * @param {Function} callback function to call with retrieved data.
-   */
-  Search.prototype.populateSearchEngines = function() {
-    return LazyLoader.getJSON('/resources/search/providers.json')
-    .then(function(data) {
-      if (!data) {
-        return;
-      }
-
-      var result = navigator.mozSettings.createLock().set({
-        'search.providers': data
-      });
-      result.onerror = function() {
-        console.error('Unable to set search providers setting');
-      };
-
-      return data;
-    })
-    .catch(function () {
-      console.error('Unable to get default search provider file.');
-      return;
+    SearchProvider.ready().then(() => {
+      this.drawProviders();
+      // Listen for updates as the providers may be updated
+      // within the search app
+      SearchProvider.providerUpdated(this.drawProviders.bind(this));
     });
   };
 
   /**
    * Generate <options> for the search engine <select> element.
    *
-   * @param {Array} data An array of engine objects.
    * @this
    */
-  Search.prototype.generateSearchEngineOptions = function(data) {
-    if (!data) {
-      return;
-    }
+  Search.prototype.drawProviders = function() {
 
     if (!this._searchEngineSelect) {
       return;
@@ -84,16 +34,17 @@ define(function(require) {
     var selectFragment = document.createDocumentFragment();
     var optionNode = document.createElement('option');
 
-    for (var i = 0; i < data.length; i++) {
-      var engine = data[i];
+    var providers = SearchProvider.providers();
+
+    Object.keys(providers).forEach(function(provider) {
       var option = optionNode.cloneNode();
-      option.value = engine.urlTemplate;
-      option.text = engine.title;
-      if (engine.urlTemplate == this._searchUrlTemplate) {
+      option.value = provider;
+      option.text = providers[provider].title;
+      if (provider === SearchProvider.selected()) {
         option.selected = true;
       }
       selectFragment.appendChild(option);
-    }
+    });
 
     this._searchEngineSelect.appendChild(selectFragment);
   };

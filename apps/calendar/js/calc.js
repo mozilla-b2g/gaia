@@ -8,7 +8,7 @@ const MINUTE = (SECOND * 60);
 const HOUR = MINUTE * 60;
 
 exports._hourDate = new Date();
-exports.startsOnMonday = false;
+exports.startDay = 0;
 exports.FLOATING = 'floating';
 exports.ALLDAY = 'allday';
 exports.SECOND = SECOND;
@@ -43,15 +43,19 @@ exports.dayOfWeekFromMonday = function(numeric) {
   if (day < 0) {
     return 6;
   }
-
   return day;
 };
 
 /**
- * Calculates day of week when starting day is Sunday.
+ * Calculates day of week from startDay value
+ * passed by the locale currently being used
  */
-exports.dayOfWeekFromSunday = function(numeric) {
-  return numeric;
+exports.dayOfWeekFromStartDay = function(numeric) {
+  var day = numeric - exports.startDay;
+  if (day < 0) {
+    return 7 + day;
+  }
+  return day;
 };
 
 /**
@@ -133,23 +137,21 @@ exports.spanOfDay = function(date, includeTime) {
  * last day, minute, second of given month.
  */
 exports.spanOfMonth = function(month) {
-  month = new Date(
-    month.getFullYear(),
-    month.getMonth(),
-    1
-  );
-
+  month = exports.monthStart(month);
   var startDay = exports.getWeekStartDate(month);
-
-  var endDay = new Date(
-    month.getFullYear(),
-    month.getMonth() + 1,
-    1
-  );
-
-  endDay.setMilliseconds(-1);
+  var endDay = exports.monthEnd(month);
   endDay = exports.getWeekEndDate(endDay);
   return new Timespan(startDay, endDay);
+};
+
+exports.monthEnd = function(date, diff = 0) {
+  var endDay = new Date(
+    date.getFullYear(),
+    date.getMonth() + diff + 1,
+    1
+  );
+  endDay.setMilliseconds(-1);
+  return endDay;
 };
 
 /**
@@ -331,6 +333,10 @@ exports.endOfDay = function(date) {
   return day;
 };
 
+exports.monthStart = function(date, diff = 0) {
+  return new Date(date.getFullYear(), date.getMonth() + diff, 1);
+};
+
 /**
  * Returns localized day of week.
  *
@@ -342,11 +348,7 @@ exports.dayOfWeek = function(date) {
   if (typeof(date) !== 'number') {
     number = date.getDay();
   }
-
-  if (exports.startsOnMonday) {
-    return exports.dayOfWeekFromMonday(number);
-  }
-  return exports.dayOfWeekFromSunday(number);
+  return exports.dayOfWeekFromStartDay(number);
 };
 
 /**
@@ -407,7 +409,7 @@ exports.daysBetween = function(start, end, includeTime) {
     if (includeTime) {
       list.push(end);
     } else {
-      list.push(this.createDay(start));
+      list.push(exports.createDay(start));
     }
     return list;
   }
@@ -570,12 +572,7 @@ exports.isAllDay = function(baseDate, startDate, endDate) {
 };
 
 window.addEventListener('localized', function changeStartDay() {
-  var startDay = navigator.mozL10n.get('weekStartsOnMonday');
-  if (startDay && parseInt(startDay, 10)) {
-    exports.startsOnMonday = true;
-  } else {
-    exports.startsOnMonday = false;
-  }
+  exports.startDay = parseInt(navigator.mozL10n.get('firstDayOfTheWeek'), 10);
 });
 
 });

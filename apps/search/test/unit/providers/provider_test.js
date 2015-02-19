@@ -1,12 +1,18 @@
 'use strict';
-/* global Provider */
+/* global Provider, MocksHelper */
 
 requireApp('search/shared/js/everythingme/eme.js');
 requireApp('search/js/providers/provider.js');
+require('/shared/test/unit/mocks/mock_icons_helper.js');
+
+var mocks = new MocksHelper([
+  'IconsHelper'
+]).init();
 
 suite('search/providers/provider', function() {
 
   var fakeElement, stubById, subject;
+  mocks.attachTestHelpers();
 
   setup(function() {
     fakeElement = document.createElement('div');

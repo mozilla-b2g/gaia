@@ -3,7 +3,10 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import time
-from marionette import Wait
+try:
+    from marionette import Wait
+except:
+    from marionette_driver import Wait
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
 from gaiatest.apps.messages.app import Messages
@@ -29,6 +32,7 @@ class TestSmsAutoSaveDrafts(GaiaTestCase):
         self.apps.switch_to_displayed_app()
 
         new_message.type_message(_text_message_content)
+        self.assertEqual(new_message.message, _text_message_content)
 
         # close message app and leave cards view
         self.device.hold_home_button()

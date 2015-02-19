@@ -77,9 +77,9 @@
           0 : softwareButtonManager.width);
     },
 
-    getHeightFor: function(currentWindow) {
+    getHeightFor: function(currentWindow, ignoreKeyboard) {
       if (currentWindow instanceof AttentionWindow) {
-        var keyboardHeight = this.keyboardEnabled ?
+        var keyboardHeight = this.keyboardEnabled && !ignoreKeyboard ?
           inputWindowManager.getHeight() : 0;
         var height = window.innerHeight - keyboardHeight -
           softwareButtonManager.height;
@@ -93,7 +93,11 @@
 
         return height;
       }
-      return this.height;
+      if (ignoreKeyboard) {
+        return this.height + inputWindowManager.getHeight();
+      } else {
+        return this.height;
+      }
     },
 
     /**

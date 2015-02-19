@@ -115,13 +115,35 @@ var GaiaDataLayer = {
     var req = icc.updateContact(aType, aContact);
     req.onsuccess = function() {
       console.log('success saving contact to SIM');
-      marionetteScriptFinished(true);
+      marionetteScriptFinished(req.result);
     };
     req.onerror = function() {
       console.error('error saving contact to SIM', req.error.name);
       marionetteScriptFinished(false);
     };
   },
+
+
+  deleteSIMContact: function(aType, aId) {
+
+    // Get 1st SIM
+    var iccId = window.navigator.mozIccManager.iccIds[0];
+    var icc = window.navigator.mozIccManager.getIccById(iccId);
+
+    var aContact = new mozContact();
+    aContact.id = aId;
+
+    var req = icc.updateContact(aType, aContact);
+    req.onsuccess = function() {
+      console.log('success removing contact from SIM');
+      marionetteScriptFinished(true);
+    };
+    req.onerror = function() {
+      console.error('error removing contact from SIM', req.error.name);
+      marionetteScriptFinished(false);
+    };
+  },
+
 
   getAllContacts: function(aCallback) {
     var callback = aCallback || marionetteScriptFinished;
@@ -396,12 +418,8 @@ var GaiaDataLayer = {
   },
 
   connectToCellData: function() {
-
-    // XXX: check bug-926169
-    // this is used to keep all tests passing while introducing multi-sim APIs
-    var manager = window.navigator.mozMobileConnection ||
-      window.navigator.mozMobileConnections &&
-        window.navigator.mozMobileConnections[0];
+    var manager = window.navigator.mozMobileConnections &&
+                  window.navigator.mozMobileConnections[0];
 
     if (!manager.data.connected) {
       waitFor(
@@ -422,12 +440,8 @@ var GaiaDataLayer = {
   disableCellData: function() {
     var self = this;
     this.getSetting('ril.data.enabled', function(aCellDataEnabled) {
-
-      // XXX: check bug-926169
-      // this is used to keep all tests passing while introducing multi-sim APIs
-      var manager = window.navigator.mozMobileConnection ||
-        window.navigator.mozMobileConnections &&
-          window.navigator.mozMobileConnections[0];
+      var manager = window.navigator.mozMobileConnections &&
+                    window.navigator.mozMobileConnections[0];
 
       if (aCellDataEnabled) {
         waitFor(
@@ -634,7 +648,7 @@ var GaiaDataLayer = {
 
   bluetoothSetDeviceName: function(device_name, aCallback) {
     var callback = aCallback || marionetteScriptFinished;
-    console.log('Setting device\'s bluetooth name to \'%s\'' % device_name);
+    console.log('Setting device\'s bluetooth name to \'%s\'', device_name);
 
     var req = window.navigator.mozBluetooth.getDefaultAdapter();
     req.onsuccess = function() {

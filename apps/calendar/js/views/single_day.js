@@ -3,6 +3,7 @@ define(function(require, exports, module) {
 
 var Overlap = require('utils/overlap');
 var localeFormat = require('date_format').localeFormat;
+var colorUtils = require('utils/color');
 var dayObserver = require('day_observer');
 var relativeDuration = require('calc').relativeDuration;
 var relativeOffset = require('calc').relativeOffset;
@@ -87,13 +88,11 @@ SingleDay.prototype = {
   },
 
   _render: function(records) {
-    // we always remove all elements and then again since it's simpler and we
-    // should not have that many busytimes on a single day.
     this._alldayEvents.innerHTML = '';
     records.allday.forEach(this._renderAlldayEvent, this);
     this.overlaps.reset();
     this.day.innerHTML = '';
-    records.events.forEach(this._renderEvent, this);
+    records.basic.forEach(this._renderEvent, this);
     if (this._alldayEvents.children.length > 0) {
       // If there are all day events, the section acts as a listbox.
       this._alldayEvents.setAttribute('role', 'listbox');
@@ -163,17 +162,14 @@ SingleDay.prototype = {
   },
 
   _buildEventElement: function(record) {
-    var {event, busytime} = record;
+    var {event, busytime, color} = record;
     var {remote} = event;
 
     var el = document.createElement('a');
     el.href = '/event/show/' + busytime._id;
-    el.className = [
-      'md__event',
-      'calendar-id-' + event.calendarId,
-      'calendar-border-color',
-      'calendar-bg-color'
-    ].join(' ');
+    el.className = 'md__event';
+    el.style.borderColor = color;
+    el.style.backgroundColor = colorUtils.hexToBackground(color);
 
     var labels = [];
 
@@ -198,7 +194,8 @@ SingleDay.prototype = {
 
     if (remote.alarms && remote.alarms.length) {
       var icon = document.createElement('i');
-      icon.className = 'gaia-icon icon-calendar-alarm calendar-text-color';
+      icon.className = 'gaia-icon icon-calendar-alarm';
+      icon.style.color = color;
       icon.setAttribute('aria-hidden', true);
       icon.id = 'md__event-' + busytime._id + '-icon-' + this._instanceID;
       icon.setAttribute('data-l10n-id', 'icon-calendar-alarm');

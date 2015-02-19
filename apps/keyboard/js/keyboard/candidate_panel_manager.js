@@ -1,7 +1,5 @@
 'use strict';
 
-/* global IMERender */
-
 (function(exports) {
 
 var CandidatePanelScrollingMonitor = function(app) {
@@ -19,8 +17,11 @@ CandidatePanelScrollingMonitor.prototype.start = function() {
 
 CandidatePanelScrollingMonitor.prototype.stop = function() {
   clearTimeout(this.scrollTimer);
-  if (IMERender.candidatePanel) {
-    IMERender.candidatePanel.removeEventListener('scroll', this);
+  var candidatePanel = this.app.viewManager.candidatePanel;
+  if (candidatePanel) {
+    var suggestionsContainer =
+      candidatePanel.querySelector('.suggestions-container');
+    suggestionsContainer.removeEventListener('scroll', this);
   }
 };
 
@@ -44,14 +45,19 @@ CandidatePanelScrollingMonitor.prototype.handleEvent = function(evt) {
 CandidatePanelScrollingMonitor.prototype.startMonitoring = function() {
   // If the candidates list was not truncated,
   // we don't really need to monitor the scroll event.
-  if ('truncated' in IMERender.candidatePanel.dataset) {
-    IMERender.candidatePanel.addEventListener('scroll', this);
+  var candidatePanel = this.app.viewManager.candidatePanel;
+  if ('truncated' in candidatePanel.dataset) {
+    var suggestionsContainer =
+      candidatePanel.querySelector('.suggestions-container');
+    suggestionsContainer.addEventListener('scroll', this);
   }
 };
 
 CandidatePanelScrollingMonitor.prototype.stopMonitoring = function() {
   clearTimeout(this.scrollTimer);
-  IMERender.candidatePanel.removeEventListener('scroll', this);
+  var suggestionsContainer =
+    this.app.viewManager.candidatePanel.querySelector('.suggestions-container');
+  suggestionsContainer.removeEventListener('scroll', this);
 };
 
 var CandidatePanelManager = function(app) {
@@ -85,8 +91,9 @@ CandidatePanelManager.prototype.stop = function() {
 };
 
 CandidatePanelManager.prototype.showNextCandidatePage = function() {
-  var numberOfCandidatesPerRow = IMERender.getNumberOfCandidatesPerRow();
-  var candidatePanel = IMERender.candidatePanel;
+  var numberOfCandidatesPerRow =
+    this.app.viewManager.getNumberOfCandidatesPerRow();
+  var candidatePanel = this.app.viewManager.candidatePanel;
   var candidateIndicator =
     parseInt(candidatePanel.dataset.candidateIndicator, 10);
 
@@ -98,13 +105,14 @@ CandidatePanelManager.prototype.showNextCandidatePage = function() {
     engine.getMoreCandidates(
       candidateIndicator,
       this.PAGE_ROWS * numberOfCandidatesPerRow + 1,
-      IMERender.showMoreCandidates.bind(IMERender, this.PAGE_ROWS)
+      this.app.viewManager.showMoreCandidates.bind(this.app.viewManager,
+                                                   this.PAGE_ROWS)
     );
   } else {
     var list = this.currentCandidates.slice(candidateIndicator,
       candidateIndicator + this.PAGE_ROWS * numberOfCandidatesPerRow + 1);
 
-    IMERender.showMoreCandidates(this.PAGE_ROWS, list);
+    this.app.viewManager.showMoreCandidates(this.PAGE_ROWS, list);
   }
 };
 
@@ -123,10 +131,11 @@ CandidatePanelManager.prototype.showFullPanel = function() {
 
   this.isFullPanelShown = true;
 
-  var candidatePanel = IMERender.candidatePanel;
+  var candidatePanel = this.app.viewManager.candidatePanel;
   // Decide if we need the second page now
   if (candidatePanel.dataset.rowCount == 1) {
-    var numberOfCandidatesPerRow = IMERender.getNumberOfCandidatesPerRow();
+    var numberOfCandidatesPerRow =
+      this.app.viewManager.getNumberOfCandidatesPerRow();
     var candidateIndicator =
       parseInt(candidatePanel.dataset.candidateIndicator, 10);
 
@@ -142,9 +151,9 @@ CandidatePanelManager.prototype.showFullPanel = function() {
             return;
           }
 
-          IMERender.showMoreCandidates(this.FIRST_PAGE_ROWS, list);
+          this.app.viewManager.showMoreCandidates(this.FIRST_PAGE_ROWS, list);
           this.scrollingMonitor.startMonitoring();
-          IMERender.toggleCandidatePanel(true);
+          this.app.viewManager.toggleCandidatePanel(true);
         }.bind(this)
       );
     } else { // No engine.getMoreCandidates
@@ -152,14 +161,14 @@ CandidatePanelManager.prototype.showFullPanel = function() {
         candidateIndicator +
         this.FIRST_PAGE_ROWS * numberOfCandidatesPerRow + 1);
 
-      IMERender.showMoreCandidates(this.FIRST_PAGE_ROWS, list);
+      this.app.viewManager.showMoreCandidates(this.FIRST_PAGE_ROWS, list);
       this.scrollingMonitor.startMonitoring();
-      IMERender.toggleCandidatePanel(true);
+      this.app.viewManager.toggleCandidatePanel(true);
     }
 
   } else { // rowCount != 1
     this.scrollingMonitor.startMonitoring();
-    IMERender.toggleCandidatePanel(true);
+    this.app.viewManager.toggleCandidatePanel(true);
   }
 };
 
@@ -171,7 +180,7 @@ CandidatePanelManager.prototype.hideFullPanel = function() {
   this.isFullPanelShown = false;
 
   this.scrollingMonitor.stopMonitoring();
-  IMERender.toggleCandidatePanel(false);
+  this.app.viewManager.toggleCandidatePanel(false);
 };
 
 CandidatePanelManager.prototype.reset = function() {

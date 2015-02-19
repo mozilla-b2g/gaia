@@ -11,7 +11,6 @@
   },
   "permissions": {
     "themeable":{},
-    "geolocation": {},
     "mobileconnection":{},
     "open-remote-window":{},
     "settings":{ "access": "readwrite" },

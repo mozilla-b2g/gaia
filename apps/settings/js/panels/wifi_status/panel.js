@@ -1,14 +1,14 @@
 define(function(require) {
   'use strict';
 
-  var SettingsPanel = require('modules/settings_panel');
+  var DialogPanel = require('modules/dialog_panel');
   var WifiHelper = require('shared/wifi_helper');
   var wifiManager = WifiHelper.getWifiManager();
 
   return function ctor_statusWifi() {
     var elements = {};
 
-    return SettingsPanel({
+    return DialogPanel({
       onInit: function(panel) {
         elements = {};
         elements.ip = panel.querySelector('[data-ip]');
@@ -21,7 +21,7 @@ define(function(require) {
         this._updateNetworkInfo();
         elements.ssid.textContent = options.network.ssid;
         elements.signal.setAttribute('data-l10n-id',
-                                     'signalLevel' + options.sl);
+          'signalLevel' + options.sl);
         if (options.security) {
           elements.security.removeAttribute('data-l10n-id');
           elements.security.textContent = options.security;
@@ -37,8 +37,7 @@ define(function(require) {
         var info = wifiManager.connectionInformation || {};
         elements.ip.textContent = info.ipAddress || '';
         navigator.mozL10n.setAttributes(elements.speed,
-                                        'linkSpeedMbs',
-                                        { linkSpeed: info.linkSpeed });
+          'linkSpeedMbs', { linkSpeed: info.linkSpeed });
       }
     });
   };

@@ -1,6 +1,5 @@
 'use strict';
 
-var Actions = require('marionette-client').Actions;
 var getIconId = require('./icon_id');
 
 /**
@@ -10,18 +9,6 @@ var getIconId = require('./icon_id');
 function VerticalHome(client) {
   this.client = client;
   this.system = client.loader.getAppClass('system');
-
-  // For all home tests we disable geolocation for smart collections because
-  // there is a nasty bug where we show a prompt on desktop but not a device.
-  // This will go away once bug 1022768 lands.
-  var chromeClient = this.client.scope({ context: 'chrome' });
-  chromeClient.executeScript(function() {
-    var origin = 'app://collection.gaiamobile.org';
-    var mozPerms = navigator.mozPermissionSettings;
-    mozPerms.set(
-      'geolocation', 'deny', origin + '/manifest.webapp', origin, false
-    );
-  });
 }
 
 /**
@@ -30,6 +17,7 @@ function VerticalHome(client) {
 VerticalHome.URL = 'app://verticalhome.gaiamobile.org';
 
 VerticalHome.Selectors = {
+  grid: '#icons',
   editHeaderText: '#edit-header h1',
   editHeaderDone: '#exit-edit-mode',
   editGroup: '#edit-group',
@@ -40,6 +28,8 @@ VerticalHome.Selectors = {
   firstIcon: '#icons div.icon:not(.placeholder)',
   groupHeader: '#icons .group .header',
   groupTitle: '#icons .group .header .title',
+  groupBackground: '#icons .group .background',
+  groupToggle: '#icons .group .toggle',
   dividers: '#icons section.divider',
   collections: '#icons .icon.collection',
   contextmenu: '#contextmenu-dialog',
@@ -127,7 +117,7 @@ VerticalHome.prototype = {
    * grid if not specified.
    */
   enterEditMode: function(icon) {
-    var actions = new Actions(this.client);
+    var actions = this.client.loader.getActions();
     var firstIcon = icon ||
       this.client.helper.waitForElement(VerticalHome.Selectors.firstIcon);
 
@@ -229,6 +219,18 @@ VerticalHome.prototype = {
     return this.client.helper.waitForElement(
       '[data-identifier*="' + manifestUrl +
       (entryPoint ? '-' + entryPoint : '') + '"]'
+    );
+  },
+
+  /**
+  Fetch the nth icon on the homescreen.
+
+  @param {number} the icon number we want
+  @return {Marionette.Element}
+   */
+  getNthIcon: function(number) {
+    return this.client.helper.waitForElement(
+      '.icon:nth-of-type(' + number + ')'
     );
   },
 
@@ -341,7 +343,7 @@ VerticalHome.prototype = {
     }, [icon.getAttribute('data-identifier'), index]);
 
     // Wait for the icon to animate into place
-    var actions = new Actions(this.client);
+    var actions = this.client.loader.getActions();
     actions.wait(1).perform();
   },
 
@@ -351,24 +353,9 @@ VerticalHome.prototype = {
    * the grid to create a new group, and thus new placeholders.
    */
   openContextMenu: function() {
-    function placeholderExists() {
-      return !!document.querySelector('#icons .placeholder');
-    }
-
-    var selectors = VerticalHome.Selectors;
-    var actions = new Actions(this.client);
-
-    if (!this.client.executeScript(placeholderExists)) {
-      this.enterEditMode();
-      var done = this.client.findElement(selectors.editHeaderDone);
-      var firstIcon = this.client.findElement(selectors.firstIcon);
-      actions.press(firstIcon).wait(1).move(done).release().perform();
-      this.exitEditMode();
-    }
-
-    var placeholder = this.client.findElement(selectors.placeholders);
-    placeholder.scriptWith(function(e) { e.scrollIntoView(false); });
-    actions.longPress(placeholder, 1).perform();
+    var actions = this.client.loader.getActions();
+    var body = this.client.findElement('body');
+    actions.longPress(body, 1).perform();
   }
 };
 

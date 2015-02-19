@@ -14,8 +14,6 @@ FtuAppBuilder.prototype.setOptions = function(options) {
   this.stageDir = utils.getFile(options.STAGE_APP_DIR);
   this.appDir = utils.getFile(options.APP_DIR);
 
-  this.webapp = utils.getWebapp(this.appDir.path, options.GAIA_DOMAIN,
-    options.GAIA_SCHEME, options.GAIA_PORT, options.STAGE_DIR);
   this.gaia = utils.gaia.getInstance(options);
 
   this.gaia.stageDir = this.stageDir;
@@ -37,12 +35,13 @@ FtuAppBuilder.prototype.generateAll = function() {
   importBuild.generateConfig('ftu', '/', this.gaia);
 };
 
-FtuAppBuilder.prototype.execute = function(options) {
+FtuAppBuilder.prototype.execute = function(options, webapp) {
+  this.webapp = webapp;
   this.setOptions(options);
   this.generateAll();
 };
 
-exports.execute = function(options) {
+exports.execute = function(options, webapp) {
   utils.copyToStage(options);
-  (new FtuAppBuilder()).execute(options);
+  (new FtuAppBuilder()).execute(options, webapp);
 };

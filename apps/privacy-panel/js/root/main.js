@@ -1,16 +1,14 @@
 /**
- * Root panel.
- * 
- * @module RootPanel
- * @return {Object}
- */
+* Root panel.
+*
+* @module RootPanel
+* @return {Object}
+*/
 define([
-  'panels',
-  'shared/settings_listener',
-  'shared/settings_helper'
+  'panels'
 ],
 
-function(panels, SettingsListener, SettingsHelper) {
+function(panels) {
   'use strict';
 
   function RootPanel() {}
@@ -18,11 +16,11 @@ function(panels, SettingsListener, SettingsHelper) {
   RootPanel.prototype = {
 
     /**
-     * Initialize Root panel
-     * 
-     * @method init
-     * @constructor
-     */
+    * Initialize Root panel
+    *
+    * @method init
+    * @constructor
+    */
     init: function() {
       document.querySelector('body').dataset.ready = true;
 
@@ -31,37 +29,29 @@ function(panels, SettingsListener, SettingsHelper) {
 
       this.settingsApp = null;
       this.settingsManifestURL = document.location.protocol +
-        '//settings.gaiamobile.org' + (location.port ? (':' +
-        location.port) : '') + '/manifest.webapp';
+      '//settings.gaiamobile.org' + (location.port ? (':' +
+                       location.port) : '') + '/manifest.webapp';
 
-      this.observers();
       this.events();
     },
 
     events: function() {
       panels.registerEvents([this.panel]);
 
-      // Reset launch flag when app is not active.
-      window.addEventListener('blur', function() {
-        SettingsHelper('privacypanel.launched.by.settings').set(false);
-      });
-
-      this.backBtn.addEventListener('click', function(event) {
+      this.backBtn.addEventListener('click', (event) => {
         event.preventDefault();
-        this.getSettingsApp().then(function(app) {
+        // We have to make sure settings key is cleaned up before jumping
+        // back to settings app
+        this.getSettingsApp().then((app) => {
           app.launch();
         });
-      }.bind(this));
-    },
+      });
 
-    observers: function() {
-      // Observe 'privacy-panel.launched-by-settings' setting to be able to
-      // detect launching point.
-      SettingsListener.observe('privacypanel.launched.by.settings', false,
-        function(value) {
-          this.panel.dataset.settings = value;
-        }.bind(this)
-      );
+      window.addEventListener('visibilitychange', () => {
+        // If users click on `home` button to go back to desktop or to
+        // open task manager we have to close the application
+        window.close();
+      });
     },
 
     searchApp: function(appURL, callback) {
@@ -82,16 +72,12 @@ function(panels, SettingsListener, SettingsHelper) {
           resolve(this.settingApp);
         } else {
           this.searchApp(this.settingsManifestURL, function(app) {
-            resolve(app);
+                 resolve(app);
           });
         }
       }.bind(this));
-
       return promise;
-    }
-
+    },
   };
-
   return new RootPanel();
-
 });

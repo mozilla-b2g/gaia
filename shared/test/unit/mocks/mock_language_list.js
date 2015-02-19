@@ -1,12 +1,18 @@
 (function(exports) {
   'use strict';
 
+  var langs = {
+    'en-US': 'English (US)'
+  };
+
   exports.MockLanguageList = {
     _languages: {
-      'en-US': 'English (US)'
+      then: function(callback) {
+        callback(langs);
+      }
     },
     get: function(callback) {
-      callback(this._languages, 'en-US');
+      callback(langs, 'en-US');
     },
     wrapBidi: function(lang, name) {
       return name;

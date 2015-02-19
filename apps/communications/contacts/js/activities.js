@@ -1,5 +1,5 @@
 /* globals ConfirmDialog, Contacts, LazyLoader, utils, ActionMenu,
-   VCardReader */
+   VCardReader, ContactToVcardBlob, VcardFilename */
 /* exported ActivityHandler */
 
 'use strict';
@@ -10,6 +10,8 @@ var ActivityHandler = {
   _launchedAsInlineActivity: (window.location.search == '?pick'),
 
   mozContactParam: null,
+
+  _actionMenu: null,
 
   get currentlyHandling() {
     return !!this._currentActivity;
@@ -125,8 +127,13 @@ var ActivityHandler = {
 
   renderOneContact: function(contact, activity) {
     this.mozContactParam = contact;
-    activity.source.data.params = {'mozContactParam': true};
-    this.launch_activity(activity, 'view-contact-form');
+    var data = activity.source.data;
+    data.params = {'mozContactParam': true};
+    if (data.allowSave === true) {
+      this.launch_activity(activity, 'view-contact-form');
+    } else {
+      this.launch_activity(activity, 'view-contact-details');
+    }
   },
 
   // This variable has no use once we support vCards with multiple contacts.
@@ -143,7 +150,7 @@ var ActivityHandler = {
 
   getvCardReader: function ah_getvCardReader(blob, callback) {
     var fileReader = new FileReader();
-    fileReader.readAsBinaryString(blob);
+    fileReader.readAsText(blob);
     fileReader.onloadend = function() {
       var reader = new VCardReader(fileReader.result);
       if(typeof callback === 'function') {
@@ -183,7 +190,8 @@ var ActivityHandler = {
     return !!(activity.source &&
               activity.source.data &&
               !activity.source.data.params &&
-              activity.source.data.type === 'text/vcard' &&
+              activity.source.data.type &&
+              activity.source.data.type.indexOf('vcard') !== -1 &&
               activity.source.data.blob);
   },
 
@@ -219,6 +227,8 @@ var ActivityHandler = {
   dataPickHandler: function ah_dataPickHandler(theContact) {
     var type, dataSet, noDataStr;
     var result = {};
+    var self = this;
+
     // Keeping compatibility with previous implementation. If
     // we want to get the full contact, just pass the parameter
     // 'fullContact' equal true.
@@ -226,6 +236,25 @@ var ActivityHandler = {
         this.activityData.fullContact === true) {
       result = utils.misc.toMozContact(theContact);
       this.postPickSuccess(result);
+      return;
+    }
+
+    if (this.activityDataType.indexOf('text/vcard') !== -1) {
+      LazyLoader.load([
+                       '/shared/js/text_normalizer.js',
+                       '/shared/js/contact2vcard.js',
+                       '/shared/js/setImmediate.js'
+                      ], function lvcard() {
+        ContactToVcardBlob([theContact], function blobReady(vcardBlob) {
+          self.postPickSuccess({
+            name: VcardFilename(theContact),
+            blob: vcardBlob
+          });
+        }, {
+            // Some MMS gateways prefer this MIME type for vcards
+            type: 'text/x-vcard'
+        });
+      });
       return;
     }
 
@@ -292,9 +321,14 @@ var ActivityHandler = {
         break;
       default:
         // if more than one required type of data
-        var self = this;
         LazyLoader.load('/contacts/js/action_menu.js', function() {
-          var prompt1 = new ActionMenu();
+          if (!self._actionMenu) {
+            self._actionMenu = new ActionMenu();
+          } else {
+            // To be sure that the action menu is empty
+            self._actionMenu.hide();
+          }
+
           var itemData;
           var capture = function(itemData) {
             return function() {
@@ -304,14 +338,14 @@ var ActivityHandler = {
               } else {
                 result[type] = itemData;
               }
-              prompt1.hide();
+              self._actionMenu.hide();
               self.postPickSuccess(result);
             };
           };
           for (var i = 0, l = dataSet.length; i < l; i++) {
             itemData = dataSet[i].value;
             var carrier = dataSet[i].carrier || '';
-            prompt1.addToList(
+            self._actionMenu.addToList(
               {
                 id: 'pick_destination',
                 args: {destination: itemData, carrier: carrier}
@@ -319,7 +353,7 @@ var ActivityHandler = {
               capture(itemData)
             );
           }
-          prompt1.show();
+          self._actionMenu.show();
         });
     } // switch
   },

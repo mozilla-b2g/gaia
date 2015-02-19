@@ -200,15 +200,15 @@ exports.PERFNOW = function PERFNOW() {
  * ask for 2 days ago, you really get 2.5 days worth of time.
  */
 var makeDaysAgo = exports.makeDaysAgo =
-      function makeDaysAgo(numDays, tzOffset) {
-  var past = quantizeDate((TIME_WARPED_NOW || Date.now()) + tzOffset) -
+      function makeDaysAgo(numDays) {
+  var past = quantizeDate(TIME_WARPED_NOW || Date.now()) -
                numDays * DAY_MILLIS;
   return past;
 };
 var makeDaysBefore = exports.makeDaysBefore =
-      function makeDaysBefore(date, numDaysBefore, tzOffset) {
+      function makeDaysBefore(date, numDaysBefore) {
   if (date === null)
-    return makeDaysAgo(numDaysBefore - 1, tzOffset);
+    return makeDaysAgo(numDaysBefore - 1);
   return quantizeDate(date) - numDaysBefore * DAY_MILLIS;
 };
 /**

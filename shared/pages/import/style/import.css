@@ -23,7 +23,7 @@ form[role="dialog"].no-overlay button {
 
 /* BB lists */
 .import-list header {
-  padding-left: 1.5rem;
+  -moz-padding-start: 1.5rem;
   position: sticky;
   top: -3.7rem;
   background: #fff;
@@ -38,7 +38,9 @@ form[role="dialog"].no-overlay button {
 }
 
 [data-type="list"].import-list {
-  padding: 0 4rem 0 1.5rem;
+  padding: 0;
+  -moz-padding-start: 1.5rem;
+  -moz-padding-end: 4rem;
 }
 
 [data-type="list"].import-list.active li:after {
@@ -58,7 +60,7 @@ form[role="dialog"].no-overlay button {
 
 #groups-list.import-list li,
 .import #search-list[data-type="list"] li {
-  padding-left: 3.5rem;
+  -moz-padding-start: 3.5rem;
 }
 
 #groups-list.active li:not(:active):after,
@@ -99,6 +101,7 @@ p#friends-msg {
   font-weight: 600;
   line-height: 1.8rem;
   margin: 0 3rem;
+  text-align: start;
 }
 
 #main {
@@ -114,7 +117,7 @@ p#friends-msg {
   overflow-y: auto;
   -moz-box-sizing: border-box;
   color: #333;
-  text-align: left;
+  text-align: start;
   height: calc(100% - 6.9rem);
   padding-top: 3.7rem; /* Equal to search form height */
   position: relative;
@@ -179,4 +182,11 @@ li[data-uuid]:last-child {
 
 #done-search {
   min-width: 8.2rem;
+}
+
+/* RTL View */
+html[dir="rtl"] #groups-list.import-list label,
+html[dir="rtl"] #search-list label {
+  left: unset;
+  right: 0;
 }

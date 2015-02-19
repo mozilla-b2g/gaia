@@ -1,5 +1,5 @@
 'use strict';
-/* global evt, Base, LazyLoader, SelectionBorder, SpatialNavigator, KeyEvent */
+/* global Base, KeyEvent, LazyLoader, SelectionBorder, SpatialNavigator */
 (function(exports) {
 
   function SettingsList() {

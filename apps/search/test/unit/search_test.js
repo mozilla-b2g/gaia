@@ -34,7 +34,7 @@ suite('search/search', function() {
 
     realAsyncStorage = window.asyncStorage;
     window.asyncStorage = MockasyncStorage;
-    
+
     window.SettingsListener = {
       observe: function() {}
     };
@@ -42,8 +42,8 @@ suite('search/search', function() {
     clock = sinon.useFakeTimers();
 
     requireApp('search/js/search.js', function() {
-      assert.equal(Search.toShowNotice, null);
-      Search.toShowNotice = false;
+      // assert.equal(Search.toShowNotice, null);
+      // Search.toShowNotice = false;
 
       Search._port = { postMessage: function() {} };
       done();
@@ -153,7 +153,9 @@ suite('search/search', function() {
     setup(function() {
       var fakeProvider = {
         name: 'Foo',
-        search: function() {},
+        search: function() {
+          return Promise.resolve();
+        },
         abort: function() {},
         clear: function() {}
       };
@@ -178,6 +180,27 @@ suite('search/search', function() {
       assert.ok(stub.calledOnce);
     });
 
+    test('full URLs do not get sent', function() {
+      var remoteProvider = {
+        name: 'remoteguy',
+        remote: true,
+        search: function() {},
+        abort: function() {},
+        clear: function() {}
+      };
+      Search.provider(remoteProvider);
+      Search.suggestionsEnabled = true;
+
+      var stub = this.sinon.stub(Search.providers.remoteguy, 'search');
+      Search.change({
+        data: {
+          input: 'http://mozilla.org'
+        }
+      });
+      clock.tick(1000); // For typing timeout
+      assert.ok(stub.notCalled);
+    });
+
     test('aborting will cancel search timeout', function() {
       var stub = this.sinon.stub(Search.providers.Foo, 'search');
       Search.change({
@@ -195,6 +218,28 @@ suite('search/search', function() {
       clock.tick(1000); // For typing timeout
       assert.ok(stub.notCalled);
     });
+
+    test('when a private browser', function() {
+      var remoteProvider = {
+        name: 'remoteguy',
+        remote: true,
+        search: function() {},
+        abort: function() {},
+        clear: function() {}
+      };
+      Search.provider(remoteProvider);
+      Search.suggestionsEnabled = true;
+
+      var stub = this.sinon.stub(Search.providers.remoteguy, 'search');
+      Search.change({
+        data: {
+          input: 'search me',
+          isPrivateBrowser: true
+        }
+      });
+      clock.tick(1000); // For typing timeout
+      assert.ok(stub.notCalled);
+    });
   });
 
   suite('submit', function() {
@@ -208,34 +253,6 @@ suite('search/search', function() {
       });
       clock.tick(1000); // For typing timeout
       assert.ok(stub.calledOnce);
-    });
-    
-    test('Uses configured search template', function() {
-      var navigateStub = this.sinon.stub(Search, 'navigate');
-      var realUrlTemplate = Search.urlTemplate;
-      Search.urlTemplate = 'http://example.com/?q={searchTerms}';
-      var msg = {
-        data: {
-          input: 'foo'
-        }
-      };
-      Search.submit(msg);
-      assert.ok(navigateStub.calledWith('http://example.com/?q=foo'));
-      Search.urlTemplate = realUrlTemplate;
-    });
-    
-    test('Uses special case for everything.me full search', function() {
-      var expandSearchStub = this.sinon.stub(Search, 'expandSearch');
-      var realUrlTemplate = Search.urlTemplate;
-      Search.urlTemplate = 'everything.me';
-      var msg = {
-        data: {
-          input: 'foo'
-        }
-      };
-      Search.submit(msg);
-      assert.ok(expandSearchStub.calledOnce);
-      Search.urlTemplate = realUrlTemplate;
     });
   });
 

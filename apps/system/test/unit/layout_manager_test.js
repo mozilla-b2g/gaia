@@ -311,6 +311,8 @@ suite('system/LayoutManager >', function() {
     setup(function() {
       MocksoftwareButtonManager.height = 50;
       MockService.locked = false;
+      inputWindowManager.getHeight.returns(100);
+      layoutManager.keyboardEnabled = true;
     });
 
     test('should return the height for regular windows', function() {
@@ -328,6 +330,17 @@ suite('system/LayoutManager >', function() {
       var attentionWindow = new window.AttentionWindow();
       assert.operator(layoutManager.getHeightFor({}), '>',
         layoutManager.getHeightFor(attentionWindow));
+    });
+
+    test('should not consider keyboard when ignoreKeyboard', function() {
+      var attentionWindow = new window.AttentionWindow();
+      assert.equal(layoutManager.height + 100,
+        layoutManager.getHeightFor(attentionWindow, true));
+    });
+
+    test('should not consider keyboard when ignoreKeyboard', function() {
+      assert.equal(layoutManager.height + 100,
+        layoutManager.getHeightFor({}, true));
     });
   });
 });

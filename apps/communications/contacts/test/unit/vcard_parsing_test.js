@@ -633,9 +633,17 @@ suite('vCard parsing settings', function() {
         });
       });
     });
-
-
-
+    test('- vcard 2.1 with DQUOTE character', function(done) {
+      initializeVCFReader('vcard_21_dquote.vcf', function(reader) {
+        reader.onread = stub();
+        reader.onimported = stub();
+        reader.onerror = stub();
+        reader.process(function import_finish(result) {
+          assert.equal(1, result.length);
+          done();
+        });
+      });
+    });
     test('- vcard parser must return id of matched contact', function(done) {
       // Force the matcher to find a contact with a known id
       var matchStub = sinon.stub(window.contacts.Matcher, 'match',

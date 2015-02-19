@@ -1,6 +1,5 @@
 'use strict';
 
-var Actions = require('marionette-client').Actions;
 var Bookmark = require('../../../../apps/system/test/marionette/lib/bookmark');
 var Collection = require('./lib/collection');
 var EmeServer = require(
@@ -23,7 +22,7 @@ marionette('Vertical - Collection', function() {
   });
 
   setup(function() {
-    actions = new Actions(client);
+    actions = client.loader.getActions();
     bookmark = new Bookmark(client, server);
     selectors = Collection.Selectors;
     collection = new Collection(client);
@@ -32,7 +31,6 @@ marionette('Vertical - Collection', function() {
     system.waitForStartup();
 
     home.waitForLaunch();
-    collection.disableGeolocation();
     EmeServer.setServerURL(client, server);
   });
 

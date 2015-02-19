@@ -1,4 +1,4 @@
-/* global SettingsListener */
+/* global SettingsListener,AirplaneModeHelper, LazyLoader */
 /* exported SimManager */
 
 'use strict';
@@ -23,6 +23,19 @@ var SimManager = (function() {
   function _init(serviceId) {
 
     _reset(serviceId);
+
+    LazyLoader.load(['/shared/js/airplane_mode_helper.js'], function() {
+      AirplaneModeHelper.addEventListener('statechange',
+        function _onAirplaneModeChange(state) {
+          if (state === 'disabled') {
+            serviceIcc[serviceId].dirty = true;
+            var eventDetail =  { detail: {serviceId: serviceId}};
+            var airplanemodeDisabledEvent =
+              new CustomEvent('airplaneModeDisabled', eventDetail);
+            window.dispatchEvent(airplanemodeDisabledEvent);
+          }
+        });
+    });
 
     function checkForCompletion() {
       serviceIcc[serviceId].initialized = true;

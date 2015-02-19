@@ -12,10 +12,14 @@ function configureLoader() {
       sharedtest: '/shared/test/unit',
       test: '/test/unit'
     },
+    map: {
+      '*': {
+        'ext/page': 'test/support/fake_page'
+      }
+    },
     shim: {
       'ext/caldav': { exports: 'Caldav' },
       'ext/ical': { exports: 'ICAL' },
-      'shared/accessibility_helper': { exports: 'AccessibilityHelper' },
       'shared/gesture_detector': { exports: 'GestureDetector' },
       'shared/notification_helper': { exports: 'NotificationHelper' },
       'sharedtest/mocks/mock_l10n': { exports: 'MockL10n' }
@@ -32,11 +36,17 @@ function l10nLink(href) {
   document.head.appendChild(link);
 }
 
-function manifestLink(href) {
-  var link = document.createElement('link');
-  link.setAttribute('href', href);
-  link.setAttribute('rel', 'manifest');
-  document.head.appendChild(link);
+function l10nMeta(defaultLanguage, availableLanguages) {
+  var metaDL = document.createElement('meta');
+  metaDL.setAttribute('name', 'defaultLanguage');
+  metaDL.setAttribute('content', defaultLanguage);
+
+  var metaAL = document.createElement('meta');
+  metaAL.setAttribute('name', 'availableLanguages');
+  metaAL.setAttribute('content', availableLanguages.join(', '));
+
+  document.head.appendChild(metaDL);
+  document.head.appendChild(metaAL);
 }
 
 function loadL10n() {
@@ -90,7 +100,7 @@ window.testAgentRuntime.testLoader = function(path) {
     console.log('Will setup app localization...');
     l10nLink('/locales/calendar.{locale}.properties');
     l10nLink('/shared/locales/date/date.{locale}.properties');
-    manifestLink('/manifest.webapp');
+    l10nMeta('en-US', ['en-US']);
     return loadL10n();
   })
   .then(() => {
@@ -244,8 +254,6 @@ window.testSupport.calendar = {
 
       eventStore.persist(this.event, trans);
       app.store('Busytime').persist(this.busytime, trans);
-
-      app.timeController.cacheBusytime(this.busytime);
     });
   },
 
@@ -311,9 +319,7 @@ window.testSupport.calendar = {
   app: function() {
     var Db = requirejs('db');
     var MockProvider = requirejs('test/support/mock_provider');
-    var Router = requirejs('router');
     var app = requirejs('app');
-    var fakePage = requirejs('test/support/fake_page');
     var providerFactory = requirejs('provider/provider_factory');
 
     if (app._pendingManger) {
@@ -328,7 +334,7 @@ window.testSupport.calendar = {
     }
 
     var db = new Db('b2g-test-calendar');
-    app.configure(db, new Router(fakePage));
+    app.configure(db);
     providerFactory.app = app;
     providerFactory.providers.Mock = new MockProvider({ app: app });
     app.dateFormat = navigator.mozL10n.DateTimeFormat();

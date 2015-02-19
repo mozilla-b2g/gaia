@@ -1,5 +1,6 @@
 'use strict';
-/* global applications, BrowserConfigHelper, AppWindowManager, AppWindow */
+/* globals applications, BrowserConfigHelper, AppWindowManager, AppWindow,
+          WrapperFactory */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -50,6 +51,8 @@
       window.addEventListener('open-app', this.preHandleEvent);
       window.addEventListener('openwindow', this.preHandleEvent);
       window.addEventListener('appopenwindow', this.preHandleEvent);
+      window.addEventListener('iac-customlaunchpath', this.preHandleEvent);
+      window.addEventListener('mozChromeEvent', this.preHandleEvent);
       window.addEventListener('applicationready', (function appReady(e) {
         window.removeEventListener('applicationready', appReady);
         this._handlePendingEvents();
@@ -71,6 +74,7 @@
       window.removeEventListener('open-app', this.preHandleEvent);
       window.removeEventListener('openwindow', this.preHandleEvent);
       window.removeEventListener('appopenwindow', this.preHandleEvent);
+      window.removeEventListener('iac-customlaunchpath', this.preHandleEvent);
     },
 
     /**
@@ -97,8 +101,90 @@
       }
     },
 
+    handlePresentation: function awf_handlePresentation(detail) {
+      var parseUrl = detail.url.split('/');
+      var protocol = parseUrl[0].toUpperCase();
+      var self = this;
+      var manifestURL;
+      var requestId = detail.id;
+
+      // We assume the URL is in the following format:
+      // app://<domain name>/<path>
+      // And we limit length to 3 to get rid of the <path> part.
+      parseUrl.length = 3;
+      if (protocol === 'APP:') {
+        manifestURL = parseUrl.join('/') + '/manifest.webapp';
+      } else {
+        manifestURL = null;
+      }
+      var config = new BrowserConfigHelper({
+        url: detail.url,
+        manifestURL: manifestURL
+      });
+      config.timestamp = detail.timestamp;
+
+
+      return new Promise(function(resolve, reject) {
+        var app = AppWindowManager.getApp(config.origin, config.manifestURL);
+
+        window.addEventListener('appcreated', function awf_onappcreated(evt) {
+          if (evt.detail.config.url !== config.url) {
+            return;
+          }
+          window.removeEventListener('appcreated', awf_onappcreated);
+          self._sendPresentationLaunched(evt.detail, requestId);
+          resolve();
+        });
+
+        if (app) {
+          // If target app existed, kill it and relaunch.
+          window.addEventListener('appterminated',
+          function awf_onappdestroyed(evt) {
+            if (evt.detail.manifestURL !== app.manifestURL) {
+              return;
+            }
+            window.removeEventListener('appterminated', awf_onappdestroyed);
+            self._launchPresentationApp(config, protocol);
+          });
+          app.kill();
+        } else {
+          self._launchPresentationApp(config, protocol);
+        }
+      });
+    },
+
+    _sendPresentationLaunched: function awf_sendPresentationLaunched(app, id) {
+      var evt = new CustomEvent('mozContentEvent', {
+        bubbles: true,
+        cancelable: false,
+        detail: {
+          type: 'presentation-receiver-launched',
+          id: id,
+          frame: app.iframe
+        }
+      });
+      window.dispatchEvent(evt);
+    },
+
+    _launchPresentationApp:
+    function awf_launchPresentationApp(config, protocol) {
+      if (protocol === 'APP:') {
+        config.stayBackground = true;
+        this.launch(config);
+      } else {
+        WrapperFactory.launchWrapper(config);
+      }
+    },
+
     handleEvent: function awf_handleEvent(evt) {
       var detail = evt.detail;
+
+      if (evt.type == 'mozChromeEvent' &&
+        detail.type == 'presentation-launch-receiver') {
+        this.handlePresentation(evt.detail);
+        return;
+      }
+
       if (!detail.url) {
         return;
       }
@@ -108,9 +194,17 @@
       config.evtType = evt.type;
 
       switch (evt.type) {
+        case 'webapps-launch':
+        case 'iac-customlaunchpath':
+          // The changeURL was determined in gecko because we should open an app
+          // based on gecko's decision in the past. But now, we have
+          // iac-customlaunchpath. We have to change URL all the time when user
+          // uses app.launch or iac-customlaunchpath.
+          config.changeURL = true;
+          // Please no `break;` here. It's on purpose.
+          /* falls through */
         case 'openwindow':
         case 'appopenwindow':
-        case 'webapps-launch':
           config.timestamp = detail.timestamp;
           // TODO: Look up current opened window list,
           // and then create a new instance here.
@@ -174,16 +268,10 @@
         return;
       }
 
-      // The rocketbar currently handles the management of normal search app
-      // launches. Requests for the 'newtab' page will continue to filter
-      // through and publish the launchapp event.
-      if (config.manifest && config.manifest.role === 'search' &&
-          config.url.indexOf('newtab.html') === -1) {
-        return;
-      }
       var app = AppWindowManager.getApp(config.origin, config.manifestURL);
       if (app) {
-        if (config.evtType == 'appopenwindow') {
+        if (config.evtType === 'appopenwindow' ||
+            config.evtType === 'iac-customlaunchpath') {
           app.browser.element.src = config.url;
         }
         app.reviveBrowser();

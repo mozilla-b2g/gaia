@@ -153,6 +153,36 @@ marionette('Contacts > Form', function() {
       });
 
     });
+
+    suite('> Addind and removing', function() {
+      test('Template ids unique', function() {
+        var data = {
+          givenName: ['John'],
+          familyName: ['Doe'],
+          tel: [{
+            type: ['mobile'],
+            value: '1111111'
+          }, {
+            type: ['mobile'],
+            value: '222222'
+          }]
+        };
+
+        contactsData.createMozContact(data);
+        editFirstContact();
+
+        // Delete the first phone and click on add a new phone
+        client.helper.waitForElement(selectors.formDelFirstTel).click();
+        client.helper.waitForElement(selectors.formAddNewTel).click();
+        client.helper.waitForElement(selectors.formSave).click();
+
+        subject.waitForFadeIn(client.helper.waitForElement(selectors.details));
+
+        var phoneList = client.findElements(selectors.formTel);
+        assert.equal(phoneList.length, 2);
+        assert.equal(phoneList[1].getAttribute('id'), 'number_2');
+      });
+    });
   });
 
   suite('> Facebook contacts', function() {

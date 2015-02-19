@@ -1,5 +1,5 @@
 /* global MockFxAccountsIACHelper, MocksHelper, MockL10n, MockMozApps,
-          MockTzSelect, Navigation, UIManager, WifiUI */
+          MockTzSelect, Navigation, UIManager, WifiManager, WifiUI */
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
@@ -8,7 +8,6 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('ftu/js/ui.js');
 requireApp('ftu/js/external_links.js');
 requireApp('ftu/js/navigation.js');
-requireApp('ftu/js/wifi.js');
 
 requireApp('ftu/test/unit/mock_tutorial.js');
 requireApp('ftu/test/unit/mock_mozapps.js');
@@ -23,6 +22,7 @@ requireApp('ftu/test/unit/mock_data_mobile.js');
 var mocksHelperForUI = new MocksHelper([
   'Tutorial',
   'TimeManager',
+  'WifiUI',
   'WifiManager',
   'OperatorVariant',
   'utils',
@@ -156,6 +156,8 @@ suite('UI Manager > ', function() {
   suite('Firefox Accounts section', function() {
     var localizeSpy;
     var nextButton;
+    var createAccountButton;
+
     suiteSetup(function() {
       Navigation.currentStep = 7;
       Navigation.manageStep();
@@ -169,6 +171,7 @@ suite('UI Manager > ', function() {
     setup(function() {
       localizeSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
       nextButton = document.getElementById('forward');
+      createAccountButton = document.getElementById('fxa-create-account');
     });
 
     teardown(function() {
@@ -177,12 +180,16 @@ suite('UI Manager > ', function() {
 
     suite('Verified Firefox Account login', function() {
       setup(function() {
-        var verifiedAcct = {
+        MockFxAccountsIACHelper.account = {
           email: 'foo@bar.com',
           verified: true
         };
         nextButton.setAttribute('data-l10n-id', 'skip');
-        UIManager.fxaGetAccounts(verifiedAcct);
+        UIManager.onFxAFlowDone();
+      });
+
+      teardown(function() {
+        MockFxAccountsIACHelper.reset();
       });
 
       test('Should show correct success message', function() {
@@ -194,16 +201,24 @@ suite('UI Manager > ', function() {
         var dataL10n = nextButton.getAttribute('data-l10n-id');
         assert.equal(dataL10n, 'navbar-next');
       });
+
+      test('Should disable create account button', function() {
+        assert.isTrue(createAccountButton.disabled);
+      });
     });
 
     suite('Unverified Firefox Account login', function() {
       setup(function() {
-        var unverifiedAcct = {
+        MockFxAccountsIACHelper.account= {
           email: 'foo@bar.com',
           verified: false
         };
         nextButton.setAttribute('data-l10n-id', 'skip');
-        UIManager.fxaGetAccounts(unverifiedAcct);
+        UIManager.onFxAFlowDone();
+      });
+
+      teardown(function() {
+        MockFxAccountsIACHelper.reset();
       });
 
       test('Should show correct success message', function() {
@@ -215,7 +230,140 @@ suite('UI Manager > ', function() {
         var dataL10n = nextButton.getAttribute('data-l10n-id');
         assert.equal(dataL10n, 'navbar-next');
       });
+
+      test('Should disable create account button', function() {
+        assert.isTrue(createAccountButton.disabled);
+      });
     });
+
+    suite('Account login - getAccounts no account', function() {
+      setup(function() {
+        createAccountButton.disabled = false;
+        nextButton.setAttribute('data-l10n-id', 'skip');
+        UIManager.onFxAFlowDone();
+      });
+
+      test('Should not show any success message', function() {
+        assert.isFalse(localizeSpy.calledOnce);
+      });
+
+      test('Button label should still be skip', function() {
+        var dataL10n = nextButton.getAttribute('data-l10n-id');
+        assert.equal(dataL10n, 'skip');
+      });
+
+      test('Should not disable create account button', function() {
+        assert.isFalse(createAccountButton.disabled);
+      });
+    });
+
+    suite('Account login - getAccounts error', function() {
+      setup(function() {
+        MockFxAccountsIACHelper.getAccountsError = 'WHATEVER';
+        createAccountButton.disabled = false;
+        nextButton.setAttribute('data-l10n-id', 'skip');
+        UIManager.onFxAFlowDone();
+      });
+
+      teardown(function() {
+        MockFxAccountsIACHelper.reset();
+      });
+
+      test('Button label should still be skip', function() {
+        var dataL10n = nextButton.getAttribute('data-l10n-id');
+        assert.equal(dataL10n, 'skip');
+      });
+
+      test('Should not disable create account button', function() {
+        assert.isFalse(createAccountButton.disabled);
+      });
+    });
+
+    suite('FTU initiates with a existing FxA login - happy path', function() {
+      setup(function() {
+        MockFxAccountsIACHelper.account = {
+          email: 'foo@bar.com',
+          verified: true
+        };
+        UIManager.skipFxA = false;
+        UIManager.checkInitialFxAStatus();
+      });
+
+      teardown(function() {
+        MockFxAccountsIACHelper.reset();
+      });
+
+      test('Should not skip FxA', function() {
+        assert.isFalse(UIManager.skipFxA);
+      });
+    });
+
+    suite('FTU initiates with a existing FxA login - getAccounts does not ' +
+          'give any results (or maybe it does but not in time)', function() {
+      setup(function() {
+        MockFxAccountsIACHelper.getAccountsNoCallback = true;
+        UIManager.skipFxA = false;
+        UIManager.checkInitialFxAStatus();
+      });
+
+      teardown(function() {
+        MockFxAccountsIACHelper.reset();
+      });
+
+      test('Should skip FxA', function() {
+        assert.isTrue(UIManager.skipFxA);
+      });
+    });
+
+    suite('FTU initiates with a existing FxA login - getAccounts error - ' +
+          'logout ok', function() {
+      var logoutSpy;
+
+      setup(function() {
+        MockFxAccountsIACHelper.getAccountsError = 'WHATEVER';
+        UIManager.skipFxA = false;
+        logoutSpy = this.sinon.spy(MockFxAccountsIACHelper, 'logout');
+        UIManager.checkInitialFxAStatus();
+      });
+
+      teardown(function() {
+        MockFxAccountsIACHelper.reset();
+      });
+
+      test('Should logout', function() {
+        assert.isTrue(logoutSpy.calledOnce);
+      });
+
+      test('And not skip FxA', function() {
+        assert.isFalse(UIManager.skipFxA);
+      });
+    });
+
+    suite('FTU initiates with a existing FxA login - getAccounts error - ' +
+          'logout no result or error', function() {
+      var logoutSpy;
+
+      setup(function() {
+        MockFxAccountsIACHelper.getAccountsError = 'WHATEVER';
+        MockFxAccountsIACHelper.logoutNoCallback = true;
+        UIManager.skipFxA = false;
+        logoutSpy = this.sinon.spy(MockFxAccountsIACHelper, 'logout');
+        UIManager.checkInitialFxAStatus();
+      });
+
+      teardown(function() {
+        MockFxAccountsIACHelper.reset();
+      });
+
+      test('Should try to logout', function() {
+        assert.isTrue(logoutSpy.calledOnce);
+      });
+
+      test('But still skip FxA', function() {
+        assert.isTrue(UIManager.skipFxA);
+      });
+    });
+
   });
 
   suite('Browser Privacy section', function() {
@@ -256,7 +404,6 @@ suite('UI Manager > ', function() {
         done();
       }, 100); // there's a timeout on the code
     });
-
   });
 
   suite('Change app theme', function() {
@@ -279,42 +426,49 @@ suite('UI Manager > ', function() {
   });
 
   suite('Wifi section', function() {
-    var joinHiddenNetworkStub;
-
-    suiteSetup(function() {
+    setup(function() {
+      UIManager.init();
       Navigation.currentStep = 3;
       Navigation.manageStep();
+
+      this.sinon.spy(WifiManager, 'scan');
+      this.sinon.spy(WifiUI, 'joinNetwork');
+      this.sinon.spy(WifiUI, 'addHiddenNetwork');
+      this.sinon.spy(WifiUI, 'joinHiddenNetwork');
     });
 
-    suiteTeardown(function() {
+    teardown(function() {
       Navigation.currentStep = 1;
       Navigation.manageStep();
     });
 
-    setup(function() {
-      joinHiddenNetworkStub = this.sinon.stub(WifiUI, 'joinHiddenNetwork',
-        function() {
-          return;
-      });
+    test('Refresh networks >', function() {
+      UIManager.wifiRefreshButton.click();
+      assert.isTrue(WifiManager.scan.calledWith(WifiUI.renderNetworks),
+        'should call for a scan of the networks');
     });
 
-    test('Join hidden network button click > ', function() {
-      var spy = this.sinon.spy(WifiUI, 'addHiddenNetwork');
+    test('Add hidden network >', function() {
       UIManager.joinHiddenButton.click();
-      assert.isTrue(spy.calledOnce,
-        'on click, addHiddenNetwork should be called');
-      assert.equal(window.location.hash, '#hidden-wifi-authentication');
-      assert.equal(UIManager.mainTitle.dataset.l10nId, 'authentication');
-      UIManager.hiddenWifiPassword.value = 'testPassword';
-      UIManager.hiddenWifiSsid.value = 'testSSID';
-      // Checks WPA-PSK
-      UIManager.hiddenWifiSecurity.options[2].selected = true;
+      assert.isTrue(WifiUI.addHiddenNetwork.calledOnce,
+        'addHiddenNetwork should be called');
+    });
+
+    test('Join hidden network > ', function() {
+      // simulate we are on Add Hidden Wifi screen
+      window.location.hash = '#hidden-wifi-authentication';
       UIManager.wifiJoinButton.disabled = false;
       UIManager.wifiJoinButton.click();
-      assert.ok(joinHiddenNetworkStub.called,
+      assert.ok(WifiUI.joinHiddenNetwork.calledOnce,
         'joinHiddenNetwork should be called');
     });
 
+    test('Join hidden network > ', function() {
+      UIManager.wifiJoinButton.disabled = false;
+      UIManager.wifiJoinButton.click();
+      assert.ok(WifiUI.joinNetwork.calledOnce,
+        'joinNetwork should be called');
+    });
   });
 
 });

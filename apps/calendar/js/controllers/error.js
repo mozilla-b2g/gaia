@@ -67,7 +67,6 @@ ErrorController.prototype = {
     var description = l10n.get('notification-error-sync-description');
 
     var url = this.accountErrorUrl + account._id;
-    notification.app = this.app;
     notification.sendNotification(title, description, url).then(() => {
       callback && callback();
       lock.unlock();

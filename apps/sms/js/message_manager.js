@@ -399,11 +399,10 @@ var MessageManager = {
     };
   },
 
-  markThreadRead: function mm_markThreadRead(threadId) {
-    var filter = {
-      threadId: threadId,
-      read: false
-    };
+  markThreadRead: function mm_markThreadRead(threadId, isRead = true) {
+    var filter = {};
+    filter.threadId = +threadId;
+    filter.read = !isRead;
 
     var messagesUnreadIDs = [];
     var changeStatusOptions = {
@@ -414,13 +413,13 @@ var MessageManager = {
       filter: filter,
       invert: true,
       end: function handleUnread() {
-        MessageManager.markMessagesRead(messagesUnreadIDs);
+        MessageManager.markMessagesRead(messagesUnreadIDs, isRead);
       }
     };
     MessageManager.getMessages(changeStatusOptions);
   },
 
-  markMessagesRead: function mm_markMessagesRead(list) {
+  markMessagesRead: function mm_markMessagesRead(list, isRead = true) {
     if (!this._mozMobileMessage || !list.length) {
       return;
     }
@@ -434,14 +433,15 @@ var MessageManager = {
     // TODO: Third parameter of markMessageRead is return read request.
     //       Here we always return read request for now, but we can let user
     //       decide to return request or not in Bug 971658.
-    var req = this._mozMobileMessage.markMessageRead(id, true, true);
-
+    var req = this._mozMobileMessage.markMessageRead(id, isRead, true);
+    // isRead == false i.e mark as unread case, marking only one message
+    // as unread is sufficient.
     req.onsuccess = (function onsuccess() {
-      if (!list.length) {
+      if (!list.length || !isRead) {
         return;
+      } else if (isRead) {
+        this.markMessagesRead(list, isRead);
       }
-
-      this.markMessagesRead(list);
     }).bind(this);
 
     req.onerror = function onerror() {

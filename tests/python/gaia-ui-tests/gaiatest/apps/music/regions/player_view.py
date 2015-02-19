@@ -4,25 +4,64 @@
 
 import time
 
-from marionette.by import By
-from marionette.marionette import Actions
+try:
+    from marionette import (expected,
+                            Wait)
+    from marionette.by import By
+    from marionette.marionette import Actions
+except:
+    from marionette_driver import (expected,
+                                   Wait)
+    from marionette_driver.by import By
+    from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
 
 
 class PlayerView(Base):
-
     _audio_locator = (By.ID, 'player-audio')
     _player_seek_elapsed_locator = (By.ID, 'player-seek-elapsed')
     _player_controls_play_locator = (By.ID, 'player-controls-play')
+    _cover_image_locator = (By.ID, 'player-cover-image')
+    _cover_share_locator = (By.ID, 'player-cover-share')
+    _rating_view_locator = (By.ID, 'player-album-rating')
+    _stars_on_locator = (By.CSS_SELECTOR, '.rating-star.star-on')
 
     def tap_play(self):
-        play_button = self.marionette.find_element(*self._player_controls_play_locator)
-        # TODO: Change this to a simple tap when bug 862156 is fixed
-        Actions(self.marionette).tap(play_button).perform()
+        self.marionette.find_element(*self._player_controls_play_locator).tap()
+
+    def tap_cover_in_player_view(self):
+        self.marionette.find_element(*self._cover_image_locator).tap()
+
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(*self._rating_view_locator))))
+
+    def tap_share_button(self):
+        self.tap_cover_in_player_view()
+        self.marionette.find_element(*self._cover_share_locator).tap()
+        from gaiatest.apps.system.regions.activities import Activities
+        return Activities(self.marionette)
+
+    def _get_star_locator(self, rating):
+        return By.CSS_SELECTOR, '.rating-star[data-rating="%s"]' % rating
+
+    def tap_star(self, rate):
+        """
+        give rating.  (After tapping the cover to make the ratings overlay appear)
+        """
+
+        self.tap_cover_in_player_view()
+        Wait(self.marionette).until(expected.element_displayed(*self._get_star_locator(rate)))
+        self.marionette.find_element(*self._get_star_locator(rate)).tap()
+
+    @property
+    def star_rating(self):
+        return len(self.marionette.find_elements(*self._stars_on_locator))
 
     @property
     def player_elapsed_time(self):
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(*self._player_seek_elapsed_locator))))
         return time.strptime(self.marionette.find_element(*self._player_seek_elapsed_locator).text, '%M:%S')
 
     def is_player_playing(self):
