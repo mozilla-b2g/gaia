@@ -63,6 +63,20 @@ suite('languages >', function() {
     assert.equal(selected.length, 1);
     assert.equal(selected[0].value, 'en-US');
 
+    // Check that the selected element is in view.
+    function elementIsInView(el) {
+      var rect = el.getBoundingClientRect();
+      var docEl = document.documentElement;
+
+      return (
+          rect.top >= 0 &&
+          rect.left >= 0 &&
+          rect.bottom <= (window.innerHeight || docEl.clientHeight) &&
+          rect.right <= (window.innerWidth || docEl.clientWidth)
+      );
+    }
+    assert.isTrue(elementIsInView(selected[0]));
+
     // mock's _languages is sync, too
     LanguageList._languages.then(function(langs) {
       assert.equal(document.querySelectorAll('li').length,
