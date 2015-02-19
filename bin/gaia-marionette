@@ -124,7 +124,7 @@ fi
 
 RUNTIME_OPTS=""
 if [ "$RUNTIME" ]; then
-  RUNTIME_OPTS="--runtime=$RUNTIME"
+  RUNTIME_OPTS="--runtime $RUNTIME"
 fi
 
 # Dirty hack until we can kill this file or fix passing DEBUG to profile
