@@ -117,6 +117,7 @@
                 <button type="button" class="forward-button"
                         data-l10n-id="forward-button" disabled></button>
                 <div class="urlbar">
+                  <span class="pb-icon"></span>
                   <div class="title" data-ssl=""></div>
                   <button type="button" class="reload-button"
                           data-l10n-id="reload-button" disabled></button>
