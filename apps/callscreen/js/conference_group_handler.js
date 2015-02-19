@@ -51,7 +51,7 @@ var ConferenceGroupHandler = (function() {
     LazyL10n.get(function localized(_) {
       var groupDetailsHeaderText = _('conferenceCall', {n: calls.length});
       bdiCount.textContent = groupDetailsHeaderText;
-        ConferenceGroupUI.setGroupDetailsHeader(bdiCount.outerHTML);
+      ConferenceGroupUI.setGroupDetailsHeader(bdiCount.textContent);
     });
 
     // When hanging up phones on conferenceGroup.calls.length >= 2,
