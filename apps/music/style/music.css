@@ -269,6 +269,23 @@ body.picker-mode #title-player {
   transition: transform 300ms ease;
 }
 
+#views-search-no-result {
+  position: absolute;
+  top: 3.7rem;
+  left: 0;
+  right: 0;
+  height: calc(100% - 3.7rem);
+}
+
+#search-no-result {
+  margin: 9.5rem 1.5rem 0;
+  padding-top: 1.5rem;
+  font-size: 2.4rem;
+  font-weight: 300;
+  text-align: left;
+  border-top: 0.1rem solid #bdbdbd;
+}
+
 .view {
   width: 100%;
   height: auto;
