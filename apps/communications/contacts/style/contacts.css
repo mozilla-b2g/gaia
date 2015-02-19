@@ -1061,3 +1061,10 @@ html[dir="rtl"] #import-settings [data-type="list"] li button.icon:before {
   left: auto;
   right: 0.5rem;
 }
+
+/* RTL View */
+html[dir="rtl"] nav[data-type="scrollbar"] {
+  direction: ltr;
+  right: 0;
+  left: unset;
+}
