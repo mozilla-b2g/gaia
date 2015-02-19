@@ -97,7 +97,6 @@ gaia-buttons.forward-only .icon-previous {
   -moz-margin-start: -1.5rem;
   -moz-margin-end: -1.5rem;
   width: 100%;
-  height: calc(100% - 1rem);
   min-height: 5rem;
   overflow: visible;
   display: flex;
@@ -1049,6 +1048,11 @@ i.hack-first-child {
  */
 
 /* Overwrite "BB lists" */
+[data-type="list"] li {
+  height: auto;
+  min-height: 6rem;
+}
+
 [data-type="list"]:first-child {
   padding-top: 1.5rem;
 }
