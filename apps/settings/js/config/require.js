@@ -328,36 +328,6 @@ require.config({
         'modules/bluetooth/bluetooth_v1',
         'modules/bluetooth/bluetooth'
       ]
-    },
-
-    // addons
-    {
-      name: 'panels/addons/panel',
-      exclude: ['main']
-    },
-    {
-      name: 'panels/addons/addons_list',
-      exclude: ['main']
-    },
-    {
-      name: 'panels/addon_details/panel',
-      exclude: ['main']
-    },
-    {
-      name: 'panels/addon_details/addon_details',
-      exclude: ['main']
-    },
-    {
-      name: 'modules/addon_manager',
-      exclude: ['main']
-    },
-    {
-      name: 'modules/apps_cache',
-      exclude: ['main']
-    },
-    {
-      name: 'modules/mvvm/list_view',
-      exclude: ['main']
-    },
+    }
   ]
 });
