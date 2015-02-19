@@ -504,3 +504,16 @@ a#frequency-op-seekup:active {
 }
 /******* end *******/
 
+/***  styles for RTL languages ****/
+/* The scrollbar should be on the left.
+ * But direction is explicitly set to LTR on #container
+   So we force #fav-list to be RTL, while keeping the children LTR
+*/
+html[dir=rtl] #fav-list {
+  direction: rtl;
+}
+
+html[dir=rtl] #fav-list > * {
+  direction: ltr;
+}
+/******* end *******/
