@@ -279,6 +279,7 @@ instead of the context menu.
 .group .background {
   background-color: rgba(255, 255, 255, 0.15);
   opacity: 0;
+  pointer-events: none;
   height: 0.1rem;
   transform-origin: 0 0;
 }
@@ -300,6 +301,7 @@ instead of the context menu.
 .group .shadow {
   background-color: rgba(255, 255, 255, 0.15);
   opacity: 0;
+  pointer-events: none;
 }
 
 .edit-mode .group.active .shadow {
