@@ -52,7 +52,7 @@ var LanguageManager = {
         input.name = 'language.current';
         input.value = lang;
         if (lang === currentLanguage) {
-          input.checked = (lang === currentLanguage);
+          input.checked = true;
           selectedLanguageNode = input;
         }
 
