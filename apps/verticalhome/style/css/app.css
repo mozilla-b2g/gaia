@@ -23,6 +23,7 @@ gaia-grid {
 #curtain {
   background: #000;
   opacity: 0;
+  pointer-events: none;
   height: 100%;
   width: 100%;
   position: fixed;
