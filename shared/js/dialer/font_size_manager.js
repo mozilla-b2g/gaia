@@ -103,12 +103,7 @@ var FontSizeManager = (function fontSizeManager() {
 
   function _useEllipsis(view, overflowCount, ellipsisSide) {
     var side = ellipsisSide || 'begin';
-    var localizedSide;
-    if (navigator.mozL10n.language.direction === 'rtl') {
-      localizedSide = (side === 'begin' ? 'right' : 'left');
-    } else {
-      localizedSide = (side === 'begin' ? 'left' : 'right');
-    }
+    var localizedSide = (side === 'begin' ? 'left' : 'right');
 
     var value = view.value || view.textContent;
     if (localizedSide == 'left') {

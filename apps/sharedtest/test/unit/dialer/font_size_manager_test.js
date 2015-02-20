@@ -77,7 +77,7 @@ suite('font size manager', function() {
         var getExpectedEllipsizedText = function(side, direction) {
           // MockL10n does not invert text when in RTL mode, but FSM will
           // treat the left side as the end for the purpose of ellipses.
-          return side === 'end' ^ direction === 'ltr' ? '\u2026ar' : 'fo\u2026';
+          return side === 'end' ? 'fo\u2026' : '\u2026ar';
         };
 
         setup(function() {
