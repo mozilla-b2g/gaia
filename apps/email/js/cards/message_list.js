@@ -751,6 +751,10 @@ return [
       cards.removeCardAndSuccessors(this, 'animate');
     },
 
+    onClearSearch: function() {
+      this.showSearch('', this.curFilter);
+    },
+
     onGetMoreMessages: function() {
       if (!headerCursor.messagesSlice) {
         return;
