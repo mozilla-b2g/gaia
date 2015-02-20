@@ -1,0 +1,5 @@
+{
+  "name": "Standalone W3C Web App",
+  "display": "standalone",
+  "launch_path": "/index.html"
+}

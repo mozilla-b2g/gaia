@@ -631,6 +631,56 @@ suite('system/AppWindow', function() {
     });
   });
 
+  suite('Display Modes', function() {
+    var fakeAppConfigDisplayMinimalUi = {
+      url: 'http://www.fake/index.html',
+      manifest: {
+        'display': 'minimal-ui'
+      },
+      manifestURL: 'app://wwww.fake/ManifestURL',
+      origin: 'app://www.fake'
+    };
+
+    var fakeAppConfigDisplayStandalone = {
+      url: 'http://www.fake/index.html',
+      manifest: {
+        'display': 'standalone'
+      },
+      manifestURL: 'app://wwww.fake/ManifestURL',
+      origin: 'app://www.fake'
+    };
+
+    var fakeAppConfigDisplayFullscreen = {
+      url: 'http://www.fake/index.html',
+      manifest: {
+        'display': 'fullscreen'
+      },
+      manifestURL: 'app://wwww.fake/ManifestURL',
+      origin: 'app://www.fake'
+    };
+    
+    test('minimal-ui', function() {
+      var app1 = new AppWindow(fakeAppConfigDisplayMinimalUi);
+      assert.isFalse(app1.isFullScreen());
+      assert.isTrue(app1.config.chrome.scrollable);
+      assert.isTrue(app1.config.chrome.maximized);
+    });
+
+    test('standalone', function() {
+      var app1 = new AppWindow(fakeAppConfigDisplayStandalone);
+      assert.isFalse(app1.isFullScreen());
+      assert.isFalse(app1.config.chrome.scrollable);
+      assert.isFalse(app1.config.chrome.maximized);
+    });
+
+    test('fullscreen', function() {
+      var app1 = new AppWindow(fakeAppConfigDisplayFullscreen);
+      assert.isTrue(app1.isFullScreen());
+      assert.isFalse(app1.config.chrome.scrollable);
+      assert.isFalse(app1.config.chrome.maximized);
+    });
+  });
+
   suite('ScreenshotOverlay State Control', function() {
     var app1;
     var app2;
