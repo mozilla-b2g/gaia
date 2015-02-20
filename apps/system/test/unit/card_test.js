@@ -131,6 +131,18 @@ suite('system/Card', function() {
       assert.equal(browserCard.titleNode.textContent, 'Page title');
     });
 
+    test('adds private class for private windows', function(){
+      var app = makeApp({ name: 'privatewindow' });
+      app.isPrivate = true;
+      var card = new Card({
+        app: app,
+        manager: mockManager
+      });
+      card.render();
+      assert.ok(card.element.classList.contains('private'),
+               'has private class');
+    });
+
     test('app name', function() {
       var appCard = new Card({
         app: makeApp({ name: 'otherapp' }),
