@@ -186,8 +186,6 @@ apps/settings/js/downloads/downloads_list.js
 apps/settings/js/dsds_settings.js
 apps/settings/js/hotspot.js
 apps/settings/js/hotspot_wifi_settings.js
-apps/settings/js/icc.js
-apps/settings/js/icc_menu.js
 apps/settings/js/media_storage.js
 apps/settings/js/settings.js
 apps/settings/js/simcard_dialog.js

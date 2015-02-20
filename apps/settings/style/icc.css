@@ -1,0 +1,39 @@
+#icc-entries[data-custom-icon] li > a {
+  -moz-padding-start: 5.5rem;
+}
+
+#icc-stk-list[data-custom-icon] li > a {
+  -moz-padding-start: 7rem;
+}
+
+#icc-entries[data-custom-icon] li > span,
+#icc-stk-list[data-custom-icon] li > span {
+  display: flex;
+  position: absolute;
+  width: 3rem;
+  height: 3rem;
+  left: 1.5rem;
+  top: calc(50% - 1.5rem);
+  box-sizing: content-box;
+  padding: 0;
+}
+
+#icc-stk-list[data-custom-icon] li > span {
+  left: 3rem;
+}
+
+#icc-entries[data-custom-icon] li > span > canvas,
+#icc-stk-list[data-custom-icon] li > span > canvas {
+  margin: auto;
+}
+
+html[dir="rtl"] #icc-entries[data-custom-icon] li > span,
+html[dir="rtl"] #icc-stk-list[data-custom-icon] li > span {
+  left: 0;
+  right: 1.5rem;
+}
+
+html[dir="rtl"] #icc-stk-list[data-custom-icon] li > span {
+  right: 3rem;
+  left: 0;
+}
