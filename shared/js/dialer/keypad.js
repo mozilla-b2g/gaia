@@ -433,17 +433,6 @@ var KeypadManager = {
       TonePlayer.stop();
     }
 
-    // Handle speed dial numbers
-    if (this._isSpeedDialNumber(this._phoneNumber)) {
-      var self = this;
-      var index = this._phoneNumber.slice(0, -1); // Remove the trailing '#'
-
-      this._getSpeedDialNumber(+index).then(
-      function(number) {
-        self.updatePhoneNumber(number, 'begin', false);
-      });
-    }
-
     this.restoreCaretPosition();
 
     // If it was a long press our work is already done
@@ -479,13 +468,26 @@ var KeypadManager = {
       return;
     }
 
-    // Per certification requirement, we need to send an MMI request to
-    // get the device's IMEI as soon as the user enters the last # key from
-    // the "*#06#" MMI string. See bug 857944.
-    if (key === '#' && this._phoneNumber === '*#06#') {
-      this.multiSimActionButton.performAction();
-      event.target.classList.remove('active');
-      return;
+    // Per certification requirements abbreviadetd dialing codes need to be
+    // called immediately after the user enters the '#' key. This covers
+    // retrieving the device's IMEI codes as well as speed dialing.
+    if (key === '#') {
+      if (this._phoneNumber === '*#06#') {
+        this.multiSimActionButton.performAction();
+        event.target.classList.remove('active');
+        return;
+      } else if (this._isSpeedDialNumber(this._phoneNumber)) {
+        var self = this;
+        var index = this._phoneNumber.slice(0, -1); // Remove the trailing '#'
+
+        this._getSpeedDialNumber(+index).then(
+        function(number) {
+          self.updatePhoneNumber(number, 'begin', false);
+        });
+
+        event.target.classList.remove('active');
+        return;
+      }
     }
 
     // If user input number more 50 digits, app shouldn't accept.

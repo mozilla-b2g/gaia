@@ -143,8 +143,9 @@ suite('dialer/keypad', function() {
       done();
     });
 
-    suite('IMEI', function() {
+    suite('Abbreviated dialing codes', function() {
       var mmi = '*#06#';
+      var speedDialNum = '1#';
       var node;
       var fakeEventStart;
       var fakeEventEnd;
@@ -166,6 +167,31 @@ suite('dialer/keypad', function() {
         };
       });
 
+      test('Properly highlight the last key in an abbreviated dialing code',
+      function() {
+        for (var i = 0, end = mmi.length; i < end; i++) {
+          fakeEventStart.target.dataset.value = mmi.charAt(i);
+          subject.keyHandler(fakeEventStart);
+          assert.isTrue(node.classList.contains('active'));
+          fakeEventEnd.target.dataset.value = mmi.charAt(i);
+          subject.keyHandler(fakeEventEnd);
+          assert.isFalse(node.classList.contains('active'));
+        }
+      });
+
+      test('Start an abbreviated dialing code operation only upon pressing #',
+      function() {
+        this.sinon.spy(KeypadManager, '_getSpeedDialNumber');
+        subject._phoneNumber = '1#1';
+
+        fakeEventStart.target.dataset.value = 'delete';
+        subject.keyHandler(fakeEventStart);
+        fakeEventEnd.target.dataset.value = 'delete';
+        subject.keyHandler(fakeEventEnd);
+
+        sinon.assert.notCalled(KeypadManager._getSpeedDialNumber);
+      });
+
       test('Get IMEI via send MMI', function() {
         this.sinon.spy(MockMultiSimActionButtonSingleton, 'performAction');
 
@@ -180,16 +206,19 @@ suite('dialer/keypad', function() {
           MockMultiSimActionButtonSingleton.performAction);
       });
 
-      test('Properly highlight the keys when typing the IMEI code(s)',
-      function() {
-        for (var i = 0, end = mmi.length; i < end; i++) {
-          fakeEventStart.target.dataset.value = mmi.charAt(i);
+      test('Starts speed dial upon typing ' + speedDialNum, function() {
+        this.sinon.stub(KeypadManager, '_getSpeedDialNumber', function() {
+          return Promise.resolve('123');
+        });
+
+        for (var i = 0, end = speedDialNum.length; i < end; i++) {
+          fakeEventStart.target.dataset.value = speedDialNum.charAt(i);
           subject.keyHandler(fakeEventStart);
-          assert.isTrue(node.classList.contains('active'));
-          fakeEventEnd.target.dataset.value = mmi.charAt(i);
+          fakeEventEnd.target.dataset.value = speedDialNum.charAt(i);
           subject.keyHandler(fakeEventEnd);
-          assert.isFalse(node.classList.contains('active'));
         }
+
+        sinon.assert.calledWith(KeypadManager._getSpeedDialNumber, 1);
       });
     });
 
@@ -704,39 +733,6 @@ suite('dialer/keypad', function() {
 
       test('*#31# is not a speed dial number', function() {
         assert.isFalse(subject._isSpeedDialNumber('*#31#'));
-      });
-
-      test('Starts speed dial upon typing ' + speedDialNum, function() {
-        var node;
-        var fakeEventStart;
-        var fakeEventEnd;
-
-        node = document.createElement('div');
-        fakeEventStart = {
-          target: node,
-          preventDefault: function() {},
-          stopPropagation: function() {},
-          type: 'touchstart'
-        };
-        fakeEventEnd = {
-          target: node,
-          preventDefault: function() {},
-          stopPropagation: function() {},
-          type: 'touchend'
-        };
-
-        this.sinon.stub(KeypadManager, '_getSpeedDialNumber', function() {
-          return Promise.resolve('123');
-        });
-
-        for (var i = 0, end = speedDialNum.length; i < end; i++) {
-          fakeEventStart.target.dataset.value = speedDialNum.charAt(i);
-          subject.keyHandler(fakeEventStart);
-          fakeEventEnd.target.dataset.value = speedDialNum.charAt(i);
-          subject.keyHandler(fakeEventEnd);
-        }
-
-        sinon.assert.calledWith(KeypadManager._getSpeedDialNumber, 1);
       });
 
       suite('Getting a speed dial number', function() {
