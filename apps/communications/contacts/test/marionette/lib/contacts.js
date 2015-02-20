@@ -123,6 +123,9 @@ Contacts.Selectors = {
   actionMenu: '#action-menu',
   actionMenuList: '#value-menu',
 
+  multipleSelectSave: '#save-button',
+  multipleSelectStatus: '#statusMsg p',
+
   systemMenu: 'form[data-z-index-level="action-menu"]'
 };
 
