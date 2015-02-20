@@ -137,12 +137,14 @@ button.icon:before {
 
 a.icon-next:before,
 button.icon-next:before {
-  background-image: url(images/next.png);
+  background-image: url(images/forward-light.svg);
+  background-size: 3rem;
 }
 
 a.icon-previous:before,
 button.icon-previous:before {
-  background-image: url(images/next.png);
+  background-image: url(images/forward-light.svg);
+  background-size: 3rem;
   transform: rotate(180deg);
   left: 0.5rem;
 }
