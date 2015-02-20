@@ -6,7 +6,7 @@ var options = {
   phase: 'cold',
   runs: 1,
   apps: [],
-  timeout: 300 * 1000
+  timeout: 420 * 1000
 };
 
 raptor(options, function(runner) {
