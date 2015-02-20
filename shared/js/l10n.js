@@ -1447,7 +1447,11 @@
       this.availableLocales.concat(this.qps),
       requested,
       this.defaultLocale);
-    freeze.call(this, supported);
+
+    // freeze only if the first language in the fallback chain is new
+    if (this.supportedLocales[0] !== supported[0]) {
+      freeze.call(this, supported);
+    }
   };
 
 
@@ -1666,6 +1670,8 @@
       // …and listen to langpacks being added and removed
       document.addEventListener('additionallanguageschange', function(evt) {
         registerLocales.call(this, meta, evt.detail);
+        this.ctx.requestLocales.apply(
+          this.ctx, navigator.languages || [navigator.language]);
       }.bind(this));
     } else {
       additionalLanguagesPromise = Promise.resolve();
