@@ -91,6 +91,9 @@
     ATTENTIONCLOSED
   ];
 
+
+  const MARKETPLACE_ORIGINS = ['https://marketplace.firefox.com'];
+
   // This AppUsageMetrics() constructor is the value we export from
   // this module. This constructor does no initialization itself: that
   // is all done in the start() instance method. See bootstrap.js for
@@ -221,7 +224,7 @@
     this.locked = false;
 
     // What is the URL of the lockscreen app?
-    this.lockscreenURL = null;
+    this.lockscreenApp = null;
 
     // A stack of attention window manifest URLs and start times
     this.attentionWindows = [];
@@ -246,9 +249,9 @@
       undefined;
   };
 
-  AUM.prototype.getCurrentURL = function() {
+  AUM.prototype.getCurrentApp = function() {
     return !this.attentionWindows || this.attentionWindows.length === 0 ?
-      this.currentApp : this.getTopAttentionWindow().manifestURL;
+      this.currentApp : this.getTopAttentionWindow().app;
   };
 
   AUM.prototype.getCurrentStartTime = function() {
@@ -407,20 +410,20 @@
       // The user has opened an app, switched apps, or switched to the
       // homescreen. Record data about the app that was running and then
       // update the currently running app.
-      this.metrics.recordInvocation(this.getCurrentURL(),
+      this.metrics.recordInvocation(this.getCurrentApp(),
                                     now - this.getCurrentStartTime());
       this.attentionWindows = [];
-      this.currentApp = e.detail.manifestURL;
+      this.currentApp = e.detail;
       this.currentAppStartTime = now;
       break;
 
     case ATTENTIONOPENED:
       // Push the current attention screen start time onto stack, and use
       // currentApp / currentAppStartTime when the stack is empty
-      this.metrics.recordInvocation(this.getCurrentURL(),
+      this.metrics.recordInvocation(this.getCurrentApp(),
                                     now - this.getCurrentStartTime());
       this.attentionWindows.push({
-        manifestURL: e.detail.manifestURL,
+        app: e.detail,
         startTime: now
       });
       break;
@@ -440,7 +443,7 @@
       // Note that if the lockscreen is disabled we won't get this event
       // and will just go straight to the screenchange event. In that
       // case we have to record the invocation when we get that event
-      this.metrics.recordInvocation(this.getCurrentURL(),
+      this.metrics.recordInvocation(this.getCurrentApp(),
                                     now - this.getCurrentStartTime());
       this.setCurrentStartTime(now);
 
@@ -451,15 +454,15 @@
 
       // In version 2.1 we use lockscreen-appopened events and get a real URL
       // In 2.0 and before we just use a locked event and don't get the url
-      this.lockscreenURL = (e.detail && e.detail.manifestURL) || 'lockscreen';
+      this.lockscreenApp = e.detail;
       break;
 
     case UNLOCKED:
       // If the lockscreen was started when the phone went to sleep, then
       // when we wake up we note the time and when we get this event, we
       // record the time spent on the lockscreen.
-      if (this.locked && this.lockscreenURL) {
-        this.metrics.recordInvocation(this.lockscreenURL,
+      if (this.locked && this.lockscreenApp) {
+        this.metrics.recordInvocation(this.lockscreenApp,
                                       now - this.currentAppStartTime);
 
         // We left the currentApp unchanged when the phone went to sleep
@@ -491,8 +494,8 @@
         // if the user wakes the phone up and never unlocks it and then
         // we time out again, we need to record lockscreen time here,
         // not current app time.
-        var appurl = this.locked ? this.lockscreenURL : this.getCurrentURL();
-        this.metrics.recordInvocation(appurl, now - this.getCurrentStartTime());
+        var app = this.locked ? this.lockscreenApp : this.getCurrentApp();
+        this.metrics.recordInvocation(app, now - this.getCurrentStartTime());
       }
       break;
 
@@ -502,9 +505,9 @@
       // the stack. Otherwise we reset the currentApp's start time when the
       // stack is empty.
       var attentionWindow = this.getTopAttentionWindow();
-      if (attentionWindow &&
-          attentionWindow.manifestURL === e.detail.manifestURL) {
-        this.metrics.recordInvocation(e.detail.manifestURL,
+      if (attentionWindow && attentionWindow.app &&
+          attentionWindow.app.manifestURL === e.detail.manifestURL) {
+        this.metrics.recordInvocation(e.detail,
                                       now - attentionWindow.startTime);
         this.attentionWindows.pop();
       } else {
@@ -515,11 +518,11 @@
       break;
 
     case INSTALL:
-      this.metrics.recordInstall(e.detail.application.manifestURL);
+      this.metrics.recordInstall(e.detail.application);
       break;
 
     case UNINSTALL:
-      this.metrics.recordUninstall(e.detail.application.manifestURL);
+      this.metrics.recordUninstall(e.detail.application);
       break;
 
     case IDLE:
@@ -748,13 +751,13 @@
   /*
    * Get app usage for the current date
    */
-  UsageData.prototype.getAppUsage = function(app, dayKey) {
-    var usage = this.data.apps[app];
+  UsageData.prototype.getAppUsage = function(manifestURL, dayKey) {
+    var usage = this.data.apps[manifestURL];
     dayKey = dayKey || this.getDayKey();
 
     // We lazily initialize both the per-app and per-day usage maps
     if (!usage) {
-      this.data.apps[app] = usage = {};
+      this.data.apps[manifestURL] = usage = {};
     }
 
     var dayUsage = usage[dayKey];
@@ -766,6 +769,7 @@
         uninstalls: 0,
         activities: {}
       };
+      this.data.apps[manifestURL] = usage;
     }
     return dayUsage;
   };
@@ -784,9 +788,34 @@
     return Object.keys(this.data.apps).length === 0;
   };
 
+  // We only care about recording certain kinds of apps:
+  // - Apps pre-installed with the phone (certified, or using a gaia origin)
+  // - Apps installed from the marketplace
+  UsageData.prototype.shouldTrackApp = function(app) {
+    if (!app) {
+      return false;
+    }
+
+    var manifest = app.manifest || app.updateManifest;
+    if (manifest && manifest.type === 'certified') {
+      return true;
+    }
+
+    if (MARKETPLACE_ORIGINS.indexOf(app.installOrigin) >= 0) {
+      return true;
+    }
+
+    try {
+      var url = new URL(app.manifestURL);
+      return url.hostname.indexOf('gaiamobile.org') >= 0;
+    } catch (e) {
+      return false;
+    }
+  };
+
   UsageData.prototype.recordInvocation = function(app, time) {
-    if (app == null) {
-      return;
+    if (!this.shouldTrackApp(app)) {
+      return false;
     }
 
     // Convert time to seconds and round to the nearest second.  If 0,
@@ -794,46 +823,50 @@
     // lockscreen right before sleeping, for example.)
     time = Math.round(time / 1000);
     if (time > 0) {
-      var usage = this.getAppUsage(app);
+      var usage = this.getAppUsage(app.manifestURL);
       usage.invocations++;
       usage.usageTime += time;
       this.needsSave = true;
       debug(app, 'ran for', time);
     }
+    return time > 0;
   };
 
   UsageData.prototype.recordInstall = function(app) {
-    if (app == null) {
-      return;
+    if (!this.shouldTrackApp(app)) {
+      return false;
     }
 
-    var usage = this.getAppUsage(app);
+    var usage = this.getAppUsage(app.manifestURL);
     usage.installs++;
     this.needsSave = true;
     debug(app, 'installed');
+    return true;
   };
 
   UsageData.prototype.recordUninstall = function(app) {
-    if (app == null) {
-      return;
+    if (!this.shouldTrackApp(app)) {
+      return false;
     }
 
-    var usage = this.getAppUsage(app);
+    var usage = this.getAppUsage(app.manifestURL);
     usage.uninstalls++;
     this.needsSave = true;
     debug(app, 'uninstalled');
+    return true;
   };
 
   UsageData.prototype.recordActivity = function(app, url) {
-    if (app == null) {
-      return;
+    if (!this.shouldTrackApp(app)) {
+      return false;
     }
 
-    var usage = this.getAppUsage(app);
+    var usage = this.getAppUsage(app.manifestURL);
     var count = usage.activities[url] || 0;
     usage.activities[url] = ++count;
     this.needsSave = true;
     debug(app, 'invoked activity', url);
+    return true;
   };
 
   // Merge a newer batch of data into this older batch.
