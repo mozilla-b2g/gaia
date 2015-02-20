@@ -2153,7 +2153,15 @@
     this._dirtyStyleProperties = {};
     if (this.element && this.transitionController) {
       this.element.classList.add('in-task-manager');
-      this.close( this.isActive() ? 'to-cardview' : 'immediate' );
+      if (this.isActive()) {
+        this.element.style.transformOrigin =
+          'calc(' + window.innerWidth + 'px - 50%) ' +
+          'calc(' + window.innerHeight + 'px - 50%)';
+        this._dirtyStyleProperties.transformOrigin = true;
+        this.close( 'to-cardview' );
+      } else {
+        this.close( 'immediate' );
+      }
     }
   };
 
