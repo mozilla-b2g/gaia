@@ -1912,6 +1912,7 @@
     // Request "open" to our internal transition controller.
     if (this.transitionController) {
       this.transitionController.switchTransitionState('opened');
+      this.publish('opening');
       this.publish('opened');
     }
   };
@@ -1920,6 +1921,7 @@
     // Request "close" to our internal transition controller.
     if (this.transitionController) {
       this.transitionController.switchTransitionState('closed');
+      this.publish('closing');
       this.publish('closed');
     }
   };

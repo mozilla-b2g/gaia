@@ -2034,6 +2034,7 @@ suite('system/AppWindow', function() {
       var atc1 = {
         switchTransitionState: function() {}
       };
+      var publishStub = this.sinon.stub(app1, 'publish');
       var switchTransitionState =
         this.sinon.stub(atc1, 'switchTransitionState');
       var revive = this.sinon.stub(app1, 'reviveBrowser');
@@ -2045,6 +2046,9 @@ suite('system/AppWindow', function() {
 
       assert.isTrue(switchTransitionState.calledWith('opened'));
       assert.isTrue(revive.called);
+      sinon.assert.calledTwice(publishStub);
+      sinon.assert.calledWith(publishStub, 'opening');
+      sinon.assert.calledWith(publishStub, 'opened');
     });
 
     test('Swipe in event while app is being crashed', function(){
@@ -2068,6 +2072,7 @@ suite('system/AppWindow', function() {
       var atc1 = {
         switchTransitionState: function() {}
       };
+      var publishStub = this.sinon.stub(app1, 'publish');
       var switchTransitionState =
         this.sinon.stub(atc1, 'switchTransitionState');
       app1.transitionController = atc1;
@@ -2077,6 +2082,8 @@ suite('system/AppWindow', function() {
       });
 
       assert.isTrue(switchTransitionState.calledWith('closed'));
+      sinon.assert.calledWith(publishStub, 'closing');
+      sinon.assert.calledWith(publishStub, 'closed');
     });
 
     test('Shrinking start event', function() {
