@@ -207,20 +207,6 @@ suite('SubjectComposer >', function() {
       );
     });
 
-    // Should be revisited again once bug 1103011 landed because we might
-    // not need this logic anymore.
-    test('correctly update dir attribute depends on input value', function() {
-      // Should be empty by default
-      assert.equal(input.dir, '');
-
-      // Should be auto when text input
-      subjectComposer.setValue('a');
-      assert.equal(input.dir, 'auto');
-
-      // Should reset to empty when text removed
-      subjectComposer.setValue('');
-      assert.equal(input.dir, '');
-    });
   });
 
   suite('Backspace key handling >', function() {
