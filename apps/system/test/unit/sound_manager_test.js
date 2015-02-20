@@ -382,8 +382,6 @@ suite('system/sound manager', function() {
       });
 
       test('CE check', function() {
-        assert.equal(10,
-                     MockNavigatorSettings.mSettings['audio.volume.content']);
         MockLock.mCallbacks.onsuccess();
         assert.isTrue(MockCustomDialog.mShown);
         MockCustomDialog.mShowedCancel.callback();

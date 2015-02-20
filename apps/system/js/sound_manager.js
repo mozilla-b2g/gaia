@@ -495,7 +495,7 @@
     if (this.isHeadsetConnected && this.getChannel() === 'content' &&
       this.currentVolume[this.currentChannel] >= this.CEWarningVol) {
       if (this.CEAccumulatorTime === 0) {
-        this.resetToCEMaxVolume();
+        this.showCEWarningDialog();
       } else {
         this.startAccumulator();
       }
@@ -520,7 +520,7 @@
           self.changeVolume(1);
           self.startAccumulator();
         };
-        this.resetToCEMaxVolume(okfn);
+        this.showCEWarningDialog(okfn);
       } else {
         this.startAccumulator();
         this.changeVolume(1);
@@ -589,7 +589,7 @@
           self.CEAccumulatorTime = 0; // reset time
           self.CETimestamp = 0; // reset timestamp
           self.stopAccumulator();
-          self.resetToCEMaxVolume();
+          self.showCEWarningDialog();
         }
       }, SoundManager.TIME_ONE_MINUTE);
     }
@@ -611,30 +611,6 @@
       window.asyncStorage.setItem(SoundManager.CACHE_CETIMES,
                                   this.CEAccumulatorTime);
     }
-  };
-
-  /**
-   * It resets the content channel to warning volume - 1 and shows the warning
-   * dialog for confirm.
-   *
-   * @memberOf SoundManager.prototype
-   * @param {Function} okfun the callback function when user press ok.
-   */
-  SoundManager.prototype.resetToCEMaxVolume = function sm_resetCEMax(callback) {
-    this.pendingRequest.v();
-    var req = SettingsListener.getSettingsLock().set({
-      'audio.volume.content': this.CEWarningVol - 1
-    });
-    var self = this;
-    req.onsuccess = function onSuccess() {
-      self.pendingRequest.p();
-      self.showCEWarningDialog(callback);
-    };
-
-    req.onerror = function onError() {
-      self.pendingRequest.p();
-      self.showCEWarningDialog(callback);
-    };
   };
 
   /**
