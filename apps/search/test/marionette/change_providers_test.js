@@ -60,6 +60,8 @@ marionette('Search - Switch Providers Test', function() {
     client.helper.tapSelectOption(select, 'second');
 
     client.switchToFrame();
+    home.focusRocketBar();
+    rocketbar.enterText('othertext');
     search.goToResults();
     client.waitFor(function() {
       return client.findElements(search.Selectors.suggestions).length === 3;
