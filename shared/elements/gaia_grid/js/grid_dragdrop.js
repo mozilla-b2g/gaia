@@ -367,6 +367,15 @@
       }
     },
 
+    inFirstGroup: function(index) {
+      for (var i = index; i >= 0; i--) {
+        if (this.gridView.items[i].detail.type === 'divider') {
+          return false;
+        }
+      }
+      return true;
+    },
+
     /**
      * Positions an icon on the grid using the current touch coordinates.
      */
@@ -396,15 +405,19 @@
       // Find the icon with the closest X/Y position of the move,
       // and insert ours before it.
       var foundIndex = 0;
-      var insertDividerAtTop =
-        !iconIsDivider && !this.gridView.config.features.disableSections;
+      var insertDividerAtTop = !this.gridView.config.features.disableSections;
       pageX += this.gridView.layout.gridItemWidth / 2;
       pageY += this.icon.pixelHeight / 2;
       if (pageY >= 0) {
-        this.container.classList.remove('hover-over-top');
-        insertDividerAtTop = false;
         foundIndex =
           this.gridView.getNearestItemIndex(pageX, pageY, iconIsDivider);
+
+        // If we're dragging a group over the first icon, a divider will
+        // be inserted at the top.
+        if (!(iconIsDivider && foundIndex === 0)) {
+          this.container.classList.remove('hover-over-top');
+          insertDividerAtTop = false;
+        }
       }
 
       // Clear the rearrange callback and hover item if we aren't hovering over
@@ -422,11 +435,13 @@
       // Add the 'hovering' class to the dragged icon.
       if (foundIndex !== null) {
         this.icon.element.classList.add('hovering');
+      } else {
+        this.icon.element.classList.remove('hovering');
       }
 
       // Nothing to do if we find the dragged icon or no icon
-      if (foundIndex === null ||
-          (!insertDividerAtTop && foundIndex === this.icon.detail.index)) {
+      if (!insertDividerAtTop &&
+          (foundIndex === null || foundIndex === this.icon.detail.index)) {
         if (!iconIsDivider) {
           this.highlightGroup(this.icon.detail.index);
         }
@@ -445,14 +460,11 @@
         return;
       }
 
-      // If we're hovering over the top of the group, add a style class to show
-      // a visual hint that this is a valid drop position.
-      // Otherwise, if the item isn't a collection or a group, trigger the
+      // If the item isn't a collection or a group, trigger the
       // hovered state on the found item.
-      if (insertDividerAtTop || (iconIsDivider && pageY < 0)) {
-        insertDividerAtTop = true;
-      } else if (foundItem.detail.type !== 'collection' ||
-                 (this.icon.detail.type !== 'collection' && !iconIsDivider)) {
+      if (!insertDividerAtTop &&
+          (foundItem.detail.type !== 'collection' ||
+           (this.icon.detail.type !== 'collection' && !iconIsDivider))) {
         this.hoverItem = foundItem;
         this.hoverItem.element.classList.add('hovered');
       }
@@ -492,18 +504,11 @@
         var redundantRearrange = false;
         if (insertDividerAtTop) {
           if (iconIsDivider) {
-            redundantRearrange = true;
-            for (var i = this.icon.detail.index - 1; i >= 0; i--) {
-              if (this.gridView.items[i].detail.type === 'divider') {
-                redundantRearrange = false;
-                break;
-              }
-            }
+            redundantRearrange = this.inFirstGroup(this.icon.detail.index - 1);
           } else {
-            if (this.icon.detail.index === 0 &&
-                this.gridView.items[1].detail.type === 'placeholder') {
-              redundantRearrange = true;
-            }
+            redundantRearrange =
+              (this.icon.detail.index === 0 &&
+               this.gridView.items[1].detail.type === 'placeholder');
           }
         } else {
           redundantRearrange = this.gridView.items[foundIndex].element.
