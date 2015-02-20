@@ -367,10 +367,14 @@ section[data-section="gt"] .btn {
 
 .validation-message,
 .pin-validation-message {
-  color: red;
   font-size: 1.4rem;
   white-space: normal;
   margin: 1rem;
+}
+
+.validation-message,
+.pin-error-message {
+  color: red;
 }
 
 
