@@ -75,7 +75,9 @@ var DataUsageTab = (function() {
             },
             limits: {
               enabled: settings.dataLimit,
-              value: ChartUtils.getLimitInBytes(settings)
+              value: ChartUtils.getLimitInBytes(settings),
+              dataLimitValue: settings.dataLimitValue,
+              dataLimitUnit: settings.dataLimitUnit
             },
             data: {
               wifi: {
@@ -224,6 +226,7 @@ var DataUsageTab = (function() {
 
             model.limits.enabled = settings.dataLimit;
             model.limits.value = ChartUtils.getLimitInBytes(settings);
+            model.limits.dataLimitValue = settings.dataLimitValue;
             model.axis.X.upper = ChartUtils.calculateUpperDate(settings);
             model.axis.X.lower = ChartUtils.calculateLowerDate(settings);
             ChartUtils.expandModel(model);
@@ -261,6 +264,7 @@ var DataUsageTab = (function() {
 
   function setDataLimit(value, old, key, settings) {
     model.limits.value = ChartUtils.getLimitInBytes(settings);
+    model.limits.dataLimitValue = settings.dataLimitValue;
     ChartUtils.expandModel(model);
     drawCharts();
   }
