@@ -94,6 +94,7 @@ var ListView = {
 
       headerLi = document.createElement('li');
       headerLi.className = 'list-header';
+      headerLi.id = 'section-group-' + this.lastFirstLetter;
       headerLi.textContent = this.lastFirstLetter || '?';
     }
 

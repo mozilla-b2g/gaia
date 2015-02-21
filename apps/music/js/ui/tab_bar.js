@@ -70,6 +70,8 @@ var TabBar = {
           this.option = target.dataset.option;
         }
 
+        var fastScroll = document.querySelector('nav[data-type="scrollbar"]');
+
         switch (target.id) {
           case 'tabs-mix':
             // Assuming the users will switch to ListView later or tap one of
@@ -77,6 +79,7 @@ var TabBar = {
             // because we will start a new one and it can be responsive.
             ListView.cancelEnumeration();
 
+            fastScroll.classList.add('hidden');
             ModeManager.start(MODE_TILES);
             TilesView.hideSearch();
             SearchView.searchContext = SearchView.context.ALL;
@@ -86,6 +89,7 @@ var TabBar = {
             ModeManager.start(MODE_LIST);
             ListView.activate();
 
+            fastScroll.classList.add('hidden');
             this.playlistArray.forEach(function(playlist) {
               ListView.update(this.option, playlist);
             }.bind(this));
@@ -105,6 +109,7 @@ var TabBar = {
 
             ModeManager.start(MODE_LIST);
             ListView.activate(info);
+            fastScroll.classList.remove('hidden');
 
             switch (target.id) {
               case 'tabs-artists':
