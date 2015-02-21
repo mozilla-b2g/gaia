@@ -78,7 +78,9 @@ suite('dialer/handled_call', function() {
                           '    data-l10n-id="hangup-a11y-button"></div>' +
                           '    <div class="numberWrapper ' +
                           '      direction-status-bar">' +
-                          '    <div class="number font-light"></div>' +
+                          '    <div class="number font-light">' +
+                          '      <bdi></bdi>' +
+                          '    </div>' +
                           '    <span role="button" id="switch-calls-button">' +
                           '    </span>' +
                           '  </div>' +
@@ -172,8 +174,14 @@ suite('dialer/handled_call', function() {
       });
 
       test('should have a numberNode in a numberWrapper', function() {
-        var numberNode = subject.node.querySelector('.numberWrapper .number');
+        var numberNode =
+          subject.node.querySelector('.numberWrapper .number bdi');
         assert.equal(subject.numberNode, numberNode);
+      });
+
+      test('should have an outerNode in a numberWrapper', function() {
+        var outerNode = subject.node.querySelector('.numberWrapper .number');
+        assert.equal(subject.outerNode, outerNode);
       });
 
       test('should have an additionalContactInfo node', function() {
@@ -710,7 +718,7 @@ suite('dialer/handled_call', function() {
       subject.formatPhoneNumber('end');
       sinon.assert.calledWith(
         FontSizeManager.adaptToSpace, MockCallScreen.mScenario,
-        subject.numberNode, false, 'end');
+        subject.outerNode, false, 'end');
     });
 
     test('formatPhoneNumber should not call the font size manager if call is' +
