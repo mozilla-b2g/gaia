@@ -182,6 +182,10 @@ suite('dialer/keypad', function() {
       test('Start an abbreviated dialing code operation only upon pressing #',
       function() {
         this.sinon.spy(KeypadManager, '_getSpeedDialNumber');
+        /* This simulates the user having typed a number with a # in the middle
+         * without triggering a an abbreviated dial operation, possibly by
+         * moving  the cursor to insert the #. In this scenario an abbreviated
+         * dialing operation should not be triggered. */
         subject._phoneNumber = '1#1';
 
         fakeEventStart.target.dataset.value = 'delete';

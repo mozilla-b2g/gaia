@@ -468,7 +468,7 @@ var KeypadManager = {
       return;
     }
 
-    // Per certification requirements abbreviadetd dialing codes need to be
+    // Per certification requirements abbreviated dialing codes need to be
     // called immediately after the user enters the '#' key. This covers
     // retrieving the device's IMEI codes as well as speed dialing.
     if (key === '#') {
