@@ -69,7 +69,9 @@
 
   margin-top: 0.5rem;
   flex-grow: 1;
+}
 
+.report-view > ul.contact-list a {
   /* Avoid any pointer event on contact list in report view  */
   pointer-events: none;
 }
