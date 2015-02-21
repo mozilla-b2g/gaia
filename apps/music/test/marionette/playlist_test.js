@@ -345,5 +345,54 @@ marionette('Music player playlist', function() {
       assert.equal(PlaylistHelper.songTitle(songs[1]), 'Yield to thread');
     });
 
+    test('Shuffle all sort order', function() {
+      music.launch();
+      music.waitForFirstTile();
+
+      music.switchToPlaylistsView();
+
+      var notrandom = 0;
+      var lastTitle = '';
+      for (var i = 0; i < 10; i++) {
+
+        music.selectPlaylist('Shuffle all');
+
+        var title = music.title.text();
+        if (title === lastTitle) {
+          notrandom++;
+        }
+        lastTitle = title;
+        // tap back
+        music.tapHeaderActionButton();
+      }
+      assert.ok(notrandom !== 10, 'we didn\'t randomise');
+    });
+
+    test('Shuffle playlist order', function() {
+      music.launch();
+      music.waitForFirstTile();
+
+      music.switchToPlaylistsView();
+
+      music.selectPlaylist('Least played');
+
+      var notrandom = 0;
+      var lastTitle = '';
+      for (var i = 0; i < 10; i++) {
+
+
+        music.sublistShuffleButton.tap();
+
+        var title = music.title.text();
+        if (title === lastTitle) {
+          notrandom++;
+        }
+        lastTitle = title;
+        // tap back
+        music.tapHeaderActionButton();
+      }
+      assert.ok(notrandom !== 10, 'we didn\'t randomise');
+    });
+
   });
 });
