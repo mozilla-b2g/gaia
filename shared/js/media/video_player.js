@@ -483,7 +483,7 @@ function VideoPlayer(container) {
     // of videos, we make sure that the maximum amount of steps for the entire
     // duration is 20, or 2 second increments if the duration is less then 40
     // seconds.
-    var step = Math.max(player.duration/20, 2);
+    var step = Math.max(player.duration / 20, 2);
     if (e.keyCode == e.DOM_VK_DOWN) {
       player.currentTime -= step;
     } else if (e.keyCode == e.DOM_VK_UP) {
