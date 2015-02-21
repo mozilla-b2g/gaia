@@ -1,6 +1,6 @@
 /* global BalanceView, LazyLoader, AutoSettings, BalanceLowLimitView,
           ResetMenuDialog, ConfirmDialog, ViewManager, dataLimitConfigurer,
-          Formatting, PerformanceTestingHelper
+          Formatting, PerformanceTestingHelper, InputParser
 */
 /* exported debug, sendBalanceThresholdNotification */
 /*
@@ -71,6 +71,13 @@ var Settings = (function() {
       confirmDialog = new ConfirmDialog(resetDialog, vmanager);
       resetMenuDialog.initializeResetModes(confirmDialog);
 
+      if (!ConfigManager.supportCustomizeMode) {
+        var items = document.querySelectorAll('[data-mode="custom"]');
+        Array.prototype.forEach.call(items, function removeItem(item) {
+          item.parentNode.removeChild(item);
+        });
+      }
+
       // Autosettings
       AutoSettings.addType('data-limit', dataLimitConfigurer);
       AutoSettings.initialize(ConfigManager, vmanager, '#settings-view');
@@ -128,8 +135,12 @@ var Settings = (function() {
         closeSettings();
       });
 
-      function _setResetTimeToDefault(value, old, key, settings) {
-        var today = new Date();
+      function _setDataPeriodBounds(value, old, key, settings) {
+        var today = InputParser.exportDate(new Date());
+        if (settings.startingTime !== today) {
+          ConfigManager.setOption({ startingTime: today });
+        }
+        today = new Date();
         var defaultResetTime = (settings.trackingPeriod === 'weekly') ?
           today.getDay() : today.getDate();
         if (settings.resetTime !== defaultResetTime) {
@@ -144,7 +155,7 @@ var Settings = (function() {
       }
 
       ConfigManager.observe('resetTime', _updateNextReset, true);
-      ConfigManager.observe('trackingPeriod', _setResetTimeToDefault, true);
+      ConfigManager.observe('trackingPeriod', _setDataPeriodBounds, true);
 
       initialized = true;
 
