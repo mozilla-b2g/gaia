@@ -39,6 +39,7 @@
     <!-- TODO: Lazyly loaded, remove when mozHour12 is part of the platform
     <script type="text/javascript" defer src="shared/js/date_time_helper.js"></script>
     -->
+    <script defer src="/shared/js/input_parser.js"></script>
     <script defer src="/shared/js/usertiming.js"></script>
     <script defer src="/shared/js/performance_testing_helper.js"></script>
 
@@ -152,6 +153,7 @@
                 <select class="settings-option" data-option="trackingPeriod">
                   <option value="monthly" data-l10n-id="monthly">Monthly</option>
                   <option value="weekly" data-l10n-id="weekly">Weekly</option>
+                  <option value="custom" data-mode="custom" data-l10n-id="custom">Custom</option>
                   <option value="never" data-l10n-id="never">Never</option>
                 </select>
               </gaia-select>
@@ -207,6 +209,14 @@
                   <option value="31">31</option>
                 </select>
               </gaia-select>
+            </li>
+            <li class="vbox">
+              <label data-l10n-id="starting-date">Starting Date</label>
+              <input type="date" id="startingTime" class="settings-option icon icon-dialog" data-option="startingTime" data-hide-on="trackingPeriod!=custom" data-disable-on="trackingPeriod!=custom" />
+            </li>
+            <li class="vbox">
+              <label data-l10n-id="duration">Duration</label>
+              <input type="text" class="settings-option" x-inputmode="numeric" maxlength="2" size="2" data-option="duration" data-hide-on="trackingPeriod!=custom" data-disable-on="trackingPeriod!=custom">
             </li>
           </ul>
         </section>

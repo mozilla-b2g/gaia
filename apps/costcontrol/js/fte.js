@@ -52,6 +52,13 @@
       wizard = document.getElementById('firsttime-view');
       vmanager = new ViewManager();
 
+      if (!ConfigManager.supportCustomizeMode) {
+        var items = document.querySelectorAll('[data-mode="custom"]');
+        Array.prototype.forEach.call(items, function removeItem(item) {
+          item.parentNode.removeChild(item);
+        });
+      }
+
       // Getting some values from config
       if (configuration && configuration.default_low_limit_threshold) {
         defaultLowLimitThreshold = configuration.default_low_limit_threshold;
@@ -263,7 +270,13 @@
       ConfigManager.requestSettings(dataSim.iccId,
                                     function _onSettings(settings) {
         ConfigManager.setOption({ fte: false }, function _returnToApp() {
-          Common.updateNextReset(settings.trackingPeriod, settings.resetTime,
+          var settingsForReset = {
+            trackingPeriod: settings.trackingPeriod,
+            resetTime : settings.resetTime,
+            startingTime: settings.startingTime,
+            duration: settings.duration
+          };
+          Common.updateNextReset(settingsForReset,
             function _returnToTheApplication() {
               Common.startApp();
             }

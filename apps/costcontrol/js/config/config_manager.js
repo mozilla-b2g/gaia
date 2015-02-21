@@ -1,4 +1,4 @@
-/* global debug, SimManager, LazyLoader, asyncStorage, deepCopy */
+/* global debug, SimManager, LazyLoader, asyncStorage, deepCopy, InputParser */
 /* exported ConfigManager */
 'use strict';
 
@@ -52,6 +52,9 @@ var ConfigManager = (function() {
     'plantype': 'postpaid',
     'resetTime': 1,
     'trackingPeriod': 'monthly',
+    'startingTime': InputParser.exportDate(today),
+    'duration': 0,
+    'endingDateNotified': false,
     'isMobileChartVisible': true,
     'isWifiChartVisible': false
   };

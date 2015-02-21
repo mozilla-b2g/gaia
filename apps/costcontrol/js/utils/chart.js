@@ -1,12 +1,12 @@
-/* global _, debug, Toolkit, Formatting, Common */
+/* global _, debug, Toolkit, Formatting, Common, InputParser */
 /* exported ChartUtils */
 'use strict';
 
 var ChartUtils = (function() {
   var DEVICE_PIXEL_RATIO = window.devicePixelRatio || 1;
   var DAY = 24 * 60 * 60 * 1000;
-  var NEVER_PERIOD = 30 * DAY;
-  var NEVER_ANCHOR = 21 * DAY;
+  var NO_PERIOD = 30 * DAY;
+  var NO_PERIOD_ANCHOR = 21 * DAY;
   var CHART_BG_RATIO = 0.87;
   var FONT_SIZE = toDevicePixels(13);
   var FONT_WEIGHT = '600';
@@ -49,11 +49,21 @@ var ChartUtils = (function() {
       return new Date(nextReset.getTime() - DAY);
     }
 
-    var lastReset = settings.lastCompleteDataReset || today;
-    var offset = today.getTime() - lastReset.getTime();
-    var upperDate = new Date(lastReset.getTime() + NEVER_PERIOD);
-    if (offset >= NEVER_ANCHOR) {
-      upperDate = new Date(today.getTime() + (NEVER_PERIOD - NEVER_ANCHOR));
+    var initDate = settings.lastCompleteDataReset || today;
+    if (trackingPeriod === 'custom') {
+      var startingTime =  InputParser.importDate(settings.startingTime);
+      initDate = new Date(startingTime.year, startingTime.month,
+        startingTime.date);
+      var endDate = new Date(initDate.getTime() + settings.duration * DAY);
+      if (endDate.getTime() >= today.getTime()) {
+        return new Date(endDate.getTime() - DAY);
+      }
+    }
+
+    var offset = today.getTime() - initDate.getTime();
+    var upperDate = new Date(initDate.getTime() + NO_PERIOD);
+    if (offset >= NO_PERIOD_ANCHOR) {
+      upperDate = new Date(today.getTime() + (NO_PERIOD - NO_PERIOD_ANCHOR));
     }
 
     debug('Upper date:', upperDate);
@@ -95,12 +105,16 @@ var ChartUtils = (function() {
           lowerDate.setDate(LAST_DAY_OF_PREVIOUS_MONTH);
         }
       }
+    } else if (trackingPeriod === 'custom') {
+      var startingTime =  InputParser.importDate(settings.startingTime);
+      lowerDate = new Date(startingTime.year, startingTime.month,
+        startingTime.date);
     } else {
       var lastReset = settings.lastCompleteDataReset || lowerDate;
       lowerDate = lastReset;
       var offset = today.getTime() - lastReset.getTime();
-      if (offset >= NEVER_ANCHOR) {
-        lowerDate = new Date(today.getTime() - NEVER_ANCHOR);
+      if (offset >= NO_PERIOD_ANCHOR) {
+        lowerDate = new Date(today.getTime() - NO_PERIOD_ANCHOR);
       }
     }
 

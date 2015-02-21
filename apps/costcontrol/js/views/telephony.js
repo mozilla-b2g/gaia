@@ -1,4 +1,4 @@
-/* global _, CostControl, ConfigManager, debug,
+/* global _, CostControl, ConfigManager, debug, InputParser,
           Formatting, SimManager, Common */
 /*
  * The telephony tab is in charge of show telephony and billing cycle
@@ -107,15 +107,33 @@ var TelephonyTab = (function() {
   }
 
   function updateNextReset(reset, old, key, settings) {
+    var DAY = 24 * 3600 * 1000; // 1 day
+    var today = new Date();
     var billingCycle = document.getElementById('billing-cycle');
-    if (settings.trackingPeriod === 'never') {
-      billingCycle.hidden = true;
-    } else {
-      billingCycle.hidden = false;
-      var content = Formatting.getFormattedDate(settings.nextReset,
+    var warningReset = billingCycle.querySelector('span');
+    var hideBillingCycle = true;
+    var hideWarningReset = (settings.trackingPeriod === 'never');
+
+    var endDate = settings.nextReset || new Date();
+    if ((settings.trackingPeriod === 'custom') && (settings.duration !== 0)) {
+      var initDate = InputParser.importDate(settings.startingTime);
+      var startingTime = new Date(initDate.year, initDate.month, initDate.date);
+      endDate.setTime(startingTime.getTime() + settings.duration * DAY);
+      // if the period is ended, has it sense show the billing cycle?
+      // UX question
+      if (endDate.getTime() >= today.getTime()) {
+        hideBillingCycle = false;
+        hideWarningReset = true;
+      }
+    }
+
+    if (!hideBillingCycle) {
+      var content = Formatting.getFormattedDate(endDate,
         _('short-date-format'));
       resetDate.textContent = content;
+      warningReset.hidden = hideWarningReset;
     }
+    billingCycle.hidden = hideBillingCycle;
   }
 
   return {
