@@ -29,6 +29,7 @@ suite('system/Card', function() {
       },
       origin: config.origin || 'http://' +
               (config.name || 'dummyapp') + '.gaiamobile.org',
+      url: config.url,
       blur: function() {}
     });
   }
@@ -198,6 +199,22 @@ suite('system/Card', function() {
         browserCard.getDisplayURLString('http://foo.com:8080/bar?bazz#boss'),
         'foo.com:8080/bar?bazz#boss'
       );
+    });
+
+    test('subTitle when private browser splash', function() {
+      var app = makeApp({
+        name: 'shortname',
+        shortName: 'short',
+        origin: 'app://system.gaiamobile.org',
+        url: 'app://system.gaiamobile.org/private_browser.html'
+      });
+      this.sinon.stub(app, 'isBrowser').returns(true);
+      var appCard = new Card({
+        app: app,
+        manager: mockManager
+      });
+      appCard.render();
+      assert.equal(appCard.subTitle, '');
     });
   });
 
