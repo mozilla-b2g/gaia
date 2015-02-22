@@ -25,7 +25,7 @@ marionette('Search - Switch Providers Test', function() {
     system.waitForStartup();
 
     providers = {
-      version: 1,
+      version: 2,
       providers: {
         'first': {
           title: 'first',

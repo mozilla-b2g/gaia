@@ -20,6 +20,8 @@ function execute(options) {
 
   require('./contacts-import-services').execute(options);
 
+  require('./search-provider').execute(options);
+
   // A separate step for shared/ folder to generate its content in build time
   require('./keyboard-layouts').execute(options);
 
