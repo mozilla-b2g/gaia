@@ -149,17 +149,23 @@ function createListElement(option, data, index, highlight) {
       break;
 
     case 'song':
+    case 'song-index':
       var songTitle =
         data.metadata.title || navigator.mozL10n.get('unknownTitle');
 
       var indexSpan = document.createElement('span');
       indexSpan.className = 'list-song-index';
-      var trackNum = data.metadata.tracknum;
-      if (data.metadata.discnum && data.multidisc) {
-        trackNum = data.metadata.discnum + '.' +
-          (trackNum < 10 ? '0' + trackNum : trackNum);
+      // 'song-index' mean we want the index and not the track #
+      if (option === 'song-index') {
+        indexSpan.textContent = index + 1;
+      } else {
+        var trackNum = data.metadata.tracknum;
+        if (data.metadata.discnum && data.multidisc) {
+          trackNum = data.metadata.discnum + '.' +
+            (trackNum < 10 ? '0' + trackNum : trackNum);
+        }
+        indexSpan.textContent = trackNum;
       }
-      indexSpan.textContent = trackNum;
 
       titleSpan = document.createElement('span');
       titleSpan.className = 'list-song-title';
