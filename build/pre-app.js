@@ -12,6 +12,8 @@ function execute(options) {
 
   nodeHelper.require('contacts-import-services', options);
 
+  nodeHelper.require('./search-provider', options);
+
   nodeHelper.require('./keyboard-layouts', options);
 
   nodeHelper.require('./preferences', options);
