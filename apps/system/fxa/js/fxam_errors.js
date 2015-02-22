@@ -2,6 +2,8 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
+/* global BrowserFrame */
+/* global EntrySheet */
 
 (function(exports) {
   var Errors = {
@@ -47,15 +49,62 @@
     };
   }
 
+  /**
+   * Define a custom element for the coppa link.
+   * A custom element is used as an easy way to survive the current FxA
+   * error html stringification. When the link is clicked a remote
+   * EntrySheet is opened.
+   */
+  function registerCoppaLinkElement() {
+    var _ = navigator.mozL10n.get;
+    var learnMore = _('fxa-learn-more');
+    var coppaUrl = 'http://www.ftc.gov/news-events/media-resources/' +
+      'protecting-consumer-privacy/kids-privacy-coppa';
+
+    var coppaLinkProto = Object.create(HTMLElement.prototype);
+
+    coppaLinkProto.createdCallback = function() {
+      var template = document.createElement('template');
+      template.innerHTML = `<a id="coppa-link" href="#">${learnMore}</a>`;
+
+      var shadow = this.createShadowRoot();
+      this._template = template.content.cloneNode(true);
+
+      shadow.appendChild(this._template);
+
+      var link = shadow.getElementById('coppa-link');
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        if (this.entrySheet) {
+          this.entrySheet.close();
+          this.entrySheet = null;
+        }
+
+        this.entrySheet = new EntrySheet(
+          window.top.document.getElementById('screen'),
+          coppaUrl,
+          new BrowserFrame({
+            url: coppaUrl,
+            oop: true
+          })
+        );
+
+        this.entrySheet.open();
+      });
+    };
+
+    document.registerElement('fxa-coppa-link', {
+      prototype: coppaLinkProto
+    });
+  }
+
   function _getCoppaError() {
+    registerCoppaLinkElement();
     var _ = navigator.mozL10n.get;
 
-    var coppaLink = 'http://www.ftc.gov/news-events/media-resources/' +
-                    'protecting-consumer-privacy/kids-privacy-coppa';
     var errorText = _('fxa-coppa-failure-error-message');
-    var learnMore = _('fxa-learn-more');
     var learnMorePlaceholder = /{{\s*learnmore\s*}}/;
-    var learnMoreLink = '<a href="' + coppaLink + '">' + learnMore + '</a>';
+    var learnMoreLink = '<fxa-coppa-link></fxa-coppa-link>';
     // return as a string. fxam_error_overlay will innerHTML the whole message.
     return {
       html: errorText.replace(learnMorePlaceholder, learnMoreLink)
