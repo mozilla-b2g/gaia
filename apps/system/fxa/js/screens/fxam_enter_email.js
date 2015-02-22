@@ -122,7 +122,10 @@ var FxaModuleEnterEmail = (function() {
       this.entrySheet = new EntrySheet(
         window.top.document.getElementById('screen'),
         url,
-        new BrowserFrame({url: url})
+        new BrowserFrame({
+          url: url,
+          oop: true
+        })
       );
       this.entrySheet.open();
     }
