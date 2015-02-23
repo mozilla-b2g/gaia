@@ -16,7 +16,8 @@
     'attentionterminated',
     'simlockskip',
     'simlockback',
-    'simlockrequestclose'
+    'simlockrequestclose',
+    'airplanemode-enabled'
   ];
   SimLockManager.SUB_MODULES = [
     'SimLockSystemDialog'
@@ -156,9 +157,13 @@
       // https://bugzilla.mozilla.org/show_bug.cgi?id=SIMPIN-Dialog
     },
 
-    isBothSlotsLocked: function sl_isBothSlotsLocked(){
-      if(!SIMSlotManager.isMultiSIM() ||
-          SIMSlotManager.hasOnlyOneSIMCardDetected()){
+    '_handle_airplanemode-enabled': function(evt) {
+      this.simLockSystemDialog.close();
+    },
+
+    isBothSlotsLocked: function sl_isBothSlotsLocked() {
+      if (!SIMSlotManager.isMultiSIM() ||
+          SIMSlotManager.hasOnlyOneSIMCardDetected()) {
         return false;
       }
 
