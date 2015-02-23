@@ -511,25 +511,23 @@ var CallLog = {
 
     var primInfoMain = document.createElement('span');
     primInfoMain.className = 'primary-info-main';
+    var bdi = document.createElement('bdi');
     if (contact && contact.primaryInfo) {
-      primInfoMain.textContent = contact.primaryInfo;
+      bdi.textContent = contact.primaryInfo;
     } else {
       if (number) {
-        var bdi = document.createElement('bdi');
         bdi.textContent = number;
-        primInfoMain.appendChild(bdi);
       } else {
         primInfoMain.setAttribute('data-l10n-id', 'withheld-number');
       }
     }
+    primInfoMain.appendChild(bdi);
 
     var retryCount = document.createElement('span');
     retryCount.className = 'retry-count';
 
     if (group.retryCount && group.retryCount > 1) {
-      var bdiRetry = document.createElement('bdi');
-      bdiRetry.textContent = '(' + group.retryCount + ')';
-      retryCount.appendChild(bdiRetry);
+      retryCount.textContent = '(' + group.retryCount + ')';
     }
 
     primInfo.appendChild(primInfoMain);
@@ -1015,7 +1013,10 @@ var CallLog = {
     var primaryInfo =
       Utils.getPhoneNumberPrimaryInfo(matchingTel, contact);
     if (primaryInfo) {
-      primInfoCont.textContent = primaryInfo;
+      primInfoCont.textContent = '';
+      var bdiPrim = document.createElement('bdi');
+      bdiPrim.textContent = primaryInfo;
+      primInfoCont.appendChild(bdiPrim);
     }
 
     var phoneNumberAdditionalInfo =
