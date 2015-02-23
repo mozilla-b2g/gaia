@@ -24,7 +24,7 @@ class DeviceInfo(Base):
     def __init__(self, marionette):
         Base.__init__(self, marionette)
         Wait(self.marionette).until(
-            expected.element_displayed(*self._phone_number_locator))
+            expected.element_displayed(*self._model_locator))
 
     @property
     def phone_number(self):
