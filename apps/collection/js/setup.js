@@ -32,28 +32,7 @@
 
       this.initializing = true;
 
-      var xhr = new XMLHttpRequest();
-      xhr.overrideMimeType('application/json');
-      xhr.open('GET', PRE_INSTALLED_COLLECTIONS_FILE, true);
-
-      xhr.onload = function _xhrOnLoadFile() {
-        if (!(xhr.status === 200 | xhr.status === 0)) {
-          this.onError('Unknown response when getting data.');
-          return;
-        }
-
-        try {
-          this.populate(JSON.parse(xhr.responseText));
-        } catch (ex) {
-          this.onError(ex);
-        }
-      }.bind(this);
-
-      xhr.onerror = function _xhrOnError() {
-        this.onError('file not found');
-      }.bind(this);
-
-      xhr.send();
+      LazyLoader.load(PRE_INSTALLED_COLLECTION_FILE);
     },
 
     /**
