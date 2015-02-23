@@ -1070,6 +1070,11 @@ html[dir="rtl"] nav[data-type="scrollbar"] {
   left: unset;
 }
 
+html[dir="rtl"] nav[data-type="scrollbar"] p {
+  left: unset;
+  right: 10rem;
+}
+
 /* Overwrite input-areas bb */
 #custom-tag-reset {
   right: 1rem;
