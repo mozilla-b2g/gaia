@@ -1,6 +1,6 @@
 Evme.Config = Evme.__config = {
   'appVersion': '2.0.145',
-  'apiHost': 'api.everything.me',
+  'apiHost': 'appsearch.services.mozilla.com',
   'apiKey': '1518c0001ff736528322f306f41f027d',
   'authCookieName': 'prod-credentials',
   'apps': {
