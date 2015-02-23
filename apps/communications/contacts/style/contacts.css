@@ -1069,3 +1069,13 @@ html[dir="rtl"] nav[data-type="scrollbar"] {
   right: 0;
   left: unset;
 }
+
+/* Overwrite input-areas bb */
+#custom-tag-reset {
+  right: 1rem;
+}
+
+html[dir="rtl"] #custom-tag-reset {
+  left: 1rem;
+  right: unset;
+}
