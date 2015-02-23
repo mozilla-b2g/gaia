@@ -87,7 +87,27 @@ CameraController.prototype.bindEvents = function() {
   settings.hdr.on('change:selected', this.setHDR);
   settings.hdr.on('change:selected', this.onHDRChange);
 
+  // Key events
+  window.addEventListener('keydown', this.handleKeyDown);
+
   debug('events bound');
+};
+
+CameraController.prototype.handleKeyDown = function(ev) {
+  switch (ev.key.toLowerCase()) {
+    case 'camera':
+    case 'volumeup':
+    case 'volumedown':
+      this.capture();
+      break;
+
+    case 'mozcamerafocusadjust':
+      this.camera.focus.focus();
+      break;
+
+    default:
+      debug('Unhandled keydown: ' + ev.key);
+  }
 };
 
 /**

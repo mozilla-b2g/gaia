@@ -194,6 +194,41 @@ suite('controllers/camera', function() {
     });
   });
 
+  suite('CameraController#handleKeyDown', function() {
+    var cameraKeyEv  = { key: 'camera' };
+    var volupKeyEv   = { key: 'volumeup' };
+    var voldownKeyEv = { key: 'volumedown' };
+    var focusKeyEv   = { key: 'mozcamerafocusadjust' };
+
+    var captureSpy;
+    setup(function() {
+      captureSpy = this.sinon.spy(this.controller, 'capture');
+      this.camera.focus = {
+        focus: this.sinon.spy()
+      };
+    });
+
+    test('camera button triggers capture', function() {
+      this.controller.handleKeyDown(cameraKeyEv);
+      sinon.assert.called(captureSpy);
+    });
+
+    test('volume up button triggers capture', function() {
+      this.controller.handleKeyDown(volupKeyEv);
+      sinon.assert.called(captureSpy);
+    });
+
+    test('volume down button triggers capture', function() {
+      this.controller.handleKeyDown(voldownKeyEv);
+      sinon.assert.called(captureSpy);
+    });
+
+    test('camera focus button triggers focus', function() {
+      this.controller.handleKeyDown(focusKeyEv);
+      sinon.assert.called(this.camera.focus.focus);
+    });
+  });
+
   suite('CameraController#setMode()', function() {
     test('It sets the flash mode', function() {
       this.controller.setMode();
