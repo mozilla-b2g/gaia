@@ -3777,6 +3777,25 @@ suite('thread_ui.js >', function() {
           }
         }).then(done, done);
     });
+
+    suite('message context menu actions >', function() {
+      setup(function() {
+        this.sinon.stub(Compose, 'isEmpty').returns(true);
+        link.dispatchEvent(contextMenuEvent);
+      });
+
+      test('forward message', function() {
+        this.sinon.stub(ThreadUI, 'navigateToComposer');
+
+        var forwardOption = MockOptionMenu.calls[0].items[0];
+        forwardOption.method(messageId);
+
+        assert.equal(forwardOption.l10nId, 'forward');
+        sinon.assert.calledWith(
+          ThreadUI.navigateToComposer, { forward: { messageId: messageId } }
+        );
+      });
+    });
   });
 
   suite('Message resending UI', function() {
@@ -4130,7 +4149,7 @@ suite('thread_ui.js >', function() {
             MockSettings.supportEmailRecipient = true;
 
             this.sinon.spy(ActivityPicker, 'email');
-            this.sinon.spy(ActivityPicker, 'sendMessage');
+            this.sinon.spy(ThreadUI, 'navigateToComposer');
 
             ThreadUI.prompt({
               email: 'a@b.com',
@@ -4163,11 +4182,16 @@ suite('thread_ui.js >', function() {
 
             // The second item is a "sendMMSToEmail" option
             assert.equal(items[1].l10nId, 'sendMMSToEmail');
+            // We shouldn't navigate to Thread panel if we're in Participants
+            // panel and would like to send new MMS
+            assert.equal(items[1].incomplete, true);
 
             // Trigger the option to ensure that correct Activity is used.
             items[1].method();
 
-            sinon.assert.called(ActivityPicker.sendMessage);
+            sinon.assert.calledWith(
+              ThreadUI.navigateToComposer, { activity: { number: 'a@b.com' } }
+            );
 
             // The third item is a "createNewContact" option
             assert.equal(items[2].l10nId, 'createNewContact');
@@ -4289,6 +4313,8 @@ suite('thread_ui.js >', function() {
 
       suite('multi recipients, in group view >', function() {
         setup(function() {
+          this.sinon.spy(ThreadUI, 'navigateToComposer');
+
           Navigation.isCurrentPanel.withArgs('group-view').returns(true);
 
           Threads.set(1, {
@@ -4323,6 +4349,15 @@ suite('thread_ui.js >', function() {
 
           // The second item is a "send message" option
           assert.equal(items[1].l10nId, 'sendMessage');
+          // We shouldn't navigate to Thread panel if we're in Participants
+          // panel and would like to send new SMS
+          assert.equal(items[1].incomplete, true);
+
+          items[1].method();
+
+          sinon.assert.calledWith(
+            ThreadUI.navigateToComposer, { activity: { number: '999' } }
+          );
 
           // The third and last item is a "cancel" option
           assert.equal(items[2].l10nId, 'cancel');
@@ -4352,6 +4387,9 @@ suite('thread_ui.js >', function() {
 
           // The second item is a "sendMessage" option
           assert.equal(items[1].l10nId, 'sendMessage');
+          // We shouldn't navigate to Thread panel if we're in Participants
+          // panel and would like to send new SMS
+          assert.equal(items[1].incomplete, true);
 
           // The third item is a "createNewContact" option
           assert.equal(items[2].l10nId, 'createNewContact');
@@ -4440,6 +4478,65 @@ suite('thread_ui.js >', function() {
           sinon.assert.calledWith(
             ThreadUI.updateCarrier, Threads.get(2), fakeContactTwo
           );
+        }).then(done, done);
+      });
+    });
+
+    suite('navigateToComposer', function() {
+      setup(function() {
+        this.sinon.spy(Navigation, 'toPanel');
+        this.sinon.spy(ThreadUI, 'discardDraft');
+        this.sinon.stub(Utils, 'confirm');
+        this.sinon.stub(Compose, 'isEmpty');
+      });
+
+      test('immediately navigates to Composer if no unsent message',
+      function(done) {
+        Compose.isEmpty.returns(true);
+
+        ThreadUI.navigateToComposer({ test: 'test' }).then(() => {
+          sinon.assert.calledWith(
+            Navigation.toPanel, 'composer', { test: 'test' }
+          );
+          sinon.assert.notCalled(Utils.confirm);
+        }).then(done, done);
+      });
+
+      test('navigates to Composer when user discards unsent message',
+      function(done) {
+        Compose.isEmpty.returns(false);
+        Utils.confirm.returns(Promise.resolve());
+
+        ThreadUI.navigateToComposer({ test: 'test' }).then(() => {
+          sinon.assert.calledWith(
+            Utils.confirm,
+            'unsent-message-text',
+            'unsent-message-title',
+            { text: 'unsent-message-option-discard', className: 'danger' }
+          );
+          sinon.assert.called(ThreadUI.discardDraft);
+          sinon.assert.calledWith(
+            Navigation.toPanel, 'composer', { test: 'test' }
+          );
+        }).then(done, done);
+      });
+
+      test('stays in the current panel if user wants to keep unsent message',
+      function(done) {
+        Compose.isEmpty.returns(false);
+        Utils.confirm.returns(Promise.reject());
+
+        ThreadUI.navigateToComposer({ test: 'test' }).then(() => {
+          throw new Error('navigateToComposer should be rejected!');
+        }, () => {
+          sinon.assert.calledWith(
+            Utils.confirm,
+            'unsent-message-text',
+            'unsent-message-title',
+            { text: 'unsent-message-option-discard', className: 'danger' }
+          );
+          sinon.assert.notCalled(ThreadUI.discardDraft);
+          sinon.assert.notCalled(Navigation.toPanel);
         }).then(done, done);
       });
     });
