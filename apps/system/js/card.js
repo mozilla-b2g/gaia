@@ -326,25 +326,8 @@
       this.iconButton.style.backgroundImage = this.iconValue;
     }
 
-    // Handling cards in different orientations
-    var degree = app.rotatingDegree;
-    var isLandscape = (degree == 90 || degree == 270);
-
-    // Rotate screenshotView if needed
-    screenshotView.classList.add('rotate-' + degree);
-
     if (isIconPreview) {
       return;
-    }
-
-    if (isLandscape) {
-      // We must exchange width and height if it's landscape mode
-      var width = elem.clientHeight;
-      var height = elem.clientWidth;
-      screenshotView.style.width = width + 'px';
-      screenshotView.style.height = height + 'px';
-      screenshotView.style.left = ((height - width) / 2) + 'px';
-      screenshotView.style.top = ((width - height) / 2) + 'px';
     }
 
     // If we have a cached screenshot, use that first
