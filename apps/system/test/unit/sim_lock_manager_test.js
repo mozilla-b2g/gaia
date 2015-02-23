@@ -131,6 +131,15 @@ suite('SimLockManager', function() {
       assert.isFalse(subject.simLockSystemDialog.visible);
     });
 
+    test('when enabling airplane mode, the dialog gets closed', function() {
+      subject.simLockSystemDialog.visible = true;
+      subject.handleEvent({
+        type: 'airplanemode-enabled'
+      });
+      assert.isTrue(subject.simLockSystemDialog.close.called);
+      assert.isFalse(subject.simLockSystemDialog.visible);
+    });
+
   });
 
   suite('isBothSlotsLocked', function() {
