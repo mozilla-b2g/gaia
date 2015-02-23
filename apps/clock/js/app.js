@@ -1,7 +1,6 @@
 define(function(require) {
 'use strict';
 
-require('shared/js/usertiming');
 require('shared/js/performance_testing_helper');
 
 var Tabs = require('tabs');
