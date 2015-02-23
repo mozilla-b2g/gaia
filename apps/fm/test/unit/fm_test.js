@@ -1,5 +1,6 @@
 require('/shared/js/usertiming.js');
 requireApp('shared/js/airplane_mode_helper.js');
+require('/shared/js/audio_competing_helper.js');
 requireApp('fm/js/fm.js');
 
 var PerformanceTestingHelper = {
@@ -379,6 +380,11 @@ suite('FM', function() {
 
   suite('update radio status based on incoming attention screen status',
     function() {
+
+      function dispatchEventAudioContext(type) {
+        AudioCompetingHelper.audioContext.dispatchEvent(new CustomEvent(type));
+      }
+
       suiteSetup(function() {
 
         // Stub AirplaneModeHelper
@@ -402,6 +408,8 @@ suite('FM', function() {
             this.callback = callback;
           }
         };
+
+        sinon.spy(AudioCompetingHelper, 'addListener');
 
         tempNode = document.createElement('div');
         tempNode.id = 'test';
@@ -437,54 +445,48 @@ suite('FM', function() {
         tempNode = null;
       });
 
-      test('disabled powered-on radio for incoming attention screen',
+      test('disabled powered-on radio for losing audio channel compete',
         function() {
           mozFMRadio.enabled = true;
           mozFMRadio.antennaAvailable = true;
-          navigator.mozSettings.callback({
-            settingValue: true
-          });
+          dispatchEventAudioContext('mozinterruptbegin');
 
           assert.equal(mozFMRadio.enabled, false);
         }
       );
 
-      test('enabled previously powered-on radio for outgoing attention screen',
-        function() {
-          mozFMRadio.enabled = true;
-          mozFMRadio.antennaAvailable = true;
-          navigator.mozSettings.callback({
-            settingValue: false
-          });
+      test('enabled previously powered-on radio for win the audio' +
+        'channel compete',
+          function() {
+            mozFMRadio.enabled = true;
+            mozFMRadio.antennaAvailable = true;
+            dispatchEventAudioContext('mozinterruptend');
 
-          assert.ok(window.enableFMRadio.called);
-        }
+            assert.ok(window.enableFMRadio.called);
+          }
       );
 
-      test('did nothing for powered-off radio for incoming attention screen',
-        function() {
-          mozFMRadio.enabled = false;
-          mozFMRadio.antennaAvailable = true;
-          navigator.mozSettings.callback({
-            settingValue: true
-          });
+      test('did nothing for powered-off radio for loosing audio' +
+        'channel compete',
+          function() {
+            mozFMRadio.enabled = false;
+            mozFMRadio.antennaAvailable = true;
+            dispatchEventAudioContext('mozinterruptbegin');
 
-          assert.equal(window._previousFMRadioState, false);
-        }
+            assert.equal(window._previousFMRadioState, false);
+          }
       );
 
-      test('did nothing for previously powered-off radio for outgoing ' +
-        'attention screen',
-        function() {
-          mozFMRadio.antennaAvailable = true;
-          window._previousFMRadioState = false;
-          window._previousEnablingState = false;
-          navigator.mozSettings.callback({
-            settingValue: false
-          });
+      test('did nothing for previously powered-off radio for win the' +
+        'audio channel compete',
+          function() {
+            mozFMRadio.antennaAvailable = true;
+            window._previousFMRadioState = false;
+            window._previousEnablingState = false;
+            dispatchEventAudioContext('mozinterruptend');
 
-          assert.equal(mozFMRadio.enabled, false);
-        }
+            assert.equal(mozFMRadio.enabled, false);
+          }
       );
 
       test('test speaker switch accessibility', function() {

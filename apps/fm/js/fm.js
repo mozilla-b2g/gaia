@@ -1,5 +1,7 @@
 'use strict';
 
+/* globals AudioCompetingHelper */
+
 function $(id) {
   return document.getElementById(id);
 }
@@ -870,47 +872,29 @@ function init() {
     window.dispatchEvent(new CustomEvent('moz-app-loaded'));
   });
 
-  //
-  // If the system app is opening an attention screen (because
-  // of an incoming call or an alarm, e.g.) and if we are
-  // currently playing the radio then we need to stop the radio
-  // before the ringer or alarm starts sounding. See bugs 995540
-  // and 1006200.
-  //
-  // XXX We're abusing the settings API here to allow the system app
-  // to broadcast a message to any certified apps that care. There
-  // ought to be a better way, but this is a quick and easy way to
-  // fix a last-minute release blocker.
-  //
-  navigator.mozSettings.addObserver(
-    'private.broadcast.attention_screen_opening',
-    function(event) {
-      // An attention screen is in the process of opening. Save the
-      // current state of the radio and disable.
-      if (event.settingValue) {
-        window._previousFMRadioState = mozFMRadio.enabled;
-        window._previousEnablingState = enabling;
-        window._previousSpeakerForcedState = speakerManager.speakerforced;
-        mozFMRadio.disable();
+  // Compete for the content audio channel
+  AudioCompetingHelper.init('content');
+  AudioCompetingHelper.addListener('mozinterruptbegin', function() {
+    window._previousFMRadioState = mozFMRadio.enabled;
+    window._previousEnablingState = enabling;
+    window._previousSpeakerForcedState = speakerManager.speakerforced;
+    mozFMRadio.disable();
+  });
+
+  AudioCompetingHelper.addListener('mozinterruptend', function() {
+    if (!!window._previousFMRadioState || !!window._previousEnablingState) {
+      // Ensure the antenna is still available before re-starting
+      // the radio.
+      if (mozFMRadio.antennaAvailable) {
+        enableFMRadio(frequencyDialer.getFrequency());
       }
 
-      // An attention screen is closing.
-      else {
-        // If the radio was previously enabled or was in the process
-        // of becoming enabled, re-enable the radio.
-        if (!!window._previousFMRadioState || !!window._previousEnablingState) {
-          // Ensure the antenna is still available before re-starting
-          // the radio.
-          if (mozFMRadio.antennaAvailable) {
-            enableFMRadio(frequencyDialer.getFrequency());
-          }
-
-          // Re-enable the speaker if it was previously forced.
-          speakerManager.forcespeaker = !!window._previousSpeakerForcedState;
-        }
-      }
+      // Re-enable the speaker if it was previously forced.
+      speakerManager.forcespeaker = !!window._previousSpeakerForcedState;
     }
-  );
+  });
+
+  AudioCompetingHelper.compete();
 }
 
 window.addEventListener('load', function(e) {
