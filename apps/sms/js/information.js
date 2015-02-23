@@ -94,6 +94,7 @@ function l10nContainsDateSetup(element, timestamp) {
 // report information within contact list
 function createReportDiv(reports) {
   var reportDiv = document.createElement('div');
+  reportDiv.className = 'network-status';
   var data = {
     titleL10n: '',
     reportDateL10n: '',
@@ -198,6 +199,7 @@ function createListWithMsgInfo(message) {
 var VIEWS = {
   group: {
     name: 'participants',
+    contactFlavor: 'group-view',
 
     render: function renderGroup() {
       var participants = Threads.get(this.id).participants;
@@ -224,6 +226,7 @@ var VIEWS = {
   },
   report: {
     name: 'report',
+    contactFlavor: 'report-view',
 
     init: function() {
       this.onStatusChanged = this.onStatusChanged.bind(this);
@@ -421,7 +424,7 @@ Information.prototype = {
   // for rendering the contact list.
   renderContactList: function(participants) {
     var ul = this.contactList;
-    var renderer = ContactRenderer.flavor('group-view');
+    var renderer = ContactRenderer.flavor(this.contactFlavor);
     var currentRenderingId = ++this.renderingId;
 
     ul.textContent = '';
@@ -431,7 +434,7 @@ Information.prototype = {
       if (typeof participant === 'object') {
         number = participant.number;
         infoBlock = participant.infoBlock;
-        selector = '.suggestion';
+        selector = '.js-contact-info';
       } else {
         number = participant;
       }

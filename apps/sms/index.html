@@ -371,13 +371,25 @@
     <div id="contact-suggestion-tmpl" class="hide">
       <!--
       <li role="presentation">
-        <a class="suggestion" role="option"
+        <a class="suggestion js-contact-info" role="option"
           data-number="${number}" data-source="contacts" data-name="${name}"
           data-type="${type}" data-carrier="${carrier}">
           ${photoHTML}
           <p class="name"><bdi>${nameHTML}</bdi></p>
           <p class="number">${phoneDetailsHTML}</p>
         </a>
+      </li>
+      -->
+    </div>
+
+    <div id="contact-report-tmpl" class="hide">
+      <!--
+      <li>
+        <div class="js-contact-info">
+          ${photoHTML}
+          <p class="name"><bdi>${nameHTML}</bdi></p>
+          <p class="number">${phoneDetailsHTML}</p>
+        </div>
       </li>
       -->
     </div>
@@ -424,7 +436,7 @@
 
     <div id="messages-number-tmpl" class="hide">
       <!--
-      <a class="suggestion" data-number="${number}" data-source="manual" data-name="${number}">
+      <a class="suggestion js-contact-info" data-number="${number}" data-source="manual" data-name="${number}">
         <p class="name"><bdi>${number}</bdi></p>
       </a>
       -->
