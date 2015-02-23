@@ -1,6 +1,7 @@
 /* global MockStackManager, MockNavigatorSettings, MockService,
           TaskManager, Card, AppWindow, HomescreenLauncher,
-          HomescreenWindow, MocksHelper, MockL10n, MockOrientationManager */
+          HomescreenWindow, MocksHelper, MockL10n, MockOrientationManager,
+          MockLayoutManager, layoutManager */
 
 'use strict';
 
@@ -11,6 +12,7 @@ requireApp('system/test/unit/mock_stack_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_trusted_ui_manager.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
+requireApp('system/test/unit/mock_layout_manager.js');
 
 require('/shared/js/event_safety.js');
 require('/shared/js/tagged.js');
@@ -25,7 +27,8 @@ var mocksForTaskManager = new MocksHelper([
   'HomescreenWindow',
   'AppWindow',
   'Service',
-  'OrientationManager'
+  'OrientationManager',
+  'LayoutManager'
 ]).init();
 
 function waitForEvent(target, name, timeout) {
@@ -96,7 +99,11 @@ suite('system/TaskManager >', function() {
   }
 
   function showTaskManager(clock, stackFilter) {
-    taskManager.show(stackFilter);
+    window.dispatchEvent(new CustomEvent('taskmanagershow', {
+      detail: {
+        filter: stackFilter
+      }
+    }));
     // We wait for the app to close
     window.dispatchEvent(new CustomEvent('appclosed'));
     // Then dispatch the cardviewshow event after a tick
@@ -331,6 +338,7 @@ suite('system/TaskManager >', function() {
       mOrigin: 'fakeOrigin',
       mReady: true
     });
+    window.layoutManager = new MockLayoutManager();
 
     requireApp('system/js/cards_helper.js');
     requireApp('system/js/base_ui.js');
@@ -729,6 +737,34 @@ suite('system/TaskManager >', function() {
       });
     });
 
+    suite('display cardsview via holdhome > when the keyboard is displayed',
+    function() {
+      setup(function(done) {
+        layoutManager.keyboardEnabled = true;
+        assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
+        waitForEvent(window, 'cardviewshown')
+          .then(function() { done(); }, failOnReject);
+
+        sendHoldhome();
+
+        window.dispatchEvent(new CustomEvent('appclosed'));
+        this.sinon.clock.tick();
+        assert.isFalse(taskManager.isShown());
+
+        window.dispatchEvent(new CustomEvent('keyboardhidden'));
+        this.sinon.clock.tick();
+      });
+
+      teardown(function() {
+        layoutManager.keyboardEnabled = false;
+      });
+
+      test('cardsview should be active', function() {
+        assert.isTrue(cardsView.classList.contains('active'));
+        assert.isTrue(taskManager.isShown());
+      });
+    });
+
     suite('populated task manager in rocketbar >', function() {
       setup(function() {
         showTaskManager(this.sinon.clock);
@@ -806,7 +842,7 @@ suite('system/TaskManager >', function() {
         apps['http://game.gaiamobile.org']
       ];
       MockStackManager.mCurrent = 0;
-      MockService.currentApp = 'http://sms.gaiamobile.org';
+      MockService.currentApp  = apps['http://sms.gaiamobile.org'];
 
       showTaskManager(this.sinon.clock);
     });
@@ -1284,6 +1320,19 @@ suite('system/TaskManager >', function() {
       assert.isTrue(screen.mozLockOrientation.calledWith(orientation));
     });
 
+    suite('when the orientation need to change', function() {
+      setup(function() {
+        MockOrientationManager.mCurrentOrientation = 'landscape-primary';
+      });
+
+      test('should wait for a resize', function() {
+        showTaskManager(this.sinon.clock);
+        assert.isFalse(taskManager.isShown());
+        window.dispatchEvent(new CustomEvent('resize'));
+        this.sinon.clock.tick();
+        assert.isTrue(taskManager.isShown());
+      });
+    });
   });
 
 });

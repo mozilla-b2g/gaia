@@ -1,17 +1,19 @@
 'use strict';
 
 /* global MocksHelper, InputWindowManager, MockKeyboardManager, MockPromise,
-   InputWindow, MockSettingsListener */
+   InputWindow, MockSettingsListener, MockService */
 
 require('/shared/test/unit/mocks/mock_custom_event.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_promise.js');
 require('/test/unit/mock_orientation_manager.js');
+require('/shared/test/unit/mocks/mock_service.js');
 require('/test/unit/mock_keyboard_manager.js');
 require('/js/input_window_manager.js');
 
 var mocksForInputWindowManager = new MocksHelper([
-  'OrientationManager', 'SettingsListener', 'KeyboardManager', 'CustomEvent'
+  'OrientationManager', 'SettingsListener', 'KeyboardManager', 'CustomEvent',
+  'Service'
 ]).init();
 
 suite('InputWindowManager', function() {
@@ -327,6 +329,10 @@ suite('InputWindowManager', function() {
         navigator.mozInputMethod = {
           removeFocus: this.sinon.stub()
         };
+
+        MockService.currentApp = {
+          blur: this.sinon.stub()
+        };
       });
 
       teardown(function() {
@@ -341,6 +347,7 @@ suite('InputWindowManager', function() {
           manager.handleEvent(new CustomEvent(evtType));
 
           assert.isFalse(navigator.mozInputMethod.removeFocus.called);
+          assert.isFalse(MockService.currentApp.blur.called);
         });
 
         test(evtType + ' remove focus if there is active keyboard', function() {
@@ -349,10 +356,12 @@ suite('InputWindowManager', function() {
           manager.handleEvent(new CustomEvent(evtType));
 
           assert.isTrue(navigator.mozInputMethod.removeFocus.called);
+          assert.isTrue(MockService.currentApp.blur.called);
         });
       };
 
-      ['lockscreen-appopened', 'sheets-gesture-begin'].forEach(evtType => {
+      ['lockscreen-appopened', 'sheets-gesture-begin',
+        'cardviewbeforeshow'].forEach(evtType => {
         testForRemoveFocus(evtType);
       });
     });
