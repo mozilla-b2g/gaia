@@ -1013,6 +1013,23 @@ li button[data-field-type]:active {
   color: #5F5F5F;
 }
 
+/* Ellipsis fix for contact lists */
+/*we hijack the overflow and text-overflow
+ * of the shared style to make the ellipsis display always at the end
+ * (ie right for LTR string and left for RTL string)
+ * while keeping alignment of the current system-wide language */
+[data-type="list"] li.contact-item bdi {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  max-width: 100%;
+}
+
+/* emails are always LTR */
+li button.icon-email > b {
+  direction: ltr;
+}
+
 /* RTL View */
 
 html[dir="rtl"] .field-template {
