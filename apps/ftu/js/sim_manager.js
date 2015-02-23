@@ -552,7 +552,7 @@ var SimManager = (function() {
   },
 
   simUnlockBack: function sm_simUnlockBack() {
-    if (this.icc0.skipped) {
+    if (this.icc0 && this.icc0.skipped) {
       this.icc0.skipped = false;
       this.hideScreen();
       this.handleCardState();
