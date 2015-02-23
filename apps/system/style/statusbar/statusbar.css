@@ -40,12 +40,12 @@
   visibility: hidden;
 }
 
-#screen:not(.cards-view) #statusbar.maximized #statusbar-maximized-wrapper {
+#screen:not(.cards-view) #statusbar.maximized:not(.fullscreen):not(.fullscreen-layout) #statusbar-maximized-wrapper {
   opacity: 1;
   visibility: visible;
 }
 
-#screen:not(.cards-view) #statusbar:not(.maximized) #statusbar-minimized-wrapper {
+#screen:not(.cards-view) #statusbar:not(.maximized):not(.fullscreen):not(.fullscreen-layout) #statusbar-minimized-wrapper {
   opacity: 1;
   visibility: visible;
 }
@@ -65,6 +65,12 @@
 }
 
 #screen:not(.locked).utility-tray #statusbar-maximized-wrapper {
+  opacity: 1;
+  visibility: visible;
+}
+
+#screen.locked #statusbar-maximized-wrapper,
+#screen:not(.locked).minimized-tray #statusbar-minimized-wrapper {
   opacity: 1;
   visibility: visible;
 }
