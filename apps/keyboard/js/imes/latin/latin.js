@@ -53,7 +53,8 @@
     dismissSuggestions: dismissSuggestions,
     setLayoutParams: setLayoutParams,
     setLanguage: setLanguage,
-    selectionChange: selectionChange
+    selectionChange: selectionChange,
+    generateNearbyKeyMap: nearbyKeys
   };
 
   // This is the object that is passed to init().
