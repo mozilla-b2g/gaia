@@ -24,6 +24,8 @@ var mocksHelper = new MocksHelper([
 ]).init();
 
 suite('Startup >', function() {
+  var container;
+
   mocksHelper.attachTestHelpers();
 
   suiteSetup(function(done) {
@@ -31,20 +33,33 @@ suite('Startup >', function() {
     require('/js/startup.js', done);
   });
 
+  suiteTeardown(function() {
+    window.addEventListener.restore();
+  });
+
   setup(function() {
     this.sinon.stub(window, 'dispatchEvent');
     this.sinon.stub(window, 'removeEventListener');
-    this.sinon.stub(LazyLoader, 'load').returns(Promise.resolve());
+    this.sinon.stub(LazyLoader, 'load').returns(Promise.reject());
     this.sinon.stub(MessageManager, 'init');
     this.sinon.stub(Navigation, 'init');
     this.sinon.stub(ThreadListUI, 'init');
     this.sinon.stub(ThreadListUI, 'renderThreads');
     this.sinon.stub(Navigation, 'on');
     this.sinon.stub(Navigation, 'off');
+
+    container = document.createElement('div');
+    container.innerHTML = `
+      <gaia-header no-font-fit></gaia-header>
+    `;
+    document.body.appendChild(container);
   });
 
-  test('if target panel is default one',
-    function() {
+  teardown(function() {
+    container.remove();
+  });
+
+  test('if target panel is default one', function() {
     window.addEventListener.withArgs('DOMContentLoaded').yield();
 
     // Render threads immediately
@@ -55,16 +70,24 @@ suite('Startup >', function() {
       ThreadListUI.renderThreads
     );
     sinon.assert.notCalled(LazyLoader.load);
+    assert.isTrue(
+      container.querySelector('gaia-header').hasAttribute('no-font-fit'),
+      '<gaia-header> elements are not initialized yet'
+    );
 
     // First page of threads loaded
     ThreadListUI.renderThreads.callArg(0);
 
     // Lazy load the rest of scripts only once first page of threads is loaded
     sinon.assert.called(LazyLoader.load);
+
+    assert.isFalse(
+      container.querySelector('gaia-header').hasAttribute('no-font-fit'),
+      '<gaia-header> elements are initialized'
+    );
   });
 
-  test('if first panel is not default one',
-    function() {
+  test('if first panel is not default one', function() {
     this.sinon.stub(Navigation, 'getPanelName').returns('composer');
     window.addEventListener.withArgs('DOMContentLoaded').yield();
 
@@ -75,6 +98,13 @@ suite('Startup >', function() {
     );
     sinon.assert.notCalled(ThreadListUI.init);
     sinon.assert.notCalled(ThreadListUI.renderThreads);
+
+    sinon.assert.calledOnce(LazyLoader.load);
+
+    assert.isFalse(
+      container.querySelector('gaia-header').hasAttribute('no-font-fit'),
+      '<gaia-header> elements are initialized'
+    );
 
     // Threads should start rendering only once target panel is ready
     Navigation.on.withArgs('navigated').yield();
@@ -91,6 +121,5 @@ suite('Startup >', function() {
     sinon.assert.calledWith(
       ThreadListUI.renderThreads, undefined, sinon.match.func
     );
-    sinon.assert.calledOnce(LazyLoader.load);
   });
 });

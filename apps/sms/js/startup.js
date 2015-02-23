@@ -49,7 +49,7 @@ var Startup = {
   ],
 
   _lazyLoadInit: function() {
-    return LazyLoader.load(this._lazyLoadScripts).then(() => {
+    var lazyLoadPromise = LazyLoader.load(this._lazyLoadScripts).then(() => {
       LocalizationHelper.init();
 
       InterInstanceEventDispatcher.connect();
@@ -74,14 +74,23 @@ var Startup = {
       window.performance.mark('objectsInitEnd');
       PerformanceTestingHelper.dispatch('objects-init-finished');
     });
+    this._initHeaders();
+    return lazyLoadPromise;
+  },
+
+  _initHeaders: function() {
+    var headers = document.querySelectorAll('gaia-header[no-font-fit]');
+    for (var i = 0, l = headers.length; i < l; i++) {
+      headers[i].removeAttribute('no-font-fit');
+    }
   },
 
   /**
-   * We wait for the DOMContentLoaded event in the event sequence. After we
-   * loaded the first panel of threads, we lazy load all non-critical JS files.
-   * As a result, if the 'load' event was not sent yet, this will delay it even
-   * more until all these non-critical JS files are loaded. This is fine.
-   */
+  * We wait for the DOMContentLoaded event in the event sequence. After we
+  * loaded the first panel of threads, we lazy load all non-critical JS files.
+  * As a result, if the 'load' event was not sent yet, this will delay it even
+  * more until all these non-critical JS files are loaded. This is fine.
+  */
   init: function() {
     function initializeDefaultPanel(firstPageLoadedCallback) {
       Navigation.off('navigated', initializeDefaultPanel);
