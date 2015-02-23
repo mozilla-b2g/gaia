@@ -260,12 +260,11 @@ html[dir="rtl"] #settings .calendars label > span {
 
 html[dir="rtl"] #settings [role="toolbar"] .toolbar-item {
   border-left: unset;
-  border-right: 0.1rem solid #e5e5e5;
 }
 
 html[dir="rtl"] #settings [role="toolbar"] .toolbar-item:first-child {
   border-left: unset;
-  border-right: 0;
+  border-right: 0.1rem solid #e5e5e5;
 }
 
 html[dir="rtl"] #settings .calendars input[type="checkbox"] + span:after {
