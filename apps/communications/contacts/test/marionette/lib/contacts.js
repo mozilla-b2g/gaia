@@ -76,6 +76,7 @@ Contacts.Selectors = {
   formTel: '#contacts-form-phones input[type="tel"]',
   formDelFirstTel: '#add-phone-0 .img-delete-button',
   formTelLabelFirst: '#tel_type_0',
+  formTelNumberFirst: '#number_0',
   formTelNumberSecond: '#number_1',
   formEmailFirst: '#email_0',
   formEmailSecond: '#email_1',
