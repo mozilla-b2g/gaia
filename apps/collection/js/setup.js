@@ -32,7 +32,10 @@
 
       this.initializing = true;
 
-      LazyLoader.load(PRE_INSTALLED_COLLECTION_FILE);
+      LazyLoader.load(PRE_INSTALLED_COLLECTION_FILE, function(json) {
+        onLoad(this.populate(JSON.parse(json)));
+        onLoad.error('file not found');
+      });
     },
 
     /**
