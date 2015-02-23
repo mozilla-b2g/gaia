@@ -15,7 +15,8 @@ navigator.mozL10n.once(function showPanel() {
   navigator.mozSetMessageHandler('activity', function handler(activityRequest) {
     activity = activityRequest;
     if (settings && bluetooth &&
-        (activity.source.name == 'share') &&
+        (activity.source.name == 'share' ||
+         activity.source.name == 'share-via-bluetooth-only') &&
         (activity.source.data.blobs &&
          activity.source.data.blobs.length > 0)) {
       observeBluetoothEnabled();
