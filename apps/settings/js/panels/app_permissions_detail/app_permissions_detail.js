@@ -29,10 +29,10 @@ define(function(require) {
     },
 
     /**
-     * Back to app_permissions_list panel.
+     * Back to app_manager panel.
      */
     back: function pd_back() {
-      SettingsService.navigate('appPermissions');
+      SettingsService.navigate('appManager');
     },
 
     /**

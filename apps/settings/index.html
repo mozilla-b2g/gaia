@@ -64,6 +64,7 @@
     <link rel="localization" href="shared/locales/branding/branding.{locale}.properties">
     <link rel="localization" href="shared/locales/date/date.{locale}.properties">
     <link rel="localization" href="shared/locales/permissions/permissions.{locale}.properties">
+    <link rel="localization" href="shared/locales/activities/activities.{locale}.properties">
     <link rel="localization" href="shared/locales/tz/tz.{locale}.properties">
     <link rel="localization" href="shared/locales/sounds/sounds.{locale}.properties">
     <link rel="localization" href="locales/settings.{locale}.properties">
@@ -97,6 +98,7 @@
     <!--<script defer src="shared/js/wifi_helper.js"></script>-->
     <!--<script defer src="shared/js/bluetooth_helper.js"></script>-->
     <!--<script defer src="shared/js/settings_helper.js"></script> -->
+    <!--<script defer src="shared/js/default_activity_helper.js"></script> -->
     <!--<script defer src="shared/js/settings_listener.js"></script> -->
     <!--<script defer src="shared/js/airplane_mode_helper.js"></script> -->
     <!--<script defer src="shared/js/toaster.js"></script> -->
@@ -179,7 +181,9 @@
     <link rel="import" href="/elements/simpin_dialog.html">
     <link rel="import" href="/elements/simpin.html">
     <link rel="import" href="/elements/app_permissions_details.html">
-    <link rel="import" href="/elements/app_permissions.html">
+    <link rel="import" href="/elements/default_launch_details.html">
+    <link rel="import" href="/elements/app_default_launch.html">
+    <link rel="import" href="/elements/app_manager.html">
     <link rel="import" href="/elements/do_not_track.html">
     <link rel="import" href="/elements/browsing_privacy.html">
     <link rel="import" href="/elements/about_more_info.html">
@@ -352,10 +356,6 @@
     <section is="simpin-dialog" role="region" id="simpin-dialog" class="dialog"></section>
     <!-- Security :: SIM Security -->
     <section is="simpin" role="region" id="simpin" data-require-sub-panels="true"></section>
-    <!-- Security :: Application Permissions :: Details -->
-    <section is="appPermissions-details" role="region" id="appPermissions-details"></section>
-    <!-- Security :: Application Permissions -->
-    <section is="appPermissions" role="region" id="appPermissions"></section>
     <!-- Security :: Do Not Track -->
     <section is="doNotTrack" role="region" id="doNotTrack"></section>
     <!-- Security :: Browser -->
@@ -375,6 +375,16 @@
     <section is="about-legal" role="region" id="about-legal"></section>
     <!-- Device :: Information -->
     <section is="about" role="region" id="about"></section>
+
+    <!-- Device :: Application Manager :: Permission Details -->
+    <section is="defaultLaunch-details" role="region" id="defaultLaunch-details"></section>
+    <!-- Device :: Application Manager :: Default Launch Details -->
+    <section is="appPermissions-details" role="region" id="appPermissions-details"></section>
+    <!-- Device :: Application Manager :: Default Launch App -->
+    <section is="appManager-defaultLaunch" role="region" id="appManager-defaultLaunch"></section>
+    <!-- Device :: Application Manager -->
+    <section is="appManager" role="region" id="appManager"></section>
+
     <!-- Device :: Downloads -->
     <section is="downloads" role="region" id="downloads"></section>
     <!-- Device :: Battery -->

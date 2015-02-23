@@ -1,7 +1,7 @@
+/* exported MockDefaultActivityHelper */
 'use strict';
 
-window.MockDefaultActivityHelper = {
-
+var MockDefaultActivityHelper = {
   getDefaultConfig: function(name, type) {
     if (name === 'testactivity' && type === 'testtype') {
       return {
@@ -23,8 +23,6 @@ window.MockDefaultActivityHelper = {
     }
   },
 
-  setDefaultAction: function(name, type, choice) {
-
-  }
-
+  setDefaultAction: function(name, type, choice) {},
+  getAllDefaulted: function() {}
 };

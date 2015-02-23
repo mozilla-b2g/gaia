@@ -74,7 +74,8 @@
                 // Delete the current default app
                 DefaultActivityHelper.setDefaultAction(activity, diff, null);
               }
-          });
+            }
+          );
         });
       });
     },

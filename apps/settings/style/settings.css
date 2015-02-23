@@ -1073,6 +1073,13 @@ ul li > label.range-icons.volume input {
 }
 
 /******************************************************************************
+ * Default Launch App
+ */
+.empty-list {
+  white-space: normal;
+}
+
+/******************************************************************************
 * App Permissions
 *
 * Note: The reason why we need this style is because element.hidden will make

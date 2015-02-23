@@ -1,7 +1,7 @@
 'use strict';
 
 var AppStoragePanel = require('./regions/app_storage');
-var AppPermissionPanel = require('./regions/app_permission');
+var AppManagerPanel = require('./regions/app_manager');
 var Base = require('./base');
 var BatteryPanel = require('./regions/battery');
 var BluetoothPanel = require('./regions/bluetooth');
@@ -56,7 +56,7 @@ Settings.Selectors = {
   'soundMenuItem': '#menuItem-sound',
   'languageMenuItem': '.menuItem-languageAndRegion',
   'screenLockMenuItem': '#menuItem-screenLock',
-  'appPermissionPanel': '#menuItem-appPermissions',
+  'appManagerPanel': '#menuItem-appManager',
   'displayMenuItem': '#menuItem-display',
   'appStorageMenuItem': '.menuItem-applicationStorage',
   'mediaStorageMenuItem': '.menuItem-mediaStorage',
@@ -173,11 +173,11 @@ Settings.prototype = {
     return this._feedbackPanel;
   },
 
-  get appPermissionPanel() {
-    this.openPanel.call(this, 'appPermissionPanel');
-    this._appPermissionPanel =
-      this._appPermissionPanel || new AppPermissionPanel(this.client);
-    return this._appPermissionPanel;
+  get appManagerPanel() {
+    this.openPanel.call(this, 'appManagerPanel');
+    this._appManagerPanel =
+      this._appManagerPanel || new AppManagerPanel(this.client);
+    return this._appManagerPanel;
   },
 
   get appStoragePanel() {

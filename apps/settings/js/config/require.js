@@ -40,6 +40,12 @@ require.config({
     'shared/manifest_helper': {
       exports: 'ManifestHelper'
     },
+    'shared/settings_helper': {
+      exports: 'SettingsHelper'
+    },
+    'shared/default_activity_helper': {
+      exports: 'DefaultActivityHelper'
+    },
     'shared/screen_layout': {
       exports: 'ScreenLayout'
     },
@@ -157,11 +163,25 @@ require.config({
       exclude: ['main']
     },
     {
+      name: 'panels/default_launch_details/panel',
+      exclude: [
+        'main',
+        'modules/apps_cache'
+      ]
+    },
+    {
+      name: 'panels/app_default_launch/panel',
+      exclude: [
+        'main',
+        'modules/apps_cache'
+      ]
+    },
+    {
       name: 'panels/app_permissions_detail/panel',
       exclude: ['main']
     },
     {
-      name: 'panels/app_permissions_list/panel',
+      name: 'panels/app_manager/panel',
       exclude: [
         'main',
         'modules/apps_cache'

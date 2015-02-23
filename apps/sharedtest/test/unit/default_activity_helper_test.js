@@ -1,27 +1,27 @@
 'use strict';
 
-/* global DefaultActivityHelper, MockSettingsHelper, SettingsHelper */
+/* global DefaultActivityHelper, MockNavigatorSettings */
 
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/js/default_activity_helper.js');
-require('/shared/test/unit/mocks/mock_settings_helper.js');
 
 suite('Default Activity Helper', function() {
-  var realSettingsHelper;
+  var realMozSettings;
 
   suiteSetup(function() {
-    realSettingsHelper = window.SettingsHelper;
-    window.SettingsHelper = MockSettingsHelper;
+    realMozSettings = window.navigator.mozSettings;
+    window.navigator.mozSettings = MockNavigatorSettings;
   });
 
   suiteTeardown(function() {
-    window.SettingsHelper = realSettingsHelper;
+    window.mozSettings = realMozSettings;
   });
 
   suite('getDefaultConfig', function() {
     test('returns config if supported', function() {
       var config = DefaultActivityHelper.getDefaultConfig('view', 'url');
       assert.ok(config);
-      assert.equal(config.settingsId, 'activity.default.openurl');
+      assert.equal(config.settingsId, 'default.activity.openurl');
     });
 
     test('returns undefined if not supported', function() {
@@ -32,15 +32,14 @@ suite('Default Activity Helper', function() {
 
   suite('getDefaultAction', function(done) {
     test('setting is recovered for supported activity', function(done) {
-      var settingsHelper = SettingsHelper('activity.default.openurl', null);
-      settingsHelper.set('manifest');
+      MockNavigatorSettings.mSettings['default.activity.openurl'] = 'manifest';
       DefaultActivityHelper.getDefaultAction('view', 'url').then((action) => {
         assert.equal(action, 'manifest');
         done();
       });
     });
 
-    test('cb is called with null if not supported', function(done) {
+    test('Returns \'null\' action if not supported', function(done) {
       DefaultActivityHelper.getDefaultAction('aaaa', 'bbb').then((action) => {
         assert.equal(action, null);
         done();
@@ -48,14 +47,12 @@ suite('Default Activity Helper', function() {
     });
   });
 
-  suite('setDefaultAction', function(done) {
-    test('setting is set for supported action', function(done) {
-      var settingsHelper = SettingsHelper('activity.default.openurl', null);
+  suite('setDefaultAction', function() {
+    test('setting is set for supported action', function() {
       DefaultActivityHelper.setDefaultAction('view', 'url', 'testmanifest');
-      settingsHelper.get(function(value) {
-        assert.equal(value, 'testmanifest');
-        done();
-      });
+
+      var value = MockNavigatorSettings.mSettings['default.activity.openurl'];
+      assert.equal(value, 'testmanifest');
     });
   });
 });

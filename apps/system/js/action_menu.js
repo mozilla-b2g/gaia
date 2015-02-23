@@ -13,6 +13,7 @@
    * @param {Function} successCb Called when the user selects an option.
    * @param {Function} cancelCb Called when the menu is cancelled.
    * @param {Boolean} preventFocusChange Set to true to prevent focus changing.
+   * @param {Boolean} askForDefaultChoice
    */
   function ActionMenu(listItems, titleL10nId, successCb, cancelCb,
   preventFocusChange, askForDefaultChoice) {
@@ -167,6 +168,7 @@
       }
 
       this.menu.appendChild(this.cancel);
+
     },
 
     /**

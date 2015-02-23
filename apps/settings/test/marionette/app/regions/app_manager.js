@@ -6,22 +6,22 @@ var Base = require('../base');
  * @constructor
  * @param {Marionette.Client} client for operations.
  */
-function AppPermissionPanel(client) {
+function AppManagerPanel(client) {
 
   // Call the Base constructor to initiate base class.
-  Base.call(this, client, null, AppPermissionPanel.Selectors);
+  Base.call(this, client, null, AppManagerPanel.Selectors);
 
 }
 
-module.exports = AppPermissionPanel;
+module.exports = AppManagerPanel;
 
-AppPermissionPanel.Selectors = {
+AppManagerPanel.Selectors = {
   'appListItem': '.app-list a',
   'geolocationSelect': 'select[data-perm="geolocation"]',
   'uninstallButton': '.uninstall-app > button'
 };
 
-AppPermissionPanel.prototype = {
+AppManagerPanel.prototype = {
 
   __proto__: Base.prototype,
 
@@ -29,7 +29,7 @@ AppPermissionPanel.prototype = {
     'Grant': 'allow'
   },
 
-  get georlocationSelectValue() {
+  get geolocationSelectValue() {
     return this.findElement('geolocationSelect').getAttribute('value');
   },
 

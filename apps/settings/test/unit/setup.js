@@ -76,6 +76,9 @@ requireApp('settings/js/vendor/alameda.js', (function() {
         exports: 'MockSettingsListener',
         deps: ['shared_mocks/mock_navigator_moz_settings']
       },
+      'shared_mocks/mock_default_activity_helper': {
+        exports: 'MockDefaultActivityHelper'
+      },
       'shared_mocks/mock_permission_settings': {
         exports: 'MockPermissionSettings'
       },

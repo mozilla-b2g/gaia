@@ -2,7 +2,7 @@
  * Application Permissions
  */
 
-#appPermissions ul li img,
+#appManager ul li img,
 #homescreens ul li img {
   -moz-margin-end: 1.4rem;
   width: 3rem;
@@ -10,7 +10,7 @@
   filter: url('shadow.svg#drop-shadow');
 }
 
-#appPermissions ul li > a,
+#appManager ul li > a,
 #homescreens ul li > a  {
   flex-direction: row;
   justify-content: flex-start;
@@ -23,7 +23,7 @@
   border-top: 0.1rem solid #E6E6E3;
 }
 
-#appPermissions .cb-alert {
+#appManager .cb-alert {
   position: fixed;
 }
 
