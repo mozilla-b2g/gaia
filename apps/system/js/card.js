@@ -152,6 +152,12 @@
 
     if (app.isBrowser()) {
       displayUrl = app.config.url || origin;
+      // Do not display the URL when browsing an app page. This is
+      // encountered for use-cases like the private browser splash page.
+      if (displayUrl.startsWith('app://')) {
+        displayUrl = false;
+      }
+
     } else if(frameForScreenshot &&
         CardsHelper.getOffOrigin(frameForScreenshot.src, origin)) {
       displayUrl = CardsHelper.getOffOrigin(frameForScreenshot.src, origin);
