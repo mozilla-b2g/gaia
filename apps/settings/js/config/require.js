@@ -92,6 +92,9 @@ require.config({
     },
     'shared/airplane_mode_helper': {
       exports: 'AirplaneModeHelper'
+    },
+    'shared/stk_helper': {
+      exports: 'STKHelper'
     }
   },
   modules: [

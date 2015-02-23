@@ -8,6 +8,7 @@ define(function(require) {
   var ThemesItem = require('panels/root/themes_item');
   var HomescreenItem = require('panels/root/homescreen_item');
   var PrivacyPanelItem = require('panels/root/privacy_panel_item');
+  var STKItem = require('panels/root/stk_item');
   var BTAPIVersionDetector = require('modules/bluetooth/version_detector');
   var DsdsSettings = require('dsds_settings');
 
@@ -47,6 +48,7 @@ define(function(require) {
     var themesItem;
     var homescreenItem;
     var privacyPanelItem;
+    var stkItem;
 
     var lowPriorityRoots = null;
     var initLowPriorityItemsPromise = null;
@@ -82,6 +84,10 @@ define(function(require) {
         privacyPanelItem = PrivacyPanelItem({
           element: panel.querySelector('.privacy-panel-item'),
           link: panel.querySelector('.privacy-panel-item a')
+        });
+        stkItem = STKItem({
+          iccMainHeader: panel.querySelector('#icc-mainheader'),
+          iccEntries: panel.querySelector('#icc-entries')
         });
 
         // The decision of navigation panel will be removed while we are no
