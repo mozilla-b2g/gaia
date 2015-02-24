@@ -79,8 +79,10 @@
       }
     },
 
+    _shakeId: null,
     handleCaptureLogsStart: function(event) {
       debug('handling capture-logs-start');
+      this._shakeId = Date.now();
       this._notify('logsSaving', '');
     },
 
@@ -95,6 +97,7 @@
       this._notify('logsSaved', event.detail.logPrefix,
                    this.triggerShareLogs.bind(this, event.detail.logFilenames),
                    event.detail);
+      this._shakeId = null;
     },
 
     handleCaptureLogsError: function(event) {
@@ -104,6 +107,7 @@
       this._notify('logsSaveError', errorMsg,
                    this.showErrorMessage.bind(this, error),
                    event.detail);
+      this._shakeId = null;
     },
 
     triggerShareLogs: function(logFilenames, notif) {
@@ -205,7 +209,7 @@
       var title = navigator.mozL10n.get(titleId) || titleId;
       var payload = {
         body: body,
-        tag: 'logshake',
+        tag: 'logshake:' + this._shakeId,
         data: {
           systemMessageTarget: 'logshake',
           logshakePayload: dataPayload || undefined
