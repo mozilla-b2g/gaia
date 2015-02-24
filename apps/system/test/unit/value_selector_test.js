@@ -53,6 +53,7 @@ suite('value selector/value selector', function() {
 
     loadBodyHTML('/index.html');
 
+    requireApp('system/js/service.js');
     requireApp('system/js/base_ui.js');
     requireApp('system/js/value_selector/value_picker.js');
     requireApp('system/js/value_selector/spin_date_picker.js');
