@@ -21,7 +21,6 @@ var mocksHelperForDragDrop = new MocksHelper([
 
 suite('GaiaGrid > DragDrop', function() {
   var grid;
-  var dragdrop;
 
   var stubPage1 = {
     name: 'first',
@@ -64,7 +63,6 @@ suite('GaiaGrid > DragDrop', function() {
     this.container.innerHTML = '<gaia-grid dragdrop group></gaia-grid>';
     document.body.appendChild(this.container);
     grid = this.container.firstElementChild._grid;
-    dragdrop = this.container.firstElementChild._grid;
 
     grid.add(new GaiaGrid.Bookmark(stubPage1));
     grid.add(new GaiaGrid.Bookmark(stubPage2));
@@ -254,6 +252,23 @@ suite('GaiaGrid > DragDrop', function() {
     assert.isTrue(divider1.element.classList.contains('invalid-drop'));
     assert.isTrue(divider2.element.classList.contains('invalid-drop'));
     assert.isFalse(divider3.element.classList.contains('invalid-drop'));
+
+    subject.finish();
+    subject.finalize();
+
+    // Check that dragging the first divider over the top of the container
+    // wouldn't cause a redundant move.
+    subject.icon = divider1;
+    subject.begin({});
+    subject.handleEvent({
+      type: 'touchmove',
+      touches: [{
+        pageX: 0,
+        pageY: -100
+      }]
+    });
+
+    assert.isFalse(grid.element.classList.contains('hover-over-top'));
 
     // Tidy up
     subject.finish();
