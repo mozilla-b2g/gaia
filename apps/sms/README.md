@@ -106,7 +106,8 @@ Here are the important details to include:
 * Does the bug happen every time? Otherwise, please include an estimate of how
   often the bug happens (e.g. 5 times in 10.)
 * Provide a screenshot and even a video, if you can. To take a screenshot on a
-  Firefox OS device, you can use WebIDE or longpress _Power+Volume Down_ (note: older
+  Firefox OS device, you can use [WebIDE](https://developer.mozilla.org/en-US/docs/Tools/WebIDE)
+  or longpress _Power+Volume Down_ (note: older
   versions used _Power+Home_). [There's more than one way to do
   it, see MDN](https://developer.mozilla.org/en-US/Firefox_OS/Debugging/taking_screenshots).
 
@@ -147,7 +148,8 @@ You can also find some information about the Messages app development process
 [on the Wiki page for the Messages app](https://wiki.mozilla.org/Gaia/SMS),
 including links to the always evolving code style guidelines.
 
-If you want more help you can discuss the Messages app on IRC: see the _#gaia_
+If you want more help you can discuss the Messages app on [IRC](https://wiki.mozilla.org/IRC):
+see the _#gaia_
 and _#gaia-messaging_ channels on the _irc.mozilla.org_ IRC server.
 
 ### Running unit tests
