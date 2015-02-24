@@ -196,6 +196,16 @@ suite('system/AppChrome', function() {
       assert.isTrue(stubReload.called);
     });
 
+    test('menu', function() {
+      var app = new AppWindow(fakeWebSite);
+      var chrome = new AppChrome(app);
+      var stubShowOverflowMenu = this.sinon.stub(app, 'showOverflowMenu');
+      assert.equal(chrome.menuButton.getAttribute('data-l10n-id'),
+        'menu-button');
+      chrome.handleEvent({ type: 'click', target: chrome.menuButton });
+      assert.isTrue(stubMenu.called);
+    });
+
     test('stop', function() {
       var app = new AppWindow(fakeWebSite);
       var chrome = new AppChrome(app);
