@@ -107,7 +107,8 @@ Here are the important details to include:
   often the bug happens (e.g. 5 times in 10.)
 * Provide a screenshot and even a video, if you can. To take a screenshot on a
   Firefox OS device, you can use WebIDE or longpress _Power+Volume Down_ (note: older
-  versions used _Power+Home_).
+  versions used _Power+Home_). [There's more than one way to do
+  it, see MDN](https://developer.mozilla.org/en-US/Firefox_OS/Debugging/taking_screenshots).
 
 Once you have this information, you can [file the bug on
 Bugzilla](https://bugzilla.mozilla.org/enter_bug.cgi?product=Firefox%20OS&component=Gaia%3A%3ASMS)
