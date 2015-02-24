@@ -49,4 +49,5 @@ var MockHomescreenWindow = function(value) {
   this.ensure = function() { return this; };
   this.isDead = function() { return false};
   this.reviveBrowser = function() {};
+  this.setNFCFocus = function() {};
 };
