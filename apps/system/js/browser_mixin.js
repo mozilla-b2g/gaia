@@ -131,6 +131,7 @@
         if (!width) {
           // Refresh _screenshotBlob when no width/height is specified.
           self._screenshotBlob = result;
+          self.publish && self.publish('screenshotupdate');
         }
 
         self.debug('getScreenshot succeed!');

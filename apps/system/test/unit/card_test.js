@@ -21,9 +21,6 @@ suite('system/Card', function() {
         orientation: config.orientation || 'portrait-primary'
       },
       rotatingDegree: config.rotatingDegree || 0,
-      requestScreenshotURL: function() {
-        return null;
-      },
       getScreenshot: function(callback) {
         callback();
       },
@@ -376,6 +373,51 @@ suite('system/Card', function() {
       var iconView = card.element.querySelector('.appIconView');
       assert.ok(iconView.style.backgroundImage.indexOf('url') > -1,
                 '.appIconView element has backgroundImage value');
+    });
+  });
+
+  suite('screenshot updates', function() {
+    var imageUrl = 'data:image/gif;base64,' +
+                   'R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+    setup(function() {
+      this.card = new Card({
+        app: makeApp({ name: 'dummyapp' }),
+        manager: mockManager
+      });
+      this.card.render();
+    });
+
+    test('needsScreenshot', function() {
+      // is initially false
+      assert.isFalse(this.card.needsScreenshot);
+    });
+
+    test('updateScreenshot with image', function() {
+      var card = this.card;
+      card.needsScreenshot = true;
+      this.sinon.stub(card.app, 'requestScreenshotURL');
+
+      card.updateScreenshot(imageUrl);
+      var background = card.screenshotView.style.backgroundImage;
+
+      assert.isFalse(card.app.requestScreenshotURL.called);
+      assert.isFalse(card.needsScreenshot);
+      assert.isTrue(background.indexOf(imageUrl) > -1);
+    });
+
+    test('updateScreenshot without image', function() {
+      var card = this.card;
+      card.needsScreenshot = true;
+      this.sinon.stub(card.app, 'requestScreenshotURL', function() {
+        return imageUrl;
+      });
+
+      card.updateScreenshot();
+      var background = card.screenshotView.style.backgroundImage;
+
+      assert.isTrue(card.app.requestScreenshotURL.calledOnce);
+      assert.isFalse(card.needsScreenshot);
+      assert.isTrue(background.indexOf(imageUrl) > -1);
     });
   });
 

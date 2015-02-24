@@ -207,6 +207,7 @@
     window.addEventListener('appterminated', this);
     window.addEventListener('wheel', this);
     window.addEventListener('resize', this);
+    window.addEventListener('appscreenshotupdate', this);
 
     this.element.addEventListener('touchstart', this);
     this.element.addEventListener('touchmove', this);
@@ -220,6 +221,7 @@
     window.removeEventListener('appterminated', this);
     window.removeEventListener('wheel', this);
     window.removeEventListener('resize', this);
+    window.removeEventListener('appscreenshotupdate', this);
 
     this.element.removeEventListener('touchstart', this);
     this.element.removeEventListener('touchmove', this);
@@ -589,7 +591,7 @@
    * @param  {DOMEvent} evt The event.
    */
   TaskManager.prototype.handleEvent = function cv_handleEvent(evt) {
-    var app;
+    var app, card;
     switch (evt.type) {
       case 'touchstart':
         this.onTouchStart(evt);
@@ -634,9 +636,18 @@
 
       case 'appterminated':
         app = evt.detail;
-        var card = app && this.cardsByAppID[app.instanceID];
+        card = app && this.cardsByAppID[app.instanceID];
         if (card && card.app && app.instanceID === card.app.instanceID) {
           this.removeCard(card);
+        }
+        break;
+
+      case 'appscreenshotupdate':
+        console.log('appscreenshotupdate event: ', evt);
+        app = evt.detail;
+        card = app && this.cardsByAppID[app.instanceID];
+        if (card.needsScreenshot) {
+          card.updateScreenshot();
         }
         break;
     }

@@ -81,6 +81,12 @@
 
 
   /**
+   * Is card waiting/in need of screenshot to display
+   * @memberOf Card.prototype
+   */
+  Card.prototype.needsScreenshot = false;
+
+  /**
    * Template string representing the innerHTML of the instance's element
    * @memberOf Card.prototype
    */
@@ -350,20 +356,22 @@
     // If we have a cached screenshot, use that first
     var cachedLayer = app.requestScreenshotURL();
 
-    if (cachedLayer && app.isActive()) {
+    if (app.isActive()) {
       screenshotView.classList.toggle('fullscreen',
                                       app.isFullScreen());
-      screenshotView.classList.toggle('maximized',
-                                      app.appChrome.isMaximized());
-      screenshotView.style.backgroundImage =
-        'url(' + cachedLayer + '),' +
-        '-moz-element(#' + this.app.instanceID + ')';
+      if (app.appChrome) {
+        screenshotView.classList.toggle('maximized',
+                                        app.appChrome.isMaximized());
+      }
+      this.needsScreenshot = true;
+    }
+    if (cachedLayer && this.needsScreenshot) {
+      this.updateScreenshot(cachedLayer);
     } else {
       screenshotView.style.backgroundImage =
-        'url(none),' +
+        'none,' +
         '-moz-element(#' + this.app.instanceID + ')';
     }
-
   };
 
   Card.prototype._fetchElements = function c__fetchElements() {
@@ -383,6 +391,24 @@
     }
     var displayString = url.substring(url.indexOf(anURL.host));
     return displayString;
+  };
+
+  Card.prototype.updateScreenshot = function(imageUrl) {
+    // ignore before render is complete
+    if (!this.screenshotView) {
+      return;
+    }
+    if (!imageUrl) {
+      imageUrl = this.app.requestScreenshotURL();
+    }
+    console.log(this.toString() +
+                ', handling updateScreenshot with image: ' + imageUrl);
+    if (imageUrl) {
+      this.screenshotView.style.backgroundImage =
+          'url(' + imageUrl + '),' +
+          '-moz-element(#' + this.app.instanceID + ')';
+      this.needsScreenshot = false;
+    }
   };
 
   return (exports.Card = Card);

@@ -89,6 +89,7 @@
     queueShow: function() {},
     cancelQueuedShow: function() {},
     queueHide: function() {},
+    requestScreenshotURL: function() {},
     setOrientation: function() {},
     focus: function() {},
     debug: function() {},
