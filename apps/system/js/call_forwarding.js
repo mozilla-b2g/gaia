@@ -1,4 +1,5 @@
-/* global BaseModule, asyncStorage, SIMSlotManager, SettingsHelper */
+/* global BaseModule, asyncStorage, SIMSlotManager, SettingsHelper,
+          CallForwardingsIcon, LazyLoader */
 'use strict';
 
 (function() {
@@ -31,12 +32,17 @@
    * @requires SettingsHelper
    */
   function CallForwarding() {
-    this._started = false;
     this._slots = null;
     this._callForwardingHelper = null;
     this._defaultCallForwardingIconStates = null;
     this._callForwardingIconInitializedStates = null;
   }
+  CallForwarding.STATES = [
+    'enabled'
+  ];
+  CallForwarding.SETTINGS = [
+    'ril.cf.enabled'
+  ];
 
   BaseModule.create(CallForwarding, {
     name: 'CallForwarding',
@@ -181,12 +187,17 @@
       asyncStorage.setItem('ril.cf.enabled.' + iccid, enabled);
     },
 
+    enabled: function(index) {
+      return this._enabled[index];
+    },
+
     /**
      * Start the module.
      * @memberof CallForwarding.prototype
      */
     _start: function() {
       this._slots = SIMSlotManager.getSlots();
+      this._enabled = [];
       this._defaultCallForwardingIconStates =
         Array.prototype.map.call(this._slots, function() { return false; });
       this._callForwardingIconInitializedStates =
@@ -201,6 +212,21 @@
       this._slots.forEach(function(slot) {
         this._initCallForwardingState(slot);
       }, this);
+    },
+
+    '_observe_ril.cf.enabled': function(value) {
+      this._enabled = value || [];
+      var isAnyEnabled =
+        this._enabled.some(function(enabled) { return enabled; });
+      if (!this.icon && isAnyEnabled) {
+        LazyLoader.load(['js/call_forwarding_icon.js']).then(function() {
+          this.icon = new CallForwardingsIcon(this);
+          this.icon.start();
+        }.bind(this)).catch(function(err) {
+          console.error(err);
+        });
+      }
+      this.icon && this.icon.update();
     }
   });
 })();
