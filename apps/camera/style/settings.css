@@ -164,6 +164,10 @@
   text-overflow: ellipsis;
 }
 
+.settings-back-btn + .settings_title {
+  padding-left: 3rem;
+}
+
 /**
  * [dir=rtl]
  */
