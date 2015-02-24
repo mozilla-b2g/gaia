@@ -87,3 +87,9 @@ class TestEmailNotification(GaiaTestCase):
                          'Expected message is "%s". Actual message is '
                          '"%s".' % (mock_email.message,
                                     email.body))
+
+    def tearDown(self):
+        self.marionette.execute_script("SpecialPowers.setIntPref('dom.requestSync.minInterval', 100);",
+                                        special_powers=True)
+
+        GaiaTestCase.tearDown(self)
