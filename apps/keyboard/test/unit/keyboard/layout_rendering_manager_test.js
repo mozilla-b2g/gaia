@@ -10,6 +10,7 @@ suite('LayoutRenderingManager', function() {
   var app;
   var manager;
   var viewManager;
+  var con;
 
   setup(function() {
     this.sinon.stub(window, 'setTimeout');
@@ -33,9 +34,12 @@ suite('LayoutRenderingManager', function() {
       }
     };
 
+    con = new KeyboardConsole();
+    con.start();
+
     app = {
       getBasicInputType: this.sinon.stub().returns('foo'),
-      console: this.sinon.stub(KeyboardConsole.prototype),
+      console: con,
       candidatePanelManager: {
         currentCandidates: []
       },
@@ -233,7 +237,7 @@ suite('LayoutRenderingManager', function() {
       };
       manager.handleEvent(evt);
 
-      assert.isTrue(viewManager.resize.calledOnce);
+      assert.isTrue(viewManager.resize.calledOnce, con._logs);
 
       assert.isTrue(
         app.inputMethodManager.currentIMEngine.setLayoutParams.calledWith({
