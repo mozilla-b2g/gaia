@@ -12,7 +12,6 @@
     "themeable":{},
     "settings": { "access": "readwrite" },
     "device-storage:music": { "access": "readwrite" },
-    "storage": {},
     "audio-channel-ringer": {},
     "desktop-notification": {}
   },

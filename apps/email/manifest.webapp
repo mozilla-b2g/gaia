@@ -17,7 +17,6 @@
     "audio-channel-notification":{},
     "contacts":{ "access": "readcreate" },
     "desktop-notification":{},
-    "storage":{},
     "device-storage:sdcard":{ "access": "readcreate" },
     "systemXHR":{},
     "tcp-socket":{}

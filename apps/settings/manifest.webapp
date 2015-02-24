@@ -9,7 +9,6 @@
   },
   "permissions": {
     "themeable":{},
-    "storage":{},
     "browser": {},
     "embed-apps": {},
     "mobileconnection":{},
