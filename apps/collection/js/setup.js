@@ -32,10 +32,17 @@
 
       this.initializing = true;
 
-      LazyLoader.load(PRE_INSTALLED_COLLECTION_FILE, function(json) {
-        onLoad(this.populate(JSON.parse(json)));
-        onLoad.error('file not found');
-      });
+      LazyLoader.getJSON(PRE_INSTALLED_COLLECTION_FILE)
+        .then(function(json) {
+          done(function() {
+            this.populate(JSON.parse(json));
+          });
+        }, function(error) {
+          done(function() {
+            assert.instanceOf(error, Error);
+            assert.equal(error.message, 'file not found');
+          });
+        });
     },
 
     /**
