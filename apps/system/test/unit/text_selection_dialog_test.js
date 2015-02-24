@@ -590,8 +590,8 @@ suite('system/TextSelectionDialog', function() {
       assert.isTrue(td.close.called);
     });
 
-    test('hierachychanged', function() {
-      td.handleEvent({ type: 'hierachychanged' });
+    test('hierarchychanged', function() {
+      td.handleEvent({ type: 'hierarchychanged' });
       assert.isTrue(td.close.called);
     });
   });
