@@ -293,6 +293,12 @@
           });
         },
 
+        getRecipient: function(number) {
+          return client.helper.waitForElement(
+            '#messages-recipients-list .recipient[data-number="' + number + '"]'
+          );
+        },
+
         clearRecipient: function() {
           this.Composer.recipientsInput.clear();
         },
