@@ -195,9 +195,8 @@ suite('system/LogShake', function() {
       };
 
       var expectedActivity = {
-        name: 'new',
+        name: 'share',
         data: {
-          type: 'mail',
           blobs: [ mockBlob ],
           filenames: [ filename ]
         }
