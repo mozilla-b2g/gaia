@@ -1,16 +1,15 @@
 (function(window, undefined) {
   'use strict';
 
-  /* jshint validthis:true */
   /* Buildtime optimizations logic
    *
    * Below are defined functions to perform buildtime optimizations in Gaia.
-   * These include flattening all localization resources into a single JSON file
-   * and embedding a subset of translations in HTML to reduce file IO.
+   * These include flattening all localization resources into a single JSON
+   * file and embedding a subset of translations in HTML to reduce file IO.
    *
    */
 
-  /* jshint -W104 */
+  /* jshint -W104,validthis:true */
 
   var DEBUG = false;
 
@@ -44,7 +43,6 @@
   };
 
   function initResources() {
-    /* jshint boss:true */
     var containsFetchableLocale = false;
 
     var meta = {};
@@ -53,7 +51,7 @@
                                           'meta[name="availableLanguages"],' +
                                           'meta[name="defaultLanguage"]');
 
-    for (var i = 0, node; node = nodes[i]; i++) {
+    for (var i = 0, node; (node = nodes[i]); i++) {
       var type = node.getAttribute('rel') || node.nodeName.toLowerCase();
       switch (type) {
         case 'localization':
@@ -81,20 +79,31 @@
 
   /* API for webapp-optimize */
 
+  // on buildtime, all known pseudolocales need to run through the qps logic;
+  // on runtime this is not the case because some of them might have been
+  // already built on buildtime
+  L10n.Locale.prototype.isPseudo = function() {
+    return this.id in navigator.mozL10n.qps;
+  };
+
   L10n.Locale.prototype.addAST = function(ast) {
     if (!this.astById) {
       this.astById = Object.create(null);
     }
 
-    /* jshint boss:true */
-    for (var i = 0, node; node = ast[i]; i++) {
+    var isPseudo = this.isPseudo();
+
+    for (var i = 0, node; (node = ast[i]); i++) {
+      if (isPseudo) {
+        node = L10n.walkContent(
+          node, navigator.mozL10n.qps[this.id].translate);
+      }
       this.entries[node.$i] = L10n.Resolver.createEntry(node, this.entries);
       this.astById[node.$i] = node;
     }
   };
 
   L10n.Context.prototype.getEntitySource = function(id) {
-    /* jshint -W084 */
 
     if (!this.isReady) {
       throw new L10n.Error('Context not ready');
@@ -105,7 +114,7 @@
     var cur = 0;
     var loc;
     var locale;
-    while (loc = this.supportedLocales[cur]) {
+    while ((loc = this.supportedLocales[cur])) {
       locale = this.getLocale(loc);
       if (!locale.isReady) {
         // build without callback, synchronously
@@ -132,11 +141,6 @@
   navigator.mozL10n.translateDocument = L10n.translateDocument;
 
   navigator.mozL10n.getAST = function() {
-    // don't do anything for pseudolocales
-    if (this.ctx.supportedLocales[0] in this.qps) {
-      return null;
-    }
-
     var ast = [];
 
     // en-US is the de facto source locale of Gaia

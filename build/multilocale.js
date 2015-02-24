@@ -6,6 +6,7 @@ const { Cu } = require('chrome');
 Cu.import('resource://gre/modules/osfile.jsm');
 
 const utils = require('utils');
+const qps = require('l10n/qps');
 const RE_PROPERTY_LINE = /(.*)\s*[:=]\s*(.*)/;
 const MODNAME = 'multilocale';
 
@@ -189,10 +190,8 @@ function L10nManager(gaiaDir,
    * @param {Object} webapp          - A webapp object for specific app
    */
   function localize(htmlFiles, webapp) {
-    if (self.localeBasedir) {
-      // Localize webapp's manifest.webapp file.
-      localizeManifest(webapp);
-    }
+    // Localize webapp's manifest.webapp file.
+    localizeManifest(webapp);
 
     htmlFiles.forEach(function(htmlFile) {
       var content = utils.getFileContent(htmlFile);
@@ -308,9 +307,8 @@ function L10nManager(gaiaDir,
     // Reset `locales` key
     manifest.locales = {};
 
-    var name;
     if (manifest.entry_points) {
-      for (name in manifest.entry_points) {
+      for (var name in manifest.entry_points) {
         manifest.entry_points[name].locales = {};
       }
     }
@@ -320,6 +318,9 @@ function L10nManager(gaiaDir,
 
       if (locale === GAIA_SOURCE_LOCALE) {
         manifestProps = sourceLocaleProps;
+      } else if (locale in qps.PSEUDO) {
+        manifestProps = qps.walkContent(
+          sourceLocaleProps, qps.PSEUDO[locale].translate);
       } else {
         manifestProps = getManifestProperties(webapp, locale);
       }

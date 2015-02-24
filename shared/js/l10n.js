@@ -984,8 +984,7 @@
     var rv = Array.isArray(node) ? [] : {};
     var keys = Object.keys(node);
 
-    /* jshint boss:true */
-    for (var i = 0, key; key = keys[i]; i++) {
+    for (var i = 0, key; (key = keys[i]); i++) {
       // don't change identifier ($i) nor indices ($x)
       if (key === '$i' || key === '$x') {
         rv[key] = node[key];
@@ -999,7 +998,7 @@
 
   /* Pseudolocalizations
    *
-   * PSEUDO_STRATEGIES is a dict of strategies to be used to modify the English
+   * PSEUDO is a dict of strategies to be used to modify the English
    * context in order to create pseudolocalizations.  These can be used by
    * developers to test the localizability of their code without having to
    * actually speak a foreign language.
@@ -1058,7 +1057,7 @@
     });
   }
 
-  function makeAccented(map, val) {
+  function replaceChars(map, val) {
     // Replace each Latin letter with a Unicode character from map
     return val.replace(reAlphas, function(match) {
       return map.charAt(match.charCodeAt(0) - 65);
@@ -1097,12 +1096,12 @@
   function Pseudo(id, name, charMap, modFn) {
     this.id = id;
     this.translate = mapContent.bind(null, function(val) {
-      return makeAccented(charMap, modFn(val));
+      return replaceChars(charMap, modFn(val));
     });
     this.name = this.translate(name);
   }
 
-  var PSEUDO_STRATEGIES = {
+  var PSEUDO = {
     'qps-ploc': new Pseudo('qps-ploc', 'Accented English',
                            ACCENTED_MAP, makeLonger),
     'qps-plocm': new Pseudo('qps-plocm', 'Mirrored English',
@@ -1115,11 +1114,14 @@
     this.id = id;
     this.ctx = ctx;
     this.isReady = false;
-    this.isPseudo = PSEUDO_STRATEGIES.hasOwnProperty(id);
     this.entries = Object.create(null);
-    this.entries.__plural = getPluralRule(this.isPseudo ?
+    this.entries.__plural = getPluralRule(this.isPseudo() ?
                                           this.ctx.defaultLocale : id);
   }
+
+  Locale.prototype.isPseudo = function() {
+    return this.ctx.qps.indexOf(this.id) !== -1;
+  };
 
   var bindingsIO = {
     extra: function(id, ver, path, type, callback, errback) {
@@ -1180,7 +1182,7 @@
       onL10nLoaded(err);
     }
 
-    var idToFetch = this.isPseudo ? ctx.defaultLocale : this.id;
+    var idToFetch = this.isPseudo() ? ctx.defaultLocale : this.id;
     var appVersion = null;
     var source = 'app';
     if (typeof(navigator) !== 'undefined') {
@@ -1209,14 +1211,14 @@
 
   function createPseudoEntry(node, entries) {
     return Resolver.createEntry(
-      walkContent(node, PSEUDO_STRATEGIES[this.id].translate),
+      walkContent(node, PSEUDO[this.id].translate),
       entries);
   }
 
   Locale.prototype.addAST = function(ast) {
     /* jshint -W084 */
 
-    var createEntry = this.isPseudo ?
+    var createEntry = this.isPseudo() ?
       createPseudoEntry.bind(this) : Resolver.createEntry;
 
     for (var i = 0, node; node = ast[i]; i++) {
@@ -1235,6 +1237,7 @@
     this.defaultLocale = 'en-US';
     this.availableLocales = [];
     this.supportedLocales = [];
+    this.qps = [];
 
     this.resLinks = [];
     this.locales = {};
@@ -1413,11 +1416,17 @@
     }
     /* jshint boss:true */
     this.availableLocales = [this.defaultLocale];
+    this.qps = Object.keys(PSEUDO);
 
     if (available) {
       for (var i = 0, loc; loc = available[i]; i++) {
         if (this.availableLocales.indexOf(loc) === -1) {
           this.availableLocales.push(loc);
+          var pos = this.qps.indexOf(loc);
+          if (pos !== -1) {
+            // remove from this context's runtime pseudolocales
+            this.qps.splice(pos, 1);
+          }
         }
       }
     }
@@ -1434,13 +1443,10 @@
       throw new L10nError('No locales requested');
     }
 
-    var reqPseudo = requested.filter(function(loc) {
-      return loc in PSEUDO_STRATEGIES;
-    });
-
-    var supported = negotiate(this.availableLocales.concat(reqPseudo),
-                              requested,
-                              this.defaultLocale);
+    var supported = negotiate(
+      this.availableLocales.concat(this.qps),
+      requested,
+      this.defaultLocale);
     freeze.call(this, supported);
   };
 
@@ -1530,7 +1536,7 @@
         return getDirection(navigator.mozL10n.ctx.supportedLocales[0]);
       }
     },
-    qps: PSEUDO_STRATEGIES,
+    qps: PSEUDO,
     _config: {
       appVersion: null,
       localeSources: Object.create(null),
@@ -1596,8 +1602,9 @@
   }
 
   if (window.document) {
-    isPretranslated = !PSEUDO_STRATEGIES.hasOwnProperty(navigator.language) &&
-                      (document.documentElement.lang === navigator.language);
+    isPretranslated =
+      navigator.mozL10n.ctx.qps.indexOf(navigator.language) === -1 &&
+        (document.documentElement.lang === navigator.language);
 
     // XXX always pretranslate if data-no-complete-bug is set;  this is
     // a workaround for a netError page not firing some onreadystatechange

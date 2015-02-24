@@ -731,7 +731,7 @@ function execute(options, webapp) {
     }
   };
 
-  // Load window object from build/l10n.js and shared/js/l10n.js into win;
+  // Load window object from build/l10n/l10n.js and shared/js/l10n.js into win;
   win = loadL10nScript(options, win);
 
   var optimizeConfig = loadOptimizeConfig(options);
@@ -760,7 +760,7 @@ function loadOptimizeConfig(config) {
 // from window.navigator.
 function loadL10nScript(config, obj) {
   var sharedL10n = utils.joinPath(config.GAIA_DIR, 'shared', 'js', 'l10n.js');
-  var buildL10n =  utils.joinPath(config.GAIA_DIR, 'build', 'l10n.js');
+  var buildL10n =  utils.joinPath(config.GAIA_DIR, 'build', 'l10n', 'l10n.js');
   utils.scriptLoader.load(sharedL10n, obj, true);
   utils.scriptLoader.load(buildL10n, obj, true);
   return obj;

@@ -6,12 +6,12 @@ var assert;
 var PropertiesParser;
 
 describe('pseudo strategy', function() {
-  var PSEUDO_STRATEGIES, walkContent, strategy, source, ast, walked;
+  var PSEUDO, walkContent, strategy, source, ast, walked;
 
   before(function(done) {
     if (typeof navigator !== 'undefined') {
       require('/shared/js/l10n.js', function() {
-        PSEUDO_STRATEGIES = navigator.mozL10n.qps;
+        PSEUDO = navigator.mozL10n.qps;
         var L10n = navigator.mozL10n._getInternalAPI();
         PropertiesParser = L10n.PropertiesParser;
         walkContent = L10n.walkContent;
@@ -19,9 +19,9 @@ describe('pseudo strategy', function() {
       });
     } else {
       assert = require('assert');
-      PSEUDO_STRATEGIES = process.env.L20N_COV ?
-        require('../../build/cov/lib/l20n/pseudo').PSEUDO_STRATEGIES
-        : require('../../lib/l20n/pseudo').PSEUDO_STRATEGIES;
+      PSEUDO = process.env.L20N_COV ?
+        require('../../build/cov/lib/l20n/pseudo').PSEUDO
+        : require('../../lib/l20n/pseudo').PSEUDO;
       walkContent = require('../../lib/l20n/util').walkContent;
 
       PropertiesParser = process.env.L20N_COV ?
@@ -50,7 +50,7 @@ describe('pseudo strategy', function() {
   describe('accented English', function(){
 
     before(function() {
-      strategy = PSEUDO_STRATEGIES['qps-ploc'].translate;
+      strategy = PSEUDO['qps-ploc'].translate;
       source = [
         'foo=Foo',
 
@@ -111,7 +111,7 @@ describe('pseudo strategy', function() {
     /* jshint -W100 */
 
     before(function() {
-      strategy = PSEUDO_STRATEGIES['qps-plocm'].translate;
+      strategy = PSEUDO['qps-plocm'].translate;
       source = [
         'foo=Foo',
 
