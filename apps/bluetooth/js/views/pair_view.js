@@ -91,8 +91,7 @@ var Pairview = {
    * @access public
    * @param {String} method - method of this pairing request
    * @param {Object} options
-   * @param {BluetoothDevice} options.device - property device as the remote 
-                                               bluetooth device
+   * @param {String} options.deviceName - name of the remote bluetooth device
    * @param {BluetoothPairingHandle} options.handle - property handle that 
                                                       carries specific method 
                                                       to reply by user.
@@ -100,7 +99,7 @@ var Pairview = {
   init: function pv_init(method, options) {
     this._pairMethod = method;
     this._options = options;
-    this._remoteDeviceName = options.device.name;
+    this._remoteDeviceName = options.deviceName;
 
     if (options.handle && options.handle.passkey) {
       var passkey = options.handle.passkey;
