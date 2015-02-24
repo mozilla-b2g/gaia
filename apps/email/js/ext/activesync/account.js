@@ -485,6 +485,19 @@ ActiveSyncAccount.prototype = {
   },
 
   /**
+   * List of known junk folder names, taken from browserbox.js, and used to
+   * infer folders that are junk folders based on their name since there is
+   * no enumerated type representing junk folders.
+   */
+  _junkFolderNames: [
+    'bulk mail', 'correo no deseado', 'courrier indésirable', 'istenmeyen',
+    'istenmeyen e-posta', 'junk', 'levélszemét', 'nevyžiadaná pošta',
+    'nevyžádaná pošta', 'no deseado', 'posta indesiderata', 'pourriel',
+    'roskaposti', 'skräppost', 'spam', 'spamowanie', 'søppelpost',
+    'thư rác', 'спам', 'דואר זבל', 'الرسائل العشوائية', 'هرزنامه', 'สแปม',
+    '垃圾郵件', '垃圾邮件', '垃圾電郵'],
+
+  /**
    * Update the internal database and notify the appropriate listeners when we
    * discover a new folder.
    *
@@ -508,7 +521,6 @@ ActiveSyncAccount.prototype = {
     if (!forceType && !(typeNum in this._folderTypes))
       return true; // Not a folder type we care about.
 
-
     var path = displayName;
     var parentFolderId = null;
     var depth = 0;
@@ -522,6 +534,27 @@ ActiveSyncAccount.prototype = {
       path = parent.$meta.path + '/' + path;
       depth = parent.$meta.depth + 1;
     }
+
+    var useFolderType = this._folderTypes[typeNum];
+    // Check if this looks like a junk folder based on its name/path.  (There
+    // is no type for junk/spam folders, so this regrettably must be inferred
+    // from the name.  At least for hotmail.com/outlook.com, it appears that
+    // the name is "Junk" regardless of the locale in which the account is
+    // created, but our current datapoint is one account created using the
+    // Spanish locale.
+    //
+    // In order to avoid bad detections, we assume that the junk folder is
+    // at the top-level or is only nested one level deep.
+    if (depth < 2) {
+      var normalizedName = displayName.toLowerCase();
+      if (this._junkFolderNames.indexOf(normalizedName) !== -1) {
+        useFolderType = 'junk';
+      }
+    }
+    if (forceType) {
+      useFolderType = forceType;
+    }
+
 
     // Handle sentinel Inbox.
     if (typeNum === $FolderTypes.DefaultInbox) {
@@ -546,7 +579,7 @@ ActiveSyncAccount.prototype = {
         id: folderId,
         serverId: serverId,
         name: displayName,
-        type: forceType || this._folderTypes[typeNum],
+        type: useFolderType,
         path: path,
         parentId: parentFolderId,
         depth: depth,
