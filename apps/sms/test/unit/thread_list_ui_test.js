@@ -10,7 +10,6 @@
 
 'use strict';
 
-require('/shared/js/usertiming.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/recipients.js');
 requireApp('sms/js/drafts.js');

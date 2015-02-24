@@ -8,7 +8,6 @@
 'use strict';
 
 require('/js/event_dispatcher.js');
-require('/shared/js/usertiming.js');
 
 require('/test/unit/mock_message_manager.js');
 require('/test/unit/mock_navigation.js');

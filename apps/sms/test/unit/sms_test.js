@@ -11,7 +11,6 @@
 require('/shared/js/lazy_loader.js');
 require('/shared/js/gesture_detector.js');
 require('/shared/js/sticky_header.js');
-require('/shared/js/usertiming.js');
 require('/shared/js/performance_testing_helper.js');
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
