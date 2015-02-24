@@ -3774,12 +3774,9 @@ MailAPI.prototype = {
       var lowerName = name.toLowerCase();
       // Many of the names are the same as the type, but not all.
       if ((type === lowerName) ||
-          (type === 'drafts' && lowerName === 'draft') ||
-          // yahoo.fr uses 'bulk mail' as its unlocalized name
-          (type === 'junk' && lowerName === 'bulk mail') ||
-          (type === 'junk' && lowerName === 'spam') ||
-          // this is for consistency with Thunderbird
-          (type === 'queue' && lowerName === 'unsent messages'))
+          (type === 'drafts') ||
+          (type === 'junk') ||
+          (type === 'queue'))
         return this.l10n_folder_names[type];
     }
     return name;
