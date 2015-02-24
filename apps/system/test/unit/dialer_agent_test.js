@@ -174,7 +174,7 @@ suite('system/DialerAgent', function() {
 
     suite('if the ringtone has a volume', function() {
       setup(function() {
-        MockSettingsListener.mTriggerCallback('audio.volume.notification', 7);
+        MockSettingsListener.mTriggerCallback('audio.volume.ringer', 7);
         callschanged();
       });
 
@@ -207,7 +207,7 @@ suite('system/DialerAgent', function() {
 
     suite('if the ringtone is muted', function() {
       setup(function() {
-        MockSettingsListener.mTriggerCallback('audio.volume.notification', 0);
+        MockSettingsListener.mTriggerCallback('audio.volume.ringer', 0);
         callschanged();
       });
 
@@ -274,7 +274,7 @@ suite('system/DialerAgent', function() {
 
     suite('even if the ringtone has a volume', function() {
       setup(function() {
-        MockSettingsListener.mTriggerCallback('audio.volume.notification', 7);
+        MockSettingsListener.mTriggerCallback('audio.volume.ringer', 7);
       });
 
       test('it should not play', function() {
@@ -317,7 +317,7 @@ suite('system/DialerAgent', function() {
 
     suite('even if the ringtone has a volume', function() {
       setup(function() {
-        MockSettingsListener.mTriggerCallback('audio.volume.notification', 7);
+        MockSettingsListener.mTriggerCallback('audio.volume.ringer', 7);
         callschanged();
       });
 

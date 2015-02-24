@@ -71,7 +71,7 @@
     }
     this._started = true;
 
-    SettingsListener.observe('audio.volume.notification', 7, function(value) {
+    SettingsListener.observe('audio.volume.ringer', 7, function(value) {
       this._shouldRing = !!value;
       if (this._shouldRing && this._alerting) {
         this._player.play();

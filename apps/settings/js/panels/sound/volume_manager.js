@@ -25,6 +25,8 @@ define(function(require) {
       contentHandler.init(this._elements.media, 'content');
       var notification = SliderHandler();
       notification.init(this._elements.notification, 'notification');
+      var ringer = SliderHandler();
+      ringer.init(this._elements.ringer, 'ringer');
       var alarm = SliderHandler();
       alarm.init(this._elements.alarm, 'alarm');
     }

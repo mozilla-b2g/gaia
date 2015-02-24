@@ -17,11 +17,13 @@ define(function(require) {
   var TONEURLS = {
     'content': BASESHAREURL + 'notifications/notifier_firefox.opus',
     'notification': BASESHAREURL + 'ringtones/ringer_firefox.opus',
+    'ringer': BASESHAREURL + 'ringtones/ringer_firefox.opus',
     'alarm': BASESHAREURL + 'alarms/ac_awake.opus'
   };
   var TONEKEYS = {
     'content': 'media.ringtone',
     'notification': 'dialer.ringtone',
+    'ringer': 'dialer.ringtone',
     'alarm': 'alarm.ringtone'
   };
 
