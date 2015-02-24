@@ -16,19 +16,20 @@ class TestLockScreen(GaiaTestCase):
     def test_lockscreen_time_check(self):
         """
         https: // bugzilla.mozilla.org / show_bug.cgi?id = 1118054
+        Due to the Bug 1133803, test requires active sim with data connection
         """
 
         self.settings = Settings(self.marionette)
         self.settings.launch()
         datetime_setting = self.settings.open_date_and_time_settings()
+        old_time = datetime_setting.get_current_time_datetime
 
         # Auto time update is by default set to true, turn it off to make region change
         datetime_setting.toggle_automatic_time_update()
         self.assertFalse(datetime_setting.is_autotime_enabled, 'Autotime still enabled')
 
-        # record time and change the region.  since no one will be in Atlantic Ocean timezone, change in time
+        # change the region.  since no one will be in Atlantic Ocean timezone, change in time
         # will be guaranteed.
-        old_time = datetime_setting.get_current_time_datetime
         datetime_setting.set_region('Atlantic Ocean')
 
         # get the displayed time after the region change
@@ -61,4 +62,5 @@ class TestLockScreen(GaiaTestCase):
         # Check it reverted to the correct time, and compare it with the previously shown time
         # Allow 4 minutes difference max
         difference = lock_screen.time_in_datetime - old_time
+
         self.assertLessEqual(difference.seconds, 240)
