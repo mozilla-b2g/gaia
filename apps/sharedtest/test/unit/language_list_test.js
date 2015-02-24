@@ -151,6 +151,48 @@ suite('Language List', function() {
     });
   });
 
+  suite('remove buildtime pseudolanguages', function() {
+    test('regular current language, qps enabled', function() {
+      var langs = {
+        en: 'English',
+        'qps-ploc': 'Ȧȧƈƈḗḗƞŧḗḗḓ Ḗḗƞɠŀīīşħ'
+      };
+      LanguageList._extendPseudo(langs, 'en', true);
+      assert.isTrue('en' in langs, 'en is listed');
+      assert.isTrue('qps-ploc' in langs, 'qps-ploc is listed');
+    });
+
+    test('regular current language, qps disabled', function() {
+      var langs = {
+        en: 'English',
+        'qps-ploc': 'Ȧȧƈƈḗḗƞŧḗḗḓ Ḗḗƞɠŀīīşħ'
+      };
+      LanguageList._extendPseudo(langs, 'en', false);
+      assert.isTrue('en' in langs, 'en is listed');
+      assert.isFalse('qps-ploc' in langs, 'qps-ploc is not listed');
+    });
+
+    test('pseudo current language, qps enabled', function() {
+      var langs = {
+        en: 'English',
+        'qps-ploc': 'Ȧȧƈƈḗḗƞŧḗḗḓ Ḗḗƞɠŀīīşħ'
+      };
+      LanguageList._extendPseudo(langs, 'qps-ploc', true);
+      assert.isTrue('en' in langs, 'en is listed');
+      assert.isTrue('qps-ploc' in langs, 'qps-ploc is listed');
+    });
+
+    test('pseudo current language, qps disabled', function() {
+      var langs = {
+        en: 'English',
+        'qps-ploc': 'Ȧȧƈƈḗḗƞŧḗḗḓ Ḗḗƞɠŀīīşħ'
+      };
+      LanguageList._extendPseudo(langs, 'qps-ploc', false);
+      assert.isTrue('en' in langs, 'en is listed');
+      assert.isTrue('qps-ploc' in langs, 'qps-ploc is listed');
+    });
+  });
+
   suite('extend language list with additional languages', function() {
 
     test('a langpack matching the current version exists', function() {
