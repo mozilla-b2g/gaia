@@ -269,8 +269,8 @@
   };
 
   BrowserContextMenu.prototype.generateSystemMenuItem = function(item) {
-
     var nodeName = item.nodeName.toUpperCase();
+    var documentURI = item.data.documentURI;
     var uri = item.data.uri;
     var text = item.data.text;
 
@@ -292,7 +292,7 @@
           id: 'save-link',
           label: _('save-link'),
           callback: this.app.browser.element.download.bind(
-            this.app.browser.element, uri)
+            this.app.browser.element, uri, { referrer: documentURI })
         }, {
           id: 'share-link',
           label: _('share-link'),
@@ -316,7 +316,7 @@
           id: 'save-' + type,
           label: _('save-' + type),
           callback: this.app.browser.element.download.bind(
-            this.app.browser.element, uri)
+            this.app.browser.element, uri, { referrer: documentURI })
         }, {
           id: 'share-' + type,
           label: _('share-' + type),
