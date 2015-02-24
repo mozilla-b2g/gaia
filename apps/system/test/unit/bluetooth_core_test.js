@@ -21,7 +21,7 @@ suite('system/BluetoothCore', function() {
     switchReadOnlyProperty(navigator, 'mozBluetooth', MockMozBluetooth);
 
     window.Bluetooth = { init: function() {} };
-    window.BluetoothTransfer = { init: function() {} };
+    window.BluetoothTransfer = { start: function() {} };
 
     requireApp('system/js/service.js');
     requireApp('system/js/bluetooth_core.js', done);
@@ -35,7 +35,7 @@ suite('system/BluetoothCore', function() {
     var subject;
     setup(function() {
       this.sinon.stub(Bluetooth, 'init');
-      this.sinon.stub(BluetoothTransfer, 'init');
+      this.sinon.stub(BluetoothTransfer, 'start');
       subject = BaseModule.instantiate('BluetoothCore');
       subject.start();
     });
@@ -46,7 +46,7 @@ suite('system/BluetoothCore', function() {
 
     test('read', function() {
       assert.ok(Bluetooth.init.called);
-      assert.ok(BluetoothTransfer.init.called);
+      assert.ok(BluetoothTransfer.start.called);
     });
   });
 });

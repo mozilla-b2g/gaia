@@ -189,7 +189,13 @@ var Bluetooth = {
    * @public
    */
   getAdapter: function bt_getAdapter() {
-    return this.defaultAdapter;
+    return new Promise(function(resolve, reject) {
+      if (this.defaultAdapter) {
+        resolve(this.defaultAdapter);
+      } else {
+        reject();
+      }
+    }.bind(this));
   },
 
   /**

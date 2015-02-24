@@ -1,19 +1,16 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-/* API Summary:
-   stopSendingFile(in DOMString aDeviceAddress);
-   confirmReceivingFile(in DOMString aDeviceAddress, in bool aConfirmation); */
 'use strict';
 /* global Bluetooth, CustomDialog, MimeMapper, Service,
           MozActivity, NotificationHelper, UtilityTray */
 /* exported BluetoothTransfer */
-
+(function(exports) {
+// var BluetoothTransfer = function() {};
+// BluetoothTransfer.prototype = {
 var BluetoothTransfer = {
   name: 'BluetoothTransfer',
   // The first-in-first-out queue maintain each scheduled sending task.
   // Each element is a object for scheduled sending tasks.
   _sendingFilesQueue: [],
-  _debug: false,
+  _debug: true,
 
   get _deviceStorage() {
     return navigator.getDeviceStorage('sdcard');
@@ -27,7 +24,12 @@ var BluetoothTransfer = {
     return transferStatusList;
   },
 
-  init: function bt_init() {
+  /**
+   * initialize
+   *
+   * @public
+   */
+  start: function bt_start() {
     // Bind message handler for sending files from Bluetooth app
     window.addEventListener('iac-bluetoothTransfercomms',
       this._onFilesSending.bind(this)
@@ -57,44 +59,57 @@ var BluetoothTransfer = {
     Service.registerState('isSendFileQueueEmpty', this);
   },
 
+  /**
+   * Find device name via mac address.
+   *
+   * @param  {String} address device mac address
+   */
   getDeviceName: function bt_getDeviceName(address) {
-    return new Promise(function(resolve) {
+    return new Promise((resolve) => {
       var _ = navigator.mozL10n.get;
-      var adapter = Bluetooth.getAdapter();
-      if (adapter == null) {
-        var msg = 'Since cannot get Bluetooth adapter, ' +
-                  'resolve with an unknown device.';
-        this.debug(msg);
-        resolve(_('unknown-device'));
-      }
-      var self = this;
-      // Service Class Name: OBEXObjectPush, UUID: 0x1105
-      // Specification: Object Push Profile (OPP)
-      //                NOTE: Used as both Service Class Identifier and Profile.
-      // Allowed Usage: Service Class/Profile
-      // https://www.bluetooth.org/en-us/specification/assigned-numbers/
-      // service-discovery
-      var serviceUuid = '0x1105';
-      var req = adapter.getConnectedDevices(serviceUuid);
-      req.onsuccess = function bt_gotConnectedDevices() {
-        if (req.result) {
-          var connectedList = req.result;
-          var length = connectedList.length;
-          for (var i = 0; i < length; i++) {
-            if (connectedList[i].address == address) {
-              resolve(connectedList[i].name);
-            }
-          }
-        } else {
+      var promise = Bluetooth.getAdapter();
+      promise.then((adapter) => {
+        if (adapter == null) {
+          var msg = 'Since cannot get Bluetooth adapter, ' +
+                    'resolve with an unknown device.';
+          this.debug(msg);
           resolve(_('unknown-device'));
         }
-      };
-      req.onerror = function() {
-        var msg = 'Can not check is device connected from adapter.';
-        self.debug(msg);
-        resolve(_('unknown-device'));
-      };
-    }.bind(this));
+        var self = this;
+        // Service Class Name: OBEXObjectPush, UUID: 0x1105
+        // Specification: Object Push Profile (OPP)
+        //   NOTE: Used as both Service Class Identifier and Profile.
+        // Allowed Usage: Service Class/Profile
+        // https://www.bluetooth.org/en-us/specification/assigned-numbers/
+        // service-discovery
+        var serviceUuid = '0x1105';
+        var req = adapter.getConnectedDevices(serviceUuid);
+        req.onsuccess = function bt_gotConnectedDevices() {
+          if (req.result) {
+            var connectedList = req.result;
+            var length = connectedList.length;
+            for (var i = 0; i < length; i++) {
+              if (connectedList[i].address == address) {
+                resolve(connectedList[i].name);
+              }
+            }
+          } else {
+            resolve(_('unknown-device'));
+          }
+        };
+        req.onerror = function() {
+          var msg = 'Can not check is device connected from adapter.';
+          self.debug(msg);
+          resolve(_('unknown-device'));
+        };
+      });
+      // .catch(() => {
+      //   var msg = 'Since cannot get Bluetooth adapter, ' +
+      //             'resolve with an unknown device.';
+      //   this.debug(msg);
+      //   resolve(_('unknown-device'));
+      // });
+    });
   },
 
   debug: function bt_debug(msg) {
@@ -212,13 +227,15 @@ var BluetoothTransfer = {
 
   declineReceive: function bt_declineReceive(address) {
     CustomDialog.hide();
-    var adapter = Bluetooth.getAdapter();
-    if (adapter != null) {
-      adapter.confirmReceivingFile(address, false);
-    } else {
-      var msg = 'Cannot get adapter from system Bluetooth monitor.';
-      this.debug(msg);
-    }
+    var promise = Bluetooth.getAdapter();
+    promise.then((adapter) => {
+      if (adapter != null) {
+        adapter.confirmReceivingFile(address, false);
+      } else {
+        var msg = 'Cannot get adapter from system Bluetooth monitor.';
+        this.debug(msg);
+      }
+    });
   },
 
   acceptReceive: function bt_acceptReceive(evt) {
@@ -229,18 +246,20 @@ var BluetoothTransfer = {
     var self = this;
     this.checkStorageSpace(fileSize,
       function checkStorageSpaceComplete(isStorageAvailable, errorMessage) {
-        var adapter = Bluetooth.getAdapter();
+        var promise = Bluetooth.getAdapter();
         var option = (isStorageAvailable) ? true : false;
-        if (adapter) {
-          adapter.confirmReceivingFile(address, option);
-        } else {
-          var msg = 'Cannot get adapter from system Bluetooth monitor.';
-          self.debug(msg);
-        }
-        // Storage is not available, then pop out a prompt with the reason
-        if (!isStorageAvailable) {
-          self.showStorageUnavaliablePrompt(errorMessage);
-        }
+        promise.then((adapter) => {
+          if (adapter) {
+            adapter.confirmReceivingFile(address, option);
+          } else {
+            var msg = 'Cannot get adapter from system Bluetooth monitor.';
+            self.debug(msg);
+          }
+          // Storage is not available, then pop out a prompt with the reason
+          if (!isStorageAvailable) {
+            self.showStorageUnavaliablePrompt(errorMessage);
+          }
+        });
     });
   },
 
@@ -309,27 +328,29 @@ var BluetoothTransfer = {
   sendFileViaHandover: function bt_sendFileViaHandover(evt) {
     var mac = evt.detail.mac;
     var blob = evt.detail.blob;
-    var adapter = Bluetooth.getAdapter();
-    if (adapter != null) {
-      var sendingFilesSchedule = {
-        viaHandover: true,
-        numberOfFiles: 1,
-        numSuccessful: 0,
-        numUnsuccessful: 0
-      };
-      this._onFilesSending({detail: sendingFilesSchedule});
-      // XXX: Bug 915602 - [Bluetooth] Call sendFile api will crash
-      // the system while device is just paired.
-      // The paired device is ready to send file.
-      // Since above issue is existed, we use a setTimeout with 3 secs delay
-      var waitConnectionReadyTimeoutTime = 3000;
-      setTimeout(function() {
-        adapter.sendFile(mac, blob);
-      }, waitConnectionReadyTimeoutTime);
-    } else {
-      var msg = 'Cannot get adapter from system Bluetooth monitor.';
-      this.debug(msg);
-    }
+    var promise = Bluetooth.getAdapter();
+    promise.then((adapter) => {
+      if (adapter != null) {
+        var sendingFilesSchedule = {
+          viaHandover: true,
+          numberOfFiles: 1,
+          numSuccessful: 0,
+          numUnsuccessful: 0
+        };
+        this._onFilesSending({detail: sendingFilesSchedule});
+        // XXX: Bug 915602 - [Bluetooth] Call sendFile api will crash
+        // the system while device is just paired.
+        // The paired device is ready to send file.
+        // Since above issue is existed, we use a setTimeout with 3 secs delay
+        var waitConnectionReadyTimeoutTime = 3000;
+        setTimeout(function() {
+          adapter.sendFile(mac, blob);
+        }, waitConnectionReadyTimeoutTime);
+      } else {
+        var msg = 'Cannot get adapter from system Bluetooth monitor.';
+        this.debug(msg);
+      }
+    });
   },
 
   _onUpdateProgress: function bt__onUpdateProgress(mode, evt) {
@@ -405,7 +426,7 @@ var BluetoothTransfer = {
     }
 
     finishedTask.removeEventListener('click',
-                                     this.onCancelTransferTask.bind(this));
+      this.onCancelTransferTask.bind(this));
     this.transferStatusList.removeChild(finishedTask);
   },
 
@@ -445,13 +466,15 @@ var BluetoothTransfer = {
 
   cancelTransfer: function bt_cancelTransfer(address) {
     CustomDialog.hide();
-    var adapter = Bluetooth.getAdapter();
-    if (adapter != null) {
-      adapter.stopSendingFile(address);
-    } else {
-      var msg = 'Cannot get adapter from system Bluetooth monitor.';
-      this.debug(msg);
-    }
+    var promise = Bluetooth.getAdapter();
+    promise.then((adapter) => {
+      if (adapter != null) {
+        adapter.stopSendingFile(address);
+      } else {
+        var msg = 'Cannot get adapter from system Bluetooth monitor.';
+        this.debug(msg);
+      }
+    });
   },
 
   _onTransferComplete: function bt__onTransferComplete(evt) {
@@ -646,3 +669,6 @@ var BluetoothTransfer = {
   }
 
 };
+
+  exports.BluetoothTransfer = BluetoothTransfer;
+})(window);

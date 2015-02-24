@@ -73,10 +73,10 @@ suite('system/bluetooth_transfer', function() {
       });
 
       suite('cannot get adapter ', function() {
-        var stubGetAdapater;
         setup(function() {
-          stubGetAdapater =
-            this.sinon.stub(MockBluetooth, 'getAdapter').returns(null);
+          this.sinon.stub(Bluetooth, 'getAdapter', function() {
+            return { then: function(resolve) { resolve(null); } };
+          });
         });
 
         test('should return unknown device name ', function(done) {
@@ -305,8 +305,9 @@ suite('system/bluetooth_transfer', function() {
 
         spyConfirmReceivingFile.reset();
 
-        var stubGetAdapater =
-          this.sinon.stub(MockBluetooth, 'getAdapter').returns(null);
+        this.sinon.stub(Bluetooth, 'getAdapter', function() {
+          return { then: function(resolve) { resolve(null); } };
+        });
 
         BluetoothTransfer.declineReceive('AA:BB:CC:00:22:33');
         assert.isFalse(spyConfirmReceivingFile.called);
@@ -344,8 +345,10 @@ suite('system/bluetooth_transfer', function() {
         assert.isTrue(stubShowStorageUnavailablePrompt.calledWith('somemsg2'));
 
         spyConfirmReceivingFile.reset();
-        var stubGetAdapater =
-          this.sinon.stub(MockBluetooth, 'getAdapter').returns(null);
+        this.sinon.stub(Bluetooth, 'getAdapter', function() {
+          return { then: function(resolve) { resolve(null); } };
+        });
+
         stubCheckStorageSpace.getCall(0).args[1](false, 'somemsg3');
         assert.isFalse(spyConfirmReceivingFile.called);
 
@@ -621,8 +624,10 @@ suite('system/bluetooth_transfer', function() {
           .calledWith('AA:BB:CC:00:11:55', 'blahblahblah\0xa0\0xa0blahblahblah')
         );
 
-        var stubGetAdapater =
-          this.sinon.stub(MockBluetooth, 'getAdapter').returns(null);
+        this.sinon.stub(Bluetooth, 'getAdapter', function() {
+          return { then: function(resolve) { resolve(null); } };
+        });
+
         BluetoothTransfer.sendFileViaHandover({
           detail: {
             mac: 'AA:BB:CC:00:11:66',
@@ -740,8 +745,9 @@ suite('system/bluetooth_transfer', function() {
         assert.isFalse(MockCustomDialog.mShown);
         assert.isTrue(spyStopSendingFile.calledWith('CC:DD:00:AA:22:44'));
 
-        var stubGetAdapater =
-          this.sinon.stub(MockBluetooth, 'getAdapter').returns(null);
+        this.sinon.stub(Bluetooth, 'getAdapter', function() {
+          return { then: function(resolve) { resolve(null); } };
+        });
 
         spyStopSendingFile.reset();
 

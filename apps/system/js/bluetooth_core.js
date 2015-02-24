@@ -21,7 +21,6 @@
       if (typeof(window.navigator.mozBluetooth.onattributechanged) ===
         'undefined') { // APIv1
           window.Bluetooth.init();
-          window.BluetoothTransfer.init();
       } else { // APIv2
         // Now only make sure statusbar works
         // BluetoothTransfer will be done in Bug 1088591
@@ -30,6 +29,7 @@
           window.Bluetooth.start();
         });
       }
+      window.BluetoothTransfer.start();
     }
   });
 }());
