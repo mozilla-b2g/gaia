@@ -130,12 +130,14 @@
       query = query.toLowerCase();
 
       // Get the localized name from the query.
+      var shortName = manifest.short_name || '';
       var userLang = document.documentElement.lang;
       var locales = manifest.locales;
       var localized = locales && locales[userLang] && locales[userLang].name;
       localized = localized || '';
 
-      return manifest.name.toLowerCase().indexOf(query) != -1 ||
+      return shortName.toLowerCase().indexOf(query) != -1 ||
+        manifest.name.toLowerCase().indexOf(query) != -1 ||
         localized.toLowerCase().indexOf(query) != -1;
     },
 
