@@ -601,6 +601,47 @@
       });
     },
 
+    _getLocalizedName: function cm_getLocalizedName(manifestURL, lang) {
+      if (!manifestURL || !lang) {
+        return;
+      }
+
+      var manifest = this.getEntryManifest(manifestURL);
+      var locales = manifest.locales;
+      var localizedName = locales && locales[lang] &&
+        (locales[lang].short_name || locales[lang].name);
+      return localizedName || manifest.short_name || manifest.name;
+    },
+
+    // Resolve to one of the following forms:
+    // 1. {raw: 'localized name'}
+    // 2. {id: 'l10nid'}
+    // 3. undefined
+    resolveCardName: function cm_resolveCardName(card, lang) {
+      var name;
+      if (!card || !lang) {
+        return name;
+      }
+
+      // Priority is:
+      // 1. user given name
+      // 2. localized application/deck name if it is an application/deck
+      // 3. l10nId if any
+      if (card.name && card.name.raw) {
+        name = {
+          raw: card.name.raw
+        };
+      } else if (card.nativeApp &&
+          (card instanceof Application || card instanceof Deck)) {
+        name = {
+          raw: this._getLocalizedName(card.nativeApp.manifestURL, lang)
+        };
+      } else if (card.name && card.name.id) {
+        name = card.name;
+      }
+      return name;
+    },
+
     getCardList: function cm_getCardList() {
       var that = this;
       return this._getPipedPromise('getCardList', function(resolve, reject) {

@@ -22,8 +22,9 @@
       // XXX: use constructor.name + name + incremental counter
       // as cardId for now. Notice that cardId is only meaningful for
       // Smart-Home app. Because only Smart-Home app has 'write' privilege.
-      this._id = this.constructor.name + '-' +
-        this.name + '-' + (_counter);
+      var name = (this.nativeApp && this.nativeApp.manifest) ?
+        this.nativeApp.manifest.name : 'card';
+      this._id = this.constructor.name + '-' + name + '-' + (_counter);
       _counter += 1;
       return this._id;
     },
