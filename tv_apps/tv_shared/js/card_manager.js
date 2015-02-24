@@ -374,10 +374,19 @@
     insertCard: function cm_insertCard(options) {
       var that = this;
       this._asyncSemaphore.wait(function() {
-        /// XXX: We really should check if card specified in options is
-        /// pinned or not, in order not to pin the same card twice
         var newCard = this._deserializeCardEntry(options.cardEntry);
         var position;
+
+        // prevent same card from being inserted twice
+        if (newCard && newCard.nativeApp) {
+          var sameCardExisting = that.findCardFromCardList({
+            manifestURL: newCard.nativeApp.manifestURL,
+            launchURL: newCard.launchURL
+          });
+          if (sameCardExisting) {
+            return;
+          }
+        }
 
         if (options.index === 'number') {
           position = options.index;
