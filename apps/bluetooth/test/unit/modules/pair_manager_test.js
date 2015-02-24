@@ -299,14 +299,12 @@ suite('Bluetooth app > PairManager ', function() {
       PairManager.pendingPairing = null;
       pairingInfo = {
         evt: {
-          device: {
-            name: 'device-01'
-          }
+          deviceName: 'device-01'
         }
       };
       titleResult = _('bluetooth-pairing-request-now-title');
       optionsResult = {
-        body: pairingInfo.evt.device.name,
+        body: pairingInfo.evt.deviceName,
         icon: 'app://bluetooth.gaiamobile.org/style/images/icon_bluetooth.png',
         tag: 'pairing-request'
       };

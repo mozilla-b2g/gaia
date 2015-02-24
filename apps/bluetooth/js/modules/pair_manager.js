@@ -109,7 +109,7 @@ define(function(require) {
      */
     _onDisplayPasskeyReq: function(evt) {
       Debug('ondisplaypasskeyreq(): Pairing request from ' + 
-            evt.device.name + ': display passkey = ' + evt.handle.passkey);
+            evt.deviceName + ': display passkey = ' + evt.handle.passkey);
       // TODO: Display passkey to user if user story is required.
       throw new Error('Received pairing method "ondisplaypasskeyreq". ' + 
                       'It would need to implement if user story is required!!');
@@ -140,7 +140,7 @@ define(function(require) {
      */
     _onEnterPinCodeReq: function(evt) {
       Debug('onenterpincodereq(): Pairing request from ' + 
-            evt.device.name + ': enter pin code..');
+            evt.deviceName + ': enter pin code..');
       
       // inform user to enter pin code
       var pairingInfo = {
@@ -209,7 +209,7 @@ define(function(require) {
      */
     _onPairingConsentReq: function(evt) {
       Debug('onpairingconsentreq(): Pairing request from ' + 
-            evt.device.name + ': pairing consent');
+            evt.deviceName + ': pairing consent');
       // TODO: Notify user of just-work pairing if user story is required.
       throw new Error('Received pairing method "onpairingconsentreq". ' + 
                       'It would need to implement if user story is required!!');
@@ -273,7 +273,7 @@ define(function(require) {
       };
       // Prepare notification toast.
       var title = _('bluetooth-pairing-request-now-title');
-      var body = pairingInfo.evt.device.name || _('unnamed-device');
+      var body = pairingInfo.evt.deviceName || _('unnamed-device');
       var iconUrl =
         'app://bluetooth.gaiamobile.org/style/images/icon_bluetooth.png';
       // We always use tag "pairing-request" to manage these notifications.
