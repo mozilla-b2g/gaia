@@ -281,6 +281,11 @@ EventBase.prototype = {
     // always remove loading initially (to prevent worst case)
     this.element.classList.remove(this.LOADING);
 
+    // Re-run the header font fit when it comes into view.
+    // Since the header is already in the markup on load and the view is hidden
+    // the font fit calculations will be wrong initially.
+    this.header.runFontFitSoon();
+
     var id = data.params.id;
     var classList = this.element.classList;
     var last = router.last;

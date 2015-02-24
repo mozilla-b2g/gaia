@@ -349,6 +349,8 @@ ModifyAccount.prototype = {
     var usernameType = this.model.usernameType;
     this.fields.user.type = (usernameType === undefined) ?
         'text' : usernameType;
+
+    this.header.runFontFitSoon();
  },
 
   destroy: function() {

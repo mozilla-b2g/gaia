@@ -1,6 +1,7 @@
 define(function(require) {
 'use strict';
 
+require('/shared/elements/gaia-header/dist/gaia-header.js');
 var EventBase = require('views/event_base');
 var EventModel = require('models/event');
 var View = require('view');
@@ -172,7 +173,11 @@ suite('Views.EventBase', function() {
       date.setSeconds(0);
       date.setMilliseconds(0);
 
+      var headerFontSize;
+
       setup(function(done) {
+        headerFontSize = this.sinon.stub(subject.header, 'runFontFitSoon');
+
         app.timeController.move(date);
         subject.dispatch({ params: {} });
 
@@ -180,6 +185,9 @@ suite('Views.EventBase', function() {
       });
 
       test('display', function() {
+        // Updates the header font size.
+        sinon.assert.calledOnce(headerFontSize);
+
         // class details
         assert.isTrue(classList.contains(subject.CREATE), 'has create class');
         assert.isFalse(
