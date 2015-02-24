@@ -129,9 +129,8 @@
           });
           /* jshint nonew: false */
           new MozActivity({
-            name: 'new',
+            name: 'share',
             data: {
-              type: 'mail',
               blobs: logFiles,
               filenames: logNames
             }
