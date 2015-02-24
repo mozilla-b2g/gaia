@@ -24,44 +24,44 @@
     <meta name="defaultLanguage" content="en-US">
     <meta name="availableLanguages" content="ar:201500160452, bg:201500160452, bn-BD:201500160452, ca:201500160452, cs:201500160452, da:201500160452, de:201500160452, el:201500160452, en-US:201500160452, es:201500160452, eu:201500160452, fr:201500160452, gl:201500160452, hr:201500160452, hu:201500160452, it:201500160452, ja:201500160452, km:201500160452, ko:201500160452, lt:201500160452, mk:201500160452, ms:201500160452, ne-NP:201500160452, nl:201500160452, pa:201500160452, pl:201500160452, pt-BR:201500160452, ro:201500160452, ru:201500160452, sk:201500160452, sq:201500160452, sr-Cyrl:201500160452, sr-Latn:201500160452, sv-SE:201500160452, tr:201500160452, zh-CN:201500160452, zh-TW:201500160452">
     <link rel="localization" href="/locales-obj/{locale}.json">
-    
-    
-    
+
+
+
 
     <!-- Templates: Location Accuracy -->
-    
-    
-    
-    
+
+
+
+
 
     <!-- Templates: Remote Privacy Protection -->
-    
-    
-    
-    
-    
+
+
+
+
+
 
     <!-- Templates: Transparency Control -->
-    
-    
-    
-    
-    
+
+
+
+
+
 
     <!-- Templates: Guided Tour -->
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
+
+
 
     <!-- Templates: About -->
-    
+
 
     <!-- Shared JavaScripts -->
     <!-- <script src="shared/js/l10n.js"></script> -->
@@ -73,13 +73,15 @@
     <!-- <script src="shared/js/async_storage.js"></script> -->
     <!-- <script src="shared/js/jquery-2.1.1.min.js"></script>  -->
 	<!-- <script src="shared/js/jquery.mobile-1.4.5.min.js"></script>  -->
-	<script src="shared/js/localforage.js"></script>
-	
+    <script src="shared/js/tinysort.min.js"></script>
+
+
   </head>
 
   <body class="skin-organic theme-settings">
 
     <section role="region" id="root" class="current" data-settings="false">
+      
       <header>
         <a id="back-to-settings" href="#"><span class="icon gaia-icon-back">back</span></a>
         <menu type="toolbar">
@@ -103,7 +105,7 @@
             <span data-l10n-id="transparency-control">Transparency Control</span>
           </a>
         </li>
-        <!-- 
+        <!--
         <li>
           <a id="menu-item-tc" class="menu-item pp-link" data-icon="lock" href="#tc-meter">
             <span data-l10n-id="transparency-control">Privacy Meter</span>
@@ -532,8 +534,8 @@
       </ul>
     </div>
   --></section>
-    
-    <section role="region" data-section="tc" id="tc-meter">  
+
+    <section role="region" data-section="tc" id="tc-meter">
       <!--
     <header>
       <a class="back" href="#">
@@ -585,7 +587,7 @@
       </ul>
     </div>
   --></section>
-    
+
     <section role="region" data-section="tc" id="tc-applications"><!--
     <header>
       <a class="pp-link back" href="#tc-main">
@@ -602,7 +604,7 @@
               <option value="name" data-l10n-id="tc-sort-alphabetical" selected="">alphabetical</option>
               <option value="trust" data-l10n-id="tc-sort-trustLevel">Trust Level</option>
               <option value="vendor" data-l10n-id="tc-sort-vendor">Vendor</option>
-              <option value="rev" data-l10n-id="tc-sort-rev">Reverse</option>
+              <option value="permpriority" data-l10n-id="tc-sort-permpriority">Permission Priority</option>
             </select>
           </span>
         </li>
@@ -672,9 +674,9 @@
           </span>
         </li>
       </ul>
-	
+
     <div id="tc-permList"></div>
-    
+
     </div>
   --></section>
     <section role="region" data-section="tc" id="tc-permDetails"><!--
@@ -698,17 +700,17 @@
           <h2 data-l10n-id="tc-apps-accessing-permission">Apps accessing this permission</h2>
         </header>
         <ul class="app-list"></ul>
-	
-		<h3 data-l10n-id="tc-apps-permission-priority">You may set priority for this particular permission.</h3>
-		<ul>
+        <header>
+		<h3 data-l10n-id="tc-apps-permission-priority">You may set priority for this perticular permission.</h3>
+		</header>
+        <ul>
         <li class="type-blur type-box">
           <label>
             <p class="perm-label"></p>
-            <input class="perm-slider" name="permission.priority.slider" type="range" step="1" min="1" max="20" data-default="1">
+            <input class="perm-slider" name="permdetails.blur.slider" type="range" step="1" min="1" max="12" data-default="5">
           </label>
         </li>
         </ul>
-        
       </div>
     </div>
   --></section>
@@ -1026,6 +1028,7 @@
 
     <!-- Require /js/app.js and all its dependencies -->
     <script data-main="js/app" src="js/vendor/alameda.js"></script>
+    <script type="text/javascript" src="js/appList.js"></script>
    </body>
 
 </html>

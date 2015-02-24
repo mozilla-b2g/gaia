@@ -12,7 +12,7 @@ define('panels',[
 ],
 
 function(lazyLoader, SettingsListener, SettingsHelper) {
-  
+
 
   function PanelController() {}
 
@@ -154,17 +154,12 @@ function(lazyLoader, SettingsListener, SettingsHelper) {
     saveSetting: function() {
       var value = this.type === 'checkbox' ? this.checked : this.value;
       SettingsHelper(this.name).set(value);
-      ////////////////////Saving the value to LocalForage/////////////////////////
-//       var TCPermName = this.getAttribute("data-permname");
-//       console.log(TCPermName);
-      console.log(this.name)
-      localforage.setItem(this.name, this.value, function(err, value) {
-   		console.log("setItem: " + value);
-			});
-			localforage.getItem(this.name).then(function(value) {
-   		console.log("getItem: " + value);
-			});
-    }     
+			console.log(this.name);
+      var TCPermName = this.getAttribute("data-permname")
+			localStorage.setItem(TCPermName, this.value);
+      appPermGen();
+			localStorage.getItem(TCPermName)
+    }
   };
 
   /**
@@ -202,7 +197,7 @@ function(lazyLoader, SettingsListener, SettingsHelper) {
 
 /**
  * Root panel.
- * 
+ *
  * @module RootPanel
  * @return {Object}
  */
@@ -213,7 +208,7 @@ define('root/main',[
 ],
 
 function(panels, SettingsListener, SettingsHelper) {
-  
+
 
   function RootPanel() {}
 
@@ -221,7 +216,7 @@ function(panels, SettingsListener, SettingsHelper) {
 
     /**
      * Initialize Root panel
-     * 
+     *
      * @method init
      * @constructor
      */
@@ -309,7 +304,7 @@ define('about/main',[
 ],
 
 function(panels) {
-  
+
 
   var About = {
 
@@ -334,7 +329,7 @@ function(panels) {
  * @return {Object}
  */
 define('app_list',[], function() {
-  
+
 
   var _ = navigator.mozL10n.get;
   var _lang = navigator.mozL10n.language.code;
@@ -349,7 +344,6 @@ define('app_list',[], function() {
     name: (a, b) => a.name.localeCompare(b.name, _lang), // default
     trust: (a, b) => a.trust > b.trust, // 'certified', 'privileged', 'web'
     vendor: (a, b) => a.vendor.localeCompare(b.vendor, _lang),
-    reverse: (a, b) => b.name.localeCompare(a.name, _lang)
   };
 
 
@@ -627,7 +621,7 @@ define('app_list',[], function() {
     getSortedApps: function getSortedApps(sortKey) {
       var sorted = {};
       if (!(sortKey in _orderBy)) {
-        throw 'unsupported application sort key: "' + sortKey + '"';
+        Yahoo = {value: 1};
       }
 
       _applications.forEach(app => {
@@ -637,15 +631,11 @@ define('app_list',[], function() {
         }
         sorted[header].push(app);
       });
-      if (sortKey === 'rev'){
-    	  for (var header in sorted) {
-    	        sorted[header].sort(_orderBy.reverse);
-    	      }
-      } else {
+
       for (var header in sorted) {
         sorted[header].sort(_orderBy.name);
       }
-      }
+
       return sorted;
     }
 
@@ -656,14 +646,14 @@ define('app_list',[], function() {
 
 /**
  * ALA blur slider module.
- * 
+ *
  * @module BlurSlider
  * @return {Object}
  */
 define('ala/blur_slider',[],
 
 function() {
-  
+
 
   function BlurSlider() {}
 
@@ -791,33 +781,34 @@ function() {
   return BlurSlider;
 
 });
-//////////////////////////////////BEGIN - permission priority slider module/////////////////////////////
+
 /**
- * TC priority slider for permission details module.
- * 
- * @module PermPrioritySlider
+ * TC blur slider for permissions module.
+ *
+ * @module BlurSliderPerm
  * @return {Object}
  */
-define('tc/perm_priority_slider',[],
+define('ala/blur_slider_perm',[],
+
 function() {
-  
 
-  function PermPrioritySlider() {}
 
-  PermPrioritySlider.prototype = {
+  function BlurSliderPerm() {}
+
+  BlurSliderPerm.prototype = {
     /**
-     * Initialize slider for permission priority.
+     * Initialize ala blur slider.
      * @param {Object} element
      * @param {String} value
      * @param {Function} callback
-     * @return {PermPrioritySlider}
+     * @return {BlurSlider}
      */
     init: function(element, value, callback) {
       this.callback = callback || function(){};
-      
+
       this.input = element.querySelector('.perm-slider');
       this.label = element.querySelector('.perm-label');
-   
+
       this._setLabel(value);
 
       this.events();
@@ -829,6 +820,7 @@ function() {
      * Register events.
      */
     events: function() {
+
       this.input.addEventListener('touchmove', function(event) {
         this._setLabel(event.target.value);
       }.bind(this));
@@ -861,90 +853,72 @@ function() {
      */
     _changeSliderValue: function(value) {
       // value validation
-      value = (value > 0 && value <= 20) ? value : 1;
+      value = (value > 0 && value <= 12) ? value : 1;
 
       // update label
       this._setLabel(value);
 
       // run callback
-      this.callback(this.getRange(value));
+      this.callback(this.getRadius(value));
     },
 
     /**
-     * Set range label.
+     * Set radius label.
      * @param {String} value
      */
     _setLabel: function(value) {
-      this.label.textContent = PermPrioritySlider.getLabel(value);
+      this.label.textContent = BlurSliderPerm.getLabel(value);
     },
 
     /**
-     * Get range value from input value.
+     * Get radius value from input value.
      * @param {Number} value
      * @return {Number}
      */
-    getRange: function(value) {
+    getRadius: function(value) {
       switch(parseInt(value)) {
-        case 1:   return 5;
-        case 2:   return 10;
-        case 3:   return 15;
-        case 4:   return 20;
-        case 5:   return 25;
-        case 6:   return 30;
-        case 7:   return 35;
-        case 8:   return 40;
-        case 9:   return 45;
-        case 10:  return 50;
-        case 11:  return 55;
-        case 12:  return 60;
-        case 13:  return 65;
-        case 14:  return 70;
-        case 15:  return 75;
-        case 16:  return 80;
-        case 17:  return 85;
-        case 18:  return 90;
-        case 19:  return 95;
-        case 20:  return 100;
+        case 1:   return 1;
+        case 2:   return 2;
+        case 3:   return 3;
+        case 4:   return 4;
+        case 5:   return 5;
+        case 6:   return 6;
+        case 7:   return 7;
+        case 8:   return 8;
+        case 9:   return 9;
+        case 10:  return 10;
+        case 11:  return 11;
+        case 12:  return 12;
         default:  return null;
       }
     }
   };
 
   /**
-   * Get range label from input value.
+   * Get radius label from input value.
    * @param {Number} value
    * @return {String}
    */
-  PermPrioritySlider.getLabel = function(value) {
+  BlurSliderPerm.getLabel = function(value) {
     switch(parseInt(value)) {
-    case 1:   return 5;
-    case 2:   return 10;
-    case 3:   return 15;
-    case 4:   return 20;
-    case 5:   return 25;
-    case 6:   return 30;
-    case 7:   return 35;
-    case 8:   return 40;
-    case 9:   return 45;
-    case 10:  return 50;
-    case 11:  return 55;
-    case 12:  return 60;
-    case 13:  return 65;
-    case 14:  return 70;
-    case 15:  return 75;
-    case 16:  return 80;
-    case 17:  return 85;
-    case 18:  return 90;
-    case 19:  return 95;
-    case 20:  return 100;
+      case 1:   return '1';
+      case 2:   return '2';
+      case 3:   return '3';
+      case 4:   return '4';
+      case 5:   return '5';
+      case 6:   return '6';
+      case 7:   return '7';
+      case 8:   return '8';
+      case 9:   return '9';
+      case 10:  return '10';
       default:  return '';
     }
   };
 
-  return PermPrioritySlider;
+  return BlurSliderPerm;
 
 });
-//////////////////////////////////END - permission priority slider module/////////////////////////////
+
 
 /**
  * ALA exceptions panel.
@@ -960,7 +934,7 @@ define('ala/exceptions',[
 ],
 
 function(panels, BlurSlider, SettingsListener, SettingsHelper) {
-  
+
 
   function ExceptionsPanel() {
     this.apps = [];
@@ -1047,6 +1021,8 @@ function(panels, BlurSlider, SettingsListener, SettingsHelper) {
 
         this.appListElement.appendChild(li);
 
+
+
       }.bind(this));
     },
 
@@ -1106,7 +1082,7 @@ define('ala/exception',[
 
 function(panels, BlurSlider, alaExceptions, SettingsListener,
   SettingsHelper) {
-  
+
 
   function ALAException() {
     this.itemData = null;
@@ -1324,7 +1300,7 @@ function(panels, BlurSlider, alaExceptions, SettingsListener,
 
 /**
  * ALA define custom location panel.
- * 
+ *
  * @module ALADefineCustomLocation
  * @return {Object}
  */
@@ -1335,7 +1311,7 @@ define('ala/define_custom_location',[
 ],
 
 function(panels, SettingsListener, SettingsHelper) {
-  
+
 
   function ALADefineCustomLocation() {
     this.timeZone = null;
@@ -1357,7 +1333,7 @@ function(panels, SettingsListener, SettingsHelper) {
 
     /**
      * Initialize ALA Define Custom Location panel.
-     * 
+     *
      * @method init
      * @constructor
      */
@@ -1615,7 +1591,7 @@ define('ala/main',[
 
 function(panels, appList, BlurSlider, alaException, alaExceptions, alaDCL,
   SettingsListener, SettingsHelper) {
-  
+
 
   function AlaPanel() {
     this.blurSlider = new BlurSlider();
@@ -1808,7 +1784,7 @@ function(panels, appList, BlurSlider, alaException, alaExceptions, alaDCL,
 
 /**
  * PassPhrase storage helper.
- * 
+ *
  * @module PassPhrase
  * @return {Object}
  */
@@ -1817,7 +1793,7 @@ define('rpp/passphrase',[
 ],
 
 function(asyncStorage) {
-  
+
 
   const SALT_NUM_BYTES = 8;
 
@@ -1926,7 +1902,7 @@ function(asyncStorage) {
 
 /**
  * Auth panels (login/register/change passphrase).
- * 
+ *
  * @module AuthPanel
  * @return {Object}
  */
@@ -1937,10 +1913,10 @@ define('rpp/auth',[
 ],
 
 function(panels, PassPhrase, SettingsListener) {
-  
+
 
   function AuthPanel() {
-    this.passphrase;  
+    this.passphrase;
     this.lsPasscode = false;
     this.lsPasscodeEnabled = false;
     this.simcards = null;
@@ -1950,7 +1926,7 @@ function(panels, PassPhrase, SettingsListener) {
 
     /**
      * Initialize RPP panel and all its sections
-     * 
+     *
      * @method init
      * @constructor
      */
@@ -2017,7 +1993,7 @@ function(panels, PassPhrase, SettingsListener) {
     /**
      * Defines whenever we can login to rpp setting or do we need to register
      * new passphrase.
-     * 
+     *
      * @method defineFTU
      */
     defineFTU: function() {
@@ -2084,7 +2060,7 @@ function(panels, PassPhrase, SettingsListener) {
 
     /**
      * Compares and validates two strings. Returns error strings.
-     * 
+     *
      * @param  {String} pass1 First password
      * @param  {String} pass2 Second password
      * @return {String}       Empty string when success
@@ -2101,7 +2077,7 @@ function(panels, PassPhrase, SettingsListener) {
       }
 
       if (!rgx.test(pass1)) {
-        return 'passphrase-invalid'; 
+        return 'passphrase-invalid';
       }
 
       if (pass1 !== pass2) {
@@ -2113,7 +2089,7 @@ function(panels, PassPhrase, SettingsListener) {
 
     /**
      * Compares and validates two strings. Returns error strings.
-     * 
+     *
      * @param  {String} pass1 First password
      * @param  {String} pass2 Second password
      * @return {String}       Empty string when success
@@ -2126,7 +2102,7 @@ function(panels, PassPhrase, SettingsListener) {
       }
 
       if (!rgx.test(pass1)) {
-        return 'pin-invalid'; 
+        return 'pin-invalid';
       }
 
       if (pass1 !== pass2) {
@@ -2165,7 +2141,7 @@ function(panels, PassPhrase, SettingsListener) {
 
     /**
      * Clear form and validation messages
-     * 
+     *
      * @method clearRegisterForm
      */
     clearRegisterForm: function() {
@@ -2201,7 +2177,7 @@ function(panels, PassPhrase, SettingsListener) {
 
     /**
      * Clear form and validation messages
-     * 
+     *
      * @method clearLoginForm
      */
     clearLoginForm: function() {
@@ -2272,7 +2248,7 @@ function(panels, PassPhrase, SettingsListener) {
 
     /**
      * Clear form and validation messages
-     * 
+     *
      * @method clearChangeForm
      */
     clearChangeForm: function() {
@@ -2287,7 +2263,7 @@ function(panels, PassPhrase, SettingsListener) {
 
     /**
      * Toggle alert box, show it when user doesn't have passcode enabled
-     * 
+     *
      * @method toggleAlertBox
      */
     toggleAlertBox: function() {
@@ -2308,7 +2284,7 @@ function(panels, PassPhrase, SettingsListener) {
 
 /**
  * Auth panels (login/register/change passphrase).
- * 
+ *
  * @module ScreenLockPanel
  * @return {Object}
  */
@@ -2318,7 +2294,7 @@ define('rpp/screenlock',[
 ],
 
 function(panels, SettingsListener) {
-  
+
 
   function ScreenLockPanel() {}
 
@@ -2405,7 +2381,7 @@ function(panels, SettingsListener) {
 
 /**
  * PassCode panel.
- * 
+ *
  * @module PassCodePanel
  * @return {Object}
  */
@@ -2415,7 +2391,7 @@ define('rpp/passcode',[
 ],
 
 function(panels, SettingsListener) {
-  
+
 
   function PassCodePanel() {}
 
@@ -2691,7 +2667,7 @@ function(panels, SettingsListener) {
 
 /**
  * Remote Privacy Protection panel.
- * 
+ *
  * @module RppPanel
  * @return {Object}
  */
@@ -2702,7 +2678,7 @@ define('rpp/main',[
 ],
 
 function(rppAuth, rppScreenLock, rppPassCode) {
-  
+
 
   function RppPanel() {}
 
@@ -2710,7 +2686,7 @@ function(rppAuth, rppScreenLock, rppPassCode) {
 
     /**
      * Initialize RPP panel and all its sections
-     * 
+     *
      * @method init
      * @constructor
      */
@@ -2734,7 +2710,7 @@ function(rppAuth, rppScreenLock, rppPassCode) {
  */
 
 define('tc/app_details',[], function() {
-  
+
 
   var _debug = false; // display the manifest 'permissions' object
 
@@ -2876,7 +2852,7 @@ define('tc/applications',[
 ],
 
 function(panels, appList, appDetails) {
-  
+
 
   var _appListContainer;
 
@@ -2901,6 +2877,7 @@ function(panels, appList, appDetails) {
 
       var refreshAppList = function refreshAppList() {
         this.renderAppList(sortKeySelect.value);
+
       }.bind(this);
       sortKeySelect.addEventListener('change', refreshAppList);
       window.addEventListener('applicationinstall', refreshAppList);
@@ -2926,7 +2903,8 @@ function(panels, appList, appDetails) {
       if (!sortKey || sortKey === 'name') {
         // apps are already sorted by name, just display them
         this._showAppList(appList.applications);
-      } else if (sortKey === 'rev'){}
+        appPermGen();
+      }
       else {
         var apps = appList.getSortedApps(sortKey);
         // sorting by headers work because the sort key is either:
@@ -2936,8 +2914,15 @@ function(panels, appList, appDetails) {
           var l10nPrefix = (sortKey === 'trust') ? 'tc-trust-' : '';
           this._showAppSeparator(header, l10nPrefix);
           this._showAppList(apps[header], header);
+          appPermGen();
         });
       }
+
+      if (sortKey === 'permpriority') {
+        // apps are already sorted by name, just display them
+        x = 1
+      }
+
     },
 
     _clear: function _clear() {
@@ -3001,8 +2986,8 @@ function(panels, appList, appDetails) {
  * @module TcPermDetailsPanel
  * @return {Object}
  */
-define('tc/perm_details',['app_list', 'tc/perm_priority_slider'], function(appList, PermPrioritySlider) {
-  
+define('tc/perm_details',['app_list', 'ala/blur_slider_perm'], function(appList, BlurSliderPerm) {
+
 
   var _panel = null;
   var _permInfo = null;
@@ -3010,14 +2995,14 @@ define('tc/perm_details',['app_list', 'tc/perm_priority_slider'], function(appLi
   var _permGroup = null;
 
   var _currentPerm = null;
-  var prioritySlider = null;
+  var blurSlider = null;
 
   /**
    * Helper object for the perm_applications subpanel.
    *
    * @constructor
    */
-  function TcPermDetailsPanel() { this.prioritySlider = new PermPrioritySlider(); }
+  function TcPermDetailsPanel() { this.blurSlider = new BlurSliderPerm(); }
 
   TcPermDetailsPanel.prototype = {
 
@@ -3034,6 +3019,7 @@ define('tc/perm_details',['app_list', 'tc/perm_priority_slider'], function(appLi
       _permInfo = _panel.querySelector('.perm-info');
       _permApps = _panel.querySelector('.app-list');
       _permGroup = _panel.querySelector('.permission-group');
+
             //initialize blur slider element
       /*SettingsHelper('geolocation.blur.slider', 1).get(function(value) {
         this.blurSlider.init(
@@ -3045,22 +3031,14 @@ define('tc/perm_details',['app_list', 'tc/perm_priority_slider'], function(appLi
         );
       }.bind(this));
       */
-      this.prioritySlider.init(
+      this.blurSlider.init(
           _panel.querySelector('.type-blur'),
           1,
           function(value) {
-            this.prioritySlider.getValue(_currentPerm);
+            this.blurSlider.getValue();
           }.bind(this)
         );
-      /*
-      var perms = 
-    	  appList.permissions.forEach(perm => {
-    		  var temp = perm.name;
-    		  //console.log(temp);
-    	  }
-    			  ); var asdf = this.prioritySlider.getRange(1);
-      console.log(asdf);
-		*/
+
       window.addEventListener('localized', function tcPermDetailsLangChange() {
         this.renderPermDetails(_currentPerm);
       }.bind(this));
@@ -3086,14 +3064,7 @@ define('tc/perm_details',['app_list', 'tc/perm_priority_slider'], function(appLi
 
       _currentPerm = perm; // in case we need to refresh this panel
       _panel.querySelector('h1').textContent = perm.name;
-      console.log("Perm name:" + perm.name);
-      var slider = this.prioritySlider;
-      localforage.getItem(perm.name).then(function(value) {
-   		    if (value) {
-            slider.setValue(value)
-          }
-          console.log("Stored Value: " + value);
-			});
+
       _permInfo.querySelector('span').textContent = perm.name;
       _permInfo.querySelector('p').textContent = perm.desc;
 
@@ -3142,7 +3113,7 @@ define('tc/permissions',[
 ],
 
 function(panels, appList, permDetails, BlurSlider) {
-  
+
 
   var _permListContainer;
 
@@ -3164,15 +3135,15 @@ function(panels, appList, permDetails, BlurSlider) {
     init: function init(permissionTable) {
       _permListContainer = document.getElementById('tc-permList');
       var sortingKeySelect = document.getElementById('tc-sortingKey');
-    
-       var refreshPermList = function refreshPermList() {
-       this.renderPermissionList(sortingKeySelect.value);
-       }.bind(this);
-       sortingKeySelect.addEventListener('change', refreshPermList);
-       window.addEventListener('applicationinstall', refreshPermList);
-       window.addEventListener('applicationuninstall', refreshPermList);
-       // some permissions might have a localized name in their manifest
-       window.addEventListener('localized', refreshPermList);
+
+      var refreshPermList = function refreshPermList() {
+          this.renderPermissionList(sortingKeySelect.value);
+        }.bind(this);
+      sortingKeySelect.addEventListener('change', refreshPermList);
+      window.addEventListener('applicationinstall', refreshPermList);
+      window.addEventListener('applicationuninstall', refreshPermList);
+   // some permissions might have a localized name in their manifest
+      window.addEventListener('localized', refreshPermList);
 
       appList.init(permissionTable).then(this.renderPermissionList.bind(this),
           error => console.error(error));
@@ -3198,50 +3169,51 @@ function(panels, appList, permDetails, BlurSlider) {
      * @param {String} sortKey [optional]  Either 'name', 'trust', 'vendor'.
      */
     renderPermissionList: function renderPermissionList(sortKey) {
-      this._clear(); // holds the permission list container.
-      if (!sortKey || sortKey === 'name') {
-      // permissions are already sorted by name, just display them
-      this._showPermList(appList.permissions);
-      }
-      else {
-      var perms = appList.getSortedPerms(sortKey);
-      // sorting by headers work because the sort key is either:
-      // - a "vendor" name, in which case it makes sense to sort by name
-      // - 'certified|privileged|web', which luckily matches the order we want
-      Object.keys(apps).sort().forEach(header => {
-      var l10nPrefix = (sortKey === 'trust') ? 'tc-trust-' : '';
-      this._showPermSeparator(header, l10nPrefix);
-      this._showPermList(perms[header], header);
-      });
-      }
+      //_permListContainer.innerHTML = '';
+    	this._clear();
+        if (!sortKey || sortKey === 'name') {
+          // apps are already sorted by name, just display them
+          this._showPermList(appList.permissions);
+        }
+        else {
+          var perms = appList.getSortedPerms(sortKey);
+          // sorting by headers work because the sort key is either:
+          // - a "vendor" name, in which case it makes sense to sort by name
+          // - 'certified|privileged|web', which luckily matches the order we want
+          Object.keys(apps).sort().forEach(header => {
+            var l10nPrefix = (sortKey === 'trust') ? 'tc-trust-' : '';
+            this._showPermSeparator(header, l10nPrefix);
+            this._showPermList(perms[header], header);
+          });
+        }
       },
-      
-      _clear: function _clear() {
-      _permListContainer.innerHTML = '';
+
+    _clear: function _clear() {
+        _permListContainer.innerHTML = '';
       },
-      
-      _showPermSeparator: function _showPermSeparator(separator, l10nPrefix) {
-    	 if (!separator) {
-    	  return;
-    	  }
-    	  var header = document.createElement('header');
-    	  var title = document.createElement('h2');
-    	  if (l10nPrefix) {
-    	  title.setAttribute('data-l10n-id', l10nPrefix + separator);
-    	  } else { // vendor names don't need any localization
-    	  title.textContent = separator;
-    	  }
-    	  header.appendChild(title);
-    	  _permListContainer.appendChild(header);
-    	  },
-    	  
-    	  _showPermList: function _showPermList(apps, groupKey){
-    		  var list = document.createElement('ul');
-    		  if (groupKey){
-    			  list.dataset.key = groupKey; // Marionette Key
-    	  }
-      
-        appList.permissions.forEach(perm => {
+
+
+    _showPermSeparator: function _showPermSeparator(separator, l10nPrefix) {
+        if (!separator) {
+          return;
+        }
+        var header = document.createElement('header');
+        var title = document.createElement('h2');
+        if (l10nPrefix) {
+          title.setAttribute('data-l10n-id', l10nPrefix + separator);
+        } else { // vendor names don't need any localization
+          title.textContent = separator;
+        }
+        header.appendChild(title);
+        _permListContainer.appendChild(header);
+      },
+
+    _showPermList: function _showPermList(apps, groupKey){
+      var list = document.createElement('ul');
+      if (groupKey){
+    	  list.dataset.key = groupKey; // Marionette Key
+      }
+      appList.permissions.forEach(perm => {
         var item = document.createElement('li');
         var link = document.createElement('a');
         var name = document.createElement('span');
@@ -3253,13 +3225,12 @@ function(panels, appList, permDetails, BlurSlider) {
         link.classList.add('panel-link');
         link.addEventListener('click', function showAppDetails() {
           panels.show({ id: 'tc-permDetails', options: perm });
-          
-          // testing ... 
-          TestingInputName = perm.key;
-          document.querySelector('input.perm-slider').name = perm.name;
-          
-        }); //console.log(perm);
-        
+					document.querySelector('input.perm-slider').setAttribute("data-permname", perm.key);
+          console.log(document.querySelector('input.perm-slider').getAttribute("data-permname"));
+					document.querySelector('input.perm-slider').max = "10";
+					document.querySelector('p.perm-label').innerHTML = localStorage.getItem(perm.key);
+        });
+
         item.appendChild(link);
         list.appendChild(item);
       });
@@ -3285,7 +3256,7 @@ define('tc/main',[
 ],
 
 function(panels, applicationsPanel, permissionsPanel) {
-  
+
 
   /**
    * Transparency Control panel.
@@ -3315,7 +3286,7 @@ function(panels, applicationsPanel, permissionsPanel) {
 
 /**
  * Command module to handle lock, ring, locate features.
- * 
+ *
  * @module Commands
  * @return {Object}
  */
@@ -3326,7 +3297,7 @@ define('sms/commands',[
 ],
 
 function(SettingsListener, SettingsHelper, SettingsURL) {
-  
+
 
   var Commands = {
     TRACK_UPDATE_INTERVAL_MS: 10000,
@@ -3475,7 +3446,7 @@ function(SettingsListener, SettingsHelper, SettingsURL) {
 
 /**
  * Command module to handle lock, ring, locate features.
- * 
+ *
  * @module RPPExecuteCommands
  * @return {Object}
  */
@@ -3487,7 +3458,7 @@ define('sms/main',[
 ],
 
 function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
-  
+
 
   const RING_ENABLED = 'rpp.ring.enabled';
   const LOCK_ENABLED = 'rpp.lock.enabled';
@@ -3605,7 +3576,7 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
 
     /**
      * Remotely rings the device
-     * 
+     *
      * @param  {Number} number Phone number
      */
     _ring : function(number) {
@@ -3632,7 +3603,7 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
 
     /**
      * Remotely locks the screen
-     * 
+     *
      * @param  {Number} number Phone number
      */
     _lock : function(number) {
@@ -3654,7 +3625,7 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
 
     /**
      * Remotely locates device and sends back reply SMS.
-     * 
+     *
      * @param  {Number} number Phone number
      */
     _locate : function(number) {
@@ -3686,7 +3657,7 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
 
     /**
      * Perform lockscreen
-     * 
+     *
      * @param  {Number} number Phone number
      */
     _doLock : function(number, reply) {

@@ -94,7 +94,7 @@ var requirejs, require, define;
      * - removed UMD registration
      */
     (function () {
-        
+
 
         var waitingId, nextTick,
             waiting = [];
