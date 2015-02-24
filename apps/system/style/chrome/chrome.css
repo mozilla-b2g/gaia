@@ -216,7 +216,14 @@
 .controls .urlbar {
   transform: scaleX(var(--rocketbar-scale)) translateY(0.1rem);
   transform-origin: top left;
-  transition: transform 0.2s ease-in-out;
+  transition: transform 0.2s ease-in-out, visibility 0s;
+  visibility: visible;
+}
+
+.lockScreenWindow:not(.bar) .controls .urlbar,
+.appWindow.fullscreen-app .chrome:not(.dragged):not(.dragging) .controls .urlbar {
+  visibility: hidden;
+  transition-delay: 0s, 0.2s;
 }
 
 .appWindow.collapsible.active .urlbar {
