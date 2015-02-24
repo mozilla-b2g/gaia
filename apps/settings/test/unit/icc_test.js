@@ -63,10 +63,21 @@ suite('STK (App menu) >', function() {
     mocksHelper.suiteSetup();
 
     HtmlImports.populate(function() {
-      window.addEventListener('iccPageLoaded', function onLoaded(event) {
-        done();
-      });
-      requireApp('settings/js/icc.js');
+      var map = {
+        'shared/stk_helper': 'shared_mocks/mock_stk_helper'
+      };
+
+      testRequire([
+        'shared_mocks/mock_stk_helper'
+      ], map, function(MockStkHelper) {
+        // we have to replace `require` in icc.js
+        window.require = function(modules, callback) {
+          callback(MockStkHelper);
+        };
+        testRequire(['icc'], {}, function() {
+          done();
+        });
+      }); 
     });
 
     this.STK_NEXT_ACTION_INDICATOR = {
