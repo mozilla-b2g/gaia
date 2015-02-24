@@ -37,7 +37,8 @@ suite('system/LogShake', function() {
   var realMozActivity;
 
   var logshake;
-  var logTag = 'logshake';
+  var logTagBase = 'logshake:';
+  var expectedLogTag = logTagBase + '1';
 
   mocksForLogshake.attachTestHelpers();
 
@@ -68,9 +69,11 @@ suite('system/LogShake', function() {
 
     logshake = new LogShake();
     logshake.start();
+    logshake._shakeId = 1;
   });
 
   teardown(function() {
+    logshake._shakeId = null;
     logshake.stop();
 
     window.DOMRequest = realDOMRequest;
@@ -98,7 +101,7 @@ suite('system/LogShake', function() {
       var args = notifSpy.firstCall.args;
       assert.equal(args[0], 'title');
       assert.equal(args[1].body, 'body');
-      assert.equal(args[1].tag, 'logshake');
+      assert.equal(args[1].tag, 'logshake:1');
       assert.equal(args[1].data.systemMessageTarget, 'logshake');
     });
 
@@ -133,8 +136,13 @@ suite('system/LogShake', function() {
     test('Create notification after capture-logs-start event', function() {
       var notificationSpy = this.sinon.spy(window, 'Notification');
 
+      assert.equal(1, logshake._shakeId);
+
       window.dispatchEvent(
         new CustomEvent('capture-logs-start', { detail: {} }));
+
+      assert.isNotNull(logshake._shakeId);
+      assert.notEqual(1, logshake._shakeId);
 
       // LogShake should dispatch a notification of some kind
       assert.isTrue(notificationSpy.calledOnce,
@@ -143,8 +151,9 @@ suite('system/LogShake', function() {
         'Notification should be called with new');
       assert.equal(notificationSpy.firstCall.args[0],
         'logsSaving');
+      assert.equal(logshake._shakeId, parseInt(logshake._shakeId));
       assert.equal(notificationSpy.firstCall.args[1].tag,
-        logTag);
+        logTagBase + logshake._shakeId);
     });
   });
 
@@ -161,6 +170,7 @@ suite('system/LogShake', function() {
     });
 
     test('Notification sent', function() {
+      assert.isNull(logshake._shakeId);
       assert.isTrue(notificationSpy.calledOnce);
       assert.isTrue(notificationSpy.calledWithNew());
       assert.equal(notificationSpy.firstCall.args[0],
@@ -168,7 +178,7 @@ suite('system/LogShake', function() {
       assert.equal(notificationSpy.firstCall.args[1].body,
         logPrefix);
       assert.equal(notificationSpy.firstCall.args[1].tag,
-        logTag);
+        expectedLogTag);
     });
 
     test('Clicking notification', function() {
@@ -224,15 +234,17 @@ suite('system/LogShake', function() {
         errorUnixExpectedBody;
 
     function sendError(e) {
+      assert.isNotNull(logshake._shakeId);
       window.dispatchEvent(new CustomEvent('capture-logs-error',
         { detail: { error: e } }));
+      assert.isNull(logshake._shakeId);
     }
 
     function notificationAsserts(spy) {
       assert.isTrue(spy.calledOnce, 'Notification should be called');
       assert.isTrue(spy.calledWithNew(), 'Notification created with new');
       assert.equal(spy.firstCall.args[0], 'logsSaveError');
-      assert.equal(spy.firstCall.args[1].tag, logTag);
+      assert.equal(spy.firstCall.args[1].tag, expectedLogTag);
     }
 
     function assertBody(expected) {
