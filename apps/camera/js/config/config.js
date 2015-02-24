@@ -7,8 +7,8 @@ module.exports = {
   // shared/js/media/media_frame.js
   globals : {
     // The maximum picture size that camera is allowed to take
-    CONFIG_MAX_IMAGE_PIXEL_SIZE: 5242880, // 5MP
-    CONFIG_MAX_SNAPSHOT_PIXEL_SIZE: 5242880, // 5MP
+    CONFIG_MAX_IMAGE_PIXEL_SIZE: 24 * 1024 * 1024,
+    CONFIG_MAX_SNAPSHOT_PIXEL_SIZE: 24 * 1024 * 1024,
 
     // Size of the exif preview embeded in images taken by camera
     CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH: 0,
