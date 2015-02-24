@@ -268,7 +268,7 @@ function execute(config) {
   settings['rocketbar.newTabAppURL'] = utils.gaiaOriginURL('search',
     config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT) + '/index.html';
 
-  settings['debugger.remote-mode'] = config.REMOTE_DEBUGGER === '1' ? 
+  settings['debugger.remote-mode'] = config.REMOTE_DEBUGGER === '1' ?
     'adb-only' : 'disabled';
 
   if (config.PRODUCTION === '1') {
@@ -279,6 +279,7 @@ function execute(config) {
   if (config.PRODUCTION === '0') {
     settings['dom.mozApps.signed_apps_installable_from'] =
       'https://marketplace.firefox.com,https://marketplace.allizom.org';
+    settings['devtools.qps.enabled'] = true;
   }
 
   settings['language.current'] = config.GAIA_DEFAULT_LOCALE;
