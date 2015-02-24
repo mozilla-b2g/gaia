@@ -322,7 +322,6 @@ gaia-header > a > span {
 
 /* these icons uses a 32px base grid so we need to adjust the font size
  * (shared font uses a 3rem base font-size) */
-.icon-calendar-allday:before,
 .icon-calendar-alarm:before,
 .icon-calendar-bullet:before,
 .icon-calendar-dot:before,
