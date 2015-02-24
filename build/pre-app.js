@@ -1,9 +1,10 @@
 'use strict';
 
-/* global require, exports */
+var utils = require('utils');
+var nodeHelper = new utils.NodeHelper();
 
 function execute(options) {
-  require('./clean-stage-app').execute(options);
+  nodeHelper.require('clean-stage-app', options);
 
   require('./svoperapps').execute(options);
 
@@ -29,4 +30,5 @@ function execute(options) {
   // Copy common files such as webapps.json
   require('./copy-common-files').execute(options);
 }
+
 exports.execute = execute;

@@ -1,7 +1,7 @@
 'use strict';
 
-/* global require, Services, dump, FileUtils, exports, OS, Promise, Reflect */
-/* jshint -W079, -W118 */
+/* global Services, dump, FileUtils, OS */
+/* jshint -W118 */
 
 const { Cc, Ci, Cr, Cu, CC } = require('chrome');
 
@@ -940,7 +940,6 @@ function Commander(cmd) {
     var process = Cc['@mozilla.org/process/util;1']
                   .createInstance(Ci.nsIProcess);
     try {
-      log('cmd', command + ' ' + args.join(' '));
       process.init(_file);
       process.run(true, args, args.length);
       callback && callback(process.exitValue);
@@ -1241,15 +1240,24 @@ var scriptLoader = {
   }
 };
 
-var requireNode = function() {
-  var node = new Commander('node');
-  node.initPath(getEnvPath());
-
-  this.run = function(path) {
-    node.run(['--harmony', '-e', 'require("./build/' + path + '").execute(' +
-      getEnv('BUILD_CONFIG') + ')']);
-  };
-};
+/**
+ * Run specific build task on Node.js if RUN_ON_NODE is on, otherwise we go back
+ * to XPCShell.
+ */
+function NodeHelper(path) {
+  if (getEnv('RUN_ON_NODE') === '1') {
+    var node = new Commander('node');
+    node.initPath(getEnvPath());
+    this.require = function(path, options) {
+      node.run(['--harmony', '-e', 'require("./build/' + path + '").execute(' +
+        JSON.stringify(options) + ')']);
+    };
+  } else {
+    this.require = function(path, options) {
+      require(path).execute(options);
+    };
+  }
+}
 
 exports.Q = Promise;
 exports.ls = ls;
@@ -1277,8 +1285,6 @@ exports.generateUUID = generateUUID;
 exports.copyRec = copyRec;
 exports.createZip = createZip;
 exports.scriptParser = Reflect.parse;
-exports.requireNode = requireNode;
-// ===== the following functions support node.js compitable interface.
 exports.deleteFile = deleteFile;
 exports.listFiles = listFiles;
 exports.fileExists = fileExists;
@@ -1311,3 +1317,4 @@ exports.getCompression = getCompression;
 exports.existsInAppDirs = existsInAppDirs;
 exports.removeFiles = removeFiles;
 exports.scriptLoader = scriptLoader;
+exports.NodeHelper = NodeHelper;
