@@ -483,6 +483,7 @@ suite('Contacts', function() {
     });
 
     test('> in settings view, should refresh for new timestamp', function() {
+      Object.defineProperty(document, 'hidden', {value: false});
       sinon.stub(navigation, 'currentView', function() {
         return 'view-settings';
       });

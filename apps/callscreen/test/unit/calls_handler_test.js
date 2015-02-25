@@ -96,6 +96,7 @@ suite('calls handler', function() {
   });
 
   setup(function() {
+    Object.defineProperty(document, 'hidden', {value: false});
     this.sinon.useFakeTimers();
     MockNavigatormozSetMessageHandler.mSetup();
     var conn1 = new window.MockMobileconnection();

@@ -8,6 +8,8 @@ require('/shared/js/stop_recording_event.js');
 suite('StopRecordingEvent', function() {
 
   setup(function() {
+    Object.defineProperty(document, 'hidden', {value: false});
+
     this.realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
 

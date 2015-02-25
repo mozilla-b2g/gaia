@@ -12,6 +12,8 @@ suite('lib/camera/camera', function() {
   });
 
   setup(function() {
+    Object.defineProperty(document, 'hidden', {value: false});
+
     var mozCameras = {
       getListOfCameras: function() {},
       getCamera: function() {}
