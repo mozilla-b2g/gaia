@@ -24,15 +24,13 @@ ManifestBuilder.prototype.setConfig = function(config) {
 };
 
 ManifestBuilder.prototype.genStageWebappJSON = function() {
-  var manifestFile = this.stageDir.clone();
-  manifestFile.append('webapps_stage.json');
+  var manifestFile = utils.getFile(this.stageDir.path, 'webapps_stage.json');
   utils.writeContent(manifestFile,
     JSON.stringify(this.stageManifests, null, 2) + '\n');
 };
 
 ManifestBuilder.prototype.genUuidJSON = function() {
-  var uuidFile = this.stageDir.clone();
-  uuidFile.append(UUID_FILENAME);
+  var uuidFile = utils.getFile(this.stageDir.path, UUID_FILENAME);
   utils.writeContent(uuidFile,
     JSON.stringify(utils.getUUIDMapping(this.config), null, 2) + '\n');
 };

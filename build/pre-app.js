@@ -10,7 +10,7 @@ function execute(options) {
 
   // Populates webapps_shared.json in stage folder
   // and uuid.json for external apps
-  require('./webapp-manifests').execute(options);
+  nodeHelper.require('webapp-manifests', options);
 
   require('./contacts-import-services').execute(options);
 
