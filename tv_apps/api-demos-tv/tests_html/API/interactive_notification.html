@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8">
+    <title>Interactive Notification</title>
+    <link rel="stylesheet" type="text/css" href="../../style/API.css">
+    <!-- We don't need localization for this app. -->
+    <script type="text/javascript" src="../../js/API/interactive_notification.js"></script>
+  </head>
+  <body>
+    <div>
+      <div>
+        <button id="desktop-notification" type="button">Send Desktop Notification</button>
+      </div>
+      <div>
+        <button id="notification-pure" type="button">Send Notification without Buttons</button>
+        <button id="notification-buttons" type="button">Send Notification with Buttons</button>
+      </div>
+      <div>
+        <button id="alert-pure" type="button">Send Alert without Buttons</button>
+        <button id="alert-buttons" type="button">Send Alert with Buttons</button>
+      </div>
+    </div>
+    <hr/>
+    <div>
+      Status: <span id="status"></span>
+    </div>
+  </body>
+</html>
