@@ -19,6 +19,7 @@ var Q = require('q');
 var os = require('os');
 var vm = require('vm');
 var http = require('http');
+var https = require('https');
 var url = require('url');
 var dive = require('diveSync');
 var nodeUUID = require('node-uuid');
@@ -246,8 +247,27 @@ module.exports = {
     return files;
   },
 
-  downloadJSON: function(url, callback) {
-    http.get(url, function(res) {
+  download: function(fileUrl, dest, callback, errorCallback) {
+    var protocol = url.parse(fileUrl).protocol;
+    var request = (protocol === 'http:') ? http : https;
+    var file = fs.createWriteStream(dest);
+    request.get(fileUrl, function(response) {
+      response.pipe(file);
+      file.on('finish', function() {
+        file.close(callback);
+      });
+    }).on('error', function(err) {
+      fs.unlinkSync(dest);
+      if (errorCallback) {
+        errorCallback();
+      }
+    });
+  },
+
+  downloadJSON: function(fileUrl, callback) {
+    var protocol = url.parse(fileUrl).protocol;
+    var request = (protocol === 'http:') ? http : https;
+    request.get(fileUrl, function(res) {
       var body = '';
       res.on('data', function(chunk) {
         body += chunk;
@@ -260,6 +280,10 @@ module.exports = {
     }).on('error', function(e) {
       throw new Error('Download JSON with error: ' + e);
     });
+  },
+
+  readJSONFromPath: function(path) {
+    return require(path);
   },
 
   concatenatedScripts: function(scriptsPaths, targetPath) {
