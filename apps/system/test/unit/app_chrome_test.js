@@ -29,6 +29,7 @@ suite('system/AppChrome', function() {
   mocksForAppChrome.attachTestHelpers();
 
   setup(function(done) {
+    Object.defineProperty(document, 'hidden', {value: false});
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     this.sinon.useFakeTimers();
