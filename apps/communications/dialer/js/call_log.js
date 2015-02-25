@@ -131,6 +131,8 @@ var CallLog = {
    *                   contact cache.
    */
   _validateContactsCache: function cl_validateContactsCache() {
+    var self = this;
+
     return new Promise(function(resolve, reject) {
       /* Get the latest contact cache revision and the actual Contacts API
        * db revision. If both values differ, we need to update the contact cache

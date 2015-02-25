@@ -690,6 +690,7 @@ var CallLogDBManager = {
   _updateExistingGroup: function(group, recentCall, txn, callback) {
     var groupsStore = txn.objectStore(this._dbGroupsStore);
     var groupObject;
+    var self = this;
 
     txn.oncomplete = function() {
       self._dispatchCallLogDbNewCall(groupObject);
@@ -708,7 +709,6 @@ var CallLogDBManager = {
     group.calls.unshift({date: recentCall.date, duration: recentCall.duration});
 
     group.retryCount++;
-    var self = this;
     groupsStore.put(group).onsuccess = function onsuccess() {
       groupObject = self._getGroupObject(group);
     };
