@@ -445,12 +445,15 @@
         return null;
       }
       var mainPart = mime.slice(0, index);
-      var secondPart = mime.substr(index + 1);
+      var secondPart = mime.substr(index + 1).toLowerCase();
 
       switch (mainPart) {
         case 'image':
           return 'img';
         case 'text':
+          if(secondPart.indexOf('vcard') !== -1) {
+            return 'vcard';
+          }
           if (secondPart !== 'plain') {
             return 'ref';
           }
