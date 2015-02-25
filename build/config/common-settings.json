@@ -186,7 +186,7 @@
    "ril.data.apnSettings": "",
    "ril.data.cp.apns": "",
    "ril.callerId": "CLIR_DEFAULT",
-   "everythingme.api.url": "https://api.everything.me/partners/1.0/{resource}/",
+   "appsearch.url": "https://appsearch.services.mozilla.com/partners/1.0/{resource}/",
    "search.marketplace.url": "https://marketplace.firefox.com/api/v2/apps/search/rocketbar/?q={q}&limit={limit}&lang={lang}&region=restofworld",
    "screen.automatic-brightness": false,
    "screen.brightness": 1,
