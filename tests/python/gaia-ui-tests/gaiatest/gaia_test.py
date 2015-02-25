@@ -747,6 +747,16 @@ class GaiaDevice(object):
     def screen_orientation(self):
         return self.marionette.execute_script('return window.screen.mozOrientation')
 
+    @property
+    def imei_numbers(self):
+        value = self.testvars.get('imei', [])
+        return value if type(value) is list else [value]
+
+    @property
+    def phone_numbers(self):
+        value = self.testvars.get('phone_number', [])
+        return value if type(value) is list else [value]
+
 
 class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
     def __init__(self, *args, **kwargs):
