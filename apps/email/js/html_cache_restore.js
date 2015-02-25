@@ -229,7 +229,12 @@ window.htmlCacheRestorePendingMessage = [];
                       segments.length - HTML_COOKIE_CACHE_MAX_SEGMENTS);
     }
 
-    value = decodeURIComponent(segments.join(''));
+    try {
+      value = decodeURIComponent(segments.join(''));
+    } catch (e) {
+      console.error('decodeURIComponent failed with: ' + e);
+      value = '';
+    }
 
     index = value.indexOf(':');
 
