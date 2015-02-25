@@ -57,7 +57,7 @@ suite('LayoutRenderingManager', function() {
       viewManager: viewManager
     };
 
-    Object.defineProperty(window, 'hidden',
+    Object.defineProperty(document, 'hidden',
                           { value: false, configurable: true });
 
     manager = new LayoutRenderingManager(app);
