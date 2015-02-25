@@ -31,6 +31,10 @@
   position: absolute;
   left: 0;
   line-height: var(--statusbar-height);
+  visibility: hidden;
+}
+
+#utility-tray.visible #statusbar-tray > .sb-start-upper {
   visibility: visible;
 }
 
