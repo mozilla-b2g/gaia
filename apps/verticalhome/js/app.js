@@ -30,6 +30,9 @@
     window.addEventListener('context-menu-open', this);
     window.addEventListener('context-menu-close', this);
 
+    window.addEventListener('gaia-confirm-open', this);
+    window.addEventListener('gaia-confirm-close', this);
+
     this.layoutReady = false;
     window.addEventListener('gaiagrid-layout-ready', this);
 
@@ -203,14 +206,20 @@
           this.itemStore.save(this.grid.getItems());
           break;
 
-        case 'gaiagrid-dragdrop-begin':
         case 'context-menu-open':
+        case 'gaia-confirm-open':
+          document.body.classList.add('fixed-overlay-shown');
+          /* falls through */
+        case 'gaiagrid-dragdrop-begin':
           // Home button disabled while dragging or the contexmenu is displayed
           window.removeEventListener('hashchange', this);
           break;
 
-        case 'gaiagrid-dragdrop-finish':
         case 'context-menu-close':
+        case 'gaia-confirm-close':
+          document.body.classList.remove('fixed-overlay-shown');
+          /* falls through */
+        case 'gaiagrid-dragdrop-finish':
           window.addEventListener('hashchange', this);
           break;
 
