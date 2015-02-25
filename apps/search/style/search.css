@@ -115,8 +115,10 @@ h2 {
     only want to see the dialog prompt, not the actual select box  */
 #suggestions-select {
   position: absolute;
-  top: -0.8rem;
-  height: 1.5rem;
+  top: 0;
+  opacity: 0.1;
+  height: 0;
+  width: 0;
 }
 
 h2 span, h2 label {
