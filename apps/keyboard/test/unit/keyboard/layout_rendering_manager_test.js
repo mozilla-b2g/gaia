@@ -233,7 +233,7 @@ suite('LayoutRenderingManager', function() {
       };
       manager.handleEvent(evt);
 
-      assert.isTrue(viewManager.resize.calledOnce);
+      assert.equal(viewManager.resize.callCount, 1);
 
       assert.isTrue(
         app.inputMethodManager.currentIMEngine.setLayoutParams.calledWith({
