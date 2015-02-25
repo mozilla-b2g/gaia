@@ -41,11 +41,6 @@ window.GaiaConfirm = (function(win) {
     var confirm = this.querySelector('gaia-buttons .confirm');
     var cancel = this.querySelector('gaia-buttons .cancel');
 
-    // ensure we don't allow targets to null so only add found buttons.
-    var allowedTargets = [confirm, cancel].filter(function(element) {
-      return !!element;
-    });
-
     if (confirm) {
       confirm.addEventListener('click', (e) => {
         eatEvent(null, e);

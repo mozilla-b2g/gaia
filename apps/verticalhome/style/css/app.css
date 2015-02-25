@@ -79,6 +79,10 @@ gaia-grid {
 
 /* Disable scroll while edit group UI is being displayed because of keyboard
    translates the vertical home */
-body.edit-group {
+body.edit-group,
+
+/* Disable scroll when a dialog is shown so we don't scroll the fixed-position
+   child. See bug 1134642 */
+body.fixed-overlay-shown {
   overflow: hidden;
 }
