@@ -27,7 +27,6 @@
     app.element.addEventListener('_opening', this);
     app.element.addEventListener('_closing', this);
     app.element.addEventListener('_inputmethod-contextchange', this);
-    app.element.addEventListener('_sheetsgesturebegin', this);
     app.element.addEventListener('_localized', this);
     window.addEventListener('timeformatchange', this);
   };
@@ -94,12 +93,6 @@
         if (this._timePicker) {
           this._timePicker.uninit();
           this._timePicker = null;
-        }
-        break;
-      case '_sheetsgesturebegin':
-        // Only cancel if the value selector was rendered.
-        if (this._injected) {
-          this.cancel();
         }
         break;
       case '_inputmethod-contextchange':
