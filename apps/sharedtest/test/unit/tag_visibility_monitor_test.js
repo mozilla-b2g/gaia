@@ -242,6 +242,7 @@ suite('tag_visibility_monitor', function() {
 
   function setup(numChildren, childHeight, containerHeight) {
 
+
     var container = createTestContainer(numChildren,
                                         childHeight,
                                         containerHeight);
@@ -270,6 +271,9 @@ suite('tag_visibility_monitor', function() {
       var i = 0;
 
       var TimeForScrollAndVisibilityMonitorEvents = 0;
+
+      Object.defineProperty(document, 'hidden',
+                          { value: false, configurable: true });
 
       function runTest(test) {
           var scrollMatch = test.match(/scroll (\d+)/);

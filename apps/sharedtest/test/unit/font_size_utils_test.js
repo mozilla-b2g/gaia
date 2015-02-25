@@ -173,6 +173,8 @@ suite('shared/js/text_utils.js', function() {
   }
 
   setup(function() {
+    Object.defineProperty(document, 'hidden',
+                          { value: false, configurable: true });
     text = '';
   });
 

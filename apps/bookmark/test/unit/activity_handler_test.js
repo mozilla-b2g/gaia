@@ -26,6 +26,8 @@ suite('activity_handler.js >', function() {
   var realMozL10n;
 
   suiteSetup(function() {
+    Object.defineProperty(document, 'hidden',
+                          { value: false, configurable: true });
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
   });
