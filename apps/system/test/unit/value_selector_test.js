@@ -35,7 +35,6 @@ suite('value selector/value selector', function() {
       inputType: 'date'
     }
   };
-  var fakeSheetsGestureBegin = { type: '_sheetsgesturebegin' };
   var fakeBlurInputMethodContextChangeEvent = {
     type: '_inputmethod-contextchange',
     detail: {
@@ -198,14 +197,6 @@ suite('value selector/value selector', function() {
     assert.isFalse(vs.element.hidden);
     assert.isFalse(vs.elements.spinDatePickerPopup.hidden);
     assert.equal('date', vs._currentPickerType);
-  });
-
-  test('cancel on "_sheetsgesturebegin" event', function() {
-    vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
-    this.sinon.stub(vs, 'cancel');
-
-    vs.handleEvent(fakeSheetsGestureBegin);
-    sinon.assert.calledOnce(vs.cancel);
   });
 
   suite('hiding', function() {
