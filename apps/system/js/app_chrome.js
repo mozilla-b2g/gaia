@@ -680,7 +680,7 @@
     if (evt.detail && evt.detail.type === 'fatal') {
       return;
     }
-    if (this.useCombinedChrome()) {
+    if (this.useCombinedChrome() && this.app.config.chrome.scrollable) {
       // When we get an error, keep the rocketbar maximized.
       this.element.classList.add('maximized');
       this.containerElement.classList.remove('scrollable');

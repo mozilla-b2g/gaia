@@ -310,29 +310,43 @@ suite('system/AppChrome', function() {
       assert.equal(chrome.title.textContent, 'Hello');
     });
 
-    test('error', function() {
-      var app = new AppWindow(fakeWebSite);
-      app.config.chrome.bar = false;
-      var chrome = new AppChrome(app);
-      chrome.containerElement.classList.add('scrollable');
-      chrome.handleEvent({ type: 'mozbrowsererror', detail: {
-        type: 'offline'
-      }});
-      assert.isFalse(chrome.containerElement.classList.contains('scrollable'));
-      assert.isTrue(chrome.element.classList.contains('maximized'));
+    suite('error', function() {
+      var app, chrome;
 
-      chrome.element.classList.remove('maximized');
-      chrome.handleEvent({ type: 'mozbrowsererror', detail: {
-        type: 'fatal'
-      }});
-      assert.isFalse(chrome.element.classList.contains('maximized'));
+      setup(function() {
+        app = new AppWindow(fakeWebSite);
+      });
 
-      chrome.element.classList.remove('maximized');
-      app.config.chrome.bar = true;
-      chrome.handleEvent({ type: 'mozbrowsererror', detail: {
-        type: 'offline'
-      }});
-      assert.isFalse(chrome.element.classList.contains('maximized'));
+      test('scrollable chrome without bar', function() {
+        app.config.chrome.bar = false;
+        app.config.chrome.scrollable = true;
+        chrome = new AppChrome(app);
+        chrome.containerElement.classList.add('scrollable');
+        chrome.handleEvent({ type: 'mozbrowsererror', detail: {
+          type: 'offline'
+        }});
+        assert.isTrue(chrome.element.classList.contains('maximized'));
+      });
+
+      test('not scrollable chrome without bar', function() {
+        app.config.chrome.bar = false;
+        app.config.chrome.scrollable = false;
+        chrome = new AppChrome(app);
+        chrome.handleEvent({ type: 'mozbrowsererror', detail: {
+          type: 'offline'
+        }});
+        assert.isFalse(chrome.element.classList.contains('maximized'));
+      });
+
+      test('scrollable chrome with bar', function() {
+        app.config.chrome.bar = true;
+        app.config.chrome.scrollable = true;
+        chrome = new AppChrome(app);
+        chrome.handleEvent({ type: 'mozbrowsererror', detail: {
+          type: 'fatal'
+        }});
+        assert.isFalse(chrome.element.classList.contains('maximized'));
+      });
     });
   });
 
