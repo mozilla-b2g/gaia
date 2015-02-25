@@ -269,7 +269,9 @@ function initDB() {
   photodb.onunavailable = function(event) {
     // Switch back to the thumbnail view. If we were viewing or editing an image
     // it might not be there anymore when the MediaDB becomes available again.
-    setView(LAYOUT_MODE.list);
+    if (currentView !== LAYOUT_MODE.pick) {
+      setView(LAYOUT_MODE.list);
+    }
 
     // If storage becomes unavailble (e.g. the user starts a USB Mass Storage
     // Lock the user out of the app, and tell them why
