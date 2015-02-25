@@ -7,22 +7,24 @@ if (!utils.alphaScroll) {
   (function initScrollbar(doc) {
     var alphaScroll = utils.alphaScroll = {};
 
-    var scrollToCallback, jumper, overlay,
+    var scrollToCallback, jumper, overlay, contactList,
         overlayStyle, groupSelector, liSearch, liFavorites;
 
     var isScrolling = false;
     var alreadyRendered = false;
     var isDesktop = false;
 
-    // Callback invoked when scrolling is neded
-    var P_SCROLLTO_CB = 'scrollToCb';
+    // Callback invoked when scrolling is needed
+    const P_SCROLLTO_CB = 'scrollToCb';
     // Element that represents the alpha scroll bar
-    var P_JUMPER = 'jumper';
+    const P_JUMPER = 'jumper';
     // Element that shows the current letter
-    var P_OVERLAY = 'overlay';
+    const P_OVERLAY = 'overlay';
     // Selector that will allow to get the group that should be scrolled to
     // Group will be identified by this selector plus the corresponding letter
-    var P_GROUP_SELECTOR = 'groupSelector';
+    const P_GROUP_SELECTOR = 'groupSelector';
+    // Selector where contact nodes are located
+    const P_CONTACT_LIST_SEL = 'contactListSel';
 
     var TRANSITION_DELAY = '0.3s';
     var TRANSITION_DURATION = '0.2s';
@@ -63,6 +65,7 @@ if (!utils.alphaScroll) {
       jumper = params[P_JUMPER];
       overlay = params[P_OVERLAY];
       groupSelector = params[P_GROUP_SELECTOR];
+      contactList = params[P_CONTACT_LIST_SEL] || '';
 
       overlay.textContent = '';
       overlayStyle = overlay.style;
@@ -170,8 +173,8 @@ if (!utils.alphaScroll) {
       // so scroll to the top of each section on jump click.
       var anch = dataset.anchor;
       var selector = anch === 'group-#' ? 'group-und' : anch;
-      var domTarget = doc.querySelector('#section-' + selector +
-        ', #' + selector);
+      var domTarget = doc.querySelector(contactList + ' #section-' + selector +
+        ', ' + contactList + ' #' + selector);
       if (!domTarget) {
         return;
       }
