@@ -76,8 +76,6 @@
     this.setScale();
 
     this.isSliding = false;
-    this.listElem.addEventListener(
-                        'transitionend', this._onSlideEnd.bind(this));
   }
 
   XScrollable.prototype = evt({
@@ -124,14 +122,6 @@
       this.focus(this.newCardIndex);
       this.fire('slideEnd');
       this.isSliding = false;
-    },
-
-    _onSlideEnd: function(evt) {
-      if (evt.target === this.listElem &&
-          evt.propertyName === 'transform' &&
-          this.isSliding) {
-        this.endSlide();
-      }
     },
 
     _slide: function(newItem, idx) {
@@ -431,6 +421,9 @@
     handleEvent: function (evt) {
       if (evt.type === 'transitionend' && evt.target === this.listElem &&
                                           evt.propertyName === 'transform') {
+        if (this.isSliding) {
+          this.endSlide();
+        }
         this.fire('listTransformEnd', this.listElem);
       }
     }
