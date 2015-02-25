@@ -159,6 +159,7 @@
 
     '_handle_airplanemode-enabled': function(evt) {
       this.simLockSystemDialog.close();
+      this._alreadyShown = false;
     },
 
     isBothSlotsLocked: function sl_isBothSlotsLocked() {
@@ -170,7 +171,10 @@
       var simSlots = SIMSlotManager.getSlots();
       var isBothLocked = true;
       for (var i = 0; i < simSlots.length; i++) {
-        isBothLocked = isBothLocked && simSlots[i].isLocked();
+        var currentSlot = simSlots[i];
+        var unknownState = currentSlot.getCardState() === 'unknown';
+        var currentLocked = currentSlot.isLocked() || unknownState;
+        isBothLocked = isBothLocked && currentLocked;
       }
       return isBothLocked;
     },
@@ -236,7 +240,7 @@
           return false;
         }
 
-        switch (slot.simCard.cardState) {
+        switch (slot.getCardState()) {
           // do nothing in either unknown or null card states
           case null:
           case 'unknown':

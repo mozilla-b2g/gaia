@@ -28,13 +28,9 @@ suite('SimLockManager', function() {
   mocksHelperForSimLockManager.attachTestHelpers();
 
   function addSimSlot() {
-    MockSIMSlotManager.mInstances.push({
-      index: MockSIMSlotManager.mInstances.length,
-      isAbsent: false,
-      simCard: {
-        cardState: 'pinRequired'
-      }
-    });
+    MockSIMSlotManager.mInstances.push(new MockSIMSlot());
+    var index = MockSIMSlotManager.mInstances.length - 1;
+    MockSIMSlotManager.mInstances[index].simCard.cardState = 'pinRequired';
   }
 
   function removeSimSlot() {
@@ -140,6 +136,68 @@ suite('SimLockManager', function() {
       assert.isFalse(subject.simLockSystemDialog.visible);
     });
 
+    suite('simslot-cardstatechange events', function() {
+      var slot1, slot2;
+
+      setup(function() {
+        MockSIMSlotManager.ready = true;
+        addSimSlot();
+        slot1 = MockSIMSlotManager.mInstances[0];
+        slot2 = MockSIMSlotManager.mInstances[1];
+        subject.simLockSystemDialog.visible = false;
+      });
+
+      test('receiving cardstate from sim2 before 1, both locked', function() {
+        slot1.simCard.cardState = 'pinRequired';
+        slot2.simCard.cardState = 'pinRequired';
+        slot1.locked = true;
+        slot2.locked = true;
+        triggerCardStateEvent(1);
+        assert.isFalse(subject.simLockSystemDialog.show.called);
+        assert.isFalse(subject.simLockSystemDialog.visible);
+      });
+
+      test('receiving cardstate from sim2 before 1, 1 unknown', function() {
+        slot1.simCard.cardState = 'unknown';
+        slot2.simCard.cardState = 'pinRequired';
+        slot1.locked = false;
+        slot2.locked = true;
+        triggerCardStateEvent(1);
+        assert.isFalse(subject.simLockSystemDialog.show.called);
+        assert.isFalse(subject.simLockSystemDialog.visible);
+      });
+
+      test('receiving cardstate from sim2 before 1, only 2 locked', function() {
+        slot1.simCard.cardState = 'ready';
+        slot2.simCard.cardState = 'pinRequired';
+        slot1.locked = false;
+        slot2.locked = true;
+        triggerCardStateEvent(1);
+        assert.isTrue(subject.simLockSystemDialog.show.calledWith(slot2));
+        assert.isTrue(subject.simLockSystemDialog.visible);
+      });
+
+      test('receiving cardstate from sim2 and only 1 sim', function() {
+        this.sinon.stub(MockSIMSlotManager,
+          'hasOnlyOneSIMCardDetected').returns(true);
+        MockSIMSlotManager.mInstances[0] = null;
+        slot2.simCard.cardState = 'pinRequired';
+        slot2.locked = true;
+        triggerCardStateEvent(1);
+        assert.isTrue(subject.simLockSystemDialog.show.calledWith(slot2));
+        assert.isTrue(subject.simLockSystemDialog.visible);
+      });
+    });
+
+    function triggerCardStateEvent(index) {
+      subject.handleEvent({
+        type: 'simslot-cardstatechange',
+        detail: {
+          index: index
+        }
+      });
+    }
+
   });
 
   suite('isBothSlotsLocked', function() {
@@ -196,6 +254,13 @@ suite('SimLockManager', function() {
 
       test('both slots locked', function() {
         this.sinon.stub(slot1, 'isLocked').returns(true);
+        this.sinon.stub(slot2, 'isLocked').returns(true);
+        assert.isTrue(subject.isBothSlotsLocked());
+      });
+
+      test('sim1 is unknown', function() {
+        this.sinon.stub(slot1, 'isLocked').returns(false);
+        this.sinon.stub(slot1, 'getCardState').returns('unknown');
         this.sinon.stub(slot2, 'isLocked').returns(true);
         assert.isTrue(subject.isBothSlotsLocked());
       });
