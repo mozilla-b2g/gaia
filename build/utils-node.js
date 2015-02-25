@@ -230,6 +230,9 @@ module.exports = {
 
   ls: function(dir, recursive, pattern, include) {
     var files = [];
+    if (!dir || !dir.exists()) {
+      return [];
+    }
     dive(dir.path, { recursive: recursive }, function(err, filePath) {
       if (err) {
         // Skip error
@@ -237,7 +240,7 @@ module.exports = {
       }
       var file = this.getFile(filePath);
       if (!pattern || !(include ^ pattern.test(file.leafName))) {
-        files.push(this.getFile(file));
+        files.push(file);
       }
     }.bind(this));
     return files;

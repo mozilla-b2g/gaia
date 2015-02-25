@@ -362,3 +362,4 @@ exports.serializeDocument = serializeDocument;
 exports.cloneJSON = cloneJSON;
 exports.jsComparator = jsComparator;
 exports.NodeHelper = utils.NodeHelper;
+exports.relativePath = utils.relativePath;

@@ -1,4 +1,3 @@
-/*global require, exports*/
 'use strict';
 var utils = require('./utils');
 
@@ -73,25 +72,21 @@ WebappShared.prototype.copyBuildingBlock =
     var dirPath = 'shared/' + paths.join('/');
 
     // Compute the nsIFile for this shared style
-    var styleFolder = this.gaia.sharedFolder.clone();
-    paths.forEach(function(path) {
-      styleFolder.append(path);
-    });
-    var cssFile = styleFolder.clone();
+    var styleFolder = utils.getFile(this.gaia.sharedFolder.path,
+      paths.join('/'));
     if (!styleFolder.exists()) {
       throw new Error('Using inexistent shared style: ' + blockName);
     }
 
-    cssFile.append(blockName + '.css');
+    var cssFile = utils.getFile(styleFolder.path, blockName + '.css');
     var pathInStage = dirPath + '/' + blockName + '.css';
     this.moveToBuildDir(cssFile, pathInStage);
 
     // Copy everything but index.html and any other HTML page into the
     // style/<block> folder.
-    var subFolder = styleFolder.clone();
-    subFolder.append(blockName);
+    var subFolder = utils.getFile(styleFolder.path, blockName);
     utils.ls(subFolder, true).forEach(function(file) {
-      var relativePath = file.getRelativeDescriptor(styleFolder);
+      var relativePath = utils.relativePath(styleFolder.path, file.path);
       // Ignore HTML files at style root folder
       if (relativePath.match(/^[^\/]+\.html$/)) {
         return;
@@ -105,11 +100,7 @@ WebappShared.prototype.copyBuildingBlock =
   };
 
 WebappShared.prototype.pushJS = function(path) {
-  var file = this.gaia.sharedFolder.clone();
-  file.append('js');
-  path.split('/').forEach(function(segment) {
-    file.append(segment);
-  });
+  var file = utils.getFile(this.gaia.sharedFolder.path, 'js', path);
   if (!file.exists()) {
     throw new Error('Using inexistent shared JS file: ' + path + ' from: ' +
                     this.webapp.domain);
@@ -119,11 +110,7 @@ WebappShared.prototype.pushJS = function(path) {
 };
 
 WebappShared.prototype.copyPage = function(path) {
-  var file = this.gaia.sharedFolder.clone();
-  file.append('pages');
-  path.split('/').forEach(function(segment) {
-    file.append(segment);
-  });
+  var file = utils.getFile(this.gaia.sharedFolder.path, 'pages', path);
 
   if (!file.exists()) {
     throw new Error('Using inexistent shared page file: ' + path +
@@ -142,19 +129,18 @@ WebappShared.prototype.copyPage = function(path) {
 };
 
 WebappShared.prototype.pushResource = function(path) {
-  let file = this.gaia.sharedFolder.clone();
-  file.append('resources');
-
+  var paths = utils.joinPath(this.gaia.sharedFolder.path, 'resources');
   path.split('/').forEach(function(segment) {
-    file.append(segment);
-    if (utils.isSubjectToBranding(file.path)) {
-      file.append((this.config.OFFICIAL === '1') ? 'official' : 'unofficial');
+    paths = utils.joinPath(paths, segment);
+    if (utils.isSubjectToBranding(paths)) {
+      paths = utils.joinPath(paths,
+        (this.config.OFFICIAL === '1' ? 'official' : 'unofficial'));
     }
-    if (utils.isSubjectToDeviceType(file.path)) {
-      file.append(this.config.GAIA_DEVICE_TYPE);
+    if (utils.isSubjectToDeviceType(paths)) {
+      paths = utils.joinPath(paths, this.config.GAIA_DEVICE_TYPE);
     }
   }.bind(this));
-
+  var file = utils.getFile(paths);
   if (!file.exists()) {
     throw new Error('Using inexistent shared resource: ' + path +
                     ' from: ' + this.webapp.domain + '\n');
@@ -170,14 +156,15 @@ WebappShared.prototype.pushResource = function(path) {
   let fileNameRegexp = new RegExp(
       '^' + file.leafName.replace(/(\.[a-z]+$)/, '((@.*x)?(\\$1))') + '$');
 
-  utils.ls(file.parent, false).forEach(function(listFile) {
-    var matches = fileNameRegexp.exec(listFile.leafName);
-    if (matches) {
-      var pathInStage = 'shared/resources/' +
-        path.replace(matches[3], matches[1]);
-      this.moveToBuildDir(listFile, pathInStage);
-    }
-  }.bind(this));
+  utils.ls(utils.getFile(utils.dirname(file.path)), false).forEach(
+    function(listFile) {
+      var matches = fileNameRegexp.exec(listFile.leafName);
+      if (matches) {
+        var pathInStage = 'shared/resources/' +
+          path.replace(matches[3], matches[1]);
+        this.moveToBuildDir(listFile, pathInStage);
+      }
+    }.bind(this));
 
   if (file.isDirectory()) {
     utils.ls(file, true).forEach(function(fileInResources) {
@@ -195,9 +182,8 @@ WebappShared.prototype.pushResource = function(path) {
 };
 
 WebappShared.prototype.pushLocale = function(name) {
-  var localeFolder = this.gaia.sharedFolder.clone();
-  localeFolder.append('locales');
-  localeFolder.append(name);
+  var localeFolder = utils.getFile(this.gaia.sharedFolder.path, 'locales',
+    name);
   if (!localeFolder.exists()) {
     throw new Error('Using inexistent shared locale: ' + name + ' from: ' +
                     this.webapp.domain);
@@ -214,18 +200,19 @@ WebappShared.prototype.pushLocale = function(name) {
 };
 
 WebappShared.prototype.pushElements = function(path) {
-  var file = this.gaia.sharedFolder.clone();
-  file.append('elements');
+  var filePath = this.gaia.sharedFolder.path;
+  filePath = utils.joinPath(filePath, 'elements');
 
   var elems = path.split('/');
 
   for (var i = 0; i < elems.length; i++) {
-    file.append(elems[i]);
+    filePath = utils.joinPath(filePath, elems[i]);
     if (elems[i] === 'locales') {
       break;
     }
   }
 
+  var file = utils.getFile(filePath);
   if (!file.exists()) {
     throw new Error('Using inexistent shared elements file: ' + path +
                     ' from: ' + this.webapp.domain);
@@ -249,14 +236,11 @@ WebappShared.prototype.pushElements = function(path) {
   // Copy possible resources from components.
   var resources = ['style.css', 'css', 'js', 'images', 'locales', 'fonts'];
   resources.forEach(function(resource) {
-    var eachFile = this.gaia.sharedFolder.clone();
-    eachFile.append('elements');
-    eachFile.append(elementName);
-    eachFile.append(resource);
-
+    var eachFile = utils.getFile(this.gaia.sharedFolder.path, 'elements',
+      elementName, resource);
     if (eachFile.exists()) {
-      var stagePath = 'shared/' + eachFile.getRelativeDescriptor(
-        this.gaia.sharedFolder);
+      var stagePath = 'shared/' +
+        utils.relativePath(this.gaia.sharedFolder.path, eachFile.path);
       this.moveToBuildDir(eachFile, stagePath);
     }
   }, this);
@@ -388,8 +372,8 @@ WebappShared.prototype.copyShared = function() {
 
 WebappShared.prototype.customizeShared = function() {
   var self = this;
-  var sharedDataFile = this.webapp.buildDirectoryFile.clone();
-  sharedDataFile.append('gaia_shared.json');
+  var sharedDataFile = utils.getFile(this.webapp.buildDirectoryFile.path,
+    'gaia_shared.json');
   if (sharedDataFile.exists()) {
     var sharedData = JSON.parse(utils.getFileContent(sharedDataFile));
     Object.keys(sharedData).forEach(function(kind) {

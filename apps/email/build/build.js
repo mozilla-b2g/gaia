@@ -212,7 +212,7 @@ exports.execute = function(options) {
       removeLoader(options);
       removeFiles(options);
     }, function (err) {
-      console.error(err);
+      utils.log(err);
       throw err;
     });
 };
