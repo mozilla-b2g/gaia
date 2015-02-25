@@ -14,7 +14,8 @@ class TestSetupAndSendIMAPEmail(GaiaTestCase):
 
     def setUp(self):
         try:
-            self.account = self.testvars['email']['IMAP']
+            self.testvars['email']['imap']
+            self.testvars['email']['smtp']
         except KeyError:
             raise SkipTest('account details not present in test variables')
 
@@ -30,7 +31,8 @@ class TestSetupAndSendIMAPEmail(GaiaTestCase):
         https://moztrap.mozilla.org/manage/case/6114/
         """
         # setup IMAP account
-        self.email.setup_IMAP_email(self.account)
+        self.email.setup_IMAP_email(self.testvars['email']['imap'],
+                                    self.testvars['email']['smtp'])
 
         # check header area
         self.assertTrue(self.email.header.is_compose_visible)
@@ -53,7 +55,7 @@ class TestSetupAndSendIMAPEmail(GaiaTestCase):
         _body = 'b%s' % curr_time
         new_email = self.email.header.tap_compose()
 
-        new_email.type_to(self.testvars['email']['IMAP']['email'])
+        new_email.type_to(self.testvars['email']['imap']['email'])
         new_email.type_subject(_subject)
         new_email.type_body(_body)
 

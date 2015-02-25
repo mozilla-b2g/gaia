@@ -153,33 +153,36 @@ Expected variables
 .. code-block:: javascript
 
     'gmail': {
-      'name': '',
       'email': '',
       'password': ''
     }
 
 .. code-block:: javascript
 
-    'IMAP': {
-      'name': '',
+    'imap': {
       'email': '',
-      'password': '',
-      'imap_hostname': '',
-      'imap_name': '',
-      'imap_port': '',
-      'smtp_hostname': '',
-      'smtp_name': '',
-      'smtp_port': ''
+      'hostname': '',
+      'port': '',
+      'username': '',
+      'password': ''
     }
 
 .. code-block:: javascript
 
-    'ActiveSync': {
-      'name': '',
+    'activesync': {
       'email': '',
+      'hostname': '',
+      'username': ''
       'password': '',
-      'active_sync_hostname': '',
-      'active_sync_username': ''
+    }
+
+.. code-block:: javascript
+
+    'smtp': {
+      'hostname': 'smtp.example.com',
+      'port': 465,
+      'username': 'username',
+      'password': 'password'
     }
 
 * settings - Custom settings to override the Gaia default settings. These will be set before each test run but are not mandatory.

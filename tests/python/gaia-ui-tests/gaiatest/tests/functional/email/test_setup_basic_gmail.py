@@ -24,7 +24,7 @@ class TestSetupGmail(GaiaTestCase):
 
     def test_setup_basic_gmail(self):
         # setup basic gmail account
-        self.email.basic_setup_email(self.testvars['email']['gmail']['name'],
+        self.email.basic_setup_email('Gmail account',
                                      self.testvars['email']['gmail']['email'],
                                      self.testvars['email']['gmail']['password'])
 

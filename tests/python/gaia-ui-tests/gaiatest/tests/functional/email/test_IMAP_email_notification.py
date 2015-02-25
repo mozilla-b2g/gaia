@@ -15,7 +15,7 @@ class TestEmailNotification(GaiaTestCase):
 
     def setUp(self):
         try:
-            self.testvars['email']['IMAP']
+            self.testvars['email']['imap']
             self.testvars['email']['smtp']
         except KeyError:
             raise SkipTest('account details not present in test variables')
@@ -30,7 +30,8 @@ class TestEmailNotification(GaiaTestCase):
     def test_IMAP_email_notification(self):
         """ https://moztrap.mozilla.org/manage/case/10744/"""
         # setup email account
-        self.email.setup_IMAP_email(self.testvars['email']['IMAP'])
+        self.email.setup_IMAP_email(self.testvars['email']['imap'],
+                                    self.testvars['email']['smtp'])
 
         # check account has emails
         self.email.wait_for_emails_to_sync()
@@ -40,8 +41,8 @@ class TestEmailNotification(GaiaTestCase):
         self.device.touch_home_button()
 
         # send email to IMAP account
-        mock_email = MockEmail(senders_email=self.testvars['email']['IMAP']['email'],
-                               recipients_email=self.testvars['email']['IMAP']['email'])
+        mock_email = MockEmail(self.testvars['email']['imap']['email'],
+                               self.testvars['email']['imap']['email'])
         EmailUtil().send(self.testvars['email']['smtp'], mock_email)
 
         self.marionette.switch_to_frame()
