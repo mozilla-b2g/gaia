@@ -120,7 +120,7 @@ MDN](https://developer.mozilla.org/en-US/Firefox_OS/Developing_Firefox_OS/Filing
 
 ### Finding a bug to fix
 
-We maintain a list of non-urgent bugs than a contributor can take on. Usually we
+We maintain a list of non-urgent bugs that a contributor can take on. Usually we
 try to add bugs in this list only if it can be fixed in Firefox using the
 previous steps. We can have more involved bugs though, if you want more of a challenge. You can [consult the
 bug list here](https://bugzilla.mozilla.org/buglist.cgi?f1=bug_mentor&o1=isnotempty&resolution=---&emailtype1=exact&query_format=advanced&emailassigned_to1=1&email1=nobody%40mozilla.org&component=Gaia%3A%3ASMS&product=Firefox%20OS),
