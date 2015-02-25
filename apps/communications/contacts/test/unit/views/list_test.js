@@ -19,7 +19,6 @@
 /* global LazyLoader */
 
 require('/shared/js/lazy_loader.js');
-require('/shared/js/usertiming.js');
 require('/shared/js/text_normalizer.js');
 require('/shared/js/tag_visibility_monitor.js');
 require('/shared/js/contacts/utilities/dom.js');
