@@ -14,7 +14,7 @@ class TestSettingsDeviceInfo(GaiaTestCase):
         device_info = settings.open_device_info_settings()
 
         # devices without sim cards have no phone number
-        if self.testvars.get('local_phone_numbers'):
+        if self.environment.phone_numbers:
             self.assertTrue(len(device_info.phone_number) > 0)
             self.assertIsNotNone(device_info.phone_number)
         else:
@@ -30,5 +30,5 @@ class TestSettingsDeviceInfo(GaiaTestCase):
                      'iccid', 'platform_version', 'build_id', 'build_number',
                      'update_channel', 'git_commit_timestamp', 'git_commit_hash'):
             self.assertTrue(len(getattr(more_info, item)) > 0)
-        self.assertEqual(more_info.imei1, self.testvars['imei'][0])
-        self.assertEqual(more_info.imei2, self.testvars['imei'][1])
+        self.assertEqual(more_info.imei1, self.environment.imei_numbers[0])
+        self.assertEqual(more_info.imei2, self.environment.imei_numbers[1])

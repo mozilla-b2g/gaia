@@ -124,8 +124,8 @@ When running your tests add the argument::
 Expected variables
 ^^^^^^^^^^^^^^^^^^
 
-* local_phone_numbers - Array of phone numbers that are attached to the phone.
-* imei - The 12 digit IMEI code of the test phone.
+* phone_number - Phone number of the device or array of phone numbers.
+* imei - IMEI number of the device or array of IMEI numbers.
 * remote_phone_number - Phone number that your device can call during the tests (try not to be a nuisance!). Prefix the number with '+' and your international dialing code.
 * wifi - These are the settings of your WiFi connection. Currently this supports WPA/WEP/etc. You can add WiFi networks by doing the following (remember to replace ``KeyManagement`` and the password with the value your network supports):
 

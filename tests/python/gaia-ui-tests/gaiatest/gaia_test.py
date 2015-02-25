@@ -27,6 +27,7 @@ except:
                                    InvalidResponseException)
     from marionette_driver.wait import Wait
 
+from environment import GaiaTestEnvironment
 from file_manager import GaiaDeviceFileManager, GaiaLocalFileManager
 
 
@@ -761,6 +762,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             if self.restart:
                 pass
 
+        self.environment = GaiaTestEnvironment(self.testvars)
         self.device = GaiaDevice(self.marionette,
                                  manager=self.device_manager,
                                  testvars=self.testvars)

@@ -1,8 +1,8 @@
 {
   "settings": {},
   "prefs": {},
-  "local_phone_numbers": [],
-  "imei": "",
+  "phone_number": [],
+  "imei": [],
   "remote_phone_number": "",
   "wifi": {
     "ssid": ""
