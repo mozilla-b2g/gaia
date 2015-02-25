@@ -764,6 +764,7 @@ suite('dialer/keypad', function() {
         test('The overlay is displayed and then hidden', function(done) {
           subject._getSimContactsList(0).then(function() {
             sinon.assert.calledOnce(ConfirmDialog.show);
+            sinon.assert.calledWith(ConfirmDialog.show, 'loadingSimContacts');
             sinon.assert.calledOnce(ConfirmDialog.hide);
           }).then(done, done);
         });
