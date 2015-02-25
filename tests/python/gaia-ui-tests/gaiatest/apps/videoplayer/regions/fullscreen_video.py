@@ -3,10 +3,13 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import time
+
 try:
     from marionette.by import By
+    from marionette.marionette import Actions
 except:
     from marionette_driver.by import By
+    from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
 
@@ -18,6 +21,10 @@ class FullscreenVideo(Base):
     _elapsed_text_locator = (By.ID, 'elapsed-text')
     _video_player_locator = (By.ID, 'player')
     _video_player_frame_locator = (By.ID, 'player-view')
+    _video_seek_head_locator = (By.ID, 'playHead')
+    _video_rewind_button_locator = (By.ID, 'seek-backward')
+    _video_play_button_locator = (By.ID, 'play')
+    _video_forward_button_locator = (By.ID, 'seek-forward')
 
     def wait_for_player_frame_displayed(self):
         self.wait_for_element_displayed(*self._video_player_frame_locator)
@@ -25,6 +32,24 @@ class FullscreenVideo(Base):
     def show_controls(self):
         self.marionette.find_element(*self._video_player_locator).tap()
         self.wait_for_element_displayed(*self._video_controls_locator)
+
+    # move the slider
+    def move_seek_slider(self, offset):
+        scale = self.marionette.find_element(*self._video_seek_head_locator)
+        finger = Actions(self.marionette)
+        finger.press(scale)
+        finger.move_by_offset(offset, 0)
+        finger.release()
+        finger.perform()
+
+    def tap_rewind(self):
+        self.marionette.find_element(*self._video_rewind_button_locator).tap()
+
+    def tap_forward(self):
+        self.marionette.find_element(*self._video_forward_button_locator).tap()
+
+    def tap_play(self):
+        self.marionette.find_element(*self._video_play_button_locator).tap()
 
     @property
     def elapsed_time(self):
