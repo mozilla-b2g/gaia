@@ -110,11 +110,7 @@ suite('webapp-shared.js', function() {
     });
 
     test('setOptions', function () {
-      testapp.buildDirectoryFile = {
-        parent: {
-          path: 'testBuild'
-        }
-      };
+      testapp.buildDirectoryFilePath = 'testBuildDirectoryFileUrl';
       var options = {
         config: {
           GAIA_DISTRIBUTION_DIR: 'testDistributionDir',
@@ -256,7 +252,7 @@ suite('webapp-shared.js', function() {
         return JSON.stringify(gaia_shared);
       };
       webappShared.webapp = {
-        buildDirectoryFile: mockUtils.getFile('test')
+        buildDirectoryFilePath: 'test'
       };
       webappShared.pushFileByType = function(kind, path) {
         result.push({kind: kind, path: path});
@@ -286,7 +282,8 @@ suite('webapp-shared.js', function() {
         BUILD_APP_NAME: 'testApp'
       };
       webappShared.webapp = {
-        sourceDirectoryName: 'testApp2'
+        sourceDirectoryName: 'testApp2',
+        sourceDirectoryFilePath: 'test'
       };
       assert.equal(webappShared.copyShared(), undefined,
         'config.BUILD_APP_NAME is\'nt *, we only accept one webapp');

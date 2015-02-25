@@ -25,7 +25,8 @@ function getCommsServices(gaiaDir) {
 // This manifest object will have to be serialized and persisted by the caller
 function generateManifest (webapp, gaia) {
   var manifestObject;
-  var manifestContent = utils.getFileContent(webapp.manifestFile);
+  var manifestFile = utils.getFile(webapp.manifestFilePath);
+  var manifestContent = utils.getFileContent(manifestFile);
   manifestObject = JSON.parse(manifestContent);
   var commsServices = getCommsServices(gaia.gaiaDir);
 
