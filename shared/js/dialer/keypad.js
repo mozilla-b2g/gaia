@@ -477,9 +477,19 @@ var KeypadManager = {
         var self = this;
         var index = this._phoneNumber.slice(0, -1); // Remove the trailing '#'
 
+        this.updatePhoneNumber('', 'begin', false);
         this._getSpeedDialNumber(+index).then(
         function(number) {
           self.updatePhoneNumber(number, 'begin', false);
+        }, function(error) {
+          /* Do not display an error message if the user explicitly
+           * cancelled the speed dial operation. */
+          if (error) {
+            ConfirmDialog.show(error, null,  {
+              title: 'noContactsFoundDialogOk',
+              callback: ConfirmDialog.hide
+            });
+          }
         });
 
         event.target.classList.remove('active');
@@ -563,7 +573,7 @@ var KeypadManager = {
         if ((index >= 0) && (index < simContactsList.length)) {
           return simContactsList[index].number;
         } else {
-          return Promise.reject();
+          return Promise.reject('noContactsWereFound');
         }
       });
     });
@@ -631,7 +641,7 @@ var KeypadManager = {
           req.onerror = function(error) {
             console.error('Could not retrieve the ADN contacts from SIM card ' +
                           cardIndex + ', got error ' + error.name);
-            reject();
+            reject('noContactsWereFound');
           };
 
           ConfirmDialog.show('loadingSimContacts', null, {

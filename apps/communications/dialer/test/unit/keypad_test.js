@@ -801,6 +801,8 @@ suite('dialer/keypad', function() {
         test('0# is ignored', function(done) {
           subject._getSpeedDialNumber('0').then(function(number) {
             assert.ok(false, 'the promise should be rejected');
+          }, function(error) {
+            assert.equal(error, 'noContactsWereFound');
           }).then(done, done);
         });
 
