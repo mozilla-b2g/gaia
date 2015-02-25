@@ -350,16 +350,43 @@ suite('system/UtilityTray', function() {
   });
 
   suite('handleEvent: accessibility-control', function() {
-    test('first swipe should show', function() {
+    var swipeDown = new CustomEvent('mozChromeEvent', {
+      detail: {
+        type: 'accessibility-control',
+        details: JSON.stringify({ eventType: 'edge-swipe-down' })
+      }
+    });
+
+    function assertIsShown(isShown) {
+      assert.equal(UtilityTray.overlay.classList.contains('visible'), isShown);
+      assert.equal(UtilityTray.shown, isShown);
+    }
+
+    setup(function() {
       UtilityTray.hide();
-      var evt = new CustomEvent('mozChromeEvent', {
-        detail: {
-          type: 'accessibility-control',
-          details: JSON.stringify({ eventType: 'edge-swipe-down' })
-        }
-      });
-      UtilityTray.handleEvent(evt);
-      assert.equal(UtilityTray.shown, true);
+      UtilityTray.overlay.classList.remove('visible');
+    });
+
+    teardown(function() {
+      window.Service.locked = false;
+      window.Service.runningFTU = false;
+    });
+
+    test('first swipe should show', function() {
+      UtilityTray.handleEvent(swipeDown);
+      assertIsShown(true);
+    });
+
+    test('first swipe should not show when locked', function() {
+      window.Service.locked = true;
+      UtilityTray.handleEvent(swipeDown);
+      assertIsShown(false);
+    });
+
+    test('first swipe should not show when running FTU', function() {
+      window.Service.runningFTU = true;
+      UtilityTray.handleEvent(swipeDown);
+      assertIsShown(false);
     });
 
     test('second swipe should hide', function() {
@@ -371,7 +398,7 @@ suite('system/UtilityTray', function() {
         }
       });
       UtilityTray.handleEvent(evt);
-      assert.equal(UtilityTray.shown, false);
+      assertIsShown(false);
     });
   });
 
