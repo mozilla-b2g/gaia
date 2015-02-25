@@ -116,9 +116,7 @@ h2 {
 #suggestions-select {
   position: absolute;
   top: 0;
-  opacity: 0.1;
-  height: 0;
-  width: 0;
+  opacity: 0;
 }
 
 h2 span, h2 label {
