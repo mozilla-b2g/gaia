@@ -873,7 +873,10 @@ var ThreadUI = {
       this.forceScrollViewToBottom();
     } else {
       if (this.shouldChangePanelNextEvent) {
-        Navigation.toPanel('thread', { id: message.threadId });
+        Navigation.toPanel('thread', {
+          id: message.threadId,
++         focusComposer: true
++       });
         this.shouldChangePanelNextEvent = false;
       }
     }
