@@ -89,6 +89,11 @@ requireApp('system/test/unit/mock_version_helper.js');
 requireApp('system/js/base_module.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
 
+requireApp('system/js/base_icon.js');
+requireApp('system/js/battery_icon.js');
+requireApp('system/js/nfc_icon.js');
+requireApp('system/js/recording_icon.js');
+
 var mocksForBootstrap = new MocksHelper([
   'AirplaneMode',
   'Applications',
