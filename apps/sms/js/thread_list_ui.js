@@ -25,10 +25,12 @@ var ThreadListUI = {
   draftLinks: null,
   draftRegistry: null,
   DRAFT_SAVED_DURATION: 5000,
+  DELETE_READ_UNREAD_DURATION: 5000,
 
   // Used to track timeouts
   timeouts: {
-    onDraftSaved: null
+    onDraftSaved: null,
+    onDeletionReadUnread: null
   },
 
   // Used to track the current number of rendered
@@ -46,7 +48,7 @@ var ThreadListUI = {
     // TODO: https://bugzilla.mozilla.org/show_bug.cgi?id=854413
     [
       'container', 'no-messages', 'read-unread-button',
-      'check-uncheck-all-button','composer-link',
+      'check-uncheck-all-button','composer-link', 'delete-read-unread-banner',
       'delete-button', 'edit-header','options-button',
       'edit-mode', 'edit-form', 'draft-saved-banner'
     ].forEach(function(id) {
@@ -78,6 +80,10 @@ var ThreadListUI = {
 
     this.container.addEventListener(
       'click', this
+    );
+
+    this.container.addEventListener(
+      'contextmenu', this
     );
 
     this.editForm.addEventListener(
@@ -249,7 +255,7 @@ var ThreadListUI = {
   },
 
   handleEvent: function thlui_handleEvent(event) {
-    var draftId;
+    var draftId, parent, parentThreadId, l10nKey, l10nKey1, threadIdToDelete = [];
 
     switch (event.type) {
       case 'click':
@@ -263,8 +269,8 @@ var ThreadListUI = {
           ThreadUI.draft = Drafts.get(draftId);
         }
 
-        var parent = event.target.parentNode;
-        var parentThreadId = parent.dataset.threadId;
+        parent = event.target.parentNode;
+        parentThreadId = parent.dataset.threadId;
 
         if (parentThreadId) {
           event.preventDefault();
@@ -279,6 +285,84 @@ var ThreadListUI = {
               id: +parentThreadId
             });
           }
+        }
+
+        break;
+      case 'contextmenu':
+        if (this.inEditMode) {
+          return;
+        }
+
+        parent = event.target.parentNode;
+        parentThreadId = parent.dataset.threadId;
+        var thread = Threads.get(parentThreadId);
+
+        if (parentThreadId) {
+          event.preventDefault();
+          event.stopPropagation();
+          // Show options per single thread
+          var params = {
+            type: 'action',
+            header: { l10nId: 'thread-options' },
+            items:[]
+          };
+          threadIdToDelete.push(parentThreadId);
+
+          params.items.push(
+            {
+              l10nId: 'delete-thread',
+              method: function deleteThread(threadIdToDelete) {
+                ThreadListUI.performDeletion(threadIdToDelete);
+                ThreadListUI.onDeletionReadUnread({
+                  l10nId: 'deleted',
+                  l10nArgs: {
+                    n: 1
+                  }
+                });
+              },
+              params: [threadIdToDelete]
+            }
+          );
+
+          if(typeof Threads.get(+parentThreadId) !== 'undefined') {
+            var isRead = thread && (thread.unreadCount > 0);
+
+            isRead ? l10nKey = 'mark-as-read' : l10nKey = 'mark-as-unread';
+            isRead ? l10nKey1 = 'marked-as-read' : l10nKey1 = 'marked-as-unread';
+
+            params.items.push(
+              {
+                l10nId: l10nKey,
+                method: function markReadUnread(parentThreadId) {
+                  {
+                    var selectThread =
+                      document.getElementById('thread-' + thread.id);
+                    thread.unreadCount = isRead ? 0 : 1;
+                    if (isRead) {
+                      selectThread.classList.remove('unread');
+                    } else {
+                      selectThread.classList.add('unread');
+                    }
+                    MessageManager.markThreadRead(+parentThreadId, isRead);
+                    ThreadListUI.onDeletionReadUnread({
+                      l10nId: l10nKey1,
+                      l10nArgs: {
+                        n: 1
+                      }
+                    });
+                  }
+                },
+                params: [+parentThreadId]
+              }
+            );
+          }
+
+          params.items.push({
+            l10nId: 'cancel'
+          });
+
+          var options = new OptionMenu(params);
+          options.show();
         }
 
         break;
@@ -340,6 +424,7 @@ var ThreadListUI = {
   },
 
   markReadUnread: function thlui_markReadUnread() {
+    var l10nKey1;
     var selected = this.selectionHandler;
     var isRead = (this.readUnreadButton.dataset.action === 'mark-as-read');
 
@@ -364,8 +449,17 @@ var ThreadListUI = {
         MessageManager.markThreadRead(thread.id, isRead);
       }
     });
-
+    
     this.cancelEdit();
+
+    isRead ? l10nKey1 = 'marked-as-read' : l10nKey1 = 'marked-as-unread';
+    ThreadListUI.onDeletionReadUnread({
+      l10nId: l10nKey1,
+      l10nArgs: {
+        n: this.selectionHandler.selectedCount
+      }
+    });
+  
   },
 
   removeThread: function thlui_removeThread(threadId) {
@@ -408,89 +502,92 @@ var ThreadListUI = {
   // please make sure url will also be revoked if new delete api remove threads
   // without calling removeThread in the future.
   delete: function thlui_delete() {
-    function performDeletion() {
-      /* jshint validthis: true */
+    var selection = this.selectionHandler;
 
-      var threadIdsToDelete = [],
-          messageIdsToDelete = [],
-          threadCountToDelete = 0,
-          selected = this.selectionHandler.selectedList;
+    var promise = new Promise(function(resolve) {
+      ThreadListUI.performDeletion(selection.selectedList);
+      resolve();
+    });
 
-      function exitEditMode() {
-        ThreadListUI.cancelEdit();
-        WaitingScreen.hide();
-      }
-
-      function onAllThreadMessagesRetrieved() {
-        if (!--threadCountToDelete) {
-          MessageManager.deleteMessages(messageIdsToDelete);
-
-          threadIdsToDelete.forEach(function(threadId) {
-            ThreadListUI.deleteThread(threadId);
-          });
-
-          messageIdsToDelete = threadIdsToDelete = null;
-
-          exitEditMode();
+    promise.then(function() {
+      ThreadListUI.onDeletionReadUnread({
+        l10nId: 'deleted',
+        l10nArgs: {
+          n: selection.selectedCount
         }
-      }
-
-      function onThreadMessageRetrieved(message) {
-        messageIdsToDelete.push(message.id);
-        return true;
-      }
-
-      WaitingScreen.show();
-
-      threadIdsToDelete = selected.reduce(function(list, value) {
-        // Coerce the threadId back to a number MobileMessageFilter and all
-        // other platform APIs expect this value to be a number.
-        var threadId = +value;
-        var isDraft = typeof Threads.get(threadId) === 'undefined';
-
-        if (isDraft) {
-          Drafts.delete(Drafts.get(threadId));
-          ThreadListUI.removeThread(threadId);
-        } else {
-          list.push(threadId);
-        }
-
-        return list;
-      }, []);
-
-      // That means that we've just removed some drafts
-      if (threadIdsToDelete.length !== selected.length) {
-        Drafts.store();
-      }
-
-      if (!threadIdsToDelete.length) {
-        exitEditMode();
-        return;
-      }
-      
-      threadCountToDelete = threadIdsToDelete.length;
-
-      threadIdsToDelete.forEach(function(threadId) {
-        MessageManager.getMessages({
-          // Filter and request all messages with this threadId
-          filter: { threadId: threadId },
-          each: onThreadMessageRetrieved,
-          end: onAllThreadMessagesRetrieved
-        });
       });
+    });
+  },
+
+  performDeletion: function thlui_performDeletion(selected) {
+    /* jshint validthis: true */
+
+    var threadIdsToDelete = [],
+        messageIdsToDelete = [],
+        threadCountToDelete = 0;
+
+    function exitEditMode() {
+      ThreadListUI.cancelEdit();
+      WaitingScreen.hide();
     }
 
-    return Utils.confirm(
-      {
-        id: 'deleteThreads-confirmation-message',
-        args: { n: this.selectionHandler.selectedCount }
-      },
-      null,
-      {
-        text: 'delete',
-        className: 'danger'
+    function onAllThreadMessagesRetrieved() {
+      if (!--threadCountToDelete) {
+        MessageManager.deleteMessages(messageIdsToDelete);
+
+        threadIdsToDelete.forEach(function(threadId) {
+          ThreadListUI.deleteThread(threadId);
+        });
+
+        messageIdsToDelete = threadIdsToDelete = null;
+
+        exitEditMode();
       }
-    ).then(performDeletion.bind(this));
+    }
+
+    function onThreadMessageRetrieved(message) {
+      messageIdsToDelete.push(message.id);
+      return true;
+    }
+
+    WaitingScreen.show();
+
+    threadIdsToDelete = selected.reduce(function(list, value) {
+      // Coerce the threadId back to a number MobileMessageFilter and all
+      // other platform APIs expect this value to be a number.
+      var threadId = +value;
+      var isDraft = typeof Threads.get(threadId) === 'undefined';
+
+      if (isDraft) {
+        Drafts.delete(Drafts.get(threadId));
+        ThreadListUI.removeThread(threadId);
+      } else {
+        list.push(threadId);
+      }
+
+      return list;
+    }, []);
+
+    // That means that we've just removed some drafts
+    if (threadIdsToDelete.length !== selected.length) {
+      Drafts.store();
+    }
+
+    if (!threadIdsToDelete.length) {
+      exitEditMode();
+      return;
+    }
+
+    threadCountToDelete = threadIdsToDelete.length;
+
+    threadIdsToDelete.forEach(function(threadId) {
+      MessageManager.getMessages({
+        // Filter and request all messages with this threadId
+        filter: { threadId: threadId },
+        each: onThreadMessageRetrieved,
+        end: onAllThreadMessagesRetrieved
+      });
+    });
   },
 
   setEmpty: function thlui_setEmpty(empty) {
@@ -1002,8 +1099,23 @@ var ThreadListUI = {
     this.timeouts.onDraftSaved = setTimeout(function hideDraftSavedBanner() {
       this.draftSavedBanner.classList.add('hide');
     }.bind(this), this.DRAFT_SAVED_DURATION);
-  }
-};
+  },
+
+  onDeletionReadUnread: function thlui_onDeletionReadUnread(opts) {
+    navigator.mozL10n.setAttributes(
+      this.deleteReadUnreadBanner.querySelector('p'), opts.l10nId, opts.l10nArgs
+    );
+    this.deleteReadUnreadBanner.classList.remove('hide');
+
+    clearTimeout(this.timeouts.deleteReadUnreadBanner);
+    this.timeouts.deleteReadUnreadBanner = null;
+
+    this.timeouts.deleteReadUnreadBanner = setTimeout(
+      function hideDeletionReadUnreadBanner() {
+        this.deleteReadUnreadBanner.classList.add('hide');
+      }.bind(this), this.DELETE_READ_UNREAD_DURATION);
+    }
+  };
 
 Object.defineProperty(ThreadListUI, 'allInputs', {
   get: function() {
