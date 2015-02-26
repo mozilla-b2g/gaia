@@ -1284,19 +1284,43 @@ suite('thread_ui.js >', function() {
           assert.isTrue(fixture.isInvalid);
         });
 
-        test('[Email]input value has matching record ', function() {
+        test('[Email]input incomplete value has matching record', function() {
 
           MockSettings.supportEmailRecipient = true;
+          // TODO we need to filter properly inside contact search
+          // results (bug 1084184)
+          contacts[0].tel = [];
+          ThreadUI.validateContact(fixtureEmail, 'a', contacts);
+
+          sinon.assert.calledOnce(ThreadUI.recipients.remove);
+          sinon.assert.calledWith(ThreadUI.recipients.remove, 0);
+
+          sinon.assert.calledWithMatch(
+            ThreadUI.recipients.add,
+            {
+              source: 'contacts',
+              number: 'a@b.com'
+            }
+          );
+        });
+
+        test('[Email]input email value has matching record ', function() {
+
+          MockSettings.supportEmailRecipient = true;
+          // TODO we need to filter properly inside contact search
+          // results (bug 1084184)
+          contacts[0].tel = [];
           ThreadUI.validateContact(fixtureEmail, 'a@b.com', contacts);
 
           sinon.assert.calledOnce(ThreadUI.recipients.remove);
           sinon.assert.calledWith(ThreadUI.recipients.remove, 0);
 
-          assert.equal(
-            ThreadUI.recipients.add.firstCall.args[0].source, 'contacts'
-          );
-          assert.equal(
-            ThreadUI.recipients.add.firstCall.args[0].number, 'a@b.com'
+          sinon.assert.calledWithMatch(
+            ThreadUI.recipients.add,
+            {
+              source: 'contacts',
+              number: 'a@b.com'
+            }
           );
         });
 
@@ -1441,6 +1465,11 @@ suite('thread_ui.js >', function() {
           contacts[0].email = [{value: 'a@b'}];
           contacts[1].email = [{value: 'a@c'}];
 
+          // in bug 1084184 we should be able to filter the contacts using the
+          // fValue.
+          contacts[0].tel = [];
+          contacts[1].tel = [];
+
           // An actual accepted recipient from contacts
           ThreadUI.recipients.add({
             name: 'Janet Jones',
@@ -1479,8 +1508,10 @@ suite('thread_ui.js >', function() {
               'single, same tel record (invalid) ', function() {
 
           MockSettings.supportEmailRecipient = true;
-          // Get rid of the second tel record to create a "duplicate"
+          // Make sure we have only one email
           contacts[0].email.length = 1;
+          // in bug 1084184 we'll be able to filter using the fValue parameter.
+          contacts[0].tel = [];
 
           // An actual accepted recipient from contacts
           fixtureEmail.source = 'contacts';
