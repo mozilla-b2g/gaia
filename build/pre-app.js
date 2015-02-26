@@ -8,11 +8,9 @@ function execute(options) {
 
   nodeHelper.require('svoperapps', options);
 
-  // Populates webapps_shared.json in stage folder
-  // and uuid.json for external apps
   nodeHelper.require('webapp-manifests', options);
 
-  require('./contacts-import-services').execute(options);
+  nodeHelper.require('contacts-import-services', options);
 
   nodeHelper.require('./keyboard-layouts', options);
 
