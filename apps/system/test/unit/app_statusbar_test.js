@@ -79,6 +79,11 @@ suite('system/AppStatusbar', function() {
         assert.isFalse(element.classList.contains('dragged'));
       }
 
+      function assertChromeBarDragging(isDragging) {
+        assert.equal(subject.chromeBar.classList.contains('dragging'),
+          isDragging);
+      }
+
       teardown(function() {
         this.sinon.clock.tick(10000);
       });
@@ -104,6 +109,29 @@ suite('system/AppStatusbar', function() {
           assert.isTrue(touchmove.defaultPrevented);
           assert.isTrue(touchend.defaultPrevented);
         });
+
+      test('chromeBar dragging, then dragged then released when above ' +
+        'threshold', function() {
+        assertChromeBarDragging(false);
+        fakeDispatch('touchstart', 100, 0);
+        assertChromeBarDragging(true);
+        fakeDispatch('touchmove', 100, 24);
+        assertChromeBarDragging(true);
+        fakeDispatch('touchend', 100, 25);
+        assertChromeBarDragging(false);
+        assert.isTrue(element.classList.contains('dragged'));
+      });
+
+      test('chromeBar dragging then released when below threshold', function() {
+        assertChromeBarDragging(false);
+        fakeDispatch('touchstart', 100, 0);
+        assertChromeBarDragging(true);
+        fakeDispatch('touchmove', 100, 2);
+        assertChromeBarDragging(true);
+        fakeDispatch('touchend', 100, 2);
+        assertChromeBarDragging(false);
+        assertStatusBarReleased();
+      });
 
       test('it should stop the propagation of the events at first', function() {
         var fakeEvt = {
