@@ -28,7 +28,7 @@ function execute(options) {
   nodeHelper.require('webapp-shared', options);
 
   // Copy common files such as webapps.json
-  require('./copy-common-files').execute(options);
+  nodeHelper.require('copy-common-files', options);
 }
 
 exports.execute = execute;
