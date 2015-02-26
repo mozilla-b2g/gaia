@@ -194,38 +194,60 @@ suite('controllers/camera', function() {
     });
   });
 
-  suite('CameraController#handleKeyDown', function() {
-    var cameraKeyEv  = { key: 'camera' };
-    var volupKeyEv   = { key: 'volumeup' };
-    var voldownKeyEv = { key: 'volumedown' };
-    var focusKeyEv   = { key: 'mozcamerafocusadjust' };
-
+  suite('CameraController#onKeyDown', function() {
     var captureSpy;
     setup(function() {
-      captureSpy = this.sinon.spy(this.controller, 'capture');
+      this.keys = {
+        camera: 'camera',
+        volumeup: 'volumeup',
+        volumedown: 'volumedown',
+        focus: 'mozcamerafocusadjust',
+      };
+
+      this.event = {
+        key: undefined,
+        preventDefault: sinon.spy()
+      };
+
       this.camera.focus = {
         focus: this.sinon.spy()
       };
     });
 
     test('camera button triggers capture', function() {
-      this.controller.handleKeyDown(cameraKeyEv);
-      sinon.assert.called(captureSpy);
+      this.event.key = 'camera';
+      this.controller.onKeyDown(this.event);
+      sinon.assert.called(this.camera.capture);
     });
 
     test('volume up button triggers capture', function() {
-      this.controller.handleKeyDown(volupKeyEv);
-      sinon.assert.called(captureSpy);
+      this.event.key = 'volumeup';
+      this.controller.onKeyDown(this.event);
+      sinon.assert.called(this.camera.capture);
     });
 
     test('volume down button triggers capture', function() {
-      this.controller.handleKeyDown(voldownKeyEv);
-      sinon.assert.called(captureSpy);
+      this.event.key = 'volumedown';
+      this.controller.onKeyDown(this.event);
+      sinon.assert.called(this.camera.capture);
     });
 
     test('camera focus button triggers focus', function() {
-      this.controller.handleKeyDown(focusKeyEv);
+      this.event.key = 'mozcamerafocusadjust';
+      this.controller.onKeyDown(this.event);
       sinon.assert.called(this.camera.focus.focus);
+    });
+
+    test('It calls preventDefault if the capture call doesn\'t return false', function() {
+      this.camera.capture.returns(false);
+      this.event.key = 'volumedown';
+      this.controller.onKeyDown(this.event);
+      sinon.assert.notCalled(this.event.preventDefault);
+
+      this.camera.capture.returns(undefined);
+      this.event.key = 'volumedown';
+      this.controller.onKeyDown(this.event);
+      sinon.assert.called(this.event.preventDefault);
     });
   });
 
