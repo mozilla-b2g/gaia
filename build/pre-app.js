@@ -16,8 +16,7 @@ function execute(options) {
 
   nodeHelper.require('./keyboard-layouts', options);
 
-  // Generate user.js
-  require('./preferences').execute(options);
+  nodeHelper.require('./preferences', options);
 
   if (options.BUILD_APP_NAME == '*') {
     require('./settings').execute(options);

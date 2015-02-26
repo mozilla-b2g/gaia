@@ -43,8 +43,7 @@ module.exports = {
   },
 
   joinPath: function() {
-    var src = path.join.apply(path, arguments);
-    return src;
+    return path.join.apply(path, arguments);
   },
 
   getOsType: function() {
