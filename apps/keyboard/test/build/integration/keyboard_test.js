@@ -151,7 +151,8 @@ suite('Keyboard layouts building tests', function() {
         'js/imes/latin/dictionaries/sr-Cyrl.dict',
         'js/imes/latin/dictionaries/sr-Latn.dict',
         'js/imes/latin/dictionaries/sv.dict',
-        'js/imes/latin/dictionaries/tr.dict'
+        'js/imes/latin/dictionaries/tr.dict',
+        'js/imes/latin/dictionaries/af.dict'
       ];
 
       var checkList = [].concat(layouts, imes, dicts);
