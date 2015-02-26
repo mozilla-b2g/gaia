@@ -10,12 +10,11 @@ function onLoadDialer() {
 
   window.removeEventListener('load', onLoadDialer);
 
-  /* XXX: Don't specify a default volume control channel as we want to stick
-   * with the default one as a workaround for bug 1092346. Once that bug is
-   * fixed please add back the following line:
-   *
-   * navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
-   */
+  /* Tell the audio channel manager that we want to adjust the "notification"
+   * channel when the user presses the volumeup/volumedown buttons. */
+  if (navigator.mozAudioChannelManager) {
+    navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
+  }
 
   KeypadManager.init(/* oncall */ false);
   // Keypad (app core content) is now bound
