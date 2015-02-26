@@ -8,6 +8,7 @@
 
 'use strict';
 
+require('/shared/js/event_dispatcher.js');
 require('/shared/test/unit/mocks/mock_dump.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
@@ -705,6 +706,27 @@ suite('WAP Push', function() {
         contentType: 'text/vnd.wap.sl',
         content: '<sl href="http://www.mozilla.org" action="execute-high"/>',
         serviceId: 0
+      },
+      no_action: {
+        sender: '+31641600986',
+        contentType: 'text/vnd.wap.si',
+        content: '<si>' +
+                 '<indication si-id="gaia-test@mozilla.org">' +
+                 'check this out' +
+                 '</indication>' +
+                 '</si>',
+        serviceId: 0
+      },
+      delete: {
+        sender: '+31641600986',
+        contentType: 'text/vnd.wap.si',
+        content: '<si>' +
+                 '<indication si-id="gaia-test@mozilla.org"' +
+                 '            action="delete">' +
+                 'check this out' +
+                 '</indication>' +
+                 '</si>',
+        serviceId: 0
       }
     };
 
@@ -751,6 +773,20 @@ suite('WAP Push', function() {
         sinon.assert.notCalled(window.close);
         sinon.assert.calledOnce(SiSlScreenHelper.populateScreen);
         assert.isTrue(MockNavigatormozApps.mAppWasLaunched);
+      }).then(done, done);
+    });
+
+    test('action=delete causes notifications of the deleted messages to ' +
+         'be removed', function(done) {
+      this.sinon.spy(MockNotification.prototype, 'close');
+      this.sinon.stub(Date, 'now').returns(0);
+
+      WapPushManager.onWapPushReceived(messages.no_action).then(function() {
+        return WapPushManager.onWapPushReceived(messages.delete);
+      }).then(function() {
+        sinon.assert.calledOnce(Notification);
+        sinon.assert.calledWith(MockNotification.get, { tag: 0 });
+        sinon.assert.calledOnce(MockNotification.prototype.close);
       }).then(done, done);
     });
   });

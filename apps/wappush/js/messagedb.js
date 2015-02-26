@@ -1,7 +1,7 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global IDBKeyRange, Promise */
+/* global EventDispatcher, IDBKeyRange, Promise */
 
 /* exported MessageDB */
 
@@ -191,7 +191,8 @@ var MessageDB = (function() {
   }
 
   /**
-   * Deletes all messages with the specified si-id.
+   * Deletes all messages with the specified si-id. Generates a
+   * `messagedeleted' event for every message that was deleted.
    *
    * @param {Object} store The messages' object store.
    * @param {String} id The si-id of the messages to be deleted.
@@ -204,7 +205,11 @@ var MessageDB = (function() {
       var cursor = event.target.result;
 
       if (cursor) {
-        cursor.delete();
+        var message = cursor.value;
+
+        cursor.delete().onsuccess = function mdb_onDeleted() {
+          mdb_dispatchEvent('messagedeleted', message);
+        };
         cursor.continue();
       }
     };
@@ -247,13 +252,29 @@ var MessageDB = (function() {
     });
   }
 
+  /**
+   * Deletes all the messages with the specified timestamp. Generates a
+   * `messagedeleted' event for every message that was deleted.
+   *
+   * @param {String} timestamp The timestamp used to identify the messages to
+   *        be deleted.
+   *
+   * @return {Promise} A promise for this operation.
+   */
   function mdb_deleteByTimestamp(timestamp) {
     return mdb_open().then(function mdb_deleteCallback(db) {
       var transaction = db.transaction(MESSAGE_STORE_NAME, 'readwrite');
       var promise = mdb_transactionPromise(transaction);
       var store = transaction.objectStore(MESSAGE_STORE_NAME);
 
-      store.delete(timestamp.toString());
+      timestamp = timestamp.toString();
+      store.get(timestamp).onsuccess = function(event) {
+        var message = event.target.result;
+
+        store.delete(timestamp).onsuccess = function mdb_onDeleted() {
+          mdb_dispatchEvent('messagedeleted', message);
+        };
+      };
 
       return promise;
     });
@@ -261,7 +282,7 @@ var MessageDB = (function() {
 
   /**
    * Removes all messages from the database. Returns a promise that is
-   * resolved when the operation has completed.
+   * resolved when the operation has completed. This does not fire events.
    *
    * @return {Object} A promise for this operation.
    */
@@ -277,10 +298,31 @@ var MessageDB = (function() {
     });
   }
 
-  return {
+  /**
+   * Dispatches a new event to the registered event handlers.
+   *
+   * @param {String} type The event type.
+   * @param {Object} target The event target, usually a message.
+   */
+  function mdb_dispatchEvent(type, target) {
+    /* We explicitly use the MessageDB singleton as the EventDispatcher code
+     * requires the `this' reference to operate. */
+    MessageDB.emit(type, target);
+  }
+
+  /**
+   * List of events which can be listened to on this object. Currently only
+   * contains the `messagedeleted' event, emitted whenever a message is
+   * deleted from the database.
+   */
+  var mdb_allowedEvents = [
+    'messagedeleted'
+  ];
+
+  return EventDispatcher.mixin({
     put: mdb_put,
     retrieve: mdb_retrieve,
     deleteByTimestamp: mdb_deleteByTimestamp,
     clear: mdb_clear
-  };
+  }, mdb_allowedEvents);
 })();

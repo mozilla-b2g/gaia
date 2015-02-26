@@ -87,6 +87,18 @@ suite('ParsedMessage', function() {
         serviceId: 0
       },
 
+      invalid_delete: {
+        sender: '+31641600986',
+        contentType: 'text/vnd.wap.si',
+        content: '<si>' +
+                 '<indication action="delete"' +
+                 '            href="http://www.mozilla.org">' +
+                 'check this out' +
+                 '</indication>' +
+                 '</si>',
+        serviceId: 0
+      },
+
       sl: {
         sender: '+31641600986',
         contentType: 'text/vnd.wap.sl',
@@ -182,6 +194,10 @@ suite('ParsedMessage', function() {
       var message = ParsedMessage.from(messages.action, timestamp);
 
       assert.equal(message.action, 'signal-none');
+    });
+
+    test('SI message with delete action but no si-id field', function() {
+      assert.isNull(ParsedMessage.from(messages.invalid_delete, timestamp));
     });
 
     test('SL message', function() {

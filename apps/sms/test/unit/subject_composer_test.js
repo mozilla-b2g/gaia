@@ -8,7 +8,8 @@
 
 'use strict';
 
-require('/js/event_dispatcher.js');
+require('/shared/js/event_dispatcher.js');
+
 require('/js/subject_composer.js');
 
 suite('SubjectComposer >', function() {
