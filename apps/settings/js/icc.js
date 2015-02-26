@@ -58,7 +58,7 @@ require([
       timeout: 0
     };
     var _visibilityChangeHandler = null;
-    var _backHandler = function() {};
+    var _backHandler = null;
     init();
 
     function sendVisibilityChangeEvent() {
@@ -116,7 +116,11 @@ require([
       document.addEventListener('visibilitychange',
         visibilityChangeHandler, false);
 
-      iccStkMainHeader.addEventListener('action', _backHandler);
+      iccStkMainHeader.addEventListener('action', function onBack() {
+        if (typeof _backHandler === 'function') {
+          _backHandler();
+        }
+      });
     }
 
     function addCloseNotificationsEvents(message) {
