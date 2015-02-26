@@ -41,6 +41,7 @@ suite('system/AppWindow', function() {
   };
 
   setup(function(done) {
+    console.log('hidden?', document.hidden);
     this.sinon.useFakeTimers();
 
     window.Service = MockService;

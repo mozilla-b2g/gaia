@@ -2702,6 +2702,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
       if (this.iframeAttrs) {
         var key;
+        console.log(key);
         for (key in this.iframeAttrs) {
           if (this.iframeAttrs.hasOwnProperty(key)) {
             iframe.setAttribute(
