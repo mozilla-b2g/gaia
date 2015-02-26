@@ -331,6 +331,7 @@ exports.joinPath = utils.joinPath;
 exports.copyFileTo = utils.copyFileTo;
 exports.copyToStage = utils.copyToStage;
 exports.createXMLHttpRequest = utils.createXMLHttpRequest;
+exports.download = utils.download;
 exports.downloadJSON = utils.downloadJSON;
 exports.readJSONFromPath = utils.readJSONFromPath;
 exports.readZipManifest = utils.readZipManifest;

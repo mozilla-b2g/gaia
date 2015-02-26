@@ -6,7 +6,7 @@ var nodeHelper = new utils.NodeHelper();
 function execute(options) {
   nodeHelper.require('clean-stage-app', options);
 
-  require('./svoperapps').execute(options);
+  nodeHelper.require('svoperapps', options);
 
   // Populates webapps_shared.json in stage folder
   // and uuid.json for external apps

@@ -14,6 +14,7 @@ Cu.import('resource://gre/modules/reflect.jsm');
 
 var utils = require('./utils.js');
 var subprocess = require('sdk/system/child_process/subprocess');
+var downloadMgr = require('./download-manager').getDownloadManager();
 
 const UUID_FILENAME = 'uuid.json';
 
@@ -638,6 +639,10 @@ function createXMLHttpRequest() {
   var ret = new XMLHttpRequest();
   ret.mozBackgroundRequest = true;
   return ret;
+}
+
+function download(url, dest, callback, errorCallback) {
+  downloadMgr.download(url, dest, callback, errorCallback);
 }
 
 /**
@@ -1300,6 +1305,7 @@ exports.copyFileTo = copyFileTo;
 exports.copyDirTo = copyDirTo;
 exports.copyToStage = copyToStage;
 exports.createXMLHttpRequest = createXMLHttpRequest;
+exports.download = download;
 exports.downloadJSON = downloadJSON;
 exports.readJSONFromPath = readJSONFromPath;
 exports.processEvents = processEvents;
