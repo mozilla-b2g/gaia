@@ -364,7 +364,10 @@ suite('system/NotificationScreen >', function() {
       assert.equal(dir, toaster.dir);
       var notificationNode =
         document.getElementsByClassName('notification')[0];
+      var notificationNodeTitle =
+        document.querySelector('.notification .title-container');
       assert.equal(dir, notificationNode.dir);
+      assert.equal('auto', notificationNodeTitle.dir);
     }
 
     test('calling addNotification with rtl direction', function() {
