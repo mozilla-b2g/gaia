@@ -244,7 +244,7 @@ suite('system/bluetooth_v2', function() {
     });
 
     test('removeEventListener is called', function() {
-      Bluetooth._removeEventListeners();
+      Bluetooth._cleanupListenerAndAdapters();
       assert.ok(Bluetooth._bluetooth.removeEventListener
         .calledWith('attributechanged'));
       assert.equal(Bluetooth._adapter, null);
@@ -254,7 +254,7 @@ suite('system/bluetooth_v2', function() {
       Bluetooth._cacheGetAdapterPromise = new Promise(function(resolve) {
         resolve();
       });
-      Bluetooth._removeEventListeners();
+      Bluetooth._cleanupListenerAndAdapters();
       assert.ok(Bluetooth._bluetooth.removeEventListener
         .calledWith('attributechanged'));
       assert.equal(Bluetooth._cacheGetAdapterPromise, null);
@@ -264,8 +264,8 @@ suite('system/bluetooth_v2', function() {
 
   suite('handle Bluetooth states', function() {
     setup(function() {
-      this.sinon.spy(Bluetooth, '_enableHandler');
-      this.sinon.spy(Bluetooth, '_disableHandler');
+      this.sinon.spy(Bluetooth, '_requestEnableHandler');
+      this.sinon.spy(Bluetooth, '_requestDisableHandler');
       this.sinon.spy(Bluetooth, '_updateProfileState');
       this.sinon.stub(Bluetooth, 'getAdapter', function() {
         return { then: function(resolve) { resolve(MockBTAdapter); } };
@@ -281,14 +281,14 @@ suite('system/bluetooth_v2', function() {
 
     test('request-enable-bluetooth is called', function() {
       window.dispatchEvent(new CustomEvent('request-enable-bluetooth'));
-      assert.ok(Bluetooth._enableHandler.called);
+      assert.ok(Bluetooth._requestEnableHandler.called);
       assert.ok(MockBTAdapter.enable.called);
       assert.ok(Bluetooth._updateProfileState.called);
     });
 
     test('request-disable-bluetooth is called', function() {
       window.dispatchEvent(new CustomEvent('request-disable-bluetooth'));
-      assert.ok(Bluetooth._disableHandler.called);
+      assert.ok(Bluetooth._requestDisableHandler.called);
       assert.ok(MockBTAdapter.disable.called);
     });
   });

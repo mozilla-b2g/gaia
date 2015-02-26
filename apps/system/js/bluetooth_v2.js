@@ -9,7 +9,7 @@
  * change event and _bluetoothAdapterHandler to handle status change event.
  *
  */
-/* global SettingsListener, Service */
+/* global Service */
 /* exported Bluetooth2 */
 (function(exports) {
 
@@ -67,14 +67,14 @@ Bluetooth.prototype = {
   _cacheGetAdapterPromise: null,
 
   /**
-   * Store a reference of the Bluetooth API.
+   * Store a reference for mozBluetooth.
    *
    * @private
    */
   _bluetooth: null,
 
   /**
-   * Store a reference of the Bluetooth API.
+   * State of Bluetooth default adapter.
    *
    * @private
    */
@@ -148,17 +148,6 @@ Bluetooth.prototype = {
     }
 
     this._bluetooth = window.navigator.mozBluetooth;
-    SettingsListener.observe('bluetooth.enabled', true, (value) => {
-      if (!this._bluetooth) {
-        // roll back the setting value to notify the UIs
-        // that Bluetooth interface is not available
-        if (value) {
-          navigator.mozSettings.createLock()
-            .set({'bluetooth.enabled': false});
-        }
-        return;
-      }
-    });
 
     this._defaultAdapterChangeHandler =
       this._bluetoothManagerHandler.bind(this, null);
@@ -167,7 +156,7 @@ Bluetooth.prototype = {
 
     // clear defaultAdapter and listener once adapter is removed
     this._bluetooth.addEventListener('adapterremoved',
-      this._removeEventListeners.bind(this));
+      this._cleanupListenerAndAdapters.bind(this));
 
     // if bluetooth is enabled in booting time, try to get adapter now
     this._debug('init bluetooth adapter');
@@ -213,9 +202,9 @@ Bluetooth.prototype = {
 
     // decouple bluetooth enable/disable function from other system part
     window.addEventListener('request-enable-bluetooth',
-      this._enableHandler.bind(this));
+      this._requestEnableHandler.bind(this));
     window.addEventListener('request-disable-bluetooth',
-      this._disableHandler.bind(this));
+      this._requestDisableHandler.bind(this));
 
     Service.registerState('isEnabled', this);
     // LazyLoader.load(['js/bluetooth_icon.js',
@@ -236,7 +225,7 @@ Bluetooth.prototype = {
    * Remove all EventListeners and adapters when default adapter
    * is changed.
    */
-  _removeEventListeners() {
+  _cleanupListenerAndAdapters() {
     this._bluetooth.removeEventListener('attributechanged',
       this._defaultAdapterChangeHandler);
     this._adapter.removeEventListener('attributechanged',
@@ -247,6 +236,7 @@ Bluetooth.prototype = {
         this._promiseAdapterChangeHandler);
       this._cacheGetAdapterPromise = null;
     }
+
     this._adapter = null;
   },
 
@@ -255,7 +245,7 @@ Bluetooth.prototype = {
    *
    * @private
    */
-  _enableHandler: function bt__enableHandler() {
+  _requestEnableHandler: function bt__requestEnableHandler() {
     this._debug('enabling bluetooth');
     this.getAdapter().then((adapter) => {
       adapter.enable().then(() => { //resolve
@@ -272,7 +262,7 @@ Bluetooth.prototype = {
    *
    * @private
    */
-  _disableHandler: function bt__disableHandler() {
+  _requestDisableHandler: function bt__requestDisableHandler() {
     this._debug('disabling bluetooth');
     this.getAdapter().then((adapter) => {
       adapter.disable().then(() => { //resolve
