@@ -17,13 +17,6 @@ suite('app.js', function() {
   };
 
   setup(function() {
-    var stubs = {
-      'utils': mockUtils,
-      'rebuild': {},
-      './post-app': { execute: function() {} }
-    };
-    app = proxyquire.noCallThru().load('../../app', stubs);
-
     mockUtils.getFile = function() {
       var path = Array.prototype.slice.call(arguments, 0).join('/');
       var file = {
@@ -42,6 +35,17 @@ suite('app.js', function() {
     mockUtils.ensureFolderExists = function() {
       return true;
     };
+
+    mockUtils.NodeHelper = function() {
+      this.require = require;
+    };
+
+    var stubs = {
+      'utils': mockUtils,
+      'rebuild': {},
+      './post-app': { execute: function() {} }
+    };
+    app = proxyquire.noCallThru().load('../../app', stubs);
   });
 
   test('BUILD_APP_NAME = *', function() {

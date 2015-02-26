@@ -8,9 +8,9 @@ suite('settings.js', function() {
   var app;
   setup(function() {
     app = proxyquire.noCallThru().load(
-            '../../settings', {
-              './utils': mockUtils
-            });
+      '../../settings', {
+        './utils': mockUtils
+      });
     mockUtils.getFileContent = function(file) {
       return file;
     };
