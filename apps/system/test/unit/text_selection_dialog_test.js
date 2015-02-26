@@ -678,7 +678,8 @@ suite('system/TextSelectionDialog', function() {
       windowHeight = window.layoutManager.height;
       windowWidth = window.layoutManager.width;
       td.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP = 12;
-      td.DISTANCE_FROM_MENUBOTTOM_TO_SELECTEDAREA = 34;
+      td.DISTANCE_FROM_MENUBOTTOM_TO_SELECTEDAREA = 43;
+      td.DISTANCE_FROM_BOUNDARY = 5;
       td.TEXTDIALOG_WIDTH = 52;
       td.TEXTDIALOG_HEIGHT = 48;
     });
@@ -763,7 +764,7 @@ suite('system/TextSelectionDialog', function() {
         assert.deepEqual(result, {
           top: posTop,
           left: windowWidth - td.numOfSelectOptions * td.TEXTDIALOG_WIDTH +
-            positionDetail.offsetX
+            positionDetail.offsetX - td.DISTANCE_FROM_BOUNDARY
         });
       });
 
@@ -786,7 +787,7 @@ suite('system/TextSelectionDialog', function() {
         assert.deepEqual(result, {
           top: positionDetail.rect.bottom * positionDetail.zoomFactor +
             td.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP + positionDetail.offsetY,
-          left: positionDetail.offsetX
+          left: positionDetail.offsetX + td.DISTANCE_FROM_BOUNDARY
         });
       });
 
@@ -810,7 +811,8 @@ suite('system/TextSelectionDialog', function() {
           top: positionDetail.rect.bottom * positionDetail.zoomFactor +
             td.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP + positionDetail.offsetY,
           left: windowWidth + positionDetail.offsetX -
-            td.numOfSelectOptions * td.TEXTDIALOG_WIDTH
+            td.numOfSelectOptions * td.TEXTDIALOG_WIDTH -
+            td.DISTANCE_FROM_BOUNDARY
         });
       });
 
