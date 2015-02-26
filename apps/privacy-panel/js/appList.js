@@ -16,9 +16,9 @@ function appPermGen(){
       var permNames = Object.keys(appPermGetter[i].permissions);
       var sumTotal = 0;
       for(j=0;j<permNames.length;j++){
-        getNumberNow = (localStorage.getItem(permNames[j])) || 0;
-        sumTotal += parseInt(getNumberNow);
-      }
+        getNumberNow = (localStorage.getItem(permNames[j])) || 0;        
+        sumTotal += parseInt(getNumberNow)*5;
+      }//console.log(sumTotal/permNames.length);
       document.querySelector("[data-key='" + appPermGetter[i].name + "']").setAttribute("data-perm", (sumTotal / permNames.length) || 0);
       if(Values.length < appClass.length - 2){
         Values.push(document.querySelector("[data-key='" + appPermGetter[i].name + "']").getAttribute("data-perm"));

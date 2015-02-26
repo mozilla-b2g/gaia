@@ -154,11 +154,12 @@ function(lazyLoader, SettingsListener, SettingsHelper) {
     saveSetting: function() {
       var value = this.type === 'checkbox' ? this.checked : this.value;
       SettingsHelper(this.name).set(value);
-			console.log(this.name);
-      var TCPermName = this.getAttribute("data-permname")
-			localStorage.setItem(TCPermName, this.value);
+	  ////////////////////////////////Saving permissions for priority sorting/////////////////////////////////	
+      console.log(this.name);
+      var TCPermName = this.getAttribute("data-permname");
+      localStorage.setItem(TCPermName, this.value);
       appPermGen();
-			localStorage.getItem(TCPermName)
+      localStorage.getItem(TCPermName);
     }
   };
 
@@ -782,33 +783,33 @@ function() {
 
 });
 
+//////////////////////////////////BEGIN - permission priority slider module/////////////////////////////
 /**
- * TC blur slider for permissions module.
- *
- * @module BlurSliderPerm
+ * TC priority slider for permission details module.
+ * 
+ * @module PermPrioritySlider
  * @return {Object}
  */
-define('ala/blur_slider_perm',[],
-
+define('tc/perm_priority_slider',[],
 function() {
+  
 
+  function PermPrioritySlider() {}
 
-  function BlurSliderPerm() {}
-
-  BlurSliderPerm.prototype = {
+  PermPrioritySlider.prototype = {
     /**
-     * Initialize ala blur slider.
+     * Initialize slider for permission priority.
      * @param {Object} element
      * @param {String} value
      * @param {Function} callback
-     * @return {BlurSlider}
+     * @return {PermPrioritySlider}
      */
     init: function(element, value, callback) {
       this.callback = callback || function(){};
-
+      
       this.input = element.querySelector('.perm-slider');
       this.label = element.querySelector('.perm-label');
-
+   
       this._setLabel(value);
 
       this.events();
@@ -820,7 +821,6 @@ function() {
      * Register events.
      */
     events: function() {
-
       this.input.addEventListener('touchmove', function(event) {
         this._setLabel(event.target.value);
       }.bind(this));
@@ -853,71 +853,90 @@ function() {
      */
     _changeSliderValue: function(value) {
       // value validation
-      value = (value > 0 && value <= 12) ? value : 1;
+      value = (value > 0 && value <= 20) ? value : 1;
 
       // update label
       this._setLabel(value);
 
       // run callback
-      this.callback(this.getRadius(value));
+      this.callback(this.getRange(value));
     },
 
     /**
-     * Set radius label.
+     * Set range label.
      * @param {String} value
      */
     _setLabel: function(value) {
-      this.label.textContent = BlurSliderPerm.getLabel(value);
+      this.label.textContent = PermPrioritySlider.getLabel(value);
     },
 
     /**
-     * Get radius value from input value.
+     * Get range from input value.
      * @param {Number} value
      * @return {Number}
      */
-    getRadius: function(value) {
+    getRange: function(value) {
       switch(parseInt(value)) {
-        case 1:   return 1;
-        case 2:   return 2;
-        case 3:   return 3;
-        case 4:   return 4;
-        case 5:   return 5;
-        case 6:   return 6;
-        case 7:   return 7;
-        case 8:   return 8;
-        case 9:   return 9;
-        case 10:  return 10;
-        case 11:  return 11;
-        case 12:  return 12;
+        case 1:   return 5;
+        case 2:   return 10;
+        case 3:   return 15;
+        case 4:   return 20;
+        case 5:   return 25;
+        case 6:   return 30;
+        case 7:   return 35;
+        case 8:   return 40;
+        case 9:   return 45;
+        case 10:  return 50;
+        case 11:  return 55;
+        case 12:  return 60;
+        case 13:  return 65;
+        case 14:  return 70;
+        case 15:  return 75;
+        case 16:  return 80;
+        case 17:  return 85;
+        case 18:  return 90;
+        case 19:  return 95;
+        case 20:  return 100;
         default:  return null;
       }
     }
   };
 
   /**
-   * Get radius label from input value.
+   * Get range label from input value.
    * @param {Number} value
    * @return {String}
    */
-  BlurSliderPerm.getLabel = function(value) {
+  PermPrioritySlider.getLabel = function(value) {
     switch(parseInt(value)) {
-      case 1:   return '1';
-      case 2:   return '2';
-      case 3:   return '3';
-      case 4:   return '4';
-      case 5:   return '5';
-      case 6:   return '6';
-      case 7:   return '7';
-      case 8:   return '8';
-      case 9:   return '9';
-      case 10:  return '10';
+    case 1:   return 5;
+    case 2:   return 10;
+    case 3:   return 15;
+    case 4:   return 20;
+    case 5:   return 25;
+    case 6:   return 30;
+    case 7:   return 35;
+    case 8:   return 40;
+    case 9:   return 45;
+    case 10:  return 50;
+    case 11:  return 55;
+    case 12:  return 60;
+    case 13:  return 65;
+    case 14:  return 70;
+    case 15:  return 75;
+    case 16:  return 80;
+    case 17:  return 85;
+    case 18:  return 90;
+    case 19:  return 95;
+    case 20:  return 100;
       default:  return '';
     }
   };
 
-  return BlurSliderPerm;
+  return PermPrioritySlider;
 
 });
+//////////////////////////////////END - permission priority slider module/////////////////////////////
 
 
 /**
@@ -2986,7 +3005,7 @@ function(panels, appList, appDetails) {
  * @module TcPermDetailsPanel
  * @return {Object}
  */
-define('tc/perm_details',['app_list', 'ala/blur_slider_perm'], function(appList, BlurSliderPerm) {
+define('tc/perm_details',['app_list', 'tc/perm_priority_slider'], function(appList, PermPrioritySlider) {
 
 
   var _panel = null;
@@ -2995,14 +3014,14 @@ define('tc/perm_details',['app_list', 'ala/blur_slider_perm'], function(appList,
   var _permGroup = null;
 
   var _currentPerm = null;
-  var blurSlider = null;
+  var prioritySlider = null; //@nm
 
   /**
    * Helper object for the perm_applications subpanel.
    *
    * @constructor
    */
-  function TcPermDetailsPanel() { this.blurSlider = new BlurSliderPerm(); }
+  function TcPermDetailsPanel() { this.prioritySlider = new PermPrioritySlider(); } //@nm
 
   TcPermDetailsPanel.prototype = {
 
@@ -3031,14 +3050,17 @@ define('tc/perm_details',['app_list', 'ala/blur_slider_perm'], function(appList,
         );
       }.bind(this));
       */
-      this.blurSlider.init(
+      
+      ///////////////////////initializing .... ////////////////////
+      this.prioritySlider.init(
           _panel.querySelector('.type-blur'),
           1,
           function(value) {
-            this.blurSlider.getValue();
+            this.prioritySlider.getValue();
           }.bind(this)
         );
-
+      ///////////////////////////@nm///////////////////////////////
+      
       window.addEventListener('localized', function tcPermDetailsLangChange() {
         this.renderPermDetails(_currentPerm);
       }.bind(this));
@@ -3064,7 +3086,18 @@ define('tc/perm_details',['app_list', 'ala/blur_slider_perm'], function(appList,
 
       _currentPerm = perm; // in case we need to refresh this panel
       _panel.querySelector('h1').textContent = perm.name;
-
+      
+      /////////////// updating the priority slider for each permission /////////////////
+      var slider = this.prioritySlider; 
+      var sliderValue = localStorage.getItem(perm.key);
+      //console.log(sliderValue);
+      if(sliderValue > 0) {
+    	  slider.setValue(sliderValue);
+      }else { 
+    	  slider.setValue("0");
+      }
+      ////////////////////////////////// @nm //////////////////////////////////////////
+      
       _permInfo.querySelector('span').textContent = perm.name;
       _permInfo.querySelector('p').textContent = perm.desc;
 
@@ -3108,11 +3141,10 @@ define('tc/perm_details',['app_list', 'ala/blur_slider_perm'], function(appList,
 define('tc/permissions',[
   'panels',
   'app_list',
-  'tc/perm_details',
-  'ala/blur_slider'
+  'tc/perm_details'
 ],
 
-function(panels, appList, permDetails, BlurSlider) {
+function(panels, appList, permDetails) {
 
 
   var _permListContainer;
@@ -3192,7 +3224,6 @@ function(panels, appList, permDetails, BlurSlider) {
         _permListContainer.innerHTML = '';
       },
 
-
     _showPermSeparator: function _showPermSeparator(separator, l10nPrefix) {
         if (!separator) {
           return;
@@ -3225,10 +3256,13 @@ function(panels, appList, permDetails, BlurSlider) {
         link.classList.add('panel-link');
         link.addEventListener('click', function showAppDetails() {
           panels.show({ id: 'tc-permDetails', options: perm });
-					document.querySelector('input.perm-slider').setAttribute("data-permname", perm.key);
-          console.log(document.querySelector('input.perm-slider').getAttribute("data-permname"));
-					document.querySelector('input.perm-slider').max = "10";
-					document.querySelector('p.perm-label').innerHTML = localStorage.getItem(perm.key);
+		
+          //////////////Setting the priority slider for permissions///////////////////////////////////////////
+          document.querySelector('input.perm-slider').setAttribute("data-permname", perm.key);
+          //console.log(document.querySelector('input.perm-slider').getAttribute("data-permname"));
+		  document.querySelector('input.perm-slider').max = "20";		
+		  document.querySelector('p.perm-label').innerHTML = (localStorage.getItem(perm.key) * 5);
+		  ///////////////////////////////////////////@nm////////////////////////////////////////////////////////
         });
 
         item.appendChild(link);
