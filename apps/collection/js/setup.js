@@ -4,8 +4,6 @@
 
 (function(exports) {
 
-  const PRE_INSTALLED_COLLECTIONS_FILE = 'js/pre_installed_collections.json';
-
   function Setup() {
     navigator.mozSetMessageHandler('connection', this.onConnection.bind(this));
   }
@@ -32,16 +30,11 @@
 
       this.initializing = true;
 
-      LazyLoader.getJSON(PRE_INSTALLED_COLLECTION_FILE)
+      LazyLoader.getJSON('js/pre_installed_collections.json')
         .then(function(json) {
-          done(function() {
-            this.populate(JSON.parse(json));
-          });
+          this.populate(JSON.parse(json));
         }, function(error) {
-          done(function() {
-            assert.instanceOf(error, Error);
-            assert.equal(error.message, 'file not found');
-          });
+          console.log('file not found');
         });
     },
 
