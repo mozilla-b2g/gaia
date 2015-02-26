@@ -48,7 +48,8 @@ ManifestBuilder.prototype.fillExternalAppManifest = function(webapp) {
     }
   }
 
-  var webappTargetDirName = webapp.profileDirectoryFile.leafName;
+  var profileDirectoryFile = utils.getFile(webapp.profileDirectoryFilePath);
+  var webappTargetDirName = profileDirectoryFile.leafName;
 
   var origin = isPackaged ? 'app://' + webappTargetDirName :
                webapp.metaData.origin;

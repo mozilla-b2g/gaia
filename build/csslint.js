@@ -27,7 +27,8 @@ function execute(config) {
 
   // Starts by parsing the CSS files from apps/
   gaia.webapps.forEach(function getAllFilesFor(webapp) {
-    if (webapp.sourceDirectoryFile.parent.leafName != 'apps') {
+    var sourceDirectoryFile = utils.getFile(webapp.sourceDirectoryFilePath);
+    if (sourceDirectoryFile.parent.leafName != 'apps') {
       return;
     }
 
@@ -35,7 +36,7 @@ function execute(config) {
       webapp.sourceDirectoryName != config.BUILD_APP_NAME) {
       return;
     }
-    files = files.concat(getCSSFilesFor(webapp.sourceDirectoryFile));
+    files = files.concat(getCSSFilesFor(webapp.sourceDirectoryFilePath));
   });
 
   if (config.BUILD_APP_NAME == '*') {

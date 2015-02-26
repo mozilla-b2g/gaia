@@ -84,7 +84,7 @@ function L10nManager(gaiaDir,
 
       for (var loc of self.locales) {
         var relPathInApp =
-          file.parent.path.substr(webapp.buildDirectoryFile.path.length);
+          file.parent.path.substr(webapp.buildDirectoryFilePath.length);
         var resFile =
           getResourceFile(webapp, relPathInApp,
                           realURL, loc, isOfficialBranding);
@@ -92,10 +92,10 @@ function L10nManager(gaiaDir,
 
         var destFile;
         if (isShared) {
-          destFile = utils.getFile(webapp.buildDirectoryFile.path,
+          destFile = utils.getFile(webapp.buildDirectoryFilePath,
                                    realURL.replace('{locale}', loc));
         } else {
-          destFile = utils.getFile(webapp.buildDirectoryFile.path,
+          destFile = utils.getFile(webapp.buildDirectoryFilePath,
                                    relPathInApp,
                                    realURL.replace('{locale}', loc));
         }
@@ -163,7 +163,7 @@ function L10nManager(gaiaDir,
       if (isShared) {
         paths.push(self.gaiaDir);
       } else {
-        paths.push(webapp.sourceDirectoryFile.path);
+        paths.push(webapp.sourceDirectoryFilePath);
         paths.push(relPathInApp);
       }
       paths.push(resURL.replace('{locale}', loc));
@@ -171,8 +171,9 @@ function L10nManager(gaiaDir,
       paths.push(self.localeBasedir);
       paths.push(loc);
       if (!isShared) {
-        paths.push(webapp.sourceDirectoryFile.parent.leafName);
-        paths.push(webapp.sourceDirectoryFile.leafName);
+        var sourceDirectoryFile = utils.getFile(webapp.sourceDirectoryFilePath);
+        paths.push(sourceDirectoryFile.parent.leafName);
+        paths.push(sourceDirectoryFile.leafName);
         paths.push(relPathInApp);
       }
       paths.push(cleanPath(resURL));
@@ -290,7 +291,8 @@ function L10nManager(gaiaDir,
    * @param {Object} webapp  - A webapp object for specific app
    */
   function localizeManifest(webapp) {
-    var manifest = utils.getJSON(webapp.buildManifestFile);
+    var buildManifestFile = utils.getFile(webapp.buildManifestFilePath);
+    var manifest = utils.getJSON(buildManifestFile);
 
     if (manifest.default_locale) {
       manifest.default_locale = self.defaultLocale;
@@ -343,9 +345,7 @@ function L10nManager(gaiaDir,
         }
       }
     });
-
-    utils.writeContent(webapp.buildManifestFile,
-                       JSON.stringify(manifest));
+    utils.writeContent(buildManifestFile, JSON.stringify(manifest));
   }
 
   /**
@@ -454,7 +454,8 @@ function L10nManager(gaiaDir,
    * @returns {Object} res    - Manifest l10n resource
    */
   function getManifestProperties(webapp, locale) {
-    var parent = webapp.sourceDirectoryFile.parent.leafName;
+    var sourceDirectoryFile = utils.getFile(webapp.sourceDirectoryFilePath);
+    var parent = sourceDirectoryFile.parent.leafName;
     var propFile = utils.getFile(self.localeBasedir, locale, parent,
       webapp.sourceDirectoryName, 'manifest.properties');
     if (!propFile.exists()) {
@@ -512,7 +513,8 @@ function L10nManager(gaiaDir,
   this.localizeManifest = localizeManifest;
 }
 
-function execute(options, webapp) {
+function execute(options) {
+  var webapp = options.webapp;
   var localeBasedir = null;
 
   if (options.LOCALE_BASEDIR) {
@@ -533,7 +535,8 @@ function execute(options, webapp) {
   if (utils.isExternalApp(webapp)) {
     return;
   }
-  var files = utils.ls(webapp.buildDirectoryFile, true, /^tests?$/);
+  var buildDirectoryFile = utils.getFile(webapp.buildDirectoryFilePath);
+  var files = utils.ls(buildDirectoryFile, true, /^tests?$/);
 
   l10nManager.localize(files.filter(function(file) {
     return /\.html$/.test(file.path);

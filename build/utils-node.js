@@ -349,21 +349,21 @@ module.exports = {
 
     let self = this;
     let webapp = {
-      appDir: appDir,
+      appDirPath: appDir.path,
       manifest: manifestJSON,
-      manifestFile: self.getFile(manifest),
+      manifestFilePath: manifest,
       url: config.GAIA_SCHEME + appDomain,
       domain: appDomain,
-      sourceDirectoryFile: self.getFile(manifestFile, '..'),
+      sourceDirectoryFilePath: appDir.path,
       sourceDirectoryName: appDir.leafName,
       sourceAppDirectoryName: self.getFile(appDir.path, '..').leafName
     };
 
     // External webapps have a `metadata.json` file
-    let metaData = this.getFile(webapp.sourceDirectoryFile.path,
+    let metaData = this.getFile(webapp.sourceDirectoryFilePath,
       'metadata.json');
     if (metaData.exists()) {
-      webapp.pckManifest = this.readZipManifest(webapp.sourceDirectoryFile);
+      webapp.pckManifest = this.readZipManifest(appDir);
       webapp.metaData = this.getJSON(metaData);
       webapp.appStatus = utils.getAppStatus(webapp.metaData.type || 'web');
     } else {
@@ -371,9 +371,9 @@ module.exports = {
     }
 
     // Some webapps control their own build
-    webapp.buildDirectoryFile = this.getFile(config.STAGE_DIR,
+    webapp.buildDirectoryFilePath = this.joinPath(config.STAGE_DIR,
       webapp.sourceDirectoryName);
-    webapp.buildManifestFile = this.getFile(webapp.buildDirectoryFile.path,
+    webapp.buildManifestFilePath = this.joinPath(webapp.buildDirectoryFilePath,
       'manifest.webapp');
 
     // Generate the webapp folder name in the profile. Only if it's privileged
@@ -401,8 +401,8 @@ module.exports = {
     } else {
       webappTargetDirName = webapp.domain;
     }
-    webapp.profileDirectoryFile = this.getFile(config.PROFILE_DIR, 'webapps',
-      webappTargetDirName);
+    webapp.profileDirectoryFilePath = this.joinPath(config.PROFILE_DIR,
+      'webapps', webappTargetDirName);
 
     return webapp;
   },
@@ -419,7 +419,7 @@ module.exports = {
         'since Firefox OS 2.1, please add it into metadata.json and update ' +
         'preload.py if you use this script to perload your apps. If you ' +
         'created metadata.json for non-external apps, please set "external" ' +
-        'to false. metadata.json is in ' + webapp.sourceDirectoryFile.path);
+        'to false. metadata.json is in ' + webapp.sourceDirectoryFilePath);
     }
     if (!webapp.metaData || webapp.metaData.external === false) {
       return false;

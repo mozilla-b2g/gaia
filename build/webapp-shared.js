@@ -23,7 +23,7 @@ WebappShared.prototype.setOptions = function(options) {
     throw new Error('LOCALES_FILE doesn\'t exists: ' + this.localesFile.path);
   }
 
-  this.buildDir = this.webapp.buildDirectoryFile;
+  this.buildDir = utils.getFile(this.webapp.buildDirectoryFilePath);
 };
 
 WebappShared.prototype.moveToBuildDir = function(file, targetPath) {
@@ -361,8 +361,8 @@ WebappShared.prototype.copyShared = function() {
   if (utils.isExternalApp(this.webapp)) {
     return;
   }
-
-  var files = utils.ls(this.webapp.sourceDirectoryFile, true);
+  var sourceDirectoryFile = utils.getFile(this.webapp.sourceDirectoryFilePath);
+  var files = utils.ls(sourceDirectoryFile, true);
   files.filter(this.filterFileByExtenstion.bind(this, 'html')).forEach(
     this.filterSharedUsage.bind(this));
   files.filter(this.filterFileByExtenstion.bind(this, 'css')).forEach(
@@ -372,7 +372,7 @@ WebappShared.prototype.copyShared = function() {
 
 WebappShared.prototype.customizeShared = function() {
   var self = this;
-  var sharedDataFile = utils.getFile(this.webapp.buildDirectoryFile.path,
+  var sharedDataFile = utils.getFile(this.webapp.buildDirectoryFilePath,
     'gaia_shared.json');
   if (sharedDataFile.exists()) {
     var sharedData = JSON.parse(utils.getFileContent(sharedDataFile));

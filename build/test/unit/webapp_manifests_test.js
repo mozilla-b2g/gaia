@@ -81,9 +81,7 @@ suite('webapp-manifest.js', function() {
       },
       sourceDirectoryName: 'sourceDirectoryName',
       domain: 'domain',
-      profileDirectoryFile: {
-        leafName: 'testuuid'
-      }
+      profileDirectoryFilePath: 'testuuid'
     };
   });
 
@@ -98,6 +96,11 @@ suite('webapp-manifest.js', function() {
 
     setup(function() {
       webappManifest = new app.ManifestBuilder();
+      mockUtils.getFile = function(path) {
+        return {
+          leafName: path
+        };
+      };
     });
 
     test('setConfig', function() {

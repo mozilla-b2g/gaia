@@ -68,7 +68,7 @@ function isExternalApp(webapp) {
       'Firefox OS 2.1, please add it into metadata.json and update ' +
       'preload.py if you use this script to perload your apps. If you ' +
       'created metadata.json for non-external apps, please set "external" to ' +
-      'false. your metadata.json is in ' + webapp.sourceDirectoryFile.path);
+      'false. your metadata.json is in ' + webapp.sourceDirectoryFilePath);
   }
   if (!webapp.metaData || webapp.metaData.external === false) {
     return false;
@@ -353,21 +353,22 @@ function getWebapp(app, config) {
   }
 
   let webapp = {
-    appDir: appDir,
+    appDirPath: appDir.path, // appDir
     manifest: manifestJSON,
-    manifestFile: manifest,
+    manifestFilePath: manifest.path, // manifestFile
     url: config.GAIA_SCHEME + appDomain,
     domain: appDomain,
-    sourceDirectoryFile: manifestFile.parent,
+    sourceDirectoryFilePath: manifestFile.parent.path, // sourceDirectoryFile
     sourceDirectoryName: appDir.leafName,
     sourceAppDirectoryName: appDir.parent.leafName
   };
 
   // External webapps have a `metadata.json` file
-  let metaData = webapp.sourceDirectoryFile.clone();
+  let metaData = manifestFile.parent.clone();
   metaData.append('metadata.json');
   if (metaData.exists()) {
-    webapp.pckManifest = readZipManifest(webapp.sourceDirectoryFile);
+    webapp.pckManifest = readZipManifest(
+      getFile(webapp.sourceDirectoryFilePath));
     webapp.metaData = getJSON(metaData);
     webapp.appStatus = utils.getAppStatus(webapp.metaData.type || 'web');
   } else {
@@ -375,10 +376,10 @@ function getWebapp(app, config) {
   }
 
   // Some webapps control their own build
-  webapp.buildDirectoryFile = utils.getFile(config.STAGE_DIR,
-    webapp.sourceDirectoryName);
-  webapp.buildManifestFile = utils.getFile(webapp.buildDirectoryFile.path,
-    'manifest.webapp');
+  webapp.buildDirectoryFilePath = joinPath(config.STAGE_DIR,
+    webapp.sourceDirectoryName); // buildDirectoryFile
+  webapp.buildManifestFilePath = joinPath(webapp.buildDirectoryFilePath,
+    'manifest.webapp'); // buildManifestFile
 
   // Generate the webapp folder name in the profile. Only if it's privileged
   // and it has an origin in its manifest file it'll be able to specify a custom
@@ -407,7 +408,7 @@ function getWebapp(app, config) {
   } else {
     webappTargetDirName = webapp.domain;
   }
-  webapp.profileDirectoryFile = utils.getFile(config.PROFILE_DIR, 'webapps',
+  webapp.profileDirectoryFilePath = joinPath(config.PROFILE_DIR, 'webapps',
                                               webappTargetDirName);
 
   return webapp;
@@ -510,7 +511,7 @@ function deleteFile(path, recursive) {
  */
 function listFiles(path, type, recursive, exclude) {
   var file = (typeof path === 'string' ? getFile(path) : path);
-  if (!file.isDirectory()) {
+  if (!file || !file.isDirectory()) {
     throw new Error('the path is not a directory.');
   }
   var files = ls(file, recursive === true, exclude);
