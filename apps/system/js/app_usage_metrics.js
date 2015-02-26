@@ -621,6 +621,7 @@
     };
 
     var deviceInfoQuery = {
+      'app.update.channel': 'unknown',
       'developer.menu.enabled': false, // If true, data is probably an outlier
       'deviceinfo.hardware': 'unknown',
       'deviceinfo.os': 'unknown',
@@ -628,7 +629,6 @@
       'deviceinfo.platform_version': 'unknown',
       'deviceinfo.product_model': 'unknown',
       'deviceinfo.software': 'unknown',
-      'deviceinfo.update_channel': 'unknown'
     };
 
     // Query the settings db to get some more device-specific information
@@ -698,7 +698,7 @@
         deviceID: self.deviceID,
         ver: AUM.TELEMETRY_VERSION,
         url: AUM.REPORT_URL,
-        appUpdateChannel: info['deviceinfo.update_channel'],
+        appUpdateChannel: info['app.update.channel'],
         appVersion: info['deviceinfo.platform_version'],
         appBuildID: info['deviceinfo.platform_build_id']
       }, data);
