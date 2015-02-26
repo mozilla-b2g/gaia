@@ -11,6 +11,8 @@ var strings = {
     'header2                   = Header 2',
     'header2.title             = Header 2 Title',
     'unreadEmails              = You have {{ emails }} unread emails',
+    'bad.title                 = alert(1)',
+    'bad.onclick               = alert(1)',
   ],
  'lang2': [
     'cropimage                 = Crop Lang2',
@@ -242,4 +244,15 @@ suite('L10n bindings', function() {
       });
     });
   });
+
+  suite('whitelisting', function() {
+    test('does not allow attributes not on the whitelist', function() {
+      var elem = document.createElement('div');
+      elem.setAttribute('data-l10n-id', 'bad');
+      navigator.mozL10n.translateFragment(elem);
+      assert.equal(elem.getAttribute('title', 'alert(1)'));
+      assert.equal(elem.getAttribute('onclick', undefined));
+    });
+  });
+
 });
