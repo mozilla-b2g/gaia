@@ -13,3 +13,14 @@ form[role="dialog"][data-subtype="menu"].visible {
   transform: translateY(0);
 }
 
+/* ----------------------------------
+ * Dialogs trick: for further information
+ * see Bug 1125369
+ * ---------------------------------- */
+.dialog-animating {
+  pointer-events: none;
+}
+
+.dialog-animating .disable-when-dialog-animates {
+  pointer-events: none;
+}
