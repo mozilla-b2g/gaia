@@ -80,11 +80,11 @@
         var iceContactOverlayEntry = contactInOverlay.cloneNode(true);
         iceContactOverlayEntry.removeAttribute('id');
         iceContactOverlayEntry.removeAttribute('hidden');
-        iceContactOverlayEntry.querySelector('.js-name').textContent =
+        iceContactOverlayEntry.querySelector('.js-name bdi').textContent =
           contact.name[0];
         iceContactOverlayEntry.querySelector('.js-tel-type').dataset.l10nId =
           tel.type[0];
-        iceContactOverlayEntry.querySelector('.js-tel').textContent =
+        iceContactOverlayEntry.querySelector('.js-tel bdi').textContent =
           tel.value;
         contactList.insertBefore(iceContactOverlayEntry, contactListCancel);
         iceContactOverlayEntry.addEventListener('click',

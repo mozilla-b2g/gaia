@@ -426,7 +426,7 @@ suite('ICE contacts bar', function() {
     });
 
     test('Should include name element', function() {
-      assert.equal(iceContactsOverlay.querySelector('.js-name').textContent,
+      assert.equal(iceContactsOverlay.querySelector('.js-name bdi').textContent,
                    contact1.name);
     });
 
@@ -437,7 +437,7 @@ suite('ICE contacts bar', function() {
     });
 
     test('Should include time element', function() {
-      assert.equal(iceContactsOverlay.querySelector('.js-tel').textContent,
+      assert.equal(iceContactsOverlay.querySelector('.js-tel bdi').textContent,
                    contact1.tel[0].value);
     });
 
