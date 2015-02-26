@@ -1,6 +1,6 @@
 'use strict';
 
-/* global CollectionsDatabase */
+/* global CollectionsDatabase, LazyLoader */
 
 (function(exports) {
 
@@ -32,7 +32,6 @@
 
       this.initializing = true;
 
-      var LazyLoader = require('shared/lazy_loader');
       LazyLoader.getJSON(PRE_INSTALLED_COLLECTION_FILE)
         .then(function(json) {
           done(function() {
