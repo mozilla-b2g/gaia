@@ -10,7 +10,6 @@
   "permissions": {
     "themeable":{},
     "sms":{},
-    "storage":{},
     "mobileconnection":{},
     "alarms":{},
     "contacts":{ "access": "readonly" },

@@ -10,7 +10,6 @@
   "fullscreen": true,
   "permissions": {
     "themeable":{},
-    "storage":{},
     "device-storage:pictures":{ "access": "readwrite" },
     "device-storage:videos":{ "access": "readwrite" },
     "audio-channel-content":{},

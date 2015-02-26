@@ -9,7 +9,6 @@
   },
   "permissions": {
     "themeable":{},
-    "storage":{},
     "fmradio":{},
     "settings":{ "access": "readonly" },
     "speaker-control":{},

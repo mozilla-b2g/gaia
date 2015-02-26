@@ -80,7 +80,6 @@
     "systemXHR": {},
     "audio-channel-notification":{},
     "idle":{},
-    "storage": {},
     "device-storage:sdcard": { "access": "readcreate" },
     "phonenumberservice": {},
     "nfc-share":{},
