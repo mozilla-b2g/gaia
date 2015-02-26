@@ -220,6 +220,7 @@
   visibility: visible;
 }
 
+.lockScreenWindow:not(.bar) .controls .urlbar,
 .appWindow.fullscreen-app .chrome:not(.dragged):not(.dragging) .controls .urlbar {
   visibility: hidden;
   transition-delay: 0s, 0.2s;
