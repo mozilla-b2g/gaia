@@ -53,7 +53,14 @@ Base.prototype = {
    * @param {String} name of selector [its a key in Settings.Selectors].
    */
   waitForElement: function(name) {
-    return this.client.helper.waitForElement(this.selectors[name]);
+    var element = this.client.helper.waitForElement(this.selectors[name]);
+    this.client.waitFor(function() {
+      return element.scriptWith(function(el) {
+        var style = window.getComputedStyle(el);
+        return style.visibility === 'visible';
+      });
+    }.bind(this));
+    return element;
   },
 
   /**
