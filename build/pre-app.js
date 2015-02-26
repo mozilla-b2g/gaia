@@ -14,8 +14,7 @@ function execute(options) {
 
   require('./contacts-import-services').execute(options);
 
-  // A separate step for shared/ folder to generate its content in build time
-  require('./keyboard-layouts').execute(options);
+  nodeHelper.require('./keyboard-layouts', options);
 
   // Generate user.js
   require('./preferences').execute(options);
