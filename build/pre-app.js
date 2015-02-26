@@ -17,8 +17,7 @@ function execute(options) {
   // A separate step for shared/ folder to generate its content in build time
   require('./keyboard-layouts').execute(options);
 
-  // Generate user.js
-  require('./preferences').execute(options);
+  nodeHelper.require('./preferences', options);
 
   if (options.BUILD_APP_NAME == '*') {
     require('./settings').execute(options);

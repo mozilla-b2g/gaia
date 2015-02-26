@@ -1,5 +1,8 @@
-/* global exports, require */
 'use strict';
+
+/**
+ * Generate user.js
+ */
 
 var utils = require('./utils');
 
@@ -52,20 +55,17 @@ PreferencesBuilder.prototype.writeDefaultUserJs = function() {
     return;
   }
 
-  // create a folder to store data for B2G, this folder will copy to
-  // b2g output folder.
-  let defaultsDir = utils.getFile(this.config.PROFILE_DIR, 'defaults');
+  // Create a folder to store data for B2G, this folder will copy to b2g output
+  // folder.
+  let prefDir = utils.getFile(this.config.PROFILE_DIR, 'defaults', 'pref');
 
-  defaultsDir.append('pref');
-  utils.ensureFolderExists(defaultsDir);
-  let userJs = defaultsDir.clone();
-  userJs.append('user.js');
+  utils.ensureFolderExists(prefDir);
   let allPrefs = utils.cloneJSON(this.prefs);
   for (let pref in this.userPrefs) {
     allPrefs[pref] = this.userPrefs[pref];
   }
 
-  this.writePrefs(userJs.path, allPrefs, {});
+  this.writePrefs(utils.joinPath(prefDir.path, 'user.js'), allPrefs, {});
 };
 
 PreferencesBuilder.prototype.loadBuildPrefs = function() {
@@ -73,21 +73,21 @@ PreferencesBuilder.prototype.loadBuildPrefs = function() {
   this.loadPrefFile(buildConfigDir, this.extenedPrefFiles);
 
   var deviceConfigDir = utils.getFile(this.config.GAIA_DIR, 'build', 'config',
-                        this.config.GAIA_DEVICE_TYPE);
+    this.config.GAIA_DEVICE_TYPE);
   this.loadPrefFile(deviceConfigDir, this.extenedPrefFiles);
 
   try {
     var distDir = utils.getFile(this.config.GAIA_DISTRIBUTION_DIR);
     this.loadPrefFile(distDir, PARTNER_PREF_FILES);
   } catch (e) {
-    // utils.getFile will throw exception if GAIA_DISTRIBUTION_DIR does not
+    // The utils.getFile will throw exception if GAIA_DISTRIBUTION_DIR does not
     // exist. In this case we just don't override preferences by
     // PARTNER_PREF_FILES.
   }
 };
 
 PreferencesBuilder.prototype.loadPrefFile = function(srcDir, srcPrefFiles) {
-  // scope object for hosting functions and variables.
+  // Scope object for hosting functions and variables.
   var self = this;
   var scope = {
     user_pref: function(key, value) {
@@ -98,10 +98,9 @@ PreferencesBuilder.prototype.loadPrefFile = function(srcDir, srcPrefFiles) {
     }
   };
 
-  // read all files
+  // Read all files
   srcPrefFiles.forEach(function(filename) {
-    var srcFile = srcDir.clone();
-    srcFile.append(filename);
+    var srcFile = utils.getFile(srcDir.path, filename);
     if (srcFile.exists()) {
       utils.scriptLoader.load(srcFile.path, scope, true);
     }
@@ -125,8 +124,7 @@ PreferencesBuilder.prototype.customizePrefValue = function(key, value) {
 PreferencesBuilder.prototype.preparePref = function() {
   this.system = this.config.SYSTEM;
 
-  this.userPrefs['b2g.system_manifest_url'] =
-                   this.system + '/manifest.webapp';
+  this.userPrefs['b2g.system_manifest_url'] = this.system + '/manifest.webapp';
 
   this.userPrefs['b2g.neterror.url'] = this.system + '/net_error.html';
   if (this.system.substring(0, 6) == 'app://') { // B2G bug 773884
@@ -147,8 +145,8 @@ PreferencesBuilder.prototype.preparePref = function() {
   this.userPrefs['layout.css.sticky.enabled'] = true;
   this.userPrefs['intl.uidirection.qps-plocm'] = 'rtl';
 
-  // for https://bugzilla.mozilla.org/show_bug.cgi?id=811605 to let user know
-  //what prefs is for ril debugging
+  // For https://bugzilla.mozilla.org/show_bug.cgi?id=811605 to let user know
+  // what prefs is for ril debugging
   this.userPrefs['ril.debugging.enabled'] = false;
   // Gaia has no vCard/vCalendar for now. Override MMS version to v1.1:
   // TODO: remove this override after having vCard/vCalendar implemented in
@@ -162,6 +160,7 @@ PreferencesBuilder.prototype.preparePref = function() {
   //       here.
   // @see Bug 790056 - Enable WPA Enterprise
   this.userPrefs['b2g.wifi.allow_unsafe_wpa_eap'] = true;
+
   if (this.config.LOCAL_DOMAINS === '1') {
     this.setLocalDomainPref();
   }
@@ -224,11 +223,11 @@ PreferencesBuilder.prototype.setDebugPref = function() {
   this.userPrefs['extensions.gaia.official'] = Boolean(this.config.OFFICIAL);
   this.userPrefs['extensions.gaia.locales_file'] = this.config.LOCALES_FILE;
   // Bug 952901: remove getLocaleBasedir() if bug 952900 fixed.
-  this.userPrefs['extensions.gaia.locale_basedir'] =
-    utils.getLocaleBasedir(this.config.LOCALE_BASEDIR);
+  this.userPrefs['extensions.gaia.locale_basedir'] = utils.getLocaleBasedir(
+    this.config.LOCALE_BASEDIR);
 
   var suffix = this.config.GAIA_DEV_PIXELS_PER_PX === '1' ?
-               '' : '@' + this.config.GAIA_DEV_PIXELS_PER_PX + 'x';
+    '' : '@' + this.config.GAIA_DEV_PIXELS_PER_PX + 'x';
   this.userPrefs['extensions.gaia.device_pixel_suffix'] = suffix;
   this.userPrefs['extensions.autoDisableScopes'] = 0;
 
@@ -251,15 +250,14 @@ PreferencesBuilder.prototype.writePrefs = function(jsPath, prefs, userPrefs) {
   var userJs = utils.getFile(jsPath);
   var content = '';
   var pref;
-  // output pref
+  // Output pref
   for (pref in prefs) {
-    content += 'pref(\'' + pref + '\', ' +
-                JSON.stringify(prefs[pref]) + ');\n';
+    content += 'pref(\'' + pref + '\', ' + JSON.stringify(prefs[pref]) + ');\n';
   }
-  // output user_pref
+  // Output user_pref
   for (pref in userPrefs) {
     content += 'user_pref(\'' + pref + '\', ' +
-                JSON.stringify(userPrefs[pref]) + ');\n';
+      JSON.stringify(userPrefs[pref]) + ');\n';
   }
   utils.writeContent(userJs, content + '\n');
 };
