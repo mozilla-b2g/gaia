@@ -33,7 +33,7 @@ suite('system/LockScreenWindow', function() {
       if ('lockscreen-overlay-template' === id) {
         var comment = document.createComment('<div id="lockscreen"></div>');
         element.appendChild(comment);
-      } else if (id.indexOf('AppWindow' >= 0)) {
+      } else if (id.indexOf('AppWindow') >= 0) {
         var container = document.createElement('div');
         container.className = 'browser-container';
         element.appendChild(container);
