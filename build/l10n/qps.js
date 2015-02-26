@@ -137,9 +137,9 @@ function Pseudo(id, name, charMap, modFn) {
 }
 
 var PSEUDO = {
-  'qps-ploc': new Pseudo('qps-ploc', 'Accented English',
+  'qps-ploc': new Pseudo('qps-ploc', 'Packaged Accented',
                          ACCENTED_MAP, makeLonger),
-  'qps-plocm': new Pseudo('qps-plocm', 'Mirrored English',
+  'qps-plocm': new Pseudo('qps-plocm', 'Packaged Mirrored',
                           FLIPPED_MAP, makeRTL)
 };
 

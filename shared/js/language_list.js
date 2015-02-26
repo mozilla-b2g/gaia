@@ -68,6 +68,9 @@ exports.LanguageList = {
     if (navigator.mozL10n) {
       // add runtime pseudolocales
       for (lang in navigator.mozL10n.qps) {
+        if (lang in languages) {
+          continue;
+        }
         isCurrent = (lang === currentLang);
         if (isCurrent || qpsEnabled) {
           languages[lang] = navigator.mozL10n.qps[lang].name;

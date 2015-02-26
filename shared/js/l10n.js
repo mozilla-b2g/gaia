@@ -1102,9 +1102,9 @@
   }
 
   var PSEUDO = {
-    'qps-ploc': new Pseudo('qps-ploc', 'Accented English',
+    'qps-ploc': new Pseudo('qps-ploc', 'Runtime Accented',
                            ACCENTED_MAP, makeLonger),
-    'qps-plocm': new Pseudo('qps-plocm', 'Mirrored English',
+    'qps-plocm': new Pseudo('qps-plocm', 'Runtime Mirrored',
                             FLIPPED_MAP, makeRTL)
   };
 
