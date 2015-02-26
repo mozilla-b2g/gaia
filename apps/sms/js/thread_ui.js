@@ -2538,22 +2538,21 @@ var ThreadUI = {
   },
 
   validateContact: function thui_validateContact(source, fValue, contacts) {
-    // fValue is currently unused here, but must be in the parameter
-    // list in order for exactContact and searchContact to both use
-    // validateContact as a handler.
-    //
     var isInvalid = true;
     var index = this.recipients.length - 1;
     var last = this.recipientsList.lastElementChild;
     var typed = last && last.textContent.trim();
     var isContact = false;
-    var record, length, number, contact, prop, propValue;
+    var record, length, number, contact;
 
     if (index < 0) {
       index = 0;
     }
-    prop = Settings.supportEmailRecipient &&
-           Utils.isEmailAddress(fValue) ? 'email' : 'tel';
+
+    var props = ['tel'];
+    if (Settings.supportEmailRecipient) {
+      props.push('email');
+    }
 
     // If there is greater than zero matches,
     // process the first found contact into
@@ -2561,18 +2560,26 @@ var ThreadUI = {
     if (contacts && contacts.length) {
       isInvalid = false;
       record = contacts[0];
-      length = record[prop].length;
+      var values = props.reduce((values, prop) => {
+        var propValue = record[prop];
+        if (propValue && propValue.length) {
+          return values.concat(propValue);
+        }
 
-      // Received an exact match with a single tel record
+        return values;
+      }, []);
+      length = values.length;
+
+      // Received an exact match with a single tel or email record
       if (source.isLookupable && !source.isQuestionable && length === 1) {
-        if (Utils.probablyMatches(record[prop][0].value, fValue)) {
+        if (Utils.probablyMatches(values[0].value, fValue)) {
           isContact = true;
-          number = record[prop][0].value;
+          number = values[0].value;
         }
       } else {
         // Received an exact match that may have multiple tel records
         for (var i = 0; i < length; i++) {
-          propValue = record[prop][i].value;
+          var propValue = values[i].value;
           if (this.recipients.numbers.indexOf(propValue) === -1) {
             number = propValue;
             break;
