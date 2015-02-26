@@ -194,7 +194,13 @@ var TilesView = {
           var data = this.dataSource[index];
           handler = tv_playAlbum.bind(this, data, index);
 
-          target.addEventListener('transitionend', handler);
+          if (evt.mozInputSource === MouseEvent.MOZ_SOURCE_UNKNOWN) {
+            // A scripted click from screen reader event won't have a
+            // transition effect.
+            handler();
+          } else {
+            target.addEventListener('transitionend', handler);
+          }
         }
 
         break;
