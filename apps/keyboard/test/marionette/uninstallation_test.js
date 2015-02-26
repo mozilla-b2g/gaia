@@ -10,20 +10,16 @@ var KeyboardTestApp = require('./lib/keyboard_test_app');
 var ImeTestApp = require('./lib/ime_test_app');
 var Keyboard = require('./lib/keyboard');
 var assert = require('assert');
-var AppInstall =
-  require('../../../../apps/system/test/marionette/lib/app_install');
-var SystemApp =
-  require('../../../../apps/settings/test/marionette/app/system_app');
 
 marionette('Show Keyboard App after uninstallation', function() {
   var keyboardTestApp = null;
   var keyboard = null;
-  var system = null;
+  var systemInputMgmt = null;
   var imeTestApp = null;
   var appInstall = null;
-  var systemApp = null;
   var client = null;
   var apps = {};
+  var confirmDialog = null;
 
   // Pre-install keyboard testing app
   apps[KeyboardTestApp.ORIGIN] = __dirname + '/keyboardtestapp';
@@ -54,24 +50,25 @@ marionette('Show Keyboard App after uninstallation', function() {
     }
   });
 
-  appInstall = new AppInstall(client);
-  systemApp = new SystemApp(client);
-
   /*
    * To check the 3rd-party IME is shown.
    */
   function check3rdPartyIme() {
     // switch back to system
     client.switchToFrame();
-    system.switchToActiveKeyboardFrame();
-    client.waitFor(function() {
-      return imeTestApp.sendKeyButton.displayed();
-    });
+
+    // wait for the 2nd keyboard is loaded
+    systemInputMgmt.ensureInputWindowCount(2);
+
+    systemInputMgmt.switchToActiveKeyboardFrame();
+    return imeTestApp.sendKeyButton.displayed();
   }
 
   setup(function() {
     keyboard =  new Keyboard(client);
-    system = client.loader.getAppClass('keyboard', 'system');
+    systemInputMgmt = client.loader.getAppClass('system', 'input_management');
+    appInstall = client.loader.getAppClass('system', 'app_install');
+    confirmDialog = client.loader.getAppClass('system', 'confirm_dialog');
     imeTestApp = new ImeTestApp(client);
 
     // create a keyboard test app
@@ -80,17 +77,23 @@ marionette('Show Keyboard App after uninstallation', function() {
     keyboardTestApp.textInput.click();
 
     // Wait for the keyboard pop up and switch to it
-    system.waitForKeyboardFrameDisplayed();
-    system.switchToActiveKeyboardFrame();
+    systemInputMgmt.waitForKeyboardFrameDisplayed();
+    systemInputMgmt.switchToActiveKeyboardFrame();
 
     // Click to switch to next IME
     keyboard.imeSwitchingKey.click();
     check3rdPartyIme();
 
+    // XXX: Blur the input field, otherwise the keyboard frame has higher
+    // z-index than dialog and we can't click it
+    systemInputMgmt.waitForKeyboardFrameDisplayed();
+    client.apps.switchToApp(KeyboardTestApp.ORIGIN);
+    keyboardTestApp.nonInputArea.click();
+
     // Uninstall the current active IME
     appInstall.uninstall(ImeTestApp.MANIFEST_URL);
     client.switchToFrame();
-    systemApp.confirmDialog('remove');
+    confirmDialog.confirm('remove');
 
     // Click the input field again to check the built-in keyboard
     client.apps.switchToApp(KeyboardTestApp.ORIGIN);
@@ -99,8 +102,8 @@ marionette('Show Keyboard App after uninstallation', function() {
     keyboardTestApp.textInput.click();
 
     // Wait for the keyboard pop up and switch to it
-    system.waitForKeyboardFrameDisplayed();
-    system.switchToActiveKeyboardFrame();
+    systemInputMgmt.waitForKeyboardFrameDisplayed();
+    systemInputMgmt.switchToActiveKeyboardFrame();
   });
 
   test('Fallback to built-in keyboard when the active IME has been ' +
@@ -109,14 +112,8 @@ marionette('Show Keyboard App after uninstallation', function() {
   });
 
   test('Should not show IME switching key after uninstallation', function() {
-    client.findElement(Keyboard.Selector.imeSwitchingKey,
-      function(err, element) {
-        // Should not find the IME switching key
-        if (err) {
-          assert.equal(err.name, 'NoSuchElement');
-        } else {
-          assert.ok(false);
-        }
-      });
+    // Since the switching key is gone, we would show ',' on the first page
+    var commaKey = keyboard.getKey(',');
+    assert.ok(commaKey.displayed());
   });
 });

@@ -67,7 +67,7 @@
 
       suggestionsWrapper.dataset.loading = true;
 
-      return SearchProvider.ready().then(resolve => {
+      return SearchProvider.ready().then(() => {
         return new Promise((resolve, reject) => {
           var url = encodeTerms(SearchProvider('suggestUrl'), input);
           LazyLoader.getJSON(url, true).then(result => {
