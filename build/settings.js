@@ -1,5 +1,4 @@
 'use strict';
-/* global exports, require */
 
 var utils = require('./utils');
 
@@ -223,8 +222,8 @@ function writeSettings(settings, config) {
   utils.writeContent(settingsFile, content + '\n');
   utils.log('settings.js', 'Writing settings file: ' + settingsFile.path);
 
-  profileDir.append('defaults');
-  utils.ensureFolderExists(profileDir);
+  var defaultSettingFolder = utils.getFile(profileDir.path, 'defaults');
+  utils.ensureFolderExists(defaultSettingFolder);
   utils.writeContent(defaultsSettings, content + '\n');
   utils.log('settings.js', 'Writing settings file: ' + defaultsSettings.path);
 }
@@ -293,7 +292,7 @@ function execute(config) {
     settings['lockscreen.locked'] = false;
   }
 
-  var screenTimeout = parseInt(config.SCREEN_TIMEOUT);
+  var screenTimeout = parseInt(config.SCREEN_TIMEOUT, 10);
   if (screenTimeout >= 0) {
     settings['screen.timeout'] = screenTimeout;
   }
