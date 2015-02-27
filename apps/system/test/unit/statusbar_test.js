@@ -320,6 +320,9 @@ suite('system/Statusbar', function() {
         isFullScreen: function() {
           return true;
         },
+        isFullScreenLayout: function() {
+          return true;
+        },
         getTopMostWindow: function() {
           return app;
         },
@@ -347,28 +350,28 @@ suite('system/Statusbar', function() {
     test('Launch a non-fullscreen app', function() {
       var app = new MockAppWindow();
       this.sinon.stub(app, 'isFullScreen').returns(false);
-      StatusBar.handleEvent(new CustomEvent('appopened', { detail:app }));
+      StatusBar.handleEvent(new CustomEvent('appopened', {detail: app}));
       assert.isFalse(StatusBar.element.classList.contains('fullscreen'));
     });
 
     test('Launch a fullscreen app', function() {
       var app = new MockAppWindow();
       this.sinon.stub(app, 'isFullScreen').returns(true);
-      StatusBar.handleEvent(new CustomEvent('appopened', { detail:app }));
+      StatusBar.handleEvent(new CustomEvent('appopened', {detail: app}));
       assert.isTrue(StatusBar.element.classList.contains('fullscreen'));
     });
 
     test('Launch a fullscreen-layout app', function() {
       var app = new MockAppWindow();
       this.sinon.stub(app, 'isFullScreenLayout').returns(true);
-      StatusBar.handleEvent(new CustomEvent('appopened', { detail:app }));
+      StatusBar.handleEvent(new CustomEvent('appopened', {detail: app}));
       assert.isTrue(StatusBar.element.classList.contains('fullscreen-layout'));
     });
 
     test('Launch a non-fullscreen-layout app', function() {
       var app = new MockAppWindow();
       this.sinon.stub(app, 'isFullScreenLayout').returns(false);
-      StatusBar.handleEvent(new CustomEvent('appopened', { detail:app }));
+      StatusBar.handleEvent(new CustomEvent('appopened', {detail: app}));
       assert.isFalse(StatusBar.element.classList.contains('fullscreen-layout'));
     });
 
@@ -376,10 +379,30 @@ suite('system/Statusbar', function() {
       var app = new MockAppWindow();
       this.sinon.stub(app, 'isFullScreen').returns(true);
       this.sinon.stub(app, 'isFullScreenLayout').returns(true);
-      StatusBar.handleEvent(new CustomEvent('appopened', { detail:app }));
+      StatusBar.handleEvent(new CustomEvent('appopened', {detail: app}));
       var home = new MockAppWindow();
       StatusBar.handleEvent(new CustomEvent('homescreenopened',
         { detail: home }));
+      assert.isFalse(StatusBar.element.classList.contains('fullscreen'));
+      assert.isFalse(StatusBar.element.classList.contains('fullscreen-layout'));
+    });
+
+    test('Launch a fullscreen activity', function() {
+      var app = new MockAppWindow();
+      this.sinon.stub(app, 'isFullScreen').returns(true);
+      this.sinon.stub(app, 'isFullScreenLayout').returns(true);
+      StatusBar.handleEvent(new CustomEvent('hierarchytopmostwindowchanged',
+        {detail: app}));
+      assert.isTrue(StatusBar.element.classList.contains('fullscreen'));
+      assert.isTrue(StatusBar.element.classList.contains('fullscreen-layout'));
+    });
+
+    test('Launch a non-fullscreen activity', function() {
+      var app = new MockAppWindow();
+      this.sinon.stub(app, 'isFullScreen').returns(false);
+      this.sinon.stub(app, 'isFullScreenLayout').returns(false);
+      StatusBar.handleEvent(new CustomEvent('hierarchytopmostwindowchanged',
+        {detail: app}));
       assert.isFalse(StatusBar.element.classList.contains('fullscreen'));
       assert.isFalse(StatusBar.element.classList.contains('fullscreen-layout'));
     });

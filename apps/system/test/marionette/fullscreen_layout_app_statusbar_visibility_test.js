@@ -22,8 +22,6 @@ marionette('Fullscreen layout status bar visibility >', function() {
 
   setup(function() {
     system.waitForStartup();
-    assert(system.statusbarMaximizedWrapper.displayed(),
-      'The status bar maximized wrapper is visible');
     system.waitForLaunch(FULLSCREEN_LAYOUT_APP);
   });
 

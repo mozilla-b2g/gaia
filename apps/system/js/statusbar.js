@@ -298,6 +298,7 @@ var StatusBar = {
 
     window.addEventListener('appopening', this);
     window.addEventListener('appopened', this);
+    window.addEventListener('hierarchytopmostwindowchanged', this);
     window.addEventListener('activityopened', this);
     window.addEventListener('activityterminated', this);
     window.addEventListener('activitydestroyed', this);
@@ -571,12 +572,20 @@ var StatusBar = {
         break;
 
       case 'appopened':
+      case 'hierarchytopmostwindowchanged':
       case 'appchromeexpanded':
+        var app = null;
         if (evt.type === 'appopened') {
+          app = evt.detail;
+        } else if (evt.type === 'hierarchytopmostwindowchanged') {
+          app = evt.detail.getTopMostWindow();
+        }
+
+        if (app) {
           this.element.classList.toggle('fullscreen',
-            evt.detail.isFullScreen());
+            app.isFullScreen());
           this.element.classList.toggle('fullscreen-layout',
-            evt.detail.isFullScreenLayout());
+            app.isFullScreenLayout());
         }
         this.setAppearance(evt.detail);
         this.element.classList.remove('hidden');
@@ -680,9 +689,11 @@ var StatusBar = {
     var themeWindow =
       useBottomWindow ? app.getBottomMostWindow() : app.getTopMostWindow();
 
-    this.element.classList.toggle('light',
-      !!(themeWindow.appChrome && themeWindow.appChrome.useLightTheming())
-    );
+    if (themeWindow) {
+      this.element.classList.toggle('light',
+        !!(themeWindow.appChrome && themeWindow.appChrome.useLightTheming())
+      );
+    }
 
     // Maximized state must be based on the bottom window if we're using it but
     // use the currently showing window for other cases.
