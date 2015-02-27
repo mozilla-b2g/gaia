@@ -988,11 +988,13 @@ var PlayerView = {
         this.playControl.classList.remove('is-pause');
         // The play event is fired when audio playback has begun.
         this.playStatus = PLAYSTATUS_PLAYING;
+        this.playControl.setAttribute('data-l10n-id', 'playbackPause');
         this.updateRemotePlayStatus();
         break;
       case 'pause':
         this.playControl.classList.add('is-pause');
         this.playStatus = PLAYSTATUS_PAUSED;
+        this.playControl.setAttribute('data-l10n-id', 'playbackPlay');
         this.updateRemotePlayStatus();
         break;
       case 'touchstart':
