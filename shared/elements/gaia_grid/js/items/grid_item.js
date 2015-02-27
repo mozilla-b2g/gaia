@@ -502,29 +502,32 @@
         tile.className = 'icon';
         tile.dataset.identifier = this.identifier;
         tile.dataset.isDraggable = this.isDraggable();
-        tile.setAttribute('role', 'link');
+        var link = document.createElement('a');
+        link.href = '#';
+        link.classList.add('tap');
+        tile.appendChild(link);
 
-        // This <p> has been added in order to place the title with respect
+        // This <div> has been added in order to place the title with respect
         // to this container via CSS without touching JS.
-        var nameContainerEl = document.createElement('p');
-        nameContainerEl.style.marginTop = ((this.grid.layout.gridIconSize *
+        var nameContainerEl = document.createElement('div');
+        nameContainerEl.style.paddingTop = ((this.grid.layout.gridIconSize *
           (1 / this.grid.layout.percent)) +
           (GridIconRenderer.prototype.unscaledCanvasPadding / 2)) + 'px';
-        tile.appendChild(nameContainerEl);
+        link.appendChild(nameContainerEl);
 
         var nameEl = document.createElement('span');
         nameEl.className = 'title';
-        nameEl.textContent = this.name;
         nameContainerEl.appendChild(nameEl);
 
         // Add delete link if this icon is removable
         if (this.isRemovable()) {
-          var removeEl = document.createElement('span');
+          var removeEl = document.createElement('button');
           removeEl.className = 'remove';
           tile.appendChild(removeEl);
         }
 
         this.element = tile;
+        this.updateTitle();
         this.renderIcon(true);
         this.grid.element.appendChild(tile);
       }
@@ -565,6 +568,12 @@
       }
       var nameEl = this.element.querySelector('.title');
       nameEl.textContent = this.name;
+
+      var removeEl = this.element.querySelector('.remove');
+      if (removeEl) {
+        navigator.mozL10n.setAttributes(removeEl, 'gaia-grid-remove',
+          { name: this.name });
+      }
     },
 
     /**

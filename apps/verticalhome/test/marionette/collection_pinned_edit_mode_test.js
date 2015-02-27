@@ -60,9 +60,9 @@ marionette('Vertical - Collection', function() {
     var firstPinned = collection.firstPinnedResult;
 
     actions
-      .press(firstPinned)
+      .press(firstPinned.findElement('a'))
       .wait(1)
-      .move(secondPinned)
+      .move(secondPinned.findElement('a'))
       .wait(1)
       .release()
       .wait(1)

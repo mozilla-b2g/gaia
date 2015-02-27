@@ -28,8 +28,17 @@ suite('search/contextmenu', function() {
   });
 
   suite('handleEvent', function() {
-    test('contextmenu icon not bookmarked', function() {
+    function createIcon() {
       var target = document.createElement('div');
+      var link = document.createElement('a');
+      link.href = '#';
+      link.classList.add('tap');
+      target.appendChild(link);
+      return target;
+    }
+
+    test('contextmenu icon not bookmarked', function() {
+      var target = createIcon();
       target.getIcon = function() {
         return {
           detail: {
@@ -43,7 +52,7 @@ suite('search/contextmenu', function() {
 
       var fakeContextMenuEvent = {
         type: 'contextmenu',
-        target: target
+        target: target.querySelector('.tap')
       };
 
       var startStub = this.sinon.stub(subject.grid, 'start');
@@ -55,7 +64,7 @@ suite('search/contextmenu', function() {
     });
 
     test('contextmenu icon already bookmarked', function() {
-      var target = document.createElement('div');
+      var target = createIcon();
       target.getIcon = function() {
         return {
           detail: {
@@ -68,7 +77,7 @@ suite('search/contextmenu', function() {
 
       var fakeContextMenuEvent = {
         type: 'contextmenu',
-        target: target
+        target: target.querySelector('.tap')
       };
 
       isBookmarked = true;

@@ -62,24 +62,33 @@ suite('contextmenu > ', function() {
     elem.dispatchEvent(ev);
   };
 
-  test('clicking an icon not bookmarked', function() {
+  function createIcon() {
     var icon = document.createElement('div');
+    var link = document.createElement('a');
+    link.href = '#';
+    link.classList.add('tap');
+    icon.appendChild(link);
+    return icon;
+  }
+
+  test('clicking an icon not bookmarked', function() {
+    var icon = createIcon();
     icon.dataset.identifier = 'hi';
     subject.grid.appendChild(icon);
 
-    simulateContextMenu(icon);
+    simulateContextMenu(icon.querySelector('.tap'));
 
     assert.ok(menuStub.calledOnce);
     assert.isFalse(subject.bookmarkButton.hidden);
   });
 
   test('clicking an icon already bookmarked', function() {
-    var icon = document.createElement('div');
+    var icon = createIcon();
     icon.dataset.identifier = 'hi';
     subject.grid.appendChild(icon);
 
     isBookmarked = true;
-    simulateContextMenu(icon);
+    simulateContextMenu(icon.querySelector('.tap'));
 
     assert.ok(menuStub.calledOnce);
     assert.isTrue(subject.bookmarkButton.hidden);

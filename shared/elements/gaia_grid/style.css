@@ -60,17 +60,20 @@
   background: url(images/add.png) no-repeat;
 }
 
-.icon p {
+.icon .tap {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.icon .tap div {
   pointer-events: none;
   height: 3.2rem;
   width: 100%;
-  margin: 0;
-  padding: 0;
 }
 
 .icon .title {
   display: inline-block;
-  margin-top: 0.1rem;
   /* We need this rule in order not to hide the drop shadow */
   padding: 0 0.2rem 1rem;
   text-shadow: 0.1rem 0.1rem 0.3rem rgba(0, 0, 0, 0.3),
@@ -150,11 +153,13 @@
 .edit-mode .icon .remove {
   display: block;
   position: absolute;
+  border: none;
+  margin: 0;
   top: 0.1rem;
   left: 0.5rem;
   width: 2.6rem;
   height: 2.6rem;
-  background: url(images/remove.png) no-repeat;
+  background: transparent url(images/remove.png) no-repeat;
   background-size: 2rem;
   /*
   Ensure that remove is on top of the icon and has some extra

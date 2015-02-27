@@ -187,7 +187,7 @@ Collection.prototype = {
       el.scrollIntoView(false);
     });
 
-    icon.tap();
+    icon.findElement('a').tap();
 
     this.client.switchToFrame();
     this.client.apps.switchToApp(Collection.URL);
@@ -201,7 +201,7 @@ Collection.prototype = {
    * @param {Object} element The web result element to pin.
    */
   pin: function(element) {
-    this.actions.longPress(element, 1).perform();
+    this.actions.longPress(element.findElement('a'), 1).perform();
     this.client.helper.waitForElement(
       Collection.Selectors.cloudMenuPin).click();
 
@@ -218,7 +218,7 @@ Collection.prototype = {
     var bookmarkSelector = Collection.Selectors.cloudMenuBookmark;
 
     var icons = this.client.helper.waitForElement(selector);
-    this.actions.longPress(icons, 1).perform();
+    this.actions.longPress(icons.findElement('a'), 1).perform();
     this.client.helper.waitForElement(bookmarkSelector).click();
     this.client.switchToFrame();
 
