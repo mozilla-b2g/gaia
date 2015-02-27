@@ -84,7 +84,7 @@
 }
 
 #modal-dialog-select-one h3 {
-  font-size: 1.8rem;
+  line-height: 1.8rem;
 }
 
 #modal-dialog-select-one ul {
@@ -115,6 +115,8 @@
   margin: 0;
   background: #4E4E4E padding-box;
   border: solid 1px rgba(0, 0, 0, 0.25);
+  padding-left: 1.5rem;
+  line-height: 2rem;
 }
 
 #modal-dialog-select-one ul > li > button:active {
