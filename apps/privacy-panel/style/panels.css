@@ -19,12 +19,7 @@
   -moz-user-select: none;
 }
 
-input[type="email"],
-input[type="password"],
-input[type="search"],
-input[type="tel"],
-input[type="text"],
-input[type="url"],
+input,
 textarea,
 [contenteditable="true"] {
   -moz-user-select: text;
@@ -44,7 +39,7 @@ ul li:first-child {
   border-top: none;
 }
 
-input[type="range"].blur-slider {
+input[type=range].blur-slider {
   width: calc(100% - 3rem);
 }
 
