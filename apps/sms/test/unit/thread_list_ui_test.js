@@ -133,33 +133,23 @@ suite('thread_list_ui', function() {
 
   suite('setEmpty', function() {
     suite('(true)', function() {
+      var panel;
       setup(function() {
-        // set wrong states
-        ThreadListUI.noMessages.classList.add('hide');
-        ThreadListUI.container.classList.remove('hide');
-        // make sure it sets em all
+        panel = document.getElementById('thread-list');
         ThreadListUI.setEmpty(true);
       });
-      test('removes noMessages hide', function() {
-        assert.isFalse(ThreadListUI.noMessages.classList.contains('hide'));
-      });
-      test('adds container hide', function() {
-        assert.isTrue(ThreadListUI.container.classList.contains('hide'));
+      test('displays noMessages and hides container', function() {
+        assert.isTrue(panel.classList.contains('threadlist-is-empty'));
       });
     });
     suite('(false)', function() {
+      var panel;
       setup(function() {
-        // set wrong states
-        ThreadListUI.noMessages.classList.remove('hide');
-        ThreadListUI.container.classList.add('hide');
-        // make sure it sets em all
+        panel = document.getElementById('thread-list');
         ThreadListUI.setEmpty(false);
       });
-      test('adds noMessages hide', function() {
-        assert.isTrue(ThreadListUI.noMessages.classList.contains('hide'));
-      });
-      test('removes container hide', function() {
-        assert.isFalse(ThreadListUI.container.classList.contains('hide'));
+      test('hides noMessages and displays container', function() {
+        assert.isFalse(panel.classList.contains('threadlist-is-empty'));
       });
     });
   });
@@ -170,16 +160,6 @@ suite('thread_list_ui', function() {
     });
     teardown(function() {
       MockOptionMenu.mTeardown();
-    });
-
-    test('show settings/cancel options when list is empty', function() {
-      ThreadListUI.setEmpty(true);
-      ThreadListUI.showOptions();
-
-      var optionItems = MockOptionMenu.calls[0].items;
-      assert.equal(optionItems.length, 2);
-      assert.equal(optionItems[0].l10nId, 'settings');
-      assert.equal(optionItems[1].l10nId, 'cancel');
     });
 
     test('show select/settings/cancel options when list existed', function() {
@@ -1296,7 +1276,7 @@ suite('thread_list_ui', function() {
   });
 
   suite('renderThreads', function() {
-    var firstViewDone;
+    var firstViewDone,panel;
     setup(function() {
       this.sinon.spy(ThreadListUI, 'setEmpty');
       this.sinon.spy(ThreadListUI, 'prepareRendering');
@@ -1310,6 +1290,7 @@ suite('thread_list_ui', function() {
       this.sinon.spy(MockStickyHeader.prototype, 'refresh');
       this.sinon.spy(window, 'StickyHeader');
       firstViewDone = sinon.stub();
+      panel = document.getElementById('thread-list');
 
       Threads.clear();
     });
@@ -1326,8 +1307,7 @@ suite('thread_list_ui', function() {
           sinon.assert.called(ThreadListUI.renderDrafts);
           sinon.assert.called(StickyHeader);
           sinon.assert.calledWith(ThreadListUI.finalizeRendering, true);
-          assert.isFalse(ThreadListUI.noMessages.classList.contains('hide'));
-          assert.isTrue(ThreadListUI.container.classList.contains('hide'));
+          assert.isTrue(panel.classList.contains('threadlist-is-empty'));
         });
       });
     });
@@ -1372,8 +1352,7 @@ suite('thread_list_ui', function() {
       ThreadListUI.renderThreads(firstViewDone, function() {
         done(function checks() {
           sinon.assert.calledWith(ThreadListUI.finalizeRendering, false);
-          assert.isTrue(ThreadListUI.noMessages.classList.contains('hide'));
-          assert.isFalse(ThreadListUI.container.classList.contains('hide'));
+          assert.isFalse(panel.classList.contains('threadlist-is-empty'));
           sinon.assert.called(StickyHeader);
           sinon.assert.called(ThreadListUI.sticky.refresh);
 

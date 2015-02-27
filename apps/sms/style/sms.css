@@ -1045,3 +1045,22 @@ html {
 .editable-select-mode [contenteditable] {
   -moz-user-select: text;
 }
+
+/* Empty threadlist layout. */
+#threads-no-messages, .threadlist-is-empty #threads-container {
+  display: none;
+}
+
+/* Using !important to override scoped style in gaia-header component. */
+#threads-settings-button, .threadlist-is-empty #threads-options-button {
+  display: none !important;
+}
+
+/* Using flex to center the content. */
+.threadlist-is-empty #threads-settings-button {
+  display: flex !important;
+}
+
+.threadlist-is-empty #threads-no-messages {
+  display: block;
+}

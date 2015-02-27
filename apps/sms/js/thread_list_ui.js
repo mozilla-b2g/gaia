@@ -48,7 +48,8 @@ var ThreadListUI = {
       'container', 'no-messages', 'read-unread-button',
       'check-uncheck-all-button','composer-link',
       'delete-button', 'edit-header','options-button',
-      'edit-mode', 'edit-form', 'draft-saved-banner'
+      'settings-button','edit-mode', 'edit-form',
+      'draft-saved-banner'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('threads-' + id);
     }, this);
@@ -77,6 +78,12 @@ var ThreadListUI = {
 
     this.optionsButton.addEventListener(
       'click', this.showOptions.bind(this)
+    );
+
+    this.settingsButton.addEventListener(
+      'click', function oSettings() {
+        ActivityPicker.openSettings();
+      }
     );
 
     this.container.addEventListener(
@@ -525,16 +532,18 @@ var ThreadListUI = {
   },
 
   setEmpty: function thlui_setEmpty(empty) {
-    var addWhenEmpty = empty ? 'add' : 'remove';
-    var removeWhenEmpty = empty ? 'remove' : 'add';
+    var panel = document.getElementById('thread-list');
 
-    ThreadListUI.noMessages.classList[removeWhenEmpty]('hide');
-    ThreadListUI.container.classList[addWhenEmpty]('hide');
+    // Hide the container when threadlist is empty.
+    panel.classList.toggle('threadlist-is-empty', !!empty);
   },
 
   showOptions: function thlui_options() {
     var params = {
       items: [{
+        l10nId: 'selectThreads-label',
+        method: this.startEdit.bind(this)
+      },{
         l10nId: 'settings',
         method: function oSettings() {
           ActivityPicker.openSettings();
@@ -544,14 +553,6 @@ var ThreadListUI = {
         incomplete: true
       }]
     };
-
-    // Add delete option when list is not empty
-    if (ThreadListUI.noMessages.classList.contains('hide')) {
-      params.items.unshift({
-        l10nId: 'selectThreads-label',
-        method: this.startEdit.bind(this)
-      });
-    }
 
     new OptionMenu(params).show();
   },
