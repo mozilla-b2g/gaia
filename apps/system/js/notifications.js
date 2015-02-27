@@ -476,6 +476,7 @@ var NotificationScreen = {
 
     var titleContainer = document.createElement('div');
     titleContainer.classList.add('title-container');
+    titleContainer.setAttribute('dir', 'auto');
 
     var title = document.createElement('div');
     title.classList.add('title');
