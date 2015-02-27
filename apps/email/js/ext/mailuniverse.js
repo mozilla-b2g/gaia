@@ -1764,9 +1764,21 @@ MailUniverse.prototype = {
    *
    * This request is persistent although the callback will obviously be
    * discarded in the event the app is killed.
+   *
+   * @param {String[]} relPartIndices
+   *     The part identifiers of any related parts to be saved to IndexedDB.
+   * @param {String[]} attachmentIndices
+   *     The part identifiers of any attachment parts to be saved to
+   *     DeviceStorage.  For each entry in this array there should be a
+   *     corresponding boolean in registerWithDownloadManager.
+   * @param {Boolean[]} registerAttachments
+   *     An array of booleans corresponding to each entry in attachmentIndices
+   *     indicating whether the download should be registered with the download
+   *     manager.
    */
   downloadMessageAttachments: function(messageSuid, messageDate,
                                        relPartIndices, attachmentIndices,
+                                       registerAttachments,
                                        callback) {
     var account = this.getAccountForMessageSuid(messageSuid);
     var longtermId = this._queueAccountOp(
@@ -1782,7 +1794,8 @@ MailUniverse.prototype = {
         messageSuid: messageSuid,
         messageDate: messageDate,
         relPartIndices: relPartIndices,
-        attachmentIndices: attachmentIndices
+        attachmentIndices: attachmentIndices,
+        registerAttachments: registerAttachments
       },
       callback);
   },
