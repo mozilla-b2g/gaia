@@ -83,6 +83,11 @@
   height: auto;
 }
 
+/* override BB */
+[data-type="list"] li > a:active:after {
+  background-color: transparent;
+}
+
 .report-view > .contact-list > :first-child {
   border-top: solid 0.1rem #e7e7e7;
 }
