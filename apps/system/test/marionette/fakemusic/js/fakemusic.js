@@ -17,9 +17,22 @@ var FakeMusic = {
   _queue: null,
   _queueIndex: null,
 
+  get player() {
+    return document.querySelector('#player');
+  },
+
   init: function() {
     window.addEventListener('click', this);
     document.querySelector('body').classList.add('loaded');
+    // Play music.
+    var audio = new Audio();
+    audio.mozAudioChannelType = 'content';
+    var cursor = navigator.getDeviceStorage('music').enumerate();
+    cursor.onsuccess = function(evt) {
+      var url = window.URL.createObjectURL(evt.target.result);
+      audio.src = url;
+      audio.play();
+    };
   },
 
   startQueue: function(queue) {
