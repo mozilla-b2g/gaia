@@ -775,7 +775,7 @@
       var callee = this.getApp(config.origin);
       caller = this._activeApp.getTopMostWindow();
       if (caller.getBottomMostWindow() === callee) {
-        callee.frontWindow.kill();
+        callee.frontWindow && callee.frontWindow.kill();
       } else {
         callee.callerWindow = caller;
         caller.calleeWindow = callee;

@@ -520,7 +520,7 @@
 /* Edges */
 #windows > .appWindow:not(.homescreen):not(.lockScreenWindow):not(.attentionWindow):not(.lockScreenInputWindow) {
   /* not in the viewport */
-  transform: translateX(-100%);
+  transform: translateY(-100%);
   opacity: 1;
 }
 
