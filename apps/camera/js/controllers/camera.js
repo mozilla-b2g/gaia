@@ -88,26 +88,63 @@ CameraController.prototype.bindEvents = function() {
   settings.hdr.on('change:selected', this.onHDRChange);
 
   // Key events
-  window.addEventListener('keydown', this.handleKeyDown);
+  window.addEventListener('keydown', this.onKeyDown);
 
   debug('events bound');
 };
 
-CameraController.prototype.handleKeyDown = function(ev) {
-  switch (ev.key.toLowerCase()) {
-    case 'camera':
-    case 'volumeup':
+/**
+ * When the device's hardware keys
+ * are pressed we can control the
+ * camera.
+ *
+ * @param  {Event} e
+ * @private
+ */
+CameraController.prototype.onKeyDown = function(e) {
+  switch (e.key.toLowerCase()) {
     case 'volumedown':
-      this.capture();
-      break;
-
+    case 'volumeup':
+    case 'camera':
+      return this.onCaptureKey(e);
     case 'mozcamerafocusadjust':
-      this.camera.focus.focus();
-      break;
-
-    default:
-      debug('Unhandled keydown: ' + ev.key);
+      return this.onFocusKey();
   }
+};
+
+/**
+ * Take picture or start/end recording
+ * when a capture hardware key is invoked.
+ *
+ * Calling `.preventDefault()` prevents
+ * the default system operation
+ * (eg. changing volume level). We
+ * only call it when capture request
+ * succeeds.
+ *
+ * We don't want to .preventDefault() when
+ * the preview-gallery is open as the
+ * user may want to change the volume
+ * of a video being played back.
+ *
+ * @param  {Event} e
+ * @private
+ */
+CameraController.prototype.onCaptureKey = function(e) {
+  debug('on capture key', e);
+  if (this.capture() !== false) { e.preventDefault(); }
+};
+
+/**
+ * Focus the camera when a focus
+ * hardware key is invoked.
+ *
+ * @param  {Event} e
+ * @private
+ */
+CameraController.prototype.onFocusKey = function(e) {
+  debug('on focus key', e);
+  this.camera.focus.focus();
 };
 
 /**
@@ -178,7 +215,7 @@ CameraController.prototype.capture = function() {
   }
 
   var position = this.app.geolocation.position;
-  this.camera.capture({ position: position });
+  return this.camera.capture({ position: position });
 };
 
 /**
