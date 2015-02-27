@@ -3014,14 +3014,14 @@ define('tc/perm_details',['app_list', 'tc/perm_priority_slider'], function(appLi
   var _permGroup = null;
 
   var _currentPerm = null;
-  var prioritySlider = null; //@nm
+  var prioritySlider = null; 
 
   /**
    * Helper object for the perm_applications subpanel.
    *
    * @constructor
    */
-  function TcPermDetailsPanel() { this.prioritySlider = new PermPrioritySlider(); } //@nm
+  function TcPermDetailsPanel() { this.prioritySlider = new PermPrioritySlider(); } 
 
   TcPermDetailsPanel.prototype = {
 
@@ -3059,7 +3059,7 @@ define('tc/perm_details',['app_list', 'tc/perm_priority_slider'], function(appLi
             this.prioritySlider.getValue();
           }.bind(this)
         );
-      ///////////////////////////@nm///////////////////////////////
+      //////////////////////////////////////////////////////////
       
       window.addEventListener('localized', function tcPermDetailsLangChange() {
         this.renderPermDetails(_currentPerm);
@@ -3096,7 +3096,7 @@ define('tc/perm_details',['app_list', 'tc/perm_priority_slider'], function(appLi
       }else { 
     	  slider.setValue("0");
       }
-      ////////////////////////////////// @nm //////////////////////////////////////////
+      //////////////////////////////////  //////////////////////////////////////////
       
       _permInfo.querySelector('span').textContent = perm.name;
       _permInfo.querySelector('p').textContent = perm.desc;
@@ -3257,12 +3257,12 @@ function(panels, appList, permDetails) {
         link.addEventListener('click', function showAppDetails() {
           panels.show({ id: 'tc-permDetails', options: perm });
 		
-          //////////////Setting the priority slider for permissions///////////////////////////////////////////
+          //////////////priority slider for permissions///////////////////////////////////////////
           document.querySelector('input.perm-slider').setAttribute("data-permname", perm.key);
           //console.log(document.querySelector('input.perm-slider').getAttribute("data-permname"));
 		  document.querySelector('input.perm-slider').max = "20";		
 		  document.querySelector('p.perm-label').innerHTML = (localStorage.getItem(perm.key) * 5);
-		  ///////////////////////////////////////////@nm////////////////////////////////////////////////////////
+		  ///////////////////////////////////////////////////////////////////////////////////////////////////
         });
 
         item.appendChild(link);
