@@ -3,7 +3,7 @@
     "name": "Gaia taskgraph",
     "description": "Gaia taskgraph generator"
   },
-  "scopes": ["docker-worker:cache:resources"],
+  "scopes": ["docker-worker:cache:gaia-misc-caches"],
   "tags": {},
   "tasks": [
     {

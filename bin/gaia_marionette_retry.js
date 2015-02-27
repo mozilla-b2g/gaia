@@ -164,6 +164,7 @@ function runTest(filename, args, retry) {
     });
 
     jsmarionette.stderr.on('data', function(data) {
+      console.error('[marionette-mocha] ' + data);
       stderr += data.toString();
     });
 
