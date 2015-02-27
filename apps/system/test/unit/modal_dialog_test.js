@@ -64,10 +64,7 @@ suite('system/ModalDialog >', function() {
       {id: 'testId1', text: 'testText1'}
     ];
 
-    ModalDialog.buildSelectOneDialog({
-      title: 'testTitle',
-      options: testOptions
-    });
+    ModalDialog.buildSelectOneDialog(testOptions);
 
     assert.isNotNull(
       ModalDialog.elements.selectOneMenu.innerHTML.match(testOptions[0].id));
@@ -75,17 +72,18 @@ suite('system/ModalDialog >', function() {
 
   test('call selectone API directly >', function() {
 
-    ModalDialog.selectOne({
-      title: 'testTitle',
-      options: [
-        {id: 'testId1', text: 'searchName'}
-      ]
-    });
+    var testOptions = [
+      {id: 'testId1', text: 'testText1'}
+    ];
+
+    ModalDialog.selectOne(testObject.dialogTitle, testOptions);
 
     assert.isTrue(ModalDialog.elements.selectOne.classList.contains('visible'));
-    assert.isNull(
-      ModalDialog.elements.selectOneTitle.innerHTML.match(
-        testObject.dialogTitle));
+    assert.strictEqual(
+      ModalDialog.elements.selectOneTitle.getAttribute('data-l10n-id'),
+      testObject.dialogTitle);
+    assert.isNotNull(
+      ModalDialog.elements.selectOneMenu.innerHTML.match(testOptions[0].id));
 
     ModalDialogCleanUp();
   });

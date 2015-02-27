@@ -11,7 +11,6 @@
 
 (function(exports) {
   var _id = 0;
-  var _ = navigator.mozL10n.get;
 
   var newTabManifestURL = null;
   SettingsListener.observe('rocketbar.newTabAppURL', '',
@@ -820,19 +819,27 @@
       }
     }
 
-    var data = {
-      title: _('add-to-home-screen'),
-      options: []
-    };
+    var title = 'add-to-home-screen';
+    var options = [];
 
     if (this.isSearch()) {
       var dataset = this.app.config;
-      data.options.push({ id: 'search', text: dataset.searchName });
+      options.push({
+        id: 'search',
+        text: {
+          raw: dataset.searchName
+        }
+      });
     } else {
-      data.options.push({ id: 'origin', text: this.title.textContent });
+      options.push({
+        id: 'origin',
+        text: {
+          raw: this.title.textContent
+        }
+      });
     }
 
-    ModalDialog.selectOne(data, selected);
+    ModalDialog.selectOne(title, options, selected);
   };
 
   AppChrome.prototype.showWindows = function ac_showWindows() {
