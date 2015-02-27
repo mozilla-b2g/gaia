@@ -54,6 +54,7 @@ manifest.appcache
 /coverage/
 /local.mk
 /raptor.log
+/npm-debug.log
 
 /tools/xpcwindow/vendor/
 
