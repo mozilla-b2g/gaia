@@ -53,8 +53,12 @@ var Contacts = (function() {
       header,
       addButton,
       appTitleElement,
-      editModeTitleElement,
-      asyncScriptsLoaded = false;
+      editModeTitleElement;
+
+  var loadAsyncScriptsDeferred = {};
+  loadAsyncScriptsDeferred.promise = new Promise((resolve) => {
+    loadAsyncScriptsDeferred.resolve = resolve;
+  });
 
   var settingsReady = false;
   var detailsReady = false;
@@ -241,16 +245,20 @@ var Contacts = (function() {
   var onLocalized = function onLocalized() {
     init();
 
-    addAsyncScripts();
-    window.addEventListener('asyncScriptsLoaded', function onAsyncLoad() {
-      asyncScriptsLoaded = true;
-      window.removeEventListener('asyncScriptsLoaded', onAsyncLoad);
+    // We need to return the promise here for testing purposes
+    return addAsyncScripts().then(() => {
+      checkUrl();
+      if (!ActivityHandler.currentlyHandling ||
+          ActivityHandler.currentActivityIs(['pick', 'update'])) {
+        initContactsList();
+      } else {
+        // Unregister here to avoid un-necessary list operations.
+        navigator.mozContacts.oncontactchange = null;
+      }
+
       if (contactsList) {
         contactsList.initAlphaScroll();
       }
-      checkUrl();
-
-      asyncScriptsLoaded = true;
     });
   };
 
@@ -799,16 +807,9 @@ var Contacts = (function() {
     }
 
     LazyLoader.load(lazyLoadFiles, function() {
-      if (!ActivityHandler.currentlyHandling ||
-          ActivityHandler.currentActivityIs(['pick', 'update'])) {
-        initContactsList();
-        checkUrl();
-      } else {
-        // Unregister here to avoid un-necessary list operations.
-        navigator.mozContacts.oncontactchange = null;
-      }
-      window.dispatchEvent(new CustomEvent('asyncScriptsLoaded'));
+      loadAsyncScriptsDeferred.resolve();
     });
+    return loadAsyncScriptsDeferred.promise;
   };
 
   var pendingChanges = {};
@@ -1081,7 +1082,7 @@ var Contacts = (function() {
     'setCancelableHeader': setCancelableHeader,
     'setNormalHeader': setNormalHeader,
     get asyncScriptsLoaded() {
-      return asyncScriptsLoaded;
+      return loadAsyncScriptsDeferred.promise;
     },
     get SHARED_UTILITIES() {
       return SHARED_UTILS;

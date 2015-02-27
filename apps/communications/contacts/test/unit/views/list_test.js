@@ -72,10 +72,6 @@ if (!window.asyncStorage) {
   window.asyncStorage = null;
 }
 
-if (!window.asyncScriptsLoaded) {
-  window.asyncScriptsLoaded = null;
-}
-
 var mocksForListView = new MocksHelper([
   'ContactPhotoHelper',
   'ActivityHandler'
@@ -279,8 +275,6 @@ suite('Render contacts list', function() {
     noContacts = document.getElementById('no-contacts');
 
     updateDomReferences();
-
-    window.asyncScriptsLoaded = true;
   }
 
   function updateDomReferences() {
@@ -408,21 +402,21 @@ suite('Render contacts list', function() {
 
     test('first time', function() {
       mockContacts = new MockContactsList();
-      subject.load(mockContacts);
+      subject.load(mockContacts, false, () => {
+        updateDomReferences();
 
-      updateDomReferences();
-
-      assert.isTrue(noContacts.classList.contains('hide'));
-      assertNoGroup(groupFav, containerFav);
-      assertGroup(groupA, containerA, 1);
-      assertGroup(groupB, containerB, 1);
-      assertGroup(groupC, containerC, 1);
-      assertNoGroup(groupD, containerD);
-      assertNoGroup(groupGreek, containerGreek);
-      assertNoGroup(groupCyrillic, containerCyrillic);
-      sinon.assert.calledOnce(
-        window.utils.PerformanceHelper.contentInteractive);
-      sinon.assert.calledOnce(window.utils.PerformanceHelper.loadEnd);
+        assert.isTrue(noContacts.classList.contains('hide'));
+        assertNoGroup(groupFav, containerFav);
+        assertGroup(groupA, containerA, 1);
+        assertGroup(groupB, containerB, 1);
+        assertGroup(groupC, containerC, 1);
+        assertNoGroup(groupD, containerD);
+        assertNoGroup(groupGreek, containerGreek);
+        assertNoGroup(groupCyrillic, containerCyrillic);
+        sinon.assert.calledOnce(
+          window.utils.PerformanceHelper.contentInteractive);
+        sinon.assert.calledOnce(window.utils.PerformanceHelper.loadEnd);
+      });
     });
 
     test('adding one at the beginning', function() {
@@ -862,7 +856,7 @@ suite('Render contacts list', function() {
             assertNoGroup(groupD, containerD);
             assertNoGroup(groupFav, containerFav);
             assertNoGroup(groupUnd, containerUnd);
-          });    
+          });
         });
       });
     });
@@ -871,13 +865,13 @@ suite('Render contacts list', function() {
       var newList = new MockContactsList();
       doLoad(subject, newList, function() {
         done(function() {
-          var originalNumber = 
+          var originalNumber =
             container.querySelectorAll('.contact-item').length;
           assert.isNotNull(container.querySelector('[data-uuid="2"]'));
 
           subject.remove('2');
 
-          var afterDelNumber = 
+          var afterDelNumber =
             container.querySelectorAll('.contact-item').length;
           assert.equal(originalNumber, afterDelNumber + 1);
           assert.isNotNull(container.querySelector('[data-uuid="1"]'));
@@ -1456,7 +1450,7 @@ suite('Render contacts list', function() {
       ICEStore.onChange.restore();
     });
 
-    test('> ICE group is always build but is hidden', function() {
+    test('> ICE group is always built but is hidden', function() {
       var stub = ICEStore.getContacts;
       ICEStore.getContacts = function() {
         return {
@@ -1467,14 +1461,14 @@ suite('Render contacts list', function() {
       };
 
       mockContacts = new MockContactsList();
-      subject.load(mockContacts);
-      // ICE group created, even if we don't have contacts
-      var iceGroup = document.getElementById('section-group-ice');
-      assert.isNotNull(iceGroup);
-      // ICE group not visible
-      assert.isTrue(iceGroup.classList.contains('hide'));
-
-      ICEStore.getContacts = stub;
+      subject.load(mockContacts, false, () => {
+        // ICE group created, even if we don't have contacts
+        var iceGroup = document.getElementById('section-group-ice');
+        assert.isNotNull(iceGroup);
+        // ICE group not visible
+        assert.isTrue(iceGroup.classList.contains('hide'));
+        ICEStore.getContacts = stub;
+      });
     });
 
     test('Display the ICE group if ICE contacts present', function(done) {
@@ -1495,9 +1489,10 @@ suite('Render contacts list', function() {
     });
 
     test('> after a list reload, the ice group appears', function() {
-      subject.load(null, true);
-      var iceGroup = document.getElementById('section-group-ice');
-      assert.isNotNull(iceGroup);
+      subject.load(null, true, () => {
+        var iceGroup = document.getElementById('section-group-ice');
+        assert.isNotNull(iceGroup);
+      });
     });
 
     test('toggleICEGroup hides group', function(done) {
