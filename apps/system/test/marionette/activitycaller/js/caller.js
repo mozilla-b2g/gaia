@@ -16,6 +16,17 @@ document.getElementById('testchainactivity')
     });
   });
 
+document.getElementById('testdefaultactivity')
+  .addEventListener('click', function() {
+    new MozActivity({
+      name: 'view',
+      data: {
+        type: 'url',
+        url: 'http://www.google.com'
+      }
+    });
+  });
+
 document.getElementById('close').addEventListener('click', function() {
   window.close();
 });
