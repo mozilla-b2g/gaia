@@ -19,12 +19,7 @@
   -moz-user-select: none;
 }
 
-input[type="email"],
-input[type="password"],
-input[type="search"],
-input[type="tel"],
-input[type="text"],
-input[type="url"],
+input,
 textarea,
 [contenteditable="true"] {
   -moz-user-select: text;
