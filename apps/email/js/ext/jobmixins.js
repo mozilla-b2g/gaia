@@ -267,8 +267,7 @@ exports.do_download = function(op, callback) {
   // Now that we have the body, we can know the part numbers and eliminate /
   // filter out any redundant download requests.  Issue all the fetches at
   // once.
-  var partsToDownload = [], storePartsTo = [], registerDownload = [],
-      header, bodyInfo, uid;
+  var partsToDownload = [], storePartsTo = [], header, bodyInfo, uid;
   var gotHeader = function gotHeader(_headerInfo) {
     header = _headerInfo;
     uid = header.srvid;
@@ -283,7 +282,6 @@ exports.do_download = function(op, callback) {
         continue;
       partsToDownload.push(partInfo);
       storePartsTo.push('idb');
-      registerDownload.push(false);
     }
     for (i = 0; i < op.attachmentIndices.length; i++) {
       partInfo = bodyInfo.attachments[op.attachmentIndices[i]];
@@ -292,7 +290,6 @@ exports.do_download = function(op, callback) {
       partsToDownload.push(partInfo);
       // right now all attachments go in sdcard
       storePartsTo.push('sdcard');
-      registerDownload.push(op.registerAttachments[i]);
     }
 
     folderConn.downloadMessageAttachments(uid, partsToDownload, gotParts);
@@ -327,8 +324,7 @@ exports.do_download = function(op, callback) {
         } else {
           pendingCbs++;
           saveToDeviceStorage(
-              self._LOG, blob, storeTo, registerDownload[i],
-              partInfo.name, partInfo, next);
+              self._LOG, blob, storeTo, partInfo.name, partInfo, next);
         }
       }
     }
@@ -358,14 +354,13 @@ exports.do_download = function(op, callback) {
  * encounter a collision.
  */
 var saveToDeviceStorage = exports.saveToDeviceStorage =
-function(_LOG, blob, storeTo, registerDownload, filename, partInfo, cb,
-         isRetry) {
+function(_LOG, blob, storeTo, filename, partInfo, cb, isRetry) {
   var self = this;
-  var callback = function(success, error, savedFilename, registered) {
+  var callback = function(success, error, savedFilename) {
     if (success) {
       _LOG.savedAttachment(storeTo, blob.type, blob.size);
       console.log('saved attachment to', storeTo, savedFilename,
-                  'type:', blob.type, 'registered:', registered);
+                  'type:', blob.type);
       partInfo.file = [storeTo, savedFilename];
       cb();
     } else {
@@ -384,11 +379,10 @@ function(_LOG, blob, storeTo, registerDownload, filename, partInfo, cb,
         idxLastPeriod = filename.length;
       filename = filename.substring(0, idxLastPeriod) + '-' + $date.NOW() +
         filename.substring(idxLastPeriod);
-      saveToDeviceStorage(_LOG, blob, storeTo, registerDownload,
-                          filename, partInfo, cb, true);
+      saveToDeviceStorage(_LOG, blob, storeTo, filename, partInfo, cb, true);
     }
   };
-  sendMessage('save', [storeTo, blob, filename, registerDownload], callback);
+  sendMessage('save', [storeTo, blob, filename], callback);
 }
 
 exports.local_do_download = function(op, callback) {

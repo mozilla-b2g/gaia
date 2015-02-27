@@ -1314,7 +1314,7 @@ MailBody.prototype = {
         callWhenDone();
       return;
     }
-    this._api._downloadAttachments(this, relPartIndices, [], [],
+    this._api._downloadAttachments(this, relPartIndices, [],
                                    callWhenDone, callOnProgress);
   },
 
@@ -1447,28 +1447,13 @@ MailAttachment.prototype = {
     return this.mimetype !== 'application/x-gelam-no-download';
   },
 
-  /**
-   * Queue this attachment for downloading.
-   *
-   * @param {Function} callWhenDone
-   *     A callback to be invoked when the download completes.
-   * @param {Function} callOnProgress
-   *     A callback to be invoked as the download progresses.  NOT HOOKED UP!
-   * @param {Boolean} [registerWithDownloadManager]
-   *     Should we register the Blob with the mozDownloadManager (if it is
-   *     present)?  For the Gaia mail app this decision is based on the
-   *     capabilities of the default gaia apps, and not a decision easily made
-   *     by GELAM.
-   */
-  download: function(callWhenDone, callOnProgress,
-                     registerWithDownloadManager) {
+  download: function(callWhenDone, callOnProgress) {
     if (this.isDownloaded) {
       callWhenDone();
       return;
     }
     this._body._api._downloadAttachments(
       this._body, [], [this._body.attachments.indexOf(this)],
-      [registerWithDownloadManager || false],
       callWhenDone, callOnProgress);
   },
 };
@@ -2721,7 +2706,6 @@ MailAPI.prototype = {
   },
 
   _downloadAttachments: function(body, relPartIndices, attachmentIndices,
-                                 registerAttachments,
                                  callWhenDone, callOnProgress) {
     var handle = this._nextHandle++;
     this._pendingRequests[handle] = {
@@ -2738,8 +2722,7 @@ MailAPI.prototype = {
       suid: body.id,
       date: body._date,
       relPartIndices: relPartIndices,
-      attachmentIndices: attachmentIndices,
-      registerAttachments: registerAttachments
+      attachmentIndices: attachmentIndices
     });
   },
 
