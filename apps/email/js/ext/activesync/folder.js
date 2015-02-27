@@ -784,6 +784,7 @@ ActiveSyncFolderConn.prototype = {
               break;
             case asb.FileReference:
             case em.AttName:
+            case em.Att0Id:
               attachment.part = attachDataText;
               break;
             case asb.EstimatedDataSize:
@@ -795,10 +796,6 @@ ActiveSyncFolderConn.prototype = {
               break;
             case asb.IsInline:
               isInline = (attachDataText === '1');
-              break;
-            case asb.FileReference:
-            case em.Att0Id:
-              attachment.part = attachData.children[0].textContent;
               break;
             }
           }
