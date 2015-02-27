@@ -922,7 +922,8 @@ var Contacts = (function() {
     if (window.navigator.mozSetMessageHandler && window.self == window.top) {
       LazyLoader.load([SHARED_UTILS_PATH + '/misc.js',
         SHARED_UTILS_PATH + '/vcard_reader.js',
-        SHARED_UTILS_PATH + '/vcard_parser.js'],
+        SHARED_UTILS_PATH + '/vcard_parser.js',
+        'js/activities.js'],
        function() {
         var actHandler = ActivityHandler.handle.bind(ActivityHandler);
         window.navigator.mozSetMessageHandler('activity', actHandler);
