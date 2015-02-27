@@ -2,5 +2,14 @@
   "rebuildBlacklist": [
     "apps/calendar/js/presets.js",
     "dev_apps/test-agent/config.json"
+  ],
+  "packageBlacklist": [
+    "README.md",
+    "Makefile",
+    ".git",
+    "package.json",
+    "bower.json",
+    "jsdoc.json",
+    "RELEASE-NOTES.md"
   ]
 }

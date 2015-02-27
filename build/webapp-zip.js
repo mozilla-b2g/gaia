@@ -6,6 +6,7 @@
 /* global require, exports, dump */
 'use strict';
 var utils = require('./utils');
+var config = require('./config/build-config.json');
 
 var WebappZip = function() {
   this.config = null;
@@ -60,6 +61,12 @@ WebappZip.prototype.isExcludedFromZip = function(file) {
     function fileExist(file) {
       return !file.exists();
     },
+    // We already avoid copying these files to stage,
+    // but requirejs doesn't uses this blacklist and ends up copying
+    // such files.
+    function isBlacklisted(file) {
+      return config.packageBlacklist.indexOf(file.leafName) !== -1;
+    },
     function isLocales(file) {
       return self.config.GAIA_CONCAT_LOCALES === '1' &&
         /locales[^-]/.test(file.path);
@@ -88,15 +95,6 @@ WebappZip.prototype.isExcludedFromZip = function(file) {
         .replace(/\\/g, '\\\\') + '|build.txt')
         .test(file.path);
     },
-    function isMakefile(file) {
-      return /Makefile/.test(file.path);
-    },
-    function isReadme(file) {
-      return /README/.test(file.path);
-    },
-    function isPackageJSON(file) {
-      return /package\.json/.test(file.path);
-    },
     function fileHidden(file) {
       return file.isHidden();
     },
@@ -104,11 +102,6 @@ WebappZip.prototype.isExcludedFromZip = function(file) {
       var appPath = self.buildDir;
       var path = file.path.substr(appPath.path.length + 1).split(/[\\/]/)[0];
       return path === 'test';
-    },
-    function isGit(file) {
-      var appPath = self.buildDir;
-      var path = file.path.substr(appPath.path.length + 1).split(/[\\/]/)[0];
-      return path === '.git';
     },
     function isL10n(file) {
       return (self.config.GAIA_CONCAT_LOCALES === '1' &&
