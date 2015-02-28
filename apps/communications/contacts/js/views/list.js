@@ -1473,6 +1473,8 @@ contacts.List = (function() {
     toggleNoContactsScreen(showNoContacts);
 
     delete selectedContacts[id];
+    currentlySelected = countSelectedContacts();
+    updateSelectCount(currentlySelected);
   };
 
   var getStringToBeOrdered = function getStringToBeOrdered(contact, display) {
@@ -1674,7 +1676,6 @@ contacts.List = (function() {
     ones selected are filtered.
   */
   var selectAction = function selectAction(action) {
-    updateSelectCount(0);
     if (action == null) {
       exitSelectMode();
       return;
