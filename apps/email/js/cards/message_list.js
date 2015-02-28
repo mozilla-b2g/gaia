@@ -2,7 +2,7 @@
 /*global define, console, FontSizeUtils, requestAnimationFrame */
 'use strict';
 
-define(function(require) {
+define(function(require, exports, module) {
 
 var msgHeaderItemNode = require('tmpl!./msg/header_item.html'),
     deleteConfirmMsgNode = require('tmpl!./msg/delete_confirm.html'),
@@ -1134,7 +1134,7 @@ return [
         this._cacheListLimit
       );
 
-      htmlCache.saveFromNode(cacheNode);
+      htmlCache.saveFromNode(module.id, cacheNode);
     },
 
     /**
@@ -1662,7 +1662,7 @@ return [
         headerCursor.setCurrentMessage(header);
       } else if (messageNode.dataset.id) {
         // a case where header was not set yet, like clicking on a
-        // cookie cached node, or virtual scroll item that is no
+        // html cached node, or virtual scroll item that is no
         // longer backed by a header.
         headerCursor.setCurrentMessageBySuid(messageNode.dataset.id);
       } else {

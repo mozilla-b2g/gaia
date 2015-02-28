@@ -1,5 +1,5 @@
 /*global requirejs, define, TestUrlResolver */
-// Test config. mail_app.js has the non-test, runtime config
+// Test config. config.js has the non-test, runtime config
 (function(global) {
   var contextIdCount = 0;
   var baseConfig = {

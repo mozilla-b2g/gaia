@@ -9,7 +9,8 @@ var _secretDebug;
 define(function(require) {
 
 var MailAPI = require('api'),
-    cards = require('cards');
+    cards = require('cards'),
+    htmlCache = require('html_cache');
 
 if (!_secretDebug) {
   _secretDebug = {};
@@ -67,6 +68,11 @@ return [
       }, function(err) {
         console.error('navigator.sync.registrations failed: ', err);
       });
+    },
+
+    resetStartupCache: function() {
+      htmlCache.reset();
+      console.log('htmlCache.reset done');
     },
 
     die: function() {
