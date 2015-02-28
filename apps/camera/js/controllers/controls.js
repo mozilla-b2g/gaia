@@ -144,7 +144,7 @@ ControlsController.prototype.onCaptureClick = function() {
  * @private
  */
 ControlsController.prototype.onRecordingChange = function(recording) {
-  this.view.set('recording', recording);
+  this.view.setRecording(recording);
   if (!recording) { this.onRecordingEnd(); }
 };
 
