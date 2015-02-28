@@ -155,8 +155,18 @@ function Composer(newRecords, account, identity) {
 
   body.attachments.forEach(function(attachment) {
     try {
-      var attachmentNode = new MimeNode(attachment.type,
-                                        { filename: attachment.name });
+      var attachmentNode = new MimeNode(
+        attachment.type,
+        {
+          // This implies Content-Disposition: attachment
+          filename: attachment.name
+        });
+      // Explicitly indicate that the attachment is base64 encoded.  mailbuild
+      // only picks base64 for non-text/* MIME parts, but our attachment logic
+      // encodes *all* attachments in base64, so base64 is the only correct
+      // answer.  (Also, failure to base64 encode our _uniqueBlobBoundary breaks
+      // the replace logic in withMessageBlob.  So base64 all the things!)
+      attachmentNode.setHeader('Content-Transfer-Encoding', 'base64');
       attachmentNode.setContent(this._uniqueBlobBoundary);
       root.appendChild(attachmentNode);
       this._blobReplacements.push(new Blob(attachment.file));
