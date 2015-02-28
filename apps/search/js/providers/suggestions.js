@@ -33,8 +33,6 @@
     suggestionsSelect.appendChild(selectFragment);
   });
 
-  SearchProvider.ready();
-
   function encodeTerms(str, search) {
     return str.replace('{searchTerms}', encodeURIComponent(search));
   }

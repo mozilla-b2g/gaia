@@ -192,6 +192,7 @@
    "screen.brightness": 1,
    "screen.timeout": 60,
    "search.suggestions.enabled": true,
+   "search.provider": "google",
    "software-button.enabled": false,
    "homegesture.enabled": false,
    "edgesgesture.enabled": true,
