@@ -753,13 +753,17 @@ var StatusBar = {
     return this._paused > 0;
   },
 
-  _updateIconVisibility: function sb_updateIconVisibility() {
+  _updateIconVisibility: function sb_updateIconVisibility(cloningNeeded) {
     if (this._paused !== 0) {
       return;
     }
 
-    // Let's refresh the minimized clone.
-    this.cloneStatusbar();
+    cloningNeeded = cloningNeeded || true;
+
+    if (cloningNeeded) {
+      // Let's refresh the minimized clone.
+      this.cloneStatusbar();
+    }
 
     var maximizedStatusBarWidth = this._getMaximizedStatusBarWidth();
     var minimizedStatusBarWidth = this._minimizedStatusBarWidth;
@@ -818,6 +822,20 @@ var StatusBar = {
       parseInt(style.marginRight, 10);
 
     return iconWidth;
+  },
+
+  _cacheIconWidth: function sb_cacheIconWidth(iconName) {
+    // Refresh the cache of the icon DOM element width to avoid reflows whenever
+    // this._updateIconVisibility() is called.
+    this.PRIORITIES.some(function(iconObj) {
+      if (iconObj[0] === iconName) {
+        var icon = this.icons[this.toCamelCase(iconName)];
+        iconObj[1] = this._getWidthFromDomElementWidth(icon);
+        return true;
+      }
+
+      return false;
+    }.bind(this));
   },
 
   _getTimeFormat: function sb_getTimeFormat(timeFormat) {
@@ -966,7 +984,6 @@ var StatusBar = {
         conn = conns[0];
       }
 
-      var self = this;
       var label = this.icons.label;
       var previousLabelContent = label.textContent;
       var l10nArgs = JSON.parse(label.dataset.l10nArgs || '{}');
@@ -980,7 +997,8 @@ var StatusBar = {
         label.textContent = l10nArgs.date;
 
         if (previousLabelContent !== label.textContent) {
-          updateLabelWidth();
+          this._cacheIconWidth('label');
+          this._updateIconVisibility();
         }
 
         return;
@@ -999,19 +1017,8 @@ var StatusBar = {
       label.textContent = navigator.mozL10n.get('statusbarLabel', l10nArgs);
 
       if (previousLabelContent !== label.textContent) {
-        updateLabelWidth();
-      }
-
-      // Update the width of the date element. Called when the content changed.
-      function updateLabelWidth() {
-        self.PRIORITIES.some(function(iconObj) {
-          if (iconObj[0] === 'label') {
-            iconObj[1] = self._getWidthFromDomElementWidth(label);
-            return true;
-          }
-
-          return false;
-        });
+        this._cacheIconWidth('label');
+        this._updateIconVisibility();
       }
     },
 
@@ -1020,11 +1027,11 @@ var StatusBar = {
       var _ = navigator.mozL10n.get;
       var f = new navigator.mozL10n.DateTimeFormat();
 
+      var time = this.icons.time;
       var timeFormat = window.navigator.mozHour12 ?
         _('shortTimeFormat12') : _('shortTimeFormat24');
       timeFormat = this._getTimeFormat(timeFormat);
-      var formatted = f.localeFormat(now, timeFormat);
-      this.icons.time.innerHTML = formatted;
+      time.innerHTML = f.localeFormat(now, timeFormat);
 
       var label = this.icons.label;
       var l10nArgs = JSON.parse(label.dataset.l10nArgs || '{}');
@@ -1032,6 +1039,8 @@ var StatusBar = {
       label.dataset.l10nArgs = JSON.stringify(l10nArgs);
       this.update.label.call(this);
 
+      // Cache the DOM element width and update when content changes.
+      this._cacheIconWidth('time');
       this._updateIconVisibility();
     },
 
@@ -1140,7 +1149,7 @@ var StatusBar = {
         } else if (data && data.connected && data.type.startsWith('evdo')) {
           // "Carrier" / "Carrier (Roaming)" (EVDO)
           // Show signal strength of data call as EVDO only supports data call.
-          this.updateSignalIcon(icon, data);
+          isDirty = isDirty || this.updateSignalIcon(icon, data);
         } else if (voice.connected || this.hasActiveCall() &&
             navigator.mozTelephony.active.serviceId === index) {
           // "Carrier" / "Carrier (Roaming)"
@@ -1149,7 +1158,7 @@ var StatusBar = {
           // of the target sim card. If yes, that means the user is making an
           // emergency call using the target sim card. In such case we should
           // also display the signal bar as the normal cases.
-          this.updateSignalIcon(icon, voice);
+          isDirty = isDirty || this.updateSignalIcon(icon, voice);
         } else if (simslot.isLocked()) {
           // SIM locked
           // We check if the sim card is locked after checking hasActiveCall
@@ -1175,11 +1184,13 @@ var StatusBar = {
         }
       }
 
-      this.updateConnectionsVisibility();
       this.refreshCallListener();
+      this.cloneStatusbar();
 
       if (isDirty) {
-        this._updateIconVisibility();
+        this.updateConnectionsVisibility();
+        this._cacheIconWidth('connections');
+        this._updateIconVisibility(false);
       }
     },
 
@@ -1187,6 +1198,8 @@ var StatusBar = {
       var conns = window.navigator.mozMobileConnections;
       if (!conns) {
         this.updateConnectionsVisibility();
+        this._cacheIconWidth('connections');
+        this._updateIconVisibility();
         return;
       }
 
@@ -1242,11 +1255,13 @@ var StatusBar = {
         }
       }
 
-      this.updateConnectionsVisibility();
       this.refreshCallListener();
+      this.cloneStatusbar();
 
       if (isDirty) {
-        this._updateIconVisibility();
+        this.updateConnectionsVisibility();
+        this._cacheIconWidth('connections');
+        this._updateIconVisibility(false);
       }
     },
 
@@ -1455,15 +1470,29 @@ var StatusBar = {
 
     callForwarding: function sb_updateCallForwarding() {
       var icons = this.icons.callForwardingsElements;
+      var isDirty = false; // Whether to reprioritise icons afterwards.
       var states = this.settingValues['ril.cf.enabled'];
-      if (states) {
-        states.forEach(function(state, index) {
-          icons[index].hidden = !state;
-        });
-      }
-      this.updateCallForwardingsVisibility();
 
-      this._updateIconVisibility();
+      if (!states) {
+        this.updateCallForwardingsVisibility();
+        this._cacheIconWidth('call-forwardings');
+        this._updateIconVisibility();
+        return;
+      }
+
+      states.forEach(function(state, index) {
+        var previousHiddenState = icons[index].hidden;
+        icons[index].hidden = !state;
+        if (previousHiddenState !== icons[index].hidden) {
+          isDirty = true;
+        }
+      });
+
+      if (isDirty) {
+        this.updateCallForwardingsVisibility();
+        this._cacheIconWidth('call-forwardings');
+        this._updateIconVisibility();
+      }
     },
 
     playing: function sb_updatePlaying() {
@@ -1550,6 +1579,7 @@ var StatusBar = {
     icon.dataset.level = Math.ceil(connInfo.relSignalStrength / 20); // 0-5
     var slotIndex = icon.dataset.index ? (icon.dataset.index - 1) : 0;
     var roaming = this.icons.roaming[slotIndex];
+    var previousHiddenState = roaming.hidden;
     roaming.hidden = !connInfo.roaming;
 
     delete icon.dataset.searching;
@@ -1560,6 +1590,9 @@ var StatusBar = {
         operator: connInfo.network && connInfo.network.shortName
       }
     ));
+
+    // Return true if an icon visibility changed.
+    return previousHiddenState !== roaming.hidden;
   },
 
   refreshCallListener: function sb_refreshCallListener() {
@@ -1680,6 +1713,9 @@ var StatusBar = {
 
       this.updateConnectionsVisibility();
     }
+
+    // Cache the width of the connections icons to avoid reflows.
+    this._cacheIconWidth('connections');
   },
 
   createCallForwardingsElements: function sb_createCallForwardingsElements() {
@@ -1711,23 +1747,19 @@ var StatusBar = {
 
       this.updateCallForwardingsVisibility();
     }
+
+    // Cache the width of the call-forwardings icons to avoid reflows.
+    this._cacheIconWidth('call-forwardings');
   },
 
   getAllElements: function sb_getAllElements() {
     this.icons = {};
 
-    var toCamelCase = function toCamelCase(str) {
-      return str.replace(/\-(.)/g, function replacer(str, p1) {
-        return p1.toUpperCase();
-      });
-    };
-
     // ID of elements to create references
     this.ELEMENTS.forEach((function createElementRef(name) {
-      this.icons[toCamelCase(name)] =
+      this.icons[this.toCamelCase(name)] =
         document.getElementById('statusbar-' + name);
     }).bind(this));
-
 
     this.element = document.getElementById('statusbar');
     this.background = document.getElementById('statusbar-background');
