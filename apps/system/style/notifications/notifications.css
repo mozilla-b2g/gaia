@@ -7,14 +7,7 @@
     border-right: 0.2rem solid transparent;
     border-top: 0.2rem solid white;
   }
-  10% {
-    width: 8.6rem;
-    background-color: transparent;
-    border-left: 0.2rem solid transparent;
-    border-right: 0.2rem solid transparent;
-    border-top: 0.2rem solid white;
-  }
-  30% {
+  33% {
     opacity: 1;
     width: 8.6rem;
     background-color: transparent;
@@ -22,7 +15,7 @@
     border-right: 0.2rem solid transparent;
     border-top: 0.2rem solid #B3F3FF;
   }
-  60% {
+  66% {
     opacity: 1;
     width: 8.6rem;
     background-color: transparent;
@@ -102,7 +95,7 @@
 
 #notification-toaster.displayed {
   transform: translateY(0);
-  transition: transform .2s ease 1.2s, background-color 0s ease 1.2s, visibility 0s ease 1.2s;
+  transition: transform .2s ease .6s;
   background-color: #00BCE2;
   visibility: visible;
 }
@@ -126,10 +119,10 @@
 
 #notification-toaster.displayed:after {
   animation-name: toaster;
-  animation-duration: 1.2s;
+  animation-duration: .6s;
   border-color: #00BCE2;
   transform: translateY(.2rem);
-  transition: border-color 0s ease 1.2s;
+  transition: border-color 0s ease .6s;
 }
 
 #notification-bar {
