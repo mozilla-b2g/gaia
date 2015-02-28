@@ -58,3 +58,14 @@
 .icon-missed {
   background-image: url(images/call_info/callinfo_ic_missed.png);
 }
+
+#show-more {
+  text-decoration: underline;
+  display: flex;
+  margin-top: 1rem;
+  font-size: 1.4rem;
+}
+
+#show-more.hide-show-more {
+  display: none;
+}

@@ -12,6 +12,8 @@
   var phoneDetailsElt;
   var emailDetailsElt;
   var listDetailsElt;
+  var showMoreButton;
+  var _showMoreButtonClicked;
 
   function updateViewIfNeeded(evt) {
     if (evt.detail.group.id !== currentGroup.id) {
@@ -22,6 +24,11 @@
   }
 
   function updateView(group) {
+    // Hide or display showMoreButton as per the need.
+    showMoreButton.classList.toggle('hide-show-more',
+      group.calls.length < 10
+    );
+    _showMoreButtonClicked = false;
     currentGroup = group;
     updateGroupInformation(group);
     updateCallDurations(group);
@@ -60,6 +67,8 @@
   }
 
   function updateCallDurations(group) {
+    var countToBeDisplayed;
+    var callInfoCount = 0;
     var callDurationsElt = document.getElementById('call-durations');
     callDurationsElt.innerHTML = '';
 
@@ -68,34 +77,44 @@
       return;
     }
 
+    if(_showMoreButtonClicked == false) {
+      countToBeDisplayed = 9;
+    } else if (_showMoreButtonClicked == true ) {
+      // Hide the showMoreButton once it is clicked.
+      showMoreButton.classList.add('hide-show-more');
+      countToBeDisplayed = 100;
+    }
     group.calls.forEach(function(call) {
-      var startTime = document.createElement('p');
-      startTime.classList.add('ci__grow');
-      startTime.classList.add('js-ci-start-times');
-      startTime.dataset.date = call.date;
-      startTime.textContent = Utils.prettyDate(call.date);
+      if(callInfoCount < countToBeDisplayed) {
+        var startTime = document.createElement('p');
+        startTime.classList.add('ci__grow');
+        startTime.classList.add('js-ci-start-times');
+        startTime.dataset.date = call.date;
+        startTime.textContent = Utils.prettyDate(call.date);
 
-      var durationElt = document.createElement('p');
-      durationElt.classList.add('cd__duration');
-      navigator.mozL10n.once(function() {
-        if (call.duration === 0) {
-          if (group.type === 'incoming') {
-            durationElt.setAttribute('data-l10n-id', 'info-missed');
+        var durationElt = document.createElement('p');
+        durationElt.classList.add('cd__duration');
+        navigator.mozL10n.once(function() {
+          if (call.duration === 0) {
+            if (group.type === 'incoming') {
+              durationElt.setAttribute('data-l10n-id', 'info-missed');
+            } else {
+              durationElt.setAttribute('data-l10n-id', 'canceled');
+            }
           } else {
-            durationElt.setAttribute('data-l10n-id', 'canceled');
+            Utils.prettyDuration(durationElt, call.duration,
+                                 'callDurationTextFormat');
           }
-        } else {
-          Utils.prettyDuration(durationElt, call.duration,
-                               'callDurationTextFormat');
-        }
-      });
+        });
 
-      var row = document.createElement('div');
-      row.classList.add('call-duration');
-      row.appendChild(startTime);
-      row.appendChild(durationElt);
+        var row = document.createElement('div');
+        row.classList.add('call-duration');
+        row.appendChild(startTime);
+        row.appendChild(durationElt);
 
-      callDurationsElt.appendChild(row);
+        callDurationsElt.appendChild(row);
+        callInfoCount++;
+      }
     });
   }
 
@@ -231,6 +250,11 @@
     createContactButton.addEventListener('click', createNewContact);
     var header = document.getElementById('call-info-gaia-header');
     header.addEventListener('action', close);
+    showMoreButton = document.getElementById('show-more');
+    showMoreButton.addEventListener('click', function() {
+      _showMoreButtonClicked = true;
+      updateCallDurations(currentGroup);
+    });
 
     window.addEventListener('timeformatchange', updateStartTimes);
   }
