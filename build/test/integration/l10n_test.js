@@ -11,8 +11,8 @@ suite('L10n logic tests', function() {
     'build', 'config', 'phone', 'apps-engineering.list');
   var apps = [
     'apps/*',
-    'dev_apps/test-l10n-optimize',
-    'dev_apps/test-l10n-missing',
+    'build/test/fixtures/test-l10n-optimize',
+    'build/test/fixtures/test-l10n-missing',
     '' // a line-break is required at the end of an apps file
   ];
 
