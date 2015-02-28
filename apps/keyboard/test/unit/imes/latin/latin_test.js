@@ -1,6 +1,6 @@
 'use strict';
 
-/* global KeyboardEvent */
+/* global KeyboardEvent, KeyEvent, PAGE_INDEX_DEFAULT */
 
 window.PAGE_INDEX_DEFAULT = 0;
 window.InputMethods = {};
@@ -745,6 +745,68 @@ suite('latin.js', function() {
 
       // will clear the suggestions since cursor changed
       sinon.assert.calledOnce(glue.sendCandidates);
+    });
+  });
+
+  suite('layout handling', function() {
+    setup(function() {
+      engine.activate('en', {
+        type: 'text',
+        inputmode: '',
+        value: '',
+        selectionStart: 0,
+        selectionEnd: 0
+      },{ suggest: false, correct: false });
+    });
+
+    teardown(function() {
+      engine.deactivate();
+    });
+
+    test('Do not switch layout if current layout is default', function(done) {
+      engine.click(KeyEvent.DOM_VK_RETURN)
+        .then(() => sinon.assert.notCalled(glue.setLayoutPage))
+        .then(done, done);
+    });
+
+    test('Do not switch layout if current layout is default', function(done) {
+      engine.setLayoutPage(1);
+      engine.setLayoutPage(PAGE_INDEX_DEFAULT);
+      engine.click(KeyEvent.DOM_VK_RETURN)
+        .then(() => sinon.assert.notCalled(glue.setLayoutPage))
+        .then(done, done);
+    });
+
+    test('Do not switch layout if a normal key was not clicked before',
+    function(done) {
+      engine.setLayoutPage(1);
+      engine.click(KeyEvent.DOM_VK_SPACE)
+        .then(() => sinon.assert.notCalled(glue.setLayoutPage))
+        .then(done, done);
+    });
+
+    test('Switch layout if a normal key then space clicked', function(done) {
+      engine.setLayoutPage(1);
+      engine.click('1'.charCodeAt(0))
+        .then(() => engine.click(KeyEvent.DOM_VK_SPACE))
+        .then(
+          () => sinon.assert.calledWith(glue.setLayoutPage, PAGE_INDEX_DEFAULT)
+        )
+        .then(done, done);
+    });
+
+    test('Switch layout if a normal key is clicked on one non-default layout, '+
+         'then space clicked on another non-default layout', function(done) {
+      engine.setLayoutPage(1);
+      engine.click('1'.charCodeAt(0))
+        .then(() => {
+          engine.setLayoutPage(2);
+          return engine.click(KeyEvent.DOM_VK_SPACE);
+        })
+        .then(
+          () => sinon.assert.calledWith(glue.setLayoutPage, PAGE_INDEX_DEFAULT)
+        )
+        .then(done, done);
     });
   });
 });
