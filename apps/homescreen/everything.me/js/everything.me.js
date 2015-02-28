@@ -29,7 +29,7 @@ var EverythingME = {
     activationIcon.setAttribute('aria-haspopup', 'true');
     activationIcon.innerHTML =
       '<input id="evme-activation-icon-input" type="text" role="presentation"' +
-      ' x-inputmode="verbatim" data-l10n-id="evme-searchbar-default2"/>';
+      ' data-l10n-id="evme-searchbar-default2"/>';
 
     // insert into first page
     gridPage.insertBefore(activationIcon, gridPage.firstChild);
