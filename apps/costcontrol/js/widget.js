@@ -256,8 +256,10 @@ var Widget = (function() {
     leftPanel.hidden = true;
     rightPanel.hidden = true;
 
-    fte.addEventListener('click', function launchFte() {
+    fte.addEventListener('click', function launchFte(evt) {
       fte.removeEventListener('click', launchFte);
+      evt.stopImmediatePropagation();
+
       activity = new MozActivity({ name: 'costcontrol/balance' });
     });
 
