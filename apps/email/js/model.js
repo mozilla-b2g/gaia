@@ -187,7 +187,7 @@ define(function(require) {
           // Once the API/worker has started up and we have received account
           // data, consider the app fully loaded: we have verified full flow
           // of data from front to back.
-          evt.emit('metrics:apiDone');
+          evt.emitWhenListener('metrics:apiDone');
         }).bind(this);
 
         acctsSlice.onchange = function() {
