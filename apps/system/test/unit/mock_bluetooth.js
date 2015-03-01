@@ -2,6 +2,41 @@
 
 /* global MockDOMRequest */
 
+var MockAdapater = {
+  address: '01:23:45:67:89:AB',
+  name: 'MockBTDevice',
+  getPairedDevices: function mbt_getPairedDevices() {
+    // fake object with two paired devices
+    var tmpObj = {
+      result: [{ address: '01:01:01:02:02:02' },
+               { address: '03:03:03:04:04:04' }]
+    };
+    // run asynchronous onsuccess callback
+    setTimeout(function() {
+      if (tmpObj.onsuccess) {
+        tmpObj.onsuccess();
+      }
+    });
+    return tmpObj;
+  },
+  getConnectedDevices: function mbt_getConnectedDevices() {
+    return new MockDOMRequest();
+  },
+  confirmReceivingFile:
+  function mbta_confirmReceivingFile(deviceAddress, flag) {
+    return new MockDOMRequest();
+  },
+  sendFile: function mbta_sendFile(deviceAddress, file) {
+    return new MockDOMRequest();
+  },
+  stopSendingFile: function mbta_stopSendingFile(deviceAddress) {
+    return new MockDOMRequest();
+  },
+  pair: function() {
+    return new MockDOMRequest();
+  }
+};
+
 var MockBluetooth = {
   get Profiles() {
     return {
@@ -16,45 +51,11 @@ var MockBluetooth = {
   enabled: true,
   mExpectedProfile: null,
   init: function mbt_init() {
-    var mockAdapater = {
-      address: '01:23:45:67:89:AB',
-      name: 'MockBTDevice',
-      getPairedDevices: function mbt_getPairedDevices() {
-        // fake object with two paired devices
-        var tmpObj = {
-          result: [{ address: '01:01:01:02:02:02' },
-                   { address: '03:03:03:04:04:04' }]
-        };
-        // run asynchronous onsuccess callback
-        setTimeout(function() {
-          if (tmpObj.onsuccess) {
-            tmpObj.onsuccess();
-          }
-        });
-        return tmpObj;
-      },
-      getConnectedDevices: function mbt_getConnectedDevices() {
-        return new MockDOMRequest();
-      },
-      confirmReceivingFile:
-      function mbta_confirmReceivingFile(deviceAddress, flag) {
-        return new MockDOMRequest();
-      },
-      sendFile: function mbta_sendFile(deviceAddress, file) {
-        return new MockDOMRequest();
-      },
-      stopSendingFile: function mbta_stopSendingFile(deviceAddress) {
-        return new MockDOMRequest();
-      },
-      pair: function() {
-        return new MockDOMRequest();
-      }
-    };
-    this.defaultAdapter = mockAdapater;
+    this.defaultAdapter = MockAdapater;
   },
 
   getAdapter: function mbt_getAdapter() {
-    return this.defaultAdapter;
+    return { then: function(resolve) { resolve(MockAdapater); } };
   },
 
   getDefaultAdapter: function mbt_getDefaultAdapter() {
