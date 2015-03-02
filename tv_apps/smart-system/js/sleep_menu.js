@@ -5,6 +5,7 @@
 /* global LogoLoader */
 /* global OrientationManager */
 /* global SettingsCache */
+/* global AppWindowManager */
 
 (function(exports) {
 
@@ -65,8 +66,26 @@
      * @memberof SleepMenu.prototype
      * @return {Boolean}
      */
-    get visible() {
+    isVisible: function sm_isVisible() {
       return this.elements.overlay.classList.contains('visible');
+    },
+
+    /**
+     * Check if the sleep menu is visible and returns its z-index if visible.
+     */
+    getOrder: function sm_getOrder() {
+      var zIndex = window.getComputedStyle(this.elements.overlay).zIndex;
+      return zIndex === 'auto' ? 0 : zIndex;
+    },
+
+    /**
+     * focus back to its buttons.
+     */
+    focus: function sm_focus() {
+      setTimeout(function() {
+        document.activeElement.blur();
+        this.elements.cancel.focus();
+      }.bind(this));
     },
 
     /**
@@ -176,6 +195,7 @@
       this.elements.overlay.classList.add('visible');
       // Lock to default orientation
       screen.mozLockOrientation(OrientationManager.defaultOrientation);
+      this.focus();
     },
 
     /**
@@ -203,6 +223,10 @@
       }
       this.elements.overlay.classList.remove('visible');
       window.dispatchEvent(new Event('sleepmenuhide'));
+      // focus back to the top most window.
+      // XXX: we focus back to active app. But we should call the fallback
+      // algorithm to find the top-most overlay or app.
+      AppWindowManager.getActiveApp().getTopMostWindow().focus();
     },
 
     /**
@@ -228,7 +252,7 @@
           break;
 
         case 'click':
-          if (!this.visible) {
+          if (!this.isVisible()) {
             return;
           }
 
@@ -246,7 +270,7 @@
 
         case 'home':
         case 'attentionopened':
-          if (this.visible) {
+          if (this.isVisible()) {
             this.hide();
           }
           break;
