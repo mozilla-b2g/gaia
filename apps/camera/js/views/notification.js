@@ -20,6 +20,9 @@ module.exports = View.extend({
   initialize: function() {
     this.counter = 0;
     this.hash = {};
+    // For accessibility purposes list/listitem semantics is not necessary.
+    // Instead notifications are presented as status ARIA live regions.
+    this.el.setAttribute('role', 'presentation');
   },
 
   /**
@@ -44,6 +47,10 @@ module.exports = View.extend({
     item.el.className = options.className || '';
     item.el.innerHTML = '<span>' + options.text + '</span>';
     if (options.attrs) { this.setAttributes(item.el, options.attrs); }
+    // Notification should have the semantics of the status ARIA live region.
+    item.el.setAttribute('role', 'status');
+    // Making notfication assertive, so it is spoken right away and not queued.
+    item.el.setAttribute('aria-live', 'assertive');
     this.el.appendChild(item.el);
 
     // Remove last temporary
