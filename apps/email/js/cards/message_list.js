@@ -538,19 +538,6 @@ return [
         searchBar.classList.remove('collapsed');
         scrollContainer.scrollTop += searchBar.offsetHeight;
       }
-
-      // Adjust scroll position now that there is something new in
-      // the scroll region, but only if at the top. Otherwise, the
-      // user's purpose scroll positioning may be disrupted.
-      //
-      // Note that when we call this.vScroll.clearDisplay() we
-      // inherently scroll back up to the top, so this check is still
-      // okay even when switching folders.  (We do not want to start
-      // index 50 in our new folder because we were at index 50 in our
-      // old folder.)
-      if (scrollContainer.scrollTop === 0) {
-        scrollContainer.scrollTop = searchBar.offsetHeight;
-      }
     },
 
     onShowFolders: function() {
