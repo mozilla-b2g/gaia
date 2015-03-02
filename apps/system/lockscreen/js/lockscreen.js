@@ -393,10 +393,11 @@
     if (window.wallpaperManager) {
       var wallpaperURL = window.wallpaperManager.getBlobURL();
       if (wallpaperURL) {
-        this.updateBackground(window.wallpaperManager.getBlobURL());
+        this.updateBackground(wallpaperURL);
         this.overlay.classList.remove('uninit');
       }
     }
+
     window.addEventListener('wallpaperchange', (function(evt) {
       this.updateBackground(evt.detail.url);
       this.overlay.classList.remove('uninit');

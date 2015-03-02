@@ -14,13 +14,10 @@
   limitations under the License.
  */
 /* global LockScreen, LockScreenNotifications, LockScreenFrameAgent */
-/* global WallpaperManager */
 'use strict';
 (function() {
   window.addEventListener('lockscreen-frame-bootstrap', function startup() {
     // XXX: Because we don't have real app bootstraping yet.
-    window.wallpaperManager = new WallpaperManager();
-    window.wallpaperManager.start();
     window.lockScreenFrameAgent = new LockScreenFrameAgent(window.parent);
     window.lockScreenFrameAgent.start();
     this.lockscreen = new LockScreen();

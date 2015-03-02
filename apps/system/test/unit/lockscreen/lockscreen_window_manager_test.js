@@ -59,6 +59,48 @@ suite('system/LockScreenWindowManager', function() {
     stubById.restore();
   });
 
+  suite('Methods', function() {
+    test('_fetchFTUStatus', function(done) {
+      var method = window.LockScreenWindowManager.prototype._fetchFTUStatus;
+      var stubEnabled = null;
+      var stubFTUManifestUrl = 'fakeurl';
+      var originalAsyncStorage = window.asyncStorage;
+      window.asyncStorage = {
+        getItem(key, cb) {
+          return cb(stubEnabled);
+        }
+      };
+      var originalMozSettings = window.navigator.mozSettings;
+      window.navigator.mozSettings = {
+        createLock() {
+          return { get() { return stubFTUManifestUrl; } };
+        }
+      };
+      var clearup = function() {
+        window.asyncStorage = originalAsyncStorage;
+        window.navigator.mozSettings = originalMozSettings;
+      };
+      method.call().then(function(result) {
+        assert.isTrue(result);
+        stubEnabled = true;
+        stubFTUManifestUrl = '';
+        return method.call();
+      }).then(function(result) {
+        assert.isFalse(result);
+        stubEnabled = false;
+        stubFTUManifestUrl = 'fakeurl';
+        return method.call();
+      }).then(function(result) {
+        assert.isTrue(false);
+        clearup();
+        done();
+      }).catch(function(err) {
+        clearup();
+        done(err);
+      });
+    });
+  });
+
   suite('Hierarchy functions', function() {
     setup(function() {
       subject = new window.LockScreenWindowManager();
