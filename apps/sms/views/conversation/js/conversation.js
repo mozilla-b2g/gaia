@@ -156,7 +156,9 @@ var ConversationView = {
     );
 
     this.callNumberButton.addEventListener('click', function() {
-      ActivityPicker.dial(Threads.active.participants[0]);
+      Threads.active.then((thread) => {
+        ActivityPicker.dial(thread.participants[0]);
+      });
     });
 
     this.deleteButton.addEventListener(
@@ -526,14 +528,18 @@ var ConversationView = {
       this.initializeRendering();
     }
 
-    // Call button should be shown only for non-email single-participant thread
-    if (Threads.active.participants.length === 1 &&
-        (!Settings.supportEmailRecipient ||
-         !Utils.isEmailAddress(Threads.active.participants[0]))) {
-      this.callNumberButton.classList.remove('hide');
-    }
-
-    return this.updateHeaderData();
+    return Promise.all([
+      // TODO make this cleaner
+      Threads.active.then((thread) => {
+        // Call button should be shown only for non-email one-participant thread
+        if (thread.participants.length === 1 &&
+            (!Settings.supportEmailRecipient ||
+            !Utils.isEmailAddress(thread.participants[0]))) {
+          this.callNumberButton.classList.remove('hide');
+        }
+      }),
+      this.updateHeaderData()
+    ]);
   },
 
   afterEnter: function conv_afterEnter(args) {
@@ -1132,6 +1138,8 @@ var ConversationView = {
 
     // We're waiting for the keyboard to disappear before animating back
     return this._ensureKeyboardIsHidden().then(function() {
+      var parallelPromises = [];
+
       // Need to assimilate recipients in order to check if any entered
       this.assimilateRecipients();
 
@@ -1139,7 +1147,12 @@ var ConversationView = {
       // ensure that the thread object's unreadCount
       // value is current (set = 0)
       if (Threads.active) {
-        Threads.active.unreadCount = 0;
+        parallelPromises.push(
+          Threads.active.then((thread) => {
+            thread.unreadCount = 0;
+            return Threads.put(thread);
+          })
+        );
       }
 
       // If the composer is empty and we are either
@@ -1147,7 +1160,7 @@ var ConversationView = {
       // do not prompt to save a draft and remove saved drafts
       // as the user deleted them manually
       if (Compose.isEmpty() &&
-        (Threads.active || this.recipients.length === 0)) {
+        (Navigation.isCurrentPanel('thread') || this.recipients.length === 0)) {
         this.discardDraft();
         return;
       }
@@ -1167,7 +1180,9 @@ var ConversationView = {
         return;
       }
 
-      return this._showMessageSaveOrDiscardPrompt();
+      parallelPromises.push(this._showMessageSaveOrDiscardPrompt());
+
+      return Promise.all(parallelPromises);
     }.bind(this));
   },
 
@@ -1349,42 +1364,40 @@ var ConversationView = {
 
   // Method for updating the header with the info retrieved from Contacts API
   updateHeaderData: function conv_updateHeaderData() {
-    var thread, number;
-
-    thread = Threads.active;
-
-    if (!thread) {
+    if (!Threads.active) {
       return Promise.resolve();
     }
 
-    number = thread.participants[0];
+    return Threads.active.then((thread) => {
+      var number = thread.participants[0];
 
-    // Add data to contact activity interaction
-    this.headerText.dataset.number = number;
+      // Add data to contact activity interaction
+      this.headerText.dataset.number = number;
 
-    return Contacts.findByAddress(number).then((contacts) => {
-      // For the basic display, we only need the first contact's information
-      // e.g. for 3 contacts, the app displays:
-      //
-      //    Jane Doe (+2)
-      //
-      var details = Utils.getContactDetails(number, contacts);
-      // Bug 867948: contacts null is a legitimate case, and
-      // getContactDetails is okay with that.
-      var contactName = details.title || number;
-      this.headerText.dataset.isContact = !!details.isContact;
-      this.headerText.dataset.title = contactName;
+      return Contacts.findByAddress(number).then((contacts) => {
+        // For the basic display, we only need the first contact's information
+        // e.g. for 3 contacts, the app displays:
+        //
+        //    Jane Doe (+2)
+        //
+        var details = Utils.getContactDetails(number, contacts);
+        // Bug 867948: contacts null is a legitimate case, and
+        // getContactDetails is okay with that.
+        var contactName = details.title || number;
+        this.headerText.dataset.isContact = !!details.isContact;
+        this.headerText.dataset.title = contactName;
 
-      var headerContentTemplate = thread.participants.length > 1 ?
-        this.tmpl.groupHeader : this.tmpl.header;
-      this.setHeaderContent({
-        html: headerContentTemplate.interpolate({
-          name: contactName,
-          participantCount: (thread.participants.length - 1).toString()
-        })
+        var headerContentTemplate = thread.participants.length > 1 ?
+          this.tmpl.groupHeader : this.tmpl.header;
+        this.setHeaderContent({
+          html: headerContentTemplate.interpolate({
+            name: contactName,
+            participantCount: (thread.participants.length - 1).toString()
+          })
+        });
+
+        this.updateCarrier(thread, contacts);
       });
-
-      this.updateCarrier(thread, contacts);
     });
   },
 
@@ -2183,12 +2196,13 @@ var ConversationView = {
     var content = Compose.getContent(),
         subject = Compose.getSubject(),
         messageType = Compose.type,
-        serviceId = opts.serviceId === undefined ? null : opts.serviceId,
-        recipients;
+        serviceId = opts.serviceId === undefined ? null : opts.serviceId;
 
     var inComposer = Navigation.isCurrentPanel('composer');
 
     // Depending where we are, we get different nums
+    var recipientsPromise;
+
     if (inComposer) {
       if (!this.recipients.length) {
         console.error('The user tried to send the message but no recipients ' +
@@ -2196,9 +2210,9 @@ var ConversationView = {
             'the send button in that case');
         return;
       }
-      recipients = this.recipients.numbers;
+      recipientsPromise = Promise.resolve(this.recipients.numbers);
     } else {
-      recipients = Threads.active.participants;
+      recipientsPromise = Threads.active.then((thread) => thread.participants);
     }
 
     // Clean composer fields (this lock any repeated click in 'send' button)
@@ -2217,68 +2231,71 @@ var ConversationView = {
     this.shouldChangePanelNextEvent = inComposer;
 
     // Send the Message
-    if (messageType === 'sms') {
-      MessageManager.sendSMS({
-        recipients: recipients,
-        content: content[0],
-        serviceId: serviceId,
-        oncomplete: function onComplete(requestResult) {
-          if (!requestResult.hasError) {
-            this.onMessageSendRequestCompleted();
-            return;
-          }
 
-          var errors = {};
-          requestResult.return.forEach(function(result) {
-            if (result.success) {
+    recipientsPromise.then((recipients) => {
+      if (messageType === 'sms') {
+        MessageManager.sendSMS({
+          recipients: recipients,
+          content: content[0],
+          serviceId: serviceId,
+          oncomplete: function onComplete(requestResult) {
+            if (!requestResult.hasError) {
+              this.onMessageSendRequestCompleted();
               return;
             }
 
-            if (errors[result.code.name] === undefined) {
-              errors[result.code.name] = [result.recipient];
-            } else {
-              errors[result.code.name].push(result.recipient);
+            var errors = {};
+            requestResult.return.forEach(function(result) {
+              if (result.success) {
+                return;
+              }
+
+              if (errors[result.code.name] === undefined) {
+                errors[result.code.name] = [result.recipient];
+              } else {
+                errors[result.code.name].push(result.recipient);
+              }
+            });
+
+            for (var key in errors) {
+              this.showMessageSendingError(key, {recipients: errors[key]});
             }
-          });
+          }.bind(this)
+        });
 
-          for (var key in errors) {
-            this.showMessageSendingError(key, {recipients: errors[key]});
+        if (recipients.length > 1) {
+          this.shouldChangePanelNextEvent = false;
+          Navigation.toPanel('thread-list');
+          if (ActivityHandler.isInActivity()) {
+            setTimeout(this.close.bind(this), this.LEAVE_ACTIVITY_DELAY);
           }
-        }.bind(this)
-      });
 
-      if (recipients.length > 1) {
-        this.shouldChangePanelNextEvent = false;
-        Navigation.toPanel('thread-list');
-        if (ActivityHandler.isInActivity()) {
-          setTimeout(this.close.bind(this), this.LEAVE_ACTIVITY_DELAY);
+          // Early return to prevent compose focused for multi-recipients sms
+          return;
         }
 
-        // Early return to prevent compose focused for multi-recipients sms case
-        return;
+      } else {
+        var smilSlides = content.reduce(conv_generateSmilSlides, []);
+        var mmsOpts = {
+          recipients: recipients,
+          subject: subject,
+          content: smilSlides,
+          serviceId: serviceId,
+          onsuccess: function() {
+            this.onMessageSendRequestCompleted();
+          }.bind(this),
+          onerror: function onError(error) {
+            var errorName = error.name;
+            this.showMessageSendingError(errorName);
+          }.bind(this)
+        };
+
+        MessageManager.sendMMS(mmsOpts);
       }
 
-    } else {
-      var smilSlides = content.reduce(conv_generateSmilSlides, []);
-      var mmsOpts = {
-        recipients: recipients,
-        subject: subject,
-        content: smilSlides,
-        serviceId: serviceId,
-        onsuccess: function() {
-          this.onMessageSendRequestCompleted();
-        }.bind(this),
-        onerror: function onError(error) {
-          var errorName = error.name;
-          this.showMessageSendingError(errorName);
-        }.bind(this)
-      };
-
-      MessageManager.sendMMS(mmsOpts);
-    }
-
-    // Retaining the focus on composer.
-    Compose.focus();
+      // Retaining the focus on composer.
+      Compose.focus();
+    });
   },
 
   onMessageSent: function conv_onMessageSent(e) {
@@ -2690,36 +2707,38 @@ var ConversationView = {
       return;
     }
 
-    var participants = Threads.active && Threads.active.participants;
+    Threads.active.then((thread) => {
+      var participants = thread.partiicpants;
 
-    // >1 Participants will enter "group view"
-    if (participants && participants.length > 1) {
-      Navigation.toPanel('group-view', {
-        id: Threads.currentId
-      });
-      return;
-    }
+      // >1 Participants will enter "group view"
+      if (participants && participants.length > 1) {
+        Navigation.toPanel('group-view', {
+          id: Threads.currentId
+        });
+        return;
+      }
 
-    var number = this.headerText.dataset.number;
+      var number = this.headerText.dataset.number;
 
-    var tel, email;
-    if (Settings.supportEmailRecipient && Utils.isEmailAddress(number)) {
-      email = number;
-    } else {
-      tel = number;
-    }
+      var tel, email;
+      if (Settings.supportEmailRecipient && Utils.isEmailAddress(number)) {
+        email = number;
+      } else {
+        tel = number;
+      }
 
-    if (this.headerText.dataset.isContact === 'true') {
-      this.promptContact({
-        number: number
-      });
-    } else {
-      this.prompt({
-        number: tel,
-        email: email,
-        isContact: false
-      });
-    }
+      if (this.headerText.dataset.isContact === 'true') {
+        this.promptContact({
+          number: number
+        });
+      } else {
+        this.prompt({
+          number: tel,
+          email: email,
+          isContact: false
+        });
+      }
+    });
   },
 
   promptContact: function conv_promptContact(opts) {
@@ -2892,15 +2911,18 @@ var ConversationView = {
   },
 
   discardDraft: function conv_discardDraft() {
+    // TODO ask Oleg how InboxView is updated
     // If we were tracking a draft properly, update the Drafts object entry.
     if (!this.draft) {
       return;
     }
 
     // Update thread timestamp. Will be removed in bug 958105.
-    var thread = Threads.active;
-    if (thread) {
-      thread.timestamp = Date.now();
+    if (Threads.active) {
+      Threads.active.then((thread) => {
+        thread.timestamp = Date.now();
+        return thread.save();
+      });
     }
 
     Drafts.delete(this.draft).store();
@@ -2919,35 +2941,37 @@ var ConversationView = {
    * whether or not we should preserve draft.
    */
   saveDraft: function conv_saveDraft(preserveDraft) {
-    var thread = Threads.active;
+    var threadPromise = Threads.active || Promise.resolve();
+    threadPromise.then((thread) => {
+      // Do we need to save participants for thread draft?
+      var recipients = thread ? thread.participants : this.recipients.numbers;
 
-    // Do we need to save participants for thread draft?
-    var recipients = thread ? thread.participants : this.recipients.numbers;
+      var draft = new Draft({
+        id: this.draft && this.draft.id,
+        threadId: thread && thread.id,
+        recipients: recipients,
+        content: Compose.getContent(),
+        subject: Compose.getSubject(),
+        type: Compose.type
+      });
 
-    var draft = new Draft({
-      id: this.draft && this.draft.id,
-      threadId: thread && thread.id,
-      recipients: recipients,
-      content: Compose.getContent(),
-      subject: Compose.getSubject(),
-      type: Compose.type
+      // Update thread timestamp with draft's one. Will be removed in bug 958105
+      if (thread) {
+        thread.timestamp = draft.timestamp;
+        thread.save();
+      }
+
+      Drafts.add(draft);
+
+      // Set draft property if it is not already set and meant to be preserved.
+      if (preserveDraft && !this.draft) {
+        this.draft = draft;
+      } else if (!preserveDraft) {
+        // Clear draft property if not explicitly asked to be preserved by draft
+        // replacement case.
+        this.draft = null;
+      }
     });
-
-    // Update thread timestamp with draft's one. Will be removed in bug 958105.
-    if (thread) {
-      thread.timestamp = draft.timestamp;
-    }
-
-    Drafts.add(draft);
-
-    // Set draft property if it is not already set and meant to be preserved.
-    if (preserveDraft && !this.draft) {
-      this.draft = draft;
-    } else if (!preserveDraft) {
-      // Clear draft property if not explicitly asked to be preserved by draft
-      // replacement case.
-      this.draft = null;
-    }
   },
 
   /**
