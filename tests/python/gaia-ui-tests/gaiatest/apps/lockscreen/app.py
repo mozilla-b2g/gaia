@@ -3,16 +3,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from datetime import datetime
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-    from marionette.marionette import Actions
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
-    from marionette_driver.marionette import Actions
+from marionette_driver import expected, By, Wait
+from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion

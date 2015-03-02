@@ -10,12 +10,9 @@ import time
 from StringIO import StringIO
 
 from PIL import Image
-
-from marionette import By
-from marionette import Actions
-from marionette.gestures import pinch
-from marionette.gestures import smooth_scroll
-
+from marionette_driver import By
+from marionette_driver.marionette import Actions
+from marionette_driver.gestures import pinch, smooth_scroll
 from mozlog.structured import get_default_logger
 
 from gaiatest import GaiaTestCase
