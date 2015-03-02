@@ -66,6 +66,9 @@ HudController.prototype.bindEvents = function() {
   this.app.on('ready', this.view.setter('camera', 'ready'));
   this.app.on('busy', this.view.setter('camera', 'busy'));
 
+  // We need the app to be first localized before localizing the hud view.
+  this.app.on('localized', this.localize);
+
   // Settings
   this.app.once('settings:configured', this.view.show);
   this.app.on('settings:configured', this.updateFlashSupport);
@@ -140,6 +143,15 @@ HudController.prototype.notify = function(setting, hdrDeactivated) {
   }
 
   this.flashNotification = this.notification.display({ text: html });
+};
+
+/**
+ * Localize hud view when app is localized or locale updated.
+ */
+HudController.prototype.localize = function() {
+  this.view.setFlashModeLabel(this.settings.flashModes.selected());
+  this.view.setCameraLabel(this.settings.cameras.selected());
+  this.view.setMenuLabel();
 };
 
 HudController.prototype.updateFlashMode = function() {
