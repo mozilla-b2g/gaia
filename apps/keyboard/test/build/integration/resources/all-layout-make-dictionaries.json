@@ -1,5 +1,15 @@
 [
   {
+    "label": "Afrikaans",
+    "id": "latin::af",
+    "inputIds": [
+      "af"
+    ],
+    "preload": true,
+    "imEngineId": "latin",
+    "dictFilePath": "dictionaries/af.dict"
+  },
+  {
     "label": "Bosanski",
     "id": "latin::bs",
     "inputIds": [
@@ -56,6 +66,7 @@
     "label": "English (UK)",
     "id": "latin::en_gb",
     "inputIds": [
+      "en-Africa",
       "en-GB"
     ],
     "preload": true,
@@ -354,6 +365,14 @@
     "preload": true,
     "imEngineId": "latin",
     "dictFilePath": "dictionaries/tr.dict"
+  },
+  {
+    "id": "wo",
+    "inputIds": [
+      "wo"
+      ],
+    "label": "Wolof",
+    "preload": true
   },
   {
     "label": "Česká",
