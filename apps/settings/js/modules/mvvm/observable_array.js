@@ -1,153 +1,131 @@
-'use strict';
+define(function(require) {
+  'use strict';
 
-define(function() {
-  function unobserve(_eventHandlers, prop, handler) {
-    // arguments in reverse order to support .bind(handler) for the
-    // unbind from all case
-    function removeHandler(handler, prop) {
-      var handlers = _eventHandlers[prop];
-      if (!handlers) {
-        return;
-      }
-      var index = handlers.indexOf(handler);
-      if (index >= 0) {
-        handlers.splice(index, 1);
-      }
-    }
+  var EventEmitter = require('modules/base/event_emitter');
+  var Observable = require('modules/mvvm/observable');
 
-    if (typeof prop === 'function') {
-      // (handler) -- remove from every key in _eventHandlers
-      Object.keys(_eventHandlers).forEach(removeHandler.bind(null, prop));
-    } else if (handler) {
-      // (prop, handler) -- remove handler from the specific prop
-      removeHandler(handler, prop);
-    } else if (prop in _eventHandlers) {
-      // (prop) -- otherwise remove all handlers for property
-      _eventHandlers[prop] = [];
-    }
-  }
+  var Events = ['insert', 'remove', 'replace', 'reset'];
+  var ReadOnlyMethods = ['forEach', 'map', 'every', 'some', 'indexOf',
+                         'lastIndexOf', 'reduce', 'reduceRight'];
 
-  /*
-   * An ObservableArray is able to notify its change through four basic
-   * operations including 'insert', 'remove', 'replace', 'reset'. It is
-   * initialized by an ordinary array.
-   */
   function ObservableArray(array) {
-    var _array = array || [];
-    var _eventHandlers = {
-      'insert': [],
-      'remove': [],
-      'replace': [],
-      'reset': []
-    };
-
-    var _notify = function(eventType, data) {
-      var handlers = _eventHandlers[eventType];
-      handlers.forEach(function(handler) {
-        handler({
-          type: eventType,
-          data: data
-        });
-      });
-    };
-
-    return {
-      get length() {
-        return _array.length;
-      },
-
-      get array() {
-        return _array;
-      },
-
-      forEach: function oa_foreach(func) {
-        _array.forEach(func);
-      },
-
-      observe: function oa_observe(eventType, handler) {
-        var handlers = _eventHandlers[eventType];
-        if (handlers) {
-          handlers.push(handler);
-        }
-      },
-
-      unobserve: unobserve.bind(null, _eventHandlers),
-
-      push: function oa_push(item) {
-        _array.push(item);
-
-        _notify('insert', {
-          index: _array.length - 1,
-          count: 1,
-          items: [item]
-        });
-      },
-
-      pop: function oa_pop() {
-        if (!_array.length) {
-          return;
-        }
-
-        var item = _array.pop();
-
-        _notify('remove', {
-          index: _array.length,
-          count: 1
-        });
-
-        return item;
-      },
-
-      splice: function oa_splice(index, count) {
-        if (arguments.length < 2) {
-          return;
-        }
-
-        var addedItems = Array.prototype.slice.call(arguments, 2);
-        _array.splice.apply(_array, arguments);
-
-        if (count) {
-          _notify('remove', {
-            index: index,
-            count: count
-          });
-        }
-
-        if (addedItems.length) {
-          _notify('insert', {
-            index: index,
-            count: addedItems.length,
-            items: addedItems
-          });
-        }
-      },
-
-      set: function oa_set(index, value) {
-        if (index < 0 || index >= _array.length) {
-          return;
-        }
-
-        var oldValue = _array[index];
-        _array[index] = value;
-        _notify('replace', {
-          index: index,
-          oldValue: oldValue,
-          newValue: value
-        });
-      },
-
-      get: function oa_get(index) {
-        return _array[index];
-      },
-
-      reset: function oa_reset(array) {
-        _array = array;
-        _notify('reset', {
-          items: _array
-        });
-      }
-    };
+    this.EventEmitter.call(this, Events);
+    this._array = array || [];
+    this._length = this._array.length;
   }
 
-  return ObservableArray;
+  EventEmitter.augment(ObservableArray.prototype);
+  Observable.augment(ObservableArray.prototype);
+  Observable.defineObservableProperty(ObservableArray.prototype, 'length', {
+    permission: 'r'
+  });
+  Observable.defineObservableProperty(ObservableArray.prototype, 'array', {
+    permission: 'r'
+  });
+
+  ReadOnlyMethods.forEach(function(op) {
+    ObservableArray.prototype[op] = function() {
+      return this._array[op].apply(this._array, arguments);
+    };
+  });
+
+  ObservableArray.prototype.push = function oa_push(item) {
+    this._array.push(item);
+    this._length = this._array.length;
+
+    this._emitEvent('insert', {
+      index: this._array.length - 1,
+      count: 1,
+      items: [item]
+    });
+  };
+
+  ObservableArray.prototype.pop = function oa_pop() {
+    if (!this._array.length) {
+      return;
+    }
+
+    var item = this._array.pop();
+    this._length = this._array.length;
+
+    this._emitEvent('remove', {
+      index: this._array.length,
+      count: 1,
+      items: [item]
+    });
+
+    return item;
+  };
+
+  ObservableArray.prototype.splice = function oa_splice(index, count) {
+    if (arguments.length < 2) {
+      return;
+    }
+
+    var addedItems = Array.prototype.slice.call(arguments, 2);
+    var removedItems = this._array.splice.apply(this._array, arguments);
+    this._length = this._array.length;
+
+    if (removedItems.length) {
+      this._emitEvent('remove', {
+        index: index,
+        count: count,
+        items: removedItems
+      });
+    }
+
+    if (addedItems.length) {
+      this._emitEvent('insert', {
+        index: index,
+        count: addedItems.length,
+        items: addedItems
+      });
+    }
+
+    return removedItems;
+  };
+
+  ObservableArray.prototype.set = function oa_set(index, value) {
+    if (index < 0 || index >= this._array.length) {
+      return;
+    }
+
+    var oldValue = this._array[index];
+    this._array[index] = value;
+    this._emitEvent('replace', {
+      index: index,
+      oldValue: oldValue,
+      newValue: value
+    });
+  };
+
+  ObservableArray.prototype.get = function oa_get(index) {
+    return this._array[index];
+  };
+
+  ObservableArray.prototype.reset = function oa_reset(array) {
+    this._array = array;
+    this._length = this._array.length;
+    this._emitEvent('reset', {
+      items: this._array
+    });
+  };
+
+  // constructor and static functions
+  function _ctor(array) {
+    return new ObservableArray(array);
+  }
+
+  function _augment(prototype) {
+    Object.keys(ObservableArray.prototype).forEach(function(key) {
+      prototype[key] = ObservableArray.prototype[key];
+    });
+    prototype.ObservableArray = ObservableArray;
+  }
+
+  Object.defineProperty(_ctor, 'augment', {
+    value: _augment
+  });
+
+  return _ctor;
 });

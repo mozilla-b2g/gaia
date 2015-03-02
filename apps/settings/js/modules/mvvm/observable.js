@@ -92,6 +92,7 @@ define(function() {
     }
   };
 
+  // constructor and static functions
   function _ctor(obj) {
     return new Observable(obj);
   }
@@ -152,26 +153,14 @@ define(function() {
     Object.keys(Observable.prototype).forEach(function(key) {
       prototype[key] = Observable.prototype[key];
     });
+    prototype.Observable = Observable;
   }
 
   Object.defineProperty(_ctor, 'augment', {
-    enumerable: true,
-    writable: false,
     value: _augment
   });
 
-  Object.defineProperty(_ctor, 'ctor', {
-    enumerable: true,
-    writable: false,
-    value: function(obj) {
-      Observable.call(this, obj);
-      return this;
-    }
-  });
-
   Object.defineProperty(_ctor, 'defineObservableProperty', {
-    enumerable: true,
-    writable: false,
     value: _defineObservableProperty
   });
 

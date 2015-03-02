@@ -15,11 +15,12 @@ define(function() {
   EventEmitter.prototype._emitEvent = function(eventName, value) {
     var listeners = this._eventListeners[eventName];
     if (listeners) {
-      var eventObj = new CustomEvent(eventName, {
+      var eventObj = {
+        type: eventName,
         detail: value
-      });
+      };
       listeners.forEach((listener) => {
-        listener(eventObj);
+        listener.call(this, eventObj);
       });
     }
   };
@@ -60,6 +61,7 @@ define(function() {
     }
   };
 
+  // constructor and static functions
   function _ctor(eventNames) {
     return new EventEmitter(eventNames);
   }
@@ -68,20 +70,10 @@ define(function() {
     Object.keys(EventEmitter.prototype).forEach(function(key) {
       prototype[key] = EventEmitter.prototype[key];
     });
+    prototype.EventEmitter = EventEmitter;
   }
 
-  Object.defineProperty(_ctor, 'ctor', {
-    enumerable: true,
-    writable: false,
-    value: function(thisObj, eventNames) {
-      EventEmitter.call(thisObj, eventNames);
-      return thisObj;
-    }
-  });
-
   Object.defineProperty(_ctor, 'augment', {
-    enumerable: true,
-    writable: false,
     value: _augment
   });
 
