@@ -67,7 +67,13 @@ exports.reset = function() {
   for (var i = 0; i < 40; i++) {
     document.cookie = 'htmlc' + i + '=; expires=' + expiry;
   }
+
+  console.log('htmlCache reset');
 };
+
+// If the locale changes, clear the cache so that incorrectly localized cache
+// is not shown on the next eamil launch.
+window.addEventListener('languagechange', exports.reset);
 
 exports.moduleIdToKey = function moduleIdToKey(moduleId) {
   return moduleId.replace(/^cards\//, '').replace(/-/g, '_');
