@@ -43,8 +43,10 @@ class TestSetMusicRating(GaiaTestCase):
 
         # give rating of 4
         player_view.tap_star(4)
+        player_view.tap_cover_in_player_view() # tap again in case the overlay disappears due to timeout
         Wait(self.marionette).until(lambda m: player_view.star_rating == 4)
 
         #change the rating to 1
         player_view.tap_star(1)
+        player_view.tap_cover_in_player_view() # tap again in case the overlay disappears due to timeout
         Wait(self.marionette).until(lambda m: player_view.star_rating == 1)
