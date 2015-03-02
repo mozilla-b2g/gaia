@@ -20,7 +20,11 @@ suite('LockScreenClockWidgetTick > ', function() {
       stop: function() { return this; },
       destroy: function() { return this; },
       next: function(step) {
-        this.steps.push(step);
+        if ('function' === typeof step) {
+          this.steps.push(step());
+        } else {
+          this.steps.push(step);
+        }
         return this;
       }
     };
@@ -34,12 +38,17 @@ suite('LockScreenClockWidgetTick > ', function() {
       component: {
         updateClock: {
           bind: this.sinon.stub().returns('component.updateClock')
+        },
+        getTimeformat: function() {
+          mockThis.stream.steps.push('component.getTimeformat');
         }
       }
     };
     this.sinon.stub(window.Stream.prototype.ready, 'bind').returns('ready');
     var method = LockScreenClockWidgetTick.prototype.start;
     method.call(mockThis);
+    assert.include(mockThis.stream.steps, 'component.getTimeformat',
+        `it doesn't check out the timeformat`);
     assert.include(mockThis.stream.steps, 'component.updateClock',
         `it doesn't schedule to update the clock`);
     assert.include(mockThis.stream.steps, 'ready',
