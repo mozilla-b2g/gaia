@@ -4,16 +4,8 @@
 
 import time
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-    from marionette.marionette import Actions
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
-    from marionette_driver.marionette import Actions
+from marionette_driver import expected, By, Wait
+from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.phone.regions.call_screen import CallScreen

@@ -2,9 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette.marionette_test import parameterized
+
 from gaiatest import GaiaTestCase
 from gaiatest.apps.phone.app import Phone
-from marionette.marionette_test import parameterized
 
 
 class TestDialerDsdsMakePhoneCallWithDefaultSim(GaiaTestCase):

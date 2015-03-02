@@ -2,10 +2,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import SkipTest
+
 from gaiatest import GaiaTestCase
 from gaiatest.mocks.mock_contact import MockContact
 from gaiatest.apps.contacts.app import Contacts
-from marionette.marionette_test import SkipTest
 
 
 class TestContacts(GaiaTestCase):

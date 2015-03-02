@@ -4,9 +4,8 @@
 
 import time
 
-from marionette.marionette import Actions
-from marionette.by import By
-from marionette.wait import Wait
+from marionette_driver import By, Wait
+from marionette_driver.marionette import Actions
 
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
 from gaiatest.apps.music.app import Music

@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.marionette_test import parameterized
+
 from gaiatest import GaiaTestCase
 from gaiatest.apps.settings.app import Settings
 
