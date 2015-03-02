@@ -52,9 +52,10 @@
         this.cardManager.writeCardlistInCardStore({cleanEmptyFolder: true})
           .then(function() {
             // Since writeCardlistInCardStore triggers card-removed event that
-            // causes re-focus on other elements of card list, we need to wait
+            // causes re-focus on other elements in card list, we need to wait
             // until those actions to be done before focusing editButton.
             this.spatialNavigator.focus(this.editButton);
+            this.currentNode.classList.remove('focused');
           }.bind(this));
         this._concealPanel(this.currentScrollable, this.currentNode);
       } else {
