@@ -111,14 +111,32 @@ var TrustedUIManager = {
       // event ultimately to be fired.
       this._hide();
 
-      window.focus();
+      // focus back to the top most window.
+      // XXX: we focus back to active app. But we should call the fallback
+      // algorithm to find the top-most overlay or app.
+      AppWindowManager.getActiveApp().getTopMostWindow().focus();
     } else {
       this._closeDialog(chromeEventId, origin);
     }
   },
 
-  isVisible: function trui_show() {
+  isVisible: function trui_isVisible() {
     return this.screen.classList.contains('trustedui');
+  },
+
+  getOrder: function trui_getOrder() {
+    var zIndex = window.getComputedStyle(this.overlay).zIndex;
+    return zIndex === 'auto' ? 0 : zIndex;
+  },
+
+  focus: function trui_focus() {
+    var dialog = this._getTopDialog();
+    if (dialog) {
+      window.setTimeout(function() {
+        document.activeElement.blur();
+        dialog.frame.focus();
+      });
+    }
   },
 
   _hideTrustedApp: function trui_hideTrustedApp() {
@@ -258,6 +276,8 @@ var TrustedUIManager = {
     }
     this._restoreOrientation();
     dialog.frame.classList.remove('selected');
+    // move focus to the displayed frame
+    this.focus();
   },
 
   _restoreOrientation: function trui_restoreOrientation() {

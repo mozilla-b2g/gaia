@@ -314,6 +314,9 @@
     this.currentAnimation = animation || this.openAnimation;
     this.app.debug('open with ' + this.currentAnimation);
     if (this.currentAnimation == 'immediate') {
+      // The immediate-open state fires 'open' event directly. We have to
+      // fire the willopen before change to immediate-open state
+      this.app.publish('willopen');
       this.changeTransitionState('immediate-open');
     } else {
       this.changeTransitionState('open');
@@ -324,6 +327,9 @@
     this.currentAnimation = animation || this.closeAnimation;
     this.app.debug('close with ' + this.currentAnimation);
     if (this.currentAnimation == 'immediate') {
+      // The immediate-close state fires 'close' event directly. We have to
+      // fire the willclose before change to immediate-close state
+      this.app.publish('willclose');
       this.changeTransitionState('immediate-close');
     } else {
       this.changeTransitionState('close');
