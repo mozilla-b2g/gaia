@@ -208,7 +208,7 @@ ContactRenderer.prototype = {
       })
     };
 
-    var include = renderPhoto ? { photoURL: true } : null;
+    var include = renderPhoto ? { photo: true } : null;
     var addresses = [];
 
     if (contact.tel && contact.tel.length) {
@@ -267,7 +267,7 @@ ContactRenderer.prototype = {
       }).toString();
 
       // Render contact photo only for specific flavor
-      data.photoHTML = renderPhoto && details.photoURL ?
+      data.photoHTML = renderPhoto && details.photo ?
         this.templates.photo.interpolate() : '';
 
       // Interpolate HTML template with data and inject.
@@ -285,10 +285,10 @@ ContactRenderer.prototype = {
 
       if (data.photoHTML) {
         var contactPhoto = element.querySelector('.contact-photo');
-        contactPhoto.style.backgroundImage =
-          'url("' + encodeURI(details.photoURL) + '")';
+        var url = window.URL.createObjectURL(details.photo);
+        contactPhoto.style.backgroundImage = 'url("' + encodeURI(url) + '")';
 
-        Utils.asyncLoadRevokeURL(details.photoURL);
+        Utils.asyncLoadRevokeURL(url);
       }
 
       target.appendChild(element);

@@ -175,12 +175,12 @@ var InboxView = {
     }
 
     function* updateThreadNode(number) {
-      var contact = yield InboxView.findContact(number, { photoURL: true });
+      var contact = yield InboxView.findContact(number, { photo: true });
       var isContact = !!contact.isContact;
 
       picture.classList.toggle('has-picture', isContact);
       picture.classList.toggle(
-        'default-picture', isContact && !contact.photoURL
+        'default-picture', isContact && !contact.photo
       );
 
       title.textContent = contact.title || number;
@@ -190,19 +190,21 @@ var InboxView = {
         window.URL.revokeObjectURL(photoUrl);
       }
 
-      if (contact.photoURL) {
-        node.dataset.photoUrl = contact.photoURL;
+      if (contact.photo) {
+        photoUrl = window.URL.createObjectURL(contact.photo);
       } else if (photoUrl) {
-        node.dataset.photoUrl = '';
+        photoUrl = '';
       }
 
-      if (contact.photoURL) {
+      node.dataset.photoUrl = photoUrl;
+
+      if (photoUrl) {
         // Use multiple image background to display default image until real
         // contact image thumbnail is decoded by Gecko. Difference is especially
         // noticeable on slow devices. Please keep default image in sync with
         // what defined in CSS (sms.css/.threadlist-item-picture)
         picture.firstElementChild.style.backgroundImage = [
-          'url(' + contact.photoURL + ')',
+          'url(' + photoURL + ')',
           'url(/views/inbox/style/images/default_contact_image.png)'
         ].join(', ');
       } else {
@@ -593,7 +595,7 @@ var InboxView = {
 
           // Render draft only in case we haven't rendered it yet.
           if (!Threads.has(draft.id)) {
-            var thread = Thread.create(draft);
+            var thread = Thread.fromDraft(draft);
             Threads.set(draft.id, thread);
             this.appendThread(thread);
           }
