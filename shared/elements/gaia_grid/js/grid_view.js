@@ -544,13 +544,13 @@
           item.setCoordinates(xPosition, this.layout.offsetY);
           if (!item.active) {
             item.render();
-          }
 
-          if (item.detail.type === 'divider') {
-            if (oddDivider) {
-              item.element.classList.add('odd');
-            } else {
-              item.element.classList.remove('odd');
+            if (item.detail.type === 'divider') {
+              if (oddDivider) {
+                item.element.classList.add('odd');
+              } else {
+                item.element.classList.remove('odd');
+              }
             }
           }
         }
@@ -566,9 +566,7 @@
       // All the children of this element are absolutely positioned and then
       // transformed, so manually set a height for the convenience of
       // embedders.
-      var padding = window.getComputedStyle ?
-        parseInt(window.getComputedStyle(this.element).paddingBottom) : 0;
-      this.element.style.height = (this.layout.offsetY + padding) + 'px';
+      this.element.style.height = this.layout.offsetY + 'px';
 
       this.element.setAttribute('cols', this.layout.cols);
       pendingCachedIcons === 0 && onCachedIconRendered();
