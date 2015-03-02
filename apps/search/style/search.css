@@ -95,6 +95,7 @@ body, a {
   background-image: url(/style/icons/search.png);
   background-repeat: no-repeat;
   background-position: 0.8rem center;
+  background-size: 3rem;
   text-indent: 4.5rem;
 }
 
