@@ -40,9 +40,13 @@ suite('WordListConverter', function() {
     assert.equal(actual.length, expected.length, 'length of two blobs differs');
   };
 
+  test('Blob type is ArrayBuffer', function(){
+    assert.instanceOf(new WordListConverter(['a']).toBlob(), ArrayBuffer);
+  });
+
   suite('Basic latin characters', function() {
     test('single word', function(){
-      actual = new WordListConverter(['apple']).toBlob();
+      actual = new Uint8Array(new WordListConverter(['apple']).toBlob());
 
       expected = new Uint8Array([
         0x46, 0x78, 0x4f, 0x53, 0x44, 0x49, 0x43, 0x54, // FxOSDICT
@@ -65,8 +69,8 @@ suite('WordListConverter', function() {
     });
 
     test('multiple words', function(){
-      actual = new WordListConverter(
-        ['apple', 'orange', 'apply', 'organic', 'blueberry']).toBlob();
+      actual = new Uint8Array(new WordListConverter(
+        ['apple', 'orange', 'apply', 'organic', 'blueberry']).toBlob());
 
       expected = new Uint8Array([
         0x46, 0x78, 0x4f, 0x53, 0x44, 0x49, 0x43, 0x54,
@@ -125,8 +129,8 @@ suite('WordListConverter', function() {
 
     // Uppercase/lowercase/diacritics are treated as different characters.
     test('captilization', function(){
-      actual = new WordListConverter(
-        ['mozIlla', 'Mozilla', 'mozilla', 'MOZILLA']).toBlob();
+      actual = new Uint8Array(new WordListConverter(
+        ['mozIlla', 'Mozilla', 'mozilla', 'MOZILLA']).toBlob());
 
       expected = new Uint8Array([
         0x46, 0x78, 0x4f, 0x53, 0x44, 0x49, 0x43, 0x54,
@@ -179,8 +183,8 @@ suite('WordListConverter', function() {
     });
 
     test('diacritics', function(){
-      actual = new WordListConverter(
-        ['mÖz', 'Ɱoz', 'Moz', 'mOz', 'ḿoƶ']).toBlob();
+      actual = new Uint8Array(new WordListConverter(
+        ['mÖz', 'Ɱoz', 'Moz', 'mOz', 'ḿoƶ']).toBlob());
 
       expected = new Uint8Array([
         0x46, 0x78, 0x4f, 0x53, 0x44, 0x49, 0x43, 0x54,
@@ -233,9 +237,9 @@ suite('WordListConverter', function() {
   //  can be (even remotely) sensible.)
   suite('CJK characters', function() {
     test('basic CJK test with only CJK chars', function(){
-      actual = new WordListConverter(
+      actual = new Uint8Array(new WordListConverter(
         // The words are Hello / Good Morning / Good Evening in CJK.
-        ['你好', '你好嗎', 'こんにちは', 'こんばんは', '안녕하세요']).toBlob();
+        ['你好', '你好嗎', 'こんにちは', 'こんばんは', '안녕하세요']).toBlob());
 
       expected = new Uint8Array([
         0x46, 0x78, 0x4f, 0x53, 0x44, 0x49, 0x43, 0x54,
@@ -288,9 +292,9 @@ suite('WordListConverter', function() {
     // again, the "correct" blob has been pre-tested to make sure that the
     // prediction of those single-byte latin chars works.
     test('CJK+latin chars', function(){
-      actual = new WordListConverter(
+      actual = new Uint8Array(new WordListConverter(
         ['SAY', 'SUB', '你好', 'LATÎN', 'LATIN', 'SON', 'RON',
-         '你好嗎', 'RUN', 'run', '好嗎', 'Uni', 'UnÎdentity']).toBlob();
+         '你好嗎', 'RUN', 'run', '好嗎', 'Uni', 'UnÎdentity']).toBlob());
 
       expected = new Uint8Array([
         0x46, 0x78, 0x4f, 0x53, 0x44, 0x49, 0x43, 0x54,
@@ -385,8 +389,8 @@ suite('WordListConverter', function() {
   suite('Hindi', function() {
     test('basic Hindi chars with only Hindi chars', function(){
       // The words are translated from "Hi", "Good morning" and "Thank you".
-      actual = new WordListConverter(
-        ['नमस्ते', 'सुप्रभात', 'शुक्रिया']).toBlob();
+      actual = new Uint8Array(new WordListConverter(
+        ['नमस्ते', 'सुप्रभात', 'शुक्रिया']).toBlob());
 
       expected = new Uint8Array([
         0x46, 0x78, 0x4f, 0x53, 0x44, 0x49, 0x43, 0x54,
@@ -441,9 +445,9 @@ suite('WordListConverter', function() {
     // similar to CJK+latin test. we re-use 0x4d = 'M', 0x38 = '8', 0x41 = 'A',
     // 0x47 = 'G', 0x3f = '?' here.
     test('Hindi+latin chars', function(){
-      actual = new WordListConverter(
+      actual = new Uint8Array(new WordListConverter(
         ['Apple?', 'नमस्ते', 'MAGAZINE', 'Game',
-         'सुप्रभात', 'AM?', 'शुक्रिया']).toBlob();
+         'सुप्रभात', 'AM?', 'शुक्रिया']).toBlob());
 
       expected = new Uint8Array([
         0x46, 0x78, 0x4f, 0x53, 0x44, 0x49, 0x43, 0x54,
@@ -549,10 +553,10 @@ suite('WordListConverter', function() {
     const emoChesnut = '🌰';  // '\ud83c\udf30'
 
     test('basic Emoji', function(){
-      actual = new WordListConverter(
+      actual = new Uint8Array(new WordListConverter(
         [emoSmile,
          emoSmile + emoCar,
-         emoTennis + emoChesnut + emoCar]).toBlob();
+         emoTennis + emoChesnut + emoCar]).toBlob());
 
       expected = new Uint8Array([
         0x46, 0x78, 0x4f, 0x53, 0x44, 0x49, 0x43, 0x54,
@@ -595,14 +599,14 @@ suite('WordListConverter', function() {
     // 厘米 is a way to say centimeter in Chinese
     // ミリメートル is millimeter in Japanese
     test('Emoji + CJK and latin words', function(){
-      actual = new WordListConverter(
+      actual = new Uint8Array(new WordListConverter(
         ['<' + emoChesnut + '>',
          'マスター' + '=' + emoCar + '=' + 'クラス',
          emoTennis + '墾丁',
          emoCar + '厘米' + 'ミリメートル' + emoChesnut,
          emoSmile + 'ヘ' + emoCar,
          emoSmile
-        ]).toBlob();
+        ]).toBlob());
 
       expected = new Uint8Array([
         0x46, 0x78, 0x4f, 0x53, 0x44, 0x49, 0x43, 0x54,
