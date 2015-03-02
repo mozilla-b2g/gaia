@@ -33,7 +33,7 @@ suite('controllers/camera', function() {
       notification: {
         display: sinon.spy()
       }
-    }
+    };
 
     // Activity
     this.app.activity = {};
@@ -194,60 +194,42 @@ suite('controllers/camera', function() {
     });
   });
 
-  suite('CameraController#onKeyDown', function() {
-    var captureSpy;
+  suite('CameraController#onCaptureKey', function() {
+    test('`keydown:capture` triggers capture', function() {
+      var callback = this.app.on.withArgs('keydown:capture').args[0][1];
+      var event = { preventDefault: sinon.spy() };
+
+      callback(event);
+      sinon.assert.called(this.camera.capture);
+    });
+
+    test('It calls preventDefault if the capture call doesn\'t return false', function() {
+      var callback = this.app.on.withArgs('keydown:capture').args[0][1];
+      var event = { preventDefault: sinon.spy() };
+
+      this.camera.capture.returns(false);
+      callback(event);
+      sinon.assert.notCalled(event.preventDefault);
+
+      this.camera.capture.returns(undefined);
+      callback(event);
+      sinon.assert.called(event.preventDefault);
+    });
+  });
+
+  suite('CameraController#onFocusKey', function() {
     setup(function() {
-      this.keys = {
-        camera: 'camera',
-        volumeup: 'volumeup',
-        volumedown: 'volumedown',
-        focus: 'mozcamerafocusadjust',
-      };
-
-      this.event = {
-        key: undefined,
-        preventDefault: sinon.spy()
-      };
-
       this.camera.focus = {
         focus: this.sinon.spy()
       };
     });
 
-    test('camera button triggers capture', function() {
-      this.event.key = 'camera';
-      this.controller.onKeyDown(this.event);
-      sinon.assert.called(this.camera.capture);
-    });
+    test('`keydown:focus` triggers focus', function() {
+      var callback = this.app.on.withArgs('keydown:focus').args[0][1];
+      var event = { preventDefault: sinon.spy() };
 
-    test('volume up button triggers capture', function() {
-      this.event.key = 'volumeup';
-      this.controller.onKeyDown(this.event);
-      sinon.assert.called(this.camera.capture);
-    });
-
-    test('volume down button triggers capture', function() {
-      this.event.key = 'volumedown';
-      this.controller.onKeyDown(this.event);
-      sinon.assert.called(this.camera.capture);
-    });
-
-    test('camera focus button triggers focus', function() {
-      this.event.key = 'mozcamerafocusadjust';
-      this.controller.onKeyDown(this.event);
+      callback(event);
       sinon.assert.called(this.camera.focus.focus);
-    });
-
-    test('It calls preventDefault if the capture call doesn\'t return false', function() {
-      this.camera.capture.returns(false);
-      this.event.key = 'volumedown';
-      this.controller.onKeyDown(this.event);
-      sinon.assert.notCalled(this.event.preventDefault);
-
-      this.camera.capture.returns(undefined);
-      this.event.key = 'volumedown';
-      this.controller.onKeyDown(this.event);
-      sinon.assert.called(this.event.preventDefault);
     });
   });
 
