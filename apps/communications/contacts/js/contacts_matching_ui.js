@@ -219,13 +219,19 @@ if (!contacts.MatchingUI) {
     function getActionOverList(event) {
       // 40% percent of the horizontal width will be consider 'check' area
       var CHECKING_AREA_WIDTH = 0.4;
+      var shouldShowDetail = true;
 
-      var out = 'detail';
-      if (event.clientX <= window.innerWidth * CHECKING_AREA_WIDTH) {
-        out = 'check';
+      // In case of an RTL language we need to swap the areas
+      if (document.dir === 'rtl') {
+        CHECKING_AREA_WIDTH = 0.6;
+        shouldShowDetail = false;
       }
 
-      return out;
+      if (event.clientX <= window.innerWidth * CHECKING_AREA_WIDTH) {
+        shouldShowDetail = !shouldShowDetail;
+      }
+
+      return shouldShowDetail ? 'detail' : 'check';
     }
 
     function onClick(e) {
