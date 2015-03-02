@@ -2,7 +2,7 @@
 
 suite('ObservableArray', function() {
   var methods = [
-    'forEach', 'push', 'pop', 'splice', 'set', 'get', 'reset', 'observe'
+    'forEach', 'push', 'pop', 'splice', 'set', 'get', 'reset'
   ];
 
   suiteSetup(function(done) {
@@ -39,7 +39,7 @@ suite('ObservableArray', function() {
     }
   });
 
-  suite('observable actions', function() {
+  suite('check actions', function() {
     var events = ['insert', 'remove', 'replace', 'reset'];
 
     function checkSpies(expected) {
@@ -55,7 +55,21 @@ suite('ObservableArray', function() {
       var args = [].slice.call(arguments, 1);
       test(event + ' called with correct arguments', function() {
         var calls = this.spies[event].args;
-        assert.deepEqual(calls[calls.length - 1], args);
+        var eventObj = calls[calls.length - 1][0];
+        var expectedEventObj = args[0];
+
+        assert.equal(eventObj.type, event);
+        assert.deepEqual(eventObj.detail, expectedEventObj.detail);
+      });
+    }
+
+    function checkLength(newValue, oldValue) {
+      test('length changes correctly', function() {
+        if (newValue !== oldValue) {
+          assert.deepEqual(this.spies.length.args[0], [newValue, oldValue]);
+        } else {
+          assert.isTrue(this.spies.length.notCalled);
+        }
       });
     }
 
@@ -63,14 +77,17 @@ suite('ObservableArray', function() {
       events.forEach(function(event) {
         this.spies[event].reset();
       }, environment);
+      environment.spies.length.reset();
     }
 
     setup(function() {
       this.spies = {};
       events.forEach(function(event) {
         this.spies[event] = this.sinon.spy();
-        this.observable.observe(event, this.spies[event]);
+        this.observable.addEventListener(event, this.spies[event]);
       }, this);
+      this.spies.length = this.sinon.spy();
+      this.observable.observe('length', this.spies.length);
     });
 
     suite('pop()', function() {
@@ -80,11 +97,13 @@ suite('ObservableArray', function() {
       checkSpies({ remove: 1 });
       checkArgs('remove', {
         type: 'remove',
-        data: {
+        detail: {
           index: methods.length - 1,
-          count: 1
+          count: 1,
+          items: [methods[methods.length - 1]]
         }
       });
+      checkLength(methods.length - 1, methods.length);
       test('modifies array', function() {
         var expected = methods.slice();
         expected.pop();
@@ -99,12 +118,13 @@ suite('ObservableArray', function() {
       checkSpies({ insert: 1 });
       checkArgs('insert', {
         type: 'insert',
-        data: {
+        detail: {
           index: methods.length,
           count: 1,
           items: ['test']
         }
       });
+      checkLength(methods.length + 1, methods.length);
       test('modifies array', function() {
         var expected = methods.slice();
         expected.push('test');
@@ -119,11 +139,13 @@ suite('ObservableArray', function() {
       checkSpies({ remove: 1 });
       checkArgs('remove', {
         type: 'remove',
-        data: {
+        detail: {
           index: 1,
-          count: 2
+          count: 2,
+          items: methods.slice(1, 3)
         }
       });
+      checkLength(methods.length - 2, methods.length);
       test('modifies array', function() {
         var expect = methods.slice();
         expect.splice(1, 2);
@@ -138,19 +160,21 @@ suite('ObservableArray', function() {
       checkSpies({ remove: 1, insert: 1 });
       checkArgs('remove', {
         type: 'remove',
-        data: {
+        detail: {
           index: 1,
-          count: 2
+          count: 2,
+          items: methods.slice(1, 3)
         }
       });
       checkArgs('insert', {
         type: 'insert',
-        data: {
+        detail: {
           index: 1,
           count: 2,
           items: [3, 4]
         }
       });
+      checkLength(methods.length, methods.length);
       test('modifies array', function() {
         var expected = methods.slice();
         expected.splice(1, 2, 3, 4);
@@ -165,12 +189,13 @@ suite('ObservableArray', function() {
       checkSpies({ insert: 1 });
       checkArgs('insert', {
         type: 'insert',
-        data: {
+        detail: {
           index: 2,
           count: 1,
           items: [2]
         }
       });
+      checkLength(methods.length + 1, methods.length);
       test('modifies array', function() {
         var expected = methods.slice();
         expected.splice(2, 0, 2);
@@ -178,22 +203,23 @@ suite('ObservableArray', function() {
       });
     });
 
-    suite('set(7, true)', function() {
+    suite('set(6, true)', function() {
       setup(function() {
-        this.observable.set(7, true);
+        this.observable.set(6, true);
       });
       checkSpies({ replace: 1 });
       checkArgs('replace', {
         type: 'replace',
-        data: {
-          index: 7,
-          oldValue: methods[7],
+        detail: {
+          index: 6,
+          oldValue: methods[6],
           newValue: true
         }
       });
+      checkLength(methods.length, methods.length);
       test('modifies array', function() {
         var expected = methods.slice();
-        expected[7] = true;
+        expected[6] = true;
         assert.deepEqual(this.array, expected);
       });
     });
@@ -206,10 +232,11 @@ suite('ObservableArray', function() {
       checkSpies({ reset: 1 });
       checkArgs('reset', {
         type: 'reset',
-        data: {
+        detail: {
           items: testArray
         }
       });
+      checkLength(testArray.length, methods.length);
       test('changes array', function() {
         assert.equal(this.observable.array, testArray);
       });
@@ -225,18 +252,18 @@ suite('ObservableArray', function() {
       checkSpies({});
     });
 
-    suite('unobserve', function() {
+    suite('unregister event listeners', function() {
       setup(function() {
         // bind some listeners
         this.spies = [this.sinon.spy(), this.sinon.spy()];
         events.forEach(function(event) {
-          this.observable.observe(event, this.spies[0]);
-          this.observable.observe(event, this.spies[1]);
+          this.observable.addEventListener(event, this.spies[0]);
+          this.observable.addEventListener(event, this.spies[1]);
         }, this);
       });
       test('(property, handler)', function() {
         // remove handler for property
-        this.observable.unobserve('insert', this.spies[0]);
+        this.observable.removeEventListener('insert', this.spies[0]);
         // insert, only other handler should be called
         this.observable.push({});
         assert.equal(this.spies[0].callCount, 0);
@@ -245,30 +272,6 @@ suite('ObservableArray', function() {
         this.observable.pop();
         assert.equal(this.spies[0].callCount, 1);
         assert.equal(this.spies[1].callCount, 2);
-      });
-      test('(handler)', function() {
-        // remove handler for all properties
-        this.observable.unobserve(this.spies[0]);
-        // insert, only other handler should be called
-        this.observable.push({});
-        assert.equal(this.spies[0].callCount, 0);
-        assert.equal(this.spies[1].callCount, 1);
-        // remove, only other handler should be called
-        this.observable.pop();
-        assert.equal(this.spies[0].callCount, 0);
-        assert.equal(this.spies[1].callCount, 2);
-      });
-      test('(property)', function() {
-        // remove handler for all properties
-        this.observable.unobserve('insert');
-        // insert, neither handler should be called
-        this.observable.push({});
-        assert.equal(this.spies[0].callCount, 0);
-        assert.equal(this.spies[1].callCount, 0);
-        // remove, both handlers should be called
-        this.observable.pop({});
-        assert.equal(this.spies[0].callCount, 1);
-        assert.equal(this.spies[1].callCount, 1);
       });
     });
   });

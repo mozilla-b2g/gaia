@@ -55,9 +55,9 @@ define(function(require) {
     init: function() {
       this.addonsManager.init().then( () => {
         var _handleEvent = this._updateAddonSectionVisibility.bind(this);
-        this.addonsManager.addons.observe('insert', _handleEvent);
-        this.addonsManager.addons.observe('remove', _handleEvent);
-        this.addonsManager.addons.observe('reset', _handleEvent);
+        this.addonsManager.addons.addEventListener('insert', _handleEvent);
+        this.addonsManager.addons.addEventListener('remove', _handleEvent);
+        this.addonsManager.addons.addEventListener('reset', _handleEvent);
 
         this._updateAddonSectionVisibility();
       });
