@@ -73,7 +73,8 @@ suite('app', function() {
       require: sinon.stub(),
       settings: {
         geolocation: sinon.createStubInstance(this.Setting),
-        spinnerTimeouts: sinon.createStubInstance(this.Setting)
+        spinnerTimeouts: sinon.createStubInstance(this.Setting),
+        keyDownEvents: sinon.createStubInstance(this.Setting)
       },
       views: {},
       controllers: {
@@ -537,6 +538,39 @@ suite('app', function() {
       this.app.emit('storage:checked');
 
       sinon.assert.calledWith(this.app.emit, 'loaded');
+    });
+  });
+
+  suite('App#onKeyDown', function() {
+    setup(function() {
+      this.settings.keyDownEvents.get.withArgs('volumedown')
+        .returns('capture');
+      this.settings.keyDownEvents.get.withArgs('volumeup')
+        .returns('capture');
+      this.settings.keyDownEvents.get.withArgs('camera')
+        .returns('capture');
+      this.settings.keyDownEvents.get.withArgs('mozcamerafocusadjust')
+        .returns('focus');
+    });
+
+    test('`volumedown` key emits a `keydown:capture` event', function() {
+      this.app.onKeyDown({ key: 'volumedown' });
+      sinon.assert.calledWith(this.app.emit, 'keydown:capture');
+    });
+
+    test('`volumeup` key emits a `keydown:capture` event', function() {
+      this.app.onKeyDown({ key: 'volumeup' });
+      sinon.assert.calledWith(this.app.emit, 'keydown:capture');
+    });
+
+    test('`camera` key emits a `keydown:capture` event', function() {
+      this.app.onKeyDown({ key: 'camera' });
+      sinon.assert.calledWith(this.app.emit, 'keydown:capture');
+    });
+
+    test('`focus` key emits a `keydown:focus` event', function() {
+      this.app.onKeyDown({ key: 'mozcamerafocusadjust' });
+      sinon.assert.calledWith(this.app.emit, 'keydown:focus');
     });
   });
 });
