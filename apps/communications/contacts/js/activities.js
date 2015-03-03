@@ -4,6 +4,18 @@
 
 'use strict';
 
+/**
+ * Per RFC 6350, text/vcard is the canonical MIME media type for vCards, but
+ * there are also deprecated types as well.  Whenever we disambiguate what an
+ * activity is requesting based on its MIME media type, we need to check if it
+ * is any of these, and not just text/vcard.
+ */
+const VCARD_MIME_TYPES = [
+  'text/vcard',
+  'text/x-vcard',
+  'text/directory'
+];
+
 var ActivityHandler = {
   _currentActivity: null,
 
@@ -174,7 +186,12 @@ var ActivityHandler = {
       return;
     }
 
-    if (this.activityDataType.indexOf('text/vcard') !== -1) {
+    // Was this a request for vCard export as a blob?  Check all supported MIME
+    // types.
+    if (VCARD_MIME_TYPES.indexOf(this.activityDataType) !== -1) {
+      // Normalize the type to text/vcard so other places that check MIME types
+      // (ex: the Facebook guards) experience a consistent MIME type.
+      this.activityDataType = 'text/vcard';
       LazyLoader.load([
                        '/shared/js/text_normalizer.js',
                        '/shared/js/contact2vcard.js',
