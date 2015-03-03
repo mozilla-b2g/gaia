@@ -35,6 +35,9 @@
   LockScreenClockWidgetTick.prototype.start = function() {
     this.stream = new Stream(this.configs.stream);
     return this.stream.start(this.handleSourceEvent)
+      .next(() => {
+        this.component._timeFormat = this.component.getTimeformat();
+      })
       .next(this.component.updateClock.bind(this.component))
       .next(this.stream.ready.bind(this.stream));
   };
