@@ -1,6 +1,6 @@
 'use strict';
 /* global eventSafety */
-/* global Service, SearchWindow, places, Promise */
+/* global Service, SearchWindow, places, Promise, UtilityTray */
 
 (function(exports) {
 
@@ -240,8 +240,7 @@
           if (detail && detail.stayBackground) {
             return;
           }
-          this.hideResults();
-          this.deactivate();
+          this._closeSearch();
           break;
         case 'open-app':
           // Do not hide the searchWindow if we have a frontWindow.
@@ -257,8 +256,7 @@
         case 'appforeground':
         case 'appopened':
         case 'utility-tray-overlayopening':
-          this.hideResults();
-          this.deactivate();
+          this._closeSearch();
           break;
         case 'lockscreen-appopened':
           this.handleLock(e);
@@ -278,8 +276,7 @@
           } else if (e.target == this.clearBtn) {
             this.clear();
           } else if (e.target == this.backdrop) {
-            this.hideResults();
-            this.deactivate();
+            this._closeSearch();
           }
           break;
         case 'searchterminated':
@@ -414,7 +411,9 @@
      * @memberof Rocketbar.prototype
      */
     focus: function() {
-      this.input.focus();
+      if (this.active) {
+        this.input.focus();
+      }
     },
 
     /**
@@ -439,8 +438,7 @@
      */
     _handle_home: function() {
       if (this.isActive()) {
-        this.hideResults();
-        this.deactivate();
+        this._closeSearch();
       }
       return true;
     },
@@ -466,8 +464,7 @@
      * @memberof Rocketbar.prototype
      */
     handleLock: function() {
-      this.hideResults();
-      this.deactivate();
+      this._closeSearch();
     },
 
     /**
@@ -502,6 +499,11 @@
       return true;
     },
 
+    _closeSearch: function() {
+      this.hideResults();
+      this.deactivate();
+    },
+
     /**
      * Handle text input in Rocketbar.
      * @memberof Rocketbar.prototype
@@ -510,6 +512,11 @@
       var input = this.input.value;
 
       this.rocketbar.classList.toggle('has-text', input.length);
+
+      if (UtilityTray.active || UtilityTray.shown) {
+        this._closeSearch();
+        return;
+      }
 
       if (!input && !this.results.classList.contains('hidden')) {
         this.hideResults();
@@ -535,8 +542,7 @@
      */
     handleCancel: function(e) {
       this.setInput('');
-      this.hideResults();
-      this.deactivate();
+      this._closeSearch();
     },
 
     /**
@@ -585,8 +591,7 @@
         return;
       }
 
-      this.hideResults();
-      this.deactivate();
+      this._closeSearch();
 
       this.searchWindow = null;
       this._port = null;
@@ -659,8 +664,7 @@
           places.screenshotRequested(e.detail.url);
           break;
         case 'hide':
-          this.hideResults();
-          this.deactivate();
+          this._closeSearch();
           break;
       }
     },
