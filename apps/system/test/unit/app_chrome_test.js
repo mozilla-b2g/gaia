@@ -629,15 +629,17 @@ suite('system/AppChrome', function() {
     test('popup window will use rear window color theme', function(done) {
       var popup = new PopupWindow(fakeWebSite);
       var popupChrome = new AppChrome(popup);
+      this.sinon.stub(popup, 'getBottomMostWindow').returns(app);
       chrome.setThemeColor('black');
       popupChrome.setThemeColor('white');
       popup.appChrome = popupChrome;
       app.appChrome = chrome;
-      popup.rearWindow = app;
       window.setTimeout(function() {
         chrome.element.dispatchEvent(new CustomEvent('transitionend'));
         assert.isTrue(stubRequestAnimationFrame.called);
-        assert.isTrue(popupChrome.useLightTheming());
+        assert.equal(chrome.useLightTheming(), popupChrome.useLightTheming());
+        assert.equal(app.themeColor, 'black');
+        assert.equal(popup.themeColor, 'black');
         sinon.assert.calledOnce(appPublishStub.withArgs('titlestatechanged'));
         // End popup rAF look so it doesn't interfere with other tests
         popupChrome.element.dispatchEvent(new CustomEvent('transitionend'));
