@@ -28,6 +28,7 @@ suite('app.js > ', function() {
   var raf;
 
   setup(function(done) {
+    Object.defineProperty(document, 'hidden', {value: false});
     raf = sinon.stub(window, 'requestAnimationFrame');
     loadBodyHTML('/index.html');
     var grid = document.querySelector('gaia-grid')._grid;

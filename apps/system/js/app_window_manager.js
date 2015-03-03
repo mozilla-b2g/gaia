@@ -545,6 +545,11 @@
           break;
 
         case 'ftuskip':
+          // There is an app being launched before
+          // ftu is skipped.
+          if (this._activeApp && !this._activeApp.isHomescreen) {
+            return;
+          }
           if (!Service.locked) {
             this.display();
           }

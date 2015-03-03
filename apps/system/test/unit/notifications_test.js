@@ -81,6 +81,7 @@ suite('system/NotificationScreen >', function() {
 
   mocksForNotificationScreen.attachTestHelpers();
   setup(function(done) {
+    Object.defineProperty(document, 'hidden', {value: false});
     fakeDesktopNotifContainer = document.createElement('div');
     fakeDesktopNotifContainer.id = 'desktop-notifications-container';
     Object.defineProperty(fakeDesktopNotifContainer, 'clientWidth', {
