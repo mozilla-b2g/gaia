@@ -375,8 +375,10 @@
       "text",
       "url"
     ],
-    "dictFileSize": 1307,
-    "preloaded": true
+    "dictFileSize": 336161,
+    "preloaded": true,
+    "dictFilename": "ff.dict",
+    "dictFilePath": "dictionaries/ff.dict"
   },
   {
     "id": "fr",
