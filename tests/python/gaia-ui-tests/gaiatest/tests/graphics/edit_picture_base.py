@@ -5,7 +5,7 @@
 import time
 
 from marionette_driver import By
-from marionette.marionette import Actions
+from marionette_driver.marionette import Actions
 
 from gaiatest.apps.gallery.app import Gallery
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
