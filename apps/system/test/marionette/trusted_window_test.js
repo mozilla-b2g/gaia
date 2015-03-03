@@ -13,7 +13,7 @@ marionette('trusted window tests', function() {
       'lockscreen.enabled': false
     },
     apps: {
-      'fakeapp.gaiamobile.org': __dirname + '/fakeapp'
+      'fakeapp.gaiamobile.org': __dirname + '/../apps/fakeapp'
     }
   });
 

@@ -7,7 +7,7 @@ var assert = require('assert');
 marionette('Task Manager w/Short Name', function() {
   var shortAppOrigin = 'shortnameapp.gaiamobile.org';
   var apps = {};
-  apps[shortAppOrigin] = __dirname + '/shortnameapp';
+  apps[shortAppOrigin] = __dirname + '/../apps/shortnameapp';
 
   var client = marionette.client({
     prefs: {

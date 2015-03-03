@@ -1,4 +1,5 @@
 'use strict';
+/* global FakeMusicComms */
 
 var albumOne = [
   { artist: 'Some Artist',
@@ -30,50 +31,58 @@ var FakeMusic = {
   },
 
   play: function() {
-    if (this._interrupted)
+    if (this._interrupted) {
       return;
+    }
     this._mode = 'playing';
     document.getElementById('play-pause').classList.remove('is-paused');
     FakeMusicComms.notifyStatusChanged({playStatus: 'PLAYING'});
   },
 
   pause: function() {
-    if (this._interrupted)
+    if (this._interrupted) {
       return;
+    }
     this._mode = 'paused';
     document.getElementById('play-pause').classList.add('is-paused');
     FakeMusicComms.notifyStatusChanged({playStatus: 'PAUSED'});
   },
 
   playpause: function() {
-    if (this.isPlaying)
+    if (this.isPlaying) {
       this.pause();
-    else
+    } else {
       this.play();
+    }
   },
 
   stop: function() {
-    if (this._interrupted)
+    if (this._interrupted) {
       return;
+    }
     this._mode = 'stopped';
     document.getElementById('play-pause').classList.remove('is-paused');
     FakeMusicComms.notifyStatusChanged({playStatus: 'STOPPED'});
   },
 
   previous: function() {
-    if (this._interrupted)
+    if (this._interrupted) {
       return;
-    if (this._queueIndex > 0)
+    }
+    if (this._queueIndex > 0) {
       FakeMusicComms.notifyTrackChanged(this._queue[--this._queueIndex]);
+    }
   },
 
   next: function() {
-    if (this._interrupted)
+    if (this._interrupted) {
       return;
-    if (this._queueIndex < this._queue.length - 1)
+    }
+    if (this._queueIndex < this._queue.length - 1) {
       FakeMusicComms.notifyTrackChanged(this._queue[++this._queueIndex]);
-    else
+    } else {
       this.stop();
+    }
   },
 
   toggleInterrupt: function() {

@@ -25,9 +25,9 @@ marionette('App Usage Metrics >', function() {
 
   var client = marionette.client({
     apps: {
-      'fakealarm.gaiamobile.org': __dirname + '/fakealarmapp',
-      'fakemedia.gaiamobile.org': __dirname + '/fakemediaapp',
-      'fakemusic.gaiamobile.org': __dirname + '/fakemusic'
+      'fakealarm.gaiamobile.org': __dirname + '/../apps/fakealarmapp',
+      'fakemedia.gaiamobile.org': __dirname + '/../apps/fakemediaapp',
+      'fakemusic.gaiamobile.org': __dirname + '/../apps/fakemusic'
     },
     prefs: {
       'dom.inter-app-communication-api.enabled': true,
