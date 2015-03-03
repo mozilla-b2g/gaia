@@ -18,8 +18,9 @@ gaia-confirm {
   color: #fff;
   text-align: left;
   display: flex;
-  align-items: center;
-  flex-direction: row;
+  align-items: stretch;
+  flex-direction: column;
+  justify-content: center;
   /**
   magic number ideally to place confirm dialogs on top.
   */
@@ -52,6 +53,9 @@ h1 {
   color: #fff;
   margin: 0;
   padding: 1rem 1.5rem 0;
+  overflow: hidden;
+  max-height: 7rem;
+  word-wrap: break-word;
 }
 
 /* Specific component code */
