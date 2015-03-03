@@ -35,6 +35,28 @@ marionette('Music player playlist', function() {
 
   });
 
+
+  suite('Special names', function() {
+    setup(function() {
+      client.fileManager.removeAllFiles();
+      client.fileManager.add([
+        {
+          type: 'music',
+          filePath: 'apps/music/test-data/playlists/d.ogg'
+        }
+      ]);
+    });
+
+    test('Check name with >, <, ~, & and some Unicode', function() {
+      music.launch();
+      music.waitForFirstTile();
+      music.switchToSongsView();
+
+      var song = music.firstSong;
+      assert.equal(PlaylistHelper.mainTitle(song), 'dump 2>&1 < ~/®');
+    });
+  });
+
   suite('Single disc tests', function () {
     setup(function() {
       client.fileManager.removeAllFiles();
