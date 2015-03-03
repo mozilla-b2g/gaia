@@ -1,3 +1,4 @@
+/* global AppWindowManager */
 'use strict';
 
 (function(exports) {
@@ -23,15 +24,6 @@
   }
 
   ActionMenu.prototype = {
-
-    /**
-     * Whether or not the ActionMenu is visible.
-     * @memberof ActionMenu.prototype
-     * @return {Boolean} The ActionMenu is visible.
-     */
-    get visible() {
-      return this.container.classList.contains('visible');
-    },
 
     /**
      * Builds dom and adds event listeners
@@ -79,6 +71,7 @@
       window.addEventListener('holdhome', this);
       window.addEventListener('sheets-gesture-begin', this);
 
+      this.focus();
       if (this.preventFocusChange) {
         this.menu.addEventListener('mousedown', this.preventFocusChange);
       }
@@ -133,6 +126,10 @@
     hide: function(callback) {
       this.container.classList.remove('visible');
       this.stop();
+      // focus back to the top most window.
+      // XXX Bug 1136590: we focus back to active app. But we should call the
+      // fallback algorithm to find the top-most overlay or app.
+      AppWindowManager.getActiveApp().getTopMostWindow().focus();
       if (callback && typeof callback === 'function') {
         setTimeout(callback);
       }
@@ -161,7 +158,7 @@
           evt.preventDefault();
           break;
         case 'screenchange':
-          if (!this.visible) {
+          if (!this.isVisible()) {
             return;
           }
 
@@ -191,7 +188,7 @@
         case 'home':
         case 'holdhome':
         case 'sheets-gesture-begin':
-          if (!this.visible) {
+          if (!this.isVisible()) {
             return;
           }
 
@@ -203,6 +200,39 @@
           this.hide();
           this.oncancel();
           break;
+      }
+    },
+
+    /**
+     * Whether or not the ActionMenu is visible.
+     * @memberof ActionMenu.prototype
+     * @return {Boolean} if the container is invisible, return false
+     * @return {Number} if the container is visible, return z-index
+     */
+    isVisible: function() {
+      return this.container && this.container.classList.contains('visible');
+    },
+
+    /**
+     * Get the z-index value of container
+     * @memberof ActionMenu.prototype
+     * @return {Number} z-index of this.container
+     */
+    getOrder: function() {
+      var zIndex = window.getComputedStyle(this.container).zIndex;
+      return zIndex === 'auto' ? 0 : zIndex;
+    },
+
+    /**
+     * Focus cancel button in ActionMenu
+     * @memberof ActionMenu.prototype
+     */
+    focus: function() {
+      if (this.cancel) {
+        window.setTimeout(function() {
+          document.activeElement.blur();
+          this.cancel.focus();
+        }.bind(this));
       }
     }
   };
