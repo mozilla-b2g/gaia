@@ -100,6 +100,7 @@ suite('GaiaGrid > DragDrop', function() {
       stopImmediatePropagation: function() {},
       preventDefault: function() {}
     });
+    this.sinon.clock.tick(grid.dragdrop.touchEndFinishDelay);
 
     grid.dragdrop.handleEvent({ type: 'transitionend' });
 

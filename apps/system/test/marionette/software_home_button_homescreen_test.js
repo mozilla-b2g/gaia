@@ -30,9 +30,9 @@ marionette('Software Home Button - Modal Dialog', function() {
     assert.ok(contextMenuHeight === expectedHeight());
   });
 
-  test('Proper layout for collections edition', function() {
+  test('Proper layout for collections editing', function() {
     var firstCollection = home.collections[0];
-    actions.longPress(firstCollection, 1.5).perform();
+    home.enterEditMode(firstCollection);
     actions.tap(firstCollection.findElement('.remove')).perform();
     var contextMenuHeight = home.removeCollectionConfirm.size().height;
     client.switchToFrame();
