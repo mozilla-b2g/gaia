@@ -15,7 +15,7 @@ class TestEmailNotification(GaiaTestCase):
 
     def setUp(self):
         try:
-            self.testvars['email']['IMAP']
+            self.testvars['email']['imap']
             self.testvars['email']['smtp']
         except KeyError:
             raise SkipTest('account details not present in test variables')
@@ -30,7 +30,8 @@ class TestEmailNotification(GaiaTestCase):
     def test_IMAP_email_notification(self):
         """ https://moztrap.mozilla.org/manage/case/10744/"""
         # setup email account
-        self.email.setup_IMAP_email(self.testvars['email']['IMAP'])
+        self.email.setup_IMAP_email(self.testvars['email']['imap'],
+                                    self.testvars['email']['smtp'])
 
         # check account has emails
         self.email.wait_for_emails_to_sync()
@@ -40,8 +41,8 @@ class TestEmailNotification(GaiaTestCase):
         self.device.touch_home_button()
 
         # send email to IMAP account
-        mock_email = MockEmail(senders_email=self.testvars['email']['IMAP']['email'],
-                               recipients_email=self.testvars['email']['IMAP']['email'])
+        mock_email = MockEmail(self.testvars['email']['imap']['email'],
+                               self.testvars['email']['imap']['email'])
         EmailUtil().send(self.testvars['email']['smtp'], mock_email)
 
         self.marionette.switch_to_frame()
@@ -68,22 +69,25 @@ class TestEmailNotification(GaiaTestCase):
         email.wait_for_senders_email_displayed()
 
         # check if the sender's email address is fine
-        self.assertEqual(email.senders_email,
-                         mock_email.senders_email,
+        self.assertEqual(email.senders_email, mock_email['from'],
                          'Senders\'s email on the inbox screen is incorrect. '
                          'Expected email is %s. Actual email is %s.' % (
-                             mock_email.senders_email,
-                             email.senders_email))
+                             mock_email['from'], email.senders_email))
 
         # check if the subject is fine
-        self.assertEqual(email.subject, mock_email.subject,
+        self.assertEqual(email.subject, mock_email['subject'],
                          'Senders\'s email on the inbox screen is incorrect. '
                          'Expected subject is %s. Actual subject is %s.' % (
-                             mock_email.subject, email.subject))
+                             mock_email['subject'], email.subject))
 
         # check if the email message is fine
-        self.assertEqual(email.body, mock_email.message,
+        self.assertEqual(email.body, mock_email['message'],
                          'Email message on read email screen is incorrect. '
                          'Expected message is "%s". Actual message is '
-                         '"%s".' % (mock_email.message,
-                                    email.body))
+                         '"%s".' % (mock_email['message'], email.body))
+
+    def tearDown(self):
+        self.marionette.execute_script("SpecialPowers.setIntPref('dom.requestSync.minInterval', 100);",
+                                        special_powers=True)
+
+        GaiaTestCase.tearDown(self)

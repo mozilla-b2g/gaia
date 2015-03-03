@@ -135,6 +135,10 @@
     this.viewClassList = ['card', 'appIconPreview'];
     this.titleId = 'card-title-' + this.instanceID;
 
+    if (app.isPrivate) {
+      this.viewClassList.push('private');
+    }
+
     // app icon overlays screenshot by default
     // and will be removed if/when we display the screenshot
     var iconURI = CardsHelper.getIconURIForApp(this.app);
@@ -148,6 +152,12 @@
 
     if (app.isBrowser()) {
       displayUrl = app.config.url || origin;
+      // Do not display the URL when browsing an app page. This is
+      // encountered for use-cases like the private browser splash page.
+      if (displayUrl.startsWith('app://')) {
+        displayUrl = false;
+      }
+
     } else if(frameForScreenshot &&
         CardsHelper.getOffOrigin(frameForScreenshot.src, origin)) {
       displayUrl = CardsHelper.getOffOrigin(frameForScreenshot.src, origin);
@@ -316,25 +326,8 @@
       this.iconButton.style.backgroundImage = this.iconValue;
     }
 
-    // Handling cards in different orientations
-    var degree = app.rotatingDegree;
-    var isLandscape = (degree == 90 || degree == 270);
-
-    // Rotate screenshotView if needed
-    screenshotView.classList.add('rotate-' + degree);
-
     if (isIconPreview) {
       return;
-    }
-
-    if (isLandscape) {
-      // We must exchange width and height if it's landscape mode
-      var width = elem.clientHeight;
-      var height = elem.clientWidth;
-      screenshotView.style.width = width + 'px';
-      screenshotView.style.height = height + 'px';
-      screenshotView.style.left = ((height - width) / 2) + 'px';
-      screenshotView.style.top = ((width - height) / 2) + 'px';
     }
 
     // If we have a cached screenshot, use that first

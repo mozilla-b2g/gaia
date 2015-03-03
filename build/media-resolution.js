@@ -12,8 +12,8 @@ var MediaResolution = function() {
 
 MediaResolution.prototype.setOptions = function(option) {
   this.config = option.config;
-  this.webapp = option.webapp;
-  this.buildDir = this.webapp.buildDirectoryFile;
+  this.webapp = this.config.webapp;
+  this.buildDir = utils.getFile(this.webapp.buildDirectoryFilePath);
 };
 
 // If config.GAIA_DEV_PIXELS_PER_PX is not 1 and the file is a bitmap or video
@@ -75,7 +75,7 @@ MediaResolution.prototype.execute = function(options) {
 };
 
 function execute(options, webapp) {
-  (new MediaResolution()).execute({ config: options, webapp: webapp });
+  (new MediaResolution()).execute({ config: options });
 }
 
 exports.execute = execute;

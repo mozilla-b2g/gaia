@@ -69,9 +69,6 @@
 
   margin-top: 0.5rem;
   flex-grow: 1;
-
-  /* Avoid any pointer event on contact list in report view  */
-  pointer-events: none;
 }
 
 .report-view > .contact-list > li {
@@ -96,7 +93,7 @@
   line-height: 1.6rem;
 }
 
-.report-view > .contact-list .suggestion .name {
+.report-view > .contact-list .name {
   padding-top: 0;
 
   font-size: 1.8rem;
@@ -113,16 +110,16 @@
   padding-top: 0.9rem;
 }
 
-.report-view > .contact-list div {
+.report-view .network-status {
   padding-top: 0.7rem;
 }
 
-.report-view > .contact-list .name + div {
+.report-view .name + .network-status {
   padding-top: 1rem;
 }
 
-.report-view > .contact-list div,
-.report-view > .contact-list div span {
+.report-view .network-status,
+.report-view .network-status span {
   line-height: 1.4rem;
 }
 

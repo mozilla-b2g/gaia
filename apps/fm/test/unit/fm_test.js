@@ -1,14 +1,12 @@
-require('/shared/js/usertiming.js');
 requireApp('shared/js/airplane_mode_helper.js');
 requireApp('fm/js/fm.js');
+require('/shared/test/unit/load_body_html_helper.js');
 
 var PerformanceTestingHelper = {
   dispatch: function() { }
 };
 
 suite('FM', function() {
-  var tempNode;
-
   function setFrequency(frequency) {
     var setFreq = frequencyDialer.setFrequency(frequency);
     if (frequency < mozFMRadio.frequencyLowerBound) {
@@ -53,42 +51,14 @@ suite('FM', function() {
     suiteSetup(function() {
       sinon.stub(favoritesList, '_save').returns(true);
       favoritesList._favList = {};
-
       sinon.stub(historyList, '_save').returns(true);
 
-      tempNode = document.createElement('div');
-      tempNode.id = 'test';
-      tempNode.innerHTML =
-        '<div id="frequency-bar">' +
-        '  <div id="frequency-display">' +
-        '    <a id="speaker-switch" href="#speaker" data-speaker-on="false"' +
-        '      aria-pressed="false"></a>' +
-        '    <div id="frequency">0</div>' +
-        '    <a id="bookmark-button" href="#bookmark"' +
-        '      data-bookmarked="false"></a>' +
-        '  </div>' +
-        '</div>' +
-        '<div id="dialer-bar">' +
-        '  <div id="dialer-container">' +
-        '    <div id="frequency-indicator"></div>' +
-        '    <div id="frequency-dialer" class="animation-on"></div>' +
-        '  </div>' +
-        '</div>' +
-        '<div id="fav-list-container"></div>' +
-        '<div>' +
-        '  <a id="power-switch" href="#power-switch" data-enabled="false"' +
-        '    data-enabling="false" role="button"><span></span>' +
-        '  </a>' +
-        '</div>' +
-        '<div id="antenna-warning" hidden="hidden"></div>';
-
-      document.body.appendChild(tempNode);
+      loadBodyHTML('/index.html');
       frequencyDialer.init();
     });
 
     suiteTeardown(function() {
-      tempNode.parentNode.removeChild(tempNode);
-      tempNode = null;
+      document.body.innerHTML = '';
     });
 
     test('resolved frequency within bounds', function()  {
@@ -180,16 +150,11 @@ suite('FM', function() {
   suite('favorite list', function() {
 
     suiteSetup(function() {
-      tempNode = document.createElement('div');
-      tempNode.id = 'test';
-      tempNode.innerHTML = '<div id="fav-list-container"></div>';
-
-      document.body.appendChild(tempNode);
+      loadBodyHTML('/index.html');
     });
 
     suiteTeardown(function() {
-      tempNode.parentNode.removeChild(tempNode);
-      tempNode = null;
+      document.body.innerHTML = '';
     });
 
     test('item added to favorite list', function() {
@@ -260,21 +225,12 @@ suite('FM', function() {
     suiteSetup(function() {
       mozFMRadio.enabled = true;
       mozFMRadio.antennaAvailable = true;
-      tempNode = document.createElement('div');
-      tempNode.id = 'test';
-      tempNode.innerHTML =
-        '<div id="antenna-warning" hidden></div>' +
-        '<div id="frequency-bar"></div>' +
-        '<a id="power-switch" href="#power-switch" data-enabled="false"' +
-        '  data-enabling="false" data-l10n-id="power-switch-off"></a></div>';
-
-      document.body.appendChild(tempNode);
+      loadBodyHTML('/index.html');
       updateEnablingState(true);
     });
 
     suiteTeardown(function() {
-      tempNode.parentNode.removeChild(tempNode);
-      tempNode = null;
+      document.body.innerHTML = '';
     });
 
     suite('enabling UI', function() {
@@ -307,57 +263,72 @@ suite('FM', function() {
 
   suite('update UI based on the airplane mode status', function() {
     suiteSetup(function() {
-      tempNode = document.createElement('div');
-      tempNode.id = 'test';
-      tempNode.innerHTML = '<div id="airplane-mode-warning" hidden></div>';
-      document.body.appendChild(tempNode);
+      loadBodyHTML('/index.html');
     });
 
     suiteTeardown(function() {
-      tempNode.parentNode.removeChild(tempNode);
-      tempNode = null;
+      document.body.innerHTML = '';
     });
 
     suite('airplane mode on', function() {
       setup(function() {
         airplaneModeEnabled = true;
-        updateAirplaneModeUI();
+        updateWarningModeUI();
       });
 
       test('#airplane-mode-warning is shown', function() {
         assert.equal(!!$('airplane-mode-warning').hidden, false);
       });
+
+      test('#container is hidden', function() {
+        assert.equal(!!$('container').hidden, true);
+      });
+
+      test('#antenna-warning is hidden', function() {
+        assert.equal(!!$('antenna-warning').hidden, true);
+      });
+
     });
 
     suite('airplane mode off', function() {
       setup(function() {
         airplaneModeEnabled = false;
-        updateAirplaneModeUI();
+        updateWarningModeUI();
       });
 
       test('#airplane-mode-warning is hidden', function() {
         assert.equal(!!$('airplane-mode-warning').hidden, true);
+      });
+
+      test('#antenna-warning is on and container is hidden', function() {
+        mozFMRadio.antennaAvailable = false;
+        updateWarningModeUI();
+        assert.equal(!!$('antenna-warning').hidden, false);
+        assert.equal(!!$('container').hidden, true);
+      });
+
+      test('#antenna-warning is off and container is visible', function() {
+        mozFMRadio.antennaAvailable = true;
+        updateWarningModeUI();
+        assert.equal(!!$('antenna-warning').hidden, true);
+        assert.equal(!!$('container').hidden, false);
       });
     });
   });
 
   suite('update UI based on the antenna status', function() {
     suiteSetup(function() {
-      tempNode = document.createElement('div');
-      tempNode.id = 'test';
-      tempNode.innerHTML = '<div id="antenna-warning" hidden></div>';
-      document.body.appendChild(tempNode);
+      loadBodyHTML('/index.html');
     });
 
     suiteTeardown(function() {
-      tempNode.parentNode.removeChild(tempNode);
-      tempNode = null;
+      document.body.innerHTML = '';
     });
 
     suite('antenna is plugged in', function() {
       setup(function() {
         mozFMRadio.antennaAvailable = true;
-        updateAntennaUI();
+        updateWarningModeUI();
       });
 
       test('#antenna-warning is hidden', function() {
@@ -368,7 +339,7 @@ suite('FM', function() {
     suite('antenna is not plugged in', function() {
       setup(function() {
         mozFMRadio.antennaAvailable = false;
-        updateAntennaUI();
+        updateWarningModeUI();
       });
 
       test('#antenna-warning is shown', function() {
@@ -403,38 +374,12 @@ suite('FM', function() {
           }
         };
 
-        tempNode = document.createElement('div');
-        tempNode.id = 'test';
-        tempNode.innerHTML =
-          '<div id="frequency-bar">' +
-          '  <div id="frequency-display">' +
-          '    <a id="speaker-switch" href="#speaker" ' +
-                'data-speaker-on="false" aria-pressed="false"></a>' +
-          '    <a id="bookmark-button" href="#bookmark"' +
-          '      data-bookmarked="false"></a>' +
-          '    <div id="frequency">0</div>' +
-          '  </div>' +
-          '</div>' +
-          '<div id="dialer-bar">' +
-          '  <div id="dialer-container">' +
-          '    <div id="frequency-indicator"></div>' +
-          '    <div id="frequency-dialer" class="animation-on"></div>' +
-          '  </div>' +
-          '</div>' +
-          '<a id="frequency-op-seekdown" href="#seekdown"></a>' +
-          '<a id="power-switch" href="#power-switch" data-enabled="false" ' +
-            'data-enabling="false"></a>' +
-          '<a id="frequency-op-seekup" href="#seekup"></a>' +
-          '<div id="antenna-warning" hidden="hidden"></div>' +
-          '<div id="airplane-mode-warning" class="warning" hidden>';
-
-        document.body.appendChild(tempNode);
+        loadBodyHTML('/index.html');
         init();
       });
 
       suiteTeardown(function() {
-        tempNode.parentNode.removeChild(tempNode);
-        tempNode = null;
+        document.body.innerHTML = '';
       });
 
       test('disabled powered-on radio for incoming attention screen',

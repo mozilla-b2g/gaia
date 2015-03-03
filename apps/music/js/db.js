@@ -71,12 +71,6 @@ function initDB() {
   // show dialog in upgradestart, when it finished, it will turned to ready.
   musicdb.onupgrading = function(event) {
     App.showOverlay('upgrade');
-
-    if (event.detail.oldClientVersion === 2) {
-      // We want to delete asyncStorage, which was used in version 2 to cache
-      // album art.
-      window.indexedDB.deleteDatabase('asyncStorage');
-    }
   };
 
   // This is called when DeviceStorage becomes unavailable because the

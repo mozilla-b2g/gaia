@@ -17,24 +17,25 @@
 
 'use strict';
 
-require('/js/event_dispatcher.js');
-require('/js/compose.js');
-requireApp('sms/js/utils.js');
-requireApp('sms/js/drafts.js');
+require('/shared/js/event_dispatcher.js');
+require('/shared/test/unit/mocks/mock_async_storage.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
-requireApp('sms/test/unit/mock_attachment.js');
-requireApp('sms/test/unit/mock_attachment_menu.js');
+require('/js/compose.js');
+require('/js/utils.js');
+require('/js/drafts.js');
+
+require('/test/unit/mock_attachment.js');
+require('/test/unit/mock_attachment_menu.js');
 require('/test/unit/mock_message_manager.js');
 require('/test/unit/mock_threads.js');
 require('/test/unit/mock_navigation.js');
-requireApp('sms/test/unit/mock_recipients.js');
-requireApp('sms/test/unit/mock_settings.js');
-requireApp('sms/test/unit/mock_utils.js');
-requireApp('sms/test/unit/mock_moz_activity.js');
-requireApp('sms/test/unit/mock_thread_ui.js');
+require('/test/unit/mock_recipients.js');
+require('/test/unit/mock_settings.js');
+require('/test/unit/mock_utils.js');
+require('/test/unit/mock_moz_activity.js');
+require('/test/unit/mock_thread_ui.js');
 require('/test/unit/mock_smil.js');
-require('/shared/test/unit/mocks/mock_async_storage.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
 require('/test/unit/mock_subject_composer.js');
 
 var mocksHelperForCompose = new MocksHelper([

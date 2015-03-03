@@ -2,7 +2,7 @@
          Attachment, ThreadUI, Settings, Notification,
          Threads, Navigation, Promise, MessageManager, Utils  */
 /*global MockNavigatormozSetMessageHandler, MockNavigatormozApps,
-         MockNavigatorWakeLock, MockOptionMenu,
+         MockNavigatorWakeLock,
          MockMessages, MockL10n, MockSilentSms,
          Settings,
          Utils
@@ -28,7 +28,6 @@ requireApp('sms/test/unit/mock_messages.js');
 requireApp('sms/test/unit/mock_message_manager.js');
 requireApp('sms/test/unit/mock_threads.js');
 requireApp('sms/test/unit/mock_thread_ui.js');
-require('/shared/test/unit/mocks/mock_option_menu.js');
 require('/test/unit/mock_settings.js');
 require('/test/unit/mock_notify.js');
 require('/test/unit/mock_navigation.js');
@@ -47,7 +46,6 @@ var mocksHelperForActivityHandler = new MocksHelper([
   'Notification',
   'NotificationHelper',
   'Notify',
-  'OptionMenu',
   'Settings',
   'SettingsURL',
   'SilentSms',
@@ -762,16 +760,6 @@ suite('ActivityHandler', function() {
       postResult: sinon.stub()
     };
 
-    var newActivity_empty = {
-      source: {
-        name: 'new',
-        data: {
-          number: '123'
-        }
-      },
-      postResult: sinon.stub()
-    };
-
     var threadDeferred;
 
     setup(function() {
@@ -793,110 +781,18 @@ suite('ActivityHandler', function() {
       ActivityHandler.leaveActivity();
     });
 
-    test('Should move to the composer', function(done) {
-      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
-      threadDeferred.reject(new Error('No thread for this test'));
-
-      onceNewActivityCompleted().then(function() {
-        sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
-          activity: {
-            number: '123',
-            body: 'foo'
-          }
-        });
-      }).then(done,done);
-    });
-
-    test('new message with empty msg', function() {
-      // No message in the input field.
-      Compose.mEmpty = true;
-      this.sinon.stub(MockOptionMenu.prototype, 'show', function() {
-        assert.ok(false, 'confirmation dialog should not show');
-      });
-
-      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
-      threadDeferred.reject(new Error('No thread for this test'));
-    });
-
-    test('new message with no body, with empty msg', function() {
-      // No message in the input field.
-      Compose.mEmpty = true;
-      this.sinon.stub(MockOptionMenu.prototype, 'show', function() {
-        assert.ok(false, 'confirmation dialog should not show');
-      });
-
-      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity_empty);
-      threadDeferred.reject(new Error('No thread for this test'));
-    });
-
-    test('new message with user input msg, discard it', function(done) {
-      // User typed message in the input field
-      Compose.mEmpty = false;
-      this.sinon.stub(ThreadUI, 'discardDraft');
-      this.sinon.stub(MockOptionMenu.prototype, 'show', function() {
-        assert.equal(MockOptionMenu.calls.length, 1);
-        assert.equal(MockOptionMenu.calls[0].type, 'confirm');
-
-        var items = MockOptionMenu.calls[0].items;
-        assert.isNotNull(items);
-        assert.equal(items.length, 2);
-        // discard is the second button
-        assert.isNotNull(items[1]);
-        assert.equal(typeof items[1].method, 'function');
-        // Check params
-        assert.equal(newActivity.source.data.number, items[1].params[0].number);
-        assert.equal(newActivity.source.data.body, items[1].params[0].body);
-        // Call discard with the params
-        items[1].method(items[1].params[0]);
-      });
-
-      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
-      threadDeferred.reject(new Error('No thread for this test'));
-
-      onceNewActivityCompleted().then(function() {
-        sinon.assert.called(ThreadUI.discardDraft);
-        sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
-          activity: {
-            number: '123',
-            body: 'foo'
-          }
-        });
-      }).then(done,done);
-    });
-
-    test('new message with user input msg, edit it', function(done) {
-      // There is message in the input field.
-      Compose.mEmpty = false;
-      this.sinon.stub(MockOptionMenu.prototype, 'show', function() {
-        assert.equal(MockOptionMenu.calls.length, 1);
-        assert.equal(MockOptionMenu.calls[0].type, 'confirm');
-
-        var items = MockOptionMenu.calls[0].items;
-        assert.isNotNull(items);
-        assert.equal(items.length, 2);
-        // edit is the first button
-        assert.isNotNull(items[0]);
-        assert.equal(typeof items[0].method, 'function');
-        // Check if when keeping the previous message the
-        // composer keeps the previous status;
-        assert.isNotNull(items[0].params);
-        // call edit.
-        items[0].method();
-      });
-      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
-      threadDeferred.reject(new Error('No thread for this test'));
-
-      onceNewActivityCompleted().then(function() {
-        sinon.assert.notCalled(Navigation.toPanel);
-      }).then(done,done);
-    });
-
-    test('new message should set the current activity', function(done) {
+    test('Should move to the composer and set activity', function(done) {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
       threadDeferred.reject(new Error('No thread for this test'));
 
       onceNewActivityCompleted().then(function() {
         assert.isTrue(ActivityHandler.isInActivity());
+        sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
+          activity: {
+            number: '123',
+            body: 'foo'
+          }
+        });
       }).then(done,done);
     });
 
@@ -981,14 +877,28 @@ suite('ActivityHandler', function() {
       this.sinon.stub(Threads, 'has');
       this.sinon.stub(Threads, 'registerMessage');
       this.sinon.stub(MessageManager, 'getMessage').returns(getMessagePromise);
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+      this.sinon.stub(Navigation, 'toPanel');
+      this.sinon.stub(Compose, 'clear');
+      this.sinon.stub(Compose, 'isEmpty').returns(true);
+      this.sinon.stub(ThreadUI, 'cleanFields');
+    });
+
+    test('when message belongs to currently active thread', function() {
+      Navigation.isCurrentPanel.withArgs(
+        'thread', { id: message.threadId }
+      ).returns(true);
+
+      ActivityHandler.handleMessageNotification(message);
+
+      sinon.assert.notCalled(MessageManager.getMessage);
+      sinon.assert.notCalled(Utils.confirm);
+      sinon.assert.notCalled(Navigation.toPanel);
     });
 
     suite('When compose is not empty', function() {
       setup(function() {
-        this.sinon.stub(Compose, 'clear');
-        this.sinon.stub(ThreadUI, 'cleanFields');
-
-        Compose.append('test');
+        Compose.isEmpty.returns(false);
       });
 
       test('if user does not want to discard draft', function(done) {
@@ -1000,7 +910,12 @@ suite('ActivityHandler', function() {
         getMessagePromise.then(() => confirmPromise).catch(() => {
           sinon.assert.notCalled(Compose.clear);
           sinon.assert.notCalled(ThreadUI.cleanFields);
-          sinon.assert.called(Utils.confirm);
+          sinon.assert.calledWith(
+            Utils.confirm,
+            'discard-new-message',
+            'unsent-message-title',
+            { text: 'unsent-message-option-discard', className: 'danger' }
+          );
         }).then(done, done);
       });
 
@@ -1012,8 +927,27 @@ suite('ActivityHandler', function() {
 
         getMessagePromise.then(() => confirmPromise).then(() => {
           sinon.assert.called(ThreadUI.cleanFields);
-          sinon.assert.called(Utils.confirm);
+          sinon.assert.calledWith(
+            Utils.confirm,
+            'discard-new-message',
+            'unsent-message-title',
+            { text: 'unsent-message-option-discard', className: 'danger' }
+          );
         }).then(done, done);
+      });
+
+      test('if message belongs to currently active thread', function() {
+        Navigation.isCurrentPanel.withArgs(
+          'thread', { id: message.threadId }
+        ).returns(true);
+
+        ActivityHandler.handleMessageNotification(message);
+
+        // It shouldn't matter if message input has any text or not since target
+        // thread is already opened
+        sinon.assert.notCalled(MessageManager.getMessage);
+        sinon.assert.notCalled(Utils.confirm);
+        sinon.assert.notCalled(Navigation.toPanel);
       });
     });
 

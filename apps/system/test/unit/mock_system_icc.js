@@ -29,7 +29,8 @@ function MockSystemICC(iccManager, mobileConnections) {
       return timeout;
     },
 
-    confirm: function icc_confirm(stkMessage, message, timeout, callback) {
+    confirm: function icc_confirm(stkMessage, message, icons,
+      timeout, callback) {
       callback(true);   // User accepted the message
     },
 

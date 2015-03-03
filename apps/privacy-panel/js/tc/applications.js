@@ -13,7 +13,10 @@ define([
 function(panels, appList, appDetails) {
   'use strict';
 
+  var _appPanelContainer;
   var _appListContainer;
+  var _appSearchInput;
+  var _appItems = [];
 
   /**
    * TC-Applications panel
@@ -31,12 +34,11 @@ function(panels, appList, appDetails) {
      * @param {Object} permissionTable  List of supported permissions.
      */
     init: function init(permissionTable) {
+      _appPanelContainer = document.getElementById('tc-applications');
       _appListContainer = document.getElementById('tc-appList');
       var sortKeySelect = document.getElementById('tc-sortKey');
 
-      var refreshAppList = function refreshAppList() {
-        this.renderAppList(sortKeySelect.value);
-      }.bind(this);
+      var refreshAppList = () => this.renderAppList(sortKeySelect.value);
       sortKeySelect.addEventListener('change', refreshAppList);
       window.addEventListener('applicationinstall', refreshAppList);
       window.addEventListener('applicationuninstall', refreshAppList);
@@ -44,7 +46,9 @@ function(panels, appList, appDetails) {
       // some apps might have a localized name in their manifest
       window.addEventListener('localized', refreshAppList);
 
-      appList.init(permissionTable).then(this.renderAppList.bind(this),
+      this._initSearchBox();
+
+      appList.init(permissionTable).then(() => this.renderAppList(),
           error => console.error(error));
 
       appDetails.init();
@@ -73,6 +77,7 @@ function(panels, appList, appDetails) {
           this._showAppList(apps[header], header);
         });
       }
+      _appItems = _appListContainer.querySelectorAll('li');
     },
 
     _clear: function _clear() {
@@ -111,8 +116,9 @@ function(panels, appList, appDetails) {
         link.classList.add('menu-item');
         link.appendChild(icon);
         link.appendChild(name);
-        link.addEventListener('click', function showAppDetails() {
+        link.addEventListener('click', () => {
           panels.show({ id: 'tc-appDetails', options: app });
+          setTimeout(this._closeSearchBox.bind(this));
         });
 
         item.classList.add('app-element');
@@ -123,6 +129,66 @@ function(panels, appList, appDetails) {
       });
 
       _appListContainer.appendChild(list);
+    },
+
+    /**
+     * Filter the application list when the 'search' mode is on.
+     *
+     * @method filterAppList
+     * @param {String} pattern  Search pattern.
+     */
+    filterAppList: function filterAppList() {
+      var pattern = _appSearchInput.value.replace(/^\s+|\s+$/g, '');
+      var re = pattern && pattern.length ? new RegExp(pattern, 'i') : null;
+      for (var i = 0, l = _appItems.length; i < l; i++) {
+        _appItems[i].hidden = re && !re.test(_appItems[i].dataset.key);
+      }
+    },
+
+    _initSearchBox: function _initSearchBox() {
+      var appSearch = document.getElementById('tc-appSearch');
+      _appSearchInput = appSearch.querySelector('input');
+      _appSearchInput.oninput = () => this.filterAppList();
+      _appSearchInput.onfocus = () => this._searchMode = true;
+
+      // The `Clear` button does now work out of the box because it's a
+      // <button type="reset"> -- not an <input type="reset">.
+      var appSearchClear = appSearch.querySelector('button[type="reset"]');
+      appSearchClear.addEventListener('touchend', event => {
+        event.preventDefault();
+        this.renderAppList();
+        _appSearchInput.value = '';
+      });
+
+      // The `Close` button has a `submit` type (see building blocks)...
+      var appSearchCancel = appSearch.querySelector('button[type="submit"]');
+      appSearchCancel.addEventListener('touchend', event => {
+        event.preventDefault();
+        this._closeSearchBox();
+      });
+
+      // Now let's prevent the panel to close when the `search` key is pressed:
+      appSearch.addEventListener('submit', event => {
+        event.preventDefault();
+        _appSearchInput.focus();
+        return false;
+      });
+    },
+
+    _closeSearchBox: function _closeSearchBox() {
+      _appSearchInput.value = '';
+      _appSearchInput.blur();
+      this._searchMode = false;
+      this.filterAppList();
+      return false;
+    },
+
+    set _searchMode(value) {
+      if (value) {
+        _appPanelContainer.classList.add('search');
+      } else {
+        _appPanelContainer.classList.remove('search');
+      }
     }
 
   };

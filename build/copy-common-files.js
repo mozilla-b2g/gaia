@@ -1,7 +1,5 @@
 'use strict';
 
-/* global require, exports */
-
 const utils = require('./utils');
 
 function cleanProfile(webappsDir) {
@@ -35,14 +33,11 @@ function genWebappJSON(config) {
 function execute(options) {
   var webappsJSON = {};
   var gaia = utils.gaia.getInstance(options);
-  var webappsBaseDir = utils.getFile(options.PROFILE_DIR);
+  var webappsBaseDir = utils.getFile(options.PROFILE_DIR, 'webapps');
   var stageDir = gaia.stageDir;
 
-  var webappsJSONFile = stageDir.clone();
-  webappsJSONFile.append('webapps_stage.json');
+  var webappsJSONFile = utils.getFile(stageDir.path, 'webapps_stage.json');
   var webappsStageJSON = utils.getJSON(webappsJSONFile);
-
-  webappsBaseDir.append('webapps');
 
   if (webappsBaseDir.exists()) {
     // remove all external app with uuid folder name
@@ -58,8 +53,7 @@ function execute(options) {
     webappsJSON[webappTargetDirName] = genWebappJSON(appConfig);
   });
 
-  var manifestFile = webappsBaseDir.clone();
-  manifestFile.append('webapps.json');
+  var manifestFile = utils.getFile(webappsBaseDir.path, 'webapps.json');
   utils.writeContent(manifestFile, JSON.stringify(webappsJSON, null, 2) + '\n');
 }
 

@@ -12,6 +12,7 @@ suite('webapp-shared.js', function() {
   var isDirectory;
   var isHidden;
   var isFile;
+  var mRelativePath;
   setup(function() {
     app = proxyquire.noCallThru().load(
             '../../webapp-shared', {
@@ -23,6 +24,7 @@ suite('webapp-shared.js', function() {
     isFile = true;
     var getFile = function() {
       var filePath = path.join.apply(this, arguments);
+      var leafName = filePath.split('/').pop();
       return {
         isHidden: function() {
           return isHidden;
@@ -43,18 +45,27 @@ suite('webapp-shared.js', function() {
           return fileExists;
         },
         path: filePath,
-        leafName: filePath,
+        leafName: leafName,
         isDirectory: function() {
           return isDirectory;
         },
         isFile: function() {
           return isFile;
-        },
-        getRelativeDescriptor: function() {
-          return filePath;
         }
       };
     };
+    mockUtils.relativePath = function(path, subPath) {
+      return mRelativePath || subPath;
+    };
+
+    mockUtils.joinPath = function() {
+      var path = '';
+      for (var i in arguments) {
+        path += (arguments[i] + '/');
+      }
+      return path.slice(0, -1);
+    };
+
     mockUtils.getFile = getFile;
     mockUtils.getFileContent = function(file) {
       return file;
@@ -99,11 +110,7 @@ suite('webapp-shared.js', function() {
     });
 
     test('setOptions', function () {
-      testapp.buildDirectoryFile = {
-        parent: {
-          path: 'testBuild'
-        }
-      };
+      testapp.buildDirectoryFilePath = 'testBuildDirectoryFileUrl';
       var options = {
         config: {
           GAIA_DISTRIBUTION_DIR: 'testDistributionDir',
@@ -245,7 +252,7 @@ suite('webapp-shared.js', function() {
         return JSON.stringify(gaia_shared);
       };
       webappShared.webapp = {
-        buildDirectoryFile: mockUtils.getFile('test')
+        buildDirectoryFilePath: 'test'
       };
       webappShared.pushFileByType = function(kind, path) {
         result.push({kind: kind, path: path});
@@ -275,7 +282,8 @@ suite('webapp-shared.js', function() {
         BUILD_APP_NAME: 'testApp'
       };
       webappShared.webapp = {
-        sourceDirectoryName: 'testApp2'
+        sourceDirectoryName: 'testApp2',
+        sourceDirectoryFilePath: 'test'
       };
       assert.equal(webappShared.copyShared(), undefined,
         'config.BUILD_APP_NAME is\'nt *, we only accept one webapp');
@@ -346,7 +354,8 @@ suite('webapp-shared.js', function() {
       ];
       webappShared.pushLocale(localePath);
       assert.equal(result[0].path, 'shared/locales/' + localePath);
-      assert.equal(result[0].file.path, sharedFilePath);
+      assert.equal(result[0].file.path, sharedFilePath + '/locales/' +
+        localePath);
       assert.equal(result[1].path, lsContentFilePath);
     });
 
@@ -359,10 +368,11 @@ suite('webapp-shared.js', function() {
 
       result.length = 0;
       var brandingPath = 'brandingPath';
-      lsFiles = [{leafName: brandingPath + '@2x.png'}];
-      webappShared.gaia = {
-        sharedFolder: mockUtils.getFile(brandingPath + '.png')
-      };
+      lsFiles = [{
+        leafName: brandingPath + '@2x.png',
+        path: 'shared/resources/' + brandingPath +
+        '@2x.png'
+      }];
       webappShared.pushResource(brandingPath  + '.png');
       assert.equal(result[0].path, 'shared/resources/' + brandingPath +
         '@2x.png');
@@ -409,19 +419,21 @@ suite('webapp-shared.js', function() {
       elementFile = 'gaia_component/script.js';
       var testFiles = [
         'elements/gaia_component/style.css',
-        'elements/gaia_component/images/myimg.png',
-        'elements/gaia_component/js/myfile.js'
+        'elements/gaia_component/css',
+        'elements/gaia_component/js',
+        'elements/gaia_component/images'
       ];
 
-      testFiles.forEach(function(testFile) {
         result.length = 0;
         webappShared.gaia = {
-          sharedFolder: mockUtils.getFile(testFile)
+          sharedFolder: mockUtils.getFile('')
         };
         webappShared.pushElements(elementFile);
         assert.equal(result[0].path, 'shared/elements/' + elementFile);
-        assert.equal(result[1].path, 'shared/' + testFile);
-      });
+        assert.equal(result[1].path, 'shared/' + testFiles[0]);
+        assert.equal(result[2].path, 'shared/' + testFiles[1]);
+        assert.equal(result[3].path, 'shared/' + testFiles[2]);
+        assert.equal(result[4].path, 'shared/' + testFiles[3]);
     });
 
     test('copyBuildingBlock', function() {
@@ -443,9 +455,11 @@ suite('webapp-shared.js', function() {
           }
         }
       ];
+      mRelativePath = blockName + '2.css';
       webappShared.copyBuildingBlock(blockName, dirName);
       assert.equal(result[1].path, 'shared/' + dirName + '/' +
         blockName + '2.css');
+      mRelativePath = null;
     });
 
     test('copySharedPage', function() {

@@ -72,11 +72,7 @@ ifdef LOCALES_FILE
 	REBUILD=1
 endif
 
-# Switching XPCShell/Node.js build runner
 BUILD_RUNNER=run-js-command
-ifeq ($(RUN_ON_NODE), 1)
-BUILD_RUNNER=run-node-command
-endif
 
 -include local.mk
 

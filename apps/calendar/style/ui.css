@@ -230,10 +230,6 @@ body[data-path="/day/"] #view-selector > .day > a:active {
   border-bottom: 0.1rem solid #C5C5C5;
 }
 
-#advanced-settings-view .account-list a {
-  -moz-padding-end: 4rem;
-}
-
 #advanced-settings-view .account-list .error a {
   background: transparent url('icons/accountwarning.png') no-repeat left / 2rem auto;
   -moz-padding-start: 2.7rem;
@@ -340,6 +336,11 @@ gaia-header > a > span {
 html[dir="rtl"] #view-selector > .today {
   border-left: 0.1rem solid #F2F2F2;
   border-right: unset;
+}
+
+html[dir="rtl"] #advanced-settings-view .account-list li {
+  /* text is always right aligned on RTL even if text direction is still LTR */
+  text-align: right;
 }
 
 html[dir="rtl"] #advanced-settings-view .account-list .error a {

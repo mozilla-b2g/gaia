@@ -545,6 +545,11 @@
           break;
 
         case 'ftuskip':
+          // There is an app being launched before
+          // ftu is skipped; this happens while setting runapp=XXX
+          if (this._activeApp && !this._activeApp.isHomescreen) {
+            return;
+          }
           if (!Service.locked) {
             this.display();
           }
@@ -775,7 +780,7 @@
       var callee = this.getApp(config.origin);
       caller = this._activeApp.getTopMostWindow();
       if (caller.getBottomMostWindow() === callee) {
-        callee.frontWindow.kill();
+        callee.frontWindow && callee.frontWindow.kill();
       } else {
         callee.callerWindow = caller;
         caller.calleeWindow = callee;

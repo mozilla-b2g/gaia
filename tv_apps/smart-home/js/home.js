@@ -176,6 +176,23 @@
       });
     },
 
+    _localizeCardName: function(elem, card) {
+      if (!elem || !card) {
+        return;
+      }
+
+      // We should use user given name first, otherwise we use localized
+      // application/deck name.
+      var lang = document.documentElement.lang;
+      var name = this.cardManager.resolveCardName(card, lang);
+      if (name && name.raw) {
+        elem.removeAttribute('data-l10n-id');
+        elem.textContent = name.raw;
+      } else if (name && name.id) {
+        elem.setAttribute('data-l10n-id', name.id);
+      }
+    },
+
     onCardInserted: function(card, idx) {
       var newCardElem = this._createCardNode(card);
       var newCardButtonElem = newCardElem.firstElementChild;
@@ -198,9 +215,16 @@
     },
 
     onCardUpdated: function(card, idx) {
-      var item = this.cardScrollable.getItemFromNode(
+      var that = this;
+      var cardButton = this.cardScrollable.getItemFromNode(
                                               this.cardScrollable.getNode(idx));
-      item.setAttribute('label', card.name);
+      var spans =
+           SharedUtils.nodeListToArray(cardButton.getElementsByTagName('span'));
+      spans.forEach(function(span) {
+        if (span.classList.contains('name')) {
+          that._localizeCardName(span, card);
+        }
+      });
     },
 
     onCardRemoved: function(indices) {
@@ -253,18 +277,6 @@
       waveBack.className = 'deck-wave';
       waveBack.classList.add('wave-back');
       waveBack.classList.add(card.deckClass + '-wave-back');
-      waveBack.classList.add('wave-paused');
-
-      // run the animation after the deck finishing focus transition
-      cardButton.addEventListener('focus', function(evt) {
-          waveBack.classList.remove('wave-paused');
-          waveFront.classList.remove('wave-paused');
-      });
-
-      cardButton.addEventListener('blur', function(evt) {
-          waveBack.classList.add('wave-paused');
-          waveFront.classList.add('wave-paused');
-      });
 
       cardButton.appendChild(waveBack);
       cardButton.appendChild(deckIcon);
@@ -348,7 +360,6 @@
       var cardButton = document.createElement('smart-button');
       cardButton.setAttribute('type', 'app-button');
       cardButton.className = 'app-button';
-      cardButton.setAttribute('label', card.name);
       cardButton.dataset.cardId = card.cardId;
 
       var cardPanel = document.createElement('section');
@@ -380,6 +391,16 @@
         cardButton.setAttribute('app-type', 'folder');
         cardButton.dataset.icon = 'folder';
       }
+
+      // For smart-button, we put card name in pseudo-element :after. However,
+      // we need to localize card name and l10n library do not support
+      // localizing element with children elements.
+      // Instead of using :after, we create a 'span' element under smart-button
+      // and put card name in it.
+      var nameSpan = document.createElement('span');
+      nameSpan.classList.add('name');
+      this._localizeCardName(nameSpan, card);
+      cardButton.appendChild(nameSpan);
 
       return cardNode;
     },

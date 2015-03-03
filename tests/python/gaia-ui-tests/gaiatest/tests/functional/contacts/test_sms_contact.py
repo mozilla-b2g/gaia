@@ -17,9 +17,8 @@ class TestContacts(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
-
         self.contact = MockContact(tel={
-            'value': self.testvars["local_phone_numbers"][0]})
+            'value': self.environment.phone_numbers[0]})
         self.data_layer.insert_contact(self.contact)
 
     def test_sms_contact(self):

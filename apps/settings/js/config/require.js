@@ -92,6 +92,9 @@ require.config({
     },
     'shared/homescreens/vertical_preferences': {
       exports: 'verticalPreferences'
+    },
+    'shared/stk_helper': {
+      exports: 'STKHelper'
     }
   },
   modules: [

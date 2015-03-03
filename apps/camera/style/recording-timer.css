@@ -41,6 +41,11 @@
   transform: rotate(-90deg);
 }
 
+[dir=rtl] .deg90 .recording-timer {
+  right: -5rem;
+  left: auto;
+}
+
 /**
  * deg180
  */
@@ -56,6 +61,11 @@
 .deg270 .recording-timer {
   transform-origin: 25% 50%;
   transform: rotate(-270deg);
+}
+
+[dir=rtl] .deg270 .recording-timer {
+  right: -5rem;
+  left: auto;
 }
 
 .recording-timer.visible {
@@ -86,16 +96,5 @@
 
 [dir=rtl] .recording-timer:before {
   right: 0;
-  left: auto;
-}
-
-/**
- * deg90,
- * deg180
- */
-
-.deg90 .recording-timer:before,
-.deg180 .recording-timer:before {
-  right: 2rem;
   left: auto;
 }

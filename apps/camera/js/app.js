@@ -2,7 +2,6 @@ define(function(require, exports, module) {
 'use strict';
 
 // For perf-measurement related utilities
-require('usertiming');
 require('performance-testing-helper');
 
 /**
@@ -188,7 +187,9 @@ App.prototype.bindEvents = function() {
   // we bind to window.onlocalized in order not to depend
   // on l10n.js loading (which is lazy). See bug 999132
   bind(this.win, 'localized', this.firer('localized'));
+
   bind(this.win, 'beforeunload', this.onBeforeUnload);
+  bind(this.win, 'keydown', this.onKeyDown);
   bind(this.el, 'click', this.onClick);
   debug('events bound');
 };
@@ -499,5 +500,25 @@ App.prototype.listenForStopRecordingEvent = function() {
   stopRecordingEvent.start();
   addEventListener('stoprecording', this.firer('stoprecording'));
 };
+
+
+/**
+ * When the device's hardware keys
+ * are pressed we emit a global
+ * app event that other controllers
+ * can respond to.
+ *
+ * TIP: Check config.js for the map
+ * of key names to types.
+ *
+ * @param  {Event} e
+ * @private
+ */
+App.prototype.onKeyDown = function(e) {
+  var key = e.key.toLowerCase();
+  var type = this.settings.keyDownEvents.get(key);
+  if (type) { this.emit('keydown:' + type, e); }
+};
+
 
 });

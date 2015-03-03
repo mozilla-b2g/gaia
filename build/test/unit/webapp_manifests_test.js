@@ -81,9 +81,7 @@ suite('webapp-manifest.js', function() {
       },
       sourceDirectoryName: 'sourceDirectoryName',
       domain: 'domain',
-      profileDirectoryFile: {
-        leafName: 'testuuid'
-      }
+      profileDirectoryFilePath: 'testuuid'
     };
   });
 
@@ -99,7 +97,9 @@ suite('webapp-manifest.js', function() {
     setup(function() {
       webappManifest = new app.ManifestBuilder();
       mockUtils.getFile = function(path) {
-        return path;
+        return {
+          leafName: path
+        };
       };
     });
 
@@ -111,21 +111,21 @@ suite('webapp-manifest.js', function() {
 
     test('genStageWebappJSON ', function() {
       var testStageManifests = {test: 'test'};
-      var writingFilePath = null;
+      var writingFilePath = '';
       webappManifest.stageManifests = testStageManifests;
       webappManifest.stageDir = {
-        clone: function() {
-          return {
-            append: function(subFilePath) {
-              writingFilePath = subFilePath;
-            }
-          };
+        path: 'test_build_stage'
+      };
+      mockUtils.getFile = function() {
+        for (var i in arguments) {
+          writingFilePath += ('/' + arguments[i]);
         }
       };
       webappManifest.genStageWebappJSON();
       assert.equal(writingContent,
         JSON.stringify(testStageManifests, null, 2) + '\n');
-      assert.equal(writingFilePath, 'webapps_stage.json');
+      assert.equal(writingFilePath, '/test_build_stage/webapps_stage.json');
+      mockUtils.getFile = null;
     });
 
     test('fillExternalAppManifest', function() {

@@ -68,24 +68,24 @@ class Email(Base):
         setup.tap_continue()
         self.wait_for_message_list()
 
-    def setup_IMAP_email(self, imap):
+    def setup_IMAP_email(self, imap, smtp):
         basic_setup = SetupEmail(self.marionette)
-        basic_setup.type_name(imap['name'])
+        basic_setup.type_name('IMAP account')
         basic_setup.type_email(imap['email'])
 
         setup = self.tap_manual_setup()
 
         setup.select_account_type('IMAP+SMTP')
 
-        setup.type_imap_hostname(imap['imap_hostname'])
-        setup.type_imap_name(imap['imap_name'])
+        setup.type_imap_hostname(imap['hostname'])
+        setup.type_imap_name(imap['username'])
         setup.type_imap_password(imap['password'])
-        setup.type_imap_port(imap['imap_port'])
+        setup.type_imap_port(imap['port'])
 
-        setup.type_smtp_hostname(imap['smtp_hostname'])
-        setup.type_smtp_password(imap['password'])
-        setup.type_smtp_name(imap['smtp_name'])
-        setup.type_smtp_port(imap['smtp_port'])
+        setup.type_smtp_hostname(smtp['hostname'])
+        setup.type_smtp_name(smtp['username'])
+        setup.type_smtp_password(smtp['password'])
+        setup.type_smtp_port(smtp['port'])
 
         setup.tap_next()
         setup.check_for_emails_interval('20000')
@@ -98,16 +98,16 @@ class Email(Base):
 
     def setup_active_sync_email(self, active_sync):
         basic_setup = SetupEmail(self.marionette)
-        basic_setup.type_name(active_sync['name'])
+        basic_setup.type_name('ActiveSync account')
         basic_setup.type_email(active_sync['email'])
 
         setup = self.tap_manual_setup()
 
         setup.select_account_type('ActiveSync')
 
-        setup.type_activesync_hostname(active_sync['active_sync_hostname'])
-        setup.type_activesync_name(active_sync['active_sync_username'])
         setup.type_password(active_sync['password'])
+        setup.type_activesync_hostname(active_sync['hostname'])
+        setup.type_activesync_name(active_sync['username'])
 
         setup.tap_next()
 

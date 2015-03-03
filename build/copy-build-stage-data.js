@@ -24,7 +24,8 @@ function moveExternalApp(webapp, source, destination) {
     appPackage.copyTo(destination, 'application.zip');
     updateManifest.copyTo(destination, 'update.webapp');
   } else {
-    webapp.manifestFile.copyTo(destination, 'manifest.webapp');
+    var manifestFile = utils.getFile(webapp.manifestFilePath);
+    manifestFile.copyTo(destination, 'manifest.webapp');
 
     // This is an hosted app. Check if there is an offline cache.
     let srcCacheFolder = source.clone();
@@ -46,12 +47,13 @@ function moveExternalApp(webapp, source, destination) {
   }
 }
 
-function execute(options, webapp) {
+function execute(options) {
+  var webapp = options.webapp;
   const WEBAPP_FILENAME = 'manifest.webapp';
   const UPDATE_WEBAPP_FILENAME = 'update.webapp';
 
-  var webappManifest = webapp.buildDirectoryFile.clone();
-  var updateManifest = webapp.buildDirectoryFile.clone();
+  var webappManifest = utils.getFile(webapp.buildDirectoryFilePath);
+  var updateManifest = utils.getFile(webapp.buildDirectoryFilePath);
 
   webappManifest.append(WEBAPP_FILENAME);
   updateManifest.append(UPDATE_WEBAPP_FILENAME);
@@ -63,16 +65,17 @@ function execute(options, webapp) {
     return;
   }
 
-  utils.ensureFolderExists(webapp.profileDirectoryFile);
+  var profileDirectoryFile = utils.getFile(webapp.profileDirectoryFilePath);
+  utils.ensureFolderExists(profileDirectoryFile);
 
   if (utils.isExternalApp(webapp)) {
-    var appSource = webapp.buildDirectoryFile.clone();
-    moveExternalApp(webapp, appSource, webapp.profileDirectoryFile);
+    var appSource = utils.getFile(webapp.buildDirectoryFilePath);
+    moveExternalApp(webapp, appSource, profileDirectoryFile);
     return;
   }
 
   // We'll remove it once bug 968666 is merged.
-  var targetManifest = webapp.profileDirectoryFile.clone();
+  var targetManifest = utils.getFile(webapp.profileDirectoryFilePath);
   stageManifest.copyTo(targetManifest, WEBAPP_FILENAME);
 }
 

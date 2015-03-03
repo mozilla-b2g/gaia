@@ -52,9 +52,10 @@
         this.cardManager.writeCardlistInCardStore({cleanEmptyFolder: true})
           .then(function() {
             // Since writeCardlistInCardStore triggers card-removed event that
-            // causes re-focus on other elements of card list, we need to wait
+            // causes re-focus on other elements in card list, we need to wait
             // until those actions to be done before focusing editButton.
             this.spatialNavigator.focus(this.editButton);
+            this.currentNode.classList.remove('focused');
           }.bind(this));
         this._concealPanel(this.currentScrollable, this.currentNode);
       } else {
@@ -136,10 +137,7 @@
     },
 
     addNewFolder: function() {
-      // XXX: mozL10n.get is going to be obsoleted. We'd plan to let smartButton
-      // able to do l10n by itself.
-      var _ = navigator.mozL10n.get;
-      this.cardManager.insertNewFolder(_('new-folder'),
+      this.cardManager.insertNewFolder({id: 'new-folder'},
         this.cardScrollable.currentIndex);
       this.spatialNavigator.focus(this.cardScrollable);
     },
@@ -176,11 +174,16 @@
         cardId: scrollable.getItemFromNode(nodeElem).dataset.cardId
       });
       var _ = navigator.mozL10n.get;
-      var result = prompt(_('enter-new-name'), card.name);
+
+      var lang = document.documentElement.lang;
+      var oldName = this.cardManager.resolveCardName(card, lang);
+      oldName = oldName.raw ? oldName.raw : _(oldName.id);
+
+      var result = prompt(_('enter-new-name'), oldName);
       if (!result) {
         return;
       }
-      card.name = result;
+      card.name = {raw: result};
       this.cardManager.updateCard(card);
     },
 

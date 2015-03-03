@@ -4,7 +4,6 @@
          MockGetDeviceStorages, MockVersionHelper, MockKeyboardManager */
 
 requireApp('system/shared/js/performance_testing_helper.js');
-requireApp('system/shared/js/usertiming.js');
 requireApp('system/shared/js/async_storage.js');
 requireApp('system/shared/js/lazy_loader.js');
 requireApp('system/shared/js/screen_layout.js');
@@ -17,6 +16,8 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_url.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
+require('/shared/test/unit/mocks/mock_event_target.js');
+require('/shared/test/unit/mocks/mock_dom_request.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_getdevicestorage.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_getdevicestorages.js');
 requireApp('system/js/browser.js');
@@ -87,6 +88,11 @@ requireApp('system/test/unit/mock_homescreen_window_manager.js');
 requireApp('system/test/unit/mock_version_helper.js');
 requireApp('system/js/base_module.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
+
+requireApp('system/js/base_icon.js');
+requireApp('system/js/battery_icon.js');
+requireApp('system/js/nfc_icon.js');
+requireApp('system/js/recording_icon.js');
 
 var mocksForBootstrap = new MocksHelper([
   'AirplaneMode',

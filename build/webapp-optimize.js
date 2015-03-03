@@ -474,7 +474,7 @@ HTMLOptimizer.prototype.inlineCSSResources = function() {
     var content = css.content.replace(/url\(([^)]+?)\)/g,
       function(match, url) {
         var file = utils.getFile(
-          this.webapp.buildDirectoryFile.path, cssPath, url);
+          this.webapp.buildDirectoryFilePath, cssPath, url);
         return match.replace(url, utils.getFileAsDataURI(file));
       }.bind(this));
     newStyle.innerHTML = content;
@@ -512,7 +512,7 @@ HTMLOptimizer.prototype.getFileByRelativePath = function(relativePath) {
   var file;
   if (/^\//.test(relativePath)) {
     paths.shift();
-    file = this.webapp.buildDirectoryFile.clone();
+    file = utils.getFile(this.webapp.buildDirectoryFilePath);
   } else {
     file = this.htmlFile.parent.clone();
   }
@@ -658,7 +658,7 @@ WebappOptimize.prototype.writeASTs = function() {
   if (this.config.GAIA_CONCAT_LOCALES !== '1') {
     return;
   }
-  var localeObjDir = this.webapp.buildDirectoryFile.clone();
+  var localeObjDir = utils.getFile(this.webapp.buildDirectoryFilePath);
   var reserved = {};
   localeObjDir.append('locales-obj');
   utils.ensureFolderExists(localeObjDir);
@@ -693,10 +693,11 @@ WebappOptimize.prototype.execute = function(config) {
   this.webapp.asts = {};
 
   // remove excluded condition /^(shared|tests?)$/)
-  var files = utils.ls(this.webapp.buildDirectoryFile, true,
+  var buildDirectoryFile = utils.getFile(this.webapp.buildDirectoryFilePath);
+  var files = utils.ls(buildDirectoryFile, true,
     /^(shared|tests?)$/);
     // We need to optimize shared pages as well
-  var sharedPagesDir = this.webapp.buildDirectoryFile.clone();
+  var sharedPagesDir = buildDirectoryFile;
   sharedPagesDir.append('shared');
   sharedPagesDir.append('pages');
   var filesSharedPages = utils.ls(sharedPagesDir, true);
@@ -709,7 +710,8 @@ WebappOptimize.prototype.execute = function(config) {
   files.forEach(this.processFile, this);
 };
 
-function execute(options, webapp) {
+function execute(options) {
+  var webapp = options.webapp;
   var locales;
   if (options.GAIA_CONCAT_LOCALES === '1') {
     locales = getLocales(options);
@@ -731,7 +733,7 @@ function execute(options, webapp) {
     }
   };
 
-  // Load window object from build/l10n.js and shared/js/l10n.js into win;
+  // Load window object from build/l10n/l10n.js and shared/js/l10n.js into win;
   win = loadL10nScript(options, win);
 
   var optimizeConfig = loadOptimizeConfig(options);
@@ -760,7 +762,7 @@ function loadOptimizeConfig(config) {
 // from window.navigator.
 function loadL10nScript(config, obj) {
   var sharedL10n = utils.joinPath(config.GAIA_DIR, 'shared', 'js', 'l10n.js');
-  var buildL10n =  utils.joinPath(config.GAIA_DIR, 'build', 'l10n.js');
+  var buildL10n =  utils.joinPath(config.GAIA_DIR, 'build', 'l10n', 'l10n.js');
   utils.scriptLoader.load(sharedL10n, obj, true);
   utils.scriptLoader.load(buildL10n, obj, true);
   return obj;

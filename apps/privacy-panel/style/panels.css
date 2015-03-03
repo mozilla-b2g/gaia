@@ -171,6 +171,29 @@ ul li > a span:nth-of-type(2):not(.button) {
   line-height: 3rem;
 }
 
+/* Apps search mode */
+
+section[role="region"].search #tc-sortApps {
+  display: none;
+}
+
+section[role="region"].search #tc-appList {
+  height: calc(100% - 3.8rem);
+  overflow-y: scroll;
+}
+
+#tc-appSearch {
+  height: 3.8rem;
+}
+
+#tc-appSearch button[type="submit"] {
+  display: none;
+}
+
+.search #tc-appSearch button[type="submit"] {
+  display: block;
+}
+
 
 /**
  * Guided tour
@@ -367,10 +390,14 @@ section[data-section="gt"] .btn {
 
 .validation-message,
 .pin-validation-message {
-  color: red;
   font-size: 1.4rem;
   white-space: normal;
   margin: 1rem;
+}
+
+.validation-message,
+.pin-error-message {
+  color: red;
 }
 
 

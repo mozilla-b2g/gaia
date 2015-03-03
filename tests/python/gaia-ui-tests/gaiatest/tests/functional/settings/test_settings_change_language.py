@@ -16,7 +16,7 @@ class TestChangeLanguage(GaiaTestCase):
     def test_change_language_settings(self):
         lang_name = self.marionette.execute_script("""
             var qps = window.wrappedJSObject.navigator.mozL10n.qps;
-            return qps['qps-ploc'].name;
+            return qps['qps-ploc'].translate('Packaged Accented');
         """)
         header = self.marionette.execute_script("""
             var qps = window.wrappedJSObject.navigator.mozL10n.qps;

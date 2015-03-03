@@ -297,7 +297,7 @@ suite('webapp-optimize.js', function() {
 
       var buildDirectoryFile = mockUtils.getFile('build_stage');
       webappOptimize.webapp = {
-        buildDirectoryFile: buildDirectoryFile,
+        buildDirectoryFilePath: buildDirectoryFile.path,
         asts: {'en-test': [{ $i: 'testId', $v: 'testIdContent'}]}
       };
       fileChildren[buildDirectoryFile.leafName + '/locales-obj'] = [
@@ -327,7 +327,7 @@ suite('webapp-optimize.js', function() {
         config: mockConfig,
         webapp: {
           sourceDirectoryName: mockConfig.BUILD_APP_NAME,
-          buildDirectoryFile: buildDirectoryFile
+          buildDirectoryFilePath: buildDirectoryFile.path
         },
         locales: ['en-test']
       });
@@ -350,7 +350,7 @@ suite('webapp-optimize.js', function() {
         htmlFile: htmlFile,
         webapp: {
           asts: {'en-test': []},
-          buildDirectoryFile: mockUtils.getFile('build_stage')
+          buildDirectoryFilePath: 'build_stage'
         },
         config: mockConfig,
         win: mockWin,

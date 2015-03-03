@@ -930,9 +930,10 @@
   });
 
   messagesDb.messages.push({
+    id: messagesDb.id++,
     threadId: 14,
-    sender: null,
-    receivers: ['+97121111111', '+15551237890'],
+    sender: '+97121111111',
+    receivers: ['+15551237890'],
     read: true,
     smil: '<smil><body><par><text src="text1"/></par></body></smil>',
     attachments: [{
@@ -943,7 +944,11 @@
       )
     }],
     delivery: 'sent',
-    deliveryInfo: [{deliveryStatus: 'success'}],
+    deliveryInfo: [{
+      deliveryStatus: 'delivered',
+      deliveryTimestamp: now - (60000000 * 20),
+      receiver: '+15551237890'
+    }],
     type: 'mms',
     timestamp: now - (60000000 * 20)
   });

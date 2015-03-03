@@ -4,7 +4,7 @@ requireApp('email/js/alameda.js');
 requireApp('email/test/config.js');
 
 
-suite('email/mail_app', function() {
+suite('email/query_uri', function() {
   var queryURI;
 
   suiteSetup(function(done) {

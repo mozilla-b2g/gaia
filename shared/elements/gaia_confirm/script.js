@@ -15,14 +15,6 @@ window.GaiaConfirm = (function(win) {
   var baseurl = window.GaiaConfirmBaseurl ||
     '/shared/elements/gaia_confirm/';
 
-  // Bug 918288 - APZ does not have proper hit detection.
-  // This workaround prevents APZ from scrolling under the confirm dialog.
-  var EATEN_EVENTS = [
-    // XXX: touchmove to work around apz bugs touchstart should not be blocked
-    //      because it is needed for pressed state.
-    'touchmove'
-  ];
-
   /**
   preventDefault and prevent other listeners from hearing abut changes to a
   particular event object.
@@ -48,17 +40,6 @@ window.GaiaConfirm = (function(win) {
 
     var confirm = this.querySelector('gaia-buttons .confirm');
     var cancel = this.querySelector('gaia-buttons .cancel');
-
-    // ensure we don't allow targets to null so only add found buttons.
-    var allowedTargets = [confirm, cancel].filter(function(element) {
-      return !!element;
-    });
-
-    EATEN_EVENTS.forEach(function(type) {
-      this.addEventListener(type, (event) => {
-        eatEvent(allowedTargets, event);
-      });
-    }, this);
 
     if (confirm) {
       confirm.addEventListener('click', (e) => {

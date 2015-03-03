@@ -82,6 +82,28 @@ marionette('Music player playlist', function() {
                    'The Ecuadorian Embassy');
     });
 
+    test('Check the playlist indexes', function() {
+      // this test will check that the index value of each song is the index
+      // and not the track number.
+      // See bug 1129708
+      music.launch();
+      music.waitForFirstTile();
+      music.switchToPlaylistsView();
+
+      music.selectPlaylist('Recently added');
+
+      music.waitForSongs(function(songs) {
+        return songs.length >= 3;
+      });
+
+      var songs = music.songs;
+
+      assert.equal(songs.length, 3);
+      assert.equal(songs[0].findElement('.list-song-index').text(), '1');
+      assert.equal(songs[1].findElement('.list-song-index').text(), '2');
+      assert.equal(songs[2].findElement('.list-song-index').text(), '3');
+    });
+
   });
 
   suite('Multi disc tests', function() {

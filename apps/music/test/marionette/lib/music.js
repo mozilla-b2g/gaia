@@ -16,6 +16,7 @@ Music.DEFAULT_ORIGIN = 'music.gaiamobile.org';
 Music.Selector = Object.freeze({
   messageOverlay: '#overlay',
   firstTile: '.tile',
+  playlistsTab: '#tabs-playlists',
   artistsTab: '#tabs-artists',
   songsTab: '#tabs-songs',
   albumsTab: '#tabs-albums',
@@ -53,6 +54,10 @@ Music.prototype = {
 
   get firstTile() {
     return this.client.findElement(Music.Selector.firstTile);
+  },
+
+  get playlistsTab() {
+    return this.client.helper.waitForElement(Music.Selector.playlistsTab);
   },
 
   get artistsTab() {
@@ -214,6 +219,10 @@ Music.prototype = {
     this.albumsTab.tap();
   },
 
+  switchToPlaylistsView: function() {
+    this.playlistsTab.tap();
+  },
+
   selectAlbum: function(name) {
     var list = this.client.helper.waitForElement(Music.Selector.viewsList);
     assert.ok(list);
@@ -226,6 +235,20 @@ Music.prototype = {
         .text() === name;
     })[0].tap();
   },
+
+  selectPlaylist: function(name) {
+    var list = this.client.helper.waitForElement(Music.Selector.viewsList);
+    assert.ok(list);
+
+    var list_items = list.findElements('li.list-item', 'css selector');
+    assert.ok(list_items);
+
+    list_items.filter(function (element) {
+      return element.findElement('span.list-playlist-title', 'css selector')
+        .text() === name;
+    })[0].tap();
+  },
+
 
   playFirstSong: function() {
     this.firstSong.click();

@@ -16,8 +16,7 @@ requireApp('settings/js/vendor/alameda.js', (function() {
     },
     shim: {
       'settings': {
-        exports: 'Settings',
-        deps: ['shared/usertiming']
+        exports: 'Settings'
       },
       'shared/lazy_loader': {
         exports: 'LazyLoader'
@@ -124,6 +123,15 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       },
       'shared_mocks/mock_screen_layout': {
         exports: 'MockScreenLayout'
+      },
+      'shared_mocks/mock_stk_helper': {
+        exports: 'MockSTKHelper'
+      },
+      'shared_mocks/mock_dump': {
+        exports: 'MockDump'
+      },
+      'shared_mocks/mock_navigator_moz_icc_manager' : {
+        exports: 'MockNavigatorMozIccManager'
       }
     },
     modules: [

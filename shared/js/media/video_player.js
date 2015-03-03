@@ -18,6 +18,21 @@
 // screenshot and display it, and unload the video. If shown again
 // and if the user clicks play again, we resume the video where we left off.
 //
+// WARNING (bug 1135278):
+//
+// The VideoPlayer object registers event listeners on the window object
+// and never unregisters them. This means that VideoPlayer objects will
+// never be garbage collected since the window will always have a reference
+// to every one that has been created.
+//
+// A conscious decision has been made to not fix this issue because:
+//
+// 1) Currently only gallery and camera use the object and they use a
+//    fixed number of objects whose lifetime is the same as that of the
+//    app.
+// 2) We are moving towards replacing this VideoPlayer object with web
+//    components (bug 1117885, bug 1131321)
+//
 function VideoPlayer(container) {
   if (typeof container === 'string') {
     container = document.getElementById(container);

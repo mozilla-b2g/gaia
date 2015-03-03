@@ -251,7 +251,7 @@ window.UtilityTray = {
         break;
 
       case 'statusbarwheel':
-        this.show();
+        this.show(true);
         break;
       case 'wheel':
         if (evt.deltaMode === evt.DOM_DELTA_PAGE && evt.deltaY &&
@@ -275,8 +275,9 @@ window.UtilityTray = {
           break;
         }
         var eventType = JSON.parse(evt.detail.details).eventType;
-        if (eventType === 'edge-swipe-down') {
-          this[this.shown ? 'hide' : 'show']();
+        if (eventType === 'edge-swipe-down' && !window.Service.locked &&
+          !window.Service.runningFTU) {
+          this[this.shown ? 'hide' : 'show'](true);
         }
         break;
 
@@ -468,6 +469,11 @@ window.UtilityTray = {
     this.notifications.style.transform = '';
 
     this.screen.classList.add('utility-tray');
+    // In cases where we show utility tray instantly (such as with the screen
+    // reader), we need to make sure that its visible class is applied.
+    if (instant) {
+      this.overlay.classList.add('visible');
+    }
 
     if (!this.shown) {
       this.shown = true;

@@ -18,7 +18,8 @@ class TestOnlyOneHeaderDisplayed(GaiaTestCase):
 
     def setUp(self):
         try:
-            self.testvars['email']['IMAP']
+            self.testvars['email']['imap']
+            self.testvars['email']['smtp']
         except KeyError:
             raise SkipTest('account details not present in test variables')
 
@@ -31,7 +32,8 @@ class TestOnlyOneHeaderDisplayed(GaiaTestCase):
     def test_only_one_header_displayed(self):
         """ https://bugzilla.mozilla.org/show_bug.cgi?id=1116087 """
 
-        self.email.setup_IMAP_email(self.testvars['email']['IMAP'])
+        self.email.setup_IMAP_email(self.testvars['email']['imap'],
+                                    self.testvars['email']['smtp'])
         self.email.wait_for_emails_to_sync()
         self.assertGreater(len(self.email.mails), 0)
 

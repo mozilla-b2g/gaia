@@ -5,7 +5,7 @@
 
 
 var NotificationScreen = {
-  TOASTER_TIMEOUT: 5000,
+  TOASTER_TIMEOUT: 3500,
   TRANSITION_FRACTION: 0.30,
   TRANSITION_DURATION: 300,
   SWIPE_INERTIA: 100,
@@ -262,14 +262,13 @@ var NotificationScreen = {
       return;
     }
 
-    evt.preventDefault();
-
     this._touchPosX = evt.touches[0].pageX - this._touchStartX;
     if (Math.abs(this._touchPosX) >= this.TAP_THRESHOLD) {
       this._isTap = false;
       this.notificationsContainer.style.overflow = 'hidden';
     }
     if (!this._isTap) {
+      evt.preventDefault();
       this._notification.style.transform =
         'translateX(' + this._touchPosX + 'px)';
     }
@@ -477,6 +476,7 @@ var NotificationScreen = {
 
     var titleContainer = document.createElement('div');
     titleContainer.classList.add('title-container');
+    titleContainer.setAttribute('dir', 'auto');
 
     var title = document.createElement('div');
     title.classList.add('title');

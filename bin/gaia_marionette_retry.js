@@ -19,23 +19,33 @@ function main() {
   // 1 => ./bin/gaia_marionette_retry.js
   process.argv.splice(0, 2);
 
-  var index = 0;
-  while (process.argv[index].slice(0, 2) === '--') {
-    index += 2;
-  }
+  /**
+   * Walk from the beginning of the cli args to the point where
+   * we no longer have args of the form
+   * --arglike --key value --argish --argonaut --otherkey othervalue
+   */
+  var expectKey = true;
+  var index = indexOf(process.argv, function(arg, index) {
+    var isKey = arg.slice(0, 2) === '--';
+    if (!isKey && expectKey) {
+      // We were expecting a key and didn't see one so we've found the index.
+      return true;
+    }
+
+    expectKey = !isKey;
+    return false;
+  });
 
   var args = process.argv.splice(0, index);
   var filenames = process.argv;
 
   // Also look at the end of the cli invocation for cli args.
-  var count = 0;
-  index = filenames.length;
-  while (filenames[index - 2].slice(0, 2) === '--') {
-    count += 2;
-    index -= 2;
-  }
+  index = indexOf(filenames, function(arg, index) {
+    return arg.slice(0, 2) === '--';
+  });
 
-  args = args.concat(filenames.splice(index, count));
+  // Pull everything off from the first arg.
+  args = args.concat(filenames.splice(index, filenames.length - index));
 
   if (filenames[0].indexOf('setup') !== -1) {
     // Special case for setup script.
@@ -184,6 +194,20 @@ function forEach(obj, fn) {
   for (var key in obj) {
     fn(obj[key], key);
   }
+}
+
+function indexOf(arr, fn) {
+  var result = -1;
+  arr.some(function(currentValue, index) {
+    if (fn(currentValue)) {
+      result = index;
+      return true;
+    }
+
+    return false;
+  });
+
+  return result;
 }
 
 if (require.main === module) {

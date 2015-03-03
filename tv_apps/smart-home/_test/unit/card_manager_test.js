@@ -167,8 +167,7 @@ suite('smart-home/CardManager', function() {
             removable: false,
             manifest: {},
             manifestURL: 'app://dashboard.gaiamobile.org/manifest.webapp'
-          },
-          launchURL: 'app://dashboard.gaiamobile.org/index.html'
+          }
         }),
         new Deck({
           name: 'TV',
@@ -177,10 +176,24 @@ suite('smart-home/CardManager', function() {
             removable: false,
             manifest: {},
             manifestURL: 'app://tv-deck.gaiamobile.org/manifest.webapp'
-          },
-          launchURL: 'app://tv-deck.gaiamobile.org/index.html'
+          }
         })
       ];
+      cardManager.installedApps = {
+        'app://dashboard.gaiamobile.org/manifest.webapp': {
+          name: 'Dashboard',
+          removable: false,
+          manifest: {},
+          manifestURL: 'app://dashboard.gaiamobile.org/manifest.webapp'
+        },
+        'app://tv-deck.gaiamobile.org/manifest.webapp': {
+          name: 'TV',
+          removable: false,
+          manifest: {},
+          manifestURL: 'app://tv-deck.gaiamobile.org/manifest.webapp'
+        }
+      };
+
       dashboardCardId = cardManager._cardList[0].cardId;
     });
 
@@ -231,10 +244,17 @@ suite('smart-home/CardManager', function() {
             removable: false,
             manifest: {},
             manifestURL: 'app://dashboard.gaiamobile.org/manifest.webapp'
-          },
-          launchURL: 'app://dashboard.gaiamobile.org/index.html'
+          }
         })
       ];
+      cardManager.installedApps = {
+        'app://dashboard.gaiamobile.org/manifest.webapp': {
+          name: 'Dashboard',
+          removable: false,
+          manifest: {},
+          manifestURL: 'app://dashboard.gaiamobile.org/manifest.webapp'
+        }
+      };
       dashboardCardId = cardManager._cardList[0].cardId;
 
       this.sinon.spy(cardManager, 'writeFolderInCardStore');
@@ -285,6 +305,83 @@ suite('smart-home/CardManager', function() {
 
   });
 
+  suite('insertCard', function() {
+    var cardManager;
+    setup(function() {
+      cardManager = new CardManager();
+      // We bypass init() because it involves navigator.mozApps.mgmt
+      // Instead we need to prepare necessary properties of cardManager
+      cardManager._asyncSemaphore = new AsyncSemaphore();
+      cardManager._cardStore = MockCardStore;
+      cardManager._cardList = [
+        new Deck({
+          name: 'TV',
+          nativeApp: {
+            name: 'TV',
+            removable: false,
+            manifest: {},
+            manifestURL: 'app://tv-deck.gaiamobile.org/manifest.webapp'
+          }
+        }),
+        new Application({
+          name: 'Music',
+          nativeApp: {
+            name: 'Music',
+            removable: false,
+            manifest: {},
+            manifestURL: 'app://music.gaiamobile.org/manifest.webapp'
+          }
+        })
+      ];
+      cardManager.installedApps = {
+        'app://tv-deck.gaiamobile.org/manifest.webapp': {
+          name: 'TV',
+          removable: false,
+          manifest: {},
+          manifestURL: 'app://tv-deck.gaiamobile.org/manifest.webapp'
+        },
+        'app://music.gaiamobile.org/manifest.webapp': {
+          name: 'Music',
+          removable: false,
+          manifest: {},
+          manifestURL: 'app://music.gaiamobile.org/manifest.webapp'
+        }
+      };
+    });
+
+    teardown(function() {
+      MockCardStore.mClearData();
+      cardManager = undefined;
+    });
+
+    test('should not be able to insert the same card twice', function() {
+      var expectedCardListLength = cardManager._cardList.length;
+      cardManager.insertCard({
+        cardEntry: {
+          'type': 'Application',
+          'group': 'app',
+          'manifestURL': 'app://music.gaiamobile.org/manifest.webapp'
+        }
+      });
+      assert.equal(cardManager._cardList.length, expectedCardListLength);
+    });
+
+    test('should be able to insert same app twice with different launchURL',
+      function() {
+        var expectedCardListLength = cardManager._cardList.length + 1;
+        cardManager.insertCard({
+          cardEntry: {
+            'type': 'Application',
+            'group': 'tv',
+            'manifestURL': 'app://tv-deck.gaiamobile.org/manifest.webapp',
+            'launchURL': 'app://tv-deck.gaiamobile.org/#42'
+          }
+        });
+        assert.equal(cardManager._cardList.length, expectedCardListLength);
+      });
+
+  });
+
 
   suite('writeCardlistInCardStore', function() {
     var cardManager;
@@ -313,8 +410,7 @@ suite('smart-home/CardManager', function() {
             removable: false,
             manifest: {},
             manifestURL: 'app://dashboard.gaiamobile.org/manifest.webapp'
-          },
-          launchURL: 'app://dashboard.gaiamobile.org/index.html'
+          }
         }),
         emptyFolder,
         secondEmptyFolder,
@@ -328,6 +424,22 @@ suite('smart-home/CardManager', function() {
           }
         })
       ];
+
+      cardManager.installedApps = {
+        'app://dashboard.gaiamobile.org/manifest.webapp': {
+          name: 'Dashboard',
+          removable: false,
+          manifest: {},
+          manifestURL: 'app://dashboard.gaiamobile.org/manifest.webapp'
+        },
+        'app://music.gaiamobile.org/manifest.webapp': {
+          name: 'Music',
+          removable: false,
+          manifest: {},
+          manifestURL: 'app://music.gaiamobile.org/manifest.webapp'
+        }
+      };
+
     });
 
     teardown(function() {

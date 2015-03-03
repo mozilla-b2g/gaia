@@ -28,7 +28,7 @@ function buildApps(options) {
   var callscreen;
   var communications;
   var webapps = gaia.rebuildWebapps.filter(function(app) {
-    var path = app.appDir.path;
+    var path = app.appDirPath;
     if (path.indexOf('callscreen') !== -1) {
       callscreen = app;
       return false;
@@ -41,7 +41,7 @@ function buildApps(options) {
   }
 
   webapps.forEach(function(app) {
-    let appDir = app.appDir.path;
+    let appDir = app.appDirPath;
     let appDirFile = utils.getFile(appDir);
     let appOptions = utils.cloneJSON(options);
     let stageAppDir = utils.getFile(options.STAGE_DIR, appDirFile.leafName);

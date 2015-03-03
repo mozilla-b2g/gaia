@@ -13,13 +13,16 @@
         </li>
         <li>
           <form id="rp-change-pass-form">
-          <li>
-            <span class="button icon icon-dialog">
-              <select class="pin-type"></select>
-            </span>
-          </li>            
+            <li>
+              <span class="button icon icon-dialog">
+                <select class="pin-type"></select>
+              </span>
+            </li>
             <input class="pin" x-inputmode="digit" size="8" maxlength="8" type="password" data-l10n-id="enter" placeholder="">
-            <div class="pin-validation-message"></div>
+            <div class="pin-validation-message">
+              <span class="pin-error-message"></span>
+              <span class="pin-tries-left" data-l10-id="pin-tries-left" hidden></span>
+            </div>
             <input class="pass1" type="password" data-l10n-id="new-passphrase" placeholder="">
             <input class="pass2" type="password" data-l10n-id="confirm-new-passphrase" placeholder="">
             <div class="validation-message"></div>

@@ -47,7 +47,7 @@ class TestSetUpConferenceCall(GaiaTestCase):
         Wait(self.marionette).until(lambda m: self.data_layer.active_telephony_state == 'connected')
 
         self.call_uuid = self.plivo.make_call(
-            to_number=self.testvars['local_phone_numbers'][0].replace('+', ''))
+            to_number=self.environment.phone_numbers[0].replace('+', ''))
         call_screen = CallScreen(self.marionette)
         call_screen.wait_for_incoming_call_while_on_call()
 

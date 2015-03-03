@@ -2,7 +2,7 @@
 /*global define, console, FontSizeUtils, requestAnimationFrame */
 'use strict';
 
-define(function(require) {
+define(function(require, exports, module) {
 
 var msgHeaderItemNode = require('tmpl!./msg/header_item.html'),
     deleteConfirmMsgNode = require('tmpl!./msg/delete_confirm.html'),
@@ -187,6 +187,7 @@ return [
 
       this.editMode = false;
       this.selectedMessages = null;
+      this.isFirstTimeVisible = true;
 
       this.curFolder = null;
       this.isIncomingFolder = true;
@@ -380,9 +381,6 @@ return [
       // be smaller which messes up our logic a bit.  We trigger metric
       // gathering in non-search cases too for consistency.
       this.vScroll.captureScreenMetrics();
-      if (this.mode === 'search') {
-        this.searchInput.focus();
-      }
     },
 
     onSearchButton: function() {
@@ -749,6 +747,10 @@ return [
         console.error('problem killing slice:', ex, '\n', ex.stack);
       }
       cards.removeCardAndSuccessors(this, 'animate');
+    },
+
+    onClearSearch: function() {
+      this.showSearch('', this.curFilter);
     },
 
     onGetMoreMessages: function() {
@@ -1130,7 +1132,7 @@ return [
         this._cacheListLimit
       );
 
-      htmlCache.saveFromNode(cacheNode);
+      htmlCache.saveFromNode(module.id, cacheNode);
     },
 
     /**
@@ -1566,6 +1568,16 @@ return [
         fn();
       }
 
+      // First time this card is visible, want the search field focused if this
+      // is a search. Do not want to do it on every cardVisible, as the user
+      // could be scrolled/have their own place in the search results, and are
+      // likely going back and forth between this card and message_reader.
+      if (this.mode === 'search' && this.isFirstTimeVisible) {
+        this.searchInput.focus();
+      }
+
+      this.isFirstTimeVisible = false;
+
       // In case the vScroll was initialized when the card was not visible, like
       // in an activity/notification flow when this card is created in the
       // background behind the compose/reader card, let it know it is visible
@@ -1658,7 +1670,7 @@ return [
         headerCursor.setCurrentMessage(header);
       } else if (messageNode.dataset.id) {
         // a case where header was not set yet, like clicking on a
-        // cookie cached node, or virtual scroll item that is no
+        // html cached node, or virtual scroll item that is no
         // longer backed by a header.
         headerCursor.setCurrentMessageBySuid(messageNode.dataset.id);
       } else {

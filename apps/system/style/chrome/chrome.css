@@ -232,6 +232,25 @@
   transform: scaleX(1);
 }
 
+
+/* Private browser icon in rocketbar */
+.appWindow.private > .chrome.maximized .title {
+  -moz-padding-start: 4rem;
+}
+
+.appWindow.private > .chrome.maximized .pb-icon {
+  display: block;
+  width: 4rem;
+  height: 100%;
+  position: absolute;
+  top: 0.1rem;
+  left: 0.3rem;
+  right: 0.3rem;
+  background: url("images/pb_rocketbar.png") no-repeat 0.8rem center / 2.5rem;
+}
+
+
+/* SSL Lock Icons in rocketbar */
 .chrome.maximized .title[data-ssl="secure"] {
   -moz-padding-start: 3rem;
   background: url("images/light/ssl.png") no-repeat 0.1rem center / 3rem 3rem;
@@ -242,6 +261,14 @@
   background: url("images/light/ssl_broken.png") no-repeat 0.1rem center / 3rem 3rem;
 }
 
+.appWindow.private > .chrome.maximized .title[data-ssl="broken"],
+.appWindow.private > .chrome.maximized .title[data-ssl="secure"] {
+  -moz-padding-start: 6.5rem;
+  background-position: 3.7rem 0.1rem;
+}
+
+
+/* Handle urlbar sizing when back or forward buttons are disabled */
 .collapsible .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
 .collapsible .chrome:not(.maximized) .forward-button:not([disabled]) + .urlbar {
   transform: scaleX(var(--rocketbar-scale)) translateX(-5.5rem);
@@ -555,7 +582,12 @@ html[dir="rtl"] .light .controls .forward-button:active {
 
 html[dir="rtl"] .chrome.maximized .title[data-ssl="broken"],
 html[dir="rtl"] .chrome.maximized .title[data-ssl="secure"] {
-  background-position: calc(100% - 0.1rem) center
+  background-position: calc(100% - 0.1rem) 0.1rem;
+}
+
+html[dir="rtl"] .appWindow.private > .chrome.maximized .title[data-ssl="broken"],
+html[dir="rtl"] .appWindow.private > .chrome.maximized .title[data-ssl="secure"] {
+  background-position: calc(100% - 3.7rem) 0.1rem;
 }
 
 /*

@@ -22,7 +22,6 @@ apps/email/test/marionette/notification_set_interval_test.js
 apps/email/test/marionette/reply_imap_email_test.js
 apps/email/test/marionette/send_imap_email_test.js
 apps/email/test/unit/app_messages_test.js
-apps/email/test/unit/evt_test.js
 apps/email/test/unit/header_cursor_test.js
 apps/email/test/unit/mail_app_test.js
 apps/email/test/unit/mix_test.js
@@ -186,8 +185,6 @@ apps/settings/js/downloads/downloads_list.js
 apps/settings/js/dsds_settings.js
 apps/settings/js/hotspot.js
 apps/settings/js/hotspot_wifi_settings.js
-apps/settings/js/icc.js
-apps/settings/js/icc_menu.js
 apps/settings/js/media_storage.js
 apps/settings/js/settings.js
 apps/settings/js/simcard_dialog.js
@@ -213,7 +210,6 @@ apps/sharedtest/test/unit/device_storage_test.js
 apps/sharedtest/test/unit/gesture_detector_test.js
 apps/sharedtest/test/unit/mediadb_test.js
 apps/sharedtest/test/unit/tag_visibility_monitor_test.js
-apps/sharedtest/test/unit/template_test.js
 apps/system/js/airplane_mode.js
 apps/system/js/base_ui.js
 apps/system/js/browser_config_helper.js
@@ -273,7 +269,7 @@ apps/system/test/unit/fxa_test/screens/fxam_signup_success_test.js
 apps/system/test/unit/iac_handler_test.js
 apps/system/test/unit/identity_test.js
 apps/system/test/unit/keyboard_helper_test.js
-apps/system/test/unit/lockscreen_test.js
+apps/system/test/unit/lockscreen/lockscreen_test.js
 apps/system/test/unit/mobile_operator_test.js
 apps/system/test/unit/mock_applications.js
 apps/system/test/unit/mock_apps_mgmt.js
@@ -341,6 +337,7 @@ shared/js/fb/fb_data_reader.js
 shared/js/fb/fb_reader_utils.js
 shared/js/fb/fb_request.js
 shared/js/fxa_iac_client.js
+apps/system/fxa/test/marionette/test-fxa-client/js/fxa_iac_client.js
 shared/js/keyboard_helper.js
 shared/js/lockscreen_slide.js
 shared/js/mediadb.js

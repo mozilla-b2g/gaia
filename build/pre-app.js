@@ -1,32 +1,32 @@
 'use strict';
 
-/* global require, exports */
+var utils = require('utils');
+var nodeHelper = new utils.NodeHelper();
 
 function execute(options) {
-  require('./clean-stage-app').execute(options);
+  nodeHelper.require('clean-stage-app', options);
 
-  require('./svoperapps').execute(options);
+  nodeHelper.require('svoperapps', options);
 
-  // Populates webapps_shared.json in stage folder
-  // and uuid.json for external apps
-  require('./webapp-manifests').execute(options);
+  nodeHelper.require('webapp-manifests', options);
 
-  require('./contacts-import-services').execute(options);
+  nodeHelper.require('contacts-import-services', options);
 
-  // A separate step for shared/ folder to generate its content in build time
-  require('./keyboard-layouts').execute(options);
+  nodeHelper.require('./search-provider', options);
 
-  // Generate user.js
-  require('./preferences').execute(options);
+  nodeHelper.require('./keyboard-layouts', options);
+
+  nodeHelper.require('./preferences', options);
 
   if (options.BUILD_APP_NAME == '*') {
-    require('./settings').execute(options);
+    nodeHelper.require('settings', options);
   }
 
   // Copy shared files to stage folders
-  require('./webapp-shared').execute(options);
+  nodeHelper.require('webapp-shared', options);
 
   // Copy common files such as webapps.json
-  require('./copy-common-files').execute(options);
+  nodeHelper.require('copy-common-files', options);
 }
+
 exports.execute = execute;

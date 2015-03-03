@@ -204,7 +204,8 @@ li .button.icon-view:active {
 li button.icon-view:before,
 li .bb-button.icon-view:before,
 li .button.icon-view:before {
-  background-image: url(buttons/images/next.png);
+  background-image: url(buttons/images/forward-light.svg);
+  background-size: 3rem;
   right: 0;
 }
 

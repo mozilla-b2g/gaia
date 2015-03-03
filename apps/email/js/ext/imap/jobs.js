@@ -690,7 +690,10 @@ ImapJobDriver.prototype = {
             nextId = targetConn.box.uidNext;
           } else {
             usingUid = false;
-            nextId = targetConn.box.exists;
+            // Message sequence numbers are 1-based, so if 0 exist, then 1 is
+            // the sequence number of the next message.  If 1 exists, its
+            // number is 1, and the next number is 2.  And so on.
+            nextId = targetConn.box.exists + 1;
           }
 
           folderConn._conn.copyMessages(serverIds.join(','),
@@ -744,7 +747,6 @@ ImapJobDriver.prototype = {
                     }
                     var namer = guidToNamer[guid];
                     stateDelta.serverIdMap[namer.suid] = msg.uid;
-                    uidnext = msg.uid + 1;
                     var newSuid = state.moveMap[namer.suid];
                     var newId =
                           parseInt(newSuid.substring(newSuid.lastIndexOf('/') + 1));

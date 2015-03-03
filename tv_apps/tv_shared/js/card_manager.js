@@ -374,10 +374,19 @@
     insertCard: function cm_insertCard(options) {
       var that = this;
       this._asyncSemaphore.wait(function() {
-        /// XXX: We really should check if card specified in options is
-        /// pinned or not, in order not to pin the same card twice
         var newCard = this._deserializeCardEntry(options.cardEntry);
         var position;
+
+        // prevent same card from being inserted twice
+        if (newCard && newCard.nativeApp) {
+          var sameCardExisting = that.findCardFromCardList({
+            manifestURL: newCard.nativeApp.manifestURL,
+            launchURL: newCard.launchURL
+          });
+          if (sameCardExisting) {
+            return;
+          }
+        }
 
         if (options.index === 'number') {
           position = options.index;
@@ -599,6 +608,47 @@
           reject('Error on loading blob of ' + manifestURL);
         });
       });
+    },
+
+    _getLocalizedName: function cm_getLocalizedName(manifestURL, lang) {
+      if (!manifestURL || !lang) {
+        return;
+      }
+
+      var manifest = this.getEntryManifest(manifestURL);
+      var locales = manifest.locales;
+      var localizedName = locales && locales[lang] &&
+        (locales[lang].short_name || locales[lang].name);
+      return localizedName || manifest.short_name || manifest.name;
+    },
+
+    // Resolve to one of the following forms:
+    // 1. {raw: 'localized name'}
+    // 2. {id: 'l10nid'}
+    // 3. undefined
+    resolveCardName: function cm_resolveCardName(card, lang) {
+      var name;
+      if (!card || !lang) {
+        return name;
+      }
+
+      // Priority is:
+      // 1. user given name
+      // 2. localized application/deck name if it is an application/deck
+      // 3. l10nId if any
+      if (card.name && card.name.raw) {
+        name = {
+          raw: card.name.raw
+        };
+      } else if (card.nativeApp &&
+          (card instanceof Application || card instanceof Deck)) {
+        name = {
+          raw: this._getLocalizedName(card.nativeApp.manifestURL, lang)
+        };
+      } else if (card.name && card.name.id) {
+        name = card.name;
+      }
+      return name;
     },
 
     getCardList: function cm_getCardList() {

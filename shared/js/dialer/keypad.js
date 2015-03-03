@@ -198,10 +198,7 @@ var KeypadManager = {
                                                 this.hangUpCallFromKeypad);
     }
 
-    /* XXX: We should be using the `notification' channel here but we can't due
-     * to bug 1092346 and pass `null' instead, forcing the use of the default
-     * audio channel. */
-    TonePlayer.init(this._onCall ? 'telephony' : null);
+    TonePlayer.init(this._onCall ? 'telephony' : 'notification');
 
     this.render();
     LazyLoader.load(['/shared/style/action_menu.css',
@@ -433,17 +430,6 @@ var KeypadManager = {
       TonePlayer.stop();
     }
 
-    // Handle speed dial numbers
-    if (this._isSpeedDialNumber(this._phoneNumber)) {
-      var self = this;
-      var index = this._phoneNumber.slice(0, -1); // Remove the trailing '#'
-
-      this._getSpeedDialNumber(+index).then(
-      function(number) {
-        self.updatePhoneNumber(number, 'begin', false);
-      });
-    }
-
     this.restoreCaretPosition();
 
     // If it was a long press our work is already done
@@ -479,13 +465,36 @@ var KeypadManager = {
       return;
     }
 
-    // Per certification requirement, we need to send an MMI request to
-    // get the device's IMEI as soon as the user enters the last # key from
-    // the "*#06#" MMI string. See bug 857944.
-    if (key === '#' && this._phoneNumber === '*#06#') {
-      this.multiSimActionButton.performAction();
-      event.target.classList.remove('active');
-      return;
+    // Per certification requirements abbreviated dialing codes need to be
+    // called immediately after the user enters the '#' key. This covers
+    // retrieving the device's IMEI codes as well as speed dialing.
+    if (key === '#') {
+      if (this._phoneNumber === '*#06#') {
+        this.multiSimActionButton.performAction();
+        event.target.classList.remove('active');
+        return;
+      } else if (this._isSpeedDialNumber(this._phoneNumber)) {
+        var self = this;
+        var index = this._phoneNumber.slice(0, -1); // Remove the trailing '#'
+
+        this.updatePhoneNumber('', 'begin', false);
+        this._getSpeedDialNumber(+index).then(
+        function(number) {
+          self.updatePhoneNumber(number, 'begin', false);
+        }, function(error) {
+          /* Do not display an error message if the user explicitly
+           * cancelled the speed dial operation. */
+          if (error) {
+            ConfirmDialog.show(error, null,  {
+              title: 'noContactsFoundDialogOk',
+              callback: ConfirmDialog.hide
+            });
+          }
+        });
+
+        event.target.classList.remove('active');
+        return;
+      }
     }
 
     // If user input number more 50 digits, app shouldn't accept.
@@ -564,7 +573,7 @@ var KeypadManager = {
         if ((index >= 0) && (index < simContactsList.length)) {
           return simContactsList[index].number;
         } else {
-          return Promise.reject();
+          return Promise.reject('noContactsWereFound');
         }
       });
     });
@@ -632,10 +641,10 @@ var KeypadManager = {
           req.onerror = function(error) {
             console.error('Could not retrieve the ADN contacts from SIM card ' +
                           cardIndex + ', got error ' + error.name);
-            reject();
+            reject('noContactsWereFound');
           };
 
-          ConfirmDialog.show('loadingContacts', null, {
+          ConfirmDialog.show('loadingSimContacts', null, {
             title: 'cancel',
             callback: function() {
               canceled = true;

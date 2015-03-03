@@ -10,8 +10,6 @@
  * which contains the complete functions used in 'utils.js'
  */
 
-/* jshint node: true */
-
 var utils = require('./utils.js');
 var path = require('path');
 var childProcess = require('child_process');
@@ -21,6 +19,7 @@ var Q = require('q');
 var os = require('os');
 var vm = require('vm');
 var http = require('http');
+var https = require('https');
 var url = require('url');
 var dive = require('diveSync');
 var nodeUUID = require('node-uuid');
@@ -44,8 +43,7 @@ module.exports = {
   },
 
   joinPath: function() {
-    var src = path.join.apply(path, arguments);
-    return src;
+    return path.join.apply(path, arguments);
   },
 
   getOsType: function() {
@@ -58,6 +56,7 @@ module.exports = {
   },
 
   getFile: function() {
+    var self = this;
     var src = path.join.apply(path, arguments);
     var fileStat;
     try {
@@ -69,10 +68,10 @@ module.exports = {
     }
     return {
       exists: function() {
-        return fs.accessSync(src);
+        return self.fileExists(src);
       },
       remove: function() {
-        fs.remove(src);
+        fs.removeSync(src);
       },
       isDirectory: function() {
         return !!fileStat && fileStat.isDirectory();
@@ -124,7 +123,7 @@ module.exports = {
 
   readZipManifest: function(file) {
     var zipPath = this.joinPath(file.path, 'application.zip');
-    if (!fs.accessSync(zipPath)) {
+    if (!this.fileExists(zipPath)) {
       return;
     }
     var manifest = new JSZip(fs.readFileSync(zipPath)).file('manifest.webapp');
@@ -231,6 +230,9 @@ module.exports = {
 
   ls: function(dir, recursive, pattern, include) {
     var files = [];
+    if (!dir || !dir.exists()) {
+      return [];
+    }
     dive(dir.path, { recursive: recursive }, function(err, filePath) {
       if (err) {
         // Skip error
@@ -238,14 +240,33 @@ module.exports = {
       }
       var file = this.getFile(filePath);
       if (!pattern || !(include ^ pattern.test(file.leafName))) {
-        files.push(this.getFile(file));
+        files.push(file);
       }
     }.bind(this));
     return files;
   },
 
-  downloadJSON: function(url, callback) {
-    http.get(url, function(res) {
+  download: function(fileUrl, dest, callback, errorCallback) {
+    var protocol = url.parse(fileUrl).protocol;
+    var request = (protocol === 'http:') ? http : https;
+    var file = fs.createWriteStream(dest);
+    request.get(fileUrl, function(response) {
+      response.pipe(file);
+      file.on('finish', function() {
+        file.close(callback);
+      });
+    }).on('error', function(err) {
+      fs.unlinkSync(dest);
+      if (errorCallback) {
+        errorCallback();
+      }
+    });
+  },
+
+  downloadJSON: function(fileUrl, callback) {
+    var protocol = url.parse(fileUrl).protocol;
+    var request = (protocol === 'http:') ? http : https;
+    request.get(fileUrl, function(res) {
       var body = '';
       res.on('data', function(chunk) {
         body += chunk;
@@ -258,6 +279,10 @@ module.exports = {
     }).on('error', function(e) {
       throw new Error('Download JSON with error: ' + e);
     });
+  },
+
+  readJSONFromPath: function(path) {
+    return require(path);
   },
 
   concatenatedScripts: function(scriptsPaths, targetPath) {
@@ -309,11 +334,11 @@ module.exports = {
     let updateFile = appDir.path + '/update.webapp';
 
     // Ignore directories without manifest
-    if (!fs.accessSync(manifestFile) && !fs.accessSync(updateFile)) {
+    if (!this.fileExists(manifestFile) && !this.fileExists(updateFile)) {
       return;
     }
 
-    let manifest = fs.accessSync(manifestFile) ? manifestFile : updateFile;
+    let manifest = this.fileExists(manifestFile) ? manifestFile : updateFile;
     let manifestJSON = this.getJSON(this.getFile(manifest));
 
     // Use the folder name as the the domain name
@@ -324,21 +349,21 @@ module.exports = {
 
     let self = this;
     let webapp = {
-      appDir: appDir,
+      appDirPath: appDir.path,
       manifest: manifestJSON,
-      manifestFile: self.getFile(manifest),
+      manifestFilePath: manifest,
       url: config.GAIA_SCHEME + appDomain,
       domain: appDomain,
-      sourceDirectoryFile: self.getFile(manifestFile, '..'),
+      sourceDirectoryFilePath: appDir.path,
       sourceDirectoryName: appDir.leafName,
       sourceAppDirectoryName: self.getFile(appDir.path, '..').leafName
     };
 
     // External webapps have a `metadata.json` file
-    let metaData = this.getFile(webapp.sourceDirectoryFile.path,
+    let metaData = this.getFile(webapp.sourceDirectoryFilePath,
       'metadata.json');
     if (metaData.exists()) {
-      webapp.pckManifest = this.readZipManifest(webapp.sourceDirectoryFile);
+      webapp.pckManifest = this.readZipManifest(appDir);
       webapp.metaData = this.getJSON(metaData);
       webapp.appStatus = utils.getAppStatus(webapp.metaData.type || 'web');
     } else {
@@ -346,9 +371,9 @@ module.exports = {
     }
 
     // Some webapps control their own build
-    webapp.buildDirectoryFile = this.getFile(config.STAGE_DIR,
+    webapp.buildDirectoryFilePath = this.joinPath(config.STAGE_DIR,
       webapp.sourceDirectoryName);
-    webapp.buildManifestFile = this.getFile(webapp.buildDirectoryFile.path,
+    webapp.buildManifestFilePath = this.joinPath(webapp.buildDirectoryFilePath,
       'manifest.webapp');
 
     // Generate the webapp folder name in the profile. Only if it's privileged
@@ -376,14 +401,16 @@ module.exports = {
     } else {
       webappTargetDirName = webapp.domain;
     }
-    webapp.profileDirectoryFile = this.getFile(config.PROFILE_DIR, 'webapps',
-      webappTargetDirName);
+    webapp.profileDirectoryFilePath = this.joinPath(config.PROFILE_DIR,
+      'webapps', webappTargetDirName);
 
     return webapp;
   },
 
   getNewURI: function(uri) {
-    return url.parse(uri);
+    var result = url.parse(uri);
+    result.prePath = result.protocol + '//' + result.host;
+    return result;
   },
 
   isExternalApp: function(webapp) {
@@ -392,7 +419,7 @@ module.exports = {
         'since Firefox OS 2.1, please add it into metadata.json and update ' +
         'preload.py if you use this script to perload your apps. If you ' +
         'created metadata.json for non-external apps, please set "external" ' +
-        'to false. metadata.json is in ' + webapp.sourceDirectoryFile.path);
+        'to false. metadata.json is in ' + webapp.sourceDirectoryFilePath);
     }
     if (!webapp.metaData || webapp.metaData.external === false) {
       return false;
@@ -445,7 +472,7 @@ module.exports = {
   },
 
   fileExists: function(path) {
-    return fs.accessSync(path);
+    return fs.existsSync(path);
   },
 
   listFiles: function(path, type, recursive, exclude) {

@@ -340,6 +340,7 @@ form p textarea + button[type="reset"].hide {
   margin-left: 0 !important;
 }
 
+#contact-detail p > strong,
 #contact-detail bdi > strong,
 .action-block b,
 .comment-notes {
@@ -1013,6 +1014,23 @@ li button[data-field-type]:active {
   color: #5F5F5F;
 }
 
+/* Ellipsis fix for contact lists */
+/*we hijack the overflow and text-overflow
+ * of the shared style to make the ellipsis display always at the end
+ * (ie right for LTR string and left for RTL string)
+ * while keeping alignment of the current system-wide language */
+[data-type="list"] li.contact-item bdi {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  max-width: 100%;
+}
+
+/* emails are always LTR */
+li button.icon-email > b {
+  direction: ltr;
+}
+
 /* RTL View */
 
 html[dir="rtl"] .field-template {
@@ -1060,4 +1078,26 @@ html[dir="rtl"] .img-delete-button {
 html[dir="rtl"] #import-settings [data-type="list"] li button.icon:before {
   left: auto;
   right: 0.5rem;
+}
+
+/* RTL View */
+html[dir="rtl"] nav[data-type="scrollbar"] {
+  direction: ltr;
+  right: 0;
+  left: unset;
+}
+
+html[dir="rtl"] nav[data-type="scrollbar"] p {
+  left: unset;
+  right: 10rem;
+}
+
+/* Overwrite input-areas bb */
+#custom-tag-reset {
+  right: 1rem;
+}
+
+html[dir="rtl"] #custom-tag-reset {
+  left: 1rem;
+  right: unset;
 }

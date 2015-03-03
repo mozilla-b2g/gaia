@@ -6,14 +6,14 @@
 
     <div class="view-scroll">
       <section class="usage fade">
-        <section id="app-graphic-area" class="graph">
-          <canvas id="app-background-layer"></canvas>
-          <canvas id="app-wifi-layer" hidden></canvas>
-          <canvas id="app-mobile-layer"></canvas>
-          <canvas id="app-axis-layer"></canvas>
-          <canvas id="app-today-layer"></canvas>
-          <canvas id="app-warning-layer"></canvas>
-          <canvas id="app-limits-layer"></canvas>
+        <section id="app-graphic-area" class="graph" role="img" aria-labelledby="app-axis-layer app-today-layer app-limits-layer app-warning-layer">
+          <canvas id="app-background-layer" aria-hidden="true"></canvas>
+          <canvas id="app-wifi-layer" hidden aria-hidden="true"></canvas>
+          <canvas id="app-mobile-layer" aria-hidden="true"></canvas>
+          <canvas id="app-axis-layer" aria-hidden="true"></canvas>
+          <canvas id="app-today-layer" aria-hidden="true"></canvas>
+          <canvas id="app-warning-layer" aria-hidden="true"></canvas>
+          <canvas id="app-limits-layer" aria-hidden="true"></canvas>
           <img hidden alt="" src="./style/images/app/ui/datausage/pattern.png" id="app-graphic-pattern" />
         </section>
 

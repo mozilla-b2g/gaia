@@ -40,7 +40,7 @@
  *  to tell when an app has crashed.
  */
 /* global asyncStorage, SettingsListener, performance, SIMSlotManager,
-          MobileOperator */
+          MobileOperator, uuid, TelemetryRequest */
 (function(exports) {
   'use strict';
 
@@ -53,7 +53,8 @@
   const PERSISTENCE_KEY = 'metrics.app_usage.data.v2';
 
   // This is the asyncStorage key we use to persist our device ID
-  const DEVICE_ID_KEY = 'metrics.app_usage.deviceID';
+  // v1 of this ID used a randomly generated String, while v2 uses a UUID
+  const DEVICE_ID_KEY = 'metrics.app_usage.deviceID.v2';
 
   // Various event types we use. Constants here to be sure we use the
   // same values when registering, unregistering and handling these.
@@ -89,6 +90,9 @@
     ATTENTIONOPENED,
     ATTENTIONCLOSED
   ];
+
+
+  const MARKETPLACE_ORIGINS = ['https://marketplace.firefox.com'];
 
   // This AppUsageMetrics() constructor is the value we export from
   // this module. This constructor does no initialization itself: that
@@ -126,12 +130,8 @@
   AUM.TELEMETRY_ENABLED_KEY = 'debug.performance_data.shared';
 
   // Base URL for sending data reports
-  // Can be overridden with ftu.pingURL setting.
-  AUM.BASE_URL = 'https://fxos.telemetry.mozilla.org/submit/telemetry';
-
-  // Where do we send our data reports
   // Can be overridden with metrics.appusage.reportURL setting.
-  AUM.REPORT_URL = AUM.BASE_URL + '/metrics/FirefoxOS/appusage';
+  AUM.REPORT_URL = 'https://fxos.telemetry.mozilla.org/submit/telemetry';
 
   // How often do we try to send the reports
   // Can be overridden with metrics.appusage.reportInterval setting.
@@ -150,6 +150,15 @@
   // How much user idle time (in seconds, not ms) do we wait for before
   // persisting our data to asyncStorage or trying to transmit it.
   AUM.IDLE_TIME = 5;                          // seconds
+
+  // Telemetry payload version
+  AUM.TELEMETRY_VERSION = 1;
+
+  // Telemetry "reason" field
+  AUM.TELEMETRY_REASON = 'appusage';
+
+  // App name (static for Telemetry)
+  AUM.TELEMETRY_APP_NAME = 'FirefoxOS';
 
   /*
    * AppUsageMetrics instance methods
@@ -215,7 +224,7 @@
     this.locked = false;
 
     // What is the URL of the lockscreen app?
-    this.lockscreenURL = null;
+    this.lockscreenApp = null;
 
     // A stack of attention window manifest URLs and start times
     this.attentionWindows = [];
@@ -240,9 +249,9 @@
       undefined;
   };
 
-  AUM.prototype.getCurrentURL = function() {
+  AUM.prototype.getCurrentApp = function() {
     return !this.attentionWindows || this.attentionWindows.length === 0 ?
-      this.currentApp : this.getTopAttentionWindow().manifestURL;
+      this.currentApp : this.getTopAttentionWindow().app;
   };
 
   AUM.prototype.getCurrentStartTime = function() {
@@ -301,8 +310,7 @@
         }
         else {
           // Our device id does not need to be unique, just probably unique.
-          // And it doesn't even need to be a real UUID
-          self.deviceID = Math.random().toString(36).substring(2, 10);
+          self.deviceID = uuid();
           asyncStorage.setItem(DEVICE_ID_KEY, self.deviceID);
         }
 
@@ -316,7 +324,7 @@
     function getConfigurationSettings() {
       // Settings to query, mapped to default values
       var query = {
-        'ftu.pingURL': AUM.BASE_URL,
+        'ftu.pingURL': AUM.REPORT_URL,
         'metrics.appusage.reportURL': null,
         'metrics.appusage.reportInterval': AUM.REPORT_INTERVAL,
         'metrics.appusage.reportTimeout': AUM.REPORT_TIMEOUT,
@@ -325,7 +333,7 @@
 
       AUM.getSettings(query, function(result) {
         AUM.REPORT_URL = result['metrics.appusage.reportURL'] ||
-                         result['ftu.pingURL'] + '/metrics/FirefoxOS/appusage';
+                         result['ftu.pingURL'];
 
         AUM.REPORT_INTERVAL = result['metrics.appusage.reportInterval'];
         AUM.REPORT_TIMEOUT = result['metrics.appusage.reportTimeout'];
@@ -402,20 +410,20 @@
       // The user has opened an app, switched apps, or switched to the
       // homescreen. Record data about the app that was running and then
       // update the currently running app.
-      this.metrics.recordInvocation(this.getCurrentURL(),
+      this.metrics.recordInvocation(this.getCurrentApp(),
                                     now - this.getCurrentStartTime());
       this.attentionWindows = [];
-      this.currentApp = e.detail.manifestURL;
+      this.currentApp = e.detail;
       this.currentAppStartTime = now;
       break;
 
     case ATTENTIONOPENED:
       // Push the current attention screen start time onto stack, and use
       // currentApp / currentAppStartTime when the stack is empty
-      this.metrics.recordInvocation(this.getCurrentURL(),
+      this.metrics.recordInvocation(this.getCurrentApp(),
                                     now - this.getCurrentStartTime());
       this.attentionWindows.push({
-        manifestURL: e.detail.manifestURL,
+        app: e.detail,
         startTime: now
       });
       break;
@@ -435,7 +443,7 @@
       // Note that if the lockscreen is disabled we won't get this event
       // and will just go straight to the screenchange event. In that
       // case we have to record the invocation when we get that event
-      this.metrics.recordInvocation(this.getCurrentURL(),
+      this.metrics.recordInvocation(this.getCurrentApp(),
                                     now - this.getCurrentStartTime());
       this.setCurrentStartTime(now);
 
@@ -446,15 +454,15 @@
 
       // In version 2.1 we use lockscreen-appopened events and get a real URL
       // In 2.0 and before we just use a locked event and don't get the url
-      this.lockscreenURL = (e.detail && e.detail.manifestURL) || 'lockscreen';
+      this.lockscreenApp = e.detail;
       break;
 
     case UNLOCKED:
       // If the lockscreen was started when the phone went to sleep, then
       // when we wake up we note the time and when we get this event, we
       // record the time spent on the lockscreen.
-      if (this.locked && this.lockscreenURL) {
-        this.metrics.recordInvocation(this.lockscreenURL,
+      if (this.locked && this.lockscreenApp) {
+        this.metrics.recordInvocation(this.lockscreenApp,
                                       now - this.currentAppStartTime);
 
         // We left the currentApp unchanged when the phone went to sleep
@@ -486,8 +494,8 @@
         // if the user wakes the phone up and never unlocks it and then
         // we time out again, we need to record lockscreen time here,
         // not current app time.
-        var appurl = this.locked ? this.lockscreenURL : this.getCurrentURL();
-        this.metrics.recordInvocation(appurl, now - this.getCurrentStartTime());
+        var app = this.locked ? this.lockscreenApp : this.getCurrentApp();
+        this.metrics.recordInvocation(app, now - this.getCurrentStartTime());
       }
       break;
 
@@ -497,9 +505,9 @@
       // the stack. Otherwise we reset the currentApp's start time when the
       // stack is empty.
       var attentionWindow = this.getTopAttentionWindow();
-      if (attentionWindow &&
-          attentionWindow.manifestURL === e.detail.manifestURL) {
-        this.metrics.recordInvocation(e.detail.manifestURL,
+      if (attentionWindow && attentionWindow.app &&
+          attentionWindow.app.manifestURL === e.detail.manifestURL) {
+        this.metrics.recordInvocation(e.detail,
                                       now - attentionWindow.startTime);
         this.attentionWindows.pop();
       } else {
@@ -510,11 +518,11 @@
       break;
 
     case INSTALL:
-      this.metrics.recordInstall(e.detail.application.manifestURL);
+      this.metrics.recordInstall(e.detail.application);
       break;
 
     case UNINSTALL:
-      this.metrics.recordUninstall(e.detail.application.manifestURL);
+      this.metrics.recordUninstall(e.detail.application);
       break;
 
     case IDLE:
@@ -684,20 +692,24 @@
     }
 
     function send(data) {
-      var xhr = new XMLHttpRequest({ mozSystem: true, mozAnon: true });
-      xhr.open('POST', AUM.REPORT_URL);
-      xhr.timeout = AUM.REPORT_TIMEOUT;
-      xhr.setRequestHeader('Content-type', 'application/json');
-      xhr.responseType = 'text';
-      xhr.send(JSON.stringify(data));
+      var info = data.deviceinfo;
+      var request = new TelemetryRequest({
+        reason: AUM.TELEMETRY_REASON,
+        deviceID: self.deviceID,
+        ver: AUM.TELEMETRY_VERSION,
+        url: AUM.REPORT_URL,
+        appUpdateChannel: info['deviceinfo.update_channel'],
+        appVersion: info['deviceinfo.platform_version'],
+        appBuildID: info['deviceinfo.platform_build_id']
+      }, data);
 
       // We don't actually have to do anything if the data is transmitted
       // successfully. We are already set up to collect the next batch of data.
-      xhr.onload = function() {
-        debug('Transmitted app usage data to', AUM.REPORT_URL);
-      };
+      function onload() {
+        debug('Transmitted app usage data to', request.url);
+      }
 
-      xhr.onerror = xhr.onabort = xhr.ontimeout = function retry(e) {
+      function retry(e) {
         // If the attempt to transmit a batch of data fails, we'll merge
         // the new batch of data (which may be empty) in with the old one
         // and resave everything so we can try again later. We also record
@@ -710,7 +722,15 @@
         oldMetrics.merge(self.metrics);
         self.metrics = oldMetrics;
         self.metrics.save(true);
-      };
+      }
+
+      request.send({
+        timeout: AUM.REPORT_TIMEOUT,
+        onload: onload,
+        onerror: retry,
+        onabort: retry,
+        ontimeout: retry
+      });
     }
   };
 
@@ -731,13 +751,13 @@
   /*
    * Get app usage for the current date
    */
-  UsageData.prototype.getAppUsage = function(app, dayKey) {
-    var usage = this.data.apps[app];
+  UsageData.prototype.getAppUsage = function(manifestURL, dayKey) {
+    var usage = this.data.apps[manifestURL];
     dayKey = dayKey || this.getDayKey();
 
     // We lazily initialize both the per-app and per-day usage maps
     if (!usage) {
-      this.data.apps[app] = usage = {};
+      this.data.apps[manifestURL] = usage = {};
     }
 
     var dayUsage = usage[dayKey];
@@ -749,6 +769,7 @@
         uninstalls: 0,
         activities: {}
       };
+      this.data.apps[manifestURL] = usage;
     }
     return dayUsage;
   };
@@ -767,9 +788,34 @@
     return Object.keys(this.data.apps).length === 0;
   };
 
+  // We only care about recording certain kinds of apps:
+  // - Apps pre-installed with the phone (certified, or using a gaia origin)
+  // - Apps installed from the marketplace
+  UsageData.prototype.shouldTrackApp = function(app) {
+    if (!app) {
+      return false;
+    }
+
+    var manifest = app.manifest || app.updateManifest;
+    if (manifest && manifest.type === 'certified') {
+      return true;
+    }
+
+    if (MARKETPLACE_ORIGINS.indexOf(app.installOrigin) >= 0) {
+      return true;
+    }
+
+    try {
+      var url = new URL(app.manifestURL);
+      return url.hostname.indexOf('gaiamobile.org') >= 0;
+    } catch (e) {
+      return false;
+    }
+  };
+
   UsageData.prototype.recordInvocation = function(app, time) {
-    if (app == null) {
-      return;
+    if (!this.shouldTrackApp(app)) {
+      return false;
     }
 
     // Convert time to seconds and round to the nearest second.  If 0,
@@ -777,46 +823,50 @@
     // lockscreen right before sleeping, for example.)
     time = Math.round(time / 1000);
     if (time > 0) {
-      var usage = this.getAppUsage(app);
+      var usage = this.getAppUsage(app.manifestURL);
       usage.invocations++;
       usage.usageTime += time;
       this.needsSave = true;
       debug(app, 'ran for', time);
     }
+    return time > 0;
   };
 
   UsageData.prototype.recordInstall = function(app) {
-    if (app == null) {
-      return;
+    if (!this.shouldTrackApp(app)) {
+      return false;
     }
 
-    var usage = this.getAppUsage(app);
+    var usage = this.getAppUsage(app.manifestURL);
     usage.installs++;
     this.needsSave = true;
     debug(app, 'installed');
+    return true;
   };
 
   UsageData.prototype.recordUninstall = function(app) {
-    if (app == null) {
-      return;
+    if (!this.shouldTrackApp(app)) {
+      return false;
     }
 
-    var usage = this.getAppUsage(app);
+    var usage = this.getAppUsage(app.manifestURL);
     usage.uninstalls++;
     this.needsSave = true;
     debug(app, 'uninstalled');
+    return true;
   };
 
   UsageData.prototype.recordActivity = function(app, url) {
-    if (app == null) {
-      return;
+    if (!this.shouldTrackApp(app)) {
+      return false;
     }
 
-    var usage = this.getAppUsage(app);
+    var usage = this.getAppUsage(app.manifestURL);
     var count = usage.activities[url] || 0;
     usage.activities[url] = ++count;
     this.needsSave = true;
     debug(app, 'invoked activity', url);
+    return true;
   };
 
   // Merge a newer batch of data into this older batch.

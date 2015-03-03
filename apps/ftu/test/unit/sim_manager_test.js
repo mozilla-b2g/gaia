@@ -582,4 +582,108 @@ suite('sim mgmt >', function() {
     });
   });
 
+  suite('SIM2 inserted >', function() {
+    var iccId1;
+    var iccInfo1;
+    var realIccId0;
+
+    setup(function() {
+      iccId1 = '98765';
+      navigator.mozIccManager.addIcc(iccId1);
+      iccInfo1 = navigator.mozIccManager.getIccById(iccId1);
+      navigator.mozMobileConnections.mAddMobileConnection();
+      navigator.mozMobileConnections[1].iccId = iccId1;
+      navigator.mozMobileConnections[1].iccInfo = iccInfo1;
+
+      SimManager.updateIccState(iccId1);
+      SimManager.simSlots = 2;
+
+      realIccId0 = SimManager.icc0;
+      SimManager.icc0 = null;
+
+      this.sinon.stub(Navigation, 'back');
+    });
+
+    teardown(function() {
+      navigator.mozIccManager.removeIcc(iccId1);
+      navigator.mozMobileConnections.mRemoveMobileConnection(1);
+      SimManager.simSlots = 1;
+      SimManager.icc1 = null;
+      SimManager.icc0 = realIccId0;
+    });
+
+    test('"simUnlockBack" hides the screen', function() {
+      iccInfo1.cardState = 'pinRequired';
+      SimManager.handleCardState();
+
+      SimManager.simUnlockBack();
+      assert.ok(Navigation.back.calledOnce);
+      assert.isTrue(UIManager.activationScreen.classList.contains('show'));
+      assert.isFalse(UIManager.unlockSimScreen.classList.contains('show'));
+      assert.isTrue(UIManager.pinRetriesLeft.classList.contains('hidden'));
+    });
+  });
+
+  suite('SIM1 and SIM2 inserted >', function() {
+    var iccId1;
+    var iccInfo1;
+
+    setup(function() {
+      iccId1 = '98765';
+      navigator.mozIccManager.addIcc(iccId1);
+      iccInfo1 = navigator.mozIccManager.getIccById(iccId1);
+      navigator.mozMobileConnections.mAddMobileConnection();
+      navigator.mozMobileConnections[1].iccId = iccId1;
+      navigator.mozMobileConnections[1].iccInfo = iccInfo1;
+      SimManager.updateIccState(iccId1);
+
+      SimManager.simSlots = 2;
+
+      this.sinon.spy(SimManager, 'skip');
+      this.sinon.spy(Navigation, 'back');
+    });
+
+    teardown(function() {
+      navigator.mozIccManager.removeIcc(iccId1);
+      navigator.mozMobileConnections.mRemoveMobileConnection(1);
+      SimManager.simSlots = 1;
+      SimManager.icc1 = null;
+    });
+
+    test('if SIM1 is skipped, SIM2 screen should be shown', function() {
+      iccInfo0.cardState = 'pinRequired';
+      iccInfo1.cardState = 'pinRequired';
+      SimManager.handleCardState();
+
+      SimManager.skip();
+      assert.ok(SimManager.skip.calledOnce);
+      assert.isFalse(UIManager.activationScreen.classList.contains('show'));
+      assert.isTrue(UIManager.unlockSimScreen.classList.contains('show'));
+      assert.equal(UIManager.pinLabel.getAttribute('data-l10n-args'),
+        '{"n":2}');
+    });
+
+    test('SIM1 is skipped and user go back', function() {
+      iccInfo0.cardState = 'pinRequired';
+      iccInfo1.cardState = 'pinRequired';
+      SimManager.handleCardState();
+
+      SimManager.skip();
+      assert.ok(SimManager.skip.calledOnce);
+      assert.isFalse(UIManager.activationScreen.classList.contains('show'));
+      assert.isTrue(UIManager.unlockSimScreen.classList.contains('show'));
+      assert.equal(UIManager.pinLabel.getAttribute('data-l10n-args'),
+        '{"n":2}');
+      SimManager.icc0.skipped = true;
+
+      SimManager.simUnlockBack();
+      assert.isFalse(Navigation.back.calledOnce);
+      assert.isFalse(UIManager.activationScreen.classList.contains('show'));
+      assert.isTrue(UIManager.unlockSimScreen.classList.contains('show'));
+      assert.equal(UIManager.pinLabel.getAttribute('data-l10n-args'),
+        '{"n":1}');
+    });
+  });
+
+
 });

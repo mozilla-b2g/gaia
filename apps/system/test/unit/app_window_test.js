@@ -631,6 +631,56 @@ suite('system/AppWindow', function() {
     });
   });
 
+  suite('Display Modes', function() {
+    var fakeAppConfigDisplayMinimalUi = {
+      url: 'http://www.fake/index.html',
+      manifest: {
+        'display': 'minimal-ui'
+      },
+      manifestURL: 'app://wwww.fake/ManifestURL',
+      origin: 'app://www.fake'
+    };
+
+    var fakeAppConfigDisplayStandalone = {
+      url: 'http://www.fake/index.html',
+      manifest: {
+        'display': 'standalone'
+      },
+      manifestURL: 'app://wwww.fake/ManifestURL',
+      origin: 'app://www.fake'
+    };
+
+    var fakeAppConfigDisplayFullscreen = {
+      url: 'http://www.fake/index.html',
+      manifest: {
+        'display': 'fullscreen'
+      },
+      manifestURL: 'app://wwww.fake/ManifestURL',
+      origin: 'app://www.fake'
+    };
+    
+    test('minimal-ui', function() {
+      var app1 = new AppWindow(fakeAppConfigDisplayMinimalUi);
+      assert.isFalse(app1.isFullScreen());
+      assert.isTrue(app1.config.chrome.scrollable);
+      assert.isTrue(app1.config.chrome.maximized);
+    });
+
+    test('standalone', function() {
+      var app1 = new AppWindow(fakeAppConfigDisplayStandalone);
+      assert.isFalse(app1.isFullScreen());
+      assert.isFalse(app1.config.chrome.scrollable);
+      assert.isFalse(app1.config.chrome.maximized);
+    });
+
+    test('fullscreen', function() {
+      var app1 = new AppWindow(fakeAppConfigDisplayFullscreen);
+      assert.isTrue(app1.isFullScreen());
+      assert.isFalse(app1.config.chrome.scrollable);
+      assert.isFalse(app1.config.chrome.maximized);
+    });
+  });
+
   suite('ScreenshotOverlay State Control', function() {
     var app1;
     var app2;
@@ -1525,10 +1575,11 @@ suite('system/AppWindow', function() {
       assert.isNull(sheets[1].previousWindow);
     });
 
-    test('Error event', function() {
+    test('App crashed and suspending is disabled', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var stubKill = this.sinon.stub(app1, 'kill');
       var stubPublish = this.sinon.stub(app1, 'publish');
+      AppWindow.SUSPENDING_ENABLED = false;
       app1.handleEvent({
         type: 'mozbrowsererror',
         detail: {
@@ -1540,8 +1591,8 @@ suite('system/AppWindow', function() {
       assert.isTrue(stubPublish.calledWith('crashed'));
     });
 
-    test('Destroy only the browser when app crashed and ' +
-          'suspending is enabled',
+    test('App crashed and suspending is enabled' +
+          'when app is inactive',
       function() {
         var apps = openPopups(2);
         var app1 = apps[0];
@@ -1558,13 +1609,13 @@ suite('system/AppWindow', function() {
             type: 'fatal'
           }
         });
-        assert.isTrue(app1.isCrashed);
+        assert.isFalse(app1.isCrashed);
         assert.isTrue(stubDestroyBrowser.called);
         assert.isTrue(stubKill.called);
         AppWindow.SUSPENDING_ENABLED = false;
       });
 
-    test('Kill the app directly even suspending is enabled ' +
+    test('App crashed and suspending is enabled ' +
           'when the app is active',
       function() {
         var app1 = new AppWindow(fakeAppConfig1);
@@ -2034,6 +2085,7 @@ suite('system/AppWindow', function() {
       var atc1 = {
         switchTransitionState: function() {}
       };
+      var publishStub = this.sinon.stub(app1, 'publish');
       var switchTransitionState =
         this.sinon.stub(atc1, 'switchTransitionState');
       var revive = this.sinon.stub(app1, 'reviveBrowser');
@@ -2045,6 +2097,9 @@ suite('system/AppWindow', function() {
 
       assert.isTrue(switchTransitionState.calledWith('opened'));
       assert.isTrue(revive.called);
+      sinon.assert.calledTwice(publishStub);
+      sinon.assert.calledWith(publishStub, 'opening');
+      sinon.assert.calledWith(publishStub, 'opened');
     });
 
     test('Swipe in event while app is being crashed', function(){
@@ -2068,6 +2123,7 @@ suite('system/AppWindow', function() {
       var atc1 = {
         switchTransitionState: function() {}
       };
+      var publishStub = this.sinon.stub(app1, 'publish');
       var switchTransitionState =
         this.sinon.stub(atc1, 'switchTransitionState');
       app1.transitionController = atc1;
@@ -2077,6 +2133,8 @@ suite('system/AppWindow', function() {
       });
 
       assert.isTrue(switchTransitionState.calledWith('closed'));
+      sinon.assert.calledWith(publishStub, 'closing');
+      sinon.assert.calledWith(publishStub, 'closed');
     });
 
     test('Shrinking start event', function() {

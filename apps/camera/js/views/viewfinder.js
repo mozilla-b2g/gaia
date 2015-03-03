@@ -284,7 +284,8 @@ module.exports = View.extend({
 
   template: function() {
     return '<div class="viewfinder-frame js-frame">' +
-        '<div class="viewfinder-video-container js-video-container">' +
+        '<div class="viewfinder-video-container js-video-container" ' +
+        'aria-hidden="true">' +
           '<video class="viewfinder-video js-video"></video>' +
         '</div>' +
         '<div class="viewfinder-grid">' +

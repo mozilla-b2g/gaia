@@ -7,11 +7,12 @@
 
 'use strict';
 
+require('/shared/js/event_dispatcher.js');
+
 require('/js/utils.js');
 require('/test/unit/mock_utils.js');
 require('/test/unit/mock_startup.js');
 
-require('/js/event_dispatcher.js');
 require('/js/navigation.js');
 
 var mocksHelperForNavigation = new MocksHelper([

@@ -127,7 +127,7 @@ exports.execute = function(options) {
 
         if (buildFile.exists() ||
             (utils.isExternalApp(webapp) && !webapp.pckManifest) ||
-            !webapp.profileDirectoryFile.exists()) {
+            !utils.fileExists(webapp.profileDirectoryFilePath)) {
           rebuildAppDirs.push(appDir);
         }
       });

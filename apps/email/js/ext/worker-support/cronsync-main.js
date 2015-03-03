@@ -35,39 +35,6 @@ define(function(require) {
     return !hasMismatch;
   }
 
-  if (navigator.mozSetMessageHandler) {
-    navigator.mozSetMessageHandler('request-sync',
-    function onRequestSync(e) {
-      var data = e.data;
-      // Need to acquire the wake locks during this notification
-      // turn of the event loop -- later turns are not guaranteed to
-      // be up and running. However, knowing when to release the locks
-      // is only known to the front end, so publish event about it.
-      // Need a CPU lock since otherwise the app can be paused
-      // mid-function, which could lead to unexpected behavior, and the
-      // sync should be completed as quick as possible to then close
-      // down the app.
-      // TODO: removed wifi wake lock due to network complications, to
-      // be addressed in a separate changset.
-      if (navigator.requestWakeLock) {
-        var locks = [
-          navigator.requestWakeLock('cpu')
-        ];
-
-        debug('wake locks acquired: ' + locks +
-              ' for account IDs: ' + data.accountIds);
-
-        evt.emitWhenListener('cronSyncWakeLocks',
-                             makeAccountKey(data.accountIds), locks);
-      }
-
-      debug('request-sync started at ' + (new Date()));
-
-      dispatcher._sendMessage('requestSync',
-                              [data.accountIds, data.interval]);
-    });
-  }
-
   var dispatcher = {
     _routeReady: false,
     _routeQueue: [],
@@ -248,6 +215,50 @@ define(function(require) {
       });
     }
   };
+
+  if (navigator.mozSetMessageHandler) {
+    navigator.mozSetMessageHandler('request-sync', function onRequestSync(e) {
+      console.log('mozSetMessageHandler: received a request-sync');
+
+      // Important for gaia email app to know when a mozSetMessageHandler has
+      // been dispatched. Could be removed if notification close events did not
+      // open the email app, or if we wanted to be less efficient on closing
+      // down the email app on those events. Although the email app would not be
+      // a good memory citizen in that case.
+      if (window.hasOwnProperty('appDispatchedMessage')) {
+        window.appDispatchedMessage = true;
+      }
+
+      var data = e.data;
+
+      // Need to acquire the wake locks during this notification
+      // turn of the event loop -- later turns are not guaranteed to
+      // be up and running. However, knowing when to release the locks
+      // is only known to the front end, so publish event about it.
+      // Need a CPU lock since otherwise the app can be paused
+      // mid-function, which could lead to unexpected behavior, and the
+      // sync should be completed as quick as possible to then close
+      // down the app.
+      // TODO: removed wifi wake lock due to network complications, to
+      // be addressed in a separate changset.
+      if (navigator.requestWakeLock) {
+        var locks = [
+          navigator.requestWakeLock('cpu')
+        ];
+
+        debug('wake locks acquired: ' + locks +
+              ' for account IDs: ' + data.accountIds);
+
+        evt.emitWhenListener('cronSyncWakeLocks',
+                             makeAccountKey(data.accountIds), locks);
+      }
+
+      debug('request-sync started at ' + (new Date()));
+
+      dispatcher._sendMessage('requestSync',
+                              [data.accountIds, data.interval]);
+    });
+  }
 
   var routeRegistration = {
     name: 'cronsync',

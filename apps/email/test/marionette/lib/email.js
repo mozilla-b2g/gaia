@@ -337,7 +337,7 @@ Email.prototype = {
     return this.client.executeScript(function() {
       var cards = window.wrappedJSObject.require('cards'),
           card = cards._cardStack[cards.activeCardIndex];
-      if (cards.cardName(card) !== 'cards-compose') {
+      if (card.nodeName.toLowerCase() !== 'cards-compose') {
         throw new Error('active card should be compose!');
       }
 
@@ -599,12 +599,13 @@ Email.prototype = {
   _onTransitionEndScriptTimeout: function(cardId) {
     var result = this.client.executeScript(function(cardId) {
       var cards = window.wrappedJSObject.require('cards'),
+          htmlCache = window.wrappedJSObject.require('html_cache'),
           cardNode = cards._cardStack[cards.activeCardIndex];
 
       return {
         cardNode: !!cardNode,
         centered: cardNode && cardNode.classList.contains('center'),
-        correctId: cardNode && cardNode.dataset.type === cardId,
+        correctId: cardNode && htmlCache.nodeToKey(cardNode) === cardId,
         eventsClear: !cards._eatingEventsUntilNextCard
       };
     }, [cardId]);
@@ -624,10 +625,11 @@ Email.prototype = {
     client.waitFor(function() {
       return client.executeScript(function(cardId) {
         var cards = window.wrappedJSObject.require('cards'),
+            htmlCache = window.wrappedJSObject.require('html_cache'),
             cardNode = cards._cardStack[cards.activeCardIndex];
 
         return !!cardNode && cardNode.classList.contains('center') &&
-               cardNode.dataset.type === cardId &&
+               htmlCache.nodeToKey(cardNode) === cardId &&
                !cards._eatingEventsUntilNextCard;
       }, [cardId]);
     });

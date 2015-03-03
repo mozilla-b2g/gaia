@@ -206,7 +206,10 @@ Focus.prototype.focusOnLargestFace = function(faces) {
  * @private
  */
 Focus.prototype.focus = function(done) {
+  if (!this.mozCamera) { return; }
+  done = done || function() {};
   var self = this;
+
   this.suspendContinuousFocus(10000);
   if (this.mozCamera.focusMode !== 'auto') {
     done();
@@ -290,8 +293,7 @@ Focus.prototype.reboot = function() {
  */
 Focus.prototype.isTouchFocusSupported = function() {
   var maxFocusAreas = this.mozCamera.capabilities.maxFocusAreas;
-  var maxMeteringAreas = this.mozCamera.capabilities.maxMeteringAreas;
-  return maxFocusAreas > 0 && maxMeteringAreas > 0;
+  return maxFocusAreas > 0;
 };
 
 /**

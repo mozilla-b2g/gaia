@@ -10,7 +10,6 @@
 
 'use strict';
 
-require('/shared/js/usertiming.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/recipients.js');
 requireApp('sms/js/drafts.js');
@@ -134,33 +133,23 @@ suite('thread_list_ui', function() {
 
   suite('setEmpty', function() {
     suite('(true)', function() {
+      var panel;
       setup(function() {
-        // set wrong states
-        ThreadListUI.noMessages.classList.add('hide');
-        ThreadListUI.container.classList.remove('hide');
-        // make sure it sets em all
+        panel = document.getElementById('thread-list');
         ThreadListUI.setEmpty(true);
       });
-      test('removes noMessages hide', function() {
-        assert.isFalse(ThreadListUI.noMessages.classList.contains('hide'));
-      });
-      test('adds container hide', function() {
-        assert.isTrue(ThreadListUI.container.classList.contains('hide'));
+      test('displays noMessages and hides container', function() {
+        assert.isTrue(panel.classList.contains('threadlist-is-empty'));
       });
     });
     suite('(false)', function() {
+      var panel;
       setup(function() {
-        // set wrong states
-        ThreadListUI.noMessages.classList.remove('hide');
-        ThreadListUI.container.classList.add('hide');
-        // make sure it sets em all
+        panel = document.getElementById('thread-list');
         ThreadListUI.setEmpty(false);
       });
-      test('adds noMessages hide', function() {
-        assert.isTrue(ThreadListUI.noMessages.classList.contains('hide'));
-      });
-      test('removes container hide', function() {
-        assert.isFalse(ThreadListUI.container.classList.contains('hide'));
+      test('hides noMessages and displays container', function() {
+        assert.isFalse(panel.classList.contains('threadlist-is-empty'));
       });
     });
   });
@@ -171,16 +160,6 @@ suite('thread_list_ui', function() {
     });
     teardown(function() {
       MockOptionMenu.mTeardown();
-    });
-
-    test('show settings/cancel options when list is empty', function() {
-      ThreadListUI.setEmpty(true);
-      ThreadListUI.showOptions();
-
-      var optionItems = MockOptionMenu.calls[0].items;
-      assert.equal(optionItems.length, 2);
-      assert.equal(optionItems[0].l10nId, 'settings');
-      assert.equal(optionItems[1].l10nId, 'cancel');
     });
 
     test('show select/settings/cancel options when list existed', function() {
@@ -636,7 +615,10 @@ suite('thread_list_ui', function() {
       ThreadListUI.selectionHandler.selected = new Set(['1', '2']);
 
       ThreadListUI.checkInputs();
-      ThreadListUI.markReadUnread();
+      ThreadListUI.markReadUnread(
+        ThreadListUI.selectionHandler.selectedList,
+        true
+      );
 
       assert.isFalse(firstThreadNode.classList.contains('unread'));
       assert.isFalse(secondThreadNode.classList.contains('unread'));
@@ -649,7 +631,10 @@ suite('thread_list_ui', function() {
       ThreadListUI.selectionHandler.selected = new Set(['3', '4']);
 
       ThreadListUI.checkInputs();
-      ThreadListUI.markReadUnread();
+      ThreadListUI.markReadUnread(
+        ThreadListUI.selectionHandler.selectedList,
+        true
+      );
 
       assert.isFalse(firstThreadNode.classList.contains('unread'));
       assert.isFalse(secondThreadNode.classList.contains('unread'));
@@ -662,7 +647,10 @@ suite('thread_list_ui', function() {
       ThreadListUI.selectionHandler.selected = new Set(['5', '6']);
 
       ThreadListUI.checkInputs();
-      ThreadListUI.markReadUnread();
+      ThreadListUI.markReadUnread(
+        ThreadListUI.selectionHandler.selectedList,
+        false
+      );
 
       assert.isTrue(firstThreadNode.classList.contains('unread'));
       assert.isTrue(secondThreadNode.classList.contains('unread'));
@@ -732,7 +720,7 @@ suite('thread_list_ui', function() {
 
         ThreadListUI.selectionHandler.selected = new Set(selectedIds);
 
-        return ThreadListUI.delete();
+        return ThreadListUI.delete(ThreadListUI.selectionHandler.selectedList);
       }
 
       setup(function() {
@@ -1288,7 +1276,7 @@ suite('thread_list_ui', function() {
   });
 
   suite('renderThreads', function() {
-    var firstViewDone;
+    var firstViewDone,panel;
     setup(function() {
       this.sinon.spy(ThreadListUI, 'setEmpty');
       this.sinon.spy(ThreadListUI, 'prepareRendering');
@@ -1302,6 +1290,7 @@ suite('thread_list_ui', function() {
       this.sinon.spy(MockStickyHeader.prototype, 'refresh');
       this.sinon.spy(window, 'StickyHeader');
       firstViewDone = sinon.stub();
+      panel = document.getElementById('thread-list');
 
       Threads.clear();
     });
@@ -1318,8 +1307,7 @@ suite('thread_list_ui', function() {
           sinon.assert.called(ThreadListUI.renderDrafts);
           sinon.assert.called(StickyHeader);
           sinon.assert.calledWith(ThreadListUI.finalizeRendering, true);
-          assert.isFalse(ThreadListUI.noMessages.classList.contains('hide'));
-          assert.isTrue(ThreadListUI.container.classList.contains('hide'));
+          assert.isTrue(panel.classList.contains('threadlist-is-empty'));
         });
       });
     });
@@ -1364,8 +1352,7 @@ suite('thread_list_ui', function() {
       ThreadListUI.renderThreads(firstViewDone, function() {
         done(function checks() {
           sinon.assert.calledWith(ThreadListUI.finalizeRendering, false);
-          assert.isTrue(ThreadListUI.noMessages.classList.contains('hide'));
-          assert.isFalse(ThreadListUI.container.classList.contains('hide'));
+          assert.isFalse(panel.classList.contains('threadlist-is-empty'));
           sinon.assert.called(StickyHeader);
           sinon.assert.called(ThreadListUI.sticky.refresh);
 
@@ -1855,6 +1842,158 @@ suite('thread_list_ui', function() {
 
       sinon.assert.notCalled(Navigation.toPanel);
       assert.ok(thread1.querySelector('input').checked);
+    });
+  });
+
+  suite('contextmenu handling > Long press on the thread', function() {
+    var draft,
+        threads = [{
+          id: 1,
+          date: new Date(2013, 1, 2),
+          unread: true
+        }, {
+          id: 2,
+          date: new Date(2013, 1, 0),
+          unread: false
+        }];
+
+    setup(function(done) {
+      this.sinon.stub(MessageManager, 'markThreadRead');
+      this.sinon.stub(ThreadListUI, 'delete');
+
+      threads.forEach((threadInfo) => {
+        var thread = Thread.create(MockMessages.sms({
+          threadId: threadInfo.id,
+          timestamp: +threadInfo.date
+        }), { unread: threadInfo.unread });
+        Threads.set(thread.id, thread);
+        ThreadListUI.appendThread(thread);
+      });
+
+      draft = new Draft({
+        id: 101,
+        threadId: null,
+        recipients: [],
+        content: ['An explicit id'],
+        timestamp: Date.now(),
+        type: 'sms'
+      });
+
+      Drafts.add(draft);
+
+      this.sinon.stub(Drafts, 'request').returns(
+        Promise.resolve([draft])
+      );
+
+      ThreadListUI.renderDrafts().then(done, done);
+    });
+
+    teardown(function() {
+      ThreadListUI.inEditMode = false;
+      Drafts.clear();
+    });
+
+    //mark as read action on thread
+    test(' "long-press" on thread having unread message', function() {
+      var firstThreadNode = document.getElementById('thread-1');
+      var contextMenuEvent = new MouseEvent('contextmenu', {
+        bubbles: true,
+        cancelable: true
+      });
+
+      firstThreadNode.querySelector('a').dispatchEvent(contextMenuEvent);
+      var item = MockOptionMenu.calls[0].items[1];
+      item.method.apply(null, item.params);
+
+      assert.equal(MockOptionMenu.calls.length, 1);
+      assert.equal(
+        MockOptionMenu.calls[0].items[0].l10nId, 'delete-thread'
+      );
+      assert.equal(
+        MockOptionMenu.calls[0].items[1].l10nId, 'mark-as-read'
+      );
+      assert.equal(
+        MockOptionMenu.calls[0].items[2].l10nId, 'cancel'
+      );
+      sinon.assert.calledWith(MessageManager.markThreadRead, 1, true);
+    });
+
+    //mark as unread action on thread
+    test(' "long-press" on thread having read message', function() {
+      var secondThreadNode = document.getElementById('thread-2');
+      var contextMenuEvent = new MouseEvent('contextmenu', {
+        bubbles: true,
+        cancelable: true
+      });
+
+      secondThreadNode.querySelector('a').dispatchEvent(contextMenuEvent);
+      var item = MockOptionMenu.calls[0].items[1];
+      item.method.apply(null, item.params);
+
+      assert.ok(MockOptionMenu.calls.length, 1);
+      assert.equal(
+        MockOptionMenu.calls[0].items[0].l10nId, 'delete-thread'
+      );
+      assert.equal(
+        MockOptionMenu.calls[0].items[1].l10nId, 'mark-as-unread'
+      );
+      assert.equal(
+        MockOptionMenu.calls[0].items[2].l10nId, 'cancel'
+      );
+      sinon.assert.calledWith(MessageManager.markThreadRead, 2, false);
+    });
+
+    //delete action on thread
+    test(' "long-press" on thread & delete action', function() {
+      var secondThreadNode = document.getElementById('thread-2');
+      var contextMenuEvent = new MouseEvent('contextmenu', {
+        bubbles: true,
+        cancelable: true
+      });
+
+      secondThreadNode.querySelector('a').dispatchEvent(contextMenuEvent);
+      var item = MockOptionMenu.calls[0].items[0];
+      item.method.apply(null, item.params);
+
+      assert.ok(MockOptionMenu.calls.length, 1);
+      assert.equal(
+        MockOptionMenu.calls[0].items[0].l10nId, 'delete-thread'
+      );
+      assert.equal(
+        MockOptionMenu.calls[0].items[1].l10nId, 'mark-as-unread'
+      );
+      assert.equal(
+        MockOptionMenu.calls[0].items[2].l10nId, 'cancel'
+      );
+      sinon.assert.calledWith(ThreadListUI.delete, ['2']);
+    });
+
+    //delete action on draft-thread & mark-as-read/unread not available
+    test(' "long-press" on Draft & delete action',function() {
+      var firstThreadDraftNode = document.querySelector('#thread-101 a');
+      var contextMenuEvent = new MouseEvent('contextmenu', {
+        bubbles: true,
+        cancelable: true
+      });
+
+      firstThreadDraftNode.dispatchEvent(contextMenuEvent);
+      var item = MockOptionMenu.calls[0].items[0];
+      item.method.apply(null, item.params);
+
+      assert.ok(MockOptionMenu.calls.length, 1);
+      assert.equal(
+        MockOptionMenu.calls[0].items[0].l10nId, 'delete-thread'
+      );
+      assert.notEqual(
+        MockOptionMenu.calls[0].items[1].l10nId, 'mark-as-read'
+      );
+      assert.notEqual(
+        MockOptionMenu.calls[0].items[1].l10nId, 'mark-as-unread'
+      );
+      assert.equal(
+        MockOptionMenu.calls[0].items[1].l10nId, 'cancel'
+      );
+      sinon.assert.calledWith(ThreadListUI.delete, ['101']);
     });
   });
 });

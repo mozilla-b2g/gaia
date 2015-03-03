@@ -122,7 +122,8 @@ suite('Integration tests', function() {
     var appsListPath  = path.join('build', 'config', 'phone',
       'apps-engineering.list');
     fs.renameSync(appsListPath, appsListPath + '.bak');
-    fs.writeFileSync(appsListPath, 'apps/*\ndev_apps/custom-origin\n');
+    fs.writeFileSync(appsListPath,
+      'apps/*\nbuild/test/fixtures/custom-origin\n');
 
     var extConfigPath  = path.join('build', 'config',
       'additional-extensions.json');

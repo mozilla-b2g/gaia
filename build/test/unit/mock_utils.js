@@ -113,9 +113,7 @@ exports.gaia = {
   getInstance: function(options) {
     var rebuildWebapps = options.rebuildAppDirs.map(function(appDir) {
       return {
-        appDir: {
-          path: appDir
-        }
+        appDirPath: appDir
       };
     });
     return {

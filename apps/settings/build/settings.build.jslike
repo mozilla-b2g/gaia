@@ -33,6 +33,7 @@
     'shared/wifi_helper': 'empty:',
     'shared/mobile_operator': 'empty:',
     'shared/airplane_mode_helper': 'empty:',
+    'shared/stk_helper': 'empty:',
     'modules/wifi_utils': 'empty:',
     'modules/wifi_context': 'empty:',
     'modules/dialog_panel': 'empty:',

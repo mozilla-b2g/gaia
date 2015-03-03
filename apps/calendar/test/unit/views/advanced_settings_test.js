@@ -2,6 +2,7 @@
 define(function(require) {
 'use strict';
 
+require('/shared/elements/gaia-header/dist/gaia-header.js');
 var AccountTemplate = require('templates/account');
 var AdvancedSettings = require('views/advanced_settings');
 var Factory = require('test/support/factory');

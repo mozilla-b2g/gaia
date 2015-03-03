@@ -134,6 +134,9 @@ var icc_events = {
       this.downloadEvent(message, {
         eventType: icc._iccManager.STK_EVENT_TYPE_USER_ACTIVITY
       });
+      if (this.stkUserActivity) {
+        navigator.removeIdleObserver(this.stkUserActivity);
+      }
     },
 
   handleIdleScreenAvailableEvent:
@@ -142,6 +145,8 @@ var icc_events = {
       this.downloadEvent(message, {
         eventType: icc._iccManager.STK_EVENT_TYPE_IDLE_SCREEN_AVAILABLE
       });
+      window.removeEventListener('homescreenopened',
+        this.register_icc_event_idlescreen);
   },
 
   registerCallChanged: function(message, stkEvent) {
@@ -182,7 +187,7 @@ var icc_events = {
       navigator.removeIdleObserver(this.stkUserActivity);
     }
 
-    window.removeEventListener('lockscreen-appopened',
+    window.removeEventListener('homescreenopened',
       this.register_icc_event_idlescreen);
 
     if (this.icc_events_languageChanged) {
@@ -231,7 +236,7 @@ var icc_events = {
         this.register_icc_event_idlescreen = function() {
           icc_events.handleIdleScreenAvailableEvent(message);
         };
-        window.addEventListener('lockscreen-appopened',
+        window.addEventListener('homescreenopened',
           this.register_icc_event_idlescreen);
         break;
       case icc._iccManager.STK_EVENT_TYPE_CARD_READER_STATUS:

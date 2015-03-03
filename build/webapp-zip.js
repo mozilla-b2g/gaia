@@ -17,9 +17,9 @@ var WebappZip = function() {
 WebappZip.prototype.setOptions = function(options) {
   this.config = options.config;
   this.webapp = options.webapp;
-  this.buildDir = this.webapp.buildDirectoryFile;
+  this.buildDir = utils.getFile(this.webapp.buildDirectoryFilePath);
 
-  var targetAppFolder = this.webapp.profileDirectoryFile;
+  var targetAppFolder = utils.getFile(this.webapp.profileDirectoryFilePath);
   utils.ensureFolderExists(targetAppFolder);
 
   var zipContent = targetAppFolder.clone();
@@ -202,7 +202,8 @@ WebappZip.prototype.execute = function(options) {
   this.closeZip();
 };
 
-function execute(options, webapp) {
+function execute(options) {
+  var webapp = options.webapp;
   var profileDir = utils.getFile(options.PROFILE_DIR);
   utils.ensureFolderExists(profileDir);
   profileDir.append('webapps');

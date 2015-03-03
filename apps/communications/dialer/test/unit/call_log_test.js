@@ -6,7 +6,6 @@
           CallGroupMenu, Utils, MockMozContacts */
 
 require('/shared/js/dialer/utils.js');
-require('/shared/js/usertiming.js');
 
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
@@ -328,7 +327,8 @@ suite('dialer/call_log', function() {
     var primaryInfoMain = primaryInfo.querySelector('.primary-info-main');
     assert.ok(primaryInfoMain, 'Primary info main ok');
     if (group.contact) {
-      assert.equal(primaryInfoMain.innerHTML, group.contact.primaryInfo);
+      assert.equal(primaryInfoMain.querySelector('bdi').innerHTML,
+                   group.contact.primaryInfo);
     } else {
       // Labels checking
       if (group.voicemail || group.emergency) {
@@ -380,7 +380,7 @@ suite('dialer/call_log', function() {
     assert.ok(retryCount, 'Retry count ok');
     if (group.retryCount > 1) {
       assert.equal(
-        retryCount.querySelector('bdi').innerHTML,
+        retryCount.innerHTML,
         '(' + group.retryCount + ')');
     }
     if (callback) {
@@ -398,9 +398,10 @@ suite('dialer/call_log', function() {
     var primaryInfoMain = primaryInfo.querySelector('.primary-info-main');
     assert.ok(primaryInfoMain, 'Primary info main ok');
     if (contact && contact.name) {
-      assert.equal(primaryInfoMain.innerHTML, contact.name);
+      assert.equal(primaryInfoMain.querySelector('bdi').innerHTML,
+                   contact.name);
     } else if (contact && contact.org) {
-      assert.equal(primaryInfoMain.innerHTML, contact.org);
+      assert.equal(primaryInfoMain.querySelector('bdi').innerHTML, contact.org);
     } else if (number) {
       assert.equal(primaryInfoMain.querySelector('bdi').innerHTML, number);
     }

@@ -29,6 +29,7 @@ suite('system/Card', function() {
       },
       origin: config.origin || 'http://' +
               (config.name || 'dummyapp') + '.gaiamobile.org',
+      url: config.url,
       blur: function() {}
     });
   }
@@ -131,6 +132,18 @@ suite('system/Card', function() {
       assert.equal(browserCard.titleNode.textContent, 'Page title');
     });
 
+    test('adds private class for private windows', function(){
+      var app = makeApp({ name: 'privatewindow' });
+      app.isPrivate = true;
+      var card = new Card({
+        app: app,
+        manager: mockManager
+      });
+      card.render();
+      assert.ok(card.element.classList.contains('private'),
+               'has private class');
+    });
+
     test('app name', function() {
       var appCard = new Card({
         app: makeApp({ name: 'otherapp' }),
@@ -199,6 +212,22 @@ suite('system/Card', function() {
         'foo.com:8080/bar?bazz#boss'
       );
     });
+
+    test('subTitle when private browser splash', function() {
+      var app = makeApp({
+        name: 'shortname',
+        shortName: 'short',
+        origin: 'app://system.gaiamobile.org',
+        url: 'app://system.gaiamobile.org/private_browser.html'
+      });
+      this.sinon.stub(app, 'isBrowser').returns(true);
+      var appCard = new Card({
+        app: app,
+        manager: mockManager
+      });
+      appCard.render();
+      assert.equal(appCard.subTitle, '');
+    });
   });
 
   suite('destroy', function() {
@@ -250,58 +279,6 @@ suite('system/Card', function() {
     test('card whose app has attentionWindow should not be closed', function() {
       assert.equal(this.card.closeButtonVisibility, 'hidden');
     });
-  });
-
-  suite('orientation >', function() {
-    var cards = {};
-    var orientationDegrees = {
-      'landscape-primary' : 90,
-      'portrait-primary' : 0,
-      'portrait-secondary' : 270,
-      'landscape-secondary' : 180
-    };
-    suiteSetup(function() {
-      for (var orientation in orientationDegrees) {
-        cards[orientation] = new Card({
-          manager: mockManager,
-          app: makeApp({
-            'orientation': orientation,
-            'rotatingDegree': orientationDegrees[orientation]
-          })
-        });
-      }
-    });
-
-    teardown(function() {
-      this.cards = null;
-    });
-
-    function testForCardOrientation(orientation) {
-      return function() {
-        var card = cards[orientation];
-        card.render();
-        var orientationNode = card.screenshotView;
-
-        card.element.dispatchEvent(new CustomEvent('onviewport'));
-        assert.isTrue(
-          orientationNode.classList.contains(
-            'rotate-'+orientationDegrees[orientation]
-          ),'corrent orientation in classList');
-      };
-    }
-
-    test('cardsview defines a landscape-primary app',
-         testForCardOrientation('landscape-primary')
-    );
-    test('cardsview defines a landscape-secondary app',
-         testForCardOrientation('landscape-secondary')
-    );
-    test('cardsview defines a portrait app in portrait-primary',
-         testForCardOrientation('portrait-primary')
-    );
-    test('cardsview defines a portrait-secondary app',
-         testForCardOrientation('portrait-secondary')
-    );
   });
 
   suite('previews > ', function() {

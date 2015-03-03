@@ -3,10 +3,10 @@
  * autoconfigure an account.
  */
 'use strict';
-define(function(require) {
+define(function(require, exports, module) {
 
 var evt = require('evt'),
-    model = require('model'),
+    mozL10n = require('l10n!'),
     cards = require('cards'),
     htmlCache = require('html_cache'),
     FormNavigation = require('form_navigation');
@@ -16,6 +16,8 @@ return [
   require('./setup_account_error_mixin'),
   {
     createdCallback: function() {
+      htmlCache.cloneAndSave(module.id, this);
+
       this.formNavigation = new FormNavigation({
         formElem: this.formNode,
         onLast: this.onNext.bind(this)
@@ -30,6 +32,12 @@ return [
       if (args.allowBack) {
         this.backButton.classList.remove('collapsed');
       }
+
+      if (args.launchedFromActivity) {
+        this.errorRegionNode.classList.remove('collapsed');
+        mozL10n.setAttributes(this.errorMessageNode,
+                                   'setup-empty-account-message');
+      }
     },
 
     onCardVisible: function() {
@@ -42,23 +50,16 @@ return [
     },
 
     onBack: function(event) {
-      if (!model.foldersSlice) {
-        // No account has been formally initialized, but one
-        // likely exists given that this back button should
-        // only be available for cases that have accounts.
-        // Likely just need the app to reset to load model.
-        evt.emit('resetApp');
-      } else {
-        cards.removeCardAndSuccessors(this, 'animate', 1);
-      }
+      evt.emit('setupAccountCanceled', this);
     },
+
     onNext: function(event) {
       event.preventDefault(); // Prevent FormNavigation from taking over.
 
       // Clear HTML cache since the outcome of the setup will change it, and if
       // the user bails mid-setup, the app will not show the older incorrect
       // state.
-      htmlCache.save('');
+      htmlCache.reset();
 
       // The progress card is the dude that actually tries to create the
       // account.

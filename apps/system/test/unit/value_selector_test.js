@@ -35,7 +35,6 @@ suite('value selector/value selector', function() {
       inputType: 'date'
     }
   };
-  var fakeSheetsGestureBegin = { type: '_sheetsgesturebegin' };
   var fakeClosing = { type: '_closing' };
   var fakeOpening = { type: '_opening' };
   var fakeLocalizedEvent = { type: '_localized' };
@@ -53,6 +52,7 @@ suite('value selector/value selector', function() {
 
     loadBodyHTML('/index.html');
 
+    requireApp('system/js/service.js');
     requireApp('system/js/base_ui.js');
     requireApp('system/js/value_selector/value_picker.js');
     requireApp('system/js/value_selector/spin_date_picker.js');
@@ -203,14 +203,6 @@ suite('value selector/value selector', function() {
     assert.isTrue(vs.element.hidden);
     assert.isTrue(stub_setVisibleForScreenReader.calledWith(true));
     assert.isTrue(stub_publish.calledWith('hidden'));
-  });
-
-  test('cancel on "_sheetsgesturebegin" event', function() {
-    vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
-    this.sinon.stub(vs, 'cancel');
-
-    vs.handleEvent(fakeSheetsGestureBegin);
-    sinon.assert.calledOnce(vs.cancel);
   });
 
   test('hide on "_closing" event', function() {

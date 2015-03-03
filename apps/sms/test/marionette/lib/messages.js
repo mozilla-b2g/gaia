@@ -59,7 +59,7 @@
 
     Message: {
       content: '.message-content > p:first-child',
-      vcardAttachment: '[data-attachment-type="ref"]',
+      vcardAttachment: '[data-attachment-type="vcard"]',
       fileName: '.file-name'
     },
 
@@ -291,6 +291,12 @@
               return !!el.dataset.__stable;
             });
           });
+        },
+
+        getRecipient: function(number) {
+          return client.helper.waitForElement(
+            '#messages-recipients-list .recipient[data-number="' + number + '"]'
+          );
         },
 
         clearRecipient: function() {

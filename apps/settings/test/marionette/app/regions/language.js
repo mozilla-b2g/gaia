@@ -38,7 +38,7 @@ LanguagePanel.prototype = {
     },
     accented: {
       label: 'Ŀȧȧƞɠŭŭȧȧɠḗḗ',
-      desc: '\u202aȦȧƈƈḗḗƞŧḗḗḓ Ḗḗƞɠŀīīşħ\u202c',
+      desc: '\u202aƤȧȧƈķȧȧɠḗḗḓ Ȧȧƈƈḗḗƞŧḗḗḓ\u202c',
       dayRules: new RegExp(
         'Ḿǿǿƞḓȧȧẏ|' +
         'Ŧŭŭḗḗşḓȧȧẏ|' +
@@ -50,7 +50,7 @@ LanguagePanel.prototype = {
     },
     mirrored: {
       label: '\u202e˥ɐuƃnɐƃǝ\u202c',
-      desc: '\u202b\u202eWıɹɹoɹǝp\u202c \u202eƎuƃʅısɥ\u202c\u202c',
+      desc: '\u202b\u202eԀɐɔʞɐƃǝp\u202c \u202eWıɹɹoɹǝp\u202c\u202c',
       dayRules: new RegExp(
         '\u202eWoupɐʎ\u202c|' +
         '\u202e⊥nǝspɐʎ\u202c|' +

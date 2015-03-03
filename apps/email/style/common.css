@@ -34,7 +34,12 @@ body {
   height: 100%;
   margin: 0;
   padding: 0;
-  /* Using white because of bug 1077605 */
+  background-color: transparent;
+}
+
+/* Using white because of bug 1077605, but only want to do this once we have
+   content, to avoid a flash of white for showing too long on initial load. */
+body.content-visible {
   background-color: white;
 }
 

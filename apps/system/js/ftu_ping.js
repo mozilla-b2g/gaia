@@ -3,7 +3,7 @@
 
 'use strict';
 
-/* global MobileOperator, SIMSlotManager, uuid, dump */
+/* global MobileOperator, SIMSlotManager, uuid, dump, TelemetryRequest */
 
 /**
  * A simple ping that is kicked off on first time use
@@ -25,7 +25,8 @@
   const DEFAULT_PING_TIMEOUT = 60 * 1000;
 
   // Used by the telemetry server to help identify the payload format
-  const PING_PAYLOAD_VERSION = 3;
+  const TELEMETRY_VERSION = 1;
+  const TELEMETRY_REASON = 'ftu';
 
   // Settings to observe value changes for while the ping has not been sent
   const OBSERVE_SETTINGS = ['deviceinfo.os',
@@ -94,19 +95,20 @@
       this._pingData = {};
     },
 
-    initSettings: function fp_initSettings(callback) {
-      this.reset();
-
-      this._pingData.ver = PING_PAYLOAD_VERSION;
-      this._pingData.screenHeight = window.screen.height;
-      this._pingData.screenWidth = window.screen.width;
-      this._pingData.devicePixelRatio = window.devicePixelRatio;
-      this._pingData.locale = window.navigator.language;
-
+    initSettings: function fp_initSettings() {
       var self = this;
-      this.getAsyncStorageItems([FTU_PING_ID, FTU_PING_ACTIVATION,
-                                 FTU_PING_ENABLED,
-                                 FTU_PING_NETWORK_FAIL_COUNT], function(items) {
+      return new Promise(function(resolve, reject) {
+        self.reset();
+
+        self._pingData.screenHeight = window.screen.height;
+        self._pingData.screenWidth = window.screen.width;
+        self._pingData.devicePixelRatio = window.devicePixelRatio;
+        self._pingData.locale = window.navigator.language;
+
+        self.getAsyncStorageItems([FTU_PING_ID, FTU_PING_ACTIVATION,
+                                   FTU_PING_ENABLED,
+                                   FTU_PING_NETWORK_FAIL_COUNT],
+                                  function(items) {
 
           self._pingData.pingID = items[FTU_PING_ID];
           self._pingData.activationTime = items[FTU_PING_ACTIVATION];
@@ -153,10 +155,37 @@
               mozSettings.addObserver(observeSetting, self._settingObserver);
             });
 
-            if (callback) {
-              callback();
+            resolve();
+          });
+        });
+      });
+    },
+
+    initPreinstalledApps: function fp_initPreinstalledApps(callback) {
+      var preinstalled = this._pingData.preinstalled = {};
+      var self = this;
+
+      return new Promise(function(resolve, reject) {
+        window.navigator.mozApps.mgmt.getAll().onsuccess = function(evt) {
+          var apps = evt.target.result;
+
+          apps.forEach(function(app) {
+            var url;
+            try {
+              url = new URL(app.manifestURL);
+            } catch (e) {
+              // Don't die if somehow the manifestURL is invalid
+            }
+
+            // Only report non-gaia apps
+            if (!url || url.hostname.indexOf('gaiamobile.org') === -1) {
+              preinstalled[app.manifestURL] = app.manifest.name;
             }
           });
+
+          self.debug(self._pingData.preinstalled);
+          resolve();
+        };
       });
     },
 
@@ -192,7 +221,8 @@
     },
 
     ensurePing: function fp_ensurePing() {
-      this.initSettings(this.startPing.bind(this));
+      var initPromises = [this.initSettings(), this.initPreinstalledApps()];
+      Promise.all(initPromises).then(this.startPing.bind(this));
     },
 
     onSettingChanged: function fp_onSettingChanged(evt) {
@@ -303,53 +333,32 @@
       }
     },
 
-    generatePingURL: function fp_generatePingURL() {
-      var version = this._pingData['deviceinfo.platform_version'] || 'unknown';
-      var updateChannel = this._pingData['app.update.channel'] || 'unknown';
-      var buildId = this._pingData['deviceinfo.platform_build_id'] || 'unknown';
-
-      var uriParts = [
-        this._pingURL,
-        encodeURIComponent(this._pingData.pingID),
-        'ftu',                             // 'reason'
-        'FirefoxOS',                       // 'appName'
-        encodeURIComponent(version),       // 'appVersion'
-        encodeURIComponent(updateChannel), // 'appUpdateChannel'
-        encodeURIComponent(buildId)        // 'appBuildID'
-      ];
-
-      return uriParts.join('/');
-    },
-
     ping: function fp_ping() {
-      var url = this.generatePingURL();
       this._pingData.pingTime = Date.now();
 
-      if (DEBUG) {
-        this.debug(url);
-        this.debug(JSON.stringify(this._pingData));
-      }
-
-      var xhr = new XMLHttpRequest({ mozSystem: true, mozAnon: true });
-      xhr.timeout = this._pingTimeout;
+      var request = new TelemetryRequest({
+        reason: TELEMETRY_REASON,
+        deviceID: this._pingData.pingID,
+        ver: TELEMETRY_VERSION,
+        url: this._pingURL,
+        appUpdateChannel: this._pingData['app.update.channel'],
+        appVersion: this._pingData['deviceinfo.platform_version'],
+        appBuildID: this._pingData['deviceinfo.platform_build_id']
+      }, this._pingData);
 
       var self = this;
-      xhr.onload = function() {
-        self.pingSuccess(xhr.responseText);
-      };
-
-      xhr.ontimeout = function() {
-        self.pingError('Timed out');
-      };
-
-      xhr.onerror = function() {
-        self.pingError(xhr.statusText);
-      };
-
-      xhr.open('POST', url, true);
-      xhr.setRequestHeader('Content-type', 'application/json');
-      xhr.responseType = 'text';
-      xhr.send(JSON.stringify(this._pingData));
+      request.send({
+        timeout: this._pingTimeout,
+        onload: function() {
+          self.pingSuccess(this.responseText);
+        },
+        ontimeout: function() {
+          self.pingError('Timed out');
+        },
+        onerror: function() {
+          self.pingError(this.statusText);
+        }
+      });
     },
 
     pingSuccess: function fp_pingSuccess(result) {

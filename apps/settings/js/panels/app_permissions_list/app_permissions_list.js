@@ -208,7 +208,7 @@ define(function(require) {
         var manifest = new ManifestHelper(app.manifest ?
             app.manifest : app.updateManifest);
         var li = this._genAppItemTemplate({
-          name: manifest.name,
+          name: manifest.short_name || manifest.name,
           index: index,
           iconSrc: AppIconHelper.getIconURL(app, 30)
         });
