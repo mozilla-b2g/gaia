@@ -55,7 +55,6 @@ var SIMAccessManager = {
     .then((channel) => {
       return channel.transmit(APDU.CRS.getStatusAll1st);
     })
-    .then((resp) => this._getResponse(resp))
     .then((resp) => {
       var receivedData = new Uint8Array();
 
@@ -67,7 +66,6 @@ var SIMAccessManager = {
       var action = (resp) => {
         receivedData = Utils.joinUint8Arrays(receivedData, resp.data);
         return resp.channel.transmit(APDU.CRS.getStatusAllNext)
-               .then((resp) => this._getResponse(resp));
       };
 
       return Utils.whilePromise(condition, action, resp)
@@ -99,15 +97,6 @@ var SIMAccessManager = {
          return resp.sw1 === 0x90 && resp.sw2 === 0x00;
        });
     });
-  },
-
-  // since 0x61 is not handled by the stack just yet, need to issue
-  // GET RESPONSE to retrieve actuall data
-  _getResponse: function getResponse(resp) {
-    if(resp.sw1 === 0x61) {
-      return resp.channel.transmit(APDU.getResponse);
-    }
-    return resp;
   },
 
   _cleanup: function cleanup(message) {
