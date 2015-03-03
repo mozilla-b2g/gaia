@@ -85,6 +85,36 @@ suite('system/MobileConnectionIcon', function() {
     });
   });
 
+  suite('Single SIM', function() {
+    var secondSIM;
+    setup(function() {
+      secondSIM = MockSIMSlotManager.mInstances.pop();
+    });
+    teardown(function() {
+      MockSIMSlotManager.mInstances.push(secondSIM);
+    });
+    test('Should set multiple to false on rendering', function() {
+      subject.onrender();
+      assert.equal(subject.element.dataset.multiple, 'false');
+    });
+
+    test('mutliple is still false if sim is absent', function() {
+      subject.onrender();
+      this.sinon.stub(MockSIMSlotManager.mInstances[0], 'isAbsent')
+          .returns(true);
+      subject.updateVisibility();
+      assert.equal(subject.element.dataset.multiple, 'false');
+    });
+
+    test('mutliple is still false if sim is not absent', function() {
+      subject.onrender();
+      this.sinon.stub(MockSIMSlotManager.mInstances[0], 'isAbsent')
+          .returns(false);
+      subject.updateVisibility();
+      assert.equal(subject.element.dataset.multiple, 'false');
+    });
+  });
+
   suite('Multiple update', function() {
     test('multiple is set to true if any active sim', function() {
       this.sinon.stub(MockSIMSlotManager.mInstances[0], 'isAbsent')
