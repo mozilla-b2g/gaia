@@ -170,7 +170,10 @@ window.customRingtones = (function() {
 
   function withStore(type, callback) {
     if (db) {
-      callback(null, db.transaction(STORENAME, type).objectStore(STORENAME));
+      var transaction = db.transaction(STORENAME, type);
+      callback(
+        null, transaction.objectStore(STORENAME), transaction
+      );
     } else {
       var openreq = indexedDB.open(DBNAME, DBVERSION);
       openreq.onerror = function() {
@@ -188,7 +191,10 @@ window.customRingtones = (function() {
       };
       openreq.onsuccess = function() {
         db = openreq.result;
-        callback(null, db.transaction(STORENAME, type).objectStore(STORENAME));
+        var transaction = db.transaction(STORENAME, type);
+        callback(
+          null, transaction.objectStore(STORENAME), transaction
+        );
       };
     }
   }
@@ -250,7 +256,7 @@ window.customRingtones = (function() {
 
     return uniqueify(cleanedInfo).then(function(uniqueNum) {
       return new Promise(function(resolve, reject) {
-        withStore('readwrite', function(err, store) {
+        withStore('readwrite', function(err, store, transaction) {
           if (err) {
             reject(err);
             return;
@@ -258,10 +264,10 @@ window.customRingtones = (function() {
 
           cleanedInfo.uniqueNum = uniqueNum;
           var req = store.add(cleanedInfo);
-          req.onsuccess = function(event) {
+          transaction.oncomplete = function(event) {
             resolve(new CustomRingtone(cleanedInfo, event.target.result));
           };
-          req.onerror = function() {
+          transaction.onabort = transaction.onerror = function() {
             console.error('Error in customRingtones.add(): ', req.error.name);
             reject(req.error);
           };
@@ -272,17 +278,17 @@ window.customRingtones = (function() {
 
   function remove(id) {
     return new Promise(function(resolve, reject) {
-      withStore('readwrite', function(err, store) {
+      withStore('readwrite', function(err, store, transaction) {
         if (err) {
           reject(err);
           return;
         }
 
         var req = store.delete(idToDBKey(id));
-        req.onsuccess = function(event) {
+        transaction.oncomplete = function(event) {
           resolve();
         };
-        req.onerror = function() {
+        transaction.onabort = transaction.onerror = function() {
           console.error('Error in customRingtones.remove(): ', req.error.name);
           reject(req.error);
         };
@@ -292,17 +298,17 @@ window.customRingtones = (function() {
 
   function clear() {
     return new Promise(function(resolve, reject) {
-      withStore('readwrite', function(err, store) {
+      withStore('readwrite', function(err, store, transaction) {
         if (err) {
           reject(err);
           return;
         }
 
         var req = store.clear();
-        req.onsuccess = function(event) {
+        transaction.oncomplete = function(event) {
           resolve();
         };
-        req.onerror = function() {
+        transaction.onabort = transaction.onerror = function() {
           console.error('Error in customRingtones.clear(): ', req.error.name);
           reject(req.error);
         };
