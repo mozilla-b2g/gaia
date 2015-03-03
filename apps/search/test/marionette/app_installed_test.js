@@ -3,7 +3,7 @@
 
 var AppInstall =
   require('../../../../apps/system/test/marionette/lib/app_install');
-var Home2 = require('./lib/home2');
+var Home2 = require('../../../verticalhome/test/marionette/lib/home2');
 var Rocketbar =
   require('../../../system/test/marionette/lib/rocketbar.js');
 var createAppServer =

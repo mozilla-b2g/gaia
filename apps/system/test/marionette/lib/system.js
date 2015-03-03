@@ -1,3 +1,5 @@
+'use strict';
+
 function System(client) {
   this.client = client.scope({
     searchTimeout: 20000
@@ -11,6 +13,14 @@ System.URL = 'app://system.gaiamobile.org/manifest.webapp';
 System.Selector = Object.freeze({
   screen: '#screen',
   activeHomescreenFrame: '#homescreen.appWindow.active',
+  appAuthDialog: '.appWindow.active .authentication-dialog.visible',
+  // XXX: Gaia-header covers the back button, so you can't tap on it.
+  // This is a problem with gaia-header, so instead we return the gaia-header,
+  // And manually tap on the expected coordinate.
+  appAuthDialogCancel: '.appWindow.active .authentication-dialog.visible ' +
+    'gaia-header',
+  appAuthDialogLogin: '.appWindow.active .authentication-dialog.visible ' +
+    'button.authentication-dialog-http-authentication-ok',
   appContextMenuSaveLink:
     '.appWindow.active .contextmenu [data-id="save-link"]',
   appWindow: '.appWindow',
@@ -21,6 +31,7 @@ System.Selector = Object.freeze({
   appChromeForward: '.appWindow.active .forward-button',
   appChromeContextLink: '.appWindow.active .menu-button',
   appChromeContextMenu: '.appWindow.active .contextmenu',
+  appChromeContextNewPrivate: '.appWindow.active [data-id=new-private-window]',
   appChromeContextMenuNewWindow: '.appWindow.active [data-id=new-window]',
   appChromeContextMenuBookmark: '.appWindow.active [data-id=add-to-homescreen]',
   appChromeContextMenuShare: '.appWindow.active [data-id=share]',
@@ -28,35 +39,72 @@ System.Selector = Object.freeze({
   appChromeStopButton: '.appWindow.active .controls .stop-button',
   appChromeWindowsButton: '.appWindow.active .controls .windows-button',
   appChromeProgressBar: '.appWindow.active .chrome gaia-progress',
-  softwareButtons: '#software-buttons',
   browserWindow: '.appWindow.browser',
   dialogOverlay: '#screen #dialog-overlay',
   downloadDialog: '#downloadConfirmUI',
   imeMenu: '.ime-menu',
+  inlineActivity: '.appWindow.inline-activity',
   sleepMenuContainer: '#sleep-menu-container',
+  softwareButtons: '#software-buttons',
   softwareHome: '#software-home-button',
   softwareHomeFullscreen: '#fullscreen-software-home-button',
   softwareHomeFullscreenLayout: '#software-buttons-fullscreen-layout',
   statusbar: '#statusbar',
+  statusbarShadow: '.appWindow.active .statusbar-shadow',
+  statusbarShadowTray: '#statusbar-tray',
+  statusbarShadowActivity: '.activityWindow.active .statusbar-shadow',
   statusbarMaximizedWrapper: '#statusbar-maximized-wrapper',
   statusbarMinimizedWrapper: '#statusbar-minimized-wrapper',
   statusbarLabel: '#statusbar-label',
+  systemBanner: '.banner.generic-dialog',
   topPanel: '#top-panel',
   leftPanel: '#left-panel',
   rightPanel: '#right-panel',
   utilityTray: '#utility-tray',
-  visibleForm: '#screen > form.visible'
+  visibleForm: '#screen > form.visible',
+  cancelActivity: 'form.visible button[data-action="cancel"]',
+  nfcIcon: '#statusbar-nfc',
+  activeKeyboard: '.inputWindow.active'
 });
 
 System.prototype = {
   client: null,
+
+  URL: System.URL,
+
+  Selector: System.Selector,
 
   getAppWindows: function() {
     return this.client.findElements(System.Selector.appWindow);
   },
 
   getBrowserWindows: function() {
-    return this.client.findElements(System.Selector.browserWindow);
+    var searchTimeout = this.client.searchTimeout;
+    this.client.setSearchTimeout(0);
+
+    var elements = this.client.findElements(System.Selector.browserWindow);
+
+    this.client.setSearchTimeout(searchTimeout);
+    return elements;
+  },
+
+  get activeHomescreenFrame() {
+    var homescreen = System.Selector.activeHomescreenFrame;
+    return this.client.helper.waitForElement(homescreen);
+  },
+
+  get appAuthDialog() {
+    return this.client.helper.waitForElement(System.Selector.appAuthDialog);
+  },
+
+  get appAuthDialogCancel() {
+    return this.client.helper.waitForElement(
+      System.Selector.appAuthDialogCancel);
+  },
+
+  get appAuthDialogLogin() {
+    return this.client.helper.waitForElement(
+      System.Selector.appAuthDialogLogin);
   },
 
   get appContextMenuSaveLink() {
@@ -95,6 +143,11 @@ System.prototype = {
   get appChromeContextMenu() {
     return this.client.helper.waitForElement(
       System.Selector.appChromeContextMenu);
+  },
+
+  get appChromeContextNewPrivate() {
+    return this.client.helper.waitForElement(
+      System.Selector.appChromeContextNewPrivate);
   },
 
   get appChromeContextMenuNewWindow() {
@@ -140,6 +193,10 @@ System.prototype = {
     return this.client.helper.waitForElement(System.Selector.imeMenu);
   },
 
+  get inlineActivity() {
+    return this.client.helper.waitForElement(System.Selector.inlineActivity);
+  },
+
   get sleepMenuContainer() {
     return this.client.helper.waitForElement(
       System.Selector.sleepMenuContainer);
@@ -178,6 +235,10 @@ System.prototype = {
     return this.client.findElement(System.Selector.statusbarLabel);
   },
 
+  get systemBanner() {
+    return this.client.helper.waitForElement(System.Selector.systemBanner);
+  },
+
   get utilityTray() {
     return this.client.findElement(System.Selector.utilityTray);
   },
@@ -206,6 +267,22 @@ System.prototype = {
     return this.client.findElement(System.Selector.screen).size();
   },
 
+  get nfcIcon() {
+    return this.client.findElement(System.Selector.nfcIcon);
+  },
+
+  get statusbarShadow() {
+    return this.client.findElement(System.Selector.statusbarShadow);
+  },
+
+  get statusbarShadowTray() {
+    return this.client.findElement(System.Selector.statusbarShadowTray);
+  },
+
+  get statusbarShadowActivity() {
+    return this.client.findElement(System.Selector.statusbarShadowActivity);
+  },
+
   getAppIframe: function(url) {
     return this.client.findElement('iframe[src*="' + url + '"]');
   },
@@ -216,7 +293,7 @@ System.prototype = {
    * allows us to try to click all of them.
    */
   clickSoftwareHomeButton: function() {
-    var body = client.findElement('body');
+    var body = this.client.findElement('body');
     var screenSize = body.scriptWith(function(el) {
       return el.getBoundingClientRect();
     });
@@ -251,9 +328,50 @@ System.prototype = {
     });
   },
 
+  // Since the getScreenshot call is asynchronous and does not have any
+  // external side effect, we're just queuing another screenshot request
+  // afterward to be sure it's done.
+  waitUntilScreenshotable: function(iframe) {
+    this.client.executeAsyncScript(function(iframe) {
+      iframe.wrappedJSObject.getScreenshot(1, 1).then(marionetteScriptFinished,
+                                                      marionetteScriptFinished);
+    }, [iframe]);
+  },
+
+  waitForKeyboard: function() {
+    this.client.helper.waitForElement(System.Selector.activeKeyboard);
+  },
+
   goHome: function() {
+    this.client.switchToFrame();
+    this.client.executeAsyncScript(function() {
+      var win = window.wrappedJSObject;
+      win.addEventListener('homescreenopened', function trWait() {
+        win.removeEventListener('homescreenopened', trWait);
+        marionetteScriptFinished();
+      });
+      win.dispatchEvent(new CustomEvent('home'));
+    });
+  },
+
+  tapHome: function() {
+    this.client.switchToFrame();
     this.client.executeScript(function() {
       window.wrappedJSObject.dispatchEvent(new CustomEvent('home'));
+    });
+  },
+
+  holdHome: function() {
+    this.client.switchToFrame();
+    this.client.executeScript(function() {
+      window.wrappedJSObject.dispatchEvent(new CustomEvent('holdhome'));
+    });
+  },
+
+  resize: function() {
+    this.client.switchToFrame();
+    this.client.executeScript(function() {
+      window.wrappedJSObject.dispatchEvent(new CustomEvent('resize'));
     });
   },
 
@@ -267,6 +385,12 @@ System.prototype = {
     });
     client.waitFor(function() {
       return !clock.displayed();
+    });
+  },
+
+  stopStatusbar: function() {
+    this.client.executeScript(function() {
+      window.wrappedJSObject.StatusBar.pauseUpdate();
     });
   },
 
@@ -286,5 +410,13 @@ System.prototype = {
         return options[i];
       }
     }
+  },
+
+  sendSystemUpdateNotification: function() {
+    this.client.executeScript(function() {
+      var UpdateManager = window.wrappedJSObject.UpdateManager;
+      UpdateManager.addToUpdatesQueue(UpdateManager.systemUpdatable);
+      UpdateManager.displayNotificationAndToaster();
+    });
   }
 };
