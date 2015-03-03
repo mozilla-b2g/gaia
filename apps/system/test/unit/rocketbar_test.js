@@ -654,19 +654,26 @@ suite('system/Rocketbar', function() {
         resize: function() {}
       };
       var stub = this.sinon.stub(subject.searchWindow.frontWindow, 'resize');
-      var respond =
+      var stopsPropagation =
         subject.respondToHierarchyEvent(new CustomEvent('system-resize'));
 
       assert.ok(stub.calledOnce);
-      assert.isFalse(respond);
+      assert.isFalse(stopsPropagation);
 
       stub.restore();
     });
 
     test('Search window without front window', function() {
-      var respond =
+      var stopsPropagation =
         subject.respondToHierarchyEvent(new CustomEvent('system-resize'));
-      assert.isTrue(respond);
+      assert.isFalse(stopsPropagation);
+    });
+
+    test('Rocketbar is inactive', function() {
+      subject.deactivate();
+      var stopsPropagation =
+        subject.respondToHierarchyEvent(new CustomEvent('system-resize'));
+      assert.isTrue(stopsPropagation);
     });
   });
 

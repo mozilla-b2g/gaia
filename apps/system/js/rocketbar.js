@@ -204,7 +204,9 @@
     },
 
     '_handle_system-resize': function() {
-      if (this.isActive() && this.searchWindow.frontWindow) {
+      if (this.isActive()) {
+        this.searchWindow &&
+        this.searchWindow.frontWindow &&
         this.searchWindow.frontWindow.resize();
         return false;
       }
