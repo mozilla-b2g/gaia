@@ -43,7 +43,7 @@ ManifestBuilder.prototype.fillExternalAppManifest = function(webapp) {
     isPackaged = true;
     if (webapp.metaData.origin) {
       this.errors.push('External webapp `' + webapp.sourceDirectoryName +
-                       '` can not have origin in metadata because is packaged');
+        '` can not have origin in metadata because is packaged');
       return;
     }
   }
