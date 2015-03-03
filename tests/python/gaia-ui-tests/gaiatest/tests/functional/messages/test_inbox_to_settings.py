@@ -17,10 +17,7 @@ class TestSettingsFromInbox(GaiaTestCase):
         messages = Messages(self.marionette)
         messages.launch()
         
-        #tap options icon
-        activities = messages.tap_options()
-        
         #tap settings icon
-        messaging_settings = activities.tap_settings()
+        messaging_settings = messages.tap_settings()
         
         self.assertTrue(messaging_settings.is_messaging_settings_displayed())
