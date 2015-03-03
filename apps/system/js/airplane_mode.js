@@ -1,4 +1,4 @@
-/* global AirplaneMode, BaseModule */
+/* global AirplaneMode, BaseModule, LazyLoader */
 'use strict';
 
 (function() {
@@ -83,6 +83,12 @@
 
     _start: function() {
       this._watchList = {};
+      LazyLoader.load(['js/airplane_mode_icon.js']).then(function() {
+        this.icon = new AirplaneModeIcon(this);
+        this.icon.start();
+      }.bind(this))['catch'](function(err) { // XXX: workaround gjslint
+        console.error(err);
+      });
     },
 
     _stop: function() {
@@ -145,6 +151,7 @@
           // is on / off, it will not affect apps using this value
           'ril.radio.disabled': this._enabled
         });
+        this.icon && this.icon.update();
       } else {
         // keep updating the status to reflect current status
         this.writeSetting({
