@@ -80,6 +80,8 @@ suite('system/Card', function() {
       assert.ok(card.element, 'element node');
       assert.equal(card.element.tagName, 'LI');
       assert.ok(card.screenshotView, 'screenshotView node');
+      assert.ok(card.previewContainer, 'previewContainer node');
+
       assert.ok(card.titleNode, 'title node');
       assert.ok(card.titleId, 'title id');
       assert.ok(card.iconButton, 'iconButton');
@@ -92,8 +94,8 @@ suite('system/Card', function() {
       assert.isFalse(card.element.classList.contains('browser'),
                      'no browser class for non-browser windows');
       assert.ok(card.element.querySelector('.close-button'), '.close-button');
-      assert.ok(card.element.querySelector('.screenshotView'),
-                '.screenshotView');
+      assert.ok(card.element.querySelector('.appPreview'),
+                '.appPreview');
       assert.ok(header, 'h1');
       assert.ok(header.id, 'h1.id');
     });
@@ -101,7 +103,7 @@ suite('system/Card', function() {
     test('has expected aria values', function(){
       var card = this.card;
 
-      assert.equal(card.screenshotView.getAttribute('role'), 'link');
+      assert.equal(card.previewContainer.getAttribute('role'), 'link');
       assert.strictEqual(card.iconButton.getAttribute('aria-hidden'), 'true');
     });
 
@@ -309,7 +311,7 @@ suite('system/Card', function() {
       return function() {
         var card = cards[orientation];
         card.render();
-        var orientationNode = card.screenshotView;
+        var orientationNode = card.previewContainer;
 
         card.element.dispatchEvent(new CustomEvent('onviewport'));
         assert.isTrue(

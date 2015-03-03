@@ -66,13 +66,13 @@ marionette('Task Manager', function() {
       taskManager.show();
     });
 
-    test('should display moz-element screenshots for all apps',
+    test('should display moz-element preview for all apps',
     function() {
       var cards = taskManager.cards;
       cards.forEach(function(card) {
-        var screenshot = card.findElement(taskManager.selectors.screenshot);
+        var reflection = card.findElement(taskManager.selectors.reflection);
         client.waitFor(function() {
-          return screenshot.scriptWith(function(div) {
+          return reflection.scriptWith(function(div) {
             return div.style.backgroundImage.contains('-moz-element');
           });
         });
@@ -110,7 +110,7 @@ marionette('Task Manager', function() {
       var otherScreenshot = app.findElement(taskManager.selectors.screenshot);
       client.waitFor(function() {
         return otherScreenshot.scriptWith(function(div) {
-          return div.style.backgroundImage.contains('-moz-element');
+          return !div.style.backgroundImage.contains('blob');
         });
       });
     });

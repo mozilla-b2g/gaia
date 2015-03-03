@@ -108,7 +108,7 @@ class CardsView(Base):
 
 class Card(PageRegion):
     _close_button_locator = (By.CLASS_NAME, 'close-button')
-    _screenshot_view_locator = (By.CLASS_NAME, 'screenshotView')
+    _screenshot_view_locator = (By.CLASS_NAME, 'appPreview')
     _app_icon_locator = (By.CLASS_NAME, 'appIcon')
 
     def a11y_click_close_button(self):
