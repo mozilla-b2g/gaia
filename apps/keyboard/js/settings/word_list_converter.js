@@ -405,7 +405,7 @@ TSTBlobBuilder.prototype.toBlobArray = function() {
     this._emitNode(node);
   }, this);
 
-  return this._output;
+  return this._output.buffer;
 };
 
 
