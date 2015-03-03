@@ -450,7 +450,7 @@ module.exports = {
     }
   },
 
-  addFileToZip: function(zip, zipPath, pathInZip, file, compression) {
+  addFileToZip: function(zip, pathInZip, file, compression) {
     if (!file.exists()) {
       return;
     }
@@ -460,8 +460,15 @@ module.exports = {
     });
   },
 
+  hasFileInZip: function(zip, pathInZip) {
+    return zip.file(pathInZip);
+  },
+
   closeZip: function(zip, zipPath) {
-    fs.writeFileSync(zipPath, zip.generate({ type: 'nodebuffer' }));
+    fs.writeFileSync(zipPath, zip.generate({
+      type: 'nodebuffer',
+      platform: process.platform
+    }));
   },
 
   getLocaleBasedir: function(src) {

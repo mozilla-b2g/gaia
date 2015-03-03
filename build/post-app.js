@@ -25,7 +25,12 @@ exports.execute = function(options, webapp) {
   require('./webapp-optimize').execute(options);
 
   if (options.DEBUG === '0') {
-    // Generate $(PROFILE_FOLDER)/webapps/APP/application.zip
-    require('./webapp-zip').execute(options);
+    // Workaround for bug 955999, after multilocale, settings and system
+    // generate too long args exceed nsIProcess.runw() can handle.
+    // Thus, we clean webapp.asts values which generates from l10n in order to
+    // pass into nsIProcess.runw()
+    // It can remove by bug 1131516 once all post-app tasks are refactored.
+    options.webapp.asts = '';
+    nodeHelper.require('webapp-zip', options);
   }
 };

@@ -949,10 +949,9 @@ function Commander(cmd) {
       process.init(_file);
       process.runw(true, args, args.length);
       callback && callback(process.exitValue);
-    } catch (e) {
+    } catch (err) {
       callback && callback(1);
-      throw new Error('having trouble when execute ' + command +
-        ' ' + args.join(' '));
+      throw err;
     }
 
     processEvents(function () {
@@ -1097,10 +1096,9 @@ function getDocument(content) {
  * @param zip {nsIZipWriter} - the zip file
  * @param pathInZip {string} - the relative path to the new file
  * @param data {string} - the content of the file
- * @param time {string} - the timestamp of the file
  * @param compression {number} - the enum shows above
  */
-function addEntryContentWithTime(zip, pathInZip, data, time, compression) {
+function addFileToZip(zip, pathInZip, data, compression) {
   if (!data) {
     return;
   }
@@ -1121,10 +1119,8 @@ function addEntryContentWithTime(zip, pathInZip, data, time, compression) {
     input.init(data, -1, -1, 0);
   }
 
-  zip.addEntryStream(
-    pathInZip, time || 0, compression, input, false);
+  zip.addEntryStream(pathInZip, Date.now() * 1000, compression, input, false);
   input.close();
-
 }
 
 /**
@@ -1138,6 +1134,10 @@ function getCompression(type) {
     case 'best':
       return Ci.nsIZipWriter.COMPRESSION_BEST;
   }
+}
+
+function hasFileInZip(zip, pathInZip) {
+  return zip.hasEntry(pathInZip);
 }
 
 /**
@@ -1176,21 +1176,21 @@ function copyRec(source, target) {
 
 /**
  * Create an empty ZIP file.
- * For users, the way to read/write a ZIP file is
- *
- * 1. create an nsIZipWriter
- * 2. open it with the open method, which
- * 3. puts an nsIFile as the first argument
- *
- * For example:
- *
- *  createZip().open(getFile(<some file>, <mode>))
  *
  * @return {nsIZipWriter}
  */
-function createZip() {
+function createZip(zipPath) {
   var zip = Cc['@mozilla.org/zipwriter;1'].createInstance(Ci.nsIZipWriter);
+  // PR_RDWR | PR_CREATE_FILE | PR_TRUNCATE
+  zip.open(getFile(zipPath), 0x04 | 0x08 | 0x20);
   return zip;
+}
+
+function closeZip(zip) {
+  if (zip.alignStoredFiles) {
+    zip.alignStoredFiles(4096);
+  }
+  zip.close();
 }
 
 /**
@@ -1250,7 +1250,7 @@ var scriptLoader = {
  * Run specific build task on Node.js if RUN_ON_NODE is on, otherwise we go back
  * to XPCShell.
  */
-function NodeHelper(path) {
+function NodeHelper() {
   if (getEnv('RUN_ON_NODE') === '1') {
     var node = new Commander('node');
     node.initPath(getEnvPath());
@@ -1260,7 +1260,7 @@ function NodeHelper(path) {
     };
   } else {
     this.require = function(path, options) {
-      require(path).execute(options);
+      return require(path).execute(options);
     };
   }
 }
@@ -1296,6 +1296,8 @@ exports.getOsType = getOsType;
 exports.generateUUID = generateUUID;
 exports.copyRec = copyRec;
 exports.createZip = createZip;
+exports.closeZip = closeZip;
+exports.hasFileInZip = hasFileInZip;
 exports.scriptParser = Reflect.parse;
 exports.deleteFile = deleteFile;
 exports.listFiles = listFiles;
@@ -1325,7 +1327,7 @@ exports.Services = Services;
 exports.concatenatedScripts = concatenatedScripts;
 exports.dirname = dirname;
 exports.basename = basename;
-exports.addEntryContentWithTime = addEntryContentWithTime;
+exports.addFileToZip = addFileToZip;
 exports.getCompression = getCompression;
 exports.existsInAppDirs = existsInAppDirs;
 exports.removeFiles = removeFiles;
