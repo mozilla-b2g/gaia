@@ -1040,7 +1040,8 @@ html[dir="rtl"] .contact-header aside.pack-end {
 
 /* ellipsis direction hack before bug 883884 fixed */
 .suggestion > .name > bdi,
-.contact-header > .name > bdi {
+.contact-header > .name > bdi,
+#messages-header-text > bdi {
   overflow: hidden;
   text-overflow: ellipsis;
   display: inline-block;
@@ -1049,8 +1050,13 @@ html[dir="rtl"] .contact-header aside.pack-end {
 
 /* margin bottom adjustment for inline-block bdi element */
 .suggestion > .name,
-.contact-header > .name {
+.contact-header > .name,
+#messages-header-text > bdi {
   margin-bottom: -0.5rem;
+}
+
+#messages-header-text > bdi {
+  line-height: 2.4rem;
 }
 
 /* Text selection control */
