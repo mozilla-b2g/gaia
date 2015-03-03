@@ -1,4 +1,5 @@
 'use strict';
+/* global focusManager */
 
 (function(exports) {
 
@@ -70,6 +71,7 @@
         message.args
       );
       var button = banner.querySelector('button');
+      focusManager.addUI(this);
 
       if (buttonParams) {
         banner.dataset.button = true;
@@ -84,6 +86,7 @@
       banner.addEventListener('animationend', function animationend() {
         banner.removeEventListener('animationend', animationend);
         banner.classList.remove('visible');
+        focusManager.removeUI(this);
 
         if (buttonParams) {
           if (buttonParams.dismiss && !this._clicked) {
@@ -94,9 +97,27 @@
           button.classList.remove('visible');
           this.banner.parentNode.removeChild(this.banner);
         }
+        focusManager.focus();
       }.bind(this));
-
+      focusManager.focus();
       banner.classList.add('visible');
+    },
+
+    isVisible: function() {
+      return this._banner && this._banner.classList.contains('visible');
+    },
+
+    getElement: function() {
+      if (this.isVisible()) {
+        return this._banner;
+      }
+    },
+
+    focus: function() {
+      if (this.isVisible()) {
+        document.activeElement.blur();
+        this._banner.querySelector('button').focus();
+      }
     }
   };
 
