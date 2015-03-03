@@ -281,58 +281,6 @@ suite('system/Card', function() {
     });
   });
 
-  suite('orientation >', function() {
-    var cards = {};
-    var orientationDegrees = {
-      'landscape-primary' : 90,
-      'portrait-primary' : 0,
-      'portrait-secondary' : 270,
-      'landscape-secondary' : 180
-    };
-    suiteSetup(function() {
-      for (var orientation in orientationDegrees) {
-        cards[orientation] = new Card({
-          manager: mockManager,
-          app: makeApp({
-            'orientation': orientation,
-            'rotatingDegree': orientationDegrees[orientation]
-          })
-        });
-      }
-    });
-
-    teardown(function() {
-      this.cards = null;
-    });
-
-    function testForCardOrientation(orientation) {
-      return function() {
-        var card = cards[orientation];
-        card.render();
-        var orientationNode = card.screenshotView;
-
-        card.element.dispatchEvent(new CustomEvent('onviewport'));
-        assert.isTrue(
-          orientationNode.classList.contains(
-            'rotate-'+orientationDegrees[orientation]
-          ),'corrent orientation in classList');
-      };
-    }
-
-    test('cardsview defines a landscape-primary app',
-         testForCardOrientation('landscape-primary')
-    );
-    test('cardsview defines a landscape-secondary app',
-         testForCardOrientation('landscape-secondary')
-    );
-    test('cardsview defines a portrait app in portrait-primary',
-         testForCardOrientation('portrait-primary')
-    );
-    test('cardsview defines a portrait-secondary app',
-         testForCardOrientation('portrait-secondary')
-    );
-  });
-
   suite('previews > ', function() {
     suiteSetup(function(){
       this.getIconStub = sinon.stub(CardsHelper, 'getIconURIForApp',
