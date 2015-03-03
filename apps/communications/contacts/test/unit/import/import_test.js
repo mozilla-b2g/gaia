@@ -74,6 +74,9 @@ setup(function() {
 
 suite('Import Friends Test Suite', function() {
   suiteSetup(function() {
+    Object.defineProperty(document, 'hidden',
+                          { value: false, configurable: true });
+
     realAlphaScroll = utils.AlphaScroll;
     utils.alphaScroll = MockAlphaScroll;
 

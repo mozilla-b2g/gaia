@@ -42,6 +42,8 @@ suite('Tutorial >', function() {
   var realMozSettings;
 
   suiteSetup(function(done) {
+    Object.defineProperty(document, 'hidden',
+                          { value: false, configurable: true });
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 

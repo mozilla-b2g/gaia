@@ -173,6 +173,8 @@ suite('shared/js/text_utils.js', function() {
   }
 
   setup(function() {
+    Object.defineProperty(document, 'hidden',
+                          { value: false, configurable: true });
     text = '';
   });
 
@@ -684,12 +686,13 @@ suite('shared/js/text_utils.js', function() {
       var el = setupHeaderElement();
       el.textContent = setupLargeString();
 
-      var stub = sinon.stub(FontSizeUtils, '_reformatHeaderText', function() {
-        document.body.removeChild(el.parentNode);
-        stub.restore();
-        assert.isTrue(stub.calledWith(el));
-        done();
-      });
+      var stub = this.sinon.stub(FontSizeUtils, '_reformatHeaderText',
+        function() {
+          document.body.removeChild(el.parentNode);
+          stub.restore();
+          assert.isTrue(stub.calledWith(el));
+          done();
+        });
 
       lazyLoad(el.parentNode);
     });
@@ -698,7 +701,7 @@ suite('shared/js/text_utils.js', function() {
       var el = setupNonHeaderElement();
       el.textContent = setupLargeString();
 
-      var spy = sinon.spy(FontSizeUtils, '_reformatHeaderText');
+      var spy = this.sinon.spy(FontSizeUtils, '_reformatHeaderText');
       assert.isTrue(spy.notCalled);
 
       el.addEventListener('overflow', function() {
