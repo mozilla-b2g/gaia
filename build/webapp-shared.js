@@ -1,4 +1,9 @@
 'use strict';
+
+/**
+ * Copy shared files to stage folders
+ */
+
 var utils = require('./utils');
 
 var WebappShared = function() {
@@ -304,7 +309,7 @@ WebappShared.prototype.pushFileByType = function(kind, path) {
 };
 
 /**
- * Filter <script...>|<link..> keyword in HTML. If these external resources are 
+ * Filter <script...>|<link..> keyword in HTML. If these external resources are
  * imported from '/shared', we should move them to build_stage/<app>/shared
  */
 WebappShared.prototype.filterSharedUsage = function(file) {
@@ -348,7 +353,7 @@ WebappShared.prototype.filterFileByExtenstion = function(type, file) {
 
 /**
  * copyShared scan '/shared' resources which have ever imported by webapps
- * and copy them to '/build_stage' with their proper structures.  
+ * and copy them to '/build_stage' with their proper structures.
  */
 WebappShared.prototype.copyShared = function() {
   // If config.BUILD_APP_NAME isn't `*`, we only accept one webapp
