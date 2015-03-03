@@ -1,3 +1,5 @@
+marionette.plugin('loader', require(__dirname + '/marionette_loader'));
+
 marionette.plugin('apps', require('marionette-apps'));
 marionette.plugin('contentScript', require('marionette-content-script'));
 marionette.plugin('fileManager', require('marionette-file-manager'));
