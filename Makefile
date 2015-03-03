@@ -137,6 +137,7 @@ endif
 ifeq ($(DEBUG),1)
 NOFTU=1
 NOFTUPING=1
+SCREEN_TIMEOUT=0
 PROFILE_FOLDER?=profile-debug
 else ifeq ($(DESKTOP),1)
 NOFTU=1

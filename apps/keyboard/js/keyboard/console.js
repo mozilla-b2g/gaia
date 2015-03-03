@@ -9,6 +9,7 @@
 
 (function(exports) {
 var KeyboardConsole = function KeyboardConsole() {
+  this._logs = '';
   this._timers = null;
 };
 
@@ -32,7 +33,7 @@ KeyboardConsole.prototype.start = function() {
  * production too so warn() and error() is not implemented here.
  *
  */
-KeyboardConsole.prototype.LOG_LEVEL = 0;
+KeyboardConsole.prototype.LOG_LEVEL = 4;
 
 KeyboardConsole.prototype.trace = function() {
   if (this.LOG_LEVEL < 3) {
@@ -70,6 +71,7 @@ KeyboardConsole.prototype.log = function() {
     return;
   }
 
+  this._logs += Array.prototype.slice.call(arguments).concat() + '\n';
   console.log.apply(console, arguments);
 };
 
