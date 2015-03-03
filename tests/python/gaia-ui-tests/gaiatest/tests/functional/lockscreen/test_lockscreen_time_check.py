@@ -1,6 +1,8 @@
-from datetime import datetime
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.wait import Wait
+from marionette_driver import Wait
 
 from gaiatest.apps.settings.app import Settings
 from gaiatest import GaiaTestCase

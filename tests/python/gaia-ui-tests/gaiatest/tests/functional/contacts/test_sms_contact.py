@@ -3,14 +3,12 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import time
-try:
-    from marionette import Wait
-except:
-    from marionette_driver import Wait
-from gaiatest import GaiaTestCase
-from gaiatest.mocks.mock_contact import MockContact
 
+from marionette_driver import Wait
+
+from gaiatest import GaiaTestCase
 from gaiatest.apps.contacts.app import Contacts
+from gaiatest.mocks.mock_contact import MockContact
 
 
 class TestContacts(GaiaTestCase):

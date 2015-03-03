@@ -4,12 +4,8 @@
 
 import time
 
-try:
-    from marionette.by import By
-    from marionette.marionette import Actions
-except:
-    from marionette_driver.by import By
-    from marionette_driver.marionette import Actions
+from marionette_driver import By
+from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
 

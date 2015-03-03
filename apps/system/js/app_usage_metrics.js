@@ -827,7 +827,7 @@
       usage.invocations++;
       usage.usageTime += time;
       this.needsSave = true;
-      debug(app, 'ran for', time);
+      debug(app.manifestURL, 'ran for', time);
     }
     return time > 0;
   };
@@ -840,7 +840,7 @@
     var usage = this.getAppUsage(app.manifestURL);
     usage.installs++;
     this.needsSave = true;
-    debug(app, 'installed');
+    debug(app.manifestURL, 'installed');
     return true;
   };
 
@@ -852,7 +852,7 @@
     var usage = this.getAppUsage(app.manifestURL);
     usage.uninstalls++;
     this.needsSave = true;
-    debug(app, 'uninstalled');
+    debug(app.manifestURL, 'uninstalled');
     return true;
   };
 
@@ -865,7 +865,7 @@
     var count = usage.activities[url] || 0;
     usage.activities[url] = ++count;
     this.needsSave = true;
-    debug(app, 'invoked activity', url);
+    debug(app.manifestURL, 'invoked activity', url);
     return true;
   };
 
