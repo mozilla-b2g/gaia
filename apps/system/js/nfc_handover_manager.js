@@ -26,7 +26,7 @@
   ];
 
   NfcHandoverManager.EVENTS = [
-    'bluetooth-adapter-added',
+    'bluetooth-enabled',
     'bluetooth-disabled',
     'nfc-transfer-started',
     'nfc-transfer-completed'
@@ -161,6 +161,11 @@
       this.bluetoothStatusSaved = false;
       this.bluetoothAutoEnabled = false;
 
+      if (typeof(window.navigator.mozBluetooth.onattributechanged) !==
+        'undefined') {
+        this._debug('Bluetooth APIv2 does not support NFC yet');
+        return;
+      }
       if (this.bluetooth.enabled) {
         this._debug('Bluetooth already enabled on boot');
         var req = this.bluetooth.getDefaultAdapter();
@@ -195,9 +200,14 @@
       this._clearBluetoothStatus();
     },
 
-    '_handle_bluetooth-adapter-added': function() {
+    '_handle_bluetooth-enabled': function() {
+      if (typeof(window.navigator.mozBluetooth.onattributechanged) !==
+        'undefined') {
+        this._debug('Bluetooth APIv2 does not support NFC yet');
+        return;
+      }
       var self = this;
-      self._debug('bluetooth-adapter-added');
+      self._debug('bluetooth-enabled');
       var req = self.bluetooth.getDefaultAdapter();
       req.onsuccess = function bt_getAdapterSuccess() {
         self.settingsNotified = false;

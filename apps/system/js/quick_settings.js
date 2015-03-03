@@ -170,32 +170,8 @@
      * @memberof QuickSettings.prototype
      */
     monitorBluetoothChange: function() {
-      var self = this;
-      var btFirstSet = true;
-      SettingsListener.observe('bluetooth.enabled', true, function(value) {
-        // check self.bluetooth.dataset.enabled and value are identical
-        if ((self.bluetooth.dataset.enabled && value) ||
-          (self.bluetooth.dataset.enabled === undefined && !value)) {
-          return;
-        }
-
-        if (value) {
-          self.bluetooth.dataset.enabled = 'true';
-        } else {
-          delete self.bluetooth.dataset.enabled;
-        }
-
-        // Set to the initializing state to block user interaction until the
-        // operation completes. (unless we are being called for the first time,
-        // where Bluetooth is already initialize
-        if (!btFirstSet) {
-          self.bluetooth.dataset.initializing = 'true';
-        }
-        btFirstSet = false;
-
-        self.setAccessibilityAttributes(self.bluetooth, 'bluetoothButton');
-      });
-      window.addEventListener('bluetooth-adapter-added', this);
+      // Bluetooth module is loaded after quicksettings.
+      window.addEventListener('bluetooth-enabled', this);
       window.addEventListener('bluetooth-disabled', this);
     },
 
@@ -336,6 +312,7 @@
                 window.dispatchEvent(
                   new CustomEvent('request-enable-bluetooth'));
               }
+              this.bluetooth.dataset.initializing = 'true';
               break;
 
             case this.airplaneMode:
@@ -362,8 +339,13 @@
           break;
 
           // unlock bluetooth toggle
-        case 'bluetooth-adapter-added':
+        case 'bluetooth-enabled':
+          this.bluetooth.dataset.enabled = 'true';
+          delete this.bluetooth.dataset.initializing;
+          this.setAccessibilityAttributes(this.bluetooth, 'bluetoothButton');
+          break;
         case 'bluetooth-disabled':
+          delete this.bluetooth.dataset.enabled;
           delete this.bluetooth.dataset.initializing;
           this.setAccessibilityAttributes(this.bluetooth, 'bluetoothButton');
           break;

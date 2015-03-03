@@ -30,18 +30,6 @@ var Bluetooth = {
     }
   },
 
-  getCurrentProfiles: function bt_getCurrentProfiles() {
-    var profiles = this.Profiles;
-    var connectedProfiles = [];
-    for (var name in profiles) {
-      var profile = profiles[name];
-      if (this.isProfileConnected(profile)) {
-        connectedProfiles.push(profile);
-      }
-    }
-    return connectedProfiles;
-  },
-
   /**
    * check if bluetooth profile is connected.
    *
@@ -88,27 +76,33 @@ var Bluetooth = {
         return;
       }
     });
+    // send default bluetooth state so quick settings
+    // could be get updated
+    var req = SettingsListener.getSettingsLock()
+      .get('bluetooth.enabled');
+    req.onsuccess = function get_onsuccess() {
+      if (req.result['bluetooth.enabled']) {
+        window.dispatchEvent(new CustomEvent('bluetooth-enabled'));
+      } else {
+        window.dispatchEvent(new CustomEvent('bluetooth-disabled'));
+      }
+    };
 
     // when bluetooth adapter is ready, a.k.a enabled,
     // emit event to notify QuickSettings and try to get
     // defaultAdapter at this moment
     bluetooth.onadapteradded = function bt_onAdapterAdded() {
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('bluetooth-adapter-added',
-        /* canBubble */ true, /* cancelable */ false, null);
-      window.dispatchEvent(evt);
+      window.dispatchEvent(new CustomEvent('bluetooth-enabled'));
       self.initDefaultAdapter();
     };
-    // if bluetooth is enabled in booting time, try to get adapter now
-    this.initDefaultAdapter();
 
     // when bluetooth is really disabled, emit event to notify QuickSettings
-    bluetooth.ondisabled = function bt_onDisabled() {
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('bluetooth-disabled',
-        /* canBubble */ true, /* cancelable */ false, null);
-      window.dispatchEvent(evt);
-    };
+    bluetooth.addEventListener('disabled', function bt_onDisabled() {
+      window.dispatchEvent(new CustomEvent('bluetooth-disabled'));
+    });
+
+    // if bluetooth is enabled in booting time, try to get adapter now
+    this.initDefaultAdapter();
 
     /* In file transfering case:
      * since System Message can't be listened in two js files within a app,
