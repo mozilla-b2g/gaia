@@ -15,9 +15,10 @@ body {
 
 gaia-grid {
   display: block;
-  height: 100%;
+  /* Minus the bottom margin and the search-box height */
+  min-height: calc(100% - 5rem - 5rem);
   width: 100%;
-  margin-bottom: 5rem;
+  padding-bottom: 5rem;
 }
 
 #curtain {
