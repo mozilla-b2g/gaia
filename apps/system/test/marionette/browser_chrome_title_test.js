@@ -14,7 +14,8 @@ marionette('Browser Chrome - Title content', function() {
       'lockscreen.enabled': false
     },
     apps: {
-      'fakechromenavapp.gaiamobile.org': __dirname + '/fakechromenavapp',
+      'fakechromenavapp.gaiamobile.org':
+        __dirname + '/../apps/fakechromenavapp',
     }
   });
 

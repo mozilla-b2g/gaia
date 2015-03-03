@@ -8,7 +8,7 @@ marionette('Text selection >', function() {
   var action;
 
   apps[FakeTextSelectionApp.ORIGIN] =
-    __dirname + '/faketextselectionapp';
+    __dirname + '/../apps/faketextselectionapp';
 
   suite('without lockscreen', function() {
     var fakeTextselectionApp;

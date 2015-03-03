@@ -8,9 +8,10 @@ var SoundToast = require('./lib/soundtoast.js');
 
 marionette('Sound manager tests', function() {
   var apps = {};
-  apps[FakeMediaApp.DEFAULT_ORIGIN] = __dirname + '/fakemediaapp';
-  apps[FakeAlarmApp.DEFAULT_ORIGIN] = __dirname + '/fakealarmapp';
-  apps[FakeNotificationApp.DEFAULT_ORIGIN] = __dirname + '/fakenotificationapp';
+  apps[FakeMediaApp.DEFAULT_ORIGIN] = __dirname + '/../apps/fakemediaapp';
+  apps[FakeAlarmApp.DEFAULT_ORIGIN] = __dirname + '/../apps/fakealarmapp';
+  apps[FakeNotificationApp.DEFAULT_ORIGIN] =
+    __dirname + '/../apps/fakenotificationapp';
 
   var client = marionette.client({
     settings: {

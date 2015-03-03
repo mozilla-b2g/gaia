@@ -1,4 +1,5 @@
 'use strict';
+/* global FakeMusic */
 
 // XXX: After Dominic lands shared/js/media/remote_controls.js, we should switch
 // to using that for our IAC code, since that's way closer to reality.
@@ -36,8 +37,9 @@ var FakeMusicComms = {
         self._ports.forEach(function(port) {
           port.onmessage = function(event) {
             var message = event.data;
-            if (message.command in self.commands)
+            if (message.command in self.commands) {
               self.commands[message.command](event);
+            }
           };
 
           self._queuedMessages.forEach(function(message) {

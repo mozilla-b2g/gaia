@@ -21,7 +21,7 @@ marionette('Software Home Button - Notification Banner Test', function() {
 
   suiteSetup(function(done) {
     // Any app that we can test the download success banner.
-    var app = __dirname + '/fullscreen-app';
+    var app = __dirname + '/../apps/fullscreen-app';
     createAppServer(app, client, function(err, _server) {
       server = _server;
       done(err);

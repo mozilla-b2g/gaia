@@ -10,8 +10,8 @@ marionette('Task Manager', function() {
   var firstAppOrigin = 'fakeapp.gaiamobile.org';
   var secondAppOrigin = 'fakegreenapp.gaiamobile.org';
   var apps = {};
-  apps[firstAppOrigin] = __dirname + '/fakeapp';
-  apps[secondAppOrigin] = __dirname + '/fakegreenapp';
+  apps[firstAppOrigin] = __dirname + '/../apps/fakeapp';
+  apps[secondAppOrigin] = __dirname + '/../apps/fakegreenapp';
 
   var client = marionette.client({
     prefs: {

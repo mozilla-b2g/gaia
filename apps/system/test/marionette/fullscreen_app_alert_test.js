@@ -6,7 +6,7 @@ marionette('modal dialog under mozFullScreen', function() {
 
   var FULLSCREEN_APP_ORIGIN = 'fullscreen-app.gaiamobile.org';
   var apps = {};
-  apps[FULLSCREEN_APP_ORIGIN] = __dirname + '/fullscreen-app';
+  apps[FULLSCREEN_APP_ORIGIN] = __dirname + '/../apps/fullscreen-app';
 
   var app, client = marionette.client({
     settings: {
