@@ -122,7 +122,7 @@ TargetHandlersManager.prototype._createHandlerForTarget = function(target) {
   // We will need to normalize the identifier for each targets in the future.
   if ('isDismissSuggestionsButton' in target) {
     handler = new DismissSuggestionsTargetHandler(target, this.app);
-  } else if ('selection' in target) {
+  } else if ('suggestion' in target) {
     handler = new CandidateSelectionTargetHandler(target, this.app);
   } else if ('compositeKey' in target) {
     handler = new CompositeTargetHandler(target, this.app);
