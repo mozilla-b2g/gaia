@@ -7,7 +7,8 @@
   const mozSettings = navigator.mozSettings;
 
   const DEBUG = true;
-  const API_URL = 'https://api.everything.me/partners/1.0/{resource}/';
+  const API_URL =
+    'https://appsearch.services.mozilla.com/partners/1.0/{resource}/';
 
   var initPromise = null;
   var slice = Function.call.bind(Array.prototype.slice);
@@ -22,8 +23,8 @@
       .then(
         function success(settings) {
           // config overrides
-          if (settings['everythingme.api.url']) {
-            this.config.apiUrl = settings['everythingme.api.url'];
+          if (settings['appsearch.url']) {
+            this.config.apiUrl = settings['appsearch.url'];
           }
 
           // wait for device init
