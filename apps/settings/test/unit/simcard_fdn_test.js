@@ -38,12 +38,9 @@ suite('SimCardFdn > ', function() {
   suite('init > ', function() {
     var realGetIccByIindex;
     var updateFdnStub;
-    var renderAuthorizedNumbersStub;
 
     setup(function() {
-      updateFdnStub = this.sinon.stub(SimFdnLock, 'updateFdnStatus');
-      renderAuthorizedNumbersStub = this.sinon.stub(
-        SimFdnLock, 'renderAuthorizedNumbers');
+      updateFdnStub = this.sinon.stub(SimFdnLock, '_updateFdnStatus');
 
       realGetIccByIindex = window.getIccByIndex;
       window.getIccByIndex = this.sinon.stub();
@@ -57,11 +54,10 @@ suite('SimCardFdn > ', function() {
     suiteTeardown(function() {
       window.getIccByIndex = realGetIccByIindex;
       updateFdnStub.restore();
-      renderAuthorizedNumbersStub.restore();
     });
 
     test('is panelready bound successfully', function(done) {
-      assert.isTrue(SimFdnLock.updateFdnStatus.calledOnce);
+      assert.isTrue(SimFdnLock._updateFdnStatus.calledOnce);
 
       var panelreadyEvent = function(el) {
         var ev = new CustomEvent('panelready', {
@@ -72,12 +68,10 @@ suite('SimCardFdn > ', function() {
         window.dispatchEvent(ev);
       };
 
-      panelreadyEvent('#call-fdnList');
       panelreadyEvent('#call-fdnSettings');
 
       setTimeout(function() {
-        assert.isTrue(SimFdnLock.updateFdnStatus.calledTwice);
-        assert.isTrue(SimFdnLock.renderAuthorizedNumbers.calledOnce);
+        assert.isTrue(SimFdnLock._updateFdnStatus.calledTwice);
         done();
       });
     });

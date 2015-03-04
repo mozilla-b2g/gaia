@@ -3,27 +3,27 @@
 
     <gaia-header action="back" data-href="#call-fdnSettings">
       <h1 data-l10n-id="fdn-authorizedNumbers-header"></h1>
-      <button id="fdnContact"><span data-l10n-id="add" class="icon icon-add">Add</span></button>
+      <button class="fdnContact"><span data-l10n-id="add" class="icon icon-add"></span></button>
     </gaia-header>
 
-    <form hidden id="call-fdnList-action" role="dialog" data-type="action">
+    <form hidden class="call-fdnList-action" role="dialog" data-type="action">
       <header>
-        <span id="fdnAction-name">John Doe</span><br />
-        <span id="fdnAction-number">+1 2345678</span>
+        <span class="fdnAction-name"></span><br />
+        <span class="fdnAction-number"></span>
       </header>
       <menu>
-        <button id="fdnAction-call" data-l10n-id="fdnAction-call"> Call </button>
-        <button id="fdnAction-edit" data-l10n-id="fdnAction-edit"> Edit contact </button>
-        <button id="fdnAction-delete" data-l10n-id="fdnAction-delete"> Delete contact </button>
-        <button id="fdnAction-cancel" data-l10n-id="cancel"> Cancel </button>
+        <button class="fdnAction-call" data-l10n-id="fdnAction-call"></button>
+        <button class="fdnAction-edit" data-l10n-id="fdnAction-edit"></button>
+        <button class="fdnAction-delete" data-l10n-id="fdnAction-delete"></button>
+        <button class="fdnAction-cancel" data-l10n-id="cancel"></button>
       </menu>
     </form>
 
     <div>
-      <ul id="fdn-contactsContainer"></ul>
+      <ul class="fdn-contactsContainer"></ul>
     </div>
 
-    <script src="js/simcard_fdn_list.js"></script>
+    <panel data-path="panels/call_fdn_list/panel"></panel>
 
   </template>
 </element>
