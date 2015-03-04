@@ -947,7 +947,7 @@ function Commander(cmd) {
                   .createInstance(Ci.nsIProcess);
     try {
       process.init(_file);
-      process.run(true, args, args.length);
+      process.runw(true, args, args.length);
       callback && callback(process.exitValue);
     } catch (e) {
       callback && callback(1);

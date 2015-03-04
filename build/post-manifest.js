@@ -1,14 +1,17 @@
 'use strict';
 
-/* global require, exports */
+/**
+ * Updates manifest.webapp
+ */
 
-const utils = require('./utils');
+var utils = require('./utils');
 
 function execute(options) {
   var webapp = options.webapp;
   if (utils.isExternalApp(webapp)) {
     return;
   }
+
   var buildManifestFile = utils.getFile(webapp.buildManifestFilePath);
   var manifest = utils.getJSON(buildManifestFile);
 
@@ -18,4 +21,5 @@ function execute(options) {
 
   utils.writeContent(buildManifestFile, JSON.stringify(manifest));
 }
+
 exports.execute = execute;
