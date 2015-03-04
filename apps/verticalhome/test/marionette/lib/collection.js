@@ -105,7 +105,7 @@ Collection.prototype = {
     var client = this.client.scope({ context: 'chrome' });
     client.executeScript(function(url) {
       navigator.mozSettings.createLock().set({
-        'everythingme.api.url': url
+        'appsearch.url': url
       });
     }, [server.url + '/{resource}']);
   },
