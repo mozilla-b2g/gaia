@@ -9,9 +9,11 @@ from gaiatest.apps.homescreen.app import Homescreen
 class TestBrickVerification(GaiaTestCase):
 
     def setUp(self):
+        # Open Firefox OS and Skip the First Time Use app
         GaiaTestCase.setUp(self)
+        #Open the homescreen app
         self.homescreen = Homescreen(self.marionette)
 
     def test_verify_homescreen(self):
         self.apps.switch_to_displayed_app()
-        self.assertTrue(self.homescreen.is_homescreen_visible, "The phone seems to be bricked.")
+        self.wait_for_element_displayed(self.homescreen._homescreen_container_locator)
