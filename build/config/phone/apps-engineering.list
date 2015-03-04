@@ -23,9 +23,6 @@ dev_apps/test-receiver-inline
 dev_apps/test-wappush
 dev_apps/uitest
 dev_apps/uitest-privileged
-dev_apps/sheet-app-1
-dev_apps/sheet-app-2
-dev_apps/sheet-app-3
 dev_apps/contacts-manager
 dev_apps/contacts-ds-provider1
 dev_apps/contacts-ds-provider2

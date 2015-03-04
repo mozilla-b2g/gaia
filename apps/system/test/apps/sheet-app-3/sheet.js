@@ -1,4 +1,6 @@
 'use strict';
+/* global MozActivity */
+/* jshint nonew: false */
 
 (function(exports) {
   var App = function() {
@@ -19,7 +21,8 @@
     this.TITLE.textContent = document.title;
     this.UI.classList.add(this.theme);
     document.addEventListener('click', this);
-    navigator.mozSetMessageHandler('activity', this.webActivityHandler.bind(this));
+    navigator.mozSetMessageHandler('activity',
+      this.webActivityHandler.bind(this));
     window.addEventListener('message', this);
   };
 
@@ -42,7 +45,8 @@
     var data = evt.target.dataset;
     if (data.activityHandle) {
       if (this.activity) {
-        this.activity['post' + data.activityHandle](this.INPUT.value || new Date());
+        this.activity['post' + data.activityHandle](
+          this.INPUT.value || new Date());
       }
     } else if (data.activity) {
       var request = new MozActivity({
@@ -90,7 +94,7 @@
     this.ICON.classList.remove('hidden');
     this.ICON.classList.remove('icon-back');
     this.ICON.classList.add('icon-close');
-  }
+  };
 
   App.prototype.useBack = function() {
     this.ICON.classList.remove('hidden');
