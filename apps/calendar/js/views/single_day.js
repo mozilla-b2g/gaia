@@ -93,6 +93,7 @@ SingleDay.prototype = {
     this.overlaps.reset();
     this.day.innerHTML = '';
     records.basic.forEach(this._renderEvent, this);
+    this.overlaps.render();
     if (this._alldayEvents.children.length > 0) {
       // If there are all day events, the section acts as a listbox.
       this._alldayEvents.setAttribute('role', 'listbox');
@@ -157,7 +158,10 @@ SingleDay.prototype = {
     var offset = relativeOffset(this.date, startDate);
     el.style.top = (offset * this._hourHeight) + 'px';
 
-    this.overlaps.add(busytime, el);
+    this.overlaps.add({
+      busytime: busytime,
+      element: el
+    });
     this.day.appendChild(el);
   },
 
