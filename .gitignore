@@ -7,7 +7,7 @@
 .svn
 *~
 manifest.appcache
-
+/.idea
 /apps/calendar/js/presets.js
 /apps/camera/js/config.js
 /apps/gallery/js/config.js

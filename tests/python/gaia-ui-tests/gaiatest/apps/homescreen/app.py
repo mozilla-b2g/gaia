@@ -17,6 +17,7 @@ class Homescreen(Base):
 
     _homescreen_icon_locator = (By.CSS_SELECTOR, 'gaia-grid .icon')
     _homescreen_all_icons_locator = (By.CSS_SELECTOR, 'gaia-grid .icon:not(.placeholder)')
+    _homescreen_container_locator = (By.CSS_SELECTOR, '#icons')
     _edit_mode_locator = (By.CSS_SELECTOR, 'body.edit-mode')
     _search_bar_icon_locator = (By.ID, 'search-input')
     _landing_page_locator = (By.ID, 'icons')
@@ -161,6 +162,10 @@ class Homescreen(Base):
     @property
     def number_of_columns(self):
         return int(self.marionette.find_element(*self._landing_page_locator).get_attribute('cols'))
+
+    @property
+    def is_homescreen_visible(self):
+        self.wait_for_element_displayed(*self._homescreen_container_locator)
 
     class InstalledApp(PageRegion):
 
