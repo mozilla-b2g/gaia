@@ -23,7 +23,6 @@
     "device-storage:videos":{ "access": "readwrite" },
     "geolocation":{},
     "mobileid": {},
-    "secureelement-manage": {},
     "settings:wallpaper.image": { "access": "readwrite"}
   }
 }

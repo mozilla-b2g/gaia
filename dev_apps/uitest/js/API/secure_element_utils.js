@@ -1,6 +1,5 @@
 'use strict';
 
-/* globals SECommand */
 /* exported Utils, APDU, AID */
 
 const Utils = {
@@ -93,29 +92,31 @@ const AID = {
 };
 
 const APDU = {
-  getResponse: new SECommand(0x00, 0xC0, 0x00, 0x00, new Uint8Array()),
-
   CRS: {
-    getStatusAll1st: new SECommand(0x80, 0xF2, 0x40, 0x00,
-      new Uint8Array([
+    getStatusAll1st: { cla: 0x80, ins: 0xF2, p1: 0x40, p2: 0x00,
+      data: new Uint8Array([
         0x4F, 0x00, // applet AID, empty here
         0x5C, 0x03, // tag list to be returned
         0x4F, // AID
         0x9F, 0x70  // applet life cycle state - first byte;
                     // contactless activation state - second byte
-      ])),
+      ])
+    },
 
-    getStatusAllNext: new SECommand(0x80, 0xF2, 0x40, 0x01,
-      new Uint8Array([0x4F, 0x00, 0x5C, 0x03, 0x4F, 0x9F, 0x70])),
+    getStatusAllNext: { cla: 0x80, ins: 0xF2, p1: 0x40, p2: 0x01,
+      data: new Uint8Array([0x4F, 0x00, 0x5C, 0x03, 0x4F, 0x9F, 0x70])
+    },
 
     activateCLF: (aid) => {
-      return new SECommand(0x80, 0xF0, 0x01, 0x01,
-        Utils.joinUint8Arrays([0x4F, 0x0F], Utils.hexStringToByte(aid)));
+      return { cla: 0x80, ins: 0xF0, p1: 0x01, p2: 0x01, data:
+        Utils.joinUint8Arrays([0x4F, 0x0F], Utils.hexStringToByte(aid))
+      };
     },
 
     deactivateCLF: (aid) => {
-      return new SECommand(0x80, 0xF0, 0x01, 0x00,
-        Utils.joinUint8Arrays([0x4F, 0x0F], Utils.hexStringToByte(aid)));
+      return { cla: 0x80, ins: 0xF0, p1: 0x01, p2: 0x00, data:
+        Utils.joinUint8Arrays([0x4F, 0x0F], Utils.hexStringToByte(aid))
+      };
     },
   }
 };
