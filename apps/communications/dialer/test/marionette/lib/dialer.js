@@ -35,6 +35,7 @@ Dialer.Selectors = {
   two: '.keypad-key[data-value="2"]',
   three: '.keypad-key[data-value="3"]',
   keypadCallBarAddContact: '#keypad-callbar-add-contact',
+  keypadCallBarCallAction: '#keypad-callbar-call-action',
 
   callLogTabItem: '#option-recents',
   callLogEditButton: '#call-log-icon-edit',

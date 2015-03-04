@@ -315,4 +315,16 @@ marionette('Dialer > Keypad', function() {
     });
     assert.ok(true, 'cleaned the phone number view');
   });
+
+  test('Enabling and disabling the dialer call button', function() {
+    var callButton;
+
+    callButton = subject.client.findElement(selectors.keypadCallBarCallAction);
+    assert.isTrue(callButton.hasAttribute('disabled'));
+
+    typeNumber();
+    callButton = subject.client.findElement(selectors.keypadCallBarCallAction);
+    assert.isFalse(callButton.hasAttribute('disabled'));
+  });
+
 });
