@@ -262,4 +262,31 @@ marionette('Contacts > Form', function() {
       assert.ok(isGalleryButtonPresent());
     });
   }); // Facebook Contacts
+
+  suite('> Input buttons', function() {
+    function assertClear(inputSelector) {
+      var input = client.helper.waitForElement(inputSelector);
+      input.tap();
+      input.sendKeys('1234');
+      client.findElement(inputSelector + ' + button[type="reset"]').tap();
+      assert.strictEqual(input.getAttribute('value'), '');
+    }
+
+    test('Clear buttons work as expected', function() {
+      contactsData.createMozContact(contactData);
+      editFirstContact();
+
+      var fieldSelectors = [
+        selectors.formGivenName,
+        selectors.formTelNumberFirst,
+        selectors.formFamilyName,
+        selectors.formOrg,
+        selectors.formEmailFirst
+      ];
+
+      for (var i = 0, len = fieldSelectors.length; i < len; i++){
+        assertClear(fieldSelectors[i]);
+      }
+    });
+  });
 });

@@ -24,6 +24,7 @@ class TestImportEditExportContact(GaiaTestCase):
         contacts_app.launch()
 
         sim_contacts_number_before_import = len(self.data_layer.sim_contacts)
+        self.apps.switch_to_displayed_app()
 
         # import contacts from SIM
         contacts_settings = contacts_app.tap_settings()

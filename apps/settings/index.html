@@ -19,8 +19,9 @@
     <link rel="stylesheet" type="text/css" href="style/icons.css">
     <link rel="stylesheet" type="text/css" href="style/settings.css">
     <link rel="stylesheet" type="text/css" href="style/settings_large.css" data-device-type="tablet">
-    <link rel="stylesheet" type="text/css" href="style/settings_phone.css" data-device-type="none">
+    <link rel="stylesheet" type="text/css" href="style/settings_phone.css" data-device-type="phone">
     <link rel="stylesheet" type="text/css" href="style/dialog.css">
+    <link rel="stylesheet" type="text/css" href="style/icc.css">
     <!-- Panel Stylesheets
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
@@ -75,7 +76,6 @@
     <script src="/shared/js/lazy_loader.js"></script>
 
     <!-- For perf-measurement related utilities -->
-    <script src="/shared/js/usertiming.js"></script>
     <script defer="" src="/shared/js/performance_testing_helper.js"></script>
 
     <!-- Screen layout watcher -->
@@ -113,7 +113,10 @@
     <!--<script defer src="shared/js/tz_select.js"></script> -->
     <!--<script defer src="shared/js/sim_settings_helper.js"></script> -->
     <!--<script defer src="shared/js/template.js"></script> -->
+    <!--<script defer src="shared/js/format.js"></script> -->
     <!--<script defer src="shared/js/search_provider.js"></script> -->
+    <!--<script defer src="shared/js/homescreens/vertical_preferences.js"></script> -->
+    <!--<script defer src="shared/js/stk_helper.js"></script>-->
 
     <!-- all non-#root panels will lazy-load their own scripts -->
     <link rel="import" href="/elements/wifi_status.html">
@@ -251,17 +254,17 @@
     <!-- Connectivity :: Wi-Fi :: Select Certificate File -->
     <section is="wifi-selectCertificateFile" role="region" id="wifi-selectCertificateFile"></section>
     <!-- Connectivity :: Wi-Fi :: Enter Certificate Nickname -->
-    <section is="wifi-enterCertificateNickname" role="region" id="wifi-enterCertificateNickname"></section>
+    <section is="wifi-enterCertificateNickname" role="region" id="wifi-enterCertificateNickname" class="dialog"></section>
     <!-- Connectivity :: Wi-Fi -->
     <section is="wifi" role="region" id="wifi"></section>
     <!-- Connectivity :: Call :: Call Forwarding Not Reachable -->
-    <section is="call-cf-notReachableSettings" role="region" id="call-cf-notReachableSettings"></section>
+    <section is="call-cf-not-reachable-settings" role="region" id="call-cf-not-reachable-settings" class="dialog"></section>
     <!-- Connectivity :: Call :: Call Forwarding No Reply -->
-    <section is="call-cf-noReplySettings" role="region" id="call-cf-noReplySettings"></section>
+    <section is="call-cf-no-reply-settings" role="region" id="call-cf-no-reply-settings" class="dialog"></section>
     <!-- Connectivity :: Call :: Call Forwarding Mobile Busy -->
-    <section is="call-cf-mobileBusySettings" role="region" id="call-cf-mobileBusySettings"></section>
+    <section is="call-cf-mobile-busy-settings" role="region" id="call-cf-mobile-busy-settings" class="dialog"></section>
     <!-- Connectivity :: Call :: Call Forwarding Unconditional -->
-    <section is="call-cf-unconditionalSettings" role="region" id="call-cf-unconditionalSettings"></section>
+    <section is="call-cf-unconditional-settings" role="region" id="call-cf-unconditional-settings" class="dialog"></section>
     <!-- Connectivity :: Call :: Call Forwarding Settings -->
     <section is="call-cfSettings" role="region" id="call-cfSettings"></section>
     <!-- Connectivity :: Call :: Call Barring Settings -->
@@ -272,8 +275,6 @@
     <section is="call-fdnList-add" role="region" id="call-fdnList-add" class="dialog"></section>
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: Authorized Numbers -->
     <section is="call-fdnList" role="region" id="call-fdnList" data-require-sub-panels="true"></section>
-    <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: SIM PIN2 Input -->
-    <section is="call-pin2-dialog" role="region" id="call-pin2-dialog"></section>
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) -->
     <section is="call-fdnSettings" role="region" id="call-fdnSettings"></section>
     <!-- Connectivity :: Call :: Voice Mail -->
@@ -348,7 +349,7 @@
     <!-- Security :: Screen Lock -->
     <section is="screenLock" role="region" id="screenLock" data-passcode-enabled="false" data-lockscreen-enabled="false"></section>
     <!-- Security :: SIM Security :: SIM PIN Input -->
-    <section is="simpin-dialog" role="region" id="simpin-dialog"></section>
+    <section is="simpin-dialog" role="region" id="simpin-dialog" class="dialog"></section>
     <!-- Security :: SIM Security -->
     <section is="simpin" role="region" id="simpin" data-require-sub-panels="true"></section>
     <!-- Security :: Application Permissions :: Details -->

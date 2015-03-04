@@ -4,7 +4,7 @@
  *
  * @module bluetooth/bt_template_factory
  */
-define(function(require) {
+define(function() {
   'use strict';
 
   var _debug = false;
@@ -29,14 +29,10 @@ define(function(require) {
     var li = document.createElement('li');
     var anchor = document.createElement('a');
     li.classList.add('bluetooth-device');
-    // li.classList.add('bluetooth-type-' + device.icon);
 
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=1122365
-    // TODO: According to Bluetooth class of device to implement icon style.
-    Debug('device.cod = ' + device.cod);
-    Debug('device.cod.majorDeviceClass = ' + device.cod.majorDeviceClass);
-    Debug('device.cod.majorServiceClass = ' + device.cod.majorServiceClass);
-    Debug('device.cod.minorDeviceClass = ' + device.cod.minorDeviceClass);
+    // According to Bluetooth class of device to give icon style.
+    Debug('device.type = ' + device.type);
+    li.classList.add('bluetooth-type-' + device.type);
 
     anchor.appendChild(nameSpan);
     anchor.appendChild(descSmall); // should append this first

@@ -6,14 +6,21 @@ mocha.globals(['ActivityHandler']);
 
 suite('ActivityHandler', function() {
   var originalMozSetMessageHandler;
+  var originalMozMobileConnections;
 
   suiteSetup(function() {
     originalMozSetMessageHandler = navigator.mozSetMessageHandler;
+    originalMozMobileConnections = navigator.mozMobileConnections;
+  });
+
+  setup(function() {
     navigator.mozSetMessageHandler = function() {};
+    navigator.mozMobileConnections = [{}, {}];
   });
 
   suiteTeardown(function() {
     navigator.mozSetMessageHandler = originalMozSetMessageHandler;
+    navigator.mozMobileConnections = originalMozMobileConnections;
   });
 
   teardown(function() {
@@ -167,6 +174,37 @@ suite('ActivityHandler', function() {
         assert.ok(targetPanelId === 'root', 'should "return root"');
         assert.ok(document.body.dataset.filterBy === 'all',
           'body.filterBy should be set');
+      });
+
+      test('with mozMobileConnections.length = 1', function() {
+        // we have to make it single sim !
+        navigator.mozMobileConnections = [{}];
+
+        var section = document.createElement('section');
+        section.id = 'call';
+        document.body.appendChild(section);
+
+        var targetPanelId = handler({
+          data: {
+            section: 'call'
+          }
+        });
+
+        assert.ok(targetPanelId === 'call', 'should "return call"');
+      });
+
+      test('with mozMobileConnections.length > 1', function() {
+        var section = document.createElement('section');
+        section.id = 'call';
+        document.body.appendChild(section);
+
+        var targetPanelId = handler({
+          data: {
+            section: 'call'
+          }
+        });
+
+        assert.ok(targetPanelId === 'call-iccs', 'should "return call-iccs"');
       });
     });
   });

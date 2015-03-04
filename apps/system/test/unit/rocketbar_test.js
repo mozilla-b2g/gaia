@@ -2,6 +2,8 @@
 /* global Rocketbar, MocksHelper, MockIACPort, MockSearchWindow,
    MockService, MockPromise, MockAppWindow */
 
+require('/js/browser.js');
+require('/js/browser_config_helper.js');
 require('/shared/js/event_safety.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_search_window.js');
@@ -362,10 +364,12 @@ suite('system/Rocketbar', function() {
   });
 
   test('handleEvent() - click clear button', function() {
-    var clearStub = this.sinon.stub(subject, 'clear');
+    var setInputStub = this.sinon.stub(subject, 'setInput');
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
     var event = {type: 'click', target: subject.clearBtn};
     subject.handleEvent(event);
-    assert.ok(clearStub.calledOnce);
+    assert.ok(setInputStub.calledWith(''));
+    assert.ok(hideResultsStub.calledOnce);
   });
 
   test('handleEvent() - click backdrop', function() {
@@ -799,6 +803,16 @@ suite('system/Rocketbar', function() {
     };
     subject.handleSearchMessage(event);
     assert.ok(hideResultsStub.calledOnce);
+
+    // private-window message
+    var eventStub = sinon.spy(window, 'dispatchEvent');
+    subject.handleSearchMessage({
+      type: 'iac-search-results',
+      detail: {
+        action: 'private-window'
+      }
+    });
+    assert.equal(eventStub.getCall(0).args[0].type, 'new-private-window');
 
     // No _port
     subject._port = null;

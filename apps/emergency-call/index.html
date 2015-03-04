@@ -52,7 +52,7 @@
   <body class="hidden">
     <article id="views" class="full-height">
       <section id="keyboard-view" class="full-height">
-        <div id="phone-number-view-container">
+        <div id="phone-number-view-container" dir="ltr">
           <div class="phone-number-view-wrapper-input">
             <input id="phone-number-view" type="text" class="phone-number-font font-light textfield" readonly="readonly" data-l10n-id="phoneNumberInput">
             <div id="fake-phone-number-view"></div>
@@ -60,8 +60,9 @@
           <button id="keypad-delete" class="reset-button" data-value="delete" data-l10n-id="keypadDelete">
           </button>
         </div>
-        <section id="ice-contacts-bar" class="ice-contacts-bar" hidden data-l10n-id="ice-contacts-bar-text">
-          ICE Contacts - In Case of Emergency
+        <section id="ice-contacts-bar" class="ice-contacts-bar" hidden>
+          <span id="ice-contacts-bar-arrow"></span>
+          <span data-l10n-id="ice-contacts-bar-text">ICE Contacts - In Case of Emergency</span>
         </section>
         <article id="keyboard-container">
           <section id="keypad" dir="ltr">

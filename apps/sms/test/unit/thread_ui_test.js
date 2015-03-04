@@ -18,7 +18,8 @@
 
 'use strict';
 
-require('/js/event_dispatcher.js');
+require('/shared/js/event_dispatcher.js');
+
 require('/js/subject_composer.js');
 require('/js/compose.js');
 require('/js/drafts.js');
@@ -195,6 +196,7 @@ suite('thread_ui.js >', function() {
     ThreadUI.init();
 
     sticky = MockStickyHeader;
+    MockOptionMenu.mSetup();
   });
 
   teardown(function() {
@@ -210,6 +212,7 @@ suite('thread_ui.js >', function() {
     mocksHelper.teardown();
 
     sticky = null;
+    MockOptionMenu.mTeardown();
   });
 
   suite('scrolling', function() {
@@ -1285,16 +1288,20 @@ suite('thread_ui.js >', function() {
         test('[Email]input value has matching record ', function() {
 
           MockSettings.supportEmailRecipient = true;
+          // TODO we need to filter properly inside contact search
+          // results (bug 1084184)
+          contacts[0].tel = [];
           ThreadUI.validateContact(fixtureEmail, 'a@b.com', contacts);
 
           sinon.assert.calledOnce(ThreadUI.recipients.remove);
           sinon.assert.calledWith(ThreadUI.recipients.remove, 0);
 
-          assert.equal(
-            ThreadUI.recipients.add.firstCall.args[0].source, 'contacts'
-          );
-          assert.equal(
-            ThreadUI.recipients.add.firstCall.args[0].number, 'a@b.com'
+          sinon.assert.calledWithMatch(
+            ThreadUI.recipients.add,
+            {
+              source: 'contacts',
+              number: 'a@b.com'
+            }
           );
         });
 
@@ -1439,6 +1446,11 @@ suite('thread_ui.js >', function() {
           contacts[0].email = [{value: 'a@b'}];
           contacts[1].email = [{value: 'a@c'}];
 
+          // in bug 1084184 we should be able to filter the contacts using the
+          // fValue.
+          contacts[0].tel = [];
+          contacts[1].tel = [];
+
           // An actual accepted recipient from contacts
           ThreadUI.recipients.add({
             name: 'Janet Jones',
@@ -1477,8 +1489,10 @@ suite('thread_ui.js >', function() {
               'single, same tel record (invalid) ', function() {
 
           MockSettings.supportEmailRecipient = true;
-          // Get rid of the second tel record to create a "duplicate"
+          // Make sure we have only one email
           contacts[0].email.length = 1;
+          // in bug 1084184 we'll be able to filter using the fValue parameter.
+          contacts[0].tel = [];
 
           // An actual accepted recipient from contacts
           fixtureEmail.source = 'contacts';
@@ -3579,8 +3593,6 @@ suite('thread_ui.js >', function() {
 
       this.sinon.spy(LinkActionHandler, 'onClick');
       this.sinon.spy(ThreadUI, 'promptContact');
-      MockOptionMenu.mSetup();
-
 
       this.sinon.stub(LinkHelper, 'searchAndLinkClickableData', function() {
         return '<a data-dial="123123123" data-action="dial-link">123123123</a>';
@@ -3603,7 +3615,6 @@ suite('thread_ui.js >', function() {
     teardown(function() {
       ThreadUI.container.innerHTML = '';
       link = null;
-      MockOptionMenu.mTeardown();
       ThreadUI.stopRendering();
     });
 
@@ -3777,6 +3788,25 @@ suite('thread_ui.js >', function() {
             );
           }
         }).then(done, done);
+    });
+
+    suite('message context menu actions >', function() {
+      setup(function() {
+        this.sinon.stub(Compose, 'isEmpty').returns(true);
+        link.dispatchEvent(contextMenuEvent);
+      });
+
+      test('forward message', function() {
+        this.sinon.stub(ThreadUI, 'navigateToComposer');
+
+        var forwardOption = MockOptionMenu.calls[0].items[0];
+        forwardOption.method(messageId);
+
+        assert.equal(forwardOption.l10nId, 'forward');
+        sinon.assert.calledWith(
+          ThreadUI.navigateToComposer, { forward: { messageId: messageId } }
+        );
+      });
     });
   });
 
@@ -3996,13 +4026,11 @@ suite('thread_ui.js >', function() {
     setup(function() {
       Threads.delete(1);
       MockActivityPicker.dial.mSetup();
-      MockOptionMenu.mSetup();
     });
 
     teardown(function() {
       Threads.delete(1);
       MockActivityPicker.dial.mTeardown();
-      MockOptionMenu.mTeardown();
     });
 
     suite('OptionMenu >', function() {
@@ -4133,7 +4161,7 @@ suite('thread_ui.js >', function() {
             MockSettings.supportEmailRecipient = true;
 
             this.sinon.spy(ActivityPicker, 'email');
-            this.sinon.spy(ActivityPicker, 'sendMessage');
+            this.sinon.spy(ThreadUI, 'navigateToComposer');
 
             ThreadUI.prompt({
               email: 'a@b.com',
@@ -4166,11 +4194,16 @@ suite('thread_ui.js >', function() {
 
             // The second item is a "sendMMSToEmail" option
             assert.equal(items[1].l10nId, 'sendMMSToEmail');
+            // We shouldn't navigate to Thread panel if we're in Participants
+            // panel and would like to send new MMS
+            assert.equal(items[1].incomplete, true);
 
             // Trigger the option to ensure that correct Activity is used.
             items[1].method();
 
-            sinon.assert.called(ActivityPicker.sendMessage);
+            sinon.assert.calledWith(
+              ThreadUI.navigateToComposer, { activity: { number: 'a@b.com' } }
+            );
 
             // The third item is a "createNewContact" option
             assert.equal(items[2].l10nId, 'createNewContact');
@@ -4182,6 +4215,53 @@ suite('thread_ui.js >', function() {
             assert.equal(items[4].l10nId, 'cancel');
           });
 
+          test('No menu displayed while activating header in activity',
+            function() {
+
+            var contact = new MockContact();
+            this.sinon.stub(ActivityHandler, 'isInActivity').returns(true);
+
+            ThreadUI.prompt({
+              number: '999',
+              contactId: contact.id,
+              isContact: true,
+              header: document.createElement('div')
+            });
+
+            assert.equal(MockOptionMenu.calls.length, 0);
+
+          });
+
+          test('No view contact option while in message and activity',
+            function() {
+
+            var contact = new MockContact();
+            this.sinon.stub(ActivityHandler, 'isInActivity').returns(true);
+
+            ThreadUI.prompt({
+              number: '999',
+              contactId: contact.id,
+              isContact: true,
+              inMessage: true,
+              header: document.createElement('div')
+            });
+
+            assert.equal(MockOptionMenu.calls.length, 1);
+
+            var call = MockOptionMenu.calls[0];
+            var items = call.items;
+
+            assert.equal(items.length, 3);
+
+            // The only item is a "cancel" option
+            assert.equal(items[0].l10nId, 'call');
+
+            // The only item is a "cancel" option
+            assert.equal(items[1].l10nId, 'sendMessage');
+
+            // The only item is a "cancel" option
+            assert.equal(items[2].l10nId, 'cancel');
+          });
         });
 
         suite('onHeaderActivation >', function() {
@@ -4292,6 +4372,8 @@ suite('thread_ui.js >', function() {
 
       suite('multi recipients, in group view >', function() {
         setup(function() {
+          this.sinon.spy(ThreadUI, 'navigateToComposer');
+
           Navigation.isCurrentPanel.withArgs('group-view').returns(true);
 
           Threads.set(1, {
@@ -4326,6 +4408,15 @@ suite('thread_ui.js >', function() {
 
           // The second item is a "send message" option
           assert.equal(items[1].l10nId, 'sendMessage');
+          // We shouldn't navigate to Thread panel if we're in Participants
+          // panel and would like to send new SMS
+          assert.equal(items[1].incomplete, true);
+
+          items[1].method();
+
+          sinon.assert.calledWith(
+            ThreadUI.navigateToComposer, { activity: { number: '999' } }
+          );
 
           // The third and last item is a "cancel" option
           assert.equal(items[2].l10nId, 'cancel');
@@ -4355,6 +4446,9 @@ suite('thread_ui.js >', function() {
 
           // The second item is a "sendMessage" option
           assert.equal(items[1].l10nId, 'sendMessage');
+          // We shouldn't navigate to Thread panel if we're in Participants
+          // panel and would like to send new SMS
+          assert.equal(items[1].incomplete, true);
 
           // The third item is a "createNewContact" option
           assert.equal(items[2].l10nId, 'createNewContact');
@@ -4447,6 +4541,65 @@ suite('thread_ui.js >', function() {
       });
     });
 
+    suite('navigateToComposer', function() {
+      setup(function() {
+        this.sinon.spy(Navigation, 'toPanel');
+        this.sinon.spy(ThreadUI, 'discardDraft');
+        this.sinon.stub(Utils, 'confirm');
+        this.sinon.stub(Compose, 'isEmpty');
+      });
+
+      test('immediately navigates to Composer if no unsent message',
+      function(done) {
+        Compose.isEmpty.returns(true);
+
+        ThreadUI.navigateToComposer({ test: 'test' }).then(() => {
+          sinon.assert.calledWith(
+            Navigation.toPanel, 'composer', { test: 'test' }
+          );
+          sinon.assert.notCalled(Utils.confirm);
+        }).then(done, done);
+      });
+
+      test('navigates to Composer when user discards unsent message',
+      function(done) {
+        Compose.isEmpty.returns(false);
+        Utils.confirm.returns(Promise.resolve());
+
+        ThreadUI.navigateToComposer({ test: 'test' }).then(() => {
+          sinon.assert.calledWith(
+            Utils.confirm,
+            'unsent-message-text',
+            'unsent-message-title',
+            { text: 'unsent-message-option-discard', className: 'danger' }
+          );
+          sinon.assert.called(ThreadUI.discardDraft);
+          sinon.assert.calledWith(
+            Navigation.toPanel, 'composer', { test: 'test' }
+          );
+        }).then(done, done);
+      });
+
+      test('stays in the current panel if user wants to keep unsent message',
+      function(done) {
+        Compose.isEmpty.returns(false);
+        Utils.confirm.returns(Promise.reject());
+
+        ThreadUI.navigateToComposer({ test: 'test' }).then(() => {
+          throw new Error('navigateToComposer should be rejected!');
+        }, () => {
+          sinon.assert.calledWith(
+            Utils.confirm,
+            'unsent-message-text',
+            'unsent-message-title',
+            { text: 'unsent-message-option-discard', className: 'danger' }
+          );
+          sinon.assert.notCalled(ThreadUI.discardDraft);
+          sinon.assert.notCalled(Navigation.toPanel);
+        }).then(done, done);
+      });
+    });
+
     // See: utils_test.js
     // Utils.getPhoneDetails
     //
@@ -4503,7 +4656,6 @@ suite('thread_ui.js >', function() {
     suite('Multi participant', function() {
       setup(function() {
         MockActivityPicker.dial.mSetup();
-        MockOptionMenu.mSetup();
 
         Threads.set(1, {
           participants: ['999', '888']
@@ -4518,7 +4670,6 @@ suite('thread_ui.js >', function() {
       teardown(function() {
         Threads.delete(1);
         MockActivityPicker.dial.mTeardown();
-        MockOptionMenu.mTeardown();
       });
 
       suite('Options', function() {
@@ -5809,13 +5960,6 @@ suite('thread_ui.js >', function() {
    * - 'Settings' for all cases
    */
   suite('Options menu', function() {
-    setup(function() {
-      MockOptionMenu.mSetup();
-    });
-
-    teardown(function() {
-      MockOptionMenu.mTeardown();
-    });
 
     suite('opens from new message', function() {
       var options;
@@ -6916,11 +7060,15 @@ suite('thread_ui.js >', function() {
   });
 
   suite('Bubble selection', function() {
-    var messageDOM, messageId, node, threadMessagesClass, range;
+    var messageDOM, messageId, node, threadMessagesClass, range, ctMenuEvent;
 
     setup(function(done) {
       threadMessagesClass = ThreadUI.threadMessages.classList;
       messageId = 1;
+      ctMenuEvent = new MouseEvent('contextmenu', {
+        'bubbles': true,
+        'cancelable': true
+      });
       ThreadUI.appendMessage({
         id: messageId,
         type: 'sms',
@@ -6932,6 +7080,8 @@ suite('thread_ui.js >', function() {
         node = messageDOM.querySelector('.message-content-body');
         this.sinon.spy(node, 'focus');
         this.sinon.stub(node, 'addEventListener');
+        this.sinon.spy(ThreadUI.container, 'addEventListener');
+        this.sinon.spy(ThreadUI.container, 'removeEventListener');
       }).then(done, done);
     });
 
@@ -6947,6 +7097,15 @@ suite('thread_ui.js >', function() {
       assert.isTrue(range > 0);
     });
 
+    test('Contextmenu disabled while bubble select mode enable', function() {
+      // Enable bubble select mode
+      ThreadUI.enableBubbleSelection(node);
+      // Dispatch custom event for testing long press
+      messageDOM.querySelector('section').dispatchEvent(ctMenuEvent);
+
+      assert.equal(MockOptionMenu.calls.length, 0);
+    });
+
     test('Disable bubble selection mode', function() {
       ThreadUI.enableBubbleSelection(node);
       node.addEventListener.yield('blur');
@@ -6954,6 +7113,15 @@ suite('thread_ui.js >', function() {
       range = window.getSelection().rangeCount;
       assert.isTrue(threadMessagesClass.contains('editable-select-mode'));
       assert.isTrue(range === 0);
+      sinon.assert.calledWithMatch(
+        ThreadUI.container.addEventListener,
+        'contextmenu',
+        ThreadUI
+      );
+      // Dispatch custom event for testing long press after mode exit
+      messageDOM.querySelector('section').dispatchEvent(ctMenuEvent);
+
+      assert.equal(MockOptionMenu.calls.length, 1);
     });
   });
 });

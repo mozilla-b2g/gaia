@@ -33,7 +33,7 @@ ReadEvent.prototype = {
 
   get calendarColor() {
     return this
-      .findElement('.current-calendar > .icon-calendar-dot.calendar-text-color')
+      .findElement('.current-calendar > .icon-calendar-dot')
       .cssProperty('color');
   },
 

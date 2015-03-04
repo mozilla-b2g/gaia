@@ -18,15 +18,38 @@
 // screenshot and display it, and unload the video. If shown again
 // and if the user clicks play again, we resume the video where we left off.
 //
+// WARNING (bug 1135278):
+//
+// The VideoPlayer object registers event listeners on the window object
+// and never unregisters them. This means that VideoPlayer objects will
+// never be garbage collected since the window will always have a reference
+// to every one that has been created.
+//
+// A conscious decision has been made to not fix this issue because:
+//
+// 1) Currently only gallery and camera use the object and they use a
+//    fixed number of objects whose lifetime is the same as that of the
+//    app.
+// 2) We are moving towards replacing this VideoPlayer object with web
+//    components (bug 1117885, bug 1131321)
+//
 function VideoPlayer(container) {
   if (typeof container === 'string') {
     container = document.getElementById(container);
   }
 
-  function newelt(parent, type, classes) {
+  function newelt(parent, type, classes, l10n_id, attributes) {
     var e = document.createElement(type);
     if (classes) {
       e.className = classes;
+    }
+    if (l10n_id) {
+      e.dataset.l10nId = l10n_id;
+    }
+    if (attributes) {
+      for (var attribute in attributes) {
+        e.setAttribute(attribute, attributes[attribute]);
+      }
     }
     parent.appendChild(e);
     return e;
@@ -36,10 +59,13 @@ function VideoPlayer(container) {
   var poster = newelt(container, 'img', 'videoPoster');
   var player = newelt(container, 'video', 'videoPlayer');
   var controls = newelt(container, 'div', 'videoPlayerControls');
-  var playbutton = newelt(controls, 'button', 'videoPlayerPlayButton');
+  var playbutton = newelt(controls, 'button', 'videoPlayerPlayButton',
+                          'playbackPlay');
   var footer = newelt(controls, 'div', 'videoPlayerFooter hidden');
-  var pausebutton = newelt(footer, 'button', 'videoPlayerPauseButton');
-  var slider = newelt(footer, 'div', 'videoPlayerSlider');
+  var pausebutton = newelt(footer, 'button', 'videoPlayerPauseButton',
+                           'playbackPause');
+  var slider = newelt(footer, 'div', 'videoPlayerSlider', null,
+                      { 'role': 'slider', 'aria-valuemin': 0 });
   var elapsedText = newelt(slider, 'span', 'videoPlayerElapsedText');
   var progress = newelt(slider, 'div', 'videoPlayerProgress');
   var backgroundBar = newelt(progress, 'div', 'videoPlayerBackgroundBar');
@@ -47,8 +73,8 @@ function VideoPlayer(container) {
   var playHead = newelt(progress, 'div', 'videoPlayerPlayHead');
   var durationText = newelt(slider, 'span', 'videoPlayerDurationText');
   // expose fullscreen button, so that client can manipulate it directly
-  var fullscreenButton = newelt(slider, 'button',
-                          'videoPlayerFullscreenButton');
+  var fullscreenButton = newelt(slider, 'button', 'videoPlayerFullscreenButton',
+                                'playbackFullscreen');
 
   this.poster = poster;
   this.player = player;
@@ -231,7 +257,12 @@ function VideoPlayer(container) {
 
   // Set the video duration when we get metadata
   player.onloadedmetadata = function() {
-    durationText.textContent = formatTime(player.duration);
+    var formattedTime = formatTime(player.duration);
+    durationText.textContent = formattedTime;
+    slider.setAttribute('aria-valuemax', player.duration);
+    // This sets the aria-label to a localized slider description
+    navigator.mozL10n.setAttributes(slider, 'playbackSeekBar',
+                                    {'duration': formattedTime});
     // start off in the paused state
     self.pause();
   };
@@ -264,7 +295,10 @@ function VideoPlayer(container) {
   // Set the elapsed time and slider position
   function updateTime() {
     if (!controlsHidden) {
-      elapsedText.textContent = formatTime(player.currentTime);
+      var formattedTime = formatTime(player.currentTime);
+      elapsedText.textContent = formattedTime;
+      slider.setAttribute('aria-valuenow', player.currentTime);
+      slider.setAttribute('aria-valuetext', formattedTime);
 
       // We can't update a progress bar if we don't know how long
       // the video is. It is kind of a bug that the <video> element
@@ -463,6 +497,22 @@ function VideoPlayer(container) {
       self.pause();
     } else if (!pausedBeforeDragging) {
       player.play();
+    }
+  });
+
+  slider.addEventListener('keypress', function(e) {
+    // The standard accessible control for sliders is arrow up/down keys.
+    // Our screenreader synthesizes those events on swipe up/down gestures.
+    // Currently, we only allow screen reader users to adjust sliders with a
+    // constant step size (there is no page up/down equivalent). In the case
+    // of videos, we make sure that the maximum amount of steps for the entire
+    // duration is 20, or 2 second increments if the duration is less then 40
+    // seconds.
+    var step = Math.max(player.duration/20, 2);
+    if (e.keyCode == e.DOM_VK_DOWN) {
+      player.currentTime -= step;
+    } else if (e.keyCode == e.DOM_VK_UP) {
+      player.currentTime += step;
     }
   });
 

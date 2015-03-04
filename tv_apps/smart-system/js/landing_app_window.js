@@ -22,8 +22,8 @@
 
   LandingAppWindow.prototype.CLASS_NAME = 'LandingAppWindow';
 
-  LandingAppWindow.prototype.openAnimation = 'immediately';
-  LandingAppWindow.prototype.closeAnimation = 'immediately';
+  LandingAppWindow.prototype.openAnimation = 'invoked';
+  LandingAppWindow.prototype.closeAnimation = 'immediate';
 
   LandingAppWindow.prototype.view = function hw_view() {
     return '<div class="appWindow homescreen landing-app" id="landing-app">' +

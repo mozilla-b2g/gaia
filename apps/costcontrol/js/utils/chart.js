@@ -281,6 +281,8 @@ var ChartUtils = (function() {
 
     ctx.fillStyle = 'black';
     ctx.fillText(todayTag, offsetX, model.originY + marginTop);
+
+    setAccessibilityAttributes(canvas, 'today-layer', { today: todayTag });
   }
 
   function drawAxisLayer(canvas, model, showMobile) {
@@ -335,7 +337,7 @@ var ChartUtils = (function() {
     var leftTag = formatChartDate(model.axis.X.lower);
     ctx.font = makeCSSFontString(FONT_SIZE, FONT_WEIGHT);
     ctx.textBaseline = 'top';
-    ctx.textAlign = 'start';
+    ctx.textAlign = 'left';
 
     var isBelowToday = model.todayLabel.x0 <=
                        model.originX + ctx.measureText(leftTag).width;
@@ -345,12 +347,28 @@ var ChartUtils = (function() {
 
     // Right tag
     var rightTag = formatChartDate(model.axis.X.upper);
-    ctx.textAlign = 'end';
+    ctx.textAlign = 'right';
 
     isBelowToday = model.todayLabel.x1 >=
                    model.endX - ctx.measureText(rightTag).width;
     if (!isBelowToday) {
       ctx.fillText(rightTag, model.endX, model.originY + marginTop);
+    }
+
+    setAccessibilityAttributes(canvas, 'axis-layer',
+                               { from: leftTag, to: rightTag });
+  }
+
+  function setAccessibilityAttributes(element, identifier, data) {
+    if (identifier) {
+      element.setAttribute('data-l10n-id', identifier);
+      if (data) {
+        element.setAttribute('data-l10n-args', JSON.stringify(data));
+      }
+    } else {
+      element.removeAttribute('data-l10n-id');
+      element.removeAttribute('data-l10n-args');
+      element.removeAttribute('aria-label');
     }
   }
 
@@ -389,6 +407,10 @@ var ChartUtils = (function() {
     ctx.stroke();
 
     ctx.restore();
+
+    setAccessibilityAttributes(canvas,
+      'limit-layer-' + model.limits.dataLimitUnit,
+      { value: model.limits.dataLimitValue });
   }
 
   function drawDataLayer(canvas, model, sampleType, style) {
@@ -491,12 +513,15 @@ var ChartUtils = (function() {
     var ctx = canvas.getContext('2d');
 
     if (!model.limits.enabled || model.limits.value === null) {
+      setAccessibilityAttributes(canvas);
       return;
     }
 
     // No problem here
     var mobileUsage = model.data.mobile.total;
+    var mobileUsageDifference = mobileUsage - model.limits.value;
     if (mobileUsage <= model.limits.warningValue) {
+      setAccessibilityAttributes(canvas);
       return;
     }
 
@@ -512,6 +537,11 @@ var ChartUtils = (function() {
         model.axis.X.len + 0.5, warningValue - limitValue
       );
 
+      setAccessibilityAttributes(canvas, 'warning-layer', {
+        value: Formatting.formatData(Formatting.roundData(
+          -mobileUsageDifference))
+      });
+
       return;
     }
 
@@ -523,6 +553,9 @@ var ChartUtils = (function() {
       model.originX, 0,
       model.axis.X.len + 0.5, limitValueExceeded
     );
+    setAccessibilityAttributes(canvas, 'limit-exceeded-layer', {
+      value: Formatting.formatData(Formatting.roundData(mobileUsageDifference))
+    });
   }
 
   return {

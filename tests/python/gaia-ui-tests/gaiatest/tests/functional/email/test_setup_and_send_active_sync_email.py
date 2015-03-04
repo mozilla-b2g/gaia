@@ -14,7 +14,7 @@ class TestSetupAndSendActiveSyncEmail(GaiaTestCase):
 
     def setUp(self):
         try:
-            self.account = self.testvars['email']['ActiveSync']
+            self.testvars['email']['activesync']
         except KeyError:
             raise SkipTest('account details not present in test variables')
 
@@ -30,7 +30,7 @@ class TestSetupAndSendActiveSyncEmail(GaiaTestCase):
         https://moztrap.mozilla.org/manage/case/2475/
         """
         # setup ActiveSync account
-        self.email.setup_active_sync_email(self.account)
+        self.email.setup_active_sync_email(self.testvars['email']['activesync'])
 
         # check header area
         self.assertTrue(self.email.header.is_compose_visible)
@@ -49,7 +49,7 @@ class TestSetupAndSendActiveSyncEmail(GaiaTestCase):
         _body = 'b%s' % curr_time
         new_email = self.email.header.tap_compose()
 
-        new_email.type_to(self.testvars['email']['ActiveSync']['email'])
+        new_email.type_to(self.testvars['email']['activesync']['email'])
         new_email.type_subject(_subject)
         new_email.type_body(_body)
 

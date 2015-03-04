@@ -16,7 +16,6 @@
     "networkstats-manage":{},
     "alarms": {},
     "telephony": {},
-    "storage": {},
     "audio-channel-notification":{},
     "webapps-manage":{},
     "device-storage:apps":{ "access": "readonly" },

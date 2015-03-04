@@ -117,6 +117,7 @@
                 <button type="button" class="forward-button"
                         data-l10n-id="forward-button" disabled></button>
                 <div class="urlbar">
+                  <span class="pb-icon"></span>
                   <div class="title" data-ssl=""></div>
                   <button type="button" class="reload-button"
                           data-l10n-id="reload-button" disabled></button>
@@ -241,7 +242,7 @@
         this.handleScrollAreaChanged(evt);
         break;
 
-      case 'mozbrowsersecuritychange':
+      case '_securitychange':
         this.handleSecurityChanged(evt);
         break;
 
@@ -371,7 +372,7 @@
     this.app.element.addEventListener('mozbrowsertitlechange', this);
     this.app.element.addEventListener('mozbrowsermetachange', this);
     this.app.element.addEventListener('mozbrowserscrollareachanged', this);
-    this.app.element.addEventListener('mozbrowsersecuritychange', this);
+    this.app.element.addEventListener('_securitychange', this);
     this.app.element.addEventListener('_loading', this);
     this.app.element.addEventListener('_loaded', this);
     this.app.element.addEventListener('_namechanged', this);
@@ -472,7 +473,7 @@
   };
 
   AppChrome.prototype.handleSecurityChanged = function(evt) {
-    this.title.dataset.ssl = evt.detail.state;
+    this.title.dataset.ssl = this.app.getSSLState();
   };
 
   AppChrome.prototype.handleTitleChanged = function(evt) {
@@ -503,12 +504,20 @@
     };
 
   AppChrome.prototype.setThemeColor = function ac_setThemColor(color) {
-
     // Do not set theme color for private windows
     if (this.app.isPrivateBrowser()) {
       return;
     }
 
+    var bottomApp = this.app.getBottomMostWindow();
+
+    if (this.app.CLASS_NAME === 'PopupWindow' &&
+      bottomApp &&
+      bottomApp.themeColor) {
+      color = bottomApp.themeColor;
+    }
+
+    this.app.themeColor = color;
     this.element.style.backgroundColor = color;
 
     if (!this.app.isHomescreen) {
@@ -676,7 +685,10 @@
   };
 
   AppChrome.prototype.handleError = function ac_handleError(evt) {
-    if (this.useCombinedChrome()) {
+    if (evt.detail && evt.detail.type === 'fatal') {
+      return;
+    }
+    if (this.useCombinedChrome() && this.app.config.chrome.scrollable) {
       // When we get an error, keep the rocketbar maximized.
       this.element.classList.add('maximized');
       this.containerElement.classList.remove('scrollable');

@@ -71,10 +71,10 @@ suite('Keyboard layouts building tests', function() {
       var dictJSON = JSON.parse(fs.readFileSync(
             appDirPath +
             '/test/build/integration/resources/' +
-            'default-make-dictionaries.json'));
+            'default-make-layouts.json'));
 
       helper.checkFileContentInZip(
-        zipPath, 'js/settings/dictionaries.json', dictJSON, true);
+        zipPath, 'js/settings/layouts.json', dictJSON, true);
 
       done();
     });
@@ -93,11 +93,9 @@ suite('Keyboard layouts building tests', function() {
         'webapps', 'keyboard.gaiamobile.org', 'application.zip');
       var appDirPath = config.GAIA_DIR + '/apps/keyboard';
       var layoutIds =
-        fs.readdirSync(appDirPath + '/js/layouts').map(function(filename) {
-          if (path.extname(filename) !== '.js') {
-            return;
-          }
-
+        fs.readdirSync(appDirPath + '/js/layouts').filter(function(filename) {
+          return (path.extname(filename) === '.js');
+        }).map(function(filename) {
           return path.basename(filename, '.js');
         });
 
@@ -153,7 +151,8 @@ suite('Keyboard layouts building tests', function() {
         'js/imes/latin/dictionaries/sr-Cyrl.dict',
         'js/imes/latin/dictionaries/sr-Latn.dict',
         'js/imes/latin/dictionaries/sv.dict',
-        'js/imes/latin/dictionaries/tr.dict'
+        'js/imes/latin/dictionaries/tr.dict',
+        'js/imes/latin/dictionaries/af.dict'
       ];
 
       var checkList = [].concat(layouts, imes, dicts);
@@ -174,10 +173,10 @@ suite('Keyboard layouts building tests', function() {
       var dictJSON = JSON.parse(fs.readFileSync(
             appDirPath +
             '/test/build/integration/resources/' +
-            'all-layout-make-dictionaries.json'));
+            'all-layout-make-layouts.json'));
 
       helper.checkFileContentInZip(
-        zipPath, 'js/settings/dictionaries.json', dictJSON, true);
+        zipPath, 'js/settings/layouts.json', dictJSON, true);
 
       done();
     });
@@ -218,10 +217,10 @@ suite('Keyboard layouts building tests', function() {
       var dictJSON = JSON.parse(fs.readFileSync(
             appDirPath +
             '/test/build/integration/resources/' +
-            'no-preload-dict-required-make-dictionaries.json'));
+            'no-preload-dict-required-make-layouts.json'));
 
       helper.checkFileContentInZip(
-        zipPath, 'js/settings/dictionaries.json', dictJSON, true);
+        zipPath, 'js/settings/layouts.json', dictJSON, true);
 
       done();
     });
@@ -277,8 +276,10 @@ suite('Keyboard layouts building tests', function() {
       var inputKeysInManifest = Object.keys(manifest.inputs);
 
       // Only layouts with dictionaries should be declaried.
+      // Noted that en-Dvorak use the same dictionary as en so it should also
+      // be declaried.
       assert.deepEqual(inputKeysInManifest.sort(),
-        ['en', 'ko', 'number', 'zh-Hans-Pinyin']);
+        ['en', 'en-Dvorak', 'ko', 'number', 'zh-Hans-Pinyin']);
 
       // Verify dictionaries are not built (except en_us.dict)
       dicts.forEach(function(dict) {
@@ -290,10 +291,10 @@ suite('Keyboard layouts building tests', function() {
       var dictJSON = JSON.parse(fs.readFileSync(
             appDirPath +
             '/test/build/integration/resources/' +
-            'default-make-en-dict-dictionaries.json'));
+            'default-make-en-dict-layouts.json'));
 
       helper.checkFileContentInZip(
-        zipPath, 'js/settings/dictionaries.json', dictJSON, true);
+        zipPath, 'js/settings/layouts.json', dictJSON, true);
 
       done();
     });
@@ -398,6 +399,10 @@ suite('Keyboard settings building tests', function() {
         }), 'No script should include user_dictionary_list_panel.js');
 
         assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).every(function(elem){
+          return elem.src !== 'js/settings/word_list_converter.js';
+        }), 'No script should include word_list_converter.js');
+
+        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).every(function(elem){
           return elem.src !== 'js/settings/user_dictionary.js';
         }), 'No script should include user_dictionary.js');
 
@@ -424,6 +429,10 @@ suite('Keyboard settings building tests', function() {
         assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
           return elem.src === 'js/settings/user_dictionary_list_panel.js';
         }), 'Some script should include user_dictionary_list_panel.js');
+
+        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
+          return elem.src === 'js/settings/word_list_converter.js';
+        }), 'Some script should include word_list_converter.js');
 
         assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
           return elem.src === 'js/settings/user_dictionary.js';

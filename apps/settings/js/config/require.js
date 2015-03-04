@@ -15,9 +15,6 @@ require.config({
     'simcard_lock': {
       exports: 'SimPinLock'
     },
-    'simcard_dialog': {
-      exports: 'SimPinDialog'
-    },
     'shared/apn_helper': {
       exports: 'ApnHelper'
     },
@@ -92,6 +89,12 @@ require.config({
     },
     'shared/airplane_mode_helper': {
       exports: 'AirplaneModeHelper'
+    },
+    'shared/homescreens/vertical_preferences': {
+      exports: 'verticalPreferences'
+    },
+    'shared/stk_helper': {
+      exports: 'STKHelper'
     }
   },
   modules: [

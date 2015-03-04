@@ -25,8 +25,8 @@
       .then(
         function success(settings) {
           // config overrides
-          if (settings['everythingme.api.url']) {
-            this.config.apiUrl = settings['everythingme.api.url'];
+          if (settings['appsearch.url']) {
+            this.config.apiUrl = settings['appsearch.url'];
           }
 
           // wait for device init

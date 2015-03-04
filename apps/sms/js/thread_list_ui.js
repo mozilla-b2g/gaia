@@ -48,7 +48,8 @@ var ThreadListUI = {
       'container', 'no-messages', 'read-unread-button',
       'check-uncheck-all-button','composer-link',
       'delete-button', 'edit-header','options-button',
-      'edit-mode', 'edit-form', 'draft-saved-banner'
+      'settings-button','edit-mode', 'edit-form',
+      'draft-saved-banner'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('threads-' + id);
     }, this);
@@ -60,13 +61,16 @@ var ThreadListUI = {
       'click', this.launchComposer.bind(this)
     );
 
-    this.readUnreadButton.addEventListener(
-      'click', this.markReadUnread.bind(this)
-    );
+    this.readUnreadButton.addEventListener('click', () => {
+      this.markReadUnread(
+        this.selectionHandler.selectedList,
+        this.readUnreadButton.dataset.action === 'mark-as-read'
+      );
+    });
 
-    this.deleteButton.addEventListener(
-      'click', this.delete.bind(this)
-    );
+    this.deleteButton.addEventListener('click', () => {
+      this.delete(this.selectionHandler.selectedList);
+    });
 
     this.editHeader.addEventListener(
       'action', this.cancelEdit.bind(this)
@@ -76,8 +80,18 @@ var ThreadListUI = {
       'click', this.showOptions.bind(this)
     );
 
+    this.settingsButton.addEventListener(
+      'click', function oSettings() {
+        ActivityPicker.openSettings();
+      }
+    );
+
     this.container.addEventListener(
       'click', this
+    );
+
+    this.container.addEventListener(
+      'contextmenu', this
     );
 
     this.editForm.addEventListener(
@@ -250,6 +264,8 @@ var ThreadListUI = {
 
   handleEvent: function thlui_handleEvent(event) {
     var draftId;
+    var parent = event.target.parentNode;
+    var parentThreadId = parent.dataset.threadId;
 
     switch (event.type) {
       case 'click':
@@ -262,9 +278,6 @@ var ThreadListUI = {
           // TODO: Bug 1010216: remove this
           ThreadUI.draft = Drafts.get(draftId);
         }
-
-        var parent = event.target.parentNode;
-        var parentThreadId = parent.dataset.threadId;
 
         if (parentThreadId) {
           event.preventDefault();
@@ -280,6 +293,45 @@ var ThreadListUI = {
             });
           }
         }
+
+        break;
+      case 'contextmenu':
+        if (this.inEditMode || !parentThreadId) {
+          return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+        // Show options per single thread
+        var params = {
+          type: 'action',
+          header: { l10nId: 'thread-options' },
+          items: [{
+            l10nId: 'delete-thread',
+            method: this.delete.bind(this, [parentThreadId])
+          }]
+        };
+
+        var thread = Threads.get(+parentThreadId);
+
+        if (typeof thread !== 'undefined') {
+          var isRead = thread.unreadCount > 0;
+          var l10nKey = isRead ? 'mark-as-read' : 'mark-as-unread';
+
+          params.items.push(
+            {
+              l10nId: l10nKey,
+              method: this.markReadUnread.bind(this, [parentThreadId], isRead)
+            }
+          );
+        }
+
+        params.items.push({
+          l10nId: 'cancel'
+        });
+
+        var options = new OptionMenu(params);
+        options.show();
 
         break;
       case 'submit':
@@ -339,27 +391,14 @@ var ThreadListUI = {
     }
   },
 
-  markReadUnread: function thlui_markReadUnread() {
-    var selected = this.selectionHandler;
-    var isRead = (this.readUnreadButton.dataset.action === 'mark-as-read');
-
-    selected.selectedList.forEach((id) => {
+  markReadUnread: function thlui_markReadUnread(selected, isRead) {
+    selected.forEach((id) => {
       var thread  = Threads.get(id);
       var markable = thread && (!thread.hasDrafts || isRead);
 
       if (markable) {
-        var selectThread = document.getElementById('thread-' + thread.id);
-
         thread.unreadCount = isRead ? 0 : 1;
-        if (isRead) {
-          if (selectThread.classList.contains('unread')) {
-            selectThread.classList.remove('unread');
-          }
-        } else {
-          if (!selectThread.classList.contains('unread')) {
-          selectThread.classList.add('unread');
-          }
-        }
+        this.mark(thread.id, isRead ? 'read' : 'unread');
 
         MessageManager.markThreadRead(thread.id, isRead);
       }
@@ -407,14 +446,13 @@ var ThreadListUI = {
   // Since removeThread will revoke list photoUrl at the end of deletion,
   // please make sure url will also be revoked if new delete api remove threads
   // without calling removeThread in the future.
-  delete: function thlui_delete() {
+  delete: function thlui_delete(selected) {
     function performDeletion() {
-      /* jshint validthis: true */
+    /* jshint validthis: true */
 
       var threadIdsToDelete = [],
           messageIdsToDelete = [],
-          threadCountToDelete = 0,
-          selected = this.selectionHandler.selectedList;
+          threadCountToDelete = 0;
 
       function exitEditMode() {
         ThreadListUI.cancelEdit();
@@ -467,7 +505,7 @@ var ThreadListUI = {
         exitEditMode();
         return;
       }
-      
+
       threadCountToDelete = threadIdsToDelete.length;
 
       threadIdsToDelete.forEach(function(threadId) {
@@ -483,7 +521,7 @@ var ThreadListUI = {
     return Utils.confirm(
       {
         id: 'deleteThreads-confirmation-message',
-        args: { n: this.selectionHandler.selectedCount }
+        args: { n: selected.length }
       },
       null,
       {
@@ -494,16 +532,18 @@ var ThreadListUI = {
   },
 
   setEmpty: function thlui_setEmpty(empty) {
-    var addWhenEmpty = empty ? 'add' : 'remove';
-    var removeWhenEmpty = empty ? 'remove' : 'add';
+    var panel = document.getElementById('thread-list');
 
-    ThreadListUI.noMessages.classList[removeWhenEmpty]('hide');
-    ThreadListUI.container.classList[addWhenEmpty]('hide');
+    // Hide the container when threadlist is empty.
+    panel.classList.toggle('threadlist-is-empty', !!empty);
   },
 
   showOptions: function thlui_options() {
     var params = {
       items: [{
+        l10nId: 'selectThreads-label',
+        method: this.startEdit.bind(this)
+      },{
         l10nId: 'settings',
         method: function oSettings() {
           ActivityPicker.openSettings();
@@ -513,14 +553,6 @@ var ThreadListUI = {
         incomplete: true
       }]
     };
-
-    // Add delete option when list is not empty
-    if (ThreadListUI.noMessages.classList.contains('hide')) {
-      params.items.unshift({
-        l10nId: 'selectThreads-label',
-        method: this.startEdit.bind(this)
-      });
-    }
 
     new OptionMenu(params).show();
   },

@@ -179,9 +179,17 @@ BaseSoundList.prototype = {
   },
 
   get sounds() {
-    return this.element.findElements(
+    // hack to find quicker that we have no elements
+    var quickly = this.client.scope({ searchTimeout: 50 });
+    this.element.client = quickly;
+
+    var elts = this.element.findElements(
       BaseSoundList.Selectors.sound
-    ).map(function(element) {
+    );
+
+    this.element.client = this.client;
+
+    return elts.map(function(element) {
       return new this.Sound(this.client, element);
     }.bind(this));
   }

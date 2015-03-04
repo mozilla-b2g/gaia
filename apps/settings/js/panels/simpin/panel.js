@@ -8,8 +8,6 @@ define(function(require) {
     return SettingsPanel({
       onInit: function(panel) {
         var elements = {};
-        // We will fix this when SettingsDialog is ready
-        elements.dialog = document.getElementById('simpin-dialog');
         elements.simPinTmpl = panel.querySelector('.simpin-tmpl');
         elements.simPinContainer = panel.querySelector('.simpin-container');
         elements.simPinHeader = panel.querySelector('.simpin-header');

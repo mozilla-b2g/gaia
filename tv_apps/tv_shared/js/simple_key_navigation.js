@@ -19,17 +19,18 @@
     'VERTICAL': 'vertical'
   });
 
-  proto.start = function skn_start(list, direction, isChild) {
+  proto.start = function skn_start(list, direction, options) {
     this.direction = direction;
     this.updateList(list);
-    this.isChild = !!isChild;
-    if (!isChild) {
-      window.addEventListener('keydown', this);
+    this.isChild = !!options.isChild;
+    this.target = options.target || window;
+    if (!this.isChild) {
+      this.target.addEventListener('keydown', this);
     }
   };
 
   proto.stop = function skn_stop() {
-    window.removeEventListener('keydown', this);
+    this.target.removeEventListener('keydown', this);
   };
 
   proto.updateList = function skn_updateList(list) {
@@ -62,6 +63,15 @@
       elem = elem._List[elem._focusedIndex];
     }
     this.fire('focusBlurred', elem);
+  };
+
+  proto.focusOn = function skn_focusOn(elem) {
+    var index = this._List.indexOf(elem);
+    if (index >= 0) {
+      this._focusedIndex = index;
+      this._List[this._focusedIndex].focus();
+      this.fire('focusChanged', this._List[this._focusedIndex]);
+    }
   };
 
   proto.movePrevious = function skn_movePrevious() {

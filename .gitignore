@@ -34,6 +34,7 @@ manifest.appcache
 /shared/test/integration/node_modules
 /shared/resources/keyboard_layouts.json
 /shared/pages/import/js/parameters.js
+/shared/js/search_providers.json
 
 /b2g
 /profile/
@@ -54,6 +55,7 @@ manifest.appcache
 /coverage/
 /local.mk
 /raptor.log
+/npm-debug.log
 
 /tools/xpcwindow/vendor/
 

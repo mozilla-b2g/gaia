@@ -57,6 +57,7 @@
   line-height: 3.9rem;
   color: #fff;
   transition: background-color 0.2s ease;
+  text-align: left;
 }
 
 [role="dialog"][data-type="value-selector"] [role="listbox"] li:first-child label {
@@ -222,12 +223,14 @@ html[dir="rtl"] .value-selector li[aria-selected="true"] span {
   background-position: 0 50%;
 }
 
+html[dir="rtl"] [role="dialog"][data-type="value-selector"] [role="listbox"] li {
+  text-align: right;
+}
+
 html[dir="rtl"] [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] label {
   background-position: left 1.2rem top 50%;
 }
 
 html[dir="rtl"] [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] span {
-  padding-left: 2.6rem;
-  padding-right: 0;
+  padding-right: 0.3rem;
 }
-

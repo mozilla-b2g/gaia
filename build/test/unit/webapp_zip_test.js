@@ -2,8 +2,7 @@
 
 var assert = require('chai').assert;
 var proxyquire = require('proxyquire');
-var mockUtils =
-  require('./mock_utils.js');
+var mockUtils = require('./mock_utils.js');
 
 suite('webapp-zip.js', function() {
   var app;
@@ -85,8 +84,8 @@ suite('webapp-zip.js', function() {
     setup(function() {
       mockOptions = {
         webapp: {
-          buildDirectoryFile: mockUtils.getFile('testBuildDirectoryFile'),
-          profileDirectoryFile: mockUtils.getFile('testTargetDir/testDomain'),
+          buildDirectoryFilePath: 'testBuildDirectoryFile',
+          profileDirectoryFilePath: 'testTargetDir/testDomain',
           domain: 'testDomain'
         },
         targetDir: mockUtils.getFile('testTargetDir')

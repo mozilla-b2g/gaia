@@ -1,7 +1,7 @@
 'use strict';
 /* global Application, CardFilter, CardManager, Clock, Deck, Edit, Folder, Home,
           KeyNavigationAdapter, MessageHandler, MozActivity, SearchBar,
-          SharedUtils, SpatialNavigator, URL, XScrollable */
+          SharedUtils, SpatialNavigator, URL, XScrollable, Animations */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -10,6 +10,7 @@
   const DEFAULT_ICON = 'url("/style/images/appic_developer.png")';
   const DEFAULT_BGCOLOR = 'rgba(0, 0, 0, 0.5)';
   const DEFAULT_BGCOLOR_ARRAY = [0, 0, 0, 0.5];
+  const CARDLIST_LEFT_MARGIN = 6.8;
 
   function Home() {}
 
@@ -23,6 +24,7 @@
         'filter-tv-button', 'filter-dashboard-button', 'filter-device-button',
         'filter-app-button'],
 
+    isNavigable: true,
     navigableClasses: ['command-button'],
     navigableScrollable: [],
     cardScrollable: undefined,
@@ -52,15 +54,16 @@
       this.searchBar.on('shown', this.onSearchBarShown.bind(this));
       this.searchBar.on('hidden', this.onSearchBarHidden.bind(this));
 
-      this.messageHandler = new MessageHandler();
-      this.messageHandler.init(this);
-
       this.cardManager.getCardList().then(function(cardList) {
+        that.messageHandler = new MessageHandler();
+        that.messageHandler.init(that);
+
         that._createCardList(cardList);
         that.cardScrollable = new XScrollable({
                 frameElem: 'card-list-frame',
                 listElem: 'card-list',
-                itemClassName: 'app-button'}),
+                itemClassName: 'app-button',
+                leftMargin: CARDLIST_LEFT_MARGIN}),
         that.navigableScrollable = [that.cardScrollable];
         var collection = that.getNavigateElements();
 
@@ -85,8 +88,6 @@
                                     that.handleScrollableItemUnfocus.bind(that);
         that.navigableScrollable.forEach(function(scrollable) {
           scrollable.on('focus', handleScrollableItemFocusBound);
-        });
-        that.navigableScrollable.forEach(function(scrollable) {
           scrollable.on('unfocus', handleScrollableItemUnfocusBound);
         });
 
@@ -113,7 +114,52 @@
           // appearance is the same as it.
           that.searchButton.classList.add('hidden');
         }.bind(that));
+
+        // handle animation
+        that.endBubble = null;
+        document.addEventListener(
+                'visibilitychange', that.onVisibilityChange.bind(that));
+        // if this init function is executed after the document is set to
+        // visible, the visibilitychange event may not be triggered.
+        if (document.visibilityState === 'visible') {
+          that.onVisibilityChange();
+        }
       });
+    },
+
+    onVisibilityChange: function() {
+      if (document.visibilityState === 'visible') {
+        this.cardScrollable.currentItem.blur();
+        this.endBubble = Animations.doBubbleAnimation(
+                          this.cardListElem, '.app-button', 100, function() {
+          // if there is a pin activity, we do not have to focus element,
+          // because focus will be triggered in pin callback
+          if (!this.messageHandler.resumeActivity()) {
+            var focusElem = this.spatialNavigator.getFocusedElement();
+            if (focusElem.CLASS_NAME === 'XScrollable') {
+              this.cardScrollable.catchFocus();
+            } else {
+              this.spatialNavigator.focus();
+            }
+          }
+          this.isNavigable = true;
+          this.endBubble = null;
+        }.bind(this));
+      } else {
+        this.messageHandler.stopActivity();
+        this.isNavigable = false;
+        // An user may close home app when bubbling or sliding animations are
+        // still playing, and then open home app again right away. In this case,
+        // the user will see the last unfinished animations. In order to solve
+        // this, we have to force disable all the animations and trigger their
+        // callbacks when home app is in hidden state.
+        if (this.endBubble) {
+          this.endBubble();
+        }
+        if (this.cardScrollable.isSliding) {
+          this.cardScrollable.endSlide();
+        }
+      }
     },
 
     initClock: function() {
@@ -130,15 +176,55 @@
       });
     },
 
+    _localizeCardName: function(elem, card) {
+      if (!elem || !card) {
+        return;
+      }
+
+      // We should use user given name first, otherwise we use localized
+      // application/deck name.
+      var lang = document.documentElement.lang;
+      var name = this.cardManager.resolveCardName(card, lang);
+      if (name && name.raw) {
+        elem.removeAttribute('data-l10n-id');
+        elem.textContent = name.raw;
+      } else if (name && name.id) {
+        elem.setAttribute('data-l10n-id', name.id);
+      }
+    },
+
     onCardInserted: function(card, idx) {
-      this.cardScrollable.insertNodeBefore(this._createCardNode(card), idx);
-      this.cardScrollable.focus(idx);
+      var newCardElem = this._createCardNode(card);
+      var newCardButtonElem = newCardElem.firstElementChild;
+      // Initial transition for new card
+      newCardButtonElem.classList.add('new-card');
+      newCardButtonElem.classList.add('new-card-transition');
+      newCardButtonElem.addEventListener('transitionend', function onPinned() {
+        newCardButtonElem.classList.remove('new-card-transition');
+        newCardButtonElem.removeEventListener('transitionend', onPinned);
+      });
+      this.cardListElem.classList.add('card-list-slide');
+
+      // insert new card into cardScrollable
+      this.isNavigable = false;
+      this.cardScrollable.on('slideEnd', function() {
+        newCardButtonElem.classList.remove('new-card');
+        this.isNavigable = true;
+      }.bind(this));
+      this.cardScrollable.insertNodeBefore(newCardElem, idx);
     },
 
     onCardUpdated: function(card, idx) {
-      var item = this.cardScrollable.getItemFromNode(
+      var that = this;
+      var cardButton = this.cardScrollable.getItemFromNode(
                                               this.cardScrollable.getNode(idx));
-      item.setAttribute('label', card.name);
+      var spans =
+           SharedUtils.nodeListToArray(cardButton.getElementsByTagName('span'));
+      spans.forEach(function(span) {
+        if (span.classList.contains('name')) {
+          that._localizeCardName(span, card);
+        }
+      });
     },
 
     onCardRemoved: function(indices) {
@@ -191,18 +277,6 @@
       waveBack.className = 'deck-wave';
       waveBack.classList.add('wave-back');
       waveBack.classList.add(card.deckClass + '-wave-back');
-      waveBack.classList.add('wave-paused');
-
-      // run the animation after the deck finishing focus transition
-      cardButton.addEventListener('focus', function(evt) {
-          waveBack.classList.remove('wave-paused');
-          waveFront.classList.remove('wave-paused');
-      });
-
-      cardButton.addEventListener('blur', function(evt) {
-          waveBack.classList.add('wave-paused');
-          waveFront.classList.add('wave-paused');
-      });
 
       cardButton.appendChild(waveBack);
       cardButton.appendChild(deckIcon);
@@ -218,7 +292,7 @@
         this._setCardIcon(cardButton, card, card.thumbnail,
                           card.backgroundColor);
         // TODO add backgroundColor??? How to do it???
-      } else if (!card.cachedIconBlob && !card.cachedIconURL) {
+      } else if (!card.cachedIconBlob) {
         // We don't have cachedIconBlob, just get icon from app
         this.cardManager.getIconBlob({
           manifestURL: manifestURL,
@@ -247,11 +321,6 @@
         // We already have cacedIconBlob which is created by previous step.
         this._setCardIcon(cardButton, card, card.cachedIconBlob,
                           card.backgroundColor);
-      } else if (card.cachedIconURL) {
-        // the pre-set icon.
-        cardButton.classList.add('fullsized');
-        cardButton.style.backgroundImage =
-          'url("' + card.cachedIconURL + '")';
       }
     },
 
@@ -291,7 +360,6 @@
       var cardButton = document.createElement('smart-button');
       cardButton.setAttribute('type', 'app-button');
       cardButton.className = 'app-button';
-      cardButton.setAttribute('label', card.name);
       cardButton.dataset.cardId = card.cardId;
 
       var cardPanel = document.createElement('section');
@@ -324,6 +392,16 @@
         cardButton.dataset.icon = 'folder';
       }
 
+      // For smart-button, we put card name in pseudo-element :after. However,
+      // we need to localize card name and l10n library do not support
+      // localizing element with children elements.
+      // Instead of using :after, we create a 'span' element under smart-button
+      // and put card name in it.
+      var nameSpan = document.createElement('span');
+      nameSpan.classList.add('name');
+      this._localizeCardName(nameSpan, card);
+      cardButton.appendChild(nameSpan);
+
       return cardNode;
     },
 
@@ -334,7 +412,7 @@
     },
 
     onMove: function(key) {
-      if (this.edit.onMove(key)) {
+      if (!this.isNavigable || this.edit.onMove(key)) {
         return;
       }
 
@@ -346,7 +424,7 @@
     },
 
     onEnter: function() {
-      if (this.edit.onEnter()) {
+      if (!this.isNavigable || this.edit.onEnter()) {
         return;
       }
 

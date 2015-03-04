@@ -319,7 +319,7 @@ form[role="dialog"][data-type="edit"] .bb-tablist > li {
   transform: translateX(-100%);
 }
 
-#threads-container, #thread-messages {
+#threads-container, #thread-messages, #information-participants, #information-report {
   z-index: 10;
   background: white;
 }
@@ -923,23 +923,6 @@ body[role="application"] form[role="dialog"][data-type="action"] > header:first-
   height: 4rem;
 }
 
-/**
- * 1. COMPLEX: Scoped style-sheets within <gaia-header>
- * trump all other rules. !important is required
- * for an app to over-ride the default appearance
- * of content within the custom-element. This may
- * change when we get `:host` and `:content` selectors
- * in shadow-dom.
- */
-
-/* Elements related to information view */
-section[role="region"][class*='-information'] #messages-options-button,
-section[role="region"][class*='-information'] #messages-subheader,
-section[role="region"][class*='-information'] #messages-container,
-section[role="region"][class*='-information'] #messages-compose-form {
-  display: none !important; /* 1 */
-}
-
 #messages-back-button:hover {
   background-color: transparent;
 }
@@ -1056,9 +1039,28 @@ html[dir="rtl"] .contact-header aside.pack-end {
 }
 
 /* Text selection control */
-#main-wrapper {
+html {
   -moz-user-select: none;
 }
 .editable-select-mode [contenteditable] {
   -moz-user-select: text;
+}
+
+/* Empty threadlist layout. */
+#threads-no-messages, .threadlist-is-empty #threads-container {
+  display: none;
+}
+
+/* Using !important to override scoped style in gaia-header component. */
+#threads-settings-button, .threadlist-is-empty #threads-options-button {
+  display: none !important;
+}
+
+/* Using flex to center the content. */
+.threadlist-is-empty #threads-settings-button {
+  display: flex !important;
+}
+
+.threadlist-is-empty #threads-no-messages {
+  display: block;
 }

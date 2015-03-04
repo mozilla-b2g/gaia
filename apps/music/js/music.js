@@ -104,8 +104,20 @@ var App = (function() {
     //
     app.currentOverlay = id;
 
+    function setVisibility(visible) {
+      // hide or show the overlay container and toggle aria-hidden on all other
+      // children of <body>
+      Array.forEach(document.body.children, function(elt) {
+        if (elt.id === 'overlay') {
+          elt.classList.toggle('hidden', !visible);
+        } else {
+          elt.setAttribute('aria-hidden', visible);
+        }
+      });
+    }
+
     if (id === null) {
-      document.getElementById('overlay').classList.add('hidden');
+      setVisibility(false);
       return;
     }
 
@@ -128,7 +140,7 @@ var App = (function() {
     titleElement.dataset.l10nId = l10nIds.title;
     textElement.dataset.l10nId = l10nIds.text;
 
-    document.getElementById('overlay').classList.remove('hidden');
+    setVisibility(true);
   }
 
   function showCorrectOverlay() {

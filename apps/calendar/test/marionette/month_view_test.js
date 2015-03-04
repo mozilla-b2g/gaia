@@ -88,7 +88,17 @@ marionette('month view', function() {
     }
 
     // Either the first or last day chronologically must be
-    // outside of the current month.
+    // outside of the current month (except for in February!).
+
+    // Swipe to next month if it's February.
+    var monthDay = app.monthDay;
+    var date = monthDay.date;
+    date = date.toLowerCase();
+    if (date.indexOf('feb') !== -1) {
+      // Swipe to another month.
+      app.swipeLeft();
+    }
+
     var month = app.month;
     var daySquares = month.daySquares;
     assert.isTrue(daySquares.some(isOutsideMonthWithGrayText));
@@ -172,7 +182,7 @@ marionette('month view', function() {
 
   test('double tap', function() {
     var month = app.month;
-    month.actions.doubleTap(month.currentDay, 8, 8).perform();
+    month.actions.doubleTap(month.currentDay).perform();
 
     var editEvent = app.editEvent;
     editEvent.waitForDisplay();

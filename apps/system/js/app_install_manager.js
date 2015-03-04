@@ -7,7 +7,7 @@
 /* global ManifestHelper */
 /* global ModalDialog */
 /* global NotificationScreen */
-/* global StatusBar */
+/* global Service */
 /* global SystemBanner */
 /* global Template */
 /* global UtilityTray */
@@ -314,7 +314,7 @@ var AppInstallManager = {
     var appManifest = new ManifestHelper(manifest);
     var name = appManifest.name;
     var l10nId = appManifest.role === 'langpack' ?
-      'langpack-install-success' : 'app-install-success';
+      'langpack-install-success2' : 'app-install-success';
     this.systemBanner.show(
       navigator.mozL10n.get(l10nId, { appName: name }));
   },
@@ -456,7 +456,7 @@ var AppInstallManager = {
 
   onDownloadStart: function ai_onDownloadStart(app) {
     if (! this.hasNotification(app)) {
-      StatusBar.incSystemDownloads();
+      Service.request('incDownloads');
       this.addNotification(app);
       this.requestWifiLock(app);
     }
@@ -464,7 +464,7 @@ var AppInstallManager = {
 
   onDownloadStop: function ai_onDownloadStop(app) {
     if (this.hasNotification(app)) {
-      StatusBar.decSystemDownloads();
+      Service.request('decDownloads');
       this.removeNotification(app);
       this.releaseWifiLock(app);
     }

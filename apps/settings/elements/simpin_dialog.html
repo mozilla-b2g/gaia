@@ -2,9 +2,9 @@
   <template>
 
     <gaia-header>
-      <button type="reset" data-icon="back"><span data-l10n-id="back">Back</span></button>
+      <button type="reset"><span data-icon="close"></span></button>
       <h1></h1>
-      <button data-l10n-id="done" type="submit">Done</button>
+      <button data-l10n-id="done" type="submit"></button>
     </gaia-header>
 
     <div class="pin-dialog">
@@ -15,29 +15,27 @@
       <div class="sim-triesLeft" data-l10n-id="inputCodeRetriesLeft" hidden></div>
 
       <div class="sim-code-area sim-pinArea">
-        <div data-l10n-id="simPin">SIM PIN</div>
+        <div></div>
         <input type="password" x-inputmode="digit" size="8" maxlength="8" />
       </div>
 
       <div class="sim-code-area sim-pukArea">
-        <div data-l10n-id="pukCode">PUK Code</div>
+        <div></div>
         <input type="password" x-inputmode="digit" size="8" maxlength="8" />
       </div>
 
       <div class="sim-code-area sim-newPinArea">
-        <div data-l10n-id="newSimPinMsg">
-          Create PIN (must contain 4 to 8 digits)
-        </div>
+        <div></div>
         <input type="password" x-inputmode="digit" size="8" maxlength="8" />
       </div>
 
       <div class="sim-code-area sim-confirmPinArea">
-        <div data-l10n-id="confirmNewSimPinMsg">
-          Confirm New PIN
-        </div>
+        <div></div>
         <input type="password" x-inputmode="digit" size="8" maxlength="8" />
       </div>
     </div>
+
+    <panel data-path="panels/simpin_dialog/panel"></panel>
 
   </template>
 </element>

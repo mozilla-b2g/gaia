@@ -2,10 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette.by import By
-except:
-    from marionette_driver.by import By
+from marionette_driver import expected, By
 
 from gaiatest.apps.base import Base
 
@@ -13,6 +10,10 @@ from gaiatest.apps.base import Base
 class Sound(Base):
     _ring_tone_selector_locator = (By.CSS_SELECTOR, '.ring-tone-selection')
     _current_ring_tone_locator = (By.CSS_SELECTOR, '.ring-tone-selection > small')
+
+    @property
+    def ring_tone_selector_visible(self):
+        return expected.element_displayed(*self._ring_tone_selector_locator)(self.marionette)
 
     @property
     def current_ring_tone(self):

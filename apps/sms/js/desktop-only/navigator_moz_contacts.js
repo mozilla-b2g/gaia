@@ -311,6 +311,19 @@
       givenName: 'Ada',
       tel: {
         value: '104'
+      },
+      email: {
+        value: 'ada@lovelace.com'
+      }
+    })
+  );
+
+  ContactsDB.push(
+    new Contact({
+      familyName: 'Tesla',
+      givenName: 'Nikola',
+      email: {
+        value: 'nikola@tesla.com'
       }
     })
   );

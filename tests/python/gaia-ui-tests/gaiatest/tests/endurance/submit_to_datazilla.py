@@ -19,10 +19,7 @@ import time
 
 import dzclient
 import gaiatest
-try:
-    from marionette import Marionette
-except:
-    from marionette_driver import Marionette
+from marionette_driver import Marionette
 import mozdevice
 
 

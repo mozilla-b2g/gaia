@@ -25,7 +25,6 @@
     "device-storage:music":{ "access": "readcreate" },
     "device-storage:apps":{ "access": "readonly" },
     "settings":{ "access": "readwrite" },
-    "storage":{},
     "camera":{},
     "geolocation":{},
     "audio-capture": {},

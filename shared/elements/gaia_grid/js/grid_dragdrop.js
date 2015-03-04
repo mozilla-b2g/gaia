@@ -1,4 +1,5 @@
 'use strict';
+/* global devicePixelRatio */
 /* global GaiaGrid */
 
 (function(exports) {
@@ -6,6 +7,16 @@
   const ACTIVE_SCALE = 1.4;
 
   const COLLECTION_DROP_SCALE = 0.5;
+
+  /* This is an alternative delay used to initiate icon movement when in edit
+   * mode. The normal contextmenu delay is too long once we're in edit mode
+   * and causes user confusion, but a short delay globally would cause too many
+   * accidental triggers of edit mode.
+   */
+  const EDIT_LONG_PRESS_DELAY = 100;
+
+  /* The movement threshold to use for the above synthetic long-press. */
+  const EDIT_LONG_PRESS_THRESHOLD = 4 * devicePixelRatio;
 
   /* This delay is the time passed once users stop the finger over an icon and
    * the rearrange is performed */
@@ -17,6 +28,9 @@
 
   /* This delay is the time to wait before rearranging a collection. */
   const REARRANGE_COLLECTION_DELAY = 500;
+
+  /* This is the delay before calling finish when handling touchend. */
+  const TOUCH_END_FINISH_DELAY = 20;
 
   const SCREEN_HEIGHT = window.innerHeight;
 
@@ -30,6 +44,10 @@
     this.container = gridView.element;
     this.scrollable = document.documentElement;
     this.container.addEventListener('touchstart', this);
+    this.container.addEventListener('touchmove', this);
+    this.container.addEventListener('touchend', this);
+    window.addEventListener('touchcancel', this);
+    this.container.addEventListener('click', this);
     this.container.addEventListener('contextmenu', this);
   }
 
@@ -40,6 +58,16 @@
      * @type {DomElement}
      */
     target: null,
+
+    /**
+     * The edit-mode long-press timeout
+     */
+    longPressTimeout: null,
+
+    /**
+     * The position of the first touchstart of the current event block
+     */
+    touchStart: { x: 0, y: 0, screenX: 0, screenY: 0 },
 
     /**
      * If we have moved an icon, this indicates that we need to save the state
@@ -91,6 +119,13 @@
     },
 
     /**
+     * Returns the delay before calling finish in response to a touch-end event.
+     */
+    get touchEndFinishDelay() {
+      return TOUCH_END_FINISH_DELAY;
+    },
+
+    /**
      * Begins the drag/drop interaction.
      * Enlarges the icon.
      * Sets additional data to make the touchmove handler faster.
@@ -107,6 +142,7 @@
       this.container.classList.add('dragging');
       this.icon.scale = ACTIVE_SCALE;
       this.icon.setActive(true);
+      this.container.parentNode.style.overflow = 'hidden';
 
       // Work around e.pageX/e.pageY being null (to make it easier to work with
       // injected events, or old versions of Marionette)
@@ -161,7 +197,7 @@
       this.positionIcon();
     },
 
-    finish: function(e) {
+    finish: function() {
       // Remove the dragging property after the icon has transitioned into
       // place to avoid jank due to animations starting that are disabled
       // when dragging.
@@ -255,6 +291,7 @@
     },
 
     finalize: function() {
+      this.container.parentNode.style.overflow = '';
       this.container.classList.remove('dragging');
       this.container.classList.remove('hover-over-top');
       if (this.icon) {
@@ -367,6 +404,15 @@
       }
     },
 
+    inFirstGroup: function(index) {
+      for (var i = index; i >= 0; i--) {
+        if (this.gridView.items[i].detail.type === 'divider') {
+          return false;
+        }
+      }
+      return true;
+    },
+
     /**
      * Positions an icon on the grid using the current touch coordinates.
      */
@@ -396,14 +442,19 @@
       // Find the icon with the closest X/Y position of the move,
       // and insert ours before it.
       var foundIndex = 0;
-      var insertDividerAtTop =
-        !iconIsDivider && !this.gridView.config.features.disableSections;
+      var insertDividerAtTop = !this.gridView.config.features.disableSections;
       pageX += this.gridView.layout.gridItemWidth / 2;
       pageY += this.icon.pixelHeight / 2;
       if (pageY >= 0) {
-        insertDividerAtTop = false;
         foundIndex =
           this.gridView.getNearestItemIndex(pageX, pageY, iconIsDivider);
+
+        // If we're dragging a group over the first icon, a divider will
+        // be inserted at the top.
+        if (!(iconIsDivider && foundIndex === 0)) {
+          this.container.classList.remove('hover-over-top');
+          insertDividerAtTop = false;
+        }
       }
 
       // Clear the rearrange callback and hover item if we aren't hovering over
@@ -415,18 +466,19 @@
       }
       if (this.hoverItem) {
         this.hoverItem.element.classList.remove('hovered');
-        this.container.classList.remove('hover-over-top');
         this.hoverItem = null;
       }
 
       // Add the 'hovering' class to the dragged icon.
       if (foundIndex !== null) {
         this.icon.element.classList.add('hovering');
+      } else {
+        this.icon.element.classList.remove('hovering');
       }
 
       // Nothing to do if we find the dragged icon or no icon
-      if (foundIndex === null ||
-          (!insertDividerAtTop && foundIndex === this.icon.detail.index)) {
+      if (!insertDividerAtTop &&
+          (foundIndex === null || foundIndex === this.icon.detail.index)) {
         if (!iconIsDivider) {
           this.highlightGroup(this.icon.detail.index);
         }
@@ -445,14 +497,11 @@
         return;
       }
 
-      // If we're hovering over the top of the group, add a style class to show
-      // a visual hint that this is a valid drop position.
-      // Otherwise, if the item isn't a collection or a group, trigger the
+      // If the item isn't a collection or a group, trigger the
       // hovered state on the found item.
-      if (insertDividerAtTop || (iconIsDivider && pageY < 0)) {
-        this.container.classList.add('hover-over-top');
-      } else if (foundItem.detail.type !== 'collection' ||
-                 (this.icon.detail.type !== 'collection' && !iconIsDivider)) {
+      if (!insertDividerAtTop &&
+          (foundItem.detail.type !== 'collection' ||
+           (this.icon.detail.type !== 'collection' && !iconIsDivider))) {
         this.hoverItem = foundItem;
         this.hoverItem.element.classList.add('hovered');
       }
@@ -467,9 +516,7 @@
       if (!insertDividerAtTop && !iconIsDivider &&
           (foundItem.detail.type === 'divider')) {
         // Allow dropping into a collapsed group
-        createDivider = !foundItem.detail.collapsed ||
-          (pageY >= foundItem.y + foundItem.pixelHeight);
-        if (!createDivider) {
+        if (foundItem.detail.collapsed) {
           rearrangeAfterDelay = false;
           foundItem.element.classList.remove('hovered');
 
@@ -478,6 +525,8 @@
           if (this.icon.detail.index < foundIndex) {
             foundItem = this.gridView.items[foundIndex - 1];
           }
+        } else {
+          createDivider = true;
         }
       }
 
@@ -489,16 +538,28 @@
         }
 
         // Cancel rearrangement if it would have no effect.
-        if (this.gridView.items[foundIndex].element.classList.
-            contains('invalid-drop')) {
-          if (insertDividerAtTop) {
-            this.container.classList.remove('hover-over-top');
+        var redundantRearrange = false;
+        if (insertDividerAtTop) {
+          if (iconIsDivider) {
+            redundantRearrange = this.inFirstGroup(this.icon.detail.index - 1);
+          } else {
+            redundantRearrange =
+              (this.icon.detail.index === 0 &&
+               this.gridView.items[1].detail.type === 'placeholder');
           }
+        } else {
+          redundantRearrange = this.gridView.items[foundIndex].element.
+            classList.contains('invalid-drop');
+        }
+
+        if (redundantRearrange) {
           if (this.hoverItem) {
             this.hoverItem.element.classList.remove('hovered');
             this.hoverItem = null;
           }
           return;
+        } else if (insertDividerAtTop) {
+          this.container.classList.add('hover-over-top');
         }
 
         this.doRearrange =
@@ -627,25 +688,26 @@
       }
 
       this.inEditMode = false;
+      this.cancelLongPressTimeout();
       this.container.classList.remove('edit-mode');
       document.body.classList.remove('edit-mode');
       this.gridView.element.dispatchEvent(new CustomEvent('editmode-end'));
       document.removeEventListener('visibilitychange', this);
       this.container.removeEventListener('collection-close', this);
-      this.removeDragHandlers();
       this.gridView.render();
     },
 
-    removeDragHandlers: function() {
-      this.container.removeEventListener('touchmove', this);
-      this.container.removeEventListener('touchend', this);
-      window.removeEventListener('touchcancel', this);
+    cancelLongPressTimeout: function() {
+      if (this.longPressTimeout !== null) {
+        clearTimeout(this.longPressTimeout);
+        this.longPressTimeout = null;
+      }
     },
 
-    addDragHandlers: function() {
-      this.container.addEventListener('touchmove', this);
-      this.container.addEventListener('touchend', this);
-      window.addEventListener('touchcancel', this);
+    inLongPressThreshold: function(x, y) {
+      return (
+        Math.abs(x - this.touchStart.screenX) < EDIT_LONG_PRESS_THRESHOLD &&
+        Math.abs(y - this.touchStart.screenY) < EDIT_LONG_PRESS_THRESHOLD);
     },
 
     /**
@@ -664,15 +726,38 @@
             break;
 
           case 'touchstart':
-            this.canceled = e.touches.length > 1;
-            break;
+            this.cancelLongPressTimeout();
 
-          case 'contextmenu':
-            if (this.icon || this.canceled) {
+            if (e.touches.length > 1) {
+              if (this.inDragAction) {
+                this.finish();
+              }
               return;
             }
 
-            if (this.gridView._collectionOpen) {
+            if (this.inEditMode) {
+              this.touchStart.x = e.touches[0].pageX;
+              this.touchStart.y = e.touches[0].pageY;
+              this.touchStart.screenX = e.touches[0].screenX;
+              this.touchStart.screenY = e.touches[0].screenY;
+              this.longPressTimeout = setTimeout(() => {
+                this.longPressTimeout = null;
+                this.handleEvent({
+                  type: 'contextmenu',
+                  target: e.target,
+                  pageX: this.touchStart.x,
+                  pageY: this.touchStart.y,
+                  preventDefault: function() {},
+                  stopImmediatePropagation: function() {}
+                });
+              }, EDIT_LONG_PRESS_DELAY);
+            }
+            break;
+
+          case 'contextmenu':
+            this.cancelLongPressTimeout();
+
+            if (this.gridView._collectionOpen || this.icon) {
               e.stopImmediatePropagation();
               e.preventDefault();
               return;
@@ -697,12 +782,10 @@
               return;
             }
 
-            this.target = this.icon.element;
-            this.addDragHandlers();
-
             e.stopImmediatePropagation();
             e.preventDefault();
 
+            this.target = this.icon.element;
             this.begin(e);
 
             break;
@@ -710,30 +793,52 @@
           case 'touchmove':
             var touch = e.touches[0];
 
-            this.currentTouch = {
-              pageX: touch.pageX,
-              pageY: touch.pageY
-            };
+            if (this.inDragAction) {
+              this.currentTouch = {
+                pageX: touch.pageX,
+                pageY: touch.pageY
+              };
 
-            this.positionIcon();
+              this.positionIcon();
 
-            if (!this.isScrolling) {
-              this.scrollIfNeeded();
+              if (!this.isScrolling) {
+                this.scrollIfNeeded();
+              }
+            } else if (this.longPressTimeout !== null &&
+                       !this.inLongPressThreshold(touch.screenX,
+                                                  touch.screenY)) {
+              this.cancelLongPressTimeout();
             }
 
             break;
 
+          case 'click':
           case 'touchcancel':
-            this.removeDragHandlers();
-            this.finish();
-            this.finalize();
+            if (this.inDragAction) {
+              this.finish();
+              this.finalize();
+            }
+
+            this.cancelLongPressTimeout();
             break;
+
           case 'touchend':
-            // Ensure the app is not launched
-            e.stopImmediatePropagation();
-            e.preventDefault();
-            this.removeDragHandlers();
-            this.finish(e);
+            if (this.inDragAction) {
+              // Ensure the app is not launched
+              e.stopImmediatePropagation();
+              e.preventDefault();
+
+              // As contextmenu event can be synthesized, it's possible for it
+              // to happen in the same event-loop as touchend, meaning
+              // finish would be called immediately after begin. This would
+              // mean that the icon doesn't get a chance to transition and
+              // the transitionend that we expect won't be called, so finalize
+              // also won't be called, leaving us in an inconsistent state.
+              // It would be so great if there was a transitionstart event :(
+              setTimeout(() => { this.finish(); }, TOUCH_END_FINISH_DELAY);
+            }
+
+            this.cancelLongPressTimeout();
             break;
 
           case 'transitionend':

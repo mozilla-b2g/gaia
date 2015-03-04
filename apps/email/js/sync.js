@@ -1,11 +1,11 @@
 /*jshint browser: true */
-/*global define, console, plog, Notification */
+/*global define, console, Notification */
 'use strict';
 define(function(require) {
 
-  var appSelf = require('app_self'),
+  var cronSyncStartTime,
+      appSelf = require('app_self'),
       evt = require('evt'),
-      model = require('model'),
       mozL10n = require('l10n!'),
       notificationHelper = require('shared/js/notification_helper');
 
@@ -14,7 +14,9 @@ define(function(require) {
   // changes, then this version needs to be changed.
   var notificationDataVersion = '1';
 
-  model.latestOnce('api', function(api) {
+  // The expectation is that this module is called as part of model's
+  // init process that calls the "model_init" module to finish its construction.
+  return function syncInit(model, api) {
     var hasBeenVisible = !document.hidden,
         waitingOnCron = {};
 
@@ -87,8 +89,8 @@ define(function(require) {
           evt.emit('notification', {
             clicked: true,
             imageURL: iconUrl,
-            data: data,
-            tag: notificationId
+            tag: notificationId,
+            data: data
           });
         };
       };
@@ -96,6 +98,7 @@ define(function(require) {
 
     api.oncronsyncstart = function(accountIds) {
       console.log('email oncronsyncstart: ' + accountIds);
+      cronSyncStartTime = Date.now();
       var accountKey = makeAccountKey(accountIds);
       waitingOnCron[accountKey] = true;
     };
@@ -229,13 +232,9 @@ define(function(require) {
         });
 
         if (!hasBeenVisible && !stillWaiting) {
-          var msg = 'mail sync complete, closing mail app';
-          if (typeof plog === 'function') {
-            plog(msg);
-          } else {
-            console.log(msg);
-          }
-
+          console.log('sync completed in ' +
+                     ((Date.now() - cronSyncStartTime) / 1000) +
+                     ' seconds, closing mail app');
           window.close();
         }
       }
@@ -520,5 +519,5 @@ define(function(require) {
         }
       });
     });
-  });
+  };
 });

@@ -28,7 +28,7 @@ module.exports = create({
              aria-hidden="true"></div>
         <label class="pack-checkbox" role="option" ${ariaSelected}>
           <input value="${id}" type="checkbox" ${checked}/>
-          <span ${l10n} class="name">${name}</span>
+          <span ${l10n} class="name" dir="auto">${name}</span>
         </label>
       </li>`;
   }

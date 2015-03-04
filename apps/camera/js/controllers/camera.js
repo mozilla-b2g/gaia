@@ -72,6 +72,8 @@ CameraController.prototype.bindEvents = function() {
   app.on('storage:volumechanged', this.onStorageVolumeChanged);
   app.on('storage:changed', this.onStorageChanged);
   app.on('activity:pick', this.onPickActivity);
+  app.on('keydown:capture', this.onCaptureKey);
+  app.on('keydown:focus', this.onFocusKey);
   app.on('timer:ended', this.capture);
   app.on('visible', this.camera.load);
   app.on('capture', this.capture);
@@ -88,6 +90,42 @@ CameraController.prototype.bindEvents = function() {
   settings.hdr.on('change:selected', this.onHDRChange);
 
   debug('events bound');
+};
+
+/**
+ * Take picture or start/end recording
+ * when a capture hardware key is invoked.
+ *
+ * Calling `.preventDefault()` prevents
+ * the default system operation
+ * (eg. changing volume level). We
+ * only call it when capture request
+ * succeeds.
+ *
+ * We don't want to .preventDefault() when
+ * the preview-gallery is open as the
+ * user may want to change the volume
+ * of a video being played back.
+ *
+ * @param  {Event} e
+ * @private
+ */
+CameraController.prototype.onCaptureKey = function(e) {
+  debug('on capture key', e);
+  var output = this.capture();
+  if (output !== false) { e.preventDefault(); }
+};
+
+/**
+ * Focus the camera when a focus
+ * hardware key is invoked.
+ *
+ * @param  {Event} e
+ * @private
+ */
+CameraController.prototype.onFocusKey = function(e) {
+  debug('on focus key', e);
+  this.camera.focus.focus();
 };
 
 /**
@@ -158,7 +196,7 @@ CameraController.prototype.capture = function() {
   }
 
   var position = this.app.geolocation.position;
-  this.camera.capture({ position: position });
+  return this.camera.capture({ position: position });
 };
 
 /**

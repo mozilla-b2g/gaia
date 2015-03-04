@@ -188,7 +188,7 @@ contacts.ICE = (function() {
   }
 
   function resetIceGroupStates() {
-    for(var j = 0; j < iceContactCheckboxes.lenght; j++) {
+    for(var j = 0; j < iceContactCheckboxes.length; j++) {
       resetIceGroupState(j);
     }
   }

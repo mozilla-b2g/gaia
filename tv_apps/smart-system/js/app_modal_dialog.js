@@ -267,7 +267,9 @@
         }
 
         this.simpleKeyNavigation.start(
-                  [elements.alertOk], SimpleKeyNavigation.DIRECTION.HORIZONTAL);
+          [elements.alertOk],
+          SimpleKeyNavigation.DIRECTION.HORIZONTAL,
+          {target: elements.alert});
 
         // XXX: Focusing smart-button fails at the second time popup if we don't
         // postpone it. We need to find the root cause.
@@ -300,12 +302,13 @@
         document.activeElement.blur();
         var horizontalButtonNavigation = new SimpleKeyNavigation();
         horizontalButtonNavigation.start(
-            [elements.promptCancel, elements.promptOk],
-            SimpleKeyNavigation.DIRECTION.HORIZONTAL,
-            true);
+          [elements.promptCancel, elements.promptOk],
+          SimpleKeyNavigation.DIRECTION.HORIZONTAL,
+          {isChild: true});
         this.simpleKeyNavigation.start(
           [elements.promptInput, horizontalButtonNavigation],
-          SimpleKeyNavigation.DIRECTION.VERTICAL);
+          SimpleKeyNavigation.DIRECTION.VERTICAL,
+          {target: elements.prompt});
         elements.promptInput.select();
         break;
 
@@ -331,7 +334,8 @@
         document.activeElement.blur();
         this.simpleKeyNavigation.start(
           [elements.confirmCancel, elements.confirmOk],
-          SimpleKeyNavigation.DIRECTION.HORIZONTAL);
+          SimpleKeyNavigation.DIRECTION.HORIZONTAL,
+          {target: elements.confirm});
 
         // XXX: Focusing smart-button fails at the second time popup if we don't
         // postpone it. We need to find the root cause.

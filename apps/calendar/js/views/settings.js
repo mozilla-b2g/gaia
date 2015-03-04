@@ -3,9 +3,9 @@ define(function(require, exports, module) {
 
 var CalendarTemplate = require('templates/calendar');
 var View = require('view');
-var app = require('app');
 var debug = require('debug')('views/settings');
 var forEach = require('object').forEach;
+var router = require('router');
 
 require('dom!settings');
 
@@ -129,7 +129,7 @@ Settings.prototype = {
   _observeUI: function() {
     this.advancedSettingsButton.addEventListener('click', function(e) {
       e.stopPropagation();
-      app.router.show('/advanced-settings/');
+      router.show('/advanced-settings/');
     });
 
     this.syncButton.addEventListener('click', this._onSyncClick.bind(this));
@@ -305,7 +305,7 @@ Settings.prototype = {
   _onDrawerTransitionEnd: function(e) {
     this._updateDrawerAnimState('done');
     if (!document.body.classList.contains('settings-drawer-visible')) {
-      this.app.resetState();
+      router.resetState();
     }
   },
 

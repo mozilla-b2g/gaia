@@ -1,7 +1,7 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global Utils, MessageManager, Compose, OptionMenu, NotificationHelper,
+/*global Utils, MessageManager, Compose, NotificationHelper,
          Attachment, Notify, SilentSms, Threads, SMIL, Contacts,
          ThreadUI, Notification, Settings, Navigation */
 /*exported ActivityHandler */
@@ -231,6 +231,11 @@ var ActivityHandler = {
       return;
     }
 
+    // If we're currently in the target thread, just do nothing
+    if (Navigation.isCurrentPanel('thread', { id: message.threadId })) {
+      return;
+    }
+
     MessageManager.getMessage(message.id).then((message) => {
       if (!Threads.has(message.threadId)) {
         Threads.registerMessage(message);
@@ -241,63 +246,17 @@ var ActivityHandler = {
         return;
       }
 
-      Utils.confirm('discard-new-message').then(() => {
+      Utils.confirm(
+        'discard-new-message',
+        'unsent-message-title',
+        { text: 'unsent-message-option-discard', className: 'danger' }
+      ).then(() => {
         ThreadUI.cleanFields();
         ActivityHandler.toView(message);
       });
     }, function onGetMessageError() {
       Utils.alert('deleted-sms');
     });
-  },
-
-  // The unsent confirmation dialog provides 2 options: edit and discard
-  // discard: clear the message user typed
-  // edit: continue to edit the unsent message and ignore the activity
-  displayUnsentConfirmation: function ah_displayUnsentConfirmtion(activity) {
-    var msgDiv = document.createElement('div');
-    msgDiv.innerHTML = '<h1 data-l10n-id="unsent-message-title"></h1>' +
-                       '<p data-l10n-id="unsent-message-description"></p>';
-    var options = new OptionMenu({
-      type: 'confirm',
-      section: msgDiv,
-      items: [{
-        l10nId: 'unsent-message-option-edit',
-        method: function editOptionMethod() {
-          // we're already in message app, we don't need to do anything
-        }
-      },
-      {
-        l10nId: 'unsent-message-option-discard',
-        method: (activity) => {
-          ThreadUI.discardDraft();
-          this.launchComposer(activity);
-        },
-        params: [activity]
-      }]
-    });
-    options.show();
-  },
-
-  // Launch the UI properly
-  launchComposer: function ah_launchComposer(activity) {
-    Navigation.toPanel('composer', { activity: activity });
-  },
-
-  // Check if we want to go directly to the composer or if we
-  // want to keep the previously typed text
-  triggerNewMessage: function ah_triggerNewMessage(body, number, contact) {
-     var activity = {
-        body: body || null,
-        number: number || null,
-        contact: contact || null
-      };
-
-    if (Compose.isEmpty()) {
-      this.launchComposer(activity);
-    } else {
-      // ask user how should we do
-      ActivityHandler.displayUnsentConfirmation(activity);
-    }
   },
 
   /**
@@ -315,17 +274,23 @@ var ActivityHandler = {
    */
   toView: function ah_toView(message, focusComposer) {
     var navigateToView = function act_navigateToView() {
-      // If we only have a body, just trigger a new message.
-      if (!message.threadId) {
-        ActivityHandler.triggerNewMessage(
-          message.body, message.number, message.contact
-        );
+      // If we have appropriate thread then let's forward user there, otherwise
+      // open new message composer.
+      if (message.threadId) {
+        Navigation.toPanel('thread', {
+          id: message.threadId,
+          focusComposer: focusComposer
+        });
         return;
       }
 
-      Navigation.toPanel(
-        'thread', { id: message.threadId, focusComposer: focusComposer }
-      );
+      Navigation.toPanel('composer', {
+        activity: {
+          body: message.body || null,
+          number: message.number || null,
+          contact: message.contact || null
+        }
+      });
     };
 
     navigator.mozL10n.once(function waitLocalized() {

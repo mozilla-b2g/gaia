@@ -4,10 +4,7 @@
 
 import time
 
-try:
-    from marionette import Wait
-except:
-    from marionette_driver import Wait
+from marionette_driver import Wait
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.music.app import Music
@@ -41,10 +38,12 @@ class TestSetMusicRating(GaiaTestCase):
         player_view.tap_play()
         self.assertFalse(player_view.is_player_playing(), 'The player did not stop playing')
 
-        #give rating of 4
+        # give rating of 4
         player_view.tap_star(4)
-        self.assertEquals(player_view.star_rating, 4)
+        player_view.tap_cover_in_player_view() # tap again in case the overlay disappears due to timeout
+        Wait(self.marionette).until(lambda m: player_view.star_rating == 4)
 
         #change the rating to 1
         player_view.tap_star(1)
-        self.assertEquals(player_view.star_rating, 1)
+        player_view.tap_cover_in_player_view() # tap again in case the overlay disappears due to timeout
+        Wait(self.marionette).until(lambda m: player_view.star_rating == 1)

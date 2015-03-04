@@ -248,6 +248,11 @@ not actually shown since the top header should be transparent.
 }
 
 /* RTL View */
+
+html[dir="rtl"] #settings .calendars label > .name {
+  text-align: right;
+}
+
 html[dir="rtl"] #settings .calendars label > span {
   float: right;
   text-align: start;
@@ -255,12 +260,11 @@ html[dir="rtl"] #settings .calendars label > span {
 
 html[dir="rtl"] #settings [role="toolbar"] .toolbar-item {
   border-left: unset;
-  border-right: 0.1rem solid #e5e5e5;
 }
 
 html[dir="rtl"] #settings [role="toolbar"] .toolbar-item:first-child {
   border-left: unset;
-  border-right: 0;
+  border-right: 0.1rem solid #e5e5e5;
 }
 
 html[dir="rtl"] #settings .calendars input[type="checkbox"] + span:after {

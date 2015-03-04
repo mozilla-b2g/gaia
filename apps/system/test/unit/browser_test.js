@@ -1,10 +1,11 @@
-/*global MocksHelper, MockNavigatormozSetMessageHandler,
+/*global MocksHelper, MockNavigatormozSetMessageHandler, Browser,
          MockApplications, MockAppWindow, MockAppWindowHelper */
 
 'use strict';
 
 require('/js/browser_config_helper.js');
 require('/shared/js/url_helper.js');
+require('/js/browser.js');
 
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/test/unit/mock_app_window.js');
@@ -18,13 +19,15 @@ suite('system/Browser', function() {
   mocksForBrowser.attachTestHelpers();
 
   var realMozSetMessageHandler;
-  suiteSetup(function(done) {
+  var subject;
+
+  suiteSetup(function() {
     realMozSetMessageHandler = navigator.mozSetMessageHandler;
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
     MockNavigatormozSetMessageHandler.mSetup();
     window.applications = MockApplications;
-
-    require('/js/browser.js', done);
+    subject = new Browser();
+    subject.start();
   });
 
   suiteTeardown(function() {

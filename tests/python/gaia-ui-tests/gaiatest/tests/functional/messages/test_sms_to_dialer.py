@@ -22,7 +22,7 @@ class TestDialerFromMessage(GaiaTestCase):
         self.messages = Messages(self.marionette)
         self.messages.launch()
 
-        self.data_layer.send_sms(self.testvars['local_phone_numbers'][0], _text_message_content)
+        self.data_layer.send_sms(self.environment.phone_numbers[0], _text_message_content)
         self.apps.switch_to_displayed_app()
 
         self.messages.wait_for_message_received(timeout=180)
@@ -37,4 +37,4 @@ class TestDialerFromMessage(GaiaTestCase):
 
         # Check the phone number
         keypad = message_thread.tap_call()
-        self.assertEquals(keypad.phone_number, self.testvars['local_phone_numbers'][0])
+        self.assertEquals(keypad.phone_number, self.environment.phone_numbers[0])

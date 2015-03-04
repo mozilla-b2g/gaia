@@ -8,7 +8,7 @@ marionette('Text selection >', function() {
   var action;
 
   apps[FakeTextSelectionApp.ORIGIN] =
-    __dirname + '/faketextselectionapp';
+    __dirname + '/../apps/faketextselectionapp';
 
   suite('without lockscreen', function() {
     var fakeTextselectionApp;
@@ -223,7 +223,7 @@ marionette('Text selection >', function() {
         fakeTextselectionApp.setTestFrame('bug');
       });
 
-      test('bug1110963 : Cut/Copy/Paste menu should dismiss ' +
+      test.skip('bug1110963 : Cut/Copy/Paste menu should dismiss ' +
            'when tapping the keyboard',
         function() {
           fakeTextselectionApp.longPress('BugCenterInput');
@@ -241,7 +241,22 @@ marionette('Text selection >', function() {
           });
         });
 
-      test('bug1119126 : Shortcut bubble should hide when system is resized',
+      // Enable the test til bug 1120750 is merged.
+      test.skip('bug1120750 : Send out carets position for the short cut mode ',
+        function() {
+          fakeTextselectionApp.longPress('BugCenterInput');
+          var originalLocation = fakeTextselectionApp.textSelection.location;
+          fakeTextselectionApp.cut('BugCenterInput');
+
+          fakeTextselectionApp.tap('BugBottomInput');
+          var newLocation = fakeTextselectionApp.textSelection.location;
+          assert.ok(fakeTextselectionApp.bubbleVisiblity);
+          assert.ok(newLocation.y > originalLocation.y);
+        });
+
+      // Enable the test til bug 1120750 is merged.
+      test.skip('bug1119126 : Shortcut bubble should hide when system is' +
+                ' resized',
         function() {
           systemInputMgmt = client.loader.getAppClass('system',
                                                       'input_management');
@@ -255,7 +270,7 @@ marionette('Text selection >', function() {
             return systemInputMgmt.keyboardFrameHidden();
           });
           fakeTextselectionApp.switchToTestApp();
-          fakeTextselectionApp.BugButtomInput.tap();
+          fakeTextselectionApp.BugBottomInput.tap();
 
           systemInputMgmt.waitForKeyboardFrameDisplayed();
 
@@ -293,6 +308,23 @@ marionette('Text selection >', function() {
           assert.ok(source.charAt(0)===target,
           'carets should be dragable to narrow down selection range to the ' +
           'first character if positions of carets are updated correctly');
+        });
+    });
+
+    suite('bug1120316', function() {
+      setup(function() {
+        fakeTextselectionApp.setTestFrame('bug1120316');
+      });
+
+      test('bug1120316 : After select all, bubble should appear',
+        function() {
+          fakeTextselectionApp.selectAll('BugInput');
+          assert.ok(fakeTextselectionApp.bubbleVisiblity,
+            'bubble should show since we press selectall');
+
+          fakeTextselectionApp.selectAll('BugTextarea');
+          assert.ok(fakeTextselectionApp.bubbleVisiblity,
+            'bubble should show since we press selectall');
         });
     });
   });

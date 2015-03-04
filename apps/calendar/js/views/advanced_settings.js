@@ -4,6 +4,7 @@ define(function(require, exports, module) {
 var AlarmTemplate = require('templates/alarm');
 var View = require('view');
 var providerFactory = require('provider/provider_factory');
+var router = require('router');
 var template = require('templates/account');
 
 require('dom!advanced-settings-view');
@@ -25,7 +26,7 @@ AdvancedSettings.prototype = {
     createAccountButton: '#advanced-settings-view .create-account',
     accountListHeader: '#advanced-settings-view .account-list-header',
     syncFrequency: '#setting-sync-frequency',
-
+    header: '#advanced-settings-header',
     standardAlarmLabel: '#default-event-alarm',
     alldayAlarmLabel: '#default-allday-alarm'
   },
@@ -52,6 +53,10 @@ AdvancedSettings.prototype = {
 
   get alldayAlarmLabel() {
     return this._findElement('alldayAlarmLabel');
+  },
+
+  get header() {
+    return this._findElement('header');
   },
 
   get standardAlarm() {
@@ -136,7 +141,7 @@ AdvancedSettings.prototype = {
   onCreateAccount: function(event) {
     event.stopPropagation();
     event.preventDefault();
-    this.app.router.show(event.target.getAttribute('href'));
+    router.show(event.target.getAttribute('href'));
   },
 
   _addAccount: function(id, model) {
@@ -235,6 +240,8 @@ AdvancedSettings.prototype = {
         next();
       };
     }
+
+    this.header.runFontFitSoon();
 
     var settings = this.app.store('Setting');
     var accounts = this.app.store('Account');

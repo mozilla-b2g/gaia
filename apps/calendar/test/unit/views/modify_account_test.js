@@ -9,7 +9,9 @@ var ModifyAccount = require('views/modify_account');
 var OAuthWindow = require('oauth_window');
 var Presets = require('presets');
 var nextTick = require('next_tick');
+var router = require('router');
 
+require('/shared/elements/gaia-header/dist/gaia-header.js');
 require('dom!modify_event');
 require('dom!show_event');
 
@@ -234,6 +236,7 @@ suite('Views.ModifyAccount', function() {
 
   suite('#deleteRecord', function() {
     var model;
+    var show;
 
     setup(function() {
       // assign model to simulate
@@ -241,6 +244,11 @@ suite('Views.ModifyAccount', function() {
       model = Factory('account');
       model._id = 'myaccount';
       subject.model = model;
+      show = router.show;
+    });
+
+    teardown(function() {
+      router.show = show;
     });
 
     test('with existing model', function() {
@@ -250,7 +258,7 @@ suite('Views.ModifyAccount', function() {
 
       // we don't really need to redirect
       // in the test just confirm that it does
-      app.router.show = function() {
+      router.show = function() {
         calledShow = Array.slice(arguments);
       };
 

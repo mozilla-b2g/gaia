@@ -418,12 +418,8 @@ var GaiaDataLayer = {
   },
 
   connectToCellData: function() {
-
-    // XXX: check bug-926169
-    // this is used to keep all tests passing while introducing multi-sim APIs
-    var manager = window.navigator.mozMobileConnection ||
-      window.navigator.mozMobileConnections &&
-        window.navigator.mozMobileConnections[0];
+    var manager = window.navigator.mozMobileConnections &&
+                  window.navigator.mozMobileConnections[0];
 
     if (!manager.data.connected) {
       waitFor(
@@ -444,12 +440,8 @@ var GaiaDataLayer = {
   disableCellData: function() {
     var self = this;
     this.getSetting('ril.data.enabled', function(aCellDataEnabled) {
-
-      // XXX: check bug-926169
-      // this is used to keep all tests passing while introducing multi-sim APIs
-      var manager = window.navigator.mozMobileConnection ||
-        window.navigator.mozMobileConnections &&
-          window.navigator.mozMobileConnections[0];
+      var manager = window.navigator.mozMobileConnections &&
+                    window.navigator.mozMobileConnections[0];
 
       if (aCellDataEnabled) {
         waitFor(

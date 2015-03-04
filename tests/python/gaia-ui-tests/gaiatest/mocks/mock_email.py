@@ -9,13 +9,12 @@ import time
 
 class MockEmail(dict):
 
-    def __init__(self, senders_email, recipients_email, **kwargs):
+    def __init__(self, sender, recipient, **kwargs):
         current_time = time.time()
+        self['from'] = sender
+        self['to'] = recipient
         self['subject'] = 'Test email subject %s' % current_time
         self['message'] = 'Test email message %s' % current_time
-        self['recipients_email'] = recipients_email
-        self['senders_email'] = senders_email
-
         self.update(**kwargs)
 
     # allow getting items as if they were attributes

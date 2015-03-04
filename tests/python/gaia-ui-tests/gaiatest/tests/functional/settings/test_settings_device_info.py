@@ -13,10 +13,16 @@ class TestSettingsDeviceInfo(GaiaTestCase):
         settings.launch()
         device_info = settings.open_device_info_settings()
 
+        # devices without sim cards have no phone number
+        if self.environment.phone_numbers:
+            self.assertTrue(len(device_info.phone_number) > 0)
+            self.assertIsNotNone(device_info.phone_number)
+        else:
+            self.assertEqual(device_info.phone_number, '')
+
         # verify fields on the main page
-        for item in ('phone_number', 'model', 'software'):
+        for item in ('model', 'software'):
             self.assertTrue(len(getattr(device_info, item)) > 0)
-        self.assertIsNotNone(device_info.phone_number)
 
         # open more info panel and check that fields are populated
         more_info = device_info.tap_more_info()
@@ -24,5 +30,5 @@ class TestSettingsDeviceInfo(GaiaTestCase):
                      'iccid', 'platform_version', 'build_id', 'build_number',
                      'update_channel', 'git_commit_timestamp', 'git_commit_hash'):
             self.assertTrue(len(getattr(more_info, item)) > 0)
-        self.assertEqual(more_info.imei1, self.testvars['imei'][0])
-        self.assertEqual(more_info.imei2, self.testvars['imei'][1])
+        self.assertEqual(more_info.imei1, self.environment.imei_numbers[0])
+        self.assertEqual(more_info.imei2, self.environment.imei_numbers[1])

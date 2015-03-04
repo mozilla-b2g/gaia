@@ -1,6 +1,6 @@
 'use strict';
 
-/* global PromiseStorage */
+/* global PromiseStorage, WordListConverter */
 
 (function(exports) {
 
@@ -52,19 +52,44 @@ UserDictionary.prototype.getList = function() {
   });
 };
 
-// Save the list of words to indexedDB. We queue the saves such that firing
-// successive saves won't easily break. Meanwhile, the queued save has to
-// resolve back to the view to update the UI accordingly.
+// Save the list of words and the dictionary blob to indexedDB.
+// We queue the saves such that firing successive saves won't easily break.
+// Meanwhile, the queued save has to resolve back to the view to update the
+// UI accordingly.
+// Returns the list of words as it has been sorted here.
 // XXX: implement abortable queue for successive saves such that we skip
 //      not-yet-executed intermediate saves.
-UserDictionary.prototype._saveList = function() {
+// XXX: blob generation can be time-consuming. WebWorker-ize it?
+UserDictionary.prototype._saveDict = function() {
+  // Keep the words sorted.
+  // XXX: We're not yet able to do true lexicographical sort, see bug 866301.
+  //      But here, let's at least do some case insensitive sort, though.
+  var wordList = Array.from(this._wordSet);
+  wordList = wordList.sort((a, b) =>
+    a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase()));
+  this._wordSet = new Set(wordList);
+
+  var dictBlob =
+    0 === wordList.length ?
+    undefined :
+    new WordListConverter(wordList).toBlob();
+
   var p = this._saveQueue.then(
-    () => this._dbStore.setItem('wordlist', Array.from(this._wordSet))
-  ).catch(e => {
-    console.error(e);
-  });
+    () => {
+      this._dbStore.setItems({
+        'wordlist': wordList,
+        'dictblob': dictBlob
+      });
+
+      return wordList;
+    }
+  );
 
   this._saveQueue = p;
+
+  this._saveQueue = this._saveQueue.catch(e => {
+    console.error(e);
+  });
 
   return p;
 };
@@ -82,7 +107,7 @@ UserDictionary.prototype.addWord = function(word) {
 
   this._wordSet.add(word);
 
-  return this._saveList();
+  return this._saveDict();
 };
 
 UserDictionary.prototype.updateWord = function(oldWord, word) {
@@ -93,17 +118,19 @@ UserDictionary.prototype.updateWord = function(oldWord, word) {
   word = word.trim();
 
   if (oldWord === word) {
-    return Promise.resolve();
+    return Promise.resolve(Array.from(this._wordSet));
   }
 
   // if new word already exists, delete the old and save,
   // but tell view about this scenario
   this._wordSet.delete(oldWord);
   if (this._wordSet.has(word)) {
-    return this._saveList().then(() => Promise.reject('existing'));
+    // XXX: word list resolved from saveDict is lost, but we don't really care
+    //      since we'll only be deleteing something at view
+    return this._saveDict().then(() => Promise.reject('existing'));
   } else {
     this._wordSet.add(word);
-    return this._saveList();
+    return this._saveDict();
   }
 };
 
@@ -114,7 +141,13 @@ UserDictionary.prototype.removeWord = function(word) {
 
   this._wordSet.delete(word);
 
-  return this._saveList();
+  return this._saveDict();
+};
+
+// A small helper function to ease debugging. This is *not* used in real-world
+// scenario as the blob is only retrieved by prediction engine.
+UserDictionary.prototype._getBlob = function() {
+  return this._dbStore.getItem('dictblob');
 };
 
 exports.UserDictionary = UserDictionary;

@@ -27,6 +27,7 @@ suite('AttachmentRenderer >', function() {
   var testImageBlob_bogus;
   var testAudioBlob;
   var testVideoBlob;
+  var testVcardBlob;
 
   function assertThumbnailPreview(el) {
     assert.ok(el.classList.contains('preview'));
@@ -68,6 +69,9 @@ suite('AttachmentRenderer >', function() {
       ),
       AssetsHelper.loadFileBlob('/test/unit/media/video.ogv').then(
         (blob) => testVideoBlob = blob
+      ),
+      AssetsHelper.loadFileBlob('/test/unit/media/contacts.vcf').then(
+        (blob) => testVcardBlob = blob
       )
     ];
 
@@ -222,45 +226,93 @@ suite('AttachmentRenderer >', function() {
       }).then(done, done);
     });
 
-    suite('draft image attachments', function() {
-      function testDraftImage(testName, attachmentName) {
-        test(testName + ' attachment', function(done) {
-          var attachment = new Attachment(testImageBlob, {
-            name: attachmentName,
-            isDraft: true
-          });
+    test('vcard attachment', function(done) {
+      var attachment = new Attachment(testVcardBlob, {
+        name: 'vcard.vcf'
+      });
 
-          var attachmentRenderer = AttachmentRenderer.for(attachment),
-              attachmentContainer = attachmentRenderer.getAttachmentContainer();
+      var attachmentRenderer = AttachmentRenderer.for(attachment),
+          attachmentContainer = attachmentRenderer.getAttachmentContainer();
 
-          attachmentRenderer.render().then(() => {
-            assert.equal(attachmentContainer.tagName, 'IFRAME');
-            var doc = attachmentContainer.contentDocument;
-            var attachmentNode = doc.querySelector('.attachment');
-            assert.ok(attachmentNode);
-            assert.isNull(attachmentNode.querySelector('div.corrupted'));
-            assert.ok(attachmentNode.querySelector('.thumbnail'));
-            assert.isDefined(attachmentContainer.dataset.thumbnail);
-            assert.include(attachmentContainer.dataset.thumbnail, 'blob:');
-            var fileNameNode = doc.querySelector('.file-name');
-            assert.ok(fileNameNode);
-            assert.isNull(fileNameNode.firstElementChild);
-            assert.equal(fileNameNode.textContent, attachment.name);
-          }).then(done, done);
+      attachmentRenderer.render().then(() => {
+        assert.ok(
+          attachmentContainer.classList.contains('attachment-container')
+        );
+        assert.equal(attachmentContainer.dataset.attachmentType, 'vcard');
+        // not an image => no thumbnail preview
+        assertThumbnailPlaceholder(attachmentContainer, 'vcard');
+        assert.isNull(attachmentContainer.querySelector('div.corrupted'));
+      }).then(done, done);
+    });
 
-          document.body.appendChild(attachmentContainer);
+    suite('draft attachments > ', function() {
+      test('> vcard', function(done) {
+        var attachment = new Attachment(testVcardBlob, {
+          name: 'vcard.vcf',
+          isDraft: true
         });
-      }
+        var attachmentRenderer = AttachmentRenderer.for(attachment),
+            attachmentContainer = attachmentRenderer.getAttachmentContainer();
 
-      testDraftImage('normal', 'Image attachment');
-      testDraftImage(
-        'malicious script',
-        '%3Cscript%3Ealert(%22I%20am%20dangerous%22)%3C%2Fscript%3E'
-      );
-      testDraftImage(
-        'malicious image',
-        '%3Cimg%20src%3D%22http%3A%2F%2Fmalicious.server.ru%2Fpingback%22%3E'
-      );
+        attachmentRenderer.render().then(() => {
+          assert.equal(attachmentContainer.tagName, 'IFRAME');
+          assert.equal(attachmentContainer.dataset.attachmentType, 'vcard');
+          var doc = attachmentContainer.contentDocument;
+          var attachmentNode = doc.querySelector('.attachment');
+          assert.ok(attachmentNode);
+
+          assert.isNull(attachmentNode.querySelector('div.corrupted'));
+          assert.ok(attachmentNode.querySelector('.vcard-placeholder'));
+          var fileNameNode = doc.querySelector('.file-name');
+          assert.ok(fileNameNode);
+          assert.isNull(fileNameNode.firstElementChild);
+          assert.equal(fileNameNode.textContent, attachment.name);
+        }).then(done, done);
+
+        document.body.appendChild(attachmentContainer);
+      });
+
+      suite('> image', function() {
+        function testDraftImage(testName, attachmentName) {
+          test(testName + ' attachment', function(done) {
+            var attachment = new Attachment(testImageBlob, {
+              name: attachmentName,
+              isDraft: true
+            });
+
+            var attachmentRenderer = AttachmentRenderer.for(attachment),
+                attachmentContainer =
+                                    attachmentRenderer.getAttachmentContainer();
+
+            attachmentRenderer.render().then(() => {
+              assert.equal(attachmentContainer.tagName, 'IFRAME');
+              var doc = attachmentContainer.contentDocument;
+              var attachmentNode = doc.querySelector('.attachment');
+              assert.ok(attachmentNode);
+              assert.isNull(attachmentNode.querySelector('div.corrupted'));
+              assert.ok(attachmentNode.querySelector('.thumbnail'));
+              assert.isDefined(attachmentContainer.dataset.thumbnail);
+              assert.include(attachmentContainer.dataset.thumbnail, 'blob:');
+              var fileNameNode = doc.querySelector('.file-name');
+              assert.ok(fileNameNode);
+              assert.isNull(fileNameNode.firstElementChild);
+              assert.equal(fileNameNode.textContent, attachment.name);
+            }).then(done, done);
+
+            document.body.appendChild(attachmentContainer);
+          });
+        }
+
+        testDraftImage('normal', 'Image attachment');
+        testDraftImage(
+          'malicious script',
+          '%3Cscript%3Ealert(%22I%20am%20dangerous%22)%3C%2Fscript%3E'
+        );
+        testDraftImage(
+          'malicious image',
+          '%3Cimg%20src%3D%22http%3A%2F%2Fmalicious.server.ru%2Fpingback%22%3E'
+        );
+      });
     });
   });
 

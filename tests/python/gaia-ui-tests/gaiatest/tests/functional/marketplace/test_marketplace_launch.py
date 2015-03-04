@@ -4,10 +4,7 @@
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
-try:
-    from marionette.by import By
-except:
-    from marionette_driver.by import By
+from marionette_driver import By
 
 
 class TestMarketplaceLaunch(GaiaTestCase):

@@ -15,7 +15,7 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/test/unit/mock_system_nfc_connect_dialog.js');
 requireApp('system/shared/test/unit/mocks/mock_event_target.js');
 requireApp('system/shared/test/unit/mocks/mock_dom_request.js');
-requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_bluetooth_transfer.js');
 requireApp('system/test/unit/mock_bluetooth.js');
 requireApp('system/test/unit/mock_activity.js');
@@ -142,15 +142,20 @@ suite('Nfc Handover Manager Functions', function() {
       nfcHandoverManager.stop();
     });
 
+    test('nfc/system_nfc_connect_dialog is loaded', function() {
+      this.sinon.stub(MockLazyLoader, 'load');
+      nfcHandoverManager.nfcConnectSystemDialog = null;
+      nfcHandoverManager.tryHandover(activityInjection1.records,
+                                     activityInjection1.peer);
+      assert.ok(MockLazyLoader.load
+        .calledWith('js/system_nfc_connect_dialog.js'));
+    });
+
     test('nfc/HandoverSelect', function() {
-      this.sinon.stub(MockLazyLoader, 'load').returns({
-        then: function(callback) {
-          callback();
-        }
-      });
       var spyName = this.sinon.spy(NfcConnectSystemDialog.prototype, 'show');
       var spyPairing = this.sinon.spy(nfcHandoverManager, '_doPairing');
 
+      nfcHandoverManager.nfcConnectSystemDialog = new NfcConnectSystemDialog();
       nfcHandoverManager.tryHandover(activityInjection1.records,
                                      activityInjection1.peer);
       assert.isTrue(spyName.withArgs('UE MINI BOOM').calledOnce);
@@ -158,14 +163,10 @@ suite('Nfc Handover Manager Functions', function() {
     });
 
     test('nfc/SimplifiedPairingRecord', function() {
-      this.sinon.stub(MockLazyLoader, 'load').returns({
-        then: function(callback) {
-          callback();
-        }
-      });
       var spyName = this.sinon.spy(NfcConnectSystemDialog.prototype, 'show');
       var spyPairing = this.sinon.spy(nfcHandoverManager, '_doPairing');
 
+      nfcHandoverManager.nfcConnectSystemDialog = new NfcConnectSystemDialog();
       nfcHandoverManager.tryHandover(activityInjection2.records,
                                      activityInjection2.peer);
       assert.isTrue(spyName.withArgs('MBH10').calledOnce);
@@ -228,9 +229,12 @@ suite('Nfc Handover Manager Functions', function() {
 
     test('_handleHandoverSelect() attempts to pair BT devices', function() {
       var handoverSelect = NDEFUtils.encodeHandoverSelect(mac, cps);
+
+      nfcHandoverManager.bluetooth.enabled = true;
       nfcHandoverManager._handleHandoverSelect(handoverSelect);
       assert.isTrue(spyPairing.calledOnce);
       assert.equal(mac, spyPairing.firstCall.args[0]);
+      nfcHandoverManager.bluetooth.enabled = false;
     });
   });
 

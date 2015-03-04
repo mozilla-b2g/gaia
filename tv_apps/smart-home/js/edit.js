@@ -30,6 +30,8 @@
       this.cardManager.on('card-swapped', this.onCardSwapped.bind(this));
 
       this.cardScrollable.on('focus', this.handleCardFocus.bind(this));
+      this.cardScrollable.on('listTransformEnd',
+                                  this.handleListTransformEnd.bind(this));
 
       this.spatialNavigator.on('focus', this.handleFocus.bind(this));
       this.spatialNavigator.on('unfocus', this.handleUnfocus.bind(this));
@@ -45,9 +47,16 @@
         this.mainSection.dataset.mode = '';
         this.spatialNavigator.multiAdd(this.regularNavElements);
         this.spatialNavigator.multiRemove(this.editNavElements);
-        this.spatialNavigator.focus(this.editButton);
         this.cardScrollable.setScale();
-        this.cardManager.writeCardlistInCardStore({cleanEmptyFolder: true});
+        this.cardScrollable.listElem.classList.add('exiting-edit-mode');
+        this.cardManager.writeCardlistInCardStore({cleanEmptyFolder: true})
+          .then(function() {
+            // Since writeCardlistInCardStore triggers card-removed event that
+            // causes re-focus on other elements in card list, we need to wait
+            // until those actions to be done before focusing editButton.
+            this.spatialNavigator.focus(this.editButton);
+            this.currentNode.classList.remove('focused');
+          }.bind(this));
         this._concealPanel(this.currentScrollable, this.currentNode);
       } else {
         this.mainSection.dataset.mode = 'edit';
@@ -81,8 +90,15 @@
       }
     },
 
+    // To guard against calling cardManager.swapCard too frequently.
+    // If we are in process of swapping, we should not call
+    // cardManager.swapCard(). Please see http://bugzil.la/1130701
+    _isSwapping: false,
+
     onCardSwapped: function(card1, card2, idx1, idx2) {
       this.cardScrollable.swap(idx1, idx2);
+      this._setHintArrow();
+      this._isSwapping = false;
     },
 
     onMove: function(key) {
@@ -91,22 +107,25 @@
       }
 
       var focus = this.spatialNavigator.getFocusedElement();
-      if (focus.CLASS_NAME === 'XScrollable') {
+      // To guard against calling cardManager.swapCard too frequently.
+      // If we are in process of swapping, we should not call
+      // cardManager.swapCard(). Please see http://bugzil.la/1130701
+      if (focus.CLASS_NAME === 'XScrollable' && !this._isSwapping) {
         var targetItem = focus.getTargetItem(key);
         if (targetItem) {
+          this._isSwapping = true;
           this.cardManager.swapCard(
             this.cardManager.findCardFromCardList(
                                     {cardId: focus.currentItem.dataset.cardId}),
             this.cardManager.findCardFromCardList(
                                     {cardId: targetItem.dataset.cardId}));
-          this._setHintArrow();
         }
       }
       return true;
     },
 
     _setHintArrow: function() {
-      var index = parseInt(this.currentNode.dataset.idx);
+      var index = parseInt(this.currentNode.dataset.idx, 10);
       this.currentNode.classList.toggle('left_arrow', index > 0);
       this.currentNode.classList.toggle('right_arrow',
                                     index < this.currentScrollable.length - 1);
@@ -118,10 +137,7 @@
     },
 
     addNewFolder: function() {
-      // XXX: mozL10n.get is going to be obsoleted. We'd plan to let smartButton
-      // able to do l10n by itself.
-      var _ = navigator.mozL10n.get;
-      this.cardManager.insertNewFolder(_('new-folder'),
+      this.cardManager.insertNewFolder({id: 'new-folder'},
         this.cardScrollable.currentIndex);
       this.spatialNavigator.focus(this.cardScrollable);
     },
@@ -158,11 +174,16 @@
         cardId: scrollable.getItemFromNode(nodeElem).dataset.cardId
       });
       var _ = navigator.mozL10n.get;
-      var result = prompt(_('enter-new-name'), card.name);
+
+      var lang = document.documentElement.lang;
+      var oldName = this.cardManager.resolveCardName(card, lang);
+      oldName = oldName.raw ? oldName.raw : _(oldName.id);
+
+      var result = prompt(_('enter-new-name'), oldName);
       if (!result) {
         return;
       }
-      card.name = result;
+      card.name = {raw: result};
       this.cardManager.updateCard(card);
     },
 
@@ -241,6 +262,12 @@
     handleCardUnfocus: function(scrollable, itemElem, nodeElem) {
       this._concealPanel(scrollable, nodeElem);
       nodeElem.classList.remove('focused');
+    },
+
+    handleListTransformEnd: function() {
+      if (this.mode === '') {
+        this.cardScrollable.listElem.classList.remove('exiting-edit-mode');
+      }
     },
 
     get mode() {

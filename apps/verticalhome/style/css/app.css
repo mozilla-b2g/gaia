@@ -15,19 +15,25 @@ body {
 
 gaia-grid {
   display: block;
-  height: 100%;
+  /* Minus the bottom margin and the search-box height */
+  min-height: calc(100% - 5rem - 5rem);
   width: 100%;
-  margin-bottom: 5rem;
+  padding-bottom: 5rem;
 }
 
 #curtain {
   background: #000;
   opacity: 0;
+  pointer-events: none;
   height: 100%;
   width: 100%;
   position: fixed;
   top: 0;
   transition: opacity 0.5s ease-in, background 0s linear 0.5s;
+}
+
+.edit-mode {
+  -moz-user-select: none;
 }
 
 .edit-mode #curtain {
@@ -74,6 +80,10 @@ gaia-grid {
 
 /* Disable scroll while edit group UI is being displayed because of keyboard
    translates the vertical home */
-body.edit-group {
+body.edit-group,
+
+/* Disable scroll when a dialog is shown so we don't scroll the fixed-position
+   child. See bug 1134642 */
+body.fixed-overlay-shown {
   overflow: hidden;
 }

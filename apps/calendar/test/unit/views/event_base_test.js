@@ -1,15 +1,18 @@
 define(function(require) {
 'use strict';
 
+require('/shared/elements/gaia-header/dist/gaia-header.js');
 var EventBase = require('views/event_base');
 var EventModel = require('models/event');
 var View = require('view');
 var providerFactory = require('provider/provider_factory');
+var router = require('router');
 
 suite('Views.EventBase', function() {
   var subject;
   var app;
   var triggerEvent;
+  var last = router.last;
 
   function hasClass(value) {
     return subject.element.classList.contains(value);
@@ -17,11 +20,13 @@ suite('Views.EventBase', function() {
 
   suiteSetup(function() {
     triggerEvent = testSupport.calendar.triggerEvent;
+    last = router.last;
   });
 
   teardown(function() {
     var el = document.getElementById('test');
     el.parentNode.removeChild(el);
+    router.last = last;
     delete providerFactory.providers.Test;
   });
 
@@ -168,7 +173,11 @@ suite('Views.EventBase', function() {
       date.setSeconds(0);
       date.setMilliseconds(0);
 
+      var headerFontSize;
+
       setup(function(done) {
+        headerFontSize = this.sinon.stub(subject.header, 'runFontFitSoon');
+
         app.timeController.move(date);
         subject.dispatch({ params: {} });
 
@@ -176,6 +185,9 @@ suite('Views.EventBase', function() {
       });
 
       test('display', function() {
+        // Updates the header font size.
+        sinon.assert.calledOnce(headerFontSize);
+
         // class details
         assert.isTrue(classList.contains(subject.CREATE), 'has create class');
         assert.isFalse(
@@ -201,7 +213,7 @@ suite('Views.EventBase', function() {
     });
 
     test('/add returnTo', function() {
-      subject.app.router.last = {
+      router.last = {
         path: '/event/add/'
       };
 
@@ -210,7 +222,7 @@ suite('Views.EventBase', function() {
     });
 
     test('/advanced-settings returnTo', function() {
-      subject.app.router.last = {
+      router.last = {
         path: '/advanced-settings/'
       };
 
@@ -219,7 +231,7 @@ suite('Views.EventBase', function() {
     });
 
     test('/day returnTo', function() {
-      subject.app.router.last = {
+      router.last = {
         path: '/day/'
       };
 

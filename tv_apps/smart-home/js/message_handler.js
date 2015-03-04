@@ -4,7 +4,10 @@
 
 (function(exports) {
 
-  var MessageHandler = function() {};
+  var MessageHandler = function() {
+    this.isStop = false;
+    this.activityQueue = [];
+  };
 
   MessageHandler.prototype = {
     _connectionManager: undefined,
@@ -37,12 +40,38 @@
     },
 
     handleActivity: function mh_handleActivity(activity) {
+      if(this.isStop) {
+        this.activityQueue.push(activity);
+        return;
+      }
+      this._digestActivity(activity);
+    },
+
+    stopActivity: function mh_stopActivity() {
+      this.isStop = true;
+    },
+
+    _digestActivity: function(activity) {
       var name = activity.source.name;
       switch(name) {
         case 'pin':
           this.pin(activity.source.data);
           break;
       }
+    },
+
+    resumeActivity: function mh_resumeActivity() {
+      this.isStop = false;
+      if (this.activityQueue.length === 0) {
+        return false;
+      }
+
+      var activity;
+      while(this.activityQueue.length > 0) {
+        activity = this.activityQueue.pop();
+        this._digestActivity(activity);
+      }
+      return true;
     }
   };
 

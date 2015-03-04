@@ -6,10 +6,6 @@ smart-banner#notification-container {
   font-size: 2.8rem;
 }
 
-smart-banner#notification-container.fading-out {
-  opacity: 0;
-}
-
 smart-banner#notification-container.hidden {
   display: none;
 }

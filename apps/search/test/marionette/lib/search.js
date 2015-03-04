@@ -26,9 +26,11 @@ Search.Selectors = {
   firstPlace: '#places div .title',
   firstPlaceContainer: '#places',
   firstRunConfirm: '#suggestions-notice-confirm',
+  privateWindow: '#private-window',
   topSites: '.top-site',
   historyResults: '#history .result',
-  suggestions: '#suggestions li'
+  suggestions: '#suggestions li',
+  switchProviders: '#suggestions-select'
 };
 
 Search.prototype = {
@@ -52,7 +54,7 @@ Search.prototype = {
   getResultSelector: function(identifier) {
     return '.icon[data-identifier="' + identifier + '"]';
   },
-  
+
   /**
    * Return selector for the history list item by URL
    */
@@ -120,7 +122,28 @@ Search.prototype = {
     this.client.switchToFrame();
     this.client.apps.switchToApp.apply(this.client.apps, arguments);
     this.client.helper.waitForElement('body');
-  }
+  },
+
+  /**
+   * Gets a reference to the provider select using findElement.
+   * This waits for the element to be available, but not visible on the apge.
+   */
+  get switchProvidersSelect() {
+    // Fail finding elements quickly.
+    var quickly = this.client.scope({
+      searchTimeout: 20
+    });
+
+    var element;
+
+    try {
+      element = quickly.findElement(Search.Selectors.switchProviders);
+    } catch(e) {
+      return this.switchProvidersSelect;
+    }
+
+    return element;
+  },
 
 };
 

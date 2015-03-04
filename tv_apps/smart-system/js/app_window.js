@@ -422,6 +422,7 @@
         clearTimeout(fallbackTimeout);
         this.element.removeEventListener('_closed', onClosed);
         this.destroy();
+        this.publish('terminated');
       }.bind(this);
 
       this.element.addEventListener('_closed', onClosed);
@@ -436,13 +437,12 @@
       }
     } else {
       this.destroy();
+      /**
+       * Fired when the instance is terminated.
+       * @event AppWindow#appterminated
+       */
+      this.publish('terminated');
     }
-
-    /**
-     * Fired when the instance is terminated.
-     * @event AppWindow#appterminated
-     */
-    this.publish('terminated');
   };
 
   /**
@@ -703,8 +703,8 @@
     'childWindowFactory': window.ChildWindowFactory,
   };
 
-  AppWindow.prototype.openAnimation = 'enlarge';
-  AppWindow.prototype.closeAnimation = 'reduce';
+  AppWindow.prototype.openAnimation = 'invoked';
+  AppWindow.prototype.closeAnimation = 'fade-out';
 
   /**
    * Install sub components belong to this window instance.

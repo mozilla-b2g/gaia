@@ -36,8 +36,7 @@ The sample.xml file from the Android repo looks like this:
 ----------------------------------------------------------------------
 
 This script processes the word list and converts it to a Ternary
-Search Tree (TST), as described in
-gaia/apps/keyboard/js/imes/latin/predictions.js and also in
+Search Tree (TST), as described in the wiki link below, also in
 
   http://en.wikipedia.org/wiki/Ternary_search_tree
   http://www.strchr.com/ternary_dags
@@ -47,68 +46,10 @@ Note that the script does not convert the tree into a DAG (by sharing
 common word suffixes) because it cannot maintain separate frequency
 data for each word if the words share nodes.
 
-This script balances the TST such that at any node the
-highest-frequency word is found by following the center pointer. The
-script also overlays a linked list on top of the tree. At any node,
-the next most frequent word with the same parent node is found by
-following the next pointer.
+We have moved the documentation (format and example) for the dictionary blob to
+Mozilla Wiki: https://wiki.mozilla.org/Gaia/System/Keyboard/IME/Latin/Dictionary_Blob
 
-After building the TST data strucure this script serializes it into a
-compact binary file with variable length nodes. The file begins with
-the 8 ASCII characters "FxOSDICT" and four more bytes. Bytes 8, 9 and
-10 are currently unused and byte 11 is a dictionary format version
-number, currently 1.
-
-Byte 12 file specifies the length of the longest word in the
-dictionary.
-
-After these first 13 bytes, the file contains a character table that
-lists the characters used in the dictionary. This table is a two-byte
-big-endian integer that specifies the number of entries in the
-table. Each table entry is a big-endian two-byte character code
-followed by a big-endian 4-byte number that specifies the number of
-times the character appears in the dictionary.
-
-After the character table (starting at byte 15 + num_entries*6), the
-file consists of serialized nodes. Each node is betwen 1 byte and 6
-bytes long, encoded as follows.
-
-The first byte of each node is always an 8-bit bitfield: csnfffff
-
-The c bit specifies whether this node represents a character. If c is
-1 then a character code follows this first byte. If c is 0 then this
-is a terminal node that marks the end of the word and it consists
-of this single byte by itself.
-
-The s bit specifies the size of the character associated with this
-node. If s is 0 the character is one byte long. If s is 1 the
-character is a big-endian two byte value.
-
-The n bit specifies whether this node includes a next pointer. If n is 1 then
-the character code is followed by a big-endian 3 byte number.
-
-The fffff bits are represent a number between 0 and 31 and provide a
-weight for the node. This is usually based on the word frequency data
-from the dictionary, though this may be tuned by adjusting frequency
-depending on word length, for example. At any node, these frequency
-bits represent the weight of the highest frequency word under the
-node. (And, as described in the predictions.js file, the tree is
-balanced so that that highest frequency word is found by following the
-chain of center pointers.)
-
-If the c bit is set, the next one or two bytes (depending on the
-s bit) of the node are the Unicode character code that is stored in
-the node. Two-byte codes are big-endian.
-
-If the n bit was set, the next 3 bytes are a big-endian 24-bit
-unsigned integer offset to the start of the node pointed to by the
-next pointer.
-
-If the c bit was set the node has a character, and this means that it
-also has a center pointer. We serialize the tree so that a node's
-center pointer always points to the next node sequentially. So we
-never need to write the center pointer to the file: it is always the
-next node.
+Please make sure any updates to the codes are reflected in the wiki too.
 
 """
 
@@ -130,43 +71,6 @@ characterFrequency = {}
 maxWordLength = 0
 highestFreq = 0
 
-
-_DiacriticIndex = {
-    'a': 'ÁáĂăǍǎÂâÄäȦȧẠạȀȁÀàẢảȂȃĀāĄąÅåḀḁȺⱥÃãǼǽǢǣÆæ',
-    'b': 'ḂḃḄḅƁɓḆḇɃƀƂƃ',
-    'c': 'ĆćČčÇçĈĉĊċƇƈȻȼ',
-    'd': 'ĎďḐḑḒḓḊḋḌḍƊɗḎḏĐđƋƌð',
-    'e': 'ÉéĔĕĚěȨȩÊêḘḙËëĖėẸẹȄȅÈèẺẻȆȇĒēĘę',
-    'f': 'ḞḟƑƒ',
-    'g': 'ǴǵĞğǦǧĢģĜĝĠġƓɠḠḡǤǥ',
-    'h': 'ḪḫȞȟḨḩĤĥⱧⱨḦḧḢḣḤḥĦħ',
-    'i': 'ÍíĬĭǏǐÎîÏïỊịȈȉÌìỈỉȊȋĪīĮįƗɨĨĩḬḭı',
-    'j': 'ĴĵɈɉ',
-    'k': 'ḰḱǨǩĶķⱩⱪꝂꝃḲḳƘƙḴḵꝀꝁ',
-    'l': 'ĹĺȽƚĽľĻļḼḽḶḷⱠⱡꝈꝉḺḻĿŀⱢɫŁł',
-    'm': 'ḾḿṀṁṂṃⱮɱ',
-    'n': 'ŃńŇňŅņṊṋṄṅṆṇǸǹƝɲṈṉȠƞÑñ',
-    'o': 'ÓóŎŏǑǒÔôÖöȮȯỌọŐőȌȍÒòỎỏƠơȎȏꝊꝋꝌꝍŌōǪǫØøÕõŒœ',
-    'p': 'ṔṕṖṗꝒꝓƤƥⱣᵽꝐꝑ',
-    'q': 'Ꝗꝗ',
-    'r': 'ŔŕŘřŖŗṘṙṚṛȐȑȒȓṞṟɌɍⱤɽ',
-    's': 'ŚśŠšŞşŜŝȘșṠṡṢṣß$',
-    't': 'ŤťŢţṰṱȚțȾⱦṪṫṬṭƬƭṮṯƮʈŦŧ',
-    'u': 'ÚúŬŭǓǔÛûṶṷÜüṲṳỤụŰűȔȕÙùỦủƯưȖȗŪūŲųŮůŨũṴṵ',
-    'v': 'ṾṿƲʋṼṽ',
-    'w': 'ẂẃŴŵẄẅẆẇẈẉẀẁⱲⱳ',
-    'x': 'ẌẍẊẋ',
-    'y': 'ÝýŶŷŸÿẎẏỴỵỲỳƳƴỶỷỾỿȲȳɎɏỸỹ',
-    'z': 'ŹźŽžẐẑⱫⱬŻżẒẓȤȥẔẕƵƶ'
-}
-_Diacritics = {} # the mapping from accented to non-accented letters
-
-# Build the _Diacritics mapping
-for letter in _DiacriticIndex:
-    for diacritic in _DiacriticIndex[letter]:
-        _Diacritics[diacritic] = letter
-
-
 # Data Structure for TST Tree
 class TSTNode:
     # Constructor for creating a new TSTNode
@@ -175,7 +79,7 @@ class TSTNode:
         _NodeCounter += 1
         self.ch = ch
         self.left = self.center = self.right = None
-        self.frequency = 0 # maximum frequency
+        self.frequency = 0
         # store the count for balancing the tst
         self.count = 0
 
@@ -257,19 +161,9 @@ class TSTTree:
         node.center = self.balanceTree(node.center)
         return node
 
-    def normalizeChar(self, ch):
-        ch = ch.lower()
-        if ch in _Diacritics:
-            ch = _Diacritics[ch]
-        return ch
-
     def collectLevel(self, level, node):
         if not node:
             return
-        # I'm not convinced we need to do this.
-        # And I can't understand the part of the search algorithm
-        # that uses this, so commenting it out for now
-        # level.setdefault(self.normalizeChar(node.ch), []).append(node)
         level.append(node)
         self.collectLevel(level, node.left)
         self.collectLevel(level, node.right)
@@ -279,19 +173,9 @@ class TSTTree:
         nodes = []
         self.collectLevel(nodes, node)
 
-        # See the comment in collectLevel
-        # # Sort each array within the level
-        # for items in level:
-        #     if (len(items) > 1):
-        #         items.sort(key = lambda node: node.ch)
-        #         items.sort(key = lambda node: node.frequency, reverse = True)
-
-        # Sort by frequency joining nodes with lowercase/uppercase/accented versions of the same character
+        # Sort by frequency
         nodes.sort(key = lambda node: node.ch)
         nodes.sort(key = lambda node: node.frequency, reverse = True)
-        # nodes = []
-        # for items in level:
-        #     nodes += items
 
         # Add next/prev pointers to each node
         prev = None
@@ -338,7 +222,6 @@ def serializeNode(node, output):
     global _EmitCounter
 
     output.append(node)
-    node.offset = len(output)
 
     _EmitCounter += 1
     if _EmitCounter % 100000 == 0:

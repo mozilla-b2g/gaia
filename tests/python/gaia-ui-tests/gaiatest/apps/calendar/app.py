@@ -2,20 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import expected
-    from marionette.by import By
-    from marionette.errors import (NoSuchElementException,
-                                   StaleElementException)
-    from marionette.marionette import Actions
-    from marionette.wait import Wait
-except:
-    from marionette_driver import expected
-    from marionette_driver.by import By
-    from marionette_driver.errors import (NoSuchElementException,
-                                   StaleElementException)
-    from marionette_driver.marionette import Actions
-    from marionette_driver.wait import Wait
+from marionette_driver import expected, By, Wait
+from marionette_driver.errors import (NoSuchElementException,
+                                      StaleElementException)
+from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -216,26 +206,26 @@ class Calendar(Base):
 
     def a11y_click_create_account_back(self):
         self.a11y_click_header(self.marionette.find_element(*self._create_account_header_locator),
-                               'button.icon-back')
+                               'button.action-button')
         Wait(self.marionette).until(expected.element_displayed(
             Wait(self.marionette).until(expected.element_present(
                 *self._advanced_settings_view_locator))))
 
     def a11y_click_modify_account_back(self):
         self.a11y_click_header(self.marionette.find_element(*self._modify_account_header_locator),
-                               'button.icon-back')
+                               'button.action-button')
         Wait(self.marionette).until(expected.element_displayed(
             Wait(self.marionette).until(expected.element_present(
                 *self._create_account_view_locator))))
 
     def a11y_click_settings(self):
         self.a11y_click_header(self.marionette.find_element(*self._time_header_locator),
-                               'button.icon-menu')
+                               'button.action-button')
         self.wait_fot_settings_drawer_animation()
 
     def a11y_click_close_settings(self):
         self.a11y_click_header(self.marionette.find_element(
-            *self.settings._settings_header_locator), 'button.icon-menu')
+            *self.settings._settings_header_locator), 'button.action-button')
         self.wait_fot_settings_drawer_animation()
 
     def a11y_create_event(self, title):

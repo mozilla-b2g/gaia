@@ -59,7 +59,7 @@
 
     Message: {
       content: '.message-content > p:first-child',
-      vcardAttachment: '[data-attachment-type="ref"]',
+      vcardAttachment: '[data-attachment-type="vcard"]',
       fileName: '.file-name'
     },
 
@@ -71,11 +71,13 @@
     },
 
     Report: {
-      main: '.report-information'
+      main: '#information-report',
+      header: '#information-report-header'
     },
 
     Participants: {
-      main: '.participants-information'
+      main: '#information-participants',
+      header: '#information-group-header'
     }
   });
 
@@ -195,12 +197,20 @@
         Report: {
           get main() {
             return client.findElement(SELECTORS.Report.main);
+          },
+
+          get header() {
+            return client.findElement(SELECTORS.Report.header);
           }
         },
 
         Participants: {
           get main() {
             return client.findElement(SELECTORS.Participants.main);
+          },
+
+          get header() {
+            return client.findElement(SELECTORS.Participants.header);
           }
         },
 
@@ -283,6 +293,12 @@
           });
         },
 
+        getRecipient: function(number) {
+          return client.helper.waitForElement(
+            '#messages-recipients-list .recipient[data-number="' + number + '"]'
+          );
+        },
+
         clearRecipient: function() {
           this.Composer.recipientsInput.clear();
         },
@@ -314,6 +330,22 @@
 
         performHeaderAction: function() {
           this.Composer.header.scriptWith(function(header) {
+            var event = document.createEvent('HTMLEvents');
+            event.initEvent('action', true, true);
+            header.dispatchEvent(event);
+          });
+        },
+
+        performReportHeaderAction: function() {
+          this.Report.header.scriptWith(function(header) {
+            var event = document.createEvent('HTMLEvents');
+            event.initEvent('action', true, true);
+            header.dispatchEvent(event);
+          });
+        },
+
+        performGroupHeaderAction: function() {
+          this.Participants.header.scriptWith(function(header) {
             var event = document.createEvent('HTMLEvents');
             event.initEvent('action', true, true);
             header.dispatchEvent(event);

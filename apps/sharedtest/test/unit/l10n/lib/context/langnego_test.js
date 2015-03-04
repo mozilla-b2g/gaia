@@ -47,14 +47,12 @@ describe('Language negotiation with arguments', function() {
 
 describe('Language negotiation with arguments and unsupported', function() {
   var ctx;
-
   beforeEach(function(done) {
     ctx = new Context();
     ctx.once(done);
     ctx.registerLocales('en-US', ['pl']);
     ctx.requestLocales('fr', 'pl');
   });
-
   it('sets the correct fallback chain', function() {
     assert.strictEqual(ctx.supportedLocales.length, 2);
     assert.strictEqual(ctx.supportedLocales[0], 'pl');

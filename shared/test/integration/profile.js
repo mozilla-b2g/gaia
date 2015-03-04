@@ -5,7 +5,7 @@ module.exports = {
   settings: {
     'search.suggestions.enabled': false,
     'cdn.url': 'http://localhost',
-    'everythingme.api.url': null,
+    'appsearch.url': null,
     'search.marketplace.url': null
   },
   prefs: {

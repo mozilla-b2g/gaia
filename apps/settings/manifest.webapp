@@ -9,7 +9,6 @@
   },
   "permissions": {
     "themeable":{},
-    "storage":{},
     "browser": {},
     "embed-apps": {},
     "mobileconnection":{},
@@ -43,12 +42,14 @@
       "filters": {
         "target": "device"
        },
+      "href": "index.html#activity-configure",
       "disposition": "inline"
     },
     "moz_configure_window": {
       "filters": {
         "target": "device"
       },
+      "href": "index.html#moz-configure-window",
       "disposition": "window"
     }
   },

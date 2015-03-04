@@ -51,6 +51,9 @@ var MockGetDeviceStorage = function() {
     },
     usedSpace: function usedSpace() {
       return new MockDOMRequest();
+    },
+    storageStatus: function storageStatus() {
+      return new MockDOMRequest();
     }
   };
 };

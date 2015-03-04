@@ -7,7 +7,7 @@ requireApp('email/test/config.js');
 
 suite('message_list', function() {
   var subject, MessageList;
-  var mockMessagesSlice = { items: [] };
+  var mockMessagesSlice = { items: [], die: function() {} };
   var mockStarredMessage = {
     isStarred: true
   };
@@ -42,6 +42,19 @@ suite('message_list', function() {
       editMode ? selected ? 'true' : 'false'  : null);
     assert.equal(element.querySelector('input[type=checkbox]').checked,
       editMode && selected);
+  }
+
+  function testMessageState(message, state) {
+    message.sendStatus.state = state;
+    subject.updateMessageDom(true, message);
+    var syncingNode = message.element
+                      .querySelector('.msg-header-syncing-section');
+    if (state) {
+      assert.equal(syncingNode.getAttribute('data-l10n-id'),
+        'message-header-state-' + state);
+    } else {
+      assert.equal(true, !syncingNode.hasAttribute('data-l10n-id'));
+    }
   }
 
   suiteSetup(function(done) {
@@ -246,6 +259,18 @@ suite('message_list', function() {
       subject.selectedMessages.pop(message);
       subject.updateMessageDom(true, message);
       testSelectedMessage(element, true, false);
+    });
+
+    test('message has a sending state', function() {
+      testMessageState(message, 'sending');
+    });
+
+    test('message has an error state', function() {
+      testMessageState(message, 'error');
+    });
+
+    test('message has no state', function() {
+      testMessageState(message);
     });
   });
 

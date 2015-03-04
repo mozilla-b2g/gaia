@@ -14,6 +14,8 @@
     <script defer src="tv_shared/js/vendor/evt.js"></script>
 
     <!-- building block -->
+    <script defer src="bower_components/gaia-component/gaia-component.js"></script>
+    <script defer src="bower_components/gaia-loading/gaia-loading.js"></script>
     <script defer src="tv_shared/components/smart-button/script.js"></script>
 
     <!-- main javascript code -->
@@ -22,7 +24,7 @@
     <script defer src="js/fling_player.js"></script>
   </head>
 
-  <body>
+  <body class="theme-media">
     <article class="skin-dark">
       <section role="region" id="video-player-section">
         <video id="player" preload="metadata"></video>
@@ -31,6 +33,7 @@
         </nav>
       </section>
       <section role="region" id="loading-section">
+        <gaia-loading></gaia-loading>
         <span>Loading...</span>
       </section>
     </article>

@@ -39,7 +39,6 @@
     <!-- TODO: Lazyly loaded, remove when mozHour12 is part of the platform
     <script type="text/javascript" defer src="shared/js/date_time_helper.js"></script>
     -->
-    <script defer src="/shared/js/usertiming.js"></script>
     <script defer src="/shared/js/performance_testing_helper.js"></script>
 
     <!-- Gaia Components -->
@@ -57,7 +56,7 @@
       <!-- Settings view -->
       <section role="region" id="settings-view" class="view">
         <gaia-header>
-          <h1 data-l10n-id="settings">Settings</h1>
+          <h1 data-l10n-id="settings"></h1>
           <button id="close-settings" data-l10n-id="done">done</button>
         </gaia-header>
 
@@ -117,14 +116,14 @@
             <span data-l10n-id="data-usage">Data Usage</span>
           </gaia-subheader>
           <ul class="settings">
-            <li class="vbox">
-              <p id="mobile-data-usage">
+            <li class="vbox" role="presentation">
+              <p id="mobile-data-usage" role="listitem">
                 <span class="usage"></span> <span data-l10n-id="mobile-usage-settings">Mobile usage</span>
               </p>
-              <p id="wifi-data-usage">
+              <p id="wifi-data-usage" role="listitem">
                 <span class="usage"></span> <span data-l10n-id="wifi-usage-settings">Wi-Fi usage</span>
               </p>
-              <p class="meta"></p>
+              <p class="meta" role="listitem"></p>
               <button data-l10n-id="reset" id="reset-data-usage">Reset</button>
             </li>
             <li class="active">
@@ -215,7 +214,7 @@
       <!-- Data usage limits -->
       <section aria-labelledby="limit-dialog-heading" role="dialog" id="data-limit-dialog" class="view" data-viewport="bottom">
         <gaia-header id="limit-dialog-header" action="close">
-          <h1 id="limit-dialog-heading" data-l10n-id="data-limit-header">Data Usage Limit</h1>
+          <h1 id="limit-dialog-heading" data-l10n-id="data-limit-header"></h1>
           <button id="data-usage-done-button" data-l10n-id="done" class="recommend">Done</button>
         </gaia-header>
         <section class="content">
@@ -227,13 +226,13 @@
           </div>
         </section>
         <form>
-          <ul class="buttons-list">
-            <li>
-              <label for="data-limit-input">
+          <ul class="buttons-list" role="presentation">
+            <li role="presentation">
+              <label for="data-limit-input" data-l10n-id="data-limit-input-label">
                 <input id="data-limit-input" type="text" x-inputmode="numeric" maxlength="6" />
               </label>
             </li>
-            <li>
+            <li role="presentation">
               <button type="button" class="icon icon-dialog switch-unit-button">
                 <span class="tag"></span>
               </button>

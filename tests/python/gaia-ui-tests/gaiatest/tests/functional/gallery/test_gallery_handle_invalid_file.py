@@ -2,14 +2,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette.marionette_test import parameterized
+from marionette_driver import Wait
+
 from gaiatest import GaiaTestCase
 from gaiatest.apps.gallery.app import Gallery
-
-try:
-    from marionette import Wait
-except:
-    from marionette_driver import Wait
-from marionette.marionette_test import parameterized
 
 
 class TestGalleryHandleInvalidPhoto(GaiaTestCase):
@@ -26,7 +23,7 @@ class TestGalleryHandleInvalidPhoto(GaiaTestCase):
         self.push_resource(filename)
 
         gallery = Gallery(self.marionette)
-        gallery.launch()
+        gallery.launch(filename != "image_formats/x07.jpg")
 
         self.assertTrue(len(self.data_layer.picture_files) == 1)
 

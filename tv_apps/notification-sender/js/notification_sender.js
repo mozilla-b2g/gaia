@@ -1,4 +1,4 @@
-
+/* global Promise */
 (function(exports) {
   'use strict';
 
@@ -28,8 +28,11 @@
       switch (evt.type) {
         case 'click':
           if (target.tagName == 'BUTTON') {
-            this.sendMessage(
-                        target.dataset.messageType, target.dataset.messageBody);
+            this.sendMessage({
+              type: target.dataset.messageType,
+              title: target.dataset.messageTitle,
+              body: target.dataset.messageBody
+            });
           }
           break;
       }
@@ -46,7 +49,7 @@
     },
 
     sendMessage: function ns_sendMessage(message) {
-      if (!this.session || this.session.state !== 'connected') {
+      if (!this.session || !this.session.state) {
         console.log('unable to send message: ' + message);
         return;
       }
@@ -82,7 +85,7 @@
 
     _updateSessionState: function ns_updateSessionState() {
       this.stateLabel.textContent =
-                      (this.session && this.session.state) || 'disconnected';
+            (this.session && this.session.state) ? 'connected' : 'disconnected';
     }
   };
 

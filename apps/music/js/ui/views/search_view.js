@@ -30,6 +30,11 @@ var SearchView = {
     return document.getElementById('views-search-titles');
   },
 
+  showNoResult: function sv_showNoResult(show) {
+    var view = document.getElementById('views-search-no-result');
+    view.classList.toggle('hidden', !show);
+  },
+
   init: function sv_init() {
     this.dataSource = [];
     this.searchHandles = { artist: null, album: null, title: null };
@@ -70,6 +75,9 @@ var SearchView = {
           createListElement(option, result, this.dataSource.length - 1, query)
         );
       }
+
+      var totalFound = numResults.artist + numResults.album + numResults.title;
+      this.showNoResult(totalFound === 0);
     }
 
     // Only shows the search results of tracks when it's in picker mode
@@ -113,6 +121,7 @@ var SearchView = {
       view.getElementsByClassName('search-results')[0].innerHTML = '';
       view.classList.add('hidden');
     });
+    this.showNoResult(false);
     this.dataSource = [];
   },
 

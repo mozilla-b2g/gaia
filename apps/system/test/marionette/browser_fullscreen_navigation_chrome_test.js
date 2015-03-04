@@ -15,7 +15,7 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
       'lockscreen.enabled': false
     },
     apps: {
-      'fullscreennavapp.gaiamobile.org': __dirname + '/fullscreennavapp',
+      'fullscreennavapp.gaiamobile.org': __dirname + '/apps/fullscreennavapp',
     }
   });
 

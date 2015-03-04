@@ -8,7 +8,8 @@
 
 'use strict';
 
-require('/js/event_dispatcher.js');
+require('/shared/js/event_dispatcher.js');
+
 require('/js/subject_composer.js');
 
 suite('SubjectComposer >', function() {
@@ -206,6 +207,7 @@ suite('SubjectComposer >', function() {
         'Placeholder should be presented'
       );
     });
+
   });
 
   suite('Backspace key handling >', function() {

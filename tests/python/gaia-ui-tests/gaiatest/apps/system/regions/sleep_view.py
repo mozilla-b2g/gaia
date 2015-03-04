@@ -2,10 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette.by import By
-except:
-    from marionette_driver.by import By
+from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -23,7 +20,7 @@ class SleepScreen(Base):
         return self.is_element_displayed(*self._sleep_menu_locator)
 
     def wait_for_sleep_menu_visible(self):
-        self.wait_for_element_displayed(*self._sleep_menu_locator)
+        Wait(self.marionette).until(expected.element_displayed(*self._sleep_menu_locator))
 
     @property
     def title(self):

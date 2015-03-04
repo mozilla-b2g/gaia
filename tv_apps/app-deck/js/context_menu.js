@@ -61,14 +61,13 @@
     },
 
     _sendUnpinMessage: function cm_sendUnpinActivity(app) {
+      // Notice that here we didn't specify launchURL because we assume all
+      // 'Application' in app-deck are launched by calling app.launch().
+      // However, in the case of other deck-like app, if we are going to pin
+      // application which is launched by different launchURL, we must specify
+      // 'launchURL' here.
       this.sendMessage('unpin', {
-        name: app.name,
-        manifestURL: app.manifestURL,
-        // XXX: we don't specify launchURL here because there are only
-        // 'Application' in app-deck, and `Application` don't have launchURL
-        // in its own property. We should add back launchURL here once we
-        // merge`Application` and `AppBookmark` into one class.
-        // See also https://bugzil.la/1112986
+        manifestURL: app.manifestURL
       });
     },
 
@@ -83,18 +82,17 @@
           // hard-coded value
           Applications.getIconBlob(app.manifestURL, app.entryPoint, 354,
             function(blob) {
+              // Notice that here we didn't specify launchURL because we assume
+              // all 'Application' in app-deck are launched by calling
+              // app.launch().
+              // However, in the case of other deck-like app, if we are going to
+              // pin application which is launched by different launchURL, we
+              // must specify 'launchURL' here.
               new MozActivity({
                 name: 'pin',
                 data: {
-                  name: app.name,
                   type: 'Application',
                   group: 'app',
-                  // XXX: we don't specify launchURL here because there are only
-                  // 'Application' in app-deck, and `Application` don't have
-                  // launchURL in its own property. We should add back
-                  // launchURL here once we merge `Application` and
-                  // `AppBookmark` into one class.
-                  // See also https://bugzil.la/1112986
                   manifestURL: app.manifestURL,
                   // We use app's original icon instead of screenshot here
                   // because we are in app deck. For the case of getting

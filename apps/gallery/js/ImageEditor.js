@@ -46,6 +46,12 @@ function resizeHandler() {
   imageEditor.resize();
 }
 
+function localizeHandler() {
+  // If the locale changes while user is using exposure edit option,
+  // then we need to re-position slider thumb for respective locale.
+  exposureSlider.forceSetExposure(exposureSlider.getExposure());
+}
+
 function editPhoto(n) {
   editedPhotoIndex = n;
   var metadata = files[n].metadata;
@@ -124,6 +130,7 @@ function editPhoto(n) {
     $('edit-tool-apply-button').disabled = true;
 
     window.addEventListener('resize', resizeHandler);
+    window.addEventListener('localized', localizeHandler);
 
     // Set the background for all of the image buttons
     editedPhotoURL = URL.createObjectURL(blob);
@@ -208,7 +215,11 @@ var exposureSlider = (function() {
   gestureDetector.startDetecting();
 
   thumb.addEventListener('pan', function(e) {
-    var delta = e.detail.absolute.dx;
+    // Handle delta so that slider moves correct way
+    // when user drags it for RTL locales
+    var delta = navigator.mozL10n.language.direction === 'ltr' ?
+                e.detail.absolute.dx : - e.detail.absolute.dx;
+
     var exposureDelta = delta / parseInt(bar.clientWidth, 10) * 6;
     // For the firt time of pan event triggered
     // set start value to current value.
@@ -229,6 +240,14 @@ var exposureSlider = (function() {
   });
   thumb.addEventListener('touchend', function(e) {
     thumb.classList.remove('active');
+  });
+  slider.addEventListener('keypress', function(e) {
+    // screen reader sends key arrow up/down events for adjusting the slider.
+    if (e.keyCode == KeyEvent.DOM_VK_DOWN) {
+      setExposure(currentExposure - 0.25);
+    } else if (e.keyCode == KeyEvent.DOM_VK_UP) {
+      setExposure(currentExposure + 0.25);
+    }
   });
 
   function resize() {
@@ -268,7 +287,7 @@ var exposureSlider = (function() {
     pixel -= thumbWidth / 2;
 
     // Move the thumb to that position
-    thumb.style.left = pixel + 'px';
+    thumb.style.MozMarginStart = pixel + 'px';
 
     // Display exposure value in thumb
     thumb.textContent = exposure;
@@ -280,6 +299,9 @@ var exposureSlider = (function() {
     }
     // Remember the new exposure value
     currentExposure = exposure;
+
+    // Set value for ARIA widget
+    slider.setAttribute('aria-valuenow', exposure);
 
     // Dispatch an event to actually change the image
     slider.dispatchEvent(new Event('change', {bubbles: true}));
@@ -544,6 +566,7 @@ function exitEdit(saved) {
   editSettings = null;
 
   window.removeEventListener('resize', resizeHandler);
+  window.removeEventListener('localized', localizeHandler);
 
   // we want the slider re-zeroed for the next time we come into the editor
   exposureSlider.forceSetExposure(0.0);

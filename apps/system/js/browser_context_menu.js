@@ -1,8 +1,5 @@
 /* global MozActivity, IconsHelper, LazyLoader */
 /* global applications */
-/* global AppWindow */
-/* global BookmarksDatabase */
-/* global BrowserConfigHelper */
 
 (function(window) {
   'use strict';
@@ -127,6 +124,7 @@
     }
     this._injected = true;
     this.buildMenu(menu);
+    this.app && this.app.blur();
     this.element.classList.add('visible');
   },
 
@@ -234,6 +232,10 @@
       iconable: false
     };
 
+    if (this.app.webManifestURL) {
+      data.manifestURL = this.app.webManifestURL;
+    }
+
     LazyLoader.load('shared/js/icons_helper.js', (() => {
       IconsHelper.getIcon(url, null, {icons: favicons}).then(icon => {
         if (icon) {
@@ -250,12 +252,7 @@
   BrowserContextMenu.prototype.newWindow = function(manifest, isPrivate) {
     // For private windows we create an empty private app window.
     if (isPrivate) {
-      var privateBrowserUrl = location.origin + '/private_browser.html';
-      var config = new BrowserConfigHelper({url: privateBrowserUrl});
-      config.oop = true;
-      config.isPrivate = true;
-      var newApp = new AppWindow(config);
-      newApp.requestOpen();
+      window.dispatchEvent(new CustomEvent('new-private-window'));
       return;
     }
 
@@ -272,8 +269,8 @@
   };
 
   BrowserContextMenu.prototype.generateSystemMenuItem = function(item) {
-
     var nodeName = item.nodeName.toUpperCase();
+    var documentURI = item.data.documentURI;
     var uri = item.data.uri;
     var text = item.data.text;
 
@@ -295,7 +292,7 @@
           id: 'save-link',
           label: _('save-link'),
           callback: this.app.browser.element.download.bind(
-            this.app.browser.element, uri)
+            this.app.browser.element, uri, { referrer: documentURI })
         }, {
           id: 'share-link',
           label: _('share-link'),
@@ -319,7 +316,7 @@
           id: 'save-' + type,
           label: _('save-' + type),
           callback: this.app.browser.element.download.bind(
-            this.app.browser.element, uri)
+            this.app.browser.element, uri, { referrer: documentURI })
         }, {
           id: 'share-' + type,
           label: _('share-' + type),
@@ -335,6 +332,11 @@
     return new Promise((resolve) => {
       var config = this.app.config;
       var menuData = [];
+
+      var finish = () => {
+        this.showMenu(menuData);
+        resolve();
+      };
 
       menuData.push({
         id: 'new-window',
@@ -354,24 +356,27 @@
         callback: this.showWindows.bind(this)
       });
 
-      BookmarksDatabase.get(config.url).then((result) => {
-        if (!result) {
-          menuData.push({
-            id: 'add-to-homescreen',
-            label: _('add-to-home-screen'),
-            callback: this.bookmarkUrl.bind(this, config.url, name)
-          });
-        }
+      // Do not show the bookmark/share buttons if the url starts with app.
+      // This is because in some cases we use the app chrome to view system
+      // pages. E.g., private browsing.
+      if (config.url.startsWith('app')) {
+        finish();
+        return;
+      }
 
-        menuData.push({
-          id: 'share',
-          label: _('share'),
-          callback: this.shareUrl.bind(this, config.url)
-        });
-
-        this.showMenu(menuData);
-        resolve();
+      menuData.push({
+        id: 'add-to-homescreen',
+        label: _('add-to-home-screen'),
+        callback: this.bookmarkUrl.bind(this, config.url, name)
       });
+
+      menuData.push({
+        id: 'share',
+        label: _('share'),
+        callback: this.shareUrl.bind(this, config.url)
+      });
+
+      finish();
     });
   };
 

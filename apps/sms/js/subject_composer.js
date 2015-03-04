@@ -106,7 +106,7 @@
 
       // methods
       updateValue: updateValue.bind(this),
-      updatePlaceholder: updatePlaceholder.bind(this)
+      updatePlaceholder: updatePlaceholder.bind(this),
     };
     privateMembers.set(this, priv);
 

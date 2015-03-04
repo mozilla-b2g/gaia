@@ -113,5 +113,16 @@ InputManagement.prototype = {
       var expectedTransform = 'matrix(1, 0, 0, 1, 0, ' + trayHeight + ')';
       return (currentTransform === expectedTransform);
     });
+  },
+
+  /**
+   * Ensure that the number of input windows is >= the given count.
+   */
+  ensureInputWindowCount: function(count) {
+    // wait for the 2nd keyboard is loaded
+    var inputWindows = this.inputWindows;
+    this.client.waitFor(function() {
+      return (inputWindows.length >= count);
+    });
   }
 };

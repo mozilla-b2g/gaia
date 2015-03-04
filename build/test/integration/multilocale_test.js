@@ -1,5 +1,5 @@
 'use strict';
-/* global require, suite, process, test, suiteSetup, teardown */
+
 var assert = require('chai').assert;
 var path = require('path');
 var AdmZip = require('adm-zip');

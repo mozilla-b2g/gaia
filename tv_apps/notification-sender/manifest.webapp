@@ -15,7 +15,7 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "128": "/style/icons/Blank.png"
-  },
-  "orientation": "landscape"
+    "90": "/style/icons/appic_iot_90.png",
+    "135": "/style/icons/appic_iot_135.png"
+  }
 }

@@ -137,7 +137,7 @@
 }
 
 .dragging .icon.active:not(.hidden) {
-  z-index: 5;
+  z-index: 6;
   opacity: 0.65;
 }
 
@@ -179,12 +179,21 @@
   max-width: 100%;
 }
 
+/*
+Disable events for placeholders, so we don't trigger touch events in edit mode.
+We only do this in edit-mode, otherwise we might trigger entering edit mode
+instead of the context menu.
+*/
+.edit-mode .placeholder {
+  pointer-events: none;
+}
+
 #confirm-message {
   z-index: 100;
 }
 
 .dragging .group.active {
-  z-index: 4;
+  z-index: 5;
 }
 
 .divider.group {
@@ -208,12 +217,14 @@
 }
 
 .group .header {
-  height: 3rem;
+  height: 4rem;
+  z-index: 4;
 }
 
-.group .header span {
+.group .header span,
+.group .header button {
   position: absolute;
-  height: 3rem;
+  height: 4rem;
   top: 0;
 
   background-position: center top;
@@ -241,6 +252,12 @@
 .group .header .toggle {
   width: 5.34rem;
   right: 0;
+
+  border: none;
+  margin: 0;
+  padding: 0;
+
+  background-color: transparent;
   background-image: url('images/collapse_arrow.png');
   transform-origin: 50% 1.6rem;
   pointer-events: auto;
@@ -262,6 +279,7 @@
 .group .background {
   background-color: rgba(255, 255, 255, 0.15);
   opacity: 0;
+  pointer-events: none;
   height: 0.1rem;
   transform-origin: 0 0;
 }
@@ -283,6 +301,7 @@
 .group .shadow {
   background-color: rgba(255, 255, 255, 0.15);
   opacity: 0;
+  pointer-events: none;
 }
 
 .edit-mode .group.active .shadow {
@@ -318,6 +337,10 @@
 .edit-mode .group .separator > span {
   opacity: 0;
 }
+
+/* For preventing entering edit mode when long-pressing on a placeholder */
+.edit-mode .group .background,
+.edit-mode .group .shadow,
 
 .group.collapsed .header,
 .group.collapsed .background,

@@ -1,15 +1,17 @@
 'use strict';
 
-/* global MockPromise, PromiseStorage, UserDictionary */
+/* global MockPromise, PromiseStorage, UserDictionary, WordListConverter */
 
 require('/shared/test/unit/mocks/mock_promise.js');
 require('/js/shared/promise_storage.js');
 
+require('/js/settings/word_list_converter.js');
 require('/js/settings/user_dictionary.js');
 
 suite('UserDictionary', function() {
   var model;
   var stubPromiseStorage;
+  var stubWordListConverter;
 
   // Note in comparing against Set(): deepEqual won't work like
   // deepEqual(set1, set2).
@@ -24,6 +26,11 @@ suite('UserDictionary', function() {
       this.sinon.stub(Object.create(PromiseStorage.prototype));
     this.sinon.stub(window, 'PromiseStorage')
       .returns(stubPromiseStorage);
+
+    stubWordListConverter =
+      this.sinon.stub(Object.create(WordListConverter.prototype));
+    this.sinon.stub(window, 'WordListConverter')
+      .returns(stubWordListConverter);
 
     model.start();
 
@@ -84,7 +91,7 @@ suite('UserDictionary', function() {
 
     setup(function() {
       pSaveList = new MockPromise();
-      this.sinon.stub(model, '_saveList').returns(pSaveList);
+      this.sinon.stub(model, '_saveDict').returns(pSaveList);
 
       model._wordSet = new Set();
     });
@@ -118,7 +125,7 @@ suite('UserDictionary', function() {
 
     setup(function() {
       pSaveList = new MockPromise();
-      this.sinon.stub(model, '_saveList').returns(pSaveList);
+      this.sinon.stub(model, '_saveDict').returns(pSaveList);
 
       model._wordSet = new Set(['oldstar']);
     });
@@ -135,6 +142,8 @@ suite('UserDictionary', function() {
 
       var pRet = model.updateWord('oldstar', 'oldstar');
 
+      assert.isTrue(Promise.resolve.calledWith(['oldstar']),
+        'resolve() should be called with wordlist as parameter');
       assert.equal(pRet, pRes);
     });
     test('new word is trimmed correctly', function(){
@@ -167,7 +176,7 @@ suite('UserDictionary', function() {
 
   test('removeWord', function() {
     var pSaveList = new MockPromise();
-    this.sinon.stub(model, '_saveList').returns(pSaveList);
+    this.sinon.stub(model, '_saveDict').returns(pSaveList);
 
     model._wordSet = new Set(['star']);
 
@@ -177,57 +186,104 @@ suite('UserDictionary', function() {
     assert.deepEqual(Array.from(model._wordSet), []);
   });
 
-  test('saveList', function() {
-    // we test successive three calls to saveList and make sure they're properly
-    // queued
+  suite('saveDict', function() {
+    // we test successive three calls to saveDict and make sure they're properly
+    // queued. We use native Promise to ease the checking since the chaining
+    // isn't very complex.
 
-    model._wordSet = new Set(['a']);
+    var rSaveQueue;
+    var pSave1, pSave2, pSave3;
+    var rDB1, rDB2, rDB3;
+    var pDB1, pDB2, pDB3;
 
-    var pDB, pRet0, pRet1, pRet2, pRet3;
+    setup(function() {
+      window.Promise.restore();
 
-    pRet0 = model._saveQueue;
+      model._saveQueue = new Promise(resolve => (rSaveQueue = resolve));
 
-    pRet1 = model._saveList();
-    assert.equal(pRet1, model._saveQueue);
+      pDB1 = new Promise(resolve => (rDB1 = resolve));
+      pDB2 = new Promise(resolve => (rDB2 = resolve));
+      pDB3 = new Promise(resolve => (rDB3 = resolve));
 
-    pRet2 = model._saveList();
-    assert.equal(pRet2, model._saveQueue);
+      model._dbStore.setItems
+        .onFirstCall().returns(pDB1)
+        .onSecondCall().returns(pDB2)
+        .onThirdCall().returns(pDB3);
+    });
 
-    pRet3 = model._saveList();
-    assert.equal(pRet3, model._saveQueue);
+    test('Correct queuing', function(done) {
+      model._wordSet = new Set(['a']);
+      stubWordListConverter.toBlob.returns('someblob');
 
-    assert.isFalse(model._dbStore.setItem.called);
+      pSave1 = model._saveDict();
+      pSave2 = model._saveDict();
+      pSave3 = model._saveDict();
 
+      assert.isFalse(model._dbStore.setItems.called);
 
-    pDB = new MockPromise();
-    model._dbStore.setItem.returns(pDB);
+      assert.isTrue(window.WordListConverter.calledWith(['a']));
+      assert.isTrue(stubWordListConverter.toBlob.called);
 
-    var pThen0 = pRet0.mFulfillToValue(undefined);
+      // trigger the queue and resolve the first setItems Promise such that
+      // pSave1's then() will execute. Same for the second and third Promises.
 
-    assert.isTrue(model._dbStore.setItem.calledOnce);
-    assert.isTrue(model._dbStore.setItem.calledWith('wordlist', ['a']));
+      rSaveQueue();
+      rDB1();
 
-    assert.equal(pThen0, pDB);
+      pSave1.then(() => {
+        assert.isTrue(model._dbStore.setItems.calledOnce);
+        rDB2();
+      }, done);
 
+      pSave2.then(() => {
+        assert.isTrue(model._dbStore.setItems.calledTwice);
+        rDB3();
+      }, done);
 
-    pDB = new MockPromise();
-    model._dbStore.setItem.returns(pDB);
+      pSave3.then(() => {
+        assert.isTrue(model._dbStore.setItems.calledThrice);
+        assert.isTrue(model._dbStore.setItems.alwaysCalledWith({
+          wordlist: ['a'],
+          dictblob: 'someblob'
+        }));
 
-    var pThen1 = pRet1.mFulfillToValue(undefined);
+        done();
+      }, done);
+    });
 
-    assert.isTrue(model._dbStore.setItem.calledTwice);
-    assert.isTrue(model._dbStore.setItem.calledWith('wordlist', ['a']));
+    test('Empty list => undefined blob', function(done) {
+      model._wordSet = new Set([]);
 
-    assert.equal(pThen1, pDB);
+      pSave1 = model._saveDict();
 
+      assert.isFalse(stubWordListConverter.toBlob.called);
 
-    pDB = new MockPromise();
-    model._dbStore.setItem.returns(pDB);
+      rSaveQueue();
+      rDB1();
 
-    var pThen2 = pRet2.mFulfillToValue(undefined);
+      pSave1.then(() => {
+        assert.isTrue(model._dbStore.setItems.calledWith({
+          wordlist: [],
+          dictblob: undefined
+        }));
 
-    assert.isTrue(model._dbStore.setItem.calledThrice);
+        done();
+      }, done);
+    });
 
-    assert.equal(pThen2, pDB);
+    test('Word list is returned and sorted', function(done) {
+      model._wordSet = new Set(['apply', 'Banana', 'Apple']);
+
+      pSave1 = model._saveDict();
+
+      rSaveQueue();
+      rDB1();
+
+      pSave1.then(wordList => {
+        assert.deepEqual(wordList, ['Apple', 'apply', 'Banana']);
+
+        done();
+      }, done);
+    });
   });
 });

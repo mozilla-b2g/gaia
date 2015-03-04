@@ -72,6 +72,8 @@ ifdef LOCALES_FILE
 	REBUILD=1
 endif
 
+BUILD_RUNNER=run-js-command
+
 -include local.mk
 
 # Headless bot does not need the full output of wget
@@ -118,6 +120,12 @@ NOFTUPING?=0
 REMOTE_DEBUGGER?=0
 # Debug mode for build process
 BUILD_DEBUG?=0
+
+# Are we building for RAPTOR?
+RAPTOR?=0
+
+# Share performance and usage data
+SHARE_PERF_USAGE?=1
 
 ifeq ($(DEVICE_DEBUG),1)
 REMOTE_DEBUGGER=1
@@ -339,6 +347,9 @@ export GAIA_DIR
 export SEP
 export SEP_FOR_SED
 
+# Need to predefine XULRUNNERSDK, XPCSHELLSDK, GAIA_DIR
+include build/common.mk
+
 ifndef GAIA_APP_CONFIG
 GAIA_APP_CONFIG=$(GAIA_DIR)$(SEP)build$(SEP)config$(SEP)$(GAIA_DEVICE_TYPE)$(SEP)apps-$(GAIA_APP_TARGET).list
 endif
@@ -408,21 +419,11 @@ endif
 
 GAIA_ALLAPPDIRS=$(shell find -L $(GAIA_DIR)$(SEP)apps $(GAIA_DIR)$(SEP)dev_apps $(GAIA_DIR)$(SEP)tv_apps -maxdepth 1 -mindepth 1 -type d  | sed 's@[/\\]@$(SEP_FOR_SED)@g')
 
-GAIA_APPDIRS=$(shell while read LINE; do \
-  if [ "$${LINE\#$${LINE%?}}" = "*" ]; then \
-    srcdir="`echo "$$LINE" | sed 's/.\{2\}$$//'`"; \
-    [ -d $(GAIA_DIR)$(SEP)$$srcdir ] && find -L $(GAIA_DIR)$(SEP)$$srcdir -mindepth 1 -maxdepth 1 -type d | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
-    [ -d $(GAIA_DISTRIBUTION_DIR)$(SEP)$$srcdir ] && find -L $(GAIA_DISTRIBUTION_DIR)$(SEP)$$srcdir -mindepth 1 -maxdepth 1 -type d | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
-  else \
-    if [ -d "$(GAIA_DISTRIBUTION_DIR)$(SEP)$$LINE" ]; then \
-      echo "$(GAIA_DISTRIBUTION_DIR)$(SEP)$$LINE" | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
-    elif [ -d "$(GAIA_DIR)$(SEP)$$LINE" ]; then \
-      echo "$(GAIA_DIR)$(SEP)$$LINE" | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
-    elif [ -d "$$LINE" ]; then \
-      echo "$$LINE" | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
-    fi \
-  fi \
-done < $(GAIA_APP_CONFIG))
+GAIA_APPDIRS?=$(shell $(call run-js-command,scan-appdir, \
+		GAIA_APP_CONFIG="$(GAIA_APP_CONFIG)" \
+		GAIA_DIR="$(GAIA_DIR)" \
+		GAIA_DISTRIBUTION_DIR="$(GAIA_DISTRIBUTION_DIR)" \
+		GAIA_APP_SRCDIRS="$(GAIA_APP_SRCDIRS)"))
 
 ifneq ($(GAIA_OUTOFTREE_APP_SRCDIRS),)
   $(shell mkdir -p outoftree_apps \
@@ -537,13 +538,13 @@ define BUILD_CONFIG
   "VARIANT_PATH" : "$(VARIANT_PATH)", \
   "REBUILD": "$(REBUILD)", \
   "P" : "$(P)", \
-  "VERBOSE" : "$(VERBOSE)"
+  "VERBOSE" : "$(VERBOSE)", \
+  "RAPTOR" : "$(RAPTOR)", \
+  "SHARE_PERF_USAGE": "$(SHARE_PERF_USAGE)" \
 }
 endef
 
 export BUILD_CONFIG
-
-include build/common.mk
 
 # Generate profile/
 $(PROFILE_FOLDER): profile-dir app test-agent-config contacts extensions b2g_sdk .git/hooks/pre-commit
@@ -558,11 +559,11 @@ LANG=POSIX # Avoiding sort order differences between OSes
 
 .PHONY: app
 app: b2g_sdk profile-dir
-	@$(call run-js-command,app)
+	@$(call $(BUILD_RUNNER),app)
 
 .PHONY: pre-app
 pre-app: b2g_sdk profile-dir
-	@$(call run-js-command,pre-app)
+	@$(call $(BUILD_RUNNER),pre-app)
 
 # Keep old targets just for people/scripts still using it
 .PHONY: post-manifest
@@ -580,7 +581,7 @@ webapp-zip: app
 # Get additional extensions
 $(STAGE_DIR)/additional-extensions/downloaded.json: build/config/additional-extensions.json $(wildcard .build/config/custom-extensions.json)
 ifeq ($(DESKTOP),1)
-	@$(call run-js-command,additional-extensions)
+	@$(call $(BUILD_RUNNER),additional-extensions)
 endif
 
 profile-dir:
@@ -667,7 +668,7 @@ endif # USE_LOCAL_XULRUNNER_SDK
 
 # Generate profile/prefs.js
 preferences: profile-dir b2g_sdk
-	@$(call run-js-command,preferences)
+	@$(call $(BUILD_RUNNER),preferences)
 
 # Generate profile/settings.json
 settings: pre-app
@@ -719,6 +720,8 @@ else
 	rm -fr node_modules
 	cp -R $(NODE_MODULES_SRC)/node_modules node_modules
 endif
+	node --version
+	npm --version
 	npm install && npm rebuild
 	@echo "node_modules installed."
 	touch -c $@
@@ -786,7 +789,7 @@ test-perf:
 
 .PHONY: raptor
 raptor: node_modules
-	NO_LOCK_SCREEN=1 NOFTU=1 SCREEN_TIMEOUT=0 GAIA_DISTRIBUTION_DIR=node_modules/gaia-raptor/dist PROFILE_FOLDER=profile-raptor make reset-gaia
+	RAPTOR=1 NO_LOCK_SCREEN=1 NOFTU=1 SCREEN_TIMEOUT=0 GAIA_DISTRIBUTION_DIR=node_modules/gaia-raptor/dist PROFILE_FOLDER=profile-raptor make reset-gaia
 
 .PHONY: tests
 tests: app offline
@@ -927,10 +930,10 @@ hint: node_modules/.bin/jshint
 	@./node_modules/.bin/jshint $(JSHINT_ARGS) $(JSHINTED_PATH) $(LINTED_FILES) || (echo Please consult https://github.com/mozilla-b2g/gaia/tree/master/build/jshint/README.md to get some information about how to fix jshint issues. && exit 1)
 
 csslint: b2g_sdk
-	@$(call run-js-command,csslint)
+	@$(call $(BUILD_RUNNER),csslint)
 
 jsonlint: b2g_sdk
-	@$(call run-js-command,jsonlint)
+	@$(call $(BUILD_RUNNER),jsonlint)
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
@@ -968,7 +971,7 @@ install-gaia: $(PROFILE_FOLDER) push
 # push target to update the gaia files and reboot b2g
 .PHONY: push
 push: b2g_sdk
-	@$(call run-js-command,push-to-device)
+	@$(call $(BUILD_RUNNER),push-to-device)
 
 # Copy demo media to the sdcard.
 # If we've got old style directories on the phone, rename them first.
@@ -1039,10 +1042,10 @@ really-clean: clean
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
 
 build-test-unit: b2g_sdk $(NPM_INSTALLED_PROGRAMS)
-	@$(call run-js-command,build-test,TEST_TYPE=unit REPORTER=$(REPORTER) TRY_ENV=$(TRY_ENV) TEST_FILES="$(TEST_FILES)")
+	@$(call $(BUILD_RUNNER),build-test,TEST_TYPE=unit REPORTER=$(REPORTER) TRY_ENV=$(TRY_ENV) TEST_FILES="$(TEST_FILES)")
 
 build-test-integration: b2g_sdk $(NPM_INSTALLED_PROGRAMS)
-	@$(call run-js-command,build-test,TEST_TYPE=integration REPORTER=$(REPORTER) TRY_ENV=$(TRY_ENV) TEST_FILES="$(TEST_FILES)")
+	@$(call $(BUILD_RUNNER),build-test,TEST_TYPE=integration REPORTER=$(REPORTER) TRY_ENV=$(TRY_ENV) TEST_FILES="$(TEST_FILES)")
 
 build-test-unit-coverage: $(NPM_INSTALLED_PROGRAMS)
 	@$(call run-build-coverage,build/test/unit)

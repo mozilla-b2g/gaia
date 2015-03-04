@@ -2,10 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import Wait
-except:
-    from marionette_driver import Wait
+from marionette_driver import Wait
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
@@ -24,8 +21,8 @@ class TestLaunchApp(GaiaTestCase):
 
         self.test_data = {
             'name': 'Mozilla QA WebRT Tester',
-            'url': self.marionette.absolute_url('webapps/mozqa.com/manifest.webapp'),
-            'title': 'Directory listing for /'}
+            'url': self.marionette.absolute_url('webapps/mozqa.com/manifest.webapp')}
+        self.logger.info('Test data: %s' % self.test_data)
 
         # Install app
         self.marionette.execute_script(
@@ -52,4 +49,4 @@ class TestLaunchApp(GaiaTestCase):
         # Click icon and wait for h1 element displayed
         self.homescreen.installed_app(self.test_data['name']).tap_icon()
         Wait(self.marionette).until(
-            lambda m: m.title == self.test_data['title'])
+            lambda m: m.title == self.test_data['name'])

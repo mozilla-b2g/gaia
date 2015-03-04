@@ -1,11 +1,10 @@
-/* global MockL10n */
-
 'use strict';
+/* // Disabled bug 1130552.
 
 require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('ALA BlurSlider', function() {
- 
+
   var realL10n;
 
   suiteSetup(function(done) {
@@ -17,7 +16,7 @@ suite('ALA BlurSlider', function() {
   suiteTeardown(function() {
     window.navigator.mozL10n = realL10n;
   });
-  
+
   setup(function() {
     var slider = document.createElement('input');
     var label = document.createElement('p');
@@ -59,3 +58,4 @@ suite('ALA BlurSlider', function() {
     assert.equal(label, '1km');
   });
 });
+*/

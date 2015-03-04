@@ -168,7 +168,7 @@ SingleDay.prototype = {
     var el = document.createElement('a');
     el.href = '/event/show/' + busytime._id;
     el.className = 'md__event';
-    el.style.borderLeftColor = color;
+    el.style.borderColor = color;
     el.style.backgroundColor = colorUtils.hexToBackground(color);
 
     var labels = [];

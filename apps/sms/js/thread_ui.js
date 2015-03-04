@@ -173,18 +173,12 @@ var ThreadUI = {
       'click', this.onNewMessageNoticeClick.bind(this)
     );
 
-    this.container.addEventListener(
-      'click', this.handleEvent.bind(this)
-    );
-    this.container.addEventListener(
-      'contextmenu', this.handleEvent.bind(this)
-    );
-    this.editForm.addEventListener(
-      'submit', this.handleEvent.bind(this)
-    );
-    this.composeForm.addEventListener(
-      'submit', this.handleEvent.bind(this)
-    );
+    // These events will be handled in handleEvent function
+    this.container.addEventListener('click', this);
+    this.container.addEventListener('contextmenu', this);
+    this.editForm.addEventListener('submit', this);
+    this.composeForm.addEventListener('submit', this);
+
     // For picking a contact from Contacts. It's mouse down for
     // avoiding weird effect of keyboard, as in 'send' button.
     this.contactPickButton.addEventListener(
@@ -1102,20 +1096,32 @@ var ThreadUI = {
   },
 
   back: function thui_back() {
-    if (Navigation.isCurrentPanel('group-view') ||
-        Navigation.isCurrentPanel('report-view')) {
-      Navigation.toPanel('thread', { id: Threads.currentId });
-      this.updateHeaderData();
-
-      return Promise.resolve();
-    }
-
     return this._onNavigatingBack().then(function() {
       Navigation.toPanel('thread-list');
     }.bind(this)).catch(function(e) {
       e && console.error('Unexpected error while navigating back: ', e);
 
       return Promise.reject(e);
+    });
+  },
+
+  /**
+   * Navigates user to Composer panel with custom parameters.
+   * @param {*} parameters Optional navigation parameters.
+   * @returns {Promise} Promise that is resolved once navigation is completed.
+   */
+  navigateToComposer: function(parameters) {
+    if (Compose.isEmpty()) {
+      return Navigation.toPanel('composer', parameters);
+    }
+
+    return Utils.confirm(
+      'unsent-message-text',
+      'unsent-message-title',
+      { text: 'unsent-message-option-discard', className: 'danger' }
+    ).then(() => {
+      this.discardDraft();
+      return Navigation.toPanel('composer', parameters);
     });
   },
 
@@ -2049,6 +2055,7 @@ var ThreadUI = {
       case 'contextmenu':
         evt.preventDefault();
         evt.stopPropagation();
+
         var messageBubble = this.getMessageBubble(evt.target);
 
         if (!messageBubble) {
@@ -2067,14 +2074,11 @@ var ThreadUI = {
         if (!lineClassList.contains('not-downloaded')) {
           params.items.push({
             l10nId: 'forward',
-            method: function forwardMessage(messageId) {
-              Navigation.toPanel('composer', {
-                forward: {
-                  messageId: messageId
-                }
+            method: () => {
+              this.navigateToComposer({
+                forward: { messageId: messageId }
               });
-            },
-            params: [messageId]
+            }
           });
         }
 
@@ -2534,22 +2538,21 @@ var ThreadUI = {
   },
 
   validateContact: function thui_validateContact(source, fValue, contacts) {
-    // fValue is currently unused here, but must be in the parameter
-    // list in order for exactContact and searchContact to both use
-    // validateContact as a handler.
-    //
     var isInvalid = true;
     var index = this.recipients.length - 1;
     var last = this.recipientsList.lastElementChild;
     var typed = last && last.textContent.trim();
     var isContact = false;
-    var record, length, number, contact, prop, propValue;
+    var record, length, number, contact;
 
     if (index < 0) {
       index = 0;
     }
-    prop = Settings.supportEmailRecipient &&
-           Utils.isEmailAddress(fValue) ? 'email' : 'tel';
+
+    var props = ['tel'];
+    if (Settings.supportEmailRecipient) {
+      props.push('email');
+    }
 
     // If there is greater than zero matches,
     // process the first found contact into
@@ -2557,18 +2560,26 @@ var ThreadUI = {
     if (contacts && contacts.length) {
       isInvalid = false;
       record = contacts[0];
-      length = record[prop].length;
+      var values = props.reduce((values, prop) => {
+        var propValue = record[prop];
+        if (propValue && propValue.length) {
+          return values.concat(propValue);
+        }
 
-      // Received an exact match with a single tel record
+        return values;
+      }, []);
+      length = values.length;
+
+      // Received an exact match with a single tel or email record
       if (source.isLookupable && !source.isQuestionable && length === 1) {
-        if (Utils.probablyMatches(record[prop][0].value, fValue)) {
+        if (Utils.probablyMatches(values[0].value, fValue)) {
           isContact = true;
-          number = record[prop][0].value;
+          number = values[0].value;
         }
       } else {
         // Received an exact match that may have multiple tel records
         for (var i = 0; i < length; i++) {
-          propValue = record[prop][i].value;
+          var propValue = values[i].value;
           if (this.recipients.numbers.indexOf(propValue) === -1) {
             number = propValue;
             break;
@@ -2803,10 +2814,14 @@ var ThreadUI = {
       if (Settings.supportEmailRecipient) {
         items.push({
           l10nId: 'sendMMSToEmail',
-          method: function oMMS(param) {
-            ActivityPicker.sendMessage(param);
+          method: () => {
+            this.navigateToComposer({
+              activity: { number: email }
+            });
           },
-          params: [email]
+          // As we change panel here, we don't want to call 'complete' that
+          // changes the panel as well
+          incomplete: true
         });
       }
     } else {
@@ -2822,12 +2837,13 @@ var ThreadUI = {
 
         items.push({
           l10nId: 'sendMessage',
-          method: function oMessage(param) {
-            ActivityPicker.sendMessage(param);
+          method: () => {
+            this.navigateToComposer({
+              activity: { number: number }
+            });
           },
-          params: [number],
-          // As activity picker changes the panel we don't want
-          // to call 'complete' that changes the panel as well
+          // As we change panel here, we don't want to call 'complete' that
+          // changes the panel as well
           incomplete: true
         });
       }
@@ -2866,7 +2882,7 @@ var ThreadUI = {
       );
     }
 
-    if (opt.contactId) {
+    if (opt.contactId && !ActivityHandler.isInActivity()) {
 
         props = [{ id: opt.contactId }];
 
@@ -2882,7 +2898,12 @@ var ThreadUI = {
       );
     }
 
-    // All activations will see a "Cancel" option
+    // Menu should not be displayed if no option required, otherwise all
+    // activations will see a "Cancel" option
+    if (params.items.length === 0) {
+      return;
+    }
+
     params.items.push({
       l10nId: 'cancel',
       incomplete: true
@@ -3014,7 +3035,8 @@ var ThreadUI = {
    * If the bubble selection mode is disabled, all the non-editable element
    * should be set to user-select: none to prevent selection triggered
    * unexpectedly. Selection functionality should be enabled only by bubble
-   * context menu.
+   * context menu. While in bubble selection mode, context menu is disabled
+   * temporary for better use experience.
    * Since long press is used for context menu first, selection need to be
    * triggered by selection API manually. Focus/blur events are used for
    * simulating selection changed event, which is only been used in system.
@@ -3023,14 +3045,17 @@ var ThreadUI = {
    */
   enableBubbleSelection: function(node) {
     var threadMessagesClass = this.threadMessages.classList;
-    node.addEventListener('blur', function disable() {
+    var disable = () => {
+      this.container.addEventListener('contextmenu', this);
       node.removeEventListener('blur', disable);
       threadMessagesClass.add('editable-select-mode');
       // TODO: Remove this once the gecko could clear selection automatically
       // in bug 1101376.
       window.getSelection().removeAllRanges();
-    });
+    };
 
+    node.addEventListener('blur', disable);
+    this.container.removeEventListener('contextmenu', this);
     threadMessagesClass.remove('editable-select-mode');
     node.focus();
     window.getSelection().selectAllChildren(node);

@@ -14,6 +14,7 @@ suite('system/Card', function() {
     return new AppWindow({
       launchTime: 4,
       name: config.name || 'dummyapp',
+      shortName: config.shortName,
       frame: document.createElement('div'),
       iframe: document.createElement('iframe'),
       manifest: {
@@ -28,6 +29,7 @@ suite('system/Card', function() {
       },
       origin: config.origin || 'http://' +
               (config.name || 'dummyapp') + '.gaiamobile.org',
+      url: config.url,
       blur: function() {}
     });
   }
@@ -66,6 +68,7 @@ suite('system/Card', function() {
       assert.isDefined(this.card.title);
       assert.isDefined(this.card.subTitle);
       assert.isDefined(this.card.iconValue);
+      assert.isDefined(this.card.sslState);
       assert.isDefined(this.card.viewClassList);
       assert.isDefined(this.card.titleId);
       assert.isDefined(this.card.closeButtonVisibility);
@@ -129,6 +132,18 @@ suite('system/Card', function() {
       assert.equal(browserCard.titleNode.textContent, 'Page title');
     });
 
+    test('adds private class for private windows', function(){
+      var app = makeApp({ name: 'privatewindow' });
+      app.isPrivate = true;
+      var card = new Card({
+        app: app,
+        manager: mockManager
+      });
+      card.render();
+      assert.ok(card.element.classList.contains('private'),
+               'has private class');
+    });
+
     test('app name', function() {
       var appCard = new Card({
         app: makeApp({ name: 'otherapp' }),
@@ -142,6 +157,77 @@ suite('system/Card', function() {
       assert.equal(appCard.titleNode.textContent, 'otherapp');
     });
 
+    test('app short name', function() {
+      var appCard = new Card({
+        app: makeApp({ name: 'shortname', shortName: 'short' }),
+        manager: mockManager
+      });
+      appCard.app.title = 'Some long title';
+      appCard.render();
+      assert.equal(appCard.titleNode.textContent, 'short');
+    });
+
+    test('app security for browser windows', function() {
+      var browserCard = new Card({
+        app: makeApp({ name: 'browserwindow' }),
+        manager: mockManager
+      });
+      browserCard.app.title = 'Page title';
+      this.sinon.stub(browserCard.app, 'isBrowser', function() {
+        return true;
+      });
+      this.sinon.stub(browserCard.app, 'getSSLState', function() {
+        return 'broken';
+      });
+      browserCard.render();
+      assert.isTrue(browserCard.app.getSSLState.calledOnce);
+      assert.equal(browserCard.sslState, 'broken');
+      assert.equal(browserCard.element.dataset.ssl, 'broken');
+    });
+    test('browser windows display URL in their subTitle', function() {
+      var browserCard = new Card({
+        app: makeApp({ name: 'browserwindow' }),
+        manager: mockManager
+      });
+      browserCard.app.config.url = 'https://someorigin.org/foo';
+      this.sinon.stub(browserCard, 'getDisplayURLString', function() {
+        return 'someorigin.org/foo';
+      });
+      this.sinon.stub(browserCard.app, 'isBrowser', function() {
+        return true;
+      });
+      browserCard.render();
+      assert.equal(browserCard.subTitle, 'someorigin.org/foo');
+    });
+    test('getDisplayURLString', function() {
+      var browserCard = new Card({
+        app: makeApp({ name: 'browserwindow' }),
+        manager: mockManager
+      });
+      assert.equal(browserCard.getDisplayURLString('foo'), 'foo');
+      assert.equal(browserCard.getDisplayURLString('about:blank'),
+                   'about:blank');
+      assert.equal(
+        browserCard.getDisplayURLString('http://foo.com:8080/bar?bazz#boss'),
+        'foo.com:8080/bar?bazz#boss'
+      );
+    });
+
+    test('subTitle when private browser splash', function() {
+      var app = makeApp({
+        name: 'shortname',
+        shortName: 'short',
+        origin: 'app://system.gaiamobile.org',
+        url: 'app://system.gaiamobile.org/private_browser.html'
+      });
+      this.sinon.stub(app, 'isBrowser').returns(true);
+      var appCard = new Card({
+        app: app,
+        manager: mockManager
+      });
+      appCard.render();
+      assert.equal(appCard.subTitle, '');
+    });
   });
 
   suite('destroy', function() {
@@ -193,58 +279,6 @@ suite('system/Card', function() {
     test('card whose app has attentionWindow should not be closed', function() {
       assert.equal(this.card.closeButtonVisibility, 'hidden');
     });
-  });
-
-  suite('orientation >', function() {
-    var cards = {};
-    var orientationDegrees = {
-      'landscape-primary' : 90,
-      'portrait-primary' : 0,
-      'portrait-secondary' : 270,
-      'landscape-secondary' : 180
-    };
-    suiteSetup(function() {
-      for (var orientation in orientationDegrees) {
-        cards[orientation] = new Card({
-          manager: mockManager,
-          app: makeApp({
-            'orientation': orientation,
-            'rotatingDegree': orientationDegrees[orientation]
-          })
-        });
-      }
-    });
-
-    teardown(function() {
-      this.cards = null;
-    });
-
-    function testForCardOrientation(orientation) {
-      return function() {
-        var card = cards[orientation];
-        card.render();
-        var orientationNode = card.screenshotView;
-
-        card.element.dispatchEvent(new CustomEvent('onviewport'));
-        assert.isTrue(
-          orientationNode.classList.contains(
-            'rotate-'+orientationDegrees[orientation]
-          ),'corrent orientation in classList');
-      };
-    }
-
-    test('cardsview defines a landscape-primary app',
-         testForCardOrientation('landscape-primary')
-    );
-    test('cardsview defines a landscape-secondary app',
-         testForCardOrientation('landscape-secondary')
-    );
-    test('cardsview defines a portrait app in portrait-primary',
-         testForCardOrientation('portrait-primary')
-    );
-    test('cardsview defines a portrait-secondary app',
-         testForCardOrientation('portrait-secondary')
-    );
   });
 
   suite('previews > ', function() {

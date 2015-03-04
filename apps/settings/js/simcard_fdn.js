@@ -1,10 +1,8 @@
+/* global getIccByIndex, DsdsSettings, MozActivity, FdnAuthorizedNumbers */
+'use strict';
+
 define('simcard_fdn', ['modules/dialog_service'], function(DialogService) {
-  'use strict';
-
   var SimFdnLock = {
-    dialog: document.getElementById('call-pin2-dialog'),
-    pinDialog: null,
-
     // enable|disable|unlock FDN
     simFdnDesc: document.querySelector('#fdn-enabled small'),
     simFdnCheckBox: document.querySelector('#fdn-enabled input'),
@@ -49,10 +47,9 @@ define('simcard_fdn', ['modules/dialog_service'], function(DialogService) {
         return console.error('Could not retrieve ICC object');
       }
 
-      var callback = this.updateFdnStatus.bind(this);
-      iccObj.addEventListener('cardstatechange', callback);
+      var updateFdnStatusCallback = this.updateFdnStatus.bind(this);
+      iccObj.addEventListener('cardstatechange', updateFdnStatusCallback);
 
-      this.pinDialog = new SimPinDialog(this.dialog);
       var self = this;
 
       // enable|disable|unlock FDN
@@ -63,14 +60,20 @@ define('simcard_fdn', ['modules/dialog_service'], function(DialogService) {
         if (iccObj.cardState === 'puk2Required') {
           action = 'unlock_puk2';
         }
-        self.pinDialog.show(action, {
-          onsuccess: callback,
-          oncancel: callback
+        DialogService.show('simpin-dialog', {
+          method: action,
+          cardIndex: DsdsSettings.getIccCardIndexForCallSettings()
+        }).then(function(result) {
+          // we will update fdn status no matter how
+          updateFdnStatusCallback();
         });
       };
 
       this.resetPin2Button.onclick = function spl_resetPin2() {
-        self.pinDialog.show('change_pin2');
+        DialogService.show('simpin-dialog', {
+          method: 'change_pin2',
+          cardIndex: DsdsSettings.getIccCardIndexForCallSettings()
+        });
       };
 
       this.updateFdnStatus();
@@ -128,13 +131,18 @@ define('simcard_fdn', ['modules/dialog_service'], function(DialogService) {
       };
 
       this.fdnActionMenuCall.onclick = function() {
-        new MozActivity({
+        var activity = new MozActivity({
           name: 'dial',
           data: {
             type: 'webtelephony/number',
             number: self.currentContact.number
           }
         });
+
+        activity.onerror = function() {
+          console.error('we are not able to call mozActivity to dialer with' +
+            ' number ' + self.currentContact.number);
+        };
       };
 
       this.fdnActionMenuCancel.onclick = this.hideActionMenu.bind(this);
@@ -190,7 +198,7 @@ define('simcard_fdn', ['modules/dialog_service'], function(DialogService) {
     updateContact: function(action, options) {
       // `action' is either `add', `edit' or `remove': these three actions all
       // rely on the same mozIccManager.updateContact() method.
-      var options = options || {};
+      options = options || {};
       var name = options.name;
       var number = options.number;
 
@@ -200,9 +208,17 @@ define('simcard_fdn', ['modules/dialog_service'], function(DialogService) {
         number: number
       });
 
-      this.pinDialog.show('get_pin2', {
-        exitPanel: '#call-fdnList',
-        fdnContact: contact
+      DialogService.show('simpin-dialog', {
+        method: 'get_pin2',
+        cardIndex: DsdsSettings.getIccCardIndexForCallSettings(),
+        pinOptions: {
+          fdnContact: contact
+        }
+      }).then((result) => {
+        var type = result.type;
+        if (type === 'submit') {
+          this.renderAuthorizedNumbers();
+        }
       });
     }
   };

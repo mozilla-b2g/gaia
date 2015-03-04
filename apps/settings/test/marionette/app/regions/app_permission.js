@@ -18,7 +18,7 @@ module.exports = AppPermissionPanel;
 AppPermissionPanel.Selectors = {
   'appListItem': '.app-list a',
   'geolocationSelect': 'select[data-perm="geolocation"]',
-  'uninstallButton': '#uninstall-app'
+  'uninstallButton': '.uninstall-app > button'
 };
 
 AppPermissionPanel.prototype = {

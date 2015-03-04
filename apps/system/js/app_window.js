@@ -64,7 +64,7 @@
     if (DEBUG || this._DEBUG) {
       this.constructor[this.instanceID] = this;
     }
-
+    this.isCrashed = false;
     this.launchTime = Date.now();
 
     return this;
@@ -130,22 +130,10 @@
     this.browser_config = configuration;
     // Store initial configuration in this.config
     this.config = configuration;
-    this.config.chrome = (this.manifest && this.manifest.chrome) ?
-      this.manifest.chrome :
-      this.config.chrome;
 
-    if (!this.config.chrome) {
-      this.config.chrome = {
-        scrollable: this.isBrowser(),
-        maximized: this.isBrowser()
-      };
-    } else if (this.config.chrome.navigation) {
-      this.config.chrome.scrollable = !this.isFullScreen();
-      // This is for backward compatibility with application that
-      // requests the |navigation| flag in their manifest.
-      this.config.chrome.maximized = true;
+    if (this.manifest) {
+      this.shortName = new ManifestHelper(this.manifest).short_name;
     }
-
     if (!this.manifest && this.config && this.config.title) {
       this.updateName(this.config.title);
     } else {
@@ -165,6 +153,52 @@
       this.previousWindow.setNextWindow(this);
     } else if (this.rearWindow) {
       this.rearWindow.setFrontWindow(this);
+    }
+
+    // W3C web app manifest "display" property takes precedence
+    if (this.manifest && this.manifest.display) {
+      switch(this.manifest.display) {
+        case 'fullscreen':
+          this._fullScreen = true;
+          this.config.chrome = {
+            scrollable: false,
+            maximized: false,
+          };
+          return; // Early return
+        case 'standalone':
+          this.config.chrome = {
+            scrollable: false,
+            maximized: false,
+          };
+          return;
+        case 'minimal-ui':
+        case 'browser':
+          this.config.chrome = {
+            navigation: true, //AppChrome checks for this
+            scrollable: true,
+            maximized: true
+          };
+          return;
+        default:
+          console.error('Invalid display property in web app manifest.');
+      }
+    }
+
+    // Fall back to mozApp manifest chrome and fullscreen properties
+    this.config.chrome = (this.manifest && this.manifest.chrome) ?
+      this.manifest.chrome :
+      this.config.chrome;
+
+    if (!this.config.chrome) {
+      this.config.chrome = {
+        scrollable: this.isBrowser(),
+        maximized: this.isBrowser()
+      };
+    } else if (this.config.chrome.navigation) {
+      this.config.chrome.scrollable = !this.isFullScreen();
+      // This is for backward compatibility with application that
+      // requests the |navigation| flag in their manifest.
+      this.config.chrome.maximized = true;
     }
   };
 
@@ -418,6 +452,7 @@
     this.browserContainer.removeChild(this.browser.element);
     this.browser = null;
     this.iframe = null;
+    this._sslState = '';
     this.publish('suspended');
   };
 
@@ -761,6 +796,7 @@
      'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
      'mozbrowsertitlechange', 'mozbrowserlocationchange',
      'mozbrowsermetachange', 'mozbrowsericonchange', 'mozbrowserasyncscroll',
+     'mozbrowsersecuritychange', 'mozbrowsermanifestchange',
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
      '_orientationchange', '_focus', '_blur',  '_hidewindow', '_sheetdisplayed',
      '_sheetsgestureend', '_cardviewbeforeshow', '_cardviewclosed',
@@ -850,6 +886,7 @@
       return;
     }
     this.name = new ManifestHelper(this.manifest).name;
+    this.shortName = new ManifestHelper(this.manifest).short_name;
 
     if (this.identificationTitle) {
       this.identificationTitle.textContent = this.name;
@@ -928,7 +965,6 @@
         this.inError = true;
         return;
       }
-      this.isCrashed = true;
       // Send event instead of call crash reporter directly.
       this.publish('crashed');
 
@@ -939,6 +975,7 @@
           this.frontWindow.kill();
         }
       } else {
+        this.isCrashed = true;
         this.kill(evt);
       }
     };
@@ -1005,6 +1042,7 @@
   AppWindow.prototype._handle_mozbrowserlocationchange =
     function aw__handle_mozbrowserlocationchange(evt) {
       this.favicons = {};
+      this.webManifestURL = null;
       this.config.url = evt.detail;
       // Integration test needs to locate the frame by this attribute.
       this.browser.element.dataset.url = evt.detail;
@@ -1079,6 +1117,13 @@
           break;
       }
 
+    };
+
+  AppWindow.prototype._handle_mozbrowsermanifestchange =
+    function aw__handle_mozbrowsermanifestchange(evt) {
+      if (evt.detail.href) {
+        this.webManifestURL = evt.detail.href;
+      }
     };
 
   AppWindow.prototype._registerEvents = function aw__registerEvents() {
@@ -1234,6 +1279,10 @@
    */
   AppWindow.prototype._showScreenshotOverlay =
     function aw__showScreenshotOverlay() {
+      if (this.frontWindow && this.frontWindow.isActive()) {
+        this.frontWindow._showScreenshotOverlay();
+        return;
+      }
       if (!this.screenshotOverlay ||
           this.screenshotOverlay.classList.contains('visible')) {
         return;
@@ -1256,6 +1305,9 @@
    */
   AppWindow.prototype._hideScreenshotOverlay =
     function aw__hideScreenshotOverlay() {
+      if (this.frontWindow && this.frontWindow.isActive()) {
+        this.frontWindow._hideScreenshotOverlay();
+      }
       if (!this.screenshotOverlay ||
           !this.screenshotOverlay.classList.contains('visible')) {
         return;
@@ -1694,6 +1746,13 @@
 
   AppWindow.prototype.getIconForSplash =
     function aw_getIconForSplash(manifest) {
+      if (this.isPrivate) {
+        var privateIconPath = '/style/icons/pb_icon.png';
+        this._splash = privateIconPath;
+        this.preloadSplash();
+        return privateIconPath;
+      }
+
       var icons = this.manifest ?
         ('icons' in this.manifest ? this.manifest.icons : null) : null;
       if (!icons) {
@@ -1884,6 +1943,7 @@
     // Request "open" to our internal transition controller.
     if (this.transitionController) {
       this.transitionController.switchTransitionState('opened');
+      this.publish('opening');
       this.publish('opened');
     }
   };
@@ -1892,6 +1952,7 @@
     // Request "close" to our internal transition controller.
     if (this.transitionController) {
       this.transitionController.switchTransitionState('closed');
+      this.publish('closing');
       this.publish('closed');
     }
   };
@@ -2264,6 +2325,29 @@
     }
     this.setVisible(false);
   };
+
+
+  /**
+   *  Track current SSL state of the browser.
+   */
+  AppWindow.prototype._sslState = '';
+
+  /**
+   * Handle mozbrowsersecuritychange events from the browser
+   */
+  AppWindow.prototype._handle_mozbrowsersecuritychange =
+    function aw__handle_mozbrowsersecuritychange(evt) {
+      var state = this._sslState = evt.detail.state;
+      this.publish('securitychange', state);
+    };
+
+  /**
+   * Get the current SSL state for the browser
+   */
+  AppWindow.prototype.getSSLState = function() {
+    return this._sslState;
+  };
+
 
   /**
    * Statusbar will bypass touch event to us via this method

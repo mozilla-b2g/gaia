@@ -126,12 +126,18 @@
    */
   Card.prototype._populateViewData = function() {
     var app = this.app;
-    this.title = (app.isBrowser() && app.title) ? app.title : app.name;
+    this.title = (app.isBrowser() && app.title) ?
+                  app.title : app.shortName || app.name;
+    this.sslState = app.getSSLState();
     this.subTitle = '';
     this.iconValue = '';
     this.closeButtonVisibility = 'visible';
     this.viewClassList = ['card', 'appIconPreview'];
     this.titleId = 'card-title-' + this.instanceID;
+
+    if (app.isPrivate) {
+      this.viewClassList.push('private');
+    }
 
     // app icon overlays screenshot by default
     // and will be removed if/when we display the screenshot
@@ -142,11 +148,22 @@
 
     var origin = app.origin;
     var frameForScreenshot = app.getFrameForScreenshot();
+    var displayUrl = '';
 
-    if (frameForScreenshot &&
+    if (app.isBrowser()) {
+      displayUrl = app.config.url || origin;
+      // Do not display the URL when browsing an app page. This is
+      // encountered for use-cases like the private browser splash page.
+      if (displayUrl.startsWith('app://')) {
+        displayUrl = false;
+      }
+
+    } else if(frameForScreenshot &&
         CardsHelper.getOffOrigin(frameForScreenshot.src, origin)) {
-      this.subTitle = CardsHelper.getOffOrigin(
-                        frameForScreenshot.src, origin);
+      displayUrl = CardsHelper.getOffOrigin(frameForScreenshot.src, origin);
+    }
+    if (displayUrl) {
+      this.subTitle = this.getDisplayURLString(displayUrl);
     }
 
     var topMostWindow = app.getTopMostWindow();
@@ -155,7 +172,7 @@
       this.title = CardsHelper.escapeHTML(name || '', true);
       this.viewClassList.push('trustedui');
     } else if (!this.app.killable()) {
-      // unclosable app   
+      // unclosable app
       this.closeButtonVisibility = 'hidden';
     }
   };
@@ -210,6 +227,12 @@
     elem.innerHTML = this.view();
 
     // Label the card by title (for screen reader).
+    elem.setAttribute('aria-labelledby', this.titleId);
+
+    // Indicate security state where applicable & available
+    if (this.sslState) {
+      elem.dataset.ssl = this.sslState;
+    }
     elem.setAttribute('aria-labelledby', this.titleId);
 
     this.viewClassList.forEach(function(cls) {
@@ -303,25 +326,8 @@
       this.iconButton.style.backgroundImage = this.iconValue;
     }
 
-    // Handling cards in different orientations
-    var degree = app.rotatingDegree;
-    var isLandscape = (degree == 90 || degree == 270);
-
-    // Rotate screenshotView if needed
-    screenshotView.classList.add('rotate-' + degree);
-
     if (isIconPreview) {
       return;
-    }
-
-    if (isLandscape) {
-      // We must exchange width and height if it's landscape mode
-      var width = elem.clientHeight;
-      var height = elem.clientWidth;
-      screenshotView.style.width = width + 'px';
-      screenshotView.style.height = height + 'px';
-      screenshotView.style.left = ((height - width) / 2) + 'px';
-      screenshotView.style.top = ((width - height) / 2) + 'px';
     }
 
     // If we have a cached screenshot, use that first
@@ -347,6 +353,19 @@
     this.screenshotView = this.element.querySelector('.screenshotView');
     this.titleNode = this.element.querySelector('h1.title');
     this.iconButton = this.element.querySelector('.appIcon');
+  };
+
+  Card.prototype.getDisplayURLString = function(url) {
+    // truncation/simplification of URL for card display
+    var anURL;
+    try {
+      anURL = this.app ? new URL(url, this.app.origin) : new URL(url);
+    } catch (e) {
+      // return as-is if url was not valid
+      return url;
+    }
+    var displayString = url.substring(url.indexOf(anURL.host));
+    return displayString;
   };
 
   return (exports.Card = Card);

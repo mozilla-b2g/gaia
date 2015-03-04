@@ -290,6 +290,90 @@ suite('PromiseStorage', function() {
         });
       });
 
+      test('setItems', function() {
+        var data = [{}, {}];
+
+        var pReturned = storage.setItems({
+          foo: data[0],
+          foo2: data[1]
+        });
+        var val = p.mFulfillToValue(stubIDB);
+        assert.isTrue(
+          stubIDB.transaction.calledWith(storage.STORE_NAME, 'readwrite'));
+        assert.strictEqual(val, txn);
+
+        var p1 = p.mGetNextPromise();
+        var p1_0 = p1.mFulfillToValue(txn);
+
+        var resolved1 = false;
+        window.Promise.getCall(1).returnValue
+        .mExecuteCallback(function resolve() {
+          resolved1 = true;
+        }, function reject() {
+          assert.isTrue(false, 'should not reject');
+        });
+
+        assert.isTrue(store.put.calledWith(data[0], 'foo'));
+        var req = store.put.firstCall.returnValue;
+        req.readyState = 'done';
+        req.result = ''; // XXX again, should be something else
+        req.dispatchEvent({
+          type: 'success',
+          target: req
+        });
+
+        assert.isTrue(resolved1);
+
+        var resolved2 = false;
+        window.Promise.getCall(2).returnValue
+        .mExecuteCallback(function resolve() {
+          resolved2 = true;
+        }, function reject() {
+          assert.isTrue(false, 'should not reject');
+        });
+
+        assert.isTrue(store.put.calledWith(data[1], 'foo2'));
+        var req2 = store.put.secondCall.returnValue;
+        req2.readyState = 'done';
+        req2.result = '';
+        req2.dispatchEvent({
+          type: 'success',
+          target: req2
+        });
+
+        assert.isTrue(resolved2);
+
+        var resolved3;
+        window.Promise.getCall(3).returnValue
+        .mExecuteCallback(function resolve(pAll) {
+          resolved3 = true;
+          assert.strictEqual(pAll, window.Promise.all.firstCall.returnValue,
+            'should return promise return from all()');
+
+          var pAllArgs = window.Promise.all.firstCall.args;
+          assert.strictEqual(
+            pAllArgs[0][0], window.Promise.getCall(1).returnValue,
+            'all() should be called with array of promises');
+          assert.strictEqual(
+            pAllArgs[0][1], window.Promise.getCall(2).returnValue,
+            'all() should be called with array of promises');
+        }, function reject() {
+          assert.isTrue(false, 'should not reject');
+        });
+
+        txn.dispatchEvent({
+          type: 'complete',
+          target: txn
+        });
+
+        assert.isTrue(resolved3);
+        assert.strictEqual(p1_0, window.Promise.getCall(3).returnValue);
+
+        var p2 = p1.mGetNextPromise();
+        assert.strictEqual(p2.catch.firstCall.returnValue, pReturned,
+          'return promise is chained');
+      });
+
       test('deleteItem', function(done) {
         var pReturned = storage.deleteItem('foo');
 

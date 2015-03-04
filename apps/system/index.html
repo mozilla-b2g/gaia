@@ -10,7 +10,6 @@
     <link rel="stylesheet" type="text/css" href="style/system/initlogo.css">
 
     <!-- Shared code -->
-    <script src="shared/js/usertiming.js"></script>
     <script src="shared/js/l10n.js"></script>
     <script src="shared/js/l10n_date.js"></script>
     <script src="shared/js/idletimer.js"></script>
@@ -27,6 +26,7 @@
     <!-- We need this before we can show the boot animation -->
     <script src="shared/js/settings_helper.js"></script>
     <script defer src="shared/js/icc_helper.js"></script>
+    <script defer src="shared/js/stk_helper.js"></script>
     <script defer src="shared/js/mime_mapper.js"></script>
     <script defer src="shared/js/settings_url.js"></script>
     <script defer src="shared/js/advanced_timer.js"></script>
@@ -136,6 +136,7 @@
     <script defer src="js/activities.js"></script>
     <script defer src="js/usb_storage.js"></script>
     <script defer src="js/external_storage_monitor.js"></script>
+    <script defer src="js/browser.js"></script>
     <script defer src="js/browser_settings.js"></script>
     <script defer src="js/bootstrap.js"></script>
     <script defer src="js/screenshot.js"></script>
@@ -189,7 +190,7 @@
 
     <!-- Statusbar -->
     <link rel="stylesheet" type="text/css" href="style/statusbar/statusbar.css">
-    <script defer src="js/clock.js"></script>
+    <script defer src="js/base_icon.js"></script>
     <script defer src="js/statusbar.js"></script>
 
     <!-- Software button -->
@@ -201,6 +202,7 @@
 
     <!-- FTU ping -->
     <script defer src="/shared/js/uuid.js"></script>
+    <script defer src="/shared/js/telemetry.js"></script>
     <script defer src="js/ftu_ping.js"></script>
 
     <!-- App usage metrics -->
@@ -218,6 +220,8 @@
     <script defer src="js/icc.js"></script>
 
     <!-- LockScreen -->
+    <!-- Remove the clock.js if lockscreen has its own clock -->
+    <script defer src="js/clock.js"></script>
     <script defer src="js/lockscreen_agent.js"></script>
     <script defer src="/shared/js/lockscreen_slide.js"></script>
     <script defer src="/shared/js/lockscreen_connection_info_manager.js"></script>
@@ -249,9 +253,6 @@
     <script defer src="js/value_selector/value_selector.js"></script>
     <script defer src="shared/js/input_parser.js"></script>
     <script defer src="js/value_selector/trusted_ui_value_selector.js"></script>
-
-    <!-- Trusted UI -->
-    <link rel="stylesheet" type="text/css" href="style/trusted_ui/trusted_ui.css">
 
     <!-- Permission Manager -->
     <link rel="stylesheet" type="text/css" href="style/permission_manager/permission_manager.css">
@@ -401,6 +402,7 @@
     <script defer src="js/secure_window_manager.js"></script>
     <script defer src="js/system_dialog.js"></script>
     <script defer src="js/system_dialog_manager.js"></script>
+    <script defer src="js/devtools/devtools_auth_dialog.js"></script>
     <script defer src="js/fxa_dialog.js"></script>
     <script defer src="js/lockscreen_window.js"></script>
     <script defer src="js/lockscreen_input_window.js"></script>
@@ -421,10 +423,12 @@
     <script defer src="js/entry_sheet.js"></script>
 
     <!-- Developer Tools -->
-    <script defer src="js/remote_debugger.js"></script>
+    <script defer src="js/devtools/remote_debugger.js"></script>
     <script defer src="js/devtools/logshake.js"></script>
     <script defer src="js/devtools/developer_hud.js"></script>
     <link rel="stylesheet" type="text/css" href="style/devtools/developer_hud.css">
+    <script defer src="js/devtools/devtools_auth.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/devtools/devtools_auth.css">
 
     <!-- z-indexes of all the overlays in the system -->
     <link rel="stylesheet" type="text/css" href="style/zindex.css">
@@ -434,7 +438,6 @@
     <link rel="stylesheet" type="text/css" href="style/storage_watcher/storage_watcher.css">
 
     <!-- Rocketbar -->
-    <script defer src="js/browser.js"></script>
     <script defer src="js/rocketbar.js"></script>
     <script defer src="js/search_window.js"></script>
     <script defer src="shared/js/url_helper.js"></script>
@@ -482,41 +485,6 @@
         <div id="statusbar-icons">
           <div id="statusbar-maximized-wrapper">
             <div id="statusbar-maximized" class="statusbar" role="group" data-l10n-id="statusbar" aria-describedby="ambient-indicator">
-
-              <!-- Unused -->
-              <div id="statusbar-sms" class="sb-icon sb-icon-sms" hidden role="listitem"></div>
-
-              <!-- System -->
-              <div id="statusbar-alarm" class="sb-icon sb-icon-alarm" hidden role="listitem" data-l10n-id="statusbarAlarm"></div>
-              <div id="statusbar-playing" class="sb-icon sb-icon-playing" hidden role="listitem" data-l10n-id="statusbarPlaying"></div>
-              <div id="statusbar-headphones" class="sb-icon sb-icon-headphones" hidden role="listitem" data-l10n-id="statusbarHeadphones"></div>
-              <div id="statusbar-bluetooth-headphones" class="sb-icon sb-icon-bluetooth-headphones" role="listitem" hidden data-l10n-id="statusbarBluetoothHeadphones"></div>
-              <div id="statusbar-call-forwardings" class="sb-icon-call-forwardings" hidden role="presentation"></div>
-              <div id="statusbar-geolocation" class="sb-icon sb-icon-geolocation" hidden role="listitem" data-l10n-id="statusbarGeolocation"></div>
-              <div id="statusbar-recording" class="sb-icon sb-icon-recording" hidden role="listitem" data-l10n-id="statusbarRecording"></div>
-              <div id="statusbar-mute" class="sb-icon sb-icon-mute" hidden role="listitem"></div>
-              <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden role="listitem" data-l10n-id="statusbarUsb"></div>
-              <!-- See note on <img> above. -->
-              <img id="statusbar-system-downloads" src="style/statusbar/images/system-downloads.png" class="sb-icon-system-downloads" hidden role="listitem" data-l10n-id="statusbarDownloads">
-              <div id="statusbar-emergency-cb-notification" class="sb-icon sb-icon-emergency-cb-notification" hidden role="listitem" data-l10n-id="statusbarEmergencyCBNotification"></div>
-              <div id="statusbar-debugging" data-icon="bug" class="sb-icon sb-icon-debugging" hidden role="listitem"></div>
-
-              <!-- Connectivity -->
-              <div id="statusbar-nfc" class="sb-icon sb-icon-nfc" hidden role="listitem" data-l10n-id="statusbarNfc"></div>
-              <div id="statusbar-bluetooth-transferring" class="sb-icon sb-icon-bluetooth-transferring" role="listitem" hidden data-l10n-id="statusbarBluetoothTransferring"></div>
-              <div id="statusbar-bluetooth" class="sb-icon sb-icon-bluetooth" hidden role="listitem"></div>
-              <div id="statusbar-tethering" class="sb-icon sb-icon-tethering" hidden role="listitem"></div>
-              <!-- HACK: We use images instead of divs to enforce allocation of a
-                   dedicated layer just for this animated icons, remove after
-                   https://bugzil.la/717872 gets fixed -->
-              <img id="statusbar-network-activity" src="style/statusbar/images/network-activity.png" class="sb-icon-network-activity" hidden role="listitem" data-l10n-id="statusbarNetworkActivity">
-              <div id="statusbar-connections" class="sb-icon-connections" hidden role="presentation"></div>
-              <div id="statusbar-wifi" class="sb-icon sb-icon-wifi" data-level="4" hidden role="listitem"></div>
-              <div id="statusbar-flight-mode" class="sb-icon sb-icon-flight-mode" hidden role="listitem" data-l10n-id="statusbarFlightMode"></div>
-
-              <!-- General -->
-              <div id="statusbar-battery" class="sb-icon sb-icon-battery" role="listitem"></div>
-              <div id="statusbar-time" class="sb-icon-time" role="listitem"></div>
             </div>
           </div>
         </div>
@@ -534,7 +502,7 @@
           <div id="utility-tray-notifications" data-l10n-id="utilityTray" role="dialog" aria-label="Utility tray" data-z-index-level="utility-tray-notifications">
             <div id="statusbar-tray">
                 <!-- Carrier & date label -->
-                <div id="statusbar-label" class="sb-start-upper sb-icon-label" role="listitem"></div>
+                <div id="statusbar-operator" class="sb-start-upper sb-icon-operator statusbar-operator" role="listitem"></div>
             </div>
             <div id="notification-bar" class="fake-notification">
               <div data-icon="notifications"></div>
@@ -608,13 +576,13 @@
 
               <!-- Quick settings -->
               <div id="quick-settings" role="toolbar">
-                <li>
-                  <ul><a href="#" id="quick-settings-wifi" class="icon bb-button" data-icon="wifi-4" data-enabled="false" role="button"></a></ul>
-                  <ul><a href="#" id="quick-settings-airplane-mode" class="icon bb-button" data-icon="airplane" data-enabled="false" role="button"></a></ul>
-                  <ul><a href="#" id="quick-settings-bluetooth" class="icon bb-button" data-icon="bluetooth" data-enabled="false" role="button"></a></ul>
-                  <ul><a href="#" id="quick-settings-data" class="icon bb-button" data-icon="data" data-enabled="false" role="button"></a></ul>
-                  <ul><a href="#" id="quick-settings-full-app" class="icon bb-button" data-icon="settings" data-enabled="false" role="button" data-l10n-id="settingsButton"></a></ul>
-                </li>
+                <ul>
+                  <li><a href="#" id="quick-settings-wifi" class="icon bb-button" data-icon="wifi-4" data-enabled="false" role="button"></a></li>
+                  <li><a href="#" id="quick-settings-airplane-mode" class="icon bb-button" data-icon="airplane" data-enabled="false" role="button"></a></li>
+                  <li><a href="#" id="quick-settings-bluetooth" class="icon bb-button" data-icon="bluetooth" data-enabled="false" role="button"></a></li>
+                  <li><a href="#" id="quick-settings-data" class="icon bb-button" data-icon="data" data-enabled="false" role="button"></a></li>
+                  <li><a href="#" id="quick-settings-full-app" class="icon bb-button" data-icon="settings" data-enabled="false" role="button" data-l10n-id="settingsButton"></a></li>
+                </ul>
               </div>
             </div>
           </div>
@@ -822,7 +790,7 @@
 
       <div id="value-selector-groupoption-template" hidden>
       <!--
-      <li role="subheader">
+      <li role="subheader" dir="auto">
         <label role="presentation">
           <span>${text}</span>
         </label>
@@ -831,7 +799,7 @@
       </div>
       <div id="value-selector-option-template" hidden>
       <!--
-      <li role="option" data-option-index="${index}" aria-selected="${checked}">
+      <li role="option" data-option-index="${index}" aria-selected="${checked}" dir="auto">
         <label role="presentation" for="${for}">
           <span>${text}</span>
         </label>
@@ -1050,7 +1018,7 @@
       <div id="notification-toaster" data-z-index-level="notification-toaster" role="link" aria-live="assertive" aria-atomic="true" class="notification-toaster">
         <img id="toaster-icon" role="presentation" class="toaster-icon"/>
         <div id="notification-container">
-          <div id="toaster-title" class="toaster-title"></div>
+          <div id="toaster-title" class="toaster-title" dir="auto"></div>
           <div id="toaster-detail" class="toaster-detail"></div>
         </div>
       </div>
@@ -1097,48 +1065,52 @@
 
       <!-- icc / stk -->
       <div id="icc-view" class="generic-dialog" data-z-index-level="icc-view" role="dialog">
-        <section role="region" class="skin-organic" id="icc-alert">
+        <section role="region" class="skin-organic" id="icc-alert" data-icons="false">
           <gaia-header>
             <h1 id="icc-alert-maintitle" data-l10n-id="icc-message-maintitle"></h1>
           </gaia-header>
           <gaia-subheader skin="organic"><span id="icc-alert-subtitle"></span></gaia-subheader>
+          <span id="icc-alert-icons" class="icons"></span>
           <p id="icc-alert-msg"></p>
           <menu>
             <button type="button" data-l10n-id="close" id="icc-alert-btn" class="recommend full"></button>
           </menu>
         </section>
-        <section role="region" class="skin-organic" id="icc-confirm">
+        <section role="region" class="skin-organic" id="icc-confirm" data-icons="false">
           <gaia-header>
             <a href="#"><span data-icon="back" id="icc-confirm-btn_back"></span></a>
             <h1 id="icc-confirm-maintitle" data-l10n-id="icc-message-maintitle"></h1>
           </gaia-header>
           <gaia-subheader><span id="icc-confirm-subtitle"></span></gaia-subheader>
+          <span id="icc-confirm-icons" class="icons"></span>
           <p id="icc-confirm-msg"></p>
           <menu data-items="2">
             <button type="button" data-l10n-id="close" id="icc-confirm-btn_close"></button>
             <button type="button" data-l10n-id="ok" id="icc-confirm-btn" class="recommend"></button>
           </menu>
         </section>
-        <section role="region" class="skin-organic" id="icc-asyncconfirm">
+        <section role="region" class="skin-organic" id="icc-asyncconfirm" data-icons="false">
           <gaia-header>
             <h1 id="icc-asyncconfirm-maintitle" data-l10n-id="icc-message-maintitle"></h1>
           </gaia-header>
           <gaia-subheader skin="organic">
             <span id="icc-asyncconfirm-subtitle"></span>
           </gaia-subheader>
+          <span id="icc-asyncconfirm-icons" class="icons"></span>
           <p id="icc-asyncconfirm-msg"></p>
           <menu data-items="2">
             <button type="button" data-l10n-id="no" id="icc-asyncconfirm-btn-no"></button>
             <button type="button" data-l10n-id="yes" id="icc-asyncconfirm-btn-yes" class="recommend"></button>
           </menu>
         </section>
-        <section role="region" class="skin-organic" id="icc-input">
+        <section role="region" class="skin-organic" id="icc-input" data-icons="false">
           <gaia-header id="icc-input-header" action="back">
             <h1 id="icc-input-maintitle" data-l10n-id="icc-message-maintitle"></h1>
             <button type="button" data-l10n-id="help" id="icc-input-btn_help"></button>
           </gaia-header>
           <gaia-subheader skin="organic"><span id="icc-input-subtitle"></span></gaia-subheader>
           <form>
+            <span id="icc-input-icons" class="icons"></span>
             <p id="icc-input-msg"></p>
             <input id="icc-input-box" required="" type="text" dir="auto" />
           </form>

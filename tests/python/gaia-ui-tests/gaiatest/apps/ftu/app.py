@@ -4,16 +4,8 @@
 
 import re
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-    from marionette.errors import FrameSendFailureError
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
-    from marionette_driver.errors import FrameSendFailureError
+from marionette_driver import expected, By, Wait
+from marionette_driver.errors import FrameSendFailureError
 
 from gaiatest.apps.base import Base
 
@@ -51,7 +43,7 @@ class Ftu(Base):
 
     # Step Geolocation
     _section_geolocation_locator = (By.ID, 'geolocation')
-    _enable_geolocation_checkbox_locator = (By.CSS_SELECTOR, '#geolocation-switch > label')
+    _enable_geolocation_checkbox_locator = (By.CSS_SELECTOR, '#geolocation-switch > span')
 
     # Section Import contacts
     _section_import_contacts_locator = (By.ID, 'import_contacts')
@@ -123,6 +115,7 @@ class Ftu(Base):
     def tap_next(self):
         next_button = Wait(self.marionette).until(
             expected.element_present(*self._next_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(next_button))
         Wait(self.marionette).until(expected.element_enabled(next_button))
         next_button.tap()
 
@@ -390,6 +383,7 @@ class Ftu(Base):
     def tap_take_tour(self):
         take_tour = Wait(self.marionette).until(
             expected.element_present(*self._take_tour_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(take_tour))
         Wait(self.marionette).until(expected.element_enabled(take_tour))
         take_tour.tap()
 
@@ -404,6 +398,7 @@ class Ftu(Base):
         next = Wait(self.marionette).until(
             expected.element_present(*self._tour_next_button_locator))
         Wait(self.marionette).until(expected.element_displayed(next))
+        Wait(self.marionette).until(expected.element_enabled(next))
         next.tap()
 
     def tap_back(self):

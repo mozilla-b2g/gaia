@@ -8,6 +8,7 @@ var View = require('view');
 var dateFromId = Calc.dateFromId;
 var monthStart = Calc.monthStart;
 var performance = require('performance');
+var router = require('router');
 
 // minimum difference between X and Y axis to be considered an horizontal swipe
 var XSWIPE_OFFSET = window.innerWidth / 10;
@@ -15,6 +16,7 @@ var XSWIPE_OFFSET = window.innerWidth / 10;
 function Month() {
   View.apply(this, arguments);
   this.frames = new Map();
+  window.addEventListener('localized', this);
 }
 module.exports = Month;
 
@@ -55,7 +57,8 @@ Month.prototype = {
     if (Math.abs(data.dy) > (Math.abs(data.dx) - XSWIPE_OFFSET)) {
       return;
     }
-    this._move(data.dx < 0);
+    var dir = document.documentElement.dir === 'rtl' ? -1 : 1;
+    this._move(dir * data.dx < 0);
   },
 
   _onwheel: function(event) {
@@ -116,6 +119,9 @@ Month.prototype = {
       case 'monthChange':
         this.changeDate(e.data[0]);
         break;
+      case 'localized':
+        this.reconstruct();
+        break;
     }
     this._lastTarget = target;
   },
@@ -125,7 +131,7 @@ Month.prototype = {
     setTimeout(() => {
       // don't need to set the date since the first tap triggers a click that
       // sets the  timeController.selectedDay
-      this.app.go('/event/add/');
+      router.go('/event/add/');
     }, 50);
   },
 
@@ -201,6 +207,12 @@ Month.prototype = {
       this.frames.delete(key);
       frame.destroy();
     });
+  },
+
+  reconstruct: function() {
+    // Watch for changed value from transition of a locale to another
+    this.destroy();
+    this.changeDate(this.controller.month);
   }
 
 };

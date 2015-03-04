@@ -12,21 +12,12 @@ from marionette import (MarionetteTestCase,
                         EnduranceTestCaseMixin,
                         B2GTestCaseMixin,
                         MemoryEnduranceTestCaseMixin)
-try:
-    from marionette import expected
-    from marionette.by import By
-    from marionette.errors import (NoSuchElementException,
-                                   StaleElementException,
-                                   InvalidResponseException)
-    from marionette.wait import Wait
-except:
-    from marionette_driver import expected
-    from marionette_driver.by import By
-    from marionette_driver.errors import (NoSuchElementException,
-                                   StaleElementException,
-                                   InvalidResponseException)
-    from marionette_driver.wait import Wait
+from marionette_driver import expected, By, Wait
+from marionette_driver.errors import (NoSuchElementException,
+                                      StaleElementException,
+                                      InvalidResponseException)
 
+from environment import GaiaTestEnvironment
 from file_manager import GaiaDeviceFileManager, GaiaLocalFileManager
 
 
@@ -182,11 +173,9 @@ class GaiaData(object):
 
     @property
     def sim_contacts(self):
-        # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
+        self.marionette.switch_to_frame()
         adn_contacts = self.marionette.execute_async_script('return GaiaDataLayer.getSIMContacts("adn");', special_powers=True)
         sdn_contacts = self.marionette.execute_async_script('return GaiaDataLayer.getSIMContacts("sdn");', special_powers=True)
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
         return adn_contacts + sdn_contacts
 
     def insert_contact(self, contact):
@@ -198,22 +187,16 @@ class GaiaData(object):
         self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
 
     def insert_sim_contact(self, contact, contact_type='adn'):
-        # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
         mozcontact = contact.create_mozcontact()
         result = self.marionette.execute_async_script('return GaiaDataLayer.insertSIMContact("%s", %s);'
                                                       % (contact_type, json.dumps(mozcontact)), special_powers=True)
         assert result, 'Unable to insert SIM contact %s' % contact
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
         return result
 
     def delete_sim_contact(self, moz_contact_id, contact_type='adn'):
-        # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
         result = self.marionette.execute_async_script('return GaiaDataLayer.deleteSIMContact("%s", "%s");'
                                                       % (contact_type, moz_contact_id), special_powers=True)
         assert result, 'Unable to insert SIM contact %s' % moz_contact_id
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
 
     def remove_all_contacts(self):
         # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
@@ -286,6 +269,16 @@ class GaiaData(object):
     @property
     def bluetooth_is_enabled(self):
         return self.marionette.execute_script("return window.navigator.mozBluetooth.enabled")
+
+    @property
+    def bluetooth_is_discoverable(self):
+        self.marionette.switch_to_frame()
+        return self.marionette.execute_script("return window.wrappedJSObject.Bluetooth.defaultAdapter.discoverable")
+
+    @property
+    def bluetooth_name(self):
+        self.marionette.switch_to_frame()
+        return self.marionette.execute_script("return window.wrappedJSObject.Bluetooth.defaultAdapter.name")
 
     @property
     def is_cell_data_enabled(self):
@@ -759,6 +752,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             if self.restart:
                 pass
 
+        self.environment = GaiaTestEnvironment(self.testvars)
         self.device = GaiaDevice(self.marionette,
                                  manager=self.device_manager,
                                  testvars=self.testvars)

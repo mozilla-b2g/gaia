@@ -27,6 +27,7 @@ var mocksHelperForConferenceGroupHandler = new MocksHelper([
 suite('conference group handler', function() {
   var realMozTelephony;
   var realMozL10n;
+  var _;
 
   mocksHelperForConferenceGroupHandler.attachTestHelpers();
 
@@ -43,6 +44,7 @@ suite('conference group handler', function() {
 
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockMozL10n;
+    _ = MockMozL10n.get;
 
     fakeDOM = document.createElement('div');
     fakeDOM.innerHTML = '<section id="group-call" hidden>' +
@@ -119,10 +121,12 @@ suite('conference group handler', function() {
       });
 
       test('should update the conference group details header', function() {
+        var bdiCompare = document.createElement('bdi');
+        bdiCompare.textContent = _('conferenceCall');
         this.sinon.spy(MockConferenceGroupUI, 'setGroupDetailsHeader');
         flush();
         sinon.assert.calledWith(
-          MockConferenceGroupUI.setGroupDetailsHeader, 'conferenceCall');
+          MockConferenceGroupUI.setGroupDetailsHeader, bdiCompare.textContent);
         assert.deepEqual(MockLazyL10n.keys.conferenceCall, {n: 2});
       });
 

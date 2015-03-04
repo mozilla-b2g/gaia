@@ -53,6 +53,7 @@ function Clock() {
 
     if (this.timeoutID == null) {
       this.timeoutID = window.setTimeout(function cl_setClockInterval() {
+        refresh(new Date());
 
         if (self.timerID == null) {
           self.timerID = window.setInterval(function cl_clockInterval() {

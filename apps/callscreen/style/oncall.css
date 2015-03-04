@@ -428,6 +428,10 @@
     padding-right: 9rem;
   }
 
+  html[dir="rtl"] #calls:not(.big-duration) > section.ended .numberWrapper {
+    margin-right: 3rem;
+  }
+
   #calls:not(.big-duration) > section:not(.ended) .duration:not(.isTimer) {
     visibility: hidden;
   }
@@ -612,6 +616,10 @@
   #calls > section.ended .additionalContactInfo,
   #calls.big-duration > section.ended .additionalContactInfo {
     color: rgba(255, 255, 255, 0.6);
+  }
+
+  html[dir="rtl"] #calls:not(.big-duration) > section.ended .additionalContactInfo {
+    margin-right: 5rem;
   }
 
   #calls.big-duration > section.held .duration {
@@ -822,6 +830,11 @@
 
   #calls #group-call-label {
     padding-right: 3rem;
+  }
+
+  html[dir="rtl"] #calls:not(.big-duration) #group-call-label {
+    padding-right: 0;
+    text-align: right;
   }
 
   #group-call .hangup-button,

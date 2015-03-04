@@ -1,4 +1,3 @@
-/*global startupCacheEventsSent */
 'use strict';
 
 /**
@@ -40,7 +39,7 @@ define(function(require) {
     contentDone = true;
 
     // Only need to dispatch these events if the startup cache was not used.
-    if (!startupCacheEventsSent) {
+    if (!window.startupCacheEventsSent) {
       // Now that content is in, it is visually complete, and content is
       // interactive, since event listeners are bound as part of content
       // insertion.

@@ -167,7 +167,7 @@
   left: 0;
   width: 100%;
   -moz-box-sizing: border-box;
-  padding: 2rem 2.4rem 0;
+  padding: 1.5rem 2.4rem 0;
   color: #fff;
   transition: transform 0.2s ease, opacity 0.2s ease;
   opacity: 1;
@@ -214,7 +214,7 @@
 }
 
 #lockscreen-clock-time {
-  line-height: 1;
+  line-height: 0.9;
   margin-top: -1.4rem;
   margin-bottom: 0;
   -moz-margin-start: -0.4rem;
@@ -237,11 +237,10 @@
   color: #fff;
 }
 
-@media (max-height:480px) {
-  #lockscreen-clock-time, #lockscreen-date {
-    position: relative;
-    top: -0.5rem;
-  }
+#lockscreen-charging {
+  font-weight: 300;
+  font-size: 1.2rem;
+  color: white;
 }
 
 #lockscreen-area {

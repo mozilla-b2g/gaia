@@ -221,6 +221,7 @@
           !this.app.isInputMethod) {
         this.app.setVisible(false);
       }
+      this.app.setNFCFocus(false);
 
       this.app.element.classList.remove('active');
     };
@@ -284,16 +285,16 @@
     if (this._shouldFocusApp()) {
       this.app.debug('focusing this app.');
       this.app.focus();
+      this.app.setNFCFocus(true);
     }
   };
 
   AppTransitionController.prototype._shouldFocusApp = function() {
-    // XXX: Rocketbar losing input focus
-    // See: https://bugzilla.mozilla.org/show_bug.cgi?id=961557
-    // XXX: We should let HierarchyManager to manage the focus.
-    // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1079748
+    // SearchWindow should not focus itself,
+    // because the input is inside system app.
     var bottomWindow = this.app.getBottomMostWindow();
-    return (this._transitionState == 'opened' &&
+    return (this.app.CLASS_NAME !== 'SearchWindow' &&
+            this._transitionState == 'opened' &&
             Service.query('getTopMostWindow') === this.app &&
             Service.query('getTopMostUI').name ===
             bottomWindow.HIERARCHY_MANAGER);

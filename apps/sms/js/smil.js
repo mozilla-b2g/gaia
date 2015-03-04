@@ -67,16 +67,17 @@ function SMIL_generateSlides(data, slide, slideIndex) {
   if (slide.blob) {
     blobType = Utils.typeFromMimeType(slide.blob.type);
     if (blobType) {
+      var tagName = tagNameFromBlobType(blobType);
       var region = 'region="Image"';
-      // For attachment type vcard the region is not set
-      if (blobType === 'ref' && slide.blob.type.startsWith('text')) {
+      // For attachment type 'ref' the region is not set
+      if (tagName === 'ref') {
         region = '';
       }
       name = slide.name.substr(slide.name.lastIndexOf('/') + 1);
       // just to be safe, remove any non-standard characters from the filename
       name = name.replace(unsafeFilenamePattern, '#');
       name = SMIL_generateUniqueLocation(data, name);
-      media = '<' + blobType + ' src="' + name + '" ' + region + '/>';
+      media = '<' + tagName + ' src="' + name + '" ' + region + '/>';
       data.attachments.push({
         id: '<' + name + '>',
         location: name,
@@ -98,6 +99,22 @@ function SMIL_generateSlides(data, slide, slideIndex) {
   }
   data.parts.push('<par dur="' + DURATION + 'ms">' + media + text + '</par>');
   return data;
+}
+
+// Return a proper tag name depending on the blob type
+function tagNameFromBlobType(blobType) {
+  var out;
+
+  switch(blobType) {
+    case 'vcard':
+      out = 'ref';
+    break;
+
+    default:
+      out = blobType;
+  }
+
+  return out;
 }
 
 function SMIL_generateUniqueLocation(data, location) {

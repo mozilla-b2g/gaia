@@ -18,9 +18,10 @@ var ConferenceGroupHandler = (function() {
   /**
    * Object initialization.
    */
-
+  var bdiCount = document.createElement('bdi');
   var groupLine = document.getElementById('group-call');
   var groupLabel = document.getElementById('group-call-label');
+  groupLabel.appendChild(bdiCount);
   // FIXME/bug 1007148: Refactor duration element structure
   var groupDuration = document.querySelector('#group-call > .duration');
   var groupDurationChildNode = groupDuration.querySelector('span');
@@ -49,8 +50,8 @@ var ConferenceGroupHandler = (function() {
 
     LazyL10n.get(function localized(_) {
       var groupDetailsHeaderText = _('conferenceCall', {n: calls.length});
-      ConferenceGroupUI.setGroupDetailsHeader(groupDetailsHeaderText);
-      groupLabel.textContent = groupDetailsHeaderText;
+      bdiCount.textContent = groupDetailsHeaderText;
+      ConferenceGroupUI.setGroupDetailsHeader(bdiCount.textContent);
     });
 
     // When hanging up phones on conferenceGroup.calls.length >= 2,

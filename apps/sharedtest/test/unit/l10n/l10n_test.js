@@ -10,7 +10,7 @@ suite('L10n', function() {
     'delete-n-items[one]       = Delete selected item?',
     'delete-n-items[other]     = Delete {{ n }} items?',
     'textcontent-test          = this is text content',
-    'prop-test.prop            = this is a property',
+    'attr-test.title           = this is an attribute',
     'euroSign                  = price: 10\\u20ac to 20\\u20ac',
     'leadingSpaces             = \\u0020\\u020\\u20%2F',
     'trailingBackslash         = backslash\\\\',
@@ -125,9 +125,9 @@ suite('L10n', function() {
     });
 
     test('properties', function() {
-      elem.dataset.l10nId = 'prop-test';
+      elem.dataset.l10nId = 'attr-test';
       _translateFragment(elem);
-      assert.equal(elem.getAttribute('prop'), 'this is a property');
+      assert.equal(elem.getAttribute('title'), 'this is an attribute');
     });
 
     test('ARIA labels', function() {
@@ -162,9 +162,9 @@ suite('L10n', function() {
     });
 
     test('properties', function() {
-      navigator.mozL10n.setAttributes(elem, 'prop-test');
+      navigator.mozL10n.setAttributes(elem, 'attr-test');
       _translateFragment(elem);
-      assert.equal(elem.getAttribute('prop'), 'this is a property');
+      assert.equal(elem.getAttribute('title'), 'this is an attribute');
     });
 
     suite('properties + pluralization', function() {

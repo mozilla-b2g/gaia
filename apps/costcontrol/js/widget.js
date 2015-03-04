@@ -90,6 +90,42 @@ var Widget = (function() {
   var initialized, widget, leftPanel, rightPanel, fte, views = {};
   var balanceView;
 
+  function _openBalanceTab() {
+    activity = new MozActivity({ name: 'costcontrol/balance' });
+  }
+
+  function _openTelephonyTab() {
+    activity = new MozActivity({ name: 'costcontrol/telephony' });
+  }
+
+  function _openDataUsageTab() {
+    activity = new MozActivity({ name: 'costcontrol/data_usage' });
+  }
+
+  function _onVisibilityChange(evt) {
+    AirplaneModeHelper.ready(function() {
+      if (!document.hidden && initialized &&
+          (AirplaneModeHelper.getStatus() === 'disabled')) {
+        SimManager.requestDataSimIcc(function(dataSimIcc) {
+          checkCardState(dataSimIcc.icc);
+          updateUI();
+        });
+      }
+    });
+  }
+
+  function _onHashChange() {
+    if (window.location.hash.split('#')[1] === 'update') {
+      updateUI(true); // update only data usage
+    }
+  }
+
+  function _onLocalize() {
+    if (initialized) {
+      updateUI();
+    }
+  }
+
   function setupWidget() {
     var mode = ConfigManager.getApplicationMode();
     var isDataUsageOnly = (mode === 'DATA_USAGE_ONLY');
@@ -122,16 +158,8 @@ var Widget = (function() {
       });
 
       // Open application with the proper view
-      views.balance.addEventListener('click',
-        function _openCCBalance() {
-          activity = new MozActivity({ name: 'costcontrol/balance' });
-        }
-      );
-      views.telephony.addEventListener('click',
-        function _openCCTelephony() {
-          activity = new MozActivity({ name: 'costcontrol/telephony' });
-        }
-      );
+      views.balance.addEventListener('click', _openBalanceTab);
+      views.telephony.addEventListener('click', _openTelephonyTab);
     }
 
     // Use observers to handle not on-demand updates
@@ -139,39 +167,15 @@ var Widget = (function() {
     ConfigManager.observe('lastTelephonyReset', onReset, true);
 
     // Update UI when visible
-    document.addEventListener('visibilitychange',
-      function _onVisibilityChange(evt) {
-        AirplaneModeHelper.ready(function() {
-          if (!document.hidden && initialized &&
-              (AirplaneModeHelper.getStatus() === 'disabled')) {
-            SimManager.requestDataSimIcc(function(dataSimIcc) {
-              checkCardState(dataSimIcc.icc);
-              updateUI();
-            });
-          }
-        });
-      }
-    );
+    document.addEventListener('visibilitychange', _onVisibilityChange);
 
     // Update data usage on network activity
-    window.addEventListener('hashchange', function _onHashChange() {
-      if (window.location.hash.split('#')[1] === 'update') {
-        updateUI(true); // update only data usage
-      }
-    });
+    window.addEventListener('hashchange', _onHashChange);
 
-    window.addEventListener('localized', function _onLocalize() {
-      if (initialized) {
-        updateUI();
-      }
-    });
+    window.addEventListener('localized', _onLocalize);
 
     // Open application with the proper view
-    leftPanel.addEventListener('click',
-      function _openCCDataUsage() {
-        activity = new MozActivity({ name: 'costcontrol/data_usage' });
-      }
-    );
+    leftPanel.addEventListener('click', _openDataUsageTab);
 
     LazyLoader.load([
       'shared/js/date_time_helper.js',
@@ -185,8 +189,9 @@ var Widget = (function() {
         // Before updating the widget, it's necessary remove the cached values
         // of costcontrol and config to force an update
         CostControl.reset();
+        Widget.reset();
         ConfigManager.setConfig(null);
-        updateUI();
+        SimManager.requestDataSimIcc(checkSIMStatus);
       });
     }
 
@@ -251,8 +256,10 @@ var Widget = (function() {
     leftPanel.hidden = true;
     rightPanel.hidden = true;
 
-    fte.addEventListener('click', function launchFte() {
+    fte.addEventListener('click', function launchFte(evt) {
       fte.removeEventListener('click', launchFte);
+      evt.stopImmediatePropagation();
+
       activity = new MozActivity({ name: 'costcontrol/balance' });
     });
 
@@ -446,7 +453,6 @@ var Widget = (function() {
     }
   }
 
-
   // Set warning / updating modes
   var lastBalanceMode;
   function setBalanceMode(mode) {
@@ -535,7 +541,21 @@ var Widget = (function() {
         LazyLoader.load(SCRIPTS_NEEDED, initWidget);
       }
     },
-    showSimError: _showSimError
+
+    showSimError: _showSimError,
+
+    reset: function() {
+      document.removeEventListener('visibilitychange', _onVisibilityChange);
+      window.removeEventListener('hashchange', _onHashChange);
+      window.removeEventListener('localized', _onLocalize);
+      leftPanel.removeEventListener('click', _openDataUsageTab);
+      if (views.balance) {
+        views.balance.removeEventListener('click', _openBalanceTab);
+      }
+      if (views.telephony) {
+        views.telephony.removeEventListener('click', _openTelephonyTab);
+      }
+    }
   };
 
 }());

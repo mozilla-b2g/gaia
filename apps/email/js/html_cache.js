@@ -1,7 +1,8 @@
 // These vars are set in html_cache_restore as a globals.
-/*global HTML_COOKIE_CACHE_VERSION, HTML_COOKIE_CACHE_MAX_SEGMENTS */
 'use strict';
 define(function(require, exports) {
+
+var mozL10n = require('l10n!');
 
 /**
  * Safely clone a node so that it is inert and no document.registerElement
@@ -37,56 +38,68 @@ exports.cloneAsInertNodeAvoidingCustomElementHorrors = function(node) {
  * This method claims all cookie keys that have pattern
  * /htmlc(\d+)/
  */
-exports.save = function htmlCacheSave(html) {
-  var langDir = document.querySelector('html').getAttribute('dir');
-  html = encodeURIComponent(HTML_COOKIE_CACHE_VERSION +
-                            (langDir ? ',' + langDir : '') +
-                            ':' + html);
+exports.save = function htmlCacheSave(moduleId, html) {
+  // Only save the last part of the module ID as the cache key. This is specific
+  // to how email lays out all card modules in a 'cards/' module ID prefix, and
+  // with all / and underscores turned to dashes for component names.
+  var id = exports.moduleIdToKey(moduleId);
 
-  // Set to 20 years from now.
+  var langDir = document.querySelector('html').getAttribute('dir');
+  html = window.HTML_CACHE_VERSION + (langDir ? ',' + langDir : '') +
+         ':' + html;
+  localStorage.setItem('html_cache_' + id, html);
+
+  console.log('htmlCache.save ' + id + ': ' +
+              html.length + ', lang dir: ' + langDir);
+};
+
+/**
+ * Clears all the cache.
+ */
+exports.reset = function() {
+  localStorage.clear();
+
+  // Clear cookie cache for historical purposes, when the html cache used to be
+  // a cookie cache. This can be removed once it is unlikely a person with a
+  // 2.2 or earlier gaia might upgrade to a version with a localStorage cache.
   var expiry = Date.now() + (20 * 365 * 24 * 60 * 60 * 1000);
   expiry = (new Date(expiry)).toUTCString();
-
-  // Split string into segments.
-  var index = 0;
-  var endPoint = 0;
-  var length = html.length;
-
-  for (var i = 0; i < length; i = endPoint, index += 1) {
-    // Max per-cookie length is around 4097 bytes for firefox.
-    // Give some space for key and allow i18n chars, which may
-    // take two bytes, end up with 2030. This page used
-    // to test cookie limits: http://browsercookielimits.x64.me/
-    endPoint = 2030 + i;
-    if (endPoint > length) {
-      endPoint = length;
-    }
-
-    // Do not write cookie values past the max. Preferring this approach to
-    // doing two loops, one to generate segments strings, then another to
-    // set document.cookie for each segment. For the usual good case, the
-    // cache fits within the max segments.
-    if (index < HTML_COOKIE_CACHE_MAX_SEGMENTS) {
-      document.cookie = 'htmlc' + index + '=' + html.substring(i, endPoint) +
-                        '; expires=' + expiry;
-    }
-  }
-
-  // If previous cookie was bigger, clear out the other values,
-  // to make sure they do not interfere later when reading and
-  // reassembling. If the cache saved is too big, just clear it as
-  // there will likely be cache corruption/partial, bad HTML saved
-  // otherwise.
-  if (index > HTML_COOKIE_CACHE_MAX_SEGMENTS - 1) {
-    index = 0;
-    console.log('htmlCache.save TOO BIG. Removing all of it.');
-  }
-  for (i = index; i < HTML_COOKIE_CACHE_MAX_SEGMENTS; i++) {
+  for (var i = 0; i < 40; i++) {
     document.cookie = 'htmlc' + i + '=; expires=' + expiry;
   }
 
-  console.log('htmlCache.save: ' + html.length + ' in ' +
-              (index) + ' segments, lang dir: ' + langDir);
+  console.log('htmlCache reset');
+};
+
+// If the locale changes, clear the cache so that incorrectly localized cache
+// is not shown on the next eamil launch.
+window.addEventListener('languagechange', exports.reset);
+
+exports.moduleIdToKey = function moduleIdToKey(moduleId) {
+  return moduleId.replace(/^cards\//, '').replace(/-/g, '_');
+};
+
+// XXX when a bigger rename can happen, remove the need
+// to translate between custom element names and moz-style
+// underbar naming, and consider the card- as part of the
+// input names.
+exports.nodeToKey = function nodeToKey(node) {
+  return node.nodeName.toLowerCase().replace(/^cards-/, '').replace(/-/g, '_');
+};
+
+/**
+ * Does a very basic clone of the given node and schedules it for saving as a
+ * cached entry point. WARNING: only use this for very simple cards that do not
+ * need to do any customization.
+ */
+exports.cloneAndSave = function cloneAndSave(moduleId, node) {
+  var cachedNode = exports.cloneAsInertNodeAvoidingCustomElementHorrors(node);
+  // Since this node is not inserted into the document, translation
+  // needs to be manually triggered, and the cloneNode happens before
+  // the async Mutation Observer work mozL10n fires.
+  mozL10n.translateFragment(cachedNode);
+  cachedNode.dataset.cached = 'cached';
+  exports.delayedSaveFromNode(moduleId, cachedNode);
 };
 
 /**
@@ -98,7 +111,7 @@ exports.save = function htmlCacheSave(html) {
  * pass the node to us.)
  * @param  {Node} node Node to serialize to storage.
  */
-exports.saveFromNode = function saveFromNode(node) {
+exports.saveFromNode = function saveFromNode(moduleId, node) {
   // Make sure card will be visible in center of window. For example,
   // if user clicks on "search" or some other card is showing when
   // message list's atTop is received, then the node could be
@@ -109,7 +122,7 @@ exports.saveFromNode = function saveFromNode(node) {
   cl.add('center');
 
   var html = node.outerHTML;
-  exports.save(html);
+  exports.save(moduleId, html);
 };
 
 /**
@@ -128,12 +141,12 @@ var delayedNode = '';
  * things besides this call.
  * @param  {Node} node Node to serialize to storage.
  */
-exports.delayedSaveFromNode = function delayedSaveFromNode(node) {
+exports.delayedSaveFromNode = function delayedSaveFromNode(moduleId, node) {
   delayedNode = node;
   if (!delayedSaveId) {
     delayedSaveId = setTimeout(function() {
       delayedSaveId = 0;
-      exports.saveFromNode(delayedNode);
+      exports.saveFromNode(moduleId, delayedNode);
       delayedNode = null;
     }, 500);
   }

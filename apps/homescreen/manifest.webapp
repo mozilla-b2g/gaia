@@ -15,7 +15,6 @@
     "systemXHR":{},
     "settings":{ "access": "readwrite" },
     "open-remote-window":{},
-    "storage":{},
     "geolocation": {},
     "contacts":{ "access": "readonly" }
   },

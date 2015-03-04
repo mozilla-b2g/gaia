@@ -20,6 +20,9 @@ marionette('Firefox Accounts Launch Tests', function() {
           },
           settings: {
             'lockscreen.enabled': false
+          },
+          apps: {
+            'test-fxa-client.gaiamobile.org': __dirname + '/test-fxa-client'
           }
       });
 

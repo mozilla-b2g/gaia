@@ -273,15 +273,17 @@ var PlayerView = {
   },
 
   setRepeat: function pv_setRepeat(value) {
-    var repeatClasses = ['repeat-off', 'repeat-list', 'repeat-song'];
+    var repeatModes = ['repeat-off', 'repeat-list', 'repeat-song'];
 
     // Remove all repeat classes before applying a new one
-    repeatClasses.forEach(function pv_resetRepeat(targetClass) {
+    repeatModes.forEach(function pv_resetRepeat(targetClass) {
       this.repeatButton.classList.remove(targetClass);
     }.bind(this));
 
     this.repeatOption = value;
-    this.repeatButton.classList.add(repeatClasses[this.repeatOption]);
+    this.repeatButton.classList.add(repeatModes[this.repeatOption]);
+    this.repeatButton.setAttribute(
+      'data-l10n-id', repeatModes[this.repeatOption]);
   },
 
   setShuffle: function pv_setShuffle(value, index) {
@@ -300,11 +302,18 @@ var PlayerView = {
     } else {
       this.shuffleButton.classList.remove('shuffle-on');
     }
+    this.shuffleButton.setAttribute('aria-pressed', this.shuffleOption);
   },
 
   setRatings: function pv_setRatings(rated) {
     for (var i = 0; i < 5; i++) {
       var rating = this.ratings[i];
+
+      if (i === rated - 1) {
+          rating.setAttribute('aria-checked', true);
+      } else {
+          rating.setAttribute('aria-checked', false);
+      }
 
       if (i < rated) {
         rating.classList.add('star-on');
@@ -979,11 +988,13 @@ var PlayerView = {
         this.playControl.classList.remove('is-pause');
         // The play event is fired when audio playback has begun.
         this.playStatus = PLAYSTATUS_PLAYING;
+        this.playControl.setAttribute('data-l10n-id', 'playbackPause');
         this.updateRemotePlayStatus();
         break;
       case 'pause':
         this.playControl.classList.add('is-pause');
         this.playStatus = PLAYSTATUS_PAUSED;
+        this.playControl.setAttribute('data-l10n-id', 'playbackPlay');
         this.updateRemotePlayStatus();
         break;
       case 'touchstart':

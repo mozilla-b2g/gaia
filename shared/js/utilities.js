@@ -131,7 +131,7 @@ var HtmlHelper = {
           i++;
         }
         i--;
-        highlighted.push('<span class="highlight">', term, '</span>');
+        highlighted.push('<mark>', term, '</mark>');
       }
     }
     return highlighted.join('');

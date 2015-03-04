@@ -23,12 +23,18 @@ suite('day_observer', function() {
 
     today = new Date();
     today.setHours(8, 0, 0, 0);
+    // Set the date to the 15th, so it's in the middle of the month.
+    // This helps avoid bug 1128172.
+    var DAY = 15;
+    today.setDate(DAY);
+
     yesterday = new Date();
     yesterday.setHours(8, 0, 0, 0);
-    yesterday.setDate(today.getDate() - 1);
+    yesterday.setDate(DAY - 1);
+
     tomorrow = new Date();
     tomorrow.setHours(8, 0, 0, 0);
-    tomorrow.setDate(today.getDate() + 1);
+    tomorrow.setDate(DAY + 1);
 
     subject.busytimeStore = app.store('Busytime');
     subject.calendarStore = app.store('Calendar');

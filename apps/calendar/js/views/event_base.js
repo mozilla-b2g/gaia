@@ -4,9 +4,10 @@ define(function(require, exports, module) {
 var Event = require('models/event');
 var View = require('view');
 var dayObserver = require('day_observer');
-var isSameDate = require('calc').isSameDate;
+var isToday = require('calc').isToday;
 var nextTick = require('next_tick');
 var providerFactory = require('provider/provider_factory');
+var router = require('router');
 
 function EventBase(options) {
   View.apply(this, arguments);
@@ -223,18 +224,10 @@ EventBase.prototype = {
    * @return {Calendar.Models.Model} new model.
    */
   _createModel: function(time) {
-    var now = new Date();
     // time can be null in some cases, default to today (eg. unit tests)
-    time = time || now;
+    time = time || new Date();
 
-    if (isSameDate(now, time)) {
-      time = now;
-      // events created today default to begining of the next hour
-      time.setHours(time.getHours() + 1, 0, 0, 0);
-    } else {
-      // events created on other days default to 8AM
-      time.setHours(8, 0, 0, 0);
-    }
+    this._setDefaultHour(time);
 
     var model = new Event();
     model.startDate = time;
@@ -245,6 +238,17 @@ EventBase.prototype = {
     model.endDate = end;
 
     return model;
+  },
+
+  _setDefaultHour: function(date) {
+    if (isToday(date)) {
+      var now = new Date();
+      // events created today default to begining of the next hour
+      date.setHours(now.getHours() + 1, 0, 0, 0);
+    } else {
+      // events created on other days default to 8AM
+      date.setHours(8, 0, 0, 0);
+    }
   },
 
   /**
@@ -277,9 +281,14 @@ EventBase.prototype = {
     // always remove loading initially (to prevent worst case)
     this.element.classList.remove(this.LOADING);
 
+    // Re-run the header font fit when it comes into view.
+    // Since the header is already in the markup on load and the view is hidden
+    // the font fit calculations will be wrong initially.
+    this.header.runFontFitSoon();
+
     var id = data.params.id;
     var classList = this.element.classList;
-    var last = this.app.router.last;
+    var last = router.last;
 
     if (last && last.path) {
       if (!(/^\/(day|event|month|week)/.test(last.path))) {
