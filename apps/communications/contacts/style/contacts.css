@@ -1019,16 +1019,12 @@ li button[data-field-type]:active {
  * of the shared style to make the ellipsis display always at the end
  * (ie right for LTR string and left for RTL string)
  * while keeping alignment of the current system-wide language */
-[data-type="list"] li.contact-item bdi {
+[data-type="list"] li.contact-item bdi,
+li button.icon-email bdi {
   overflow: hidden;
   text-overflow: ellipsis;
   display: inline-block;
   max-width: 100%;
-}
-
-/* emails are always LTR */
-li button.icon-email > b {
-  direction: ltr;
 }
 
 /* RTL View */
