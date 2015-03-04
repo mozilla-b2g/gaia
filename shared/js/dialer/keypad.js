@@ -690,11 +690,9 @@ var KeypadManager = {
       if (phoneNumber.length > 0) {
         visibility = 'visible';
         this.callBarAddContact.removeAttribute('disabled');
-        this.callBarCallAction.removeAttribute('disabled');
       } else {
         visibility = 'hidden';
         this.callBarAddContact.setAttribute('disabled', 'disabled');
-        this.callBarCallAction.setAttribute('disabled', 'disabled');
       }
       this.deleteButton.style.visibility = visibility;
       this.phoneNumberView.blur(); // update avoiding caret flickering

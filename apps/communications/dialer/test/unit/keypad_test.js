@@ -232,18 +232,6 @@ suite('dialer/keypad', function() {
       assert.equal(subject._phoneNumber, '');
     });
 
-    test('Call button disabled with dialer field empty', function() {
-      subject._phoneNumber = '';
-      var callButton = document.getElementById('keypad-callbar-call-action');
-      assert.isTrue(callButton.hasAttribute('disabled'));
-    });
-
-    test('Call button enabled with dialer field not empty', function() {
-      subject._phoneNumber = '111';
-      var callButton = document.getElementById('keypad-callbar-call-action');
-      assert.isFalse(callButton.hasAttribute('disabled'));
-    });
-
     test('Call button pressed with an incoming call and no outgoing calls ' +
       'in Call Log', function() {
       var recentCall = {
