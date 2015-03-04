@@ -41,6 +41,15 @@ module.exports = View.extend({
     data.selected = this.model.selected();
     data.value = data.selected && data.selected.title;
 
+    // The settings list is a listbox (list of actionable items) thus the
+    // setting must be an 'option'.
+    this.el.setAttribute('role', 'option');
+    // The only way to exclude content from :before element (present in setting
+    // item) is to override it with ARIA label.
+    this.l10n.setAttributes(this.el, 'setting-option-' + data.title, {
+      value: this.localizeValue(data)
+    });
+
     this.el.innerHTML = this.template(data);
 
     // Clean up
@@ -50,19 +59,19 @@ module.exports = View.extend({
     return this;
   },
 
-  template: function(data) {
-    var value;
-
+  localizeValue: function(data) {
     // some data items are not to be localized
     if (data.optionsLocalizable === false) {
-      value = data.value;
+      return data.value;
     } else {
-      value = this.l10n.get(data.value);
+      return this.l10n.get(data.value);
     }
+  },
 
+  template: function(data) {
     return '<div class="setting_text">' +
       '<h4 class="setting_title" data-l10n-id="' + data.title + '"></h4>' +
-      '<h5 class="setting_value">' + value + '</h5>' +
+      '<h5 class="setting_value">' + this.localizeValue(data) + '</h5>' +
     '</div>';
   },
 });
