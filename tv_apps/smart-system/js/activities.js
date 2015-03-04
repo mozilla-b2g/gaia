@@ -191,6 +191,37 @@
       });
 
       return items;
+    },
+
+    /**
+     * Whether or not the ActionMenu is visible.
+     * @memberof Activities.prototype
+     * @return {Boolean} if the container is invisible, return false
+     * @return {Number} if the container is visible, return z-index
+     */
+    isVisible: function() {
+      return this.actionMenu && this.actionMenu.isVisible();
+    },
+
+    /**
+     * Get the z-index value of ActionMenu
+     * @memberof Activities.prototype
+     * @return {Number} z-index of this.container
+     */
+    getOrder: function() {
+      if (this.isVisible()) {
+        return this.actionMenu.getOrder();
+      }
+    },
+
+    /**
+     * Focus ActionMenu
+     * @memberof Activities.prototype
+     */
+    focus: function() {
+      if (this.isVisible()) {
+        this.actionMenu.focus();
+      }
     }
   };
 
