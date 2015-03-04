@@ -165,7 +165,8 @@ class Homescreen(Base):
 
     @property
     def is_homescreen_visible(self):
-        return self.marionette.find_element(*self._homescreen_container_locator)
+        self.wait_for_element_displayed(*self._homescreen_container_locator)
+
 
     class InstalledApp(PageRegion):
 
