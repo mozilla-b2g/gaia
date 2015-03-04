@@ -26,6 +26,16 @@ suite('app.js > ', function() {
   mocksHelperForApp.attachTestHelpers();
 
   var raf;
+  var documentHiddenValue = false;
+
+  suiteSetup(function() {
+    Object.defineProperty(document, 'hidden', {
+      configurable: true,
+      get: function() {
+        return documentHiddenValue;
+      }
+    });
+  });
 
   setup(function(done) {
     raf = sinon.stub(window, 'requestAnimationFrame');
@@ -34,10 +44,12 @@ suite('app.js > ', function() {
     // Some features are loaded after rendering like dragdrop
     grid.render();
     require('/js/app.js', done);
+    this.sinon.useFakeTimers();
   });
 
   teardown(function() {
     raf.restore();
+    documentHiddenValue = false;
   });
 
   test('Scrolls on hashchange', function() {
@@ -63,6 +75,31 @@ suite('app.js > ', function() {
     // This test was added for bug 1051061. If the test passes it means that
     // the test did not throw an error and that bug is not a problem.
     // No assertion is needed.
+  });
+
+  suite('When the homescreen is hidden', function() {
+    setup(function() {
+      documentHiddenValue = true;
+      document.dispatchEvent(new CustomEvent('visibilitychange'));
+    });
+
+    test('should hide the overflow to prevent displayport rendering',
+    function() {
+      assert.equal(document.body.style.overflow, 'hidden');
+    });
+
+    suite('then displayed again',function() {
+      setup(function() {
+        documentHiddenValue = false;
+        document.dispatchEvent(new CustomEvent('visibilitychange'));
+      });
+
+      test('should let the homescreen scroll after a tick', function() {
+        assert.equal(document.body.style.overflow, 'hidden');
+        this.sinon.clock.tick();
+        assert.equal(document.body.style.overflow, '');
+      });
+    });
   });
 
 });

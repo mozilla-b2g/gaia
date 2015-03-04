@@ -214,14 +214,9 @@
   };
 
   /**
-   * Represent the current pagee visibility state,
-   * i.e. what is currently visible. Possible value:
-   * 'foreground': setVisible(true)
-   * 'background': setVisible(false)
-   *
-   * Default value is foreground.
+   * Represents the current page visibility state
    */
-  AppWindow.prototype._visibilityState = 'foreground';
+  AppWindow.prototype._visible = true;
 
   /**
    * The rotating degree of current frame.
@@ -265,8 +260,17 @@
    */
   AppWindow.prototype.setVisible =
     function aw_setVisible(visible) {
-      this.debug('set visibility -> ', visible);
       this.setVisibleForScreenReader(visible);
+      if (this.frontWindow) {
+        this.frontWindow.setVisible(visible);
+      }
+
+      if (this._visible === visible) {
+        return;
+      }
+      this._visible = visible;
+
+      this.debug('set visibility -> ', visible);
       this._setActive(visible);
       if (visible) {
         // If this window is not the lockscreen, and the screen is locked,
@@ -274,10 +278,6 @@
         this._showFrame();
       } else {
         this._hideFrame();
-      }
-
-      if (this.frontWindow) {
-        this.frontWindow.setVisible(visible);
       }
     };
 
@@ -1880,33 +1880,34 @@
     }
 
     this.debug('requesting to open');
+
     if (!this.loaded ||
         (this.screenshotOverlay &&
          this.screenshotOverlay.classList.contains('visible'))) {
       this.debug('loaded yet');
       setTimeout(callback);
       return;
-    } else {
-      var invoked = false;
-      this.waitForNextPaint(function() {
-        if (invoked) {
-          return;
-        }
-        invoked = true;
-        setTimeout(callback);
-      });
-      if (this.isHomescreen) {
-        this.setVisible(true);
+    }
+
+    var invoked = false;
+    this.waitForNextPaint(function() {
+      if (invoked) {
         return;
       }
-      this.tryWaitForFullRepaint(function() {
-        if (invoked) {
-          return;
-        }
-        invoked = true;
-        setTimeout(callback);
-      });
+      invoked = true;
+      setTimeout(callback);
+    });
+    if (this.isHomescreen) {
+      this.setVisible(true);
+      return;
     }
+    this.tryWaitForFullRepaint(function() {
+      if (invoked) {
+        return;
+      }
+      invoked = true;
+      setTimeout(callback);
+    });
   };
 
   /**

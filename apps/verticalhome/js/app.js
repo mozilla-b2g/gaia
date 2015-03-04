@@ -40,6 +40,8 @@
     // and should be retried when/if we come online again.
     this._iconsToRetry = [];
 
+    document.addEventListener('visibilitychange', this);
+
     window.performance.mark('navigationInteractive');
     window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
   }
@@ -226,6 +228,18 @@
         case 'gaiagrid-layout-ready':
           this.layoutReady = true;
           window.removeEventListener('gaiagrid-layout-ready', this);
+          break;
+
+        case 'visibilitychange':
+          // Stop displayport rendering for a faster first paint after
+          // a setVisible(false)/setVisible(true) cycle.
+          if (document.hidden) {
+            document.body.style.overflow = 'hidden';
+          } else {
+            setTimeout(function() {
+              document.body.style.overflow = '';
+            });
+          }
           break;
 
         // A hashchange event means that the home button was pressed.
