@@ -7,10 +7,10 @@
 
 (function(exports) {
 
-  // When the "search_providers.json" file is edited, this version
-  // should be bumped so that existing clients reload the updated
-  // data
-  var VERSION = 2;
+  // When the "search_providers_input.json" file is edited, both this
+  // and PROVIDERS_VERSION in app/search/test/marionette/lib/search.js
+  // should be bumped so existing clients reload the updated data
+  var VERSION = 3;
 
   // Cache for current provider configuration
   var SEARCH_CACHE_KEY = 'search.cache';
