@@ -12,10 +12,11 @@ marionette('Test Context Menu Events', function() {
     settings: {
       'ftu.manifestURL': null,
       'lockscreen.enabled': false
-    }
+    },
+    apps: {}
   };
 
-  opts.apps[APP_HOST] = __dirname + '/' + APP_NAME;
+  opts.apps[APP_HOST] = __dirname + '/../apps/' + APP_NAME;
 
   var client = marionette.client(opts);
   var actions;
