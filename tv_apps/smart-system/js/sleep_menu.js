@@ -5,7 +5,7 @@
 /* global LogoLoader */
 /* global OrientationManager */
 /* global SettingsCache */
-/* global AppWindowManager */
+/* global focusManager */
 
 (function(exports) {
 
@@ -223,10 +223,8 @@
       }
       this.elements.overlay.classList.remove('visible');
       window.dispatchEvent(new Event('sleepmenuhide'));
-      // focus back to the top most window.
-      // XXX: we focus back to active app. But we should call the fallback
-      // algorithm to find the top-most overlay or app.
-      AppWindowManager.getActiveApp().getTopMostWindow().focus();
+      // focus back to the top most window/overlay.
+      focusManager.focus();
     },
 
     /**

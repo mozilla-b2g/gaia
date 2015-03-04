@@ -1,7 +1,7 @@
 /* -*- Mode: js2; js2-basic-offset: 2; indent-tabs-mode: nil -*- */
 /* vim: set ft=javascript sw=2 ts=2 autoindent cindent expandtab: */
 
-/* global AppWindowManager, KeyboardManager */
+/* global AppWindowManager, KeyboardManager, focusManager */
 'use strict';
 
 var TrustedUIManager = {
@@ -111,10 +111,8 @@ var TrustedUIManager = {
       // event ultimately to be fired.
       this._hide();
 
-      // focus back to the top most window.
-      // XXX: we focus back to active app. But we should call the fallback
-      // algorithm to find the top-most overlay or app.
-      AppWindowManager.getActiveApp().getTopMostWindow().focus();
+      // focus back to the top most window/overlay.
+      focusManager.focus();
     } else {
       this._closeDialog(chromeEventId, origin);
     }
@@ -134,8 +132,12 @@ var TrustedUIManager = {
     if (dialog) {
       window.setTimeout(function() {
         document.activeElement.blur();
-        dialog.frame.focus();
-      });
+        if (dialog.frame.dataset.error) {
+          this.errorClose.focus();
+        } else {
+          dialog.frame.focus();
+        }
+      }.bind(this));
     }
   },
 
@@ -268,6 +270,8 @@ var TrustedUIManager = {
     // ensure the frame is visible and the dialog title is correct.
     dialog.frame.classList.add('selected');
     this.dialogTitle.setAttribute('data-l10n-id', dialog.name);
+    // move focus to the displayed frame
+    this.focus();
   },
 
   _makeDialogHidden: function trui_makeDialogHidden(dialog) {
@@ -276,8 +280,6 @@ var TrustedUIManager = {
     }
     this._restoreOrientation();
     dialog.frame.classList.remove('selected');
-    // move focus to the displayed frame
-    this.focus();
   },
 
   _restoreOrientation: function trui_restoreOrientation() {
@@ -387,6 +389,10 @@ var TrustedUIManager = {
     );
 
     this.container.classList.add('error');
+    setTimeout(function() {
+      document.activeElement.blur();
+      this.errorClose.focus();
+    }.bind(this));
   },
 
   handleEvent: function trui_handleEvent(evt) {
