@@ -37,7 +37,9 @@
      * on first use
      */
     suggestionNotice: document.getElementById('suggestions-notice-wrapper'),
-    settingsLink: document.getElementById('settings-link'),
+    get settingsLink() {
+      return document.getElementById('settings-link');
+    },
 
     toShowNotice: null,
     NOTICE_KEY: 'notice-shown',
@@ -182,8 +184,9 @@
       var confirm = document.getElementById('suggestions-notice-confirm');
       confirm.addEventListener('click', this.discardNotice.bind(this, true));
 
-      if (this.settingsLink) {
-        this.settingsLink
+      var settingsLink = this.settingsLink;
+      if (settingsLink) {
+        settingsLink
           .addEventListener('click', this.openSettings.bind(this));
       }
 
@@ -249,7 +252,7 @@
       if (provider.isGridProvider) {
         this.gridCount += results.length;
       }
-  
+
       this.gridWrapper.classList.toggle('hidden', !this.gridCount);
       provider.render(results);
     },
