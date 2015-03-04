@@ -949,13 +949,31 @@ suite('BluetoothContext', function() {
 
       test('_defaultAdapter.stopDiscovery() should not be called, ' +
            'will reject with reason ' +
-           '"same state or Bluetooth is disabled!!" ', function(done) {
+           '"same state" ', function(done) {
+        btContext.stopDiscovery().then(function(reason) {
+          // resolve case
+          assert.equal(reason, 'same state');
+          assert.isFalse(btContext._defaultAdapter.stopDiscovery.called);
+        }, function() {
+          // reject case
+        }).then(done, done);
+      });
+    });
+
+    suite('discovering = true, state = disabled, ' +
+          'trigger stopDiscovery, ' + 'in reject case ', function() {
+      setup(function() {
+        btContext.discovering = true;
+        btContext.state = 'disabled';
+      });
+
+      test('will reject with reason ' +
+           '"Bluetooth is disabled!!" ', function(done) {
         btContext.stopDiscovery().then(function() {
           // resolve case
         }, function(reason) {
           // reject case
-          assert.equal(reason, 'same state or Bluetooth is disabled!!');
-          assert.isFalse(btContext._defaultAdapter.stopDiscovery.called);
+          assert.equal(reason, 'Bluetooth is disabled!!');
         }).then(done, done);
       });
     });
@@ -1127,8 +1145,14 @@ suite('BluetoothContext', function() {
 
   suite('pair > ', function() {
     suite('has default adapter, trigger pair ', function() {
-      var mockAdapter, address, mockAdapterPairPromise;
+      var mockAdapter, address, mockAdapterPairPromise, 
+      mockStopDiscoveryPromise;
       setup(function() {
+        mockStopDiscoveryPromise = new Promise(function(resolve) {
+          resolve();
+        });
+        this.sinon.stub(btContext, 'stopDiscovery').returns(
+          mockStopDiscoveryPromise);
         mockAdapterPairPromise = new Promise(function(resolve) {
           resolve();
         });
@@ -1143,9 +1167,41 @@ suite('BluetoothContext', function() {
       test('_defaultAdapter.pair() should be called with addrss ',
       function(done) {
         btContext.pair(address).then(function() {
-          assert.isTrue(btContext._defaultAdapter.pair.calledWith(address));
+          assert.isTrue(btContext.stopDiscovery.called);
+          mockStopDiscoveryPromise.then(function() {
+            assert.isTrue(btContext._defaultAdapter.pair.calledWith(address));
+          }, function() {
+            // reject case  
+          });
         }, function() {
           // reject case
+        }).then(done, done);
+      });
+    });
+
+    suite('has default adapter, trigger pair, ' + 
+      'stopDiscovery in reject case ', function() {
+      var mockAdapter, address, mockStopDiscoveryPromise, mockReason;
+      setup(function() {
+        mockReason = 'stopDiscovery in reject';
+        mockStopDiscoveryPromise = Promise.reject(mockReason);
+        this.sinon.stub(btContext, 'stopDiscovery').returns(
+          mockStopDiscoveryPromise);
+        mockAdapter = {
+          pair: function() {}
+        };
+        address = 'AA:BB:CC:00:11:22';
+        btContext._defaultAdapter = mockAdapter;
+        this.sinon.stub(btContext._defaultAdapter, 'pair');
+      });
+
+      test('_defaultAdapter.pair() should not be called ',
+      function(done) {
+        btContext.pair(address).then(function() {
+        }, function(reason) {
+          assert.isTrue(btContext.stopDiscovery.called);
+          assert.isFalse(btContext._defaultAdapter.pair.called);
+          assert.equal(reason, mockReason);
         }).then(done, done);
       });
     });

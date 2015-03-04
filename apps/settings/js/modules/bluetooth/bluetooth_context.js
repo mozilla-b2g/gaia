@@ -650,8 +650,13 @@ define(function(require) {
      * @returns {Promise}
      */
     stopDiscovery: function btc_stopDiscovery() {
-      if ((this.discovering === false) || (this.state !== 'enabled')) {
-        return Promise.reject('same state or Bluetooth is disabled!!');
+      if (this.discovering === false) {
+        Debug('stopDiscovery(): stopDiscovery successfully in same state :)');
+        return Promise.resolve('same state');
+      }
+
+      if (this.state !== 'enabled') {
+        return Promise.reject('Bluetooth is disabled!!');
       }
 
       if (!this._defaultAdapter) {
@@ -797,10 +802,17 @@ define(function(require) {
         return Promise.reject('default adapter is not existed!!');
       }
 
-      return this._defaultAdapter.pair(address).then(() => {
-        Debug('pair(): Resolved with void value');
+      // Note on Bluedroid stack, discovery has to be stopped before pairing 
+      // (i.e., call stopDiscovery() before pair()) otherwise stack callbacks 
+      // with pairing failure.
+      return this.stopDiscovery().then(() => {
+        return this._defaultAdapter.pair(address).then(() => {
+          Debug('pair(): Resolved with void value');
+        }, (reason) => {
+          Debug('pair(): Reject with this reason: ' + reason);
+          return Promise.reject(reason);
+        });  
       }, (reason) => {
-        Debug('pair(): Reject with this reason: ' + reason);
         return Promise.reject(reason);
       });
     },
