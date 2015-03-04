@@ -172,7 +172,7 @@
       var isBothLocked = true;
       for (var i = 0; i < simSlots.length; i++) {
         var currentSlot = simSlots[i];
-        var unknownState = currentSlot.getCardState() === 'unknown';
+        var unknownState = currentSlot.isUnknownState();
         var currentLocked = currentSlot.isLocked() || unknownState;
         isBothLocked = isBothLocked && currentLocked;
       }
