@@ -16,11 +16,6 @@ function Contacts(client) {
 Contacts.URL = 'app://communications.gaiamobile.org';
 
 Contacts.config = {
-  settings: {
-    // disable FTU because it blocks our display
-    'ftu.manifestURL': null,
-    'lockscreen.enabled': false
-  },
   prefs: {
     'device.storage.enabled': true,
     'device.storage.testing': true,

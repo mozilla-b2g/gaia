@@ -10,10 +10,6 @@ marionette('Find My Device lock >', function() {
     prefs: {
       'dom.inter-app-communication-api.enabled': true
     },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    },
     apps: {
       'test-findmydevice.gaiamobile.org':
         __dirname + '/fixtures/test-findmydevice',

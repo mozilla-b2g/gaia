@@ -13,10 +13,6 @@ marionette('notification actions', function() {
   var client = marionette.client({
     prefs: {
       'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
     }
   });
 

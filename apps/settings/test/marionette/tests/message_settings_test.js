@@ -4,12 +4,7 @@ var Settings = require('../app/app');
 var assert = require('assert');
 
 marionette('message settings', function() {
-  var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
   var settingsApp;
   var messagePanel;
 

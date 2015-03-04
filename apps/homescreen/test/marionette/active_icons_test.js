@@ -6,8 +6,6 @@ var Homescreen = require('./lib/homescreen');
 marionette('Active icons', function() {
   var client = marionette.client({
     settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false,
       'homescreen.manifestURL':
         'app://homescreen.gaiamobile.org/manifest.webapp'
     }

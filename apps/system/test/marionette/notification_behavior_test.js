@@ -11,12 +11,7 @@ var SOUND_PATH = '/test/path/to/sound/file';
 var SHARED_PATH = __dirname + '/../../../../shared/test/integration/';
 
 marionette('notification behavior tests', function() {
-  var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
   var notificationList = new NotificationList(client);
 
   test('soundFile URL should be resolved properly', function(done) {

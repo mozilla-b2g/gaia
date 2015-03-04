@@ -2,12 +2,7 @@
 var Settings = require('../app/app');
 
 marionette('manipulate date time settings', function() {
-  var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
   var settingsApp;
   var dateTimePanel;
 
