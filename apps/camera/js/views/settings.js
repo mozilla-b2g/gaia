@@ -119,16 +119,20 @@ module.exports = View.extend({
       '<div class="inner">' +
         '<div class="settings_inner">' +
           '<div class="settings_header">' +
-            '<h2 class="settings_title" data-l10n-id="options"></h2>' +
+            '<h2 class="settings_title" data-l10n-id="options" ' +
+              'aria-level="1"></h2>' +
           '</div>' +
-          '<div class="settings_items"><ul class="inner js-items"></ul></div>' +
+          '<div class="settings_items">' +
+            '<ul class="inner js-items" role="listbox"></ul>' +
+          '</div>' +
         '</div>' +
       '</div>' +
     '</div>' +
     '<div class="pane pane-2">' +
       '<div class="inner js-pane-2"></div>' +
     '</div>' +
-    '<div class="settings_close js-close" data-icon="menu"></div>';
+    '<div role="button" class="settings_close js-close" data-icon="menu" ' +
+      'data-l10n-id="close-menu-button"></div>';
   }
 });
 

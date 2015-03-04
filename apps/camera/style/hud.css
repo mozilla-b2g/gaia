@@ -10,7 +10,8 @@
   align-items: center;
   justify-content: space-between;
   opacity: 1;
-  transition: opacity 200ms linear;
+  transition: opacity 200ms linear, visibility 0s;
+  visibility: visible;
   direction: ltr;
 
   /* Reduce the overpaint of the camera app */
@@ -27,6 +28,8 @@
 .hud[recording=true] {
   pointer-events: none;
   opacity: 0;
+  visibility: hidden;
+  transition-delay: 0s, 200ms;
 }
 
 /**
