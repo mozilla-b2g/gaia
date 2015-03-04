@@ -32,6 +32,7 @@
   position: absolute;
   border-top: 0.1rem solid #e2e2e2;
   width: 3rem;
+  text-align: center;
 }
 
 .day-view .md__all-day {
@@ -39,11 +40,6 @@
   width: 7rem;
   top: 0;
   left: 0;
-}
-
-.day-view .icon-calendar-allday:before {
-  position: relative;
-  left: 2rem;
 }
 
 .md__day-name {
@@ -485,11 +481,6 @@
 html[dir="rtl"] .day-view .md__all-day {
   left: unset;
   right: 0;
-}
-
-html[dir="rtl"] .day-view .icon-calendar-allday:before {
-  left: unset;
-  right: 2rem;
 }
 
 html[dir="rtl"] .md__allday-events {
