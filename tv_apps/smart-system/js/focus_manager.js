@@ -1,4 +1,5 @@
-/* global TrustedUIManager, sleepMenu, AppWindowManager, ScreenManager */
+/* global TrustedUIManager, sleepMenu, AppWindowManager, ScreenManager,
+          permissionManager */
 
 (function(exports) {
   'use strict';
@@ -34,7 +35,8 @@
     // they aren't lazy loaded.
     var systemUIList = [
       TrustedUIManager,
-      sleepMenu
+      sleepMenu,
+      permissionManager
     ];
     // list all visible system UI
     var visible = systemUIList.filter(function(item) {
