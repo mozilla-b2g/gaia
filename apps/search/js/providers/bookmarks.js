@@ -52,7 +52,8 @@
         var renderResults = [];
         for(var elem in self.persistStore.results) {
           var bookmark = self.persistStore.results[elem];
-          if (!bookmark.url || bookmark.url.indexOf(filter) == -1) {
+          if ((!bookmark.url || bookmark.url.indexOf(filter) == -1) &&
+              (!bookmark.name || bookmark.name.indexOf(filter) == -1)) {
             continue;
           }
           renderResults.push(formatBookmark(bookmark));
