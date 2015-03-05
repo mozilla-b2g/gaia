@@ -26,10 +26,11 @@ suite('app.js > ', function() {
 
   mocksHelperForApp.attachTestHelpers();
 
-  var raf;
+  var raf, scrollStub;
 
   setup(function(done) {
     raf = sinon.stub(window, 'requestAnimationFrame');
+    scrollStub = sinon.stub(window, 'scrollTo');
     loadBodyHTML('/index.html');
     var grid = document.querySelector('gaia-grid')._grid;
     // Some features are loaded after rendering like dragdrop
@@ -39,12 +40,21 @@ suite('app.js > ', function() {
 
   teardown(function() {
     raf.restore();
+    scrollStub.restore();
   });
 
   test('Scrolls on hashchange', function() {
     window.scrollY = 100000;
-    var scrollStub = sinon.stub(window, 'scrollTo');
     window.dispatchEvent(new CustomEvent('hashchange'));
+
+    assert.ok(scrollStub.called);
+  });
+
+  test('Scrolls on gaiagrid-attention', function() {
+    window.scrollY = 100000;
+    app.grid.dispatchEvent(
+      new CustomEvent('gaiagrid-attention', {detail: {y: 0, height: 0}}));
+    this.sinon.clock.tick();
 
     assert.ok(scrollStub.called);
   });

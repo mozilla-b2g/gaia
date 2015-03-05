@@ -231,6 +231,8 @@
         } else {
           this.doRearrange.call(this);
         }
+      } else {
+        this.icon.requestAttention();
       }
 
       // Hand back responsibility to Grid view to render the dragged item.

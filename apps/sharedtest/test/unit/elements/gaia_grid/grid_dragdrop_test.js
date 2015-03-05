@@ -107,6 +107,25 @@ suite('GaiaGrid > DragDrop', function() {
     assert.equal(grid.items[1].name, 'first');
   });
 
+  test('attention requested if item doesn\'t move', function() {
+    var firstBookmark = grid.items[0].element;
+    var requestAttentionStub = sinon.stub(grid.items[0], 'requestAttention');
+
+    firstBookmark.dispatchEvent(new CustomEvent('contextmenu',
+      {bubbles: true}));
+    grid.dragdrop.handleEvent({
+      type: 'touchend',
+      stopImmediatePropagation: function() {},
+      preventDefault: function() {}
+    });
+
+    this.sinon.clock.tick(grid.dragdrop.touchEndFinishDelay);
+    grid.dragdrop.handleEvent({ type: 'transitionend' });
+
+    assert.ok(requestAttentionStub.called);
+    requestAttentionStub.restore();
+  });
+
   test('cleanup if the touch gesture is canceled', function() {
     var firstBookmark = grid.items[0].element;
     firstBookmark.dispatchEvent(new CustomEvent('contextmenu',
