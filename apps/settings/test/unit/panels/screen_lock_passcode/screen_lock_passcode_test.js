@@ -1,4 +1,4 @@
-/* global SettingsService */
+/* global SettingsService, PasscodeHelper */
 suite('ScreenLockPasscode > ', function() {
   'use strict';
 
@@ -8,6 +8,7 @@ suite('ScreenLockPasscode > ', function() {
   var realMozSettings;
   var realSettingsListener;
   var realSettingsService;
+  require('/shared/js/passcode_helper.js');
 
   suiteSetup(function(done) {
     navigator.addIdleObserver = sinon.spy();
@@ -16,7 +17,7 @@ suite('ScreenLockPasscode > ', function() {
       'shared_mocks/mock_navigator_moz_settings',
       'shared_mocks/mock_settings_listener',
       'unit/mock_settings_service',
-      'panels/screen_lock_passcode/screen_lock_passcode'
+      'panels/screen_lock_passcode/screen_lock_passcode',
     ];
 
     var maps = {
@@ -100,9 +101,9 @@ suite('ScreenLockPasscode > ', function() {
   });
 
   suite('_checkPasscode > ', function() {
-    suiteSetup(function() {
+    suiteSetup(function(done) {
       screenLockPasscode._passcodeBuffer = '';
-      screenLockPasscode._settings.passcode = '0000';
+      PasscodeHelper.set('0000').then(() => { done(); });
     });
 
     setup(function() {
@@ -111,10 +112,16 @@ suite('ScreenLockPasscode > ', function() {
     });
 
     suite('passcode is different', function() {
-      setup(function() {
-        screenLockPasscode._settings.passcode = '0123';
-        screenLockPasscode._passcodeBuffer = '0000';
-        screenLockPasscode._checkPasscode();
+      setup(function(done) {
+        // set passcode to 0123
+        var promise = PasscodeHelper.set('0123');
+        // enter passcode 0000
+        promise = promise.then(() => {
+          screenLockPasscode._passcodeBuffer = '0000';
+          // check if we get the error for a wrong passcode
+          return screenLockPasscode._checkPasscode();
+        });
+        promise.then(() => { done(); });
       });
       test('we would show error message', function() {
         assert.ok(screenLockPasscode._showErrorMessage.called);
@@ -122,10 +129,16 @@ suite('ScreenLockPasscode > ', function() {
     });
 
     suite('passcode is the same', function() {
-      setup(function() {
-        screenLockPasscode._settings.passcode = '0000';
-        screenLockPasscode._passcodeBuffer = '0000';
-        screenLockPasscode._checkPasscode();
+      setup(function(done) {
+        // set passcode to 0000
+        var promise = PasscodeHelper.set('0000');
+        // enter passcode 0000
+        promise = promise.then(() => {
+          screenLockPasscode._passcodeBuffer = '0000';
+          // check if we get the success for the correct
+          return screenLockPasscode._checkPasscode();
+        });
+        promise.then(() => { done(); });
       });
       test('we would hide error message', function() {
         assert.ok(screenLockPasscode._hideErrorMessage.called);
@@ -178,7 +191,7 @@ suite('ScreenLockPasscode > ', function() {
 
     suite('create/new lock > ', function() {
       suite('with right passcode', function() {
-        setup(function() {
+        setup(function(done) {
           // we would add one more zero (charCode = 48)
           screenLockPasscode._passcodeBuffer = '0000000';
           screenLockPasscode._MODE = 'create';
@@ -187,7 +200,7 @@ suite('ScreenLockPasscode > ', function() {
             charCode: 48,
             keyCode: 0,
             preventDefault: function() {}
-          });
+          }).then(() => { done(); });
         });
         test('enable button', function() {
           assert.ok(screenLockPasscode._enableButton.called);
@@ -195,7 +208,7 @@ suite('ScreenLockPasscode > ', function() {
       });
 
       suite('with wrong passcode', function() {
-        setup(function() {
+        setup(function(done) {
           // we would add one more one (charCode = 49)
           screenLockPasscode._passcodeBuffer = '0000000';
           screenLockPasscode._MODE = 'create';
@@ -204,7 +217,7 @@ suite('ScreenLockPasscode > ', function() {
             charCode: 49,
             keyCode: 0,
             preventDefault: function() {}
-          });
+          }).then(() => { done(); });
         });
         test('show error message, clean passcodeBuffer', function() {
           assert.ok(screenLockPasscode._showErrorMessage.called);
@@ -215,22 +228,23 @@ suite('ScreenLockPasscode > ', function() {
 
     suite('confirm > ', function() {
       suite('with right passcode', function() {
-        setup(function() {
-          screenLockPasscode._settings.passcode = '0000';
-          // we would add one more zero (charCode = 96)
-          screenLockPasscode._passcodeBuffer = '000';
-          screenLockPasscode._MODE = 'confirm';
-          screenLockPasscode.handleEvent({
-            target: screenLockPasscode.passcodeInput,
-            charCode: 48,
-            keyCode: 0,
-            preventDefault: function() {}
+        setup(function(done) {
+          PasscodeHelper.set('0000').then(() => {
+            // we would add one more zero (charCode = 96)
+            screenLockPasscode._passcodeBuffer = '000';
+            screenLockPasscode._MODE = 'confirm';
+            screenLockPasscode.handleEvent({
+              target: screenLockPasscode.passcodeInput,
+              charCode: 48,
+              keyCode: 0,
+              preventDefault: function () {
+              }
+            }).then(() => { done(); });
           });
         });
         test('passcode is turned off', function() {
-          assert.deepEqual(window.navigator.mozSettings.mSettings, {
-            'lockscreen.passcode-lock.enabled': false
-          });
+          var settingsObj = window.navigator.mozSettings.mSettings;
+          assert.notOk(settingsObj['lockscreen.passcode-lock.enabled']);
         });
         test('we would back to screenLock', function() {
           assert.ok(screenLockPasscode._backToScreenLock.called);
@@ -238,20 +252,22 @@ suite('ScreenLockPasscode > ', function() {
       });
 
       suite('with wrong passcode', function() {
-        setup(function() {
-          screenLockPasscode._settings.passcode = '0001';
-          // we would add one more zero (charCode = 96)
-          screenLockPasscode._passcodeBuffer = '000';
-          screenLockPasscode._MODE = 'confirm';
-          screenLockPasscode.handleEvent({
-            target: screenLockPasscode.passcodeInput,
-            charCode: 48,
+        setup(function(done) {
+          PasscodeHelper.set('0001').then(() => {
+            // we would add one more zero (charCode = 96)
+            screenLockPasscode._passcodeBuffer = '000';
+            screenLockPasscode._MODE = 'confirm';
+            screenLockPasscode.handleEvent({
+              target: screenLockPasscode.passcodeInput,
+              charCode: 48,
             keyCode: 0,
-            preventDefault: function() {}
+              preventDefault: function() {}
+            }).then(() => { done(); });
           });
         });
         test('passcode is not turned off', function() {
-          assert.deepEqual(window.navigator.mozSettings.mSettings, {});
+          var settingsObj = window.navigator.mozSettings.mSettings;
+          assert.notOk(settingsObj['lockscreen.passcode-lock.enabled']);
         });
         test('we would reset passcodeBuffer', function() {
           assert.equal(screenLockPasscode._passcodeBuffer, '');
@@ -261,23 +277,23 @@ suite('ScreenLockPasscode > ', function() {
 
     suite('confirmLock > ', function() {
       suite('with right passcode', function() {
-        setup(function() {
-          screenLockPasscode._settings.passcode = '0000';
-          // we would add one more zero (charCode = 96)
-          screenLockPasscode._passcodeBuffer = '000';
-          screenLockPasscode._MODE = 'confirmLock';
-          screenLockPasscode.handleEvent({
-            target: screenLockPasscode.passcodeInput,
-            charCode: 48,
+        setup(function(done) {
+          PasscodeHelper.set('0000').then(() => {
+            // we would add one more zero (charCode = 96)
+            screenLockPasscode._passcodeBuffer = '000';
+            screenLockPasscode._MODE = 'confirmLock';
+            screenLockPasscode.handleEvent({
+              target: screenLockPasscode.passcodeInput,
+              charCode: 48,
             keyCode: 0,
-            preventDefault: function() {}
+              preventDefault: function() {}
+            }).then(() => { done(); });
           });
         });
         test('passcode and lockscreen are turned off', function() {
-          assert.deepEqual(window.navigator.mozSettings.mSettings, {
-            'lockscreen.enabled': false,
-            'lockscreen.passcode-lock.enabled': false
-          });
+          var settingsObj = window.navigator.mozSettings.mSettings;
+          assert.notOk(settingsObj['lockscreen.enabled']);
+          assert.notOk(settingsObj['lockscreen.passcode-lock.enabled']);
         });
         test('we would back to screenLock', function() {
           assert.ok(screenLockPasscode._backToScreenLock.called);
@@ -285,20 +301,24 @@ suite('ScreenLockPasscode > ', function() {
       });
 
       suite('with wrong passcode', function() {
-        setup(function() {
-          screenLockPasscode._settings.passcode = '0001';
-          // we would add one more zero (charCode = 96)
-          screenLockPasscode._passcodeBuffer = '000';
-          screenLockPasscode._MODE = 'confirmLock';
-          screenLockPasscode.handleEvent({
-            target: screenLockPasscode.passcodeInput,
-            charCode: 48,
-            keyCode: 0,
-            preventDefault: function() {}
+        setup(function(done) {
+          PasscodeHelper.set('0001').then(() => {
+            // we would add one more zero (charCode = 96)
+            screenLockPasscode._passcodeBuffer = '000';
+            screenLockPasscode._MODE = 'confirmLock';
+            screenLockPasscode.handleEvent({
+              target: screenLockPasscode.passcodeInput,
+              charCode: 48,
+              keyCode: 0,
+              preventDefault: function () {
+              }
+            }).then(() => { done(); });
           });
         });
         test('passcode and lockscreen are not turned off', function() {
-          assert.deepEqual(window.navigator.mozSettings.mSettings, {});
+          var settingsObj = window.navigator.mozSettings.mSettings;
+          assert.notOk(settingsObj['lockscreen.enabled']);
+          assert.notOk(settingsObj['lockscreen.passcode-lock.enabled']);
         });
         test('we would reset passcodeBuffer', function() {
           assert.equal(screenLockPasscode._passcodeBuffer, '');
@@ -308,16 +328,18 @@ suite('ScreenLockPasscode > ', function() {
 
     suite('edit > ', function() {
       suite('with right passcode', function() {
-        setup(function() {
-          screenLockPasscode._settings.passcode = '0000';
-          // we would add one more zero (charCode = 96)
-          screenLockPasscode._passcodeBuffer = '000';
-          screenLockPasscode._MODE = 'edit';
-          screenLockPasscode.handleEvent({
-            target: screenLockPasscode.passcodeInput,
-            charCode: 48,
-            keyCode: 0,
-            preventDefault: function() {}
+        setup(function(done) {
+          PasscodeHelper.set('0000').then(() => {
+            // we would add one more zero (charCode = 96)
+            screenLockPasscode._passcodeBuffer = '000';
+            screenLockPasscode._MODE = 'edit';
+            screenLockPasscode.handleEvent({
+              target: screenLockPasscode.passcodeInput,
+              charCode: 48,
+              keyCode: 0,
+              preventDefault: function () {
+              }
+            }).then(() => { done(); });
           });
         });
         test('we would do a lot', function() {
@@ -328,16 +350,19 @@ suite('ScreenLockPasscode > ', function() {
       });
 
       suite('with wrong passcode', function() {
-        setup(function() {
-          screenLockPasscode._settings.passcode = '0001';
-          // we would add one more zero (charCode = 96)
-          screenLockPasscode._passcodeBuffer = '000';
-          screenLockPasscode._MODE = 'edit';
-          screenLockPasscode.handleEvent({
-            target: screenLockPasscode.passcodeInput,
-            charCode: 48,
-            keyCode: 0,
-            preventDefault: function() {}
+        setup(function(done) {
+          var promise = PasscodeHelper.set('0001');
+          promise = promise.then(() => {
+            // we would add one more zero (charCode = 96)
+            screenLockPasscode._passcodeBuffer = '000';
+            screenLockPasscode._MODE = 'edit';
+            screenLockPasscode.handleEvent({
+              target: screenLockPasscode.passcodeInput,
+              charCode: 48,
+              keyCode: 0,
+              preventDefault: function () {
+              }
+            }).then(() => { done(); });
           });
         });
         test('we would reset passcodeBuffer', function() {
