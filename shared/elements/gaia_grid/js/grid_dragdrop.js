@@ -275,6 +275,7 @@
       this.icon.scale = 1;
       this.icon.setActive(false);
       this.icon.element.classList.remove('hovering');
+      this.target = null;
 
       this.gridView.render();
 
@@ -282,8 +283,6 @@
       if (this.dirty) {
         window.dispatchEvent(new CustomEvent('gaiagrid-saveitems'));
       }
-
-      this.target = null;
       this.dirty = false;
 
       setTimeout(function nextTick() {
