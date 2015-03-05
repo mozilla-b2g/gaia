@@ -1,4 +1,4 @@
-/* global Service, ShrinkingUI, BaseModule, LazyLoader */
+/* global ShrinkingUI, BaseModule, LazyLoader */
 'use strict';
 
 (function(exports) {
@@ -301,7 +301,7 @@
           // Hide keyboard immediately.
           this.service.request('hideInputWindowImmediately');
         }
-      } else if (Service.query('Rocketbar.isActive')) {
+      } else if (this.rocketbar && this.rocketbar.active) {
         // Wait for the rocketbar to close
         window.addEventListener('rocketbar-overlayclosed', function onClose() {
           window.removeEventListener('rocketbar-overlayclosed', onClose);
@@ -449,7 +449,7 @@
     },
 
     _handle_hierarchytopmostwindowchanged: function() {
-      if (Service.query('getTopMostUI') !== this) {
+      if (this.service.query('getTopMostUI') !== this) {
         return;
       }
       this._activeApp && this._activeApp.getTopMostWindow()

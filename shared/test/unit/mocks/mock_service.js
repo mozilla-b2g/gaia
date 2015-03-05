@@ -1,7 +1,7 @@
 /* exported MockService */
 'use strict';
 var MockService = {
-  mTeardown: function() {
+  mSetup: function() {
     this.mIsFtuRunning = false;
     this.mUpgrading = false;
     this.mBtEnabled = false;
@@ -27,6 +27,13 @@ var MockService = {
     this.mKeyboardHeight = 0;
     this.mGetApp = null;
     this.mActiveApp = null;
+    this.mDefaultOrientation = 'portrait-primary';
+    this.mIsDefaultPortrait = true;
+    this.mGlobalOrientation = null;
+    this.mCurrentOrientation = 'portrait-primary';
+    this.mIsOutOfProcessEnabled = true;
+    this.mIsUpgrade = false;
+    this.mCurrentApp = null;
   },
   lowerCapital: function() {
     return 'a';
@@ -41,6 +48,18 @@ var MockService = {
   },
   query: function(state) {
     switch (state) {
+      case 'isUpgrade':
+        return this.mIsUpgrade;
+      case 'InputWindowManager.isOutOfProcessEnabled':
+        return this.mIsOutOfProcessEnabled;
+      case 'fetchCurrentOrientation':
+        return this.mCurrentOrientation;
+      case 'globalOrientation':
+        return this.mGlobalOrientation;
+      case 'defaultOrientation':
+        return this.mDefaultOrientation;
+      case 'isDefaultPortrait':
+        return this.mIsDefaultPortrait;
       case 'AppWindowManager.getActiveApp':
         return this.mActiveApp;
       case 'getApp':

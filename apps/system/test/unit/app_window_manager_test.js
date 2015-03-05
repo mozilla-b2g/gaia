@@ -5,6 +5,7 @@
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 require('/shared/test/unit/mocks/mock_service.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_activity_window.js');
@@ -32,7 +33,7 @@ var mocksForAppWindowManager = new MocksHelper([
   'Applications',
   'ManifestHelper', 'KeyboardManager', 'StatusBar', 'SoftwareButtonManager',
   'HomescreenWindow', 'AppWindow', 'LayoutManager', 'NfcHandler',
-  'TaskManager', 'NavigatorSettings'
+  'TaskManager', 'NavigatorSettings', 'LazyLoader'
 ]).init();
 
 suite('system/AppWindowManager', function() {

@@ -832,9 +832,11 @@
     function aw_installSubComponents() {
       this.debug('installing sub components...');
       for (var componentName in this.constructor.SUB_COMPONENTS) {
-        if (this.constructor.SUB_COMPONENTS[componentName]) {
+        var constructor =
+          window[this.constructor.SUB_COMPONENTS[componentName]];
+        if (constructor) {
           this[componentName] =
-            new window[this.constructor.SUB_COMPONENTS[componentName]](this);
+            new constructor(this);
           this[componentName].start && this[componentName].start();
         }
       }

@@ -1,4 +1,4 @@
-/* global AppWindow, ScreenLayout, MockOrientationManager, MockService,
+/* global AppWindow, ScreenLayout, MockService,
       MocksHelper, MockContextMenu, Service,
       MockAppTransitionController, MockPermissionSettings, DocumentFragment,
       AppChrome */
@@ -18,7 +18,7 @@ requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_permission_settings.js');
 
 var mocksForAppWindow = new MocksHelper([
-  'OrientationManager', 'Applications', 'SettingsListener',
+  'Applications', 'SettingsListener',
   'ManifestHelper', 'ScreenLayout', 'AppChrome',
   'AppTransitionController', 'Service'
 ]).init();
@@ -58,7 +58,6 @@ suite('system/AppWindow', function() {
     function() {
       return document.createElement('div');
     });
-    requireApp('system/js/service.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');
     requireApp('system/js/app_window.js');
@@ -423,16 +422,12 @@ suite('system/AppWindow', function() {
     var stubScreenMozLockOrientation, stubScreenMozUnlockOrientation;
     suite('lockOrientation()', function() {
       setup(function() {
-        MockOrientationManager.defaultOrientation = 'portrait-primary';
-        MockOrientationManager.globalOrientation = null;
+        MockService.mDefaultOrientation = 'portrait-primary';
+        MockService.mGlobalOrientation = null;
         stubScreenMozLockOrientation =
           this.sinon.stub(screen, 'mozLockOrientation');
         stubScreenMozUnlockOrientation =
           this.sinon.stub(screen, 'mozUnlockOrientation');
-      });
-      teardown(function() {
-        stubScreenMozLockOrientation.restore();
-        stubScreenMozUnlockOrientation.restore();
       });
       test('No orientation entry in manifest should unlock screen orientation.',
         function() {
@@ -491,7 +486,7 @@ suite('system/AppWindow', function() {
     });
 
     test('rotatingDegree on / default is portrait-primary', function() {
-      MockOrientationManager.defaultOrientation = 'portrait-primary';
+      MockService.mDefaultOrientation = 'portrait-primary';
       var app1 = new AppWindow(fakeAppConfig1);
       assert.isTrue(typeof(app1.rotatingDegree) !== 'undefined');
       var app2 = new AppWindow(fakeAppConfigWithDefaultOrientation);
@@ -511,7 +506,7 @@ suite('system/AppWindow', function() {
     });
 
     test('rotatingDegree on / default is landscape-primary', function() {
-      MockOrientationManager.defaultOrientation = 'landscape-primary';
+      MockService.mDefaultOrientation = 'landscape-primary';
       var app1 = new AppWindow(fakeAppConfig1);
       assert.isTrue(typeof(app1.rotatingDegree) !== 'undefined');
       var app3 = new AppWindow(fakeAppConfigWithPortraitOrientation);
@@ -529,45 +524,41 @@ suite('system/AppWindow', function() {
     });
 
     test('closing Rotation Degree / default is portrait-primary', function() {
-      MockOrientationManager.defaultOrientation = 'portrait-primary';
-      var stubCurrentOrientation =
-        this.sinon.stub(MockOrientationManager, 'fetchCurrentOrientation');
-      stubCurrentOrientation.returns('portrait-primary');
+      MockService.mDefaultOrientation = 'portrait-primary';
+      MockService.mCurrentOrientation = 'portrait-primary';
       var app1 = new AppWindow(fakeAppConfig1);
       var angle1 = app1.determineClosingRotationDegree();
       assert.equal(angle1, 0);
 
-      stubCurrentOrientation.returns('portrait-secondary');
+      MockService.mCurrentOrientation = 'portrait-secondary';
       var angle2 = app1.determineClosingRotationDegree();
       assert.equal(angle2, 180);
 
-      stubCurrentOrientation.returns('landscape-primary');
+      MockService.mCurrentOrientation = 'landscape-primary';
       var angle3 = app1.determineClosingRotationDegree();
       assert.equal(angle3, 270);
 
-      stubCurrentOrientation.returns('landscape-secondary');
+      MockService.mCurrentOrientation = 'landscape-secondary';
       var angle4 = app1.determineClosingRotationDegree();
       assert.equal(angle4, 90);
     });
 
     test('closing Rotation Degree / default is landscape-primary', function() {
-      MockOrientationManager.defaultOrientation = 'landscape-primary';
-      var stubCurrentOrientation =
-        this.sinon.stub(MockOrientationManager, 'fetchCurrentOrientation');
-      stubCurrentOrientation.returns('portrait-primary');
+      MockService.mDefaultOrientation = 'landscape-primary';
+      MockService.mCurrentOrientation = 'portrait-primary';
       var app1 = new AppWindow(fakeAppConfig1);
       var angle1 = app1.determineClosingRotationDegree();
       assert.equal(angle1, 90);
 
-      stubCurrentOrientation.returns('portrait-secondary');
+      MockService.mCurrentOrientation = 'portrait-secondary';
       var angle2 = app1.determineClosingRotationDegree();
       assert.equal(angle2, 270);
 
-      stubCurrentOrientation.returns('landscape-primary');
+      MockService.mCurrentOrientation = 'landscape-primary';
       var angle3 = app1.determineClosingRotationDegree();
       assert.equal(angle3, 0);
 
-      stubCurrentOrientation.returns('landscape-secondary');
+      MockService.mCurrentOrientation = 'landscape-secondary';
       var angle4 = app1.determineClosingRotationDegree();
       assert.equal(angle4, 180);
     });
