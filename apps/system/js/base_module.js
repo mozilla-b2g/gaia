@@ -245,7 +245,7 @@
         var moduleName = BaseModule.lowerCapital(module);
         if (this[moduleName]) {
           this.debug('Stopping submodule: ' + moduleName);
-          this[moduleName].stop && this.parent[moduleName].stop();
+          this[moduleName].stop && this[moduleName].stop();
         }
       }, this);
     }
@@ -389,6 +389,10 @@
 
   BaseModule.defined = function(name) {
     return !!AVAILABLE_MODULES[name];
+  };
+
+  BaseModule.__clearDefined = function() {
+    AVAILABLE_MODULES = [];
   };
 
   /**
