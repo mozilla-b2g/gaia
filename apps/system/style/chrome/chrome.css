@@ -219,6 +219,15 @@
   transition: transform 0.2s ease-in-out;
 }
 
+.appWindow.fullscreen-app .chrome.dragged,
+.appWindow.fullscreen-app .chrome.dragging {
+  visibility: visible;
+}
+
+.appWindow.fullscreen-app .chrome {
+  visibility: hidden;
+}
+
 .appWindow.collapsible.active .urlbar {
   will-change: transform;
 }
