@@ -13,5 +13,9 @@
     "examples",
     "LICENSE",
     "README.md"
-  ]
+  ],
+  "devDependencies": {
+    "evt": "gaia-components/evt#~0.4.0",
+    "smart-button": "smart-components/smart-button"
+  }
 }
