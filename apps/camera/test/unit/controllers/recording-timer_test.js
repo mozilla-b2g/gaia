@@ -53,4 +53,32 @@ suite('controllers/recording-timer', function() {
       assert.isTrue(this.view.value.calledWith(0));
     });
   });
+
+  suite('Accessibility Tests', function() {
+
+    var app,
+      view,
+      controller;
+
+    setup(function() {
+      app = sinon.createStubInstance(this.App);
+      app.view = new this.RecordingTimerView();
+      view = app.view;
+      controller = new this.RecordingTimerController(app);
+    });
+
+    test('Explicitly test for RecordingTimer visibility', function() {
+      // App is in its initialized state
+      assert.isFalse(view.el.classList.contains('visible'));
+
+      // Fire start recording event
+      controller.onRecordingChange(true);
+      assert.isTrue(view.el.classList.contains('visible'));
+
+      // Fire stop recording event
+      controller.onRecordingChange(false);
+      assert.isFalse(view.el.classList.contains('visible'));
+    });
+
+  });
 });
