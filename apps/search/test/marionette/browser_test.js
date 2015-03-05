@@ -2,8 +2,6 @@
 
 /* global __dirname */
 
-var Home2 = require('../../../verticalhome/test/marionette/lib/home2');
-var System = require('../../../system/test/marionette/lib/system');
 var Search = require('./lib/search');
 var Server = require('../../../../shared/test/integration/server');
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar.js');
@@ -12,7 +10,7 @@ var assert = require('chai').assert;
 
 marionette('Browser test', function() {
 
-  var client = marionette.client(Home2.clientOptions);
+  var client = marionette.client(require(__dirname + '/client_options.js'));
   var search, system, server, home, rocketbar;
 
   suiteSetup(function(done) {
@@ -23,10 +21,10 @@ marionette('Browser test', function() {
   });
 
   setup(function() {
-    home = new Home2(client);
+    home = client.loader.getAppClass('verticalhome');
     search = new Search(client);
     rocketbar = new Rocketbar(client);
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
     search.removeGeolocationPermission();
   });

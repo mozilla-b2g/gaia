@@ -4,9 +4,6 @@
 
 var assert = require('assert');
 
-var System = require('./lib/system');
-var Home = require('../../../verticalhome/test/marionette/lib/home2');
-
 var CALENDAR_APP = 'app://calendar.gaiamobile.org';
 
 marionette('mozChromeNotifications:', function() {
@@ -24,8 +21,8 @@ marionette('mozChromeNotifications:', function() {
   var home, system;
 
   setup(function() {
-    home = new Home(client);
-    system = new System(client);
+    home = client.loader.getAppClass('verticalhome');
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
     home.waitForLaunch();
   });

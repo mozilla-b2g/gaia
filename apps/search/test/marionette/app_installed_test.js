@@ -1,16 +1,15 @@
 'use strict';
-/* global __dirname */
 
 var AppInstall =
   require('../../../../apps/system/test/marionette/lib/app_install');
-var Home2 = require('./lib/home2');
 var Rocketbar =
   require('../../../system/test/marionette/lib/rocketbar.js');
 var createAppServer =
   require('../../../verticalhome/test/marionette/server/parent');
 
 marionette('Search - Installed Apps Test', function() {
-  var client = marionette.client(Home2.clientOptions);
+  var clientOptions = require(__dirname + '/client_options.js');
+  var client = marionette.client(clientOptions);
   var appInstall, home, rocketbar, search, server, system;
 
   setup(function(done) {
@@ -20,7 +19,6 @@ marionette('Search - Installed Apps Test', function() {
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
     system.waitForStartup();
-    search.removeGeolocationPermission();
 
     var app = __dirname + '/fixtures/installed_app';
     createAppServer(app, client, function(err, _server) {
