@@ -61,18 +61,6 @@ function addSettings(appDirPath, distDirPath, enabledFeatures) {
     domDoc.getElementById('general-container').innerHTML += hwContent;
   }
 
-  if (enabledFeatures.userDict) {
-    insertScript('js/settings/user_dictionary_edit_dialog.js');
-    insertScript('js/settings/user_dictionary_list_panel.js');
-    insertScript('js/settings/word_list_converter.js');
-    insertScript('js/settings/user_dictionary.js');
-
-    var udSettings = utils.getFile(appDirPath, 'user-dictionary-settings.html');
-    var udContent = utils.getFileContent(udSettings);
-    domDoc.querySelector('#general-container #general-settings ul').innerHTML +=
-      udContent;
-  }
-
   var sDoc = serializer.serializeToString(domDoc);
   utils.writeContent(utils.getFile(distDirPath, 'settings.html'), sDoc);
 }
