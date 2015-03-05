@@ -160,10 +160,12 @@ function runTest(filename, args, retry) {
     jsmarionette.stdout.on('data', function(data) {
       // Write a dot when jsmarionette says something to avoid timing out.
       stdout += data.toString();
+      console.log('marionette-mocha: ' + data.toString());
       process.stdout.write('.');
     });
 
     jsmarionette.stderr.on('data', function(data) {
+      console.log('marionette-mocha: ' + data.toString());
       stderr += data.toString();
     });
 
