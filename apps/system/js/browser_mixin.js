@@ -123,8 +123,10 @@
         'image/png' : 'image/jpeg';
 
       var req = this.iframe.getScreenshot(
-        width || this.width || layoutManager.width,
-        height || this.height || layoutManager.height,
+        width || this.width || Service.query('LayoutManager.width') ||
+          window.innerWidth,
+        height || this.height || Service.query('LayoutManager.height') ||
+          window.innerHeight,
         type);
 
       var success = function(result) {

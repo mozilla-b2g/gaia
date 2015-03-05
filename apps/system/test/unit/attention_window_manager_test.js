@@ -35,7 +35,7 @@ suite('system/AttentionWindowManager', function() {
 
   teardown(function() {
     window.homescreenLauncher = realHomescreenLauncher;
-    MockService.currentApp = null;
+    MockService.mActiveApp = null;
     stubById.restore();
   });
 
@@ -400,7 +400,7 @@ suite('system/AttentionWindowManager', function() {
         attentionWindowManager._topMostWindow = att1;
         var stubClose = this.sinon.stub(att1, 'close');
         var spyReadyForApp = this.sinon.stub(app, 'ready');
-        MockService.currentApp = app;
+        MockService.mActiveApp = app;
         window.dispatchEvent(new CustomEvent('attentionrequestclose', {
           detail: att1
         }));

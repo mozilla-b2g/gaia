@@ -62,7 +62,8 @@
     //
     // @see LockScreenMediaPlaybackWidget#handleEvent
     if ('lockscreen-request-mediacommand' === event.type) {
-      var port = IACHandler.getPort('mediacomms');
+      var port = IACHandler ?
+        IACHandler.getPort('mediacomms') : null;
       if (!port) {
         console.error('No port for MediaPlaybackWidget');
         return;

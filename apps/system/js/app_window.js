@@ -1,9 +1,7 @@
 /* global AppChrome */
 /* global applications */
 /* global BrowserFrame */
-/* global layoutManager */
 /* global ManifestHelper */
-/* global OrientationManager */
 /* global ScreenLayout */
 /* global SettingsListener */
 /* global StatusBar */
@@ -803,13 +801,13 @@
      '_closed', '_shrinkingstart', '_shrinkingstop'];
 
   AppWindow.SUB_COMPONENTS = {
-    'transitionController': window.AppTransitionController,
-    'modalDialog': window.AppModalDialog,
-    'valueSelector': window.ValueSelector,
-    'authDialog': window.AppAuthenticationDialog,
-    'contextmenu': window.BrowserContextMenu,
-    'childWindowFactory': window.ChildWindowFactory,
-    'statusbar': window.AppStatusbar
+    'transitionController': 'AppTransitionController',
+    'modalDialog': 'AppModalDialog',
+    'valueSelector': 'ValueSelector',
+    'authDialog': 'AppAuthenticationDialog',
+    'contextmenu': 'BrowserContextMenu',
+    'childWindowFactory': 'ChildWindowFactory',
+    'statusbar': 'AppStatusbar'
   };
 
   AppWindow.prototype.openAnimation = 'enlarge';
@@ -834,9 +832,11 @@
     function aw_installSubComponents() {
       this.debug('installing sub components...');
       for (var componentName in this.constructor.SUB_COMPONENTS) {
-        if (this.constructor.SUB_COMPONENTS[componentName]) {
+        var constructor =
+          window[this.constructor.SUB_COMPONENTS[componentName]];
+        if (constructor) {
           this[componentName] =
-            new this.constructor.SUB_COMPONENTS[componentName](this);
+            new constructor(this);
           this[componentName].start && this[componentName].start();
         }
       }
@@ -907,13 +907,14 @@
       // XXX: Preventing orientaiton of homescreen app is changed by background
       //      app. It's a workaround for bug 1089951.
       //      It should be remove once bug 1043102 is done.
-      } else if (Service.currentApp && Service.currentApp === this) {
+      } else if (Service.query('getTopMostWindow') &&
+                 Service.query('getTopMostWindow') === this) {
         this.lockOrientation();
       }
     }
 
-    var width = layoutManager.width;
-    var height = layoutManager.getHeightFor(this);
+    var width = Service.query('LayoutManager.width') || window.innerWidth;
+    var height = Service.query('getHeightFor', this) || window.innerHeight;
     this.element.style.width = width + 'px';
     this.element.style.height = height + 'px';
 
@@ -1398,16 +1399,19 @@
     'portrait-primary', 'portrait-secondary', 'portrait',
     'landscape-primary', 'landscape-secondary', 'landscape', 'default'];
 
-  var OrientationRotationTable = {
-    'portrait-primary': [0, 180, 0, 90,
-              270, 90, OrientationManager.isDefaultPortrait() ? 0 : 90],
-    'landscape-primary': [270, 90, 270, 0,
-              180, 0, OrientationManager.isDefaultPortrait() ? 270 : 0],
-    'portrait-secondary': [180, 0, 180, 270,
-              90, 270, OrientationManager.isDefaultPortrait() ? 180 : 270],
-    'landscape-secondary': [90, 270, 90, 180,
-              0, 180, OrientationManager.isDefaultPortrait() ? 180 : 90]
-  };
+  function findRotationDegree(orientation1, orientation2) {
+    var OrientationRotationTable = {
+      'portrait-primary': [0, 180, 0, 90,
+                270, 90, Service.query('isDefaultPortrait') ? 0 : 90],
+      'landscape-primary': [270, 90, 270, 0,
+                180, 0, Service.query('isDefaultPortrait') ? 270 : 0],
+      'portrait-secondary': [180, 0, 180, 270,
+                90, 270, Service.query('isDefaultPortrait') ? 180 : 270],
+      'landscape-secondary': [90, 270, 90, 180,
+                0, 180, Service.query('isDefaultPortrait') ? 180 : 90]
+    };
+    return OrientationRotationTable[orientation1][orientation2];
+  }
 
   AppWindow.prototype.determineRotationDegree =
     function aw__determineRotationDegree() {
@@ -1417,10 +1421,9 @@
 
       var appOrientation = this.manifest.orientation;
       var orientation = this.determineOrientation(appOrientation);
-      var table =
-        OrientationRotationTable[
-          OrientationManager.defaultOrientation];
-      var degree = table[OrientationRotationArray.indexOf(orientation)];
+      var degree = findRotationDegree(
+        Service.query('defaultOrientation'),
+        OrientationRotationArray.indexOf(orientation));
       this.rotatingDegree = degree;
       if (degree == 90 || degree == 270) {
         this.element.classList.add('perpendicular');
@@ -1435,12 +1438,11 @@
       }
 
       // XXX: Assume homescreen's orientation is just device default.
-      var homeOrientation = OrientationManager.defaultOrientation;
-      var currentOrientation = OrientationManager
-        .fetchCurrentOrientation();
+      var homeOrientation = Service.query('defaultOrientation');
+      var currentOrientation = Service.query('fetchCurrentOrientation');
       this.debug(currentOrientation);
-      var table = OrientationRotationTable[homeOrientation];
-      var degree = table[OrientationRotationArray.indexOf(currentOrientation)];
+      var degree = findRotationDegree(homeOrientation,
+        OrientationRotationArray.indexOf(currentOrientation));
       return Math.abs(360 - degree) % 360;
     };
 
@@ -1497,7 +1499,7 @@
   AppWindow.prototype._resize = function aw__resize(ignoreKeyboard) {
     var height, width;
     this.debug('force RESIZE...');
-    if (!ignoreKeyboard && layoutManager.keyboardEnabled) {
+    if (!ignoreKeyboard && Service.query('keyboardEnabled')) {
       /**
        * The event is dispatched on the app window only when keyboard is up.
        *
@@ -1514,10 +1516,11 @@
        */
       this.broadcast('withoutkeyboard');
     }
-    height = layoutManager.getHeightFor(this, ignoreKeyboard);
+    height = Service.query('getHeightFor', this, ignoreKeyboard) ||
+      window.innerHeight;
 
     // If we have sidebar in the future, change layoutManager then.
-    width = layoutManager.width;
+    width = Service.query('LayoutManager.width') || window.innerWidth;
 
     if (this.element.style.width === width + 'px' &&
         this.element.style.height === height + 'px') {
@@ -1616,8 +1619,8 @@
   AppWindow.prototype.lockOrientation = function() {
     var manifest = this.manifest || this.config.manifest;
     var orientation = manifest ? (manifest.orientation ||
-                      OrientationManager.globalOrientation) :
-                      OrientationManager.globalOrientation;
+                      Service.query('globalOrientation')) :
+                      Service.query('globalOrientation');
     if (orientation) {
       var rv = screen.mozLockOrientation(orientation);
 

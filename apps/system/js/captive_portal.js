@@ -3,9 +3,10 @@
 
 /* global BrowserFrame,
    EntrySheet,
-   FtuLauncher,
    Notification,
-   MozActivity
+   MozActivity,
+   Service,
+   LazyLoader
 */
 
 'use strict';
@@ -31,13 +32,15 @@ var CaptivePortal = {
         currentNetwork.ssid : '';
     var message = _('captive-wifi-available', { networkName: networkName });
 
-    if (FtuLauncher.isFtuRunning()) {
+    if (Service.query('isFtuRunning')) {
       settings.createLock().set({'wifi.connect_via_settings': false});
 
-      this.entrySheet = new EntrySheet(document.getElementById('screen'),
-                                      url,
-                                      new BrowserFrame({url: url}));
-      this.entrySheet.open();
+      LazyLoader.load(['js/entry_sheet.js']).then(function() {
+        this.entrySheet = new EntrySheet(document.getElementById('screen'),
+                                        url,
+                                        new BrowserFrame({url: url}));
+        this.entrySheet.open();
+      }.bind(this));
       return;
     }
 

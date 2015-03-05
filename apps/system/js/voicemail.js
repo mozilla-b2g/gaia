@@ -1,7 +1,7 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* globals SettingsHelper, SIMSlotManager, Notification, ModalDialog */
+/* globals Service, SIMSlotManager, Notification, ModalDialog */
 
 'use strict';
 
@@ -21,8 +21,6 @@ var Voicemail = {
 
     this.icon = window.location.protocol + '//' +
       window.location.hostname + '/style/icons/voicemail.png';
-
-    this.voiceMailNumberHelper = SettingsHelper('ril.iccInfo.mbdn', null);
 
     // Cleanup any pending notification and prepare event handler
     return this.setupNotifications();
@@ -56,24 +54,25 @@ var Voicemail = {
     // looking up |navigator.mozVoicemail.number|.
     // Some SIM card may not provide MBDN info
     // but we could still use settings to overload that.
-    this.voiceMailNumberHelper.get(function gotVMNumbers(numbers) {
-      var voicemail = navigator.mozVoicemail;
-      var number = numbers && numbers[status.serviceId];
+    Service.request('SettingsCore:get', 'ril.iccInfo.mbdn').then(
+      function(numbers) {
+        var voicemail = navigator.mozVoicemail;
+        var number = numbers && numbers[status.serviceId];
 
-      if (!number && voicemail) {
-       number = voicemail.getNumber(status.serviceId);
-      }
+        if (!number && voicemail) {
+         number = voicemail.getNumber(status.serviceId);
+        }
 
-      if (number) {
-        text = _('dialNumber', { number: number });
-      }
+        if (number) {
+          text = _('dialNumber', { number: number });
+        }
 
-      if (status.hasMessages) {
-        Voicemail.showNotification(title, text, number, status.serviceId);
-      } else {
-        Voicemail.hideNotification(status.serviceId);
-      }
-    });
+        if (status.hasMessages) {
+          Voicemail.showNotification(title, text, number, status.serviceId);
+        } else {
+          Voicemail.hideNotification(status.serviceId);
+        }
+      });
   },
 
   showNotification:

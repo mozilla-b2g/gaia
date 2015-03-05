@@ -271,7 +271,7 @@
           }
           break;
         case 'screenchange':
-          if (Service.locked && !detail.screenEnabled) {
+          if (Service.query('locked') && !detail.screenEnabled) {
             this.discardPermissionRequest();
           }
           break;
@@ -318,7 +318,8 @@
         this.cancelRequest(this.fullscreenRequest);
         this.fullscreenRequest = undefined;
       }
-      if (detail.fullscreenorigin !== Service.currentApp.origin) {
+      if (detail.fullscreenorigin !==
+          Service.query('getTopMostWindow').origin) {
         var _ = navigator.mozL10n.get;
         // The message to be displayed on the approval UI.
         var message =

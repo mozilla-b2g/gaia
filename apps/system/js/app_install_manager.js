@@ -1,8 +1,6 @@
 /* jshint moz:true */
 /* global ConfirmDialogHelper */
-/* global FtuLauncher */
 /* global KeyboardHelper */
-/* global inputWindowManager */
 /* global LazyLoader */
 /* global ManifestHelper */
 /* global ModalDialog */
@@ -288,7 +286,8 @@ var AppInstallManager = {
 
     // We must stop 3rd-party keyboard app from being installed
     // if the feature is not enabled.
-    if (role === 'input' && !inputWindowManager.isOutOfProcessEnabled) {
+    if (role === 'input' &&
+        !Service.query('InputWindowManager.isOutOfProcessEnabled')) {
       navigator.mozApps.mgmt.uninstall(app);
 
       return;
@@ -307,7 +306,7 @@ var AppInstallManager = {
   },
 
   showInstallSuccess: function ai_showInstallSuccess(app) {
-    if (FtuLauncher.isFtuRunning()) {
+    if (Service.query('isFtuRunning')) {
       return;
     }
     var manifest = app.manifest || app.updateManifest;

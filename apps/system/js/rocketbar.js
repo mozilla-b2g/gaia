@@ -299,7 +299,7 @@
         case 'global-search-request':
           // XXX: fix the WindowManager coupling
           // but currently the transition sequence is crucial for performance
-          var app = Service.currentApp;
+          var app = Service.query('getTopMostWindow');
           var afterActivate;
 
           if (app && !app.isActive()) {
@@ -558,7 +558,7 @@
       });
 
       // Do not persist search submissions from private windows.
-      if (Service.currentApp.isPrivateBrowser()) {
+      if (Service.query('getTopMostWindow').isPrivateBrowser()) {
         this.setInput('');
       }
     },

@@ -3,7 +3,8 @@
 
 'use strict';
 
-/* global MobileOperator, SIMSlotManager, uuid, dump, TelemetryRequest */
+/* global MobileOperator, SIMSlotManager, uuid, dump, TelemetryRequest,
+          LazyLoader */
 
 /**
  * A simple ping that is kicked off on first time use
@@ -335,30 +336,31 @@
 
     ping: function fp_ping() {
       this._pingData.pingTime = Date.now();
+      LazyLoader.load(['shared/js/telemetry.js']).then(function() {
+        var request = new TelemetryRequest({
+          reason: TELEMETRY_REASON,
+          deviceID: this._pingData.pingID,
+          ver: TELEMETRY_VERSION,
+          url: this._pingURL,
+          appUpdateChannel: this._pingData['app.update.channel'],
+          appVersion: this._pingData['deviceinfo.platform_version'],
+          appBuildID: this._pingData['deviceinfo.platform_build_id']
+        }, this._pingData);
 
-      var request = new TelemetryRequest({
-        reason: TELEMETRY_REASON,
-        deviceID: this._pingData.pingID,
-        ver: TELEMETRY_VERSION,
-        url: this._pingURL,
-        appUpdateChannel: this._pingData['app.update.channel'],
-        appVersion: this._pingData['deviceinfo.platform_version'],
-        appBuildID: this._pingData['deviceinfo.platform_build_id']
-      }, this._pingData);
-
-      var self = this;
-      request.send({
-        timeout: this._pingTimeout,
-        onload: function() {
-          self.pingSuccess(this.responseText);
-        },
-        ontimeout: function() {
-          self.pingError('Timed out');
-        },
-        onerror: function() {
-          self.pingError(this.statusText);
-        }
-      });
+        var self = this;
+        request.send({
+          timeout: this._pingTimeout,
+          onload: function() {
+            self.pingSuccess(this.responseText);
+          },
+          ontimeout: function() {
+            self.pingError('Timed out');
+          },
+          onerror: function() {
+            self.pingError(this.statusText);
+          }
+        });
+      }.bind(this));
     },
 
     pingSuccess: function fp_pingSuccess(result) {

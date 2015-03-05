@@ -279,7 +279,7 @@
         break;
 
       case this.title:
-        if (Service && Service.locked) {
+        if (Service && Service.query('locked')) {
           return;
         }
         window.dispatchEvent(new CustomEvent('global-search-request'));

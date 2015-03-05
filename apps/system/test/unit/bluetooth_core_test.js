@@ -1,4 +1,5 @@
-/* global MockMozBluetooth, Bluetooth, BluetoothTransfer, BaseModule */
+/* global MockMozBluetooth, Bluetooth, BluetoothTransfer, BaseModule,
+          MockLazyLoader */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_bluetooth.js');
@@ -9,6 +10,7 @@ requireApp('system/js/base_icon.js');
 requireApp('system/js/bluetooth_icon.js');
 requireApp('system/js/bluetooth_transfer_icon.js');
 requireApp('system/js/bluetooth_headphone_icon.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 
 function switchReadOnlyProperty(originObject, propName, targetObj) {
   Object.defineProperty(originObject, propName, {
@@ -21,13 +23,14 @@ suite('system/BluetoothCore', function() {
   var realMozBluetooth;
 
   setup(function(done) {
+    window.LazyLoader = MockLazyLoader;
     this.sinon.useFakeTimers();
 
     realMozBluetooth = navigator.mozBluetooth;
     switchReadOnlyProperty(navigator, 'mozBluetooth', MockMozBluetooth);
 
-    window.Bluetooth = { init: function() {} };
-    window.BluetoothTransfer = { init: function() {} };
+    window.Bluetooth = { start: this.sinon.spy() };
+    window.BluetoothTransfer = { start: this.sinon.spy() };
 
     requireApp('system/js/bluetooth_core.js', done);
   });
@@ -39,10 +42,7 @@ suite('system/BluetoothCore', function() {
   suite('BluetoothCore API', function() {
     var subject;
     setup(function() {
-      this.sinon.stub(Bluetooth, 'init');
-      this.sinon.stub(BluetoothTransfer, 'init');
       subject = BaseModule.instantiate('BluetoothCore');
-      subject.start();
     });
 
     teardown(function() {
@@ -50,8 +50,9 @@ suite('system/BluetoothCore', function() {
     });
 
     test('read', function() {
-      assert.ok(Bluetooth.init.called);
-      assert.ok(BluetoothTransfer.init.called);
+      subject._start();
+      assert.ok(Bluetooth.start.called);
+      assert.ok(BluetoothTransfer.start.called);
     });
   });
 });

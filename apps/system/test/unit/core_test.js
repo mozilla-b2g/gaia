@@ -1,13 +1,20 @@
-/* global BaseModule, MockPromise */
+/* global BaseModule, MockPromise, MocksHelper, MockScreenManager */
 'use strict';
 
 
 requireApp('system/shared/test/unit/mocks/mock_promise.js');
+requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
 requireApp('system/js/core.js');
 
+
+var mocksForCore = new MocksHelper([
+  'ScreenManager'
+]).init();
+
 suite('system/Core', function() {
+  mocksForCore.attachTestHelpers();
   var core;
   setup(function() {
     core = new BaseModule.instantiate('Core');
@@ -15,6 +22,12 @@ suite('system/Core', function() {
 
   teardown(function() {
     core.stop();
+  });
+
+  test('Should turn on screen on start', function() {
+    this.sinon.stub(MockScreenManager, 'turnScreenOn');
+    core.start();
+    assert.isTrue(MockScreenManager.turnScreenOn.called);
   });
 
   suite('Start handler', function() {
@@ -61,6 +74,7 @@ suite('system/Core', function() {
     test('simple launch with Settings API', function() {
       this.sinon.stub(core, 'startAPIHandler');
       core.start();
+      core.__sub_module_loaded();
       assert.isTrue(
         core.startAPIHandler.calledWith('mozSettings', 'SettingsCore'));
     });
@@ -91,6 +105,7 @@ suite('system/Core', function() {
     test('simple launch without Settings API', function() {
       this.sinon.stub(core, 'startAPIHandler');
       core.start();
+      core.__sub_module_loaded();
       assert.isFalse(
         core.startAPIHandler.calledWith('mozSettings', 'SettingsCore'));
     });

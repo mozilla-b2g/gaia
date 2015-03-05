@@ -2,7 +2,7 @@
 /* global CustomLogoPath */
 /* global Event */
 /* global LogoLoader */
-/* global OrientationManager */
+/* global Service */
 /* global SettingsListener */
 
 (function(exports) {
@@ -15,7 +15,7 @@
    * @class SleepMenu
    * @requires InitLogoHandler
    * @requires LogoLoader
-   * @requires OrientationManager
+   * @requires Service
    * @requires SettingsListener
    */
   function SleepMenu() {}
@@ -192,7 +192,7 @@
       this.buildMenu(this.generateItems());
       this.elements.overlay.classList.add('visible');
       // Lock to default orientation
-      screen.mozLockOrientation(OrientationManager.defaultOrientation);
+      screen.mozLockOrientation(Service.query('defaultOrientation'));
     },
 
     /**

@@ -205,7 +205,7 @@ window.UtilityTray = {
         break;
 
       case 'touchstart':
-        if (window.Service.locked || window.Service.runningFTU) {
+        if (Service.query('locked') || Service.query('isFtuRunning')) {
           return;
         }
 
@@ -323,7 +323,7 @@ window.UtilityTray = {
       // If the active app was tracking touches it won't get any more events
       // because of the pointer-events:none we're adding.
       // Sending a touchcancel accordingly.
-      var app = Service.currentApp;
+      var app = Service.query('getTopMostWindow');
       if (app && app.config && app.config.oop) {
         app.iframe.sendTouchEvent('touchcancel', [touch.identifier],
                                   [touch.pageX], [touch.pageY],
@@ -386,7 +386,7 @@ window.UtilityTray = {
 
   onTouchEnd: function ut_onTouchEnd(touch) {
     // Prevent utility tray shows while the screen got black out.
-    if (window.Service.locked) {
+    if (window.Service.query('locked')) {
       this.hide(true);
     } else {
       var significant = (Math.abs(this.lastDelta) > (this.screenHeight / 5));
