@@ -121,7 +121,9 @@ module.exports = View.extend({
           '<div class="settings_header">' +
             '<h2 class="settings_title" data-l10n-id="options"></h2>' +
           '</div>' +
-          '<div class="settings_items"><ul class="inner js-items"></ul></div>' +
+          '<div class="settings_items">' +
+            '<ul class="inner js-items" role="menu"></ul>' +
+          '</div>' +
         '</div>' +
       '</div>' +
     '</div>' +

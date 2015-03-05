@@ -107,6 +107,7 @@
  */
 
 [show-pane=pane-2] .pane-1 {
+  visibility: hidden;
   transform: translateX(-100%);
 }
 
