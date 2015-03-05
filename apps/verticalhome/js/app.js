@@ -15,6 +15,7 @@
 
     this.grid.addEventListener('iconblobdecorated', this);
     this.grid.addEventListener('gaiagrid-iconbloberror', this);
+    this.grid.addEventListener('gaiagrid-attention', this);
     this.grid.addEventListener('cached-icons-rendered', this);
     this.grid.addEventListener('edititem', this);
     window.addEventListener('hashchange', this);
@@ -202,6 +203,33 @@
         case 'gaiagrid-iconbloberror':
           // Attempt to redownload this icon at some point in the future
           this._iconsToRetry.push(e.detail.identifier);
+          break;
+
+        case 'gaiagrid-attention':
+          var offsetTop = this.grid.offsetTop;
+          var scrollTop = window.scrollY;
+          var gridHeight = document.body.clientHeight - offsetTop;
+
+          // Try to nudge scroll position to contain the item.
+          // We don't add offsetTop back onto scrollTop as the edit bar
+          // is the same size as the search bar and is covering the grid
+          var rect = e.detail;
+          if (scrollTop + gridHeight < rect.y + rect.height) {
+            scrollTop = (rect.y + rect.height) - gridHeight;
+          }
+          if (scrollTop > rect.y) {
+            scrollTop = rect.y;
+          }
+
+          if (scrollTop !== window.scrollY) {
+            // Grid hides overflow during dragging and normally only unhides it
+            // when it finishes. However, this causes smooth scrolling not to
+            // work, so remove it early.
+            document.body.style.overflow = '';
+            setTimeout(() => {
+              window.scrollTo({ left: 0, top: scrollTop, behavior: 'smooth'});
+            });
+          }
           break;
 
         case 'gaiagrid-saveitems':
