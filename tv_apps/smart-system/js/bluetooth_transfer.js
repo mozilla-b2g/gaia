@@ -4,7 +4,7 @@
    stopSendingFile(in DOMString aDeviceAddress);
    confirmReceivingFile(in DOMString aDeviceAddress, in bool aConfirmation); */
 /* global Bluetooth, NotificationHelper, CustomDialog, MimeMapper,
-          MozActivity */
+          MozActivity, focusManager */
 'use strict';
 
 var BluetoothTransfer = {
@@ -90,6 +90,12 @@ var BluetoothTransfer = {
     console.log('[System Bluetooth Transfer]: ' + msg);
   },
 
+  closeDialog: function bt_closeDialog() {
+    CustomDialog.hide();
+    this.customDialog = null;
+    focusManager.focus();
+  },
+
   humanizeSize: function bt_humanizeSize(bytes) {
     var _ = navigator.mozL10n.get;
     var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
@@ -141,7 +147,9 @@ var BluetoothTransfer = {
         'bodyL10n': 'transfer-confirmation-description',
         'icon': icon
       }).then(function(notification) {
-        self.showReceivePrompt(evt);
+        notification.onclick = function() {
+          self.showReceivePrompt(evt);
+        };
       });
     });
   },
@@ -166,7 +174,7 @@ var BluetoothTransfer = {
     var screen = document.getElementById('screen');
     this.getPairedDevice(function getPairedDeviceComplete() {
       deviceName = this.getDeviceName(address);
-      CustomDialog.show(
+      this.customDialog = CustomDialog.show(
         'acceptFileTransfer',
         {
           id: 'wantToReceiveFile',
@@ -179,13 +187,14 @@ var BluetoothTransfer = {
         cancel,
         confirm,
         screen
-      )
-      .setAttribute('data-z-index-level', 'system-dialog');
+      );
+      this.customDialog.setAttribute('data-z-index-level', 'system-dialog');
+      focusManager.focus();
     }.bind(this));
   },
 
   declineReceive: function bt_declineReceive(address) {
-    CustomDialog.hide();
+    this.closeDialog();
     var adapter = Bluetooth.getAdapter();
     if (adapter != null) {
       adapter.confirmReceivingFile(address, false);
@@ -196,7 +205,7 @@ var BluetoothTransfer = {
   },
 
   acceptReceive: function bt_acceptReceive(evt) {
-    CustomDialog.hide();
+    this.closeDialog();
     // Check storage is available or not before confirm receiving file
     var address = evt.address;
     var fileSize = evt.fileLength;
@@ -222,14 +231,21 @@ var BluetoothTransfer = {
     var confirm = {
       title: 'confirm',
       callback: function() {
-        CustomDialog.hide();
-      }
+        this.closeDialog();
+      }.bind(this)
     };
 
     var body = msg;
     var screen = document.getElementById('screen');
-    CustomDialog.show('cannotReceiveFile', body, confirm, null, screen)
-    .setAttribute('data-z-index-level', 'system-dialog');
+    this.customDialog = CustomDialog.show(
+      'cannotReceiveFile',
+      body,
+      confirm,
+      null,
+      screen
+    );
+    this.customDialog.setAttribute('data-z-index-level', 'system-dialog');
+    focusManager.focus();
   },
 
   checkStorageSpace: function bt_checkStorageSpace(fileSize, callback) {
@@ -336,22 +352,23 @@ var BluetoothTransfer = {
 
     var screen = document.getElementById('screen');
 
-    CustomDialog.show(
+    this.customDialog = CustomDialog.show(
       'cancelFileTransfer',
       'cancelFileTransfer',
       cancel,
       confirm,
       screen
-    )
-    .setAttribute('data-z-index-level', 'system-dialog');
+    );
+    this.customDialog.setAttribute('data-z-index-level', 'system-dialog');
+    focusManager.focus();
   },
 
   continueTransfer: function bt_continueTransfer() {
-    CustomDialog.hide();
+    this.closeDialog();
   },
 
   cancelTransfer: function bt_cancelTransfer(address) {
-    CustomDialog.hide();
+    this.closeDialog();
     var adapter = Bluetooth.getAdapter();
     if (adapter != null) {
       adapter.stopSendingFile(address);
@@ -373,9 +390,11 @@ var BluetoothTransfer = {
         NotificationHelper.send('transferFinished-receivedSuccessful-title', {
           'fileName': fileName,
           'icon': icon
-        }).then(function() {
-          this.openReceivedFile.bind(this, transferInfo);
-        });
+        }).then(function(notification) {
+          notification.onclick = function() {
+            this.openReceivedFile(transferInfo);
+          }.bind(this);
+        }.bind(this));
       } else {
         NotificationHelper.send('transferFinished-sentSuccessful-title', {
           'fileName': fileName,
@@ -521,14 +540,41 @@ var BluetoothTransfer = {
     var confirm = {
       title: 'confirm',
       callback: function() {
-        CustomDialog.hide();
-      }
+        this.closeDialog();
+      }.bind(this)
     };
 
     var screen = document.getElementById('screen');
     var body = {id: 'unknownMediaTypeToOpenFile', args: {fileName: fileName}};
-    CustomDialog.show('cannotOpenFile', body, confirm, null, screen)
-    .setAttribute('data-z-index-level', 'system-dialog');
+    this.customDialog = CustomDialog.show(
+      'cannotOpenFile',
+      body,
+      confirm,
+      null,
+      screen
+    );
+    this.customDialog.setAttribute('data-z-index-level', 'system-dialog');
+    focusManager.focus();
+  },
+
+  isVisible: function bt_isVisible() {
+    return !!this.customDialog;
+  },
+
+  getOrder: function bt_getOrder() {
+    if (this.isVisible()) {
+      var zIndex = window.getComputedStyle(this.customDialog).zIndex;
+      return zIndex === 'auto' ? 0 : zIndex;
+    }
+  },
+
+  focus: function bt_focus() {
+    if (this.isVisible()) {
+      // confirm button may not be shown in custom dialog, so focusing cancel
+      // button is better to handle all cases.
+      document.activeElement.blur();
+      this.customDialog.querySelector('#dialog-no').focus();
+    }
   }
 
 };
