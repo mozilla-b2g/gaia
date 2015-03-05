@@ -32,7 +32,7 @@
     "marionette-file-manager": "0.0.4",
     "marionette-helper": "~0.3.1",
     "marionette-plugin-forms": "0.0.3",
-    "marionette-profile-builder": "0.0.4",
+    "marionette-profile-builder": "0.0.3",
     "marionette-js-runner": "1.0.8",
     "marionette-settings-api": "~0.1.0",
     "mocha": "1.20.0",
