@@ -144,6 +144,17 @@ suite('search/search', function() {
     });
   });
 
+  suite('initNotice', function() {
+    test('gets the settingsLink on every call', function() {
+      var stub = this.sinon.stub(document, 'getElementById').returns({
+        addEventListener: this.sinon.spy()
+      });
+      Search.initNotice();
+      Search.initNotice();
+      assert.isTrue(stub.withArgs('settings-link').callCount === 2);
+    });
+  });
+
   suite('dispatchMessage', function() {
     test('dispatches messages based on action', function() {
       var stub = this.sinon.stub(Search, 'change');
