@@ -1,6 +1,6 @@
-/* *NOTE*: This file is a copy from the camera app. */
+
 /**
- * Event
+ * Evt
  *
  * A super lightweight
  * event emitter library.
@@ -8,7 +8,6 @@
  * @version 0.3.3
  * @author Wilson Page <wilson.page@me.com>
  */
-/* jshint ignore:start */
 
 ;(function() {
 
@@ -29,8 +28,8 @@ var slice = [].slice;
  * @return {Object}
  */
 function Events(obj) {
-  if (!(this instanceof Events)) { return new Events(obj); }
-  if (obj) { return mixin(obj, proto); }
+  if (!(this instanceof Events)) return new Events(obj);
+  if (obj) return mixin(obj, proto);
 }
 
 /**
@@ -47,6 +46,17 @@ proto.on = function(name, cb) {
   return this;
 };
 
+/**
+ * Attach a callback that once
+ * called, detaches itself.
+ *
+ * TODO: Implement `.off()` to work
+ * with `once()` callbacks.
+ *
+ * @param  {String}   name
+ * @param  {Function} cb
+ * @public
+ */
 proto.once = function(name, cb) {
   this.on(name, one);
   function one() {
@@ -125,7 +135,7 @@ proto.firer = function(name) {
  * @return {Object}
  */
 function mixin(a, b) {
-  for (var key in b) { a[key] = b[key]; }
+  for (var key in b) a[key] = b[key];
   return a;
 }
 
@@ -136,7 +146,7 @@ function mixin(a, b) {
 if (typeof exports === 'object') {
   module.exports = Events;
 } else if (typeof define === 'function' && define.amd) {
-  define(function() { return Events; });
+  define(function(){ return Events; });
 } else {
   window.evt = Events;
 }

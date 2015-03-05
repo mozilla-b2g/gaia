@@ -1,16 +1,19 @@
 {
-  "name": "gaia-component",
-  "version": "0.3.4",
+  "name": "evt",
+  "main": "index.js",
+  "version": "0.4.0",
+  "homepage": "https://github.com/wilsonpage/evt",
   "authors": [
     "Wilson Page <wilsonpage@me.com>"
   ],
-  "main": "gaia-component.js",
   "license": "MIT",
   "ignore": [
     "**/.*",
     "node_modules",
     "bower_components",
+    "package.json",
     "test",
-    "tests"
+    "tests",
+    "README.md"
   ]
 }
