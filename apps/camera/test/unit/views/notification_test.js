@@ -17,21 +17,28 @@ suite('views/notification', function() {
   suite('NotificationView#display()', function() {
     suite('Temporary', function() {
       test('Should add the item to the view', function() {
+        assert.equal(this.view.el.getAttribute('role'), 'presentation');
         this.view.display({ text: 'foo' });
         var child = this.view.el.children[0];
         assert.ok(child);
+        assert.equal(child.getAttribute('role'), 'status');
+        assert.equal(child.getAttribute('aria-live'), 'assertive');
       });
 
       test('Should add `text` as textContent', function() {
         this.view.display({ text: 'foo' });
         var child = this.view.el.children[0];
         assert.equal(child.textContent, 'foo');
+        assert.equal(child.getAttribute('role'), 'status');
+        assert.equal(child.getAttribute('aria-live'), 'assertive');
       });
 
       test('Should assign className to the item element', function() {
         this.view.display({ text: 'foo', className: 'bar' });
         var child = this.view.el.children[0];
         assert.isTrue(child.classList.contains('bar'));
+        assert.equal(child.getAttribute('role'), 'status');
+        assert.equal(child.getAttribute('aria-live'), 'assertive');
       });
 
       test('Should remove the last non-persistent item that is in the way', function() {
