@@ -1,5 +1,5 @@
 /* global LazyLoader, AppWindowManager, applications, ManifestHelper*/
-/* global Template*/
+/* global Template, focusManager */
 'use strict';
 (function(exports) {
   /**
@@ -422,10 +422,8 @@
       this.hideInfoLink.removeEventListener('click',
         this.moreInfoHandler);
       this.moreInfo.classList.add('hidden');
-      // XXX: This is telling AppWindowManager to focus the active app.
-      // After we are moving into AppWindow, we need to remove that
-      // and call this.app.focus() instead.
       this.publish('permissiondialoghide');
+      focusManager.focus();
     },
 
     publish: function(eventName, detail) {
@@ -615,6 +613,7 @@
       }
       // Make the screen visible
       this.overlay.classList.add('visible');
+      this.focus();
     },
 
     /**
@@ -654,6 +653,36 @@
       this.dispatchResponse(this.currentRequestId, 'permission-deny', false);
       this.hidePermissionPrompt();
       this.pending = [];
+    },
+
+    /**
+     * Check if any prompt is visible
+     * @memberof PermissionManager.prototype
+     * @return {Boolean} If any prompt is visible or not.
+     */
+    isVisible: function pm_isVisible() {
+      return this.overlay.classList.contains('visible');
+    },
+
+    /**
+     * get the z index value at screen level.
+     * @memberof PermissionManager.prototype
+     * @return {Integer} the z-index value.
+     */
+    getOrder: function pm_getOrder() {
+      var zIndex = window.getComputedStyle(this.overlay).zIndex;
+      return zIndex === 'auto' ? 0 : zIndex;
+    },
+
+    /**
+     * try to focus the default element
+     * @memberof PermissionManager.prototype
+     */
+    focus: function pm_focus() {
+      setTimeout(function() {
+        document.activeElement.blur();
+        this.no.focus();
+      }.bind(this));
     }
   };
 
