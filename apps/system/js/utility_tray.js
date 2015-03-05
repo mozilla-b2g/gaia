@@ -125,7 +125,7 @@ var UtilityTray = {
         break;
 
       case 'touchstart':
-        if (lockScreen.locked) {
+        if (lockScreen.locked || FtuLauncher.isFtuRunning()) {
           return;
         }
 
