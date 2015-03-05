@@ -1,7 +1,7 @@
 'use strict';
 /**
  * Base app object to provide common methods to app objects
- * 
+ *
  * @constructor
  * @param {Marionette.Client} client for operations.
  */
@@ -43,22 +43,17 @@ Base.prototype = {
   /**
    * Waits for panel to dissapear, due to transition and transform we need to
    * be sure element is not in the viewport range.
-   * 
+   *
    * @protected
    * @param {String} name of selector
    */
   waitForPanelToDissapear: function(name) {
-    var element = this.waitForElement(name);
     this.client.waitFor(function() {
-      var loc = element.location();
-      var size = element.size();
-      var position = loc.x + size.width;
-
-      // Depending on transition behaviour element can be hidden
-      // near left corner (position = 0) or right corner
-      // (position = 640 on simulator - two times scren size)
-      return position === 0 || position === (2 * size.width);
-    });
+      var rect = this.client.findElement(name).scriptWith(function(element) {
+        return element.getBoundingClientRect();
+      });
+      return rect.right <= 0 || rect.left >= rect.width;
+    }.bind(this));
   },
 
   /**
