@@ -3,13 +3,13 @@ apps/bookmark
 apps/calendar
 apps/camera
 apps/clock
+apps/collection
 apps/communications
 apps/default_theme
 apps/email
 apps/fl
 apps/ftu
 apps/gallery
-apps/homescreen
 apps/keyboard
 apps/marketplace.firefox.com
 apps/music
@@ -19,6 +19,7 @@ apps/search
 apps/setringtone
 apps/settings
 apps/system
+apps/verticalhome
 apps/video
 apps/wallpaper
 outoftree_apps/*
