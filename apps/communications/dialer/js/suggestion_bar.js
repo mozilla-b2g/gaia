@@ -103,8 +103,7 @@ var SuggestionBar = {
   _renderBar: function sb_renderBar() {
     var self = this;
 
-    self.bar.hidden = false;
-    self.bar.setAttribute('aria-hidden', false);
+    self.bar.classList.remove('hide');
 
     // Create matching index table for reference
     self._allMatched = self._getAllMatched(self._contactList);
@@ -275,8 +274,7 @@ var SuggestionBar = {
     var node = this.barSuggestionItem;
     this._setItem(node);
     this._contactList = null;
-    this.bar.hidden = true;
-    this.bar.setAttribute('aria-hidden', true);
+    this.bar.classList.add('hide');
 
     if (isHardClear) {
       this._phoneNumber = null;

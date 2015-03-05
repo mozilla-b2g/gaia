@@ -125,6 +125,7 @@ suite('suggestion Bar', function() {
 
     domSuggestionBar = document.createElement('section');
     domSuggestionBar.id = 'suggestion-bar';
+    domSuggestionBar.classList.add('hide');
     domSuggestionBar.innerHTML =
       '<div id="suggestion-count" class="more"></div>' +
       '<div is="contact-in-overlay" ' +
@@ -217,8 +218,7 @@ suite('suggestion Bar', function() {
                    'localization');
       assert.isFalse(domSuggestionCount.classList.contains('more'),
                   '#suggestion-count shouldn\'t contain "more" style');
-      assert.isFalse(domSuggestionBar.hidden, 'should show suggestionBar');
-      assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'false');
+      assert.isFalse(domSuggestionBar.classList.contains('hide'));
     });
 
     test('#update suggestions by contact data - 2 datas', function() {
@@ -238,8 +238,7 @@ suite('suggestion Bar', function() {
                    'should localize the phone type');
       assert.isTrue(domSuggestionCount.classList.contains('more'),
                   '#suggestion-count should contain "more" style');
-      assert.isFalse(domSuggestionBar.hidden, 'should show suggestionBar');
-      assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'false');
+      assert.isFalse(domSuggestionBar.classList.contains('hide'));
     });
 
     test('#update suggestions by contact data - 0 local data - 1 FB data',
@@ -261,8 +260,7 @@ suite('suggestion Bar', function() {
                    'should localize the phone type');
         assert.isFalse(domSuggestionCount.classList.contains('more'),
                     '#suggestion-count should not contain "more" style');
-        assert.isFalse(domSuggestionBar.hidden, 'should show suggestionBar');
-        assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'false');
+        assert.isFalse(domSuggestionBar.classList.contains('hide'));
 
         assert.equal(SuggestionBar._contactList.length, 1,
                      '_contactList.length should be 1');
@@ -288,8 +286,7 @@ suite('suggestion Bar', function() {
                    'localization');
         assert.isTrue(domSuggestionCount.classList.contains('more'),
                     '#suggestion-count should contain "more" style');
-        assert.isFalse(domSuggestionBar.hidden, 'should show suggestionBar');
-        assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'false');
+        assert.isFalse(domSuggestionBar.classList.contains('hide'));
     });
 
     test('#update suggestions by contact data - 0 local data - 2 FB data',
@@ -311,8 +308,7 @@ suite('suggestion Bar', function() {
                    'should localize the phone type');
         assert.isTrue(domSuggestionCount.classList.contains('more'),
                     '#suggestion-count should contain "more" style');
-        assert.isFalse(domSuggestionBar.hidden, 'should show suggestionBar');
-        assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'false');
+        assert.isFalse(domSuggestionBar.classList.contains('hide'));
     });
 
     test('#update suggestions by contact data - 50 local data - 0 FB data',
@@ -321,8 +317,7 @@ suite('suggestion Bar', function() {
         cloneMockContactResults(50);
         subject.update(enteredNumber);
 
-        assert.isFalse(domSuggestionBar.hidden, 'should show suggestionBar');
-        assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'false');
+        assert.isFalse(domSuggestionBar.classList.contains('hide'));
     });
 
     test('#update suggestions by contact data - 51 local data - 0 FB data',
@@ -331,8 +326,7 @@ suite('suggestion Bar', function() {
         cloneMockContactResults(51);
         subject.update(enteredNumber);
 
-        assert.isTrue(domSuggestionBar.hidden, 'should hide suggestionBar');
-        assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'true');
+        assert.isTrue(domSuggestionBar.classList.contains('hide'));
     });
 
     test('#update suggestions by contact data - 50 local data - 1 FB data',
@@ -342,8 +336,7 @@ suite('suggestion Bar', function() {
         MockFbContacts.mResult = mockResultFb.slice(0, 1);
         subject.update(enteredNumber);
 
-        assert.isTrue(domSuggestionBar.hidden, 'should hide suggestionBar');
-        assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'true');
+        assert.isTrue(domSuggestionBar.classList.contains('hide'));
     });
 
     suite('#clear suggestions', function() {
@@ -361,8 +354,7 @@ suite('suggestion Bar', function() {
       });
 
       test('should hide suggestionBar', function() {
-        assert.isTrue(domSuggestionBar.hidden);
-        assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'true');
+        assert.isTrue(domSuggestionBar.classList.contains('hide'));
       });
     });
 
@@ -381,9 +373,7 @@ suite('suggestion Bar', function() {
 
         setupExactMatch();
 
-        assert.isFalse(domSuggestionBar.hidden,
-                       'should not hide suggestionBar');
-        assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'false');
+        assert.isTrue(domSuggestionBar.classList.contains('hide'));
         assert.equal(tel.textContent, mockNumber);
       });
 
@@ -391,8 +381,7 @@ suite('suggestion Bar', function() {
         MockNavigatorMozIccManager.addIcc(1, {});
         setupExactMatch();
 
-        assert.isTrue(domSuggestionBar.hidden, 'should hide suggestionBar');
-        assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'true');
+        assert.isTrue(domSuggestionBar.classList.contains('hide'));
       });
     });
 
