@@ -1,4 +1,4 @@
-/* global SettingsService, PasscodeHelper */
+/* global SettingsService */
 suite('ScreenLockPasscode > ', function() {
   'use strict';
 
@@ -8,7 +8,7 @@ suite('ScreenLockPasscode > ', function() {
   var realMozSettings;
   var realSettingsListener;
   var realSettingsService;
-  require('/shared/js/passcode_helper.js');
+  var PasscodeHelper;
 
   suiteSetup(function(done) {
     navigator.addIdleObserver = sinon.spy();
@@ -18,6 +18,7 @@ suite('ScreenLockPasscode > ', function() {
       'shared_mocks/mock_settings_listener',
       'unit/mock_settings_service',
       'panels/screen_lock_passcode/screen_lock_passcode',
+      'shared/passcode_helper'
     ];
 
     var maps = {
@@ -28,7 +29,7 @@ suite('ScreenLockPasscode > ', function() {
 
     testRequire(modules, maps,
       function(MockNavigatorSettings, MockSettingsListener, MockSettingsService,
-        ScreenLockPasscode) {
+        ScreenLockPasscode, PasscodeHelperModule) {
           realScreenLockPasscode = ScreenLockPasscode;
 
           realSettingsListener = window.SettingsListener;
@@ -40,6 +41,7 @@ suite('ScreenLockPasscode > ', function() {
           realMozSettings = window.navigator.mozSettings;
           window.navigator.mozSettings = MockNavigatorSettings;
 
+          PasscodeHelper = PasscodeHelperModule;//
           done();
     });
   });

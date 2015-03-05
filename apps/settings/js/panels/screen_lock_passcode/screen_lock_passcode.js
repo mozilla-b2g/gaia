@@ -1,11 +1,9 @@
-/* global PasscodeHelper */
 define(function(require) {
   'use strict';
 
   var SettingsService = require('modules/settings_service');
   var SettingsUtils = require('modules/settings_utils');
-  require('/shared/js/passcode_helper.js');
-
+  var PasscodeHelper = require('shared/passcode_helper');
 
   var ScreenLockPasscode = function ctor_screenlock_passcode() {
     return {
