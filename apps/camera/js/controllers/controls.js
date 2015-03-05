@@ -57,6 +57,10 @@ ControlsController.prototype.bindEvents = function() {
   this.app.on('timer:cleared', this.onTimerStopped);
   this.app.on('timer:ended', this.onTimerStopped);
 
+  // Settings
+  this.app.on('settings:opened', this.onSettingsOpened);
+  this.app.on('settings:closed', this.onSettingsClosed);
+
   debug('events bound');
 };
 
@@ -195,6 +199,25 @@ ControlsController.prototype.onTimerStarted = function() {
 ControlsController.prototype.onTimerStopped = function() {
   this.captureHighlightOff();
   this.view.set('timer', 'inactive');
+};
+
+/**
+ * Make controls invisible to the screen reader since they are behind settings
+ * overlay.
+ *
+ * @private
+ */
+ControlsController.prototype.onSettingsOpened = function() {
+  this.view.setScreenReaderVisible(false);
+};
+
+/**
+ * Make controls visible to the screen reader again when settings are closed.
+ *
+ * @private
+ */
+ControlsController.prototype.onSettingsClosed = function() {
+  this.view.setScreenReaderVisible(true);
 };
 
 ControlsController.prototype.onCameraBusy = function() {

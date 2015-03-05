@@ -139,6 +139,19 @@ suite('views/controls', function() {
     });
   });
 
+  suite('ControlsView#setScreenReaderVisible()', function() {
+    test('hide the view from screen reader', function() {
+      this.view.setScreenReaderVisible(false);
+      assert.equal(this.view.el.getAttribute('aria-hidden'), 'true');
+    });
+
+    test('show the view to the screen reader', function() {
+      this.view.el.setAttribute('aria-hidden', true);
+      this.view.setScreenReaderVisible(true);
+      assert.equal(this.view.el.getAttribute('aria-hidden'), 'false');
+    });
+  });
+
   suite('ControlsView#enable()', function() {
     test('Should add an enabled class if no value is given', function() {
       this.view.enable();

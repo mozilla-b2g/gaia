@@ -123,6 +123,21 @@ suite('controllers/controls', function() {
     });
   });
 
+  suite('Set view screen reader visibility based on settings opened/closed',
+    function() {
+      test('settings opened -> hide view from screen reader', function() {
+        // Check the view is hidden from the screen reader.
+        this.app.on.withArgs('settings:opened').args[0][1]();
+        sinon.assert.calledWith(this.view.setScreenReaderVisible, false);
+      });
+
+      test('settings closed -> show view to screen reader', function() {
+        // Check the view is visible to the screen reader.
+        this.app.on.withArgs('settings:closed').args[0][1]();
+        sinon.assert.calledWith(this.view.setScreenReaderVisible, true);
+      });
+    });
+
   suite('ControlsController#configureMode()', function() {
     test('It\'s not switchable when only one mode is available', function() {
 

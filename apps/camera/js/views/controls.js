@@ -140,6 +140,15 @@ module.exports = View.extend({
     debug('set switch icon camera: %s, video: %s', camera, video);
   },
 
+  /**
+   * Set view screen reader visibility. In some cases, though the view is behind
+   * an overlay and not hidden off screen, it still needs to be
+   * hidden/inaccessible from the screen reader.
+   */
+  setScreenReaderVisible: function(visible) {
+    this.el.setAttribute('aria-hidden', !visible);
+  },
+
   onButtonClick: function(e) {
     e.stopPropagation();
     debug('button click');
