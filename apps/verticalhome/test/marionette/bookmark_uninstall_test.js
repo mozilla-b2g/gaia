@@ -4,19 +4,17 @@
 var assert = require('assert');
 
 var Bookmark = require('../../../../apps/system/test/marionette/lib/bookmark');
-var Home2 = require('./lib/home2');
 var Server = require('../../../../shared/test/integration/server');
-var System = require('../../../../apps/system/test/marionette/lib/system');
 
 marionette('Vertical - Bookmark Uninstall', function() {
 
   // Bug 1007352 - homescreen URL is hard-coded so we run this test with the
   // old homescreen, then launch the new homescreen as an app. This is only
   // needed because we lauch other applications.
-  var options = JSON.parse(JSON.stringify(Home2.clientOptions));
+  var options = require(__dirname + '/client_options.js');
   delete options.settings['homescreen.manifestURL'];
 
-  var client = marionette.client(options);
+  var client = marionette.client(require(__dirname + '/client_options.js'));
   var bookmark, home, server, system;
 
   suiteSetup(function(done) {
@@ -32,12 +30,12 @@ marionette('Vertical - Bookmark Uninstall', function() {
 
   var url;
   setup(function() {
-    home = new Home2(client);
-    system = new System(client);
+    home = client.loader.getAppClass('verticalhome');
+    system = client.loader.getAppClass('system');
     bookmark = new Bookmark(client, server);
     system.waitForStartup();
 
-    client.apps.launch(Home2.URL);
+    client.apps.launch(home.URL);
 
     url = server.url('sample.html');
     bookmark.openAndSave(url);

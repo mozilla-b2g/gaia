@@ -93,6 +93,9 @@ Search.prototype = {
         'geolocation', 'deny', origin + '/manifest.webapp', origin, false
       );
     }, [Search.URL]);
+    this.client.executeScript(function() {
+      window.wrappedJSObject.permissionManager.discardPermissionRequest();
+    });
   },
 
   /**

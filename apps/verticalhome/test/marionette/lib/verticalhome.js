@@ -1,7 +1,5 @@
 'use strict';
-/* global module */
 
-var System = require('../../../../../apps/system/test/marionette/lib/system');
 var Actions = require('marionette-client').Actions;
 var getIconId = require('./icon_id');
 
@@ -9,11 +7,11 @@ var getIconId = require('./icon_id');
  * Abstraction around homescreen.
  * @constructor
  */
-function Home2(client) {
+function VerticalHome(client) {
   this.client = client;
-  this.system = new System(client);
+  this.system = client.loader.getAppClass('system');
 
-  // For all home2 tests we disable geolocation for smart collections because
+  // For all home tests we disable geolocation for smart collections because
   // there is a nasty bug where we show a prompt on desktop but not a device.
   // This will go away once bug 1022768 lands.
   var chromeClient = this.client.scope({ context: 'chrome' });
@@ -26,46 +24,61 @@ function Home2(client) {
   });
 }
 
-Home2.clientOptions = {
-  prefs: {
-    'dom.inter-app-communication-api.enabled': true,
-    'dom.w3c_touch_events.enabled': 1
-  },
-  settings: {
-    'homescreen.manifestURL':
-      'app://verticalhome.gaiamobile.org/manifest.webapp',
-    'ftu.manifestURL': null,
-    'keyboard.ftu.enabled': false,
-    'lockscreen.enabled': false
-  }
-};
-
 /**
- * @type String Origin of Home2 app
+ * @type String Origin of VerticalHome app
  */
-Home2.URL = 'app://verticalhome.gaiamobile.org';
+VerticalHome.URL = 'app://verticalhome.gaiamobile.org';
 
-Home2.Selectors = {
+VerticalHome.Selectors = {
   editHeaderText: '#edit-header h1',
   editHeaderDone: '#exit-edit-mode',
+  editGroup: '#edit-group',
+  editGroupTitle: '#edit-group-title',
+  editGroupSave: '#edit-group-save',
+  editGroupTitleClear: '#edit-group-title-clear',
   search: '#search',
   firstIcon: '#icons div.icon:not(.placeholder)',
+  groupHeader: '#icons .group .header',
+  groupTitle: '#icons .group .header .title',
   dividers: '#icons section.divider',
+  collections: '#icons .icon.collection',
   contextmenu: '#contextmenu-dialog',
-  themeColor: 'head meta[name="theme-color"]'
+  removeCollectionConfirm: 'gaia-confirm',
+  themeColor: 'head meta[name="theme-color"]',
+  placeholders: '#icons .placeholder'
 };
 
 /**
  * Launches our new homescreen and focuses on it.
  */
-Home2.prototype = {
+VerticalHome.prototype = {
+
+  URL: VerticalHome.URL,
+  Selectors: VerticalHome.Selectors,
 
   get numIcons() {
-    return this.client.findElements(Home2.Selectors.firstIcon).length;
+    return this.client.findElements(VerticalHome.Selectors.firstIcon).length;
   },
 
   get numDividers() {
-    return this.client.findElements(Home2.Selectors.dividers).length;
+    return this.dividers.length;
+  },
+
+  get dividers() {
+    return this.client.findElements(VerticalHome.Selectors.dividers);
+  },
+
+  get contextMenu() {
+    return this.client.findElement(VerticalHome.Selectors.contextmenu);
+  },
+
+  get collections() {
+    return this.client.findElements(VerticalHome.Selectors.collections);
+  },
+
+  get removeCollectionConfirm() {
+    return this.client.findElement(
+      VerticalHome.Selectors.removeCollectionConfirm);
   },
 
   /**
@@ -116,10 +129,20 @@ Home2.prototype = {
   enterEditMode: function(icon) {
     var actions = new Actions(this.client);
     var firstIcon = icon ||
-      this.client.helper.waitForElement(Home2.Selectors.firstIcon);
+      this.client.helper.waitForElement(VerticalHome.Selectors.firstIcon);
 
     actions.longPress(firstIcon, 1).perform();
-    this.client.helper.waitForElement(Home2.Selectors.editHeaderText);
+    this.client.helper.waitForElement(VerticalHome.Selectors.editHeaderText);
+  },
+
+  /**
+   * Exits the edit mode by long-pressing the done button and waiting for it
+   * to disappear.
+   */
+  exitEditMode: function() {
+    var done = this.client.findElement(VerticalHome.Selectors.editHeaderDone);
+    done.click();
+    this.client.helper.waitForElementToDisappear(done);
   },
 
   /**
@@ -133,7 +156,7 @@ Home2.prototype = {
   },
 
   focusRocketBar: function() {
-    this.client.helper.waitForElement(Home2.Selectors.search).tap();
+    this.client.helper.waitForElement(VerticalHome.Selectors.search).tap();
     this.client.switchToFrame();
   },
 
@@ -215,7 +238,7 @@ Home2.prototype = {
   @return {String}
   */
   getThemeColor: function() {
-    var meta = this.client.findElement(Home2.Selectors.themeColor);
+    var meta = this.client.findElement(VerticalHome.Selectors.themeColor);
     return meta.getAttribute('content');
   },
 
@@ -224,7 +247,7 @@ Home2.prototype = {
    */
   waitForLaunch: function() {
     this.client.helper.waitForElement('body');
-    this.client.apps.switchToApp(Home2.URL);
+    this.client.apps.switchToApp(VerticalHome.URL);
   },
 
   /**
@@ -239,10 +262,10 @@ Home2.prototype = {
       entryPoint = null;
     }
 
-    var client = this.client.scope({context: 'chrome'});
-
     var file = 'app://' + app + '.gaiamobile.org/manifest.webapp';
-    var manifest = client.executeAsyncScript(function(file) {
+    // use a chrome-scoped Marionette client for the cross-domain XHR
+    var chromeClient = this.client.scope({context: 'chrome'});
+    var manifest = chromeClient.executeAsyncScript(function(file) {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', file, true);
       xhr.onload = function(o) {
@@ -258,26 +281,31 @@ Home2.prototype = {
     } else {
       locales = manifest.locales;
     }
-    return locales && locales[locale].name;
+
+    if (!locales) {
+      return false;
+    }
+
+    if (locale.indexOf('qps') === 0) {
+      return this.client.executeScript(function(locale, name) {
+        var mozL10n = window.wrappedJSObject.navigator.mozL10n;
+        return mozL10n.qps[locale].translate(name);
+      }, [locale, locales['en-US'].name]);
+    }
+
+    return locales[locale].name;
   },
 
   /**
    * Returns a localized string from a properties file.
-   * @param {String} file to open.
    * @param {String} key of the string to lookup.
    */
-  l10n: function(file, key) {
-    var string = this.client.executeAsyncScript(function(file, key) {
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', file, true);
-      xhr.onload = function(o) {
-        var data = JSON.parse(xhr.response);
-        marionetteScriptFinished(data);
-      };
-      xhr.send(null);
-    }, [file, key]);
+  l10n: function(key) {
+    var string = this.client.executeScript(function(key) {
+      return window.wrappedJSObject.navigator.mozL10n.get(key);
+    }, [key]);
 
-    return string[key];
+    return string;
   },
 
   containsClass: function(selector, clazz) {
@@ -311,7 +339,37 @@ Home2.prototype = {
       app.grid.moveTo(icon.detail.index, newPos);
       app.grid.render();
     }, [icon.getAttribute('data-identifier'), index]);
+
+    // Wait for the icon to animate into place
+    var actions = new Actions(this.client);
+    actions.wait(1).perform();
+  },
+
+  /**
+   * Opens the context menu by long-pressing on the first available placeholder.
+   * If there is no placeholder, the first icon will be dragged to the top of
+   * the grid to create a new group, and thus new placeholders.
+   */
+  openContextMenu: function() {
+    function placeholderExists() {
+      return !!document.querySelector('#icons .placeholder');
+    }
+
+    var selectors = VerticalHome.Selectors;
+    var actions = new Actions(this.client);
+
+    if (!this.client.executeScript(placeholderExists)) {
+      this.enterEditMode();
+      var done = this.client.findElement(selectors.editHeaderDone);
+      var firstIcon = this.client.findElement(selectors.firstIcon);
+      actions.press(firstIcon).wait(1).move(done).release().perform();
+      this.exitEditMode();
+    }
+
+    var placeholder = this.client.findElement(selectors.placeholders);
+    placeholder.scriptWith(function(e) { e.scrollIntoView(false); });
+    actions.longPress(placeholder, 1).perform();
   }
 };
 
-module.exports = Home2;
+module.exports = VerticalHome;
