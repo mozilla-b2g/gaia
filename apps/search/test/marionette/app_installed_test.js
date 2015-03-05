@@ -3,7 +3,7 @@
 
 var AppInstall =
   require('../../../../apps/system/test/marionette/lib/app_install');
-var Home2 = require('./lib/home2');
+var Home2 = require('../../../verticalhome/test/marionette/lib/home2');
 var Rocketbar =
   require('../../../system/test/marionette/lib/rocketbar.js');
 var createAppServer =
@@ -15,12 +15,11 @@ marionette('Search - Installed Apps Test', function() {
 
   setup(function(done) {
     appInstall = new AppInstall(client);
-    home = client.loader.getAppClass('verticalhome');
+    home = new Home2(client);
     system = client.loader.getAppClass('system');
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
     system.waitForStartup();
-    search.removeGeolocationPermission();
 
     var app = __dirname + '/fixtures/installed_app';
     createAppServer(app, client, function(err, _server) {
