@@ -151,6 +151,12 @@
     }
   };
 
+  SIMSlot.prototype.isUnknownState = function ss_isUnknownState() {
+    var empty = (this.simCard.cardState === '');
+    var unknown = (this.simCard.cardState === 'unknown');
+    return !this.simCard.cardState || unknown || empty;
+  };
+
   /**
    * Indicate SIM card in the slot is locked or not.
    * @return {Boolean} SIM card locked or not.
