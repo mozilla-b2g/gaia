@@ -236,7 +236,8 @@ var QuickSettings = {
 
           case this.bluetooth:
             // do nothing if bluetooth isn't ready
-            if (this.bluetooth.dataset.initializing)
+            if (this.bluetooth.dataset.initializing 
+                || this.airplaneMode.dataset.enabling)
               return;
 
             var enabled = !!this.bluetooth.dataset.enabled;
