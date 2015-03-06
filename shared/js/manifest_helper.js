@@ -51,9 +51,16 @@ function ManifestHelper(manifest) {
   }
 }
 
+/**
+ * Getter for display name (short_name if defined, otherwise name).
+ */
+Object.defineProperty(ManifestHelper.prototype, 'displayName', {
+    get: function displayName() {
+      return this.short_name || this.name;
+    }
+});
+
 exports.ManifestHelper = ManifestHelper;
 
 // End outer IIFE
 }(window));
-
-
