@@ -90,7 +90,7 @@
         return Promise.reject();
       }
 
-      return new Promise(resolve => {
+      this._activateCall = new Promise(resolve => {
         if (this.active) {
           resolve();
           return;
@@ -108,6 +108,7 @@
         var waitOver = () => {
           if (searchLoaded && transitionEnded) {
             resolve();
+            this._activateCall = null;
             this.publish('-activated');
           }
         };
@@ -130,6 +131,18 @@
         });
         this.publish('-activating');
       });
+
+      // Immediately hide if the utility tray is active.
+      // In the future we might be able to streamline this flow, but for now we
+      // need to ensure that all events are properly fired so that the chrome
+      // collapses. If for example we early exit, currently the chrome will
+      // not collapse.
+      if (UtilityTray.active || UtilityTray.shown) {
+        this._activateCall
+          .then(this._closeSearch.bind(this));
+      }
+
+      return this._activateCall;
     },
 
     /**
@@ -190,6 +203,7 @@
       window.addEventListener('searchopened', this);
       window.addEventListener('searchclosed', this);
       window.addEventListener('utility-tray-overlayopening', this);
+      window.addEventListener('utility-tray-overlayopened', this);
 
       // Listen for events from Rocketbar
       this.input.addEventListener('focus', this);
@@ -256,7 +270,13 @@
         case 'appforeground':
         case 'appopened':
         case 'utility-tray-overlayopening':
-          this._closeSearch();
+        case 'utility-tray-overlayopened':
+          if (this._activateCall) {
+            this._activateCall
+              .then(this._closeSearch.bind(this));
+          } else {
+            this._closeSearch();
+          }
           break;
         case 'lockscreen-appopened':
           this.handleLock(e);

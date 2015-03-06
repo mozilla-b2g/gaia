@@ -839,6 +839,7 @@ suite('system/Rocketbar', function() {
 
     initSearchConnectionStub.restore();
     hideResultsStub.restore();
+    eventStub.restore();
   });
 
   test('updateSearchIndex()', function() {
@@ -939,6 +940,18 @@ suite('system/Rocketbar', function() {
     sinon.assert.notCalled(focusStub);
     activation.then(function() {
       sinon.assert.calledOnce(focusStub);
+      done();
+    });
+  });
+
+  test('calls _closeSearch if the utility tray is active', function(done) {
+    subject.active = true;
+    MockUtilityTray.active = true;
+
+    var stub = this.sinon.stub(subject, '_closeSearch');
+    subject.activate().then(() => {
+      assert.ok(stub.calledOnce);
+      MockUtilityTray.active = false;
       done();
     });
   });
