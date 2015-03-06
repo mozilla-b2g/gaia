@@ -17,7 +17,8 @@ marionette('Messages Composer', function() {
     },
     settings: {
       'lockscreen.enabled': false,
-      'ftu.manifestURL': null
+      'ftu.manifestURL': null,
+      'screen.timeout': 0
     },
 
     apps: apps
@@ -235,9 +236,9 @@ marionette('Messages Composer', function() {
       assertIsDisplayed(composer.mmsLabel);
 
       // Case #15: remove the email recipient, the message is converted to SMS.
-      messagesApp.Composer.recipients[0].tap();
+      messagesApp.getRecipient('a@b.com').tap();
       messagesApp.clearRecipient();
-      assertIsNotDisplayed(composer.mmsLabel);
+      client.helper.waitForElementToDisappear(composer.mmsLabel);
     });
 
     test('Subject focus management', function() {
