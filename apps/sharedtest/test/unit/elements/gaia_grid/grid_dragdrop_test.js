@@ -158,6 +158,8 @@ suite('GaiaGrid > DragDrop', function() {
   });
 
   test('create new groups by dropping items at the end', function() {
+    var requestAttentionStub =
+      sinon.stub(GaiaGrid.GridItem.prototype, 'requestAttention');
     var dividers = countDividers();
     var subject = grid.dragdrop;
 
@@ -167,6 +169,17 @@ suite('GaiaGrid > DragDrop', function() {
 
     // After creating the new group, there should be one extra divider.
     assert.equal(countDividers(), dividers + 1);
+
+    // And attention should have been requested on the new divider.
+    var newDivider;
+    for (var i = grid.items.length - 1; i >= 0; i--) {
+      if (grid.items[i].detail.type === 'divider') {
+        newDivider = grid.items[i];
+        break;
+      }
+    }
+    assert.ok(requestAttentionStub.calledOn(newDivider));
+    requestAttentionStub.restore();
   });
 
   test('rearrange collapsed group before expanded group', function() {
