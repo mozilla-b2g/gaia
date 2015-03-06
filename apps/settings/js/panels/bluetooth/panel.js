@@ -398,8 +398,22 @@ define(function(require) {
         }, (reason) => {
           Debug('_onFoundDeviceItemClick(): pair failed, ' + 
                 'reason = ' + reason);
-          // TODO: To check the pairing device is needed to update status back. 
+          // Reset the paired status back to false, 
+          // since the 'pairing' status is given in Gaia side.
+          deviceItem.paired = false;
+          // Show alert message while pair device failed.
+          this._alertPairFailedErrorMessage(reason);
         });
+      },
+
+      _alertPairFailedErrorMessage: function(errorReason) {
+        var errorMessage = 'error-pair-title'; // This is a default message.
+        if (errorReason === 'Repeated Attempts') {
+          errorMessage = 'error-pair-toofast';
+        } else if (errorReason === 'Authentication Failed') {
+          errorMessage = 'error-pair-pincode';
+        }
+        DialogService.alert(errorMessage, {title: 'error-pair-title'});
       }
     });
   };
