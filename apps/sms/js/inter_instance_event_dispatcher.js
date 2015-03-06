@@ -1,23 +1,30 @@
-/* global EventDispatcher */
+/* global BroadcastChannel,
+          EventDispatcher
+*/
 
 /* exported InterInstanceEventDispatcher */
 (function(exports) {
   'use strict';
 
-  var worker = null;
+  /**
+   * Channel that is used to broadcast messages between message app instances.
+   * @type {BroadCastChannel}
+   */
+  var channel = null;
 
+  const BROADCAST_CHANNEL_NAME = 'messages-channel';
   const ALLOWED_EVENTS = ['drafts-changed'];
 
   function postMessage(name, parameters) {
-    if (!worker) {
-      throw new Error('Worker is not connected!');
+    if (!channel) {
+      throw new Error('Channel is not created!');
     }
 
     if (!name) {
       throw new Error('Name should be defined!');
     }
 
-    worker.port.postMessage(parameters !== undefined ?
+    channel.postMessage(parameters !== undefined ?
       { name: name, parameters: parameters } :
       { name: name }
     );
@@ -25,33 +32,25 @@
 
   const Dispatcher = EventDispatcher.mixin({
     connect: function() {
-      if (worker) {
+      if (channel) {
         return;
       }
 
-      worker = new SharedWorker('js/iac/shared_worker.js');
-      worker.addEventListener('error', function(e) {
-        console.error('Worker threw an error: ', e);
-      });
-      worker.port.addEventListener('message', onMessage);
-      worker.port.start();
+      channel = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+      channel.addEventListener('message', onMessage);
 
       exports.addEventListener('unload', () => this.disconnect());
     },
 
     disconnect: function() {
-      if (!worker) {
+      if (!channel) {
         return;
       }
 
-      // Since MessagePort doesn't support "onclose" event, SharedWorker won't
-      // be notified in case port.close() is called, so we workaround that with
-      // plain "closed" message.
-      postMessage('closed');
-      worker.port.close();
-      worker.port.removeEventListener('message', onMessage);
+      channel.close();
+      channel.removeEventListener('message', onMessage);
 
-      worker = null;
+      channel = null;
     }
   }, ALLOWED_EVENTS);
 
@@ -69,11 +68,6 @@
 
   function onMessage(message) {
     try {
-      // Message is sent by SharedWorker to be sure that current port is alive
-      if (message.data.name === 'ping') {
-        return postMessage('pong');
-      }
-
       originalEmitter(message.data.name, message.data.parameters);
     } catch (error) {
       console.error(
