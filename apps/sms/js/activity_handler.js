@@ -558,7 +558,17 @@ var ActivityHandler = {
     //
     var params = Utils.params(message.imageURL);
 
+    // When notification is removed from notification tray, notification system
+    // message will still be fired, but "clicked" property will be equal to
+    // false. This should change once bug 1139363 is landed.
+    // When user clicks on notification we'll get two system messages,
+    // first to notify app that notification is clicked and then, once we show
+    // Thread panel to the user, we remove that notification from the tray that
+    // causes the second system message with "clicked" set to false.
     if (!message.clicked) {
+      // When app is run via notification system message there is no valid
+      // current panel set hence app is in the invalid state, so let's fix this.
+      Navigation.ensureCurrentPanel();
       return;
     }
 

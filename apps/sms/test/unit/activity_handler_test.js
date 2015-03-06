@@ -733,6 +733,30 @@ suite('ActivityHandler', function() {
     });
   });
 
+  suite('user removed the notification', function() {
+    setup(function() {
+      this.sinon.spy(ActivityHandler, 'handleMessageNotification');
+      this.sinon.spy(MockNavigatormozApps, 'getSelf');
+      this.sinon.spy(Navigation, 'ensureCurrentPanel');
+
+      MockNavigatormozSetMessageHandler.mTrigger('notification', {
+        title: 'title',
+        body: 'body',
+        imageURL: 'url?id=1&threadId=1',
+        tag: 'threadId:1',
+        // When notification is removed "clicked" property is false
+        clicked: false
+      });
+    });
+
+    test('navigation is forced to set current panel', function() {
+      sinon.assert.called(Navigation.ensureCurrentPanel);
+
+      sinon.assert.notCalled(MockNavigatormozApps.getSelf);
+      sinon.assert.notCalled(ActivityHandler.handleMessageNotification);
+    });
+  });
+
   suite('"new" activity', function() {
     function onceNewActivityCompleted() {
       sinon.assert.called(ActivityHandler._onNewActivity);
