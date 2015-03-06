@@ -8,14 +8,6 @@
   color: #033B37;
 }
 
-.suggestion-bar[hidden] {
-  opacity: 0;
-}
-
-.suggestion-bar[hidden] .suggestion-count {
-  pointer-events: none;
-}
-
 .suggestion-count {
   width: 5.5rem;
   box-sizing: border-box;
