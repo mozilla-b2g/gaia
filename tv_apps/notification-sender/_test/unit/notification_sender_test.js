@@ -1,7 +1,7 @@
 /* globals NotificationSender, MockPresentation, MockPresentationSession */
 'use strict';
 
-require('/tv_apps/tv_shared/components/smart-button/script.js');
+require('/bower_components/smart-button/script.js');
 require('/tv_apps/tv_shared/test/unit/mocks/mock_presentation.js');
 require('/tv_apps/tv_shared/test/unit/mocks/mock_presentation_session.js');
 

@@ -1,0 +1,25 @@
+{
+  "name": "menu-group",
+  "homepage": "https://github.com/smart-components/menu-group",
+  "main": "script.js",
+  "license": "MPL",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "examples",
+    "LICENSE",
+    "README.md"
+  ],
+  "_release": "466a140045",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "466a14004550da436d5f288d1f7d21e7cd8cd4b6"
+  },
+  "_source": "git://github.com/smart-components/menu-group.git",
+  "_target": "*",
+  "_originalSource": "smart-components/menu-group"
+}
