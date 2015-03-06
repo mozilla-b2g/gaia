@@ -10,10 +10,16 @@ class Browser(Base):
 
     _browser_app_locator = (By.CSS_SELECTOR, 'div.browser[transition-state="opened"]')
     _browser_frame_locator = (By.CSS_SELECTOR, 'iframe.browser')
+    _browser_chrome_locator = (By.CSS_SELECTOR, 'div[transition-state="opened"]')
 
     _menu_button_locator = (By.CSS_SELECTOR, '.menu-button')
+    _windows_button_locator = (By.CSS_SELECTOR, '.windows-button')
+
     _add_to_home_button_locator = (By.CSS_SELECTOR, 'button[data-id="add-to-homescreen"]')
+    _new_window_locator = (By.CSS_SELECTOR, 'button[data-id="new-window"]')
+    _open_in_new_private_window_locator = (By.CSS_SELECTOR, 'button[data-id="open-in-new-private-window"]')
     _share_button_locator = (By.CSS_SELECTOR, 'button[data-id="share"]')
+    _show_windows_button_locator = (By.CSS_SELECTOR, 'button[data-id="show-windows"]')
     _share_to_messages_button_locator = (By.CSS_SELECTOR, 'button[data-value="1"]')
     _browser_menu_locator = (By.CSS_SELECTOR, '.contextmenu-list')
 
@@ -44,6 +50,9 @@ class Browser(Base):
         Wait(self.marionette).until(
             expected.element_displayed(*self._browser_menu_locator))
 
+    def tap_windows_button(self):
+        self.marionette.find_element(*self._browser_chrome_locator).find_element(*self._windows_button_locator).tap()
+
     def tap_add_to_home(self):
         element = self._root_element.find_element(*self._add_to_home_button_locator)
         Wait(self.marionette).until(expected.element_displayed(element))
@@ -55,6 +64,18 @@ class Browser(Base):
         element = self._root_element.find_element(*self._share_button_locator)
         Wait(self.marionette).until(expected.element_displayed(element))
         element.tap()
+
+    def tap_new_window(self):
+        self.wait_for_element_displayed(*self._new_window_locator)
+        self._root_element.find_element(*self._new_window_locator).tap()
+
+    def tap_open_in_new_private_window(self):
+        self.wait_for_element_displayed(*self._open_in_new_private_window_locator)
+        self._root_element.find_element(*self._open_in_new_private_window_locator).tap()
+
+    def tap_show_windows(self):
+        self.wait_for_element_displayed(*self._show_windows_button_locator)
+        self.marionette.find_element(*self._show_windows_button_locator).tap()
 
     def tap_share_to_messages(self):
         element = Wait(self.marionette).until(
