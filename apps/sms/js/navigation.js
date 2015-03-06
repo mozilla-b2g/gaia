@@ -70,9 +70,7 @@ var Navigation = {
 
   init: function n_init() {
     this.mainWrapper = document.getElementById('main-wrapper');
-    this.transitionPromise = null;
-
-    currentPanel = null;
+    this.transitioning = false;
 
     Startup.on('post-initialize', function() {
       this.isReady = true;
@@ -118,23 +116,6 @@ var Navigation = {
   },
 
   /**
-   * Ensures that current panel is correctly set, if no current panel set and
-   * we're not in the process of transitioning then set default panel as current
-   * one.
-   */
-  ensureCurrentPanel: function() {
-    if (this.transitionPromise) {
-      return this.transitionPromise;
-    }
-
-    if (!currentPanel) {
-      return this.toPanel(this.defaultPanel);
-    }
-
-    return Promise.resolve();
-  },
-
-  /**
    * Lifecycle methods are called in this order:
    * - previousPanel.beforeLeave
    * - nextPanel.beforeEnter
@@ -171,7 +152,7 @@ var Navigation = {
     //   - Panel is still transitioning
     //   - trying to navigate when the app is not loaded completely
     var notReadyNavigate = (panel !== this.defaultPanel && !this.isReady);
-    if (this.transitionPromise || notReadyNavigate) {
+    if (this.transitioning || notReadyNavigate) {
       queuedPanel = {
         panel: panel,
         args: args
@@ -191,6 +172,8 @@ var Navigation = {
     }
 
     var transitionArgs = args || {};
+
+    this.transitioning = true;
 
     document.activeElement.blur();
 
@@ -274,7 +257,7 @@ var Navigation = {
 
     promise = promise.then(
       function resolved() {
-        this.transitionPromise = null;
+        this.transitioning = false;
         if (nextPanelContainer === currentPanelContainer) {
           return;
         }
@@ -285,7 +268,7 @@ var Navigation = {
       }.bind(this),
       function rejected(e) {
         catchError(e);
-        this.transitionPromise = null;
+        this.transitioning = false;
         return Promise.reject(new Error('Error while transitioning'));
       }.bind(this)
     );
@@ -294,7 +277,7 @@ var Navigation = {
       then(() => this.emit('navigated', { panel: panel, args: args })).
       then(nextQueuedPanel, nextQueuedPanel);
 
-    return (this.transitionPromise = promise);
+    return promise;
   },
 
   getPanelName: function n_getPanelName() {
