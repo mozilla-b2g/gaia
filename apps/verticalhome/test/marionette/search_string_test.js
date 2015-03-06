@@ -2,16 +2,14 @@
 
 'use strict';
 
-var Home2 = require('./lib/home2');
 var Rocketbar = require(
   '../../../../apps/system/test/marionette/lib/rocketbar.js');
 var Search = require('../../../../apps/search/test/marionette/lib/search.js');
-var System = require('../../../../apps/system/test/marionette/lib/system');
 var Server = require('../../../../shared/test/integration/server');
 
 marionette('Vertical - Search Terms: URI scheme', function() {
 
-  var client = marionette.client(Home2.clientOptions);
+  var client = marionette.client(require(__dirname + '/client_options.js'));
   var home, rocketbar, search, system, server;
 
   suiteSetup(function(done) {
@@ -19,7 +17,6 @@ marionette('Vertical - Search Terms: URI scheme', function() {
       server = _server;
       done();
     });
-    system = new System(client);
   });
 
   suiteTeardown(function() {
@@ -27,10 +24,10 @@ marionette('Vertical - Search Terms: URI scheme', function() {
   });
 
   setup(function() {
-    home = new Home2(client);
+    home = client.loader.getAppClass('verticalhome');
     search = new Search(client);
     rocketbar = new Rocketbar(client);
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
     search.removeGeolocationPermission();
   });

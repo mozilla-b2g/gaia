@@ -1,7 +1,6 @@
 'use strict';
 
 var assert = require('assert');
-var System = require('./lib/system');
 var LockScreen = require('./lib/lockscreen');
 var FakeDialerApp = require('./lib/fakedialerapp');
 
@@ -26,7 +25,7 @@ marionette('Software Home Button - Attention window', function() {
   var fakedialer;
 
   setup(function() {
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     fakedialer = new FakeDialerApp(client);
     lockScreen = (new LockScreen()).start(client);
     system.waitForStartup();
