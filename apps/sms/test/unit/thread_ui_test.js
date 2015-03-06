@@ -56,6 +56,7 @@ require('/test/unit/mock_waiting_screen.js');
 require('/test/unit/mock_navigation.js');
 require('/test/unit/mock_thread_list_ui.js');
 require('/test/unit/mock_selection_handler.js');
+require('/test/unit/mock_notify.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
@@ -95,7 +96,8 @@ var mocksHelperForThreadUI = new MocksHelper([
   'Navigation',
   'Notification',
   'ThreadListUI',
-  'SelectionHandler'
+  'SelectionHandler',
+  'Notify'
 ]);
 
 mocksHelperForThreadUI.init();

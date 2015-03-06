@@ -293,7 +293,7 @@ suite('navigation >', function() {
           );
           sinon.assert.calledWith(
             onNavigatedStub,
-            { panel: 'panel4', args: { key: 'value', meta: sinon.match.any }}
+            { panel: 'panel4', args: { key: 'value' }}
           );
         }).then(done, done);
       });

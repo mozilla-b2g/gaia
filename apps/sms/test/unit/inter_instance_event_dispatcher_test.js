@@ -32,6 +32,9 @@ suite('InterInstanceEventDispatcher >', function() {
     this.sinon.stub(BroadcastChannel.prototype, 'postMessage');
     this.sinon.spy(window, 'addEventListener');
 
+    this.sinon.stub(window.Date, 'now').returns(1234);
+    this.sinon.stub(window.Math, 'random').returns(5678);
+
     InterInstanceEventDispatcher.connect();
   });
 
@@ -47,8 +50,11 @@ suite('InterInstanceEventDispatcher >', function() {
     );
 
     InterInstanceEventDispatcher.connect();
-    InterInstanceEventDispatcher.connect();
     sinon.assert.calledOnce(BroadcastChannel);
+    sinon.assert.calledWith(
+      BroadcastChannel.prototype.postMessage,
+      { instanceId: '1234:5678', name: 'activated' }
+    );
 
     InterInstanceEventDispatcher.disconnect();
     InterInstanceEventDispatcher.connect();
@@ -60,12 +66,20 @@ suite('InterInstanceEventDispatcher >', function() {
       BroadcastChannel.prototype.addEventListener.lastCall.args;
     window.addEventListener.withArgs('unload').yield();
 
-    sinon.assert.called(BroadcastChannel.prototype.close);
     sinon.assert.calledWith(
-      BroadcastChannel.prototype.removeEventListener,
+      BroadcastChannel.prototype.postMessage,
+      { instanceId: '1234:5678', name: 'deactivated' }
+    );
+
+    sinon.assert.calledWith(BroadcastChannel.prototype.removeEventListener,
       addEventListenerArgs[0],
       // Reference to "onmessage" listener function
       addEventListenerArgs[1]
+    );
+
+    sinon.assert.callOrder(
+      BroadcastChannel.prototype.postMessage,
+      BroadcastChannel.prototype.close
     );
   });
 
@@ -77,15 +91,18 @@ suite('InterInstanceEventDispatcher >', function() {
 
     BroadcastChannel.prototype.addEventListener.withArgs('message').yield({
       data: {
+        instanceId: '0000:0000',
         name: 'drafts-changed',
         parameters: { key: 'value' }
       }
     });
 
     sinon.assert.calledWith(onDraftsChangedStub, { key: 'value' });
+    sinon.assert.notCalled(BroadcastChannel.prototype.postMessage);
 
     BroadcastChannel.prototype.addEventListener.withArgs('message').yield({
       data: {
+        instanceId: '0000:0000',
         name: 'drafts-changed',
         parameters: { key: 'value#2' }
       }
@@ -95,6 +112,19 @@ suite('InterInstanceEventDispatcher >', function() {
     sinon.assert.calledWith(onDraftsChangedStub, { key: 'value#2' });
 
     sinon.assert.notCalled(BroadcastChannel.prototype.postMessage);
+
+    // correctly handles "activated" messages
+    BroadcastChannel.prototype.addEventListener.withArgs('message').yield({
+      data: {
+        instanceId: '0000:0000',
+        name: 'activated'
+      }
+    });
+    sinon.assert.calledTwice(onDraftsChangedStub);
+    sinon.assert.calledWith(
+      BroadcastChannel.prototype.postMessage,
+      { instanceId: '1234:5678', name: 'alive' }
+    );
   });
 
   test('correctly handles outgoing BroadcastChannel messages', function() {
@@ -113,6 +143,7 @@ suite('InterInstanceEventDispatcher >', function() {
 
     InterInstanceEventDispatcher.emit('drafts-changed', { key: 'value' });
     sinon.assert.calledWith(BroadcastChannel.prototype.postMessage, {
+      instanceId: '1234:5678',
       name: 'drafts-changed',
       parameters: { key: 'value' }
     });
