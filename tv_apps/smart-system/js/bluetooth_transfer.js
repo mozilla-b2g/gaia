@@ -41,6 +41,8 @@ var BluetoothTransfer = {
     window.addEventListener('bluetooth-opp-transfer-complete',
       this.onTransferComplete.bind(this)
     );
+
+    focusManager.addUI(this);
   },
 
   getDeviceName: function bt_getDeviceName(address) {
@@ -561,10 +563,9 @@ var BluetoothTransfer = {
     return !!this.customDialog;
   },
 
-  getOrder: function bt_getOrder() {
+  getElement: function bt_getOrder() {
     if (this.isVisible()) {
-      var zIndex = window.getComputedStyle(this.customDialog).zIndex;
-      return zIndex === 'auto' ? 0 : zIndex;
+      return this.customDialog;
     }
   },
 

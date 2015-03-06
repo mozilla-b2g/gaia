@@ -71,6 +71,7 @@
       window.addEventListener('holdhome', this);
       window.addEventListener('sheets-gesture-begin', this);
 
+      focusManager.addUI(this);
       focusManager.focus();
       if (this.preventFocusChange) {
         this.menu.addEventListener('mousedown', this.preventFocusChange);
@@ -83,6 +84,7 @@
      */
     stop: function() {
       var screen = document.getElementById('screen');
+      focusManager.removeUI(this);
       screen.removeChild(this.container);
       screen.classList.remove('action-menu');
 
@@ -214,11 +216,10 @@
     /**
      * Get the z-index value of container
      * @memberof ActionMenu.prototype
-     * @return {Number} z-index of this.container
+     * @return {HTMLElement} the container
      */
-    getOrder: function() {
-      var zIndex = window.getComputedStyle(this.container).zIndex;
-      return zIndex === 'auto' ? 0 : zIndex;
+    getElement: function() {
+      return this.container;
     },
 
     /**

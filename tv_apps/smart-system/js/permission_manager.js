@@ -97,6 +97,8 @@
       this.overlay.addEventListener('mousedown', function onMouseDown(evt) {
         evt.preventDefault();
       });
+
+      focusManager.addUI(this);
     },
 
     /**
@@ -104,6 +106,7 @@
      * @memberof PermissionManager.prototype
      */
     stop: function pm_stop() {
+      focusManager.removeUI(this);
       this.currentOrigin = null;
       this.permissionType = null;
       this.currentPermissions = null;
@@ -665,13 +668,12 @@
     },
 
     /**
-     * get the z index value at screen level.
+     * get the dom element of this UI.
      * @memberof PermissionManager.prototype
-     * @return {Integer} the z-index value.
+     * @return {HTMLElement} dom element.
      */
-    getOrder: function pm_getOrder() {
-      var zIndex = window.getComputedStyle(this.overlay).zIndex;
-      return zIndex === 'auto' ? 0 : zIndex;
+    getElement: function pm_getElement() {
+      return this.overlay;
     },
 
     /**

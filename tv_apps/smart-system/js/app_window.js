@@ -2095,6 +2095,8 @@
       this.contextmenu.focus();
     } else if (this.modalDialog && this.modalDialog.isVisible()) {
       this.modalDialog.focus();
+    } else if (this.authDialog && this.authDialog.isVisible()) {
+      this.authDialog.focus();
     } else {
       // Call mixed in class.
       BrowserMixin.focus.call(this);
