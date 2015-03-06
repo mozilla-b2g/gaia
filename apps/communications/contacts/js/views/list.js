@@ -1258,6 +1258,23 @@ contacts.List = (function() {
     }
   };
 
+  var checkSync =  function cl_checkSync() {
+    return new Promise(function(resolve, reject) {
+      if (contacts.List.expectMoreNodes()) {
+        resolve(true);
+      } else {
+        var request = window.navigator.mozContacts.getCount();
+        request.onsuccess = function () {
+          resolve((this.result === contacts.List.total));
+        }
+      } 
+    });
+  };
+
+  var expectMoreNodes = function CL_expectMoreNodes () {
+    return searchSource.expectMoreNodes();
+  };
+
   var getAllContacts = function cl_getAllContacts(errorCb, successCb) {
     loading = true;
     initConfiguration(function onInitConfiguration() {
@@ -2166,6 +2183,8 @@ contacts.List = (function() {
     'refresh': refresh,
     'refreshFb': refreshFb,
     'getContactById': getContactById,
+    'checkSync': checkSync,
+    'expectMoreNodes': expectMoreNodes,
     'getAllContacts': getAllContacts,
     'handleClick': handleClick,
     'hide': hide,

@@ -930,11 +930,20 @@ var Contacts = (function() {
     }
 
     document.addEventListener('visibilitychange', function visibility(e) {
-      if (document.hidden === false &&
-                                navigation.currentView() === 'view-settings') {
-        Contacts.view('Settings', function viewLoaded() {
-          contacts.Settings.updateTimestamps();
-        });
+      if (document.hidden === false) {
+        if (contactsList) {
+          contactsList.checkSync().then(function(result){
+           if (!result && !contactsList.expectMoreNodes()) {
+            contactsList = null;
+            initContactsList();
+           }
+          });
+        }
+        if (navigation.currentView() === 'view-settings') {
+          Contacts.view('Settings', function viewLoaded() {
+            contacts.Settings.updateTimestamps();
+          });
+        }
       }
     });
   };
