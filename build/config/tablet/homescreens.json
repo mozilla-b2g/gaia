@@ -1,0 +1,20 @@
+{
+  "homescreens": [
+    [
+      ["apps", "search"],
+      ["apps", "marketplace.firefox.com"],
+      ["apps", "camera"]
+    ], [
+      ["apps", "gallery"],
+      ["apps", "music"],
+      ["apps", "video"],
+      ["apps", "settings"],
+      ["apps", "clock"],
+      ["apps", "email"],
+      ["apps", "calendar"]
+    ]
+  ],
+  "preferences": {
+    "grid.cols": 3
+  }
+}
