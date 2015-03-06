@@ -62,6 +62,7 @@ var TrustedUIManager = {
     window.addEventListener('keyboardchange', this);
     this.header.addEventListener('action', this);
     this.errorClose.addEventListener('click', this);
+    focusManager.addUI(this);
   },
 
   open: function trui_open(name, frame, chromeEventId, onCancelCB) {
@@ -122,22 +123,19 @@ var TrustedUIManager = {
     return this.screen.classList.contains('trustedui');
   },
 
-  getOrder: function trui_getOrder() {
-    var zIndex = window.getComputedStyle(this.overlay).zIndex;
-    return zIndex === 'auto' ? 0 : zIndex;
+  getElement: function trui_getElement() {
+    return this.overlay;
   },
 
   focus: function trui_focus() {
     var dialog = this._getTopDialog();
     if (dialog) {
-      window.setTimeout(function() {
-        document.activeElement.blur();
-        if (dialog.frame.dataset.error) {
-          this.errorClose.focus();
-        } else {
-          dialog.frame.focus();
-        }
-      }.bind(this));
+      document.activeElement.blur();
+      if (dialog.frame.dataset.error) {
+        this.errorClose.focus();
+      } else {
+        dialog.frame.focus();
+      }
     }
   },
 
@@ -271,7 +269,7 @@ var TrustedUIManager = {
     dialog.frame.classList.add('selected');
     this.dialogTitle.setAttribute('data-l10n-id', dialog.name);
     // move focus to the displayed frame
-    this.focus();
+    focusManager.focus();
   },
 
   _makeDialogHidden: function trui_makeDialogHidden(dialog) {
@@ -389,10 +387,7 @@ var TrustedUIManager = {
     );
 
     this.container.classList.add('error');
-    setTimeout(function() {
-      document.activeElement.blur();
-      this.errorClose.focus();
-    }.bind(this));
+    focusManager.focus();
   },
 
   handleEvent: function trui_handleEvent(evt) {

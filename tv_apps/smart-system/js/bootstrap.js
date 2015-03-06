@@ -9,7 +9,7 @@
          MediaRecording, AppWindowFactory,
          applications, LayoutManager, PermissionManager, Accessibility,
          TextSelectionDialog, SleepMenu, InteractiveNotifications,
-         ExternalStorageMonitor, FocusManager */
+         ExternalStorageMonitor */
 'use strict';
 
 
@@ -77,9 +77,6 @@ window.addEventListener('load', function startup() {
   window.addEventListener('ftuskip', doneWithFTU);
 
   ScreenManager.turnScreenOn();
-
-  window.focusManager = new FocusManager();
-  window.focusManager.start();
 
   // To make sure homescreen window manager can intercept webapps-launch event,
   // we need to move the code here.

@@ -71,21 +71,19 @@
     },
 
     /**
-     * Check if the sleep menu is visible and returns its z-index if visible.
+     * returns the sleep menu dom element.
+     * @return {HTMLElement}
      */
-    getOrder: function sm_getOrder() {
-      var zIndex = window.getComputedStyle(this.elements.overlay).zIndex;
-      return zIndex === 'auto' ? 0 : zIndex;
+    getElement: function sm_getElement() {
+      return this.elements.overlay;
     },
 
     /**
      * focus back to its buttons.
      */
     focus: function sm_focus() {
-      setTimeout(function() {
-        document.activeElement.blur();
-        this.elements.cancel.focus();
-      }.bind(this));
+      document.activeElement.blur();
+      this.elements.cancel.focus();
     },
 
     /**
@@ -135,6 +133,7 @@
       SettingsCache.observe('audio.volume.notification', 7, function(value) {
         self.isSilentModeEnabled = (value === 0);
       });
+      focusManager.addUI(this);
     },
 
     /**
@@ -195,7 +194,8 @@
       this.elements.overlay.classList.add('visible');
       // Lock to default orientation
       screen.mozLockOrientation(OrientationManager.defaultOrientation);
-      this.focus();
+      // let focus manager to calculate the top most and focus for us.
+      focusManager.focus();
     },
 
     /**

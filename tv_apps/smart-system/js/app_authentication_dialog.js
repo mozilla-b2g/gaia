@@ -220,11 +220,10 @@
    * @memberof AppAuthenticationDialog.prototype
    * @return {Number} z-index of the dialog
    */
-  AppAuthenticationDialog.prototype.getOrder =
-    function aad_getOrder() {
+  AppAuthenticationDialog.prototype.getElement =
+    function aad_getElement() {
       if (this.isVisible()) {
-        var zIndex = window.getComputedStyle(this.element).zIndex;
-        return zIndex === 'auto' ? 0 : zIndex;
+        return this.element;
       }
     };
 
