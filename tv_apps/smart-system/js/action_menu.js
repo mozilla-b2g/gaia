@@ -1,4 +1,4 @@
-/* global AppWindowManager */
+/* global focusManager */
 'use strict';
 
 (function(exports) {
@@ -71,7 +71,8 @@
       window.addEventListener('holdhome', this);
       window.addEventListener('sheets-gesture-begin', this);
 
-      this.focus();
+      focusManager.addUI(this);
+      focusManager.focus();
       if (this.preventFocusChange) {
         this.menu.addEventListener('mousedown', this.preventFocusChange);
       }
@@ -83,6 +84,7 @@
      */
     stop: function() {
       var screen = document.getElementById('screen');
+      focusManager.removeUI(this);
       screen.removeChild(this.container);
       screen.classList.remove('action-menu');
 
@@ -126,10 +128,8 @@
     hide: function(callback) {
       this.container.classList.remove('visible');
       this.stop();
-      // focus back to the top most window.
-      // XXX Bug 1136590: we focus back to active app. But we should call the
-      // fallback algorithm to find the top-most overlay or app.
-      AppWindowManager.getActiveApp().getTopMostWindow().focus();
+      // focus back to the top most window/overlay.
+      focusManager.focus();
       if (callback && typeof callback === 'function') {
         setTimeout(callback);
       }
@@ -216,11 +216,10 @@
     /**
      * Get the z-index value of container
      * @memberof ActionMenu.prototype
-     * @return {Number} z-index of this.container
+     * @return {HTMLElement} the container
      */
-    getOrder: function() {
-      var zIndex = window.getComputedStyle(this.container).zIndex;
-      return zIndex === 'auto' ? 0 : zIndex;
+    getElement: function() {
+      return this.container;
     },
 
     /**
@@ -229,10 +228,8 @@
      */
     focus: function() {
       if (this.cancel) {
-        window.setTimeout(function() {
-          document.activeElement.blur();
-          this.cancel.focus();
-        }.bind(this));
+        document.activeElement.blur();
+        this.cancel.focus();
       }
     }
   };

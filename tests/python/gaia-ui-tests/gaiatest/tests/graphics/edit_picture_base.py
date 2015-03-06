@@ -2,13 +2,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
-from marionette.marionette import Actions
+import time
+
+from marionette_driver import By
+from marionette_driver.marionette import Actions
 
 from gaiatest.apps.gallery.app import Gallery
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
-
-import time
 
 
 class GalleryEditPhotoBase(GaiaImageCompareTestCase):

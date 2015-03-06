@@ -2,12 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette.by import By
-    from marionette.wait import Wait
-except:
-    from marionette_driver.by import By
-    from marionette_driver import Wait
+from marionette_driver import By, Wait
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.search.app import Search

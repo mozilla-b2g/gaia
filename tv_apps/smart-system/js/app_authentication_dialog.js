@@ -1,3 +1,5 @@
+/* global focusManager */
+
 'use strict';
 
 (function(exports) {
@@ -163,6 +165,7 @@
     );
     elements.httpUsernameInput.value = '';
     elements.httpPasswordInput.value = '';
+    focusManager.focus();
   };
 
   /**
@@ -174,6 +177,7 @@
     this.elements.httpPasswordInput.blur();
     this.element.classList.remove('visible');
     this.debug(' AAD>> hided');
+    focusManager.focus();
   };
 
   /**
@@ -200,6 +204,39 @@
       this.hide();
       evt.detail.cancel();
       this._event = null;
+    };
+
+  /**
+   * Determine whether the dialog is visible.
+   * @memberof AppAuthenticationDialog.prototype
+   */
+  AppAuthenticationDialog.prototype.isVisible =
+    function aad_isVisible() {
+      return this.element && this.element.classList.contains('visible');
+    };
+
+  /**
+   * Get z-index of the dialog.
+   * @memberof AppAuthenticationDialog.prototype
+   * @return {Number} z-index of the dialog
+   */
+  AppAuthenticationDialog.prototype.getElement =
+    function aad_getElement() {
+      if (this.isVisible()) {
+        return this.element;
+      }
+    };
+
+  /**
+   * Focus the cancel button of authentication dialog
+   * @memberof AppAuthenticationDialog.prototype
+   */
+  AppAuthenticationDialog.prototype.focus =
+    function aad_focus() {
+      if (this.isVisible() && this.elements.httpUsernameInput) {
+        document.activeElement.blur();
+        this.elements.httpUsernameInput.focus();
+      }
     };
 
   exports.AppAuthenticationDialog = AppAuthenticationDialog;

@@ -313,7 +313,65 @@ suite('VCardReader', function() {
   suite('reading a VCard 3.0 file', function() {
     var reader;
     setup(function(done) {
-      initializeVCardReader('vcard_3.vcf', function(r) {
+      initializeVCardReader('vcard_3_grouped.vcf', function(r) {
+        reader = r;
+        done();
+      });
+    });
+
+    test('contact data should be properly parsed', function(done) {
+      var cursor = reader.getAll();
+      cursor.onsuccess = function(evt) {
+        var contact = evt.target.result;
+
+        toDataUri(contact.photo[0], function(r) {
+          done(function() {
+            assert.strictEqual('Forrest Gump', contact.name[0]);
+            assert.strictEqual('Forrest', contact.givenName[0]);
+            assert.strictEqual('Bubba Gump Shrimp Co.', contact.org[0]);
+            assert.strictEqual('Shrimp Man', contact.jobTitle[0]);
+
+            assert.strictEqual('work', contact.tel[0].type[0]);
+            assert.strictEqual('(111) 555-1212', contact.tel[0].value);
+            assert.strictEqual('home', contact.tel[1].type[0]);
+            assert.strictEqual('(404) 555-1212', contact.tel[1].value);
+
+            assert.strictEqual('WORK', contact.adr[0].type[0]);
+            assert.strictEqual('100 Waters Edge', contact.adr[0].streetAddress);
+            assert.strictEqual('Baytown', contact.adr[0].locality);
+            assert.strictEqual('LA', contact.adr[0].region);
+            assert.strictEqual('30314', contact.adr[0].postalCode);
+            assert.strictEqual('United States of America',
+              contact.adr[0].countryName);
+
+            assert.strictEqual('HOME', contact.adr[1].type[0]);
+            assert.strictEqual('42 Plantation St.',
+                               contact.adr[1].streetAddress);
+            assert.strictEqual('Baytown', contact.adr[1].locality);
+            assert.strictEqual('LA', contact.adr[1].region);
+            assert.strictEqual('30314', contact.adr[1].postalCode);
+            assert.strictEqual('United States of America',
+              contact.adr[1].countryName);
+
+            assert.strictEqual('forrestgump@example.com',
+                               contact.email[0].value);
+            assert.strictEqual('internet', contact.email[0].type[0]);
+
+            assert.strictEqual(b64Photo,
+                                VCardReader.parseDataUri(r.result).value);
+
+            assert.strictEqual('image/bmp', contact.photo[0].type);
+          });
+        });
+      };
+    });
+  });
+
+
+  suite('reading a VCard 3.0 file with grouped properties', function() {
+    var reader;
+    setup(function(done) {
+      initializeVCardReader('vcard_3_grouped.vcf', function(r) {
         reader = r;
         done();
       });

@@ -17,7 +17,8 @@ marionette('Messages Composer', function() {
     },
     settings: {
       'lockscreen.enabled': false,
-      'ftu.manifestURL': null
+      'ftu.manifestURL': null,
+      'screen.timeout': 0
     },
 
     apps: apps

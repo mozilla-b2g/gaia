@@ -60,7 +60,7 @@ suite('View Manager', function() {
 
     container.appendChild(activeIme);
 
-    Object.defineProperty(container, 'clientWidth', makeDescriptor(300));
+    Object.defineProperty(container, 'clientWidth', makeDescriptor(320));
 
     app = {
       layoutRenderingManager: fakeRenderingManager

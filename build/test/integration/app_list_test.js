@@ -20,13 +20,13 @@ suite('Build GAIA from different app list', function() {
       // sms should not exists in Tablet builds
       assert.isFalse(fs.existsSync(zipPath));
 
-      // vertical homescreen and collection should not exists
+      // vertical homescreen and collection should exist in tablet builds
       var zipVertHomePath = path.join(process.cwd(), 'profile', 'webapps',
         'verticalhome.gaiamobile.org', 'application.zip');
       var zipCollectionPath = path.join(process.cwd(), 'profile', 'webapps',
         'collection.gaiamobile.org', 'application.zip');
-      assert.isFalse(fs.existsSync(zipVertHomePath));
-      assert.isFalse(fs.existsSync(zipCollectionPath));
+      assert.isTrue(fs.existsSync(zipVertHomePath));
+      assert.isTrue(fs.existsSync(zipCollectionPath));
 
       done();
     });

@@ -22,6 +22,7 @@ function LayoutPageView(layout, options, viewManager) {
   //}
 
   this.candidatePanel = null;
+  this.candidatePanelHeight = 3.2;
 }
 
 LayoutPageView.prototype.render = function render() {
@@ -253,6 +254,7 @@ LayoutPageView.prototype.createCandidatePanel = function(inputMethodName) {
     case 'latin':
       candidatePanel =
         new LatinCandidatePanelView(target, options, this.viewManager);
+      this.candidatePanelHeight = 3.1;
       break;
 
     case 'vietnamese':
@@ -300,6 +302,21 @@ LayoutPageView.prototype.getNumberOfCandidatesPerRow = function() {
   }
 
   return this.candidatePanel.countPerRow;
+};
+
+LayoutPageView.prototype.getHeight = function() {
+  var totalWidth = this.options.totalWidth;
+  var scale = this.viewManager.screenInPortraitMode() ?
+              totalWidth / 32 :
+              totalWidth / 64;
+
+  var height = this.rows.size * (5.1 * scale);
+
+  if (this.candidatePanel) {
+    height += (this.candidatePanelHeight * scale);
+  }
+
+  return height;
 };
 
 exports.LayoutPageView = LayoutPageView;

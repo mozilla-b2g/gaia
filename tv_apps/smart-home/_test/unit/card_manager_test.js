@@ -2,7 +2,7 @@
 /* global Application, CardManager, Deck, Folder, AsyncSemaphore,
           MockCardStore, MockPipedPromise, MockXMLHttpRequest */
 
-require('/tv_apps/tv_shared/js/vendor/evt.js');
+require('/bower_components/evt/index.js');
 require('/shared/js/uuid.js');
 require('/tv_apps/tv_shared/js/shared_utils.js');
 require('/tv_apps/tv_shared/test/unit/mocks/mock_piped_promise.js');

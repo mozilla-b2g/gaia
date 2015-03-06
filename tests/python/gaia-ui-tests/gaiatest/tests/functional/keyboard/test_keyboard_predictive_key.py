@@ -16,7 +16,11 @@ class TestKeyboardPredictiveKey(GaiaTestCase):
 
     def test_keyboard_predictive_key(self):
         # Check that the device is in portrait mode as the autocorrect words returned depend on the screen orientation
-        self.assertEqual('portrait-primary', self.device.screen_orientation)
+        # Bug 1008932 - On desktopb2g, mozOrientation reports landscape when Gaia is oriented in portrait
+        if self.device.is_desktop_b2g:
+          self.assertNotEqual('portrait-primary', self.device.screen_orientation)
+        else:
+          self.assertEqual('portrait-primary', self.device.screen_orientation)
 
         self.ui_tests = UiTests(self.marionette)
         self.ui_tests.launch()

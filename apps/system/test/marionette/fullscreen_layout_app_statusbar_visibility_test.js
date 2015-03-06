@@ -11,7 +11,8 @@ marionette('Fullscreen layout status bar visibility >', function() {
       'lockscreen.enabled': false
     },
     apps: {
-      'fullscreen_layout.gaiamobile.org': __dirname + '/fullscreen_layout'
+      'fullscreen_layout.gaiamobile.org':
+        __dirname + '/../apps/fullscreen_layout'
     }
   });
 

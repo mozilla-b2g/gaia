@@ -13,8 +13,8 @@
         'lockscreen.enabled': false
       },
       apps: {
-        'activitycaller.gaiamobile.org': __dirname + '/activitycaller',
-        'activitycallee.gaiamobile.org': __dirname + '/activitycallee'
+        'activitycaller.gaiamobile.org': __dirname + '/../apps/activitycaller',
+        'activitycallee.gaiamobile.org': __dirname + '/../apps/activitycallee'
       }
     });
 

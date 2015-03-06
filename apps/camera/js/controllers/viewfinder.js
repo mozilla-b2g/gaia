@@ -387,10 +387,16 @@ ViewfinderController.prototype.changeFocusPoint = function(x, y) {
 
 ViewfinderController.prototype.onSettingsOpened = function() {
   this.hideGrid();
+  // Make viewfinder invisible to the screen reader since it is behind settings
+  // overlay.
+  this.views.viewfinder.set('ariaHidden', true);
 };
 
 ViewfinderController.prototype.onSettingsClosed = function() {
   this.configureGrid();
+  // Make viewfinder visible to the screen reader again when settings are
+  // closed.
+  this.views.viewfinder.set('ariaHidden', false);
 };
 
 /**

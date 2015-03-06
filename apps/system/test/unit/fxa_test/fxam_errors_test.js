@@ -58,6 +58,14 @@ suite('Error manager', function() {
     response = null;
   });
 
+  test('copppa error called twice - bug 1137354', function() {
+    var registerElementStub = this.sinon.stub(document, 'registerElement');
+
+    FxaModuleErrors.responseToParams({error: 'COPPA_ERROR'});
+    FxaModuleErrors.responseToParams({error: 'COPPA_ERROR'});
+    assert.ok(registerElementStub.calledOnce);
+  });
+
   Object.keys(errorsObject).forEach(function(key) {
     test('Test ' + key, function() {
       response.error = key;

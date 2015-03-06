@@ -2,14 +2,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette.marionette_test import parameterized
+from marionette_driver import Wait
+
 from gaiatest import GaiaTestCase
 from gaiatest.apps.gallery.app import Gallery
-
-try:
-    from marionette import Wait
-except:
-    from marionette_driver import Wait
-from marionette.marionette_test import parameterized
 
 
 class TestGalleryHandleValidPhoto(GaiaTestCase):

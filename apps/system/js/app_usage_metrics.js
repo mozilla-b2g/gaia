@@ -73,6 +73,7 @@
   const ATTENTIONCLOSED = 'attentionclosed';
   const IDLE = 'idle';
   const ACTIVE = 'active';
+  const IACMETRICS = 'iac-app-metrics';
 
   // This is the list of event types we register handlers for
   const EVENT_TYPES = [
@@ -88,7 +89,8 @@
     OFFLINE,
     TIMECHANGE,
     ATTENTIONOPENED,
-    ATTENTIONCLOSED
+    ATTENTIONCLOSED,
+    IACMETRICS
   ];
 
 
@@ -402,7 +404,7 @@
   //
   AUM.prototype.handleEvent = function handleEvent(e) {
     var now = performance.now();
-
+    debug('got an event: ', e.type);
     switch (e.type) {
 
     case APPOPENED:
@@ -552,6 +554,15 @@
               new Date(newStartTime).toString());
       }
       break;
+
+    case IACMETRICS:
+      //We need to check this here as we now have a helper module and we
+      //don't want to accept any actions we don't handle.
+      if (e.detail.action === 'websearch') {
+        debug('got a search event for provider: ', e.detail.data);
+        this.metrics.recordSearch(e.detail.data);
+      }
+      break;
     }
 
     /*
@@ -621,6 +632,7 @@
     };
 
     var deviceInfoQuery = {
+      'app.update.channel': 'unknown',
       'developer.menu.enabled': false, // If true, data is probably an outlier
       'deviceinfo.hardware': 'unknown',
       'deviceinfo.os': 'unknown',
@@ -628,7 +640,6 @@
       'deviceinfo.platform_version': 'unknown',
       'deviceinfo.product_model': 'unknown',
       'deviceinfo.software': 'unknown',
-      'deviceinfo.update_channel': 'unknown'
     };
 
     // Query the settings db to get some more device-specific information
@@ -698,7 +709,7 @@
         deviceID: self.deviceID,
         ver: AUM.TELEMETRY_VERSION,
         url: AUM.REPORT_URL,
-        appUpdateChannel: info['deviceinfo.update_channel'],
+        appUpdateChannel: info['app.update.channel'],
         appVersion: info['deviceinfo.platform_version'],
         appBuildID: info['deviceinfo.platform_build_id']
       }, data);
@@ -740,7 +751,8 @@
   function UsageData() {
     this.data = {
       start: Date.now(),
-      apps: {} // Maps app URLs to usage data
+      apps: {}, // Maps app URLs to usage data
+      searches: {}
     };
     this.needsSave = false;
     // Record the relative start time, which we can use to adjust
@@ -778,6 +790,24 @@
     date = date || new Date();
     var dayKey = date.toISOString().substring(0, 10);
     return dayKey.replace(/-/g, '');
+  };
+
+  UsageData.prototype.getSearchCounts = function(provider) {
+    var search = this.data.searches[provider];
+    var dayKey = this.getDayKey();
+    if (!search) {
+      // If no usage exists for this provider, create a new empty object for it.
+      this.data.searches[provider] = search = {};
+      debug('creating new object for provider', provider);
+    }
+
+    var daySearch = search[dayKey];
+    if (!daySearch) {
+      daySearch = search[dayKey] = {
+        count: 0
+      };
+    }
+    return daySearch;
   };
 
   UsageData.prototype.startTime = function() {
@@ -827,9 +857,27 @@
       usage.invocations++;
       usage.usageTime += time;
       this.needsSave = true;
-      debug(app, 'ran for', time);
+      debug(app.manifestURL, 'ran for', time);
     }
     return time > 0;
+  };
+
+  UsageData.prototype.recordSearch = function(provider) {
+    debug('recordSearch', provider);
+
+    if (provider == null) {
+      return;
+    }
+
+    // We don't want to report search metrics for local search and any other
+    // situation where we might be offline.  Check this here as this may change
+    // in the future.
+    if (navigator.onLine) {
+      var search = this.getSearchCounts(provider);
+      search.count++;
+      debug('Search Count for: ' + provider + ': ', search.count);
+      this.needsSave = true;
+    }
   };
 
   UsageData.prototype.recordInstall = function(app) {
@@ -840,7 +888,7 @@
     var usage = this.getAppUsage(app.manifestURL);
     usage.installs++;
     this.needsSave = true;
-    debug(app, 'installed');
+    debug(app.manifestURL, 'installed');
     return true;
   };
 
@@ -852,7 +900,7 @@
     var usage = this.getAppUsage(app.manifestURL);
     usage.uninstalls++;
     this.needsSave = true;
-    debug(app, 'uninstalled');
+    debug(app.manifestURL, 'uninstalled');
     return true;
   };
 
@@ -865,7 +913,7 @@
     var count = usage.activities[url] || 0;
     usage.activities[url] = ++count;
     this.needsSave = true;
-    debug(app, 'invoked activity', url);
+    debug(app.manifestURL, 'invoked activity', url);
     return true;
   };
 
@@ -900,6 +948,30 @@
         }
       }
     }
+
+    // loop through all the search providers that we have data for
+    // and merge the new searches into the old searches.
+    for (var provider in newbatch.data.searches) {
+      var newsearch = newbatch.data.searches[provider];
+      var oldsearch = this.data.searches[provider];
+
+      if (!oldsearch) {
+        // If no usage exists for this provider, create a new empty object.
+        this.data.searches[provider] = {};
+        debug('creating new object for provider', provider);
+      }
+
+      for (var daykey in newsearch) {
+        var daySearch = oldsearch[daykey];
+        if (!daySearch) {
+          oldsearch[daykey] = newsearch[daykey];
+        } else {
+          var newsearchcount = newsearch[daykey].count;
+          var oldsearchcount = oldsearch[daykey].count || 0;
+          oldsearch[daykey].count = oldsearchcount + newsearchcount;
+        }
+      }
+    }
   };
 
   // Persist the current batch of metrics so we don't lose it if the user
@@ -919,6 +991,11 @@
       var usage = new UsageData();
       if (data) {
         usage.data = data;
+        //Handle a scenario with old app data that does not have searches
+        if (typeof usage.data.searches === 'undefined') {
+          usage.data.searches = {};
+        }
+
         // If we loaded persisted data, then the absolute start time can
         // and should no longer be adjusted. So remove the relative time.
         delete usage.relativeStartTime;

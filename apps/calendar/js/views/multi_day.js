@@ -69,7 +69,7 @@ MultiDay.prototype = {
   },
 
   get allDayIcon() {
-    return this.element.querySelector('.icon-calendar-allday');
+    return this.element.querySelector('.md__all-day');
   },
 
   onactive: function() {

@@ -43,7 +43,7 @@
       "returnValue": true,
       "href": "/transfer.html"
     },
-    "export": {
+    "share-via-bluetooth-only": {
       "filters": {
         "type": "text/vcard",
         "blobs": { "required":true }

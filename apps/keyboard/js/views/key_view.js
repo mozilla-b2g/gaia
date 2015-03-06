@@ -117,9 +117,9 @@ KeyView.prototype.render = function render() {
   labelNode.dataset.label = this.outputChar;
   vWrapperNode.appendChild(labelNode);
 
-  // If the |label| argument is an array, that means we need to insert another
-  // DOM element represents the lowercase label so that container styling can
-  // toggle between two.
+  // If the |altOutputChar| argument is given, that means we need to insert
+  // another DOM element represents the lowercase label so that container
+  // styling can toggle between two.
   if (this.altOutputChar) {
     // Create a lowercase label element
     labelNode = document.createElement('span');

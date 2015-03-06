@@ -3,7 +3,7 @@ var FakeDialerApp = require('./lib/fakedialerapp.js');
 
 marionette('Software Home Button - Call screen Appearance', function() {
   var apps = {};
-  apps[FakeDialerApp.DEFAULT_ORIGIN] = __dirname + '/fakedialerapp';
+  apps[FakeDialerApp.DEFAULT_ORIGIN] = __dirname + '/../apps/fakedialerapp';
 
   var client = marionette.client({
     prefs: {

@@ -167,6 +167,26 @@ suite('SimLockManager', function() {
         assert.isFalse(subject.simLockSystemDialog.visible);
       });
 
+      test('receiving cardstate from sim2 before 1, 1 empty', function() {
+        slot1.simCard.cardState = '';
+        slot2.simCard.cardState = 'pinRequired';
+        slot1.locked = false;
+        slot2.locked = true;
+        triggerCardStateEvent(1);
+        assert.isFalse(subject.simLockSystemDialog.show.called);
+        assert.isFalse(subject.simLockSystemDialog.visible);
+      });
+
+      test('receiving cardstate from sim2 before 1, 1 null', function() {
+        slot1.simCard.cardState = null;
+        slot2.simCard.cardState = 'pinRequired';
+        slot1.locked = false;
+        slot2.locked = true;
+        triggerCardStateEvent(1);
+        assert.isFalse(subject.simLockSystemDialog.show.called);
+        assert.isFalse(subject.simLockSystemDialog.visible);
+      });
+
       test('receiving cardstate from sim2 before 1, only 2 locked', function() {
         slot1.simCard.cardState = 'ready';
         slot2.simCard.cardState = 'pinRequired';

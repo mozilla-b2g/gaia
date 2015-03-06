@@ -1,14 +1,14 @@
 'use strict';
 
-/* global require, exports */
+var utils = require('utils');
+var nodeHelper = new utils.NodeHelper();
 
 exports.execute = function(options, webapp) {
   options.webapp = webapp;
   // Filter images/video by GAIA_DEV_PIXELS_PER_PX.
   require('./media-resolution').execute(options);
 
-  // Updates manifest.webapp
-  require('./post-manifest').execute(options);
+  nodeHelper.require('post-manifest', options);
 
   require('./multilocale').execute(options);
 

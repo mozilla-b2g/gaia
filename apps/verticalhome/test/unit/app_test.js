@@ -25,25 +25,47 @@ suite('app.js > ', function() {
 
   mocksHelperForApp.attachTestHelpers();
 
-  var raf;
+  var raf, scrollStub;
+  var documentHiddenValue = false;
+
+  suiteSetup(function() {
+    Object.defineProperty(document, 'hidden', {
+      configurable: true,
+      get: function() {
+        return documentHiddenValue;
+      }
+    });
+  });
 
   setup(function(done) {
     raf = sinon.stub(window, 'requestAnimationFrame');
+    scrollStub = sinon.stub(window, 'scrollTo');
     loadBodyHTML('/index.html');
     var grid = document.querySelector('gaia-grid')._grid;
     // Some features are loaded after rendering like dragdrop
     grid.render();
     require('/js/app.js', done);
+    this.sinon.useFakeTimers();
   });
 
   teardown(function() {
     raf.restore();
+    scrollStub.restore();
+    documentHiddenValue = false;
   });
 
   test('Scrolls on hashchange', function() {
     window.scrollY = 100000;
-    var scrollStub = sinon.stub(window, 'scrollTo');
     window.dispatchEvent(new CustomEvent('hashchange'));
+
+    assert.ok(scrollStub.called);
+  });
+
+  test('Scrolls on gaiagrid-attention', function() {
+    window.scrollY = 100000;
+    app.grid.dispatchEvent(
+      new CustomEvent('gaiagrid-attention', {detail: {y: 0, height: 0}}));
+    this.sinon.clock.tick();
 
     assert.ok(scrollStub.called);
   });
@@ -63,6 +85,31 @@ suite('app.js > ', function() {
     // This test was added for bug 1051061. If the test passes it means that
     // the test did not throw an error and that bug is not a problem.
     // No assertion is needed.
+  });
+
+  suite('When the homescreen is hidden', function() {
+    setup(function() {
+      documentHiddenValue = true;
+      document.dispatchEvent(new CustomEvent('visibilitychange'));
+    });
+
+    test('should hide the overflow to prevent displayport rendering',
+    function() {
+      assert.equal(document.body.style.overflow, 'hidden');
+    });
+
+    suite('then displayed again',function() {
+      setup(function() {
+        documentHiddenValue = false;
+        document.dispatchEvent(new CustomEvent('visibilitychange'));
+      });
+
+      test('should let the homescreen scroll after a tick', function() {
+        assert.equal(document.body.style.overflow, 'hidden');
+        this.sinon.clock.tick();
+        assert.equal(document.body.style.overflow, '');
+      });
+    });
   });
 
 });

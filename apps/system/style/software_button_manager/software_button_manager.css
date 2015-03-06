@@ -74,10 +74,12 @@
   height: var(--button-width);
   margin: 0 auto;
   background: transparent;
-  border-width: 0.35rem;
-  border-style: solid;
-  border-color: #ffffff;
-  border-radius: 50%;
+  border: 0;
+  outline-width: 0.35rem;
+  outline-style: solid;
+  outline-color: #ffffff;
+  outline-offset: -0.35rem;
+  -moz-outline-radius: 50%;
   box-sizing: border-box;
 }
 
@@ -90,7 +92,7 @@
 #software-home-button.active,
 #fullscreen-software-home-button.active,
 #fullscreen-layout-software-home-button.active {
-  border-color: #00caf2;
+  outline-color: #00caf2;
 }
 
 #fullscreen-software-home-button {

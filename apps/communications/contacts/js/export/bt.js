@@ -159,7 +159,7 @@ var ContactsBTExport = function ContactsBTExport() {
             }
 
             var a = new MozActivity({
-              name: 'export',
+              name: 'share-via-bluetooth-only',
               data: {
                 type: 'text/vcard',
                 number: 1,

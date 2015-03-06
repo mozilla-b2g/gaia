@@ -16,16 +16,15 @@
     "README.md"
   ],
   "dependencies": {
-    "gaia-component": "gaia-components/gaia-component#~0.2.0"
+    "gaia-component": "gaia-components/gaia-component#~0.3.0"
   },
-  "_release": "91142e18fc",
+  "_release": "84a8803886",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "91142e18fc16905f0d5860d43de187e2e8827c63"
+    "commit": "84a880388686523e68172651fce2d570d4499daf"
   },
   "_source": "git://github.com/gaia-components/gaia-loading.git",
   "_target": "*",
-  "_originalSource": "gaia-components/gaia-loading",
-  "_direct": true
+  "_originalSource": "gaia-components/gaia-loading"
 }

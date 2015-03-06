@@ -166,6 +166,21 @@
     },
 
     /**
+     * Dispatches a gaiagrid-attention signal with the rect of the item.
+     */
+    requestAttention: function() {
+      var rect = {
+        x: this.x,
+        y: this.y,
+        width: this.gridWidth * this.grid.layout.gridItemWidth,
+        height: this.pixelHeight
+      };
+
+      this.grid.element.dispatchEvent(
+        new CustomEvent('gaiagrid-attention', { detail: rect }));
+    },
+
+    /**
      * Given a list of icons that match a size, return the closest icon to
      * reduce possible pixelation by picking a wrong size.
      * @param {Object} choices An object mapping icon size to icon URL.

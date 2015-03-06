@@ -72,6 +72,13 @@ suite('search/providers/providers', function() {
         done();
       });
     });
+
+    test('search name', function(done) {
+      subject.search('homepage').then((results) => {
+        assert.equal(results[0].data.detail.name, 'homepage');
+        done();
+      });
+    });
   });
 
   suite('get', function() {

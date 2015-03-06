@@ -17,8 +17,9 @@ html, body {
   font-size: 10px;
 }
 
-
 /* RTL fixes being tracked in bug 1008013 */
+/* Get rid of this rule when http://bugzil.la/1139925 is fixed,
+ see http://bugzil.la/1137547 for details. */
 html[dir="rtl"] {
   direction: ltr;
 }
@@ -38,7 +39,7 @@ body, a {
 }
 
 #settings-connectivity {
-  background: url("/style/icons/settings.png") no-repeat 50% 50% / 1.4rem;
+  background: url(/style/icons/settings.png) no-repeat 50% 50% / 1.4rem;
   width: 1.4rem;
   height: 1.4rem;
   margin-top: -0.1rem;
@@ -186,7 +187,7 @@ h2 span, h2 label {
 
 .local .title, .local .meta {
   display: block;
-  white-space:nowrap;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -290,4 +291,14 @@ gaia-grid {
 
 [data-loading=true] .loading {
   display: block;
+}
+
+html[dir="rtl"] #suggestions-provider {
+  padding: 0 1rem 0 2rem;
+}
+
+html[dir="rtl"] #suggestions-provider::before {
+  left: .8rem;
+  right: unset;
+  border-width: 0 0.8rem 0.8rem 0;
 }

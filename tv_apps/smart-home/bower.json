@@ -1,0 +1,21 @@
+{
+  "name": "smart-home",
+  "version": "0.0.0",
+  "homepage": "https://github.com/mozilla-b2g/gaia/tree/master/tv_apps/smart-home",
+  "description": "Smart Screen Home App",
+  "main": "index.html",
+  "license": "MPL",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "evt": "gaia-components/evt#~0.4.0",
+    "smart-button": "smart-components/smart-button",
+    "menu-group": "smart-components/menu-group"
+  }
+}
