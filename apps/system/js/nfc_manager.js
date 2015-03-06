@@ -364,6 +364,12 @@
       var manifestURL = activeApp.getTopMostWindow().manifestURL ||
         window.Service.manifestURL;
 
+      // Do not allow shrinking if we are on the private browser landing page.
+      if (activeApp.isPrivateBrowser() &&
+        activeApp.config.url.startsWith('app://')) {
+        return;
+      }
+
       var promise = nfcdom.checkP2PRegistration(manifestURL);
       promise.then(result => {
         if (result) {
