@@ -1,9 +1,9 @@
 'use strict';
 
-/* globals MocksHelper, MockBluetooth, MockNavigatorSettings,
-           NDEF, NfcConnectSystemDialog, MockL10n, NDEFUtils, BaseModule,
-           MockMozNfc, NfcUtils, MockNavigatormozSetMessageHandler,
-           MockLazyLoader, Service */
+/* globals MocksHelper, MockBluetooth, MockBluetoothTransfer,
+           MockNavigatorSettings, NDEF, NfcConnectSystemDialog,
+           MockL10n, NDEFUtils, BaseModule, MockMozNfc, NfcUtils,
+           MockNavigatormozSetMessageHandler, MockLazyLoader, MockService */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_moz_ndefrecord.js');
@@ -16,6 +16,7 @@ requireApp('system/test/unit/mock_system_nfc_connect_dialog.js');
 requireApp('system/shared/test/unit/mocks/mock_event_target.js');
 requireApp('system/shared/test/unit/mocks/mock_dom_request.js');
 requireApp('system/test/unit/mock_lazy_loader.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_bluetooth_transfer.js');
 requireApp('system/test/unit/mock_bluetooth.js');
 requireApp('system/test/unit/mock_activity.js');
@@ -31,7 +32,8 @@ var mocksForNfcUtils = new MocksHelper([
   'MozNDEFRecord',
   'NfcConnectSystemDialog',
   'NotificationHelper',
-  'LazyLoader'
+  'LazyLoader',
+  'Service'
 ]).init();
 
 suite('Nfc Handover Manager Functions', function() {
@@ -268,6 +270,7 @@ suite('Nfc Handover Manager Functions', function() {
 
     teardown(function() {
       MockBluetooth.enabled = false;
+      MockService.mIsFileTransferInProgress = false;
 
       spySendNDEF.restore();
       nfcHandoverManager.sendFileQueue = [];
@@ -299,6 +302,19 @@ suite('Nfc Handover Manager Functions', function() {
       var ndefPromise = spySendNDEF.returnValues[0];
       ndefPromise.mFulfillToValue();
       assert.equal(1, nfcHandoverManager.sendFileQueue.length);
+    });
+
+    test('Sending aborts when another file is transmitted concurrently',
+      function() {
+
+      MockService.mIsFileTransferInProgress = true;
+
+      var stubShowNotification = this.sinon.stub(nfcHandoverManager,
+                                                 '_showTryAgainNotification');
+      MockNavigatormozSetMessageHandler.mTrigger(
+        'nfc-manager-send-file', fileRequest);
+      assert.isTrue(stubShowNotification.calledOnce,
+                    'Notification not shown');
     });
 
     test('Aborts when sendNDEF() fails.', function() {
@@ -368,6 +384,26 @@ suite('Nfc Handover Manager Functions', function() {
         blob: { name: 'Lorem ipsum' }
       });
     });
+
+    test('Empty Handover Select results in abort',
+      function() {
+
+      fileRequest.onerror = sinon.stub();
+      nfcHandoverManager.sendFileQueue.push(fileRequest);
+
+      var stubShowNotification = this.sinon.stub(nfcHandoverManager,
+                                                 '_showTryAgainNotification');
+      var spySendFile = this.sinon.spy(MockBluetoothTransfer,
+        'sendFileViaHandover');
+
+      var select = NDEFUtils.encodeEmptyHandoverSelect();
+      nfcHandoverManager._handleHandoverSelect(select);
+
+      assert.isTrue(spySendFile.notCalled);
+      assert.isTrue(fileRequest.onerror.calledOnce);
+      assert.isTrue(stubShowNotification.calledOnce,
+                    'Notification not shown');
+    });
   });
 
   suite('Action queuing when Bluetooth disabled', function() {
@@ -412,16 +448,10 @@ suite('Nfc Handover Manager Functions', function() {
   suite('Restore state of Bluetooth adapter', function() {
     var spySendNDEF;
     var mockFileRequest;
-    var mIsSendFileQueueEmpty;
 
     setup(function() {
-      mIsSendFileQueueEmpty = true;
+      MockService.mIsSendFileQueueEmpty = true;
       this.sinon.useFakeTimers();
-      this.sinon.stub(Service, 'query', function(queryString) {
-        if (queryString === 'BluetoothTransfer.isSendFileQueueEmpty') {
-          return mIsSendFileQueueEmpty;
-        }
-      });
       mockFileRequest = {
           peer: MockMozNfc.MockNFCPeer,
           blob: new Blob(),
@@ -432,7 +462,7 @@ suite('Nfc Handover Manager Functions', function() {
     });
 
     teardown(function() {
-      mIsSendFileQueueEmpty = false;
+      MockService.mIsSendFileQueueEmpty = false;
       nfcHandoverManager.stop();
       spySendNDEF.restore();
     });
@@ -485,7 +515,7 @@ suite('Nfc Handover Manager Functions', function() {
       initiateFileTransfer();
       assert.equal(MockNavigatorSettings.mSettings['bluetooth.enabled'],
               true);
-      mIsSendFileQueueEmpty = false;
+      MockService.mIsSendFileQueueEmpty = false;
       finalizeFileTransfer();
 
       // Now finalize the second transfer (the one not initiated
@@ -493,7 +523,7 @@ suite('Nfc Handover Manager Functions', function() {
       var details = {received: false,
                      success: true,
                      viaHandover: false};
-      mIsSendFileQueueEmpty = true;
+      MockService.mIsSendFileQueueEmpty = true;
       nfcHandoverManager.transferComplete({
         detail: details
       });

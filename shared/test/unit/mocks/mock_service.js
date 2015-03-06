@@ -14,6 +14,8 @@ var MockService = {
     this.mInCall = false;
     this.mTopMostWindow = null;
     this.mHeadsetConnected = false;
+    this.mIsFileTransferInProgress = false;
+    this.mIsSendFileQueueEmpty = false;
   },
   lowerCapital: function() {
     return 'a';
@@ -54,6 +56,10 @@ var MockService = {
         return this.mInCall;
       case 'isHeadsetConnected':
         return this.mHeadsetConnected;
+      case 'BluetoothTransfer.isFileTransferInProgress':
+        return this.mIsFileTransferInProgress;
+      case 'BluetoothTransfer.isSendFileQueueEmpty':
+        return this.mIsSendFileQueueEmpty;
     }
     return undefined;
   },
