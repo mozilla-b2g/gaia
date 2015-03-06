@@ -2,6 +2,7 @@
   "extends": "../../../../.jshintrc",
   "predef": [
     "__dirname",
+    "module",
     "suite",
     "test",
     "setup",

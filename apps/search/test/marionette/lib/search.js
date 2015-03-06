@@ -86,13 +86,9 @@ Search.prototype = {
    * removed.
    */
   removeGeolocationPermission: function() {
-    var client = this.client.scope({ context: 'chrome' });
-    client.executeScript(function(origin) {
-      var mozPerms = navigator.mozPermissionSettings;
-      mozPerms.set(
-        'geolocation', 'deny', origin + '/manifest.webapp', origin, false
-      );
-    }, [Search.URL]);
+    this.client.executeScript(function() {
+      window.wrappedJSObject.permissionManager.discardPermissionRequest();
+    });
   },
 
   /**

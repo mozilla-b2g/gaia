@@ -1,6 +1,4 @@
 'use strict';
-
-var System = require('./lib/system');
 var FakeDialerApp = require('./lib/fakedialerapp.js');
 
 marionette('Software Home Button - Call screen Appearance', function() {
@@ -23,7 +21,7 @@ marionette('Software Home Button - Call screen Appearance', function() {
   var fakedialer;
 
   setup(function() {
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
 
     fakedialer = new FakeDialerApp(client);
