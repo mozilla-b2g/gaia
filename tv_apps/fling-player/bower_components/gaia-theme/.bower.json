@@ -31,6 +31,5 @@
   },
   "_source": "git://github.com/gaia-components/gaia-theme.git",
   "_target": "~0.4.5",
-  "_originalSource": "gaia-components/gaia-theme",
-  "_direct": true
+  "_originalSource": "gaia-components/gaia-theme"
 }

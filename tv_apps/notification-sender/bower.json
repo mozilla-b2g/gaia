@@ -1,0 +1,19 @@
+{
+  "name": "notification-sender",
+  "version": "0.0.0",
+  "homepage": "https://github.com/mozilla-b2g/gaia/tree/master/tv_apps/notification-sender",
+  "description": "Notification Sender",
+  "main": "index.html",
+  "license": "MPL",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "evt": "gaia-components/evt#~0.4.0"
+  }
+}
