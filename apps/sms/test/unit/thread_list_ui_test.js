@@ -2,7 +2,7 @@
          MessageManager, WaitingScreen, Threads, Template, MockMessages,
          MockThreadList, MockTimeHeaders, Draft, Drafts, Thread, ThreadUI,
          MockOptionMenu, Utils, Contacts, MockContact, Navigation,
-         MockSettings,
+         MockSettings, Settings,
          InterInstanceEventDispatcher,
          MockStickyHeader,
          StickyHeader
@@ -54,7 +54,8 @@ var mocksHelperForThreadListUI = new MocksHelper([
   'Navigation',
   'InterInstanceEventDispatcher',
   'SelectionHandler',
-  'LazyLoader'
+  'LazyLoader',
+  'Settings'
 ]).init();
 
 suite('thread_list_ui', function() {
@@ -1212,6 +1213,9 @@ suite('thread_list_ui', function() {
       this.sinon.spy(ThreadListUI, 'renderDrafts');
       this.sinon.spy(MockStickyHeader.prototype, 'refresh');
       this.sinon.spy(window, 'StickyHeader');
+
+      this.sinon.stub(Settings, 'setReadAheadThreadRetrieval');
+
       firstViewDone = sinon.stub();
 
       Threads.clear();
@@ -1290,6 +1294,11 @@ suite('thread_list_ui', function() {
           // Check that all threads have been properly inserted in the list
           assert.equal(mmsThreads.length, 2);
           assert.equal(smsThreads.length, 8);
+
+          sinon.assert.calledWith(
+            Settings.setReadAheadThreadRetrieval,
+            ThreadListUI.FIRST_PANEL_THREAD_COUNT
+          );
         });
       });
     });
