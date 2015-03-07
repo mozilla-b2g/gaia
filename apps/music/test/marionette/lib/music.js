@@ -42,6 +42,8 @@ Music.Selector = Object.freeze({
   shareMenu: 'form[data-z-index-level="action-menu"]',
   pickDoneButton: '#title-done',
   header: '#title',
+  titleText: '#title-text',
+  sublistShuffleButton: '#views-sublist-controls-shuffle',
   playerIcon: '#title-player'
 });
 
@@ -96,6 +98,16 @@ Music.prototype = {
     return this.client.findElement(Music.Selector.shareButton);
   },
 
+  get title() {
+    var header = this.client.findElement(Music.Selector.header);
+    return header.findElement(Music.Selector.titleText);
+  },
+
+  get sublistShuffleButton() {
+    return this.client.helper.waitForElement(
+      Music.Selector.sublistShuffleButton);
+  },
+
   // TODO(gareth): Move this shareMenu stuff into the helper.
   get shareMenu() {
     // Switch to the system app first.
@@ -132,6 +144,10 @@ Music.prototype = {
     this.client.apps.launch(this.origin);
     this.client.apps.switchToApp(this.origin);
     this.client.helper.waitForElement('body');
+  },
+
+  close: function() {
+    this.client.apps.close(this.origin);
   },
 
   switchToMe: function(options) {
