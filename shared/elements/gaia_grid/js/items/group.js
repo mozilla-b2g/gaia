@@ -203,6 +203,19 @@
     },
 
     /**
+     * Gets the y-position of the group. When the group is expanded, its y
+     * position is actually the y-position of the separator underneath the
+     * group. This gets the visible y-position of the group.
+     */
+    getRealYPosition: function(nApps) {
+      if (this.detail.collapsed) {
+        return this.y;
+      }
+      return this.grid.items[this.detail.index - nApps].y -
+             this.headerHeight;
+    },
+
+    /**
      * Renders the icon to the grid component.
      */
     render: function() {
@@ -220,11 +233,7 @@
       // Calculate group position.
       // If we're not collapsed, the group's position will be underneath its
       // icons, but we want it to display above.
-      var y = this.y;
-      if (!this.detail.collapsed) {
-        y = this.grid.items[this.detail.index - nApps].y -
-          this.headerHeight;
-      }
+      var y = this.getRealYPosition(nApps);
 
       // Place the header span
       this.headerSpanElement.style.transform =
@@ -344,6 +353,10 @@
         } else {
           // If we're not dragging, save the collapsed state
           window.dispatchEvent(new CustomEvent('gaiagrid-saveitems'));
+
+          // Request attention so that we're as visible as we can be after
+          // expanding/collapsing
+          this.requestAttention();
         }
       }, 20);
     },
@@ -386,6 +399,18 @@
 
     isDraggable: function() {
       return true;
+    },
+
+    requestAttention: function() {
+      var rect = {
+        x: 0,
+        y: this.getRealYPosition(this.size),
+        width: this.gridWidth * this.grid.layout.gridItemWidth,
+        height: this.backgroundHeight
+      };
+
+      this.grid.element.dispatchEvent(
+        new CustomEvent('gaiagrid-attention', { detail: rect }));
     }
   };
 

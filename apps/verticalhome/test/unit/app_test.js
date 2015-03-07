@@ -28,7 +28,8 @@ suite('app.js > ', function() {
   var raf, scrollStub;
 
   setup(function(done) {
-    raf = sinon.stub(window, 'requestAnimationFrame');
+    raf = sinon.stub(window, 'requestAnimationFrame',
+                     function(callback) { callback(); });
     scrollStub = sinon.stub(window, 'scrollTo');
     loadBodyHTML('/index.html');
     var grid = document.querySelector('gaia-grid')._grid;
@@ -54,8 +55,6 @@ suite('app.js > ', function() {
     window.scrollY = 100000;
     app.grid.dispatchEvent(
       new CustomEvent('gaiagrid-attention', {detail: {y: 0, height: 0}}));
-    this.sinon.clock.tick();
-
     assert.ok(scrollStub.called);
   });
 
