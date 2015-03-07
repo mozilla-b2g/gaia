@@ -759,6 +759,45 @@ suite('latin.js', function() {
           }).then(done, done);
         });
       });
+
+      suite('Always keep at least one user dictionary word', function() {
+        test('User dictionary word frequenst is high', function(done){
+          activateAndTestPrediction('ster', 'ster', [
+            ['stery', 4],
+            ['star', 3, true],
+            ['stak', 2],
+            ['stack', 1]
+          ]).then(function() {
+            sinon.assert.callCount(glue.sendCandidates, 1);
+            sinon.assert.calledWith(
+              glue.sendCandidates, ['stery', 'star', 'stak']);
+          }).then(done, done);
+        });
+        test('User dictionary word frequenst is low', function(done){
+          activateAndTestPrediction('ster', 'ster', [
+            ['stery', 4],
+            ['star', 3],
+            ['stak', 2],
+            ['stack', 1, true]
+          ]).then(function() {
+            sinon.assert.callCount(glue.sendCandidates, 1);
+            sinon.assert.calledWith(
+              glue.sendCandidates, ['stery', 'star', 'stack']);
+          }).then(done, done);
+        });
+        test('User dictionary word frequenst is input', function(done){
+          activateAndTestPrediction('ster', 'ster', [
+            ['ster', 10, true],
+            ['star', 3],
+            ['stak', 2],
+            ['stack', 1]
+          ]).then(function() {
+            sinon.assert.callCount(glue.sendCandidates, 1);
+            sinon.assert.calledWith(
+              glue.sendCandidates, ['star', 'stak', 'stack']);
+          }).then(done, done);
+        });
+      });
     });
   });
 
