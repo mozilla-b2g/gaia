@@ -159,7 +159,7 @@ suite('GaiaGrid > DragDrop', function() {
 
   test('create new groups by dropping items at the end', function() {
     var requestAttentionStub =
-      sinon.stub(GaiaGrid.GridItem.prototype, 'requestAttention');
+      sinon.stub(GaiaGrid.Divider.prototype, 'requestAttention');
     var dividers = countDividers();
     var subject = grid.dragdrop;
 
