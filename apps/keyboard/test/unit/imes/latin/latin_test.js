@@ -447,7 +447,8 @@ suite('latin.js', function() {
           .returns(Promise.resolve([{}, {user: 'user'}]));
 
         activateEngineWithState('').then(function(){
-          Promise.all.firstCall.args[0][1].then(() => {
+          Promise.all.firstCall.args[0][1].then(blob => {
+            assert.deepEqual(blob, {user: 'user'});
             resolvePromiseStorageBlob();
           }).catch(e => {
             rejectPromiseStorageBlob(e);
@@ -458,13 +459,11 @@ suite('latin.js', function() {
           resolveWorkerPostMessage();
         });
 
-        // calling then(done, done) will make done receive an array of Promise
-        // resolution and trigger mocha fail, so let's wrap it.
+        // calling then(done) (the first parameter) will make done receive an
+        // array of Promise resolutions and trigger mocha fail, so let's wrap it
         pAll.then(() => {
           done();
-        }, () => {
-          done();
-        });
+        }, done);
       });
 
       test('call setUserDictionary on activation', function(done) {
