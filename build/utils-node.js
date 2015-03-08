@@ -130,7 +130,7 @@ module.exports = {
     if (!manifest) {
       throw new Error('manifest.webapp not found in ' + zipPath);
     }
-    return manifest.asText();
+    return JSON.parse(manifest.asText());
   },
 
   killAppByPid: function(appName) {
@@ -395,7 +395,8 @@ module.exports = {
       } else {
         // uuid is used for webapp directory name, save it for further usage
         let mapping = this.getUUIDMapping(config);
-        var uuid = mapping[webapp.sourceDirectoryName] || nodeUUID.v4();
+        var uuid = mapping[webapp.sourceDirectoryName] ||
+          '{' + nodeUUID.v4() + '}';
         mapping[webapp.sourceDirectoryName] = webappTargetDirName = uuid;
       }
     } else {
