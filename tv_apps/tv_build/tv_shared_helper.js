@@ -54,8 +54,7 @@
       // Case 1/ Regular file
       if (file.isFile()) {
         try {
-          utils.copyFileTo(file, utils.dirname(target.path),
-                           target.leafName, true);
+          utils.copyFileTo(file, utils.dirname(target.path), target.leafName);
         } catch (e) {
           throw new Error('Unable to add following file in stage: ' +
                           path + '\n' + e);
@@ -63,8 +62,7 @@
       }
       // Case 2/ Directory
       else if (file.isDirectory()) {
-        utils.copyDirTo(file, utils.dirname(target.path),
-                        target.leafName, true);
+        utils.copyDirTo(file, utils.dirname(target.path), target.leafName);
       }
     },
 

@@ -516,16 +516,16 @@ module.exports = {
     return exists;
   },
 
-  copyFileTo: function(filePath, toParent, name, recursive) {
+  copyFileTo: function(filePath, toParent, name) {
     var file = ((typeof filePath === 'string') ?
       this.getFile(filePath) : filePath);
-    fs.copySync(file.path, path.join(toParent, name), { recursive: recursive });
+    fs.copySync(file.path, path.join(toParent, name));
   },
 
-  copyDirTo: function(filePath, toParent, name, recursive) {
+  copyDirTo: function(filePath, toParent, name) {
     var file = ((typeof filePath === 'string') ?
       this.getFile(filePath) : filePath);
-    fs.copySync(file.path, path.join(toParent, name), { recursive: recursive });
+    fs.copySync(file.path, path.join(toParent, name));
   },
 
   copyToStage: function(options) {

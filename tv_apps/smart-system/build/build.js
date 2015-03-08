@@ -22,8 +22,7 @@ SystemAppBuilder.prototype.addCustomizeFiles = function() {
   var files = utils.ls(fileDir);
   files.forEach(function(file) {
     utils.copyFileTo(file.path,
-      utils.joinPath(self.stageDir.path, 'resources', 'power'),
-        file.leafName, true);
+      utils.joinPath(self.stageDir.path, 'resources', 'power'), file.leafName);
   });
 };
 
