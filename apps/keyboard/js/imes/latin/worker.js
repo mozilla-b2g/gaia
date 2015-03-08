@@ -142,7 +142,13 @@ var Commands = {
   },
 
   setUserDictionary: function setUserDictionary(userDict) {
-    userDictPredictor.setDictionary(userDict);
+    try {
+      userDictPredictor.setDictionary(userDict);
+      postMessage({cmd: 'success', fn: 'setUserDictionary'});
+    }
+    catch (e) {
+      postMessage({cmd: 'error', fn: 'setUserDictionary: ' + e.message});
+    }
   },
 
   setNearbyKeys: function setNearbyKeys(nearbyKeys) {
