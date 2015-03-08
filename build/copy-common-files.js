@@ -1,6 +1,10 @@
 'use strict';
 
-const utils = require('./utils');
+/**
+ * Copy common files such as webapps.json
+ */
+
+var utils = require('./utils');
 
 function cleanProfile(webappsDir) {
   // Profile can contain folders with a generated uuid that need to be deleted
