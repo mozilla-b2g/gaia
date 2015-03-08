@@ -369,7 +369,7 @@ var Predictions = function() {
     // passed a string that does not pass this test then there is no way we will
     // be able to offer suggestions and it is not even worth searching.
     function validChars(s) {
-      return Array.from(s).every(function(c){
+      return Array.from(s).every(function(c) {
         var code = c.charCodeAt(0);
 
         // the char is valid if:
