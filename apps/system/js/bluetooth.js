@@ -1,6 +1,7 @@
 /* global SettingsListener, Service, BluetoothIcon, BluetoothTransferIcon,
           BluetoothHeadphoneIcon, LazyLoader */
 /* exported Bluetooth */
+(function(exports) {
 'use strict';
 
 var Bluetooth = {
@@ -250,3 +251,6 @@ var Bluetooth = {
     return window.navigator.mozBluetooth.enabled;
   }
 };
+
+  exports.Bluetooth1 = Bluetooth;
+})(window);
