@@ -46,7 +46,7 @@
         disabled: 'wifi-disabled'
       },
       bluetooth: {
-        enabled: 'bluetooth-adapter-added',
+        enabled: 'bluetooth-enabled',
         disabled: 'bluetooth-disabled'
       },
       radio: {
