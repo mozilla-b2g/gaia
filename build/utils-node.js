@@ -26,6 +26,10 @@ var nodeUUID = require('node-uuid');
 var jsdom = require('jsdom-nogyp').jsdom;
 var esprima = require('esprima');
 var procRunning = require('is-running');
+var mime = require('mime');
+
+// Our gecko will transfer .opus file to audio/ogg datauri type.
+mime.define({'audio/ogg': ['opus']});
 
 module.exports = {
 
@@ -178,7 +182,7 @@ module.exports = {
 
   getFileAsDataURI: function(file) {
     var data = this.getFileContent(file, 'base64');
-    return new Buffer(data, 'binary').toString('base64');
+    return 'data:' + mime.lookup(file.path) + ';base64,' + data;
   },
 
   getJSON: function(file) {
