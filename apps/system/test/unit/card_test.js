@@ -102,6 +102,7 @@ suite('system/Card', function() {
       var card = this.card;
 
       assert.equal(card.screenshotView.getAttribute('role'), 'link');
+      assert.equal(card.element.getAttribute('role'), 'group');
       assert.strictEqual(card.iconButton.getAttribute('aria-hidden'), 'true');
     });
 
