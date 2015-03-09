@@ -11,7 +11,8 @@ marionette('Find My Device lock >', function() {
     },
     settings: {
       'ftu.manifestURL': null,
-      'lockscreen.enabled': false
+      'lockscreen.enabled': false,
+      'findmydevice.enabled': true
     },
   });
 
