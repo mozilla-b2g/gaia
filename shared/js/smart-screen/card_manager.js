@@ -135,7 +135,7 @@
       var that = this;
       return this._getPipedPromise('_loadDefaultCardList',
         function(resolve, reject) {
-          var defaultCardListFile = 'tv_shared/resources/default-cards.json';
+          var defaultCardListFile = 'shared/resources/default-cards.json';
           that._asyncSemaphore.v();
           that._loadFile({
             url: defaultCardListFile,
