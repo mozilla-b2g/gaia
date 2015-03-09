@@ -1,9 +1,10 @@
 'use strict';
 
-var Actions = require('marionette-client').Actions;
-var System = require('../../../system/test/marionette/lib/system');
+var Rocketbar = require('../../../system/test/marionette/lib/rocketbar');
+var Bookmark = require('../../../system/test/marionette/lib/bookmark');
 var helper = require('../../../../tests/js-marionette/helper.js');
 var SETTINGS_APP = 'app://settings.gaiamobile.org';
+var Server = require('../../../../shared/test/integration/server');
 var UtilityTray = require('./lib/utility_tray');
 
 marionette('Statusbar colors', function() {
@@ -18,52 +19,135 @@ marionette('Statusbar colors', function() {
     }
   });
 
-  var system = new System(client);
-  var actions = new Actions(client);
-  var utilityTray = new UtilityTray(client);
+  var system;
+  var bookmark;
+  var actions;
+  var search;
+  var rocketbar = new Rocketbar(client);
+  var server;
+  var utilityTray;
 
   setup(function() {
+    actions = client.loader.getActions();
+    search = client.loader.getAppClass('search');
+    system = client.loader.getAppClass('system');
+    utilityTray = new UtilityTray(client);
+    bookmark = new Bookmark(client);
     system.waitForStartup();
+  });
+
+  suiteSetup(function(done) {
+    Server.create(__dirname + '/fixtures/', function(err, _server) {
+      server = _server;
+      done();
+    });
+  });
+
+  suiteTeardown(function() {
+    server.stop();
   });
 
   test('statusbar icons are white in the lockscreen', function() {
     waitVisible();
-    waitForColor(false);
+    waitForDarkColor();
   });
 
   test('statusbar icons remain white after dark app', function() {
     waitVisible();
     helper.unlockScreen(client);
     client.apps.launch(SETTINGS_APP);
-    waitForColor(true);
+    waitForLightColor();
     helper.lockScreen(client);
-    waitForColor(false);
+    waitForDarkColor();
     helper.unlockScreen(client);
-    waitForColor(true);
+    waitForLightColor();
   });
 
-  // Home Button doesn't work in 2.1's tests. Skipping until gets fixed
-  test.skip('statusbar icons remain white after task switcher', function() {
+  test('statusbar icons remain white after task switcher', function() {
     waitVisible();
     helper.unlockScreen(client);
     client.apps.launch(SETTINGS_APP);
-    waitForColor(true);
+    waitForLightColor();
     actions.longPress(system.softwareHome, 1).perform();
     waitForCardsView();
     helper.lockScreen(client);
-    waitForColor(false);
+    waitForDarkColor();
     helper.unlockScreen(client);
-    waitForColor(true);
+    waitForLightColor();
+  });
+
+  test('statusbar icons keep color after add homescreen', function() {
+    waitVisible();
+    helper.unlockScreen(client);
+    var url = server.url('sample.html');
+    bookmark.openAndSave(url);
+    waitForLightColor();
+  });
+
+  test('statusbar icons keep color after activity', function() {
+    waitVisible();
+    helper.unlockScreen(client);
+    rocketbar.homescreenFocus();
+    var url = server.url('sample.html');
+    rocketbar.enterText(url + '\uE006');
+    client.executeScript(function() {
+      window.wrappedJSObject.permissionManager.discardPermissionRequest();
+    });
+
+    // Ensure that the page is loaded.
+    system.gotoBrowser(url);
+    client.switchToFrame();
+
+    system.appChromeContextLink.click();
+    system.appChromeContextMenuShare.click();
+    system.cancelActivity.click();
+    waitForLightColor();
+  });
+
+  test('statusbar color after activity title change', function() {
+    helper.unlockScreen(client);
+    waitVisible();
+    waitForDarkColor();
+    launchSettingsActivity();
+    client.waitFor(function() {
+      var filter = system.statusbar.scriptWith(function(element) {
+        return window.getComputedStyle(element).filter;
+      });
+      return filter.indexOf('none') === -1;
+    });
+    waitForLightColor();
   });
 
   test('statusbar icons are dark when utility tray is open', function() {
     waitVisible();
     helper.unlockScreen(client);
     client.apps.launch(SETTINGS_APP);
-    waitForColor(true);
+    waitForLightColor();
     utilityTray.open();
-    waitForColor(false);
+    client.waitFor(function() {
+      var filter = system.statusbar.scriptWith(function(element) {
+        return window.getComputedStyle(element).filter;
+      });
+      return filter.indexOf('none') > -1;
+    });
+    waitForDarkColor();
   });
+
+  function launchSettingsActivity() {
+    var SMS_APP = 'app://sms.gaiamobile.org';
+    client.apps.launch(SMS_APP);
+    client.switchToFrame();
+    client.executeScript(function() {
+      var activity = new window.wrappedJSObject.MozActivity({
+        name: 'configure',
+        data: {
+          target: 'device',
+          section: 'messaging'
+        }
+      });
+      activity.onsuccess = function() {};
+    });
+  }
 
   function waitForCardsView() {
     client.waitFor(function() {
@@ -81,6 +165,14 @@ marionette('Statusbar colors', function() {
       });
       return (visibility == 'visible');
     });
+  }
+
+  function waitForLightColor() {
+    waitForColor(true);
+  }
+
+  function waitForDarkColor() {
+    waitForColor(false);
   }
 
   function waitForColor(light) {
