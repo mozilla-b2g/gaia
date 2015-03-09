@@ -15,11 +15,12 @@
    * @param {Boolean} preventFocusChange Set to true to prevent focus changing.
    */
   function ActionMenu(listItems, titleL10nId, successCb, cancelCb,
-  preventFocusChange) {
+  preventFocusChange, askForDefaultChoice) {
     this.onselected = successCb || function() {};
     this.oncancel = cancelCb || function() {};
     this.listItems = listItems;
     this.titleL10nId = titleL10nId;
+    this.askForDefaultChoice = askForDefaultChoice;
   }
 
   ActionMenu.prototype = {
@@ -51,6 +52,23 @@
       }
 
       this.container.appendChild(this.header);
+
+      // And a default choice button if asked
+      if (this.askForDefaultChoice) {
+        this.defaultChoice = document.createElement('label');
+        this.defaultChoice.setAttribute('class', 'pack-checkbox');
+        this.defaultChoice.setAttribute('data-action', 'set-default-action');
+
+        this.defaultChoiceInput = document.createElement('input');
+        this.defaultChoiceInput.setAttribute('type', 'checkbox');
+
+        this.defaultChoiceSpan = document.createElement('span');
+        this.defaultChoiceSpan.setAttribute('data-l10n-id',
+                                            'set-default-action');
+
+        this.defaultChoice.appendChild(this.defaultChoiceInput);
+        this.defaultChoice.appendChild(this.defaultChoiceSpan);
+      }
 
       // Following our paradigm we need a cancel
       this.cancel = document.createElement('button');
@@ -105,6 +123,19 @@
     },
 
     /**
+     * This changes the input to be checked or unchecked
+     * @memberof ActionMenu.prototype
+     */
+    toggleSetDefaultAction: function() {
+      var checked = this.defaultChoiceInput.checked;
+      if (checked) {
+        this.defaultChoiceInput.removeAttribute('checked');
+      } else {
+        this.defaultChoiceInput.setAttribute('checked', true);
+      }
+    },
+
+    /**
      * Builds the dom for the menu.
      * @memberof ActionMenu.prototype
      */
@@ -113,6 +144,7 @@
       items.forEach(function traveseItems(item) {
         var action = document.createElement('button');
         action.dataset.value = item.value;
+        action.dataset.manifest = item.manifest;
         action.textContent = item.label;
 
         if (item.icon) {
@@ -121,6 +153,13 @@
         }
         this.menu.appendChild(action);
       }, this);
+
+      if (this.askForDefaultChoice) {
+        this.defaultChoiceSpan.setAttribute('data-l10n-id',
+                                            'set-default-action');
+        this.menu.appendChild(this.defaultChoice);
+      }
+
       this.menu.appendChild(this.cancel);
     },
 
@@ -173,10 +212,22 @@
         case 'click':
           evt.preventDefault();
           var action = target.dataset.action;
-          if (action && action === 'cancel') {
-             this.hide();
-             this.oncancel();
-             return;
+          if (action) {
+            switch (action) {
+              case 'cancel':
+                this.hide();
+                this.oncancel();
+                break;
+              case 'set-default-action':
+                this.toggleSetDefaultAction();
+                break;
+            }
+            return;
+          }
+
+          var defaultSelected = false;
+          if (this.askForDefaultChoice) {
+            defaultSelected = !!this.defaultChoiceInput.getAttribute('checked');
           }
 
           var value = target.dataset.value;
@@ -184,7 +235,7 @@
             return;
           }
           value = parseInt(value);
-          this.hide(this.onselected.bind(this, value));
+          this.hide(this.onselected.bind(this, value, defaultSelected));
           break;
 
         case 'home':

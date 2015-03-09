@@ -602,6 +602,9 @@
       // Place the dragged item into the new empty section
       var sIndex = items.indexOf(this.icon);
       this.rearrange(sIndex >= tIndex ? newDivider : tDivider);
+
+      // Make sure the new divider/group is in view
+      newDivider.requestAttention();
     },
 
     /**

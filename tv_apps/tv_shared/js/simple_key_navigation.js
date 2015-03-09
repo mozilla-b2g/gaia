@@ -22,8 +22,8 @@
   proto.start = function skn_start(list, direction, options) {
     this.direction = direction;
     this.updateList(list);
-    this.isChild = !!options.isChild;
-    this.target = options.target || window;
+    this.isChild = options ? !!options.isChild : false;
+    this.target = (options && options.target) || window;
     if (!this.isChild) {
       this.target.addEventListener('keydown', this);
     }

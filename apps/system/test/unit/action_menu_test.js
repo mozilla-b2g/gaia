@@ -14,6 +14,14 @@ suite('ActionMenu', function() {
     return screenElement.querySelector('[data-type="action"]');
   }
 
+  function resetHTML() {
+    document.body.innerHTML = '';
+    loadBodyHTML('/index.html');
+    screenElement = document.getElementById('screen');
+    // reload too in case is on memory
+    getMenu();
+  }
+
   suiteSetup(function() {
     activitiesMockup = [
       {
@@ -46,8 +54,8 @@ suite('ActionMenu', function() {
 
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-    loadBodyHTML('/index.html');
-    screenElement = document.getElementById('screen');
+
+    resetHTML();
   });
 
   suiteTeardown(function() {
@@ -55,8 +63,11 @@ suite('ActionMenu', function() {
     document.body.innerHTML = '';
   });
 
-
   suite(' > Structure & Basic methods', function() {
+    setup(function() {
+      resetHTML();
+    });
+
     test(' > init', function() {
       // We must have *only* one action menu in system
       var menu = new ActionMenu(genericActionsMockup, title);
@@ -140,7 +151,6 @@ suite('ActionMenu', function() {
       menu.stop();
       assert.isFalse(screenElement.classList.contains('action-menu'));
     });
-
   });
 
   suite(' > handleEvent', function() {
@@ -148,6 +158,7 @@ suite('ActionMenu', function() {
     var menu;
 
     setup(function() {
+      resetHTML();
       menu = new ActionMenu(activitiesMockup, title);
       menu.start();
       this.sinon.spy(menu, 'handleEvent');
@@ -179,6 +190,7 @@ suite('ActionMenu', function() {
     var menu;
 
     setup(function() {
+      resetHTML();
       successCBStub = this.sinon.spy();
       cancelCBStub = this.sinon.spy();
       menu = new ActionMenu(
@@ -216,6 +228,10 @@ suite('ActionMenu', function() {
   });
 
   suite('preventFocusChange', function() {
+    setup(function() {
+      resetHTML();
+    });
+
     test('focus is not changed when specified', function() {
       var menu = new ActionMenu(genericActionsMockup, title, null, null, true);
       this.sinon.spy(menu, 'preventFocusChange');
@@ -223,6 +239,23 @@ suite('ActionMenu', function() {
       menu.menu.dispatchEvent(new CustomEvent('mousedown',
         { bubbles: true, cancelable: true }));
       assert.isTrue(menu.preventFocusChange.called);
+    });
+  });
+
+  suite('askForDefaultChoice option', function() {
+    var menu;
+
+    setup(function() {
+      resetHTML();
+      menu = new ActionMenu(
+        genericActionsMockup, title, null, null, null, true);
+      menu.start();
+      this.sinon.spy(menu, 'hide');
+    });
+
+    test('checkbox is created', function() {
+      var checkbox = getMenu().querySelectorAll('.pack-checkbox');
+      assert.equal(checkbox.length, 1);
     });
   });
 });

@@ -14,6 +14,7 @@ var MockBluetooth = {
   defaultAdapter: null,
   connected: false,
   enabled: true,
+  _settingsEnabled: false,
   mExpectedProfile: null,
   init: function mbt_init() {
     var mockAdapater = {
@@ -66,7 +67,7 @@ var MockBluetooth = {
   },
 
   get isEnabled() {
-    return this.enabled;
+    return this._settingsEnabled;
   }
 };
 

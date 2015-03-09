@@ -18,6 +18,16 @@
       "disposition": "inline",
       "href": "chain.html",
       "returnValue": true
+    },
+    "view": {
+      "disposition": "inline",
+      "href": "defaulttest.html",
+      "filters": {
+        "type": {
+          "required": true,
+          "value": ["url"]
+        }
+      }
     }
   }
 }

@@ -54,6 +54,14 @@ suite('Nfc Manager Functions', function() {
     origin: 'app://www.fake',
     instanceID: 'instanceID'
   };
+
+  var fakePrivateLandingPage = {
+    url: 'app://system.gaiamobile.org/private_browser.html',
+    manifest: {},
+    origin: 'http://www.private',
+    isPrivate: true
+  };
+
   setup(function() {
     window.NfcHandoverManager = MockNfcHandoverManager;
     MockLazyLoader.mLaodRightAway = true;
@@ -912,6 +920,26 @@ suite('Nfc Manager Functions', function() {
                                                 bubbles: false });
       assert.isTrue(
         spyRemoveEventListener.withArgs('shrinking-sent').calledOnce);
+    });
+
+    test('private browser landing page', function() {
+      var fakePromise = new MockPromise();
+      var stubCheckP2P = this.sinon.stub(MockNfc, 'checkP2PRegistration',
+                                         () => fakePromise);
+
+      MockService.currentApp = new window.AppWindow(fakePrivateLandingPage);
+
+      this.sinon.stub(MockService.currentApp, 'isPrivateBrowser')
+        .returns(true);
+
+      // Should not shrink on the landing page.
+      nfcManager.checkP2PRegistration();
+      assert.isTrue(stubCheckP2P.notCalled);
+
+      // Able to share pages after navigating.
+      MockService.currentApp.config.url = 'http://mozilla.org';
+      nfcManager.checkP2PRegistration();
+      assert.isTrue(stubCheckP2P.calledOnce);
     });
 
   });

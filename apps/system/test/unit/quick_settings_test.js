@@ -1,12 +1,7 @@
 'use strict';
-/* global MockL10n */
-/* global MockNavigatorMozMobileConnections */
-/* global MockNavigatorSettings */
-/* global MocksHelper */
-/* global MockSettingsListener */
-/* global MockWifiManager */
-/* global QuickSettings */
-
+/* global MockL10n, MockNavigatorMozMobileConnections,
+   MockNavigatorSettings, MocksHelper, MockSettingsListener,
+   MockWifiManager, QuickSettings */
 
 require('/test/unit/mock_activity.js');
 require('/shared/test/unit/mocks/mock_l10n.js');

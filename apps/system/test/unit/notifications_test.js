@@ -50,6 +50,7 @@ suite('system/NotificationScreen >', function() {
     fakeNotifContainer;
   var fakePriorityNotifContainer, fakeOtherNotifContainer;
   var realVersionHelper, realMozL10n;
+  var isDocumentHidden;
 
   function sendChromeNotificationEvent(detail) {
     var event = new CustomEvent('mozChromeNotificationEvent', {
@@ -144,6 +145,12 @@ suite('system/NotificationScreen >', function() {
     };
     navigator.mozL10n = MockL10n;
 
+    isDocumentHidden = false;
+    Object.defineProperty(document, 'hidden', {
+      configurable: true,
+      get: () => isDocumentHidden
+    });
+
     this.sinon.useFakeTimers();
     require('/js/notifications.js', function() {
       NotificationScreen.init();
@@ -152,6 +159,9 @@ suite('system/NotificationScreen >', function() {
   });
 
   teardown(function() {
+    // real document.hidden is in a prototype, so we can just delete it.
+    delete document.hidden;
+
     fakeDesktopNotifContainer.parentNode.removeChild(fakeDesktopNotifContainer);
     fakeLockScreenContainer.parentNode.removeChild(fakeLockScreenContainer);
     fakeToaster.parentNode.removeChild(fakeToaster);

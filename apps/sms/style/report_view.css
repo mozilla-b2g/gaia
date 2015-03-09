@@ -74,17 +74,17 @@
 .report-view > .contact-list > li {
   height: auto;
   min-height: 9rem;
-  padding: 1rem;
+  padding-top: 0.7rem;
+  padding-bottom: 1rem;
   -moz-padding-end: 0;
   -moz-padding-start: 1.5rem;
+
+  border-top: solid 0.1rem #e7e7e7;
+  border-bottom: medium none;
 }
 
 .report-view > .contact-list a {
   height: auto;
-}
-
-.report-view > .contact-list > :first-child {
-  border-top: solid 0.1rem #e7e7e7;
 }
 
 .report-view > .contact-list p,
@@ -98,7 +98,7 @@
 
   font-size: 1.8rem;
   font-weight: 500;
-  line-height: 2rem;
+  line-height: 2.6rem;
 }
 
 .report-view > .contact-list aside {
@@ -107,7 +107,7 @@
 }
 
 .report-view > .contact-list .number {
-  padding-top: 0.9rem;
+  padding-top: 0.6rem;
 }
 
 .report-view .network-status {

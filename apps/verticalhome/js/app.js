@@ -1,5 +1,6 @@
 'use strict';
 /* global ItemStore, LazyLoader, Configurator, groupEditor */
+/* global requestAnimationFrame */
 
 (function(exports) {
 
@@ -208,11 +209,17 @@
         case 'gaiagrid-attention':
           var offsetTop = this.grid.offsetTop;
           var scrollTop = window.scrollY;
-          var gridHeight = document.body.clientHeight - offsetTop;
+          var gridHeight = document.body.clientHeight;
+
+          // In edit mode, the grid is obscured by the edit header, whose
+          // size matches the offsetTop of the grid.
+          if (this.grid._grid.dragdrop.inEditMode) {
+            gridHeight -= offsetTop;
+          } else {
+            scrollTop -= offsetTop;
+          }
 
           // Try to nudge scroll position to contain the item.
-          // We don't add offsetTop back onto scrollTop as the edit bar
-          // is the same size as the search bar and is covering the grid
           var rect = e.detail;
           if (scrollTop + gridHeight < rect.y + rect.height) {
             scrollTop = (rect.y + rect.height) - gridHeight;
@@ -221,14 +228,23 @@
             scrollTop = rect.y;
           }
 
+          if (!this.grid._grid.dragdrop.inEditMode) {
+            scrollTop += offsetTop;
+          }
+
           if (scrollTop !== window.scrollY) {
             // Grid hides overflow during dragging and normally only unhides it
             // when it finishes. However, this causes smooth scrolling not to
             // work, so remove it early.
             document.body.style.overflow = '';
-            setTimeout(() => {
+
+            // We need to make sure that this smooth scroll happens after
+            // a style flush, and also after the container does any
+            // size-changing, otherwise it will stop the in-progress scroll.
+            // We do this using a nested requestAnimationFrame.
+            requestAnimationFrame(() => { requestAnimationFrame(() => {
               window.scrollTo({ left: 0, top: scrollTop, behavior: 'smooth'});
-            });
+            });});
           }
           break;
 

@@ -919,10 +919,20 @@
   #call-screen[data-layout="incoming-locked"] #calls.big-duration section.sim-info .numberWrapper {
     padding-right: 6.5rem;
   }
+  html[dir="rtl"] #call-screen[data-layout="incoming-locked"] #calls.big-duration section.sim-info .numberWrapper {
+    padding-right: 2.5rem;
+  }
 
   #call-screen[data-layout="incoming-locked"] #calls.big-duration .numberWrapper .number {
     line-height: 3.4rem;
     padding-top: 2rem;
+  }
+
+  html[dir="rtl"] #call-screen[data-layout="incoming-locked"] #calls.big-duration .numberWrapper .number {
+    line-height: 3.4rem;
+    padding-top: 2rem;
+    margin-left: 4rem;
+    text-align: right;
   }
 
   #call-screen[data-layout="incoming-locked"] #calls.big-duration > section:not(.additionalInfo) .number {
@@ -991,6 +1001,17 @@
     right: 0;
     padding-right: 2.5rem;
     text-align: right;
+    font-size: 1.3rem;
+    text-shadow: none;
+    line-height: 9rem;
+    color: #038282;
+  }
+  html[dir="rtl"] #call-screen[data-layout="incoming-locked"] .sim {
+    display: inline-block;
+    top: 0;
+    left: 0;
+    padding-left: 1.0rem;
+    text-align: left;
     font-size: 1.3rem;
     text-shadow: none;
     line-height: 9rem;
