@@ -137,7 +137,9 @@ var icc_worker = {
     DUMP('STK_CMD_LAUNCH_BROWSER:', message.command.options);
     var options = message.command.options;
     icc.responseSTKCommand(message, {
-      resultCode: icc._iccManager.STK_RESULT_OK
+      resultCode: ((options.iconSelfExplanatory || options.icons) ?
+        icc._iccManager.STK_RESULT_PRFRMD_ICON_NOT_DISPLAYED :
+        icc._iccManager.STK_RESULT_OK)
     });
     icc.showURL(message, options.url, options.confirmMessage);
   },
@@ -202,13 +204,17 @@ var icc_worker = {
           return;
         }
         icc.responseSTKCommand(message, {
-          resultCode: icc._iccManager.STK_RESULT_OK
+          resultCode: ((options.iconSelfExplanatory || options.icons) ?
+            icc._iccManager.STK_RESULT_PRFRMD_ICON_NOT_DISPLAYED :
+            icc._iccManager.STK_RESULT_OK)
         });
       });
     } else {
       // If no dialog is showed, we answer the STK command
       icc.responseSTKCommand(message, {
-        resultCode: icc._iccManager.STK_RESULT_OK
+        resultCode: ((options.iconSelfExplanatory || options.icons) ?
+          icc._iccManager.STK_RESULT_PRFRMD_ICON_NOT_DISPLAYED :
+          icc._iccManager.STK_RESULT_OK)
       });
       // Stop playing after timeout
       setTimeout(function _iccTonePlayerStop() {
@@ -251,15 +257,11 @@ var icc_worker = {
     }
 
     if (options.responseNeeded) {
-      if (options.iconSelfExplanatory || options.icons) {
-        icc.responseSTKCommand(message, {
-          resultCode: icc._iccManager.STK_RESULT_PRFRMD_ICON_NOT_DISPLAYED
-        });
-      } else {
-        icc.responseSTKCommand(message, {
-          resultCode: icc._iccManager.STK_RESULT_OK
-        });
-      }
+      icc.responseSTKCommand(message, {
+        resultCode: ((options.iconSelfExplanatory || options.icons) ?
+          icc._iccManager.STK_RESULT_PRFRMD_ICON_NOT_DISPLAYED :
+          icc._iccManager.STK_RESULT_OK)
+      });
       icc.confirm(message, options.text, timeout, null);
     } else {
       icc.confirm(message, options.text, timeout,
@@ -276,15 +278,11 @@ var icc_worker = {
             });
           } else {
             DUMP('Alert closed');
-            if (options.iconSelfExplanatory || options.icons) {
-              icc.responseSTKCommand(message, {
-                resultCode: icc._iccManager.STK_RESULT_PRFRMD_ICON_NOT_DISPLAYED
-              });
-            } else {
-              icc.responseSTKCommand(message, {
-                resultCode: icc._iccManager.STK_RESULT_OK
-              });
-            }
+            icc.responseSTKCommand(message, {
+              resultCode: ((options.iconSelfExplanatory || options.icons) ?
+                icc._iccManager.STK_RESULT_PRFRMD_ICON_NOT_DISPLAYED :
+                icc._iccManager.STK_RESULT_OK)
+            });
           }
         });
     }
@@ -322,12 +320,16 @@ var icc_worker = {
           DUMP('STK_CMD_GET_INPUT: Response = ', value);
           if (typeof value === 'boolean') {
             icc.responseSTKCommand(message, {
-              resultCode: icc._iccManager.STK_RESULT_OK,
+              resultCode: ((options.iconSelfExplanatory || options.icons) ?
+                icc._iccManager.STK_RESULT_PRFRMD_ICON_NOT_DISPLAYED :
+                icc._iccManager.STK_RESULT_OK),
               isYesNo: value
             });
           } else {
             icc.responseSTKCommand(message, {
-              resultCode: icc._iccManager.STK_RESULT_OK,
+              resultCode: ((options.iconSelfExplanatory || options.icons) ?
+                icc._iccManager.STK_RESULT_PRFRMD_ICON_NOT_DISPLAYED :
+                icc._iccManager.STK_RESULT_OK),
               input: value
             });
           }
@@ -378,8 +380,14 @@ var icc_worker = {
     var self = this;
     reqApplications.onsuccess = function icc_getApplications() {
       DUMP('STK: Cached - ', self.iccApplicationsMenu);
+      var options = message.command.options;
+      var hasIcon = options.items && options.items.some(function(item) {
+        return item.icons || item.iconSelfExplanatory;
+      });
       icc.responseSTKCommand(message, {
-        resultCode: icc._iccManager.STK_RESULT_OK
+        resultCode: ((options.iconSelfExplanatory || options.icons || hasIcon) ?
+          icc._iccManager.STK_RESULT_PRFRMD_ICON_NOT_DISPLAYED :
+          icc._iccManager.STK_RESULT_OK)
       });
     };
   },
@@ -557,7 +565,9 @@ var icc_worker = {
     this.idleTextNotifications[message.iccId].onshow =
       function onShowSTKNotification() {
         icc.responseSTKCommand(message, {
-          resultCode: icc._iccManager.STK_RESULT_OK
+          resultCode: ((options.iconSelfExplanatory || options.icons) ?
+            icc._iccManager.STK_RESULT_PRFRMD_ICON_NOT_DISPLAYED :
+            icc._iccManager.STK_RESULT_OK)
         });
       };
   }
