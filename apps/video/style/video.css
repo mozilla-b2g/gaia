@@ -29,15 +29,6 @@ body > section {
   display: none;
 }
 
-/*
- * while videoControls is hidden,
- * it should be stay on screen for mousedown event
- */
-#videoControls.hidden {
-  display: block;
-  visibility: visible;
-}
-
 ul {
   padding: 0;
   margin: 0;
@@ -223,6 +214,10 @@ span.line-break {
   height: 100%;
 }
 
+#video-container:active {
+  background: none;
+}
+
 #player {
   /* size and position are set in JS depending on*/
   /* video size and screen orientation */
@@ -230,7 +225,6 @@ span.line-break {
   top: 0;
   left: 0;
   transform-origin: 0 0;
-  z-index: 10;
 }
 
 /*
@@ -262,11 +256,11 @@ span.line-break {
 
 /*
  * In view.html (but not index.html) we put the in-use-overlay element
- * inside videoControls. In that case there is a 5rem title bar that needs
+ * inside video-controls. In that case there is a 5rem title bar that needs
  * to be visible, so we alter the top position. And if we're handling
  * a pick activity, we also need the title bar with the back button to show.
  */
-#videoControls > #in-use-overlay,
+.video-controls > #in-use-overlay,
 body.pick-activity > #in-use-overlay {
   top: 5rem;
 }
@@ -441,23 +435,23 @@ header .icon:after {
 }
 
 /* video player controls */
-#videoControls {
+.video-controls {
   position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
-  height: 100%;
   z-index: 10;
   opacity: 1;
-  will-change: opacity;
-  -moz-transition: opacity 0.5s;
+  visibility: visible;
+  will-change: opacity, visibility;
+  transition: visibility 0s, opacity 0.5s;
 }
-#videoControls.hidden {
+.video-controls-hidden .video-controls {
   opacity: 0;
+  visibility: hidden;
+  transition-delay: 0.5s, 0s;
 }
 
-#videoControls.hidden > * {
-  pointer-events: none;
+.video-controls.bottom {
+  bottom: 0;
 }
 
 /* main control bar: play|pause, timeupdate, rwd|fwd
@@ -753,8 +747,9 @@ body:not(.layout-fullscreen-player) #player-view {
 }
 
 /* overlay mode */
-.overlay #app-container {
-  visibility: hidden;
+.overlay #app-container, .info-view #app-container,
+.options-view #app-container, .in-use-overlay #app-container {
+  display: none;
 }
 
 /* spinner is only valid for tablet and landscape mode */
@@ -763,7 +758,7 @@ body:not(.view-activity) #spinner-overlay {
 }
 
 /* make videocontrolbar visible  when picking */
-body.pick-activity #videoControls #videoBar{
+body.pick-activity .video-controls #videoBar {
   bottom: 4.4rem;
 }
 
