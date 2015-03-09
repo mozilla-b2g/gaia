@@ -24,6 +24,13 @@
     WIFI_STATUSCHANGE_TIMEOUT: 2000,
 
     /**
+     * Indicate setting status of airplane mode
+     * @memberof QuickSettings.prototype
+     * @type {Boolean}
+     */
+    airplaneModeSwitching: false,
+
+    /**
      * ID of elements to create references
      * @memberof QuickSettings.prototype
      * @type {Array}
@@ -234,6 +241,8 @@
       SettingsListener.observe('airplaneMode.status', false, function(value) {
         delete self.airplaneMode.dataset.enabling;
         delete self.airplaneMode.dataset.disabling;
+        // reset airplaneModeSwitching
+        self.airplaneModeSwitching = false;
 
         self.data.dataset.airplaneMode = (value === 'enabled');
         switch (value) {
@@ -247,9 +256,11 @@
             break;
           case 'enabling':
             self.airplaneMode.dataset.enabling = 'true';
+            self.airplaneModeSwitching = true;
             break;
           case 'disabling':
             self.airplaneMode.dataset.disabling = 'true';
+            self.airplaneModeSwitching = true;
             break;
         }
         self.setAccessibilityAttributes(self.airplaneMode, 'airplaneMode');
@@ -267,8 +278,10 @@
         case 'click':
           switch (evt.target) {
             case this.wifi:
-              // do nothing if wifi isn't ready
-              if (this.wifi.dataset.initializing) {
+              // do nothing if wifi isn't ready or
+              // airplaneMode is switching to another mode.
+              if (this.wifi.dataset.initializing ||
+                this.airplaneModeSwitching) {
                 return;
               }
               enabled = !!this.wifi.dataset.enabled;
@@ -299,8 +312,10 @@
               break;
 
             case this.bluetooth:
-              // do nothing if bluetooth isn't ready
-              if (this.bluetooth.dataset.initializing) {
+              // do nothing if bluetooth isn't ready or
+              // airplaneMode is switching to another mode.
+              if (this.bluetooth.dataset.initializing ||
+                this.airplaneModeSwitching) {
                 return;
               }
 
@@ -316,6 +331,9 @@
               break;
 
             case this.airplaneMode:
+              if (this.airplaneModeSwitching) {
+                return;
+              }
               var toggle = this.airplaneMode.dataset.enabled ?
                 'request-airplane-mode-disable' :
                 'request-airplane-mode-enable';
