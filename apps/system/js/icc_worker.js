@@ -248,9 +248,15 @@ var icc_worker = {
     }
 
     if (options.responseNeeded) {
-      icc.responseSTKCommand(message, {
-        resultCode: icc._iccManager.STK_RESULT_OK
-      });
+      if (options.iconSelfExplanatory || options.icons) {
+        icc.responseSTKCommand(message, {
+          resultCode: icc._iccManager.STK_RESULT_PRFRMD_ICON_NOT_DISPLAYED
+        });
+      } else {
+        icc.responseSTKCommand(message, {
+          resultCode: icc._iccManager.STK_RESULT_OK
+        });
+      }
       icc.confirm(message, options.text, timeout, null);
     } else {
       icc.confirm(message, options.text, timeout,
@@ -267,9 +273,15 @@ var icc_worker = {
             });
           } else {
             DUMP('Alert closed');
-            icc.responseSTKCommand(message, {
-              resultCode: icc._iccManager.STK_RESULT_OK
-            });
+            if (options.iconSelfExplanatory || options.icons) {
+              icc.responseSTKCommand(message, {
+                resultCode: icc._iccManager.STK_RESULT_PRFRMD_ICON_NOT_DISPLAYED
+              });
+            } else {
+              icc.responseSTKCommand(message, {
+                resultCode: icc._iccManager.STK_RESULT_OK
+              });
+            }
           }
         });
     }
