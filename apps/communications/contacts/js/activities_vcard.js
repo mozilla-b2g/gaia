@@ -53,11 +53,10 @@ var VcardActivityHandler = (function() {
         'mozContactParam': true
       };
 
-      if (data.allowSave === true) {
-        parentHandler.launch_activity(activity, 'view-contact-form');
-      } else {
-        parentHandler.launch_activity(activity, 'view-contact-details');
-      }
+      // Here we should read a param like allowSave to allow the contact to be
+      // saved or not. Right now the user can always save.
+      // More info in bug 1138371.
+      parentHandler.launch_activity(activity, 'view-contact-form');
     }
 
     function getFileName(path) {
