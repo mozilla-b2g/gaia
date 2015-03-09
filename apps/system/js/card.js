@@ -228,7 +228,8 @@
 
     // Label the card by title (for screen reader).
     elem.setAttribute('aria-labelledby', this.titleId);
-
+    // define role group for the card (for screen reader).
+    elem.setAttribute('role', 'group');
     // Indicate security state where applicable & available
     if (this.sslState) {
       elem.dataset.ssl = this.sslState;
