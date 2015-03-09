@@ -187,6 +187,11 @@
 [role="dialog"][data-type="time-selector"] .animation-on {
   transition-duration: 0.5s;
   transition-property: transform;
+  transition-timing-function: cubic-bezier(0, 0, 0.4, 1);
+}
+
+[role="dialog"][data-type="time-selector"] .animation-on.is-dragging {
+  transition: none;
 }
 
 [role="dialog"][data-type="time-selector"]  .picker-unit {

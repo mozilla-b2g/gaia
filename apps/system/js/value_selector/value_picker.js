@@ -16,6 +16,7 @@ var ValuePicker = (function() {
     this._range = unitStyle.valueDisplayedText.length;
     this._currentIndex = 0;
     this._unitHeight = 0;
+    this._isDragging = false;
     this.init();
   }
 
@@ -32,7 +33,7 @@ var ValuePicker = (function() {
     return displayedText;
   };
 
-  VP.prototype.setSelectedIndex = function(tunedIndex, ignorePicker) {
+  VP.prototype.setSelectedIndex = function(tunedIndex) {
     if ((tunedIndex % 1) > 0.5) {
       tunedIndex = Math.floor(tunedIndex) + 1;
     } else {
@@ -47,16 +48,15 @@ var ValuePicker = (function() {
       tunedIndex = this._upper;
     }
 
-    var beforeIndex = this._currentIndex;
     if (this._currentIndex != tunedIndex) {
+      var beforeIndex = this._currentIndex;
       this._currentIndex = tunedIndex;
       this.onselectedindexchange(this._currentIndex);
+      this.updateUI(tunedIndex);
+      var elementChildren = this.element.children;
+      elementChildren[beforeIndex].classList.remove('selected');
+      elementChildren[this._currentIndex].classList.add('selected');
     }
-    this.updateUI(tunedIndex, ignorePicker);
-
-    var elementChildren = this.element.children;
-    elementChildren[beforeIndex].classList.remove('selected');
-    elementChildren[this._currentIndex].classList.add('selected');
 
     return tunedIndex;
   };
@@ -130,20 +130,22 @@ var ValuePicker = (function() {
     this.element.appendChild(unit);
   };
 
-  VP.prototype.updateUI = function(index, ignorePicker) {
-    if (true !== ignorePicker) {
-      // Bug 1075200 get unit height when needed and
-      // retry next time when dom is not rendered
-      if (this._unitHeight === 0) {
-        this._unitHeight = this.element.firstChild.clientHeight *
-          this.element.children.length / this._range;
-      }
-      this._top = -index * this._unitHeight;
-      this.element.style.transform = 'translateY(' + this._top + 'px)';
-      this.container.setAttribute('aria-valuenow', index);
-      this.container.setAttribute('aria-valuetext',
-                                  this._valueDisplayedText[index]);
+  VP.prototype.updateUI = function(index) {
+    if (this._isDragging) {
+      return;
     }
+
+    // Bug 1075200 get unit height when needed and
+    // retry next time when dom is not rendered
+    if (this._unitHeight === 0) {
+      this._unitHeight = this.element.firstChild.clientHeight *
+        this.element.children.length / this._range;
+    }
+    this._top = -index * this._unitHeight;
+    this.element.style.transform = 'translateY(' + this._top + 'px)';
+    this.container.setAttribute('aria-valuenow', index);
+    this.container.setAttribute('aria-valuetext',
+                                this._valueDisplayedText[index]);
   };
 
   VP.prototype.addEventListeners = function() {
@@ -234,7 +236,6 @@ var ValuePicker = (function() {
 
     tunedIndex = calcTargetIndex(this._unitHeight);
     var roundedIndex = Math.round(tunedIndex * 10) / 10;
-
     if (roundedIndex != this._currentIndex) {
       this.setSelectedIndex(toFixed(roundedIndex), true);
     }
@@ -251,7 +252,12 @@ var ValuePicker = (function() {
       var direction = currentSpeed > 0 ? 1 : -1;
       tunedIndex += Math.min(Math.abs(currentSpeed) * 5, 5) * direction;
     }
+    // tunedIndex might be equal to this._currentIndex, so we make sure the
+    // updateUI is called afterwards
     tunedIndex = this.setSelectedIndex(toFixed(tunedIndex));
+    this._isDragging = false;
+    this.element.classList.remove('is-dragging');
+    this.updateUI(tunedIndex);
     currentSpeed = 0;
   }
 
@@ -262,6 +268,8 @@ var ValuePicker = (function() {
     tunedIndex = this._currentIndex;
 
     this.removeEventListeners();
+    this._isDragging = true;
+    this.element.classList.add('is-dragging');
     this.element.addEventListener('touchmove', this.touchmoveHandler, false);
     this.element.addEventListener('touchend', this.touchendHandler, false);
   }
