@@ -4,6 +4,7 @@
 
 var utils = require('utils');
 var rebuild = require('rebuild');
+var nodeHelper = new utils.NodeHelper();
 
 function getAppRegExp(options) {
   var appRegExp;
@@ -125,7 +126,7 @@ exports.execute = function(options) {
       });
   }
 
-  require('./pre-app').execute(options);
+  nodeHelper.require('pre-app', options);
 
   // Wait for all pre app tasks to be done before proceeding.
   utils.processEvents(function () {

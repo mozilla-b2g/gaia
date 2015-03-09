@@ -19,7 +19,7 @@ WebappShared.prototype.setOptions = function(options) {
     resources: [],       // List of resources to copy
     styles: [],          // List of stable style names to copy
     unstable_styles: [], // List of unstable style names to copy
-    elements: [],         // List of elements names to copy,
+    elements: [],        // List of elements names to copy,
     pages: []            // List of pages to copy
   };
   this.localesFile = utils.resolve(this.config.LOCALES_FILE,
