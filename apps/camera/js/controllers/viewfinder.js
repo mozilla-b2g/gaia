@@ -407,6 +407,9 @@ ViewfinderController.prototype.onSettingsClosed = function() {
  */
 ViewfinderController.prototype.onGalleryOpened = function() {
   this.views.viewfinder.disable();
+  // Make viewfinder invisible to the screen reader since it is behind gallery
+  // overlay.
+  this.views.viewfinder.set('ariaHidden', true);
 };
 
 /**
@@ -417,6 +420,8 @@ ViewfinderController.prototype.onGalleryOpened = function() {
  */
 ViewfinderController.prototype.onGalleryClosed = function() {
   this.views.viewfinder.enable();
+  // Make viewfinder visible to the screen reader again when gallery is closed.
+  this.views.viewfinder.set('ariaHidden', false);
 };
 
 ViewfinderController.prototype.onPreviewActive = function(active) {

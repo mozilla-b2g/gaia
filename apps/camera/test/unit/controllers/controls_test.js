@@ -50,6 +50,14 @@ suite('controllers/controls', function() {
   });
 
   suite('ControlsController()', function() {
+    test('Should listen to the following events', function() {
+      assert.ok(this.app.on.calledWith('localized', this.view.localize));
+      assert.ok(this.app.on.calledWith('previewgallery:opened',
+        this.view.hide));
+      assert.ok(this.app.on.calledWith('previewgallery:closed',
+        this.view.show));
+    });
+
     test('Should *not* show the cancel button when *not* within a \'pick\' activity', function() {
       assert.isTrue(this.app.views.controls.set.calledWith('cancel', false));
     });
