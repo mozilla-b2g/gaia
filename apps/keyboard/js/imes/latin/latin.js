@@ -64,6 +64,9 @@
   // If defined, this is a worker thread that produces word suggestions for us
   var worker;
 
+  // PromiseStorage for access to indexedDB for user dictionary
+  var dbStore;
+
   // These variables are the input method's state. Most of them are
   // passed to the activate() method or are derived in that method.
   var language;           // The user's language
@@ -130,6 +133,8 @@
   // an autocorrect action
   var MIN_LENGTH_MISMATCH_THRESHOLD = 5;
 
+  var USER_DICT_DB_NAME = 'UserDictLatin';
+
   /*
    * Since inputContext.sendKey is an async fuction that will return a promise,
    * and we need to update the current state (capitalization, input value)
@@ -142,10 +147,16 @@
   // currently loading the new dictionary.
   var getDictionaryDataPromise = null;
 
+  // The promise for getting user dictionary from PromiseStorage
+  var getUserDictionaryBlobPromise = null;
+
   // keyboard.js calls this to pass us the interface object we need
   // to communicate with it
   function init(interfaceObject) {
     keyboard = interfaceObject;
+
+    dbStore = new PromiseStorage(USER_DICT_DB_NAME);
+    dbStore.start();
   }
 
   // Given the type property and inputmode attribute of a form element,
@@ -226,6 +237,28 @@
     // Start off with the correct capitalization
     updateCapitalization();
 
+    // Get user dictionary blob.
+    getUserDictionaryBlobPromise =
+      dbStore.getItem('dictblob').then(function(blob) {
+      // If worker is there, tell it we have a (new) user dictionary blob,
+      // since setLanguage() may be bypassed due to language not changing.
+      // (User dictionary is langauge-neutral.)
+      // Do pass the argument if blob is undefined (no user dictionary words),
+      // Since the worker needs to know if user has deleted all words.
+      // Worker will bypass UserDictionary prediction as needed.
+      // |blob| may be |undefined| so we don't Transfer it yet.
+      if (worker) {
+        worker.postMessage({
+          cmd: 'setUserDictionary',
+          args: [blob]
+        });
+      }
+
+      return blob;
+    })['catch'](function(e) {
+      e && console.error('latin.js', e);
+    });
+
     // If we are going to offer suggestions, ensure that there is a worker
     // thread created and that it knows what language we're using, and then
     // start things off by requesting a first batch of suggestions.
@@ -270,12 +303,24 @@
       return;
     }
 
-    getDictionaryDataPromise =
-      keyboard.getData('dictionaries/' + newlang + '.dict')
-      .then(function(dictData) {
+    // Built-in dictionary is a hard requirement, i.e. if it is undefined, we
+    // reset ourselves.
+    // User dictionary is not a hard requirement. We swallow any abnormal
+    // situation there at activate(), to make sure Promise.all() doesn't fail
+    // on its rejection.
+    getDictionaryDataPromise = Promise.all([
+      keyboard.getData('dictionaries/' + newlang + '.dict'),
+      getUserDictionaryBlobPromise
+    ]);
+
+    getDictionaryDataPromise
+      .then(function(values) {
         getDictionaryDataPromise = null;
 
-        if (!dictData) {
+        var builtInDict = values[0];
+        var userDict = values[1];
+
+        if (!builtInDict) {
           console.error(
             'latin.js: dictionary is specified but can\'t be loaded.');
           language = undefined;
@@ -284,7 +329,7 @@
           return;
         }
 
-        setLanguageSync(newlang, dictData);
+        setLanguageSync(newlang, builtInDict, userDict);
       })['catch'](function(e) { // workaround gjslint error
         e && console.error('latin.js', e);
 
@@ -294,7 +339,7 @@
       })['catch'](function(e) { e && console.error(e); });
   }
 
-  function setLanguageSync(newlang, dictData) {
+  function setLanguageSync(newlang, dictData, userDict) {
     // If we get here, then we have to create a worker and set its language
     // or change the language of an existing worker.
     if (!worker) {
@@ -327,9 +372,10 @@
 
     // Tell the worker what language we're using and also pass the dictionary
     // data.
+    // userDict may be |undefined| so we don't Transfer it yet
     worker.postMessage({
       cmd: 'setLanguage',
-      args: [language, dictData]
+      args: [language, dictData, userDict]
     }, [dictData]);
 
     // And now that we've changed the language, ask for new suggestions
@@ -680,6 +726,12 @@
       }
     }
 
+    // We show no more than 3 suggestions; but we'd like to keep at least one
+    // suggestion from user dictionary, regardless of its weight. However, that
+    // suggestion can still be dropped if it matches the user input.
+    // User dictionary suggestion is identified by suggestion[2] === true.
+
+    var inputDefinedInUserDict = false;
     // See if the user's input is a valid word on the list of suggestions
     var inputIsSuggestion = false;
     var inputWeight = 0;
@@ -687,6 +739,7 @@
     for (inputIndex = 0; inputIndex < suggestions.length; inputIndex++) {
       if (suggestions[inputIndex][0] === input) {
         inputIsSuggestion = true;
+        inputDefinedInUserDict = !!suggestions[inputIndex][2];
         inputWeight = suggestions[inputIndex][1];
         break;
       }
@@ -705,8 +758,42 @@
     }
 
     // Make sure we have no more than three words
-    if (suggestions.length > 3)
-      suggestions.length = 3;
+    if (suggestions.length > 3) {
+      // We want to keep at least a user dictionary word here.
+      // If for the first two suggestions we see one from user dictionary, or
+      // if we dropped a user dict suggestion above (matching user input),
+      // we can just append the third suggestion.
+      // Otherwise, we'll need to search through the remaining suggestions and
+      // append the first user-dict suggestion we find; if we can't find any
+      // user-dict suggestions, we just append the third suggestion.
+
+      var trimmedSuggestions = suggestions.slice(0, 2);
+
+      var userDictionaryWordEncountered =
+        inputDefinedInUserDict ||
+        (!!suggestions[0][2]) ||
+        (!!suggestions[1][2]);
+
+      if (userDictionaryWordEncountered) {
+        trimmedSuggestions.push(suggestions[2]);
+      } else {
+        userDictionaryWordEncountered =
+          suggestions.slice(2).some(function(suggestion) {
+            if (suggestion[2]) {
+              trimmedSuggestions.push(suggestion);
+              return true;
+            } else {
+              return false;
+            }
+          });
+
+        if (!userDictionaryWordEncountered) {
+          trimmedSuggestions.push(suggestions[2]);
+        }
+      }
+
+      suggestions = trimmedSuggestions;
+    }
 
     // Now get an array of just the suggested words
     var words = suggestions.map(function(x) { return x[0]; });

@@ -58,11 +58,8 @@ PanelController.prototype.start = function() {
   this.rootPanel = new this.RootPanelClass(this.app);
   this.rootPanel.start();
 
-  // We support user dictionary!
-  if (typeof UserDictionaryListPanel === 'function') {
-    this.userDictionaryListPanel = new UserDictionaryListPanel(this.app);
-    this.userDictionaryListPanel.start();
-  }
+  this.userDictionaryListPanel = new UserDictionaryListPanel(this.app);
+  this.userDictionaryListPanel.start();
 
   Promise.resolve(this.rootPanel.beforeShow())
   .then(this.rootPanel.show.bind(this.rootPanel))
@@ -75,10 +72,8 @@ PanelController.prototype.stop = function() {
   this.rootPanel.stop();
   this.rootPanel = null;
 
-  if (this.userDictionaryListPanel) {
-    this.userDictionaryListPanel.stop();
-    this.userDictionaryListPanel = null;
-  }
+  this.userDictionaryListPanel.stop();
+  this.userDictionaryListPanel = null;
 };
 
 PanelController.prototype._createTransitionPromise = function(target) {

@@ -365,29 +365,47 @@ var Predictions = function() {
     }
 
     // Check whether all the characters of s appear in the dictionary or are
-    // at least near characters that do. If we are passed a string that does
-    // not pass this test then there is no way we will be able to offer
-    // suggestions and it is not even worth searching.
+    // at least their variant forms or nearby characters that do. If we are
+    // passed a string that does not pass this test then there is no way we will
+    // be able to offer suggestions and it is not even worth searching.
     function validChars(s) {
-      outer: for (var i = 0, n = s.length; i < n; i++) {
-        var c = s.charCodeAt(i);
-        if (characterTable.hasOwnProperty(c))  // character is valid
-          continue;
-        // If the character does not occur in this language, but there is
-        // a nearby key that does occur, then maybe it is okay
-        if (!nearbyKeys.hasOwnProperty(c))
-          return false;  // no nearby keys, so no suggestions possible
-        var nearby = nearbyKeys[c];
-        for (c in nearby) {
-          if (characterTable.hasOwnProperty(c))
-            continue outer;
-        }
-        // no nearby keys are in the dictionary, so no suggestions possible
-        return false;
-      }
+      return Array.from(s).every(function(c) {
+        var code = c.charCodeAt(0);
 
-      // All the characters of s are valid
-      return true;
+        // the char is valid if:
+        // - itself is in character table;
+        // - any of its variant forms is in character table;
+        // - some of its nearkey is in character table;
+        // - some of its nearkey's variant forms is in character table;
+
+        if (characterTable.hasOwnProperty(code)) {
+          return true;
+        }
+
+        for (var variantCode in variants) {
+          if (variants[variantCode].indexOf(c) !== -1) {
+            return true;
+          }
+        }
+
+        if (nearbyKeys.hasOwnProperty(code)) {
+          for (var nearCode in nearbyKeys[code]) {
+            if (characterTable.hasOwnProperty(nearCode)) {
+              return true;
+            }
+
+            var nearChar = String.fromCharCode(nearCode);
+
+            for (var variantCode in variants) {
+              if (variants[variantCode].indexOf(nearChar) !== -1) {
+                return true;
+              }
+            }
+          }
+        }
+
+        return false;
+      });
     }
 
     // Add a candidate to the list of promising candidates if frequency *
@@ -969,4 +987,4 @@ var Predictions = function() {
     setNearbyKeys: setNearbyKeys,
     predict: predict
   };
-}();
+};

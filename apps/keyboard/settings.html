@@ -38,6 +38,12 @@
   <script defer src="js/settings/general_panel.js"></script>
   <script defer src="js/settings/panel_controller.js"></script>
 
+  <!-- user dictionary settings -->
+  <script defer src="js/settings/user_dictionary.js"></script>
+  <script defer src="js/settings/word_list_converter.js"></script>
+  <script defer src="js/settings/user_dictionary_list_panel.js"></script>
+  <script defer src="js/settings/user_dictionary_edit_dialog.js"></script>
+  
   <!-- installable keyboard settings -->
   <script defer src="js/settings/layout_dictionary_downloader.js"></script>
   <script defer src="js/settings/layout_dictionary.js"></script>
@@ -101,7 +107,11 @@
             <p><label data-l10n-id="wordSuggestion" for="cb-wordSuggestion"></label></p>
           </li>
 
-          <!-- User dictionary settings <li> will be added here. -->
+          <li>
+            <a class="menu-item" id="menu-userdict" href="#ud-wordlist">
+              <span data-l10n-id="userDictionary"></span>
+            </a>
+          </li>
         </ul>
       </section>
       <div id="installable-keyboard" hidden>
