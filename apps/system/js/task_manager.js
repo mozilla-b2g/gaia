@@ -178,15 +178,12 @@
    */
   TaskManager.prototype.hide = function cs_hideCardSwitcher() {
     if (!this.isActive()) {
-      // To avoid wrong behaviour when the app is closed
-      // by a second home button event
-      window.removeEventListener('appclosed', this._appClosedHandler);
-      this.screenElement.classList.remove('cards-view');
       return;
     }
     this._unregisterShowingEvents();
     this._removeCards();
     this.setActive(false);
+    window.removeEventListener('appclosed', this._appClosedHandler);
     this.screenElement.classList.remove('cards-view');
 
     var detail;
