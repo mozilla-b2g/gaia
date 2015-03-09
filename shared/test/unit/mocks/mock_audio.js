@@ -19,6 +19,9 @@ MockAudio.mTeardown = function() {
 
 MockAudio.prototype.HAVE_NOTHING = 0;
 
+MockAudio.prototype.load = function() {
+};
+
 MockAudio.prototype.play = function() {
   // FIXME can we replace playing with paused?
   this.playing = true;
@@ -28,6 +31,9 @@ MockAudio.prototype.play = function() {
 MockAudio.prototype.pause = function() {
   this.playing = false;
   this.paused = true;
+};
+
+MockAudio.prototype.removeAttribute = function() {
 };
 
 MockAudio.prototype.cloneNode = function() {
