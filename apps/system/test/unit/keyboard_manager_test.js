@@ -689,6 +689,11 @@ suite('KeyboardManager', function() {
       assert.ok(hideKeyboardImmediately.called);
     });
 
+    test('activitybackground event', function() {
+      trigger('activitybackground');
+      assert.ok(hideKeyboardImmediately.called);
+    });
+
     test('applicationsetupdialogshow event', function() {
       trigger('applicationsetupdialogshow');
       assert.ok(hideKeyboardImmediately.called);

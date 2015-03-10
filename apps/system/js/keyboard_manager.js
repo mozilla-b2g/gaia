@@ -136,6 +136,7 @@ var KeyboardManager = {
     // Also in Bug 856692 we realise that we need to close the keyboard
     // when an inline activity goes away.
     window.addEventListener('activityrequesting', this);
+    window.addEventListener('activitybackground', this);
     window.addEventListener('activityopening', this);
     window.addEventListener('activityclosing', this);
     window.addEventListener('attentionrequestopen', this);
@@ -417,6 +418,7 @@ var KeyboardManager = {
         break;
       case 'applicationsetupdialogshow':
       case 'activityrequesting':
+      case 'activitybackground':
       case 'activityopening':
       case 'activityclosing':
         this.hideKeyboardImmediately();
