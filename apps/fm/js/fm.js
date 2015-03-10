@@ -183,12 +183,12 @@ function updatePowerUI() {
   powerSwitch.dataset.enabling = enabling;
 }
 
-function updateAntennaUI() {
-  $('antenna-warning').hidden = mozFMRadio.antennaAvailable;
-}
-
-function updateAirplaneModeUI() {
+function updateWarningModeUI() {
   $('airplane-mode-warning').hidden = !airplaneModeEnabled;
+  $('antenna-warning').hidden = mozFMRadio.antennaAvailable ||
+    airplaneModeEnabled;
+  $('container').classList.toggle('hidden-block', airplaneModeEnabled ||
+    !mozFMRadio.antennaAvailable);
 }
 
 var enabling = false;
@@ -252,7 +252,7 @@ var frequencyDialer = {
 
   init: function() {
     // First thing is to show a warning if there    // is not antenna.
-    updateAntennaUI();
+    updateWarningModeUI();
 
     this._initUI();
     this.setFrequency(mozFMRadio.frequency);
@@ -818,7 +818,7 @@ function init() {
   };
 
   mozFMRadio.onantennaavailablechange = function onAntennaChange() {
-    updateAntennaUI();
+    updateWarningModeUI();
     if (mozFMRadio.antennaAvailable) {
       // If the FM radio is enabled or enabling when the antenna is unplugged,
       // turn the FM radio on again.
@@ -834,11 +834,11 @@ function init() {
   };
 
   // Disable the power button and the fav list when the airplane mode is on.
-  updateAirplaneModeUI();
+  updateWarningModeUI();
 
   AirplaneModeHelper.addEventListener('statechange', function(status) {
     airplaneModeEnabled = status === 'enabled';
-    updateAirplaneModeUI();
+    updateWarningModeUI();
   });
 
   // Load the fav list and enable the FM radio if an antenna is available.
@@ -856,7 +856,7 @@ function init() {
       // so the FM radio be enabled automatically
       // when the headset is plugged.
       window._previousFMRadioState = true;
-      updateAntennaUI();
+      updateWarningModeUI();
       favoritesList.init();
     }
     updatePowerUI();
