@@ -55,7 +55,16 @@ function execute(options, webapp) {
   if (manifestContent.connections) {
     manifestContent =
       manifestInterAppHostnames(manifestContent, options);
-    utils.writeContent(stageManifest, JSON.stringify(manifestContent));
   }
+
+  // Get the Gaia version and set it as an app version in manifest.webapp.
+  // It's used by Langpack API
+  var settingsFile = utils.getFile(options.GAIA_DIR, 'build', 'config',
+      'common-settings.json');
+  var settings = utils.getJSON(settingsFile);
+
+  manifestContent.version = settings['moz.b2g.version'];
+
+  utils.writeContent(stageManifest, JSON.stringify(manifestContent));
 }
 exports.execute = execute;
