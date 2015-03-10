@@ -441,6 +441,23 @@ suite('system/LockScreen >', function() {
       'it didn\'t lock after the lock-immediately setting got changed');
   });
 
+  test('Locks the screen: the overlay would be set as locked', function() {
+    var method = window.LockScreen.prototype.lock;
+    var stubOverlayLocked = this.sinon.stub();
+    var mockThis = {
+      locked: false,
+      overlayLocked: stubOverlayLocked,
+      mainScreen: document.createElement('div'),
+      createClockWidget: function() {},
+      dispatchEvent: function() {},
+      _checkGenerateMaskedBackgroundColor: function() {
+        return false;
+      }
+    };
+    method.call(mockThis);
+    assert.isTrue(stubOverlayLocked.called);
+  });
+
   // XXX: Test 'Screen off: by proximity sensor'.
 
   suite('Background functionality', function() {

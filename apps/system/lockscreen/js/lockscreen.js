@@ -703,6 +703,7 @@
     this.locked = true;
 
     if (!wasAlreadyLocked) {
+      this.overlayLocked();
       // Because 'document.hidden' changes slower than this,
       // so if we depend on that it would create the widget
       // while the screen is off.
