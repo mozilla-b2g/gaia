@@ -17,6 +17,7 @@
     this.grid.addEventListener('iconblobdecorated', this);
     this.grid.addEventListener('gaiagrid-iconbloberror', this);
     this.grid.addEventListener('gaiagrid-attention', this);
+    this.grid.addEventListener('gaiagrid-resize', this);
     this.grid.addEventListener('cached-icons-rendered', this);
     this.grid.addEventListener('edititem', this);
     window.addEventListener('hashchange', this);
@@ -246,6 +247,45 @@
               window.scrollTo({ left: 0, top: scrollTop, behavior: 'smooth'});
             });});
           }
+          break;
+
+        case 'gaiagrid-resize':
+          var height = e.detail;
+          var oldHeight = this.grid.clientHeight;
+
+          if (this.gridResizeTimeout !== null) {
+            clearTimeout(this.gridResizeTimeout);
+            this.gridResizeTimeout = null;
+          }
+
+          if (height < oldHeight) {
+            // Make sure that if we're going to shrink the grid so that exposed
+            // area is made inaccessible, we scroll it out of view first.
+            var viewHeight = document.body.clientHeight;
+            var scrollBottom = window.scrollY + viewHeight;
+            var padding = window.getComputedStyle ?
+              parseInt(window.getComputedStyle(this.grid).paddingBottom) : 0;
+            var maxScrollBottom = height + this.grid.offsetTop + padding;
+
+            if (scrollBottom >= maxScrollBottom) {
+              // This scrollTo needs to happen after the height style
+              // change has been processed, or it will be overridden.
+              // Ensure this by wrapping it in a nested requestAnimationFrame.
+              requestAnimationFrame(() => { requestAnimationFrame(() => {
+                window.scrollTo({ left: 0, top: maxScrollBottom - viewHeight,
+                                  behavior: 'smooth' });
+              });});
+            }
+          }
+
+          if (height === oldHeight) {
+            break;
+          }
+
+          // Although the height is set immediately, a CSS transition rule
+          // means it's actually delayed by 0.5s, giving any scrolling
+          // animations time to finish.
+          this.grid.style.height = height + 'px';
           break;
 
         case 'gaiagrid-saveitems':
