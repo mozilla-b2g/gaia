@@ -189,7 +189,7 @@ InputMethodGlue.prototype.endComposition = function(text) {
   }.bind(this));
 };
 
-InputMethodGlue.prototype.sendKey = function(keyCode, isRepeat) {
+InputMethodGlue.prototype.sendKey = function(keyCode, isRepeat, upperKeyCode) {
   this.app.console.trace();
   if (!this.app.inputContext) {
     console.warn('InputMethodGlue: call sendKey() when ' +
@@ -210,7 +210,7 @@ InputMethodGlue.prototype.sendKey = function(keyCode, isRepeat) {
       break;
 
     default:
-      promise = this.app.inputContext.sendKey(0, keyCode, 0);
+      promise = this.app.inputContext.sendKey(upperKeyCode || 0, keyCode, 0);
       break;
   }
 
