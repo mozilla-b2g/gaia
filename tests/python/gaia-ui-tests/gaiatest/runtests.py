@@ -14,6 +14,7 @@ from marionette import BaseMarionetteTestRunner
 from marionette.runtests import cli
 import mozlog
 
+from gaiatest import __name__
 from gaiatest import GaiaTestCase, GaiaOptionsMixin, GaiaTestRunnerMixin, \
     TreeherderOptionsMixin, TreeherderTestRunnerMixin
 from version import __version__
@@ -81,7 +82,7 @@ SpecialPowers.pushPermissions([
 
         BaseMarionetteTestRunner.__init__(self, result_callbacks=[gather_debug], **kwargs)
         GaiaTestRunnerMixin.__init__(self, **kwargs)
-        HTMLReportingTestRunnerMixin.__init__(self, name='gaiatest-v2.2',
+        HTMLReportingTestRunnerMixin.__init__(self, name=__name__,
                                               version=__version__, **kwargs)
         TreeherderTestRunnerMixin.__init__(self, **kwargs)
         self.test_handlers = [GaiaTestCase]
