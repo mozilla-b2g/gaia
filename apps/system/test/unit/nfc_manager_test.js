@@ -266,7 +266,7 @@ suite('Nfc Manager Functions', function() {
                                                    'removeEventListener');
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
       var stubDispatchP2PUserResponse = this.sinon.stub(nfcManager,
-        'dispatchP2PUserResponse');
+        '_dispatchP2PUserResponse');
       nfcManager.handleEvent(new CustomEvent('shrinking-sent'));
 
       assert.isTrue(stubRemoveEventListner.calledOnce);
@@ -318,7 +318,7 @@ suite('Nfc Manager Functions', function() {
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
       var stubTryHandover = this.sinon.stub(NfcHandoverManager, 'tryHandover');
       var stubFireNDEF = this.sinon.stub(nfcManager, '_fireNDEFDiscovered');
-      var stubCheckP2P = this.sinon.stub(nfcManager, 'checkP2PRegistration');
+      var stubCheckP2P = this.sinon.stub(nfcManager, '_checkP2PRegistration');
 
       nfcManager._handleTechDiscovered(msg);
 
@@ -355,7 +355,7 @@ suite('Nfc Manager Functions', function() {
 
     // checkP2PRegistration helper.
     var execCheckP2PRegistrationTest = function(msg) {
-      var stub = this.sinon.stub(nfcManager, 'checkP2PRegistration');
+      var stub = this.sinon.stub(nfcManager, '_checkP2PRegistration');
       nfcManager._handleTechDiscovered(msg);
       assert.isTrue(stub.calledOnce);
 
@@ -463,22 +463,6 @@ suite('Nfc Manager Functions', function() {
       assert.equal(stubRemoveListner.firstCall.args[0], 'shrinking-sent');
       assert.deepEqual(stubRemoveListner.firstCall.args[1], nfcManager);
       assert.equal(stubDispatchEvent.secondCall.args[0].type, 'shrinking-stop');
-    });
-  });
-
-  suite('_triggerP2PUI', function() {
-    test('dispatches proper event', function() {
-      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
-
-      nfcManager._triggerP2PUI();
-      assert.equal(stubDispatchEvent.firstCall.args[0].type,
-                   'check-p2p-registration-for-active-app');
-      assert.isTrue(stubDispatchEvent.firstCall.args[0].bubbles,
-                    'bubbles not set to true');
-      assert.isFalse(stubDispatchEvent.firstCall.args[0].cancelable,
-                     'should not be cancelable');
-      assert.deepEqual(stubDispatchEvent.firstCall.args[0].detail, nfcManager,
-                       'nfcManager not passed as detail property of the event');
     });
   });
 
@@ -821,7 +805,7 @@ suite('Nfc Manager Functions', function() {
     test('calls proper mozNfc method', function() {
       var stubNotifyAcceptedP2P = this.sinon.stub(MockNfc,
                                                   'notifyUserAcceptedP2P');
-      nfcManager.dispatchP2PUserResponse();
+      nfcManager._dispatchP2PUserResponse();
       assert.isTrue(stubNotifyAcceptedP2P.withArgs(fakeAppConfig.manifestURL)
         .calledOnce);
     });
@@ -842,7 +826,7 @@ suite('Nfc Manager Functions', function() {
       var stubCheckP2P = this.sinon.stub(MockNfc, 'checkP2PRegistration',
                                          () => { return Promise.resolve(); });
 
-      nfcManager.checkP2PRegistration();
+      nfcManager._checkP2PRegistration();
       assert.isTrue(stubCheckP2P.withArgs(fakeAppConfig.manifestURL)
         .calledOnce);
     });
@@ -855,9 +839,7 @@ suite('Nfc Manager Functions', function() {
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
       var spyAddEventListener = this.sinon.spy(window, 'addEventListener');
 
-      // An unprivilaged P2P UI would send message to NFC Manager to validate
-      // P2P registration in the stubbed DOM.
-      nfcManager.checkP2PRegistration('dummyManifestUrl');
+      nfcManager._checkP2PRegistration();
 
       fakePromise.mFulfillToValue(true);
 
@@ -875,9 +857,8 @@ suite('Nfc Manager Functions', function() {
       var spyAddEventListener = this.sinon.spy(window, 'addEventListener');
 
       this.sinon.stub(fakeApp, 'isSheetTransitioning').returns(true);
-      // An unprivilaged P2P UI would send message to NFC Manager to validate
-      // P2P registration in the stubbed DOM.
-      nfcManager.checkP2PRegistration('dummyManifestUrl');
+
+      nfcManager._checkP2PRegistration();
 
       fakePromise.mFulfillToValue(true);
 
@@ -892,9 +873,8 @@ suite('Nfc Manager Functions', function() {
                       (manifest) => fakePromise);
       var spyAddEventListener = this.sinon.spy(window, 'addEventListener');
       this.sinon.stub(fakeApp, 'isTransitioning').returns(true);
-      // An unprivilaged P2P UI would send message to NFC Manager to validate
-      // P2P registration in the stubbed DOM.
-      nfcManager.checkP2PRegistration('dummyManifestUrl');
+
+      nfcManager._checkP2PRegistration();
 
       fakePromise.mFulfillToValue(true);
 
@@ -910,9 +890,7 @@ suite('Nfc Manager Functions', function() {
       var spyRemoveEventListener = this.sinon.spy(window,
                                                   'removeEventListener');
 
-      // An unprivilaged P2P UI would send message to NFC Manager to validate
-      // P2P registration in the stubbed DOM.
-      nfcManager.checkP2PRegistration('dummyManifestUrl');
+      nfcManager._checkP2PRegistration();
 
       // Note: Error status is fired through the success code path.
       fakePromise.mFulfillToValue(false);
@@ -933,12 +911,12 @@ suite('Nfc Manager Functions', function() {
         .returns(true);
 
       // Should not shrink on the landing page.
-      nfcManager.checkP2PRegistration();
+      nfcManager._checkP2PRegistration();
       assert.isTrue(stubCheckP2P.notCalled);
 
       // Able to share pages after navigating.
       MockService.currentApp.config.url = 'http://mozilla.org';
-      nfcManager.checkP2PRegistration();
+      nfcManager._checkP2PRegistration();
       assert.isTrue(stubCheckP2P.calledOnce);
     });
 
