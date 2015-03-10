@@ -74,8 +74,9 @@ return View.extend({
     bind(this.els.header, 'action', this.firer('click:back'));
     bind(this.els.options, 'click', this.onButtonClick);
     bind(this.els.share, 'click', this.onButtonClick);
-    // The standard accessible control for sliders is arrow up/down keys.
-    // Our screenreader synthesizes those events on swipe up/down gestures.
+    // Our screen reader synthesizes wheel events when the user swipes with two
+    // fingers in either direction. Those events always have their deltaMode set
+    // to DOM_DELTA_PAGE, and the delta value can either be -1, 0 or 1.
     bind(this.els.mediaFrame, 'wheel', this.onFrameWheel);
     return this;
   },
@@ -133,6 +134,10 @@ return View.extend({
   onFrameWheel: function(event) {
     if (event.deltaMode !== event.DOM_DELTA_PAGE || event.deltaY) {
       return;
+    }
+    // If the video is playing, switch to preview.
+    if (this.videoPlaying) {
+      this.onVideoPaused();
     }
     if (event.deltaX > 0) {
       this.emit('swipe', 'left');

@@ -50,16 +50,26 @@ suite('views/preview-gallery', function() {
 
     setup(function() {
       sinon.spy(this.view, 'emit');
+      sinon.stub(this.view, 'onVideoPaused');
     });
 
     test('wheel right', function() {
       this.view.onFrameWheel(mockWheelRight);
       assert.isTrue(this.view.emit.calledWith('swipe', 'left'));
+      sinon.assert.notCalled(this.view.onVideoPaused);
     });
 
     test('wheel left', function() {
       this.view.onFrameWheel(mockWheelLeft);
       assert.isTrue(this.view.emit.calledWith('swipe', 'right'));
+      sinon.assert.notCalled(this.view.onVideoPaused);
+    });
+
+    test('wheel right when video is playing', function() {
+      this.view.videoPlaying = true;
+      this.view.onFrameWheel(mockWheelRight);
+      assert.isTrue(this.view.emit.calledWith('swipe', 'left'));
+      sinon.assert.calledOnce(this.view.onVideoPaused);
     });
 
     test('wheel down', function() {
