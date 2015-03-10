@@ -246,8 +246,7 @@ suite('system/ScreenManager', function() {
       });
 
       test('if Bluetooth SCO connected', function() {
-        stubBluetooth.Profiles = {};
-        this.sinon.stub(stubBluetooth, 'isProfileConnected').returns(true);
+        ScreenManager._isBluetoothSCOProfileconnected = true;
         ScreenManager._screenOffBy = 'proximity';
         ScreenManager.handleEvent({'type': 'userproximity'});
         assert.isTrue(stubTurnOn.called);
@@ -255,26 +254,22 @@ suite('system/ScreenManager', function() {
       });
 
       test('if Bluetooth SCO disconnected', function() {
-        stubBluetooth.Profiles = {};
-        this.sinon.stub(stubBluetooth, 'isProfileConnected').returns(false);
+        ScreenManager._isBluetoothSCOProfileconnected = false;
         stubTelephony.speakerEnabled = false;
         MockService.mHeadsetConnected = false;
-
         ScreenManager.handleEvent({'type': 'userproximity'});
         assert.isTrue(stubTurnOn.called);
         assert.isFalse(stubTurnOff.called);
       });
 
       test('if evt.near is yes', function() {
-        stubBluetooth.Profiles = {};
-        this.sinon.stub(stubBluetooth, 'isProfileConnected').returns(false);
+        ScreenManager._isBluetoothSCOProfileconnected = false;
         ScreenManager.handleEvent({'type': 'userproximity', 'near': 'yes'});
         assert.isFalse(stubTurnOn.called);
         assert.isTrue(stubTurnOff.calledWith(true, 'proximity'));
       });
 
       test('if earphone is connected', function() {
-        stubBluetooth.Profiles = {};
         MockService.mHeadsetConnected = true;
         ScreenManager._screenOffBy = 'proximity';
         ScreenManager.handleEvent({'type': 'userproximity'});
