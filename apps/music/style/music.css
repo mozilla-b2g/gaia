@@ -632,6 +632,11 @@ html[dir="rtl"] .tile:nth-child(12n+6) {
   font-size: 1.4rem;
 }
 
+html[dir="rtl"] .tile-title-artist,
+html[dir="rtl"] .tile-title-album {
+  text-align: right;
+}
+
 .main-tile-title {
   font-size: 1.9rem;
 }
