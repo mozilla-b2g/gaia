@@ -3,6 +3,7 @@
 var assert = require('assert');
 var Rocketbar = require('./lib/rocketbar');
 var Server = require('../../../../shared/test/integration/server');
+var FULLSCREENNAVAPP = __dirname + '/../apps/fullscreennavapp';
 
 marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
 
@@ -15,7 +16,7 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
       'lockscreen.enabled': false
     },
     apps: {
-      'fullscreennavapp.gaiamobile.org': __dirname + '/apps/fullscreennavapp',
+      'fullscreennavapp.gaiamobile.org': FULLSCREENNAVAPP,
     }
   });
 
@@ -94,7 +95,7 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
     client.switchToFrame();
     expandRocketbar();
     var selector = system.Selector.appChromeProgressBar;
-    var progressBar = client.helper.waitForElement(selector);
+    var progressBar = system.appChromeProgressBar;
     var chromeSize = system.appChrome.size();
     client.waitFor(function() {
       var pbPosition = progressBar.scriptWith(function(element) {
@@ -104,18 +105,17 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
     });
 
     waitForOffscreen(selector);
-    var progressbar = client.findElement(system.Selector.appChromeProgressBar);
     client.waitFor(function() {
-      return !progressbar.displayed();
+      return !progressBar.displayed();
     });
 
     expandRocketbar();
     client.waitFor(function() {
-      return progressbar.displayed();
+      return progressBar.displayed();
     });
     server.uncork(url);
     client.waitFor(function() {
-      return !progressbar.displayed();
+      return !progressBar.displayed();
     });
   });
 });
