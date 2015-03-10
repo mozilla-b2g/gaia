@@ -1,14 +1,18 @@
 /* exported MockSIMSlot */
 'use strict';
 
-var MockSIMSlot = function(conn, index) {
+/**
+ * Default 'icc' object will be created if 'card' is 'undefined'.
+ * Card is absent if 'card' is null.
+ */
+var MockSIMSlot = function(conn, index, card) {
   this._smsc = '0123456789';
   this.conn = conn;
   this.index = index;
-  this.absent = false;
+  this.absent = card === null;
   this.locked = false;
-  this.simCard = {
-    cardState: null,
+  this.simCard = card !== undefined ? card : {
+    cardState: 'ready',
     iccInfo: {
       iccid: '11111111111111111111',
       iccType: 'sim',
