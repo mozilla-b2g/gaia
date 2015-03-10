@@ -86,7 +86,12 @@ Home2.prototype = {
   */
   confirmDialog: function(type, button) {
     var dialog = this.getConfirmDialog(type);
-    var confirm = dialog.findElement(button || '.confirm');
+    var confirm;
+
+    this.client.waitFor(function() {
+      confirm = dialog.findElement(button || '.confirm');
+      return confirm && confirm.displayed();
+    });
 
     // XXX: Hack to use faster polling
     var quickly = this.client.scope({ searchTimeout: 50 });
