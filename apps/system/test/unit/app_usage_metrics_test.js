@@ -990,7 +990,7 @@ suite('AppUsageMetrics:', function() {
       assert.equal(deviceInfo['deviceinfo.platform_build_id'], 'unknown');
       assert.equal(deviceInfo['deviceinfo.platform_version'], 'unknown');
       assert.equal(deviceInfo['deviceinfo.software'], 'unknown');
-      assert.equal(deviceInfo['deviceinfo.update_channel'], 'unknown');
+      assert.equal(deviceInfo['app.update.channel'], 'unknown');
 
       // Make sure we're recording a new batch of metrics
       assert.notEqual(metrics, aum.metrics);
