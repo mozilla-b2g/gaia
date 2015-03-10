@@ -1,6 +1,6 @@
 'use strict';
 /* global Rocketbar, MocksHelper, MockIACPort, MockSearchWindow,
-   MockService, MockPromise, MockAppWindow */
+   MockService, MockPromise, MockAppWindow, MockUtilityTray */
 
 require('/js/browser.js');
 require('/js/browser_config_helper.js');
@@ -12,6 +12,7 @@ requireApp('system/shared/test/unit/mocks/mock_settings_url.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_promise.js');
 requireApp('system/test/unit/mock_iac_handler.js');
+requireApp('system/test/unit/mock_utility_tray.js');
 
 var mocksForRocketbar = new MocksHelper([
   'AppWindow',
@@ -19,7 +20,8 @@ var mocksForRocketbar = new MocksHelper([
   'SettingsListener',
   'SettingsURL',
   'Service',
-  'IACPort'
+  'IACPort',
+  'UtilityTray'
 ]).init();
 
 suite('system/Rocketbar', function() {
@@ -686,30 +688,45 @@ suite('system/Rocketbar', function() {
     assert.ok(hideResultsStub.calledOnce);
   });
 
-  test('handleInput()', function() {
-    MockService.currentApp = {
-      isPrivateBrowser: function() {
-        return false;
-      }
-    };
-    var showResultsStub = this.sinon.stub(subject, 'showResults');
-    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+  suite('handleInput()', function() {
+    var showResultsStub, hideResultsStub, closeSearchStub;
 
-    // With input
-    subject.input.value = 'abc';
-    subject.results.classList.add('hidden');
-    subject.handleInput();
-    assert.ok(showResultsStub.calledOnce);
-    assert.ok(MockIACPort.mNumberOfMessages() == 1);
+    setup(function() {
+      MockService.currentApp = {
+        isPrivateBrowser: function() {
+          return false;
+        }
+      };
+      showResultsStub = this.sinon.stub(subject, 'showResults');
+      hideResultsStub = this.sinon.stub(subject, 'hideResults');
+      closeSearchStub = this.sinon.stub(subject, '_closeSearch');
+    });
 
-    // With no input
-    subject.input.value = '';
-    subject.results.classList.remove('hidden');
-    subject.handleInput();
-    assert.ok(hideResultsStub.calledOnce);
+    test('With input', function() {
+      subject.input.value = 'abc';
+      subject.results.classList.add('hidden');
+      subject.handleInput();
+      assert.ok(showResultsStub.calledOnce);
+      assert.ok(MockIACPort.mNumberOfMessages() == 1);
+    });
 
-    showResultsStub.restore();
-    hideResultsStub.restore();
+    test('With no input', function() {
+      subject.input.value = '';
+      subject.results.classList.remove('hidden');
+      subject.handleInput();
+      assert.ok(hideResultsStub.calledOnce);
+      assert.isFalse(closeSearchStub.calledOnce);
+    });
+
+    test('With utility tray active', function() {
+      MockUtilityTray.active = true;
+      subject.input.value = 'abc';
+      subject.results.classList.remove('hidden');
+      subject.handleInput();
+      assert.ok(closeSearchStub.calledOnce);
+      MockUtilityTray.active = false;
+    });
+
   });
 
   test('handleSubmit()', function(done) {
@@ -829,6 +846,7 @@ suite('system/Rocketbar', function() {
 
     initSearchConnectionStub.restore();
     hideResultsStub.restore();
+    eventStub.restore();
   });
 
   test('updateSearchIndex()', function() {
@@ -929,6 +947,18 @@ suite('system/Rocketbar', function() {
     sinon.assert.notCalled(focusStub);
     activation.then(function() {
       sinon.assert.calledOnce(focusStub);
+      done();
+    });
+  });
+
+  test('calls _closeSearch if the utility tray is active', function(done) {
+    subject.active = true;
+    MockUtilityTray.active = true;
+
+    var stub = this.sinon.stub(subject, '_closeSearch');
+    subject.activate().then(() => {
+      assert.ok(stub.calledOnce);
+      MockUtilityTray.active = false;
       done();
     });
   });
