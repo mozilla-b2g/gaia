@@ -127,8 +127,11 @@ contacts.Search = (function() {
       blurList = false;
     });
 
-    imgLoader = new ImageLoader('#groups-list-search', 'li');
-    LazyLoader.load(['/contacts/js/fb_resolver.js'], function() {
+    LazyLoader.load([
+      '/contacts/js/fb_resolver.js',
+      '/shared/js/contacts/utilities/image_loader.js'
+    ], function() {
+      imgLoader = new ImageLoader('#groups-list-search', 'li');
       imgLoader.setResolver(fb.resolver);
     });
   };
@@ -400,7 +403,9 @@ contacts.Search = (function() {
       done();
     }
 
-    imgLoader.reload();
+    if (imgLoader) {
+      imgLoader.reload();
+    }
   }
 
   function doSearch(contacts, from, searchText, pattern, state) {
