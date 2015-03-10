@@ -63,7 +63,6 @@ ModifyEvent.prototype = {
     this.deleteButton.addEventListener('click', this.deleteRecord);
     this.form.addEventListener('click', this.focusHandler);
     this.form.addEventListener('submit', this.primary);
-    this.form.addEventListener('input', this._toggleSave.bind(this));
 
     var allday = this.getEl('allday');
     allday.addEventListener('change', this._toggleAllDay);
@@ -558,15 +557,11 @@ ModifyEvent.prototype = {
   },
 
   enablePrimary: function() {
-    var btn = this.primaryButton;
-    btn.removeAttribute('aria-disabled');
-    btn.removeAttribute('disabled');
+    this.primaryButton.removeAttribute('aria-disabled');
   },
 
   disablePrimary: function() {
-    var btn = this.primaryButton;
-    btn.setAttribute('aria-disabled', 'true');
-    btn.setAttribute('disabled', 'disabled');
+    this.primaryButton.setAttribute('aria-disabled', 'true');
   },
 
   /**
@@ -677,16 +672,6 @@ ModifyEvent.prototype = {
     }
 
     this.updateAlarms(model.isAllDay);
-    this._toggleSave();
-  },
-
-  _toggleSave: function() {
-    var enabled = this.getEl('title').value || this.getEl('location').value;
-    if (enabled) {
-      this.enablePrimary();
-    } else {
-      this.disablePrimary();
-    }
   },
 
   /**

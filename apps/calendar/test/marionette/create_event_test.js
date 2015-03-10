@@ -173,11 +173,6 @@ marionette('creating events', function() {
     }
   ];
 
-  setup(function() {
-    app = new Calendar(client);
-    app.launch();
-  });
-
   scenarios.forEach(function(scenario) {
     suite('creating ' + scenario.name + ' event', function() {
       setup(function() {
@@ -190,6 +185,8 @@ marionette('creating events', function() {
         scenario.location = scenario.location ||
           'Animal Planet reallylongwordthatshouldnotoverflowbecausewewrap';
 
+        app = new Calendar(client);
+        app.launch();
         app.createEvent(scenario);
 
         app.month.waitForDisplay();
@@ -234,26 +231,6 @@ marionette('creating events', function() {
           app.checkOverflow(readEvent.locationContainer, 'location');
         });
       });
-    });
-  });
-
-  test('only enable save button if title or location are set', function() {
-    app.openModifyEventView();
-    var editEvent = app.editEvent;
-    client.waitFor(function() {
-      return editEvent.saveButton.getAttribute('disabled') === 'true';
-    });
-    editEvent.title = 'foo';
-    client.waitFor(function() {
-      return editEvent.saveButton.getAttribute('disabled') === 'false';
-    });
-    editEvent.title = '';
-    client.waitFor(function() {
-      return editEvent.saveButton.getAttribute('disabled') === 'true';
-    });
-    editEvent.location = 'bar';
-    client.waitFor(function() {
-      return editEvent.saveButton.getAttribute('disabled') === 'false';
     });
   });
 });
