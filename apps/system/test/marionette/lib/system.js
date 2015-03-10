@@ -52,6 +52,10 @@ System.Selector = Object.freeze({
 System.prototype = {
   client: null,
 
+  URL: System.URL,
+
+  Selector: System.Selector,
+
   getAppWindows: function() {
     return this.client.findElements(System.Selector.appWindow);
   },
