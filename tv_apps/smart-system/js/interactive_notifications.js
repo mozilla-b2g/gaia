@@ -1,4 +1,4 @@
-/* global IACHandler, SimpleKeyNavigation, KeyEvent, AppWindowManager */
+/* global IACHandler, SimpleKeyNavigation, KeyEvent, focusManager */
 
 (function(exports) {
   'use strict';
@@ -61,6 +61,8 @@
 
     this._banner = $('notification-container');
     this._banner.setAttribute('aria-hidden', 'true');
+    this._banner.tabIndex = -1;
+    focusManager.addUI(this);
   }
 
   InteractiveNotifications.TYPE = Object.freeze(TYPE);
@@ -191,8 +193,25 @@
                                 $('notification-button-1')],
                                SimpleKeyNavigation.DIRECTION.HORIZONTAL,
                                {target: this._banner});
-    } else {
+    }
+    focusManager.focus();
+  };
+
+  proto.focus = function in_focus() {
+    if (this.isVisible()) {
       document.activeElement.blur();
+      this._activeMessage.buttons ?
+                        this._keyNavigator.focus() : this._banner.focus();
+    }
+  };
+
+  proto.isVisible = function in_isVisible() {
+    return !!this._activeMessage;
+  };
+
+  proto.getElement = function in_getElement() {
+    if (this.isVisible()) {
+      return this._banner;
     }
   };
 
@@ -252,25 +271,29 @@
   };
 
   proto.onHide = function in_onHide() {
-    this._activeType = null;
-    this._activeMessage = null;
+    if (this._activeMessage.onClosed) {
+      this._activeMessage.onClosed(this._activeMessage.closedBy);
+    }
 
-    if (!this.hasPendings() && window.AppWindowManager &&
-        AppWindowManager.getActiveApp()) {
+    if (this._activeMessage.buttons &&
+        this._activeMessage.buttons.length > 0) {
       // We need to stop KeyNavigator while we don't need it.
       this._keyNavigator.stop();
-      // If there is active app, we need to focus it back.
-      AppWindowManager.getActiveApp().getTopMostWindow().focus();
     }
+
+    if (!this.hasPendings()) {
+      focusManager.focus();
+    }
+
+    this._activeType = null;
+    this._activeMessage = null;
   };
 
   proto.hideNotification = function in_hideNotification(type, msg, button) {
     if (this._activeType === type && this._activeMessage === msg) {
       this._banner.setAttribute('aria-hidden', 'true');
+      this._activeMessage.closedBy = button;
       this._banner.hide();
-      if (msg.onClosed) {
-        msg.onClosed(button);
-      }
     } else {
       var queue = this._pendingMessages[type];
       var idx = queue.indexOf(msg);
@@ -281,6 +304,7 @@
         }
       }
     }
+    focusManager.focus();
   };
 
   exports.InteractiveNotifications = InteractiveNotifications;

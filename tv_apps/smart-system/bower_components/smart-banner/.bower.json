@@ -13,13 +13,18 @@
     "LICENSE",
     "README.md"
   ],
-  "_release": "548e5368c5",
+  "devDependencies": {
+    "evt": "gaia-components/evt#~0.4.0",
+    "smart-button": "smart-components/smart-button"
+  },
+  "_release": "c483c7539b",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "548e5368c5b917c6e86b5418f4ce9b4afba7b9e2"
+    "commit": "c483c7539b935fda38d39b476e58ea9f39812999"
   },
   "_source": "git://github.com/smart-components/smart-banner.git",
   "_target": "*",
-  "_originalSource": "smart-components/smart-banner"
+  "_originalSource": "smart-components/smart-banner",
+  "_direct": true
 }
