@@ -160,7 +160,7 @@ marionette('Music player search', function() {
 
     test('Check the context for artists', function() {
       music.switchToArtistsView();
-      music.searchTiles('the');
+      music.searchArtists('the');
 
       var resultsList = testSearchResults(Music.Selector.searchArtists, 2);
 
