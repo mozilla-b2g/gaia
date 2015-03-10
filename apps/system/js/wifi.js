@@ -202,22 +202,10 @@ var Wifi = {
     var lock = SettingsListener.getSettingsLock();
     // Let's quietly turn off wifi if there is no wake lock and
     // the screen is off and we are not on a power source.
-    // But if wifi wake lock is held, turn wifi into power save mode instead of
-    // turning wifi off.
     if (!ScreenManager.screenEnabled && !battery.charging) {
-      // When the screen is off and the phone is not charging,
-      // go to power save mode. It will be restored when screen
-      // is turned on or the phone is charging.
-      if (this.wifiEnabled) {
-        wifiManager.setPowerSavingMode(true);
-      }
-
-      // Wifi wake lock is held while screen and wifi are off, turn on wifi and
-      // get into power save mode.
       if (!this.wifiEnabled && this._wakeLockManager.isHeld) {
         lock.set({ 'wifi.enabled': true });
         window.addEventListener('wifi-enabled', function() {
-          wifiManager.setPowerSavingMode(true);
           releaseCpuLock();
         });
         return;
@@ -263,12 +251,6 @@ var Wifi = {
         this._alarmId = null;
       }
 
-      if (this.wifiEnabled) {
-        // Restore from power save mode before the possible scan request if
-        // wifi is already enabled.
-        wifiManager.setPowerSavingMode(false);
-      }
-
       // If wifi is enabled but disconnected.
       // we would need to call getNetworks() so we could join known wifi network
       if (this.wifiEnabled && wifiManager.connection.status == 'disconnected') {
@@ -284,8 +266,6 @@ var Wifi = {
       this.wifiDisabledByWakelock = false;
 
       if (this.wifiEnabled) {
-        // Restore from power save mode is wifi is already enabled.
-        wifiManager.setPowerSavingMode(false);
         releaseCpuLock();
         return;
       }
@@ -327,18 +307,6 @@ var Wifi = {
     this.wifiDisabledByWakelock = true;
 
     var request = null;
-    // If Wifi wake lock is held, change wifi to power save mode instead of
-    // disable it.
-    if (this._wakeLockManager.isHeld) {
-      var wifiManager = window.navigator.mozWifiManager;
-      if (wifiManager) {
-        request = wifiManager.setPowerSavingMode(true);
-        request.onsuccess = releaseWakeLockForWifi;
-        request.onerror = releaseWakeLockForWifi;
-        return;
-      }
-    }
-
     var lock = SettingsListener.getSettingsLock();
 
     // Actually turn off the wifi
