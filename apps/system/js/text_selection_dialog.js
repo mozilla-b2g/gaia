@@ -57,7 +57,10 @@
   // caret tile height is controlled by gecko, we estimate the height as
   // 22px. So 22px plus 12px which defined in UI spec, we get 34px from
   // the bottom of selected area to utility menu.
-  TextSelectionDialog.prototype.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP = 34;
+  TextSelectionDialog.prototype.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP = 43;
+
+  // Minimum distance between bubble and boundary.
+  TextSelectionDialog.prototype.DISTANCE_FROM_BOUNDARY = 5;
 
   TextSelectionDialog.prototype.ID_NAME = 'TextSelectionDialog';
 
@@ -471,12 +474,14 @@
             selectDialogBottom) - selectOptionHeight) / 2;
       }
 
-      if (posLeft < 0) {
-        posLeft = 0;
+      if (posLeft < this.DISTANCE_FROM_BOUNDARY) {
+        posLeft = this.DISTANCE_FROM_BOUNDARY;
       }
 
-      if ((posLeft + numOfSelectOptions * selectOptionWidth) > frameWidth) {
-        posLeft = frameWidth - numOfSelectOptions * selectOptionWidth;
+      if ((posLeft + numOfSelectOptions * selectOptionWidth +
+           this.DISTANCE_FROM_BOUNDARY) > frameWidth) {
+        posLeft = frameWidth - numOfSelectOptions * selectOptionWidth -
+          this.DISTANCE_FROM_BOUNDARY;
       }
 
       return {
