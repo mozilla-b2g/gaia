@@ -4463,7 +4463,8 @@ suite('thread_ui.js >', function() {
           assert.equal(headerText.dataset.isContact, 'true');
           assert.equal(headerText.dataset.title, fakeContactOne.name[0]);
           assert.equal(
-            headerText.innerHTML, '<bdi>' + fakeContactOne.name[0] + '</bdi>'
+            headerText.innerHTML,
+            '<bdi class="ellipsis-dir-fix">' + fakeContactOne.name[0] + '</bdi>'
           );
           assert.isFalse(headerText.hasAttribute('data-l10n-id'));
 
@@ -4482,8 +4483,9 @@ suite('thread_ui.js >', function() {
           assert.equal(headerText.dataset.title, fakeContactTwo.name[0]);
           assert.equal(
             headerText.innerHTML,
-            '<bdi>' + fakeContactTwo.name[0] + '</bdi><bdi dir="ltr"> (+' +
-              (Threads.active.participants.length - 1) + ')</bdi>'
+            '<span class="group-header-title"><bdi class="ellipsis-dir-fix">' +
+            fakeContactTwo.name[0] + '</bdi>&nbsp;<bdi dir="ltr">(+' +
+            (Threads.active.participants.length - 1) + ')</bdi></span>'
           );
           assert.isFalse(headerText.hasAttribute('data-l10n-id'));
 
