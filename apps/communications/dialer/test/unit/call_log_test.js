@@ -927,6 +927,13 @@ suite('dialer/call_log', function() {
             assert.equal(primaryInfoMain.textContent, incomingGroup.number);
           }
         });
+
+        test('all groups display "Unknown" type', function() {
+          for (var log of allLogs) {
+            var type = log.querySelector('.additional-info .type-carrier');
+            assert.equal(type.getAttribute('data-l10n-id'), 'unknown');
+          }
+        });
       });
 
       suite('find new matching contacts', function() {
