@@ -36,6 +36,7 @@ suite('app.js > ', function() {
     // Some features are loaded after rendering like dragdrop
     grid.render();
     require('/js/app.js', done);
+    this.sinon.useFakeTimers();
   });
 
   teardown(function() {
