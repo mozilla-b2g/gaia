@@ -19,6 +19,7 @@ gaia-grid {
   min-height: calc(100% - 5rem - 5rem);
   width: 100%;
   padding-bottom: 5rem;
+  transition: height 0s 0.5s;
 }
 
 #curtain {
