@@ -102,14 +102,6 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     });
   }
 
-  function setVideoPlaying() {
-    if (dom.player.paused) {
-      play();
-    } else {
-      pause();
-    }
-  }
-
   function initUI() {
     // Fullscreen mode and inline activities don't seem to play well together
     // so we'll play the video without going into fullscreen mode.
@@ -153,15 +145,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     dom.playerHeader.addEventListener('action', done);
     dom.save.addEventListener('click', save);
 
-    // video controls component
-    dom.mediaControls.initialize(dom.player);
-
     // Add listeners for video controls web component
-    //
-    // play, pause
-    dom.mediaControls.addEventListener('play-button-click',
-      handlePlayButtonClick);
-
     dom.mediaControlsContainer.addEventListener('click',
                                                 toggleVideoControls,
                                                 true);
@@ -308,10 +292,6 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   function pause() {
     // Stop playing the video
     dom.player.pause();
-  }
-
-  function handlePlayButtonClick() {
-    setVideoPlaying();
   }
 
   function showBanner(msg) {
