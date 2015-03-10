@@ -52,7 +52,7 @@ suite('custom ringtones', function() {
   suite('non-empty database', function() {
 
     var testTone;
-    
+
     var toneDeepEqual = function (test, expected, msg) {
       assert.equal(test.name, expected.name, msg);
       assert.equal(test.blob, expected.blob, msg);
