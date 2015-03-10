@@ -125,6 +125,10 @@ Router.prototype = {
     }
 
     function setPath(ctx, next) {
+      // set the theme color based on the view
+      var meta = document.querySelector('meta[name="theme-color"]');
+      meta.setAttribute('content', meta.dataset[options.color || 'default']);
+
       // Only set the dataset path after the view has loaded
       // its resources. Otherwise, there is some flash and
       // jank while styles start to apply and the view is only
