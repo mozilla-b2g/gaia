@@ -17,6 +17,8 @@ var ModalDialog = {
   // DOM
   elements: {},
 
+  dialog: document.getElementById('modal-dialog'),
+
   // Get all elements when inited.
   getAllElements: function md_getAllElements() {
     var elementsID = ['alert', 'alert-ok', 'alert-message',
@@ -482,7 +484,7 @@ var ModalDialog = {
 
   getElement: function md_getElement() {
     if (this.isVisible()) {
-      return this.overlay;
+      return this.dialog;
     }
   },
 
