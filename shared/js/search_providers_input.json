@@ -58,7 +58,7 @@
   },
 
   "defaultEngines": {
-    "defaultEngine": "ddg",
+    "defaultEngine": "yahoo",
     "providers": {
       "yahoo": {},
       "google": {},
