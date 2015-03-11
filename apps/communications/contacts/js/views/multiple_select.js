@@ -6,7 +6,7 @@ window.Contacts = window.Contacts || {};
 Contacts.MultipleSelect = (function() {
   const STATUS_TIMEOUT = 3000; // ms before closing view which shows status msg
   var contactsToImport = [];
-  var header, saveButton, container, template, title;
+  var header, saveButton, container, contactTemplate, title, groupTemplate;
 
   /**
    * Initializes references to DOM elements. This is needed before calling
@@ -16,7 +16,8 @@ Contacts.MultipleSelect = (function() {
     header = document.getElementById('multiple-select-view-header');
     saveButton = document.getElementById('save-button');
     container = document.getElementById('multiple-select-container');
-    template = document.getElementById('contactToImportTemplate');
+    contactTemplate = document.getElementById('contactToImportTemplate');
+    groupTemplate = document.getElementById('contactGroupTemplate');
     title = document.getElementById('multiple-select-view-title');
 
     saveButton.addEventListener('click', importAll);
@@ -91,6 +92,23 @@ Contacts.MultipleSelect = (function() {
     }
   }
 
+  function addToGroup(node, group) {
+    group = group.toUpperCase();
+
+    var groupNode = document.getElementById('contacts-list-' + group);
+    if (!groupNode) {
+      // The group doesn't exist yet, it has to be created first.
+      var clone = document.importNode(groupTemplate.content, true);
+      clone = container.appendChild(clone);
+      clone = document.getElementById('section-group-%%');
+      clone.id = clone.id.replace('%%', group);
+      clone.innerHTML = clone.innerHTML.replace(/%%/g, group);
+      groupNode = document.getElementById('contacts-list-' + group);
+    }
+
+    groupNode.appendChild(node);
+  }
+
   /**
    * Allows to preview which contacts will be imported. Requires to call init
    * first when DOM is ready.
@@ -112,12 +130,24 @@ Contacts.MultipleSelect = (function() {
       }
     };
 
+    var scrollbarSel = '#multiple-select-view nav[data-type="scrollbar"] ';
+    utils.alphaScroll.init({
+      overlay: document.querySelector(scrollbarSel + 'p'),
+      jumper: document.querySelector(scrollbarSel + ' ol'),
+      groupSelector: '#group-',
+      scrollToCb: function(groupContainer) {
+        container.scrollTop = groupContainer.offsetTop;
+      },
+      desktop: true, // Allows to reinitialize the alphaScroll.
+      contactListSel: '#multiple-select-view'
+    });
+
     function doRenderContact(contact) {
-      var clone = document.importNode(template.content, true);
+      var clone = document.importNode(contactTemplate.content, true);
 
       var contactData = clone.querySelectorAll('p');
-      contactData[0].textContent =
-        Array.isArray(contact.name) && contact.name[0];
+      var name = Array.isArray(contact.name) && contact.name[0];
+      contactData[0].textContent = name;
       contactData[1].textContent =
         Array.isArray(contact.tel) && contact.tel[0] && contact.tel[0].value;
 
@@ -128,7 +158,8 @@ Contacts.MultipleSelect = (function() {
       }
 
       contactsToImport.push(contact);
-      container.appendChild(clone);
+      var group = parseInt(name[0], 10) || !name[0] ? '#' : name[0];
+      addToGroup(clone, group);
     }
   };
 
