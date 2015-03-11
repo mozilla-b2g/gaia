@@ -60,7 +60,7 @@ cards-folder-picker.one-account .fld-folders-container {
 
   transform: translateY(-100%);
   transition-property: transform;
-  transition-duration: 0.3s;
+  transition-duration: 0.2s;
   transition-timing-function: ease;
   transition-delay: 0s;
 }
@@ -80,7 +80,7 @@ cards-folder-picker.opened .fld-content {
 
   opacity: 0;
   transition-property: opacity;
-  transition-duration: 0.3s;
+  transition-duration: 0.2s;
   transition-timing-function: ease;
   transition-delay: 0s;
 }

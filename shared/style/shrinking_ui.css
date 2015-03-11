@@ -16,7 +16,7 @@
   font-family: "Fira Sans", sans-serif;
   font-style: italic;
   text-align: center;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.2s ease;
 }
 
 #shrinking-tip-arrow {
