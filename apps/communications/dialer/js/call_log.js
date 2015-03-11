@@ -525,16 +525,14 @@ var CallLog = {
       }
     }
     primInfoMain.appendChild(bdi);
-
-    var retryCount = document.createElement('span');
-    retryCount.className = 'retry-count';
+    primInfo.appendChild(primInfoMain);
 
     if (group.retryCount && group.retryCount > 1) {
+      var retryCount = document.createElement('span');
+      retryCount.className = 'retry-count';
       retryCount.textContent = '(' + group.retryCount + ')';
+      primInfo.appendChild(retryCount);
     }
-
-    primInfo.appendChild(primInfoMain);
-    primInfo.appendChild(retryCount);
 
     var phoneNumberAdditionalInfo = '';
     var phoneNumberTypeL10nId = null;
