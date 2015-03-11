@@ -26,7 +26,7 @@ function MediaPlaybackWidget(container, options) {
   // command should issue.
   this.isFastSeeking = false;
 
-  // A2DP Profile connection state
+  // Bluetooth A2DP Profile connection state
   this._isBluetoothA2dpConnected = false;
 
   window.addEventListener('iac-mediacomms', this.handleMessage.bind(this));

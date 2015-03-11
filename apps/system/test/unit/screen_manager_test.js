@@ -246,7 +246,7 @@ suite('system/ScreenManager', function() {
       });
 
       test('if Bluetooth SCO connected', function() {
-        ScreenManager._isBluetoothSCOProfileconnected = true;
+        ScreenManager._isBluetoothSCOConnected = true;
         ScreenManager._screenOffBy = 'proximity';
         ScreenManager.handleEvent({'type': 'userproximity'});
         assert.isTrue(stubTurnOn.called);
@@ -254,7 +254,7 @@ suite('system/ScreenManager', function() {
       });
 
       test('if Bluetooth SCO disconnected', function() {
-        ScreenManager._isBluetoothSCOProfileconnected = false;
+        ScreenManager._isBluetoothSCOConnected = false;
         stubTelephony.speakerEnabled = false;
         MockService.mHeadsetConnected = false;
         ScreenManager.handleEvent({'type': 'userproximity'});
@@ -263,7 +263,7 @@ suite('system/ScreenManager', function() {
       });
 
       test('if evt.near is yes', function() {
-        ScreenManager._isBluetoothSCOProfileconnected = false;
+        ScreenManager._isBluetoothSCOConnected = false;
         ScreenManager.handleEvent({'type': 'userproximity', 'near': 'yes'});
         assert.isFalse(stubTurnOn.called);
         assert.isTrue(stubTurnOff.calledWith(true, 'proximity'));

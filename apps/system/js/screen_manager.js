@@ -87,7 +87,10 @@ var ScreenManager = {
   _cpuWakeLock: null,
 
 
-  _isBluetoothSCOProfileconnected: false,
+  /*
+   * Bluetooth SCO Profile connection state
+   */
+  _isBluetoothSCOConnected: false,
 
   init: function scm_init() {
     window.addEventListener('attentionopening', this);
@@ -188,7 +191,7 @@ var ScreenManager = {
         break;
       case 'bluetoothprofileconnectionchange':
         if (evt.detail.name === BluetoothProfiles.SCO) {
-          this._isBluetoothSCOProfileconnected = evt.detail.connected;
+          this._isBluetoothSCOConnected = evt.detail.connected;
         }
         break;
       case 'devicelight':
@@ -235,7 +238,7 @@ var ScreenManager = {
         break;
 
       case 'userproximity':
-        if (this._isBluetoothSCOProfileconnected ||
+        if (this._isBluetoothSCOConnected ||
             telephony.speakerEnabled || Service.query('isHeadsetConnected')) {
             // XXX: Remove this hack in Bug 868348
             // We shouldn't access headset status from statusbar.
