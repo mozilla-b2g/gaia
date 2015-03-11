@@ -29,9 +29,11 @@
       } else { // APIv2
         // Now only make sure statusbar works
         // BluetoothTransfer will be done in Bug 1093084
-        LazyLoader.load(['js/bluetooth_v2.js'], function() {
-          window.Bluetooth = new Bluetooth2();
-          window.Bluetooth.start();
+        LazyLoader.load(['js/bluetooth_v2.js', 'js/bluetooth_transfer.js'],
+          function() {
+            window.BluetoothTransfer.init();
+            window.Bluetooth = new Bluetooth2();
+            window.Bluetooth.start();
         });
       }
     }
