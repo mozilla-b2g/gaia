@@ -82,7 +82,7 @@
   background-color: rgba(0, 0, 0, 0.3);
   overflow: hidden;
   opacity: 1;
-  transition: opacity 0.5s;
+  transition: opacity 0.2s;
 }
 
 .videoPlayerFooter.hidden {

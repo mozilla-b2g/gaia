@@ -1,5 +1,5 @@
 #lockscreen {
-  --panel-transition-secs: 0.3s;
+  --panel-transition-secs: 0.2s;
   position: absolute;
   top: 0;
   width: 100%;
@@ -48,7 +48,7 @@
 
 #lockscreen-masked-background {
   background-size: 100% 100%;
-  transition: background-image 0.3s ease, background-color 0.3s ease;
+  transition: background-image 0.2s ease, background-color 0.2s ease;
 }
 
 #lockscreen-masked-background.blank {
@@ -69,7 +69,7 @@
  * (Let lockscreen appears first)
  */
 #screen:not(.lockscreen-camera) > #lockscreen-camera {
-  transition-delay: 0.3s;
+  transition-delay: 0.2s;
 }
 
 #lockscreen-camera {
