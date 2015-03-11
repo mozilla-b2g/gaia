@@ -61,6 +61,7 @@
       client.switchToFrame();
 
       // Check that app choice appear, showing default activity checkbox
+      system.waitForActivityMenu();
       var checkbox = client.findElement(setDefaultSelector);
       assert.ok(checkbox.displayed);
 
@@ -104,6 +105,7 @@
       client.switchToFrame();
 
       // Check that app choice appear, showing default activity checkbox
+      system.waitForActivityMenu();
       var checkbox = client.findElement(setDefaultSelector);
       assert.ok(checkbox.displayed);
 
@@ -139,6 +141,7 @@
       client.switchToFrame();
 
       // Check that app choice appear, showing default activity checkbox
+      system.waitForActivityMenu();
       var checkbox = client.findElement(setDefaultSelector);
       assert.ok(checkbox.displayed);
 
