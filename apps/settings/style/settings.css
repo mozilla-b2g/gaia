@@ -1169,3 +1169,13 @@ html[dir="rtl"] ul li > label.range-icons span {
   left: unset;
   right: 0;
 }
+
+html:-moz-dir(rtl) .force-bda-rtl {
+  direction: rtl;
+  unicode-bidi: bidi-override;
+}
+
+html:-moz-dir(rtl) .force-bda-ltr {
+  direction: ltr;
+  unicode-bidi: bidi-override;
+}

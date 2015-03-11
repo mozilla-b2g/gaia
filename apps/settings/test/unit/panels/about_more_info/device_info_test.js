@@ -115,8 +115,17 @@ suite('about device info >', function() {
         deviceInfo._loadIccId();
         var spans = deviceInfo._elements.deviceInfoIccIds
           .querySelectorAll('span');
-        assert.equal(spans[0].textContent, 'SIM 1: ' + iccIds[0]);
-        assert.equal(spans[1].textContent, 'SIM 2: ' + iccIds[1]);
+        var sim1IccSpan = spans[0];
+        var sim1NumberSpan = spans[1];
+        var sim2IccSpan = spans[2];
+        var sim2NumberSpan = spans[3];
+
+        assert.equal(sim1IccSpan.textContent, 'SIM 1: ' + iccIds[0]);
+        assert.isTrue(sim1IccSpan.classList.contains('force-bda-rtl'));
+        assert.isTrue(sim1NumberSpan.classList.contains('force-bda-ltr'));
+        assert.equal(sim2IccSpan.textContent, 'SIM 2: ' + iccIds[1]);
+        assert.isTrue(sim2IccSpan.classList.contains('force-bda-rtl'));
+        assert.isTrue(sim2NumberSpan.classList.contains('force-bda-ltr'));
       });
 
       test('should show unavailable sim indicator', function() {
@@ -195,11 +204,20 @@ suite('about device info >', function() {
         promise.then(function() {
           var spans = deviceInfo._elements.deviceInfoImeis
             .querySelectorAll('span');
-          for (var index = 0; index < 2; index++) {
-            assert.equal(spans[index].textContent,
-              'IMEI ' + (index + 1) + ': fakeImei' + (index + 1));
-            assert.equal(spans[index].dataset.slot, index);
-          }
+          var sim1ImeiSpan = spans[0];
+          var sim1NumberSpan = spans[1];
+          var sim2ImeiSpan = spans[2];
+          var sim2NumberSpan = spans[3];
+
+          assert.equal(sim1ImeiSpan.textContent, 'IMEI 1: fakeImei1');
+          assert.equal(sim1ImeiSpan.dataset.slot, 0);
+          assert.isTrue(sim1ImeiSpan.classList.contains('force-bda-rtl'));
+          assert.isTrue(sim1NumberSpan.classList.contains('force-bda-ltr'));
+
+          assert.equal(sim2ImeiSpan.textContent, 'IMEI 2: fakeImei2');
+          assert.equal(sim2ImeiSpan.dataset.slot, 1);
+          assert.isTrue(sim2ImeiSpan.classList.contains('force-bda-rtl'));
+          assert.isTrue(sim2NumberSpan.classList.contains('force-bda-ltr'));
         }).then(done, done);
       });
     });
