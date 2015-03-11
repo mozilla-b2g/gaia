@@ -69,7 +69,7 @@
 #software-home-button,
 #fullscreen-software-home-button,
 #fullscreen-layout-software-home-button {
-  --button-width: 2.6rem;
+  --button-width: 5rem;
   width: var(--button-width);
   height: var(--button-width);
   margin: 0 auto;
@@ -78,7 +78,7 @@
   outline-width: 0.35rem;
   outline-style: solid;
   outline-color: #ffffff;
-  outline-offset: -0.35rem;
+  outline-offset: -1.75rem;
   -moz-outline-radius: 50%;
   box-sizing: border-box;
 }
