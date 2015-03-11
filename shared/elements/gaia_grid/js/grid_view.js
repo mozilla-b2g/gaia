@@ -568,8 +568,14 @@
       // transformed, so the grid actually has no height. Fire an event that
       // embedders can listen to discover the grid height.
       if (this.layout.offsetY != oldHeight) {
-        this.element.dispatchEvent(new CustomEvent('gaiagrid-resize',
-                                     { detail: this.layout.offsetY }));
+        if (this.dragdrop && this.dragdrop.inDragAction) {
+          // Delay size changes during drags to avoid jankiness when dragging
+          // items around due to touch positions changing.
+          this.layout.offsetY = oldHeight;
+        } else {
+          this.element.dispatchEvent(new CustomEvent('gaiagrid-resize',
+                                       { detail: this.layout.offsetY }));
+        }
       }
 
       this.element.setAttribute('cols', this.layout.cols);
