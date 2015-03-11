@@ -7,6 +7,8 @@ define(function(require) {
   'use strict';
 
   var BtContext = require('modules/bluetooth/bluetooth_context');
+  var BtConnectionManager =
+    require('modules/bluetooth/bluetooth_connection_manager');
   var BtTemplateFactory = require('panels/bluetooth/bt_template_factory');
   var DialogService = require('modules/dialog_service');
   var ListView = require('modules/mvvm/list_view');
@@ -61,6 +63,13 @@ define(function(require) {
             searchingItem: panel.querySelector('.bluetooth-searching'),
             searchItem: panel.querySelector('.bluetooth-search'),
             searchButton: panel.querySelector('.search-device')
+          },
+          actionMenu: {
+            actionMenuDialog: panel.querySelector('.paired-device-option'),
+            connectOption: panel.querySelector('.connect-option'),
+            disconnectOption: panel.querySelector('.disconnect-option'),
+            unpairOption: panel.querySelector('.unpair-option'),
+            cancelOption: panel.querySelector('.cancel-option')
           }
         };
 
@@ -144,10 +153,15 @@ define(function(require) {
         Debug('onShow():');
 
         if (!this._leftApp) {
-          // If settings app is still in the forground, 
-          // we start discovering device automatically 
+          // If settings app is still in the forground,
+          // we start discovering device automatically
           // while Bluetooth panel is onShow.
-          BtContext.startDiscovery();
+          BtContext.startDiscovery().then(() => {
+            Debug('onShow(): startDiscovery successfully');
+          }, (reason) => {
+            Debug('onShow(): startDiscovery failed, ' +
+                  'reason = ' + reason);
+          });
         }
         this._leftApp = false;
       },
@@ -167,7 +181,7 @@ define(function(require) {
         this._leftApp = document.hidden;
 
         if (!this._leftApp) {
-          // If settings app is still in the forground, 
+          // If settings app is still in the forground,
           // we stop discovering device automatically
           // while Bluetooth panel is onHide.
           BtContext.stopDiscovery();
@@ -370,15 +384,108 @@ define(function(require) {
       _onPairedDeviceItemClick: function(deviceItem) {
         Debug('_onPairedDeviceItemClick(): deviceItem.address = ' +
               deviceItem.address);
-        Debug('_onPairedDeviceItemClick(): deviceItem.paired = ' +
+        Debug('_onPairedDeviceItemClick(): deviceItem.paired = ' + 
               deviceItem.paired);
-        // TODO: unpair, connect, disconnect
-        // Pop out dialog ans show operation correspond to device paired device
-        // cod.
+        // Pop out dialog and show operation correspond to device paired device
+        // type.
+        switch (deviceItem.type) {
+          case 'audio-card':
+          case 'audio-input-microphone':
+            // We only support 'audio-card', 'audio-input-microphone' device 
+            // to connect. Before pop out a dialog for operation, we should
+            // check the paired device is connected or not.
+            this._showActionMenu(deviceItem);
+            break;
+          default:
+            // These devices are supported to pair/unpair only.
+            // Pop confirmation dialog to make sure user's decision.
+            this._confirmUserWantToUnpairDevice(deviceItem);
+            break;
+        }
+      },
 
-        // https://bugzilla.mozilla.org/show_bug.cgi?id=1121904
-        // Since cannot pair with headset, we do unpair here directly.
-        // unpair with the remote device
+      _showActionMenu: function(deviceItem) {
+        if (deviceItem.connectionStatus === 'connected') {
+          elements.actionMenu.connectOption.style.display = 'none';
+          elements.actionMenu.disconnectOption.style.display = 'block';
+          elements.actionMenu.disconnectOption.onclick = () => {
+            BtConnectionManager.disconnect(deviceItem.data);
+            elements.actionMenu.actionMenuDialog.hidden = true;
+          };
+          elements.actionMenu.unpairOption.onclick = () => {
+            // Show a confirmation dialog while a user wants to unpair 
+            // the connected device. Because the device is connected to use now.
+            this._confirmUserWantToUnpairDeviceWhileItisConnected(deviceItem);
+            elements.actionMenu.actionMenuDialog.hidden = true;
+          };
+        } else if (deviceItem.connectionStatus === 'disconnected') {
+          elements.actionMenu.connectOption.style.display = 'block';
+          elements.actionMenu.disconnectOption.style.display = 'none';
+          elements.actionMenu.unpairOption.onclick = () => {
+            this._confirmToUnpair(deviceItem);
+            elements.actionMenu.actionMenuDialog.hidden = true;
+          };
+          elements.actionMenu.connectOption.onclick = () => {
+            this._connectHeadsetDevice(deviceItem);
+            elements.actionMenu.actionMenuDialog.hidden = true;
+          };
+        }
+
+        elements.actionMenu.cancelOption.onclick = () => {
+          elements.actionMenu.actionMenuDialog.hidden = true;
+        };
+        // Show the action menu.
+        elements.actionMenu.actionMenuDialog.hidden = false;
+      },
+
+      _confirmUserWantToUnpairDeviceWhileItisConnected: function(deviceItem) {
+        var messageL10nId = {
+          id: 'unpair-msg'
+        };
+        var titleL10nId = 'unpair-title';
+
+        DialogService.confirm(messageL10nId, {
+          title: titleL10nId,
+          submitButton: 'ok',
+          cancelButton: 'cancel'
+        }).then((result) => {
+          var type = result.type;
+          if (type === 'submit') {
+            this._confirmToUnpair(deviceItem);
+          } else {
+            // Just return here since user give up to unpair.
+            return;
+          }
+        });
+      },
+
+      _confirmUserWantToUnpairDevice: function(deviceItem) {
+        var messageL10nId = {
+          id: 'device-option-unpair-device'
+        };
+        var titleL10nId = 'device-option-unpair-confirmation';
+
+        DialogService.confirm(messageL10nId, {
+          title: titleL10nId,
+          submitButton: {
+            id: 'device-option-confirm',
+            style: 'danger'
+          },
+          cancelButton: 'cancel'
+        }).then((result) => {
+          var type = result.type;
+          if (type === 'submit') {
+            this._confirmToUnpair(deviceItem);
+          } else {
+            // Just return here since user give up to unpair.
+            return;
+          }
+        });
+      },
+
+      _confirmToUnpair: function(deviceItem) {
+        Debug('_confirmToUnpair(): deviceItem.address = ' +
+              deviceItem.address);
         BtContext.unpair(deviceItem.address).then(() => {
           Debug('_onPairedDeviceItemClick(): unpair successfully');
         }, (reason) => {
@@ -395,6 +502,8 @@ define(function(require) {
         // Pair with the remote device.
         BtContext.pair(deviceItem.address).then(() => {
           Debug('_onFoundDeviceItemClick(): pair successfully');
+          // Connect the device which is just paired.
+          this._connectHeadsetDevice(deviceItem);
         }, (reason) => {
           Debug('_onFoundDeviceItemClick(): pair failed, ' + 
                 'reason = ' + reason);
@@ -404,6 +513,26 @@ define(function(require) {
           // Show alert message while pair device failed.
           this._alertPairFailedErrorMessage(reason);
         });
+      },
+
+      _connectHeadsetDevice: function(deviceItem) {
+        if (!((deviceItem.type === 'audio-card') || 
+              (deviceItem.type === 'audio-input-microphone'))) {
+          return;
+        }
+
+        BtConnectionManager.connect(deviceItem.data).then(() => {
+          Debug('_connectHeadsetDevice(): connect device successfully');
+        }, (reason) => {
+          Debug('_connectHeadsetDevice(): connect device failed, ' + 
+                'reason = ' + reason);
+          // Show alert message while connect device failed.
+          this._alertConnectErrorMessage();
+        });
+      },
+
+      _alertConnectErrorMessage: function() {
+        DialogService.alert('error-connect-msg', {title: 'settings'});
       },
 
       _alertPairFailedErrorMessage: function(errorReason) {
