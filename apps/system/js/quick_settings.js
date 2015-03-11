@@ -7,6 +7,13 @@ var QuickSettings = {
   // Indicate setting status of geolocation.enabled
   geolocationEnabled: false,
   WIFI_STATUSCHANGE_TIMEOUT: 2000,
+  /**
+  * Indicate setting status of airplane mode
+  * @memberof QuickSettings.prototype
+  * @type {Boolean}
+  */
+  airplaneModeSwitching: false,
+
   // ID of elements to create references
   ELEMENTS: ['wifi', 'data', 'bluetooth', 'airplane-mode', 'full-app'],
 
@@ -180,6 +187,8 @@ var QuickSettings = {
     SettingsListener.observe('airplaneMode.status', false, function(value) {
       delete self.airplaneMode.dataset.enabling;
       delete self.airplaneMode.dataset.disabling;
+      // reset airplaneModeSwitching
+      self.airplaneModeSwitching = false;
 
       self.data.dataset.airplaneMode = (value === 'enabled');
       switch (value) {
@@ -193,9 +202,11 @@ var QuickSettings = {
           break;
         case 'enabling':
           self.airplaneMode.dataset.enabling = 'true';
+          self.airplaneModeSwitching = true;
           break;
         case 'disabling':
           self.airplaneMode.dataset.disabling = 'true';
+          self.airplaneModeSwitching = true;
           break;
       }
       self.setAccessibilityAttributes(self.airplaneMode, 'airplaneMode');
@@ -209,8 +220,9 @@ var QuickSettings = {
         switch (evt.target) {
           case this.wifi:
             // do nothing if wifi isn't ready
-            if (this.wifi.dataset.initializing)
+            if (this.wifi.dataset.initializing || this.airplaneModeSwitching) {
               return;
+            }
             var enabled = !!this.wifi.dataset.enabled;
             SettingsListener.getSettingsLock().set({
               'wifi.enabled': !enabled
@@ -236,8 +248,10 @@ var QuickSettings = {
 
           case this.bluetooth:
             // do nothing if bluetooth isn't ready
-            if (this.bluetooth.dataset.initializing)
+            if (this.bluetooth.dataset.initializing ||
+               this.airplaneModeSwitching) {
               return;
+            }
 
             var enabled = !!this.bluetooth.dataset.enabled;
             SettingsListener.getSettingsLock().set({
@@ -246,6 +260,9 @@ var QuickSettings = {
             break;
 
           case this.airplaneMode:
+            if (this.airplaneModeSwitching) {
+              return;
+            }
             AirplaneMode.enabled = !this.airplaneMode.dataset.enabled;
             break;
 
