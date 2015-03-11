@@ -13,8 +13,14 @@ marionette('notification tests', function() {
       'ftu.manifestURL': null
     }
   });
+  var system;
   var actions = new Marionette.Actions(client);
   var notificationList = new NotificationList(client);
+
+  setup(function() {
+    system = client.loader.getAppClass('system');
+    system.waitForStartup();
+  });
 
   var lockscreenIsReady = function() {
     return client.executeScript(function() {
@@ -47,8 +53,10 @@ marionette('notification tests', function() {
 
   test('swipe up should hide the toast', function() {
     var toaster = dispatchNotification(client);
-    actions.flick(toaster, 50, 30, 50, 1, 300).perform(function() {
-      assert.equal(toaster.displayed(), false);
+    actions.flick(toaster, 50, 30, 50, -30, 300).perform(function() {
+      client.waitFor(function() {
+        return !toaster.displayed();
+      }, {timeout: 1000});
     });
   });
 
