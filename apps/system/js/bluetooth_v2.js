@@ -102,10 +102,12 @@ Bluetooth.prototype = {
 
       // Raise an event for the profile connection changes.
       window.dispatchEvent(new CustomEvent('bluetoothprofileconnectionchange',
-      {
-        name: profile,
-        connected: connected
-      }));
+        {
+          detail: {
+            name: profile,
+            connected: connected
+          }
+        }));
       if (profile === 'opp' && this.transferIcon) {
         this.transferIcon.update();
       }
@@ -317,7 +319,9 @@ Bluetooth.prototype = {
   _oppTransferStartHandler: function(transferInfo) {
     this._setProfileConnected('opp', true);
     window.dispatchEvent(new CustomEvent('bluetooth-opp-transfer-start',
-      {transferInfo: transferInfo}));
+      {
+        detail: { transferInfo: transferInfo }
+      }));
   },
 
   /*
@@ -331,7 +335,9 @@ Bluetooth.prototype = {
   _oppTransferCompleteHandler: function(transferInfo) {
     this._setProfileConnected('opp', false);
     window.dispatchEvent(new CustomEvent('bluetooth-opp-transfer-complete',
-      {transferInfo: transferInfo}));
+      {
+        detail: { transferInfo: transferInfo }
+      }));
   },
 
   /**

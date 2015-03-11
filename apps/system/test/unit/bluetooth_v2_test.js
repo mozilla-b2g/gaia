@@ -70,7 +70,7 @@ suite('system/bluetooth_v2', function() {
   suite('setProfileConnected', function() {
     var profiles = ['hfp', 'opp', 'a2dp', 'sco'];
     setup(function() {
-      this.sinon.stub(window, 'dispatchEvent');
+      this.sinon.spy(window, 'dispatchEvent');
     });
 
     test('nothing is called when wasConnected', function() {
@@ -95,6 +95,21 @@ suite('system/bluetooth_v2', function() {
         Bluetooth._setProfileConnected(profile, true);
         assert.ok(window.dispatchEvent.called);
       });
+    });
+
+    test('event is dispatched with right detail object', function(done) {
+      Bluetooth._oppConnected = false;
+      var handler = function(evt) {
+        assert.equal(evt.detail.name, 'opp');
+        assert.isTrue(evt.detail.connected);
+        done();
+      };
+      var bindHandler = handler.bind(this);
+      window.addEventListener('bluetoothprofileconnectionchange',
+        bindHandler);
+      Bluetooth._setProfileConnected('opp', true);
+      window.removeEventListener('bluetoothprofileconnectionchange',
+        bindHandler);
     });
 
     test('transferIcon is not updated with non-OPP profile',
@@ -401,6 +416,42 @@ suite('system/bluetooth_v2', function() {
         assert.equal(Bluetooth._adapter, null);
         assert.ok(!Bluetooth._dispatchAdapterState.called);
         assert.ok(!Bluetooth._adapterUnavailableHandler.called);
+    });
+  });
+
+  suite('oppTransferStartHandler', function() {
+    test('event is dispatched with right detail object', function(done) {
+      this.sinon.stub(Bluetooth, '_setProfileConnected');
+      var transferInfo = this.sinon.stub();
+      var handler = function(evt) {
+        assert.equal(evt.detail.transferInfo, transferInfo);
+        done();
+      };
+      var bindHandler = handler.bind(this);
+      window.addEventListener('bluetooth-opp-transfer-start',
+        bindHandler);
+      Bluetooth._oppTransferStartHandler(transferInfo);
+      assert.ok(Bluetooth._setProfileConnected.called);
+      window.removeEventListener('bluetooth-opp-transfer-start',
+        bindHandler);
+    });
+  });
+
+  suite('oppTransferCompleteHandler', function() {
+    test('event is dispatched with right detail object', function(done) {
+      this.sinon.stub(Bluetooth, '_setProfileConnected');
+      var transferInfo = this.sinon.stub();
+      var handler = function(evt) {
+        assert.equal(evt.detail.transferInfo, transferInfo);
+        done();
+      };
+      var bindHandler = handler.bind(this);
+      window.addEventListener('bluetooth-opp-transfer-complete',
+        bindHandler);
+      Bluetooth._oppTransferCompleteHandler(transferInfo);
+      assert.ok(Bluetooth._setProfileConnected.called);
+      window.removeEventListener('bluetooth-opp-transfer-complete',
+        bindHandler);
     });
   });
 });
