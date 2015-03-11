@@ -193,6 +193,15 @@ body.tiles-mode #views {
   transform: translateX(0%);
 }
 
+body.tiles-mode #views-tiles,
+body.search-from-tiles-mode #views-tiles {
+  visibility: visible;
+}
+
+body.search-from-tiles-mode #views-tiles-anchor {
+  visibility: hidden;
+}
+
 body.search-from-tiles-mode #views {
   transform: translateX(0%) translateY(-5rem);
 }
@@ -206,9 +215,20 @@ body.search-from-list-mode #views {
   transform: translateX(-100%) translateY(-5rem);
 }
 
+body.list-mode #views-list,
+body.picker-mode #views-list,
+body.search-from-list-mode #views-list {
+  visibility: visible;
+}
+
+body.search-from-list-mode #views-list-anchor {
+  visibility: hidden;
+}
+
 body.search-from-tiles-mode #search,
 body.search-from-list-mode #search {
   transform: translateY( calc(-100%) );
+  visibility: visible;
 }
 
 body.search-from-tiles-mode #views-tiles,
@@ -227,13 +247,25 @@ body.sublist-mode #views {
   z-index: 20;
 }
 
+body.sublist-mode #views-sublist {
+  visibility: visible;
+}
+
 body.player-mode #views {
   transform: translateX(-300%);
   z-index: 30;
 }
 
+body.player-mode #views-player {
+  visibility: visible;
+}
+
 body.picker-mode #views {
   transition: transform 0ms ease;
+}
+
+body.picker-mode .view {
+  transition: visibility 0ms;
 }
 
 body.player-mode #title-player,
@@ -266,7 +298,8 @@ body.picker-mode #title-player {
   overflow-y: auto;
   background: -moz-linear-gradient(center top, #303030 0%, #000000 100%) repeat scroll 0 0 transparent;
   z-index: 10;
-  transition: transform 300ms ease;
+  transition: transform 300ms ease, visibility 300ms;
+  visibility: hidden;
 }
 
 #views-search-no-result {
@@ -289,6 +322,8 @@ body.picker-mode #title-player {
 .view {
   width: 100%;
   height: auto;
+  visibility: hidden;
+  transition: visibility 300ms;
 }
 
 #views-tiles,
@@ -329,6 +364,7 @@ body.picker-mode #title-player {
 
 #views-player.open-mode {
   transform: translateX(0);
+  visibility: visible;
 }
 
 /* Make sure the tiles and list views are tall enough that we can scroll the
@@ -336,6 +372,7 @@ body.picker-mode #title-player {
 #views-tiles-anchor,
 #views-list-anchor {
   min-height: 100%;
+  transition: visibility 300ms;
 }
 
 /*
@@ -1006,14 +1043,8 @@ html[dir="rtl"] li.list-item {
 
 li.list-item a {
   display: block;
-  color: #fff;
   text-decoration: none;
-  outline: none;
   margin: 0;
-  text-shadow: black 0.1rem 0.1rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   width: 100%;
   height: 6rem;
   background-color: transparent;
@@ -1021,8 +1052,6 @@ li.list-item a {
 }
 
 li.list-item a:active {
-  color: black;
-  text-shadow: rgba(255, 255, 255, 0.5) 0.1rem 0.1rem;
   background-color: rgba(52,140,158, .6);
 }
 

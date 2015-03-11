@@ -84,7 +84,7 @@ window.SmartBanner = (function(win) {
     }
   };
 
-  proto.focus = proto.open = function() {
+  proto.open = function() {
     // no operation during flying and hiding
     if (this.classList.contains('flying') ||
         this.classList.contains('hiding')) {
@@ -100,7 +100,7 @@ window.SmartBanner = (function(win) {
     this.style.width = this.calculateChildWidth() + 'px';
   };
 
-  proto.blur = proto.close = function() {
+  proto.close = function() {
     // no operation during flying and hiding
     if (this.classList.contains('flying') ||
         this.classList.contains('hiding')) {

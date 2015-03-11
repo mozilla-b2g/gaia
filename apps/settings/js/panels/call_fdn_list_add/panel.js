@@ -39,6 +39,9 @@ define(function(require) {
         // make sure when onShow, the state of submitButton is okay
         this._checkContactInputs();
       },
+      onShow: function() {
+        this._elements.fdnNameInput.focus();
+      },
       onSubmit: function() {
         if (this._submitable) {
           return Promise.resolve({

@@ -27,8 +27,6 @@ class Contacts(Base):
 
     def launch(self):
         Base.launch(self)
-        Wait(self.marionette, ignored_exceptions=JavascriptException).until(
-            lambda m: m.execute_script('return window.wrappedJSObject.Contacts.asyncScriptsLoaded;') is True)
         Wait(self.marionette).until(expected.element_displayed(
             Wait(self.marionette).until(expected.element_present(
                 *self._settings_button_locator))))
@@ -36,8 +34,6 @@ class Contacts(Base):
     def switch_to_contacts_frame(self):
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == self.name)
         self.apps.switch_to_displayed_app()
-        Wait(self.marionette, ignored_exceptions=JavascriptException).until(
-            lambda m: m.execute_script('return window.wrappedJSObject.Contacts.asyncScriptsLoaded;') is True)
 
     @property
     def contacts(self):

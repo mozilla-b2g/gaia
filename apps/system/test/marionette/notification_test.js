@@ -14,8 +14,17 @@ marionette('notification tests', function() {
       'lockscreen.enabled': false
     }
   });
+  var system;
   var actions = new Marionette.Actions(client);
   var notificationList = new NotificationList(client);
+
+  setup(function() {
+    system = client.loader.getAppClass('system');
+    system.waitForStartup();
+    client.waitFor(function() {
+      return system.activeHomescreenFrame.displayed();
+    });
+  });
 
   test('fire notification', function() {
     var details = {tag: 'test tag',
@@ -32,7 +41,9 @@ marionette('notification tests', function() {
   test('swipe up should hide the toast', function() {
     var toaster = dispatchNotification(client);
     actions.flick(toaster, 50, 30, 50, -30, 300).perform(function() {
-      assert.equal(toaster.displayed(), false);
+      client.waitFor(function() {
+        return !toaster.displayed();
+      }, {timeout: 1000});
     });
   });
 

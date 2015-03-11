@@ -185,9 +185,10 @@ function updatePowerUI() {
 
 function updateWarningModeUI() {
   $('airplane-mode-warning').hidden = !airplaneModeEnabled;
-  $('antenna-warning').hidden = airplaneModeEnabled ||
-    mozFMRadio.antennaAvailable;
-  $('container').hidden = airplaneModeEnabled || !mozFMRadio.antennaAvailable;
+  $('antenna-warning').hidden = mozFMRadio.antennaAvailable ||
+    airplaneModeEnabled;
+  $('container').classList.toggle('hidden-block', airplaneModeEnabled ||
+    !mozFMRadio.antennaAvailable);
 }
 
 var enabling = false;

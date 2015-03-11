@@ -64,7 +64,7 @@ suite('Views.MultiDay', function() {
     subject.handleEvent({type: 'localized'});
 
     // make sure we rebuild all hours during localize
-    var i = -1, date = new Date(), hour;
+    var i = -1, date = new Date(0), hour;
     while (++i < 24) {
       date.setHours(i, 0, 0, 0);
       hour = sidebar.querySelector('.md__hour-' + i);

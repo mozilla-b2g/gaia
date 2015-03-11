@@ -8,20 +8,11 @@
 /* global SystemBanner */
 /* global Template */
 /* global applications */
-
-'use strict';
-/* global ModalDialog */
-/* global SystemBanner */
-/* global KeyboardManager */
-/* global LazyLoader */
-/* global ManifestHelper */
-/* global FtuLauncher */
-/* global Template */
-/* global KeyboardHelper */
-/* global applications */
 /* global KeyNavigationAdapter */
 /* global SimpleKeyNavigation */
-/* global AppWindowManager */
+/* global focusManager */
+
+'use strict';
 
 var AppInstallManager = {
   mapDownloadErrorsToMessage: {
@@ -73,6 +64,35 @@ var AppInstallManager = {
       document.getElementById('app-uninstall-confirm-button');
 
     this.resumeButton = document.getElementById('app-install-resume-button');
+
+    // List of all dialogs, and it's default focused button
+    this.dialogList = [
+      {
+        dialog: this.dialog,
+        focusElement: this.installButton
+      },
+      {
+        dialog: this.installCancelDialog,
+        focusElement: this.confirmCancelButton
+      },
+      {
+        dialog: this.appUninstallDialog,
+        focusElement: this.appUninstallCancelButton
+      },
+      {
+        dialog: this.downloadCancelDialog,
+        focusElement: this.downloadCancelDialog.querySelector('.cancel')
+      },
+      {
+        dialog: this.imeLayoutDialog,
+        focusElement: this.imeCancelButton
+      },
+      {
+        dialog: this.setupInstalledAppDialog,
+        focusElement: this.setupCancelButton
+      }
+    ];
+    focusManager.addUI(this);
 
     this.simpleKeyNavigation = new SimpleKeyNavigation();
 
@@ -198,6 +218,7 @@ var AppInstallManager = {
       [this.cancelButton, this.installButton], this.installButton);
 
     this.dialog.classList.add('visible');
+    focusManager.focus();
 
     var id = detail.id;
 
@@ -227,7 +248,7 @@ var AppInstallManager = {
     }
     this.installCallback = null;
     this.dialog.classList.remove('visible');
-    AppWindowManager.getActiveApp().focus();
+    focusManager.focus();
   },
 
   handleAppUninstallPrompt: function ai_handleUninstallPrompt(detail) {
@@ -253,6 +274,7 @@ var AppInstallManager = {
         this.appUninstallConfirmButton);
 
       this.appUninstallDialog.classList.add('visible');
+      focusManager.focus();
 
       // Hide Cancel button and adjust its position.
       this.appUninstallCancelButton.style.display = 'none';
@@ -268,6 +290,7 @@ var AppInstallManager = {
         this.appUninstallCancelButton);
 
       this.appUninstallDialog.classList.add('visible');
+      focusManager.focus();
 
       // Show Cancel button.
       this.appUninstallCancelButton.style.display = '';
@@ -298,7 +321,7 @@ var AppInstallManager = {
     }
     this.uninstallCallback = null;
     this.appUninstallDialog.classList.remove('visible');
-    AppWindowManager.getActiveApp().focus();
+    focusManager.focus();
   },
 
   hideUninstallCancelDialog: function ai_hideUninstallCancelDialog(evt) {
@@ -307,7 +330,7 @@ var AppInstallManager = {
     }
     this.uninstallCancelCallback = null;
     this.appUninstallDialog.classList.remove('visible');
-    AppWindowManager.getActiveApp().focus();
+    focusManager.focus();
   },
 
   prepareForDownload: function ai_prepareForDownload(app) {
@@ -395,6 +418,7 @@ var AppInstallManager = {
                                     'app-install-success',
                                     { appName: appName });
     this.setupInstalledAppDialog.classList.add('visible');
+    focusManager.focus();
     window.dispatchEvent(new CustomEvent('applicationsetupdialogshow'));
   },
 
@@ -443,6 +467,7 @@ var AppInstallManager = {
     // keeping li template
     this.imeList.innerHTML = listHtml;
     this.imeLayoutDialog.classList.add('visible');
+    focusManager.focus();
   },
 
   hideIMEList: function ai_hideIMEList() {
@@ -598,6 +623,7 @@ var AppInstallManager = {
 
     this.installCancelDialog.classList.add('visible');
     this.dialog.classList.remove('visible');
+    focusManager.focus();
   },
 
   hideInstallCancelDialog: function ai_hideInstallCancelDialog(evt) {
@@ -606,6 +632,7 @@ var AppInstallManager = {
       [this.cancelButton, this.installButton], this.installButton);
     this.dialog.classList.add('visible');
     this.installCancelDialog.classList.remove('visible');
+    focusManager.focus();
   },
 
   handleInstallCancel: function ai_handleInstallCancel() {
@@ -615,7 +642,7 @@ var AppInstallManager = {
     this.unhookSimpleNavigator();
     this.installCancelCallback = null;
     this.installCancelDialog.classList.remove('visible');
-    AppWindowManager.getActiveApp().focus();
+    focusManager.focus();
   },
 
   handleConfirmDownloadCancel: function ai_handleConfirmDownloadCancel(e) {
@@ -661,6 +688,35 @@ var AppInstallManager = {
   unhookSimpleNavigator: function() {
     this.simpleKeyNavigation.off('focusChanged');
     this.simpleKeyNavigation.stop();
+  },
+
+  isVisible: function() {
+    var i;
+    for (i = 0; i < this.dialogList.length; i++) {
+      if (this.dialogList[i].dialog.classList.contains('visible')) {
+        return true;
+      }
+    }
+  },
+
+  getElement: function() {
+    var i;
+    for (i = 0; i < this.dialogList.length; i++) {
+      if (this.dialogList[i].dialog.classList.contains('visible')) {
+        return this.dialogList[i].dialog;
+      }
+    }
+  },
+
+  focus: function() {
+    var i;
+    for (i = 0; i < this.dialogList.length; i++) {
+      if (this.dialogList[i].dialog.classList.contains('visible')) {
+        document.activeElement.blur();
+        this.dialogList[i].focusElement.focus();
+        return;
+      }
+    }
   }
 };
 

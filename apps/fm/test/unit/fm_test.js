@@ -281,7 +281,7 @@ suite('FM', function() {
       });
 
       test('#container is hidden', function() {
-        assert.equal(!!$('container').hidden, true);
+        assert.equal($('container').classList.contains('hidden-block'), true);
       });
 
       test('#antenna-warning is hidden', function() {
@@ -304,14 +304,14 @@ suite('FM', function() {
         mozFMRadio.antennaAvailable = false;
         updateWarningModeUI();
         assert.equal(!!$('antenna-warning').hidden, false);
-        assert.equal(!!$('container').hidden, true);
+        assert.equal($('container').classList.contains('hidden-block'), true);
       });
 
       test('#antenna-warning is off and container is visible', function() {
         mozFMRadio.antennaAvailable = true;
         updateWarningModeUI();
         assert.equal(!!$('antenna-warning').hidden, true);
-        assert.equal(!!$('container').hidden, false);
+        assert.equal($('container').classList.contains('hidden-block'), false);
       });
     });
   });

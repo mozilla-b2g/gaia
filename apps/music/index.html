@@ -80,7 +80,7 @@
             <button id="views-list-search-clear" type="reset">Clear</button>
           </p>
         </form>
-        <div id="views-list-anchor"></div>
+        <div id="views-list-anchor" role="listbox"></div>
       </div>
       <div id="views-sublist" class="view hidden">
         <div id="views-sublist-header">
@@ -92,7 +92,7 @@
           </div>
         </div>
         <!-- Bug 968456. Scrollable area needs to be inside an opaque background div to help gecko -->
-        <div id="views-scrollable-sublist-anchor"><div id="views-sublist-anchor"></div></div>
+        <div id="views-scrollable-sublist-anchor"><div id="views-sublist-anchor" role="listbox"></div></div>
       </div>
       <div id="views-player" class="view hidden">
         <div id="player-cover">
@@ -142,21 +142,21 @@
           <span data-l10n-id="search-artists">ArtistS</span>
             (<span class="search-result-count"></span>)
         </gaia-subheader>
-        <div class="search-results"></div>
+        <div class="search-results" role="listbox"></div>
       </div>
       <div id="views-search-albums" class="search-category hidden">
         <gaia-subheader skin="dark">
           <span data-l10n-id="search-albums">AlbumS</span>
             (<span class="search-result-count"></span>)
         </gaia-subheader>
-        <div class="search-results"></div>
+        <div class="search-results" role="listbox"></div>
       </div>
       <div id="views-search-titles" class="search-category hidden">
         <gaia-subheader skin="dark">
           <span data-l10n-id="search-titles">TrackS</span>
             (<span class="search-result-count"></span>)
         </gaia-subheader>
-        <div class="search-results"></div>
+        <div class="search-results" role="listbox"></div>
       </div>
     </div>
     <!-- BB tabs -->

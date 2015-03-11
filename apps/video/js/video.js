@@ -21,7 +21,7 @@ var ids = ['thumbnail-list-title', 'thumbnails', 'thumbnails-video-button',
            'info-view', 'info-close-button', 'player', 'overlay',
            'overlay-title', 'overlay-text', 'overlay-menu',
            'overlay-action-button', 'player-header', 'video-container',
-           'videoControls', 'videoBar', 'videoControlBar', 'close', 'play',
+           'videoBar', 'videoControlBar', 'close', 'play',
            'playHead', 'timeSlider', 'elapsedTime', 'video-title',
            'duration-text', 'elapsed-text', 'bufferedTime', 'slider-wrapper',
            'throbber', 'picker-close', 'picker-title', 'picker-header',
@@ -215,10 +215,10 @@ function initLayout() {
   // startup under tablet and landscape mode.
   if (isPhone || isPortrait) {
     dom.spinnerOverlay.classList.add('hidden');
-    dom.playerView.classList.remove('disabled');
+    setDisabled(dom.playerView, false);
   } else {
     dom.spinnerOverlay.classList.remove('hidden');
-    dom.playerView.classList.add('disabled');
+    setDisabled(dom.playerView, true);
   }
 
   // We handle the isPortrait calculation here, because window dispatches
@@ -241,11 +241,14 @@ function initPlayerControls() {
   dom.player.addEventListener('ended', playerEnded);
 
   // handle user tapping events
-  dom.videoControls.addEventListener('click', toggleVideoControls, true);
   dom.play.addEventListener('click', handlePlayButtonClick);
   dom.playerHeader.addEventListener('action', handleCloseButtonClick);
   dom.pickerDone.addEventListener('click', postPickResult);
   dom.options.addEventListener('click', showOptionsView);
+  dom.videoContainer.addEventListener('click', toggleVideoControls);
+
+  // handle slider keypress, emitted by the screen reader
+  dom.timeSlider.addEventListener('keypress', handleSliderKeypress);
 }
 
 function initOptionsButtons() {
@@ -299,14 +302,8 @@ function toggleVideoControls(e) {
   // We cannot change the visibility state of video contorls when we are in
   // picking mode.
   if (!pendingPick) {
-    if (!controlShowing) {
-      // If control not shown, tap any place to show it.
-      setControlsVisibility(true);
-      e.cancelBubble = true;
-    } else if (e.originalTarget === dom.videoControls) {
-      // If control is shown, only tap the empty area should show it.
-      setControlsVisibility(false);
-    }
+    e.cancelBubble = !controlShowing;
+    setControlsVisibility(!controlShowing);
   }
 }
 
@@ -322,10 +319,10 @@ function handleScreenLayoutChange() {
     if (!isPortrait && (!firstScanEnded || processingQueue)) {
       // landscape mode and everything is waiting.
       dom.spinnerOverlay.classList.remove('hidden');
-      dom.playerView.classList.add('disabled');
+      setDisabled(dom.playerView, true);
     } else {
       dom.spinnerOverlay.classList.add('hidden');
-      dom.playerView.classList.remove('disabled');
+      setDisabled(dom.playerView, false);
     }
     // We need to hide player when rotating to portrait which release video
     // element and load the video into player when rotating to landscape.
@@ -426,12 +423,14 @@ function showInfoView() {
   setNFCSharing(false);
   //Show the video info view
   dom.infoView.classList.remove('hidden');
+  document.body.classList.add('info-view');
 }
 
 function hideInfoView() {
   // Enable NFC sharing when user hides info and returns to fullscreen mode
   setNFCSharing(true);
   dom.infoView.classList.add('hidden');
+  document.body.classList.remove('info-view');
 }
 
 function showSelectView() {
@@ -470,21 +469,39 @@ function showOptionsView() {
     pause();
   }
   dom.optionsView.classList.remove('hidden');
+  document.body.classList.add('options-view');
 }
 
 function hideOptionsView() {
   dom.optionsView.classList.add('hidden');
+  document.body.classList.remove('options-view');
+}
+
+function setDisabled(element, disabled) {
+  element.classList.toggle('disabled', disabled);
+
+  // Set ARIA disabled attribute to maintain semantic meaning for the assistive
+  // technologies like screen reader.
+  element.setAttribute('aria-disabled', disabled);
+}
+
+function setSelected(element, selected) {
+  element.classList.toggle('selected', selected);
+
+  // Set ARIA selected attribute to maintain semantic meaning for the assistive
+  // technologies like screen reader.
+  element.setAttribute('aria-selected', selected);
 }
 
 function clearSelection() {
   // Clear the selection, if there is one
   Array.forEach(selectedFileNames, function(name) {
-    thumbnailList.thumbnailMap[name].htmlNode.classList.remove('selected');
+    setSelected(thumbnailList.thumbnailMap[name].htmlNode, false);
   });
   selectedFileNames = [];
   selectedFileNamesToBlobs = {};
-  dom.thumbnailsDeleteButton.classList.add('disabled');
-  dom.thumbnailsShareButton.classList.add('disabled');
+  setDisabled(dom.thumbnailsDeleteButton, true);
+  setDisabled(dom.thumbnailsShareButton, true);
   dom.thumbnailsNumberSelected.textContent =
     navigator.mozL10n.get('number-selected2', { n: 0 });
 }
@@ -495,15 +512,9 @@ function clearSelection() {
 function updateSelection(videodata) {
   var thumbnail = thumbnailList.thumbnailMap[videodata.name];
 
-  var selected;
+  var selected = !thumbnail.htmlNode.classList.contains('selected');
   // First, update the visual appearance of the element
-  if (thumbnail.htmlNode.classList.contains('selected')) {
-    thumbnail.htmlNode.classList.remove('selected');
-    selected = false;
-  } else {
-    thumbnail.htmlNode.classList.add('selected');
-    selected = true;
-  }
+  setSelected(thumbnail.htmlNode, selected);
 
   // Now update the list of selected filenames and filename->blob map
   // based on whether we selected or deselected the thumbnail
@@ -526,14 +537,9 @@ function updateSelection(videodata) {
   dom.thumbnailsNumberSelected.textContent =
     navigator.mozL10n.get('number-selected2', { n: numSelected });
 
-  if (numSelected === 0) {
-    dom.thumbnailsDeleteButton.classList.add('disabled');
-    dom.thumbnailsShareButton.classList.add('disabled');
-  }
-  else {
-    dom.thumbnailsDeleteButton.classList.remove('disabled');
-    dom.thumbnailsShareButton.classList.remove('disabled');
-  }
+  var noneSelected = numSelected === 0;
+  setDisabled(dom.thumbnailsDeleteButton, noneSelected);
+  setDisabled(dom.thumbnailsShareButton, noneSelected);
 }
 
 function launchCameraApp() {
@@ -692,7 +698,7 @@ function updateLoadingSpinner() {
     window.performance.mark('scanEnd');
     PerformanceTestingHelper.dispatch('scan-finished');
     dom.spinnerOverlay.classList.add('hidden');
-    dom.playerView.classList.remove('disabled');
+    setDisabled(dom.playerView, false);
     if (thumbnailList.count) {
       // Initialize currentVideo to first video item if it doesn't have a value.
       currentVideo = currentVideo ||
@@ -791,12 +797,19 @@ function setControlsVisibility(visible) {
   if (isPhone || isPortrait ||
       currentLayoutMode !== LAYOUT_MODE.list) {
 
-    dom.videoControls.classList[visible ? 'remove' : 'add']('hidden');
+    dom.playerView.classList[visible ? 'remove' : 'add'](
+      'video-controls-hidden');
     controlShowing = visible;
   } else {
     // always set it as shown.
     controlShowing = true;
   }
+
+  // Set the proper accessibility label for the video container based on
+  // controls showing.
+  dom.videoContainer.setAttribute('data-l10n-id', controlShowing ?
+    'hide-controls-button' : 'show-controls-button');
+
   // to sync the slider under the case of auto-pause(unplugging headset), we
   // need to update the slider when controls is visible.
   if (controlShowing) {
@@ -1029,11 +1042,11 @@ function showPlayer(video, autoPlay, enterFullscreen, keepControls) {
       switchLayout(LAYOUT_MODE.fullscreenPlayer);
     }
 
-    dom.durationText.textContent = MediaUtils.formatDuration(
-      dom.player.duration);
+    var formattedDuration = MediaUtils.formatDuration(dom.player.duration);
+    dom.durationText.textContent = formattedDuration;
     timeUpdated();
 
-    dom.play.classList.remove('paused');
+    setButtonPaused(false);
     playerShowing = true;
 
     var rotation;
@@ -1049,6 +1062,14 @@ function showPlayer(video, autoPlay, enterFullscreen, keepControls) {
       dom.player.currentTime = 0;
       rotation = 0;
     }
+
+    navigator.mozL10n.setAttributes(dom.timeSlider, 'seek-bar',
+      { duration: formattedDuration });
+    dom.timeSlider.setAttribute('aria-valuemin', 0);
+    dom.timeSlider.setAttribute('aria-valuemax', dom.player.duration);
+    dom.timeSlider.setAttribute('aria-valuenow', dom.player.currentTime);
+    dom.timeSlider.setAttribute('aria-valuetext',
+      MediaUtils.formatDuration(dom.player.currentTime));
 
     VideoUtils.fitContainer(dom.videoContainer, dom.player,
                             rotation || 0);
@@ -1079,7 +1100,7 @@ function hidePlayer(updateVideoMetadata, callback) {
     // switch to the video gallery view
     switchLayout(LAYOUT_MODE.list);
 
-    dom.play.classList.remove('paused');
+    setButtonPaused(false);
     playerShowing = false;
     updateDialog();
 
@@ -1166,10 +1187,16 @@ function playerEnded() {
   }
 }
 
+function setButtonPaused(paused) {
+  dom.play.classList.toggle('paused', paused);
+  dom.play.setAttribute('data-l10n-id',
+    paused ? 'play-button' : 'pause-button');
+}
+
 function play() {
   loadingChecker.ensureVideoPlays();
   // Switch the button icon
-  dom.play.classList.remove('paused');
+  setButtonPaused(false);
 
   // Start recording statistics
   //
@@ -1186,7 +1213,7 @@ function pause() {
   loadingChecker.cancelEnsureVideoPlays();
 
   // Switch the button icon
-  dom.play.classList.add('paused');
+  setButtonPaused(true);
 
   // Check the dragging is true or not before pausing
   if (dragging) {
@@ -1215,6 +1242,10 @@ function timeUpdated() {
 
     updateVideoControlSlider();
   }
+
+  dom.timeSlider.setAttribute('aria-valuenow', dom.player.currentTime);
+  dom.timeSlider.setAttribute('aria-valuetext',
+    MediaUtils.formatDuration(dom.player.currentTime));
 
   // Since we don't always get reliable 'ended' events, see if
   // we've reached the end this way.
@@ -1287,6 +1318,22 @@ function handleSliderTouchMove(event) {
   movePlayHead(percent);
   dom.elapsedTime.style.width = percent;
   dom.player.fastSeek(dom.player.duration * pos);
+}
+
+function handleSliderKeypress(event) {
+  // The standard accessible control for sliders is arrow up/down keys.
+  // Our screenreader synthesizes those events on swipe up/down gestures.
+  // Currently, we only allow screen reader users to adjust sliders with a
+  // constant step size (there is no page up/down equivalent). In the case
+  // of videos, we make sure that the maximum amount of steps for the entire
+  // duration is 20, or 2 second increments if the duration is less then 40
+  // seconds.
+  var step = Math.max(dom.player.duration / 20, 2);
+  if (event.keyCode === event.DOM_VK_DOWN) {
+    dom.player.fastSeek(dom.player.currentTime - step);
+  } else if (event.keyCode === event.DOM_VK_UP) {
+    dom.player.fastSeek(dom.player.currentTime + step);
+  }
 }
 
 function toCamelCase(str) {

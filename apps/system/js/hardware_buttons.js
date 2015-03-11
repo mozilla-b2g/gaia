@@ -8,6 +8,7 @@
   // The actual functions will be defined too.
   var HardwareButtonsBaseState;
   var HardwareButtonsHomeState;
+  var HardwareButtonsCameraState;
   var HardwareButtonsSleepState;
   var HardwareButtonsVolumeState;
   var HardwareButtonsWakeState;
@@ -58,6 +59,8 @@
    * | volumedown  | volume down pressed and released or autorepeated          |
    * | volumedown  | volume down and sleep pressed at same time (used for      |
    * |   + sleep   | screenshots)                                              |
+   * | camera      | short press and release of camera button                  |
+   * | holdcamera  | long press and hold of camera button                      |
    *
    * Because these events are fired at the window object, they cannot be
    * captured.  Many modules listen for the home event. Those that want
@@ -292,10 +295,14 @@
       case 'volume-down-button-press':
         this.hardwareButtons.setState('volume', type);
         return;
+      case 'camera-button-press':
+        this.hardwareButtons.setState('camera', type);
+        return;
       case 'home-button-release':
       case 'sleep-button-release':
       case 'volume-up-button-release':
       case 'volume-down-button-release':
+      case 'camera-button-release':
         // Ignore button releases that occur in this state.
         // These can happen after volumedown+sleep and home+volume.
         return;
@@ -673,6 +680,62 @@
     this.hardwareButtons.setState('base', type);
   };
 
+  /**
+   * We enter the camera state when the user presses the Camera button
+   * We can fire camera or holdcamera events from this state
+   *
+   * @class HardwareButtonsCameraState
+   */
+  HardwareButtonsCameraState =
+    HardwareButtons.STATES.camera = function HardwareButtonsCameraState(hb) {
+      this.hardwareButtons = hb;
+      this.timer = undefined;
+    };
+
+  /**
+   * Entering the state.
+   * @memberof HardwareButtonsCameraState.prototype
+   */
+  HardwareButtonsCameraState.prototype.enter = function() {
+    this.timer = setTimeout(function() {
+      /**
+       * When the user holds Camera button more than HOLD_INTERVAL.
+       * @event HardwareButtonsCameraState#holdcamera
+       */
+      this.hardwareButtons.publish('holdcamera');
+      navigator.vibrate(50);
+      this.hardwareButtons.setState('base');
+    }.bind(this), this.hardwareButtons.HOLD_INTERVAL);
+  };
+
+  /**
+   * Leaving the state.
+   * @memberof HardwareButtonsCameraState.prototype
+   */
+  HardwareButtonsCameraState.prototype.exit = function() {
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = undefined;
+    }
+  };
+
+  /**
+   * Process the event, maybe transition the state.
+   * @memberof HardwareButtonsCameraState.prototype
+   * @param  {String} type Name of the event to process.
+   */
+  HardwareButtonsCameraState.prototype.process = function(type) {
+    switch (type) {
+      case 'camera-button-release':
+        /**
+         * When the user releases Camera button before HOLD_INTERVAL.
+         * @event HardwareButtonsCameraState#camera
+         */
+        this.hardwareButtons.setState('base', type);
+        return;
+    }
+    this.hardwareButtons.setState('base', type);
+  };
 
   /*
    * Start the hardware buttons events.

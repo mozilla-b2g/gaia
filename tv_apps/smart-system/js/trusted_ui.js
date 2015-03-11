@@ -124,7 +124,7 @@ var TrustedUIManager = {
   },
 
   getElement: function trui_getElement() {
-    return this.overlay;
+    return this.popupContainer;
   },
 
   focus: function trui_focus() {

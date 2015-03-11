@@ -2,22 +2,23 @@
 
 var assert = require('chai').assert;
 var proxyquire = require('proxyquire');
-var mockUtils =
-  require('./mock_utils.js');
+var mockUtils = require('./mock_utils.js');
 
 suite('media-resolution.js', function() {
   var app;
   var isFileExists;
+
   setup(function() {
     app = proxyquire.noCallThru().load(
-            '../../media-resolution', {
-              './utils': mockUtils
-            });
+      '../../media-resolution', {
+        './utils': mockUtils
+      });
 
     var GetFile = function(path) {
       this.path = path;
       this.isRemoved = false;
     };
+
     GetFile.prototype = {
       remove: function() {
         this.isRemoved = true;
@@ -42,6 +43,7 @@ suite('media-resolution.js', function() {
 
   suite('pickMediaByResolution', function() {
     var mediaResolution;
+
     setup(function() {
       mediaResolution = new app.MediaResolution();
     });
@@ -49,11 +51,9 @@ suite('media-resolution.js', function() {
     test('pickMediaByResolution, when scanned file is 2x and ' +
       'GAIA_DEV_PIXELS_PER_PX is 1', function() {
         var filePath = 'test@2x.png';
-
         var file = mockUtils.getFile(filePath);
-        mediaResolution.config = {};
-
-        mediaResolution.config.GAIA_DEV_PIXELS_PER_PX = '1';
+        mediaResolution.options = {};
+        mediaResolution.options.GAIA_DEV_PIXELS_PER_PX = '1';
         mediaResolution.pickMediaByResolution(file);
 
         assert.equal(file.isRemoved, true);
@@ -62,11 +62,9 @@ suite('media-resolution.js', function() {
     test('pickMediaByResolution, when scanned file is default and ' +
       'GAIA_DEV_PIXELS_PER_PX is 1', function() {
         var filePath = 'test.png';
-
         var file = mockUtils.getFile(filePath);
-        mediaResolution.config = {};
-
-        mediaResolution.config.GAIA_DEV_PIXELS_PER_PX = '1';
+        mediaResolution.options = {};
+        mediaResolution.options.GAIA_DEV_PIXELS_PER_PX = '1';
         mediaResolution.pickMediaByResolution(file);
 
         assert.equal(file.isRemoved, false);
@@ -75,11 +73,9 @@ suite('media-resolution.js', function() {
     test('pickMediaByResolution, when scanned file is default and ' +
       'GAIA_DEV_PIXELS_PER_PX is 2 and @2x file exists', function() {
         var filePath = 'test.png';
-
         var file = mockUtils.getFile(filePath);
-        mediaResolution.config = {};
-
-        mediaResolution.config.GAIA_DEV_PIXELS_PER_PX = '2';
+        mediaResolution.options = {};
+        mediaResolution.options.GAIA_DEV_PIXELS_PER_PX = '2';
         mediaResolution.pickMediaByResolution(file);
 
         // hidpi file which meet GAIA_DEV_PIXELS_PER_PX exists.
@@ -90,11 +86,9 @@ suite('media-resolution.js', function() {
     test('pickMediaByResolution, when scanned file is default and ' +
       'GAIA_DEV_PIXELS_PER_PX is 2 and @2x file doenot exist', function() {
         var filePath = 'test.png';
-
         var file = mockUtils.getFile(filePath);
-        mediaResolution.config = {};
-
-        mediaResolution.config.GAIA_DEV_PIXELS_PER_PX = '2';
+        mediaResolution.options = {};
+        mediaResolution.options.GAIA_DEV_PIXELS_PER_PX = '2';
         mediaResolution.pickMediaByResolution(file);
 
         isFileExists = false;
@@ -104,11 +98,9 @@ suite('media-resolution.js', function() {
     test('pickMediaByResolution, when scanned file has video extension and ' +
       'GAIA_DEV_PIXELS_PER_PX is 2 and @2x file exists', function() {
         var filePath = 'test.mp4';
-
         var file = mockUtils.getFile(filePath);
-        mediaResolution.config = {};
-
-        mediaResolution.config.GAIA_DEV_PIXELS_PER_PX = '2';
+        mediaResolution.options = {};
+        mediaResolution.options.GAIA_DEV_PIXELS_PER_PX = '2';
         mediaResolution.pickMediaByResolution(file);
 
         // hidpi file which meet GAIA_DEV_PIXELS_PER_PX exists.

@@ -123,7 +123,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     // so we'll play the video without going into fullscreen mode.
 
     // Get all the elements we use by their id
-    var ids = ['player', 'player-view', 'videoControls',
+    var ids = ['player', 'player-view',
                'player-header', 'play', 'playHead', 'video-container',
                'elapsedTime', 'video-title', 'duration-text', 'elapsed-text',
                'slider-wrapper', 'spinner-overlay',
@@ -173,7 +173,10 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     dom.playerHeader.addEventListener('action', done);
     dom.save.addEventListener('click', save);
     // show/hide controls
-    dom.videoControls.addEventListener('click', toggleVideoControls, true);
+    dom.videoContainer.addEventListener('click', toggleVideoControls);
+
+    // handle slider keypress, emitted by the screen reader
+    dom.timeSlider.addEventListener('keypress', handleSliderKeypress);
 
     ForwardRewindController.init(dom.player, dom.seekForward, dom.seekBackward);
   }
@@ -189,8 +192,13 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   }
 
   function setControlsVisibility(visible) {
-    dom.videoControls.classList[visible ? 'remove' : 'add']('hidden');
+    dom.playerView.classList[visible ? 'remove' : 'add'](
+      'video-controls-hidden');
     controlShowing = visible;
+    // Set the proper accessibility label for the video container based on
+    // controls showing.
+    dom.videoContainer.setAttribute('data-l10n-id', controlShowing ?
+      'hide-controls-button' : 'show-controls-button');
     if (visible) {
       // update elapsed time and slider while showing.
       updateSlider();
@@ -210,14 +218,8 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     }
     // We cannot change the visibility state of video contorls when we are in
     // picking mode.
-    if (!controlShowing) {
-      // If control not shown, tap any place to show it.
-      setControlsVisibility(true);
-      e.cancelBubble = true;
-    } else if (e.originalTarget === dom.videoControls) {
-      // If control is shown, only tap the empty area should show it.
-      setControlsVisibility(false);
-    }
+    e.cancelBubble = !controlShowing;
+    setControlsVisibility(!controlShowing);
   }
 
   function handleSliderTouchStart(event) {
@@ -283,11 +285,11 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   // show video player
   function showPlayer(url, title) {
     function handleLoadedMetadata() {
-      dom.durationText.textContent = MediaUtils.formatDuration(
-        dom.player.duration);
+      var formattedDuration = MediaUtils.formatDuration(dom.player.duration);
+      dom.durationText.textContent = formattedDuration;
       timeUpdated();
 
-      dom.play.classList.remove('paused');
+      setButtonPaused(false);
       VideoUtils.fitContainer(dom.videoContainer, dom.player,
                               videoRotation || 0);
 
@@ -297,6 +299,14 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       controlFadeTimeout = setTimeout(function() {
         setControlsVisibility(false);
       }, 2000);
+
+      navigator.mozL10n.setAttributes(dom.timeSlider, 'seek-bar',
+        { duration: formattedDuration });
+      dom.timeSlider.setAttribute('aria-valuemin', 0);
+      dom.timeSlider.setAttribute('aria-valuemax', dom.player.duration);
+      dom.timeSlider.setAttribute('aria-valuenow', dom.player.currentTime);
+      dom.timeSlider.setAttribute('aria-valuetext',
+        MediaUtils.formatDuration(dom.player.currentTime));
 
       play();
     }
@@ -348,7 +358,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
   function play() {
     // Switch the button icon
-    dom.play.classList.remove('paused');
+    setButtonPaused(false);
 
     // Start playing
     dom.player.play();
@@ -357,7 +367,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
   function pause() {
     // Switch the button icon
-    dom.play.classList.add('paused');
+    setButtonPaused(true);
 
     // Stop playing the video
     dom.player.pause();
@@ -376,6 +386,10 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
       updateSlider();
     }
+
+    dom.timeSlider.setAttribute('aria-valuenow', dom.player.currentTime);
+    dom.timeSlider.setAttribute('aria-valuetext',
+      MediaUtils.formatDuration(dom.player.currentTime));
 
     // Since we don't always get reliable 'ended' events, see if
     // we've reached the end this way.
@@ -413,6 +427,12 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       dom.player.currentTime = 0;
       pause();
     }
+  }
+
+  function setButtonPaused(paused) {
+    dom.play.classList.toggle('paused', paused);
+    dom.play.setAttribute('data-l10n-id',
+      paused ? 'play-button' : 'pause-button');
   }
 
   function movePlayHead(percent) {
@@ -503,6 +523,22 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     dom.player.fastSeek(dom.player.duration * pos);
   }
 
+  function handleSliderKeypress(event) {
+    // The standard accessible control for sliders is arrow up/down keys.
+    // Our screenreader synthesizes those events on swipe up/down gestures.
+    // Currently, we only allow screen reader users to adjust sliders with a
+    // constant step size (there is no page up/down equivalent). In the case
+    // of videos, we make sure that the maximum amount of steps for the entire
+    // duration is 20, or 2 second increments if the duration is less then 40
+    // seconds.
+    var step = Math.max(dom.player.duration / 20, 2);
+    if (event.keyCode === event.DOM_VK_DOWN) {
+      dom.player.fastSeek(dom.player.currentTime - step);
+    } else if (event.keyCode === event.DOM_VK_UP) {
+      dom.player.fastSeek(dom.player.currentTime + step);
+    }
+  }
+
   function showBanner(msg) {
     dom.message.textContent = msg;
     dom.banner.hidden = false;
@@ -518,13 +554,23 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     return filename.substring(filename.lastIndexOf('/') + 1);
   }
 
+  function setDisabled(element, disabled) {
+    element.classList.toggle('disabled', disabled);
+
+    // Set ARIA disabled attribute to maintain semantic meaning for the
+    // assistive technologies like screen reader.
+    element.setAttribute('aria-disabled', disabled);
+  }
+
   function showSpinner() {
     if (!blob) {
       dom.spinnerOverlay.classList.remove('hidden');
+      setDisabled(dom.playerView, true);
     }
   }
 
   function hideSpinner() {
     dom.spinnerOverlay.classList.add('hidden');
+    setDisabled(dom.playerView, false);
   }
 });

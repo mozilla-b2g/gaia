@@ -92,7 +92,7 @@
 .toaster-detail {
   pointer-events: none;
   position: absolute;
-  bottom: .6rem;
+  top: 2.8rem;
   color: white;
   font-size: 1.4rem;
   overflow: hidden;

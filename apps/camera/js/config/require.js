@@ -5,6 +5,7 @@ requirejs.config({
   // paths to something simpler.
   paths: {
     'l10n': '../shared/js/l10n',
+    'l10n_date': '../shared/js/l10n_date',
     'asyncStorage': '../shared/js/async_storage',
     'getVideoRotation': '../shared/js/media/get_video_rotation',
     'performance-testing-helper': '../shared/js/performance_testing_helper',
@@ -60,7 +61,7 @@ requirejs.config({
       exports: 'getVideoRotation'
     },
     'MediaFrame': {
-      deps: ['format', 'VideoPlayer'],
+      deps: ['format', 'VideoPlayer', 'l10n_date'],
       exports: 'MediaFrame'
     },
     'BlobView': {

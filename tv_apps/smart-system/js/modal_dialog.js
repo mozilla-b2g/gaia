@@ -3,7 +3,7 @@
 
 'use strict';
 
-/* global KeyboardManager */
+/* global KeyboardManager, focusManager */
 
 // The modal dialog listen to mozbrowsershowmodalprompt event.
 // Blocking the current app and then show cutom modal dialog
@@ -16,6 +16,8 @@ var ModalDialog = {
 
   // DOM
   elements: {},
+
+  dialog: document.getElementById('modal-dialog'),
 
   // Get all elements when inited.
   getAllElements: function md_getAllElements() {
@@ -77,6 +79,7 @@ var ModalDialog = {
         elements[id].addEventListener('click', this);
       }
     }
+    focusManager.addUI(this);
   },
 
   // Default event handler
@@ -242,6 +245,7 @@ var ModalDialog = {
     }
 
     this.setHeight(window.innerHeight);
+    focusManager.focus();
   },
 
   hide: function md_hide() {
@@ -290,7 +294,7 @@ var ModalDialog = {
     if (evt.detail.unblock) {
       evt.detail.unblock();
     }
-
+    focusManager.focus();
     this.processNextEvent();
   },
 
@@ -333,7 +337,7 @@ var ModalDialog = {
     if (evt.detail.unblock) {
       evt.detail.unblock();
     }
-
+    focusManager.focus();
     this.processNextEvent();
   },
 
@@ -354,7 +358,7 @@ var ModalDialog = {
     if (evt.detail.unblock) {
       evt.detail.unblock();
     }
-
+    focusManager.focus();
     this.processNextEvent();
   },
 
@@ -476,7 +480,22 @@ var ModalDialog = {
 
   isVisible: function md_isVisible() {
     return this.screen ? this.screen.classList.contains('modal-dialog') : false;
-  }
+  },
+
+  getElement: function md_getElement() {
+    if (this.isVisible()) {
+      return this.dialog;
+    }
+  },
+
+  focus: function md_focus() {
+    if (this.isVisible()) {
+      document.activeElement.blur();
+      var type = this.eventForCurrentOrigin.detail.promptType;
+      document.getElementById(this.prefix + type)
+              .querySelector('button').focus();
+    }
+  },
 };
 
 ModalDialog.init();
