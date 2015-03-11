@@ -531,4 +531,22 @@ suite('system/HardwareButtons', function() {
     assert.equal(stubClearTimeout.getCall(0).args[0],
       stubSetTimeout.getCall(0).returnValue);
   });
+
+  test('press and hold camera', function() {
+    fireHardwareKeyEvent('mozbrowserafterkeydown', 'Camera', false);
+
+    assert.isTrue(stubSetTimeout.calledOnce);
+    assert.equal(stubSetTimeout.getCall(0).args[1],
+      hardwareButtons.HOLD_INTERVAL);
+    stubSetTimeout.getCall(0).args[0].call(window);
+
+    fireHardwareKeyEvent('mozbrowserafterkeyup', 'Camera', false);
+
+    assert.isTrue(stubDispatchEvent.calledOnce);
+    assert.isTrue(stubDispatchEvent.calledWith({ type: 'holdcamera',
+                                                 bubbles: false }));
+    assert.isTrue(stubClearTimeout.calledOnce);
+    assert.equal(stubClearTimeout.getCall(0).args[0],
+      stubSetTimeout.getCall(0).returnValue);
+  });
 });

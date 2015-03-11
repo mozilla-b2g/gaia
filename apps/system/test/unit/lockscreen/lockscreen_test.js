@@ -421,6 +421,12 @@ suite('system/LockScreen >', function() {
       stubDispatch.restore();
     });
 
+  test('When lockscreen is on, holdcamera starts camera app', function() {
+    var spy = this.sinon.spy(subject, '_activateCamera');
+    subject.handleEvent({ type: 'holdcamera' });
+    assert.isTrue(spy.called);
+  });
+
   test('Message: message should appear on screen when set', function() {
     var message = 'message';
     subject.setLockMessage(message);
