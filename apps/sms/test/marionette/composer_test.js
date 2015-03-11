@@ -15,11 +15,6 @@ marionette('Messages Composer', function() {
     prefs: {
       'focusmanager.testmode': true
     },
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null,
-      'screen.timeout': 0
-    },
 
     apps: apps
   });

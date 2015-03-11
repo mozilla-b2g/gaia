@@ -18,7 +18,6 @@
     apps[FakeDialerApp.DEFAULT_ORIGIN] = __dirname + '/../apps/fakedialerapp';
     var client = marionette.client({
       settings: {
-        'ftu.manifestURL': null,
         'lockscreen.enabled': true
       },
       apps: apps,

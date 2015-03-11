@@ -12,11 +12,6 @@ marionette('Messages as "new" activity target', function() {
   apps[MessagesActivityCaller.ORIGIN] = __dirname + '/apps/activitycaller';
 
   var client = marionette.client({
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
-    },
-
     apps: apps
   });
 

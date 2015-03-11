@@ -9,10 +9,6 @@ marionette('First Time Experience View', function() {
   var client = marionette.client({
     prefs: {
       'focusmanager.testmode': true
-    },
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
     }
   });
 

@@ -10,12 +10,7 @@ var calendarName = 'firefox-os';
 
 marionette('interop basic', function() {
   var app, server;
-  var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
 
   var vanillaEvent = Object.freeze({
     title: 'Vanilla event',

@@ -1,14 +1,11 @@
 'use strict';
 
-var helper = require('../../../../tests/js-marionette/helper.js');
 var assert = require('chai').assert;
 
 marionette('Software Home Button - Modal Dialog', function() {
 
   var client = marionette.client({
     settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': true,
       'software-button.enabled': true
     }
   });
@@ -19,7 +16,6 @@ marionette('Software Home Button - Modal Dialog', function() {
     system = client.loader.getAppClass('system');
     actions = client.loader.getActions();
     system.waitForStartup();
-    helper.unlockScreen(client);
     home.waitForLaunch();
   });
 

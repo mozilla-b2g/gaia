@@ -17,9 +17,6 @@ marionette('Firefox Accounts Screen Flow Test (UITest app)', function() {
             config.SERVER_HOST + ':' +
             config.SERVER_PORT + '/' +
             config.SERVER_PATH
-          },
-          settings: {
-            'lockscreen.enabled': false
           }
       });
 

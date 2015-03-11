@@ -15,10 +15,6 @@ marionette('Attachment picking and sending tests', function() {
     prefs: {
       'focusmanager.testmode': true
     },
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
-    },
 
     apps: apps
   });
