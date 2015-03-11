@@ -214,131 +214,16 @@ function L10nManager(gaiaDir,
     });
   }
 
-  function hasCommand(cmdName) {
-    return utils.getEnvPath().some(function(path) {
-      try {
-        var cmd = utils.getFile(path, cmdName);
-        return cmd.exists();
-      } catch (e) {
-        // path not found
-      }
-      return false;
-    });
-  }
-
-  var gitCommand, hgCommand;
-
-  function getLastGitCommitTimestamp(path) {
-    var gitDir = utils.getFile(path, '.git');
-
-    if (!gitCommand) {
-      gitCommand = new utils.Commander('git');
-    }
-
-    var stderr, stdout;
-    var args = [
-      '--git-dir=' + gitDir.path,
-      'log',
-      '--format=%ct',
-      'HEAD',
-      '-1'
-    ];
-
-    var response, err;
-
-    var cmdOptions = {
-      stdout: function(data) {
-        stdout = data;
-      },
-      stderr: function(data) {
-        stderr = data;
-      },
-      done: function(data) {
-        if (data.exitCode === 0) {
-          response = parseInt(stdout.trim()) * 1000;
-        } else {
-          err = stderr;
-        }
-      }
-    };
-
-    gitCommand.initPath(utils.getEnvPath());
-    gitCommand.runWithSubprocess(args, cmdOptions);
-
-    if (err) {
-      utils.log('Error: ' + err);
-    }
-    return response;
-  }
-
-  function getLastHGCommitTimestamp(path) {
-    var hgDir = utils.getFile(path, '.hg');
-    if (!hgCommand) {
-      hgCommand = new utils.Commander('hg');
-    }
-    var stderr, stdout;
-    var args = [
-      '--cwd=' + hgDir.path,
-      'log',
-      '--template={date(date, "%s")}',
-      '-l1',
-    ];
-
-    var response, err;
-
-    var cmdOptions = {
-      stdout: function(data) {
-        stdout = data;
-      },
-      stderr: function(data) {
-        stderr = data;
-      },
-      done: function(data) {
-        if (data.exitCode === 0) {
-          response = parseInt(stdout.trim()) * 1000;
-        } else {
-          err = stderr;
-        }
-      }
-    };
-
-    hgCommand.initPath(utils.getEnvPath());
-    hgCommand.runWithSubprocess(args, cmdOptions);
-
-    if (err) {
-      utils.log('Error: ' + err);
-    }
-    return response;
-  }
-
-  function generateTimestamp(date) {
+  function getTimestamp(date) {
     var chunks = [
       date.getFullYear(),
-      date.getMonth() + 1,
+      date.getMonth(),
       date.getDate(),
       date.getHours(),
       date.getMinutes()
     ];
 
     return chunks.map(c => c < 10 ? '0' + c : c.toString()).join('');
-  }
-
-  function getTimestampFromPath(path) {
-    var ts = null;
-    if (utils.fileExists(utils.joinPath(path, '.git')) &&
-        hasCommand('git')) {
-      ts = getLastGitCommitTimestamp(path);
-    } else if (utils.fileExists(utils.joinPath(path, '.hg')) &&
-               hasCommand('hg')) {
-      ts = getLastHGCommitTimestamp(path);
-    }
-    var date = ts ? new Date(ts) : new Date();
-    return generateTimestamp(date);
-  }
-
-  function getTimestampForLocale(loc) {
-    var path = utils.joinPath(self.localeBasedir, loc);
-    return getTimestampFromPath(path);
   }
 
   function createMeta(doc, name) {
@@ -382,14 +267,10 @@ function L10nManager(gaiaDir,
 
     metas.defaultLanguage.setAttribute('content', self.defaultLocale);
 
-    var gaiaTs = null;
-    if (!self.localeBasedir) {
-      gaiaTs = getTimestampFromPath(self.gaiaDir);
-    }
+    var timestamp = getTimestamp(new Date());
     metas.availableLanguages.setAttribute('content',
       self.locales.map(function(loc) {
-        var ts = self.localeBasedir ? getTimestampForLocale(loc) : gaiaTs;
-        return loc + ':' + ts;
+        return loc + ':' + timestamp;
       }).join(', '));
 
     var settingsFile = utils.getFile(self.gaiaDir, 'build', 'config',
