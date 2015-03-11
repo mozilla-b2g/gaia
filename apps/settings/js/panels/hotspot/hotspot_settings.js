@@ -80,6 +80,7 @@ define(function(require) {
     _init: function hs_init() {
       this._settings = navigator.mozSettings;
       this._bindEvents();
+      this._updateSSIDIfNeeded();
       this._updatePasswordIfNeeded();
     },
 
@@ -105,6 +106,26 @@ define(function(require) {
         password += Math.floor(Math.random() * 10);
       }
       return password;
+    },
+
+    _generateHotspotSSID: function hs_generateHotspotSSID() {
+      var characters = 'abcdefghijklmnopqrstuvwxyz' +
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+      var ssid = 'FirefoxOS_';
+      for (var i = 0; i < 10; i++) {
+        ssid += characters.charAt(Math.floor(Math.random() * characters.length));
+      }
+      return ssid;
+    },
+      
+    _updateSSIDIfNeeded: function hs_updateSSIDIfNeeded() {
+      var self = this;
+      SettingsCache.getSettings(function(results) {
+        if (!results[self.tetheringSSIDKey]) {
+          var ssid = self._generateHotspotSSID();
+          self.setHotspotSSID(ssid);
+        }
+      });
     },
 
     /**
