@@ -17,6 +17,7 @@ a.menu-item:after {
   position: absolute;
   top: 0;
   right: -0.9rem;
+  width: 2.5rem;
   font-size: 25px;
   line-height: 6rem;
   color: #a5acae;
