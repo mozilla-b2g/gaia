@@ -1013,7 +1013,8 @@ return [
         var activity = new MozActivity({
           name: 'pick',
           data: {
-            type: ['image/*', 'video/*', 'audio/*', 'application/*'],
+            type: ['image/*', 'video/*', 'audio/*', 'application/*',
+                   'text/vcard'],
             nocrop: true
           }
         });

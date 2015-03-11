@@ -211,11 +211,16 @@ Pop3FolderSyncer.prototype = {
       var att = bodyInfo.attachments[i];
       if (att.file instanceof Blob) {
         // We want to save attachments to device storage (sdcard),
-        // rather than IndexedDB. NB: This will change when download
-        // manager comes.
+        // rather than IndexedDB, for now.  It's a v3 thing to use IndexedDB
+        // as a cache.
         console.log('Saving attachment', att.file);
+        // Always register all POP3 downloads with the download manager since
+        // the user didn't have to explicitly trigger download for each
+        // attachment.
+        var registerDownload = true;
         jobmixins.saveToDeviceStorage(
-          this._LOG, att.file, 'sdcard', att.name, att, latch.defer());
+          this._LOG, att.file, 'sdcard', registerDownload, att.name, att,
+          latch.defer());
         // When saveToDeviceStorage completes, att.file will
         // be a reference to the file on the sdcard.
       }

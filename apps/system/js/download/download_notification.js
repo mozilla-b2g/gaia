@@ -13,11 +13,17 @@ function DownloadNotification(download) {
   this.state = 'started';
   this.id = DownloadFormatter.getUUID(download);
 
-  NotificationScreen.addNotification(this._getInfo());
-
   // We have to listen for state changes
   this.listener = this._update.bind(this);
   this.download.addEventListener('statechange', this.listener);
+
+  if (download.state === 'started') {
+    NotificationScreen.addNotification(this._getInfo());
+  } else {
+    // For adopted downloads, it is possible for the download to already be
+    // completed.
+    this._update();
+  }
 }
 
 DownloadNotification.prototype = {

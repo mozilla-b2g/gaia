@@ -139,6 +139,7 @@ suite('message_reader', function() {
     });
 
     test('disabled attachments accessibility', function(done) {
+      subject.body.attachments[0].isDownloadable = false;
       evt.once('metrics:contentDone', function() {
         assert.equal(subject.attachmentsContainer.children[0].getAttribute(
           'aria-disabled'), 'true');
@@ -148,6 +149,7 @@ suite('message_reader', function() {
     });
 
     test('attachments accessibility', function(done) {
+      subject.body.attachments[0].isDownloadable = true;
       subject.body.attachments[0].isDownloaded = true;
       evt.once('metrics:contentDone', function() {
         assert.equal(subject.attachmentsContainer.children[0].getAttribute(
