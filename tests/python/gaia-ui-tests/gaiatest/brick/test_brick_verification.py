@@ -16,4 +16,4 @@ class TestBrickVerification(GaiaTestCase):
 
     def test_verify_homescreen(self):
         self.apps.switch_to_displayed_app()
-        self.wait_for_element_displayed(self.homescreen._homescreen_container_locator)
+        assert self.homescreen.is_homescreen_visible
