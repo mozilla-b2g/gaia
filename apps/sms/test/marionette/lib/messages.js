@@ -64,7 +64,8 @@
     },
 
     ThreadList: {
-      firstThread: '.threadlist-item',
+      panel: '#thread-list',
+      thread: '.threadlist-item',
       smsThread: '.threadlist-item[data-last-message-type="sms"]',
       mmsThread: '.threadlist-item[data-last-message-type="mms"]',
       navigateToComposerHeaderButton: '#threads-composer-link'
@@ -170,9 +171,7 @@
 
         ThreadList: {
           get firstThread() {
-            return client.helper.waitForElement(
-              SELECTORS.ThreadList.firstThread
-            );
+            return client.helper.waitForElement(SELECTORS.ThreadList.thread);
           },
 
           get smsThread() {
@@ -185,6 +184,16 @@
             return client.helper.waitForElement(
               SELECTORS.ThreadList.mmsThread
             );
+          },
+
+          get isEmpty() {
+            var panel = client.helper.waitForElement(
+              SELECTORS.ThreadList.panel
+            );
+
+            return panel.scriptWith(function(el) {
+              return el.classList.contains('threadlist-is-empty');
+            });
           },
 
           navigateToComposer: function() {
@@ -239,6 +248,12 @@
           client.switchToFrame();
 
           client.apps.switchToApp(ORIGIN_URL);
+        },
+
+        switchToActivity: function() {
+          client.switchToFrame();
+
+          client.apps.switchToActivity(ORIGIN_URL);
         },
 
         waitForAppToDisappear: function() {
