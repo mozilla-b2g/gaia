@@ -1,4 +1,4 @@
-/* global AsyncSemaphore, Bluetooth, CustomDialog, FtuLauncher, ScreenManager,
+/* global AsyncSemaphore, CustomDialog, FtuLauncher, ScreenManager,
           SettingsListener, Service, HeadphoneIcon, PlayingIcon, MuteIcon,
           LazyLoader */
 
@@ -9,7 +9,6 @@
    * and volume/channel change events.
    * @class SoundManager
    * @requires AsyncSemaphore
-   * @requires Bluetooth
    * @requires FtuLauncher
    * @requires ScreenManager
    */
@@ -403,7 +402,7 @@
       return;
     }
 
-    if (Bluetooth.isProfileConnected(Bluetooth.Profiles.SCO) &&
+    if (Service.query('Bluetooth.isSCOProfileConnected') &&
         this.isOnCall()) {
       this.changeVolume(offset, 'bt_sco');
     } else if (this.isHeadsetConnected && offset > 0) {

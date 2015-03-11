@@ -7,6 +7,12 @@
  * Bluetooth api v2 is the two level structure.
  * We use _btManagerHandler to handle BluetoothManager defaultAdapter
  * change event and _btAdapterHandler to handle status change event.
+ *
+ * Current supported Bluetooth profiles are:
+ * - hfp: Hands-Free Profile
+ * - opp: Object Push Profile
+ * - a2dp: Advenced Audio Distribution Profile
+ * - sco: Synchronous Connection-Oriented Profile
  */
 /* global Service, LazyLoader, BluetoothIcon, BluetoothTransferIcon,
    BluetoothHeadphoneIcon */
@@ -84,20 +90,6 @@ Bluetooth.prototype = {
   _isEnabled: false,
 
   /**
-   * Build-in Bluetooth profiles.
-   *
-   * @public
-   */
-  get Profiles() {
-    return {
-      HFP: 'hfp',   // Hands-Free Profile
-      OPP: 'opp',   // Object Push Profile
-      A2DP: 'a2dp', // A2DP status
-      SCO: 'sco'    // Synchronous Connection-Oriented
-    };
-  },
-
-  /**
    * Set profile connect state.
    *
    * @private
@@ -127,11 +119,11 @@ Bluetooth.prototype = {
   /**
    * Check if bluetooth profile is connected.
    *
-   * @public
+   * @private
    * @param {String} profile profile name
    * @return {Boolean} connected state
    */
-  isProfileConnected: function bt_isProfileConnected(profile) {
+  _isProfileConnected: function bt__isProfileConnected(profile) {
     var isConnected = this['_' + profile + 'Connected'];
     if (isConnected === undefined) {
       return false;
@@ -157,13 +149,13 @@ Bluetooth.prototype = {
       this._btAdapterHandler.bind(this);
 
     this._bindHfpStatusChangedHandler = function(evt) {
-      this._setProfileConnected(this.Profiles.HFP, evt.status);
+      this._setProfileConnected('hfp', evt.status);
     }.bind(this);
     this._bindA2dpStatusChangedHandler = function(evt) {
-      this._setProfileConnected(this.Profiles.A2DP, evt.status);
+      this._setProfileConnected('a2dp', evt.status);
     }.bind(this);
     this._bindScoStatusChangedHandler = function(evt) {
-      this._setProfileConnected(this.Profiles.SCO, evt.status);
+      this._setProfileConnected('sco', evt.status);
     }.bind(this);
 
     this._initDefaultAdapter();
@@ -185,6 +177,9 @@ Bluetooth.prototype = {
 
     // expose isEnabled function to Service.query
     Service.registerState('isEnabled', this);
+    Service.registerState('isOPPProfileConnected', this);
+    Service.registerState('isA2DPProfileConnected', this);
+    Service.registerState('isSCOProfileConnected', this);
 
     // handle statusbar icons
     LazyLoader.load(['js/bluetooth_icon.js',
@@ -321,7 +316,7 @@ Bluetooth.prototype = {
    * @private
    */
   _oppTransferStartHandler: function(transferInfo) {
-    this._setProfileConnected(this.Profiles.OPP, true);
+    this._setProfileConnected('opp', true);
     window.dispatchEvent(new CustomEvent('bluetooth-opp-transfer-start',
       {transferInfo: transferInfo}));
   },
@@ -335,7 +330,7 @@ Bluetooth.prototype = {
    * @private
    */
   _oppTransferCompleteHandler: function(transferInfo) {
-    this._setProfileConnected(this.Profiles.OPP, false);
+    this._setProfileConnected('opp', false);
     window.dispatchEvent(new CustomEvent('bluetooth-opp-transfer-complete',
       {transferInfo: transferInfo}));
   },
@@ -463,6 +458,36 @@ Bluetooth.prototype = {
    */
   get isEnabled() {
     return this._isEnabled;
+  },
+
+  /**
+   * Check if bluetooth OPP profile is connected.
+   *
+   * @public
+   * @return {Boolean} connected state
+   */
+  get isOPPProfileConnected() {
+    return this._isProfileConnected('opp');
+  },
+
+  /**
+   * Check if bluetooth A2DP profile is connected.
+   *
+   * @public
+   * @return {Boolean} connected state
+   */
+  get isA2DPProfileConnected() {
+    return this._isProfileConnected('a2dp');
+  },
+
+  /**
+   * Check if bluetooth SCO profile is connected.
+   *
+   * @public
+   * @return {Boolean} connected state
+   */
+  get isSCOProfileConnected() {
+    return this._isProfileConnected('sco');
   },
 
   /**
