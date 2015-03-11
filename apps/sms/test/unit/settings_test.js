@@ -87,6 +87,12 @@ suite('Settings >', function() {
     test('getServiceIdByIccId returns null', function() {
       assert.isNull(Settings.getServiceIdByIccId('anything'));
     });
+
+    test('setReadAheadThreadRetrieval does nothing', function() {
+      Settings.setReadAheadThreadRetrieval(9);
+
+      // does not throw
+    });
   });
 
   suite('With mozSettings', function() {
@@ -141,6 +147,7 @@ suite('Settings >', function() {
           set: function() {}
         };
         sinon.spy(api, 'get');
+        sinon.spy(api, 'set');
         return api;
       });
     });
@@ -386,6 +393,15 @@ suite('Settings >', function() {
         listenerSpy.yield();
  
       });
+    });
+
+    test('setReadAheadThreadRetrieval()', function() {
+      Settings.setReadAheadThreadRetrieval(9);
+
+      sinon.assert.calledWithMatch(
+        navigator.mozSettings.createLock.lastCall.returnValue.set,
+        { 'ril.sms.maxReadAheadEntries' : 9 }
+      );
     });
   });
 });
