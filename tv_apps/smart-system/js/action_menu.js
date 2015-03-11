@@ -26,6 +26,15 @@
   ActionMenu.prototype = {
 
     /**
+     * Whether or not the ActionMenu is visible.
+     * @memberof ActionMenu.prototype
+     * @return {Boolean} The ActionMenu is visible.
+     */
+    get visible() {
+      return this.container.classList.contains('visible');
+    },
+
+    /**
      * Builds dom and adds event listeners
      * @memberof ActionMenu.prototype
      */
@@ -158,7 +167,7 @@
           evt.preventDefault();
           break;
         case 'screenchange':
-          if (!this.isVisible()) {
+          if (!this.visible) {
             return;
           }
 
@@ -188,7 +197,7 @@
         case 'home':
         case 'holdhome':
         case 'sheets-gesture-begin':
-          if (!this.isVisible()) {
+          if (!this.visible) {
             return;
           }
 
@@ -206,11 +215,10 @@
     /**
      * Whether or not the ActionMenu is visible.
      * @memberof ActionMenu.prototype
-     * @return {Boolean} if the container is invisible, return false
-     * @return {Number} if the container is visible, return z-index
+     * @return {Boolean} if the container is focusible, return true
      */
-    isVisible: function() {
-      return this.container && this.container.classList.contains('visible');
+    isFocusable: function() {
+      return this.container && this.visible;
     },
 
     /**

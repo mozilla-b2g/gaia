@@ -1,5 +1,5 @@
 /* global AppWindowManager, SettingsCache, Service, Animations,
-          homescreenWindowManager */
+          homescreenWindowManager, focusManager */
 'use strict';
 
 (function(exports) {
@@ -300,7 +300,7 @@
 
     if (this._shouldFocusApp()) {
       this.app.debug('focusing this app.');
-      this.app.focus();
+      focusManager.focus();
     }
   };
 
@@ -405,7 +405,7 @@
                * focusing the app will have some side effect,
                * but we don't care if we are opening the homescreen.
                */
-              this.app.focus();
+              focusManager.focus();
             }
             return;
           }
