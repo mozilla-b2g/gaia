@@ -424,8 +424,9 @@ module.exports = {
     } else {
       webappTargetDirName = webapp.domain;
     }
-    webapp.profileDirectoryFilePath = this.joinPath(config.PROFILE_DIR,
-      'webapps', webappTargetDirName);
+    webapp.profileDirectoryFilePath = this.joinPath(config.COREWEBAPPS_DIR,
+                                                    'webapps',
+                                                    webappTargetDirName);
 
     return webapp;
   },
