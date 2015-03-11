@@ -1,4 +1,5 @@
 'use strict';
+/* global WrapperFactory */
 
 suite('system/WrapperFactory', function() {
   setup(function(done) {
