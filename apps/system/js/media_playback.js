@@ -1,4 +1,4 @@
-/* global Bluetooth, IACHandler, appWindowManager */
+/* global IACHandler, appWindowManager, BluetoothProfiles */
 
 'use strict';
 
@@ -25,6 +25,9 @@ function MediaPlaybackWidget(container, options) {
   // or holding on and perform fastseeking. Keeping this state to know which
   // command should issue.
   this.isFastSeeking = false;
+
+  // Bluetooth A2DP Profile connection state
+  this._isBluetoothA2dpConnected = false;
 
   window.addEventListener('iac-mediacomms', this.handleMessage.bind(this));
   // When SCO status changes, we need to adjust the ui of the playback controls
@@ -89,9 +92,10 @@ MediaPlaybackWidget.prototype = {
     var name = event.detail.name;
     var connected = event.detail.connected;
 
-    if (name === Bluetooth.Profiles.SCO) {
+    if (name === BluetoothProfiles.SCO) {
       this.container.classList.toggle('disabled', connected);
-    } else if (name === Bluetooth.Profiles.A2DP) {
+    } else if (name === BluetoothProfiles.A2DP) {
+      this._isBluetoothA2dpConnected = event.detail.connected;
       this.handleAudioRouteChange(event, 'bluetooth');
     }
   },
@@ -110,7 +114,9 @@ MediaPlaybackWidget.prototype = {
     if (reason === 'wired') {
       isWiredHeadphonesConnected = event.target.headphones;
     } else {
-      isBluetoothHeadsetConnected = event.detail.connected;
+      if (event.detail && event.detail.name === BluetoothProfiles.A2DP) {
+        isBluetoothHeadsetConnected = true;
+      }
     }
 
     // Save the audio routing when one of the headphones/headset is connected.
@@ -127,13 +133,11 @@ MediaPlaybackWidget.prototype = {
 
       isWiredHeadphonesConnected = navigator.mozAudioChannelManager &&
         navigator.mozAudioChannelManager.headphones;
-      isBluetoothHeadsetConnected =
-        Bluetooth.isProfileConnected(Bluetooth.Profiles.A2DP);
 
       // Save the correct audio routing for next unplugged/disconnected event
       if (isWiredHeadphonesConnected) {
         this.audioRouting = 'wired';
-      } else if (isBluetoothHeadsetConnected) {
+      } else if (this._isBluetoothA2dpConnected) {
         this.audioRouting = 'bluetooth';
       } else {
         this.audioRouting = 'speaker';

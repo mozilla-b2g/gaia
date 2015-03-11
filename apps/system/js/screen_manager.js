@@ -1,6 +1,6 @@
 'use strict';
 
-/* globals SettingsListener, Bluetooth, Service,
+/* globals SettingsListener, Service, BluetoothProfiles,
            ScreenBrightnessTransition, ScreenWakeLockManager,
            ScreenAutoBrightness                               */
 
@@ -86,6 +86,12 @@ var ScreenManager = {
    */
   _cpuWakeLock: null,
 
+
+  /*
+   * Bluetooth SCO Profile connection state
+   */
+  _isBluetoothSCOConnected: false,
+
   init: function scm_init() {
     window.addEventListener('attentionopening', this);
     window.addEventListener('attentionopened', this);
@@ -94,6 +100,8 @@ var ScreenManager = {
     window.addEventListener('nfc-tech-discovered', this);
     window.addEventListener('nfc-tech-lost', this);
     window.addEventListener('requestshutdown', this);
+
+    window.addEventListener('bluetoothprofileconnectionchange', this);
 
     // User is unlocking by sliding or other methods.
     window.addEventListener('unlocking-start', this);
@@ -181,6 +189,11 @@ var ScreenManager = {
           this.turnScreenOn();
         }
         break;
+      case 'bluetoothprofileconnectionchange':
+        if (evt.detail.name === BluetoothProfiles.SCO) {
+          this._isBluetoothSCOConnected = evt.detail.connected;
+        }
+        break;
       case 'devicelight':
         if (!this._deviceLightEnabled || !this.screenEnabled ||
             this._inTransition) {
@@ -225,9 +238,8 @@ var ScreenManager = {
         break;
 
       case 'userproximity':
-        if (Bluetooth.isProfileConnected(Bluetooth.Profiles.SCO) ||
-            telephony.speakerEnabled ||
-            Service.query('isHeadsetConnected')) {
+        if (this._isBluetoothSCOConnected ||
+            telephony.speakerEnabled || Service.query('isHeadsetConnected')) {
             // XXX: Remove this hack in Bug 868348
             // We shouldn't access headset status from statusbar.
           if (this._screenOffBy == 'proximity') {

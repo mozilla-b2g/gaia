@@ -1,6 +1,6 @@
-/* global AsyncSemaphore, Bluetooth, CustomDialog, FtuLauncher, ScreenManager,
+/* global AsyncSemaphore, CustomDialog, FtuLauncher, ScreenManager,
           SettingsListener, Service, HeadphoneIcon, PlayingIcon, MuteIcon,
-          LazyLoader */
+          LazyLoader, BluetoothProfiles */
 
 (function(exports) {
   'use strict';
@@ -241,6 +241,14 @@
   SoundManager.prototype.activeTimerID = 0;
 
   /**
+   * Hold Bluetooth SCO Profile connect state.
+   *
+   * @memberOf SoundManager.prototype
+   * @type {Boolean}
+   */
+  SoundManager.prototype._isBluetoothSCOProfileconnected = false;
+
+  /**
    * It adds listeners to window events, observes the change of mozSettings, and
    * loads settings from mozSettings.
    *
@@ -262,6 +270,7 @@
     window.addEventListener('holdhome', this);
     window.addEventListener('homescreenopening', this);
     window.addEventListener('homescreenopened', this);
+    window.addEventListener('bluetoothprofileconnectionchange', this);
 
     LazyLoader.load(['js/headphone_icon.js',
                      'js/mute_icon.js',
@@ -322,6 +331,7 @@
     window.removeEventListener('holdhome', this);
     window.removeEventListener('homescreenopening', this);
     window.removeEventListener('homescreenopened', this);
+    window.removeEventListener('bluetoothprofileconnectionchange', this);
 
     Service.unregisterState('isHeadsetConnected', this);
     Service.unregisterState('currentChannel', this);
@@ -386,6 +396,11 @@
         this.homescreenVisible = true;
         CustomDialog.hide();
         break;
+      case 'bluetoothprofileconnectionchange':
+        if (e.detail.name === BluetoothProfiles.SCO) {
+          this._isBluetoothSCOProfileconnected = e.detail.connected;
+        }
+        break;
     }
   };
 
@@ -403,8 +418,7 @@
       return;
     }
 
-    if (Bluetooth.isProfileConnected(Bluetooth.Profiles.SCO) &&
-        this.isOnCall()) {
+    if (this._isBluetoothSCOProfileconnected && this.isOnCall()) {
       this.changeVolume(offset, 'bt_sco');
     } else if (this.isHeadsetConnected && offset > 0) {
       this.headsetVolumeup();

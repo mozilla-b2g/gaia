@@ -20,14 +20,11 @@ var Bluetooth = {
       this['_' + profile + 'Connected'] = connected;
 
       // Raise an event for the profile connection changes.
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('bluetoothprofileconnectionchange',
-        /* canBubble */ true, /* cancelable */ false,
-        {
-          name: profile,
-          connected: connected
-        });
-      window.dispatchEvent(evt);
+      window.dispatchEvent(new CustomEvent('bluetoothprofileconnectionchange',
+      {
+        name: profile,
+        connected: connected
+      }));
       if (profile === 'opp' && this.transferIcon) {
         this.transferIcon.update();
       }
