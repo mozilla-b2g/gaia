@@ -255,3 +255,7 @@ canvas {
   margin: 0.3rem;
   width: 98%;
 }
+
+#stubs {
+  display:none;
+}
