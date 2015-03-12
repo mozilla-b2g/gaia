@@ -3,7 +3,7 @@
 Evme.api = new function Evme_api() {
   var self = this,
   PROTOCOL = 'https',
-  DEFAULT_API_HOST = 'api.everything.me',
+  DEFAULT_API_HOST = 'appsearch.services.mozilla.com',
   API_VERSION = '2.1',
   API_HOST = DEFAULT_API_HOST,
   BASE_URL = PROTOCOL + '://' + API_HOST + '/everything/' + API_VERSION + '/',
