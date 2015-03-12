@@ -6,6 +6,7 @@ var Music = require('./lib/music.js');
 var FakeRingtones = require('./lib/fakeringtones.js');
 var FakeControls = require('./lib/fakecontrols.js');
 var Statusbar = require('./lib/statusbar.js');
+var PlayerHelper = require('./lib/playerhelper.js');
 
 marionette('Music player tests', function() {
   var apps = {};
@@ -128,4 +129,60 @@ marionette('Music player tests', function() {
       music.checkPlayerIconShown(true);
     });
   });
+
+  suite('Rating test', function() {
+    test('Check Rating is saved', function() {
+      music.launch();
+      music.waitForFirstTile();
+      music.switchToSongsView();
+      music.playFirstSong();
+
+      var stars;
+
+      // check there is no rating.
+      client.helper.waitForElement(Music.Selector.coverImage).click();
+      stars = client.findElement(Music.Selector.ratingBar).
+        findElements('button');
+      assert.equal(stars.length, 5, 'Less than 5 stars found');
+      PlayerHelper.checkEmptyRating(stars);
+
+      var rating_value = 4;
+
+      music.tapRating(rating_value);
+
+      // wait that the rating bar disappear.
+      client.waitFor(function() {
+        return !client.findElement(Music.Selector.ratingBar).displayed();
+      });
+
+      // tap to make the rating bar reappear.
+      client.helper.waitForElement(Music.Selector.coverImage).click();
+
+      // find all the stars that are on.
+      stars = client.findElements(Music.Selector.ratingStarsOn);
+      assert.equal(stars.length, rating_value);
+
+      PlayerHelper.checkRatingStarsOrder(stars);
+
+      // switch back and forth
+      music.tapHeaderActionButton();
+      music.playFirstSong();
+
+      stars = client.findElements(Music.Selector.ratingStarsOn);
+      assert.equal(stars.length, rating_value);
+
+      // close the app because we want to test things are saved.
+      music.close();
+
+      // start it over.
+      music.launch();
+      music.waitForFirstTile();
+      music.switchToSongsView();
+      music.playFirstSong();
+
+      stars = client.findElements(Music.Selector.ratingStarsOn);
+      assert.equal(stars.length, rating_value);
+    });
+  });
+
 });
