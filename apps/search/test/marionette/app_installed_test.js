@@ -14,6 +14,7 @@ marionette('Search - Installed Apps Test', function() {
 
   setup(function(done) {
     appInstall = new AppInstall(client);
+    client.settings.set('search.suggestions.enabled', false);
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     search = client.loader.getAppClass('search');
