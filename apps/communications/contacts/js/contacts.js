@@ -278,8 +278,8 @@ var Contacts = (function() {
     header.removeAttribute('action');
     settingsButton.hidden = false;
     addButton.hidden = false;
-    // Trigger the title to re-run font-fit/centering logic
-    appTitleElement.textContent = appTitleElement.textContent;
+
+    appTitleElement.setAttribute('data-l10n-id', 'contacts');
   }
 
   var lastCustomHeaderCallback;
@@ -298,29 +298,19 @@ var Contacts = (function() {
   };
 
   var checkCancelableActivity = function cancelableActivity() {
-    // NOTE: Only set textContent below if necessary to avoid repaints at
-    //       load time.  For more info see bug 725221.
-    var text;
+    var selecting = (contactsList && contactsList.isSelecting);
     if (ActivityHandler.currentlyHandling) {
-      header.setAttribute('action', 'close');
-      settingsButton.hidden = true;
-      addButton.hidden = true;
-      // Trigger the title to re-run font-fit/centering logic
-      appTitleElement.textContent = appTitleElement.textContent;
       setupCancelableHeader();
+      var activityName = ActivityHandler.activityName;
+      if (activityName === 'pick' || activityName === 'update') {
+        selecting = true;
+      }
     } else {
-      header.removeAttribute('action');
-      settingsButton.hidden = false;
-      addButton.hidden = false;
-      setupActionableHeader();
+        setupActionableHeader();
     }
 
-    text = (contactsList && contactsList.isSelecting)?
-          _('selectContact'):_('contacts');
-
-    if (appTitleElement.textContent !== text) {
-      appTitleElement.textContent = text;
-    }
+    var l10nId =  selecting ? 'selectContact' : 'contacts';
+    appTitleElement.setAttribute('data-l10n-id', l10nId);
   };
 
 
@@ -583,6 +573,7 @@ var Contacts = (function() {
     } else {
       initDetails(function onDetails() {
         LazyLoader.load([
+          SHARED_UTILS_PATH + '/misc.js',
           '/shared/js/contacts/utilities/image_thumbnail.js'],
         function() {
           Contacts.view('Form', function viewLoaded() {
@@ -602,7 +593,12 @@ var Contacts = (function() {
     } else {
       Contacts.view('Settings', function viewLoaded() {
         LazyLoader.load(['/contacts/js/utilities/sim_dom_generator.js',
+          '/contacts/js/utilities/normalizer.js',
+          SHARED_UTILS_PATH + '/misc.js',
+          '/shared/js/mime_mapper.js',
+          SHARED_UTILS_PATH + '/vcard_parser.js',
           '/contacts/js/utilities/icc_handler.js',
+          SHARED_UTILS_PATH + '/sdcard.js',
           '/shared/js/date_time_helper.js'], function() {
           settingsReady = true;
           contacts.Settings.init();
@@ -619,7 +615,11 @@ var Contacts = (function() {
       Contacts.view('Details', function viewLoaded() {
         var simPickerNode = document.getElementById('sim-picker');
         LazyLoader.load(
-          [simPickerNode, '/shared/js/contacts/contacts_buttons.js'],
+          [SHARED_UTILS_PATH + '/misc.js',
+           '/dialer/js/telephony_helper.js',
+           '/shared/js/contacts/sms_integration.js',
+           simPickerNode,
+           '/shared/js/contacts/contacts_buttons.js'],
         function() {
           navigator.mozL10n.translate(simPickerNode);
           detailsReady = true;
@@ -755,16 +755,9 @@ var Contacts = (function() {
       '/shared/js/contacts/contacts_shortcuts.js',
       '/contacts/js/contacts_tag.js',
       '/contacts/js/tag_options.js',
-      SHARED_UTILS_PATH + '/' + 'misc.js',
-      '/contacts/js/utilities/normalizer.js',
       '/shared/js/text_normalizer.js',
-      '/dialer/js/telephony_helper.js',
-      '/shared/js/contacts/sms_integration.js',
-      SHARED_UTILS_PATH + '/' + 'sdcard.js',
-      SHARED_UTILS_PATH + '/' + 'vcard_parser.js',
-      SHARED_UTILS_PATH + '/' + 'status.js',
-      '/shared/js/contacts/utilities/dom.js',
-      '/shared/js/contacts/import/import_status_data.js'
+      SHARED_UTILS_PATH + '/status.js',
+      '/shared/js/contacts/utilities/dom.js'
     ];
 
     // Lazyload nfc.js if NFC is available
@@ -894,8 +887,11 @@ var Contacts = (function() {
   var initContacts = function initContacts(evt) {
     window.setTimeout(Contacts && Contacts.onLocalized);
     if (window.navigator.mozSetMessageHandler && window.self == window.top) {
-      var actHandler = ActivityHandler.handle.bind(ActivityHandler);
-      window.navigator.mozSetMessageHandler('activity', actHandler);
+      LazyLoader.load([SHARED_UTILS_PATH + '/misc.js'],
+       function() {
+        var actHandler = ActivityHandler.handle.bind(ActivityHandler);
+        window.navigator.mozSetMessageHandler('activity', actHandler);
+      });
     }
 
     document.addEventListener('visibilitychange', function visibility(e) {
