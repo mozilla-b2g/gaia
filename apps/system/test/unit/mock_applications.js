@@ -1,3 +1,6 @@
+'use strict';
+/* exported MockApplications */
+
 var MockApplications = (function() {
   var mockApps = {};
   var mReady = false;
