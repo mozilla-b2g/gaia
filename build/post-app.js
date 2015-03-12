@@ -10,7 +10,7 @@ exports.execute = function(options, webapp) {
 
   nodeHelper.require('post-manifest', options);
 
-  nodeHelper.require('multilocale', options);
+  require('./multilocale').execute(options);
 
   nodeHelper.require('copy-build-stage-data', options);
 

@@ -1,7 +1,12 @@
 'use strict';
 
-const utils = require('./utils');
-const qps = require('./l10n/qps');
+/* global exports, require, OS */
+
+const { Cu } = require('chrome');
+Cu.import('resource://gre/modules/osfile.jsm');
+
+const utils = require('utils');
+const qps = require('l10n/qps');
 const RE_PROPERTY_LINE = /(.*)\s*[:=]\s*(.*)/;
 const MODNAME = 'multilocale';
 
@@ -52,8 +57,7 @@ function L10nManager(gaiaDir,
     var isOfficialBranding;
 
     // get all <link rel="localization">
-    var links =  Array.prototype.slice.call(this,
-      doc.querySelectorAll('link[rel="localization"]'));
+    var links = [...doc.querySelectorAll('link[rel="localization"]')];
     links.forEach(function(link) {
       var resURL = link.getAttribute('href');
       var realURL = resURL;
@@ -78,10 +82,9 @@ function L10nManager(gaiaDir,
                                  utils.basename(resURL));
       }
 
-      for (var key in self.locales) {
-        var loc = self.locales[key];
+      for (var loc of self.locales) {
         var relPathInApp =
-          utils.dirname(file.path).substr(webapp.buildDirectoryFilePath.length);
+          file.parent.path.substr(webapp.buildDirectoryFilePath.length);
         var resFile =
           getResourceFile(webapp, relPathInApp,
                           realURL, loc, isOfficialBranding);
@@ -102,9 +105,8 @@ function L10nManager(gaiaDir,
           }
           continue;
         }
-        var parentOfDestFile = utils.getFile(utils.dirname(destFile.path));
-        utils.ensureFolderExists(parentOfDestFile);
-        resFile.copyTo(parentOfDestFile, parentOfDestFile.leafName);
+        utils.ensureFolderExists(destFile.parent);
+        resFile.copyTo(destFile.parent, destFile.leafName);
       }
     });
   }
@@ -133,7 +135,7 @@ function L10nManager(gaiaDir,
       // foo.properties
       str = str.replace(/locales\//, '');
       str = str.replace('{locale}.', '');
-      return utils.normalizePath(str);
+      return OS.Path.normalize(str);
     }
 
     var isShared = /^\.?\/?shared\//.test(resURL);
@@ -170,9 +172,7 @@ function L10nManager(gaiaDir,
       paths.push(loc);
       if (!isShared) {
         var sourceDirectoryFile = utils.getFile(webapp.sourceDirectoryFilePath);
-        var parentOfSourceDirFile = utils.getFile(
-          utils.dirname(webapp.sourceDirectoryFilePath));
-        paths.push(parentOfSourceDirFile.leafName);
+        paths.push(sourceDirectoryFile.parent.leafName);
         paths.push(sourceDirectoryFile.leafName);
         paths.push(relPathInApp);
       }
@@ -223,16 +223,13 @@ function L10nManager(gaiaDir,
       date.getMinutes()
     ];
 
-    return chunks.map(function(c) {
-      return c < 10 ? '0' + c : c.toString();
-    }).join('');
+    return chunks.map(c => c < 10 ? '0' + c : c.toString()).join('');
   }
 
   function createMeta(doc, name) {
     var meta = doc.createElement('meta');
     meta.setAttribute('name', name);
-    var head = doc.querySelector('head');
-    return head.appendChild(meta);
+    return doc.head.appendChild(meta);
   }
 
   function buildL10nMeta(file, doc) {
@@ -457,8 +454,9 @@ function L10nManager(gaiaDir,
    * @returns {Object} res    - Manifest l10n resource
    */
   function getManifestProperties(webapp, locale) {
-    var parent = utils.getFile(utils.dirname(webapp.sourceDirectoryFilePath));
-    var propFile = utils.getFile(self.localeBasedir, locale, parent.leafName,
+    var sourceDirectoryFile = utils.getFile(webapp.sourceDirectoryFilePath);
+    var parent = sourceDirectoryFile.parent.leafName;
+    var propFile = utils.getFile(self.localeBasedir, locale, parent,
       webapp.sourceDirectoryName, 'manifest.properties');
     if (!propFile.exists()) {
       return null;
@@ -538,9 +536,7 @@ function execute(options) {
     return;
   }
   var buildDirectoryFile = utils.getFile(webapp.buildDirectoryFilePath);
-  var files = utils.ls(buildDirectoryFile, true).filter(function(file) {
-    return !(/tests?\//.test(file.path));
-  });
+  var files = utils.ls(buildDirectoryFile, true, /^tests?$/);
 
   l10nManager.localize(files.filter(function(file) {
     return /\.html$/.test(file.path);

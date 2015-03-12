@@ -23,27 +23,13 @@ var https = require('https');
 var url = require('url');
 var dive = require('diveSync');
 var nodeUUID = require('node-uuid');
-var jsdom = require('jsdom-nogyp');
+var jsdom = require('jsdom-nogyp').jsdom;
 var esprima = require('esprima');
 var procRunning = require('is-running');
 var mime = require('mime');
 
 // Our gecko will transfer .opus file to audio/ogg datauri type.
 mime.define({'audio/ogg': ['opus']});
-
-// jsdom-nogyp has not defined Setter for outerHTML, so we need to set it by
-// ourselves.
-var Element = jsdom.dom.level3.html.Element;
-
-Element.prototype.__defineSetter__("outerHTML", function(html) {
-  var parentNode = this.parentNode, el;
-  var all = this.ownerDocument.createElement("div");
-  all.innerHTML = html;
-  while (el === all.firstChild) {
-    parentNode.insertBefore(el, this);
-  }
-  parentNode.removeChild(this);
-});
 
 module.exports = {
 
@@ -58,10 +44,6 @@ module.exports = {
       return;
     }
     console.log('[' + args[0] + '] ' + args.slice(1).join(' '));
-  },
-
-  normalizePath: function(path) {
-    return path.normalize(path);
   },
 
   joinPath: function() {
@@ -217,11 +199,11 @@ module.exports = {
   },
 
   getDocument: function(content) {
-    return jsdom.jsdom(content, jsdom.level(3, 'core'));
+    return jsdom(content);
   },
 
   getXML: function(file) {
-    return jsdom.jsdom(this.getFileContent(file));
+    return jsdom(this.getFileContent(file));
   },
 
   getEnv: function(name) {
@@ -575,9 +557,7 @@ module.exports = {
         return;
       }
 
-      var doc = jsdom.jsdom();
-      var win = doc.defaultView;
-
+      var win = jsdom().parentWindow;
       exportObj.Promise = Q;
 
       global.addEventListener = win.addEventListener;
