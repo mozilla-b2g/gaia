@@ -52,12 +52,14 @@ suite('system/BluetoothCore', function() {
   setup(function() {
     // instanciate bluetooth module
     window.Bluetooth = window.Bluetooth1;
+    window.BluetoothTransfer = { start: function() {} };
     Bluetooth.init();
   });
 
   test('Should lazy load icons', function() {
     assert.isTrue(MockLazyLoader.load.calledWith(
-      ['js/bluetooth_icon.js',
+      ['js/bluetooth_transfer.js',
+      'js/bluetooth_icon.js',
       'js/bluetooth_transfer_icon.js',
       'js/bluetooth_headphone_icon.js']
     ));

@@ -24,10 +24,7 @@ suite('system/BluetoothCore', function() {
 
   setup(function(done) {
     MockLazyLoader.mLoadRightAway = true;
-    sinon.stub(MockLazyLoader, 'load', function() {
-      window.Bluetooth1 = { init: function() {} };
-      window.BluetoothTransfer = { init: function() {} };
-    }.bind(this));
+    sinon.stub(MockLazyLoader, 'load');
 
     realMozBluetooth = navigator.mozBluetooth;
     switchReadOnlyProperty(navigator, 'mozBluetooth', MockMozBluetooth);
@@ -52,7 +49,7 @@ suite('system/BluetoothCore', function() {
 
     test('read', function() {
       assert.isTrue(MockLazyLoader.load.calledWith(
-        ['js/bluetooth.js', 'js/bluetooth_transfer.js']
+        ['js/bluetooth.js']
       ));
     });
   });
