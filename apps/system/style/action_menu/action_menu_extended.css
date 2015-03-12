@@ -48,6 +48,7 @@ form[role="dialog"][data-type="object"] {
   visibility: hidden;
   transform: translateY(100%);
   transition: transform ease-in-out .3s, visibility .3s;
+  pointer-events: none;
 }
 
 form[role="dialog"][data-type="action"].visible,
@@ -55,6 +56,7 @@ form[role="dialog"][data-type="object"].visible {
   position: fixed;
   visibility: visible;
   transform: translateY(0);
+  pointer-events: auto;
 }
 
 /* Extending action menu to display checkbox */
