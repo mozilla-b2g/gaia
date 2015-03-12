@@ -45,11 +45,16 @@ System.Selector = Object.freeze({
   leftPanel: '#left-panel',
   rightPanel: '#right-panel',
   utilityTray: '#utility-tray',
-  visibleForm: '#screen > form.visible'
+  visibleForm: '#screen > form.visible',
+  cancelActivity: 'form.visible button[data-action="cancel"]'
 });
 
 System.prototype = {
   client: null,
+
+  URL: System.URL,
+
+  Selector: System.Selector,
 
   getAppWindows: function() {
     return this.client.findElements(System.Selector.appWindow);
@@ -252,6 +257,12 @@ System.prototype = {
   },
 
   goHome: function() {
+    this.client.executeScript(function() {
+      window.wrappedJSObject.dispatchEvent(new CustomEvent('home'));
+    });
+  },
+
+  tapHome: function() {
     this.client.executeScript(function() {
       window.wrappedJSObject.dispatchEvent(new CustomEvent('home'));
     });

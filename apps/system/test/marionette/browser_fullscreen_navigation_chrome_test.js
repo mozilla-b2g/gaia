@@ -6,9 +6,9 @@ var Home = require(
   '../../../../apps/verticalhome/test/marionette/lib/home2');
 var Search = require(
   '../../../../apps/search/test/marionette/lib/search');
-var System = require('./lib/system');
 var Rocketbar = require('./lib/rocketbar');
 var Server = require('../../../../shared/test/integration/server');
+var FULLSCREENNAVAPP = __dirname + '/fullscreennavapp';
 
 marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
 
@@ -21,7 +21,7 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
       'lockscreen.enabled': false
     },
     apps: {
-      'fullscreennavapp.gaiamobile.org': __dirname + '/fullscreennavapp',
+      'fullscreennavapp.gaiamobile.org': FULLSCREENNAVAPP,
     }
   });
 
@@ -33,7 +33,7 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
     home = new Home(client);
     rocketbar = new Rocketbar(client);
     search = new Search(client);
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
 
     search.removeGeolocationPermission();
@@ -47,7 +47,7 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
     client.switchToFrame(frame);
     client.helper.waitForElement('body');
     client.switchToFrame();
-    waitForOffscreen(System.Selector.appUrlbar);
+    waitForOffscreen(system.Selector.appUrlbar);
     Server.create(__dirname + '/fixtures/', function(err, _server) {
       server = _server;
       done(err);
@@ -79,7 +79,7 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
   test('test fullscreen chrome /w navigation', function() {
     // Validate page 1
     expandRocketbar();
-    waitForOffscreen(System.Selector.appUrlbar);
+    waitForOffscreen(system.Selector.appUrlbar);
 
     // Validate page 2
     client.switchToFrame(frame);
@@ -90,7 +90,7 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
     assert.ok(system.appChromeBack.displayed(), 'Back button is shown.');
     system.appChromeBack.click();
     assert.ok(system.appChromeForward.displayed(), 'Forward button is shown.');
-    waitForOffscreen(System.Selector.appUrlbar);
+    waitForOffscreen(system.Selector.appUrlbar);
   });
 
   test('test progressbar', function() {
@@ -105,8 +105,8 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
 
     client.switchToFrame();
     expandRocketbar();
-    var selector = System.Selector.appChromeProgressBar;
-    var progressBar = client.helper.waitForElement(selector);
+    var selector = system.Selector.appChromeProgressBar;
+    var progressBar = system.appChromeProgressBar;
     var chromeSize = system.appChrome.size();
     client.waitFor(function() {
       var pbPosition = progressBar.scriptWith(function(element) {
@@ -116,14 +116,19 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
     });
 
     waitForOffscreen(selector);
-    var progressbar = client.findElement(System.Selector.appChromeProgressBar);
-    assert.ok(!progressbar.displayed(), 'Progress not shown.');
+
+    client.waitFor(function() {
+      return !progressBar.displayed();
+    });
 
     expandRocketbar();
-    assert.ok(progressbar.displayed(), 'Progressbar shown.');
+    client.waitFor(function() {
+      return progressBar.displayed();
+    });
+
     server.uncork(url);
     client.waitFor(function() {
-      return !progressbar.displayed();
+      return !progressBar.displayed();
     });
   });
 });
