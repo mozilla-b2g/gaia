@@ -39,6 +39,8 @@ Music.Selector = Object.freeze({
   playButton: '#player-controls-play',
   progressBar: '#player-seek-bar-progress',
   shareButton: '#player-cover-share',
+  ratingBar: '#player-album-rating',
+  ratingStarsOn: 'button.star-on',
   shareMenu: 'form[data-z-index-level="action-menu"]',
   pickDoneButton: '#title-done',
   header: '#title',
@@ -132,6 +134,10 @@ Music.prototype = {
     this.client.apps.launch(this.origin);
     this.client.apps.switchToApp(this.origin);
     this.client.helper.waitForElement('body');
+  },
+
+  close: function() {
+    this.client.apps.close(this.origin);
   },
 
   switchToMe: function(options) {
@@ -260,6 +266,12 @@ Music.prototype = {
 
   tapHeaderActionButton: function() {
     this.header.tap(25, 25);
+  },
+
+  tapRating: function(rating) {
+    this.client.helper.waitForElement(Music.Selector.coverImage).click();
+    this.client.helper.waitForElement('button.rating-star[data-rating="' +
+                                      rating + '"]').tap();
   },
 
   shareWith: function(appName) {
