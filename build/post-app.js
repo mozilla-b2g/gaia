@@ -10,7 +10,7 @@ exports.execute = function(options, webapp) {
 
   nodeHelper.require('post-manifest', options);
 
-  require('./multilocale').execute(options);
+  nodeHelper.require('multilocale', options);
 
   // This task will do three things.
   // 1. Copy manifest to profile: generally we got manifest from
