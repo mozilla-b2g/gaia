@@ -16,7 +16,7 @@ a.menu-item:after {
   content: "forward-light";
   position: absolute;
   top: 0;
-  right: -0.9rem;
+  right: 0;
   font-size: 25px;
   line-height: 6rem;
   color: #a5acae;
@@ -293,7 +293,7 @@ aside.connecting {
  */
 
 html[dir="rtl"] a.menu-item:after {
-  left: 0.3rem;
+  left: 0;
   right: unset;
 }
 
