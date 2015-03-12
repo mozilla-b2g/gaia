@@ -300,5 +300,5 @@ html[dir="rtl"] #suggestions-provider {
 html[dir="rtl"] #suggestions-provider::before {
   left: .8rem;
   right: unset;
-  border-width: 0 0.8rem 0.8rem 0;
+  transform: scaleX(-1);
 }
