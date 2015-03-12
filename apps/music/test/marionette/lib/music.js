@@ -90,6 +90,16 @@ Music.prototype = {
     return list_items;
   },
 
+  get listItems() {
+    var list = this.client.helper.waitForElement(Music.Selector.viewsList);
+    assert.ok(list);
+
+    var list_items = list.findElements('li.list-item', 'css selector');
+    assert.ok(list_items);
+
+    return list_items;
+  },
+
   get playButton() {
     return this.client.findElement(Music.Selector.playButton);
   },
@@ -230,11 +240,7 @@ Music.prototype = {
   },
 
   selectAlbum: function(name) {
-    var list = this.client.helper.waitForElement(Music.Selector.viewsList);
-    assert.ok(list);
-
-    var list_items = list.findElements('li.list-item', 'css selector');
-    assert.ok(list_items);
+    var list_items = this.listItems;
 
     list_items.filter(function (element) {
       return element.findElement('span.list-main-title', 'css selector')
@@ -243,11 +249,7 @@ Music.prototype = {
   },
 
   selectPlaylist: function(name) {
-    var list = this.client.helper.waitForElement(Music.Selector.viewsList);
-    assert.ok(list);
-
-    var list_items = list.findElements('li.list-item', 'css selector');
-    assert.ok(list_items);
+    var list_items = this.listItems;
 
     list_items.filter(function (element) {
       return element.findElement('span.list-playlist-title', 'css selector')
