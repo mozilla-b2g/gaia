@@ -35,7 +35,7 @@ MediaResolution.prototype.pickMediaByResolution = function(file) {
     if (matchResult && matchResult[1] === gaiaPixelsPerPx) {
       // Save the hidpi file to the zip, strip the name to be more generic.
       utils.copyFileTo(file.path, file.parent.path,
-        utils.basename(file.path).replace(suffix, ''), true);
+        utils.basename(file.path).replace(suffix, ''));
       if (file.exists()) {
         file.remove(true);
       }
