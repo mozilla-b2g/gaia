@@ -1,5 +1,6 @@
 /* exported BluetoothCore */
-/* global BaseModule, LazyLoader, Bluetooth1, Bluetooth2 */
+/* global BaseModule, LazyLoader, Bluetooth1, Bluetooth2,
+   BluetoothTransfer */
 'use strict';
 
 (function() {
@@ -17,21 +18,25 @@
     name: 'BluetoothCore',
 
     start: function() {
-      // init Bluetooth module
+      // Init Bluetooth module by version.
+      // Make sure BluetoothTranfer is start before Bluetooth to ensure
+      // bluetooth related events are properly catched.
+      // XXX: make BluetoothTranfer as submodule to access adapter
+      // via this.parent.adapter once APIv1 support can be removed.
       if (typeof(window.navigator.mozBluetooth.onattributechanged) ===
         'undefined') { // APIv1
-        LazyLoader.load(['js/bluetooth.js', 'js/bluetooth_transfer.js'],
+        LazyLoader.load(['js/bluetooth_transfer.js', 'js/bluetooth.js'],
           function() {
+            BluetoothTransfer.start();
             window.Bluetooth = Bluetooth1;
             window.Bluetooth.init();
-            window.BluetoothTransfer.init();
         });
       } else { // APIv2
-        // Now only make sure statusbar works
-        // BluetoothTransfer will be done in Bug 1093084
-        LazyLoader.load(['js/bluetooth_v2.js'], function() {
-          window.Bluetooth = new Bluetooth2();
-          window.Bluetooth.start();
+        LazyLoader.load(['js/bluetooth_transfer.js', 'js/bluetooth_v2.js'],
+          function() {
+            BluetoothTransfer.start();
+            window.Bluetooth = new Bluetooth2();
+            window.Bluetooth.start();
         });
       }
     }

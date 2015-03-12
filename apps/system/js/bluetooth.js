@@ -94,9 +94,9 @@ var Bluetooth = {
 
     // when bluetooth adapter is ready, a.k.a enabled,
     // try to get defaultAdapter at this moment
-    bluetooth.onadapteradded = function bt_onAdapterAdded() {
+    bluetooth.addEventListener('adapteradded', function bt_onAdapterAdded() {
       self.initDefaultAdapter();
-    };
+    });
 
     // when bluetooth is really enabled
     // emit event to notify QuickSettings
@@ -106,9 +106,12 @@ var Bluetooth = {
     });
 
     // when bluetooth is really disabled, emit event to notify QuickSettings
+    // Since APIv1 does not have adapterremoved event,
+    // the bluetooth adapter unavailable state is dispatched here instead.
     bluetooth.addEventListener('disabled', function bt_onDisabled() {
       self.icon && self.icon.update();
       window.dispatchEvent(new CustomEvent('bluetooth-disabled'));
+      window.dispatchEvent(new CustomEvent('bluetooth-unavailable'));
     });
 
     // if bluetooth is enabled in booting time, try to get adapter now
@@ -193,11 +196,15 @@ var Bluetooth = {
     var req = bluetooth.getDefaultAdapter();
     req.onsuccess = function bt_gotDefaultAdapter(evt) {
       self.defaultAdapter = req.result;
-      self.initWithAdapter(self.defaultAdapter);
+      self._adapterAvailableHandler(self.defaultAdapter);
+      // Dispatch bluetooth adapter available state to system.
+      window.dispatchEvent(new CustomEvent('bluetooth-available', {
+        detail: { adapter: self.defaultAdapter }
+      }));
     };
   },
 
-  initWithAdapter: function bt_initWithAdapter(adapter) {
+  _adapterAvailableHandler: function bt__adapterAvailableHandler(adapter) {
     /* for v1, we only support two use cases for bluetooth connection:
      *   1. connecting with a headset
      *   2. transfering a file to/from another device
@@ -218,15 +225,6 @@ var Bluetooth = {
     adapter.onscostatuschanged = function bt_scoStatusChanged(evt) {
       self._setProfileConnected('sco', evt.status);
     };
-  },
-
-  /**
-   * called by external for re-use adapter.
-   *
-   * @public
-   */
-  getAdapter: function bt_getAdapter() {
-    return this.defaultAdapter;
   },
 
   /**

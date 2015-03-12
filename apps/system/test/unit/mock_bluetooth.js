@@ -46,10 +46,6 @@ var MockBluetooth = {
     this.defaultAdapter = mockAdapater;
   },
 
-  getAdapter: function mbt_getAdapter() {
-    return this.defaultAdapter;
-  },
-
   getDefaultAdapter: function mbt_getDefaultAdapter() {
     return new MockDOMRequest();
   },
