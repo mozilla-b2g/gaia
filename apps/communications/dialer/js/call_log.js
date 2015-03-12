@@ -146,6 +146,7 @@ var CallLog = {
           if (!cacheRevision || cacheRevision > contactsRevision) {
             window.asyncStorage.setItem('contactCacheRevision',
                                         contactsRevision);
+            self._contactCache = true;
             resolve();
             return;
           }
