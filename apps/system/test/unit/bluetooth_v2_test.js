@@ -163,6 +163,7 @@ suite('system/bluetooth_v2', function() {
       this.sinon.spy(window, 'addEventListener');
       this.sinon.spy(window, 'dispatchEvent');
       this.sinon.stub(Service, 'registerState');
+      window.BluetoothTransfer = { start: function() {} };
       Bluetooth.start();
     });
 
@@ -211,7 +212,8 @@ suite('system/bluetooth_v2', function() {
 
     test('Should lazy load icons', function() {
       assert.isTrue(MockLazyLoader.load.calledWith(
-        ['js/bluetooth_icon.js',
+        ['js/bluetooth_transfer.js',
+        'js/bluetooth_icon.js',
         'js/bluetooth_transfer_icon.js',
         'js/bluetooth_headphone_icon.js']
       ));
@@ -220,7 +222,6 @@ suite('system/bluetooth_v2', function() {
 
   suite('initDefaultAdapter', function() {
     setup(function() {
-      this.sinon.stub(Bluetooth, '_dispatchAdapterState');
       this.sinon.stub(Bluetooth, '_dispatchEnableState');
       Bluetooth._bluetooth = MockMozBluetooth;
     });
@@ -230,7 +231,6 @@ suite('system/bluetooth_v2', function() {
       Bluetooth._initDefaultAdapter();
 
       assert.equal(Bluetooth._adapter, navigator.mozBluetooth.defaultAdapter);
-      assert.ok(Bluetooth._dispatchAdapterState.calledWith(true));
       assert.ok(Bluetooth._dispatchEnableState.called);
     });
 
@@ -239,7 +239,6 @@ suite('system/bluetooth_v2', function() {
       Bluetooth._initDefaultAdapter();
 
       assert.equal(Bluetooth._adapter, null);
-      assert.ok(Bluetooth._dispatchAdapterState.calledWith(false));
     });
   });
 
@@ -368,7 +367,6 @@ suite('system/bluetooth_v2', function() {
 
   suite('btManagerHandler', function() {
     setup(function() {
-      this.sinon.stub(Bluetooth, '_dispatchAdapterState');
       this.sinon.stub(Bluetooth, '_adapterUnavailableHandler');
       this.sinon.spy(Promise, 'resolve');
       Bluetooth._bluetooth = window.navigator.mozBluetooth;
@@ -390,7 +388,6 @@ suite('system/bluetooth_v2', function() {
 
         assert.equal(Bluetooth._adapter, MockBTAdapter);
         assert.ok(Bluetooth._isEnabled, true);
-        assert.ok(Bluetooth._dispatchAdapterState.called);
     });
 
     test('functions are not called when defaultAdapter is null',
@@ -414,7 +411,6 @@ suite('system/bluetooth_v2', function() {
         Bluetooth._btManagerHandler(evt);
 
         assert.equal(Bluetooth._adapter, null);
-        assert.ok(!Bluetooth._dispatchAdapterState.called);
         assert.ok(!Bluetooth._adapterUnavailableHandler.called);
     });
   });
