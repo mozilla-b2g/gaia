@@ -114,7 +114,6 @@
       // close the sliding transition (transition-delay = 0 is not working)
       getComputedStyle(this.listElem).width;
       this.listElem.classList.remove('no-transition');
-      this.listElem.classList.remove('card-slide');
       this.listElem.style.transitionDuration = null;
 
       // set positions of other nodes to create moving effect
@@ -134,10 +133,12 @@
       var prevTransform = this.listElem.style.transform;
       var distance = Math.abs(this._getScrollDistance(newItem) -
                               this.translateX);
-      this.listElem.style.transitionDuration = distance / 2000 + 's';
+      var duration = (distance < 960) ? 0.3 : distance / 2000;
+
+      this.listElem.style.transitionDuration = duration + 's';
       this.scrollTo(newItem);
       if (!prevTransform ||
-          prevTransform === this.listElem.style.transform||
+          prevTransform === this.listElem.style.transform ||
           document.visibilityState !== 'visible') {
         this.endSlide();
       }
