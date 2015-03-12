@@ -65,8 +65,16 @@ AppInstall.prototype = {
     options = options || { allowInstall: true };
     if (options.allowInstall) {
       this.waitForDialog(this.installDialog);
+
+      this.client.waitFor(function() {
+        return this.installButton && this.installButton.displayed();
+      }.bind(this));
+
       // Click install button on the app install dialog
-      this.installButton.click();
+      this.client.waitFor(function() {
+        this.installButton.tap();
+        return !this.installButton || !this.installButton.displayed();
+      }.bind(this));
     }
   },
 
