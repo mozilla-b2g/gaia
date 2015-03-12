@@ -377,11 +377,13 @@ suite('dialer/call_log', function() {
 
     // Retry count.
     var retryCount = groupDOM.querySelector('.retry-count');
-    assert.ok(retryCount, 'Retry count ok');
     if (group.retryCount > 1) {
+      assert.isNotNull(retryCount);
       assert.equal(
         retryCount.innerHTML,
         '(' + group.retryCount + ')');
+    } else {
+      assert.isNull(retryCount);
     }
     if (callback) {
       callback();
