@@ -251,7 +251,7 @@ define(function(require) {
       // we only inject basic DOM from templates before
       // , so we have to map UI to its info
       this._updateSimCardsUI();
-      this._updateSimSecurityUI();
+      this._updateSimSettingsUI();
     },
 
     /**
@@ -276,26 +276,21 @@ define(function(require) {
     },
 
     /**
-     * Update SimSecurityUI
+     * Update the UI of the sim settings section
      *
      * @memberOf SimCardManager
      * @access private
      */
-    _updateSimSecurityUI: function scm__updateSimSecurityUI() {
+    _updateSimSettingsUI: function scm__updateSimSettingsUI() {
       var firstCardInfo = this._simcards[0].getInfo();
       var secondCardInfo = this._simcards[1].getInfo();
+      var hidden = firstCardInfo.absent && secondCardInfo.absent ||
+        this._isAirplaneMode;
 
       // if we don't have any card available right now
       // or if we are in airplane mode
-      if (firstCardInfo.absent && secondCardInfo.absent ||
-        this._isAirplaneMode) {
-          this._elements.securityEntry.setAttribute('aria-disabled', true);
-          this._elements.securityDesc.setAttribute('data-l10n-id', 'noSimCard');
-      } else {
-        this._elements.securityEntry.setAttribute('aria-disabled', false);
-        this._elements.securityDesc.removeAttribute('data-l10n-id');
-        this._elements.securityDesc.textContent = '';
-      }
+      this._elements.simSettingsHeader.hidden = hidden;
+      this._elements.simSettingsList.hidden = hidden;
     },
 
     /**
@@ -410,7 +405,7 @@ define(function(require) {
             selectDOM.add(option);
         }
     },
-    
+
     /**
      * Check whether current cardState is locked or not.
      *
@@ -547,7 +542,7 @@ define(function(require) {
           self._isAirplaneMode = enabled;
           self._updateCardsState();
           self._updateSimCardsUI();
-          self._updateSimSecurityUI();
+          self._updateSimSettingsUI();
         }
       });
     },
@@ -618,7 +613,7 @@ define(function(require) {
       function scm__updateCardStateWithUI(cardIndex, iccId) {
         this._updateCardState(cardIndex, iccId);
         this._updateSimCardUI(cardIndex);
-        this._updateSimSecurityUI();
+        this._updateSimSettingsUI();
     },
 
     /**
