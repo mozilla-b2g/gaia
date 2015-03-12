@@ -9,6 +9,8 @@ var Rocketbar =
 var createAppServer =
   require('../../../verticalhome/test/marionette/server/parent');
 
+var CALENDAR_MANIFEST = 'app://calendar.gaiamobile.org/manifest.webapp';
+
 marionette('Search - Installed Apps Test', function() {
   var client = marionette.client(Home2.clientOptions);
   var appInstall, home, rocketbar, search, server, system;
@@ -31,13 +33,16 @@ marionette('Search - Installed Apps Test', function() {
   test('app result after install/uninstall', function() {
     home.waitForLaunch();
     home.focusRocketBar();
+    search.removeGeolocationPermission();
     search.triggerFirstRun(rocketbar);
     rocketbar.enterText('Calendar');
     search.goToResults();
 
     // Should only have the 'stock' calendar app.
     client.waitFor(function() {
-      return search.countGridResults() === 1;
+      var calendar = search.getResult(CALENDAR_MANIFEST);
+      var calendar2 = search.getResult(server.packageManifestURL);
+      return calendar.length && !calendar2.length;
     });
 
     // Exit rocketbar and install the app.
@@ -53,7 +58,9 @@ marionette('Search - Installed Apps Test', function() {
 
     // Should now contain the newly installed app as well.
     client.waitFor(function() {
-      return search.countGridResults() === 2;
+      var calendar = search.getResult(CALENDAR_MANIFEST);
+      var calendar2 = search.getResult(server.packageManifestURL);
+      return calendar.length && calendar2.length;
     });
 
     // Remove the installed app.
@@ -68,7 +75,9 @@ marionette('Search - Installed Apps Test', function() {
     rocketbar.enterText('Calendar');
     search.goToResults();
     client.waitFor(function() {
-      return search.countGridResults() === 1;
+      var calendar = search.getResult(CALENDAR_MANIFEST);
+      var calendar2 = search.getResult(server.packageManifestURL);
+      return calendar.length && !calendar2.length;
     });
   });
 
