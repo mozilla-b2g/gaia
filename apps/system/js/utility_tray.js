@@ -6,6 +6,9 @@ window.UtilityTray = {
 
   shown: false,
 
+  // This reflects the target state of the utility tray during animation.
+  showing: false,
+
   active: false,
 
   overlay: document.getElementById('utility-tray'),
@@ -104,6 +107,7 @@ window.UtilityTray = {
   screenHeight: 0,
   grippyHeight: 0,
   ambientHeight: 0,
+  hideStartCallback: null,
 
   setHierarchy: function() {
     return false;
@@ -137,7 +141,7 @@ window.UtilityTray = {
       case 'attentionopened':
       case 'attentionwill-become-active':
       case 'home':
-        if (this.shown) {
+        if (this.showing) {
           this.hide();
           if (evt.type == 'home') {
             evt.stopImmediatePropagation();
@@ -151,7 +155,7 @@ window.UtilityTray = {
       case 'simlockshow':
       case 'appopening':
       case 'activityopening':
-        if (this.shown) {
+        if (this.showing) {
           this.hide();
         }
         break;
@@ -179,7 +183,7 @@ window.UtilityTray = {
           return blockedApp === detail.origin;
         });
 
-        if (!isBlockedApp && this.shown) {
+        if (!isBlockedApp && this.showing) {
           this.hide();
         }
         break;
@@ -203,7 +207,7 @@ window.UtilityTray = {
         break;
 
       case 'screenchange':
-        if (this.shown && !this.active && !evt.detail.screenEnabled) {
+        if (this.showing && !this.active && !evt.detail.screenEnabled) {
           this.hide(true);
         }
         break;
@@ -213,8 +217,8 @@ window.UtilityTray = {
           return;
         }
 
-        // Prevent swipe down gesture when already opened.
-        if (target !== this.grippy && this.shown) {
+        // Prevent swipe down gesture when already opened/opening.
+        if (target !== this.grippy && this.showing) {
           return;
         }
 
@@ -265,8 +269,8 @@ window.UtilityTray = {
         break;
 
       case 'transitionend':
-        if (!this.shown) {
-          this.overlay.classList.remove('visible');
+        if (this.showing !== this.shown) {
+          this.showing ? this.afterShow() : this.afterHide();
         }
         break;
 
@@ -281,7 +285,7 @@ window.UtilityTray = {
         var eventType = JSON.parse(evt.detail.details).eventType;
         if (eventType === 'edge-swipe-down' && !window.Service.locked &&
           !window.Service.runningFTU) {
-          this[this.shown ? 'hide' : 'show'](true);
+          this[this.showing ? 'hide' : 'show'](true);
         }
         break;
 
@@ -412,7 +416,7 @@ window.UtilityTray = {
                  (touch.pageX < (window.innerWidth / 2));
     }
     if (this.isTap && corner) {
-      if (this.shown) {
+      if (this.showing) {
         this.hide();
       }
       setTimeout(function() {
@@ -436,12 +440,19 @@ window.UtilityTray = {
 
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
     this.notifications.style.transition = style.MozTransition;
-    this.screen.classList.remove('utility-tray');
 
-    // If the transition has not started yet there won't be any transitionend
-    // event so let's not wait in order to remove the utility-tray class.
+    this.showing = false;
+
     if (instant || style.MozTransform === '') {
-      this.overlay.classList.remove('visible');
+      this.afterHide();
+    } else if (this.hideStartCallback === null) {
+      // We want to remove the utility-tray class from the screen at the start
+      // of the animation, but if we do it outside of a timeout, the work will
+      // align with the start of the animation and cause a noticeable delay.
+      this.hideStartCallback = setTimeout(() => {
+        this.hideStartCallback = null;
+        this.screen.classList.remove('utility-tray');
+      }, 20);
     }
 
     style.MozTransform = '';
@@ -449,17 +460,31 @@ window.UtilityTray = {
     var notifTransform = 'calc(100% + ' + offset + 'px)';
     this.notifications.style.transform = 'translateY(' + notifTransform + ')';
 
-    if (this.shown) {
-      this.shown = false;
-      window.dispatchEvent(new CustomEvent('utility-tray-overlayclosed'));
-
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('utilitytrayhide', true, true, null);
-      window.dispatchEvent(evt);
-      this.publish('-deactivated');
-    } else {
+    if (!this.shown) {
       window.dispatchEvent(new CustomEvent('utility-tray-abortopen'));
     }
+  },
+
+  afterHide: function ut_after_hide() {
+    if (this.hideStartCallback) {
+      clearTimeout(this.hideStartCallback);
+      this.hideStartCallback = null;
+    }
+
+    this.screen.classList.remove('utility-tray');
+    this.overlay.classList.remove('visible');
+
+    if (!this.shown) {
+      return;
+    }
+
+    this.shown = false;
+    window.dispatchEvent(new CustomEvent('utility-tray-overlayclosed'));
+
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('utilitytrayhide', true, true, null);
+    window.dispatchEvent(evt);
+    this.publish('-deactivated');
   },
 
   show: function ut_show(instant) {
@@ -472,24 +497,32 @@ window.UtilityTray = {
       instant ? '' : 'transform 0.2s linear';
     this.notifications.style.transform = '';
 
-    this.screen.classList.add('utility-tray');
-    // In cases where we show utility tray instantly (such as with the screen
-    // reader), we need to make sure that its visible class is applied.
+    this.showing = true;
+
     if (instant) {
-      this.overlay.classList.add('visible');
+      this.afterShow();
     }
 
-    if (!this.shown) {
-      this.shown = true;
-      window.dispatchEvent(new CustomEvent('utility-tray-overlayopened'));
-
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('utilitytrayshow', true, true, null);
-      window.dispatchEvent(evt);
-      this.publish('-activated');
-    } else {
+    if (this.shown) {
       window.dispatchEvent(new CustomEvent('utility-tray-abortclose'));
     }
+  },
+
+  afterShow: function ut_after_show() {
+    this.screen.classList.add('utility-tray');
+    this.overlay.classList.add('visible');
+
+    if (this.shown) {
+      return;
+    }
+
+    this.shown = true;
+    window.dispatchEvent(new CustomEvent('utility-tray-overlayopened'));
+
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('utilitytrayshow', true, true, null);
+    window.dispatchEvent(evt);
+    this.publish('-activated');
   },
 
   updateNotificationCount: function ut_updateNotificationCount() {
