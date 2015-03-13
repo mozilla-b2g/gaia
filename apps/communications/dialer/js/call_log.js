@@ -1010,6 +1010,7 @@ var CallLog = {
         bdi.textContent = element.dataset.phoneNumber;
         primInfoCont.appendChild(bdi);
         typeAndCarrier.textContent = '';
+        typeAndCarrier.setAttribute('data-l10n-id', 'unknown');
         delete element.dataset.contactId;
       }
       return;
