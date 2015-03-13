@@ -23,7 +23,7 @@
     'CostControl',
     'InternetSharing',
     'CarrierInfoNotifier',
-    'IccCore'
+    'IccCore' // Because it's bind to mobileConnection
   ];
 
   BaseModule.create(MobileConnectionCore, {

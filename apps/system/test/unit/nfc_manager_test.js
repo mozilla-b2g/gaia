@@ -70,8 +70,9 @@ suite('Nfc Manager Functions', function() {
       }
     });
     nfcUtils = new NfcUtils();
-    MockService.currentApp = fakeApp;
+    MockService.mTopMostWindow = fakeApp;
     nfcManager = BaseModule.instantiate('NfcManager');
+    nfcManager.service = MockService;
     stubWriteSetting = this.sinon.stub(nfcManager, 'writeSetting');
     nfcManager._start();
   });

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-/* globals CustomEvent, MozActivity, Service,
+/* globals CustomEvent, MozActivity,
            NfcUtils, NDEF, ScreenManager, BaseModule, NfcIcon,
            LazyLoader */
 
@@ -29,7 +29,7 @@
    * detects NFC Handover requests and passes them to NfcHandoverManager for
    * handling.
    * @class NfcManager
-   * @requires Service
+   * @requires BaseModule
    * @requires ScreenManager
    * @requires MozActivity
    * @requires NDEF
@@ -226,7 +226,8 @@
           if (!this.isActive()) {
             return;
           }
-          state = (ScreenManager.screenEnabled && !Service.query('locked')) ?
+          state = (ScreenManager.screenEnabled &&
+                   !this.service.query('locked')) ?
                     this.NFC_HW_STATE.ENABLE_DISCOVERY :
                     this.NFC_HW_STATE.DISABLE_DISCOVERY;
           if (state === this._hwState) {
@@ -260,7 +261,7 @@
       }
 
       var state = !enabled ? this.NFC_HW_STATE.DISABLING :
-        (Service.query('locked') ? this.NFC_HW_STATE.DISABLE_DISCOVERY :
+        (this.service.query('locked') ? this.NFC_HW_STATE.DISABLE_DISCOVERY :
                           this.NFC_HW_STATE.ENABLING);
       this._changeHardwareState(state);
     },
@@ -360,9 +361,12 @@
       if (!nfcdom) {
         return;
       }
-      var activeApp = window.Service.query('getTopMostWindow');
+      var activeApp = this.service.query('getTopMostWindow');
+      if (!activeApp) {
+        return;
+      }
       var manifestURL = activeApp.getTopMostWindow().manifestURL ||
-        window.Service.manifestURL;
+        this.service.manifestURL;
 
       var promise = nfcdom.checkP2PRegistration(manifestURL);
       promise.then(result => {
@@ -397,9 +401,12 @@
       if (!nfcdom) {
         return;
       }
-      var activeApp = window.Service.query('getTopMostWindow');
+      var activeApp = this.service.query('getTopMostWindow');
+      if (!activeApp) {
+        return;
+      }
       var manifestURL = activeApp.getTopMostWindow().manifestURL ||
-        window.Service.manifestURL;
+        this.service.manifestURL;
       nfcdom.notifyUserAcceptedP2P(manifestURL);
     },
 

@@ -4,12 +4,14 @@
 
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_service.js');
 require('/test/unit/mock_bluetooth.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 
 var mocksForMediaPlayback = new MocksHelper([
   'Bluetooth',
-  'AppWindowManager'
+  'AppWindowManager',
+  'Service'
 ]).init();
 
 suite('system/media playback widget', function() {
