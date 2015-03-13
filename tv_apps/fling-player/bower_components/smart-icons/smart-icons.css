@@ -3,8 +3,8 @@
 
 
 @font-face {
-  font-family: "gaia-device-icons";
-  src: url("/tv_shared/font/gaia-device-icons.ttf") format("truetype");
+  font-family: "smart-icons";
+  src: url("smart-icons.ttf") format("truetype");
   font-weight: 500;
   font-style: normal;
 }
@@ -12,7 +12,7 @@
 
 [data-icon]:before,
 .ligature-icons {
-  font-family: "gaia-device-icons";
+  font-family: "smart-icons";
   content: attr(data-icon);
   display: inline-block;
   font-weight: 500;

@@ -2,8 +2,8 @@
 'use strict';
 
 require('/bower_components/smart-button/script.js');
-require('/tv_apps/tv_shared/test/unit/mocks/mock_presentation.js');
-require('/tv_apps/tv_shared/test/unit/mocks/mock_presentation_session.js');
+require('/shared/test/unit/mocks/mock_presentation.js');
+require('/shared/test/unit/mocks/mock_presentation_session.js');
 
 
 suite('NotificationSender >', function() {
