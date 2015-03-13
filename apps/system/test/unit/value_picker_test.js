@@ -49,10 +49,13 @@ suite('value selector/value picker', function() {
     });
 
     test('setSelectedIndex', function() {
-      var currentlySelected =
-        subject.element.querySelector('.selected');
+      subject.setSelectedIndex(1);
+      var firstItem = subject.element.querySelector('.selected');
+      assert.isTrue(firstItem.classList.contains('selected'));
       subject.setSelectedIndex(3);
-      assert.isFalse(currentlySelected.classList.contains('selected'));
+      assert.isFalse(firstItem.classList.contains('selected'));
+      var thirdItem = subject.element.querySelector('.selected');
+      assert.isTrue(thirdItem.classList.contains('selected'));
       assert.equal(subject.element.querySelector('.selected').textContent,
         unitStyle.valueDisplayedText[3]);
     });
