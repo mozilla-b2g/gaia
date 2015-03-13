@@ -1267,6 +1267,10 @@ function relativePath(from, to) {
   return toFile.getRelativeDescriptor(fromFile);
 }
 
+function normalizePath(path) {
+  return OS.Path.normalize(path);
+}
+
 exports.Q = Promise;
 exports.ls = ls;
 exports.getFileContent = getFileContent;
@@ -1330,3 +1334,4 @@ exports.removeFiles = removeFiles;
 exports.scriptLoader = scriptLoader;
 exports.NodeHelper = NodeHelper;
 exports.relativePath = relativePath;
+exports.normalizePath = normalizePath;
