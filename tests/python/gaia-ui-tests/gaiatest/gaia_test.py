@@ -9,9 +9,7 @@ import tempfile
 import time
 
 from marionette import (MarionetteTestCase,
-                        EnduranceTestCaseMixin,
-                        B2GTestCaseMixin,
-                        MemoryEnduranceTestCaseMixin)
+                        B2GTestCaseMixin)
 from marionette_driver import expected, By, Wait
 from marionette_driver.errors import (NoSuchElementException,
                                       StaleElementException,
@@ -988,12 +986,10 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         MarionetteTestCase.tearDown(self)
 
 
-class GaiaEnduranceTestCase(GaiaTestCase, EnduranceTestCaseMixin, MemoryEnduranceTestCaseMixin):
+class GaiaEnduranceTestCase(GaiaTestCase):
 
     def __init__(self, *args, **kwargs):
         GaiaTestCase.__init__(self, *args, **kwargs)
-        EnduranceTestCaseMixin.__init__(self, *args, **kwargs)
-        MemoryEnduranceTestCaseMixin.__init__(self, *args, **kwargs)
         kwargs.pop('iterations', None)
         kwargs.pop('checkpoint_interval', None)
 
