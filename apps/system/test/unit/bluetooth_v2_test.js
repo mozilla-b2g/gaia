@@ -67,15 +67,6 @@ suite('system/bluetooth_v2', function() {
     window.Bluetooth = new window.Bluetooth2();
   });
 
-  suite('default variables', function() {
-    test('profiles', function() {
-      assert.equal(Bluetooth.Profiles.HFP, 'hfp');
-      assert.equal(Bluetooth.Profiles.OPP, 'opp');
-      assert.equal(Bluetooth.Profiles.A2DP, 'a2dp');
-      assert.equal(Bluetooth.Profiles.SCO, 'sco');
-    });
-  });
-
   suite('setProfileConnected', function() {
     var profiles = ['hfp', 'opp', 'a2dp', 'sco'];
     setup(function() {
@@ -110,19 +101,19 @@ suite('system/bluetooth_v2', function() {
       function() {
         Bluetooth.transferIcon = { update: function() {} };
         this.sinon.stub(Bluetooth.transferIcon, 'update');
-        Bluetooth._setProfileConnected(Bluetooth.Profiles.HFP, false);
+        Bluetooth._setProfileConnected('hfp', false);
         assert.isFalse(Bluetooth.transferIcon.update.called);
-        Bluetooth._setProfileConnected(Bluetooth.Profiles.A2DP, false);
+        Bluetooth._setProfileConnected('a2dp', false);
         assert.isFalse(Bluetooth.transferIcon.update.called);
-        Bluetooth._setProfileConnected(Bluetooth.Profiles.SCO, false);
+        Bluetooth._setProfileConnected('sco', false);
     });
 
     test('transferIcon is updated with OPP profile', function() {
       Bluetooth.transferIcon = { update: function() {} };
       this.sinon.stub(Bluetooth.transferIcon, 'update');
-      Bluetooth._setProfileConnected(Bluetooth.Profiles.OPP, false);
+      Bluetooth._setProfileConnected('opp', false);
       assert.isTrue(Bluetooth.transferIcon.update.called);
-      Bluetooth._setProfileConnected(Bluetooth.Profiles.OPP, true);
+      Bluetooth._setProfileConnected('opp', true);
       assert.isTrue(Bluetooth.transferIcon.update.calledTwice);
     });
   });
@@ -135,7 +126,7 @@ suite('system/bluetooth_v2', function() {
         Bluetooth['_' + profile + 'Connected'] = false;
       });
       profiles.forEach(function(profile) {
-        assert.isFalse(Bluetooth.isProfileConnected(profile));
+        assert.isFalse(Bluetooth._isProfileConnected(profile));
       });
     });
 
@@ -144,7 +135,7 @@ suite('system/bluetooth_v2', function() {
         Bluetooth['_' + profile + 'Connected'] = true;
       });
       profiles.forEach(function(profile) {
-        assert.ok(Bluetooth.isProfileConnected(profile));
+        assert.ok(Bluetooth._isProfileConnected(profile));
       });
     });
   });
