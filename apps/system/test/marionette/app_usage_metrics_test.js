@@ -56,8 +56,6 @@ marionette('App Usage Metrics >', function() {
       serverRootURL = serverRootURL.substring(0, serverRootURL.length - 1);
       done(err);
     });
-
-    sys = client.loader.getAppClass('system');
   });
 
   suiteTeardown(function() {
@@ -69,6 +67,7 @@ marionette('App Usage Metrics >', function() {
     appInstall = new AppInstall(client);
     settings = new Settings(client);
     metrics = new AppUsageMetrics(client);
+    sys = client.loader.getAppClass('system');
 
     sys.waitForStartup();
     metrics.waitForStartup();
