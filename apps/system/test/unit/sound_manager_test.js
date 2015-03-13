@@ -10,6 +10,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_custom_dialog.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/js/async_semaphore.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
 requireApp('system/test/unit/mock_bluetooth.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
@@ -22,7 +23,6 @@ requireApp('system/js/base_icon.js');
 requireApp('system/js/playing_icon.js');
 requireApp('system/js/headphone_icon.js');
 requireApp('system/js/mute_icon.js');
-requireApp('system/js/async_semaphore.js');
 requireApp('system/js/sound_manager.js');
 
 var mocksForSoundManager = new MocksHelper([
