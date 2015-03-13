@@ -1,9 +1,16 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+/* global fb,
+          Set,
+          Settings,
+          Utils
+*/
+
 (function(exports) {
   'use strict';
-  /*global fb, Settings, Utils */
-  var unknownNumbers = [];
+
+  var unknownNumbers = new Set();
 
   var filterFns = {
     contains: function(a, b) {
@@ -95,32 +102,25 @@
   var rspaces = /\s+/;
 
   var Contacts = {
-    findBy: function contacts_findBy(filter, callback) {
-      var lower = [];
-      var filterValue = (filter.filterValue || '').trim();
-      var terms, request;
+    findBy: function contacts_findBy(filter) {
+      var filterValue = filter.filterValue ? filter.filterValue.trim() : '';
 
       if (!navigator.mozContacts || !filterValue.length) {
-        setTimeout(function() {
-          callback(
-            /**
-             * Bailout Strategy
-             *
-             * 1. A _missing_ filter.filterValue will results in an
-             *    error when passed to mozContacts.find, bailing out
-             *    early avoids the additional overhead of making a
-             *    request that we know will fail.
-             *
-             * 2. Missing navigator.mozContacts API or empty but
-             *    present filter.filterValue make the app useless,
-             *    so prevent unpredictable state by making the
-             *    result a no-op.
-             *
-             */
-            typeof filter.filterValue === 'undefined' ? null : [], {}
-          );
-        });
-        return;
+        /**
+         * Bailout Strategy
+         *
+         * 1. A _missing_ filter.filterValue will results in an
+         *    error when passed to mozContacts.find, bailing out
+         *    early avoids the additional overhead of making a
+         *    request that we know will fail.
+         *
+         * 2. Missing navigator.mozContacts API or empty but
+         *    present filter.filterValue make the app useless,
+         *    so prevent unpredictable state by making the
+         *    result a no-op.
+         *
+         */
+        return Promise.resolve([]);
       }
 
       /**
@@ -155,20 +155,22 @@
        */
 
       // Step 1
-      terms = filterValue.split(rspaces);
+      var terms = filterValue.split(rspaces);
+      var lower = [];
 
-      filter.filterValue = terms.length === 1 ?
-        // Step 2
-        terms[0] :
-        // Step 3
-        terms.reduce(function(initial, term) {
+      // Step 2
+      if (terms.length === 1) {
+        filter.filterValue = terms[0];
+      } else {
+        filter.filterValue = terms.reduce(function(initial, term) {
           // Step 3.b.i
           // (used as a criteria list for isMatch)
           lower.push(term.toLowerCase());
           // Step 3.b.ii
           return term.length > initial.length ? term : initial;
-        // Step 3.a
+          // Step 3.a
         }, '');
+      }
 
       // Step 4
       if (filter.filterValue.length < 3) {
@@ -183,54 +185,41 @@
       lower.push.apply(lower, terms);
 
       // Step 7
-      request = navigator.mozContacts.find(filter);
-
-      request.onsuccess = function onsuccess() {
-        var contacts = this.result.slice();
-        var fields = ['tel', 'givenName', 'familyName'];
-        if (Settings.supportEmailRecipient) {
-          fields.push('email');
-        }
-        var criteria = { fields: fields, terms: lower };
-        var results = [];
-        var contact;
-
+      return navigator.mozContacts.find(filter).then(function(result) {
         // Step 8
         if (terms.length > 1) {
-          while ((contact = contacts.pop())) {
-            if (isMatch(contact, criteria, filterFns.contains)) {
-              results.push(contact);
-            }
+          var fields = ['tel', 'givenName', 'familyName'];
+          if (Settings.supportEmailRecipient) {
+            fields.push('email');
           }
-        } else {
-          results = contacts;
+          var criteria = { fields: fields, terms: lower };
+          return result.filter(
+            (contact) => isMatch(contact, criteria, filterFns.contains)
+          );
         }
 
-        callback(results, {
-          terms: terms
-        });
-      };
-
-      request.onerror = function onerror() {
-        // When an error occurs, regardless of completed count,
-        // clear the onsuccess handler from this request and immediately
-        // invoke the callback with a `null` argument.
-        this.onsuccess = this.onerror = null;
-        callback(null);
-      };
-    },
-    findByString: function contacts_findBy(filterValue, callback) {
-      var unknownCallback = function(contacts) {
-        contacts = contacts || [];
-        this.findByUnknown(filterValue, function(unknown) {
-          unknown = unknown || [];
-          callback(contacts.concat(unknown));
-        });
-      }.bind(this);
-      this.findContactByString(filterValue, unknownCallback);
+        return result.slice();
+      }, function(e) {
+        console.warning('mozContacts.find failed %s', e.message || e.name);
+        return [];
+      });
     },
 
-    findContactByString: function contacts_findBy(filterValue, callback) {
+    findByString: function contacts_findBy(filterValue) {
+      return Promise.all([
+        this.findContactByString(filterValue),
+        this.findByUnknown(filterValue)
+      ]).then(function(contacts) {
+        var knownContacts = contacts[0];
+        var unknownContacts = contacts[1];
+
+        return unknownContacts.length > 0 ?
+          knownContacts.concat(unknownContacts) :
+          knownContacts;
+      });
+    },
+
+    findContactByString: function contacts_findBy(filterValue) {
       var props = ['tel', 'givenName', 'familyName'];
       if (Settings.supportEmailRecipient) {
         props.push('email');
@@ -239,102 +228,105 @@
         filterBy: props,
         filterOp: 'contains',
         filterValue: filterValue
-      }, callback);
-    },
-    findByUnknown: function findByUnknown(filterValue, callback) {
-      var list = [];
-      for (var i = 0, length = unknownNumbers.length; i < length; i++) {
-        //We only need at max 3 unknown contacts
-        if (list.length > 2) {
-          break;
-        }
-        var num = unknownNumbers[i];
-        if (num.contains(filterValue)) {
-          var obj = {
-            name: [num],
-            tel: [{value: num}],
-            source: 'unknown'
-          };
-          list.push(obj);
-        }
-      }
-      callback(list);
+      });
     },
 
-    findExact: function contacts_findBy(filterValue, callback) {
+    findByUnknown: function findByUnknown(filterValue) {
+      var unknownContacts = [];
+
+      for(var unknownNumber of unknownNumbers.values()) {
+        //We only need at max 3 unknown contacts
+        if (unknownContacts.length > 2) {
+          break;
+        }
+
+        if (unknownNumber.contains(filterValue)) {
+          unknownContacts.push({
+            name: [unknownNumber],
+            tel: [{value: unknownNumber}],
+            source: 'unknown'
+          });
+        }
+      }
+
+      return Promise.resolve(unknownContacts);
+    },
+
+    findExact: function contacts_findBy(filterValue) {
       return this.findBy({
         filterBy: ['givenName', 'familyName'],
         filterOp: 'contains',
         filterValue: filterValue
-      }, function(results, meta) {
-        var contact = results && results.length ? results[0] : null;
-        var criteria = {
-          fields: ['name'],
-          terms: [filterValue]
-        };
-        var isExact = false;
+      }).then(function(contacts) {
+        if (contacts.length > 0) {
+          var firstContact = contacts[0];
 
-        if (contact) {
-          isExact = isMatch(contact, criteria, filterFns.equality);
+          var criteria = {
+            fields: ['name'],
+            terms: [filterValue]
+          };
+
+          var isExact = isMatch(firstContact, criteria, filterFns.equality);
+
+          return isExact ? [firstContact] : [];
         }
 
-        callback(isExact ? [contact] : []);
+        return contacts;
       });
     },
 
-    findByPhoneNumber: function contacts_findByPhone(filterValue, callback) {
+    findByPhoneNumber: function contacts_findByPhone(filterValue) {
       return this.findBy({
         filterBy: ['tel'],
         filterOp: 'match',
         filterValue: filterValue.replace(/\s+/g, '')
-      },
-      function(results) {
-        if (results && results.length) {
-          callback(results);
-          return;
+      }).then(function(contacts) {
+        if (contacts.length > 0) {
+          return contacts;
         }
 
+        var deferred = Utils.Promise.defer();
+
         fb.getContactByNumber(filterValue, function fbByPhone(contact) {
-          callback(contact ? [contact] : []);
+          deferred.resolve(contact ? [contact] : []);
         }, function error_fbByPhone(err) {
           if (err.name !== 'DatastoreNotFound') {
             console.error('Error while retrieving fb by phone: ', err.name);
           }
 
-          callback(results);
+          deferred.resolve([]);
         });
+
+        return deferred.promise;
       });
     },
 
-    findByAddress: function contacts_findByAddress(fValue, callback) {
+    findByAddress: function contacts_findByAddress(fValue) {
       if (Settings.supportEmailRecipient && Utils.isEmailAddress(fValue)) {
-        this.findExactByEmail(fValue, callback);
-      } else {
-        this.findByPhoneNumber(fValue, callback);
+        return this.findExactByEmail(fValue);
       }
+
+      return this.findByPhoneNumber(fValue);
     },
 
-    findExactByEmail: function contacts_findExactByEmail(fValue, callback) {
+    findExactByEmail: function contacts_findExactByEmail(fValue) {
       return this.findBy({
         filterBy: ['email'],
         filterOp: 'equals',
         filterValue: fValue
-      }, callback);
+      });
     },
 
     addUnknown: function addUnknown(number) {
-      var index = unknownNumbers.indexOf(number);
-      if (index === -1) {
-        unknownNumbers.push(number);
-      }
+      unknownNumbers.add(number);
     },
 
     clearUnknown: function clearUnknown() {
-      unknownNumbers.length = 0;
+      unknownNumbers.clear();
     },
 
-    getunknownLength: function getunknownLength() {
-      return unknownNumbers.length;
+    getUnknownLength: function getUnknownLength() {
+      return unknownNumbers.size;
     }
   };
 

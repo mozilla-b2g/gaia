@@ -221,48 +221,8 @@
         return new navigator.mozContacts.find(filter);
       }
 
-      var onsuccess, onerror;
-
-      this.result = null;
-      this.error = null;
-
-      Object.defineProperties(this, {
-
-        onsuccess: {
-          // When the success handler gets assigned:
-          //  1. Set this.result to an array containing a MockContact instance
-          //  2. Immediately call the success handler
-          // This will behave like a _REALLY_ fast DB query
-          set: function(callback) {
-            onsuccess = callback;
-            if (callback !== null) {
-              // Implement a mock that gives results that appear to
-              // match the real behaviour of filtered contacts results
-              this.result = ContactsDB.filter(function(contact) {
-                return isMatch(contact, filter);
-              });
-
-              readyPromise.then(function() {
-                onsuccess.call(this);
-                onsuccess = null;
-              }.bind(this));
-            }
-          }
-        },
-
-        onerror: {
-          set: function(callback) {
-            onerror = callback;
-            if (callback !== null) {
-              if (this.result === null && this.error !== null) {
-                readyPromise.then(function() {
-                  onerror.call(this);
-                  onerror = null;
-                }.bind(this));
-              }
-            }
-          }
-        }
+      return readyPromise.then(() => {
+        return ContactsDB.filter((contact) => isMatch(contact, filter));
       });
     }
   };
@@ -494,10 +454,4 @@
       ]
     })
   );
-
-  // console.log( ContactsDB );
-
-
-
-
 }(window));

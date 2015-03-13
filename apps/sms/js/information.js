@@ -428,7 +428,7 @@ Information.prototype = {
     var currentRenderingId = ++this.renderingId;
 
     ul.textContent = '';
-    participants.forEach((participant) => {
+    return Promise.all(participants.map((participant) => {
       var number, infoBlock, selector;
 
       if (typeof participant === 'object') {
@@ -438,18 +438,16 @@ Information.prototype = {
       } else {
         number = participant;
       }
-      Contacts.findByAddress(number, (results) => {
+      return Contacts.findByAddress(number).then((contacts) => {
         // If the current rendering ID doesn't match the latest ID, skip current
         // one and only render for ID which matches latest request ID.
         if (currentRenderingId !== this.renderingId) {
           return;
         }
 
-        var isContact = results !== null && !!results.length;
-
-        if (isContact) {
+        if (contacts.length > 0) {
           renderer.render({
-            contact: results[0],
+            contact: contacts[0],
             input: number,
             infoBlock: infoBlock,
             infoBlockParentSelector: selector,
@@ -469,7 +467,7 @@ Information.prototype = {
           ul.appendChild(li);
         }
       });
-    });
+    }));
   }
 };
 

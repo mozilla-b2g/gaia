@@ -82,29 +82,18 @@ var ActivityHandler = {
   * {number: String, name: String, source: 'contacts'}
   */
   _findContactByTarget: function findContactByTarget(target) {
-    var deferred = Utils.Promise.defer();
-    Contacts.findByAddress(target, (results) => {
-      var record, name, contact;
-
-      // Bug 867948: results null is a legitimate case
-      if (results && results.length) {
-        record = results[0];
-        name = record.name.length && record.name[0];
-        contact = {
-          number: target,
-          name: name,
-          source: 'contacts'
-        };
-
-        deferred.resolve(contact);
-        return;
+    return Contacts.findByAddress(target).then((contacts) => {
+      if (contacts.length === 0) {
+        throw new Error('No contact found with target: ' + target);
       }
-      deferred.reject(new Error('No contact found with target: ' + target));
-      return;
 
+      var contact = contacts[0];
+      return {
+        number: target,
+        name: contact.name.length && contact.name[0],
+        source: 'contacts'
+      };
     });
-
-    return deferred.promise;
   },
 
   _onNewActivity: function newHandler(activity) {
@@ -453,14 +442,16 @@ var ActivityHandler = {
           }
         }
 
-        Contacts.findByAddress(message.sender, function gotContact(contact) {
+        Contacts.findByAddress(message.sender).then(function(contacts) {
           var sender = message.sender;
-          if (!contact) {
-            console.error('We got a null contact for sender:', sender);
-          } else if (contact.length && contact[0].name &&
-            contact[0].name.length && contact[0].name[0]) {
-            sender = contact[0].name[0];
+
+          if (contacts.length > 0) {
+            var contact = contacts[0];
+            if (contact.name && contact.name.length && contact.name[0]) {
+              sender = contact.name[0];
+            }
           }
+
           if (message.type === 'sms') {
             continueWithNotification(sender, message.body || '');
           } else { // mms

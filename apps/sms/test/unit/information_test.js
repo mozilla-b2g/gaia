@@ -112,50 +112,57 @@ suite('Information view', function() {
         this.sinon.spy(ContactRenderer, 'flavor');
       });
 
-      test('renderContactList with string array', function() {
+      test('renderContactList with string array', function(done) {
         var participants = ['111'];
-        reportView.renderContactList(participants);
-        sinon.assert.calledWith(ContactRenderer.flavor, 'report-view');
-        sinon.assert.calledWithMatch(
-          ContactRenderer.prototype.render,
-          {
-            input: participants[0],
-            infoBlock: undefined
-          }
-        );
+        reportView.renderContactList(participants).then(() => {
+          sinon.assert.calledWith(ContactRenderer.flavor, 'report-view');
+          sinon.assert.calledWithMatch(
+            ContactRenderer.prototype.render,
+            {
+              input: participants[0],
+              infoBlock: undefined
+            }
+          );
+        }).then(done, done);
       });
 
-      test('renderContactList with string array(not in contact)', function() {
+      test('renderContactList with string array(not in contact)',
+      function(done) {
         this.sinon.spy(Template.prototype, 'interpolate');
         this.sinon.stub(MockContact, 'list', function() {
           return [];
         });
         var participants = ['111'];
-        reportView.renderContactList(participants);
-        sinon.assert.notCalled(ContactRenderer.prototype.render);
-        sinon.assert.calledWith(Template.prototype.interpolate, {
-          number: participants[0]
-        });
-        assert.isTrue(!!reportView.contactList.firstElementChild);
+
+        reportView.renderContactList(participants).then(() => {
+          sinon.assert.notCalled(ContactRenderer.prototype.render);
+          sinon.assert.calledWith(Template.prototype.interpolate, {
+            number: participants[0]
+          });
+          assert.isTrue(!!reportView.contactList.firstElementChild);
+        }).then(done, done);
       });
 
-      test('renderContactList with object array', function() {
+      test('renderContactList with object array', function(done) {
         var div = document.createElement('div');
         var participants = [
           { number: '222', infoBlock: div}
         ];
-        reportView.renderContactList(participants);
-        sinon.assert.calledWith(ContactRenderer.flavor, 'report-view');
-        sinon.assert.calledWithMatch(
-          ContactRenderer.prototype.render,
-          {
-            input: participants[0].number,
-            infoBlock: div
-          }
-        );
+
+        reportView.renderContactList(participants).then(() => {
+          sinon.assert.calledWith(ContactRenderer.flavor, 'report-view');
+          sinon.assert.calledWithMatch(
+            ContactRenderer.prototype.render,
+            {
+              input: participants[0].number,
+              infoBlock: div
+            }
+          );
+        }).then(done, done);
       });
 
-      test('renderContactList with object array(not in contact)', function() {
+      test('renderContactList with object array(not in contact)',
+      function(done) {
         this.sinon.stub(MockContact, 'list', function() {
           return [];
         });
@@ -166,17 +173,22 @@ suite('Information view', function() {
         var participants = [
           { number: '222', infoBlock: div}
         ];
-        reportView.renderContactList(participants);
-        sinon.assert.notCalled(ContactRenderer.prototype.render);
-        sinon.assert.calledWith(Template.prototype.interpolate, {
-          number: participants[0].number
-        });
-        assert.isTrue(
-          !!reportView.contactList.firstElementChild.firstElementChild);
+
+        reportView.renderContactList(participants).then(() => {
+          sinon.assert.notCalled(ContactRenderer.prototype.render);
+          sinon.assert.calledWith(Template.prototype.interpolate, {
+            number: participants[0].number
+          });
+          assert.isTrue(
+            !!reportView.contactList.firstElementChild.firstElementChild
+          );
+        }).then(done, done);
       });
 
       suite('Request next rendering before previous one complete', function() {
         var div, oldParticipant, newParticipant, oldRenderingId, newRenderingId;
+
+        var oldRenderDeferred, newRenderDeferred;
 
         setup(function() {
           div = document.createElement('div');
@@ -188,7 +200,14 @@ suite('Information view', function() {
           ];
 
           this.sinon.spy(Template.prototype, 'interpolate');
-          this.sinon.stub(Contacts, 'findByAddress');
+
+          var findByAddressStub = this.sinon.stub(Contacts, 'findByAddress');
+
+          oldRenderDeferred = Utils.Promise.defer();
+          findByAddressStub.withArgs('111').returns(oldRenderDeferred.promise);
+
+          newRenderDeferred = Utils.Promise.defer();
+          findByAddressStub.withArgs('222').returns(newRenderDeferred.promise);
 
           reportView.renderContactList(oldParticipant);
           oldRenderingId = reportView.renderingId;
@@ -198,38 +217,48 @@ suite('Information view', function() {
           newRenderingId = reportView.renderingId;
         });
 
-        test('Contact requests return with same order', function() {
+        test('Contact requests return with same order', function(done) {
           // rendeing ID should be different
           assert.notEqual(oldRenderingId, newRenderingId);
 
-          Contacts.findByAddress.firstCall.yield([]);
+          oldRenderDeferred.resolve([]);
+          oldRenderDeferred.promise.then(() => {
+            // No item will be rendered at 1st contact request return.
+            sinon.assert.notCalled(Template.prototype.interpolate);
+            assert.equal(reportView.contactList.textContent, '');
 
-          // No item will be rendered at 1st contact request return.
-          sinon.assert.notCalled(Template.prototype.interpolate);
-          assert.equal(reportView.contactList.textContent, '');
-          Contacts.findByAddress.lastCall.yield([]);
-
-          // Only the new participant rendered on the contactList.
-          sinon.assert.calledWith(Template.prototype.interpolate, {
-            number: newParticipant[0].number
-          });
-          assert.equal(reportView.contactList.querySelectorAll('li').length, 1);
+            newRenderDeferred.resolve([]);
+            return newRenderDeferred.promise;
+          }).then(() => {
+            // Only the new participant rendered on the contactList.
+            sinon.assert.calledWith(Template.prototype.interpolate, {
+              number: newParticipant[0].number
+            });
+            assert.equal(
+              reportView.contactList.querySelectorAll('li').length, 1
+            );
+          }).then(done, done);
         });
 
-        test('Last contact request returns at first place', function() {
-          Contacts.findByAddress.lastCall.yield([]);
+        test('Last contact request returns at first place', function(done) {
+          newRenderDeferred.resolve([]);
+          newRenderDeferred.promise.then(() => {
+            // Only the new participant rendered on the contactList.
+            sinon.assert.calledWith(Template.prototype.interpolate, {
+              number: newParticipant[0].number
+            });
+            assert.equal(
+              reportView.contactList.querySelectorAll('li').length, 1
+            );
 
-          // Only the new participant rendered on the contactList.
-          sinon.assert.calledWith(Template.prototype.interpolate, {
-            number: newParticipant[0].number
-          });
-          assert.equal(reportView.contactList.querySelectorAll('li').length, 1);
+            Template.prototype.interpolate.reset();
 
-          // No item will be rendered at 1st contact request return.
-          Template.prototype.interpolate.reset();
-          Contacts.findByAddress.firstCall.yield([]);
-
-          sinon.assert.notCalled(Template.prototype.interpolate);
+            // No item will be rendered at 1st contact request return.
+            oldRenderDeferred.resolve([]);
+            return oldRenderDeferred.promise;
+          }).then(() => {
+            sinon.assert.notCalled(Template.prototype.interpolate);
+          }).then(done, done);
         });
       });
     });

@@ -473,26 +473,8 @@
       });
       return parsed;
     },
-    /*
-      Using a contact resolver, a function that can looks for contacts,
-      get the format for the dissambiguation.
 
-      Used mainly in activities since they need to pick a contact from just
-      the number.
-
-      In order to workaround facebook contact issue(bug 895817), it should be
-      able to handle the case about phone number without matched contact.
-
-      Phone number comes directly from the activity in the case we call 'pick'
-      from SMS App.
-    */
-    getContactDisplayInfo: function(resolver, phoneNumber, callback) {
-      resolver(phoneNumber, function onContacts(contacts) {
-        callback(Utils.basicContact(phoneNumber, contacts));
-      });
-    },
-
-    basicContact: function(number, records, callback) {
+    basicContact: function(number, records) {
       var record;
       if (Array.isArray(records)) {
         if (records.length > 0) {
@@ -504,10 +486,7 @@
 
       // Only exit when no record and no phone number case.
       if (!record && !number) {
-        if (typeof callback === 'function') {
-          callback(null);
-        }
-        return;
+        return null;
       }
 
       var telLength = (record && record.tel) ? record.tel.length : 0;
@@ -527,9 +506,8 @@
       }
       // Get the title in the standard way
       var details = Utils.getContactDetails(tel, record);
-      var info = Utils.getDisplayObject(details.title || null, tel);
 
-      return info;
+      return Utils.getDisplayObject(details.title || null, tel);
     },
 
     /*

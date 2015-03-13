@@ -326,9 +326,9 @@ var ThreadUI = {
 
         strategy = record.isLookupable ? 'searchContact' : 'exactContact';
 
-        this[strategy](
-          record.number, this.validateContact.bind(this, record)
-        );
+        this[strategy](record.number).then((contacts) => {
+          this.validateContact(record, record.number, contacts);
+        });
       }
 
       // Clean search result after recipient count change.
@@ -685,39 +685,40 @@ var ThreadUI = {
      *  - if we have a contact object and no phone number, just use a dummy
      *    source that returns the contact.
      */
-    var findByAddress = Contacts.findByAddress.bind(Contacts);
-    var number = activity.number;
-    if (activity.contact && !number) {
-      findByAddress = function dummySource(contact, cb) {
-        cb(activity.contact);
-      };
-      number = activity.contact.number || activity.contact.tel[0].value;
+    var contactPromise;
+    if (activity.contact) {
+      contactPromise = Promise.resolve([activity.contact]);
+      activity.number = activity.contact.number ||
+        activity.contact.tel[0].value;
+    } else if (activity.number) {
+      contactPromise = Contacts.findByAddress(activity.number);
     }
 
-    // Add recipients and fill+focus the Compose area.
-    if (activity.contact && number) {
-      Utils.getContactDisplayInfo(
-        findByAddress, number, function onData(data) {
-          data.source = 'contacts';
-          ThreadUI.recipients.add(data);
-          Compose.fromMessage(activity);
+    if (contactPromise) {
+      contactPromise.then((contacts) => {
+        var recipientData = null;
+        if (contacts.length > 0) {
+          recipientData = Object.assign(
+            { source: 'contacts' },
+            Utils.basicContact(activity.number, contacts)
+          );
+        } else {
+          // If the activity delivered the number of an unknown recipient,
+          // create a recipient directly.
+          recipientData = {
+            number: activity.number,
+            source: 'manual'
+          };
         }
-      );
-    } else {
-      if (number) {
-        // If the activity delivered the number of an unknown recipient,
-        // create a recipient directly.
-        this.recipients.add({
-          number: number,
-          source: 'manual'
-        });
-      }
-      Compose.fromMessage(activity);
-    }
 
-    if (number) {
-      Compose.focus();
+        ThreadUI.recipients.add(recipientData);
+
+        Compose.fromMessage(activity);
+
+        Compose.focus();
+      });
     } else {
+      Compose.fromMessage(activity);
       this.recipients.focus();
     }
   },
@@ -734,17 +735,13 @@ var ThreadUI = {
       // Recipients will exist for draft messages in threads
       // Otherwise find them from draft recipient numbers
       draft.recipients.forEach(function(number) {
-        Contacts.findByAddress(number, function(records) {
-          if (records.length) {
-            this.recipients.add(
-              Utils.basicContact(number, records[0])
-            );
+        Contacts.findByAddress(number).then((contacts) => {
+          if (contacts.length) {
+            this.recipients.add(Utils.basicContact(number, contacts[0]));
           } else {
-            this.recipients.add({
-              number: number
-            });
+            this.recipients.add({ number: number });
           }
-        }.bind(this));
+        });
       }, this);
 
       // Render draft contents into the composer input area.
@@ -1055,10 +1052,10 @@ var ThreadUI = {
   },
 
   showNewMessageNotice: function thui_showNewMessageNotice(message) {
-    Contacts.findByPhoneNumber(message.sender, (function gotContact(contact) {
+    Contacts.findByPhoneNumber(message.sender).then((contacts) => {
       var sender = message.sender;
-      if (contact && contact.length) {
-        var details = Utils.getContactDetails(sender, contact[0]);
+      if (contacts.length) {
+        var details = Utils.getContactDetails(sender, contacts[0]);
         sender = details.title || sender;
         // Get the first name
         var index = sender.indexOf(' ');
@@ -1073,7 +1070,7 @@ var ThreadUI = {
 
       this.isNewMessageNoticeShown = true;
       notice.classList.remove('hide');
-    }).bind(this));
+    });
   },
 
   hideNewMessageNotice: function thui_hideNewMessageNotice() {
@@ -1359,33 +1356,30 @@ var ThreadUI = {
     // Add data to contact activity interaction
     this.headerText.dataset.number = number;
 
-    return new Promise(function(resolve, reject) {
-      Contacts.findByAddress(number, function gotContact(contacts) {
-        // For the basic display, we only need the first contact's information
-        // e.g. for 3 contacts, the app displays:
-        //
-        //    Jane Doe (+2)
-        //
-        var details = Utils.getContactDetails(number, contacts);
-        // Bug 867948: contacts null is a legitimate case, and
-        // getContactDetails is okay with that.
-        var contactName = details.title || number;
-        this.headerText.dataset.isContact = !!details.isContact;
-        this.headerText.dataset.title = contactName;
+    return Contacts.findByAddress(number).then((contacts) => {
+      // For the basic display, we only need the first contact's information
+      // e.g. for 3 contacts, the app displays:
+      //
+      //    Jane Doe (+2)
+      //
+      var details = Utils.getContactDetails(number, contacts);
+      // Bug 867948: contacts null is a legitimate case, and
+      // getContactDetails is okay with that.
+      var contactName = details.title || number;
+      this.headerText.dataset.isContact = !!details.isContact;
+      this.headerText.dataset.title = contactName;
 
-        var headerContentTemplate = thread.participants.length > 1 ?
-          this.tmpl.groupHeader : this.tmpl.header;
-        this.setHeaderContent({
-          html: headerContentTemplate.interpolate({
-            name: contactName,
-            participantCount: (thread.participants.length - 1).toString()
-          })
-        });
+      var headerContentTemplate = thread.participants.length > 1 ?
+        this.tmpl.groupHeader : this.tmpl.header;
+      this.setHeaderContent({
+        html: headerContentTemplate.interpolate({
+          name: contactName,
+          participantCount: (thread.participants.length - 1).toString()
+        })
+      });
 
-        this.updateCarrier(thread, contacts);
-        resolve();
-      }.bind(this));
-    }.bind(this));
+      this.updateCarrier(thread, contacts);
+    });
   },
 
   /**
@@ -2513,17 +2507,19 @@ var ThreadUI = {
 
     if (event.target.isPlaceholder) {
       typed = event.target.textContent.trim();
-      this.searchContact(typed, this.listContacts.bind(this));
+      this.searchContact(typed).then((contacts) => {
+        this.listContacts(typed, contacts);
+      });
     }
 
     this.emit('recipientschange');
   },
 
-  exactContact: function thui_searchContact(fValue, handler) {
-    Contacts.findExact(fValue, handler.bind(null, fValue));
+  exactContact: function thui_exactContact(fValue) {
+    return Contacts.findExact(fValue);
   },
 
-  searchContact: function thui_searchContact(fValue, handler) {
+  searchContact: function thui_searchContact(fValue) {
     if (!fValue) {
       // In cases where searchContact was invoked for "input"
       // that was actually a "delete" that removed the last
@@ -2531,10 +2527,10 @@ var ThreadUI = {
       // eg. type "a", then delete it.
       // Always remove the the existing results.
       this.toggleRecipientSuggestions();
-      return;
+      return Promise.reject();
     }
 
-    Contacts.findByString(fValue, handler.bind(null, fValue));
+    return Contacts.findByString(fValue);
   },
 
   validateContact: function thui_validateContact(source, fValue, contacts) {
@@ -2655,7 +2651,7 @@ var ThreadUI = {
     }
 
     this.toggleRecipientSuggestions();
-    if (!contacts || !contacts.length) {
+    if (!contacts.length) {
       return;
     }
 
@@ -2735,9 +2731,9 @@ var ThreadUI = {
       tel = number || '';
     }
 
-    Contacts.findByAddress(number, function(results) {
-      var isContact = results && results.length;
-      var contact = results[0];
+    Contacts.findByAddress(number).then((contacts) => {
+      var isContact = contacts.length;
+      var contact = contacts[0];
       var id;
 
       var fragment;
@@ -2762,7 +2758,7 @@ var ThreadUI = {
         isContact: isContact,
         inMessage: inMessage
       });
-    }.bind(this));
+    });
   },
 
   prompt: function thui_prompt(opt) {

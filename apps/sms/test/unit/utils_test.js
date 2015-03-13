@@ -1,5 +1,5 @@
 /*global MockL10n, Utils, MockContact, FixturePhones, MockContactPhotoHelper,
-         MockContacts, MockMozPhoneNumberService, MocksHelper, Notification,
+         MockMozPhoneNumberService, MocksHelper, Notification,
          MockNotification, Threads, Promise, MockSettings,
          AssetsHelper,
          Dialog
@@ -1070,6 +1070,68 @@ suite('Utils', function() {
     });
   });
 
+  suite('Utils.basicContact', function() {
+    test('Valid contact list with phone number', function() {
+      var mockContacts = MockContact.list();
+
+      var contact = mockContacts[0];
+      var phone = contact.tel[0];
+
+      assert.deepEqual(Utils.basicContact('+346578888888', mockContacts), {
+        carrier: phone.carrier,
+        name: contact.name[0],
+        number: '+346578888888',
+        type: phone.type[0]
+      });
+    });
+
+    test('Valid single contact with phone number', function() {
+      var contact = MockContact.list()[0];
+      var phone = contact.tel[0];
+
+      assert.deepEqual(Utils.basicContact('+346578888888', contact), {
+        carrier: phone.carrier,
+        name: contact.name[0],
+        number: '+346578888888',
+        type: phone.type[0]
+      });
+    });
+
+    test('Valid contact without phone number', function() {
+      var contact = MockContact.list()[0];
+      contact.tel = [];
+
+      assert.deepEqual(Utils.basicContact('+346578888888', contact), {
+        carrier: '',
+        name: contact.name[0],
+        number: '+346578888888',
+        type: ''
+      });
+    });
+
+    test('Empty contact with phone number', function() {
+      assert.deepEqual(Utils.basicContact('+346578888888', []), {
+        carrier: '',
+        name: '+346578888888',
+        number: '+346578888888',
+        type: ''
+      });
+    });
+
+    test('Null contact with phone number', function() {
+      assert.deepEqual(Utils.basicContact('+346578888888', null), {
+        carrier: '',
+        name: '+346578888888',
+        number: '+346578888888',
+        type: ''
+      });
+    });
+
+    test('No contact and no phone number', function() {
+      assert.isNull(Utils.basicContact('', null));
+    });
+  });
+
   suite('Modal dialogs >', function() {
     var dialogMock;
     setup(function() {
@@ -1486,99 +1548,6 @@ suite('getDisplayObject', function() {
     assert.equal(data.carrier, '');
     assert.equal(data.number, value);
     assert.equal(data.email, value);
-  });
-});
-
-suite('getContactDisplayInfo', function() {
-  MocksHelperForUtilsUnitTest.attachTestHelpers();
-
-  var nativeMozL10n = navigator.mozL10n;
-
-  setup(function() {
-    navigator.mozL10n = MockL10n;
-    this.sinon.spy(Utils, 'getContactDetails');
-    this.sinon.spy(Utils, 'getDisplayObject');
-  });
-
-  teardown(function() {
-    navigator.mozL10n = nativeMozL10n;
-    Utils.getContactDetails.reset();
-    Utils.getDisplayObject.reset();
-  });
-
-  test('Valid contact with phonenumber', function(done) {
-    Utils.getContactDisplayInfo(
-      MockContacts.findByPhoneNumber.bind(MockContacts),
-      '+346578888888',
-      function onData(data) {
-        var tel = MockContact.list()[0].tel[0];
-        assert.ok(Utils.getContactDetails.called);
-        assert.deepEqual(Utils.getContactDetails.args[0][0], tel);
-        assert.ok(Utils.getDisplayObject.called);
-        assert.deepEqual(Utils.getDisplayObject.args[0][1], tel);
-        done();
-      }
-    );
-  });
-
-  test('Empty contact with phonenumber', function(done) {
-    this.sinon.stub(MockContact, 'list', function() {
-      return [];
-    });
-    Utils.getContactDisplayInfo(
-      MockContacts.findByPhoneNumber.bind(MockContacts),
-      '+348888888888',
-      function onData(data) {
-        var tel = {
-          'value': '+348888888888',
-          'type': [''],
-          'carrier': ''
-        };
-        assert.ok(Utils.getContactDetails.called);
-        assert.deepEqual(Utils.getContactDetails.args[0][0], tel);
-        assert.ok(Utils.getDisplayObject.called);
-        assert.deepEqual(Utils.getDisplayObject.args[0][1], tel);
-        done();
-      }
-    );
-  });
-
-  test('Null contact with phonenumber', function(done) {
-    this.sinon.stub(MockContact, 'list', function() {
-      return null;
-    });
-    Utils.getContactDisplayInfo(
-      MockContacts.findByPhoneNumber.bind(MockContacts),
-      '+348888888888',
-      function onData(data) {
-        var tel = {
-          'value': '+348888888888',
-          'type': [''],
-          'carrier': ''
-        };
-        assert.ok(Utils.getContactDetails.called);
-        assert.deepEqual(Utils.getContactDetails.args[0][0], tel);
-        assert.ok(Utils.getDisplayObject.called);
-        assert.deepEqual(Utils.getDisplayObject.args[0][1], tel);
-        done();
-      }
-    );
-  });
-
-  test('No contact and no phonenumber', function(done) {
-    this.sinon.stub(MockContact, 'list', function() {
-      return [];
-    });
-    Utils.getContactDisplayInfo(
-      MockContacts.findByPhoneNumber.bind(MockContacts),
-      '',
-      function onData(data) {
-        assert.isFalse(Utils.getContactDetails.called);
-        assert.isFalse(Utils.getDisplayObject.called);
-        assert.equal(data, null);
-        done();
-      }
-    );
   });
 });
 
