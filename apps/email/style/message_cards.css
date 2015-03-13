@@ -100,6 +100,9 @@ cards-message-list.after .msg-list-scrollouter {
 .msg-header-item:active {
   background-color: #b1f1ff;
 }
+.msg-header-item:focus {
+  outline: 0;
+}
 
 /*
 Default data placeholder items. To limit scrolling
