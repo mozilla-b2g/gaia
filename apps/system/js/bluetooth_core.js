@@ -1,5 +1,5 @@
 /* exported BluetoothCore */
-/* global BaseModule, LazyLoader, Bluetooth2 */
+/* global BaseModule, LazyLoader, Bluetooth1, Bluetooth2 */
 'use strict';
 
 (function() {
@@ -20,14 +20,20 @@
       // init Bluetooth module
       if (typeof(window.navigator.mozBluetooth.onattributechanged) ===
         'undefined') { // APIv1
-          window.Bluetooth.init();
-          window.BluetoothTransfer.init();
+        LazyLoader.load(['js/bluetooth.js', 'js/bluetooth_transfer.js'],
+          function() {
+            window.Bluetooth = Bluetooth1;
+            window.Bluetooth.init();
+            window.BluetoothTransfer.init();
+        });
       } else { // APIv2
         // Now only make sure statusbar works
-        // BluetoothTransfer will be done in Bug 1088591
-        LazyLoader.load(['js/bluetooth_v2.js'], function() {
-          window.Bluetooth = new Bluetooth2();
-          window.Bluetooth.start();
+        // BluetoothTransfer will be done in Bug 1093084
+        LazyLoader.load(['js/bluetooth_v2.js', 'js/bluetooth_transfer.js'],
+          function() {
+            window.BluetoothTransfer.init();
+            window.Bluetooth = new Bluetooth2();
+            window.Bluetooth.start();
         });
       }
     }

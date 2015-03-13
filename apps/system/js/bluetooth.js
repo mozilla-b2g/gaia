@@ -1,8 +1,9 @@
 /* global SettingsListener, Service, BluetoothIcon, BluetoothTransferIcon,
           BluetoothHeadphoneIcon, LazyLoader */
-/* exported Bluetooth */
+/* exported Bluetooth1 */
 'use strict';
 
+(function(exports) {
 var Bluetooth = {
   name: 'Bluetooth',
   get Profiles() {
@@ -241,3 +242,6 @@ var Bluetooth = {
     return this._settingsEnabled;
   }
 };
+
+exports.Bluetooth1 = Bluetooth;
+})(window);
