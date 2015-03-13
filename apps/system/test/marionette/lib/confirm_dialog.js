@@ -29,7 +29,12 @@ ConfirmDialog.prototype = {
   */
   confirm: function(type, button) {
     var dialog = this.getElement(type);
-    var confirmButton = dialog.findElement(button || '.confirm');
+    var confirmButton;
+
+    this.client.waitFor(function() {
+      confirmButton = dialog.findElement(button || '.confirm');
+      return confirmButton && confirmButton.displayed();
+    });
 
     // XXX: Hack to use faster polling
     var quickly = this.client.scope({ searchTimeout: 50 });
