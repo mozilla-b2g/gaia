@@ -16,6 +16,6 @@
   "dependencies": {
     "evt": "gaia-components/evt#~0.4.0",
     "smart-button": "gaia-components/smart-button",
-    "smart-banner": "smart-components/smart-banner"
+    "smart-banner": "gaia-components/smart-banner"
   }
 }
