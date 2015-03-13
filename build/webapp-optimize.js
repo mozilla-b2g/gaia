@@ -692,11 +692,13 @@ WebappOptimize.prototype.execute = function(config) {
   // ASTs ior (e.g. pseudolanguages don't have JSON ASTs associated with them).
   this.webapp.asts = {};
 
-  // remove excluded condition /^(shared|tests?)$/)
+  // Excluded condition
   var buildDirectoryFile = utils.getFile(this.webapp.buildDirectoryFilePath);
-  var files = utils.ls(buildDirectoryFile, true,
-    /^(shared|tests?)$/);
-    // We need to optimize shared pages as well
+  var files = utils.ls(buildDirectoryFile, true).filter(function(file) {
+    return !(/(shared|tests?)\//.test(file.path));
+  });
+
+  // We need to optimize shared pages as well
   var sharedPagesDir = buildDirectoryFile;
   sharedPagesDir.append('shared');
   sharedPagesDir.append('pages');

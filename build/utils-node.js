@@ -232,20 +232,16 @@ module.exports = {
     return appname.replace(' ', '-').toLowerCase().replace(/\W/g, '');
   },
 
-  ls: function(dir, recursive, pattern, include) {
+  ls: function(dir, recursive) {
     var files = [];
     if (!dir || !dir.exists()) {
       return [];
     }
-    dive(dir.path, { recursive: recursive }, function(err, filePath) {
+    dive(dir.path, { recursive: recursive }, function(err, file) {
       if (err) {
-        // Skip error
         return;
       }
-      var file = this.getFile(filePath);
-      if (!pattern || !(include ^ pattern.test(file.leafName))) {
-        files.push(file);
-      }
+      files.push(this.getFile(file));
     }.bind(this));
     return files;
   },

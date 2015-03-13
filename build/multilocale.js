@@ -536,7 +536,9 @@ function execute(options) {
     return;
   }
   var buildDirectoryFile = utils.getFile(webapp.buildDirectoryFilePath);
-  var files = utils.ls(buildDirectoryFile, true, /^tests?$/);
+  var files = utils.ls(buildDirectoryFile, true).filter(function(file) {
+    return !/tests?\//.test(file.path);
+  });
 
   l10nManager.localize(files.filter(function(file) {
     return /\.html$/.test(file.path);
