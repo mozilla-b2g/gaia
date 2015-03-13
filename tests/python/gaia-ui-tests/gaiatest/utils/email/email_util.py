@@ -13,27 +13,19 @@ class EmailUtil:
     def send(self, account, email):
         """
         account = {
-            'email': 'from@example.com',
-            'ssl': False,
             'hostname': 'smtp.example.com',
             'port': 25,
-            'username': 'username (optional)',
-            'password': 'password (optional)'}
+            'username': 'username',
+            'password': 'password'}
         email = {
             'from': 'from@example.com',
             'to': 'to@example.com',
             'subject': 'Subject',
             'message': 'Message'}
         """
-        if account.get('ssl'):
-            smtp = smtplib.SMTP_SSL(account['hostname'], account['port'])
-        else:
-            smtp = smtplib.SMTP(account['hostname'], account['port'])
+        smtp = smtplib.SMTP_SSL(account['hostname'], account['port'])
         smtp.set_debuglevel(False)
-
-        authentication = (account.get('username'), account.get('password'))
-        if all(authentication):
-            smtp.login(*authentication)
+        smtp.login(account['username'], account['password'])
 
         message = MIMEText(email.get('message'))
         message['Subject'] = email.get('subject')

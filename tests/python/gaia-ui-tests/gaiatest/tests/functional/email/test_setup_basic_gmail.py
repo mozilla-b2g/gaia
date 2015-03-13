@@ -5,15 +5,16 @@
 from marionette import SkipTest
 
 from gaiatest import GaiaTestCase
-from gaiatest import GaiaTestEnvironment
 from gaiatest.apps.email.app import Email
 
 
 class TestSetupGmail(GaiaTestCase):
 
     def setUp(self):
-        if not GaiaTestEnvironment(self.testvars).email.get('gmail'):
-            raise SkipTest('Gmail account details not present in test variables.')
+        try:
+            self.testvars['email']['gmail']
+        except KeyError:
+            raise SkipTest('account details not present in test variables')
 
         GaiaTestCase.setUp(self)
         self.connect_to_local_area_network()
@@ -24,8 +25,8 @@ class TestSetupGmail(GaiaTestCase):
     def test_setup_basic_gmail(self):
         # setup basic gmail account
         self.email.basic_setup_email('Gmail account',
-                                     self.environment.email['gmail']['email'],
-                                     self.environment.email['gmail']['password'])
+                                     self.testvars['email']['gmail']['email'],
+                                     self.testvars['email']['gmail']['password'])
 
         # check header area
         self.assertTrue(self.email.header.is_compose_visible)

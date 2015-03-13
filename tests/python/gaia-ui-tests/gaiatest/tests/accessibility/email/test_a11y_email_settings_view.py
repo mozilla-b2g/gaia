@@ -5,15 +5,16 @@
 from marionette import SkipTest
 
 from gaiatest import GaiaTestCase
-from gaiatest import GaiaTestEnvironment
 from gaiatest.apps.email.app import Email
 
 
 class TestEmailSettingsViewAccessibility(GaiaTestCase):
 
     def setUp(self):
-        if not GaiaTestEnvironment(self.testvars).email.get('gmail'):
-            raise SkipTest('Gmail account details not present in test variables.')
+        try:
+            self.testvars['email']['gmail']
+        except KeyError:
+            raise SkipTest('account details not present in test variables')
 
         GaiaTestCase.setUp(self)
         self.connect_to_local_area_network()
@@ -22,9 +23,9 @@ class TestEmailSettingsViewAccessibility(GaiaTestCase):
         self.email.launch()
 
         # setup basic gmail account
-        self.email.basic_setup_email('Gmail account',
-                                     self.environment.email['gmail']['email'],
-                                     self.environment.email['gmail']['password'])
+        self.email.basic_setup_email(self.testvars['email']['gmail']['name'],
+                                     self.testvars['email']['gmail']['email'],
+                                     self.testvars['email']['gmail']['password'])
 
     def test_a11y_email_settings_view(self):
         # Make sure message list screen is accessible.

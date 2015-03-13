@@ -7,18 +7,17 @@ import time
 from marionette import SkipTest
 
 from gaiatest import GaiaTestCase
-from gaiatest import GaiaTestEnvironment
 from gaiatest.apps.email.app import Email
 
 
 class TestSetupAndSendIMAPEmail(GaiaTestCase):
 
     def setUp(self):
-        email = GaiaTestEnvironment(self.testvars).email
-        if not email.get('imap'):
-            raise SkipTest('IMAP account details not present in test variables.')
-        elif not email.get('smtp'):
-            raise SkipTest('SMTP account details not present in test variables.')
+        try:
+            self.testvars['email']['imap']
+            self.testvars['email']['smtp']
+        except KeyError:
+            raise SkipTest('account details not present in test variables')
 
         GaiaTestCase.setUp(self)
         self.connect_to_local_area_network()
@@ -32,8 +31,8 @@ class TestSetupAndSendIMAPEmail(GaiaTestCase):
         https://moztrap.mozilla.org/manage/case/6114/
         """
         # setup IMAP account
-        self.email.setup_IMAP_email(self.environment.email['imap'],
-                                    self.environment.email['smtp'])
+        self.email.setup_IMAP_email(self.testvars['email']['imap'],
+                                    self.testvars['email']['smtp'])
 
         # check header area
         self.assertTrue(self.email.header.is_compose_visible)
@@ -56,7 +55,7 @@ class TestSetupAndSendIMAPEmail(GaiaTestCase):
         _body = 'b%s' % curr_time
         new_email = self.email.header.tap_compose()
 
-        new_email.type_to(self.environment.email['imap']['email'])
+        new_email.type_to(self.testvars['email']['imap']['email'])
         new_email.type_subject(_subject)
         new_email.type_body(_body)
 
