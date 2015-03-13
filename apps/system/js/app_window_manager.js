@@ -684,7 +684,8 @@
 
     _handle_launchactivity: function(evt) {
       if (evt.detail.isActivity && evt.detail.inline && this._activeApp) {
-        this._activeApp.broadcast('launchactivity', evt.detail);
+        this._activeApp.getTopMostWindow().broadcast('launchactivity',
+          evt.detail);
         return false;
       }
       return true;

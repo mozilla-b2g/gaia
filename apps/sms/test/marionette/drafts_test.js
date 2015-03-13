@@ -60,7 +60,7 @@ marionette('Messages Drafts', function() {
     messagesApp.switchTo();
     messagesApp.performHeaderAction();
 
-    messagesApp.selectAppMenuOption('Save as Draft');
+    messagesApp.selectAppMenuOption('Replace existing Draft');
   }
 
   function assertDraft(draft) {

@@ -1499,6 +1499,7 @@ suite('system/AppWindow', function() {
 
       var stubApp2SetVisible = this.sinon.stub(app2, 'setVisible');
       app1.frontWindow = app2;
+      this.sinon.stub(app2, 'isActive').returns(true);
       app2.rearWindow = app1;
 
       app1.setVisible(true);
@@ -1506,6 +1507,19 @@ suite('system/AppWindow', function() {
 
       app1.setVisible(false);
       assert.isTrue(stubApp2SetVisible.calledWith(false));
+    });
+
+    test('doNotPropagate', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var app2 = new AppWindow(fakeAppConfig2);
+      app1.setVisible(false);
+
+      this.sinon.stub(app2, 'setVisible');
+      app1.frontWindow = app2;
+      this.sinon.stub(app2, 'isActive').returns(true);
+      app2.rearWindow = app1;
+      app1.setVisible(true, true);
+      assert.isFalse(app2.setVisible.called);
     });
 
     test('setVisible: homescreen', function() {

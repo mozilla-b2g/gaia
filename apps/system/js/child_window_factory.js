@@ -230,6 +230,15 @@
     return true;
   };
 
+  ChildWindowFactory.prototype._handle_child__opened = function(evt) {
+    // Do nothing if we are not active or we are being killing.
+    if (!this.app.isVisible() || this.app._killed) {
+      return;
+    }
+
+    this.app.setVisible(false, true);
+  };
+
   ChildWindowFactory.prototype._handle_child__closing = function(evt) {
     // Do nothing if we are not active or we are being killing.
     if (!this.app.isVisible() || this.app._killed) {
@@ -237,7 +246,10 @@
     }
 
     this.app.setOrientation();
-    this.app.requestForeground();
+    if (Service.query('getTopMostWindow').getBottomMostWindow() ===
+        this.app.getBottomMostWindow()) {
+      this.app.setVisible(true, true);
+    }
 
     // An activity handled by ActivityWindow is always an inline activity.
     // All window activities are handled by AppWindow. All inline
@@ -261,6 +273,7 @@
     top.setNFCFocus(false);
     var activity = new ActivityWindow(configuration, top);
     activity.element.addEventListener('_closing', this);
+    activity.element.addEventListener('_opened', this);
     activity.open();
     // Make topmost window browser element invisibile to screen reader.
     top._setVisibleForScreenReader(false);
