@@ -102,82 +102,24 @@
    */
   BaseModule.STATES = [];
 
-  BaseModule.SIDE_MODULES = [];
-
-  var SidemoduleMixin = {
-    _startSideModules: function() {
-      if (!this.constructor.SIDE_MODULES ||
-          this.constructor.SIDE_MODULES.length === 0) {
-        this.debug('no side modules. back.');
-        return;
-      }
-
-      var submodules = this.constructor.SIDE_MODULES.slice();
-      var unloaded = [];
-      submodules.forEach(function(submodule) {
-        if (BaseModule.defined(submodule) || window[submodule]) {
-          var name = BaseModule.lowerCapital(submodule);
-          if (!this[name]) {
-            this._initialSideModule(name, submodule);
-          }
-        } else {
-          unloaded.push(submodule);
-        }
-      }, this);
-
-      if (unloaded.length === 0) {
-        this.__side_module_loaded && this.__side_module_loaded();
-        return;
-      }
-
-      this.debug('lazy loading side modules: ' +
-        unloaded.concat());
-      BaseModule.lazyLoad(unloaded).then(function() {
-        this.debug('lazy loaded side modules: ' +
-          unloaded.concat());
-        unloaded.forEach(function(module) {
-          var moduleName = BaseModule.lowerCapital(module);
-          if (!this[moduleName]) {
-            this._initialSideModule(moduleName, module);
-          }
-        }, this);
-        this.__side_module_loaded && this.__side_module_loaded();
-      }.bind(this)).catch(function(err) {
-        console.error(err);
-      });
-    },
-
-    _initialSideModule: function(moduleName, module) {
-      var parent = this.constructor.SIDE_MODULE_PARENT || this;
-      var constructor = AVAILABLE_MODULES[module] || window[module];
-      if (typeof(constructor) == 'function') {
-        this.debug('instantiating submodule: ' + moduleName);
-        parent[moduleName] = new constructor(this);
-        // If there is a custom submodule loaded handler, call it.
-        // Otherwise we will start the submodule right away.
-        if (typeof(this['_' + moduleName + '_loaded']) == 'function') {
-          this['_' + moduleName + '_loaded']();
-        } else if (this.lifeCycleState !== 'stopped') {
-          parent[moduleName].start && parent[moduleName].start();
-        }
-      }
-    },
-
-    _stopSideModules: function() {
-      if (!this.constructor.SIDE_MODULES) {
-        return;
-      }
-      this.constructor.SIDE_MODULES.forEach(function(module) {
-        var moduleName = BaseModule.lowerCapital(module);
-        if (this[moduleName]) {
-          this.debug('Stopping submodule: ' + moduleName);
-          this[moduleName].stop && this[moduleName].stop();
-        }
-      }, this);
-    }
-  };
-
   var SubmoduleMixin = {
+    // We could dynamically add and load new modules on demand.
+    loadWhenIdle: function(modules, time) {
+      return new Promise(function(resolve) {
+        this.constructor.SUB_MODULES =
+          this.constructor.SUB_MODULES.concat(modules);
+        var self = this;
+        var idleObserver = {
+          time: time || 10,
+          onidle: function() {
+            navigator.removeIdleObserver(idleObserver);
+            self._startSubModules();
+            resolve();
+          }
+        };
+        navigator.addIdleObserver(idleObserver);
+      }.bind(this));
+    },
     START_SUB_MODULES_ON_START: true,
     /**
      * Helper function to load and start the submodules defined in
@@ -442,9 +384,6 @@
     }
     if (constructor.SUB_MODULES) {
       BaseModule.mixin(constructor.prototype, SubmoduleMixin);
-    }
-    if (constructor.SIDE_MODULES) {
-      BaseModule.mixin(constructor.prototype, SidemoduleMixin);
     }
     if (prototype) {
       BaseModule.mixin(constructor.prototype, prototype);

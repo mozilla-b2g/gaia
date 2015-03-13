@@ -229,39 +229,6 @@ suite('system/BaseModule', function() {
       });
   });
 
-  suite('Sidemodule management', function() {
-    var fakeCore, fakePromise;
-    setup(function() {
-      BaseModule.__clearDefined();
-    });
-    setup(function() {
-      fakePromise = new MockPromise();
-      this.sinon.stub(BaseModule, 'lazyLoad', function() {
-        return fakePromise;
-      });
-      window.FakeCore = function() {};
-      window.FakeCore.SIDE_MODULES = ['FakeBluetoothCore'];
-      BaseModule.create(window.FakeCore, {
-        name: 'FakeCore'
-      });
-      window.FakeBluetoothCore = function() {};
-      BaseModule.create(window.FakeBluetoothCore, {
-        name: 'FakeBluetoothCore'
-      });
-      fakeCore = new window.FakeCore();
-      fakeCore.start();
-    });
-
-    test('Side modules will not be started by default', function() {
-      assert.isUndefined(fakeCore.fakeBluetoothCore);
-    });
-
-    test('Side modules will be started', function() {
-      fakeCore._startSideModules();
-      assert.isDefined(fakeCore.fakeBluetoothCore);
-    });
-  });
-
   suite('Submodule management', function() {
     var fakeAppWindowManager, fakePromise;
     setup(function() {

@@ -13,43 +13,6 @@
     'js/media_playback.js'
   ];
 
-  Core.SIDE_MODULES = [
-    'NotificationScreen',
-    'AirplaneMode',
-    'NotificationsSystemMessage',
-    'Accessibility',
-    'AlarmMonitor',
-    'DebuggingMonitor',
-    'TimeCore',
-    'GeolocationCore',
-    'TetheringMonitor',
-    'UsbCore',
-    'AppMigrator',
-    'TextSelectionDialog',
-    'ExternalStorageMonitor',
-    'DeviceStorageWatcher',
-    'SleepMenu',
-    'AppUsageMetrics',
-    'CellBroadcastSystem',
-    'CpuManager',
-    'HomeGesture',
-    'SourceView',
-    'TtlView',
-    'MediaRecording',
-    'QuickSettings',
-    'Shortcuts',
-    'UsbStorage',
-    'MobileIdManager', // nonblocking
-    'FindmydeviceLauncher', // nonblocking
-    'FxAccountsManager', // nonblocking
-    'FxAccountsUI', // nonblocking
-    'NetworkActivity',
-    'CrashReporter',
-    'Screenshot',
-    'SoundManager',
-    'CustomDialogService'
-  ];
-
   Core.SUB_MODULES = [
     'OrientationManager',
     'HierarchyManager',
@@ -99,27 +62,54 @@
         }
       }
 
-      var self = this;
-      var idleObserver = {
-        time: 10,
-        onidle: function() {
-          navigator.removeIdleObserver(idleObserver);
-          self._startSideModules();
-          // XXX: find a proper launcher for these modules
-          LazyLoader.load([
-            'js/download/download_manager.js',
-            'js/payment.js',
-            'js/identity.js',
-            'js/devtools/logshake.js',
-            'js/devtools/remote_debugger.js',
-            'shared/js/date_time_helper.js'
-          ]).then(function() {
-            self.remoteDebugger = new RemoteDebugger();
-            // self.remoteDebugger.start();
-          });
-        }
-      };
-      navigator.addIdleObserver(idleObserver);
+      this.loadWhenIdle([
+        'NotificationScreen',
+        'AirplaneMode',
+        'NotificationsSystemMessage',
+        'Accessibility',
+        'AlarmMonitor',
+        'DebuggingMonitor',
+        'TimeCore',
+        'GeolocationCore',
+        'TetheringMonitor',
+        'UsbCore',
+        'AppMigrator',
+        'TextSelectionDialog',
+        'ExternalStorageMonitor',
+        'DeviceStorageWatcher',
+        'SleepMenu',
+        'AppUsageMetrics',
+        'CellBroadcastSystem',
+        'CpuManager',
+        'HomeGesture',
+        'SourceView',
+        'TtlView',
+        'MediaRecording',
+        'QuickSettings',
+        'Shortcuts',
+        'UsbStorage',
+        'MobileIdManager',
+        'FindmydeviceLauncher',
+        'FxAccountsManager',
+        'FxAccountsUI',
+        'NetworkActivity',
+        'CrashReporter',
+        'Screenshot',
+        'SoundManager',
+        'CustomDialogService'
+      ]).then(function() {
+        return LazyLoader.load([
+          'js/download/download_manager.js',
+          'js/payment.js',
+          'js/identity.js',
+          'js/devtools/logshake.js',
+          'js/devtools/remote_debugger.js',
+          'shared/js/date_time_helper.js'
+        ]);
+      }).then(function() {
+        this.remoteDebugger = new RemoteDebugger();
+        this.remoteDebugger.start();
+      }.bind(this));
     },
 
     _start: function() {

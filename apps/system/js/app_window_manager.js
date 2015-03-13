@@ -69,17 +69,6 @@
   AppWindowManager.IMPORTS = [
     'shared/js/tagged.js' // Used by taskCard, maybe everything needs it later
   ];
-  AppWindowManager.SIDE_MODULES = [
-    'StackManager',
-    'SheetsTransition',
-    'EdgeSwipeDetector',
-    'TaskManager',
-    'Places',
-    'SuspendingAppPriorityManager',
-    'AppInstallManager',
-    'Updatable',
-    'UpdateManager'
-  ];
   AppWindowManager.SUB_MODULES = [
     'FtuLauncher',
     'AppWindowFactory',
@@ -109,15 +98,17 @@
 
 
     __sub_module_loaded: function() {
-      var self = this;
-      var idleObserver = {
-        time: 10,
-        onidle: function() {
-          navigator.removeIdleObserver(idleObserver);
-          self._startSideModules();
-        }
-      };
-      navigator.addIdleObserver(idleObserver);
+      this.loadWhenIdle([
+        'StackManager',
+        'SheetsTransition',
+        'EdgeSwipeDetector',
+        'TaskManager',
+        'Places',
+        'SuspendingAppPriorityManager',
+        'AppInstallManager',
+        'Updatable',
+        'UpdateManager'
+      ]);
     },
 
     isActive: function() {
