@@ -272,7 +272,7 @@
       this.muteIcon = new MuteIcon(this);
       this.muteIcon.start();
     }.bind(this)).catch(function(err) {
-      console.error(err); 
+      console.error(err);
     });
 
     // mozChromeEvent fired from Gecko is earlier been loaded,

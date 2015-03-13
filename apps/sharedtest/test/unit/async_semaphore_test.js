@@ -1,7 +1,7 @@
 'use strict';
 /* global AsyncSemaphore */
 
-requireApp('system/js/async_semaphore.js');
+require('/shared/js/async_semaphore.js');
 
 var async_sem, async_sem_for_ctor;
 
