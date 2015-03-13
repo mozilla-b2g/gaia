@@ -157,8 +157,8 @@ InputMethodGlue.prototype.endComposition = function(text) {
   this.app.endComposition(text);
 };
 
-InputMethodGlue.prototype.sendKey = function(keyCode, isRepeat) {
-  return this.app.sendKey(keyCode, isRepeat);
+InputMethodGlue.prototype.sendKey = function(keyCode, isRepeat, upperKeyCode) {
+  return this.app.sendKey(keyCode, isRepeat, upperKeyCode);
 };
 
 // XXX deprecated
