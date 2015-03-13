@@ -1,6 +1,6 @@
 {
   "name": "menu-group",
-  "homepage": "https://github.com/smart-components/menu-group",
+  "homepage": "https://github.com/gaia-components/menu-group",
   "main": "script.js",
   "license": "MPL",
   "ignore": [
@@ -13,13 +13,17 @@
     "LICENSE",
     "README.md"
   ],
-  "_release": "466a140045",
+  "devDependencies": {
+    "evt": "gaia-components/evt#~0.4.0",
+    "smart-button": "gaia-components/smart-button"
+  },
+  "_release": "088b750c3f",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "466a14004550da436d5f288d1f7d21e7cd8cd4b6"
+    "commit": "088b750c3fd32c898f2fc30125a41f59eaee1257"
   },
-  "_source": "git://github.com/smart-components/menu-group.git",
+  "_source": "git://github.com/gaia-components/menu-group.git",
   "_target": "*",
-  "_originalSource": "smart-components/menu-group"
+  "_originalSource": "gaia-components/menu-group"
 }
