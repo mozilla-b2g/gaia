@@ -443,19 +443,7 @@
       this.setLockMessage(value);
     }).bind(this));
 
-
-    // FIXME(ggp) this is currently used by Find My Device
-    // to force locking. Should be replaced by a proper IAC API in
-    // bug 992277. We don't need to use SettingsListener because
-    // we're only interested in changes to the setting, and don't
-    // keep track of its value.
-    navigator.mozSettings.addObserver('lockscreen.lock-immediately',
-      (function(event) {
-      if (event.settingValue === true) {
-        this.lockIfEnabled(true);
-      }
-    }).bind(this));
-
+    this.setupRemoteLock();
     this.notificationsContainer.addEventListener('scroll', this);
 
     navigator.mozL10n.ready(this.l10nInit.bind(this));
@@ -1109,6 +1097,22 @@
       this.kPassCodeErrorTimeout = 500;
       this.kPassCodeErrorCounter = 0;
       // delegate the unlocking function call to panel state.
+    };
+
+  LockScreen.prototype.setupRemoteLock =
+    function() {
+      // FIXME(ggp) this is currently used by Find My Device
+      // to force locking. Should be replaced by a proper IAC API in
+      // bug 992277. We don't need to use SettingsListener because
+      // we're only interested in changes to the setting, and don't
+      // keep track of its value.
+      navigator.mozSettings.addObserver('lockscreen.lock-immediately',
+        (function(event) {
+        if (event.settingValue === true) {
+          this.lockIfEnabled(true);
+          this.refreshClock(new Date());
+        }
+      }).bind(this));
     };
 
   /** @exports LockScreen */

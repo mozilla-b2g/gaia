@@ -433,10 +433,31 @@ suite('system/LockScreen >', function() {
   });
 
   test('Lock when asked via lock-immediately setting', function() {
-    window.MockNavigatorSettings.mTriggerObservers(
-      'lockscreen.lock-immediately', {settingValue: true});
-    assert.isTrue(subject.locked,
+    var listener;
+    var stubLockIfEnabled = this.sinon.stub(subject, 'lockIfEnabled');
+    this.sinon.stub(subject, 'refreshClock');
+    this.sinon.stub(navigator.mozSettings, 'addObserver', function(type, cb) {
+      listener = cb;
+    });
+    subject.setupRemoteLock();
+    // So we now 'triggers' it.
+    listener({ settingValue: true });
+    assert.isTrue(stubLockIfEnabled.calledWith(true),
       'it didn\'t lock after the lock-immediately setting got changed');
+  });
+
+  test('Refresh clock when locked via lock-immediately setting', function() {
+    var listener;
+    this.sinon.stub(subject, 'lockIfEnabled');
+    var stubRefreshClock = this.sinon.stub(subject, 'refreshClock');
+    this.sinon.stub(navigator.mozSettings, 'addObserver', function(type, cb) {
+      listener = cb;
+    });
+    subject.setupRemoteLock();
+    // So we now 'triggers' it.
+    listener({ settingValue: true });
+    assert.isTrue(stubRefreshClock.called,
+      'it didn\'t refresh the clock after the lock-immediately event');
   });
 
   // XXX: Test 'Screen off: by proximity sensor'.
