@@ -79,7 +79,7 @@ EventBase.prototype = {
    * Dismiss modification and go back to previous screen.
    */
   cancel: function() {
-    window.history.back();
+    router.go(this.returnTop());
   },
 
   /**
@@ -291,13 +291,13 @@ EventBase.prototype = {
     var last = router.last;
 
     if (last && last.path) {
-      if (!(/^\/(day|event|month|week)/.test(last.path))) {
+      if (!(/^#?\/(day|event|month|week)\//.test(last.path))) {
         // We came from some place suspicious so fall back to default.
         this._returnTo = this.DEFAULT_VIEW;
       } else {
         // Return to the default view if we just added an event.
         // Else go back to where we came from.
-        this._returnTo = /^\/event\/add\//.test(last.path) ?
+        this._returnTo = /^#?\/event\/add\//.test(last.path) ?
             this.DEFAULT_VIEW : last.path;
       }
     }

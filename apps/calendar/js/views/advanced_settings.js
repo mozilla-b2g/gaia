@@ -141,7 +141,7 @@ AdvancedSettings.prototype = {
   onCreateAccount: function(event) {
     event.stopPropagation();
     event.preventDefault();
-    router.show(event.target.getAttribute('href'));
+    router.show(event.target.dataset.href);
   },
 
   _addAccount: function(id, model) {

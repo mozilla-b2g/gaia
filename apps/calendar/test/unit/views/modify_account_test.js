@@ -323,7 +323,7 @@ suite('Views.ModifyAccount', function() {
 
     setup(function() {
       calledWith = null;
-      subject.completeUrl = '/settings';
+      subject.completeUrl = '#/settings';
       FakePage.shown = null;
 
       subject.accountHandler.send = function() {

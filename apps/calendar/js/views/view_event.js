@@ -29,13 +29,6 @@ ViewEvent.prototype = {
     EventBase.prototype._initEvents.apply(this, arguments);
   },
 
-  /**
-   * Dismiss modification and go back to previous screen.
-   */
-  cancel: function() {
-    router.go(this.returnTop());
-  },
-
   primary: function(event) {
     if (event) {
       event.preventDefault();

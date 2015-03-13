@@ -196,7 +196,7 @@ suite('Views.SingleDay', function() {
     assert.equal(busy.style.width, '50%', '1: width');
     assert.equal(busy.style.left, '50%', '1: left');
     assert.include(
-      busy.href, '/event/show/' + data.basic[0].busytime._id, '1: href');
+      busy.href, '#/event/show/' + data.basic[0].busytime._id, '1: href');
 
     var labels = busy.getAttribute('aria-labelledby');
     assert.include(labels, makeFirstEventID('title'), '1: label title');
@@ -241,7 +241,7 @@ suite('Views.SingleDay', function() {
     assert.equal(busy.style.width, '50%', '2: width');
     assert.equal(busy.style.left, '0%', '2: left');
     assert.include(
-      busy.href, '/event/show/' + data.basic[1].busytime._id, '2: href');
+      busy.href, '#/event/show/' + data.basic[1].busytime._id, '2: href');
 
     labels = busy.getAttribute('aria-labelledby');
     assert.include(labels, makeSecondEventID('title'), '2: label title');
@@ -290,7 +290,7 @@ suite('Views.SingleDay', function() {
         'style="border-color: rgb(0, 255, 204); background-color: ' +
         'rgba(0, 255, 204, 0.2);" ' +
           'class="md__event is-allday" ' +
-          'href="/event/show/Curabitur-0-00-0-00">' +
+          'href="#/event/show/Curabitur-0-00-0-00">' +
         '<span id="' + makeAllDayEventID('title') + '" ' +
           'class="md__event-title">Curabitur</span>' +
         '<span id="' + makeAllDayEventID('location') + '" ' +
@@ -320,7 +320,7 @@ suite('Views.SingleDay', function() {
         makeFirstEventID('description') + '" ' +
         'style="border-color: rgb(0, 255, 204); background-color: ' +
         'rgba(0, 255, 204, 0.2); height: 49.9px; top: 250px;" ' +
-        'class="md__event" href="/event/show/Lorem-Ipsum-5-00-6-00">' +
+        'class="md__event" href="#/event/show/Lorem-Ipsum-5-00-6-00">' +
         '<span id="' + makeFirstEventID('title') + '" ' +
           'class="md__event-title">Lorem Ipsum</span>' +
         '<span id="' + makeFirstEventID('location') + '" ' +
@@ -339,7 +339,7 @@ suite('Views.SingleDay', function() {
         'style="border-color: rgb(0, 255, 204); background-color: ' +
         'rgba(0, 255, 204, 0.2); height: 549.9px; top: 300px;" ' +
         'class="md__event has-alarms" ' +
-        'href="/event/show/Maecennas-6-00-17-00">' +
+        'href="#/event/show/Maecennas-6-00-17-00">' +
         '<span id="' + makeSecondEventID('title') + '" ' +
           'class="md__event-title">Maecennas</span>' +
         '<span id="' + makeSecondEventID('location') + '" ' +

@@ -26,7 +26,7 @@ suite('Templates.Account', function() {
     var output = renderHTML('account', { id: '1' });
 
     assert.include(output, 'li id="account-1" role="presentation"');
-    assert.include(output, 'a href="/update-account/1" role="option"');
+    assert.include(output, 'a href="#/update-account/1" role="option"');
   });
 });
 

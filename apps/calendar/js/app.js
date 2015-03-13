@@ -162,42 +162,6 @@ module.exports = {
     window.location.href = this.startingURL;
   },
 
-  _routes: function() {
-
-    /* routes */
-    router.state('/week/', 'Week');
-    router.state('/day/', 'Day');
-    router.state('/month/', ['Month', 'MonthDayAgenda']);
-    router.modifier('/settings/', 'Settings', { clear: false });
-    router.modifier('/advanced-settings/', 'AdvancedSettings', {
-      color: 'settings'
-    });
-
-    router.state('/alarm-display/:id', 'ViewEvent', { path: false });
-
-    router.state('/event/add/', 'ModifyEvent');
-    router.state('/event/edit/:id', 'ModifyEvent');
-    router.state('/event/show/:id', 'ViewEvent');
-
-    router.modifier('/select-preset/', 'CreateAccount');
-    router.modifier('/create-account/:preset', 'ModifyAccount');
-    router.modifier('/update-account/:id', 'ModifyAccount');
-
-    router.start();
-
-    // at this point the tabs should be interactive and the router ready to
-    // handle the path changes (meaning the user can start interacting with
-    // the app)
-    performance.chromeInteractive();
-
-    var pathname = window.location.pathname;
-    // default view
-    if (pathname === '/index.html' || pathname === '/') {
-      router.go('/month/');
-    }
-
-  },
-
   _initControllers: function() {
     // controllers can only be initialized after db.load
 
@@ -264,7 +228,7 @@ module.exports = {
     // app frame
     performance.domLoaded();
 
-    this._routes();
+    router.start();
 
     nextTick(() => this.view('Errors'));
 
