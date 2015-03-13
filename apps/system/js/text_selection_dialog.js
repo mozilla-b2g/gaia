@@ -1,24 +1,24 @@
-/* global layoutManager, SettingsListener */
+/* global layoutManager, SettingsListener, StatusBar */
 'use strict';
 (function(exports) {
   var DEBUG = false;
+  var _id = 0;
   /**
    * Text Selection Dialog of the AppWindow
    */
 
-  var TextSelectionDialog = function () {
-    this.containerElement =
+  var TextSelectionDialog = function (app) {
+    this.app = app;
+    this.containerElement = app ? app.element :
       document.getElementById('text-selection-dialog-root');
+    this.instanceID = _id++;
     this.event = null;
     this._enabled = false;
     this._shortcutTimeout = null;
     this._injected = false;
     this._hasCutOrCopied = false;
-    this._ignoreSelectionChange = false;
     this._isCommandSendable = false;
     this._transitionState = 'closed';
-    this._scrolling = false;
-    this._isSelectionVisible = true;
     this.textualmenuDetail = null;
     SettingsListener.observe('copypaste.enabled', true,
       function onObserve(value) {
@@ -71,12 +71,11 @@
       return;
     }
     this._enabled = true;
-    window.addEventListener('hierarchychanged', this);
-    window.addEventListener('activeappchanged', this);
-    window.addEventListener('home', this);
-    window.addEventListener('mozChromeEvent', this);
-    window.addEventListener('value-selector-shown', this);
-    window.addEventListener('value-selector-hidden', this);
+    if (this.app) {
+      this.app.element.addEventListener('mozbrowsercaretstatechanged', this);
+    } else {
+      window.addEventListener('mozChromeEvent', this);
+    }
   };
 
   TextSelectionDialog.prototype.stop = function tsd_stop() {
@@ -84,12 +83,11 @@
       return;
     }
     this._enabled = false;
-    window.removeEventListener('hierachychanged', this);
-    window.removeEventListener('activeappchanged', this);
-    window.removeEventListener('home', this);
-    window.removeEventListener('mozChromeEvent', this);
-    window.removeEventListener('value-selector-shown', this);
-    window.removeEventListener('value-selector-hidden', this);
+    if (this.app) {
+      this.app.element.removeEventListener('mozbrowsercaretstatechanged', this);
+    } else {
+      window.removeEventListener('mozChromeEvent', this);
+    }
   };
 
   TextSelectionDialog.prototype.debug = function tsd_debug(msg) {
@@ -101,141 +99,81 @@
 
   TextSelectionDialog.prototype.handleEvent = function tsd_handleEvent(evt) {
     switch (evt.type) {
-      case 'home':
-      case 'activeappchanged':
-      case 'hierarchychanged':
-        this.close();
-        break;
-      case 'value-selector-shown':
-        this._ignoreSelectionChange = true;
-        break;
-      case 'value-selector-hidden':
-        this._ignoreSelectionChange = false;
+      case 'mozbrowsercaretstatechanged':
+        evt.preventDefault();
+        evt.stopPropagation();
+        this._handleCaretStateChanged(evt.detail);
         break;
       case 'mozChromeEvent':
         switch (evt.detail.type) {
-          case 'selectionstatechanged':
-            if (this._ignoreSelectionChange) {
-              return;
-            }
+          case 'caretstatechanged':
             evt.preventDefault();
             evt.stopPropagation();
-
-            var detail = evt.detail.detail;
-            if (!detail) {
-              return;
-            }
-            this.debug('on receive selection change event');
-            this.debug(JSON.stringify(detail));
-
-            this._isSelectionVisible = detail.visible;
-            // Separate collapse mode and selection mode for easier handling.
-            if (detail.isCollapsed) {
-              this._onCollapsedMode(detail);
-            } else {
-              this._onSelectionMode(detail);
-
-            }
-            break;
-          case 'scrollviewchange':
-            this.debug('scrollviewchange');
-            this.debug(JSON.stringify(evt.detail.detail));
-            if (evt.detail.detail.state === 'started' &&
-                this._transitionState === 'opened') {
-              this._changeTransitionState('closed');
-              this._scrolling = true;
-            } else if (evt.detail.detail.state === 'stopped' &&
-                       this._scrolling === true) {
-              this._scrolling = false;
-              if (this._isSelectionVisible) {
-                this.updateDialogPosition();
-              }
-            }
-            break;
-          case 'touchcarettap':
-            // We'll remove this event handler after bug 1120750 is merged.
-            this.debug('touchcarettap');
-            this.show(this.textualmenuDetail);
-            this._triggerShortcutTimeout();
+            this._handleCaretStateChanged(evt.detail.detail);
             break;
         }
     }
   };
 
-  TextSelectionDialog.prototype._onCollapsedMode =
-    function tsd__onCollapsedMode(detail) {
-      var states = detail.states;
-      var commands = detail.commands;
-      this.textualmenuDetail = detail;
-      // User can tap on empty column within shortcut timeout or simply tap on
-      // caret to launch bubble.
-      if (states.indexOf('taponcaret') !== -1 ||
-          (states.indexOf('mouseup') !== -1 && this._hasCutOrCopied) ||
-          (this._transitionState === 'opened' &&
-           states.indexOf('updateposition') !== -1 )) {
-        // In collapsed mode, only paste option will be displaed if we have
-        // copied or cut before.
-        commands.canSelectAll = false;
-        this.show(detail);
-        this._triggerShortcutTimeout();
-      } else {
-        this.hide();
-      }
-    };
-
-  TextSelectionDialog.prototype._onSelectionMode =
-    function tsd__onSelectionMode(detail) {
-      var rect = detail.rect;
-      var states = detail.states;
-      var commands = detail.commands;
-      var rectHeight = rect.top - rect.bottom;
-      var rectWidth = rect.right - rect.left;
-
-      if (!this._isSelectionVisible) {
-        this.hide();
+  TextSelectionDialog.prototype._handleCaretStateChanged =
+    function tsd__handleCaretStateChanged(detail) {
+      if (!detail) {
         return;
       }
-      // If current element lost focus, we should hide the bubble.
-      if (states.indexOf('blur') !== -1) {
-        this.hide();
-        return;
-      }
-
-      // We should hide the bubble when user call selection.collapseToEnd() by
-      // script.
-      if (states.indexOf('collapsetoend') !== -1) {
-        this.hide();
-        return;
-      }
-
-      if (states.indexOf('mouseup') !== -1 && rectHeight === 0 &&
-          rectWidth === 0) {
-        this.hide();
-        return;
-      }
-
-      // We should not do anything if below cases happen.
-      if (states.length === 0 || (
-          rectHeight === 0 && rectWidth === 0) ||
-          !(commands.canPaste || commands.canCut || commands.canSelectAll ||
-            commands.canCopy)
-        ) {
-        return;
-      }
-
+      this.debug('on receive caret state change event');
+      this.debug(JSON.stringify(detail));
       if (!this._injected) {
         this.render();
         this._injected = true;
       }
-
-      if (states.indexOf('selectall') !== -1 ||
-          states.indexOf('mouseup') !== -1 ||
-          (states.indexOf('updateposition') !== -1 &&
-           this.textualmenuDetail != null)) {
-        this.show(detail);
+      if (detail.reason === 'visibilitychange' && !detail.caretVisibe) {
+         this.hide();
+         return;
+      }
+      if (detail.reason === 'presscaret') {
+        this.hide();
         return;
       }
-      this.hide();
+      if (!detail.selectionVisible && !detail.caretVisible) {
+        this.hide();
+        return;
+      }
+      if (detail.collapsed) {
+        this._onCollapsedMode(detail);
+      } else {
+        this._onSelectionMode(detail);
+      }
+    };
+
+  TextSelectionDialog.prototype._onCollapsedMode =
+    function tsd__onCollapsedMode(detail) {
+      switch (detail.reason) {
+        case 'taponcaret':
+        case 'longpressonemptycontent':
+          // Always allow, do nothing here.
+          break;
+        case 'updateposition':
+          // Only allow when this._hasCutOrCopied is true
+          if (!this._hasCutOrCopied) {
+            this.hide();
+            return;
+          }
+          break;
+        default:
+          // Not allow
+          this.hide();
+          return;
+      }
+
+      detail.commands.canSelectAll = false;
+      this._triggerShortcutTimeout();
+      this.show(detail);
+    };
+
+  TextSelectionDialog.prototype._onSelectionMode =
+    function tsd__onSelectionMode(detail) {
+      this._resetShortcutTimeout();
+      this.show(detail);
     };
 
   TextSelectionDialog.prototype._resetShortcutTimeout =
@@ -253,7 +191,7 @@
     };
 
   TextSelectionDialog.prototype._fetchElements = function tsd__fetchElements() {
-    this.element = document.getElementById(this.ID_NAME);
+    this.element = document.getElementById(this.CLASS_NAME + this.instanceID);
     this.elements = {};
 
     var toCamelCase = function toCamelCase(str) {
@@ -334,52 +272,62 @@
     };
 
   TextSelectionDialog.prototype._doCommand =
-    function tsd_doCommand(evt, cmd) {
+    function tsd_doCommand(evt, cmd, closeDialog) {
       if (!this._isCommandSendable) {
         return;
       }
-      var props = {
-        detail: {
-          type: 'do-command',
-          cmd: cmd
+      if (this.app) {
+        if (this.textualmenuDetail) {
+          this.textualmenuDetail.sendDoCommandMsg(cmd);
         }
-      };
-      this.debug(JSON.stringify(props));
+      } else {
+        var props = {
+          detail: {
+            type: 'copypaste-do-command',
+            cmd: cmd
+          }
+        };
+        this.debug(JSON.stringify(props));
 
-      window.dispatchEvent(
-        new CustomEvent('mozContentEvent', props));
-      this.close();
+        window.dispatchEvent(
+          new CustomEvent('mozContentEvent', props));
+      }
+
+      if (closeDialog) {
+        this.close();
+      }
       evt.preventDefault();
     };
 
   TextSelectionDialog.prototype.copyHandler =
     function tsd_copyHandler(evt) {
-      this._doCommand(evt, 'copy');
+      this._doCommand(evt, 'copy', true);
       this._resetCutOrCopiedTimer();
       this._hasCutOrCopied = true;
   };
 
   TextSelectionDialog.prototype.cutHandler =
     function tsd_cutHandler(evt) {
-      this._doCommand(evt, 'cut');
+      this._doCommand(evt, 'cut', true);
       this._resetCutOrCopiedTimer();
       this._hasCutOrCopied = true;
   };
 
   TextSelectionDialog.prototype.pasteHandler =
     function tsd_pasteHandler(evt) {
-      this._doCommand(evt, 'paste');
+      this._doCommand(evt, 'paste', true);
       this._hasCutOrCopied = false;
       window.clearTimeout(this._resetCutOrCopiedTimeout);
   };
 
   TextSelectionDialog.prototype.selectallHandler =
     function tsd_selectallHandler(evt) {
-      this._doCommand(evt, 'selectall');
+      this._doCommand(evt, 'selectall', false);
   };
 
   TextSelectionDialog.prototype.view = function tsd_view() {
-    var temp = `<div class="textselection-dialog" id="${this.ID_NAME}">
+    var id = this.CLASS_NAME + this.instanceID;
+    var temp = `<div class="textselection-dialog" id="${id}">
               <div data-action="selectall"
                 class="textselection-dialog-selectall"></div>
               <div data-action="cut" class="textselection-dialog-cut"></div>
@@ -422,7 +370,9 @@
     this.numOfSelectOptions = numOfSelectOptions;
     this.textualmenuDetail = detail;
     // Add last-option class to the last item of options array;
-    lastVisibleOption.classList.add('last-option');
+    if (lastVisibleOption) {
+      lastVisibleOption.classList.add('last-option');
+    }
 
     this.updateDialogPosition();
   };
@@ -484,9 +434,16 @@
           this.DISTANCE_FROM_BOUNDARY;
       }
 
+      var offset = 0;
+      if (this.app) {
+        offset = this.app.appChrome.isMaximized() ?
+                 this.app.appChrome.height :
+                 StatusBar.height;
+      }
+
       return {
-        top: posTop + detail.offsetY,
-        left: posLeft + detail.offsetX
+        top: posTop + offset,
+        left: posLeft
       };
     };
 
