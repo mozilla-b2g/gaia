@@ -238,6 +238,7 @@ apps/system/test/unit/app_install_manager_test.js # line 157, col 4, Error - Uns
 apps/system/test/unit/app_install_manager_test.js # line 176, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/system/test/unit/app_install_manager_test.js # line 191, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/system/test/unit/app_modal_dialog_test.js # line 28, col 8, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
+apps/system/test/unit/app_text_selection_dialog_test.js # line 42, col 8, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/system/test/unit/battery_overlay_test.js # line 82, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/system/test/unit/crash_reporter_test.js # line 74, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/system/test/unit/device_storage_watcher_test.js # line 47, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)

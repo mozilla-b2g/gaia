@@ -154,10 +154,9 @@ marionette('Text selection >', function() {
           'dialog should be placed lower than the input field'
         );
         assert.equal(
-          Math.ceil(textSelectionLocation.x +
-            fakeTextselectionApp.textSelection.width),
-          fakeTextselectionApp.width - 5,
-          'dialog should be placed near right boundary'
+          Math.round(fakeTextselectionApp.width -
+          (textSelectionLocation.x + fakeTextselectionApp.textSelection.width)),
+          5, 'dialog should be placed near right boundary'
         );
       });
 
@@ -186,10 +185,9 @@ marionette('Text selection >', function() {
           'dialog should be placed higher than the input field'
         );
         assert.equal(
-          Math.ceil(textSelectionLocation.x +
-            fakeTextselectionApp.textSelection.width),
-          fakeTextselectionApp.width - 5,
-          'dialog should be placed near right boundary'
+          Math.round(fakeTextselectionApp.width -
+          (textSelectionLocation.x + fakeTextselectionApp.textSelection.width)),
+          5, 'dialog should be placed near right boundary'
         );
       });
     });
@@ -322,7 +320,8 @@ marionette('Text selection >', function() {
         });
     });
 
-    suite('bug1020801', function() {
+    // skip this test until we can enable APZ on B2G desktop
+    suite.skip('bug1020801', function() {
       setup(function() {
         fakeTextselectionApp.setTestFrame('bug1120358');
       });
