@@ -184,6 +184,7 @@ navigator.mozL10n.once(function showPanel() {
     // Send each file via Bluetooth sendFile API
     var blobs = activity.source.data.blobs;
     var numberOfTasks = blobs.length;
+    var msg;
     blobs.forEach(function(blob, index) {
       /**
        * Checking blob.name is because the sendFile() api needs a "file" object.
@@ -195,36 +196,89 @@ navigator.mozL10n.once(function showPanel() {
       if (blob.name) {
         // The blob has name, send the blob directly.
         defaultAdapter.sendFile(targetDevice.address, blob);
-        var msg = 'blob is sending...';
+        msg = 'blob is sending...';
         debug(msg);
         if (--numberOfTasks === 0) {
           transferred();
         }
       } else {
-        // The blob does not have name,
-        // browse the file via filepath from storage again.
-        var filepath = activity.source.data.filepaths[index];
+        // The blob has no name, instead of sending blob without name.
+        // Bluetooth app provides two approaches for sending a file with name.
+        // And the decision depends on the filepath given or not from requsting
+        // app.
+        // 1. Get the file from device storage. Then send the file instead blob.
+        // 2. Wrap the blob and save in temp folder. Then send the file instead
+        //    blob. Once the sending file completely, we have to delete it from
+        //    temp folder.
         var storage = navigator.getDeviceStorage('sdcard');
-        var getRequest = storage.get(filepath);
+        var getRequest;
+        if (activity.source.data.filepaths) {
+          // There is filepath, apply approach 1.
+          // browse the file via filepath from storage again.
+          var filepath = activity.source.data.filepaths[index];
+          getRequest = storage.get(filepath);
+          getRequest.onsuccess = function() {
+            defaultAdapter.sendFile(targetDevice.address, getRequest.result);
+            var msg = 'getFile succeed & file is sending...';
+            debug(msg);
+            if (--numberOfTasks === 0) {
+              transferred();
+            }
+          };
 
-        getRequest.onsuccess = function() {
-          defaultAdapter.sendFile(targetDevice.address, getRequest.result);
-          var msg = 'getFile succeed & file is sending...';
+          getRequest.onerror = function() {
+            defaultAdapter.sendFile(targetDevice.address, blob);
+            var msg = 'getFile failed so that blob is sending without ' +
+                      'filename ' + getRequest.error && getRequest.error.name;
+            debug(msg);
+            if (--numberOfTasks === 0) {
+              transferred();
+            }
+          };
+        } else {
+          // There is no filepath, apply approach 2.
+          // Wrap the file with filename for sending.
+          // And the filename is better coming from the requsting app.
+          var TMPDIR = '.bluetooth/tmp';
+          var filename = TMPDIR + '/' + activity.source.data.filenames[index];
+          msg = 'add filename for blob, name = ' + filename;
           debug(msg);
-          if (--numberOfTasks === 0) {
-            transferred();
-          }
-        };
 
-        getRequest.onerror = function() {
-          defaultAdapter.sendFile(targetDevice.address, blob);
-          var msg = 'getFile failed so that blob is sending without filename ' +
-                    getRequest.error && getRequest.error.name;
-          debug(msg);
-          if (--numberOfTasks === 0) {
-            transferred();
-          }
-        };
+          var addNamedRequest = storage.addNamed(blob, filename);
+          addNamedRequest.onsuccess = function() {
+            var getRequest = storage.get(addNamedRequest.result);
+            getRequest.onsuccess = function() {
+              defaultAdapter.sendFile(targetDevice.address, getRequest.result);
+              var msg = 'add name in file succeed & file is sending...';
+              debug(msg);
+              if (--numberOfTasks === 0) {
+                transferred();
+              }
+            };
+
+            getRequest.onerror = function() {
+              defaultAdapter.sendFile(targetDevice.address, blob);
+              var msg = 'getFile failed after added name succeed so that ' +
+                        'blob is sending without filename ' +
+                        getRequest.error && getRequest.error.name;
+              debug(msg);
+              if (--numberOfTasks === 0) {
+                transferred();
+              }
+            };
+          };
+
+          addNamedRequest.onerror = function() {
+            console.warn('Unable to write the file: ' + this.error);
+            defaultAdapter.sendFile(targetDevice.address, blob);
+            var msg = 'add name in file failed so that blob is sending ' +
+                      'without filename ' + this.error && this.error.name;
+            debug(msg);
+            if (--numberOfTasks === 0) {
+              transferred();
+            }
+          };
+        }
       }
     });
   }
