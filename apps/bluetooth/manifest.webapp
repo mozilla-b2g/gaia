@@ -61,7 +61,7 @@
     "themeable":{},
     "attention":{},
     "bluetooth":{},
-    "device-storage:sdcard":{ "access": "readonly" },
+    "device-storage:sdcard":{ "access": "readwrite" },
     "settings":{ "access": "readwrite" },
     "desktop-notification":{}
   }

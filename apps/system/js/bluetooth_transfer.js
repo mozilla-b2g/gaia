@@ -474,12 +474,14 @@ var BluetoothTransfer = {
         nData.onclick = this.openReceivedFile.bind(this, transferInfo);
       } else {
         nData.titleL10n = 'transferFinished-sentSuccessful-title';
+        this._cleanupTempFileInDir(transferInfo);
       }
     } else {
       if (transferInfo.received) {
         nData.titleL10n = 'transferFinished-receivedFailed-title';
       } else {
         nData.titleL10n = 'transferFinished-sentFailed-title';
+        this._cleanupTempFileInDir(transferInfo);
       }
     }
 
@@ -643,6 +645,33 @@ var BluetoothTransfer = {
     var body = {id: 'unknownMediaTypeToOpenFile', args: {fileName: fileName}};
     CustomDialog.show('cannotOpenFile', body, confirm, null, screen)
     .setAttribute('data-z-index-level', 'system-dialog');
-  }
+  },
 
+  _cleanupTempFileInDir: function bt__cleanupTempFileInDir(evt) {
+    // Try to get the file from bluetooth temp folder.
+    var filePath = '.bluetooth/tmp/' + evt.fileName;
+    var storageType = 'sdcard';
+    var storage = navigator.getDeviceStorage(storageType);
+    var getreq = storage.get(filePath);
+    getreq.onsuccess = () => {
+      var file = getreq.result;
+      var msg = 'has temp file, name = ' + file.name + ', delete it';
+      this.debug(msg);
+      var delreq = storage.delete(file.name);
+      delreq.onsuccess = () => {
+        var msg = 'temp file has be deleted successfully';
+
+        this.debug(msg);
+      };
+
+      delreq.onerror = () => {
+        var msg = 'temp file has not be deleted';
+        this.debug(msg);
+      };
+    };
+
+    getreq.onerror = () => {
+      // Do nothing here since there is no temp file.
+    };
+  }
 };
