@@ -246,9 +246,14 @@
                                                 : null;
     },
 
+    get favorites() {
+      return (CACHE_ENABLED && _cachedFavorites) ? _cachedFavorites.keys()
+                                                 : null;
+    },
+
     get length() {
-      return (CACHE_ENABLED && _cachedContacts) ? _cachedContacts.size
-                                                : 0;
+      return (CACHE_ENABLED && _cachedContacts) ?
+        _cachedContacts.size + _cachedFavorites.size : 0;
     },
 
     get headers() {
@@ -294,37 +299,49 @@
       if (!CACHE_ENABLED) {
         return;
       }
-      return (_cachedContacts && _cachedContacts.has(aUuid) ||
-              _cachedFavorites && _cachedFavorites.has(aUuid));
+      return _cachedContacts && _cachedContacts.has(aUuid);
+    },
+
+    hasFavorite: function(aUuid) {
+      if (!CACHE_ENABLED) {
+        return;
+      }
+      return _cachedFavorites && _cachedFavorites.has(aUuid);
     },
 
     getContact: function(aUuid) {
       if (!CACHE_ENABLED || !this.hasContact(aUuid)) {
         return;
       }
-      var contact;
       // We should get each contact once while rendering the contacts list
       // to see if what we have in the cache is different to what we have in
       // the contacts source (most likely mozContacts). Removing the contact
       // entry from the map allow us to easily check if we have any contact in
       // the cache that was deleted from the original source and so it needs
       // to be removed from the view.
+      var contact = _cachedContacts.get(aUuid);
+      _cachedContacts.delete(aUuid);
+      return contact;
+    },
 
-      if (_cachedContacts.has(aUuid)) {
-        contact = _cachedContacts.get(aUuid);
-        _cachedContacts.delete(aUuid);
-      } else if (_cachedFavorites.has(aUuid)) {
-        contact = _cachedFavorites.get(aUuid);
-        _cachedFavorites.delete(aUuid);
+    getFavorite: function(aUuid) {
+      if (!CACHE_ENABLED || !this.hasFavorite(aUuid)) {
+        return;
       }
+      var contact = _cachedFavorites.get(aUuid);
+      _cachedFavorites.delete(aUuid);
       return contact;
     },
 
     removeContact: function(aUuid) {
-      if (!CACHE_ENABLED || !this.hasContact(aUuid)) {
+      if (!CACHE_ENABLED ||
+          !this.hasContact(aUuid) ||
+          !this.hasFavorite(aUuid)) {
         return;
       }
-      _cachedContacts.delete(aUuid);
+      if (_cachedContacts.has(aUuid)) {
+        _cachedContacts.delete(aUuid);
+      }
       if (_cachedFavorites.has(aUuid)) {
         _cachedFavorites.delete(aUuid);
       }
