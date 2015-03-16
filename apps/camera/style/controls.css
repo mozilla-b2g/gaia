@@ -18,6 +18,10 @@
   direction: ltr;
 }
 
+.controls.hidden {
+  visibility: hidden;
+}
+
 /**
  * disabled
  */
