@@ -8,7 +8,7 @@
   BluetoothTransferIcon.prototype = Object.create(BaseIcon.prototype);
   BluetoothTransferIcon.prototype.name = 'BluetoothTransferIcon';
   BluetoothTransferIcon.prototype.shouldDisplay = function() {
-    return this.manager.isOPPProfileConnected();
+    return this.manager.isOPPProfileConnected;
   };
   exports.BluetoothTransferIcon = BluetoothTransferIcon;
 }(window));

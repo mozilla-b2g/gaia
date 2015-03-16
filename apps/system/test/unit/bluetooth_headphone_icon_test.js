@@ -22,12 +22,14 @@ suite('system/BluetoothHeadphoneIcon', function() {
 
   test('Bluetooth headset is connected', function() {
     MockBluetooth.mExpectedProfile = 'a2dp';
+    assert.isTrue(subject.shouldDisplay());
     subject.update();
     assert.isTrue(subject.isVisible());
   });
 
   test('Bluetooth headset is disconnected', function() {
     MockBluetooth.mExpectedProfile = '';
+    assert.isFalse(subject.shouldDisplay());
     subject.update();
     assert.isFalse(subject.isVisible());
   });
