@@ -71,10 +71,7 @@ AppInstall.prototype = {
       }.bind(this));
 
       // Click install button on the app install dialog
-      this.client.waitFor(function() {
-        this.installButton.tap();
-        return !this.installButton || !this.installButton.displayed();
-      }.bind(this));
+      this.installButton.click();
     }
   },
 
