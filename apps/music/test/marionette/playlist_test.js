@@ -161,7 +161,7 @@ marionette('Music player playlist', function() {
     });
   });
 
-  suite('Highest rated playlist', function() {
+  suite('Default playlists', function() {
     setup(function() {
       client.fileManager.removeAllFiles();
       client.fileManager.add([
@@ -198,7 +198,7 @@ marionette('Music player playlist', function() {
       ]);
     });
 
-    test('Rating sort order', function() {
+    test('Highest rated playlist sort order', function() {
       music.launch();
       music.waitForFirstTile();
 
@@ -240,5 +240,41 @@ marionette('Music player playlist', function() {
       assert.equal(PlaylistHelper.songTitle(songs[1]), 'Crash');
     });
 
+    test('Recently added playlist sort order', function() {
+      // start the app so the music files are added to the database.
+      music.launch();
+      music.waitForFirstTile();
+      music.waitFinishedScanning();
+
+      // close the app
+      music.close();
+
+      // add more files.
+      client.fileManager.add([
+        {
+          // This song has the title 'The Ecuadorian Embassy'
+          // And the index '1'
+          type: 'music',
+          filePath: 'apps/music/test-data/playlists/01.ogg'
+        }
+      ]);
+
+      // start it over. It will add the file above.
+      music.launch();
+      music.waitForFirstTile();
+      music.waitFinishedScanning();
+      music.switchToPlaylistsView();
+
+      music.selectPlaylist('Recently added');
+
+      music.waitForSongs(function(songs) {
+        return songs.length >= 6;
+      });
+      var songs = music.songs;
+
+      assert.equal(PlaylistHelper.songIndex(songs[0]), '1');
+      assert.equal(PlaylistHelper.songTitle(songs[0]),
+                   'The Ecuadorian Embassy');
+    });
   });
 });
