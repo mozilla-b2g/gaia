@@ -6,7 +6,7 @@ requireApp('system/js/action_menu.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('ActionMenu', function() {
-  var activitiesMockup, realL10n, genericActionsMockup, rafStub;
+  var activitiesMockup, realL10n, genericActionsMockup;
   var iconUrl = 'images/icon.png', title = 'Title';
   var screenElement;
 
@@ -48,13 +48,9 @@ suite('ActionMenu', function() {
     navigator.mozL10n = MockL10n;
     loadBodyHTML('/index.html');
     screenElement = document.getElementById('screen');
-
-    rafStub = sinon.stub(window, 'requestAnimationFrame',
-                         function(callback) { callback(); });
   });
 
   suiteTeardown(function() {
-    rafStub.restore();
     navigator.mozL10n = realL10n;
     document.body.innerHTML = '';
   });
@@ -139,7 +135,6 @@ suite('ActionMenu', function() {
       // Hide. Calls stop
       var stub = this.sinon.stub(menu, 'stop');
       menu.hide();
-      getMenu().dispatchEvent(new CustomEvent('transitionend'));
       assert.ok(stub.calledOnce);
       stub.restore();
       menu.stop();
