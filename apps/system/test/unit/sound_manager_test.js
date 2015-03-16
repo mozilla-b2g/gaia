@@ -12,6 +12,7 @@ require('/shared/test/unit/mocks/mock_custom_dialog.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/js/async_semaphore.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
+requireApp('system/test/unit/mock_bluetooth.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_navigator_moz_telephony.js');
 requireApp('system/test/unit/mock_screen_manager.js');
@@ -26,6 +27,7 @@ requireApp('system/js/sound_manager.js');
 
 var mocksForSoundManager = new MocksHelper([
   'asyncStorage',
+  'Bluetooth',
   'CustomDialog',
   'FtuLauncher',
   'ScreenManager',

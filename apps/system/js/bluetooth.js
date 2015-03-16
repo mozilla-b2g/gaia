@@ -6,6 +6,14 @@
 (function(exports) {
 var Bluetooth = {
   name: 'Bluetooth',
+  get Profiles() {
+    return {
+      HFP: 'hfp',   // Hands-Free Profile
+      OPP: 'opp',   // Object Push Profile
+      A2DP: 'a2dp', // A2DP status
+      SCO: 'sco'    // Synchronous Connection-Oriented
+    };
+  },
 
   _setProfileConnected: function bt_setProfileConnected(profile, connected) {
     var value = this['_' + profile + 'Connected'];
@@ -33,11 +41,11 @@ var Bluetooth = {
   /**
    * check if bluetooth profile is connected.
    *
-   * @private
+   * @public
    * @param {String} profile profile name
    * @return {Boolean} connected state
    */
-  _isProfileConnected: function bt__isProfileConnected(profile) {
+  isProfileConnected: function bt_isProfileConnected(profile) {
     var isConnected = this['_' + profile + 'Connected'];
     if (isConnected === undefined) {
       return false;
@@ -121,7 +129,7 @@ var Bluetooth = {
      */
     navigator.mozSetMessageHandler('bluetooth-opp-transfer-start',
       function bt_fileTransferUpdate(transferInfo) {
-        self._setProfileConnected('opp', true);
+        self._setProfileConnected(self.Profiles.OPP, true);
         var evt = document.createEvent('CustomEvent');
         evt.initCustomEvent('bluetooth-opp-transfer-start',
           /* canBubble */ true, /* cancelable */ false,
@@ -132,7 +140,7 @@ var Bluetooth = {
 
     navigator.mozSetMessageHandler('bluetooth-opp-transfer-complete',
       function bt_fileTransferUpdate(transferInfo) {
-        self._setProfileConnected('opp', false);
+        self._setProfileConnected(self.Profiles.OPP, false);
         var evt = document.createEvent('CustomEvent');
         evt.initCustomEvent('bluetooth-opp-transfer-complete',
           /* canBubble */ true, /* cancelable */ false,
@@ -145,10 +153,6 @@ var Bluetooth = {
     window.addEventListener('request-disable-bluetooth', this);
 
     Service.registerState('isEnabled', this);
-    Service.registerState('isOPPProfileConnected', this);
-    Service.registerState('isA2DPProfileConnected', this);
-    Service.registerState('isSCOProfileConnected', this);
-
     LazyLoader.load(['js/bluetooth_icon.js',
                      'js/bluetooth_transfer_icon.js',
                      'js/bluetooth_headphone_icon.js']).then(function() {
@@ -208,15 +212,15 @@ var Bluetooth = {
     // In headset connected case:
     var self = this;
     adapter.onhfpstatuschanged = function bt_hfpStatusChanged(evt) {
-      self._setProfileConnected('hfp', evt.status);
+      self._setProfileConnected(self.Profiles.HFP, evt.status);
     };
 
     adapter.ona2dpstatuschanged = function bt_a2dpStatusChanged(evt) {
-      self._setProfileConnected('a2dp', evt.status);
+      self._setProfileConnected(self.Profiles.A2DP, evt.status);
     };
 
     adapter.onscostatuschanged = function bt_scoStatusChanged(evt) {
-      self._setProfileConnected('sco', evt.status);
+      self._setProfileConnected(self.Profiles.SCO, evt.status);
     };
   },
 
@@ -236,36 +240,6 @@ var Bluetooth = {
    */
   get isEnabled() {
     return this._settingsEnabled;
-  },
-
-  /**
-   * Check if bluetooth OPP profile is connected.
-   *
-   * @public
-   * @return {Boolean} connected state
-   */
-  get isOPPProfileConnected() {
-    return this._isProfileConnected('opp');
-  },
-
-  /**
-   * Check if bluetooth A2DP profile is connected.
-   *
-   * @public
-   * @return {Boolean} connected state
-   */
-  get isA2DPProfileConnected() {
-    return this._isProfileConnected('a2dp');
-  },
-
-  /**
-   * Check if bluetooth SCO profile is connected.
-   *
-   * @public
-   * @return {Boolean} connected state
-   */
-  get isSCOProfileConnected() {
-    return this._isProfileConnected('sco');
   }
 };
 

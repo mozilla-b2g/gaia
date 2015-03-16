@@ -1,4 +1,4 @@
-/* global IACHandler, appWindowManager, Service */
+/* global Bluetooth, IACHandler, appWindowManager */
 
 'use strict';
 
@@ -89,9 +89,9 @@ MediaPlaybackWidget.prototype = {
     var name = event.detail.name;
     var connected = event.detail.connected;
 
-    if (name === 'sco') {
+    if (name === Bluetooth.Profiles.SCO) {
       this.container.classList.toggle('disabled', connected);
-    } else if (name === 'a2dp') {
+    } else if (name === Bluetooth.Profiles.A2DP) {
       this.handleAudioRouteChange(event, 'bluetooth');
     }
   },
@@ -128,7 +128,7 @@ MediaPlaybackWidget.prototype = {
       isWiredHeadphonesConnected = navigator.mozAudioChannelManager &&
         navigator.mozAudioChannelManager.headphones;
       isBluetoothHeadsetConnected =
-        Service.query('Bluetooth.isA2DPProfileConnected');
+        Bluetooth.isProfileConnected(Bluetooth.Profiles.A2DP);
 
       // Save the correct audio routing for next unplugged/disconnected event
       if (isWiredHeadphonesConnected) {
