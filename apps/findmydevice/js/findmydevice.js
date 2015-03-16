@@ -588,6 +588,11 @@ var FindMyDevice = {
 
   _countRegistrationRetry: function fmd_count_registration_retry (){
     this._scheduleAlarm('retry');
+
+    if (!navigator.onLine) {
+      return;
+    }
+
     if (!this._registered) {
       var countHelper = SettingsHelper('findmydevice.retry-count');
 
