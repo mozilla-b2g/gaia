@@ -102,7 +102,7 @@ suite('system/AppWindow', function() {
 
   var fakePrivateConfig = {
     url: 'http://www.private/index.html',
-    manifest: {},
+    manifest: null,
     origin: 'http://www.private',
     isPrivate: true
   };
@@ -658,7 +658,7 @@ suite('system/AppWindow', function() {
       manifestURL: 'app://wwww.fake/ManifestURL',
       origin: 'app://www.fake'
     };
-    
+
     test('minimal-ui', function() {
       var app1 = new AppWindow(fakeAppConfigDisplayMinimalUi);
       assert.isFalse(app1.isFullScreen());
@@ -1934,7 +1934,7 @@ suite('system/AppWindow', function() {
       assert.isTrue(stubBlur.calledOnce);
     });
 
-    test('Titilechange event', function() {
+    test('titlechange event', function() {
       var app1 = new AppWindow(fakeWrapperConfig);
       var stubPublish = this.sinon.stub(app1, 'publish');
 
@@ -1958,6 +1958,17 @@ suite('system/AppWindow', function() {
         app2.identificationTitle.textContent, '',
         'title should not be changed since it is an app'
       );
+    });
+
+    test('titlechange event > private browser', function() {
+      var defaultPbTitle = 'Private Browser Splash';
+      var privateApp = new AppWindow(fakePrivateConfig);
+      privateApp.identificationTitle.textContent = defaultPbTitle;
+      privateApp.handleEvent({
+        type: 'mozbrowsertitlechange',
+        detail: 'new title - does not update overlay'
+      });
+      assert.equal(privateApp.identificationTitle.textContent, defaultPbTitle);
     });
 
     test('iconchange event', function() {
