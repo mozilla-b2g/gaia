@@ -951,16 +951,11 @@ var CallLog = {
    * param contactId
    *        Contact identifier if any. Only 'oncontactchange' events with
    *        'update' or 'remove' reasons will provide a contactId parameter.
-   * param phoneNumbers
-   *        Array of phoneNumbers associated with a contact. Only
-   *        'oncontactchange' events with 'update' or 'add' reasons will
-   *        provide this paramater.
    * param target
    *        DOM element to be updated. We default to the whole log if no
    *        'target' param is provided.
    */
-  updateListWithContactInfo: function cl_updateList(reason, contactId,
-                                                    phoneNumbers, target) {
+  updateListWithContactInfo: function cl_updateList(reason, contactId, target) {
     var container = target || this.callLogContainer;
 
     if (!container) {
@@ -1084,30 +1079,15 @@ var CallLog = {
 };
 
 navigator.mozContacts.oncontactchange = function oncontactchange(event) {
-  function contactChanged(contact, reason) {
-    var phoneNumbers = [];
-    if (contact.tel && contact.tel.length) {
-      phoneNumbers = contact.tel.map(function(tel) {
-        return tel.value;
-      });
-    }
-    switch (reason) {
-      case 'create':
-        CallLog.updateListWithContactInfo('create', null, phoneNumbers);
-        break;
-      case 'update':
-        CallLog.updateListWithContactInfo('update', event.contactID,
-                                          phoneNumbers);
-        break;
-    }
-  }
-
   var reason = event.reason;
   var options = {
     filterBy: ['id'],
     filterOp: 'equals',
     filterValue: event.contactID
   };
+
+  /* FIXME: We should use the contact information (id, phone number, etc...) to
+   * reduce the number of elements we try to update. */
 
   if (reason === 'remove') {
     CallLog.updateListWithContactInfo('remove', event.contactID);
@@ -1123,17 +1103,17 @@ navigator.mozContacts.oncontactchange = function oncontactchange(event) {
 
     var contact = e.target.result[0];
     if (!fb.isFbContact(contact)) {
-       contactChanged(contact, reason);
+       CallLog.updateListWithContactInfo(reason, event.contactID);
        return;
     }
 
     var fbReq = fb.getData(contact);
     fbReq.onsuccess = function fbContactSuccess() {
-      contactChanged(fbReq.result, reason);
+      CallLog.updateListWithContactInfo(reason, event.contactID);
     };
     fbReq.onerror = function fbContactError() {
       console.error('Error while querying FB: ', fbReq.error.name);
-      contactChanged(contact, reason);
+      CallLog.updateListWithContactInfo(reason, event.contactID);
     };
   };
 
