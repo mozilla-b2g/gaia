@@ -11,7 +11,13 @@ var MockCache = {
   hasContact: function(uuid) {
 
   },
+  hasFavorite: function(uuid) {
+
+  },
   getContact: function(uuid) {
+
+  },
+  getFavorite: function(uuid) {
 
   },
   get headers() {
