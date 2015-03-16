@@ -1097,3 +1097,9 @@ html[dir="rtl"] #custom-tag-reset {
   left: 1rem;
   right: unset;
 }
+
+#multiple-select-view aside {
+  border-bottom: 0.1rem solid #FFFFFF;
+  margin-right: 0;
+  padding-right: 1.5rem;
+}
