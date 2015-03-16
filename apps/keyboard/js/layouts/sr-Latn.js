@@ -5,6 +5,7 @@ Keyboards['sr-Latn'] = {
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'sr-Latn',
+  lang: 'sr-Latn',
   alt: {
     c: 'čć',
     d: 'đ',

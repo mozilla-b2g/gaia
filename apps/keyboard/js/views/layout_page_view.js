@@ -146,6 +146,8 @@ LayoutPageView.prototype.render = function render() {
 
   container.appendChild(content);
 
+  container.setAttribute('lang', layout.lang);
+
   this.element = container;
 };
 

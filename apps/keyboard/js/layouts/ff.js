@@ -5,6 +5,7 @@ Keyboards.ff = {
   imEngine: 'latin',
   autoCorrectLanguage: 'ff',
   types: ['text', 'url', 'email', 'password'],
+  lang: 'ff',
   alt: {
     a: 'àâæáãäåā',
     c: 'çćč',

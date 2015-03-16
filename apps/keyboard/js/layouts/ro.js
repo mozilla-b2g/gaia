@@ -5,6 +5,7 @@ Keyboards.ro = {
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'ro',
+  lang: 'ro',
   alt: {
     a: 'ăâ',
     d: 'đ',

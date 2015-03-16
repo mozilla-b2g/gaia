@@ -4,6 +4,7 @@ Keyboards['vi-Telex'] = {
   menuLabel: 'Tiếng Việt (Telex)',
   imEngine: 'jstelex',
   types: ['text', 'url', 'email'],
+  lang: 'vi',
   keys: [
     [
       { value: 'q' }, { value: 'w' }, { value: 'e' } , { value: 'r' },

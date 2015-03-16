@@ -9,6 +9,7 @@ Keyboards.hi = {
   types: ['text', 'url', 'email'],
   width: 11,
   keyClassName: 'hindi',
+  lang: 'hi',
   alt: {
     'र': 'ॠऋ',
     'म': 'ॐ',

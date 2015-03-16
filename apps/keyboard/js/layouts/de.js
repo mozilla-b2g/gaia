@@ -5,6 +5,7 @@ Keyboards.de = {
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'de',
+  lang: 'de',
   alt: {
     a: 'äàáâãåāæ',
     c: 'çćč',

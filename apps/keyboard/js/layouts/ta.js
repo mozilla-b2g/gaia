@@ -7,6 +7,7 @@ Keyboards.ta = {
   basicLayoutKey: 'அஆஇ',
   types: ['text', 'url', 'email'],
   keyClassName: 'tamil',
+  lang: 'ta',
   upperCase: {
     'ஒ':'ொ',
     'ஔ':'ௌ',

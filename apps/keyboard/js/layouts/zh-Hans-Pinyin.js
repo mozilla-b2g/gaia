@@ -5,6 +5,7 @@ Keyboards['zh-Hans-Pinyin'] = {
   needsCandidatePanel: true,
   imEngine: 'jspinyin',
   types: ['text', 'url', 'email'],
+  lang: 'zh-Hans',
   pages: [ { // basic page for pinyin alphabets
     needsCommaKey: true,
     width: 10,
