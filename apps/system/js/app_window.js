@@ -993,7 +993,9 @@
       this.title = evt.detail;
       this.publish('titlechange');
 
-      if (this.identificationTitle && !this.manifest) {
+      // Do not set the identification title if we're browsing a URL privately
+      if (this.identificationTitle && !this.manifest &&
+        (!this.isPrivateBrowser() || this.config.url.startsWith('app:'))) {
         this.identificationTitle.textContent = this.title;
       }
     };
@@ -1068,7 +1070,7 @@
         this.favicons[href].sizes.push(sizes);
       }
 
-      if (this.identificationIcon) {
+      if (this.identificationIcon && !this.isPrivateBrowser()) {
         this.identificationIcon.style.backgroundImage =
           'url("' + evt.detail.href + '")';
       }
