@@ -1,13 +1,14 @@
 /* global MocksHelper, MockAppWindowManager, MockL10n,
-   MediaPlaybackWidget, Service */
+   MediaPlaybackWidget, Bluetooth */
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/test/unit/mock_bluetooth.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
-requireApp('system/js/service.js');
 
 var mocksForMediaPlayback = new MocksHelper([
+  'Bluetooth',
   'AppWindowManager'
 ]).init();
 
@@ -247,7 +248,7 @@ suite('system/media playback widget', function() {
     test('no wired, no bluetooth, plug wired', function() {
       widget.audioRouting = 'speaker';
       mockACM.headphones = true;
-      this.sinon.stub(Service, 'query').returns(false);
+      Bluetooth.mExpectedProfile = '';
       var event = { target: { headphones: true } };
       var reason = 'wired';
       widget.handleAudioRouteChange(event, reason);
@@ -258,7 +259,7 @@ suite('system/media playback widget', function() {
     test('no wired, no bluetooth, connect bluetooth', function() {
       widget.audioRouting = 'speaker';
       mockACM.headphones = false;
-      this.sinon.stub(Service, 'query').returns(true);
+      Bluetooth.mExpectedProfile = Bluetooth.Profiles.A2DP;
       var event = { detail: { connected: true } };
       var reason = 'bluetooth';
       widget.handleAudioRouteChange(event, reason);
@@ -269,7 +270,7 @@ suite('system/media playback widget', function() {
     test('wired active, no bluetooth, unplug wired', function() {
       widget.audioRouting = 'wired';
       mockACM.headphones = false;
-      this.sinon.stub(Service, 'query').returns(false);
+      Bluetooth.mExpectedProfile = '';
       var event = { target: { headphones: false } };
       var reason = 'wired';
       widget.handleAudioRouteChange(event, reason);
@@ -281,7 +282,7 @@ suite('system/media playback widget', function() {
     test('no wired, bluetooth active, disconnect bluetooth', function() {
       widget.audioRouting = 'bluetooth';
       mockACM.headphones = false;
-      this.sinon.stub(Service, 'query').returns(false);
+      Bluetooth.mExpectedProfile = '';
       var event = { detail: { connected: false } };
       var reason = 'bluetooth';
       widget.handleAudioRouteChange(event, reason);
@@ -293,7 +294,7 @@ suite('system/media playback widget', function() {
     test('wired active, bluetooth inactive, unplug wired', function() {
       widget.audioRouting = 'wired';
       mockACM.headphones = false;
-      this.sinon.stub(Service, 'query').returns(true);
+      Bluetooth.mExpectedProfile = Bluetooth.Profiles.A2DP;
       var event = { target: { headphones: false } };
       var reason = 'wired';
       widget.handleAudioRouteChange(event, reason);
@@ -305,7 +306,7 @@ suite('system/media playback widget', function() {
     test('wired inactive, bluetooth active, disconnect bluetooth', function() {
       widget.audioRouting = 'bluetooth';
       mockACM.headphones = true;
-      this.sinon.stub(Service, 'query').returns(false);
+      Bluetooth.mExpectedProfile = '';
       var event = { detail: { connected: false } };
       var reason = 'bluetooth';
       widget.handleAudioRouteChange(event, reason);
@@ -317,7 +318,7 @@ suite('system/media playback widget', function() {
     test('wired active, bluetooth inactive, disconnect bluetooth', function() {
       widget.audioRouting = 'wired';
       mockACM.headphones = true;
-      this.sinon.stub(Service, 'query').returns(false);
+      Bluetooth.mExpectedProfile = '';
       var event = { detail: { connected: false } };
       var reason = 'bluetooth';
       widget.handleAudioRouteChange(event, reason);
@@ -328,7 +329,7 @@ suite('system/media playback widget', function() {
     test('wired inactive, bluetooth active, unplug wired', function() {
       widget.audioRouting = 'bluetooth';
       mockACM.headphones = false;
-      this.sinon.stub(Service, 'query').returns(true);
+      Bluetooth.mExpectedProfile = Bluetooth.Profiles.A2DP;
       var event = { target: { headphones: false } };
       var reason = 'wired';
       widget.handleAudioRouteChange(event, reason);

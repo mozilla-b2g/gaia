@@ -21,8 +21,7 @@ suite('system/BluetoothHeadphoneIcon', function() {
   });
 
   test('Bluetooth headset is connected', function() {
-    MockBluetooth.mExpectedProfile = 'a2dp';
-    assert.isTrue(subject.shouldDisplay());
+    MockBluetooth.mExpectedProfile = MockBluetooth.Profiles.A2DP;
     subject.update();
     assert.isTrue(subject.isVisible());
   });

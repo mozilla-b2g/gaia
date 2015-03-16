@@ -8,6 +8,7 @@
 require('/test/unit/mock_app_window_manager.js');
 require('/test/unit/mock_lock_screen.js');
 require('/test/unit/mock_statusbar.js');
+require('/test/unit/mock_bluetooth.js');
 require('/test/unit/mock_navigator_moz_power.js');
 require('/test/unit/mock_sleep_menu.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
@@ -37,7 +38,7 @@ function restoreProperty(originObject, prop, reals, useDefineProperty) {
 }
 
 var mocksForScreenManager = new MocksHelper([
-  'SettingsListener', 'Service'
+  'SettingsListener', 'Bluetooth', 'Service'
 ]).init();
 
 require('/js/screen_auto_brightness.js');
@@ -227,22 +228,26 @@ suite('system/ScreenManager', function() {
     });
 
     suite('Testing userproximity event', function() {
-      var stubTelephony, stubTurnOn, stubTurnOff;
+      var stubTelephony, stubBluetooth, stubTurnOn, stubTurnOff;
 
       setup(function() {
         stubTelephony = {};
+        stubBluetooth = { isProfileConnected: function() {} };
         stubTurnOn = this.sinon.stub(ScreenManager, 'turnScreenOn');
         stubTurnOff = this.sinon.stub(ScreenManager, 'turnScreenOff');
 
+        switchProperty(window, 'Bluetooth', stubBluetooth, reals);
         switchProperty(navigator, 'mozTelephony', stubTelephony, reals);
       });
 
       teardown(function() {
+        restoreProperty(window, 'Bluetooth', reals);
         restoreProperty(navigator, 'mozTelephony', reals);
       });
 
       test('if Bluetooth SCO connected', function() {
-        this.sinon.stub(MockService, 'query').returns(true);
+        stubBluetooth.Profiles = {};
+        this.sinon.stub(stubBluetooth, 'isProfileConnected').returns(true);
         ScreenManager._screenOffBy = 'proximity';
         ScreenManager.handleEvent({'type': 'userproximity'});
         assert.isTrue(stubTurnOn.called);
@@ -250,7 +255,8 @@ suite('system/ScreenManager', function() {
       });
 
       test('if Bluetooth SCO disconnected', function() {
-        this.sinon.stub(MockService, 'query').returns(false);
+        stubBluetooth.Profiles = {};
+        this.sinon.stub(stubBluetooth, 'isProfileConnected').returns(false);
         stubTelephony.speakerEnabled = false;
         MockService.mHeadsetConnected = false;
 
@@ -260,13 +266,15 @@ suite('system/ScreenManager', function() {
       });
 
       test('if evt.near is yes', function() {
-        this.sinon.stub(MockService, 'query').returns(false);
+        stubBluetooth.Profiles = {};
+        this.sinon.stub(stubBluetooth, 'isProfileConnected').returns(false);
         ScreenManager.handleEvent({'type': 'userproximity', 'near': 'yes'});
         assert.isFalse(stubTurnOn.called);
         assert.isTrue(stubTurnOff.calledWith(true, 'proximity'));
       });
 
       test('if earphone is connected', function() {
+        stubBluetooth.Profiles = {};
         MockService.mHeadsetConnected = true;
         ScreenManager._screenOffBy = 'proximity';
         ScreenManager.handleEvent({'type': 'userproximity'});
