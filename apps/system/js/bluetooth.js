@@ -1,8 +1,9 @@
 /* global SettingsListener, Service, BluetoothIcon, BluetoothTransferIcon,
           BluetoothHeadphoneIcon, LazyLoader */
-/* exported Bluetooth */
+/* exported Bluetooth1 */
 'use strict';
 
+(function(exports) {
 var Bluetooth = {
   name: 'Bluetooth',
 
@@ -267,3 +268,6 @@ var Bluetooth = {
     return this._isProfileConnected('sco');
   }
 };
+
+exports.Bluetooth1 = Bluetooth;
+})(window);

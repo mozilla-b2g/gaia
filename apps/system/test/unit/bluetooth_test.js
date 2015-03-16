@@ -31,7 +31,7 @@ suite('system/BluetoothCore', function() {
   var realMozBluetooth, realSetMessageHandler;
   mocksForBluetooth.attachTestHelpers();
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
     sinon.spy(MockLazyLoader, 'load');
     MockLazyLoader.mLoadRightAway = true;
     realSetMessageHandler = navigator.mozSetMessageHandler;
@@ -40,13 +40,19 @@ suite('system/BluetoothCore', function() {
     realMozBluetooth = navigator.mozBluetooth;
     switchReadOnlyProperty(navigator, 'mozBluetooth', MockMozBluetooth);
 
-    Bluetooth.init();
+    requireApp('system/js/bluetooth.js', done);
   });
 
   suiteTeardown(function() {
     MockNavigatormozSetMessageHandler.mTeardown();
     navigator.mozSetMessageHandler = realSetMessageHandler;
     switchReadOnlyProperty(navigator, 'mozBluetooth', realMozBluetooth);
+  });
+
+  setup(function() {
+    // instanciate bluetooth module
+    window.Bluetooth = window.Bluetooth1;
+    Bluetooth.init();
   });
 
   test('Should lazy load icons', function() {

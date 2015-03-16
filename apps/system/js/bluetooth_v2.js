@@ -18,7 +18,6 @@
    BluetoothHeadphoneIcon */
 /* exported Bluetooth2 */
 (function(exports) {
-
 var Bluetooth = function() {};
 
 Bluetooth.prototype = {
@@ -205,10 +204,10 @@ Bluetooth.prototype = {
    * @private
    */
   _initDefaultAdapter: function() {
-    this._debug('init bluetooth adapter');
+    this.debug('init bluetooth adapter');
     this._adapter = this._bluetooth.defaultAdapter;
     if (this._adapter) {
-      this._debug('adapter is available');
+      this.debug('adapter is available');
       // listen states when the adapter is available
       this._adapterAvailableHandler();
       // dispatch event when default adapter is available
@@ -253,7 +252,7 @@ Bluetooth.prototype = {
    * Remove all EventListeners when default adapter is changed.
    */
   _adapterUnavailableHandler: function bt__adapterUnavailableHandler() {
-    this._debug('default adapter is removed');
+    this.debug('default adapter is removed');
     // unbind headset connected cases
     this._adapter.removeEventListener('hfpstatuschanged',
       this._bindHfpStatusChangedHandler);
@@ -273,16 +272,16 @@ Bluetooth.prototype = {
    * @private
    */
   _requestEnableHandler: function bt__requestEnableHandler() {
-    this._debug('enabling bluetooth');
+    this.debug('enabling bluetooth');
     if (this._adapter) {
       // the state will be dispatched in _btAdapterHandler
       this._adapter.enable().then(() => { //resolve
-        this._debug('bluetooth enabled');
+        this.debug('bluetooth enabled');
       }, () => { //reject
-        this._debug('can not get bluetooth adapter');
+        this.debug('can not get bluetooth adapter');
       });
     } else { // return current state since we can't process the request
-      this._debug('adapter is not available');
+      this.debug('adapter is not available');
       this._dispatchEnableState();
     }
   },
@@ -293,16 +292,16 @@ Bluetooth.prototype = {
    * @private
    */
   _requestDisableHandler: function bt__requestDisableHandler() {
-    this._debug('disabling bluetooth');
+    this.debug('disabling bluetooth');
     if (this._adapter) {
       // the state will be dispatched in _btAdapterHandler
       this._adapter.disable().then(() => { //resolve
-        this._debug('bluetooth disabled');
+        this.debug('bluetooth disabled');
       }, () => { //reject
-        this._debug('can not get bluetooth adapter');
+        this.debug('can not get bluetooth adapter');
       });
     } else { // return current state since we can't process the request
-      this._debug('adapter is not available');
+      this.debug('adapter is not available');
       this._dispatchEnableState();
     }
   },
@@ -348,14 +347,14 @@ Bluetooth.prototype = {
         switch (evt.attrs[i]) {
           case 'state':
             if (this._adapter.state === 'enabled') {
-              this._debug('state true');
+              this.debug('state true');
               this._isEnabled = true;
               navigator.mozSettings.createLock()
                 .set({'bluetooth.enabled': true});
               window.dispatchEvent(new CustomEvent('bluetooth-enabled'));
               this.icon && this.icon.update();
             } else if (this._adapter.state === 'disabled') {
-              this._debug('state false');
+              this.debug('state false');
               this._isEnabled = false;
               navigator.mozSettings.createLock()
                 .set({'bluetooth.enabled': false});
@@ -394,17 +393,17 @@ Bluetooth.prototype = {
           // Default adapter attribute change.
           // Usually, it means that we reach new default adapter.
           case 'defaultAdapter':
-            this._debug('defaultAdapter changed.');
+            this.debug('defaultAdapter changed.');
             if (this._bluetooth.defaultAdapter) {
               if (this._adapter !== this._bluetooth.defaultAdapter) {
                 if (this._adapter !== null) { // adapter A -> adapter B
-                  this._debug('origin adapter is removed');
+                  this.debug('origin adapter is removed');
                   this._dispatchAdapterState(false);
                   this._adapterUnavailableHandler();
                   this._adapter = null;
                 }
                 // set new adapter and dispatch adapter state
-                this._debug('new adapter is added');
+                this.debug('new adapter is added');
                 this._adapter = this._bluetooth.defaultAdapter;
                 this._isEnabled = (this._adapter.state === 'enabled');
                 // listen states when the adapter is available
@@ -412,7 +411,7 @@ Bluetooth.prototype = {
                 this._dispatchAdapterState(true);
               }
             } else { // adapter -> null
-              this._debug('default adapter is removed');
+              this.debug('default adapter is removed');
               this._dispatchAdapterState(false);
               this._adapterUnavailableHandler();
               this._adapter = null;
@@ -496,7 +495,7 @@ Bluetooth.prototype = {
    * @private
    * @param  {[type]} msg debug message
    */
-  _debug: function bt__debug(msg) {
+  debug: function bt_debug(msg) {
     if (!this.onDebug) {
       return;
     }
@@ -505,5 +504,5 @@ Bluetooth.prototype = {
   }
 };
 
-  exports.Bluetooth2 = Bluetooth;
+exports.Bluetooth2 = Bluetooth;
 })(window);
