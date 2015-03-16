@@ -6,6 +6,7 @@ Keyboards['dz-BT'] = {
   basicLayoutKey: 'ཀཁག',
   types: ['text', 'url', 'email'],
   width: 12,
+  lang: 'dz',
   keys: [
     [
       { value: 'ཀ' }, { value: 'ཁ' }, { value: 'ག' } , { value: 'ང' },

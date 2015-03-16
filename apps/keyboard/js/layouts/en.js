@@ -5,6 +5,7 @@ Keyboards.en = {
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'en_us',
   menuLabel: 'English',
+  lang: 'en',
   alt: {
     a: 'áàâäåãāæ',
     c: 'çćč',

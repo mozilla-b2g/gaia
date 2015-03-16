@@ -5,6 +5,7 @@ Keyboards['en-Neo'] = {
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'en_us',
+  lang: 'en-US',
   alt: {
     a: 'áàâäåãāæ',
     c: 'çćč',

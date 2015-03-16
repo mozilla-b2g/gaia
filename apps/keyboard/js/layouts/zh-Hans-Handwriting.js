@@ -6,6 +6,7 @@ Keyboards['zh-Hans-Handwriting'] = {
   needsCommaKey: true,
   imEngine: 'handwriting',
   types: ['text'],
+  lang: 'zh-Hans',
   pages: [ { // basic page for handwriting pad
     needsCommaKey: true,
     width: 10,

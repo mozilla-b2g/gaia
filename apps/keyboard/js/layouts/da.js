@@ -5,6 +5,7 @@ Keyboards.da = {
   imEngine: 'latin',
   autoCorrectLanguage: 'da',
   types: ['text', 'url', 'email', 'password'],
+  lang: 'da',
   alt: {
     a: 'äáàâąã',
     e: 'éèêëę€',

@@ -10,6 +10,7 @@ Keyboards['vi-Qwerty'] = {
   needsCandidatePanel: true,
   width: 10,
   types: ['text', 'url', 'email'],
+  lang: 'vi',
   alt: {
     'a': 'ăâ',
     'd': 'đ',

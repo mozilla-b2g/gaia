@@ -5,6 +5,7 @@ Keyboards.sv = {
   imEngine: 'latin',
   autoCorrectLanguage: 'sv',
   types: ['text', 'url', 'email', 'password'],
+  lang: 'sv',
   alt: {
     a: 'äáàâąã',
     e: 'éèêëę€',

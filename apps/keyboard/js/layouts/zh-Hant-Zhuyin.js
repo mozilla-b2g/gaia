@@ -6,6 +6,7 @@ Keyboards['zh-Hant-Zhuyin'] = {
   needsCandidatePanel: true,
   imEngine: 'jszhuyin',
   types: ['text', 'url', 'email'],
+  lang: 'zh-Hant',
   pages: [ { // basic Zhuyin symbols
     needsCommaKey: true,
     width: 11,

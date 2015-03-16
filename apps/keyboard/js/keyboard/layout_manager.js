@@ -150,7 +150,7 @@ LayoutManager.prototype._updateCurrentPage = function() {
   // These properties needs to be carry over to the page from the layout
   // regardless where the page is come from.
   ['imEngine', 'autoCorrectLanguage',
-    'autoCorrectPunctuation', 'needsCandidatePanel'
+    'autoCorrectPunctuation', 'needsCandidatePanel', 'lang'
   ].forEach(function(prop) {
     if (prop in layout) {
       page[prop] = layout[prop];

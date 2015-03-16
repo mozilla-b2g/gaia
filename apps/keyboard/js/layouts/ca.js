@@ -5,6 +5,7 @@ Keyboards.ca = {
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'ca',
+  lang: 'ca',
   alt: {
     a: 'àáâäåãāæª@',
     c: 'çćč',

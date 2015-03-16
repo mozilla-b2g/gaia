@@ -9,6 +9,7 @@ Keyboards.te = {
   types: ['text', 'url', 'email'],
   width: 11,
   keyClassName: 'telugu',
+  lang: 'te',
   upperCase: {
     'ౌ':'ఔ',
     'ై':'ణ',

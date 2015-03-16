@@ -5,6 +5,7 @@ Keyboards.pl = {
   types: ['text', 'url' , 'email', 'password'],
   autoCorrectLanguage: 'pl',
   menuLabel: 'Polski',
+  lang: 'pl',
   alt: {
     a: 'ąáàâäåãāæ',
     c: 'ćčç',

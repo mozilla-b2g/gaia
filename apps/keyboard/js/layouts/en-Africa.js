@@ -5,6 +5,7 @@ Keyboards['en-Africa'] = {
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'en_gb',
   menuLabel: 'English (Africa)',
+  lang: 'en-GB',
   pages: [ {
     alt: {
       a: 'áàâäåãāæ',

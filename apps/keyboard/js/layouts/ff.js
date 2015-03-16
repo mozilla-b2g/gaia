@@ -4,6 +4,7 @@ Keyboards.ff = {
   menuLabel: 'Pulaar-Fulfulde',
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
+  lang: 'ff',
   alt: {
     a: 'àâæáãäåā',
     c: 'çćč',

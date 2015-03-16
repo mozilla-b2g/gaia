@@ -5,6 +5,7 @@ Keyboards['tr-Q'] = {
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'tr',
   menuLabel: 'Türkçe Q',
+  lang: 'tr',
   upperCase: {
     'i': 'İ'
   },

@@ -5,6 +5,7 @@ Keyboards.ga = {
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'ga',
   menuLabel: 'Gaeilge',
+  lang: 'ga',
   alt: {
     a: 'áàâäåãāæ',
     b: 'ḃ',

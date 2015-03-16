@@ -7,6 +7,7 @@ Keyboards.my = {
   alternateLayoutKey: '\u1041\u1042\u1043', /*၁၂၃*/
   imEngine: 'latin',
   types: ['text', 'url', 'email'],
+  lang: 'my',
   keys: [
     [
       { value: '\u1006'/*ဆ*/ }, { value: '\u1010'/*တ*/ },

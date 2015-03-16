@@ -11,6 +11,7 @@ Keyboards['vi-Typewriter'] = {
   needsCandidatePanel: true,
   width: 10,
   types: ['text', 'url', 'email'],
+  lang: 'vi',
   alt: {
     'đ': 'z',
     'ư': 'f',

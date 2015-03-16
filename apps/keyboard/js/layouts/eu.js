@@ -5,6 +5,7 @@ Keyboards.eu = {
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'eu',
+  lang: 'eu',
   alt: {
     a: 'áªàâäåãāæ',
     c: 'ç',

@@ -4,6 +4,7 @@ Keyboards.eo = {
   shortLabel: 'Eo',
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
+  lang: 'eo',
   alt: {
     a: 'àáâãäåæāăą',
     c: 'çćċč',

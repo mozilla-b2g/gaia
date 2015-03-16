@@ -6,6 +6,7 @@ Keyboards['fr-CA'] = {
   autoCorrectLanguage: 'fr',
   autoCorrectPunctuation: false,
   menuLabel: 'Français (Canadien)',
+  lang: 'fr-CA',
   alt: {
     a: 'áàâäåãāæ',
     c: 'çćč',

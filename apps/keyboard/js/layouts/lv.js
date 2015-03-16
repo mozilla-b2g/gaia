@@ -5,6 +5,7 @@ Keyboards.lv = {
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'lv',
+  lang: 'lv',
   pages: [ {  // default page
     alt: {
       a: 'ā',

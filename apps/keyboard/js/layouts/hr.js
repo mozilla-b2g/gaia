@@ -5,6 +5,7 @@ Keyboards.hr = {
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'hr',
+  lang: 'hr',
   alt: {
     c: 'čćç',
     d: 'đ',

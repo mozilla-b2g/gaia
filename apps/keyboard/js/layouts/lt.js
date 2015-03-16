@@ -5,6 +5,7 @@ Keyboards.lt = {
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'lt',
+  lang: 'lt',
   alt: {
     a: 'ą',
     c: 'č',

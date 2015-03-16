@@ -8,6 +8,7 @@ Keyboards.ar = {
   alternateLayoutKey: '123',
   basicLayoutKey: 'أ ب ج',
   width: 11,
+  lang: 'ar',
   alt : {
     'غ': 'إ آ',
     'ا': 'أ ء',
