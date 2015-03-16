@@ -58,15 +58,15 @@ var MockBluetooth = {
     return this.mExpectedProfile === profile;
   },
 
-  isOPPProfileConnected: function mbt_isOPPProfileConnected() {
+  get isOPPProfileConnected() {
     return this.mExpectedProfile === 'opp';
   },
 
-  isA2DPProfileConnected: function mbt_isA2DPProfileConnected() {
+  get isA2DPProfileConnected() {
     return this.mExpectedProfile === 'a2dp';
   },
 
-  isSCOProfileConnected: function mbt_isSCOProfileConnected() {
+  get isSCOProfileConnected() {
     return this.mExpectedProfile === 'sco';
   },
 

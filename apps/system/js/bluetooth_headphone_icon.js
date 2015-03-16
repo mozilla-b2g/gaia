@@ -8,7 +8,7 @@
   BluetoothHeadphoneIcon.prototype = Object.create(BaseIcon.prototype);
   BluetoothHeadphoneIcon.prototype.name = 'BluetoothHeadphoneIcon';
   BluetoothHeadphoneIcon.prototype.shouldDisplay = function() {
-    return this.manager.isA2DPProfileConnected();
+    return this.manager.isA2DPProfileConnected;
   };
   exports.BluetoothHeadphoneIcon = BluetoothHeadphoneIcon;
 }(window));
