@@ -14,47 +14,31 @@
     //   l10nId: 'default-activity-pickimage',
     //   settingsId: 'activity.default.pickimage'
     // },
-    //
-    // NOTE: due to specs (bug1039386), some actions are grouped so when an app
-    // is set as default for any of the actions, the rest (from the same group)
-    // will be assigned the same app as default launch too.
-    // Grouped actions:
-    //
-    // new "webcontacts/contact"
-    // open "webcontacts/contact"
-    // update "webcontacts/contact"
-    //
-    // new "mail"
-    // view “url” (email)
-    //
-    // open "video"
-    // view “video”
-    //
+    // Note: list of supported activities on bug1039386
     var supportedActivities = [
       {
         name: 'dial',
         type: ['webtelephony/number'],
-        l10nId: 'default-activity-dialnumber',
-        settingsId: 'activity.default.dialnumber'
+        l10nId: 'default-activity-makecall',
+        settingsId: 'activity.default.makecall'
       },
       {
         name: 'new',
         type: ['webcontacts/contact'],
         l10nId: 'default-activity-opencontact',
         settingsId: 'activity.default.opencontact'
-        // same as open contact, see previous note
       },
       {
         name: 'new',
         type: ['mail'],
-        l10nId: 'default-activity-newmail',
-        settingsId: 'activity.default.newmail'
+        l10nId: 'default-activity-sendmail',
+        settingsId: 'activity.default.sendmail'
       },
       {
         name: 'new',
         type: ['websms/sms'],
-        l10nId: 'default-activity-newsms',
-        settingsId: 'activity.default.newsms'
+        l10nId: 'default-activity-sendmessage',
+        settingsId: 'activity.default.sendmessage'
       },
       {
         name: 'open',
@@ -91,26 +75,26 @@
       {
         name: 'record',
         type: ['photos'],
-        l10nId: 'default-activity-recordphoto',
-        settingsId: 'activity.default.recordphoto'
+        l10nId: 'default-activity-takephoto',
+        settingsId: 'activity.default.takephoto'
       },
       {
         name: 'record',
         type: ['videos'],
-        l10nId: 'default-activity-recordvideo',
-        settingsId: 'activity.default.recordvideo'
+        l10nId: 'default-activity-takevideo',
+        settingsId: 'activity.default.takevideo'
       },
       {
         name: 'view',
         type: ['url'],
-        l10nId: 'default-activity-viewurl',
-        settingsId: 'activity.default.viewurl'
+        l10nId: 'default-activity-openurl',
+        settingsId: 'activity.default.openurl'
       },
       {
         name: 'view',
         type: ['application/pdf'],
-        l10nId: 'default-activity-viewpdf',
-        settingsId: 'activity.default.viewpdf'
+        l10nId: 'default-activity-openpdf',
+        settingsId: 'activity.default.openpdf'
       },
       {
         name: 'view',
@@ -120,14 +104,12 @@
                'video/youtube'],
         l10nId: 'default-activity-openvideo',
         settingsId: 'activity.default.openvideo'
-        // same as open video, see previous note
       },
       {
         name: 'update',
         type: ['webcontacts/contact'],
         l10nId: 'default-activity-opencontact',
         settingsId: 'activity.default.opencontact'
-        // same as open contact, see previous note
       }
     ];
 
