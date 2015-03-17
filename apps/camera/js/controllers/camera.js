@@ -253,7 +253,7 @@ CameraController.prototype.showSizeLimitAlert = function() {
 CameraController.prototype.setMode = function(mode) {
   debug('set mode: %s', mode);
   var self = this;
-  var html;
+  var l10nId;
 
   // Abort if didn't change.
   //
@@ -269,12 +269,12 @@ CameraController.prototype.setMode = function(mode) {
   }
 
   if (mode == 'video') {
-    html = this.l10nGet('Video-Mode');
+    l10nId = 'Video-Mode';
   }
   else {
-    html = this.l10nGet('Photo-Mode');
+    l10nId = 'Photo-Mode';
   }
-  this.notification.display({ text: html });
+  this.notification.display({ text: l10nId });
 
   this.setFlashMode();
   this.app.emit('camera:willchange');
