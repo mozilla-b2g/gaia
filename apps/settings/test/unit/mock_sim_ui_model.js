@@ -7,9 +7,16 @@ define(function(require) {
     this._enabled = true;
     this._absent = false;
     this._locked = false;
-    this._name = 'card';
+    this._name = {
+      id: 'simWithIndex',
+      args: {
+        index: this._cardIndex + 1
+      }
+    };
     this._number = '0123456789';
-    this._operator = 'Taiwan telecom';
+    this._operator = {
+      text: 'Taiwan telecom'
+    };
   }
 
   MockSimUIModel.prototype = {
