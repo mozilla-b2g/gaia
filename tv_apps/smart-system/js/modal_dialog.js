@@ -211,7 +211,6 @@ var ModalDialog = {
         this.setTitle('alert', title);
         elements.alertOk.setAttribute('data-l10n-id', evt.yesText ?
                                                         evt.yesText : 'ok');
-        elements.alert.focus();
         break;
 
       case 'prompt':
@@ -223,7 +222,6 @@ var ModalDialog = {
                                                         evt.yesText : 'ok');
         elements.promptCancel.setAttribute('data-l10n-id', evt.noText ?
                                                         evt.noText : 'cancel');
-        elements.prompt.focus();
         break;
 
       case 'confirm':
@@ -234,13 +232,11 @@ var ModalDialog = {
                                                         evt.yesText : 'ok');
         elements.confirmCancel.setAttribute('data-l10n-id', evt.noText ?
                                                         evt.noText : 'cancel');
-        elements.confirm.focus();
         break;
 
       case 'selectone':
         this.buildSelectOneDialog(message);
         elements.selectOne.classList.add('visible');
-        elements.selectOne.focus();
         break;
     }
 
@@ -482,14 +478,18 @@ var ModalDialog = {
     return this.screen ? this.screen.classList.contains('modal-dialog') : false;
   },
 
+  isFocusable: function md_isFocusable() {
+    return this.isVisible();
+  },
+
   getElement: function md_getElement() {
-    if (this.isVisible()) {
+    if (this.isFocusable()) {
       return this.dialog;
     }
   },
 
   focus: function md_focus() {
-    if (this.isVisible()) {
+    if (this.isFocusable()) {
       document.activeElement.blur();
       var type = this.eventForCurrentOrigin.detail.promptType;
       document.getElementById(this.prefix + type)

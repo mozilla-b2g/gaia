@@ -121,6 +121,7 @@
     this._event = evt;
     if (!this._injected) {
       this.render();
+      focusManager.addUI(this);
     }
     this.show();
     this._injected = true;
@@ -207,11 +208,11 @@
     };
 
   /**
-   * Determine whether the dialog is visible.
+   * Determine whether the dialog is focusable.
    * @memberof AppAuthenticationDialog.prototype
    */
-  AppAuthenticationDialog.prototype.isVisible =
-    function aad_isVisible() {
+  AppAuthenticationDialog.prototype.isFocusable =
+    function aad_isFocusable() {
       return this.element && this.element.classList.contains('visible');
     };
 
@@ -222,7 +223,7 @@
    */
   AppAuthenticationDialog.prototype.getElement =
     function aad_getElement() {
-      if (this.isVisible()) {
+      if (this.isFocusable()) {
         return this.element;
       }
     };
@@ -233,7 +234,7 @@
    */
   AppAuthenticationDialog.prototype.focus =
     function aad_focus() {
-      if (this.isVisible() && this.elements.httpUsernameInput) {
+      if (this.isFocusable() && this.elements.httpUsernameInput) {
         document.activeElement.blur();
         this.elements.httpUsernameInput.focus();
       }

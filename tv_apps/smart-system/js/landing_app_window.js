@@ -1,4 +1,4 @@
-/* global HomescreenWindow */
+/* global HomescreenWindow, focusManager */
 
 'use strict';
 (function(exports) {
@@ -15,6 +15,7 @@
     this.render();
     this.publish('created');
     this.createdTime = this.launchTime = Date.now();
+    focusManager.addUI(this);
     return this;
   };
 

@@ -1,4 +1,5 @@
-/* global AppModalDialog, AirplaneMode, SimpleKeyNavigation, KeyEvent */
+/* global AppModalDialog, AirplaneMode, SimpleKeyNavigation, KeyEvent,
+          focusManager */
 'use strict';
 
 (function(exports) {
@@ -50,6 +51,7 @@
     evt.stopPropagation();
     this.events.push(evt);
     if (!this._injected) {
+      focusManager.addUI(this);
       this.render();
     }
     this.show();
@@ -106,7 +108,7 @@
     // event should be prevented since it works on keydown. We can remove this
     // workaround after changing containers from <form> to other DOM elements.
     this.element.addEventListener('submit', function(evt){
-      evt.explicitOriginalTarget.focus();
+      focusManager.focus();
       evt.preventDefault();
     }.bind(this));
   };
@@ -224,6 +226,7 @@
 
   AppModalDialog.prototype.kill = function amd_kill() {
     this.containerElement.removeChild(this.element);
+    focusManager.removeUI(this);
   };
 
   // Show relative dialog and set message/input value well
@@ -252,6 +255,7 @@
       message = escapeHTML(message);
     }
 
+    this._dialogType = type;
     // TODO: Currently we only implmented key navigation for prompt dialog.
     // Other dialogs also need to be implemented.
     switch (type) {
@@ -271,12 +275,7 @@
           SimpleKeyNavigation.DIRECTION.HORIZONTAL,
           {target: elements.alert});
 
-        // XXX: Focusing smart-button fails at the second time popup if we don't
-        // postpone it. We need to find the root cause.
-        setTimeout(function() {
-          document.activeElement.blur();
-          this.simpleKeyNavigation.focus();
-        }.bind(this), 100);
+        focusManager.focus();
         break;
 
       case 'prompt':
@@ -299,7 +298,7 @@
           elements.promptCancel.setAttribute('data-l10n-id', 'cancel');
         }
 
-        document.activeElement.blur();
+        focusManager.focus();
         var horizontalButtonNavigation = new SimpleKeyNavigation();
         horizontalButtonNavigation.start(
           [elements.promptCancel, elements.promptOk],
@@ -331,24 +330,17 @@
           elements.confirmCancel.setAttribute('data-l10n-id', 'cancel');
         }
 
-        document.activeElement.blur();
+        focusManager.focus();
         this.simpleKeyNavigation.start(
           [elements.confirmCancel, elements.confirmOk],
           SimpleKeyNavigation.DIRECTION.HORIZONTAL,
           {target: elements.confirm});
-
-        // XXX: Focusing smart-button fails at the second time popup if we don't
-        // postpone it. We need to find the root cause.
-        setTimeout(function() {
-          document.activeElement.blur();
-          this.simpleKeyNavigation.focus();
-        }.bind(this), 100);
         break;
 
       case 'selectone':
         this.buildSelectOneDialog(message);
         elements.selectOne.classList.add('visible');
-        elements.selectOne.focus();
+        focusManager.focus();
         break;
 
       case 'custom-prompt':
@@ -393,7 +385,7 @@
           checkbox.parentNode.classList.add('hidden');
         }
 
-        elements.customPrompt.focus();
+        focusManager.focus();
         break;
     }
 
@@ -406,9 +398,7 @@
     this.simpleKeyNavigation.stop();
     this.app.browser.element.removeAttribute('aria-hidden');
     this.element.classList.remove('visible');
-    if (this.app) {
-      this.app.focus();
-    }
+    focusManager.focus();
     if (!this.events.length) {
       return;
     }
@@ -418,13 +408,31 @@
     this.elements[type].classList.remove('visible');
   };
 
-  AppModalDialog.prototype.isVisible = function amd_isVisible() {
+  AppModalDialog.prototype.isFocusable = function amd_isVisible() {
     return !!this.element && this.element.classList.contains('visible');
   };
 
   AppModalDialog.prototype.focus = function amd_show() {
-    document.activeElement.blur();
-    this.simpleKeyNavigation && this.simpleKeyNavigation.focus();
+    // XXX: Focusing smart-button fails at the second time popup if we don't
+    // postpone it. We need to find the root cause.
+    setTimeout(function() {
+      document.activeElement.blur();
+      switch(this._dialogType) {
+        case 'selectone':
+          this.elements.selectOne.focus();
+          break;
+        case 'custom-prompt':
+          this.elements.customPrompt.focus();
+          break;
+        default:
+          this.simpleKeyNavigation && this.simpleKeyNavigation.focus();
+          break;
+      }
+    }.bind(this), 100);
+  };
+
+  AppModalDialog.prototype.getElement = function amd_getElement() {
+    return this.element;
   };
 
   // When user clicks OK button on alert/confirm/prompt

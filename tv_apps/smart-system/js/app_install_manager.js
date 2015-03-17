@@ -690,7 +690,7 @@ var AppInstallManager = {
     this.simpleKeyNavigation.stop();
   },
 
-  isVisible: function() {
+  isFocusable: function() {
     var i;
     for (i = 0; i < this.dialogList.length; i++) {
       if (this.dialogList[i].dialog.classList.contains('visible')) {
