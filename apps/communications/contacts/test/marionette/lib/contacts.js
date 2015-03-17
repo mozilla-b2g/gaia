@@ -184,6 +184,14 @@ Contacts.prototype = {
     this.client.waitFor(test);
   },
 
+  waitNotDisplayed: function(elementKey) {
+    var element = this.client.findElement(Contacts.Selectors[elementKey]);
+    var test = function() {
+      return !element.displayed();
+    };
+    this.client.waitFor(test);
+  },
+
   waitForSlideDown: function(element) {
     var bodyHeight = this.client.findElement(Contacts.Selectors.body).
       size().height;
