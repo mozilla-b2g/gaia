@@ -575,7 +575,9 @@
     var finishedFade = false;
     var endBackgroundFade = function() {
       finishedFade = true;
-      self.element.removeEventListener('transitionend', endBackgroundFade);
+      if (self.element) {
+        self.element.removeEventListener('transitionend', endBackgroundFade);
+      }
     };
     this.element.addEventListener('transitionend', endBackgroundFade);
     eventSafety(this.element, 'transitionend', endBackgroundFade, 1000);
