@@ -161,6 +161,10 @@ define(function(require) {
           } else {
             done();
           }
+        } else if (type === 'snooze') {
+          // Inform the Alarm instance that a mozAlarm snooze has fired.
+          alarm.cancel('snooze');
+          done();
         } else {
           done();
         }
