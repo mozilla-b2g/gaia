@@ -199,6 +199,7 @@
    "support.callsupport2.title": "",
    "support.callsupport2.href": "",
    "telephony.speaker.enabled": false,
+   "telephony.audiocompeting.disabled": true,
    "tethering.usb.enabled": false,
    "tethering.usb.ip": "192.168.0.1",
    "tethering.usb.prefix": "24",

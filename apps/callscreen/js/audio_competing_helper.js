@@ -60,6 +60,23 @@
      * Init function.
      */
     init: function ach_init(appName) {
+      var self = this;
+      var req = window.navigator.mozSettings.createLock().get(
+        'telephony.audiocompeting.disabled');
+      req.onsuccess = function icc_getAudioCompetingDisabled() {
+        var value = req.result['telephony.audiocompeting.disabled'];
+
+        if (typeof value === 'undefined') {
+          navigator.mozSettings.createLock().set({
+            'telephony.audiocompeting.disabled': true
+          });
+          self._audioCompetingDisabled = true;
+        } else {
+          self._audioCompetingDisabled = value;
+        }
+        console.log('DEBUG init _audioCompetingDisabled ' +
+          self._audioCompetingDisabled);
+      };
       _appName = appName;
     },
 
@@ -68,6 +85,11 @@
      * channel.
      */
     compete: function ach_compete() {
+      console.log('DEBUG compete _audioCompetingDisabled ' +
+        this._audioCompetingDisabled);
+      if (this._audioCompetingDisabled) {
+        return ;
+      }
       _ac = new AudioContext('telephony');
 
       _silenceBufferSource = _ac.createBufferSource();
@@ -91,6 +113,11 @@
      * audio channel.
      */
     leaveCompetition: function ach_leaveCompetition() {
+      console.log('DEBUG leaveCompetition _audioCompetingDisabled ' +
+        this._audioCompetingDisabled);
+      if (this._audioCompetingDisabled) {
+        return ;
+      }
       if (!_silenceBufferSource) {
         return;
       }
