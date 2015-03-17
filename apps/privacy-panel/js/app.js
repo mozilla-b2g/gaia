@@ -20,9 +20,6 @@ require.config({
     },
     'shared/async_storage': {
       exports: 'asyncStorage'
-    },
-    'shared/l10n': {
-      exports: 'navigator.mozL10n'
     }
   }
 });
@@ -50,7 +47,6 @@ require([
   'panels',
   'root/main',
   'about/main',
-  'shared/l10n'
 ],
 
 function(panels, root, about) {
