@@ -21,7 +21,7 @@ suite('Default Activity Helper', function() {
     test('returns config if supported', function() {
       var config = DefaultActivityHelper.getDefaultConfig('view', 'url');
       assert.ok(config);
-      assert.equal(config.settingsId, 'activity.default.openurl');
+      assert.equal(config.settingsId, 'activity.default.viewurl');
     });
 
     test('returns undefined if not supported', function() {
@@ -32,7 +32,7 @@ suite('Default Activity Helper', function() {
 
   suite('getDefaultAction', function(done) {
     test('setting is recovered for supported activity', function(done) {
-      var settingsHelper = SettingsHelper('activity.default.openurl', null);
+      var settingsHelper = SettingsHelper('activity.default.viewurl', null);
       settingsHelper.set('manifest');
       DefaultActivityHelper.getDefaultAction('view', 'url').then((action) => {
         assert.equal(action, 'manifest');
@@ -50,7 +50,7 @@ suite('Default Activity Helper', function() {
 
   suite('setDefaultAction', function(done) {
     test('setting is set for supported action', function(done) {
-      var settingsHelper = SettingsHelper('activity.default.openurl', null);
+      var settingsHelper = SettingsHelper('activity.default.viewurl', null);
       DefaultActivityHelper.setDefaultAction('view', 'url', 'testmanifest');
       settingsHelper.get(function(value) {
         assert.equal(value, 'testmanifest');
