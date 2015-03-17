@@ -167,6 +167,19 @@ suite('system/sound manager', function() {
       });
     });
 
+    suite('mute icon update', function() {
+      setup(function() {
+        this.sinon.stub(soundManager.muteIcon, 'update');
+      });
+      test('notification volume settings change', function() {
+        MockSettingsListener.mTriggerCallback('audio.volume.notification', 0);
+        assert.isTrue(soundManager.muteIcon.update.called);
+
+        MockSettingsListener.mTriggerCallback('audio.volume.notification', 1);
+        assert.isTrue(soundManager.muteIcon.update.called);
+      });
+    });
+
     suite('volume change', function() {
       setup(function() {
         // reset the all volume to 5

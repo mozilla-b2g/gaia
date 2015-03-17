@@ -719,12 +719,12 @@
           } else if (channel === 'notification' && volume > 0) {
             self.leaveSilentMode('notification',
                             /* skip volume restore */ true);
-            self.icon && self.icon.update();
+            self.muteIcon && self.muteIcon.update();
           } else if (channel === 'notification' && volume === 0) {
             // Enter silent mode when notification volume is 0
             // no matter who sets this value.
             self.enterSilentMode('notification');
-            self.icon && self.icon.update();
+            self.muteIcon && self.muteIcon.update();
           }
 
           if (!self.volumeFetched && ++callbacksReceived === callsMade) {
