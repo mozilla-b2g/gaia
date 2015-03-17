@@ -7,12 +7,7 @@ var SettingsIntegration = require('./integration.js');
 
 marionette(config.appPath + ' >', function() {
   var app;
-  var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
   // Do nothing on script timeout. Bug 987383
   client.onScriptTimeout = null;
 

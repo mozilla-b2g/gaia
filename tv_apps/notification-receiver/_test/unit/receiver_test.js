@@ -5,8 +5,8 @@
 
 require('/js/receiver.js');
 require('/shared/test/unit/mocks/mock_notification.js');
-require('/tv_apps/tv_shared/test/unit/mocks/mock_presentation.js');
-require('/tv_apps/tv_shared/test/unit/mocks/mock_presentation_session.js');
+require('/shared/test/unit/mocks/mock_presentation.js');
+require('/shared/test/unit/mocks/mock_presentation_session.js');
 
 suite('notification-receiver/Receiver', function() {
   var receiver;

@@ -31,7 +31,7 @@ function generateServicesConfig(options) {
   // Just copy over the default file
   if (!path) {
     var sourcePath = utils.joinPath(options.APP_DIR, 'js', 'services.js');
-    utils.copyFileTo(sourcePath, stageJsPath, 'services.js', true);
+    utils.copyFileTo(sourcePath, stageJsPath, 'services.js');
     return;
   }
 

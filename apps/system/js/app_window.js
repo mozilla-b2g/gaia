@@ -800,7 +800,7 @@
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
      '_orientationchange', '_focus', '_blur',  '_hidewindow', '_sheetdisplayed',
      '_sheetsgestureend', '_cardviewbeforeshow', '_cardviewclosed',
-     '_closed', '_shrinkingstart', '_shrinkingstop'];
+     '_cardviewshown', '_closed', '_shrinkingstart', '_shrinkingstop'];
 
   AppWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
@@ -993,7 +993,9 @@
       this.title = evt.detail;
       this.publish('titlechange');
 
-      if (this.identificationTitle && !this.manifest) {
+      // Do not set the identification title if we're browsing a URL privately
+      if (this.identificationTitle && !this.manifest &&
+        (!this.isPrivateBrowser() || this.config.url.startsWith('app:'))) {
         this.identificationTitle.textContent = this.title;
       }
     };
@@ -1068,7 +1070,7 @@
         this.favicons[href].sizes.push(sizes);
       }
 
-      if (this.identificationIcon) {
+      if (this.identificationIcon && !this.isPrivateBrowser()) {
         this.identificationIcon.style.backgroundImage =
           'url("' + evt.detail.href + '")';
       }
@@ -1261,6 +1263,7 @@
         return this.frontWindow.requestScreenshotURL();
       }
       if (!this._screenshotBlob) {
+        this.debug('requestScreenshotURL, no _screenshotBlob');
         return null;
       }
       var screenshotURL = URL.createObjectURL(this._screenshotBlob);
@@ -1287,16 +1290,17 @@
           this.screenshotOverlay.classList.contains('visible')) {
         return;
       }
-
       if (this.identificationOverlay) {
         this.element.classList.add('overlay');
       }
 
       this.screenshotOverlay.classList.add('visible');
 
+      // will be null if there is no blob
       var screenshotURL = this.requestScreenshotURL();
-      this.screenshotOverlay.style.backgroundImage =
-        'url(' + screenshotURL + ')';
+      this.screenshotOverlay.style.backgroundImage = screenshotURL ?
+          'url(' + screenshotURL + ')' : 'none';
+      this.element.classList.toggle('no-screenshot', !screenshotURL);
     };
 
   /**
@@ -1315,6 +1319,7 @@
 
       this.screenshotOverlay.classList.remove('visible');
       this.screenshotOverlay.style.backgroundImage = '';
+      this.element.classList.remove('no-screenshot');
 
       if (this.identificationOverlay) {
         var element = this.element;
@@ -1981,13 +1986,21 @@
     this._showScreenshotOverlay();
   };
 
+  AppWindow.prototype._handle__cardviewshown = function aw_cvshown() {
+    if (this.element && this.element.classList.contains('no-screenshot') &&
+        this._screenshotBlob) {
+      this.element.classList.remove('no-screenshot');
+    }
+  };
+
   AppWindow.prototype._handle__cardviewclosed = function aw_cvclosed() {
     this.debug('hiding screenshot after cardsview closed.');
     this._hideScreenshotOverlay();
   };
 
   AppWindow.prototype._handle__closed = function aw_closed() {
-    if (Service.isBusyLoading() && this.getBottomMostWindow().isHomescreen) {
+    if (!this.loaded ||
+        (Service.isBusyLoading() && this.getBottomMostWindow().isHomescreen)) {
       // We will eventually get screenshot when being requested from
       // task manager.
       return;

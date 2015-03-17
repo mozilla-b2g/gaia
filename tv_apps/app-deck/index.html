@@ -10,33 +10,33 @@
 
     <link rel="stylesheet" type="text/css" href="style/app_deck.css">
     <link rel="stylesheet" type="text/css" href="style/app_deck_list.css">
-    <link rel="stylesheet" type="text/css" href="tv_shared/style/navigation.css">
-    <link rel="stylesheet" type="text/css" href="tv_shared/style/icons.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/smart-screen/navigation.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/smart-screen/icons.css">
 
     <!-- default cards for first time launch -->
-    <link rel="resource" type="application/json" href="tv_shared/resources/default-cards.json">
+    <link rel="resource" type="application/json" href="shared/resources/default-cards.json">
 
     <!-- For test purpose on phone only -->
     <script defer src="shared/js/gesture_detector.js"></script>
-    <script defer src="tv_shared/js/init_gesture.js"></script>
+    <script defer src="shared/js/smart-screen/init_gesture.js"></script>
 
     <!-- Shared libraries -->
     <script src="shared/js/l10n.js"></script>
     <script src="shared/js/manifest_helper.js"></script>
     <script defer src="bower_components/evt/index.js"></script>
-    <script defer src="tv_shared/js/scrollable.js"></script>
-    <script defer src="tv_shared/js/spatial_navigator.js"></script>
-    <script defer src="tv_shared/js/key_navigation_adapter.js"></script>
-    <script defer src="tv_shared/js/shared_utils.js"></script>
-    <script defer src="tv_shared/js/applications.js"></script>
-    <script defer src="tv_shared/js/piped_promise.js"></script>
-    <script defer src="tv_shared/js/card_store.js"></script>
-    <script defer src="tv_shared/js/cards/card.js"></script>
-    <script defer src="tv_shared/js/cards/application.js"></script>
-    <script defer src="tv_shared/js/cards/deck.js"></script>
-    <script defer src="tv_shared/js/cards/folder.js"></script>
-    <script defer src="tv_shared/js/async_semaphore.js"></script>
-    <script defer src="tv_shared/js/card_manager.js"></script>
+    <script defer src="shared/js/async_semaphore.js"></script>
+    <script defer src="shared/js/smart-screen/scrollable.js"></script>
+    <script defer src="shared/js/smart-screen/spatial_navigator.js"></script>
+    <script defer src="shared/js/smart-screen/key_navigation_adapter.js"></script>
+    <script defer src="shared/js/smart-screen/shared_utils.js"></script>
+    <script defer src="shared/js/smart-screen/applications.js"></script>
+    <script defer src="shared/js/smart-screen/piped_promise.js"></script>
+    <script defer src="shared/js/smart-screen/card_store.js"></script>
+    <script defer src="shared/js/smart-screen/cards/card.js"></script>
+    <script defer src="shared/js/smart-screen/cards/application.js"></script>
+    <script defer src="shared/js/smart-screen/cards/deck.js"></script>
+    <script defer src="shared/js/smart-screen/cards/folder.js"></script>
+    <script defer src="shared/js/smart-screen/card_manager.js"></script>
 
     <!-- building blocks -->
     <script defer src="bower_components/smart-button/script.js"></script>
@@ -79,8 +79,8 @@
         <div id="app-deck-grid-view"></div>
       </section>
       <menu type="context" id="context-menu">
-        <menuitem icon="tv_shared/style/icons/ic_pin.png" data-l10n-id="pin-to-home" id="pin-to-home"></menuitem>
-        <menuitem icon="tv_shared/style/icons/ic_delete.png" data-l10n-id="remove-card" id="remove-card"></menuitem>
+        <menuitem icon="style/icons/ic_pin.png" data-l10n-id="pin-to-home" id="pin-to-home"></menuitem>
+        <menuitem icon="style/icons/ic_delete.png" data-l10n-id="remove-card" id="remove-card"></menuitem>
       </menu>
     </article>
   </body>

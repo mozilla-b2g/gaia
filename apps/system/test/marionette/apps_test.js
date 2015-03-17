@@ -4,11 +4,7 @@ var assert = require('chai').assert;
 
 marionette('mozApps', function() {
 
-  var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null
-    }
-  });
+  var client = marionette.client();
 
   suite('getSelf', function() {
     test('multiple calls should all return', function() {

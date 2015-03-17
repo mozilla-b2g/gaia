@@ -237,6 +237,19 @@ suite('system/NotificationScreen >', function() {
       assert.ok(playSpy.calledOnce);
     });
 
+    test('it should stop playing after 4 seconds', function() {
+      var pauseSpy = this.sinon.spy(MockAudio.prototype, 'pause');
+      var loadSpy =  this.sinon.spy(MockAudio.prototype, 'load');
+      var removeAttributeSpy = this.sinon.spy(
+        MockAudio.prototype, 'removeAttribute');
+      sendNotification();
+      sinon.assert.notCalled(pauseSpy);
+      this.sinon.clock.tick(4000);
+      sinon.assert.called(loadSpy);
+      sinon.assert.calledWith(removeAttributeSpy, 'src');
+      sinon.assert.called(pauseSpy);
+    });
+
     test('if active call it should use telephony channel', function() {
       var playSpy = this.sinon.spy(MockAudio.prototype, 'play');
       var mockCall = new MockCall('123456', 'connected');

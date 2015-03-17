@@ -12,10 +12,6 @@ marionette('Keyboard and edge gestures >', function() {
     prefs: {
       'dom.w3c_touch_events.enabled': 1,
       'focusmanager.testmode': true
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
     }
   });
 

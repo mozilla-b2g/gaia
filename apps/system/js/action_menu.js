@@ -77,9 +77,7 @@
 
       // We have a menu with all the options
       this.menu = document.createElement('menu');
-
       this.container.appendChild(this.menu);
-      this.container.classList.add('visible');
 
       // We append to System app (actually to '#screen')
       var screen = document.getElementById('screen');
@@ -100,6 +98,14 @@
       if (this.preventFocusChange) {
         this.menu.addEventListener('mousedown', this.preventFocusChange);
       }
+
+      // Animate the menu onto the screen (in a nested raf to avoid the
+      // style change coalescing and not running the transition).
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          this.container.classList.add('visible');
+        });
+      });
     },
 
     /**
@@ -169,8 +175,13 @@
      * @param  {Function} callback The callback to call after hiding.
      */
     hide: function(callback) {
+      var self = this;
+      this.container.addEventListener('transitionend', function doHide(e) {
+        self.container.removeEventListener('transitionend', doHide);
+        self.stop();
+      });
       this.container.classList.remove('visible');
-      this.stop();
+
       if (callback && typeof callback === 'function') {
         setTimeout(callback);
       }

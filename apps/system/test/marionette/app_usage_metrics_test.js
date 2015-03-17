@@ -32,12 +32,6 @@ marionette('App Usage Metrics >', function() {
     prefs: {
       'dom.inter-app-communication-api.enabled': true,
       'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'homescreen.manifestURL':
-        'app://verticalhome.gaiamobile.org/manifest.webapp',
-      'lockscreen.enabled': false
     }
   });
 

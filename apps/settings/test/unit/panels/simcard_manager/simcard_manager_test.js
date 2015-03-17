@@ -71,8 +71,8 @@ suite('SimCardManager > ', function() {
       simcardManager = new SimcardManager({
         simCardContainer: document.createElement('div'),
         simCardTmpl: document.createElement('div'),
-        securityEntry: document.createElement('div'),
-        securityDesc: document.createElement('div'),
+        simSettingsHeader: document.createElement('header'),
+        simSettingsList: document.createElement('ul'),
         outgoingCallSelect: document.createElement('select'),
         outgoingMessagesSelect: document.createElement('select'),
         outgoingDataSelect: document.createElement('select')
@@ -407,7 +407,7 @@ suite('SimCardManager > ', function() {
       this.sinon.stub(simcardManager, '_initSimCardsUI');
       this.sinon.stub(simcardManager, '_updateSelectOptionsUI');
       this.sinon.stub(simcardManager, '_updateSimCardsUI');
-      this.sinon.stub(simcardManager, '_updateSimSecurityUI');
+      this.sinon.stub(simcardManager, '_updateSimSettingsUI');
       simcardManager._initSimCardManagerUI();
     });
 
@@ -415,7 +415,7 @@ suite('SimCardManager > ', function() {
       assert.ok(simcardManager._initSimCardsUI.called);
       assert.ok(simcardManager._updateSelectOptionsUI.called);
       assert.ok(simcardManager._updateSimCardsUI.called);
-      assert.ok(simcardManager._updateSimSecurityUI.called);
+      assert.ok(simcardManager._updateSimSettingsUI.called);
     });
   });
 
@@ -472,7 +472,7 @@ suite('SimCardManager > ', function() {
     });
   });
 
-  suite('updateSimSecurityUI > ', function() {
+  suite('_updateSimSettingsUI > ', function() {
     setup(function() {
       initCards(2);
     });
@@ -483,12 +483,12 @@ suite('SimCardManager > ', function() {
         simcardManager._simcards[1]._absent = true;
         simcardManager._isAirplaneMode = false;
         simcardManager._isAirplaneMode = false;
-        simcardManager._updateSimSecurityUI();
+        simcardManager._updateSimSettingsUI();
       });
 
-      test('we will hide simSecurity', function() {
-        assert.equal('true',
-          simcardManager._elements.securityEntry.getAttribute('aria-disabled'));
+      test('we will hide sim settings section', function() {
+        assert.isTrue(simcardManager._elements.simSettingsHeader.hidden);
+        assert.isTrue(simcardManager._elements.simSettingsList.hidden);
       });
     });
 
@@ -498,12 +498,12 @@ suite('SimCardManager > ', function() {
         simcardManager._simcards[1]._absent = true;
         simcardManager._isAirplaneMode = true;
         simcardManager._isAirplaneMode = true;
-        simcardManager._updateSimSecurityUI();
+        simcardManager._updateSimSettingsUI();
       });
 
-      test('we will hide simSecurity', function() {
-        assert.equal('true',
-          simcardManager._elements.securityEntry.getAttribute('aria-disabled'));
+      test('we will hide sim settings section', function() {
+        assert.isTrue(simcardManager._elements.simSettingsHeader.hidden);
+        assert.isTrue(simcardManager._elements.simSettingsList.hidden);
       });
     });
 
@@ -513,11 +513,11 @@ suite('SimCardManager > ', function() {
         simcardManager._simcards[1]._absent = true;
         simcardManager._isAirplaneMode = true;
         simcardManager._isAirplaneMode = true;
-        simcardManager._updateSimSecurityUI();
+        simcardManager._updateSimSettingsUI();
       });
-      test('we will hide simSecurity', function() {
-        assert.equal('true',
-          simcardManager._elements.securityEntry.getAttribute('aria-disabled'));
+      test('we will hide sim settings section', function() {
+        assert.isTrue(simcardManager._elements.simSettingsHeader.hidden);
+        assert.isTrue(simcardManager._elements.simSettingsList.hidden);
       });
     });
 
@@ -527,11 +527,11 @@ suite('SimCardManager > ', function() {
         simcardManager._simcards[1]._absent = true;
         simcardManager._isAirplaneMode = false;
         simcardManager._isAirplaneMode = false;
-        simcardManager._updateSimSecurityUI();
+        simcardManager._updateSimSettingsUI();
       });
-      test('we will show simSecurity', function() {
-        assert.equal('false',
-          simcardManager._elements.securityEntry.getAttribute('aria-disabled'));
+      test('we will show sim settings section', function() {
+        assert.isFalse(simcardManager._elements.simSettingsHeader.hidden);
+        assert.isFalse(simcardManager._elements.simSettingsList.hidden);
       });
     });
   });

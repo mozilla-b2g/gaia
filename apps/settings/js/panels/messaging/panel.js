@@ -110,9 +110,14 @@ define(function(require) {
         elements.simcardsContainer.hidden = false;
       },
       _updateSmsc: function(cardIndex) {
+        // cleanup first
+        elements.smsc.innerHTML = '';
+
         SIMSlotManager.get(cardIndex).getSmsc(function(result) {
           if (result) {
-            elements.smsc.textContent = result;
+            var bdi = document.createElement('bdi');
+            bdi.textContent = result;
+            elements.smsc.appendChild(bdi);
           } else {
             elements.smsc.setAttribute('data-l10n-id', 'unknown-SMSC');
           }

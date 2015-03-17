@@ -529,7 +529,7 @@
 
         var nameEl = document.createElement('span');
         nameEl.className = 'title';
-        nameEl.textContent = this.name;
+
         nameContainerEl.appendChild(nameEl);
 
         // Add delete link if this icon is removable
@@ -540,6 +540,7 @@
         }
 
         this.element = tile;
+        this.updateTitle();
         this.renderIcon(true);
         this.grid.element.appendChild(tile);
       }
@@ -579,7 +580,14 @@
         return;
       }
       var nameEl = this.element.querySelector('.title');
-      nameEl.textContent = this.name;
+
+      if (this.asyncName) {
+        this.asyncName().then(function(name) {
+          nameEl.textContent = name;
+        });
+      } else {
+        nameEl.textContent = this.name;
+      }
     },
 
     /**

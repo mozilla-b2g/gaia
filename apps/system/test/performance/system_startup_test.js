@@ -19,12 +19,7 @@ reboot();
 
 marionette('startup event test > ' + appPath + ' >', function() {
 
-  var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
   var app = new App(client, appPath);
 
   // Do nothing on script timeout. Bug 987383

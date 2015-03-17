@@ -9,13 +9,7 @@ var serverHelper = require('./lib/server_helper');
  * the queue, refreshing them, etc.
  */
 marionette('outbox', function() {
-  var client = marionette.client({
-    settings: {
-      // disable keyboard ftu because it blocks our display
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
 
   var INVALID_EMAIL = 'invalid@@';
   var app;

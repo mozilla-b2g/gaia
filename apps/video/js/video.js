@@ -827,14 +827,6 @@ function movePlayHead(percent) {
 }
 
 function updateVideoControlSlider() {
-  // We update the slider when we get a 'seeked' event.
-  // Don't do updates while we're seeking because the position we fastSeek()
-  // to probably isn't exactly where we requested and we don't want jerky
-  // updates
-  if (dom.player.seeking) {
-    return;
-  }
-
   var percent = (dom.player.currentTime / dom.player.duration) * 100;
   if (isNaN(percent)) {
     return;

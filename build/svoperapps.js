@@ -120,7 +120,7 @@ function(appId, manifestUrl, origin, installOrigin, appPath, cached, done) {
   // appPath to profilePath.
   function copyAppPathToProfile() {
     try {
-      utils.copyFileTo(appPath, destPath, appId, true);
+      utils.copyFileTo(appPath, destPath, appId);
     } catch (ex) {
       utils.log('svoperapps.js', 'copy file error: ' + ex.message);
       self.errorObject = ex;

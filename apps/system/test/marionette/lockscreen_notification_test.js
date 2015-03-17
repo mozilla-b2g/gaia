@@ -5,7 +5,6 @@ marionette('LockScreen notification tests', function() {
   var LockScreenNotificationChecks, checks;
   var client = marionette.client({
     settings: {
-      'ftu.manifestURL': null,
       'lockscreen.enabled': true
     }
   });

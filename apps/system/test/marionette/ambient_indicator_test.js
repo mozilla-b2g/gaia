@@ -6,12 +6,7 @@ var UtilityTray = require('./lib/utility_tray');
 var NotificationTest = require('./lib/notification').NotificationTest;
 marionette('Ambient indicator', function() {
 
-  var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
 
   var ambientIndicator = new AmbientIndicator(client);
   var details, notification, system, utilityTray;

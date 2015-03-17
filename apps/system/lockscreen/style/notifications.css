@@ -52,6 +52,7 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   -moz-margin-end: .5rem;
+  unicode-bidi: bidi-override;
 }
 
 #notifications-lockscreen-container .notification.actionable {

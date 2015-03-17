@@ -8,12 +8,7 @@ var assert = require('assert'),
 var SHARED_PATH = __dirname + '/../../../../shared/test/integration/';
 
 marionette('notification tests', function() {
-  var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
   var system;
   var actions = new Marionette.Actions(client);
   var notificationList = new NotificationList(client);

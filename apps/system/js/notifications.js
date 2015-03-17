@@ -583,7 +583,7 @@ var NotificationScreen = {
           ringtonePlayer.pause();
           ringtonePlayer.removeAttribute('src');
           ringtonePlayer.load();
-        }, 2000);
+        }, 4000);
       }
 
       if (this.vibrates) {

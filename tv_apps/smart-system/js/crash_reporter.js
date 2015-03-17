@@ -172,11 +172,11 @@ window.CrashReporter = (function() {
   }
 
   /**
-   * Determine whether there is crash-dialog or system banner visible.
+   * Determine whether there is crash-dialog or system banner focusable.
    */
-  function isVisible() {
-    var dialog = document.getElementById('crash-dialog');
-    return dialog && screen.classList.contains('crash-dialog');
+  function isFocusable() {
+    return document.getElementById('crash-dialog') &&
+           screen.classList.contains('crash-dialog');
   }
 
   /**
@@ -184,7 +184,7 @@ window.CrashReporter = (function() {
    */
   function getElement() {
     var dialog = document.getElementById('crash-dialog');
-    if (isVisible()) {
+    if (isFocusable()) {
       return dialog;
     }
   }
@@ -196,7 +196,7 @@ window.CrashReporter = (function() {
   function focus() {
     var dialog = document.getElementById('crash-dialog');
     var dialogButton = document.getElementById('send-report');
-    if (isVisible() && dialogButton) {
+    if (isFocusable() && dialogButton) {
       document.activeElement.blur();
       if (dialog.classList.contains('learn-more')) {
         document.getElementById('crash-reports-header').els.actionButton
@@ -214,7 +214,7 @@ window.CrashReporter = (function() {
 
   return {
     setAppName: setAppName,
-    isVisible: isVisible,
+    isFocusable: isFocusable,
     getElement: getElement,
     focus: focus
   };

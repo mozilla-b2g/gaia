@@ -1,4 +1,4 @@
-/* global Bluetooth, appWindowManager */
+/* global appWindowManager */
 'use strict';
 
 function LockScreenMediaPlaybackWidget(container, options) {
@@ -75,7 +75,7 @@ LockScreenMediaPlaybackWidget.prototype = {
     var name = event.detail.name;
     var connected = event.detail.connected;
 
-    if (name === Bluetooth.Profiles.SCO) {
+    if (name === 'sco') {
       this.container.classList.toggle('disabled', connected);
     }
   },

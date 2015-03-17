@@ -4,11 +4,11 @@
 
 require('/bower_components/evt/index.js');
 require('/shared/js/uuid.js');
-require('/tv_apps/tv_shared/js/cards/card.js');
-require('/tv_apps/tv_shared/js/cards/deck.js');
-require('/tv_apps/tv_shared/js/cards/folder.js');
+require('/shared/js/smart-screen/cards/card.js');
+require('/shared/js/smart-screen/cards/deck.js');
+require('/shared/js/smart-screen/cards/folder.js');
 
-suite('tv_shared/Folder', function() {
+suite('Folder', function() {
   var folder;
   var stubFolder;
   var deck;

@@ -34,6 +34,7 @@ function PreviewGalleryController(app) {
 
 PreviewGalleryController.prototype.bindEvents = function() {
   this.app.on('storage:itemdeleted', this.onItemDeleted);
+  this.app.on('storage:changed', this.onStorageChanged);
   this.app.on('preview', this.openPreview);
   this.app.on('newmedia', this.onNewMedia);
   this.app.on('hidden', this.onHidden);
@@ -321,6 +322,19 @@ PreviewGalleryController.prototype.previewItem = function() {
     this.view.showVideo(item);
   } else {
     this.view.showImage(item);
+  }
+};
+
+/**
+ * Delete all items in the preview gallery
+ * when storage becomes unavailable.
+ *
+ * @param  {String} status
+ */
+PreviewGalleryController.prototype.onStorageChanged = function(status) {
+  if (status === 'unavailable') {
+    this.configure();
+    this.updateThumbnail();
   }
 };
 
