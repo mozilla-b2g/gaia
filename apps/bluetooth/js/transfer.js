@@ -20,6 +20,7 @@ navigator.mozL10n.once(function showPanel() {
          activity.source.name == 'share-via-bluetooth-only') &&
         (activity.source.data.blobs &&
          activity.source.data.blobs.length > 0)) {
+      observeOnadapteradded();
       observeBluetoothEnabled();
       isBluetoothEnabled();
     } else {
@@ -45,6 +46,12 @@ navigator.mozL10n.once(function showPanel() {
     console.log('[Bluetooth APP Send File]: ' + msg);
   }
 
+  function observeOnadapteradded() {
+    bluetooth.onadapteradded = function bt_adapterAdded() {
+      initialDefaultAdapter();
+    };
+  }
+
   function observeBluetoothEnabled() {
     // enable Bluetooth if the related settings says so
     // register an observer to monitor bluetooth.enabled changes
@@ -68,6 +75,8 @@ navigator.mozL10n.once(function showPanel() {
           debug(msg);
           confirmTurnBluetoothOn();
         }
+      } else {
+        dialogConfirmBluetooth.hidden = true;
       }
     });
   }
@@ -100,9 +109,6 @@ navigator.mozL10n.once(function showPanel() {
     }
 
     dialogConfirmBluetooth.hidden = true;
-    bluetooth.onadapteradded = function bt_adapterAdded() {
-      initialDefaultAdapter();
-    };
     settings.createLock().set({'bluetooth.enabled': true});
   }
 

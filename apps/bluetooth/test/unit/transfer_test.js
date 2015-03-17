@@ -105,5 +105,12 @@ suite('Bluetooth app > transfer ', function() {
                                               {settingValue: false});
       assert.isFalse(dialogConfirmBluetooth.hidden);
     });
+
+    test('confirme dialog is closed after Bluetooth is enabled', function() {
+      dialogConfirmBluetooth.hidden = false;
+      MockNavigatorSettings.mTriggerObservers(bluetoothKey,
+                                              {settingValue: true});
+      assert.isTrue(dialogConfirmBluetooth.hidden);
+    });
   });
 });
