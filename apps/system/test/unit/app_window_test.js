@@ -51,10 +51,12 @@ suite('system/AppWindow', function() {
     navigator.mozPermissionSettings = MockPermissionSettings;
     MockPermissionSettings.mSetup();
 
-    this.sinon.stub(document, 'getElementById').
-      returns(document.createElement('div'));
-    this.sinon.stub(DocumentFragment.prototype, 'getElementById').
-      returns(document.createElement('div'));
+    this.sinon.stub(document, 'getElementById', function() {
+      return document.createElement('div');
+    });
+    this.sinon.stub(DocumentFragment.prototype, 'getElementById', function() {
+      return document.createElement('div');
+    });
 
     this.sinon.stub(HTMLElement.prototype, 'querySelector',
     function() {
@@ -187,6 +189,12 @@ suite('system/AppWindow', function() {
     origin: 'app://www.fakeinput',
     isInputMethod: true
   };
+
+  test('Sanity check instances dont share .element', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var app2 = new AppWindow(fakeAppConfig2);
+    assert.isFalse(app1.element === app2.element);
+  });
 
   test('App created with instanceID', function() {
     var app1 = new AppWindow(fakeAppConfig1);
@@ -2646,7 +2654,7 @@ suite('system/AppWindow', function() {
       });
       popups[1].publish('fake');
       assert.isTrue(caught);
-      assert.isTrue(caughtOnParent);
+      assert.isFalse(caughtOnParent);
     });
 
   suite('Theme Color', function() {
