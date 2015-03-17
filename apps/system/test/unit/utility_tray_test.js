@@ -53,6 +53,10 @@ suite('system/UtilityTray', function() {
     UtilityTray.onTouchEnd({target: target, pageX: 42, pageY: y});
   }
 
+  function fakeTransitionEnd() {
+    UtilityTray.overlay.dispatchEvent(createEvent('transitionend'));
+  }
+
   setup(function(done) {
     originalSoftwareButtonManager = window.softwareButtonManager;
     window.softwareButtonManager = window.MocksoftwareButtonManager;
@@ -124,7 +128,7 @@ suite('system/UtilityTray', function() {
 
   suite('show', function() {
     setup(function() {
-      UtilityTray.show();
+      UtilityTray.show(true);
     });
 
     test('shown should be true', function() {
@@ -139,7 +143,7 @@ suite('system/UtilityTray', function() {
 
   suite('hide', function() {
     setup(function() {
-      UtilityTray.hide();
+      UtilityTray.hide(true);
     });
 
     test('shown should be false', function() {
@@ -160,6 +164,10 @@ suite('system/UtilityTray', function() {
 
   suite('onTouch', function() {
     suite('taping the left corner', function() {
+      teardown(function() {
+        fakeTransitionEnd();
+      });
+
       test('should send a global search request', function(done) {
         window.addEventListener('global-search-request', function gotIt() {
           window.removeEventListener('global-search-request', gotIt);
@@ -170,21 +178,21 @@ suite('system/UtilityTray', function() {
       });
 
       test('should hide the Utility tray', function() {
-        UtilityTray.show();
+        UtilityTray.show(true);
         fakeTouches(0, 2);
-        assert.equal(UtilityTray.shown, false);
+        assert.equal(UtilityTray.showing, false);
       });
     });
 
     suite('showing', function() {
       test('should not be shown by a tap', function() {
         fakeTouches(0, 5);
-        assert.equal(UtilityTray.shown, false);
+        assert.equal(UtilityTray.showing, false);
       });
 
       test('should be shown by a drag from the top', function() {
         fakeTouches(0, 100);
-        assert.equal(UtilityTray.shown, true);
+        assert.equal(UtilityTray.showing, true);
       });
 
       test('should send a touchcancel to the oop active app' +
@@ -230,17 +238,21 @@ suite('system/UtilityTray', function() {
 
     suite('hiding', function() {
       setup(function() {
-        UtilityTray.show();
+        UtilityTray.show(true);
+      });
+
+      teardown(function() {
+        fakeTransitionEnd();
       });
 
       test('should not be hidden by a tap', function() {
         fakeTouches(480, 475, UtilityTray.grippy);
-        assert.equal(UtilityTray.shown, true);
+        assert.equal(UtilityTray.showing, true);
       });
 
       test('should be hidden by a drag from the bottom', function() {
         fakeTouches(480, 380, UtilityTray.grippy);
-        assert.equal(UtilityTray.shown, false);
+        assert.equal(UtilityTray.showing, false);
       });
     });
   });
@@ -255,7 +267,7 @@ suite('system/UtilityTray', function() {
     });
 
     test('should be hidden', function() {
-      assert.equal(UtilityTray.shown, false);
+      assert.equal(UtilityTray.showing, false);
     });
   });
 
@@ -278,6 +290,7 @@ suite('system/UtilityTray', function() {
       fakeEvt = createEvent('sheets-gesture-end');
       UtilityTray.show();
       UtilityTray.handleEvent(fakeEvt);
+      fakeTransitionEnd();
     });
 
     test('should unhide the ambientIndicator', function() {
@@ -321,6 +334,7 @@ suite('system/UtilityTray', function() {
       UtilityTray.active = active;
       UtilityTray.show();
       UtilityTray.handleEvent(fakeEvt);
+      fakeTransitionEnd();
     }
 
     test('should be hidden when inactive', function() {
@@ -342,7 +356,7 @@ suite('system/UtilityTray', function() {
     });
 
     test('should be hidden', function() {
-      assert.equal(UtilityTray.shown, false);
+      assert.equal(UtilityTray.showing, false);
     });
   });
 
@@ -354,9 +368,10 @@ suite('system/UtilityTray', function() {
       }
     });
 
-    function assertIsShown(isShown) {
-      assert.equal(UtilityTray.overlay.classList.contains('visible'), isShown);
-      assert.equal(UtilityTray.shown, isShown);
+    function assertIsShowing(isShowing) {
+      assert.equal(UtilityTray.overlay.classList.contains('visible'),
+                   isShowing);
+      assert.equal(UtilityTray.showing, isShowing);
     }
 
     setup(function() {
@@ -365,25 +380,26 @@ suite('system/UtilityTray', function() {
     });
 
     teardown(function() {
+      fakeTransitionEnd();
       window.Service.locked = false;
       window.Service.runningFTU = false;
     });
 
     test('first swipe should show', function() {
       UtilityTray.handleEvent(swipeDown);
-      assertIsShown(true);
+      assertIsShowing(true);
     });
 
     test('first swipe should not show when locked', function() {
       window.Service.locked = true;
       UtilityTray.handleEvent(swipeDown);
-      assertIsShown(false);
+      assertIsShowing(false);
     });
 
     test('first swipe should not show when running FTU', function() {
       window.Service.runningFTU = true;
       UtilityTray.handleEvent(swipeDown);
-      assertIsShown(false);
+      assertIsShowing(false);
     });
 
     test('second swipe should hide', function() {
@@ -395,7 +411,7 @@ suite('system/UtilityTray', function() {
         }
       });
       UtilityTray.handleEvent(evt);
-      assertIsShown(false);
+      assertIsShowing(false);
     });
   });
 
@@ -421,7 +437,7 @@ suite('system/UtilityTray', function() {
         origin: 'app://otherApp'
       });
       UtilityTray.handleEvent(fakeEvt);
-      assert.equal(UtilityTray.shown, false);
+      assert.equal(UtilityTray.showing, false);
     });
 
     test('should not be hidden if the event is sent from background app',
@@ -432,7 +448,7 @@ suite('system/UtilityTray', function() {
           origin: findMyDeviceOrigin
         });
         UtilityTray.handleEvent(fakeEvt);
-        assert.equal(UtilityTray.shown, true);
+        assert.equal(UtilityTray.showing, true);
     });
 
     test('should not be hidden when event marked stayBackground', function() {
@@ -441,7 +457,7 @@ suite('system/UtilityTray', function() {
         stayBackground: true
       });
       UtilityTray.handleEvent(fakeEvt);
-      assert.equal(UtilityTray.shown, true);
+      assert.equal(UtilityTray.showing, true);
     });
   });
 
@@ -575,9 +591,8 @@ suite('system/UtilityTray', function() {
 
   suite('handleEvent: transitionend', function() {
     setup(function() {
-      fakeEvt = createEvent('transitionend');
       UtilityTray.hide();
-      UtilityTray.overlay.dispatchEvent(fakeEvt);
+      fakeTransitionEnd();
     });
 
     test('Test utilitytrayhide is correcly dispatched', function() {
@@ -602,6 +617,7 @@ suite('system/UtilityTray', function() {
     function doAction(shown) {
       UtilityTray.shown = shown;
       UtilityTray.hide();
+      fakeTransitionEnd();
     }
 
     test('utility-tray-overlayclosed is correctly dispatched', function(done) {
@@ -649,6 +665,7 @@ suite('system/UtilityTray', function() {
     function doAction(shown) {
       UtilityTray.shown = shown;
       UtilityTray.show();
+      fakeTransitionEnd();
     }
 
     test('utility-tray-overlayopened is correctly dispatched', function(done) {
