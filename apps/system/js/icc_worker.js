@@ -70,10 +70,10 @@ var icc_worker = {
     icc.discardCurrentMessageIfNeeded(message);
 
     if (confirmMessage) {
-      if (STKHelper.isIconSelfExplanatory(options)) {
+      if (STKHelper.isIconSelfExplanatory(options.confirmMessage)) {
         confirmMessage = '';
       }
-      icc.asyncConfirm(message, confirmMessage, options.icons,
+      icc.asyncConfirm(message, confirmMessage, options.confirmMessage.icons,
         function(confirmed) {
           stkSetupCall(confirmed, callMessage);
         });
@@ -146,10 +146,10 @@ var icc_worker = {
       resultCode: icc._iccManager.STK_RESULT_OK
     });
     var text = '';
-    if (!STKHelper.isIconSelfExplanatory(options)) {
+    if (!STKHelper.isIconSelfExplanatory(options.confirmMessage)) {
       text = STKHelper.getMessageText(options.confirmMessage);
     }
-    icc.showURL(message, options.url, options.icons, text);
+    icc.showURL(message, options.url, options.confirmMessage.icons, text);
   },
 
   // STK_CMD_PLAY_TONE

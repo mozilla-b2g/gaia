@@ -528,7 +528,7 @@ var icc = {
     }
     DUMP('Final URL to open: ' + url);
     if (url != null || url.length != 0) {
-      if (confirmMessage) {
+      if (icons || confirmMessage) {
         this.asyncConfirm(stkMessage, confirmMessage, icons, function(res) {
           if (res) {
             openURL(url);
