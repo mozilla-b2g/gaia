@@ -82,9 +82,9 @@ AlarmActions.prototype = {
     return $('#alarm-volume-input');
   },
 
-  fire: function(idx, date, attentionHandler) {
+  fire: function(idx, date, attentionHandler, type) {
     // Trigger a fake 'alarm' event:
-    this._client.executeScript(function(idx, date) {
+    this._client.executeScript(function(idx, date, type) {
       // String to Date object.
       date = new Date(date);
       var id = document.querySelector(
@@ -92,12 +92,12 @@ AlarmActions.prototype = {
       var alarm = new CustomEvent('test-alarm', {
         detail: {
           id: parseInt(id, 10),
-          type: 'normal',
+          type: type || 'normal',
           date: date
         }
       });
       window.dispatchEvent(alarm);
-    }, [idx, date]);
+    }, [idx, date, type]);
 
     if (attentionHandler) {
       // Switch to the Attention Screen
