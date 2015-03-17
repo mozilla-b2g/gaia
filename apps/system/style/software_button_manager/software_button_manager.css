@@ -2,7 +2,7 @@
 #software-buttons-fullscreen-layout {
   display: flex;
   align-items: center;
-  text-align: center;
+  justify-content: center;
   right: 0;
   bottom: calc(var(--software-home-button-height) * -1);
   left: 0;
@@ -49,6 +49,7 @@
 @media (orientation: landscape) {
   #software-buttons,
   #software-buttons-fullscreen-layout {
+    flex-direction: column;
     top: 0;
     right: calc(var(--software-home-button-height) * -1);
     bottom: 0;
@@ -72,7 +73,8 @@
   --button-width: 5rem;
   width: var(--button-width);
   height: var(--button-width);
-  margin: 0 auto;
+  margin: 0;
+  padding: 0;
   background: transparent;
   border: 0;
   outline-width: 0.35rem;
