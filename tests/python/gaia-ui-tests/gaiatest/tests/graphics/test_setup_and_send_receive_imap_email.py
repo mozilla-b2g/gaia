@@ -6,17 +6,23 @@ from marionette import SkipTest
 from marionette_driver import Wait
 
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
+from gaiatest import GaiaTestEnvironment
 from gaiatest.apps.email.app import Email
 from gaiatest.apps.email.app import SetupEmail
 
 
 class TestSetupAndSendIMAPEmail(GaiaImageCompareTestCase):
     def setUp(self):
-        try:
-            self.testvars['email']['imap']
-            self.testvars['email']['smtp']
-        except KeyError:
-            raise SkipTest('account details not present in test variables')
+
+        # try:
+        #     self.testvars['email']['imap']
+        #     self.testvars['email']['smtp']
+        # except KeyError:
+        #     raise SkipTest('account details not present in test variables')
+        if not GaiaTestEnvironment(self.testvars).email.get('imap'):
+            raise SkipTest('IMAP account details not present in test variables.')
+        if not GaiaTestEnvironment(self.testvars).email.get('smtp'):
+            raise SkipTest('IMAP account details not present in test variables.')
 
         GaiaImageCompareTestCase.setUp(self)
         self.connect_to_local_area_network()
@@ -32,15 +38,15 @@ class TestSetupAndSendIMAPEmail(GaiaImageCompareTestCase):
         https://moztrap.mozilla.org/manage/case/6114/
         """
         # setup IMAP account
-        self.setup_IMAP_email(self.testvars['email']['imap'],
-                              self.testvars['email']['smtp'])
+        self.email.setup_IMAP_email(self.environment.email['imap'],
+                                    self.environment.email['smtp'])
 
         _subject = 'Testing Images'
         _body = 'The quick brown fox jumps over the lazy dog ~!@#$#%^&*)(_+ <>?,./:";[]{}\\'
         new_email = self.email.header.tap_compose()
         self.take_screenshot()
 
-        new_email.type_to(self.testvars['email']['imap']['email'])
+        new_email.type_to(self.environment.email['imap']['email'])
         new_email.type_subject(_subject)
         new_email.type_body(_body)
         self.take_screenshot()
