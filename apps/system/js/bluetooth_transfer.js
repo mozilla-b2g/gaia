@@ -301,6 +301,11 @@ var BluetoothTransfer = {
     return this._sendingFilesQueue.length === 0;
   },
 
+  get isFileTransferInProgress() {
+    var jobs = this.transferStatusList.querySelector('div');
+    return jobs != null;
+  },
+
   sendFileViaHandover: function bt_sendFileViaHandover(mac, blob) {
     var adapter = Bluetooth.getAdapter();
     if (adapter != null) {
