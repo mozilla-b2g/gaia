@@ -16,14 +16,14 @@ marionette('Uninstall an ime app', function() {
 
   var confirmDialog;
   var settingsApp;
-  var appPermissionPanel;
+  var appManagerPanel;
 
   setup(function() {
     confirmDialog = client.loader.getAppClass('system', 'confirm_dialog');
     settingsApp = new Settings(client);
 
     settingsApp.launch();
-    appPermissionPanel = settingsApp.appPermissionPanel;
+    appManagerPanel = settingsApp.appManagerPanel;
   });
 
   test('Uninstall the preload IME Test App', function() {
@@ -32,14 +32,14 @@ marionette('Uninstall an ime app', function() {
     }
 
     // Find the IME Test app we preload.
-    var apps = appPermissionPanel.appList.filter(findImeTestApp);
+    var apps = appManagerPanel.appList.filter(findImeTestApp);
 
     // Make sure LOL Keyboard is listed.
     assert.equal(apps.length, 1);
 
     var imeAppItem = apps[0];
     imeAppItem.click();
-    appPermissionPanel.uninstallButton.click();
+    appManagerPanel.uninstallButton.click();
 
     // confirm to uninstall
     client.switchToFrame();
@@ -49,7 +49,7 @@ marionette('Uninstall an ime app', function() {
     settingsApp.switchTo();
 
     // Make sure LOL Keyboard is not listed in app list
-    apps = appPermissionPanel.appList.filter(findImeTestApp);
+    apps = appManagerPanel.appList.filter(findImeTestApp);
     assert.equal(apps.length, 0);
   });
 });

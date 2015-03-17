@@ -1,4 +1,3 @@
-/* global SettingsHelper */
 /* exported DefaultActivityHelper */
 
 (function(exports) {
@@ -114,6 +113,23 @@
     ];
 
   var DefaultActivityHelper = {
+    /**
+     * Checks settings for the app set as default launch
+     * Created to avoid the double check for Config and Action when iterating
+     * along the list (as we already know the config) on .getAllDefaulted
+     * @parameter settingId the id to look for in mozSettings
+     */
+    _getDefaultSetting: function(settingId) {
+      return new Promise((resolve, reject) => {
+        var req = navigator.mozSettings.createLock().get(settingId);
+        req.onsuccess = function () {
+          resolve(req.result[settingId]);
+        };
+        req.onerror = function () {
+          resolve();
+        };
+      });
+    },
 
     /**
      * Looks for an activity on the list given the name and the type
@@ -130,22 +146,18 @@
     },
 
     /**
-     * Returns the current choice as default for a given activity name and type
+     * Returns a Promise that resolves into the current choice as default app
+     * for a given activity name and type
      * @param {String} name Activity name
      * @param {String} type Activity type
-     * @param {Function} cb callback executed when search finished
      */
     getDefaultAction: function(name, type) {
       var config = this.getDefaultConfig(name, type);
-      return new Promise((resolve, reject) => {
-        if (!config) {
-          resolve(null);
-        }
+      if (!config) {
+        return Promise.resolve(null);
+      }
 
-        SettingsHelper(config.settingsId, null).get((value) => {
-          resolve(value);
-        });
-      });
+      return this._getDefaultSetting(config.settingsId);
     },
 
     /**
@@ -160,7 +172,46 @@
         return;
       }
 
-      SettingsHelper(config.settingsId, null).set(choice);
+      var obj = {};
+      obj[config.settingsId] = choice;
+      navigator.mozSettings.createLock().set(obj);
+    },
+
+    /**
+     * Returns all the actions that have a default app associated for launch
+     * Iterate over the list of supported activities and checks if there's a
+     * manifest set on settings for each one.
+     */
+    getAllDefaulted: function() {
+      var list = [];
+
+      return Promise.all(supportedActivities.map((activity) => {
+        return this._getDefaultSetting(activity.settingsId).then((manifest) => {
+          // add to the final list if there's a default app set (manifestURL)
+          if (manifest && typeof manifest !== 'undefined') {
+            list.push({
+              'activity': activity,
+              'manifestURL': manifest
+            });
+          }
+          return Promise.resolve();
+        });
+      })).then(function() { // when all done, return list with result
+        return Promise.resolve(list);
+      });
+    },
+
+    /**
+     *  Returns the name and type of the activity given a l10n tag
+     *  @parameter tag {String} L10n ID identifying an activity
+     *  @returns {Object} with the name and type of the activity or null value
+     */
+    getActivity: function(tag) {
+      var config = supportedActivities.find(function(a) {
+        return a.l10nId === tag;
+      });
+
+      return config ? {'name': config.name, 'type': config.type} : null;
     }
   };
 

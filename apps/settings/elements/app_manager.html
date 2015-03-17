@@ -1,0 +1,25 @@
+<element name="appManager" extends="section">
+  <template>
+
+    <gaia-header action="back" data-href="root">
+      <h1 data-l10n-id="appManager-header"></h1>
+    </gaia-header>
+
+    <div>
+      <ul>
+        <li>
+          <a class="menu-item" href="#appManager-defaultLaunch">
+            <span data-l10n-id="appManager-defaultLaunch">Default launch app</span>
+          </a>
+        </li>
+      </ul>
+      <header>
+        <h2 data-l10n-id="appManager-allApplications">All applications</h2>
+      </header>
+      <ul class="app-list"></ul>
+    </div>
+
+    <panel data-path="panels/app_manager/panel"></panel>
+
+  </template>
+</element>

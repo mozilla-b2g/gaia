@@ -1,4 +1,5 @@
 'use strict';
+
 /* global MocksHelper, MockApplications, MockL10n, MockDefaultActivityHelper,
           ActionMenu, Activities, DefaultActivityHelper
 */
@@ -95,9 +96,8 @@ suite('system/Activities', function() {
     });
 
     test('choice when only one item', function() {
-      var stub = this.sinon.stub(subject, 'choose', function(obj) {
-        console.log('called with ' + obj);
-      });
+      var stub = this.sinon.stub(subject, 'choose');
+
       subject.chooseActivity({
         id: 'single',
         choices: ['first']
@@ -205,6 +205,7 @@ suite('system/Activities', function() {
 
     test('allows choice for non-view activities that include FL', function() {
       var stub = this.sinon.stub(window, 'dispatchEvent');
+
       subject.chooseActivity({
         id: 'single',
         name: 'pick',
@@ -235,6 +236,7 @@ suite('system/Activities', function() {
       };
 
       subject.chooseActivity(activity);
+
       assert.ok(DefaultActivityHelper.getDefaultAction.calledWith(
         activity.name, activity.activityType));
     });
@@ -254,6 +256,7 @@ suite('system/Activities', function() {
       };
 
       subject.chooseActivity(activity);
+
       assert.ok(DefaultActivityHelper.getDefaultAction.calledWith(
         activity.name, activity.activityType));
       assert.ok(subject._gotDefaultAction.calledWith(null));
@@ -272,12 +275,13 @@ suite('system/Activities', function() {
         activityType: 'image/*',
         choices: [{
           manifest: 'app://gallery.gaiamobile.org/manifest.webapp'
-        },{
+        }, {
           manifest: 'app://camera.gaiamobile.org/manifest.webapp'
         }]
       };
 
       subject.chooseActivity(activity);
+
       assert.ok(DefaultActivityHelper.getDefaultAction.calledWith(
         activity.name, activity.activityType));
       assert.ok(subject._gotDefaultAction.calledWith('fakeManifest'));

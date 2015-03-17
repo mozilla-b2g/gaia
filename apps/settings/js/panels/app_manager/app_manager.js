@@ -1,7 +1,7 @@
 /**
- * Handle app_permissions_list panel's functionality.
+ * Handle app_manager panel's functionality.
  *
- * @module PermissionsList
+ * @module AppManager
  */
 define(function(require) {
   'use strict';
@@ -12,7 +12,7 @@ define(function(require) {
   var mozApps = require('modules/navigator/mozApps');
   var mozPerms = require('modules/navigator/mozPermissionSettings');
 
-  var PermissionsList = function pl() {
+  var AppManager = function pl() {
     this._listRoot = null;
     this._permissionsTable = null;
     this._permissionTableHaveProcessed = false;
@@ -20,11 +20,11 @@ define(function(require) {
     this._enabled = false;
   };
 
-  PermissionsList.prototype = {
+  AppManager.prototype = {
     /**
      * initialization
      *
-     * @memberOf PermissionsList
+     * @memberOf AppManager
      * @param {HTMLElement} listRoot
      * @access public
      */
@@ -66,7 +66,7 @@ define(function(require) {
     /**
      * Set /resources/permissions_table.json.
      *
-     * @memberOf PermissionsList
+     * @memberOf AppManager
      * @param {Object} permissionTable
      * @access public
      */
@@ -77,7 +77,7 @@ define(function(require) {
     /**
      * Refresh the app list when we enter into panel.
      *
-     * @memberOf PermissionsList
+     * @memberOf AppManager
      * @access public
      * @return {Promise}
      */
@@ -98,7 +98,7 @@ define(function(require) {
     /**
      * Go to app_permissions_detail panel when user select an app.
      *
-     * @memberOf PermissionsList
+     * @memberOf AppManager
      * @param {Event} evt
      * @access public
      */
@@ -115,7 +115,7 @@ define(function(require) {
      * When new application is installed, we push the app to list, sort them and
      * rerender the app list.
      *
-     * @memberOf PermissionsList
+     * @memberOf AppManager
      * @param {Event} evt
      * @access public
      */
@@ -130,7 +130,7 @@ define(function(require) {
      * When application is uninstalled, we remove it from list and rerender the
      * app list.
      *
-     * @memberOf PermissionsList
+     * @memberOf AppManager
      * @param {Event} evt
      * @access public
      */
@@ -149,7 +149,7 @@ define(function(require) {
       if (!app) {
         return;
       }
-      SettingsService.navigate('appPermissions');
+      SettingsService.navigate('appManager');
       this._apps.splice(appIndex, 1);
       this.renderList();
     },
@@ -157,7 +157,7 @@ define(function(require) {
     /**
      * Sort the applist by the name of its manifest.
      *
-     * @memberOf PermissionsList
+     * @memberOf AppManager
      * @access private
      */
     _sortApps: function pl__sortApps() {
@@ -173,7 +173,7 @@ define(function(require) {
     /**
      * Genrate UI template of app item.
      *
-     * @memberOf PermissionsList
+     * @memberOf AppManager
      * @access private
      * @param {Object} itemData
      * @return {HTMLDivElement}
@@ -197,7 +197,7 @@ define(function(require) {
     /**
      * Genrate UI template of app item.
      *
-     * @memberOf PermissionsList
+     * @memberOf AppManager
      * @access public
      */
     renderList: function pl_renderList() {
@@ -220,7 +220,7 @@ define(function(require) {
      * Genrate explicitCertifiedPermissions table from plainPermissions table
      * table and "composedPermissions + accessModes" table.
      *
-     * @memberOf PermissionsList
+     * @memberOf AppManager
      * @param {Event} evt
      * @access private
      */
@@ -256,7 +256,7 @@ define(function(require) {
     /**
      * Identify the permission whether is explict or not.
      *
-     * @memberOf PermissionsList
+     * @memberOf AppManager
      * @access private
      * @return {Bool}
      */
@@ -268,7 +268,7 @@ define(function(require) {
     /**
      * Filter explicit apps from moz apps, sort them, and render to screen.
      *
-     * @memberOf PermissionsList
+     * @memberOf AppManager
      * @access public
      * @return {Promise}
      */
@@ -282,7 +282,7 @@ define(function(require) {
     /**
      * Iterate internal apps and render them on UI.
      *
-     * @memberOf PermissionsList
+     * @memberOf AppManager
      * @param {Object[]} apps
      * @access private
      */
@@ -314,7 +314,7 @@ define(function(require) {
     /**
      * Get icon URL.
      *
-     * @memberOf PermissionsList
+     * @memberOf AppManager
      * @param {Object} app
      * @param {Object} icons
      * @access private
@@ -356,7 +356,7 @@ define(function(require) {
     }
   };
 
-  return function ctor_permissions_list() {
-    return new PermissionsList();
+  return function ctor_app_manager() {
+    return new AppManager();
   };
 });

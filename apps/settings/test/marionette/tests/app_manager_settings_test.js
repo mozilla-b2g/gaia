@@ -5,17 +5,17 @@ var Settings = require('../app/app'),
 marionette('manipulate app permissions', function() {
   var client = marionette.client();
   var settingsApp;
-  var appPermissionPanel;
+  var appManagerPanel;
 
   setup(function() {
     settingsApp = new Settings(client);
     settingsApp.launch();
-    appPermissionPanel = settingsApp.appPermissionPanel;
+    appManagerPanel = settingsApp.appManagerPanel;
   });
 
   test('set geolocation of first app to Grant', function() {
-    appPermissionPanel.enterPermissionDetail();
-    appPermissionPanel.tapGeolocationSelect('Grant');
-    assert.equal(appPermissionPanel.georlocationSelectValue, 'allow');
+    appManagerPanel.enterPermissionDetail();
+    appManagerPanel.tapGeolocationSelect('Grant');
+    assert.equal(appManagerPanel.geolocationSelectValue, 'allow');
   });
 });

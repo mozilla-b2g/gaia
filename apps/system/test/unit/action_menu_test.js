@@ -255,7 +255,6 @@ suite('ActionMenu', function() {
       menu = new ActionMenu(
         genericActionsMockup, title, null, null, null, true);
       menu.start();
-      this.sinon.spy(menu, 'hide');
     });
 
     test('checkbox is created', function() {
