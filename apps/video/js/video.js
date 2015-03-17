@@ -209,6 +209,9 @@ function initLayout() {
 
 function initPlayerControls() {
 
+  // Attach the video player to the media controls
+  dom.mediaControls.attachTo(dom.player);
+
   // handle user tapping events
   dom.mediaControlsContainer.addEventListener('click',
                                               toggleVideoControls,

@@ -145,6 +145,9 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     dom.playerHeader.addEventListener('action', done);
     dom.save.addEventListener('click', save);
 
+    // Attach the video player to the media controls
+    dom.mediaControls.attachTo(dom.player);
+
     // Add listeners for video controls web component
     dom.mediaControlsContainer.addEventListener('click',
                                                 toggleVideoControls,
