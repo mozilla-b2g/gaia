@@ -6,6 +6,9 @@ window.UtilityTray = {
 
   shown: false,
 
+  // This reflects the target state of the utility tray during animation.
+  showing: false,
+
   active: false,
 
   overlay: document.getElementById('utility-tray'),
@@ -91,19 +94,41 @@ window.UtilityTray = {
     window.addEventListener('software-button-enabled', this);
     window.addEventListener('software-button-disabled', this);
 
+    this.animationTime = this.DEFAULT_ANIMATION_TIME;
+
     Service.request('registerHierarchy', this);
 
     Service.register('makeAmbientIndicatorActive', this);
     Service.register('makeAmbientIndicatorInactive', this);
   },
 
+  /*
+   * The time after which we shouldn't use motion events to determine the
+   * speed of the utility tray opening/closing, in milliseconds.
+   */
+  MAX_SWIPE_AGE: 50,
+
+  /*
+   * The minimum transition length for the utility tray animation, in seconds.
+   */
+  MINIMUM_ANIMATION_TIME: 0.05,
+
+  /*
+   * The default length of the utility tray animation, in seconds.
+   */
+  DEFAULT_ANIMATION_TIME: 0.2,
+
   startY: undefined,
   lastDelta: undefined,
+  lastMove: 0,
+  lastMoveTime: 0,
+  animationTime: 0,
   isTap: false,
   screenWidth: 0,
   screenHeight: 0,
   grippyHeight: 0,
   ambientHeight: 0,
+  hideStartCallback: null,
 
   setHierarchy: function() {
     return false;
@@ -137,7 +162,7 @@ window.UtilityTray = {
       case 'attentionopened':
       case 'attentionwill-become-active':
       case 'home':
-        if (this.shown) {
+        if (this.showing) {
           this.hide();
           if (evt.type == 'home') {
             evt.stopImmediatePropagation();
@@ -151,7 +176,7 @@ window.UtilityTray = {
       case 'simlockshow':
       case 'appopening':
       case 'activityopening':
-        if (this.shown) {
+        if (this.showing) {
           this.hide();
         }
         break;
@@ -179,7 +204,7 @@ window.UtilityTray = {
           return blockedApp === detail.origin;
         });
 
-        if (!isBlockedApp && this.shown) {
+        if (!isBlockedApp && this.showing) {
           this.hide();
         }
         break;
@@ -203,7 +228,7 @@ window.UtilityTray = {
         break;
 
       case 'screenchange':
-        if (this.shown && !this.active && !evt.detail.screenEnabled) {
+        if (this.showing && !this.active && !evt.detail.screenEnabled) {
           this.hide(true);
         }
         break;
@@ -213,8 +238,8 @@ window.UtilityTray = {
           return;
         }
 
-        // Prevent swipe down gesture when already opened.
-        if (target !== this.grippy && this.shown) {
+        // Prevent swipe down gesture when already opened/opening.
+        if (target !== this.grippy && this.showing) {
           return;
         }
 
@@ -236,7 +261,7 @@ window.UtilityTray = {
           evt.preventDefault();
         }
 
-        this.onTouchMove(evt.touches[0]);
+        this.onTouchMove(evt.touches[0], evt.timeStamp);
         break;
 
       case 'touchend':
@@ -251,7 +276,7 @@ window.UtilityTray = {
           return;
         }
 
-        this.onTouchEnd(touch);
+        this.onTouchEnd(touch, evt.timeStamp);
         break;
 
       case 'statusbarwheel':
@@ -265,9 +290,7 @@ window.UtilityTray = {
         break;
 
       case 'transitionend':
-        if (!this.shown) {
-          this.overlay.classList.remove('visible');
-        }
+        this.showing ? this.afterShow() : this.afterHide();
         break;
 
       case 'resize':
@@ -281,7 +304,7 @@ window.UtilityTray = {
         var eventType = JSON.parse(evt.detail.details).eventType;
         if (eventType === 'edge-swipe-down' && !window.Service.locked &&
           !window.Service.runningFTU) {
-          this[this.shown ? 'hide' : 'show'](true);
+          this[this.showing ? 'hide' : 'show'](true);
         }
         break;
 
@@ -347,7 +370,7 @@ window.UtilityTray = {
     }
   },
 
-  onTouchMove: function ut_onTouchMove(touch) {
+  onTouchMove: function ut_onTouchMove(touch, timestamp) {
     if (!this.active) {
       return;
     }
@@ -357,8 +380,14 @@ window.UtilityTray = {
     var screenHeight = this.screenHeight;
 
     var y = touch.pageY;
-
     var dy = -(this.startY - y);
+
+    var move = dy - this.lastDelta;
+    if (Math.abs(move) > 0) {
+      this.lastMoveTime = timestamp;
+      this.lastMove = move;
+    }
+
     this.lastDelta = dy;
 
     // Tap threshold
@@ -380,21 +409,33 @@ window.UtilityTray = {
     }
 
     var style = this.overlay.style;
-    style.MozTransition = '';
-    style.MozTransform = 'translateY(' + dy + 'px)';
+    style.transition = '';
+    style.transform = 'translateY(' + dy + 'px)';
 
     this.notifications.style.transition = '';
     this.notifications.style.transform =
       'translateY(' + (this.screenHeight - dy) + 'px)';
   },
 
-  onTouchEnd: function ut_onTouchEnd(touch) {
+  onTouchEnd: function ut_onTouchEnd(touch, timestamp) {
     // Prevent utility tray shows while the screen got black out.
     if (window.Service.locked) {
       this.hide(true);
     } else {
+      var timeDelta = timestamp - this.lastMoveTime;
       var significant = (Math.abs(this.lastDelta) > (this.screenHeight / 5));
       var shouldOpen = significant ? !this.shown : this.shown;
+
+      if (significant && timeDelta <= this.MAX_SWIPE_AGE &&
+          (this.lastMove < 0) === this.shown) {
+        var velocity = (timeDelta / 1000) / Math.abs(this.lastMove);
+        this.animationTime =
+          Math.min(this.DEFAULT_ANIMATION_TIME,
+            Math.max(this.MINIMUM_ANIMATION_TIME,
+              velocity * (this.shown ?
+                          this.screenHeight + this.lastDelta :
+                          this.screenHeight - this.lastDelta)));
+      }
 
       shouldOpen ? this.show() : this.hide();
     }
@@ -412,7 +453,7 @@ window.UtilityTray = {
                  (touch.pageX < (window.innerWidth / 2));
     }
     if (this.isTap && corner) {
-      if (this.shown) {
+      if (this.showing) {
         this.hide();
       }
       setTimeout(function() {
@@ -434,62 +475,96 @@ window.UtilityTray = {
     this.validateCachedSizes();
     var style = this.overlay.style;
 
-    style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
-    this.notifications.style.transition = style.MozTransition;
-    this.screen.classList.remove('utility-tray');
+    style.transition = instant ? '' :
+      'transform linear ' + this.animationTime + 's';
+    this.notifications.style.transition = style.transition;
+    this.animationTime = this.DEFAULT_ANIMATION_TIME;
 
-    // If the transition has not started yet there won't be any transitionend
-    // event so let's not wait in order to remove the utility-tray class.
-    if (instant || style.MozTransform === '') {
-      this.overlay.classList.remove('visible');
+    this.showing = false;
+
+    if (instant || style.transform === '') {
+      this.afterHide();
+    } else if (this.hideStartCallback === null) {
+      // We want to remove the utility-tray class from the screen at the start
+      // of the animation, but if we do it outside of a timeout, the work will
+      // align with the start of the animation and cause a noticeable delay.
+      this.hideStartCallback = setTimeout(() => {
+        this.hideStartCallback = null;
+        this.screen.classList.remove('utility-tray');
+      }, 20);
     }
 
-    style.MozTransform = '';
+    style.transform = '';
     var offset = this.grippyHeight - this.ambientHeight;
     var notifTransform = 'calc(100% + ' + offset + 'px)';
     this.notifications.style.transform = 'translateY(' + notifTransform + ')';
 
-    if (this.shown) {
-      this.shown = false;
-      window.dispatchEvent(new CustomEvent('utility-tray-overlayclosed'));
-
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('utilitytrayhide', true, true, null);
-      window.dispatchEvent(evt);
-      this.publish('-deactivated');
-    } else {
+    if (!this.shown) {
       window.dispatchEvent(new CustomEvent('utility-tray-abortopen'));
     }
   },
 
-  show: function ut_show(instant) {
-    this.validateCachedSizes();
-    var style = this.overlay.style;
-    style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
-    var translate = this.ambientHeight + 'px';
-    style.MozTransform = 'translateY(calc(100% - ' + translate + '))';
-    this.notifications.style.transition =
-      instant ? '' : 'transform 0.2s linear';
-    this.notifications.style.transform = '';
-
-    this.screen.classList.add('utility-tray');
-    // In cases where we show utility tray instantly (such as with the screen
-    // reader), we need to make sure that its visible class is applied.
-    if (instant) {
-      this.overlay.classList.add('visible');
+  afterHide: function ut_after_hide() {
+    if (this.hideStartCallback) {
+      clearTimeout(this.hideStartCallback);
+      this.hideStartCallback = null;
     }
+
+    this.screen.classList.remove('utility-tray');
+    this.overlay.classList.remove('visible');
 
     if (!this.shown) {
-      this.shown = true;
-      window.dispatchEvent(new CustomEvent('utility-tray-overlayopened'));
+      return;
+    }
 
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('utilitytrayshow', true, true, null);
-      window.dispatchEvent(evt);
-      this.publish('-activated');
-    } else {
+    this.shown = false;
+    window.dispatchEvent(new CustomEvent('utility-tray-overlayclosed'));
+
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('utilitytrayhide', true, true, null);
+    window.dispatchEvent(evt);
+    this.publish('-deactivated');
+  },
+
+  show: function ut_show(instant) {
+    var transition = instant ? '' :
+      'transform linear ' + this.animationTime + 's';
+    this.animationTime = this.DEFAULT_ANIMATION_TIME;
+
+    this.validateCachedSizes();
+    var translate = this.ambientHeight + 'px';
+    var style = this.overlay.style;
+    style.transition = transition;
+    style.transform = 'translateY(calc(100% - ' + translate + '))';
+    this.notifications.style.transition = transition;
+    this.notifications.style.transform = '';
+
+    this.showing = true;
+
+    if (instant) {
+      this.afterShow();
+    }
+
+    if (this.shown) {
       window.dispatchEvent(new CustomEvent('utility-tray-abortclose'));
     }
+  },
+
+  afterShow: function ut_after_show() {
+    this.screen.classList.add('utility-tray');
+    this.overlay.classList.add('visible');
+
+    if (this.shown) {
+      return;
+    }
+
+    this.shown = true;
+    window.dispatchEvent(new CustomEvent('utility-tray-overlayopened'));
+
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('utilitytrayshow', true, true, null);
+    window.dispatchEvent(evt);
+    this.publish('-activated');
   },
 
   updateNotificationCount: function ut_updateNotificationCount() {
