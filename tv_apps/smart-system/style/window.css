@@ -243,7 +243,6 @@
   visibility: visible;
 }
 
-.appWindow > .modal-dialog,
 .appWindow > .authentication-dialog,
 .authentication-dialog > .authentication-dialog-http {
   visibility: hidden;
@@ -253,76 +252,10 @@
   visibility: visible;
 }
 
-.appWindow > .modal-dialog.visible,
 .appWindow > .contextmenu.visible,
 .appWindow > .authentication-dialog.visible,
 .authentication-dialog > .authentication-dialog-http.visible {
   visibility: visible;
-}
-
-.appWindow > .modal-dialog > form {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh; /* avoid keyboard app pushing up the dialog */;
-  padding: 0;
-  margin: 0;
-  visibility: hidden;
-  text-align: center;
-  background-color: rgba(0, 0, 0, 0.9);
-}
-
-.appWindow > .modal-dialog input {
-  border: none;
-  height: 4.4rem;
-  font-size: 3.8rem;
-  font-style: italic;
-  text-align: center;
-  width: 100%;
-  color: #5f5f5f;
-  background: none;
-  margin: 2.4rem 0 1.8rem 0;
-  -moz-box-sizing: border-box;
-  border-radius: 0;
-  overflow: visible;
-}
-
-.appWindow > .modal-dialog input:focus {
-  font-style: normal;
-  color: #e7e7e7;
-
-}
-
-.appWindow > .modal-dialog > form.visible {
-  visibility: visible;
-}
-
-.appWindow > .modal-dialog > form.modal-dialog-prompt > .inner {
-  width: 70rem;
-  height: 21rem;
-  padding: 0;
-  text-align: center;
-  margin-left: auto;
-  margin-right: auto;
-  position: relative;
-  top: calc(50% - 26.4rem);
-}
-
-.appWindow > .modal-dialog > form.modal-dialog-prompt > menu {
-  top: calc(50% + 5.4rem);
-  width: 70rem;
-  height: 21.6rem;
-  margin-left: auto;
-  margin-right: auto;
-  background: none;
-  text-align: center;
-  overflow: visible;
-  border: none;
-}
-
-.appWindow > .modal-dialog > form.modal-dialog-prompt > menu > smart-button:not(:last-child) {
-  margin-right: 4.4rem;
 }
 
 /****************** Screenshot Overlay ******************/
