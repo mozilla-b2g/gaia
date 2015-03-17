@@ -166,6 +166,29 @@ suite('system/LockScreen >', function() {
     delete subject._lockscreenConnInfoManager;
   });
 
+  test('When checkPassCodeTimeout, it would check screen off interval',
+  function() {
+    var method = window.LockScreen.prototype.checkPassCodeTimeout;
+    var mockThis = {
+      passCodeRequestTimeout: 60
+    };
+    mockThis._screenOffTime = 0;
+    mockThis._unlockedInterval = 0;
+    assert.isTrue(method.call(mockThis),
+      'it return false after locked but screen off a long while ');
+
+    // So they're very closed.
+    mockThis._screenOffTime = new Date().getTime();
+    mockThis._unlockedInterval = 70 * 1000;
+    assert.isTrue(method.call(mockThis),
+      'it return false after screen on but unlocked a long while');
+
+    mockThis._screenOffTime = new Date().getTime();
+    mockThis._unlockedInterval = 50 * 1000;
+    assert.isFalse(method.call(mockThis),
+      'it return true after screen on but unlocked a short while');
+  });
+
   test('L10n initialization: it should init the conn info manager if it\'s' +
        ' undefined', function() {
     var stubConnInfoManager = this.sinon.stub(window,
