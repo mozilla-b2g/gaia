@@ -80,18 +80,29 @@ define(function(require) {
       }
 
       if (!imeis || imeis.length === 0) {
-        var span = document.createElement('span');
+        var imeiSpan = document.createElement('span');
 
-        span.setAttribute('data-l10n-id', 'unavailable');
-        this._elements.deviceInfoImeis.appendChild(span);
+        imeiSpan.setAttribute('data-l10n-id', 'unavailable');
+        this._elements.deviceInfoImeis.appendChild(imeiSpan);
       } else {
         imeis.forEach(function(imei, index) {
-          var span = document.createElement('span');
+          var imeiSpan = document.createElement('span');
+          var numberSpan = document.createElement('span');
 
-          span.textContent = (imeis.length > 1) ?
-            'IMEI ' + (index + 1) + ': ' + imei : imei;
-          span.dataset.slot = index;
-          this._elements.deviceInfoImeis.appendChild(span);
+          if (imeis.length > 1) {
+            imeiSpan.classList.add('force-bda-rtl');
+            imeiSpan.textContent = 'IMEI ' + (index +1) + ': ';
+
+            numberSpan.classList.add('force-bda-ltr');
+            numberSpan.textContent = imei;
+            imeiSpan.appendChild(numberSpan);
+          }
+          else {
+            imeiSpan.textContent = imei;
+          }
+
+          imeiSpan.dataset.slot = index;
+          this._elements.deviceInfoImeis.appendChild(imeiSpan);
         }.bind(this));
       }
     },
@@ -148,19 +159,29 @@ define(function(require) {
           this._elements.deviceInfoIccIds.lastChild);
       }
       Array.prototype.forEach.call(conns, function(conn, index) {
-        var span = document.createElement('span');
+        var iccSpan = document.createElement('span');
+        var numberSpan = document.createElement('span');
+
         if (conn.iccId) {
-          span.textContent = multiSim ?
-            'SIM ' + (index + 1) + ': ' + conn.iccId : conn.iccId;
+          if (multiSim) {
+            iccSpan.classList.add('force-bda-rtl');
+            iccSpan.textContent = 'SIM ' + (index + 1) + ': ';
+
+            numberSpan.classList.add('force-bda-ltr');
+            numberSpan.textContent = conn.iccId;
+            iccSpan.appendChild(numberSpan);
+          } else {
+            iccSpan.textContent = conn.iccId;
+          }
         } else {
           if (multiSim) {
-            navigator.mozL10n.setAttributes(span,
+            navigator.mozL10n.setAttributes(iccSpan,
               'deviceInfo-ICCID-unavailable-sim', { index: index + 1 });
           } else {
-            span.setAttribute('data-l10n-id', 'unavailable');
+            iccSpan.setAttribute('data-l10n-id', 'unavailable');
           }
         }
-        this._elements.deviceInfoIccIds.appendChild(span);
+        this._elements.deviceInfoIccIds.appendChild(iccSpan);
       }.bind(this));
     }
   };
