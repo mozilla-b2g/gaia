@@ -72,7 +72,8 @@
         var manifest = app.manifest || app.updateManifest;
 
         var HIDDEN_ROLES = [
-          'system', 'input', 'homescreen', 'search', 'addon', 'langpack'
+          'system', 'input', 'homescreen', 'search', 'theme', 'addon',
+          'langpack'
         ];
         if (HIDDEN_ROLES.indexOf(manifest.role) !== -1) {
           return;
