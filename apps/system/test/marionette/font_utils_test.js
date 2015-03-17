@@ -7,12 +7,7 @@ marionette('FontSizeUtils >', function() {
   var assert = require('assert');
 
   var EMAIL_APP = 'app://email.gaiamobile.org';
-  var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
 
   var reflowHelper, sys;
 

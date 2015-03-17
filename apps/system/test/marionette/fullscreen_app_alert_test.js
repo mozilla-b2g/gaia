@@ -9,10 +9,6 @@ marionette('modal dialog under mozFullScreen', function() {
   apps[FULLSCREEN_APP_ORIGIN] = __dirname + '/../apps/fullscreen-app';
 
   var app, client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    },
     apps: apps
   });
 

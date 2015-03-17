@@ -4,12 +4,7 @@ var Dialog = require('../../../system/test/marionette/lib/dialog');
 var assert = require('assert');
 
 marionette('Dialogs', function() {
-  var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
   var dialog, system;
 
   setup(function() {

@@ -51,10 +51,12 @@ suite('system/AppWindow', function() {
     navigator.mozPermissionSettings = MockPermissionSettings;
     MockPermissionSettings.mSetup();
 
-    this.sinon.stub(document, 'getElementById').
-      returns(document.createElement('div'));
-    this.sinon.stub(DocumentFragment.prototype, 'getElementById').
-      returns(document.createElement('div'));
+    this.sinon.stub(document, 'getElementById', function() {
+      return document.createElement('div');
+    });
+    this.sinon.stub(DocumentFragment.prototype, 'getElementById', function() {
+      return document.createElement('div');
+    });
 
     this.sinon.stub(HTMLElement.prototype, 'querySelector',
     function() {
@@ -102,7 +104,7 @@ suite('system/AppWindow', function() {
 
   var fakePrivateConfig = {
     url: 'http://www.private/index.html',
-    manifest: {},
+    manifest: null,
     origin: 'http://www.private',
     isPrivate: true
   };
@@ -187,6 +189,12 @@ suite('system/AppWindow', function() {
     origin: 'app://www.fakeinput',
     isInputMethod: true
   };
+
+  test('Sanity check instances dont share .element', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var app2 = new AppWindow(fakeAppConfig2);
+    assert.isFalse(app1.element === app2.element);
+  });
 
   test('App created with instanceID', function() {
     var app1 = new AppWindow(fakeAppConfig1);
@@ -658,7 +666,7 @@ suite('system/AppWindow', function() {
       manifestURL: 'app://wwww.fake/ManifestURL',
       origin: 'app://www.fake'
     };
-    
+
     test('minimal-ui', function() {
       var app1 = new AppWindow(fakeAppConfigDisplayMinimalUi);
       assert.isFalse(app1.isFullScreen());
@@ -692,13 +700,35 @@ suite('system/AppWindow', function() {
     });
 
     test('when cards view is shown and hidden', function() {
+      var fakeScreenshotBlob = 'blob:d3958f5c-0777-0845-9dcf-2cb28783acaf';
+      this.sinon.stub(app1, 'requestScreenshotURL', function() {
+        return fakeScreenshotBlob;
+      });
+
       app1.element.dispatchEvent(new CustomEvent('_cardviewbeforeshow'));
       assert.isTrue(app1.screenshotOverlay.classList.contains('visible'),
                     'Overlay should be visible after beforeshow is received');
+      assert.isFalse(app1.element.classList.contains('no-screenshot'),
+                    'Shouldnt have no-screenshot class when there is one');
 
       app1.element.dispatchEvent(new CustomEvent('_cardviewclosed'));
       assert.isFalse(app1.screenshotOverlay.classList.contains('visible'),
                      'Overlay should be hidden after closed is received');
+    });
+
+    test('when cards view is shown and theres no screenshot', function() {
+      this.sinon.stub(app1, 'requestScreenshotURL', function() {
+        return null;
+      });
+      app1.element.dispatchEvent(new CustomEvent('_cardviewbeforeshow'));
+      assert.isTrue(app1.element.classList.contains('no-screenshot'),
+                    'has no-screenshot class ' +
+                    'when requestScreenshotURL returns falsey');
+
+      app1.element.dispatchEvent(new CustomEvent('_cardviewshown'));
+      app1.element.dispatchEvent(new CustomEvent('_cardviewclosed'));
+      assert.isFalse(app1.element.classList.contains('no-screenshot'),
+                    'removes no-screenshot class');
     });
 
     test('show overlay when revealed by an edge swipe', function() {
@@ -1934,7 +1964,7 @@ suite('system/AppWindow', function() {
       assert.isTrue(stubBlur.calledOnce);
     });
 
-    test('Titilechange event', function() {
+    test('titlechange event', function() {
       var app1 = new AppWindow(fakeWrapperConfig);
       var stubPublish = this.sinon.stub(app1, 'publish');
 
@@ -1958,6 +1988,17 @@ suite('system/AppWindow', function() {
         app2.identificationTitle.textContent, '',
         'title should not be changed since it is an app'
       );
+    });
+
+    test('titlechange event > private browser', function() {
+      var defaultPbTitle = 'Private Browser Splash';
+      var privateApp = new AppWindow(fakePrivateConfig);
+      privateApp.identificationTitle.textContent = defaultPbTitle;
+      privateApp.handleEvent({
+        type: 'mozbrowsertitlechange',
+        detail: 'new title - does not update overlay'
+      });
+      assert.equal(privateApp.identificationTitle.textContent, defaultPbTitle);
     });
 
     test('iconchange event', function() {
@@ -2635,7 +2676,7 @@ suite('system/AppWindow', function() {
       });
       popups[1].publish('fake');
       assert.isTrue(caught);
-      assert.isTrue(caughtOnParent);
+      assert.isFalse(caughtOnParent);
     });
 
   suite('Theme Color', function() {

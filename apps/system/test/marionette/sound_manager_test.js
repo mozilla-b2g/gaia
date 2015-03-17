@@ -14,11 +14,6 @@ marionette('Sound manager tests', function() {
     __dirname + '/../apps/fakenotificationapp';
 
   var client = marionette.client({
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
-    },
-
     apps: apps
   });
 

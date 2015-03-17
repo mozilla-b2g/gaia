@@ -281,6 +281,30 @@ suite('controllers/viewfinder', function() {
       });
   });
 
+  suite('ViewfinderController#onGalleryOpened()', function() {
+    setup(function() {
+      this.controller.onGalleryOpened();
+    });
+
+    test('When gallery is open, the viewfinder view should be disabled and ' +
+      'hidden from screen reader', function() {
+      sinon.assert.called(this.viewfinder.disable);
+      assert.isTrue(this.viewfinder.set.calledWith('ariaHidden', true));
+    });
+  });
+
+  suite('ViewfinderController#onGalleryClosed()', function() {
+    setup(function() {
+      this.controller.onGalleryClosed();
+    });
+
+    test('When gallery is closed, the viewfinder view should be enabled and ' +
+      'visible to screen reader', function() {
+      sinon.assert.called(this.viewfinder.enable);
+      assert.isTrue(this.viewfinder.set.calledWith('ariaHidden', false));
+    });
+  });
+
   suite('click:viewfinder', function() {
     test('Should set the grid depending on the setting', function() {
       this.app.settings.grid.selected.withArgs('key').returns('on');

@@ -422,6 +422,18 @@ System.prototype = {
     });
   },
 
+  // The activity menu has a transform transition where it appears from the
+  // bottom of the screen. This waits for that to complete.
+  waitForActivityMenu: function() {
+    var form = this.client.helper.waitForElement(System.Selector.visibleForm);
+    this.client.waitFor(function() {
+      return form.scriptWith(function(element) {
+        return window.getComputedStyle(element).transform ===
+          'matrix(1, 0, 0, 1, 0, 0)';
+      });
+    });
+  },
+
   // It looks for an activity menu, and returns the first
   // button element which includes with str
   getActivityOptionMatching: function(str) {

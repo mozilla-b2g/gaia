@@ -50,16 +50,16 @@ WebappShared.prototype.moveToBuildDir = function(file, targetPath) {
   if (file.isFile()) {
     try {
       utils.copyFileTo(file, utils.dirname(fullTargetPath),
-        utils.basename(fullTargetPath), true);
+        utils.basename(fullTargetPath));
     } catch (e) {
       throw new Error('Unable to add following file in stage: ' +
-                      path + '\n' + e);
+        path + '\n' + e);
     }
   }
   // Case 2/ Directory
   else if (file.isDirectory()) {
     utils.copyDirTo(file, utils.dirname(fullTargetPath),
-        utils.basename(fullTargetPath), true);
+        utils.basename(fullTargetPath));
   }
 };
 

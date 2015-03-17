@@ -74,6 +74,9 @@ return View.extend({
     bind(this.els.header, 'action', this.firer('click:back'));
     bind(this.els.options, 'click', this.onButtonClick);
     bind(this.els.share, 'click', this.onButtonClick);
+    // The standard accessible control for sliders is arrow up/down keys.
+    // Our screenreader synthesizes those events on swipe up/down gestures.
+    bind(this.els.mediaFrame, 'wheel', this.onFrameWheel);
     return this;
   },
 
@@ -93,9 +96,11 @@ return View.extend({
         '<gaia-header class="js-header" action="back">' +
           '<h1 data-l10n-id="preview">Preview</h1>' +
           '<button class="preview-share-icon js-share"' +
-            'name="share" data-icon="share"></button>' +
+            'name="share" data-icon="share" ' +
+            'data-l10n-id="share-button"></button>' +
           '<button class="preview-option-icon ' +
-            'js-options" name="options" data-icon="more"></button>' +
+            'js-options" name="options" data-icon="more" ' +
+            'data-l10n-id="more-button"></button>' +
         '</gaia-header>' +
       '</div>' +
       '<div class="frame-container js-frame-container">' +
@@ -123,6 +128,17 @@ return View.extend({
 
   previewMenuFadeOut: function() {
     this.els.previewMenu.classList.remove('visible');
+  },
+
+  onFrameWheel: function(event) {
+    if (event.deltaMode !== event.DOM_DELTA_PAGE || event.deltaY) {
+      return;
+    }
+    if (event.deltaX > 0) {
+      this.emit('swipe', 'left');
+    } else if (event.deltaX < 0) {
+      this.emit('swipe', 'right');
+    }
   },
 
   swipeCallback: function(swipeAmount, swipeVelocity) {
@@ -250,6 +266,12 @@ return View.extend({
     this.currentIndex = current;
     this.lastIndex = total;
     this.els.countText.textContent = current + '/' + total;
+
+    // Ensure that the information about the number of thumbnails is provided to
+    // the screen reader.
+    this.els.mediaFrame.setAttribute('data-l10n-id', 'media-frame');
+    this.els.mediaFrame.setAttribute('data-l10n-args', JSON.stringify(
+      { total: total, current: current }));
   },
 
   onResize: function() {
@@ -308,6 +330,8 @@ return View.extend({
     this.optionsMenuContainer.innerHTML = this.optionTemplate();
     this.el.appendChild(this.optionsMenuContainer);
 
+    this.el.classList.add('action-menu');
+
     this.menu = this.find('.js-menu');
 
     // We add the event listner for menu items and cancel buttons
@@ -320,6 +344,7 @@ return View.extend({
 
   hideOptionsMenu: function() {
     if (this.optionsMenuContainer) {
+      this.el.classList.remove('action-menu');
       this.optionsMenuContainer.parentElement.removeChild(
         this.optionsMenuContainer);
       this.optionsMenuContainer = null;

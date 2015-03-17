@@ -193,7 +193,7 @@
       };
     },
 
-    isVisible: function() {
+    isFocusable: function() {
       return !!this.container.parentElement;
     },
 
@@ -202,7 +202,7 @@
     },
 
     focus: function() {
-      if (this.isVisible()) {
+      if (this.isFocusable()) {
         document.activeElement.blur();
         this.container.querySelector('.ime-menu-button').focus();
       }

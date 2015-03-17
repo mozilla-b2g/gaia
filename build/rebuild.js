@@ -14,8 +14,12 @@ function getTimestamp(dirPaths) {
     let dir = utils.getFile(dirPath);
     if (dir.exists() && dir.isDirectory()) {
       utils.ls(dir, true).filter(isFileWatched).forEach(function(file) {
-        let relativePath = fsPath.relative(dir.path, file.path);
-        timestamp[dirPath][relativePath] = file.lastModifiedTime;
+        try {
+          let relativePath = fsPath.relative(dir.path, file.path);
+          timestamp[dirPath][relativePath] = file.lastModifiedTime;
+        } catch(e) {
+          timestamp = Date.now();
+        }
       });
     }
   });

@@ -758,6 +758,15 @@ return [
         return;
       }
 
+      // For accessibility purposes, focus on the first newly loaded item in the
+      // messages list. This will ensure that screen reader's cursor position
+      // will get updated to the right place.
+      this.vScroll.once('recalculated', function(calledFromTop, refIndex) {
+        // refIndex is the index of the first new message item.
+        this.messagesContainer.querySelector(
+          '[data-index="' + refIndex + '"]').focus();
+      }.bind(this));
+
       headerCursor.messagesSlice.requestGrowth(1, true);
     },
 

@@ -3,12 +3,7 @@ var Settings = require('../app/app'),
     assert = require('assert');
 
 marionette('manipulate notifications settings', function() {
-  var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
   var settingsApp;
   var notificationsPanel;
 

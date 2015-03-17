@@ -17,10 +17,6 @@
 
   marionette('Triggering activity shows Set As Default option >', function() {
     var client = marionette.client({
-      settings: {
-        'ftu.manifestURL': null,
-        'lockscreen.enabled': false
-      },
       apps: {
         'activitycaller.gaiamobile.org': __dirname + '/../apps/activitycaller',
         'activitycallee.gaiamobile.org': __dirname + '/../apps/activitycallee'
@@ -61,6 +57,7 @@
       client.switchToFrame();
 
       // Check that app choice appear, showing default activity checkbox
+      system.waitForActivityMenu();
       var checkbox = client.findElement(setDefaultSelector);
       assert.ok(checkbox.displayed);
 
@@ -104,6 +101,7 @@
       client.switchToFrame();
 
       // Check that app choice appear, showing default activity checkbox
+      system.waitForActivityMenu();
       var checkbox = client.findElement(setDefaultSelector);
       assert.ok(checkbox.displayed);
 
@@ -139,6 +137,7 @@
       client.switchToFrame();
 
       // Check that app choice appear, showing default activity checkbox
+      system.waitForActivityMenu();
       var checkbox = client.findElement(setDefaultSelector);
       assert.ok(checkbox.displayed);
 

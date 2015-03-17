@@ -37,6 +37,11 @@ gaia-header {
   z-index: 10;
 }
 
+.group-header-title {
+  display: flex;
+  justify-content: center;
+}
+
 /* Override Building Block [Input areas] styles */
 form.bottom[role="search"] {
   z-index: 3;
@@ -1033,6 +1038,10 @@ html[dir="rtl"] .contact-header aside.pack-end {
 
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+#messages-header-text .ellipsis-dir-fix {
+  width: auto;
 }
 
 /* Text selection control */

@@ -106,7 +106,7 @@ SettingsAppBuilder.prototype.writeGitCommit = function(options) {
   commitFile.append('gaia_commit.txt');
   if (overrideCommitFile.exists()) {
     utils.copyFileTo(overrideCommitFile, commitFile.parent.path,
-      commitFile.leafName, true);
+      commitFile.leafName);
   } else if(gitDir.exists() && hasGitCommand()) {
     var git = new utils.Commander('git');
     var stderr, stdout;

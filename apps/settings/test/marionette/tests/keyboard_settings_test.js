@@ -4,12 +4,7 @@ var KeyboardApp = require('../app/keyboard_app');
 var assert = require('assert');
 
 marionette('manipulate keyboard settings', function() {
-  var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
   var settingsApp;
   var keyboardApp;
   var keyboardPanel;

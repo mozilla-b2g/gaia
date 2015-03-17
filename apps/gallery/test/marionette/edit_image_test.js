@@ -12,10 +12,6 @@ marionette('editing an image', function() {
       'device.storage.testing': true,
       'device.storage.prompt.testing': true,
       'webgl.force-enabled': true
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
     }
   });
 

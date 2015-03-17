@@ -15,6 +15,8 @@ var Settings = {
     smsServiceId: 'ril.sms.defaultServiceId'
   },
 
+  READ_AHEAD_THREADS_KEY: 'ril.sms.maxReadAheadEntries',
+
   // we evaluate to 5KB the size overhead of wrapping a payload in a MMS
   MMS_SIZE_OVERHEAD: 5 * 1024,
 
@@ -194,5 +196,15 @@ var Settings = {
 
     var conn = navigator.mozMobileConnections[index];
     return MobileOperator.userFacingInfo(conn).operator;
+  },
+
+  setReadAheadThreadRetrieval: function(value) {
+    if (!navigator.mozSettings) {
+      return;
+    }
+
+    var setting = {};
+    setting[this.READ_AHEAD_THREADS_KEY] = value;
+    navigator.mozSettings.createLock().set(setting);
   }
 };

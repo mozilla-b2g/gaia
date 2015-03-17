@@ -9,11 +9,6 @@ marionette('Thread Panel Tests', function() {
   var apps = {};
 
   var client = marionette.client({
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
-    },
-
     apps: apps
   });
 

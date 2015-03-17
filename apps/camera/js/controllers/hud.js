@@ -92,6 +92,10 @@ HudController.prototype.bindEvents = function() {
   // Settings
   this.app.on('settings:opened', this.view.hide);
   this.app.on('settings:closed', this.view.show);
+
+  // Preview gallery
+  this.app.on('previewgallery:opened', this.view.hide);
+  this.app.on('previewgallery:closed', this.view.show);
 };
 
 HudController.prototype.onCameraClick = function() {

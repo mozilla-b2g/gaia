@@ -8,12 +8,7 @@ var CALENDAR_APP = 'app://calendar.gaiamobile.org';
 
 marionette('mozChromeNotifications:', function() {
 
-  var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
 
   test('Sending one notification, resends none', function(done) {
     var notificationTitle = 'Title:' + Date.now();

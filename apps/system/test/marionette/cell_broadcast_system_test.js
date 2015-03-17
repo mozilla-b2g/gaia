@@ -7,12 +7,7 @@ var NotificationList = require('./lib/notification').NotificationList;
 
 marionette('mozApps', function() {
 
-  var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
 
   var cellBroadcastSystem = new CellBroadcastSystem(client);
   var event, system;
@@ -55,7 +50,6 @@ marionette('mozApps - lockscreen enabled', function() {
 
   var client = marionette.client({
     settings: {
-      'ftu.manifestURL': null,
       'lockscreen.enabled': true
     }
   });

@@ -9,10 +9,6 @@ var APP_URL = 'app://' + APP_HOST;
 marionette('Test Context Menu Events', function() {
 
   var opts = {
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    },
     apps: {}
   };
 

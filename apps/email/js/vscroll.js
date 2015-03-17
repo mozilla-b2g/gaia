@@ -761,7 +761,7 @@ define(function(require, exports, module) {
       this._setContainerScrollTop((this.itemHeight * index) + remainder);
       this.renderCurrentPosition();
 
-      this.emit('recalculated', index === 0);
+      this.emit('recalculated', index === 0, refIndex);
     },
 
     /**

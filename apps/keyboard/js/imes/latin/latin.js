@@ -1,6 +1,10 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* global
+  PAGE_INDEX_DEFAULT
+ */
+
 'use strict';
 
 /*
@@ -51,6 +55,7 @@
     click: click,
     select: select,
     dismissSuggestions: dismissSuggestions,
+    setLayoutPage: setLayoutPage,
     setLayoutParams: setLayoutParams,
     setLanguage: setLanguage,
     selectionChange: selectionChange,
@@ -86,6 +91,8 @@
   var revertFrom;         // Revert away from this on backspace
   var disableOnRevert;    // Do we disable auto correction when reverting?
   var correctionDisabled; // Temporarily diabled after reverting?
+  var currentPage;        // The current layout page
+  var gotNormalKey;       // Indicate if we got a normal key in an alt page
 
   // Terminate the worker when the keyboard is inactive for this long.
   var WORKER_TIMEOUT = 30000;  // 30 seconds of idle time
@@ -216,6 +223,8 @@
     revertTo = revertFrom = '';
     disableOnRevert = false;
     correctionDisabled = false;
+    currentPage = PAGE_INDEX_DEFAULT;
+    gotNormalKey = false;
 
     // The keyboard isn't idle anymore, so clear the timer
     if (idleTimer) {
@@ -455,8 +464,18 @@
       updateSuggestions(repeat);
 
       // Exit symbol layout mode after space or return key is pressed.
-      if (keyCode === SPACE || keyCode === RETURN || keyCode === ATPERSAND) {
+      var isNonDefaultPage = currentPage !== PAGE_INDEX_DEFAULT;
+      var isSpace = keyCode === SPACE;
+      var isReturn = keyCode === RETURN;
+      var isAtpersand = keyCode === ATPERSAND;
+      var keyResetLayout = (isSpace && gotNormalKey) || isReturn || isAtpersand;
+      if (isNonDefaultPage && keyResetLayout) {
         keyboard.setLayoutPage(PAGE_INDEX_DEFAULT);
+      }
+
+      // Next space key will change the layout
+      if (keyCode !== SPACE) {
+        gotNormalKey = true;
       }
 
       lastSpaceTimestamp = (keyCode === SPACE) ? Date.now() : 0;
@@ -807,6 +826,16 @@
     revertTo = revertFrom = '';
     disableOnRevert = false;
     correctionDisabled = false;
+  }
+
+  function setLayoutPage(page) {
+    if (currentPage === PAGE_INDEX_DEFAULT) {
+      // we don't want to reset gotNormalKey if we're already in an alternative
+      // layout.
+      gotNormalKey = false;
+    }
+
+    currentPage = page;
   }
 
   function setLayoutParams(params) {

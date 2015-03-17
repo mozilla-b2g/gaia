@@ -5,3 +5,11 @@ html {
 body {
   margin: 0;
 }
+
+#lockscreen-frame.hidden {
+  visibility: hidden;
+}
+
+#lockscreen-inputpad-frame.hidden {
+  visibility: hidden;
+}

@@ -17,6 +17,7 @@ var MockSettings = {
   getServiceIdByIccId: function() { return null; },
   getSimNameByIccId: function(id) { return 'sim-name-' + id; },
   getOperatorByIccId: function(id) { return 'sim-operator-' + id; },
+  setReadAheadThreadRetrieval: function() {},
 
   mSetup: function() {
     MockSettings.mmsSizeLimitation = 295 * 1024;

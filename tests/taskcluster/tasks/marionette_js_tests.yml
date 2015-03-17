@@ -14,6 +14,7 @@ task:
     - docker-worker:cache:gaia-misc-caches
 
   payload:
+    maxRunTime: 7200
     cache:
       gaia-misc-caches: /home/tester/caches/
     # Chunking logic is actually in the Makefile here which may make it

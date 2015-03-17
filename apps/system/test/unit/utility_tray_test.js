@@ -437,6 +437,15 @@ suite('system/UtilityTray', function() {
         UtilityTray.handleEvent(fakeEvt);
         assert.equal(UtilityTray.shown, true);
     });
+
+    test('should not be hidden when event marked stayBackground', function() {
+      fakeEvt = createEvent('launchapp', false, true, {
+        origin: 'app://otherApp',
+        stayBackground: true
+      });
+      UtilityTray.handleEvent(fakeEvt);
+      assert.equal(UtilityTray.shown, true);
+    });
   });
 
   suite('handleEvent: touchstart', function() {

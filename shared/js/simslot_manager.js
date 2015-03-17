@@ -46,10 +46,25 @@
         return;
       }
 
+      var allSIMCardDetected = true;
       this._conns.forEach(function iterator(conn, index) {
-        this._instances.push(new SIMSlot(conn, index,
-                             IccManager.getIccById(conn.iccId)));
+        var slot = new SIMSlot(conn, index,
+                               IccManager.getIccById(conn.iccId));
+        this._instances.push(slot);
+        if (slot.isAbsent()) {
+          allSIMCardDetected = false;
+        }
       }, this);
+
+      if (allSIMCardDetected) {
+        this.publishSIMSlotIsReady();
+        return;
+      }
+
+      if (this.isMultiSIM() && this.hasOnlyOneSIMCardDetected()) {
+        // we are now in DSDS device with one simcard detected.
+        this.waitForSecondSIM();
+      }
 
       IccManager.addEventListener('iccdetected', this);
     },

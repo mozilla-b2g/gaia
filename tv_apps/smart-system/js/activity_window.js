@@ -1,4 +1,4 @@
-/* global AppWindow, BrowserFrame, OrientationManager */
+/* global AppWindow, BrowserFrame, OrientationManager, focusManager */
 'use strict';
 
 (function(exports) {
@@ -99,6 +99,7 @@
     this.publish('creating');
     this.render();
     this.publish('created');
+    focusManager.addUI(this);
   };
 
   ActivityWindow.prototype = Object.create(AppWindow.prototype);

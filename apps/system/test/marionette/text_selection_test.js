@@ -18,10 +18,6 @@ marionette('Text selection >', function() {
         'dom.w3c_touch_events.enabled': 1,
         'docshell.device_size_is_page_size': true,
         'dom.mozInputMethod.enabled': false
-      },
-      settings: {
-        'ftu.manifestURL': null,
-        'lockscreen.enabled': false
       }
     });
 
@@ -339,7 +335,6 @@ marionette('Text selection >', function() {
         'dom.mozInputMethod.enabled': false
       },
       settings: {
-        'ftu.manifestURL': null,
         'lockscreen.enabled': true
       }
     });
