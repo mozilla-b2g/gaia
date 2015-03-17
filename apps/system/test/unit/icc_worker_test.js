@@ -1,14 +1,14 @@
 'use strict';
 
 /* global MocksHelper, MockNavigatorMozIccManager, MockSystemICC, icc_worker,
-          MockNotifications */
+          MockNotificationHelper */
 
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_system_icc.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
-require('/shared/test/unit/mocks/mock_notification.js');
+require('/shared/test/unit/mocks/mock_notification_helper.js');
 require('/shared/test/unit/mocks/mock_dump.js');
 require('/shared/test/unit/mocks/mock_stk_helper.js');
 requireApp('system/js/icc_worker.js');
@@ -18,7 +18,7 @@ var mocksForIcc = new MocksHelper([
   'Service',
   'L10n',
   'Dump',
-  'Notification',
+  'NotificationHelper',
   'STKHelper'
 ]).init();
 
@@ -129,7 +129,7 @@ suite('STK (icc_worker) >', function() {
       }
       return '0x' + CMD.toString(16);
     }
-    icc_worker[stkCmd(cmd.command.typeOfCommand)](cmd);
+    return icc_worker[stkCmd(cmd.command.typeOfCommand)](cmd);
   }
 
   test('Check Dummy response', function(done) {
@@ -188,13 +188,21 @@ suite('STK (icc_worker) >', function() {
   });
 
   test('STK_CMD_SET_UP_IDLE_MODE_TEXT', function(done) {
+    var fakeNotification = {
+      close: function() {}
+    };
+    this.sinon.stub(MockNotificationHelper, 'send', function() {
+      return Promise.resolve(fakeNotification);
+    });
+
     window.icc.onresponse = function(message, response) {
       // Notification showed
       assert.equal(response.resultCode, navigator.mozIccManager.STK_RESULT_OK);
       done();
     };
-    launchStkCommand(stkTestCommands.STK_CMD_SET_UP_IDLE_MODE_TEXT);
-    MockNotifications[0].onshow();
+    launchStkCommand(stkTestCommands.STK_CMD_SET_UP_IDLE_MODE_TEXT).then(() => {
+      fakeNotification.onshow();
+    });
   });
 
   test('STK_CMD_REFRESH', function() {

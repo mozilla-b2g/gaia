@@ -44,9 +44,10 @@ suite('SimUIModel', function() {
         assert.isFalse(cardInfo.enabled);
         assert.isTrue(cardInfo.absent);
         assert.isFalse(cardInfo.locked);
-        assert.equal(cardInfo.name, 'SIM ' + (fakeSimcardIndex + 1));
+        assert.equal(cardInfo.name.id, 'simWithIndex');
+        assert.equal(cardInfo.name.args.index, fakeSimcardIndex + 1);
         assert.equal(cardInfo.number, '');
-        assert.equal(cardInfo.operator, 'noSimCard');
+        assert.equal(cardInfo.operator.id, 'noSimCard');
       });
     });
 
@@ -60,9 +61,10 @@ suite('SimUIModel', function() {
         assert.isFalse(cardInfo.enabled);
         assert.isFalse(cardInfo.absent);
         assert.isTrue(cardInfo.locked);
-        assert.equal(cardInfo.name, 'SIM ' + (fakeSimcardIndex + 1));
+        assert.equal(cardInfo.name.id, 'simWithIndex');
+        assert.equal(cardInfo.name.args.index, fakeSimcardIndex + 1);
         assert.equal(cardInfo.number, '');
-        assert.equal(cardInfo.operator, 'sim-pin-locked');
+        assert.equal(cardInfo.operator.id, 'sim-pin-locked');
       });
     });
 
@@ -76,9 +78,9 @@ suite('SimUIModel', function() {
         assert.isTrue(cardInfo.enabled);
         assert.isTrue(cardInfo.absent);
         assert.isFalse(cardInfo.locked);
-        assert.equal(cardInfo.name, 'noSimCard');
+        assert.equal(cardInfo.name.id, 'noSimCard');
         assert.equal(cardInfo.number, '');
-        assert.equal(cardInfo.operator, '');
+        assert.equal(cardInfo.operator, null);
       });
     });
 
@@ -98,9 +100,10 @@ suite('SimUIModel', function() {
         assert.isTrue(cardInfo.enabled);
         assert.isFalse(cardInfo.absent);
         assert.isFalse(cardInfo.locked);
-        assert.equal(cardInfo.name, 'SIM ' + (fakeSimcardIndex + 1));
+        assert.equal(cardInfo.name.id, 'simWithIndex');
+        assert.equal(cardInfo.name.args.index, fakeSimcardIndex + 1);
         assert.equal(cardInfo.number, fakeNumber);
-        assert.equal(cardInfo.operator, fakeOperator);
+        assert.equal(cardInfo.operator.text, fakeOperator);
       });
     });
   });
