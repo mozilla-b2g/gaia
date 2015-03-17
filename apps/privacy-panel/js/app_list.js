@@ -109,11 +109,11 @@ define([], function() {
       trust = manifest.type;
     }
 
-    var name = manifest.name;
+    var name = manifest.displayName;
     if (manifest.locales &&
         manifest.locales[_lang] &&
-        manifest.locales[_lang].name) {
-      name = manifest.locales[_lang].name;
+        manifest.locales[_lang].displayName) {
+      name = manifest.locales[_lang].displayName;
     }
 
     var vendor = '';
