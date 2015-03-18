@@ -428,6 +428,7 @@
       this.yes.callback = null;
       this.no.removeEventListener('click', this.noHandler);
       this.no.callback = null;
+      this.moreInfo.classList.add('hidden');
       this.moreInfoLink.removeEventListener('click',
         this.moreInfoHandler);
       this.hideInfoLink.removeEventListener('click',
