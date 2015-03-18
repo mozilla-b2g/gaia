@@ -69,6 +69,21 @@ suite('system/Updatable', function() {
   });
 
   setup(function() {
+    this.sinon.stub(MockService, 'request', function(action) {
+      if (action === 'showCustomDialog') {
+        MockCustomDialog.show(
+          arguments[1],
+          arguments[2],
+          arguments[3],
+          arguments[4]);
+      } else {
+        MockCustomDialog.hide(
+          arguments[1],
+          arguments[2],
+          arguments[3],
+          arguments[4]);
+      }
+    });
     mockApp = new MockApp();
     subject = new AppUpdatable(mockApp);
 
@@ -96,7 +111,7 @@ suite('system/Updatable', function() {
 
     subject._dispatchEvent = realDispatchEvent;
     lastDispatchedEvent = null;
-    MockService.currentApp = null;
+    MockService.mActiveApp = null;
   });
 
   function downloadAvailableSuite(name, setupFunc) {
@@ -365,7 +380,7 @@ suite('system/Updatable', function() {
         suite('application of the download', function() {
           test('should apply if the app is not in foreground', function() {
             mockApp.mTriggerDownloadAvailable();
-            MockService.currentApp = { origin: 'homescreen' };
+            MockService.mActiveApp = { origin: 'homescreen' };
             mockApp.mTriggerDownloadSuccess();
             assert.isNotNull(MockAppsMgmt.mLastAppApplied);
             assert.equal(MockAppsMgmt.mLastAppApplied.mId, mockApp.mId);
@@ -374,7 +389,7 @@ suite('system/Updatable', function() {
           test('should wait for appwillclose if it is', function() {
             var origin = 'http://testapp.gaiamobile.org';
             mockApp.origin = origin;
-            MockService.currentApp = mockApp;
+            MockService.mActiveApp = mockApp;
 
             mockApp.mTriggerDownloadAvailable();
             mockApp.mTriggerDownloadSuccess();
@@ -390,7 +405,7 @@ suite('system/Updatable', function() {
           });
 
           test('should kill the app before applying the update', function() {
-            MockService.currentApp = { origin: 'test' };
+            MockService.mActiveApp = { origin: 'test' };
             mockApp.mTriggerDownloadAvailable();
             mockApp.mTriggerDownloadSuccess();
             assert.equal('https://testapp.gaiamobile.org',

@@ -76,7 +76,8 @@ AppUpdatable.prototype.availableCallBack = function() {
 AppUpdatable.prototype.successCallBack = function() {
   var app = this.app;
   if (Service.query('AppWindowManager.getActiveApp') &&
-      Service.query('AppWindowManager.getActiveApp') !== app.origin) {
+      Service.query('AppWindowManager.getActiveApp').origin !==
+      app.origin) {
     this.applyUpdate();
   } else {
     var self = this;
