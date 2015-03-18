@@ -122,16 +122,6 @@ function(panels, BlurSlider, SettingsListener, SettingsHelper) {
       link.appendChild(icon);
       link.appendChild(name);
 
-      if (itemData.type) {
-        navigator.mozL10n.setAttributes('type', itemData.type);
-        if (itemData.typeArg) {
-          navigator.mozL10n.setAttributes('type', itemData.type,
-                                        itemData.typeArg);
-        }
-
-        link.appendChild(itemData.type);
-      }
-
       link.addEventListener('click',
         function() {
           panels.show({ id: 'ala-exception', options: itemData });
