@@ -582,7 +582,7 @@
         unicode: /\\u([0-9a-fA-F]{1,4})/g,
         entries: /[^\r\n]+/g,
         controlChars: /\\([\\\n\r\t\b\f\{\}\"\'])/g,
-        placeables: /\{\{\s*([^\s]*?)\s*\}\}/,
+        placeables: /\{\{\s*([^\s]*?)\s*\}\}|\[\[\s*([^\s]*?)\s*\]\]/,
       };
     },
 
@@ -662,7 +662,7 @@
     setEntityValue: function(id, attr, key, value, ast) {
       var pos, v;
 
-      if (value.indexOf('{{') !== -1) {
+      if (value.indexOf('{{') !== -1 || value.indexOf('[[') !== -1) {
         value = this.parseString(value);
       }
 
@@ -722,7 +722,7 @@
       var complexStr = [];
 
       var len = chunks.length;
-      var placeablesCount = (len - 1) / 2;
+      var placeablesCount = (len - 1) / 3;
 
       if (placeablesCount >= MAX_PLACEABLES) {
         throw new L10nError('Too many placeables (' + placeablesCount +
@@ -730,11 +730,13 @@
       }
 
       for (var i = 0; i < chunks.length; i++) {
-        if (chunks[i].length === 0) {
+        if (!chunks[i]) {
           continue;
         }
-        if (i % 2 === 1) {
-          complexStr.push({t: 'idOrVar', v: chunks[i]});
+        if (i % 3 === 1) {
+          complexStr.push({t: 'idOrVar', v: chunks[i], humanReadable: true});
+        } else if (i % 3 === 2) {
+          complexStr.push({t: 'idOrVar', v: chunks[i], humanReadable: false});
         } else {
           complexStr.push(chunks[i]);
         }
@@ -868,12 +870,50 @@
     throw new L10nError('Unknown reference: ' + id);
   }
 
-  function subPlaceable(args, env, id) {
+  function subPlaceableHumanReadable(args, env, id) {
     var value;
     try {
       value = resolveIdentifier(args, env, id);
     } catch (err) {
       return '{{ ' + id + ' }}';
+    }
+
+    if (typeof value === 'number') {
+      return value.toLocaleString();
+    }
+
+    if (typeof value === 'string') {
+      // prevent Billion Laughs attacks
+      if (value.length >= MAX_PLACEABLE_LENGTH) {
+        throw new L10nError('Too many characters in placeable (' +
+                            value.length + ', max allowed is ' +
+                            MAX_PLACEABLE_LENGTH + ')');
+      }
+
+      // When substituting one string into another, sometimes the strings
+      // will have different directionalities. For example, if we substitute
+      // an ASCII URL into a block of Hebrew text.
+      //
+      // For this reason, we need to surround the substitution string with
+      // Unicode bidi isolation characters.
+      //
+      // Another example is if the user has an Arabic name and we substitute
+      // it into an English string like "Hello {{name}}, how are you?".
+
+      var FSI = '\u2068';  // Unicode FIRST STRONG ISOLATE character.
+      var PDI = '\u2068';  // Unicode POP DIRECTIONAL ISOLATE character.
+      return FSI + value + PDI;
+    }
+
+    return '{{ ' + id + ' }}';
+  }
+
+  function subPlaceableMachineReadable(args, env, id) {
+    var value;
+    try {
+      value = resolveIdentifier(args, env, id);
+    } catch (err) {
+      return '[[ ' + id + ' ]]';
     }
 
     if (typeof value === 'number') {
@@ -890,15 +930,19 @@
       return value;
     }
 
-    return '{{ ' + id + ' }}';
+    return '[[ ' + id + ' ]]';
   }
 
   function interpolate(args, env, arr) {
     return arr.reduce(function(prev, cur) {
       if (typeof cur === 'string') {
         return prev + cur;
-      } else if (cur.t === 'idOrVar'){
-        return prev + subPlaceable(args, env, cur.v);
+      } else if (cur.t === 'idOrVar') {
+        if (cur.humanReadable) {
+          return prev + subPlaceableHumanReadable(args, env, cur.v);
+        } else {
+          return prev + subPlaceableMachineReadable(args, env, cur.v);
+        }
       }
     }, '');
   }
@@ -1077,7 +1121,7 @@
   }
 
   // strftime tokens (%a, %Eb), template {vars} and HTML entities (&#x202a;)
-  var reExcluded = /(%[EO]?\w|\{\s*.+?\s*\}|&[#\w]+;)/;
+  var reExcluded = /(%[EO]?\w|\{\s*.+?\s*\}|\[\s*.+?\s*\]|&[#\w]+;)/;
 
   function mapContent(fn, val) {
     if (!val) {
