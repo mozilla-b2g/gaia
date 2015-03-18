@@ -1,3 +1,5 @@
+/* global Service */
+
 'use strict';
 
 (function(exports) {
@@ -20,6 +22,7 @@
     this.oncancel = cancelCb || function() {};
     this.listItems = listItems;
     this.titleL10nId = titleL10nId;
+    Service.request('registerHierarchy', this);
   }
 
   ActionMenu.prototype = {
@@ -82,6 +85,53 @@
       if (this.preventFocusChange) {
         this.menu.addEventListener('mousedown', this.preventFocusChange);
       }
+
+      this.active = true;
+      this.publish('-activated');
+    },
+
+    /**
+     * Prefix added to the action menu published event.
+     * @memberof ActionMenu.prototype
+     */
+    EVENT_PREFIX: 'actionmenu',
+
+    /**
+     * Publish relevant action menu events.
+     * @param  {String} eventName name of the event.
+     * @memberof ActionMenu.prototype
+     */
+    publish: function(eventName) {
+      var event = new CustomEvent(this.EVENT_PREFIX + eventName);
+      window.dispatchEvent(event);
+    },
+
+    /**
+     * Indicates if action menu is active.
+     * @return {Boolean} action menu active flag.
+     * @memberof ActionMenu.prototype
+     */
+    isActive: function() {
+      return this.active;
+    },
+
+    /**
+     * Sets action meny hierarchy.
+     * @memberof ActionMenu.prototype
+     */
+    setHierarchy: function() {
+      return true;
+    },
+
+    /**
+     * Handle hierarchy based event.
+     * @memberof ActionMenu.prototype
+     */
+    respondToHierarchyEvent: function(evt) {
+      if (this['_handle_' + evt.type]) {
+        return this['_handle_' + evt.type](evt);
+      }
+      return true;
     },
 
     /**
@@ -102,6 +152,8 @@
       if (this.preventFocusChange) {
         this.menu.removeEventListener('mousedown', this.preventFocusChange);
       }
+
+      Service.request('unregisterHierarchy', this);
     },
 
     /**
@@ -131,6 +183,8 @@
      */
     hide: function(callback) {
       this.container.classList.remove('visible');
+      this.active = false;
+      this.publish('-deactivated');
       this.stop();
       if (callback && typeof callback === 'function') {
         setTimeout(callback);

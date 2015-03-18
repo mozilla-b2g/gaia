@@ -68,6 +68,7 @@
       'UtilityTray',
       'SystemDialogManager',
       'Rocketbar',
+      'ActionMenu',
       'AppWindowManager',
       'TaskManager'
     ],
