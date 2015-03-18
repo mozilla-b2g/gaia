@@ -320,6 +320,17 @@
 
           this._endGesture();
           break;
+
+        case 'click':
+          if (evt.mozInputSource === 0) {
+            evt.preventDefault();
+            if (this.areas.left === evt.target) {
+              this.publish('lockscreenslide-activate-left');
+            } else if (this.areas.right === evt.target) {
+              this.publish('lockscreenslide-activate-right');
+            }
+          }
+          break;
       }
     };
 
@@ -338,6 +349,8 @@
       this.areas.right = document.getElementById(this.IDs.areas.right);
 
       this.area.addEventListener('touchstart', this);
+      this.areas.left.addEventListener('click', this);
+      this.areas.right.addEventListener('click', this);
 
       // Capture the first overlay change and do the delayed initialization.
       this.layout = (ScreenLayout && ScreenLayout.getCurrentLayout &&
