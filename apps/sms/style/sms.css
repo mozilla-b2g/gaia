@@ -830,10 +830,13 @@ Do not remove.
   background: #fff;
 }
 
-/* Adjust the name line-height to prevent bottom of chars been cut */
+/**
+ * TODO: It's an adjustment for line-height/padding to prevent bottom of chars
+ * been cut. This fix will be moved to shared list.css once Bug 1144588 landed
+ */
 .contact-list .suggestion > .name {
   line-height: 2.4rem;
-  margin-top: -0.2rem;
+  padding-top: 0.8rem;
 }
 
 form[role="dialog"][data-type="action"].contact-prompt > header {
