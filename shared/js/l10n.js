@@ -1701,7 +1701,7 @@
   function buildLocaleList(meta, extraLangs) {
     var loc, lp;
     var localeSources = Object.create(null);
-    var defaultLocale = meta.defaultLocale || this.ctx.defaultLocale;
+    var defaultLocale = meta.defaultLanguage || this.ctx.defaultLocale;
 
     if (meta.availableLanguages) {
       for (loc in meta.availableLanguages) {
