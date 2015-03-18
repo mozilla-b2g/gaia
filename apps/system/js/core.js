@@ -31,12 +31,14 @@
   BaseModule.create(Core, {
     name: 'Core',
 
+    // BluetoothCore should be load after NfcCore to
+    // make sure NFC can receive event from Bluetooth
     REGISTRY: {
       'mozTelephony': 'TelephonyMonitor',
       'mozSettings': 'SettingsCore',
-      'mozBluetooth': 'BluetoothCore',
       'mozMobileConnections': 'MobileConnectionCore',
-      'mozNfc': 'NfcCore'
+      'mozNfc': 'NfcCore',
+      'mozBluetooth': 'BluetoothCore'
     },
 
     getAPI: function(api) {
