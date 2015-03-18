@@ -140,6 +140,20 @@ suite('launch ftu >', function() {
   suite('stepReady', function() {
     setup(function() {
       FtuLauncher._stepsList = [];
+      FtuLauncher._done = false;
+      FtuLauncher._skipped = false;
+    });
+    test('When FTU is closed, any step should be ready', function(done) {
+      FtuLauncher.close();
+      FtuLauncher.stepReady('#wifi').then(function() {
+        done();
+      });
+    });
+    test('When FTU is skipped, any step should be ready', function(done) {
+      FtuLauncher.skip();
+      FtuLauncher.stepReady('#wifi').then(function() {
+        done();
+      });
     });
     test('Navigator to #languages', function(done) {
       var evt = new CustomEvent('iac-ftucomms', {
