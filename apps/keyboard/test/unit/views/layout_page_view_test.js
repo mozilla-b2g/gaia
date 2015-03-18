@@ -355,4 +355,108 @@ suite('Views > LayoutPageView', function() {
       assert.isTrue(keyView.unHighlight.calledOnce);
     });
   });
+
+  suite(' > getVisualData()', function() {
+    var layout = {
+      width: 2,
+      keys: [
+        [{ value: 'a' }, { value: 'b' }],
+        [{ value: 'c' }, { value: 'd' }],
+        [{ value: 'e' }, { value: 'f' }]
+      ]
+    };
+    var pageView  = null;
+    var viewManager = {
+      registerView: sinon.stub()
+    };
+
+    var rootElement;
+
+    setup(function() {
+      rootElement = document.createElement('div');
+      document.body.appendChild(rootElement);
+    });
+
+    teardown(function() {
+      document.body.removeChild(rootElement);
+    });
+
+    test('check getVisualData sanity', function() {
+      var layout = {
+        width: 10,
+        keys: [
+          [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}]
+        ]
+      };
+
+      pageView = new LayoutPageView(layout, {}, viewManager);
+      pageView.render();
+
+      rootElement.appendChild(pageView.element);
+
+      var vData = pageView.getVisualData();
+
+      var visuals = [].slice.call(
+        document.querySelectorAll('.visual-wrapper'));
+
+      visuals.forEach(function(v, ix) {
+        assert.equal(v.offsetLeft, vData[ix].x, 'x for ' + ix);
+        assert.equal(v.offsetTop, vData[ix].y, 'y for ' + ix);
+        assert.equal(v.clientWidth, vData[ix].width, 'width for ' + ix);
+        assert.equal(v.clientHeight, vData[ix].height, 'height for ' + ix);
+      });
+    });
+
+    test('check getVisualData sanity for filled up space', function() {
+      var layout = {
+        width: 4,
+        keys: [
+          [{}, {}, {}]
+        ]
+      };
+
+      pageView = new LayoutPageView(layout, {}, viewManager);
+      pageView.render();
+
+      rootElement.appendChild(pageView.element);
+
+      var vData = pageView.getVisualData();
+
+
+      var visuals = [].slice.call(
+        document.querySelectorAll('.visual-wrapper'));
+
+      visuals.forEach(function(v, ix) {
+        assert.equal(v.offsetLeft, vData[ix].x, 'x for ' + ix);
+        assert.equal(v.offsetTop, vData[ix].y, 'y for ' + ix);
+        assert.equal(v.clientWidth, vData[ix].width, 'width for ' + ix);
+        assert.equal(v.clientHeight, vData[ix].height, 'height for ' + ix);
+      });
+    });
+
+    test('getVisualData will return cached data', function() {
+      pageView = new LayoutPageView(layout, {}, viewManager);
+      pageView.render();
+
+      var vData = pageView.getVisualData();
+      var vData2 = pageView.getVisualData();
+
+      assert.equal(vData, vData2);
+    });
+
+    test('getVisualData() will return cached data for different ' +
+         'size', function() {
+      pageView = new LayoutPageView(layout, {}, viewManager);
+      pageView.render();
+
+      var vData = pageView.getVisualData();
+
+      pageView.resize(480);
+      var vData2 = pageView.getVisualData();
+      assert.notEqual(vData, vData2);
+
+      var vData3 = pageView.getVisualData();
+      assert.equal(vData2, vData3);
+    });
+  });
 });
