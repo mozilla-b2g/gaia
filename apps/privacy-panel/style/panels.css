@@ -39,7 +39,7 @@ ul li:first-child {
   border-top: none;
 }
 
-input[type="range"].blur-slider {
+input[type=range].blur-slider {
   width: calc(100% - 3rem);
 }
 

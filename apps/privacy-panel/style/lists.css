@@ -279,7 +279,7 @@ input[type=range]:-moz-focusring {
   outline: none;
 }
 
-ul li > label input[type="range"] {
+ul li > label input[type=range] {
   height: 3rem;
   width: calc(100% - 15rem);
 }
@@ -289,12 +289,12 @@ input[type=range]::-moz-range-track {
   background-color: #7e7e7e;
 }
 
-input[type=range]::-moz-range-progress {
+input::-moz-range-progress {
   height: 0.3rem;
   background-color: #01c5ed;
 }
 
-input[type=range]::-moz-range-thumb {
+input::-moz-range-thumb {
   width: 2.8rem;
   height: 2.8rem;
   border: solid 0.1rem transparent;
@@ -305,7 +305,7 @@ input[type=range]::-moz-range-thumb {
   background-size: 2.8rem 2.8rem;
 }
 
-input[type=range]:active::-moz-range-thumb {
+input:active::-moz-range-thumb {
   border: solid 0.4rem #01c5ed;
 }
 
@@ -426,7 +426,7 @@ html[dir="rtl"] ul li > label.pack-radio > span:not(.menu-item) {
   padding-right: 3rem;
 }
 
-html[dir="rtl"] ul li > label input[type="range"] {
+html[dir="rtl"] ul li > label input {
   left: 7rem;
   right: 5rem;
 }
