@@ -57,11 +57,13 @@
      */
     configs: {
       listens: ['system-dialog-created',
+                'simlockcreated',
                 'system-dialog-show',
                 'system-dialog-hide',
                 'simlockshow',
                 'simlockhide',
                 'system-dialog-requestfocus',
+                'simlockrequestfocus',
                 'home',
                 'holdhome',
                 'hierarchytopmostwindowchanged']
