@@ -1,18 +1,16 @@
 <element name="rp-passcode" extends="section">
   <template>
-    <header>
+    <gaia-header>
       <a class="pp-link back" href="#rp-screenlock">
         <span class="icon gaia-icon-back"></span>
       </a>
-      <menu type="toolbar">
-        <button class="passcode-change" data-mode="new" data-l10n-id="change"></button>
-        <button class="passcode-create" data-mode="create" data-l10n-id="create"></button>
-      </menu>
       <h1 data-l10n-id="passcode-heading" data-mode="create"></h1>
       <h1 data-l10n-id="current-passcode" data-mode="edit"></h1>
       <h1 data-l10n-id="new-passcode" data-mode="new"></h1>
       <h1 data-l10n-id="enter-passcode" data-mode="confirm,confirmLock"></h1>
-    </header>
+        <button class="passcode-create" data-mode="create" data-l10n-id="create">Create</button>
+        <button class="passcode-change" data-mode="new" data-l10n-id="change">Change</button>
+    </gaia-header>    
     <div class="passcode-overlay">
       <input type="number" x-inputmode="digit" class="passcode-input" dir="auto"/>
       <div class="passcode-container">
