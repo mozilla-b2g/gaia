@@ -1,7 +1,7 @@
 /* globals MockL10n, MockLayoutManager,
            MocksHelper, MockService, StatusBar, Service,
            MockAppWindowManager, MockBaseIcon,
-           UtilityTray, MockAppWindow, layoutManager */
+           UtilityTray, MockAppWindow */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_settings_listener.js');
@@ -19,12 +19,13 @@ require('/test/unit/mock_utility_tray.js');
 require('/test/unit/mock_layout_manager.js');
 require('/test/unit/mock_app_window.js');
 require('/test/unit/mock_base_icon.js');
+require('/test/unit/mock_lazy_loader.js');
 
 var mocksForStatusBar = new MocksHelper([
   'UtilityTray',
-  'LayoutManager',
   'AppWindow',
-  'Service'
+  'Service',
+  'LazyLoader'
 ]).init();
 
 suite('system/Statusbar', function() {
@@ -79,6 +80,16 @@ suite('system/Statusbar', function() {
     realLayoutManager = window.layoutManager;
     window.layoutManager = MockLayoutManager;
 
+    this.sinon.stub(Service, 'query', function(state) {
+      if (state === 'getTopMostWindow') {
+        return Service.mTopMostWindow;
+      } else if (state === 'isFtuRunning') {
+        return Service.mIsFtuRunning;
+      } else {
+        return MockLayoutManager.width;
+      }
+    });
+
     window.appWindowManager = new MockAppWindowManager();
 
     prepareDOM();
@@ -98,7 +109,7 @@ suite('system/Statusbar', function() {
   teardown(function() {
     fakeStatusBarNode.parentNode.removeChild(fakeStatusBarNode);
     Service.locked = false;
-    Service.currentApp = null;
+    Service.mTopMostWindow = null;
     navigator.mozL10n = realMozL10n;
     window.layoutManager = realLayoutManager;
   });
@@ -149,7 +160,7 @@ suite('system/Statusbar', function() {
         element: document.createElement('div')
       };
 
-      Service.currentApp = app;
+      Service.mTopMostWindow = app;
       StatusBar.screen = document.createElement('div');
     });
     teardown(function() {
@@ -224,36 +235,6 @@ suite('system/Statusbar', function() {
         {detail: app}));
       assert.isFalse(StatusBar.element.classList.contains('fullscreen'));
       assert.isFalse(StatusBar.element.classList.contains('fullscreen-layout'));
-    });
-  });
-
-  suite('setAppearance on lock/unlock', function() {
-    var app;
-    setup(function() {
-      app = {
-        getTopMostWindow: function() {
-          return app;
-        }
-      };
-      Service.currentApp = app;
-      StatusBar.screen = document.createElement('div');
-    });
-    teardown(function() {
-      StatusBar.screen = null;
-    });
-    test('lock', function() {
-      Service.locked = true;
-      var setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
-      var evt = new CustomEvent('lockscreen-appopened');
-      StatusBar.handleEvent(evt);
-      assert.isTrue(setAppearanceStub.called);
-    });
-    test('unlock', function() {
-      var evt = new CustomEvent('lockscreen-appclosing');
-      var setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
-      StatusBar.handleEvent(evt);
-      assert.isTrue(setAppearanceStub.called);
-      assert.isTrue(setAppearanceStub.calledWith(app));
     });
   });
 
@@ -522,14 +503,14 @@ suite('system/Statusbar', function() {
     var app;
     setup(function() {
       app = getMockApp();
-      Service.currentApp = app;
+      Service.mTopMostWindow = app;
     });
 
     test('does not update minimizedWidth when maximized', function() {
       var unchangedValue = '#';
       StatusBar._minimizedStatusBarWidth = unchangedValue;
       this.sinon.stub(StatusBar, '_updateIconVisibility');
-      Service.currentApp = app;
+      Service.mTopMostWindow = app;
       StatusBar._updateMinimizedStatusBarWidth();
       assert.equal(unchangedValue, StatusBar._minimizedStatusBarWidth);
       assert.isTrue(StatusBar._updateIconVisibility.calledOnce);
@@ -539,10 +520,10 @@ suite('system/Statusbar', function() {
       var mockedWidth = 100;
       this.sinon.stub(app._topWindow.appChrome, 'isMaximized')
         .returns(false);
-      layoutManager.width = 123;
+      MockLayoutManager.width = 123;
       app._topWindow.appChrome.element = getMockChrome(mockedWidth);
       StatusBar._updateMinimizedStatusBarWidth();
-      var expectedValue = layoutManager.width - mockedWidth - 5 - 3;
+      var expectedValue = MockLayoutManager.width - mockedWidth - 5 - 3;
       assert.equal(StatusBar._minimizedStatusBarWidth, expectedValue);
     });
 
@@ -552,7 +533,7 @@ suite('system/Statusbar', function() {
         .returns(false);
       this.sinon.stub(StatusBar, '_getMaximizedStatusBarWidth')
         .returns(mockedWidth);
-      Service.currentApp = app;
+      Service.mTopMostWindow = app;
       StatusBar._updateMinimizedStatusBarWidth();
       assert.equal(StatusBar._minimizedStatusBarWidth, mockedWidth);
     });
@@ -708,19 +689,21 @@ suite('system/Statusbar', function() {
     var lockscreenApp, app;
 
     setup(function() {
-      lockscreenApp = getApp(true, true);
+      lockscreenApp = getApp(false, true);
       app = getApp(false, false);
-      var evt = new CustomEvent('lockscreen-appopened', {
+      var evt = new CustomEvent('hierarchytopmostwindowchanged', {
         detail: lockscreenApp
       });
-      MockService.currentApp = app;
+      MockService.mTopMostWindow = app;
       StatusBar.handleEvent(evt);
     });
 
     teardown(function() {
-      var evt = new CustomEvent('lockscreen-appclosing');
+      var evt = new CustomEvent('hierarchytopmostwindowchanged', {
+        detail: app
+      });
       StatusBar.handleEvent(evt);
-      MockService.currentApp = null;
+      MockService.mTopMostWindow = null;
     });
 
     test('should set the lockscreen icons color', function() {
@@ -728,23 +711,17 @@ suite('system/Statusbar', function() {
       assert.isTrue(StatusBar.element.classList.contains('maximized'));
     });
 
-    test('should do nothing when is locked', function() {
-      StatusBar.setAppearance(app);
-      assert.isFalse(StatusBar.element.classList.contains('light'));
-      assert.isTrue(StatusBar.element.classList.contains('maximized'));
-    });
-
-    test('should set the active app color when closing', function() {
-      var evt = new CustomEvent('lockscreen-appclosing');
-      StatusBar.handleEvent(evt);
-      assert.isFalse(StatusBar.element.classList.contains('light'));
-      assert.isFalse(StatusBar.element.classList.contains('maximized'));
-    });
-
-    function getApp(light, maximized) {
+    // XXX: Use MockAppWindow
+    function getApp(light, maximized, fullscreen, fullscreenLayout) {
       return {
         getTopMostWindow: function() {
           return this;
+        },
+        isFullScreen: function() {
+          return fullscreen;
+        },
+        isFullScreenLayout: function() {
+          return fullscreenLayout;
         },
         appChrome: {
           useLightTheming: function useLightTheming() {
@@ -780,7 +757,7 @@ suite('system/Statusbar', function() {
         isFullScreen: function() {},
         isFullScreenLayout: function() {}
       };
-      Service.currentApp = currentApp;
+      Service.mTopMostWindow = currentApp;
       var evt = new CustomEvent(event, {detail: currentApp});
       StatusBar.element.classList.add('hidden');
       StatusBar.handleEvent(evt);
@@ -789,7 +766,7 @@ suite('system/Statusbar', function() {
     function testEventThatShows(event) {
       triggerEvent(event);
       assert.isTrue(setAppearanceStub.called);
-      assert.isTrue(setAppearanceStub.calledWith(Service.currentApp));
+      assert.isTrue(setAppearanceStub.calledWith(Service.mTopMostWindow));
       assert.isFalse(StatusBar.element.classList.contains('hidden'));
     }
 
@@ -799,7 +776,7 @@ suite('system/Statusbar', function() {
           return this._topWindow;
         }
       };
-      Service.currentApp = currentApp;
+      Service.mTopMostWindow = currentApp;
       var evt = new CustomEvent(event, {detail: currentApp});
       StatusBar.element.classList.add('hidden');
       StatusBar.handleEvent(evt);
@@ -839,7 +816,7 @@ suite('system/Statusbar', function() {
 
     setup(function() {
       app = {};
-      MockService.currentApp = app;
+      MockService.mTopMostWindow = app;
       setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
       pauseUpdateStub = this.sinon.stub(StatusBar, 'pauseUpdate');
       resumeUpdateStub = this.sinon.stub(StatusBar, 'resumeUpdate');
@@ -1063,12 +1040,12 @@ suite('system/Statusbar', function() {
         element: document.createElement('div')
       };
 
-      Service.currentApp = app;
+      Service.mTopMostWindow = app;
       StatusBar.element.classList.add('light');
     });
 
     teardown(function() {
-      Service.currentApp = null;
+      Service.mTopMostWindow = null;
     });
 
     test('should remove light class', function() {

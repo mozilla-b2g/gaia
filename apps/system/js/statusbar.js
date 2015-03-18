@@ -55,11 +55,6 @@ var StatusBar = {
   /* Whether or not status bar is actively updating or not */
   active: true,
 
-  // XXX: Use Service.query('getTopMostWindow') instead of maintaining
-  // in statusbar
-  /* Whether or not the lockscreen is displayed */   
-  _inLockScreenMode: false,
-
   _minimizedStatusBarWidth: window.innerWidth,
 
   _pausedForGesture: false,
@@ -67,8 +62,8 @@ var StatusBar = {
   /* For other modules to acquire */
   get height() {
     if (document.mozFullScreen ||
-               (Service.currentApp &&
-                Service.currentApp.isFullScreen())) {
+               (Service.query('getTopMostWindow') &&
+                Service.query('getTopMostWindow').isFullScreen())) {
       return 0;
     } else {
       return this._cacheHeight ||
@@ -245,17 +240,6 @@ var StatusBar = {
         }
         break;
 
-      case 'lockscreen-appopened':
-        // XXX: Use Service.query('getTopMostWindow')
-        this._inLockScreenMode = true;
-        this.setAppearance();
-        break;
-
-      case 'lockscreen-appclosing':
-        this._inLockScreenMode = false;
-        this.setAppearance(Service.currentApp);
-        break;
-
       case 'attentionopened':
         this.element.classList.add('maximized');
         this.element.classList.remove('light');
@@ -309,7 +293,7 @@ var StatusBar = {
         break;
 
       case 'stackchanged':
-        this.setAppearance(Service.currentApp);
+        this.setAppearance(Service.query('getTopMostWindow'));
         this.element.classList.remove('hidden');
         break;
 
@@ -376,18 +360,12 @@ var StatusBar = {
         this.element.classList.remove('light');
         break;
       case 'updateprompthidden':
-        this.setAppearance(Service.currentApp);
+        this.setAppearance(Service.query('getTopMostWindow'));
         break;
     }
   },
 
   setAppearance: function(app, useBottomWindow) {
-    // The statusbar is always maximised when the phone is locked.
-    if (this._inLockScreenMode) {
-      this.element.classList.add('maximized');
-      return;
-    }
-
     if (!app) {
       return;
     }
@@ -418,7 +396,7 @@ var StatusBar = {
   },
 
   _updateMinimizedStatusBarWidth: function sb_updateMinimizedStatusBarWidth() {
-    var app = Service.currentApp;
+    var app = Service.query('getTopMostWindow');
     app = app && app.getTopMostWindow();
     var appChrome = app && app.appChrome;
 

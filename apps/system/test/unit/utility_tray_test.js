@@ -117,7 +117,7 @@ suite('system/UtilityTray', function() {
   teardown(function() {
     stubById.restore();
     window.Service.locked = false;
-    window.Service.currentApp = null;
+    window.Service.mTopMostWindow = null;
 
     window.softwareButtonManager = originalSoftwareButtonManager;
   });
@@ -199,7 +199,7 @@ suite('system/UtilityTray', function() {
             oop: true
           }
         };
-        window.Service.currentApp = app;
+        window.Service.mTopMostWindow = app;
         this.sinon.spy(app.iframe, 'sendTouchEvent');
 
         fakeTouches(0, 100);
@@ -219,7 +219,7 @@ suite('system/UtilityTray', function() {
             oop: false
           }
         };
-        window.Service.currentApp = app;
+        window.Service.mTopMostWindow = app;
         this.sinon.spy(app.iframe, 'sendTouchEvent');
 
         fakeTouches(0, 100);
