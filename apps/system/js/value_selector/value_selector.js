@@ -232,7 +232,7 @@
     }
     this.element.blur();
     this.element.hidden = true;
-    if (this.app) {
+    if (this.app.getBottomMostWindow().isActive() && this.app.isActive()) {
       this.app.focus();
     }
     this.publish('hidden');
