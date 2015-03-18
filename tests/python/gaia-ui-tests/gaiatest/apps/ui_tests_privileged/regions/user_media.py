@@ -14,14 +14,20 @@ class UserMediaPage(Base):
     _frame_locator = (By.CSS_SELECTOR, "#test-iframe[src*='getusermedia']")
 
     def switch_to_frame(self):
-        self.wait_for_element_displayed(*self._frame_locator)
-        get_user_media_frame = self.marionette.find_element(*self._frame_locator)
-        self.marionette.switch_to_frame(get_user_media_frame)
+        self.wait_for_element_displ
+        frame = Wait(self.marionette).until(
+            expected.element_present(*self._frame_locator))
+        Wait(self.marionette).until(expected.element_displayed(frame))
+        self.marionette.switch_to_frame(frame)
 
     def tap_audio1_button(self):
-        self.wait_for_element_displayed(*self._audio_button_locator)
-        self.marionette.find_element(*self._audio_button_locator).tap()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._audio_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
 
     def tap_video1_button(self):
-        self.wait_for_element_displayed(*self._video_button_locator)
-        self.marionette.find_element(*self._video_button_locator).tap()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._video_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
