@@ -627,6 +627,25 @@ suite('system/permission manager', function() {
           });
           permissionManager.hidePermissionPrompt();
       });
+
+      test('should More info... link be hidden when we accept/deny the prompt', 
+        function() {
+          var yescallback = this.sinon.stub();
+          var nocallback = this.sinon.stub();
+          permissionManager.showPermissionPrompt(1, '', 'testMoreInfoText', 
+            yescallback, nocallback);
+          assert.isFalse(
+            permissionManager.moreInfo.classList.contains('hidden'));
+          permissionManager.clickHandler({
+            target: permissionManager.yes
+          });
+          assert.isTrue(
+            permissionManager.moreInfo.classList.contains('hidden'));
+          permissionManager.showPermissionPrompt(1, '', '', 
+            yescallback, nocallback);
+          assert.isTrue(
+            permissionManager.moreInfo.classList.contains('hidden'));
+      });
   });
 
 });
