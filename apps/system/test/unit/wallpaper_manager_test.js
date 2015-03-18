@@ -53,7 +53,7 @@ suite('WallpaperManager', function() {
     };
 
     // How big (in device pixels) is the screen in its default orientation?
-    if (!MockService.mIsDefaultPortrait) {
+    if (MockService.mIsDefaultPortrait) {
       sw = Math.max(screen.width, screen.height);
       sh = Math.min(screen.width, screen.height);
     } else {
@@ -230,9 +230,8 @@ suite('WallpaperManager', function() {
                      true);
 
         var blob = MockNavigatorSettings.mSettings['wallpaper.image'];
-        assert.notEqual(blob.type, ImageUtils.PNG);
+        assert.equal(blob.type, ImageUtils.PNG);
         ImageUtils.getSizeAndType(blob).then(function resolve(data) {
-          console.log('22222');
           assert.equal(data.type, ImageUtils.PNG);
           assert.equal(data.width, self.screenWidth);
           assert.equal(data.height, self.screenHeight);

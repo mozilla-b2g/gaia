@@ -1,25 +1,25 @@
 'use strict';
-/* global MocksHelper, MockSettingsListener, TTLView */
+/* global MocksHelper, MockSettingsListener, TtlView */
 
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/js/ttlview.js');
+requireApp('system/js/ttl_view.js');
 
-var mocksForTTLView = new MocksHelper([
+var mocksForTtlView = new MocksHelper([
   'SettingsListener'
 ]).init();
 
-suite('system/TTLView', function() {
+suite('system/TtlView', function() {
   var stubById;
   var fakeElement;
   var subject;
 
-  mocksForTTLView.attachTestHelpers();
+  mocksForTtlView.attachTestHelpers();
   setup(function() {
     fakeElement = document.createElement('div');
     fakeElement.style.cssText = 'height: 100px; display: block;';
     stubById = this.sinon.stub(document, 'getElementById')
                           .returns(fakeElement.cloneNode(true));
-    subject = new TTLView();
+    subject = new TtlView();
   });
 
   teardown(function() {
@@ -28,15 +28,15 @@ suite('system/TTLView', function() {
 
   suite('constructor', function() {
     test('calls hide', function() {
-      var hideStub = this.sinon.stub(TTLView.prototype, 'hide');
-      subject = new TTLView();
+      var hideStub = this.sinon.stub(TtlView.prototype, 'hide');
+      subject = new TtlView();
       MockSettingsListener.mCallbacks['debug.ttl.enabled'](false);
       assert.ok(hideStub.calledOnce);
     });
 
     test('calls show', function() {
-      var showStub = this.sinon.stub(TTLView.prototype, 'show');
-      subject = new TTLView();
+      var showStub = this.sinon.stub(TtlView.prototype, 'show');
+      subject = new TtlView();
       MockSettingsListener.mCallbacks['debug.ttl.enabled'](true);
       assert.ok(showStub.calledOnce);
     });

@@ -34,6 +34,7 @@ var MockService = {
     this.mIsOutOfProcessEnabled = true;
     this.mIsUpgrade = false;
     this.mCurrentApp = null;
+    this.mActiveAttention = null;
   },
   lowerCapital: function() {
     return 'a';
@@ -48,6 +49,8 @@ var MockService = {
   },
   query: function(state) {
     switch (state) {
+      case 'AttentionWindowManager.hasActiveWindow':
+        return this.mActiveAttention;
       case 'isUpgrade':
         return this.mIsUpgrade;
       case 'InputWindowManager.isOutOfProcessEnabled':
