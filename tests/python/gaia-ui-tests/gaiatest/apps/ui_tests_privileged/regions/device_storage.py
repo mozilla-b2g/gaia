@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette_driver import By
+from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
 
@@ -17,22 +17,31 @@ class DeviceStoragePage(Base):
     _frame_locator = (By.CSS_SELECTOR, "#test-iframe[src*='devicestorage']")
 
     def switch_to_frame(self):
-        self.wait_for_element_displayed(*self._frame_locator)
-        device_storage_page_iframe = self.marionette.find_element(*self._frame_locator)
-        self.marionette.switch_to_frame(device_storage_page_iframe)
+        frame = Wait(self.marionette).until(
+            expected.element_present(*self._frame_locator))
+        Wait(self.marionette).until(expected.element_displayed(frame))
+        self.marionette.switch_to_frame(frame)
 
     def tap_get_music_button_locator(self):
-        self.wait_for_element_displayed(*self._get_music_button_locator)
-        self.marionette.find_element(*self._get_music_button_locator).tap()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._get_music_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
 
     def tap_get_pictures_button_locator(self):
-        self.wait_for_element_displayed(*self._get_picture_button_locator)
-        self.marionette.find_element(*self._get_picture_button_locator).tap()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._get_picture_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
 
     def tap_get_sdcard_button_locator(self):
-        self.wait_for_element_displayed(*self._get_sdcard_button_locator)
-        self.marionette.find_element(*self._get_sdcard_button_locator).tap()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._get_sdcard_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
 
     def tap_get_videos_button_locator(self):
-        self.wait_for_element_displayed(*self._get_video_button_locator)
-        self.marionette.find_element(*self._get_video_button_locator).tap()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._get_video_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
