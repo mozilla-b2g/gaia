@@ -42,6 +42,18 @@ function moveExternalApp(webapp, source, destination) {
               ' file.';
       }
 
+      // If it has a cache, it should also have a resources_metadata.json file
+      let resourcesMetadata = utils.getFile(source.path,
+        'resources_metadata.json');
+      if (!resourcesMetadata.exists()) {
+        throw 'External webapp `' + webapp.domain +
+          '` has a cache directory without an associated `resources.metadata`' +
+          ' file.';
+      }
+
+      utils.copyFileTo(resourcesMetadata, destination,
+        'resources_metadata.json');
+
       // Copy recursively the whole cache folder to webapp folder
       let targetCacheFolder = utils.getFile(destination, 'cache');
       utils.copyRec(srcCacheFolder, targetCacheFolder);
