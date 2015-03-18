@@ -832,16 +832,18 @@ suite('Render contacts list', function() {
       doLoad(subject, list, function() {
         var favList = assertGroup(groupFav, containerFav, names.length);
         var lastFav = favList[favList.length - 1];
-        doOnscreen(subject, lastFav, function() {
-          assert.equal(lastFav.dataset.rendered, 'true',
-                     'contact should be rendered in "favorites" list');
+        subject.loadVisibilityMonitor().then(() => {
+          doOnscreen(subject, lastFav, function() {
+            assert.equal(lastFav.dataset.rendered, 'true',
+                         'contact should be rendered in "favorites" list');
 
-          var aList = assertGroup(groupA, containerA, names.length);
-          var lastA = aList[aList.length - 1];
-          doOnscreen(subject, lastA, function() {
-            assert.equal(lastA.dataset.rendered, 'true',
-                       'contact should be rendered in "A" list');
-            done();
+            var aList = assertGroup(groupA, containerA, names.length);
+            var lastA = aList[aList.length - 1];
+            doOnscreen(subject, lastA, function() {
+              assert.equal(lastA.dataset.rendered, 'true',
+                           'contact should be rendered in "A" list');
+              done();
+            });
           });
         });
       });
