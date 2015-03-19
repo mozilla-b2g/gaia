@@ -142,6 +142,10 @@
 
   var USER_DICT_DB_NAME = 'UserDictLatin';
 
+  // Predictions from user dictionary need to have weight larger than this in
+  // order to take precedence over built-in dictionary predictions
+  var USER_DICT_PREDICTION_BUMP_THRESHOLD = 1;
+
   /*
    * Since inputContext.sendKey is an async fuction that will return a promise,
    * and we need to update the current state (capitalization, input value)
@@ -746,8 +750,8 @@
     }
 
     // We show no more than 3 suggestions; but we'd like to keep at least one
-    // suggestion from user dictionary, regardless of its weight. However, that
-    // suggestion can still be dropped if it matches the user input.
+    // suggestion from user dictionary, if its weight is less than 1. However,
+    // that suggestion can still be dropped if it matches the user input.
     // User dictionary suggestion is identified by suggestion[2] === true.
 
     var inputDefinedInUserDict = false;
@@ -778,13 +782,16 @@
 
     // Make sure we have no more than three words
     if (suggestions.length > 3) {
-      // We want to keep at least a user dictionary word here.
+      // We want to keep at least a user dictionary word here (if the heighest
+      // user dictionary word has weight >= 1).
       // If for the first two suggestions we see one from user dictionary, or
       // if we dropped a user dict suggestion above (matching user input),
       // we can just append the third suggestion.
       // Otherwise, we'll need to search through the remaining suggestions and
-      // append the first user-dict suggestion we find; if we can't find any
-      // user-dict suggestions, we just append the third suggestion.
+      // append the first user-dict suggestion we find (that has weight >= 1);
+      // if we can't find any suitable user-dict suggestions, we just append
+      // the third suggestion (i.e. whatever that has the largest frequency
+      // in the remaining suggestions).
 
       var trimmedSuggestions = suggestions.slice(0, 2);
 
@@ -798,7 +805,8 @@
       } else {
         userDictionaryWordEncountered =
           suggestions.slice(2).some(function(suggestion) {
-            if (suggestion[2]) {
+            if (suggestion[2] && suggestion[1] >=
+                USER_DICT_PREDICTION_BUMP_THRESHOLD) {
               trimmedSuggestions.push(suggestion);
               return true;
             } else {

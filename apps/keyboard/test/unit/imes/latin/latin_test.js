@@ -764,7 +764,7 @@ suite('latin.js', function() {
       });
 
       suite('Always keep at least one user dictionary word', function() {
-        test('User dictionary word frequenst is high', function(done){
+        test('User dictionary word frequency is high', function(done){
           activateAndTestPrediction('ster', 'ster', [
             ['stery', 4],
             ['star', 3, true],
@@ -776,19 +776,54 @@ suite('latin.js', function() {
               glue.sendCandidates, ['stery', 'star', 'stak']);
           }).then(done, done);
         });
-        test('User dictionary word frequenst is low', function(done){
-          activateAndTestPrediction('ster', 'ster', [
-            ['stery', 4],
-            ['star', 3],
-            ['stak', 2],
-            ['stack', 1, true]
-          ]).then(function() {
-            sinon.assert.callCount(glue.sendCandidates, 1);
-            sinon.assert.calledWith(
-              glue.sendCandidates, ['stery', 'star', 'stack']);
-          }).then(done, done);
+        suite('User dictionary word frequency is low but not too low',
+        function(){
+          var testWithLastUDSuggestionFreq = function(freq, done) {
+            activateAndTestPrediction('ster', 'ster', [
+              ['stery', 4],
+              ['star', 3],
+              ['stak', 2],
+              ['stack', freq, true]
+            ]).then(function() {
+              sinon.assert.callCount(glue.sendCandidates, 1);
+              sinon.assert.calledWith(
+                glue.sendCandidates, ['stery', 'star', 'stack']);
+            }).then(done, done);
+          };
+
+          test('UD word freq = 1.5', function(done){
+            testWithLastUDSuggestionFreq(1.5, done);
+          });
+          test('UD word req = 1', function(done){
+            testWithLastUDSuggestionFreq(1, done);
+          });
         });
-        test('User dictionary word frequenst is input', function(done){
+        suite('User dictionary word frequency is too low',
+        function(){
+          var testWithLastUDSuggestionFreq = function(freq, done) {
+            activateAndTestPrediction('ster', 'ster', [
+              ['stery', 4],
+              ['star', 3],
+              ['stak', 2],
+              ['stack', freq, true]
+            ]).then(function() {
+              sinon.assert.callCount(glue.sendCandidates, 1);
+              sinon.assert.calledWith(
+                glue.sendCandidates, ['stery', 'star', 'stak']);
+            }).then(done, done);
+          };
+
+          test('UD word freq = 0.99', function(done){
+            testWithLastUDSuggestionFreq(0.99, done);
+          });
+          test('UD word req = 0.1', function(done){
+            testWithLastUDSuggestionFreq(0.1, done);
+          });
+          test('UD word req = 0.01', function(done){
+            testWithLastUDSuggestionFreq(0.01, done);
+          });
+        });
+        test('A frequent user dictionary word is input', function(done){
           activateAndTestPrediction('ster', 'ster', [
             ['ster', 10, true],
             ['star', 3],
@@ -798,6 +833,20 @@ suite('latin.js', function() {
             sinon.assert.callCount(glue.sendCandidates, 1);
             sinon.assert.calledWith(
               glue.sendCandidates, ['star', 'stak', 'stack']);
+          }).then(done, done);
+        });
+        test(`User dictionary word frequency is too low but still higher than
+              next built-in dictionary's frequency`,
+        function(done){
+          activateAndTestPrediction('ster', 'ster', [
+            ['stery', 4],
+            ['star', 3],
+            ['stack', 0.99, true],
+            ['stak', 0.95],
+          ]).then(function() {
+            sinon.assert.callCount(glue.sendCandidates, 1);
+            sinon.assert.calledWith(
+              glue.sendCandidates, ['stery', 'star', 'stack']);
           }).then(done, done);
         });
       });
