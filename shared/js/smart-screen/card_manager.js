@@ -102,7 +102,7 @@
         // Here we save content of each folder one by one
         newCardList = that._cardList.filter(function(card, index) {
           if (card instanceof Folder) {
-            if (card.cardsInFolder.length > 0) {
+            if (card.getCardList().length > 0) {
               saveDataPromises.push(that.writeFolderInCardStore(card));
             } else {
               emptyFolderIndices.push(index);

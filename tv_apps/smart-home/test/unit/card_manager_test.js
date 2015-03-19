@@ -17,6 +17,67 @@ require('/shared/js/smart-screen/cards/application.js');
 suite('smart-home/CardManager', function() {
   var realPipedPromise;
 
+  function prepareCardManagerForTesting() {
+    var result = new CardManager();
+    // We bypass init() because it involves navigator.mozApps.mgmt
+    // Instead we need to prepare necessary properties of cardManager
+    result._asyncSemaphore = new AsyncSemaphore();
+    result._cardStore = MockCardStore;
+
+    result._cardList = [
+      new Deck({
+        name: 'Dashboard',
+        nativeApp: {
+          name: 'Dashboard',
+          removable: false,
+          manifest: {},
+          manifestURL: 'app://dashboard.gaiamobile.org/manifest.webapp'
+        }
+      }),
+      new Application({
+        name: 'Music',
+        nativeApp: {
+          name: 'Music',
+          removable: false,
+          manifest: {},
+          manifestURL: 'app://music.gaiamobile.org/manifest.webapp'
+        }
+      }),
+      new Deck({
+        name: 'TV',
+        nativeApp: {
+          name: 'TV',
+          removable: false,
+          manifest: {},
+          manifestURL: 'app://tv-deck.gaiamobile.org/manifest.webapp'
+        }
+      })
+    ];
+
+    result.installedApps = {
+      'app://dashboard.gaiamobile.org/manifest.webapp': {
+        name: 'Dashboard',
+        removable: false,
+        manifest: {},
+        manifestURL: 'app://dashboard.gaiamobile.org/manifest.webapp'
+      },
+      'app://music.gaiamobile.org/manifest.webapp': {
+        name: 'Music',
+        removable: false,
+        manifest: {},
+        manifestURL: 'app://music.gaiamobile.org/manifest.webapp'
+      },
+      'app://tv-deck.gaiamobile.org/manifest.webapp': {
+        name: 'TV',
+        removable: false,
+        manifest: {},
+        manifestURL: 'app://tv-deck.gaiamobile.org/manifest.webapp'
+      }
+    };
+
+    return result;
+  }
+
   suiteSetup(function(done) {
     realPipedPromise = window.PipedPromise;
     // real PipedPromise will make test failed because it waits for
@@ -33,7 +94,7 @@ suite('smart-home/CardManager', function() {
     window.PipedPromise = realPipedPromise;
   });
 
-  suite('_bestMatchingIcon', function() {
+  suite('_bestMatchingIcon()', function() {
     var cardManager;
     var app;
     var manifestWithIconsInOrder = {
@@ -154,50 +215,16 @@ suite('smart-home/CardManager', function() {
 
   });
 
-  suite('findCardFromCardList', function() {
+  suite('findCardFromCardList()', function() {
     var cardManager;
     var dashboardCardId;
     setup(function() {
-      cardManager = new CardManager();
-      cardManager._cardList = [
-        new Deck({
-          name: 'Dashboard',
-          nativeApp: {
-            name: 'Dashboard',
-            removable: false,
-            manifest: {},
-            manifestURL: 'app://dashboard.gaiamobile.org/manifest.webapp'
-          }
-        }),
-        new Deck({
-          name: 'TV',
-          nativeApp: {
-            name: 'TV',
-            removable: false,
-            manifest: {},
-            manifestURL: 'app://tv-deck.gaiamobile.org/manifest.webapp'
-          }
-        })
-      ];
-      cardManager.installedApps = {
-        'app://dashboard.gaiamobile.org/manifest.webapp': {
-          name: 'Dashboard',
-          removable: false,
-          manifest: {},
-          manifestURL: 'app://dashboard.gaiamobile.org/manifest.webapp'
-        },
-        'app://tv-deck.gaiamobile.org/manifest.webapp': {
-          name: 'TV',
-          removable: false,
-          manifest: {},
-          manifestURL: 'app://tv-deck.gaiamobile.org/manifest.webapp'
-        }
-      };
-
+      cardManager = prepareCardManagerForTesting();
       dashboardCardId = cardManager._cardList[0].cardId;
     });
 
     teardown(function() {
+      MockCardStore.mClearData();
       cardManager = undefined;
     });
 
@@ -227,7 +254,7 @@ suite('smart-home/CardManager', function() {
 
   });
 
-  suite('insertNewFolder', function() {
+  suite('insertNewFolder()', function() {
     var cardManager;
     var dashboardCardId;
     setup(function() {
@@ -305,48 +332,10 @@ suite('smart-home/CardManager', function() {
 
   });
 
-  suite('insertCard', function() {
+  suite('insertCard()', function() {
     var cardManager;
     setup(function() {
-      cardManager = new CardManager();
-      // We bypass init() because it involves navigator.mozApps.mgmt
-      // Instead we need to prepare necessary properties of cardManager
-      cardManager._asyncSemaphore = new AsyncSemaphore();
-      cardManager._cardStore = MockCardStore;
-      cardManager._cardList = [
-        new Deck({
-          name: 'TV',
-          nativeApp: {
-            name: 'TV',
-            removable: false,
-            manifest: {},
-            manifestURL: 'app://tv-deck.gaiamobile.org/manifest.webapp'
-          }
-        }),
-        new Application({
-          name: 'Music',
-          nativeApp: {
-            name: 'Music',
-            removable: false,
-            manifest: {},
-            manifestURL: 'app://music.gaiamobile.org/manifest.webapp'
-          }
-        })
-      ];
-      cardManager.installedApps = {
-        'app://tv-deck.gaiamobile.org/manifest.webapp': {
-          name: 'TV',
-          removable: false,
-          manifest: {},
-          manifestURL: 'app://tv-deck.gaiamobile.org/manifest.webapp'
-        },
-        'app://music.gaiamobile.org/manifest.webapp': {
-          name: 'Music',
-          removable: false,
-          manifest: {},
-          manifestURL: 'app://music.gaiamobile.org/manifest.webapp'
-        }
-      };
+      cardManager = prepareCardManagerForTesting();
     });
 
     teardown(function() {
@@ -382,8 +371,7 @@ suite('smart-home/CardManager', function() {
 
   });
 
-
-  suite('writeCardlistInCardStore', function() {
+  suite('writeCardlistInCardStore()', function() {
     var cardManager;
     var emptyFolder, secondEmptyFolder;
 
@@ -456,9 +444,38 @@ suite('smart-home/CardManager', function() {
         }).then(function() {
           assert.equal(cardManager._cardList.length, expectedLength);
           assert.isTrue(cardManager._cardList.indexOf(emptyFolder) < 0);
-          done();
-        });
+        }).then(done, done);
       });
+  });
+
+  suite('swapCard()', function() {
+    var cardManager;
+
+    setup(function() {
+      cardManager = prepareCardManagerForTesting();
+    });
+
+    teardown(function() {
+      MockCardStore.mClearData();
+      cardManager = undefined;
+    });
+
+    test('swap adjacent cards', function() {
+      var card1 = cardManager._cardList[0];
+      var card2 = cardManager._cardList[1];
+      cardManager.swapCard(card1, card2);
+      assert.equal(cardManager._cardList[0], card2);
+      assert.equal(cardManager._cardList[1], card1);
+    });
+
+    test('swap non-adjacent cards', function() {
+      var card1 = cardManager._cardList[0];
+      var card2 = cardManager._cardList[2];
+      cardManager.swapCard(card1, card2);
+      assert.equal(cardManager._cardList[0], card2);
+      assert.equal(cardManager._cardList[2], card1);
+    });
+
   });
 
 });
