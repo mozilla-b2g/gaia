@@ -213,7 +213,6 @@ apps/system/test/unit/mock_template.js
 apps/system/test/unit/mock_trusted_ui_manager.js
 apps/system/test/unit/mock_update_manager.js
 apps/system/test/unit/mock_utility_tray.js
-apps/system/test/unit/mock_wifi_manager.js
 apps/system/test/unit/operator_variant_helper_test.js
 apps/system/test/unit/orientation_manager_test.js
 apps/system/test/unit/settings_helper_test.js
