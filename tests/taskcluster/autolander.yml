@@ -19,6 +19,3 @@ definitions:
   gjslint:
 
   jshint:
-
-  marionette_js_tests:
-    chunks: 30
