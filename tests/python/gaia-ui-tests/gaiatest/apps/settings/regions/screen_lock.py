@@ -10,15 +10,24 @@ from gaiatest.apps.base import Base
 class ScreenLock(Base):
 
     _screen_lock_section_locator = (By.ID, 'screenLock')
-    _passcode_enable_locator = (By.CSS_SELECTOR, 'li.lockscreen-enabled label')
+    _lockscreen_checkbox_locator = (By.XPATH, '//li/label[span[@data-l10n-id="lockScreen"]]')
+    _passcode_checkbox_locator = (By.XPATH, '//li/label[span[@data-l10n-id="passcode-lock"]]')
     _screen_lock_passcode_section_locator = (By.ID, 'screenLock-passcode')
     _passcode_create_locator = (By.CLASS_NAME, 'passcode-create')
 
+    def enable_lockscreen(self):
+        label = Wait(self.marionette).until(
+            expected.element_present(*self._lockscreen_checkbox_locator))
+        Wait(self.marionette).until(expected.element_displayed(label))
+        label.tap()
+        checkbox = label.find_element(By.TAG_NAME, 'input')
+        Wait(self.marionette).until(expected.element_selected(checkbox))
+
     def enable_passcode_lock(self):
-        # This wait would be in __init__ but lockscreen could be disabled meaning init would timeout
-        element = Wait(self.marionette).until(expected.element_present(*self._passcode_enable_locator))
-        Wait(self.marionette).until(expected.element_displayed(element))
-        element.tap()
+        label = Wait(self.marionette).until(
+            expected.element_present(*self._passcode_checkbox_locator))
+        Wait(self.marionette).until(expected.element_displayed(label))
+        label.tap()
         section = self.marionette.find_element(*self._screen_lock_passcode_section_locator)
         Wait(self.marionette).until(lambda m: section.location['x'] == 0)
 
