@@ -52,6 +52,7 @@ class TestCleanupGaia(GaiaTestCase):
 
     def check_initial_state(self):
         self.assertFalse(self.device.is_locked)
+        self.assertEqual(self.apps.displayed_app.name, 'Homescreen')
 
         if self.device.has_wifi:
             self.assertEqual(len(self.data_layer.known_networks), 0)

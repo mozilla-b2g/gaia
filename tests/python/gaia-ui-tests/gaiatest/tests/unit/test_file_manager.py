@@ -2,6 +2,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import os
+import posixpath
+
+import mozfile
+
 from gaiatest import GaiaTestCase
 
 
@@ -37,6 +42,17 @@ class TestFileManager(GaiaTestCase):
         self.assertFalse(self.device.file_manager.dir_exists(path))
         self.device.file_manager.make_dirs('/'.join([path, 'bar']))
         self.assertTrue(self.device.file_manager.dir_exists(path))
+
+    def test_pull_file(self):
+        data = 'foobar'
+        with mozfile.NamedTemporaryFile() as tf:
+            with open(tf.name, 'w') as tf2:
+                tf2.write(data)
+            filename = tf.name.rpartition(os.path.sep)[-1]
+            remote_path = self.device.storage_path
+            self.device.file_manager.push_file(tf.name, remote_path)
+            self.assertEqual(self.device.file_manager.pull_file(
+                posixpath.join(remote_path, filename)), data)
 
     def test_push_file(self):
         filename = 'IMG_0001.jpg'
