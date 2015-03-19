@@ -15,10 +15,11 @@ var dom = {};
 var ids = ['thumbnail-list-title', 'thumbnails', 'thumbnails-video-button',
            'thumbnails-select-button', 'thumbnails-delete-button',
            'thumbnails-share-button', 'thumbnails-select-top',
-           'thumbnails-number-selected', 'player-view', 'spinner-overlay',
-           'thumbnails-single-delete-button', 'thumbnails-single-share-button',
-           'thumbnails-single-info-button', 'info-view', 'info-close-button',
-           'player', 'overlay', 'overlay-title', 'overlay-text', 'overlay-menu',
+           'thumbnails-number-selected', 'player-view',
+           'spinner-overlay', 'thumbnails-single-delete-button',
+           'thumbnails-single-share-button', 'thumbnails-single-info-button',
+           'info-view', 'info-close-button', 'player', 'overlay',
+           'overlay-title', 'overlay-text', 'overlay-menu',
            'overlay-action-button', 'player-header', 'video-container',
            'mediaControlsContainer', 'close', 'video-title', 'throbber',
            'picker-close', 'picker-title', 'picker-header', 'picker-done',
@@ -194,10 +195,10 @@ function initLayout() {
   // startup under tablet and landscape mode.
   if (isPhone || isPortrait) {
     dom.spinnerOverlay.classList.add('hidden');
-    dom.playerView.classList.remove('disabled');
+    setDisabled(dom.playerView, false);
   } else {
     dom.spinnerOverlay.classList.remove('hidden');
-    dom.playerView.classList.add('disabled');
+    setDisabled(dom.playerView, true);
   }
 
   // We handle the isPortrait calculation here, because window dispatches
@@ -213,9 +214,7 @@ function initPlayerControls() {
   dom.mediaControls.attachTo(dom.player);
 
   // handle user tapping events
-  dom.mediaControlsContainer.addEventListener('click',
-                                              toggleVideoControls,
-                                              true);
+  dom.mediaControlsContainer.addEventListener('click', toggleVideoControls);
   dom.playerHeader.addEventListener('action', handleCloseButtonClick);
   dom.pickerDone.addEventListener('click', postPickResult);
   dom.options.addEventListener('click', showOptionsView);
@@ -293,10 +292,10 @@ function handleScreenLayoutChange() {
     if (!isPortrait && (!firstScanEnded || processingQueue)) {
       // landscape mode and everything is waiting.
       dom.spinnerOverlay.classList.remove('hidden');
-      dom.playerView.classList.add('disabled');
+      setDisabled(dom.playerView, true);
     } else {
       dom.spinnerOverlay.classList.add('hidden');
-      dom.playerView.classList.remove('disabled');
+      setDisabled(dom.playerView, false);
     }
     // We need to hide player when rotating to portrait which release video
     // element and load the video into player when rotating to landscape.
@@ -397,12 +396,14 @@ function showInfoView() {
   setNFCSharing(false);
   //Show the video info view
   dom.infoView.classList.remove('hidden');
+  document.body.classList.add('info-view');
 }
 
 function hideInfoView() {
   // Enable NFC sharing when user hides info and returns to fullscreen mode
   setNFCSharing(true);
   dom.infoView.classList.add('hidden');
+  document.body.classList.remove('info-view');
 }
 
 function showSelectView() {
@@ -441,21 +442,39 @@ function showOptionsView() {
     pause();
   }
   dom.optionsView.classList.remove('hidden');
+  document.body.classList.add('options-view');
 }
 
 function hideOptionsView() {
   dom.optionsView.classList.add('hidden');
+  document.body.classList.remove('options-view');
+}
+
+function setDisabled(element, disabled) {
+  element.classList.toggle('disabled', disabled);
+
+  // Set ARIA disabled attribute to maintain semantic meaning for the assistive
+  // technologies like screen reader.
+  element.setAttribute('aria-disabled', disabled);
+}
+
+function setSelected(element, selected) {
+  element.classList.toggle('selected', selected);
+
+  // Set ARIA selected attribute to maintain semantic meaning for the assistive
+  // technologies like screen reader.
+  element.setAttribute('aria-selected', selected);
 }
 
 function clearSelection() {
   // Clear the selection, if there is one
   Array.forEach(selectedFileNames, function(name) {
-    thumbnailList.thumbnailMap[name].htmlNode.classList.remove('selected');
+    setSelected(thumbnailList.thumbnailMap[name].htmlNode, false);
   });
   selectedFileNames = [];
   selectedFileNamesToBlobs = {};
-  dom.thumbnailsDeleteButton.classList.add('disabled');
-  dom.thumbnailsShareButton.classList.add('disabled');
+  setDisabled(dom.thumbnailsDeleteButton, true);
+  setDisabled(dom.thumbnailsShareButton, true);
   dom.thumbnailsNumberSelected.textContent =
     navigator.mozL10n.get('number-selected2', { n: 0 });
 }
@@ -466,15 +485,9 @@ function clearSelection() {
 function updateSelection(videodata) {
   var thumbnail = thumbnailList.thumbnailMap[videodata.name];
 
-  var selected;
+  var selected = !thumbnail.htmlNode.classList.contains('selected');
   // First, update the visual appearance of the element
-  if (thumbnail.htmlNode.classList.contains('selected')) {
-    thumbnail.htmlNode.classList.remove('selected');
-    selected = false;
-  } else {
-    thumbnail.htmlNode.classList.add('selected');
-    selected = true;
-  }
+  setSelected(thumbnail.htmlNode, selected);
 
   // Now update the list of selected filenames and filename->blob map
   // based on whether we selected or deselected the thumbnail
@@ -497,14 +510,9 @@ function updateSelection(videodata) {
   dom.thumbnailsNumberSelected.textContent =
     navigator.mozL10n.get('number-selected2', { n: numSelected });
 
-  if (numSelected === 0) {
-    dom.thumbnailsDeleteButton.classList.add('disabled');
-    dom.thumbnailsShareButton.classList.add('disabled');
-  }
-  else {
-    dom.thumbnailsDeleteButton.classList.remove('disabled');
-    dom.thumbnailsShareButton.classList.remove('disabled');
-  }
+  var noneSelected = numSelected === 0;
+  setDisabled(dom.thumbnailsDeleteButton, noneSelected);
+  setDisabled(dom.thumbnailsShareButton, noneSelected);
 }
 
 function launchCameraApp() {
@@ -663,7 +671,7 @@ function updateLoadingSpinner() {
     window.performance.mark('scanEnd');
     PerformanceTestingHelper.dispatch('scan-finished');
     dom.spinnerOverlay.classList.add('hidden');
-    dom.playerView.classList.remove('disabled');
+    setDisabled(dom.playerView, false);
     if (thumbnailList.count) {
       // Initialize currentVideo to first video item if it doesn't have a value.
       currentVideo = currentVideo ||
@@ -762,6 +770,8 @@ function setControlsVisibility(visible) {
   if (isPhone || isPortrait ||
       currentLayoutMode !== LAYOUT_MODE.list) {
 
+    dom.playerView.classList[visible ? 'remove' : 'add'](
+      'video-controls-hidden');
     dom.mediaControlsContainer.classList[visible ? 'remove' : 'add']('hidden');
 
     // Let the media controls know whether it is visible
@@ -771,6 +781,11 @@ function setControlsVisibility(visible) {
     // always set it as shown.
     dom.mediaControls.hidden = false;
   }
+
+  // Set the proper accessibility label for the video container based on
+  // controls showing.
+  dom.videoContainer.setAttribute('data-l10n-id', dom.mediaControls.hidden ?
+    'show-controls-button' : 'hide-controls-button');
 }
 
 function setVideoPlaying() {

@@ -7,7 +7,7 @@ body {
   background-color: #1c2124;
 }
 
-#player-view.disabled #videoControls{
+#player-view.disabled .video-controls {
   pointer-events: none;
 }
 
@@ -19,7 +19,7 @@ body {
  *    change when we get `:host` and `:content` selectors
  *    in shadow-dom.
  */
-body:not(.pick-activity) #thumbnail-list-view gaia-header,
+body:not(.pick-activity) gaia-header.thumbnails-list,
 #thumbnail-list-title {
   display: inherit !important; /* 1 */
 }
@@ -211,8 +211,8 @@ footer {
   margin-bottom: 1rem;
 }
 
-.layout-selection #thumbnail-select-view,
-.layout-list #thumbnail-list-view {
+.layout-selection .thumbnails-select,
+.layout-list .thumbnails-list {
   display: block;
 }
 
@@ -238,7 +238,10 @@ body.pick-activity .single-info-button {
 @media (orientation: landscape) {
 
   /* panels of selection mode */
-  .layout-selection #thumbnail-list-view,
+  .layout-selection .thumbnails-list {
+    display: none !important; /* 1 */
+  }
+
   .layout-selection #switch-fullscreen,
   .layout-selection #player-view > *,
   .layout-selection .single-delete-button,
@@ -258,10 +261,13 @@ body.pick-activity .single-info-button {
     display: block;
   }
 
-  .layout-list #thumbnail-select-view,
+  .layout-list .thumbnails-select {
+    display: none !important; /* 1 */
+  }
+
   .layout-list #switch-fullscreen,
-  .layout-list #videoControls #videoActionBar,
-  .layout-list #videoControls #close,
+  .layout-list .video-controls #videoActionBar,
+  .layout-list .video-controls #close,
   .layout-list .single-delete-button,
   .layout-list .single-share-button,
   .layout-list .single-info-button {
@@ -273,16 +279,19 @@ body.pick-activity .single-info-button {
     display: block;
   }
 
-  .layout-fullscreen-player #thumbnail-select-view,
-  .layout-fullscreen-player #thumbnail-list-view,
+  .layout-fullscreen-player .thumbnails-list,
+  .layout-fullscreen-player .thumbnails-select {
+    display: none !important; /* 1 */
+  }
+
   .layout-fullscreen-player #thumbnails,
-  .layout-fullscreen-player #videoControls #videoActionBar {
+  .layout-fullscreen-player .video-controls #videoActionBar {
     display: none;
   }
 
   /* left pane size */
-  #thumbnail-select-view,
-  #thumbnail-list-view,
+  .thumbnails-select,
+  .thumbnails-list,
   #thumbnails {
     left: 0;
     width: 40rem;
@@ -355,7 +364,7 @@ body.pick-activity .single-info-button {
   }
 
   /* disable video controls when selected */
-  .layout-selection #videoControls {
+  .layout-selection .video-controls {
     pointer-events: none;
   }
 
@@ -461,8 +470,8 @@ body.pick-activity .single-info-button {
   }
 
   /* left pane size */
-  body.pick-activity #thumbnail-select-view,
-  body.pick-activity #thumbnail-list-view,
+  body.pick-activity .thumbnails-select,
+  body.pick-activity .thumbnails-list,
   body.pick-activity #thumbnails {
     left: 0;
     width: 100%;
@@ -547,22 +556,31 @@ body.pick-activity .single-info-button {
   }
 
   /* selection mode */
-  .layout-selection #thumbnail-list-view,
+  .layout-selection .thumbnails-list {
+    display: none !important; /* 1 */
+  }
+
   .layout-selection #player-view {
     display: none;
   }
 
   /* list mode */
-  .layout-list #thumbnail-select-view,
+  .layout-list .thumbnails-select {
+    display: none !important; /* 1 */
+  }
+
   .layout-list #player-view {
     display: none;
   }
 
   /* player mode / fullscreen-player mode */
-  .layout-fullscreen-player #thumbnail-select-view,
-  .layout-fullscreen-player #thumbnail-list-view,
+  .layout-fullscreen-player .thumbnails-select,
+  .layout-fullscreen-player .thumbnails-list {
+    display: none !important; /* 1 */
+  }
+
   .layout-fullscreen-player #thumbnails,
-  .layout-fullscreen-player #videoControls #videoActionBar {
+  .layout-fullscreen-player .video-controls #videoActionBar {
     display: none;
   }
 

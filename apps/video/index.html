@@ -66,40 +66,56 @@
 
         <!-- This element gets positioned over different view elements -->
         <!-- It gets styled differently depending on what it is over -->
-        <ul id="thumbnails"></ul> <!-- Thumbnails inserted here -->
+        <!-- The real thumbnails list is actually inside this ul. We need
+             to remove the semantics of this list to be less verbose, if the
+             screen reader is on. -->
+        <ul role="presentation" id="thumbnails"></ul> <!-- Thumbnails inserted here -->
 
         <footer id="thumbnails-bottom" class="thumbnails-list">
-          <a id="thumbnails-video-button" class="button" data-icon="video"></a>
-          <a id="thumbnails-select-button" class="button" data-icon="select"></a>
+          <a id="thumbnails-video-button" class="button" data-icon="video"
+             role="button" data-l10n-id="video-button"></a>
+          <a id="thumbnails-select-button" class="button" data-icon="select"
+             role="button" data-l10n-id="select-button"></a>
         </footer>
         <footer id="thumbnails-select-bottom" class="thumbnails-select">
-          <a id="thumbnails-delete-button" class="button" data-icon="delete"></a>
-          <a id="thumbnails-share-button" class="button" data-icon="share"></a>
+          <a id="thumbnails-delete-button" class="button" data-icon="delete"
+             role="button" data-l10n-id="delete-button"></a>
+          <a id="thumbnails-share-button" class="button" data-icon="share"
+             role="button" data-l10n-id="share-button"></a>
         </footer>
       </section>
 
       <!-- (maximized) video player -->
       <section role="region" id="player-view">
         <!-- display this at startup while we create thumbnails -->
-        <div id="spinner-overlay" class="hidden"><div id="spinner"></div></div>
-        <div id="video-container">
-          <video src="about:blank" id="player"></video>
+        <div id="spinner-overlay" class="hidden" role="progress"
+             data-l10n-id="spinner-overlay"><div id="spinner"></div></div>
+        <!-- video controls header -->
+        <gaia-header id="player-header" action="back" class="video-controls">
+          <h1 id="video-title"></h1>
+          <button id="options" data-icon="more"
+                  data-l10n-id="options-more"></button>
+          <button id="picker-done" data-l10n-id="done">Done</button>
+        </gaia-header>
+        <!-- In order for the screen reader to be able to activate the container
+             to toggle controls, it must have the semantics of the button -->
+        <div id="video-container" role="button">
+          <!-- Hiding the video element from the screen reader since the
+               controls are implemented elsewhere. -->
+          <video src="about:blank" id="player" aria-hidden="true"></video>
         </div>
-        <!-- video controls -->
-        <div id="mediaControlsContainer">
+        <!-- the media controls are sementically like a toolbar to the
+             screen reader -->
+        <div role="toolbar" id="mediaControlsContainer" class="video-controls">
           <section role="region">
-            <gaia-header id="player-header" action="back">
-              <h1 id="video-title"></h1>
-              <button id="options" data-icon="more"></button>
-              <button id="picker-done" data-l10n-id="done">Done</button>
-            </gaia-header>
-            <gaia-media-controls id="media-controls" media-player-id="player"></gaia-media-controls>
+            <gaia-media-controls id="media-controls"></gaia-media-controls>
           </section>
         </div>
       </section>
     </div>
 
-    <form id="info-view" role="dialog" data-type="confirm" class="hidden">
+    <form id="info-view" role="dialog" data-type="confirm" class="hidden"
+          data-l10n-id="info-view">
       <section>
         <dl>
           <dt data-l10n-id="name-label"></dt>
@@ -122,7 +138,8 @@
       </menu>
     </form>
 
-    <form id="options-view" role="dialog" data-type="action" class="hidden">
+    <form id="options-view" role="dialog" data-type="action" class="hidden"
+          data-l10n-id="options-view">
       <menu>
        <button type="button" class="single-share-button"><span class="gi gi-text" data-l10n-id="share">Share</span></button>
        <button type="button" class="single-info-button"><span class="gi gi-text" data-l10n-id="more-info">More info</span></button>
@@ -134,18 +151,20 @@
     <!-- This element is the template of each thumbnail item -->
     <div id="thumbnail-group-header" class="hidden">
       <!--
-        <li>
-          <div class="thumbnail-group-header"></div>
-          <ul class="thumbnail-group-container"></ul>
+        <li role="presentation">
+          <div class="thumbnail-group-header" role="heading"
+               aria-level="1"></div>
+          <ul class="thumbnail-group-container" role="listbox"
+              data-l10n-id="videos-list" aria-multiselectable="true"></ul>
         </li>
       -->
     </div>
     <div id="thumbnail-template" class="hidden">
       <!--
-        <li class="thumbnail">
+        <li class="thumbnail" role="option">
           <div class="inner">
             <div class="unwatched"></div>
-            <div class="img"></div>
+            <div class="img" role="presentation"></div>
             <div class="details">
               <span class="title">${title}</span>
               <span class="duration-text after line-break"> ${duration-text}</span>
@@ -172,7 +191,8 @@
         <button type="button" id="overlay-action-button" class="full"></button>
       </menu>
     </form>
-    <form id="confirm-dialog" role="dialog" data-type="confirm" class="hidden">
+    <form id="confirm-dialog" role="dialog" data-type="confirm" class="hidden"
+          data-l10n-id="confirm-dialog">
       <section>
         <p id="confirm-msg"></p>
       </section>

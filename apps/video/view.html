@@ -15,28 +15,36 @@
   </head>
   <body role="application" class="skin-dark layout-fullscreen-player view-activity theme-media">
     <!-- display this at startup while we create thumbnails -->
-    <div id="spinner-overlay"><div id="spinner"></div></div>
+    <div id="spinner-overlay" class="hidden" role="progress"
+             data-l10n-id="spinner-overlay"><div id="spinner"></div></div>
     <section role="region" id="player-view">
-      <div id="video-container">
-        <video id="player" preload="metadata"></video>
+      <!-- video controls header -->
+      <gaia-header id="player-header" action="back" class="video-controls">
+        <h1 id="video-title"></h1>
+        <button id="save" data-l10n-id="save" hidden></button>
+      </gaia-header>
+      <!-- In order for the screen reader to be able to activate the container
+             to toggle controls, it must have the semantics of the button -->
+      <div id="video-container" role="button">
+        <!-- Hiding the video element from the screen reader since the
+             controls are implemented elsewhere. -->
+        <video id="player" preload="metadata" aria-hidden="true"></video>
       </div>
       <!-- video controls -->
-      <div id="mediaControlsContainer" class="hidden">
+      <!-- the media controls are sementically like a toolbar to the
+           screen reader -->
+      <div role="toolbar" id="mediaControlsContainer" class="video-controls">
         <section role="region">
-          <gaia-header id="player-header" action="back">
-            <h1 id="video-title"></h1>
-            <button id="save" data-l10n-id="save" hidden></button>
-          </gaia-header>
-          <gaia-media-controls id="media-controls" media-player-id="player"></gaia-media-controls>
+          <gaia-media-controls id="media-controls"></gaia-media-controls>
         </section>
-        <!-- display messages like "Cannot load video" here -->
-        <form id="in-use-overlay" role="dialog" data-type="confirm" class="hidden">
-          <section id="in-use-overlay-content">
-            <h1 id="in-use-overlay-title"></h1>
-            <p id="in-use-overlay-text"></p>
-          </section>
-        </form>
       </div>
+      <!-- display messages like "Cannot load video" here -->
+      <form id="in-use-overlay" role="dialog" data-type="confirm" class="hidden">
+        <section id="in-use-overlay-content">
+          <h1 id="in-use-overlay-title"></h1>
+          <p id="in-use-overlay-text"></p>
+        </section>
+      </form>
     </section>
     <section id="banner" role="status" hidden>
       <p id="message"></p>

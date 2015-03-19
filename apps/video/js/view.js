@@ -149,9 +149,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     dom.mediaControls.attachTo(dom.player);
 
     // Add listeners for video controls web component
-    dom.mediaControlsContainer.addEventListener('click',
-                                                toggleVideoControls,
-                                                true);
+    dom.mediaControlsContainer.addEventListener('click', toggleVideoControls);
   }
 
   function checkFilename() {
@@ -165,19 +163,26 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   }
 
   function setControlsVisibility(visible) {
+    dom.playerView.classList[visible ? 'remove' : 'add'](
+      'video-controls-hidden');
     dom.mediaControlsContainer.classList[visible ? 'remove' : 'add']('hidden');
     dom.mediaControls.hidden = !visible;
+
+    // Set the proper accessibility label for the video container based on
+    // controls showing.
+    dom.videoContainer.setAttribute('data-l10n-id', dom.mediaControls.hidden ?
+      'hide-controls-button' : 'show-controls-button');
   }
 
   function toggleVideoControls(e) {
+
     // When we change the visibility state of video controls, we need to check
     // the timeout of auto hiding.
     if (controlFadeTimeout) {
       clearTimeout(controlFadeTimeout);
       controlFadeTimeout = null;
     }
-    // We cannot change the visibility state of video contorls when we are in
-    // picking mode.
+
     if (dom.mediaControls.hidden) {
       // If control not shown, tap any place to show it.
       setControlsVisibility(true);
@@ -312,13 +317,23 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     return filename.substring(filename.lastIndexOf('/') + 1);
   }
 
+  function setDisabled(element, disabled) {
+    element.classList.toggle('disabled', disabled);
+
+    // Set ARIA disabled attribute to maintain semantic meaning for the
+    // assistive technologies like screen reader.
+    element.setAttribute('aria-disabled', disabled);
+  }
+
   function showSpinner() {
     if (!blob) {
       dom.spinnerOverlay.classList.remove('hidden');
+      setDisabled(dom.playerView, true);
     }
   }
 
   function hideSpinner() {
     dom.spinnerOverlay.classList.add('hidden');
+    setDisabled(dom.playerView, false);
   }
 });

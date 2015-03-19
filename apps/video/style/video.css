@@ -29,15 +29,6 @@ body > section {
   display: none;
 }
 
-/*
- * while mediaControls is hidden,
- * it should be stay on screen for mousedown event
- */
-#mediaControlsContainer.hidden {
-  display: block;
-  visibility: visible;
-}
-
 ul {
   padding: 0;
   margin: 0;
@@ -215,12 +206,25 @@ span.line-break {
   border-color:rgba(255,255,255, 0.1);
 }
 
+/*
+ * while mediaControls is hidden,
+ * it should be stay on screen for mousedown event
+ */
+#mediaControlsContainer.hidden {
+  display: block;
+  visibility: visible;
+}
+
 #video-container {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
+}
+
+#video-container:active {
+  background: none;
 }
 
 #player {
@@ -230,7 +234,7 @@ span.line-break {
   top: 0;
   left: 0;
   transform-origin: 0 0;
-  z-index: 10;
+  z-index: 7;
 }
 
 /*
@@ -266,7 +270,7 @@ span.line-break {
  * to be visible, so we alter the top position. And if we're handling
  * a pick activity, we also need the title bar with the back button to show.
  */
-#mediaControlsContainer > #in-use-overlay,
+.video-controls > #in-use-overlay,
 body.pick-activity > #in-use-overlay {
   top: 5rem;
 }
@@ -441,30 +445,48 @@ header .icon:after {
 }
 
 /* video player controls */
-#mediaControlsContainer {
+.video-controls {
   position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
-  height: 100%;
   z-index: 10;
   opacity: 1;
-  will-change: opacity;
-  -moz-transition: opacity 0.5s;
+  visibility: visible;
+  will-change: opacity, visibility;
+  transition: visibility 0s, opacity 0.5s;
 }
-#mediaControlsContainer.hidden {
+.video-controls-hidden .video-controls {
   opacity: 0;
+  visibility: hidden;
+  transition-delay: 0.5s, 0s;
 }
 
-#mediaControlsContainer.hidden > * {
-  pointer-events: none;
-}
-
+/* 
+ * Position gaia-media-controls component at the bottom of the screen.
+ */
 gaia-media-controls {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
+}
+
+/* 
+ * 1. mediaControlsContainer does not include the header
+ */
+#mediaControlsContainer {
+  position: absolute;
+  top: 50px; /* 1. */
+  left: 0;
+  width: 100%;
+  height: calc(100% - 50px);
+}
+
+/* When hidden, the mediaControlsContainer should be fullscreen
+   so that touching anywhere on screen displays the controls.
+ */
+#mediaControlsContainer.hidden {
+  top: 0;
+  height: 100%;
 }
 
 /* layout changes for pick activity */
@@ -558,8 +580,9 @@ body:not(.layout-fullscreen-player) #player-view {
 }
 
 /* overlay mode */
-.overlay #app-container {
-  visibility: hidden;
+.overlay #app-container, .info-view #app-container,
+.options-view #app-container, .in-use-overlay #app-container {
+  display: none;
 }
 
 /* spinner is only valid for tablet and landscape mode */
