@@ -161,26 +161,6 @@ var ModalDialog = {
     this.overlay.style.height = height + 'px';
   },
 
-  _localizeElement: function(node, payload) {
-    if (typeof payload === 'string') {
-      node.setAttribute('data-l10n-id', payload);
-      return;
-    }
-
-    if (typeof payload === 'object') {
-      if (payload.raw) {
-        node.removeAttribute('data-l10n-id');
-        node.textContent = payload.raw;
-        return;
-      }
-
-      if (payload.id) {
-        navigator.mozL10n.setAttributes(node, payload.id, payload.args);
-        return;
-      }
-    }
-  },
-
   // Show relative dialog and set message/input value well
   show: function md_show(target, origin) {
     if (!(origin in this.currentEvents)) {
@@ -203,9 +183,29 @@ var ModalDialog = {
       title = '';
     }
 
+    function localizeElement(node, payload) {
+      if (typeof payload === 'string') {
+        node.setAttribute('data-l10n-id', payload);
+        return;
+      }
+
+      if (typeof payload === 'object') {
+        if (payload.raw) {
+          node.removeAttribute('data-l10n-id');
+          node.textContent = payload.raw;
+          return;
+        }
+
+        if (payload.id) {
+          navigator.mozL10n.setAttributes(node, payload.id, payload.args);
+          return;
+        }
+      }
+    }
+
     switch (type) {
       case 'alert':
-        this._localizeElement(elements.alertMessage, message);
+        localizeElement(elements.alertMessage, message);
         elements.alert.classList.add('visible');
         this.setTitle('alert', title);
         elements.alertOk.setAttribute('data-l10n-id', evt.yesText ?
@@ -216,7 +216,7 @@ var ModalDialog = {
       case 'prompt':
         elements.prompt.classList.add('visible');
         elements.promptInput.value = evt.detail.initialValue;
-        this._localizeElement(elements.promptMessage, message);
+        localizeElement(elements.promptMessage, message);
         this.setTitle('prompt', title);
         elements.promptOk.setAttribute('data-l10n-id', evt.yesText ?
                                                         evt.yesText : 'ok');
@@ -227,7 +227,7 @@ var ModalDialog = {
 
       case 'confirm':
         elements.confirm.classList.add('visible');
-        this._localizeElement(elements.confirmMessage, message);
+        localizeElement(elements.confirmMessage, message);
         this.setTitle('confirm', title);
         elements.confirmOk.setAttribute('data-l10n-id', evt.yesText ?
                                                         evt.yesText : 'ok');
@@ -237,7 +237,6 @@ var ModalDialog = {
         break;
 
       case 'selectone':
-        this.setTitle('selectOne', title);
         this.buildSelectOneDialog(message);
         elements.selectOne.classList.add('visible');
         elements.selectOne.focus();
@@ -259,7 +258,7 @@ var ModalDialog = {
   },
 
   setTitle: function md_setTitle(type, title) {
-    this._localizeElement(this.elements[type + 'Title'], title);
+    this.elements[type + 'Title'].setAttribute('data-l10n-id', title);
   },
 
   // When user clicks OK button on alert/confirm/prompt
@@ -363,23 +362,23 @@ var ModalDialog = {
 
   buildSelectOneDialog: function md_buildSelectOneDialog(data) {
     var elements = this.elements;
-    var menu = elements.selectOneMenu;
-    while (menu.firstChild) {
-      menu.removeChild(menu.firstChild);
-    }
+    elements.selectOneTitle.textContent = data.title;
+    elements.selectOneMenu.innerHTML = '';
 
-    if (!data) {
+    if (!data.options) {
       return;
     }
 
-    for (var i = 0; i < data.length; i++) {
-      var li = document.createElement('li');
-      var button = document.createElement('button');
-      button.setAttribute('id', data[i].id);
-      this._localizeElement(button, data[i].text);
-      li.appendChild(button);
-      menu.appendChild(li);
+    var itemsHTML = [];
+    for (var i = 0; i < data.options.length; i++) {
+      itemsHTML.push('<li><button id="');
+      itemsHTML.push(data.options[i].id);
+      itemsHTML.push('">');
+      itemsHTML.push(data.options[i].text);
+      itemsHTML.push('</button></li>');
     }
+
+    elements.selectOneMenu.innerHTML = itemsHTML.join('');
   },
 
   /**
@@ -441,11 +440,10 @@ var ModalDialog = {
     });
   },
 
-  selectOne: function md_selectOne(title, options, callback) {
+  selectOne: function md_selectOne(data, callback) {
     this.showWithPseudoEvent({
       type: 'selectone',
-      title: title,
-      text: options,
+      text: data,
       callback: callback
     });
   },
@@ -484,3 +482,4 @@ var ModalDialog = {
 };
 
 ModalDialog.init();
+
