@@ -337,6 +337,1446 @@
         },
         "schedulerId": "task-graph-scheduler"
       }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 1",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "1",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij1"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 2",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "2",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij2"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 3",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "3",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij3"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 4",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "4",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij4"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 5",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "5",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij5"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 6",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "6",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij6"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 7",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "7",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij7"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 8",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "8",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij8"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 9",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "9",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij9"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 10",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "10",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij10"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 11",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "11",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij11"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 12",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "12",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij12"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 13",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "13",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij13"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 14",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "14",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij14"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 15",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "15",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij15"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 16",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "16",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij16"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 17",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "17",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij17"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 18",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "18",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij18"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 19",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "19",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij19"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 20",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "20",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij20"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 21",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "21",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij21"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 22",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "22",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij22"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 23",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "23",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij23"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 24",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "24",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij24"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 25",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "25",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij25"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 26",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "26",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij26"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 27",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "27",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij27"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 28",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "28",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij28"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 29",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "29",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij29"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 30",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "30",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.7.2"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij30"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
     }
   ]
 }
