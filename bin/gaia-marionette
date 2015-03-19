@@ -167,7 +167,7 @@ PATH=$XPCSHELL_DIR:$PATH $TARGET \
   $OOP_OPTS \
   $RUNTIME_OPTS \
   $DEVICE_OPTS \
-  --timeout 60s \
+  --timeout 86400s \
   --profile-builder $SHARED/profile_builder.js \
   --profile-base $SHARED/profile.js \
   $SHARED/setup.js \
