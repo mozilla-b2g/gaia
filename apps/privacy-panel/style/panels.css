@@ -278,6 +278,10 @@ section[role="region"] > div.gt-box {
   width: 100%;
 }
 
+html[dir=rtl] .gt-pager {
+  transform: scaleX(-1);
+}
+
 .gt-pager.page-2 {
   background-position: 50% -10px;
 }
