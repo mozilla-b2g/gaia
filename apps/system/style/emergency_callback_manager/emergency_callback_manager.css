@@ -80,6 +80,10 @@
   padding-top: 3.5rem;
   display: none;
 }
+#screen.software-button-enabled #emergency-callback-dialog {
+  bottom: var(--software-home-button-height);
+}
+
 
 #emergency-callback-dialog.visible {
   display: inline-block;
