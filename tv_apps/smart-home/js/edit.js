@@ -1,4 +1,5 @@
-/* global evt, Folder */
+/* global evt, Folder, SmartModalDialog */
+
 'use strict';
 
 (function(exports) {
@@ -22,6 +23,7 @@
     init: function(spatialNavigator, cardManager,
                    cardScrollable, folderScrollable) {
       var that = this;
+      this.modalDialog = new SmartModalDialog();
 
       this.spatialNavigator = spatialNavigator;
       this.cardManager = cardManager;
@@ -230,6 +232,10 @@
     },
 
     onMove: function(key) {
+      if (this.modalDialog.isOpened) {
+        return true;
+      }
+
       if (this.mode !== 'arrange') {
         return false;
       }
@@ -301,6 +307,10 @@
         return false;
       }
 
+      if (this.modalDialog.isOpened) {
+        return true;
+      }
+
       var focus = this.spatialNavigator.getFocusedElement();
       if (focus === this.doneButton) {
         this.toggleEditMode();
@@ -342,9 +352,39 @@
     },
 
     deleteCard: function(scrollable, nodeElem) {
+      document.activeElement.blur();
+      this.modalDialog.open({
+        message: {
+          textL10nId: 'delete-card-alert'
+        },
+        buttonSettings: [
+          {
+            textL10nId: 'cancel',
+            defaultFocus: true,
+            onClick: this.spatialNavigator.focus.bind(this.spatialNavigator)
+          },
+          {
+            textL10nId: 'delete',
+            class: 'danger',
+            onClick: this._onCardDeleted.bind(this, scrollable, nodeElem)
+          }
+        ],
+        onCancel: this.spatialNavigator.focus.bind(this.spatialNavigator)
+      });
+    },
+
+    _onCardDeleted: function(scrollable, nodeElem) {
       this._concealPanel(scrollable, nodeElem);
-      scrollable.spatialNavigator.focus(scrollable.getItemFromNode(nodeElem));
-      this.cardManager.removeCard(parseInt(nodeElem.dataset.idx, 10));
+      nodeElem.classList.add('delete');
+
+      var deletedItem = scrollable.getItemFromNode(nodeElem);
+      deletedItem.addEventListener('transitionend', function(evt) {
+        if (evt.propertyName === 'transform') {
+          scrollable.spatialNavigator
+                    .focus(scrollable.getItemFromNode(nodeElem));
+          this.cardManager.removeCard(parseInt(nodeElem.dataset.idx, 10));
+        }
+      }.bind(this));
     },
 
     hoverCard: function(scrollable, focusedItem, targetItem) {
