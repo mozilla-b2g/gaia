@@ -16,43 +16,43 @@
         <li id="menuItem-voicePrivacyMode" hidden>
           <label class="pack-switch checkbox-label">
             <input type="checkbox" data-ignore>
-            <span data-l10n-id="voicePrivacyMode">Voice Privacy Mode</span>
+            <span data-l10n-id="voicePrivacyMode"></span>
           </label>
         </li>
-        <li id="menuItem-callWaiting" data-state="off" hidden>
+        <li id="menuItem-callWaiting" aria-disabled="true" data-state="off" hidden>
           <label class="pack-switch checkbox-label">
             <input type="checkbox" data-ignore>
-            <span data-l10n-id="callWaiting">Call Waiting</span>
+            <span data-l10n-id="callWaiting"></span>
           </label>
           <label class="alert-label" hidden>
             <span></span>
           </label>
         </li>
         <li id="menuItem-callerId" aria-disabled="true" hidden>
-          <a data-l10n-id="callerId">Caller ID</a>
+          <a data-l10n-id="callerId"></a>
           <span class="button icon icon-dialog">
             <select id="ril-callerId" data-setting="ril.callerId">
-              <option value="CLIR_DEFAULT" data-l10n-id="callerId-default">Network default</option>
-              <option value="CLIR_INVOCATION" data-l10n-id="callerId-hide">Hide number</option>
-              <option value="CLIR_SUPPRESSION" data-l10n-id="callerId-show">Show number</option>
+              <option value="CLIR_DEFAULT" data-l10n-id="callerId-default"></option>
+              <option value="CLIR_INVOCATION" data-l10n-id="callerId-hide"></option>
+              <option value="CLIR_SUPPRESSION" data-l10n-id="callerId-show"></option>
             </select>
           </span>
         </li>
         <li id="menuItem-callFdn" hidden>
           <a class="menu-item" href="#" data-href="#call-fdnSettings">
-            <span data-l10n-id="fdnSettings">Fixed Dialing Numbers</span>
+            <span data-l10n-id="fdnSettings"></span>
             <small id="fdnSettings-desc"></small>
           </a>
         </li>
         <li id="menuItem-callForwarding" hidden>
-          <a class="menu-item" data-href="#call-cfSettings">
-            <span data-l10n-id="callForwarding">Call forwarding</span>
+          <a class="menu-item" href="#">
+            <span data-l10n-id="callForwarding"></span>
             <small id="li-cf-desc"></small>
           </a>
         </li>
         <li id="menuItem-callBarring" hidden>
           <a class="menu-item" data-href="#call-cbSettings">
-            <span data-l10n-id="callBarring">Call barring</span>
+            <span data-l10n-id="callBarring"></span>
             <small id="li-cb-desc"></small>
           </a>
         </li>
@@ -61,25 +61,24 @@
 
     <form role="dialog" data-type="confirm" hidden class="cw-alert">
       <section>
-        <h1 data-l10n-id="confirmCallWaitingTitle">Unable to confirm call waiting preferences</h1>
+        <h1 data-l10n-id="confirmCallWaitingTitle"></h1>
         <p>
-          <strong data-l10n-id="confirmCallWaitingDesc">The device is currently unable to communicate with the carrier. Try setting the preference again.</strong>
+          <strong data-l10n-id="confirmCallWaitingDesc"></strong>
         </p>
         <p class="cw-alert-sub-p">
           <label class="pack-switch cw-alert-checkbox-label">
             <input type="checkbox" data-ignore>
-            <span data-l10n-id="callWaiting">Call Waiting</span>
+            <span data-l10n-id="callWaiting"></span>
           </label>
         </p>
       </section>
       <menu>
-        <button class="cw-alert-cancel" data-l10n-id="cancel">Cancel</button>
-        <button class="cw-alert-set recommend" data-l10n-id="set">Set</button>
+        <button class="cw-alert-cancel" data-l10n-id="cancel"></button>
+        <button class="cw-alert-set recommend" data-l10n-id="set"></button>
       </menu>
     </form>
 
-    <script src="shared/js/settings_helper.js"></script>
-    <script src="js/call.js"></script>
+    <panel data-path="panels/call/panel"></panel>
 
   </template>
 </element>

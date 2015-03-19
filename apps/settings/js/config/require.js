@@ -49,6 +49,9 @@ require.config({
     'shared/settings_url': {
       exports: 'SettingsURL'
     },
+    'shared/settings_helper': {
+      exports: 'SettingsHelper'
+    },
     'shared/omadrm/fl': {
       exports: 'ForwardLock'
     },

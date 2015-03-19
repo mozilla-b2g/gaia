@@ -1,16 +1,12 @@
-<element name="call-cfSettings" extends="section">
+<element name="call-forwarding" extends="section">
   <template>
 
-    <header>
-      <button type="reset"><span data-l10n-id="back" class="icon icon-back"></span></button>
+    <gaia-header action="back" data-href="#call">
       <h1 data-l10n-id="callForwarding-header"></h1>
-    </header>
+    </gaia-header>
 
     <div>
       <ul id="list-callForwarding">
-        <li id="fdnSettingsBlocked" class="description" hidden>
-          <p data-l10n-id="fdn-enabled-warning"></p>
-        </li>
         <li id="li-cfu-desc">
           <a class="callForwardingUnconditional" href="#">
             <span data-l10n-id="callForwardingUnconditional"></span>
@@ -37,5 +33,8 @@
         </li>
       </ul>
     </div>
+
+    <panel data-path="panels/call_forwarding/panel"></panel>
+
   </template>
 </element>

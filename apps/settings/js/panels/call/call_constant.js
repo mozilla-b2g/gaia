@@ -28,10 +28,10 @@ define(function() {
   };
 
   const CALL_FORWARD_REASON_MAPPING = {
-    'unconditional': CALL_FORWARD_REASON.UNCONDITIONAL,
-    'mobilebusy': CALL_FORWARD_REASON.MOBILE_BUSY,
-    'noreply': CALL_FORWARD_REASON.NO_REPLY,
-    'notreachable': CALL_FORWARD_REASON.NOT_REACHABLE
+    'unConditional': CALL_FORWARD_REASON.UNCONDITIONAL,
+    'mobileBusy': CALL_FORWARD_REASON.MOBILE_BUSY,
+    'noReply': CALL_FORWARD_REASON.NO_REPLY,
+    'notReachable': CALL_FORWARD_REASON.NOT_REACHABLE
   };
 
   const CALL_FORWARD_ACTION = {
@@ -54,7 +54,7 @@ define(function() {
     'CALL_FORWARD_REASON_MAPPING': CALL_FORWARD_REASON_MAPPING,
     'CALL_FORWARD_ACTION': CALL_FORWARD_ACTION,
     'CLIR_MAPPING': CLIR_MAPPING
-  }; 
+  };
 
   return CallConstant;
 });

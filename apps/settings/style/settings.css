@@ -467,6 +467,8 @@ section ul.operate-certificate {
 
 #menuItem-callWaiting[data-state="unknown"] .alert-label {
   display: inherit;
+  position: absolute;
+  top: 0;
 }
 
 #menuItem-callWaiting .alert-label > span {
@@ -484,9 +486,14 @@ section ul.operate-certificate {
   width: 100%;
 }
 
-#call li[aria-disabled="true"] .icon-dialog {
+#call li[aria-disabled="true"] .icon-dialog,
+#call li[aria-disabled="true"] label {
   opacity: 0.6;
   pointer-events: none;
+}
+
+#call li[aria-disabled="true"] label > span {
+  color: #797e80;
 }
 
 /** Call Barring Settings *****************************************************/
