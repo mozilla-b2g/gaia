@@ -242,8 +242,6 @@
 
 #notifications-container .notification > div.title-container .timestamp {
   flex: initial;
-  top: -.2rem;
-  right: 1.5rem;
   padding: 0;
   max-width: 7.5rem;
   font-size: 1.4rem;
@@ -313,16 +311,19 @@ html[dir="rtl"] #notifications-container .notification > img {
   float: right;
 }
 
-html[dir="rtl"] #notifications-container .notification > div.title-container .timestamp {
-  left: 1.5rem;
-  right: unset;
-}
-
 html[dir="rtl"] #notifications-container .notification > div {
   margin-left: unset;
   margin-right: 3.7rem;
 }
 
-html[dir="rtl"] #notifications-container .notification > div:-moz-dir(ltr) {
+/*
+ * For the notification title, we need to use dir="auto" to display
+ * parenthesis and periods in their proper place. However, we still
+ * want the text to align right when in an RTL language, so we use
+ * the following override. See bug 1134453 and bug 1142925.
+ */
+html[dir="rtl"] #notifications-container .title-container .title:-moz-dir(ltr) {
   text-align: right;
+  -moz-margin-end: unset;
+  margin-left: 0.5rem;
 }

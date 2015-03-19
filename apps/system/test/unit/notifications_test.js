@@ -388,7 +388,7 @@ suite('system/NotificationScreen >', function() {
       var notificationNode =
         document.getElementsByClassName('notification')[0];
       var notificationNodeTitle =
-        document.querySelector('.notification .title-container');
+        document.querySelector('.notification .title-container .title');
       assert.equal(dir, notificationNode.dir);
       assert.equal('auto', notificationNodeTitle.dir);
     }
