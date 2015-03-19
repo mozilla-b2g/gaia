@@ -1,7 +1,10 @@
-/* global InteractiveNotifications */
+/* global MockSimpleKeyNavigation, InteractiveNotifications, focusManager */
 
 'use strict';
 requireApp('smart-system/test/unit/mock_iac_handler.js');
+requireApp('smart-system/test/unit/mock_simple_key_navigation.js');
+requireApp('smart-system/bower_components/evt/index.js');
+requireApp('smart-system/bower_components/smart-banner/script.js');
 requireApp('smart-system/js/interactive_notifications.js');
 
 suite('interactive notifications', function() {
@@ -45,37 +48,69 @@ suite('interactive notifications', function() {
 
   var stubs = {};
   var fakeTimer;
-  var containerElement;
-  var buttonGroupElement;
-  var titleElement;
-  var bodyElement;
-  var button1Element;
-  var button2Element;
+  var realSimpleKeyNavigation;
+  var realFocusManager;
+  var mockElements = {};
 
-  function createMockElement(id, mockOpenClose) {
-    var element = document.createElement('div');
+  function createMockElement(options) {
+    var id = options.id;
+    var mockOpenClose = options.mockOpenClose;
+    var tagName = options.tagName || 'div';
+    var element = document.createElement(tagName);
     element.id = id;
     if (mockOpenClose) {
       element.open = element.close = function(){};
       element.on = element.once = element.off = function(){};
+    }
+    if (tagName === 'smart-banner') {
+      element.hide = element.flyOpen = function() {};
     }
     document.body.appendChild(element);
     return element;
   }
 
   function createMockUI() {
-    containerElement = createMockElement('notification-container', true);
-    buttonGroupElement = createMockElement('notification-button-group');
-    titleElement = createMockElement('notification-title');
-    bodyElement = createMockElement('notification-body');
-    button1Element = createMockElement('notification-button-0');
-    button2Element = createMockElement('notification-button-1');
+    // containerElement
+    mockElements['notification-container'] = createMockElement({
+      id: 'notification-container',
+      mockOpenClose: true,
+      tagName: 'smart-banner'
+    });
+    // buttonGroupElement
+    mockElements['notification-button-group'] =
+      createMockElement({id: 'notification-button-group'});
+    // titleElement
+    mockElements['notification-title'] =
+      createMockElement({id: 'notification-title'});
+    // bodyElement
+    mockElements['notification-body'] =
+      createMockElement({id: 'notification-body'});
+    // button1Element
+    mockElements['notification-button-0'] =
+      createMockElement({id: 'notification-button-0'});
+    // button2Element
+    mockElements['notification-button-1'] =
+     createMockElement({id: 'notification-button-1'});
   }
 
+  // var getElementByIdStub;
   suiteSetup(function() {
     window.IACHandler = window.MockIACHandler;
     window.AppWindowManager = fakeAppWinMgr;
+    realFocusManager = window.focusManager;
+    window.focusManager = {
+      focus: function() {},
+      addUI: function() {}
+    };
+    realSimpleKeyNavigation = window.SimpleKeyNavigation;
+    window.SimpleKeyNavigation = MockSimpleKeyNavigation;
     createMockUI();
+  });
+
+  suiteTeardown(function() {
+    window.SimpleKeyNavigation = realSimpleKeyNavigation;
+    window.focusManager = realFocusManager;
+    mockElements = {};
   });
 
   setup(function() {
@@ -88,6 +123,9 @@ suite('interactive notifications', function() {
     stubs.msg3Closed = sinon.stub(message3, 'onClosed');
     stubs.msg4Closed = sinon.stub(message4, 'onClosed');
     stubs.updateUISpy = sinon.spy(testTarget, '_updateNotificationUI');
+    stubs.bannerHide =
+      sinon.spy(mockElements['notification-container'], 'hide');
+    stubs.focusManagerFocus = sinon.spy(focusManager, 'focus');
     fakeTimer = sinon.useFakeTimers();
   });
 
@@ -97,6 +135,8 @@ suite('interactive notifications', function() {
     stubs.msg3Closed.restore();
     stubs.msg4Closed.restore();
     stubs.updateUISpy.restore();
+    stubs.bannerHide.restore();
+    stubs.focusManagerFocus.restore();
     fakeTimer.restore();
     testTarget.stop();
   });
@@ -104,23 +144,24 @@ suite('interactive notifications', function() {
   test('show normal notification without buttons', function() {
     testTarget.showNotification(TYPE.NORMAL, message1);
     assert.isTrue(stubs.updateUISpy.calledWith(TYPE.NORMAL, message1));
-    assert.isFalse(stubs.msg1Closed.called);
-    assert.isTrue(bodyElement.textContent !== '');
-    assert.isTrue(titleElement.textContent === '');
+    assert.isFalse(stubs.bannerHide.called);
+    assert.isTrue(mockElements['notification-body'].textContent !== '');
+    assert.isTrue(mockElements['notification-title'].textContent === '');
     fakeTimer.tick(5000);
-    assert.isTrue(stubs.msg1Closed.calledOnce);
+    assert.isTrue(stubs.bannerHide.calledOnce);
   });
 
   test('show normal notification with buttons', function() {
     testTarget.showNotification(TYPE.NORMAL, message2);
     assert.isTrue(stubs.updateUISpy.calledWith(TYPE.NORMAL, message2));
-    assert.isTrue(titleElement.titleContent !== '');
-    assert.isTrue(containerElement.classList.contains('has-title'));
-    assert.isFalse(stubs.msg2Closed.called);
+    assert.isTrue(mockElements['notification-title'].titleContent !== '');
+    assert.isTrue(mockElements['notification-container'].classList.contains(
+      'has-title'));
+    assert.isFalse(stubs.bannerHide.called);
     fakeTimer.tick(5000);
-    assert.isFalse(stubs.msg2Closed.called);
+    assert.isFalse(stubs.bannerHide.called);
     fakeTimer.tick(3000);
-    assert.isTrue(stubs.msg2Closed.calledOnce);
+    assert.isTrue(stubs.bannerHide.calledOnce);
   });
 
   test('show alert notification without buttons', function() {
@@ -140,10 +181,9 @@ suite('interactive notifications', function() {
   });
 
   test('should set focus back after hideNotification()', function() {
-    var stub = sinon.stub(fakeApp, 'focus');
     testTarget.showNotification(TYPE.NORMAL, message1);
     fakeTimer.tick(5000);
-    assert.isTrue(stub.calledOnce);
+    assert.isTrue(stubs.focusManagerFocus.calledOnce);
   });
 
   suite('> queue normal notification', function() {
@@ -155,14 +195,14 @@ suite('interactive notifications', function() {
 
     test('> close first', function() {
       testTarget.hideNotification(TYPE.NORMAL, message1);
-      assert.isTrue(stubs.msg1Closed.called);
-      testTarget._handleTransition({'propertyName': 'opacity'});
+      assert.isTrue(stubs.bannerHide.called);
+      testTarget.handleEvent({type: 'hidden'});
       assert.isTrue(stubs.updateUISpy.calledWith(TYPE.NORMAL, message3));
     });
 
     test('> auto hide first', function() {
       fakeTimer.tick(5000);
-      testTarget._handleTransition({'propertyName': 'opacity'});
+      testTarget.handleEvent({type: 'hidden'});
       assert.isTrue(stubs.msg1Closed.called);
       assert.isTrue(stubs.updateUISpy.calledWith(TYPE.NORMAL, message3));
     });
@@ -201,7 +241,7 @@ suite('interactive notifications', function() {
 
     test('> close first', function() {
       testTarget.hideNotification(TYPE.ALERT, message1);
-      testTarget._handleTransition({'propertyName': 'opacity'});
+      testTarget.handleEvent({type: 'hidden'});
       assert.isTrue(stubs.msg1Closed.called);
       assert.isTrue(stubs.updateUISpy.calledWith(TYPE.ALERT, message3));
     });
@@ -237,7 +277,7 @@ suite('interactive notifications', function() {
 
     test('> show alert', function() {
       testTarget.showNotification(TYPE.ALERT, message3);
-      testTarget._handleTransition({'propertyName': 'opacity'});
+      testTarget.handleEvent({type: 'hidden'});
       assert.isTrue(stubs.updateUISpy.calledWith(TYPE.ALERT, message3));
       assert.isTrue(stubs.msg1Closed.called);
       fakeTimer.tick(5000);
@@ -251,7 +291,7 @@ suite('interactive notifications', function() {
       assert.isFalse(stubs.updateUISpy.calledWith(TYPE.NORMAL, message2));
       assert.isFalse(stubs.msg1Closed.called);
       testTarget.showNotification(TYPE.ALERT, message3);
-      testTarget._handleTransition({'propertyName': 'opacity'});
+      testTarget.handleEvent({type: 'hidden'});
       assert.isTrue(stubs.updateUISpy.calledWith(TYPE.ALERT, message3));
       assert.isTrue(stubs.msg1Closed.called);
       fakeTimer.tick(5000);
@@ -259,7 +299,7 @@ suite('interactive notifications', function() {
       assert.isTrue(stubs.msg1Closed.calledOnce);
       // hide alert
       testTarget.hideNotification(TYPE.ALERT, message3);
-      testTarget._handleTransition({'propertyName': 'opacity'});
+      testTarget.handleEvent({type: 'hidden'});
       // check queued normal
       assert.isTrue(stubs.updateUISpy.calledWith(TYPE.NORMAL, message2));
       assert.isTrue(stubs.msg3Closed.called);
@@ -280,7 +320,7 @@ suite('interactive notifications', function() {
       assert.isFalse(stubs.msg1Closed.called);
       // hide alert
       testTarget.hideNotification(TYPE.ALERT, message1);
-      testTarget._handleTransition({'propertyName': 'opacity'});
+      testTarget.handleEvent({type: 'hidden'});
       // check queued
       assert.isTrue(stubs.updateUISpy.calledWith(TYPE.NORMAL, message3));
       assert.isTrue(stubs.msg1Closed.called);
@@ -300,13 +340,13 @@ suite('interactive notifications', function() {
 
       // hide alert 1
       testTarget.hideNotification(TYPE.ALERT, message1);
-      testTarget._handleTransition({'propertyName': 'opacity'});
+      testTarget.handleEvent({type: 'hidden'});
       assert.isTrue(stubs.updateUISpy.calledWith(TYPE.ALERT, message3));
       assert.isTrue(stubs.msg1Closed.called);
 
       // hide alert 3
       testTarget.hideNotification(TYPE.ALERT, message3);
-      testTarget._handleTransition({'propertyName': 'opacity'});
+      testTarget.handleEvent({type: 'hidden'});
       assert.isTrue(stubs.updateUISpy.calledWith(TYPE.NORMAL, message2));
       assert.isTrue(stubs.msg3Closed.called);
     });
@@ -353,6 +393,7 @@ suite('interactive notifications', function() {
       sendIACMessage('a', TYPE.NORMAL, message1);
       assert.isTrue(stubs.updateUISpy.calledWith(TYPE.NORMAL, message1));
       // auto hide
+      testTarget.handleEvent({type: 'hidden'});
       fakeTimer.tick(5000);
       assert.isTrue(portStub.calledOnce);
       assert.equal('notification-closed', postedData.action);
@@ -367,6 +408,7 @@ suite('interactive notifications', function() {
       assert.isFalse(portStub.calledOnce);
       // hide alert
       testTarget.hideNotification(TYPE.ALERT, message1);
+      testTarget.handleEvent({type: 'hidden'});
       assert.isTrue(portStub.calledOnce);
       assert.equal('notification-closed', postedData.action);
       assert.equal('a', postedData.id);
@@ -379,6 +421,7 @@ suite('interactive notifications', function() {
       assert.isTrue(stubs.updateUISpy.calledWith(TYPE.NORMAL, message1));
 
       testTarget.hideNotification(TYPE.NORMAL, message1, 'buttonX');
+      testTarget.handleEvent({type: 'hidden'});
       assert.isTrue(portStub.calledOnce);
       assert.equal('notification-closed', postedData.action);
       assert.equal('a', postedData.id);

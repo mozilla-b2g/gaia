@@ -225,7 +225,7 @@
                 this._activeType === TYPE.ALERT)) {
       // already have one, just pending it.
       this._pendingMessages[TYPE.NORMAL].push(msg);
-    } else  if (type === TYPE.ALERT && this._activeMessage) {
+    } else if (type === TYPE.ALERT && this._activeMessage) {
       // type === alert and _activeType is null or normal.
       // We show alert anyway and hide the normal one if one is shown.
       window.clearTimeout(this._activeTimeout);
