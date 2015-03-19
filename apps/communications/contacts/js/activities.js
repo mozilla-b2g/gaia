@@ -141,11 +141,7 @@ var ActivityHandler = {
     this.mozContactParam = contact;
     var data = activity.source.data;
     data.params = {'mozContactParam': true};
-    if (data.allowSave === true) {
-      this.launch_activity(activity, 'view-contact-form');
-    } else {
-      this.launch_activity(activity, 'view-contact-details');
-    }
+    this.launch_activity(activity, 'view-contact-form');
   },
 
   // This variable has no use once we support vCards with multiple contacts.
