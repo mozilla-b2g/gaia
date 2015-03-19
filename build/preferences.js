@@ -177,6 +177,13 @@ PreferencesBuilder.prototype.preparePref = function() {
   if (this.config.RAPTOR === '1') {
     this.userPrefs['dom.performance.enable_user_timing_logging'] = true;
   }
+
+  // If this is already equal to the profile directory, no need to
+  // write the preference
+  if (this.config.COREWEBAPPS_DIR !== this.config.PROFILE_DIR) {
+    this.userPrefs['b2g.coreappsdir'] =
+        this.config.COREWEBAPPS_DIR;
+  }
 };
 
 PreferencesBuilder.prototype.setLocalDomainPref = function() {
