@@ -1,3 +1,5 @@
+require('/shared/js/l10n.js');
+
 suite('views/preview-gallery', function() {
   'use strict';
 
