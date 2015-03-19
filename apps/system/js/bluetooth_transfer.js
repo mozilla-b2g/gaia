@@ -62,6 +62,7 @@ var BluetoothTransfer = {
       this.sendFileViaHandover.bind(this));
 
     Service.registerState('isSendFileQueueEmpty', this);
+    Service.registerState('isFileTransferInProgress', this);
   },
 
   getDeviceName: function bt_getDeviceName(address) {
@@ -314,6 +315,11 @@ var BluetoothTransfer = {
 
   isSendFileQueueEmpty: function() {
     return this._sendingFilesQueue.length === 0;
+  },
+
+  isFileTransferInProgress: function() {
+    var jobs = this.transferStatusList.querySelector('div');
+    return jobs != null;
   },
 
   sendFileViaHandover: function bt_sendFileViaHandover(evt) {
