@@ -87,7 +87,7 @@ suite('system/RemoteDebugger', function() {
       var dispatchStub = this.sinon.stub(window, 'dispatchEvent');
       subject._dispatchEvent(false);
       var eventDetail = dispatchStub.getCall(0).args[0].detail;
-      assert.equal(eventDetail.value, false);
+      assert.equal(eventDetail.authResult, 'DENY');
       assert.equal(eventDetail.type, 'remote-debugger-prompt');
     });
   });
