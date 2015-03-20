@@ -747,7 +747,8 @@ body:not(.layout-fullscreen-player) #player-view {
 
 /* overlay mode */
 .overlay #app-container, .info-view #app-container,
-.options-view #app-container, .in-use-overlay #app-container {
+.options-view #app-container, .in-use-overlay #app-container,
+.confirm-dialog #app-container {
   visibility: hidden;
 }
 
