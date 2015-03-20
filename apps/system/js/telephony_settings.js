@@ -90,7 +90,7 @@
         that.writeSetting({
           'ril.clirMode': values
         });
-      });
+      }.bind(this));
     },
 
     _getCallerIdPreference: function(conn, callback) {

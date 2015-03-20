@@ -10,9 +10,6 @@ requireApp('system/js/settings_core.js');
 suite('system/TelephonySettings', function() {
   var subject, settingsCore, realSettings;
 
-  var functionsUnderTest = [
-  ];
-
   var reqResponse = {
     onerror: function() {}
   };
@@ -31,18 +28,6 @@ suite('system/TelephonySettings', function() {
       connected: true
     }
   }];
-
-  // Stub functions of the subject
-  var stubFunctions = function(subject, exceptions) {
-    exceptions = exceptions || [];
-    return functionsUnderTest.map(function(name) {
-      if (exceptions.indexOf(name) === -1) {
-        return sinon.stub(subject, name);
-      } else {
-        return null;
-      }
-    });
-  };
 
   setup(function() {
     MockNavigatorSettings.mSyncRepliesOnly = true;
@@ -142,7 +127,6 @@ suite('system/TelephonySettings', function() {
         subject.start();
         MockNavigatorSettings.mTriggerObservers(
           'ril.clirMode', { settingValue: [null]});
-        reqResponse.onsuccess();
         assert.ok(subject._registerListenerForCallerIdPreference
           .calledWith(fakeConnections[0], 0));
     });
@@ -173,6 +157,7 @@ suite('system/TelephonySettings', function() {
           function(conn, callback) {
             callback(fakeValue);
         });
+        subject.start();
         subject._syncCallerIdPreferenceWithCarrier({}, 0);
         assert.deepEqual(
           MockNavigatorSettings.mSettings['ril.clirMode'], [fakeValue]);
@@ -188,7 +173,6 @@ suite('system/TelephonySettings', function() {
 
       subject = BaseModule.instantiate('TelephonySettings',
         { mobileConnections: fakeConnections });
-      stubFunctions(subject, 'initPreferredNetworkType');
     });
 
     teardown(function() {
@@ -196,6 +180,9 @@ suite('system/TelephonySettings', function() {
     });
 
     test('setPreferredNetworkType default value', function() {
+      MockNavigatorSettings.mTriggerObservers(
+        'ril.radio.preferredNetworkType',
+        { settingValue: null});
       subject.start();
       assert.ok(stub.calledWith('wcdma/gsm/cdma/evdo'));
     });
@@ -228,6 +215,7 @@ suite('system/TelephonySettings', function() {
         };
         sinon.stub(fakeConnection, 'addEventListener',
           function(event, callback) {
+            console.log('adding');
             if (callbacks[event]) {
               callbacks[event].push(callback);
             }
@@ -236,12 +224,15 @@ suite('system/TelephonySettings', function() {
 
         fakeConnection.radioState = 'disabled';
         subject.start();
+        MockNavigatorSettings.mTriggerObservers(
+          'ril.radio.preferredNetworkType',
+          { settingValue: ['custom-value3']});
         fakeConnection.radioState = 'enabled';
         callbacks.radiostatechange.forEach(function(callback) {
           callback();
         });
 
-        assert.ok(stub.calledOnce);
+        assert.ok(stub.called);
         // Ensure that the event listener is removed correctly
         sinon.assert.calledWith(fakeConnection.removeEventListener,
           'radiostatechange', callbacks.radiostatechange[0]);
@@ -258,6 +249,10 @@ suite('system/TelephonySettings', function() {
           .returns(fakeDefaultValue);
 
         subject.start();
+
+        MockNavigatorSettings.mTriggerObservers(
+          'ril.radio.preferredNetworkType',
+          {settingValue: null });
         assert.deepEqual(fakeDefaultValue,
           MockNavigatorSettings.mSettings['ril.radio.preferredNetworkType']);
     });
