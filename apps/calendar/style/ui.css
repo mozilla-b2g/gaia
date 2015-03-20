@@ -41,6 +41,8 @@ ol.link-list li:only-child a {
 
 #today .icon-calendar-today {
   font-size: 1.4rem;
+  position: static;  /* Override 'position: relative' from .gaia-icon
+                        class, so that we don't hit bug 1144259. */
 }
 
 #today .icon-calendar-today:before {
