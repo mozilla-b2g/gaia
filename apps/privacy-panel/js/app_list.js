@@ -1,3 +1,5 @@
+/* global ManifestHelper */
+
 /**
  * App List module.
  *
@@ -103,17 +105,20 @@ define([], function() {
    */
   function _makeAppRepresentation(app) {
     var manifest = app.manifest || app.updateManifest || {};
+    
+    // Wrap manifest to get localized properties
+    manifest = new ManifestHelper(manifest);    
 
     var trust = 'web';
     if (manifest.type === 'certified' || manifest.type === 'privileged') {
       trust = manifest.type;
     }
 
-    var name = manifest.name;
+    var name = manifest.displayName;
     if (manifest.locales &&
         manifest.locales[_lang] &&
-        manifest.locales[_lang].name) {
-      name = manifest.locales[_lang].name;
+        manifest.locales[_lang].diplayName) {
+      name = manifest.locales[_lang].displayName;
     }
 
     var vendor = '';
