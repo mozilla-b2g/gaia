@@ -13,7 +13,18 @@
   // read directly from the config.json file or from the cookie storing
   // the configuration data. This steals us ~150ms of startup time, so
   // we chose to hard code this value instead.
-  var CACHE_ENABLED = true;
+  const CACHE_ENABLED = true;
+  const FIRST_CHUNK = 'firstChunk';
+  const l10nStrings = {
+    'title': {
+      query: 'gaia-header h1#app-title',
+      container: 'textContent'
+    },
+    'search': {
+      query: 'input[data-l10n-id="search-contact"]',
+      container: 'placeholder'
+    }
+  };
 
   var _observers = {};
 
@@ -41,8 +52,6 @@
     }
   }
 
-  const FIRST_CHUNK = 'firstChunk';
-
   // So far we only cache the first chunk of contacts, but we may want to
   // extend the cache to a bigger or even the whole list in the future.
   var _caches = new Map();
@@ -63,11 +72,25 @@
       return;
     }
 
+    var l10n = {};
+    Object.keys(l10nStrings).forEach(key => {
+      var string = l10nStrings[key];
+      var selector = document.querySelector(string.query);
+      if (!selector || !selector[string.container]) {
+        return;
+      }
+      l10n[key] = selector[string.container];
+    });
+
     localStorage.setItem(aCache.id, JSON.stringify({
       content: aCache.content,
       languageDirection: navigator.mozL10n.language.direction,
       lastOrderString: aCache.lastOrderString,
-      updated: Date.now()
+      updated: Date.now(),
+      // Because we lazy load l10n.js quite late, we need to cache the
+      // localized strings to avoid showing the unlocalized text during
+      // the start up process.
+      l10n: l10n
     }));
   }
 
@@ -194,6 +217,20 @@
 
     if (!_cache.containerId) {
       return Promise.resolve();
+    }
+
+    if (cache.l10n) {
+      Object.keys(cache.l10n).forEach(key => {
+        if (!l10nStrings[key] || cache.l10n[key] === 'undefined') {
+          return;
+        }
+        var string = l10nStrings[key];
+        var selector = document.querySelector(string.query);
+        if (!selector) {
+          return;
+        }
+        selector[string.container] = cache.l10n[key];
+      });
     }
 
     var container = document.getElementById(_cache.containerId);
@@ -408,6 +445,17 @@
      '/contacts/js/navigation.js',
      '/contacts/js/views/list.js'
     ];
+
+    // If the cache is enabled, we push lazy loading l10n to the extreme,
+    // cause we will be applying the transalations manually from the cached
+    // content.
+    // Otherwise, we load the l10n scripts along with the rest of the JS
+    // scripts. This will avoid the non localized text to appear in the screen.
+    if (!Cache.active) {
+      dependencies.push('/shared/js/l10n.js');
+      dependencies.push('/shared/js/l10n_date.js');
+    }
+
     LazyLoader.load(dependencies, () => {
       ['/shared/js/async_storage.js',
        '/shared/js/contacts/import/utilities/config.js',
