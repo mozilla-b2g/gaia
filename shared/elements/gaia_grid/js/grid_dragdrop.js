@@ -516,8 +516,10 @@
       var createDivider = insertDividerAtTop;
       if (!insertDividerAtTop && !iconIsDivider &&
           (foundItem.detail.type === 'divider')) {
-        // Allow dropping into a collapsed group
-        if (foundItem.detail.collapsed) {
+        // Allow dropping into a collapsed group if the new position is in
+        // the top 2/3 of the group.
+        if (foundItem.detail.collapsed &&
+            pageY <= foundItem.y + (foundItem.pixelHeight * 2/3)) {
           rearrangeAfterDelay = false;
           foundItem.element.classList.remove('hovered');
 
