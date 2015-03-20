@@ -13,7 +13,7 @@
  localization_code_best_practices#Writing_APIs_that_operate_on_L10nIDs + 'raw'
  can be Node aw well.
 
- Options should follow the following structure:
+ The constructor parameter should follow the following structure:
 
  {
   title: { raw: 'Non localizable title' },
@@ -21,6 +21,7 @@
     id: 'localizableStringWithArgument',
     args: { n: count }
   },
+  classes: ['specific-class'], // optional
   options: {
     // Cancel is a mandatory option. You need to define at least the text.
     cancel: {
@@ -69,6 +70,10 @@ var Dialog = function(params) {
   this.form.tabIndex = -1;
   // Pick up option_menu.css styling
   this.form.dataset.subtype = 'menu';
+
+  if (params.classes) {
+    this.form.classList.add(...params.classes);
+  }
 
   var infoSection = document.createElement('section');
   infoSection.appendChild(createLocalizedElement('h1', params.title));
