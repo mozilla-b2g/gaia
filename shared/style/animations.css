@@ -17,19 +17,19 @@
 }
 
 .app-go-deeper-out {
-  animation: current-to-left 0.4s forwards;
+  animation: current-to-left 0.2s forwards;
 }
 
 .app-go-deeper-in {
-  animation: right-to-current 0.4s forwards;
+  animation: right-to-current 0.2s forwards;
 }
 
 .app-go-deeper-back-in {
-  animation: left-to-current 0.4s forwards;
+  animation: left-to-current 0.2s forwards;
 }
 
 .app-go-deeper-back-out {
-  animation: current-to-right 0.4s forwards;
+  animation: current-to-right 0.2s forwards;
 }
 
 @keyframes show {
@@ -75,11 +75,11 @@
 }
 
 .app-go-up-in {
-  animation: app-go-up-in 0.5s forwards ease-in;
+  animation: app-go-up-in 0.2s forwards ease-in;
 }
 
 .app-go-up-back-out {
-  animation: app-go-up-back-out 0.5s forwards ease-in;
+  animation: app-go-up-back-out 0.2s forwards ease-in;
 }
 
 @keyframes app-go-up-in {
@@ -93,11 +93,11 @@
 }
 
 .app-go-left-in {
-  animation: app-go-left-in 0.5s forwards ease-in;
+  animation: app-go-left-in 0.2s forwards ease-in;
 }
 
 .app-go-left-back-out {
-  animation: app-go-left-back-out 0.5s forwards ease-in;
+  animation: app-go-left-back-out 0.2s forwards ease-in;
 }
 
 @keyframes app-go-left-in {
@@ -111,19 +111,19 @@
 }
 
 .move-left-in {
-  animation: move-left-in 0.4s forwards;
+  animation: move-left-in 0.2s forwards;
 }
 
 .move-left-out {
-  animation: move-left-out 0.4s forwards;
+  animation: move-left-out 0.2s forwards;
 }
 
 .move-right-in {
-  animation: move-right-in 0.4s forwards;
+  animation: move-right-in 0.2s forwards;
 }
 
 .move-right-out {
-  animation: move-right-out 0.4s forwards;
+  animation: move-right-out 0.2s forwards;
 }
 
 @keyframes move-left-in {
