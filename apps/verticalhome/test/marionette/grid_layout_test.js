@@ -36,7 +36,7 @@ marionette('Vertical - grid', function() {
               'App2 icon should be on the left of app3 icon');
   });
 
-  test.skip('apps grid is RTL in RTL language', function() {
+  test('apps grid is RTL in RTL language', function() {
     var communicationManifestUrl =
       'app://communications.gaiamobile.org/manifest.webapp';
 
