@@ -12,9 +12,9 @@ define(function(require) {
    * create read-only properties and dependency properties. 
    *
    * Observable creation:
-   * There are two ways of defining an Observable: object literal or prototype.
-   * Object literal is useful when defining a singleton or you want to create
-   * an observable easily.
+   * There are two ways of defining an Observable: object literal or extending
+   * from Observable. Object literal is useful when defining a singleton or you
+   * want to create an observable easily.
    *
    * @example
    *   var observable = Observable({
@@ -22,27 +22,14 @@ define(function(require) {
    *     func: function() {}
    *   });
    *
-   * Prototype allows you to define a class of observable. The advantage of this
-   * way compared to object literal is that the accessers are shared across all
-   * instances of the class. It is compatible with the javascript prototype
-   * definition.
+   * Extending from Observable allow you to define a class of Observable. The
+   * advantage of this compared to object literal is that the accessers are
+   * shared across all instances of the class. The syntax compatible with the
+   * javascript prototype definition.
    *
    * @example
-   *   function ExtendedObservable() {}
-   *   Observable.defineObservableProperty(ExtendedObservable.prototype, 'prop',
-   *   {
-   *     value: 10
-   *   });
-   *   Observable.prototype.func = function() {};
-   *
-   *   var observable = new ExtendedObservable();
-   *
-   * If you define the observable using "Module.create", you will
-   * be able to extend other modules with it using "Module.extend".
-   *
-   * @example
-   *   var ExtendedObservable = Module.create(function() {
-   *     // constructor
+   *   var ExtendedObservable = Module.create(function ExtendedObservable() {
+   *     this.super(Observable).call(this);
    *   }).extend(Observable);
    *   Observable.defineObservableProperty(ExtendedObservable.prototype, 'prop',
    *   {
@@ -65,12 +52,11 @@ define(function(require) {
    *   console.log(observable.prop2); // 20
    *
    * Defining a read-only property:
-   * This is only supported when using prototype definition. When you define a
+   * This is only supported when extending from Observable. When you define a
    * read-only property, an internal property with a '_' prefix is defined at
    * the same time so you can still change the value inside the observable.
    *
    * @example
-   *   function ExtendedObservable() {}
    *   Observable.defineObservableProperty(ExtendedObservable.prototype, 'prop',
    *   {
    *     readonly: true,
@@ -84,12 +70,11 @@ define(function(require) {
    *   observable.inc();      // observers on "prop" are called
    *
    * Defining a dependency property:
-   * This is only supported when using prototype definition. You provide a list
+   * This is only supported when extending from Observable. You provide a list
    * of the dependent properties and when each of them changes, the observsers
    * on the defined property are called. Dependency properties are read-only.
    *
    * @example
-   *   function ExtendedObservable() {}
    *   Observable.defineObservableProperty(ExtendedObservable.prototype, 'prop',
    *   {
    *     value: 10
