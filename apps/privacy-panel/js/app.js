@@ -20,6 +20,9 @@ require.config({
     },
     'shared/async_storage': {
       exports: 'asyncStorage'
+    },
+    'shared/manifest_helper': {
+      exports: 'ManifestHelper'
     }
   }
 });

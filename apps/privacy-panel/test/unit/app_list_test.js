@@ -5,10 +5,12 @@ var realMozL10n;
 var fakeApp1;
 var fakeApp2;
 var fakeApp3;
+requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 
 suite('AppList', function() {
 
   suiteSetup(function(done) {
+       
     var apps = [
       {
         manifest: {
@@ -65,7 +67,8 @@ suite('AppList', function() {
 
     require([
       'mocks/mock_navigator_moz_apps',
-      'mocks/mock_l10n'
+      'mocks/mock_l10n',
+      'mocks/mock_manifest_helper',
     ],
     function(mozApps, mozL10n) {
       realMozApps = navigator.mozApps;
