@@ -53,7 +53,12 @@
       try {
         xhr.send(null);
       } catch (e) {
-        callback(new L10nError('Not found: ' + url));
+        if (e.name === 'NS_ERROR_FILE_NOT_FOUND') {
+          // the app: protocol throws on 404, see https://bugzil.la/827243
+          callback(new L10nError('Not found: ' + url));
+        } else {
+          throw e;
+        }
       }
     },
 
