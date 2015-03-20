@@ -97,6 +97,7 @@ marionette('Statusbar colors', function() {
 
     system.appChromeContextLink.click();
     system.appChromeContextMenuShare.click();
+    system.waitForActivityMenu();
     system.cancelActivity.click();
     waitForLightColor();
   });
