@@ -21,15 +21,9 @@
 
   BaseModule.create(TelephonySettings, {
     name: 'TelephonySettings',
-    /**
-     * Initialzes all settings.
-     * @memberof TelephonySettings.prototype
-     */
-    _start: function() {
-      this.initPreferredNetworkType();
-    },
 
     '_observe_ril.voicePrivacy.enabled' : function(values) {
+      values = values || this.connections.map(function() { return false; });
       this.connections.forEach(function vp_iterator(conn, index) {
         var setReq = conn.setVoicePrivacyMode(values[index]);
         setReq.onerror = function set_vpm_error() {
@@ -70,7 +64,7 @@
           this._setCallerIdPreference(conn, values[index], function() {
             this._syncCallerIdPreferenceWithCarrier(conn, index);
             this._registerListenerForCallerIdPreference(conn, index);
-          });
+          }.bind(this));
         } else {
           this._registerListenerForCallerIdPreference(conn, index);
         }
