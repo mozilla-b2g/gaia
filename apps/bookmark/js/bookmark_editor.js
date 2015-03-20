@@ -5,7 +5,7 @@
 
 var BookmarkEditor = {
   BOOKMARK_ICON_SIZE: 60,
-  
+
   init: function bookmarkEditor_show(options) {
     this.data = options.data;
     this.onsaved = options.onsaved;
@@ -70,23 +70,22 @@ var BookmarkEditor = {
     var icon = new Icon(this.bookmarkIcon, this.data.icon);
     icon.render({'size': this.BOOKMARK_ICON_SIZE});
   },
-  
+
   _fetchManifest: function bookmarkEditor_fetchManifest(manifestURL) {
     var manifestPromise = window.WebManifestHelper.getManifest(manifestURL);
-    
+
     manifestPromise.then((function(manifestData) {
       if (manifestData) {
         this.installAppButtonListener = this._installApp.bind(this);
         this.installAppButton.addEventListener('click',
           this.installAppButtonListener);
         this.appInstallationSection.classList.remove('hidden');
-        this.appNameText.textContent = manifestData.short_name ||
-          manifestData.name;
+        this.appNameText.textContent = manifestData.displayName;
       }
     }).bind(this)).catch(function(error) {
       console.error('Unable to get web manifest: ' + error);
     });
-    
+
     return manifestPromise;
   },
 
@@ -120,7 +119,7 @@ var BookmarkEditor = {
     var title = this.bookmarkTitle.value.trim();
     this.saveButton.disabled = title === '';
   },
-  
+
   _installApp: function bookmarkEditor_installApp() {
     window.navigator.mozApps.install(this.manifestURL);
   },

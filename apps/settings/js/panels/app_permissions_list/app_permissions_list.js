@@ -207,7 +207,7 @@ define(function(require) {
         var manifest = new ManifestHelper(app.manifest ?
             app.manifest : app.updateManifest);
         var li = this._genAppItemTemplate({
-          name: manifest.short_name || manifest.name,
+          name: manifest.displayName,
           index: index,
           iconSrc: this._getBestIconURL(app, manifest.icons)
         });
