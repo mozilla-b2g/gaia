@@ -36,7 +36,7 @@ Contacts.Selectors = {
   details: '#view-contact-details',
   detailsEditContact: '#edit-contact-button',
   detailsTelLabelFirst: '#phone-details-template-0 h2',
-  detailsTelButtonFirst: 'button.icon-call[data-tel]',
+  detailsTelButtonFirst: '.button.icon-call[data-tel]',
   detailsEmail: '#contact-detail-inner #email-details-template-0 div.item',
   detailsAddress: '#contact-detail-inner #address-details-template-0 div.item',
   detailsOrg: '#contact-detail-inner #org-title',
