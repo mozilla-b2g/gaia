@@ -241,6 +241,13 @@ suite('system/AppInstallManager >', function() {
     MockNavigatorWakeLock.mTeardown();
   });
 
+  function waitForEvent(evtName, done) {
+    window.addEventListener(evtName, function wait() {
+      window.removeEventListener(evtName, wait);
+      done();
+    });
+  }
+
   suite('init >', function() {
     test('should bind dom elements', function() {
       assert.equal('app-install-dialog', AppInstallManager.dialog.id);
@@ -1257,7 +1264,10 @@ suite('system/AppInstallManager >', function() {
         mockApp.mTriggerDownloadProgress(10);
       });
 
-      test('tapping the notification should display the dialog', function() {
+      test('tapping the notification should display the dialog',
+      function(done) {
+        waitForEvent('installpromptshown', done);
+
         fakeNotif.querySelector('.fake-notification').click();
         assert.isTrue(fakeDownloadCancelDialog.classList.contains('visible'));
       });
@@ -1288,7 +1298,9 @@ suite('system/AppInstallManager >', function() {
         assert.isFalse(MockUtilityTray.mShown);
       });
 
-      test('cancelling should hide the dialog only', function() {
+      test('cancelling should hide the dialog only', function(done) {
+        waitForEvent('installprompthidden', done);
+
         fakeNotif.querySelector('.fake-notification').click();
         fakeDownloadCancelDialog.querySelector('.cancel').click();
         assert.isFalse(fakeDownloadCancelDialog.classList.contains('visible'));
@@ -1296,7 +1308,9 @@ suite('system/AppInstallManager >', function() {
       });
 
       test('accepting should hide the dialog and call cancelDownload on app',
-      function() {
+      function(done) {
+        waitForEvent('installprompthidden', done);
+
         fakeNotif.querySelector('.fake-notification').click();
         fakeDownloadCancelDialog.querySelector('.confirm').click();
         assert.isFalse(fakeDownloadCancelDialog.classList.contains('visible'));
@@ -1460,7 +1474,9 @@ suite('system/AppInstallManager >', function() {
       assert.isTrue(navigator.mozApps.mgmt.uninstall.calledOnce);
     });
 
-    test('should show setup dialog', function() {
+    test('should show setup dialog', function(done) {
+      waitForEvent('installpromptshown', done);
+
       AppInstallManager.handleInstallSuccess(mockApp);
       assert.isTrue(AppInstallManager.
                       setupInstalledAppDialog.classList.contains('visible'));
@@ -1475,7 +1491,9 @@ suite('system/AppInstallManager >', function() {
       assert.equal(AppInstallManager.setupAppDescription.textContent, '');
     });
 
-    test('should not show setup dialog and wait in setupQueue', function() {
+    test('should not show setup dialog and wait in setupQueue', function(done) {
+      waitForEvent('installpromptshown', done);
+
       this.sinon.spy(AppInstallManager, 'showSetupDialog');
       AppInstallManager.handleInstallSuccess(mockApp);
       assert.isTrue(AppInstallManager.
@@ -1504,7 +1522,9 @@ suite('system/AppInstallManager >', function() {
       assert.deepEqual(l10nAttrs.args, {appName: mockAppTwoName});
     });
 
-    test('should show ime list', function() {
+    test('should show ime list', function(done) {
+      waitForEvent('installpromptshown', done);
+
       this.sinon.spy(Template.prototype, 'interpolate');
       AppInstallManager.handleInstallSuccess(mockAppTwo);
       AppInstallManager.setupConfirmButton.click();
@@ -1612,7 +1632,10 @@ suite('system/AppInstallManager >', function() {
       sinon.assert.calledOnce(KeyboardHelper.saveToSettings);
     });
 
-    test('IME setup dialog should be hidden after pressing home', function() {
+    test('IME setup dialog should be hidden after pressing home',
+    function(done) {
+      waitForEvent('installprompthidden', done);
+
       AppInstallManager.handleInstallSuccess(mockApp);
       assert.isTrue(AppInstallManager.
                       setupInstalledAppDialog.classList.contains('visible'));
@@ -1622,7 +1645,9 @@ suite('system/AppInstallManager >', function() {
                       setupInstalledAppDialog.classList.contains('visible'));
     });
 
-    test('IME list should be hidden after pressing home', function() {
+    test('IME list should be hidden after pressing home', function(done) {
+      waitForEvent('installprompthidden', done);
+
       AppInstallManager.handleInstallSuccess(mockAppTwo);
       AppInstallManager.setupConfirmButton.click();
       assert.isTrue(AppInstallManager.
