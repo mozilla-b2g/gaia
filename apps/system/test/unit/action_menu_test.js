@@ -7,7 +7,7 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 
 suite('ActionMenu', function() {
-  var activitiesMockup, realL10n, genericActionsMockup, realService;
+  var activitiesMockup, realL10n, genericActionsMockup, realService, rafStub;
   var iconUrl = 'images/icon.png', title = 'Title';
   var screenElement;
 
@@ -53,9 +53,13 @@ suite('ActionMenu', function() {
 
     loadBodyHTML('/index.html');
     screenElement = document.getElementById('screen');
+
+    rafStub = sinon.stub(window, 'requestAnimationFrame',
+                         function(callback) { callback(); });
   });
 
   suiteTeardown(function() {
+    rafStub.restore();
     navigator.mozL10n = realL10n;
     window.Service = realService;
     document.body.innerHTML = '';
@@ -146,6 +150,7 @@ suite('ActionMenu', function() {
       // Hide. Calls stop
       var stub = this.sinon.stub(menu, 'stop');
       menu.hide();
+      getMenu().dispatchEvent(new CustomEvent('transitionend'));
       assert.isFalse(menu.active);
       assert.isFalse(menu.isActive());
       assert.isTrue(menu.publish.calledWith('-deactivated'));
@@ -177,6 +182,7 @@ suite('ActionMenu', function() {
       assert.isTrue(menu.handleEvent.called);
       assert.isTrue(menu.hide.called);
       assert.isTrue(clickEvent.defaultPrevented);
+      getMenu().dispatchEvent(new CustomEvent('transitionend'));
     });
 
     test(' > click > cancel', function() {
