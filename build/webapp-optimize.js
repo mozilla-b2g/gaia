@@ -66,11 +66,8 @@ HTMLOptimizer.prototype.process = function() {
 
   // Since l10n.js was read before the document was created, we need to
   // explicitly initialize it again via mozL10n.bootstrap, which looks for
-  // *.ini links in the HTML and sets up the localization context.
-  //
-  // Also, if LOCALE_BASEDIR is set, we're going to show missing strings at
-  // buildtime.
-  mozL10n.bootstrap(this.webapp.url, this.config.LOCALE_BASEDIR !== '');
+  // rel="localization" links in the HTML and sets up the localization context.
+  mozL10n.bootstrap(this.webapp.url, this.config);
   this._optimize();
 };
 
