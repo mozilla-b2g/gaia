@@ -257,6 +257,7 @@ var StatusBar = {
     window.addEventListener('utility-tray-abortclose', this);
     window.addEventListener('cardviewshown', this);
     window.addEventListener('cardviewclosed', this);
+    window.addEventListener('rocketbar-deactivated', this);
 
     // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
@@ -569,6 +570,7 @@ var StatusBar = {
         break;
 
       case 'stackchanged':
+      case 'rocketbar-deactivated':
         this.setAppearance(Service.currentApp);
         this.element.classList.remove('hidden');
         break;
