@@ -3,12 +3,11 @@
  * into needed virtual status, and SimCardManager will
  * be responsible for reflecting these virtual status
  * into real UI.
- * 
+ *
  * @module SimUIModel
  */
 define(function(require) {
   'use strict';
-  var _ = window.navigator.mozL10n.get;
 
   var SimUIModel = function(cardIndex) {
     this._cardIndex = cardIndex;
@@ -28,9 +27,15 @@ define(function(require) {
     this._enabled = false;
     this._absent = false;
     this._locked = false;
-    this._name = 'SIM ' + (this._cardIndex + 1);
+    this._defaultName = {
+      id: 'simWithIndex',
+      args: {
+        index: this._cardIndex + 1
+      }
+    };
+    this._name = this._defaultName;
     this._number = '';
-    this._operator = '';
+    this._operator = null;
   };
 
   SimUIModel.prototype = {
@@ -71,7 +76,10 @@ define(function(require) {
           this._absent = true;
           this._locked = false;
           this._number = '';
-          this._operator = _('noSimCard');
+          this._operator = {
+            id: 'noSimCard'
+          };
+          this._name = this._defaultName;
           break;
 
         case 'locked':
@@ -79,7 +87,10 @@ define(function(require) {
           this._absent = false;
           this._locked = true;
           this._number = '';
-          this._operator = _('sim-pin-locked');
+          this._operator = {
+            id: 'sim-pin-locked'
+          };
+          this._name = this._defaultName;
           break;
 
         case 'blocked':
@@ -87,8 +98,10 @@ define(function(require) {
           this._absent = true;
           this._locked = false;
           this._number = '';
-          this._operator = '';
-          this._name = _('noSimCard');
+          this._operator = null;
+          this._name = {
+            id: 'noSimCard'
+          };
           break;
 
         case 'normal':
@@ -96,7 +109,16 @@ define(function(require) {
           this._absent = false;
           this._locked = false;
           this._number = options.number;
-          this._operator = options.operator;
+          if (options.operator) {
+            this._operator = {
+              text: options.operator
+            };
+          } else {
+            this._operator = {
+              id: 'no-operator'
+            };
+          }
+          this._name = this._defaultName;
           break;
       }
     }

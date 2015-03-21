@@ -50,20 +50,6 @@ define(function(require, exports, module) {
 
     this._inited = false;
 
-    // In a sane world, _initing would not be needed. However, it was discovered
-    // during the fastcache work that _init() would be entered twice. The first
-    // entrance would pause at the .clientHeight call, which would trigger
-    // events that led to nowVisible being called and this second _init call
-    // would complete. The first one would try to complete but then rand into
-    // errors. This happened on an activity return cancel from contacts to
-    // compose card, where the compose card back was pressed without saving the
-    // draft. Usually, but not always, this weird condition would manifest
-    // during the transition back to the contacts app. The error in the logcat
-    // that indicated this error was:
-    // ERR: onerror reporting: NotFoundError:
-    // Node was not found @ app://email.gaiamobile.org/js/config.js : 10814
-    this._initing = false;
-
     // Because the FxOS keyboard works by resizing our window, we/our caller
     // need to be careful about when we sample things involving the screen size.
     // So, we want to only capture this once and do it separably from other
@@ -619,10 +605,9 @@ define(function(require, exports, module) {
      * saves us from getting super confused.
      */
     _init: function() {
-      if (this._inited || this._initing) {
+      if (this._inited) {
         return;
       }
-      this._initing = true;
 
       // Clear out any previous container contents. For example, a
       // cached HTML of a previous card may have been used to init
@@ -642,7 +627,6 @@ define(function(require, exports, module) {
       // Wait for the next instance API call to see if initialization can
       // complete.
       if (!this.itemHeight || !this.innerHeight) {
-        this._initing = false;
         return;
       }
 
@@ -672,7 +656,6 @@ define(function(require, exports, module) {
 
       this._calculateTotalHeight();
       this._inited = true;
-      this._initing = false;
       this.emit('inited');
     },
 
@@ -761,7 +744,7 @@ define(function(require, exports, module) {
       this._setContainerScrollTop((this.itemHeight * index) + remainder);
       this.renderCurrentPosition();
 
-      this.emit('recalculated', index === 0);
+      this.emit('recalculated', index === 0, refIndex);
     },
 
     /**

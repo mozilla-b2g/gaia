@@ -32,6 +32,12 @@ module.exports = View.extend({
     video: 'right'
   },
 
+  // {node}: {data-l10n-id} pairs used for localization.
+  elsL10n: {
+    cancel: 'close-button',
+    thumbnail: 'preview-button'
+  },
+
   render: function() {
     this.el.innerHTML = this.template();
 
@@ -245,11 +251,25 @@ module.exports = View.extend({
     this.unset(key ? key + '-enabled' : 'enabled');
   },
 
+  /**
+   * Localize the template based on a list of localizable elements - elsL10n. In
+   * case the template is loaded before l10n is ready, localize will peform the
+   * initial localization.
+   */
+  localize: function() {
+    for (var el in this.elsL10n) {
+      // Resetting data-l10n-id will trigger localization for the el.
+      this.els[el].setAttribute('data-l10n-id', this.elsL10n[el]);
+    }
+  },
+
   template: function() {
     /*jshint maxlen:false*/
     return '<div class="controls-left">' +
-      '<div class="controls-button controls-thumbnail-button test-thumbnail js-thumbnail rotates" name="thumbnail"></div>' +
-      '<div class="controls-button controls-cancel-pick-button test-cancel-pick rotates js-cancel" name="cancel" data-icon="close"></div>' +
+      '<div class="controls-button controls-thumbnail-button test-thumbnail js-thumbnail rotates" ' +
+        'name="thumbnail" role="button" data-l10n-id="preview-button"></div>' +
+      '<div class="controls-button controls-cancel-pick-button test-cancel-pick rotates js-cancel" ' +
+        'name="cancel" data-icon="close" role="button" data-l10n-id="close-button"></div>' +
     '</div>' +
     '<div class="controls-middle">' +
       '<div class="capture-button test-capture rotates js-capture" name="capture">' +

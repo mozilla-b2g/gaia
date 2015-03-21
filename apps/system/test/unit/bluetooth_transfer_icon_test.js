@@ -21,13 +21,15 @@ suite('system/BluetoothTransferIcon', function() {
   });
 
   test('Bluetooth transfer is ongoing', function() {
-    MockBluetooth.mExpectedProfile = MockBluetooth.Profiles.OPP;
+    MockBluetooth.mExpectedProfile = 'opp';
+    assert.isTrue(subject.shouldDisplay());
     subject.update();
     assert.isTrue(subject.isVisible());
   });
 
   test('Bluetooth transfer is done', function() {
     MockBluetooth.mExpectedProfile = '';
+    assert.isFalse(subject.shouldDisplay());
     subject.update();
     assert.isFalse(subject.isVisible());
   });

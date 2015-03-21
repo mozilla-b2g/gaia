@@ -3,16 +3,16 @@
           MockCardStore, MockPipedPromise, MockXMLHttpRequest */
 
 require('/bower_components/evt/index.js');
+require('/shared/js/async_semaphore.js');
 require('/shared/js/uuid.js');
-require('/tv_apps/tv_shared/js/shared_utils.js');
-require('/tv_apps/tv_shared/test/unit/mocks/mock_piped_promise.js');
-require('/tv_apps/tv_shared/test/unit/mocks/mock_card_store.js');
-require('/tv_apps/tv_shared/test/unit/mocks/mock_xml_http_request.js');
-require('/tv_apps/tv_shared/js/cards/card.js');
-require('/tv_apps/tv_shared/js/cards/deck.js');
-require('/tv_apps/tv_shared/js/cards/folder.js');
-require('/tv_apps/tv_shared/js/cards/application.js');
-require('/tv_apps/tv_shared/js/async_semaphore.js');
+require('/shared/js/smart-screen/shared_utils.js');
+require('/shared/test/unit/mocks/mock_piped_promise.js');
+require('/shared/test/unit/mocks/mock_card_store.js');
+require('/shared/test/unit/mocks/mock_xml_http_request.js');
+require('/shared/js/smart-screen/cards/card.js');
+require('/shared/js/smart-screen/cards/deck.js');
+require('/shared/js/smart-screen/cards/folder.js');
+require('/shared/js/smart-screen/cards/application.js');
 
 suite('smart-home/CardManager', function() {
   var realPipedPromise;
@@ -24,7 +24,7 @@ suite('smart-home/CardManager', function() {
     // promise. So we use a MockPipedPromise (which is just a genuine native
     // Promise) instead.
     window.PipedPromise = MockPipedPromise;
-    require('/tv_shared/js/card_manager.js', function() {
+    require('/shared/js/smart-screen/card_manager.js', function() {
       done();
     });
   });

@@ -11,11 +11,7 @@ marionette('Uninstall an ime app', function() {
   preloadApps[IME_TEST_APP_ORIGIN] = __dirname + '/../../fixtures/imetestapp';
 
   var client = marionette.client({
-    apps: preloadApps,
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
+    apps: preloadApps
   });
 
   var confirmDialog;

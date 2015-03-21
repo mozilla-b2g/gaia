@@ -49,7 +49,10 @@ class CallLog(Phone):
         self.accessibility.click(self.marionette.find_element(*self._all_calls_tab_link_locator))
 
     def tap_edit_button(self):
-        self.marionette.find_element(*self._call_log_edit_button_locator).tap()
+        edit = Wait(self.marionette).until(
+            expected.element_present(*self._call_log_edit_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(edit))
+        edit.tap()
 
     def tap_select_all_button(self):
         # TODO Add a wait for the element to be displayed and a proper tap when Bug 1101504 is fixed

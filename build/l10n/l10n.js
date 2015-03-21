@@ -15,32 +15,35 @@
 
   var L10n = navigator.mozL10n._getInternalAPI();
 
-  navigator.mozL10n.bootstrap = function(file, debug) {
+  navigator.mozL10n.bootstrap = function(file, config) {
+    // If LOCALE_BASEDIR is set, we're going to alert about missing strings
+    DEBUG =  config.LOCALE_BASEDIR !== '';
+
     var ctx = navigator.mozL10n.ctx = new L10n.Context(file);
 
-    if (debug) {
-      DEBUG = true;
-    }
-
-    ctx.addEventListener('notfounderror', function(e) {
-      if (e.loc === 'en-US') {
-        throw e;
-      }
-    });
-
-    var error = addBuildMessage.bind(this, 'error');
-    var warn = addBuildMessage.bind(this, 'warn');
+    ctx.addEventListener('notfounderror', stopBuild);
+    ctx.addEventListener('duplicateerror', stopBuild);
 
     if (DEBUG) {
+      var error = addBuildMessage.bind(this, 'error');
+      var warn = addBuildMessage.bind(this, 'warn');
+
       ctx.addEventListener('fetcherror', error);
       ctx.addEventListener('manifesterror', warn);
       ctx.addEventListener('parseerror', warn);
       ctx.addEventListener('resolveerror', warn);
       ctx.addEventListener('notfounderror', error);
+      ctx.addEventListener('duplicateerror', error);
     }
 
     initResources.call(this);
   };
+
+  function stopBuild(e) {
+    if (e.loc === 'en-US') {
+      throw e;
+    }
+  }
 
   function initResources() {
     var containsFetchableLocale = false;
@@ -94,10 +97,21 @@
     var isPseudo = this.isPseudo();
 
     for (var i = 0, node; (node = ast[i]); i++) {
+      var id = node.$i;
+
+      if (this.astById[id]) {
+        var e = new L10n.Error(
+          'Duplicate string "' + id + '" found in ' + this.ctx.id,
+          id, this.id);
+        this.ctx._emitter.emit('duplicateerror', e);
+        continue;
+      }
+
       if (isPseudo) {
         node = L10n.walkContent(
           node, navigator.mozL10n.qps[this.id].translate);
       }
+
       this.entries[node.$i] = L10n.Resolver.createEntry(node, this.entries);
       this.astById[node.$i] = node;
     }

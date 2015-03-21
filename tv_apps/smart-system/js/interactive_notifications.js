@@ -198,19 +198,19 @@
   };
 
   proto.focus = function in_focus() {
-    if (this.isVisible()) {
+    if (this.isFocusable()) {
       document.activeElement.blur();
       this._activeMessage.buttons ?
                         this._keyNavigator.focus() : this._banner.focus();
     }
   };
 
-  proto.isVisible = function in_isVisible() {
+  proto.isFocusable = function in_isFocusable() {
     return !!this._activeMessage;
   };
 
   proto.getElement = function in_getElement() {
-    if (this.isVisible()) {
+    if (this.isFocusable()) {
       return this._banner;
     }
   };

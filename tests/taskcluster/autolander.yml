@@ -5,6 +5,8 @@ params:
   # Default properties
   provisionerId: 'aws-provisioner'
   workerType: gaia
+  # Location in image where we store the gaia contents.
+  gaia: '/home/tester/git_checkout'
 
 # All task definitions
 definitions:
@@ -19,3 +21,6 @@ definitions:
   gjslint:
 
   jshint:
+
+  marionette_js_tests:
+    chunks: 30

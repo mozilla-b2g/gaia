@@ -31,8 +31,8 @@ suite('L10n bootstrap', function() {
       assert.deepEqual(res[1], obj);
     });
 
-    test('meta with just defaultLocale, no extra', function() {
-      var meta = {defaultLocale: 'ab-CD'};
+    test('meta with just defaultLanguage, no extra', function() {
+      var meta = {defaultLanguage: 'ab-CD'};
       var res = buildLocaleList(meta);
 
       assert.equal(res[0], 'ab-CD');
@@ -41,7 +41,7 @@ suite('L10n bootstrap', function() {
 
     test('full meta, simple availableLanguages, no extra', function() {
       var meta = {
-        defaultLocale: 'ab-CD',
+        defaultLanguage: 'ab-CD',
         availableLanguages: {'lang1': NaN}
       };
       var res = buildLocaleList(meta);
@@ -52,7 +52,7 @@ suite('L10n bootstrap', function() {
 
     test('full meta, no extra', function() {
       var meta = {
-        defaultLocale: 'ab-CD',
+        defaultLanguage: 'ab-CD',
         availableLanguages: {'lang1': 201501151000}
       };
       var res = buildLocaleList(meta);
@@ -63,7 +63,7 @@ suite('L10n bootstrap', function() {
 
     test('full meta, extra, matching target', function() {
       var meta = {
-        defaultLocale: 'ab-CD',
+        defaultLanguage: 'ab-CD',
         availableLanguages: {'lang1': 201501151000}
       };
       var extraLangs = {
@@ -83,7 +83,7 @@ suite('L10n bootstrap', function() {
 
     test('full meta, extra, target not matching', function() {
       var meta = {
-        defaultLocale: 'ab-CD',
+        defaultLanguage: 'ab-CD',
         availableLanguages: {'lang1': 201501151000}
       };
       var extraLangs = {
@@ -99,7 +99,7 @@ suite('L10n bootstrap', function() {
 
     test('full meta, extra, updated locale', function() {
       var meta = {
-        defaultLocale: 'ab-CD',
+        defaultLanguage: 'ab-CD',
         availableLanguages: {'lang1': 201501151000}
       };
       var extraLangs = {
@@ -115,7 +115,7 @@ suite('L10n bootstrap', function() {
 
     test('full meta, extra, updated locale obsolete', function() {
       var meta = {
-        defaultLocale: 'ab-CD',
+        defaultLanguage: 'ab-CD',
         availableLanguages: {'lang1': 201501161000}
       };
       var extraLangs = {

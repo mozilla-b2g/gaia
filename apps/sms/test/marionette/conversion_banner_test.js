@@ -13,10 +13,6 @@ marionette('Message Type Conversion Banner', function() {
     prefs: {
       'focusmanager.testmode': true
     },
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
-    },
 
     apps: apps
   });

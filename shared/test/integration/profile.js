@@ -6,7 +6,10 @@ module.exports = {
     'search.suggestions.enabled': false,
     'cdn.url': 'http://localhost',
     'appsearch.url': null,
-    'search.marketplace.url': null
+    'search.marketplace.url': null,
+    'ftu.manifestURL': null,
+    'lockscreen.enabled': false,
+    'screen.timeout': 0
   },
   prefs: {
     'geo.wifi.uri': 'http://localhost',

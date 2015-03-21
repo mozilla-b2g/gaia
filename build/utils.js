@@ -366,3 +366,4 @@ exports.cloneJSON = cloneJSON;
 exports.jsComparator = jsComparator;
 exports.NodeHelper = utils.NodeHelper;
 exports.relativePath = utils.relativePath;
+exports.normalizePath = utils.normalizePath;

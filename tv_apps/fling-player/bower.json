@@ -20,6 +20,7 @@
     "gaia-loading": "gaia-components/gaia-loading",
     "gaia-theme": "gaia-components/gaia-theme#~0.4.5",
     "evt": "gaia-components/evt#~0.4.0",
-    "smart-button": "smart-components/smart-button"
+    "smart-button": "gaia-components/smart-button",
+    "smart-icons": "smart-components/smart-icons"
   }
 }

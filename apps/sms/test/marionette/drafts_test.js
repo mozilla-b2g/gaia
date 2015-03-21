@@ -15,10 +15,6 @@ marionette('Messages Drafts', function() {
     prefs: {
       'focusmanager.testmode': true
     },
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
-    },
 
     apps: apps
   });

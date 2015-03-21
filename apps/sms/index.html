@@ -30,7 +30,7 @@
     <link rel="stylesheet" type="text/css" href="style/composer.css">
     <!-- Localization -->
     <meta name="defaultLanguage" content="en-US">
-    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
+    <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="locales/sms.{locale}.properties">
     <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
     <!-- Firefox Desktop shims -->
@@ -531,11 +531,11 @@
                data-l10n-id="contact-photo">
           <span data-type="img"></span>
         </aside>
-        <p class="threadlist-item-title"><bdi>${number}</bdi></p>
+        <p class="threadlist-item-title"><bdi class="ellipsis-dir-fix">${number}</bdi></p>
         <p class="summary">
           <time data-time-update="true" data-time-only="true" data-time="${timestamp}"></time>
           <span class="mms-icon" data-l10n-id="mms-label">MMS</span>
-          <span dir="auto" class="body-text">${bodyHTML}</span>
+          <span dir="auto" class="body-text ellipsis-dir-fix">${bodyHTML}</span>
         </p>
       </a>
       -->
@@ -607,13 +607,13 @@
 
     <div id="messages-group-header-tmpl" class="hide">
       <!--
-      <bdi>${name}</bdi><bdi dir="ltr"> (+${participantCount})</bdi>
+      <span class="group-header-title"><bdi class="ellipsis-dir-fix">${name}</bdi>&nbsp;<bdi dir="ltr">(+${participantCount})</bdi></span>
       -->
     </div>
 
     <div id="messages-header-tmpl" class="hide">
       <!--
-      <bdi>${name}</bdi>
+      <bdi class="ellipsis-dir-fix">${name}</bdi>
       -->
     </div>
 

@@ -39,6 +39,8 @@ Music.Selector = Object.freeze({
   playButton: '#player-controls-play',
   progressBar: '#player-seek-bar-progress',
   shareButton: '#player-cover-share',
+  ratingBar: '#player-album-rating',
+  ratingStarsOn: 'button.star-on',
   shareMenu: 'form[data-z-index-level="action-menu"]',
   pickDoneButton: '#title-done',
   header: '#title',
@@ -80,6 +82,16 @@ Music.prototype = {
     this.waitForSublist();
 
     var list = this.client.findElement(Music.Selector.viewsSublist);
+    assert.ok(list);
+
+    var list_items = list.findElements('li.list-item', 'css selector');
+    assert.ok(list_items);
+
+    return list_items;
+  },
+
+  get listItems() {
+    var list = this.client.helper.waitForElement(Music.Selector.viewsList);
     assert.ok(list);
 
     var list_items = list.findElements('li.list-item', 'css selector');
@@ -134,6 +146,10 @@ Music.prototype = {
     this.client.helper.waitForElement('body');
   },
 
+  close: function() {
+    this.client.apps.close(this.origin);
+  },
+
   switchToMe: function(options) {
     options = options || {};
 
@@ -149,6 +165,14 @@ Music.prototype = {
     } else {
       this.client.apps.switchToApp(this.origin);
     }
+  },
+
+  waitFinishedScanning: function() {
+    this.client.waitFor(function() {
+      return this.client.executeScript(function() {
+        return window.wrappedJSObject.musicdb.scanning === false;
+      });
+    }.bind(this));
   },
 
   waitForFirstTile: function() {
@@ -224,11 +248,7 @@ Music.prototype = {
   },
 
   selectAlbum: function(name) {
-    var list = this.client.helper.waitForElement(Music.Selector.viewsList);
-    assert.ok(list);
-
-    var list_items = list.findElements('li.list-item', 'css selector');
-    assert.ok(list_items);
+    var list_items = this.listItems;
 
     list_items.filter(function (element) {
       return element.findElement('span.list-main-title', 'css selector')
@@ -237,11 +257,7 @@ Music.prototype = {
   },
 
   selectPlaylist: function(name) {
-    var list = this.client.helper.waitForElement(Music.Selector.viewsList);
-    assert.ok(list);
-
-    var list_items = list.findElements('li.list-item', 'css selector');
-    assert.ok(list_items);
+    var list_items = this.listItems;
 
     list_items.filter(function (element) {
       return element.findElement('span.list-playlist-title', 'css selector')
@@ -260,6 +276,12 @@ Music.prototype = {
 
   tapHeaderActionButton: function() {
     this.header.tap(25, 25);
+  },
+
+  tapRating: function(rating) {
+    this.client.helper.waitForElement(Music.Selector.coverImage).click();
+    this.client.helper.waitForElement('button.rating-star[data-rating="' +
+                                      rating + '"]').tap();
   },
 
   shareWith: function(appName) {

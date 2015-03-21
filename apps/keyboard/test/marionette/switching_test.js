@@ -37,9 +37,7 @@ marionette('switch Keyboard App', function() {
       'focusmanager.testmode': true
     },
     settings: {
-      'keyboard.enabled-layouts': keyboardSettings,
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
+      'keyboard.enabled-layouts': keyboardSettings
     }
   });
 

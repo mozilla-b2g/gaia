@@ -275,6 +275,7 @@
       this.icon.scale = 1;
       this.icon.setActive(false);
       this.icon.element.classList.remove('hovering');
+      this.target = null;
 
       this.gridView.render();
 
@@ -282,8 +283,6 @@
       if (this.dirty) {
         window.dispatchEvent(new CustomEvent('gaiagrid-saveitems'));
       }
-
-      this.target = null;
       this.dirty = false;
 
       setTimeout(function nextTick() {
@@ -517,8 +516,10 @@
       var createDivider = insertDividerAtTop;
       if (!insertDividerAtTop && !iconIsDivider &&
           (foundItem.detail.type === 'divider')) {
-        // Allow dropping into a collapsed group
-        if (foundItem.detail.collapsed) {
+        // Allow dropping into a collapsed group if the new position is in
+        // the top 2/3 of the group.
+        if (foundItem.detail.collapsed &&
+            pageY <= foundItem.y + (foundItem.pixelHeight * 2/3)) {
           rearrangeAfterDelay = false;
           foundItem.element.classList.remove('hovered');
 

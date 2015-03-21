@@ -728,6 +728,10 @@
   #incoming-info:not(.additionalInfo) .incoming-number-info {
     background-position: 27.2rem 3rem;
   }
+  html[dir="rtl"] #incoming-info:not(.additionalInfo) .incoming-number-info {
+    background-position: 1.5rem 2rem;
+    padding: 1rem 2.5rem 0 4.5rem;
+  }
 
   #incoming-container.displayed {
     transform: translateY(0);
@@ -776,6 +780,11 @@
     height: 7rem;
     display: flex;
     flex-direction: column;
+  }
+
+  html[dir="rtl"] .incoming-number-info {
+    background-position: 1.5rem 2rem;
+    padding: 1rem 2.5rem 0 4.5rem;
   }
 
   #incoming-number {
@@ -1041,6 +1050,10 @@
     text-align: right;
     font-size: 1.3rem;
     line-height: 1.5rem;
+  }
+
+  html[dir="rtl"] #incoming-container .sim {
+    padding-right: 18rem;
   }
 
   /* Hidden everywhere else */

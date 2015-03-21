@@ -192,8 +192,7 @@
 #downloadList ul > li[data-state="failed"] .download-status {
   width: 3rem;
   height: 3rem;
-  background: url('images/download_exclamation.png');
-  background-repeat: no-repeat;
+  background: url('images/download_exclamation.png') no-repeat center center;
   left: 0.2rem;
 }
 
@@ -235,8 +234,14 @@
 }
 
 /* RTL rules */
+html:-moz-dir(rtl) #downloadList aside.download-status {
+  margin: 1.75rem 0 0 0.5rem;
+  right: 0.2rem;
+  left: unset;
+}
+
 html:-moz-dir(rtl) #downloadList aside.pack-end {
-  right: auto;
+  right: unset;
   left: 0;
 }
 

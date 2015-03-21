@@ -11,7 +11,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css"/>
     <!-- Localization -->
     <meta name="defaultLanguage" content="en-US">
-    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
+    <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="locales/music.{locale}.properties">
 
     <link rel="stylesheet" type="text/css" href="bower_components/gaia-theme/gaia-theme.css" />
@@ -64,7 +64,7 @@
             <button id="player-album-shuffle" class="player-cover-button shuffle-on" data-icon="shuffle" disabled></button>
           </div>
         </div>
-        <div id="player-seek">
+        <div id="player-seek" role="slider" aria-valuemin="0">
           <span id="player-seek-elapsed">00:00</span>
           <div id="player-seek-bar">
             <progress id="player-seek-bar-progress" value="0"></progress>

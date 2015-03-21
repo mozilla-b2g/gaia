@@ -8,10 +8,6 @@
 
   marionette('Camera app on call', function() {
     var client = marionette.client({
-      settings: {
-        'ftu.manifestURL': null,
-        'lockscreen.enabled': false
-      },
       apps: {
         'activitycaller.gaiamobile.org': __dirname + '/../apps/activitycaller',
         'activitycallee.gaiamobile.org': __dirname + '/../apps/activitycallee'

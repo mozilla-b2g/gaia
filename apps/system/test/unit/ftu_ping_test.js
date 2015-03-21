@@ -6,7 +6,7 @@
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/apps/system/test/unit/mock_asyncStorage.js');
-require('/apps/homescreen/test/unit/mock_xmlhttprequest.js');
+require('/apps/system/test/unit/mock_xmlhttprequest.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_mobile_operator.js');
@@ -204,12 +204,15 @@ suite('FtuPing', function() {
 
         assert.equal(pingData['deviceinfo.os'], 'test_os');
         assert.equal(pingData['deviceinfo.software'], 'test_software');
-        assert.equal(pingData['deviceinfo.platform_build_id'], 'test_build_id');
-        assert.equal(pingData['deviceinfo.platform_version'], 'test_version');
         assert.equal(pingData['deviceinfo.product_model'], 'test_model');
         assert.equal(pingData['deviceinfo.firmware_revision'], 'test_revision');
         assert.equal(pingData['deviceinfo.hardware'], 'test_hardware');
-        assert.equal(pingData['app.update.channel'], 'test_channel');
+
+        var infoData = FtuPing.getInfoData();
+        assert.equal(infoData['deviceinfo.platform_build_id'], 'test_build_id');
+        assert.equal(infoData['deviceinfo.platform_version'], 'test_version');
+        assert.equal(infoData['app.update.channel'], 'test_channel');
+
         done();
       };
       FtuPing.ensurePing();

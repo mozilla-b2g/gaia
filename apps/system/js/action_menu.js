@@ -1,3 +1,5 @@
+/* global Service */
+
 'use strict';
 
 (function(exports) {
@@ -21,6 +23,7 @@
     this.listItems = listItems;
     this.titleL10nId = titleL10nId;
     this.askForDefaultChoice = askForDefaultChoice;
+    Service.request('registerHierarchy', this);
   }
 
   ActionMenu.prototype = {
@@ -77,9 +80,7 @@
 
       // We have a menu with all the options
       this.menu = document.createElement('menu');
-
       this.container.appendChild(this.menu);
-      this.container.classList.add('visible');
 
       // We append to System app (actually to '#screen')
       var screen = document.getElementById('screen');
@@ -100,6 +101,60 @@
       if (this.preventFocusChange) {
         this.menu.addEventListener('mousedown', this.preventFocusChange);
       }
+
+      // Animate the menu onto the screen (in a nested raf to avoid the
+      // style change coalescing and not running the transition).
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          this.container.classList.add('visible');
+          this.active = true;
+          this.publish('-activated');
+        });
+      });
+    },
+
+    /**
+     * Prefix added to the action menu published event.
+     * @memberof ActionMenu.prototype
+     */
+    EVENT_PREFIX: 'actionmenu',
+
+    /**
+     * Publish relevant action menu events.
+     * @param  {String} eventName name of the event.
+     * @memberof ActionMenu.prototype
+     */
+    publish: function(eventName) {
+      var event = new CustomEvent(this.EVENT_PREFIX + eventName);
+      window.dispatchEvent(event);
+    },
+
+    /**
+     * Indicates if action menu is active.
+     * @return {Boolean} action menu active flag.
+     * @memberof ActionMenu.prototype
+     */
+    isActive: function() {
+      return this.active;
+    },
+
+    /**
+     * Sets action meny hierarchy.
+     * @memberof ActionMenu.prototype
+     */
+    setHierarchy: function() {
+      return true;
+    },
+
+    /**
+     * Handle hierarchy based event.
+     * @memberof ActionMenu.prototype
+     */
+    respondToHierarchyEvent: function(evt) {
+      if (this['_handle_' + evt.type]) {
+        return this['_handle_' + evt.type](evt);
+      }
+      return true;
     },
 
     /**
@@ -120,6 +175,8 @@
       if (this.preventFocusChange) {
         this.menu.removeEventListener('mousedown', this.preventFocusChange);
       }
+
+      Service.request('unregisterHierarchy', this);
     },
 
     /**
@@ -169,8 +226,15 @@
      * @param  {Function} callback The callback to call after hiding.
      */
     hide: function(callback) {
+      var self = this;
+      this.container.addEventListener('transitionend', function doHide(e) {
+        self.container.removeEventListener('transitionend', doHide);
+        self.stop();
+      });
       this.container.classList.remove('visible');
-      this.stop();
+      this.active = false;
+      this.publish('-deactivated');
+
       if (callback && typeof callback === 'function') {
         setTimeout(callback);
       }

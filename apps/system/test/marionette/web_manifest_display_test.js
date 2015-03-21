@@ -8,10 +8,6 @@ marionette('Web Manifest Display Modes >', function() {
     prefs: {
       'dom.w3c_touch_events.enabled': 1
     },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    },
     apps: {
       'web_app_minimal_ui.gaiamobile.org':
         __dirname + '/../apps/web_app_minimal_ui',

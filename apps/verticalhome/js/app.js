@@ -151,10 +151,7 @@
           return;
         }
 
-        // Name is a magic getter and always returns the localized name of
-        // the app. We just need to get it and set the content.
-        var element = item.element.querySelector('.title');
-        element.textContent = item.name;
+        item.updateTitle();
       });
       this.renderGrid();
     },

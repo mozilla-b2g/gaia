@@ -2,11 +2,7 @@ var assert = require('assert');
 var APP_FAKE = 'http://fake.fake.fake';
 
 marionette('net_error.html:', function() {
-  var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null
-    }
-  });
+  var client = marionette.client();
 
   var system;
 

@@ -650,7 +650,7 @@ html[dir="rtl"] .fillflow-media p {
 
 html[dir="rtl"] .contact-checkbox {
   left: unset;
-  right: 0 !important;
+  right: 1rem !important;
 }
 
 html[dir="rtl"] .view-body-inner {

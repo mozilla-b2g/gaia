@@ -146,6 +146,7 @@ var CallLog = {
           if (!cacheRevision || cacheRevision > contactsRevision) {
             window.asyncStorage.setItem('contactCacheRevision',
                                         contactsRevision);
+            self._contactCache = true;
             resolve();
             return;
           }
@@ -226,7 +227,7 @@ var CallLog = {
         }
         if (chunk.length === 0) {
           self.renderEmptyCallLog();
-          self.disableEditMode();
+          self.disableEditModeButton();
         } else {
           daysToRender.push(chunk);
           self.renderSeveralDays(daysToRender);
@@ -234,7 +235,7 @@ var CallLog = {
             window.performance.mark('firstChunkReady');
             PerformanceTestingHelper.dispatch('first-chunk-ready');
           }
-          self.enableEditMode();
+          self.enableEditModeButton();
           self.sticky.refresh();
           self.updateHeadersContinuously();
         }
@@ -302,7 +303,7 @@ var CallLog = {
   },
 
   renderEmptyCallLog: function cl_renderEmptyCallLog(isEmptyMissedCallsGroup) {
-    this.disableEditMode();
+    this.disableEditModeButton();
     // If rendering the empty call log for all calls (i.e. the
     // isEmptyMissedCallsGroup not set), set the _empty parameter to true
     if (!isEmptyMissedCallsGroup) {
@@ -339,7 +340,7 @@ var CallLog = {
     // Switch to all calls tab to avoid erroneous call filtering
     this.unfilter();
 
-    this.enableEditMode();
+    this.enableEditModeButton();
 
     // Create element of logGroup
     var logGroupDOM = this.createGroup(group);
@@ -524,16 +525,14 @@ var CallLog = {
       }
     }
     primInfoMain.appendChild(bdi);
-
-    var retryCount = document.createElement('span');
-    retryCount.className = 'retry-count';
+    primInfo.appendChild(primInfoMain);
 
     if (group.retryCount && group.retryCount > 1) {
+      var retryCount = document.createElement('span');
+      retryCount.className = 'retry-count';
       retryCount.textContent = '(' + group.retryCount + ')';
+      primInfo.appendChild(retryCount);
     }
-
-    primInfo.appendChild(primInfoMain);
-    primInfo.appendChild(retryCount);
 
     var phoneNumberAdditionalInfo = '';
     var phoneNumberTypeL10nId = null;
@@ -614,16 +613,24 @@ var CallLog = {
     return groupContainer;
   },
 
-  enableEditMode: function cl_enableEditMode() {
+  enableEditModeButton: function cl_enableEditModeButton() {
     var icon = CallLog.callLogIconEdit;
     icon.removeAttribute('disabled');
     icon.setAttribute('aria-disabled', false);
   },
 
-  disableEditMode: function cl_disableEditMode() {
+  disableEditModeButton: function cl_disableEditModeButton() {
     var icon = CallLog.callLogIconEdit;
     icon.setAttribute('disabled', 'disabled');
     icon.setAttribute('aria-disabled', true);
+  },
+
+  showEditModeButton: function cl_showEditModeButton() {
+    CallLog.callLogIconEdit.hidden = false;
+  },
+
+  hideEditModeButton: function cl_hideEditModeButton() {
+    CallLog.callLogIconEdit.hidden = true;
   },
 
   showEditMode: function cl_showEditMode(event) {
@@ -735,7 +742,7 @@ var CallLog = {
     } else {
       var noResultContainer = document.getElementById('no-result-container');
       noResultContainer.hidden = true;
-      this.enableEditMode();
+      this.enableEditModeButton();
     }
   },
 
@@ -747,7 +754,7 @@ var CallLog = {
     } else {
       var noResultContainer = document.getElementById('no-result-container');
       noResultContainer.hidden = true;
-      this.enableEditMode();
+      this.enableEditModeButton();
     }
 
     this.callLogContainer.classList.remove('filter');
@@ -944,16 +951,11 @@ var CallLog = {
    * param contactId
    *        Contact identifier if any. Only 'oncontactchange' events with
    *        'update' or 'remove' reasons will provide a contactId parameter.
-   * param phoneNumbers
-   *        Array of phoneNumbers associated with a contact. Only
-   *        'oncontactchange' events with 'update' or 'add' reasons will
-   *        provide this paramater.
    * param target
    *        DOM element to be updated. We default to the whole log if no
    *        'target' param is provided.
    */
-  updateListWithContactInfo: function cl_updateList(reason, contactId,
-                                                    phoneNumbers, target) {
+  updateListWithContactInfo: function cl_updateList(reason, contactId, target) {
     var container = target || this.callLogContainer;
 
     if (!container) {
@@ -1011,6 +1013,7 @@ var CallLog = {
         bdi.textContent = element.dataset.phoneNumber;
         primInfoCont.appendChild(bdi);
         typeAndCarrier.textContent = '';
+        typeAndCarrier.setAttribute('data-l10n-id', 'unknown');
         delete element.dataset.contactId;
       }
       return;
@@ -1076,30 +1079,15 @@ var CallLog = {
 };
 
 navigator.mozContacts.oncontactchange = function oncontactchange(event) {
-  function contactChanged(contact, reason) {
-    var phoneNumbers = [];
-    if (contact.tel && contact.tel.length) {
-      phoneNumbers = contact.tel.map(function(tel) {
-        return tel.value;
-      });
-    }
-    switch (reason) {
-      case 'create':
-        CallLog.updateListWithContactInfo('create', null, phoneNumbers);
-        break;
-      case 'update':
-        CallLog.updateListWithContactInfo('update', event.contactID,
-                                          phoneNumbers);
-        break;
-    }
-  }
-
   var reason = event.reason;
   var options = {
     filterBy: ['id'],
     filterOp: 'equals',
     filterValue: event.contactID
   };
+
+  /* FIXME: We should use the contact information (id, phone number, etc...) to
+   * reduce the number of elements we try to update. */
 
   if (reason === 'remove') {
     CallLog.updateListWithContactInfo('remove', event.contactID);
@@ -1115,17 +1103,17 @@ navigator.mozContacts.oncontactchange = function oncontactchange(event) {
 
     var contact = e.target.result[0];
     if (!fb.isFbContact(contact)) {
-       contactChanged(contact, reason);
+       CallLog.updateListWithContactInfo(reason, event.contactID);
        return;
     }
 
     var fbReq = fb.getData(contact);
     fbReq.onsuccess = function fbContactSuccess() {
-      contactChanged(fbReq.result, reason);
+      CallLog.updateListWithContactInfo(reason, event.contactID);
     };
     fbReq.onerror = function fbContactError() {
       console.error('Error while querying FB: ', fbReq.error.name);
-      contactChanged(contact, reason);
+      CallLog.updateListWithContactInfo(reason, event.contactID);
     };
   };
 

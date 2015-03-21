@@ -23,12 +23,6 @@ Rocketbar.clientOptions = {
     // This is true on Gonk, but false on desktop, so override.
     'dom.inter-app-communication-api.enabled': true,
     'dom.w3c_touch_events.enabled': 1
-  },
-  settings: {
-    'homescreen.manifestURL':
-      'app://verticalhome.gaiamobile.org/manifest.webapp',
-    'ftu.manifestURL': null,
-    'lockscreen.enabled': false
   }
 };
 

@@ -117,6 +117,7 @@ var AppInstallManager = {
 
   handleHomeButtonPressed: function ai_handleHomeButtonPressed(e) {
     this.dialog.classList.remove('visible');
+    this.dispatchPromptEvent('hidden');
     this.handleInstallCancel();
 
     // hide IME setup dialog if presented
@@ -171,6 +172,7 @@ var AppInstallManager = {
     }
 
     this.dialog.classList.add('visible');
+    this.dispatchPromptEvent('shown');
 
     var id = detail.id;
 
@@ -213,6 +215,7 @@ var AppInstallManager = {
     }
     this.installCallback = null;
     this.dialog.classList.remove('visible');
+    this.dispatchPromptEvent('hidden');
   },
 
   handleAppUninstallPrompt: function ai_handleUninstallPrompt(detail) {
@@ -337,6 +340,7 @@ var AppInstallManager = {
     this.setupAppName.textContent = '';
     this.setupAppDescription.textContent = '';
     this.setupInstalledAppDialog.classList.remove('visible');
+    this.dispatchPromptEvent('hidden');
   },
 
   showSetupDialog: function ai_showSetupDialog() {
@@ -350,6 +354,7 @@ var AppInstallManager = {
                                     'app-install-success',
                                     { appName: appName });
     this.setupInstalledAppDialog.classList.add('visible');
+    this.dispatchPromptEvent('shown');
     window.dispatchEvent(new CustomEvent('applicationsetupdialogshow'));
   },
 
@@ -398,10 +403,12 @@ var AppInstallManager = {
     // keeping li template
     this.imeList.innerHTML = listHtml;
     this.imeLayoutDialog.classList.add('visible');
+    this.dispatchPromptEvent('shown');
   },
 
   hideIMEList: function ai_hideIMEList() {
     this.imeLayoutDialog.classList.remove('visible');
+    this.dispatchPromptEvent('hidden');
     this.imeList.innerHTML = '';
     this.completedSetupTask();
   },
@@ -675,6 +682,7 @@ var AppInstallManager = {
     });
 
     dialog.classList.add('visible');
+    this.dispatchPromptEvent('shown');
     dialog.dataset.manifest = manifestURL;
     UtilityTray.hide();
   },
@@ -685,6 +693,7 @@ var AppInstallManager = {
     }
     this.installCancelCallback = null;
     this.installCancelDialog.classList.remove('visible');
+    this.dispatchPromptEvent('hidden');
   },
 
   handleConfirmDownloadCancel: function ai_handleConfirmDownloadCancel(e) {
@@ -707,7 +716,12 @@ var AppInstallManager = {
   hideDownloadCancelDialog: function() {
     var dialog = this.downloadCancelDialog;
     dialog.classList.remove('visible');
+    this.dispatchPromptEvent('hidden');
     delete dialog.dataset.manifest;
+  },
+
+  dispatchPromptEvent: function(state) {
+    window.dispatchEvent(new CustomEvent('installprompt' + state));
   }
 };
 

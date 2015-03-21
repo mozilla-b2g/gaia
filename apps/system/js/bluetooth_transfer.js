@@ -7,13 +7,19 @@
 /* global Bluetooth, CustomDialog, MimeMapper, Service,
           MozActivity, NotificationHelper, UtilityTray */
 /* exported BluetoothTransfer */
-
+(function(exports) {
 var BluetoothTransfer = {
   name: 'BluetoothTransfer',
   // The first-in-first-out queue maintain each scheduled sending task.
   // Each element is a object for scheduled sending tasks.
   _sendingFilesQueue: [],
-  _debug: false,
+
+  /**
+   * Debug message.
+   *
+   * @type {Boolean} turn on/off the console log
+   */
+  onDebug: false,
 
   get _deviceStorage() {
     return navigator.getDeviceStorage('sdcard');
@@ -34,7 +40,8 @@ var BluetoothTransfer = {
     );
 
     // Bind message handler for transferring file callback
-    navigator.mozSetMessageHandler('bluetooth-opp-receiving-file-confirmation',
+    navigator.mozSetMessageHandler(
+      'bluetooth-opp-receiving-file-confirmation',
       this.onReceivingFileConfirmation.bind(this)
     );
 
@@ -70,7 +77,7 @@ var BluetoothTransfer = {
       var self = this;
       // Service Class Name: OBEXObjectPush, UUID: 0x1105
       // Specification: Object Push Profile (OPP)
-      //                NOTE: Used as both Service Class Identifier and Profile.
+      //   NOTE: Used as both Service Class Identifier and Profile.
       // Allowed Usage: Service Class/Profile
       // https://www.bluetooth.org/en-us/specification/assigned-numbers/
       // service-discovery
@@ -98,7 +105,7 @@ var BluetoothTransfer = {
   },
 
   debug: function bt_debug(msg) {
-    if (!this._debug) {
+    if (!this.onDebug) {
       return;
     }
 
@@ -144,14 +151,16 @@ var BluetoothTransfer = {
 
   onReceivingFileConfirmation: function bt_onReceivingFileConfirmation(evt) {
     if (Service.query('NfcHandoverManager.isHandoverInProgress')) {
-      // Bypassing confirm dialog while incoming file transfer via NFC Handover
+      // Bypassing confirm dialog while incoming file transfer via
+      // NFC Handover
       this.debug('Incoming file via NFC Handover. Bypassing confirm dialog');
       window.dispatchEvent(new CustomEvent('nfc-transfer-started'));
       this.acceptReceive(evt);
       return;
     }
 
-    // Prompt appears when a transfer request from a paired device is received.
+    // Prompt appears when a transfer request from a paired device is
+    // received.
     var address = evt.address;
     var self = this;
     var icon = 'style/bluetooth_transfer/images/icon_bluetooth.png';
@@ -244,18 +253,19 @@ var BluetoothTransfer = {
     });
   },
 
-  showStorageUnavaliablePrompt: function bt_showStorageUnavaliablePrompt(msg) {
-    var confirm = {
-      title: 'confirm',
-      callback: function() {
-        CustomDialog.hide();
-      }
-    };
+  showStorageUnavaliablePrompt:
+    function bt_showStorageUnavaliablePrompt(msg) {
+      var confirm = {
+        title: 'confirm',
+        callback: function() {
+          CustomDialog.hide();
+        }
+      };
 
-    var body = msg;
-    var screen = document.getElementById('screen');
-    CustomDialog.show('cannotReceiveFile', body, confirm, null, screen)
-    .setAttribute('data-z-index-level', 'system-dialog');
+      var body = msg;
+      var screen = document.getElementById('screen');
+      CustomDialog.show('cannotReceiveFile', body, confirm, null, screen)
+        .setAttribute('data-z-index-level', 'system-dialog');
   },
 
   checkStorageSpace: function bt_checkStorageSpace(fileSize, callback) {
@@ -398,8 +408,8 @@ var BluetoothTransfer = {
     // If we decline receiving file, Bluetooth won't callback
     // 'bluetooth-opp-transfer-start', 'bluetooth-opp-update-progress' event.
     // So that there is no progress element which was created on notification.
-    // There is only 'bluetooth-opp-transfer-complete' event to notify Gaia the
-    // transferring request in failed case.
+    // There is only 'bluetooth-opp-transfer-complete' event to notify Gaia
+    // the transferring request in failed case.
     if (finishedTask == null) {
       return;
     }
@@ -518,53 +528,56 @@ var BluetoothTransfer = {
       detail: details}));
   },
 
-  summarizeSentFilesReport: function bt_summarizeSentFilesReport(transferInfo) {
-    // Ignore received files
-    if (transferInfo.received) {
-      return;
-    }
-
-    // Consumer: System app consume each sending file request from Bluetooth app
-    var msg = 'remove the finished sending task from queue, queue length = ';
-    var successful = transferInfo.success;
-    var sendingFilesSchedule = this._sendingFilesQueue[0];
-    var numberOfFiles = sendingFilesSchedule.numberOfFiles;
-    if (numberOfFiles == 1) { // The scheduled task is for sent one file only.
-      // We don't need to summarize a report for sent one file only.
-      // Remove the finished sending task from the queue
-      this._sendingFilesQueue.shift();
-      msg += this._sendingFilesQueue.length;
-      this.debug(msg);
-    } else { // The scheduled task is for sent multiple files.
-      // Create a report in notification.
-      // Record each transferring report.
-      if (successful) {
-        this._sendingFilesQueue[0].numSuccessful++;
-      } else {
-        this._sendingFilesQueue[0].numUnsuccessful++;
+  summarizeSentFilesReport:
+    function bt_summarizeSentFilesReport(transferInfo) {
+      // Ignore received files
+      if (transferInfo.received) {
+        return;
       }
 
-      var numSuccessful = this._sendingFilesQueue[0].numSuccessful;
-      var numUnsuccessful = this._sendingFilesQueue[0].numUnsuccessful;
-      if ((numSuccessful + numUnsuccessful) == numberOfFiles) {
-        // In this item of queue, all files were sent completely.
-        NotificationHelper.send('transferReport-title', {
-          'bodyL10n': {
-            id: 'transferReport-description',
-            args: {
-              numSuccessful: numSuccessful,
-              numUnsuccessful: numUnsuccessful
-            }
-          },
-          'icon': 'style/bluetooth_transfer/images/icon_bluetooth.png'
-        });
-
+      // Consumer: System app consume each sending file request from Bluetooth
+      // app
+      var msg = 'remove the finished sending task from queue, ' +
+        'queue length = ';
+      var successful = transferInfo.success;
+      var sendingFilesSchedule = this._sendingFilesQueue[0];
+      var numberOfFiles = sendingFilesSchedule.numberOfFiles;
+      if (numberOfFiles == 1) { // for sent one file only.
+        // We don't need to summarize a report for sent one file only.
         // Remove the finished sending task from the queue
         this._sendingFilesQueue.shift();
         msg += this._sendingFilesQueue.length;
         this.debug(msg);
+      } else { // The scheduled task is for sent multiple files.
+        // Create a report in notification.
+        // Record each transferring report.
+        if (successful) {
+          this._sendingFilesQueue[0].numSuccessful++;
+        } else {
+          this._sendingFilesQueue[0].numUnsuccessful++;
+        }
+
+        var numSuccessful = this._sendingFilesQueue[0].numSuccessful;
+        var numUnsuccessful = this._sendingFilesQueue[0].numUnsuccessful;
+        if ((numSuccessful + numUnsuccessful) == numberOfFiles) {
+          // In this item of queue, all files were sent completely.
+          NotificationHelper.send('transferReport-title', {
+            'bodyL10n': {
+              id: 'transferReport-description',
+              args: {
+                numSuccessful: numSuccessful,
+                numUnsuccessful: numUnsuccessful
+              }
+            },
+            'icon': 'style/bluetooth_transfer/images/icon_bluetooth.png'
+          });
+
+          // Remove the finished sending task from the queue
+          this._sendingFilesQueue.shift();
+          msg += this._sendingFilesQueue.length;
+          this.debug(msg);
+        }
       }
-    }
   },
 
   openReceivedFile: function bt_openReceivedFile(evt) {
@@ -644,5 +657,7 @@ var BluetoothTransfer = {
     CustomDialog.show('cannotOpenFile', body, confirm, null, screen)
     .setAttribute('data-z-index-level', 'system-dialog');
   }
-
 };
+
+exports.BluetoothTransfer = BluetoothTransfer;
+})(window);

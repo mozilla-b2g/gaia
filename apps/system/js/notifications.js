@@ -476,11 +476,11 @@ var NotificationScreen = {
 
     var titleContainer = document.createElement('div');
     titleContainer.classList.add('title-container');
-    titleContainer.setAttribute('dir', 'auto');
 
     var title = document.createElement('div');
     title.classList.add('title');
     title.textContent = detail.title;
+    title.setAttribute('dir', 'auto');
 
     titleContainer.appendChild(title);
 
@@ -583,7 +583,7 @@ var NotificationScreen = {
           ringtonePlayer.pause();
           ringtonePlayer.removeAttribute('src');
           ringtonePlayer.load();
-        }, 2000);
+        }, 4000);
       }
 
       if (this.vibrates) {

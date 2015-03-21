@@ -14,9 +14,6 @@ marionette('Homescreen navigation >', function() {
       'devtools.debugger.forbid-certified-apps': false
     },
     settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false,
-      'edgesgesture.enabled': true,
       'devtools.overlay': true,
       'hud.reflows': true
     }

@@ -220,6 +220,19 @@ suite('DownloadHelper', function() {
       assertSuccess(req, done);
     });
 
+    test('Success with canceled Activity', function(done) {
+      download.state = 'succeeded';
+      DownloadHelper.handlerError({ message: 'canceled' },
+                                  null,
+                                  function(data) {
+                                    if (data === null) {
+                                      done();
+                                      return;
+                                    }
+                                    assert.ok(false, 'should get null data');
+                                  });
+    });
+
     test('Unmounted sdcard -> try to open and remove ', function(done) {
       var storage = getStorage('shared');
       var code = DownloadHelper.CODE.UNMOUNTED_SDCARD;

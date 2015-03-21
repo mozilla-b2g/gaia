@@ -711,11 +711,18 @@ contacts.Form = (function() {
       isIceContact(currentContact, function(result) {
         if (result === true) {
           var msgId = 'ICEContactDelTel';
-          var phoneNumberInput = document.getElementById('number_0');
-          var phoneNumberValue = phoneNumberInput &&
-                                                phoneNumberInput.value.trim();
+          var selector = 'div:not([data-template]) .textfield[type="tel"]';
+          var telInputs = document.querySelectorAll(selector);
+          var hasNumber = false;
 
-          if (counters.tel === 0 || (counters.tel === 1 && !phoneNumberValue)) {
+          for (var i = 0, len = telInputs.length; i < len; i++) {
+            if (telInputs[i].value.trim()) {
+              hasNumber = true;
+              break;
+            }
+          }
+
+          if (!hasNumber) {
             msgId = 'ICEContactDelTelAll';
             ICEData.removeICEContact(currentContact.id);
           }

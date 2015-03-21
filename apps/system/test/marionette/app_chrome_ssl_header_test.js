@@ -7,10 +7,6 @@ marionette('App Chrome - Lock Icon', function() {
     prefs: {
       'dom.w3c_touch_events.enabled': 1
     },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    },
     apps: {
       'chromeheaderapp.gaiamobile.org':
         __dirname + '/../apps/chromeheaderapp'

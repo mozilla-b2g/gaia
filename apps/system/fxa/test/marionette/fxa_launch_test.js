@@ -19,7 +19,7 @@ marionette('Firefox Accounts Launch Tests', function() {
             config.SERVER_PATH
           },
           settings: {
-            'lockscreen.enabled': false
+            'ftu.manifestURL': FxA.FTU_ORIGIN + '/manifest.webapp'
           },
           apps: {
             'test-fxa-client.gaiamobile.org': __dirname + '/test-fxa-client'

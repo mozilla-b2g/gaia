@@ -7,6 +7,7 @@
          PerformanceTestingHelper, StickyHeader, Navigation,
          InterInstanceEventDispatcher,
          SelectionHandler,
+         Settings,
          LazyLoader
 */
 /*exported ThreadListUI */
@@ -25,6 +26,7 @@ var ThreadListUI = {
   draftLinks: null,
   draftRegistry: null,
   DRAFT_SAVED_DURATION: 5000,
+  FIRST_PANEL_THREAD_COUNT: 9, // counted on a Peak
 
   // Used to track timeouts
   timeouts: {
@@ -644,12 +646,16 @@ var ThreadListUI = {
     this.sticky && this.sticky.refresh();
   },
 
+  ensureReadAheadSetting: function thlui_ensureReadAheadSettting() {
+    Settings.setReadAheadThreadRetrieval(this.FIRST_PANEL_THREAD_COUNT);
+  },
+
   renderThreads: function thlui_renderThreads(firstViewDoneCb, allDoneCb) {
     window.performance.mark('willRenderThreads');
     PerformanceTestingHelper.dispatch('will-render-threads');
 
     var hasThreads = false;
-    var firstPanelCount = 9; // counted on a Peak
+    var firstPanelCount = this.FIRST_PANEL_THREAD_COUNT;
 
     this.prepareRendering();
 
@@ -704,10 +710,17 @@ var ThreadListUI = {
       }
     }
 
+    function onDone() {
+      /* jshint validthis: true */
+
+      this.ensureReadAheadSetting();
+      allDoneCb && allDoneCb();
+    }
+
     var renderingOptions = {
       each: onRenderThread.bind(this),
       end: onThreadsRendered.bind(this),
-      done: allDoneCb
+      done: onDone.bind(this)
     };
 
     MessageManager.getThreads(renderingOptions);

@@ -1,9 +1,0 @@
-{
-  "homescreen": {
-    "src": ["apps/homescreen/js/**/*.js",
-            "!apps/homescreen/js/migrator.js"],
-    "options": {
-      "destination": "docs/homescreen"
-    }
-  }
-}
