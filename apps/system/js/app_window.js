@@ -1286,7 +1286,7 @@
         this.frontWindow._showScreenshotOverlay();
         return;
       }
-      if (!this.screenshotOverlay ||
+      if (!this.element || !this.screenshotOverlay ||
           this.screenshotOverlay.classList.contains('visible')) {
         return;
       }
@@ -1312,7 +1312,7 @@
       if (this.frontWindow && this.frontWindow.isActive()) {
         this.frontWindow._hideScreenshotOverlay();
       }
-      if (!this.screenshotOverlay ||
+      if (!this.element || !this.screenshotOverlay ||
           !this.screenshotOverlay.classList.contains('visible')) {
         return;
       }
@@ -1326,7 +1326,7 @@
         // A white flash can occur when removing the screenshot
         // so we trigger this transition after a tick to hide it.
         setTimeout(function nextTick() {
-          element.classList.remove('overlay');
+          element && element.classList.remove('overlay');
         });
       }
     };
