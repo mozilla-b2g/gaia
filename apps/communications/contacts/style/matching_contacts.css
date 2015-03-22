@@ -50,11 +50,12 @@
   pointer-events: auto;
 }
 
-li p.match-main-reason {
+.match-main-reason {
   color: #008eab;
+  font-size: 1.5rem;
 }
 
-li[aria-disabled="true"] p.match-main-reason {
+li[aria-disabled="true"] .match-main-reason {
   color: #5b5b5b;
 }
 
