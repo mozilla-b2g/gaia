@@ -43,7 +43,6 @@ class TestFtu(GaiaTestCase):
 
         self.ftu.tap_next_to_welcome_browser_section()
 
-        # Tap the statistics box and check that it unsets this setting
         self.ftu.tap_statistics_checkbox()
         self.assertFalse(self.data_layer.get_setting('debug.performance_data.shared'))
         self.ftu.tap_next_to_privacy_browser_section()
