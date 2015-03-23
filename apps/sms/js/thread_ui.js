@@ -312,44 +312,18 @@ var ThreadUI = {
 
   // Initialize Recipients list and Recipients.View (DOM)
   initRecipients: function thui_initRecipients() {
-    var recipientsChanged = (function recipientsChanged(length, record) {
+    var recipientsChanged = () => {
       if (this.draft) {
         this.draft.isEdited = true;
-      }
-      var isOk = true;
-      var strategy;
-
-      if (record && (record.isQuestionable || record.isLookupable)) {
-        if (record.isQuestionable) {
-          isOk = false;
-        }
-
-        strategy = record.isLookupable ? 'searchContact' : 'exactContact';
-
-        this[strategy](record.number).then(
-          (contacts) => this.validateContact(record, record.number, contacts)
-        );
       }
 
       // Clean search result after recipient count change.
       this.toggleRecipientSuggestions();
 
-      // The isOk flag will prevent "questionable" recipient entries from
-      //
-      //    - Updating the header
-      //    - Enabling send.
-      //
-      //  Ideally, the contact will be found by the
-      //  searchContact + validateContact operation and the
-      //  handler will be re-called with a known
-      //  and valid recipient from the user's contacts.
-      if (isOk) {
-        // update composer header whenever recipients change
-        this.updateComposerHeader();
+      this.updateComposerHeader();
 
-        this.emit('recipientschange');
-      }
-    }).bind(this);
+      this.emit('recipientschange');
+    };
 
     if (this.recipients) {
       this.recipients.length = 0;
@@ -364,12 +338,12 @@ var ThreadUI = {
 
       this.recipients.on('add', recipientsChanged);
       this.recipients.on('remove', recipientsChanged);
-      this.recipients.on('modechange', function(mode) {
+      this.recipients.on('modechange', (mode) => {
         this.threadMessages.classList.toggle(
           'multiline-recipients-mode',
            mode === 'multiline-mode'
         );
-      }.bind(this));
+      });
     }
     this.toggleRecipientSuggestions();
   },
@@ -2512,137 +2486,16 @@ var ThreadUI = {
 
     if (event.target.isPlaceholder) {
       typed = event.target.textContent.trim();
-      this.searchContact(typed).then(
-        (contacts) => this.listContacts(typed, contacts)
-      );
-    }
-
-    this.emit('recipientschange');
-  },
-
-  exactContact: function thui_exactContact(fValue) {
-    return Contacts.findExact(fValue);
-  },
-
-  searchContact: function thui_searchContact(fValue) {
-    if (!fValue) {
-      // In cases where searchContact was invoked for "input"
-      // that was actually a "delete" that removed the last
-      // character in the recipient input field,
-      // eg. type "a", then delete it.
-      return Promise.resolve(null);
-    }
-
-    return Contacts.findByString(fValue);
-  },
-
-  validateContact: function thui_validateContact(source, fValue, contacts) {
-    var isInvalid = true;
-    var index = this.recipients.length - 1;
-    var last = this.recipientsList.lastElementChild;
-    var typed = last && last.textContent.trim();
-    var isContact = false;
-    var record, length, number, contact;
-
-    if (index < 0) {
-      index = 0;
-    }
-
-    var props = ['tel'];
-    if (Settings.supportEmailRecipient) {
-      props.push('email');
-    }
-
-    // If there is greater than zero matches,
-    // process the first found contact into
-    // an accepted Recipient.
-    if (contacts && contacts.length) {
-      isInvalid = false;
-      record = contacts[0];
-      var values = props.reduce((values, prop) => {
-        var propValue = record[prop];
-        if (propValue && propValue.length) {
-          return values.concat(propValue);
-        }
-
-        return values;
-      }, []);
-      length = values.length;
-
-      // Received an exact match with a single tel or email record
-      if (source.isLookupable && !source.isQuestionable && length === 1) {
-        if (Utils.probablyMatches(values[0].value, fValue)) {
-          isContact = true;
-          number = values[0].value;
-        }
+      if (typed) {
+        Contacts.findByString(typed).then(
+          (contacts) => this.listContacts(typed, contacts)
+        );
       } else {
-        // Received an exact match that may have multiple tel records
-        for (var i = 0; i < length; i++) {
-          var propValue = values[i].value;
-          if (this.recipients.numbers.indexOf(propValue) === -1) {
-            number = propValue;
-            break;
-          }
-        }
-
-        // If number is not undefined, then it's safe to assume
-        // that this number is unique to the recipient list and
-        // can be added as an accepted recipient from the user's
-        // known contacts.
-        //
-        // It _IS_ possible for this to appear to be a duplicate
-        // of an existing accepted recipient: by display name ONLY;
-        // however this case will always have a different number.
-        //
-        if (typeof number !== 'undefined') {
-          isContact = true;
-        } else {
-          // If no number match could be made, then this
-          // contact record is actually inValid.
-          isInvalid = true;
-        }
+        this.toggleRecipientSuggestions();
       }
     }
 
-    // Either an exact contact with a single tel record was matched
-    // or an exact contact with multiple tel records and we've taken
-    // one of the non-accepted tel records to add a new recipient.
-    if (isContact) {
-
-      // Remove the last assimilated recipient entry.
-      this.recipients.remove(index);
-
-      contact = Utils.basicContact(number, record);
-      contact.source = 'contacts';
-
-      // Add the newly minted contact as an accepted recipient
-      this.recipients.add(contact).focus();
-
-      return;
-    }
-
-    // Received multiple contact matches and the current
-    // contact record had a number that has already been
-    // accepted as a recipient. Try the next contact in the
-    // set of results.
-    if (isInvalid && contacts.length > 1) {
-      this.validateContact(source, fValue, contacts.slice(1));
-      return;
-    }
-
-    // Plain numbers with no contact matches can never be "invalid"
-    if (!source.isQuestionable && !length) {
-      isInvalid = false;
-    }
-
-    // If there are no contacts matched
-    // this input was definitely invalid.
-    source.isInvalid = isInvalid;
-
-    // Avoid colliding with an "edit-in-progress".
-    if (!typed) {
-      this.recipients.update(index, source).focus();
-    }
+    this.emit('recipientschange');
   },
 
   listContacts: function thui_listContacts(fValue, contacts) {
