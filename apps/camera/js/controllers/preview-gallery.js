@@ -137,6 +137,7 @@ PreviewGalleryController.prototype.onOptionsClick = function() {
 };
 
 PreviewGalleryController.prototype.shareCurrentItem = function() {
+  var self = this;
   if (this.app.inSecureMode) {
     return;
   }
@@ -147,6 +148,7 @@ PreviewGalleryController.prototype.shareCurrentItem = function() {
   var filename = StringUtils.lastPathComponent(item.filepath);
 
   var launchShareActivity = function(blob) {
+    self.app.setSharingState('sharing');
     var activity = new window.MozActivity({
       name: 'share',
       data: {
@@ -157,8 +159,12 @@ PreviewGalleryController.prototype.shareCurrentItem = function() {
         filepaths: [item.filepath] /* temporary hack for bluetooth app */
       }
     });
+    activity.onsuccess = function() {
+      self.app.setSharingState('not-sharing');
+    };
     activity.onerror = function(e) {
       console.warn('Share activity error:', activity.error.name);
+      self.app.setSharingState('sharing-canceled');
     };
   };
 
@@ -166,8 +172,6 @@ PreviewGalleryController.prototype.shareCurrentItem = function() {
     launchShareActivity(item.blob);
     return;
   }
-
-  var self = this;
 
   this.stopItemDeletedEvent = true;
 

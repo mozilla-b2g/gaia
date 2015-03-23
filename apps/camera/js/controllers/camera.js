@@ -73,7 +73,7 @@ CameraController.prototype.bindEvents = function() {
   app.on('storage:changed', this.onStorageChanged);
   app.on('activity:pick', this.onPickActivity);
   app.on('timer:ended', this.capture);
-  app.on('visible', this.camera.load);
+  app.on('visible', this.onVisible);
   app.on('capture', this.capture);
   app.on('hidden', this.shutdownCamera);
 
@@ -88,6 +88,18 @@ CameraController.prototype.bindEvents = function() {
   settings.hdr.on('change:selected', this.onHDRChange);
 
   debug('events bound');
+};
+
+/**
+ * Check to see if we're in the middle of a share activity,
+ * and if so, prevent the camera app from loading the hardware.
+ */
+CameraController.prototype.onVisible = function() {
+  debug('visible');
+  if (this.app.isSharingActive() && !this.app.activity.pick) {
+    return;
+  }
+  this.camera.load();
 };
 
 /**
