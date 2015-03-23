@@ -118,8 +118,7 @@ Contacts.MultipleSelect = (function() {
       var contactData = clone.querySelectorAll('p');
       contactData[0].textContent =
         Array.isArray(contact.name) && contact.name[0];
-      contactData[1].textContent =
-        Array.isArray(contact.tel) && contact.tel[0] && contact.tel[0].value;
+      contactData[1].textContent = Array.isArray(contact.org) && contact.org[0];
 
       if (Array.isArray(contact.photo) && contact.photo[0] instanceof Blob) {
         var picture = clone.querySelector('aside span');
