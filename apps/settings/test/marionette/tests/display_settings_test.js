@@ -77,6 +77,7 @@ marionette('manipulate display settings', function() {
     suite('change wallpaper', function() {
       test('tap wallpaper', function() {
         displayPanel.tapWallpaper();
+console.log('AFTER TAP Screenshot: data:image/png;base64,' + this.screenshot());
         assert.ok(
           systemApp.isActionMenuVisible(),
           'action menu shows up'
