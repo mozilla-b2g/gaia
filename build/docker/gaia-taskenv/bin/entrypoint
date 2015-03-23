@@ -5,7 +5,7 @@ source ./bin/buildbot_step
 export DISPLAY=:99
 Xvfb :99 > /dev/null 2>&1 &
 
-checkout_path="$PWD/git_checkout"
+checkout_path="$PWD/workspace/git_checkout"
 
 # Handle initial clone and caching of the initial clone...
 step_clone() {

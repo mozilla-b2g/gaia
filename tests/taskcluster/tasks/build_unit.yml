@@ -10,10 +10,12 @@ task:
     # Source caches contains various sources (including a tarball of gaia source
     # tree)
     - docker-worker:cache:tc-vcs
+    - docker-worker:cache:gaia
 
   payload:
     cache:
       tc-vcs: /home/tester/.tc-vcs/
+      gaia: /home/tester/workspace/
 
     env:
       REPORTER: 'mocha-tbpl-reporter'

@@ -12,11 +12,13 @@ task:
     # Source caches contains various sources (including a tarball of gaia source
     # tree)
     - docker-worker:cache:tc-vcs
+    - docker-worker:cache:gaia
 
   payload:
     maxRunTime: 7200
     cache:
       tc-vcs: /home/tester/.tc-vcs/
+      gaia: /home/tester/workspace/
     # Chunking logic is actually in the Makefile here which may make it
     # confusing to figure out who calls what this should be improved.
     env:
