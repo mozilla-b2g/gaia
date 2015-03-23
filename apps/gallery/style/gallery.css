@@ -783,9 +783,12 @@ a.filter-faded {
 }
 
 #edit-enhance-options {
-  line-height: 5.5rem;
+  line-height: 2.2rem;
+  font-size: 1.8rem;
+  margin: 1rem;
   text-align: center;
 }
+
 #fullscreen-camera-button-tiny {
   background-image: url('images/iconaction_camera_30x30.png');
 }
