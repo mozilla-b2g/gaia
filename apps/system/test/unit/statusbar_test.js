@@ -556,10 +556,12 @@ suite('system/Statusbar', function() {
           screenEnabled: true
         }
       });
+      this.sinon.spy(StatusBar, '_updateIconVisibility');
       Service.locked = true;
       StatusBar.handleEvent(evt);
       assert.equal(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, true);
+      assert.isTrue(StatusBar._updateIconVisibility.called);
     });
     test('screen disable', function() {
       var evt = new CustomEvent('screenchange', {
