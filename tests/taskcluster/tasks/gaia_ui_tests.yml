@@ -11,11 +11,11 @@ task:
   scopes:
     # Source caches contains various sources (including a tarball of gaia source
     # tree)
-    - docker-worker:cache:gaia-misc-caches
+    - docker-worker:cache:tc-vcs
 
   payload:
     cache:
-      gaia-misc-caches: /home/tester/caches/
+      tc-vcs: /home/tester/.tc-vcs/
     # See: ci/gaia_ui_tests/script for how this ties into the built in
     # chunking functionality for the test scripts...
     env:
