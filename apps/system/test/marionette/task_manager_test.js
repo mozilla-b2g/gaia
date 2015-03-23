@@ -7,14 +7,11 @@ var ReflowHelper =
     require('../../../../tests/js-marionette/reflow_helper.js');
 
 marionette('Task Manager', function() {
-  var firstAppOrigin  = 'fakeapp.gaiamobile.org';
+  var firstAppOrigin = 'fakeapp.gaiamobile.org';
   var secondAppOrigin = 'fakegreenapp.gaiamobile.org';
-  var slowAppOrigin   = 'fakecamera.gaiamobile.org';
   var apps = {};
-  apps[firstAppOrigin]  = __dirname + '/../apps/fakeapp';
+  apps[firstAppOrigin] = __dirname + '/../apps/fakeapp';
   apps[secondAppOrigin] = __dirname + '/../apps/fakegreenapp';
-  apps[slowAppOrigin]   = __dirname + '/../apps/fakecamera';
-
 
   var client = marionette.client({
     prefs: {
@@ -125,55 +122,6 @@ marionette('Task Manager', function() {
         return client.findElement(system.Selector.activeHomescreenFrame)
           .displayed();
       });
-    });
-  });
-
-  suite('when launched while an app is still initializing', function() {
-    var slowApp;
-    setup(function() {
-      // launch a 3rd app which we can mock easily
-      slowApp = new FakeApp(client, 'app://' + slowAppOrigin);
-      slowApp.launch();
-
-      var iframeId = slowApp.iframe.getAttribute('id');
-      // mock iframe.getScreenshot so the screenshot never appears
-      client.executeScript(function(iframeId) {
-        var win = window.wrappedJSObject;
-        win.document.getElementById(iframeId).getScreenshot = function() {
-          var reqReject;
-          var req = {
-            then: function(cb, eb) {
-              return new window.Promise(function(resolve, reject) {
-                reqReject = reject;
-              });
-            }
-          };
-          setTimeout(function() {
-            req.error = new Error('mocked');
-            reqReject(req.error);
-          });
-          return req;
-        };
-        // reset screenshotBlob state
-        var app = win.Service.currentApp;
-        app._screenshotBlob = null;
-      }, [iframeId]);
-
-      taskManager.show();
-    });
-
-    test('should display identification overlay when theres no blob screenshot',
-    function() {
-      var card = taskManager.cards[taskManager.cards.length -1];
-      var screenshot = card.findElement(taskManager.selectors.screenshot);
-      var backgroundImage = screenshot.cssProperty('background-image');
-      assert(backgroundImage.indexOf('blob') == -1);
-
-      var instanceId = card.getAttribute('data-app-instance-id');
-      var appElement = client.findElement('#' + instanceId);
-      var idOverlay =  appElement.findElement('.identification-overlay');
-      assert(idOverlay);
-      assert(idOverlay.displayed());
     });
   });
 

@@ -3,57 +3,21 @@
 require([
   'modules/settings_cache',
   'modules/dialog_service',
+  'panels/call/call_constant',
+  'panels/call/task_scheduler',
   'dsds_settings'
-], function(exports, SettingsCache, DialogService, DsdsSettings) {
+], function(
+  exports,
+  SettingsCache,
+  DialogService,
+  CallConstant,
+  TaskScheduler,
+  DsdsSettings
+) {
   /**
    * Singleton object that handles some call settings.
    */
   var CallSettings = (function(window, document, undefined) {
-    var _networkTypeCategory = {
-      'gprs': 'gsm',
-      'edge': 'gsm',
-      'umts': 'gsm',
-      'hsdpa': 'gsm',
-      'hsupa': 'gsm',
-      'hspa': 'gsm',
-      'hspa+': 'gsm',
-      'lte': 'gsm',
-      'gsm': 'gsm',
-      'is95a': 'cdma',
-      'is95b': 'cdma',
-      '1xrtt': 'cdma',
-      'evdo0': 'cdma',
-      'evdoa': 'cdma',
-      'evdob': 'cdma',
-      'ehrpd': 'cdma'
-    };
-
-    var _cfReason = {
-      CALL_FORWARD_REASON_UNCONDITIONAL: 0,
-      CALL_FORWARD_REASON_MOBILE_BUSY: 1,
-      CALL_FORWARD_REASON_NO_REPLY: 2,
-      CALL_FORWARD_REASON_NOT_REACHABLE: 3
-    };
-    var _cfReasonMapping = {
-      'unconditional': _cfReason.CALL_FORWARD_REASON_UNCONDITIONAL,
-      'mobilebusy': _cfReason.CALL_FORWARD_REASON_MOBILE_BUSY,
-      'noreply': _cfReason.CALL_FORWARD_REASON_NO_REPLY,
-      'notreachable': _cfReason.CALL_FORWARD_REASON_NOT_REACHABLE
-    };
-    var _cfAction = {
-      CALL_FORWARD_ACTION_DISABLE: 0,
-      CALL_FORWARD_ACTION_ENABLE: 1,
-      CALL_FORWARD_ACTION_QUERY_STATUS: 2,
-      CALL_FORWARD_ACTION_REGISTRATION: 3,
-      CALL_FORWARD_ACTION_ERASURE: 4
-    };
-
-    var _clirConstantsMapping = {
-      'CLIR_DEFAULT': 0,
-      'CLIR_INVOCATION': 1,
-      'CLIR_SUPPRESSION': 2
-    };
-
     var _settings = window.navigator.mozSettings;
     var _mobileConnections = window.navigator.mozMobileConnections;
     var _voiceTypes = Array.prototype.map.call(_mobileConnections,
@@ -213,10 +177,10 @@ require([
       callBarringItem.hidden =
       callWaitingItem.hidden =
       callerIdItem.hidden =
-        (_networkTypeCategory[voiceType] !== 'gsm');
+        (CallConstant.NETWORK_TYPE_CATEGORY[voiceType] !== 'gsm');
 
       voicePrivacyItem.hidden =
-        (_networkTypeCategory[voiceType] !== 'cdma');
+        (CallConstant.NETWORK_TYPE_CATEGORY[voiceType] !== 'cdma');
     }
 
     /**
@@ -359,28 +323,28 @@ require([
 
       // Queries rules for unconditional call forwarding.
       var unconditional = _mobileConnection.getCallForwardingOption(
-        _cfReason.CALL_FORWARD_REASON_UNCONDITIONAL);
+        CallConstant.CALL_FORWARD_REASON.UNCONDITIONAL);
 
       unconditional.onsuccess = function() {
         var unconditionalRules = unconditional.result;
 
         // Queries rules for call forwarding when device busy.
         var mobileBusy = _mobileConnection.getCallForwardingOption(
-          _cfReason.CALL_FORWARD_REASON_MOBILE_BUSY);
+          CallConstant.CALL_FORWARD_REASON.MOBILE_BUSY);
 
         mobileBusy.onsuccess = function() {
           var mobileBusyRules = mobileBusy.result;
 
           // Queries rules for call forwarding when device does not reply.
           var noReply = _mobileConnection.getCallForwardingOption(
-            _cfReason.CALL_FORWARD_REASON_NO_REPLY);
+            CallConstant.CALL_FORWARD_REASON.NO_REPLY);
 
           noReply.onsuccess = function() {
             var noReplyRules = noReply.result;
 
             // Queries rules for call forwarding when device is not reachable.
             var notReachable = _mobileConnection.getCallForwardingOption(
-              _cfReason.CALL_FORWARD_REASON_NOT_REACHABLE);
+              CallConstant.CALL_FORWARD_REASON.NOT_REACHABLE);
 
             notReachable.onsuccess = function() {
               var notReachableRules = notReachable.result;
@@ -428,7 +392,8 @@ require([
                 for (var i = 0; i < rules.length; i++) {
                   if (rules[i].active &&
                     ((_voiceServiceClassMask & rules[i].serviceClass) != 0)) {
-                    _cfReasonStates[_cfReasonMapping[settingKey]] = 1;
+                    _cfReasonStates[
+                      CallConstant.CALL_FORWARD_REASON_MAPPING[settingKey]] = 1;
                     asyncOpChecker.runTask(
                       cs_setToSettingsDB,
                       'ril.cf.' + settingKey + '.number',
@@ -456,7 +421,8 @@ require([
                 }
 
                 if (!hasValidRule) {
-                  _cfReasonStates[_cfReasonMapping[settingKey]] = 0;
+                  _cfReasonStates[
+                    CallConstant.CALL_FORWARD_REASON_MAPPING[settingKey]] = 0;
                   // Send the latest query result from carrier to system app
                   asyncOpChecker.runTask(
                     cs_setToSettingsDB,
@@ -497,15 +463,17 @@ require([
 
       if (!key || _ignoreSettingChanges) {
         return;
-      } else if (_cfReasonStates[_cfReasonMapping[key]] === enabled) {
+      } else if (_cfReasonStates[
+          CallConstant.CALL_FORWARD_REASON_MAPPING[key]] === enabled) {
         // Bails out in case the reason is already enabled/disabled.
         return;
       } else {
         var mozMobileCFInfo = {};
         mozMobileCFInfo['action'] = enabled ?
-          _cfAction.CALL_FORWARD_ACTION_REGISTRATION :
-          _cfAction.CALL_FORWARD_ACTION_DISABLE;
-        mozMobileCFInfo['reason'] = _cfReasonMapping[key];
+          CallConstant.CALL_FORWARD_ACTION.REGISTRATION :
+          CallConstant.CALL_FORWARD_ACTION.DISABLE;
+        mozMobileCFInfo['reason'] =
+          CallConstant.CALL_FORWARD_REASON_MAPPING[key];
         mozMobileCFInfo['serviceClass'] = _voiceServiceClassMask;
 
         if (!cs_isPhoneNumberValid(number)) {
@@ -521,7 +489,7 @@ require([
           mozMobileCFInfo['number'] = number;
           mozMobileCFInfo['timeSeconds'] =
             mozMobileCFInfo['reason'] !=
-              _cfReason.CALL_FORWARD_REASON_NO_REPLY ? 0 : 20;
+              CallConstant.CALL_FORWARD_REASON.NO_REPLY ? 0 : 20;
 
           var req = _mobileConnection.setCallForwardingOption(
             mozMobileCFInfo);
@@ -554,14 +522,15 @@ require([
       for (var i = 0; i < rules.length; i++) {
         if (rules[i].active &&
             ((_voiceServiceClassMask & rules[i].serviceClass) != 0)) {
-          var disableAction = action === _cfAction.CALL_FORWARD_ACTION_DISABLE;
+          var disableAction =
+            action === CallConstant.CALL_FORWARD_ACTION.DISABLE;
           l10nId = disableAction ?
             'callForwardingSetForbidden' : 'callForwardingSetSuccess';
           return l10nId;
         }
       }
       var registrationAction =
-        action === _cfAction.CALL_FORWARD_ACTION_REGISTRATION;
+        action === CallConstant.CALL_FORWARD_ACTION.REGISTRATION;
       l10nId = registrationAction ?
         'callForwardingSetError' : 'callForwardingSetSuccess';
       return l10nId;
@@ -571,9 +540,7 @@ require([
      * Update call forwarding related subpanels.
      */
     function cs_updateCallForwardingSubpanels(callback,
-                                              checkSetCallForwardingOptionResult,
-                                              reason,
-                                              action) {
+      checkSetCallForwardingOptionResult, reason, action) {
       var element = document.getElementById('list-callForwarding');
       if (!element || element.hidden) {
         if (typeof callback === 'function') {
@@ -775,7 +742,7 @@ require([
       // We listen for blur events so that way we set the CLIR mode once the
       // user clicks on the OK button.
       element.addEventListener('blur', function(event) {
-        var clirMode = _clirConstantsMapping[element.value];
+        var clirMode = CallConstant.CLIR_MAPPING[element.value];
         var setReq = _mobileConnection.setCallingLineIdRestriction(clirMode);
         // If the setting success, system app will sync the value.
         // If the setting fails, we force sync the value here and update the UI.
@@ -1164,51 +1131,6 @@ require([
       init: cs_init
     };
   })(this, document);
-
-  /**
-   * TaskScheduler helps manage tasks and ensures they are executed in
-   * sequential order. When a task of a certain type is enqueued, all pending
-   * tasks of the same type in the queue are removed. This avoids redundant
-   * queries and improves user perceived performance.
-   */
-  var TaskScheduler = function() {
-    return {
-      _isLocked: false,
-      _tasks: [],
-      _lock: function() {
-        this._isLocked = true;
-      },
-      _unlock: function() {
-        this._isLocked = false;
-        this._executeNextTask();
-      },
-      _removeRedundantTasks: function(type) {
-        return this._tasks.filter(function(task) {
-          return task.type !== type;
-        });
-      },
-      _executeNextTask: function() {
-        if (this._isLocked) {
-          return;
-        }
-        var nextTask = this._tasks.shift();
-        if (nextTask) {
-          this._lock();
-          nextTask.func(function() {
-            this._unlock();
-          }.bind(this));
-        }
-      },
-      enqueue: function(type, func) {
-        this._tasks = this._removeRedundantTasks(type);
-        this._tasks.push({
-          type: type,
-          func: func
-        });
-        this._executeNextTask();
-      }
-    };
-  };
 
   /**
    * Startup.

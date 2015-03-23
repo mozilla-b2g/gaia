@@ -337,23 +337,11 @@
   opacity: 1;
 }
 
-.appWindow.in-task-manager.overlay.no-screenshot > .identification-overlay {
-  visibility: visible;
-  opacity: 1;
-  transition: opacity 0.2s ease-in, visibility 0.2s;
-}
-.appWindow.overlay.no-screenshot.from-cardview.overlay > .identification-overlay {
-  visibility: hidden;
-  opacity: 0;
-  transition: opacity 0.2s ease-in, visibility 0.2s;
-}
-
-
 /* we don't want to show the overlay at all during the opening
    transition (from the homescreen and from the cardview) */
-#screen .appWindow.in-task-manager:not(.no-screenshot).overlay > .identification-overlay,
+#screen .appWindow.in-task-manager.overlay > .identification-overlay,
 .appWindow.enlarge.overlay > .identification-overlay,
-.appWindow:not(.no-screenshot).from-cardview.overlay > .identification-overlay {
+.appWindow.from-cardview.overlay > .identification-overlay {
   opacity: 0 !important;
   transition: none !important;
 }

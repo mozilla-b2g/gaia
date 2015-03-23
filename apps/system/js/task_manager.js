@@ -552,7 +552,7 @@
       if (app && !app.isHomescreen) {
         app.getScreenshot(function onGettingRealtimeScreenshot() {
           this.show(filter);
-        }.bind(this), 0, 0, 300);
+        }.bind(this), 0, 0, 400);
       } else {
         this.show(filter);
       }

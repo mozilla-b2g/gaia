@@ -1,6 +1,6 @@
 {
   "name": "Privacy Controls",
-  "description": "Web app Privacy Panel",
+  "description": "Web App Privacy Controls",
   "type": "certified",
   "launch_path": "/index.html",
   "developer": {
@@ -23,19 +23,19 @@
   "locales": {
     "ar": {
       "name": "Privacy Controls",
-      "description": "Web app Privacy Panel"
+      "description": "Web App Privacy Controls"
     },
     "en-US": {
       "name": "Privacy Controls",
-      "description": "Web app Privacy Panel"
+      "description": "Web App Privacy Controls"
     },
     "fr": {
       "name": "Privacy Controls",
-      "description": "Web app Privacy Panel"
+      "description": "Web App Privacy Controls"
     },
     "zh-TW": {
       "name": "Privacy Controls",
-      "description": "Web app Privacy Panel"
+      "description": "Web App Privacy Controls"
     }
   },
   "default_locale": "en-US",
