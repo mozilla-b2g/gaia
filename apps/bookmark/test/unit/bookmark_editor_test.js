@@ -179,7 +179,10 @@ suite('bookmark_editor.js >', function() {
       });
     });
 
-    test('Fetch web manifest', function(done) {
+    test('_fetchManifest()', function(done) {
+      var stubRenderAppIcon = sinon.stub(BookmarkEditor, '_renderAppIcon',
+        function(manifest, manifestURL, size) {}
+      );
       BookmarkEditor._fetchManifest().then(
       function () {
           assert.isFalse(
@@ -187,11 +190,18 @@ suite('bookmark_editor.js >', function() {
               'hidden'));
           assert.equal(BookmarkEditor.appNameText.textContent, 'App');
           done();
+          stubRenderAppIcon.restore();
       },
       function (err) {
         done(err);
         console.error(err);
       });
+    });
+
+    test('_renderAppIcon()', function() {
+      BookmarkEditor._renderAppIcon({}, 'http://example.com/manifest.json', 60);
+      assert.equal(BookmarkEditor.appIcon.getAttribute('src'),
+        'http://example.com/icon.png');
     });
   });
 
