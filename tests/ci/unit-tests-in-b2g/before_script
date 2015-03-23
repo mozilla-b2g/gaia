@@ -31,5 +31,5 @@ if [ ! -x "$B2G_DESKTOP_PATH" ] ; then
   echo "b2g desktop path doesn't exists"
   exit 1
 fi
-$B2G_DESKTOP_PATH -profile `pwd`/profile-debug --runapp 'Test Agent' &
+$B2G_DESKTOP_PATH -profile `pwd`/profile-debug --runapp 'Test Agent' 2>&1 > artifacts/gecko.log
 waiting_port 8080
