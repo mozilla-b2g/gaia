@@ -58,11 +58,6 @@ var Settings = {
       return;
     }
 
-    if (hash === '#wifi') {
-      window.performance.mark('wifiListStart');
-      PerformanceTestingHelper.dispatch('start-wifi-list-test');
-    }
-
     // take off # first
     var panelID = hash;
     if (panelID.startsWith('#')) {
