@@ -42,19 +42,19 @@
 }
 
 .slide-in-left {
-  animation-duration: 0.5s;
+  animation-duration: 0.2s;
   animation-name: slide-in-left;
 }
 .slide-in-right {
-  animation-duration: 0.5s;
+  animation-duration: 0.2s;
   animation-name: slide-in-right;
 }
 .slide-out-left {
-  animation-duration: 0.5s;
+  animation-duration: 0.2s;
   animation-name: slide-out-left;
 }
 .slide-out-right {
-  animation-duration: 0.5s;
+  animation-duration: 0.2s;
   animation-name: slide-out-right;
 }
 

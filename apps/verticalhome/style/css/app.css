@@ -30,7 +30,7 @@ gaia-grid {
   width: 100%;
   position: fixed;
   top: 0;
-  transition: opacity 0.5s ease-in, background 0s linear 0.5s;
+  transition: opacity 0.2s ease-in, background 0s linear 0.2s;
 }
 
 .edit-mode {
@@ -40,7 +40,7 @@ gaia-grid {
 .edit-mode #curtain {
   background: var(--background, #333);
   opacity: 1;
-  transition: opacity 0.5s ease-in;
+  transition: opacity 0.2s ease-in;
 }
 
 #edit-header {
@@ -50,13 +50,13 @@ gaia-grid {
   width: 100%;
   visibility: hidden;
   opacity: 0;
-  transition: opacity 0.5s ease-in, visibility 0s linear 0.5s;
+  transition: opacity 0.2s ease-in, visibility 0s linear 0.2s;
 }
 
 .edit-mode #edit-header {
   visibility: visible;
   opacity: 1;
-  transition: opacity 0.5s ease-in;
+  transition: opacity 0.2s ease-in;
 }
 
 .edit-mode #search {
