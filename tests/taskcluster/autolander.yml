@@ -14,6 +14,9 @@ definitions:
   build_integration:
     chunks: 4
 
+  gaia_ui_tests:
+    chunks: 30
+
   csslint:
 
   jsonlint:
@@ -23,4 +26,7 @@ definitions:
   jshint:
 
   marionette_js_tests:
+    chunks: 30
+
+  unit_tests_b2g:
     chunks: 30
