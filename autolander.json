@@ -59,7 +59,7 @@
           "env": {
             "REPORTER": "mocha-tbpl-reporter",
             "THIS_CHUNK": "1",
-            "TOTAL_CHUNKS": "4"
+            "TOTAL_CHUNKS": "10"
           },
           "command": [
             "entrypoint",
@@ -99,7 +99,7 @@
           "env": {
             "REPORTER": "mocha-tbpl-reporter",
             "THIS_CHUNK": "2",
-            "TOTAL_CHUNKS": "4"
+            "TOTAL_CHUNKS": "10"
           },
           "command": [
             "entrypoint",
@@ -139,7 +139,7 @@
           "env": {
             "REPORTER": "mocha-tbpl-reporter",
             "THIS_CHUNK": "3",
-            "TOTAL_CHUNKS": "4"
+            "TOTAL_CHUNKS": "10"
           },
           "command": [
             "entrypoint",
@@ -179,7 +179,7 @@
           "env": {
             "REPORTER": "mocha-tbpl-reporter",
             "THIS_CHUNK": "4",
-            "TOTAL_CHUNKS": "4"
+            "TOTAL_CHUNKS": "10"
           },
           "command": [
             "entrypoint",
@@ -193,6 +193,246 @@
             "groupSymbol": "GB",
             "groupName": "Gaia build tests",
             "symbol": "GBI4"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia build tests 5",
+          "description": "Runs entire gaia build system through all known variants.",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "REPORTER": "mocha-tbpl-reporter",
+            "THIS_CHUNK": "5",
+            "TOTAL_CHUNKS": "10"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run build_integration"
+          ],
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GB",
+            "groupName": "Gaia build tests",
+            "symbol": "GBI5"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia build tests 6",
+          "description": "Runs entire gaia build system through all known variants.",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "REPORTER": "mocha-tbpl-reporter",
+            "THIS_CHUNK": "6",
+            "TOTAL_CHUNKS": "10"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run build_integration"
+          ],
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GB",
+            "groupName": "Gaia build tests",
+            "symbol": "GBI6"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia build tests 7",
+          "description": "Runs entire gaia build system through all known variants.",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "REPORTER": "mocha-tbpl-reporter",
+            "THIS_CHUNK": "7",
+            "TOTAL_CHUNKS": "10"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run build_integration"
+          ],
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GB",
+            "groupName": "Gaia build tests",
+            "symbol": "GBI7"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia build tests 8",
+          "description": "Runs entire gaia build system through all known variants.",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "REPORTER": "mocha-tbpl-reporter",
+            "THIS_CHUNK": "8",
+            "TOTAL_CHUNKS": "10"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run build_integration"
+          ],
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GB",
+            "groupName": "Gaia build tests",
+            "symbol": "GBI8"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia build tests 9",
+          "description": "Runs entire gaia build system through all known variants.",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "REPORTER": "mocha-tbpl-reporter",
+            "THIS_CHUNK": "9",
+            "TOTAL_CHUNKS": "10"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run build_integration"
+          ],
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GB",
+            "groupName": "Gaia build tests",
+            "symbol": "GBI9"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia build tests 10",
+          "description": "Runs entire gaia build system through all known variants.",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "REPORTER": "mocha-tbpl-reporter",
+            "THIS_CHUNK": "10",
+            "TOTAL_CHUNKS": "10"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run build_integration"
+          ],
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GB",
+            "groupName": "Gaia build tests",
+            "symbol": "GBI10"
           }
         },
         "schedulerId": "task-graph-scheduler"
