@@ -34,11 +34,13 @@ class System(Base):
     def wait_for_status_bar_displayed(self):
         self.wait_for_element_displayed(*self._status_bar_locator)
 
-    def wait_for_notification_toaster_displayed(self, timeout=10, message=None):
-        self.wait_for_element_displayed(*self._notification_toaster_locator)
+    def wait_for_notification_toaster_displayed(self, timeout=10):
+        self.wait_for_element_displayed(*self._notification_toaster_locator,
+                                        timeout=timeout)
 
     def wait_for_notification_toaster_not_displayed(self, timeout=10):
-        self.wait_for_element_not_displayed(*self._notification_toaster_locator)
+        self.wait_for_element_not_displayed(*self._notification_toaster_locator,
+                                            timeout=timeout)
 
     def wait_for_system_banner_displayed(self):
         self.wait_for_element_displayed(*self._system_banner_locator)
