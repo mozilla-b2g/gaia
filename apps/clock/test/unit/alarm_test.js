@@ -11,7 +11,9 @@ suite('Alarm Test', function() {
         Alarm = alarm;
         activeAlarm = new ActiveAlarm();
         alarmDatabase = alarm_database;
-        done();
+        alarmDatabase.withDatabase.then(function() {
+          done();
+        });
       }
     );
   });
