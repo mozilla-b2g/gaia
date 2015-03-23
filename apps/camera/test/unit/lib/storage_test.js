@@ -72,6 +72,46 @@ suite('lib/storage', function() {
       assert.isTrue(this.picture.addEventListener.calledWith('change'));
       assert.isTrue(navigator.mozSettings.addObserver.called);
     });
+
+    test('Should set state when receiving change events with available reason', function() {
+      this.sandbox.stub(this.storage, 'setState');
+      this.sandbox.stub(this.storage, 'check');
+      this.storage.onStorageChange({
+        reason: 'available'
+      });
+      assert.isTrue(this.storage.setState.called);
+      assert.isTrue(this.storage.check.called);
+    });
+
+    test('Should set state when receiving change events with unavailable reason', function() {
+      this.sandbox.stub(this.storage, 'setState');
+      this.sandbox.stub(this.storage, 'check');
+      this.storage.onStorageChange({
+        reason: 'unavailable'
+      });
+      assert.isTrue(this.storage.setState.called);
+      assert.isTrue(this.storage.check.called);
+    });
+
+    test('Should set state when receiving change events with shared reason', function() {
+      this.sandbox.stub(this.storage, 'setState');
+      this.sandbox.stub(this.storage, 'check');
+      this.storage.onStorageChange({
+        reason: 'shared'
+      });
+      assert.isTrue(this.storage.setState.called);
+      assert.isTrue(this.storage.check.called);
+    });
+
+    test('Should not set state when receiving change events with unexpected reason', function() {
+      this.sandbox.stub(this.storage, 'setState');
+      this.sandbox.stub(this.storage, 'check');
+      this.storage.onStorageChange({
+        reason: 'foo'
+      });
+      assert.isFalse(this.storage.setState.called);
+      assert.isTrue(this.storage.check.called);
+    });
   });
 
   suite('Storage#addPicture()', function() {
