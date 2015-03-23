@@ -9,11 +9,13 @@ task:
   scopes:
     # Source caches contains various sources (including a tarball of gaia source
     # tree)
-    - docker-worker:cache:gaia-misc-caches
+    - docker-worker:cache:tc-vcs
+    - docker-worker:cache:gaia
 
   payload:
     cache:
-      gaia-misc-caches: /home/tester/caches/
+      tc-vcs: /home/tester/.tc-vcs/
+      gaia: /home/tester/workspace/
     env:
       REPORTER: 'mocha-tbpl-reporter'
       THIS_CHUNK: '{{chunk}}'

@@ -3,23 +3,27 @@
     "name": "Gaia taskgraph",
     "description": "Gaia taskgraph generator"
   },
-  "scopes": ["docker-worker:cache:gaia-misc-caches"],
+  "scopes": [
+    "docker-worker:cache:tc-vcs",
+    "docker-worker:cache:gaia"
+  ],
   "tags": {},
   "tasks": [
     {
       "reruns": 3,
       "task": {
         "metadata": {
-          "name": "Task graph construction...."
+          "name": "Gaia Taskcluster Decision Task"
         },
         "provisionerId": "aws-provisioner",
-        "workerType": "gaia",
-        "scopes": ["docker-worker:cache:gaia-misc-caches"],
+        "workerType": "gaia-decision",
+        "scopes": ["docker-worker:cache:tc-vcs", "docker-worker:cache:gaia"],
         "payload": {
           "cache": {
-            "gaia-misc-caches": "/home/tester/caches/"
+            "tc-vcs": "/home/tester/.tc-vcs/",
+            "gaia": "/home/tester/workspace/"
           },
-          "image": "taskcluster/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.8.1",
           "command": [
             "entrypoint",
             "echo 'what' && make node_modules && node tests/taskcluster/bin/graph > /graph.json && cat /graph.json"
@@ -28,7 +32,8 @@
         },
         "extra": {
           "treeherder": {
-            "symbol": "G"
+            "symbol": "D",
+            "groupSymbol": "?"
           }
         }
       }

@@ -63,7 +63,9 @@ suite('Search mode', function() {
     });
   });
 
-  test('Search by name & surname with trailing whitespaces', function(done) {
+  // Bug 1146258
+  test.skip(
+    'Search by name & surname with trailing whitespaces', function(done) {
     searchBox.value = contact.givenName[0].substr(0,4) + '  ';
     searchBox.value += contact.familyName[0] + '   ';
     contacts.Search.search(function search_finished() {
