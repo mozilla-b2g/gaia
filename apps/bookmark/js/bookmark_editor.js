@@ -5,7 +5,7 @@
 
 var BookmarkEditor = {
   BOOKMARK_ICON_SIZE: 60,
-  
+
   init: function bookmarkEditor_show(options) {
     this.data = options.data;
     this.onsaved = options.onsaved;
@@ -70,10 +70,10 @@ var BookmarkEditor = {
     var icon = new Icon(this.bookmarkIcon, this.data.icon);
     icon.render({'size': this.BOOKMARK_ICON_SIZE});
   },
-  
+
   _fetchManifest: function bookmarkEditor_fetchManifest(manifestURL) {
     var manifestPromise = window.WebManifestHelper.getManifest(manifestURL);
-    
+
     manifestPromise.then((function(manifestData) {
       if (manifestData) {
         this.installAppButtonListener = this._installApp.bind(this);
@@ -86,7 +86,7 @@ var BookmarkEditor = {
     }).bind(this)).catch(function(error) {
       console.error('Unable to get web manifest: ' + error);
     });
-    
+
     return manifestPromise;
   },
 
@@ -120,9 +120,37 @@ var BookmarkEditor = {
     var title = this.bookmarkTitle.value.trim();
     this.saveButton.disabled = title === '';
   },
-  
+
   _installApp: function bookmarkEditor_installApp() {
-    window.navigator.mozApps.install(this.manifestURL);
+    var request = window.navigator.mozApps.install(this.manifestURL);
+
+    request.onerror = (evt) => {
+      // Display the error information from the DOMError object
+      var reason = evt.target.error.name;
+      switch(reason) {
+        case 'INVALID_MANIFEST':
+        case 'MANIFEST_URL_ERROR':
+        case 'MANIFEST_PARSE_ERROR':
+        case 'MULTIPLE_APPS_PER_ORIGIN_FORBIDDEN':
+          // All these errors will be handled in the same way.
+          this._showInstallError('install_failed');
+          break;
+        case 'REINSTALL_FORBIDDEN':
+        case 'NETWORK_ERROR':
+          // Reinstalls of apps are forbidden or connection error.
+          this._showInstallError(reason.toLowerCase());
+          break;
+        case 'DENIED':
+          // Nothing to do here.
+          break;
+      }
+    };
+  },
+
+  _showInstallError: function bookmarkEditor_showInstallError(reason) {
+    alert(navigator.mozL10n.get(reason, {
+      appName: this.appNameText.textContent
+    }));
   },
 
   save: function bookmarkEditor_save(evt) {
