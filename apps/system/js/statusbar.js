@@ -301,8 +301,10 @@ var StatusBar = {
 
       case 'sheets-gesture-end':
         this.element.classList.remove('hidden');
-        this._pausedForGesture = false;
-        this.resumeUpdate();
+        if (this._pausedForGesture) {
+          this.resumeUpdate();
+          this._pausedForGesture = false;
+        }
         break;
 
       case 'stackchanged':
