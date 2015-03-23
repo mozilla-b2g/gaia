@@ -10,7 +10,7 @@
       "reruns": 3,
       "task": {
         "metadata": {
-          "name": "Task graph construction...."
+          "name": "Gaia Taskcluster Decision Task"
         },
         "provisionerId": "aws-provisioner",
         "workerType": "gaia",
@@ -28,7 +28,8 @@
         },
         "extra": {
           "treeherder": {
-            "symbol": "G"
+            "symbol": "D",
+            "groupSymbol": "?"
           }
         }
       }
