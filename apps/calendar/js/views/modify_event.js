@@ -578,14 +578,9 @@ ModifyEvent.prototype = {
    * @private
    */
   _overrideEvent: function(search) {
-    search = search || window.location.search;
+    search = (search || window.location.href).replace(/.*\?/, '');
     if (!search || search.length === 0) {
       return;
-    }
-
-    // Remove the question mark that begins the search.
-    if (search.substr(0, 1) === '?') {
-      search = search.substr(1, search.length - 1);
     }
 
     var field, value;

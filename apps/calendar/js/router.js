@@ -2,28 +2,89 @@
 define(function(require, exports, module) {
 'use strict';
 
-var COPY_METHODS = ['start', 'stop', 'show'];
-
 var page = require('ext/page');
+var performance = require('performance');
 
 function Router() {
-  var i = 0;
-  var len = COPY_METHODS.length;
-
   this.page = page;
   this._activeObjects = [];
 
-  for (; i < len; i++) {
-    this[COPY_METHODS[i]] = page[COPY_METHODS[i]].bind(page);
-  }
-
   this._lastState = this._lastState.bind(this);
+  this._onhashchange = this._onhashchange.bind(this);
+}
+
+function hashify(path) {
+  return path.indexOf('#') === 0 ? path : '#' + path;
+}
+
+function unhashify(path) {
+  return path.indexOf('#') === 0 ? path.substring(1) : path;
 }
 
 Router.prototype = {
 
-  go: function(path, context) {
-    this.show(path, context);
+  start: function() {
+    this._setRoutes();
+    this.currentPath = window.location.hash;
+    this.resetState();
+
+    // we are using location.hash instead of rewriting the whole URL because we
+    // don't have a way to add HTML fallbacks/redirects for all the paths
+    // there is no need to call page.start() since we don't want it to listen
+    // for popstate and click events (we already handle it here through the
+    // hashchange events)
+    window.addEventListener('hashchange', this._onhashchange);
+
+    // at this point the tabs should be interactive and the router ready to
+    // handle the path changes (meaning the user can start interacting with
+    // the app)
+    performance.chromeInteractive();
+  },
+
+  _setRoutes: function() {
+    this.state('/week/', 'Week');
+    this.state('/day/', 'Day');
+    this.state('/month/', ['Month', 'MonthDayAgenda']);
+    this.modifier('/settings/', 'Settings', { clear: false });
+    this.modifier('/advanced-settings/', 'AdvancedSettings', {
+      color: 'settings'
+    });
+
+    this.state('/alarm-display/:id', 'ViewEvent', { path: false });
+
+    this.state('/event/add/', 'ModifyEvent');
+    this.state('/event/edit/:id', 'ModifyEvent');
+    this.state('/event/show/:id', 'ViewEvent');
+
+    this.modifier('/select-preset/', 'CreateAccount');
+    this.modifier('/create-account/:preset', 'ModifyAccount');
+    this.modifier('/update-account/:id', 'ModifyAccount');
+  },
+
+  stop: function() {
+    window.removeEventListener('hashchange', this._onhashchange);
+  },
+
+  _onhashchange: function(e) {
+    var hash = window.location.hash;
+    if (!this.last || hash !== this.last.path) {
+      this.show(hash);
+    }
+  },
+
+  show: function(path, state) {
+    path = hashify(path);
+
+    // we use pushState and replaceState instead of setting location.hash
+    // directly since we also need to store the state
+    var method = window.location.hash !== path ? 'pushState' : 'replaceState';
+    history[method](state, document.title, path);
+
+    page.show(path, state);
+  },
+
+  go: function(path, state) {
+    this.show(path, state);
   },
 
   /**
@@ -103,6 +164,15 @@ Router.prototype = {
     var self = this;
     var viewObjs = [];
 
+    function unhandle(ctx, next) {
+      // set unhandled to true to avoid the history.pushState call otherwise it
+      // would add same URL twice to the history breaking the history.back
+      // this should be first "middleware" since it needs to be set
+      // synchronously
+      ctx.unhandled = true;
+      next();
+    }
+
     function loadAllViews(ctx, next) {
       var len = views.length;
       var numViews = len;
@@ -134,7 +204,7 @@ Router.prototype = {
       // jank while styles start to apply and the view is only
       // partially loaded.
       if (options.path !== false) {
-        document.body.dataset.path = ctx.canonicalPath;
+        document.body.dataset.path = unhashify(ctx.canonicalPath);
         // Need to trigger the DOM to accept the new style
         // right away. Otherwise, once manageObject is called,
         // any styles/animations it triggers may be delayed
@@ -166,7 +236,8 @@ Router.prototype = {
       next();
     }
 
-    this.page(path, loadAllViews, setPath, handleViews, this._lastState);
+    this.page(hashify(path), unhandle, loadAllViews, setPath, handleViews,
+      this._lastState);
   },
 
   /**

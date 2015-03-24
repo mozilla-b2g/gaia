@@ -30,7 +30,7 @@ var MonthDayAgenda = create({
 
     var alarmClass = this.arg('hasAlarms') ? 'has-alarms' : '';
 
-    return `<a href="/event/show/${busytimeId}/" class="event ${alarmClass}"
+    return `<a href="#/event/show/${busytimeId}/" class="event ${alarmClass}"
       role="option" aria-describedby="${busytimeId}-icon-calendar-alarm">
       <div class="container">
       <div class="gaia-icon icon-calendar-dot" style="color:${color}"

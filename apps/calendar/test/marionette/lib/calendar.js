@@ -44,7 +44,7 @@ Calendar.prototype = {
   },
 
   get addEventButton() {
-    return this.client.findElement('#time-header a[href="/event/add/"]');
+    return this.client.findElement('#time-header a[href="#/event/add/"]');
   },
 
   get headerContent() {
@@ -117,7 +117,7 @@ Calendar.prototype = {
 
   openDayView: function() {
     this.client
-      .findElement('#view-selector a[href="/day/"]')
+      .findElement('#view-selector a[href="#/day/"]')
       .click();
     this.day.waitForDisplay();
     return this;
@@ -125,7 +125,7 @@ Calendar.prototype = {
 
   openMonthView: function() {
     this.client
-      .findElement('#view-selector a[href="/month/"]')
+      .findElement('#view-selector a[href="#/month/"]')
       .click();
     this.month.waitForDisplay();
     return this;
@@ -133,7 +133,7 @@ Calendar.prototype = {
 
   openWeekView: function() {
     this.client
-      .findElement('#view-selector a[href="/week/"]')
+      .findElement('#view-selector a[href="#/week/"]')
       .click();
     this.week.waitForDisplay();
     return this;

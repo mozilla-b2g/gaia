@@ -2,7 +2,7 @@
   <template>
     <gaia-header id="advanced-settings-header">
       <h1 data-l10n-id="advanced-settings-header"></h1>
-      <a href="/settings/" data-l10n-id="done"></a>
+      <a href="#/settings/" data-l10n-id="done"></a>
     </gaia-header>
 
     <section class="content">
@@ -17,7 +17,8 @@
 
       <ol role="presentation">
         <li class="create-account-item" role="presentation">
-          <button class="create-account" href="/select-preset/"
+          <button type="button" class="create-account"
+                  data-href="#/select-preset/"
                   data-l10n-id="advanced-settings-add-account">
             Add Account
           </button>

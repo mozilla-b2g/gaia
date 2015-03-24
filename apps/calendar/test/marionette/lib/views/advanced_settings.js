@@ -14,13 +14,13 @@ AdvancedSettings.prototype = {
 
   close: function() {
     this
-      .findElement('a[href="/settings/"]')
+      .findElement('a[href="#/settings/"]')
       .click();
   },
 
   createAccount: function() {
     this
-      .findElement('[href="/select-preset/"]')
+      .findElement('[href="#/select-preset/"]')
       .click();
   },
 
