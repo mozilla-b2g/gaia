@@ -9,7 +9,7 @@ var Bluetooth = {
 
   _setProfileConnected: function bt_setProfileConnected(profile, connected) {
     var value = this['_' + profile + 'Connected'];
-    if (value != connected) {
+    if (value !== connected) {
       this['_' + profile + 'Connected'] = connected;
 
       // Raise an event for the profile connection changes.
@@ -48,6 +48,10 @@ var Bluetooth = {
 
   /* this property store a reference of the default adapter */
   defaultAdapter: null,
+  /* to host single adapter promise for Bluetooth:adapter */
+  _getAdapterPromise: null,
+  /* to resolve adapter request for Bluetooth:adapter */
+  _getAdapterPromiseResolve: null,
 
   init: function bt_init() {
     if (!window.navigator.mozBluetooth || this._started) {
@@ -101,6 +105,7 @@ var Bluetooth = {
     // when bluetooth is really disabled, emit event to notify QuickSettings
     bluetooth.addEventListener('disabled', function bt_onDisabled() {
       self.icon && self.icon.update();
+      self._getAdapterPromise = null;
       window.dispatchEvent(new CustomEvent('bluetooth-disabled'));
     });
 
@@ -137,6 +142,11 @@ var Bluetooth = {
     window.addEventListener('request-enable-bluetooth', this);
     window.addEventListener('request-disable-bluetooth', this);
 
+    // expose functions to Service.request
+    Service.register('adapter', this);
+    Service.register('pair', this);
+    Service.register('getPairedDevices', this);
+    // expose functions to Service.query
     Service.registerState('isEnabled', this);
     Service.registerState('getAdapter', this);
     Service.registerState('isOPPProfileConnected', this);
@@ -186,8 +196,12 @@ var Bluetooth = {
     }
 
     var req = bluetooth.getDefaultAdapter();
-    req.onsuccess = (evt) => {
+    req.onsuccess = () => {
       this.defaultAdapter = req.result;
+      // resolve the adapter request
+      if (this._getAdapterPromiseResolve) {
+        this._getAdapterPromiseResolve(this.defaultAdapter);
+      }
       this._adapterAvailableHandler(this.defaultAdapter);
     };
   },
@@ -213,6 +227,71 @@ var Bluetooth = {
     adapter.onscostatuschanged = function bt_scoStatusChanged(evt) {
       self._setProfileConnected('sco', evt.status);
     };
+  },
+
+  /**
+   * Get adapter from bluetooth through promise interface.
+   * XXX: Since BTv1 get onenabled event before onadapteradded event,
+   * We need to watch if adapter is retrieved.
+   *
+   * _getAdapterPromise is used to make sure we return the same
+   * promise to outter caller.
+   * resolve is cached in _getAdapterPromiseResolve and will execute
+   * when the adapter is set.
+   *
+   * @public
+   * @return {Promise} A promise that resolve the Bluetooth Adapter
+   */
+  adapter: function bt__adapter() {
+    if (!this._getAdapterPromise) {
+      this._getAdapterPromise = new Promise((resolve) => {
+        if (this.defaultAdapter !== null) {
+          resolve(this.defaultAdapter);
+        } else {
+          // cache the resolve and execute when adapter is ready
+          this._getAdapterPromiseResolve = resolve;
+        }
+      });
+    }
+    return this._getAdapterPromise;
+  },
+
+  /**
+   * Return device pairing result.
+   *
+   * @public
+   * @param {string} mac target device address
+   * @return {Promise} A promise that resolve when pair successfully,
+   *                   reject when pair failed
+   */
+  pair: function bt__pair(mac) {
+    return new Promise((resolve, reject) => {
+      var req = this._adapter.pair(mac);
+      req.onsuccess = () => {
+        resolve();
+      };
+      req.onerror = () => {
+        reject(req.error.name);
+      };
+    });
+  },
+
+  /**
+   * Return paired devices list.
+   *
+   * @public
+   * @returns {Object[]} sequence of BluetoothDevice
+   */
+  getPairedDevices: function bt__getPairedDevices() {
+    return new Promise((resolve, reject) => {
+      var req = this._adapter.getPairedDevices();
+      req.onsuccess = () => {
+        resolve(req.result);
+      };
+      req.onerror = () => {
+        reject(req.error.name);
+      };
+    });
   },
 
   /**
