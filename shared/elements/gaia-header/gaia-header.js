@@ -626,8 +626,6 @@ module.exports = component.register('gaia-header', {
   <style>
 
   :host {
-    display: block;
-
     --gaia-header-button-color:
       var(--header-button-color,
       var(--header-color,
