@@ -44,7 +44,7 @@ fullscreenButtons.delete.onclick = deleteSingleItem;
 
 // Clicking the Edit button while viewing a photo switches to edit mode
 fullscreenButtons.edit.onclick = function() {
-  LazyLoader.load(['js/ImageEditor.js',
+  LazyLoader.load(['js/ImageEditor.js', 'shared/style/action_menu.css',
                    'shared/js/media/crop_resize_rotate.js'],
                   function() {
                     editPhotoIfCardNotFull(currentFileIndex);
