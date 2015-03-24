@@ -78,14 +78,6 @@
     persistToDB: true,
 
     /**
-     * Cached values of the last transform of the element, to avoid redundant
-     * style changes.
-     */
-    lastX: null,
-    lastY: null,
-    lastScale: null,
-
-    /**
      * Whether or not this item has a cached icon or not.
      */
     get hasCachedIcon() {
@@ -561,17 +553,7 @@
      */
     transform: function(x, y, scale, element) {
       scale = scale || 1;
-
-      if (!element) {
-        if (x === this.lastX && y === this.lastY && scale === this.lastScale) {
-          return;
-        }
-        element = this.element;
-        this.lastX = x;
-        this.lastY = y;
-        this.lastScale = scale;
-      }
-
+      element = element || this.element;
       element.style.transform =
         'translate(' + x + 'px,' + y + 'px) scale(' + scale + ')';
     },

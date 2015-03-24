@@ -62,7 +62,6 @@
      * Height in pixels of the background of the group.
      */
     backgroundHeight: 0,
-    lastBackgroundHeight: null,
 
     /**
      * Height in pixels of the separator at the bottom of the group.
@@ -147,7 +146,6 @@
 
       this.grid.element.appendChild(group);
       this.separatorHeight = this.dividerSpanElement.clientHeight;
-      this.lastBackgroundHeight = null;
     },
 
     /**
@@ -237,11 +235,9 @@
       // icons, but we want it to display above.
       var y = this.getRealYPosition(nApps);
 
-      if (y !== this.lastY) {
-        // Place the header span
-        this.headerSpanElement.style.transform =
-          'translate(0px, ' + y + 'px)';
-      }
+      // Place the header span
+      this.headerSpanElement.style.transform =
+        'translate(0px, ' + y + 'px)';
 
       if (this.toggleElement) {
         var toggleLabel = this.detail.collapsed ? 'collapsed' : 'expanded';
@@ -258,25 +254,18 @@
       }
       this.backgroundHeight += this.headerHeight;
 
-      if (y != this.lastY ||
-          this.backgroundHeight !== this.lastBackgroundHeight) {
-        // Place and size the background span element
-        this.backgroundSpanElement.style.transform =
-          'translate(0px, ' + y + 'px) scale(1, ' + this.backgroundHeight + ')';
+      // Place and size the background span element
+      this.backgroundSpanElement.style.transform =
+        'translate(0px, ' + y + 'px) scale(1, ' + this.backgroundHeight + ')';
 
-        // Place and size the shadow span element
-        this.shadowSpanElement.style.transform =
-          'translateY(' + y + 'px)';
-        this.shadowSpanElement.style.height = this.backgroundHeight + 'px';
+      // Place and size the shadow span element
+      this.shadowSpanElement.style.transform =
+        'translateY(' + y + 'px)';
+      this.shadowSpanElement.style.height = this.backgroundHeight + 'px';
 
-        // Place the divider after this point
-        this.dividerSpanElement.style.transform =
-          'translate(0px, ' + (y + this.backgroundHeight) + 'px)';
-      }
-
-      // Update the cached size values
-      this.lastBackgroundHeight = this.backgroundHeight;
-      this.lastY = y;
+      // Place the divider after this point
+      this.dividerSpanElement.style.transform =
+        'translate(0px, ' + (y + this.backgroundHeight) + 'px)';
 
       // Now include the separator in the background height
       this.backgroundHeight += this.separatorHeight;
