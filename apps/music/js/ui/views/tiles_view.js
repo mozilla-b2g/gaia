@@ -1,5 +1,5 @@
 /* exported TilesView */
-/* global musicdb, TabBar, App, AlbumArtCache, SearchView, ModeManager,
+/* global musicdb, AlbumArtCache, SearchView, ModeManager,
           MODE_SEARCH_FROM_TILES, IDBKeyRange, MODE_PLAYER, PlayerView,
           musicdb, TYPE_LIST, LazyLoader */
 'use strict';
@@ -62,24 +62,29 @@ var TilesView = {
     }
   },
 
-  update: function tv_update(result) {
-    // if no songs in dataSource
-    // disable the TabBar to prevent users switch to other page
-    TabBar.setDisabled(!this.dataSource.length);
+  activate: function tv_activate(callback) {
+    // Enumerate existing song entries in the database. List them all, and
+    // sort them in ascending order by album. Use enumerateAll() here so that
+    // we get all the results we want and then pass them synchronously to the
+    // _addSong() function. If we did it asynchronously, then we'd get one
+    // redraw for every song.
+    this.handle = musicdb.enumerateAll('metadata.album', null, 'nextunique',
+                                       function(songs) {
+      TilesView.clean();
+      songs.forEach(function(song) {
+        TilesView._addSong(song);
+      });
 
-    if (result === null) {
-      App.showCorrectOverlay();
-      // Display the TilesView after when finished updating the UI
+      // Display the TilesView once the UI has been populated.
       document.getElementById('views-tiles').classList.remove('hidden');
-      // After the hidden class is removed, hideSearch can be effected
-      // because the computed styles are applied to the search elements
-      // And ux wants the search bar to retain its position for about
-      // a half second, but half second seems to short for notifying users
-      // so we use one second instead of a half second
-      window.setTimeout(this.hideSearch.bind(this), 1000);
-      return;
-    }
 
+      if (callback) {
+        callback(songs);
+      }
+    });
+  },
+
+  _addSong: function tv_addSong(result) {
     this.dataSource.push(result);
 
     var tile = document.createElement('div');
