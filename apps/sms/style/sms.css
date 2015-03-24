@@ -221,7 +221,7 @@ form[role="dialog"][data-type="edit"] > menu {
   opacity: 0.5;
 }
 
-[data-type="list"] .is-draft .name {
+[data-type="list"] .is-draft .threadlist-item-title {
   font-style: italic;
   color: #5f5f5f;
 }
