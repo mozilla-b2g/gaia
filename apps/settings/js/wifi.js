@@ -283,8 +283,19 @@ navigator.mozL10n.once(function wifiSettings() {
     // Show connection status
     icon.classList.add('wifi-signal');
     if (WifiHelper.isConnected(network)) {
-      localize(small, 'shortStatus-connected');
-      icon.classList.add('connected');
+      var conStatus = WifiHelper.getConnectionStatus(network);
+      if (conStatus === 'connected') {
+        localize(small, 'shortStatus-connected');
+        icon.classList.add('connected');
+      } else if (conStatus === 'connecting') {
+        localize(small, 'shortStatus-connecting');
+      } else if (conStatus === 'associated') {
+        localize(small, 'shortStatus-associated');
+      } else if (conStatus === 'connectingfailed') {
+        localize(small, 'shortStatus-connectingfailed');
+      } else if (conStatus === 'disconnected') {
+        localize(small, 'shortStatus-disconnected');
+      }
       li.classList.add('active');
     }
 
