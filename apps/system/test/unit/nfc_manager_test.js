@@ -43,6 +43,7 @@ suite('Nfc Manager Functions', function() {
   var fakeApp;
   var realMozSetMessageHandler;
   var realMozBluetooth;
+  var realMozNfc;
   var nfcUtils;
   var nfcManager;
 
@@ -77,6 +78,10 @@ suite('Nfc Manager Functions', function() {
         return MockBluetooth;
       }
     });
+
+    realMozNfc = window.navigator.mozNfc;
+    window.navigator.mozNfc = MockNfc;
+
     nfcUtils = new NfcUtils();
     MockService.currentApp = fakeApp;
     nfcManager = BaseModule.instantiate('NfcManager');
@@ -93,6 +98,8 @@ suite('Nfc Manager Functions', function() {
         return realMozBluetooth;
       }
     });
+
+    window.navigator.mozNfc = realMozNfc;
   });
 
   suite('_start', function() {
@@ -465,7 +472,6 @@ suite('Nfc Manager Functions', function() {
   });
 
   suite('_processNfcStateChange', function() {
-    var realMozNfc = navigator.mozNfc;
     var states = ['disabling', 'disabled', 'enabling', 'enabled',
                   'polling-off', 'polling-on'];
 
@@ -474,8 +480,6 @@ suite('Nfc Manager Functions', function() {
     var stubIconUpdate, stubWriteSetting, stubNfcTransition;
 
     setup(function() {
-      navigator.mozNfc = MockNfc;
-
       fakePromise = new MockPromise();
       var handler = () => fakePromise;
       stubPowerOff = this.sinon.stub(MockNfc, 'powerOff', handler);
@@ -488,7 +492,6 @@ suite('Nfc Manager Functions', function() {
     });
 
     teardown(function() {
-      navigator.mozNfc = realMozNfc;
       stubPowerOff.restore();
       stubStartPoll.restore();
       stubStopPoll.restore();
@@ -913,6 +916,8 @@ suite('Nfc Manager Functions', function() {
 
   suite('_initP2PUI', function() {
     test('publishes "shrinking-start event"', function() {
+      // prevents registering event listener handler
+      this.sinon.stub(window, 'addEventListener');
       var stubPublish = this.sinon.stub(nfcManager, 'publish');
 
       nfcManager._initP2PUI();
@@ -944,16 +949,6 @@ suite('Nfc Manager Functions', function() {
   });
 
   suite('_dispatchP2PUserResponse', function() {
-    var realMozNfc = navigator.mozNfc;
-
-    setup(function() {
-      navigator.mozNfc = MockNfc;
-    });
-
-    teardown(function() {
-      navigator.mozNfc = realMozNfc;
-    });
-
     test('calls proper mozNfc method', function() {
       var stubNotifyAcceptedP2P = this.sinon.stub(MockNfc,
                                                   'notifyUserAcceptedP2P');
@@ -964,16 +959,6 @@ suite('Nfc Manager Functions', function() {
   });
 
   suite('_checkP2PRegistrations', function() {
-    var realMozNfc = navigator.mozNfc;
-
-    setup(function() {
-      navigator.mozNfc = MockNfc;
-    });
-
-    teardown(function() {
-      navigator.mozNfc = realMozNfc;
-    });
-
     test('calls proper mozNfc method', function() {
       var stubCheckP2P = this.sinon.stub(MockNfc, 'checkP2PRegistration',
                                          () => { return Promise.resolve(); });

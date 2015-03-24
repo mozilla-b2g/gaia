@@ -166,7 +166,7 @@
       msg = msg || {};
       msg.records = Array.isArray(msg.records) ? msg.records : [];
 
-      window.dispatchEvent(new CustomEvent('nfc-tech-discovered'));
+      this.publish('nfc-tech-discovered', this, /* without prefix */ true);
       window.navigator.vibrate([25, 50, 125]);
 
       if (this.nfcHandoverManager.tryHandover(msg.records, msg.peer)) {
@@ -197,6 +197,14 @@
       this._cleanP2PUI();
     },
 
+    /**
+     * Performs NFC state transition. Checks in NFC HW State Table
+     * if NFC HW Event (argument) triggers a transition from current HW state
+     * to a different one. If transition exists, _hwState is changed to new
+     * state and state entry function is called.
+     * @memberof NfcManager.prototype
+     * @param {string} evt - NFC HW Event
+     */
     _doNfcStateTransition: function(evt) {
       var evtIdx = NFC_HW_EVENTS.indexOf(evt);
       var state = NFC_HW_STATE_TABLE[this._hwState][evtIdx];
@@ -210,6 +218,12 @@
       this._processNfcStateChange();
     },
 
+    /**
+     * State entry function. Called after transitioning to new NFC HW state.
+     * Depending on _hwState it can trigger a new HW change request,
+     * change 'nfc.status' setting or update NFC icon.
+     * @memberof NfcManager.prototype
+     */
     _processNfcStateChange: function() {
       var nfc = window.navigator.mozNfc;
       var promise;
@@ -254,10 +268,7 @@
      * @memberof NfcManager.prototype
      */
     _checkP2PRegistration: function nm_checkP2PRegistration() {
-      var nfcdom = window.navigator.mozNfc;
-      if (!nfcdom) {
-        return;
-      }
+      var nfc = window.navigator.mozNfc;
       var activeApp = window.Service.currentApp;
       var manifestURL = activeApp.getTopMostWindow().manifestURL ||
         window.Service.manifestURL;
@@ -268,7 +279,7 @@
         return;
       }
 
-      nfcdom.checkP2PRegistration(manifestURL).then(result => {
+      nfc.checkP2PRegistration(manifestURL).then(result => {
         if (result) {
           if (activeApp.isTransitioning() || activeApp.isSheetTransitioning()) {
             return;
@@ -282,11 +293,21 @@
       });
     },
 
+    /**
+     * P2P UI clean up helper, notifies ShrinkingUI to stop shrinking animation
+     * and removes 'shrinking-sent' listener.
+     * @memberof NfcManager.prototype
+     */
     _cleanP2PUI: function() {
       window.removeEventListener('shrinking-sent', this._handleShrinkingSent);
       this.publish('shrinking-stop', this, /* without prefix */ true);
     },
 
+    /**
+     * Notifies ShrinkingUI to start shrinking animation and starts listening
+     * for 'shrinking-sent' event.
+     * @memberof NfcManager.prototype
+     */
     _initP2PUI: function() {
       this.publish('shrinking-start', this, /* without prefix */ true);
 
@@ -304,14 +325,12 @@
      * @memberof NfcManager.prototype
      */
     _dispatchP2PUserResponse: function nm_dispatchP2PUserResponse() {
-      var nfcdom = window.navigator.mozNfc;
-      if (!nfcdom) {
-        return;
-      }
+      var nfc = window.navigator.mozNfc;
       var activeApp = window.Service.currentApp;
       var manifestURL = activeApp.getTopMostWindow().manifestURL ||
         window.Service.manifestURL;
-      nfcdom.notifyUserAcceptedP2P(manifestURL);
+
+      nfc.notifyUserAcceptedP2P(manifestURL);
     },
 
     /**
