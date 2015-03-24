@@ -441,7 +441,7 @@ header .icon:after {
   z-index: 10;
   opacity: 1;
   will-change: opacity, visibility;
-  transition: visibility 0s, opacity 0.5s;
+  transition: visibility 0s, opacity 0.2s;
 }
 .video-controls-hidden .video-controls {
   opacity: 0;
