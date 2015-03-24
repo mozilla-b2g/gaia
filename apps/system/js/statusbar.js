@@ -338,7 +338,6 @@ var StatusBar = {
 
       case 'screenchange':
         this.setActive(evt.detail.screenEnabled);
-        this._updateIconVisibility();
         break;
 
       case 'lockscreen-appopened':
