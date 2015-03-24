@@ -295,6 +295,7 @@ aside.connecting {
 html[dir="rtl"] a.menu-item:after {
   left: 0;
   right: unset;
+  transform: scaleX(-1);
 }
 
 html[dir="rtl"] .menu-item::before {

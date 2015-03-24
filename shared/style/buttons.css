@@ -401,7 +401,6 @@ html[dir="rtl"] .bb-button[data-icon]:before,
 html[dir="rtl"] .button[data-icon]:before {
   left: 1.5rem;
   right: unset;
-  transform: scale(-1, 1);
 }
 
 html[dir="rtl"] li button.icon-view:before,
