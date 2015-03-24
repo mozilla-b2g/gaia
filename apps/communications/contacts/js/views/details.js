@@ -31,6 +31,7 @@ contacts.Details = (function() {
       contactDetails,
       listContainer,
       detailsName,
+      detailsNameText,
       orgTitle,
       datesTemplate,
       addressesTemplate,
@@ -61,6 +62,7 @@ contacts.Details = (function() {
     contactDetails = dom.querySelector('#contact-detail');
     listContainer = dom.querySelector('#details-list');
     detailsName = dom.querySelector('#contact-name-title');
+    detailsNameText = dom.querySelector('#contact-name-title bdi');
     orgTitle = dom.querySelector('#org-title');
     datesTemplate = dom.querySelector('#dates-template-\\#i\\#');
     addressesTemplate = dom.querySelector('#address-details-template-\\#i\\#');
@@ -277,7 +279,7 @@ contacts.Details = (function() {
   // Method that generates HTML markup for the contact
   //
   var doReloadContactDetails = function doReloadContactDetails(contact) {
-    detailsName.textContent = getDisplayName(contact);
+    detailsNameText.textContent = getDisplayName(contact);
     contactDetails.classList.remove('no-photo');
     contactDetails.classList.remove('fb-contact');
     contactDetails.classList.remove('up');
