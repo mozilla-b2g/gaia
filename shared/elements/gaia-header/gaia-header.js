@@ -627,6 +627,7 @@ module.exports = component.register('gaia-header', {
 
   :host {
     display: block;
+    -moz-user-select: none;
 
     --gaia-header-button-color:
       var(--header-button-color,
@@ -655,6 +656,7 @@ module.exports = component.register('gaia-header', {
     display: flex;
     min-height: 50px;
     direction: ltr;
+    -moz-user-select: none;
 
     background:
       var(--header-background,
@@ -670,18 +672,20 @@ module.exports = component.register('gaia-header', {
    */
 
   .action-button {
-    display: none; /* 1 */
     position: relative;
+
+    display: none; /* 1 */
     width: 50px;
     font-size: 30px;
     margin: 0;
     padding: 0;
     border: 0;
+    outline: 0;
+
     align-items: center;
     background: none;
     cursor: pointer;
     transition: opacity 200ms 280ms;
-
     color:
       var(--header-action-button-color,
       var(--header-icon-color,
@@ -785,7 +789,6 @@ module.exports = component.register('gaia-header', {
     font-weight: 300;
     font-style: italic;
     font-size: 24px;
-    -moz-user-select: none;
 
     color:
       var(--header-title-color,
@@ -820,12 +823,13 @@ module.exports = component.register('gaia-header', {
     z-index: 1;
     box-sizing: border-box;
     display: flex;
-    border: none;
     width: auto;
     height: auto;
     min-width: 50px;
     margin: 0;
     padding: 0 10px;
+    outline: 0;
+    border: 0;
 
     font-size: 14px;
     line-height: 1;
