@@ -354,7 +354,12 @@ html[dir="rtl"] #month-day-agenda .event-time {
 html[dir="rtl"] #month-day-agenda .event-details {
   left: unset;
   right: 11.5rem;
+  width: 19rem;
   text-align: right;
+}
+
+html[dir="rtl"] #month-day-agenda .has-alarms .event-details {
+  width: 16rem;
 }
 
 html[dir="rtl"] #month-day-agenda .has-alarms .icon-calendar-alarm {
