@@ -91,6 +91,10 @@ function decorateTask(task, options) {
     payload.env[env] = payload.env[env] || process.env[env];
   });
 
+  output.task.scopes = output.task.scopes || [];
+  // Hack to ensure all tasks have the scope for the given image.
+  output.task.scopes.push('docker-worker:image:' + IMAGE + '*');
+
   if (process.env.TREEHERDER_PROJECT && process.env.TREEHERDER_REVISION) {
     output.task.routes = output.task.routes || [];
     output.task.routes.push(
