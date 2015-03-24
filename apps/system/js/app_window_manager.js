@@ -313,7 +313,6 @@
         this.element.classList.remove('slow-transition');
       }
       window.addEventListener('cardviewbeforeshow', this);
-      window.addEventListener('cardviewshown', this);
       window.addEventListener('cardviewclosed', this);
       window.addEventListener('launchapp', this);
       window.addEventListener('appcreated', this);
@@ -395,7 +394,6 @@
      */
     stop: function awm_stop() {
       window.removeEventListener('cardviewbeforeshow', this);
-      window.removeEventListener('cardviewshown', this);
       window.removeEventListener('cardviewclosed', this);
       window.removeEventListener('launchapp', this);
       window.removeEventListener('appcreated', this);
@@ -649,10 +647,6 @@
             this._activeApp.getTopMostWindow().blur();
           }
           this.broadcastMessage('cardviewbeforeshow');
-          break;
-
-        case 'cardviewshown':
-          this.broadcastMessage('cardviewshown');
           break;
 
         case 'cardviewclosed':

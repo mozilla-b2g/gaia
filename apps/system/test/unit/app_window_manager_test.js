@@ -324,9 +324,6 @@ suite('system/AppWindowManager', function() {
       appWindowManager.handleEvent({ type: 'cardviewbeforeshow' });
       assert.isTrue(stubBroadcastMessage.calledWith('cardviewbeforeshow'));
 
-      appWindowManager.handleEvent({ type: 'cardviewshown' });
-      assert.isTrue(stubBroadcastMessage.calledWith('cardviewshown'));
-
       appWindowManager.handleEvent({ type: 'cardviewclosed' });
       assert.isTrue(stubBroadcastMessage.calledWith('cardviewclosed'));
     });
@@ -709,7 +706,7 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubKill.called);
     });
   });
-
+ 
   suite('updateActiveApp()', function() {
     test('update', function() {
       var spyPublish= this.sinon.spy(appWindowManager, 'publish');
