@@ -88,7 +88,7 @@ TextSelection.prototype = {
  
   longPressByPosition: function(element, x, y) {
     // Add moveByOffset to prevent contextmenu event be fired.
-    this.actions.tap(element, x, y).wait(2).press(element, x, y).
+    this.actions.tap(element, x, y).wait(3).press(element, x, y).
       moveByOffset(0, 0).wait(2).release().perform();
   },
 
