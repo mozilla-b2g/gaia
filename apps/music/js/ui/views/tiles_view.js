@@ -42,16 +42,9 @@ var TilesView = {
   },
 
   clean: function tv_clean() {
-    // Cancel a pending enumeration before start a new one
-    if (this.handle) {
-      musicdb.cancelEnumeration(this.handle);
-    }
-
     this.dataSource = [];
     this.index = 0;
     this.anchor.innerHTML = '';
-    this.view.scrollTop = 0;
-    this.hideSearch();
   },
 
   hideSearch: function tv_hideSearch() {
@@ -68,6 +61,12 @@ var TilesView = {
     // we get all the results we want and then pass them synchronously to the
     // _addSong() function. If we did it asynchronously, then we'd get one
     // redraw for every song.
+
+    // Cancel a pending enumeration before starting a new one.
+    if (this.handle) {
+      musicdb.cancelEnumeration(this.handle);
+    }
+
     this.handle = musicdb.enumerateAll('metadata.album', null, 'nextunique',
                                        function(songs) {
       TilesView.clean();

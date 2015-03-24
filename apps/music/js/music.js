@@ -210,6 +210,10 @@ var App = (function() {
     }
   }
 
+  // This tracks if we've automatically hidden the search box on startup yet (it
+  // should only be done once!)
+  var hidSearchBox = false;
+
   function refreshViews(callback) {
     function showListView() {
       var option = TabBar.option;
@@ -250,11 +254,14 @@ var App = (function() {
       app.knownSongs = songs;
 
       app.showCorrectOverlay();
+      if (app.currentOverlay === null && !hidSearchBox) {
+        hidSearchBox = true;
 
-      // After updating the tiles view, hide the search bar. However, we want
-      // to let it stay visible for a short duration so that the user knows it
-      // exists.
-      window.setTimeout(TilesView.hideSearch.bind(TilesView), 1000);
+        // After updating the tiles view, hide the search bar. However, we want
+        // to let it stay visible for a short duration so that the user knows it
+        // exists.
+        window.setTimeout(function() { TilesView.hideSearch(); }, 1000);
+      }
 
       if (callback) {
         callback();
