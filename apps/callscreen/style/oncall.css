@@ -427,9 +427,9 @@
     padding-left: 4rem;
     padding-right: 9rem;
   }
-
-  html[dir="rtl"] #calls:not(.big-duration) > section.ended .numberWrapper {
-    margin-right: 3rem;
+  html[dir="rtl"] #calls:not(.big-duration) > section .numberWrapper {
+    padding-left: 7rem;
+    padding-right: 4rem;
   }
 
   #calls:not(.big-duration) > section:not(.ended) .duration:not(.isTimer) {
@@ -507,6 +507,9 @@
     height: 3.75rem;
     padding: 0 7rem 0 4rem;
   }
+  html[dir="rtl"] body:not(.single-line) #calls > section .additionalContactInfo {
+    padding: 0 4rem 0 7rem;
+  }
 
   body:not(.single-line) #calls > section:not(.held) .additionalContactInfo {
     color: #fff;
@@ -514,6 +517,10 @@
 
   body:not(.single-line) #calls > section.ended .additionalContactInfo {
     color: rgba(255, 255, 255, 0.6);
+  }
+  html[dir="rtl"] #calls:not(.big-duration) > section.ended .additionalContactInfo {
+    padding-left: 0;
+    padding-right: 0;
   }
 
   body:not(.single-line) #calls > section:not(.held) .isTimer {
@@ -536,6 +543,9 @@
     color: #333;
     height: 8rem;
     line-height: 8rem;
+  }
+  html[dir="rtl"] #calls:not(.big-duration) > section .duration {
+    padding-right: 25.6rem;
   }
 
   #calls.big-duration > section .duration {
@@ -582,6 +592,9 @@
     background-position: 0.7rem;
     background-repeat: no-repeat;
   }
+  html[dir="rtl"] #calls:not(.big-duration) > #group-call:not(.held) {
+    background-position: 28.3rem;
+  }
 
   #calls:not(.big-duration) > section.held,
   #calls.big-duration > section.held .numberWrapper,
@@ -590,6 +603,10 @@
   #calls.big-duration > section.ended .additionalContactInfo,
   #calls.big-duration > section.ended .switch-calls {
     background-color: rgba(255, 255, 255, 0.85);
+  }
+  html[dir="rtl"] #calls:not(.big-duration) > section.ended .numberWrapper {
+    padding-left: 0;
+    padding-right: 0;
   }
 
   #calls:not(.big-duration) > section.ended,
@@ -604,6 +621,12 @@
     background-repeat: no-repeat;
     background-size: 3rem;
   }
+  html[dir="rtl"] #calls:not(.big-duration) > section.held {
+    background-position: 28.3rem;
+  }
+  html[dir="rtl"] #calls:not(.big-duration) > section:not(.held) {
+    background-position: 28.3rem;
+  }
 
   #calls:not(.big-duration) > section.ended {
     background-image: url('images/shared/actionicon_activecall_hangup_small.png');
@@ -611,15 +634,16 @@
     background-repeat: no-repeat;
     background-size: 3rem;
   }
+  html[dir="rtl"] #calls:not(.big-duration) > section.ended {
+    background-position: 28.3rem;
+    padding-left: 7rem;
+    padding-right: 4rem;
+  }
 
   #calls > section.ended .numberWrapper .number,
   #calls > section.ended .additionalContactInfo,
   #calls.big-duration > section.ended .additionalContactInfo {
     color: rgba(255, 255, 255, 0.6);
-  }
-
-  html[dir="rtl"] #calls:not(.big-duration) > section.ended .additionalContactInfo {
-    margin-right: 5rem;
   }
 
   #calls.big-duration > section.held .duration {
@@ -818,6 +842,9 @@
     height: 8rem;
     width: 6rem;
     background: url('images/handled_call/actionicon_callscreen_proceed.png') no-repeat 2rem center / 3rem;
+  }
+  html[dir="rtl"] #group-call #group-show {
+    padding-right: 27rem;
   }
 
   .single-line #group-call #group-show {
