@@ -55,8 +55,8 @@ var ListView = {
     this.lastFirstLetter = null;
     this.anchor.innerHTML = '';
     this.anchor.style.height = 0;
-    this.view.scrollTop = 0;
-    this.hideSearch();
+    this.searchInput.value = '';
+    this.view.scrollTop = this.anchor.offsetTop;
     this.moveTimer = null;
     this.scrollTimer = null;
   },
@@ -68,11 +68,10 @@ var ListView = {
     }
   },
 
-  hideSearch: function lv_hideSearch() {
+  hideSearch: function lv_hideSearch(behavior) {
     this.searchInput.value = '';
-    // XXX: we probably want to animate this...
-    if (this.view.scrollTop < this.searchBox.offsetHeight) {
-      this.view.scrollTop = this.searchBox.offsetHeight;
+    if (this.view.scrollTop < this.anchor.offsetTop) {
+      this.anchor.scrollIntoView({behavior: behavior || 'smooth'});
     }
   },
 

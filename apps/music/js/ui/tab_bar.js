@@ -78,7 +78,7 @@ var TabBar = {
             ListView.cancelEnumeration();
 
             ModeManager.start(MODE_TILES);
-            TilesView.hideSearch();
+            TilesView.hideSearch('instant');
 
             break;
           case 'tabs-playlists':
