@@ -107,7 +107,8 @@ Bluetooth.prototype = {
             name: profile,
             connected: connected
           }
-        }));
+        }
+      ));
       if (profile === 'opp' && this.transferIcon) {
         this.transferIcon.update();
       }
@@ -321,7 +322,8 @@ Bluetooth.prototype = {
     window.dispatchEvent(new CustomEvent('bluetooth-opp-transfer-start',
       {
         detail: { transferInfo: transferInfo }
-      }));
+      }
+    ));
   },
 
   /*
@@ -337,7 +339,8 @@ Bluetooth.prototype = {
     window.dispatchEvent(new CustomEvent('bluetooth-opp-transfer-complete',
       {
         detail: { transferInfo: transferInfo }
-      }));
+      }
+    ));
   },
 
   /**
@@ -437,7 +440,10 @@ Bluetooth.prototype = {
   _dispatchAdapterState: function bt__dispatchAdapterState(state) {
     if (state) {
       window.dispatchEvent(new CustomEvent('bluetooth-available',
-        { detail: { adapter: this._adapter }}));
+        {
+          detail: { adapter: this._adapter }
+        }
+      ));
     } else {
       window.dispatchEvent(new CustomEvent('bluetooth-unavailable'));
     }
