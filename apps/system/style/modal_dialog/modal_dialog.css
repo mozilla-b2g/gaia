@@ -1,3 +1,4 @@
+#modal-dialog,
 #modal-dialog-alert,
 #modal-dialog-confirm,
 #modal-dialog-prompt,
@@ -22,7 +23,7 @@
   -moz-box-sizing: border-box;
 }
 
-#screen.modal-dialog #modal-dialog,
+#screen:not(.locked).modal-dialog #modal-dialog,
 #modal-dialog-alert.visible,
 #modal-dialog-confirm.visible,
 #modal-dialog-prompt.visible,

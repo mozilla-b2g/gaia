@@ -67,6 +67,7 @@
       'LockScreenWindowManager',
       'UtilityTray',
       'SystemDialogManager',
+      'ModalDialog',
       'Rocketbar',
       'ActionMenu',
       'AppWindowManager',
