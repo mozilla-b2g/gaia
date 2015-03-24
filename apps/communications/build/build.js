@@ -1,29 +1,25 @@
 'use strict';
 
-/* global require, exports */
-const utils = require('utils');
-const importBuild = require('import-config.js');
+/* jshint node: true */
 
-const DEBUG = false;
+var utils = require('utils');
+var importBuild = require('import-config.js');
+var DEBUG = false;
 
 var CommAppBuilder = function() {
 };
 
-// set destination directory and application directory
+// Set destination directory and application directory
 CommAppBuilder.prototype.setOptions = function(options) {
   this.stageDir = utils.getFile(options.STAGE_APP_DIR);
   this.appDir = utils.getFile(options.APP_DIR);
-
   this.gaia = utils.gaia.getInstance(options);
-
   this.gaia.stageDir = this.stageDir;
   this.gaia.gaiaDir = options.GAIA_DIR;
 };
 
 CommAppBuilder.prototype.generateManifest = function() {
-  var manifestObject =
-    importBuild.generateManifest(this.webapp, this.gaia);
-
+  var manifestObject = importBuild.generateManifest(this.webapp, this.gaia);
   var file = utils.getFile(this.stageDir.path, 'manifest.webapp');
   var args = DEBUG ? [manifestObject, undefined, 2] : [manifestObject];
   utils.writeContent(file, JSON.stringify.apply(JSON, args));
@@ -31,7 +27,6 @@ CommAppBuilder.prototype.generateManifest = function() {
 
 CommAppBuilder.prototype.generateAll = function() {
   this.generateManifest();
-
   importBuild.generateConfig('communications', 'contacts', this.gaia);
 };
 
