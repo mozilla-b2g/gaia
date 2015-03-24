@@ -5,10 +5,14 @@ var assert = require('assert');
 
 var ListviewHelper = {
 
-  albumArtForListItem: function(item) {
+  albumArtForListItem: function(client, item) {
     assert.ok(item);
 
-    var bg = item.cssProperty('background-image');
+    var bg;
+    client.waitFor(function() {
+      bg = item.cssProperty('background-image');
+      return bg !== 'none';
+    });
     return bg;
   }
 

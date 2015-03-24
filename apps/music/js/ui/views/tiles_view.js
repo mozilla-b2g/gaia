@@ -1,7 +1,7 @@
 /* exported TilesView */
 /* global musicdb, TabBar, App, AlbumArtCache, SearchView, ModeManager,
           MODE_SEARCH_FROM_TILES, IDBKeyRange, MODE_PLAYER, PlayerView,
-          musicdb, TYPE_LIST */
+          musicdb, TYPE_LIST, LazyLoader */
 'use strict';
 
 var TilesView = {
@@ -120,22 +120,25 @@ var TilesView = {
       artistName.classList.add('sub-tile-title');
     }
 
-    var NUM_INITIALLY_VISIBLE_TILES = 8;
-    var INITIALLY_HIDDEN_TILE_WAIT_TIME_MS = 1000;
+    var index = this.index;
+    LazyLoader.load('js/metadata/album_art_cache.js', function() {
+      var NUM_INITIALLY_VISIBLE_TILES = 8;
+      var INITIALLY_HIDDEN_TILE_WAIT_TIME_MS = 1000;
 
-    var setTileBackgroundClosure = function(url) {
-      tile.style.backgroundImage = 'url(' + url + ')';
-    };
+      var setTileBackgroundClosure = function(url) {
+        tile.style.backgroundImage = 'url(' + url + ')';
+      };
 
-    if (this.index <= NUM_INITIALLY_VISIBLE_TILES) {
-      // Load this tile's background now, because it's visible.
-      AlbumArtCache.getCoverURL(result).then(setTileBackgroundClosure);
-    } else {
-      // Defer loading hidden tiles until the visible ones are done.
-      setTimeout(function() {
+      if (index <= NUM_INITIALLY_VISIBLE_TILES) {
+        // Load this tile's background now, because it's visible.
         AlbumArtCache.getCoverURL(result).then(setTileBackgroundClosure);
-      }, INITIALLY_HIDDEN_TILE_WAIT_TIME_MS);
-    }
+      } else {
+        // Defer loading hidden tiles until the visible ones are done.
+        setTimeout(function() {
+          AlbumArtCache.getCoverURL(result).then(setTileBackgroundClosure);
+        }, INITIALLY_HIDDEN_TILE_WAIT_TIME_MS);
+      }
+    });
 
     container.dataset.index = this.index;
 
@@ -143,7 +146,7 @@ var TilesView = {
     if (!result.metadata.picture) {
       container.appendChild(titleBar);
     } else {
-      container.setAttribute('aria-label', artistName.textContent + ' ' + 
+      container.setAttribute('aria-label', artistName.textContent + ' ' +
                                            albumName.textContent);
     }
 

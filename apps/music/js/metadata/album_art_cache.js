@@ -1,4 +1,4 @@
-/* global AlbumArt, asyncStorage, ImageUtils, musicdb */
+/* global AlbumArt, asyncStorage, ImageUtils, LazyLoader, musicdb */
 /* exported AlbumArtCache */
 'use strict';
 
@@ -45,6 +45,11 @@ var AlbumArtCache = (function() {
     // Otherwise, see if we've saved a blob in asyncStorage. If not, create a
     // thumbnail blob and store it in the cache. Finally, create a URL for the
     // blob and return it in the Promise.
+    //
+    // XXX: There's a (minor) race condition here. If two requests for the same
+    // album art get here, the slower one will overwrite the faster one's cached
+    // blob URL, meaning that not all instances of a piece of album art will
+    // have the same URL. This only really matters to tests, though.
     return checkL2Cache(cacheKey).then(function(cachedBlob) {
       return cachedBlob || createThumbnail(cacheKey, fileinfo);
     }).then(function(blob) {
@@ -213,13 +218,15 @@ var AlbumArtCache = (function() {
         // Some audio tracks have an external file for their album art, so we
         // need to grab it from deviceStorage. This could also be an unsynced
         // picture that came from a regular file.
-        var getreq = AlbumArt.pictureStorage.get(picture.filename);
-        getreq.onsuccess = function() {
-          resolve(this.result);
-        };
-        getreq.onerror = function() {
-          reject(this.error);
-        };
+        LazyLoader.load('/js/metadata/album_art.js', function() {
+          var getreq = AlbumArt.pictureStorage.get(picture.filename);
+          getreq.onsuccess = function() {
+            resolve(this.result);
+          };
+          getreq.onerror = function() {
+            reject(this.error);
+          };
+        });
       } else if (picture.start) {
         // Other audio tracks have the album art embedded in the file, so we
         // just need to splice out the part we want.

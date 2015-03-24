@@ -1,7 +1,7 @@
 /* exported App */
-/* global initDB, musicdb, LazyLoader, TitleBar, TabBar, asyncStorage,
-          TilesView, ListView, SubListView, SearchView, ModeManager,
-          MODE_PICKER, MODE_TILES, MODE_LIST, reparsingMetadata */
+/* global initDB, musicdb, TitleBar, TabBar, asyncStorage, TilesView, ListView,
+          SubListView, SearchView, ModeManager, MODE_PICKER, MODE_TILES,
+          MODE_LIST, reparsingMetadata */
 'use strict';
 
 /*
@@ -159,86 +159,81 @@ var App = (function() {
   }
 
   function showCurrentView(callback) {
-    // We need AlbumArtCache.getCoverURL() to display thumbnails; it might not
-    // have been loaded yet, so make sure we load it first. This should prevent
-    // us from having to worry about loading it anywhere else in the code, since
-    // showCurrentView is called pretty early in the startup process.
-    LazyLoader.load('js/metadata/album_art_cache.js', function() {
-      function showListView() {
-        var option = TabBar.option;
-        var info = {
-          key: 'metadata.' + option,
-          range: null,
-          direction: (option === 'title') ? 'next' : 'nextunique',
-          option: option
-        };
+    function showListView() {
+      var option = TabBar.option;
+      var info = {
+        key: 'metadata.' + option,
+        range: null,
+        direction: (option === 'title') ? 'next' : 'nextunique',
+        option: option
+      };
 
-        ListView.activate(info);
+      ListView.activate(info);
+    }
+    // If it's in picking mode, we will just enumerate all the songs. We don't
+    // need to enumerate data for TilesView because the mix page is not needed
+    // in picker mode.
+    if (app.pendingPick) {
+      showListView();
+      if (callback) {
+        callback();
       }
-      // If it's in picking mode, we will just enumerate all the songs. We don't
-      // need to enumerate data for TilesView because the mix page is not needed
-      // in picker mode.
-      if (app.pendingPick) {
-        showListView();
+      return;
+    }
+
+    // If music is not in tiles mode and showCurrentView is called, that might
+    // be because the user has (un)mounted his SD card and modified the
+    // songs. musicdb will be updated, and then we should update the list view
+    // if music app is in list mode.
+    if (ModeManager.currentMode === MODE_LIST &&
+        TabBar.option !== 'playlist') {
+      showListView();
+    }
+
+    // Enumerate existing song entries in the database. List them all, and
+    // sort them in ascending order by album. Use enumerateAll() here so that
+    // we get all the results we want and then pass them synchronously to the
+    // update() functions. If we do it asynchronously, then we'll get one
+    // redraw for every song.
+    //
+    // Note: we need to update tiles view every time this happens because it's
+    // the top level page and an independent view
+    TilesView.handle = musicdb.enumerateAll(
+      'metadata.album', null, 'nextunique',
+      function(songs) {
+        // Add null to the array of songs. This is a flag that tells update()
+        // to show or hide the 'empty' overlay.
+        songs.push(null);
+        TilesView.clean();
+
+        app.knownSongs.length = 0;
+        songs.forEach(function(song) {
+          TilesView.update(song);
+          // Push the song to knownSongs. Then we can display a correct
+          // overlay.
+          app.knownSongs.push(song);
+        });
+
+        // Tell performance monitors that the content is displayed and is
+        // ready to interact with. We won't send the final fullyLoaded
+        // mark until we're completely stable and have finished scanning.
+        //
+        // XXX: Maybe we could emit these marks earlier, when we've just
+        // finished the "above the fold" content. That's hard to do on
+        // arbitrary screen resolutions, though.
+        window.performance.mark('visuallyLoaded');
+        window.performance.mark('contentInteractive');
+
+        // For performance optimization, we disable the font-fit logic in
+        // gaia-header to speed up the startup times, and here we have to
+        // remove the no-font-fit attribute to trigger the font-fit logic.
+        TitleBar.view.removeAttribute('no-font-fit');
+
         if (callback) {
           callback();
         }
-        return;
       }
-
-      // If music is not in tiles mode and showCurrentView is called, that might
-      // be because the user has (un)mounted his SD card and modified the
-      // songs. musicdb will be updated, and then we should update the list view
-      // if music app is in list mode.
-      if (ModeManager.currentMode === MODE_LIST &&
-          TabBar.option !== 'playlist') {
-        showListView();
-      }
-
-      // Enumerate existing song entries in the database. List them all, and
-      // sort them in ascending order by album. Use enumerateAll() here so that
-      // we get all the results we want and then pass them synchronously to the
-      // update() functions. If we do it asynchronously, then we'll get one
-      // redraw for every song.
-      //
-      // Note: we need to update tiles view every time this happens because it's
-      // the top level page and an independent view
-      TilesView.handle = musicdb.enumerateAll(
-        'metadata.album', null, 'nextunique',
-        function(songs) {
-          // Add null to the array of songs. This is a flag that tells update()
-          // to show or hide the 'empty' overlay.
-          songs.push(null);
-          TilesView.clean();
-
-          app.knownSongs.length = 0;
-          songs.forEach(function(song) {
-            TilesView.update(song);
-            // Push the song to knownSongs. Then we can display a correct
-            // overlay.
-            app.knownSongs.push(song);
-          });
-
-          // Tell performance monitors that the content is displayed and is
-          // ready to interact with. We won't send the final fullyLoaded
-          // mark until we're completely stable and have finished scanning.
-          //
-          // XXX: Maybe we could emit these marks earlier, when we've just
-          // finished the "above the fold" content. That's hard to do on
-          // arbitrary screen resolutions, though.
-          window.performance.mark('visuallyLoaded');
-          window.performance.mark('contentInteractive');
-          // For performance optimization, we disable the font-fit logic in
-          // gaia-header to speed up the startup times, and here we have to
-          // remove the no-font-fit attribute to trigger the font-fit logic.
-          TitleBar.view.removeAttribute('no-font-fit');
-
-          if (callback) {
-            callback();
-          }
-        }
-      );
-    });
+    );
   }
 
   app = {
