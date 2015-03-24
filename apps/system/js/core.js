@@ -73,7 +73,6 @@
         'GeolocationCore',
         'TetheringMonitor',
         'UsbCore',
-        'AppMigrator',
         'TextSelectionDialog',
         'ExternalStorageMonitor',
         'DeviceStorageWatcher',

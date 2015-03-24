@@ -612,12 +612,15 @@
      * @memberOf BaseModule.prototype
      */
     start: function() {
-      if (this.lifeCycleState !== 'stopped') {
-        this.warn('already started');
-        return;
-      }
-      this.switchLifeCycle('starting');
-      this.imports();
+      return new Promise(function(resolve, reject) {
+        if (this.lifeCycleState !== 'stopped') {
+          this.warn('already started');
+          reject();
+          return;
+        }
+        this.switchLifeCycle('starting', resolve, reject);
+        this.imports();
+      }.bind(this));
     },
 
     __imported: function() {
@@ -630,11 +633,17 @@
       this._subscribeEvents && this._subscribeEvents();
       this._startSubModules && this.START_SUB_MODULES_ON_START &&
                                 this._startSubModules();
-      this._start();
       this._observeSettings && this._observeSettings();
       this._registerServices && this._registerServices();
       this._registerStates && this._registerStates();
-      this.switchLifeCycle('started');
+      var ret = this._start();
+      if (ret && ret.then) {
+        ret.then(function() {
+          this.switchLifeCycle('started');
+        }.bind(this));
+      } else {
+        this.switchLifeCycle('started');
+      }
     },
 
     /**
@@ -659,7 +668,7 @@
       this.switchLifeCycle('stopped');
     },
 
-    switchLifeCycle: function(state) {
+    switchLifeCycle: function(state, resolve, reject) {
       if (this.lifeCycleState === state) {
         return;
       }
@@ -667,6 +676,22 @@
       this.debug('life cycle state change: ' +
         this.lifeCycleState + ' -> ' + state);
       this.lifeCycleState = state;
+      switch (state) {
+        case 'starting':
+          this.launchingPromise = {
+            resolve: resolve,
+            reject: reject
+          };
+          break;
+        case 'started':
+          this.launchingPromise && this.launchingPromise.resolve();
+          break;
+        case 'stopped':
+        case 'stopping':
+          this.launchingPromise && this.launchingPromise.reject();
+          this.launchingPromise = {};
+          break;
+      }
       this.publish(state);
     },
 

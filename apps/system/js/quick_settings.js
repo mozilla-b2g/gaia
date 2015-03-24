@@ -65,8 +65,8 @@
       this.getAllElements();
       this.monitorDataChange();
 
-      window.addEventListener('radiodataiconchanged', this);
-      this._handle_radiodataiconchanged();
+      window.addEventListener('dataiconchanged', this);
+      this._handle_dataiconchanged();
 
       this.overlay.addEventListener('click', this);
       window.addEventListener('utilitytrayshow', this);
@@ -77,7 +77,7 @@
       this.monitorAirplaneModeChange();
     },
 
-    _handle_radiodataiconchanged: function() {
+    _handle_dataiconchanged: function() {
       var networkTypeValues = Service.query('dataIcon');
       if (!networkTypeValues) {
         return;
@@ -287,8 +287,8 @@
       evt.preventDefault();
       var enabled = false;
       switch (evt.type) {
-        case 'radiodataiconchanged':
-          this._handle_radiodataiconchanged();
+        case 'dataiconchanged':
+          this._handle_dataiconchanged();
           break;
         case 'click':
           switch (evt.target) {

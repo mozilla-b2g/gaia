@@ -103,7 +103,7 @@
           this.mobileDataIconTypes[key] = dataIcon[key];
         }
       }
-      this.publish('dataiconchanged', value);
+      this.publish('dataiconchanged', value, true);
     },
 
     _onDataChange: function(conn, index) {

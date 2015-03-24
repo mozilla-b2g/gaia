@@ -107,7 +107,8 @@
         'SuspendingAppPriorityManager',
         'AppInstallManager',
         'Updatable',
-        'UpdateManager'
+        'UpdateManager',
+        'AppMigrator'
       ]);
     },
 

@@ -24,7 +24,7 @@
         LazyLoader.load('js/migrators/browser_migrator.js',
                         (function loaded() {
                           var bm = new BrowserMigrator();
-                          bm.runMigration();
+                          bm.start();
                         }));
         self.migrating = true;
       }

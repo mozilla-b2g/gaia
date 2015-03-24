@@ -6,12 +6,13 @@
 /* global MockSettingsListener */
 /* global MockWifiManager */
 /* global QuickSettings */
+/* global MockService */
 
 
 require('/test/unit/mock_activity.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/test/unit/mock_wifi_manager.js');
-require('/shared/test/unit/mocks/mock_settings_helper.js');
+require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
@@ -19,8 +20,8 @@ require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/js/quick_settings.js');
 
 var mocksForQuickSettings = new MocksHelper([
+  'Service',
   'MozActivity',
-  'SettingsHelper',
   'SettingsListener',
   'NavigatorMozMobileConnections'
 ]).init();
@@ -74,6 +75,32 @@ suite('quick settings > ', function() {
 
   teardown(function() {
     fakeQuickSettingsNode.parentNode.removeChild(fakeQuickSettingsNode);
+  });
+
+  suite('Data icon', function() {
+    var dataDOM;
+    setup(function() {
+      this.sinon.stub(document, 'getElementById', function() {
+        dataDOM = document.createElement('div');
+        return dataDOM;
+      });
+    });
+    test('Data icon is ready when started', function() {
+      MockService.mDataIcon = {
+        data_sprite: 'test'
+      };
+      subject.start();
+      assert.equal(dataDOM.style.backgroundImage, 'url("test")');
+    });
+
+    test('Data icon is ready when started', function() {
+      subject.start();
+      MockService.mDataIcon = {
+        data_sprite: 'test2'
+      };
+      window.dispatchEvent(new CustomEvent('dataiconchanged'));
+      assert.equal(dataDOM.style.backgroundImage, 'url("test2")');
+    });
   });
 
   test('system/quick settings/enable wifi: Connected', function() {

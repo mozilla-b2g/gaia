@@ -35,6 +35,35 @@ suite('system/BaseModule', function() {
     stubLoad.yield();
   });
 
+  suite('Launching promise', function() {
+    test('start should resolve right away', function(done) {
+      var LaunchingPromiseTester = function() {};
+      BaseModule.create(LaunchingPromiseTester, {
+        name: 'LaunchingPromiseTester'
+      });
+      var lpt = BaseModule.instantiate('LaunchingPromiseTester');
+      lpt.start().then(function() {
+        done();
+      });
+    });
+
+    test('custom start', function(done) {
+      var LaunchingPromiseTester = function() {};
+      BaseModule.create(LaunchingPromiseTester, {
+        name: 'LaunchingPromiseTester',
+        _start: function() {
+          return new Promise(function(resolve) {
+            resolve();
+          });
+        }
+      });
+      var lpt = BaseModule.instantiate('LaunchingPromiseTester');
+      lpt.start().then(function() {
+        done();
+      });
+    });
+  });
+
   suite('BaseModule.instantiate', function() {
     test('Get a new instance if the module is available', function() {
       var InstantiationTester = function() {};

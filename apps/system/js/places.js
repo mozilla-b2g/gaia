@@ -12,7 +12,7 @@
    * Places is the browser history, bookmark and icon management system for
    * B2G. Places monitors app events and syncs information with the Places
    * datastore for consumption by apps like Search.
-   * @requires AppWindowManager
+   * @requires BaseModule
    * @class Places
    */
   function Places() {}
@@ -81,7 +81,7 @@
      * @param {Function} callback
      * @memberof Places.prototype
      */
-    start: function() {
+    _start: function() {
       return new Promise(resolve => {
         window.addEventListener('applocationchange', this);
         window.addEventListener('apptitlechange', this);
