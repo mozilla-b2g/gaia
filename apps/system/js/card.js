@@ -332,19 +332,22 @@
     }
 
     // If we have a cached screenshot, use that first
-    // will be null or blob url
     var cachedLayer = app.requestScreenshotURL();
-    if (app.isActive()) {
+
+    if (cachedLayer && app.isActive()) {
       screenshotView.classList.toggle('fullscreen',
                                       app.isFullScreen());
-      if (app.appChrome) {
-        screenshotView.classList.toggle('maximized',
+      screenshotView.classList.toggle('maximized',
                                       app.appChrome.isMaximized());
-      }
+      screenshotView.style.backgroundImage =
+        'url(' + cachedLayer + '),' +
+        '-moz-element(#' + this.app.instanceID + ')';
+    } else {
+      screenshotView.style.backgroundImage =
+        'url(none),' +
+        '-moz-element(#' + this.app.instanceID + ')';
     }
-    screenshotView.style.backgroundImage =
-      (cachedLayer ? 'url(' + cachedLayer + ')' : 'none' ) + ',' +
-      '-moz-element(#' + this.app.instanceID + ')';
+
   };
 
   Card.prototype._fetchElements = function c__fetchElements() {
