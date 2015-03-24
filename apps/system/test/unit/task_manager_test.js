@@ -53,6 +53,14 @@ function failOnReject(err) {
   assert.isTrue(false, 'Should not reject');
 }
 
+function objectValues(obj) {
+  var values = [];
+  for(var key in obj) {
+    values.push(obj[key]);
+  }
+  return values;
+}
+
 suite('system/TaskManager >', function() {
   var fakeInnerHeight = 200;
 
@@ -93,6 +101,11 @@ suite('system/TaskManager >', function() {
 
   function sendAppTerminated(detail) {
     var evt = new CustomEvent('appterminated', { detail: detail });
+    window.dispatchEvent(evt);
+  }
+
+  function sendAppScreenshotUpdate(detail) {
+    var evt = new CustomEvent('appscreenshotupdate', { detail: detail });
     window.dispatchEvent(evt);
   }
 
@@ -681,7 +694,29 @@ suite('system/TaskManager >', function() {
                       'current card remains unchanged');
       });
 
+      test('appscreenshotupdate events', function() {
+        taskManager.currentCard.needsScreenshot = true;
+        var cards = objectValues(taskManager.cardsByAppID);
+
+        cards.forEach(function(card) {
+          this.sinon.stub(card, 'updateScreenshot');
+        }, this);
+
+        MockStackManager.mStack.forEach(function(app) {
+          sendAppScreenshotUpdate(app);
+        }, this);
+
+        cards.forEach(function(card) {
+          if (card === taskManager.currentCard) {
+            assert.isTrue(card.updateScreenshot.calledOnce);
+          } else {
+            assert.isFalse(card.updateScreenshot.called);
+          }
+        }, this);
+
+      });
     });
+
     suite('when the currently displayed app is out of the stack',
     function() {
       setup(function() {
