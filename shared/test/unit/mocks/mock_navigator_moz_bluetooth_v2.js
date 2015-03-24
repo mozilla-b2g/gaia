@@ -37,7 +37,10 @@
     onhfpstatuschanged: null,
     ona2dpstatuschanged: null,
     addEventListener: mba_addEventListener,
-    removeEventListener: mba_removeEventListener
+    removeEventListener: mba_removeEventListener,
+    confirmReceivingFile: function mba_confirmReceivingFile() {},
+    sendFile: function mba_sendFile() {},
+    stopSendingFile: function mba_stopSendingFile() {}
   };
 
   var mManagerEventListeners = [];

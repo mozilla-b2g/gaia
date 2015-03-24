@@ -15,6 +15,9 @@
     setPairingConfirmation: function mba_setPairingConfirmation() {},
     setPinCode: function mba_setPinCode() {},
     setPasskey: function mba_setPasskey() {},
+    confirmReceivingFile: function mba_confirmReceivingFile() {},
+    sendFile: function mba_sendFile() {},
+    stopSendingFile: function mba_stopSendingFile() {},
 
     onscostatuschanged: null,
     ona2dpstatuschanged: null
