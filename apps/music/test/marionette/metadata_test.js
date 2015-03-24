@@ -5,6 +5,11 @@ var assert = require('assert');
 var Music = require('./lib/music.js');
 var ListviewHelper = require('./lib/listviewhelper.js');
 
+function assertStartsWith(start, actual) {
+  assert.equal(actual.indexOf(start), 0,
+               '"' + actual + '" does not start with "' + start + '"');
+}
+
 marionette('Music player metadata', function() {
   var apps = {};
 
@@ -54,7 +59,6 @@ marionette('Music player metadata', function() {
       ]);
     });
 
-
     test('Check album art is displayed. moztrap:8749', function() {
 
       music.launch();
@@ -69,41 +73,41 @@ marionette('Music player metadata', function() {
       // an "app:" URL is the default placeholder.
       // a "blob:" URL is a blob. Produced from the metadata.
 
-      bg = ListviewHelper.albumArtForListItem(music.listItems[0]);
-      assert.notEqual(bg.indexOf('url("app:'), -1, 'Not a placeholder');
+      bg = ListviewHelper.albumArtForListItem(client, music.listItems[0]);
+      assertStartsWith('url("app:', bg);
 
-      blue = ListviewHelper.albumArtForListItem(music.listItems[1]);
-      assert.notEqual(blue.indexOf('url("blob:'), -1, 'Not a metadata art');
+      blue = ListviewHelper.albumArtForListItem(client, music.listItems[1]);
+      assertStartsWith('url("blob:', blue);
 
-      red = ListviewHelper.albumArtForListItem(music.listItems[2]);
-      assert.notEqual(blue.indexOf('url("blob:'), -1, 'Not a metadata art');
+      red = ListviewHelper.albumArtForListItem(client, music.listItems[2]);
+      assertStartsWith('url("blob:', red);
 
       assert.notEqual(blue, red, 'Red and Blue should be different');
 
       music.switchToAlbumsView();
 
-      bg = ListviewHelper.albumArtForListItem(music.listItems[0]);
-      assert.notEqual(bg.indexOf('url("app:'), -1, 'Not a placeholder');
+      bg = ListviewHelper.albumArtForListItem(client, music.listItems[0]);
+      assertStartsWith('url("app:', bg);
 
-      bg = ListviewHelper.albumArtForListItem(music.listItems[1]);
-      assert.notEqual(bg.indexOf('url("blob:'), -1, 'Not a metadata art');
+      bg = ListviewHelper.albumArtForListItem(client, music.listItems[1]);
+      assertStartsWith('url("blob:', bg);
       assert.equal(bg, blue, 'Is not the blue art');
 
-      bg = ListviewHelper.albumArtForListItem(music.listItems[2]);
-      assert.notEqual(bg.indexOf('url("blob:'), -1, 'Not a metadata art');
+      bg = ListviewHelper.albumArtForListItem(client, music.listItems[2]);
+      assertStartsWith('url("blob:', bg);
       assert.equal(bg, red, 'Is not the red art');
 
       music.switchToSongsView();
 
-      bg = ListviewHelper.albumArtForListItem(music.listItems[0]);
-      assert.notEqual(bg.indexOf('url("blob:'), -1, 'Not a metadata art');
+      bg = ListviewHelper.albumArtForListItem(client, music.listItems[0]);
+      assertStartsWith('url("blob:', bg);
       assert.equal(bg, blue, 'Is not the blue art');
 
-      bg = ListviewHelper.albumArtForListItem(music.listItems[1]);
-      assert.notEqual(bg.indexOf('url("app:'), -1, 'Not a placeholder');
+      bg = ListviewHelper.albumArtForListItem(client, music.listItems[1]);
+      assertStartsWith('url("app:', bg);
 
-      bg = ListviewHelper.albumArtForListItem(music.listItems[2]);
-      assert.notEqual(bg.indexOf('url("blob:'), -1, 'Not a metadata art');
+      bg = ListviewHelper.albumArtForListItem(client, music.listItems[2]);
+      assertStartsWith('url("blob:', bg);
       assert.equal(bg, red, 'Is not the red art');
     });
 

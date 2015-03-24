@@ -1,5 +1,5 @@
 /* exported formatTime, createListElement */
-/* global Normalizer, AlbumArtCache */
+/* global AlbumArtCache, LazyLoader, Normalizer */
 'use strict';
 
 function formatTime(secs) {
@@ -95,8 +95,10 @@ function createListElement(option, data, index, highlight) {
       // Use background image instead of creating img elements can reduce
       // the amount of total elements in the DOM tree, it can save memory
       // and gecko can render the elements faster as well.
-      AlbumArtCache.getCoverURL(data).then(function(url) {
-        li.style.backgroundImage = 'url(' + url + ')';
+      LazyLoader.load('js/metadata/album_art_cache.js', function() {
+        AlbumArtCache.getCoverURL(data).then(function(url) {
+          li.style.backgroundImage = 'url(' + url + ')';
+        });
       });
 
       if (option === 'artist') {

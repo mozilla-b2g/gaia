@@ -1,6 +1,6 @@
 /* exported musicdb, initDB */
 /* global AlbumArt, App, AudioMetadata, LazyLoader, MediaDB, ModeManager,
-   MODE_TILES, MusicComms, PlayerView, TabBar, TilesView, TitleBar */
+   MODE_TILES, PlayerView, TabBar, TilesView, TitleBar */
 'use strict';
 
 // The MediaDB object that manages the filesystem and the database of metadata
@@ -113,64 +113,29 @@ function initDB() {
   }
 
   musicdb.onenumerable = startupOnEnumerable;
+  // Don't refresh the UI on the first onready event, since onenumerable will
+  // have already handled the refresh.
+  var refreshOnReady = false;
 
   function startupOnEnumerable() {
-    // If we've been upgrading, hide that now
-    if (App.currentOverlay === 'upgrade') {
-      App.showOverlay(null);
-    }
-
-    // Display music that we already know about
-    App.showCurrentView(function() {
+    App.dbEnumerable(function() {
       reparsingMetadata = false;
-      // Hide the  spinner once we've displayed the initial screen
-      document.getElementById('spinner-overlay').classList.add('hidden');
-
-      // Only init the communication when music is not in picker mode.
-      if (document.URL.indexOf('#pick') === -1) {
-        // We need to wait to init the music comms until the UI is fully loaded
-        // because the init of music comms could slow down the startup time.
-        MusicComms.init();
-      }
-
       if (musicdb.state === MediaDB.READY) {
-        startupOnReady();
-      }
-      else {
-        musicdb.onready = startupOnReady;
+        onReady();
+      } else {
+        musicdb.onready = onReady;
       }
     });
   }
 
-  // This function gets called when we're first launched, after
-  // startupOnEnumerable has run and when or after the mediadb has
-  // reached the ready state.
-  function startupOnReady() {
-    // Hide the nocard or pluggedin overlay if it is displayed
-    if (App.currentOverlay === 'nocard' || App.currentOverlay === 'pluggedin') {
-      App.showOverlay(null);
-    }
-
-    // Start scanning for new music
-    musicdb.scan();
-
-    // Now we need to set up a new onready event handler that will handle
-    // any subsequent ready events we get. (If the user mounts and unmounts
-    // usb mass storage, for example.)
-    musicdb.onready = postStartupOnReady;
-  }
-
-  function postStartupOnReady() {
-    // Hide the nocard or pluggedin overlay if it is displayed
-    if (App.currentOverlay === 'nocard' || App.currentOverlay === 'pluggedin') {
-      App.showOverlay(null);
-    }
-
-    // Display music that we already know about
-    App.showCurrentView(function() {
+  function onReady() {
+    App.dbReady(refreshOnReady, function() {
       // Start scanning for new music
       musicdb.scan();
     });
+
+    // Subsequent onready events need to refresh the UI.
+    refreshOnReady = true;
   }
 
   var filesDeletedWhileScanning = 0;
@@ -199,7 +164,7 @@ function initDB() {
       filesFoundWhileScanning = 0;
       filesFoundBatch = 0;
       filesDeletedWhileScanning = 0;
-      App.showCurrentView();
+      App.refreshViews();
     }
 
     // If this was the first scan after startup, tell the performance monitors
@@ -231,7 +196,7 @@ function initDB() {
 
       if (filesFoundBatch > SCAN_UPDATE_BATCH_SIZE) {
         filesFoundBatch = 0;
-        App.showCurrentView();
+        App.refreshViews();
       }
     }
     else {
@@ -239,7 +204,7 @@ function initDB() {
       // there was probably a new song saved via bluetooth or MMS.
       // We don't have any way to be clever about it; we just have to
       // redisplay the entire view
-      App.showCurrentView();
+      App.refreshViews();
     }
   };
 
@@ -263,7 +228,7 @@ function initDB() {
       }
       deleteTimer = setTimeout(function() {
         deleteTimer = null;
-        App.showCurrentView();    // Redisplay the UI
+        App.refreshViews();
       }, DELETE_BATCH_TIMEOUT);
     }
   };
