@@ -108,7 +108,7 @@
         ]);
       }).then(function() {
         this.remoteDebugger = new RemoteDebugger();
-        this.remoteDebugger.start();
+        // this.remoteDebugger.start();
       }.bind(this));
     },
 

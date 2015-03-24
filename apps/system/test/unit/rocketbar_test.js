@@ -49,7 +49,7 @@ suite('system/Rocketbar', function() {
     stubById.restore();
     MockIACPort.mTearDown();
     subject._port = null;
-    MockService.currentApp = null;
+    MockService.mTopMostWindow = null;
   });
 
   suite('Hierarchy functions', function() {
@@ -469,7 +469,7 @@ suite('system/Rocketbar', function() {
       isBrowser: function() {},
       isActive: function() { return true; }
     };
-    MockService.currentApp = activeApp;
+    MockService.mTopMostWindow = activeApp;
     this.sinon.stub(activeApp, 'isBrowser').returns(true);
     var setInputStub = this.sinon.stub(subject, 'setInput');
     var activateStub = this.sinon.stub(subject, 'activate')
@@ -486,7 +486,7 @@ suite('system/Rocketbar', function() {
       isBrowser: function() {},
       isActive: function() { return false; }
     };
-    MockService.currentApp = activeApp;
+    MockService.mTopMostWindow = activeApp;
     this.sinon.stub(activeApp, 'isBrowser').returns(true);
     var setInputStub = this.sinon.stub(subject, 'setInput');
     var activateStub = this.sinon.stub(subject, 'activate');
@@ -509,7 +509,7 @@ suite('system/Rocketbar', function() {
       },
       isActive: function() { return true; }
     };
-    MockService.currentApp = activeApp;
+    MockService.mTopMostWindow = activeApp;
     var maximize = this.sinon.spy(activeApp.appChrome, 'maximize');
     var resolved = Promise.resolve();
     this.sinon.stub(subject, 'activate', function() {
@@ -551,7 +551,7 @@ suite('system/Rocketbar', function() {
       },
       isActive: function() { return true; }
     };
-    MockService.currentApp = activeApp;
+    MockService.mTopMostWindow = activeApp;
 
     var maximize = this.sinon.spy(activeApp.appChrome, 'maximize');
     var resolved = Promise.resolve();
@@ -583,7 +583,7 @@ suite('system/Rocketbar', function() {
       },
       isActive: function() { return true; }
     };
-    MockService.currentApp = activeApp;
+    MockService.mTopMostWindow = activeApp;
     this.sinon.stub(activeApp, 'isBrowser').returns(true);
     var setInputStub = this.sinon.stub(subject, 'setInput');
     var event = {type: 'global-search-request'};
@@ -680,7 +680,7 @@ suite('system/Rocketbar', function() {
   });
 
   test('handleInput()', function() {
-    MockService.currentApp = {
+    MockService.mTopMostWindow = {
       isPrivateBrowser: function() {
         return false;
       }
@@ -706,7 +706,7 @@ suite('system/Rocketbar', function() {
   });
 
   test('handleSubmit()', function(done) {
-    MockService.currentApp = {
+    MockService.mTopMostWindow = {
       isPrivateBrowser: function() {
         return false;
       }
@@ -771,7 +771,7 @@ suite('system/Rocketbar', function() {
   });
 
   test('handleSearchMessage()', function() {
-    MockService.currentApp = {
+    MockService.mTopMostWindow = {
       isPrivateBrowser: function() {
         return false;
       }

@@ -1,17 +1,13 @@
 /* global MockStackManager, MockNavigatorSettings, MockService,
-          TaskManager, Card, AppWindow, HomescreenLauncher,
-          HomescreenWindow, MocksHelper, MockL10n, MockOrientationManager,
-          MockLayoutManager, layoutManager */
+          TaskManager, Card, AppWindow,
+          HomescreenWindow, MocksHelper, MockL10n */
 
 'use strict';
 
 requireApp('system/test/unit/mock_app_window.js');
-requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_stack_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
-requireApp('system/test/unit/mock_orientation_manager.js');
-requireApp('system/test/unit/mock_layout_manager.js');
 
 require('/shared/js/event_safety.js');
 require('/shared/js/tagged.js');
@@ -20,13 +16,10 @@ require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
 var mocksForTaskManager = new MocksHelper([
-  'HomescreenLauncher',
   'StackManager',
   'HomescreenWindow',
   'AppWindow',
-  'Service',
-  'OrientationManager',
-  'LayoutManager'
+  'Service'
 ]).init();
 
 function waitForEvent(target, name, timeout) {
@@ -328,16 +321,7 @@ suite('system/TaskManager >', function() {
     navigator.mozL10n = MockL10n;
 
     home = new HomescreenWindow('fakeHome');
-    var homescreenLauncher = new HomescreenLauncher();
-    window.homescreenLauncher = homescreenLauncher;
-    window.homescreenLauncher.start();
-    homescreenLauncher.mFeedFixtures({
-      mHomescreenWindow: home,
-      mOrigin: 'fakeOrigin',
-      mReady: true
-    });
-    window.layoutManager = new MockLayoutManager();
-
+    MockService.mHomescreen = home;
     requireApp('system/js/cards_helper.js');
     requireApp('system/js/base_ui.js');
     requireApp('system/js/card.js');
@@ -362,6 +346,7 @@ suite('system/TaskManager >', function() {
   // The whole suite should use fakeTimers to prevent intemittents
   // since the code logic is timer-heavy
   setup(function() {
+    MockService.mHomescreen = home;
     this.sinon.useFakeTimers();
   });
 
@@ -738,7 +723,7 @@ suite('system/TaskManager >', function() {
     suite('display cardsview via holdhome > when the keyboard is displayed',
     function() {
       setup(function(done) {
-        layoutManager.keyboardEnabled = true;
+        MockService.mKeyboardEnabled = true;
         assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
         waitForEvent(window, 'cardviewshown')
           .then(function() { done(); }, failOnReject);
@@ -754,7 +739,7 @@ suite('system/TaskManager >', function() {
       });
 
       teardown(function() {
-        layoutManager.keyboardEnabled = false;
+        MockService.mKeyboardEnabled = false;
       });
 
       test('cardsview should be active', function() {
@@ -1105,7 +1090,8 @@ suite('system/TaskManager >', function() {
 
     suite('when opening from the homescreen', function() {
       setup(function() {
-        MockService.mActiveApp  = home;
+        MockService.mHomescreen = home;
+        MockService.mActiveApp = home;
         MockStackManager.mCurrent = -1;
         showTaskManager(this.sinon.clock);
       });
@@ -1131,6 +1117,7 @@ suite('system/TaskManager >', function() {
         }, failOnReject)
         .then(function() { done(); }, done);
 
+        MockService.mHomescreen = home;
         var event = new CustomEvent('home');
         taskManager.respondToHierarchyEvent(event);
         fakeFinish(this.sinon.clock, home);
@@ -1305,14 +1292,12 @@ suite('system/TaskManager >', function() {
   suite('orientation', function() {
     var app;
     setup(function() {
-      app = MockService.currentApp = apps['http://sms.gaiamobile.org'];
+      app = MockService.mActiveApp = apps['http://sms.gaiamobile.org'];
       MockStackManager.mCurrent = 0;
     });
 
     test('lock orientation when showing', function() {
-      var orientation = MockOrientationManager.defaultOrientation || (
-        MockOrientationManager.defaultOrientation = 'portrait-primary'
-      );
+      var orientation = MockService.mDefaultOrientation;
       this.sinon.stub(screen, 'mozLockOrientation');
       showTaskManager(this.sinon.clock);
       assert.isTrue(screen.mozLockOrientation.calledWith(orientation));
@@ -1320,7 +1305,7 @@ suite('system/TaskManager >', function() {
 
     suite('when the orientation need to change', function() {
       setup(function() {
-        MockOrientationManager.mCurrentOrientation = 'landscape-primary';
+        MockService.mCurrentOrientation = 'landscape-primary';
       });
 
       test('should wait for a resize', function() {
@@ -1332,5 +1317,4 @@ suite('system/TaskManager >', function() {
       });
     });
   });
-
 });

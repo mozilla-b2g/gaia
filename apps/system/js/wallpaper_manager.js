@@ -349,9 +349,9 @@
       // Create a new blob:// url for this blob
       this._blobURL = URL.createObjectURL(blob);
 
-    //  document.getElementById('screen').style.backgroundImage =
-    //    'linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)),' +
-    //    'url(' + this._blobURL + ')';
+      document.getElementById('screen').style.backgroundImage =
+        'linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)),' +
+        'url(' + this._blobURL + ')';
 
       // And tell the system about it.
       var evt = new CustomEvent('wallpaperchange', {

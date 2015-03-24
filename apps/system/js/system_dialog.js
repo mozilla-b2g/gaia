@@ -76,7 +76,7 @@
     function sd_installSubComponents() {
       this.debug('installing sub components...');
       for (var componentName in this.SUB_COMPONENTS) {
-        if (this.SUB_COMPONENTS[componentName]) {
+        if (window[this.SUB_COMPONENTS[componentName]]) {
           this[componentName] =
             new window[this.SUB_COMPONENTS[componentName]](this);
         }

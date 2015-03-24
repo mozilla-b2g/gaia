@@ -459,7 +459,6 @@
       app = this.stack ? this.stack[this.position] :
                          Service.query('getHomescreen', true);
     }
-
     // to know if position has changed we need index into original stack,
     var position = this.unfilteredStack ? this.unfilteredStack.indexOf(app) :
                                           -1;
@@ -563,7 +562,7 @@
         return;
       }
 
-      var app = Service.currentApp;
+      var app = Service.query('AppWindowManager.ActiveApp');
       if (app && !app.isHomescreen) {
         app.getScreenshot(function onGettingRealtimeScreenshot() {
           this.show(filter);

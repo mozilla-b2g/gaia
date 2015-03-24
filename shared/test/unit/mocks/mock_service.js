@@ -35,6 +35,7 @@ var MockService = {
     this.mIsUpgrade = false;
     this.mCurrentApp = null;
     this.mActiveAttention = null;
+    this.mDataIcon = null;
   },
   lowerCapital: function() {
     return 'a';
@@ -49,6 +50,8 @@ var MockService = {
   },
   query: function(state) {
     switch (state) {
+      case 'dataIcon':
+        return this.mDataIcon;
       case 'AttentionWindowManager.hasActiveWindow':
         return this.mActiveAttention;
       case 'isUpgrade':
@@ -87,9 +90,9 @@ var MockService = {
       case 'LayoutManager.getHeightFor':
         return this.mLayoutManager_height -
           (arguments[2] ? 0 : this.mKeyboardHeight);
-      case 'SoftwareButtonMnager.height':
+      case 'SoftwareButtonManager.height':
         return this.mSoftwareButtonManager_height;
-      case 'SoftwareButtonMnager.width':
+      case 'SoftwareButtonManager.width':
         return this.mSoftwareButtonManager_width;
       case 'InputWindowManager.height':
         return this.mInputWindowManager_getHeight;

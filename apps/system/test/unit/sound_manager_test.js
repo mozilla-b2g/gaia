@@ -5,7 +5,7 @@
           MockCustomDialog, MockLazyLoader, MockService */
 
 requireApp('system/shared/test/unit/mocks/mock_service.js');
-requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
@@ -54,6 +54,15 @@ suite('system/sound manager', function() {
   }
 
   setup(function() {
+    this.sinon.stub(MockService, 'request', function(action) {
+      if (action === 'showCustomDialog') {
+        MockCustomDialog.show(arguments[1], arguments[2],
+          arguments[3], arguments[4]);
+      } else {
+        MockCustomDialog.hide(arguments[1], arguments[2],
+          arguments[3], arguments[4]);
+      }
+    });
     MockLazyLoader.mLoadRightAway = true;
     this.sinon.spy(MockLazyLoader, 'load');
     soundManager = new SoundManager();

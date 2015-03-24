@@ -524,7 +524,7 @@
         this._port.postMessage({
           action: 'change',
           input: input,
-          isPrivateBrowser: Service.currentApp.isPrivateBrowser()
+          isPrivateBrowser: Service.query('getTopMostWindow').isPrivateBrowser()
         });
       }
     },

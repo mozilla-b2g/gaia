@@ -65,20 +65,8 @@
       this.getAllElements();
       this.monitorDataChange();
 
-      (function initNetworkSprite() {
-        Service.request('SettingsCore:get',
-          'operatorResources.data.icon').then(
-          function gotNS(networkTypeValues) {
-            if (!networkTypeValues) {
-              return;
-            }
-            var sprite = networkTypeValues.data_sprite;
-            if (sprite) {
-              document.getElementById('quick-settings-data')
-                .style.backgroundImage = 'url("' + sprite + '")';
-            }
-          });
-      })();
+      window.addEventListener('radiodataiconchanged', this);
+      this._handle_radiodataiconchanged();
 
       this.overlay.addEventListener('click', this);
       window.addEventListener('utilitytrayshow', this);
@@ -87,6 +75,18 @@
       this.monitorWifiChange();
       this.monitorGeoChange();
       this.monitorAirplaneModeChange();
+    },
+
+    _handle_radiodataiconchanged: function() {
+      var networkTypeValues = Service.query('dataIcon');
+      if (!networkTypeValues) {
+        return;
+      }
+      var sprite = networkTypeValues.data_sprite;
+      if (sprite) {
+        document.getElementById('quick-settings-data')
+                .style.backgroundImage = 'url("' + sprite + '")';
+      }
     },
 
     /**
@@ -287,6 +287,9 @@
       evt.preventDefault();
       var enabled = false;
       switch (evt.type) {
+        case 'radiodataiconchanged':
+          this._handle_radiodataiconchanged();
+          break;
         case 'click':
           switch (evt.target) {
             case this.wifi:
