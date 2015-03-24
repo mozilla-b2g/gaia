@@ -38,7 +38,7 @@ suite('search/providers/providers', function() {
             operation: 'add',
             data: {
               url: 'http://mozilla.org',
-              name: 'homepage',
+              name: 'Homepage',
               icon: ICON
             }
           });
@@ -66,7 +66,7 @@ suite('search/providers/providers', function() {
     test('renders data url', function(done) {
       subject.search('mozilla').then((results) => {
         assert.equal(results[0].data.detail.url, 'http://mozilla.org');
-        assert.equal(results[0].data.detail.name, 'homepage');
+        assert.equal(results[0].data.detail.name, 'Homepage');
         assert.equal(results[0].data.detail.id, 'http://mozilla.org');
         assert.equal(results[0].data.detail.icon, ICON);
         done();
@@ -75,7 +75,7 @@ suite('search/providers/providers', function() {
 
     test('search name', function(done) {
       subject.search('homepage').then((results) => {
-        assert.equal(results[0].data.detail.name, 'homepage');
+        assert.equal(results[0].data.detail.name, 'Homepage');
         done();
       });
     });
@@ -85,7 +85,7 @@ suite('search/providers/providers', function() {
     test('ok', function() {
       var bookmark = subject.get('http://mozilla.org');
       assert.equal(bookmark.data.detail.url, 'http://mozilla.org');
-      assert.equal(bookmark.data.detail.name, 'homepage');
+      assert.equal(bookmark.data.detail.name, 'Homepage');
       assert.equal(bookmark.data.detail.id, 'http://mozilla.org');
       assert.equal(bookmark.data.detail.icon, ICON);
     });
