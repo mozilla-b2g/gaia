@@ -21,6 +21,15 @@ navigator.mozSetMessageHandler('activity', function(activity) {
     return toneTypes.indexOf(x) === -1;
   });
 
+  // System app will keep the inline activity window in the background, so here
+  // we have to stop and close ourself to prevent the unwanted ux.
+  window.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      tonePlayer.stop();
+      activity.postError('cancelled');
+    }
+  });
+
   document.getElementById('header').addEventListener('action', function() {
     tonePlayer.stop();
     activity.postError('cancelled');
