@@ -13,10 +13,6 @@ var TilesView = {
     return document.getElementById('views-tiles-anchor');
   },
 
-  get searchBox() {
-    return document.getElementById('views-tiles-search');
-  },
-
   get searchInput() {
     return document.getElementById('views-tiles-search-input');
   },
@@ -45,13 +41,15 @@ var TilesView = {
     this.dataSource = [];
     this.index = 0;
     this.anchor.innerHTML = '';
+
+    // Don't reset the scroll position here, since we want to persist it
+    // every time the view is updated!
   },
 
   hideSearch: function tv_hideSearch() {
     this.searchInput.value = '';
-    // XXX: we probably want to animate this...
-    if (this.view.scrollTop < this.searchBox.offsetHeight) {
-      this.view.scrollTop = this.searchBox.offsetHeight;
+    if (this.view.scrollTop < this.anchor.offsetTop) {
+      this.anchor.scrollIntoView({behavior: 'smooth'});
     }
   },
 
