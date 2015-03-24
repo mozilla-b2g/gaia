@@ -28,7 +28,7 @@ SystemApp.prototype = {
     var actionMenu = null,
         displayed = false;
     this.client.switchToFrame();
-    actionMenu = this.findElement('actionMenu');
+    actionMenu = this.waitForElement('actionMenu');
     displayed = actionMenu && actionMenu.displayed();
     // Go back to settings app.
     this.launch();
@@ -39,7 +39,7 @@ SystemApp.prototype = {
     var valueSelector = null,
         displayed = false;
     this.client.switchToFrame();
-    valueSelector = this.findElement('valueSelector');
+    valueSelector = this.waitForElement('valueSelector');
     displayed = valueSelector && valueSelector.displayed();
     // Go back to settings app.
     this.launch();
