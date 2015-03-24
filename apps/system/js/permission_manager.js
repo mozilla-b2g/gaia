@@ -26,7 +26,8 @@
     isCamSelector: false,
     responseStatus: undefined,
     /**
-     * A queue of pending requests.
+     * A queue of pending requests. Callers of requestPermission() must be
+     * careful not to create an infinite loop!
      */
     pending: [],
 
@@ -102,42 +103,6 @@
     },
 
     /**
-     * Request all strings to show
-     * @memberof PermissionManager.prototype
-     */
-    getStrings: function getStrings(detail) {
-      var permissionID = 'perm-' + this.permissionType.replace(':', '-');
-      var app = applications.getByManifestURL(detail.manifestURL);
-      var _ = navigator.mozL10n.get;
-
-      var message = '';
-      if (detail.isApp) {
-        var appName = new ManifestHelper(app.manifest).name;
-        message =
-          _(
-            permissionID + '-appRequest',
-            {
-              'app': appName
-            }
-          );
-      } else {
-        message =
-          _(
-            permissionID + '-webRequest',
-            {
-              'site': detail.origin
-            }
-          );
-      }
-
-      var moreInfoText = _(permissionID + '-more-info') || null;
-      return {
-        message : message,
-        moreInfoText: moreInfoText
-      };
-    },
-
-    /**
      * stop the PermissionManager to reset variables and listeners
      * @memberof PermissionManager.prototype
      */
@@ -186,7 +151,6 @@
      * @memberof PermissionManager.prototype
      */
     cleanDialog: function pm_cleanDialog() {
-      delete this.overlay.dataset.type;
       this.permissionType = undefined;
       this.currentPermissions = undefined;
       this.currentChoices = {};
@@ -210,14 +174,6 @@
     },
 
     /**
-     * Queue or show the permission prompt
-     * @memberof PermissionManager.prototype
-     */
-    queuePrompt: function(detail) {
-      this.pending.push(detail);
-    },
-
-    /**
      * Event handler interface for mozChromeEvent.
      * @memberof PermissionManager.prototype
      * @param {DOMEvent} evt The event.
@@ -226,10 +182,70 @@
       var detail = evt.detail;
       switch (detail.type) {
         case 'permission-prompt':
-          if (!!this.currentRequestId) {
-            this.queuePrompt(detail);
-            return;
+          this.cleanDialog();
+          this.currentOrigin = detail.origin;
+
+          if (detail.permissions) {
+            if ('video-capture' in detail.permissions) {
+              this.isVideo = true;
+              LazyLoader.load('shared/js/template.js');
+
+              // video selector is only for app
+              if (detail.isApp && detail.isGranted &&
+                detail.permissions['video-capture'].length > 1) {
+                this.isCamSelector = true;
+              }
+            }
+            if ('audio-capture' in detail.permissions) {
+              this.isAudio = true;
+            }
+          } else { // work in <1.4 compatible mode
+            if (detail.permission) {
+              this.permissionType = detail.permission;
+              if ('video-capture' === detail.permission) {
+                this.isVideo = true;
+
+                LazyLoader.load('shared/js/template.js');
+              }
+              if ('audio-capture' === detail.permission) {
+                this.isAudio = true;
+              }
+            }
           }
+
+          // Set default permission
+          if (this.isVideo && this.isAudio) {
+            this.permissionType = 'media-capture';
+          } else {
+            for (var permission in detail.permissions) {
+              if (detail.permissions.hasOwnProperty(permission)) {
+                this.permissionType = permission;
+              }
+            }
+          }
+          this.overlay.dataset.type = this.permissionType;
+
+          if (this.isAudio || this.isVideo) {
+            if (!detail.isApp) {
+              // Not show remember my choice option in website
+              this.rememberSection.style.display = 'none';
+            } else {
+              this.rememberSection.style.display = 'block';
+            }
+
+            // Set default options
+            this.currentPermissions = detail.permissions;
+            for (var permission2 in detail.permissions) {
+              if (detail.permissions.hasOwnProperty(permission2)) {
+                // gecko might not support audio/video option
+                if (detail.permissions[permission2].length > 0) {
+                  this.currentChoices[permission2] =
+                    detail.permissions[permission2][0];
+                }
+              }
+            }
+          }
+
           this.handlePermissionPrompt(detail);
           break;
         case 'cancel-permission-prompt':
@@ -303,16 +319,17 @@
         this.fullscreenRequest = undefined;
       }
       if (detail.fullscreenorigin !== Service.currentApp.origin) {
-        this.fullscreenRequest = 'fullscreen';
-        // Overwrite the id
-        detail.id = 'fullscreen';
-        this.showPermissionPrompt(
-          detail,
-          null,
-          function() {
-            document.mozCancelFullScreen();
-          }
-        );
+        var _ = navigator.mozL10n.get;
+        // The message to be displayed on the approval UI.
+        var message =
+          _('fullscreen-request', { 'origin': detail.fullscreenorigin });
+        this.fullscreenRequest =
+          this.requestPermission('fullscreen', detail.origin, detail.permission,
+                                 message, '',
+                                              /* yesCallback */ null,
+                                              /* noCallback */ function() {
+                                                document.mozCancelFullScreen();
+                                              });
       }
     },
 
@@ -322,72 +339,6 @@
      * @param {Object} detail The event detail object.
      */
     handlePermissionPrompt: function pm_handlePermissionPrompt(detail) {
-      // Clean dialog if was rendered before
-      this.cleanDialog();
-      this.currentOrigin = detail.origin;
-      this.currentRequestId = detail.id;
-
-      if (detail.permissions) {
-        if ('video-capture' in detail.permissions) {
-          this.isVideo = true;
-          LazyLoader.load('shared/js/template.js');
-
-          // video selector is only for app
-          if (detail.isApp && detail.isGranted &&
-            detail.permissions['video-capture'].length > 1) {
-            this.isCamSelector = true;
-          }
-        }
-        if ('audio-capture' in detail.permissions) {
-          this.isAudio = true;
-        }
-      } else { // work in <1.4 compatible mode
-        if (detail.permission) {
-          this.permissionType = detail.permission;
-          if ('video-capture' === detail.permission) {
-            this.isVideo = true;
-
-            LazyLoader.load('shared/js/template.js');
-          }
-          if ('audio-capture' === detail.permission) {
-            this.isAudio = true;
-          }
-        }
-      }
-
-      // Set default permission
-      if (this.isVideo && this.isAudio) {
-        this.permissionType = 'media-capture';
-      } else {
-        if (detail.permission) {
-          this.permissionType = detail.permission;
-        } else if (detail.permissions) {
-          this.permissionType = Object.keys(detail.permissions)[0];
-        }
-      }
-      this.overlay.dataset.type = this.permissionType;
-
-      if (this.isAudio || this.isVideo) {
-        if (!detail.isApp) {
-          // Not show remember my choice option in website
-          this.rememberSection.style.display = 'none';
-        } else {
-          this.rememberSection.style.display = 'block';
-        }
-
-        // Set default options
-        this.currentPermissions = detail.permissions;
-        for (var permission2 in detail.permissions) {
-          if (detail.permissions.hasOwnProperty(permission2)) {
-            // gecko might not support audio/video option
-            if (detail.permissions[permission2].length > 0) {
-              this.currentChoices[permission2] =
-                detail.permissions[permission2][0];
-            }
-          }
-        }
-      }
-
       if ((this.isAudio || this.isVideo) && !detail.isApp &&
         !this.isCamSelector) {
         // gUM always not remember in web mode
@@ -396,8 +347,14 @@
         this.remember.checked = detail.remember ? true : false;
       }
 
+      var message = '';
+      var permissionID = 'perm-' + this.permissionType.replace(':', '-');
+      var _ = navigator.mozL10n.get;
+
       if (detail.isApp) { // App
         var app = applications.getByManifestURL(detail.manifestURL);
+        message = _(permissionID + '-appRequest',
+          { 'app': new ManifestHelper(app.manifest).name });
 
         if (this.isCamSelector) {
           this.title.setAttribute('data-l10n-id', 'title-cam');
@@ -410,6 +367,8 @@
           { 'app': new ManifestHelper(app.manifest).name }
         );
       } else { // Web content
+        message = _(permissionID + '-webRequest', { 'site': detail.origin });
+
         this.title.setAttribute('data-l10n-id', 'title-web');
         navigator.mozL10n.setAttributes(
           this.deviceSelector,
@@ -418,25 +377,18 @@
         );
       }
 
+      var moreInfoText = _(permissionID + '-more-info');
       var self = this;
-
-      this.showPermissionPrompt(
-        detail,
+      this.requestPermission(detail.id, detail.origin, this.permissionType,
+        message, moreInfoText,
         function pm_permYesCB() {
-          self.dispatchResponse(
-            detail.id,
-            'permission-allow',
-            self.remember.checked
-          );
+          self.dispatchResponse(detail.id, 'permission-allow',
+            self.remember.checked);
         },
         function pm_permNoCB() {
-          self.dispatchResponse(
-            detail.id,
-            'permission-deny',
-            self.remember.checked
-          );
-        }
-      );
+          self.dispatchResponse(detail.id, 'permission-deny',
+            self.remember.checked);
+      });
     },
     /**
      * Send permission choice to gecko
@@ -504,18 +456,22 @@
       if (this.pending.length === 0) {
         return;
       }
-
       var request = this.pending.shift();
-
-      if ((this.currentOrigin === request.origin) &&
-        (this.permissionType === Object.keys(request.permissions)[0])) {
-        this.dispatchResponse(request.id, this.responseStatus,
+      // bug 907075 Dismiss continuous same permission request but
+      // dispatch mozContentEvent as well if remember is checked
+      if (this.remember.checked) {
+        if ((this.currentOrigin === request.origin) &&
+          (this.permissionType === request.permission)) {
+          this.dispatchResponse(request.id, this.responseStatus,
             this.remember.checked);
-        this.showNextPendingRequest();
-        return;
+          return;
+        }
       }
-
-      this.handlePermissionPrompt(request);
+      this.showPermissionPrompt(request.id,
+                           request.message,
+                           request.moreInfoText,
+                           request.yescallback,
+                           request.nocallback);
     },
 
     /**
@@ -548,6 +504,32 @@
       this.moreInfoLink.classList.toggle('hidden');
       this.hideInfoLink.classList.toggle('hidden');
       this.moreInfoBox.classList.toggle('hidden');
+    },
+
+    /**
+     * Queue or show the permission prompt
+     * @memberof PermissionManager.prototype
+     */
+    requestPermission: function pm_requestPermission(id, origin, permission,
+                                     msg, moreInfoText,
+                                     yescallback, nocallback) {
+      if (this.currentRequestId !== undefined) {
+        // There is already a permission request being shown, queue this one.
+        this.pending.push({
+          id: id,
+          permission: permission,
+          message: msg,
+          origin: origin,
+          moreInfoText: moreInfoText,
+          yescallback: yescallback,
+          nocallback: nocallback
+        });
+        return id;
+      }
+      this.showPermissionPrompt(id, msg, moreInfoText,
+        yescallback, nocallback);
+
+      return id;
     },
 
     /**
@@ -589,24 +571,21 @@
      * Put the message in the dialog.
      * @memberof PermissionManager.prototype
      */
-    showPermissionPrompt:
-      function pm_showPermissionPrompt(detail, yescallback, nocallback) {
+    showPermissionPrompt: function pm_showPermissionPrompt(
+          id, msg, moreInfoText, yescallback, nocallback) {
       // Note plain text since this may include text from
       // untrusted app manifests, for example.
-      var text = this.getStrings(detail);
-      this.message.textContent = text.message;
-      if (text.moreInfoText &&
-          text.moreInfoText &&
-          text.moreInfoText.length > 0) {
+      this.message.textContent = msg;
+      if (moreInfoText) {
         // Show the "More info… " link.
         this.moreInfo.classList.remove('hidden');
         this.moreInfoHandler = this.clickHandler.bind(this);
         this.hideInfoHandler = this.clickHandler.bind(this);
         this.moreInfoLink.addEventListener('click', this.moreInfoHandler);
         this.hideInfoLink.addEventListener('click', this.hideInfoHandler);
-        this.moreInfoBox.textContent = text.moreInfoText;
+        this.moreInfoBox.textContent = moreInfoText;
       }
-      this.currentRequestId = detail.id;
+      this.currentRequestId = id;
 
       // Not show the list if there's only 1 option
       if (this.isVideo && this.currentPermissions['video-capture'].length > 1) {
