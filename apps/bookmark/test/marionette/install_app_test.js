@@ -31,7 +31,7 @@ marionette('Bookmark -', function() {
     var url = server.url('app.html');
 
     client.switchToFrame();
-    bookmark.openAndInstall(url, 'My App Shortname');
+    bookmark.openAndInstall(url, 'My App Shortname', '/favicon.ico');
 
   });
 

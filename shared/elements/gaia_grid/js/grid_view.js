@@ -399,6 +399,9 @@
           // We must de-reference element explicitly so we can re-use item
           // objects the next time we call render.
           item.element = null;
+          item.lastX = null;
+          item.lastY = null;
+          item.lastScale = null;
         }
       }
       this.items = [];

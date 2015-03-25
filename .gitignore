@@ -1,5 +1,6 @@
 .DS_Store
 *.rej
+*.log
 *.orig
 *.swp
 *.swn

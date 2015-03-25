@@ -1,11 +1,9 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* global SettingsListener, SystemBanner */
+/* exported CrashReporter */
 'use strict';
 
 // This file calls getElementById without waiting for an onload event, so it
 // must have a defer attribute or be included at the end of the <body>.
-
 var CrashReporter = (function() {
   var _ = navigator.mozL10n.get;
   var settings = navigator.mozSettings;

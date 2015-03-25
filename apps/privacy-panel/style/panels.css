@@ -123,6 +123,18 @@ section[data-geolocation="true"][data-ala="true"][data-type="user-defined"] .typ
   opacity: 1;
 }
 
+/* Only links below should be shown */
+#tc-permList ul li > *,
+#tc-permList ul li > label > *,
+#tc-permList ul li > a > *,
+#tc-permDetails ul li > *,
+#tc-permDetails ul li > label > *,
+#tc-permDetails ul li > a > * {
+  text-overflow: clip;
+  overflow: visible;
+  white-space: normal;
+}
+
 .panel-link {
   padding-left: 30px;
 }
@@ -276,6 +288,10 @@ section[role="region"] > div.gt-box {
   position: absolute;
   top: 0;
   width: 100%;
+}
+
+html[dir=rtl] .gt-pager {
+  transform: scaleX(-1);
 }
 
 .gt-pager.page-2 {

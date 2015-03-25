@@ -24,18 +24,9 @@ function SoundsController(app) {
   var list = app.settings.sounds.get('list');
   this.sounds = new Sounds(list);
   this.app = app;
-  this.configure();
   this.bindEvents();
   debug('initialized');
 }
-
-SoundsController.prototype.configure = function() {
-  // Tell audio channel manager that we want to adjust the notification
-  // channel if the user press the volumeup/volumedown buttons in Camera.
-  if (navigator.mozAudioChannelManager) {
-    navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
-  }
-};
 
 SoundsController.prototype.bindEvents = function() {
   this.app.on('change:recording', this.onRecordingChange.bind(this));

@@ -1,4 +1,11 @@
 {
   "name": "My App Name",
-  "short_name": "My App Shortname"
+  "short_name": "My App Shortname",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64",
+      "type": "image/png"
+    }
+  ]
 }

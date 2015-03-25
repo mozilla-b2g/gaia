@@ -85,6 +85,7 @@ var PlayerView = {
 
     this.ratings = document.getElementById('player-album-rating').children;
 
+    this.seekSlider = document.getElementById('player-seek');
     this.seekRegion = document.getElementById('player-seek-bar');
     this.seekBar = document.getElementById('player-seek-bar-progress');
     this.seekIndicator = document.getElementById('player-seek-bar-indicator');
@@ -116,6 +117,7 @@ var PlayerView = {
     this.seekRegion.addEventListener('touchstart', this);
     this.seekRegion.addEventListener('touchmove', this);
     this.seekRegion.addEventListener('touchend', this);
+    this.seekSlider.addEventListener('keypress', this);
     this.previousControl.addEventListener('touchend', this);
     this.nextControl.addEventListener('touchend', this);
 
@@ -776,9 +778,21 @@ var PlayerView = {
   },
 
   setSeekBar: function pv_setSeekBar(startTime, endTime, currentTime) {
+    if (this.seekBar.max != endTime) {
+      // Duration changed, update accessibility label.
+      navigator.mozL10n.setAttributes(this.seekSlider,
+        'playbackSeekBar', {'duration': formatTime(endTime)});
+    }
+
     this.seekBar.min = startTime;
     this.seekBar.max = endTime;
     this.seekBar.value = currentTime;
+
+    var formattedCurrentTime = formatTime(currentTime);
+    // Adjust values for accessibility
+    this.seekSlider.setAttribute('aria-valuetext', formattedCurrentTime);
+    this.seekSlider.setAttribute('aria-valuemax', endTime);
+    this.seekSlider.setAttribute('aria-valuenow', currentTime);
 
     // if endTime is 0, that's a reset of seekBar
     var ratio = (endTime !== 0) ? (currentTime / endTime) : 0;
@@ -799,7 +813,7 @@ var PlayerView = {
 
     this.seekIndicator.style.transform = 'translateX(' + x + ')';
 
-    this.seekElapsed.textContent = formatTime(currentTime);
+    this.seekElapsed.textContent = formattedCurrentTime;
     var remainingTime = endTime - currentTime;
     // Check if there is remaining time to show, avoiding to display "-00:00"
     // while song is loading (Bug 833710)
@@ -1040,6 +1054,21 @@ var PlayerView = {
           this.previous();
         } else if (target.id === 'player-controls-next') {
           this.next();
+        }
+        break;
+      case 'keypress':
+        // The standard accessible control for sliders is arrow up/down keys.
+        // Our screenreader synthesizes those events on swipe up/down gestures.
+        // Currently, we only allow screen reader users to adjust sliders with a
+        // constant step size (there is no page up/down equivalent). In the case
+        // of music, we make sure that the maximum amount of steps for the
+        // entire duration is 20, or 2 second increments if the duration is less
+        // then 40 seconds.
+        var step = Math.max(this.audio.duration / 20, 2);
+        if (evt.keyCode == evt.DOM_VK_DOWN) {
+          this.seekAudio(this.audio.currentTime - step);
+        } else if (evt.keyCode == evt.DOM_VK_UP) {
+          this.seekAudio(this.audio.currentTime + step);
         }
         break;
       case 'contextmenu':

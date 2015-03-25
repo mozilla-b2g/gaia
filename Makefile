@@ -17,9 +17,7 @@
 #                                                                             #
 # MOZPERFOUT  : File path to output mozperf data. Empty mean stdout.          #
 #                                                                             #
-# MARIONETTE_RUNNER_HOST : The Marionnette runner host.                       #
-#                          Current values can be 'marionette-b2gdesktop-host' #
-#                          and 'marionette-device-host'                       #
+# MARIONETTE_RUNNER_HOST : ie marionette-device-host                          #
 #                                                                             #
 # COVERAGE    : Add blanket testing coverage report to use for test output.   #
 #                                                                             #
@@ -180,7 +178,6 @@ export BUILDAPP
 export npm_config_loglevel=warn
 ifneq ($(BUILDAPP),desktop)
 REPORTER?=mocha-tbpl-reporter
-MARIONETTE_RUNNER_HOST?=marionette-socket-host
 endif
 REPORTER?=spec
 MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
@@ -486,12 +483,16 @@ MARIONETTE_HOST ?= localhost
 MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(GAIA_DIR)/tests
 
+PROFILE_DIR?=$(GAIA_DIR)$(SEP)$(PROFILE_FOLDER)
+COREWEBAPPS_DIR?=$(PROFILE_DIR)
+
 define BUILD_CONFIG
 { \
   "ADB" : "$(patsubst "%",%,$(ADB))", \
   "GAIA_DIR" : "$(GAIA_DIR)", \
-  "PROFILE_DIR" : "$(GAIA_DIR)$(SEP)$(PROFILE_FOLDER)", \
+  "PROFILE_DIR" : "$(PROFILE_DIR)", \
   "PROFILE_FOLDER" : "$(PROFILE_FOLDER)", \
+  "COREWEBAPPS_DIR" : "$(COREWEBAPPS_DIR)", \
   "GAIA_SCHEME" : "$(SCHEME)", \
   "GAIA_DOMAIN" : "$(GAIA_DOMAIN)", \
   "DEBUG" : "$(DEBUG)", \
@@ -722,7 +723,7 @@ else
 endif
 	node --version
 	npm --version
-	npm install && npm rebuild
+	VIRTUALENV_EXISTS=$(VIRTUALENV_EXISTS) npm install && npm rebuild
 	@echo "node_modules installed."
 	touch -c $@
 ifeq ($(BUILDAPP),device)
@@ -766,10 +767,9 @@ test-integration: clean $(PROFILE_FOLDER) test-integration-test
 #
 # Remember to remove this target after bug-969215 is finished !
 .PHONY: test-integration-test
-test-integration-test:
+test-integration-test: b2g
+	TEST_MANIFEST=$(TEST_MANIFEST) \
 	./bin/gaia-marionette \
-		--host $(MARIONETTE_RUNNER_HOST) \
-		--manifest $(TEST_MANIFEST) \
 		--reporter $(REPORTER) \
 		--buildapp $(BUILDAPP)
 
@@ -782,8 +782,10 @@ caldav-server-install:
 
 .PHONY: test-perf
 test-perf:
-	MOZPERFOUT="$(MOZPERFOUT)" APPS="$(APPS)" \
-	MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) GAIA_DIR="`pwd`" \
+	APPS="$(APPS)" \
+	GAIA_DIR="`pwd`" \
+	MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) \
+	MOZPERFOUT="$(MOZPERFOUT)" \
 	REPORTER=$(REPORTER) \
 	./bin/gaia-perf-marionette
 

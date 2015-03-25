@@ -685,4 +685,200 @@ suite('WordListConverter', function() {
       compareBlobs(actual, expected);
     });
   });
+
+  suite('Word list with frequency information', function() {
+    suite('Rejections', function() {
+      var dummy;
+      test('Reject mixed input', function(){
+        assert.throws(() => {
+          dummy =
+            new WordListConverter(['simpleword', {w: 'anotherword', f: 0.5}]);
+        }, /^Type mismatch\. previous: \S+, this: \S+$/);
+
+        assert.throws(() => {
+          dummy =
+            new WordListConverter([{w: 'simpleword', f: 0.5}, 'anotherword']);
+        }, /^Type mismatch\. previous: \S+, this: \S+$/);
+      });
+
+      test('Reject object elements without proper fields', function(){
+        assert.throws(() => {
+          dummy = new WordListConverter([{f: 0.5}]);
+        }, /^"w" field not found in word$/);
+
+        assert.throws(() => {
+          dummy = new WordListConverter([{w: 'word'}]);
+        }, /^"f" field not found in word$/);
+
+        assert.throws(() => {
+          dummy = new WordListConverter([{w: 'word', f: 1}]);
+        }, /^"f" value not in allowed range$/);
+
+        assert.throws(() => {
+          dummy = new WordListConverter([{w: 'word', f: 100}]);
+        }, /^"f" value not in allowed range$/);
+
+        assert.throws(() => {
+          dummy = new WordListConverter([{w: 'word', f: 255}]);
+        }, /^"f" value not in allowed range$/);
+      });
+    });
+
+    test('multiple words including capitalization differences', function(){
+      actual = new Uint8Array(new WordListConverter(
+        [{w: 'apple', f: 0.5},
+         {w: 'origami', f: 0.18},
+         {w: 'orange', f: 0.6},
+         {w: 'apply', f: 0.8},
+         {w: 'organic', f: 0.7},
+         {w: 'blueberry', f: 0.15},
+         {w: 'asymptotic', f: 0.2},
+         {w: 'Asia', f: 0.75}
+        ]).toBlob());
+
+      expected = new Uint8Array([
+        0x46, 0x78, 0x4f, 0x53, 0x44, 0x49, 0x43, 0x54,
+        0x0, 0x0, 0x0, 0x1,
+        0xa,
+        0x0, 0x11,
+        0x0, 0x61, 0x0, 0x0, 0x0, 0x7,
+        0x0, 0x70, 0x0, 0x0, 0x0, 0x5,
+        0x0, 0x72, 0x0, 0x0, 0x0, 0x5,
+        0x0, 0x69, 0x0, 0x0, 0x0, 0x5,
+        0x0, 0x65, 0x0, 0x0, 0x0, 0x4,
+        0x0, 0x6f, 0x0, 0x0, 0x0, 0x4,
+        0x0, 0x6c, 0x0, 0x0, 0x0, 0x3,
+        0x0, 0x67, 0x0, 0x0, 0x0, 0x3,
+        0x0, 0x79, 0x0, 0x0, 0x0, 0x3,
+        0x0, 0x6d, 0x0, 0x0, 0x0, 0x2,
+        0x0, 0x6e, 0x0, 0x0, 0x0, 0x2,
+        0x0, 0x63, 0x0, 0x0, 0x0, 0x2,
+        0x0, 0x62, 0x0, 0x0, 0x0, 0x2,
+        0x0, 0x73, 0x0, 0x0, 0x0, 0x2,
+        0x0, 0x74, 0x0, 0x0, 0x0, 0x2,
+        0x0, 0x75, 0x0, 0x0, 0x0, 0x1,
+        0x0, 0x41, 0x0, 0x0, 0x0, 0x1,
+        0xb9, 0x61, 0x0, 0x0, 0x2a,     // root node 'a' as 'apply' is highest
+                                        // freq; 0xb9 = 0b10111001
+                                        // (c and n bits set, freq = 25),
+                                        // 25 is the frequency of 'apply', i.e.
+                                        // the most-frequent word from 'a'
+        0xb9, 0x70, 0x0, 0x0, 0x17,     // second level 'p' as 'apply' is more
+                                        // frequent than 'asymptotic'
+        0x99, 0x70,                     // 0x99 = 0b10011001 (c bit set, f = 25)
+        0x99, 0x6c,
+        0xb9, 0x79, 0x0, 0x0, 0x14,     // 'y' of apply, with next to 'e', as
+                                        // 'apply' is more frequent than 'apple'
+        0x19,                           // EoW of 'apply', freq = 25
+        0x90, 0x65,                     // 'e', freq = 16
+        0x10,                           // EoW of 'apple', freq = 16
+        0x87, 0x73,                     // 's', next-pointed from second-level
+                                        // 'p' below root-level 'a'
+                                        // freq = 7
+        0x87, 0x79,
+        0x87, 0x6d,
+        0x87, 0x70,
+        0x87, 0x74,
+        0x87, 0x6f,
+        0x87, 0x74,
+        0x87, 0x69,
+        0x87, 0x63,
+        0x7,                            // EoW of 'asymptotic'
+        0xb8, 0x41, 0x0, 0x0, 0x36,     // root-level 'A' as next-pointed by
+                                        // root 'a', as 'Asia' is the second
+                                        // frequent (than 'apply') and more
+                                        // frequent than 'organic and
+                                        // 'blueberry'. freq = 24,
+                                        // 24 is the frequency of 'Asia', i.e.
+                                        // the most-frequent word from 'A'
+        0x98, 0x73,
+        0x98, 0x69,
+        0x98, 0x61,
+        0x18,                           // EoW of 'Asia'
+        0xb6, 0x6f, 0x0, 0x0, 0x62,     // root-level 'o' as next-pointed by
+                                        // root 'A', as 'o' is the next frequent
+                                        // and freq = 22, frequency of 'organic'
+        0x96, 0x72,                     // 'r'
+        0xb6, 0x67, 0x0, 0x0, 0x4b,     // 3rd-level 'g', next to 'a'. freq = 22
+                                        // = freq of 'organic'
+        0x96, 0x61,
+        0x96, 0x6e,
+        0x96, 0x69,
+        0x96, 0x63,
+        0x16,                           // EoW of 'organic'
+        0xb3, 0x61, 0x0, 0x0, 0x57,     // 3rd-level 'a', next-pointed by
+                                        // 3rd-level 'g', below 'o' -> 'r';
+                                        // with a next pointer to 'i' as
+                                        // 'origami' freq is lower than 'orange'
+                                        // frequency is 19 = freq of 'orange'
+        0x93, 0x6e,
+        0x93, 0x67,
+        0x93, 0x65,
+        0x13,                           // EoW of 'orange', freq = 19
+        0x86, 0x69,                     // 3rd-level 'i', next-pointed by
+                                        // 3rd-level 'a', below 'o' -> 'r';
+                                        // freq is 6 = freq of 'origami'
+        0x86, 0x67,
+        0x86, 0x61,
+        0x86, 0x6d,
+        0x86, 0x69,
+        0x6,                            // EoW of 'origami'
+        0x85, 0x62,                     // root-level 'b' as nexted-pointed by
+                                        // root-level 'o'; no more next pointers
+                                        // freq = 5 i.e. freq of 'blueberry'
+        0x85, 0x6c,
+        0x85, 0x75,
+        0x85, 0x65,
+        0x85, 0x62,
+        0x85, 0x65,
+        0x85, 0x72,
+        0x85, 0x72,
+        0x85, 0x79,
+        0x5                             // EoW of 'blueberry'
+      ]);
+
+      compareBlobs(actual, expected);
+    });
+
+    test('word freqency = 0 is properly honored', function(){
+      actual = new Uint8Array(new WordListConverter(
+        [{w: 'apple', f: 0.5},
+         {w: 'toxicapple', f: 0}]).toBlob());
+
+      expected = new Uint8Array([
+        0x46, 0x78, 0x4f, 0x53, 0x44, 0x49, 0x43, 0x54,
+        0x0, 0x0, 0x0, 0x1,
+        0xa,
+        0x0, 0x9,
+        0x0, 0x70, 0x0, 0x0, 0x0, 0x4,
+        0x0, 0x61, 0x0, 0x0, 0x0, 0x2,
+        0x0, 0x6c, 0x0, 0x0, 0x0, 0x2,
+        0x0, 0x65, 0x0, 0x0, 0x0, 0x2,
+        0x0, 0x74, 0x0, 0x0, 0x0, 0x1,
+        0x0, 0x6f, 0x0, 0x0, 0x0, 0x1,
+        0x0, 0x78, 0x0, 0x0, 0x0, 0x1,
+        0x0, 0x69, 0x0, 0x0, 0x0, 0x1,
+        0x0, 0x63, 0x0, 0x0, 0x0, 0x1,
+        0xb0, 0x61, 0x0, 0x0, 0xe,      // root 'a', next to 't', freq = 16
+        0x90, 0x70,
+        0x90, 0x70,
+        0x90, 0x6c,
+        0x90, 0x65,
+        0x10,                           // EoW of 'apple', freq = 16
+        0x80, 0x74,                     // root-next 't', freq = 0
+        0x80, 0x6f,
+        0x80, 0x78,
+        0x80, 0x69,
+        0x80, 0x63,
+        0x80, 0x61,
+        0x80, 0x70,
+        0x80, 0x70,
+        0x80, 0x6c,
+        0x80, 0x65,
+        0x0                             // EoW of 'toxicapple', freq = 0
+      ]);
+    
+      compareBlobs(actual, expected);
+    });
+  });
 });

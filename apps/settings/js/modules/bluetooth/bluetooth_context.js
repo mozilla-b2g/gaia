@@ -891,6 +891,29 @@ define(function(require) {
     },
 
     /**
+     * The method starts sending file to a remote device with the device's 
+     * adapter.
+     *
+     * @access public
+     * @memberOf BluetoothContext
+     * @param {String} address - address of target device
+     * @param {Object} blob - blob(file) to send
+     * @returns {Promise}
+     */
+    sendFile: function btc_sendFile(address, blob) {
+      if (!this._defaultAdapter) {
+        return Promise.reject('default adapter is not existed!!');
+      }
+
+      return this._defaultAdapter.sendFile(address, blob).then(() => {
+        Debug('sendFile(): Resolved with void value');
+      }, (reason) => {
+        Debug('sendFile(): Reject with this reason: ' + reason);
+        return Promise.reject(reason);
+      });
+    },
+
+    /**
      * Init the connecting device which is browsed in paired devices list. 
      * Get connection info from ConnectionManager.
      *

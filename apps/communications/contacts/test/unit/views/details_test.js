@@ -61,6 +61,7 @@ var _ = function(key) { return key; },
     contactDetails,
     listContainer,
     detailsName,
+    detailsNameText,
     orgTitle,
     phonesTemplate,
     emailsTemplate,
@@ -160,6 +161,7 @@ suite('Render contact', function() {
     contactDetails = dom.querySelector('#contact-detail');
     listContainer = dom.querySelector('#details-list');
     detailsName = dom.querySelector('#contact-name-title');
+    detailsNameText = dom.querySelector('#contact-name-title bdi');
     orgTitle = dom.querySelector('#org-title');
     phonesTemplate = dom.querySelector('#phone-details-template-\\#i\\#');
     emailsTemplate = dom.querySelector('#email-details-template-\\#i\\#');
@@ -212,7 +214,7 @@ suite('Render contact', function() {
   suite('Render name', function() {
     test('with name', function() {
       subject.render(null, TAG_OPTIONS);
-      assert.equal(detailsName.textContent, mockContact.name[0]);
+      assert.equal(detailsNameText.textContent, mockContact.name[0]);
     });
 
     test('without name, with phone', function() {
@@ -220,7 +222,7 @@ suite('Render contact', function() {
       contactWoName.name = null;
       subject.setContact(contactWoName);
       subject.render(null, TAG_OPTIONS);
-      assert.equal(detailsName.textContent, contactWoName.tel[0].value);
+      assert.equal(detailsNameText.textContent, contactWoName.tel[0].value);
     });
 
     test('without name, without phone, with email', function() {
@@ -229,7 +231,7 @@ suite('Render contact', function() {
       contactWoName.tel = null;
       subject.setContact(contactWoName);
       subject.render(null, TAG_OPTIONS);
-      assert.equal(detailsName.textContent, contactWoName.email[0].value);
+      assert.equal(detailsNameText.textContent, contactWoName.email[0].value);
     });
 
     test('no name, no phone, no email', function() {
@@ -239,7 +241,7 @@ suite('Render contact', function() {
       contactWoName.email = null;
       subject.setContact(contactWoName);
       subject.render(null, TAG_OPTIONS);
-      assert.notEqual(detailsName.textContent, '');
+      assert.notEqual(detailsNameText.textContent, '');
       assert.isTrue(mozL10nGetSpy.calledWith('noName'));
     });
 
@@ -248,14 +250,14 @@ suite('Render contact', function() {
   suite('Render favorite', function() {
     test('with favorite contact', function() {
       subject.render(null, TAG_OPTIONS);
-      assert.isTrue(detailsName.classList.contains('favorite'));
+      assert.isTrue(header.classList.contains('favorite'));
     });
     test('without favorite contact', function() {
       var contactWoFav = new MockContactAllFields(true);
       contactWoFav.category = [];
       subject.setContact(contactWoFav);
       subject.render(null, TAG_OPTIONS);
-      assert.isFalse(detailsName.classList.contains('favorite'));
+      assert.isFalse(header.classList.contains('favorite'));
     });
     test('change in favorite not render the window', function(done) {
       var contactWoPhoto = new MockContactAllFields();

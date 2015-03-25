@@ -2,7 +2,8 @@
 
 /* globals MockPromise, MockNfc, MockBluetooth, MocksHelper, NDEF,
            MockService, NfcUtils, MozActivity, NfcHandoverManager,
-           MockNfcHandoverManager, BaseModule, MockLazyLoader, NfcIcon */
+           MockNfcHandoverManager, BaseModule, MockLazyLoader,
+           MockScreenManager */
 
 requireApp('system/test/unit/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
@@ -42,9 +43,9 @@ suite('Nfc Manager Functions', function() {
   var fakeApp;
   var realMozSetMessageHandler;
   var realMozBluetooth;
+  var realMozNfc;
   var nfcUtils;
   var nfcManager;
-  var stubWriteSetting;
 
   mocksForNfcManager.attachTestHelpers();
   var fakeAppConfig = {
@@ -77,15 +78,19 @@ suite('Nfc Manager Functions', function() {
         return MockBluetooth;
       }
     });
+
+    realMozNfc = window.navigator.mozNfc;
+    window.navigator.mozNfc = MockNfc;
+
     nfcUtils = new NfcUtils();
     MockService.currentApp = fakeApp;
     nfcManager = BaseModule.instantiate('NfcManager');
-    stubWriteSetting = this.sinon.stub(nfcManager, 'writeSetting');
-    nfcManager._start();
+    nfcManager.service = MockService;
+    nfcManager.start();
   });
 
   teardown(function() {
-    nfcManager._stop();
+    nfcManager.stop();
     window.navigator.mozSetMessageHandler = realMozSetMessageHandler;
     Object.defineProperty(navigator, 'mozBluetooth', {
       configurable: true,
@@ -93,21 +98,15 @@ suite('Nfc Manager Functions', function() {
         return realMozBluetooth;
       }
     });
-    stubWriteSetting.restore();
+
+    window.navigator.mozNfc = realMozNfc;
   });
 
-  test('Should lazy load icon', function() {
-    assert.isTrue(MockLazyLoader.load.calledWith(['js/nfc_icon.js']));
-  });
+  suite('_start', function() {
+    test('Should lazy load icon', function() {
+      assert.isTrue(MockLazyLoader.load.calledWith(['js/nfc_icon.js']));
+    });
 
-  test('Should update icon once hardware state changed', function() {
-    nfcManager.icon = new NfcIcon(nfcManager);
-    this.sinon.stub(nfcManager.icon, 'update');
-    nfcManager._handleNFCOnOff();
-    assert.isTrue(nfcManager.icon.update.called);
-  });
-
-  suite('start', function() {
     test('Message handleres for nfc-manager-tech-xxx set', function() {
       var stubHandleTechnologyDiscovered =
         this.sinon.stub(nfcManager, '_handleTechDiscovered');
@@ -122,34 +121,43 @@ suite('Nfc Manager Functions', function() {
 
     test('nfcManager listens on screenchange, and the locking events',
     function() {
-      var stubHandleEvent = this.sinon.stub(nfcManager, 'handleEvent');
+      var stubScreenchange = this.sinon.stub(nfcManager,
+                                             '_handle_screenchange');
+      var stubLockscreenOn = this.sinon.stub(nfcManager,
+                                             '_handle_lockscreen-appopened');
+      var stubLockscreenOff = this.sinon.stub(nfcManager,
+                                              '_handle_lockscreen-appclosed');
 
       window.dispatchEvent(new CustomEvent('lockscreen-appopened'));
-      assert.isTrue(stubHandleEvent.calledOnce);
-      assert.equal(stubHandleEvent.getCall(0).args[0].type,
-        'lockscreen-appopened');
+      assert.isTrue(stubLockscreenOn.calledOnce);
 
       window.dispatchEvent(new CustomEvent('lockscreen-appclosed'));
-      assert.isTrue(stubHandleEvent.calledTwice);
-      assert.equal(stubHandleEvent.getCall(1).args[0].type,
-        'lockscreen-appclosed');
+      assert.isTrue(stubLockscreenOff.calledOnce);
 
       window.dispatchEvent(new CustomEvent('screenchange'));
-      assert.isTrue(stubHandleEvent.calledThrice);
-      assert.equal(stubHandleEvent.getCall(2).args[0].type, 'screenchange');
+      assert.isTrue(stubScreenchange.calledOnce);
     });
 
     test('SettingsListner callback nfc.enabled fired', function() {
       var enabled = 'test';
-      var stubNfcSettingsChanged = this.sinon.stub(nfcManager,
-                                                   '_nfcSettingsChanged');
+      var stubNfcSettingObserver = this.sinon.stub(nfcManager,
+                                                   '_observe_nfc.enabled');
 
       nfcManager['_observe_nfc.enabled'](enabled);
-      assert.isTrue(stubNfcSettingsChanged.calledWith(enabled));
+      assert.isTrue(stubNfcSettingObserver.calledWith(enabled));
+    });
+
+    test('Sets nfc.status setting to disabled', function() {
+      var stubWriteSetting = this.sinon.stub(nfcManager, 'writeSetting');
+
+      nfcManager._start();
+      assert.isTrue(stubWriteSetting.calledOnce);
+      assert.deepEqual(stubWriteSetting.firstCall.args[0],
+                       { 'nfc.status': 'disabled' });
     });
   });
 
-  suite('stop', function() {
+  suite('_stop', function() {
     test('removes message handlers', function() {
       var setHandlerStub = this.sinon.stub(window.navigator,
                                            'mozSetMessageHandler');
@@ -160,122 +168,72 @@ suite('Nfc Manager Functions', function() {
       assert.isTrue(setHandlerStub.withArgs('nfc-manager-tech-lost', null)
                                   .calledOnce);
     });
-
-    test('removes event listners', function() {
-      var stubRemoveListener = this.sinon.stub(window, 'removeEventListener');
-
-      nfcManager._stop();
-      assert.isTrue(stubRemoveListener
-                      .withArgs('screenchange', nfcManager).calledOnce);
-      assert.isTrue(stubRemoveListener
-                      .withArgs('lockscreen-appopened', nfcManager).calledOnce);
-      assert.isTrue(stubRemoveListener
-                      .withArgs('lockscreen-appclosed', nfcManager).calledOnce);
-    });
   });
 
   suite('isActive', function() {
     test('returns false if hardware state is OFF', function() {
-      nfcManager._hwState = nfcManager.NFC_HW_STATE.OFF;
+      nfcManager._hwState = 'disabled';
       assert.isFalse(nfcManager.isActive());
     });
 
     test('returns false if hardware state is a transition state', function() {
-      nfcManager._hwState = nfcManager.NFC_HW_STATE.ENABLING;
+      nfcManager._hwState = 'enabling';
       assert.isFalse(nfcManager.isActive());
 
-      nfcManager._hwState = nfcManager.NFC_HW_STATE.DISABLING;
+      nfcManager._hwState = 'disabling';
       assert.isFalse(nfcManager.isActive());
     });
 
     test('returns true if hardware state is ON', function() {
-      nfcManager._hwState = nfcManager.NFC_HW_STATE.ON;
+      nfcManager._hwState = 'enabled';
       assert.isTrue(nfcManager.isActive());
     });
 
     test('returns true if hardware state is ENABLE_DISCOVERY', function() {
-      nfcManager._hwState = nfcManager.NFC_HW_STATE.ENABLE_DISCOVERY;
+      nfcManager._hwState = 'polling-on';
       assert.isTrue(nfcManager.isActive());
     });
 
     test('returns true if hardware state is DISABLE_DISCOVERY', function() {
-      nfcManager._hwState = nfcManager.NFC_HW_STATE.DISABLE_DISCOVERY;
+      nfcManager._hwState = 'polling-off';
       assert.isTrue(nfcManager.isActive());
     });
   });
 
-  suite('isInTransition', function() {
-    test('returns true if hardware in transtion states', function() {
-      nfcManager._hwState = nfcManager.NFC_HW_STATE.ENABLING;
-      assert.isTrue(nfcManager.isInTransition(), 'enabling');
+  suite('_handle_<event_name>', function() {
+    var  stubDoTransition;
 
-      nfcManager._hwState = nfcManager.NFC_HW_STATE.DISABLING;
-      assert.isTrue(nfcManager.isInTransition(), 'disabling');
+    setup(function() {
+      stubDoTransition = this.sinon.stub(nfcManager, '_doNfcStateTransition');
     });
 
-    test('returns false if hardware not in transtion states', function() {
-      nfcManager._hwState = nfcManager.NFC_HW_STATE.OFF;
-      assert.isFalse(nfcManager.isInTransition(), 'off');
-
-      nfcManager._hwState = nfcManager.NFC_HW_STATE.ON;
-      assert.isFalse(nfcManager.isInTransition(), 'on');
-
-      nfcManager._hwState = nfcManager.NFC_HW_STATE.ENABLE_DISCOVERY;
-      assert.isFalse(nfcManager.isInTransition(), 'enable discover');
-
-      nfcManager._hwState = nfcManager.NFC_HW_STATE.DISABLE_DISCOVERY;
-      assert.isFalse(nfcManager.isInTransition(), 'disable discovery');
-    });
-  });
-
-  suite('handleEvent', function() {
-    test('proper handling of lock, unlock, screenchange', function() {
-      var stubChangeHardwareState = this.sinon.stub(nfcManager,
-                                                   '_changeHardwareState');
-
-      // screen lock when NFC ON
-      nfcManager._hwState = nfcManager.NFC_HW_STATE.ON;
-      window.Service.locked = true;
-      nfcManager.handleEvent(new CustomEvent('lockscreen-appopened'));
-      assert.isTrue(stubChangeHardwareState.calledOnce);
-      assert.equal(stubChangeHardwareState.getCall(0).args[0],
-                   nfcManager.NFC_HW_STATE.DISABLE_DISCOVERY);
-
-      // no change in nfcManager._hwState
-      nfcManager._hwState = nfcManager.NFC_HW_STATE.DISABLE_DISCOVERY;
-      nfcManager.handleEvent(new CustomEvent('screenchange'));
-      assert.isTrue(stubChangeHardwareState.calledOnce);
-
-      // screen unlock
-      window.Service.locked = false;
-      nfcManager.handleEvent(new CustomEvent('lockscreen-appclosed'));
-      assert.isTrue(stubChangeHardwareState.calledTwice);
-      assert.equal(stubChangeHardwareState.getCall(1).args[0],
-                   nfcManager.NFC_HW_STATE.ENABLE_DISCOVERY);
-
-      // NFC off
-      nfcManager._hwState = nfcManager.NFC_HW_STATE.OFF;
-      nfcManager.handleEvent(new CustomEvent('lockscreen-appopened'));
-      nfcManager.handleEvent(new CustomEvent('lockscreen-appclosed'));
-      nfcManager.handleEvent(new CustomEvent('screenchange'));
-      assert.isTrue(stubChangeHardwareState.calledTwice);
+    teardown(function() {
+      stubDoTransition.restore();
     });
 
-    test('proper handling of shrinking-sent', function() {
-      var stubRemoveEventListner = this.sinon.stub(window,
-                                                   'removeEventListener');
-      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
-      var stubDispatchP2PUserResponse = this.sinon.stub(nfcManager,
-        '_dispatchP2PUserResponse');
-      nfcManager.handleEvent(new CustomEvent('shrinking-sent'));
+    test('lockscreen-appopened -> disable-polling', function() {
+      window.dispatchEvent(new CustomEvent('lockscreen-appopened'));
+      assert.isTrue(stubDoTransition.withArgs('disable-polling').calledOnce);
+    });
 
-      assert.isTrue(stubRemoveEventListner.calledOnce);
-      assert.equal(stubRemoveEventListner.getCall(0).args[0], 'shrinking-sent');
-      assert.equal(stubRemoveEventListner.getCall(0).args[1], nfcManager);
+    test('lockscreen-appclosed -> enable-polling', function() {
+      window.dispatchEvent(new CustomEvent('lockscreen-appclosed'));
+      assert.isTrue(stubDoTransition.withArgs('enable-polling').calledOnce);
+    });
 
-      assert.isTrue(stubDispatchEvent.calledOnce);
-      assert.isTrue(stubDispatchP2PUserResponse.calledOnce);
-      assert.equal(stubDispatchEvent.getCall(0).args[0].type, 'shrinking-stop');
+    test('screenchange -> enable-polling/disable-polling', function() {
+      MockScreenManager.screenEnabled = false;
+      window.dispatchEvent(new CustomEvent('screenchange'));
+      assert.isTrue(stubDoTransition.withArgs('disable-polling').calledOnce);
+
+      MockScreenManager.screenEnabled = true;
+      MockService.locked = true;
+      window.dispatchEvent(new CustomEvent('screenchange'));
+      assert.isTrue(stubDoTransition.withArgs('disable-polling').calledTwice);
+
+      MockService.locked = false;
+      window.dispatchEvent(new CustomEvent('screenchange'));
+      assert.isTrue(stubDoTransition.withArgs('enable-polling').calledOnce);
     });
   });
 
@@ -456,13 +414,156 @@ suite('Nfc Manager Functions', function() {
     });
 
     test('P2P clean up', function() {
-      var stubRemoveListner = this.sinon.stub(window, 'removeEventListener');
-      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+      var stubCleanP2PUI = this.sinon.stub(nfcManager, '_cleanP2PUI');
 
       nfcManager._handleTechLost();
-      assert.equal(stubRemoveListner.firstCall.args[0], 'shrinking-sent');
-      assert.deepEqual(stubRemoveListner.firstCall.args[1], nfcManager);
-      assert.equal(stubDispatchEvent.secondCall.args[0].type, 'shrinking-stop');
+      assert.isTrue(stubCleanP2PUI.calledOnce);
+    });
+  });
+
+  suite('_doNfcStateTransition', function() {
+    var events = ['enable', 'disable', 'enable-polling', 'disable-polling',
+     'hw-change-success', 'hw-change-failure', 'unknown-event'];
+
+    // { state: { event: new_state }}
+    var stateTransitions = {
+      'disabling': {
+        'hw-change-success': 'disabled',
+        'hw-change-failure': 'enabled'
+      },
+      'disabled': { 'enable': 'enabling' },
+      'enabling': {
+        'hw-change-success': 'enabled',
+        'hw-change-failure': 'disabled'
+      },
+      'enabled': {
+        'disable': 'disabling',
+        'enable-polling': 'polling-on',
+        'disable-polling': 'polling-off'
+      },
+      'polling-on': {
+        'disable': 'disabling',
+        'disable-polling': 'polling-off'
+      },
+      'polling-off': {
+        'disable': 'disabling',
+        'enable-polling': 'polling-on'
+      }
+    };
+
+    Object.keys(stateTransitions).forEach(function(state) {
+      test('"' + state + '" state transitions', function() {
+        var stubProccessStateChange = this.sinon.stub(nfcManager,
+                                                      '_processNfcStateChange');
+        events.forEach(function(evt, idx) {
+          nfcManager._hwState = state;
+          nfcManager._doNfcStateTransition(evt);
+
+          var expectedState = stateTransitions[state][evt] || state;
+          assert.equal(nfcManager._hwState, expectedState,
+                       state + '[' + evt + '] should be ' + expectedState);
+        });
+
+        assert.equal(stubProccessStateChange.callCount,
+                     Object.keys(stateTransitions[state]).length,
+                     '_processNfcStateChange should be called on transition');
+      });
+    });
+  });
+
+  suite('_processNfcStateChange', function() {
+    var states = ['disabling', 'disabled', 'enabling', 'enabled',
+                  'polling-off', 'polling-on'];
+
+    var fakePromise;
+    var stubPowerOff, stubStartPoll, stubStopPoll;
+    var stubIconUpdate, stubWriteSetting, stubNfcTransition;
+
+    setup(function() {
+      fakePromise = new MockPromise();
+      var handler = () => fakePromise;
+      stubPowerOff = this.sinon.stub(MockNfc, 'powerOff', handler);
+      stubStartPoll = this.sinon.stub(MockNfc, 'startPoll', handler);
+      stubStopPoll = this.sinon.stub(MockNfc, 'stopPoll', handler);
+
+      stubIconUpdate = this.sinon.stub(nfcManager.icon, 'update');
+      stubWriteSetting = this.sinon.stub(nfcManager, 'writeSetting');
+      stubNfcTransition = this.sinon.stub(nfcManager, '_doNfcStateTransition');
+    });
+
+    teardown(function() {
+      stubPowerOff.restore();
+      stubStartPoll.restore();
+      stubStopPoll.restore();
+      stubIconUpdate.restore();
+      stubWriteSetting.restore();
+      stubNfcTransition.restore();
+    });
+
+    states.forEach(function(state) {
+      test('"' + state + '" state handlind', function() {
+        nfcManager._hwState = state;
+        nfcManager._processNfcStateChange();
+
+        // icon updated in proper states
+        if (state === 'enabled' || state === 'disabled') {
+          assert.isTrue(stubIconUpdate.calledOnce,
+                        'icon should be updated');
+        } else {
+          assert.isTrue(stubIconUpdate.notCalled,
+                        'icon should not be update');
+        }
+
+        // write setting in proper states
+        if (state === 'polling-on' || state === 'polling-off') {
+          assert.isTrue(stubWriteSetting.notCalled,
+                        'should not call writeSetting');
+        } else {
+          assert.isTrue(stubWriteSetting.calledOnce,
+                        'should call writeSetting');
+          assert.deepEqual(stubWriteSetting.firstCall.args[0],
+                           { 'nfc.status': state });
+        }
+
+        // proper hw changes
+        if (state === 'disabling') {
+          assert.isTrue(stubPowerOff.calledOnce,
+                        'mozNfc.powerOff should be called');
+        } else {
+          assert.isTrue(stubPowerOff.notCalled,
+                        'mozNfc.powerOff should not be called');
+        }
+
+        if (state === 'enabling' || state === 'polling-on') {
+          assert.isTrue(stubStartPoll.calledOnce,
+                        'mozNfc.startPoll should be called');
+        } else {
+          assert.isTrue(stubStartPoll.notCalled,
+                        'mozNfc.stopPoll should not be called');
+        }
+
+        if (state === 'polling-off') {
+          assert.isTrue(stubStopPoll.calledOnce,
+                        'mozNfc.stopPoll should be called');
+        } else {
+          assert.isTrue(stubStopPoll.notCalled,
+                        'mozNfc.stopPoll should not be called');
+        }
+
+        // proper promise handling
+        if (state === 'enabled' || state === 'disabled') {
+          assert.isTrue(fakePromise.then.notCalled,
+                        'then should not be called on promise');
+        } else {
+          fakePromise.mFulfillToValue();
+          assert.isTrue(stubNfcTransition.withArgs('hw-change-success').called,
+                        '_doNfcStateTransition(hw-change-success) not called');
+
+          fakePromise.mRejectToError();
+          assert.isTrue(stubNfcTransition.withArgs('hw-change-failure').called,
+                        '_doNfcStateTransition(hw-change-failure) not called');
+        }
+      });
     });
   });
 
@@ -791,17 +892,63 @@ suite('Nfc Manager Functions', function() {
     });
   });
 
-  suite('dispatchP2PUserResponse', function() {
-    var realMozNfc = navigator.mozNfc;
+  suite('_cleanP2PUI', function() {
+    test('removes "shrinking-sent" event listner', function() {
+      var stubRemoveListener = this.sinon.stub(window, 'removeEventListener');
+      var fakeListner = () => { return 'fake'; };
+      nfcManager._handleShrinkingSent = fakeListner;
 
-    setup(function() {
-      navigator.mozNfc = MockNfc;
+      nfcManager._cleanP2PUI();
+      assert.isTrue(stubRemoveListener.calledOnce);
+      assert.deepEqual(stubRemoveListener.firstCall.args,
+                       ['shrinking-sent', fakeListner]);
     });
 
-    teardown(function() {
-      navigator.mozNfc = realMozNfc;
+    test('publishes "shrinking-stop" event', function() {
+      var stubPublish = this.sinon.stub(nfcManager, 'publish');
+
+      nfcManager._cleanP2PUI();
+      assert.isTrue(stubPublish.calledOnce);
+      assert.deepEqual(stubPublish.firstCall.args,
+                       ['shrinking-stop', nfcManager, true]);
+    });
+  });
+
+  suite('_initP2PUI', function() {
+    test('publishes "shrinking-start event"', function() {
+      // prevents registering event listener handler
+      this.sinon.stub(window, 'addEventListener');
+      var stubPublish = this.sinon.stub(nfcManager, 'publish');
+
+      nfcManager._initP2PUI();
+      assert.isTrue(stubPublish.calledOnce);
+      assert.deepEqual(stubPublish.firstCall.args,
+                       ['shrinking-start', nfcManager, true]);
     });
 
+    test('adds "shrinking-sent" event listner', function() {
+      var stubAddListener = this.sinon.stub(window, 'addEventListener');
+
+      nfcManager._initP2PUI();
+      assert.isTrue(stubAddListener.calledOnce);
+      assert.deepEqual(stubAddListener.firstCall.args,
+                       ['shrinking-sent', nfcManager._handleShrinkingSent]);
+    });
+
+    test('"shrinking-sent" handler calls proper methods', function() {
+      var stubCleanP2PUI = this.sinon.stub(nfcManager, '_cleanP2PUI');
+      var stubDispatchP2P = this.sinon.stub(nfcManager,
+                                            '_dispatchP2PUserResponse');
+
+      nfcManager._initP2PUI();
+      window.dispatchEvent(new CustomEvent('shrinking-sent'));
+
+      assert.isTrue(stubCleanP2PUI.calledOnce, '_cleanP2PUI');
+      assert.isTrue(stubDispatchP2P.calledOnce, '_dispatchP2PUserResponse');
+    });
+  });
+
+  suite('_dispatchP2PUserResponse', function() {
     test('calls proper mozNfc method', function() {
       var stubNotifyAcceptedP2P = this.sinon.stub(MockNfc,
                                                   'notifyUserAcceptedP2P');
@@ -811,17 +958,7 @@ suite('Nfc Manager Functions', function() {
     });
   });
 
-  suite('checkP2PRegistrations', function() {
-    var realMozNfc = navigator.mozNfc;
-
-    setup(function() {
-      navigator.mozNfc = MockNfc;
-    });
-
-    teardown(function() {
-      navigator.mozNfc = realMozNfc;
-    });
-
+  suite('_checkP2PRegistrations', function() {
     test('calls proper mozNfc method', function() {
       var stubCheckP2P = this.sinon.stub(MockNfc, 'checkP2PRegistration',
                                          () => { return Promise.resolve(); });
@@ -920,229 +1057,5 @@ suite('Nfc Manager Functions', function() {
       assert.isTrue(stubCheckP2P.calledOnce);
     });
 
-  });
-
-  suite('_nfcSettingsChanged', function() {
-    var stubChangeHWState;
-
-    setup(function() {
-      stubChangeHWState = this.sinon.stub(nfcManager, '_changeHardwareState');
-    });
-
-    teardown(function() {
-      stubChangeHWState.restore();
-    });
-
-    test('enable NFC, Service.locked false', function() {
-      window.Service.locked = false;
-
-      nfcManager._nfcSettingsChanged(true);
-      assert.isTrue(stubChangeHWState.withArgs(nfcManager.NFC_HW_STATE.ENABLING)
-                                     .calledOnce);
-    });
-
-    test('enable NFC, Service.locked true', function() {
-      window.Service.locked = true;
-
-      nfcManager._nfcSettingsChanged(true);
-      assert.isTrue(stubChangeHWState
-                      .withArgs(nfcManager.NFC_HW_STATE.DISABLE_DISCOVERY)
-                      .calledOnce);
-    });
-
-    test('Ignore enabling if NFC HW already enabled', function() {
-      var stubIsActive = this.sinon.stub(nfcManager, 'isActive', () => true);
-
-      nfcManager._nfcSettingsChanged(true);
-      assert.isTrue(stubIsActive.calledOnce, 'isActive should be called');
-      assert.isFalse(stubChangeHWState.called,
-                     '_changeHardwareState should not be called');
-    });
-
-    test('Ignore disabling if NFC HW already disabled', function() {
-      var stubIsActive = this.sinon.stub(nfcManager, 'isActive', () => false);
-
-      nfcManager._nfcSettingsChanged(false);
-      assert.isTrue(stubIsActive.calledOnce, 'isActive should be called');
-      assert.isFalse(stubChangeHWState.called,
-                     '_changeHardwareState should not be called');
-    });
-
-    test('Ignore enabling/disabling if NFC HW change in progress', function() {
-      var stubIsInTransition = this.sinon.stub(nfcManager, 'isInTransition',
-                                               () => true);
-      nfcManager._nfcSettingsChanged(true);
-      this.sinon.stub(nfcManager, 'isActive', () => true);
-      nfcManager._nfcSettingsChanged(false);
-
-      assert.isTrue(stubIsInTransition.calledTwice,
-                    'isInTransition should be called twice');
-      assert.isFalse(stubChangeHWState.called,
-                     '_changeHardwareState should not be called');
-
-    });
-
-    test('disabling NFC', function() {
-      nfcManager._hwState = nfcManager.NFC_HW_STATE.ON;
-
-      nfcManager._nfcSettingsChanged(false);
-      assert.isTrue(stubChangeHWState
-                    .withArgs(nfcManager.NFC_HW_STATE.DISABLING)
-                    .calledOnce);
-    });
-  });
-
-  suite('_changeHardwareState', function() {
-    var realNfc = navigator.mozNfc;
-    setup(function() {
-      navigator.mozNfc = MockNfc;
-    });
-
-    teardown(function() {
-      navigator.mozNfc = realNfc;
-    });
-
-    test('proper mozNfc methods called', function() {
-      var spyStartPoll = this.sinon.spy(MockNfc, 'startPoll');
-      var spyStopPoll = this.sinon.spy(MockNfc, 'stopPoll');
-      var spyPowerOff = this.sinon.spy(MockNfc, 'powerOff');
-
-      nfcManager._changeHardwareState(nfcManager.NFC_HW_STATE.DISABLING);
-      assert.isTrue(spyPowerOff.calledOnce, 'powerOff should be called once');
-
-      assert.isTrue(stubWriteSetting.withArgs({'nfc.status':'disabling'})
-                                   .calledOnce,
-                    'nfc.status should be set to "disabling"');
-
-      nfcManager._changeHardwareState(nfcManager.NFC_HW_STATE.ENABLING);
-      assert.isTrue(spyStartPoll.calledOnce);
-      assert.isTrue(stubWriteSetting.withArgs({'nfc.status':'enabling'})
-                                   .calledOnce,
-                    'nfc.status should be set to "enabling"');
-
-      nfcManager._changeHardwareState(nfcManager.NFC_HW_STATE.ENABLE_DISCOVERY);
-      assert.isTrue(spyStartPoll.calledTwice);
-
-      nfcManager
-      ._changeHardwareState(nfcManager.NFC_HW_STATE.DISABLE_DISCOVERY);
-      assert.isTrue(spyStopPoll.calledOnce);
-
-      assert.isTrue(stubWriteSetting.calledThrice, 'settings change 3 times, ' +
-        'including _start');
-    });
-
-    suite('Promise handlers call proper methods.', function() {
-      var fakePromise;
-
-      var spyIsInTransition;
-      var stubHandleNfcOnOff;
-
-      setup(function() {
-        fakePromise = new MockPromise();
-        var returnRequest = () => fakePromise;
-
-        this.sinon.stub(MockNfc, 'startPoll', returnRequest);
-        this.sinon.stub(MockNfc, 'stopPoll', returnRequest);
-        this.sinon.stub(MockNfc, 'powerOff', returnRequest);
-
-        spyIsInTransition = this.sinon.spy(nfcManager, 'isInTransition');
-        stubHandleNfcOnOff = this.sinon.stub(nfcManager, '_handleNFCOnOff');
-      });
-
-      teardown(function() {
-        MockNfc.stopPoll.restore();
-        MockNfc.startPoll.restore();
-        MockNfc.powerOff.restore();
-
-        spyIsInTransition.restore();
-        stubHandleNfcOnOff.restore();
-      });
-
-      test('disabling, promise resolved', function() {
-        nfcManager._changeHardwareState(nfcManager.NFC_HW_STATE.DISABLING);
-        fakePromise.mFulfillToValue();
-
-        assert.isTrue(spyIsInTransition.calledOnce);
-        assert.isTrue(stubHandleNfcOnOff.withArgs(false).calledOnce);
-      });
-
-      test('disabling, promise rejected', function() {
-        nfcManager._changeHardwareState(nfcManager.NFC_HW_STATE.DISABLING);
-        fakePromise.mRejectToError();
-
-        assert.isTrue(spyIsInTransition.calledOnce);
-        assert.isTrue(stubHandleNfcOnOff.withArgs(true).calledOnce);
-      });
-
-      test('enabling, promise resolved', function() {
-        nfcManager._changeHardwareState(nfcManager.NFC_HW_STATE.ENABLING);
-        fakePromise.mFulfillToValue();
-
-        assert.isTrue(spyIsInTransition.calledOnce);
-        assert.isTrue(stubHandleNfcOnOff.withArgs(true).calledOnce);
-      });
-
-      test('enabling, promise rejected', function() {
-        nfcManager._changeHardwareState(nfcManager.NFC_HW_STATE.ENABLING);
-        fakePromise.mRejectToError();
-
-        assert.isTrue(spyIsInTransition.calledOnce);
-        assert.isTrue(stubHandleNfcOnOff.withArgs(false).calledOnce);
-      });
-
-      test('enable discovery, promise resolved', function() {
-        nfcManager.
-          _changeHardwareState(nfcManager.NFC_HW_STATE.ENABLE_DISCOVERY);
-        fakePromise.mFulfillToValue();
-
-        assert.isTrue(spyIsInTransition.calledOnce);
-        assert.isFalse(stubHandleNfcOnOff.called);
-      });
-
-      test('disable discover, promise rejected', function() {
-        nfcManager.
-          _changeHardwareState(nfcManager.NFC_HW_STATE.DISABLE_DISCOVERY);
-        fakePromise.mRejectToError();
-
-        assert.isTrue(spyIsInTransition.calledOnce);
-        assert.isFalse(stubHandleNfcOnOff.called);
-      });
-    });
-  });
-
-  suite('_handleNFCOnOff', function() {
-    var stubDispatchEvt;
-
-    setup(function() {
-      stubDispatchEvt = this.sinon.stub(window, 'dispatchEvent');
-    });
-
-    teardown(function() {
-      stubDispatchEvt.restore();
-    });
-
-    test('isOn true', function() {
-      nfcManager._handleNFCOnOff(true);
-
-      assert.equal(nfcManager._hwState, nfcManager.NFC_HW_STATE.ON);
-      assert.deepEqual(stubWriteSetting.secondCall.args[0],
-                       {'nfc.status':'enabled'});
-      assert.equal(stubDispatchEvt.firstCall.args[0].type,
-                   'nfc-state-changed');
-      assert.deepEqual(stubDispatchEvt.firstCall.args[0].detail,
-                       { active: true });
-    });
-
-    test('isOn false', function() {
-      nfcManager._handleNFCOnOff(false);
-
-      assert.equal(nfcManager._hwState, nfcManager.NFC_HW_STATE.OFF);
-      assert.deepEqual(stubWriteSetting.secondCall.args[0],
-                       {'nfc.status':'disabled'});
-      assert.equal(stubDispatchEvt.firstCall.args[0].type,
-                   'nfc-state-changed');
-      assert.deepEqual(stubDispatchEvt.firstCall.args[0].detail,
-                       { active: false });
-    });
   });
 });

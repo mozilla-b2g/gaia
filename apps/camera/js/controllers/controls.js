@@ -155,6 +155,8 @@ ControlsController.prototype.onCaptureClick = function() {
 ControlsController.prototype.onRecordingChange = function(recording) {
   this.view.set('recording', recording);
   if (!recording) { this.onRecordingEnd(); }
+  // Update capture button label when recording changes.
+  this.view.setCaptureLabel(recording);
 };
 
 /**

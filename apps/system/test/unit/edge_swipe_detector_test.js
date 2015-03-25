@@ -981,7 +981,7 @@ suite('system/EdgeSwipeDetector >', function() {
     });
   });
 
-  suite('handleEvent: download dialog events', function() {
+  suite('handleEvent: prompt events', function() {
     setup(function() {
       subject.lifecycleEnabled = true;
       MockService.currentApp = {
@@ -994,29 +994,34 @@ suite('system/EdgeSwipeDetector >', function() {
       MockService.currentApp = null;
     });
 
-    test('the edges should be disabled', function() {
-      launchDownloadDialogEvent('updatepromptshown');
-      assert.isTrue(subject.previous.classList.contains('disabled'));
-      assert.isTrue(subject.next.classList.contains('disabled'));
-    });
-
-    test('the edges should be enabled', function() {
-      launchDownloadDialogEvent('updateprompthidden');
-      assert.isFalse(subject.previous.classList.contains('disabled'));
-      assert.isFalse(subject.next.classList.contains('disabled'));
-    });
-
-    test('the edges should stay disabled when homescreen is active',
-      function() {
-        subject.lifecycleEnabled = false;
-        MockService.currentApp.isHomescreen = true;
-        launchDownloadDialogEvent('updatepromptshown');
+    function testPromptEvent(prefix) {
+      test('the edges should be disabled on ' + prefix + 'shown', function() {
+        launchDownloadDialogEvent(prefix + 'shown');
         assert.isTrue(subject.previous.classList.contains('disabled'));
         assert.isTrue(subject.next.classList.contains('disabled'));
-        launchDownloadDialogEvent('updateprompthidden');
-        assert.isTrue(subject.previous.classList.contains('disabled'));
-        assert.isTrue(subject.next.classList.contains('disabled'));
-    });
+      });
+
+      test('the edges should be enabled on ' + prefix + 'hidden', function() {
+        launchDownloadDialogEvent(prefix + 'hidden');
+        assert.isFalse(subject.previous.classList.contains('disabled'));
+        assert.isFalse(subject.next.classList.contains('disabled'));
+      });
+
+      test('the edges should stay disabled when homescreen is active',
+        function() {
+          subject.lifecycleEnabled = false;
+          MockService.currentApp.isHomescreen = true;
+          launchDownloadDialogEvent(prefix + 'shown');
+          assert.isTrue(subject.previous.classList.contains('disabled'));
+          assert.isTrue(subject.next.classList.contains('disabled'));
+          launchDownloadDialogEvent(prefix + 'hidden');
+          assert.isTrue(subject.previous.classList.contains('disabled'));
+          assert.isTrue(subject.next.classList.contains('disabled'));
+      });
+    }
+
+    testPromptEvent('updateprompt');
+    testPromptEvent('installprompt');
   });
 
 });

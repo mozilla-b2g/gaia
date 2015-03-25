@@ -18,7 +18,8 @@ Bookmark.prototype = {
     'mozbrowser': '.inline-activity.active iframe[mozbrowser]',
     'appInstallationSection': '#app-installation',
     'installAppButton': '#install-app-button',
-    'appName': '#app-name'
+    'appName': '#app-name',
+    'appIcon': '#app-icon'
   },
 
   get addButton() {
@@ -44,6 +45,11 @@ Bookmark.prototype = {
   get appName() {
     return this.client.helper.waitForElement(
       this.Selectors.appName);
+  },
+
+  get appIcon() {
+    return this.client.helper.waitForElement(
+      this.Selectors.appIcon);
   },
 
   /**
@@ -76,7 +82,7 @@ Bookmark.prototype = {
    * Navigates to a given url from the homescreen
    * and currently just looks for install section with correct app name.
    */
-  openAndInstall: function(url, name) {
+  openAndInstall: function(url, name, iconURL) {
     this.rocketbar.homescreenFocus();
     this.rocketbar.enterText(url + '\uE006');
 
@@ -85,7 +91,10 @@ Bookmark.prototype = {
 
     this.client.switchToFrame(this.currentTabFrame);
     this.client.waitFor((function() {
-      return this.appName.text() == name;
+      console.log('BTF ' + this.appIcon.getAttribute('src'));
+      return this.appName.text() == name &&
+        this.appIcon.displayed &&
+        this.appIcon.getAttribute('src').indexOf(iconURL) != -1;
     }).bind(this));
   },
 

@@ -123,7 +123,7 @@
         return false;
       }
       dialog.title = {
-        id: 'remoteDebuggerPromptTCP',
+        id: 'remoteDebuggerPromptTCP2',
         args: {
           host: session.client.host,
           port: session.client.port
@@ -131,12 +131,12 @@
       };
       dialog.options = [
         {
-          id: AuthenticationResult.ALLOW_PERSIST,
-          text: 'remoteDebuggerPrompt-scanAndRemember'
-        },
-        {
           id: AuthenticationResult.ALLOW,
           text: 'remoteDebuggerPrompt-scan'
+        },
+        {
+          id: AuthenticationResult.ALLOW_PERSIST,
+          text: 'remoteDebuggerPrompt-scanAndRemember'
         }
       ];
       return dialog;

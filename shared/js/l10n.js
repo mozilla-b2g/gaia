@@ -53,7 +53,12 @@
       try {
         xhr.send(null);
       } catch (e) {
-        callback(new L10nError('Not found: ' + url));
+        if (e.name === 'NS_ERROR_FILE_NOT_FOUND') {
+          // the app: protocol throws on 404, see https://bugzil.la/827243
+          callback(new L10nError('Not found: ' + url));
+        } else {
+          throw e;
+        }
       }
     },
 
@@ -1701,7 +1706,7 @@
   function buildLocaleList(meta, extraLangs) {
     var loc, lp;
     var localeSources = Object.create(null);
-    var defaultLocale = meta.defaultLocale || this.ctx.defaultLocale;
+    var defaultLocale = meta.defaultLanguage || this.ctx.defaultLocale;
 
     if (meta.availableLanguages) {
       for (loc in meta.availableLanguages) {

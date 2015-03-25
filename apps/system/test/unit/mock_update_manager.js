@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockUpdateManager */
 
 var MockUpdateManager = {
   _startedDownloadUsingDataConnection: false,

@@ -9,9 +9,7 @@ import tempfile
 import time
 
 from marionette import (MarionetteTestCase,
-                        EnduranceTestCaseMixin,
-                        B2GTestCaseMixin,
-                        MemoryEnduranceTestCaseMixin)
+                        B2GTestCaseMixin)
 from marionette_driver import expected, By, Wait
 from marionette_driver.errors import (NoSuchElementException,
                                       StaleElementException,
@@ -986,30 +984,3 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         self.apps = None
         self.data_layer = None
         MarionetteTestCase.tearDown(self)
-
-
-class GaiaEnduranceTestCase(GaiaTestCase, EnduranceTestCaseMixin, MemoryEnduranceTestCaseMixin):
-
-    def __init__(self, *args, **kwargs):
-        GaiaTestCase.__init__(self, *args, **kwargs)
-        EnduranceTestCaseMixin.__init__(self, *args, **kwargs)
-        MemoryEnduranceTestCaseMixin.__init__(self, *args, **kwargs)
-        kwargs.pop('iterations', None)
-        kwargs.pop('checkpoint_interval', None)
-
-    def close_app(self):
-        from gaiatest.apps.system.regions.cards_view import CardsView
-        self.cards_view = CardsView(self.marionette)
-
-        # Pull up the cards view
-        self.device.hold_home_button()
-        self.cards_view.wait_for_cards_view()
-
-        # Wait for first app ready
-        self.cards_view.wait_for_card_ready(self.app_under_test.lower())
-
-        # Close the current apps from the cards view
-        self.cards_view.close_app("search")
-
-        # Sleep a bit
-        time.sleep(5)

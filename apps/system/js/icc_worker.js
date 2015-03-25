@@ -1,8 +1,8 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* globals advanced_timer, DUMP, icc, icc_events, IccHelper, Notification,
-           Service, STKHelper */
+/* globals advanced_timer, DUMP, icc, icc_events, IccHelper,
+           NotificationHelper, Service, STKHelper */
 
 'use strict';
 
@@ -554,27 +554,33 @@ var icc_worker = {
   '0x28': function STK_CMD_SET_UP_IDLE_MODE_TEXT(message) {
     DUMP('STK_CMD_SET_UP_IDLE_MODE_TEXT:', message.command.options);
     var options = message.command.options;
-    this.idleTextNotifications[message.iccId] = new Notification(
-      'SIM ' + icc.getSIMNumber(message.iccId) + ' STK', {
+
+    return NotificationHelper.send(
+      {
+        id: 'icc-notification-title',
+        args: { id: icc.getSIMNumber(message.iccId) }
+      },
+      {
         body: options.text,
         icon: 'style/icons/system.png',
         tag: 'stkNotification_' + message.iccId,
         mozbehavior: {
           showOnlyOnce: true
         }
-      });
-    this.idleTextNotifications[message.iccId].onclick =
-      function onClickSTKNotification() {
+      }
+    ).then((notification) => {
+      this.idleTextNotifications[message.iccId] = notification;
+      notification.onclick = function onClickSTKNotification() {
         icc.discardCurrentMessageIfNeeded(message);
         var text = STKHelper.getMessageText(options);
         icc.alert(message, text, options.icons);
       };
-    this.idleTextNotifications[message.iccId].onshow =
-      function onShowSTKNotification() {
+      notification.onshow = function onShowSTKNotification() {
         icc.responseSTKCommand(message, {
           resultCode: icc._iccManager.STK_RESULT_OK
         });
       };
+    });
   }
 
 };

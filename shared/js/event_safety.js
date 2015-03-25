@@ -18,7 +18,8 @@ function eventSafety(obj, event, callback, timeout) {
   function done() {
     clearTimeout(finishTimeout);
     obj.removeEventListener(event, done);
-    callback();
+    /*jshint validthis:true */
+    callback.apply(this, arguments);
   }
 
   obj.addEventListener(event, done);

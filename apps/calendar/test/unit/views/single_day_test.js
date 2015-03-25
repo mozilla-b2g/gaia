@@ -291,10 +291,10 @@ suite('Views.SingleDay', function() {
         'rgba(0, 255, 204, 0.2);" ' +
           'class="md__event is-allday" ' +
           'href="/event/show/Curabitur-0-00-0-00">' +
-        '<span id="' + makeAllDayEventID('title') + '" ' +
-          'class="md__event-title">Curabitur</span>' +
-        '<span id="' + makeAllDayEventID('location') + '" ' +
-          'class="md__event-location">Mars</span>' +
+        '<bdi id="' + makeAllDayEventID('title') + '" ' +
+          'class="md__event-title">Curabitur</bdi>' +
+        '<bdi id="' + makeAllDayEventID('location') + '" ' +
+          'class="md__event-location">Mars</bdi>' +
         '</a></div></div>',
       'alldays: first render'
     );
@@ -321,10 +321,10 @@ suite('Views.SingleDay', function() {
         'style="border-color: rgb(0, 255, 204); background-color: ' +
         'rgba(0, 255, 204, 0.2); height: 49.9px; top: 250px;" ' +
         'class="md__event" href="/event/show/Lorem-Ipsum-5-00-6-00">' +
-        '<span id="' + makeFirstEventID('title') + '" ' +
-          'class="md__event-title">Lorem Ipsum</span>' +
-        '<span id="' + makeFirstEventID('location') + '" ' +
-          'class="md__event-location">Mars</span>' +
+        '<bdi id="' + makeFirstEventID('title') + '" ' +
+          'class="md__event-title">Lorem Ipsum</bdi>' +
+        '<bdi id="' + makeFirstEventID('location') + '" ' +
+          'class="md__event-location">Mars</bdi>' +
         '<span data-l10n-args="{&quot;startDate&quot;:&quot;Wednesday, July ' +
           '23, 2014&quot;,&quot;startTime&quot;:&quot;05:00&quot;,&quot;' +
           'endDate&quot;:&quot;Wednesday, July 23, 2014&quot;,&quot;endTime' +
@@ -340,10 +340,10 @@ suite('Views.SingleDay', function() {
         'rgba(0, 255, 204, 0.2); height: 549.9px; top: 300px;" ' +
         'class="md__event has-alarms" ' +
         'href="/event/show/Maecennas-6-00-17-00">' +
-        '<span id="' + makeSecondEventID('title') + '" ' +
-          'class="md__event-title">Maecennas</span>' +
-        '<span id="' + makeSecondEventID('location') + '" ' +
-          'class="md__event-location">Mars</span>' +
+        '<bdi id="' + makeSecondEventID('title') + '" ' +
+          'class="md__event-title">Maecennas</bdi>' +
+        '<bdi id="' + makeSecondEventID('location') + '" ' +
+          'class="md__event-location">Mars</bdi>' +
         '<i data-l10n-id="icon-calendar-alarm" id="' +
           makeSecondEventID('icon') + '" aria-hidden="true" ' +
           'style="color: rgb(0, 255, 204);" ' +

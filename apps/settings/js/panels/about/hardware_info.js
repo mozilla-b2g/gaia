@@ -94,8 +94,15 @@ define(function(require) {
         var span = document.createElement('span');
         var msisdn = iccInfo.msisdn || iccInfo.mdn;
         if (msisdn) {
-          span.textContent = isMultiSim ?
-            'SIM ' + (index + 1) + ': ' + msisdn : msisdn;
+          if (isMultiSim) {
+            navigator.mozL10n.setAttributes(span,
+              'deviceInfo-MSISDN-with-index', {
+                index: index + 1,
+                msisdn: msisdn
+            });
+          } else {
+            span.textContent = msisdn;
+          }
         } else {
           if (isMultiSim) {
             navigator.mozL10n.setAttributes(span,

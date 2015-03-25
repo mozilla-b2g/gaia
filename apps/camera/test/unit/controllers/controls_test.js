@@ -174,6 +174,15 @@ suite('controllers/controls', function() {
     });
   });
 
+  suite('ControlsController#onRecordingChange', function() {
+    test('When recording view\'s setCaptureLabel should be called', function() {
+      [true, false].forEach(function(recording) {
+        this.controller.onRecordingChange(recording);
+        assert.isTrue(this.view.setCaptureLabel.calledWith(recording));
+      }, this);
+    });
+  });
+
   suite('ControlsController.onViewModeChanged()', function() {
     test('It switches to the next mode setting', function() {
       this.controller.onViewModeChanged();
