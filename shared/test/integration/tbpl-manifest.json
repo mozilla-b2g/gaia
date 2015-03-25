@@ -42,6 +42,7 @@
     "apps/verticalhome/test/marionette/collection_pin_result_uninstall_test.js": "Bug 1098310 - TEST-UNEXPECTED-FAIL | Vertical - Collection uninstall pinned collection web result",
     "apps/verticalhome/test/marionette/collection_rename_test.js": "Bug 1090756 - TEST-UNEXPECTED-FAIL | Vertical - Collection Rename rename collection",
     "apps/verticalhome/test/marionette/group_collapse_drag_into_test.js": "Bug 1125696 - Intermittent failing test, TEST-UNEXPECTED-FAIL | Vertical - Group check dragging icon into collapsed group",
-    "apps/communications/contacts/test/marionette/ice_test.js": "Bug 1147601 - Intermittent failures"
+    "apps/communications/contacts/test/marionette/ice_test.js": "Bug 1147601 - Intermittent failures",
+    "apps/system/test/marionette/hierarchy_test.js": "Bug 1147618 - Disable intermittent test"
   }
 }
