@@ -30,7 +30,7 @@ var VorbisPictureComment = (function() {
     view.advance(16);
 
     var piclength = view.readUnsignedInt();
-    var picstart = view.index;
+    var picstart = view.sliceOffset + view.viewOffset + view.index;
 
     // Now return an object that specifies where to pull the image from
     // The properties of this object can be passed to blob.slice()
