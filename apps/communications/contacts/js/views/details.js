@@ -312,8 +312,11 @@ contacts.Details = (function() {
   var renderFavorite = function cd_renderFavorite(contact) {
     var favorite = isFavorite(contact);
     toggleFavoriteMessage(favorite);
-
-    header.classList.toggle('favorite', !!favorite);
+    if (contact.category && contact.category.indexOf('favorite') != -1) {
+      detailsName.classList.add('favorite');
+    } else {
+      detailsName.classList.remove('favorite');
+    }
   };
 
   var isFavorite = function isFavorite(contact) {

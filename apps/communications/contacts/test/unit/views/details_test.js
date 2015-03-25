@@ -250,14 +250,14 @@ suite('Render contact', function() {
   suite('Render favorite', function() {
     test('with favorite contact', function() {
       subject.render(null, TAG_OPTIONS);
-      assert.isTrue(header.classList.contains('favorite'));
+      assert.isTrue(detailsName.classList.contains('favorite'));
     });
     test('without favorite contact', function() {
       var contactWoFav = new MockContactAllFields(true);
       contactWoFav.category = [];
       subject.setContact(contactWoFav);
       subject.render(null, TAG_OPTIONS);
-      assert.isFalse(header.classList.contains('favorite'));
+      assert.isFalse(detailsName.classList.contains('favorite'));
     });
     test('change in favorite not render the window', function(done) {
       var contactWoPhoto = new MockContactAllFields();

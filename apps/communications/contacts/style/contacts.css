@@ -6,15 +6,10 @@
 }
 
 /* Fav star in header */
-.favorite-indicator {
-  display: none;
-
-  background: url(/contacts/style/gphx/bitmap/default/vw-header/icons/fav-star.png) no-repeat center / 3rem;
-  padding: 0 1rem;
-}
-
-.favorite .favorite-indicator {
-  display: unset;
+#contact-name-title.favorite {
+  background: url(/contacts/style/gphx/bitmap/default/vw-header/icons/fav-star.png) no-repeat right 1rem / 3rem;
+  padding-right: 3rem;
+  margin-right: -1rem;
 }
 
 section[role="region"] > gaia-header .icon.icon-edit-contact {
