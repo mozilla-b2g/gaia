@@ -1,4 +1,4 @@
-/* global SettingsHelper */
+/* global SettingsHelper, Service, LogoLoader */
 
 'use strict';
 
@@ -29,7 +29,7 @@ var CustomLogoPath = (function() {
     _poweron.image = DEFAULT_RESOURCES.poweron.image;
     _poweroff.video = DEFAULT_RESOURCES.poweroff.video;
     _poweroff.image = DEFAULT_RESOURCES.poweroff.image;
-  };
+  }
 
   function init(aNext) {
     try {
@@ -52,7 +52,7 @@ var CustomLogoPath = (function() {
                     ex);
       aNext && aNext();
     }
-  };
+  }
 
   return {
     get poweron() {
@@ -103,17 +103,15 @@ var InitLogoHandler = {
   },
 
   _removeCarrierPowerOn: function ilh_removeCarrierPowerOn() {
-    var self = this;
     if (this.carrierLogo && this.carrierLogo.parentNode) {
-      this.carrierLogo.parentNode.removeChild(self.carrierLogo);
+      this.carrierLogo.parentNode.removeChild(this.carrierLogo);
       this._setReady();
     } else {
-      var self = this;
-      document.addEventListener('DOMContentLoaded', function() {
-        if (self.carrierLogo) {
-          self.carrierLogo.parentNode.removeChild(self.carrierLogo);
+      document.addEventListener('DOMContentLoaded', () => {
+        if (this.carrierLogo) {
+          this.carrierLogo.parentNode.removeChild(this.carrierLogo);
         }
-        self._setReady();
+        this._setReady();
       });
     }
   },
@@ -123,10 +121,9 @@ var InitLogoHandler = {
       this.carrierLogo.appendChild(this.logoLoader.element);
       this._setReady();
     } else {
-      var self = this;
-      document.addEventListener('DOMContentLoaded', function() {
-        self.carrierLogo.appendChild(self.logoLoader.element);
-        self._setReady();
+      document.addEventListener('DOMContentLoaded', () => {
+        this.carrierLogo.appendChild(this.logoLoader.element);
+        this._setReady();
       });
     }
   },
@@ -161,32 +158,31 @@ var InitLogoHandler = {
   },
 
   animate: function ilh_animate(callback) {
-    var self = this;
-
     if (!this.ready) {
       this._waitReady(this.animate.bind(this, callback));
       return;
     }
 
-    if (this.animated)
+    if (this.animated) {
       return;
+    }
 
     this.animated = true;
 
-    self.publish('-deactivated');
-    Service.request('unregisterHierarchy', self);
+    this.publish('-deactivated');
+    Service.request('unregisterHierarchy', this);
 
     // No carrier logo - Just animate OS logo.
-    if (!self.logoLoader.found) {
-      self.osLogo.classList.add('hide');
+    if (!this.logoLoader.found) {
+      this.osLogo.classList.add('hide');
 
     // Has carrier logo - Animate carrier logo, then OS logo.
     } else {
       // CarrierLogo is not transparent until now
       // to prevent flashing.
-      self.carrierLogo.className = 'transparent';
+      this.carrierLogo.className = 'transparent';
 
-      var elem = self.logoLoader.element;
+      var elem = this.logoLoader.element;
       if (elem.tagName.toLowerCase() == 'video' && !elem.ended) {
         // compability: ensure movie being played here in case
         // system-first-paint is not supported by Gecko.
@@ -198,35 +194,36 @@ var InitLogoHandler = {
         elem.classList.add('hide');
       }
 
-      self.carrierLogo.addEventListener('transitionend',
-      function transCarrierLogo(evt) {
-        evt.stopPropagation();
-        self.carrierLogo.removeEventListener('transitionend', transCarrierLogo);
-        if (elem.tagName.toLowerCase() == 'video') {
-          // XXX workaround of bug 831747
-          // Unload the video. This releases the video decoding hardware
-          // so other apps can use it.
-          elem.removeAttribute('src');
-          elem.load();
-        }
-        self.carrierLogo.parentNode.removeChild(self.carrierLogo);
-        delete self.carrierLogo; // Don't entrain the DOM nodes.
+      this.carrierLogo.addEventListener('transitionend',
+        function transCarrierLogo(evt) {
+          evt.stopPropagation();
+          this.carrierLogo.removeEventListener('transitionend',
+            transCarrierLogo);
+          if (elem.tagName.toLowerCase() == 'video') {
+            // XXX workaround of bug 831747
+            // Unload the video. This releases the video decoding hardware
+            // so other apps can use it.
+            elem.removeAttribute('src');
+            elem.load();
+          }
+          this.carrierLogo.parentNode.removeChild(this.carrierLogo);
+          delete this.carrierLogo; // Don't entrain the DOM nodes.
 
-        self.osLogo.classList.add('hide');
-        self.carrierPowerOnElement = null;
-      });
+          this.osLogo.classList.add('hide');
+          this.carrierPowerOnElement = null;
+      }.bind(this));
     }
 
-    self.osLogo.addEventListener('transitionend', function transOsLogo() {
-      self.osLogo.removeEventListener('transitionend', transOsLogo);
-      self.osLogo.parentNode.removeChild(self.osLogo);
-      delete self.osLogo; // Don't entrain the DOM nodes.
+    this.osLogo.addEventListener('transitionend', function transOsLogo() {
+      this.osLogo.removeEventListener('transitionend', transOsLogo);
+      this.osLogo.parentNode.removeChild(this.osLogo);
+      delete this.osLogo; // Don't entrain the DOM nodes.
       window.performance.mark('osLogoEnd');
       window.dispatchEvent(new CustomEvent('logohidden'));
       if (callback) {
         callback();
       }
-    });
+    }.bind(this));
   }
 };
 
