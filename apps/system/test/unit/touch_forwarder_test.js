@@ -36,9 +36,11 @@ suite('system/TouchForwarder >', function() {
     requireApp('system/js/touch_forwarder.js', done);
   });
 
+  var ariaHidden;
   setup(function() {
+    ariaHidden = false;
     iframe = {
-      getAttribute: function() { return true; }, // APZC on by default
+      getAttribute: function() { return ariaHidden; },
       sendTouchEvent: function() {},
       sendMouseEvent: function() {}
     };
@@ -56,6 +58,13 @@ suite('system/TouchForwarder >', function() {
       assert.equal(call.args[0], 'touchstart');
       assert.deepEqual(call.args[2], [3]);
       assert.deepEqual(call.args[3], [20]);
+    });
+
+    test('it should not forward to an aria-hidden frame', function() {
+      ariaHidden = true;
+      this.sinon.spy(iframe, 'sendTouchEvent');
+      subject.forward(forgeTouch('touchstart', 3, 20));
+      sinon.assert.notCalled(iframe.sendTouchEvent);
     });
   });
 
@@ -127,6 +136,13 @@ suite('system/TouchForwarder >', function() {
       var sendMouseSpy = this.sinon.spy(iframe, 'sendMouseEvent');
       simpleTap();
       assertMouseEventsSequence(sendMouseSpy, 5, 20);
+    });
+
+    test('it should not forward taps to an aria-hidden frame', function() {
+      ariaHidden = true;
+      this.sinon.spy(iframe, 'sendMouseEvent');
+      simpleTap();
+      sinon.assert.notCalled(iframe.sendMouseEvent);
     });
   });
 });
