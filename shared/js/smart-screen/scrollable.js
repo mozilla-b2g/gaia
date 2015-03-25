@@ -419,12 +419,16 @@
     },
 
     handleEvent: function (evt) {
-      if (evt.type === 'transitionend' && evt.target === this.listElem &&
-                                          evt.propertyName === 'transform') {
-        if (this.isSliding) {
-          this.endSlide();
+      if (evt.type === 'transitionend') {
+        if (evt.target === this.listElem && evt.propertyName === 'transform') {
+          if (this.isSliding) {
+            this.endSlide();
+          }
+          this.fire('listTransformEnd', this.listElem);
+        } else if (evt.target.classList.contains('card') &&
+            evt.propertyName === 'transform') {
+          this.fire('nodeTransformEnd', evt.target);
         }
-        this.fire('listTransformEnd', this.listElem);
       }
     }
 
