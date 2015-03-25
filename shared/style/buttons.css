@@ -401,6 +401,11 @@ html[dir="rtl"] .bb-button[data-icon]:before,
 html[dir="rtl"] .button[data-icon]:before {
   left: 1.5rem;
   right: unset;
+}
+
+html[dir="rtl"] button.mirrored[data-icon]:before,
+html[dir="rtl"] .bb-button.mirrored[data-icon]:before,
+html[dir="rtl"] .button.mirrored[data-icon]:before {
   transform: scale(-1, 1);
 }
 
