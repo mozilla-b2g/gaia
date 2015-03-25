@@ -8,8 +8,7 @@
          SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory,
          applications, LayoutManager, PermissionManager, Accessibility,
-         TextSelectionDialog, SleepMenu, InteractiveNotifications,
-         ExternalStorageMonitor */
+         SleepMenu, InteractiveNotifications, ExternalStorageMonitor */
 'use strict';
 
 
@@ -27,9 +26,6 @@ window.addEventListener('load', function startup() {
     }
 
     window.AppWindowManager.init();
-
-    /** @global */
-    window.textSelectionDialog = new TextSelectionDialog();
   }
 
   function safelyLaunchFTU() {
