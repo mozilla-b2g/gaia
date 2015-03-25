@@ -27,6 +27,7 @@ marionette('Bookmark -', function() {
   });
 
   test('Install app from page', function() {
+    throw new Error('YOU HAZ ERROR');
 
     var url = server.url('app.html');
 
