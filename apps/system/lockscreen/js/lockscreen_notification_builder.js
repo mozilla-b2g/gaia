@@ -60,6 +60,19 @@
 
     node.addEventListener('click',
       this.requestHighlight.bind(this, node));
+    node = this.decorateDirection(node);
+    return node;
+  };
+
+  LockScreenNotificationBuilder.prototype.decorateDirection =
+  function lsnb_decorateDirection(node) {
+    var title = node.querySelector('.title');
+    var newDir = document.documentElement.dir;
+    var predefinedDir = node.dataset.predefinedDir;
+    if ((predefinedDir === 'auto') || !predefinedDir) {
+      node.dir = newDir;
+      title.dir = newDir;
+    }
     return node;
   };
 
