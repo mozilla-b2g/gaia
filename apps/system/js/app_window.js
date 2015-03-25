@@ -448,7 +448,7 @@
     this.loading = false;
     this.loaded = false;
     this.suspended = true;
-    this.element.classList.add('suspended');
+    this.element && this.element.classList.add('suspended');
     this.browserContainer.removeChild(this.browser.element);
     this.browser = null;
     this.iframe = null;
