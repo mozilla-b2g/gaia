@@ -93,9 +93,6 @@ suite('system/AppChrome', function() {
     }
   };
 
-  var fadeTransitionEndEvent = new CustomEvent('transitionend');
-  fadeTransitionEndEvent.propertyName = 'background-color';
-
   suite('Old Navigation - Application events', function() {
     test('app is loading', function() {
       var app = new AppWindow(fakeWebSite);
@@ -549,7 +546,7 @@ suite('system/AppChrome', function() {
       // finished. Individual tests are responsible for firing a
       // transitionend event at the element of any additional AppChrome
       // objects they create.
-      chrome.element.dispatchEvent(fadeTransitionEndEvent);
+      chrome.element.dispatchEvent(new CustomEvent('transitionend'));
 
       // To ensure the transitionend event has been processed, wait for a
       // *real* requestAnimationFrame tick.
@@ -605,7 +602,7 @@ suite('system/AppChrome', function() {
       var initiallyLight = app.element.classList.contains('light');
       chrome.setThemeColor('black');
       window.setTimeout(function() {
-        chrome.element.dispatchEvent(fadeTransitionEndEvent);
+        chrome.element.dispatchEvent(new CustomEvent('transitionend'));
         assert.isTrue(stubRequestAnimationFrame.called);
         assert.isFalse(app.element.classList.contains('light'));
         assert.isFalse(chrome.useLightTheming());
@@ -619,7 +616,7 @@ suite('system/AppChrome', function() {
       var initiallyLight = app.element.classList.contains('light');
       chrome.setThemeColor('white');
       window.setTimeout(function() {
-        chrome.element.dispatchEvent(fadeTransitionEndEvent);
+        chrome.element.dispatchEvent(new CustomEvent('transitionend'));
         assert.isTrue(stubRequestAnimationFrame.called);
         assert.isTrue(app.element.classList.contains('light'));
         assert.isTrue(chrome.useLightTheming());
@@ -638,14 +635,14 @@ suite('system/AppChrome', function() {
       popup.appChrome = popupChrome;
       app.appChrome = chrome;
       window.setTimeout(function() {
-        chrome.element.dispatchEvent(fadeTransitionEndEvent);
+        chrome.element.dispatchEvent(new CustomEvent('transitionend'));
         assert.isTrue(stubRequestAnimationFrame.called);
         assert.equal(chrome.useLightTheming(), popupChrome.useLightTheming());
         assert.equal(app.themeColor, 'black');
         assert.equal(popup.themeColor, 'black');
         sinon.assert.calledOnce(appPublishStub.withArgs('titlestatechanged'));
         // End popup rAF look so it doesn't interfere with other tests
-        popupChrome.element.dispatchEvent(fadeTransitionEndEvent);
+        popupChrome.element.dispatchEvent(new CustomEvent('transitionend'));
         done();
       }, 0);
     });
@@ -658,26 +655,10 @@ suite('system/AppChrome', function() {
 
     test('should stop requesting frames when transition ends', function(done) {
       chrome.setThemeColor('white');
-      chrome.element.dispatchEvent(fadeTransitionEndEvent);
+      chrome.element.dispatchEvent(new CustomEvent('transitionend'));
       window.setTimeout(function() {
         sinon.assert.calledOnce(stubRequestAnimationFrame);
         done();
-      }, 0);
-    });
-
-    test('should ignore unrelated transition events', function(done) {
-      chrome.setThemeColor('white');
-      window.setTimeout(function() {
-        var previousCallCount = stubRequestAnimationFrame.callCount;
-        var transformEvent = new CustomEvent('transitionend');
-        transformEvent.propertyName = 'transform';
-        chrome.element.dispatchEvent(transformEvent);
-        window.setTimeout(function() {
-          assert.isTrue(stubRequestAnimationFrame.callCount > previousCallCount,
-                       'requestAnimationFrame continues to be called after ' +
-                       'an unrelated transition event');
-          done();
-        }, 0);
       }, 0);
     });
 

@@ -572,15 +572,13 @@
 
     var self = this;
     var finishedFade = false;
-    var endBackgroundFade = function(evt) {
-      if (evt && evt.propertyName != 'background-color') {
-        return;
-      }
+    var endBackgroundFade = function() {
       finishedFade = true;
       if (self.element) {
         self.element.removeEventListener('transitionend', endBackgroundFade);
       }
     };
+    this.element.addEventListener('transitionend', endBackgroundFade);
     eventSafety(this.element, 'transitionend', endBackgroundFade, 1000);
 
     window.requestAnimationFrame(function updateAppColor() {
