@@ -1,8 +1,7 @@
+/* global Service */
 'use strict';
-
-(function(window) {
+(function(exports) {
   var DEBUG = false;
-  var _id = 0;
 
   /**
    * The virtual class inherited by all UI in system which has
@@ -10,7 +9,7 @@
    *
    * @class BaseUI
    */
-  window.BaseUI = function BaseUI() {
+  var BaseUI = function BaseUI() {
   };
 
   BaseUI.prototype.EVENT_PREFIX = 'base-';
@@ -132,4 +131,6 @@
         Array.slice(arguments).concat());
     }
   };
-}(this));
+
+  exports.BaseUI = BaseUI;
+}(window));
