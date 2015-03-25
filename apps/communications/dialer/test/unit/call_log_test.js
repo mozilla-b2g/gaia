@@ -212,6 +212,14 @@ suite('dialer/call_log', function() {
     retryCount: 0
   };
 
+  var noNumberGroup = {
+    id: '123',
+    lastEntryDate: Date.now(),
+    type: 'incoming',
+    status: '',
+    retryCount: 0
+  };
+
   var voicemailGroup = {
     id: '123',
     lastEntryDate: Date.now(),
@@ -338,9 +346,14 @@ suite('dialer/call_log', function() {
             (group.emergency ? 'emergencyNumber' : '');
         assert.equal(primaryInfoMain.getAttribute('data-l10n-id'), expected);
         assert.isNull(primaryInfoMain.querySelector('bdi'));
-      } else {
+      } else if (group.number) {
         assert.equal(
           primaryInfoMain.querySelector('bdi').innerHTML, group.number);
+      } else {
+        assert.equal(
+          primaryInfoMain.querySelector('bdi').getAttribute('data-l10n-id'),
+          'withheld-number'
+        );
       }
     }
 
@@ -494,6 +507,10 @@ suite('dialer/call_log', function() {
 
     test('No contact group', function(done) {
       checkGroupDOM(CallLog.createGroup(noContactGroup), noContactGroup, done);
+    });
+
+    test('No number group', function(done) {
+      checkGroupDOM(CallLog.createGroup(noNumberGroup), noNumberGroup, done);
     });
 
     test('Voicemail group', function(done) {
