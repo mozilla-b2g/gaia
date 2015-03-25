@@ -4,6 +4,7 @@ define('simcard_fdn', ['modules/dialog_service'], function(DialogService) {
   var SimFdnLock = {
     dialog: document.getElementById('call-pin2-dialog'),
     pinDialog: null,
+    gaiaHeader: document.querySelector('#call-pin2-dialog gaia-header'),
 
     // enable|disable|unlock FDN
     simFdnDesc: document.querySelector('#fdn-enabled small'),
@@ -190,6 +191,7 @@ define('simcard_fdn', ['modules/dialog_service'], function(DialogService) {
     updateContact: function(action, options) {
       // `action' is either `add', `edit' or `remove': these three actions all
       // rely on the same mozIccManager.updateContact() method.
+      var self = this;
       var options = options || {};
       var name = options.name;
       var number = options.number;
@@ -200,9 +202,18 @@ define('simcard_fdn', ['modules/dialog_service'], function(DialogService) {
         number: number
       });
 
+      var resetHref = function() {
+        // we need this timeout
+        setTimeout(function() {
+          self.gaiaHeader.dataset.href = '#call-fdnSettings';
+        });
+      };
+
+      this.gaiaHeader.dataset.href = '#call-fdnList';
       this.pinDialog.show('get_pin2', {
-        exitPanel: '#call-fdnList',
-        fdnContact: contact
+        fdnContact: contact,
+        oncancel: resetHref,
+        onsuccess: resetHref
       });
     }
   };

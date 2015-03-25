@@ -183,6 +183,7 @@
       object.sendStkResponse = function() {};
       object.sendStkMenuSelection = function() {};
       object.sendStkEventDownload = function() {};
+      object.updateContact = function() {};
 
       return object;
     },
