@@ -74,7 +74,6 @@ suite('system/Core', function() {
     test('simple launch with Settings API', function() {
       this.sinon.stub(core, 'startAPIHandler');
       core.start();
-      core.__sub_module_loaded();
       assert.isTrue(
         core.startAPIHandler.calledWith('mozSettings', 'SettingsCore'));
     });
@@ -105,7 +104,6 @@ suite('system/Core', function() {
     test('simple launch without Settings API', function() {
       this.sinon.stub(core, 'startAPIHandler');
       core.start();
-      core.__sub_module_loaded();
       assert.isFalse(
         core.startAPIHandler.calledWith('mozSettings', 'SettingsCore'));
     });

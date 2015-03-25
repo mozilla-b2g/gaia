@@ -50,17 +50,22 @@
       return false;
     },
 
-    __sub_module_loaded: function() {
-      for (var api in this.REGISTRY) {
-        this.debug('Detecting API: ' + api +
-          ' and corresponding module: ' + this.REGISTRY[api]);
-        if (navigator[api]) {
-          this.debug('API: ' + api + ' found, starting the handler.');
-          this.startAPIHandler(api, this.REGISTRY[api]);
-        } else {
-          this.debug('API: ' + api + ' not found, skpping the handler.');
-        }
-      }
+    _start: function() {
+      ScreenManager && ScreenManager.turnScreenOn();
+      // We need to be sure to get the focus in order to wake up the screen
+      // if the phone goes to sleep before any user interaction.
+      // Apparently it works because no other window
+      // has the focus at this point.
+      window.focus();
+      // With all important event handlers in place, we can now notify
+      // Gecko that we're ready for certain system services to send us
+      // messages (e.g. the radio).
+      // Note that shell.js starts listen for the mozContentEvent event at
+      // mozbrowserloadstart, which sometimes does not happen till
+      // window.onload.
+      this.publish('mozContentEvent', {
+        type: 'system-message-listener-ready'
+      }, true);
 
       this.loadWhenIdle([
         'NotificationScreen',
@@ -97,6 +102,18 @@
         'SoundManager',
         'CustomDialogService'
       ]).then(function() {
+        for (var api in this.REGISTRY) {
+          this.debug('Detecting API: ' + api +
+            ' and corresponding module: ' + this.REGISTRY[api]);
+          if (navigator[api]) {
+            this.debug('API: ' + api + ' found, starting the handler.');
+            this.startAPIHandler(api, this.REGISTRY[api]);
+          } else {
+            this.debug('API: ' + api + ' not found, skpping the handler.');
+          }
+        }
+        return Promise.resolve();
+      }.bind(this)).then(function() {
         return LazyLoader.load([
           'js/download/download_manager.js',
           'js/payment.js',
@@ -105,28 +122,9 @@
           'js/devtools/remote_debugger.js',
           'shared/js/date_time_helper.js'
         ]);
-      }).then(function() {
+      }.bind(this)).then(function() {
         this.remoteDebugger = new RemoteDebugger();
-        // this.remoteDebugger.start();
       }.bind(this));
-    },
-
-    _start: function() {
-      ScreenManager && ScreenManager.turnScreenOn();
-      // We need to be sure to get the focus in order to wake up the screen
-      // if the phone goes to sleep before any user interaction.
-      // Apparently it works because no other window
-      // has the focus at this point.
-      window.focus();
-      // With all important event handlers in place, we can now notify
-      // Gecko that we're ready for certain system services to send us
-      // messages (e.g. the radio).
-      // Note that shell.js starts listen for the mozContentEvent event at
-      // mozbrowserloadstart, which sometimes does not happen till
-      // window.onload.
-      this.publish('mozContentEvent', {
-        type: 'system-message-listener-ready'
-      }, true);
     },
 
     startAPIHandler: function(api, handler) {
