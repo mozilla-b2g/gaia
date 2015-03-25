@@ -64,6 +64,9 @@ function summarize(results) {
   console.log('passed: %d', results.pass);
   console.log('failed: %d', results.fail);
   console.log('todo: %d', results.pending);
+  if (results.fail > 0) {
+    process.exit(1);
+  }
 }
 
 /**
