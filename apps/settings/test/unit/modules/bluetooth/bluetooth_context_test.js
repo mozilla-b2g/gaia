@@ -1411,6 +1411,56 @@ suite('BluetoothContext', function() {
     });
   });
 
+  suite('sendFile > ', function() {
+    suite('has default adapter, trigger unpair ', function() {
+      var mockAdapter, address, blob, mockAdapterSendFilePromise;
+      setup(function() {
+        mockAdapterSendFilePromise = new Promise(function(resolve) {
+          resolve();
+        });
+        mockAdapter = {
+          sendFile: function() {return mockAdapterSendFilePromise;}
+        };
+        address = 'AA:BB:CC:00:11:22';
+        blob = {};
+        btContext._defaultAdapter = mockAdapter;
+        this.sinon.spy(btContext._defaultAdapter, 'sendFile');
+      });
+
+      test('_defaultAdapter.sendFile() should be called with addrss, blob, ',
+      function(done) {
+        btContext.sendFile(address, blob).then(function() {
+          assert.equal(btContext._defaultAdapter.sendFile.args[0][0], address);
+          assert.equal(btContext._defaultAdapter.sendFile.args[0][1], blob);
+        }, function() {
+          // reject case
+          assert.isTrue(false);
+        }).then(done, done);
+      });
+    });
+
+    suite('default adapter = null, trigger sendFile, in reject case ',
+    function() {
+      var address, blob;
+      setup(function() {
+        address = 'AA:BB:CC:00:11:22';
+        blob = {};
+        btContext._defaultAdapter = null;
+      });
+
+      test('will reject with reason ' +
+           '"default adapter is not existed!!" ', function(done) {
+        btContext.sendFile(address, blob).then(function() {
+          // resolve case
+          assert.isTrue(false);
+        }, function(reason) {
+          // reject case
+          assert.equal(reason, 'default adapter is not existed!!');
+        }).then(done, done);
+      });
+    });
+  });
+
   suite('_initConnectingDevices > ', function() {
     suite('there is no connecting device ', function() {
       setup(function() {

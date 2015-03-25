@@ -4,7 +4,7 @@ require(['config/require'], function() {
   var _debug = false;
   var Debug = function() {};
   if (_debug) {
-    Debug = function btc_debug(msg) {
+    Debug = function btsp_debug(msg) {
       console.log('--> [startup_pair]: ' + msg);
     };
   }
