@@ -700,13 +700,35 @@ suite('system/AppWindow', function() {
     });
 
     test('when cards view is shown and hidden', function() {
+      var fakeScreenshotBlob = 'blob:d3958f5c-0777-0845-9dcf-2cb28783acaf';
+      this.sinon.stub(app1, 'requestScreenshotURL', function() {
+        return fakeScreenshotBlob;
+      });
+
       app1.element.dispatchEvent(new CustomEvent('_cardviewbeforeshow'));
       assert.isTrue(app1.screenshotOverlay.classList.contains('visible'),
                     'Overlay should be visible after beforeshow is received');
+      assert.isFalse(app1.element.classList.contains('no-screenshot'),
+                    'Shouldnt have no-screenshot class when there is one');
 
       app1.element.dispatchEvent(new CustomEvent('_cardviewclosed'));
       assert.isFalse(app1.screenshotOverlay.classList.contains('visible'),
                      'Overlay should be hidden after closed is received');
+    });
+
+    test('when cards view is shown and theres no screenshot', function() {
+      this.sinon.stub(app1, 'requestScreenshotURL', function() {
+        return null;
+      });
+      app1.element.dispatchEvent(new CustomEvent('_cardviewbeforeshow'));
+      assert.isTrue(app1.element.classList.contains('no-screenshot'),
+                    'has no-screenshot class ' +
+                    'when requestScreenshotURL returns falsey');
+
+      app1.element.dispatchEvent(new CustomEvent('_cardviewshown'));
+      app1.element.dispatchEvent(new CustomEvent('_cardviewclosed'));
+      assert.isFalse(app1.element.classList.contains('no-screenshot'),
+                    'removes no-screenshot class');
     });
 
     test('show overlay when revealed by an edge swipe', function() {
