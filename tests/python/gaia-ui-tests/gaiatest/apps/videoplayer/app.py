@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette_driver import By
+from marionette_driver import By, Wait
 
 from gaiatest.apps.base import Base
 
@@ -25,8 +25,8 @@ class VideoPlayer(Base):
 
     def wait_for_thumbnails_to_load(self, files_number, message=None):
         timeout = (self.marionette.timeout / 1000) + (files_number * 5)
-        self.wait_for_condition(lambda m: len(m.find_elements(*self._video_items_locator)) == files_number,
-                                timeout=timeout, message=message)
+        Wait(self.marionette, timeout).until(lambda m: len(m.find_elements(
+            *self._video_items_locator)) == files_number, message=message)
 
     @property
     def total_video_count(self):
