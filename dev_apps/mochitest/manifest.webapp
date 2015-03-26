@@ -38,6 +38,11 @@
     "foo" : { "readonly": false },
     "bar" : { "readonly": false }
   },
-  "default_locale": "en-US"
+  "default_locale": "en-US",
+  "messages": [
+    { "alarm": "/tests/dom/alarm/test/test_bug1037079.html" },
+    { "alarm": "/tests/dom/alarm/test/test_bug1090896.html" },
+    { "alarm": "/tests/dom/messages/test/test_bug_993732.html" }
+  ]
 }
 
