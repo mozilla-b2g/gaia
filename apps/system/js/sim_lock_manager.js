@@ -10,6 +10,7 @@
     'ftuopen',
     'appopened',
     'lockscreen-request-unlock',
+    'simslot-updated',
     'simslot-cardstatechange',
     'simslot-iccinfochange',
     'attentionopening',
@@ -34,6 +35,10 @@
 
     _sim_lock_system_dialog_loaded: function() {
       this.showIfLocked();
+    },
+
+    '_handle_simslot-updated': function(evt) {
+      this.showIfLocked(evt.detail.index);
     },
 
     '_handle_simslot-iccinfochange': function(evt) {

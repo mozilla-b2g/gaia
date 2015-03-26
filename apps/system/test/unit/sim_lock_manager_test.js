@@ -94,11 +94,13 @@ suite('SimLockManager', function() {
   });
 
   suite('to test events', function() {
+    var showIfLocked;
+
     setup(function() {
       this.sinon.stub(subject.simLockSystemDialog, 'close', function() {
         subject.simLockSystemDialog.visible = false;
       });
-      this.sinon.spy(subject, 'showIfLocked');
+      showIfLocked = this.sinon.spy(subject, 'showIfLocked');
     });
 
     test('when unlocking request comes, to check if it\'s for Camera',
@@ -134,6 +136,22 @@ suite('SimLockManager', function() {
       });
       assert.isTrue(subject.simLockSystemDialog.close.called);
       assert.isFalse(subject.simLockSystemDialog.visible);
+    });
+
+    suite('simslot-updated events', function() {
+
+      setup(function() {
+        subject.handleEvent({
+          type: 'simslot-updated',
+          detail: {
+            index: 0
+          }
+        });
+      });
+
+      test('show the dialog if is locked', function() {
+        assert.isTrue(showIfLocked.called);
+      });
     });
 
     suite('simslot-cardstatechange events', function() {
