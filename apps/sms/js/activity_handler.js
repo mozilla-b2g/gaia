@@ -83,12 +83,12 @@ var ActivityHandler = {
   */
   _findContactByTarget: function findContactByTarget(target) {
     var deferred = Utils.Promise.defer();
-    Contacts.findByAddress(target, (results) => {
+    Contacts.findByAddress(target).then((contacts) => {
       var record, name, contact;
 
       // Bug 867948: results null is a legitimate case
-      if (results && results.length) {
-        record = results[0];
+      if (contacts && contacts.length) {
+        record = contacts[0];
         name = record.name.length && record.name[0];
         contact = {
           number: target,
@@ -453,13 +453,13 @@ var ActivityHandler = {
           }
         }
 
-        Contacts.findByAddress(message.sender, function gotContact(contact) {
+        Contacts.findByAddress(message.sender).then(function(contacts) {
           var sender = message.sender;
-          if (!contact) {
-            console.error('We got a null contact for sender:', sender);
-          } else if (contact.length && contact[0].name &&
-            contact[0].name.length && contact[0].name[0]) {
-            sender = contact[0].name[0];
+          if (!contacts) {
+            console.error('We got a null contacts for sender:', sender);
+          } else if (contacts.length && contacts[0].name &&
+            contacts[0].name.length && contacts[0].name[0]) {
+            sender = contacts[0].name[0];
           }
           if (message.type === 'sms') {
             continueWithNotification(sender, message.body || '');

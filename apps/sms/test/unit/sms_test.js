@@ -173,18 +173,22 @@ suite('SMS App Unit-Test', function() {
 
     // We mockup the method for retrieving the info
     // of a contact given a number
-    this.sinon.stub(Contacts, 'findByString', function(tel, callback) {
+    this.sinon.stub(Contacts, 'findByString', function(tel) {
       // Get the contact
       if (tel === '1977') {
-        callback(MockContact.list());
+        return Promise.resolve(MockContact.list());
       }
+
+      return Promise.resolve(null);
     });
 
-    this.sinon.stub(Contacts, 'findByPhoneNumber', function(tel, callback) {
+    this.sinon.stub(Contacts, 'findByPhoneNumber', function(tel) {
       // Get the contact
       if (tel === '1977') {
-        callback(MockContact.list());
+        return Promise.resolve(MockContact.list());
       }
+
+      return Promise.resolve(null);
     });
   });
 

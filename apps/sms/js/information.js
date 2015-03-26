@@ -438,18 +438,18 @@ Information.prototype = {
       } else {
         number = participant;
       }
-      Contacts.findByAddress(number, (results) => {
+      Contacts.findByAddress(number).then((contacts) => {
         // If the current rendering ID doesn't match the latest ID, skip current
         // one and only render for ID which matches latest request ID.
         if (currentRenderingId !== this.renderingId) {
           return;
         }
 
-        var isContact = results !== null && !!results.length;
+        var isContact = contacts !== null && !!contacts.length;
 
         if (isContact) {
           renderer.render({
-            contact: results[0],
+            contact: contacts[0],
             input: number,
             infoBlock: infoBlock,
             infoBlockParentSelector: selector,

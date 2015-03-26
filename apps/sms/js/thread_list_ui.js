@@ -249,19 +249,15 @@ var ThreadListUI = {
   },
 
   findContact: function(number, options) {
-    var defer = Utils.Promise.defer();
-
-    Contacts.findByAddress(number, function(contacts) {
+    return Contacts.findByAddress(number).then(function(contacts) {
       var details = Utils.getContactDetails(number, contacts, options);
 
       if (!details.isContact) {
         Contacts.addUnknown(number);
       }
 
-      defer.resolve(details);
+      return details;
     });
-
-    return defer.promise;
   },
 
   handleEvent: function thlui_handleEvent(event) {

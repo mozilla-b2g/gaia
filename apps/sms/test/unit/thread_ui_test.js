@@ -96,9 +96,7 @@ var mocksHelperForThreadUI = new MocksHelper([
   'Notification',
   'ThreadListUI',
   'SelectionHandler'
-]);
-
-mocksHelperForThreadUI.init();
+]).init();
 
 suite('thread_ui.js >', function() {
   var input;
@@ -114,7 +112,6 @@ suite('thread_ui.js >', function() {
 
   var realMozL10n;
 
-  var mocksHelper = mocksHelperForThreadUI;
   var testImageBlob;
   var oversizedImageBlob;
   var testAudioBlob;
@@ -135,9 +132,9 @@ suite('thread_ui.js >', function() {
     elt.dispatchEvent(event);
   }
 
-  suiteSetup(function(done) {
-    mocksHelper.suiteSetup();
+  mocksHelperForThreadUI.attachTestHelpers();
 
+  suiteSetup(function(done) {
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
@@ -168,11 +165,9 @@ suite('thread_ui.js >', function() {
 
   suiteTeardown(function() {
     navigator.mozL10n = realMozL10n;
-    mocksHelper.suiteTeardown();
   });
 
   setup(function() {
-    mocksHelper.setup();
     loadBodyHTML('/index.html');
 
     input = document.getElementById('messages-input');
@@ -208,8 +203,6 @@ suite('thread_ui.js >', function() {
 
     document.body.innerHTML = '';
     Threads.currentId = null;
-
-    mocksHelper.teardown();
 
     sticky = null;
     MockOptionMenu.mTeardown();
@@ -314,7 +307,7 @@ suite('thread_ui.js >', function() {
     suite('rendering suggestions list', function() {
       var suggestionRenderer, unknownRenderer;
       var contact, unknown;
-      setup(function() {
+      setup(function(done) {
         suggestionRenderer = new MockContactRenderer();
         unknownRenderer = new MockContactRenderer();
         sinon.spy(suggestionRenderer, 'render');
@@ -335,7 +328,8 @@ suite('thread_ui.js >', function() {
           source: 'unknown'
         };
 
-        this.sinon.stub(Contacts, 'findByString').yields([contact, unknown]);
+        var contactPromise = Promise.resolve([contact, unknown]);
+        this.sinon.stub(Contacts, 'findByString').returns(contactPromise);
 
         ThreadUI.recipients.add({
           number: '888'
@@ -350,6 +344,8 @@ suite('thread_ui.js >', function() {
         ThreadUI.recipients.inputValue = '999';
 
         placeholder.dispatchEvent(new CustomEvent('input', { bubbles: true }));
+
+        contactPromise.then(() => done(), done);
       });
 
       test('does display found contacts', function() {
@@ -1074,7 +1070,7 @@ suite('thread_ui.js >', function() {
           );
         });
 
-        test('Matches contact ', function() {
+        test('Matches contact ', function(done) {
           var record = {
             isQuestionable: true,
             name: 'Jane Doozer',
@@ -1082,30 +1078,32 @@ suite('thread_ui.js >', function() {
             source: 'manual'
           };
 
-          this.sinon.stub(Contacts, 'findByString').yields(
-            MockContact.list([
-              { givenName: ['Jane'], familyName: ['Doozer'] }
-            ])
+          this.sinon.stub(Contacts, 'findByString').returns(
+            Promise.resolve(
+              MockContact.list([
+                { givenName: ['Jane'], familyName: ['Doozer'] }
+              ])
+            )
           );
 
-          ThreadUI.searchContact(
-            record.number, ThreadUI.validateContact.bind(ThreadUI, record)
-          );
-
-          assert.isTrue(ThreadUI.recipients.remove.called);
-          assert.isTrue(ThreadUI.recipients.add.called);
-          assert.isTrue(
-            ThreadUI.recipients.add.calledWithMatch({
-              name: 'Jane Doozer',
-              number: '+346578888888',
-              type: 'Mobile',
-              carrier: 'TEF',
-              source: 'contacts'
-            })
-          );
+          ThreadUI.searchContact(record.number).then(contacts => {
+            ThreadUI.validateContact(record, record.number, contacts);
+          }).then(() => {
+            sinon.assert.called(ThreadUI.recipients.remove);
+            sinon.assert.calledWithMatch(
+              ThreadUI.recipients.add,
+              {
+                name: 'Jane Doozer',
+                number: '+346578888888',
+                type: 'Mobile',
+                carrier: 'TEF',
+                source: 'contacts'
+              }
+            );
+          }).then(done, done);
         });
 
-        test('Does not match contact ', function() {
+        test('Does not match contact ', function(done) {
           // Clear out the existing recipient field fixtures
           ThreadUI.recipients.length = 0;
           ThreadUI.recipientsList.textContent = '';
@@ -1117,22 +1115,22 @@ suite('thread_ui.js >', function() {
             source: 'manual'
           };
 
-          this.sinon.stub(Contacts, 'findByString', function(term, callback) {
-            callback([]);
-          });
-
-          ThreadUI.searchContact(
-            record.number, ThreadUI.validateContact.bind(ThreadUI, record)
+          this.sinon.stub(Contacts, 'findByString').returns(
+            Promise.resolve([])
           );
 
-          sinon.assert.called(ThreadUI.recipients.update);
+          ThreadUI.searchContact(record.number).then(
+            ThreadUI.validateContact.bind(ThreadUI, record, record.number)
+          ).then(() => {
+            sinon.assert.called(ThreadUI.recipients.update);
 
-          record.isInvalid = true;
+            record.isInvalid = true;
 
-          sinon.assert.calledWithMatch(ThreadUI.recipients.update, 0, record);
+            sinon.assert.calledWithMatch(ThreadUI.recipients.update, 0, record);
+          }).then(done, done);
         });
 
-        test('Exact contact ', function() {
+        test('Exact contact ', function(done) {
           var record = {
             isQuestionable: true,
             name: 'Jane Doozer',
@@ -1140,30 +1138,32 @@ suite('thread_ui.js >', function() {
             source: 'manual'
           };
 
-          this.sinon.stub(Contacts, 'findExact').yields(
-            MockContact.list([
-              { givenName: ['Jane'], familyName: ['Doozer'] }
-            ])
+          this.sinon.stub(Contacts, 'findExact').returns(
+            Promise.resolve(
+              MockContact.list([
+                { givenName: ['Jane'], familyName: ['Doozer'] }
+              ])
+            )
           );
 
-          ThreadUI.exactContact(
-            record.number, ThreadUI.validateContact.bind(ThreadUI, record)
-          );
-
-          assert.isTrue(ThreadUI.recipients.remove.called);
-          assert.isTrue(ThreadUI.recipients.add.called);
-          assert.isTrue(
-            ThreadUI.recipients.add.calledWithMatch({
-              name: 'Jane Doozer',
-              number: '+346578888888',
-              type: 'Mobile',
-              carrier: 'TEF',
-              source: 'contacts'
-            })
-          );
+          ThreadUI.exactContact(record.number).then(
+            ThreadUI.validateContact.bind(ThreadUI, record, record.number)
+          ).then(() => {
+            sinon.assert.called(ThreadUI.recipients.remove);
+            sinon.assert.calledWithMatch(
+              ThreadUI.recipients.add,
+              {
+                name: 'Jane Doozer',
+                number: '+346578888888',
+                type: 'Mobile',
+                carrier: 'TEF',
+                source: 'contacts'
+              }
+            );
+          }).then(done, done);
         });
 
-        test('No exact contact ', function() {
+        test('No exact contact ', function(done) {
           // Clear out the existing recipient field fixtures
           ThreadUI.recipients.length = 0;
           ThreadUI.recipientsList.textContent = '';
@@ -1175,20 +1175,22 @@ suite('thread_ui.js >', function() {
             source: 'manual'
           };
 
-          this.sinon.stub(Contacts, 'findExact').yields([], {});
-
-          ThreadUI.exactContact(
-            record.number, ThreadUI.validateContact.bind(ThreadUI, record)
+          this.sinon.stub(Contacts, 'findExact').returns(
+            Promise.resolve([])
           );
 
-          sinon.assert.called(ThreadUI.recipients.update);
+          ThreadUI.exactContact(record.number).then(
+            ThreadUI.validateContact.bind(ThreadUI, record, record.number)
+          ).then(() => {
+            sinon.assert.called(ThreadUI.recipients.update);
 
-          record.isInvalid = true;
+            record.isInvalid = true;
 
-          sinon.assert.calledWithMatch(ThreadUI.recipients.update, 0, record);
+            sinon.assert.calledWithMatch(ThreadUI.recipients.update, 0, record);
+          }).then(done, done);
         });
 
-        test('No exact contact, editting recipient ', function() {
+        test('No exact contact, editting recipient ', function(done) {
           var record = {
             isQuestionable: true,
             name: 'Jane Doozer',
@@ -1196,15 +1198,15 @@ suite('thread_ui.js >', function() {
             source: 'manual'
           };
 
-          this.sinon.stub(Contacts, 'findExact', function(term, callback) {
-            callback([], {});
-          });
-
-          ThreadUI.exactContact(
-            record.number, ThreadUI.validateContact.bind(ThreadUI, record)
+          this.sinon.stub(Contacts, 'findExact').returns(
+            Promise.resolve([])
           );
 
-          assert.isFalse(ThreadUI.recipients.update.called);
+          ThreadUI.exactContact(record.number).then(
+            ThreadUI.validateContact.bind(ThreadUI, record, record.number)
+          ).then(() => {
+            sinon.assert.notCalled(ThreadUI.recipients.update);
+          }).then(done, done);
         });
 
         test('Determines correct strategy ', function() {
@@ -1249,6 +1251,8 @@ suite('thread_ui.js >', function() {
         contacts = MockContact.list([
           { givenName: ['Janet'], familyName: ['Jones'] }
         ]);
+
+        this.sinon.spy(Contacts, 'findExact');
       });
 
       suite('No Recipients', function() {
@@ -1267,22 +1271,28 @@ suite('thread_ui.js >', function() {
           );
         });
 
-        test('input value is invalid ', function() {
+        test('input value is invalid ', function(done) {
           // An actual accepted recipient from contacts
           fixture.number = 'foo';
           fixture.isQuestionable = true;
 
           ThreadUI.recipients.add(fixture);
-          assert.isFalse(fixture.isInvalid);
+          /* The previous add triggers an asynchronous behavior when validating
+           * this new recipient. Let's wait for this. */
+          Contacts.findExact.lastCall.returnValue.then(() => {
+            assert.isFalse(fixture.isInvalid);
 
-          ThreadUI.recipientsList.lastElementChild.textContent = '';
+            ThreadUI.recipientsList.lastElementChild.textContent = '';
 
-          ThreadUI.validateContact(fixture, '', []);
+            ThreadUI.validateContact(fixture, '', []);
 
-          sinon.assert.calledOnce(ThreadUI.recipients.update);
-          sinon.assert.calledWithMatch(ThreadUI.recipients.update, 1, fixture);
+            sinon.assert.calledOnce(ThreadUI.recipients.update);
+            sinon.assert.calledWithMatch(
+              ThreadUI.recipients.update, 1, fixture
+            );
 
-          assert.isTrue(fixture.isInvalid);
+            assert.isTrue(fixture.isInvalid);
+          }).then(done, done);
         });
 
         test('[Email]input value has matching record ', function() {
@@ -1305,7 +1315,7 @@ suite('thread_ui.js >', function() {
           );
         });
 
-        test('[Email]input value is invalid ', function() {
+        test('[Email]input value is invalid ', function(done) {
 
           MockSettings.supportEmailRecipient = true;
 
@@ -1314,17 +1324,22 @@ suite('thread_ui.js >', function() {
           fixtureEmail.isQuestionable = true;
 
           ThreadUI.recipients.add(fixtureEmail);
-          assert.isFalse(fixtureEmail.isInvalid);
+          /* The previous add triggers an asynchronous behavior when validating
+           * this new recipient. Let's wait for this. */
+          Contacts.findExact.lastCall.returnValue.then(() => {
+            assert.isFalse(fixtureEmail.isInvalid);
 
-          ThreadUI.recipientsList.lastElementChild.textContent = '';
+            ThreadUI.recipientsList.lastElementChild.textContent = '';
 
-          ThreadUI.validateContact(fixtureEmail, '', []);
+            ThreadUI.validateContact(fixtureEmail, '', []);
 
-          sinon.assert.calledOnce(ThreadUI.recipients.update);
-          sinon.assert.calledWithMatch(ThreadUI.recipients.update,
-                                       1, fixtureEmail);
+            sinon.assert.calledOnce(ThreadUI.recipients.update);
+            sinon.assert.calledWithMatch(
+              ThreadUI.recipients.update, 1, fixtureEmail
+            );
 
-          assert.isTrue(fixtureEmail.isInvalid);
+            assert.isTrue(fixtureEmail.isInvalid);
+          }).then(done, done);
         });
       });
 
@@ -4265,7 +4280,11 @@ suite('thread_ui.js >', function() {
         });
 
         suite('onHeaderActivation >', function() {
-          test('Known recipient', function() {
+          setup(function() {
+            this.sinon.spy(Contacts, 'findByAddress');
+          });
+
+          test('Known recipient', function(done) {
             this.sinon.spy(ContactRenderer.prototype, 'render');
 
             Threads.set(1, {
@@ -4277,20 +4296,22 @@ suite('thread_ui.js >', function() {
 
             ThreadUI.onHeaderActivation();
 
-            var calls = MockOptionMenu.calls;
+            Contacts.findByAddress.lastCall.returnValue.then(() => {
+              var calls = MockOptionMenu.calls;
 
-            assert.equal(calls.length, 1);
+              assert.equal(calls.length, 1);
 
-            // contacts do not show up in the body
-            assert.isUndefined(calls[0].section);
+              // contacts do not show up in the body
+              assert.isUndefined(calls[0].section);
 
-            // contacts show up in the header
-            sinon.assert.calledWithMatch(ContactRenderer.prototype.render, {
-              target: calls[0].header
-            });
+              // contacts show up in the header
+              sinon.assert.calledWithMatch(ContactRenderer.prototype.render, {
+                target: calls[0].header
+              });
 
-            assert.equal(calls[0].items.length, 2);
-            assert.equal(typeof calls[0].complete, 'function');
+              assert.equal(calls[0].items.length, 2);
+              assert.equal(typeof calls[0].complete, 'function');
+            }).then(done, done);
           });
 
           test('Unknown recipient', function() {
@@ -4315,7 +4336,7 @@ suite('thread_ui.js >', function() {
             assert.equal(typeof calls[0].complete, 'function');
           });
 
-          test('Known recipient email', function() {
+          test('Known recipient email', function(done) {
             MockSettings.supportEmailRecipient = true;
             this.sinon.spy(ContactRenderer.prototype, 'render');
 
@@ -4328,20 +4349,22 @@ suite('thread_ui.js >', function() {
 
             ThreadUI.onHeaderActivation();
 
-            var calls = MockOptionMenu.calls;
+            Contacts.findByAddress.lastCall.returnValue.then(() => {
+              var calls = MockOptionMenu.calls;
 
-            assert.equal(calls.length, 1);
+              assert.equal(calls.length, 1);
 
-            // contacts do not show up in the body
-            assert.isUndefined(calls[0].section);
+              // contacts do not show up in the body
+              assert.isUndefined(calls[0].section);
 
-            // contacts show up in the header
-            sinon.assert.calledWithMatch(ContactRenderer.prototype.render, {
-              target: calls[0].header
-            });
+              // contacts show up in the header
+              sinon.assert.calledWithMatch(ContactRenderer.prototype.render, {
+                target: calls[0].header
+              });
 
-            assert.equal(calls[0].items.length, 4);
-            assert.equal(typeof calls[0].complete, 'function');
+              assert.equal(calls[0].items.length, 4);
+              assert.equal(typeof calls[0].complete, 'function');
+            }).then(done, done);
           });
 
           test('Unknown recipient email', function() {
@@ -4478,8 +4501,12 @@ suite('thread_ui.js >', function() {
         this.sinon.spy(navigator.mozL10n, 'setAttributes');
 
         this.sinon.stub(Contacts, 'findByAddress');
-        Contacts.findByAddress.withArgs('+1111').yields(fakeContactOne);
-        Contacts.findByAddress.withArgs('+2222').yields(fakeContactTwo);
+        Contacts.findByAddress.withArgs('+1111').returns(
+          Promise.resolve(fakeContactOne)
+        );
+        Contacts.findByAddress.withArgs('+2222').returns(
+          Promise.resolve(fakeContactTwo)
+        );
 
         this.sinon.spy(ThreadUI, 'updateCarrier');
 
@@ -4613,44 +4640,31 @@ suite('thread_ui.js >', function() {
             participants: ['+12125559999']
           });
 
+          this.sinon.stub(MockContacts, 'findByAddress').returns(
+            Promise.resolve(MockContact.list())
+          );
+
+          this.sinon.stub(MockUtils, 'getPhoneDetails');
+
           this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
           Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
           Threads.currentId = 1;
         });
 
         test('Carrier Tag (non empty string)', function(done) {
-          this.sinon.stub(MockUtils, 'getPhoneDetails', function() {
-            return 'non empty string';
-          });
+          MockUtils.getPhoneDetails.returns('non empty string');
 
-          this.sinon.stub(
-            MockContacts, 'findByAddress', function(phone, fn) {
-
-            fn([new MockContact()]);
-
+          ThreadUI.updateHeaderData().then(() => {
             assert.isTrue(threadMessages.classList.contains('has-carrier'));
-            done();
-          });
-
-          ThreadUI.updateHeaderData();
+          }).then(done, done);
         });
 
         test('Carrier Tag (empty string)', function(done) {
-          this.sinon.stub(MockUtils, 'getPhoneDetails', function() {
-            return '';
-          });
+          MockUtils.getPhoneDetails.returns('');
 
-          this.sinon.stub(
-            MockContacts, 'findByAddress', function(phone, fn) {
-
-            fn([new MockContact()]);
-
+          ThreadUI.updateHeaderData().then(() => {
             assert.isFalse(threadMessages.classList.contains('has-carrier'));
-
-            done();
-          });
-
-          ThreadUI.updateHeaderData();
+          }).then(done, done);
         });
       });
     });
@@ -5225,7 +5239,8 @@ suite('thread_ui.js >', function() {
       Navigation.isCurrentPanel.withArgs('composer').returns(true);
 
       // Please, auto-answering stub, don't interfere with my test
-      this.sinon.stub(Contacts, 'findExact');
+      var noopThenable = { then: () => noopThenable };
+      this.sinon.stub(Contacts, 'findExact').returns(noopThenable);
 
       setL10nAttributes = this.sinon.spy(navigator.mozL10n, 'setAttributes');
 
@@ -5907,6 +5922,7 @@ suite('thread_ui.js >', function() {
     }
 
     setup(function(done) {
+      this.sinon.spy(Contacts, 'findByPhoneNumber');
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
       Navigation.isCurrentPanel.withArgs('thread').returns(true);
 
@@ -5925,7 +5941,11 @@ suite('thread_ui.js >', function() {
         MessageManager.on.withArgs('message-received').yield({
           message: testMessage
         });
-      }).then(done, done);
+
+        // The "new message" banner is displayed after a findByPhoneNumber call,
+        // so we need to run tests after the promise resolves.
+        return Contacts.findByPhoneNumber.lastCall.returnValue;
+      }).then(() => done(), done);
       ThreadUI.initializeRendering();
     });
 
@@ -6197,6 +6217,7 @@ suite('thread_ui.js >', function() {
       this.sinon.stub(Drafts, 'store').returns(Drafts);
       this.sinon.spy(ThreadUI.recipients, 'add');
       this.sinon.spy(ThreadUI, 'updateHeaderData');
+      this.sinon.spy(Contacts, 'findByAddress');
     });
 
     teardown(function() {
@@ -6205,16 +6226,20 @@ suite('thread_ui.js >', function() {
 
     test('Calls Compose.fromDraft(), no recipients loaded', function() {
       ThreadUI.handleDraft();
+
       sinon.assert.calledOnce(Compose.fromDraft);
       sinon.assert.notCalled(ThreadUI.recipients.add);
       sinon.assert.notCalled(ThreadUI.updateHeaderData);
+      sinon.assert.notCalled(Contacts.findByAddress);
     });
 
-    test('with recipients', function() {
+    test('with recipients', function(done) {
       ThreadUI.draft.recipients = ['800 732 0872', '800 555 1212'];
       ThreadUI.handleDraft();
-      sinon.assert.calledTwice(ThreadUI.recipients.add);
-      sinon.assert.notCalled(ThreadUI.updateHeaderData);
+      Contacts.findByAddress.lastCall.returnValue.then(() => {
+        sinon.assert.calledTwice(ThreadUI.recipients.add);
+        sinon.assert.notCalled(ThreadUI.updateHeaderData);
+      }).then(done, done);
     });
 
     test('discards draft record', function() {
@@ -6242,70 +6267,75 @@ suite('thread_ui.js >', function() {
       this.sinon.stub(ThreadUI.recipients, 'focus');
     });
 
-    test('from activity with unknown contact', function() {
+    test('from activity with unknown contact', function(done) {
       var activity = {
         number: '998',
         contact: null
       };
-      ThreadUI.handleActivity(activity);
-
-      assert.equal(ThreadUI.recipients.numbers.length, 1);
-      assert.equal(ThreadUI.recipients.numbers[0], '998');
-      sinon.assert.calledWith(Compose.fromMessage, activity);
+      ThreadUI.handleActivity(activity).then(() => {
+        assert.equal(ThreadUI.recipients.numbers.length, 1);
+        assert.equal(ThreadUI.recipients.numbers[0], '998');
+        sinon.assert.calledWith(Compose.fromMessage, activity);
+      }).then(done, done);
     });
 
-    test('from activity with known contact', function() {
+    test('from activity with known contact', function(done) {
       var activity = {
         contact: new MockContact()
       };
-      ThreadUI.handleActivity(activity);
-
-      assert.equal(ThreadUI.recipients.numbers.length, 1);
-      assert.equal(ThreadUI.recipients.numbers[0], '+346578888888');
-      sinon.assert.calledWith(Compose.fromMessage, activity);
+      ThreadUI.handleActivity(activity).then(() => {
+        assert.equal(ThreadUI.recipients.numbers.length, 1);
+        assert.equal(ThreadUI.recipients.numbers[0], '+346578888888');
+        sinon.assert.calledWith(Compose.fromMessage, activity);
+      }).then(done, done);
     });
 
-    test('with message body', function() {
+    test('with message body', function(done) {
       var activity = {
         number: '998',
         contact: null,
         body: 'test'
       };
-      ThreadUI.handleActivity(activity);
-      sinon.assert.calledWith(Compose.fromMessage, activity);
+      ThreadUI.handleActivity(activity).then(() => {
+        sinon.assert.calledWith(Compose.fromMessage, activity);
+      }).then(done, done);
     });
 
-    test('No contact and no number', function() {
+    test('No contact and no number', function(done) {
       var activity = {
         number: null,
         contact: null,
         body: 'Youtube url'
       };
-      ThreadUI.handleActivity(activity);
-      assert.equal(ThreadUI.recipients.numbers.length, 0);
-      sinon.assert.calledWith(Compose.fromMessage, activity);
+      ThreadUI.handleActivity(activity).then(() => {
+        assert.equal(ThreadUI.recipients.numbers.length, 0);
+        sinon.assert.calledWith(Compose.fromMessage, activity);
+      }).then(done, done);
     });
 
-    test('focus composer if there is at least one recipient', function() {
+    test('focus composer if there is at least one recipient', function(done) {
       var activity = {
         number: '998',
         contact: null,
         body: 'test'
       };
-      ThreadUI.handleActivity(activity);
-      sinon.assert.called(Compose.focus);
-      sinon.assert.notCalled(ThreadUI.recipients.focus);
+      ThreadUI.handleActivity(activity).then(() => {
+        sinon.assert.called(Compose.focus);
+        sinon.assert.notCalled(ThreadUI.recipients.focus);
+      }).then(done, done);
     });
 
-    test('focus recipients if there isn\'t any contact or number', function() {
+    test('focus recipients if there isn\'t any contact or number',
+    function(done) {
       var activity = {
         number: null,
         contact: null,
         body: 'Youtube url'
       };
-      ThreadUI.handleActivity(activity);
-      sinon.assert.notCalled(Compose.focus);
-      sinon.assert.called(ThreadUI.recipients.focus);
+      ThreadUI.handleActivity(activity).then(() => {
+        sinon.assert.notCalled(Compose.focus);
+        sinon.assert.called(ThreadUI.recipients.focus);
+      }).then(done, done);
     });
   });
 
