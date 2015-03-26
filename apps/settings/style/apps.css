@@ -18,6 +18,13 @@
   -moz-padding-start: 7.4rem;
 }
 
+/**
+ * Overriding gaia-header styling for addons-add header button.
+ */
+.addons-add {
+  color: #858585 !important;
+}
+
 .uninstall-app {
   margin: 1rem 1.5rem 0;
   padding: 1.5rem 0 0.5rem;
