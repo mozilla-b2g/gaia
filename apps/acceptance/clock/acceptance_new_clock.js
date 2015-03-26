@@ -1,6 +1,7 @@
 
 'use script';
 var Alarm = require('./regions/alarm');
+var AlarmFlows = require('../flows/alarm_flows');
 var View = require('../lib/view');
 var should = require('chai').should;
 var expect = require('chai').expect;
@@ -8,6 +9,7 @@ var assert = require('chai').assert;
 
 marionette('Clock Acceptence Suite', function(){
     var client;
+    var alarmFlow;
     var app;
     client = marionette.client({
         prefs: {
@@ -25,12 +27,13 @@ marionette('Clock Acceptence Suite', function(){
     });
     setup(function() {
         app = new Alarm(client);
-        console.log(app);
         app.launch();
+        alarmFlow = new AlarmFlows(client);
+
     });
     suite('my first suites', function() {
         test('Always pass', function() {
-            app.createNewAlarm();
+            alarmFlow.setNewAlarm();
             expect(true).to.be.true
         });
     });
