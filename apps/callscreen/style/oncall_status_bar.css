@@ -32,6 +32,10 @@
 
   .handled-call.ended .duration > span {
     font-weight: 500;
+    max-width: 10rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .handled-call.ended .total-duration {
