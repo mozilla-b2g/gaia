@@ -206,10 +206,7 @@ Focus.prototype.focusOnLargestFace = function(faces) {
  * @private
  */
 Focus.prototype.focus = function(done) {
-  if (!this.mozCamera) { return; }
-  done = done || function() {};
   var self = this;
-
   this.suspendContinuousFocus(10000);
   if (this.mozCamera.focusMode !== 'auto') {
     done();

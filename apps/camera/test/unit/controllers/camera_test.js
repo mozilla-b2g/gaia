@@ -194,63 +194,6 @@ suite('controllers/camera', function() {
     });
   });
 
-  suite('CameraController#onKeyDown', function() {
-    var captureSpy;
-    setup(function() {
-      this.keys = {
-        camera: 'camera',
-        volumeup: 'volumeup',
-        volumedown: 'volumedown',
-        focus: 'mozcamerafocusadjust',
-      };
-
-      this.event = {
-        key: undefined,
-        preventDefault: sinon.spy()
-      };
-
-      this.camera.focus = {
-        focus: this.sinon.spy()
-      };
-    });
-
-    test('camera button triggers capture', function() {
-      this.event.key = 'camera';
-      this.controller.onKeyDown(this.event);
-      sinon.assert.called(this.camera.capture);
-    });
-
-    test('volume up button triggers capture', function() {
-      this.event.key = 'volumeup';
-      this.controller.onKeyDown(this.event);
-      sinon.assert.called(this.camera.capture);
-    });
-
-    test('volume down button triggers capture', function() {
-      this.event.key = 'volumedown';
-      this.controller.onKeyDown(this.event);
-      sinon.assert.called(this.camera.capture);
-    });
-
-    test('camera focus button triggers focus', function() {
-      this.event.key = 'mozcamerafocusadjust';
-      this.controller.onKeyDown(this.event);
-      sinon.assert.called(this.camera.focus.focus);
-    });
-
-    test('It calls preventDefault if the capture call doesn\'t return false', function() {
-      this.camera.capture.returns(false);
-      this.event.key = 'volumedown';
-      this.controller.onKeyDown(this.event);
-      sinon.assert.notCalled(this.event.preventDefault);
-
-      this.camera.capture.returns(undefined);
-      this.event.key = 'volumedown';
-      this.controller.onKeyDown(this.event);
-      sinon.assert.called(this.event.preventDefault);
-    });
-  });
-
   suite('CameraController#setMode()', function() {
     test('It sets the flash mode', function() {
       this.controller.setMode();

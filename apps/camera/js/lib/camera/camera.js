@@ -698,10 +698,9 @@ Camera.prototype.pickThumbnailSize = function(thumbnailSizes, pictureSize) {
  *   - `position` {Object} - geolocation to store in EXIF
  *
  * @param  {Object} options
- * @public
+ *  public
  */
 Camera.prototype.capture = function(options) {
-  if (!this.mozCamera) { return false; }
   switch (this.mode) {
     case 'picture': this.takePicture(options); break;
     case 'video': this.toggleRecording(options); break;
@@ -718,7 +717,7 @@ Camera.prototype.capture = function(options) {
  * @param  {Object} options
  */
 Camera.prototype.takePicture = function(options) {
-  debug('take picture', options);
+  debug('take picture');
   this.busy();
 
   var rotation = this.orientation.get();
