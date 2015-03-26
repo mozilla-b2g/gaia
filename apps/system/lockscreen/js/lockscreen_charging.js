@@ -53,16 +53,16 @@ LockScreenChargingStatus.prototype.refresh = function cs_refresh() {
 
   if (chargingTime === Infinity ||
       chargingTime < 60) { // less than a minute remaining
-    l10nAttrs.id = 'charging-status-no-time';
+    l10nAttrs.id = 'charging-no-time';
   } else {
     var timeLeft = new Date(0, 0, 0, 0, 0, chargingTime);
     l10nAttrs.args.hours = timeLeft.getHours();
     l10nAttrs.args.minutes = timeLeft.getMinutes();
 
     if (l10nAttrs.args.hours > 0) {
-      l10nAttrs.id = 'charging-status-hours';
+      l10nAttrs.id = 'charging-hours';
     } else {
-      l10nAttrs.id = 'charging-status-minutes';
+      l10nAttrs.id = 'charging-minutes';
     }
   }
 
