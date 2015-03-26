@@ -15,7 +15,7 @@ var Commands = {
 
   init: function fmdc_init() {
     var ringer = this._ringer = new Audio();
-    ringer.mozAudioChannelType = 'content';
+    ringer.mozAudioChannelType = 'ringer';
     ringer.loop = true;
 
     var ringtoneURL = new SettingsURL();
@@ -190,7 +190,7 @@ var Commands = {
       var request = SettingsListener.getSettingsLock().set({
         // hard-coded max volume taken from
         // https://wiki.mozilla.org/WebAPI/AudioChannels
-        'audio.volume.content': 15
+        'audio.volume.notification': 15
       });
 
       request.onsuccess = function() {
