@@ -428,6 +428,7 @@
    * @param {Boolean} [skipped] If the last slot is skipped or not.
    */
   SimLockSystemDialog.prototype.show = function(slot, skipped) {
+    this.clear();
     if (slot) {
       this._currentSlot = slot;
     }
