@@ -239,7 +239,9 @@
     // An activity handled by ActivityWindow is always an inline activity.
     // All window activities are handled by AppWindow. All inline
     // activities have a rearWindow. Once this inline activity is killed,
-    // the focus should be transfered to its rear window.
+    // make rear window visible to screen reader and the focus should be
+    // transfered to its rear window.
+    evt.detail.rearWindow._setVisibleForScreenReader(true);
     evt.detail.rearWindow.focus();
   };
 
@@ -255,6 +257,8 @@
     var activity = new ActivityWindow(configuration, top);
     activity.element.addEventListener('_closing', this);
     activity.open();
+    // Make topmost window browser element invisibile to screen reader.
+    top._setVisibleForScreenReader(false);
   };
 
   ChildWindowFactory.prototype.launchActivity = function(evt) {

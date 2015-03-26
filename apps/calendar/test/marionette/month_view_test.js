@@ -182,7 +182,7 @@ marionette('month view', function() {
 
   test('double tap', function() {
     var month = app.month;
-    month.actions.doubleTap(month.currentDay, 8, 8).perform();
+    month.actions.doubleTap(month.currentDay).perform();
 
     var editEvent = app.editEvent;
     editEvent.waitForDisplay();

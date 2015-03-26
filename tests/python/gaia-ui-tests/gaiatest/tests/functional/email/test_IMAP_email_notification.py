@@ -64,12 +64,12 @@ class TestEmailNotification(GaiaTestCase):
         self.apps.switch_to_displayed_app()
 
         # check if the sender's email address is fine
-        self.assertEqual(email.senders_email,
-                         mock_email.senders_email,
-                         'Senders\'s email on the inbox screen is incorrect. '
-                         'Expected email is %s. Actual email is %s.' % (
-                             mock_email.senders_email,
-                             email.senders_email))
+        self.wait_for_condition(lambda m: email.senders_email == mock_email.senders_email,
+                                10,
+                                'Senders\'s email on the inbox screen is incorrect. '
+                                'Expected email is %s. Actual email is %s.' % (
+                                    mock_email.senders_email,
+                                    email.senders_email))
 
         # check if the subject is fine
         self.assertEqual(email.subject, mock_email.subject,
@@ -83,3 +83,9 @@ class TestEmailNotification(GaiaTestCase):
                          'Expected message is "%s". Actual message is '
                          '"%s".' % (mock_email.message,
                                     email.body))
+
+    def tearDown(self):
+        self.marionette.execute_script("SpecialPowers.setIntPref('dom.requestSync.minInterval', 100);",
+                                        special_powers=True)
+
+        GaiaTestCase.tearDown(self)

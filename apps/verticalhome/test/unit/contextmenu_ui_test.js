@@ -2,7 +2,6 @@
 
 /* global app, contextMenuUI, wallpaper, MocksHelper */
 
-require('/shared/js/usertiming.js');
 require('/shared/elements/gaia_grid/js/grid_dragdrop.js');
 require('/shared/elements/gaia_grid/js/grid_icon_renderer.js');
 require('/shared/elements/gaia_grid/js/grid_layout.js');

@@ -1,12 +1,13 @@
 'use strict';
-/* global ActionMenu, Event, MockL10n */
+/* global ActionMenu, Event, MockL10n, MockService */
 
 require('/shared/test/unit/load_body_html_helper.js');
 requireApp('system/js/action_menu.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 
 suite('ActionMenu', function() {
-  var activitiesMockup, realL10n, genericActionsMockup;
+  var activitiesMockup, realL10n, genericActionsMockup, realService, rafStub;
   var iconUrl = 'images/icon.png', title = 'Title';
   var screenElement;
 
@@ -46,12 +47,21 @@ suite('ActionMenu', function() {
 
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+
+    realService = window.Service;
+    window.Service = MockService;
+
     loadBodyHTML('/index.html');
     screenElement = document.getElementById('screen');
+
+    rafStub = sinon.stub(window, 'requestAnimationFrame',
+                         function(callback) { callback(); });
   });
 
   suiteTeardown(function() {
+    rafStub.restore();
     navigator.mozL10n = realL10n;
+    window.Service = realService;
     document.body.innerHTML = '';
   });
 
@@ -122,8 +132,12 @@ suite('ActionMenu', function() {
     test(' > open > show', function() {
       // Call to show activities
       var menu = new ActionMenu(activitiesMockup, title);
+      sinon.stub(menu, 'publish');
       menu.start();
       assert.ok(getMenu().classList.contains('visible'));
+      assert.isTrue(menu.active);
+      assert.isTrue(menu.isActive());
+      assert.isTrue(menu.publish.calledWith('-activated'));
       assert.isTrue(screenElement.classList.contains('action-menu'));
       menu.stop();
     });
@@ -131,10 +145,15 @@ suite('ActionMenu', function() {
     test(' > open > hide', function() {
       // Call to show activities
       var menu = new ActionMenu(activitiesMockup, title);
+      sinon.stub(menu, 'publish');
       menu.start();
       // Hide. Calls stop
       var stub = this.sinon.stub(menu, 'stop');
       menu.hide();
+      getMenu().dispatchEvent(new CustomEvent('transitionend'));
+      assert.isFalse(menu.active);
+      assert.isFalse(menu.isActive());
+      assert.isTrue(menu.publish.calledWith('-deactivated'));
       assert.ok(stub.calledOnce);
       stub.restore();
       menu.stop();
@@ -163,6 +182,7 @@ suite('ActionMenu', function() {
       assert.isTrue(menu.handleEvent.called);
       assert.isTrue(menu.hide.called);
       assert.isTrue(clickEvent.defaultPrevented);
+      getMenu().dispatchEvent(new CustomEvent('transitionend'));
     });
 
     test(' > click > cancel', function() {
@@ -212,6 +232,26 @@ suite('ActionMenu', function() {
       });
       assert.isTrue(menu.hide.called);
       assert.isTrue(cancelCBStub.called);
+    });
+  });
+
+  suite(' > publish', function() {
+    var menu, originalDispatchEvent, eventName = '-test_event';
+
+    setup(function() {
+      originalDispatchEvent = window.dispatchEvent;
+      menu = new ActionMenu(activitiesMockup, title);
+      sinon.spy(window, 'dispatchEvent');
+    });
+
+    teardown(function() {
+      window.dispatchEvent = originalDispatchEvent;
+    });
+
+    test('action menu prefix added', function() {
+      menu.publish(eventName);
+      assert.equal(window.dispatchEvent.args[0][0].type,
+        menu.EVENT_PREFIX + eventName);
     });
   });
 

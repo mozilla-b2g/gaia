@@ -1088,6 +1088,13 @@ html[dir="rtl"] nav[data-type="scrollbar"] p {
   right: 10rem;
 }
 
+/* TODO: Remove this workaround once bug 883884 fixed */
+.ellipsis-dir-fix {
+  display: block;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
 /* Overwrite input-areas bb */
 #custom-tag-reset {
   right: 1rem;

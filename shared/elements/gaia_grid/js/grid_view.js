@@ -446,6 +446,7 @@
       this.cleanItems(options.skipDivider);
 
       // Reset offset steps
+      var oldHeight = this.layout.offsetY;
       this.layout.offsetY = 0;
 
       // Grid render coordinates
@@ -564,11 +565,18 @@
       }
 
       // All the children of this element are absolutely positioned and then
-      // transformed, so manually set a height for the convenience of
-      // embedders.
-      var padding = window.getComputedStyle ?
-        parseInt(window.getComputedStyle(this.element).paddingBottom) : 0;
-      this.element.style.height = (this.layout.offsetY + padding) + 'px';
+      // transformed, so the grid actually has no height. Fire an event that
+      // embedders can listen to discover the grid height.
+      if (this.layout.offsetY != oldHeight) {
+        if (this.dragdrop && this.dragdrop.inDragAction) {
+          // Delay size changes during drags to avoid jankiness when dragging
+          // items around due to touch positions changing.
+          this.layout.offsetY = oldHeight;
+        } else {
+          this.element.dispatchEvent(new CustomEvent('gaiagrid-resize',
+                                       { detail: this.layout.offsetY }));
+        }
+      }
 
       this.element.setAttribute('cols', this.layout.cols);
       pendingCachedIcons === 0 && onCachedIconRendered();

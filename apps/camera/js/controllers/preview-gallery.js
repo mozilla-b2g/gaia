@@ -34,6 +34,7 @@ function PreviewGalleryController(app) {
 
 PreviewGalleryController.prototype.bindEvents = function() {
   this.app.on('storage:itemdeleted', this.onItemDeleted);
+  this.app.on('storage:changed', this.onStorageChanged);
   this.app.on('preview', this.openPreview);
   this.app.on('newmedia', this.onNewMedia);
   this.app.on('hidden', this.onHidden);
@@ -136,6 +137,7 @@ PreviewGalleryController.prototype.onOptionsClick = function() {
 };
 
 PreviewGalleryController.prototype.shareCurrentItem = function() {
+  var self = this;
   if (this.app.inSecureMode) {
     return;
   }
@@ -146,6 +148,7 @@ PreviewGalleryController.prototype.shareCurrentItem = function() {
   var filename = StringUtils.lastPathComponent(item.filepath);
 
   var launchShareActivity = function(blob) {
+    self.app.setSharingState('sharing');
     var activity = new window.MozActivity({
       name: 'share',
       data: {
@@ -156,8 +159,12 @@ PreviewGalleryController.prototype.shareCurrentItem = function() {
         filepaths: [item.filepath] /* temporary hack for bluetooth app */
       }
     });
+    activity.onsuccess = function() {
+      self.app.setSharingState('not-sharing');
+    };
     activity.onerror = function(e) {
       console.warn('Share activity error:', activity.error.name);
+      self.app.setSharingState('sharing-canceled');
     };
   };
 
@@ -165,8 +172,6 @@ PreviewGalleryController.prototype.shareCurrentItem = function() {
     launchShareActivity(item.blob);
     return;
   }
-
-  var self = this;
 
   this.stopItemDeletedEvent = true;
 
@@ -321,6 +326,19 @@ PreviewGalleryController.prototype.previewItem = function() {
     this.view.showVideo(item);
   } else {
     this.view.showImage(item);
+  }
+};
+
+/**
+ * Delete all items in the preview gallery
+ * when storage becomes unavailable.
+ *
+ * @param  {String} status
+ */
+PreviewGalleryController.prototype.onStorageChanged = function(status) {
+  if (status === 'unavailable') {
+    this.configure();
+    this.updateThumbnail();
   }
 };
 

@@ -5,7 +5,6 @@
          MockTrustedUIManager */
 
 requireApp('system/shared/js/performance_testing_helper.js');
-requireApp('system/shared/js/usertiming.js');
 requireApp('system/shared/js/async_storage.js');
 requireApp('system/shared/js/lazy_loader.js');
 requireApp('system/shared/js/screen_layout.js');

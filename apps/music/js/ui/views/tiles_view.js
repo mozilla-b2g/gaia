@@ -87,6 +87,7 @@ var TilesView = {
 
     var container = document.createElement('div');
     container.className = 'tile-container';
+    container.setAttribute('role', 'button');
 
     var titleBar = document.createElement('div');
     titleBar.className = 'tile-title-bar';
@@ -137,6 +138,9 @@ var TilesView = {
     // The tile info(album/artist) shows only when the cover does not exist
     if (!result.metadata.picture) {
       container.appendChild(titleBar);
+    } else {
+      container.setAttribute('aria-label', artistName.textContent + ' ' + 
+                                           albumName.textContent);
     }
 
     tile.appendChild(container);
@@ -190,7 +194,13 @@ var TilesView = {
           var data = this.dataSource[index];
           handler = tv_playAlbum.bind(this, data, index);
 
-          target.addEventListener('transitionend', handler);
+          if (evt.mozInputSource === MouseEvent.MOZ_SOURCE_UNKNOWN) {
+            // A scripted click from screen reader event won't have a
+            // transition effect.
+            handler();
+          } else {
+            target.addEventListener('transitionend', handler);
+          }
         }
 
         break;

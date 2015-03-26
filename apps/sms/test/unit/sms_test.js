@@ -11,7 +11,6 @@
 require('/shared/js/lazy_loader.js');
 require('/shared/js/gesture_detector.js');
 require('/shared/js/sticky_header.js');
-require('/shared/js/usertiming.js');
 require('/shared/js/performance_testing_helper.js');
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -280,10 +279,11 @@ suite('SMS App Unit-Test', function() {
         // Given a number, we should retrieve the contact and update the info
         var threadWithContact = document.getElementById('thread-1');
         var spy = ThreadListUI.setContact.withArgs(threadWithContact);
+        var contactSelector = '.threadlist-item-title bdi';
         spy.firstCall.returnValue.then(() => {
           assert.equal(
-            threadWithContact.querySelector('.threadlist-item-title').innerHTML,
-            '<bdi>Pepito O\'Hare</bdi>'
+            threadWithContact.querySelector(contactSelector).innerHTML,
+            'Pepito O\'Hare'
           );
         }).then(done, done);
       });

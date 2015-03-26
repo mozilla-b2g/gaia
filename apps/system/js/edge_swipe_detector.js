@@ -40,6 +40,10 @@
       window.addEventListener('appopened', this);
       window.addEventListener('cardviewclosed', this);
       window.addEventListener('mozChromeEvent', this);
+      window.addEventListener('updatepromptshown', this);
+      window.addEventListener('updateprompthidden', this);
+      window.addEventListener('installpromptshown', this);
+      window.addEventListener('installprompthidden', this);
 
       ['touchstart', 'touchmove', 'touchend',
        'mousedown', 'mousemove', 'mouseup'].forEach(function(e) {
@@ -141,6 +145,16 @@
                 break;
             }
             break;
+        case 'updatepromptshown':
+        case 'installpromptshown':
+          this.lifecycleEnabled = false;
+          break;
+        case 'updateprompthidden':
+        case 'installprompthidden':
+          if (Service.currentApp && !Service.currentApp.isHomescreen) {
+            this.lifecycleEnabled = true;
+          }
+          break;
       }
     },
 

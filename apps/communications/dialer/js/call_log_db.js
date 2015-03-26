@@ -1305,6 +1305,7 @@ var CallLogDBManager = {
             }
           }
           cursor.update(group);
+          self._dispatchCallLogDbNewCall(self._getGroupObject(group));
           count++;
           cursor.continue();
         } else {
@@ -1389,6 +1390,7 @@ var CallLogDBManager = {
           if (group.contactPhoto) {
             delete group.contactPhoto;
           }
+          self._dispatchCallLogDbNewCall(self._getGroupObject(group));
           cursor.update(group);
           count++;
           cursor.continue();

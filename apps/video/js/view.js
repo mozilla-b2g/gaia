@@ -126,7 +126,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     var ids = ['player', 'player-view',
                'player-header', 'play', 'playHead', 'video-container',
                'elapsedTime', 'video-title', 'duration-text', 'elapsed-text',
-               'slider-wrapper', 'spinner-overlay',
+               'slider-wrapper', 'spinner-overlay', 'timeSlider',
                'save', 'banner', 'message', 'seek-forward',
                'seek-backward', 'videoControlBar', 'in-use-overlay',
                'in-use-overlay-title', 'in-use-overlay-text'];

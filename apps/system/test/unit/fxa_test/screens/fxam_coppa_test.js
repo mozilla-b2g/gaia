@@ -96,6 +96,13 @@ suite('Screen: COPPA', function() {
       assert.ok(fxamUIIncStepsSpy.calledOnce);
       done();
     });
+
+    test(' > We only populate the age selection element once', function() {
+      var fxaAgeSelect = document.getElementById('fxa-age-select');
+      var selectLength = fxaAgeSelect.length;
+      FxaModuleCoppa.init();
+      assert.equal(selectLength, fxaAgeSelect.length);
+    });
   });
 
   suite(' > COPPA error', function() {

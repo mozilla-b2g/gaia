@@ -1,9 +1,11 @@
 'use strict';
-/* global MocksHelper, MockApplications, MockL10n, ActionMenu, Activities */
+/* global MocksHelper, MockApplications, MockL10n, ActionMenu, Activities,
+          MockService */
 
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/js/action_menu.js');
 requireApp('system/shared/js/manifest_helper.js');
 requireApp('system/js/activities.js');
@@ -17,6 +19,7 @@ suite('system/Activities', function() {
   var stubById;
   var fakeElement;
   var realApplications;
+  var realService;
 
   var fakeLaunchConfig1 = {
     'isActivity': false,
@@ -36,11 +39,14 @@ suite('system/Activities', function() {
     navigator.mozL10n = MockL10n;
     realApplications = window.applications;
     window.applications = MockApplications;
+    realService = window.Service;
+    window.Service = MockService;
   });
 
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
     window.applications = realApplications;
+    window.Service = realService;
     realApplications = null;
   });
 

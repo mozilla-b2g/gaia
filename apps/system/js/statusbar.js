@@ -303,11 +303,14 @@ var StatusBar = {
     window.addEventListener('appopened', this);
     window.addEventListener('hierarchytopmostwindowchanged', this);
     window.addEventListener('activityopened', this);
-    window.addEventListener('activityterminated', this);
     window.addEventListener('activitydestroyed', this);
     window.addEventListener('homescreenopening', this);
     window.addEventListener('homescreenopened', this);
     window.addEventListener('stackchanged', this);
+
+    // Listen to updates dialog
+    window.addEventListener('updatepromptshown', this);
+    window.addEventListener('updateprompthidden', this);
 
     // Track Downloads via the Downloads API.
     var mozDownloadManager = navigator.mozDownloadManager;
@@ -339,6 +342,7 @@ var StatusBar = {
 
       case 'screenchange':
         this.setActive(evt.detail.screenEnabled);
+        this._updateIconVisibility();
         break;
 
       case 'lockscreen-appopened':
@@ -619,12 +623,6 @@ var StatusBar = {
         this.element.classList.remove('fullscreen');
         this.element.classList.remove('fullscreen-layout');
         break;
-      case 'activityterminated':
-        // In this particular case, we want to restore the original color of
-        // the bottom window as it will *become* the shown window.
-        this.setAppearance(evt.detail, true);
-        this.element.classList.remove('hidden');
-        break;
       case 'activitydestroyed':
         this._updateMinimizedStatusBarWidth();
         break;
@@ -634,6 +632,12 @@ var StatusBar = {
         // about it and then come and ask @nullaus
         this.addSystemDownloadListeners(evt.download);
         break;
+       case 'updatepromptshown':
+          this.element.classList.remove('light');
+          break;
+        case 'updateprompthidden':
+          this.setAppearance(Service.currentApp);
+          break;
     }
   },
 
@@ -675,29 +679,23 @@ var StatusBar = {
     download.addEventListener('statechange', handler);
   },
 
-  setAppearance: function(app, useBottomWindow) {
+  setAppearance: function(app) {
     // The statusbar is always maximised when the phone is locked.
     if (this._inLockScreenMode) {
       this.element.classList.add('maximized');
       return;
     }
 
-    // Fetch top-most (or bottom-most) window to figure out color theming.
-    var themeWindow =
-      useBottomWindow ? app.getBottomMostWindow() : app.getTopMostWindow();
-
-    if (themeWindow) {
+    // Fetch top-most window to figure out color theming.
+    var topWindow = app.getTopMostWindow();
+    if (topWindow) {
       this.element.classList.toggle('light',
-        !!(themeWindow.appChrome && themeWindow.appChrome.useLightTheming())
+        !!(topWindow.appChrome && topWindow.appChrome.useLightTheming())
       );
     }
 
-    // Maximized state must be based on the bottom window if we're using it but
-    // use the currently showing window for other cases.
-    var maximizedWindow = useBottomWindow ? themeWindow : app;
-    this.element.classList.toggle('maximized', maximizedWindow.isHomescreen ||
-      !!(maximizedWindow.appChrome && maximizedWindow.appChrome.isMaximized())
-    );
+    this.element.classList.toggle('maximized', app.isHomescreen ||
+      !!(app.appChrome && app.appChrome.isMaximized()));
   },
 
   _getMaximizedStatusBarWidth: function sb_getMaximizedStatusBarWidth() {

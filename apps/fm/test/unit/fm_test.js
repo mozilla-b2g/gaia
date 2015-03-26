@@ -1,4 +1,3 @@
-require('/shared/js/usertiming.js');
 requireApp('shared/js/airplane_mode_helper.js');
 requireApp('fm/js/fm.js');
 require('/shared/test/unit/load_body_html_helper.js');

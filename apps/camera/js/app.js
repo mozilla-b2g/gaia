@@ -2,7 +2,6 @@ define(function(require, exports, module) {
 'use strict';
 
 // For perf-measurement related utilities
-require('usertiming');
 require('performance-testing-helper');
 
 /**
@@ -61,6 +60,7 @@ function App(options) {
   this.camera = options.camera;
   this.activity = {};
   this.sounds = options.sounds;
+  this._sharingIsActive = false;
   debug('initialized');
 }
 
@@ -498,6 +498,30 @@ App.prototype.listenForStopRecordingEvent = function() {
   // them using our internal event emitter
   stopRecordingEvent.start();
   addEventListener('stoprecording', this.firer('stoprecording'));
+};
+
+App.prototype.isSharingActive = function() {
+  debug('is sharing active?');
+  return this._sharingIsActive;
+};
+
+App.prototype.setSharingState = function(state) {
+  var isActive = state === 'sharing';
+  if (isActive === this._sharingIsActive) {
+    // no state change, do nothing
+    return;
+  }
+
+  this._sharingIsActive = isActive;
+  if (this._sharingIsActive) {
+    debug('set sharing as active');
+  } else {
+    debug('set sharing as inactive');
+    if (!this.hidden && state !== 'sharing-canceled') {
+      debug('sharing now inactive, reloading');
+      this.onReboot();
+    }
+  }
 };
 
 });

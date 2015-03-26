@@ -6,7 +6,6 @@
           CallGroupMenu, Utils, MockMozContacts */
 
 require('/shared/js/dialer/utils.js');
-require('/shared/js/usertiming.js');
 
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
@@ -928,6 +927,13 @@ suite('dialer/call_log', function() {
             var primaryInfoMain =
               primaryInfo.querySelector('.primary-info-main');
             assert.equal(primaryInfoMain.textContent, incomingGroup.number);
+          }
+        });
+
+        test('all groups display "Unknown" type', function() {
+          for (var log of allLogs) {
+            var type = log.querySelector('.additional-info .type-carrier');
+            assert.equal(type.getAttribute('data-l10n-id'), 'unknown');
           }
         });
       });

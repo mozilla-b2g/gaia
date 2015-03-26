@@ -1,5 +1,12 @@
 'use strict';
-/* global ImportStatusData, LazyLoader, fb, utils, Migrator, fbLoader */
+
+/* global fb */
+/* global fbLoader */
+/* global ImportStatusData */
+/* global LazyLoader */
+/* global Migrator */
+/* global utils */
+
 /* exported DeferredActions */
 
 // Methods not related with the list rendering that must be executed after
@@ -16,7 +23,6 @@ var DeferredActions = (function() {
       window.addEventListener('facebookLoaded', doExecute);
       return;
     }
-
     doExecute();
   };
 

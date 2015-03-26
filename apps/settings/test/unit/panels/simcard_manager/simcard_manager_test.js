@@ -329,7 +329,12 @@ suite('SimCardManager > ', function() {
     var numberDom;
     var operatorDom;
 
-    var defaultName = 'card';
+    var defaultName = {
+      id: 'simWithIndex',
+      args: {
+        index: 1
+      }
+    };
     var defaultNumber = '0123456789';
     var defaultOperator = 'Taiwan telecom';
     var defaultCardSelector = '.sim-card-0';
@@ -390,7 +395,7 @@ suite('SimCardManager > ', function() {
     });
 
     test('name is updated correctly', function() {
-      assert.equal(nameDom.textContent, defaultName);
+      assert.equal(nameDom.getAttribute('data-l10n-id'), defaultName.id);
     });
 
     test('number is updated correctly', function() {
