@@ -231,20 +231,27 @@ suite('WifiUtils', function() {
     var selectDOM = document.createElement('select');
     selectDOM.appendChild(createOption('--'));
     selectDOM.appendChild(createOption('1'));
+    selectDOM.appendChild(createOption('2'));
 
     MockNavigatorMozWifiManager._certificateList = [
       'cert1', 'cert2', 'cert3'
     ];
 
+    // the total options would be one default item and certificates
+    var expectedLengthOfOptions = 
+      1 + MockNavigatorMozWifiManager._certificateList.length;
+
     this.sinon.spy(selectDOM, 'remove');
     this.sinon.spy(selectDOM, 'add');
     wifiUtils.loadImportedCertificateOptions(selectDOM);
 
-    // we have two options, but we would keep the first one
-    assert.isTrue(selectDOM.remove.calledOnce);
+    // we have three options, but we would keep the first one
+    assert.isTrue(selectDOM.remove.calledTwice);
     // and we would add three options back based on the number of our fake
     // certificates
     assert.isTrue(selectDOM.add.calledThrice);
+    // and the total options should be one default item and certificates
+    assert.equal(selectDOM.options.length, expectedLengthOfOptions);
   });
 
   suite('newListItem', function() {
