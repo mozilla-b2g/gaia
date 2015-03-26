@@ -17,17 +17,29 @@ define(function(require) {
 
   // This is the AddonManager API
   var AddonManager = {
-    getAddons: getAddons,               // returns promise<app[]>
-    isAddon: isAddon,                   // returns true or false for app
-    isEnabled: isEnabled,               // returns true or false for addon
-    enableAddon: enableAddon,           // pass an addon object to enable
-    disableAddon: disableAddon,         // pass an addon to disable
-    canDelete: canDelete,               // returns true or false for addon
-    deleteAddon: deleteAddon,           // pass an app, returns promise
-    shareAddon: shareAddon,             // returns a promise
-    getAddonTargets: getAddonTargets,   // pass an app, returns a promise<app[]>
-    addEventListener: addListener,      // For event type "addonschanged"
-    removeEventListener: removeListener
+    // returns promise<app[]>
+    getAddons: getAddons,
+    // returns true or false for app
+    isAddon: isAddon,
+    // returns true or false for addon
+    isEnabled: isEnabled,
+    // pass an addon object to enable
+    enableAddon: enableAddon,
+    // pass an addon to disable
+    disableAddon: disableAddon,
+    // returns true or false for addon
+    canDelete: canDelete,
+    // pass an app, returns promise
+    deleteAddon: deleteAddon,
+    // returns a promise
+    shareAddon: shareAddon,
+    // pass an app, returns a promise<app[]>
+    getAddonTargets: getAddonTargets,
+    // for event type "addonschanged"
+    addEventListener: addListener,
+    removeEventListener: removeListener,
+    // returns an addon with matching manifest URL
+    findAddonByManifestURL: findAddonByManifestURL
   };
 
   function getManifest(app) {
@@ -42,6 +54,14 @@ define(function(require) {
   function getAddons() {
     return AppsCache.apps().then(function(apps) {
       return apps.filter(isAddon);
+    });
+  }
+
+  function findAddonByManifestURL(manifestURL) {
+    return AppsCache.apps().then(function(apps) {
+      return apps.find(function(app) {
+        return isAddon(app) && app.manifestURL === manifestURL;
+      });
     });
   }
 

@@ -29,6 +29,14 @@
     _targetPanelId: null,
 
     /**
+     * Possible target panel options retrieved from the activity request.
+     * @access private
+     * @memberOf ActivityHandler
+     * @type {JSON}
+     */
+    _targetPanelOptions: null,
+
+    /**
      * The activity object received from the message handler.
      *
      * @access private
@@ -77,13 +85,16 @@
           targetPanel.dataset.dialog = true;
         }
 
-        return targetPanelId;
+        return {
+          targetPanelId: targetPanelId,
+          options: activitySource.data.options
+        };
       }
     },
 
     /**
      * It calls to corresponding handlers based on the activity name. It should
-     * also set the target panel id.
+     * also set the target panel id and, optionally, target panel options.
      *
      * @access private
      * @memberOf ActivityHandler
@@ -93,7 +104,9 @@
     _handleActivity: function ah_handler(activitySource) {
       var handle = this._handlers[activitySource.name];
       if (handle) {
-        this._targetPanelId = handle(activitySource);
+        var {targetPanelId, options} = handle(activitySource);
+        this._targetPanelId = targetPanelId;
+        this._targetPanelOptions = options;
       }
     },
 
@@ -128,6 +141,17 @@
      */
     get targetPanelId() {
       return this._targetPanelId;
+    },
+
+    /**
+     * Returns possible target panel options needed to handle the activity.
+     *
+     * @access public
+     * @memberOf ActivityHandler
+     * @returns {JSON}
+     */
+    get targetPanelOptions() {
+      return this._targetPanelOptions;
     },
 
     /**
