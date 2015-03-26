@@ -81,9 +81,13 @@ suite('search/providers/marketplace', function() {
         assert.equal(results.length, 2);
         done();
       });
-      var req = requests[0];
-      req.responseText = JSON.stringify(marketplaceContent);
-      req.onload();
+
+      // setTimeout to ensure that the search microtask fires.
+      setTimeout(function() {
+        var req = requests[0];
+        req.responseText = JSON.stringify(marketplaceContent);
+        req.onload();
+      });
     });
   });
 });
