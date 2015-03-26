@@ -87,7 +87,7 @@
     }
 
     /* jshint boss:true */
-    var node, id;
+    var node;
     for (var i = 0; i < ast.length; i++) {
       node = ast[i];
       this.entries[node.$i] = L10n.Resolver.createEntry(node, this.entries);
