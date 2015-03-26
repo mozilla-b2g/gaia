@@ -171,7 +171,6 @@
     }
   };
 
-
   AppTransitionController.prototype._do_opening =
     function atc_do_opening() {
       this.app.debug('timer to ensure opened does occur.');
@@ -380,6 +379,9 @@
           break;
         case 'animationend':
           evt.stopPropagation();
+          // Hide touch-blocker when launching animation is ended.
+          this.app.element.classList.remove('transition-opening');
+
           // We decide to drop this event if system is busy loading
           // the active app or doing some other more important task.
           if (Service.isBusyLoading()) {

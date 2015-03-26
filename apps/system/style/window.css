@@ -234,7 +234,6 @@
 
 .appWindow.overlay .touch-blocker,
 .appWindow.transition-closing .touch-blocker,
-.appWindow.enlarge .touch-blocker,
 .appWindow.transition-opening .touch-blocker {
   /* The animation takes .3 seconds so users cannot touch the app while the
    * closing animation is performing */
