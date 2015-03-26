@@ -76,7 +76,7 @@ module.exports = {
   },
 
   getFile: function() {
-    var self = this;
+    var self = module.exports;
     var src = path.join.apply(path, arguments);
     var fileStat;
     try {
