@@ -204,6 +204,7 @@
       window.addEventListener('utilitytray-overlayopening', this);
       window.addEventListener('utility-tray-overlayopened', this);
       window.addEventListener('simlockrequestfocus', this);
+      window.addEventListener('cardviewbeforeshow', this);
 
       // Listen for events from Rocketbar
       this.input.addEventListener('focus', this);
@@ -274,6 +275,7 @@
         case 'utilitytray-overlayopening':
         case 'utility-tray-overlayopened':
         case 'simlockrequestfocus':
+        case 'cardviewbeforeshow':
           this._closeSearch();
           break;
         case 'lockscreen-appopened':
