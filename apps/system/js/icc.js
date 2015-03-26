@@ -329,6 +329,7 @@ var icc = {
   },
 
   resize: function() {
+    this.icc_view.style.top = StatusBar.height + 'px';
     var height = window.layoutManager.height - StatusBar.height;
     this.icc_view.style.height = height + 'px';
   },
