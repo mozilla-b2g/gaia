@@ -276,4 +276,14 @@ suite('Dialog', function() {
     dialog.form.dispatchEvent(transitionend);
     assert.isFalse(document.body.classList.contains('dialog-animating'));
   });
+
+  test('adding a class name', function() {
+    params.classes = ['specific-class1', 'specific-class2'];
+    var dialog = new Dialog(params);
+    dialog.show();
+
+    var elt = document.querySelector('.specific-class1');
+    assert.ok(elt);
+    assert.ok(elt.classList.contains('specific-class2'));
+  });
 });
