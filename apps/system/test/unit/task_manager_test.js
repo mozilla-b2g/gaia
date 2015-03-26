@@ -991,6 +991,7 @@ suite('system/TaskManager >', function() {
 
       var target = cardsList.firstElementChild;
       taskManager.handleTap({ target: target });
+      target.dispatchEvent(new CustomEvent('transitionend'));
       this.sinon.clock.tick(100);
     });
   });
