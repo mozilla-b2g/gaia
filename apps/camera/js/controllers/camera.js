@@ -72,6 +72,8 @@ CameraController.prototype.bindEvents = function() {
   app.on('storage:volumechanged', this.onStorageVolumeChanged);
   app.on('storage:changed', this.onStorageChanged);
   app.on('activity:pick', this.onPickActivity);
+  app.on('keydown:capture', this.onCaptureKey);
+  app.on('keydown:focus', this.onFocusKey);
   app.on('timer:ended', this.capture);
   app.on('visible', this.onVisible);
   app.on('capture', this.capture);
@@ -87,13 +89,11 @@ CameraController.prototype.bindEvents = function() {
   settings.hdr.on('change:selected', this.setHDR);
   settings.hdr.on('change:selected', this.onHDRChange);
 
-  // Key events
-  window.addEventListener('keydown', this.onKeyDown);
-
   debug('events bound');
 };
 
 /**
+<<<<<<< HEAD
  * When the device's hardware keys
  * are pressed we can control the
  * camera.
@@ -144,7 +144,8 @@ CameraController.prototype.onVisible = function() {
  */
 CameraController.prototype.onCaptureKey = function(e) {
   debug('on capture key', e);
-  if (this.capture() !== false) { e.preventDefault(); }
+  var output = this.capture();
+  if (output !== false) { e.preventDefault(); }
 };
 
 /**

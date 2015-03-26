@@ -93,6 +93,13 @@ module.exports = {
     ]
   },
 
+  keyDownEvents: {
+    camera: 'capture',
+    volumeup: 'capture',
+    volumedown: 'capture',
+    mozcamerafocusadjust: 'focus',
+  },
+
   activity: {
 
     // The amount to scale pixelSize derived from
