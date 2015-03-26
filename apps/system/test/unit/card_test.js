@@ -14,6 +14,7 @@ suite('system/Card', function() {
     return new AppWindow({
       launchTime: 4,
       name: config.name || 'dummyapp',
+      shortName: config.shortName,
       frame: document.createElement('div'),
       iframe: document.createElement('iframe'),
       manifest: {
@@ -157,6 +158,16 @@ suite('system/Card', function() {
       assert.equal(appCard.titleNode.textContent, 'otherapp');
     });
 
+    test('app short name', function() {
+      var appCard = new Card({
+        app: makeApp({ name: 'shortname', shortName: 'short' }),
+        manager: mockManager
+      });
+      appCard.app.title = 'Some long title';
+      appCard.render();
+      assert.equal(appCard.titleNode.textContent, 'short');
+    });
+
     test('app security for browser windows', function() {
       var browserCard = new Card({
         app: makeApp({ name: 'browserwindow' }),
@@ -206,6 +217,7 @@ suite('system/Card', function() {
     test('subTitle when private browser splash', function() {
       var app = makeApp({
         name: 'shortname',
+        shortName: 'short',
         origin: 'app://system.gaiamobile.org',
         url: 'app://system.gaiamobile.org/private_browser.html'
       });

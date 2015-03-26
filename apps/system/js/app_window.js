@@ -131,10 +131,13 @@
     // Store initial configuration in this.config
     this.config = configuration;
 
+    if (this.manifest) {
+      this.shortName = new ManifestHelper(this.manifest).short_name;
+    }
     if (!this.manifest && this.config && this.config.title) {
       this.updateName(this.config.title);
     } else {
-      this.name = new ManifestHelper(this.manifest).displayName;
+      this.name = new ManifestHelper(this.manifest).name;
     }
 
     // Get icon splash
@@ -882,7 +885,8 @@
     if (!this.manifest) {
       return;
     }
-    this.name = new ManifestHelper(this.manifest).displayName;
+    this.name = new ManifestHelper(this.manifest).name;
+    this.shortName = new ManifestHelper(this.manifest).short_name;
 
     if (this.identificationTitle) {
       this.identificationTitle.textContent = this.name;

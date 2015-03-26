@@ -9,6 +9,6 @@ function MockManifestHelper(manifest) {
 
 Object.defineProperty(MockManifestHelper.prototype, 'displayName', {
     get: function displayName() {
-      return this.short_name || this.name;
+      return this.name;
     }
 });

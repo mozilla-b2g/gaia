@@ -6,7 +6,7 @@
 var BookmarkEditor = {
   BOOKMARK_ICON_SIZE: 60,
   APP_ICON_SIZE: 60,
-
+  
   init: function bookmarkEditor_show(options) {
     this.data = options.data;
     this.onsaved = options.onsaved;
@@ -86,29 +86,30 @@ var BookmarkEditor = {
     this.appIcon.addEventListener('load', this.appIconListener);
     this.appIcon.setAttribute('src', iconURL);
   },
-
+  
   _handleAppIconLoad: function _handleAppIconLoad() {
     this.appIconPlaceholder.classList.add('hidden');
     this.appIcon.classList.remove('hidden');
     this.appIcon.removeEventListener('load', this.appIconListener);
   },
-
+  
   _fetchManifest: function bookmarkEditor_fetchManifest(manifestURL) {
     var manifestPromise = window.WebManifestHelper.getManifest(manifestURL);
-
+    
     manifestPromise.then((function(manifestData) {
       if (manifestData) {
         this.installAppButtonListener = this._installApp.bind(this);
         this.installAppButton.addEventListener('click',
           this.installAppButtonListener);
-        this.appNameText.textContent = manifestData.displayName;
+        this.appNameText.textContent = manifestData.short_name ||
+          manifestData.name;
         this.appInstallationSection.classList.remove('hidden');
         this._renderAppIcon(manifestData, manifestURL, this.APP_ICON_SIZE);
       }
     }).bind(this)).catch(function(error) {
       console.error('Unable to get web manifest: ' + error);
     });
-
+    
     return manifestPromise;
   },
 
@@ -142,7 +143,7 @@ var BookmarkEditor = {
     var title = this.bookmarkTitle.value.trim();
     this.saveButton.disabled = title === '';
   },
-
+  
   _installApp: function bookmarkEditor_installApp() {
     window.navigator.mozApps.install(this.manifestURL);
   },
