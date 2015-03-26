@@ -6,6 +6,7 @@ var utils = require('utils');
 var rebuild = require('rebuild');
 var nodeHelper = new utils.NodeHelper();
 
+
 function getAppRegExp(options) {
   var appRegExp;
   try {
@@ -115,6 +116,11 @@ function buildApps(options) {
 exports.execute = function(options) {
   var stageDir = utils.getFile(options.STAGE_DIR);
   utils.ensureFolderExists(stageDir);
+
+  var l10nTSPath = utils.joinPath(stageDir.path, 'timestamp-l10n.json');
+  if (utils.fileExists(l10nTSPath)) {
+    utils.deleteFile(l10nTSPath);
+  }
 
   if (options.BUILD_APP_NAME === '*') {
     options.rebuildAppDirs = rebuild.execute(options);
