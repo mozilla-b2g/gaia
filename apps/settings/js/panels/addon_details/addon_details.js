@@ -10,7 +10,17 @@ define(function(require) {
     this.panel = panel;
   }
 
-  AddonDetails.prototype.render = function render(app) {
+  AddonDetails.prototype.render = function render(options) {
+    if (options.addon) {
+      this.renderAddon(options.addon);
+    } else if (options.manifestURL) {
+      // Lookup addon based on its manifestURL before rendering.
+      AddonManager.findAddonByManifestURL(options.manifestURL).then(
+        this.renderAddon.bind(this));
+    }
+  };
+
+  AddonDetails.prototype.renderAddon = function renderAddon(app) {
     var l10n = navigator.mozL10n;
     this.app = app;
     var manifest = new ManifestHelper(app.manifest || app.updateManifest);
@@ -20,13 +30,15 @@ define(function(require) {
     function $(selector) { return panel.querySelector(selector); }
 
     // Scroll back to the top
-    $('#addon-details-body').scrollTop = 0;
+    var detailsBody = $('#addon-details-body');
+    detailsBody.scrollTop = 0;
+    detailsBody.hidden = false;
 
     // Display the name of the add-on in the panel header
     var appnameArgs = { appName: manifest.name };
-    l10n.setAttributes($('#addon-details-header'),
-                       'addon-details-header',
-                       appnameArgs);
+    var header = $('#addon-details-header');
+    l10n.setAttributes(header, 'addon-details-header', appnameArgs);
+    header.hidden = false;
 
     // Put an icon next to the description
     var iconElement = $('#addon-detail-icon');
