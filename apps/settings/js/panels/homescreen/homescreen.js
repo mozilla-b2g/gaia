@@ -15,8 +15,8 @@ define(function(require) {
           this.cols = value;
           this._isUpdating = false;
           if (this._cachedColsValue) {
-            var cachedValue = this._cachedValue;
-            this._cachedValue = null;
+            var cachedValue = this._cachedColsValue;
+            this._cachedColsValue = null;
             this.setCols(cachedValue);
           }
         });
