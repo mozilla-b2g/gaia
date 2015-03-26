@@ -1,9 +1,11 @@
 'use strict';
 
-/*global InputMethodDatabaseLoader */
+/*global InputMethodDatabaseLoader, WordListConverter */
 
 require('/test/unit/setup_engine.js');
 require('/js/imes/latin/latin.js');
+
+require('/js/settings/word_list_converter.js');
 
 require('/js/keyboard/input_method_database_loader.js');
 
@@ -725,6 +727,42 @@ suite('Latin worker', function() {
 
     test('123 should not yield prediction', function(next) {
       prediction('123', [null, null, null], next);
+    });
+  });
+
+  suite('validChars() is tolerant on small dicts', function() {
+    suiteSetup(function(next) {
+      var dictData = new WordListConverter(['Ápple']).toBlob();
+
+      worker.postMessage({
+        cmd: 'setNearbyKeys',
+        args: [keymaps.qwerty]
+      });
+
+      worker.postMessage({
+        cmd: 'setLanguage',
+        args: ['en_us', dictData]
+      });
+
+      var successCount = 0;
+      worker.onmessage = function(e) {
+        if (e.data.cmd !== 'success') {
+          dump('worker.onmessage unexpected result ' + e.message + '\n');
+        }
+        assert.equal(e.data.cmd, 'success');
+
+        if (e.data.fn === 'setLanguage' || e.data.fn === 'setNearbyKeys') {
+          successCount++;
+
+          if (successCount === 2) {
+            next();
+          }
+        }
+      };
+    });
+
+    test('app should yield prediction', function(next) {
+      prediction('app', ['Ápple', null, null], next);
     });
   });
 });
