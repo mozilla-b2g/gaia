@@ -414,20 +414,20 @@
 
       case 'select' :
 
-        if (this.position == card.position) {
-          this.exitToApp(card.app);
-        } else {
+        if (this.position != card.position) {
           // Make the target app, the selected app
           this.position = card.position;
           this.alignCurrentCard();
+        }
 
-          var self = this;
-          this.currentCard.element.addEventListener('transitionend',
-                                                    function onCenter(e) {
-            e.target.removeEventListener('transitionend', onCenter);
+        var self = this;
+        this.currentCard.element.addEventListener('transitionend',
+          function afterTransition(e) {
+            e.target.removeEventListener('transitionend', afterTransition);
             self.exitToApp(card.app);
           });
-        }
+        this.currentCard.element.classList.add('select');
+
         break;
     }
   };

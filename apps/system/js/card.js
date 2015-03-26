@@ -95,6 +95,7 @@
 
     <div class="screenshotView bb-button" data-l10n-id="openCard"
       role="link"></div>
+    <div class="privateOverlay"></div>
     <div class="appIconView" style="background-image:${this.iconValue}"></div>
 
     <footer class="card-tray">
