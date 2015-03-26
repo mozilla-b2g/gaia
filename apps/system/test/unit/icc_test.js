@@ -1,6 +1,7 @@
 /* global MocksHelper, MockNavigatorMozIccManager, icc, InputWindowManager,
           MockNavigatorMozMobileConnections, MockNavigatormozSetMessageHandler,
-          MockL10n, MockFtuLauncher, MockNavigatorSettings, KeyboardEvent */
+          MockL10n, MockFtuLauncher, MockNavigatorSettings, KeyboardEvent,
+          StatusBar */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -495,6 +496,25 @@ suite('STK (icc) >', function() {
     launchStkCommand(stkTestCommands.STK_CMD_DISPLAY_TEXT);
 
     assert.isTrue(resizeStub.calledOnce);
+  });
+
+  suite('Resize', function() {
+    setup(function() {
+      icc.resize.restore();
+      window.layoutManager = {
+        height: 100
+      };
+    });
+
+    teardown(function() {
+      window.layoutManager = null;
+    });
+
+    test('it sets the top depending on the Statusbar', function() {
+      StatusBar.height = 13;
+      window.icc.resize();
+      assert.equal(icc.icc_view.style.top, StatusBar.height + 'px');
+    });
   });
 
   suite('Replace STK messages >', function() {
