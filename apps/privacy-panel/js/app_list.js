@@ -4,7 +4,7 @@
  * @module AppList
  * @return {Object}
  */
-define([], function() {
+define(['shared/manifest_helper'], function(ManifestHelper) {
   'use strict';
 
   var _ = navigator.mozL10n.get;
@@ -102,19 +102,13 @@ define([], function() {
    *   .origin:      application origin
    */
   function _makeAppRepresentation(app) {
-    var manifest = app.manifest || app.updateManifest || {};
-
+    var manifest = new ManifestHelper(app.manifest || app.updateManifest);
+    
     var trust = 'web';
     if (manifest.type === 'certified' || manifest.type === 'privileged') {
       trust = manifest.type;
     }
-
-    var name = manifest.name;
-    if (manifest.locales &&
-        manifest.locales[_lang] &&
-        manifest.locales[_lang].name) {
-      name = manifest.locales[_lang].name;
-    }
+    var name = manifest.displayName;
 
     var vendor = '';
     if (manifest.developer && manifest.developer.name) {
