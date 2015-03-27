@@ -22,11 +22,7 @@
   function localizeString(str) {
     var userLang = document.documentElement.lang;
 
-    // We want to make sure that we translate only if we're using
-    // a runtime pseudolocale.
-    // mozL10n.ctx.qps contains only runtime pseudolocales
-    if (navigator.mozL10n &&
-        navigator.mozL10n.ctx.qps.indexOf(userLang) !== -1) {
+    if (navigator.mozL10n && userLang in navigator.mozL10n.qps) {
       return navigator.mozL10n.qps[userLang].translate(str);
     }
     return str;
