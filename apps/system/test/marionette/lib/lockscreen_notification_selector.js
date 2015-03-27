@@ -98,7 +98,7 @@
                .innerHTML,
         body: node.querySelector('.detail').innerHTML,
         lang: node.getAttribute('lang'),
-        dir: node.getAttribute('dir'),
+        dir: node.getAttribute('data-predefined-dir'),
         manifestURL: node.getAttribute('data-manifest-u-r-l')
       };
     });
