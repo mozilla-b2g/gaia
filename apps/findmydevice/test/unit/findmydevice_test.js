@@ -26,6 +26,7 @@ suite('FindMyDevice >', function() {
   var realMozSettings;
   var realMozSetMessageHandler;
   var realMozAlarms;
+  var realNavigatorOnLine;
   var realCommands;
 
   mocksForFindMyDevice.attachTestHelpers();
@@ -51,6 +52,14 @@ suite('FindMyDevice >', function() {
 
     realMozAlarms = navigator.mozAlarms;
     navigator.mozAlarms = MockMozAlarms;
+
+    realNavigatorOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
+    Object.defineProperty(navigator, 'onLine', {
+      fakeOnLine: true,
+      configurable: true,
+      get: function() { return this.fakeOnLine; },
+      set: function(status) { this.fakeOnLine = !!status; }
+    });
 
     window.Config = {
       api_url: 'https://find.firefox.com',
@@ -82,6 +91,10 @@ suite('FindMyDevice >', function() {
     MockNavigatormozSetMessageHandler.mTeardown();
 
     navigator.mozAlarms = realMozAlarms;
+
+    if (realNavigatorOnLine) {
+      Object.defineProperty(navigator, 'onLine', realNavigatorOnLine);
+    }
   });
 
   setup(function(done) {
@@ -98,6 +111,8 @@ suite('FindMyDevice >', function() {
     // used by FMD, since MockSettingsHelper invalidates all objects
     // in its mTeardown.
     FindMyDevice._initSettings(done);
+
+    navigator.onLine = true;
   });
 
   teardown(function() {
@@ -157,6 +172,25 @@ suite('FindMyDevice >', function() {
     MockSettingsHelper('findmydevice.retry-count').get(
       function(val) {
         assert.equal(val, 3, 'retry count should be 3');
+      });
+  });
+
+  test('retryCount is not incremented when offline', function() {
+    FindMyDevice._registered = false;
+    sendWakeUpMessage(IAC_API_WAKEUP_REASON_ENABLED_CHANGED);
+
+    this.sinon.stub(FindMyDevice, 'beginHighPriority');
+    this.sinon.stub(FindMyDevice, 'endHighPriority');
+    navigator.onLine = false;
+
+    // Simulate 3 failed requests
+    FindMyDevice._handleServerError({status: 401});
+    FindMyDevice._handleServerError({status: 401});
+    FindMyDevice._handleServerError({status: 401});
+
+    MockSettingsHelper('findmydevice.retry-count').get(
+      function(val) {
+        assert.equal(val, 0, 'retry count should be 0');
       });
   });
 
