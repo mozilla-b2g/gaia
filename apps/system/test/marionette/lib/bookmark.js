@@ -91,7 +91,8 @@ Bookmark.prototype = {
 
     this.client.switchToFrame(this.currentTabFrame);
     this.client.waitFor((function() {
-      console.log('BTF ' + this.appIcon.getAttribute('src'));
+console.log('BTF ' + this.appName.text(), name, this.appIcon.displayed,
+  this.appIcon.getAttribute('src').indexOf(iconURL));
       return this.appName.text() == name &&
         this.appIcon.displayed &&
         this.appIcon.getAttribute('src').indexOf(iconURL) != -1;

@@ -47,7 +47,7 @@ define(function(require) {
       var manifest = new ManifestHelper(app.manifest ?
         app.manifest : app.updateManifest);
       var developer = manifest.developer;
-      elements.detailTitle.textContent = manifest.short_name || manifest.name;
+      elements.detailTitle.textContent = manifest.displayName;
       elements.uninstallButton.disabled = !app.removable;
       if (!developer || !('name' in developer)) {
         elements.developerInfos.hidden = true;
