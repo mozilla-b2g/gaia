@@ -29,6 +29,8 @@
     "apps/homescreen/test/marionette/install_bookmark_test.js": "legacy",
     "apps/homescreen/test/marionette/remove_bookmark_test.js": "legacy",
     "apps/homescreen/test/marionette/update_bookmark_test.js": "legacy",
+    "apps/music/test/marionette/Player_test.js": "Bug 1148392 - Permafailing after a TC change",
+    "apps/music/test/marionette/playlist_test.js": "Bug 1148392 - Permafailing after a TC change",
     "apps/settings/test/marionette/tests/airplane_mode_settings_test.js": "",
     "apps/settings/test/marionette/tests/app_permission_settings_test.js": "Bug 1004348 - Disable intermittent failing test, manipulate app permissions set geolocation of first app to Grant",
     "apps/settings/test/marionette/tests/hotspot_wifi_settings_test.js": "Bug 1006527 - Disable intermittent failing travis test, manipulate hotspot wifi settings resets settings for second load",
