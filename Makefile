@@ -445,6 +445,9 @@ GAIA_KEYBOARD_LAYOUTS?=en,pt-BR,es,de,fr,fr-CA,pl,ko,zh-Hans-Pinyin,en-Dvorak
 # download the dictionary in keyboard settings page in order to enable the
 # layout.
 GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS?=$(GAIA_KEYBOARD_LAYOUTS)
+# Enable user dictionary for built-in keyboard app by default
+GAIA_KEYBOARD_ENABLE_USER_DICT?=1
+
 
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r

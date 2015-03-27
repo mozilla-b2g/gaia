@@ -997,4 +997,4 @@ var Predictions = function() {
     setNearbyKeys: setNearbyKeys,
     predict: predict
   };
-}();
+};
