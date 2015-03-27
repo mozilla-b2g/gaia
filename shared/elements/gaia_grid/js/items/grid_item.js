@@ -197,6 +197,18 @@
       if (!choices) {
         return this.defaultIcon;
       }
+      var icon;
+      var maxSize = this.grid.layout.gridMaxIconSize; // The goal size
+
+      // Check for W3C web manifest format for icons
+      if (Array.isArray(choices)) {
+        var manifest = {
+          'icons': choices
+        };
+        icon = window.WebManifestHelper.iconURLForSize(manifest,
+          this.app.manifestURL, maxSize);
+        return icon.href;
+      }
 
       // Create a list with the sizes and order it by descending size.
       var list = Object.keys(choices).map(function(size) {
@@ -211,7 +223,6 @@
         return this.defaultIcon;
       }
 
-      var maxSize = this.grid.layout.gridMaxIconSize; // The goal size
       var accurateSize = list[0]; // The biggest icon available
       for (var i = 0; i < length; i++) {
         var size = list[i];
@@ -223,7 +234,7 @@
         accurateSize = size;
       }
 
-      var icon = choices[accurateSize];
+      icon = choices[accurateSize];
 
       // Handle relative URLs
       if (!UrlHelper.hasScheme(icon)) {
