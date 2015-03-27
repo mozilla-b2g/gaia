@@ -35,4 +35,20 @@ suite('app_manager.js > ', function() {
     assert.equal(appManager.self, app);
   });
 
+  test('Can\'t show delete dialog more than once', function() {
+    var showDialogSpy = sinon.spy();
+    sinon.stub(window, 'ConfirmDialogHelper').returns({ show: showDialogSpy });
+
+    var removeItemEvent = new CustomEvent('removeitem',
+      { detail:
+        { detail: { type: null } }
+      });
+
+    appManager.handleEvent(removeItemEvent);
+    assert(appManager.dialogVisible);
+
+    appManager.handleEvent(removeItemEvent);
+    assert(showDialogSpy.calledOnce);
+  });
+
 });
