@@ -23,6 +23,9 @@ define(function(require) {
    *      incoming/outgoing pairing request.
    *   2. Handling dom event from BluetoothPairingListener while there is an
    *      incoming/outgoing pairing request.
+   *   3. Handling dom event 'ondeviceunpaired' while some remote devices
+   *      request for canceling an overdue pairing request. The reason could be
+   *      authentication fails, remote device down, and internal error happens.
    */
   var PairManager = {
     /**
@@ -45,15 +48,11 @@ define(function(require) {
       this._watchOnenterpincodereq();
       this._watchOnpairingconfirmationreq();
       this._watchOnpairingconsentreq();
+      this._watchOnpairingaborted();
 
       navigator.mozSetMessageHandler('bluetooth-pairing-request',
         this._onRequestPairingFromSystemMessage.bind(this)
       );
-
-      // Will discuss how Gecko Bluetooth to notify the event as before.
-      // navigator.mozSetMessageHandler('bluetooth-cancel',
-      //   this.onBluetoothCancel.bind(this)
-      // );
 
       // Observe screen lockscreen locked/unlocked state for show pending
       // pairing request immediately.
@@ -213,6 +212,58 @@ define(function(require) {
       // TODO: Notify user of just-work pairing if user story is required.
       throw new Error('Received pairing method "onpairingconsentreq". ' + 
                       'It would need to implement if user story is required!!');
+    },
+
+    /**
+     * Watch 'onpairingaborted' dom event for pairing aborted.
+     * A handler to trigger when pairing fails due to one of 
+     * following conditions:
+     * - authentication fails
+     * - remote device down (bluetooth ACL becomes disconnected)
+     * - internal error happens
+     *
+     * @access private
+     * @memberOf PairManager
+     */
+    _watchOnpairingaborted: function() {
+      if (!this._defaultAdapter) {
+        return;
+      }
+      
+      this._defaultAdapter.addEventListener('pairingaborted',
+        this._onPairingAborted.bind(this));
+    },
+
+    /**
+     * A handler to handle 'onpairingaborted' event while it's coming.
+     *
+     * @access private
+     * @memberOf PairManager
+     */
+    _onPairingAborted: function(evt) {
+      Debug('_onPairingAborted(): evt = ' + JSON.stringify(evt));
+      // if the attention screen still open, close it
+      if (this.childWindow) {
+        this.childWindow.Pairview.closeInput();
+        this.childWindow.close();
+      }
+
+      // If "onpairingaborted" event is coming, and there is a pending pairing
+      // request, we have reset the object. Because the callback is useless
+      // since the older pairing request is expired.
+      // The moment is fit to notify user that the later pairing request
+      // is timeout or canceled. According to user story, do nothing here.
+      // Clear up the pending pairing request only.
+      if (this.pendingPairing) {
+        this.pendingPairing = null;
+      }
+
+      // Close pairing expired dialog if it is showing.
+      if (PairExpiredDialog.isVisible) {
+        PairExpiredDialog.close();
+        // Have to close Bluetooth app after the dialog is closed.
+        window.close();
+      }
     },
 
     /**
