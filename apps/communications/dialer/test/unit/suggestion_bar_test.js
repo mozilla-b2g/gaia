@@ -1,5 +1,5 @@
 /* globals LazyLoader, MockCallHandler, MockContacts, MockFbContacts,
-           MocksHelper, MockLazyL10n, MockMozL10n, MockNavigatorMozIccManager,
+           MockL10n, MockNavigatorMozIccManager, MocksHelper,
            SuggestionBar, SimSettingsHelper */
 
 'use strict';
@@ -10,7 +10,6 @@ require('/dialer/test/unit/mock_call_handler.js');
 // FIXME : This should be a mock
 require('/shared/js/simple_phone_matcher.js');
 require('/shared/test/unit/mocks/mock_fb_data_reader.js');
-require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
 require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
@@ -20,7 +19,6 @@ require('/dialer/js/suggestion_bar.js');
 
 var mocksHelperForSuggestionBar = new MocksHelper([
   'Contacts',
-  'LazyL10n',
   'LazyLoader',
   'KeypadManager',
   'CallHandler',
@@ -43,8 +41,9 @@ suite('suggestion Bar', function() {
 
     realMozIccManager = navigator.mozIccManager;
     navigator.mozIccManager = MockNavigatorMozIccManager;
+
     realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockMozL10n;
+    navigator.mozL10n = MockL10n;
 
     MockNavigatorMozIccManager.mTeardown();
   });
@@ -113,7 +112,6 @@ suite('suggestion Bar', function() {
     ]
   }];
 
-
   setup(function() {
     subject = SuggestionBar;
 
@@ -176,9 +174,7 @@ suite('suggestion Bar', function() {
           return id;
       }
     });
-    this.sinon.stub(MockLazyL10n, 'get', function(callback) {
-      callback(mozL10nGet);
-    });
+    this.sinon.stub(MockL10n, 'get', mozL10nGet);
 
     MockContacts.mTearDown();
     MockFbContacts.mTeardown();
@@ -217,7 +213,7 @@ suite('suggestion Bar', function() {
 
       assert.equal(tel.textContent, mockNumber,
                   'should got number 1234567890 from mozContact');
-      assert.isTrue(MockLazyL10n.get.called,
+      assert.isTrue(MockL10n.get.called,
                     'should lazy load the localization library');
       assert.equal(telType.textContent, 'my-custom-type',
                    'should default to the type string when there is no ' +
@@ -238,7 +234,7 @@ suite('suggestion Bar', function() {
 
       assert.equal(tel.textContent, mockNumber,
                   'should got number 111111111 from mozContact');
-      assert.isTrue(MockLazyL10n.get.called,
+      assert.isTrue(MockL10n.get.called,
                     'should lazy load the localization library');
       assert.equal(telType.textContent, 'mobile',
                    'should localize the phone type');
@@ -260,7 +256,7 @@ suite('suggestion Bar', function() {
 
         assert.equal(tel.textContent, mockNumber,
                     'should got number 12349999 from Facebook');
-        assert.isTrue(MockLazyL10n.get.called,
+        assert.isTrue(MockL10n.get.called,
                     'should lazy load the localization library');
         assert.equal(telType.textContent, 'mobile',
                    'should localize the phone type');
@@ -285,7 +281,7 @@ suite('suggestion Bar', function() {
 
         assert.equal(tel.textContent, mockNumber,
                     'should got number 1234567890 from mozContact');
-        assert.isTrue(MockLazyL10n.get.called,
+        assert.isTrue(MockL10n.get.called,
                       'should lazy load the localization library');
         assert.equal(telType.textContent, 'my-custom-type',
                    'should default to the type string when there is no ' +
@@ -308,7 +304,7 @@ suite('suggestion Bar', function() {
 
         assert.equal(tel.textContent, mockNumber,
                     'should got number 12349999 from Facebook');
-        assert.isTrue(MockLazyL10n.get.called,
+        assert.isTrue(MockL10n.get.called,
                     'should lazy load the localization library');
         assert.equal(telType.textContent, 'mobile',
                    'should localize the phone type');
