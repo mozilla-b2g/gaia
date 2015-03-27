@@ -7,7 +7,7 @@
 define(function(require) {
   'use strict';
 
-  var SettingsUtils = require('modules/settings_utils');
+  var SimSecurity = require('modules/sim_security');
   var DialogService = require('modules/dialog_service');
   var l10n = window.navigator.mozL10n;
 
@@ -15,7 +15,6 @@ define(function(require) {
     this._localize = l10n.setAttributes;
     this._elements = elements;
     this._method = '';
-    this._icc = null;
     this._cardIndex = 0;
     this._pinOptions = {};
     this._allowedRetryCounts = {
@@ -41,13 +40,6 @@ define(function(require) {
       this._method = options.method;
       this._cardIndex = options.cardIndex;
       this._pinOptions = options.pinOptions;
-      this._icc = SettingsUtils.getIccByCardIndex(this._cardIndex);
-
-      if (!this._icc) {
-        console.error('We can\'t find needed icc object');
-        return;
-      }
-
       this._bindInputClickEvent();
       this._initUI();
     },
@@ -174,7 +166,7 @@ define(function(require) {
      * @return {Promise}
      */
     _unlockCardLock: function(options) {
-      return this._icc.unlockCardLock(options).then(() => {
+      return SimSecurity.unlockCardLock(this._cardIndex, options).then(() => {
         // do nothing
       }, (error) => {
         var needToCloseDialog = this._handleCardLockError({
@@ -277,7 +269,7 @@ define(function(require) {
      * @return {Promise}
      */
     _setCardLock: function(options) {
-      return this._icc.setCardLock(options).then(() => {
+      return SimSecurity.setCardLock(this._cardIndex, options).then(() => {
         // do nothing
       }, (error) => {
         var needToCloseDialog = this._handleCardLockError({
@@ -311,7 +303,7 @@ define(function(require) {
       //  This should be solved when bug 1070941 is fixed.
 
       var fdnContact = this._pinOptions.fdnContact;
-      return this._icc.updateContact('fdn', fdnContact,
+      return SimSecurity.updateContact(this._cardIndex, 'fdn', fdnContact,
         this._elements.pinInput.value).then(() => {
           return fdnContact;
       }, (error) => {
@@ -628,15 +620,15 @@ define(function(require) {
       // XXX this only works with the emulator
       // (and some commercial RIL stacks...)
       // https://bugzilla.mozilla.org/show_bug.cgi?id=905173
-      var req = this._icc.getCardLockRetryCount(lockType);
-      req.onsuccess = () => {
-        var retryCount = req.result.retryCount;
-        if (retryCount === this._allowedRetryCounts[lockType]) {
-          // hide the retry count if users had not input incorrect codes
-          retryCount = null;
-        }
-        this._showRetryCount(retryCount);
-      };
+      SimSecurity.getCardLockRetryCount(this._cardIndex, lockType)
+        .then((result) => {
+          var retryCount = result.retryCount;
+          if (retryCount === this._allowedRetryCounts[lockType]) {
+            // hide the retry count if users had not input incorrect codes
+            retryCount = null;
+          }
+          this._showRetryCount(retryCount);
+      });
     }
   };
 

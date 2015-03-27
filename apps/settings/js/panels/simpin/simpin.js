@@ -7,6 +7,7 @@ define(function(require) {
   var DialogService = require('modules/dialog_service');
   var Template = require('shared/template');
   var Toaster = require('shared/toaster');
+  var SimSecurity = require('modules/sim_security');
 
   var SimPin = function(elements) {
     this._elements = elements;
@@ -80,21 +81,19 @@ define(function(require) {
       if (!isSimAvailable || this.isAirplaneMode) {
         simPinCheckbox.disabled = true;
         changeSimPinItem.hidden = true;
-        return;
+        return Promise.resolve();
       }
 
       // with SIM card, query its status
-      var req = icc.getCardLock('pin');
-      req.onsuccess = function() {
-        var enabled = req.result.enabled;
+      return SimSecurity.getCardLock(cardIndex, 'pin').then((result) => {
+        var enabled = result.enabled;
         simPinCheckbox.disabled = false;
         simPinCheckbox.checked = enabled;
         changeSimPinItem.hidden = !enabled;
-      };
-      req.onerror = function() {
+      }, () => {
         console.log('onerror');
         console.log('cardIndex', cardIndex);
-      };
+      });
     },
     updateSimPinsUI: function simpin_updateSimPinsUI() {
       [].forEach.call(this.conns, (simcard, cardIndex) => {
