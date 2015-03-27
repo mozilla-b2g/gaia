@@ -816,7 +816,7 @@ suite('system/TaskManager >', function() {
         assert.isTrue(cardsView.classList.contains('active'));
         assert.isTrue(taskManager.isShown());
 
-        waitForEvent(window, 'cardviewclosed').then(function(){
+        waitForEvent(window, 'cardviewclosed', 501).then(function(){
           events.push('cardviewclosed');
         }, failOnReject).then(function() {
           assert.equal(events.length, 1, 'sanity check, only 1 event received');
@@ -830,7 +830,7 @@ suite('system/TaskManager >', function() {
 
         cardsView.dispatchEvent(
           createTouchEvent('touchstart', cardsView, 100, 100));
-        this.sinon.clock.tick(101);
+        this.sinon.clock.tick(501);
       });
     });
   });
