@@ -355,3 +355,23 @@ html[dir="rtl"] #cards-view .card[data-ssl="secure"] p.subtitle:not(:empty) {
   opacity: 0;
   transition: opacity 0.2s ease;
 }
+
+#cards-view.from-home {
+  animation: cardview-from-home 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+#cards-view.to-home {
+  animation: cardview-to-home 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation-fill-mode: forwards;
+}
+
+@keyframes cardview-from-home {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes cardview-to-home {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
