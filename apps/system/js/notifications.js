@@ -94,7 +94,6 @@ var NotificationScreen = {
     window.addEventListener('ftuopen', this);
     window.addEventListener('ftudone', this);
     window.addEventListener('desktop-notification-resend', this);
-    window.addEventListener('localized', this);
 
     this._sound = 'style/notifications/ringtones/notifier_firefox.opus';
 
@@ -191,9 +190,6 @@ var NotificationScreen = {
         setTimeout((function() {
           this.clearLockScreen();
         }).bind(this), 400);
-        break;
-      case 'localized':
-        this.updateNotificationsDir();
         break;
     }
   },
@@ -382,25 +378,6 @@ var NotificationScreen = {
     return date;
   },
 
-  /* updateNotificationsDir makes sure all the notifications'
-   * directions are updated accoring to the system direction
-   * if they have dir explicitely specified to "auto", which is
-   * how we want the auto to behave, otherwise every child element
-   * will be aligned according to its own direction which creates
-   * a UI mess we can't control by changing the system
-   * language/direction
-   */
-  updateNotificationsDir: function ns_updateNotificationsDir() {
-    var newDir = document.documentElement.dir;
-    var notificationGroup = document.getElementsByClassName('notification');
-    for (var i = 0, l = notificationGroup.length; i < l; i++) {
-      var predefinedDir = notificationGroup[i].dataset.predefinedDir;
-      if ((predefinedDir === 'auto') || !predefinedDir) {
-        notificationGroup[i].dir = newDir;
-      }
-    }
-  },
-
   updateToaster: function ns_updateToaster(detail, type, dir) {
     if (detail.icon) {
       this.toasterIcon.src = detail.icon;
@@ -453,9 +430,7 @@ var NotificationScreen = {
 
     notificationNode.dataset.notificationId = detail.id;
     notificationNode.dataset.noClear = behavior.noclear ? 'true' : 'false';
-
     notificationNode.lang = detail.lang;
-    notificationNode.dir = dir;
     notificationNode.dataset.predefinedDir = detail.bidi;
 
     notificationNode.dataset.obsoleteAPI = 'false';
@@ -515,7 +490,7 @@ var NotificationScreen = {
       // but we still need to update type, lang and dir.
       oldNotif.dataset.type = type;
       oldNotif.lang = detail.lang;
-      oldNotif.dir = dir;
+      oldNotif.dataset.predefinedDir = detail.bidi;
 
       notificationNode = oldNotif;
     } else {
