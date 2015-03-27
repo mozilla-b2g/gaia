@@ -111,7 +111,8 @@ suite('Search mode', function() {
     // test. Otherwise, every highlighted string needs to be equal to 'phrase'.
     function assertHighlight(phrase, strict) {
       var regExp = new RegExp('^' + Normalizer.toAscii(phrase) + '$', 'i'),
-          highlightedNodes = searchList.getElementsByTagName('mark');
+          highlightClass = contacts.Search.getHighlightClass(),
+          highlightedNodes = searchList.getElementsByClassName(highlightClass);
 
       assert.isTrue(highlightedNodes.length > 0);
 

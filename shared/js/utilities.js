@@ -94,8 +94,8 @@ var HtmlHelper = {
     var str = '';
     for (var i = 0; i < patterns.length; i++) {
       str = str +
-        this.escapeHTML(sliceStrs[i]) + '<mark>' +
-        this.escapeHTML(patterns[i]) + '</mark>';
+        this.escapeHTML(sliceStrs[i]) + '<span class="highlight">' +
+        this.escapeHTML(patterns[i]) + '</span>';
     }
     str += this.escapeHTML(sliceStrs.pop());
     return str;
