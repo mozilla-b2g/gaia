@@ -58,14 +58,16 @@
 
       if (allSIMCardDetected) {
         this.publishSIMSlotIsReady();
-        return;
-      }
-
-      if (this.isMultiSIM() && this.hasOnlyOneSIMCardDetected()) {
+      } else if (this.isMultiSIM() && this.hasOnlyOneSIMCardDetected()) {
         // we are now in DSDS device with one simcard detected.
         this.waitForSecondSIM();
       }
 
+      // 'iccdetected' shall always be listened to even when 
+      // 'allSIMCardDetected' is set to true. In addition to detect UICC after
+      // device boot up, we also rely on this event to update the new Icc 
+      // Object created from IccManager to corresponding SIMSlot when user 
+      // toggles airplane mode ON/OFF.
       IccManager.addEventListener('iccdetected', this);
     },
 
