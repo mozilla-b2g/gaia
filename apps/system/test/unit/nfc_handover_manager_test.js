@@ -393,6 +393,8 @@ suite('Nfc Handover Manager Functions', function() {
 
       var stubShowNotification = this.sinon.stub(nfcHandoverManager,
                                                  '_showTryAgainNotification');
+      var spyRestoreBT = sinon.spy(nfcHandoverManager,
+                                   '_restoreBluetoothStatus');
       var spySendFile = this.sinon.spy(MockBluetoothTransfer,
         'sendFileViaHandover');
 
@@ -403,6 +405,7 @@ suite('Nfc Handover Manager Functions', function() {
       assert.isTrue(fileRequest.onerror.calledOnce);
       assert.isTrue(stubShowNotification.calledOnce,
                     'Notification not shown');
+      assert.isTrue(spyRestoreBT.calledOnce);
     });
   });
 
