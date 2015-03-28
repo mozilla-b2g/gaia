@@ -1,6 +1,5 @@
 # Chunking task for gaia-ui-tests...
 ---
-reruns: 4
 task:
   metadata:
     name: 'Gaia ui tests {{chunk}}'
