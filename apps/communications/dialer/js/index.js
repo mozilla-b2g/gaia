@@ -1,4 +1,4 @@
-/* globals KeypadManager, NavbarManager, LazyLoader, LazyL10n, CallHandler */
+/* globals KeypadManager, NavbarManager, LazyLoader, CallHandler */
 'use strict';
 
 function onLoadDialer() {
@@ -37,7 +37,7 @@ function onLoadDialer() {
     LazyLoader.load(lazyPanelsElements);
 
     CallHandler.init();
-    LazyL10n.get(function loadLazyFilesSet() {
+    navigator.mozL10n.once(function loadLazyFilesSet() {
       LazyLoader.load([
         '/shared/js/fb/fb_request.js',
         '/shared/js/fb/fb_data_reader.js',
