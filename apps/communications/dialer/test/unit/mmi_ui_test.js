@@ -1,25 +1,34 @@
-/* globals MmiUI, MockNavigatormozApps */
+/* globals MmiUI, MockL10n, MockNavigatormozApps */
 
 'use strict';
 
 require('/dialer/js/mmi_ui.js');
 
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 
 suite('dialer/mmi UI', function() {
   var realMozApps;
+  var realMozL10n;
 
   suiteSetup(function() {
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockNavigatormozApps;
+
+    realMozL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
 
     loadBodyHTML('/dialer/index.html');
     MmiUI.init(function() {});
   });
 
   suiteTeardown(function() {
-    MockNavigatormozApps.mTeardown();
     navigator.mozApps = realMozApps;
+    navigator.mozL10n = realMozL10n;
+  });
+
+  teardown(function() {
+    MockNavigatormozApps.mTeardown();
   });
 
   suite('MMI sending success >', function() {
@@ -110,6 +119,8 @@ suite('dialer/mmi UI', function() {
     });
 
     test('Dialer is shown', function() {
+      MmiUI.received({}, message, title);
+
       MockNavigatormozApps.mTriggerLastRequestSuccess();
       assert.equal(MockNavigatormozApps.mAppWasLaunchedWithEntryPoint,
                    'dialer');

@@ -34,7 +34,7 @@ module.exports = View.extend({
 
   // {node}: {data-l10n-id} pairs used for localization.
   elsL10n: {
-    cancel: 'close-button',
+    cancel: 'controls-button-close',
     thumbnail: 'preview-button',
     capture: 'capture-button'
   },
@@ -280,7 +280,7 @@ module.exports = View.extend({
       '<div class="controls-button controls-thumbnail-button test-thumbnail js-thumbnail rotates" ' +
         'name="thumbnail" role="button" data-l10n-id="preview-button"></div>' +
       '<div class="controls-button controls-cancel-pick-button test-cancel-pick rotates js-cancel" ' +
-        'name="cancel" data-icon="close" role="button" data-l10n-id="close-button"></div>' +
+        'name="cancel" data-icon="close" role="button" data-l10n-id="controls-button-close"></div>' +
     '</div>' +
     '<div class="controls-middle">' +
       '<div class="capture-button test-capture rotates js-capture" name="capture" ' +

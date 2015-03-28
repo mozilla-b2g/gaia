@@ -86,6 +86,10 @@ section {
               opacity 0.4s cubic-bezier(0.25, 0, 0, 1) 0.2s;
 }
 
+.card smart-button[type="app-button"].new-card-transition.last-card {
+  transition-delay: 0s;
+}
+
 .card-panel {
   position: absolute;
   top: -23.14rem;

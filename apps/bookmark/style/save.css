@@ -35,6 +35,7 @@ body[data-mode="put"] #edit-bookmark-header {
   background-repeat: no-repeat;
   background-position: center center;
   background-image: url('../shared/elements/gaia_grid/images/default_icon.png');
+  background-size: 8.4rem;
   display: block;
   margin-bottom: 2.4rem;
 }

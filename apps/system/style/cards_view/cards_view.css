@@ -122,7 +122,13 @@
   transform-origin: 50% 50%;
 }
 
-#cards-view .card.private .screenshotView::after {
+#cards-view .card .privateOverlay {
+  display: none;
+  pointer-events: none;
+}
+
+#cards-view .card.private .privateOverlay {
+  display: block;
   width: 100%;
   height: 100%;
   content: "";
@@ -331,12 +337,21 @@ html[dir="rtl"] #cards-view .card[data-ssl="secure"] p.subtitle:not(:empty) {
 /* Animations */
 
 .card.current .titles,
-.card.current .card-tray {
+.card.current .card-tray,
+.card.current.private .privateOverlay {
   opacity: 0;
 }
 
 #screen.cards-view .card.current .titles,
-#screen.cards-view .card.current .card-tray {
+#screen.cards-view .card.current .card-tray,
+#screen.cards-view .card.current.private .privateOverlay {
   opacity: 1;
-  transition: opacity 1s ease;
+  transition: opacity 0.5s ease;
+}
+
+#screen.cards-view .card.current.select .titles,
+#screen.cards-view .card.current.select .card-tray,
+#screen.cards-view .card.current.private.select .privateOverlay {
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }

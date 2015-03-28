@@ -1,5 +1,5 @@
 /* globals MockL10n, MocksHelper, MockSIMSlot, MockSIMSlotManager,
-           SimLockSystemDialog, MockApplications */
+           SimLockSystemDialog, MockApplications, SystemDialog */
 
 'use strict';
 
@@ -183,6 +183,24 @@ suite('sim lock dialog', function() {
       assert.isFalse(subject.xckInput.disabled);
       assert.isFalse(subject.newPinInput.disabled);
       assert.isFalse(subject.confirmPinInput.disabled);
+    });
+  });
+
+  suite('show', function() {
+    var stubClear, stubApply;
+
+    setup(function() {
+      stubClear = this.sinon.stub(subject, 'clear');
+      stubApply = this.sinon.stub(SystemDialog.prototype.show, 'apply');
+      subject.show();
+    });
+
+    test('clears the input when showing the dialog', function() {
+      assert.isTrue(stubClear.called);
+    });
+
+    test('calls to SystemDialog show method', function() {
+      assert.isTrue(stubApply.calledWith(subject));
     });
   });
 

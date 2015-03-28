@@ -108,8 +108,9 @@ suite('FindMyDevice >', function() {
         var lock = MockSettingsListener.getSettingsLock().locks.pop();
 
         var channel = Commands._ringer.mozAudioChannelType;
-        assert.equal(channel, 'content', 'use content channel');
-        assert.equal(lock['audio.volume.content'], 15, 'volume set to maximum');
+        assert.equal(channel, 'ringer', 'use notification channel');
+        assert.equal(lock['audio.volume.notification'], 15,
+          'volume set to maximum');
         assert.equal(Commands._ringer.paused, false, 'must be playing');
         assert.equal(Commands._ringer.src, ringtone, 'must use ringtone');
         sinon.assert.calledOnce(FindMyDevice.beginHighPriority);

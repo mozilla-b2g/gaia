@@ -35,7 +35,9 @@ Music.Selector = Object.freeze({
 
   viewsList: '#views-list-anchor',
   viewsSublist: '#views-sublist-anchor',
+  firstListItem: '.list-item',
   firstSong: '.list-item',
+  firstSongSublist: '#views-sublist .list-item',
   playButton: '#player-controls-play',
   progressBar: '#player-seek-bar-progress',
   shareButton: '#player-cover-share',
@@ -78,6 +80,10 @@ Music.prototype = {
     return this.client.helper.waitForElement(Music.Selector.firstSong);
   },
 
+  get firstSongSublist() {
+    return this.client.helper.waitForElement(Music.Selector.firstSongSublist);
+  },
+
   get songs() {
     this.waitForSublist();
 
@@ -88,6 +94,10 @@ Music.prototype = {
     assert.ok(list_items);
 
     return list_items;
+  },
+
+  get firstListItem() {
+    return this.client.helper.waitForElement(Music.Selector.firstListItem);
   },
 
   get listItems() {
@@ -256,6 +266,15 @@ Music.prototype = {
     })[0].tap();
   },
 
+  selectArtist: function(name) {
+    var list_items = this.listItems;
+
+    list_items.filter(function (element) {
+      return element.findElement('span.list-single-title', 'css selector')
+        .text() === name;
+    })[0].tap();
+  },
+
   selectPlaylist: function(name) {
     var list_items = this.listItems;
 
@@ -265,9 +284,14 @@ Music.prototype = {
     })[0].tap();
   },
 
-
+  // only from a list (song list)
   playFirstSong: function() {
     this.firstSong.click();
+  },
+
+  // only from a sublist (artist, albums, playlists)
+  playFirstSongSublist: function() {
+    this.firstSongSublist.click();
   },
 
   tapPlayButton: function() {

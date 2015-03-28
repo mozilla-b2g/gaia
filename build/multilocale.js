@@ -179,7 +179,7 @@ function L10nManager(gaiaDir,
       paths.push(cleanPath(resURL));
     }
 
-    var resFile = utils.getFile(utils.joinPath.apply(null, paths));
+    var resFile = utils.getFile.apply(null, paths);
 
     return resFile;
   }

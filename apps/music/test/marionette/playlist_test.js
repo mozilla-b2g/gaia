@@ -276,5 +276,87 @@ marionette('Music player playlist', function() {
       assert.equal(PlaylistHelper.songTitle(songs[0]),
                    'The Ecuadorian Embassy');
     });
+
+    test('Most played playlist sort order', function() {
+      music.launch();
+      music.waitForFirstTile();
+
+      music.switchToAlbumsView();
+
+      music.selectAlbum('We crash computers');
+
+      music.waitForSongs(function(songs) {
+        return songs.length >= 6;
+      });
+
+      var songs = music.songs;
+      assert.equal(songs.length, 6);
+
+      // we set the playcount.
+      client.executeScript(function() {
+        var w = window.wrappedJSObject;
+
+        // 'XOXO'
+        var songData = w.SubListView.dataSource[1];
+        songData.metadata.played = 5;
+        w.musicdb.updateMetadata(songData.name, songData.metadata);
+
+        // 'Crash'
+        songData = w.SubListView.dataSource[3];
+        songData.metadata.played = 4;
+        w.musicdb.updateMetadata(songData.name, songData.metadata);
+
+        songData = w.SubListView.dataSource[2];
+        songData.metadata.played = 3;
+        w.musicdb.updateMetadata(songData.name, songData.metadata);
+
+        songData = w.SubListView.dataSource[4];
+        songData.metadata.played = 2;
+        w.musicdb.updateMetadata(songData.name, songData.metadata);
+
+        // 'Yield to Thread'
+        songData = w.SubListView.dataSource[0];
+        songData.metadata.played = 1;
+        w.musicdb.updateMetadata(songData.name, songData.metadata);
+
+        // 'Abort'
+        // Play count is 0 for that song.
+      });
+
+      music.switchToPlaylistsView();
+
+      music.selectPlaylist('Most played');
+
+      music.waitForSongs(function(songs) {
+        return songs.length >= 6;
+      });
+      songs = music.songs;
+
+      assert.equal(PlaylistHelper.songIndex(songs[0]), '1');
+      assert.equal(PlaylistHelper.songTitle(songs[0]), 'XOXO');
+
+      assert.equal(PlaylistHelper.songIndex(songs[1]), '2');
+      assert.equal(PlaylistHelper.songTitle(songs[1]), 'Crash');
+
+      // Trick to go back to the playlistview.
+      // Alternative is to tap the back button.
+      music.switchToAlbumsView();
+      music.switchToPlaylistsView();
+
+      // Least played
+      music.selectPlaylist('Least played');
+
+      music.waitForSongs(function(songs) {
+        return songs.length >= 6;
+      });
+      songs = music.songs;
+
+      assert.equal(PlaylistHelper.songIndex(songs[0]), '1');
+      assert.equal(PlaylistHelper.songTitle(songs[0]), 'Abort');
+
+      assert.equal(PlaylistHelper.songIndex(songs[1]), '2');
+      assert.equal(PlaylistHelper.songTitle(songs[1]), 'Yield to thread');
+    });
+
   });
 });

@@ -30,6 +30,9 @@ marionette('Music player tests', function() {
 
     client.fileManager.removeAllFiles();
     client.fileManager.add([
+      // Album = 'A Minute With Brendan'
+      // Artist = 'Minute With'
+      // Title = 'Boot To Gecko (B2G)'
       { type: 'music', filePath: 'test_media/samples/Music/b2g.ogg' }
     ]);
   });
@@ -184,5 +187,76 @@ marionette('Music player tests', function() {
       assert.equal(stars.length, rating_value);
     });
   });
+
+  suite('Player navigation', function() {
+    test('Check that the back button works', function() {
+      // the navigation test back from the tab
+      function tabNavTest() {
+        assert.equal(client.findElement(Music.Selector.viewsList)
+                       .cssProperty('visibility'), 'hidden',
+                     'list is displayed');
+        assert.equal(client.findElement(Music.Selector.viewsSublist)
+                       .cssProperty('visibility'), 'visible',
+                     'sublist is not displayed');
+
+        music.tapHeaderActionButton();
+        // make sure we have switched back....
+        client.helper.waitForElement(Music.Selector.viewsList);
+        music.firstListItem;
+
+        assert.equal(client.findElement(Music.Selector.viewsList)
+                       .cssProperty('visibility'), 'visible',
+                     'list is not displayed');
+        assert.equal(client.findElement(Music.Selector.viewsSublist)
+                       .cssProperty('visibility'), 'hidden',
+                     'sublist is displayed');
+      }
+
+      // the actual navigation test
+      // sublist is set to true if we navigate from a sublistView.
+      function navTest(sublist) {
+
+        var title = music.header.findElement('#title-text').text();
+        if (sublist) {
+          music.playFirstSongSublist();
+        } else {
+          music.playFirstSong();
+        }
+
+        assert.notEqual(title, music.header.findElement('#title-text').text());
+
+        music.tapHeaderActionButton();
+        // firstSong currently *wait* for the element first.
+        if (sublist) {
+          music.firstSongSublist;
+        } else {
+          music.firstSong;
+        }
+
+        assert.equal(title, music.header.findElement('#title-text').text());
+      }
+
+      music.launch();
+      music.waitForFirstTile();
+      music.switchToSongsView();
+      navTest(false);
+
+      music.switchToAlbumsView();
+      music.selectAlbum('A Minute With Brendan');
+      navTest(true);
+      tabNavTest();
+
+      music.switchToArtistsView();
+      music.selectArtist('Minute With');
+      navTest(true);
+      tabNavTest();
+
+      music.switchToPlaylistsView();
+      music.selectPlaylist('Recently added');
+      navTest(true);
+      tabNavTest();
+    });
+  });
+
 
 });
