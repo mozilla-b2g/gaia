@@ -242,6 +242,9 @@ PreferencesBuilder.prototype.setDebugPref = function() {
   // see Bug 1097912
   this.userPrefs['browser.tabs.remote.autostart'] = false;
   this.userPrefs['browser.tabs.remote.autostart.1'] = false;
+
+  // Disable dialog asking to set firefox as default OS browser
+  this.userPrefs['browser.shell.checkDefaultBrowser'] = false;
 };
 
 PreferencesBuilder.prototype.setDeviceDebugPref = function() {

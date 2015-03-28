@@ -343,6 +343,7 @@ suite('preferences.js', function() {
         'extensions.autoDisableScopes': 0,
         'browser.tabs.remote.autostart': false,
         'browser.tabs.remote.autostart.1': false,
+        'browser.shell.checkDefaultBrowser': false
       });
       assert.isUndefined(preferences.userPrefs['network.http.use-cache']);
     });
