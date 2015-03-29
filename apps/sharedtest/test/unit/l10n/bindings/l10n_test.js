@@ -96,7 +96,7 @@ suite('L10n bindings', function() {
       var elem;
 
       suiteSetup(function() {
-        elem = document.createElement('div');
+        elem = document.createElement('input');
         elem.setAttribute('data-l10n-id', 'input');
       });
 
@@ -211,6 +211,7 @@ suite('L10n bindings', function() {
       var elem, frag, h1, h2;
 
       suiteSetup(function() {
+        lang = 'lang2';
         elem = document.createElement('div');
         frag = document.createElement('div');
         h1 = document.createElement('h1');
@@ -224,13 +225,19 @@ suite('L10n bindings', function() {
         document.body.appendChild(frag);
       });
 
-      suiteTeardown(function() {
+      suiteTeardown(function(done) {
         document.body.removeChild(frag);
+        lang = 'lang1';
+        navigator.mozL10n.ctx.addEventListener('ready', function onReady() {
+          navigator.mozL10n.ctx.removeEventListener('ready', onReady);
+          done();
+        });
+        navigator.mozL10n.ctx.requestLocales(lang);
       });
 
       test('retranslation', function(done) {
-        lang = 'lang2';
-        navigator.mozL10n.once(function() {
+        navigator.mozL10n.ctx.addEventListener('ready', function onReady() {
+          navigator.mozL10n.ctx.removeEventListener('ready', onReady);
           setTimeout(function() {
             assert.equal(elem.textContent, 'Crop Lang2');
             assert.equal(h1.textContent, 'Header 1 Lang2');
@@ -240,7 +247,7 @@ suite('L10n bindings', function() {
           });
         });
 
-        navigator.mozL10n.language.code = 'lang2';
+        navigator.mozL10n.ctx.requestLocales(lang);
       });
     });
   });
@@ -250,8 +257,8 @@ suite('L10n bindings', function() {
       var elem = document.createElement('div');
       elem.setAttribute('data-l10n-id', 'bad');
       navigator.mozL10n.translateFragment(elem);
-      assert.equal(elem.getAttribute('title', 'alert(1)'));
-      assert.equal(elem.getAttribute('onclick', undefined));
+      assert.equal(elem.getAttribute('title'), 'alert(1)');
+      assert.equal(elem.getAttribute('onclick'), undefined);
     });
   });
 

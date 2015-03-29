@@ -24,7 +24,7 @@ describe('Primitives:', function(){
     });
 
     it('returns the value', function(){
-      assert.strictEqual(Resolver.format(null, env.foo), 'Foo');
+      assert.strictEqual(Resolver.format(null, env.foo)[1], 'Foo');
     });
 
   });
@@ -41,13 +41,13 @@ describe('Primitives:', function(){
     });
 
     it('returns the value', function(){
-      var value = Resolver.format(null, env.bar);
+      var value = Resolver.format(null, env.bar)[1];
       assert.strictEqual(value, 'Foo Bar');
     });
 
     it('returns the raw string if the referenced entity is ' +
        'not found', function(){
-      var value = Resolver.format(null, env.baz);
+      var value = Resolver.format(null, env.baz)[1];
       assert.strictEqual(value, '{{ missing }}');
     });
 
@@ -63,18 +63,18 @@ describe('Primitives:', function(){
     });
 
     it('returns the null value', function(){
-      var value = Resolver.format(null, env.foo);
+      var value = Resolver.format(null, env.foo)[1];
       assert.strictEqual(value, null);
     });
 
     it('returns the attribute', function(){
-      var attr = Resolver.format(null, env.foo.attrs.attr);
+      var attr = Resolver.format(null, env.foo.attrs.attr)[1];
       assert.strictEqual(attr, 'Foo');
     });
 
     it('returns the raw string when the referenced entity has ' +
        'null value', function(){
-      var value = Resolver.format(null, env.bar);
+      var value = Resolver.format(null, env.bar)[1];
       assert.strictEqual(value, '{{ foo }} Bar');
     });
 
@@ -90,7 +90,7 @@ describe('Primitives:', function(){
     });
 
     it('returns the raw string', function(){
-      var value = Resolver.format(null, env.foo);
+      var value = Resolver.format(null, env.foo)[1];
       assert.strictEqual(value, '{{ foo }}');
     });
 
@@ -105,7 +105,7 @@ describe('Primitives:', function(){
     });
 
     it('returns the raw string', function(){
-      var value = Resolver.format(null, env.foo);
+      var value = Resolver.format(null, env.foo)[1];
       assert.strictEqual(value, '{{ foo }}');
     });
 
@@ -123,12 +123,12 @@ describe('Primitives:', function(){
     });
 
     it('returns the raw string', function(){
-      var value = Resolver.format({n: 1}, env.foo);
+      var value = Resolver.format({n: 1}, env.foo)[1];
       assert.strictEqual(value, '{{ foo }}');
     });
 
     it('returns the valid value if requested directly', function(){
-      var value = Resolver.format({n: 2}, env.bar);
+      var value = Resolver.format({n: 2}, env.bar)[1];
       assert.strictEqual(value, 'Bar');
     });
   });
