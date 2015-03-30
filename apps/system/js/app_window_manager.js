@@ -1,6 +1,6 @@
 /* global SettingsListener, homescreenWindowManager, inputWindowManager,
           layoutManager, Service, NfcHandler, rocketbar, ShrinkingUI,
-          FtuLauncher, UtilityTray */
+          FtuLauncher, UtilityTray, appWindowFactory, WrapperFactory */
 'use strict';
 
 (function(exports) {
@@ -43,7 +43,11 @@
         return;
       }
       if (active) {
-        this.focus();
+        // XXX: Use this.appWindowFactory later
+        if (!appWindowFactory.isLaunchingWindow() &&
+            !WrapperFactory.isLaunchingWindow()) {
+          this.focus();
+        }
       } else if (!UtilityTray.shown) {
         // User can switch keyboard in utilityTray, so we should not blur
         // active app while utilityTray is shown.
