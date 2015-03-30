@@ -1,7 +1,7 @@
 <div id="root">
   <li id="call-settings"></li>
   <li id="data-connectivity"></li>
-  <li id="messaging-settings"></li>                   
+  <li id="messaging-settings"></li>
   <li id="simSecurity-settings"></li>
   <li id="simCardManager-settings"></li>
   <li class="nfc-settings" hidden></li>
@@ -12,3 +12,12 @@
   <span id="menuItem-enableStorage"></span>
   <li data-show-name="developer.menu.enabled" hidden></li>
 </div>
+
+<form id="icc-warning-dialog" role="dialog" data-type="confirm" hidden>
+  <section>
+    <p data-l10n-id="stkmenuremovedwarning"></p>
+  </section>
+  <menu>
+    <button data-l10n-id="ok" id="icc-warning-confirm"></button>
+  </menu>
+</form>
