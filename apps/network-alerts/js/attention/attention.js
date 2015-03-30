@@ -1,5 +1,6 @@
 /* global Notification,
   NotificationHelper,
+  Notify,
   Promise,
   Utils
 */
@@ -76,9 +77,16 @@ function onVisibilityChange() {
   }
 }
 
-function renderForm() {
+function render() {
   var params = Utils.parseParams();
+  renderForm(params);
+  var fromNotification = params.notification;
+  if (!fromNotification) {
+    Notify.notify();
+  }
+}
 
+function renderForm(params) {
   var title = params.title;
   var body = params.body;
 
@@ -86,9 +94,6 @@ function renderForm() {
   form.querySelector('p').textContent = body;
 }
 
-exports.Attention = {
-  init: init,
-  render: renderForm
-};
+exports.Attention = { init, render };
 
 })(window);
