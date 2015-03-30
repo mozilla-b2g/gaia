@@ -322,7 +322,7 @@ endif
 XPCSHELLSDK := $(abspath $(XULRUNNER_DIRECTORY)/b2g/xpcshell)
 endif
 
-B2G_SDK_URL_BASE := http://ftp.mozilla.org/pub/mozilla.org/b2g/nightly/$(B2G_SDK_DATE)-mozilla-central
+B2G_SDK_URL_BASE := https://ftp.mozilla.org/pub/mozilla.org/b2g/nightly/$(B2G_SDK_DATE)-mozilla-central
 B2G_SDK_FILE_NAME := b2g-$(B2G_SDK_VERSION).multi.$(B2G_SDK_OS).$(B2G_SDK_EXT)
 B2G_SDK_URL := $(B2G_SDK_URL_BASE)/$(B2G_SDK_FILE_NAME)
 B2G_SDK_URL_FILE := $(XULRUNNER_DIRECTORY)/.b2g.url
@@ -807,7 +807,7 @@ tests: app offline
 .PHONY: common-install
 common-install:
 	@test -x "$(NODEJS)" || (echo "Please Install NodeJS -- (use aptitude on linux or homebrew on osx)" && exit 1 )
-	@test -x "$(NPM)" || (echo "Please install NPM (node package manager) -- http://npmjs.org/" && exit 1 )
+	@test -x "$(NPM)" || (echo "Please install NPM (node package manager) -- https://npmjs.org/" && exit 1 )
 
 .PHONY: update-common
 update-common: common-install
@@ -914,7 +914,7 @@ gjslint: GJSLINT_EXCLUDED_DIRS = $(shell grep '\/\*\*$$' .jshintignore | sed 's/
 gjslint: GJSLINT_EXCLUDED_FILES = $(shell egrep -v '(\/\*\*|^\s*)$$' .jshintignore | paste -s -d, -)
 gjslint:
 	# gjslint --disable 210,217,220,225 replaces --nojsdoc because it's broken in closure-linter 2.3.10
-	# http://code.google.com/p/closure-linter/issues/detail?id=64
+	# https://code.google.com/p/closure-linter/issues/detail?id=64
 	@echo Running gjslint...
 	@gjslint --disable 210,217,220,225 --custom_jsdoc_tags="prop,borrows,memberof,augments,exports,global,event,example,mixes,mixin,fires,inner,todo,access,namespace,listens,module,memberOf,property,requires,alias,returns" -e '$(GJSLINT_EXCLUDED_DIRS)' -x '$(GJSLINT_EXCLUDED_FILES)' $(GJSLINTED_PATH) $(LINTED_FILES)
 	@echo Note: gjslint only checked the files that are xfailed for jshint.
