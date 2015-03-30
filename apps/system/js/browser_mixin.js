@@ -86,7 +86,8 @@
      * @param  {Function} callback The callback function to be invoked
      *                             after we get the screenshot.
      */
-    getScreenshot: function bm_getScreenshot(callback, width, height, timeout) {
+    getScreenshot: function bm_getScreenshot(callback, width, height, timeout,
+                                             ignoreFront) {
       if (!this.browser || !this.browser.element) {
         if (callback) {
           callback();
@@ -97,9 +98,12 @@
       var invoked = false;
       var timer;
 
+
       // First, let's check if we have a frontWindow, if so this is the one
-      // we will want a screenshot of!
-      if (this.frontWindow) {
+      // we will want a screenshot of, passing ignoreFront lets us skip this
+      // if we want a screenshot of the browser element
+      ignoreFront = (typeof ignoreFront === 'undefined') ? false : ignoreFront;
+      if (!ignoreFront && this.frontWindow) {
         this.frontWindow.getScreenshot(callback, width, height, timeout);
         return;
       }
