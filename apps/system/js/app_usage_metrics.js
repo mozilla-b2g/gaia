@@ -39,8 +39,9 @@
  *  normal app termination from abnormal and I can't figure out any way
  *  to tell when an app has crashed.
  */
+
 /* global asyncStorage, SettingsListener, performance, SIMSlotManager,
-          MobileOperator, uuid, TelemetryRequest */
+          MobileOperator, uuid, TelemetryRequest, applications */
 (function(exports) {
   'use strict';
 
@@ -342,11 +343,25 @@
         AUM.RETRY_INTERVAL = result['metrics.appusage.retryInterval'];
 
         // Move on to the next step in the startup process
+        waitForApplicationsReady();
+      });
+    }
+
+    // Step 4: Ensure the applications cache is ready
+    function waitForApplicationsReady() {
+      if (applications.ready) {
+        registerHandlers();
+        return;
+      }
+
+      debug('Waiting for applications to be ready');
+      window.addEventListener('applicationready', function onAppsReady(evt) {
+        window.removeEventListener(onAppsReady);
         registerHandlers();
       });
     }
 
-    // Step 4: register the various event handlers we need
+    // Step 5: register the various event handlers we need
     function registerHandlers() {
       // Basic event handlers
       EVENT_TYPES.forEach(function(type) {
@@ -826,12 +841,27 @@
       return false;
     }
 
+    // Gecko and the app window state machine do not send certain app properties
+    // along in webapp-launch or appopened events, causing marketplace app usage
+    // to not be properly recorded. We fall back on the system app's application
+    // cache in these situations. See Bug 1137063
+    var cachedApp = applications.getByManifestURL(app.manifestURL);
     var manifest = app.manifest || app.updateManifest;
-    if (manifest && manifest.type === 'certified') {
+    if (!manifest && cachedApp) {
+      manifest = cachedApp.manifest || cachedApp.updateManifest;
+    }
+
+    var installOrigin = app.installOrigin;
+    if (!installOrigin && cachedApp) {
+      installOrigin = cachedApp.installOrigin;
+    }
+
+    var type = manifest ? manifest.type : 'unknown';
+    if (type === 'certified') {
       return true;
     }
 
-    if (MARKETPLACE_ORIGINS.indexOf(app.installOrigin) >= 0) {
+    if (MARKETPLACE_ORIGINS.indexOf(installOrigin) >= 0) {
       return true;
     }
 
