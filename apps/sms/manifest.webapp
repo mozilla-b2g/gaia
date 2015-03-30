@@ -16,7 +16,8 @@
     "settings":{ "access": "readwrite" },
     "audio-channel-notification":{},
     "desktop-notification":{},
-    "phonenumberservice": {}
+    "phonenumberservice": {},
+    "device-storage:sdcard":{ "access": "readwrite" }
   },
   "locales": {
     "ar": {

@@ -18,7 +18,7 @@
     "contacts":{ "access": "readcreate" },
     "desktop-notification":{},
     "downloads":{},
-    "device-storage:sdcard":{ "access": "readcreate" },
+    "device-storage:sdcard":{ "access": "readwrite" },
     "systemXHR":{},
     "tcp-socket":{}
   },
