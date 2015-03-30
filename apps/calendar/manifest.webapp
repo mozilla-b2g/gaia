@@ -18,7 +18,8 @@
     "browser": {},
     "settings":{ "access": "readonly" },
     "desktop-notification":{},
-    "audio-channel-notification":{}
+    "audio-channel-notification":{},
+    "device-storage:sdcard":{ "access": "readwrite" }
   },
   "locales": {
     "ar": {

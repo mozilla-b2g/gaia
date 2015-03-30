@@ -13,7 +13,8 @@
     "device-storage:pictures":{ "access": "readwrite" },
     "device-storage:videos":{ "access": "readwrite" },
     "audio-channel-content":{},
-    "nfc-share": {}
+    "nfc-share": {},
+    "device-storage:sdcard":{ "access": "readwrite" }
   },
   "locales": {
     "ar": {
