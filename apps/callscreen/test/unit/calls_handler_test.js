@@ -119,8 +119,6 @@ suite('calls handler', function() {
         mockCall = new MockCall('12334', 'incoming');
         mockCall.addEventListener(
           'statechange', CallsHandler.updatePlaceNewCall);
-        mockCall.addEventListener(
-          'statechange', CallsHandler.updateMergeAndOnHoldStatus);
         mockHC = telephonyAddCall.call(this, mockCall);
       });
 
@@ -178,36 +176,42 @@ suite('calls handler', function() {
       test('should show the on hold button while establishing', function() {
         this.sinon.spy(MockCallScreen, 'showOnHoldButton');
         mockCall.mChangeState('dialing');
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         sinon.assert.calledOnce(MockCallScreen.showOnHoldButton);
       });
 
       test('should disable the on hold button while establishing', function() {
         this.sinon.spy(MockCallScreen, 'disableOnHoldButton');
         mockCall.mChangeState('dialing');
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         sinon.assert.calledOnce(MockCallScreen.disableOnHoldButton);
       });
 
       test('should show the on hold button when established', function() {
         this.sinon.spy(MockCallScreen, 'showOnHoldButton');
         mockCall.mChangeState('connected');
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         sinon.assert.calledOnce(MockCallScreen.showOnHoldButton);
       });
 
       test('should enable the on hold button when established', function() {
         this.sinon.spy(MockCallScreen, 'enableOnHoldButton');
         mockCall.mChangeState('connected');
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         sinon.assert.calledOnce(MockCallScreen.enableOnHoldButton);
       });
 
       test('should hide the merge button while establishing', function() {
         this.sinon.spy(MockCallScreen, 'hideMergeButton');
         mockCall.mChangeState('dialing');
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         sinon.assert.calledOnce(MockCallScreen.hideMergeButton);
       });
 
       test('should hide the merge button when established', function() {
         this.sinon.spy(MockCallScreen, 'hideMergeButton');
         mockCall.mChangeState('connected');
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         sinon.assert.calledOnce(MockCallScreen.hideMergeButton);
       });
 
@@ -239,15 +243,17 @@ suite('calls handler', function() {
           MockNavigatorMozTelephony.mTriggerCallsChanged();
           sinon.assert.calledOnce(MockCallScreen.showPlaceNewCallButton);
         });
+      });
 
+      suite('non mergeable and non switchable call', function() {
         test('should hide the container of on hold and merge buttons',
         function() {
-          MockNavigatorMozMobileConnections[1].voice = {
-            type: 'evdoa'
-          };
           this.sinon.spy(MockCallScreen, 'hideOnHoldAndMergeContainer');
 
+          mockCall.mergeable = false;
+          mockCall.switchable = false;
           MockNavigatorMozTelephony.mTriggerCallsChanged();
+          sinon.assert.calledOnce(MockCallScreen.hideOnHoldAndMergeContainer);
           mockCall.mChangeState('dialing');
           sinon.assert.calledOnce(MockCallScreen.hideOnHoldAndMergeContainer);
         });
@@ -321,8 +327,6 @@ suite('calls handler', function() {
         extraCall = new MockCall('12334', 'incoming');
         extraCall.addEventListener(
           'statechange', CallsHandler.updatePlaceNewCall);
-        extraCall.addEventListener(
-          'statechange', CallsHandler.updateMergeAndOnHoldStatus);
 
         telephonyAddCall.call(this, firstCall, {trigger: true});
         extraHC = telephonyAddCall.call(this, extraCall);
@@ -463,18 +467,21 @@ suite('calls handler', function() {
       test('should show the on hold button', function() {
         this.sinon.spy(MockCallScreen, 'showOnHoldButton');
         extraCall.mChangeState('alerting');
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         sinon.assert.calledOnce(MockCallScreen.showOnHoldButton);
       });
 
       test('should disable the on hold button', function() {
         this.sinon.spy(MockCallScreen, 'disableOnHoldButton');
         extraCall.mChangeState('alerting');
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         sinon.assert.calledOnce(MockCallScreen.disableOnHoldButton);
       });
 
       test('should hide the merge button', function() {
         this.sinon.spy(MockCallScreen, 'hideMergeButton');
         extraCall.mChangeState('alerting');
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         sinon.assert.calledOnce(MockCallScreen.hideMergeButton);
       });
 
@@ -521,14 +528,12 @@ suite('calls handler', function() {
         });
       });
 
-      suite('in CDMA Network', function() {
+      suite('non mergeable calls', function() {
         test('should hide the container of on hold and merge buttons',
         function() {
-          MockNavigatorMozMobileConnections[1].voice = {
-            type: 'evdoa'
-          };
           this.sinon.spy(MockCallScreen, 'hideOnHoldAndMergeContainer');
 
+          extraCall.mergeable = false;
           MockNavigatorMozTelephony.mTriggerCallsChanged();
           extraCall.mChangeState('alerting');
           sinon.assert.calledOnce(MockCallScreen.hideOnHoldAndMergeContainer);
@@ -549,7 +554,7 @@ suite('calls handler', function() {
         var firstCall = new MockCall('543552', 'incoming');
         extraCall = new MockCall('12334', 'dialing');
 
-        telephonyAddCall.call(this, firstCall, {trigger: true});
+        telephonyAddCall.call(this, firstCall);
         extraHC = telephonyAddCall.call(this, extraCall, {trigger: true});
       });
 
@@ -567,18 +572,6 @@ suite('calls handler', function() {
 
       test('should hide the merge button', function() {
         sinon.assert.calledOnce(MockCallScreen.hideMergeButton);
-      });
-
-      suite('in CDMA Network', function() {
-        test('should disable the on hold button', function() {
-          MockNavigatorMozMobileConnections[1].voice = {
-            type: 'evdoa'
-          };
-
-          MockNavigatorMozTelephony.mTriggerCallsChanged();
-          extraCall.mChangeState();
-          sinon.assert.calledOnce(MockCallScreen.disableOnHoldButton);
-        });
       });
     });
 
@@ -1818,6 +1811,7 @@ suite('calls handler', function() {
           this.sinon.spy(MockCallScreen, 'setShowIsHeld');
           this.sinon.spy(MockCallScreen, 'showMergeButton');
           this.sinon.spy(MockCallScreen, 'hideMergeButton');
+          this.sinon.spy(MockCallScreen, 'hideOnHoldAndMergeContainer');
         });
 
         test('should disable the on hold button', function() {
@@ -1840,27 +1834,22 @@ suite('calls handler', function() {
           sinon.assert.calledWith(MockCallScreen.setShowIsHeld, false);
         });
 
-        suite('in CDMA Network', function() {
-          test('should do nothing', function() {
-            MockNavigatorMozMobileConnections[1].voice = {
-              type: 'evdoa'
-            };
+        suite('non switchable call', function() {
+          test('should hide the hold/merge button', function() {
+            mockCall.switchable = false;
 
             CallsHandler.updateMergeAndOnHoldStatus();
-            sinon.assert.notCalled(MockCallScreen.showOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.hideOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.enableOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.disableOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.showMergeButton);
-            sinon.assert.notCalled(MockCallScreen.hideMergeButton);
+            sinon.assert.calledOnce(MockCallScreen.hideOnHoldAndMergeContainer);
           });
         });
       });
 
       suite('1 established call', function() {
+        var mockCall;
+
         setup(function() {
-          telephonyAddCall.call(
-            this, new MockCall('111111111', 'connected'), {trigger: true});
+          mockCall = new MockCall('111111111', 'connected');
+          telephonyAddCall.call(this, mockCall, {trigger: true});
           this.sinon.spy(MockCallScreen, 'showOnHoldButton');
           this.sinon.spy(MockCallScreen, 'hideOnHoldButton');
           this.sinon.spy(MockCallScreen, 'enableOnHoldButton');
@@ -1868,6 +1857,7 @@ suite('calls handler', function() {
           this.sinon.spy(MockCallScreen, 'setShowIsHeld');
           this.sinon.spy(MockCallScreen, 'showMergeButton');
           this.sinon.spy(MockCallScreen, 'hideMergeButton');
+          this.sinon.spy(MockCallScreen, 'hideOnHoldAndMergeContainer');
         });
 
         test('should enable the on hold button', function() {
@@ -1890,19 +1880,12 @@ suite('calls handler', function() {
           sinon.assert.calledWith(MockCallScreen.setShowIsHeld, false);
         });
 
-        suite('in CDMA Network', function() {
-          test('should do nothing', function() {
-            MockNavigatorMozMobileConnections[1].voice = {
-              type: 'evdoa'
-            };
+        suite('non switchable call', function() {
+          test('should hide the hold/merge button', function() {
+            mockCall.switchable = false;
 
             CallsHandler.updateMergeAndOnHoldStatus();
-            sinon.assert.notCalled(MockCallScreen.showOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.hideOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.enableOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.disableOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.showMergeButton);
-            sinon.assert.notCalled(MockCallScreen.hideMergeButton);
+            sinon.assert.calledOnce(MockCallScreen.hideOnHoldAndMergeContainer);
           });
         });
       });
@@ -1939,23 +1922,6 @@ suite('calls handler', function() {
           CallsHandler.updateMergeAndOnHoldStatus();
           sinon.assert.calledWith(MockCallScreen.setShowIsHeld, true);
         });
-
-        suite('in CDMA Network', function() {
-          test('should do nothing', function() {
-            MockNavigatorMozMobileConnections[1].voice = {
-              type: 'evdoa'
-            };
-
-            CallsHandler.updateMergeAndOnHoldStatus();
-            sinon.assert.notCalled(MockCallScreen.showOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.hideOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.enableOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.disableOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.setShowIsHeld);
-            sinon.assert.notCalled(MockCallScreen.showMergeButton);
-            sinon.assert.notCalled(MockCallScreen.hideMergeButton);
-          });
-        });
       });
 
       suite('1 conference established call', function() {
@@ -1979,6 +1945,7 @@ suite('calls handler', function() {
           this.sinon.spy(MockCallScreen, 'setShowIsHeld');
           this.sinon.spy(MockCallScreen, 'showMergeButton');
           this.sinon.spy(MockCallScreen, 'hideMergeButton');
+          this.sinon.spy(MockCallScreen, 'hideOnHoldAndMergeContainer');
         });
 
         test('should enable the on hold button', function() {
@@ -2001,20 +1968,13 @@ suite('calls handler', function() {
           sinon.assert.calledWith(MockCallScreen.setShowIsHeld, false);
         });
 
-        suite('in CDMA Network', function() {
-          test('should do nothing', function() {
-            MockNavigatorMozMobileConnections[1].voice = {
-              type: 'evdoa'
-            };
+        suite('non switchable calls', function() {
+          test('should hide the hold/merge button', function() {
+            conferenceCall1.switchable = false;
+            conferenceCall2.switchable = false;
 
             CallsHandler.updateMergeAndOnHoldStatus();
-            sinon.assert.notCalled(MockCallScreen.showOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.hideOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.enableOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.disableOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.setShowIsHeld);
-            sinon.assert.notCalled(MockCallScreen.showMergeButton);
-            sinon.assert.notCalled(MockCallScreen.hideMergeButton);
+            sinon.assert.calledOnce(MockCallScreen.hideOnHoldAndMergeContainer);
           });
         });
       });
@@ -2062,22 +2022,6 @@ suite('calls handler', function() {
           CallsHandler.updateMergeAndOnHoldStatus();
           sinon.assert.calledWith(MockCallScreen.setShowIsHeld, true);
         });
-
-        suite('in CDMA Network', function() {
-          test('should do nothing', function() {
-            MockNavigatorMozMobileConnections[1].voice = {
-              type: 'evdoa'
-            };
-
-            CallsHandler.updateMergeAndOnHoldStatus();
-            sinon.assert.notCalled(MockCallScreen.showOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.hideOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.enableOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.disableOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.showMergeButton);
-            sinon.assert.notCalled(MockCallScreen.hideMergeButton);
-          });
-        });
       });
 
       suite('1 one-to-one established call and 1 establishing call',
@@ -2115,22 +2059,6 @@ suite('calls handler', function() {
         test('should disable the on hold button active state', function() {
           CallsHandler.updateMergeAndOnHoldStatus();
           sinon.assert.calledWith(MockCallScreen.setShowIsHeld, false);
-        });
-
-        suite('in CDMA Network', function() {
-          test('should do nothing', function() {
-            MockNavigatorMozMobileConnections[1].voice = {
-              type: 'evdoa'
-            };
-
-            CallsHandler.updateMergeAndOnHoldStatus();
-            sinon.assert.notCalled(MockCallScreen.showOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.hideOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.enableOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.disableOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.showMergeButton);
-            sinon.assert.notCalled(MockCallScreen.hideMergeButton);
-          });
         });
       });
 
@@ -2178,22 +2106,6 @@ suite('calls handler', function() {
           CallsHandler.updateMergeAndOnHoldStatus();
           sinon.assert.calledWith(MockCallScreen.setShowIsHeld, false);
         });
-
-        suite('in CDMA Network', function() {
-          test('should do nothing', function() {
-            MockNavigatorMozMobileConnections[1].voice = {
-              type: 'evdoa'
-            };
-
-            CallsHandler.updateMergeAndOnHoldStatus();
-            sinon.assert.notCalled(MockCallScreen.showOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.hideOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.enableOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.disableOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.showMergeButton);
-            sinon.assert.notCalled(MockCallScreen.hideMergeButton);
-          });
-        });
       });
 
       suite('2 one-to-one established calls', function() {
@@ -2210,6 +2122,7 @@ suite('calls handler', function() {
           this.sinon.spy(MockCallScreen, 'setShowIsHeld');
           this.sinon.spy(MockCallScreen, 'showMergeButton');
           this.sinon.spy(MockCallScreen, 'hideMergeButton');
+          this.sinon.spy(MockCallScreen, 'hideOnHoldAndMergeContainer');
         });
 
         test('should hide the on-hold button', function() {
@@ -2228,19 +2141,13 @@ suite('calls handler', function() {
           sinon.assert.calledOnce(MockCallScreen.showMergeButton);
         });
 
-        suite('in CDMA Network', function() {
-          test('should do nothing', function() {
-            MockNavigatorMozMobileConnections[1].voice = {
-              type: 'evdoa'
-            };
+        suite('non mergeable call', function() {
+          test('should hide the show/merge button', function() {
+            MockNavigatorMozTelephony.calls[0].mergeable = false;
+            MockNavigatorMozTelephony.calls[1].mergeable = false;
 
             CallsHandler.updateMergeAndOnHoldStatus();
-            sinon.assert.notCalled(MockCallScreen.showOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.hideOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.enableOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.disableOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.showMergeButton);
-            sinon.assert.notCalled(MockCallScreen.hideMergeButton);
+            sinon.assert.calledOnce(MockCallScreen.hideOnHoldAndMergeContainer);
           });
         });
       });
@@ -2269,6 +2176,7 @@ suite('calls handler', function() {
           this.sinon.spy(MockCallScreen, 'setShowIsHeld');
           this.sinon.spy(MockCallScreen, 'showMergeButton');
           this.sinon.spy(MockCallScreen, 'hideMergeButton');
+          this.sinon.spy(MockCallScreen, 'hideOnHoldAndMergeContainer');
         });
 
         test('should hide the on-hold button', function() {
@@ -2287,19 +2195,14 @@ suite('calls handler', function() {
           sinon.assert.calledOnce(MockCallScreen.showMergeButton);
         });
 
-        suite('in CDMA Network', function() {
-          test('should do nothing', function() {
-            MockNavigatorMozMobileConnections[1].voice = {
-              type: 'evdoa'
-            };
+        suite('non mergeable call', function() {
+          test('should hide the show/merge button', function() {
+            MockNavigatorMozTelephony.calls[0].mergeable = false;
+            conferenceCall1.mergeable = false;
+            conferenceCall2.mergeable = false;
 
             CallsHandler.updateMergeAndOnHoldStatus();
-            sinon.assert.notCalled(MockCallScreen.showOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.hideOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.enableOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.disableOnHoldButton);
-            sinon.assert.notCalled(MockCallScreen.showMergeButton);
-            sinon.assert.notCalled(MockCallScreen.hideMergeButton);
+            sinon.assert.calledOnce(MockCallScreen.hideOnHoldAndMergeContainer);
           });
         });
       });
@@ -2679,10 +2582,8 @@ suite('calls handler', function() {
           sinon.assert.calledWith(MockCallScreen.render, 'connected-hold');
         });
 
-        test('should not try to hold a CDMA call', function() {
-          MockNavigatorMozMobileConnections[1].voice = {
-            type: 'evdoa'
-          };
+        test('should not try to hold a non-switchable call', function() {
+          call1.switchable = false;
           MockNavigatorMozTelephony.calls = [call1];
           MockNavigatorMozTelephony.active = call1;
           MockNavigatorMozTelephony.mTriggerCallsChanged();
