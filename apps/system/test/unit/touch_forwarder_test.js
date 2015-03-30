@@ -73,11 +73,9 @@ suite('system/TouchForwarder >', function() {
       subject.forward(forgeTouch('touchstart', 3, 20));
     });
 
-    test('it should only forward the first touchmove event', function() {
+    test('it should forward touchmove events', function() {
       var sendTouchSpy = this.sinon.spy(iframe, 'sendTouchEvent');
       subject.forward(forgeTouch('touchmove', 3, 27));
-      subject.forward(forgeTouch('touchmove', 3, 37));
-      subject.forward(forgeTouch('touchmove', 3, 57));
 
       assert.isTrue(sendTouchSpy.calledOnce);
 
