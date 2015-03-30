@@ -1,0 +1,117 @@
+/* http://meyerweb.com/eric/tools/css/reset/
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+}
+
+body {
+    text-align: center;
+    font-size: 80%;
+    color: #121007;
+    font-family: Arial, Helvetica;
+    overflow: scroll;
+}
+
+a, button {
+    color: #121007;
+    text-decoration: none;
+    height: 10%
+}
+
+ul li {
+    list-style: none;
+}
+
+button {
+    width: 100%;
+    font-size: 1.2em;
+    padding: 0.5em;
+    margin: 2px 0;
+    text-align: center;
+    text-shadow: 0pt 1px 1px rgba(255, 255, 255, 0.75);
+    background-color: rgb(245, 245, 245);
+    background-image: -moz-linear-gradient(center top , rgb(255, 255, 255), rgb(230, 230, 230));
+    box-shadow: 0pt 1px 0pt rgba(255, 255, 255, 0.2) inset, 0pt 1px 2px rgba(0, 0, 0, 0.05);
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgb(204, 204, 204) rgb(204, 204, 204) rgb(179, 179, 179);
+    border-radius: 6px 6px 6px 6px;
+    cursor: pointer;
+}
+
+select {
+    width: 100%;
+    font-size: 1.2em;
+    padding: 0.5em;
+    margin: 5px 0;
+}
+
+#app {
+    margin: 0;
+    padding: 4px;
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    font-size: 3rem;
+}
+
+#footer {
+    padding-bottom: 1em;
+}
+
+textarea {
+    width: 100%;
+    height: 60%;
+    margin: 2px 0;
+    font-size: 2rem;
+}
+
+ul {
+    margin: 0 auto;
+}
+
+ul li {
+    padding: 0.5em;
+    list-style: none;
+    border-bottom: 1px solid #C0C0C0;
+}
+
+ul li:nth-last-child(1) {
+    border-bottom: none;
+}
+
+.clear {
+    clear: both;
+}
+
+.hidden {
+    display: none;
+}
+
+#error {
+    text-align: center;
+    font-size: 1.5em;
+    color: red;
+}

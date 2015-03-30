@@ -1,0 +1,47 @@
+<html>
+  <head>
+    <title>In-App Payments Tester</title>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="css/index.css"/>
+  </head>
+  <body>
+    <div id="app">
+      <div id="jwt-input">
+        <select name="server" id="server">
+          <option value="0">
+            marketplace.firefox.com (prod)
+          </option>
+          <option value="1">
+            marketplace.firefox.com (prod, simulate only)
+          </option>
+          <option value="2">
+            marketplace.allizom.org (stage)
+          </option>
+          <option value="3">
+            marketplace-dev.allizom.org (dev)
+          </option> 
+        </select>
+
+        <div id="error"></div>
+
+        <div id="jwt">
+          <div>
+            <button id="refresh">Refresh JWT</button>
+          </div>
+          <div id="log" class="hidden">
+            <textarea id="log-content"></textarea>
+          </div>
+          <div id="jwt-panel">
+            <!-- Warning: this textarea tag gets replaced js/index.js-->
+            <textarea name="jwt" id="jwt-content">Loading...</textarea>
+          </div>
+          <div>
+            <button id="pay" type="submit">Pay</button>
+            <button id="toggle" type="button">Show log</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="js/app.js"></script>
+  </body>
+</html>
