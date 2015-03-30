@@ -1,5 +1,7 @@
 #screen:not(.locked).fullscreen-layout-app.software-button-enabled [role="dialog"][data-type="action"],
 #screen:not(.locked).fullscreen-layout-app.software-button-enabled [role="dialog"][data-type="object"],
+#screen.locked.secure-app.software-button-enabled [role="dialog"][data-type="action"],
+#screen.locked.secure-app.software-button-enabled [role="dialog"][data-type="object"],
 #screen:not(.locked).software-button-enabled [role="dialog"][data-type="action"],
 #screen:not(.locked).software-button-enabled [role="dialog"][data-type="object"] {
   bottom: var(--software-home-button-height);
