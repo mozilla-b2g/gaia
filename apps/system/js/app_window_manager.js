@@ -1,6 +1,6 @@
 /* global SettingsListener, homescreenWindowManager, inputWindowManager,
           layoutManager, Service, rocketbar, ShrinkingUI,
-          FtuLauncher */
+          FtuLauncher, appWindowFactory, WrapperFactory */
 'use strict';
 
 (function(exports) {
@@ -43,7 +43,11 @@
         return false;
       }
       if (active) {
-        this.focus();
+        // XXX: Use this.appWindowFactory later
+        if (!appWindowFactory.isLaunchingWindow() &&
+            !WrapperFactory.isLaunchingWindow()) {
+          this.focus();
+        }
       } else {
         this._activeApp.blur();
         this._activeApp.setNFCFocus(false);
