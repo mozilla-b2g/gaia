@@ -244,7 +244,7 @@ Music.prototype = {
     assert.ok(list_items);
 
     list_items.filter(function (element) {
-      return element.findElement('span.list-playlist-title', 'css selector')
+      return element.findElement('.list-playlist-title', 'css selector')
         .text() === name;
     })[0].tap();
   },
