@@ -194,6 +194,24 @@
   100% { transform: scale(0.48); }
 }
 
+.appWindow.home-from-cardview {
+  animation: home-from-cardview 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+.appWindow.home-to-cardview {
+  animation: home-to-cardview 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+@keyframes home-from-cardview {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes home-to-cardview {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 .appWindow.back {
   transition: transform 0.25s cubic-bezier(0.7, 0.0, 1.0, 1.0), visibility 0.25s cubic-bezier(0.7, 0.0, 1.0, 1.0);
   transform: scale(0.86);
@@ -538,6 +556,7 @@
 
 /* making the appWindows moz-elementable for the cardview */
 #screen #windows > .appWindow:not(.homescreen):not(.lockScreenWindow):not(.attentionWindow):not(.lockScreenInputWindow).in-task-manager {
+  position: fixed;
   transform: none;
 }
 

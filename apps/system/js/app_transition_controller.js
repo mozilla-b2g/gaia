@@ -346,7 +346,8 @@
         'slideleft', 'slideright', 'in-from-left', 'out-to-right',
         'will-become-active', 'will-become-inactive',
         'slide-to-top', 'slide-from-top',
-        'slide-to-bottom', 'slide-from-bottom'];
+        'slide-to-bottom', 'slide-from-bottom',
+        'home-from-cardview', 'home-to-cardview'];
 
       classes.forEach(function iterator(cls) {
         this.app.element.classList.remove(cls);
