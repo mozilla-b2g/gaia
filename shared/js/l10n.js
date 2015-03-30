@@ -791,7 +791,6 @@
 
     /* jshint -W084 */
     for (var i = 0, key; key = keys[i]; i++) {
-      // skip $i (id), $v (value), $x (index)
       if (key[0] === '$') {
         continue;
       }
@@ -1327,9 +1326,9 @@
   }
 
   function formatEntity(args, entity) {
-    var entityTuple = formatTuple.call(this, args, entity);
-    var locals = entityTuple[0];
-    var value = entityTuple[1];
+    var rv = formatTuple.call(this, args, entity);
+    var locals = rv[0];
+    var value = rv[1];
 
     var formatted = {
       value: value,
@@ -1343,11 +1342,7 @@
 
     for (var key in entity.attrs) {
       /* jshint -W089 */
-      var attrTuple = formatTuple.call(this, args, entity.attrs[key]);
-      formatted.attrs[key] = attrTuple[1];
-      if (attrTuple[0].overlay) {
-        formatted.overlay = true;
-      }
+      formatted.attrs[key] = formatValue.call(this, args, entity.attrs[key]);
     }
 
     return formatted;
@@ -1971,32 +1966,26 @@
 
     var entity = this.ctx.getEntity(l10n.id, l10n.args);
 
-    var value;
-    if (entity.attrs && entity.attrs.innerHTML) {
-      // XXX innerHTML is treated as value (https://bugzil.la/1142526)
-      value = entity.attrs.innerHTML;
-      console.warn(
-        'L10n Deprecation Warning: using innerHTML in translations is unsafe ' +
-        'and will not be supported in future versions of l10n.js. ' +
-        'See https://bugzil.la/1027117');
-    } else {
-      value = entity.value;
-    }
-
-    if (typeof value === 'string') {
+    if (typeof entity.value === 'string') {
       if (!entity.overlay) {
-        element.textContent = value;
+        element.textContent = entity.value;
       } else {
         // start with an inert template element and move its children into
         // `element` but such that `element`'s own children are not replaced
         var translation = element.ownerDocument.createElement('template');
-        translation.innerHTML = value;
+        translation.innerHTML = entity.value;
         // overlay the node with the DocumentFragment
         overlayElement(element, translation.content);
       }
     }
 
     for (var key in entity.attrs) {
+      // XXX A temporary special-case for translations using the old method
+      // of declaring innerHTML.  To be removed in https://bugzil.la/1027117
+      if (key === 'innerHTML') {
+        element.innerHTML = entity.attrs[key];
+        continue;
+      }
       var attrName = camelCaseToDashed(key);
       if (isAttrAllowed({ name: attrName }, element)) {
         element.setAttribute(attrName, entity.attrs[key]);
