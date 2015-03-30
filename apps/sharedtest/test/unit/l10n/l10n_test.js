@@ -18,7 +18,7 @@ suite('L10n', function() {
     'multiLine                 = foo \\',
     '                            bar \\',
     '                            baz',
-    // XXX Remove in https://bugzil.la/1027117
+    // XXX innerHTML is treated as value (https://bugzil.la/1142526)
     'update.innerHTML          = {[ plural(n) ]}',
     'update.innerHTML[zero]    = <strong>No updates.</strong>',
     'update.innerHTML[one]     = <strong>{{n}} update available.</strong> \\',
