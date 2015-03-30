@@ -664,14 +664,11 @@
       this.setEntityValue(name, attr, key, this.unescapeString(value), ast);
     },
 
-    setEntityValue: function(id, attr, key, rawValue, ast) {
+    setEntityValue: function(id, attr, key, value, ast) {
       var pos, v;
 
-      var value = rawValue.indexOf('{{') > -1 ?
-        this.parseString(rawValue) : rawValue;
-
-      if (rawValue.indexOf('<') > -1 || rawValue.indexOf('&') > -1) {
-        value = { $o: value };
+      if (value.indexOf('{{') !== -1) {
+        value = this.parseString(value);
       }
 
       if (attr) {
@@ -803,7 +800,7 @@
 
     return {
       id: node.$i,
-      value: node.$v !== undefined ? node.$v : null,
+      value: node.$v === undefined ? null : node.$v,
       index: node.$x || null,
       attrs: attrs || null,
       env: env,
@@ -817,9 +814,14 @@
       return node;
     }
 
+    var value;
+    if (Array.isArray(node)) {
+      value = node;
+    }
+
     return {
       id: id,
-      value: node.$v || (node !== undefined ? node : null),
+      value: value || node.$v || null,
       index: node.$x || null,
       env: env,
       dirty: false
@@ -828,12 +830,8 @@
 
 
   function format(args, entity) {
-    var locals = {
-      overlay: false
-    };
-
     if (typeof entity === 'string') {
-      return [locals, entity];
+      return entity;
     }
 
     if (entity.dirty) {
@@ -841,28 +839,26 @@
     }
 
     entity.dirty = true;
-
-    var rv;
-
+    var val;
     // if format fails, we want the exception to bubble up and stop the whole
     // resolving process;  however, we still need to clean up the dirty flag
     try {
-      rv = resolveValue(locals, args, entity.env, entity.value, entity.index);
+      val = resolveValue(args, entity.env, entity.value, entity.index);
     } finally {
       entity.dirty = false;
     }
-    return rv;
+    return val;
   }
 
   function resolveIdentifier(args, env, id) {
     if (KNOWN_MACROS.indexOf(id) > -1) {
-      return [{}, env['__' + id]];
+      return env['__' + id];
     }
 
     if (args && args.hasOwnProperty(id)) {
       if (typeof args[id] === 'string' || (typeof args[id] === 'number' &&
           !isNaN(args[id]))) {
-        return [{}, args[id]];
+        return args[id];
       } else {
         throw new L10nError('Arg must be a string or a number: ' + id);
       }
@@ -878,18 +874,15 @@
   }
 
   function subPlaceable(args, env, id) {
-    var res;
-
+    var value;
     try {
-      res = resolveIdentifier(args, env, id);
+      value = resolveIdentifier(args, env, id);
     } catch (err) {
-      return [{ error: err }, '{{ ' + id + ' }}'];
+      return '{{ ' + id + ' }}';
     }
 
-    var value = res[1];
-
     if (typeof value === 'number') {
-      return res;
+      return value;
     }
 
     if (typeof value === 'string') {
@@ -899,29 +892,25 @@
                             value.length + ', max allowed is ' +
                             MAX_PLACEABLE_LENGTH + ')');
       }
-      return res;
+      return value;
     }
 
-    return [{}, '{{ ' + id + ' }}'];
+    return '{{ ' + id + ' }}';
   }
 
-  function interpolate(locals, args, env, arr) {
+  function interpolate(args, env, arr) {
     return arr.reduce(function(prev, cur) {
       if (typeof cur === 'string') {
-        return [prev[0], prev[1] + cur];
+        return prev + cur;
       } else if (cur.t === 'idOrVar'){
-        var placeable = subPlaceable(args, env, cur.v);
-        if (placeable[0].overlay) {
-          prev[0].overlay = true;
-        }
-        return [prev[0], prev[1] + placeable[1]];
+        return prev + subPlaceable(args, env, cur.v);
       }
-    }, [locals, '']);
+    }, '');
   }
 
   function resolveSelector(args, env, expr, index) {
       var selectorName = index[0].v;
-      var selector = resolveIdentifier(args, env, selectorName)[1];
+      var selector = resolveIdentifier(args, env, selectorName);
 
       if (typeof selector !== 'function') {
         // selector is a simple reference to an entity or args
@@ -929,7 +918,7 @@
       }
 
       var argValue = index[1] ?
-        resolveIdentifier(args, env, index[1])[1] : undefined;
+        resolveIdentifier(args, env, index[1]) : undefined;
 
       if (selector === env.__plural) {
         // special cases for zero, one, two if they are defined on the hash
@@ -947,24 +936,16 @@
       return selector(argValue);
   }
 
-  function resolveValue(locals, args, env, expr, index) {
-    if (!expr) {
-      return [locals, expr];
-    }
-
-    if (expr.$o) {
-      expr = expr.$o;
-      locals.overlay = true;
-    }
-
+  function resolveValue(args, env, expr, index) {
     if (typeof expr === 'string' ||
         typeof expr === 'boolean' ||
-        typeof expr === 'number') {
-      return [locals, expr];
+        typeof expr === 'number' ||
+        !expr) {
+      return expr;
     }
 
     if (Array.isArray(expr)) {
-      return interpolate(locals, args, env, expr);
+      return interpolate(args, env, expr);
     }
 
     // otherwise, it's a dict
@@ -972,13 +953,13 @@
       // try to use the index in order to select the right dict member
       var selector = resolveSelector(args, env, expr, index);
       if (expr.hasOwnProperty(selector)) {
-        return resolveValue(locals, args, env, expr[selector]);
+        return resolveValue(args, env, expr[selector]);
       }
     }
 
     // if there was no index or no selector was found, try 'other'
     if ('other' in expr) {
-      return resolveValue(locals, args, env, expr.other);
+      return resolveValue(args, env, expr.other);
     }
 
     // XXX Specify entity id
@@ -1304,41 +1285,31 @@
       '"' + id + '"' + ' missing from all supported locales in ' + this.id, id);
   }
 
-  function formatTuple(args, entity) {
-    try {
-      return Resolver.format(args, entity);
-    } catch (err) {
-      this._emitter.emit('resolveerror', err);
-      var locals = {
-        error: err
-      };
-      return [locals, entity.id];
-    }
-  }
-
   function formatValue(args, entity) {
     if (typeof entity === 'string') {
       return entity;
     }
 
-    // take the string value only
-    return formatTuple.call(this, args, entity)[1];
+    try {
+      return Resolver.format(args, entity);
+    } catch (err) {
+      this._emitter.emit('resolveerror', err);
+      return entity.id;
+    }
   }
 
   function formatEntity(args, entity) {
-    var rv = formatTuple.call(this, args, entity);
-    var locals = rv[0];
-    var value = rv[1];
+    if (!entity.attrs) {
+      return {
+        value: formatValue.call(this, args, entity),
+        attrs: null
+      };
+    }
 
     var formatted = {
-      value: value,
-      attrs: null,
-      overlay: locals.overlay
+      value: formatValue.call(this, args, entity),
+      attrs: Object.create(null)
     };
-
-    if (entity.attrs) {
-      formatted.attrs = Object.create(null);
-    }
 
     for (var key in entity.attrs) {
       /* jshint -W089 */
@@ -1518,31 +1489,6 @@
       callback();
     }).bind(this);
     this.addEventListener('ready', callAndRemove);
-  };
-
-
-
-  var allowed = {
-    elements: [
-      'a', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'data',
-      'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u',
-      'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr'
-    ],
-    attributes: {
-      global: [ 'title', 'aria-label', 'aria-valuetext', 'aria-moz-hint' ],
-      a: [ 'download' ],
-      area: [ 'download', 'alt' ],
-      // value is special-cased in isAttrAllowed
-      input: [ 'alt', 'placeholder' ],
-      menuitem: [ 'label' ],
-      menu: [ 'label' ],
-      optgroup: [ 'label' ],
-      option: [ 'label' ],
-      track: [ 'label' ],
-      img: [ 'alt' ],
-      textarea: [ 'placeholder' ],
-      th: [ 'abbr']
-    }
   };
 
 
@@ -1900,6 +1846,7 @@
     window.dispatchEvent(event);
   }
 
+  /* jshint -W104 */
 
   function translateDocument() {
     document.documentElement.lang = this.language.code;
@@ -1936,18 +1883,14 @@
     return element ? element.querySelectorAll('*[data-l10n-id]') : [];
   }
 
-  function camelCaseToDashed(string) {
-    // XXX workaround for https://bugzil.la/1141934
-    if (string === 'ariaValueText') {
-      return 'aria-valuetext';
-    }
-
-    return string
-      .replace(/[A-Z]/g, function (match) {
-        return '-' + match.toLowerCase();
-      })
-      .replace(/^-/, '');
-  }
+  var allowedHtmlAttrs = {
+    'ariaLabel': 'aria-label',
+    'ariaValueText': 'aria-valuetext',
+    'ariaMozHint': 'aria-moz-hint',
+    'label': 'label',
+    'placeholder': 'placeholder',
+    'title': 'title'
+  };
 
   function translateElement(element) {
     if (!this.ctx.isReady) {
@@ -1966,161 +1909,37 @@
 
     var entity = this.ctx.getEntity(l10n.id, l10n.args);
 
+    if (!entity) {
+      return false;
+    }
+
     if (typeof entity.value === 'string') {
-      if (!entity.overlay) {
-        element.textContent = entity.value;
-      } else {
-        // start with an inert template element and move its children into
-        // `element` but such that `element`'s own children are not replaced
-        var translation = element.ownerDocument.createElement('template');
-        translation.innerHTML = entity.value;
-        // overlay the node with the DocumentFragment
-        overlayElement(element, translation.content);
-      }
+      setTextContent.call(this, l10n.id, element, entity.value);
     }
 
     for (var key in entity.attrs) {
-      // XXX A temporary special-case for translations using the old method
-      // of declaring innerHTML.  To be removed in https://bugzil.la/1027117
-      if (key === 'innerHTML') {
-        element.innerHTML = entity.attrs[key];
-        continue;
-      }
-      var attrName = camelCaseToDashed(key);
-      if (isAttrAllowed({ name: attrName }, element)) {
-        element.setAttribute(attrName, entity.attrs[key]);
+      var attr = entity.attrs[key];
+      if (allowedHtmlAttrs.hasOwnProperty(key)) {
+        element.setAttribute(allowedHtmlAttrs[key], attr);
+      } else if (key === 'innerHTML') {
+        // XXX: to be removed once bug 994357 lands
+        element.innerHTML = attr;
       }
     }
+
+    return true;
   }
 
-  // The goal of overlayElement is to move the children of `translationElement`
-  // into `sourceElement` such that `sourceElement`'s own children are not
-  // replaced, but onle have their text nodes and their attributes modified.
-  //
-  // We want to make it possible for localizers to apply text-level semantics to
-  // the translations and make use of HTML entities. At the same time, we
-  // don't trust translations so we need to filter unsafe elements and
-  // attribtues out and we don't want to break the Web by replacing elements to
-  // which third-party code might have created references (e.g. two-way
-  // bindings in MVC frameworks).
-  function overlayElement(sourceElement, translationElement) {
-    var result = translationElement.ownerDocument.createDocumentFragment();
-    var k, attr;
-
-    // take one node from translationElement at a time and check it against
-    // the allowed list or try to match it with a corresponding element
-    // in the source
-    var childElement;
-    while ((childElement = translationElement.childNodes[0])) {
-      translationElement.removeChild(childElement);
-
-      if (childElement.nodeType === Node.TEXT_NODE) {
-        result.appendChild(childElement);
-        continue;
-      }
-
-      var index = getIndexOfType(childElement);
-      var sourceChild = getNthElementOfType(sourceElement, childElement, index);
-      if (sourceChild) {
-        // there is a corresponding element in the source, let's use it
-        overlayElement(sourceChild, childElement);
-        result.appendChild(sourceChild);
-        continue;
-      }
-
-      if (isElementAllowed(childElement)) {
-        for (k = 0, attr; (attr = childElement.attributes[k]); k++) {
-          if (!isAttrAllowed(attr, childElement)) {
-            childElement.removeAttribute(attr.name);
-          }
-        }
-        result.appendChild(childElement);
-        continue;
-      }
-
-      // otherwise just take this child's textContent
-      result.appendChild(
-        document.createTextNode(childElement.textContent));
+  function setTextContent(id, element, text) {
+    if (element.firstElementChild) {
+      throw new L10nError(
+        'setTextContent is deprecated (https://bugzil.la/1053629). ' +
+        'Setting text content of elements with child elements is no longer ' +
+        'supported by l10n.js. Offending data-l10n-id: "' + id +
+        '" on element ' + element.outerHTML + ' in ' + this.ctx.id);
     }
 
-    // clear `sourceElement` and append `result` which by this time contains
-    // `sourceElement`'s original children, overlayed with translation
-    sourceElement.textContent = '';
-    sourceElement.appendChild(result);
-
-    // if we're overlaying a nested element, translate the allowed
-    // attributes; top-level attributes are handled in `translateElement`
-    // XXX attributes previously set here for another language should be
-    // cleared if a new language doesn't use them; https://bugzil.la/922577
-    if (translationElement.attributes) {
-      for (k = 0, attr; (attr = translationElement.attributes[k]); k++) {
-        if (isAttrAllowed(attr, sourceElement)) {
-          sourceElement.setAttribute(attr.name, attr.value);
-        }
-      }
-    }
-  }
-
-  // XXX the allowed list should be amendable; https://bugzil.la/922573
-  function isElementAllowed(element) {
-    return allowed.elements.indexOf(element.tagName.toLowerCase()) !== -1;
-  }
-
-  function isAttrAllowed(attr, element) {
-    var attrName = attr.name.toLowerCase();
-    var tagName = element.tagName.toLowerCase();
-    // is it a globally safe attribute?
-    if (allowed.attributes.global.indexOf(attrName) !== -1) {
-      return true;
-    }
-    // are there no allowed attributes for this element?
-    if (!allowed.attributes[tagName]) {
-      return false;
-    }
-    // is it allowed on this element?
-    // XXX the allowed list should be amendable; https://bugzil.la/922573
-    if (allowed.attributes[tagName].indexOf(attrName) !== -1) {
-      return true;
-    }
-    // special case for value on inputs with type button, reset, submit
-    if (tagName === 'input' && attrName === 'value') {
-      var type = element.type.toLowerCase();
-      if (type === 'submit' || type === 'button' || type === 'reset') {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  // Get n-th immediate child of context that is of the same type as element.
-  // XXX Use querySelector(':scope > ELEMENT:nth-of-type(index)'), when:
-  // 1) :scope is widely supported in more browsers and 2) it works with
-  // DocumentFragments.
-  function getNthElementOfType(context, element, index) {
-    /* jshint boss:true */
-    var nthOfType = 0;
-    for (var i = 0, child; child = context.children[i]; i++) {
-      if (child.nodeType === Node.ELEMENT_NODE &&
-          child.tagName === element.tagName) {
-        if (nthOfType === index) {
-          return child;
-        }
-        nthOfType++;
-      }
-    }
-    return null;
-  }
-
-  // Get the index of the element among siblings of the same type.
-  function getIndexOfType(element) {
-    var index = 0;
-    var child;
-    while ((child = element.previousElementSibling)) {
-      if (child.tagName === element.tagName) {
-        index++;
-      }
-    }
-    return index;
+    element.textContent = text;
   }
 
 })(this);
