@@ -133,6 +133,42 @@ marionette('Music player tests', function() {
     });
   });
 
+  suite('Status bar', function() {
+
+    var statusbar;
+    setup(function() {
+      statusbar = new Statusbar(client);
+    });
+
+    test('Check the play icon is in the status bar', function() {
+      music.launch();
+      music.waitForFirstTile();
+      music.switchToSongsView();
+
+      // check the status bar for the hidden play icon
+      client.switchToFrame();
+      assert.equal(statusbar.playingIndicator.getAttribute('hidden'), 'true');
+
+      music.switchToMe();
+      music.playFirstSong();
+
+      // check the status bar
+      client.switchToFrame();
+      assert.equal(statusbar.playingIndicator.getAttribute('hidden'), 'false');
+
+      // switch to the homescreen
+      var system = client.loader.getAppClass('system');
+      system.goHome();
+      client.waitFor(function() {
+        return client.findElement(system.Selector.activeHomescreenFrame)
+          .displayed();
+      });
+
+      // check the status bar again
+      assert.equal(statusbar.playingIndicator.getAttribute('hidden'), 'false');
+    });
+  });
+
   suite('Rating test', function() {
     test('Check Rating is saved', function() {
       music.launch();
