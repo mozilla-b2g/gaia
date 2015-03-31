@@ -1002,16 +1002,16 @@ suite('AppUsageMetrics:', function() {
       assert.equal(info.screen.width, screen.width);
       assert.equal(info.screen.height, screen.height);
       assert.equal(info.screen.devicePixelRatio, window.devicePixelRatio);
+      assert.equal(info.appBuildID, 'unknown');
+      assert.equal(info.appVersion, 'unknown');
+      assert.equal(info.appUpdateChannel, 'unknown');
 
       var deviceInfo = info.deviceinfo;
       assert.equal(deviceInfo['developer.menu.enabled'], 'true');
       assert.equal(deviceInfo['deviceinfo.hardware'], 'hardware');
       assert.equal(deviceInfo['deviceinfo.product_model'], 'model');
       assert.equal(deviceInfo['deviceinfo.os'], 'unknown');
-      assert.equal(deviceInfo['deviceinfo.platform_build_id'], 'unknown');
-      assert.equal(deviceInfo['deviceinfo.platform_version'], 'unknown');
       assert.equal(deviceInfo['deviceinfo.software'], 'unknown');
-      assert.equal(deviceInfo['app.update.channel'], 'unknown');
 
       // Make sure we're recording a new batch of metrics
       assert.notEqual(metrics, aum.metrics);
