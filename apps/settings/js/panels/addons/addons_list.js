@@ -77,14 +77,10 @@ define(function(require) {
   // This is the event handler for the + button in the header
   AddonsList.prototype.handleEvent = function(event) {
     if (event.target === this.addButton) {
-      // Use an activity to ask the browser to visit the hacker marketplace
-      var activity;
-      activity = new MozActivity({
-        name: 'view',
-        data: {
-          type: 'url',
-          url: 'http://fxos.github.io/directory/dist/app/index.html'
-        }
+      // The addons list panel will update itself if new addon is installed.
+      new MozActivity({ // jshint ignore:line
+        name: 'install',
+        data: { type: 'addons' }
       });
 
       // Disable the button for a second so the user can't double click it
