@@ -225,6 +225,7 @@ function editAspectMoreHandler() {
     selectEditOption($(editCropSelectedAspectRatio), true);
     editSettings.crop.cropModeId = editCropSelectedAspectRatio;
   }
+  enableSaveAndApplyButtons();
   $('aspect-ratio-options-view').classList.add('hidden');
 }
 
