@@ -204,8 +204,7 @@ var CallsHandler = (function callsHandler() {
   function removeCall(index) {
     handledCalls.splice(index, 1);
 
-    if ((handledCalls.length === 0) ||
-        (handledCalls[0].call.state === 'disconnected')) {
+    if (handledCalls.length === 0) {
       return;
     }
 
@@ -589,9 +588,10 @@ var CallsHandler = (function callsHandler() {
     var openLines = telephony.calls.length +
       (telephony.conferenceGroup.calls.length ? 1 : 0);
 
-    if (openLines !== 1 ||telephony.calls.length &&
-        (telephony.calls[0].state === 'incoming' ||
-         !telephony.calls[0].switchable)) {
+    if (openLines !== 1 ||
+        (telephony.calls.length &&
+         (telephony.calls[0].state === 'incoming' ||
+          !telephony.calls[0].switchable))) {
       return;
     }
 
@@ -856,7 +856,7 @@ var CallsHandler = (function callsHandler() {
    * @returns true if a call is on hold, false otherwise
    */
   function isAnyCallOnHold() {
-    return telephony.calls.some((call) => call.state === 'held') ||
+    return telephony.calls.some(call => call.state === 'held') ||
       (telephony.conferenceGroup && telephony.conferenceGroup.state === 'held');
   }
 
@@ -866,9 +866,18 @@ var CallsHandler = (function callsHandler() {
    * @returns true if a call can be put on hold or resumed, false otherwise
    */
   function isAnyCallSwitchable() {
-    return telephony.calls.some((call) => call.switchable) ||
+    return telephony.calls.some(call => call.switchable) ||
       ((telephony.conferenceGroup.calls.length > 0) &&
-       telephony.conferenceGroup.calls.every((call) => call.switchable));
+       telephony.conferenceGroup.calls.every(call => call.switchable));
+  }
+
+  /**
+   * Check if all non-conference calls are mergeable.
+   *
+   * @returns true if all non-confernece calls can be merged, false otherwise
+   */
+  function isEveryCallMergeable() {
+    return telephony.calls.every(call => call.mergeable);
   }
 
   /**
@@ -899,14 +908,20 @@ var CallsHandler = (function callsHandler() {
       (telephony.conferenceGroup.calls.length ? 1 : 0);
 
       if (openLines > 1 && !isEstablishing) {
-        if (telephony.calls.every((call) => call.mergeable)) {
+        /* If more than one call has been established show only the merge
+         * button or no button at all if the calls are not mergeable. */
+        CallScreen.hideOnHoldButton();
+
+        if (isEveryCallMergeable()) {
           CallScreen.showOnHoldAndMergeContainer();
-          CallScreen.hideOnHoldButton();
           CallScreen.showMergeButton();
         } else {
           CallScreen.hideOnHoldAndMergeContainer();
         }
       } else {
+        /* If only one call has been established show only the hold button or
+         * no button at all if the calls are not switchable. */
+        CallScreen.hideMergeButton();
         CallScreen.setShowIsHeld(!telephony.active && isAnyCallOnHold());
 
         if (isEstablishing) {
@@ -917,7 +932,6 @@ var CallsHandler = (function callsHandler() {
 
         if (isAnyCallSwitchable()) {
           CallScreen.showOnHoldAndMergeContainer();
-          CallScreen.hideMergeButton();
           CallScreen.showOnHoldButton();
         } else {
           CallScreen.hideOnHoldAndMergeContainer();

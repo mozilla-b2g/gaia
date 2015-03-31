@@ -462,7 +462,7 @@ var CallScreen = {
   },
 
   showOnHoldAndMergeContainer: function cs_showOnHoldAndMergeContainer() {
-    this.holdAndMergeContainer.style.display = 'visible';
+    this.holdAndMergeContainer.style.display = 'block';
   },
 
   hideOnHoldAndMergeContainer: function cs_hideOnHoldAndMergeContainer() {
