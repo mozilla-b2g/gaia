@@ -1,6 +1,6 @@
-define(['module', 'exports', 'rdcommon/log', '../allback', 'mix',
+define(['module', 'exports', 'logic', '../allback', 'mix',
         '../jobmixins', '../drafts/jobs', './pop3'],
-       function(module, exports, log, allback, mix,
+       function(module, exports, logic, allback, mix,
                 jobmixins, draftsJobs, pop3) {
 
 /**
@@ -11,12 +11,12 @@ define(['module', 'exports', 'rdcommon/log', '../allback', 'mix',
  * execute local_do_move, but not do_move. It is assumed that unit
  * tests will ensure we've implemented all required jobs.
  */
-function Pop3JobDriver(account, state, _parentLog) {
-  this._LOG = LOGFAB.Pop3JobDriver(this, _parentLog, account.id);
-
+function Pop3JobDriver(account, state) {
   this.account = account;
   this.resilientServerIds = true; // once assigned, the server never changes IDs
   this._heldMutexReleasers = [];
+
+  logic.defineScope(this, 'Pop3JobDriver', { accountId: account.id });
 
   // For tracking state as used in jobmixins:
   this._stateDelta = {};
@@ -49,7 +49,7 @@ Pop3JobDriver.prototype = {
         // The folderSyncer is like IMAP/ActiveSync's folderConn.
         callback(storage.folderSyncer, storage);
       } catch (ex) {
-        this._LOG.callbackErr(ex);
+        logic(this, 'callbackErr', { ex: ex });
       }
     }.bind(this));
   },
@@ -184,25 +184,5 @@ Pop3JobDriver.prototype = {
 };
 
 mix(Pop3JobDriver.prototype, draftsJobs.draftsMixins);
-
-
-var LOGFAB = exports.LOGFAB = log.register(module, {
-  Pop3JobDriver: {
-    type: log.DAEMON,
-    events: {
-      savedAttachment: { storage: true, mimeType: true, size: true },
-      saveFailure: { storage: false, mimeType: false, error: false },
-    },
-    TEST_ONLY_events: {
-      saveFailure: { filename: false },
-    },
-    asyncJobs: {
-      acquireConnWithoutFolder: { label: false },
-    },
-    errors: {
-      callbackErr: { ex: log.EXCEPTION },
-    },
-  },
-});
 
 }); // end define
