@@ -64,8 +64,7 @@
                 'system-dialog-requestfocus',
                 'home',
                 'holdhome',
-                'homescreeneopened',
-                'appopened']
+                'hierarchytopmostwindowchanged']
     }
   };
 
@@ -157,10 +156,11 @@
     switch (evt.type) {
       // We only care about appWindow's fullscreen state because
       // we are on top of the appWindow.
-      case 'appopened':
-      case 'homescreenopened':
-        this.elements.containerElement.classList.toggle('fullscreen',
-          evt.detail.isFullScreen());
+      case 'hierarchytopmostwindowchanged':
+        var appWindow = evt.detail.getTopMostWindow();
+        var isFullScreen = appWindow && appWindow.isFullScreen();
+        var container = this.elements.containerElement;
+        container.classList.toggle('fullscreen', isFullScreen);
         break;
       case 'system-dialog-requestfocus':
       case 'simlockrequestfocus':
