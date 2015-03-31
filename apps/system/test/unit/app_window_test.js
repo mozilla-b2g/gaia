@@ -1952,6 +1952,7 @@ suite('system/AppWindow', function() {
       var spyManifestHelper = this.sinon.stub(window, 'ManifestHelper');
       spyManifestHelper.returns({
         name: 'Mon Application',
+        displayName: 'Bref',
         short_name: 'Bref'
       });
       var stubPublish = this.sinon.stub(app1, 'publish');
@@ -1963,8 +1964,8 @@ suite('system/AppWindow', function() {
       assert.isTrue(spyManifestHelper.calledWithNew());
       assert.isTrue(spyManifestHelper.calledWithExactly(app1.manifest));
       assert.isTrue(stubPublish.calledWithExactly('namechanged'));
-      assert.equal(app1.identificationTitle.textContent, 'Mon Application');
-      assert.equal(app1.shortName, 'Bref');
+      assert.equal(app1.identificationTitle.textContent, 'Bref');
+      assert.equal(app1.name, 'Bref');
     });
 
     test('focus event', function() {
