@@ -57,6 +57,7 @@ suite('call screen', function() {
   var incomingContainer;
   var bluetoothButton,
       bluetoothMenu;
+  var holdAndMergeContainer;
   var holdButton;
   var mergeButton;
 
@@ -142,13 +143,17 @@ suite('call screen', function() {
     bluetoothButton.id = 'bt';
     screen.appendChild(bluetoothButton);
 
+    holdAndMergeContainer = document.createElement('span');
+    holdAndMergeContainer.id = 'hold-and-merge-container';
+    screen.appendChild(holdAndMergeContainer);
+
     holdButton = document.createElement('button');
     holdButton.id = 'on-hold';
-    screen.appendChild(holdButton);
+    holdAndMergeContainer.appendChild(holdButton);
 
     mergeButton = document.createElement('button');
     mergeButton.id = 'merge';
-    screen.appendChild(mergeButton);
+    holdAndMergeContainer.appendChild(mergeButton);
 
     bluetoothMenu = document.createElement('form');
     bluetoothMenu.id = 'bluetooth-menu';
@@ -739,6 +744,17 @@ suite('call screen', function() {
     test('should remove the hide class', function() {
       CallScreen.showMergeButton();
       assert.isFalse(CallScreen.mergeButton.classList.contains('hide'));
+    });
+  });
+
+  suite('show and hide hold/merge container', function() {
+    test('should change visibility to none', function() {
+      CallScreen.hideOnHoldAndMergeContainer();
+      assert.isTrue(CallScreen.holdAndMergeContainer.style.display === 'none');
+    });
+    test('should change visibility to block', function() {
+      CallScreen.showOnHoldAndMergeContainer();
+      assert.isTrue(CallScreen.holdAndMergeContainer.style.display === 'block');
     });
   });
 
