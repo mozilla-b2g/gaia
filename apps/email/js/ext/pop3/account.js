@@ -1,5 +1,5 @@
 define([
-  'rdcommon/log',
+  'logic',
   '../errbackoff',
   '../composite/incoming',
   './sync',
@@ -11,7 +11,7 @@ define([
   'require',
   'exports'],
 function(
-  log,
+  logic,
   errbackoff,
   incoming,
   pop3sync,
@@ -32,9 +32,10 @@ var CompositeIncomingAccount = incoming.CompositeIncomingAccount;
  * CompositeIncomingAccount.
  */
 function Pop3Account(universe, compositeAccount, accountId, credentials,
-                     connInfo, folderInfos, dbConn, _parentLog,
-                     existingProtoConn) {
-  this._LOG = LOGFAB.Pop3Account(this, _parentLog, accountId);
+                     connInfo, folderInfos, dbConn, existingProtoConn) {
+  logic.defineScope(this, 'Account', { accountId: accountId,
+                                       accountType: 'pop3' });
+
   CompositeIncomingAccount.apply(
       this, [pop3sync.Pop3FolderSyncer].concat(Array.slice(arguments)));
 
@@ -43,8 +44,7 @@ function Pop3Account(universe, compositeAccount, accountId, credentials,
   // to access a mailbox at a given time, so there's no connection pool.
   this._conn = null;
   this._pendingConnectionRequests = [];
-  this._backoffEndpoint =
-      errbackoff.createEndpoint('pop3:' + this.id, this, this._LOG);
+  this._backoffEndpoint = errbackoff.createEndpoint('pop3:' + this.id, this);
 
   // If we have an existing connection from setting up the account, we
   // can reuse that during the first sync.
@@ -59,7 +59,7 @@ function Pop3Account(universe, compositeAccount, accountId, credentials,
   this.ensureEssentialOfflineFolders();
 
   this._jobDriver = new pop3jobs.Pop3JobDriver(
-      this, this._folderInfos.$mutationState, this._LOG);
+      this, this._folderInfos.$mutationState);
 }
 exports.Account = exports.Pop3Account = Pop3Account;
 Pop3Account.prototype = Object.create(CompositeIncomingAccount.prototype);
@@ -133,7 +133,7 @@ var properties = {
     this._conn = true;
     // Dynamically load the probe/pop3 code to speed up startup.
     require(['./pop3', './probe'], function(pop3, pop3probe) {
-      this._LOG.createConnection(whyLabel);
+      logic(this, 'createConnection', { label: whyLabel });
       var opts = {
         host: this._connInfo.hostname,
         port: this._connInfo.port,
@@ -144,7 +144,7 @@ var properties = {
         username: this._credentials.username,
         password: this._credentials.password,
       };
-      if (this._LOG) opts._logParent = this._LOG;
+
       var conn = this._conn = new pop3.Pop3Client(opts, function(err) {
         if (err) {
           // Failed to get the connection:
@@ -213,7 +213,7 @@ var properties = {
       throw new Error("No such folder: " + folderId);
     }
     var folderMeta = this._folderInfos[folderId].$meta;
-    self._LOG.deleteFolder(folderMeta.path);
+    logic(self, 'deleteFolder', { path: folderMeta.path });
     self._forgetFolder(folderId);
     callback && callback(null, folderMeta);
   },
@@ -229,7 +229,6 @@ var properties = {
     if (this._conn && this._conn.close) {
       this._conn.close();
     }
-    this._LOG.__die();
     callback && callback();
   },
 
@@ -248,9 +247,9 @@ var properties = {
       }
       this._conn = null;
     }
-    this._LOG.checkAccount_begin(null);
+    logic(this, 'checkAccount_begin');
     this.withConnection(function(err) {
-      this._LOG.checkAccount_end(err);
+      logic(this, 'checkAccount_end', { error: err });
       callback(err);
     }.bind(this), 'checkAccount');
   },
@@ -306,12 +305,6 @@ for (var k in properties) {
   Object.defineProperty(Pop3Account.prototype, k,
                         Object.getOwnPropertyDescriptor(properties, k));
 }
-
-// Share the log configuration with CompositeIncomingAccount, since we
-// desire general parity between IMAP and POP3 for simplicity.
-var LOGFAB = exports.LOGFAB = log.register(module, {
-  Pop3Account: incoming.LOGFAB_DEFINITION.CompositeIncomingAccount
-});
 
 
 }); // end define
