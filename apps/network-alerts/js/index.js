@@ -4,6 +4,10 @@
   const CMAS_ID = 'emergency-alert-title',
         CMAS_ENABLED_KEY = 'cmas.enabled';
 
+  // See reference TS in following document, table under section 9.4.1.2.2.
+  // http://www.etsi.org/deliver/etsi_ts/123000_123099/123041/11.06.00_60/ts_123041v110600p.pdf
+  const GSM_PRESIDENTIAL_ALERTS = [4370, 4383];
+
   window.navigator.mozSetMessageHandler(
     'cellbroadcast-received',
     onCellbroadcast
@@ -20,6 +24,18 @@
     return (id >= 4370 && id < 4400);
   }
 
+  function isCmasEnabledForServiceId(serviceId) {
+    var getPromise = navigator.mozSettings.createLock().get(CMAS_ENABLED_KEY);
+
+    return getPromise.then(
+      result => !!(result[CMAS_ENABLED_KEY][serviceId])
+    );
+  }
+
+  function isPresidentialAlert(message) {
+    return GSM_PRESIDENTIAL_ALERTS.indexOf(message.messageId) !== -1;
+  }
+
   /**
    * Handling the cellbroadcast system message.
    * @param {Object} Cellbroadcast message object which contains necessary
@@ -31,23 +47,25 @@
       return;
     }
 
-    var req = navigator.mozSettings.createLock().get(CMAS_ENABLED_KEY);
+    var shouldSendAlertPromise =
+      isPresidentialAlert(message) ?
+      Promise.resolve(true) :
+      isCmasEnabledForServiceId(message.serviceId).catch((e) => {
+        console.error('CMAS: Unable to query settings database', e);
+        return false;
+      });
 
-    req.onsuccess = function() {
-      if (req.result[CMAS_ENABLED_KEY][message.serviceId]) {
+    return shouldSendAlertPromise.then((yes) => {
+      if (yes) {
         sendAlert({
           title: CMAS_ID,
           body: message.body
         });
-        // Do not close window here becaise it will close attention screen
+        // Do not close window here because it will close attention screen
       } else {
         window.close();
       }
-    };
-    req.onerror = function() {
-      console.error('CMAS: Unable to query settings database');
-      window.close();
-    };
+    });
   }
 
   /**
