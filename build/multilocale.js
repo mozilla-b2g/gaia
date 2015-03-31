@@ -82,7 +82,7 @@ function TimestampManager(baseDir, stageDir) {
         stderr = data;
       },
       done: function(data) {
-        if (data.exitCode === 0) {
+        if (stdout && !stderr && data.exitCode === 0) {
           response = parseInt(stdout.trim()) * 1000;
         } else {
           err = stderr;
@@ -122,7 +122,7 @@ function TimestampManager(baseDir, stageDir) {
         stderr = data;
       },
       done: function(data) {
-        if (data.exitCode === 0) {
+        if (stdout && !stderr && data.exitCode === 0) {
           response = parseInt(stdout.trim()) * 1000;
         } else {
           err = stderr;
