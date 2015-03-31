@@ -709,6 +709,7 @@ function execute(options, webapp) {
   var win = {
     navigator: {},
     Node: {
+      ELEMENT_NODE: 1,
       TEXT_NODE: 3,
     },
     CustomEvent: function() {},
