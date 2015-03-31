@@ -4,7 +4,7 @@
 
 define(
   [
-    'rdcommon/log',
+    'logic',
     '../a64',
     '../accountmixins',
     '../mailslice',
@@ -21,7 +21,7 @@ define(
     'exports'
   ],
   function(
-    $log,
+    logic,
     $a64,
     $acctmixins,
     $mailslice,
@@ -77,7 +77,7 @@ function lazyConnection(cbIndex, fn, failString) {
 }
 
 function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
-                           receiveProtoConn, _parentLog) {
+                           receiveProtoConn) {
   this.universe = universe;
   this.id = accountDef.id;
   this.accountDef = accountDef;
@@ -95,7 +95,8 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
 
   this._db = dbConn;
 
-  this._LOG = LOGFAB.ActiveSyncAccount(this, _parentLog, this.id);
+  logic.defineScope(this, 'Account', { accountId: this.id,
+                                       accountType: 'activesync' });
 
   if (receiveProtoConn) {
     this.conn = receiveProtoConn;
@@ -132,7 +133,7 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
 
     this._folderStorages[folderId] =
       new $mailslice.FolderStorage(this, folderId, folderInfo, this._db,
-                                   $asfolder.ActiveSyncFolderSyncer, this._LOG);
+                                   $asfolder.ActiveSyncFolderSyncer);
     this._serverIdToFolderId[folderInfo.$meta.serverId] = folderId;
     this.folders.push(folderInfo.$meta);
   }
@@ -235,15 +236,12 @@ ActiveSyncAccount.prototype = {
 
 
   _attachLoggerToConnection: function(conn) {
-    // Use a somewhat unique-ish value for the id so that if we re-create the
-    // connection it's obvious it's different from the previous connection.
-    var logger = LOGFAB.ActiveSyncConnection(conn, this._LOG,
-                                             Date.now() % 1000);
-    if (logger.logLevel === 'safe') {
-      conn.onmessage = this._onmessage_safe.bind(this, logger);
-    }
-    else if (logger.logLevel === 'dangerous') {
-      conn.onmessage = this._onmessage_dangerous.bind(this, logger);
+    logic.defineScope(conn, 'ActiveSyncConnection',
+                      { connectionId: logic.uniqueId() });
+    if (!logic.isCensored) {
+      conn.onmessage = this._onmessage_dangerous.bind(this, conn);
+    } else {
+      conn.onmessage = this._onmessage_safe.bind(this, conn);
     }
   },
 
@@ -251,13 +249,17 @@ ActiveSyncAccount.prototype = {
    * Basic onmessage ActiveSync protocol logging function.  This does not
    * include user data and is intended for safe circular logging purposes.
    */
-  _onmessage_safe: function onmessage(logger,
+  _onmessage_safe: function onmessage(conn,
       type, special, xhr, params, extraHeaders, sentData, response) {
     if (type === 'options') {
-      logger.options(special, xhr.status, response);
+      logic(conn, 'options', { special: special,
+                               status: xhr.status,
+                               response: response });
     }
     else {
-      logger.command(type, special, xhr.status);
+      logic(conn, 'command', { type: type,
+                               special: special,
+                               status: xhr.status });
     }
   },
 
@@ -266,10 +268,12 @@ ActiveSyncAccount.prototype = {
    * intended to log user data for unit testing purposes or very specialized
    * debugging only.
    */
-  _onmessage_dangerous: function onmessage(logger,
+  _onmessage_dangerous: function onmessage(conn,
       type, special, xhr, params, extraHeaders, sentData, response) {
     if (type === 'options') {
-      logger.options(special, xhr.status, response);
+      logic(conn, 'options', { special: special,
+                               status: xhr.status,
+                               response: response });
     }
     else {
       var sentXML, receivedXML;
@@ -291,8 +295,14 @@ ActiveSyncAccount.prototype = {
           receivedXML = 'parse problem';
         }
       }
-      logger.command(type, special, xhr.status, params, extraHeaders, sentXML,
-                     receivedXML);
+
+      logic(conn, 'command', { type: type,
+                               special: special,
+                               status: xhr.status,
+                               params: params,
+                               extraHeaders: extraHeaders,
+                               sentXML: sentXML,
+                               receivedXML: receivedXML });
     }
   },
 
@@ -368,7 +378,6 @@ ActiveSyncAccount.prototype = {
   },
 
   shutdown: function asa_shutdown(callback) {
-    this._LOG.__die();
     if (callback)
       callback();
   },
@@ -381,7 +390,7 @@ ActiveSyncAccount.prototype = {
   sliceFolderMessages: function asa_sliceFolderMessages(folderId,
                                                         bridgeHandle) {
     var storage = this._folderStorages[folderId],
-        slice = new $mailslice.MailSlice(bridgeHandle, storage, this._LOG);
+        slice = new $mailslice.MailSlice(bridgeHandle, storage);
 
     storage.sliceOpenMostRecent(slice);
   },
@@ -389,7 +398,7 @@ ActiveSyncAccount.prototype = {
   searchFolderMessages: function(folderId, bridgeHandle, phrase, whatToSearch) {
     var storage = this._folderStorages[folderId],
         slice = new $searchfilter.SearchSlice(bridgeHandle, storage, phrase,
-                                              whatToSearch, this._LOG);
+                                              whatToSearch);
     storage.sliceOpenSearch(slice);
     return slice;
   },
@@ -602,7 +611,7 @@ ActiveSyncAccount.prototype = {
     console.log('Added folder ' + displayName + ' (' + folderId + ')');
     this._folderStorages[folderId] =
       new $mailslice.FolderStorage(this, folderId, folderInfo, this._db,
-                                   $asfolder.ActiveSyncFolderSyncer, this._LOG);
+                                   $asfolder.ActiveSyncFolderSyncer);
     this._serverIdToFolderId[serverId] = folderId;
 
     var folderMeta = folderInfo.$meta;
@@ -658,7 +667,7 @@ ActiveSyncAccount.prototype = {
    *   complete, taking the new folder storage
    */
   _recreateFolder: function asa__recreateFolder(folderId, callback) {
-    this._LOG.recreateFolder(folderId);
+    logic(this, 'recreateFolder', { folderId: folderId });
     var folderInfo = this._folderInfos[folderId];
     folderInfo.$impl = {
       nextId: 0,
@@ -678,8 +687,7 @@ ActiveSyncAccount.prototype = {
     this.saveAccountState(null, function() {
       var newStorage =
         new $mailslice.FolderStorage(self, folderId, folderInfo, self._db,
-                                     $asfolder.ActiveSyncFolderSyncer,
-                                     self._LOG);
+                                     $asfolder.ActiveSyncFolderSyncer);
       for (var iter in Iterator(self._folderStorages[folderId]._slices)) {
         var slice = iter[1];
         slice._storage = newStorage;
@@ -1020,41 +1028,5 @@ ActiveSyncAccount.prototype = {
   allOperationsCompleted: function() {
   }
 };
-
-var LOGFAB = exports.LOGFAB = $log.register($module, {
-  ActiveSyncAccount: {
-    type: $log.ACCOUNT,
-    events: {
-      createFolder: {},
-      deleteFolder: {},
-      recreateFolder: { id: false },
-      /**
-       * XXX: this is really an error/warning, but to make the logging less
-       * confusing, treat it as an event.
-       */
-      accountDeleted: { where: false },
-    },
-    asyncJobs: {
-      runOp: { mode: true, type: true, error: true, op: false },
-      saveAccountState: { reason: true, folderSaveCount: true },
-    },
-    errors: {
-      opError: { mode: false, type: false, ex: $log.EXCEPTION },
-    }
-  },
-
-  ActiveSyncConnection: {
-    type: $log.CONNECTION,
-    events: {
-      options: { special: false, status: false, result: false },
-      command: { name: false, special: false, status: false },
-    },
-    TEST_ONLY_events: {
-      options: {},
-      command: { params: false, extraHeaders: false, sent: false,
-                 response: false },
-    },
-  },
-});
 
 }); // end define
