@@ -191,14 +191,6 @@
         break;
 
       case 'click':
-        if (0 === evt.mozInputSource &&
-            (this.areaUnlock === evt.target ||
-             this.areaCamera === evt.target)) {
-          evt.preventDefault();
-          this.handleIconClick(evt.target);
-          break;
-        }
-
         if (this.altCameraButton === evt.target) {
           this.handleIconClick(evt.target);
           break;
@@ -363,8 +355,6 @@
 
     /* Gesture */
     this.area.addEventListener('touchstart', this);
-    this.areaCamera.addEventListener('click', this);
-    this.areaUnlock.addEventListener('click', this);
     this.altCameraButton.addEventListener('click', this);
     this.iconContainer.addEventListener('touchstart', this);
 
