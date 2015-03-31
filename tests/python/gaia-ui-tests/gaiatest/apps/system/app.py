@@ -34,9 +34,9 @@ class System(Base):
     def wait_for_status_bar_displayed(self):
         self.wait_for_element_displayed(*self._status_bar_locator)
 
-    def wait_for_notification_toaster_displayed(self, timeout=10):
+    def wait_for_notification_toaster_displayed(self, timeout=10, message=None):
         self.wait_for_element_displayed(*self._notification_toaster_locator,
-                                        timeout=timeout)
+                                        timeout=timeout, message=message)
 
     def wait_for_notification_toaster_not_displayed(self, timeout=10):
         self.wait_for_element_not_displayed(*self._notification_toaster_locator,
