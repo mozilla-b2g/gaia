@@ -62,7 +62,8 @@
     right: 0;
   }
 
-  #screen:not(.locked) #software-buttons.visible {
+  #screen:not(.locked) #software-buttons.visible,
+  #screen.locked.secure-app #software-buttons.visible {
     transform: translateX(-100%);
   }
 }
