@@ -36,6 +36,13 @@ suite('value selector/value selector', function() {
     }
   };
   var fakeSheetsGestureBegin = { type: '_sheetsgesturebegin' };
+  var fakeBlurInputMethodContextChangeEvent = {
+    type: '_inputmethod-contextchange',
+    detail: {
+      inputType: 'blur'
+    }
+  };
+
   var fakeClosing = { type: '_closing' };
   var fakeOpening = { type: '_opening' };
   var fakeLocalizedEvent = { type: '_localized' };
@@ -193,18 +200,6 @@ suite('value selector/value selector', function() {
     assert.equal('date', vs._currentPickerType);
   });
 
-  test('hide', function() {
-    var stub_publish = this.sinon.stub(vs, 'publish');
-    var stub_setVisibleForScreenReader = this.sinon.stub(app,
-      '_setVisibleForScreenReader');
-    vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
-    assert.isTrue(stub_setVisibleForScreenReader.calledWith(false));
-    vs.hide();
-    assert.isTrue(vs.element.hidden);
-    assert.isTrue(stub_setVisibleForScreenReader.calledWith(true));
-    assert.isTrue(stub_publish.calledWith('hidden'));
-  });
-
   test('cancel on "_sheetsgesturebegin" event', function() {
     vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
     this.sinon.stub(vs, 'cancel');
@@ -213,20 +208,52 @@ suite('value selector/value selector', function() {
     sinon.assert.calledOnce(vs.cancel);
   });
 
-  test('hide on "_closing" event', function() {
-    vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
-    this.sinon.stub(vs, 'hide');
+  suite('hiding', function() {
+    var isActive = true;
 
-    vs.handleEvent(fakeClosing);
-    sinon.assert.calledOnce(vs.hide);
+    setup(function() {
+      this.sinon.stub(vs, 'publish');
+      this.sinon.stub(app, 'isActive').returns(isActive);
+      this.sinon.stub(app, '_setVisibleForScreenReader');
+      this.sinon.stub(app, 'focus');
+
+      vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
+    });
+
+    function assertHiddenAndFocus(focus) {
+      assert.isTrue(vs.element.hidden);
+      sinon.assert.calledWith(app._setVisibleForScreenReader, true);
+      sinon.assert.calledWith(vs.publish, 'hidden');
+      if (focus) {
+        sinon.assert.calledOnce(app.focus);
+      }
+    }
+
+    test('hide', function() {
+      sinon.assert.calledWith(app._setVisibleForScreenReader, false);
+      vs.hide();
+      assertHiddenAndFocus(true);
+    });
+
+    test('hide on "_closing" event', function() {
+      vs.handleEvent(fakeClosing);
+      assertHiddenAndFocus(true);
+    });
+
+    test('hide on "_opening" event', function() {
+      vs.handleEvent(fakeOpening);
+      assertHiddenAndFocus(true);
+    });
+
+    test('hide on blur event', function() {
+      vs.handleEvent(fakeBlurInputMethodContextChangeEvent);
+      assertHiddenAndFocus(true);
+    });
+
+    test('blur should not focus if the app is not active', function() {
+      isActive = false;
+      vs.handleEvent(fakeBlurInputMethodContextChangeEvent);
+      assertHiddenAndFocus(false);
+    });
   });
-
-  test('hide on "_opening" event', function() {
-    vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
-    this.sinon.stub(vs, 'hide');
-
-    vs.handleEvent(fakeOpening);
-    sinon.assert.calledOnce(vs.hide);
-  });
-
 });
