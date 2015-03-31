@@ -259,6 +259,25 @@ suite('LockScreenInputpad', function() {
         method.call(mockThis, '4');
         assert.isTrue(stubVibrate.called);
       });
+      test('it would clear notification opening ID', function() {
+        var method = subject.handlePassCodeInput;
+        var mockThis = {
+          lockScreen: {
+            invokeSecureApp: function() {},
+            _unlockingMessage: {
+              notificationId: 'fakeid'
+            }
+          },
+          dispatchEvent: function() {}
+        };
+        method.call(mockThis, 'e');
+        assert.isUndefined(
+          mockThis.lockScreen._unlockingMessage.notificationId);
+        mockThis.lockScreen._unlockingMessage.notificationId = 'fakeid';
+        method.call(mockThis, 'c');
+        assert.isUndefined(
+          mockThis.lockScreen._unlockingMessage.notificationId);
+      });
     });
   });
 });
