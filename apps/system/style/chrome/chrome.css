@@ -270,11 +270,6 @@
   background: url("images/light/ssl_broken.png") no-repeat 0.1rem center / 3rem 3rem;
 }
 
-.chrome.maximized .bar .title[data-ssl="secure"],
-.chrome.maximized .bar .title[data-ssl="broken"] {
-  text-indent: 2.5rem;
-}
-
 .appWindow.private > .chrome.maximized .title[data-ssl="broken"],
 .appWindow.private > .chrome.maximized .title[data-ssl="secure"] {
   -moz-padding-start: 6.5rem;
@@ -596,12 +591,12 @@ html[dir="rtl"] .light .controls .forward-button:active {
 
 html[dir="rtl"] .chrome.maximized .title[data-ssl="broken"],
 html[dir="rtl"] .chrome.maximized .title[data-ssl="secure"] {
-  background-position: right 0.1rem top 50%;
+  background-position: calc(100% - 0.1rem) 0.1rem;
 }
 
 html[dir="rtl"] .appWindow.private > .chrome.maximized .title[data-ssl="broken"],
 html[dir="rtl"] .appWindow.private > .chrome.maximized .title[data-ssl="secure"] {
-  background-position: right 3.7rem top 50%;
+  background-position: calc(100% - 3.7rem) 0.1rem;
 }
 
 /*
