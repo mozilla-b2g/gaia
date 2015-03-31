@@ -35,6 +35,7 @@
      */
     start: function() {
       Service.request('handleSystemMessageNotification', 'logshake', this);
+      window.addEventListener('volumeup+sleep', this);
       this.startCaptureLogsListener();
     },
 
@@ -67,6 +68,9 @@
     handleEvent: function(event) {
       debug('handling event ' + event.type);
       switch(event.type) {
+        case 'volumeup+sleep':
+          this.requestSystemLogs();
+          break;
         case 'capture-logs-start':
           this.handleCaptureLogsStart(event);
           break;
@@ -84,6 +88,10 @@
       debug('handling capture-logs-start');
       this._shakeId = Date.now();
       this._notify('logsSaving', '');
+    },
+
+    requestSystemLogs: function() {
+      window.dispatchEvent(new CustomEvent('requestSystemLogs'));
     },
 
     /**
