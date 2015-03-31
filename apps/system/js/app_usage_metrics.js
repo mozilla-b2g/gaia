@@ -647,23 +647,29 @@
     };
 
     var deviceInfoQuery = {
-      'app.update.channel': 'unknown',
       'developer.menu.enabled': false, // If true, data is probably an outlier
       'deviceinfo.hardware': 'unknown',
       'deviceinfo.os': 'unknown',
+      'deviceinfo.product_model': 'unknown',
+      'deviceinfo.software': 'unknown'
+    };
+
+    var urlInfoQuery = {
       'deviceinfo.platform_build_id': 'unknown',
       'deviceinfo.platform_version': 'unknown',
-      'deviceinfo.product_model': 'unknown',
-      'deviceinfo.software': 'unknown',
+      'app.update.channel': 'unknown'
     };
 
     // Query the settings db to get some more device-specific information
     AUM.getSettings(deviceInfoQuery, function(deviceInfo) {
       data.deviceinfo = deviceInfo;
       data.simInfo = getSIMInfo();
+    });
 
+    // Query the settings db for parameters for hte URL
+    AUM.getSettings(urlInfoQuery, function(urlInfoResponse) {
       // Now transmit the data
-      send(data);
+      send(data, urlInfoResponse);
     });
 
     function getSIMInfo() {
@@ -717,16 +723,16 @@
       return simInfo;
     }
 
-    function send(data) {
-      var info = data.deviceinfo;
+    function send(data, urlInfo) {
+
       var request = new TelemetryRequest({
         reason: AUM.TELEMETRY_REASON,
         deviceID: self.deviceID,
         ver: AUM.TELEMETRY_VERSION,
         url: AUM.REPORT_URL,
-        appUpdateChannel: info['app.update.channel'],
-        appVersion: info['deviceinfo.platform_version'],
-        appBuildID: info['deviceinfo.platform_build_id']
+        appUpdateChannel: urlInfo['app.update.channel'],
+        appVersion: urlInfo['deviceinfo.platform_version'],
+        appBuildID: urlInfo['deviceinfo.platform_build_id']
       }, data);
 
       // We don't actually have to do anything if the data is transmitted
