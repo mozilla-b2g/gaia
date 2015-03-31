@@ -290,7 +290,6 @@
   display: none;
   pointer-events: auto;
   overflow: hidden;
-  text-overflow: ellipsis;
   margin: 0;
   text-align: center;
   font-weight: normal;
@@ -299,6 +298,10 @@
 #cards-view .card.browser p.subtitle {
   color: #858585;
   pointer-events: auto;
+}
+
+#cards-view .card p.subtitle:not(:empty) {
+  display: block;
 }
 
 #cards-view.filtered .card p.subtitle {
@@ -310,8 +313,12 @@
   display: block;
 }
 
-#cards-view .card p.subtitle:not(:empty) {
-  display: block;
+#cards-view .titles .subtitle-url {
+  direction: ltr;
+  display: inline-block;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #cards-view .card[data-ssl="secure"] p.subtitle:not(:empty) {
