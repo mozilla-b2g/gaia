@@ -453,7 +453,7 @@ var KeypadManager = {
     // Per certification requirements abbreviated dialing codes need to be
     // called immediately after the user enters the '#' key. This covers
     // retrieving the device's IMEI codes as well as speed dialing.
-    if (key === '#') {
+    if (key === '#' && !this._onCall) {
       if (this._phoneNumber === '*#06#') {
         this.multiSimActionButton.performAction();
         event.target.classList.remove('active');
