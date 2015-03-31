@@ -730,8 +730,7 @@ endif
 	@echo "node_modules installed."
 	touch -c $@
 ifeq ($(BUILDAPP),device)
-	export LANG=en_US.UTF-8; \
-	npm install marionette-socket-host
+	export LANG=en_US.UTF-8;
 endif
 
 ###############################################################################
