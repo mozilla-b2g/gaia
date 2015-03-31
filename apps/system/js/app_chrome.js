@@ -108,16 +108,16 @@
   AppChrome.prototype.combinedView = function an_combinedView() {
     var className = this.CLASS_NAME + this.instanceID;
 
-    return `<div class="chrome" id="${className}">
+    return `<div class="chrome chrome-combined" id="${className}">
               <gaia-progress></gaia-progress>
               <div class="controls">
                 <button type="button" class="back-button"
                         data-l10n-id="back-button" disabled></button>
                 <button type="button" class="forward-button"
                         data-l10n-id="forward-button" disabled></button>
-                <div class="urlbar">
+                <div class="urlbar js-chrome-ssl-information">
                   <span class="pb-icon"></span>
-                  <div class="title" data-ssl=""></div>
+                  <div class="title chrome-ssl-indicator"></div>
                   <button type="button" class="reload-button"
                           data-l10n-id="reload-button" disabled></button>
                   <button type="button" class="stop-button"
@@ -133,11 +133,15 @@
   AppChrome.prototype.view = function an_view() {
     var className = this.CLASS_NAME + this.instanceID;
 
-    return `<div class="chrome" id="${className}">
+    return `<div class="chrome chrome-plain" id="${className}">
             <gaia-progress></gaia-progress>
             <section role="region" class="bar">
-              <gaia-header action="close">
+              <gaia-header action="close" class='js-chrome-ssl-information'>
+                <div class="chrome-ssl-indicator chrome-ssl-indicator-ltr">
+                </div>
                 <h1 class="title"></h1>
+                <div class="chrome-ssl-indicator chrome-ssl-indicator-rtl">
+                </div>
               </gaia-header>
             </section>
           </div>`;
@@ -182,6 +186,8 @@
     this.menuButton = this.element.querySelector('.menu-button');
     this.windowsButton = this.element.querySelector('.windows-button');
     this.title = this.element.querySelector('.title');
+    this.sslIndicator =
+      this.element.querySelector('.js-chrome-ssl-information');
 
     this.bar = this.element.querySelector('.bar');
     if (this.bar) {
@@ -472,7 +478,11 @@
   };
 
   AppChrome.prototype.handleSecurityChanged = function(evt) {
-    this.title.dataset.ssl = this.app.getSSLState();
+    var sslState = this.app.getSSLState();
+    this.sslIndicator.dataset.ssl = sslState;
+    this.sslIndicator.classList.toggle(
+      'chrome-has-ssl-indicator', sslState === 'broken' || sslState === 'secure'
+    );
   };
 
   AppChrome.prototype.handleTitleChanged = function(evt) {
