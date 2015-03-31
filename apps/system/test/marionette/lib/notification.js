@@ -96,7 +96,7 @@ NotificationList.prototype = {
           .innerHTML,
         body: document.querySelector(query + ' > .detail').innerHTML,
         lang: document.querySelector(query).getAttribute('lang'),
-        dir: document.querySelector(query).getAttribute('dir'),
+        dir: document.querySelector(query).getAttribute('data-predefined-dir'),
         manifestURL: node.getAttribute('data-manifest-u-r-l'),
         query: query
       });
