@@ -10,7 +10,6 @@ suite('L10n', function() {
     'delete-n-items[one]       = Delete selected item?',
     'delete-n-items[other]     = Delete {{ n }} items?',
     'textcontent-test          = this is text content',
-    'dom-overlay-test          = this is text content <button>(bar)</button>',
     'attr-test.title           = this is an attribute',
     'euroSign                  = price: 10\\u20ac to 20\\u20ac',
     'leadingSpaces             = \\u0020\\u020\\u20%2F',
@@ -18,18 +17,11 @@ suite('L10n', function() {
     'multiLine                 = foo \\',
     '                            bar \\',
     '                            baz',
-    // XXX innerHTML is treated as value (https://bugzil.la/1142526)
     'update.innerHTML          = {[ plural(n) ]}',
     'update.innerHTML[zero]    = <strong>No updates.</strong>',
     'update.innerHTML[one]     = <strong>{{n}} update available.</strong> \\',
     '                            <span>Tap for more info.</span>',
     'update.innerHTML[other]   = <strong>{{n}} updates available.</strong> \\',
-    '                            <span>Tap for more info.</span>',
-    'overlay                    = {[ plural(n) ]}',
-    'overlay[zero]              = <strong>No updates.</strong>',
-    'overlay[one]               = <strong>{{n}} update available.</strong> \\',
-    '                            <span>Tap for more info.</span>',
-    'overlay[other]             = <strong>{{n}} updates available.</strong> \\',
     '                            <span>Tap for more info.</span>',
     'inline-translation-test   = static content provided by inlined JSON',
     'a11y-label.ariaLabel      = label via ARIA',
@@ -175,7 +167,6 @@ suite('L10n', function() {
       assert.equal(elem.getAttribute('title'), 'this is an attribute');
     });
 
-    // XXX Remove in https://bugzil.la/1027117
     suite('properties + pluralization', function() {
       test('n=0', function() {
         navigator.mozL10n.setAttributes(elem, 'update', { n: 0 });
@@ -208,51 +199,14 @@ suite('L10n', function() {
       });
     });
 
-    suite('DOM overlays + pluralization', function() {
-      test('n=0', function() {
-        navigator.mozL10n.setAttributes(elem, 'overlay', { n: 0 });
-        _translateFragment(elem);
-        var info = elem.querySelector('strong');
-        var span = elem.querySelector('span');
-        assert.ok(info);
-        assert.isNull(span);
-        assert.equal(info.textContent, 'No updates.');
-      });
-
-      test('n=1', function() {
-        navigator.mozL10n.setAttributes(elem, 'overlay', { n: 1 });
-        _translateFragment(elem);
-        var info = elem.querySelector('strong');
-        var span = elem.querySelector('span');
-        assert.ok(info);
-        assert.ok(span);
-        assert.equal(info.textContent, '1 update available.');
-      });
-
-      test('n=2', function() {
-        navigator.mozL10n.setAttributes(elem, 'overlay', { n: 2 });
-        _translateFragment(elem);
-        var info = elem.querySelector('strong');
-        var span = elem.querySelector('span');
-        assert.ok(info);
-        assert.ok(span);
-        assert.equal(info.textContent, '2 updates available.');
-      });
-    });
-
-    test('element with child, translation without a child', function() {
+    test('element with child', function() {
       elem.innerHTML = 'here is a button <button>(foo)</button>';
       navigator.mozL10n.setAttributes(elem, 'textcontent-test');
-      _translateFragment(elem);
-      assert.equal(elem.innerHTML, 'this is text content');
-    });
 
-    test('element and translation with child', function() {
-      elem.innerHTML = 'here is a button <button>(foo)</button>';
-      navigator.mozL10n.setAttributes(elem, 'dom-overlay-test');
-      _translateFragment(elem);
-      assert.equal(elem.innerHTML,
-                   'this is text content <button>(bar)</button>');
+      /* jshint -W083 */
+      assert.throws(function() {
+        _translateFragment(elem);
+      }, /setTextContent is deprecated/);
     });
   });
 
