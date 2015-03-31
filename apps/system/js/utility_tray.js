@@ -361,8 +361,6 @@ window.UtilityTray = {
 
     this.isTap = true;
 
-    window.dispatchEvent(new CustomEvent('utility-tray-overlayopening'));
-
     if (this.shown) {
       window.dispatchEvent(new CustomEvent('utilitytraywillhide'));
     } else {
@@ -391,7 +389,8 @@ window.UtilityTray = {
     this.lastDelta = dy;
 
     // Tap threshold
-    if (dy > 5) {
+    if (dy > 5 && this.isTap) {
+      this.publish('-overlayopening');
       this.isTap = false;
     }
 

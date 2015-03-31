@@ -38,7 +38,7 @@
      */
     start: function() {
       window.addEventListener('utilitytrayshow', this);
-      window.addEventListener('utility-tray-overlayopening', this);
+      window.addEventListener('utilitytray-overlayopening', this);
       window.addEventListener('utilitytrayhide', this);
     },
 
@@ -62,7 +62,7 @@
         case 'utilitytrayshow':
           this._showWidget();
           break;
-        case 'utility-tray-overlayopening':
+        case 'utilitytray-overlayopening':
           this._showWidgetIfLoaded();
           break;
         case 'utilitytrayhide':
