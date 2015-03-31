@@ -2,14 +2,12 @@ define(
   [
     './worker-router',
     './mailbridge',
-    'logic',
     './mailuniverse',
     'exports'
   ],
   function(
     $router,
     $mailbridge,
-    logic,
     $mailuniverse,
     exports
   ) {
@@ -28,7 +26,7 @@ function createBridgePair(universe) {
   var sendMessage = routerInfo.sendMessage;
 
   TMB.__sendMessage = function(msg) {
-    logic(TMB, 'send', { type: msg.type, msg: msg });
+    TMB._LOG.send(msg.type, msg);
     sendMessage(null, msg);
   };
 

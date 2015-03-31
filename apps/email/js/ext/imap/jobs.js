@@ -65,7 +65,8 @@
 
 define(
   [
-    'logic',
+    'rdcommon/log',
+    'slog',
     'mix',
     '../jobmixins',
     '../drafts/jobs',
@@ -75,7 +76,8 @@ define(
     'exports'
   ],
   function(
-    logic,
+    $log,
+    slog,
     mix,
     $jobmixins,
     draftsJobs,
@@ -250,12 +252,12 @@ function(name, containOtherFolders, parentFolderInfo, personalNamespace) {
  * }
  **/
 
-function ImapJobDriver(account, state) {
+function ImapJobDriver(account, state, _parentLog) {
   this.account = account;
   this.resilientServerIds = false;
   this._heldMutexReleasers = [];
 
-  logic.defineScope(this, 'ImapJobDriver', { accountId: this.account.id });
+  this._LOG = LOGFAB.ImapJobDriver(this, _parentLog, this.account.id);
 
   this._state = state;
   // (we only need to use one as a proxy for initialization)
@@ -315,7 +317,7 @@ ImapJobDriver.prototype = {
           callback(syncer.folderConn, storage);
         }
         catch (ex) {
-          logic(self, 'callbackErr', { ex: ex });
+          self._LOG.callbackErr(ex);
         }
       };
 
@@ -360,12 +362,12 @@ ImapJobDriver.prototype = {
    * there is no need to release it directly.
    */
   _acquireConnWithoutFolder: function(label, callback, deathback) {
-    logic(this, 'acquireConnWithoutFolder_begin', { label: label });
+    this._LOG.acquireConnWithoutFolder_begin(label);
     var self = this;
     this.account.__folderDemandsConnection(
       null, label,
       function(conn) {
-        logic(self, 'acquireConnWithoutFolder_end', { label: label });
+        self._LOG.acquireConnWithoutFolder_end(label);
         self._heldMutexReleasers.push(function() {
           self.account.__folderDoneWithConnection(conn, false, false);
         });
@@ -373,7 +375,7 @@ ImapJobDriver.prototype = {
           callback(conn);
         }
         catch (ex) {
-          logic(self, 'callbackErr', { ex: ex });
+          self._LOG.callbackErr(ex);
         }
       },
       deathback
@@ -1017,18 +1019,16 @@ ImapJobDriver.prototype = {
       personalNamespace);
     var path = derivedInfo.path;
 
-    var scope = logic.subscope(this, { _path: path });
-
     var gotConn = function(conn) {
       // - create the box
       // Paths are private.
-      logic(scope, 'creatingFolder', { _path: path });
+      slog.log('imap:creatingFolder', { _path: path });
       conn.createMailbox(path, addBoxCallback);
     }.bind(this);
 
     var addBoxCallback = function(err, alreadyExists) {
       if (err) {
-        logic(scope, 'createFolderErr', { err: err });
+        slog.error('imap:createFolderErr', { _path: path, err: err });
         // TODO: do something clever in terms of making sure the folder didn't
         // already exist and the server just doesn't like to provide the
         // ALREADYEXISTS response.
@@ -1041,7 +1041,8 @@ ImapJobDriver.prototype = {
         return;
       }
 
-      logic(scope, 'createdFolder', { alreadyExists: alreadyExists });
+      slog.log('imap:createdFolder',
+               { _path: path, alreadyExists: alreadyExists });
 
       // We originally (under imap.js) would do a LIST against the folder for
       // the path we thought we just created and then we would use that to
@@ -1195,5 +1196,23 @@ HighLevelJobDriver.prototype = {
 
 mix(ImapJobDriver.prototype, draftsJobs.draftsMixins);
 
+var LOGFAB = exports.LOGFAB = $log.register($module, {
+  ImapJobDriver: {
+    type: $log.DAEMON,
+    events: {
+      savedAttachment: { storage: true, mimeType: true, size: true },
+      saveFailure: { storage: false, mimeType: false, error: false },
+    },
+    TEST_ONLY_events: {
+      saveFailure: { filename: false },
+    },
+    asyncJobs: {
+      acquireConnWithoutFolder: { label: false },
+    },
+    errors: {
+      callbackErr: { ex: $log.EXCEPTION },
+    },
+  },
+});
 
 }); // end define

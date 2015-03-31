@@ -1,22 +1,24 @@
 define(
   [
-    'logic',
+    'rdcommon/log',
     '../a64',
     '../allback',
     '../date',
     '../syncbase',
     '../util',
+    '../slog',
     'module',
     'require',
     'exports'
   ],
   function(
-    logic,
+    $log,
     $a64,
     $allback,
     $date,
     $sync,
     $util,
+    slog,
     $module,
     require,
     exports
@@ -113,14 +115,10 @@ var MAX_FETCH_BYTES = (Math.pow(2, 32) - 1);
  * we should do a SEARCH for new messages.  It is that search that will update
  * our accuracy information and only that.
  */
-function ImapFolderConn(account, storage) {
+function ImapFolderConn(account, storage, _parentLog) {
   this._account = account;
   this._storage = storage;
-
-  logic.defineScope(this, 'ImapFolderConn', {
-    accountId: account.id,
-    folderId: storage.folderId
-  });
+  this._LOG = LOGFAB.ImapFolderConn(this, _parentLog, storage.folderId);
 
   this._conn = null;
   this.box = null;
@@ -401,12 +399,9 @@ ImapFolderConn.prototype = {
    * ]
    */
   _lazySyncDateRange: function(startTS, endTS, accuracyStamp,
-                               doneCallback, progressCallback) {
-
-    var scope = logic.subscope(this, { startTS: startTS, endTS: endTS });
-
+                          doneCallback, progressCallback) {
     if (startTS && endTS && SINCE(startTS, endTS)) {
-      logic(scope, 'illegalSync');
+      this._LOG.illegalSync(startTS, endTS);
       doneCallback('invariant');
       return;
     }
@@ -416,7 +411,7 @@ ImapFolderConn.prototype = {
     var completed = false;
 
     console.log('syncDateRange:', startTS, endTS);
-    logic(scope, 'syncDateRange_begin');
+    this._LOG.syncDateRange_begin(null, null, null, startTS, endTS);
 
     // IMAP Search
 
@@ -441,9 +436,7 @@ ImapFolderConn.prototype = {
           if (completed)
             return;
           completed = true;
-          logic(scope, 'syncDateRange_end', {
-            full: 0, flags: 0, deleted: 0
-          });
+          this._LOG.syncDateRange_end(0, 0, 0, startTS, endTS);
           doneCallback('aborted');
         }.bind(this),
         progressCallback,
@@ -457,7 +450,7 @@ ImapFolderConn.prototype = {
 
     var dbStartTS = (startTS ? startTS - $sync.IMAP_SEARCH_AMBIGUITY_MS : null);
     var dbEndTS = (endTS ? endTS + $sync.IMAP_SEARCH_AMBIGUITY_MS : null);
-    logic(scope, 'database-lookup', {
+    slog.log('imap:database-lookup', {
       dbStartTS: dbStartTS,
       dbEndTS: dbEndTS
     });
@@ -492,7 +485,7 @@ ImapFolderConn.prototype = {
 
       if (shouldBisect) {
         // mark the bisection abort...
-        logic(scope, 'syncDateRange_end');
+        self._LOG.syncDateRange_end(null, null, null, startTS, endTS);
         var bisectInfo = {
           oldStartTS: startTS,
           oldEndTS: endTS,
@@ -565,7 +558,7 @@ ImapFolderConn.prototype = {
         // New
         if (!localHeader && hasServer) {
           imapSyncOptions.newUIDs.push(uid);
-          logic(scope, 'new-uid', { uid: uid });
+          slog.log('imap:new-uid', { uid: uid });
         }
         // Updated
         else if (localHeader && hasServer) {
@@ -574,13 +567,13 @@ ImapFolderConn.prototype = {
 
           if (localHeader.imapMissingInSyncRange) {
             localHeader.imapMissingInSyncRange = null;
-            logic(scope, 'found-missing-uid', { uid: uid });
+            slog.log('imap:found-missing-uid', { uid: uid });
             storage.updateMessageHeader(
               localHeader.date, localHeader.id, true, localHeader,
               /* body hint */ null, latch.defer(), { silent: true });
           }
 
-          logic(scope, 'updated-uid', { uid: uid });
+          slog.log('imap:updated-uid', { uid: uid });
         }
         // Deleted or Ambiguously Deleted
         else if (localHeader && !hasServer) {
@@ -633,18 +626,18 @@ ImapFolderConn.prototype = {
           // a single date and a range.)
           if (missingRange.startTS <= date - fuzz &&
               missingRange.endTS >= date + fuzz) {
-            logic(scope, 'unambiguously-deleted-uid',
-                  { uid: uid, missingRange: missingRange });
+            slog.log('imap:unambiguously-deleted-uid',
+                     { uid: uid, missingRange: missingRange});
             storage.deleteMessageHeaderAndBodyUsingHeader(localHeader);
             numDeleted++;
           }
           // Or we haven't looked far enough... maybe it will show up
           // later. We've already marked the updated "missing" range above.
           else {
-            logic(scope, 'ambiguously-missing-uid',
-                  { uid: uid, missingRange: missingRange,
-                    rangeToDelete: { startTS: date - fuzz, endTS: date + fuzz },
-                    syncRange: { startTS: startTS, endTS: endTS }});
+            slog.log('imap:ambiguously-missing-uid',
+                     { uid: uid, missingRange: missingRange,
+                       rangeToDelete: { startTS: date - fuzz, endTS: date + fuzz },
+                       syncRange: { startTS: startTS, endTS: endTS }});
             storage.updateMessageHeader(
               localHeader.date, localHeader.id, true, localHeader,
               /* body hint */ null, latch.defer(), { silent: true });
@@ -659,11 +652,8 @@ ImapFolderConn.prototype = {
         var uidSync = new $imapsync.Sync(imapSyncOptions);
         uidSync.onprogress = progressCallback;
         uidSync.oncomplete = function(newCount, knownCount) {
-          logic(scope, 'syncDateRange_end', {
-            full: newCount,
-            flags: knownCount,
-            deleted: numDeleted
-          });
+          self._LOG.syncDateRange_end(newCount, knownCount, numDeleted,
+                                      startTS, endTS);
 
           // BrowserBox returns an integer modseq, but it's opaque and
           // we already deal with strings, so cast it here.
@@ -850,7 +840,7 @@ ImapFolderConn.prototype = {
         return;
       }
 
-      $imapchew.updateMessageWithFetch(header, body, req, resp);
+      $imapchew.updateMessageWithFetch(header, body, req, resp, this._LOG);
 
       header.bytesToDownloadForBodyDisplay =
         $imapchew.calculateBytesToDownloadForImapBodyDisplay(body);
@@ -1016,17 +1006,16 @@ ImapFolderConn.prototype = {
   },
 
   shutdown: function() {
+    this._LOG.__die();
   },
 };
 
-function ImapFolderSyncer(account, folderStorage) {
+function ImapFolderSyncer(account, folderStorage, _parentLog) {
   this._account = account;
   this.folderStorage = folderStorage;
 
-  logic.defineScope(this, 'ImapFolderSyncer', {
-    accountId: account.id,
-    folderId: folderStorage.folderId
-  });
+  this._LOG = LOGFAB.ImapFolderSyncer(this, _parentLog, folderStorage.folderId);
+
 
   this._syncSlice = null;
   /**
@@ -1089,7 +1078,7 @@ function ImapFolderSyncer(account, folderStorage) {
    */
   this._curSyncDoneCallback = null;
 
-  this.folderConn = new ImapFolderConn(account, folderStorage);
+  this.folderConn = new ImapFolderConn(account, folderStorage, this._LOG);
 }
 exports.ImapFolderSyncer = ImapFolderSyncer;
 ImapFolderSyncer.prototype = {
@@ -1513,6 +1502,7 @@ console.log("folder message count", folderMessageCount,
 
   shutdown: function() {
     this.folderConn.shutdown();
+    this._LOG.__die();
   },
 };
 
@@ -1531,5 +1521,38 @@ function GmailMessageStorage() {
 }
 GmailMessageStorage.prototype = {
 };
+
+var LOGFAB = exports.LOGFAB = $log.register($module, {
+  ImapFolderConn: {
+    type: $log.CONNECTION,
+    subtype: $log.CLIENT,
+    events: {
+    },
+    TEST_ONLY_events: {
+    },
+    errors: {
+      callbackErr: { ex: $log.EXCEPTION },
+
+      htmlParseError: { ex: $log.EXCEPTION },
+      htmlSnippetError: { ex: $log.EXCEPTION },
+      textChewError: { ex: $log.EXCEPTION },
+      textSnippetError: { ex: $log.EXCEPTION },
+
+      // Attempted to sync with an empty or inverted range.
+      illegalSync: { startTS: false, endTS: false },
+    },
+    asyncJobs: {
+      syncDateRange: {
+        newMessages: true, existingMessages: true, deletedMessages: true,
+        start: false, end: false,
+      },
+    },
+  },
+  ImapFolderSyncer: {
+    type: $log.DATABASE,
+    events: {
+    }
+  },
+}); // end LOGFAB
 
 }); // end define

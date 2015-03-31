@@ -4,7 +4,7 @@
 
 define(
   [
-    'logic',
+    'rdcommon/log',
     './util',
     './mailchew-strings',
     './date',
@@ -14,7 +14,7 @@ define(
     'exports'
   ],
   function(
-    logic,
+    $log,
     $imaputil,
     $mailchewStrings,
     $date,
@@ -97,8 +97,7 @@ function MailBridge(universe, name) {
   this.universe = universe;
   this.universe.registerBridge(this);
 
-  logic.defineScope(this, 'MailBridge', { name: name });
-
+  this._LOG = LOGFAB.MailBridge(this, universe._LOG, name);
   /** @dictof[@key[handle] @value[BridgedViewSlice]]{ live slices } */
   this._slices = {};
   /** @dictof[@key[namespace] @value[@listof[BridgedViewSlice]]] */
@@ -139,19 +138,10 @@ MailBridge.prototype = {
   __receiveMessage: function mb___receiveMessage(msg) {
     var implCmdName = '_cmd_' + msg.type;
     if (!(implCmdName in this)) {
-      logic(this, 'badMessageType', { type: msg.type });
+      this._LOG.badMessageType(msg.type);
       return;
     }
-    logic(this, 'cmd', {
-      type: msg.type,
-      msg: msg
-    });
-    try {
-      this[implCmdName](msg);
-    } catch(ex) {
-      logic.fail(ex);
-      return; // note that we did not throw
-    }
+    var rval = this._LOG.cmd(msg.type, this, this[implCmdName], msg);
   },
 
   _cmd_ping: function mb__cmd_ping(msg) {
@@ -696,7 +686,7 @@ MailBridge.prototype = {
   _cmd_refreshHeaders: function mb__cmd_refreshHeaders(msg) {
     var proxy = this._slices[msg.handle];
     if (!proxy) {
-      logic(this, 'badSliceHandle', { handle: msg.handle });
+      this._LOG.badSliceHandle(msg.handle);
       return;
     }
 
@@ -707,7 +697,7 @@ MailBridge.prototype = {
   _cmd_growSlice: function mb__cmd_growSlice(msg) {
     var proxy = this._slices[msg.handle];
     if (!proxy) {
-      logic(this, 'badSliceHandle', { handle: msg.handle });
+      this._LOG.badSliceHandle(msg.handle);
       return;
     }
 
@@ -718,7 +708,7 @@ MailBridge.prototype = {
   _cmd_shrinkSlice: function mb__cmd_shrinkSlice(msg) {
     var proxy = this._slices[msg.handle];
     if (!proxy) {
-      logic(this, 'badSliceHandle', { handle: msg.handle });
+      this._LOG.badSliceHandle(msg.handle);
       return;
     }
 
@@ -730,7 +720,7 @@ MailBridge.prototype = {
   _cmd_killSlice: function mb__cmd_killSlice(msg) {
     var proxy = this._slices[msg.handle];
     if (!proxy) {
-      logic(this, 'badSliceHandle', { handle: msg.handle });
+      this._LOG.badSliceHandle(msg.handle);
       return;
     }
 
@@ -1352,5 +1342,27 @@ MailBridge.prototype = {
   }
 
 };
+
+var LOGFAB = exports.LOGFAB = $log.register($module, {
+  MailBridge: {
+    type: $log.DAEMON,
+    events: {
+      // NB: under unit test, this is not used and bridgeSnoop is used instead.
+      send: { type: true },
+    },
+    TEST_ONLY_events: {
+      send: { msg: false },
+    },
+    errors: {
+      badMessageType: { type: true },
+      badSliceHandle: { handle: true },
+    },
+    calls: {
+      cmd: { command: true },
+    },
+    TEST_ONLY_calls: {
+    },
+  },
+});
 
 }); // end define

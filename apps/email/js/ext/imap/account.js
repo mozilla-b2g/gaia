@@ -1,6 +1,7 @@
 define(
   [
-    'logic',
+    'rdcommon/log',
+    'slog',
     '../a64',
     '../accountmixins',
     '../allback',
@@ -20,7 +21,8 @@ define(
     'exports'
   ],
   function(
-    logic,
+    $log,
+    slog,
     $a64,
     $acctmixins,
     $allback,
@@ -57,13 +59,9 @@ function cmpFolderPubPath(a, b) {
  */
 function ImapAccount(universe, compositeAccount, accountId, credentials,
                      connInfo, folderInfos,
-                     dbConn, existingProtoConn) {
-
-  // Using the generic 'Account' here, as current tests don't
-  // distinguish between events on ImapAccount vs. CompositeAccount.
-  logic.defineScope(this, 'Account', { accountId: accountId,
-                                       accountType: 'imap' });
-
+                     dbConn,
+                     _parentLog, existingProtoConn) {
+  this._LOG = LOGFAB.ImapAccount(this, _parentLog, accountId);
   CompositeIncomingAccount.apply(
       this, [$imapfolder.ImapFolderSyncer].concat(Array.slice(arguments)));
 
@@ -102,13 +100,14 @@ function ImapAccount(universe, compositeAccount, accountId, credentials,
    * }
    */
   this._demandedConns = [];
-  this._backoffEndpoint = $errbackoff.createEndpoint('imap:' + this.id, this);
+  this._backoffEndpoint = $errbackoff.createEndpoint('imap:' + this.id, this,
+                                                     this._LOG);
 
   if (existingProtoConn)
     this._reuseConnection(existingProtoConn);
 
   this._jobDriver = new $imapjobs.ImapJobDriver(
-                          this, this._folderInfos.$mutationState);
+                          this, this._folderInfos.$mutationState, this._LOG);
 
   /**
    * Flag to allow us to avoid calling closeBox to close a folder.  This avoids
@@ -275,15 +274,14 @@ var properties = {
       var connInfo = this._ownedConns[i];
       // It's concerning if the folder already has a connection...
       if (demandInfo.folderId && connInfo.folderId === demandInfo.folderId)
-        logic(this, 'folderAlreadyHasConn', { folderId: demandInfo.folderId });
+        this._LOG.folderAlreadyHasConn(demandInfo.folderId);
 
       if (connInfo.inUseBy)
         continue;
 
       connInfo.inUseBy = demandInfo;
       this._demandedConns.shift();
-      logic(this, 'reuseConnection',
-            { folderId: demandInfo.folderId, label: demandInfo.label });
+      this._LOG.reuseConnection(demandInfo.folderId, demandInfo.label);
       demandInfo.callback(connInfo.conn);
       return true;
     }
@@ -328,13 +326,13 @@ var properties = {
       // this eats all future notifications, so we need to splice...
       this._ownedConns.splice(i, 1);
       connInfo.conn.client.close();
-      logic(this, 'deadConnection', { reason: 'unused' });
+      this._LOG.deadConnection('unused', null);
     }
   },
 
   _makeConnectionIfPossible: function() {
     if (this._ownedConns.length >= this._maxConnsAllowed) {
-      logic(this, 'maximumConnsNoNew');
+      this._LOG.maximumConnsNoNew();
       return;
     }
     if (this._pendingConn) {
@@ -352,10 +350,7 @@ var properties = {
     this._pendingConn = true;
     // Dynamically load the probe/imap code to speed up startup.
     require(['./client'], function ($imapclient) {
-      logic(this, 'createConnection', {
-        folderId: whyFolderId,
-        label: whyLabel
-      });
+      this._LOG.createConnection(whyFolderId, whyLabel);
 
       $imapclient.createImapConnection(
         this._credentials,
@@ -391,10 +386,7 @@ var properties = {
           callback && callback(null);
         }.bind(this))
       .catch(function(err) {
-          logic(this, 'deadConnection', {
-            reason: 'connect-error',
-            folderId: whyFolderId
-          });
+          this._LOG.deadConnection('connect-error', whyFolderId);
 
           if (errorutils.shouldReportProblem(err)) {
             this.universe.__reportAccountProblem(
@@ -456,11 +448,9 @@ var properties = {
        for (var i = 0; i < this._ownedConns.length; i++) {
         var connInfo = this._ownedConns[i];
         if (connInfo.conn === conn) {
-          logic(this, 'deadConnection', {
-            reason: 'closed',
-            folderId: connInfo.inUseBy &&
-              connInfo.inUseBy.folderId
-          });
+          this._LOG.deadConnection('closed',
+                                   connInfo.inUseBy &&
+                                   connInfo.inUseBy.folderId);
           if (connInfo.inUseBy && connInfo.inUseBy.deathback)
             connInfo.inUseBy.deathback(conn);
           connInfo.inUseBy = null;
@@ -472,7 +462,7 @@ var properties = {
 
     conn.onerror = function(err) {
       err = $imapclient.normalizeImapError(conn, err);
-      logic(this, 'connectionError', { error: err });
+      this._LOG.connectionError(err);
       console.error('imap:onerror', JSON.stringify({
         error: err,
         host: this._connInfo.hostname,
@@ -487,10 +477,8 @@ var properties = {
       if (connInfo.conn === conn) {
         if (resourceProblem)
           this._backoffEndpoint(connInfo.inUseBy.folderId);
-        logic(this, 'releaseConnection', {
-          folderId: connInfo.inUseBy.folderId,
-          label: connInfo.inUseBy.label
-        });
+        this._LOG.releaseConnection(connInfo.inUseBy.folderId,
+                                    connInfo.inUseBy.label);
         connInfo.inUseBy = null;
 
          // We just freed up a connection, it may be appropriate to close it.
@@ -498,7 +486,7 @@ var properties = {
         return;
       }
     }
-    logic(this, 'connectionMismatch');
+    this._LOG.connectionMismatch();
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -656,7 +644,7 @@ var properties = {
 
         self._namespaces.provisional = false;
 
-        logic(self, 'list-namespaces', {
+        slog.log('imap:list-namespaces', {
           namespaces: namespaces
         });
 
@@ -672,8 +660,6 @@ var properties = {
       folderPub = this.folders[iFolder];
       folderPubsByPath[folderPub.path] = folderPub;
     }
-
-    var syncScope = logic.scope('ImapFolderSync');
 
     // - walk the boxes
     function walkBoxes(boxLevel, pathDepth, parentId) {
@@ -705,7 +691,7 @@ var properties = {
           meta.name = box.name;
           meta.delim = delim;
 
-          logic(syncScope, 'folder-sync:existing', {
+          slog.log('imap:folder-sync:existing', {
             type: type,
             name: box.name,
             path: path,
@@ -717,7 +703,7 @@ var properties = {
         }
         // - new to us!
         else {
-          logic(syncScope, 'folder-sync:add', {
+          slog.log('imap:folder-sync:add', {
             type: type,
             name: box.name,
             path: path,
@@ -745,9 +731,9 @@ var properties = {
       // Never delete our localdrafts or outbox folder.
       if ($mailslice.FolderStorage.isTypeLocalOnly(folderPub.type))
         continue;
-      logic(syncScope, 'delete-dead-folder', {
-        folderType: folderPub.type,
-        folderId: folderPub.id
+      slog.log('imap:delete-dead-folder', {
+        type: folderPub.type,
+        id: folderPub.id
       });
       // It must have gotten deleted!
       this._forgetFolder(folderPub.id);
@@ -895,14 +881,15 @@ var properties = {
       }
     }
 
+    this._LOG.__die();
     if (!liveConns && callback)
       callback();
   },
 
   checkAccount: function(listener) {
-    logic(this, 'checkAccount_begin');
+    this._LOG.checkAccount_begin(null);
     this._makeConnection(function(err) {
-      logic(this, 'checkAccount_end', { error: err });
+      this._LOG.checkAccount_end(err);
       listener(err);
     }.bind(this), null, 'check');
   },
@@ -922,5 +909,11 @@ for (var k in properties) {
   Object.defineProperty(ImapAccount.prototype, k,
                         Object.getOwnPropertyDescriptor(properties, k));
 }
+
+// Share the log configuration with composite, since we desire general
+// parity between IMAP and POP3 for simplicity when possible.
+var LOGFAB = exports.LOGFAB = $log.register($module, {
+  ImapAccount: incoming.LOGFAB_DEFINITION.CompositeIncomingAccount
+});
 
 }); // end define

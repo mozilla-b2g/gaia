@@ -4,7 +4,9 @@
 /*global define, console, window, Blob */
 define(
   [
-    'logic',
+    'rdcommon/log',
+    'rdcommon/logreaper',
+    'slog',
     './a64',
     './date',
     './syncbase',
@@ -17,7 +19,9 @@ define(
     'exports'
   ],
   function(
-    logic,
+    $log,
+    $logreaper,
+    slog,
     $a64,
     $date,
     $syncbase,
@@ -42,10 +46,10 @@ define(
 var MAX_MUTATIONS_FOR_UNDO = 10;
 
 /**
- * When debug logging is enabled, how long should we store logs in the
- * circular buffer?
+ * When debug logging is enabled, how many second's worth of samples should
+ * we keep?
  */
-var MAX_LOG_BACKLOG_MS = 30000;
+var MAX_LOG_BACKLOG = 30;
 
 /**
  * Creates a method to add to MailUniverse that calls a method
@@ -366,59 +370,16 @@ function MailUniverse(callAfterBigBang, online, testOptions) {
   this._boundQueueDeferredOps = this._queueDeferredOps.bind(this);
 
   this.config = null;
-  this._logBacklog = [];
+  this._logReaper = null;
+  this._logBacklog = null;
 
+  this._LOG = null;
   this._db = new $maildb.MailDB(testOptions);
   this._cronSync = null;
   var self = this;
   this._db.getConfig(function(configObj, accountInfos, lazyCarryover) {
     function setupLogging(config) {
-
-      // To avoid being overly verbose, and to avoid revealing private
-      // information in logs (unless we've explicitly enabled it), we censor
-      // event details when in secretDebugMode and for console logs.
-      function censorLogs() {
-        logic.isCensored = true;
-
-        function censorValue(value) {
-          if (value && (value.suid || value.srvid)) {
-            return {
-              date: value.date,
-              suid: value.suid,
-              srvid: value.srvid
-            };
-          } else if (value && typeof value === 'object') {
-            return value.toString();
-          } else {
-            return value;
-          }
-        }
-
-        // We:
-        //   - Remove properties starting with an underscore.
-        //   - Process one level of Arrays.
-        //   - Allow primitives to pass through.
-        //   - Objects get stringified unless they are a mail header,
-        //     in which case we return just the date/suid/srvid.
-        logic.on('censorEvent', function(e) {
-          if (logic.isPlainObject(e.details)) {
-            for (var key in e.details) {
-              var value = e.details[key];
-              if (key[0] === '_') {
-                delete e.details[key];
-              } else if (Array.isArray(value)) {
-                // Include one level of arrays.
-                e.details[key] = value.map(censorValue);
-              } else {
-                e.details[key] = censorValue(value);
-              }
-            }
-          }
-        });
-      }
-
-      if (self.config.debugLogging) {
-
+       if (self.config.debugLogging) {
         if (self.config.debugLogging === 'realtime-dangerous') {
           console.warn('!!!');
           console.warn('!!! REALTIME USER-DATA ENTRAINING LOGGING ENABLED !!!');
@@ -430,12 +391,14 @@ function MailUniverse(callAfterBigBang, online, testOptions) {
           console.warn('OF EMAILS, maybe some PASSWORDS.  This was turned on');
           console.warn('via the secret debug mode UI.  Use it to turn us off:');
           console.warn('https://wiki.mozilla.org/Gaia/Email/SecretDebugMode');
-          logic.realtimeLogEverything = true;
+          $log.DEBUG_realtimeLogEverything(dump);
+          slog.setSensitiveDataLoggingEnabled(true);
         }
         else if (self.config.debugLogging !== 'dangerous') {
           console.warn('GENERAL LOGGING ENABLED!');
           console.warn('(CIRCULAR EVENT LOGGING WITH NON-SENSITIVE DATA)');
-          censorLogs();
+          $log.enableGeneralLogging();
+          slog.setSensitiveDataLoggingEnabled(false);
         }
         else {
           console.warn('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
@@ -448,50 +411,9 @@ function MailUniverse(callAfterBigBang, online, testOptions) {
           console.warn('If you forget how to turn us off, see:');
           console.warn('https://wiki.mozilla.org/Gaia/Email/SecretDebugMode');
           console.warn('...................................................');
+          $log.DEBUG_markAllFabsUnderTest();
+          slog.setSensitiveDataLoggingEnabled(true);
         }
-      } else if (!logic.underTest) {
-        censorLogs();
-
-        var NAMESPACES_TO_ALWAYS_LOG = [
-          'BrowserBox',
-          'SmtpClient',
-          'ActivesyncConfigurator',
-          'ImapFolderSync',
-          'Pop3Prober',
-          'Autoconfigurator',
-          'DisasterRecovery',
-          'ImapClient',
-          'ImapJobDriver',
-          'Oauth',
-          'Pop3FolderSyncer',
-          'SmtpProber'
-        ];
-
-        // If we don't have debug logging enabled, bail out early by
-        // short-circuiting any events that wouldn't be logged anyway.
-        logic.on('preprocessEvent', function(e) {
-          var eventShouldBeLogged = (
-            NAMESPACES_TO_ALWAYS_LOG.indexOf(e.namespace) !== -1 ||
-            // The smtp portion uses a namespace of 'Account', but we want it.
-            (e.namespace === 'Account' &&
-             e.details && e.details.accountType === 'smtp') ||
-            // We also want these.
-            e.type === 'allOpsCompleted' ||
-            e.type === 'mailslice:mutex-released'
-          );
-
-          if (!eventShouldBeLogged) {
-            e.preventDefault();
-          }
-        });
-
-        // Then, since only the logs we care about make it this far, we can log
-        // all remaining events here.
-        logic.on('event', function(e) {
-          var obj = e.toJSON();
-          dump('[' + obj.namespace + '] ' + obj.type +
-               '  ' + JSON.stringify(obj.details) + '\n');
-        });
       }
     }
 
@@ -501,14 +423,11 @@ function MailUniverse(callAfterBigBang, online, testOptions) {
     if (configObj) {
       self.config = configObj;
       setupLogging();
-
-      logic.defineScope(self, 'MailUniverse');
-
+      self._LOG = LOGFAB.MailUniverse(self, null, null);
       if (self.config.debugLogging)
         self._enableCircularLogging();
 
-      logic(self, 'configLoaded',
-            { config: self.config, accountInfos: accountInfos });
+      self._LOG.configLoaded(self.config, accountInfos);
 
       function done() {
         doneCount += 1;
@@ -540,28 +459,23 @@ function MailUniverse(callAfterBigBang, online, testOptions) {
         debugLogging: lazyCarryover ? lazyCarryover.config.debugLogging : false
       };
       setupLogging();
-
-      logic.defineScope(self, 'MailUniverse');
-
+      self._LOG = LOGFAB.MailUniverse(self, null, null);
       if (self.config.debugLogging)
         self._enableCircularLogging();
       self._db.saveConfig(self.config);
 
       // - Try to re-create any accounts using old account infos.
       if (lazyCarryover) {
-        logic(self, 'configMigrating_begin', { lazyCarryover: lazyCarryover });
+        this._LOG.configMigrating_begin(lazyCarryover);
         var waitingCount = lazyCarryover.accountInfos.length;
         var oldVersion = lazyCarryover.oldVersion;
 
         var accountRecreated = function(accountInfo, err) {
-          logic(self, 'recreateAccount_end',
-                { type: accountInfo.type,
-                  id: accountInfo.id,
-                  error: err });
+          this._LOG.recreateAccount_end(accountInfo.type, accountInfo.id, err);
           // We don't care how they turn out, just that they get a chance
           // to run to completion before we call our bootstrap complete.
           if (--waitingCount === 0) {
-            logic(self, 'configMigrating_end');
+            this._LOG.configMigrating_end(null);
             this._initFromConfig();
             callAfterBigBang();
           }
@@ -569,10 +483,8 @@ function MailUniverse(callAfterBigBang, online, testOptions) {
 
         for (i = 0; i < lazyCarryover.accountInfos.length; i++) {
           var accountInfo = lazyCarryover.accountInfos[i];
-          logic(this, 'recreateAccount_begin',
-                { type: accountInfo.type,
-                  id: accountInfo.id,
-                  error: null });
+          this._LOG.recreateAccount_begin(accountInfo.type, accountInfo.id,
+                                          null);
           $acctcommon.recreateAccount(
             self, oldVersion, accountInfo,
             accountRecreated.bind(this, accountInfo));
@@ -581,7 +493,7 @@ function MailUniverse(callAfterBigBang, online, testOptions) {
         return;
       }
       else {
-        logic(self, 'configCreated', { config: self.config });
+        self._LOG.configCreated(self.config);
       }
     }
     self._initFromConfig();
@@ -593,22 +505,28 @@ MailUniverse.prototype = {
   //////////////////////////////////////////////////////////////////////////////
   // Logging
   _enableCircularLogging: function() {
+    this._logReaper = new $logreaper.LogReaper(this._LOG);
     this._logBacklog = [];
-    logic.on('event', (event) => {
-      this._logBacklog.push(event.toJSON());
-      // Remove any events we've kept for longer than MAX_LOG_BACKLOG_MS.
-      var oldestTimeAllowed = Date.now() - MAX_LOG_BACKLOG_MS;
-      while (this._logBacklog.length &&
-             this._logBacklog[0].time < oldestTimeAllowed) {
-        this._logBacklog.shift();
-      }
-    });
+    window.setInterval(
+      function() {
+        var logTimeSlice = this._logReaper.reapHierLogTimeSlice();
+        // if nothing interesting happened, this could be empty, yos.
+        if (logTimeSlice.logFrag) {
+          this._logBacklog.push(logTimeSlice);
+          // throw something away if we've got too much stuff already
+          if (this._logBacklog.length > MAX_LOG_BACKLOG)
+            this._logBacklog.shift();
+        }
+      }.bind(this),
+      1000);
   },
 
-  createLogBacklogRep: function() {
+  createLogBacklogRep: function(id) {
     return {
-      type: 'logic',
-      events: this._logBacklog
+      type: 'backlog',
+      id: id,
+      schema: $log.provideSchemaForAllKnownFabs(),
+      backlog: this._logBacklog,
     };
   },
 
@@ -643,7 +561,7 @@ MailUniverse.prototype = {
    * Perform initial initialization based on our configuration.
    */
   _initFromConfig: function() {
-    this._cronSync = new $cronsync.CronSync(this);
+    this._cronSync = new $cronsync.CronSync(this, this._LOG);
   },
 
   /**
@@ -822,7 +740,7 @@ MailUniverse.prototype = {
   },
 
   learnAboutAccount: function(details) {
-    var configurator = new $acctcommon.Autoconfigurator();
+    var configurator = new $acctcommon.Autoconfigurator(this._LOG);
     return configurator.learnAboutAccount(details);
   },
 
@@ -844,12 +762,12 @@ MailUniverse.prototype = {
 
     if (domainInfo) {
       $acctcommon.tryToManuallyCreateAccount(this, userDetails, domainInfo,
-                                             callback);
+                                             callback, this._LOG);
     }
     else {
       // XXX: store configurator on this object so we can abort the connections
       // if necessary.
-      var configurator = new $acctcommon.Autoconfigurator();
+      var configurator = new $acctcommon.Autoconfigurator(this._LOG);
       configurator.tryToCreateAccount(this, userDetails, callback);
     }
   },
@@ -913,11 +831,11 @@ MailUniverse.prototype = {
                                          receiveProtoConn, callback) {
     $acctcommon.accountTypeToClass(accountDef.type, function (constructor) {
       if (!constructor) {
-        logic(this, 'badAccountType', { type: accountDef.type });
+        this._LOG.badAccountType(accountDef.type);
         return;
       }
       var account = new constructor(this, accountDef, folderInfo, this._db,
-                                    receiveProtoConn);
+                                    receiveProtoConn, this._LOG);
 
       this.accounts.push(account);
       this._accountsById[account.id] = account;
@@ -983,8 +901,7 @@ MailUniverse.prototype = {
     if (account.problems.indexOf(problem) !== -1) {
       suppress = true;
     }
-    logic(this, 'reportProblem',
-          { problem: problem, suppress: suppress, accountId: account.id });
+    this._LOG.reportProblem(problem, suppress, account.id);
     if (suppress) {
       return;
     }
@@ -1018,7 +935,7 @@ MailUniverse.prototype = {
   },
 
   clearAccountProblems: function(account) {
-    logic(this, 'clearAccountProblems', { accountId: account.id });
+    this._LOG.clearAccountProblems(account.id);
     // TODO: this would be a great time to have any slices that had stalled
     // syncs do whatever it takes to make them happen again.
     account.enabled = true;
@@ -1081,14 +998,14 @@ MailUniverse.prototype = {
     var curTrans = null;
     var latch = $allback.latch();
 
-    logic(this, 'saveUniverseState_begin');
+    this._LOG.saveUniverseState_begin();
     for (var iAcct = 0; iAcct < this.accounts.length; iAcct++) {
       var account = this.accounts[iAcct];
       curTrans = account.saveAccountState(curTrans, latch.defer(account.id),
                                           'saveUniverse');
     }
     latch.then(function() {
-      logic(this, 'saveUniverseState_end');
+      this._LOG.saveUniverseState_end();
       if (callback) {
         callback();
       };
@@ -1123,6 +1040,8 @@ MailUniverse.prototype = {
       this._cronSync.shutdown();
     }
     this._db.close();
+    if (this._LOG)
+      this._LOG.__die();
 
     if (!this.accounts.length)
       callback();
@@ -1280,16 +1199,14 @@ MailUniverse.prototype = {
         // type.
         case 'defer':
           if (++op.tryCount < $syncbase.MAX_OP_TRY_COUNT) {
-            logic(this, 'opDeferred', { type: op.type,
-                                        longtermId: op.longtermId });
+            this._LOG.opDeferred(op.type, op.longtermId);
             this._deferOp(account, op);
             removeFromServerQueue = true;
             break;
           }
           // fall-through to an error
         default:
-          logic(this, 'opGaveUp', { type: op.type,
-                                    longtermId: op.longtermId });
+          this._LOG.opGaveUp(op.type, op.longtermId);
           op.lifecycle = 'moot';
           op.localStatus = 'unknown';
           op.serverStatus = 'moot';
@@ -1348,20 +1265,7 @@ MailUniverse.prototype = {
 
     console.log('runOp_end(' + wasMode + ': ' +
                 JSON.stringify(op).substring(0, 160) + ')\n');
-    logic(account, 'runOp_end',
-          { mode: wasMode,
-            type: op.type,
-            error: err,
-            op: op });
-
-    // Complete the asynchronous log event pertaining to 'runOp'.
-    if (op._logicAsyncEvent) {
-      if (err) {
-        op._logicAsyncEvent.reject(err);
-      } else {
-        op._logicAsyncEvent.resolve();
-      }
-    }
+    account._LOG.runOp_end(wasMode, op.type, err, op);
 
     var callback;
     if (completeOp) {
@@ -1448,11 +1352,8 @@ MailUniverse.prototype = {
         serverQueue = queues.server,
         localQueue = queues.local;
 
-    var scope = logic.subscope(this, { type: op.type,
-                                       longtermId: op.longtermId });
-
     if (serverQueue[0] !== op)
-      logic(scope, 'opInvariantFailure');
+      this._LOG.opInvariantFailure();
 
     // Should we attempt to retry (but fail if tryCount is reached)?
     var maybeRetry = false;
@@ -1468,7 +1369,7 @@ MailUniverse.prototype = {
             // Defer the operation if we still want to do the thing, but skip
             // deferring if we are now trying to undo the thing.
             if (op.serverStatus === 'doing' && op.lifecycle === 'do') {
-              logic(scope, 'opDeferred');
+              this._LOG.opDeferred(op.type, op.longtermId);
               this._deferOp(account, op);
             }
             // remove the op from the queue, but don't mark it completed
@@ -1488,13 +1389,13 @@ MailUniverse.prototype = {
           maybeRetry = true;
           break;
         case 'failure-give-up':
-          logic(scope, 'opGaveUp');
+          this._LOG.opGaveUp(op.type, op.longtermId);
           // we complete the op, but the error flag is propagated
           op.lifecycle = 'moot';
           op.serverStatus = 'moot';
           break;
         case 'moot':
-          logic(scope, 'opMooted');
+          this._LOG.opMooted(op.type, op.longtermId);
           // we complete the op, but the error flag is propagated
           op.lifecycle = 'moot';
           op.serverStatus = 'moot';
@@ -1526,7 +1427,7 @@ MailUniverse.prototype = {
               break;
             // this is the same thing as defer.
             case 'bailed':
-              logic(scope, 'opDeferred');
+              this._LOG.opDeferred(op.type, op.longtermId);
               this._deferOp(account, op);
               completeOp = false;
               break;
@@ -1558,7 +1459,7 @@ MailUniverse.prototype = {
         consumeOp = false;
       }
       else {
-        logic(scope, 'opTryLimitReached');
+        this._LOG.opTryLimitReached(op.type, op.longtermId);
         // we complete the op, but the error flag is propagated
         op.lifecycle = 'moot';
         op.serverStatus = 'moot';
@@ -1570,19 +1471,8 @@ MailUniverse.prototype = {
 
     console.log('runOp_end(' + wasMode + ': ' +
                 JSON.stringify(op).substring(0, 160) + ')\n');
-    logic(account, 'runOp_end', { mode: wasMode,
-                                  type: op.type,
-                                  error: err,
-                                  op: op });
+    account._LOG.runOp_end(wasMode, op.type, err, op);
 
-    // Complete the asynchronous log event pertaining to 'runOp'.
-    if (op._logicAsyncEvent) {
-      if (err) {
-        op._logicAsyncEvent.reject(err);
-      } else {
-        op._logicAsyncEvent.resolve();
-      }
-    }
 
     // Some completeOp callbacks want to wait for account
     // save but they are triggered before save is attempted,
@@ -1650,7 +1540,7 @@ MailUniverse.prototype = {
       }
       catch(ex) {
         console.log(ex.message, ex.stack);
-        logic(this, 'opCallbackErr', { type: lastOp.type });
+        this._LOG.opCallbackErr(lastOp.type);
       }
     }
 
@@ -1676,8 +1566,7 @@ MailUniverse.prototype = {
         this._opCompletionListenersByAccount[account.id](account);
         this._opCompletionListenersByAccount[account.id] = null;
       }
-      logic(this, 'allOpsCompleted', { accountId: account.id });
-
+      slog.log('allOpsCompleted', { account: account.id });
 
       // - Tell the account so it can clean-up its connections, etc.
       // (We do this after notifying listeners for the connection cleanup case
@@ -2428,5 +2317,38 @@ MailUniverse.prototype = {
 
   //////////////////////////////////////////////////////////////////////////////
 };
+
+var LOGFAB = exports.LOGFAB = $log.register($module, {
+  MailUniverse: {
+    type: $log.ACCOUNT,
+    events: {
+      configCreated: {},
+      configLoaded: {},
+      createAccount: { type: true, id: false },
+      reportProblem: { type: true, suppressed: true, id: false },
+      clearAccountProblems: { id: false },
+      opDeferred: { type: true, id: false },
+      opTryLimitReached: { type: true, id: false },
+      opGaveUp: { type: true, id: false },
+      opMooted: { type: true, id: false },
+    },
+    TEST_ONLY_events: {
+      configCreated: { config: false },
+      configMigrating: { lazyCarryover: false },
+      configLoaded: { config: false, accounts: false },
+      createAccount: { name: false },
+    },
+    asyncJobs: {
+      configMigrating: {},
+      recreateAccount: { type: true, id: false, err: false },
+      saveUniverseState: {}
+    },
+    errors: {
+      badAccountType: { type: true },
+      opCallbackErr: { type: false },
+      opInvariantFailure: {},
+    },
+  },
+});
 
 }); // end define

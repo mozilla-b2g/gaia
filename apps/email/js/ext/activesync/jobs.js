@@ -1,6 +1,6 @@
 define(
   [
-    'logic',
+    'rdcommon/log',
     'mix',
     '../jobmixins',
     '../drafts/jobs',
@@ -12,7 +12,7 @@ define(
     'exports'
   ],
   function(
-    logic,
+    $log,
     mix,
     $jobmixins,
     draftsJobs,
@@ -45,15 +45,14 @@ function lazyConnection(cbIndex, fn, failString) {
   };
 }
 
-function ActiveSyncJobDriver(account, state) {
+function ActiveSyncJobDriver(account, state, _parentLog) {
   this.account = account;
   // XXX for simplicity for now, let's assume that ActiveSync GUID's are
   // maintained across folder moves.
   this.resilientServerIds = true;
   this._heldMutexReleasers = [];
 
-  logic.defineScope(this, 'ActiveSyncJobDriver',
-                    { accountId: this.account.id });
+  this._LOG = LOGFAB.ActiveSyncJobDriver(this, _parentLog, this.account.id);
 
   this._state = state;
   // (we only need to use one as a proxy for initialization)
@@ -90,7 +89,7 @@ ActiveSyncJobDriver.prototype = {
             callback(syncer.folderConn, storage);
           }
           catch (ex) {
-            logic(self, 'callbackErr', { ex: ex });
+            self._LOG.callbackErr(ex);
           }
         });
       } else {
@@ -98,7 +97,7 @@ ActiveSyncJobDriver.prototype = {
           callback(syncer.folderConn, storage);
         }
         catch (ex) {
-          logic(self, 'callbackErr', { ex: ex });
+          self._LOG.callbackErr(ex);
         }
       }
     });
@@ -468,5 +467,22 @@ ActiveSyncJobDriver.prototype = {
 };
 
 mix(ActiveSyncJobDriver.prototype, draftsJobs.draftsMixins);
+
+var LOGFAB = exports.LOGFAB = $log.register($module, {
+  ActiveSyncJobDriver: {
+    type: $log.DAEMON,
+    events: {
+      savedAttachment: { storage: true, mimeType: true, size: true },
+      saveFailure: { storage: false, mimeType: false, error: false },
+    },
+    TEST_ONLY_events: {
+      saveFailure: { filename: false },
+    },
+    errors: {
+      callbackErr: { ex: $log.EXCEPTION },
+    },
+
+  },
+});
 
 }); // end define
