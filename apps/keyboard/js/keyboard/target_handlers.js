@@ -383,6 +383,48 @@ HandwritingPadTargetHandler.prototype.commit = function() {
 HandwritingPadTargetHandler.prototype.newTargetActivate = function() {
 };
 
+var LowEndDeviceTargetHandler = function(target, app) {
+  DefaultTargetHandler.apply(this, arguments);
+};
+LowEndDeviceTargetHandler.prototype =
+  Object.create(DefaultTargetHandler.prototype);
+
+LowEndDeviceTargetHandler.prototype.commit = function(press) {
+  if (!press || !press.speedlimit || !press.startTarget ||
+      press.target.keyCode === press.startTarget.keyCode ||
+      this.app.layoutManager.currentPage.imEngine !== 'latin') {
+    return DefaultTargetHandler.prototype.commit.apply(this, arguments);
+  }
+
+  this.app.inputMethodManager.currentIMEngine.click(
+    press.startTarget.keyCode, press.startTarget.keyCodeUpper);
+
+  setTimeout(function(args) {
+    DefaultTargetHandler.prototype.commit.apply(this, args);
+  }.bind(this, arguments), 0);
+};
+
+var LowEndDeviceSpaceTargetHandler = function(target, app) {
+  SpaceKeyTargetHandler.apply(this, arguments);
+};
+LowEndDeviceSpaceTargetHandler.prototype =
+  Object.create(SpaceKeyTargetHandler.prototype);
+
+LowEndDeviceSpaceTargetHandler.prototype.commit = function(press) {
+  if (!press || !press.speedlimit || !press.startTarget ||
+      press.target.keyCode === press.startTarget.keyCode ||
+      this.app.layoutManager.currentPage.imEngine !== 'latin') {
+    return SpaceKeyTargetHandler.prototype.commit.apply(this, arguments);
+  }
+
+  this.app.inputMethodManager.currentIMEngine.click(
+    press.startTarget.keyCode, press.startTarget.keyCodeUpper);
+
+  setTimeout(function(args) {
+    SpaceKeyTargetHandler.prototype.commit.apply(this, args);
+  }.bind(this, arguments), 0);
+};
+
 exports.DefaultTargetHandler = DefaultTargetHandler;
 exports.NullTargetHandler = NullTargetHandler;
 exports.SpaceKeyTargetHandler = SpaceKeyTargetHandler;
@@ -395,5 +437,7 @@ exports.SwitchKeyboardTargetHandler = SwitchKeyboardTargetHandler;
 exports.ToggleCandidatePanelTargetHandler = ToggleCandidatePanelTargetHandler;
 exports.DismissSuggestionsTargetHandler = DismissSuggestionsTargetHandler;
 exports.HandwritingPadTargetHandler = HandwritingPadTargetHandler;
+exports.LowEndDeviceTargetHandler = LowEndDeviceTargetHandler;
+exports.LowEndDeviceSpaceTargetHandler = LowEndDeviceSpaceTargetHandler;
 
 })(window);

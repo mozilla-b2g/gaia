@@ -251,7 +251,7 @@ ActiveTargetsManager.prototype._handlePressEnd = function(press, id) {
     this.doubleTapPreviousTarget = target;
 
     if (typeof this.ontargetcommitted === 'function') {
-      this.ontargetcommitted(target);
+      this.ontargetcommitted(target, press);
     }
   }
 };

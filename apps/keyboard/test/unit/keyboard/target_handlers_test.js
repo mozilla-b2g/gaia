@@ -8,7 +8,8 @@
           SwitchKeyboardTargetHandler, ToggleCandidatePanelTargetHandler,
           DismissSuggestionsTargetHandler, BackspaceTargetHandler,
           KeyboardConsole, HandwritingPadsManager,
-          HandwritingPadTargetHandler */
+          HandwritingPadTargetHandler, LowEndDeviceTargetHandler,
+          LowEndDeviceSpaceTargetHandler */
 
 require('/js/keyboard/handwriting_pads_manager.js');
 require('/js/keyboard/target_handlers.js');
@@ -1160,6 +1161,96 @@ suite('target handlers', function() {
     test('doubleTap', function() {
       assert.equal(handler.doubleTap, DefaultTargetHandler.prototype.doubleTap,
         'function not overwritten');
+    });
+  });
+
+  suite('LowEndDeviceTargetHandler', function() {
+    var handler, target, clock;
+    setup(function() {
+      clock = sinon.useFakeTimers();
+      target = {
+        keyCode: 110
+      };
+
+      app.layoutManager.currentPage = {
+        imEngine: 'latin'
+      };
+
+      handler = new LowEndDeviceTargetHandler(target, app);
+    });
+
+    teardown(function() {
+      clock.restore();
+    });
+
+    test('speedlimit false results in 1 click', function() {
+      handler.commit({
+        speedlimit: false,
+        startTarget: {}
+      });
+      clock.tick(100);
+      assert.isTrue(
+        app.inputMethodManager.currentIMEngine.click.calledWith(110));
+      assert.isTrue(app.inputMethodManager.currentIMEngine.click.calledOnce);
+    });
+
+    test('speedlimit true results in 2 clicks', function() {
+      handler.commit({
+        speedlimit: true,
+        target: target,
+        startTarget: { keyCode: 111 }
+      });
+      clock.tick(100);
+
+      var ime = app.inputMethodManager.currentIMEngine;
+      assert.equal(ime.click.getCall(0).args[0], 111);
+      assert.equal(ime.click.getCall(1).args[0], 110);
+      sinon.assert.callCount(ime.click, 2);
+    });
+  });
+
+  suite('LowEndDeviceSpaceTargetHandler', function() {
+    var handler, target, clock;
+    setup(function() {
+      clock = sinon.useFakeTimers();
+      target = {
+        keyCode: 110
+      };
+
+      app.layoutManager.currentPage = {
+        imEngine: 'latin'
+      };
+
+      handler = new LowEndDeviceSpaceTargetHandler(target, app);
+    });
+
+    teardown(function() {
+      clock.restore();
+    });
+
+    test('speedlimit false results in 1 click', function() {
+      handler.commit({
+        speedlimit: false,
+        startTarget: {}
+      });
+      clock.tick(100);
+      assert.isTrue(
+        app.inputMethodManager.currentIMEngine.click.calledWith(110));
+      assert.isTrue(app.inputMethodManager.currentIMEngine.click.calledOnce);
+    });
+
+    test('speedlimit true results in 2 clicks', function() {
+      handler.commit({
+        speedlimit: true,
+        target: target,
+        startTarget: { keyCode: 111 }
+      });
+      clock.tick(100);
+
+      var ime = app.inputMethodManager.currentIMEngine;
+      assert.equal(ime.click.getCall(0).args[0], 111);
+      assert.equal(ime.click.getCall(1).args[0], 110);
+      sinon.assert.callCount(ime.click, 2);
     });
   });
 });
