@@ -35,7 +35,12 @@ var MockMozApps = {
         }
       }
       return this.mUninstallCallback;
-    }
+    },
+    setEnabled: function(app, enabled) {
+      app.enabled = enabled;
+    },
+    addEventListener: function() {},
+    removeEventListener: function() {}
   },
   getSelf: function() {
     return MockMozApps.mGetCurrentAppCallback;

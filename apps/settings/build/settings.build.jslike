@@ -38,7 +38,8 @@
     'modules/wifi_context': 'empty:',
     'modules/dialog_panel': 'empty:',
     'shared/tz_select': 'empty:',
-    'modules/defer': 'empty:'
+    'modules/defer': 'empty:',
+    'modules/navigator/mozApps': 'empty:'
   },
 
   findNestedDependencies: true,

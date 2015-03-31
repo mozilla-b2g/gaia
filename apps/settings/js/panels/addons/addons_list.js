@@ -6,19 +6,19 @@
 define(function(require) {
   'use strict';
 
+  var SettingsService = require('modules/settings_service');
   var ListView = require('modules/mvvm/list_view');
   var AddonItemTemplateFactory = require('panels/addons/addons_template');
 
   function AddonsList(root, manager) {
     this._enabled = false;
     this._listRoot = root;
-    this._addonsManager = manager;
-    var addonTemplate = AddonItemTemplateFactory({
-      disableAddon: this._addonsManager.disableAddon,
-      enableAddon: this._addonsManager.enableAddon
+    this._addonManager = manager;
+    var addonTemplate = AddonItemTemplateFactory(function onClick(addon) {
+      SettingsService.navigate('addon-details', { addon: addon });
     });
     this._listView = ListView(this._listRoot,
-      this._addonsManager.addons, addonTemplate);
+      this._addonManager.addons, addonTemplate);
   }
 
   AddonsList.prototype = {
