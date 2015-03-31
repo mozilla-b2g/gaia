@@ -207,6 +207,7 @@ suite('system/LogShake', function() {
       var expectedActivity = {
         name: 'share',
         data: {
+          type: 'application/vnd.moz-systemlog',
           blobs: [ mockBlob ],
           filenames: [ filename ]
         }
