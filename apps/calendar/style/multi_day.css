@@ -130,8 +130,7 @@
 
 .day-view .md__display-hour {
   width: 7rem;
-  text-align: left;
-  -moz-padding-start: 1.5rem;
+  padding: 0.2rem 0.5rem 0;
 }
 
 .week-view .md__display-hour .ampm {
@@ -488,10 +487,6 @@ html[dir="rtl"] .day-view .md__all-day {
 html[dir="rtl"] .md__allday-events {
   border-left: unset;
   border-right: 0.1rem solid #e2e2e2;
-}
-
-html[dir="rtl"] .day-view .md__display-hour {
-  text-align: right;
 }
 
 html[dir="rtl"] .md__days-wrapper,
