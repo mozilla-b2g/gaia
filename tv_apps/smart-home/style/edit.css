@@ -72,11 +72,6 @@
               url(images/animated_arrows_right.png) no-repeat right center / 13rem;
 }
 
-#add-new-folder-button {
-  /* This is not displayed until folder features are implemented. */
-  display: none;
-}
-
 #main-section[data-mode="edit"] .background,
 #main-section[data-mode="arrange"] .background {
   background-color: rgba(0, 0, 0, 0.8);
