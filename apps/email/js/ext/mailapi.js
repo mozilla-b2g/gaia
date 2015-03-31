@@ -661,6 +661,10 @@ var ContactCache = exports.ContactCache = {
    * generate N callbacks when 1 will do.
    */
   resolvePeep: function(addressPair) {
+    if (!addressPair) {
+      console.error("NO ADDRESS PAIR?", new Error().stack);
+      return;
+    }
     var emailAddress = addressPair.address;
     var entry = this._contactCache[emailAddress], contact, peep;
     var contactsAPI = navigator.mozContacts;
