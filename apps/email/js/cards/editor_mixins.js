@@ -17,7 +17,10 @@ define(function(require) {
         if (i) {
           frag.appendChild(document.createElement('br'));
         }
-        frag.appendChild(document.createTextNode(lines[i]));
+
+        if (lines[i]) {
+          frag.appendChild(document.createTextNode(lines[i]));
+        }
       }
       this._editorNode.appendChild(frag);
     },
