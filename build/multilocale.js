@@ -9,174 +9,6 @@ const MODNAME = 'multilocale';
 // and use it for locales that lack localization data
 const GAIA_SOURCE_LOCALE = 'en-US';
 
-function TimestampManager(baseDir, stageDir) {
-  this.timestampFile = utils.getFile(stageDir, 'timestamp-l10n.json');
-  this.fileModified = false;
-  this.timestamps = {};
-
-  this.loadTimestamps = function() {
-    if (this.timestampFile.exists()) {
-      this.timestamps = utils.getJSON(this.timestampFile);
-    }
-
-    if (!this.timestamps) {
-      this.timestamps = {};
-    }
-  };
-
-  this.addTimestamp = function(path, ts) {
-    this.fileModified = true;
-    this.timestamps[path] = ts;
-  };
-
-  this.getTimestamp = function(path) {
-    if (this.timestamps[path]) {
-      return this.timestamps[path];
-    }
-  };
-
-  this.writeTimestamps = function() {
-    if (this.fileModified) {
-      utils.writeContent(this.timestampFile,
-        JSON.stringify(this.timestamps, null, 2));
-    }
-  };
-
-  function hasCommand(cmdName) {
-    return utils.getEnvPath().some(function(path) {
-      try {
-        var cmd = utils.getFile(path, cmdName);
-        return cmd.exists();
-      } catch (e) {
-        // path not found
-      }
-      return false;
-    });
-  }
-
-  var gitCommand, hgCommand;
-
-  function getLastGitCommitTimestamp(path) {
-    var gitDir = utils.getFile(path, '.git');
-
-    if (!gitCommand) {
-      gitCommand = new utils.Commander('git');
-    }
-
-    var stderr, stdout;
-    var args = [
-      '--git-dir=' + gitDir.path,
-      'log',
-      '--format=%ct',
-      'HEAD',
-      '-1'
-    ];
-
-    var response, err;
-
-    var cmdOptions = {
-      stdout: function(data) {
-        stdout = data;
-      },
-      stderr: function(data) {
-        stderr = data;
-      },
-      done: function(data) {
-        if (stdout && !stderr && data.exitCode === 0) {
-          response = parseInt(stdout.trim()) * 1000;
-        } else {
-          err = stderr;
-        }
-      }
-    };
-
-    gitCommand.initPath(utils.getEnvPath());
-    gitCommand.runWithSubprocess(args, cmdOptions);
-
-    if (err) {
-      utils.log('Error: ' + err);
-    }
-    return response;
-  }
-
-  function getLastHGCommitTimestamp(path) {
-    var hgDir = utils.getFile(path, '.hg');
-    if (!hgCommand) {
-      hgCommand = new utils.Commander('hg');
-    }
-    var stderr, stdout;
-    var args = [
-      '--cwd=' + hgDir.path,
-      'log',
-      '--template={date(date, "%s")}',
-      '-l1',
-    ];
-
-    var response, err;
-
-    var cmdOptions = {
-      stdout: function(data) {
-        stdout = data;
-      },
-      stderr: function(data) {
-        stderr = data;
-      },
-      done: function(data) {
-        if (stdout && !stderr && data.exitCode === 0) {
-          response = parseInt(stdout.trim()) * 1000;
-        } else {
-          err = stderr;
-        }
-      }
-    };
-
-    hgCommand.initPath(utils.getEnvPath());
-    hgCommand.runWithSubprocess(args, cmdOptions);
-
-    if (err) {
-      utils.log('Error: ' + err);
-    }
-    return response;
-  }
-
-  function generateTimestamp(date) {
-    var chunks = [
-      date.getFullYear(),
-      date.getMonth() + 1,
-      date.getDate(),
-      date.getHours(),
-      date.getMinutes()
-    ];
-
-    return chunks.map(function(c) {
-      return c < 10 ? ('0' + c) : c.toString();
-    }).join('');
-  }
-
-  this.getTimestampFromPath = function(path) {
-    var ts = this.getTimestamp(path);
-    if (!ts) {
-      if (utils.fileExists(utils.joinPath(path, '.git')) &&
-          hasCommand('git')) {
-        ts = getLastGitCommitTimestamp(path);
-      } else if (utils.fileExists(utils.joinPath(path, '.hg')) &&
-                 hasCommand('hg')) {
-        ts = getLastHGCommitTimestamp(path);
-      }
-      if (ts) {
-        this.addTimestamp(path, ts);
-      }
-    }
-    var date = ts ? new Date(ts) : new Date();
-    return generateTimestamp(date);
-  };
-
-  this.getTimestampForLocale = function(loc) {
-    var path = utils.joinPath(baseDir, loc);
-    return this.getTimestampFromPath(path);
-  };
-}
-
 function L10nManager(gaiaDir,
                      localesFilePath,
                      localeBasedir,
@@ -205,7 +37,6 @@ function L10nManager(gaiaDir,
   this.official = subject.official;
   this.deviceType = subject.deviceType;
   this.defaultLocale = subject.defaultLocale;
-  this.timestamps = new TimestampManager(this.localeBasedir, subject.stageDir);
 
   /**
    * Copy l10n resources required by the .html file to build stage directory
@@ -383,6 +214,20 @@ function L10nManager(gaiaDir,
     });
   }
 
+  function getTimestamp(date) {
+    var chunks = [
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      date.getHours(),
+      date.getMinutes()
+    ];
+
+    return chunks.map(function(c) {
+      return c < 10 ? ('0' + c) : c.toString();
+    }).join('');
+  }
+
   function createMeta(doc, name) {
     var meta = doc.createElement('meta');
     meta.setAttribute('name', name);
@@ -391,7 +236,6 @@ function L10nManager(gaiaDir,
   }
 
   function buildL10nMeta(file, doc) {
-    self.timestamps.loadTimestamps();
     var metas = {
       availableLanguages: doc.querySelector('meta[name="availableLanguages"]'),
       defaultLanguage: doc.querySelector('meta[name="defaultLanguage"]'),
@@ -426,15 +270,10 @@ function L10nManager(gaiaDir,
 
     metas.defaultLanguage.setAttribute('content', self.defaultLocale);
 
-    var gaiaTs = null;
-    if (!self.localeBasedir) {
-      gaiaTs = self.timestamps.getTimestampFromPath(self.gaiaDir);
-    }
+    var timestamp = getTimestamp(new Date());
     metas.availableLanguages.setAttribute('content',
       self.locales.map(function(loc) {
-        var ts = self.localeBasedir ?
-          self.timestamps.getTimestampForLocale(loc) : gaiaTs;
-        return loc + ':' + ts;
+        return loc + ':' + timestamp;
       }).join(', '));
 
     var settingsFile = utils.getFile(self.gaiaDir, 'build', 'config',
@@ -445,7 +284,6 @@ function L10nManager(gaiaDir,
 
     var str = utils.serializeDocument(doc);
     utils.writeContent(file, str);
-    self.timestamps.writeTimestamps();
   }
 
   /**
@@ -695,7 +533,6 @@ function execute(options) {
       official: options.OFFICIAL,
       defaultLocale: options.GAIA_DEFAULT_LOCALE,
       deviceType: options.GAIA_DEVICE_TYPE,
-      stageDir: options.STAGE_DIR
     });
 
   if (utils.isExternalApp(webapp)) {
