@@ -386,9 +386,9 @@ contacts.Details = (function() {
   var renderOrg = function cd_renderOrg(contact) {
     if (contact.org && contact.org.length > 0 && contact.org[0] !== '') {
       orgTitle.textContent = contact.org[0];
-      orgTitle.className = '';
+      orgTitle.classList.remove('hide');
     } else {
-      orgTitle.className = 'hide';
+      orgTitle.classList.add('hide');
       orgTitle.textContent = '';
     }
   };

@@ -1115,3 +1115,12 @@ html[dir="rtl"] #custom-tag-reset {
   margin-right: 0;
   padding-right: 1.5rem;
 }
+
+/* Force align with system because dir="auto" will ignore text-align: start*/
+.force-align[dir="auto"] {
+  text-align: left;
+}
+
+html[dir="rtl"] .force-align[dir="auto"] {
+  text-align: right;
+}
