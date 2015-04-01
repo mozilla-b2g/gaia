@@ -1,6 +1,6 @@
 'use strict';
 /* global Application, FilterManager, CardManager, Clock, Deck, Edit, Folder,
-          Home, KeyNavigationAdapter, MessageHandler, MozActivity, SearchBar,
+          KeyNavigationAdapter, MessageHandler, MozActivity, SearchBar,
           SharedUtils, SpatialNavigator, URL, XScrollable, Animations, Utils */
 /* jshint nonew: false */
 
@@ -40,10 +40,11 @@
     cardListElem: document.getElementById('card-list'),
     folderListElem: document.getElementById('folder-list'),
     cardManager: undefined,
-    settingGroup: document.getElementById('settings-group'),
+    settingsGroup: document.getElementById('settings-group'),
     editButton: document.getElementById('edit-button'),
     settingsButton: document.getElementById('settings-button'),
     searchButton: document.getElementById('search-button'),
+    timeElem: document.getElementById('time'),
 
 
     init: function() {
@@ -79,7 +80,7 @@
                 referenceElement: that.cardScrollable});
 
         that.navigableScrollable = [that.cardScrollable, that.folderScrollable];
-        var collection = that.getNavigateElements();
+        var collection = that._getNavigateElements();
 
         that.spatialNavigator = new SpatialNavigator(collection);
         that.spatialNavigator.straightOnly = true;
@@ -104,6 +105,7 @@
         var handleCardFocusBound = that.handleCardFocus.bind(that);
         var handleCardUnfocusBound = that.handleCardUnfocus.bind(that);
         var handleCardUnhoverBound = that.handleCardUnhover.bind(that);
+
         that.navigableScrollable.forEach(function(scrollable) {
           scrollable.on('focus', handleCardFocusBound);
           scrollable.on('unfocus', handleCardUnfocusBound);
@@ -182,12 +184,7 @@
           // Catch focus back unless there is a pin activity since callback of
           // pinning would catch the focus for us.
           if (!that.messageHandler.resumeActivity()) {
-            var focusElem = that.spatialNavigator.getFocusedElement();
-            if (focusElem.CLASS_NAME === 'XScrollable') {
-              that._focusScrollable.catchFocus();
-            } else {
-              that.spatialNavigator.focus();
-            }
+            that.spatialNavigator.focus();
           }
           that.isNavigable = true;
           that.skipBubble = null;
@@ -264,8 +261,6 @@
         newCardButtonElem.classList.remove('last-card');
         newCardButtonElem.removeEventListener('transitionend', onPinned);
       });
-      this.cardListElem.classList.add('card-list-slide');
-
       // insert new card into cardScrollable
       this.isNavigable = false;
       scrollable.on('slideEnd', function() {
@@ -297,9 +292,9 @@
     },
 
     onCardRemoved: function(scrollable, indices) {
-      indices.forEach(function(indices) {
-        var elm = scrollable.getNode(indices);
-        if (elm.dataset.revokableURL) {
+      indices.forEach(function(idx) {
+        var elm = scrollable.getNode(idx);
+        if (elm && elm.dataset.revokableURL) {
           URL.revokeObjectURL(elm.dataset.revokableURL);
         }
       }, this);
@@ -327,7 +322,7 @@
       }
     },
 
-    createWave: function(cardButton, card) {
+    _createWave: function(cardButton, card) {
 
       // deck's icon using gaia font
       var deckIcon = document.createElement('span');
@@ -463,7 +458,7 @@
         }
       } else if (card instanceof Deck) {
         cardButton.setAttribute('app-type', 'deck');
-        this.createWave(cardButton, card);
+        this._createWave(cardButton, card);
       } else if (card instanceof Folder) {
         cardButton.setAttribute('app-type', 'folder');
         cardButton.dataset.icon = 'folder';
@@ -552,7 +547,7 @@
       this.searchButton.classList.remove('hidden');
     },
 
-    getNavigateElements: function() {
+    _getNavigateElements: function() {
       var elements = [];
       this.navigableIds.forEach(function(id) {
         var elem = document.getElementById(id);
@@ -574,7 +569,7 @@
     handleFocus: function(elem) {
       if (elem.CLASS_NAME == 'XScrollable') {
         this._focusScrollable = elem;
-        elem.catchFocus();
+        elem.focus();
         this.checkFocusedGroup();
       } else if (elem.nodeName) {
         if (this._focus) {
@@ -611,7 +606,7 @@
       // Settings group should appear opened after switching from edit state
       // back to normal state. So we'd keep it opened while in edit and arrange
       // mode.
-      if (this._focusedGroup === this.settingGroup && this.edit.mode) {
+      if (this._focusedGroup === this.settingsGroup && this.edit.mode) {
         return;
       }
       // close the focused group when we move focus out of this group.
@@ -791,9 +786,8 @@
       timeFormat = timeFormat.replace('%p', '').trim();
       var formatted = f.localeFormat(now, timeFormat);
 
-      var timeElem = document.getElementById('time');
-      timeElem.innerHTML = formatted;
-      timeElem.dataset.ampm = use12Hour ? f.localeFormat(now, '%p') : '';
+      this.timeElem.innerHTML = formatted;
+      this.timeElem.dataset.ampm = use12Hour ? f.localeFormat(now, '%p') : '';
     },
 
     restartClock: function() {
@@ -816,5 +810,3 @@
   exports.Home = Home;
 }(window));
 
-window.home = new Home();
-window.home.init();

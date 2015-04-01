@@ -155,7 +155,7 @@
           }
         }
         this._focusElem = elem;
-        elem.catchFocus();
+        elem.focus();
       } else if (elem.nodeName) {
 
         // When we move focus back to app-deck-grid-view area

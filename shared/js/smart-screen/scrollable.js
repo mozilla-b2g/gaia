@@ -608,7 +608,7 @@
       this.nodes[idx2] = node1;
       this._setNodePosition(idx1);
       this._setNodePosition(idx2);
-      this.catchFocus();
+      this.focus();
 
       // TODO: handle cases that one of the swapped nodes is focused.
       // ... should we really need to handle this case?
@@ -675,13 +675,11 @@
       }
     },
 
-    catchFocus: function() {
-      this.spatialNavigator.focus(this.currentItem || 0);
-    },
-
     focus: function(item) {
       if (typeof item === 'number') {
         item = this.getItemFromNode(this.nodes[item]);
+      } else if (typeof item === 'undefined') {
+        item = this.currentItem || 0;
       }
       this.spatialNavigator.focus(item);
     },

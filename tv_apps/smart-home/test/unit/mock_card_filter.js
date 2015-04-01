@@ -5,6 +5,14 @@
     this.mEventHandlers = {};
   };
 
+  MockCardFilter.FILTERS = Object.freeze({
+    'ALL': 'filter',
+    'TV': 'tv',
+    'DASHBOARD': 'dashboard',
+    'DEVICE': 'device',
+    'APPLICATION': 'application'
+  });
+
   MockCardFilter.prototype = {
     start: function() {},
     stop: function() {},
