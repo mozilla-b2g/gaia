@@ -15,6 +15,7 @@ define(function(require) {
   var SettingsPanel = require('modules/settings_panel');
 
   const MAX_DEVICE_NAME_LENGTH = 20;
+  const VISIBLE_TIMEOUT_TIME = 120000;  // Visibility will timeout after 2 mins.
 
   var _debug = false;
   var Debug = function() {};
@@ -37,6 +38,8 @@ define(function(require) {
 
         // Init state for checking left app or not.
         this._leftApp = false;
+        // Init an instance to maintain visibility timeout.
+        this._visibleTimeout = null;
 
         elements = {
           panel: panel,
@@ -118,6 +121,9 @@ define(function(require) {
 
         BtContext.observe('discoverable', this._updateVisibleCheckbox);
         this._updateVisibleCheckbox(BtContext.discoverable);
+
+        BtContext.observe('discoverable', this._updateVisibilityTimer);
+        this._updateVisibilityTimer(BtContext.discoverable);
 
         BtContext.observe('name', this._updateVisibleName);
         this._updateVisibleName(BtContext.name);
@@ -315,6 +321,27 @@ define(function(require) {
         Debug('_updateVisibleCheckbox(): ' +
               'callback from observe "discoverable" = ' + discoverable);
         elements.visible.visibleCheckBox.checked = discoverable;
+      },
+
+      _updateVisibilityTimer: function(discoverable) {
+        Debug('_updateVisibilityTimer(): ' +
+              'callback from observe "discoverable" = ' + discoverable);
+        // Visibility will time out after 2 mins.
+        if (discoverable && !this._visibleTimeout) {
+          Debug('_updateVisibilityTimer(): setTimeout to disable visibility ' +
+                'after 2 minutes');
+          this._visibleTimeout = setTimeout(() => {
+            BtContext.setDiscoverable(false);
+          }, VISIBLE_TIMEOUT_TIME);
+          // Early return here since already set timeout.
+          return;
+        }
+
+        if (!discoverable && this._visibleTimeout) {
+          Debug('_updateVisibilityTimer(): clearTimeout');
+          clearTimeout(this._visibleTimeout);
+          this._visibleTimeout = null;
+        }
       },
 
       _updateVisibleName: function(name) {
