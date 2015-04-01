@@ -11,7 +11,7 @@ from gaiatest.apps.music.regions.player_view import PlayerView
 
 class SublistView(Base):
 
-    _song_number_locator = (By.CSS_SELECTOR, 'span.list-song-index')
+    _song_number_locator = (By.CSS_SELECTOR, 'bdi.list-song-index')
     _play_control_locator = (By.ID, 'views-sublist-controls-play')
 
     def __init__(self, marionette):
