@@ -6,7 +6,8 @@
           PageSwitchingTargetHandler, CapsLockTargetHandler,
           SwitchKeyboardTargetHandler, ToggleCandidatePanelTargetHandler,
           DismissSuggestionsTargetHandler, BackspaceTargetHandler,
-          HandwritingPadTargetHandler */
+          HandwritingPadTargetHandler, LowEndDeviceTargetHandler,
+          LowEndDeviceSpaceTargetHandler, TargetHandlerManagerSettings */
 
 (function(exports) {
 
@@ -45,6 +46,17 @@ TargetHandlersManager.prototype.start = function() {
   activeTargetsManager.onnewtargetwillactivate =
     this._callTargetAction.bind(this, 'newTargetActivate', false, false);
   activeTargetsManager.start();
+
+  this.settings = new TargetHandlerManagerSettings();
+  this.settings.promiseManager = this.app.settingsPromiseManager;
+  this.settings.onsettingchange =
+    this._handleSettingsChange.bind(this);
+  this.settings.initSettings().then(
+    this._handleSettingsChange.bind(this),
+    function rejected(err) {
+      console.error('Fatal Error! Failed to get initial ' +
+                    'targetHandlersManager settings.', err);
+    });
 };
 
 TargetHandlersManager.prototype.stop = function() {
@@ -53,6 +65,8 @@ TargetHandlersManager.prototype.stop = function() {
   this.handlers = null;
   this.activeTargetsManager.stop();
   this.activeTargetsManager = null;
+
+  this.settings = null;
 };
 
 // This method is the scaffold of our partical functions:
@@ -135,7 +149,11 @@ TargetHandlersManager.prototype._createHandlerForTarget = function(target) {
         handler = new BackspaceTargetHandler(target, this.app);
         break;
       case KeyEvent.DOM_VK_SPACE:
-        handler = new SpaceKeyTargetHandler(target, this.app);
+        if (this._lowEndDevice) {
+          handler = new LowEndDeviceSpaceTargetHandler(target, this.app);
+        } else {
+          handler = new SpaceKeyTargetHandler(target, this.app);
+        }
         break;
 
       case KeyEvent.DOM_VK_ALT:
@@ -155,7 +173,11 @@ TargetHandlersManager.prototype._createHandlerForTarget = function(target) {
         break;
 
       default:
-        handler = new DefaultTargetHandler(target, this.app);
+        if (this._lowEndDevice) {
+          handler = new LowEndDeviceTargetHandler(target, this.app);
+        } else {
+          handler = new DefaultTargetHandler(target, this.app);
+        }
         break;
     }
   } else {
@@ -183,6 +205,13 @@ TargetHandlersManager.prototype._preprocessActions = function(action,target) {
       }
       break;
   }
+};
+
+TargetHandlersManager.prototype._handleSettingsChange = function(values) {
+  this._lowEndDevice = values.deviceinfoHardware === 'sp8810' || // Tarako
+                       values.deviceinfoHardware === 'roamer2' || // ZTE Open
+                       values.deviceinfoProductModel === 'GP-KEON' ||
+                       values.deviceinfoProductModel === 'GoFox F15';
 };
 
 exports.TargetHandlersManager = TargetHandlersManager;

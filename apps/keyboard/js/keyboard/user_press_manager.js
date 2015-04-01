@@ -17,12 +17,18 @@ var UserPress = function(obj, coords) {
   // |target| is an abstract key object, not a DOM element
   this.target = obj;
   this.updateCoords(coords, false);
+  this.speedlimit = false;
+
+  this.startTime = Date.now();
+  this.startCoords = coords;
+  this.startTarget = obj;
 };
 
 UserPress.prototype.updateCoords = function(coords, moved) {
   this.moved = moved;
   this.clientX = coords.clientX;
   this.clientY = coords.clientY;
+  this.endTime = Date.now();
 };
 
 /**
@@ -50,6 +56,8 @@ UserPressManager.prototype.onpressmove = null;
 UserPressManager.prototype.onpressend = null;
 
 UserPressManager.prototype.MOVE_LIMIT = 5;
+UserPressManager.prototype.MIN_BOGUS_EVENT_DISTANCE = 20;
+UserPressManager.prototype.MIN_BOGUS_EVENT_VELOCITY = 0.3;
 
 UserPressManager.prototype.start = function() {
   this.app.console.log('UserPressManager.start()');
@@ -234,11 +242,40 @@ UserPressManager.prototype._handleFinishPress = function(el, coords, id) {
   press.updateCoords(coords,
     press.moved || this._distanceReachesLimit(id, coords));
 
+  press.speedlimit = this._exceedSpeedLimit(press);
+
   if (typeof this.onpressend === 'function') {
     this.onpressend(press, id);
   }
 
   this.presses.delete(id);
+};
+
+/*
+   * A hack to detect bogus touch events on low-end devices.
+   * Due to a hardware limitation the multitouch does not work
+   * properly on low-end devices. In this function we try to
+   * detect improbable touch events. These bogus events occur
+   * when users type fast and do not lift up their finger before
+   * initiating a new touch.
+   * See bug 1080652.
+   */
+UserPressManager.prototype._exceedSpeedLimit = function(press) {
+  var dx = press.startCoords.clientX - press.clientX;
+  var dy = press.startCoords.clientY - press.clientY;
+
+  if (dx + dy === 0) {
+    return false;
+  }
+
+  var time = press.endTime - press.startTime;
+  var distance = Math.sqrt(dx * dx + dy * dy);
+
+  // Minimum distance to consider bogus events
+  if (distance < this.MIN_BOGUS_EVENT_DISTANCE) {
+    return false;
+  }
+  return (distance / time > this.MIN_BOGUS_EVENT_VELOCITY);
 };
 
 UserPressManager.prototype._distanceReachesLimit = function(id, newCoord) {

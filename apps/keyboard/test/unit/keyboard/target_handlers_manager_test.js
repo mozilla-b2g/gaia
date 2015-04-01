@@ -1,12 +1,14 @@
 'use strict';
 
 /* global TargetHandlersManager, ActiveTargetsManager,
-          DefaultTargetHandler, KeyEvent, LayoutManager, KeyboardConsole */
+          DefaultTargetHandler, KeyEvent, LayoutManager, KeyboardConsole,
+          SettingsPromiseManager */
 
 require('/js/keyboard/active_targets_manager.js');
 require('/js/keyboard/target_handlers.js');
 require('/js/keyboard/layout_manager.js');
 require('/js/keyboard/console.js');
+require('/js/keyboard/settings.js');
 
 require('/js/keyboard/target_handlers_manager.js');
 
@@ -46,8 +48,13 @@ suite('TargetHandlersManager', function() {
       .returns(handlerStub);
     this.sinon.stub(window, 'HandwritingPadTargetHandler')
       .returns(handlerStub);
+    this.sinon.stub(window, 'LowEndDeviceTargetHandler')
+      .returns(handlerStub);
+    this.sinon.stub(window, 'LowEndDeviceSpaceTargetHandler')
+      .returns(handlerStub);
 
     app = {
+      settingsPromiseManager: new SettingsPromiseManager(),
       console: this.sinon.stub(KeyboardConsole.prototype),
       layoutManager: this.sinon.stub(LayoutManager.prototype)
     };

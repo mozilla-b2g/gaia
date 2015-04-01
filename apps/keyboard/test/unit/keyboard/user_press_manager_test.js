@@ -89,7 +89,6 @@ suite('UserPressManager', function() {
     for (var key in expected[0]) {
       assert.equal(args[0][key], expected[0][key], msg);
     }
-    assert.equal(Object.keys(args[0]).length, Object.keys(expected[0]).length);
     assert.equal(args[1], expected[1], msg);
   };
 
@@ -1110,6 +1109,143 @@ suite('UserPressManager', function() {
       assert.isTrue(el.removeEventListener.calledWith('touchend'));
       assert.isTrue(el.removeEventListener.calledWith('touchcancel'));
       assert.equal(el.removeEventListener.callCount, 3);
+
+      manager.stop();
+    });
+  });
+
+  suite('speedlimit', function() {
+    var manager, el, dummyKey, clock;
+
+    setup(function() {
+      clock = sinon.useFakeTimers();
+
+      manager = new UserPressManager(app);
+      manager.onpressstart = this.sinon.stub();
+      manager.onpressmove = this.sinon.stub();
+      manager.onpressend = this.sinon.stub();
+      manager.start();
+
+      el = new MockEventTarget();
+
+      dummyKey = {
+        dummy: 'dummy'
+      };
+
+      domObjMap.set(el, dummyKey);
+      var touchstartEvent = {
+        type: 'touchstart',
+        target: el,
+        changedTouches: [
+          {
+            target: el,
+            identifier: 0,
+            clientX: 100,
+            clientY: 110
+          }
+        ]
+      };
+      container.dispatchEvent(touchstartEvent);
+      assert.isTrue(manager.onpressstart.calledOnce);
+      assert.equal(manager.presses.size, 1);
+      assertOnpressArgs(manager.onpressstart.getCall(0).args, 
+        [{
+          target: dummyKey,
+          moved: false,
+          clientX: 100,
+          clientY: 110
+        }, 0]);
+
+      document.elementFromPoint.returns(el);
+    });
+
+    teardown(function() {
+      clock.restore();
+    });
+
+    test('exceeding velocity and distance', function() {
+      var touchendEvent = {
+        type: 'touchend',
+        target: el,
+        changedTouches: [
+          {
+            target: el,
+            identifier: 0,
+            clientX: 120,
+            clientY: 130
+          }
+        ]
+      };
+      el.dispatchEvent(touchendEvent);
+
+      assert.strictEqual(manager.onpressend.getCall(0).args[0].speedlimit, 
+        true);
+
+      manager.stop();
+    });
+
+    test('exceeding distance not velocity', function() {
+      var touchendEvent = {
+        type: 'touchend',
+        target: el,
+        changedTouches: [
+          {
+            target: el,
+            identifier: 0,
+            clientX: 120,
+            clientY: 130
+          }
+        ]
+      };
+      clock.tick(100);
+      el.dispatchEvent(touchendEvent);
+
+      assert.strictEqual(manager.onpressend.getCall(0).args[0].speedlimit, 
+        false);
+
+      manager.stop();
+    });
+
+    test('not exceeding distance and not velocity', function() {
+      var touchendEvent = {
+        type: 'touchend',
+        target: el,
+        changedTouches: [
+          {
+            target: el,
+            identifier: 0,
+            clientX: 101,
+            clientY: 111
+          }
+        ]
+      };
+      clock.tick(100);
+      el.dispatchEvent(touchendEvent);
+
+      assert.strictEqual(manager.onpressend.getCall(0).args[0].speedlimit, 
+        false);
+
+      manager.stop();
+    });
+
+    test('exceeding velocity not distance', function() {
+      var touchendEvent = {
+        type: 'touchend',
+        target: el,
+        changedTouches: [
+          {
+            target: el,
+            identifier: 0,
+            clientX: 101,
+            clientY: 111
+          }
+        ]
+      };
+      clock.tick(1);
+      el.dispatchEvent(touchendEvent);
+
+      assert.strictEqual(manager.onpressend.getCall(0).args[0].speedlimit, 
+        false);
 
       manager.stop();
     });
