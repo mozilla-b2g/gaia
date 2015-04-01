@@ -84,14 +84,15 @@ Music.prototype = {
     return this.client.helper.waitForElement(Music.Selector.firstSongSublist);
   },
 
-  get songs() {
-    this.waitForSublist();
+  // Helper for the getter.
+  _getListItems: function(selector) {
+    this.waitForAList(selector);
 
-    var list = this.client.findElement(Music.Selector.viewsSublist);
-    assert.ok(list);
+    var list = this.client.findElement(selector);
+    assert.ok(list, 'Couldn\'t find element ' + selector);
 
     var list_items = list.findElements('li.list-item', 'css selector');
-    assert.ok(list_items);
+    assert.ok(list_items, 'Coudln\'t find list-items for ' + selector);
 
     return list_items;
   },
@@ -101,13 +102,11 @@ Music.prototype = {
   },
 
   get listItems() {
-    var list = this.client.helper.waitForElement(Music.Selector.viewsList);
-    assert.ok(list);
+    return this._getListItems(Music.Selector.viewsList);
+  },
 
-    var list_items = list.findElements('li.list-item', 'css selector');
-    assert.ok(list_items);
-
-    return list_items;
+  get songs() {
+    return this._getListItems(Music.Selector.viewsSublist);
   },
 
   get playButton() {
@@ -177,10 +176,18 @@ Music.prototype = {
     }
   },
 
+  waitForListEnumerate: function() {
+    this.client.waitFor(function() {
+      return this.client.executeScript(function() {
+        return window.wrappedJSObject.ListView.handle.state === 'complete';
+      });
+    }.bind(this));
+  },
+
   waitFinishedScanning: function() {
     this.client.waitFor(function() {
       return this.client.executeScript(function() {
-        return window.wrappedJSObject.musicdb.scanning === false;
+        return window.wrappedJSObject.musicdb.initialScanComplete === true;
       });
     }.bind(this));
   },
@@ -196,9 +203,9 @@ Music.prototype = {
     }.bind(this));
   },
 
-  waitForSublist: function() {
+  waitForAList: function(selector) {
     this.client.waitFor(function() {
-      return this.client.findElement(Music.Selector.viewsSublist).displayed();
+      return this.client.findElement(selector).displayed();
     }.bind(this));
   },
 
