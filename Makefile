@@ -367,6 +367,8 @@ SETTINGS_PATH ?= build/config/custom-settings.json
 KEYBOARD_LAYOUTS_PATH ?= build/config/keyboard-layouts.json
 CONTACTS_IMPORT_SERVICES_PATH ?= build/config/communications_services.json
 EMAIL_SERVICES_PATH ?=
+DEFAULT_KEYBOAD_SYMBOLS_FONT ?= shared/style/keyboard_symbols/Keyboard-Symbols.ttf
+DEFAULT_GAIA_ICONS_FONT ?= shared/elements/gaia-icons/fonts/gaia-icons.ttf
 
 ifdef GAIA_DISTRIBUTION_DIR
   DISTRIBUTION_SETTINGS := $(GAIA_DISTRIBUTION_DIR)$(SEP)settings.json
@@ -541,7 +543,9 @@ define BUILD_CONFIG
   "P" : "$(P)", \
   "VERBOSE" : "$(VERBOSE)", \
   "RAPTOR" : "$(RAPTOR)", \
-  "SHARE_PERF_USAGE": "$(SHARE_PERF_USAGE)" \
+  "SHARE_PERF_USAGE": "$(SHARE_PERF_USAGE)", \
+  "DEFAULT_KEYBOAD_SYMBOLS_FONT": "$(DEFAULT_KEYBOAD_SYMBOLS_FONT)", \
+  "DEFAULT_GAIA_ICONS_FONT": "$(DEFAULT_GAIA_ICONS_FONT)" \
 }
 endef
 
@@ -703,6 +707,12 @@ modules.tar: gaia_node_modules.revision
 	@echo Downloading latest node_modules package. This may take several minutes...
 	-$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/$(NODE_MODULES_REV) &&\
 	mv $(NODE_MODULES_REV) "$(NODE_MODULES_SRC)"
+
+gaia.zip: $(DEFAULT_KEYBOAD_SYMBOLS_FONT) $(DEFAULT_GAIA_ICONS_FONT) $(PROFILE_FOLDER)
+	@mkdir -p tmp/gaia tmp/gonk/system/fonts/hidden && cp -r $(PROFILE_FOLDER) tmp/gaia && \
+	 cp $(DEFAULT_GAIA_ICONS_FONT) tmp/gonk/system/fonts/hidden && \
+	 cp $(DEFAULT_KEYBOAD_SYMBOLS_FONT) tmp/gonk/system/fonts/hidden
+	@cd tmp/ && zip -r -9 -u ../gaia.zip . && cd ../ && rm -r tmp/
 
 git-gaia-node-modules: gaia_node_modules.revision
 	if [ ! -d "$(NODE_MODULES_SRC)" ] ; then \
