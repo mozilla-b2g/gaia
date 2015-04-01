@@ -369,6 +369,10 @@ function SimPinDialog(dialog) {
 
   function clear() {
     errorMsg.hidden = true;
+    triesLeftMsg.hidden = true;
+    errorMsgHeader.textContent = '';
+    errorMsgBody.textContent = '';
+    triesLeftMsg.textContent = '';
     pinInput.value = '';
     pukInput.value = '';
     newPinInput.value = '';
