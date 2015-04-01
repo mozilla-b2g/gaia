@@ -21,6 +21,11 @@ var Pairview = {
    */
   _pairMethod: null,
 
+  /**
+   * event handler of pairing request
+   */
+  _options: null,
+
   _passkey: '',
 
   pairview: document.getElementById('pair-view'),
@@ -70,16 +75,20 @@ var Pairview = {
       _(stringName, {device: truncatedDeviceName});
 
     switch (this._pairMethod) {
+      case 'displaypasskey':
       case 'confirmation':
         this.passkey.textContent = this._passkey;
         this.comfirmationItem.hidden = false;
         this.pinInputItem.hidden = true;
         break;
-
-      case 'pincode':
+      case 'enterpincode':
         this.pinInputItem.hidden = false;
         this.comfirmationItem.hidden = true;
         this.pinInput.focus();
+        break;
+      case 'consent':
+        this.comfirmationItem.hidden = false;
+        this.pinInputItem.hidden = true;
         break;
     }
   },
@@ -92,8 +101,8 @@ var Pairview = {
    * @param {String} method - method of this pairing request
    * @param {Object} options
    * @param {String} options.deviceName - name of the remote bluetooth device
-   * @param {BluetoothPairingHandle} options.handle - property handle that 
-                                                      carries specific method 
+   * @param {BluetoothPairingHandle} options.handle - property handle that
+                                                      carries specific method
                                                       to reply by user.
    */
   init: function pv_init(method, options) {
@@ -113,34 +122,19 @@ var Pairview = {
   },
 
   close: function pv_close() {
-    switch (this._pairMethod) {
-      case 'pincode':
-        // Since user clicked close button, we set a empty code to reject.
-        this._options.handle.setPinCode('').then(() => {
-          this.debug('Resolved setPinCode operation for set empty pin code');
-          // Close window by self.
-          window.close();
-        }, (aReason) => {
-          this.debug('Rejected setPinCode with reason: ' + aReason +
-                     ' for set empty pin code');
-          // Close window by self.
-          window.close();
-        });
-        break;
-      case 'confirmation':
-        // Since user clicked close button, we reject the pairing request here.
-        this._options.handle.setPairingConfirmation(false).then(() => {
-          this.debug('Resolved setPairingConfirmation operation for reject');
-          // Close window by self.
-          window.close();
-        }, (aReason) => {
-          this.debug('Rejected setPairingConfirmation with reason: ' + 
-                     aReason + ' for reject');
-          // Close window by self.
-          window.close();
-        });
-        break;
-    }
+    // Since user clicked close button, we reject pairing request.
+    // Because the reject() interface of pairing requests are same, we do same
+    // operation here.
+    this._options.handle.reject().then(() => {
+      this.debug('Resolved in reject ' + this._pairMethod + ' request.');
+      // Close window by self.
+      window.close();
+    }, (aReason) => {
+      this.debug('Rejected in reject ' + this._pairMethod +
+                 ' request with reason: ' + aReason);
+      // Close window by self.
+      window.close();
+    });
   },
 
   closeInput: function pv_closeInput() {
@@ -166,7 +160,12 @@ var Pairview = {
             this.closeButton.disabled = true;
 
             switch (this._pairMethod) {
-              case 'pincode':
+              case 'displaypasskey':
+                // Do nothing here since the pairing method display passkey only
+                // Close window by self.
+                window.close();
+                break;
+              case 'enterpincode':
                 var pinCode = this.pinInput.value;
                 this._options.handle.setPinCode(pinCode).then(() => {
                   this.debug('Resolved setPinCode operation');
@@ -179,12 +178,13 @@ var Pairview = {
                 });
                 break;
               case 'confirmation':
-                this._options.handle.setPairingConfirmation(true).then(() => {
-                  this.debug('Resolved setPairingConfirmation operation');
+              case 'consent':
+                this._options.handle.accept().then(() => {
+                  this.debug('Resolved in ' + this._pairMethod + ' request');
                   // Close window by self.
                   window.close();
                 }, (aReason) => {
-                  this.debug('Rejected setPairingConfirmation ' + 
+                  this.debug('Rejected in ' + this._pairMethod + ' request ' +
                              ' with reason: ' + aReason);
                   // Close window by self.
                   window.close();
