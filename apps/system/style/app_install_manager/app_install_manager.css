@@ -69,6 +69,10 @@
   text-overflow: ellipsis;
 }
 
+#app-install-author-url {
+  direction: ltr;
+}
+
 #app-install-cancel-dialog small:first-child {
   margin-bottom: 1rem;
 }
