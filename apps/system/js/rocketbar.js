@@ -274,12 +274,7 @@
         case 'utilitytray-overlayopening':
         case 'utility-tray-overlayopened':
         case 'simlockrequestfocus':
-          if (this._activateCall) {
-            this._activateCall
-              .then(this._closeSearch.bind(this));
-          } else {
-            this._closeSearch();
-          }
+          this._closeSearch();
           break;
         case 'lockscreen-appopened':
           this.handleLock(e);
@@ -460,9 +455,7 @@
      * @memberof Rocketbar.prototype
      */
     _handle_home: function() {
-      if (this.isActive()) {
-        this._closeSearch();
-      }
+      this._closeSearch();
       return true;
     },
 
@@ -523,8 +516,17 @@
     },
 
     _closeSearch: function() {
-      this.hideResults();
-      this.deactivate();
+      var hideAndDeactivate = () => {
+        this.hideResults();
+        this.deactivate();
+      };
+
+      if (this._activateCall) {
+        this._activateCall
+          .then(hideAndDeactivate);
+      } else {
+        hideAndDeactivate();
+      }
     },
 
     /**
