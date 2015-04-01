@@ -358,5 +358,64 @@ marionette('Music player playlist', function() {
       assert.equal(PlaylistHelper.songTitle(songs[1]), 'Yield to thread');
     });
 
+    test('Shuffle all sort order', function() {
+      music.launch();
+      music.waitForFirstTile();
+
+      music.switchToPlaylistsView();
+
+      var notrandom = 0;
+      var lastTitle = '';
+      var loopCount = 10;
+      for (var i = 0; i < loopCount; i++) {
+
+        // selecting the playlist will put us into the player.
+        music.selectPlaylist('Shuffle all');
+
+        // wait for the player.
+        client.helper.waitForElement(Music.Selector.coverImage);
+
+        var title = music.title.text();
+        if (title === lastTitle) {
+          notrandom++;
+        }
+        lastTitle = title;
+        // tap back
+        music.tapHeaderActionButton();
+      }
+      // the first loop will never be "notrandom".
+      assert.notEqual(notrandom, loopCount - 1, 'we didn\'t randomise');
+    });
+
+    test('Shuffle playlist order', function() {
+      music.launch();
+      music.waitForFirstTile();
+
+      music.switchToPlaylistsView();
+
+      music.selectPlaylist('Least played');
+
+      var notrandom = 0;
+      var lastTitle = '';
+      var loopCount = 10;
+      for (var i = 0; i < loopCount; i++) {
+
+        // tapping shuffle will put us into the player.
+        music.sublistShuffleButton.tap();
+
+        // wait for the player.
+        client.helper.waitForElement(Music.Selector.coverImage);
+
+        var title = music.title.text();
+        if (title === lastTitle) {
+          notrandom++;
+        }
+        lastTitle = title;
+        // tap back
+        music.tapHeaderActionButton();
+      }
+      assert.notEqual(notrandom, loopCount - 1, 'we didn\'t randomise');
+    });
+
   });
 });
