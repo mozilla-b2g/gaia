@@ -185,14 +185,31 @@ suite('system/UtilityTray', function() {
     });
 
     suite('showing', function() {
+      var publishStub;
+
+      setup(function() {
+        UtilityTray.isTap = true;
+        publishStub = this.sinon.stub(UtilityTray, 'publish');
+      });
+
       test('should not be shown by a tap', function() {
         fakeTouches(0, 5);
         assert.equal(UtilityTray.showing, false);
       });
 
+      test('should not trigger overlayopening event by a tap', function() {
+        fakeTouches(0, 5);
+        assert.isFalse(publishStub.calledWith('-overlayopening'));
+      });
+
       test('should be shown by a drag from the top', function() {
         fakeTouches(0, 100);
         assert.equal(UtilityTray.showing, true);
+      });
+
+      test('should trigger overlayopening event', function() {
+        fakeTouches(0, 100);
+        assert.isTrue(publishStub.calledWith('-overlayopening'));
       });
 
       test('should send a touchcancel to the oop active app' +
@@ -533,16 +550,6 @@ suite('system/UtilityTray', function() {
       setup(function() {
         UtilityTray.active = false;
         UtilityTray.shown = false;
-      });
-
-      test('should fire a utility-tray-overlayopening event', function(done) {
-        window.addEventListener('utility-tray-overlayopening',
-          function gotIt() {
-            window.removeEventListener('utility-tray-overlayopening', gotIt);
-            assert.isTrue(true, 'got the event');
-            done();
-          });
-        UtilityTray.overlay.dispatchEvent(fakeEvt);
       });
 
       test('should fire a utilitytraywillhide event', function(done) {

@@ -4,7 +4,7 @@
 
 import time
 
-from marionette_driver import By
+from marionette_driver import By, Wait, expected
 from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
@@ -25,13 +25,13 @@ class FullscreenVideo(Base):
     _video_forward_button_locator = (By.ID, 'seek-forward')
 
     def wait_for_player_frame_displayed(self):
-        self.wait_for_element_displayed(*self._video_player_frame_locator)
+        Wait(self.marionette).until(expected.element_displayed(*self._video_player_frame_locator))
 
     def show_controls(self):
         self.marionette.find_element(*self._video_player_locator).tap()
-        self.wait_for_element_displayed(*self._video_controls_header)
-        self.wait_for_element_displayed(*self._video_controls_video_bar)
-        self.wait_for_element_displayed(*self._video_controls_video_control_bar)
+        Wait(self.marionette).until(expected.element_displayed(*self._video_controls_header))
+        Wait(self.marionette).until(expected.element_displayed(*self._video_controls_video_bar))
+        Wait(self.marionette).until(expected.element_displayed(*self._video_controls_video_control_bar))
 
     # move the slider
     def move_seek_slider(self, offset):

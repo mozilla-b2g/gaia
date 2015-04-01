@@ -84,7 +84,7 @@
 
     search: function(input, preventRemote) {
 
-      this.currentSearch = input;
+      this.currentSearch = preventRemote ? null : input;
       this.render([input]);
 
       if (!navigator.onLine || preventRemote) {

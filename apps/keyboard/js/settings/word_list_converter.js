@@ -1,4 +1,16 @@
+/* global module */
+
 'use strict';
+
+(function() {
+
+var namespace;
+
+try {
+  namespace = window;
+} catch(e) {
+  namespace = module.exports;
+}
 
 (function(exports) {
 
@@ -560,4 +572,6 @@ WordListConverter.prototype.toBlob = function() {
 
 exports.WordListConverter = WordListConverter;
 
-})(window);
+})(namespace);
+
+})();

@@ -151,9 +151,11 @@ EditEvent.prototype = {
       .click();
   },
 
+  get saveButton() {
+    return this.findElement('.save');
+  },
+
   save: function() {
-    this
-      .findElement('.save')
-      .click();
+    this.saveButton.click();
   }
 };

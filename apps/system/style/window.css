@@ -194,6 +194,24 @@
   100% { transform: scale(0.48); }
 }
 
+.appWindow.home-from-cardview {
+  animation: home-from-cardview 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+.appWindow.home-to-cardview {
+  animation: home-to-cardview 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+@keyframes home-from-cardview {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes home-to-cardview {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 .appWindow.back {
   transition: transform 0.25s cubic-bezier(0.7, 0.0, 1.0, 1.0), visibility 0.25s cubic-bezier(0.7, 0.0, 1.0, 1.0);
   transform: scale(0.86);
@@ -234,7 +252,6 @@
 
 .appWindow.overlay .touch-blocker,
 .appWindow.transition-closing .touch-blocker,
-.appWindow.enlarge .touch-blocker,
 .appWindow.transition-opening .touch-blocker {
   /* The animation takes .3 seconds so users cannot touch the app while the
    * closing animation is performing */
@@ -388,6 +405,7 @@
   font-size: 1.6rem;
   font-style: italic;
   line-height: 1.8rem;
+  font-weight: 400;
   text-overflow: ellipsis;
   white-space: nowrap;
 
@@ -538,6 +556,7 @@
 
 /* making the appWindows moz-elementable for the cardview */
 #screen #windows > .appWindow:not(.homescreen):not(.lockScreenWindow):not(.attentionWindow):not(.lockScreenInputWindow).in-task-manager {
+  position: fixed;
   transform: none;
 }
 

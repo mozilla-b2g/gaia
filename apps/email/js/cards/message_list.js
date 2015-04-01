@@ -1555,6 +1555,14 @@ return [
         if (inboxFolder === this.curFolder) {
           evt.emit('inboxShown', account.id);
         }
+
+        // If user tapped in search box on message_list before the JS for the
+        // card is attached, then treat that as the signal to go to search. Only
+        // do this when first starting up though.
+        if (this.mode === 'nonsearch' &&
+            document.activeElement === this.searchTextTease) {
+          this.onSearchButton();
+        }
       }
     },
 

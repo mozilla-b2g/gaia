@@ -135,6 +135,7 @@
           new MozActivity({
             name: 'share',
             data: {
+              type: 'application/vnd.moz-systemlog',
               blobs: logFiles,
               filenames: logNames
             }

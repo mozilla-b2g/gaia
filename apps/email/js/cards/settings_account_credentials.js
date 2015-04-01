@@ -48,7 +48,9 @@ return [
 
     onClickReauth: function() {
       var oauth2 = this.account._wireRep.credentials.oauth2;
-      oauthFetch(oauth2)
+      oauthFetch(oauth2, {
+        login_hint: this.account.username
+      })
       .then(function(response) {
         if (response.status === 'success') {
           this.account.modifyAccount({ oauthTokens: response.tokens });

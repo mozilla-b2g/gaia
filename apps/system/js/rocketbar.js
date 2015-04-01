@@ -202,7 +202,7 @@
       window.addEventListener('attentionopened', this);
       window.addEventListener('searchopened', this);
       window.addEventListener('searchclosed', this);
-      window.addEventListener('utility-tray-overlayopening', this);
+      window.addEventListener('utilitytray-overlayopening', this);
       window.addEventListener('utility-tray-overlayopened', this);
 
       // Listen for events from Rocketbar
@@ -271,7 +271,7 @@
         case 'attentionopened':
         case 'appforeground':
         case 'appopened':
-        case 'utility-tray-overlayopening':
+        case 'utilitytray-overlayopening':
         case 'utility-tray-overlayopened':
           if (this._activateCall) {
             this._activateCall

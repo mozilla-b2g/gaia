@@ -49,7 +49,10 @@ WHITELIST = \
  sv.dict \
  tr.dict
 
-%.dict: %_wordlist.xml xml2dict.py
-	python3 xml2dict.py -o $@ $<
+%.dict: %_wordlist.xml xml2dict.js dependency
+	node --harmony xml2dict.js -o $@ $<
+
+dependency:
+	npm install xml2js yargs
 
 all: $(WHITELIST)

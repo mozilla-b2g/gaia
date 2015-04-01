@@ -22,6 +22,8 @@ marionette('modify event view', function() {
     editEvent = app.editEvent;
     app.launch();
     app.openModifyEventView();
+    // we need a title or location otherwise event can't be saved
+    editEvent.title = 'Reminder Test';
   });
 
   suite('reminders', function() {

@@ -654,13 +654,14 @@ contacts.Details = (function() {
 
     LazyLoader.load(VCARD_DEPS,function vcardLoaded() {
       ContactToVcardBlob([contactData], function blobReady(vcardBlob) {
+        var filename = VcardFilename(contactData);
         new MozActivity({
           name: 'share',
           data: {
             type: 'text/vcard',
             number: 1,
-            blobs: [vcardBlob],
-            filenames: [VcardFilename(contactData)]
+            blobs: [new window.File([vcardBlob], filename)],
+            filenames: [filename]
           }
         });
         // The MIME of the blob should be this for some MMS gateways
