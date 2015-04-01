@@ -3,7 +3,7 @@
 /* global WebManifestHelper, requireApp, teardown, suite, test,
    assert, MockXMLHttpRequest, setup */
 
-requireApp('bookmark/js/web_manifest_helper.js');
+require('/shared/js/web_manifest_helper.js');
 requireApp('bookmark/test/unit/mock_xml_http_request.js');
 
 suite('Web Manifest Helper >', function() {

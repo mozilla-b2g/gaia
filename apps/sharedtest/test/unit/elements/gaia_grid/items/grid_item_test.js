@@ -67,4 +67,23 @@ suite('GridItem', function() {
     assert.equal(width1, width2);
   });
 
+  test('Detect W3C web app manifest icons format', function() {
+    var icons = [];
+    window.WebManifestHelper = {
+      'iconURLForSize': function() {}
+    };
+    var stubIconURLForSize = sinon.stub(window.WebManifestHelper,
+      'iconURLForSize', function() {
+        return new URL('http://example.com/icon.png');
+      });
+    var subject = new GaiaGrid.GridItem();
+    subject.app = {
+      'manifestURL': 'http://example.com/manifest.json'
+    };
+    var result = subject.closestIconFromList(icons);
+    assert.equal(result, 'http://example.com/icon.png');
+    stubIconURLForSize.restore();
+    window.WebManifestHelper = undefined;
+  });
+
 });

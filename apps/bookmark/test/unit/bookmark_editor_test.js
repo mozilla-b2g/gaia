@@ -6,7 +6,7 @@
 
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-requireApp('bookmark/test/unit/mock_web_manifest_helper.js');
+requireApp('sharedtest/test/unit/mock_web_manifest_helper.js');
 
 require('/shared/js/homescreens/icon.js');
 requireApp('bookmark/js/bookmark_editor.js');
