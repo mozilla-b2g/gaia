@@ -46,6 +46,8 @@ Music.Selector = Object.freeze({
   shareMenu: 'form[data-z-index-level="action-menu"]',
   pickDoneButton: '#title-done',
   header: '#title',
+  titleText: '#title-text',
+  sublistShuffleButton: '#views-sublist-controls-shuffle',
   playerIcon: '#title-player'
 });
 
@@ -115,6 +117,16 @@ Music.prototype = {
 
   get shareButton() {
     return this.client.findElement(Music.Selector.shareButton);
+  },
+
+  get title() {
+    var header = this.client.findElement(Music.Selector.header);
+    return header.findElement(Music.Selector.titleText);
+  },
+
+  get sublistShuffleButton() {
+    return this.client.helper.waitForElement(
+      Music.Selector.sublistShuffleButton);
   },
 
   // TODO(gareth): Move this shareMenu stuff into the helper.
