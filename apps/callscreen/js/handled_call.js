@@ -50,7 +50,8 @@ function HandledCall(aCall) {
   this.totalDurationNode = this.node.querySelector('.total-duration');
   this.viaSimNode = this.node.querySelector('.sim .via-sim');
   this.simNumberNode = this.node.querySelector('.sim .sim-number');
-  this.numberNode = this.node.querySelector('.numberWrapper .number');
+  this.numberNode = this.node.querySelector('.numberWrapper .number bdi');
+  this.outerNode = this.node.querySelector('.numberWrapper .number');
   this.groupCallNumberNode =
     document.getElementById('group-call-label');
   this.additionalInfoNode = this.node.querySelector('.additionalContactInfo');
@@ -267,7 +268,7 @@ HandledCall.prototype.formatPhoneNumber =
       scenario = FontSizeManager.SECOND_INCOMING_CALL;
     }
     FontSizeManager.adaptToSpace(
-      scenario, this.numberNode, false, ellipsisSide);
+      scenario, this.outerNode, false, ellipsisSide);
     if (this.node.classList.contains('additionalInfo')) {
       FontSizeManager.ensureFixedBaseline(scenario, this.numberNode);
     } else {

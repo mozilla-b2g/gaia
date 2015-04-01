@@ -95,6 +95,7 @@
 
     <div class="screenshotView bb-button" data-l10n-id="openCard"
       role="link"></div>
+    <div class="privateOverlay"></div>
     <div class="appIconView" style="background-image:${this.iconValue}"></div>
 
     <footer class="card-tray">
@@ -134,6 +135,10 @@
     this.closeButtonVisibility = 'visible';
     this.viewClassList = ['card', 'appIconPreview'];
     this.titleId = 'card-title-' + this.instanceID;
+
+    if (app.isPrivate) {
+      this.viewClassList.push('private');
+    }
 
     // app icon overlays screenshot by default
     // and will be removed if/when we display the screenshot

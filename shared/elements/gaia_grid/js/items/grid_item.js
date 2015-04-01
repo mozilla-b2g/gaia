@@ -518,6 +518,7 @@
         tile.dataset.identifier = this.identifier;
         tile.dataset.isDraggable = this.isDraggable();
         tile.setAttribute('role', 'link');
+        tile.style.width = (this.grid.layout.gridWidth / 3) + 'px';
 
         // This <p> has been added in order to place the title with respect
         // to this container via CSS without touching JS.
@@ -529,7 +530,7 @@
 
         var nameEl = document.createElement('span');
         nameEl.className = 'title';
-        nameEl.textContent = this.name;
+
         nameContainerEl.appendChild(nameEl);
 
         // Add delete link if this icon is removable
@@ -540,6 +541,7 @@
         }
 
         this.element = tile;
+        this.updateTitle();
         this.renderIcon(true);
         this.grid.element.appendChild(tile);
       }
@@ -579,7 +581,14 @@
         return;
       }
       var nameEl = this.element.querySelector('.title');
-      nameEl.textContent = this.name;
+
+      if (this.asyncName) {
+        this.asyncName().then(function(name) {
+          nameEl.textContent = name;
+        });
+      } else {
+        nameEl.textContent = this.name;
+      }
     },
 
     /**

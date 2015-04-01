@@ -1,6 +1,6 @@
 {
   "name": "gaia-component",
-  "version": "0.2.1",
+  "version": "0.3.5",
   "authors": [
     "Wilson Page <wilsonpage@me.com>"
   ],
@@ -14,13 +14,13 @@
     "tests"
   ],
   "homepage": "https://github.com/gaia-components/gaia-component",
-  "_release": "0.2.1",
+  "_release": "0.3.5",
   "_resolution": {
     "type": "version",
-    "tag": "v0.2.1",
-    "commit": "bf9a25d6673e3481f2c5544d876dcf3e8ba86d40"
+    "tag": "v0.3.5",
+    "commit": "e29dfbd8e07a96cbe521df8067120b78c306b584"
   },
   "_source": "git://github.com/gaia-components/gaia-component.git",
-  "_target": "~0.2.0",
+  "_target": "~0.3.0",
   "_originalSource": "gaia-components/gaia-component"
 }

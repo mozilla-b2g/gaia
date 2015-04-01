@@ -297,7 +297,6 @@
 
     var options = { lockType: 'pin', pin: pin };
     this.unlockCardLock(options);
-    this.clear();
   };
 
   SimLockSystemDialog.prototype.unlockPuk = function() {
@@ -334,8 +333,10 @@
 
   SimLockSystemDialog.prototype.unlockCardLock = function(options) {
     var req = this._currentSlot.unlockCardLock(options);
+    this.disableInput();
     req.onsuccess = this.requestClose.bind(this, 'success');
     req.onerror = (function spl_unlockCardLockError(result) {
+      this.clear();
       this.handleError(options.lockType, req.error.retryCount);
     }).bind(this);
   };
@@ -386,7 +387,24 @@
     }
   };
 
+  SimLockSystemDialog.prototype.disableInput = function() {
+    this.pinInput.disabled = true;
+    this.pukInput.disabled = true;
+    this.xckInput.disabled = true;
+    this.newPinInput.disabled = true;
+    this.confirmPinInput.disabled = true;
+  };
+
+  SimLockSystemDialog.prototype.enableInput = function() {
+    this.pinInput.disabled = false;
+    this.pukInput.disabled = false;
+    this.xckInput.disabled = false;
+    this.newPinInput.disabled = false;
+    this.confirmPinInput.disabled = false;
+  };
+
   SimLockSystemDialog.prototype.clear = function() {
+    this.enableInput();
     this.errorMsg.hidden = true;
     this.pinInput.value = '';
     this.pinInput.blur();
@@ -410,6 +428,7 @@
    * @param {Boolean} [skipped] If the last slot is skipped or not.
    */
   SimLockSystemDialog.prototype.show = function(slot, skipped) {
+    this.clear();
     if (slot) {
       this._currentSlot = slot;
     }

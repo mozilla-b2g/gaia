@@ -257,6 +257,7 @@ var StatusBar = {
     window.addEventListener('utility-tray-abortclose', this);
     window.addEventListener('cardviewshown', this);
     window.addEventListener('cardviewclosed', this);
+    window.addEventListener('rocketbar-deactivated', this);
 
     // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
@@ -307,6 +308,10 @@ var StatusBar = {
     window.addEventListener('homescreenopening', this);
     window.addEventListener('homescreenopened', this);
     window.addEventListener('stackchanged', this);
+
+    // Listen to updates dialog
+    window.addEventListener('updatepromptshown', this);
+    window.addEventListener('updateprompthidden', this);
 
     // Track Downloads via the Downloads API.
     var mozDownloadManager = navigator.mozDownloadManager;
@@ -565,6 +570,7 @@ var StatusBar = {
         break;
 
       case 'stackchanged':
+      case 'rocketbar-deactivated':
         this.setAppearance(Service.currentApp);
         this.element.classList.remove('hidden');
         break;
@@ -628,6 +634,12 @@ var StatusBar = {
         // about it and then come and ask @nullaus
         this.addSystemDownloadListeners(evt.download);
         break;
+       case 'updatepromptshown':
+          this.element.classList.remove('light');
+          break;
+        case 'updateprompthidden':
+          this.setAppearance(Service.currentApp);
+          break;
     }
   },
 

@@ -21,6 +21,11 @@
     var iframe = this.destination;
     var touch;
 
+    // Should not forward to a frame that's not displayed
+    if (iframe.getAttribute('aria-hidden')) {
+      return;
+    }
+
     switch (e.type) {
       case 'touchstart':
         sendTouchEvent(iframe, e);

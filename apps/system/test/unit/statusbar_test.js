@@ -2208,8 +2208,16 @@ suite('system/Statusbar', function() {
 
     test('stackchanged', function() {
       StatusBar.element.classList.add('hidden');
-      assert.isTrue(StatusBar.element.classList.contains('hidden'));
       var event = new CustomEvent('stackchanged');
+      StatusBar.handleEvent(event);
+      assert.isFalse(StatusBar.element.classList.contains('hidden'));
+      assert.isTrue(setAppearanceStub.called);
+      assert.isTrue(setAppearanceStub.calledWith(app));
+    });
+
+    test('rocketbar-deactivated', function() {
+      StatusBar.element.classList.add('hidden');
+      var event = new CustomEvent('rocketbar-deactivated');
       StatusBar.handleEvent(event);
       assert.isFalse(StatusBar.element.classList.contains('hidden'));
       assert.isTrue(setAppearanceStub.called);
@@ -2218,7 +2226,6 @@ suite('system/Statusbar', function() {
 
     test('sheets-gesture-end', function() {
       StatusBar.element.classList.add('hidden');
-      assert.isTrue(StatusBar.element.classList.contains('hidden'));
       var event = new CustomEvent('sheets-gesture-end');
       StatusBar.handleEvent(event);
       assert.isFalse(StatusBar.element.classList.contains('hidden'));
@@ -2603,6 +2610,44 @@ suite('system/Statusbar', function() {
 
       StatusBar.cloneStatusbar();
       assert.equal(StatusBar.statusbarIconsMin.className, className);
+    });
+  });
+
+  suite('handle UpdateManager events', function() {
+    var app;
+    setup(function() {
+      app = {
+        isFullScreen: function() {
+          return false;
+        },
+        getTopMostWindow: function() {
+          return app;
+        },
+
+        element: document.createElement('div')
+      };
+
+      Service.currentApp = app;
+      StatusBar.element.classList.add('light');
+    });
+
+    teardown(function() {
+      Service.currentApp = null;
+    });
+
+    test('should remove light class', function() {
+      assert.isTrue(StatusBar.element.classList.contains('light'));
+      var evt = new CustomEvent('updatepromptshown');
+      StatusBar.handleEvent(evt);
+      assert.isFalse(StatusBar.element.classList.contains('light'));
+    });
+
+    test('should restore the current theme', function() {
+      var evt = new CustomEvent('updateprompthidden');
+      var setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
+      StatusBar.handleEvent(evt);
+      assert.isTrue(setAppearanceStub.called);
+      assert.isTrue(setAppearanceStub.calledWith(app));
     });
   });
 

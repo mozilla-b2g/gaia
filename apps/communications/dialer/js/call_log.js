@@ -521,7 +521,7 @@ var CallLog = {
       if (number) {
         bdi.textContent = number;
       } else {
-        primInfoMain.setAttribute('data-l10n-id', 'withheld-number');
+        bdi.setAttribute('data-l10n-id', 'withheld-number');
       }
     }
     primInfoMain.appendChild(bdi);
@@ -957,6 +957,10 @@ var CallLog = {
    */
   updateListWithContactInfo: function cl_updateList(reason, contactId, target) {
     var container = target || this.callLogContainer;
+
+    if (!container) {
+      return;
+    }
 
     // Get the list of logs to be updated.
     var logs = [];

@@ -87,7 +87,9 @@
     }
 
     /* jshint boss:true */
-    for (var i = 0, node; node = ast[i]; i++) {
+    var node;
+    for (var i = 0; i < ast.length; i++) {
+      node = ast[i];
       this.entries[node.$i] = L10n.Resolver.createEntry(node, this.entries);
       this.astById[node.$i] = node;
     }
@@ -126,7 +128,7 @@
         id, loc));
       cur++;
     }
-    return '';
+    return sourceEntity;
   };
 
   navigator.mozL10n.translateDocument = L10n.translateDocument;

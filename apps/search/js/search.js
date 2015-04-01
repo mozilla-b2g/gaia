@@ -25,7 +25,6 @@
 
     searchResults: document.getElementById('search-results'),
     offlineMessage: document.getElementById('offline-message'),
-    settingsConnectivity: document.getElementById('settings-connectivity'),
     suggestionsWrapper: document.getElementById('suggestions-wrapper'),
     grid: document.getElementById('icons'),
     gridWrapper: document.getElementById('icons-wrapper'),
@@ -351,7 +350,7 @@
         }
       }
 
-      this.settingsConnectivity.addEventListener(
+      this.offlineMessage.addEventListener(
         'click', function() {
           var activity = new window.MozActivity({
             name: 'configure',

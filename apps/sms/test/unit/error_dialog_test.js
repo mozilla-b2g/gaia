@@ -1,9 +1,12 @@
 /*global Dialog,
    ErrorDialog,
+   MockL10n,
    MocksHelper,
    Settings
 */
 'use strict';
+
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 require('/test/unit/mock_dialog.js');
 require('/test/unit/mock_settings.js');
@@ -19,11 +22,18 @@ var mocksHelperForDialog = new MocksHelper([
 suite('ErrorDialog', function() {
   // Silencing jshint complaints related to "new ErrorDialog(..)" invocations
   /*jshint nonew: false */
+  var realL10n;
 
   mocksHelperForDialog.attachTestHelpers();
 
   setup(function() {
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
     this.sinon.spy(Dialog, 'call');
+  });
+
+  teardown(function() {
+    navigator.mozL10n = realL10n;
   });
 
   suite('basic tests', function() {
@@ -37,15 +47,13 @@ suite('ErrorDialog', function() {
 
       sinon.assert.calledWith(Dialog.call, sinon.match.any, {
         title: errorDescription.prefix + 'Title',
-        body: {
-          id: errorDescription.prefix + 'Body',
-          args: null
-        },
+        body: errorDescription.prefix + 'Body',
         options: {
           cancel: {
             text: errorDescription.prefix + 'BtnOk'
           }
-        }
+        },
+        classes: ['error-dialog-' + errorDescription.prefix, 'error-dialog']
       });
     });
 
@@ -73,7 +81,8 @@ suite('ErrorDialog', function() {
           cancel: {
             text: errorDescription.prefix + 'BtnOk'
           }
-        }
+        },
+        classes: ['error-dialog-' + errorDescription.prefix, 'error-dialog']
       });
     });
 
@@ -94,7 +103,8 @@ suite('ErrorDialog', function() {
           cancel: {
             text:  errorDescription.prefix + 'BtnOk'
           }
-        }
+        },
+        classes: ['error-dialog-' + errorDescription.prefix, 'error-dialog']
       });
     });
 
@@ -119,7 +129,8 @@ suite('ErrorDialog', function() {
             text: errorDescription.prefix + 'Confirm',
             method: dialogOptions.confirmHandler
           }
-        }
+        },
+        classes: ['error-dialog-' + errorDescription.prefix, 'error-dialog']
       });
     });
   });
@@ -138,16 +149,40 @@ suite('ErrorDialog', function() {
 
       (new ErrorDialog(errorDescription, dialogOptions));
 
-      sinon.assert.calledWith(Dialog.call, sinon.match.any, {
-        title: sinon.match.any,
+      var fragmentContainsBody = sinon.match((fragment) => {
+        var body = fragment.querySelector('span');
+        var expectedL10nId = errorDescription.prefix + 'Body';
+        var hasL10nId = (body.dataset.l10nId === expectedL10nId);
+        var expectedArgs = JSON.stringify(
+          { n: dialogOptions.recipients.length }
+        );
+        var hasL10nArgs = (body.dataset.l10nArgs === expectedArgs);
+
+        return hasL10nId && hasL10nArgs;
+      }, 'fragment contains correct body');
+
+      var fragmentContainsRecipients = sinon.match((fragment) => {
+        var recipients = fragment.querySelector('ul');
+        return dialogOptions.recipients.every((recipient, i) => {
+          var li = recipients.children[i];
+          return li.textContent === recipient;
+        });
+      }, 'fragment contains all recipients');
+
+      var fragmentContainsBodyAndRecipients =
+        sinon.match.instanceOf(DocumentFragment)
+        .and(fragmentContainsBody)
+        .and(fragmentContainsRecipients);
+
+      var expectedClasses = [
+        'error-dialog-TEST', 'error-dialog', 'error-dialog-show-recipient'
+      ];
+
+      sinon.assert.calledWithMatch(Dialog.call, sinon.match.any, {
         body: {
-          id: errorDescription.prefix + 'Body',
-          args: {
-            n: dialogOptions.recipients.length,
-            numbers: dialogOptions.recipients.join('<br />')
-          }
+          raw: fragmentContainsBodyAndRecipients
         },
-        options: sinon.match.any
+        classes: expectedClasses
       });
     });
 
@@ -184,7 +219,8 @@ suite('ErrorDialog', function() {
             nonActiveSimId: '2'
           }
         },
-        options: sinon.match.any
+        options: sinon.match.any,
+        classes: ['error-dialog-' + errorDescription.prefix, 'error-dialog']
       });
     });
 
@@ -207,7 +243,8 @@ suite('ErrorDialog', function() {
             nonActiveSimId: '1'
           }
         },
-        options: sinon.match.any
+        options: sinon.match.any,
+        classes: ['error-dialog-' + errorDescription.prefix, 'error-dialog']
       });
     });
 
@@ -223,11 +260,9 @@ suite('ErrorDialog', function() {
       (new ErrorDialog(errorDescription));
       sinon.assert.calledWith(Dialog.call, sinon.match.any, {
         title: sinon.match.any,
-        body: {
-          id: errorDescription.prefix + 'Body',
-          args: null
-        },
-        options: sinon.match.any
+        body: errorDescription.prefix + 'Body',
+        options: sinon.match.any,
+        classes: ['error-dialog-' + errorDescription.prefix, 'error-dialog']
       });
     });
 
@@ -248,7 +283,8 @@ suite('ErrorDialog', function() {
           id: errorDescription.prefix + 'Body',
           args: null
         },
-        options: sinon.match.any
+        options: sinon.match.any,
+        classes: ['error-dialog-' + errorDescription.prefix, 'error-dialog']
       });
       Dialog.call.reset();
 
@@ -262,7 +298,8 @@ suite('ErrorDialog', function() {
           id: errorDescription.prefix + 'Body',
           args: null
         },
-        options: sinon.match.any
+        options: sinon.match.any,
+        classes: ['error-dialog-' + errorDescription.prefix, 'error-dialog']
       });
     });
   });

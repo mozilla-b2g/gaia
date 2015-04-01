@@ -1,7 +1,7 @@
 (function() {
 
   'use strict';
-  /* globals Promise, Provider, Search */
+  /* globals Promise, Provider, Search, MetricsHelper */
   /* globals LazyLoader */
   /* globals SearchProvider */
 
@@ -33,8 +33,6 @@
     suggestionsSelect.appendChild(selectFragment);
   }
 
-  SearchProvider.ready();
-
   function encodeTerms(str, search) {
     return str.replace('{searchTerms}', encodeURIComponent(search));
   }
@@ -50,6 +48,9 @@
     currentSearch: null,
 
     init: function() {
+      this.metrics = new MetricsHelper();
+      this.metrics.init();
+
       Provider.prototype.init.apply(this, arguments);
 
       suggestionsSelect.addEventListener('change', function(e) {
@@ -75,6 +76,7 @@
     },
 
     click: function(e) {
+      this.metrics.report('websearch', SearchProvider('title'));
       var suggestion = e.target.dataset.suggestion;
       var url = encodeTerms(SearchProvider('searchUrl'), suggestion);
       Search.navigate(url);

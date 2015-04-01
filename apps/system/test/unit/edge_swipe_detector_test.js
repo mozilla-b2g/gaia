@@ -102,6 +102,10 @@ suite('system/EdgeSwipeDetector >', function() {
     window.dispatchEvent(evt);
   }
 
+  function launchDownloadDialogEvent(type) {
+    window.dispatchEvent(new CustomEvent(type));
+  }
+
   suite('When the homescreen is displayed', function() {
     setup(function() {
       subject.previous.classList.remove('disabled');
@@ -975,6 +979,49 @@ suite('system/EdgeSwipeDetector >', function() {
     teardown(function() {
       subject.lifecycleEnabled = false;
     });
+  });
+
+  suite('handleEvent: prompt events', function() {
+    setup(function() {
+      subject.lifecycleEnabled = true;
+      MockService.currentApp = {
+        isHomescreen: false
+      };
+    });
+
+    teardown(function() {
+      subject.lifecycleEnabled = false;
+      MockService.currentApp = null;
+    });
+
+    function testPromptEvent(prefix) {
+      test('the edges should be disabled on ' + prefix + 'shown', function() {
+        launchDownloadDialogEvent(prefix + 'shown');
+        assert.isTrue(subject.previous.classList.contains('disabled'));
+        assert.isTrue(subject.next.classList.contains('disabled'));
+      });
+
+      test('the edges should be enabled on ' + prefix + 'hidden', function() {
+        launchDownloadDialogEvent(prefix + 'hidden');
+        assert.isFalse(subject.previous.classList.contains('disabled'));
+        assert.isFalse(subject.next.classList.contains('disabled'));
+      });
+
+      test('the edges should stay disabled when homescreen is active',
+        function() {
+          subject.lifecycleEnabled = false;
+          MockService.currentApp.isHomescreen = true;
+          launchDownloadDialogEvent(prefix + 'shown');
+          assert.isTrue(subject.previous.classList.contains('disabled'));
+          assert.isTrue(subject.next.classList.contains('disabled'));
+          launchDownloadDialogEvent(prefix + 'hidden');
+          assert.isTrue(subject.previous.classList.contains('disabled'));
+          assert.isTrue(subject.next.classList.contains('disabled'));
+      });
+    }
+
+    testPromptEvent('updateprompt');
+    testPromptEvent('installprompt');
   });
 
 });

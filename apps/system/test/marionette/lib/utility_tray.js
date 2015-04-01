@@ -56,7 +56,7 @@
           win.removeEventListener('utility-tray-overlayopened', wait);
           marionetteScriptFinished();
         });
-        win.UtilityTray.show();
+        win.UtilityTray.show(true);
       });
     },
 

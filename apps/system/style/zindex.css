@@ -77,7 +77,15 @@
   z-index: 65537 !important;
 }
 
-#screen > [data-z-index-level="cards-view"] {
+/* Hide apps behind the wallpaper when they're all made visible for
+ * -moz-element.
+ */
+#screen #windows > .appWindow:not(.homescreen):not(.lockScreenWindow):not(.attentionWindow):not(.lockScreenInputWindow).in-task-manager {
+  z-index: -1;
+}
+
+#screen > [data-z-index-level="cards-view"],
+#screen > [data-z-index-level="cards-view"] .no-recent-apps {
   z-index: 65535;
 }
 
@@ -200,6 +208,10 @@
   z-index: 2046;
 }
 
+/* Keep system dialogs under lockscreen when locked */
+#screen.locked > [data-z-index-level="system-dialog"] {
+  z-index: 2045;
+}
 
 /* Keep keyboard and edges zones under lockscreen when locked */
 #screen.locked > [data-z-index-level="keyboards"] {

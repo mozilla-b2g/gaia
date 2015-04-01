@@ -90,6 +90,8 @@ var App = (function() {
   }
 
   function showOverlay(id) {
+    // Blurring the active element to dismiss the keyboard.
+    document.activeElement.blur();
     //
     // If id is null then hide the overlay. Otherwise, look up the localized
     // text for the specified id and display the overlay with that text.

@@ -20,8 +20,8 @@ var MmiUI = {
 
   animating: false,
 
-  init: function mui_init(_) {
-    this._ = _;
+  init: function mui_init() {
+    this._ = navigator.mozL10n.get;
 
     this.headerTitleNode = document.getElementById('header-title');
     this.headerNode = document.getElementById('mmi-header');

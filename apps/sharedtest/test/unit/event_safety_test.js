@@ -30,4 +30,14 @@ suite('eventSafety', function() {
     this.sinon.clock.tick(1000);
   });
 
+  test('passes on event argument', function(done) {
+    this.sinon.useFakeTimers();
+    eventSafety(window, 'foobar', function(evt) {
+      assert.ok(evt, 'got event argument');
+      assert.equal(evt.type, 'foobar', 'event name is set');
+      done();
+    }, 1000);
+    window.dispatchEvent(new CustomEvent('foobar'));
+  });
+
 });

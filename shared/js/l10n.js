@@ -1216,8 +1216,8 @@
     var createEntry = this.isPseudo ?
       createPseudoEntry.bind(this) : Resolver.createEntry;
 
-    for (var i = 0, node; node = ast[i]; i++) {
-      this.entries[node.$i] = createEntry(node, this.entries);
+    for (var i = 0; i < ast.length; i++) {
+      this.entries[ast[i].$i] = createEntry(ast[i], this.entries);
     }
   };
 

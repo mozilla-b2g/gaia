@@ -27,7 +27,7 @@ marionette('Search - Notice Test', function() {
     system.waitForStartup();
 
     providers = {
-      version: 2,
+      version: search.searchDataVersion(),
       providers: {
         'first': {
           title: 'first',
