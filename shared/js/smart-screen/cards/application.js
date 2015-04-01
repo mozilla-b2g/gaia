@@ -19,7 +19,7 @@
       cardInstance = new Application({
         nativeApp: installedApps[cardEntry.manifestURL],
         name: cardEntry.name,
-        thumnail: cardEntry.thumbnail,
+        thumbnail: cardEntry.thumbnail,
         launchURL: cardEntry.launchURL,
         group: cardEntry.group
       });
