@@ -45,12 +45,6 @@ var ForwardRewindController = (function() {
 
   function handleButtonClick(event) {
 
-    // It's possible to get a forward or backward-click event after
-    // having initiated a long-press. In this case, ignore the click.
-    if (isLongPressing) {
-      return;
-    }
-
     if (event.target === forwardButton) {
       startFastSeeking(1);
     } else if (event.target === backwardButton) {
