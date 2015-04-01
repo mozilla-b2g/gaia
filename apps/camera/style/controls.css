@@ -283,6 +283,11 @@
   height: 10.2rem;
 }
 
+/* Override [role="button"] styling. */
+.capture-button:active {
+  background: none;
+}
+
 /** Circle
  ---------------------------------------------------------*/
 
