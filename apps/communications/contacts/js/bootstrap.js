@@ -235,6 +235,11 @@
       });
     }
 
+    if (cache.languageDirection) {
+      var html = document.querySelector('html');
+      html.setAttribute('dir', cache.languageDirection);
+    }
+
     var container = document.getElementById(_cache.containerId);
     if (!container) {
       console.warning('Could not apply cached content to ' +
