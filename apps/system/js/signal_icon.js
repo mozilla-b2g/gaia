@@ -84,6 +84,7 @@
       this.element.dataset.searching = (voice.state === 'searching');
       _(this.element, this.element.dataset.searching ?
         'statusbarSignalNoneSearching' : 'statusbarEmergencyCallsOnly');
+      this.updateSignal(voice);
       this.show();
     }
   };
