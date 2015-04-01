@@ -94,6 +94,7 @@
 
       this.contextmenu = new Contextmenu();
       window.addEventListener('resize', this.resize);
+      window.addEventListener('scroll', this.onScroll);
     },
 
     resize: function() {
@@ -103,6 +104,12 @@
           skipDivider: true
         });
       }
+    },
+
+    // Typically an input keeps focus when the user scrolls, here we
+    // want to grab focus and manually dismiss the keyboard.
+    onScroll: function() {
+      document.body.focus();
     },
 
     /**
