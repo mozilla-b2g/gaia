@@ -10,7 +10,17 @@ define(function(require) {
     this.panel = panel;
   }
 
-  AddonDetails.prototype.render = function render(app) {
+  AddonDetails.prototype.render = function render(options) {
+    if (options.addon) {
+      this.renderAddon(options.addon);
+    } else if (options.manifestURL) {
+      // Lookup addon based on its manifestURL before rendering.
+      AddonManager.findAddonByManifestURL(options.manifestURL).then(
+        this.renderAddon.bind(this));
+    }
+  };
+
+  AddonDetails.prototype.renderAddon = function renderAddon(app) {
     var l10n = navigator.mozL10n;
     this.app = app;
     var manifest = new ManifestHelper(app.manifest || app.updateManifest);

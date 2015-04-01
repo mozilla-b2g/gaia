@@ -69,7 +69,12 @@ var Settings = {
       panelID = panelID.substring(1);
     }
 
-    this.SettingsService.navigate(panelID);
+    var options;
+    if (panelID === window.LaunchContext.initialPanelId) {
+      options = window.LaunchContext.activityHandler.targetPanelOptions;
+    }
+
+    this.SettingsService.navigate(panelID, options);
   },
 
   init: function settings_init(options) {
