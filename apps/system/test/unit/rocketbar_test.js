@@ -688,6 +688,20 @@ suite('system/Rocketbar', function() {
     assert.ok(hideResultsStub.calledOnce);
   });
 
+  test('_handle_home - during activate', function() {
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    this.sinon.stub(subject, 'isActive').returns(true);
+
+    var fakePromise = new MockPromise();
+    subject._activateCall = fakePromise;
+
+    subject._handle_home();
+    fakePromise.mFulfillToValue();
+    assert.ok(deactivateStub.calledOnce);
+    assert.ok(hideResultsStub.calledOnce);
+  });
+
   suite('handleInput()', function() {
     var showResultsStub, hideResultsStub, closeSearchStub;
 
