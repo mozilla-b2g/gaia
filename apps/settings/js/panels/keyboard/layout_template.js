@@ -6,21 +6,22 @@ define(function(require) {
 
   var layoutTemplate = function layoutTemplate(layout, recycled) {
     var container = null;
-    var span;
+    var nameBdi;
     var small;
     if (recycled) {
       container = recycled;
-      span = container.querySelector('span');
+      nameBdi = container.querySelector('bdi');
       small = container.querySelector('small');
     } else {
       container = document.createElement('li');
-      span = document.createElement('span');
+      nameBdi = document.createElement('bdi');
       small = document.createElement('small');
-      container.appendChild(span);
+      container.appendChild(document.createElement('span'));
+      container.lastChild.appendChild(nameBdi);
       container.appendChild(small);
     }
     var refreshName = function() {
-      span.textContent = layout.name;
+      nameBdi.textContent = layout.name;
       small.textContent = layout.appName;
     };
     refreshName();

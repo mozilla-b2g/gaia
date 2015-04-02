@@ -8,22 +8,23 @@ define(function(require) {
 
   return function kal_layoutTemplate(layout, recycled, helper) {
     var container = null;
-    var span, checkbox;
+    var nameBdi, checkbox;
     if (recycled) {
       container = recycled;
       checkbox = container.querySelector('input');
-      span = container.querySelector('span');
+      nameBdi = container.querySelector('bdi');
     } else {
       container = document.createElement('li');
       checkbox = document.createElement('input');
       var label = document.createElement('label');
-      span = document.createElement('span');
+      nameBdi = document.createElement('bdi');
 
       label.className = 'pack-checkbox';
       checkbox.type = 'checkbox';
 
       label.appendChild(checkbox);
-      label.appendChild(span);
+      label.appendChild(document.createElement('span'));
+      label.lastChild.appendChild(nameBdi);
 
       container.appendChild(label);
     }
@@ -34,7 +35,7 @@ define(function(require) {
 
     helper.observeAndCall(layout, {
       name: function refreshName() {
-        span.textContent = layout.name;
+        nameBdi.textContent = layout.name;
       },
       enabled: function() {
         checkbox.checked = layout.enabled;
