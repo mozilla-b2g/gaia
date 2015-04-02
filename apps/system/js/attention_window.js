@@ -1,4 +1,4 @@
-/* global AppWindow, applications */
+/* global AppWindow, applications, ManifestHelper */
 'use strict';
 
 (function(exports) {
@@ -107,7 +107,7 @@
   AttentionWindow.REGISTERED_EVENTS =
     ['mozbrowserclose', 'mozbrowsererror', 'mozbrowservisibilitychange',
       'mozbrowserloadend', 'mozbrowserloadstart',
-      '_localized', 'click', '_willdestroy'];
+      '_localized', 'click', '_willdestroy', '_languagechange'];
 
   AttentionWindow.prototype.render = function attw_render() {
     this.publish('willrender');
@@ -197,7 +197,8 @@
     notification.appendChild(icon);
 
     var message = document.createElement('div');
-    message.appendChild(document.createTextNode(manifest.name));
+    this.notificationTitle = document.createTextNode(manifest.name);
+    message.appendChild(this.notificationTitle);
     message.classList.add('title-container');
     notification.appendChild(message);
 
@@ -220,10 +221,27 @@
 
     // Hide on creating.
     this.notification.style.display = 'none';
+
+    this.translateNotification();
+  };
+
+  AttentionWindow.prototype.translateNotification = function() {
+    if (!this.notification) {
+      return;
+    }
+
+    var manifest = this.manifest;
+    var title = this.notificationTitle;
+
+    navigator.mozL10n.once(function() {
+      var helper = new ManifestHelper(manifest);
+      title.textContent = helper.name;
+    });
   };
 
   AttentionWindow.prototype.show = function() {
     if (this.notification) {
+      this.translateNotification();
       this.notification.style.display = 'block';
     }
 
@@ -248,6 +266,10 @@
       this.notification.parentNode.removeChild(this.notification);
       this.notification = null;
     }
+  };
+
+  AttentionWindow.prototype._handle__languagechange = function() {
+    this.translateNotification();
   };
 
   AttentionWindow.prototype.promote = function() {
