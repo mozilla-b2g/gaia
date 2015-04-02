@@ -322,12 +322,7 @@ var StatusBar = {
       case 'appopened':
       case 'hierarchytopmostwindowchanged':
       case 'appchromeexpanded':
-        var app = null;
-        if (evt.type === 'appopened') {
-          app = evt.detail;
-        } else if (evt.type === 'hierarchytopmostwindowchanged') {
-          app = evt.detail.getTopMostWindow();
-        }
+        var app = evt.detail.getTopMostWindow();
 
         if (app) {
           this.element.classList.toggle('fullscreen',
