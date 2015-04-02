@@ -26,6 +26,7 @@ var ThreadListUI = {
   draftLinks: null,
   draftRegistry: null,
   DRAFT_SAVED_DURATION: 5000,
+  UNDO_DURATION: 10000,
   FIRST_PANEL_THREAD_COUNT: 9, // counted on a Peak
 
   // Used to track timeouts
@@ -36,6 +37,7 @@ var ThreadListUI = {
   // Used to track the current number of rendered
   // threads. Updated in ThreadListUI.renderThreads
   count: 0,
+  undoCheck: 1,
 
   // Set to |true| when in edit mode
   inEditMode: false,
@@ -453,15 +455,30 @@ var ThreadListUI = {
     }
   },
 
+ /* undoDelete: function thlui_undoDelete (draftIds, threadIds) {
+    if(draftIds) {
+      draftIds.forEach(function(threadId) {
+        ThreadListUI.appendThread(Threads.get(threadId));
+      });
+    }
+    if (!threadIds.length) {
+      ThreadListUI.exitEditMode();
+    } else if(threadIds) {
+      threadIds.forEach(function(threadId) {
+        ThreadListUI.appendThread(Threads.get(threadId));
+      });
+    }
+  }, */
+
   // Since removeThread will revoke list photoUrl at the end of deletion,
   // please make sure url will also be revoked if new delete api remove threads
   // without calling removeThread in the future.
   delete: function thlui_delete(selected) {
-    function performDeletion(selected) {
+    //function performDeletion(selected) {
       /* jshint validthis: true */
-      var threadIds = [], draftIds = [];
+      var threadIds = [], draftIds = [], undoCheck = 1;
 
-      WaitingScreen.show();
+      //WaitingScreen.show();
 
       threadIds = selected.reduce(function(list, value) {
         // Coerce the threadId back to a number MobileMessageFilter and all
@@ -476,21 +493,8 @@ var ThreadListUI = {
         }
         return list;
       }, []);
-
+      
       ThreadListUI.deleteThreadDraftUI(selected, draftIds, threadIds);
-    }
-
-    return Utils.confirm(
-      {
-        id: 'deleteThreads-confirmation-message',
-        args: { n: selected.length }
-      },
-      null,
-      {
-        text: 'delete',
-        className: 'danger'
-      }
-    ).then(performDeletion.bind(this, selected));
   },
 
   deleteThreadDraftUI:
@@ -504,10 +508,42 @@ var ThreadListUI = {
       ThreadListUI.exitEditMode();
     } else if(threadIds) {
       threadIds.forEach(function(threadId) {
+        console.log(Threads.get(threadId));
         ThreadListUI.deleteThread(threadId);
       });
     }
-    ThreadListUI.deleteThreadDraft(selected, draftIds, threadIds);
+
+    ThreadListUI.exitEditMode();
+    this.draftSavedBanner.classList.remove('hide');
+
+    this.draftSavedBanner.addEventListener('click', () => {
+      this.undoCheck = 0;
+      if(draftIds) {
+        draftIds.forEach(function(threadId) {
+          ThreadListUI.appendThread(Threads.get(threadId));
+        });
+      }
+      if (!threadIds.length) {
+        ThreadListUI.exitEditMode();
+      } else if(threadIds) {
+        threadIds.forEach(function(threadId) {
+          console.log(Threads.get(threadId));
+          ThreadListUI.appendThread(Threads.get(threadId));
+        });
+      }
+    });
+    
+    clearTimeout(this.timeouts.onDraftSaved);
+    this.timeouts.onDraftSaved = null;
+
+    this.timeouts.onDraftSaved = setTimeout(function hideDraftSavedBanner() {
+      this.draftSavedBanner.classList.add('hide');  
+      if(this.undoCheck) {
+        console.log('no undo');
+        ThreadListUI.deleteThreadDraft(selected, draftIds, threadIds);
+      }
+    }.bind(this), this.UNDO_DURATION);
+    this.undoCheck = 1;
   },
 
   deleteThreadDraft:
