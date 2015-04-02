@@ -90,7 +90,9 @@
     /* jshint -W033 */
     return Tagged.escapeHTML `<div class="titles">
      <h1 id="${this.titleId}" class="title">${this.title}</h1>
-     <p class="subtitle">${this.subTitle}</p>
+     <p class="subtitle">
+      <span class="subtitle-url">${this.subTitle}</span>
+     </p>
     </div>
 
     <div class="screenshotView bb-button" data-l10n-id="openCard"
