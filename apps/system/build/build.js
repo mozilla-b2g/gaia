@@ -98,6 +98,23 @@ SystemAppBuilder.prototype.integrateLockScreenInputpad = function(options) {
   utils.writeContent(systemIndexFile, replacedIndexContent);
 };
 
+SystemAppBuilder.prototype.inlineDeviceType = function(options) {
+  var stagePath = options.STAGE_APP_DIR;
+  var deviceType = options.GAIA_DEVICE_TYPE;
+  var featureDetectorPath = [stagePath, 'js', 'feature_detector.js'];
+  var featureDetectorFile = utils.getFile.apply(utils, featureDetectorPath);
+  var featureDetectorContent = utils.getFileContent(featureDetectorFile);
+
+  // `this.deviceType = '_GAIA_DEVICE_TYPE_';` will be replaced by real device
+  // type, take phone for example, result will be: this.deviceType = 'phone';
+  utils.writeContent(
+    featureDetectorFile,
+    featureDetectorContent.replace(
+      /this\.deviceType = \'_GAIA_DEVICE_TYPE_\';/,
+      'this.deviceType = \'' + deviceType + '\';')
+  );
+};
+
 SystemAppBuilder.prototype.execute = function(options) {
   utils.copyToStage(options);
   this.setOptions(options);
@@ -107,6 +124,7 @@ SystemAppBuilder.prototype.execute = function(options) {
   }
   this.integrateLockScreen(options);
   this.integrateLockScreenInputpad(options);
+  this.inlineDeviceType(options);
 };
 
 exports.execute = function(options) {
