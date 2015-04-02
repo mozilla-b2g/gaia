@@ -13,7 +13,7 @@ define(function(require) {
 
       onBeforeShow: function(panel, options) {
         details = AddonDetails(panel);
-        details.render(options.addon);
+        details.render(options);
       },
 
       onBeforeHide: function() {
