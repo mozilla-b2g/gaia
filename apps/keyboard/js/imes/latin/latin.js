@@ -397,7 +397,7 @@
           break;
 
           default:
-            handler = handleKey(keyCode, null, upperKeyCode);
+            handler = handleKey(keyCode);
         }
       }
       return handler;
@@ -436,9 +436,9 @@
   // Handle any key (including backspace) and do the right thing even if
   // there is a selection in the text field. This method does not perform
   // auto-correction or auto-punctuation.
-  function handleKey(keycode, repeat, upperKeyCode) {
+  function handleKey(keycode, repeat) {
     // Generate the key event
-    return keyboard.sendKey(keycode, repeat, upperKeyCode).then(function() {
+    return keyboard.sendKey(keycode, repeat).then(function() {
       // First, update our internal state
       if (keycode === BACKSPACE) {
         if (selection) {

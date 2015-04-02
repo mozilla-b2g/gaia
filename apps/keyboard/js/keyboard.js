@@ -1510,7 +1510,7 @@ function resetKeyboard() {
 // This is a wrapper around inputContext.sendKey()
 // We use it in the defaultInputMethod and in the interface object
 // we pass to real input methods
-function sendKey(keyCode, isRepeat, upperKeyCode) {
+function sendKey(keyCode, isRepeat) {
   switch (keyCode) {
   case KeyEvent.DOM_VK_BACK_SPACE:
     if (inputContext) {
@@ -1525,18 +1525,7 @@ function sendKey(keyCode, isRepeat, upperKeyCode) {
 
   default:
     if (inputContext) {
-      // to match the behavior on desktop Firefox, set upperKeyCode as
-      // keyCode for digits
-      console.log(upperKeyCode, keyCode);
-      if (!upperKeyCode && keyCode >=48 && keyCode <=57) {
-        upperKeyCode = keyCode;
-      } else if (upperKeyCode &&
-                  (upperKeyCode < 48 ||
-                  (upperKeyCode > 57 && upperKeyCode < 65) ||
-                  upperKeyCode > 90)) {
-        upperKeyCode = 0;
-      }
-      return inputContext.sendKey(upperKeyCode || 0, keyCode, 0);
+      return inputContext.sendKey(0, keyCode, 0);
     }
     break;
   }
