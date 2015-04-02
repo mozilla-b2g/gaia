@@ -302,6 +302,20 @@ suite('system/Rocketbar', function() {
     assert.ok(deactivateStub.calledOnce);
   });
 
+  test('handleEvent() - utilitytray-overlayopening + activity', function() {
+    var previousSearchWindow = subject.searchWindow;
+    subject.searchWindow = {
+      frontWindow: 'test'
+    };
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var event = {type: 'utilitytray-overlayopening'};
+    subject.handleEvent(event);
+    assert.isFalse(hideResultsStub.calledOnce);
+    assert.isFalse(deactivateStub.calledOnce);
+    subject.searchWindow = previousSearchWindow;
+  });
+
   test('handleEvent() - launchapp', function() {
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');
     var deactivateStub = this.sinon.stub(subject, 'deactivate');

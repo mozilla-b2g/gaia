@@ -259,6 +259,8 @@
           this._closeSearch();
           break;
         case 'open-app':
+        case 'utilitytray-overlayopening':
+        case 'utility-tray-overlayopened':
           // Do not hide the searchWindow if we have a frontWindow.
           if (this.searchWindow && this.searchWindow.frontWindow) {
             return;
@@ -271,8 +273,6 @@
         case 'attentionopened':
         case 'appforeground':
         case 'appopened':
-        case 'utilitytray-overlayopening':
-        case 'utility-tray-overlayopened':
           if (this._activateCall) {
             this._activateCall
               .then(this._closeSearch.bind(this));
