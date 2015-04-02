@@ -1553,7 +1553,7 @@ contacts.List = (function() {
     var showNoContacts = visibleElements.length === 0;
     toggleNoContactsScreen(showNoContacts);
 
-    if (selectedContacts[id]) {
+    if (selectedContacts[id] !== undefined) {
       delete selectedContacts[id];
     }
   };
@@ -2247,6 +2247,24 @@ contacts.List = (function() {
     _notifyRowOnScreenCallback = null;
     _notifyRowOnScreenUUID = null;
   }
+
+  // After merging one or more contacts, we need to remove all the matches
+  // except the master one from the contacts list.
+  function onContactsMerged(ids) {
+    Object.keys(ids).forEach(id => {
+      if (id in selectedContacts) {
+        remove(id);
+      }
+    });
+    Cache.evict();
+  }
+
+  window.onmessage = (e) => {
+    if (e.data.type != 'duplicate_contacts_merged' || !e.data.data) {
+      return;
+    }
+    onContactsMerged(e.data.data);
+  };
 
   /**
    * Cache related functionality.
