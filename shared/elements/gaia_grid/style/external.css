@@ -18,3 +18,7 @@ Bug 1018269 - we need to specify the keyframe outside
     transform: rotate(360deg)
   }
 }
+
+:-moz-dir(rtl) gaia-grid {
+  direction: ltr;
+}

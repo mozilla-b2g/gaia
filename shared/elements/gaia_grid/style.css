@@ -401,8 +401,3 @@ instead of the context menu.
   left: 0;
   right: unset;
 }
-
-/* RTL fixes being tracked in bug 1008013 */
-:-moz-dir(rtl) gaia-grid {
-  direction: ltr;
-}
