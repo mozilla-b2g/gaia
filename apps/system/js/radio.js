@@ -21,13 +21,6 @@
     this._setRadioOpCount = 0;
 
     /*
-     * An internal array storing the expecting radio states.
-     *
-     * @default {Boolean} false
-     */
-    this._expectedRadioStates = [];
-
-    /*
      * Data connection type mapping result
      */
     this.types = [];
@@ -118,26 +111,9 @@
       this.icon && this.icon.update(index);
     },
 
-    /*
-     * Checks if the state change is expected. If not, we should re-enable the
-     * radio when necessary.
-     */
     _onRadioStateChange: function(conn, index) {
       this.icon && this.icon.update(index);
       this.debug('radiostatechange: [' + index + '] ' + conn.radioState);
-      if (this._expectedRadioStates[index] !== null) {
-        // we are expecting radio state changes
-        if (this._expectedRadioStates[index] &&
-            conn.radioState === 'enabled' ||
-            !this._expectedRadioStates[index] &&
-            conn.radioState === 'disabled') {
-          // clear the expected state if the real state meets the expection.
-          this._expectedRadioStates[index] = null;
-        }
-      } else {
-        // there is an unexpected radio state change from gecko
-        this._reEnableRadioIfNeeded(conn, index);
-      }
       this.publish('statechange', {
         index: index,
         state: conn.radioState
@@ -185,7 +161,6 @@
         console.error(err);
       });
       this.mobileConnections.forEach(function(conn, index) {
-        this._expectedRadioStates.push(null);
         this.types.push('');
         conn.addEventListener('radiostatechange',
           this._onRadioStateChange.bind(this, conn, index));
@@ -240,9 +215,6 @@
      * @param {Boolean} enabled
      */
     _doSetRadioEnabled: function(conn, enabled, index) {
-      // Set the expected state so that we can tell whether a radio change
-      // results from gaia or gecko.
-      this._expectedRadioStates[index] = enabled;
       this.debug('Real operation to turn ' + (enabled ? 'on' : 'off') +
         ' for ' + index + ' connection.');
       var self = this;
@@ -284,12 +256,6 @@
           '-enabled' : '-disabled';
 
         this.publish(evtName);
-      }
-    },
-
-    _reEnableRadioIfNeeded: function(conn) {
-      if (conn.radioState === 'disabled' && this.enabled) {
-        this._setRadioEnabled(conn, true);
       }
     }
   }, {
