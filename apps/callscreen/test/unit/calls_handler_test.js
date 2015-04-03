@@ -352,7 +352,7 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.equal(MockCallScreen.incomingNumber.textContent, 'test name');
         assert.isTrue(MockUtils.mCalledGetPhoneNumberAndType);
-        assert.equal(MockCallScreen.incomingNumberAdditionalInfo.textContent,
+        assert.equal(MockCallScreen.incomingNumberAdditionalInfo.innerHTML,
                      'type, 12334');
       });
 
@@ -364,7 +364,7 @@ suite('calls handler', function() {
                      extraCall.id.number);
         assert.isTrue(MockUtils.mCalledGetPhoneNumberAndType);
         assert.equal(
-          MockCallScreen.incomingNumberAdditionalInfo.textContent, '');
+          MockCallScreen.incomingNumberAdditionalInfo.innerHTML, '');
       });
 
       suite('adaptToSpace and ensureFixedBaseline', function() {

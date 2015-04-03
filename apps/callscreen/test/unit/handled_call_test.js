@@ -660,7 +660,7 @@ suite('dialer/handled_call', function() {
       mockCall = new MockCall('888', 'incoming');
       subject = new HandledCall(mockCall);
       MockVoicemail.mResolvePromise(false);
-      assert.equal(subject.additionalInfoNode.textContent, 'type, 888');
+      assert.equal(subject.additionalInfoNode.innerHTML, 'type, 888');
     });
 
     test('check switch-calls mode', function() {
@@ -669,9 +669,9 @@ suite('dialer/handled_call', function() {
       mockCall.secondId = { number: '999' };
       subject.updateCallNumber();
 
-      assert.equal('', subject.additionalInfoNode.textContent);
+      assert.equal('', subject.additionalInfoNode.innerHTML);
       subject.restoreAdditionalContactInfo();
-      assert.equal('', subject.additionalInfoNode.textContent);
+      assert.equal('', subject.additionalInfoNode.innerHTML);
     });
 
     suite('additional contact info', function() {
@@ -686,7 +686,7 @@ suite('dialer/handled_call', function() {
         });
 
         test('should update the text content', function() {
-          assert.equal(subject.additionalInfoNode.textContent,
+          assert.equal(subject.additionalInfoNode.innerHTML,
                        'test additional info');
         });
 
@@ -701,7 +701,7 @@ suite('dialer/handled_call', function() {
         });
 
         test('should empty the text content', function() {
-          assert.equal(subject.additionalInfoNode.textContent, '');
+          assert.equal(subject.additionalInfoNode.innerHTML, '');
         });
 
         test('should remove the css class', function() {
@@ -1034,7 +1034,7 @@ suite('dialer/handled_call', function() {
       mockCall.emergency = true;
       mockCall._connect();
 
-      assert.equal(subject.additionalInfoNode.textContent, 'emergencyNumber');
+      assert.equal(subject.additionalInfoNode.innerHTML, 'emergencyNumber');
       assert.isTrue(subject.node.classList.contains('emergency'));
       assert.isTrue(subject.node.textContent.contains('112'));
     });

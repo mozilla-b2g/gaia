@@ -142,6 +142,7 @@ var Utils = {
   },
 
   getPhoneNumberAndType: function ut_getPhoneNumberAndType(matchingTel) {
-    return this._getPhoneNumberType(matchingTel) + ', ' + matchingTel.value;
+    return this._getPhoneNumberType(matchingTel) + ', ' +
+           '<bdi>' + matchingTel.value + '</bdi>';
   }
 };
