@@ -8,12 +8,19 @@
 
 .contact-item {
   flex: 1;
-  padding: .2rem 2rem 0;
+  padding: 0 2rem;
   min-width: 0;
+  text-align: left;
 }
 
-.contact-item .ci__tel-type:not(:empty):after {
+.contact-item .ci__tel-type:not(:empty) ~ .js-separator::before {
   content: ',';
+  -moz-margin-end: 5px;
+}
+
+.contact-item .ci__tel-type:not(:empty) {
+  min-width: 4rem;
+  max-width: 10rem;
 }
 
 .ci__name {
@@ -28,8 +35,11 @@
 }
 
 .ci__details {
-  line-height: 1.7rem;
+  display: flex;
+  font-size: 1.7rem;
+  line-height: 2.3rem;
   pointer-events: none;
+  margin-bottom: -0.4rem;
 }
 
 .ci--action-menu .ci__details {
@@ -46,11 +56,25 @@
   color: #94eee9;
 }
 
+.js-tel {
+  flex-grow: 1;
+}
+
 /* FIXME Move to some kind of "building blocks" file? */
 .ellipsis {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
   margin: 0 auto;
-  width: 100%;
+}
+
+/* Override BB styles for LTR */
+[role="dialog"][data-type="action"] > menu > button.contact-item {
+  text-align: left;
+}
+
+/* Override BB styles for RTL */
+html[dir="rtl"] [role="dialog"][data-type="action"] > menu > button.contact-item,
+html[dir="rtl"] .contact-item {
+  text-align: right;
 }
