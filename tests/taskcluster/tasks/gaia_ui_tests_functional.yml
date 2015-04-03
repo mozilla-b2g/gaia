@@ -3,8 +3,8 @@
 reruns: 4
 task:
   metadata:
-    name: 'Gaia ui tests {{chunk}}'
-    description: Gaia ui python tests
+    name: 'Gaia ui tests functional {{chunk}}'
+    description: Gaia ui python tests functional
 
   workerType: '{{workerType}}'
   provisionerId: '{{provisionerId}}'
@@ -25,7 +25,7 @@ task:
 
     command:
       - entrypoint
-      - ./bin/ci run gaia_ui_tests
+      - ./bin/ci run gaia_ui_tests_functional
 
     artifacts:
       'public/gaia_ui_tests':
@@ -36,4 +36,4 @@ task:
     treeherder:
       groupSymbol: Gip
       groupName: "Gaia python integration tests"
-      symbol: Gip{{chunk}}
+      symbol: f{{chunk}}

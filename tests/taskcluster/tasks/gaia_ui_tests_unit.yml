@@ -1,0 +1,35 @@
+# Chunking task for gaia-ui-tests...
+---
+reruns: 4
+task:
+  metadata:
+    name: 'Gaia ui tests unit'
+    description: Gaia ui python tests unit
+
+  workerType: '{{workerType}}'
+  provisionerId: '{{provisionerId}}'
+  scopes:
+    # Source caches contains various sources (including a tarball of gaia source
+    # tree)
+    - docker-worker:cache:gaia-misc-caches
+
+  payload:
+    cache:
+      gaia-misc-caches: /home/tester/caches/
+    # See: ci/gaia_ui_tests/script for how this ties into the built in
+    # chunking functionality for the test scripts...
+
+    command:
+      - entrypoint
+      - ./bin/ci run gaia_ui_tests_unit
+
+    artifacts:
+      'public/gaia_ui_tests':
+        type: directory
+        path: '{{gaia}}/artifacts/'
+        expires: '{{nextYear}}'
+  extra:
+    treeherder:
+      groupSymbol: Gip
+      groupName: "Gaia python integration tests"
+      symbol: u
