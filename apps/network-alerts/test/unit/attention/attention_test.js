@@ -14,8 +14,10 @@ require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/test/unit/mocks/mock_notification_helper.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-require('/test/unit/mock_utils.js');
 require('/test/unit/mock_notify.js');
+
+require('/js/utils.js');
+require('/test/unit/mock_utils.js');
 
 require('/js/attention/attention.js');
 
@@ -34,6 +36,9 @@ suite('Network Alerts - Attention Screen', function() {
   var realL10n = navigator.mozL10n;
   var realMozApps = navigator.mozApps;
   var realOpener;
+  var isDocumentHidden = false;
+  var stopNotificationStub;
+  var endNotificationDefer;
 
   mocksHelperForAttention.attachTestHelpers();
 
@@ -48,10 +53,18 @@ suite('Network Alerts - Attention Screen', function() {
          close: function() {}
        }
     });
+
+    Object.defineProperty(document, 'hidden', {
+      configurable: true,
+      get: function() {
+        return isDocumentHidden;
+      }
+    });
   });
 
   suiteTeardown(function() {
     Object.defineProperty(window, 'opener', realOpener);
+    delete document.hidden;
   });
 
   setup(function() {
@@ -63,7 +76,14 @@ suite('Network Alerts - Attention Screen', function() {
 
     this.sinon.stub(Utils, 'parseParams');
     this.sinon.stub(window.opener, 'close');
-    this.sinon.stub(Notify, 'notify');
+
+    stopNotificationStub = sinon.stub();
+    endNotificationDefer = Utils.defer();
+
+    this.sinon.stub(Notify, 'notify').returns(Promise.resolve({
+      stop: stopNotificationStub,
+      endPromise: endNotificationDefer.promise
+    }));
 
     navigator.mozL10n = MockL10n;
     this.sinon.stub(navigator.mozL10n, 'once').yields();

@@ -1,5 +1,6 @@
 /* global
-  AudioContext
+  AudioContext,
+  Utils
  */
 
 (function(exports) {
@@ -14,6 +15,8 @@
   ATTENTION_PATTERN.push(...ATTENTION_PATTERN);
 
   const ATTENTION_SOUND_VOLUME = 0.3;
+
+  const ATTENTION_DURATION = 11;
 
   function getSetting(key) {
     if (!navigator.mozSettings) {
@@ -76,15 +79,19 @@
     o1.start();
     o2.start();
     // Eventually stop the oscillator to allow garbage collecting.
-    o1.stop(time + 11);
-    o2.stop(time + 11);
+    o1.stop(time + ATTENTION_DURATION);
+    o2.stop(time + ATTENTION_DURATION);
 
     var wave = getAttentionCurveWave();
-    gain.gain.setValueCurveAtTime(wave, time, 11);
+    gain.gain.setValueCurveAtTime(wave, time, ATTENTION_DURATION);
 
     o1.connect(gain);
     o2.connect(gain);
     gain.connect(audioCtx.destination);
+
+    return {
+      stop: () => { o1.stop(); o2.stop(); }
+    };
   }
 
   function vibrate() {
@@ -98,6 +105,10 @@
     } else {
       navigator.vibrate(pattern);
     }
+
+    return {
+      stop: () => navigator.vibrate(0)
+    };
   }
 
   var Notify = {
@@ -105,13 +116,23 @@
       return getSettings(
         [SETTINGS.notificationVolume, SETTINGS.vibration]
       ).then((settings) => {
+        var stopFunctions = [];
         if (settings[SETTINGS.notificationVolume]) {
-          ringtone();
+          stopFunctions.push(ringtone());
         }
 
         if (settings[SETTINGS.vibration]) {
-          vibrate();
+          stopFunctions.push(vibrate());
         }
+
+        // Notify when the attention notification is finished.
+        var endDefer = Utils.defer();
+        setTimeout(endDefer.resolve, ATTENTION_DURATION);
+
+        return {
+          stop: () => stopFunctions.forEach((stopFunc) => stopFunc.stop()),
+          endPromise: endDefer.promise
+        };
       });
     }
   };

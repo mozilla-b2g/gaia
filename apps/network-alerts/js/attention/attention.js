@@ -77,12 +77,36 @@ function onVisibilityChange() {
   }
 }
 
+function notify() {
+  Notify.notify().then(({ stop, endPromise }) => {
+    function checkVisibilityAndStop() {
+      if (document.hidden) {
+        document.removeEventListener(
+          'visibilitychange', checkVisibilityAndStop
+        );
+        stop();
+      }
+    }
+
+    if (document.hidden) {
+      stop();
+      return;
+    }
+
+    document.addEventListener('visibilitychange', checkVisibilityAndStop);
+
+    endPromise.then(() => {
+      document.removeEventListener('visibilitychange', checkVisibilityAndStop);
+    });
+  });
+}
+
 function render() {
   var params = Utils.parseParams();
   renderForm(params);
   var fromNotification = params.notification;
   if (!fromNotification) {
-    Notify.notify();
+    notify();
   }
 }
 
