@@ -236,13 +236,13 @@ suite('FindMyDevice >', function() {
       sinon.assert.calledWith(FindMyDevice._currentClientIDHelper.set, '');
     });
 
-    test('don\'t overwrite the current clientid after re-registering',
+    test('refresh the current clientid after (re-)registering',
     function() {
       FindMyDevice._enabled = true;
       FindMyDevice._registered = true;
       this.sinon.stub(FindMyDevice, '_loadState', function(cb) { cb(); });
       FindMyDevice._onRegisteredChanged({settingValue: true});
-      sinon.assert.notCalled(FindMyDevice._currentClientIDHelper.set);
+      sinon.assert.calledWith(FindMyDevice._currentClientIDHelper.set, '');
     });
   });
 

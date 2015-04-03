@@ -439,7 +439,10 @@ var FindMyDevice = {
     } else {
       this._loadState((function() {
         this._contactServer();
-        this.endHighPriority('clientLogic');
+        this._currentClientIDHelper.set('');
+        // XXX(ggp) we're still holding a 'clientLogic' lock, but let
+        // _onClientIDChanged or _onCanDisableChanged release it (depending
+        // on whether we're logged in or not).
       }).bind(this));
     }
   },
