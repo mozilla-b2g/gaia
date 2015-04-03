@@ -54,7 +54,7 @@ var SuggestionBar = {
     }
 
     event.stopPropagation();
-    var telTag = node.querySelector('.js-tel');
+    var telTag = node.querySelector('.js-tel bdi');
     KeypadManager.updatePhoneNumber(telTag.textContent, 'begin', false);
     // In the multi-SIM case, we just autocomplete the phone number without
     // making the call. The call button is responsible for SIM selection
@@ -256,8 +256,8 @@ var SuggestionBar = {
   _setItem: function sb_setItem(node, tel, type, name) {
     var _ = navigator.mozL10n.get;
     var typeTag = node.querySelector('.js-tel-type');
-    var telTag = node.querySelector('.js-tel');
-    var nameTag = node.querySelector('.js-name');
+    var telTag = node.querySelector('.js-tel bdi');
+    var nameTag = node.querySelector('.js-name bdi');
     nameTag.textContent = name ? name : null;
     typeTag.textContent = _(type) || type;
     telTag.innerHTML = tel ? tel : null;

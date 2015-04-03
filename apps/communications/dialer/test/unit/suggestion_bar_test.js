@@ -205,7 +205,7 @@ suite('suggestion Bar', function() {
     test('#update suggestions by contact data - 1 data', function() {
       var mockNumber = '1234567890';
       var enteredNumber = '1234';
-      var tel = domSuggestionBar.querySelector('.js-tel');
+      var tel = domSuggestionBar.querySelector('.js-tel bdi');
       var telType = domSuggestionBar.querySelector('.js-tel-type');
 
       MockContacts.mResult = mockResult1;
@@ -226,7 +226,7 @@ suite('suggestion Bar', function() {
     test('#update suggestions by contact data - 2 datas', function() {
       var mockNumber = '111111111';
       var enteredNumber = '1111';
-      var tel = domSuggestionBar.querySelector('.js-tel');
+      var tel = domSuggestionBar.querySelector('.js-tel bdi');
       var telType = domSuggestionBar.querySelector('.js-tel-type');
 
       MockContacts.mResult = mockResult2;
@@ -247,7 +247,7 @@ suite('suggestion Bar', function() {
       function() {
         var mockNumber = '12349999';
         var enteredNumber = '1234';
-        var tel = domSuggestionBar.querySelector('.js-tel');
+        var tel = domSuggestionBar.querySelector('.js-tel bdi');
         var telType = domSuggestionBar.querySelector('.js-tel-type');
 
         MockContacts.mResult = [];
@@ -272,7 +272,7 @@ suite('suggestion Bar', function() {
       function() {
         var mockNumber = '1234567890';
         var enteredNumber = '1234';
-        var tel = domSuggestionBar.querySelector('.js-tel');
+        var tel = domSuggestionBar.querySelector('.js-tel bdi');
         var telType = domSuggestionBar.querySelector('.js-tel-type');
 
         MockContacts.mResult = mockResult1;
@@ -295,7 +295,7 @@ suite('suggestion Bar', function() {
       function() {
         var mockNumber = '12349999';
         var enteredNumber = '1234';
-        var tel = domSuggestionBar.querySelector('.js-tel');
+        var tel = domSuggestionBar.querySelector('.js-tel bdi');
         var telType = domSuggestionBar.querySelector('.js-tel-type');
 
         MockContacts.mResult = [];
@@ -351,7 +351,7 @@ suite('suggestion Bar', function() {
       });
 
       test('should clear contents', function() {
-        var tel = domSuggestionBar.querySelector('.js-tel');
+        var tel = domSuggestionBar.querySelector('.js-tel bdi');
         assert.equal(tel.textContent, '');
       });
 
@@ -371,7 +371,7 @@ suite('suggestion Bar', function() {
 
       test('one SIM', function() {
         var mockNumber = '1234567890';
-        var tel = domSuggestionBar.querySelector('.js-tel');
+        var tel = domSuggestionBar.querySelector('.js-tel bdi');
 
         setupExactMatch();
 
@@ -437,9 +437,9 @@ suite('suggestion Bar', function() {
       });
 
       test('each match is displayed in the proper order', function() {
-        assert.equal(suggestions[0].querySelector('.js-name').textContent,
+        assert.equal(suggestions[0].querySelector('.js-name bdi').textContent,
                      'John');
-        assert.equal(suggestions[1].querySelector('.js-name').textContent,
+        assert.equal(suggestions[1].querySelector('.js-name bdi').textContent,
                      'Mary');
       });
 

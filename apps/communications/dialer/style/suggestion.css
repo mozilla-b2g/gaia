@@ -7,6 +7,12 @@
   width: 100%;
   color: #033B37;
 }
+html[dir="ltr"] .suggestion-bar {
+  margin-left: -1.5rem;
+}
+html[dir="rtl"] .suggestion-bar {
+  margin-right: -3rem;
+}
 
 .suggestion-count {
   width: 5.5rem;
@@ -16,6 +22,9 @@
   padding-left: 1rem;
   line-height: 4.5rem;
   text-align: center;
+}
+html[dir="rtl"] .suggestion-count {
+  margin-left: -1.5rem;
 }
 
 .suggestion-count.more {

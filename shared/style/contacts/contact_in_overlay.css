@@ -19,6 +19,10 @@
 .ci__name {
   line-height: 1.9rem;
   pointer-events: none;
+  padding-left: 1.5rem
+}
+html[dir="rtl"] .ci__name {
+  padding-right: 4rem;
 }
 
 .ci--action-menu .ci__name {
@@ -46,11 +50,46 @@
   color: #94eee9;
 }
 
-/* FIXME Move to some kind of "building blocks" file? */
-.ellipsis {
+html[dir="ltr"] .ci__tel-type {
+  vertical-align: top;
+}
+
+.ci__details {
+  display: block;
   white-space: nowrap;
+}
+html[dir="ltr"] .ci__details {
+  padding-right: 6rem;
+  padding-left: 1.5rem;
+}
+html[dir="rtl"] .ci__details {
+  padding-left: 6rem;
+  padding-right: 1.5rem;
+}
+
+.ellipsis-name {
+  display: inline-block;
+  width: 100%;
   text-overflow: ellipsis;
   overflow: hidden;
-  margin: 0 auto;
-  width: 100%;
+  white-space: nowrap;
+  margin-bottom: -.3rem;
 }
+html[dir="rtl"] .ellipsis-name {
+  text-align: right;
+}
+.ci__tel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+html[dir="rtl"] .ci__tel {
+  text-align: right;
+}
+
+.ellipsis-tel {
+  display:inline-block;
+  width: 100%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
