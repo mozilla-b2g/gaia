@@ -147,7 +147,9 @@
     handleStatusbarTouch: function() {},
     setNFCFocus: function() {},
     setActive: function() {},
-    getSSLState: function() { return ''; }
+    getSSLState: function() { return ''; },
+    getCachedScreenshotBlob: function() {},
+    requestScreenshotURL: function() {}
   };
   MockAppWindow.mTeardown = function() {
     MockAppWindowHelper.mInstances = [];
