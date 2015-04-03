@@ -51,7 +51,8 @@ suite('dialer/utils', function() {
       MockContacts.findByNumber(number, function(contact, matchingTel) {
         var additionalInfo = subject.getPhoneNumberAndType(matchingTel);
         sinon.assert.calledWith(MockL10n.get, MockContacts.mType);
-        assert.equal(MockContacts.mType + ', ' + number, additionalInfo);
+        assert.equal(MockContacts.mType + ', ' + '<bdi>' + number + '</bdi>',
+                     additionalInfo);
       });
     });
 

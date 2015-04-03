@@ -296,11 +296,11 @@ var CallsHandler = (function callsHandler() {
         if (contact && contact.name) {
           CallScreen.incomingInfo.classList.add('additionalInfo');
           CallScreen.incomingNumber.textContent = contact.name;
-          CallScreen.incomingNumberAdditionalInfo.textContent =
+          CallScreen.incomingNumberAdditionalInfo.innerHTML =
             Utils.getPhoneNumberAndType(matchingTel);
         } else {
           CallScreen.incomingNumber.textContent = number;
-          CallScreen.incomingNumberAdditionalInfo.textContent = '';
+          CallScreen.incomingNumberAdditionalInfo.innerHTML = '';
         }
 
         FontSizeManager.adaptToSpace(
