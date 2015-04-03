@@ -235,15 +235,6 @@ suite('FindMyDevice >', function() {
       assert.isFalse(FindMyDevice._loggedIn, 'logged in after logout event');
       sinon.assert.calledWith(FindMyDevice._currentClientIDHelper.set, '');
     });
-
-    test('don\'t overwrite the current clientid after re-registering',
-    function() {
-      FindMyDevice._enabled = true;
-      FindMyDevice._registered = true;
-      this.sinon.stub(FindMyDevice, '_loadState', function(cb) { cb(); });
-      FindMyDevice._onRegisteredChanged({settingValue: true});
-      sinon.assert.notCalled(FindMyDevice._currentClientIDHelper.set);
-    });
   });
 
   suite('findmydevice.can-disable behavior', function() {
