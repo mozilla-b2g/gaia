@@ -299,22 +299,17 @@
   font-weight: normal;
 }
 
+#cards-view .card.show-subtitle p.subtitle {
+  display: block;
+}
+
 #cards-view .card.browser p.subtitle {
   color: #e7e7e7;
   pointer-events: auto;
   font-style: italic;
 }
 
-#cards-view .card p.subtitle:not(:empty) {
-  display: block;
-}
-
 #cards-view.filtered .card p.subtitle {
-  display: none;
-}
-
-#cards-view.filtered .card p.subtitle:not(:empty) {
-  display: block;
   color: #858585;
 }
 
@@ -326,8 +321,8 @@
   text-overflow: ellipsis;
 }
 
-#cards-view .card[data-ssl="secure"] p.subtitle:not(:empty),
-#cards-view .card[data-ssl="broken"] p.subtitle:not(:empty) {
+#cards-view .card.show-subtitle[data-ssl="secure"] p.subtitle,
+#cards-view .card.show-subtitle[data-ssl="broken"] p.subtitle {
   -moz-padding-start: 2rem;
   -moz-padding-end: 1rem;
   min-height: 2rem;
@@ -336,22 +331,22 @@
   background-size: 3rem 3rem;
 }
 
-#cards-view .card[data-ssl="secure"] p.subtitle:not(:empty) {
+#cards-view .card.show-subtitle[data-ssl="secure"] p.subtitle {
   background-image: url("../chrome/images/dark/ssl.png");
 }
-#cards-view .card[data-ssl="broken"] p.subtitle:not(:empty) {
+#cards-view .card.show-subtitle[data-ssl="broken"] p.subtitle {
   background-image: url("../chrome/images/dark/ssl_broken.png");
 }
 
-#cards-view.filtered .card[data-ssl="secure"] p.subtitle:not(:empty) {
+#cards-view.filtered .card.show-subtitle[data-ssl="secure"] p.subtitle {
   background-image: url("../chrome/images/light/ssl.png");
 }
-#cards-view .card[data-ssl="broken"] p.subtitle:not(:empty) {
+#cards-view .card.show-subtitle[data-ssl="broken"] p.subtitle {
   background-image: url("../chrome/images/light/ssl_broken.png");
 }
 
-html[dir="rtl"] #cards-view .card[data-ssl="broken"] p.subtitle:not(:empty),
-html[dir="rtl"] #cards-view .card[data-ssl="secure"] p.subtitle:not(:empty) {
+html[dir="rtl"] #cards-view .card.show-subtitle[data-ssl="broken"] p.subtitle,
+html[dir="rtl"] #cards-view .card.show-subtitle[data-ssl="secure"] p.subtitle {
   background-position: right -0.5rem top -1rem;
 }
 
