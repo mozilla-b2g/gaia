@@ -30,6 +30,31 @@ marionette('Music player playlist', function() {
 
   });
 
+
+  suite('Special names', function() {
+    setup(function() {
+      client.fileManager.removeAllFiles();
+      client.fileManager.add([
+        // Title: "dump 2>&1 < ~/® <b>&amp; Injection Vulnerablity</b>"
+        {
+          type: 'music',
+          filePath: 'apps/music/test-data/playlists/d.ogg'
+        }
+      ]);
+    });
+
+    test('Check name with >, <, ~, &, markup and some Unicode', function() {
+      music.launch();
+      music.waitForFirstTile();
+      music.switchToSongsView();
+
+      // this will wait on the first song as well.
+      var song = music.firstSong;
+      assert.equal(PlaylistHelper.mainTitle(song),
+                   'dump 2>&1 < ~/® <b>&amp; Injection Vulnerablity</b>');
+    });
+  });
+
   suite('Single disc tests', function () {
     setup(function() {
       client.fileManager.removeAllFiles();
