@@ -439,7 +439,10 @@ var FindMyDevice = {
     } else {
       this._loadState((function() {
         this._contactServer();
-        this.endHighPriority('clientLogic');
+        this._currentClientIDHelper.set(this._state.clientid);
+        // XXX(ggp) since every re-registration causes a change in the
+        // client id, we don't need to release the 'clientLogic' lock
+        // here, let _onCanDisableChanged do it
       }).bind(this));
     }
   },
