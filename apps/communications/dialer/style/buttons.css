@@ -21,7 +21,7 @@
   margin: 0 0 1rem;
   padding: 0 1.2rem;
   -moz-box-sizing: border-box;
-  display: inline-block;
+  /*display: inline-block;*/
   vertical-align: middle;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -125,7 +125,7 @@ li .activity {
   margin: 0 0 1rem;
   overflow: hidden;
   border-radius: 0;
-  display: flex;
+  /*display: flex;*/
   height: auto;
   min-height: 4rem;
   text-overflow: initial;
