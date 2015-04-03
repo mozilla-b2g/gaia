@@ -31,7 +31,8 @@ var ThreadListUI = {
 
   // Used to track timeouts
   timeouts: {
-    onDraftSaved: null
+    onDraftSaved: null,
+    onUndoDeleted: null
   },
 
   // Used to track the current number of rendered
@@ -53,7 +54,7 @@ var ThreadListUI = {
       'check-uncheck-all-button','composer-link',
       'delete-button', 'edit-header','options-button',
       'settings-button','edit-mode', 'edit-form',
-      'draft-saved-banner'
+      'draft-saved-banner', 'undo-delete-banner'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('threads-' + id);
     }, this);
@@ -455,46 +456,28 @@ var ThreadListUI = {
     }
   },
 
- /* undoDelete: function thlui_undoDelete (draftIds, threadIds) {
-    if(draftIds) {
-      draftIds.forEach(function(threadId) {
-        ThreadListUI.appendThread(Threads.get(threadId));
-      });
-    }
-    if (!threadIds.length) {
-      ThreadListUI.exitEditMode();
-    } else if(threadIds) {
-      threadIds.forEach(function(threadId) {
-        ThreadListUI.appendThread(Threads.get(threadId));
-      });
-    }
-  }, */
-
   // Since removeThread will revoke list photoUrl at the end of deletion,
   // please make sure url will also be revoked if new delete api remove threads
   // without calling removeThread in the future.
   delete: function thlui_delete(selected) {
-    //function performDeletion(selected) {
-      /* jshint validthis: true */
-      var threadIds = [], draftIds = [], undoCheck = 1;
+    /* jshint validthis: true */
+    var threadIds = [], draftIds = [];
 
-      //WaitingScreen.show();
+    threadIds = selected.reduce(function(list, value) {
+      // Coerce the threadId back to a number MobileMessageFilter and all
+      // other platform APIs expect this value to be a number.
+      var threadId = +value;
+      var isDraft = typeof Threads.get(threadId) === 'undefined';
 
-      threadIds = selected.reduce(function(list, value) {
-        // Coerce the threadId back to a number MobileMessageFilter and all
-        // other platform APIs expect this value to be a number.
-        var threadId = +value;
-        var isDraft = typeof Threads.get(threadId) === 'undefined';
-
-        if (isDraft) {
-          draftIds.push(threadId);
-        } else {
+      if (isDraft) {
+        draftIds.push(threadId);
+      } else {
           list.push(threadId);
-        }
-        return list;
-      }, []);
-      
-      ThreadListUI.deleteThreadDraftUI(selected, draftIds, threadIds);
+      }
+      return list;
+    }, []);
+
+    ThreadListUI.deleteThreadDraftUI(selected, draftIds, threadIds);
   },
 
   deleteThreadDraftUI:
@@ -508,37 +491,50 @@ var ThreadListUI = {
       ThreadListUI.exitEditMode();
     } else if(threadIds) {
       threadIds.forEach(function(threadId) {
-        console.log(Threads.get(threadId));
-        ThreadListUI.deleteThread(threadId);
+        ThreadListUI.removeThread(threadId);
       });
     }
 
-    ThreadListUI.exitEditMode();
-    this.draftSavedBanner.classList.remove('hide');
+    navigator.mozL10n.setAttributes(this.undoDeleteBanner, 'undo-deletion', {
+      n: (draftIds.length + threadIds.length) 
+    });
 
-    this.draftSavedBanner.addEventListener('click', () => {
-      this.undoCheck = 0;
+    ThreadListUI.exitEditMode();
+    this.undoDeleteBanner.classList.remove('hide');
+
+    var undoDelete = function undoDelete () {
+      ThreadListUI.undoDeleteBanner.classList.add('hide');
+      clearTimeout(ThreadListUI.timeouts.onDraftSaved);
+      ThreadListUI.timeouts.onDraftSaved = null;
+      ThreadListUI.undoDeleteBanner.removeEventListener('click', undoDelete);
+
+      console.log('undo');
+      ThreadListUI.undoCheck = 0;
       if(draftIds) {
         draftIds.forEach(function(threadId) {
-          ThreadListUI.appendThread(Threads.get(threadId));
+          ThreadListUI.appendThread(
+            Thread.create(Drafts.get(threadId))
+          );
         });
       }
       if (!threadIds.length) {
         ThreadListUI.exitEditMode();
       } else if(threadIds) {
         threadIds.forEach(function(threadId) {
-          console.log(Threads.get(threadId));
           ThreadListUI.appendThread(Threads.get(threadId));
         });
       }
-    });
-    
-    clearTimeout(this.timeouts.onDraftSaved);
-    this.timeouts.onDraftSaved = null;
+    }
 
-    this.timeouts.onDraftSaved = setTimeout(function hideDraftSavedBanner() {
-      this.draftSavedBanner.classList.add('hide');  
-      if(this.undoCheck) {
+    this.undoDeleteBanner.addEventListener('click', undoDelete);
+    
+    clearTimeout(this.timeouts.onUndoDeleted);
+    this.timeouts.onUndoDeleted = null;
+
+    this.timeouts.onUndoDeleted = setTimeout(function hideDraftSavedBanner() {
+      this.undoDeleteBanner.classList.add('hide'); 
+      this.undoDeleteBanner.removeEventListener('click', undoDelete); 
+      if(ThreadListUI.undoCheck) {
         console.log('no undo');
         ThreadListUI.deleteThreadDraft(selected, draftIds, threadIds);
       }
@@ -986,7 +982,6 @@ var ThreadListUI = {
     if (drafts.length) {
       timestamp = Math.max(drafts.latest.timestamp, timestamp);
     }
-
     // We create the DOM element of the thread
     var node = this.createThread(thread);
 
