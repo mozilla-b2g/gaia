@@ -641,14 +641,14 @@ function share(blobs, blobName) {
   });
 
   // If there is just one type, or if all types are the same, then use
-  // that type plus '/*'. Otherwise, use 'multipart/mixed'
+  // that type plus '/*'. Otherwise, use 'application/*'
   // If all the blobs are image we use 'image/*'. If all are videos
-  // we use 'video/*'. Otherwise, 'multipart/mixed'.
+  // we use 'video/*'. Otherwise, 'application/*'.
   var type;
   if (types.length === 1 || types.every(function(t) { return t === types[0]; }))
     type = types[0] + '/*';
   else
-    type = 'multipart/mixed';
+    type = 'application/*';
 
   var a = new MozActivity({
     name: 'share',
