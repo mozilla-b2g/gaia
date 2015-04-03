@@ -48,6 +48,7 @@ var MockCallScreen = {
   hideMergeButton: function() {
     this.mhideMergeButtonCalled = true;
   },
+  showOnHoldAndMergeContainer: function() {},
   hideOnHoldAndMergeContainer: function() {},
   syncSpeakerEnabled: function() {
     this.mSyncSpeakerCalled = true;

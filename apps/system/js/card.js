@@ -90,7 +90,9 @@
     /* jshint -W033 */
     return Tagged.escapeHTML `<div class="titles">
      <h1 id="${this.titleId}" class="title">${this.title}</h1>
-     <p class="subtitle">${this.subTitle}</p>
+     <p class="subtitle">
+      <span class="subtitle-url">${this.subTitle}</span>
+     </p>
     </div>
 
     <div class="screenshotView bb-button" data-l10n-id="openCard"
@@ -332,23 +334,21 @@
       return;
     }
 
-    // If we have a cached screenshot, use that first
-    var cachedLayer = app.requestScreenshotURL();
-
-    if (cachedLayer && app.isActive()) {
+    // Use a cached screenshot if we have one for the active app
+    var cachedLayer;
+    if (app.isActive()) {
+      // will be null or blob url
+      cachedLayer = app.requestScreenshotURL();
       screenshotView.classList.toggle('fullscreen',
                                       app.isFullScreen());
-      screenshotView.classList.toggle('maximized',
+      if (app.appChrome) {
+        screenshotView.classList.toggle('maximized',
                                       app.appChrome.isMaximized());
-      screenshotView.style.backgroundImage =
-        'url(' + cachedLayer + '),' +
-        '-moz-element(#' + this.app.instanceID + ')';
-    } else {
-      screenshotView.style.backgroundImage =
-        'url(none),' +
-        '-moz-element(#' + this.app.instanceID + ')';
+      }
     }
-
+    screenshotView.style.backgroundImage =
+      (cachedLayer ? 'url(' + cachedLayer + ')' : 'none' ) + ',' +
+      '-moz-element(#' + this.app.instanceID + ')';
   };
 
   Card.prototype._fetchElements = function c__fetchElements() {

@@ -565,8 +565,10 @@ var StatusBar = {
 
       case 'sheets-gesture-end':
         this.element.classList.remove('hidden');
-        this._pausedForGesture = false;
-        this.resumeUpdate();
+        if (this._pausedForGesture) {
+          this.resumeUpdate();
+          this._pausedForGesture = false;
+        }
         break;
 
       case 'stackchanged':
@@ -1110,6 +1112,7 @@ var StatusBar = {
 
         var previousHiddenState = icon.hidden;
         var previousActiveState = icon.dataset.inactive;
+        var previousSearchingState = icon.dataset.searching;
         var previousRoamingHiddenState = roaming.hidden;
 
         if (this.settingValues['ril.radio.disabled']) {
@@ -1167,6 +1170,7 @@ var StatusBar = {
 
         if (previousHiddenState !== icon.hidden ||
           previousActiveState !== icon.dataset.inactive ||
+          previousSearchingState !== icon.dataset.searching ||
           previousRoamingHiddenState !== roaming.hidden) {
           isDirty = true;
         }

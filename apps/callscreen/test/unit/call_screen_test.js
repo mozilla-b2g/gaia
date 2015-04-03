@@ -1,6 +1,6 @@
 /* globals CallScreen, FontSizeManager, MockCallsHandler, Utils,
            MockHandledCall, MockMozActivity, MockNavigatorMozTelephony,
-           MockMozL10n, MocksHelper, MockSettingsListener, performance */
+           MockMozL10n, MocksHelper, MockSettingsListener */
 
 'use strict';
 
@@ -57,6 +57,7 @@ suite('call screen', function() {
   var incomingContainer;
   var bluetoothButton,
       bluetoothMenu;
+  var holdAndMergeContainer;
   var holdButton;
   var mergeButton;
 
@@ -142,13 +143,17 @@ suite('call screen', function() {
     bluetoothButton.id = 'bt';
     screen.appendChild(bluetoothButton);
 
+    holdAndMergeContainer = document.createElement('span');
+    holdAndMergeContainer.id = 'hold-and-merge-container';
+    screen.appendChild(holdAndMergeContainer);
+
     holdButton = document.createElement('button');
     holdButton.id = 'on-hold';
-    screen.appendChild(holdButton);
+    holdAndMergeContainer.appendChild(holdButton);
 
     mergeButton = document.createElement('button');
     mergeButton.id = 'merge';
-    screen.appendChild(mergeButton);
+    holdAndMergeContainer.appendChild(mergeButton);
 
     bluetoothMenu = document.createElement('form');
     bluetoothMenu.id = 'bluetooth-menu';
@@ -742,6 +747,17 @@ suite('call screen', function() {
     });
   });
 
+  suite('show and hide hold/merge container', function() {
+    test('should change visibility to none', function() {
+      CallScreen.hideOnHoldAndMergeContainer();
+      assert.isTrue(CallScreen.holdAndMergeContainer.style.display === 'none');
+    });
+    test('should change visibility to block', function() {
+      CallScreen.showOnHoldAndMergeContainer();
+      assert.isTrue(CallScreen.holdAndMergeContainer.style.display === 'block');
+    });
+  });
+
   suite('resizeHandler', function() {
     test('updateCallsDisplay is called with the right arguments', function() {
       this.sinon.stub(CallScreen, 'updateCallsDisplay');
@@ -892,11 +908,6 @@ suite('call screen', function() {
     setup(function() {
       this.sinon.useFakeTimers();
 
-      var self = this;
-      this.sinon.stub(performance, 'now', function() {
-        return self.sinon.clock.now.toFixed(3);
-      });
-
       durationNode = document.createElement('div');
       durationNode.className = 'duration';
 
@@ -913,8 +924,6 @@ suite('call screen', function() {
 
     test('createTicker should update timer every second', function() {
       this.sinon.spy(Utils, 'prettyDuration');
-      this.sinon.clock.tick(1000);
-      sinon.assert.calledWith(Utils.prettyDuration, timeNode, 1000);
       this.sinon.clock.tick(1000);
       sinon.assert.calledWith(Utils.prettyDuration, timeNode, 1000);
     });
