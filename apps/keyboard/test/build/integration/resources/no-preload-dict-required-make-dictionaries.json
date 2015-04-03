@@ -257,11 +257,13 @@
   },
   {
     "label": "Pulaar-Fulfulde",
-    "id": "ff",
+    "id": "latin::ff",
     "inputIds": [
       "ff"
     ],
-    "preload": true
+    "preload": false,
+    "imEngineId": "latin",
+    "dictFilePath": "dictionaries/ff.dict"
   },
   {
     "label": "Pусский",
