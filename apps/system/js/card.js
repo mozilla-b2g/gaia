@@ -168,6 +168,7 @@
     }
     if (displayUrl) {
       this.subTitle = this.getDisplayURLString(displayUrl);
+      this.viewClassList.push('show-subtitle');
     }
 
     if (TrustedUIManager.hasTrustedUI(app.origin)) {
