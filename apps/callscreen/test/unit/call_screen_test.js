@@ -1,6 +1,6 @@
 /* globals CallScreen, FontSizeManager, MockCallsHandler, Utils,
            MockHandledCall, MockMozActivity, MockNavigatorMozTelephony,
-           MockMozL10n, MocksHelper, MockSettingsListener, performance */
+           MockMozL10n, MocksHelper, MockSettingsListener */
 
 'use strict';
 
@@ -908,11 +908,6 @@ suite('call screen', function() {
     setup(function() {
       this.sinon.useFakeTimers();
 
-      var self = this;
-      this.sinon.stub(performance, 'now', function() {
-        return self.sinon.clock.now.toFixed(3);
-      });
-
       durationNode = document.createElement('div');
       durationNode.className = 'duration';
 
@@ -929,8 +924,6 @@ suite('call screen', function() {
 
     test('createTicker should update timer every second', function() {
       this.sinon.spy(Utils, 'prettyDuration');
-      this.sinon.clock.tick(1000);
-      sinon.assert.calledWith(Utils.prettyDuration, timeNode, 1000);
       this.sinon.clock.tick(1000);
       sinon.assert.calledWith(Utils.prettyDuration, timeNode, 1000);
     });
