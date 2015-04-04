@@ -6,7 +6,7 @@
 /**
  * Singleton object that handles some cell and data settings.
  */
-var CarrierSettings = (function(window, document, undefined) {
+var CarrierSettings = (function() {
   var DATA_KEY = 'ril.data.enabled';
   var DATA_ROAMING_KEY = 'ril.data.roaming_enabled';
   var NETWORK_TYPE_SETTING = 'operatorResources.data.icon';
@@ -887,6 +887,6 @@ var CarrierSettings = (function(window, document, undefined) {
   return {
     init: cs_init
   };
-})(this, document);
+})();
 
 CarrierSettings.init();
