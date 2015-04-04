@@ -259,6 +259,14 @@
       };
       background.onerror = () => {
         URL.revokeObjectURL(background.src);
+
+        // If we already have a cached icon, do not overwrite it on error.
+        if (this.hasCachedIcon) {
+          this._stampElementWithIcon('blobcache');
+          this._displayDecoratedIcon(this.detail.decoratedIconBlob, true);
+          return;
+        }
+
         this.renderIconFromSrc(this.defaultIcon);
         this._stampElementWithIcon(this.defaultIcon);
       };
