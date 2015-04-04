@@ -1117,23 +1117,6 @@ var ThreadListUI = {
     }
   },
 
-  /*onUndoDeleted: function thlui_onUndoDeleted(selected, draftIds, threadIds) {
-    this.undoDeleteBanner.classList.remove('hide');
-
-    clearTimeout(this.timeouts.onUndoDeleted);
-    this.timeouts.onUndoDeleted = null;
-
-    this.timeouts.onUndoDeleted = setTimeout(function hideDraftSavedBanner() {
-      this.undoDeleteBanner.classList.add('hide'); 
-      this.undoDeleteBanner.removeEventListener('click', this.undoDelete);
-      
-      if(this.undoCheck) {
-        console.log('no undo');
-        this.deleteThreadDraft(selected, draftIds, threadIds);
-      }
-    }.bind(this), this.UNDO_DURATION);
-  }, */
-
   onDraftSaved: function thlui_onDraftSaved() {
     this.draftSavedBanner.classList.remove('hide');
 
