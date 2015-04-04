@@ -3,14 +3,14 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding: 0 4.5rem 2rem 0;
+  padding: 0 10.0rem 2rem 0;
   font-size: 1.6rem;
   line-height: 2rem;
 }
 
 html[dir="rtl"] #group-call-details-list > section .additionalContactInfo {
   text-align: right;
-  padding: 0 0 2rem 0;
+  padding: 0 0 2rem 10.0rem;
 }
 
 #group-call-details-list .duration {
@@ -25,13 +25,13 @@ html[dir="rtl"] #group-call-details-list > section .additionalContactInfo {
   overflow: hidden;
   text-overflow: ellipsis;
   font-weight: bold;
-  padding-right: 8rem;
+  padding-right: 10.0rem;
 }
 
 html[dir="rtl"] #group-call-details-list .number bdi {
   text-align: right;
   padding-right: 0;
-  padding-left: 10rem;
+  padding-left: 10.0rem;
 }
 
 #group-call-details-list > section:not(.additionalInfo) .number {

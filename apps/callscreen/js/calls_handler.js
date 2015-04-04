@@ -298,11 +298,13 @@ var CallsHandler = (function callsHandler() {
         if (contact && contact.name) {
           CallScreen.incomingInfo.classList.add('additionalInfo');
           CallScreen.incomingNumber.textContent = contact.name;
-          CallScreen.incomingNumberAdditionalInfo.textContent =
-            Utils.getPhoneNumberAndType(matchingTel);
+          CallScreen.incomingNumberAdditionalTelType.textContent =
+            Utils.getPhoneNumberAdditionalInfo(matchingTel);
+          CallScreen.incomingNumberAdditionalTel.textContent = number;
         } else {
           CallScreen.incomingNumber.textContent = number;
-          CallScreen.incomingNumberAdditionalInfo.textContent = '';
+          CallScreen.incomingNumberAdditionalTelType.textContent = '';
+          CallScreen.incomingNumberAdditionalTel.textContent = '';
         }
 
         FontSizeManager.adaptToSpace(

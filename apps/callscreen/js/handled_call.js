@@ -34,7 +34,8 @@ function HandledCall(aCall) {
 
   this._initialState = this.call.state;
   this._cachedInfo = '';
-  this._cachedAdditionalInfo = '';
+  this._cachedAdditionalTel = '';
+  this._cachedAdditionalTelType = '';
   this._removed = false;
   this._wasConnected = false;
 
@@ -54,7 +55,10 @@ function HandledCall(aCall) {
   this.outerNode = this.node.querySelector('.numberWrapper .number');
   this.groupCallNumberNode =
     document.getElementById('group-call-label');
-  this.additionalInfoNode = this.node.querySelector('.additionalContactInfo');
+  this.additionalTelNode =
+    this.node.querySelector('.additionalContactInfo .tel');
+  this.additionalTelTypeNode =
+    this.node.querySelector('.additionalContactInfo .tel-type');
   this.hangupButton = this.node.querySelector('.hangup-button');
   this.hangupButton.onclick = (function() {
     this.call.hangUp();
@@ -130,8 +134,9 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     LazyL10n.get(function localized(_) {
       node.textContent = _('switch-calls');
       self._cachedInfo = _('switch-calls');
-      self._cachedAdditionalInfo = '';
-      self.replaceAdditionalContactInfo('');
+      self._cachedAdditionalTel = '';
+      self._cachedAdditionalTelType = '';
+      self.replaceAdditionalContactInfo('', '');
       self.numberNode.style.fontSize = '';
     });
     return;
@@ -151,8 +156,9 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     LazyL10n.get(function localized(_) {
       self.replacePhoneNumber(number, 'end');
       self._cachedInfo = number;
-      self.replaceAdditionalContactInfo(_('emergencyNumber'));
-      self._cachedAdditionalInfo = _('emergencyNumber');
+      self.replaceAdditionalContactInfo(_('emergencyNumber'), '');
+      self._cachedAdditionalTel = _('emergencyNumber');
+      self._cachedAdditionalTelType = '';
     });
 
     return;
@@ -205,9 +211,11 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
           node.textContent = self._cachedInfo;
         });
       }
-      self._cachedAdditionalInfo =
-        Utils.getPhoneNumberAndType(matchingTel);
-      self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
+      self._cachedAdditionalTel = matchingTel.value;
+      self._cachedAdditionalTelType =
+        Utils.getPhoneNumberAdditionalInfo(matchingTel);
+      self.replaceAdditionalContactInfo(
+        self._cachedAdditionalTel, self._cachedAdditionalTelType);
       self.formatPhoneNumber('end');
       var photo = ContactPhotoHelper.getFullResolution(contact);
       if (photo) {
@@ -223,26 +231,30 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
 
     self._cachedInfo = number;
     node.textContent = self._cachedInfo;
-    self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
+    self.replaceAdditionalContactInfo(
+      self._cachedAdditionalTel, self._cachedAdditionalTelType);
     self.formatPhoneNumber('end');
   }
 };
 
 HandledCall.prototype.replaceAdditionalContactInfo =
-  function hc_replaceAdditionalContactInfo(additionalContactInfo) {
-  if (!additionalContactInfo ||
-    additionalContactInfo.trim() === '') {
-    this.additionalInfoNode.textContent = '';
+  function hc_replaceAdditionalContactInfo(additionalTel, additionalTelType) {
+  if ((!additionalTel && !additionalTelType) ||
+      (additionalTel.trim() === '' && additionalTelType.trim() === '')) {
+    this.additionalTelNode.textContent = '';
+    this.additionalTelTypeNode.textContent = '';
     this.node.classList.remove('additionalInfo');
   } else {
-    this.additionalInfoNode.textContent = additionalContactInfo;
+    this.additionalTelNode.textContent = additionalTel;
+    this.additionalTelTypeNode.textContent = additionalTelType;
     this.node.classList.add('additionalInfo');
   }
 };
 
 HandledCall.prototype.restoreAdditionalContactInfo =
   function hc_restoreAdditionalContactInfo() {
-    this.replaceAdditionalContactInfo(this._cachedAdditionalInfo);
+    this.replaceAdditionalContactInfo(
+      this._cachedAdditionalTel, this._cachedAdditionalTelType);
 };
 
 HandledCall.prototype.formatPhoneNumber =

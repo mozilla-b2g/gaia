@@ -4,7 +4,7 @@
            MockMozL10n, MockNavigatormozApps, MockNavigatorMozIccManager,
            MockNavigatorMozMobileConnections, MockNavigatormozSetMessageHandler,
            MockNavigatorMozTelephony, MockNavigatorWakeLock, MocksHelper,
-           MockTonePlayer, MockUtils, telephonyAddCall, telephonyAddCdmaCall */
+           MockTonePlayer, telephonyAddCall, telephonyAddCdmaCall */
 
 'use strict';
 
@@ -351,9 +351,10 @@ suite('calls handler', function() {
       test('should show the contact information', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.equal(MockCallScreen.incomingNumber.textContent, 'test name');
-        assert.isTrue(MockUtils.mCalledGetPhoneNumberAndType);
-        assert.equal(MockCallScreen.incomingNumberAdditionalInfo.textContent,
-                     'type, 12334');
+        assert.equal(MockCallScreen.incomingNumberAdditionalTelType.textContent,
+                     'type, carrier');
+        assert.equal(MockCallScreen.incomingNumberAdditionalTel.textContent,
+                     '12334');
       });
 
       test('should show the number of a unknown contact', function() {
@@ -362,9 +363,10 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.equal(MockCallScreen.incomingNumber.textContent,
                      extraCall.id.number);
-        assert.isTrue(MockUtils.mCalledGetPhoneNumberAndType);
-        assert.equal(
-          MockCallScreen.incomingNumberAdditionalInfo.textContent, '');
+        assert.equal(MockCallScreen.incomingNumberAdditionalTelType.textContent,
+                     '');
+        assert.equal(MockCallScreen.incomingNumberAdditionalTel.textContent,
+                     '');
       });
 
       suite('adaptToSpace and ensureFixedBaseline', function() {
