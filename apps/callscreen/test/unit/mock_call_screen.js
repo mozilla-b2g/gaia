@@ -127,7 +127,8 @@ var MockCallScreen = {
   incomingInfo: document.createElement('div'),
   incomingNumber: document.createElement('div'),
   incomingSim: document.createElement('div'),
-  incomingNumberAdditionalInfo: document.createElement('span'),
+  incomingNumberAdditionalTel: document.createElement('span'),
+  incomingNumberAdditionalTelType: document.createElement('span'),
 
   menablePlaceNewCallButtonCalled: false,
   menableMuteButtonCalled: false,
@@ -167,7 +168,8 @@ var MockCallScreen = {
     this.incomingContainer = document.createElement('div');
     this.incomingInfo = document.createElement('div');
     this.incomingNumber = document.createElement('div');
-    this.incomingNumberAdditionalInfo = document.createElement('span');
+    this.incomingNumberAdditionalTel = document.createElement('span');
+    this.incomingNumberAdditionalTelType = document.createElement('span');
     this.mRemoveCallCalled = false;
     this.mGetScenarioCalled = false;
   }

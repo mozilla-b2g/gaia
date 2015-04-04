@@ -489,18 +489,30 @@
   }
 
   #calls > section .additionalContactInfo {
-    height: 1.5rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    height: 2.1rem;
     padding: 0 4.5rem 2rem 0;
-    font-size: 1.6rem;
     line-height: 2rem;
-  }
-
-  #calls > section .additionalContactInfo {
+    font-size: 1.6rem;
     font-style: italic;
     color: #333;
+    display: flex;
+  }
+
+  .additionalContactInfo > * {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .additionalContactInfo > .tel-type {
+    min-width: 4rem;
+    max-width: 12rem;
+  }
+
+  #incoming-number-additional-info-tel-type:not(:empty) ~ .separator::after,
+  .tel-type:not(:empty) ~ .separator::after {
+    content: ',';
+    -moz-margin-end: 5px;
   }
 
   body:not(.single-line) #calls > section .additionalContactInfo {
@@ -529,7 +541,7 @@
   }
 
   #calls.big-duration > section .additionalContactInfo {
-    padding: 0 2rem 2.5rem 2.5rem;
+    padding: 0 2rem 1.9rem 2.5rem;
   }
 
   #calls > section:not(.additionalInfo) .additionalContactInfo {
