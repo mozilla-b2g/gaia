@@ -3,7 +3,7 @@
 
 'use strict';
 
-var DsdsSettings = (function(window, document, undefined) {
+var DsdsSettings = (function() {
   var _settings = window.navigator.mozSettings;
   var _mobileConnections = null;
   if (window.navigator.mozMobileConnections) {
@@ -111,4 +111,4 @@ var DsdsSettings = (function(window, document, undefined) {
     setIccCardIndexForCellAndDataSettings:
       ds_setIccCardIndexForCellAndDataSettings
   };
-})(this, document);
+})();
