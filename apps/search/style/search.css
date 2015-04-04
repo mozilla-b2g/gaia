@@ -227,7 +227,6 @@ section.apps {
   /* Hide the whitespace between inline elements */
   font-size: 0;
   height: 10rem;
-  width: 32rem;
   overflow: hidden;
   padding-bottom: 1.5rem;
 }

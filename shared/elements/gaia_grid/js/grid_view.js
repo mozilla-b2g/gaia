@@ -425,7 +425,8 @@
         var xPosition = (coordinates[0] + i) * this.layout.gridItemWidth;
         if (isRTL) {
           xPosition =
-            (this.layout.gridWidth - this.layout.gridItemWidth) - xPosition;
+            (this.layout.constraintSize - this.layout.gridItemWidth) -
+            xPosition;
         }
         item.setCoordinates(xPosition, this.layout.offsetY);
 
@@ -543,7 +544,8 @@
           var xPosition = x * this.layout.gridItemWidth;
           if (isRTL) {
             xPosition =
-              (this.layout.gridWidth - this.layout.gridItemWidth) - xPosition;
+              (this.layout.constraintSize - this.layout.gridItemWidth) -
+              xPosition;
           }
           item.setCoordinates(xPosition, this.layout.offsetY);
           if (!item.active) {
