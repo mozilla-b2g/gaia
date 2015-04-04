@@ -685,6 +685,16 @@
         }
         this.scrollable.scrollTop = 0;
       }
+
+      // Set the title for the private browser landing page.
+      // This is explicitly placed in the locationchange handler as it's
+      // currently possibly to navigate back to the landing page with the
+      // back button. Otherwise it could be in the constructor.
+      if (this.app.isPrivateBrowser() &&
+        this.app.config.url.startsWith('app:')) {
+        this._gotName = true;
+        this.title.dataset.l10nId = 'search-the-web';
+      }
     };
 
   AppChrome.prototype.handleLoadStart = function ac_handleLoadStart(evt) {
