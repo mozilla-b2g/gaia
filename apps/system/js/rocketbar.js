@@ -515,6 +515,7 @@
     },
 
     _closeSearch: function() {
+      this.searchWindow && this.searchWindow.publish('closing');
       var hideAndDeactivate = () => {
         this.hideResults();
         this.deactivate();
