@@ -38,8 +38,7 @@ var ThreadListUI = {
   // Used to track the current number of rendered
   // threads. Updated in ThreadListUI.renderThreads
   count: 0,
-  undoDeleteCheck: 1,
-  undoReadUnreadCheck: 1,
+  undoCheck: 1,
 
   // Set to |true| when in edit mode
   inEditMode: false,
@@ -403,66 +402,32 @@ var ThreadListUI = {
 
     function filterIds(id) {
       var thread  = Threads.get(id);
-      var markable = thread && (!thread.hasDrafts || isRead);
+      var markable = thread && (!thread.hasDrafts || isRead) && !(thread.unreadCount ^ isRead);
 
       if (markable) {
-        thread.unreadCount = isRead ? 0 : 1;
+        thread.unreadCount = isRead ? 0 : 1;;
         ThreadListUI.mark(thread.id, isRead ? 'read' : 'unread');
       }
       return markable;
     }
 
     threadToMark = selected.filter(filterIds);
-    ThreadListUI.exitEditMode();
+    this.exitEditMode();
 
-    //this.undoBanner.firstElementChild.textContent = '';
     toastMessage = threadToMark.length +  ' marked as ' + (isRead ? 'read' : 'unread');
     navigator.mozL10n.setAttributes(this.undoBanner.firstElementChild, 'undo-toast', {
       n: toastMessage
     })
 
-    var undoReadUnread = function undoReadUnread () {
-      ThreadListUI.undoBanner.classList.add('hide');
-      clearTimeout(ThreadListUI.timeouts.onUndoReadUnread);
-      ThreadListUI.timeouts.onUndoReadUnread = null;
-      ThreadListUI.undoBanner.lastElementChild.removeEventListener('click', undoReadUnread);
-
-      console.log('undo');
-      ThreadListUI.undoReadUnreadCheck = 0;
-      threadToMark.forEach((id) => {
-        ThreadListUI.mark(+id, isRead ? 'unread' : 'read');
-      });
-    }
-    
-    this.undoBanner.lastElementChild.addEventListener('click', undoReadUnread);
-    this.undoBanner.classList.remove('hide');
-
-    clearTimeout(this.timeouts.onUndoReadUnread);
-    this.timeouts.onUndoReadUnread = null;
-
-    this.timeouts.onUndoReadUnread = setTimeout(function hideUndoReadUnreadBanner() {
-      this.undoBanner.classList.add('hide'); 
-      this.undoBanner.lastElementChild.removeEventListener('click', undoReadUnread);
-      this.undoBanner.firstElementChild.removeAttribute('data-l10n-id');
-      this.undoBanner.firstElementChild.textContent = '';
-
-      if(this.undoReadUnreadCheck) {
-        console.log('no undo');
-        this.markReadUnread(threadToMark, isRead);
-      }
-    }.bind(this), this.UNDO_DURATION);
-
-    this.undoReadUnreadCheck = 1;
+    ThreadListUI.threadUndoBanner('readUnread', threadToMark, isRead);
+    this.undoCheck = 1;
   },
 
   markReadUnread: function thlui_markReadUnread(threadToMark, isRead) {
     threadToMark.forEach((id) => {
         MessageManager.markThreadRead(id, isRead);
     });
-
-    this.cancelEdit();
   },
-
 
   removeThread: function thlui_removeThread(threadId) {
     var li = document.getElementById('thread-' + threadId);
@@ -526,12 +491,6 @@ var ThreadListUI = {
 
   deleteThreadDraftUI:
     function thlui_deleteThreadDraftUI(selected, draftIds, threadIds) {
-    var toastMessage = draftIds.length + threadIds.length + ' deleted';
-    //this.undoBanner.lastElementChild.textContent = '';
-    navigator.mozL10n.setAttributes(this.undoBanner.firstElementChild, 'undo-toast', {
-      n: toastMessage
-    });
-
     if(draftIds) {
       draftIds.forEach(function(threadId) {
         ThreadListUI.removeThread(threadId);
@@ -543,49 +502,15 @@ var ThreadListUI = {
       });
     }
 
-    ThreadListUI.exitEditMode();
+    this.exitEditMode();
 
-    var undoDelete = function undoDelete () {
-      ThreadListUI.undoBanner.classList.add('hide');
-      clearTimeout(ThreadListUI.timeouts.onUndoDeleted);
-      ThreadListUI.timeouts.onUndoDeleted = null;
-      ThreadListUI.undoBanner.lastElementChild.removeEventListener('click', undoDelete);
+    var toastMessage = draftIds.length + threadIds.length + ' deleted';
+    navigator.mozL10n.setAttributes(this.undoBanner.firstElementChild, 'undo-toast', {
+      n: toastMessage
+    });
 
-      console.log('undo');
-      ThreadListUI.undoDeleteCheck = 0;
-      if(draftIds) {
-        draftIds.forEach(function(threadId) {
-          ThreadListUI.appendThread(
-            Thread.create(Drafts.get(threadId))
-          );
-        });
-      }
-      if(threadIds) {
-        threadIds.forEach(function(threadId) {
-          ThreadListUI.appendThread(Threads.get(threadId));
-        });
-      }
-    }
-    
-    this.undoBanner.lastElementChild.addEventListener('click', undoDelete);
-    this.undoBanner.classList.remove('hide');
-
-    clearTimeout(this.timeouts.onUndoDeleted);
-    this.timeouts.onUndoDeleted = null;
-
-    this.timeouts.onUndoDeleted = setTimeout(function hideUndoDeleteBanner() {
-      this.undoBanner.classList.add('hide'); 
-      this.undoBanner.lastElementChild.removeEventListener('click', undoDelete);
-      this.undoBanner.firstElementChild.removeAttribute('data-l10n-id');
-      this.undoBanner.firstElementChild.textContent = '';
-
-      if(this.undoDeleteCheck) {
-        console.log('no undo');
-        this.deleteThreadDraft(selected, draftIds, threadIds);
-      }
-    }.bind(this), this.UNDO_DURATION);
-
-    this.undoDeleteCheck = 1;
+    ThreadListUI.threadUndoBanner('delete', draftIds, threadIds, selected);
+    this.undoCheck = 1;
   },
 
   deleteThreadDraft:
@@ -621,6 +546,66 @@ var ThreadListUI = {
         end: onAllThreadMessagesRetrieved
       });
     });
+  },
+
+  threadUndoBanner: function thlui_threadUndoBanner(undoType, arg1, arg2, arg3) {
+    var toast = this.undoBanner, draftIds, threadIds, threadToMark, isRead;
+
+    var undoAction = function undoAction () {
+      toast.classList.add('hide');
+      clearTimeout(ThreadListUI.timeouts.onUndo);
+      ThreadListUI.timeouts.onUndo = null;
+      toast.lastElementChild.removeEventListener('click', undoAction);
+
+      console.log('undo');
+      ThreadListUI.undoCheck = 0;
+      if (undoType == 'delete') {
+        draftIds = arg1, threadIds = arg2;
+
+        if(draftIds) {
+          draftIds.forEach(function(threadId) {
+            ThreadListUI.appendThread(
+              Thread.create(Drafts.get(threadId))
+            );
+          });
+        }
+        if(threadIds) {
+          threadIds.forEach(function(threadId) {
+            ThreadListUI.appendThread(Threads.get(threadId));
+          });
+        }
+      } else {
+        threadToMark = arg1, isRead = arg2;
+
+        threadToMark.forEach((id) => {
+          var thread = Threads.get(id);
+          thread.unreadCount = isRead ? 1 : 0;
+          ThreadListUI.mark(thread.id, isRead ? 'unread' : 'read');
+        });
+      }
+    }
+
+    toast.lastElementChild.addEventListener('click', undoAction);
+    toast.classList.remove('hide');
+
+    clearTimeout(this.timeouts.onUndo);
+    this.timeouts.onUndo = null;
+
+    this.timeouts.onUndo = setTimeout(function hideUndoBanner() {
+      toast.classList.add('hide');
+      toast.lastElementChild.removeEventListener('click', undoAction);
+      toast.firstElementChild.removeAttribute('data-l10n-id');
+      toast.firstElementChild.textContent = '';
+
+      if(this.undoCheck) {
+        console.log('no undo');
+        if (undoType == 'delete') {
+          this.deleteThreadDraft(arg3, arg1, arg2);
+        } else {
+          this.markReadUnread(arg1, arg2);
+        }
+      }
+    }.bind(this), this.UNDO_DURATION);
   },
 
   exitEditMode: function thlui_exitEditMode() {
