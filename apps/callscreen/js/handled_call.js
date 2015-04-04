@@ -232,10 +232,10 @@ HandledCall.prototype.replaceAdditionalContactInfo =
   function hc_replaceAdditionalContactInfo(additionalContactInfo) {
   if (!additionalContactInfo ||
     additionalContactInfo.trim() === '') {
-    this.additionalInfoNode.innerHTML = '';
+    this.additionalInfoNode.textContent = '';
     this.node.classList.remove('additionalInfo');
   } else {
-    this.additionalInfoNode.innerHTML = additionalContactInfo;
+    this.additionalInfoNode.textContent = additionalContactInfo;
     this.node.classList.add('additionalInfo');
   }
 };
