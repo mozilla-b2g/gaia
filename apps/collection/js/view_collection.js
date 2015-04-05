@@ -47,6 +47,7 @@
 
   navigator.mozSetMessageHandler('activity', function onActivity(activity) {
     if (activity.source.name === 'view-collection') {
+      navigator.mozSetMessageHandler('activity', null);
       HandleView(activity);
     }
   });
