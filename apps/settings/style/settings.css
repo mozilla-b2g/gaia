@@ -1169,3 +1169,7 @@ html[dir="rtl"] ul li > label.range-icons span {
   left: unset;
   right: 0;
 }
+
+html[dir="rtl"] #fxa-unverified .description {
+  background-position: 100% 1.5rem;
+}
