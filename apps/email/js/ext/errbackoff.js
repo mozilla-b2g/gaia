@@ -48,13 +48,13 @@
 define(
   [
     './date',
-    'rdcommon/log',
+    'logic',
     'module',
     'exports'
   ],
   function(
     $date,
-    $log,
+    logic,
     $module,
     exports
   ) {
@@ -89,7 +89,7 @@ exports.TEST_useTimeoutFunc = function(func) {
  *   ]]
  * ]
  */
-function BackoffEndpoint(name, listener, parentLog) {
+function BackoffEndpoint(name, listener) {
   /** @oneof[
    *    @case['healthy']
    *    @case['unreachable']
@@ -102,8 +102,10 @@ function BackoffEndpoint(name, listener, parentLog) {
    */
   this.state = 'healthy';
   this._iNextBackoff = 0;
-  this._LOG = LOGFAB.BackoffEndpoint(this, parentLog, name);
-  this._LOG.state(this.state);
+
+  logic.defineScope(this, 'BackoffEndpoint', { name: name });
+
+  logic(this, 'state', { state: this.state });
 
   this._badResources = {};
 
@@ -114,7 +116,7 @@ BackoffEndpoint.prototype = {
     if (this.state === newState)
       return;
     this.state = newState;
-    this._LOG.state(newState);
+    logic(this, 'state', { state: newState });
     if (this.listener)
       this.listener.onEndpointStateChange(newState);
   },
@@ -140,7 +142,7 @@ BackoffEndpoint.prototype = {
    * }
    */
   noteConnectFailureMaybeRetry: function(reachable) {
-    this._LOG.connectFailure(reachable);
+    logic(this, 'connectFailure', { reachable: reachable });
     if (this.state === 'shutdown')
       return false;
 
@@ -170,7 +172,7 @@ BackoffEndpoint.prototype = {
    * requests.
    */
   noteBrokenConnection: function() {
-    this._LOG.connectFailure(true);
+    logic(this, 'connectFailure', { reachable: true });
     this._setState('broken');
 
     this._iNextBackoff = BACKOFF_DURATIONS.length;
@@ -217,23 +219,8 @@ BackoffEndpoint.prototype = {
   },
 };
 
-exports.createEndpoint = function(name, listener, parentLog) {
-  return new BackoffEndpoint(name, listener, parentLog);
+exports.createEndpoint = function(name, listener) {
+  return new BackoffEndpoint(name, listener);
 };
-
-var LOGFAB = exports.LOGFAB = $log.register($module, {
-  BackoffEndpoint: {
-    type: $log.TASK,
-    subtype: $log.CLIENT,
-    stateVars: {
-      state: false,
-    },
-    events: {
-      connectFailure: { reachable: true },
-    },
-    errors: {
-    }
-  },
-});
 
 }); // end define

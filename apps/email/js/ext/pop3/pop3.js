@@ -1,9 +1,9 @@
-define(['module', 'exports', 'rdcommon/log', 'tcp-socket', 'md5',
+define(['module', 'exports', 'logic', 'tcp-socket', 'md5',
         './transport', 'mimeparser', 'imap/imapchew',
         'syncbase', 'date',
         'mimefuncs',
         './mime_mapper', 'allback'],
-function(module, exports, log, tcpSocket, md5,
+function(module, exports, logic, tcpSocket, md5,
          transport, MimeParser, imapchew,
          syncbase, dateMod, mimefuncs, mimeMapper, allback) {
 
@@ -94,8 +94,7 @@ function(module, exports, log, tcpSocket, md5,
     options.debug = options.debug || false;
     options.authMethods = ['apop', 'sasl', 'user-pass'];
 
-    this._LOG = options._logParent ?
-      LOGFAB.Pop3Client(this, options._logParent, Date.now() % 1000) : null;
+    logic.defineScope(this, 'Pop3Client');
 
     if (options.preferredAuthMethod) {
       // if we prefer a certain auth method, try that first.
@@ -884,8 +883,7 @@ function(module, exports, log, tcpSocket, md5,
           bytesFetched: content.length,
           text: content
         };
-        imapchew.updateMessageWithFetch(
-          rep.header, rep.bodyInfo, req, res, this._LOG);
+        imapchew.updateMessageWithFetch(rep.header, rep.bodyInfo, req, res);
       }
     }
 
@@ -970,26 +968,5 @@ function(module, exports, log, tcpSocket, md5,
     }
     return s;
   }
-
-var LOGFAB = exports.LOGFAB = log.register(module, {
-  Pop3Client: {
-    type: log.CONNECTION,
-    subtype: log.CLIENT,
-    events: {
-    },
-    TEST_ONLY_events: {
-    },
-    errors: {
-      htmlParseError: { ex: log.EXCEPTION },
-      htmlSnippetError: { ex: log.EXCEPTION },
-      textChewError: { ex: log.EXCEPTION },
-      textSnippetError: { ex: log.EXCEPTION },
-    },
-    asyncJobs: {
-    },
-  },
-}); // end LOGFAB
-
-Pop3Client._LOG = LOGFAB.Pop3Client();
 
 }); // end define

@@ -1,10 +1,13 @@
 define([
   './pop3',
   '../syncbase',
-  'slog',
+  'logic',
   '../errorutils',
   'exports'
-], function(pop3, syncbase, slog, errorutils, exports) {
+], function(pop3, syncbase, logic, errorutils, exports) {
+
+var scope = logic.scope('Pop3Prober');
+
 
 /**
  * Validate connection information for an account and verify that the
@@ -24,9 +27,7 @@ exports.probeAccount = function(credentials, connInfo) {
     connTimeout: syncbase.CONNECT_TIMEOUT_MS
   };
 
-  slog.info('probe:pop3:connecting', {
-    connInfo: connInfo
-  });
+  logic(scope, 'connecting', { connInfo: connInfo });
 
   var resolve, reject;
   var promise = new Promise(function(_resolve, _reject) {
@@ -50,7 +51,7 @@ exports.probeAccount = function(credentials, connInfo) {
             resolve(conn);
           } else if (err.err) {
             // Uh, this server must not support TOP. That sucks.
-            slog.error('probe:pop3:server-not-great', { why: 'no TOP' });
+            logic(scope, 'server-not-great', { why: 'no TOP' });
             reject('pop-server-not-great');
           } else {
             // if the error was socket-level or something, let it pass
@@ -66,7 +67,7 @@ exports.probeAccount = function(credentials, connInfo) {
             resolve(conn);
           } else if (err.err) {
             // They must not support UIDL. Not good enough.
-            slog.error('probe:pop3:server-not-great', { why: 'no UIDL' });
+            logic(scope, 'server-not-great', { why: 'no UIDL' });
             reject('pop-server-not-great');
           } else {
             // if the error was socket-level or something, let it pass
@@ -80,7 +81,7 @@ exports.probeAccount = function(credentials, connInfo) {
 
   return promise
     .then(function(conn) {
-      slog.info('probe:pop3:success');
+      logic(scope, 'success');
       return {
         conn: conn,
         timezoneOffset: null
@@ -88,7 +89,7 @@ exports.probeAccount = function(credentials, connInfo) {
     })
     .catch(function(err) {
       err = normalizePop3Error(err);
-      slog.info('probe:pop3:error', { error: err });
+      logic(scope, 'error', { error: err });
       if (conn) {
         conn.close();
       }
@@ -150,11 +151,7 @@ var normalizePop3Error = exports.normalizePop3Error = function(err) {
                   errorutils.analyzeException(err) ||
                   'unknown');
 
-  slog.log('probe:pop3:normalized-error', {
-    error: err,
-    reportAs: reportAs
-  });
-
+  logic(scope, 'normalized-error', { error: err, reportAs: reportAs });
   return reportAs;
 };
 
