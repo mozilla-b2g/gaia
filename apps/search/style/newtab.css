@@ -146,3 +146,8 @@ h2 span {
 html[dir="rtl"] .top-site {
   float: right;
 }
+
+html[dir="rtl"] #history .meta {
+  direction: ltr;
+  float: right;
+}
