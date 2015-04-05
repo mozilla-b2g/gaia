@@ -38,7 +38,7 @@ define(function(require, exports, module) {
           composer.subject = attachData.subject;
         }
         if (attachData.body) {
-          composer.body = { text: attachData.body };
+          composer.body = { text: attachData.body + composer.body.text };
         }
         if (attachData.cc) {
           composer.cc = attachData.cc;
