@@ -52,7 +52,8 @@
 
 define(function(require, exports, module) {
 
-var logic = require('logic');
+var $log = require('rdcommon/log');
+var slog = require('./slog');
 var $util = require('./util');
 var $a64 = require('./a64');
 var $allback = require('./allback');
@@ -127,12 +128,11 @@ var SYNC_START_MINIMUM_PROGRESS = 0.02;
  * a zeroTimeout can fire on the event loop.  In order to keep the UI responsive,
  * We force flushes if we have more than 5 pending slices to send.
  */
-function MailSlice(bridgeHandle, storage) {
+function MailSlice(bridgeHandle, storage, _parentLog) {
   this._bridgeHandle = bridgeHandle;
   bridgeHandle.__listener = this;
   this._storage = storage;
-
-  logic.defineScope(this, 'MailSlice', { bridgeHandle: bridgeHandle._handle });
+  this._LOG = LOGFAB.MailSlice(this, _parentLog, bridgeHandle._handle);
 
   // The time range of the headers we are looking at right now.
   this.startTS = null;
@@ -352,7 +352,7 @@ MailSlice.prototype = {
     if (!this._bridgeHandle)
       return;
 
-    logic(this, 'headersAppended', { headers: headers });
+    this._LOG.headersAppended(headers);
     if (insertAt === -1)
       insertAt = this.headers.length;
     this.headers.splice.apply(this.headers, [insertAt, 0].concat(headers));
@@ -429,7 +429,7 @@ MailSlice.prototype = {
       this.endUID = header.id;
     }
 
-    logic(this, 'headerAdded', { index: idx, header: header });
+    this._LOG.headerAdded(idx, header);
     this._bridgeHandle.sendSplice(idx, 0, [header],
                                   Boolean(this.waitingOnData),
                                   Boolean(this.waitingOnData));
@@ -449,7 +449,7 @@ MailSlice.prototype = {
     if (idx !== null) {
       // There is no identity invariant to ensure this is already true.
       this.headers[idx] = header;
-      logic(this, 'headerModified', { index: idx, header: header });
+      this._LOG.headerModified(idx, header);
       this._bridgeHandle.sendUpdate([idx, header]);
     }
   },
@@ -463,7 +463,7 @@ MailSlice.prototype = {
 
     var idx = bsearchMaybeExists(this.headers, header, cmpHeaderYoungToOld);
     if (idx !== null) {
-      logic(this, 'headerRemoved', { index: idx, header: header });
+      this._LOG.headerRemoved(idx, header);
       this._bridgeHandle.sendSplice(idx, 1, [],
                                     Boolean(this.waitingOnData),
                                     Boolean(this.waitingOnData));
@@ -498,6 +498,7 @@ MailSlice.prototype = {
     this._bridgeHandle = null;
     this.desiredHeaders = 0;
     this._storage.dyingSlice(this);
+    this._LOG.__die();
   },
 
   get isDead() {
@@ -839,7 +840,7 @@ var FOLDER_DB_VERSION = exports.FOLDER_DB_VERSION = 3;
  * ]]
  */
 function FolderStorage(account, folderId, persistedFolderInfo, dbConn,
-                       FolderSyncer) {
+                       FolderSyncer, _parentLog) {
   /** Our owning account. */
   this._account = account;
   this._imapDb = dbConn;
@@ -848,10 +849,7 @@ function FolderStorage(account, folderId, persistedFolderInfo, dbConn,
   this.folderMeta = persistedFolderInfo.$meta;
   this._folderImpl = persistedFolderInfo.$impl;
 
-  logic.defineScope(this, 'FolderStorage', {
-    accountId: account.id,
-    folderId: folderId
-  });
+  this._LOG = LOGFAB.FolderStorage(this, _parentLog, folderId);
 
   /**
    * @listof[AccuracyRangeInfo]{
@@ -1003,7 +1001,8 @@ function FolderStorage(account, folderId, persistedFolderInfo, dbConn,
   this._curSyncSlice = null;
 
   this._messagePurgeScheduled = false;
-  this.folderSyncer = FolderSyncer && new FolderSyncer(account, this);
+  this.folderSyncer = FolderSyncer && new FolderSyncer(account, this,
+                                                       this._LOG);
 }
 exports.FolderStorage = FolderStorage;
 
@@ -1065,7 +1064,7 @@ FolderStorage.prototype = {
       headerBlocks: this._dirtyHeaderBlocks,
       bodyBlocks: this._dirtyBodyBlocks,
     };
-    logic(this, 'generatePersistenceInfo', { info: pinfo });
+    this._LOG.generatePersistenceInfo(pinfo);
     this._dirtyHeaderBlocks = {};
     this._dirtyBodyBlocks = {};
     this._dirty = false;
@@ -1088,24 +1087,20 @@ FolderStorage.prototype = {
   _invokeNextMutexedCall: function() {
     var callInfo = this._mutexQueue[0], self = this, done = false;
     this._mutexedCallInProgress = true;
-    logic(this, 'mutexedCall_begin', { name: callInfo.name });
+    this._LOG.mutexedCall_begin(callInfo.name);
 
     try {
       var mutexedOpDone = function(err) {
         if (done) {
-          logic(self, 'tooManyCallbacks', { name: callInfo.name });
+          self._LOG.tooManyCallbacks(callInfo.name);
           return;
         }
-        logic(self, 'mutexedCall_end', { name: callInfo.name });
-        logic(self, 'mailslice:mutex-released',
-                   { folderId: self.folderId, err: err });
-
+        self._LOG.mutexedCall_end(callInfo.name);
+        slog.log('mailslice:mutex-released',
+                 { folderId: self.folderId, err: err });
         done = true;
         if (self._mutexQueue[0] !== callInfo) {
-          logic(self, 'mutexInvariantFail', {
-            callName: callInfo.name,
-            mutexName: self._mutexQueue[0].name
-          });
+          self._LOG.mutexInvariantFail(callInfo.name, self._mutexQueue[0].name);
           return;
         }
         self._mutexQueue.shift();
@@ -1121,7 +1116,7 @@ FolderStorage.prototype = {
       callInfo.func(mutexedOpDone);
     }
     catch (ex) {
-      logic(this, 'mutexedOpErr', { ex: ex });
+      this._LOG.mutexedOpErr(ex);
     }
   },
 
@@ -1237,10 +1232,7 @@ FolderStorage.prototype = {
     // does not.  But just silently return since there's little to be gained
     // from blowing up the world.
     if (idx === -1) {
-      logic(this, 'badDeletionRequest', {
-        header: header,
-        uid: uid
-      });
+      this._LOG.badDeletionRequest('header', null, uid);
       return;
     }
     header = block.headers[idx];
@@ -1372,7 +1364,7 @@ FolderStorage.prototype = {
     var idx = block.ids.indexOf(id);
     var body = block.bodies[id];
     if (idx === -1 || !body) {
-      logic(this, 'bodyBlockMissing', { id: id, index: idx, hasBody: !!body });
+      this._LOG.bodyBlockMissing(id, idx, !!body);
       return;
     }
     block.ids.splice(idx, 1);
@@ -1587,10 +1579,8 @@ FolderStorage.prototype = {
    *   server-id.
    */
   _discardCachedBlockUsingDateAndID: function(type, date, id) {
-    var scope = logic.subscope(this, { type: type, date: date, id: id });
-
     var blockInfoList, loadedBlockInfoList, blockMap, dirtyMap;
-    logic(scope, 'discardFromBlock');
+    this._LOG.discardFromBlock(type, date, id);
     if (type === 'header') {
       blockInfoList = this._headerBlockInfos;
       loadedBlockInfoList = this._loadedHeaderBlockInfos;
@@ -1610,7 +1600,7 @@ FolderStorage.prototype = {
     // Asking to discard something that does not exist in a block is a
     // violated assumption.  Log an error.
     if (!info) {
-      logic(scope, 'badDiscardRequest');
+      this._LOG.badDiscardRequest(type, date, id);
       return;
     }
 
@@ -1621,7 +1611,7 @@ FolderStorage.prototype = {
 
     // Violated assumption if the block is dirty
     if (dirtyMap.hasOwnProperty(blockId)) {
-      logic(scope, 'badDiscardRequest');
+      this._LOG.badDiscardRequest(type, date, id);
       return;
     }
 
@@ -2232,7 +2222,7 @@ FolderStorage.prototype = {
         toCall();
       }
       catch (ex) {
-        logic(this, 'callbackErr', { ex: ex });
+        this._LOG.callbackErr(ex);
       }
     }
   },
@@ -2271,9 +2261,8 @@ FolderStorage.prototype = {
     var self = this;
     function onLoaded(block) {
       if (!block)
-        logic(self, 'badBlockLoad', { type: type, blockId: blockId });
-      logic(self, 'loadBlock_end',
-            { type: type, blockId: blockId, block: block });
+        self._LOG.badBlockLoad(type, blockId);
+      self._LOG.loadBlock_end(type, blockId, block);
       if (type === 'header') {
         self._headerBlocks[blockId] = block;
         self._loadedHeaderBlockInfos.push(blockInfo);
@@ -2290,7 +2279,7 @@ FolderStorage.prototype = {
           listeners[i](block);
         }
         catch (ex) {
-          logic(self, 'callbackErr', { ex: ex });
+          self._LOG.callbackErr(ex);
         }
       }
 
@@ -2311,7 +2300,7 @@ FolderStorage.prototype = {
       }
     }
 
-    logic(this, 'loadBlock_begin', { type: type, blockId: blockId });
+    this._LOG.loadBlock_begin(type, blockId);
     if (type === 'header')
       this._imapDb.loadHeaderBlock(this.folderId, blockId, onLoaded);
     else
@@ -2320,8 +2309,7 @@ FolderStorage.prototype = {
 
   _deleteFromBlock: function ifs__deleteFromBlock(type, date, id, callback) {
     var blockInfoList, loadedBlockInfoList, blockMap, deleteFromBlock;
-    var scope = logic.subscope(this, { type: type, date: date, id: id });
-    logic(scope, 'deleteFromBlock');
+    this._LOG.deleteFromBlock(type, date, id);
     if (type === 'header') {
       blockInfoList = this._headerBlockInfos;
       loadedBlockInfoList = this._loadedHeaderBlockInfos;
@@ -2341,7 +2329,7 @@ FolderStorage.prototype = {
     // If someone is asking for us to delete something, there should definitely
     // be a block that includes it!
     if (!info) {
-      log('badDeletionRequest');
+      this._LOG.badDeletionRequest(type, date, id);
       return;
     }
 
@@ -3465,12 +3453,10 @@ FolderStorage.prototype = {
     var iHeadBlockInfo = headerPair[0];
     var headBlockInfo = headerPair[1];
 
-    var scope = logic.subscope(this, { date: date, id: id });
-
     if (!headBlockInfo) {
       // The iteration request is somehow not current; log an error and return
       // an empty result set.
-      logic(scope, 'badIterationStart');
+      this._LOG.badIterationStart(date, id);
       messageCallback([], false);
       return;
     }
@@ -3489,7 +3475,7 @@ FolderStorage.prototype = {
         if (iHeader === null) {
           iHeader = headerBlock.ids.indexOf(id);
           if (iHeader === -1) {
-            logic(scope, 'badIterationStart');
+            self._LOG.badIterationStart(date, id);
             toFill = 0;
           }
           iHeader--;
@@ -3664,7 +3650,7 @@ FolderStorage.prototype = {
    * believe it to be safely empty.
    */
   markSyncedToDawnOfTime: function() {
-    logic(this, 'syncedToDawnOfTime');
+    this._LOG.syncedToDawnOfTime();
 
     // We can just expand the first accuracy range structure to stretch to the
     // dawn of time and nuke the rest.
@@ -3698,7 +3684,7 @@ FolderStorage.prototype = {
     // Otherwise, pop the range to get rid of the info.  This is a defensive
     // programming thing; we do not expect this case to happen, so we log.
     else {
-      logic(this, 'accuracyRangeSuspect', { lastRange: lastRange });
+      this._LOG.accuracyRangeSuspect(lastRange);
       aranges.pop();
     }
   },
@@ -3844,12 +3830,12 @@ FolderStorage.prototype = {
                                                       date, id);
 
     if (posInfo[1] === null) {
-      logic(this, 'headerNotFound');
+      this._LOG.headerNotFound();
       try {
         callback(null);
       }
       catch (ex) {
-        logic(this, 'callbackErr', { ex: ex });
+        this._LOG.callbackErr(ex);
       }
       return;
     }
@@ -3859,12 +3845,12 @@ FolderStorage.prototype = {
           var idx = headerBlock.ids.indexOf(id);
           var headerInfo = headerBlock.headers[idx] || null;
           if (!headerInfo)
-            logic(self, 'headerNotFound');
+            self._LOG.headerNotFound();
           try {
             callback(headerInfo);
           }
           catch (ex) {
-            logic(self, 'callbackErr', { ex: ex });
+            self._LOG.callbackErr(ex);
           }
         });
       return;
@@ -3873,12 +3859,12 @@ FolderStorage.prototype = {
         idx = block.ids.indexOf(id),
         headerInfo = block.headers[idx] || null;
     if (!headerInfo)
-      logic(this, 'headerNotFound');
+      this._LOG.headerNotFound();
     try {
       callback(headerInfo);
     }
     catch (ex) {
-      logic(this, 'callbackErr', { ex: ex });
+      this._LOG.callbackErr(ex);
     }
   },
 
@@ -3928,8 +3914,7 @@ FolderStorage.prototype = {
       this.folderMeta.unreadCount++;
     }
 
-    logic(this, 'addMessageHeader',
-               { date: header.date, id: header.id, srvid: header.srvid });
+    this._LOG.addMessageHeader(header.date, header.id, header.srvid);
 
     this.headerCount += 1;
 
@@ -4001,7 +3986,7 @@ FolderStorage.prototype = {
             slice._onAddingHeader(header);
           }
           catch (ex) {
-            logic(this, 'callbackErr', { ex: ex });
+            this._LOG.callbackErr(ex);
           }
         }
 
@@ -4009,7 +3994,7 @@ FolderStorage.prototype = {
           slice.onHeaderAdded(header, body, false, true);
         }
         catch (ex) {
-          logic(this, 'callbackErr', { ex: ex });
+          this._LOG.callbackErr(ex);
         }
       }
     }
@@ -4087,8 +4072,7 @@ FolderStorage.prototype = {
         self._dirty = true;
         self._dirtyHeaderBlocks[info.blockId] = block;
 
-        logic(self, 'updateMessageHeader',
-              { date: header.date, id: header.id, srvid: header.srvid });
+        self._LOG.updateMessageHeader(header.date, header.id, header.srvid);
 
         if (self._slices.length > (self._curSyncSlice ? 1 : 0)) {
           for (var iSlice = 0; iSlice < self._slices.length; iSlice++) {
@@ -4110,7 +4094,7 @@ FolderStorage.prototype = {
               slice.onHeaderModified(header, body);
             }
             catch (ex) {
-              logic(this, 'callbackErr', { ex: ex });
+              this._LOG.callbackErr(ex);
             }
           }
         }
@@ -4145,7 +4129,7 @@ FolderStorage.prototype = {
 
     var blockId = this._serverIdHeaderBlockMapping[srvid];
     if (srvid === undefined) {
-      logic(this, 'serverIdMappingMissing', { srvid: srvid });
+      this._LOG.serverIdMappingMissing(srvid);
       return;
     }
 
@@ -4192,7 +4176,7 @@ FolderStorage.prototype = {
 
     var blockId = this._serverIdHeaderBlockMapping[srvid];
     if (srvid === undefined) {
-      logic(this, 'serverIdMappingMissing', { srvid: srvid });
+      this._LOG.serverIdMappingMissing(srvid);
       return false;
     }
 
@@ -4292,7 +4276,7 @@ FolderStorage.prototype = {
 
     var blockId = this._serverIdHeaderBlockMapping[srvid];
     if (srvid === undefined) {
-      logic(this, 'serverIdMappingMissing', { srvid: srvid });
+      this._LOG.serverIdMappingMissing(srvid);
       return;
     }
 
@@ -4326,11 +4310,7 @@ FolderStorage.prototype = {
                                  this, header, bodyInfo, callback));
       return;
     }
-    logic(this, 'addMessageBody',
-          { date: header.date,
-            id: header.id,
-            srvid: header.srvid,
-            bodyInfo: bodyInfo });
+    this._LOG.addMessageBody(header.date, header.id, header.srvid, bodyInfo);
 
     // crappy size estimates where we assume the world is ASCII and so a UTF-8
     // encoding will take exactly 1 byte per character.
@@ -4495,12 +4475,12 @@ FolderStorage.prototype = {
         posInfo = this._findRangeObjIndexForDateAndID(this._bodyBlockInfos,
                                                       date, id);
     if (posInfo[1] === null) {
-      logic(this, 'bodyNotFound');
+      this._LOG.bodyNotFound();
       try {
         callback(null);
       }
       catch (ex) {
-        logic(this, 'callbackErr', { ex: ex });
+        this._LOG.callbackErr(ex);
       }
       return;
     }
@@ -4509,12 +4489,12 @@ FolderStorage.prototype = {
       this._loadBlock('body', bodyBlockInfo, function(bodyBlock) {
           var bodyInfo = bodyBlock.bodies[id] || null;
           if (!bodyInfo)
-            logic(self, 'bodyNotFound');
+            self._LOG.bodyNotFound();
           try {
             callback(bodyInfo);
           }
           catch (ex) {
-            logic(self, 'callbackErr', { ex: ex });
+            self._LOG.callbackErr(ex);
           }
         });
       return;
@@ -4522,12 +4502,12 @@ FolderStorage.prototype = {
     var block = this._bodyBlocks[bodyBlockInfo.blockId],
         bodyInfo = block.bodies[id] || null;
     if (!bodyInfo)
-      logic(this, 'bodyNotFound');
+      this._LOG.bodyNotFound();
     try {
       callback(bodyInfo);
     }
     catch (ex) {
-      logic(this, 'callbackErr', { ex: ex });
+      this._LOG.callbackErr(ex);
     }
   },
 
@@ -4682,6 +4662,7 @@ FolderStorage.prototype = {
       this._slices[i].die();
     }
     this.folderSyncer.shutdown();
+    this._LOG.__die();
   },
 
   /**
@@ -4695,5 +4676,84 @@ FolderStorage.prototype = {
   },
 };
 
+var LOGFAB = exports.LOGFAB = $log.register(module, {
+  MailSlice: {
+    type: $log.QUERY,
+    events: {
+      headersAppended: {},
+      headerAdded: { index: false },
+      headerModified: { index: false },
+      headerRemoved: { index: false },
+    },
+    TEST_ONLY_events: {
+      headersAppended: { headers: false },
+      headerAdded: { header: false },
+      headerModified: { header: false },
+      headerRemoved: { header: false },
+    },
+  },
+  FolderStorage: {
+    type: $log.DATABASE,
+    events: {
+      addMessageHeader: { date: false, id: false, srvid: false },
+      addMessageBody: { date: false, id: false, srvid: false },
+
+      updateMessageHeader: { date: false, id: false, srvid: false },
+      updateMessageBody: { date: false, id: false },
+
+      generatePersistenceInfo: {},
+
+      // For now, logging date and uid is useful because the general logging
+      // level will show us if we are trying to redundantly delete things.
+      // Also, date and uid are opaque identifiers with very little entropy
+      // on their own.  (The danger is in correlation with known messages,
+      // but that is likely to be useful in the debugging situations where logs
+      // will be sufaced.)
+      deleteFromBlock: { type: false, date: false, id: false },
+
+      discardFromBlock: { type: false, date: false, id: false },
+
+      // This was an error but the test results viewer UI is not quite smart
+      // enough to understand the difference between expected errors and
+      // unexpected errors, so this is getting downgraded for now.
+      headerNotFound: {},
+      bodyNotFound: {},
+
+      syncedToDawnOfTime: {},
+    },
+    TEST_ONLY_events: {
+      addMessageBody: { body: false },
+      generatePersistenceInfo: { details: false }
+    },
+    asyncJobs: {
+      loadBlock: { type: false, blockId: false },
+      mutexedCall: { name: true },
+    },
+    TEST_ONLY_asyncJobs: {
+      loadBlock: { block: false },
+    },
+    errors: {
+      callbackErr: { ex: $log.EXCEPTION },
+
+      badBlockLoad: { type: false, blockId: false },
+
+      // Exposing date/uid at a general level is deemed okay because they are
+      // opaque identifiers and the most likely failure models involve the
+      // values being ridiculous (and therefore not legal).
+      badIterationStart: { date: false, id: false },
+      badDeletionRequest: { type: false, date: false, id: false },
+      badDiscardRequest: { type: false, date: false, id: false },
+      bodyBlockMissing: { id: false, idx: false, dict: false },
+      serverIdMappingMissing: { srvid: false },
+
+      accuracyRangeSuspect: { arange: false },
+
+      mutexedOpErr: { err: $log.EXCEPTION },
+
+      tooManyCallbacks: { name: false },
+      mutexInvariantFail: { fireName: false, curName: false },
+    }
+  },
+}); // end LOGFAB
 
 }); // end define

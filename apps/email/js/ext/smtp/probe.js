@@ -1,6 +1,4 @@
-define(['logic', './client', 'exports'], function(logic, client, exports) {
-
-  var scope = logic.scope('SmtpProber');
+define(['slog', './client', 'exports'], function(slog, client, exports) {
 
   /**
    * Validate that we find an SMTP server using the connection info
@@ -18,8 +16,7 @@ define(['logic', './client', 'exports'], function(logic, client, exports) {
    * change their address after setup.
    */
   exports.probeAccount = function(credentials, connInfo) {
-
-    logic(scope, 'connecting', {
+    slog.info('probe:smtp:connecting', {
       _credentials: credentials,
       connInfo: connInfo
     });
@@ -33,13 +30,13 @@ define(['logic', './client', 'exports'], function(logic, client, exports) {
         // here, as the caller should have already passed a valid
         // accessToken during account setup. This might indicate a
         // problem with our OAUTH handling, so log it just in case.
-        logic(scope, 'credentials-updated');
+        slog.warn('probe:smtp:credentials-updated');
       }
     ).then(function(newConn) {
         conn = newConn;
         return verifyAddress(conn, connInfo.emailAddress);
       }).then(function() {
-        logic(scope, 'success');
+        slog.info('probe:smtp:success');
         conn.close();
         return conn;
       }).catch(function(err) {
@@ -50,7 +47,7 @@ define(['logic', './client', 'exports'], function(logic, client, exports) {
           conn.close();
         }
 
-        logic(scope, 'error', {
+        slog.error('probe:smtp:error', {
           error: errorString,
           connInfo: connInfo
         });
@@ -68,10 +65,7 @@ define(['logic', './client', 'exports'], function(logic, client, exports) {
    *   reject => {Object} some sort of error
    */
   function verifyAddress(conn, emailAddress) {
-    logic(scope, 'checking-address-validity', {
-      ns: 'SmtpProber',
-      _address: emailAddress
-    });
+    slog.log('probe:smtp:checking-address-validity');
     return new Promise(function(resolve, reject) {
       conn.useEnvelope({
         from: emailAddress,

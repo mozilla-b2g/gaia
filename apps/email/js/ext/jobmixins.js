@@ -12,7 +12,6 @@ define(
     './syncbase',
     './mailslice',
     './headerCounter',
-    'logic',
     'exports',
     'require'
   ],
@@ -25,7 +24,6 @@ define(
     $sync,
     $mailslice,
     $count,
-    logic,
     exports,
     require
   ) {
@@ -329,7 +327,7 @@ exports.do_download = function(op, callback) {
         } else {
           pendingCbs++;
           saveToDeviceStorage(
-              self, blob, storeTo, registerDownload[i],
+              self._LOG, blob, storeTo, registerDownload[i],
               partInfo.name, partInfo, next);
         }
       }
@@ -360,24 +358,18 @@ exports.do_download = function(op, callback) {
  * encounter a collision.
  */
 var saveToDeviceStorage = exports.saveToDeviceStorage =
-function(scope, blob, storeTo, registerDownload, filename, partInfo, cb,
+function(_LOG, blob, storeTo, registerDownload, filename, partInfo, cb,
          isRetry) {
   var self = this;
   var callback = function(success, error, savedFilename, registered) {
     if (success) {
-      logic(scope, 'savedAttachment', { storeTo: storeTo,
-                                        type: blob.type,
-                                        size: blob.size });
+      _LOG.savedAttachment(storeTo, blob.type, blob.size);
       console.log('saved attachment to', storeTo, savedFilename,
                   'type:', blob.type, 'registered:', registered);
       partInfo.file = [storeTo, savedFilename];
       cb();
     } else {
-      logic(scope, 'saveFailure', { storeTo: storeTo,
-                                    type: blob.type,
-                                    size: blob.size,
-                                    error: error,
-                                    filename: filename });
+      _LOG.saveFailure(storeTo, blob.type, error, filename);
       console.warn('failed to save attachment to', storeTo, filename,
                    'type:', blob.type);
       // if we failed to unique the file after appending junk, just give up
@@ -392,8 +384,7 @@ function(scope, blob, storeTo, registerDownload, filename, partInfo, cb,
         idxLastPeriod = filename.length;
       filename = filename.substring(0, idxLastPeriod) + '-' + $date.NOW() +
         filename.substring(idxLastPeriod);
-
-      saveToDeviceStorage(scope, blob, storeTo, registerDownload,
+      saveToDeviceStorage(_LOG, blob, storeTo, registerDownload,
                           filename, partInfo, cb, true);
     }
   };
@@ -819,7 +810,7 @@ exports._partitionAndAccessFoldersSequentially = function(
         callOnConnLoss();
       }
       catch (ex) {
-        self.log.error('callbackErr', { ex: ex });
+        self._LOG.callbackErr(ex);
       }
     }
     terminated = true;

@@ -445,7 +445,7 @@ exports.chewHeaderAndBodyStructure = function(msg, folderId, newMsgId) {
  *    //    and set its value.
  *
  */
-exports.updateMessageWithFetch = function(header, body, req, res) {
+exports.updateMessageWithFetch = function(header, body, req, res, _LOG) {
   var bodyRep = body.bodyReps[req.bodyRepIndex];
 
   // check if the request was unbounded or we got back less bytes then we
@@ -464,7 +464,8 @@ exports.updateMessageWithFetch = function(header, body, req, res) {
   bodyRep.amountDownloaded += res.bytesFetched;
 
   var data = $mailchew.processMessageContent(
-    res.text, bodyRep.type, bodyRep.isDownloaded, req.createSnippet);
+    res.text, bodyRep.type, bodyRep.isDownloaded, req.createSnippet, _LOG
+  );
 
   if (req.createSnippet) {
     header.snippet = data.snippet;

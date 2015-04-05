@@ -48,13 +48,13 @@
 define(
   [
     './date',
-    'logic',
+    'rdcommon/log',
     'module',
     'exports'
   ],
   function(
     $date,
-    logic,
+    $log,
     $module,
     exports
   ) {
@@ -89,7 +89,7 @@ exports.TEST_useTimeoutFunc = function(func) {
  *   ]]
  * ]
  */
-function BackoffEndpoint(name, listener) {
+function BackoffEndpoint(name, listener, parentLog) {
   /** @oneof[
    *    @case['healthy']
    *    @case['unreachable']
@@ -102,10 +102,8 @@ function BackoffEndpoint(name, listener) {
    */
   this.state = 'healthy';
   this._iNextBackoff = 0;
-
-  logic.defineScope(this, 'BackoffEndpoint', { name: name });
-
-  logic(this, 'state', { state: this.state });
+  this._LOG = LOGFAB.BackoffEndpoint(this, parentLog, name);
+  this._LOG.state(this.state);
 
   this._badResources = {};
 
@@ -116,7 +114,7 @@ BackoffEndpoint.prototype = {
     if (this.state === newState)
       return;
     this.state = newState;
-    logic(this, 'state', { state: newState });
+    this._LOG.state(newState);
     if (this.listener)
       this.listener.onEndpointStateChange(newState);
   },
@@ -142,7 +140,7 @@ BackoffEndpoint.prototype = {
    * }
    */
   noteConnectFailureMaybeRetry: function(reachable) {
-    logic(this, 'connectFailure', { reachable: reachable });
+    this._LOG.connectFailure(reachable);
     if (this.state === 'shutdown')
       return false;
 
@@ -172,7 +170,7 @@ BackoffEndpoint.prototype = {
    * requests.
    */
   noteBrokenConnection: function() {
-    logic(this, 'connectFailure', { reachable: true });
+    this._LOG.connectFailure(true);
     this._setState('broken');
 
     this._iNextBackoff = BACKOFF_DURATIONS.length;
@@ -219,8 +217,23 @@ BackoffEndpoint.prototype = {
   },
 };
 
-exports.createEndpoint = function(name, listener) {
-  return new BackoffEndpoint(name, listener);
+exports.createEndpoint = function(name, listener, parentLog) {
+  return new BackoffEndpoint(name, listener, parentLog);
 };
+
+var LOGFAB = exports.LOGFAB = $log.register($module, {
+  BackoffEndpoint: {
+    type: $log.TASK,
+    subtype: $log.CLIENT,
+    stateVars: {
+      state: false,
+    },
+    events: {
+      connectFailure: { reachable: true },
+    },
+    errors: {
+    }
+  },
+});
 
 }); // end define

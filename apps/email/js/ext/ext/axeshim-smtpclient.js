@@ -2,25 +2,22 @@
  * Customized shim for browserbox to use 'slog' with configurable logging level
  * that can be cranked up.
  */
-define(function(require) {
-  var logic = require('logic');
-  var scope = logic.scope('SmtpClient');
+define(function() {
+  var slog = require('slog');
+  var slogTag = 'smtpclient';
 
   return {
-    // see axeshim-browserbox's comment about '.debug'
     debug: function(ignoredTag, msg) {
-      if (!logic.isCensored) {
-        logic(scope, 'debug', { msg: msg });
-      }
+      slog.debug(slogTag, { msg: msg });
     },
     log: function(ignoredTag, msg) {
-      logic(scope, 'log', { msg: msg });
+      slog.log(slogTag, { msg: msg });
     },
     warn: function(ignoredTag, msg) {
-      logic(scope, 'warn', { msg: msg });
+      slog.warn(slogTag, { msg: msg });
     },
     error: function(ignoredTag, msg) {
-      logic(scope, 'error', { msg: msg });
+      slog.error(slogTag, { msg: msg });
     }
   };
 });

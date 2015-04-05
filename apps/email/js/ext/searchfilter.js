@@ -77,7 +77,7 @@
 
 define(
   [
-    'logic',
+    'rdcommon/log',
     './util',
     './allback',
     './syncbase',
@@ -87,7 +87,7 @@ define(
     'exports'
   ],
   function(
-    logic,
+    $log,
     $util,
     allback,
     $syncbase,
@@ -506,7 +506,7 @@ var CONTEXT_CHARS_AFTER = 40;
 /**
  *
  */
-function SearchSlice(bridgeHandle, storage, phrase, whatToSearch) {
+function SearchSlice(bridgeHandle, storage, phrase, whatToSearch, _parentLog) {
 console.log('sf: creating SearchSlice:', phrase);
   this._bridgeHandle = bridgeHandle;
   bridgeHandle.__listener = this;
@@ -514,11 +514,7 @@ console.log('sf: creating SearchSlice:', phrase);
   bridgeHandle.userCanGrowDownwards = false;
 
   this._storage = storage;
-  logic.defineScope(this, 'SearchSlice');
-
-  // XXX: This helps test_search_slice do its job, in a world where
-  // we no longer have loggers associated with specific instances.
-  SearchSlice._TEST_latestInstance = this;
+  this._LOG = LOGFAB.SearchSlice(this, _parentLog, bridgeHandle._handle);
 
   // These correspond to the range of headers that we have searched to generate
   // the current set of matched headers.  Our matches will always be fully
@@ -726,8 +722,7 @@ SearchSlice.prototype = {
         console.log(logPrefix, 'willHave', willHave, 'of', this.desiredHeaders,
                     'want more?', wantMore);
         var insertAt = dir === -1 ? 0 : this.headers.length;
-        logic(this, 'headersAppended', { insertAt: insertAt,
-                                         matchPairs: matchPairs });
+        this._LOG.headersAppended(insertAt, matchPairs);
 
         this.headers.splice.apply(this.headers,
                                   [insertAt, 0].concat(matchPairs));
@@ -880,7 +875,7 @@ SearchSlice.prototype = {
     // though.
     this.desiredHeaders = this.headers.length;
 
-    logic(this, 'headerAdded', { index: idx, header: wrappedHeader });
+    this._LOG.headerAdded(idx, wrappedHeader);
     this.headers.splice(idx, 0, wrappedHeader);
     this.headerCount = this.headers.length +
       (this.atBottom ? 0 : this.IMAGINARY_MESSAGE_COUNT_WHEN_NOT_AT_BOTTOM);
@@ -916,8 +911,7 @@ SearchSlice.prototype = {
       // Update the header in the match and send it out.
       var existingMatch = this.headers[idx];
       existingMatch.header = header;
-      logic(this, 'headerModified', { index: idx,
-                                      existingMatch: existingMatch });
+      this._LOG.headerModified(idx, existingMatch);
       this._bridgeHandle.sendUpdate([idx, existingMatch]);
       return;
     }
@@ -978,7 +972,7 @@ SearchSlice.prototype = {
     var idx = bsearchMaybeExists(this.headers, wrappedHeader,
                                  cmpMatchHeadersYoungToOld);
     if (idx !== null) {
-      logic(this, 'headerRemoved', { index: idx, header: wrappedHeader });
+      this._LOG.headerRemoved(idx, wrappedHeader);
       this.headers.splice(idx, 1);
       this.headerCount = this.headers.length +
         (this.atBottom ? 0 : this.IMAGINARY_MESSAGE_COUNT_WHEN_NOT_AT_BOTTOM);
@@ -1101,7 +1095,27 @@ SearchSlice.prototype = {
   die: function() {
     this._storage.dyingSlice(this);
     this._bridgeHandle = null;
+    this._LOG.__die();
   },
 };
+
+var LOGFAB = exports.LOGFAB = $log.register($module, {
+  SearchSlice: {
+    type: $log.QUERY,
+    events: {
+      headersAppended: { index: false },
+      headerAdded: { index: false },
+      headerModified: { index: false },
+      headerRemoved: { index: false },
+    },
+    TEST_ONLY_events: {
+      headersAppended: { headers: false },
+      headerAdded: { header: false },
+      headerModified: { header: false },
+      headerRemoved: { header: false },
+    },
+  },
+}); // end LOGFAB
+
 
 }); // end define

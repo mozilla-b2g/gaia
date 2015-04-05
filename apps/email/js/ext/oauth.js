@@ -2,7 +2,7 @@ define(function(require, exports) {
 
   var errorutils = require('./errorutils');
   var syncbase = require('./syncbase');
-  var logic = require('logic');
+  var slog = require('./slog');
   var date = require('./date');
 
   /**
@@ -20,8 +20,6 @@ define(function(require, exports) {
 
   // Extra timeout padding for oauth tokens.
   var TIMEOUT_MS = 30 * 1000;
-
-  var scope = logic.scope('Oauth');
 
   /**
    * Decides if a renew may be feasible to do. Does not allow renew within a
@@ -85,7 +83,7 @@ define(function(require, exports) {
           oauth2.accessToken = newTokenData.accessToken;
           oauth2.expireTimeMS = newTokenData.expireTimeMS;
 
-          logic(scope, 'credentials-changed', {
+          slog.log('oauth:credentials-changed', {
             _accessToken: oauth2.accessToken,
             expireTimeMS: oauth2.expireTimeMS
           });
@@ -95,7 +93,7 @@ define(function(require, exports) {
           }
         });
     } else {
-      logic(scope, 'credentials-ok');
+      slog.log('oauth:credentials-ok');
       // Not OAUTH; everything is fine.
       return Promise.resolve(false);
     }
@@ -114,10 +112,10 @@ define(function(require, exports) {
    *   failure: {String} normalized errorString
    */
   function renewAccessToken(oauthInfo) {
-    logic(scope, 'renewing-access-token');
+    slog.log('oauth:renewing-access-token');
     return new Promise(function(resolve, reject) {
       oauthInfo._transientLastRenew = date.PERFNOW();
-      var xhr = logic.interceptable('oauth:renew-xhr', function() {
+      var xhr = slog.interceptable('oauth:renew-xhr', function() {
         return new XMLHttpRequest({ mozSystem: true });
       });
       xhr.open('POST', oauthInfo.tokenEndpoint, true);
@@ -143,15 +141,15 @@ define(function(require, exports) {
           }
           catch (ex) {
           }
-         logic(scope, 'xhr-fail',
-               { tokenEndpoint: oauthInfo.tokenEndpoint,
-                 status: xhr.status, errResp: errResp });
+          slog.error('oauth:xhr-fail',
+                     { tokenEndpoint: oauthInfo.tokenEndpoint,
+                       status: xhr.status, errResp: errResp });
           reject('needs-oauth-reauth');
         } else {
           try {
             var data = JSON.parse(xhr.responseText);
             if (data && data.access_token) {
-              logic(scope, 'got-access-token', {
+              slog.log('oauth:got-access-token', {
                 _accessToken: data.access_token
               });
               // OAUTH returns an expire time as "seconds from now";
@@ -166,13 +164,13 @@ define(function(require, exports) {
                 expireTimeMS: expireTimeMS
               });
             } else {
-             logic(scope, 'no-access-token', {
+              slog.error('oauth:no-access-token', {
                 data: xhr.responseText
               });
               reject('needs-oauth-reauth');
             }
           } catch(e) {
-            logic(scope, 'bad-json', {
+            slog.error('oauth:bad-json', {
               error: e,
               data: xhr.responseText
             });

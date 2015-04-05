@@ -15,7 +15,6 @@
 define(
   [
     'exports',
-    'logic',
     './util',
     './mailchew-strings',
     './quotechew',
@@ -23,7 +22,6 @@ define(
   ],
   function(
     exports,
-    logic,
     $util,
     $mailchewStrings,
     $quotechew,
@@ -32,7 +30,6 @@ define(
 
 var DESIRED_SNIPPET_LENGTH = 100;
 
-var scope = logic.scope('MailChew');
 
 /**
  * Generate the default compose body for a new e-mail
@@ -323,7 +320,7 @@ exports.mergeUserTextWithHTML = function mergeReplyTextWithHTML(text, html) {
  * Generate the snippet and parsed body from the message body's content.
  */
 exports.processMessageContent = function processMessageContent(
-    content, type, isDownloaded, generateSnippet) {
+    content, type, isDownloaded, generateSnippet, _LOG) {
 
   // Strip any trailing newline.
   if (content.slice(-1) === '\n') {
@@ -337,7 +334,7 @@ exports.processMessageContent = function processMessageContent(
         parsedContent = $quotechew.quoteProcessTextBody(content);
       }
       catch (ex) {
-        logic(scope, 'textChewError', { ex: ex });
+        _LOG.textChewError(ex);
         // An empty content rep is better than nothing.
         parsedContent = [];
       }
@@ -349,7 +346,7 @@ exports.processMessageContent = function processMessageContent(
           );
         }
         catch (ex) {
-          logic(scope, 'textSnippetError', { ex: ex });
+          _LOG.textSnippetError(ex);
           snippet = '';
         }
       }
@@ -360,7 +357,7 @@ exports.processMessageContent = function processMessageContent(
           snippet = $htmlchew.generateSnippet(content);
         }
         catch (ex) {
-          logic(scope, 'htmlSnippetError', { ex: ex });
+          _LOG.htmlSnippetError(ex);
           snippet = '';
         }
       }
@@ -369,7 +366,7 @@ exports.processMessageContent = function processMessageContent(
           parsedContent = $htmlchew.sanitizeAndNormalizeHtml(content);
         }
         catch (ex) {
-          logic(scope, 'htmlParseError', { ex: ex });
+          _LOG.htmlParseError(ex);
           parsedContent = '';
         }
       }
