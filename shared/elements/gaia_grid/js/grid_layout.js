@@ -20,7 +20,7 @@
 
   const eachTextRowHeight = 20;
 
-  var gridWidth;
+  var constraintSize;
 
   function GridLayout(gridView) {
     this.gridView = gridView;
@@ -82,11 +82,11 @@
     /**
      * The width of the grid.
      */
-    get gridWidth() {
-      if (!gridWidth) {
+    get constraintSize() {
+      if (!constraintSize) {
         this.calculateSize();
       }
-      return gridWidth;
+      return constraintSize;
     },
 
     /**
@@ -114,7 +114,7 @@
      * This number changes based on current zoom level.
      */
     get gridItemWidth() {
-      return this.gridWidth / this._cols;
+      return this.constraintSize / this._cols;
     },
 
     /**
@@ -122,7 +122,7 @@
      * the grid is displayed with the minimum number of columns per row.
      */
     get gridMaxIconSize() {
-      var baseSize = (this.gridWidth / iconScaleFactorMinIconsPerRow);
+      var baseSize = (this.constraintSize / iconScaleFactorMinIconsPerRow);
       return baseSize * devicePixelRatio;
     },
 
@@ -133,11 +133,11 @@
     get gridIconSize() {
       var numCols = this._cols;
 
-      var size = this.gridWidth / numCols;
+      var size = this.constraintSize / numCols;
       if (numCols === minIconsPerRow) {
-        size = this.gridWidth / iconScaleFactorMinIconsPerRow;
+        size = this.constraintSize / iconScaleFactorMinIconsPerRow;
       } else if (numCols === maxIconsPerRow) {
-        size = this.gridWidth / iconScaleFactorMaxIconsPerRow;
+        size = this.constraintSize / iconScaleFactorMaxIconsPerRow;
       }
       return Math.floor(size);
     },
@@ -180,7 +180,7 @@
     },
 
     calculateSize: function() {
-      gridWidth = this.gridView.element.offsetWidth;
+      constraintSize = Math.min(window.screen.width, window.screen.height);
     },
 
     onReady: function() {

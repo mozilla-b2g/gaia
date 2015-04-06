@@ -169,16 +169,16 @@
       var index = this.detail.index;
 
       var width = Math.round(
-        (this.grid.layout.gridWidth -
+        (this.grid.layout.constraintSize -
          COLLAPSED_GROUP_MARGIN_LEFT - COLLAPSED_GROUP_MARGIN_RIGHT) /
         COLLAPSED_GROUP_SIZE);
       var x = isRTL ?
-              (this.grid.layout.gridWidth - COLLAPSED_GROUP_MARGIN_RIGHT) :
-              COLLAPSED_GROUP_MARGIN_LEFT;
+        (this.grid.layout.constraintSize - COLLAPSED_GROUP_MARGIN_RIGHT) :
+        COLLAPSED_GROUP_MARGIN_LEFT;
       y += this.headerHeight;
 
       var maxGridItemWidth =
-        this.grid.layout.gridWidth / this.grid.layout.minIconsPerRow;
+        this.grid.layout.constraintSize / this.grid.layout.minIconsPerRow;
       this.collapseRatio =
         (maxGridItemWidth / this.grid.layout.gridItemWidth) * COLLAPSE_RATIO;
 
