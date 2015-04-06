@@ -218,6 +218,20 @@ var CostControlApp = (function() {
     SimManager.requestDataSimIcc(startApp);
   }
 
+  AirplaneModeHelper.addEventListener('statechange',
+    function _onAirplaneModeChange(state) {
+      if (state === 'enabled') {
+        showNonReadyScreen('airplaneMode');
+      }
+  });
+
+  window.addEventListener('airplaneModeDisabled',
+    function _onAirplanemodeDisabled(evt) {
+      if (evt.detail && evt.detail.serviceId === 'data') {
+        waitForSIMReady(startApp);
+      }
+  });
+
   function startApp(callback) {
     // If customMode is not ready and it was activated on previous execution,
     // we have to change the setup plan to no plan.
@@ -328,9 +342,12 @@ var CostControlApp = (function() {
     // Check card state when visible
     document.addEventListener('visibilitychange',
       function _onVisibilityChange(evt) {
-        if (!document.hidden && initialized) {
-          waitForSIMReady();
-        }
+        AirplaneModeHelper.ready(function() {
+          if (!document.hidden && initialized &&
+              (AirplaneModeHelper.getStatus() === 'disabled')) {
+            waitForSIMReady();
+          }
+        });
       }
     );
 
