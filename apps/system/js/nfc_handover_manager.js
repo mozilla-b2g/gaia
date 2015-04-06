@@ -637,6 +637,7 @@
           job.onerror();
           this._showTryAgainNotification();
         }
+        this._restoreBluetoothStatus();
         return;
       }
 
