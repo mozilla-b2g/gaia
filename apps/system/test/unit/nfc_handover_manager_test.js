@@ -226,16 +226,11 @@ suite('Nfc Handover Manager Functions', function() {
    */
   suite('File transfer', function() {
     var spySendNDEF;
-    var spyBluetoothEnabledObserver;
+
     var fileRequest;
 
     setup(function() {
       MockBluetooth.enabled = true;
-      spyBluetoothEnabledObserver = sinon.spy(function(event) {
-        MockBluetooth.enabled = event.settingValue;
-      });
-      MockNavigatorSettings.addObserver('bluetooth.enabled',
-                                        spyBluetoothEnabledObserver);
       MockBluetoothTransfer.fileTransferInProgress = false;
       spySendNDEF = this.sinon.spy(MockMozNfc.MockNFCPeer, 'sendNDEF');
 
@@ -254,7 +249,6 @@ suite('Nfc Handover Manager Functions', function() {
 
       spySendNDEF.restore();
       NfcHandoverManager.sendFileQueue = [];
-      MockNavigatorSettings.removeObserver('bluetooth.enabled');
     });
 
     test('"nfc-manager-send-file" results in handover request sent to peer',
@@ -286,6 +280,7 @@ suite('Nfc Handover Manager Functions', function() {
 
     test('Sending aborts when another file is transmitted concurrently',
       function() {
+
       MockBluetoothTransfer.fileTransferInProgress = true;
       var stubShowNotification = this.sinon.stub(NfcHandoverManager,
                                                  '_showTryAgainNotification');
@@ -374,7 +369,6 @@ suite('Nfc Handover Manager Functions', function() {
       function() {
 
       fileRequest.onerror = sinon.stub();
-      NfcHandoverManager.bluetoothAutoEnabled = true;
       NfcHandoverManager.sendFileQueue.push(fileRequest);
 
       var stubShowNotification = this.sinon.stub(NfcHandoverManager,
@@ -389,9 +383,6 @@ suite('Nfc Handover Manager Functions', function() {
       assert.isTrue(fileRequest.onerror.calledOnce);
       assert.isTrue(stubShowNotification.calledOnce,
                     'Notification not shown');
-      assert.equal(spyBluetoothEnabledObserver.callCount, 1);
-      assert.isFalse(spyBluetoothEnabledObserver.getCall(0)
-                                                .args[0].settingValue);
     });
   });
 
