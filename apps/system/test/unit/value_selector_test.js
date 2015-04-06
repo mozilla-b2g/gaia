@@ -43,6 +43,7 @@ suite('value selector/value selector', function() {
   };
 
   var fakeClosing = { type: '_closing' };
+  var fakeClosed = { type: '_closed' };
   var fakeOpening = { type: '_opening' };
   var fakeLocalizedEvent = { type: '_localized' };
   var fakeTimeFormatChangeEvent = { type: 'timeformatchange' };
@@ -228,6 +229,11 @@ suite('value selector/value selector', function() {
 
     test('hide on "_closing" event', function() {
       vs.handleEvent(fakeClosing);
+      assertHiddenAndFocus(true);
+    });
+
+    test('hide on "_closed" event', function() {
+      vs.handleEvent(fakeClosed);
       assertHiddenAndFocus(true);
     });
 

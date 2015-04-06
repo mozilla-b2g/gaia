@@ -26,6 +26,7 @@
 
     app.element.addEventListener('_opening', this);
     app.element.addEventListener('_closing', this);
+    app.element.addEventListener('_closed', this);
     app.element.addEventListener('_inputmethod-contextchange', this);
     app.element.addEventListener('_localized', this);
     window.addEventListener('timeformatchange', this);
@@ -72,6 +73,7 @@
         break;
       case '_opening':
       case '_closing':
+      case '_closed':
         if (this._injected) {
           this.hide();
         }
