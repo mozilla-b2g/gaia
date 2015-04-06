@@ -62,7 +62,11 @@ function VideoPlayer(container) {
 
   // This copies the controls structure of the Video app
   var poster = newelt(container, 'img', 'videoPoster');
-  var player = newelt(container, 'video', 'videoPlayer');
+  var player = newelt(container, 'video', 'videoPlayer', null,
+                      { 'aria-hidden': true }); // Since Video Player controls
+                                                // are custom, we need to hide
+                                                // the video element to not
+                                                // confuse screen reader users.
   var controls = newelt(container, 'div', 'videoPlayerControls');
   var playbutton = newelt(controls, 'button', 'videoPlayerPlayButton',
                           'playbackPlay');
@@ -262,8 +266,8 @@ function VideoPlayer(container) {
 
   // A click anywhere else on the screen should toggle the footer
   // But only when the video is playing.
-  controls.addEventListener('tap', function(e) {
-    if (e.target === controls && !player.paused) {
+  container.addEventListener('tap', function(e) {
+    if ((e.target === player || e.target === container) && !player.paused) {
       footer.classList.toggle('hidden');
       controlsHidden = !controlsHidden;
     }
