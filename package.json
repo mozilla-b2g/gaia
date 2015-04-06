@@ -41,7 +41,7 @@
     "mocha-parallel": "0.1.0",
     "mocha-tbpl-reporter": "0.2.1",
     "moment": "~2.4.0",
-    "mozilla-download": "~0.4.4",
+    "mozilla-download": "1.0.3",
     "proxyquire": "~0.4",
     "node-static": "0.6.9",
     "q": "~0.9.7",

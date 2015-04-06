@@ -762,10 +762,9 @@ endif
 
 b2g: node_modules/.bin/mozilla-download
 	DEBUG=* ./node_modules/.bin/mozilla-download \
-	--verbose \
-	--product b2g \
-	--channel tinderbox \
-	--branch mozilla-b2g37_v2_2 $@
+	--product b2g-desktop \
+	--branch mozilla-b2g37_v2_2 \
+	$(shell pwd)
 
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
