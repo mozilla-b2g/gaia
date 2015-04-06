@@ -709,7 +709,7 @@ modules.tar: gaia_node_modules.revision $(NODE_MODULES_CACHEDIR)/$(NODE_MODULES_
 $(NODE_MODULES_CACHEDIR)/$(NODE_MODULES_REV): gaia_node_modules.revision
 	@echo Downloading latest node_modules package. This may take several minutes...
 	mkdir -p "$(NODE_MODULES_CACHEDIR)"
-	-cd "$(NODE_MODULES_CACHEDIR)" && $(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/$(NODE_MODULES_REV)
+	-cd "$(NODE_MODULES_CACHEDIR)" && $(DOWNLOAD_CMD) https://github.com/gaye/gaia-node-modules/tarball/$(NODE_MODULES_REV)
 
 git-gaia-node-modules: gaia_node_modules.revision
 	if [ ! -d "$(NODE_MODULES_SRC)" ] ; then \
@@ -723,7 +723,7 @@ node_modules: gaia_node_modules.revision
 	# run another target without specifying the variable
 	$(MAKE) $(NODE_MODULES_SRC)
 ifeq "$(NODE_MODULES_SRC)" "modules.tar"
-	$(TAR_WILDCARDS) --strip-components 1 -x -m -f $(NODE_MODULES_SRC) "mozilla-b2g-gaia-node-modules-*/node_modules"
+	$(TAR_WILDCARDS) --strip-components 1 -x -m -f $(NODE_MODULES_SRC) "gaye-gaia-node-modules-*/node_modules"
 else
 	rm -fr node_modules
 	cp -R $(NODE_MODULES_SRC)/node_modules node_modules
@@ -756,10 +756,9 @@ endif
 
 b2g: node_modules/.bin/mozilla-download
 	DEBUG=* ./node_modules/.bin/mozilla-download \
-	--verbose \
-	--product b2g \
-	--channel tinderbox \
-	--branch mozilla-central $@
+	--product b2g-desktop \
+	--branch mozilla-central \
+	$(shell pwd)
 
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
