@@ -1,0 +1,20 @@
+{
+  "name": "Test Camera",
+  "description": "An simple camera app for exercising bug 1073017",
+  "launch_path": "/index.html",
+  "developer": {
+    "url": "http://mozilla.org",
+    "name": "Mozilla"
+  },
+  "version": "0.1",
+  "icons": {
+    "128": "/camera_128.png"
+  },
+  "orientation": "portrait",
+  "type": "certified",
+  "permissions": {
+    "camera": {
+      "description": "Required for testing"
+    }
+  }
+}
