@@ -601,6 +601,7 @@ var NfcHandoverManager = {
         job.onerror();
         this._showTryAgainNotification();
       }
+      this._restoreBluetoothStatus();
       return;
     }
     if (this.sendFileQueue.length !== 0) {
