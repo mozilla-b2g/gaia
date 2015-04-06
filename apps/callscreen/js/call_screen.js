@@ -45,8 +45,10 @@ var CallScreen = {
   incomingInfo: document.getElementById('incoming-info'),
   incomingNumber: document.getElementById('incoming-number'),
   incomingSim: document.getElementById('incoming-sim'),
-  incomingNumberAdditionalInfo:
-    document.getElementById('incoming-number-additional-info'),
+  incomingNumberAdditionalTel:
+    document.getElementById('incoming-number-additional-info-tel'),
+  incomingNumberAdditionalTelType:
+    document.getElementById('incoming-number-additional-info-tel-type'),
   incomingAnswer: document.getElementById('incoming-answer'),
   incomingEnd: document.getElementById('incoming-end'),
   incomingIgnore: document.getElementById('incoming-ignore'),

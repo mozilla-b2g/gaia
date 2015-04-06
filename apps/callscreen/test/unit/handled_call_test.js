@@ -85,6 +85,9 @@ suite('dialer/handled_call', function() {
                           '    </span>' +
                           '  </div>' +
                           '  <div class="additionalContactInfo font-light">' +
+                          '    <span class="tel" dir="ltr"></span>' +
+                          '    <span class="separator"></span>' +
+                          '    <span class="tel-type" dir="auto"></span>' +
                           '  </div>' +
                           '  <div class="duration">' +
                           '    <span class="font-light"></span>' +
@@ -184,10 +187,16 @@ suite('dialer/handled_call', function() {
         assert.equal(subject.outerNode, outerNode);
       });
 
-      test('should have an additionalContactInfo node', function() {
-        var additionalNode =
-          subject.node.querySelector('.additionalContactInfo');
-        assert.equal(subject.additionalInfoNode, additionalNode);
+      test('should have an additionalContactTel node', function() {
+        var additionalTelNode =
+          subject.node.querySelector('.additionalContactInfo .tel');
+        assert.equal(subject.additionalTelNode, additionalTelNode);
+      });
+
+      test('should have an additionalContactTelType node', function() {
+        var additionalTelTypeNode =
+          subject.node.querySelector('.additionalContactInfo .tel-type');
+        assert.equal(subject.additionalTelTypeNode, additionalTelTypeNode);
       });
 
       test('should have a duration node', function() {
@@ -339,10 +348,6 @@ suite('dialer/handled_call', function() {
 
     test('primary contact info', function() {
       assert.isTrue(MockUtils.mCalledGetPhoneNumberPrimaryInfo);
-    });
-
-    test('phone number and type', function() {
-      assert.isTrue(MockUtils.mCalledGetPhoneNumberAndType);
     });
 
     test('mute initially off', function() {
@@ -643,7 +648,7 @@ suite('dialer/handled_call', function() {
       mockCall.emergency = true;
       subject = new HandledCall(mockCall);
 
-      assert.equal(subject.additionalInfoNode.textContent, 'emergencyNumber');
+      assert.equal(subject.additionalTelNode.textContent, 'emergencyNumber');
     });
   });
 
@@ -660,7 +665,8 @@ suite('dialer/handled_call', function() {
       mockCall = new MockCall('888', 'incoming');
       subject = new HandledCall(mockCall);
       MockVoicemail.mResolvePromise(false);
-      assert.equal(subject.additionalInfoNode.textContent, 'type, 888');
+      assert.equal(subject.additionalTelNode.textContent, '888');
+      assert.equal(subject.additionalTelTypeNode.textContent, 'type, carrier');
     });
 
     test('check switch-calls mode', function() {
@@ -669,9 +675,11 @@ suite('dialer/handled_call', function() {
       mockCall.secondId = { number: '999' };
       subject.updateCallNumber();
 
-      assert.equal('', subject.additionalInfoNode.textContent);
+      assert.equal('', subject.additionalTelNode.textContent);
+      assert.equal('', subject.additionalTelTypeNode.textContent);
       subject.restoreAdditionalContactInfo();
-      assert.equal('', subject.additionalInfoNode.textContent);
+      assert.equal('', subject.additionalTelNode.textContent);
+      assert.equal('', subject.additionalTelTypeNode.textContent);
     });
 
     suite('additional contact info', function() {
@@ -682,12 +690,15 @@ suite('dialer/handled_call', function() {
 
       suite('when there are additional infos to display', function() {
         setup(function() {
-          subject.replaceAdditionalContactInfo('test additional info');
+          subject.replaceAdditionalContactInfo(
+            'test additional tel', 'test additional tel-type');
         });
 
         test('should update the text content', function() {
-          assert.equal(subject.additionalInfoNode.textContent,
-                       'test additional info');
+          assert.equal(subject.additionalTelNode.textContent,
+                       'test additional tel');
+          assert.equal(subject.additionalTelTypeNode.textContent,
+                       'test additional tel-type');
         });
 
         test('should add the proper css class', function() {
@@ -697,11 +708,12 @@ suite('dialer/handled_call', function() {
 
       suite('when there aren\'t additional infos to display', function() {
         setup(function() {
-          subject.replaceAdditionalContactInfo('');
+          subject.replaceAdditionalContactInfo('', '');
         });
 
         test('should empty the text content', function() {
-          assert.equal(subject.additionalInfoNode.textContent, '');
+          assert.equal(subject.additionalTelNode.textContent, '');
+          assert.equal(subject.additionalTelTypeNode.textContent, '');
         });
 
         test('should remove the css class', function() {
@@ -1034,7 +1046,7 @@ suite('dialer/handled_call', function() {
       mockCall.emergency = true;
       mockCall._connect();
 
-      assert.equal(subject.additionalInfoNode.textContent, 'emergencyNumber');
+      assert.equal(subject.additionalTelNode.textContent, 'emergencyNumber');
       assert.isTrue(subject.node.classList.contains('emergency'));
       assert.isTrue(subject.node.textContent.contains('112'));
     });
