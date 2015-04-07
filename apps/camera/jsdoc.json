@@ -1,7 +1,7 @@
 {
   "camera": {
-    "src": ["apps/camera/README.md",
-            "apps/camera/js/**/*.js"],
+    "src": ["apps/camera/js/**/*.js",
+            "!apps/camera/js/controllers/settings.js"],
     "options": {
       "destination": "docs/camera"
     }

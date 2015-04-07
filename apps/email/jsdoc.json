@@ -1,6 +1,8 @@
 {
   "email": {
-    "src": ["apps/email/js/**/*.js"],
+    "src": ["apps/email/js/**/*.js",
+            "!apps/email/js/ext/**/*.js",
+            "!apps/email/js/message_list_topbar.js"],
     "options": {
       "destination": "docs/email"
     }
