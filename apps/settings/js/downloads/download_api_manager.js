@@ -260,4 +260,4 @@
 
   exports.DownloadApiManager = DownloadApiManager;
 
-}(this));
+}(window));

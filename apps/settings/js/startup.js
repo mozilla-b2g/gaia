@@ -249,7 +249,7 @@
     function ctor_InitialPanelHandler(rootElement, customPanelHandler) {
       return new InitialPanelHandler(rootElement, customPanelHandler);
   };
-})(this);
+})(window);
 
 
 /**
@@ -341,7 +341,7 @@
   exports.RootPanelHandler = function ctor_rootPanelHandler(rootElement) {
     return new RootPanelHandler(rootElement);
   };
-})(this);
+})(window);
 
 /**
  * AppStarter determines the initial panel to be displayed for this launch. It
@@ -509,7 +509,7 @@
   exports.AppStarter = function ctor_appStarter() {
     return new AppStarter();
   };
-})(this);
+})(window);
 
 (function() {
   'use strict';
