@@ -1,4 +1,6 @@
-define(['slog', './client', 'exports'], function(slog, client, exports) {
+define(['logic', './client', 'exports'], function(logic, client, exports) {
+
+  var scope = logic.scope('SmtpProber');
 
   /**
    * Validate that we find an SMTP server using the connection info
@@ -16,7 +18,8 @@ define(['slog', './client', 'exports'], function(slog, client, exports) {
    * change their address after setup.
    */
   exports.probeAccount = function(credentials, connInfo) {
-    slog.info('probe:smtp:connecting', {
+
+    logic(scope, 'connecting', {
       _credentials: credentials,
       connInfo: connInfo
     });
@@ -30,13 +33,13 @@ define(['slog', './client', 'exports'], function(slog, client, exports) {
         // here, as the caller should have already passed a valid
         // accessToken during account setup. This might indicate a
         // problem with our OAUTH handling, so log it just in case.
-        slog.warn('probe:smtp:credentials-updated');
+        logic(scope, 'credentials-updated');
       }
     ).then(function(newConn) {
         conn = newConn;
         return verifyAddress(conn, connInfo.emailAddress);
       }).then(function() {
-        slog.info('probe:smtp:success');
+        logic(scope, 'success');
         conn.close();
         return conn;
       }).catch(function(err) {
@@ -47,7 +50,7 @@ define(['slog', './client', 'exports'], function(slog, client, exports) {
           conn.close();
         }
 
-        slog.error('probe:smtp:error', {
+        logic(scope, 'error', {
           error: errorString,
           connInfo: connInfo
         });
@@ -65,7 +68,10 @@ define(['slog', './client', 'exports'], function(slog, client, exports) {
    *   reject => {Object} some sort of error
    */
   function verifyAddress(conn, emailAddress) {
-    slog.log('probe:smtp:checking-address-validity');
+    logic(scope, 'checking-address-validity', {
+      ns: 'SmtpProber',
+      _address: emailAddress
+    });
     return new Promise(function(resolve, reject) {
       conn.useEnvelope({
         from: emailAddress,

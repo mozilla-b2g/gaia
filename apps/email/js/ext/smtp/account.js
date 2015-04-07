@@ -1,12 +1,14 @@
 define(function(require) {
 
-var slog = require('slog');
+var logic = require('logic');
 var client = require('./client');
 var DisasterRecovery = require('../disaster-recovery');
 
 function SmtpAccount(universe, compositeAccount, accountId, credentials,
                      connInfo) {
   this.universe = universe;
+  logic.defineScope(this, 'Account', { accountId: accountId,
+                                       accountType: 'smtp' });
   this.compositeAccount = compositeAccount;
   this.accountId = accountId;
   this.credentials = credentials;
@@ -91,6 +93,7 @@ SmtpAccount.prototype = {
    * ]
    */
   sendMessage: function(composer, callback) {
+    var scope = this;
     this.establishConnection({
       /**
        * Send the envelope.
@@ -100,9 +103,7 @@ SmtpAccount.prototype = {
        */
       sendEnvelope: function(conn) {
         var envelope = composer.getEnvelope();
-        slog.log('smtp:sendEnvelope', {
-          _envelope: envelope
-        });
+        logic(scope, 'sendEnvelope', { _envelope: envelope });
         conn.useEnvelope(envelope);
       },
 
@@ -116,9 +117,9 @@ SmtpAccount.prototype = {
        */
       sendMessage: function(conn) {
         // Then send the actual message if everything was cool
-        slog.log('smtp:building-blob');
+        logic(scope, 'building-blob');
         composer.withMessageBlob({ includeBcc: false }, function(blob) {
-          slog.log('smtp:sending-blob', { size: blob.size });
+          logic(scope, 'sending-blob', { size: blob.size });
           // simplesmtp's SMTPClient does not understand Blobs, so we
           // issue the write directly. All that it cares about is
           // knowing whether our data payload included a trailing
@@ -141,14 +142,14 @@ SmtpAccount.prototype = {
        * The send succeeded.
        */
       onSendComplete: function(conn) {
-        slog.log('smtp:sent');
+        logic(scope, 'smtp:sent');
         callback(null);
       },
       /**
        * The send failed.
        */
       onError: function(err, badAddresses) {
-        slog.error('smtp:error', {
+        logic(scope, 'smtp:error', {
           error: err,
           badAddresses: badAddresses
         });
@@ -211,6 +212,7 @@ SmtpAccount.prototype = {
    * onError(err, badAddresses) -- send failed (or connection error)
    */
   establishConnection: function(callbacks) {
+    var scope = this;
     var conn;
     var sendingMessage = false;
     client.createSmtpConnection(
@@ -245,11 +247,11 @@ SmtpAccount.prototype = {
 
       // We sent the envelope; see if we can now send the message.
       conn.onready = function(badRecipients) {
-        slog.log('smtp:onready');
+        logic(scope, 'onready');
 
         if (badRecipients.length) {
           conn.close();
-          slog.warn('smtp:bad-recipients', { badRecipients: badRecipients });
+          logic(scope, 'bad-recipients', { badRecipients: badRecipients });
           callbacks.onError('bad-recipient', badRecipients);
         } else {
           sendingMessage = true;
@@ -262,10 +264,10 @@ SmtpAccount.prototype = {
         conn.close();
 
         if (success) {
-          slog.log('smtp:sent');
+          logic(scope, 'sent');
           callbacks.onSendComplete(conn);
         } else {
-          slog.error('smtp:send-failed');
+          logic(scope, 'send-failed');
           // We don't have an error to reference here, but we stored
           // the most recent SMTP error, which should tell us why the
           // server rejected the message.
@@ -282,13 +284,13 @@ SmtpAccount.prototype = {
       };
 
       conn.onclose = function() {
-        slog.log('smtp:onclose');
+        logic(scope, 'onclose');
 
         var idx = this._activeConnections.indexOf(conn);
         if (idx !== -1) {
           this._activeConnections.splice(idx, 1);
         } else {
-          slog.error('smtp:dead-unknown-connection');
+          logic(scope, 'dead-unknown-connection');
         }
       }.bind(this);
     }.bind(this))

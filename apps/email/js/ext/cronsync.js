@@ -23,7 +23,7 @@
 
 define(
   [
-    'rdcommon/log',
+    'logic',
     './worker-router',
     './slice_bridge_proxy',
     './mailslice',
@@ -33,7 +33,7 @@ define(
     'exports'
   ],
   function(
-    $log,
+    logic,
     $router,
     $sliceBridgeProxy,
     $mailslice,
@@ -90,12 +90,12 @@ var SliceBridgeProxy = $sliceBridgeProxy.SliceBridgeProxy;
  *   being closed, you want to make sure that if you're doing anything like
  *   scheduling snippet downloads that you do that first.
  */
-function makeHackedUpSlice(storage, callback, parentLog) {
+function makeHackedUpSlice(storage, callback) {
   var fakeBridgeThatEatsStuff = {
         __sendMessage: function() {}
       },
       proxy = new SliceBridgeProxy(fakeBridgeThatEatsStuff, 'cron'),
-      slice = new $mailslice.MailSlice(proxy, storage, parentLog),
+      slice = new $mailslice.MailSlice(proxy, storage),
       oldStatusMethod = proxy.sendStatus,
       newHeaders = [];
 
@@ -144,10 +144,10 @@ function makeHackedUpSlice(storage, callback, parentLog) {
  * The brains behind periodic account synchronization; only created by the
  * universe once it has loaded its configuration and accounts.
  */
-function CronSync(universe, _logParent) {
+function CronSync(universe) {
   this._universe = universe;
 
-  this._LOG = LOGFAB.CronSync(this, null, _logParent);
+  logic.defineScope(this, 'CronSync');
 
   this._activeSlices = [];
 
@@ -184,7 +184,7 @@ function CronSync(universe, _logParent) {
 exports.CronSync = CronSync;
 CronSync.prototype = {
   _killSlices: function() {
-    this._LOG.killSlices(this._activeSlices.length);
+    logic(this, 'killSlices', { count: this._activeSlices.length });
     this._activeSlices.forEach(function(slice) {
       slice.die();
     });
@@ -200,7 +200,7 @@ CronSync.prototype = {
     if (!this._completedEnsureSync)
       return;
 
-    this._LOG.ensureSync_begin();
+    logic(this, 'ensureSync_begin');
     this._completedEnsureSync = false;
 
     debug('ensureSync called');
@@ -231,11 +231,13 @@ CronSync.prototype = {
    * have completed.
    */
   syncAccount: function(account, doneCallback) {
+    var scope = logic.subscope(this, { accountId: account.id });
+
     // - Skip syncing if we are offline or the account is disabled
     if (!this._universe.online || !account.enabled) {
-      debug('syncAcount early exit: online: ' +
+      debug('syncAccount early exit: online: ' +
             this._universe.online + ', enabled: ' + account.enabled);
-      this._LOG.syncSkipped(account.id);
+      logic(scope, 'syncSkipped');
       doneCallback();
       return;
     }
@@ -250,11 +252,11 @@ CronSync.prototype = {
     // sync if it is sufficiently recent.
 
     // - Initiate a sync of the folder covering the desired time range.
-    this._LOG.syncAccount_begin(account.id);
-    this._LOG.syncAccountHeaders_begin(account.id, null);
+    logic(scope, 'syncAccount_begin');
+    logic(scope, 'syncAccountHeaders_begin');
 
     var slice = makeHackedUpSlice(storage, function(newHeaders) {
-      this._LOG.syncAccountHeaders_end(account.id, newHeaders);
+      logic(scope, 'syncAccountHeaders_end', { headers: newHeaders });
       this._activeSlices.splice(this._activeSlices.indexOf(slice), 1);
 
       // Reduce headers to the minimum number and data set needed for
@@ -278,10 +280,10 @@ CronSync.prototype = {
         // POP3 downloads snippets as part of the sync process, there is no
         // need to call downloadBodies.
         if (account.accountDef.type === 'pop3+smtp') {
-          this._LOG.syncAccount_end(account.id);
+          logic(scope, 'syncAccount_end');
           inboxDone([newHeaders.length, notifyHeaders]);
         } else if (this._universe.online) {
-          this._LOG.syncAccountSnippets_begin(account.id);
+          logic(scope, 'syncAccountSnippets_begin');
           this._universe.downloadBodies(
             newHeaders.slice(
               0, $syncbase.CRONSYNC_MAX_SNIPPETS_TO_FETCH_PER_ACCOUNT),
@@ -290,25 +292,25 @@ CronSync.prototype = {
             },
             function() {
               debug('Notifying for ' + newHeaders.length + ' headers');
-              this._LOG.syncAccountSnippets_end(account.id);
-              this._LOG.syncAccount_end(account.id);
+              logic(scope, 'syncAccountSnippets_end');
+              logic(scope, 'syncAccount_end');
               inboxDone([newHeaders.length, notifyHeaders]);
             }.bind(this));
         } else {
-          this._LOG.syncAccount_end(account.id);
+          logic(scope, 'syncAccount_end');
           debug('UNIVERSE OFFLINE. Notifying for ' + newHeaders.length +
                 ' headers');
           inboxDone([newHeaders.length, notifyHeaders]);
         }
       } else {
-        this._LOG.syncAccount_end(account.id);
+        logic(scope, 'syncAccount_end');
         inboxDone();
       }
 
       // Kill the slice.  This will release the connection and result in its
       // death if we didn't schedule snippet downloads above.
       slice.die();
-    }.bind(this), this._LOG);
+    }.bind(this));
 
     this._activeSlices.push(slice);
     // Pass true to force contacting the server.
@@ -320,14 +322,14 @@ CronSync.prototype = {
       var outboxStorage = account.getFolderStorageForFolderId(outboxFolder.id);
       if (outboxStorage.getKnownMessageCount() > 0) {
         var outboxDone = latch.defer('outbox');
-        this._LOG.sendOutbox_begin(account.id);
+        logic(scope, 'sendOutbox_begin');
         this._universe.sendOutboxMessages(
           account,
           {
             reason: 'syncAccount'
           },
           function() {
-            this._LOG.sendOutbox_end(account.id);
+            logic(scope, 'sendOutbox_end');
             outboxDone();
           }.bind(this));
       }
@@ -353,7 +355,7 @@ CronSync.prototype = {
   },
 
   onRequestSync: function(accountIds) {
-    this._LOG.requestSyncFired(accountIds);
+    logic(this, 'requestSyncFired', { accountIds: accountIds });
 
     if (!accountIds)
       return;
@@ -363,7 +365,7 @@ CronSync.prototype = {
         ids = [];
 
     this._cronsyncing = true;
-    this._LOG.cronSync_begin();
+    logic(this, 'cronSync_begin');
     this._universe.__notifyStartedCronSync(accountIds);
 
     // Make sure the acount IDs are still valid. This is to protect agains
@@ -413,7 +415,7 @@ CronSync.prototype = {
         }
 
         this._universe.__notifyStoppedCronSync(accountsResults);
-        this._LOG.syncAccounts_end(accountsResults);
+        logic(this, 'syncAccounts_end', { accountsResults: accountsResults });
       }.bind(this);
 
       this._checkSyncDone();
@@ -426,7 +428,7 @@ CronSync.prototype = {
       return;
     }
 
-    this._LOG.syncAccounts_begin();
+    logic(this, 'syncAccounts_begin');
     targetAccounts.forEach(function(account) {
       this.syncAccount(account, function (result) {
         if (result) {
@@ -457,7 +459,7 @@ CronSync.prototype = {
     if (this._onSyncDone) {
       this._onSyncDone();
       this._onSyncDone = null;
-      this._LOG.cronSync_end();
+      logic(this, 'cronSync_end');
     }
   },
 
@@ -470,7 +472,7 @@ CronSync.prototype = {
    */
   onSyncEnsured: function() {
     this._completedEnsureSync = true;
-    this._LOG.ensureSync_end();
+    logic(this, 'ensureSync_end');
     this._checkSyncDone();
   },
 
@@ -480,39 +482,5 @@ CronSync.prototype = {
   }
 };
 
-var LOGFAB = exports.LOGFAB = $log.register($module, {
-  CronSync: {
-    type: $log.DAEMON,
-    events: {
-      requestSyncFired: { accountIds: false },
-      killSlices: { count: false },
-      syncSkipped: { id: true },
-    },
-    TEST_ONLY_events: {
-    },
-    asyncJobs: {
-      cronSync: {},
-      ensureSync: {},
-      syncAccounts: { accountsResults: false },
-      syncAccount: { id: true },
-      // The actual slice refresh, leads to syncAccountSnippets if there were
-      // any new headers
-      syncAccountHeaders: { id: true, newHeaders: false },
-      // If we have new headers we will fetch snippets.  This starts when we
-      // issue the request and stops when we get our callback, meaning there
-      // will be an entirely contained downloadBodies job-op.
-      syncAccountSnippets: { id: true },
-      sendOutbox: { id: true },
-    },
-    TEST_ONLY_asyncJobs: {
-    },
-    errors: {
-    },
-    calls: {
-    },
-    TEST_ONLY_calls: {
-    },
-  },
-});
 
 }); // end define

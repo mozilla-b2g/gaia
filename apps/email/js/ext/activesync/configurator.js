@@ -4,8 +4,7 @@
 
 define(
   [
-    'rdcommon/log',
-    'slog',
+    'logic',
     '../accountcommon',
     '../a64',
     './account',
@@ -15,8 +14,7 @@ define(
     'exports'
   ],
   function(
-    $log,
-    slog,
+    logic,
     $accountcommon,
     $a64,
     $asacct,
@@ -72,12 +70,14 @@ function checkServerCertificate(url, callback) {
   };
 }
 
+var scope = logic.scope('ActivesyncConfigurator');
+
 exports.account = $asacct;
 exports.configurator = {
   timeout: 30 * 1000,
   _getFullDetailsFromAutodiscover: function($asproto, userDetails, url,
                                             callback) {
-    slog.log('activesync.configurator.autodiscover:begin', { url: url });
+    logic(scope, 'autodiscover:begin', { url: url });
     $asproto.raw_autodiscover(
       url, userDetails.emailAddress, userDetails.password, self.timeout,
       /* redirects are okay */ false,
@@ -95,16 +95,14 @@ exports.configurator = {
               failureDetails.status = error.status;
           }
           else if (error instanceof $asproto.AutodiscoverDomainError) {
-            slog.log('activesync.configurator.autodiscover.error',
-                     { message: error.message });
+            logic(scope, 'autodiscover.error', { message: error.message });
           }
-          slog.log('activesync.configurator.autodiscover:end',
-                   { url: url, err: failureType });
+          logic(scope, 'autodiscover:end', { url: url, err: failureType });
           callback(failureType, null, failureDetails);
           return;
         }
-        slog.log('activesync.configurator.autodiscover:end',
-                 { url: url, server: config.mobileSyncServer.url });
+        logic(scope, 'autodiscover:end',
+              { url: url, server: config.mobileSyncServer.url });
 
         var autoconfig = {
           type: 'activesync',
@@ -130,8 +128,7 @@ exports.configurator = {
    *   conceivable that in the future the manual config mode could use this
    *   path.
    */
-  tryToCreateAccount: function(universe, userDetails, domainInfo, callback,
-                               _LOG) {
+  tryToCreateAccount: function(universe, userDetails, domainInfo, callback) {
     require(['activesync/protocol'], function ($asproto) {
       if (domainInfo.incoming.autodiscoverEndpoint) {
         this._getFullDetailsFromAutodiscover(
@@ -145,21 +142,19 @@ exports.configurator = {
             // Otherwise we have a config and should continue the creation
             // process.
             this._createAccountUsingFullInfo(
-              universe, userDetails, fullConfigInfo, callback, $asproto,
-              _LOG);
+              universe, userDetails, fullConfigInfo, callback, $asproto);
           }.bind(this));
         return;
       }
       // We should have full config info then.  Just call direct in.
       this._createAccountUsingFullInfo(universe, userDetails, domainInfo,
-                                       callback, $asproto, _LOG);
+                                       callback, $asproto);
     }.bind(this));
   },
 
   _createAccountUsingFullInfo: function(universe, userDetails, domainInfo,
-                                        callback, $asproto, _LOG) {
-    slog.log('activesync.configurator.create:begin',
-             { server: domainInfo.incoming.server });
+                                        callback, $asproto) {
+    logic(scope, 'create:begin', { server: domainInfo.incoming.server });
     var credentials = {
       username: domainInfo.incoming.username,
       password: userDetails.password,
@@ -212,8 +207,11 @@ exports.configurator = {
             });
           return;
         }
-        slog.log('activesync.configurator.create:end',
-                 { server: domainInfo.incoming.server, err: failureType });
+        logic(scope, 'create:end', {
+          server: domainInfo.incoming.server,
+          err: failureType
+        });
+
         callback(failureType, null, failureDetails);
         return;
       }
@@ -251,8 +249,11 @@ exports.configurator = {
         ]
       };
 
-      slog.log('activesync.configurator.create:end',
-               { server: domainInfo.incoming.server, id: accountId });
+      logic(scope, 'create:end', {
+        server: domainInfo.incoming.server,
+        id: accountId
+      });
+
       self._loadAccount(universe, accountDef, conn, function (account) {
         callback(null, account, null);
       });
