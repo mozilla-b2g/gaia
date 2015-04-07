@@ -1152,11 +1152,9 @@ html[dir="rtl"] #feedback-sad {
   float: left;
 }
 
-html[dir="rtl"] #mediaStorage ul li > a span:nth-of-type(2):not(.button) {
-  left: 0;
-}
-
-html[dir="rtl"] #applicationStorage ul li > a span:nth-of-type(2):not(.button) {
+html[dir="rtl"] #mediaStorage ul li > a span:nth-of-type(2):not(.button),
+html[dir="rtl"] #applicationStorage ul li > a span:nth-of-type(2):not(.button),
+html[dir="rtl"] #battery ul li > a span:nth-of-type(2):not(.button) {
   left: 0;
 }
 
