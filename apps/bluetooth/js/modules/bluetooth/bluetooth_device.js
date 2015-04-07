@@ -93,7 +93,7 @@ define(function(require) {
   /**
    * @class BluetoothDevice
    * @requires module:modules/mvvm/observable
-   * @param {Object BluetoothDevice} device
+   * @param {Object} BluetoothDevice device
    * @return {Observable} observableBluetoothDevice
    */
   return function ctor_bluetooth_device(device) {

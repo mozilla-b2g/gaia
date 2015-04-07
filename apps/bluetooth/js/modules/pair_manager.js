@@ -33,7 +33,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf PairManger
-     * @type {Object BluetoothAdapter}
+     * @type {Object} BluetoothAdapter
      */
     _defaultAdapter: null,
 
@@ -76,7 +76,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf PairManager
-     * @param {Object BluetoothAdapter} newAdapter
+     * @param {Object} BluetoothAdapter newAdapter
      */
     _onDefaultAdapterChanged: function(newAdapter) {
       // save default adapter
