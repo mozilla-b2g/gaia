@@ -183,6 +183,10 @@
     return items;
   };
 
+  BrowserContextMenu.prototype.isVisible = function() {
+    return this.element && this.element.classList.contains('visible');
+  };
+
   BrowserContextMenu.prototype.hide = function(evt) {
     if (!this.element) {
       return;

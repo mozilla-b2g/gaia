@@ -451,9 +451,7 @@ window.UtilityTray = {
       if (this.showing) {
         this.hide();
       }
-      setTimeout(function() {
-        window.dispatchEvent(new CustomEvent('global-search-request'));
-      });
+      Service.currentApp.appChrome.titleClicked();
     }
 
     this.active = false;

@@ -287,10 +287,7 @@
         break;
 
       case this.title:
-        if (Service && Service.locked) {
-          return;
-        }
-        window.dispatchEvent(new CustomEvent('global-search-request'));
+        this.titleClicked();
         break;
 
       case this.menuButton:
@@ -322,6 +319,13 @@
         this.onShare();
         break;
     }
+  };
+
+  AppChrome.prototype.titleClicked = function ac_titleClicked() {
+    if ((Service && Service.locked) || this.app.contextmenu.isVisible()) {
+      return;
+    }
+    window.dispatchEvent(new CustomEvent('global-search-request'));
   };
 
   AppChrome.prototype.handleActionEvent = function ac_handleActionEvent(evt) {
