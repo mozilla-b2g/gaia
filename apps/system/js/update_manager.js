@@ -263,6 +263,10 @@ var UpdateManager = {
     var _ = navigator.mozL10n.get;
 
     if (this._downloading) {
+      if (this._uncompressing) {
+        // If notification was clicked during uncompression, do nothing.
+        return;
+      }
       var cancel = {
         title: 'no',
         callback: this.cancelPrompt.bind(this)
@@ -660,6 +664,7 @@ var UpdateManager = {
     if (this.downloadsQueue.length === 0) {
       this._downloading = false;
       StatusBar.decSystemDownloads();
+      this._uncompressing = false;
       this._downloadedBytes = 0;
       this.checkStatuses();
 

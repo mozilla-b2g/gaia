@@ -1244,6 +1244,22 @@ suite('system/UpdateManager', function() {
       });
     });
 
+    suite('cancel prompt continued', function() {
+      setup(function() {
+        var systemUpdatable = new MockSystemUpdatable();
+        UpdateManager.addToUpdatesQueue(systemUpdatable);
+        UpdateManager.addToDownloadsQueue(systemUpdatable);
+        UpdateManager.startedUncompressing();
+        MockUtilityTray.show();
+        UpdateManager.containerClicked();
+      });
+
+      test('should not display prompt while uncompressing', function() {
+        assert.isFalse(MockCustomDialog.mShown);
+        assert.isTrue(MockUtilityTray.mShown);
+      });
+    });
+
     suite('check for updates', function() {
       setup(function() {
         UpdateManager.init();
