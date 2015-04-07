@@ -149,7 +149,7 @@
   background-color: rgba(204, 204, 204, 0.2);
 }
 
-.chrome .controls .urlbar .title {
+.chrome-combined .title {
   width: calc(100% - 3.2rem);
   padding-top: 0;
   padding-bottom: 0;
@@ -180,11 +180,11 @@
   background-position: center right;
 }
 
-.appWindow.light .chrome:not(.maximized) .controls .urlbar .title {
+.appWindow.light .chrome-combined:not(.maximized) .title {
   background-color: rgba(204,204,204,0.4);
 }
 
-.maximized .controls .urlbar .title {
+.chrome-combined.maximized .title {
   background-color: transparent;
 }
 
@@ -260,27 +260,48 @@
 
 
 /* SSL Lock Icons in rocketbar */
-.chrome.maximized .title[data-ssl="secure"] {
+.chrome-combined.maximized .chrome-has-ssl-indicator .chrome-ssl-indicator {
   -moz-padding-start: 3rem;
-  background: url("images/light/ssl.png") no-repeat 0.1rem center / 3rem 3rem;
+
+  background-repeat: no-repeat;
+  background-position: 0.1rem center;
+  background-size: 3rem;
 }
 
-.chrome.maximized .title[data-ssl="broken"] {
-  -moz-padding-start: 3rem;
-  background: url("images/light/ssl_broken.png") no-repeat 0.1rem center / 3rem 3rem;
-}
-
-.chrome.maximized .bar .title[data-ssl="secure"],
-.chrome.maximized .bar .title[data-ssl="broken"] {
-  text-indent: 2.5rem;
-}
-
-.appWindow.private > .chrome.maximized .title[data-ssl="broken"],
-.appWindow.private > .chrome.maximized .title[data-ssl="secure"] {
+.private > .chrome-combined.maximized .chrome-has-ssl-indicator .chrome-ssl-indicator {
   -moz-padding-start: 6.5rem;
   background-position: 3.7rem 0.1rem;
 }
 
+.chrome-plain .chrome-ssl-indicator {
+  display: none;
+
+  width: 1rem;
+
+  background: no-repeat center / 3rem content-box;
+}
+
+.chrome-ssl-indicator-ltr {
+  padding-right: .5rem; /* give some space between the indicator and the title */
+}
+
+.chrome-ssl-indicator-rtl {
+  padding-left: .5rem; /* give some space between the indicator and the title */
+  padding-right: 1rem; /* give some space between the indicator and the window's edge */
+}
+
+.chrome-plain:-moz-dir(ltr) .chrome-has-ssl-indicator .chrome-ssl-indicator-ltr,
+.chrome-plain:-moz-dir(rtl) .chrome-has-ssl-indicator .chrome-ssl-indicator-rtl {
+  display: unset;
+}
+
+.maximized .chrome-has-ssl-indicator[data-ssl="secure"] .chrome-ssl-indicator {
+  background-image: url("images/light/ssl.png");
+}
+
+.maximized .chrome-has-ssl-indicator[data-ssl="broken"] .chrome-ssl-indicator {
+  background-image: url("images/light/ssl_broken.png");
+}
 
 /* Handle urlbar sizing when back or forward buttons are disabled */
 .collapsible .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
@@ -518,7 +539,7 @@ gaia-overflow-menu button#share {
   width: calc(100% - 8rem);
 }
 
-.appWindow:not(.collapsible) > .chrome .controls .urlbar .title {
+.appWindow:not(.collapsible) > .chrome-combined .title {
   width: calc(100%);
 }
 
@@ -594,14 +615,12 @@ html[dir="rtl"] .light .controls .forward-button:active {
   background-image: url("images/light/back_active.png");
 }
 
-html[dir="rtl"] .chrome.maximized .title[data-ssl="broken"],
-html[dir="rtl"] .chrome.maximized .title[data-ssl="secure"] {
-  background-position: right 0.1rem top 50%;
+html[dir="rtl"] .chrome-combined.maximized .chrome-has-ssl-indicator .chrome-ssl-indicator {
+  background-position: right 0.1rem top 0.1rem;
 }
 
-html[dir="rtl"] .appWindow.private > .chrome.maximized .title[data-ssl="broken"],
-html[dir="rtl"] .appWindow.private > .chrome.maximized .title[data-ssl="secure"] {
-  background-position: right 3.7rem top 50%;
+html[dir="rtl"] .private > .chrome-combined.maximized .chrome-has-ssl-indicator .chrome-ssl-indicator {
+  background-position: right 3.7rem top 0.1rem;
 }
 
 /*

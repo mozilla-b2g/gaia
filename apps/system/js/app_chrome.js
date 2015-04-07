@@ -67,10 +67,6 @@
 
   AppChrome.prototype._DEBUG = false;
 
-  AppChrome.prototype.LOCK_ICON_WIDTH = 30;
-  AppChrome.prototype.CLOSE_BUTTON_WIDTH = 50;
-  AppChrome.prototype.PRIVATE_ICON_WIDTH = 35;
-
   AppChrome.prototype.reConfig = function() {
     var chrome = this.app.config.chrome;
     if (!chrome) {
@@ -113,16 +109,16 @@
   AppChrome.prototype.combinedView = function an_combinedView() {
     var className = this.CLASS_NAME + this.instanceID;
 
-    return `<div class="chrome" id="${className}">
+    return `<div class="chrome chrome-combined" id="${className}">
               <gaia-progress></gaia-progress>
               <div class="controls">
                 <button type="button" class="back-button"
                         data-l10n-id="back-button" disabled></button>
                 <button type="button" class="forward-button"
                         data-l10n-id="forward-button" disabled></button>
-                <div class="urlbar">
+                <div class="urlbar js-chrome-ssl-information">
                   <span class="pb-icon"></span>
-                  <div class="title" data-ssl=""></div>
+                  <div class="title chrome-ssl-indicator"></div>
                   <button type="button" class="reload-button"
                           data-l10n-id="reload-button" disabled></button>
                   <button type="button" class="stop-button"
@@ -138,11 +134,15 @@
   AppChrome.prototype.view = function an_view() {
     var className = this.CLASS_NAME + this.instanceID;
 
-    return `<div class="chrome" id="${className}">
+    return `<div class="chrome chrome-plain" id="${className}">
             <gaia-progress></gaia-progress>
             <section role="region" class="bar">
-              <gaia-header action="close">
+              <gaia-header action="close" class='js-chrome-ssl-information'>
+                <div class="chrome-ssl-indicator chrome-ssl-indicator-ltr">
+                </div>
                 <h1 class="title"></h1>
+                <div class="chrome-ssl-indicator chrome-ssl-indicator-rtl">
+                </div>
               </gaia-header>
             </section>
           </div>`;
@@ -187,6 +187,8 @@
     this.menuButton = this.element.querySelector('.menu-button');
     this.windowsButton = this.element.querySelector('.windows-button');
     this.title = this.element.querySelector('.title');
+    this.sslIndicator =
+      this.element.querySelector('.js-chrome-ssl-information');
 
     this.bar = this.element.querySelector('.bar');
     if (this.bar) {
@@ -260,11 +262,6 @@
 
       case '_namechanged':
         this.handleNameChanged(evt);
-        break;
-
-      case 'localized':
-        // may need to re-layout header if document direction has changed
-        this._updateHeaderBarLayout();
         break;
     }
   };
@@ -385,7 +382,6 @@
     this.app.element.addEventListener('_loading', this);
     this.app.element.addEventListener('_loaded', this);
     this.app.element.addEventListener('_namechanged', this);
-    window.addEventListener('localized', this);
 
     var element = this.element;
 
@@ -440,7 +436,6 @@
     this.app.element.removeEventListener('_loading', this);
     this.app.element.removeEventListener('_loaded', this);
     this.app.element.removeEventListener('_namechanged', this);
-    window.removeEventListener('localized', this);
     this.app = null;
   };
 
@@ -484,38 +479,12 @@
   };
 
   AppChrome.prototype.handleSecurityChanged = function(evt) {
-    this.title.dataset.ssl = this.app.getSSLState();
-    // we may need to show or hide the lock icon
-    this._updateHeaderBarLayout();
-  };
-
-  AppChrome.prototype._updateHeaderBarLayout = function() {
-    if (this.useCombinedChrome()) {
-      return;
-    }
-    // we need to create space for the lock icon at the correct edge
-    // NOTE: gaia-header doesn't handle RTL - see bug 1140668
-    // when it does, we'll need to revisit/remove this
     var sslState = this.app.getSSLState();
-    var isRTL = (document.documentElement.dir === 'rtl');
-    var showLockIcon = (sslState == 'secure' || sslState == 'broken');
-    var beforeIndent = 0;
-
-    if (this.app.isPrivateBrowser()) {
-      beforeIndent += this.PRIVATE_ICON_WIDTH;
-    }
-    if (showLockIcon) {
-      beforeIndent += this.LOCK_ICON_WIDTH;
-    }
-    if (isRTL) {
-      // close button is currently on left in gaia-header in LTR & RTL
-      this.header.titleStart = this.CLOSE_BUTTON_WIDTH;
-      this.header.titleEnd = beforeIndent;
-    } else {
-      this.header.titleEnd = 0;
-      this.header.titleStart = this.CLOSE_BUTTON_WIDTH + beforeIndent;
-    }
-  },
+    this.sslIndicator.dataset.ssl = sslState;
+    this.sslIndicator.classList.toggle(
+      'chrome-has-ssl-indicator', sslState === 'broken' || sslState === 'secure'
+    );
+  };
 
   AppChrome.prototype.handleTitleChanged = function(evt) {
     if (this._gotName || this._fixedTitle) {
