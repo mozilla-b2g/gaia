@@ -152,9 +152,10 @@
     }
 
     var h3 = document.createElement('h3');
-    var textNode = document.createTextNode(text);
+    var spanNode = document.createElement('span');
+    spanNode.textContent = text;
     var ul = listTemplate.cloneNode(true);
-    h3.appendChild(textNode);
+    h3.appendChild(spanNode);
     parent.appendChild(h3);
     parent.appendChild(ul);
   }
