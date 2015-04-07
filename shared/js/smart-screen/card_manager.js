@@ -448,7 +448,12 @@
           });
         }
         if (index >= 0) {
-          this._cardList[index] = item;
+          // Most of the time, 'item' is directly reference to card in _cardList
+          // and by the time we reach here, the card ('item') is already
+          // updated. So don't bother to update it again.
+          if (this._cardList[index] !== item) {
+            this._cardList[index] = item;
+          }
           this.writeCardlistInCardStore().then(function() {
             that.fire('card-updated', that._cardList[index], index);
           });

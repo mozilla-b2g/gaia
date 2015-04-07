@@ -4,7 +4,7 @@
   'use strict';
 
   var Folder = function Folder(options) {
-    this.cardsInFolder = options.cardsInFolder || [];
+    this._cardsInFolder = options._cardsInFolder || [];
     this.name = options.name;
     // folderId is used in cardStore as key
     this.folderId = options.folderId || uuid.v4();
@@ -44,49 +44,109 @@
 
   Folder.prototype.constructor = Folder;
 
-  Folder.prototype._findInFolder = function folder_findInFolder(query) {
-    var indexOfFound = -1;
-    if (query instanceof Card) {
-      this.cardsInFolder.some(function(card, index) {
-        if (card === query) {
-          indexOfFound = index;
-          return true;
-        } else {
-          return false;
-        }
-      });
-    }
-    return indexOfFound;
+  Folder.prototype.getCardList = function folder_getCardList() {
+    return this._cardsInFolder;
   };
 
-  Folder.prototype._isInFolder = function folder_isInFolder(cardInSearch) {
-    if (cardInSearch) {
-      return this._findInFolder(cardInSearch) > -1;
+  // get index of card in folder
+  Folder.prototype._indexOfCard = function folder_indexOfCard(query) {
+    return this._cardsInFolder.indexOf(this.findCard(query));
+  };
+
+  // TODO: This is almost the same as CardManager.findCardFromCardList()
+  // We should merge and generalize them into one
+  // There are three types of query:
+  // 1. query by cardId
+  // 2. query by manifestURL and optionally launchURL
+  // 3. query by cardEntry (i.e. serialized card)
+  Folder.prototype.findCard = function folder_findCard(query) {
+    var found;
+    this._cardsInFolder.some(function(card, index) {
+      if (card.cardId === query.cardId) {
+        found = card;
+        return true;
+      } else if (query.manifestURL && card.nativeApp &&
+          card.nativeApp.manifestURL === query.manifestURL) {
+        // if we specify launchURL in query, then we must compare
+        // launchURL first
+        if (query.launchURL) {
+          if (card.launchURL === query.launchURL) {
+            found = card;
+            return true;
+          }
+        } else {
+          found = card;
+          return true;
+        }
+      } else if (query.cardEntry) {
+        // XXX: this could be bad at performance because we serialize card
+        // in every loop. We might need improvement on this query.
+        if (JSON.stringify(card.serialize()) ===
+            JSON.stringify(query.cardEntry)) {
+          found = card;
+          return true;
+        }
+      }
+    });
+    return found;
+  };
+
+  Folder.prototype._isInFolder = function folder_isInFolder(card) {
+    if (card) {
+      return this._indexOfCard(card) > -1;
     } else {
       return false;
     }
   };
 
-  Folder.prototype.addCard = function folder_addCard(card) {
+  Folder.prototype._setDirty = function folder_setDirty() {
+    if (this.state !== Folder.STATES.DETACHED) {
+      this.state = Folder.STATES.DIRTY;
+    }
+    this.fire('folder-changed', this);
+  };
+
+  Folder.prototype.addCard = function folder_addCard(card, index) {
     // We don't support folder in folder
     if (!this._isInFolder(card) && !(card instanceof Folder)) {
-      this.cardsInFolder.push(card);
-      if (this.state !== Folder.STATES.DETACHED) {
-        this.state = Folder.STATES.DIRTY;
+      if (typeof index !== 'number') {
+        index = this._cardsInFolder.length;
       }
-      this.fire('folder-changed', this);
+      this._cardsInFolder.splice(index, 0, card);
+      this._setDirty();
+      this.fire('card-inserted', card, index);
     }
   };
 
   Folder.prototype.removeCard = function folder_removeCard(card) {
-    var index = this._findInFolder(card);
+    var index = this._indexOfCard(card);
     if (index > -1) {
-      this.cardsInFolder.splice(index, 1);
-      if (this.state !== Folder.STATES.DETACHED) {
-        this.state = Folder.STATES.DIRTY;
-      }
-      this.fire('folder-changed', this);
+      this._cardsInFolder.splice(index, 1);
+      this._setDirty();
+      this.fire('card-removed', [index]);
     }
+  };
+
+  Folder.prototype.updateCard = function folder_updateCard(card, index) {
+    // The card instance is directly reference to card in '_cardsInFolder'
+    // So don't bother to update it again. But we DID need 'folder-changed'
+    // event to notify CardManager to write changes to data store.
+    this._setDirty();
+    this.fire('card-updated', card, index);
+  };
+
+  Folder.prototype.swapCard = function folder_swapCard(card1, card2) {
+    var index1 = (typeof card1 === 'number') ?
+      index1 = card1 : this._indexOfCard(card1);
+    var index2 = (typeof card2 === 'number') ?
+      index2 = card2 : this._indexOfCard(card2);
+    var temp = this._cardsInFolder[index1];
+    this._cardsInFolder[index1] = this._cardsInFolder[index2];
+    this._cardsInFolder[index2] = temp;
+    this._setDirty();
+    this.fire('card-swapped',
+        this._cardsInFolder[index1], this._cardsInFolder[index2],
+        index1, index2);
   };
 
   Folder.prototype.launch = function folder_launch() {
