@@ -51,7 +51,7 @@ marionette('Music files loading', function() {
       ]);
     });
 
-    test('Check the mp4 video isn\'t loaded', function() {
+    test('Check the mp4 video isn\'t loaded. moztrap:8456', function() {
 
       music.launch();
       music.waitForFirstTile();

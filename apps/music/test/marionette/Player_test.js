@@ -140,7 +140,7 @@ marionette('Music player tests', function() {
       statusbar = new Statusbar(client);
     });
 
-    test('Check the play icon is in the status bar', function() {
+    test('Check the play icon is in the status bar. moztrap:9742', function() {
       music.launch();
       music.waitForFirstTile();
       music.switchToSongsView();
@@ -170,7 +170,7 @@ marionette('Music player tests', function() {
   });
 
   suite('Rating test', function() {
-    test('Check Rating is saved', function() {
+    test('Check Rating is saved. moztrap:2683', function() {
       music.launch();
       music.waitForFirstTile();
       music.switchToSongsView();
@@ -224,7 +224,7 @@ marionette('Music player tests', function() {
     });
   });
 
-  suite('Player navigation', function() {
+  suite('Player navigation. moztrap:2376', function() {
     test('Check that the back button works', function() {
       // the navigation test back from the tab
       function tabNavTest() {

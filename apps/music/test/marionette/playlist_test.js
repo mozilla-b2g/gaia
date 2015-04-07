@@ -43,7 +43,8 @@ marionette('Music player playlist', function() {
       ]);
     });
 
-    test('Check name with >, <, ~, &, markup and some Unicode', function() {
+    test('Check name with >, <, ~, &, markup and some Unicode. ' +
+         'moztrap:2346,2347,8499,8491', function() {
       music.launch();
       music.waitForFirstTile();
       music.switchToSongsView();
@@ -223,7 +224,7 @@ marionette('Music player playlist', function() {
       ]);
     });
 
-    test('Highest rated playlist sort order', function() {
+    test('Highest rated playlist sort order. moztrap:3674', function() {
       music.launch();
       music.waitForFirstTile();
 
@@ -265,7 +266,7 @@ marionette('Music player playlist', function() {
       assert.equal(PlaylistHelper.songTitle(songs[1]), 'Crash');
     });
 
-    test('Recently added playlist sort order', function() {
+    test('Recently added playlist sort order. moztrap:3675', function() {
       // start the app so the music files are added to the database.
       music.launch();
       music.waitForFirstTile();
@@ -302,7 +303,7 @@ marionette('Music player playlist', function() {
                    'The Ecuadorian Embassy');
     });
 
-    test('Most played playlist sort order', function() {
+    test('Most played playlist sort order. moztrap:3676,3677', function() {
       music.launch();
       music.waitForFirstTile();
 
@@ -383,7 +384,7 @@ marionette('Music player playlist', function() {
       assert.equal(PlaylistHelper.songTitle(songs[1]), 'Yield to thread');
     });
 
-    test('Shuffle all sort order', function() {
+    test('Shuffle all sort order. moztrap:2357', function() {
       music.launch();
       music.waitForFirstTile();
 
@@ -412,7 +413,7 @@ marionette('Music player playlist', function() {
       assert.notEqual(notrandom, loopCount - 1, 'we didn\'t randomise');
     });
 
-    test('Shuffle playlist order', function() {
+    test('Shuffle playlist order. moztrap:2357', function() {
       music.launch();
       music.waitForFirstTile();
 
