@@ -501,7 +501,6 @@ App.prototype.listenForStopRecordingEvent = function() {
   addEventListener('stoprecording', this.firer('stoprecording'));
 };
 
-
 /**
  * When the device's hardware keys
  * are pressed we emit a global
@@ -515,10 +514,39 @@ App.prototype.listenForStopRecordingEvent = function() {
  * @private
  */
 App.prototype.onKeyDown = function(e) {
+  debug('key down', e);
   var key = e.key.toLowerCase();
   var type = this.settings.keyDownEvents.get(key);
   if (type) { this.emit('keydown:' + type, e); }
+  if (this.isVolumeKey(key) && this.hideVolumeUi()) {
+    debug('prevent system volume-ui');
+    e.preventDefault();
+  }
 };
 
+/**
+ * Check if given key code is volume related.
+ *
+ * @param  {String}  key
+ * @return {Boolean}
+ */
+App.prototype.isVolumeKey = function(key) {
+  return key === 'volumeup' || key === 'volumedown';
+};
+
+/**
+ * Check if current app state means the
+ * system volume UI should be hidden.
+ *
+ * The only time volume UI should be shown
+ * is when videos can be played.
+ *
+ * @return {Boolean}
+ * @private
+ */
+App.prototype.hideVolumeUi = function() {
+  return !this.get('previewGalleryOpen')
+    && !this.get('confirmViewVisible');
+};
 
 });

@@ -203,19 +203,6 @@ suite('controllers/camera', function() {
       sinon.assert.called(this.camera.capture);
     });
 
-    test('It calls preventDefault if the capture call doesn\'t return false', function() {
-      var callback = this.app.on.withArgs('keydown:capture').args[0][1];
-      var event = { preventDefault: sinon.spy() };
-
-      this.camera.capture.returns(false);
-      callback(event);
-      sinon.assert.notCalled(event.preventDefault);
-
-      this.camera.capture.returns(undefined);
-      callback(event);
-      sinon.assert.called(event.preventDefault);
-    });
-
     test('It doesnt capture if timer is active', function() {
       this.app.get.withArgs('timerActive').returns(true);
       var callback = this.app.on.withArgs('keydown:capture').args[0][1];
@@ -227,6 +214,25 @@ suite('controllers/camera', function() {
 
     test('It doesnt capture if confirm overlay is shown', function() {
       this.app.get.withArgs('confirmViewVisible').returns(true);
+      var callback = this.app.on.withArgs('keydown:capture').args[0][1];
+      var event = { preventDefault: sinon.spy() };
+
+      callback(event);
+      sinon.assert.notCalled(this.camera.capture);
+    });
+
+    test('It doesnt capture if preview-gallery is open', function() {
+      this.app.get.withArgs('previewGalleryOpen').returns(true);
+      var callback = this.app.on.withArgs('keydown:capture').args[0][1];
+      var event = { preventDefault: sinon.spy() };
+
+      callback(event);
+      sinon.assert.notCalled(this.camera.capture);
+    });
+
+
+    test('It doesnt capture if an overlay is open', function() {
+      this.app.get.withArgs('overlayOpen').returns(true);
       var callback = this.app.on.withArgs('keydown:capture').args[0][1];
       var event = { preventDefault: sinon.spy() };
 

@@ -112,10 +112,14 @@ CameraController.prototype.bindEvents = function() {
  */
 CameraController.prototype.onCaptureKey = function(e) {
   debug('on capture key', e);
-  var ignore = this.app.get('timerActive') ||
-    this.app.get('confirmViewVisible');
-  if (ignore) { return e.preventDefault(); }
-  if (this.capture() !== false) { e.preventDefault(); }
+  if (this.shouldCapture()) { this.capture(); }
+};
+
+CameraController.prototype.shouldCapture = function(e) {
+  return !this.app.get('confirmViewVisible')
+    && !this.app.get('previewGalleryOpen')
+    && !this.app.get('timerActive')
+    && !this.app.get('overlayOpen');
 };
 
 /**
