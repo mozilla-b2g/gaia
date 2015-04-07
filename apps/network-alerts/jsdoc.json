@@ -1,9 +1,18 @@
 {
-  "network-alerts": {
-    "src": ["apps/network-alerts/js/**/*.js",
-            "!apps/network-alerts/js/attention/attention.js"],
-    "options": {
-      "destination": "docs/network-alerts"
-    }
+  "name": "network-alerts",
+  "tags": {
+    "dictionaries": ["jsdoc"]
+  },
+  "source": {
+    "include": ["apps/network-alerts/js"]
+  },
+  "plugins": [
+    "plugins/markdown",
+    "plugins/summarize"
+  ],
+  "opts": {
+    "private": true,
+    "recurse": true,
+    "destination": "docs/network-alerts"
   }
 }

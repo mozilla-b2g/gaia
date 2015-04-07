@@ -101,7 +101,7 @@ define(function(require) {
    *
    * @access public
    * @memberOf NetworkTypeManager.prototype
-   * @returns {Promise Object}
+   * @returns {Promise}
    */
   NetworkTypeManager.prototype.getSupportedNetworkInfo = function() {
     if (this._supportedNetworkInfo) {

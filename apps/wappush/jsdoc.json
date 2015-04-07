@@ -1,8 +1,18 @@
 {
-  "wappush": {
-    "src": ["apps/wappush/js/**/*.js"],
-    "options": {
-      "destination": "docs/wappush"
-    }
+  "name": "wappush",
+  "tags": {
+    "dictionaries": ["jsdoc"]
+  },
+  "source": {
+    "include": ["apps/wappush/js"]
+  },
+  "plugins": [
+    "plugins/markdown",
+    "plugins/summarize"
+  ],
+  "opts": {
+    "private": true,
+    "recurse": true,
+    "destination": "docs/wappush"
   }
 }

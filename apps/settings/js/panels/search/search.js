@@ -21,8 +21,6 @@ define(function(require) {
 
   /**
    * Generate <options> for the search engine <select> element.
-   *
-   * @this
    */
   Search.prototype.drawProviders = function() {
 

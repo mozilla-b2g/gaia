@@ -1,10 +1,10 @@
 {
-  "name": "wallpaper",
+  "name": "download",
   "tags": {
     "dictionaries": ["jsdoc"]
   },
   "source": {
-    "include": ["apps/wallpaper/js"]
+    "include": ["apps/download/js"]
   },
   "plugins": [
     "plugins/markdown",
@@ -13,6 +13,6 @@
   "opts": {
     "private": true,
     "recurse": true,
-    "destination": "docs/wallpaper"
+    "destination": "docs/download"
   }
 }

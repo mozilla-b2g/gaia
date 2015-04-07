@@ -1,8 +1,18 @@
 {
-  "costcontrol": {
-    "src": ["apps/costcontrol/js/**/*.js"],
-    "options": {
-      "destination": "docs/costcontrol"
-    }
+  "name": "costcontrol",
+  "tags": {
+    "dictionaries": ["jsdoc"]
+  },
+  "source": {
+    "include": ["apps/costcontrol/js"]
+  },
+  "plugins": [
+    "plugins/markdown",
+    "plugins/summarize"
+  ],
+  "opts": {
+    "private": true,
+    "recurse": true,
+    "destination": "docs/costcontrol"
   }
 }

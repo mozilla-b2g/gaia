@@ -1,8 +1,18 @@
 {
-  "emergency-call": {
-    "src": ["apps/emergency-call/js/**/*.js"],
-    "options": {
-      "destination": "docs/emergency-call"
-    }
+  "name": "emergency-call",
+  "tags": {
+    "dictionaries": ["jsdoc"]
+  },
+  "source": {
+    "include": ["apps/emergency-call/js"]
+  },
+  "plugins": [
+    "plugins/markdown",
+    "plugins/summarize"
+  ],
+  "opts": {
+    "private": true,
+    "recurse": true,
+    "destination": "docs/emergency-call"
   }
 }

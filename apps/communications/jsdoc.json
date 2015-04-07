@@ -1,15 +1,18 @@
 {
-  "contacts": {
-    "src": ["apps/communications/contacts/js/**/*.js",
-            "!apps/communications/contacts/js/views/form.js"],
-    "options": {
-      "destination": "docs/contacts"
-    }
+  "name": "communications",
+  "tags": {
+    "dictionaries": ["jsdoc"]
   },
-  "dialer": {
-    "src": ["apps/communications/dialer/js/**/*.js"],
-    "options": {
-      "destination": "docs/dialer"
-    }
+  "source": {
+    "include": ["apps/communications/contacts/js", "apps/communications/dialer/js"]
+  },
+  "plugins": [
+    "plugins/markdown",
+    "plugins/summarize"
+  ],
+  "opts": {
+    "private": true,
+    "recurse": true,
+    "destination": "docs/communications"
   }
 }

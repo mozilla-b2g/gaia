@@ -1,12 +1,20 @@
 {
-  "keyboard": {
-    "src": ["apps/keyboard/js/**/*.js",
-            "!apps/keyboard/js/render.js",
-            "!apps/keyboard/js/imes/vietnamese/vietnamese.js",
-            "!apps/keyboard/js/imes/myanmar/myanmar.js"
-    ],
-    "options": {
-      "destination": "docs/keyboard"
-    }
+  "name": "keyboard",
+  "tags": {
+    "dictionaries": ["jsdoc"]
+  },
+  "source": {
+    "include": ["apps/keyboard/README.md", "apps/keyboard/js"],
+    "exclude": ["apps/keyboard/js/imes/jspinyin/libpinyin.js",
+                "apps/keyboard/js/imes/handwriting/hwr/emscripten_zinnia.js"]
+  },
+  "plugins": [
+    "plugins/markdown",
+    "plugins/summarize"
+  ],
+  "opts": {
+    "private": true,
+    "recurse": true,
+    "destination": "docs/keyboard"
   }
 }
