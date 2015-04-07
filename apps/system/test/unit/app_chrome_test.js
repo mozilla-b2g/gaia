@@ -145,7 +145,7 @@ suite('system/AppChrome', function() {
         this.sinon.spy(chrome, 'handleSecurityChanged');
       chrome.handleEvent({ type: '_securitychange' });
       assert.isTrue(stubHandleSecurityChanged.called);
-      assert.equal(chrome.title.dataset.ssl, 'broken');
+      assert.equal(chrome.sslIndicator.dataset.ssl, 'broken');
     });
   });
 
