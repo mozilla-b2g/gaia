@@ -480,6 +480,17 @@ suite('shared/js/text_utils.js', function() {
   });
 
   suite('FontSizeUtils auto resize Mutation Observer', function() {
+    var rAFStub;
+
+    setup(function() {
+      // Make sure that we don't depend on requestAnimationFrame timing.
+      rAFStub = sinon.stub(window, 'requestAnimationFrame').yields();
+    });
+
+    teardown(function() {
+      rAFStub.restore();
+    });
+
     test('Should auto-resize back up when text changes', function(done) {
       var el = setupHeaderElement();
       el.textContent = setupLargeString();
@@ -680,6 +691,17 @@ suite('shared/js/text_utils.js', function() {
   });
 
   suite('Lazy-Loading DOM MutationObserver', function() {
+    var rAFStub;
+
+    setup(function() {
+      // Make sure that we don't depend on requestAnimationFrame timing.
+      rAFStub = sinon.stub(window, 'requestAnimationFrame').yields();
+    });
+
+    teardown(function() {
+      rAFStub.restore();
+    });
+
     test('Lazy loaded header should cause reformat', function(done) {
       var el = setupHeaderElement();
       el.textContent = setupLargeString();
