@@ -117,7 +117,9 @@
                         data-l10n-id="forward-button" disabled></button>
                 <div class="urlbar js-chrome-ssl-information">
                   <span class="pb-icon"></span>
-                  <div class="title chrome-ssl-indicator"></div>
+                  <div class="chrome-ssl-indicator chrome-title-container">
+                    <span class="title" dir="auto"></span>
+                  </div>
                   <button type="button" class="reload-button"
                           data-l10n-id="reload-button" disabled></button>
                   <button type="button" class="stop-button"
