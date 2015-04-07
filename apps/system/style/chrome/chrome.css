@@ -149,7 +149,7 @@
   background-color: rgba(204, 204, 204, 0.2);
 }
 
-.chrome-combined .title {
+.chrome-combined .chrome-title-container {
   width: calc(100% - 3.2rem);
   padding-top: 0;
   padding-bottom: 0;
@@ -157,14 +157,19 @@
   -moz-padding-end: 0.8rem;
   box-sizing: padding-box;
   overflow: hidden;
-  white-space: nowrap;
-  font-weight: 300;
-  font-size: 1.8rem;
   float: none;
   background-color: rgba(204,204,204,0.2);
   border-radius: 1.8rem;
-  text-overflow: ellipsis;
+}
+
+.chrome-combined .title {
+  overflow: hidden;
+  white-space: nowrap;
+  font-weight: 300;
+  font-size: 1.8rem;
   font-style: italic;
+  text-overflow: ellipsis;
+  display: block;
 }
 
 .search-app .chrome.maximized .controls .urlbar:after {
@@ -180,11 +185,11 @@
   background-position: center right;
 }
 
-.appWindow.light .chrome-combined:not(.maximized) .title {
+.appWindow.light .chrome-combined:not(.maximized) .chrome-title-container {
   background-color: rgba(204,204,204,0.4);
 }
 
-.chrome-combined.maximized .title {
+.chrome-combined.maximized .chrome-title-container {
   background-color: transparent;
 }
 
@@ -243,7 +248,8 @@
 
 
 /* Private browser icon in rocketbar */
-.appWindow.private > .chrome.maximized .title {
+.appWindow.private > .chrome-plain.maximized .title,
+.appWindow.private > .chrome-combined.maximized .chrome-title-container {
   -moz-padding-start: 4rem;
 }
 
