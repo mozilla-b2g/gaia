@@ -88,6 +88,8 @@ contacts.ICE = (function() {
     });
 
     iceScreenInitialized = true;
+
+    ICEData.listenForChanges(refresh);
   };
 
   function reloadButtonsState(cb) {
