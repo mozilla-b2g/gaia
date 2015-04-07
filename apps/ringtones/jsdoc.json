@@ -1,8 +1,6 @@
 {
   "ringtones": {
-    "src": ["apps/ringtones/js/**/*.js",
-            "!apps/ringtones/js/manage.js",
-            "!apps/ringtones/js/pick.js"],
+    "src": ["apps/ringtones/js/**/*.js"],
     "options": {
       "destination": "docs/ringtones"
     }

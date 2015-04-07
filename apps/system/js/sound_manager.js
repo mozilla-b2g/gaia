@@ -87,7 +87,7 @@
    * change with 'audio-channel-changed' mozChromeEvent
    * All candidates and definitions can be found at AudioChannels link.
    *
-   * @see {link https://wiki.mozilla.org/WebAPI/AudioChannels|AudioChannels}
+   * @see {@link https://wiki.mozilla.org/WebAPI/AudioChannels|AudioChannels}
    * @memberOf SoundManager.prototype
    * @type {String}
    */

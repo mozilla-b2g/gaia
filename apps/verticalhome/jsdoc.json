@@ -1,10 +1,6 @@
 {
   "verticalhome": {
-    "src": ["apps/verticalhome/js/**/*.js",
-            "!apps/verticalhome/js/app.js",
-            "!apps/verticalhome/js/app_manager.js",
-            "!apps/verticalhome/js/search.js",
-            "!apps/verticalhome/js/sources/collection.js"],
+    "src": ["apps/verticalhome/js/**/*.js"],
     "options": {
       "destination": "docs/verticalhome"
     }
