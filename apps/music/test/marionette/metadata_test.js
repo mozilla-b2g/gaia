@@ -5,7 +5,7 @@ var assert = require('assert');
 var Music = require('./lib/music.js');
 var ListviewHelper = require('./lib/listviewhelper.js');
 
-marionette('Music player playlist', function() {
+marionette('Music player metadata', function() {
   var apps = {};
 
   var client = marionette.client({
@@ -55,7 +55,7 @@ marionette('Music player playlist', function() {
     });
 
 
-    test('Check album art is displayed', function() {
+    test('Check album art is displayed. moztrap:8749', function() {
 
       music.launch();
       music.waitForFirstTile();
