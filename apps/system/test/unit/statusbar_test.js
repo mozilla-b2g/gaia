@@ -2418,6 +2418,7 @@ suite('system/Statusbar', function() {
     });
 
     test('sheets-gesture-end', function() {
+      dispatchEdgeSwipeEvent('sheets-gesture-begin');
       testEventThatResume.bind(this)('sheets-gesture-end');
     });
 
@@ -2457,6 +2458,28 @@ suite('system/Statusbar', function() {
 
       test('homescreenopened', function() {
         testEventThatResumeIfNeeded.bind(this)('homescreenopened');
+      });
+    });
+
+    suite('edge swipe should resume symmetrically', function() {
+      test('with many begin events', function() {
+        dispatchEdgeSwipeEvent('sheets-gesture-begin');
+        dispatchEdgeSwipeEvent('sheets-gesture-begin');
+        dispatchEdgeSwipeEvent('sheets-gesture-begin');
+        dispatchEdgeSwipeEvent('sheets-gesture-end');
+
+        assert.isTrue(pauseUpdateStub.calledOnce);
+        assert.isTrue(resumeUpdateStub.calledOnce);
+      });
+
+      test('with many end events', function() {
+        dispatchEdgeSwipeEvent('sheets-gesture-begin');
+        dispatchEdgeSwipeEvent('sheets-gesture-end');
+        dispatchEdgeSwipeEvent('sheets-gesture-end');
+        dispatchEdgeSwipeEvent('sheets-gesture-end');
+
+        assert.isTrue(pauseUpdateStub.calledOnce);
+        assert.isTrue(resumeUpdateStub.calledOnce);
       });
     });
   });
