@@ -157,7 +157,7 @@ suite('search/search', function() {
 
   suite('scrolling focus', function() {
     test('we grab focus when scrolling results', function() {
-      var stub = this.sinon.stub(document.body, 'focus');
+      var stub = this.sinon.stub(window, 'focus');
       window.dispatchEvent(new window.Event('scroll'));
       assert.ok(stub.calledOnce);
     });

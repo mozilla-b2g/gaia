@@ -114,7 +114,7 @@
     // Typically an input keeps focus when the user scrolls, here we
     // want to grab focus and manually dismiss the keyboard.
     onScroll: function() {
-      document.body.focus();
+      window.focus();
     },
 
     /**
