@@ -45,6 +45,7 @@
    */
   var DEFAULT_SPACING = 2;
   var DEFAULT_LEFT_MARGIN = 2;
+  var REVERSE_LIST_BOUNDARY = 0.5;
   function XScrollable(param) {
     this.translateX = 0;
 
@@ -103,10 +104,6 @@
       return this.frameElem.getBoundingClientRect();
     },
 
-    _getScrollDistance: function(itemElem) {
-      return this._getScrollOffset(itemElem);
-    },
-
     endSlide: function() {
       // remove transition we added
       this.listElem.classList.add('no-transition');
@@ -131,7 +128,7 @@
       // Also consider the case when the card-list does not need to scroll
       // or the document is not visibile.
       var prevTransform = this.listElem.style.transform;
-      var distance = Math.abs(this._getScrollDistance(newItem) -
+      var distance = Math.abs(this._getScrollOffset(newItem) -
                               this.translateX);
       var duration = (distance < 960) ? 0.3 : distance / 2000;
 
@@ -145,7 +142,14 @@
     },
 
     scrollTo: function(itemElem) {
+      if (!itemElem) {
+        return this.translateX;
+      }
       this.translateX = this._getScrollOffset(itemElem);
+      this._setScrollStyle();
+    },
+
+    _setScrollStyle: function() {
       this.listElem.style.transform = 'translateX(' + this.translateX + 'px) ' +
                                       'scale(' + this.scale + ')';
     },
@@ -159,14 +163,47 @@
       this.scrollTo(this.currentItem);
     },
 
+    setReferenceElement: function(elem) {
+      this.refElem = elem;
+      if (!this.length || !this.refElem) {
+        return false;
+      }
+
+      // If the reference element locates at right of the screen without enough
+      // space, we need to show the list reversedly toward left of the screen.
+      var isReversed = this.refElem.getBoundingClientRect().left >
+                       this.frameElem.offsetWidth * REVERSE_LIST_BOUNDARY;
+
+      // Determine initial focus (depends on reversed or not)
+      var initNode = this.getItemFromNode(
+                     this.getNode(isReversed ? this.length - 1 : 0));
+      this.spatialNavigator.focusSilently(initNode);
+
+      // Calculate initial position with respect to reference element. The
+      // initNode should get its center aligned with reference element
+      // on x-axis.
+      // this.refPoint saves the x-coordinate that makes initNode aligned.
+      var unitLength = (initNode.offsetWidth + this.spacing * 10) * this.scale;
+      var refRect = this.refElem.getBoundingClientRect();
+      this.refPoint =
+        refRect.left + (refRect.width - initNode.offsetWidth * this.scale) / 2;
+      if (isReversed) {
+        this.translateX = this.refPoint - unitLength * (this.length - 1);
+      } else {
+        this.translateX = this.refPoint;
+      }
+      this._setScrollStyle();
+      return true;
+    },
+
     _getScrollOffset: function(itemElem) {
-      var sibling;
+      if (this.refElem) {
+        return this._getScrollOffsetByReferenceElement(itemElem);
+      }
+
       var node = this.getNodeFromItem(itemElem);
       var idx = parseInt(node.dataset.idx, 10);
       var unitLength = (node.offsetWidth + this.spacing * 10) * this.scale;
-      var right = unitLength * (idx + 1);
-      var left = unitLength * idx;
-      var previousLeft = unitLength * (idx - 1);
       var frameWidth = this.frameElem.offsetWidth;
 
       // If elements don't overflow, align them in center.
@@ -174,15 +211,38 @@
         return -(unitLength * this.length - this.spacing * 10 - frameWidth) / 2;
       }
 
-      if (left + this.translateX < this.leftMargin * 10) {
-        sibling = this.getPrevItem(itemElem);
-        if (sibling) {
-          return -(previousLeft + 0.5 * unitLength);
+      if (unitLength * idx < this.leftMargin * 10 - this.translateX) {
+        if (idx !== 0) {
+          return -unitLength * (idx - 0.5);
         } else {
           return this.leftMargin * 10;
         }
-      } else if (right > (frameWidth - this.translateX)) {
-        return frameWidth - (right + 0.5 * unitLength);
+      } else if (unitLength * (idx + 1) > frameWidth - this.translateX) {
+        return frameWidth - unitLength * (idx + 1.5);
+      } else {
+        return this.translateX;
+      }
+    },
+
+    // There's always a node center-aligned with the reference element.
+    // (if exist)
+    // TODO: Evaluate whether we can merge this function with _getScrollOffset.
+    _getScrollOffsetByReferenceElement: function(itemElem) {
+      var node = this.getNodeFromItem(itemElem);
+      var idx = parseInt(node.dataset.idx, 10);
+      var unitLength = (node.offsetWidth + this.spacing * 10) * this.scale;
+      var frameWidth = this.frameElem.offsetWidth;
+
+      // Count maximum nodes that can be shown from the aligned node
+      // to left/right viewport (aligned node itself is counted to right)
+      var maxLeftNodes = Math.floor(this.refPoint / unitLength);
+      var maxRightNodes = Math.floor((frameWidth - this.refPoint) / unitLength);
+
+      // Calculate translate amount with respect to reference point.
+      if (unitLength * idx < this.leftMargin * 10 - this.translateX) {
+        return this.refPoint - (maxLeftNodes + idx) * unitLength;
+      } else if (unitLength * (idx + 1) > (frameWidth - this.translateX)) {
+        return this.refPoint - (idx - maxRightNodes + 1) * unitLength;
       } else {
         return this.translateX;
       }
@@ -251,9 +311,12 @@
         return false;
       }
       this.nodes.push(nodeElem);
-      this._setNodePosition(this.nodes.length - 1);
-      return this.spatialNavigator.add(itemElem) &&
-             !!this.listElem.appendChild(nodeElem);
+      if (this.spatialNavigator.add(itemElem) &&
+          !!this.listElem.appendChild(nodeElem)) {
+        this._setNodePosition(this.nodes.length - 1);
+        return true;
+      }
+      return false;
     },
 
     getNode: function(index) {
@@ -405,7 +468,7 @@
     },
 
     catchFocus: function() {
-      this.spatialNavigator.focus(this.currentItem);
+      this.spatialNavigator.focus(this.currentItem || 0);
     },
 
     focus: function(item) {
@@ -417,6 +480,17 @@
 
     move: function(direction) {
       return this.spatialNavigator.move(direction);
+    },
+
+    clean: function() {
+      this.spatialNavigator.setCollection();
+      this.spatialNavigator.unfocus();
+      this.listElem.innerHTML = '';
+      this.nodes.length = 0;
+    },
+
+    isEmpty: function() {
+      return !this.nodes.length;
     },
 
     handleEvent: function (evt) {
