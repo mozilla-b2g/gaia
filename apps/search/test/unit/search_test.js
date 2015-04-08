@@ -155,6 +155,14 @@ suite('search/search', function() {
     });
   });
 
+  suite('scrolling focus', function() {
+    test('we grab focus when scrolling results', function() {
+      var stub = this.sinon.stub(window, 'focus');
+      window.dispatchEvent(new window.Event('scroll'));
+      assert.ok(stub.calledOnce);
+    });
+  });
+
   suite('dispatchMessage', function() {
     test('dispatches messages based on action', function() {
       var stub = this.sinon.stub(Search, 'change');

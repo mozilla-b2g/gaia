@@ -38,7 +38,7 @@ class KeyboardAddMoreKeyboards(Base):
     _section_locator = (By.ID, 'keyboard-selection-addMore')
     _select_language_locator = (
         By.XPATH,
-        "//div[contains(@class,'keyboardAppContainer')]//li[label[span[text()='%s']]]"
+        "//div[contains(@class,'keyboardAppContainer')]//li[label[span[bdi[text()='%s']]]]"
     )
     _header_locator = (By.CSS_SELECTOR, '.current gaia-header')
 

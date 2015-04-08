@@ -7,32 +7,43 @@ suite('SimPinDialog > ', function() {
 
   var simPinDialog;
   var mockSettingsUtils;
+  var mockDialogService;
 
   var modules = [
     'panels/simpin_dialog/simpin_dialog',
-    'unit/mock_settings_utils'
+    'modules/settings_utils',
+    'modules/dialog_service'
   ];
 
   var map = {
     '*': {
-      'modules/settings_utils': 'unit/mock_settings_utils'
+      'modules/settings_utils': 'unit/mock_settings_utils',
+      'modules/dialog_service': 'MockDialogService'
     }
   };
   
   setup(function(done) {
+    define('MockDialogService', function() {
+      return {
+        alert: function() {}
+      };
+    });
+
     window.navigator.mozL10n = MockL10n;
 
     var requireCtx = testRequire([], map, function() {});
-    requireCtx(modules, function(SimPinDialog, MockSettingsUtils) {
-      mockSettingsUtils = MockSettingsUtils;
+    requireCtx(modules, function(SimPinDialog, MockSettingsUtils,
+      MockDialogService) {
+        mockSettingsUtils = MockSettingsUtils;
+        mockDialogService = MockDialogService;
 
-      simPinDialog = new SimPinDialog({
-        pinInput: createInput(),
-        pukInput: createInput(),
-        newPinInput: createInput(),
-        confirmPinInput: createInput()
-      });
-      done();
+        simPinDialog = new SimPinDialog({
+          pinInput: createInput(),
+          pukInput: createInput(),
+          newPinInput: createInput(),
+          confirmPinInput: createInput()
+        });
+        done();
     });
   });
 
@@ -40,7 +51,9 @@ suite('SimPinDialog > ', function() {
     test('if no lockType, close dialog', function() {
       var needToCloseDialog = simPinDialog._handleCardLockError({
         lockType: '',
-        retryCount: 3
+        error: {
+          retryCount: 3
+        }
       });
       assert.isTrue(needToCloseDialog);
     });
@@ -50,7 +63,10 @@ suite('SimPinDialog > ', function() {
       this.sinon.stub(simPinDialog, '_showRetryCount');
       var needToCloseDialog = simPinDialog._handleCardLockError({
         lockType: 'pin',
-        retryCount: 4
+        error: {
+          name: 'IncorrectPassword',
+          retryCount: 4
+        }
       });
 
       assert.isFalse(needToCloseDialog);
@@ -62,7 +78,10 @@ suite('SimPinDialog > ', function() {
       'dialog and leave this to system app', function() {
         var needToCloseDialog = simPinDialog._handleCardLockError({
           lockType: 'pin',
-          retryCount: 0
+          error: {
+            name: 'IncorrectPassword',
+            retryCount: 0
+          }
         });
         assert.isTrue(needToCloseDialog);
     });
@@ -73,7 +92,10 @@ suite('SimPinDialog > ', function() {
           this.sinon.stub(simPinDialog, '_initUI');
           var needToCloseDialog = simPinDialog._handleCardLockError({
             lockType: lockType,
-            retryCount: 0
+            error: {
+              name: 'IncorrectPassword',
+              retryCount: 0
+            }
           });
           assert.isFalse(needToCloseDialog);
           assert.isTrue(simPinDialog._initUI.calledWith('unlock_puk2'));
@@ -84,7 +106,9 @@ suite('SimPinDialog > ', function() {
       'then we will just close the dialog', function() {
         var needToCloseDialog = simPinDialog._handleCardLockError({
           lockType: 'i_dont_know',
-          retryCount: 0
+          error: {
+            retryCount: 0
+          }
         });
         assert.isTrue(needToCloseDialog);
     });

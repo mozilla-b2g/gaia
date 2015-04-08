@@ -4,6 +4,10 @@
 
 var PlaylistHelper = {
 
+  mainTitle: function(element) {
+    return element.findElement('.list-main-title').text();
+  },
+
   songTitle: function(element) {
     return element.findElement('.list-song-title').text();
   },

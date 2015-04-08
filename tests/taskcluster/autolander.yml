@@ -12,7 +12,10 @@ params:
 definitions:
   build_unit:
   build_integration:
-    chunks: 4
+    chunks: 10
+
+  gaia_ui_tests:
+    chunks: 30
 
   csslint:
 
@@ -23,4 +26,7 @@ definitions:
   jshint:
 
   marionette_js_tests:
+    chunks: 30
+
+  unit_tests_b2g:
     chunks: 30

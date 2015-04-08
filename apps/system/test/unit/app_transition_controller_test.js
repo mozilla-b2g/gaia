@@ -119,11 +119,13 @@ suite('system/AppTransitionController', function() {
     var stopStub = this.sinon.stub();
     acn1._transitionState = 'opening';
 
+    app1.element.classList.add('transition-opening');
     this.sinon.stub(MockService, 'isBusyLoading').returns(true);
     acn1.handleEvent({
       type: 'animationend',
       stopPropagation: stopStub
     });
+    assert.isFalse(app1.element.classList.contains('transition-opening'));
     assert.equal(acn1._transitionState, 'opening');
 
     MockService.isBusyLoading.returns(false);

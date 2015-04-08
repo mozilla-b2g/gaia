@@ -98,6 +98,9 @@ var Predictions = function() {
   var rootform = [];       // Maps charcodes to the root form
   var nearbyKeys;          // Maps charcodes to a set of codes of nearby keys
   var cache;               // Cache inputs to completions.
+  var validChars = null;   // An ES6 Set containing valid chars for this dict
+                           // including possibly valid variant forms and nearby
+                           // keys.
 
   // This function is called to pass our dictionary to us as an ArrayBuffer.
   function setDictionary(buffer) {
@@ -174,6 +177,13 @@ var Predictions = function() {
       'x': 'ẌẍẊẋ',
       'y': 'ÝýŶŷŸÿẎẏỴỵỲỳƳƴỶỷỾỿȲȳɎɏỸỹ',
       'z': 'ŹźŽžẐẑⱫⱬŻżẒẓȤȥẔẕƵƶ',
+      'α': 'άΆ',
+      'ε': 'έΈ',
+      'η': 'ήΉ',
+      'ι': 'ίϊΐΊΪ',
+      'ο': 'όΌ',
+      'υ': 'ύϋΰΎΫ',
+      'ω': 'ώΏ',
       '$': '$'
     };
 
@@ -222,6 +232,8 @@ var Predictions = function() {
       // log("Root form of " + ch + " " +
       //     String.fromCharCode(rootform[charcode]))
     }
+
+    generateValidChars();
   }
 
   // latin.js passes us a data structure that holds the inverse square
@@ -236,6 +248,54 @@ var Predictions = function() {
     cache = new LRUCache(CACHE_SIZE); // Discard any cached results
     nearbyKeys = data;
     // log("Nearby Keys: " + JSON.stringify(data));
+  }
+
+  function generateValidChars() {
+    // We're called when both |nearbyKeys| and |variants| information is ready.
+    // Note this relies on the fact that setNearByKeys is always called before
+    // setDictionary, and the setNearByKeys call is optional. Thus, we want to
+    // be called at setDictionary.
+    //
+    // It's not very easy to lessen the constraint, as within this module, we
+    // don't have knowledge on whether we're to be reinitialized, with setNBK
+    // coming or not, and with setNBK coming before or after setDict.
+    //
+    // Note at this moment, keys of |variants| object is the character table of
+    // this dictionary.
+    // We need to consider each variants[ch]'s
+    // - the ch itself (the character in the dict)
+    // - all the characters of variants[ch] string (different cases and
+    //     root form (of different cases); the latter is espcially important
+    //     if ch is accented)
+    // furthermore, for that ch, we want to consider as valid all the nearby
+    // keys of rootform[ch], and the variant form of such nearby keys.
+
+    validChars = new Set();
+
+    variants.forEach(function(variantStr, charCode) {
+      validChars.add(String.fromCharCode(charCode));
+
+      Array.from(variantStr).forEach(function(varCh) {
+        validChars.add(varCh);
+      });
+
+      var rootCode = rootform[charCode];
+      if (rootCode && nearbyKeys && nearbyKeys[rootCode]) {
+        Object.keys(nearbyKeys[rootCode]).forEach(
+        function(rootNearByCode) {
+          validChars.add(String.fromCharCode(rootNearByCode));
+
+          // the nearby key isn't necessarily in character table,
+          // so test its existence in |variants| first.
+          if (variants[rootNearByCode]) {
+            Array.from(variants[rootNearByCode]).forEach(
+            function(rootNearByVarCode) {
+              validChars.add(rootNearByVarCode);
+            });
+          }
+        });
+      }
+    });
   }
 
   //
@@ -339,7 +399,8 @@ var Predictions = function() {
 
         // Check length and check for invalid characters. If the input is
         // bad, we can reject it right away.
-        if (input.length > maxWordLength || !validChars(input)) {
+        if (input.length > maxWordLength ||
+            !Array.from(input).every(function(c) {return validChars.has(c);})) {
           status.state = 'done';
           status.suggestions = [];
           callback(status.suggestions);
@@ -362,32 +423,6 @@ var Predictions = function() {
         status.error = e;
         onerror(e.toString() + '\n' + e.stack);
       }
-    }
-
-    // Check whether all the characters of s appear in the dictionary or are
-    // at least near characters that do. If we are passed a string that does
-    // not pass this test then there is no way we will be able to offer
-    // suggestions and it is not even worth searching.
-    function validChars(s) {
-      outer: for (var i = 0, n = s.length; i < n; i++) {
-        var c = s.charCodeAt(i);
-        if (characterTable.hasOwnProperty(c))  // character is valid
-          continue;
-        // If the character does not occur in this language, but there is
-        // a nearby key that does occur, then maybe it is okay
-        if (!nearbyKeys.hasOwnProperty(c))
-          return false;  // no nearby keys, so no suggestions possible
-        var nearby = nearbyKeys[c];
-        for (c in nearby) {
-          if (characterTable.hasOwnProperty(c))
-            continue outer;
-        }
-        // no nearby keys are in the dictionary, so no suggestions possible
-        return false;
-      }
-
-      // All the characters of s are valid
-      return true;
     }
 
     // Add a candidate to the list of promising candidates if frequency *
@@ -969,4 +1004,4 @@ var Predictions = function() {
     setNearbyKeys: setNearbyKeys,
     predict: predict
   };
-}();
+};

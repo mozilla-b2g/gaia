@@ -237,10 +237,12 @@ ViewfinderController.prototype.onFacesDetected = function(faces) {
 };
 
 ViewfinderController.prototype.calculateFaceCircle = function(face) {
+  var diameter = Math.max(face.width, face.height);
+  var radius = diameter / 2;
   return {
-    x: face.left,
-    y: face.top,
-    diameter: Math.max(face.width, face.height)
+    x: Math.round(face.left + face.width / 2 - radius),
+    y: Math.round(face.top + face.height / 2 - radius),
+    diameter: diameter
   };
 };
 

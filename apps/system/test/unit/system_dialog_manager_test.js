@@ -41,18 +41,29 @@ suite('system/SystemDialogManager', function() {
   });
 
   suite('Should change fullscreen state when appWindow opened', function() {
+    var app;
+
+    setup(function() {
+      app = new MockAppWindow();
+      this.sinon.stub(app, 'getTopMostWindow').returns(app);
+    });
+
     test('Launch a non-fullscreen app', function() {
-      var app = new MockAppWindow();
       this.sinon.stub(app, 'isFullScreen').returns(false);
-      window.dispatchEvent(new CustomEvent('appopened', { detail:app }));
+      var event = new CustomEvent('hierarchytopmostwindowchanged', {
+        detail: app
+      });
+      window.dispatchEvent(event);
       assert.isFalse(window.systemDialogManager.elements.containerElement
                     .classList.contains('fullscreen'));
     });
 
     test('Launch a fullscreen app', function() {
-      var app = new MockAppWindow();
       this.sinon.stub(app, 'isFullScreen').returns(true);
-      window.dispatchEvent(new CustomEvent('appopened', { detail:app }));
+      var event = new CustomEvent('hierarchytopmostwindowchanged', {
+        detail: app
+      });
+      window.dispatchEvent(event);
       assert.isTrue(window.systemDialogManager.elements.containerElement
                     .classList.contains('fullscreen'));
     });

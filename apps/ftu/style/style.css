@@ -816,6 +816,10 @@ aside.connecting {
 #fb_after_import1 {
   background: url('images/import_fb.png') no-repeat center left / 3rem;
 }
+html[dir="rtl"] #fb_after_import1 {
+  background-position: right center;
+}
+
 
 #statusMsg.ftu {
   bottom: 6.5rem;

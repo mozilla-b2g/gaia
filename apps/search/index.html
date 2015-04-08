@@ -42,6 +42,7 @@
 
     <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/url_helper.js"></script>
+    <script defer src="shared/js/web_manifest_helper.js"></script>
     <script defer src="shared/js/utilities.js"></script>
     <script defer src="shared/js/dedupe.js"></script>
     <script defer src="js/places_idb.js"></script>
@@ -70,6 +71,10 @@
   <body>
 
     <div id="search-results" class="hidden">
+      <div id="offline-message">
+        <span id="settings-connectivity"></span>
+        <span data-l10n-id="offline-message"></span>
+      </div>
 
       <section id="contacts" class="local" data-l10n-id="contacts"
                aria-label="Contacts"></section>
@@ -88,14 +93,12 @@
           <label for="suggestions-select" id="suggestions-provider"></label>
           <span id="suggestions-provider-dropdown"></span>
         </h2>
-        <div id="offline-message">
-          <span id="settings-connectivity"></span>
-          <span data-l10n-id="offline-message"></span>
-        </div>
+
         <div id="suggestions-notice-wrapper" hidden>
           <p data-l10n-id="suggestions-settings-notice"></p>
           <button id="suggestions-notice-confirm" data-l10n-id="ok"></button>
         </div>
+
         <section id="suggestions"
                  class="suggestions" data-l10n-id="suggestions"
                  aria-label="Suggestions"></section>

@@ -10,14 +10,6 @@
     privateWindow.addEventListener('click',
       this.requestPrivateWindow.bind(this));
 
-    var historyResults = document.getElementById('history');
-    var historyHeader = document.getElementById('history-header');
-    var observer = new MutationObserver(function() {
-      historyHeader.classList.toggle('hidden',
-        historyResults.children.length < 1);
-    });
-    observer.observe(historyResults, {childList: true});
-
     // Initialize the parent port connection
     var self = this;
     navigator.mozApps.getSelf().onsuccess = function() {

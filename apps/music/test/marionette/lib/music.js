@@ -35,7 +35,9 @@ Music.Selector = Object.freeze({
 
   viewsList: '#views-list-anchor',
   viewsSublist: '#views-sublist-anchor',
+  firstListItem: '.list-item',
   firstSong: '.list-item',
+  firstSongSublist: '#views-sublist .list-item',
   playButton: '#player-controls-play',
   progressBar: '#player-seek-bar-progress',
   shareButton: '#player-cover-share',
@@ -44,6 +46,8 @@ Music.Selector = Object.freeze({
   shareMenu: 'form[data-z-index-level="action-menu"]',
   pickDoneButton: '#title-done',
   header: '#title',
+  titleText: '#title-text',
+  sublistShuffleButton: '#views-sublist-controls-shuffle',
   playerIcon: '#title-player'
 });
 
@@ -78,26 +82,33 @@ Music.prototype = {
     return this.client.helper.waitForElement(Music.Selector.firstSong);
   },
 
-  get songs() {
-    this.waitForSublist();
+  get firstSongSublist() {
+    return this.client.helper.waitForElement(Music.Selector.firstSongSublist);
+  },
 
-    var list = this.client.findElement(Music.Selector.viewsSublist);
-    assert.ok(list);
+  // Helper for the getter.
+  _getListItems: function(selector) {
+    this.waitForAList(selector);
+
+    var list = this.client.findElement(selector);
+    assert.ok(list, 'Couldn\'t find element ' + selector);
 
     var list_items = list.findElements('li.list-item', 'css selector');
-    assert.ok(list_items);
+    assert.ok(list_items, 'Coudln\'t find list-items for ' + selector);
 
     return list_items;
   },
 
+  get firstListItem() {
+    return this.client.helper.waitForElement(Music.Selector.firstListItem);
+  },
+
   get listItems() {
-    var list = this.client.helper.waitForElement(Music.Selector.viewsList);
-    assert.ok(list);
+    return this._getListItems(Music.Selector.viewsList);
+  },
 
-    var list_items = list.findElements('li.list-item', 'css selector');
-    assert.ok(list_items);
-
-    return list_items;
+  get songs() {
+    return this._getListItems(Music.Selector.viewsSublist);
   },
 
   get playButton() {
@@ -106,6 +117,16 @@ Music.prototype = {
 
   get shareButton() {
     return this.client.findElement(Music.Selector.shareButton);
+  },
+
+  get title() {
+    var header = this.client.findElement(Music.Selector.header);
+    return header.findElement(Music.Selector.titleText);
+  },
+
+  get sublistShuffleButton() {
+    return this.client.helper.waitForElement(
+      Music.Selector.sublistShuffleButton);
   },
 
   // TODO(gareth): Move this shareMenu stuff into the helper.
@@ -167,10 +188,18 @@ Music.prototype = {
     }
   },
 
+  waitForListEnumerate: function() {
+    this.client.waitFor(function() {
+      return this.client.executeScript(function() {
+        return window.wrappedJSObject.ListView.handle.state === 'complete';
+      });
+    }.bind(this));
+  },
+
   waitFinishedScanning: function() {
     this.client.waitFor(function() {
       return this.client.executeScript(function() {
-        return window.wrappedJSObject.musicdb.scanning === false;
+        return window.wrappedJSObject.musicdb.initialScanComplete === true;
       });
     }.bind(this));
   },
@@ -186,9 +215,9 @@ Music.prototype = {
     }.bind(this));
   },
 
-  waitForSublist: function() {
+  waitForAList: function(selector) {
     this.client.waitFor(function() {
-      return this.client.findElement(Music.Selector.viewsSublist).displayed();
+      return this.client.findElement(selector).displayed();
     }.bind(this));
   },
 
@@ -251,7 +280,16 @@ Music.prototype = {
     var list_items = this.listItems;
 
     list_items.filter(function (element) {
-      return element.findElement('span.list-main-title', 'css selector')
+      return element.findElement('.list-main-title', 'css selector')
+        .text() === name;
+    })[0].tap();
+  },
+
+  selectArtist: function(name) {
+    var list_items = this.listItems;
+
+    list_items.filter(function (element) {
+      return element.findElement('.list-single-title', 'css selector')
         .text() === name;
     })[0].tap();
   },
@@ -260,14 +298,19 @@ Music.prototype = {
     var list_items = this.listItems;
 
     list_items.filter(function (element) {
-      return element.findElement('span.list-playlist-title', 'css selector')
+      return element.findElement('.list-playlist-title', 'css selector')
         .text() === name;
     })[0].tap();
   },
 
-
+  // only from a list (song list)
   playFirstSong: function() {
     this.firstSong.click();
+  },
+
+  // only from a sublist (artist, albums, playlists)
+  playFirstSongSublist: function() {
+    this.firstSongSublist.click();
   },
 
   tapPlayButton: function() {

@@ -2,8 +2,9 @@
 
 /* globals MocksHelper, MockBluetooth, MockBluetoothTransfer,
            MockNavigatorSettings, NDEF, NfcConnectSystemDialog,
-           MockL10n, NDEFUtils, BaseModule, MockMozNfc, NfcUtils,
-           MockNavigatormozSetMessageHandler, MockLazyLoader, MockService */
+           MockDOMRequest, MockL10n, NDEFUtils, BaseModule, MockMozNfc,
+           NfcUtils, MockNavigatormozSetMessageHandler, MockLazyLoader,
+           MockService */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_moz_ndefrecord.js');
@@ -105,6 +106,9 @@ suite('Nfc Handover Manager Functions', function() {
     var activityInjection1;
     var activityInjection2;
     var nfcUtils;
+    var peerMac;
+    var pairedDevices;
+    var stubGetPairedDevices;
 
     setup(function() {
       nfcUtils = new NfcUtils();
@@ -137,11 +141,18 @@ suite('Nfc Handover Manager Functions', function() {
         }],
         peer: MockMozNfc.MockNFCPeer
       };
+      peerMac = '01:23:45:67:89:AB';
+      pairedDevices = [{ address: peerMac, connected: false }];
+      stubGetPairedDevices = this.sinon.stub(MockBluetooth.defaultAdapter,
+                              'getPairedDevices',
+                              () => { return new MockDOMRequest(); });
       nfcHandoverManager.start();
+      invokeBluetoothGetDefaultAdapter();
     });
 
     teardown(function() {
       nfcHandoverManager.stop();
+      stubGetPairedDevices.restore();
     });
 
     test('nfc/system_nfc_connect_dialog is loaded', function() {
@@ -149,6 +160,7 @@ suite('Nfc Handover Manager Functions', function() {
       nfcHandoverManager.nfcConnectSystemDialog = null;
       nfcHandoverManager.tryHandover(activityInjection1.records,
                                      activityInjection1.peer);
+      stubGetPairedDevices.firstCall.returnValue.fireSuccess([]);
       assert.ok(MockLazyLoader.load
         .calledWith('js/system_nfc_connect_dialog.js'));
     });
@@ -160,6 +172,7 @@ suite('Nfc Handover Manager Functions', function() {
       nfcHandoverManager.nfcConnectSystemDialog = new NfcConnectSystemDialog();
       nfcHandoverManager.tryHandover(activityInjection1.records,
                                      activityInjection1.peer);
+      stubGetPairedDevices.firstCall.returnValue.fireSuccess([]);
       assert.isTrue(spyName.withArgs('UE MINI BOOM').calledOnce);
       assert.isTrue(spyPairing.withArgs('00:0D:44:E7:95:AB').calledOnce);
     });
@@ -171,20 +184,32 @@ suite('Nfc Handover Manager Functions', function() {
       nfcHandoverManager.nfcConnectSystemDialog = new NfcConnectSystemDialog();
       nfcHandoverManager.tryHandover(activityInjection2.records,
                                      activityInjection2.peer);
+      stubGetPairedDevices.firstCall.returnValue.fireSuccess([]);
       assert.isTrue(spyName.withArgs('MBH10').calledOnce);
       assert.isTrue(spyPairing.withArgs('4C:21:D0:9F:12:F1').calledOnce);
     });
 
     test('Attempts to connect to peer after pairing', function() {
-      var spyConnect = this.sinon.spy(nfcHandoverManager, '_doConnect');
+      var spyConnect = this.sinon.spy(MockBluetooth.defaultAdapter, 'connect');
 
-      invokeBluetoothGetDefaultAdapter();
-
-      nfcHandoverManager._doPairing('01:23:45:67:89:AB');
+      nfcHandoverManager._doPairing(peerMac);
+      stubGetPairedDevices.firstCall.returnValue.fireSuccess([]);
       spyBluetoothPair.firstCall.returnValue.fireSuccess();
+      stubGetPairedDevices.getCall(1).returnValue.fireSuccess(pairedDevices);
 
       assert.isTrue(spyConnect.calledOnce);
-      assert.equal(spyConnect.firstCall.args[0], '01:23:45:67:89:AB');
+      assert.equal(spyConnect.firstCall.args[0].address, peerMac);
+    });
+
+    test('Attempts to connect to already paired peer', function() {
+      var spyConnect = this.sinon.spy(MockBluetooth.defaultAdapter, 'connect');
+
+      nfcHandoverManager._doPairing(peerMac);
+      stubGetPairedDevices.firstCall.returnValue.fireSuccess(pairedDevices);
+
+      assert.isTrue(spyBluetoothPair.notCalled);
+      assert.isTrue(spyConnect.calledOnce);
+      assert.equal(spyConnect.firstCall.args[0].address, peerMac);
     });
   });
 
@@ -230,10 +255,15 @@ suite('Nfc Handover Manager Functions', function() {
     });
 
     test('_handleHandoverSelect() attempts to pair BT devices', function() {
-      var handoverSelect = NDEFUtils.encodeHandoverSelect(mac, cps);
+      var stubGetPairedDevices = this.sinon.stub(MockBluetooth.defaultAdapter,
+                              'getPairedDevices',
+                              () => { return new MockDOMRequest(); });
 
+      var handoverSelect = NDEFUtils.encodeHandoverSelect(mac, cps);
       nfcHandoverManager.bluetooth.enabled = true;
       nfcHandoverManager._handleHandoverSelect(handoverSelect);
+      stubGetPairedDevices.firstCall.returnValue.fireSuccess([]);
+
       assert.isTrue(spyPairing.calledOnce);
       assert.equal(mac, spyPairing.firstCall.args[0]);
       nfcHandoverManager.bluetooth.enabled = false;
@@ -393,6 +423,8 @@ suite('Nfc Handover Manager Functions', function() {
 
       var stubShowNotification = this.sinon.stub(nfcHandoverManager,
                                                  '_showTryAgainNotification');
+      var spyRestoreBT = sinon.spy(nfcHandoverManager,
+                                   '_restoreBluetoothStatus');
       var spySendFile = this.sinon.spy(MockBluetoothTransfer,
         'sendFileViaHandover');
 
@@ -403,6 +435,7 @@ suite('Nfc Handover Manager Functions', function() {
       assert.isTrue(fileRequest.onerror.calledOnce);
       assert.isTrue(stubShowNotification.calledOnce,
                     'Notification not shown');
+      assert.isTrue(spyRestoreBT.calledOnce);
     });
   });
 
@@ -495,6 +528,10 @@ suite('Nfc Handover Manager Functions', function() {
     test('Send file with BT disabled and empty send file queue',
       function() {
 
+      var stubGetPairedDevices = this.sinon.stub(MockBluetooth.defaultAdapter,
+                              'getPairedDevices',
+                              () => { return new MockDOMRequest(); });
+
       MockBluetooth.enabled = false;
       initiateFileTransfer();
       assert.equal(MockNavigatorSettings.mSettings['bluetooth.enabled'],
@@ -503,6 +540,8 @@ suite('Nfc Handover Manager Functions', function() {
 
       finalizeFileTransfer();
 
+      stubGetPairedDevices.getCall(0).returnValue.fireSuccess([]);
+      stubGetPairedDevices.getCall(1).returnValue.fireSuccess([]);
       spyBluetoothPair.firstCall.returnValue.fireError();
       assert.equal(MockNavigatorSettings.mSettings['bluetooth.enabled'],
         false);

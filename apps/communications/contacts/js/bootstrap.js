@@ -85,6 +85,7 @@
     localStorage.setItem(aCache.id, JSON.stringify({
       content: aCache.content,
       languageDirection: navigator.mozL10n.language.direction,
+      languageCode: navigator.mozL10n.language.code,
       lastOrderString: aCache.lastOrderString,
       updated: Date.now(),
       // Because we lazy load l10n.js quite late, we need to cache the
@@ -208,6 +209,7 @@
       cache = JSON.parse(cache);
       _cache.content = cache.content;
       _cache.languageDirection = cache.languageDirection;
+      _cache.languageCode = cache.languageCode;
       _cache.lastOrderString = cache.lastOrderString;
       _cache.updated = new Date(cache.updated);
     } catch(e) {
@@ -231,6 +233,11 @@
         }
         selector[string.container] = cache.l10n[key];
       });
+    }
+
+    if (cache.languageDirection) {
+      var html = document.querySelector('html');
+      html.setAttribute('dir', cache.languageDirection);
     }
 
     var container = document.getElementById(_cache.containerId);
@@ -414,10 +421,12 @@
       if (!CACHE_ENABLED || !this.active) {
         return;
       }
-      if (_caches.get(FIRST_CHUNK).languageDirection !=
-          navigator.mozL10n.language.direction) {
-        // If the language direction changed, we need to evict and also undo the
-        // applied cache.
+      if ((_caches.get(FIRST_CHUNK).languageDirection !=
+           navigator.mozL10n.language.direction) ||
+          (_caches.get(FIRST_CHUNK).languageCode !=
+           navigator.mozL10n.language.code)) {
+        // If the language direction or code changed, we need to evict and also
+        // undo the applied cache.
         this.evict(true /* remove applied cache from DOM */);
       }
     },

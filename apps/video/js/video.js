@@ -578,7 +578,7 @@ function deleteSelectedItems() {
   if (selectedFileNames.length === 0)
     return;
   LazyLoader.load('shared/style/confirm.css', function() {
-
+    document.body.classList.add('confirm-dialog');
     Dialogs.confirm({
       messageId: 'delete-n-items?',
       messageArgs: {n: selectedFileNames.length},
@@ -593,6 +593,9 @@ function deleteSelectedItems() {
         deleteFile(selectedFileNames[i]);
       }
       clearSelection();
+      document.body.classList.remove('confirm-dialog');
+    }, function() { // onCancel
+      document.body.classList.remove('confirm-dialog');
     });
   });
 }
@@ -857,6 +860,7 @@ function deleteCurrentVideo() {
   setNFCSharing(false);
 
   LazyLoader.load('shared/style/confirm.css', function() {
+    document.body.classList.add('confirm-dialog');
     // If we're deleting the file shown in the player we've got to
     // return to the thumbnail list. We pass false to hidePlayer() to tell it
     // not to record new metadata for the file we're about to delete.
@@ -877,9 +881,11 @@ function deleteCurrentVideo() {
       } else {
         hidePlayer(false);
       }
+      document.body.classList.remove('confirm-dialog');
     }, function _onError() {
-       // Enable NFC sharing when cancels delete and returns to fullscreen mode
-       setNFCSharing(true);
+      // Enable NFC sharing when cancels delete and returns to fullscreen mode
+      setNFCSharing(true);
+      document.body.classList.remove('confirm-dialog');
     });
   });
 }

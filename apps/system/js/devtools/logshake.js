@@ -35,6 +35,7 @@
      */
     start: function() {
       Service.request('handleSystemMessageNotification', 'logshake', this);
+      window.addEventListener('volumeup+sleep', this);
       this.startCaptureLogsListener();
     },
 
@@ -67,6 +68,9 @@
     handleEvent: function(event) {
       debug('handling event ' + event.type);
       switch(event.type) {
+        case 'volumeup+sleep':
+          this.requestSystemLogs();
+          break;
         case 'capture-logs-start':
           this.handleCaptureLogsStart(event);
           break;
@@ -86,6 +90,10 @@
       this._notify('logsSaving', '');
     },
 
+    requestSystemLogs: function() {
+      window.dispatchEvent(new CustomEvent('requestSystemLogs'));
+    },
+
     /**
      * Handle an event of type capture-logs-success. event.detail.locations is
      * an array of absolute paths to the saved log files, and
@@ -94,7 +102,7 @@
     handleCaptureLogsSuccess: function(event) {
       debug('handling capture-logs-success');
       navigator.vibrate(100);
-      this._notify('logsSaved', event.detail.logPrefix,
+      this._notify('logsSaved', 'logsSavedBody',
                    this.triggerShareLogs.bind(this, event.detail.logFilenames),
                    event.detail);
       this._shakeId = null;
@@ -135,6 +143,7 @@
           new MozActivity({
             name: 'share',
             data: {
+              type: 'application/vnd.moz-systemlog',
               blobs: logFiles,
               filenames: logNames
             }
@@ -208,7 +217,7 @@
     _notify: function(titleId, body, onclick, dataPayload) {
       var title = navigator.mozL10n.get(titleId) || titleId;
       var payload = {
-        body: body,
+        body: navigator.mozL10n.get(body) || body,
         tag: 'logshake:' + this._shakeId,
         data: {
           systemMessageTarget: 'logshake',

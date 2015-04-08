@@ -318,28 +318,91 @@
     },
 
     /**
+     * Look for a paired device and invoke the appropriate callback function.
+     * @param {string} mac MAC address of the device
+     * @param {function} foundCb Found callback
+     * @param {function} notFoundCb Not found callback
+     * @memberof NfcHandoverManager.prototype
+     */
+    _findPairedDevice: function _findPairedDevice(mac, foundCb, notFoundCb) {
+      this._debug('_findPairedDevice');
+      if (this.defaultAdapter == null) {
+        // No BT
+        this._debug('No defaultAdapter');
+        return;
+      }
+
+      var req = this.defaultAdapter.getPairedDevices();
+      req.onsuccess = () => {
+        var devices = req.result;
+        this._debug('# devices: ' + devices.length);
+        for (var i = 0; i < devices.length; i++) {
+          var device = devices[i];
+          this._debug('Address: ' + device.address);
+          this._debug('Connected: ' + device.connected);
+          if (device.address.toLowerCase() === mac.toLowerCase()) {
+            this._debug('Found device ' + mac);
+            foundCb(device);
+            return;
+          }
+        }
+        if (notFoundCb) {
+          notFoundCb();
+        }
+      };
+      req.onerror = () => {
+        this._logVisibly('Cannot get paired devices from adapter.');
+      };
+    },
+
+    /**
+     * Connects via bluetooth to the paired device.
+     * @param {string} device Device to be paired
+     * @memberof NfcHandoverManager.prototype
+     */
+    _doConnect: function _doConnect(device) {
+      this._debug('doConnect with: ' + device.address);
+      var req = this.defaultAdapter.connect(device);
+      req.onsuccess = () => { this._debug('Connect succeeded'); };
+      req.onerror = () => { this._debug('Connect failed'); };
+    },
+
+    /**
      * Performs bluetooth pairing with other device
      * @param {string} mac MAC address of the peer device
      * @memberof NfcHandoverManager.prototype
      */
     _doPairing: function _doPairing(mac) {
       this._debug('doPairing: ' + mac);
-      if (this.defaultAdapter == null) {
-        // No BT
-        this._debug('No defaultAdapter');
-        return;
-      }
-      var req = this.defaultAdapter.pair(mac);
-      var self = this;
-      req.onsuccess = function() {
-        self._debug('Pairing succeeded');
-        self._clearBluetoothStatus();
-        self._doConnect(mac);
+
+      var alreadyPaired = (device) => {
+        this.defaultAdapter.connect(device);
       };
-      req.onerror = function() {
-        self._logVisibly('Pairing failed');
-        self._restoreBluetoothStatus();
+
+      var notYetPaired = () => {
+        this._debug('Device not yet paired');
+        var req = this.defaultAdapter.pair(mac);
+        req.onsuccess = () => {
+          this._debug('Pairing succeeded');
+          this._clearBluetoothStatus();
+          /*
+           * Bug 979427:
+           * After pairing we connect to the remote device. The only thing we
+           * know here is the MAC address, but the defaultAdapter.connect()
+           * requires a BluetoothDevice argument. So we use _findPairedDevice()
+           * to map the MAC to a BluetoothDevice instance.
+           */
+          this._findPairedDevice(mac, (device) => {
+            this.defaultAdapter.connect(device);
+          });
+        };
+        req.onerror = () => {
+          this._logVisibly('Pairing failed');
+          this._restoreBluetoothStatus();
+        };
       };
+
+      this._findPairedDevice(mac, alreadyPaired, notYetPaired);
     },
 
     /**
@@ -516,44 +579,6 @@
     },
 
     /**
-     * Connects via bluetooth to the paired device.
-     * @param {string} mac MAC addres of the paired device
-     * @memberof NfcHandoverManager.prototype
-     */
-    _doConnect: function _doConnect(mac) {
-      this._debug('doConnect with: ' + mac);
-      /*
-       * Bug 979427:
-       * After pairing we connect to the remote device. The only thing we
-       * know here is the MAC address, but the defaultAdapter.connect()
-       * requires a BluetoothDevice argument. So we use getPairedDevices()
-       * to map the MAC to a BluetoothDevice instance.
-       */
-      var req = this.defaultAdapter.getPairedDevices();
-      var self = this;
-      req.onsuccess = function() {
-        var devices = req.result;
-        self._debug('# devices: ' + devices.length);
-        var successCb = function() { self._debug('Connect succeeded'); };
-        var errorCb = function() { self._debug('Connect failed'); };
-        for (var i = 0; i < devices.length; i++) {
-          var device = devices[i];
-          self._debug('Address: ' + device.address);
-          self._debug('Connected: ' + device.connected);
-          if (device.address.toLowerCase() == mac.toLowerCase()) {
-                self._debug('Connecting to ' + mac);
-                var r = self.defaultAdapter.connect(device);
-                r.onsuccess = successCb;
-                r.onerror = errorCb;
-          }
-        }
-      };
-      req.onerror = function() {
-        self._logVisibly('Cannot get paired devices from adapter.');
-      };
-    },
-
-    /**
      * Clears timeout that handles the case an outstanding handover message
      * has not been received within a certain timeframe.
      * @memberof NfcHandoverManager.prototype
@@ -605,6 +630,25 @@
     },
 
     /**
+     * Check if a device is already paired and connected.
+     * @param {Object} btssp BT SSP record
+     * @memberof NfcHandoverManager.prototype
+     */
+    _checkConnected: function _checkConnected(btssp) {
+      if (!this.bluetooth.enabled) {
+        this._onRequestConnect(btssp);
+        return;
+      }
+      this._findPairedDevice(btssp.mac, (device) => {
+        if (!device.connected) {
+          this._onRequestConnect(btssp);
+        }
+      }, () => {
+        this._onRequestConnect(btssp);
+      });
+    },
+
+    /**
      * Handles simplified pairing record.
      * @param {Array} ndef NDEF message containing simplified pairing record
      * @memberof NfcHandoverManager.prototype
@@ -615,7 +659,7 @@
       var pairingRecord = ndef[0];
       var btssp = NDEFUtils.parseBluetoothSSP(pairingRecord);
       this._debug('Simplified pairing with: ' + btssp.mac);
-      this._onRequestConnect(btssp);
+      this._checkConnected(btssp);
     },
 
     /**
@@ -637,6 +681,7 @@
           job.onerror();
           this._showTryAgainNotification();
         }
+        this._restoreBluetoothStatus();
         return;
       }
 
@@ -645,7 +690,7 @@
         this._doAction({callback: this._doFileTransfer, args: [btssp.mac]});
       } else {
         // This is a static handover
-        this._onRequestConnect(btssp);
+        this._checkConnected(btssp);
       }
     },
 

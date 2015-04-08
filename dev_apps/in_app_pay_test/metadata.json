@@ -1,6 +1,0 @@
-{
-  "external": true,
-  "origin": "http://inapp-pay-test.paas.allizom.org",
-  "manifestURL": "http://inapp-pay-test.paas.allizom.org/manifest.webapp",
-  "type": "web"
-}

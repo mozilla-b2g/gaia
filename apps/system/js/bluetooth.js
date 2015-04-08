@@ -1,5 +1,5 @@
 /* global SettingsListener, Service, BluetoothIcon, BluetoothTransferIcon,
-          BluetoothHeadphoneIcon, LazyLoader */
+          BluetoothHeadphoneIcon, LazyLoader, BluetoothTransfer */
 /* exported Bluetooth1 */
 'use strict';
 
@@ -48,13 +48,6 @@ var Bluetooth = {
 
   /* this property store a reference of the default adapter */
   defaultAdapter: null,
-
-  /**
-   * keep a global connected property.
-   *
-   * @public
-   */
-  connected: false,
 
   init: function bt_init() {
     if (!window.navigator.mozBluetooth || this._started) {
@@ -145,13 +138,16 @@ var Bluetooth = {
     window.addEventListener('request-disable-bluetooth', this);
 
     Service.registerState('isEnabled', this);
+    Service.registerState('getAdapter', this);
     Service.registerState('isOPPProfileConnected', this);
     Service.registerState('isA2DPProfileConnected', this);
     Service.registerState('isSCOProfileConnected', this);
 
-    LazyLoader.load(['js/bluetooth_icon.js',
+    LazyLoader.load(['js/bluetooth_transfer.js',
+                     'js/bluetooth_icon.js',
                      'js/bluetooth_transfer_icon.js',
                      'js/bluetooth_headphone_icon.js']).then(function() {
+      BluetoothTransfer.start();
       this.icon = new BluetoothIcon(this);
       this.icon.start();
       this.transferIcon = new BluetoothTransferIcon(this);
@@ -183,7 +179,6 @@ var Bluetooth = {
   // Get adapter for BluetoothTransfer when everytime bluetooth is enabled
   initDefaultAdapter: function bt_initDefaultAdapter() {
     var bluetooth = window.navigator.mozBluetooth;
-    var self = this;
 
     if (!bluetooth || !bluetooth.enabled ||
         !('getDefaultAdapter' in bluetooth)) {
@@ -191,13 +186,13 @@ var Bluetooth = {
     }
 
     var req = bluetooth.getDefaultAdapter();
-    req.onsuccess = function bt_gotDefaultAdapter(evt) {
-      self.defaultAdapter = req.result;
-      self.initWithAdapter(self.defaultAdapter);
+    req.onsuccess = (evt) => {
+      this.defaultAdapter = req.result;
+      this._adapterAvailableHandler(this.defaultAdapter);
     };
   },
 
-  initWithAdapter: function bt_initWithAdapter(adapter) {
+  _adapterAvailableHandler: function bt__adapterAvailableHandler(adapter) {
     /* for v1, we only support two use cases for bluetooth connection:
      *   1. connecting with a headset
      *   2. transfering a file to/from another device
@@ -221,11 +216,11 @@ var Bluetooth = {
   },
 
   /**
-   * called by external for re-use adapter.
+   * Return bluetooth adapter.
    *
    * @public
    */
-  getAdapter: function bt_getAdapter() {
+  get getAdapter() {
     return this.defaultAdapter;
   },
 
@@ -266,6 +261,19 @@ var Bluetooth = {
    */
   get isSCOProfileConnected() {
     return this._isProfileConnected('sco');
+  },
+
+  /**
+   * Check if any of bluetooth profiles is connected.
+   * Referenced by Bluetooth icon update
+   *
+   * @public
+   * @return {Boolean} connected state
+   */
+  get connected() {
+    return this._isProfileConnected('hfp') ||
+      this._isProfileConnected('a2dp') ||
+      this._isProfileConnected('opp');
   }
 };
 

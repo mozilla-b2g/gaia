@@ -44,6 +44,7 @@ marionette('Text selection >', function() {
           'bubble should show since we have copied sth before');
         fakeTextselectionApp.paste('FunctionalitySourceInput');
 
+        fakeTextselectionApp.textSelection.startCountVisibilityChanged();
         client.helper.wait(500);
         action.tap(
           fakeTextselectionApp.FunctionalitySourceInput,
@@ -52,7 +53,10 @@ marionette('Text selection >', function() {
         .press(fakeTextselectionApp.FunctionalitySourceInput,
           caretPositionOfSourceInput.caretA.x,
           caretPositionOfSourceInput.caretA.y + 15)
-        .wait(0.5).release().perform(function(){
+        .wait(0.5).release().perform(function() {
+          assert.ok(
+            fakeTextselectionApp.textSelection.stopCountVisibilityChanged(), 1,
+            'visibility should be only triggered once');
           assert.ok(fakeTextselectionApp.bubbleVisiblity,
             'bubble should show after tapping on the caret');
           done();
@@ -60,6 +64,7 @@ marionette('Text selection >', function() {
       });
 
       test('copy and paste', function() {
+        fakeTextselectionApp.longPress('FunctionalitySourceInput');
         fakeTextselectionApp.copyTo('FunctionalitySourceInput',
           'FunctionalityTargetInput');
         assert.equal(
@@ -307,6 +312,28 @@ marionette('Text selection >', function() {
         });
     });
 
+    suite('bug1020801', function() {
+      setup(function() {
+        fakeTextselectionApp.setTestFrame('bug1120358');
+      });
+      test('bug1020801 : We should hide/show the utility bubble when ' +
+           'scrolling starts/ends',
+        function() {
+          fakeTextselectionApp.longPressByPosition('BugContent', 100, 100);
+          assert.ok(fakeTextselectionApp.bubbleVisiblity,
+                    'bubble should be shown before scroll starts');
+          fakeTextselectionApp.textSelection.startCountVisibilityChanged();
+          action.press(fakeTextselectionApp.BugContent, 30, 100)
+                .moveByOffset(0, -50).perform();
+          client.helper.wait(500);
+          assert.equal(fakeTextselectionApp.textSelection
+                                           .stopCountVisibilityChanged(), 2,
+                       'visibility should be triggered exactly twice');
+          assert.ok(fakeTextselectionApp.bubbleVisiblity,
+                    'bubble should be shown since scroll is ended');
+        });
+    });
+
     suite('bug1120316', function() {
       setup(function() {
         fakeTextselectionApp.setTestFrame('bug1120316');
@@ -323,7 +350,6 @@ marionette('Text selection >', function() {
             'bubble should show since we press selectall');
         });
     });
-  });
 
   suite('with lockscreen enabled', function() {
     var fakeTextselectionAppWithLockscreen;
@@ -371,5 +397,6 @@ marionette('Text selection >', function() {
           return !fakeTextselectionAppWithLockscreen.bubbleVisiblity;
         });
       });
+    });
   });
 });

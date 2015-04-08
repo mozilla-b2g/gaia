@@ -63,13 +63,13 @@ if (!contacts.MatchingUI) {
       if (type === 'matching') {
         // "Suggested duplicate contacts for xxx"
         navigator.mozL10n.setAttributes(duplicateMessage,
-                                        'suggestedDuplicateContacts',
+                                        'suggestedDuplicatesMessage',
                                         params);
       } else {
         title.setAttribute('data-l10n-id', 'duplicatesFoundTitle');
         // "xxx duplicates information in the following contacts"
         navigator.mozL10n.setAttributes(duplicateMessage,
-                                        'duplicatesFoundMessage',
+                                        'foundDuplicatesMessage',
                                         params);
       }
 

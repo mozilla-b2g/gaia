@@ -13,6 +13,8 @@ function MockCall(aNumber, aState, aServiceId) {
   this.id = { number: aNumber };
   this.serviceId = (aServiceId === undefined) ? 1 : aServiceId;
   this.state = aState;
+  this.switchable = true; // The call can be put on hold by default
+  this.mergeable = true; // The call can be merged by default
 
   this.answer = function() {
     this._connect();

@@ -134,6 +134,7 @@ fi
 if [ "$BUILDAPP" != "desktop" ] ; then
   LANG="en_US.UTF-8"
   export LANG
+  BUILDAPP_OPTS="--buildapp $BUILDAPP"
 fi
 
 DEVICE_OPTS=""
@@ -171,5 +172,6 @@ $TARGET \
   $OOP_OPTS \
   $RUNTIME_OPTS \
   $DEVICE_OPTS \
+  $BUILDAPP_OPTS \
   $TEST_FILES \
   $@

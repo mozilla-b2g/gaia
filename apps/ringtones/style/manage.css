@@ -6,6 +6,7 @@ html, body {
   font-size: 10px;
   background-color: #f4f4f4;
   overflow: hidden;
+  -moz-user-select: none;
 }
 
 section[role="region"] {

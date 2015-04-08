@@ -132,24 +132,9 @@ define(function(require) {
       handleEvent: function dt_handleEvent(evt) {
         switch (evt.type) {
           case 'localized':
-            this._localized(
-              this._elements.clockDate, this._elements.clockTime);
+            this._renderTimeZone();
             break;
         }
-      },
-
-      /**
-       * Update date and time format, list of timezone regions
-       * when language is changed
-       */
-      _localized: function dt_localized(clockDate, clockTime) {
-        var d = new Date();
-        var f = new navigator.mozL10n.DateTimeFormat();
-        var _ = navigator.mozL10n.get;
-        var format = _('shortTimeFormat');
-        clockDate.textContent = f.localeFormat(d, '%x');
-        clockTime.textContent = f.localeFormat(d, format);
-        this._renderTimeZone();
       },
 
       /**

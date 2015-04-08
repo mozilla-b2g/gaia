@@ -4,10 +4,11 @@
  *
  * @module @SimPinDialog
  */
-define(function() {
+define(function(require) {
   'use strict';
 
   var SettingsUtils = require('modules/settings_utils');
+  var DialogService = require('modules/dialog_service');
   var l10n = window.navigator.mozL10n;
 
   function SimPinDialog(elements) {
@@ -145,9 +146,11 @@ define(function() {
       }
 
       if (newPin !== confirmPin) {
-        this._elements.showMessage('newPinErrorMsg');
+        this._showMessage('newPinErrorMsg');
         this._elements.newPinInput.value = '';
         this._elements.confirmPinInput.value = '';
+        this._elements.pukInput.value = '';
+        this._elements.pukInput.focus();
         return Promise.reject();
       }
 
@@ -176,7 +179,7 @@ define(function() {
       }, (error) => {
         var needToCloseDialog = this._handleCardLockError({
           lockType: options.lockType,
-          retryCount: error.retryCount
+          error: error
         });
         if (!needToCloseDialog) {
           return Promise.reject();
@@ -247,6 +250,8 @@ define(function() {
         this._showMessage('newPinErrorMsg');
         this._elements.newPinInput.value = '';
         this._elements.confirmPinInput.value = '';
+        this._elements.pinInput.value = '';
+        this._elements.pinInput.focus();
         return Promise.reject();
       }
 
@@ -277,7 +282,7 @@ define(function() {
       }, (error) => {
         var needToCloseDialog = this._handleCardLockError({
           lockType: options.lockType,
-          retryCount: error.retryCount
+          error: error
         });
         if (!needToCloseDialog) {
           return Promise.reject();
@@ -327,7 +332,7 @@ define(function() {
             return Promise.reject();
 
           case 'NoFreeRecordFound':
-            alert(l10n.get('fdnNoFDNFreeRecord'));
+            DialogService.alert('fdnNoFDNFreeRecord');
             return fdnContact;
 
           default:
@@ -344,48 +349,86 @@ define(function() {
      * @memberOf SimPinDialog
      * @param {Object} options
      * @param {String} options.lockType
-     * @param {Number} options.retryCount
+     * @param {Object} options.error
+     * @param {Number} options.error.retryCount
+     * @param {String} options.error.name
      * @access private
      * @return {Boolean} - true means close dialog, others mean not
      */
     _handleCardLockError: function(options) {
+      var error = options.error;
       var lockType = options.lockType;
-      var retryCount = options.retryCount;
+      var retryCount = error.retryCount;
+      var errorName = error.name;
 
       // expected: 'pin', 'fdn', 'puk'
       if (!lockType) {
         // we don't know what's going on here, we have close the dialog.
+        console.error('`handleCardLockError` called without a lockType. ' +
+          'This should never even happen.', error);
         return true;
       }
 
+      switch (errorName) {
+        case 'SimPuk2':
+        case 'IncorrectPassword':
+          return this._handleRetryPassword(lockType, retryCount);
+
+        default:
+          DialogService.alert('genericLockError');
+          console.error('Error of type ' + errorName +
+            ' happened coming from an IccCardLockError event', error);
+          return true;
+      }
+    },
+
+    /**
+     * We will handle all retry cases here to make sure we can change to
+     * the right UI for users to continue.
+     *
+     * @memberOf SimPinDialog
+     * @param {String} lockType
+     * @param {Number} retryCount
+     * @access private
+     * @return {Boolean} - true means close dialog, others mean not
+     */
+    _handleRetryPassword: function(lockType, retryCount) {
       // after three strikes, ask for PUK/PUK2
       if (retryCount <= 0) {
         if (lockType === 'pin') {
-          // we leave this for system app
+          // we leave this for system app, so let's close the dialog
           return true;
         } else if (lockType === 'fdn' || lockType === 'pin2') {
           this._initUI('unlock_puk2');
           this._elements.pukInput.focus();
-        } else { // out of PUK/PUK2: we're doomed
-          // TODO: Shouldn't we show some kind of message here?
+          return false;
+        } else {
+          // out of PUK/PUK2: we're doomed
+          DialogService.alert('genericLockError');
           return true;
         }
+      } else {
+        // We still have retryCount, let users input values again
+        var msgId = (retryCount > 1) ? 'AttemptMsg3' : 'LastChanceMsg';
+        this._showMessage(lockType + 'ErrorMsg', lockType + msgId, {
+          n: retryCount
+        });
+        this._showRetryCount(retryCount);
+
+        if (lockType === 'pin' || lockType === 'fdn') {
+          this._elements.pinInput.value = '';
+          this._elements.pinInput.focus();
+        } else if (lockType === 'puk') {
+          this._elements.pukInput.value = '';
+          this._elements.pukInput.focus();
+        } else if (lockType === 'puk2') {
+          this._elements.pinInput.value = '';
+          this._elements.pukInput.value = '';
+          this._elements.pukInput.focus();
+        }
+
         return false;
       }
-
-      var msgId = (retryCount > 1) ? 'AttemptMsg3' : 'LastChanceMsg';
-      this._showMessage(lockType + 'ErrorMsg', lockType + msgId, {
-        n: retryCount
-      });
-      this._showRetryCount(retryCount);
-
-      if (lockType === 'pin' || lockType === 'fdn') {
-        this._elements.pinInput.focus();
-      } else if (lockType === 'puk') {
-        this._elements.pukInput.focus();
-      }
-
-      return false;
     },
 
     /**
@@ -514,6 +557,10 @@ define(function() {
           this._localize(this._elements.pukArea.querySelector('div'),
             'puk2Code');
           this._localize(this._elements.dialogTitle, 'puk2Title');
+          this._localize(this._elements.newPinArea.querySelector('div'),
+            'newSimPin2Msg');
+          this._localize(this._elements.confirmPinArea.querySelector('div'),
+            'confirmNewSimPin2Msg');
           break;
 
         // PIN lock

@@ -4,6 +4,10 @@
  * had to be made more specific. We should remove this file and use that one
  * instead.
  */
+/* ----------------------------------
+ * Buttons
+ * ---------------------------------- */
+
 .activity::-moz-focus-inner {
   border: none;
   outline: none;
@@ -34,14 +38,88 @@
   outline: none;
 }
 
+/* Recommend */
+.activity.recommend {
+  background-color: #00caf2;
+  color: #fff;
+}
+
+/* Danger */
+.danger.activity {
+  background-color: #e51e1e;
+  color: #fff;
+}
+
+/* Pressed */
 .activity:active {
   background-color: #b2f2ff;
   color: #fff;
 }
 
+/* Icons */
+.activity[data-icon] {
+  position: relative;
+}
+
+.activity[data-icon]:before {
+  position: absolute;
+  top: 50%;
+  margin-top: -1.5rem;
+  right: 1.5rem;
+  line-height: 3rem;
+}
+
+.activity[data-icon]:active:before {
+  color: #fff;
+}
+
+/* Pressed with dark skin */
+.skin-dark .activity:active {
+  background-color: #00aacc;
+}
+
+/* Disabled */
+.activity[aria-disabled="true"] {
+  background-color: rgba(0,0,0,0.05);
+  color: #c7c7c7;
+  pointer-events: none;
+}
+
+.activity[aria-disabled="true"].recommend {
+  background-color: #97cbd5;
+  color: rgba(255,255,255,0.5);
+}
+
+.activity[aria-disabled="true"].danger {
+  background-color: #eb7474;
+  color: rgba(255,255,255,0.5);
+}
+
+/* Disabled with dark background */
+.skin-dark .activity[aria-disabled="true"] {
+  background-color: #565656;
+  color: rgba(255,255,255,0.4);
+}
+
+.skin-dark .activity[aria-disabled="true"].recommend {
+  background-color: #006579;
+}
+
+.skin-dark .activity[aria-disabled="true"].danger {
+  background-color: #730f0f;
+}
+
+.activity[aria-disabled="true"]::-moz-selection {
+  -moz-user-select: none;
+}
+
+/* ----------------------------------
+ * Buttons inside lists
+ * ---------------------------------- */
+
 li .activity {
   position: relative;
-  text-align: left;
+  text-align: start;
   border: 0.1rem solid #c7c7c7;
   background: rgba(0,0,0,0.05);
   margin: 0 0 1rem;
@@ -56,6 +134,21 @@ li .activity {
   padding: 1rem 1.2rem;
 }
 
+/* Press */
+li .activity:active:after {
+  opacity: 0;
+}
+
+/* Disabled */
+li .activity[aria-disabled="true"] {
+  opacity: 0.5;
+}
+
+/* Icons */
+li .activity.icon {
+  -moz-padding-end: 4rem;
+}
+
 li .activity.icon:before {
   content: "";
   width: 3rem;
@@ -68,15 +161,217 @@ li .activity.icon:before {
   pointer-events: none;
 }
 
-html[dir="rtl"] li .activity {
-  text-align: right;
+li .activity.icon-view:active {
+  background-color: #b2f2ff;
 }
 
-html[dir="rtl"] li .activity.icon {
-  padding: 1rem 1.3rem 1rem 4rem;
+li .activity.icon-view:before {
+  background-image: url(buttons/images/forward-light.svg);
+  background-size: 3rem;
+  right: 0;
 }
+
+li .activity[data-icon]:before {
+  right: 1rem;
+}
+
+li .activity[data-icon="expand"]:before {
+  color: #00aac5;
+  top: unset;
+  bottom: 0;
+}
+
+li .activity[data-icon="expand"][aria-disabled="true"]:before {
+  color: #A9A9A9;
+}
+
+li .activity[data-icon="forward"]:before {
+  color: #686f72;
+}
+
+/* Getting more space for text, as icon is shorter */
+li .activity.icon-dialog {
+  -moz-padding-end: 3rem;
+}
+
+li .activity.icon-dialog:before {
+  width: 0;
+  height: 0;
+  top: auto;
+  right: 0.8rem;
+  bottom: 0.5rem;
+  border-top: 0.7rem solid transparent;
+  border-bottom: 0.7rem solid transparent;
+  border-left: 0.7rem solid #00aac5;
+  transform: rotate(45deg);
+  z-index: 1;
+}
+
+li .activity[aria-disabled="true"].icon-dialog:before {
+  border-left: 0.7rem solid #a9a9a9;
+}
+
+/* ----------------------------------
+ * Theme: Dark
+ * ---------------------------------- */
+
+.skin-dark li .activity {
+  background-color: #454545;
+  border: none;
+  color: #fff;
+  font-weight: normal;
+}
+
+.skin-dark li .activity:active {
+  background-color: #00aacc;
+}
+
+.skin-dark li .activity.icon-view:active {
+  background-color: #00aacc;
+}
+
+.skin-dark li .activity.icon-dialog:active:before {
+  border-left: 0.7rem solid #b2f2ff;
+}
+
+.skin-dark li .activity[aria-disabled="true"] {
+  background-color: #454545;
+  opacity: 0.5;
+}
+
+/* Inputs inside of .button */
+body[role="application"] .activity input {
+  border: 0;
+  background: none;
+}
+
+/* select */
+select {
+  width: 100%;
+  -moz-box-sizing: border-box;
+  font-family: sans-serif;
+  font-style: italic;
+  font-size: 1.6rem;
+  color: #333;
+  margin: 0 0 1rem;
+  padding: 0;
+  -moz-padding-start: 1.1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  height: 4rem;
+  border: 0.1rem solid #c7c7c7;
+  background: rgba(0,0,0,0.05);
+}
+
+.skin-dark select {
+  background-color: rgba(87, 87, 87, 0.8);
+  border: none;
+  color: #fff;
+}
+
+/* remove dotted outline */
+select:-moz-focusring {
+  color: transparent;
+  text-shadow: 0 0 0 #333;
+}
+
+.skin-dark select:-moz-focusring {
+  text-shadow: 0 0 0 #fff;
+}
+
+/* Hides dropdown arrow until bug #649849 is fixed */
+.activity.icon select,
+.activity[data-icon] select {
+  position: absolute;
+  top: -0.6rem;
+  left: 0;
+  width: calc(100% + 3rem);
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  -moz-padding-end: 5rem;
+  text-indent: 0;
+  font-weight: 400;
+  font-size: 1.7rem;
+  /*
+    The select element uses the text color to determine the color of the outline.
+    We put a text shadow with needed offset and no blur, so that replaces the text.
+  */
+  color: rgba(0,0,0,0);
+  text-shadow: 1rem 0.5rem 0 #333;
+  border: none;
+  background: none;
+}
+
+.activity.icon select option,
+.activity[data-icon] select option {
+  color: #000;
+  border: 0;
+  padding: 0.6rem 1.3rem;
+  text-shadow: 0 0 0 rgba(0,0,0,0);
+}
+
+.activity.icon-dialog {
+  overflow: hidden;
+}
+
+.skin-dark .activity.icon select,
+.skin-dark .activity[data-icon] select {
+  text-shadow: 1rem 0.5rem 0 #fff;
+}
+
+/******************************************************************************
+ * Right-To-Left layout
+ */
+
+html[dir="rtl"] .activity[data-icon]:before {
+  left: 1.5rem;
+  right: unset;
+  transform: scale(-1, 1);
+}
+
+html[dir="rtl"] li .activity.icon-view:before {
+  left: 0;
+  right: unset;
+  transform: rotate(180deg);
+}
+
+html[dir="rtl"] li .activity[data-icon]:before {
+  left: 1rem;
+  right: unset;
+}
+
 
 html[dir="rtl"] li .activity.icon:before {
-  right: auto;
   left: 0.5rem;
+  right: unset;
+}
+
+
+html[dir="rtl"] li .activity.icon-dialog:before {
+  left: 0.8rem;
+  right: unset;
+  transform: rotate(315deg);
+  border-left: unset;
+  border-right: 0.7rem solid #00aac5;
+}
+
+html[dir="rtl"] li .activity[aria-disabled="true"].icon-dialog:before {
+  border-left: unset;
+  border-right: 0.7rem solid #a9a9a9;
+}
+
+html[dir="rtl"] .skin-dark li .activity.icon-dialog:active:before {
+  border-left: unset;
+  border-right: 0.7rem solid #b2f2ff;
+}
+
+
+/* Hides dropdown arrow until bug #649849 is fixed */
+html[dir="rtl"] .activity.icon-dialog select,
+html[dir="rtl"] .activity[data-icon] select {
+  left: unset;
+  right: 0.3rem; /* .3rem space because of italic */
+  text-indent: 1rem;
 }

@@ -201,6 +201,7 @@
       newCardButtonElem.classList.add('new-card-transition');
       newCardButtonElem.addEventListener('transitionend', function onPinned() {
         newCardButtonElem.classList.remove('new-card-transition');
+        newCardButtonElem.classList.remove('last-card');
         newCardButtonElem.removeEventListener('transitionend', onPinned);
       });
       this.cardListElem.classList.add('card-list-slide');
@@ -209,6 +210,10 @@
       this.isNavigable = false;
       this.cardScrollable.on('slideEnd', function() {
         newCardButtonElem.classList.remove('new-card');
+        if (this.cardScrollable.nodes.indexOf(newCardElem) ===
+            this.cardScrollable.nodes.length - 1) {
+          newCardButtonElem.classList.add('last-card');
+        }
         this.isNavigable = true;
       }.bind(this));
       this.cardScrollable.insertNodeBefore(newCardElem, idx);

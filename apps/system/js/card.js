@@ -90,11 +90,14 @@
     /* jshint -W033 */
     return Tagged.escapeHTML `<div class="titles">
      <h1 id="${this.titleId}" class="title">${this.title}</h1>
-     <p class="subtitle">${this.subTitle}</p>
+     <p class="subtitle">
+      <span class="subtitle-url">${this.subTitle}</span>
+     </p>
     </div>
 
     <div class="screenshotView bb-button" data-l10n-id="openCard"
       role="link"></div>
+    <div class="privateOverlay"></div>
     <div class="appIconView" style="background-image:${this.iconValue}"></div>
 
     <footer class="card-tray">
@@ -126,8 +129,7 @@
    */
   Card.prototype._populateViewData = function() {
     var app = this.app;
-    this.title = (app.isBrowser() && app.title) ?
-                  app.title : app.shortName || app.name;
+    this.title = (app.isBrowser() && app.title) ? app.title : app.name;
     this.sslState = app.getSSLState();
     this.subTitle = '';
     this.iconValue = '';
@@ -164,6 +166,7 @@
     }
     if (displayUrl) {
       this.subTitle = this.getDisplayURLString(displayUrl);
+      this.viewClassList.push('show-subtitle');
     }
 
     var topMostWindow = app.getTopMostWindow();
@@ -331,10 +334,11 @@
       return;
     }
 
-    // If we have a cached screenshot, use that first
-    // will be null or blob url
-    var cachedLayer = app.requestScreenshotURL();
+    // Use a cached screenshot if we have one for the active app
+    var cachedLayer;
     if (app.isActive()) {
+      // will be null or blob url
+      cachedLayer = app.requestScreenshotURL();
       screenshotView.classList.toggle('fullscreen',
                                       app.isFullScreen());
       if (app.appChrome) {

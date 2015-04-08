@@ -11,6 +11,8 @@ apps/privacy-panel/js/vendor/**
 apps/system/camera/**
 build/r.js
 build/csslinter.js
+build/esomin/escodegen.js
+build/esomin/esprima.js
 build/jsmin.js
 apps/communications/contacts/oauth2/js/parameters.js
 apps/calendar/js/presets.js
@@ -32,6 +34,7 @@ shared/pages/import/js/parameters.js
 apps/sharedtest/test/unit/setImmediate_test.js
 apps/wappush/js/ext/**
 apps/keyboard/js/imes/jsavrophonetic/jsavrophonetic.js
+apps/keyboard/js/imes/latin/dictionaries/node_modules/**
 apps/camera/js/vendor/alameda.js
 apps/camera/js/config.js
 apps/gallery/js/config.js

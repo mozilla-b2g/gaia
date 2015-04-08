@@ -6,11 +6,11 @@
 
 define([
   'browserbox',
-  'slog',
+  'logic',
   './client',
   '../syncbase',
   'exports'
-], function(BrowserBox, slog, imapclient, syncbase, exports) {
+], function(BrowserBox, logic, imapclient, syncbase, exports) {
 
   /**
    * Log in to test credentials, passing the established connection
@@ -25,9 +25,10 @@ define([
    *   reject => String (normalized)
    */
   exports.probeAccount = function(credentials, connInfo) {
-    slog.info('probe:imap:connecting', {
-      connInfo: connInfo
-    });
+
+    var scope = logic.scope('ImapProber');
+
+    logic(scope, 'connecting', { connInfo: connInfo });
 
     var conn;
     return imapclient.createImapConnection(
@@ -38,17 +39,17 @@ define([
         // here, as the caller should have already passed a valid
         // accessToken during account setup. This might indicate a
         // problem with our OAUTH handling, so log it just in case.
-        slog.warn('probe:imap:credentials-updated');
+        logic(scope, 'credentials-updated');
       }
     ).then(function(newConn) {
         conn = newConn;
-        slog.info('probe:imap:success');
+        logic(scope, 'success');
         return { conn: conn };
       })
       .catch(function(err) {
         // Normalize the error before passing it on.
         err = imapclient.normalizeImapError(conn, err);
-        slog.error('probe:imap:error', { error: err });
+        logic(scope, 'error', { error: err });
         if (conn) {
           conn.close();
         }

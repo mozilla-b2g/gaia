@@ -1,6 +1,7 @@
 #! /bin/bash -vex
 mkdir -p artifacts/logs/gaia_ui_tests_gecko/
 ./bin/gaia-ui-tests \
+    --type=b2g-external \
     --gecko-log artifacts/gaia_ui_tests_gecko/ \
     --html-output artifacts/gaia_ui_tests_report.html \
     --this-chunk=${THIS_CHUNK:=1} \

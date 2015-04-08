@@ -50,11 +50,11 @@
   pointer-events: auto;
 }
 
-li p.match-main-reason {
+.match-main-reason {
   color: #008eab;
 }
 
-li[aria-disabled="true"] p.match-main-reason {
+li[aria-disabled="true"] .match-main-reason {
   color: #5b5b5b;
 }
 
@@ -111,6 +111,16 @@ form[role="dialog"][data-type="edit"] #main {
 
 [data-type="list"] li[data-visited="true"] aside img {
   border-style: solid;
+}
+
+/* Ellipsis direction hack before bug 883884 is fixed */
+.ellipsis-dir-fix {
+  display: block;
+  width: -moz-fit-content;
+  max-width: 100%;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* RTL View */

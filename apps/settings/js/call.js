@@ -17,7 +17,7 @@ require([
   /**
    * Singleton object that handles some call settings.
    */
-  var CallSettings = (function(window, document, undefined) {
+  var CallSettings = (function() {
     var _settings = window.navigator.mozSettings;
     var _mobileConnections = window.navigator.mozMobileConnections;
     var _voiceTypes = Array.prototype.map.call(_mobileConnections,
@@ -1130,7 +1130,7 @@ require([
     return {
       init: cs_init
     };
-  })(this, document);
+  })();
 
   /**
    * Startup.

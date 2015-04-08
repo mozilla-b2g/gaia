@@ -21,6 +21,11 @@
     var iframe = this.destination;
     var touch;
 
+    // Should not forward to a frame that's not displayed
+    if (iframe.getAttribute('aria-hidden')) {
+      return;
+    }
+
     switch (e.type) {
       case 'touchstart':
         sendTouchEvent(iframe, e);
@@ -32,13 +37,7 @@
         break;
 
       case 'touchmove':
-        // We only forward one touchmove for APZ enabled iframes
-        // the potention subsequent ones are ignored.
-        if (!this._firstMoveForwarded) {
-          sendTouchEvent(iframe, e);
-          this._firstMoveForwarded = true;
-        }
-
+        sendTouchEvent(iframe, e);
         touch = e.touches[0];
         this._updateShouldTap(touch);
         break;
@@ -62,7 +61,6 @@
     this._startX = null;
     this._startY = null;
     this._shouldTap = false;
-    this._firstMoveForwarded = false;
   };
 
   TouchForwarder.prototype._updateShouldTap = function(touch) {

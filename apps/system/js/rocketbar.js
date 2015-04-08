@@ -202,8 +202,10 @@
       window.addEventListener('attentionopened', this);
       window.addEventListener('searchopened', this);
       window.addEventListener('searchclosed', this);
-      window.addEventListener('utility-tray-overlayopening', this);
+      window.addEventListener('utilitytray-overlayopening', this);
       window.addEventListener('utility-tray-overlayopened', this);
+      window.addEventListener('simlockrequestfocus', this);
+      window.addEventListener('cardviewbeforeshow', this);
 
       // Listen for events from Rocketbar
       this.input.addEventListener('focus', this);
@@ -271,14 +273,11 @@
         case 'attentionopened':
         case 'appforeground':
         case 'appopened':
-        case 'utility-tray-overlayopening':
+        case 'utilitytray-overlayopening':
         case 'utility-tray-overlayopened':
-          if (this._activateCall) {
-            this._activateCall
-              .then(this._closeSearch.bind(this));
-          } else {
-            this._closeSearch();
-          }
+        case 'simlockrequestfocus':
+        case 'cardviewbeforeshow':
+          this._closeSearch();
           break;
         case 'lockscreen-appopened':
           this.handleLock(e);
@@ -459,9 +458,7 @@
      * @memberof Rocketbar.prototype
      */
     _handle_home: function() {
-      if (this.isActive()) {
-        this._closeSearch();
-      }
+      this._closeSearch();
       return true;
     },
 
@@ -522,8 +519,17 @@
     },
 
     _closeSearch: function() {
-      this.hideResults();
-      this.deactivate();
+      var hideAndDeactivate = () => {
+        this.hideResults();
+        this.deactivate();
+      };
+
+      if (this._activateCall) {
+        this._activateCall
+          .then(hideAndDeactivate);
+      } else {
+        hideAndDeactivate();
+      }
     },
 
     /**

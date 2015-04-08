@@ -389,6 +389,7 @@ var MediaDB = (function() {
     this.autoscan = (options.autoscan !== undefined) ? options.autoscan : true;
     this.state = MediaDB.OPENING;
     this.scanning = false;  // becomes true while scanning
+    this.initialScanComplete = false; // becomes true once endscan is called
     this.parsingBigFiles = false;
 
     // These are for data upgrade from the client.
@@ -1693,6 +1694,7 @@ var MediaDB = (function() {
   // unmounted during a scan.
   function endscan(media) {
     if (media.scanning) {
+      media.initialScanComplete = true;
       media.scanning = false;
       media.parsingBigFiles = false;
       dispatchEvent(media, 'scanend');

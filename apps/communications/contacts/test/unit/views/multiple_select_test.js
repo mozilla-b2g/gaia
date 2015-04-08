@@ -40,12 +40,9 @@ suite('MultipleSelect view', function() {
     var contacts = document.querySelectorAll('li');
     assert.equal(contacts.length, 3);
 
-    assert.equal(contacts[0].textContent.trim(),
-      'Pepito A\n        +346578888881');
-    assert.equal(contacts[1].textContent.trim(),
-      'Pepito BA\n        +346578888882');
-    assert.equal(contacts[2].textContent.trim(),
-      'Antonio CC\n        +346578888883');
+    assert.equal(contacts[0].textContent.trim(), 'Pepito A\n        Test');
+    assert.equal(contacts[1].textContent.trim(), 'Pepito BA\n        Test');
+    assert.equal(contacts[2].textContent.trim(), 'Antonio CC\n        Test');
   });
 
   test('Loading contacts from vCard cursor', function(done) {

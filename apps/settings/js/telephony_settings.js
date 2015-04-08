@@ -7,7 +7,7 @@
  * Singleton object (base object) that handle listener and events on mozIcc
  * objects in order to handle telephony-related menu items in the root panel.
  */
-var TelephonySettingHelper = (function(window, document, undefined) {
+var TelephonySettingHelper = (function() {
   var _iccManager;
   var _mobileConnections;
 
@@ -86,4 +86,4 @@ var TelephonySettingHelper = (function(window, document, undefined) {
   return {
     init: tsh_init
   };
-})(this, document);
+})();

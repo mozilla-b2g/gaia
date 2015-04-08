@@ -1,4 +1,16 @@
+/* global module */
+
 'use strict';
+
+(function() {
+
+var namespace;
+
+try {
+  namespace = window;
+} catch(e) {
+  namespace = module.exports;
+}
 
 (function(exports) {
 
@@ -533,13 +545,14 @@ WordListConverter.prototype.toBlob = function() {
 
   var words = this.words;
 
-  // JSConv: if the words do not contain frequency information, attach 0.975
+  // JSConv: if the words do not contain frequency information, attach 0.3
   // uniform frequency. We can't use 0 (special meaning for prediction engine
-  // and we can't use 1 either (which overflows after normalization),
-  // so just use a 0.975 that becomes 31 in _emitNode().
+  // and we can't use 1 either (which overflows after normalization), so just
+  // use a 0.3 that becomes 10 in _emitNode(). 10 is an empirical value for best
+  // predictions result with user dictionary.
   if ('string' === typeof words[0]){
     words = words.map(function(word) {
-     return {w: word, f: 0.975};
+     return {w: word, f: 0.3};
     });
   }
 
@@ -559,4 +572,6 @@ WordListConverter.prototype.toBlob = function() {
 
 exports.WordListConverter = WordListConverter;
 
-})(window);
+})(namespace);
+
+})();

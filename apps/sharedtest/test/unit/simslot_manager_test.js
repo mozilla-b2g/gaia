@@ -84,7 +84,7 @@ suite('SIMSlotManager', function() {
     assert.equal(SIMSlotManager.length,
       MockNavigatorMozMobileConnections.length);
     assert.isTrue(SIMSlotManager.ready);
-    assert.isFalse(
+    assert.isTrue(
       stubAddEventListener.calledWith('iccdetected', SIMSlotManager));
   });
 

@@ -65,6 +65,7 @@ manifest.appcache
 /distribution/
 /node_modules/
 /.modules.tar
+/modules_tar_cachedir
 ENV/
 .env
 modules.tar

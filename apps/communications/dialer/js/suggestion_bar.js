@@ -1,4 +1,4 @@
-/* globals CallHandler, Contacts, fb, KeypadManager, LazyL10n, LazyLoader,
+/* globals CallHandler, Contacts, fb, KeypadManager, LazyLoader,
            SimplePhoneMatcher, SimSettingsHelper */
 
 // Suggestion_bar.js will be loaded on init of KeypadManager through
@@ -254,13 +254,12 @@ var SuggestionBar = {
   },
 
   _setItem: function sb_setItem(node, tel, type, name) {
+    var _ = navigator.mozL10n.get;
     var typeTag = node.querySelector('.js-tel-type');
     var telTag = node.querySelector('.js-tel');
     var nameTag = node.querySelector('.js-name');
     nameTag.textContent = name ? name : null;
-    LazyL10n.get(function localized(_) {
-      typeTag.textContent = _(type) || type;
-    });
+    typeTag.textContent = _(type) || type;
     telTag.innerHTML = tel ? tel : null;
   },
 

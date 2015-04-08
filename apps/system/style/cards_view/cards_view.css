@@ -122,7 +122,13 @@
   transform-origin: 50% 50%;
 }
 
-#cards-view .card.private .screenshotView::after {
+#cards-view .card .privateOverlay {
+  display: none;
+  pointer-events: none;
+}
+
+#cards-view .card.private .privateOverlay {
+  display: block;
   width: 100%;
   height: 100%;
   content: "";
@@ -280,63 +286,109 @@
   pointer-events: auto;
 }
 
+#cards-view.filtered .card .titles h1 {
+  color: #4d4d4d;
+}
+
 #cards-view .card p.subtitle {
   display: none;
   pointer-events: auto;
   overflow: hidden;
-  text-overflow: ellipsis;
   margin: 0;
   text-align: center;
   font-weight: normal;
 }
 
+#cards-view .card.show-subtitle p.subtitle {
+  display: block;
+}
+
 #cards-view .card.browser p.subtitle {
-  color: #858585;
+  color: #e7e7e7;
   pointer-events: auto;
+  font-style: italic;
 }
 
 #cards-view.filtered .card p.subtitle {
-  display: none;
+  color: #858585;
 }
 
-#cards-view .card p.subtitle:not(:empty),
-#cards-view.filtered .card p.subtitle:not(:empty) {
-  display: block;
+#cards-view .titles .subtitle-url {
+  direction: ltr;
+  display: inline-block;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-#cards-view .card p.subtitle:not(:empty) {
-  display: block;
-}
-
-#cards-view .card[data-ssl="secure"] p.subtitle:not(:empty) {
+#cards-view .card.show-subtitle[data-ssl="secure"] p.subtitle,
+#cards-view .card.show-subtitle[data-ssl="broken"] p.subtitle {
   -moz-padding-start: 2rem;
-  background: url("../chrome/images/light/ssl.png") no-repeat 0.1rem center / 2rem 2rem;
+  -moz-padding-end: 1rem;
+  min-height: 2rem;
+  background-repeat: no-repeat;
+  background-position: left -0.5rem top -1rem;
+  background-size: 3rem 3rem;
 }
 
-#cards-view .card[data-ssl="broken"] p.subtitle:not(:empty) {
-  -moz-padding-start: 3rem;
-  background: url("../chrome/images/light/ssl_broken.png") no-repeat 0.1rem center / 2rem 2rem;
+#cards-view .card.show-subtitle[data-ssl="secure"] p.subtitle {
+  background-image: url("../chrome/images/dark/ssl.png");
+}
+#cards-view .card.show-subtitle[data-ssl="broken"] p.subtitle {
+  background-image: url("../chrome/images/dark/ssl_broken.png");
 }
 
-#cards-view.filtered .card .titles h1 {
-  color: #4d4d4d;
+#cards-view.filtered .card.show-subtitle[data-ssl="secure"] p.subtitle {
+  background-image: url("../chrome/images/light/ssl.png");
+}
+#cards-view .card.show-subtitle[data-ssl="broken"] p.subtitle {
+  background-image: url("../chrome/images/light/ssl_broken.png");
 }
 
-html[dir="rtl"] #cards-view .card[data-ssl="broken"] p.subtitle:not(:empty),
-html[dir="rtl"] #cards-view .card[data-ssl="secure"] p.subtitle:not(:empty) {
-  background-position: calc(100% - 0.1rem) center
+html[dir="rtl"] #cards-view .card.show-subtitle[data-ssl="broken"] p.subtitle,
+html[dir="rtl"] #cards-view .card.show-subtitle[data-ssl="secure"] p.subtitle {
+  background-position: right -0.5rem top -1rem;
 }
 
 
 /* Animations */
 
 .card.current .titles,
-.card.current .card-tray {
+.card.current .card-tray,
+.card.current.private .privateOverlay {
   opacity: 0;
 }
 
 #screen.cards-view .card.current .titles,
-#screen.cards-view .card.current .card-tray {
+#screen.cards-view .card.current .card-tray,
+#screen.cards-view .card.current.private .privateOverlay {
   opacity: 1;
-  transition: opacity 1s ease;
+  transition: opacity 0.5s ease;
 }
+
+#screen.cards-view .card.current.select .titles,
+#screen.cards-view .card.current.select .card-tray,
+#screen.cards-view .card.current.private.select .privateOverlay {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+#cards-view.from-home {
+  animation: cardview-from-home 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+#cards-view.to-home {
+  animation: cardview-to-home 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation-fill-mode: forwards;
+}
+
+@keyframes cardview-from-home {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes cardview-to-home {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+

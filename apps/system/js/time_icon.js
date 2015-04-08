@@ -41,7 +41,7 @@
     this.element.innerHTML = formatted;
 
     Service.request('OperatorIcon:update', now);
-    this.publish('change');
+    this.publish('changed');
   };
   exports.TimeIcon = TimeIcon;
 }(window));

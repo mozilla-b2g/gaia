@@ -13,7 +13,7 @@ class Marketplace(Base):
 
     _loading_fragment_locator = (By.ID, 'splash-overlay')
     _search_locator = (By.ID, 'search-q')
-    _filter_locator = (By.ID, 'compatibility_filtering')
+    _filter_locator = (By.ID, 'compat-filter')
     _marketplace_iframe_locator = (By.CSS_SELECTOR, 'iframe[src*="marketplace"]')
     name = 'Marketplace'
 
@@ -23,7 +23,7 @@ class Marketplace(Base):
         Wait(self.marionette).until(expected.element_displayed(filter_select))
         filter_select.tap()
 
-        self.select('All apps', tap_close=False)
+        self.select('All Apps', tap_close=False)
 
         # After the select is gone, go back to the Marketplace app
         self.apps.switch_to_displayed_app()

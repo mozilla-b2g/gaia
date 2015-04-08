@@ -58,8 +58,7 @@ function checkWebappsScheme(webapps) {
         key + ' of webapps.json has not defined ' + configKey);
     });
     var scheme =
-      webapp.origin.indexOf('mochi.test') !== -1 ||
-      webapp.origin.indexOf('inapp-pay-test.paas.allizom.org') !== -1 ?
+      webapp.origin.indexOf('mochi.test') !== -1 ?
       'http' : 'app';
     assert.equal(webapp.origin.indexOf(scheme), 0);
   });
@@ -111,6 +110,13 @@ function checkFileContentByPathInZip(zipPath, pathInZip,
     checkFileContentInZip(zipPath, pathInZip, actual, isJSON);
 }
 
+function matchFileContentInZip(zipPath, pathInZip, matchPattern) {
+  var zip = new AdmZip(zipPath);
+  var entry = zip.getEntry(pathInZip);
+  var content = zip.readAsText(entry);
+  assert.ok(matchPattern.test(content));
+}
+
 function exec(command, options, callback) {
   var opts = {
     maxBuffer: 400 * 1024
@@ -157,6 +163,7 @@ exports.checkFilePathInZip = checkFilePathInZip;
 exports.checkFileInZip = exports.checkDirInZip = checkFileInZip;
 exports.checkFileContentInZip = checkFileContentInZip;
 exports.checkFileContentByPathInZip = checkFileContentByPathInZip;
+exports.matchFileContentInZip = matchFileContentInZip;
 exports.emptyJsonFile = emptyJsonFile;
 exports.exec = exec;
 exports.cleanupWorkspace = cleanupWorkspace;

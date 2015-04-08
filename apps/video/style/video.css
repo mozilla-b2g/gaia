@@ -440,7 +440,6 @@ header .icon:after {
   width: 100%;
   z-index: 10;
   opacity: 1;
-  visibility: visible;
   will-change: opacity, visibility;
   transition: visibility 0s, opacity 0.2s;
 }
@@ -748,8 +747,9 @@ body:not(.layout-fullscreen-player) #player-view {
 
 /* overlay mode */
 .overlay #app-container, .info-view #app-container,
-.options-view #app-container, .in-use-overlay #app-container {
-  display: none;
+.options-view #app-container, .in-use-overlay #app-container,
+.confirm-dialog #app-container {
+  visibility: hidden;
 }
 
 /* spinner is only valid for tablet and landscape mode */

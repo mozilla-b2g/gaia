@@ -252,7 +252,7 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
   };
 
   exports.getSupportedNetworkInfo = getSupportedNetworkInfo;
-})(this);
+})(window);
 
 function isIP(address) {
   return /^\d+\.\d+\.\d+\.\d+$/.test(address);

@@ -667,24 +667,25 @@ footer {
   outline-offset: -0.2rem;
 }
 
-#edit-crop-none {
-  left: 0;
-}
 #edit-crop-aspect-free {
-  left: 20%;
+  left: 0;
   background-image: url('images/iconaction_camera_freecrop_30x30.png');
 }
 #edit-crop-aspect-portrait {
-  left: 40%;
+  left: 20%;
   background-image: url('images/iconaction_camera_crop2x3_30x30.png');
 }
 #edit-crop-aspect-landscape {
-  left: 60%;
+  left: 40%;
   background-image: url('images/iconaction_camera_crop3x2_30x30.png');
 }
 #edit-crop-aspect-square {
-  left: 80%;
+  left: 60%;
   background-image: url('images/iconaction_camera_crop1x1_30x30.png');
+}
+
+#edit-crop-aspect-more {
+  left: 80%;
 }
 
 /* instead of using images inside the buttons above, just draw boxes */

@@ -521,7 +521,7 @@ var CallLog = {
       if (number) {
         bdi.textContent = number;
       } else {
-        primInfoMain.setAttribute('data-l10n-id', 'withheld-number');
+        bdi.setAttribute('data-l10n-id', 'withheld-number');
       }
     }
     primInfoMain.appendChild(bdi);

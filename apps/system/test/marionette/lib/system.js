@@ -359,6 +359,12 @@ System.prototype = {
     this.client.helper.waitForElement(System.Selector.activeKeyboard);
   },
 
+  waitForKeyboardToDisappear: function() {
+    this.client.helper.waitForElementToDisappear(
+      System.Selector.activeKeyboard
+    );
+  },
+
   goHome: function() {
     this.client.switchToFrame();
     this.client.executeAsyncScript(function() {

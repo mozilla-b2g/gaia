@@ -173,7 +173,8 @@ SingleDay.prototype = {
 
     var labels = [];
 
-    var title = document.createElement('span');
+    // we use a <bdi> element because content might be bidirectional
+    var title = document.createElement('bdi');
     title.className = 'md__event-title';
     title.id = 'md__event-' + busytime._id + '-title-' + this._instanceID;
     labels.push(title.id);
@@ -182,7 +183,8 @@ SingleDay.prototype = {
     el.appendChild(title);
 
     if (remote.location) {
-      var location = document.createElement('span');
+      // we use a <bdi> element because content might be bidirectional
+      var location = document.createElement('bdi');
       location.className = 'md__event-location';
       location.id = 'md__event-' + busytime._id + '-location-' +
         this._instanceID;

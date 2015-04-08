@@ -4,7 +4,7 @@
 
 define(
   [
-    'rdcommon/log',
+    'logic',
     '../accountcommon',
     '../a64',
     '../allback',
@@ -14,7 +14,7 @@ define(
     'exports'
   ],
   function(
-    $log,
+    logic,
     $accountcommon,
     $a64,
     $allback,
@@ -29,7 +29,7 @@ var allbackMaker = $allback.allbackMaker;
 exports.account = $account;
 exports.configurator = {
   tryToCreateAccount: function(universe, userDetails, domainInfo,
-                               callback, _LOG) {
+                               callback) {
     var credentials, incomingInfo, smtpConnInfo, incomingType;
     if (domainInfo) {
       incomingType = (domainInfo.type === 'imap+smtp' ? 'imap' : 'pop3');

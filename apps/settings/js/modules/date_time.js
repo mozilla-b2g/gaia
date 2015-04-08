@@ -165,8 +165,11 @@ define(function(require) {
           }).bind(this));
           break;
         case 'localized':
+          var d = new Date();
           // update time format while language changed
           this._updateTimeFormat();
+          this.date = this._formatDate(d);
+          this.time = this._formatTime(d);
           break;
       }
     },
@@ -254,12 +257,13 @@ define(function(require) {
      * @returns {String}
      */
     _formatDate: function dt_formatDate(d, iso) {
+      var _ = navigator.mozL10n.get;
       if (d instanceof Date) {
         if (iso) {
           return d.toLocaleFormat('%Y-%m-%d');
         } else {
           var f = new navigator.mozL10n.DateTimeFormat();
-          return f.localeFormat(d, '%x');
+          return f.localeFormat(d, _('shortDateFormat'));
         }
       } else {
         return d;

@@ -329,6 +329,7 @@ var icc = {
   },
 
   resize: function() {
+    this.icc_view.style.top = StatusBar.height + 'px';
     var height = window.layoutManager.height - StatusBar.height;
     this.icc_view.style.height = height + 'px';
   },
@@ -527,7 +528,7 @@ var icc = {
     }
     DUMP('Final URL to open: ' + url);
     if (url != null || url.length != 0) {
-      if (confirmMessage) {
+      if (icons || confirmMessage) {
         this.asyncConfirm(stkMessage, confirmMessage, icons, function(res) {
           if (res) {
             openURL(url);

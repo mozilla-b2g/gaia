@@ -98,6 +98,7 @@ endif
 
 DOGFOOD?=0
 NODE_MODULES_SRC?=modules.tar
+NODE_MODULES_CACHEDIR=modules_tar_cachedir
 
 # GAIA_DEVICE_TYPE customization
 # phone - default
@@ -445,6 +446,9 @@ GAIA_KEYBOARD_LAYOUTS?=en,pt-BR,es,de,fr,fr-CA,pl,ko,zh-Hans-Pinyin,en-Dvorak
 # download the dictionary in keyboard settings page in order to enable the
 # layout.
 GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS?=$(GAIA_KEYBOARD_LAYOUTS)
+# Enable user dictionary for built-in keyboard app by default
+GAIA_KEYBOARD_ENABLE_USER_DICT?=1
+
 
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
@@ -699,10 +703,13 @@ $(NPM_INSTALLED_PROGRAMS): package.json node_modules
 NODE_MODULES_REV=$(shell cat gaia_node_modules.revision)
 # modules.tar and git-gaia-node-modules are the possible values for
 # $(NODE_MODULES_SRC). See the node_modules target.
-modules.tar: gaia_node_modules.revision
+modules.tar: gaia_node_modules.revision $(NODE_MODULES_CACHEDIR)/$(NODE_MODULES_REV)
+	-cp -f "$(NODE_MODULES_CACHEDIR)/$(NODE_MODULES_REV)" "$(NODE_MODULES_SRC)"
+
+$(NODE_MODULES_CACHEDIR)/$(NODE_MODULES_REV): gaia_node_modules.revision
 	@echo Downloading latest node_modules package. This may take several minutes...
-	-$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/$(NODE_MODULES_REV) &&\
-	mv $(NODE_MODULES_REV) "$(NODE_MODULES_SRC)"
+	mkdir -p "$(NODE_MODULES_CACHEDIR)"
+	-cd "$(NODE_MODULES_CACHEDIR)" && $(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/$(NODE_MODULES_REV)
 
 git-gaia-node-modules: gaia_node_modules.revision
 	if [ ! -d "$(NODE_MODULES_SRC)" ] ; then \
@@ -727,8 +734,7 @@ endif
 	@echo "node_modules installed."
 	touch -c $@
 ifeq ($(BUILDAPP),device)
-	export LANG=en_US.UTF-8; \
-	npm install marionette-socket-host
+	export LANG=en_US.UTF-8;
 endif
 
 ###############################################################################
@@ -750,10 +756,9 @@ endif
 
 b2g: node_modules/.bin/mozilla-download
 	DEBUG=* ./node_modules/.bin/mozilla-download \
-	--verbose \
-	--product b2g \
-	--channel tinderbox \
-	--branch mozilla-central $@
+	--product b2g-desktop \
+	--branch mozilla-central \
+	$(shell pwd)
 
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
@@ -1038,7 +1043,7 @@ clean:
 
 # clean out build products and tools
 really-clean: clean
-	rm -rf b2g-* .b2g-* b2g_sdk node_modules b2g modules.tar js-marionette-env
+	rm -rf b2g-* .b2g-* b2g_sdk node_modules b2g modules.tar js-marionette-env "$(NODE_MODULES_CACHEDIR)"
 
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true

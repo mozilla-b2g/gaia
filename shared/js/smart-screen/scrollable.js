@@ -114,7 +114,6 @@
       // close the sliding transition (transition-delay = 0 is not working)
       getComputedStyle(this.listElem).width;
       this.listElem.classList.remove('no-transition');
-      this.listElem.classList.remove('card-slide');
       this.listElem.style.transitionDuration = null;
 
       // set positions of other nodes to create moving effect
@@ -134,10 +133,12 @@
       var prevTransform = this.listElem.style.transform;
       var distance = Math.abs(this._getScrollDistance(newItem) -
                               this.translateX);
-      this.listElem.style.transitionDuration = distance / 2000 + 's';
+      var duration = (distance < 960) ? 0.3 : distance / 2000;
+
+      this.listElem.style.transitionDuration = duration + 's';
       this.scrollTo(newItem);
       if (!prevTransform ||
-          prevTransform === this.listElem.style.transform||
+          prevTransform === this.listElem.style.transform ||
           document.visibilityState !== 'visible') {
         this.endSlide();
       }
@@ -419,12 +420,16 @@
     },
 
     handleEvent: function (evt) {
-      if (evt.type === 'transitionend' && evt.target === this.listElem &&
-                                          evt.propertyName === 'transform') {
-        if (this.isSliding) {
-          this.endSlide();
+      if (evt.type === 'transitionend') {
+        if (evt.target === this.listElem && evt.propertyName === 'transform') {
+          if (this.isSliding) {
+            this.endSlide();
+          }
+          this.fire('listTransformEnd', this.listElem);
+        } else if (evt.target.classList.contains('card') &&
+            evt.propertyName === 'transform') {
+          this.fire('nodeTransformEnd', evt.target);
         }
-        this.fire('listTransformEnd', this.listElem);
       }
     }
 

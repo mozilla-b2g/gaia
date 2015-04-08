@@ -111,7 +111,9 @@
 
   TaskManager.prototype._appClosed = function cs_appClosed(evt) {
     window.removeEventListener('appclosed', this._appClosedHandler);
+    window.removeEventListener('homescreenclosed', this._appClosedHandler);
     this.screenElement.classList.add('cards-view');
+    this.element.classList.remove('from-home');
   };
 
   /**
@@ -163,8 +165,9 @@
     if (activeApp.isHomescreen) {
       // Ensure the homescreen is in a closed state, as the user may choose
       // one of the app.
-      activeApp.close();
-      screenElement.classList.add('cards-view');
+      activeApp.close('home-to-cardview');
+      this.element.classList.add('from-home');
+      window.addEventListener('homescreenclosed', this._appClosedHandler);
     } else {
       window.addEventListener('appclosed', this._appClosedHandler);
     }
@@ -184,6 +187,7 @@
     this._removeCards();
     this.setActive(false);
     window.removeEventListener('appclosed', this._appClosedHandler);
+    window.removeEventListener('homescreenclosed', this._appClosedHandler);
     this.screenElement.classList.remove('cards-view');
 
     var detail;
@@ -414,20 +418,20 @@
 
       case 'select' :
 
-        if (this.position == card.position) {
-          this.exitToApp(card.app);
-        } else {
+        if (this.position != card.position) {
           // Make the target app, the selected app
           this.position = card.position;
           this.alignCurrentCard();
+        }
 
-          var self = this;
-          this.currentCard.element.addEventListener('transitionend',
-                                                    function onCenter(e) {
-            e.target.removeEventListener('transitionend', onCenter);
+        var self = this;
+        this.currentCard.element.addEventListener('transitionend',
+          function afterTransition(e) {
+            e.target.removeEventListener('transitionend', afterTransition);
             self.exitToApp(card.app);
           });
-        }
+        this.currentCard.element.classList.add('select');
+
         break;
     }
   };
@@ -454,16 +458,18 @@
 
     setTimeout(() => {
       var finish = () => {
+        this.element.classList.remove('to-home');
         this.hide();
       };
 
       if (app.isHomescreen) {
-        app.open();
-        finish();
+        this.element.classList.add('to-home');
+        app.open('home-from-cardview');
       } else {
         app.open('from-cardview');
-        eventSafety(app.element, '_opened', finish, 400);
       }
+
+      eventSafety(app.element, '_opened', finish, 400);
     }, 100);
   };
 

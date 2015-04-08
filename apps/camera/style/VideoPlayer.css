@@ -15,16 +15,6 @@
 }
 
 /* video player controls */
-.videoPlayerControls {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  margin: 0;
-  padding: 0;
-}
-
 .videoPlayerPlayButton:before {
   content: "";
   position: absolute;
@@ -69,6 +59,7 @@
 
 .videoPlayerPlayButton.hidden {
   opacity: 0;
+  visibility: hidden;
 }
 
 .videoPlayerFooter {
@@ -82,12 +73,15 @@
   background-color: rgba(0, 0, 0, 0.3);
   overflow: hidden;
   opacity: 1;
-  transition: opacity 0.2s;
+  transition: opacity 0.2s, visibility 0s;
+  visibility: visible;
 }
 
 .videoPlayerFooter.hidden {
   opacity: 0;
   pointer-events: none;
+  visibility: hidden;
+  transition-delay: 0s, 0.5s;
 }
 
 .videoPlayerPauseButton {

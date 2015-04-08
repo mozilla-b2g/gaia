@@ -25,8 +25,9 @@ body, a {
   font-size: 1.4rem;
   font-style: italic;
   margin: 0;
-  margin-top: 1rem;
   -moz-margin-end: 1rem;
+  height: 4.2rem;
+  padding-bottom: 1.3rem;
   text-align: center;
   display: none;
   justify-content: center;
@@ -309,4 +310,9 @@ html[dir="rtl"] #suggestions li {
 
 html[dir="rtl"] #suggestions-provider-dropdown {
   transform: scaleX(-1);
+}
+
+html[dir="rtl"] #places .meta {
+  direction: ltr;
+  float: right;
 }

@@ -1,14 +1,13 @@
 'use strict';
 
 /* global CallHandler, CallLog, CallLogDBManager, Contacts, KeypadManager,
-          MockMozL10n, MockNavigatorMozIccManager,
+          MockL10n, MockNavigatorMozIccManager,
           MocksHelper, MockSimSettingsHelper, Notification,
           CallGroupMenu, Utils, MockMozContacts */
 
 require('/shared/js/dialer/utils.js');
 
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
-require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_accessibility_helper.js');
@@ -36,7 +35,6 @@ var mocksHelperForCallLog = new MocksHelper([
   'CallGroupMenu',
   'PerformanceTestingHelper',
   'LazyLoader',
-  'LazyL10n',
   'Notification',
   'StickyHeader',
   'CallHandler',
@@ -53,7 +51,7 @@ suite('dialer/call_log', function() {
 
   suiteSetup(function(done) {
     realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockMozL10n;
+    navigator.mozL10n = MockL10n;
     realMozIccManager = navigator.mozIccManager;
     navigator.mozIccManager = MockNavigatorMozIccManager;
     realMozContacts = navigator.mozContacts;
@@ -105,6 +103,9 @@ suite('dialer/call_log', function() {
     });
     document.body.appendChild(noResult);
     document.body.classList.remove('recents-edit');
+
+    this.sinon.stub(MockL10n.DateTimeFormat.prototype, 'localeFormat',
+      function(date, format) { return date; });
 
     /* Assume that the contact cache is valid during the tests and make the
      * promise used to validaate it return synchronously. */
@@ -206,6 +207,14 @@ suite('dialer/call_log', function() {
     id: '123',
     lastEntryDate: Date.now(),
     number: '111222333',
+    type: 'incoming',
+    status: '',
+    retryCount: 0
+  };
+
+  var noNumberGroup = {
+    id: '123',
+    lastEntryDate: Date.now(),
     type: 'incoming',
     status: '',
     retryCount: 0
@@ -337,9 +346,14 @@ suite('dialer/call_log', function() {
             (group.emergency ? 'emergencyNumber' : '');
         assert.equal(primaryInfoMain.getAttribute('data-l10n-id'), expected);
         assert.isNull(primaryInfoMain.querySelector('bdi'));
-      } else {
+      } else if (group.number) {
         assert.equal(
           primaryInfoMain.querySelector('bdi').innerHTML, group.number);
+      } else {
+        assert.equal(
+          primaryInfoMain.querySelector('bdi').getAttribute('data-l10n-id'),
+          'withheld-number'
+        );
       }
     }
 
@@ -446,7 +460,7 @@ suite('dialer/call_log', function() {
       var self = this;
       // This calls checkGroupDOM which validates the time is there.
       appendAndCheckGroupDOM(numEntries, null, function() {
-        self.sinon.stub(MockMozL10n, 'DateTimeFormat', function() {
+        self.sinon.stub(MockL10n, 'DateTimeFormat', function() {
           this.localeFormat = function(date, format) {
             if (format === 'shortTimeFormat12') {
               return fakeClockTime12;
@@ -493,6 +507,10 @@ suite('dialer/call_log', function() {
 
     test('No contact group', function(done) {
       checkGroupDOM(CallLog.createGroup(noContactGroup), noContactGroup, done);
+    });
+
+    test('No number group', function(done) {
+      checkGroupDOM(CallLog.createGroup(noNumberGroup), noNumberGroup, done);
     });
 
     test('Voicemail group', function(done) {

@@ -1,5 +1,5 @@
 /* globals AttentionWindow, MocksHelper, AppWindow, MockApplications,
-            MockL10n, MockLayoutManager */
+            MockL10n, MockLayoutManager, MockManifestHelper */
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -13,7 +13,7 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 
 var mocksForAttentionWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
-  'ManifestHelper', 'LayoutManager', 'ScreenLayout', 
+  'ManifestHelper', 'LayoutManager', 'ScreenLayout',
   'AppChrome'
 ]).init();
 
@@ -84,6 +84,19 @@ suite('system/AttentionWindow', function() {
       assert.equal(attention.element.style.width, '');
     });
 
+    test('show should re-translate the fake notification', function() {
+      var attention = new AttentionWindow(fakeAttentionConfig, app);
+      MockManifestHelper.prototype.name = 'translated';
+      this.sinon.clock.tick(); // l10n ready
+      assert.equal(attention.notificationTitle.textContent, 'translated');
+
+      attention.show();
+      MockManifestHelper.prototype.name = 'translated by show';
+      this.sinon.clock.tick(); // l10n ready
+      assert.equal(attention.notificationTitle.textContent,
+                   'translated by show');
+    });
+
     test('clear the fake notification node when removed.', function() {
       var attention = new AttentionWindow(fakeAttentionConfig, app);
       attention.destroy();
@@ -95,6 +108,13 @@ suite('system/AttentionWindow', function() {
       assert.isNotNull(attention.notification);
       assert.isTrue(attention.notification.classList
                     .contains('attention-notification'));
+    });
+
+    test('translate the fake notification', function() {
+      var attention = new AttentionWindow(fakeAttentionConfig, app);
+      MockManifestHelper.prototype.name = 'translated';
+      this.sinon.clock.tick(); // l10n ready
+      assert.equal(attention.notificationTitle.textContent, 'translated');
     });
 
     test('ready', function() {
@@ -114,6 +134,20 @@ suite('system/AttentionWindow', function() {
       stubTryWaitForFullRepaint.getCall(0).args[0]();
       this.sinon.clock.tick(0);
       assert.isTrue(callback2.called);
+    });
+
+    test('_languagechange should re-translate the fake notification',
+    function() {
+      var attention = new AttentionWindow(fakeAttentionConfig, app);
+      MockManifestHelper.prototype.name = 'translated';
+      this.sinon.clock.tick(); // l10n ready
+      assert.equal(attention.notificationTitle.textContent, 'translated');
+
+      attention.element.dispatchEvent(new CustomEvent('_languagechange'));
+      MockManifestHelper.prototype.name = 'translated by languagechange';
+      this.sinon.clock.tick(); // l10n ready
+      assert.equal(attention.notificationTitle.textContent,
+                   'translated by languagechange');
     });
   });
 });

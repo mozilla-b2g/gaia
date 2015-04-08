@@ -246,6 +246,8 @@ var ValuePicker = (function() {
     event.stopPropagation();
     this.removeEventListeners();
 
+    this.element.classList.add('animation-on');
+
     // Add momentum if speed is higher than a given threshold.
     if (Math.abs(currentSpeed) > SPEED_THRESHOLD) {
       var direction = currentSpeed > 0 ? 1 : -1;
@@ -257,6 +259,8 @@ var ValuePicker = (function() {
 
   function vp_touchstart(event) {
     event.stopPropagation();
+
+    this.element.classList.remove('animation-on');
 
     startEvent = currentEvent = cloneEvent(event);
     tunedIndex = this._currentIndex;

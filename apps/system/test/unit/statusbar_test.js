@@ -789,8 +789,16 @@ suite('system/Statusbar', function() {
 
     test('stackchanged', function() {
       StatusBar.element.classList.add('hidden');
-      assert.isTrue(StatusBar.element.classList.contains('hidden'));
       var event = new CustomEvent('stackchanged');
+      StatusBar.handleEvent(event);
+      assert.isFalse(StatusBar.element.classList.contains('hidden'));
+      assert.isTrue(setAppearanceStub.called);
+      assert.isTrue(setAppearanceStub.calledWith(app));
+    });
+
+    test('rocketbar-deactivated', function() {
+      StatusBar.element.classList.add('hidden');
+      var event = new CustomEvent('rocketbar-deactivated');
       StatusBar.handleEvent(event);
       assert.isFalse(StatusBar.element.classList.contains('hidden'));
       assert.isTrue(setAppearanceStub.called);
@@ -799,7 +807,6 @@ suite('system/Statusbar', function() {
 
     test('sheets-gesture-end', function() {
       StatusBar.element.classList.add('hidden');
-      assert.isTrue(StatusBar.element.classList.contains('hidden'));
       var event = new CustomEvent('sheets-gesture-end');
       StatusBar.handleEvent(event);
       assert.isFalse(StatusBar.element.classList.contains('hidden'));
@@ -876,6 +883,7 @@ suite('system/Statusbar', function() {
     });
 
     test('sheets-gesture-end', function() {
+      dispatchEdgeSwipeEvent('sheets-gesture-begin');
       testEventThatResume.bind(this)('sheets-gesture-end');
     });
 
@@ -924,6 +932,28 @@ suite('system/Statusbar', function() {
 
       test('homescreenopened', function() {
         testEventThatResumeIfNeeded.bind(this)('homescreenopened');
+      });
+    });
+
+    suite('edge swipe should resume symmetrically', function() {
+      test('with many begin events', function() {
+        dispatchEdgeSwipeEvent('sheets-gesture-begin');
+        dispatchEdgeSwipeEvent('sheets-gesture-begin');
+        dispatchEdgeSwipeEvent('sheets-gesture-begin');
+        dispatchEdgeSwipeEvent('sheets-gesture-end');
+
+        assert.isTrue(pauseUpdateStub.calledOnce);
+        assert.isTrue(resumeUpdateStub.calledOnce);
+      });
+
+      test('with many end events', function() {
+        dispatchEdgeSwipeEvent('sheets-gesture-begin');
+        dispatchEdgeSwipeEvent('sheets-gesture-end');
+        dispatchEdgeSwipeEvent('sheets-gesture-end');
+        dispatchEdgeSwipeEvent('sheets-gesture-end');
+
+        assert.isTrue(pauseUpdateStub.calledOnce);
+        assert.isTrue(resumeUpdateStub.calledOnce);
       });
     });
   });

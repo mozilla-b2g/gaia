@@ -21,7 +21,6 @@ suite('InputWindowManager', function() {
 
   var manager;
   var stubIWConstructor;
-  var realGetFeature;
 
   suiteSetup(function(done) {
     require('/js/browser_frame.js');
@@ -34,6 +33,13 @@ suite('InputWindowManager', function() {
   });
 
   setup(function() {
+    var getDeviceMemoryPromise = new MockPromise();
+    this.sinon.stub(MockService, 'request', (requestService) => {
+      if (requestService === 'getDeviceMemory') {
+        return getDeviceMemoryPromise;
+      }
+    });
+
     var realIWPrototype = InputWindow.prototype;
     stubIWConstructor = this.sinon.stub(window, 'InputWindow', () =>
       // simulate |sinon.createStubInstance|: we want a new stubbed instance
@@ -41,22 +47,14 @@ suite('InputWindowManager', function() {
       this.sinon.stub(Object.create(realIWPrototype))
     );
 
-    realGetFeature = navigator.getFeature;
-    var getFeaturePromise = new MockPromise();
-    navigator.getFeature = this.sinon.stub().returns(getFeaturePromise);
-
     manager = new InputWindowManager();
-
-    getFeaturePromise.mFulfillToValue(768);
-  });
-
-  teardown(function() {
-    navigator.getFeature = realGetFeature;
+    getDeviceMemoryPromise.mFulfillToValue(768);
   });
 
   test('Hardware memory is correctly retrieved', function() {
+    assert.isTrue(MockService.request.calledOnce);
+    assert.isTrue(MockService.request.calledWith('getDeviceMemory'));
     assert.equal(manager._totalMemory, 768);
-    assert.isTrue(navigator.getFeature.calledWith('hardware.memory'));
   });
 
   suite('Event handling', function() {

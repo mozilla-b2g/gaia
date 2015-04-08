@@ -31,7 +31,8 @@ Contacts.MultipleSelect = (function() {
 
   function importAll() {
     var numDupsMerged = 0,
-        importedContacts = 0;
+        importedContacts = 0,
+        parsedContacts = 0;
     const DEPENDENCIES = [
       '/shared/js/contacts/import/utilities/status.js',
       '/shared/js/simple_phone_matcher.js',
@@ -46,9 +47,9 @@ Contacts.MultipleSelect = (function() {
             var callbacks = {
               success: () => {
                 numDupsMerged++;
-                doContinue(index, true);
+                doContinue(true);
               },
-              error: () => doContinue(index)
+              error: doContinue
             };
             contacts.adaptAndMerge(contact, matches, callbacks);
           },
@@ -56,24 +57,25 @@ Contacts.MultipleSelect = (function() {
             var saving = navigator.mozContacts.save(contact);
 
             saving.onsuccess = () => {
-              doContinue(index, true);
+              doContinue(true);
             };
 
             saving.onerror = (err) => {
               console.error(err);
-              doContinue(index);
+              doContinue();
             };
           }
         });
       });
     });
 
-    function doContinue(index, isContactImported) {
+    function doContinue(isContactImported) {
+      parsedContacts++;
       if (isContactImported) {
         importedContacts++;
       }
 
-      if (contactsToImport.length - 1 <= index) {
+      if (contactsToImport.length <= parsedContacts) {
         utils.status.show({
           id: 'vCardContacts-imported',
           args: {
@@ -118,8 +120,7 @@ Contacts.MultipleSelect = (function() {
       var contactData = clone.querySelectorAll('p');
       contactData[0].textContent =
         Array.isArray(contact.name) && contact.name[0];
-      contactData[1].textContent =
-        Array.isArray(contact.tel) && contact.tel[0] && contact.tel[0].value;
+      contactData[1].textContent = Array.isArray(contact.org) && contact.org[0];
 
       if (Array.isArray(contact.photo) && contact.photo[0] instanceof Blob) {
         var picture = clone.querySelector('aside span');

@@ -36,15 +36,34 @@
       };
     }
 
-    var messageBodyParams = null;
-    if (errorDescription.showRecipient) {
-      messageBodyParams = {
-        n: options.recipients.length,
-        numbers: options.recipients.join('<br />')
-      };
-    }
+    var bodyL10nId = prefix + 'Body';
+    var body = null;
+    var additionalClasses = [];
 
-    if (errorDescription.showDsdsStatus) {
+    if (errorDescription.showRecipient) {
+      var fragment = document.createDocumentFragment();
+      var mainText = document.createElement('span');
+      navigator.mozL10n.setAttributes(
+        mainText, bodyL10nId,
+        { n: options.recipients.length }
+      );
+      fragment.appendChild(mainText);
+
+      var list = options.recipients.reduce((list, recipient) => {
+        var li = document.createElement('li');
+        li.textContent = recipient;
+
+        list.appendChild(li);
+
+        return list;
+      }, document.createElement('ul'));
+
+      fragment.appendChild(list);
+      body = { raw: fragment };
+      additionalClasses.push('error-dialog-show-recipient');
+    } else if (errorDescription.showDsdsStatus) {
+      var messageBodyParams = null;
+
       var mmsServiceId = Settings.mmsServiceId;
       if (mmsServiceId !== null) {
         // mmsServiceId = 0 => default Service is SIM 1
@@ -71,15 +90,18 @@
       } else {
         console.error('Settings unavailable');
       }
+
+      body = {
+        id: bodyL10nId,
+        args: messageBodyParams
+      };
     }
 
     Dialog.call(this, {
       title: prefix + 'Title',
-      body: {
-        id: prefix + 'Body',
-        args: messageBodyParams
-      },
-      options: dialogOptions
+      body: body || bodyL10nId,
+      options: dialogOptions,
+      classes: ['error-dialog-' + prefix, 'error-dialog', ...additionalClasses]
     });
   }
 

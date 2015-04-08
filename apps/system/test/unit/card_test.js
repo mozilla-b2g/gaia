@@ -11,27 +11,23 @@ var mocksForCard = new MocksHelper([
 suite('system/Card', function() {
 
   function makeApp(config) {
-    return new AppWindow({
+    var appWindow = new AppWindow({
       launchTime: 4,
       name: config.name || 'dummyapp',
-      shortName: config.shortName,
-      frame: document.createElement('div'),
-      iframe: document.createElement('iframe'),
       manifest: {
         orientation: config.orientation || 'portrait-primary'
       },
       rotatingDegree: config.rotatingDegree || 0,
-      requestScreenshotURL: function() {
-        return null;
-      },
       getScreenshot: function(callback) {
         callback();
       },
-      origin: config.origin || 'http://' +
+      origin: config.origin || 'app://' +
               (config.name || 'dummyapp') + '.gaiamobile.org',
       url: config.url,
       blur: function() {}
     });
+    appWindow.browser.element.src = appWindow.origin + '/index.html';
+    return appWindow;
   }
 
   mocksForCard.attachTestHelpers();
@@ -96,6 +92,8 @@ suite('system/Card', function() {
                 '.screenshotView');
       assert.ok(header, 'h1');
       assert.ok(header.id, 'h1.id');
+      assert.isFalse(card.element.classList.contains('show-subtitle'),
+                     'no show-subtitle by default');
     });
 
     test('has expected aria values', function(){
@@ -158,16 +156,6 @@ suite('system/Card', function() {
       assert.equal(appCard.titleNode.textContent, 'otherapp');
     });
 
-    test('app short name', function() {
-      var appCard = new Card({
-        app: makeApp({ name: 'shortname', shortName: 'short' }),
-        manager: mockManager
-      });
-      appCard.app.title = 'Some long title';
-      appCard.render();
-      assert.equal(appCard.titleNode.textContent, 'short');
-    });
-
     test('app security for browser windows', function() {
       var browserCard = new Card({
         app: makeApp({ name: 'browserwindow' }),
@@ -198,6 +186,8 @@ suite('system/Card', function() {
         return true;
       });
       browserCard.render();
+      assert.ok(browserCard.element.classList.contains('show-subtitle'),
+                'show-subtitle class added');
       assert.equal(browserCard.subTitle, 'someorigin.org/foo');
     });
     test('getDisplayURLString', function() {
@@ -217,7 +207,6 @@ suite('system/Card', function() {
     test('subTitle when private browser splash', function() {
       var app = makeApp({
         name: 'shortname',
-        shortName: 'short',
         origin: 'app://system.gaiamobile.org',
         url: 'app://system.gaiamobile.org/private_browser.html'
       });
@@ -228,6 +217,7 @@ suite('system/Card', function() {
       });
       appCard.render();
       assert.equal(appCard.subTitle, '');
+      assert.isFalse(appCard.element.classList.contains('show-subtitle'));
     });
   });
 

@@ -2,7 +2,7 @@
 
 (function(exports) {
   const EDIT_MODE_SCALE = 0.57;
-
+  const CARD_TRANSFORM_LATENCY = 500;
 
   function Edit() {}
 
@@ -10,8 +10,7 @@
     mainSection: document.getElementById('main-section'),
     doneButton: document.getElementById('done-button'),
     searchButton: document.getElementById('search-button'),
-    // TODO: We'll hide new folder button until folder features are implemented.
-    // addNewFolderButton: document.getElementById('add-new-folder-button'),
+    addNewFolderButton: document.getElementById('add-new-folder-button'),
     editButton: document.getElementById('edit-button'),
     settingsButton: document.getElementById('settings-button'),
 
@@ -25,13 +24,15 @@
 
       this.regularNavElements =
               [this.searchButton, this.settingsButton, this.editButton];
-      this.editNavElements = [this.doneButton];
+      this.editNavElements = [this.doneButton, this.addNewFolderButton];
 
       this.cardManager.on('card-swapped', this.onCardSwapped.bind(this));
 
       this.cardScrollable.on('focus', this.handleCardFocus.bind(this));
       this.cardScrollable.on('listTransformEnd',
                                   this.handleListTransformEnd.bind(this));
+      this.cardScrollable.on('nodeTransformEnd',
+        this.onCardSwapAnimationEnd.bind(this));
 
       this.spatialNavigator.on('focus', this.handleFocus.bind(this));
       this.spatialNavigator.on('unfocus', this.handleUnfocus.bind(this));
@@ -90,37 +91,78 @@
       }
     },
 
-    // To guard against calling cardManager.swapCard too frequently.
-    // If we are in process of swapping, we should not call
-    // cardManager.swapCard(). Please see http://bugzil.la/1130701
-    _isSwapping: false,
+    _swapQueue: {
+      queue: [],
+      isEmpty: function() {
+        return (this.queue.length === 0);
+      },
+      push: function(obj) {
+        this.queue.push(obj);
+      },
+      shift: function() {
+        return this.queue.shift();
+      },
+      getLength: function() {
+        return this.queue.length;
+      }
+    },
+
+    _swapTimer: undefined,
+
+    _produceSwap: function(key) {
+      this._swapQueue.push(key);
+      if (!this._swapTimer) {
+        this._consumeSwap();
+      }
+    },
+
+    _consumeSwap: function() {
+      var focus = this.spatialNavigator.getFocusedElement();
+      var keepConsuming = false;
+      if (!this._swapQueue.isEmpty() && focus.CLASS_NAME === 'XScrollable') {
+        var key = this._swapQueue.shift();
+        var targetItem = focus.getTargetItem(key);
+        if (targetItem) {
+          var focusedCard = this.cardManager.findCardFromCardList(
+                                  {cardId: focus.currentItem.dataset.cardId});
+          var nonFocusedCard = this.cardManager.findCardFromCardList(
+                                    {cardId: targetItem.dataset.cardId});
+          this.cardManager.swapCard(focusedCard, nonFocusedCard);
+          this._swapTimer =
+            window.setTimeout(this.onCardSwapAnimationEnd.bind(this),
+              CARD_TRANSFORM_LATENCY, targetItem);
+        } else {
+          // if queue is not empty but we are failed to get targetItem
+          // that means we reach the boundary of cards. Thus we should
+          // consume next action in queue
+          keepConsuming = true;
+        }
+      }
+      if (keepConsuming) {
+        this._consumeSwap();
+      }
+    },
+
+    onCardSwapAnimationEnd: function(elem) {
+      if (this._swapTimer) {
+        window.clearTimeout(this._swapTimer);
+        this._swapTimer = undefined;
+      }
+      if (!elem.classList.contains('focused') && !this._swapQueue.isEmpty()) {
+        this._consumeSwap();
+      }
+    },
 
     onCardSwapped: function(card1, card2, idx1, idx2) {
       this.cardScrollable.swap(idx1, idx2);
       this._setHintArrow();
-      this._isSwapping = false;
     },
 
     onMove: function(key) {
       if (this.mode !== 'arrange') {
         return false;
       }
-
-      var focus = this.spatialNavigator.getFocusedElement();
-      // To guard against calling cardManager.swapCard too frequently.
-      // If we are in process of swapping, we should not call
-      // cardManager.swapCard(). Please see http://bugzil.la/1130701
-      if (focus.CLASS_NAME === 'XScrollable' && !this._isSwapping) {
-        var targetItem = focus.getTargetItem(key);
-        if (targetItem) {
-          this._isSwapping = true;
-          this.cardManager.swapCard(
-            this.cardManager.findCardFromCardList(
-                                    {cardId: focus.currentItem.dataset.cardId}),
-            this.cardManager.findCardFromCardList(
-                                    {cardId: targetItem.dataset.cardId}));
-        }
-      }
+      this._produceSwap(key);
       return true;
     },
 
@@ -150,10 +192,8 @@
       var focus = this.spatialNavigator.getFocusedElement();
       if (focus === this.doneButton) {
         this.toggleEditMode();
-      // TODO: We disable new folders until folder features are implemented.
-      // } else if (focus === this.addNewFolderButton) {
-      //  this.addNewFolder();
-
+      } else if (focus === this.addNewFolderButton) {
+        this.addNewFolder();
       } else if (focus.CLASS_NAME === 'XScrollable') {
         var currentItem = focus.currentItem;
 

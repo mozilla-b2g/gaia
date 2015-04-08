@@ -1,5 +1,5 @@
 /* globals MockL10n, MocksHelper, MockSIMSlot, MockSIMSlotManager,
-           SimLockSystemDialog, MockApplications */
+           SimLockSystemDialog, MockApplications, SystemDialog */
 
 'use strict';
 
@@ -71,59 +71,136 @@ suite('sim lock dialog', function() {
       assert.isTrue(subject.requestFocus.called);
     });
 
-  test('unlock', function() {
-    var slot = new MockSIMSlot(null, 0);
-    slot.simCard.cardState = 'pinRequired';
-    var stubUnlockCardLock = this.sinon.stub(slot, 'unlockCardLock');
-    var stubRequestClose = this.sinon.stub(subject, 'requestClose');
-    var stubHandleError = this.sinon.stub(subject, 'handleError');
-    var domreq = {
-      error: {},
-      onsuccess: function() {},
-      onerror: function() {}
-    };
-    stubUnlockCardLock.returns(domreq);
-    subject._currentSlot = slot;
-    subject.unlockCardLock({});
-    assert.isTrue(stubUnlockCardLock.called);
-    domreq.onsuccess();
-    assert.isTrue(stubRequestClose.calledWith('success'));
-    domreq.onerror();
-    assert.isTrue(stubHandleError.called);
-  });
+  suite('unlock', function() {
+    var stubClear, stubUnlockCardLock, stubDisable, slot, domreq;
 
-  test('unlockPin', function() {
-    var stubUnlockCardLock = this.sinon.stub(subject, 'unlockCardLock');
-    var stubClear = this.sinon.stub(subject, 'clear');
-    subject.pinInput.value = '0000';
-    subject.unlockPin();
-    assert.isTrue(stubClear.called);
-    assert.deepEqual(stubUnlockCardLock.getCall(0).args[0], {
-      lockType: 'pin',
-      pin: '0000'
+    setup(function() {
+      slot = new MockSIMSlot(null, 0);
+      subject._currentSlot = slot;
+      domreq = {
+        error: {},
+        onsuccess: function() {},
+        onerror: function() {}
+      };
+      stubClear = this.sinon.stub(subject, 'clear');
+      stubUnlockCardLock = this.sinon.stub(slot, 'unlockCardLock');
+      stubUnlockCardLock.returns(domreq);
+      stubDisable = this.sinon.stub(subject, 'disableInput');
+    });
+
+    test('unlock', function() {
+      slot.simCard.cardState = 'pinRequired';
+      var stubRequestClose = this.sinon.stub(subject, 'requestClose');
+      var stubHandleError = this.sinon.stub(subject, 'handleError');
+      subject.unlockCardLock({});
+      assert.isTrue(stubUnlockCardLock.called);
+      assert.isTrue(stubDisable.called);
+      domreq.onsuccess();
+      assert.isTrue(stubRequestClose.calledWith('success'));
+      domreq.onerror();
+      assert.isTrue(stubHandleError.called);
+      assert.isTrue(stubClear.called);
+    });
+
+    test('unlockPin', function() {
+      subject.pinInput.value = '0000';
+      subject.unlockPin();
+      assert.deepEqual(stubUnlockCardLock.getCall(0).args[0], {
+        lockType: 'pin',
+        pin: '0000'
+      });
+    });
+
+    test('unlockPuk', function() {
+      subject.pukInput.value = '0000';
+      subject.newPinInput.value = '1111';
+      subject.confirmPinInput.value = '1111';
+      subject.unlockPuk();
+      assert.isTrue(stubClear.called);
+    });
+
+    test('unlockXck', function() {
+      subject.xckInput.value = '0000';
+      subject.lockType = 'xxxx';
+      subject.unlockXck();
+      assert.isTrue(stubClear.called);
+      assert.deepEqual(stubUnlockCardLock.getCall(0).args[0], {
+        lockType: 'xxxx',
+        pin: '0000'
+      });
     });
   });
 
-  test('unlockPuk', function() {
-    this.sinon.stub(subject, 'unlockCardLock');
-    var stubClear = this.sinon.stub(subject, 'clear');
-    subject.pukInput.value = '0000';
-    subject.newPinInput.value = '1111';
-    subject.confirmPinInput.value = '1111';
-    subject.unlockPuk();
-    assert.isTrue(stubClear.called);
+  suite('clear', function() {
+    var stubEnable;
+
+    setup(function() {
+      stubEnable = this.sinon.stub(subject, 'enableInput');
+      subject.clear();
+    });
+
+    test('enables all fields', function() {
+      assert.isTrue(stubEnable.called);
+    });
   });
 
-  test('unlockXck', function() {
-    var stubUnlockCardLock = this.sinon.stub(subject, 'unlockCardLock');
-    var stubClear = this.sinon.stub(subject, 'clear');
-    subject.xckInput.value = '0000';
-    subject.lockType = 'xxxx';
-    subject.unlockXck();
-    assert.isTrue(stubClear.called);
-    assert.deepEqual(stubUnlockCardLock.getCall(0).args[0], {
-      lockType: 'xxxx',
-      pin: '0000'
+  suite('disableInput', function() {
+    setup(function() {
+      subject.pinInput.disabled = false;
+      subject.pukInput.disabled = false;
+      subject.xckInput.disabled = false;
+      subject.newPinInput.disabled = false;
+      subject.confirmPinInput.disabled = false;
+      subject.disableInput();
+    });
+
+    teardown(function() {
+      subject.enableInput();
+    });
+
+    test('disables all fields', function() {
+      assert.isTrue(subject.pinInput.disabled);
+      assert.isTrue(subject.pukInput.disabled);
+      assert.isTrue(subject.xckInput.disabled);
+      assert.isTrue(subject.newPinInput.disabled);
+      assert.isTrue(subject.confirmPinInput.disabled);
+    });
+  });
+
+  suite('enableInput', function() {
+    setup(function() {
+      subject.pinInput.disabled = true;
+      subject.pukInput.disabled = true;
+      subject.xckInput.disabled = true;
+      subject.newPinInput.disabled = true;
+      subject.confirmPinInput.disabled = true;
+      subject.enableInput();
+    });
+
+    test('enables all fields', function() {
+      assert.isFalse(subject.pinInput.disabled);
+      assert.isFalse(subject.pukInput.disabled);
+      assert.isFalse(subject.xckInput.disabled);
+      assert.isFalse(subject.newPinInput.disabled);
+      assert.isFalse(subject.confirmPinInput.disabled);
+    });
+  });
+
+  suite('show', function() {
+    var stubClear, stubApply;
+
+    setup(function() {
+      stubClear = this.sinon.stub(subject, 'clear');
+      stubApply = this.sinon.stub(SystemDialog.prototype.show, 'apply');
+      subject.show();
+    });
+
+    test('clears the input when showing the dialog', function() {
+      assert.isTrue(stubClear.called);
+    });
+
+    test('calls to SystemDialog show method', function() {
+      assert.isTrue(stubApply.calledWith(subject));
     });
   });
 

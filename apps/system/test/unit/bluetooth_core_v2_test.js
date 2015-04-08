@@ -24,9 +24,7 @@ suite('system/BluetoothCore', function() {
 
   setup(function(done) {
     MockLazyLoader.mLoadRightAway = true;
-    sinon.stub(MockLazyLoader, 'load', function() {
-      window.Bluetooth2 = function() {};
-    });
+    sinon.stub(MockLazyLoader, 'load');
 
     realMozBluetooth = navigator.mozBluetooth;
     switchReadOnlyProperty(navigator, 'mozBluetooth', MockMozBluetooth);

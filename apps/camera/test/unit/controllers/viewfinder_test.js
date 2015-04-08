@@ -326,4 +326,21 @@ suite('controllers/viewfinder', function() {
       assert.equal(this.viewfinder.scaleType, 'fit');
     });
   });
+
+  suite('ViewfinderController#calculateFaceCircle()', function() {
+    test('Draw circle from a square', function() {
+      var circle = this.controller.calculateFaceCircle({top: 50, left: 50, width: 10, height: 10});
+      assert.deepEqual(circle, {x: 50, y: 50, diameter: 10});
+    });
+
+    test('Draw circle from a 2:1 rectangle', function() {
+      var circle = this.controller.calculateFaceCircle({top: 100, left: 50, width: 20, height: 10});
+      assert.deepEqual(circle, {x: 50, y: 95, diameter: 20});
+    });
+
+    test('Draw circle from a 1:2 rectangle', function() {
+      var circle = this.controller.calculateFaceCircle({top: 100, left: 50, width: 10, height: 20});
+      assert.deepEqual(circle, {x: 45, y: 100, diameter: 20});
+    });
+  });
 });

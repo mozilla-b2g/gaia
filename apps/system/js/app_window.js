@@ -131,13 +131,10 @@
     // Store initial configuration in this.config
     this.config = configuration;
 
-    if (this.manifest) {
-      this.shortName = new ManifestHelper(this.manifest).short_name;
-    }
     if (!this.manifest && this.config && this.config.title) {
       this.updateName(this.config.title);
     } else {
-      this.name = new ManifestHelper(this.manifest).name;
+      this.name = new ManifestHelper(this.manifest).displayName;
     }
 
     // Get icon splash
@@ -448,7 +445,7 @@
     this.loading = false;
     this.loaded = false;
     this.suspended = true;
-    this.element.classList.add('suspended');
+    this.element && this.element.classList.add('suspended');
     this.browserContainer.removeChild(this.browser.element);
     this.browser = null;
     this.iframe = null;
@@ -885,8 +882,7 @@
     if (!this.manifest) {
       return;
     }
-    this.name = new ManifestHelper(this.manifest).name;
-    this.shortName = new ManifestHelper(this.manifest).short_name;
+    this.name = new ManifestHelper(this.manifest).displayName;
 
     if (this.identificationTitle) {
       this.identificationTitle.textContent = this.name;

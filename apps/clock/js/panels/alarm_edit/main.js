@@ -37,7 +37,7 @@ var AlarmEdit = function() {
   this.headers = {
     header: this.element.querySelector('#alarm-header')
   };
-  
+
   this.buttons = {};
   [
     'delete', 'done'
@@ -103,11 +103,13 @@ var AlarmEdit = function() {
 
   this.isSaving = false;
 
-  // If the phone locks during preview, pause the sound.
+  // If the phone locks during preview, or an alarm fires, pause the sound.
   // TODO: When this is no longer a singleton, unbind the listener.
   window.addEventListener('visibilitychange', function() {
     if (document.hidden) {
       this.stopPreviewSound();
+      // Ensure the keyboard goes away.
+      document.activeElement.blur();
     }
   }.bind(this));
 };

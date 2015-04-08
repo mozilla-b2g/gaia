@@ -7,7 +7,7 @@
  * Singleton object that helps to populate and manage the 'Select a SIM card'
  * panel in the cell and data settings panel.
  */
-var IccHandlerForCarrierSettings = (function(window, document, undefined) {
+var IccHandlerForCarrierSettings = (function() {
   /** Card state mapping const. */
   var CARDSTATE_MAPPING = {
    'pinRequired' : 'simCardLockedMsg',
@@ -260,4 +260,4 @@ var IccHandlerForCarrierSettings = (function(window, document, undefined) {
   return {
     init: ihfcs_init
   };
-})(this, document);
+})();

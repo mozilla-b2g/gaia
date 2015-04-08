@@ -41,14 +41,9 @@
   position: absolute;
   transform-origin: 0 0;
   display: inline-block;
-  width: calc(100% / 3);
   text-align: center;
   background: no-repeat top center;
   z-index: 3;
-}
-
-.dragging .icon {
-  will-change: transform;
 }
 
 .icon.launching {
@@ -147,6 +142,10 @@
   transition: transform 0.2s, opacity 0.2s;
 }
 
+.icon.active {
+  will-change: transform;
+}
+
 .edit-mode .icon .remove {
   display: block;
   position: absolute;
@@ -208,12 +207,12 @@ instead of the context menu.
   transition: background-color 0.2s, opacity 0.2s;
 }
 
-.dragging .group > span {
-  will-change: transform;
-}
-
 .group:not(.active):not(.newly-created) > span {
   transition: background-color 0.2s, opacity 0.2s, transform 0.2s;
+}
+
+.group.active > span {
+  will-change: transform;
 }
 
 .group .header {
@@ -390,7 +389,6 @@ instead of the context menu.
  * creation hint.
  */
 .edit-mode {
-  will-change: transform;
   transition: transform 0.25s;
 }
 
@@ -402,9 +400,4 @@ instead of the context menu.
 :-moz-dir(rtl) .group .header .toggle {
   left: 0;
   right: unset;
-}
-
-/* RTL fixes being tracked in bug 1008013 */
-:-moz-dir(rtl) gaia-grid {
-  direction: ltr;
 }

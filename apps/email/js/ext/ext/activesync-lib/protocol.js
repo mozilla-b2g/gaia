@@ -629,7 +629,7 @@
       // Add extra headers if we have any.
       if (aExtraHeaders) {
         for (var iter in Iterator(aExtraHeaders)) {
-          var key = iter[0], value = iter[1];
+          var key = iter[0], key = iter[1];
           xhr.setRequestHeader(key, value);
         }
       }

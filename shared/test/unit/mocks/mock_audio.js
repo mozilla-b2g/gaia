@@ -45,7 +45,7 @@ function MockAudioContext(channel) {
   this.mozAudioChannelType = channel;
   this.currentTime = 0;
   this.sampleRate = 0;
-  this.destination = null;
+  this.destination = {};
 }
 
 MockAudioContext.instances = [];
@@ -68,15 +68,16 @@ MockAudioContext.prototype.createBufferSource = function() {
 };
 MockAudioContext.prototype.createGain = function() {
   return {
-    connect: function() {},
+    connect() {},
     gain: {
-      setValueAtTime: function() {}
+      setValueAtTime() {},
+      setValueCurveAtTime() {}
     }
   };
 };
 MockAudioContext.prototype.createOscillator = function() {
   return {
-    frequency: 0,
+    frequency: { value: 0 },
     connect: function() {},
     start: function() {},
     stop: function() {}

@@ -3,11 +3,22 @@
  */
 'use strict';
 
-require('/shared/js/l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('/video/test/unit/mock_thumbnail_group.js');
 requireApp('/video/js/thumbnail_list.js');
 
 suite('Thumbnail List Unit Tests', function() {
+
+  var realL10n;
+
+  suiteSetup(function() {
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+  });
+
+  suiteTeardown(function() {
+    navigator.mozL10n = realL10n;
+  });
 
   suite('#constructor tests', function() {
     var dummyContainer;

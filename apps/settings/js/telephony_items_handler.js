@@ -7,7 +7,7 @@
  * Singleton object that helps to enable/disable and to show card state
  * information for telephony-related items from the root in the setting app.
  */
-var TelephonyItemsHandler = (function(window, document, undefined) {
+var TelephonyItemsHandler = (function() {
   var DATA_TYPE_SETTING = 'operatorResources.data.icon';
 
   var dataTypeMapping = {
@@ -215,4 +215,4 @@ var TelephonyItemsHandler = (function(window, document, undefined) {
       });
     }
   };
-})(this, document);
+})();

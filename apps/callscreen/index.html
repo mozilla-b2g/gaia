@@ -87,10 +87,14 @@
         <section id="handled-call-template" role="dialog" hidden>
           <div class="hangup-button" role="button" data-l10n-id="hangup-a11y-button"></div>
           <div class="numberWrapper direction-status-bar">
-            <div class="number font-light"></div>
+            <div class="number font-light"><bdi></bdi></div>
             <span role="button" id="switch-calls-button"></span>
           </div>
-          <div class="additionalContactInfo font-light"></div>
+          <div class="additionalContactInfo font-light">
+            <span class="tel-type" dir="auto"></span>
+            <span class="separator"></span>
+            <span class="tel" dir="ltr"></span>
+          </div>
           <div class="duration">
             <span class="font-light"></span>
             <div class="total-duration"></div>
@@ -107,7 +111,11 @@
             <div id="group-show"></div>
             <div id="group-call-label" class="number font-light"></div>
           </div>
-          <div id="group-call-summary" class="additionalContactInfo font-light"></div>
+          <div id="group-call-summary" class="additionalContactInfo font-light">
+            <span class="tel-type" dir="auto"></span>
+            <span class="separator"></span>
+            <span class="tel" dir="ltr"></span>
+          </div>
           <div class="duration">
             <span class="font-light"></span>
             <div class="total-duration"></div>
@@ -214,8 +222,12 @@
       </header>
       <section id="incoming-info">
         <div class="incoming-number-info">
-          <span id="incoming-number"></span>
-          <span id="incoming-number-additional-info" class="font-light"></span>
+          <span id="incoming-number" dir="auto"></span>
+          <div id="incoming-number-additional-info" class="font-light">
+            <span id="incoming-number-additional-info-tel-type" dir="auto"></span>
+            <span class="separator"></span>
+            <span id="incoming-number-additional-info-tel" dir="ltr"></span>
+          </div>
         </div>
         <div id="incoming-sim" class="sim"></div>
         <button id="incoming-ignore" data-l10n-id="ignore">
@@ -305,7 +317,7 @@
               </span>
             </div>
           </section>
-          <section id="keypad-hidebar">
+          <section id="keypad-hidebar" dir="ltr">
             <button id= "keypad-hidebar-mute-action" class="kh__button kh__button--mute"></button>
             <button id= "keypad-hidebar-hang-up-action-wrapper" class="kh__call-end-button"></button>
             <button id= "keypad-hidebar-hide-keypad-action" class="kh__button kh__button--hide"></button>

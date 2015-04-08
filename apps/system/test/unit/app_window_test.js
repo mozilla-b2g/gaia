@@ -1197,6 +1197,31 @@ suite('system/AppWindow', function() {
       assert.isTrue(callback1.called);
     });
 
+    test('MozBrowser API: getScreenshot (ignore frontWindow)', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var app2 = new AppWindow(fakeAppConfig2);
+
+      injectFakeMozBrowserAPI(app1.browser.element);
+      injectFakeMozBrowserAPI(app2.browser.element);
+      var stubScreenshot = this.sinon.stub(app1.browser.element,
+        'getScreenshot').returns(fakeDOMRequest);
+      var stubScreenshot2 = this.sinon.stub(app2.browser.element,
+        'getScreenshot').returns(fakeDOMRequest);
+
+      var callback1 = this.sinon.spy();
+      app1.frontWindow = app2;
+      app1.getScreenshot(callback1, null, null, null, true);
+
+      assert.isTrue(stubScreenshot.called);
+      assert.isFalse(stubScreenshot2.called);
+      fakeDOMRequest.onsuccess({ target: { result: 'fakeBlob' } });
+      assert.equal(app1._screenshotBlob, 'fakeBlob');
+      assert.isTrue(callback1.calledWith('fakeBlob'));
+
+      fakeDOMRequest.onerror();
+      assert.isTrue(callback1.called);
+    });
+
     test('MozBrowser API: getScreenshot for homescreen', function() {
       var home = new AppWindow(fakeAppConfig1);
       home.isHomescreen = true;
@@ -1927,6 +1952,7 @@ suite('system/AppWindow', function() {
       var spyManifestHelper = this.sinon.stub(window, 'ManifestHelper');
       spyManifestHelper.returns({
         name: 'Mon Application',
+        displayName: 'Bref',
         short_name: 'Bref'
       });
       var stubPublish = this.sinon.stub(app1, 'publish');
@@ -1938,8 +1964,8 @@ suite('system/AppWindow', function() {
       assert.isTrue(spyManifestHelper.calledWithNew());
       assert.isTrue(spyManifestHelper.calledWithExactly(app1.manifest));
       assert.isTrue(stubPublish.calledWithExactly('namechanged'));
-      assert.equal(app1.identificationTitle.textContent, 'Mon Application');
-      assert.equal(app1.shortName, 'Bref');
+      assert.equal(app1.identificationTitle.textContent, 'Bref');
+      assert.equal(app1.name, 'Bref');
     });
 
     test('focus event', function() {

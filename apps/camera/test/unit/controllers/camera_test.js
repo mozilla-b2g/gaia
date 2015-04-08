@@ -215,6 +215,24 @@ suite('controllers/camera', function() {
       callback(event);
       sinon.assert.called(event.preventDefault);
     });
+
+    test('It doesnt capture if timer is active', function() {
+      this.app.get.withArgs('timerActive').returns(true);
+      var callback = this.app.on.withArgs('keydown:capture').args[0][1];
+      var event = { preventDefault: sinon.spy() };
+
+      callback(event);
+      sinon.assert.notCalled(this.camera.capture);
+    });
+
+    test('It doesnt capture if confirm overlay is shown', function() {
+      this.app.get.withArgs('confirmViewVisible').returns(true);
+      var callback = this.app.on.withArgs('keydown:capture').args[0][1];
+      var event = { preventDefault: sinon.spy() };
+
+      callback(event);
+      sinon.assert.notCalled(this.camera.capture);
+    });
   });
 
   suite('CameraController#onFocusKey', function() {

@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import re
+import time
 
 from marionette_driver import expected, By, Wait
 from marionette_driver.errors import FrameSendFailureError
@@ -117,6 +118,8 @@ class Ftu(Base):
             expected.element_present(*self._next_button_locator))
         Wait(self.marionette).until(expected.element_displayed(next_button))
         Wait(self.marionette).until(expected.element_enabled(next_button))
+        # In b2g desktop builds, this sleep prevents intermittent failures
+        time.sleep(0.2)
         next_button.tap()
 
     def a11y_click_next(self):
@@ -347,6 +350,9 @@ class Ftu(Base):
     def enter_email_address(self, email):
         # TODO assert that this is preserved in the system somewhere. Currently it is not used
         self.marionette.find_element(*self._email_field_locator).send_keys(email)
+        self.marionette.switch_to_frame()
+        Wait(self.marionette).until(lambda m: self.keyboard.is_keyboard_displayed)
+        self.apps.switch_to_displayed_app()
 
     def tap_next_to_finish_section(self):
         self.tap_next()

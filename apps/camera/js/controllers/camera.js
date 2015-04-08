@@ -112,8 +112,10 @@ CameraController.prototype.bindEvents = function() {
  */
 CameraController.prototype.onCaptureKey = function(e) {
   debug('on capture key', e);
-  var output = this.capture();
-  if (output !== false) { e.preventDefault(); }
+  var ignore = this.app.get('timerActive') ||
+    this.app.get('confirmViewVisible');
+  if (ignore) { return e.preventDefault(); }
+  if (this.capture() !== false) { e.preventDefault(); }
 };
 
 /**

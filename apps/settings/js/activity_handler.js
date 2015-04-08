@@ -173,4 +173,4 @@
   };
 
   exports.ActivityHandler = ActivityHandler;
-})(this);
+})(window);

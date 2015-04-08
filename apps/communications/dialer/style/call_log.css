@@ -63,7 +63,7 @@ form[role="dialog"][data-type="edit"] gaia-header {
 }
 
 #call-log-container[data-type="list"] li a p {
-  line-height: 2rem;
+  line-height: 2.4rem;
 }
 
 #call-log-container[data-type="list"] li a p:nth-last-of-type(3) {
@@ -166,6 +166,11 @@ ol, ul {
   display: flex;
 }
 
+/* Decrease padding defined by BB styles to compensate increased line-height */
+.log-item .primary-info:first-of-type {
+  padding-top: 0.8rem;
+}
+
 .log-item a > p {
   width: calc(100% - 4rem);
 }
@@ -192,6 +197,7 @@ ol, ul {
 .log-item .additional-info {
   display: inline-flex;
   justify-content: space-between;
+  margin-top: -0.4rem;
 }
 
 .log-item .type-carrier {

@@ -7,7 +7,7 @@ define(function(require) {
    * Singleton object that helps to populate and manage the 'Select a SIM card'
    * panel in the call settings panel.
    */
-  var CallIccHandler = (function(window, document) {
+  var CallIccHandler = (function() {
 
     /** Card state mapping const. */
     var CARDSTATE_MAPPING = {
@@ -271,7 +271,7 @@ define(function(require) {
     return {
       init: ihfcs_init
     };
-  })(this, document);
+  })();
 
   return CallIccHandler;
 });

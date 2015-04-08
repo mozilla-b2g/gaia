@@ -32,6 +32,25 @@ form[role="dialog"][data-type="confirm"] p {
   white-space: pre-line;
 }
 
+form[role="dialog"].error-dialog-show-recipient ul {
+  border: none;
+}
+
+form[role="dialog"].error-dialog-show-recipient ul li {
+  padding: 0;
+}
+
+/* This does not override the building block, that's why we use a shorter
+ * selector */
+.error-dialog-show-recipient li {
+  /* future-proof in case BB moves to "text-align: start" */
+  width: -moz-fit-content;
+
+  /* List items are phone numbers */
+  direction: ltr;
+  unicode-bidi: -moz-isolate;
+}
+
 gaia-header {
   position: relative;
   z-index: 10;
@@ -253,7 +272,7 @@ form[role="dialog"][data-type="edit"] .bb-tablist > li {
   opacity: 0.5;
 }
 
-[data-type="list"] .is-draft .name {
+[data-type="list"] .is-draft .threadlist-item-title {
   font-style: italic;
   color: #5f5f5f;
 }

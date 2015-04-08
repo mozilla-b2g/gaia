@@ -96,8 +96,10 @@
 
     var isPseudo = this.isPseudo();
 
-    for (var i = 0, node; (node = ast[i]); i++) {
-      var id = node.$i;
+    var node, id;
+    for (var i = 0; i < ast.length; i ++) {
+      node = ast[i];
+      id = node.$i;
 
       if (this.astById[id]) {
         var e = new L10n.Error(
@@ -149,7 +151,7 @@
         id, loc));
       cur++;
     }
-    return '';
+    return sourceEntity;
   };
 
   navigator.mozL10n.translateDocument = L10n.translateDocument;

@@ -117,6 +117,7 @@ suite('Bluetooth app > PairManager ', function() {
       this.sinon.stub(PairManager, '_watchOnenterpincodereq');
       this.sinon.stub(PairManager, '_watchOnpairingconfirmationreq');
       this.sinon.stub(PairManager, '_watchOnpairingconsentreq');
+      this.sinon.stub(PairManager, '_watchOnpairingaborted');
       this.sinon.stub(PairManager, '_onRequestPairingFromSystemMessage');
       this.sinon.stub(PairManager, 'showPendingPairing');
       this.sinon.stub(PairManager, 'onBluetoothDisabled');
@@ -139,12 +140,13 @@ suite('Bluetooth app > PairManager ', function() {
 
     suite('should watch pairing request events from dom event > ', function() {
       test('"_watchOndisplaypasskeyreq", "_watchOnenterpincodereq", ' +
-           '"_watchOnpairingconfirmationreq", "_watchOnpairingconsentreq" ' +
-           'should be called ', function() {
+           '"_watchOnpairingconfirmationreq", "_watchOnpairingconsentreq", ' +
+           '"_watchOnpairingaborted" should be called ', function() {
         assert.isTrue(PairManager._watchOndisplaypasskeyreq.called);
         assert.isTrue(PairManager._watchOnenterpincodereq.called);
         assert.isTrue(PairManager._watchOnpairingconfirmationreq.called);
         assert.isTrue(PairManager._watchOnpairingconsentreq.called);
+        assert.isTrue(PairManager._watchOnpairingaborted.called);
       });
     });
 
@@ -230,6 +232,54 @@ suite('Bluetooth app > PairManager ', function() {
       PairManager._watchOndisplaypasskeyreq();
       assert.isDefined(
         PairManager._defaultAdapter.pairingReqs.ondisplaypasskeyreq);
+    });
+  });
+
+  suite('_watchOnpairingaborted > ', function() {
+    var mockDefaultAdapter, mockEvent;
+    setup(function() {
+      mockDefaultAdapter = {
+        addEventListener: function() {}
+      };
+      PairManager._defaultAdapter = mockDefaultAdapter;
+      this.sinon.stub(PairManager._defaultAdapter, 'addEventListener');
+      this.sinon.stub(PairManager, '_onPairingAborted');
+      mockEvent = {};
+    });
+
+    test('_defaultAdapter.onpairingaborted should be registered callback ' +
+         'function ', function() {
+      PairManager._watchOnpairingaborted();
+      assert.equal(PairManager._defaultAdapter.addEventListener.args[0][0],
+        'pairingaborted');
+      PairManager._defaultAdapter.addEventListener.args[0][1](mockEvent);
+      assert.isTrue(PairManager._onPairingAborted.calledWith(mockEvent));
+    });
+  });
+
+  suite('_onPairingAborted > ', function() {
+    var mockEvent;
+    setup(function() {
+      this.sinon.stub(Pairview, 'closeInput');
+      PairManager.pendingPairing = {};
+      PairManager.childWindow = {
+        Pairview: Pairview,
+        close: this.sinon.spy()
+      };
+      switchReadOnlyProperty(PairExpiredDialog, 'isVisible', true);
+      this.sinon.stub(PairExpiredDialog, 'close');
+      this.sinon.stub(window, 'close');
+    });
+
+    test('Pairview.closeInput() should be called, childWindow should be close' +
+         'window.close() should be called, pendingPairing should be null, ' +
+         'PairExpiredDialog.close() should be called ', function() {
+        PairManager._onPairingAborted(mockEvent);
+        assert.isTrue(PairManager.childWindow.Pairview.closeInput.called);
+        assert.isTrue(PairManager.childWindow.close.called);
+        assert.isNull(PairManager.pendingPairing);
+        assert.isTrue(PairExpiredDialog.close.called);
+        assert.isTrue(window.close.called);
     });
   });
 

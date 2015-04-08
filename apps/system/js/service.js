@@ -202,7 +202,7 @@
      * Service.query('isFtuRunning');
      * 
      * @param  {String} state The machine name and the state name.
-     * @return {String|Boolean|Number}       
+     * @return {String|Boolean|Number|Object}
      */
     query: function(stateString) {
       this.debug(stateString);

@@ -67,6 +67,46 @@ suite('dialer/keypad', function() {
 
   mocksHelperForKeypad.attachTestHelpers();
 
+  // Helpers for testing abbreviated dialing codes
+  var node;
+  var fakeEventStart;
+  var fakeEventEnd;
+
+  /**
+   * Create the mock elements needed to test abbreviated dialing codes.
+   */
+  function setupAbbreviatedDialingCodesMocks() {
+    subject._phoneNumber = '';
+    node = document.createElement('div');
+    fakeEventStart = {
+      target: node,
+      preventDefault: function() {},
+      stopPropagation: function() {},
+      type: 'touchstart'
+    };
+    fakeEventEnd = {
+      target: node,
+      preventDefault: function() {},
+      stopPropagation: function() {},
+      type: 'touchend'
+    };
+  }
+
+  /**
+   * Send the fake events needed to emulate the typing of an abbreviated
+   * dialing code.
+   *
+   * @param {String} number The abbrevited dialing code to type.
+   */
+  function typeAbbreviatedDialingCode(number) {
+    for (var i = 0, end = number.length; i < end; i++) {
+      fakeEventStart.target.dataset.value = number.charAt(i);
+      subject.keyHandler(fakeEventStart);
+      fakeEventEnd.target.dataset.value = number.charAt(i);
+      subject.keyHandler(fakeEventEnd);
+    }
+  }
+
   suiteSetup(function() {
     realMozIccManager = navigator.mozIccManager;
     navigator.mozIccManager = new MockIccManager();
@@ -146,25 +186,9 @@ suite('dialer/keypad', function() {
     suite('Abbreviated dialing codes', function() {
       var mmi = '*#06#';
       var speedDialNum = '1#';
-      var node;
-      var fakeEventStart;
-      var fakeEventEnd;
 
       setup(function() {
-        subject._phoneNumber = '';
-        node = document.createElement('div');
-        fakeEventStart = {
-          target: node,
-          preventDefault: function() {},
-          stopPropagation: function() {},
-          type: 'touchstart'
-        };
-        fakeEventEnd = {
-          target: node,
-          preventDefault: function() {},
-          stopPropagation: function() {},
-          type: 'touchend'
-        };
+        setupAbbreviatedDialingCodesMocks();
       });
 
       test('Properly highlight the last key in an abbreviated dialing code',
@@ -199,12 +223,7 @@ suite('dialer/keypad', function() {
       test('Get IMEI via send MMI', function() {
         this.sinon.spy(MockMultiSimActionButtonSingleton, 'performAction');
 
-        for (var i = 0, end = mmi.length; i < end; i++) {
-          fakeEventStart.target.dataset.value = mmi.charAt(i);
-          subject.keyHandler(fakeEventStart);
-          fakeEventEnd.target.dataset.value = mmi.charAt(i);
-          subject.keyHandler(fakeEventEnd);
-        }
+        typeAbbreviatedDialingCode(mmi);
 
         sinon.assert.calledOnce(
           MockMultiSimActionButtonSingleton.performAction);
@@ -215,12 +234,7 @@ suite('dialer/keypad', function() {
           return Promise.resolve('123');
         });
 
-        for (var i = 0, end = speedDialNum.length; i < end; i++) {
-          fakeEventStart.target.dataset.value = speedDialNum.charAt(i);
-          subject.keyHandler(fakeEventStart);
-          fakeEventEnd.target.dataset.value = speedDialNum.charAt(i);
-          subject.keyHandler(fakeEventEnd);
-        }
+        typeAbbreviatedDialingCode(speedDialNum);
 
         sinon.assert.calledWith(KeypadManager._getSpeedDialNumber, 1);
       });
@@ -406,6 +420,15 @@ suite('dialer/keypad', function() {
 
       teardown(function() {
         subject.init(/* oncall */ false);
+      });
+
+      test('Disable abbreviated dialing codes', function() {
+        this.sinon.spy(KeypadManager, '_getSpeedDialNumber');
+
+        setupAbbreviatedDialingCodesMocks();
+        typeAbbreviatedDialingCode('1#');
+
+        sinon.assert.notCalled(KeypadManager._getSpeedDialNumber);
       });
 
       suite('Audible and DTMF tones', function() {

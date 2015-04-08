@@ -1,7 +1,7 @@
 'use strict';
 
 /* global AppUsageMetrics, MockasyncStorage, MockNavigatorSettings,
-          MockSIMSlotManager, MockAppsMgmt, MockApp */
+          MockSIMSlotManager, MockAppsMgmt, MockApp, MockApplications */
 
 
 require('/shared/js/settings_listener.js');
@@ -16,6 +16,8 @@ require('/shared/test/unit/mocks/mock_simslot.js');
 
 requireApp('system/test/unit/mock_apps_mgmt.js');
 requireApp('system/test/unit/mock_app.js');
+requireApp('system/test/unit/mock_applications.js');
+
 /*
  * This test suite has several sub-suites that verify that:
  * 1) methods of the UsageData class properly record data
@@ -28,7 +30,7 @@ requireApp('system/test/unit/mock_app.js');
  */
 suite('AppUsageMetrics:', function() {
   var realMozSettings, realOnLine, realSIMSlotManager, realPerformanceNow,
-      realMozApps;
+      realMozApps, realApplications;
   var isOnLine = true;
 
   function navigatorOnLine() {
@@ -65,6 +67,9 @@ suite('AppUsageMetrics:', function() {
     realPerformanceNow = window.performance.now;
     window.performance.now = function() { return Date.now(); };
 
+    realApplications = window.applications;
+    window.applications = MockApplications;
+    window.applications.ready = true;
     AppUsageMetrics.DEBUG = false; // Shut up console output in test logs
   });
 
@@ -84,6 +89,7 @@ suite('AppUsageMetrics:', function() {
     }
 
     window.performance.now = realPerformanceNow;
+    window.applications = realApplications;
   });
 
   teardown(function() {
@@ -139,7 +145,7 @@ suite('AppUsageMetrics:', function() {
     });
 
     suite('should track app', function() {
-      var metrics, invalidApp;
+      var metrics, invalidApp, undefOriginApp;
 
       setup(function() {
         metrics = new UsageData();
@@ -147,6 +153,13 @@ suite('AppUsageMetrics:', function() {
           manifestURL: 'foobar',
           installOrigin: 'http://www.foo.com'
         });
+
+        undefOriginApp = {
+          installOrigin: 'https://marketplace.firefox.com',
+          manifestURL: 'https://marketplace.firefox.com/app/1-2-3-4'
+        };
+
+        MockApplications.mRegisterMockApp(undefOriginApp);
       });
 
       function getInvalidAppUsage() {
@@ -172,6 +185,14 @@ suite('AppUsageMetrics:', function() {
 
         // Non-certified gaiamobile app
         assert.ok(metrics.shouldTrackApp(new MockApp()));
+
+        // Marketplace app w/o installOrigin. This ensures we
+        // get the installOrigin from the applications cache if
+        // the installOrigin is not sent in an appopened event.
+        // See Bug 1137063
+        assert.ok(metrics.shouldTrackApp(new MockApp({
+          manifestURL: undefOriginApp.manifestURL
+        })));
       });
 
       test('invalid apps', function() {
@@ -981,16 +1002,16 @@ suite('AppUsageMetrics:', function() {
       assert.equal(info.screen.width, screen.width);
       assert.equal(info.screen.height, screen.height);
       assert.equal(info.screen.devicePixelRatio, window.devicePixelRatio);
+      assert.equal(info.appBuildID, 'unknown');
+      assert.equal(info.appVersion, 'unknown');
+      assert.equal(info.appUpdateChannel, 'unknown');
 
       var deviceInfo = info.deviceinfo;
       assert.equal(deviceInfo['developer.menu.enabled'], 'true');
       assert.equal(deviceInfo['deviceinfo.hardware'], 'hardware');
       assert.equal(deviceInfo['deviceinfo.product_model'], 'model');
       assert.equal(deviceInfo['deviceinfo.os'], 'unknown');
-      assert.equal(deviceInfo['deviceinfo.platform_build_id'], 'unknown');
-      assert.equal(deviceInfo['deviceinfo.platform_version'], 'unknown');
       assert.equal(deviceInfo['deviceinfo.software'], 'unknown');
-      assert.equal(deviceInfo['app.update.channel'], 'unknown');
 
       // Make sure we're recording a new batch of metrics
       assert.notEqual(metrics, aum.metrics);

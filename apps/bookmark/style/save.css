@@ -35,6 +35,7 @@ body[data-mode="put"] #edit-bookmark-header {
   background-repeat: no-repeat;
   background-position: center center;
   background-image: url('../shared/elements/gaia_grid/images/default_icon.png');
+  background-size: 8.4rem;
   display: block;
   margin-bottom: 2.4rem;
 }
@@ -44,11 +45,7 @@ body[data-mode="put"] #edit-bookmark-header {
 
 #app-installation {
   padding: 1.5rem;
-  padding-top: 3rem;
-}
-
-#app-installation.hidden {
-  display: none;
+  padding-top: 2rem;
 }
 
 #app-installation h2 {
@@ -69,10 +66,17 @@ body[data-mode="put"] #edit-bookmark-header {
   text-transform: uppercase;
 }
 
+#app-icon, #app-icon-placeholder {
+  display: block;
+  width: 6rem;
+  height: 6rem;
+  margin: 0.5rem auto 0 auto;
+}
+
 #app-installation p {
   font-size: 1.4rem;
   color: rgb(80, 88, 89);
-  margin: 1.5rem;
+  margin: 1rem;
 }
 
 #app-installation #app-name {
@@ -91,4 +95,10 @@ body[data-mode="put"] #edit-bookmark-header {
   width: auto;
   margin: 0 auto;
   padding: 0 5rem;
+}
+
+#app-icon.hidden,
+#app-icon-placeholder.hidden,
+#app-installation.hidden {
+  display: none;
 }

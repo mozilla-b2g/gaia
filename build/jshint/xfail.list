@@ -82,7 +82,6 @@ apps/keyboard/js/imes/jspinyin/worker.js
 apps/keyboard/js/imes/jszhuyin/jszhuyin.js
 apps/keyboard/js/imes/latin/latin.js
 apps/keyboard/js/imes/latin/predictions.js
-apps/keyboard/js/imes/latin/worker.js
 apps/keyboard/js/render.js
 apps/keyboard/js/settings/settings.js
 apps/keyboard/test/unit/imes/jspinyin/jspinyin_test.js
@@ -125,12 +124,9 @@ apps/sharedtest/test/unit/device_storage_test.js
 apps/sharedtest/test/unit/gesture_detector_test.js
 apps/sharedtest/test/unit/mediadb_test.js
 apps/sharedtest/test/unit/tag_visibility_monitor_test.js
-apps/system/js/airplane_mode.js
-apps/system/js/base_ui.js
 apps/system/js/browser_config_helper.js
 apps/system/js/browser_frame.js
 apps/system/js/browser_mixin.js
-apps/system/js/crash_reporter.js
 apps/system/js/download/download_manager.js
 apps/system/js/download/download_notification.js
 apps/system/js/emergency_callback_manager.js
@@ -209,9 +205,6 @@ apps/system/test/unit/mock_settingslistener_installer.js
 apps/system/test/unit/mock_sheets_transition.js
 apps/system/test/unit/mock_stack_manager.js
 apps/system/test/unit/mock_statusbar.js
-apps/system/test/unit/mock_template.js
-apps/system/test/unit/mock_trusted_ui_manager.js
-apps/system/test/unit/mock_update_manager.js
 apps/system/test/unit/operator_variant_helper_test.js
 apps/system/test/unit/orientation_manager_test.js
 apps/system/test/unit/settings_helper_test.js

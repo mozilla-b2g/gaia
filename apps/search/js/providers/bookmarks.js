@@ -50,10 +50,12 @@
       var self = this;
       return new Promise(function(resolve, reject) {
         var renderResults = [];
+        filter = filter.toLowerCase();
         for(var elem in self.persistStore.results) {
           var bookmark = self.persistStore.results[elem];
+          var name = ('name' in bookmark) && bookmark.name.toLowerCase();
           if ((!bookmark.url || bookmark.url.indexOf(filter) == -1) &&
-              (!bookmark.name || bookmark.name.indexOf(filter) == -1)) {
+              (!name || name.indexOf(filter) == -1)) {
             continue;
           }
           renderResults.push(formatBookmark(bookmark));
