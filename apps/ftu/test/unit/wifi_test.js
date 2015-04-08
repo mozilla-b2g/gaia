@@ -13,10 +13,12 @@ requireApp('ftu/test/unit/mock_fx_accounts_iac_helper.js');
 requireApp('ftu/js/wifi.js');
 requireApp('ftu/js/ui.js');
 require('/shared/js/wifi_helper.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksHelperForWifi = new MocksHelper([
   'utils',
-  'MozWifiNetwork'
+  'MozWifiNetwork',
+  'SettingsListener'
 ]).init();
 
 suite('wifi > ', function() {
