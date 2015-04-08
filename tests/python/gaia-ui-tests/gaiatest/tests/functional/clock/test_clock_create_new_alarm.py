@@ -13,15 +13,6 @@ class TestClockCreateNewAlarm(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
 
-        # Set the time on the device
-        _seconds_since_epoch = self.marionette.execute_script("""
-                var today = new Date();
-                var yr = today.getFullYear();
-                var mth = today.getMonth();
-                var day = today.getDate();
-                return new Date(yr, mth, day, 1, 0, 0).getTime();""")
-        self.data_layer.set_time(_seconds_since_epoch)
-
         self.clock = Clock(self.marionette)
         self.clock.launch()
 
@@ -31,10 +22,20 @@ class TestClockCreateNewAlarm(GaiaTestCase):
         https://moztrap.mozilla.org/manage/case/1775/
         """
 
+        # Set the time on the device
+        _seconds_since_epoch = self.marionette.execute_script("""
+                var today = new Date();
+                var yr = today.getFullYear();
+                var mth = today.getMonth();
+                var day = today.getDate();
+                return new Date(yr, mth, day, 1, 0, 0).getTime();""")
+
         alarm_label_text = "test4321"
 
         # get the number of alarms set, before adding the new alarm
         initial_alarms_count = len(self.clock.alarms)
+
+        self.data_layer.set_time(_seconds_since_epoch)
 
         # create a new alarm with the default values that are available
         new_alarm = self.clock.tap_new_alarm()
@@ -67,7 +68,7 @@ class TestClockCreateNewAlarm(GaiaTestCase):
 
         # Set the alarm time to 1 min more than the current time
         time_picker = edit_alarm.tap_time()
-        time_picker.spin_minute()
+        time_picker.add_minute()
         time_picker.tap_done()
 
         edit_alarm.tap_done()
