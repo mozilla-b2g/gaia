@@ -21,7 +21,8 @@
     'GeolocationCore',
     'TetheringMonitor',
     'UsbCore',
-    'CameraTrigger'
+    'CameraTrigger',
+    'FeatureDetector'
   ];
 
   Core.SERVICES = [

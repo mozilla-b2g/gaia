@@ -269,14 +269,9 @@
   };
 
   InputWindowManager.prototype._getMemory = function iwm_getMemory() {
-    if ('getFeature' in navigator) {
-      navigator.getFeature('hardware.memory').then(mem => {
-        this._totalMemory = mem;
-      }, () => {
-        console.error('InputWindowManager: ' +
-          'Failed to retrieve total memory of the device.');
-      });
-    }
+    Service.request('getDeviceMemory').then((mem) => {
+      this._totalMemory = mem;
+    });
   };
 
   InputWindowManager.prototype._oopSettingCallback =
