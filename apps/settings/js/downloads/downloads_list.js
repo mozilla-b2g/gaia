@@ -467,7 +467,7 @@
 
   exports.DownloadsList = DownloadsList;
 
-}(this));
+}(window));
 
 // startup
 navigator.mozL10n.once(DownloadsList.init.bind(DownloadsList));
