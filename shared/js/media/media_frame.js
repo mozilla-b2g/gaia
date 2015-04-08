@@ -51,7 +51,7 @@ function MediaFrame(container, includeVideo, maxImageSize) {
 
   // Add a class to the container so we could find it later and use it as
   // a key in the instance weakmap.
-  container.classList.add('media-frame');
+  container.classList.add('media-frame-container');
   MediaFrame.instancesToLocalize.set(container, this);
 }
 
@@ -60,7 +60,7 @@ MediaFrame.instancesToLocalize = new WeakMap();
 
 navigator.mozL10n.ready(function() {
   // Retrieve MediaFrame instances by searching for container nodes.
-  for (var container of document.querySelectorAll('.media-frame')) {
+  for (var container of document.querySelectorAll('.media-frame-container')) {
     var instance = MediaFrame.instancesToLocalize.get(container);
     if (instance) {
       instance.localize();
