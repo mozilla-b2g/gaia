@@ -529,7 +529,6 @@ var ThreadListUI = {
     function onAllThreadMessagesRetrieved() {
       if (!--threadCountToDelete) {
         MessageManager.deleteMessages(messageIdsToDelete);
-        ThreadListUI.exitEditMode();
       }
     }
 
@@ -551,7 +550,7 @@ var ThreadListUI = {
   threadUndoBanner: function thlui_threadUndoBanner(undoType, arg1, arg2, arg3) {
     var toast = this.undoBanner, draftIds, threadIds, threadToMark, isRead;
 
-    var undoAction = function undoAction () {
+    function undoAction () {
       toast.classList.add('hide');
       clearTimeout(ThreadListUI.timeouts.onUndo);
       ThreadListUI.timeouts.onUndo = null;

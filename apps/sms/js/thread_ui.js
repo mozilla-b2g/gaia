@@ -60,11 +60,10 @@ var ThreadUI = {
   CONVERTED_MESSAGE_DURATION: 3000,
   IMAGE_RESIZE_DURATION: 3000,
   BANNER_DURATION: 2000,
-
   // Toast duration when you write a long text and need more than one SMS
   // to send it
   ANOTHER_SMS_TOAST_DURATION: 3000,
-
+  UNDO_DURATION: 10000,
   // when sending an sms to several recipients in activity, we'll exit the
   // activity after this delay after moving to the thread list.
   LEAVE_ACTIVITY_DELAY: 3000,
@@ -80,7 +79,8 @@ var ThreadUI = {
 
   timeouts: {
     update: null,
-    subjectLengthNotice: null
+    subjectLengthNotice: null,
+    onUndo: null
   },
 
   multiSimActionButton: null,
@@ -1897,35 +1897,70 @@ var ThreadUI = {
   },
 
   delete: function thui_delete() {
-    function performDeletion() {
-      /* jshint validthis: true */
+    /* jshint validthis: true */
+    var items = this.selectionHandler.selectedList;
+    var delNumList = items.map(item => +item);
 
-      WaitingScreen.show();
-      var items = this.selectionHandler.selectedList;
-      var delNumList = items.map(item => +item);
+    ThreadUI.deleteUIMessages(delNumList, function uiDeletionDone() {
+      ThreadUI.cancelEdit();
+    });
 
-      // Complete deletion in DB and in UI
-      MessageManager.deleteMessages(delNumList,
-        function onDeletionDone() {
-          ThreadUI.deleteUIMessages(delNumList, function uiDeletionDone() {
-            ThreadUI.cancelEdit();
-            WaitingScreen.hide();
-          });
-        }
-      );
+    var threadEmpty = ThreadUI.container.firstElementChild ? false : true;
+    var toastMessage = delNumList.length + ' deleted';
+    if (threadEmpty) {
+      var toast = document.getElementById('threads-undo-banner');
+    } else {
+      var toast = document.getElementById('messages-undo-banner');
     }
 
-    return Utils.confirm(
-      {
-        id: 'deleteMessages-confirmation-message',
-        args: { n: this.selectionHandler.selectedCount }
-      },
-      null,
-      {
-        text: 'delete',
-        className: 'danger'
+    navigator.mozL10n.setAttributes(toast.firstElementChild, 'undo-toast', {
+        n: toastMessage
       }
-    ).then(performDeletion.bind(this));
+    );
+
+    function undoAction () {
+      clearTimeout(ThreadUI.timeouts.onUndo);
+      ThreadUI.timeouts.onUndo = null;
+      var request = MessageManager.getMessage(delNumList[0]);
+      request.onsuccess = (function() {
+        var message = request.result;
+        toast.lastElementChild.removeEventListener('click', undoAction);
+        toast.classList.add('hide');
+        ThreadListUI.undoCheck = 0;
+        console.log('undo');
+        if (threadEmpty) {
+          ThreadListUI.appendThread(Threads.get(message.threadId));
+        } else {
+          delNumList.forEach(function(id) {
+            var request = MessageManager.getMessage(id);
+
+            request.onsuccess = (function() {
+              ThreadUI.appendMessage(request.result);
+            });
+          });
+        }
+      });
+    }
+
+    toast.lastElementChild.addEventListener('click', undoAction);
+    toast.classList.remove('hide');
+
+    clearTimeout(this.timeouts.onUndo);
+    this.timeouts.onUndo = null;
+
+    this.timeouts.onUndo = setTimeout(function hideUndoBanner() {
+      toast.classList.add('hide');
+      toast.lastElementChild.removeEventListener('click', undoAction);
+      toast.firstElementChild.removeAttribute('data-l10n-id');
+      toast.firstElementChild.textContent = '';
+
+      if(ThreadListUI.undoCheck) {
+        console.log('no-undo');
+        MessageManager.deleteMessages(delNumList);
+      }
+    }.bind(this), this.UNDO_DURATION);
+
+    ThreadListUI.undoCheck = 1;
   },
 
   cancelEdit: function thlui_cancelEdit() {
