@@ -61,6 +61,12 @@ suite('system/UtilityTray', function() {
     originalSoftwareButtonManager = window.softwareButtonManager;
     window.softwareButtonManager = window.MocksoftwareButtonManager;
 
+    Service.currentApp = {
+      appChrome: {
+        titleClicked: function() {}
+      }
+    };
+
     var statusbar = document.createElement('div');
     statusbar.style.cssText = 'height: 100px; display: block;';
 
@@ -168,13 +174,11 @@ suite('system/UtilityTray', function() {
         fakeTransitionEnd();
       });
 
-      test('should send a global search request', function(done) {
-        window.addEventListener('global-search-request', function gotIt() {
-          window.removeEventListener('global-search-request', gotIt);
-          assert.isTrue(true, 'got the event');
-          done();
-        });
+      test('should call to titleClicked', function() {
+        var appChrome = Service.currentApp.appChrome;
+        var titleStub = this.sinon.stub(appChrome, 'titleClicked');
         fakeTouches(0, 2);
+        assert.isTrue(titleStub.called);
       });
 
       test('should hide the Utility tray', function() {
