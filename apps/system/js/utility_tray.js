@@ -23,6 +23,8 @@ window.UtilityTray = {
 
   ambientIndicator: document.getElementById('ambient-indicator'),
 
+  softwareButtons: document.getElementById('software-buttons'),
+
   grippy: document.getElementById('utility-tray-grippy'),
 
   container: document.getElementById('desktop-notifications-container'),
@@ -53,6 +55,7 @@ window.UtilityTray = {
       this.statusbarIcons.addEventListener(name, this);
       this.grippy.addEventListener(name, this);
       this.topPanel.addEventListener(name, this);
+      this.softwareButtons.addEventListener(name, this);
     }, this);
 
     window.addEventListener('screenchange', this);
@@ -238,14 +241,21 @@ window.UtilityTray = {
           return;
         }
 
+        // Prevent swipe up gesture when closed.
+        if (target === this.softwareButtons && !this.showing) {
+          return;
+        }
+
         // Prevent swipe down gesture when already opened/opening.
-        if (target !== this.grippy && this.showing) {
+        if (target !== this.grippy &&
+            target !== this.softwareButtons && this.showing) {
           return;
         }
 
         if (target !== this.overlay && target !== this.grippy &&
             evt.currentTarget !== this.statusbarIcons &&
-            evt.currentTarget !== this.topPanel) {
+            evt.currentTarget !== this.topPanel &&
+            evt.currentTarget !== this.softwareButtons) {
           return;
         }
 
