@@ -45,7 +45,7 @@ marionette('Vertical - Collection', function() {
     server.unfailAll();
 
     var expectedMsg = home.l10n(
-      '/locales-obj/en-US.json',
+      '/locales-obj/index.en-US.json',
       'network-error-message'
     );
 

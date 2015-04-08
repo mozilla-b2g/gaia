@@ -157,6 +157,13 @@
   navigator.mozL10n.translateDocument = L10n.translateDocument;
 
   navigator.mozL10n.getAST = function() {
+    // if we don't have any resources we want to inform the client that
+    // there should be no AST for this file, which is different from
+    // returning an empty AST
+    if (this.ctx.resLinks.length === 0) {
+      return null;
+    }
+
     var ast = [];
 
     // en-US is the de facto source locale of Gaia
